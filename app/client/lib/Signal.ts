@@ -1,5 +1,5 @@
-import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
-import { Disposable, IDisposable, IDisposableOwner, Observable } from 'grainjs';
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { Disposable, IDisposable, IDisposableOwner, Observable } from "grainjs";
 
 /**
  * A simple abstraction for events composition. It is an object that can emit a single value of type T,
@@ -66,7 +66,7 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
     const on: any = (s: Signal) => {
       if (!signal._listeners.has(s)) {
         signal._listeners.add(s);
-        signal._emitter.listenTo(s._emitter, 'signal', () => signal.emit(compute(on)));
+        signal._emitter.listenTo(s._emitter, "signal", () => signal.emit(compute(on)));
       }
       return s.state.get();
     };
@@ -167,9 +167,9 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
     const stateHandler = () => {
       handler(this.state.get());
     };
-    this._emitter.on('signal', stateHandler);
+    this._emitter.on("signal", stateHandler);
     return {
-      dispose: () => this._emitter.off('signal', stateHandler),
+      dispose: () => this._emitter.off("signal", stateHandler),
     };
   }
 
@@ -177,12 +177,12 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
     if (this._beforeHandler) {
       this._beforeHandler(value, (emitted: T) => {
         this.state.set(emitted);
-        this._emitter.trigger('signal', emitted);
+        this._emitter.trigger("signal", emitted);
       });
     }
     else {
       this.state.set(value);
-      this._emitter.trigger('signal', value);
+      this._emitter.trigger("signal", value);
     }
   }
 

@@ -1,14 +1,14 @@
-import { PassThrough } from 'stream';
+import { PassThrough } from "stream";
 import { FilterColValues } from "app/common/ActiveDocAPI";
 import { ActiveDocSource, doExportDoc, doExportSection, doExportTable,
-  ExportData, ExportHeader, ExportParameters, Filter } from 'app/server/lib/Export';
-import { createExcelFormatter } from 'app/server/lib/ExcelFormatter';
-import log from 'app/server/lib/log';
+  ExportData, ExportHeader, ExportParameters, Filter } from "app/server/lib/Export";
+import { createExcelFormatter } from "app/server/lib/ExcelFormatter";
+import log from "app/server/lib/log";
 import { Alignment, Border, Buffer as ExcelBuffer, stream as ExcelWriteStream,
-  Fill, Workbook } from 'exceljs';
-import { Rpc } from 'grain-rpc';
-import { Stream } from 'stream';
-import { MessagePort, threadId } from 'worker_threads';
+  Fill, Workbook } from "exceljs";
+import { Rpc } from "grain-rpc";
+import { Stream } from "stream";
+import { MessagePort, threadId } from "worker_threads";
 
 export const makeXLSXFromOptions = handleExport(doMakeXLSXFromOptions);
 
@@ -24,7 +24,7 @@ function handleExport<T extends any[]>(
         logger: { info: (m) => {}, warn: m => log.warn(m) },
       });
       const activeDocSource = rpc.getStub<ActiveDocSource>("activeDocSource");
-      port.on('message', m => rpc.receiveMessage(m));
+      port.on("message", m => rpc.receiveMessage(m));
       const outputStream = new PassThrough();
       bufferedPipe(outputStream, chunk => rpc.postMessage(chunk));
       await make(activeDocSource, testDates, outputStream, ...args);
@@ -59,7 +59,7 @@ function bufferedPipe(stream: Stream, callback: (chunk: Buffer) => void, thresho
     }
   }
 
-  stream.on('data', (chunk) => {
+  stream.on("data", (chunk) => {
     // Whenever data is written to the stream, add it to the buffer.
     buffers.push(chunk);
     length += chunk.length;
@@ -71,7 +71,7 @@ function bufferedPipe(stream: Stream, callback: (chunk: Buffer) => void, thresho
     }
   });
 
-  stream.on('end', flush);
+  stream.on("end", flush);
 }
 
 export async function doMakeXLSXFromOptions(
@@ -191,14 +191,14 @@ function convertToExcel(stream: Stream | undefined, testDates: boolean, options:
     wb.modified = date;
     wb.created = date;
     wb.lastPrinted = date;
-    wb.creator = 'test';
-    wb.lastModifiedBy = 'test';
+    wb.creator = "test";
+    wb.lastModifiedBy = "test";
   }
   // Prepare border - some of the cells can have background colors, in that case border will
   // not be visible
   const borderStyle: Border = {
-    color: { argb: 'FFE2E2E3' }, // dark gray - default border color for gdrive
-    style: 'thin',
+    color: { argb: "FFE2E2E3" }, // dark gray - default border color for gdrive
+    style: "thin",
   };
   const borders = {
     left: borderStyle,
@@ -207,17 +207,17 @@ function convertToExcel(stream: Stream | undefined, testDates: boolean, options:
     bottom: borderStyle,
   };
   const headerBackground: Fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FFEEEEEE' }, // gray
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "FFEEEEEE" }, // gray
   };
   const headerFontColor = {
     color: {
-      argb: 'FF000000', // black
+      argb: "FF000000", // black
     },
   };
   const centerAlignment: Partial<Alignment> = {
-    horizontal: 'center',
+    horizontal: "center",
   };
   function exportTable(table: ExportData) {
     const { columns, rowIds, access, tableName } = table;
@@ -226,7 +226,7 @@ function convertToExcel(stream: Stream | undefined, testDates: boolean, options:
     const formatters = columns.map(col => createExcelFormatter(col.formatter.type, col.formatter.widgetOpts));
     // Generate headers for all columns with correct styles for whole column.
     // Actual header style for a first row will be overwritten later.
-    const colHeader = options.header ?? 'label';
+    const colHeader = options.header ?? "label";
     ws.columns = columns.map((col, c) => ({ header: col[colHeader], style: formatters[c].style() }));
     // style up the header row
     for (let i = 1; i <= columns.length; i++) {
@@ -267,14 +267,14 @@ function convertToExcel(stream: Stream | undefined, testDates: boolean, options:
 export function sanitizeWorksheetName(tableName: string): string {
   return tableName
     // Convert invalid characters to spaces
-    .replace(/[*?:/\\[\]]/g, ' ')
+    .replace(/[*?:/\\[\]]/g, " ")
 
     // Collapse multiple spaces into one
-    .replace(/\s+/g, ' ')
+    .replace(/\s+/g, " ")
 
     // Trim spaces and single quotes from the ends
-    .replace(/^['\s]+/, '')
-    .replace(/['\s]+$/, '');
+    .replace(/^['\s]+/, "")
+    .replace(/['\s]+$/, "");
 }
 
 // This method exists only to make Piscina happier. With it,

@@ -1,47 +1,47 @@
-import { Document } from 'app/gen-server/entity/Document';
-import { getScope } from 'app/server/lib/requestUtils';
-import { EventEmitter } from 'events';
-import * as path from 'path';
-import pidusage from 'pidusage';
+import { Document } from "app/gen-server/entity/Document";
+import { getScope } from "app/server/lib/requestUtils";
+import { EventEmitter } from "events";
+import * as path from "path";
+import pidusage from "pidusage";
 
-import { ApiError } from 'app/common/ApiError';
-import { mapSetOrClear, MapWithTTL } from 'app/common/AsyncCreate';
-import { BrowserSettings } from 'app/common/BrowserSettings';
-import { delay } from 'app/common/delay';
+import { ApiError } from "app/common/ApiError";
+import { mapSetOrClear, MapWithTTL } from "app/common/AsyncCreate";
+import { BrowserSettings } from "app/common/BrowserSettings";
+import { delay } from "app/common/delay";
 import { DocCreationInfo, DocEntry, DocListAPI,
-  OpenDocMode, OpenDocOptions, OpenLocalDocResult } from 'app/common/DocListAPI';
-import { FilteredDocUsageSummary } from 'app/common/DocUsage';
-import { parseUrlId } from 'app/common/gristUrls';
-import { tbind } from 'app/common/tbind';
-import { TelemetryMetadataByLevel } from 'app/common/Telemetry';
-import { NEW_DOCUMENT_CODE } from 'app/common/UserAPI';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { isSingleUserMode, RequestWithLogin } from 'app/server/lib/Authorizer';
-import { DocAuthorizer, DocAuthorizerImpl, DummyAuthorizer } from 'app/server/lib/DocAuthorizer';
+  OpenDocMode, OpenDocOptions, OpenLocalDocResult } from "app/common/DocListAPI";
+import { FilteredDocUsageSummary } from "app/common/DocUsage";
+import { parseUrlId } from "app/common/gristUrls";
+import { tbind } from "app/common/tbind";
+import { TelemetryMetadataByLevel } from "app/common/Telemetry";
+import { NEW_DOCUMENT_CODE } from "app/common/UserAPI";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { isSingleUserMode, RequestWithLogin } from "app/server/lib/Authorizer";
+import { DocAuthorizer, DocAuthorizerImpl, DummyAuthorizer } from "app/server/lib/DocAuthorizer";
 import {
   getConfiguredStandardAttachmentStore,
   IAttachmentStoreProvider,
-} from 'app/server/lib/AttachmentStoreProvider';
-import { Client } from 'app/server/lib/Client';
+} from "app/server/lib/AttachmentStoreProvider";
+import { Client } from "app/server/lib/Client";
 import { DocSessionPrecursor,
-  makeExceptionalDocSession, makeOptDocSession, OptDocSession } from 'app/server/lib/DocSession';
-import * as docUtils from 'app/server/lib/docUtils';
-import { GristServer } from 'app/server/lib/GristServer';
-import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
-import { makeForkIds, makeId } from 'app/server/lib/idUtils';
-import { insightLogDecorate, insightLogEntry } from 'app/server/lib/InsightLog';
-import { checkAllegedGristDoc } from 'app/server/lib/serverUtils';
-import { getDocSessionCachedDoc } from 'app/server/lib/sessionUtils';
-import { OpenMode, SQLiteDB } from 'app/server/lib/SQLiteDB';
-import log from 'app/server/lib/log';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
-import { PluginManager } from 'app/server/lib/PluginManager';
-import { getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo } from 'app/server/lib/uploads';
-import isDeepEqual from 'lodash/isEqual';
-import merge from 'lodash/merge';
-import noop from 'lodash/noop';
-import { DocumentSettings, DocumentSettingsChecker } from 'app/common/DocumentSettings';
-import { safeJsonParse } from 'app/common/gutil';
+  makeExceptionalDocSession, makeOptDocSession, OptDocSession } from "app/server/lib/DocSession";
+import * as docUtils from "app/server/lib/docUtils";
+import { GristServer } from "app/server/lib/GristServer";
+import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
+import { makeForkIds, makeId } from "app/server/lib/idUtils";
+import { insightLogDecorate, insightLogEntry } from "app/server/lib/InsightLog";
+import { checkAllegedGristDoc } from "app/server/lib/serverUtils";
+import { getDocSessionCachedDoc } from "app/server/lib/sessionUtils";
+import { OpenMode, SQLiteDB } from "app/server/lib/SQLiteDB";
+import log from "app/server/lib/log";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { PluginManager } from "app/server/lib/PluginManager";
+import { getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo } from "app/server/lib/uploads";
+import isDeepEqual from "lodash/isEqual";
+import merge from "lodash/merge";
+import noop from "lodash/noop";
+import { DocumentSettings, DocumentSettingsChecker } from "app/common/DocumentSettings";
+import { safeJsonParse } from "app/common/gutil";
 
 // A TTL in milliseconds to use for material that can easily be recomputed / refetched
 // but is a bit of a burden under heavy traffic.
@@ -163,9 +163,9 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    * @returns {Promise:String} The name of the new document.
    */
   public async createNewDoc(client: Client): Promise<string> {
-    log.debug('DocManager.createNewDoc');
-    const docSession = makeExceptionalDocSession('nascent', { client });
-    return this.createNamedDoc(docSession, 'Untitled');
+    log.debug("DocManager.createNewDoc");
+    const docSession = makeExceptionalDocSession("nascent", { client });
+    return this.createNamedDoc(docSession, "Untitled");
   }
 
   /**
@@ -192,13 +192,13 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     if (!sourcePath) {
       throw new Error(`no path available to sample ${sampleDocName}`);
     }
-    log.info('DocManager.importSampleDoc importing', sourcePath);
+    log.info("DocManager.importSampleDoc importing", sourcePath);
     const basenameHint = path.basename(sampleDocName);
-    const targetName = await docUtils.createNumbered(basenameHint, '-',
+    const targetName = await docUtils.createNumbered(basenameHint, "-",
       (name: string) => docUtils.createExclusive(this.storageManager.getPath(name)));
 
     const targetPath = this.storageManager.getPath(targetName);
-    log.info('DocManager.importSampleDoc saving as', targetPath);
+    log.info("DocManager.importSampleDoc saving as", targetPath);
     await docUtils.copyFile(sourcePath, targetPath);
     return targetName;
   }
@@ -210,7 +210,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   public async importDoc(client: Client, uploadId: number): Promise<string> {
     const userId = this._homeDbManager ? client.authSession.requiredUserId() : null;
     const result = await this._doImportDoc(makeOptDocSession(client),
-      globalUploadSet.getUploadInfo(uploadId, this.makeAccessId(userId)), { naming: 'classic' });
+      globalUploadSet.getUploadInfo(uploadId, this.makeAccessId(userId)), { naming: "classic" });
     return result.id;
   }
 
@@ -218,7 +218,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   public importDocWithFreshId(docSession: OptDocSession, userId: number, uploadId: number): Promise<DocCreationInfo> {
     const accessId = this.makeAccessId(userId);
     return this._doImportDoc(docSession, globalUploadSet.getUploadInfo(uploadId, accessId),
-      { naming: 'saved' });
+      { naming: "saved" });
   }
 
   /**
@@ -243,7 +243,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
 
     const { userId, uploadId, documentName, workspaceId, browserSettings, telemetryMetadata } = options;
     const accessId = this.makeAccessId(userId);
-    const docSession = makeExceptionalDocSession('nascent', { browserSettings });
+    const docSession = makeExceptionalDocSession("nascent", { browserSettings });
     const register = async (docId: string, uploadBaseFilename: string) => {
       if (workspaceId === undefined || !this._homeDbManager) { return; }
       const queryResult = await this._homeDbManager.addDocument(
@@ -255,16 +255,16 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       if (queryResult.status !== 200) {
         // TODO The ready-to-add document is not yet in storageManager, but is in the filesystem. It
         // should get cleaned up in case of error here.
-        throw new ApiError(queryResult.errMessage || 'unable to add imported document', queryResult.status);
+        throw new ApiError(queryResult.errMessage || "unable to add imported document", queryResult.status);
       }
     };
     const uploadInfo = globalUploadSet.getUploadInfo(uploadId, accessId);
     const docCreationInfo = await this._doImportDoc(docSession, uploadInfo, {
-      naming: workspaceId ? 'saved' : 'unsaved',
+      naming: workspaceId ? "saved" : "unsaved",
       register,
       userId,
     });
-    this.gristServer.getTelemetry().logEvent(mreq, 'documentCreated', merge({
+    this.gristServer.getTelemetry().logEvent(mreq, "documentCreated", merge({
       limited: {
         docIdDigest: docCreationInfo.id,
         fileType: uploadInfo.files[0].ext.trim().slice(1),
@@ -286,7 +286,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   public async importNewDoc(filepath: string): Promise<DocCreationInfo> {
     const uploadId = globalUploadSet.registerUpload([await getFileUploadInfo(filepath)], null, noop, null);
     return await this._doImportDoc(makeOptDocSession(null), globalUploadSet.getUploadInfo(uploadId, null),
-      { naming: 'classic' });
+      { naming: "classic" });
   }
 
   /**
@@ -296,12 +296,12 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    *
    */
   public async deleteDoc(client: Client | null, docName: string, deletePermanently: boolean): Promise<string> {
-    log.debug('DocManager.deleteDoc starting for %s', docName);
+    log.debug("DocManager.deleteDoc starting for %s", docName);
     const docPromise = this._activeDocs.get(docName);
     if (docPromise) {
       // Call activeDoc's shutdown method first, to remove the doc from internal structures.
       const doc: ActiveDoc = await docPromise;
-      log.debug('DocManager.deleteDoc starting activeDoc shutdown', docName);
+      log.debug("DocManager.deleteDoc starting activeDoc shutdown", docName);
       await doc.shutdown();
     }
     await this.storageManager.deleteDoc(docName, deletePermanently);
@@ -330,15 +330,15 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   @insightLogDecorate("DocManager")
   public async openDoc(client: Client, docId: string,
     options?: OpenDocOptions): Promise<OpenLocalDocResult> {
-    if (typeof options === 'string') {
-      throw new Error('openDoc call with outdated parameter type');
+    if (typeof options === "string") {
+      throw new Error("openDoc call with outdated parameter type");
     }
 
     const insightLog = insightLogEntry();
     insightLog?.addMeta(client.getLogMeta());
     insightLog?.addMeta({ docId });
 
-    const openMode: OpenDocMode = options?.openMode || 'default';
+    const openMode: OpenDocMode = options?.openMode || "default";
     const linkParameters = options?.linkParameters || {};
     const originalUrlId = options?.originalUrlId;
     let auth: DocAuthorizer;
@@ -347,14 +347,14 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       if (!dbManager) { throw new Error("HomeDbManager not available"); }
       // Sets up authorization of the document.
       const org = client.authSession.org;
-      if (!org) { throw new Error('Documents can only be opened in the context of a specific organization'); }
+      if (!org) { throw new Error("Documents can only be opened in the context of a specific organization"); }
 
       // We use docId in the key, and disallow urlId, so we can be sure that we are looking at the
       // right doc when we re-query the DB over the life of the websocket.
       const useShareUrlId = Boolean(originalUrlId && parseUrlId(originalUrlId).shareKey);
       const urlId = useShareUrlId ? originalUrlId! : docId;
       auth = new DocAuthorizerImpl({ dbManager, urlId, openMode, authSession: client.authSession });
-      await auth.assertAccess('viewers');
+      await auth.assertAccess("viewers");
       const docAuth = auth.getCachedAuth();
       if (docAuth.docId !== docId) {
         // The only plausible way to end up here is if we called openDoc with a urlId rather
@@ -364,7 +364,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     }
     else {
       log.debug(`DocManager.openDoc not using authorization for ${docId} because GRIST_SINGLE_USER`);
-      auth = new DummyAuthorizer('owners', docId);
+      auth = new DummyAuthorizer("owners", docId);
     }
 
     const docSessionPrecursor: DocSessionPrecursor = new DocSessionPrecursor(client, auth, { linkParameters });
@@ -380,7 +380,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
 
       // If opening in (pre-)fork mode, check if it is appropriate to treat the user as
       // an owner for granular access purposes.
-      if (openMode === 'fork') {
+      if (openMode === "fork") {
         if (await activeDoc.canForkAsOwner(docSession)) {
           // Mark the session specially and flush any cached access
           // information.  It is easier to make this a property of the
@@ -433,10 +433,10 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       };
 
       if (!activeDoc.muted) {
-        this.emit('open-doc', this.storageManager.getPath(activeDoc.docName));
+        this.emit("open-doc", this.storageManager.getPath(activeDoc.docName));
       }
 
-      this.gristServer.getTelemetry().logEvent(docSession, 'openedDoc', {
+      this.gristServer.getTelemetry().logEvent(docSession, "openedDoc", {
         full: {
           docIdDigest: docId,
           userId: client.authSession.userId,
@@ -455,7 +455,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     await Promise.all(Array.from(
       this._activeDocs.values(),
       adocPromise => adocPromise.then(async (adoc) => {
-        log.debug('DocManager.shutdownDocs starting activeDoc shutdown', adoc.docName);
+        log.debug("DocManager.shutdownDocs starting activeDoc shutdown", adoc.docName);
         await adoc.shutdown();
       })));
   }
@@ -471,7 +471,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       await this.storageManager.closeStorage();
     }
     catch (err) {
-      log.error('DocManager had problem shutting down storage: %s', err.message);
+      log.error("DocManager had problem shutting down storage: %s", err.message);
     }
 
     // Clear any timeouts we might have.
@@ -520,7 +520,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   }
 
   public async renameDoc(client: Client, oldName: string, newName: string): Promise<void> {
-    log.debug('DocManager.renameDoc %s -> %s', oldName, newName);
+    log.debug("DocManager.renameDoc %s -> %s", oldName, newName);
     const docPromise = this._activeDocs.get(oldName);
     if (docPromise) {
       const adoc: ActiveDoc = await docPromise;
@@ -538,7 +538,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     }
   }
 
-  public markAsChanged(activeDoc: ActiveDoc, reason?: 'edit') {
+  public markAsChanged(activeDoc: ActiveDoc, reason?: "edit") {
     // Ignore changes if document is muted or in the middle of a migration.
     if (!activeDoc.muted && !activeDoc.isMigrating()) {
       this.storageManager.markAsChanged(activeDoc.docName, reason);
@@ -546,7 +546,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   }
 
   public async makeBackup(activeDoc: ActiveDoc, name: string): Promise<string> {
-    if (activeDoc.muted) { throw new Error('Document is disabled'); }
+    if (activeDoc.muted) { throw new Error("Document is disabled"); }
     return this.storageManager.makeBackup(activeDoc.docName, name);
   }
 
@@ -568,7 +568,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    */
   public async fetchDoc(docSession: OptDocSession, docName: string,
     wantRecoveryMode?: boolean): Promise<ActiveDoc> {
-    log.debug('DocManager.fetchDoc', docName);
+    log.debug("DocManager.fetchDoc", docName);
     return this._withUnmutedDoc(docSession, docName, async () => {
       const activeDoc = await this._fetchPossiblyMutedDoc(docSession, docName, wantRecoveryMode);
       return { activeDoc, result: activeDoc };
@@ -611,7 +611,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         insightLogEntry()?.mark("docIsMuted");    // Mark the *first* time we find the doc muted.
         markedAsMuted = true;
       }
-      log.debug('DocManager._withUnmutedDoc waiting because doc is muted', docName);
+      log.debug("DocManager._withUnmutedDoc waiting because doc is muted", docName);
       await delay(1000);
     }
   }
@@ -624,7 +624,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       if (activeDoc && activeDoc.recoveryMode !== wantRecoveryMode && await activeDoc.isOwner(docSession)) {
         // shutting doc down to have a chance to re-open in the correct mode.
         // TODO: there could be a battle with other users opening it in a different mode.
-        log.debug('DocManager._fetchPossiblyMutedDoc starting activeDoc shutdown', docName);
+        log.debug("DocManager._fetchPossiblyMutedDoc starting activeDoc shutdown", docName);
         await activeDoc.shutdown();
       }
     }
@@ -635,8 +635,8 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         this._createActiveDoc(docSession, docName, wantRecoveryMode ?? this._inRecovery.get(docName))
           .then((newDoc) => {
             // Propagate backupMade events from newly opened activeDocs (consolidate all to DocMan)
-            newDoc.on('backupMade', (bakPath: string) => {
-              this.emit('backupMade', bakPath);
+            newDoc.on("backupMade", (bakPath: string) => {
+              this.emit("backupMade", bakPath);
             });
             return newDoc.loadDoc(docSession);
           }));
@@ -680,7 +680,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     try {
       return {
         docUrl: await this.gristServer.getResourceUrl(doc),
-        docApiUrl: await this.gristServer.getResourceUrl(doc, 'api'),
+        docApiUrl: await this.gristServer.getResourceUrl(doc, "api"),
       };
     }
     catch (e) {
@@ -708,15 +708,15 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    */
   private async _doImportDoc(docSession: OptDocSession, uploadInfo: UploadInfo,
     options: {
-      naming: 'classic' | 'saved' | 'unsaved',
+      naming: "classic" | "saved" | "unsaved",
       register?: (docId: string, uploadBaseFilename: string) => Promise<void>,
       userId?: number,
     }): Promise<DocCreationInfo> {
     try {
       const fileCount = uploadInfo.files.length;
-      const hasGristDoc = Boolean(uploadInfo.files.find(f => extname(f.origName) === '.grist'));
+      const hasGristDoc = Boolean(uploadInfo.files.find(f => extname(f.origName) === ".grist"));
       if (hasGristDoc && fileCount > 1) {
-        throw new Error('Grist docs must be uploaded individually');
+        throw new Error("Grist docs must be uploaded individually");
       }
       const first = uploadInfo.files[0].origName;
       log.debug(`DocManager._doImportDoc: Received doc with name ${first}`);
@@ -724,26 +724,26 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       const basename = path.basename(first, ext).trim() || "Untitled upload";
       let id: string;
       switch (options.naming) {
-        case 'saved':
+        case "saved":
           id = makeId();
           break;
-        case 'unsaved': {
+        case "unsaved": {
           const { userId } = options;
-          if (!userId) { throw new Error('unsaved import requires userId'); }
+          if (!userId) { throw new Error("unsaved import requires userId"); }
           if (!this._homeDbManager) { throw new Error("HomeDbManager not available"); }
           const isAnonymous = userId === this._homeDbManager.getAnonymousUserId();
           id = makeForkIds({ userId, isAnonymous, trunkDocId: NEW_DOCUMENT_CODE,
             trunkUrlId: NEW_DOCUMENT_CODE }).docId;
           break;
         }
-        case 'classic':
+        case "classic":
           id = basename;
           break;
         default:
-          throw new Error('naming mode not recognized');
+          throw new Error("naming mode not recognized");
       }
       await options.register?.(id, basename);
-      if (ext === '.grist') {
+      if (ext === ".grist") {
         log.debug(`DocManager._doImportDoc: Importing .grist doc`);
         // If the import is a grist file, copy it to the docs directory.
         // TODO: We should be skeptical of the upload file to close a possible
@@ -760,7 +760,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         // on a randomly assigned worker due to the special treatment of the
         // 'import' assignmentId.
         await this.storageManager.prepareLocalDoc(docName);
-        this.storageManager.markAsChanged(docName, 'edit');
+        this.storageManager.markAsChanged(docName, "edit");
         return { title: basename, id: docName };
       }
       else {
@@ -771,7 +771,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     }
     catch (err) {
       throw new ApiError(err.message, err.status || 400, {
-        tips: [{ action: 'ask-for-help', message: 'Ask for help' }],
+        tips: [{ action: "ask-for-help", message: "Ask for help" }],
       });
     }
     finally {
@@ -781,13 +781,13 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
 
   // Returns the name for a new doc, based on basenameHint.
   private async _createNewDoc(basenameHint: string): Promise<string> {
-    const docName: string = await docUtils.createNumbered(basenameHint, '-', async (name: string) => {
+    const docName: string = await docUtils.createNumbered(basenameHint, "-", async (name: string) => {
       if (this._activeDocs.has(name)) {
         throw new Error("Existing entry in active docs for: " + name);
       }
       return docUtils.createExclusive(this.storageManager.getPath(name));
     });
-    log.debug('DocManager._createNewDoc picked name', docName);
+    log.debug("DocManager._createNewDoc picked name", docName);
     await this.pluginManager?.pluginsLoaded;
     return docName;
   }
@@ -824,10 +824,10 @@ async function updateDocumentSettingsInPlace(
   try {
     const columns = await db.all("PRAGMA table_info(_grist_DocInfo)");
     // This protects against errors with old Grist document versions, before this column was introduced.
-    if (!columns.some(column => column.name === 'documentSettings')) {
+    if (!columns.some(column => column.name === "documentSettings")) {
       return;
     }
-    const docInfoRow = await db.get('SELECT id, schemaVersion, documentSettings FROM _grist_DocInfo');
+    const docInfoRow = await db.get("SELECT id, schemaVersion, documentSettings FROM _grist_DocInfo");
     // This is an edge case that shouldn't happen. If it does, our only options are to error or do nothing.
     // Do nothing and log for now, so that we can track if this ever comes up.
     if (!docInfoRow) {
@@ -852,7 +852,7 @@ async function updateDocumentSettingsInPlace(
       return;
     }
 
-    await db.run('UPDATE _grist_DocInfo SET documentSettings = ? WHERE id = ?',
+    await db.run("UPDATE _grist_DocInfo SET documentSettings = ? WHERE id = ?",
       JSON.stringify(newSettings),
       docInfoRow.id,
     );

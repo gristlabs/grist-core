@@ -1,4 +1,4 @@
-import { makeT } from 'app/client/lib/localization';
+import { makeT } from "app/client/lib/localization";
 import { ViewSectionRec } from "app/client/models/DocModel";
 import { KoSaveableObservable, setSaveValue } from "app/client/models/modelUtil";
 import { cssGroupLabel, cssRow } from "app/client/ui/RightPanelStyles";
@@ -6,7 +6,7 @@ import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { testId } from "app/client/ui2018/cssVars";
 import { Computed, Disposable, dom, IDisposableOwner } from "grainjs";
 
-const t = makeT('GridOptions');
+const t = makeT("GridOptions");
 
 /**
  * Builds the grid options.
@@ -18,35 +18,35 @@ export class GridOptions extends Disposable {
 
   public buildDom() {
     const section = this._section;
-    return dom('div',
-      { "role": 'group', 'aria-labelledby': 'grid-options-label' },
-      cssGroupLabel(t("Grid Options"), { id: 'grid-options-label' }),
-      dom('div', [
+    return dom("div",
+      { "role": "group", "aria-labelledby": "grid-options-label" },
+      cssGroupLabel(t("Grid Options"), { id: "grid-options-label" }),
+      dom("div", [
         cssRow(
           labeledSquareCheckbox(
-            setSaveValueFromKo(this, section.optionsObj.prop('verticalGridlines')),
+            setSaveValueFromKo(this, section.optionsObj.prop("verticalGridlines")),
             t("Vertical gridlines"),
           ),
-          testId('v-grid-button'),
+          testId("v-grid-button"),
         ),
 
         cssRow(
           labeledSquareCheckbox(
-            setSaveValueFromKo(this, section.optionsObj.prop('horizontalGridlines')),
+            setSaveValueFromKo(this, section.optionsObj.prop("horizontalGridlines")),
             t("Horizontal gridlines"),
           ),
-          testId('h-grid-button'),
+          testId("h-grid-button"),
         ),
 
         cssRow(
           labeledSquareCheckbox(
-            setSaveValueFromKo(this, section.optionsObj.prop('zebraStripes')),
+            setSaveValueFromKo(this, section.optionsObj.prop("zebraStripes")),
             t("Zebra stripes"),
           ),
-          testId('zebra-stripe-button'),
+          testId("zebra-stripe-button"),
         ),
 
-        testId('grid-options'),
+        testId("grid-options"),
       ]),
     );
   }

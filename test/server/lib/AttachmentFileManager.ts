@@ -16,15 +16,15 @@ import {
   IAttachmentStoreProvider,
 } from "app/server/lib/AttachmentStoreProvider";
 import { makeTestingFilesystemStoreConfig } from "test/server/lib/FilesystemAttachmentStore";
-import { waitForIt } from 'test/server/wait';
+import { waitForIt } from "test/server/wait";
 import { assert } from "chai";
 import * as stream from "node:stream";
 import * as sinon from "sinon";
 
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.
 type IMinimalDocStorage = Pick<DocStorage,
-  'docName' | 'getFileInfo' | 'getFileInfoNoData' | 'attachFileIfNew' | 'attachOrUpdateFile' |
-  'listAllFiles' | 'requestVacuum'
+  "docName" | "getFileInfo" | "getFileInfoNoData" | "attachFileIfNew" | "attachOrUpdateFile" |
+  "listAllFiles" | "requestVacuum"
 >;
 
 // Implements the minimal functionality needed for the AttachmentFileManager to work.
@@ -158,7 +158,7 @@ describe("AttachmentFileManager", function() {
   const defaultDocId = "12345";
   const defaultDocInfo = { id: defaultDocId, trunkId: null };
 
-  this.timeout('4s');
+  this.timeout("4s");
 
   beforeEach(async function() {
     defaultProvider = await createFakeAttachmentStoreProvider();
@@ -312,7 +312,7 @@ describe("AttachmentFileManager", function() {
       // Same settings as defaultManager, but with no stores.
       const alternateManager = new AttachmentFileManager(
         defaultDocStorageFake,
-        new AttachmentStoreProvider([], 'TEST-INSTALLATION-UUID'),
+        new AttachmentStoreProvider([], "TEST-INSTALLATION-UUID"),
         defaultDocInfo,
       );
 
@@ -347,7 +347,7 @@ describe("AttachmentFileManager", function() {
     async function getManagerWithDifferentStores() {
       const alternateProvider = new AttachmentStoreProvider(
         [await makeTestingFilesystemStoreConfig("new-store")],
-        'ANOTHER-INSTALLATION-UUID',
+        "ANOTHER-INSTALLATION-UUID",
       );
 
       // Uses the same fake database + doc info, but with different stores.
@@ -529,10 +529,10 @@ describe("AttachmentFileManager", function() {
 
     // Makes the store's upload method throw an error, so we can detect if it gets called.
     const originalGetStore = defaultProvider.getStore.bind(defaultProvider);
-    sinon.replace(defaultProvider, 'getStore', sinon.fake(
-      async function(...args: Parameters<IAttachmentStoreProvider['getStore']>) {
+    sinon.replace(defaultProvider, "getStore", sinon.fake(
+      async function(...args: Parameters<IAttachmentStoreProvider["getStore"]>) {
         const store = (await originalGetStore(...args))!;
-        sinon.replace(store, 'upload', () => { throw new Error("Upload should never be called"); });
+        sinon.replace(store, "upload", () => { throw new Error("Upload should never be called"); });
         return store;
       },
     ));

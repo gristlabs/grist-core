@@ -32,28 +32,28 @@
  * In other words, there is an opportunity for untangling and simplifying.
  */
 
-import { EventEmitter } from 'events';
-import * as http from 'http';
-import * as https from 'https';
-import { GristSocketServer } from 'app/server/lib/GristSocketServer';
-import { GristServerSocket } from 'app/server/lib/GristServerSocket';
+import { EventEmitter } from "events";
+import * as http from "http";
+import * as https from "https";
+import { GristSocketServer } from "app/server/lib/GristSocketServer";
+import { GristServerSocket } from "app/server/lib/GristServerSocket";
 
-import { parseFirstUrlPart } from 'app/common/gristUrls';
-import { safeJsonParse } from 'app/common/gutil';
-import { UserProfile } from 'app/common/LoginSessionAPI';
-import * as version from 'app/common/version';
+import { parseFirstUrlPart } from "app/common/gristUrls";
+import { safeJsonParse } from "app/common/gutil";
+import { UserProfile } from "app/common/LoginSessionAPI";
+import * as version from "app/common/version";
 import { HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
 import { AuthSession } from "app/server/lib/AuthSession";
 import { ScopedSession } from "app/server/lib/BrowserSession";
 import { Client, ClientMethod } from "app/server/lib/Client";
-import { Hosts, RequestWithOrg } from 'app/server/lib/extractOrg';
-import { GristLoginMiddleware } from 'app/server/lib/GristServer';
-import log from 'app/server/lib/log';
-import { localeFromRequest } from 'app/server/lib/ServerLocale';
-import { fromCallback } from 'app/server/lib/serverUtils';
-import { Sessions } from 'app/server/lib/Sessions';
-import { i18n } from 'i18next';
-import { trustOrigin } from 'app/server/lib/requestUtils';
+import { Hosts, RequestWithOrg } from "app/server/lib/extractOrg";
+import { GristLoginMiddleware } from "app/server/lib/GristServer";
+import log from "app/server/lib/log";
+import { localeFromRequest } from "app/server/lib/ServerLocale";
+import { fromCallback } from "app/server/lib/serverUtils";
+import { Sessions } from "app/server/lib/Sessions";
+import { i18n } from "i18next";
+import { trustOrigin } from "app/server/lib/requestUtils";
 
 export interface CommOptions {
   sessions: Sessions;                   // A collection of all sessions for this instance of Grist
@@ -113,14 +113,14 @@ export class Comm extends EventEmitter {
    */
   public getClient(clientId: string): Client {
     const client = this._clients.get(clientId);
-    if (!client) { throw new Error('Unrecognized clientId'); }
+    if (!client) { throw new Error("Unrecognized clientId"); }
     return client;
   }
 
   /**
    * Broadcasts an app-level message to all clients. Only suitable for non-doc-specific messages.
    */
-  public broadcastMessage(type: 'docListAction', data: unknown) {
+  public broadcastMessage(type: "docListAction", data: unknown) {
     for (const client of this._clients.values()) {
       client.sendMessage({ type, data }).catch(() => {});
     }
@@ -170,7 +170,7 @@ export class Comm extends EventEmitter {
    * connect to it will read a server version of "dead".
    */
   public setServerActivation(active: boolean) {
-    this._serverVersion = active ? null : 'dead';
+    this._serverVersion = active ? null : "dead";
   }
 
   /**
@@ -188,13 +188,13 @@ export class Comm extends EventEmitter {
    */
   private async _onWebSocketConnection(websocket: GristServerSocket, req: http.IncomingMessage) {
     const params = new URL(req.url!, `ws://${req.headers.host}`).searchParams;
-    const existingClientId = params.get('clientId');
-    const browserSettings = safeJsonParse(params.get('browserSettings') || '', {});
-    const newClient = (params.get('newClient') !== '0');  // Treat omitted as new, for the sake of tests.
-    const lastSeqIdStr = params.get('lastSeqId');
+    const existingClientId = params.get("clientId");
+    const browserSettings = safeJsonParse(params.get("browserSettings") || "", {});
+    const newClient = (params.get("newClient") !== "0");  // Treat omitted as new, for the sake of tests.
+    const lastSeqIdStr = params.get("lastSeqId");
     const lastSeqId = lastSeqIdStr ? parseInt(lastSeqIdStr) : null;
-    const counter = params.get('counter');
-    const userSelector = params.get('user') || '';
+    const counter = params.get("counter");
+    const userSelector = params.get("user") || "";
 
     // Associate an ID with each websocket, reusing the supplied one if it's valid.
     let client: Client | undefined = this._clients.get(existingClientId!);
@@ -205,7 +205,7 @@ export class Comm extends EventEmitter {
       this._clients.set(client.clientId, client);
     }
 
-    log.rawInfo('Comm: Got Websocket connection', { ...client.getLogMeta(), urlPath: req.url, reuseClient });
+    log.rawInfo("Comm: Got Websocket connection", { ...client.getLogMeta(), urlPath: req.url, reuseClient });
 
     // Parse the cookie in the request to get the sessionId.
     const sessionId = this.sessions.getSessionIdFromRequest(req);
@@ -232,8 +232,8 @@ export class Comm extends EventEmitter {
             if (this._options.hosts) {
               // DocWorker ID (/dw/) and version tag (/v/) may be present in this request but are not
               // needed. addOrgInfo assumes req.url starts with /o/ if present.
-              req.url = parseFirstUrlPart('dw', req.url!).path;
-              req.url = parseFirstUrlPart('v', req.url).path;
+              req.url = parseFirstUrlPart("dw", req.url!).path;
+              req.url = parseFirstUrlPart("v", req.url).path;
               await this._options.hosts.addOrgInfo(req);
             }
 

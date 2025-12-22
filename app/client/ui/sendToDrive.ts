@@ -1,13 +1,13 @@
-import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
-import { reportError } from 'app/client/models/errors';
-import { spinnerModal } from 'app/client/ui2018/modals';
-import type { DocPageModel } from 'app/client/models/DocPageModel';
-import type { Document } from 'app/common/UserAPI';
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { reportError } from "app/client/models/errors";
+import { spinnerModal } from "app/client/ui2018/modals";
+import type { DocPageModel } from "app/client/models/DocPageModel";
+import type { Document } from "app/common/UserAPI";
 import { getGoogleCodeForSending } from "app/client/ui/googleAuth";
-const G = getBrowserGlobals('window');
-import { makeT } from 'app/client/lib/localization';
+const G = getBrowserGlobals("window");
+import { makeT } from "app/client/lib/localization";
 
-const t = makeT('sendToDrive');
+const t = makeT("sendToDrive");
 
 /**
  * Sends xlsx file to Google Drive. It first authenticates with Google to get encrypted access

@@ -3,19 +3,19 @@
  * subscribes to actions which change it, and forwards those actions to individual tables.
  * It also provides the interface to apply actions to data.
  */
-import { DocumentSettings } from 'app/common/DocumentSettings';
-import { safeJsonParse } from 'app/common/gutil';
-import { schema, SchemaTypes } from 'app/common/schema';
-import fromPairs from 'lodash/fromPairs';
-import groupBy from 'lodash/groupBy';
-import { ActionDispatcher } from 'app/common/ActionDispatcher';
-import { TableFetchResult } from 'app/common/ActiveDocAPI';
+import { DocumentSettings } from "app/common/DocumentSettings";
+import { safeJsonParse } from "app/common/gutil";
+import { schema, SchemaTypes } from "app/common/schema";
+import fromPairs from "lodash/fromPairs";
+import groupBy from "lodash/groupBy";
+import { ActionDispatcher } from "app/common/ActionDispatcher";
+import { TableFetchResult } from "app/common/ActiveDocAPI";
 import {
   BulkColValues, ColInfo, ColInfoWithId, ColValues, DocAction,
   getColIdsFromDocAction,
   RowRecord, TableDataAction,
-} from 'app/common/DocActions';
-import { ColTypeMap, MetaRowRecord, MetaTableData, TableData } from 'app/common/TableData';
+} from "app/common/DocActions";
+import { ColTypeMap, MetaRowRecord, MetaTableData, TableData } from "app/common/TableData";
 
 type FetchTableFunc = (tableId: string) => Promise<TableFetchResult>;
 
@@ -53,8 +53,8 @@ export class DocData extends ActionDispatcher {
     }
 
     // Build a map from tableRef to [columnRecords]
-    const colsByTable = groupBy(this._tables.get('_grist_Tables_column')!.getRecords(), 'parentId');
-    for (const t of this._tables.get('_grist_Tables')!.getRecords()) {
+    const colsByTable = groupBy(this._tables.get("_grist_Tables_column")!.getRecords(), "parentId");
+    for (const t of this._tables.get("_grist_Tables")!.getRecords()) {
       const tableId = t.tableId as string;
       const colRecords: RowRecord[] = colsByTable[t.id] || [];
       const colTypes = fromPairs(colRecords.map(c => [c.colId, c.type]));
@@ -118,8 +118,8 @@ export class DocData extends ActionDispatcher {
   public async syncTable(tableId: string): Promise<void> {
     const meta = this._tables.get(tableId);  // Not required, but respected if available.
     const tableData = await this._fetchTableFunc(tableId);
-    const colTypes = fromPairs((getColIdsFromDocAction(tableData) ?? []).map(c => [c, meta?.getColType(c) ?? 'Any']));
-    colTypes.id = 'Any';
+    const colTypes = fromPairs((getColIdsFromDocAction(tableData) ?? []).map(c => [c, meta?.getColType(c) ?? "Any"]));
+    colTypes.id = "Any";
     this._tables.set(tableId, this.createTableData(tableId, tableData, colTypes));
   }
 
@@ -144,8 +144,8 @@ export class DocData extends ActionDispatcher {
     actions.forEach(action => this.receiveAction(action));
   }
 
-  public docInfo(): MetaRowRecord<'_grist_DocInfo'> {
-    const docInfoTable = this.getMetaTable('_grist_DocInfo');
+  public docInfo(): MetaRowRecord<"_grist_DocInfo"> {
+    const docInfoTable = this.getMetaTable("_grist_DocInfo");
     return docInfoTable.getRecord(1)!;
   }
 

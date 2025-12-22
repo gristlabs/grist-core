@@ -1,43 +1,43 @@
-import * as crypto from 'crypto';
-import * as express from 'express';
-import * as cookie from 'cookie';
-import { Request } from 'express';
-import pick from 'lodash/pick';
+import * as crypto from "crypto";
+import * as express from "express";
+import * as cookie from "cookie";
+import { Request } from "express";
+import pick from "lodash/pick";
 import * as t from "ts-interface-checker";
 
-import { ApiError } from 'app/common/ApiError';
-import { isAffirmative } from 'app/common/gutil';
-import { FullUser } from 'app/common/LoginSessionAPI';
-import { BasicRole } from 'app/common/roles';
-import * as SATypes from 'app/common/ServiceAccountTypes';
-import ServiceAccountTI from 'app/common/ServiceAccountTypes-ti';
+import { ApiError } from "app/common/ApiError";
+import { isAffirmative } from "app/common/gutil";
+import { FullUser } from "app/common/LoginSessionAPI";
+import { BasicRole } from "app/common/roles";
+import * as SATypes from "app/common/ServiceAccountTypes";
+import ServiceAccountTI from "app/common/ServiceAccountTypes-ti";
 import { DOCTYPE_NORMAL,
   DOCTYPE_TEMPLATE,
   DOCTYPE_TUTORIAL,
   OrganizationProperties,
-  PermissionDelta } from 'app/common/UserAPI';
+  PermissionDelta } from "app/common/UserAPI";
 import { Document } from "app/gen-server/entity/Document";
-import { Organization } from 'app/gen-server/entity/Organization';
-import { User } from 'app/gen-server/entity/User';
-import { Workspace } from 'app/gen-server/entity/Workspace';
-import { BillingOptions, HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { Organization } from "app/gen-server/entity/Organization";
+import { User } from "app/gen-server/entity/User";
+import { Workspace } from "app/gen-server/entity/Workspace";
+import { BillingOptions, HomeDBManager, Scope } from "app/gen-server/lib/homedb/HomeDBManager";
 import { DocumentAccessChanges, OrgAccessChanges, PreviousAndCurrent,
-  QueryResult, WorkspaceAccessChanges } from 'app/gen-server/lib/homedb/Interfaces';
-import { Permissions } from 'app/gen-server/lib/Permissions';
-import { appSettings } from 'app/server/lib/AppSettings';
-import { getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin } from 'app/server/lib/Authorizer';
-import { getSessionUser, linkOrgWithEmail } from 'app/server/lib/BrowserSession';
-import { expressWrap } from 'app/server/lib/expressWrap';
-import { RequestWithOrg } from 'app/server/lib/extractOrg';
-import { GristServer } from 'app/server/lib/GristServer';
-import { getTemplateOrg } from 'app/server/lib/gristSettings';
+  QueryResult, WorkspaceAccessChanges } from "app/gen-server/lib/homedb/Interfaces";
+import { Permissions } from "app/gen-server/lib/Permissions";
+import { appSettings } from "app/server/lib/AppSettings";
+import { getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin } from "app/server/lib/Authorizer";
+import { getSessionUser, linkOrgWithEmail } from "app/server/lib/BrowserSession";
+import { expressWrap } from "app/server/lib/expressWrap";
+import { RequestWithOrg } from "app/server/lib/extractOrg";
+import { GristServer } from "app/server/lib/GristServer";
+import { getTemplateOrg } from "app/server/lib/gristSettings";
 import { clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
-  isParameterOn, optStringParam, sendOkReply, sendReply, stringParam } from 'app/server/lib/requestUtils';
-import { getCookieDomain } from 'app/server/lib/gristSessions';
-import log from 'app/server/lib/log';
+  isParameterOn, optStringParam, sendOkReply, sendReply, stringParam } from "app/server/lib/requestUtils";
+import { getCookieDomain } from "app/server/lib/gristSessions";
+import log from "app/server/lib/log";
 
-const ALLOW_DEPRECATED_BARE_ORG_DELETE = appSettings.section('api').flag('allowBareOrgDelete').readBool({
-  envVar: 'GRIST_ALLOW_DEPRECATED_BARE_ORG_DELETE',
+const ALLOW_DEPRECATED_BARE_ORG_DELETE = appSettings.section("api").flag("allowBareOrgDelete").readBool({
+  envVar: "GRIST_ALLOW_DEPRECATED_BARE_ORG_DELETE",
 });
 
 const { PatchServiceAccount, PostServiceAccount } = t.createCheckers(ServiceAccountTI);
@@ -56,7 +56,7 @@ function validateStrict(checker: t.Checker): express.RequestHandler {
     }
     catch (err) {
       log.warn(`Error during api call to ${req.path}: Invalid payload: ${String(err)}`);
-      throw new ApiError('Invalid payload', 400, { userError: String(err) });
+      throw new ApiError("Invalid payload", 400, { userError: String(err) });
     }
     next();
   };
@@ -75,7 +75,7 @@ export function getOrgFromRequest(req: Request): string | null {
 function helpScoutSign(email: string): string | undefined {
   const secretKey = process.env.HELP_SCOUT_SECRET_KEY_V2;
   if (!secretKey) { return undefined; }
-  return crypto.createHmac('sha256', secretKey).update(email).digest('hex');
+  return crypto.createHmac("sha256", secretKey).update(email).digest("hex");
 }
 
 /**
@@ -88,8 +88,8 @@ function helpScoutSign(email: string): string | undefined {
  *   - If there is no identifier available, a 400 error is thrown.
  */
 export function getOrgKey(req: Request): string | number {
-  let orgKey: string | null = stringParam(req.params.oid, 'oid');
-  if (orgKey === 'current') {
+  let orgKey: string | null = stringParam(req.params.oid, "oid");
+  if (orgKey === "current") {
     orgKey = getOrgFromRequest(req);
   }
   if (!orgKey) {
@@ -150,7 +150,7 @@ export class ApiServer {
 
     // GET /api/orgs
     // Get all organizations user may have some access to.
-    this._app.get('/api/orgs', expressWrap(async (req, res) => {
+    this._app.get("/api/orgs", expressWrap(async (req, res) => {
       const userId = getUserId(req);
       const domain = getOrgFromRequest(req);
       const merged = Boolean(req.query.merged);
@@ -162,15 +162,15 @@ export class ApiServer {
 
     // GET /api/workspace/:wid
     // Get workspace by id, returning nested documents that user has access to.
-    this._app.get('/api/workspaces/:wid', expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid, 'wid');
+    this._app.get("/api/workspaces/:wid", expressWrap(async (req, res) => {
+      const wsId = integerParam(req.params.wid, "wid");
       const query = await this._dbManager.getWorkspace(getScope(req), wsId);
       return sendReply(req, res, query);
     }));
 
     // GET /api/orgs/:oid
     // Get organization by id
-    this._app.get('/api/orgs/:oid', expressWrap(async (req, res) => {
+    this._app.get("/api/orgs/:oid", expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const query = await this._dbManager.getOrg(getScope(req), org);
       return sendReply(req, res, query);
@@ -178,7 +178,7 @@ export class ApiServer {
 
     // GET /api/orgs/:oid/workspaces
     // Get all workspaces and nested documents of organization that user has access to.
-    this._app.get('/api/orgs/:oid/workspaces', expressWrap(async (req, res) => {
+    this._app.get("/api/orgs/:oid/workspaces", expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const query = await this._dbManager.getOrgWorkspaces(getScope(req), org);
       return sendReply(req, res, query);
@@ -187,7 +187,7 @@ export class ApiServer {
     // GET /api/orgs/:oid/usage
     // Get usage summary of all un-deleted documents in the organization.
     // Only accessible to org owners.
-    this._app.get('/api/orgs/:oid/usage', expressWrap(async (req, res) => {
+    this._app.get("/api/orgs/:oid/usage", expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const usage = await this._dbManager.getOrgUsageSummary(getScope(req), org);
       return sendOkReply(req, res, usage);
@@ -196,7 +196,7 @@ export class ApiServer {
     // POST /api/orgs
     // Body params: name (required), domain
     // Create a new org.
-    this._app.post('/api/orgs', expressWrap(async (req, res) => {
+    this._app.post("/api/orgs", expressWrap(async (req, res) => {
       // Don't let anonymous users end up owning organizations, it will be confusing.
       // Maybe if the user has presented credentials this would be ok - but addOrg
       // doesn't have access to that information yet, so punting on this.
@@ -210,7 +210,7 @@ export class ApiServer {
     // PATCH /api/orgs/:oid
     // Body params: name, domain
     // Update the specified org.
-    this._app.patch('/api/orgs/:oid', expressWrap(async (req, res) => {
+    this._app.patch("/api/orgs/:oid", expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const { data, ...result } = await this._dbManager.updateOrg(getScope(req), org, req.body);
       if (data && (req.body.name || req.body.domain)) {
@@ -223,14 +223,14 @@ export class ApiServer {
     // Delete the specified org and all included workspaces and docs.
     // The :name should match the orgs.domain or orgs.name, or be the string
     // "force-delete".
-    this._app.delete('/api/orgs/:oid/:name', expressWrap(async (req, res) => {
-      const name = stringParam(req.params.name, 'name');
+    this._app.delete("/api/orgs/:oid/:name", expressWrap(async (req, res) => {
+      const name = stringParam(req.params.name, "name");
       await this._deleteOrg(req, res, name);
     }));
 
-    this._app.delete('/api/orgs/:oid', expressWrap(async (req, res) => {
+    this._app.delete("/api/orgs/:oid", expressWrap(async (req, res) => {
       if (ALLOW_DEPRECATED_BARE_ORG_DELETE) {
-        await this._deleteOrg(req, res, 'force-delete');
+        await this._deleteOrg(req, res, "force-delete");
       }
       else {
         throw new ApiError(
@@ -243,7 +243,7 @@ export class ApiServer {
     // POST /api/orgs/:oid/workspaces
     // Body params: name
     // Create a new workspace owned by the specific organization.
-    this._app.post('/api/orgs/:oid/workspaces', expressWrap(async (req, res) => {
+    this._app.post("/api/orgs/:oid/workspaces", expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const { data, ...result } = await this._dbManager.addWorkspace(getScope(req), org, req.body);
       if (data) { this._logCreateWorkspaceEvents(req, data); }
@@ -253,17 +253,17 @@ export class ApiServer {
     // PATCH /api/workspaces/:wid
     // Body params: name
     // Update the specified workspace.
-    this._app.patch('/api/workspaces/:wid', expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid, 'wid');
+    this._app.patch("/api/workspaces/:wid", expressWrap(async (req, res) => {
+      const wsId = integerParam(req.params.wid, "wid");
       const { data, ...result } = await this._dbManager.updateWorkspace(getScope(req), wsId, req.body);
-      if (data && 'name' in req.body) { this._logRenameWorkspaceEvents(req, data); }
+      if (data && "name" in req.body) { this._logRenameWorkspaceEvents(req, data); }
       return sendReply(req, res, { ...result, data: data?.current.id });
     }));
 
     // DELETE /api/workspaces/:wid
     // Delete the specified workspace and all included docs.
-    this._app.delete('/api/workspaces/:wid', expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid, 'wid');
+    this._app.delete("/api/workspaces/:wid", expressWrap(async (req, res) => {
+      const wsId = integerParam(req.params.wid, "wid");
       await this._hardDeleteWorkspace(req, wsId);
       return sendReply(req, res, { status: 200, data: wsId });
     }));
@@ -271,8 +271,8 @@ export class ApiServer {
     // POST /api/workspaces/:wid/remove
     // Soft-delete the specified workspace.  If query parameter "permanent" is set,
     // delete permanently.
-    this._app.post('/api/workspaces/:wid/remove', expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid, 'wid');
+    this._app.post("/api/workspaces/:wid/remove", expressWrap(async (req, res) => {
+      const wsId = integerParam(req.params.wid, "wid");
       if (isParameterOn(req.query.permanent)) {
         await this._hardDeleteWorkspace(req, wsId);
         return sendReply(req, res, { status: 200, data: wsId });
@@ -287,8 +287,8 @@ export class ApiServer {
     // POST /api/workspaces/:wid/unremove
     // Recover the specified workspace if it was previously soft-deleted and is
     // still available.
-    this._app.post('/api/workspaces/:wid/unremove', expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid, 'wid');
+    this._app.post("/api/workspaces/:wid/unremove", expressWrap(async (req, res) => {
+      const wsId = integerParam(req.params.wid, "wid");
       const { data } = await this._dbManager.undeleteWorkspace(getScope(req), wsId);
       if (data) { this._logRestoreWorkspaceEvents(req, data); }
       return sendOkReply(req, res);
@@ -296,8 +296,8 @@ export class ApiServer {
 
     // POST /api/workspaces/:wid/docs
     // Create a new doc owned by the specific workspace.
-    this._app.post('/api/workspaces/:wid/docs', expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid, 'wid');
+    this._app.post("/api/workspaces/:wid/docs", expressWrap(async (req, res) => {
+      const wsId = integerParam(req.params.wid, "wid");
       const { data, ...result } = await this._dbManager.addDocument(getScope(req), wsId, req.body);
       if (data) { this._logCreateDocumentEvents(req, data); }
       return sendReply(req, res, { ...result, data: data?.id });
@@ -305,10 +305,10 @@ export class ApiServer {
 
     // GET /api/templates/
     // Get all templates.
-    this._app.get('/api/templates/', expressWrap(async (req, res) => {
+    this._app.get("/api/templates/", expressWrap(async (req, res) => {
       const templateOrg = getTemplateOrg();
       if (!templateOrg) {
-        throw new ApiError('Template org is not configured', 501);
+        throw new ApiError("Template org is not configured", 501);
       }
 
       const query = await this._dbManager.getOrgWorkspaces(getScope(req), templateOrg);
@@ -317,10 +317,10 @@ export class ApiServer {
 
     // GET /api/templates/:did
     // Get information about a template.
-    this._app.get('/api/templates/:did', expressWrap(async (req, res) => {
+    this._app.get("/api/templates/:did", expressWrap(async (req, res) => {
       const templateOrg = getTemplateOrg();
       if (!templateOrg) {
-        throw new ApiError('Template org is not configured', 501);
+        throw new ApiError("Template org is not configured", 501);
       }
 
       const query = await this._dbManager.getDoc({ ...getScope(req), org: templateOrg });
@@ -329,7 +329,7 @@ export class ApiServer {
 
     // GET /api/widgets/
     // Get all widget definitions from external source.
-    this._app.get('/api/widgets/', expressWrap(async (req, res) => {
+    this._app.get("/api/widgets/", expressWrap(async (req, res) => {
       const widgetList = await this._gristServer
         .getWidgetRepository()
         .getWidgets();
@@ -338,14 +338,14 @@ export class ApiServer {
 
     // PATCH /api/docs/:did
     // Update the specified doc.
-    this._app.patch('/api/docs/:did', expressWrap(async (req, res) => {
+    this._app.patch("/api/docs/:did", expressWrap(async (req, res) => {
       const validDocTypes = [
         DOCTYPE_NORMAL,
         DOCTYPE_TEMPLATE,
         DOCTYPE_TUTORIAL,
       ];
 
-      if ('type' in req.body && !validDocTypes.includes(req.body.type)) {
+      if ("type" in req.body && !validDocTypes.includes(req.body.type)) {
         const errMsg = "Bad Request. 'type' key authorized values : " +
           `'${DOCTYPE_TEMPLATE}', '${DOCTYPE_TUTORIAL}' or ${DOCTYPE_NORMAL}`;
         return res.status(400).send({ error: errMsg });
@@ -353,14 +353,14 @@ export class ApiServer {
 
       const { data, ...result } = await this._dbManager.updateDocument(getDocScope(req), req.body);
 
-      if (data && 'name' in req.body) { this._logRenameDocumentEvents(req, data); }
+      if (data && "name" in req.body) { this._logRenameDocumentEvents(req, data); }
       return sendReply(req, res, { ...result, data: data?.current.id });
     }));
 
     // POST /api/docs/:did/unremove
     // Recover the specified doc if it was previously soft-deleted and is
     // still available.
-    this._app.post('/api/docs/:did/unremove', expressWrap(async (req, res) => {
+    this._app.post("/api/docs/:did/unremove", expressWrap(async (req, res) => {
       const { data } = await this._dbManager.undeleteDocument(getDocScope(req));
       if (data) { this._logRestoreDocumentEvents(req, data); }
       return sendOkReply(req, res);
@@ -368,7 +368,7 @@ export class ApiServer {
 
     // PATCH /api/orgs/:oid/access
     // Update the specified org acl rules.
-    this._app.patch('/api/orgs/:oid/access', expressWrap(async (req, res) => {
+    this._app.patch("/api/orgs/:oid/access", expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const delta = req.body.delta;
       const { data, ...result } = await this._dbManager.updateOrgPermissions(getScope(req), org, delta);
@@ -378,8 +378,8 @@ export class ApiServer {
 
     // PATCH /api/workspaces/:wid/access
     // Update the specified workspace acl rules.
-    this._app.patch('/api/workspaces/:wid/access', expressWrap(async (req, res) => {
-      const workspaceId = integerParam(req.params.wid, 'wid');
+    this._app.patch("/api/workspaces/:wid/access", expressWrap(async (req, res) => {
+      const workspaceId = integerParam(req.params.wid, "wid");
       const delta = req.body.delta;
       const { data, ...result } = await this._dbManager.updateWorkspacePermissions(getScope(req), workspaceId, delta);
       if (data) { this._logChangeWorkspaceAccessEvents(req as RequestWithLogin, data); }
@@ -388,14 +388,14 @@ export class ApiServer {
 
     // GET /api/docs/:did
     // Get information about a document.
-    this._app.get('/api/docs/:did', expressWrap(async (req, res) => {
+    this._app.get("/api/docs/:did", expressWrap(async (req, res) => {
       const query = await this._dbManager.getDoc(req);
       return sendOkReply(req, res, query);
     }));
 
     // PATCH /api/docs/:did/access
     // Update the specified doc acl rules.
-    this._app.patch('/api/docs/:did/access', expressWrap(async (req, res) => {
+    this._app.patch("/api/docs/:did/access", expressWrap(async (req, res) => {
       const delta = req.body.delta;
       const { data, ...result } = await this._dbManager.updateDocPermissions(getDocScope(req), delta);
       if (data) { this._logChangeDocumentAccessEvents(req, data); }
@@ -405,20 +405,20 @@ export class ApiServer {
 
     // PATCH /api/docs/:did/move
     // Move the doc to the workspace specified in the body.
-    this._app.patch('/api/docs/:did/move', expressWrap(async (req, res) => {
-      const workspaceId = integerParam(req.body.workspace, 'workspace');
+    this._app.patch("/api/docs/:did/move", expressWrap(async (req, res) => {
+      const workspaceId = integerParam(req.body.workspace, "workspace");
       const { data, ...result } = await this._dbManager.moveDoc(getDocScope(req), workspaceId);
       if (data) { this._logMoveDocumentEvents(req, data); }
       return sendReply(req, res, { ...result, data: data?.current.id });
     }));
 
-    this._app.patch('/api/docs/:did/pin', expressWrap(async (req, res) => {
+    this._app.patch("/api/docs/:did/pin", expressWrap(async (req, res) => {
       const { data, ...result } = await this._dbManager.pinDoc(getDocScope(req), true);
       if (data) { this._logPinDocumentEvents(req, data); }
       return sendReply(req, res, result);
     }));
 
-    this._app.patch('/api/docs/:did/unpin', expressWrap(async (req, res) => {
+    this._app.patch("/api/docs/:did/unpin", expressWrap(async (req, res) => {
       const { data, ...result } = await this._dbManager.pinDoc(getDocScope(req), false);
       if (data) { this._logUnpinDocumentEvents(req, data); }
       return sendReply(req, res, result);
@@ -426,7 +426,7 @@ export class ApiServer {
 
     // GET /api/orgs/:oid/access
     // Get user access information regarding an org
-    this._app.get('/api/orgs/:oid/access', expressWrap(async (req, res) => {
+    this._app.get("/api/orgs/:oid/access", expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const query = await this._withPrivilegedViewForUser(
         org, req, scope => this._dbManager.getOrgAccess(scope, org),
@@ -436,33 +436,33 @@ export class ApiServer {
 
     // GET /api/workspaces/:wid/access
     // Get user access information regarding a workspace
-    this._app.get('/api/workspaces/:wid/access', expressWrap(async (req, res) => {
-      const workspaceId = integerParam(req.params.wid, 'wid');
+    this._app.get("/api/workspaces/:wid/access", expressWrap(async (req, res) => {
+      const workspaceId = integerParam(req.params.wid, "wid");
       const query = await this._dbManager.getWorkspaceAccess(getScope(req), workspaceId);
       return sendReply(req, res, query);
     }));
 
     // GET /api/docs/:did/access
     // Get user access information regarding a doc
-    this._app.get('/api/docs/:did/access', expressWrap(async (req, res) => {
+    this._app.get("/api/docs/:did/access", expressWrap(async (req, res) => {
       const query = await this._dbManager.getDocAccess(getDocScope(req));
       return sendReply(req, res, query);
     }));
 
     // GET /api/profile/user
     // Get user's profile
-    this._app.get('/api/profile/user', expressWrap(async (req, res) => {
+    this._app.get("/api/profile/user", expressWrap(async (req, res) => {
       const fullUser = await this._getFullUser(req);
-      return sendOkReply(req, res, fullUser, { allowedFields: new Set(['allowGoogleLogin']) });
+      return sendOkReply(req, res, fullUser, { allowedFields: new Set(["allowGoogleLogin"]) });
     }));
 
     // POST /api/profile/user/name
     // Body params: string
     // Update users profile.
-    this._app.post('/api/profile/user/name', expressWrap(async (req, res) => {
+    this._app.post("/api/profile/user/name", expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       if (!(req.body?.name)) {
-        throw new ApiError('Name expected in the body', 400);
+        throw new ApiError("Name expected in the body", 400);
       }
       const name = req.body.name;
       const { previous, current } = await this._dbManager.updateUser(userId, { name });
@@ -473,50 +473,50 @@ export class ApiServer {
     // POST /api/profile/user/locale
     // Body params: string
     // Update users profile.
-    this._app.post('/api/profile/user/locale', expressWrap(async (req, res) => {
+    this._app.post("/api/profile/user/locale", expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       await this._dbManager.updateUserOptions(userId, { locale: req.body.locale || null });
-      res.append('Set-Cookie', cookie.serialize('grist_user_locale', req.body.locale || '', {
+      res.append("Set-Cookie", cookie.serialize("grist_user_locale", req.body.locale || "", {
         httpOnly: false,    // make available to client-side scripts
         domain: getCookieDomain(req),
-        path: '/',
+        path: "/",
         secure: true,
         maxAge: req.body.locale ? 31536000 : 0,
-        sameSite: 'None', // there is no security concern to expose this information.
+        sameSite: "None", // there is no security concern to expose this information.
       }));
       res.sendStatus(200);
     }));
 
     // POST /api/profile/allowGoogleLogin
     // Update user's preference for allowing Google login.
-    this._app.post('/api/profile/allowGoogleLogin', expressWrap(async (req, res) => {
+    this._app.post("/api/profile/allowGoogleLogin", expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const fullUser = await this._getFullUser(req);
-      if (fullUser.loginMethod !== 'Email + Password') {
-        throw new ApiError('Only users signed in via email can enable/disable Google login', 401);
+      if (fullUser.loginMethod !== "Email + Password") {
+        throw new ApiError("Only users signed in via email can enable/disable Google login", 401);
       }
 
       const allowGoogleLogin: boolean | undefined = req.body.allowGoogleLogin;
       if (allowGoogleLogin === undefined) {
-        throw new ApiError('Missing body param: allowGoogleLogin', 400);
+        throw new ApiError("Missing body param: allowGoogleLogin", 400);
       }
 
       await this._dbManager.updateUserOptions(userId, { allowGoogleLogin });
       res.sendStatus(200);
     }));
 
-    this._app.post('/api/profile/isConsultant', expressWrap(async (req, res) => {
+    this._app.post("/api/profile/isConsultant", expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       if (userId !== this._dbManager.getSupportUserId()) {
-        throw new ApiError('Only support user can enable/disable isConsultant', 401);
+        throw new ApiError("Only support user can enable/disable isConsultant", 401);
       }
       const isConsultant: boolean | undefined = req.body.isConsultant;
       const targetUserId: number | undefined = req.body.userId;
       if (isConsultant === undefined) {
-        throw new ApiError('Missing body param: isConsultant', 400);
+        throw new ApiError("Missing body param: isConsultant", 400);
       }
       if (targetUserId === undefined) {
-        throw new ApiError('Missing body param: targetUserId', 400);
+        throw new ApiError("Missing body param: targetUserId", 400);
       }
       await this._dbManager.updateUserOptions(targetUserId, {
         isConsultant,
@@ -524,19 +524,19 @@ export class ApiServer {
       res.sendStatus(200);
     }));
 
-    this._app.post('/api/users/:userId/disable', requireInstallAdmin, expressWrap(async (req, res) => {
+    this._app.post("/api/users/:userId/disable", requireInstallAdmin, expressWrap(async (req, res) => {
       await this._changeUserDisabledDate(req, new Date());
       await sendOkReply(req, res);
     }));
 
-    this._app.post('/api/users/:userId/enable', requireInstallAdmin, expressWrap(async (req, res) => {
+    this._app.post("/api/users/:userId/enable", requireInstallAdmin, expressWrap(async (req, res) => {
       await this._changeUserDisabledDate(req, null);
       await sendOkReply(req, res);
     }));
 
     // GET /api/profile/apikey
     // Get user's apiKey
-    this._app.get('/api/profile/apikey', expressWrap(async (req, res) => {
+    this._app.get("/api/profile/apikey", expressWrap(async (req, res) => {
       try {
         const userId = getUserId(req);
         const apiKey = await this._dbManager.getApiKey(userId);
@@ -549,7 +549,7 @@ export class ApiServer {
 
     // POST /api/profile/apikey
     // Update user's apiKey
-    this._app.post('/api/profile/apikey', expressWrap(async (req, res) => {
+    this._app.post("/api/profile/apikey", expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const force = req.body ? req.body.force : false;
       const user = await this._dbManager.createApiKey(userId, force);
@@ -559,7 +559,7 @@ export class ApiServer {
 
     // DELETE /api/profile/apiKey
     // Delete apiKey
-    this._app.delete('/api/profile/apikey', expressWrap(async (req, res) => {
+    this._app.delete("/api/profile/apikey", expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       try {
         const user = await this._dbManager.deleteApiKey(userId);
@@ -573,7 +573,7 @@ export class ApiServer {
 
     // GET /api/session/access/active
     // Returns active user and active org (if any)
-    this._app.get('/api/session/access/active', expressWrap(async (req, res) => {
+    this._app.get("/api/session/access/active", expressWrap(async (req, res) => {
       const fullUser = await this._getFullUser(req, { includePrefs: true });
       const domain = getOrgFromRequest(req);
       const org = domain ? (await this._withPrivilegedViewForUser(
@@ -594,14 +594,14 @@ export class ApiServer {
     // Body params: email (required)
     // Body params: org (optional) - string subdomain or 'current', for which org's active user to modify.
     // Sets active user for active org
-    this._app.post('/api/session/access/active', expressWrap(async (req, res) => {
+    this._app.post("/api/session/access/active", expressWrap(async (req, res) => {
       const mreq = req as RequestWithLogin;
-      let domain = optStringParam(req.body.org, 'org');
-      if (!domain || domain === 'current') {
-        domain = getOrgFromRequest(mreq) || '';
+      let domain = optStringParam(req.body.org, "org");
+      if (!domain || domain === "current") {
+        domain = getOrgFromRequest(mreq) || "";
       }
       const email = req.body.email;
-      if (!email) { throw new ApiError('email required', 400); }
+      if (!email) { throw new ApiError("email required", 400); }
       try {
         // Modify session copy in request. Will be saved to persistent storage before responding
         // by express-session middleware.
@@ -610,14 +610,14 @@ export class ApiServer {
         return sendOkReply(req, res, { email });
       }
       catch (e) {
-        throw new ApiError('email not available', 403);
+        throw new ApiError("email not available", 403);
       }
     }));
 
     // GET /api/session/access/all
     // Returns all user profiles (with ids) and all orgs they can access.
     // Flattens personal orgs into a single org.
-    this._app.get('/api/session/access/all', expressWrap(async (req, res) => {
+    this._app.get("/api/session/access/all", expressWrap(async (req, res) => {
       const domain = getOrgFromRequest(req);
       const users = getUserProfiles(req);
       const userId = getUserId(req);
@@ -634,10 +634,10 @@ export class ApiServer {
     // Not available to the anonymous user.
     // TODO: should orphan orgs, inaccessible by anyone else, get deleted when last user
     // leaves?
-    this._app.delete('/api/users/:uid', expressWrap(async (req, res) => {
+    this._app.delete("/api/users/:uid", expressWrap(async (req, res) => {
       const userIdToDelete = parseInt(req.params.uid, 10);
       if (!(req.body?.name !== undefined)) {
-        throw new ApiError('to confirm deletion of a user, provide their name', 400);
+        throw new ApiError("to confirm deletion of a user, provide their name", 400);
       }
       const { data, ...result } = await this._dbManager.deleteUser(getScope(req), userIdToDelete, req.body.name);
       if (data) { this._logDeleteUserEvents(req, data); }
@@ -647,7 +647,7 @@ export class ApiServer {
     if (isAffirmative(process.env.GRIST_ENABLE_SERVICE_ACCOUNTS)) {
       // POST /service-accounts/
       // Creates a new service account attached to the user making the api call.
-      this._app.post('/api/service-accounts', validateStrict(PostServiceAccount), expressWrap(async (req, res) => {
+      this._app.post("/api/service-accounts", validateStrict(PostServiceAccount), expressWrap(async (req, res) => {
         const ownerId = getAuthorizedUserId(req);
         const body = req.body as SATypes.PostServiceAccount;
         const options = {
@@ -673,7 +673,7 @@ export class ApiServer {
 
       // GET /service-accounts/
       // Reads all service accounts attached to the user making the api call.
-      this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
+      this._app.get("/api/service-accounts", expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const data = await this._dbManager.getOwnedServiceAccounts(userId);
         const resp: Partial<SATypes.ServiceAccountApiResponse>[] = data.map((serviceAccount) => {
@@ -692,7 +692,7 @@ export class ApiServer {
 
       // GET /service-accounts/:said
       // Reads one particular service account of the user making the api call.
-      this._app.get('/api/service-accounts/:said', expressWrap(async (req, res) => {
+      this._app.get("/api/service-accounts/:said", expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const serviceAccountId = parseInt(req.params.said);
         const serviceAccount = await this._dbManager.getServiceAccount(serviceAccountId);
@@ -711,7 +711,7 @@ export class ApiServer {
 
       // PATCH /service-accounts/:said
       // Modifies one particular service account of the user making the api call.
-      this._app.patch('/api/service-accounts/:said', validateStrict(PatchServiceAccount), expressWrap(
+      this._app.patch("/api/service-accounts/:said", validateStrict(PatchServiceAccount), expressWrap(
         async (req, res) => {
           const userId = getAuthorizedUserId(req);
           const serviceAccountId = parseInt(req.params.said);
@@ -735,7 +735,7 @@ export class ApiServer {
 
       // DELETE /service-accounts/:said
       // Deletes one particular service account of the user making the api call.
-      this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
+      this._app.delete("/api/service-accounts/:said", expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const serviceAccountId = parseInt(req.params.said);
         const resp = await this._dbManager.deleteServiceAccount(serviceAccountId, { expectedOwnerId: userId });
@@ -747,7 +747,7 @@ export class ApiServer {
 
       // POST /service-accounts/:said/apikey
       // Regenerate and return the apikey of a given Service Account
-      this._app.post('/api/service-accounts/:said/apikey', expressWrap(async (req, res) => {
+      this._app.post("/api/service-accounts/:said/apikey", expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const serviceAccountId = parseInt(req.params.said);
         const serviceAccount = await this._dbManager.createServiceAccountApiKey(
@@ -773,7 +773,7 @@ export class ApiServer {
 
       // DELETE /service-accounts/:said/apikey
       // Deletes the apikey of a given Service Account by deleting the key
-      this._app.delete('/api/service-accounts/:said/apikey', expressWrap(async (req, res) => {
+      this._app.delete("/api/service-accounts/:said/apikey", expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const serviceAccountId = parseInt(req.params.said);
         const serviceAccount = await this._dbManager.deleteServiceAccountApiKey(
@@ -799,7 +799,7 @@ export class ApiServer {
     );
     const okToDelete = ((org.domain && name === org.domain) ||
       (org.name && name === org.name) ||
-      name === 'force-delete');
+      name === "force-delete");
     if (!okToDelete) {
       throw new ApiError("Name does not match organization", 400);
     }
@@ -823,7 +823,7 @@ export class ApiServer {
 
     const fullUser = this._dbManager.makeFullUser(user);
     const domain = getOrgFromRequest(mreq);
-    const sessionUser = getSessionUser(mreq.session, domain || '', fullUser.email);
+    const sessionUser = getSessionUser(mreq.session, domain || "", fullUser.email);
     const loginMethod = sessionUser?.profile ? sessionUser.profile.loginMethod : undefined;
     const allowGoogleLogin = user.options?.allowGoogleLogin ?? true;
     return { ...fullUser, loginMethod, allowGoogleLogin };
@@ -861,9 +861,9 @@ export class ApiServer {
   private async _changeUserDisabledDate(req: express.Request, disabledAt: Date | null) {
     const mreq = req as RequestWithLogin;
     const userId = mreq.userId;
-    const targetUserId = integerParam(req.params.userId, 'userId');
+    const targetUserId = integerParam(req.params.userId, "userId");
     if (targetUserId === userId) {
-      throw new ApiError('you cannot disable yourself', 400);
+      throw new ApiError("you cannot disable yourself", 400);
     }
     await this._dbManager.updateUser(targetUserId, { disabledAt });
   }
@@ -906,7 +906,7 @@ export class ApiServer {
         },
       },
     });
-    this._gristServer.getTelemetry().logEvent(mreq, 'documentCreated', {
+    this._gristServer.getTelemetry().logEvent(mreq, "documentCreated", {
       limited: {
         docIdDigest: document.id,
         sourceDocIdDigest: undefined,
@@ -919,7 +919,7 @@ export class ApiServer {
         altSessionId: mreq.altSessionId,
       },
     });
-    this._gristServer.getTelemetry().logEvent(mreq, 'createdDoc-Empty', {
+    this._gristServer.getTelemetry().logEvent(mreq, "createdDoc-Empty", {
       full: {
         docIdDigest: document.id,
         userId: mreq.userId,
@@ -996,15 +996,15 @@ export class ApiServer {
       owners: 0,
     };
     for (const [email, access] of Object.entries(delta.users)) {
-      if (email === 'everyone@getgrist.com') { continue; }
-      if (access === null || access === 'members') { continue; }
+      if (email === "everyone@getgrist.com") { continue; }
+      if (access === null || access === "members") { continue; }
 
       numInvitedUsersByAccess[access] += 1;
     }
     for (const [access, count] of Object.entries(numInvitedUsersByAccess)) {
       if (count === 0) { continue; }
 
-      this._gristServer.getTelemetry().logEvent(mreq, 'invitedDocUser', {
+      this._gristServer.getTelemetry().logEvent(mreq, "invitedDocUser", {
         full: {
           access,
           count,
@@ -1013,11 +1013,11 @@ export class ApiServer {
       });
     }
 
-    const publicAccess = delta.users['everyone@getgrist.com'];
+    const publicAccess = delta.users["everyone@getgrist.com"];
     if (publicAccess !== undefined) {
       this._gristServer.getTelemetry().logEvent(
         mreq,
-        publicAccess ? 'madeDocPublic' : 'madeDocPrivate',
+        publicAccess ? "madeDocPublic" : "madeDocPrivate",
         {
           full: {
             ...(publicAccess ? { access: publicAccess } : {}),
@@ -1089,7 +1089,7 @@ export class ApiServer {
         workspace: pick(workspace, "id", "name"),
       },
     });
-    this._gristServer.getTelemetry().logEvent(mreq, 'createdWorkspace', {
+    this._gristServer.getTelemetry().logEvent(mreq, "createdWorkspace", {
       full: {
         workspaceId: workspace.id,
         userId: mreq.userId,
@@ -1141,7 +1141,7 @@ export class ApiServer {
         error,
       },
     });
-    this._gristServer.getTelemetry().logEvent(mreq, 'deletedWorkspace', {
+    this._gristServer.getTelemetry().logEvent(mreq, "deletedWorkspace", {
       full: {
         workspaceId: workspace.id,
         userId: mreq.userId,

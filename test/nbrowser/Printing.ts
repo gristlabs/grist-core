@@ -18,20 +18,20 @@
  *    simulation of `@media print`. That's what we use here. We don't get to see anything about
  *    pagination, but we can at least check whether various elements are visible for printing.
  */
-import { assert, driver } from 'mocha-webdriver';
-import { serveCustomViews, Serving } from 'test/nbrowser/customUtil';
-import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { assert, driver } from "mocha-webdriver";
+import { serveCustomViews, Serving } from "test/nbrowser/customUtil";
+import * as gu from "test/nbrowser/gristUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
 
 function emulateMediaPrint(print: boolean) {
-  return (driver as any).sendDevToolsCommand('Emulation.setEmulatedMedia', { media: print ? 'print' : 'screen' });
+  return (driver as any).sendDevToolsCommand("Emulation.setEmulatedMedia", { media: print ? "print" : "screen" });
 }
 
 async function checkPrintSection(sectionName: string, checkFunc: () => Promise<void>) {
   const numTabs = (await driver.getAllWindowHandles()).length;
-  await driver.executeScript('window.debugPrinting = 1');
-  await gu.openSectionMenu('viewLayout', sectionName);
-  await driver.findWait('.test-print-section', 500).click();
+  await driver.executeScript("window.debugPrinting = 1");
+  await gu.openSectionMenu("viewLayout", sectionName);
+  await driver.findWait(".test-print-section", 500).click();
   await driver.sleep(100);    // Just to be sure we don't continue before setTimeout(0), used in printing.
   try {
     await emulateMediaPrint(true);
@@ -42,15 +42,15 @@ async function checkPrintSection(sectionName: string, checkFunc: () => Promise<v
     await gu.waitToPass(async () => assert.lengthOf(await driver.getAllWindowHandles(), numTabs), 5000);
 
     // Ensure that `afterprint` callback gets triggered, needed for mac.
-    await gu.waitToPass(() => driver.executeScript('window.afterPrintCallback?.()'));
+    await gu.waitToPass(() => driver.executeScript("window.afterPrintCallback?.()"));
 
     await emulateMediaPrint(false);
-    await gu.waitToPass(() => driver.executeScript('window.finishPrinting()'));
-    await driver.executeScript('window.debugPrinting = 0');
+    await gu.waitToPass(() => driver.executeScript("window.finishPrinting()"));
+    await driver.executeScript("window.debugPrinting = 0");
   }
 }
 
-describe('Printing', function() {
+describe("Printing", function() {
   this.timeout(30000);
   const cleanup = setupTestSuite();
   let serving: Serving;
@@ -60,7 +60,7 @@ describe('Printing', function() {
   before(async function() {
     serving = await serveCustomViews();
     mainSession = await gu.session().login();
-    docId = (await mainSession.tempDoc(cleanup, 'Countries-Print.grist', { load: false })).id;
+    docId = (await mainSession.tempDoc(cleanup, "Countries-Print.grist", { load: false })).id;
   });
 
   after(async function() {
@@ -90,86 +90,86 @@ describe('Printing', function() {
     await driver.switchTo().window(originalTab);
   });
 
-  it('should include all rows when printing tables', async function() {
-    await checkPrintSection('COUNTRIES', async () => {
+  it("should include all rows when printing tables", async function() {
+    await checkPrintSection("COUNTRIES", async () => {
       // All rows (near the beginning and far) are displayed.
-      assert.isTrue(await driver.findContent('.print-all-rows .field_clip', /Bulgaria/).isDisplayed());
-      assert.isTrue(await driver.findContent('.print-all-rows .field_clip', /Polska/).isDisplayed());
-      assert.isTrue(await driver.findContent('.print-all-rows .field_clip', /Vanuatu/).isDisplayed());
-      assert.isTrue(await driver.find('.print-row:last-child').isDisplayed());
+      assert.isTrue(await driver.findContent(".print-all-rows .field_clip", /Bulgaria/).isDisplayed());
+      assert.isTrue(await driver.findContent(".print-all-rows .field_clip", /Polska/).isDisplayed());
+      assert.isTrue(await driver.findContent(".print-all-rows .field_clip", /Vanuatu/).isDisplayed());
+      assert.isTrue(await driver.find(".print-row:last-child").isDisplayed());
 
       // Check the text in last row to be sure what's included.
-      assert.match(await driver.find('.print-row:last-child').getText(), /Zimbabwe.*Eastern Africa/s);
+      assert.match(await driver.find(".print-row:last-child").getText(), /Zimbabwe.*Eastern Africa/s);
     });
   });
 
-  it('should include all rows when printing card list', async function() {
-    await gu.getPageItem('Cards and Chart').click();
-    await checkPrintSection('COUNTRIES Card List', async () => {
+  it("should include all rows when printing card list", async function() {
+    await gu.getPageItem("Cards and Chart").click();
+    await checkPrintSection("COUNTRIES Card List", async () => {
       // Only the selected cards are displayed.
-      assert.isTrue(await driver.findContent('.print-all-rows .field_clip', /Aruba/).isDisplayed());
-      assert.isTrue(await driver.findContent('.print-all-rows .field_clip', /Grenadines/).isDisplayed());
-      assert.isTrue(await driver.findContent('.print-all-rows .field_clip', /North America/).isDisplayed());
-      assert.isTrue(await driver.find('.print-row:last-child').isDisplayed());
+      assert.isTrue(await driver.findContent(".print-all-rows .field_clip", /Aruba/).isDisplayed());
+      assert.isTrue(await driver.findContent(".print-all-rows .field_clip", /Grenadines/).isDisplayed());
+      assert.isTrue(await driver.findContent(".print-all-rows .field_clip", /North America/).isDisplayed());
+      assert.isTrue(await driver.find(".print-row:last-child").isDisplayed());
       // Other countries are not displayed.
-      assert.isFalse(await driver.findContent('.print-widget .field_clip', /Aremenia/).isPresent());
-      assert.isFalse(await driver.findContent('.print-widget .field_clip', /Africa/).isPresent());
-      assert.isFalse(await driver.findContent('.print-widget .field_clip', /Albania/).isPresent());
+      assert.isFalse(await driver.findContent(".print-widget .field_clip", /Aremenia/).isPresent());
+      assert.isFalse(await driver.findContent(".print-widget .field_clip", /Africa/).isPresent());
+      assert.isFalse(await driver.findContent(".print-widget .field_clip", /Albania/).isPresent());
       // Check some text to see what's included.
-      assert.match(await driver.find('.print-row:first-child').getText(), /Aruba.*Caribbean/s);
-      assert.match(await driver.find('.print-row:last-child').getText(), /Virgin Islands.*Caribbean/s);
+      assert.match(await driver.find(".print-row:first-child").getText(), /Aruba.*Caribbean/s);
+      assert.match(await driver.find(".print-row:last-child").getText(), /Virgin Islands.*Caribbean/s);
     });
   });
 
-  it('should display charts when printing', async function() {
-    await gu.getPageItem('Cards and Chart').click();
-    await checkPrintSection('COUNTRIES [By Continent] Chart', async () => {
+  it("should display charts when printing", async function() {
+    await gu.getPageItem("Cards and Chart").click();
+    await checkPrintSection("COUNTRIES [By Continent] Chart", async () => {
       await gu.waitToPass(async () => {
         // Expect to see all Continents listed, by population, excluding the filtered-out Antarctica.
-        assert.deepEqual(await driver.findAll('.print-widget .legendtext', el => el.getText()),
-          ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America']);
+        assert.deepEqual(await driver.findAll(".print-widget .legendtext", el => el.getText()),
+          ["Africa", "Asia", "Europe", "North America", "Oceania", "South America"]);
       }, 5000);
     });
   });
 
-  it('should not display link icon when printing', async function() {
-    await gu.getPageItem('Countries').click();
+  it("should not display link icon when printing", async function() {
+    await gu.getPageItem("Countries").click();
     await gu.getCell(0, 1).click();
-    await gu.enterCell('http://getgrist.com');
+    await gu.enterCell("http://getgrist.com");
     await gu.waitForServer();
 
     const checkLinkIsDisplayed = async (expected: boolean) => {
-      assert.equal(await driver.findContent('span', 'http://getgrist.com').isPresent(), true);
+      assert.equal(await driver.findContent("span", "http://getgrist.com").isPresent(), true);
       assert.equal(await driver.find('a[href*="http://getgrist.com"]').isDisplayed(), expected);
     };
 
     await checkLinkIsDisplayed(true);
 
-    await checkPrintSection('COUNTRIES', async () => {
+    await checkPrintSection("COUNTRIES", async () => {
       await gu.waitToPass(async () => {
         await checkLinkIsDisplayed(false);
       }, 5000);
     });
   });
 
-  it('should render markdown cells when printing', async function() {
-    await gu.getPageItem('Countries').click();
-    await gu.openColumnPanel('Name');
-    await gu.setFieldWidgetType('Markdown');
-    await gu.getCell({ rowNum: 1, col: 'Name' }).click();
-    await gu.enterCell('[Aruba](https://getgrist.com/#aruba)');
+  it("should render markdown cells when printing", async function() {
+    await gu.getPageItem("Countries").click();
+    await gu.openColumnPanel("Name");
+    await gu.setFieldWidgetType("Markdown");
+    await gu.getCell({ rowNum: 1, col: "Name" }).click();
+    await gu.enterCell("[Aruba](https://getgrist.com/#aruba)");
 
-    const link = driver.findContentWait('.test-text-link', 'Aruba', 1000);
+    const link = driver.findContentWait(".test-text-link", "Aruba", 1000);
     assert.equal(await link.isDisplayed(), true);
     // There is also the link itself, shown as an icon just before the text.
-    assert.equal(await link.find('a').getAttribute('href'), 'https://getgrist.com/#aruba');
-    assert.equal(await link.find('a').isDisplayed(), true);
+    assert.equal(await link.find("a").getAttribute("href"), "https://getgrist.com/#aruba");
+    assert.equal(await link.find("a").isDisplayed(), true);
 
-    await checkPrintSection('COUNTRIES', async () => {
-      const link = driver.findContent('.print-all-rows .test-text-link', 'Aruba');
+    await checkPrintSection("COUNTRIES", async () => {
+      const link = driver.findContent(".print-all-rows .test-text-link", "Aruba");
       assert.equal(await link.isDisplayed(), true);
       // In print view, the link icon is hidden.
-      assert.equal(await link.find('a').isDisplayed(), false);
+      assert.equal(await link.find("a").isDisplayed(), false);
     });
   });
 

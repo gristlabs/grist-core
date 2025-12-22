@@ -1,13 +1,13 @@
-var assert = require('chai').assert;
-var sinon = require('sinon');
-var Promise = require('bluebird');
+var assert = require("chai").assert;
+var sinon = require("sinon");
+var Promise = require("bluebird");
 
-var {Delay} = require('app/client/lib/Delay');
-var clientUtil = require('../clientUtil');
+var {Delay} = require("app/client/lib/Delay");
+var clientUtil = require("../clientUtil");
 
 const DELAY_MS = 50;
 
-describe('Delay', function() {
+describe("Delay", function() {
 
   clientUtil.setTmpMochaGlobals();
 

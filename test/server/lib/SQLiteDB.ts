@@ -1,26 +1,26 @@
-import { assert } from 'chai';
-import * as fse from 'fs-extra';
-import { map, noop } from 'lodash';
-import { join as pathJoin } from 'path';
-import * as tmp from 'tmp-promise';
+import { assert } from "chai";
+import * as fse from "fs-extra";
+import { map, noop } from "lodash";
+import { join as pathJoin } from "path";
+import * as tmp from "tmp-promise";
 
-import { delay } from 'app/common/delay';
-import { OpenMode, SchemaInfo, SQLiteDB } from 'app/server/lib/SQLiteDB';
-import * as testUtils from 'test/server/testUtils';
-import { timeoutReached } from 'app/common/gutil';
+import { delay } from "app/common/delay";
+import { OpenMode, SchemaInfo, SQLiteDB } from "app/server/lib/SQLiteDB";
+import * as testUtils from "test/server/testUtils";
+import { timeoutReached } from "app/common/gutil";
 
 tmp.setGracefulCleanup();
 
-describe('SQLiteDB', function() {
+describe("SQLiteDB", function() {
   let tmpDir: string;
   let cleanup: () => void;
 
   // Turn off logging for this test, and restore afterwards.
-  testUtils.setTmpLogLevel('warn');
+  testUtils.setTmpLogLevel("warn");
 
   before(async function() {
     // Create a temporary directory, and wipe it out on exit.
-    ({ path: tmpDir, cleanup } = await tmp.dir({ prefix: 'grist_test_SQLiteDB_', unsafeCleanup: true }));
+    ({ path: tmpDir, cleanup } = await tmp.dir({ prefix: "grist_test_SQLiteDB_", unsafeCleanup: true }));
   });
 
   after(function() {
@@ -33,87 +33,87 @@ describe('SQLiteDB', function() {
   }
 
   async function getTableNames(sdb: SQLiteDB): Promise<string[]> {
-    return map(await sdb.all("SELECT * FROM sqlite_master WHERE type='table'"), 'name');
+    return map(await sdb.all("SELECT * FROM sqlite_master WHERE type='table'"), "name");
   }
 
-  it('should create correct schema for a new DB', async function() {
-    assert.isFalse(await fse.pathExists(dbPath('test1A')));
-    const sdb = await SQLiteDB.openDB(dbPath('test1A'), schemaInfo, OpenMode.OPEN_CREATE);
-    assert.isTrue(await fse.pathExists(dbPath('test1A')));
+  it("should create correct schema for a new DB", async function() {
+    assert.isFalse(await fse.pathExists(dbPath("test1A")));
+    const sdb = await SQLiteDB.openDB(dbPath("test1A"), schemaInfo, OpenMode.OPEN_CREATE);
+    assert.isTrue(await fse.pathExists(dbPath("test1A")));
 
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo", "Bar"]);
     assert.deepEqual(await sdb.collectMetadata(), {
-      Foo: { A: 'TEXT', B: 'NUMERIC' },
-      Bar: { C: 'TEXT', D: 'NUMERIC' },
+      Foo: { A: "TEXT", B: "NUMERIC" },
+      Bar: { C: "TEXT", D: "NUMERIC" },
     });
     await sdb.close();
   });
 
-  it('should support all OpenMode values', async function() {
+  it("should support all OpenMode values", async function() {
     let sdb: SQLiteDB;
 
     // Check that OPEN_CREATE works for both new and existing DB.
-    assert.isFalse(await fse.pathExists(dbPath('test2A')));
-    sdb = await SQLiteDB.openDB(dbPath('test2A'), schemaInfo, OpenMode.OPEN_CREATE);
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
+    assert.isFalse(await fse.pathExists(dbPath("test2A")));
+    sdb = await SQLiteDB.openDB(dbPath("test2A"), schemaInfo, OpenMode.OPEN_CREATE);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo", "Bar"]);
     await sdb.close();
 
-    assert.isTrue(await fse.pathExists(dbPath('test2A')));
-    sdb = await SQLiteDB.openDB(dbPath('test2A'), schemaInfo, OpenMode.OPEN_CREATE);
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
+    assert.isTrue(await fse.pathExists(dbPath("test2A")));
+    sdb = await SQLiteDB.openDB(dbPath("test2A"), schemaInfo, OpenMode.OPEN_CREATE);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo", "Bar"]);
     await sdb.close();
 
     // Check that OPEN_EXISTING works for existing but fails for new.
-    sdb = await SQLiteDB.openDB(dbPath('test2A'), schemaInfo, OpenMode.OPEN_EXISTING);
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
+    sdb = await SQLiteDB.openDB(dbPath("test2A"), schemaInfo, OpenMode.OPEN_EXISTING);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo", "Bar"]);
     await sdb.close();
 
-    assert.isFalse(await fse.pathExists(dbPath('test2B')));
-    await assert.isRejected(SQLiteDB.openDB(dbPath('test2B'), schemaInfo, OpenMode.OPEN_EXISTING),
+    assert.isFalse(await fse.pathExists(dbPath("test2B")));
+    await assert.isRejected(SQLiteDB.openDB(dbPath("test2B"), schemaInfo, OpenMode.OPEN_EXISTING),
       /unable to open database/);
-    assert.isFalse(await fse.pathExists(dbPath('test2B')));
+    assert.isFalse(await fse.pathExists(dbPath("test2B")));
 
     // Check that OPEN_READONLY works for existing, fails for new, and prevents changes.
-    await assert.isRejected(SQLiteDB.openDB(dbPath('test2B'), schemaInfo, OpenMode.OPEN_READONLY),
+    await assert.isRejected(SQLiteDB.openDB(dbPath("test2B"), schemaInfo, OpenMode.OPEN_READONLY),
       /unable to open database/);
-    sdb = await SQLiteDB.openDB(dbPath('test2A'), schemaInfo, OpenMode.OPEN_READONLY);
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
+    sdb = await SQLiteDB.openDB(dbPath("test2A"), schemaInfo, OpenMode.OPEN_READONLY);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo", "Bar"]);
     await assert.isRejected(sdb.run('INSERT INTO Foo (A) VALUES ("hello")'),
       /readonly database/);
     await sdb.close();
 
     // Check that OPEN_READONLY works when a migration is required, without a migration.
-    sdb = await SQLiteDB.openDB(dbPath('test2C'), schemaInfoV1, OpenMode.OPEN_CREATE);
+    sdb = await SQLiteDB.openDB(dbPath("test2C"), schemaInfoV1, OpenMode.OPEN_CREATE);
     await sdb.close();
-    await testUtils.captureLog('warn', async () => {
-      sdb = await SQLiteDB.openDB(dbPath('test2C'), schemaInfo, OpenMode.OPEN_READONLY);
+    await testUtils.captureLog("warn", async () => {
+      sdb = await SQLiteDB.openDB(dbPath("test2C"), schemaInfo, OpenMode.OPEN_READONLY);
     });
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo']);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo"]);
     assert.strictEqual(sdb.migrationBackupPath, null);
     await sdb.close();
 
     // Check that CREATE_EXCL works for new, fails for existing.
-    assert.isFalse(await fse.pathExists(dbPath('test2D')));
-    sdb = await SQLiteDB.openDB(dbPath('test2D'), schemaInfo, OpenMode.CREATE_EXCL);
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
+    assert.isFalse(await fse.pathExists(dbPath("test2D")));
+    sdb = await SQLiteDB.openDB(dbPath("test2D"), schemaInfo, OpenMode.CREATE_EXCL);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo", "Bar"]);
     await sdb.close();
 
-    assert.isTrue(await fse.pathExists(dbPath('test2D')));
-    await assert.isRejected(SQLiteDB.openDB(dbPath('test2D'), schemaInfo, OpenMode.CREATE_EXCL),
+    assert.isTrue(await fse.pathExists(dbPath("test2D")));
+    await assert.isRejected(SQLiteDB.openDB(dbPath("test2D"), schemaInfo, OpenMode.CREATE_EXCL),
       /already exists/);
-    assert.isTrue(await fse.pathExists(dbPath('test2D')));
+    assert.isTrue(await fse.pathExists(dbPath("test2D")));
   });
 
-  it('should warn about opening the same DB more than once', async function() {
+  it("should warn about opening the same DB more than once", async function() {
     // Open a database.
-    const sdb = await SQLiteDB.openDB(dbPath('testWarn'), schemaInfo, OpenMode.OPEN_CREATE);
+    const sdb = await SQLiteDB.openDB(dbPath("testWarn"), schemaInfo, OpenMode.OPEN_CREATE);
     let msgs: string[];
 
     // Open the same database again, with open() and openRaw()
-    msgs = await testUtils.captureLog('warn', async () => {
-      const sdb2 = await SQLiteDB.openDB(dbPath('testWarn'), schemaInfo, OpenMode.OPEN_EXISTING);
+    msgs = await testUtils.captureLog("warn", async () => {
+      const sdb2 = await SQLiteDB.openDB(dbPath("testWarn"), schemaInfo, OpenMode.OPEN_EXISTING);
       await sdb2.close();
-      const sdb3 = await SQLiteDB.openDBRaw(dbPath('testWarn'), OpenMode.OPEN_EXISTING);
+      const sdb3 = await SQLiteDB.openDBRaw(dbPath("testWarn"), OpenMode.OPEN_EXISTING);
       await sdb3.close();
     });
     testUtils.assertMatchArray(msgs, [
@@ -123,41 +123,41 @@ describe('SQLiteDB', function() {
 
     // Close and repeat the test: should have no errors.
     await sdb.close();
-    msgs = await testUtils.captureLog('warn', async () => {
-      const sdb2 = await SQLiteDB.openDB(dbPath('testWarn'), schemaInfo, OpenMode.OPEN_EXISTING);
+    msgs = await testUtils.captureLog("warn", async () => {
+      const sdb2 = await SQLiteDB.openDB(dbPath("testWarn"), schemaInfo, OpenMode.OPEN_EXISTING);
       await sdb2.close();
-      const sdb3 = await SQLiteDB.openDBRaw(dbPath('testWarn'), OpenMode.OPEN_EXISTING);
+      const sdb3 = await SQLiteDB.openDBRaw(dbPath("testWarn"), OpenMode.OPEN_EXISTING);
       await sdb3.close();
     });
     testUtils.assertMatchArray(msgs, []);
   });
 
-  it('should apply migrations, with backup, if needed', async function() {
+  it("should apply migrations, with backup, if needed", async function() {
     let sdb: SQLiteDB = null as any;    // To silence warnings about use before assignment.
     let msgs: string[];
 
     // On creating a V1 schema doc.
-    msgs = await testUtils.captureLog('info', async () => {
-      sdb = await SQLiteDB.openDB(dbPath('test3A'), schemaInfoV1, OpenMode.CREATE_EXCL);
+    msgs = await testUtils.captureLog("info", async () => {
+      sdb = await SQLiteDB.openDB(dbPath("test3A"), schemaInfoV1, OpenMode.CREATE_EXCL);
     });
     assert.deepEqual(msgs, []);                         // No warnings.
     assert.strictEqual(sdb.migrationBackupPath, null);  // No migration backup.
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo']);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo"]);
     await sdb.close();
 
     // On reopen using V1 schema.
-    msgs = await testUtils.captureLog('info', async () => {
-      sdb = await SQLiteDB.openDB(dbPath('test3A'), schemaInfoV1, OpenMode.OPEN_EXISTING);
+    msgs = await testUtils.captureLog("info", async () => {
+      sdb = await SQLiteDB.openDB(dbPath("test3A"), schemaInfoV1, OpenMode.OPEN_EXISTING);
     });
     assert.deepEqual(msgs, []);                         // No warnings.
     assert.strictEqual(sdb.migrationBackupPath, null);  // No migration backup.
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo']);
-    assert.deepEqual(await sdb.collectMetadata(), { Foo: { A: 'TEXT' } });
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo"]);
+    assert.deepEqual(await sdb.collectMetadata(), { Foo: { A: "TEXT" } });
     await sdb.close();
 
     // On reopen using V2 schema.
-    msgs = await testUtils.captureLog('info', async () => {
-      sdb = await SQLiteDB.openDB(dbPath('test3A'), schemaInfoV2, OpenMode.OPEN_EXISTING);
+    msgs = await testUtils.captureLog("info", async () => {
+      sdb = await SQLiteDB.openDB(dbPath("test3A"), schemaInfoV2, OpenMode.OPEN_EXISTING);
     });
     testUtils.assertMatchArray(msgs, [
       /\/test3A.* needs migration from version 1 to 2/,
@@ -165,150 +165,150 @@ describe('SQLiteDB', function() {
     ]);
     assert.match(sdb.migrationBackupPath!, /test3A\.\d{4}-\d{2}-\d{2}\.V1\.bak$/);
     assert.isTrue(await fse.pathExists(sdb.migrationBackupPath!));
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo", "Bar"]);
     assert.deepEqual(await sdb.collectMetadata(), {
-      Foo: { A: 'TEXT', B: 'NUMERIC' },
-      Bar: { D: 'NUMERIC' },
+      Foo: { A: "TEXT", B: "NUMERIC" },
+      Bar: { D: "NUMERIC" },
     });
     await sdb.close();
 
     // Check that the backup makes sense.
     const migrationSDB = await SQLiteDB.openDB(
       sdb.migrationBackupPath!, schemaInfoV1, OpenMode.OPEN_READONLY);
-    assert.deepEqual(await migrationSDB.collectMetadata(), { Foo: { A: 'TEXT' } });
+    assert.deepEqual(await migrationSDB.collectMetadata(), { Foo: { A: "TEXT" } });
     await migrationSDB.close();
 
     // On reopen using V3 schema.
-    msgs = await testUtils.captureLog('info', async () => {
-      sdb = await SQLiteDB.openDB(dbPath('test3A'), schemaInfo, OpenMode.OPEN_EXISTING);
+    msgs = await testUtils.captureLog("info", async () => {
+      sdb = await SQLiteDB.openDB(dbPath("test3A"), schemaInfo, OpenMode.OPEN_EXISTING);
     });
     testUtils.assertMatchArray(msgs, [
       /\/test3A.* needs migration from version 2 to 3/,
       /\/test3A.* backed up to .*\/test3A\.[0-9-]+\.V2\.bak, migrated to 3/,
     ]);
     assert.match(sdb.migrationBackupPath!, /test3A\.\d{4}-\d{2}-\d{2}\.V2\.bak$/);
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo", "Bar"]);
     assert.deepEqual(await sdb.collectMetadata(), {
-      Foo: { A: 'TEXT', B: 'NUMERIC' },
-      Bar: { C: 'TEXT', D: 'NUMERIC' },
+      Foo: { A: "TEXT", B: "NUMERIC" },
+      Bar: { C: "TEXT", D: "NUMERIC" },
     });
     await sdb.close();
 
     // Second reopen using V3 schema.
-    msgs = await testUtils.captureLog('info', async () => {
-      sdb = await SQLiteDB.openDB(dbPath('test3A'), schemaInfo, OpenMode.OPEN_EXISTING);
+    msgs = await testUtils.captureLog("info", async () => {
+      sdb = await SQLiteDB.openDB(dbPath("test3A"), schemaInfo, OpenMode.OPEN_EXISTING);
     });
     assert.deepEqual(msgs, []);                         // No warnings.
     assert.strictEqual(sdb.migrationBackupPath, null);  // No migration backup.
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo", "Bar"]);
     assert.deepEqual(await sdb.collectMetadata(), {
-      Foo: { A: 'TEXT', B: 'NUMERIC' },
-      Bar: { C: 'TEXT', D: 'NUMERIC' },
+      Foo: { A: "TEXT", B: "NUMERIC" },
+      Bar: { C: "TEXT", D: "NUMERIC" },
     });
     await sdb.close();
   });
 
-  it('should allow migrating across multiple versions', async function() {
+  it("should allow migrating across multiple versions", async function() {
     let sdb: SQLiteDB = null as any;    // To silence warnings about use before assignment.
     let msgs: string[];
     // Open a document at V1, then migrate directly to V3 skipping V2.
-    sdb = await SQLiteDB.openDB(dbPath('test3B'), schemaInfoV1, OpenMode.CREATE_EXCL);
+    sdb = await SQLiteDB.openDB(dbPath("test3B"), schemaInfoV1, OpenMode.CREATE_EXCL);
     assert.strictEqual(await sdb.getMigrationVersion(), 1);
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo']);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo"]);
     await sdb.close();
-    assert.strictEqual(await SQLiteDB.getMigrationVersion(dbPath('test3B')), 1);
+    assert.strictEqual(await SQLiteDB.getMigrationVersion(dbPath("test3B")), 1);
 
-    msgs = await testUtils.captureLog('info', async () => {
-      sdb = await SQLiteDB.openDB(dbPath('test3B'), schemaInfo, OpenMode.OPEN_EXISTING);
+    msgs = await testUtils.captureLog("info", async () => {
+      sdb = await SQLiteDB.openDB(dbPath("test3B"), schemaInfo, OpenMode.OPEN_EXISTING);
     });
     assert.strictEqual(await sdb.getMigrationVersion(), 3);
     testUtils.assertMatchArray(msgs, [
       /\/test3B.* needs migration from version 1 to 3/,
       /\/test3B.* backed up to .*\/test3B\.[0-9-]+\.V1\.bak, migrated to 3/,
     ]);
-    msgs = await testUtils.captureLog('info', async () => {
-      assert.strictEqual(await SQLiteDB.getMigrationVersion(dbPath('test3B')), 3);
+    msgs = await testUtils.captureLog("info", async () => {
+      assert.strictEqual(await SQLiteDB.getMigrationVersion(dbPath("test3B")), 3);
     });
     testUtils.assertMatchArray(msgs, [
       /\/test3B.* avoid opening same DB more than once/,
     ]);
     assert.match(sdb.migrationBackupPath!, /test3B\.\d{4}-\d{2}-\d{2}\.V1\.bak$/);
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo", "Bar"]);
     assert.deepEqual(await sdb.collectMetadata(), {
-      Foo: { A: 'TEXT', B: 'NUMERIC' },
-      Bar: { C: 'TEXT', D: 'NUMERIC' },
+      Foo: { A: "TEXT", B: "NUMERIC" },
+      Bar: { C: "TEXT", D: "NUMERIC" },
     });
     await sdb.close();
   });
 
-  it('should open read-only files needing migration', async function() {
+  it("should open read-only files needing migration", async function() {
     let sdb: SQLiteDB = null as any;    // To silence warnings about use before assignment.
     // Open a document at V1, then open READONLY with v3.
-    sdb = await SQLiteDB.openDB(dbPath('testRO'), schemaInfoV1, OpenMode.CREATE_EXCL);
+    sdb = await SQLiteDB.openDB(dbPath("testRO"), schemaInfoV1, OpenMode.CREATE_EXCL);
     assert.strictEqual(await sdb.getMigrationVersion(), 1);
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo']);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo"]);
     await sdb.close();
 
-    await testUtils.captureLog('info', async () => {
-      sdb = await SQLiteDB.openDB(dbPath('testRO'), schemaInfo, OpenMode.OPEN_READONLY);
+    await testUtils.captureLog("info", async () => {
+      sdb = await SQLiteDB.openDB(dbPath("testRO"), schemaInfo, OpenMode.OPEN_READONLY);
     });
     assert.strictEqual(await sdb.getMigrationVersion(), 1);
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo']);
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo"]);
     assert.match(sdb.migrationError!.message, /migration .* readonly/);
   });
 
-  it('should migrate DBs created without versioning', async function() {
+  it("should migrate DBs created without versioning", async function() {
     let sdb: SQLiteDB = null as any;    // To silence warnings about use before assignment.
-    sdb = await SQLiteDB.openDBRaw(dbPath('testPRE'), OpenMode.OPEN_CREATE);
-    await sdb.exec('CREATE TABLE _grist_Foo (A TEXT)');
+    sdb = await SQLiteDB.openDBRaw(dbPath("testPRE"), OpenMode.OPEN_CREATE);
+    await sdb.exec("CREATE TABLE _grist_Foo (A TEXT)");
     void sdb.close();
 
     async function create(db: SQLiteDB) {
-      await db.exec('CREATE TABLE _grist_Foo (A TEXT)');
+      await db.exec("CREATE TABLE _grist_Foo (A TEXT)");
     }
     async function migrateV0(db: SQLiteDB) {
-      await db.exec('CREATE TABLE IF NOT EXISTS _grist_Bar (B TEXT)');
+      await db.exec("CREATE TABLE IF NOT EXISTS _grist_Bar (B TEXT)");
     }
 
-    sdb = await SQLiteDB.openDB(dbPath('testPRE'), { create, migrations: [migrateV0] }, OpenMode.OPEN_CREATE);
+    sdb = await SQLiteDB.openDB(dbPath("testPRE"), { create, migrations: [migrateV0] }, OpenMode.OPEN_CREATE);
     assert.strictEqual(await sdb.getMigrationVersion(), 1);
-    assert.sameDeepMembers(await getTableNames(sdb), ['_grist_Foo', '_grist_Bar']);
+    assert.sameDeepMembers(await getTableNames(sdb), ["_grist_Foo", "_grist_Bar"]);
     assert.match(sdb.migrationBackupPath!, /testPRE\..*\.V0\.bak$/);
     void sdb.close();
 
     // Simulate new schema version.
     async function create2(db: SQLiteDB) {
-      await db.exec('CREATE TABLE _grist_Foo (A TEXT)');
-      await db.exec('CREATE TABLE _grist_Bar (B TEXT, X TEXT)');
+      await db.exec("CREATE TABLE _grist_Foo (A TEXT)");
+      await db.exec("CREATE TABLE _grist_Bar (B TEXT, X TEXT)");
     }
     async function migrateV1(db: SQLiteDB) {
-      await db.exec('CREATE TABLE IF NOT EXISTS _grist_Bar (B TEXT, X TEXT)');
+      await db.exec("CREATE TABLE IF NOT EXISTS _grist_Bar (B TEXT, X TEXT)");
     }
 
-    sdb = await SQLiteDB.openDBRaw(dbPath('testPRE2'), OpenMode.OPEN_CREATE);
+    sdb = await SQLiteDB.openDBRaw(dbPath("testPRE2"), OpenMode.OPEN_CREATE);
     await create2(sdb);
     void sdb.close();
-    sdb = await SQLiteDB.openDB(dbPath('testPRE2'),
+    sdb = await SQLiteDB.openDB(dbPath("testPRE2"),
       { create: create2, migrations: [migrateV0, migrateV1] }, OpenMode.OPEN_CREATE);
     assert.strictEqual(await sdb.getMigrationVersion(), 2);
-    assert.sameDeepMembers(await getTableNames(sdb), ['_grist_Foo', '_grist_Bar']);
+    assert.sameDeepMembers(await getTableNames(sdb), ["_grist_Foo", "_grist_Bar"]);
     assert.match(sdb.migrationBackupPath!, /testPRE2\..*\.V0\.bak$/);
     void sdb.close();
   });
 
-  it('should skip migration backup on migration failure', async function() {
+  it("should skip migration backup on migration failure", async function() {
     // Create a document at V1.
     let sdb: SQLiteDB = null as any;    // To silence warnings about use before assignment.
     let msgs: string[];
 
     // Create a V1 schema doc.
-    sdb = await SQLiteDB.openDB(dbPath('test4A'), schemaInfoV1, OpenMode.CREATE_EXCL);
+    sdb = await SQLiteDB.openDB(dbPath("test4A"), schemaInfoV1, OpenMode.CREATE_EXCL);
     await sdb.close();
 
     // Open it using a broken V4 version. When the migration fails, we complain but continue with
     // unmigrated DB, and expose a `.migrationError` property.
-    msgs = await testUtils.captureLog('info', async () => {
-      sdb = await SQLiteDB.openDB(dbPath('test4A'), schemaInfoV4Broken, OpenMode.OPEN_EXISTING);
+    msgs = await testUtils.captureLog("info", async () => {
+      sdb = await SQLiteDB.openDB(dbPath("test4A"), schemaInfoV4Broken, OpenMode.OPEN_EXISTING);
     });
     testUtils.assertMatchArray(msgs, [
       /\/test4A.* needs migration from version 1 to 4/,
@@ -321,16 +321,16 @@ describe('SQLiteDB', function() {
     // Check that migrationBackupPath isn't set.
     assert.strictEqual(sdb.migrationBackupPath, null);
 
-    assert.sameDeepMembers(await getTableNames(sdb), ['Foo']);
-    assert.deepEqual(await sdb.collectMetadata(), { Foo: { A: 'TEXT' } });
+    assert.sameDeepMembers(await getTableNames(sdb), ["Foo"]);
+    assert.deepEqual(await sdb.collectMetadata(), { Foo: { A: "TEXT" } });
     await sdb.close();
 
     // Check that the only file with test4A is our file, i.e. no extra files got created.
-    assert.deepEqual((await fse.readdir(tmpDir)).filter(d => d.includes('test4A')), ['test4A']);
+    assert.deepEqual((await fse.readdir(tmpDir)).filter(d => d.includes("test4A")), ["test4A"]);
 
     // Check also that if we open READONLY with a bad migration, we only get discrepancy warnings.
-    msgs = await testUtils.captureLog('info', async () => {
-      sdb = await SQLiteDB.openDB(dbPath('test4A'), schemaInfoV4Broken, OpenMode.OPEN_READONLY);
+    msgs = await testUtils.captureLog("info", async () => {
+      sdb = await SQLiteDB.openDB(dbPath("test4A"), schemaInfoV4Broken, OpenMode.OPEN_READONLY);
     });
     testUtils.assertMatchArray(msgs, [
       /table Foo does not match schema/,
@@ -341,12 +341,12 @@ describe('SQLiteDB', function() {
     await sdb.close();
   });
 
-  it('should warn if DB is incorrect, incl after migrations', async function() {
+  it("should warn if DB is incorrect, incl after migrations", async function() {
     let sdb: SQLiteDB = null as any;    // To silence warnings about use before assignment.
     let msgs: string[];
 
     // Create a doc.
-    sdb = await SQLiteDB.openDB(dbPath('test5A'), schemaInfo, OpenMode.CREATE_EXCL);
+    sdb = await SQLiteDB.openDB(dbPath("test5A"), schemaInfo, OpenMode.CREATE_EXCL);
     assert.strictEqual(sdb.migrationBackupPath, null);
 
     // Now modify its schema.
@@ -354,8 +354,8 @@ describe('SQLiteDB', function() {
     await sdb.close();
 
     // Reopening should produce warnings.
-    msgs = await testUtils.captureLog('info', async () => {
-      sdb = await SQLiteDB.openDB(dbPath('test5A'), schemaInfo, OpenMode.OPEN_CREATE);
+    msgs = await testUtils.captureLog("info", async () => {
+      sdb = await SQLiteDB.openDB(dbPath("test5A"), schemaInfo, OpenMode.OPEN_CREATE);
     });
     assert.strictEqual(sdb.migrationBackupPath, null);
     testUtils.assertMatchArray(msgs, [
@@ -364,13 +364,13 @@ describe('SQLiteDB', function() {
     await sdb.close();
 
     // Now create a doc using V1 and migrate to an inconsitent migration.
-    sdb = await SQLiteDB.openDB(dbPath('test5B'), schemaInfoV1, OpenMode.CREATE_EXCL);
+    sdb = await SQLiteDB.openDB(dbPath("test5B"), schemaInfoV1, OpenMode.CREATE_EXCL);
     assert.strictEqual(sdb.migrationBackupPath, null);
     await sdb.close();
 
     // Use a migration that doesn't match the create() func.
-    msgs = await testUtils.captureLog('info', async () => {
-      sdb = await SQLiteDB.openDB(dbPath('test5B'), schemaInfoV2Inconsistent, OpenMode.OPEN_CREATE);
+    msgs = await testUtils.captureLog("info", async () => {
+      sdb = await SQLiteDB.openDB(dbPath("test5B"), schemaInfoV2Inconsistent, OpenMode.OPEN_CREATE);
     });
     assert.match(sdb.migrationBackupPath!, /test5B\.\d{4}-\d{2}-\d{2}\.V1\.bak$/);
     assert.strictEqual(sdb.migrationError, null);
@@ -381,9 +381,9 @@ describe('SQLiteDB', function() {
     ]);
   });
 
-  describe('execTransaction', function() {
+  describe("execTransaction", function() {
     it("should run callback inside a transaction", async function() {
-      const sdb = await SQLiteDB.openDB(dbPath('testTrans1'), schemaInfo, OpenMode.OPEN_CREATE);
+      const sdb = await SQLiteDB.openDB(dbPath("testTrans1"), schemaInfo, OpenMode.OPEN_CREATE);
 
       // Simple case: just run a statement and it should succeed.
       await sdb.execTransaction(() => sdb.exec('INSERT INTO Foo (A) VALUES ("hello")'));
@@ -404,13 +404,13 @@ describe('SQLiteDB', function() {
       // We do not maintain a chain of promises but rely on SQLite's serialize() behavior.
       // Start several transactions simultaneously, including failing ones; later transaction must
       // see the effects of earlier ones, and should not be affected by earlier failures.
-      const sdb = await SQLiteDB.openDB(dbPath('testTrans2'), schemaInfo, OpenMode.OPEN_CREATE);
+      const sdb = await SQLiteDB.openDB(dbPath("testTrans2"), schemaInfo, OpenMode.OPEN_CREATE);
       const results: any[] = await Promise.all([
         sdb.execTransaction(() => sdb.exec('INSERT INTO Foo (A) VALUES ("trans1")')),
         sdb.execTransaction(() => sdb.all("SELECT A FROM Foo")),
         sdb.execTransaction(() => sdb.exec('INSERT INTO Foo (A) VALUES ("trans2")')),
-        sdb.execTransaction(() => sdb.exec('CREATE TABLE TableNew (foo TEXT)')),
-        assert.isRejected(sdb.execTransaction(() => sdb.exec('CREATE TABLE TableNew (foo TEXT)')),
+        sdb.execTransaction(() => sdb.exec("CREATE TABLE TableNew (foo TEXT)")),
+        assert.isRejected(sdb.execTransaction(() => sdb.exec("CREATE TABLE TableNew (foo TEXT)")),
           /TableNew.*already exists/).then(noop),
         sdb.execTransaction(() => sdb.all("SELECT A FROM Foo")),
         sdb.execTransaction(async () => {
@@ -422,19 +422,19 @@ describe('SQLiteDB', function() {
       ]);
       assert.deepEqual(results, [
         undefined,
-        [{ A: 'trans1' }],
+        [{ A: "trans1" }],
         undefined,
         undefined,
         undefined,
-        [{ A: 'trans1' }, { A: 'trans2' }],
+        [{ A: "trans1" }, { A: "trans2" }],
         undefined,
-        [{ A: 'trans1' }, { A: 'trans2' }, { A: 'trans3' }],
+        [{ A: "trans1" }, { A: "trans2" }, { A: "trans3" }],
       ]);
       void sdb.close();
     });
 
     it("should allow nested execTransaction calls", async function() {
-      const sdb = await SQLiteDB.openDB(dbPath('testTrans3'), schemaInfo, OpenMode.OPEN_CREATE);
+      const sdb = await SQLiteDB.openDB(dbPath("testTrans3"), schemaInfo, OpenMode.OPEN_CREATE);
       await sdb.execTransaction(async () => {
         await sdb.exec('INSERT INTO Foo (A) VALUES ("thing1")');
         await sdb.execTransaction(async () => {
@@ -446,7 +446,7 @@ describe('SQLiteDB', function() {
     });
 
     it("should rollback nested execTransaction calls as a group", async function() {
-      const sdb = await SQLiteDB.openDB(dbPath('testTrans4'), schemaInfo, OpenMode.OPEN_CREATE);
+      const sdb = await SQLiteDB.openDB(dbPath("testTrans4"), schemaInfo, OpenMode.OPEN_CREATE);
       await assert.isRejected(
         sdb.execTransaction(async () => {
           await sdb.exec('INSERT INTO Foo (A) VALUES ("thing1")');
@@ -461,7 +461,7 @@ describe('SQLiteDB', function() {
   });
 
   it("should nest execTransaction calls robustly regardless of timing", async function() {
-    const sdb = await SQLiteDB.openDB(dbPath('testTrans5'), schemaInfo, OpenMode.OPEN_CREATE);
+    const sdb = await SQLiteDB.openDB(dbPath("testTrans5"), schemaInfo, OpenMode.OPEN_CREATE);
     await sdb.exec('INSERT INTO Foo (A,B) VALUES ("key", 1)');
     await Promise.all([
       sdb.execTransaction(async () => {
@@ -480,16 +480,16 @@ describe('SQLiteDB', function() {
   });
 
   it("should forbid ATTACHed databases", async function() {
-    const db0 = await SQLiteDB.openDB(dbPath('testAttach0'), schemaInfo, OpenMode.OPEN_CREATE);
+    const db0 = await SQLiteDB.openDB(dbPath("testAttach0"), schemaInfo, OpenMode.OPEN_CREATE);
     await db0.close();
-    const db1 = await SQLiteDB.openDB(dbPath('testAttach1'), schemaInfo, OpenMode.OPEN_CREATE);
-    await assert.isRejected(db1.exec(`ATTACH '${dbPath('testAttach0')}' AS zing`),
+    const db1 = await SQLiteDB.openDB(dbPath("testAttach1"), schemaInfo, OpenMode.OPEN_CREATE);
+    await assert.isRejected(db1.exec(`ATTACH '${dbPath("testAttach0")}' AS zing`),
       /SQLITE_ERROR: too many attached databases - max 0/);
     await db1.close();
   });
 
   it("should honor pauses", async function() {
-    const sdb = await SQLiteDB.openDB(dbPath('testPause'), schemaInfo, OpenMode.OPEN_CREATE);
+    const sdb = await SQLiteDB.openDB(dbPath("testPause"), schemaInfo, OpenMode.OPEN_CREATE);
 
     // Time that is certainly enough for SQLite statements to complete when not paused.
     const delayMs = 200;
@@ -545,7 +545,7 @@ describe('SQLiteDB', function() {
     await delay(delayMs);
 
     // Check the last write didn't happen.
-    const sdb2 = await SQLiteDB.openDB(dbPath('testPause'), schemaInfo, OpenMode.OPEN_EXISTING);
+    const sdb2 = await SQLiteDB.openDB(dbPath("testPause"), schemaInfo, OpenMode.OPEN_EXISTING);
     await assert.isFulfilled(sdb2.all("SELECT * FROM Foo4"));
     await assert.isRejected(sdb2.all("SELECT * FROM Foo5"));
     await sdb2.close();
@@ -553,15 +553,15 @@ describe('SQLiteDB', function() {
 
   // This used to tickle a deadlock.
   it("should handle pauses and transactions", async function() {
-    const sdb = await SQLiteDB.openDB(dbPath('testPauseWithTransaction'), schemaInfo, OpenMode.OPEN_CREATE);
+    const sdb = await SQLiteDB.openDB(dbPath("testPauseWithTransaction"), schemaInfo, OpenMode.OPEN_CREATE);
     const t1 = sdb.execTransaction(async () => {
-      await sdb.exec('create table if not exists data(x,y,z)');
+      await sdb.exec("create table if not exists data(x,y,z)");
     });
     const t2 = sdb.execTransaction(async () => {
-      await sdb.exec('create table if not exists data(x,y,z)');
+      await sdb.exec("create table if not exists data(x,y,z)");
     });
     const t3 = sdb.execTransaction(async () => {
-      await sdb.exec('create table if not exists data(x,y,z)');
+      await sdb.exec("create table if not exists data(x,y,z)");
     });
     sdb.pause();
     assert.isFalse(await timeoutReached(

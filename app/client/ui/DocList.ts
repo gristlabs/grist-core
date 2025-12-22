@@ -12,7 +12,7 @@ import { downloadDocModal } from "app/client/ui/MakeCopyMenu";
 import { showRenameDocModal } from "app/client/ui/RenameDocModal";
 import { shadowScroll } from "app/client/ui/shadowScroll";
 import { makeShareDocUrl } from "app/client/ui/ShareMenu";
-import { buildTabs, TabProps } from 'app/client/ui2018/tabs';
+import { buildTabs, TabProps } from "app/client/ui2018/tabs";
 import {
   isNarrowScreenObs,
   mediaMedium,
@@ -146,7 +146,7 @@ export class DocList extends Disposable {
           docs = sortAndFilterDocs(docs, { sort, tab });
           if (docs.length === 0) {
             return cssNoDocsMessage(
-              cssNoDocsImage({ alt: '', width: '150', height: '140', src: "img/create-document.svg" }),
+              cssNoDocsImage({ alt: "", width: "150", height: "140", src: "img/create-document.svg" }),
               dom("div", cssParagraph(t("No documents to show."))),
               testId("no-docs-message"),
             );
@@ -157,9 +157,9 @@ export class DocList extends Disposable {
             // as they are not relevant in that case
             cssDocHeaderRow(
               dom.hide(isNarrowScreenObs()),
-              cssNameColumn(t("Name"), { 'aria-hidden': 'true' }),
-              cssWorkspaceColumn(t("Workspace"), dom.show(this._showWorkspace), { 'aria-hidden': 'true' }),
-              cssEditedAtColumn(t("Last edited"), { 'aria-hidden': 'true' }),
+              cssNameColumn(t("Name"), { "aria-hidden": "true" }),
+              cssWorkspaceColumn(t("Workspace"), dom.show(this._showWorkspace), { "aria-hidden": "true" }),
+              cssEditedAtColumn(t("Last edited"), { "aria-hidden": "true" }),
               cssOptionsColumn(),
             ),
             unstyledUl(
@@ -175,7 +175,7 @@ export class DocList extends Disposable {
                           icon: doc.options?.appearance?.icon,
                         },
                         testId("doc-icon"),
-                        { 'aria-hidden': 'true' },
+                        { "aria-hidden": "true" },
                       ),
                       cssDocNameAndBadges(
                         cssDocName(
@@ -195,7 +195,7 @@ export class DocList extends Disposable {
                     ),
                     cssDocWorkspace(
                       dom.show(this._showWorkspace),
-                      dom('span',
+                      dom("span",
                         visuallyHidden(t("Workspace")),
                         workspaceName(this._home.app, doc.workspace),
                       ),
@@ -228,7 +228,7 @@ export class DocList extends Disposable {
                         parentSelectorToMark: "." + cssDocRow.className,
                       }),
                       dom.on("click", ev => stopEvent(ev)),
-                      { 'aria-label': t("context menu - {{- documentName }}", { documentName: `"${doc.name}"` }) },
+                      { "aria-label": t("context menu - {{- documentName }}", { documentName: `"${doc.name}"` }) },
                       testId("doc-options"),
                     ),
                     contextMenu(() => makeDocOptionsMenu(this._home, doc), {
@@ -321,9 +321,9 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
     (isElectron ? null :
       menuItem(
         () => downloadDocModal(doc, home.app),
-        menuIcon('Download'), t("Download document..."),
+        menuIcon("Download"), t("Download document..."),
         dom.cls("disabled", doc.disabledAt !== undefined),
-        testId('tb-share-option'))
+        testId("tb-share-option"))
     ),
   ];
 }

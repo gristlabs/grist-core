@@ -18,14 +18,14 @@
  *
  */
 
-import { updateDb } from 'app/server/lib/dbUtils';
-import { FlexServer } from 'app/server/lib/FlexServer';
-import log from 'app/server/lib/log';
-import { MergedServer } from 'app/server/MergedServer';
-import { promisifyAll } from 'bluebird';
-import * as fse from 'fs-extra';
-import * as path from 'path';
-import { createClient, RedisClient } from 'redis';
+import { updateDb } from "app/server/lib/dbUtils";
+import { FlexServer } from "app/server/lib/FlexServer";
+import log from "app/server/lib/log";
+import { MergedServer } from "app/server/MergedServer";
+import { promisifyAll } from "bluebird";
+import * as fse from "fs-extra";
+import * as path from "path";
+import { createClient, RedisClient } from "redis";
 
 promisifyAll(RedisClient.prototype);
 
@@ -59,7 +59,7 @@ export async function main() {
   // If TEST_CLEAN_DATABASE is set, we reset the database before starting.
   if (process.env.TEST_CLEAN_DATABASE) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { createInitialDb } = require('test/gen-server/seed');
+    const { createInitialDb } = require("test/gen-server/seed");
     await createInitialDb();
     if (process.env.REDIS_URL) {
       await createClient(process.env.REDIS_URL).flushdbAsync();
@@ -74,21 +74,21 @@ export async function main() {
   const appRoot = path.dirname(path.dirname(__dirname));
   const instDir = process.env.GRIST_INST_DIR || appRoot;
   if (process.env.GRIST_INST_DIR) {
-    const fileName = path.join(instDir, 'config.json');
+    const fileName = path.join(instDir, "config.json");
     if (!(await fse.pathExists(fileName))) {
       const config = {
-        untrustedContentOrigin: 'notset',
+        untrustedContentOrigin: "notset",
       };
       await fse.writeFile(fileName, JSON.stringify(config, null, 2));
     }
   }
 
   if (!process.env.GOOGLE_CLIENT_ID) {
-    log.warn('GOOGLE_CLIENT_ID is not defined, Google Drive Plugin will not work.');
+    log.warn("GOOGLE_CLIENT_ID is not defined, Google Drive Plugin will not work.");
   }
 
   if (!process.env.GOOGLE_API_KEY) {
-    log.warn('GOOGLE_API_KEY is not defined, Url plugin will not be able to access public files.');
+    log.warn("GOOGLE_API_KEY is not defined, Url plugin will not be able to access public files.");
   }
 
   if (process.env.GRIST_SINGLE_PORT) {
@@ -132,22 +132,22 @@ export async function main() {
   // If a distinct webServerPort is specified, we listen also on that port, though serving
   // exactly the same content.  This is handy for testing CORS issues.
   if (webServerPort !== 0 && webServerPort !== homeServerPort) {
-    await homeServer.flexServer.startCopy('webServer', webServerPort);
+    await homeServer.flexServer.startCopy("webServer", webServerPort);
   }
 
   // Bring up the docWorker(s)
   log.info("==========================================================================");
   log.info("== docWorker");
-  const ports = (process.env.DOC_PORT || '9002').split(',').map(port => parseInt(port, 10));
+  const ports = (process.env.DOC_PORT || "9002").split(",").map(port => parseInt(port, 10));
   if (process.env.DOC_WORKER_COUNT) {
     const n = parseInt(process.env.DOC_WORKER_COUNT, 10);
     while (ports.length < n) {
       ports.push(ports[ports.length - 1] + 1);
     }
   }
-  log.info(`== ports ${ports.join(',')}`);
+  log.info(`== ports ${ports.join(",")}`);
   if (ports.length > 1 && !process.env.REDIS_URL) {
-    throw new Error('Need REDIS_URL=redis://localhost or similar for multiple doc workers');
+    throw new Error("Need REDIS_URL=redis://localhost or similar for multiple doc workers");
   }
   const workers = new Array<FlexServer>();
   for (const port of ports) {

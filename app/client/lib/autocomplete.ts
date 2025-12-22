@@ -1,17 +1,17 @@
 /**
  * Implements an autocomplete dropdown.
  */
-import { createPopper, Modifier, Instance as Popper, Options as PopperOptions } from '@popperjs/core';
-import { ACItem, ACResults, HighlightFunc } from 'app/client/lib/ACIndex';
-import { attachMouseOverOnMove, findAncestorChild } from 'app/client/lib/domUtils';
-import { reportError } from 'app/client/models/errors';
-import { testId, theme } from 'app/client/ui2018/cssVars';
-import { MaybePromise } from 'app/plugin/gutil';
-import { Disposable, dom, DomContents } from 'grainjs';
-import { obsArray, onKeyElem, styled } from 'grainjs';
-import merge from 'lodash/merge';
-import maxSize from 'popper-max-size-modifier';
-import { cssMenu } from 'popweasel';
+import { createPopper, Modifier, Instance as Popper, Options as PopperOptions } from "@popperjs/core";
+import { ACItem, ACResults, HighlightFunc } from "app/client/lib/ACIndex";
+import { attachMouseOverOnMove, findAncestorChild } from "app/client/lib/domUtils";
+import { reportError } from "app/client/models/errors";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { MaybePromise } from "app/plugin/gutil";
+import { Disposable, dom, DomContents } from "grainjs";
+import { obsArray, onKeyElem, styled } from "grainjs";
+import merge from "lodash/merge";
+import maxSize from "popper-max-size-modifier";
+import { cssMenu } from "popweasel";
 
 export interface IAutocompleteOptions<Item extends ACItem> {
   // If provided, applies the css class to the menu container. Could be multiple, space-separated.
@@ -76,35 +76,35 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
 
     const content = cssMenuWrap(
       cssMenu(
-        { class: _options.menuCssClass || '' },
-        dom.style('min-width', _triggerElem.getBoundingClientRect().width + 'px'),
+        { class: _options.menuCssClass || "" },
+        dom.style("min-width", _triggerElem.getBoundingClientRect().width + "px"),
         this._maybeShowNoItemsMessage(),
-        this._menuContent = dom('div',
+        this._menuContent = dom("div",
           dom.forEach(this._items, item => _options.renderItem(item, this._highlightFunc)),
           dom.forEach(this._extraItems, item => _options.renderItem(item, this._highlightFunc)),
-          dom.on('mouseleave', ev => this._setSelected(-1, this._liveUpdate)),
-          dom.on('click', (ev) => {
+          dom.on("mouseleave", ev => this._setSelected(-1, this._liveUpdate)),
+          dom.on("click", (ev) => {
             this._setSelected(this._findTargetItem(ev.target), this._liveUpdate);
             if (_options.onClick) { _options.onClick(); }
           }),
         ),
       ),
       // Prevent trigger element from being blurred on click.
-      dom.on('mousedown', ev => ev.preventDefault()),
+      dom.on("mousedown", ev => ev.preventDefault()),
     );
 
     this._mouseOver = attachMouseOverOnMove(this._menuContent,
       ev => this._setSelected(this._findTargetItem(ev.target), this._liveUpdate));
 
     // Add key handlers to the trigger element as well as the menu if it is an input.
-    this.autoDispose(onKeyElem(_triggerElem, 'keydown', {
+    this.autoDispose(onKeyElem(_triggerElem, "keydown", {
       ArrowDown: () => this._setSelected(this._getNext(1), this._liveUpdate),
       ArrowUp: () => this._setSelected(this._getNext(-1), this._liveUpdate),
     }));
 
     // Keeps track of the last value as typed by the user.
     this.search();
-    this.autoDispose(dom.onElem(_triggerElem, 'input', () => this.search()));
+    this.autoDispose(dom.onElem(_triggerElem, "input", () => this.search()));
 
     const attachElem = _options.attach === undefined ? document.body : _options.attach;
     const containerElem = getContainer(_triggerElem, attachElem) ?? document.body;
@@ -154,11 +154,11 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     const elem = (this._menuContent.children[index] as HTMLElement) || null;
     const prev = this._selected;
     if (elem !== prev) {
-      const clsName = this._options.selectedCssClass || 'selected';
+      const clsName = this._options.selectedCssClass || "selected";
       if (prev) { prev.classList.remove(clsName); }
       if (elem) {
         elem.classList.add(clsName);
-        elem.scrollIntoView({ block: 'nearest' });
+        elem.scrollIntoView({ block: "nearest" });
       }
     }
     this._selected = elem;
@@ -222,7 +222,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     if (!buildNoItemsMessage) { return null; }
 
     return dom.maybe(use => use(this._items).length === 0, () =>
-      cssNoItemsMessage(buildNoItemsMessage(), testId('autocomplete-no-items-message')));
+      cssNoItemsMessage(buildNoItemsMessage(), testId("autocomplete-no-items-message")));
   }
 }
 
@@ -233,10 +233,10 @@ const calcMaxSize = {
 };
 
 const applyMaxSize: Modifier<any, any> = {
-  name: 'applyMaxSize',
+  name: "applyMaxSize",
   enabled: true,
-  phase: 'beforeWrite',
-  requires: ['maxSize'],
+  phase: "beforeWrite",
+  requires: ["maxSize"],
   fn({ state }: any) {
     // The `maxSize` modifier provides this data
     const { height } = state.modifiersData.maxSize;
@@ -247,7 +247,7 @@ const applyMaxSize: Modifier<any, any> = {
 };
 
 export const defaultPopperOptions: Partial<PopperOptions> = {
-  placement: 'bottom-start',
+  placement: "bottom-start",
   modifiers: [
     calcMaxSize,
     applyMaxSize,
@@ -260,18 +260,18 @@ export const defaultPopperOptions: Partial<PopperOptions> = {
  * elem.parentNode; string is a selector for the closest matching ancestor, e.g. 'body'.
  */
 function getContainer(elem: Element, attachElem: Element | string | null): Node | null {
-  return (typeof attachElem === 'string') ? elem.closest(attachElem) :
+  return (typeof attachElem === "string") ? elem.closest(attachElem) :
     (attachElem || elem.parentNode);
 }
 
-const cssMenuWrap = styled('div', `
+const cssMenuWrap = styled("div", `
   position: absolute;
   display: flex;
   flex-direction: column;
   outline: none;
 `);
 
-const cssNoItemsMessage = styled('div', `
+const cssNoItemsMessage = styled("div", `
   color: ${theme.lightText};
   padding: var(--weaseljs-menu-item-padding, 8px 24px);
   text-align: center;

@@ -1,8 +1,8 @@
 /* global location */
 
-var _ = require('underscore');
-var Chance = require('chance');
-var assert = require('chai').assert;
+var _ = require("underscore");
+var Chance = require("chance");
+var assert = require("chai").assert;
 
 function mod(r) { return function(x) { return x%r; }; }
 exports.mod = mod;
@@ -129,7 +129,7 @@ function TestPerson(last, first, age, year, month, day) {
  * @param {integer} num - length of people list to return
  */
 function genPeople(num, seed) {
-  if (typeof seed === 'undefined') seed = 0;
+  if (typeof seed === "undefined") seed = 0;
   var ageOpts = {min: 0, max: 90};
   var monthOpts = {min:1, max:12};
   var dayOpts = {min:1, max:30};
@@ -157,8 +157,8 @@ exports.genPeople = genPeople;
  * @param {object} options - object denoting options for the given chance.js function
  */
 function genItems(chanceFunc, num, options, seed) {
-  if (typeof seed === 'undefined') seed = 0;
-  console.assert(typeof new Chance()[chanceFunc] === 'function');
+  if (typeof seed === "undefined") seed = 0;
+  console.assert(typeof new Chance()[chanceFunc] === "function");
   var chance = new Chance(seed);
   var items = [];
   for (var i = 0; i < num; i++) {

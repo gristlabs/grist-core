@@ -1,11 +1,11 @@
-import { makeT } from 'app/client/lib/localization';
+import { makeT } from "app/client/lib/localization";
 import { ACSelectItem, buildACSelect } from "app/client/lib/ACSelect";
 import { Computed, IDisposableOwner, Observable } from "grainjs";
 import { ACIndexImpl } from "app/client/lib/ACIndex";
-import { testId } from 'app/client/ui2018/cssVars';
-import { currencies } from 'app/common/Locales';
+import { testId } from "app/client/ui2018/cssVars";
+import { currencies } from "app/common/Locales";
 
-const t = makeT('CurrencyPicker');
+const t = makeT("CurrencyPicker");
 
 interface CurrencyPickerOptions {
   // The label to use in the select menu for the default option.

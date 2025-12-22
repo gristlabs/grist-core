@@ -697,7 +697,7 @@ respond effectively. Please {{startANewChatButton}} to continue \
 receiving assistance.",
             {
               startANewChatButton: textButton(
-                textButton.cls('-hover-bg-padding-sm'),
+                textButton.cls("-hover-bg-padding-sm"),
                 t("start a new chat"),
                 dom.on("click", () => this._options.onClearConversation()),
               ),

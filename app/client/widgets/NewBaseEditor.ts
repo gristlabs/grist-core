@@ -2,10 +2,10 @@
  * NewBaseEditor is equivalent to BaseEditor for outside code, but is in typescript, and
  * so is friendlier and clearer to derive TypeScript classes from.
  */
-import { GristDoc } from 'app/client/components/GristDoc';
-import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { GristDoc } from "app/client/components/GristDoc";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { CellValue } from "app/common/DocActions";
-import { Disposable, IDisposableOwner, Observable } from 'grainjs';
+import { Disposable, IDisposableOwner, Observable } from "grainjs";
 
 export interface IEditorCommandGroup {
   fieldEditCancel: () => void;

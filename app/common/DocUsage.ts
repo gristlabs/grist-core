@@ -9,14 +9,14 @@ export interface RowCounts {
   [tableRef: number]: number;
 }
 
-export type DataLimitStatus = 'approachingLimit' | 'gracePeriod' | 'deleteOnly' | null;
+export type DataLimitStatus = "approachingLimit" | "gracePeriod" | "deleteOnly" | null;
 export interface DataLimitInfo {
   status: DataLimitStatus;
   daysRemaining?: number;
 }
 
 type DocUsageOrPending = {
-  [Metric in keyof Required<DocumentUsage>]: Required<DocumentUsage>[Metric] | 'pending'
+  [Metric in keyof Required<DocumentUsage>]: Required<DocumentUsage>[Metric] | "pending"
 };
 
 export interface DocUsageSummary extends DocUsageOrPending {
@@ -39,7 +39,7 @@ export interface UsageRecommendations {
 }
 
 type FilteredDocUsage = {
-  [Metric in keyof DocUsageOrPending]: DocUsageOrPending[Metric] | 'hidden'
+  [Metric in keyof DocUsageOrPending]: DocUsageOrPending[Metric] | "hidden"
 };
 
 export interface FilteredDocUsageSummary extends FilteredDocUsage {

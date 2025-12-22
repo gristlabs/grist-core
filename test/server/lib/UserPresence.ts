@@ -1,35 +1,35 @@
-import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, UserAPI } from 'app/common/UserAPI';
-import { GristClient, openClient } from 'test/server/gristClient';
-import { TestServer } from 'test/gen-server/apiUtils';
-import { assert } from 'chai';
-import { zipObject } from 'lodash';
-import * as sinon from 'sinon';
+import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, UserAPI } from "app/common/UserAPI";
+import { GristClient, openClient } from "test/server/gristClient";
+import { TestServer } from "test/gen-server/apiUtils";
+import { assert } from "chai";
+import { zipObject } from "lodash";
+import * as sinon from "sinon";
 
 const TEST_ORG = "userpresence";
 
 const Users = {
   owner: {
-    name: 'Chimpy',
-    username: 'chimpy',
-    email: 'chimpy@getgrist.com',
+    name: "Chimpy",
+    username: "chimpy",
+    email: "chimpy@getgrist.com",
   },
   editor: {
-    name: 'Charon',
-    username: 'charon',
-    email: 'charon@getgrist.com',
+    name: "Charon",
+    username: "charon",
+    email: "charon@getgrist.com",
   },
   loggedInPublic: {
-    name: 'Kiwi',
-    username: 'kiwi',
-    email: 'kiwi@getgrist.com',
+    name: "Kiwi",
+    username: "kiwi",
+    email: "kiwi@getgrist.com",
   },
   anon: {
-    name: 'Anonymous User',
+    name: "Anonymous User",
     email: ANONYMOUS_USER_EMAIL,
   },
 };
 
-describe('UserPresence', function() {
+describe("UserPresence", function() {
   // Keep a short timeout so we don't waste time waiting for messages that won't arrive.
   this.timeout(7000);
   let home: TestServer;
@@ -60,33 +60,33 @@ describe('UserPresence', function() {
 
   async function getWebsocket(api: UserAPI) {
     const who = await api.getSessionActive();
-    return openTrackedClient(home.server, who.user.email, who.org?.domain || 'docs');
+    return openTrackedClient(home.server, who.user.email, who.org?.domain || "docs");
   }
 
   before(async function() {
     home = new TestServer(this);
-    await home.start(['home', 'docs']);
-    const api = await home.createHomeApi('chimpy', 'docs', true);
+    await home.start(["home", "docs"]);
+    const api = await home.createHomeApi("chimpy", "docs", true);
     await api.newOrg({ name: TEST_ORG, domain: TEST_ORG });
     owner = await home.createHomeApi(Users.owner.username, TEST_ORG, true);
-    wsId = await owner.newWorkspace({ name: 'userpresence' }, 'current');
-    docId = await owner.newDoc({ name: 'doc' }, wsId);
+    wsId = await owner.newWorkspace({ name: "userpresence" }, "current");
+    docId = await owner.newDoc({ name: "doc" }, wsId);
 
     await owner.updateWorkspacePermissions(wsId, {
       users: {
-        [Users.editor.email]: 'editors',
+        [Users.editor.email]: "editors",
       },
     });
     await owner.updateDocPermissions(docId, {
       users: {
-        [EVERYONE_EMAIL]: 'viewers',
+        [EVERYONE_EMAIL]: "viewers",
       },
     });
     editor = await home.createHomeApi(Users.editor.username, TEST_ORG, true);
   });
 
   after(async function() {
-    const api = await home.createHomeApi('chimpy', 'docs');
+    const api = await home.createHomeApi("chimpy", "docs");
     await api.deleteOrg(TEST_ORG);
     await home.stop();
   });
@@ -100,7 +100,7 @@ describe('UserPresence', function() {
 
   const joiningTestCases = [
     {
-      name: 'editors can see other users',
+      name: "editors can see other users",
       makeObserverClient: () => getWebsocket(editor),
       makeJoinerClient: () => getWebsocket(owner),
       expectedProfile: {
@@ -111,7 +111,7 @@ describe('UserPresence', function() {
       },
     },
     {
-      name: 'anonymous users show as anonymous',
+      name: "anonymous users show as anonymous",
       makeObserverClient: () => getWebsocket(editor),
       makeJoinerClient: () => openTrackedClientForUser(Users.anon.email),
       expectedProfile: {
@@ -120,7 +120,7 @@ describe('UserPresence', function() {
       },
     },
     {
-      name: 'public users show as anonymous',
+      name: "public users show as anonymous",
       makeObserverClient: () => getWebsocket(editor),
       makeJoinerClient: () => openTrackedClientForUser(Users.loggedInPublic.email),
       expectedProfile: {
@@ -137,7 +137,7 @@ describe('UserPresence', function() {
   publicEmails.forEach((currentPublicEmail) => {
     const _newPermissions = zipObject(
       publicEmails,
-      publicEmails.map(email => email === currentPublicEmail ? 'viewers' : null),
+      publicEmails.map(email => email === currentPublicEmail ? "viewers" : null),
     );
 
     describe(`shows the correct profile details - public email ${currentPublicEmail}`, async function() {
@@ -221,10 +221,10 @@ describe('UserPresence', function() {
     before(async () => {
       await owner.updateDocPermissions(docId, {
         users: {
-          [Users.loggedInPublic.email]: 'viewers',
+          [Users.loggedInPublic.email]: "viewers",
           [ANONYMOUS_USER_EMAIL]: null,
           // Make all public users editors to show that no public users can see others.
-          [EVERYONE_EMAIL]: 'editors',
+          [EVERYONE_EMAIL]: "editors",
         },
       });
     });
@@ -233,7 +233,7 @@ describe('UserPresence', function() {
       await owner.updateDocPermissions(docId, {
         users: {
           [Users.loggedInPublic.email]: null,
-          [EVERYONE_EMAIL]: 'viewers',
+          [EVERYONE_EMAIL]: "viewers",
         },
       });
     });
@@ -275,7 +275,7 @@ describe('UserPresence', function() {
 
 async function waitForDocUserPresenceUpdateMessage(client: GristClient): Promise<any> {
   return waitForMatchingMessage(client, (msg) => {
-    return msg.type === 'docUserPresenceUpdate';
+    return msg.type === "docUserPresenceUpdate";
   });
 }
 

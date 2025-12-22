@@ -1,9 +1,9 @@
-var assert = require('chai').assert;
-var clientUtil = require('../clientUtil');
-var dom = require('app/client/lib/dom');
-var Layout = require('app/client/components/Layout');
+var assert = require("chai").assert;
+var clientUtil = require("../clientUtil");
+var dom = require("app/client/lib/dom");
+var Layout = require("app/client/components/Layout");
 
-describe('Layout', function() {
+describe("Layout", function() {
 
   clientUtil.setTmpMochaGlobals();
 
@@ -34,7 +34,7 @@ describe('Layout', function() {
   };
 
   function createLeaf(leafId) {
-    return dom('div.layout_leaf_test', "#" + leafId);
+    return dom("div.layout_leaf_test", "#" + leafId);
   }
 
   beforeEach(function() {
@@ -56,7 +56,7 @@ describe('Layout', function() {
   });
 
   it("should generate nested DOM structure", function() {
-    var rootBox = layout.rootElem.querySelector('.layout_box');
+    var rootBox = layout.rootElem.querySelector(".layout_box");
     assert(rootBox);
     assert.strictEqual(rootBox, layout.rootBox().dom);
     assert.deepEqual(getClasses(rootBox), ["layout_box", "layout_last_child",

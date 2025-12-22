@@ -5,13 +5,13 @@ import { Group } from "app/gen-server/entity/Group";
 import { User } from "app/gen-server/entity/User";
 import { GroupWithMembersDescriptor } from "app/gen-server/lib/homedb/Interfaces";
 import { SCIMMYRoleSchema } from "app/server/lib/scim/v2/roles/SCIMMYRoleSchema";
-import log from 'app/server/lib/log';
+import log from "app/server/lib/log";
 
 import SCIMMY from "scimmy";
 
-const SCIM_API_BASE_PATH = '/api/scim/v2';
-const SCIMMY_USER_TYPE = 'User';
-const SCIMMY_GROUP_TYPE = 'Group';
+const SCIM_API_BASE_PATH = "/api/scim/v2";
+const SCIMMY_USER_TYPE = "User";
+const SCIMMY_GROUP_TYPE = "Group";
 
 /**
  * Converts a user from your database to a SCIMMY user
@@ -46,10 +46,10 @@ export function toUserProfile(scimUser: SCIMMY.Schemas.User): UserProfile {
   const emailValue = scimUser.emails?.[0]?.value;
   if (emailValue && normalizeEmail(emailValue) !== normalizeEmail(scimUser.userName)) {
     log.warn(`userName "${scimUser.userName}" differ from passed primary email "${emailValue}".` +
-      'That should be OK, but be aware that the userName will be ignored in favor of the email to identify the user.');
+      "That should be OK, but be aware that the userName will be ignored in favor of the email to identify the user.");
   }
   return {
-    name: scimUser.displayName ?? '', // The empty string will be transformed to a named deduced from the
+    name: scimUser.displayName ?? "", // The empty string will be transformed to a named deduced from the
     // email by the HomeDBManager
     picture: scimUser.photos?.[0]?.value,
     locale: scimUser.locale,
@@ -98,7 +98,7 @@ export function toSCIMMYRole(role: Group): SCIMMYRoleSchema {
 function parseId(id: string, type: typeof SCIMMY_USER_TYPE | typeof SCIMMY_GROUP_TYPE): number {
   const parsedId = parseInt(id, 10);
   if (Number.isNaN(parsedId)) {
-    throw new SCIMMY.Types.Error(400, 'invalidValue', `Invalid ${type} member ID: ${id}`);
+    throw new SCIMMY.Types.Error(400, "invalidValue", `Invalid ${type} member ID: ${id}`);
   }
   return parsedId;
 }

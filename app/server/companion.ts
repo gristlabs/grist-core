@@ -1,17 +1,17 @@
-import { Level, TelemetryContracts } from 'app/common/Telemetry';
-import { gitcommit, version } from 'app/common/version';
-import { synchronizeProducts } from 'app/gen-server/entity/Product';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { applyPatch } from 'app/gen-server/lib/TypeORMPatches';
+import { Level, TelemetryContracts } from "app/common/Telemetry";
+import { gitcommit, version } from "app/common/version";
+import { synchronizeProducts } from "app/gen-server/entity/Product";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { applyPatch } from "app/gen-server/lib/TypeORMPatches";
 import { getMigrations, getOrCreateConnection, getTypeORMSettings,
-  undoLastMigration, updateDb } from 'app/server/lib/dbUtils';
-import { getDatabaseUrl } from 'app/server/lib/serverUtils';
-import { getTelemetryPrefs } from 'app/server/lib/Telemetry';
-import { Gristifier } from 'app/server/utils/gristify';
-import { pruneActionHistory } from 'app/server/utils/pruneActionHistory';
-import { showAuditLogEvents } from 'app/server/utils/showAuditLogEvents';
-import * as commander from 'commander';
-import { Connection } from 'typeorm';
+  undoLastMigration, updateDb } from "app/server/lib/dbUtils";
+import { getDatabaseUrl } from "app/server/lib/serverUtils";
+import { getTelemetryPrefs } from "app/server/lib/Telemetry";
+import { Gristifier } from "app/server/utils/gristify";
+import { pruneActionHistory } from "app/server/utils/pruneActionHistory";
+import { showAuditLogEvents } from "app/server/utils/showAuditLogEvents";
+import * as commander from "commander";
+import { Connection } from "typeorm";
 
 /**
  * Main entrypoint for a cli toolbox for configuring aspects of Grist
@@ -39,8 +39,8 @@ if (require.main === module) {
 export function getProgram(): commander.Command {
   const program = commander.program;
   program
-    .name('grist-cli')
-    .description('a toolbox of handy Grist-related utilities');
+    .name("grist-cli")
+    .description("a toolbox of handy Grist-related utilities");
 
   addAuditLogsCommand(program, { nested: true });
   addDbCommand(program, { nested: true });
@@ -54,8 +54,8 @@ export function getProgram(): commander.Command {
 
 function addAuditLogsCommand(program: commander.Command, options: CommandOptions) {
   const sub = section(program, {
-    sectionName: 'audit-logs',
-    sectionDescription: 'show information about audit logs',
+    sectionName: "audit-logs",
+    sectionDescription: "show information about audit logs",
     ...options,
   });
   sub("events")
@@ -72,13 +72,13 @@ function addAuditLogsCommand(program: commander.Command, options: CommandOptions
 //   history prune <docId> [N]
 export function addHistoryCommand(program: commander.Command, options: CommandOptions) {
   const sub = section(program, {
-    sectionName: 'history',
-    sectionDescription: 'fiddle with history of a Grist document',
+    sectionName: "history",
+    sectionDescription: "fiddle with history of a Grist document",
     ...options,
   });
-  sub('prune <docId>')
-    .description('remove all but last N actions from doc')
-    .argument('[N]', 'number of actions to keep', parseIntForCommander, 1)
+  sub("prune <docId>")
+    .description("remove all but last N actions from doc")
+    .argument("[N]", "number of actions to keep", parseIntForCommander, 1)
     .action(pruneActionHistory);
 }
 
@@ -86,14 +86,14 @@ export function addHistoryCommand(program: commander.Command, options: CommandOp
 export function addSettingsCommand(program: commander.Command,
   options: CommandOptions) {
   const sub = section(program, {
-    sectionName: 'settings',
-    sectionDescription: 'general configuration',
+    sectionName: "settings",
+    sectionDescription: "general configuration",
     ...options,
   });
-  sub('telemetry')
-    .description('show telemetry settings')
-    .option('--json', 'show telemetry levels as json')
-    .option('--all', 'show all telemetry levels')
+  sub("telemetry")
+    .description("show telemetry settings")
+    .option("--json", "show telemetry levels as json")
+    .option("--all", "show all telemetry levels")
     .action(showTelemetry);
 }
 
@@ -118,21 +118,21 @@ async function showTelemetry(options: {
       console.log("# All telemetry levels");
       console.log("");
       for (const iLevel of [Level.off, Level.limited, Level.full]) {
-        describeTelemetryLevel(iLevel, '#');
+        describeTelemetryLevel(iLevel, "#");
         console.log("");
-        showTelemetryAtLevel(iLevel, '##');
+        showTelemetryAtLevel(iLevel, "##");
         console.log("");
       }
     }
     else {
-      describeTelemetryLevel(level, '');
+      describeTelemetryLevel(level, "");
       console.log("");
-      showTelemetryAtLevel(level, '#');
+      showTelemetryAtLevel(level, "#");
     }
   }
 }
 
-function describeTelemetryLevel(level: Level, nesting: '' | '#') {
+function describeTelemetryLevel(level: Level, nesting: "" | "#") {
   switch (level) {
     case Level.off:
       console.log(nesting + "# Telemetry level: off");
@@ -151,7 +151,7 @@ function describeTelemetryLevel(level: Level, nesting: '' | '#') {
   }
 }
 
-function showTelemetryAtLevel(level: Level, nesting: '' | '#' | '##') {
+function showTelemetryAtLevel(level: Level, nesting: "" | "#" | "##") {
   const contracts = TelemetryContracts;
   for (const [name, contract] of Object.entries(contracts)) {
     if (contract.minimumTelemetryLevel > level) { continue; }
@@ -173,12 +173,12 @@ function showTelemetryAtLevel(level: Level, nesting: '' | '#' | '##') {
 export function addSiteCommand(program: commander.Command,
   options: CommandOptions) {
   const sub = section(program, {
-    sectionName: 'site',
-    sectionDescription: 'set up sites',
+    sectionName: "site",
+    sectionDescription: "set up sites",
     ...options,
   });
-  sub('create <domain> <owner-email>')
-    .description('create a site')
+  sub("create <domain> <owner-email>")
+    .description("create a site")
     .action(async (domain, email) => {
       console.log("create a site");
       const profile = { email, name: email };
@@ -190,7 +190,7 @@ export function addSiteCommand(program: commander.Command,
       }, {
         setUserAsOwner: false,
         useNewPlan: true,
-        product: 'teamFree',
+        product: "teamFree",
       }));
     });
 }
@@ -206,41 +206,41 @@ export function addDbCommand(program: commander.Command,
   function withConnection(op: (connection: Connection) => Promise<number>) {
     return async () => {
       if (!process.env.TYPEORM_LOGGING) {
-        process.env.TYPEORM_LOGGING = 'true';
+        process.env.TYPEORM_LOGGING = "true";
       }
       const connection = reuseConnection || await getOrCreateConnection();
       const exitCode = await op(connection);
       if (exitCode !== 0) {
-        program.error('db command failed', { exitCode });
+        program.error("db command failed", { exitCode });
       }
     };
   }
   const sub = section(program, {
-    sectionName: 'db',
-    sectionDescription: 'maintain the database of users, sites, workspaces, and docs',
+    sectionName: "db",
+    sectionDescription: "maintain the database of users, sites, workspaces, and docs",
     ...options,
   });
 
-  sub('migrate')
-    .description('run all pending migrations on database')
+  sub("migrate")
+    .description("run all pending migrations on database")
     .action(withConnection(async (connection) => {
       await updateDb(connection);
       return 0;
     }));
 
-  sub('revert')
-    .description('revert last migration on database')
+  sub("revert")
+    .description("revert last migration on database")
     .action(withConnection(async (connection) => {
       await undoLastMigration(connection);
       return 0;
     }));
 
-  sub('check')
-    .description('check that there are no pending migrations on database')
+  sub("check")
+    .description("check that there are no pending migrations on database")
     .action(withConnection(dbCheck));
 
-  sub('url')
-    .description('construct a url for the database (for psql, catsql etc)')
+  sub("url")
+    .description("construct a url for the database (for psql, catsql etc)")
     .action(withConnection(async () => {
       console.log(getDatabaseUrl(getTypeORMSettings(), true));
       return 0;
@@ -252,29 +252,29 @@ export function addDbCommand(program: commander.Command,
 //   sqlite clean <sqlite-file>
 //   sqlite query <sqlite-file> <query-string>
 export function addSqliteCommand(program: commander.Command) {
-  const sub = program.command('sqlite')
-    .description('commands for accessing sqlite files');
+  const sub = program.command("sqlite")
+    .description("commands for accessing sqlite files");
 
-  sub.command('gristify <sqlite-file>')
-    .description('add grist metadata to an sqlite file')
-    .option('--add-sort', 'add a manualSort column, important for adding/removing rows')
+  sub.command("gristify <sqlite-file>")
+    .description("add grist metadata to an sqlite file")
+    .option("--add-sort", "add a manualSort column, important for adding/removing rows")
     .action((filename, options) => new Gristifier(filename).gristify(options));
 
-  sub.command('clean <sqlite-file>')
-    .description('remove grist metadata from an sqlite file')
+  sub.command("clean <sqlite-file>")
+    .description("remove grist metadata from an sqlite file")
     .action(filename => new Gristifier(filename).degristify());
 
-  sub.command('query <sqlite-file> <query-string>')
-    .description('read data from a sqlite file that may contain Grist marshaling')
-    .option('--json', 'output as JSON')
+  sub.command("query <sqlite-file> <query-string>")
+    .description("read data from a sqlite file that may contain Grist marshaling")
+    .option("--json", "output as JSON")
     .action((filename, query, options) => new Gristifier(filename).query(query, options));
 }
 
 export function addVersionCommand(program: commander.Command) {
-  program.command('version')
-    .description('show Grist version')
-    .option('--with-commit', 'include the commit string')
-    .option('--verbose', 'use your words')
+  program.command("version")
+    .description("show Grist version")
+    .option("--with-commit", "include the commit string")
+    .option("--verbose", "use your words")
     .action((options) => {
       if (options.verbose) {
         const displayVersion = options.withCommit ? `${version} (commit ${gitcommit})` : version;
@@ -292,7 +292,7 @@ export function addVersionCommand(program: commander.Command) {
 export async function dbCheck(connection: Connection) {
   const migrations = await getMigrations(connection);
   const changingProducts = await synchronizeProducts(connection, false);
-  const log = process.env.TYPEORM_LOGGING === 'true' ? console.log : (...args: any[]) => null;
+  const log = process.env.TYPEORM_LOGGING === "true" ? console.log : (...args: any[]) => null;
   const options = getTypeORMSettings();
   log("database url:", getDatabaseUrl(options, false));
   log("migration files:", options.migrations);
@@ -361,7 +361,7 @@ export interface CommandOptions {
 export function parseIntForCommander(value: string, prev: number) {
   const pvalue = parseInt(value, 10);
   if (isNaN(pvalue)) {
-    throw new Error('Not a number.');
+    throw new Error("Not a number.");
   }
   return pvalue;
 }

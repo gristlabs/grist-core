@@ -1,46 +1,46 @@
 import { ApplyUAResult, ForkResult, FormulaTimingInfo,
-  PermissionDataWithExtraUsers, QueryFilters, TimingStatus } from 'app/common/ActiveDocAPI';
-import { AssistanceRequest, AssistanceResponse } from 'app/common/Assistance';
-import { BaseAPI, IOptions } from 'app/common/BaseAPI';
-import { BillingAPI, BillingAPIImpl } from 'app/common/BillingAPI';
-import { BrowserSettings } from 'app/common/BrowserSettings';
-import { ICustomWidget } from 'app/common/CustomWidget';
+  PermissionDataWithExtraUsers, QueryFilters, TimingStatus } from "app/common/ActiveDocAPI";
+import { AssistanceRequest, AssistanceResponse } from "app/common/Assistance";
+import { BaseAPI, IOptions } from "app/common/BaseAPI";
+import { BillingAPI, BillingAPIImpl } from "app/common/BillingAPI";
+import { BrowserSettings } from "app/common/BrowserSettings";
+import { ICustomWidget } from "app/common/CustomWidget";
 import { BulkColValues, TableColValues, TableRecordValue, TableRecordValues,
-  TableRecordValuesWithoutIds, UserAction } from 'app/common/DocActions';
-import { DocCreationInfo, OpenDocMode } from 'app/common/DocListAPI';
-import { DocStateComparison, DocStates } from 'app/common/DocState';
-import { OrgUsageSummary } from 'app/common/DocUsage';
-import { Features, Product } from 'app/common/Features';
-import { isClient } from 'app/common/gristUrls';
-import { encodeQueryParams } from 'app/common/gutil';
-import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
-import { OrgPrefs, UserOrgPrefs, UserPrefs } from 'app/common/Prefs';
-import * as roles from 'app/common/roles';
+  TableRecordValuesWithoutIds, UserAction } from "app/common/DocActions";
+import { DocCreationInfo, OpenDocMode } from "app/common/DocListAPI";
+import { DocStateComparison, DocStates } from "app/common/DocState";
+import { OrgUsageSummary } from "app/common/DocUsage";
+import { Features, Product } from "app/common/Features";
+import { isClient } from "app/common/gristUrls";
+import { encodeQueryParams } from "app/common/gutil";
+import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
+import { OrgPrefs, UserOrgPrefs, UserPrefs } from "app/common/Prefs";
+import * as roles from "app/common/roles";
 import {
   WebhookFields,
   WebhookSubscribe,
   WebhookSummaryCollection,
   WebhookUpdate,
-} from 'app/common/Triggers';
-import { addCurrentOrgToPath, getGristConfig } from 'app/common/urlUtils';
-import { StringUnion } from 'app/common/StringUnion';
-import { AttachmentStore, AttachmentStoreDesc } from 'app/plugin/DocApiTypes';
-import { AxiosProgressEvent } from 'axios';
-import omitBy from 'lodash/omitBy';
+} from "app/common/Triggers";
+import { addCurrentOrgToPath, getGristConfig } from "app/common/urlUtils";
+import { StringUnion } from "app/common/StringUnion";
+import { AttachmentStore, AttachmentStoreDesc } from "app/plugin/DocApiTypes";
+import { AxiosProgressEvent } from "axios";
+import omitBy from "lodash/omitBy";
 
 export type { FullUser, UserProfile };
 
 // Nominal email address of the anonymous user.
-export const ANONYMOUS_USER_EMAIL = 'anon@getgrist.com';
+export const ANONYMOUS_USER_EMAIL = "anon@getgrist.com";
 
 // Nominal email address of a user who, if you share with them, everyone gets access.
-export const EVERYONE_EMAIL = 'everyone@getgrist.com';
+export const EVERYONE_EMAIL = "everyone@getgrist.com";
 
 // Nominal email address of a user who can view anything (for thumbnails).
-export const PREVIEWER_EMAIL = 'thumbnail@getgrist.com';
+export const PREVIEWER_EMAIL = "thumbnail@getgrist.com";
 
 // A special 'docId' that means to create a new document.
-export const NEW_DOCUMENT_CODE = 'new';
+export const NEW_DOCUMENT_CODE = "new";
 
 // Properties shared by org, workspace, and doc resources.
 export interface CommonProperties {
@@ -51,7 +51,7 @@ export interface CommonProperties {
   disabledAt?: string; // ISO date string - only can appear on docs currently
   public?: boolean;    // If set, resource is available to the public
 }
-export const commonPropertyKeys = ['createdAt', 'name', 'updatedAt'];
+export const commonPropertyKeys = ["createdAt", "name", "updatedAt"];
 
 export interface OrganizationProperties extends CommonProperties {
   domain: string | null;
@@ -60,8 +60,8 @@ export interface OrganizationProperties extends CommonProperties {
   orgPrefs?: OrgPrefs;          // Preferences specific to org (but not a particular user)
   userPrefs?: UserPrefs;        // Preferences specific to user (but not a particular org)
 }
-export const organizationPropertyKeys = [...commonPropertyKeys, 'domain',
-  'orgPrefs', 'userOrgPrefs', 'userPrefs'];
+export const organizationPropertyKeys = [...commonPropertyKeys, "domain",
+  "orgPrefs", "userOrgPrefs", "userPrefs"];
 
 // Basic information about an organization, excluding the user's access level
 export interface OrganizationWithoutAccessInfo extends OrganizationProperties {
@@ -105,7 +105,7 @@ export function getOrgName(org: Organization): string {
  * Returns whether the given org is the templates org, which contains the public
  * templates and tutorials.
  */
-export function isTemplatesOrg(org: { domain: Organization['domain'] } | null): boolean {
+export function isTemplatesOrg(org: { domain: Organization["domain"] } | null): boolean {
   if (!org) { return false; }
 
   const { templateOrg } = getGristConfig();
@@ -113,7 +113,7 @@ export function isTemplatesOrg(org: { domain: Organization['domain'] } | null): 
 }
 
 export type WorkspaceProperties = CommonProperties;
-export const workspacePropertyKeys = ['createdAt', 'name', 'updatedAt'];
+export const workspacePropertyKeys = ["createdAt", "name", "updatedAt"];
 
 export interface Workspace extends WorkspaceProperties {
   id: number;
@@ -132,8 +132,8 @@ export interface Workspace extends WorkspaceProperties {
 
 // null stands for normal document type, the one set by default at document creation.
 export const DOCTYPE_NORMAL = null;
-export const DOCTYPE_TEMPLATE = 'template';
-export const DOCTYPE_TUTORIAL = 'tutorial';
+export const DOCTYPE_TEMPLATE = "template";
+export const DOCTYPE_TUTORIAL = "tutorial";
 
 export type DocumentType = typeof DOCTYPE_NORMAL | typeof DOCTYPE_TEMPLATE | typeof DOCTYPE_TUTORIAL;
 
@@ -183,11 +183,11 @@ export interface ProposedChanges {
 
 export const documentPropertyKeys = [
   ...commonPropertyKeys,
-  'isPinned',
-  'urlId',
-  'options',
-  'type',
-  'appearance',
+  "isPinned",
+  "urlId",
+  "options",
+  "type",
+  "appearance",
 ];
 
 export interface Document extends DocumentProperties {
@@ -210,7 +210,7 @@ export interface ProposalComparison {
 }
 
 export interface ProposalStatus {
-  status?: 'applied' | 'retracted' | 'dismissed';
+  status?: "applied" | "retracted" | "dismissed";
 }
 
 export interface Proposal {
@@ -267,7 +267,7 @@ export interface ManagerDelta {
     // To add a manager, link their email to 'managers'.
     // To remove a manager, link their email to null.
     // This format is used to rhyme with the ACL PermissionDelta format.
-    [email: string]: 'managers' | null
+    [email: string]: "managers" | null
   };
 }
 
@@ -305,13 +305,13 @@ export function getRealAccess(user: UserAccess, inherited: { maxInheritedRole?: 
 }
 
 const roleNames: { [role: string]: string } = {
-  [roles.OWNER]: 'Owner',
-  [roles.EDITOR]: 'Editor',
-  [roles.VIEWER]: 'Viewer',
+  [roles.OWNER]: "Owner",
+  [roles.EDITOR]: "Editor",
+  [roles.VIEWER]: "Viewer",
 };
 
 export function getUserRoleText(user: UserAccessData) {
-  return roleNames[user.access!] || user.access || 'no access';
+  return roleNames[user.access!] || user.access || "no access";
 }
 
 export interface ExtendedUser extends FullUser {
@@ -470,7 +470,7 @@ export interface DownloadDocParams {
   filters?: string;
 }
 
-export const CreatableArchiveFormats = StringUnion('zip', 'tar');
+export const CreatableArchiveFormats = StringUnion("zip", "tar");
 export type CreatableArchiveFormats = typeof CreatableArchiveFormats.type;
 
 export interface AttachmentsArchiveParams {
@@ -521,7 +521,7 @@ export interface DocAPI {
   getSnapshots(raw?: boolean): Promise<DocSnapshots>;
   // remove selected snapshots, or all snapshots that have "leaked" from inventory (should
   // be empty), or all but the current snapshot.
-  removeSnapshots(snapshotIds: string[] | 'unlisted' | 'past'): Promise<{ snapshotIds: string[] }>;
+  removeSnapshots(snapshotIds: string[] | "unlisted" | "past"): Promise<{ snapshotIds: string[] }>;
   getStates(): Promise<DocStates>;
   forceReload(): Promise<void>;
   recover(recoveryMode: boolean): Promise<void>;
@@ -629,84 +629,84 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }
 
   public forRemoved(): UserAPI {
-    const extraParameters = new Map<string, string>([['showRemoved', '1']]);
+    const extraParameters = new Map<string, string>([["showRemoved", "1"]]);
     return new UserAPIImpl(this._homeUrl, { ...this._options, extraParameters });
   }
 
   public async getSessionActive(): Promise<ActiveSessionInfo> {
-    return this.requestJson(`${this._url}/api/session/access/active`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/session/access/active`, { method: "GET" });
   }
 
   public async setSessionActive(email: string, org?: string): Promise<void> {
     const body = JSON.stringify({ email, org });
-    return this.requestJson(`${this._url}/api/session/access/active`, { method: 'POST', body });
+    return this.requestJson(`${this._url}/api/session/access/active`, { method: "POST", body });
   }
 
   public async getSessionAll(): Promise<{ users: FullUser[], orgs: Organization[] }> {
-    return this.requestJson(`${this._url}/api/session/access/all`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/session/access/all`, { method: "GET" });
   }
 
   public async getOrgs(merged: boolean = false): Promise<Organization[]> {
-    return this.requestJson(`${this._url}/api/orgs?merged=${merged ? 1 : 0}`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/orgs?merged=${merged ? 1 : 0}`, { method: "GET" });
   }
 
   public async getWorkspace(workspaceId: number): Promise<Workspace> {
-    return this.requestJson(`${this._url}/api/workspaces/${workspaceId}`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/workspaces/${workspaceId}`, { method: "GET" });
   }
 
   public async getOrg(orgId: number | string): Promise<Organization> {
-    return this.requestJson(`${this._url}/api/orgs/${orgId}`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/orgs/${orgId}`, { method: "GET" });
   }
 
   public async getOrgWorkspaces(orgId: number | string, includeSupport = true): Promise<Workspace[]> {
     return this.requestJson(`${this._url}/api/orgs/${orgId}/workspaces?includeSupport=${includeSupport ? 1 : 0}`,
-      { method: 'GET' });
+      { method: "GET" });
   }
 
   public async getOrgUsageSummary(orgId: number | string): Promise<OrgUsageSummary> {
-    return this.requestJson(`${this._url}/api/orgs/${orgId}/usage`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/orgs/${orgId}/usage`, { method: "GET" });
   }
 
   public async getTemplates(): Promise<Workspace[]> {
-    return this.requestJson(`${this._url}/api/templates`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/templates`, { method: "GET" });
   }
 
   public async getTemplate(docId: string): Promise<Document> {
-    return this.requestJson(`${this._url}/api/templates/${docId}`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/templates/${docId}`, { method: "GET" });
   }
 
   public async getWidgets(): Promise<ICustomWidget[]> {
-    return await this.requestJson(`${this._url}/api/widgets`, { method: 'GET' });
+    return await this.requestJson(`${this._url}/api/widgets`, { method: "GET" });
   }
 
   public async getDoc(docId: string): Promise<Document> {
-    return this.requestJson(`${this._url}/api/docs/${docId}`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/docs/${docId}`, { method: "GET" });
   }
 
   public async newOrg(props: Partial<OrganizationProperties>): Promise<number> {
     return this.requestJson(`${this._url}/api/orgs`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(props),
     });
   }
 
   public async newWorkspace(props: Partial<WorkspaceProperties>, orgId: number | string): Promise<number> {
     return this.requestJson(`${this._url}/api/orgs/${orgId}/workspaces`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(props),
     });
   }
 
   public async newDoc(props: Partial<DocumentProperties>, workspaceId: number): Promise<string> {
     return this.requestJson(`${this._url}/api/workspaces/${workspaceId}/docs`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(props),
     });
   }
 
   public async newUnsavedDoc(options: { timezone?: string } = {}): Promise<string> {
     return this.requestJson(`${this._url}/api/docs`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(options),
     });
   }
@@ -717,7 +717,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     options: CopyDocOptions,
   ): Promise<string> {
     return this.requestJson(`${this._url}/api/docs`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({
         sourceDocumentId,
         workspaceId,
@@ -728,14 +728,14 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async renameOrg(orgId: number | string, name: string): Promise<void> {
     await this.request(`${this._url}/api/orgs/${orgId}`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify({ name }),
     });
   }
 
   public async renameWorkspace(workspaceId: number, name: string): Promise<void> {
     await this.request(`${this._url}/api/workspaces/${workspaceId}`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify({ name }),
     });
   }
@@ -749,102 +749,102 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async updateOrg(orgId: number | string, props: Partial<OrganizationProperties>): Promise<void> {
     await this.request(`${this._url}/api/orgs/${orgId}`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify(props),
     });
   }
 
   public async updateDoc(docId: string, props: Partial<DocumentProperties>): Promise<void> {
     await this.request(`${this._url}/api/docs/${docId}`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify(props),
     });
   }
 
   public async deleteOrg(orgId: number | string): Promise<void> {
-    await this.request(`${this._url}/api/orgs/${orgId}/force-delete`, { method: 'DELETE' });
+    await this.request(`${this._url}/api/orgs/${orgId}/force-delete`, { method: "DELETE" });
   }
 
   public async deleteWorkspace(workspaceId: number): Promise<void> {
-    await this.request(`${this._url}/api/workspaces/${workspaceId}`, { method: 'DELETE' });
+    await this.request(`${this._url}/api/workspaces/${workspaceId}`, { method: "DELETE" });
   }
 
   public async softDeleteWorkspace(workspaceId: number): Promise<void> {
-    await this.request(`${this._url}/api/workspaces/${workspaceId}/remove`, { method: 'POST' });
+    await this.request(`${this._url}/api/workspaces/${workspaceId}/remove`, { method: "POST" });
   }
 
   public async undeleteWorkspace(workspaceId: number): Promise<void> {
-    await this.request(`${this._url}/api/workspaces/${workspaceId}/unremove`, { method: 'POST' });
+    await this.request(`${this._url}/api/workspaces/${workspaceId}/unremove`, { method: "POST" });
   }
 
   public async deleteDoc(docId: string): Promise<void> {
-    await this.request(`${this._url}/api/docs/${docId}`, { method: 'DELETE' });
+    await this.request(`${this._url}/api/docs/${docId}`, { method: "DELETE" });
   }
 
   public async softDeleteDoc(docId: string): Promise<void> {
-    await this.request(`${this._url}/api/docs/${docId}/remove`, { method: 'POST' });
+    await this.request(`${this._url}/api/docs/${docId}/remove`, { method: "POST" });
   }
 
   public async undeleteDoc(docId: string): Promise<void> {
-    await this.request(`${this._url}/api/docs/${docId}/unremove`, { method: 'POST' });
+    await this.request(`${this._url}/api/docs/${docId}/unremove`, { method: "POST" });
   }
 
   public async disableDoc(docId: string): Promise<void> {
-    await this.request(`${this._url}/api/docs/${docId}/disable`, { method: 'POST' });
+    await this.request(`${this._url}/api/docs/${docId}/disable`, { method: "POST" });
   }
 
   public async enableDoc(docId: string): Promise<void> {
-    await this.request(`${this._url}/api/docs/${docId}/enable`, { method: 'POST' });
+    await this.request(`${this._url}/api/docs/${docId}/enable`, { method: "POST" });
   }
 
   public async updateOrgPermissions(orgId: number | string, delta: PermissionDelta): Promise<void> {
     await this.request(`${this._url}/api/orgs/${orgId}/access`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify({ delta }),
     });
   }
 
   public async updateWorkspacePermissions(workspaceId: number, delta: PermissionDelta): Promise<void> {
     await this.request(`${this._url}/api/workspaces/${workspaceId}/access`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify({ delta }),
     });
   }
 
   public async updateDocPermissions(docId: string, delta: PermissionDelta): Promise<void> {
     await this.request(`${this._url}/api/docs/${docId}/access`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify({ delta }),
     });
   }
 
   public async getOrgAccess(orgId: number | string): Promise<PermissionData> {
-    return this.requestJson(`${this._url}/api/orgs/${orgId}/access`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/orgs/${orgId}/access`, { method: "GET" });
   }
 
   public async getWorkspaceAccess(workspaceId: number): Promise<PermissionData> {
-    return this.requestJson(`${this._url}/api/workspaces/${workspaceId}/access`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/workspaces/${workspaceId}/access`, { method: "GET" });
   }
 
   public async getDocAccess(docId: string): Promise<PermissionData> {
-    return this.requestJson(`${this._url}/api/docs/${docId}/access`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/docs/${docId}/access`, { method: "GET" });
   }
 
   public async pinDoc(docId: string): Promise<void> {
     await this.request(`${this._url}/api/docs/${docId}/pin`, {
-      method: 'PATCH',
+      method: "PATCH",
     });
   }
 
   public async unpinDoc(docId: string): Promise<void> {
     await this.request(`${this._url}/api/docs/${docId}/unpin`, {
-      method: 'PATCH',
+      method: "PATCH",
     });
   }
 
   public async moveDoc(docId: string, workspaceId: number): Promise<void> {
     await this.request(`${this._url}/api/docs/${docId}/move`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify({ workspace: workspaceId }),
     });
   }
@@ -855,41 +855,41 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async updateUserName(name: string): Promise<void> {
     await this.request(`${this._url}/api/profile/user/name`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ name }),
     });
   }
 
   public async updateUserLocale(locale: string | null): Promise<void> {
     await this.request(`${this._url}/api/profile/user/locale`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ locale }),
     });
   }
 
   public async updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void> {
     await this.request(`${this._url}/api/profile/allowGoogleLogin`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ allowGoogleLogin }),
     });
   }
 
   public async updateIsConsultant(userId: number, isConsultant: boolean): Promise<void> {
     await this.request(`${this._url}/api/profile/isConsultant`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ userId, isConsultant }),
     });
   }
 
   public async disableUser(userId: number): Promise<void> {
     await this.request(`${this._url}/api/users/${userId}/disable`, {
-      method: 'POST',
+      method: "POST",
     });
   }
 
   public async enableUser(userId: number): Promise<void> {
     await this.request(`${this._url}/api/users/${userId}/enable`, {
-      method: 'POST',
+      method: "POST",
     });
   }
 
@@ -900,8 +900,8 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async getWorkerFull(key: string): Promise<PublicDocWorkerUrlInfo> {
     const json = (await this.requestJson(`${this._url}/api/worker/${key}`, {
-      method: 'GET',
-      credentials: 'include',
+      method: "GET",
+      credentials: "include",
     })) as PublicDocWorkerUrlInfo;
     return json;
   }
@@ -926,14 +926,14 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async createApiKey(): Promise<string> {
     const res = await this.request(`${this._url}/api/profile/apiKey`, {
-      method: 'POST',
+      method: "POST",
     });
     return await res.text();
   }
 
   public async deleteApiKey(): Promise<void> {
     await this.request(`${this._url}/api/profile/apiKey`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
@@ -945,7 +945,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async applyUserActions(docId: string, actions: UserAction[]): Promise<ApplyUAResult> {
     return this.requestJson(`${this._url}/api/docs/${docId}/apply`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(actions),
     });
   }
@@ -957,10 +957,10 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }): Promise<string> {
     options = options || {};
     const formData = this.newFormData();
-    formData.append('upload', material as any, options.filename);
-    if (options.timezone) { formData.append('timezone', options.timezone); }
+    formData.append("upload", material as any, options.filename);
+    if (options.timezone) { formData.append("timezone", options.timezone); }
     const resp = await this.requestAxios(`${this._url}/api/docs`, {
-      method: 'POST',
+      method: "POST",
       data: formData,
       onUploadProgress: options.onUploadProgress,
       // On browser, it is important not to set Content-Type so that the browser takes care
@@ -973,16 +973,16 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async deleteUser(userId: number, name: string) {
     await this.request(`${this._url}/api/users/${userId}`,
-      { method: 'DELETE',
+      { method: "DELETE",
         body: JSON.stringify({ name }) });
   }
 
   public async closeAccount(userId: number): Promise<boolean> {
-    return await this.requestJson(`${this._url}/api/doom/account?userid=` + userId, { method: 'DELETE' });
+    return await this.requestJson(`${this._url}/api/doom/account?userid=` + userId, { method: "DELETE" });
   }
 
   public async closeOrg() {
-    await this.request(`${this._url}/api/doom/org`, { method: 'DELETE' });
+    await this.request(`${this._url}/api/doom/org`, { method: "DELETE" });
   }
 
   public getBaseUrl(): string { return this._url; }
@@ -994,7 +994,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }
 
   private _urlWithOrg(base: string): string {
-    return isClient() ? addCurrentOrgToPath(base) : base.replace(/\/$/, '');
+    return isClient() ? addCurrentOrgToPath(base) : base.replace(/\/$/, "");
   }
 }
 
@@ -1006,29 +1006,29 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
   public async importDocToWorkspace(uploadId: number, workspaceId: number, browserSettings?: BrowserSettings):
   Promise<DocCreationInfo> {
     return this.requestJson(`${this.url}/api/workspaces/${workspaceId}/import`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ uploadId, browserSettings }),
     });
   }
 
   public async upload(material: UploadType, filename?: string): Promise<number> {
     const formData = this.newFormData();
-    formData.append('upload', material as any, filename);
+    formData.append("upload", material as any, filename);
     const json = await this.requestJson(`${this.url}/uploads`, {
       // On browser, it is important not to set Content-Type so that the browser takes care
       // of setting HTTP headers appropriately.  Outside of browser, node-fetch also appears
       // to take care of this - https://github.github.io/fetch/#request-body
       headers: { ...this.defaultHeadersWithoutContentType() },
-      method: 'POST',
+      method: "POST",
       body: formData,
     });
     return json.uploadId;
   }
 
   public async downloadDoc(docId: string, template: boolean = false): Promise<Response> {
-    const extra = template ? '?template=1' : '';
+    const extra = template ? "?template=1" : "";
     const result = await this.request(`${this.url}/api/docs/${docId}/download${extra}`, {
-      method: 'GET',
+      method: "GET",
     });
     if (!result.ok) { throw new Error(await result.text()); }
     return result;
@@ -1037,13 +1037,13 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
   public async copyDoc(docId: string, template: boolean = false, name?: string): Promise<number> {
     const url = new URL(`${this.url}/copy?doc=${docId}`);
     if (template) {
-      url.searchParams.append('template', '1');
+      url.searchParams.append("template", "1");
     }
     if (name) {
-      url.searchParams.append('name', name);
+      url.searchParams.append("name", name);
     }
     const json = await this.requestJson(url.href, {
-      method: 'POST',
+      method: "POST",
     });
     return json.uploadId;
   }
@@ -1060,11 +1060,11 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   public getBaseUrl(): string { return this._url; }
 
   public async getRows(tableId: string, options?: GetRowsParams): Promise<TableColValues> {
-    return this._getRecords(tableId, 'data', options);
+    return this._getRecords(tableId, "data", options);
   }
 
   public async getRecords(tableId: string, options?: GetRowsParams): Promise<TableRecordValue[]> {
-    const response: TableRecordValues = await this._getRecords(tableId, 'records', options);
+    const response: TableRecordValues = await this._getRecords(tableId, "records", options);
     return response.records;
   }
 
@@ -1074,41 +1074,41 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
         sql,
         ...(args ? { args } : {}),
       }),
-      method: 'POST',
+      method: "POST",
     });
   }
 
   public async updateRows(tableId: string, changes: TableColValues): Promise<number[]> {
     return this.requestJson(`${this._url}/tables/${tableId}/data`, {
       body: JSON.stringify(changes),
-      method: 'PATCH',
+      method: "PATCH",
     });
   }
 
   public async addRows(tableId: string, additions: BulkColValues): Promise<number[]> {
     return this.requestJson(`${this._url}/tables/${tableId}/data`, {
       body: JSON.stringify(additions),
-      method: 'POST',
+      method: "POST",
     });
   }
 
   public async removeRows(tableId: string, removals: number[]): Promise<number[]> {
     return this.requestJson(`${this._url}/tables/${tableId}/records/delete`, {
       body: JSON.stringify(removals),
-      method: 'POST',
+      method: "POST",
     });
   }
 
   public async fork(): Promise<ForkResult> {
     return this.requestJson(`${this._url}/fork`, {
-      method: 'POST',
+      method: "POST",
     });
   }
 
   public async replace(source: DocReplacementOptions): Promise<void> {
     return this.requestJson(`${this._url}/replace`, {
       body: JSON.stringify(source),
-      method: 'POST',
+      method: "POST",
     });
   }
 
@@ -1116,10 +1116,10 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this.requestJson(`${this._url}/snapshots?raw=${raw}`);
   }
 
-  public async removeSnapshots(snapshotIds: string[] | 'unlisted' | 'past') {
-    const body = typeof snapshotIds === 'string' ? { select: snapshotIds } : { snapshotIds };
+  public async removeSnapshots(snapshotIds: string[] | "unlisted" | "past") {
+    const body = typeof snapshotIds === "string" ? { select: snapshotIds } : { snapshotIds };
     return await this.requestJson(`${this._url}/snapshots/remove`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(body),
     });
   }
@@ -1139,50 +1139,50 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   public async addWebhook(webhook: WebhookSubscribe & { tableId: string }): Promise<{ webhookId: string }> {
     const { tableId } = webhook;
     return this.requestJson(`${this._url}/tables/${tableId}/_subscribe`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(
-        omitBy(webhook, (val, key) => key === 'tableId' || val === null)),
+        omitBy(webhook, (val, key) => key === "tableId" || val === null)),
     });
   }
 
   public async updateWebhook(webhook: WebhookUpdate): Promise<void> {
     return this.requestJson(`${this._url}/webhooks/${webhook.id}`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify(webhook.fields),
     });
   }
 
   public removeWebhook(webhookId: string, tableId: string) {
     // unsubscribeKey is not required for owners
-    const unsubscribeKey = '';
+    const unsubscribeKey = "";
     return this.requestJson(`${this._url}/tables/${tableId}/_unsubscribe`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ webhookId, unsubscribeKey }),
     });
   }
 
   public async flushWebhooks(): Promise<void> {
     await this.request(`${this._url}/webhooks/queue`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   public async flushWebhook(id: string): Promise<void> {
     await this.request(`${this._url}/webhooks/queue/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   public async forceReload(): Promise<void> {
     await this.request(`${this._url}/force-reload`, {
-      method: 'POST',
+      method: "POST",
     });
   }
 
   public async recover(recoveryMode: boolean): Promise<void> {
     await this.request(`${this._url}/recover`, {
       body: JSON.stringify({ recoveryMode }),
-      method: 'POST',
+      method: "POST",
     });
   }
 
@@ -1208,14 +1208,14 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     const { documentName, asTemplate } = options;
     return this.requestJson(`${this._url}/copy`, {
       body: JSON.stringify({ workspaceId, documentName, asTemplate }),
-      method: 'POST',
+      method: "POST",
     });
   }
 
   public async compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison> {
     const url = new URL(`${this._url}/compare`);
-    url.searchParams.append('left', leftHash);
-    url.searchParams.append('right', rightHash);
+    url.searchParams.append("left", leftHash);
+    url.searchParams.append("right", rightHash);
     return this.requestJson(url.href);
   }
 
@@ -1224,43 +1224,43 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public getDownloadXlsxUrl(params: DownloadDocParams) {
-    return this._url + '/download/xlsx?' + encodeQueryParams({ ...params });
+    return this._url + "/download/xlsx?" + encodeQueryParams({ ...params });
   }
 
   public getDownloadCsvUrl(params: DownloadDocParams) {
     // We spread `params` to work around TypeScript being overly cautious.
-    return this._url + '/download/csv?' + encodeQueryParams({ ...params });
+    return this._url + "/download/csv?" + encodeQueryParams({ ...params });
   }
 
   public getDownloadTsvUrl(params: DownloadDocParams) {
-    return this._url + '/download/tsv?' + encodeQueryParams({ ...params });
+    return this._url + "/download/tsv?" + encodeQueryParams({ ...params });
   }
 
   public getDownloadDsvUrl(params: DownloadDocParams) {
-    return this._url + '/download/dsv?' + encodeQueryParams({ ...params });
+    return this._url + "/download/dsv?" + encodeQueryParams({ ...params });
   }
 
   public getDownloadTableSchemaUrl(params: DownloadDocParams) {
     // We spread `params` to work around TypeScript being overly cautious.
-    return this._url + '/download/table-schema?' + encodeQueryParams({ ...params });
+    return this._url + "/download/table-schema?" + encodeQueryParams({ ...params });
   }
 
   public getDownloadAttachmentsArchiveUrl(params: AttachmentsArchiveParams): string {
-    return this._url + '/attachments/archive?' + encodeQueryParams({ ...params });
+    return this._url + "/attachments/archive?" + encodeQueryParams({ ...params });
   }
 
   public async sendToDrive(code: string, title: string): Promise<{ url: string }> {
     const url = new URL(`${this._url}/send-to-drive`);
-    url.searchParams.append('title', title);
-    url.searchParams.append('code', code);
+    url.searchParams.append("title", title);
+    url.searchParams.append("code", code);
     return this.requestJson(url.href);
   }
 
   public async uploadAttachment(value: string | Blob, filename?: string): Promise<number> {
     const formData = this.newFormData();
-    formData.append('upload', value, filename);
+    formData.append("upload", value, filename);
     const response = await this.requestAxios(`${this._url}/attachments`, {
-      method: 'POST',
+      method: "POST",
       data: formData,
       // On browser, it is important not to set Content-Type so that the browser takes care
       // of setting HTTP headers appropriately.  Outside browser, requestAxios has logic
@@ -1272,9 +1272,9 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async uploadAttachmentArchive(archive: string | Blob, filename?: string): Promise<ArchiveUploadResult> {
     const formData = this.newFormData();
-    formData.append('upload', archive, filename);
+    formData.append("upload", archive, filename);
     const response = await this.requestAxios(`${this._url}/attachments/archive`, {
-      method: 'POST',
+      method: "POST",
       data: formData,
       // On the browser, Content-Type shouldn't be set as it prevents the browser from setting
       // Content-Type with the correct boundary expression to delimit form fields.
@@ -1290,7 +1290,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     params: AssistanceRequest,
   ): Promise<AssistanceResponse> {
     return await this.requestJson(`${this._url}/assistant`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(params),
     });
   }
@@ -1300,15 +1300,15 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public async startTiming(): Promise<void> {
-    await this.request(`${this._url}/timing/start`, { method: 'POST' });
+    await this.request(`${this._url}/timing/start`, { method: "POST" });
   }
 
   public async stopTiming(): Promise<FormulaTimingInfo[]> {
-    return await this.requestJson(`${this._url}/timing/stop`, { method: 'POST' });
+    return await this.requestJson(`${this._url}/timing/stop`, { method: "POST" });
   }
 
   public async transferAllAttachments(): Promise<void> {
-    await this.request(`${this._url}/attachments/transferAll`, { method: 'POST' });
+    await this.request(`${this._url}/attachments/transferAll`, { method: "POST" });
   }
 
   public async getAttachmentTransferStatus(): Promise<AttachmentTransferStatus> {
@@ -1325,7 +1325,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async setAttachmentStore(type: AttachmentStore): Promise<void> {
     await this.request(`${this._url}/attachments/store`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ type }),
     });
   }
@@ -1334,20 +1334,20 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     retracted?: boolean,
   }) {
     return this.requestJson(`${this._url}/propose`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(options || {}),
     });
   }
 
   public async applyProposal(proposalId: number) {
     return this.requestJson(`${this._url}/proposals/${proposalId}/apply`, {
-      method: 'POST',
+      method: "POST",
     });
   }
 
   public async applyUserActions(actions: UserAction[]): Promise<ApplyUAResult> {
     return this.requestJson(`${this._url}/apply`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(actions),
     });
   }
@@ -1356,18 +1356,18 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     outgoing?: boolean,
   }) {
     const result = await this.requestJson(`${this._url}/proposals?outgoing=${Boolean(options?.outgoing)}`, {
-      method: 'GET',
+      method: "GET",
     });
     return result;
   }
 
-  private _getRecords(tableId: string, endpoint: 'data' | 'records', options?: GetRowsParams): Promise<any> {
+  private _getRecords(tableId: string, endpoint: "data" | "records", options?: GetRowsParams): Promise<any> {
     const url = new URL(`${this._url}/tables/${tableId}/${endpoint}`);
     if (options?.filters) {
-      url.searchParams.append('filter', JSON.stringify(options.filters));
+      url.searchParams.append("filter", JSON.stringify(options.filters));
     }
     if (options?.immediate) {
-      url.searchParams.append('immediate', 'true');
+      url.searchParams.append("immediate", "true");
     }
     return this.requestJson(url.href);
   }

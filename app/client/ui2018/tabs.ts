@@ -1,11 +1,11 @@
-import { makeTestId } from 'app/client/lib/domUtils';
-import { urlState } from 'app/client/models/gristUrlState';
-import { isNarrowScreenObs, theme } from 'app/client/ui2018/cssVars';
-import { IconName } from 'app/client/ui2018/IconList';
-import { icon as cssIcon } from 'app/client/ui2018/icons';
-import { IGristUrlState } from 'app/common/gristUrls';
-import { useBindable } from 'app/common/gutil';
-import { BindableValue, dom, IDomArgs, MaybeObsArray, styled, UseCBOwner } from 'grainjs';
+import { makeTestId } from "app/client/lib/domUtils";
+import { urlState } from "app/client/models/gristUrlState";
+import { isNarrowScreenObs, theme } from "app/client/ui2018/cssVars";
+import { IconName } from "app/client/ui2018/IconList";
+import { icon as cssIcon } from "app/client/ui2018/icons";
+import { IGristUrlState } from "app/common/gristUrls";
+import { useBindable } from "app/common/gutil";
+import { BindableValue, dom, IDomArgs, MaybeObsArray, styled, UseCBOwner } from "grainjs";
 
 const testId = makeTestId("test-component-tabs-");
 
@@ -34,18 +34,18 @@ export function buildTabs(
 
         // The combination with space makes the label as wide as its bold version,
         // to avoid slight shifts of other labels when switching tabs.
-        dom('div', tab.label, cssBoldLabelSpacer(tab.label))),
+        dom("div", tab.label, cssBoldLabelSpacer(tab.label))),
 
       cssTab.cls("-selected", isSelected(tab)),
 
-      tab.onClick && dom.on('click', tab.onClick.bind(tab)),
+      tab.onClick && dom.on("click", tab.onClick.bind(tab)),
 
       tab.link && urlState().setLinkUrl(tab.link, { replace: true }),
 
-      testId('tab'),
-      testId('tab-selected', isSelected(tab)),
+      testId("tab"),
+      testId("tab-selected", isSelected(tab)),
     )),
-    testId('list'),
+    testId("list"),
     ...args,
   );
 }

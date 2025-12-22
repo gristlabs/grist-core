@@ -1,10 +1,10 @@
-var _ = require('underscore');
-var dispose = require('app/client/lib/dispose');
-var TextEditor = require('app/client/widgets/TextEditor');
+var _ = require("underscore");
+var dispose = require("app/client/lib/dispose");
+var TextEditor = require("app/client/widgets/TextEditor");
 
-const {Autocomplete} = require('app/client/lib/autocomplete');
-const {ACIndexImpl, buildHighlightedDom} = require('app/client/lib/ACIndex');
-const {makeT} = require('app/client/lib/localization');
+const {Autocomplete} = require("app/client/lib/autocomplete");
+const {ACIndexImpl, buildHighlightedDom} = require("app/client/lib/ACIndex");
+const {makeT} = require("app/client/lib/localization");
 const {
   buildDropdownConditionFilter,
   ChoiceItem,
@@ -12,14 +12,14 @@ const {
   cssMatchText,
   cssPlusButton,
   cssPlusIcon,
-} = require('app/client/widgets/ChoiceListEditor');
-const {icon} = require('app/client/ui2018/icons');
-const {menuCssClass} = require('app/client/ui2018/menus');
-const {testId, theme} = require('app/client/ui2018/cssVars');
-const {choiceToken, cssChoiceACItem} = require('app/client/widgets/ChoiceToken');
-const {dom, styled} = require('grainjs');
+} = require("app/client/widgets/ChoiceListEditor");
+const {icon} = require("app/client/ui2018/icons");
+const {menuCssClass} = require("app/client/ui2018/menus");
+const {testId, theme} = require("app/client/ui2018/cssVars");
+const {choiceToken, cssChoiceACItem} = require("app/client/widgets/ChoiceToken");
+const {dom, styled} = require("grainjs");
 
-const t = makeT('ChoiceEditor');
+const t = makeT("ChoiceEditor");
 
 /**
  * ChoiceEditor - TextEditor with a dropdown for possible choices.
@@ -49,7 +49,7 @@ function ChoiceEditor(options) {
   const acIndex = new ACIndexImpl(acItems);
   this._acOptions = {
     popperOptions: {
-      placement: 'bottom'
+      placement: "bottom"
     },
     menuCssClass: `${menuCssClass} ${cssChoiceList.className} test-autocomplete`,
     buildNoItemsMessage: this.buildNoItemsMessage.bind(this),
@@ -61,7 +61,7 @@ function ChoiceEditor(options) {
 
   if (!options.readonly && options.field.viewSection().parentKey() === "single") {
     this.cellEditorDiv.classList.add(cssChoiceEditor.className);
-    this.cellEditorDiv.appendChild(cssChoiceEditIcon('Dropdown'));
+    this.cellEditorDiv.appendChild(cssChoiceEditIcon("Dropdown"));
   }
 
   // Whether to include a button to show a new choice.
@@ -76,8 +76,8 @@ ChoiceEditor.prototype.getCellValue = function() {
   const selectedItem = this.autocomplete && this.autocomplete.getSelectedItem();
   if (selectedItem) {
     return selectedItem.label;
-  } else if (this.textInput.value.trim() === '') {
-    return '';
+  } else if (this.textInput.value.trim() === "") {
+    return "";
   } else {
     return TextEditor.prototype.getCellValue.call(this);
   }
@@ -88,16 +88,16 @@ ChoiceEditor.prototype.renderACItem = function(item, highlightFunc) {
 
   return cssChoiceACItem(
     (item.isNew ?
-      [cssChoiceACItem.cls('-new'), cssPlusButton(cssPlusIcon('Plus')), testId('choice-editor-new-item')] :
-      [cssChoiceACItem.cls('-with-new', this.showAddNew)]
+      [cssChoiceACItem.cls("-new"), cssPlusButton(cssPlusIcon("Plus")), testId("choice-editor-new-item")] :
+      [cssChoiceACItem.cls("-with-new", this.showAddNew)]
     ),
     choiceToken(
       buildHighlightedDom(item.label, highlightFunc, cssMatchText),
       options || {},
-      dom.style('max-width', '100%'),
-      testId('choice-editor-item-label')
+      dom.style("max-width", "100%"),
+      testId("choice-editor-item-label")
     ),
-    testId('choice-editor-item'),
+    testId("choice-editor-item"),
   );
 };
 
@@ -116,15 +116,15 @@ ChoiceEditor.prototype.attach = function(cellElem) {
 ChoiceEditor.prototype.prepForSave = async function() {
   const selectedItem = this.autocomplete && this.autocomplete.getSelectedItem();
   if (selectedItem && selectedItem.isNew) {
-    const choices = this.widgetOptionsJson.prop('choices');
+    const choices = this.widgetOptionsJson.prop("choices");
     await choices.saveOnly([...(choices.peek() || []), selectedItem.label]);
   }
 };
 
 ChoiceEditor.prototype.buildDropdownConditionFilter = function() {
   const dropdownConditionCompiled = this.options.field.dropdownConditionCompiled.get();
-  if (dropdownConditionCompiled?.kind !== 'success') {
-    throw new Error('Dropdown condition is not compiled');
+  if (dropdownConditionCompiled?.kind !== "success") {
+    throw new Error("Dropdown condition is not compiled");
   }
 
   return buildDropdownConditionFilter({
@@ -137,11 +137,11 @@ ChoiceEditor.prototype.buildDropdownConditionFilter = function() {
 
 ChoiceEditor.prototype.buildNoItemsMessage = function() {
   if (this.dropdownConditionError) {
-    return t('Error in dropdown condition');
+    return t("Error in dropdown condition");
   } else if (this.hasDropdownCondition) {
-    return t('No choices matching condition');
+    return t("No choices matching condition");
   } else {
-    return t('No choices to select');
+    return t("No choices to select");
   }
 };
 
@@ -182,7 +182,7 @@ const cssChoiceEditIcon = styled(icon, `
   margin: 3px 3px 0 3px;
 `);
 
-const cssChoiceEditor = styled('div', `
+const cssChoiceEditor = styled("div", `
   & > .celleditor_text_editor, & > .celleditor_content_measure {
     padding-left: 18px;
   }

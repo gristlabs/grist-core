@@ -5,17 +5,17 @@
  * - to be shown briefly, as a transient notification next to some action element.
  */
 
-import { logTelemetryEvent } from 'app/client/lib/telemetry';
-import { GristTooltips, Tooltip } from 'app/client/ui/GristTooltips';
-import { prepareForTransition } from 'app/client/ui/transitions';
-import { colors, testId, theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { makeLinks } from 'app/client/ui2018/links';
-import { menuCssClass } from 'app/client/ui2018/menus';
-import { BindableValue, dom, DomContents, DomElementArg, DomElementMethod, Observable, styled } from 'grainjs';
-import Popper from 'popper.js';
-import { cssMenu, cssMenuItem, defaultMenuOptions, IPopupOptions, setPopupToCreateDom } from 'popweasel';
-import merge from 'lodash/merge';
+import { logTelemetryEvent } from "app/client/lib/telemetry";
+import { GristTooltips, Tooltip } from "app/client/ui/GristTooltips";
+import { prepareForTransition } from "app/client/ui/transitions";
+import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { makeLinks } from "app/client/ui2018/links";
+import { menuCssClass } from "app/client/ui2018/menus";
+import { BindableValue, dom, DomContents, DomElementArg, DomElementMethod, Observable, styled } from "grainjs";
+import Popper from "popper.js";
+import { cssMenu, cssMenuItem, defaultMenuOptions, IPopupOptions, setPopupToCreateDom } from "popweasel";
+import merge from "lodash/merge";
 
 export interface ITipOptions {
   /**
@@ -109,7 +109,7 @@ export function showTransientTooltip(
   refElem: Element,
   tipContent: ITooltipContent,
   options: ITransientTipOptions = {}) {
-  const ctl = showTooltip(refElem, typeof tipContent == 'function' ? tipContent : () => tipContent, options);
+  const ctl = showTooltip(refElem, typeof tipContent == "function" ? tipContent : () => tipContent, options);
   const origClose = ctl.close;
   ctl.close = () => { clearTimeout(timer); origClose(); };
 
@@ -125,7 +125,7 @@ export function showTransientTooltip(
 export function showTooltip(
   refElem: Element, tipContent: ITooltipContentFunc, options: ITipOptions = {},
 ): ITooltipControl {
-  const placement: Popper.Placement = options.placement ?? 'top';
+  const placement: Popper.Placement = options.placement ?? "top";
   const key = options.key;
   const hasKey = key && openTooltips.has(key);
   let closed = false;
@@ -145,14 +145,14 @@ export function showTooltip(
   const ctl: ITooltipControl = { close, getDom: () => content };
 
   // Add the content element.
-  const content = cssTooltip({ role: 'tooltip' }, tipContent(ctl), testId(`tooltip`));
+  const content = cssTooltip({ role: "tooltip" }, tipContent(ctl), testId(`tooltip`));
   // Prepending instead of appending allows better text selection, as this element is on top.
   document.body.prepend(content);
 
   // Create a popper for positioning the tooltip content relative to refElem.
   const popperOptions: Popper.PopperOptions = {
     modifiers: merge(
-      { preventOverflow: { boundariesElement: 'viewport' } },
+      { preventOverflow: { boundariesElement: "viewport" } },
       options.modifiers,
     ),
     placement,
@@ -165,8 +165,8 @@ export function showTooltip(
 
   // If we're not replacing the tooltip, fade in the content using transitions.
   if (!hasKey) {
-    prepareForTransition(content, () => { content.style.opacity = '0'; });
-    content.style.opacity = '';
+    prepareForTransition(content, () => { content.style.opacity = "0"; });
+    content.style.opacity = "";
   }
 
   if (key) { openTooltips.set(key, ctl); }
@@ -178,7 +178,7 @@ export function showTooltip(
  *    dom('div', 'Trigger', hoverTooltip('Hello!')
  */
 export function hoverTooltip(tipContent: ITooltipContent, options?: IHoverTipOptions): DomElementMethod {
-  const defaultOptions: IHoverTipOptions = { placement: 'bottom' };
+  const defaultOptions: IHoverTipOptions = { placement: "bottom" };
   return elem => setHoverTooltip(elem, tipContent, { ...defaultOptions, ...options });
 }
 
@@ -189,9 +189,9 @@ export function hoverTooltip(tipContent: ITooltipContent, options?: IHoverTipOpt
  */
 export function overflowTooltip(options?: IHoverTipOptions): DomElementMethod {
   const defaultOptions: IHoverTipOptions = {
-    placement: 'bottom-start',
+    placement: "bottom-start",
     overflowOnly: true,
-    modifiers: { offset: { offset: '40, 0' } },
+    modifiers: { offset: { offset: "40, 0" } },
   };
   return elem => setHoverTooltip(elem, () => elem.textContent,  { ...defaultOptions, ...options });
 }
@@ -207,7 +207,7 @@ export function setHoverTooltip(
   const { key, openDelay = 200, timeoutMs, closeDelay = 100, openOnClick, closeOnClick = true,
     overflowOnly = false } = options;
 
-  const tipContentFunc = typeof tipContent === 'function' ? tipContent : () => tipContent;
+  const tipContentFunc = typeof tipContent === "function" ? tipContent : () => tipContent;
 
   // Controller for closing the tooltip, if one is open.
   let tipControl: ITooltipControl | undefined;
@@ -225,7 +225,7 @@ export function setHoverTooltip(
   let mouseGrabbed = false;
   function grabMouse(tip: Element) {
     mouseGrabbed = true;
-    const listener = dom.onElem(window, 'mouseup', () => {
+    const listener = dom.onElem(window, "mouseup", () => {
       mouseGrabbed = false;
       if (timer === POSTPONED) {
         scheduleCloseIfOpen(1400);
@@ -259,9 +259,9 @@ export function setHoverTooltip(
     clearTimer();
     tipControl = showTooltip(refElem, ctl => tipContentFunc({ ...ctl, close }), options);
     const tipDom = tipControl.getDom();
-    dom.onElem(tipDom, 'pointerenter', clearTimer);
-    dom.onElem(tipDom, 'pointerleave', () => scheduleCloseIfOpen());
-    dom.onElem(tipDom, 'mousedown', grabMouse.bind(null, tipDom));
+    dom.onElem(tipDom, "pointerenter", clearTimer);
+    dom.onElem(tipDom, "pointerleave", () => scheduleCloseIfOpen());
+    dom.onElem(tipDom, "mousedown", grabMouse.bind(null, tipDom));
     dom.onDisposeElem(tipDom, () => close());
     if (timeoutMs) { resetTimer(close, timeoutMs); }
   }
@@ -273,7 +273,7 @@ export function setHoverTooltip(
   }
 
   // We simulate hover effect by handling pointerenter/pointerleave.
-  dom.onElem(refElem, 'pointerenter', () => {
+  dom.onElem(refElem, "pointerenter", () => {
     if (options.hidden?.get()) { return; }
 
     if (overflowOnly && (refElem as HTMLElement).offsetWidth >= refElem.scrollWidth) {
@@ -291,15 +291,15 @@ export function setHoverTooltip(
     }
   });
 
-  dom.onElem(refElem, 'pointerleave', () => scheduleCloseIfOpen());
+  dom.onElem(refElem, "pointerleave", () => scheduleCloseIfOpen());
 
   if (openOnClick) {
     // If requested, re-open on click.
-    dom.onElem(refElem, 'click', () => { close(); open(); });
+    dom.onElem(refElem, "click", () => { close(); open(); });
   }
   else if (closeOnClick) {
     // If requested, close on click.
-    dom.onElem(refElem, 'click', () => { close(); });
+    dom.onElem(refElem, "click", () => { close(); });
   }
 
   // Close tooltip if refElem is disposed.
@@ -310,13 +310,13 @@ export function setHoverTooltip(
  * Build a handy button for closing a tooltip.
  */
 export function tooltipCloseButton(ctl: ITooltipControl): HTMLElement {
-  return cssTooltipCloseButton(icon('CrossSmall'),
-    dom.on('mousedown', (ev) => {
+  return cssTooltipCloseButton(icon("CrossSmall"),
+    dom.on("mousedown", (ev) => {
       ev.stopPropagation();
       ev.preventDefault();
       ctl.close();
     }),
-    testId('tooltip-close'),
+    testId("tooltip-close"),
   );
 }
 
@@ -329,7 +329,7 @@ export interface InfoTooltipOptions {
   onOpen?: () => void;
 }
 
-export type InfoTooltipVariant = 'click' | 'hover';
+export type InfoTooltipVariant = "click" | "hover";
 
 /**
  * Renders an info icon that shows a tooltip with the specified `content`.
@@ -339,13 +339,13 @@ export function infoTooltip(
   options: InfoTooltipOptions = {},
   ...domArgs: DomElementArg[]
 ) {
-  const { variant = 'click' } = options;
+  const { variant = "click" } = options;
   switch (variant) {
-    case 'click': {
+    case "click": {
       const { popupOptions } = options;
       return buildClickableInfoTooltip(tooltip, { popupOptions }, domArgs);
     }
-    case 'hover': {
+    case "hover": {
       return buildHoverableInfoTooltip(tooltip, domArgs);
     }
   }
@@ -363,7 +363,7 @@ function buildClickableInfoTooltip(
 ) {
   const { popupOptions } = options;
   return dom.domComputed(tooltip, tip =>
-    cssInfoTooltipButton('?',
+    cssInfoTooltipButton("?",
       (elem) => {
         setPopupToCreateDom(
           elem,
@@ -372,13 +372,13 @@ function buildClickableInfoTooltip(
 
             return cssInfoTooltipPopup(
               cssInfoTooltipPopupCloseButton(
-                icon('CrossSmall'),
-                dom.on('click', () => ctl.close()),
-                testId('info-tooltip-close'),
+                icon("CrossSmall"),
+                dom.on("click", () => ctl.close()),
+                testId("info-tooltip-close"),
               ),
               cssInfoTooltipPopupBody(
                 GristTooltips[tip](),
-                testId('info-tooltip-popup-body'),
+                testId("info-tooltip-popup-body"),
               ),
               dom.cls(menuCssClass),
               dom.cls(cssMenu.className),
@@ -387,13 +387,13 @@ function buildClickableInfoTooltip(
                 Escape: () => ctl.close(),
               }),
               (popup) => { setTimeout(() => popup.focus(), 0); },
-              testId('info-tooltip-popup'),
+              testId("info-tooltip-popup"),
             );
           },
-          { ...defaultMenuOptions, ...{ placement: 'bottom-end' }, ...popupOptions },
+          { ...defaultMenuOptions, ...{ placement: "bottom-end" }, ...popupOptions },
         );
       },
-      testId('info-tooltip'),
+      testId("info-tooltip"),
       ...domArgs,
     ),
   );
@@ -403,14 +403,14 @@ function buildHoverableInfoTooltip(
   tooltip: BindableValue<Tooltip>,
   ...domArgs: DomElementArg[]
 ) {
-  return cssInfoTooltipButton('?',
+  return cssInfoTooltipButton("?",
     hoverTooltip(() => cssInfoTooltipTransientPopup(
       dom.domComputed(tooltip, tip => GristTooltips[tip]()),
-      cssTooltipCorner(testId('tooltip-origin')),
-      { tabIndex: '-1' },
-      testId('info-tooltip-popup'),
+      cssTooltipCorner(testId("tooltip-origin")),
+      { tabIndex: "-1" },
+      testId("info-tooltip-popup"),
     ), { closeOnClick: false }),
-    testId('info-tooltip'),
+    testId("info-tooltip"),
     ...domArgs,
   );
 }
@@ -450,7 +450,7 @@ export function withInfoTooltip(
   tooltip: BindableValue<Tooltip>,
   options: WithInfoTooltipOptions = {},
 ) {
-  const { variant = 'click', domArgs, iconDomArgs, popupOptions } = options;
+  const { variant = "click", domArgs, iconDomArgs, popupOptions } = options;
   return cssInfoTooltip(
     domContents,
     infoTooltip(tooltip, { variant, popupOptions }, iconDomArgs),
@@ -468,35 +468,35 @@ export function descriptionInfoTooltip(
   const body = makeLinks(content);
   const options = {
     closeDelay: 200,
-    key: 'columnDescription',
+    key: "columnDescription",
     openOnClick: true,
   };
   const builder = () => cssInfoTooltipTransientPopup(
     body,
     // Used id test to find the origin of the tooltip regardless webdriver implementation (some of them start)
-    cssTooltipCorner(testId('tooltip-origin')),
+    cssTooltipCorner(testId("tooltip-origin")),
     testId(`${testPrefix}-info-tooltip-popup`),
-    { tabIndex: '-1' },
+    { tabIndex: "-1" },
   );
   return cssDescriptionInfoTooltipButton(
-    icon('Info', dom.cls("info_toggle_icon")),
+    icon("Info", dom.cls("info_toggle_icon")),
     testId(`${testPrefix}-info-tooltip`),
-    dom.on('mousedown', e => e.stopPropagation()),
-    dom.on('click', e => e.stopPropagation()),
+    dom.on("mousedown", e => e.stopPropagation()),
+    dom.on("click", e => e.stopPropagation()),
     hoverTooltip(builder, options),
     dom.cls("info_toggle_icon_wrapper"),
     ...domArgs,
   );
 }
 
-const cssInfoTooltip = styled('div', `
+const cssInfoTooltip = styled("div", `
   display: flex;
   align-items: center;
   column-gap: 8px;
   font-weight: unset; /* Don't want to inherit font settings in a tooltip */
 `);
 
-const cssTooltipCorner = styled('div', `
+const cssTooltipCorner = styled("div", `
   position: absolute;
   width: 0;
   height: 0;
@@ -505,7 +505,7 @@ const cssTooltipCorner = styled('div', `
   visibility: hidden;
 `);
 
-const cssInfoTooltipTransientPopup = styled('div', `
+const cssInfoTooltipTransientPopup = styled("div", `
   position: relative;
   white-space: pre-wrap;
   text-align: left;
@@ -515,7 +515,7 @@ const cssInfoTooltipTransientPopup = styled('div', `
   max-width: min(500px, calc(100vw - 80px)); /* can't use 100%, 500px and 80px are picked by hand */
 `);
 
-const cssDescriptionInfoTooltipButton = styled('div', `
+const cssDescriptionInfoTooltipButton = styled("div", `
   cursor: pointer;
   --icon-color: ${theme.infoButtonFg};
   border-radius: 50%;
@@ -531,7 +531,7 @@ const cssDescriptionInfoTooltipButton = styled('div', `
   }
 `);
 
-const cssTooltip = styled('div', `
+const cssTooltip = styled("div", `
   position: absolute;
   z-index: ${vars.tooltipZIndex};      /* should be higher than a modal */
   background-color: ${theme.tooltipBg};
@@ -548,13 +548,13 @@ const cssTooltip = styled('div', `
   user-select: auto;
 `);
 
-const cssDisableSelectOnAll = styled('div', `
+const cssDisableSelectOnAll = styled("div", `
   & *:not(.${cssTooltip.className}, .${cssTooltip.className} *) {
     user-select: none;
   }
 `);
 
-const cssTooltipCloseButton = styled('div', `
+const cssTooltipCloseButton = styled("div", `
   cursor: pointer;
   user-select: none;
   width: 16px;
@@ -571,7 +571,7 @@ const cssTooltipCloseButton = styled('div', `
   }
 `);
 
-const cssInfoTooltipIcon = styled('div', `
+const cssInfoTooltipIcon = styled("div", `
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -609,7 +609,7 @@ export const cssInfoTooltipButton = styled(cssInfoTooltipIcon, `
   }
 `);
 
-const cssInfoTooltipPopup = styled('div', `
+const cssInfoTooltipPopup = styled("div", `
   display: flex;
   flex-direction: column;
   background-color: ${theme.popupBg};
@@ -618,13 +618,13 @@ const cssInfoTooltipPopup = styled('div', `
   padding: 0px;
 `);
 
-const cssInfoTooltipPopupBody = styled('div', `
+const cssInfoTooltipPopupBody = styled("div", `
   color: ${theme.text};
   text-align: left;
   padding: 0px 16px 16px 16px;
 `);
 
-const cssInfoTooltipPopupCloseButton = styled('div', `
+const cssInfoTooltipPopupCloseButton = styled("div", `
   flex-shrink: 0;
   align-self: flex-end;
   cursor: pointer;

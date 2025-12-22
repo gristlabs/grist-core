@@ -2,8 +2,8 @@
  * A base class which combines grainjs Disposable with mixed-in backbone Events. It includes the
  * backbone Events methods, and when disposed, stops backbone listeners started with listenTo().
  */
-import { Events as BackboneEvents, EventsHash } from 'backbone';
-import { Disposable } from 'grainjs';
+import { Events as BackboneEvents, EventsHash } from "backbone";
+import { Disposable } from "grainjs";
 
 // In Typescript, mixins are awkward. This follows the recommendation here
 // https://www.typescriptlang.org/docs/handbook/mixins.html

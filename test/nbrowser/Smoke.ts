@@ -6,15 +6,15 @@
  *
  */
 
-import { assert, driver, Key } from 'mocha-webdriver';
-import { server, setupTestSuite } from 'test/nbrowser/testUtils';
-import * as gu from 'test/nbrowser/gristUtils';
+import { assert, driver, Key } from "mocha-webdriver";
+import { server, setupTestSuite } from "test/nbrowser/testUtils";
+import * as gu from "test/nbrowser/gristUtils";
 
 async function openMainPage() {
   await driver.get(`${server.getHost()}`);
   while (true) {
     try {
-      if (await driver.find('.test-intro-create-doc').isPresent()) {
+      if (await driver.find(".test-intro-create-doc").isPresent()) {
         return;
       }
     }
@@ -29,13 +29,13 @@ describe("Smoke", function() {
   this.timeout(20000);
   setupTestSuite();
 
-  it('can create, edit, and reopen a document', async function() {
+  it("can create, edit, and reopen a document", async function() {
     this.timeout(20000);
     await openMainPage();
-    await driver.find('.test-intro-create-doc').click();
+    await driver.find(".test-intro-create-doc").click();
     await gu.waitForDocToLoad(20000);
     await gu.dismissWelcomeTourIfNeeded();
-    await gu.getCell('A', 1).click();
+    await gu.getCell("A", 1).click();
 
     // Shouldn't be necessary, but an attempt to reduce flakiness that has shown up about opening the cell for editing.
     await gu.sendKeys(Key.ENTER);

@@ -1,54 +1,54 @@
-import { getDefaultColValues } from 'app/client/components/BaseView2';
-import { CutCallback } from 'app/client/components/Clipboard';
-import { CopySelection } from 'app/client/components/CopySelection';
-import { Cursor } from 'app/client/components/Cursor';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { viewCommands } from 'app/client/components/RegionFocusSwitcher';
-import { SelectionSummary } from 'app/client/components/SelectionSummary';
-import * as commands from 'app/client/components/commands';
-import { buildConfirmDelete, reportUndo } from 'app/client/components/modals';
-import { KoArray } from 'app/client/lib/koArray';
-import * as tableUtil from 'app/client/lib/tableUtil';
-import BaseRowModel from 'app/client/models/BaseRowModel';
-import { ClientColumnGetters } from 'app/client/models/ClientColumnGetters';
-import { DataRowModel } from 'app/client/models/DataRowModel';
-import DataTableModel from 'app/client/models/DataTableModel';
-import type { LazyArrayModel } from 'app/client/models/DataTableModel';
-import { ExtraRows } from 'app/client/models/DataTableModelWithDiff';
-import { DynamicQuerySet } from 'app/client/models/QuerySet';
-import { SectionFilter } from 'app/client/models/SectionFilter';
-import { UnionRowSource } from 'app/client/models/UnionRowSource';
-import { markAsSeen } from 'app/client/models/UserPrefs';
-import { ColumnRec } from 'app/client/models/entities/ColumnRec';
-import { TableRec } from 'app/client/models/entities/TableRec';
-import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
-import { FilterInfo, ViewSectionRec } from 'app/client/models/entities/ViewSectionRec';
-import { MutedError } from 'app/client/models/errors';
-import { reportError } from 'app/client/models/errors';
-import { urlState } from 'app/client/models/gristUrlState';
-import * as rowset from 'app/client/models/rowset';
-import { RowSource, SortedRowSet } from 'app/client/models/rowset';
-import { createFilterMenu, IColumnFilterMenuOptions } from 'app/client/ui/ColumnFilterMenu';
-import { buildReassignModal } from 'app/client/ui/buildReassignModal';
-import { closeRegisteredMenu } from 'app/client/ui2018/menus';
-import type { CommentWithMentions } from 'app/client/widgets/MentionTextBox';
-import { BuildEditorOptions, createAllFieldWidgets, FieldBuilder } from 'app/client/widgets/FieldBuilder';
-import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
-import { BulkColValues, CellValue, DocAction, UserAction } from 'app/common/DocActions';
-import { DocStateComparison } from 'app/common/DocState';
-import { DismissedPopup } from 'app/common/Prefs';
-import { SortFunc } from 'app/common/SortFunc';
-import { Sort } from 'app/common/SortSpec';
-import * as gristTypes from 'app/common/gristTypes';
-import { IGristUrlState } from 'app/common/gristUrls';
-import { arrayRepeat, nativeCompare, roundDownToMultiple, waitObs } from 'app/common/gutil';
-import { CursorPos, UIRowId } from 'app/plugin/GristAPI';
+import { getDefaultColValues } from "app/client/components/BaseView2";
+import { CutCallback } from "app/client/components/Clipboard";
+import { CopySelection } from "app/client/components/CopySelection";
+import { Cursor } from "app/client/components/Cursor";
+import { GristDoc } from "app/client/components/GristDoc";
+import { viewCommands } from "app/client/components/RegionFocusSwitcher";
+import { SelectionSummary } from "app/client/components/SelectionSummary";
+import * as commands from "app/client/components/commands";
+import { buildConfirmDelete, reportUndo } from "app/client/components/modals";
+import { KoArray } from "app/client/lib/koArray";
+import * as tableUtil from "app/client/lib/tableUtil";
+import BaseRowModel from "app/client/models/BaseRowModel";
+import { ClientColumnGetters } from "app/client/models/ClientColumnGetters";
+import { DataRowModel } from "app/client/models/DataRowModel";
+import DataTableModel from "app/client/models/DataTableModel";
+import type { LazyArrayModel } from "app/client/models/DataTableModel";
+import { ExtraRows } from "app/client/models/DataTableModelWithDiff";
+import { DynamicQuerySet } from "app/client/models/QuerySet";
+import { SectionFilter } from "app/client/models/SectionFilter";
+import { UnionRowSource } from "app/client/models/UnionRowSource";
+import { markAsSeen } from "app/client/models/UserPrefs";
+import { ColumnRec } from "app/client/models/entities/ColumnRec";
+import { TableRec } from "app/client/models/entities/TableRec";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { FilterInfo, ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
+import { MutedError } from "app/client/models/errors";
+import { reportError } from "app/client/models/errors";
+import { urlState } from "app/client/models/gristUrlState";
+import * as rowset from "app/client/models/rowset";
+import { RowSource, SortedRowSet } from "app/client/models/rowset";
+import { createFilterMenu, IColumnFilterMenuOptions } from "app/client/ui/ColumnFilterMenu";
+import { buildReassignModal } from "app/client/ui/buildReassignModal";
+import { closeRegisteredMenu } from "app/client/ui2018/menus";
+import type { CommentWithMentions } from "app/client/widgets/MentionTextBox";
+import { BuildEditorOptions, createAllFieldWidgets, FieldBuilder } from "app/client/widgets/FieldBuilder";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { BulkColValues, CellValue, DocAction, UserAction } from "app/common/DocActions";
+import { DocStateComparison } from "app/common/DocState";
+import { DismissedPopup } from "app/common/Prefs";
+import { SortFunc } from "app/common/SortFunc";
+import { Sort } from "app/common/SortSpec";
+import * as gristTypes from "app/common/gristTypes";
+import { IGristUrlState } from "app/common/gristUrls";
+import { arrayRepeat, nativeCompare, roundDownToMultiple, waitObs } from "app/common/gutil";
+import { CursorPos, UIRowId } from "app/plugin/GristAPI";
 
-import { DomArg } from 'grainjs';
-import ko from 'knockout';
-import mapValues from 'lodash/mapValues';
-import moment from 'moment-timezone';
-import { IOpenController } from 'popweasel';
+import { DomArg } from "grainjs";
+import ko from "knockout";
+import mapValues from "lodash/mapValues";
+import moment from "moment-timezone";
+import { IOpenController } from "popweasel";
 
 // Disable member-ordering linting temporarily, so that it's easier to review the conversion to
 // typescript. It would be reasonable to reorder methods and re-enable this lint check.
@@ -183,7 +183,7 @@ export default class BaseView extends DisposableWithEvents {
 
     // We create a special one-row RowSource for the "Add new" row, in case we need it.
     this._newRowSource = (class extends rowset.RowSource {
-      public getAllRows(): rowset.RowList { return ['new']; }
+      public getAllRows(): rowset.RowList { return ["new"]; }
       public getNumRows(): number { return 1; }
     }).create(this);
 
@@ -198,9 +198,9 @@ export default class BaseView extends DisposableWithEvents {
       (colName: string, value: CellValue) => this._saveEditRowField(this.editRowModel, colName, value);
 
     // Reset heights of rows when there is an action that affects them.
-    this.listenTo(this.viewData, 'rowModelNotify', this.onRowResize);
+    this.listenTo(this.viewData, "rowModelNotify", this.onRowResize);
 
-    this.listenTo(this.viewSection.events, 'rowHeightChange', this.onResize);
+    this.listenTo(this.viewSection.events, "rowHeightChange", this.onResize);
 
     // Create a command group for keyboard shortcuts common to all views.
     this.autoDispose(commands.createGroup(
@@ -220,7 +220,7 @@ export default class BaseView extends DisposableWithEvents {
     // Update the cursor whenever linkedRowId() changes (but only if we have any linking).
     this.autoDispose(this.linkedRowId.subscribe((rowId) => {
       if (this.viewSection.linkingState.peek()) {
-        this.setCursorPos({ rowId: rowId || 'new' }, true);
+        this.setCursorPos({ rowId: rowId || "new" }, true);
       }
     }));
 
@@ -339,7 +339,7 @@ export default class BaseView extends DisposableWithEvents {
     filterByThisCellValue: function() { this.filterByThisCellValue(); },
     duplicateRows: function() { this._duplicateRows().catch(reportError); },
     openDiscussion: function(ev: unknown, payload: CommentWithMentions | null) {
-      const state = typeof payload === 'object' && payload ? payload : null;
+      const state = typeof payload === "object" && payload ? payload : null;
       this._openDiscussionAtCursor(state);
     },
     insertRecordBefore: function() { this.insertRow(this.cursor.rowIndex()!)?.catch(reportError); },
@@ -391,7 +391,7 @@ export default class BaseView extends DisposableWithEvents {
   }
 
   protected deleteRows(rowIds: number[]) {
-    return this.tableModel.sendTableAction(['BulkRemoveRecord', rowIds]);
+    return this.tableModel.sendTableAction(["BulkRemoveRecord", rowIds]);
   }
 
   // Commands run via a Mousetrap callback get a KeyboardEvent is the first argument. This is
@@ -407,7 +407,7 @@ export default class BaseView extends DisposableWithEvents {
     }
     const isKeyboard = source instanceof KeyboardEvent;
     const popups = this.gristDoc.docPageModel.appModel.dismissedPopups;
-    const popupName = DismissedPopup.check('deleteRecords');
+    const popupName = DismissedPopup.check("deleteRecords");
     const onSave = async (remember?: boolean) => {
       if (remember) {
         markAsSeen(popups, popupName);
@@ -423,7 +423,7 @@ export default class BaseView extends DisposableWithEvents {
     else {
       return onSave().then(() => {
         if (!this.isDisposed()) {
-          reportUndo(this.gristDoc, `You deleted ${rowIds.length} row${rowIds.length > 1 ? 's' : ''}.`);
+          reportUndo(this.gristDoc, `You deleted ${rowIds.length} row${rowIds.length > 1 ? "s" : ""}.`);
         }
         return true;
       });
@@ -524,7 +524,7 @@ export default class BaseView extends DisposableWithEvents {
     // If there are no rows at all, return the 'new record' row ID.
     // Note that this case only happens in combination with the widget linking mentioned.
     // If the table is empty but the 'new record' row is selected, the `viewData.getRowId` line above works.
-      'new';
+      "new";
     // The `fieldIndex` will be null if there are no visible columns.
     const fieldIndex = this.cursor.fieldIndex.peek();
     const field = fieldIndex !== null ? this.viewSection.viewFields().peek()[fieldIndex] : null;
@@ -580,9 +580,9 @@ export default class BaseView extends DisposableWithEvents {
     }
     const rowId = index != null ? this.viewData.getRowId(index) : undefined;
     const insertPos = Number.isInteger(rowId) ?
-      this.tableModel.tableData.getValue(rowId, 'manualSort') : null;
+      this.tableModel.tableData.getValue(rowId, "manualSort") : null;
 
-    return this.sendTableAction(['AddRecord', null, { manualSort: insertPos }])!
+    return this.sendTableAction(["AddRecord", null, { manualSort: insertPos }])!
       .then((rowId) => {
         if (!this.isDisposed()) {
           this._exemptFromFilterRows.addExemptRow(rowId);
@@ -601,10 +601,10 @@ export default class BaseView extends DisposableWithEvents {
    * section-linking filter.
    */
   private _enhanceAction(action: UserAction) {
-    if (action[0] === 'AddRecord' || action[0] === 'BulkAddRecord') {
+    if (action[0] === "AddRecord" || action[0] === "BulkAddRecord") {
       let colValues = this._getDefaultColValues();
       const rowIds = action[1] as number[];
-      if (action[0] === 'BulkAddRecord') {
+      if (action[0] === "BulkAddRecord") {
         colValues = mapValues(colValues, v => rowIds.map(() => v));
       }
       Object.assign(colValues, action[2]);
@@ -663,11 +663,11 @@ export default class BaseView extends DisposableWithEvents {
     let value;
     const now = Date.now();
     const docTimezone = this.gristDoc.docInfo.timezone.peek();
-    if (type === 'Text' || type === 'Any') {
+    if (type === "Text" || type === "Any") {
       // Use document timezone. Don't forget to use uppercase HH for 24-hour time.
-      value = moment.tz(now, docTimezone).format('YYYY-MM-DD' + (withTime ? ' HH:mm:ss' : ''));
+      value = moment.tz(now, docTimezone).format("YYYY-MM-DD" + (withTime ? " HH:mm:ss" : ""));
     }
-    else if (type === 'Date') {
+    else if (type === "Date") {
       // Get UTC midnight for the current date (as seen in docTimezone). This is a bit confusing. If
       // it's "2019-11-14 23:30 -05:00", then it's "2019-11-15 04:30" in UTC. Since we measure time
       // from Epoch UTC, we want the UTC time to have the correct date, so need to add the offset
@@ -675,7 +675,7 @@ export default class BaseView extends DisposableWithEvents {
       const offsetMinutes = moment.tz(now, docTimezone).utcOffset();
       value = roundDownToMultiple(now / 1000 + offsetMinutes * 60, 24 * 3600);
     }
-    else if (type === 'DateTime') {
+    else if (type === "DateTime") {
       value = now / 1000;
     }
     else {
@@ -726,7 +726,7 @@ export default class BaseView extends DisposableWithEvents {
         // Display this rowId, even if it doesn't match the filter,
         // unless the filter is on a Bool column
         .then((result) => {
-          if (!this.isDisposed() && this.currentColumn().pureType() !== 'Bool') {
+          if (!this.isDisposed() && this.currentColumn().pureType() !== "Bool") {
             this._exemptFromFilterRows.addExemptRow(rowId);
           }
           return result;
@@ -790,7 +790,7 @@ export default class BaseView extends DisposableWithEvents {
       if (cutAction) { actions.unshift(cutAction); }
     }
     return this.gristDoc.docData.sendActions(actions).catch((ex) => {
-      if (ex.code === 'UNIQUE_REFERENCE_VIOLATION') {
+      if (ex.code === "UNIQUE_REFERENCE_VIOLATION") {
         buildReassignModal({
           docModel: this.gristDoc.docModel,
           actions: actions as DocAction[],
@@ -875,7 +875,7 @@ export default class BaseView extends DisposableWithEvents {
    */
   protected getLastDataRowIndex() {
     const last = this.viewData.peekLength - 1;
-    return (last >= 0 && this.viewData.getRowId(last) === 'new') ? last - 1 : last;
+    return (last >= 0 && this.viewData.getRowId(last) === "new") ? last - 1 : last;
   }
 
   /**
@@ -942,7 +942,7 @@ export default class BaseView extends DisposableWithEvents {
     const rowIds = selection.rowIds;
     const length = rowIds.length;
     // Start assembling action.
-    const action: UserAction = ['BulkAddRecord'];
+    const action: UserAction = ["BulkAddRecord"];
     // Put nulls as rowIds.
     action.push(arrayRepeat(length, null));
     const columns: BulkColValues = {};

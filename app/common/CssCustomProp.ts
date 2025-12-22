@@ -1,4 +1,4 @@
-const VAR_PREFIX = 'grist';
+const VAR_PREFIX = "grist";
 
 export class CssCustomProp {
   private _prefix = VAR_PREFIX;
@@ -7,8 +7,8 @@ export class CssCustomProp {
     public name: string,
     public value?: string | CssCustomProp,
     public fallback?: string | CssCustomProp,
-    public type?: 'theme') {
-    if (this.type === 'theme') {
+    public type?: "theme") {
+    if (this.type === "theme") {
       this._prefix = `${VAR_PREFIX}-theme`;
     }
   }
@@ -42,12 +42,12 @@ export class CssCustomProp {
   }
 
   private _getRawValue(token?: string | CssCustomProp): string {
-    if (typeof token === 'string') {
+    if (typeof token === "string") {
       return token;
     }
     if (token?.value) {
       return this._getRawValue(token.value);
     }
-    return '';
+    return "";
   }
 }

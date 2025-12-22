@@ -1,7 +1,7 @@
-import { ClientScope } from 'app/client/components/ClientScope';
-import { SafeBrowser } from 'app/client/lib/SafeBrowser';
-import { LocalPlugin } from 'app/common/plugin';
-import { createRpcLogger, PluginInstance } from 'app/common/PluginInstance';
+import { ClientScope } from "app/client/components/ClientScope";
+import { SafeBrowser } from "app/client/lib/SafeBrowser";
+import { LocalPlugin } from "app/common/plugin";
+import { createRpcLogger, PluginInstance } from "app/common/PluginInstance";
 
 /**
  * Home plugins are all plugins that contributes to a general Grist management tasks.
@@ -43,7 +43,7 @@ export class HomePluginManager {
         }
         const forwarder = new NotAvailableForwarder();
         // Block any calls to internal apis.
-        pluginInstance.rpc.registerForwarder('*', {
+        pluginInstance.rpc.registerForwarder("*", {
           forwardCall: call => forwarder.forwardPluginRpc(plugin.id, call),
           forwardMessage: msg => forwarder.forwardPluginRpc(plugin.id, msg),
         });

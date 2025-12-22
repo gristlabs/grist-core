@@ -13,50 +13,50 @@
  * All methods above return an object which may  be disposed to close and dispose that specific
  * tab from the outside (e.g. when GristDoc is disposed).
  */
-import * as commands from 'app/client/components/commands';
-import { FieldModel } from 'app/client/components/Forms/Field';
-import { FormView } from 'app/client/components/Forms/FormView';
-import { MappedFieldsConfig } from 'app/client/components/Forms/MappedFieldsConfig';
-import { GristDoc, IExtraTool, TabContent } from 'app/client/components/GristDoc';
+import * as commands from "app/client/components/commands";
+import { FieldModel } from "app/client/components/Forms/Field";
+import { FormView } from "app/client/components/Forms/FormView";
+import { MappedFieldsConfig } from "app/client/components/Forms/MappedFieldsConfig";
+import { GristDoc, IExtraTool, TabContent } from "app/client/components/GristDoc";
 import { EmptyFilterState } from "app/client/components/LinkingState";
-import { RefSelect } from 'app/client/components/RefSelect';
-import ViewConfigTab from 'app/client/components/ViewConfigTab';
-import { domAsync } from 'app/client/lib/domAsync';
-import * as imports from 'app/client/lib/imports';
-import { makeT } from 'app/client/lib/localization';
-import { createSessionObs, isBoolean, SessionObs } from 'app/client/lib/sessionObs';
-import { logTelemetryEvent } from 'app/client/lib/telemetry';
-import { reportError } from 'app/client/models/AppModel';
-import { ColumnRec, ViewSectionRec } from 'app/client/models/DocModel';
-import { CustomSectionConfig } from 'app/client/ui/CustomSectionConfig';
-import { showCustomWidgetGallery } from 'app/client/ui/CustomWidgetGallery';
-import { buildDescriptionConfig } from 'app/client/ui/DescriptionConfig';
-import { BuildEditorOptions } from 'app/client/ui/FieldConfig';
-import { GridOptions } from 'app/client/ui/GridOptions';
-import { textarea } from 'app/client/ui/inputs';
-import { attachPageWidgetPicker, IPageWidget, toPageWidget } from 'app/client/ui/PageWidgetPicker';
+import { RefSelect } from "app/client/components/RefSelect";
+import ViewConfigTab from "app/client/components/ViewConfigTab";
+import { domAsync } from "app/client/lib/domAsync";
+import * as imports from "app/client/lib/imports";
+import { makeT } from "app/client/lib/localization";
+import { createSessionObs, isBoolean, SessionObs } from "app/client/lib/sessionObs";
+import { logTelemetryEvent } from "app/client/lib/telemetry";
+import { reportError } from "app/client/models/AppModel";
+import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
+import { CustomSectionConfig } from "app/client/ui/CustomSectionConfig";
+import { showCustomWidgetGallery } from "app/client/ui/CustomWidgetGallery";
+import { buildDescriptionConfig } from "app/client/ui/DescriptionConfig";
+import { BuildEditorOptions } from "app/client/ui/FieldConfig";
+import { GridOptions } from "app/client/ui/GridOptions";
+import { textarea } from "app/client/ui/inputs";
+import { attachPageWidgetPicker, IPageWidget, toPageWidget } from "app/client/ui/PageWidgetPicker";
 import { PredefinedCustomSectionConfig } from "app/client/ui/PredefinedCustomSectionConfig";
-import { cssConfigContainer, cssGroupLabel, cssLabel, cssSeparator } from 'app/client/ui/RightPanelStyles';
-import { buildConfigContainer, getFieldType } from 'app/client/ui/RightPanelUtils';
-import { rowHeightConfigTable } from 'app/client/ui/RowHeightConfig';
-import { linkId, NoLink, selectBy } from 'app/client/ui/selectBy';
-import { VisibleFieldsConfig } from 'app/client/ui/VisibleFieldsConfig';
+import { cssConfigContainer, cssGroupLabel, cssLabel, cssSeparator } from "app/client/ui/RightPanelStyles";
+import { buildConfigContainer, getFieldType } from "app/client/ui/RightPanelUtils";
+import { rowHeightConfigTable } from "app/client/ui/RowHeightConfig";
+import { linkId, NoLink, selectBy } from "app/client/ui/selectBy";
+import { VisibleFieldsConfig } from "app/client/ui/VisibleFieldsConfig";
 import { getTelemetryWidgetTypeFromVS, getWidgetTypes } from "app/client/ui/widgetTypesMap";
-import { ariaTabs } from 'app/client/ui2018/ariaTabs';
-import { basicButton, primaryButton } from 'app/client/ui2018/buttons';
-import { buttonSelect } from 'app/client/ui2018/buttonSelect';
-import { cssLabel as cssCheckboxLabel, labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
-import { testId, theme, vars } from 'app/client/ui2018/cssVars';
-import { textInput } from 'app/client/ui2018/editableLabel';
-import { icon } from 'app/client/ui2018/icons';
-import { select } from 'app/client/ui2018/menus';
-import { unstyledButton, unstyledUl } from 'app/client/ui2018/unstyled';
-import { FieldBuilder } from 'app/client/widgets/FieldBuilder';
-import { components } from 'app/common/ThemePrefs';
+import { ariaTabs } from "app/client/ui2018/ariaTabs";
+import { basicButton, primaryButton } from "app/client/ui2018/buttons";
+import { buttonSelect } from "app/client/ui2018/buttonSelect";
+import { cssLabel as cssCheckboxLabel, labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { testId, theme, vars } from "app/client/ui2018/cssVars";
+import { textInput } from "app/client/ui2018/editableLabel";
+import { icon } from "app/client/ui2018/icons";
+import { select } from "app/client/ui2018/menus";
+import { unstyledButton, unstyledUl } from "app/client/ui2018/unstyled";
+import { FieldBuilder } from "app/client/widgets/FieldBuilder";
+import { components } from "app/common/ThemePrefs";
 import { isFullReferencingType } from "app/common/gristTypes";
-import { not } from 'app/common/gutil';
-import { StringUnion } from 'app/common/StringUnion';
-import { IWidgetType } from 'app/common/widgetTypes';
+import { not } from "app/common/gutil";
+import { StringUnion } from "app/common/StringUnion";
+import { IWidgetType } from "app/common/widgetTypes";
 import {
   bundleChanges,
   Computed,
@@ -73,14 +73,14 @@ import {
   styled,
   subscribe,
   toKo,
-} from 'grainjs';
-import * as ko from 'knockout';
+} from "grainjs";
+import * as ko from "knockout";
 
 // some unicode characters
-const BLACK_CIRCLE = '\u2022';
-const ELEMENTOF = '\u2208'; // 220A for small elementof
+const BLACK_CIRCLE = "\u2022";
+const ELEMENTOF = "\u2208"; // 220A for small elementof
 
-const t = makeT('RightPanel');
+const t = makeT("RightPanel");
 
 // Represents a top tab of the right side-pane.
 const TopTab = StringUnion("pageWidget", "field");
@@ -112,7 +112,7 @@ export class RightPanel extends Disposable {
   });
 
   private _isForm = Computed.create(this, (use) => {
-    return use(this._pageWidgetType) === 'form';
+    return use(this._pageWidgetType) === "form";
   });
 
   private _hasActiveWidget = Computed.create(this, use => Boolean(use(this._pageWidgetType)));
@@ -145,37 +145,37 @@ export class RightPanel extends Disposable {
     // When a page widget is changed, subType might not be valid anymore, so reset it.
     // TODO: refactor sub tabs and navigation using order of the tab.
     this.autoDispose(subscribe((use) => {
-      if (!use(this._isForm) && use(this._subTab) === 'submission') {
-        setImmediate(() => !this._subTab.isDisposed() && this._subTab.set('sortAndFilter'));
+      if (!use(this._isForm) && use(this._subTab) === "submission") {
+        setImmediate(() => !this._subTab.isDisposed() && this._subTab.set("sortAndFilter"));
       }
-      else if (use(this._isForm) && use(this._subTab) === 'sortAndFilter') {
-        setImmediate(() => !this._subTab.isDisposed() && this._subTab.set('submission'));
+      else if (use(this._isForm) && use(this._subTab) === "sortAndFilter") {
+        setImmediate(() => !this._subTab.isDisposed() && this._subTab.set("submission"));
       }
     }));
 
-    this._topTabComponents = ariaTabs('rightTopbar', this._topTab);
-    this._subTabComponents = ariaTabs('rightSubbar', this._subTab);
+    this._topTabComponents = ariaTabs("rightTopbar", this._topTab);
+    this._subTabComponents = ariaTabs("rightSubbar", this._subTab);
   }
 
   private _openFieldTab() {
-    this._open('field');
+    this._open("field");
   }
 
   private _openViewTab() {
-    this._open('pageWidget', 'widget');
+    this._open("pageWidget", "widget");
   }
 
   private _viewTabFocus() {
     // If the view tab is already open, focus on the first input.
-    this._focus('pageWidget');
+    this._focus("pageWidget");
   }
 
   private _openSortFilter() {
-    this._open('pageWidget', 'sortAndFilter');
+    this._open("pageWidget", "sortAndFilter");
   }
 
   private _openDataSelection() {
-    this._open('pageWidget', 'data');
+    this._open("pageWidget", "data");
   }
 
   private _open(topTab: typeof TopTab.type, subTab?: typeof PageSubTab.type) {
@@ -207,10 +207,10 @@ export class RightPanel extends Disposable {
   private _buildToolHeader(tool: IExtraTool) {
     return cssTopBarItem(cssTopBarIcon(tool.icon), tool.label,
       cssHoverCircle(cssHoverIcon("CrossBig"),
-        dom.on('click', () => this._gristDoc.showTool('none')),
-        testId('right-tool-close'),
+        dom.on("click", () => this._gristDoc.showTool("none")),
+        testId("right-tool-close"),
       ),
-      cssTopBarItem.cls('-selected', true),
+      cssTopBarItem.cls("-selected", true),
     );
   }
 
@@ -222,16 +222,16 @@ export class RightPanel extends Disposable {
         cssTopBarTabList(
           this._topTabComponents.tabList(),
           cssTopBarItem(
-            this._topTabComponents.tab('pageWidget'),
+            this._topTabComponents.tab("pageWidget"),
             cssTopBarIcon(widgetInfo.icon),
             widgetInfo.getLabel(),
-            testId('right-tab-pagewidget'),
+            testId("right-tab-pagewidget"),
           ),
           cssTopBarItem(
-            this._topTabComponents.tab('field'),
+            this._topTabComponents.tab("field"),
             cssTopBarIcon(fieldInfo.icon),
             fieldInfo.label,
-            testId('right-tab-field'),
+            testId("right-tab-field"),
           ),
         ),
       ];
@@ -247,7 +247,7 @@ export class RightPanel extends Disposable {
 
       return [
         cssTabPanel(
-          this._topTabComponents.tabPanel('pageWidget',
+          this._topTabComponents.tabPanel("pageWidget",
             isForm ?
               [
                 dom.create(this._buildPageFormHeader.bind(this)),
@@ -260,15 +260,15 @@ export class RightPanel extends Disposable {
                 ] :
                 null,
           ),
-          testId('right-tabpanel-pagewidget'),
+          testId("right-tabpanel-pagewidget"),
         ),
         cssTabPanel(
-          this._topTabComponents.tabPanel('field',
+          this._topTabComponents.tabPanel("field",
             isForm ?
               dom.create(this._buildQuestionContent.bind(this)) :
               dom.create(this._buildFieldContent.bind(this)),
           ),
-          testId('right-tabpanel-field'),
+          testId("right-tabpanel-field"),
         ),
       ];
     });
@@ -352,13 +352,13 @@ export class RightPanel extends Disposable {
           cssSeparator(),
           cssSection(
             dom.maybe(refSelect.isForeignRefCol, () => [
-              cssLabel(t('Add referenced columns')),
+              cssLabel(t("Add referenced columns")),
               cssRow(refSelect.buildDom()),
               cssSeparator(),
             ]),
             cssLabel(t("TRANSFORM")),
             dom.maybe<FieldBuilder | null>(fieldBuilder, builder => builder.buildTransformDom()),
-            testId('panel-transform'),
+            testId("panel-transform"),
           ),
           this._disableIfReadonly(),
         ),
@@ -386,31 +386,31 @@ export class RightPanel extends Disposable {
   private _buildPageWidgetContent(isForm: boolean) {
     const content = (activeSection: ViewSectionRec) => {
       return [
-        dom('div',
-          this._subTabComponents.tabPanel('widget',
+        dom("div",
+          this._subTabComponents.tabPanel("widget",
             dom.create(this._buildPageWidgetConfig.bind(this), activeSection),
           ),
-          testId('right-subtabpanel-widget'),
+          testId("right-subtabpanel-widget"),
         ),
         isForm ?
-          dom('div',
-            this._subTabComponents.tabPanel('submission',
+          dom("div",
+            this._subTabComponents.tabPanel("submission",
               dom.create(this._buildPageSubmissionConfig.bind(this), activeSection),
             ),
-            testId('right-subtabpanel-submission'),
+            testId("right-subtabpanel-submission"),
           ) :
-          dom('div',
-            this._subTabComponents.tabPanel('sortAndFilter',
+          dom("div",
+            this._subTabComponents.tabPanel("sortAndFilter",
               dom.create(this._buildPageSortFilterConfig.bind(this)),
             ),
-            cssConfigContainer.cls('-disabled', activeSection.isRecordCard),
-            testId('right-subtabpanel-sortAndFilter'),
+            cssConfigContainer.cls("-disabled", activeSection.isRecordCard),
+            testId("right-subtabpanel-sortAndFilter"),
           ),
-        dom('div',
-          this._subTabComponents.tabPanel('data',
+        dom("div",
+          this._subTabComponents.tabPanel("data",
             dom.create(this._buildPageDataConfig.bind(this), activeSection),
           ),
-          testId('right-subtabpanel-data'),
+          testId("right-subtabpanel-data"),
         ),
       ];
     };
@@ -424,18 +424,18 @@ export class RightPanel extends Disposable {
       cssSubTabContainer(
         this._subTabComponents.tabList(),
         cssSubTab(t("Configuration"),
-          this._subTabComponents.tab('widget'),
+          this._subTabComponents.tab("widget"),
           // the data-text attribute is necessary for a css trick to work (see cssSubTab)
-          dom.attr('data-text', t("Configuration")),
-          testId('config-widget')),
+          dom.attr("data-text", t("Configuration")),
+          testId("config-widget")),
         cssSubTab(t("Submission"),
-          this._subTabComponents.tab('submission'),
-          dom.attr('data-text', t("Submission")),
-          testId('config-submission')),
+          this._subTabComponents.tab("submission"),
+          dom.attr("data-text", t("Submission")),
+          testId("config-submission")),
         cssSubTab(t("Data"),
-          this._subTabComponents.tab('data'),
-          dom.attr('data-text', t("Data")),
-          testId('config-data')),
+          this._subTabComponents.tab("data"),
+          dom.attr("data-text", t("Data")),
+          testId("config-data")),
       ),
     ];
   }
@@ -445,18 +445,18 @@ export class RightPanel extends Disposable {
       cssSubTabContainer(
         this._subTabComponents.tabList(),
         cssSubTab(t("Widget"),
-          this._subTabComponents.tab('widget'),
+          this._subTabComponents.tab("widget"),
           // the data-text attribute is necessary for a css trick to work (see cssSubTab)
-          dom.attr('data-text', t("Widget")),
-          testId('config-widget')),
+          dom.attr("data-text", t("Widget")),
+          testId("config-widget")),
         cssSubTab(t("Sort & filter"),
-          this._subTabComponents.tab('sortAndFilter'),
-          dom.attr('data-text', t("Sort & filter")),
-          testId('config-sortAndFilter')),
+          this._subTabComponents.tab("sortAndFilter"),
+          dom.attr("data-text", t("Sort & filter")),
+          testId("config-sortAndFilter")),
         cssSubTab(t("Data"),
-          this._subTabComponents.tab('data'),
-          dom.attr('data-text', t("Data")),
-          testId('config-data')),
+          this._subTabComponents.tab("data"),
+          dom.attr("data-text", t("Data")),
+          testId("config-data")),
       ),
     ];
   }
@@ -483,7 +483,7 @@ export class RightPanel extends Disposable {
       // point to this being sometimes possible.
       if (activeSection.isDisposed()) { return false; }
       const widgetType = use(this._pageWidgetType);
-      const isCustom = widgetType === 'custom' || widgetType?.startsWith('custom.');
+      const isCustom = widgetType === "custom" || widgetType?.startsWith("custom.");
       return Boolean(isCustom && use(activeSection.columnsToMap));
     });
 
@@ -502,13 +502,13 @@ export class RightPanel extends Disposable {
         cssRow(cssTextInput(
           Computed.create(owner, use => use(activeSection.titleDef)),
           val => activeSection.titleDef.saveOnly(val),
-          dom.boolAttr('disabled', (use) => {
+          dom.boolAttr("disabled", (use) => {
             const isRawTable = use(activeSection.isRaw);
             const isSummaryTable = use(use(activeSection.table).summarySourceTable) !== 0;
             return isRawTable && isSummaryTable;
           }),
           { id: "right-widget-title-input" },
-          testId('right-widget-title'),
+          testId("right-widget-title"),
         )),
 
         cssSection(
@@ -520,27 +520,27 @@ export class RightPanel extends Disposable {
         use => !use(activeSection.isRaw) && !use(activeSection.isRecordCard),
         () => cssRow(
           primaryButton(t("Change widget"), this._createPageWidgetPicker()),
-          cssRow.cls('-top-space'),
+          cssRow.cls("-top-space"),
         ),
       ),
 
-      dom.maybe(use => ['detail', 'single'].includes(use(this._pageWidgetType)!), () => [
+      dom.maybe(use => ["detail", "single"].includes(use(this._pageWidgetType)!), () => [
         cssGroupLabel(t("Theme")),
-        dom('div',
+        dom("div",
           vct._buildThemeDom(),
           vct._buildLayoutDom()),
       ]),
 
       domComputed((use) => {
-        if (use(this._pageWidgetType) !== 'record') { return null; }
+        if (use(this._pageWidgetType) !== "record") { return null; }
         return dom.create(GridOptions, activeSection);
       }),
 
       domComputed((use) => {
-        if (use(this._pageWidgetType) !== 'record') { return null; }
-        return dom('div', { "role": 'group', 'aria-labelledby': 'row-style-label' },
+        if (use(this._pageWidgetType) !== "record") { return null; }
+        return dom("div", { "role": "group", "aria-labelledby": "row-style-label" },
           cssSeparator(),
-          cssGroupLabel(t("Row style"), { id: 'row-style-label' }),
+          cssGroupLabel(t("Row style"), { id: "row-style-label" }),
           dom.create(rowHeightConfigTable, activeSection.optionsObj),
           domAsync(imports.loadViewPane().then(ViewPane =>
             dom.create(ViewPane.ConditionalStyle, t("Row style"), activeSection, this._gristDoc),
@@ -548,14 +548,14 @@ export class RightPanel extends Disposable {
         );
       }),
 
-      dom.maybe(use => use(this._pageWidgetType) === 'chart', () =>
-        dom('div', { "role": 'group', 'aria-label': t('Chart options') },
+      dom.maybe(use => use(this._pageWidgetType) === "chart", () =>
+        dom("div", { "role": "group", "aria-label": t("Chart options") },
           cssGroupLabel(t("CHART TYPE")),
           vct._buildChartConfigDom(),
         ),
       ),
 
-      dom.maybe(use => use(this._pageWidgetType) === 'custom', () => {
+      dom.maybe(use => use(this._pageWidgetType) === "custom", () => {
         const parts = vct._buildCustomTypeItems() as any[];
         return [
           cssSeparator(),
@@ -563,16 +563,16 @@ export class RightPanel extends Disposable {
           // plugin mode. Note that the default mode for a new 'custom' view is 'url', so that's
           // the only one that will be shown without the feature flag.
           dom.maybe(use => use(this._gristDoc.app.features).customViewPlugin,
-            () => dom('div', parts[0].buildDom())),
-          dom.maybe(use => use(activeSection.customDef.mode) === 'plugin',
-            () => dom('div', parts[2].buildDom())),
+            () => dom("div", parts[0].buildDom())),
+          dom.maybe(use => use(activeSection.customDef.mode) === "plugin",
+            () => dom("div", parts[2].buildDom())),
           // In the default url mode, allow picking a url and granting/forbidding
           // access to data.
-          dom.maybe(use => use(activeSection.customDef.mode) === 'url' && use(this._pageWidgetType) === 'custom',
+          dom.maybe(use => use(activeSection.customDef.mode) === "url" && use(this._pageWidgetType) === "custom",
             () => dom.create(CustomSectionConfig, activeSection, this._gristDoc)),
         ];
       }),
-      dom.maybe(use =>  use(this._pageWidgetType)?.startsWith('custom.'), () => {
+      dom.maybe(use =>  use(this._pageWidgetType)?.startsWith("custom."), () => {
         return [
           dom.create(PredefinedCustomSectionConfig, activeSection, this._gristDoc),
         ];
@@ -581,9 +581,9 @@ export class RightPanel extends Disposable {
       dom.maybe(
         use => !(
           use(hasCustomMapping) ||
-          use(this._pageWidgetType) === 'chart' ||
+          use(this._pageWidgetType) === "chart" ||
           use(activeSection.isRaw)
-        ) && use(activeSection.parentKey) !== 'form',
+        ) && use(activeSection.parentKey) !== "form",
         () => [
           cssSeparator(),
           dom.create(VisibleFieldsConfig, this._gristDoc, activeSection),
@@ -626,12 +626,12 @@ export class RightPanel extends Disposable {
 
       // If it's null then no cursor-link is set, but in that case we won't show the string anyway.
       const cursorPos = lstate.cursorPos ? use(lstate.cursorPos) : 0;
-      const linkedCursorStr =  cursorPos ? `${use(tgtTable.tableId)}[${cursorPos}]` : '';
+      const linkedCursorStr =  cursorPos ? `${use(tgtTable.tableId)}[${cursorPos}]` : "";
 
       // Make descriptor for the link's source like: "TableName . ColName" or "${SIGMA} TableName", etc
       const fromTableDom = [
         dom.maybe(use2 => use2(srcTable.summarySourceTable), () => cssLinkInfoIcon("Pivot")),
-        use(srcSec.titleDef) + (srcColId ? ` ${BLACK_CIRCLE} ${use(srcCol.label)}` : ''),
+        use(srcSec.titleDef) + (srcColId ? ` ${BLACK_CIRCLE} ${use(srcCol.label)}` : ""),
         dom.style("white-space", "normal"), // Allow table name to wrap, reduces how often scrollbar needed
       ];
 
@@ -664,11 +664,11 @@ export class RightPanel extends Disposable {
                 return dom("tr",
                   dom("td", cssLinkInfoIcon("Filter"),
                     `${colId}`),
-                  dom("td", operationSymbol, dom.style('padding', '0 2px 0 2px')),
+                  dom("td", operationSymbol, dom.style("padding", "0 2px 0 2px")),
                   dom("td", cssLinkInfoValuesBox(
                     isFullReferencingType(lfilter.colTypes[colId]) ?
                       cssLinkInfoIcon("FieldReference") : null,
-                    `${vals.join(', ')}`)),
+                    `${vals.join(", ")}`)),
                 );
               }
             }), // end of keys(filterLabels).map
@@ -681,7 +681,7 @@ export class RightPanel extends Disposable {
         return cssLinkInfoBody((
           cssLinkInfoValuesBox(
             cssLinkInfoIcon("FieldReference"),
-            valueLabels.join(', ')) // TODO: join labels like "Entries[1], Entries[2]" to "Entries[[1,2]]"
+            valueLabels.join(", ")) // TODO: join labels like "Entries[1], Entries[2]" to "Entries[[1,2]]"
         ));
       };
 
@@ -741,10 +741,10 @@ export class RightPanel extends Disposable {
       // to check nullness, use `.getRowId() == 0` or `use(srcCol.colId) == undefined`
 
       const secToStr = (sec: ViewSectionRec) => (!sec?.getRowId()) ?
-        'null' :
+        "null" :
         `#${use(sec.id)} "${use(sec.titleDef)}", (table "${use(use(sec.table).tableId)}")`;
       const colToStr = (col: ColumnRec) => (!col?.getRowId()) ?
-        'null' :
+        "null" :
         `#${use(col.id)} "${use(col.colId)}", type "${use(col.type)}")`;
 
       // linkingState can be null if the constructor throws, so for debugging we want to show link info
@@ -767,10 +767,10 @@ export class RightPanel extends Disposable {
         preString = [
           `From Sec: ${secToStr(srcSec)}`,
           `To   Sec: ${secToStr(tgtSec)}`,
-          '',
+          "",
           `From Col: ${colToStr(srcCol)}`,
           `To   Col: ${colToStr(tgtCol)}`,
-          '===========================',
+          "===========================",
           // Show linkstate
           lstate == null ? "LinkState: null" : [
             `Link Type: ${use(lstate.linkTypeDescription)}`,
@@ -779,20 +779,20 @@ export class RightPanel extends Disposable {
             "Cursor Pos: " + cursorPosStr,
             !lfilter ? "Filter State: null" :
               ["Filter State:", ...(Object.keys(lfilter).map(key =>
-                `- ${key}: ${JSON.stringify((lfilter as any)[key])}`))].join('\n'),
-          ].join('\n'),
-        ].join('\n');
+                `- ${key}: ${JSON.stringify((lfilter as any)[key])}`))].join("\n"),
+          ].join("\n"),
+        ].join("\n");
       }
 
       const collapsed: SessionObs<boolean> = this._advLinkInfoCollapsed;
       return hasLink ? [
         cssRow(
-          icon('Dropdown', dom.style('transform', use2 => use2(collapsed) ? 'rotate(-90deg)' : '')),
+          icon("Dropdown", dom.style("transform", use2 => use2(collapsed) ? "rotate(-90deg)" : "")),
           "Advanced Link info",
-          dom.style('font-size', `${vars.smallFontSize}`),
-          dom.style('text-transform', 'uppercase'),
-          dom.style('cursor', 'pointer'),
-          dom.on('click', () => collapsed.set(!collapsed.get())),
+          dom.style("font-size", `${vars.smallFontSize}`),
+          dom.style("text-transform", "uppercase"),
+          dom.style("cursor", "pointer"),
+          dom.on("click", () => collapsed.set(!collapsed.get())),
         ),
         dom.maybe(not(collapsed), () => cssRow(cssLinkInfoPre(preString))),
       ] : null;
@@ -831,55 +831,55 @@ export class RightPanel extends Disposable {
     link.onWrite(async (val) => {
       const widgetType = getTelemetryWidgetTypeFromVS(activeSection);
       if (val !== NoLink) {
-        logTelemetryEvent('linkedWidget', { full: { docIdDigest: this._gristDoc.docId(), widgetType } });
+        logTelemetryEvent("linkedWidget", { full: { docIdDigest: this._gristDoc.docId(), widgetType } });
       }
       else {
-        logTelemetryEvent('unlinkedWidget', { full: { docIdDigest: this._gristDoc.docId(), widgetType } });
+        logTelemetryEvent("unlinkedWidget", { full: { docIdDigest: this._gristDoc.docId(), widgetType } });
       }
 
       await this._gristDoc.saveLink(val);
     });
     return [
       this._disableIfReadonly(),
-      dom('div', { "role": 'group', 'aria-labelledby': 'data-table-label' },
-        cssGroupLabel(t("DATA TABLE"), { id: 'data-table-label' }),
+      dom("div", { "role": "group", "aria-labelledby": "data-table-label" },
+        cssGroupLabel(t("DATA TABLE"), { id: "data-table-label" }),
         cssRow(
-          cssIcon('TypeTable'), cssDataLabel(t("SOURCE DATA")),
+          cssIcon("TypeTable"), cssDataLabel(t("SOURCE DATA")),
           cssContent(dom.text(use => use(use(table).primaryTableId)),
-            testId('pwc-table')),
+            testId("pwc-table")),
         ),
         dom(
-          'div',
-          cssRow(cssIcon('Pivot'), cssDataLabel(t("GROUPED BY"), { id: 'data-grouped-by-label' })),
+          "div",
+          cssRow(cssIcon("Pivot"), cssDataLabel(t("GROUPED BY"), { id: "data-grouped-by-label" })),
           cssRow(domComputed(groupedBy, cols => cssList(
-            cols.map(c => cssListItem(dom.text(c.label), testId('pwc-groupedBy-col'))),
-            { 'aria-labelledby': 'data-grouped-by-label' },
+            cols.map(c => cssListItem(dom.text(c.label), testId("pwc-groupedBy-col"))),
+            { "aria-labelledby": "data-grouped-by-label" },
           ))),
 
-          testId('pwc-groupedBy'),
+          testId("pwc-groupedBy"),
           // hide if not a summary table
           dom.hide(use => !use(use(table).summarySourceTable)),
         ),
 
         dom.maybe(use => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () =>
           cssButtonRow(primaryButton(t("Edit data selection"), this._createPageWidgetPicker(),
-            testId('pwc-editDataSelection')),
+            testId("pwc-editDataSelection")),
           dom.maybe(
             use => Boolean(use(use(activeSection.table).summarySourceTable)),
             () => basicButton(
               t("Detach"),
-              dom.on('click', () => this._gristDoc.docData.sendAction(
+              dom.on("click", () => this._gristDoc.docData.sendAction(
                 ["DetachSummaryViewSection", activeSection.getRowId()])),
-              testId('detach-button'),
+              testId("detach-button"),
             )),
-          cssRow.cls('-top-space'),
+          cssRow.cls("-top-space"),
           )),
       ),
 
       // TODO: "Advanced settings" is for "on-demand" marking of tables. This is now a deprecated feature. UIRowId
       // is only shown for tables that are marked as "on-demand""
       dom.domComputed(use => use(use(table).onDemand) && use(viewConfigTab), vct => vct ? cssRow(
-        dom('div', vct._buildAdvancedSettingsDom()),
+        dom("div", vct._buildAdvancedSettingsDom()),
       ) : null),
 
       dom.maybe(use => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () => [
@@ -888,11 +888,11 @@ export class RightPanel extends Disposable {
         cssRow(
           dom.update(
             select(link, linkOptions, { defaultLabel: t("Select widget") }),
-            dom.on('click', () => {
+            dom.on("click", () => {
               refreshTrigger.set(!refreshTrigger.get());
             }),
           ),
-          testId('right-select-by'),
+          testId("right-select-by"),
         ),
       ]),
 
@@ -903,9 +903,9 @@ export class RightPanel extends Disposable {
         // TODO: sections should be listed following the order of appearance in the view layout (ie:
         // left/right - top/bottom);
         return selectorFor.length ? [
-          cssGroupLabel(t("SELECTOR FOR"), { id: 'data-selector-for-label' }, testId('selector-for')),
+          cssGroupLabel(t("SELECTOR FOR"), { id: "data-selector-for-label" }, testId("selector-for")),
           cssRow(cssList(
-            { 'aria-labelledby': 'data-selector-for-label' },
+            { "aria-labelledby": "data-selector-for-label" },
             selectorFor.map(sec => this._buildSectionItem(sec)),
           )),
         ] : null;
@@ -921,7 +921,7 @@ export class RightPanel extends Disposable {
     const { activeSection } = gristDoc.viewModel;
     const onSave = async (val: IPageWidget) => {
       const { id } = await gristDoc.saveViewSection(activeSection.peek(), val);
-      if (val.type === 'custom') {
+      if (val.type === "custom") {
         showCustomWidgetGallery(gristDoc, { sectionRef: id() });
       }
     };
@@ -939,7 +939,7 @@ export class RightPanel extends Disposable {
     return cssListItem(
       dom.text(sec.titleDef),
       this._buildLinkInfo(sec, dom.style("border", "none")),
-      testId('selector-for-entry'),
+      testId("selector-for-entry"),
     );
   }
 
@@ -949,7 +949,7 @@ export class RightPanel extends Disposable {
     if (this._gristDoc.docPageModel) {
       return dom.maybe(this._gristDoc.docPageModel.isReadonly,  () => (
         cssOverlay(
-          testId('disable-overlay'),
+          testId("disable-overlay"),
           cssBottomText(t("You do not have edit access to this document")),
         )
       ));
@@ -958,16 +958,16 @@ export class RightPanel extends Disposable {
 
   private _buildPageSubmissionConfig(owner: MultiHolder, activeSection: ViewSectionRec) {
     // All of those observables are backed by the layout config.
-    const submitButtonKo = activeSection.layoutSpecObj.prop('submitText');
+    const submitButtonKo = activeSection.layoutSpecObj.prop("submitText");
     const toComputed = (obs: typeof submitButtonKo) => {
       const result = Computed.create(owner, use => use(obs));
       result.onWrite(val => obs.setAndSave(val));
       return result;
     };
     const submitButton = toComputed(submitButtonKo);
-    const successText = toComputed(activeSection.layoutSpecObj.prop('successText'));
-    const successURL = toComputed(activeSection.layoutSpecObj.prop('successURL'));
-    const anotherResponse = toComputed(activeSection.layoutSpecObj.prop('anotherResponse'));
+    const successText = toComputed(activeSection.layoutSpecObj.prop("successText"));
+    const successURL = toComputed(activeSection.layoutSpecObj.prop("successURL"));
+    const anotherResponse = toComputed(activeSection.layoutSpecObj.prop("anotherResponse"));
     const redirection = Observable.create(owner, Boolean(successURL.get()));
     owner.autoDispose(redirection.addListener((val) => {
       if (!val) {
@@ -982,14 +982,14 @@ export class RightPanel extends Disposable {
     return [
       cssLabel(t("Submit button label")),
       cssRow(
-        cssTextInput(submitButton, val => submitButton.set(val), { placeholder: t('Submit') }),
+        cssTextInput(submitButton, val => submitButton.set(val), { placeholder: t("Submit") }),
       ),
       cssLabel(t("Success text")),
       cssRow(
         cssTextArea(
           successText,
           { autoGrow: true, save: val => successText.set(val) },
-          { placeholder: t('Thank you! Your response has been recorded.') },
+          { placeholder: t("Thank you! Your response has been recorded.") },
         ),
       ),
       cssLabel(t("Submit another response")),
@@ -1046,13 +1046,13 @@ export class RightPanel extends Disposable {
     const selectedField = Computed.create(owner, (use) => {
       const box = use(selectedBox);
       if (!box) { return null; }
-      if (box.type !== 'Field') { return null; }
+      if (box.type !== "Field") { return null; }
       const fieldBox = box as FieldModel;
       return use(fieldBox.field);
     });
     const selectedBoxWithOptions = Computed.create(owner, (use) => {
       const box = use(selectedBox);
-      if (!box || !['Paragraph', 'Label'].includes(box.type)) { return null; }
+      if (!box || !["Paragraph", "Label"].includes(box.type)) { return null; }
 
       return box;
     });
@@ -1060,7 +1060,7 @@ export class RightPanel extends Disposable {
     return domAsync(imports.loadViewPane().then(() => buildConfigContainer(cssSection(
       // Field config.
       dom.maybe(selectedField, (field) => {
-        const fieldTitle = field.widgetOptionsJson.prop('question');
+        const fieldTitle = field.widgetOptionsJson.prop("question");
 
         return [
           cssLabel(t("Field title")),
@@ -1068,9 +1068,9 @@ export class RightPanel extends Disposable {
             cssTextInput(
               fromKo(fieldTitle),
               val => fieldTitle.saveOnly(val).catch(reportError),
-              dom.prop('readonly', use => use(field.disableModify)),
-              dom.prop('placeholder', use => use(field.displayLabel) || use(field.colId)),
-              testId('field-title'),
+              dom.prop("readonly", use => use(field.disableModify)),
+              dom.prop("placeholder", use => use(field.displayLabel) || use(field.colId)),
+              testId("field-title"),
             ),
           ),
           cssLabel(t("Table column name")),
@@ -1078,8 +1078,8 @@ export class RightPanel extends Disposable {
             cssTextInput(
               fromKo(field.displayLabel),
               val => field.displayLabel.saveOnly(val).catch(reportError),
-              dom.prop('readonly', use => use(field.disableModify)),
-              testId('field-label'),
+              dom.prop("readonly", use => use(field.disableModify)),
+              testId("field-label"),
             ),
           ),
           dom.maybe<FieldBuilder | null>(fieldBuilder, builder => [
@@ -1100,19 +1100,19 @@ export class RightPanel extends Disposable {
         cssLabel(dom.text(box.type)),
         cssRow(
           cssTextArea(
-            box.prop('text'),
+            box.prop("text"),
             { onInput: true, autoGrow: true },
-            dom.on('blur', () => box.save().catch(reportError)),
-            { placeholder: t('Enter text') },
+            dom.on("blur", () => box.save().catch(reportError)),
+            { placeholder: t("Enter text") },
           ),
         ),
         cssRow(
-          buttonSelect(box.prop('alignment'), [
-            { value: 'left',   icon: 'LeftAlign' },
-            { value: 'center', icon: 'CenterAlign' },
-            { value: 'right',  icon: 'RightAlign' },
+          buttonSelect(box.prop("alignment"), [
+            { value: "left",   icon: "LeftAlign" },
+            { value: "center", icon: "CenterAlign" },
+            { value: "right",  icon: "RightAlign" },
           ]),
-          dom.autoDispose(box.prop('alignment').addListener(() => box.save().catch(reportError))),
+          dom.autoDispose(box.prop("alignment").addListener(() => box.save().catch(reportError))),
         ),
       ]),
 
@@ -1128,15 +1128,15 @@ function buildFormConfigPlaceholder() {
   return cssFormConfigPlaceholder(
     cssFormConfigImg(),
     cssFormConfigMessage(
-      cssFormConfigMessageTitle(t('No field selected')),
-      dom('div', t('Select a field in the form widget to configure.')),
+      cssFormConfigMessageTitle(t("No field selected")),
+      dom("div", t("Select a field in the form widget to configure.")),
     ),
   );
 }
 
 function disabledSection() {
   return cssOverlay(
-    testId('panel-disabled-section'),
+    testId("panel-disabled-section"),
   );
 }
 
@@ -1144,7 +1144,7 @@ function disabledSection() {
 // TODO It may not be needed after new-ui refactoring of the side-pane content.
 function tabContentToDom(content: Observable<TabContent[]> | TabContent[] | IDomComponent) {
   function buildItemDom(item: any) {
-    return dom('div.config_item',
+    return dom("div.config_item",
       dom.show(item.showObs || true),
       item.buildDom(),
     );
@@ -1157,9 +1157,9 @@ function tabContentToDom(content: Observable<TabContent[]> | TabContent[] | IDom
   return cssTabContents(
     dom.forEach(content, (itemOrHeader) => {
       if (itemOrHeader.header) {
-        return dom('div.config_group',
+        return dom("div.config_group",
           dom.show(itemOrHeader.showObs || true),
-          itemOrHeader.label ? dom('div.config_header', itemOrHeader.label) : null,
+          itemOrHeader.label ? dom("div.config_header", itemOrHeader.label) : null,
           dom.forEach(itemOrHeader.items, item => buildItemDom(item)),
         );
       }
@@ -1170,7 +1170,7 @@ function tabContentToDom(content: Observable<TabContent[]> | TabContent[] | IDom
   );
 }
 
-const cssOverlay = styled('div', `
+const cssOverlay = styled("div", `
   background-color: ${theme.rightPanelDisabledOverlay};
   opacity: 0.8;
   position: absolute;
@@ -1181,14 +1181,14 @@ const cssOverlay = styled('div', `
   z-index: 100;
 `);
 
-const cssBottomText = styled('span', `
+const cssBottomText = styled("span", `
   color: ${theme.text};
   position: absolute;
   bottom: -40px;
   padding: 4px 16px;
 `);
 
-const cssRow = styled('div', `
+const cssRow = styled("div", `
   color: ${theme.text};
   display: flex;
   margin: 8px 16px;
@@ -1217,7 +1217,7 @@ const cssIcon = styled(icon, `
   --icon-color: ${theme.lightText};
 `);
 
-const cssTopBarTabList = styled('div', `
+const cssTopBarTabList = styled("div", `
   display: flex;
   width: 100%;
 `);
@@ -1269,7 +1269,7 @@ const cssTopBarIcon = styled(icon, `
   background-color: var(--icon-color);
 `);
 
-const cssHoverCircle = styled('div', `
+const cssHoverCircle = styled("div", `
   margin-left: auto;
   margin-right: 8px;
   width: 32px;
@@ -1292,7 +1292,7 @@ const cssHoverIcon = styled(icon, `
   background-color: var(--icon-color);
 `);
 
-const cssSubTabContainer = styled('div', `
+const cssSubTabContainer = styled("div", `
   height: 48px;
   flex: none;
   display: flex;
@@ -1339,18 +1339,18 @@ const cssSubTab = styled(unstyledButton, `
   }
 `);
 
-const cssTabPanel = styled('div', `
+const cssTabPanel = styled("div", `
   overflow: hidden;
   display: flex;
   flex-direction: column;
 `);
 
-const cssTabContents = styled('div', `
+const cssTabContents = styled("div", `
   padding: 16px 8px;
   overflow: auto;
 `);
 
-const cssDataLabel = styled('div', `
+const cssDataLabel = styled("div", `
   flex: 0 0 81px;
   color: ${theme.lightText};
   font-size: ${vars.xsmallFontSize};
@@ -1358,7 +1358,7 @@ const cssDataLabel = styled('div', `
   margin-top: 2px;
 `);
 
-const cssContent = styled('div', `
+const cssContent = styled("div", `
   flex: 0 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1369,7 +1369,7 @@ const cssList = styled(unstyledUl, `
   width: 100%;
 `);
 
-const cssListItem = styled('li', `
+const cssListItem = styled("li", `
   background-color: ${theme.hover};
   border-radius: 2px;
   margin-bottom: 4px;
@@ -1413,7 +1413,7 @@ const cssTextInput = styled(textInput, `
   }
 `);
 
-const cssSection = styled('div', `
+const cssSection = styled("div", `
   position: relative;
 `);
 
@@ -1421,7 +1421,7 @@ const cssSection = styled('div', `
 
 // LinkInfoPanel is a flex-column
 // `LinkInfoPanel > table` is the table where we show linked filters, if there are any
-const cssLinkInfoPanel = styled('div', `
+const cssLinkInfoPanel = styled("div", `
   width: 100%;
 
   display: flex;
@@ -1446,7 +1446,7 @@ const cssLinkInfoPanel = styled('div', `
 `);
 
 // Center table / values box inside LinkInfoPanel
-const cssLinkInfoBody = styled('div', `
+const cssLinkInfoBody = styled("div", `
   margin: 2px 0 2px 0;
   align-self: center;
 `);
@@ -1454,8 +1454,8 @@ const cssLinkInfoBody = styled('div', `
 // Intended to imitate style of a grid cell
 // white-space: normal allows multiple values to wrap
 // min-height: 22px matches real field size, +2 for the borders
-const cssLinkInfoValuesBox = styled('div', `
-  border: 1px solid ${'#CCC'};
+const cssLinkInfoValuesBox = styled("div", `
+  border: 1px solid ${"#CCC"};
   padding: 3px 3px 0px 3px;
   min-width: 60px;
   min-height: 24px;
@@ -1478,7 +1478,7 @@ const cssLinkInfoPre = styled("pre", `
   line-height: 1.2;
 `);
 
-const cssFormConfigPlaceholder = styled('div', `
+const cssFormConfigPlaceholder = styled("div", `
   display: flex;
   flex-direction: column;
   row-gap: 16px;
@@ -1486,7 +1486,7 @@ const cssFormConfigPlaceholder = styled('div', `
   padding: 8px;
 `);
 
-const cssFormConfigImg = styled('div', `
+const cssFormConfigImg = styled("div", `
   height: 140px;
   width: 100%;
   background-size: contain;
@@ -1495,7 +1495,7 @@ const cssFormConfigImg = styled('div', `
   background-image: var(--icon-FormConfig);
 `);
 
-const cssFormConfigMessage = styled('div', `
+const cssFormConfigMessage = styled("div", `
   display: flex;
   flex-direction: column;
   row-gap: 8px;
@@ -1503,7 +1503,7 @@ const cssFormConfigMessage = styled('div', `
   text-align: center;
 `);
 
-const cssFormConfigMessageTitle = styled('div', `
+const cssFormConfigMessageTitle = styled("div", `
   font-size: ${vars.largeFontSize};
   font-weight: 600;
 `);

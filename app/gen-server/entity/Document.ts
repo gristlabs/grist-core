@@ -1,9 +1,9 @@
-import { ApiError } from 'app/common/ApiError';
-import { DocumentUsage } from 'app/common/DocUsage';
-import { Role } from 'app/common/roles';
+import { ApiError } from "app/common/ApiError";
+import { DocumentUsage } from "app/common/DocUsage";
+import { Role } from "app/common/roles";
 import { DocumentOptions, DocumentProperties, documentPropertyKeys, DocumentType,
   NEW_DOCUMENT_CODE } from "app/common/UserAPI";
-import { nativeValues } from 'app/gen-server/lib/values';
+import { nativeValues } from "app/gen-server/lib/values";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { AclRuleDoc } from "app/gen-server/entity/AclRule";
 import { Alias } from "app/gen-server/entity/Alias";
@@ -20,20 +20,20 @@ function isValidUrlId(urlId: string) {
   return urlIdRegex.exec(urlId);
 }
 
-@Entity({ name: 'docs' })
+@Entity({ name: "docs" })
 export class Document extends Resource {
   @PrimaryColumn({ type: String })
   public id: string;
 
   @ManyToOne(type => Workspace)
-  @JoinColumn({ name: 'workspace_id' })
+  @JoinColumn({ name: "workspace_id" })
   public workspace: Workspace;
 
   @OneToMany(type => AclRuleDoc, aclRule => aclRule.document)
   public aclRules: AclRuleDoc[];
 
   // Indicates whether the doc is pinned to the org it lives in.
-  @Column({ name: 'is_pinned', type: Boolean, default: false })
+  @Column({ name: "is_pinned", type: Boolean, default: false })
   public isPinned: boolean;
 
   // Property that may be returned when the doc is fetched to indicate the access the
@@ -52,51 +52,51 @@ export class Document extends Resource {
   // a computed column with permissions.
   // {insert: false} makes sure typeorm doesn't try to put values into such
   // a column when creating documents.
-  @Column({ name: 'permissions', type: 'text', select: false, insert: false, update: false })
+  @Column({ name: "permissions", type: "text", select: false, insert: false, update: false })
   public permissions?: any;
 
-  @Column({ name: 'url_id', type: 'text', nullable: true })
+  @Column({ name: "url_id", type: "text", nullable: true })
   public urlId: string | null;
 
-  @Column({ name: 'removed_at', type: nativeValues.dateTimeType, nullable: true })
+  @Column({ name: "removed_at", type: nativeValues.dateTimeType, nullable: true })
   public removedAt: Date | null;
 
-  @Column({ name: 'disabled_at', type: nativeValues.dateTimeType, nullable: true })
+  @Column({ name: "disabled_at", type: nativeValues.dateTimeType, nullable: true })
   public disabledAt: Date | null;
 
-  @Column({ name: 'grace_period_start', type: nativeValues.dateTimeType, nullable: true })
+  @Column({ name: "grace_period_start", type: nativeValues.dateTimeType, nullable: true })
   public gracePeriodStart: Date | null;
 
   @OneToMany(type => Alias, alias => alias.doc)
   public aliases: Alias[];
 
-  @Column({ name: 'options', type: nativeValues.jsonEntityType, nullable: true })
+  @Column({ name: "options", type: nativeValues.jsonEntityType, nullable: true })
   public options: DocumentOptions | null;
 
   @OneToMany(_type => Secret, secret => secret.doc)
   public secrets: Secret[];
 
-  @Column({ name: 'usage', type: nativeValues.jsonEntityType, nullable: true })
+  @Column({ name: "usage", type: nativeValues.jsonEntityType, nullable: true })
   public usage: DocumentUsage | null;
 
-  @Column({ name: 'created_by', type: 'integer', nullable: true })
+  @Column({ name: "created_by", type: "integer", nullable: true })
   public createdBy: number | null;
 
   @ManyToOne(_type => User)
-  @JoinColumn({ name: 'created_by' })
+  @JoinColumn({ name: "created_by" })
   public creator: User;
 
-  @Column({ name: 'trunk_id', type: 'text', nullable: true })
+  @Column({ name: "trunk_id", type: "text", nullable: true })
   public trunkId: string | null;
 
   @ManyToOne(_type => Document, document => document.forks)
-  @JoinColumn({ name: 'trunk_id' })
+  @JoinColumn({ name: "trunk_id" })
   public trunk: Document | null;
 
   @OneToMany(_type => Document, document => document.trunk)
   public forks: Document[];
 
-  @Column({ name: 'type', type: 'text', nullable: true })
+  @Column({ name: "type", type: "text", nullable: true })
   public type: DocumentType | null;
 
   public checkProperties(props: any): props is Partial<DocumentProperties> {
@@ -114,7 +114,7 @@ export class Document extends Resource {
     if (props.isPinned !== undefined) { this.isPinned = props.isPinned; }
     if (props.urlId !== undefined) {
       if (props.urlId !== null && !isValidUrlId(props.urlId)) {
-        throw new ApiError('invalid urlId', 400);
+        throw new ApiError("invalid urlId", 400);
       }
       this.urlId = props.urlId;
     }
@@ -210,7 +210,7 @@ export class Document extends Resource {
  * with a distinct name for this purpose. Does not exist in the
  * database.
  */
-@Entity({ name: 'filtered_docs' })
+@Entity({ name: "filtered_docs" })
 export class FilteredDocument extends Document {
 }
 
@@ -219,8 +219,8 @@ export class FilteredDocument extends Document {
 function sanitizeIcon(icon: string | null) {
   if (icon === null) { return icon; }
   const url = new URL(icon);
-  if (url.protocol !== 'https:' || url.host !== 'grist-static.com' || !url.pathname.startsWith('/icons/')) {
-    throw new ApiError('invalid document icon', 400);
+  if (url.protocol !== "https:" || url.host !== "grist-static.com" || !url.pathname.startsWith("/icons/")) {
+    throw new ApiError("invalid document icon", 400);
   }
   return url.href;
 }

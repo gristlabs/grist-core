@@ -11,19 +11,19 @@ export type ColumnFilterFunc = (value: CellValue) => boolean;
 // Returns a filter function for a particular column: the function takes a cell value and returns
 // whether it's accepted according to the given FilterState.
 export function makeFilterFunc(state: FilterState,
-  columnType: string = ''): ColumnFilterFunc {
+  columnType: string = ""): ColumnFilterFunc {
   if (isRangeFilter(state)) {
     let { min, max } = state;
     if (isNumberType(columnType) || isDateLikeType(columnType)) {
       if (isDateLikeType(columnType)) {
         const info = extractInfoFromColType(columnType);
-        const timezone = (info.type === 'DateTime' && info.timezone) || 'utc';
-        min = changeTimezone(min, timezone, m => m.startOf('day'));
-        max = changeTimezone(max, timezone, m => m.endOf('day'));
+        const timezone = (info.type === "DateTime" && info.timezone) || "utc";
+        min = changeTimezone(min, timezone, m => m.startOf("day"));
+        max = changeTimezone(max, timezone, m => m.endOf("day"));
       }
 
       return (val) => {
-        if (typeof val !== 'number') { return false; }
+        if (typeof val !== "number") { return false; }
         return (
           (max === undefined ? true : val <= max) &&
           (min === undefined ? true : min <= val)

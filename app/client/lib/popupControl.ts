@@ -23,8 +23,8 @@ export function popupControl(reference: Element, domCreator: IPopupDomCreator, o
   const ctl = PopupControl.create(null);
 
   ctl.attachElem(reference, openFunc, {
-    attach: 'body',
-    boundaries: 'viewport',
+    attach: "body",
+    boundaries: "viewport",
     ...options,
     trigger: undefined,
   });

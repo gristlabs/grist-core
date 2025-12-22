@@ -1,10 +1,10 @@
 // Copy official sqlite3 types to apply to @gristlabs/sqlite3.
 declare module "@gristlabs/sqlite3" {
-  export * from 'sqlite3';
+  export * from "sqlite3";
 
   // Add minimal typings for sqlite backup api.
   // TODO: remove this once the type definitions are updated upstream.
-  import { Database } from 'sqlite3';
+  import { Database } from "sqlite3";
   export class Backup {
     public readonly remaining: number;
     public readonly pageCount: number;
@@ -16,7 +16,7 @@ declare module "@gristlabs/sqlite3" {
   }
   export class DatabaseWithBackup extends Database {
     public backup(filename: string, callback?: (err: Error | null) => void): Backup;
-    public backup(filename: string, destDbName: 'main', srcDbName: 'main',
+    public backup(filename: string, destDbName: "main", srcDbName: "main",
       filenameIsDest: boolean, callback?: (err: Error | null) => void): Backup;
   }
 }
@@ -36,33 +36,33 @@ declare module "redis" {
     public on(eventType: string, callback: (...args: any[]) => void): void;
     public publishAsync(channel: string, message: string): Promise<number>;
 
-    public delAsync(key: string): Promise<'OK'>;
+    public delAsync(key: string): Promise<"OK">;
     public flushdbAsync(): Promise<void>;
     public getAsync(key: string): Promise<string | null>;
     public hdelAsync(key: string, field: string): Promise<number>;
     public hgetallAsync(key: string): Promise<{ [field: string]: any } | null>;
     public hkeysAsync(key: string): Promise<string[] | null>;
-    public hmsetAsync(key: string, val: { [field: string]: any }): Promise<'OK'>;
+    public hmsetAsync(key: string, val: { [field: string]: any }): Promise<"OK">;
     public hsetAsync(key: string, field: string, val: string): Promise<1 | 0>;
     public keysAsync(pattern: string): Promise<string[]>;
     public multi(): Multi;
     public quitAsync(): Promise<void>;
-    public saddAsync(key: string, val: string): Promise<'OK'>;
+    public saddAsync(key: string, val: string): Promise<"OK">;
     public selectAsync(db: number): Promise<void>;
-    public setAsync(key: string, val: string): Promise<'OK'>;
-    public setexAsync(key: string, ttl: number, val: string): Promise<'OK'>;
+    public setAsync(key: string, val: string): Promise<"OK">;
+    public setexAsync(key: string, ttl: number, val: string): Promise<"OK">;
     public sismemberAsync(key: string, val: string): Promise<0 | 1>;
     public smembersAsync(key: string): Promise<string[]>;
     public srandmemberAsync(key: string): Promise<string | null>;
-    public sremAsync(key: string, val: string): Promise<'OK'>;
+    public sremAsync(key: string, val: string): Promise<"OK">;
     public ttlAsync(key: string): Promise<number | null>;
-    public unwatchAsync(): Promise<'OK'>;
+    public unwatchAsync(): Promise<"OK">;
     public watchAsync(key: string): Promise<void>;
     public lrangeAsync(key: string, start: number, end: number): Promise<string[]>;
     public rpushAsync(key: string, ...vals: string[]): Promise<number>;
     public pingAsync(): Promise<string>;
-    public zaddAsync(key: string, ...args: any[]): Promise<'OK'>;
-    public zremAsync(key: string, val: string): Promise<'OK'>;
+    public zaddAsync(key: string, ...args: any[]): Promise<"OK">;
+    public zremAsync(key: string, val: string): Promise<"OK">;
     public zrangeAsync(key: string, ...args: any[]): Promise<string[]>;
     public zscoreAsync(key: string, val: string): Promise<number>;
   }

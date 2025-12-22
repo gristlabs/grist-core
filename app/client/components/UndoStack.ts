@@ -1,11 +1,11 @@
-import { GristDoc } from 'app/client/components/GristDoc';
-import * as dispose from 'app/client/lib/dispose';
-import { MinimalActionGroup } from 'app/common/ActionGroup';
-import { PromiseChain, setDefault } from 'app/common/gutil';
-import { CursorPos } from 'app/plugin/GristAPI';
-import { Computed, fromKo, Observable } from 'grainjs';
-import * as ko from 'knockout';
-import sortBy from 'lodash/sortBy';
+import { GristDoc } from "app/client/components/GristDoc";
+import * as dispose from "app/client/lib/dispose";
+import { MinimalActionGroup } from "app/common/ActionGroup";
+import { PromiseChain, setDefault } from "app/common/gutil";
+import { CursorPos } from "app/plugin/GristAPI";
+import { Computed, fromKo, Observable } from "grainjs";
+import * as ko from "knockout";
+import sortBy from "lodash/sortBy";
 
 export interface ActionGroupWithCursorPos extends MinimalActionGroup {
   cursorPos?: CursorPos;
@@ -169,7 +169,7 @@ export class UndoStack extends dispose.Disposable {
       this._gristDoc.moveToCursorPos(returnCursorPos, ag).catch(() => { /* do nothing */ });
     }
     catch (err) {
-      err.message = `Failed to apply ${isUndo ? 'undo' : 'redo'} action: ${err.message}`;
+      err.message = `Failed to apply ${isUndo ? "undo" : "redo"} action: ${err.message}`;
       throw err;
     }
   }

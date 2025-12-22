@@ -1,8 +1,8 @@
-import { BarePlugin } from 'app/plugin/PluginManifest';
-import PluginManifestTI from 'app/plugin/PluginManifest-ti';
-import * as fse from 'fs-extra';
-import * as yaml from 'js-yaml';
-import * as path from 'path';
+import { BarePlugin } from "app/plugin/PluginManifest";
+import PluginManifestTI from "app/plugin/PluginManifest-ti";
+import * as fse from "fs-extra";
+import * as yaml from "js-yaml";
+import * as path from "path";
 import { createCheckers } from "ts-interface-checker";
 
 const manifestChecker = createCheckers(PluginManifestTI).BarePlugin;
@@ -72,7 +72,7 @@ async function _readManifest(pluginPath: string): Promise<object> {
   }
   catch (e) {
     if (e instanceof yaml.YAMLException) {
-      throw new Error('error parsing yaml manifest: ' + e.message);
+      throw new Error("error parsing yaml manifest: " + e.message);
     }
   }
   try {
@@ -80,8 +80,8 @@ async function _readManifest(pluginPath: string): Promise<object> {
   }
   catch (e) {
     if (e instanceof SyntaxError) {
-      throw new Error('error parsing json manifest' + e.message);
+      throw new Error("error parsing json manifest" + e.message);
     }
-    throw new Error('cannot read manifest file: ' + e.message);
+    throw new Error("cannot read manifest file: " + e.message);
   }
 }

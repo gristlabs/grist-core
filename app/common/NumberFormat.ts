@@ -18,16 +18,16 @@
  * numbers. It is Ignored and disabled when mode is 'scientific'.
  */
 
-import { clamp } from 'app/common/gutil';
-import { StringUnion } from 'app/common/StringUnion';
+import { clamp } from "app/common/gutil";
+import { StringUnion } from "app/common/StringUnion";
 import * as LocaleCurrency from "locale-currency";
-import { FormatOptions } from 'app/common/ValueFormatter';
-import { DocumentSettings } from 'app/common/DocumentSettings';
+import { FormatOptions } from "app/common/ValueFormatter";
+import { DocumentSettings } from "app/common/DocumentSettings";
 
 // Options for number formatting.
-export const NumMode = StringUnion('currency', 'decimal', 'percent', 'scientific');
+export const NumMode = StringUnion("currency", "decimal", "percent", "scientific");
 export type NumMode = typeof NumMode.type;
-export type NumSign = 'parens';
+export type NumSign = "parens";
 
 export interface NumberFormatOptions extends FormatOptions {
   numMode?: NumMode | null;
@@ -38,7 +38,7 @@ export interface NumberFormatOptions extends FormatOptions {
 }
 
 export function getCurrency(options: NumberFormatOptions, docSettings: DocumentSettings): string {
-  return options.currency || docSettings.currency || LocaleCurrency.getCurrency(docSettings.locale ?? 'en-US');
+  return options.currency || docSettings.currency || LocaleCurrency.getCurrency(docSettings.locale ?? "en-US");
 }
 
 export function buildNumberFormat(options: NumberFormatOptions, docSettings: DocumentSettings): Intl.NumberFormat {
@@ -73,22 +73,22 @@ export function buildNumberFormat(options: NumberFormatOptions, docSettings: Doc
 // https://caniuse.com/?search=currencyDisplay
 const currencyDisplay = (function() {
   try {
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', currencyDisplay: 'narrowSymbol' });
-    return 'narrowSymbol';
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", currencyDisplay: "narrowSymbol" });
+    return "narrowSymbol";
   }
   catch (err) {
-    return 'symbol';
+    return "symbol";
   }
 })();
 
 export function parseNumMode(numMode?: NumMode | null, currency?: string): Intl.NumberFormatOptions {
   switch (numMode) {
-    case 'currency': return { style: 'currency', currency, currencyDisplay };
-    case 'decimal': return { useGrouping: true };
-    case 'percent': return { style: 'percent' };
+    case "currency": return { style: "currency", currency, currencyDisplay };
+    case "decimal": return { useGrouping: true };
+    case "percent": return { style: "percent" };
     // TODO 'notation' option (and therefore numMode 'scientific') works on recent Firefox and
     // Chrome, not on Safari or Node 10.
-    case 'scientific': return { notation: 'scientific' } as Intl.NumberFormatOptions;
+    case "scientific": return { notation: "scientific" } as Intl.NumberFormatOptions;
     default: return { useGrouping: false };
   }
 }

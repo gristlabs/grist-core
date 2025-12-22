@@ -1,22 +1,22 @@
-import { ClientScope } from 'app/client/components/ClientScope';
-import { guessTimezone } from 'app/client/lib/guessTimezone';
-import { HomePluginManager } from 'app/client/lib/HomePluginManager';
-import { ImportSourceElement } from 'app/client/lib/ImportSourceElement';
-import { localStorageObs } from 'app/client/lib/localStorageObs';
-import { AppModel, reportError } from 'app/client/models/AppModel';
-import { reportMessage, UserError } from 'app/client/models/errors';
-import { urlState } from 'app/client/models/gristUrlState';
-import { getUserPrefObs } from 'app/client/models/UserPrefs';
-import { ownerName } from 'app/client/models/WorkspaceInfo';
-import { IHomePage, isFeatureEnabled } from 'app/common/gristUrls';
-import { isLongerThan } from 'app/common/gutil';
-import { SortPref, UserOrgPrefs, ViewPref } from 'app/common/Prefs';
-import * as roles from 'app/common/roles';
-import { getGristConfig } from 'app/common/urlUtils';
-import { Document, Organization, RenameDocOptions, Workspace } from 'app/common/UserAPI';
-import { bundleChanges, Computed, Disposable, Observable, subscribe } from 'grainjs';
-import flatten from 'lodash/flatten';
-import sortBy from 'lodash/sortBy';
+import { ClientScope } from "app/client/components/ClientScope";
+import { guessTimezone } from "app/client/lib/guessTimezone";
+import { HomePluginManager } from "app/client/lib/HomePluginManager";
+import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
+import { localStorageObs } from "app/client/lib/localStorageObs";
+import { AppModel, reportError } from "app/client/models/AppModel";
+import { reportMessage, UserError } from "app/client/models/errors";
+import { urlState } from "app/client/models/gristUrlState";
+import { getUserPrefObs } from "app/client/models/UserPrefs";
+import { ownerName } from "app/client/models/WorkspaceInfo";
+import { IHomePage, isFeatureEnabled } from "app/common/gristUrls";
+import { isLongerThan } from "app/common/gutil";
+import { SortPref, UserOrgPrefs, ViewPref } from "app/common/Prefs";
+import * as roles from "app/common/roles";
+import { getGristConfig } from "app/common/urlUtils";
+import { Document, Organization, RenameDocOptions, Workspace } from "app/common/UserAPI";
+import { bundleChanges, Computed, Disposable, Observable, subscribe } from "grainjs";
+import flatten from "lodash/flatten";
+import sortBy from "lodash/sortBy";
 
 const DELAY_BEFORE_SPINNER_MS = 500;
 
@@ -106,7 +106,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     this.currentPage,
     this.currentWS,
     (use, page, ws) => {
-      if (page === 'all') {
+      if (page === "all") {
         return flatten(
           use(this.workspaces)
             .filter(w => !w.isSupportWorkspace)
@@ -129,20 +129,20 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
 
   public readonly otherSites = Computed.create(this, this.currentPage, this.app.topAppModel.orgs,
     (_use, page, orgs) => {
-      if (page !== 'all') { return []; }
+      if (page !== "all") { return []; }
 
       const currentOrg = this._app.currentOrg;
       if (!currentOrg) { return []; }
 
       const isPersonalOrg = currentOrg.owner;
-      if (!isPersonalOrg && (currentOrg.access !== 'viewers' || !currentOrg.public)) {
+      if (!isPersonalOrg && (currentOrg.access !== "viewers" || !currentOrg.public)) {
         return [];
       }
 
       return orgs.filter(org => org.id !== currentOrg.id);
     });
 
-  public readonly onlyShowDocuments = getUserPrefObs(this.app.userPrefsObs, 'onlyShowDocuments', {
+  public readonly onlyShowDocuments = getUserPrefObs(this.app.userPrefsObs, "onlyShowDocuments", {
     defaultValue: false,
   }) as Observable<boolean>;
 
@@ -154,10 +154,10 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public readonly newDocWorkspace = Computed.create(this, this.currentPage, this.currentWS, (use, page, ws) => {
     if (!this.app.currentValidUser) {
       // Anonymous user can create docs, but in unsaved mode and only when enabled.
-      return getGristConfig().enableAnonPlayground ? 'unsaved' : null;
+      return getGristConfig().enableAnonPlayground ? "unsaved" : null;
     }
-    if (page === 'trash') { return null; }
-    const destWS = (['all', 'templates'].includes(page)) ? (use(this.workspaces)[0] || null) : ws;
+    if (page === "trash") { return null; }
+    const destWS = (["all", "templates"].includes(page)) ? (use(this.workspaces)[0] || null) : ws;
     return destWS && roles.canEdit(destWS.access) ? destWS : null;
   });
 
@@ -165,7 +165,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     wss.every(ws => ws.isSupportWorkspace || ws.docs.length === 0)));
 
   public readonly shouldShowAddNewTip = Observable.create(this,
-    !this._app.behavioralPromptsManager.hasSeenPopup('addNew'));
+    !this._app.behavioralPromptsManager.hasSeenPopup("addNew"));
 
   public readonly onboardingTutorial = Observable.create<Document | null>(this, null);
 
@@ -176,14 +176,14 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
 
     if (!this.app.currentValidUser) {
       // For the anonymous user, use local settings, don't attempt to save anything to the server.
-      const viewSettings = makeLocalViewSettings(null, 'all');
+      const viewSettings = makeLocalViewSettings(null, "all");
       this.currentSort = viewSettings.currentSort;
       this.currentView = viewSettings.currentView;
     }
     else {
       // Preference for sorting. Defaults to 'name'. Saved to server on write.
       this.currentSort = Computed.create(this, this._userOrgPrefs,
-        (use, prefs) => SortPref.parse(prefs?.docMenuSort) || 'name')
+        (use, prefs) => SortPref.parse(prefs?.docMenuSort) || "name")
         .onWrite(s => this._saveUserOrgPref("docMenuSort", s));
 
       // Preference for view mode. The default is somewhat complicated. Saved to server on write.
@@ -296,7 +296,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     const currentPage = this.currentPage.get();
     const promises = [
       this._fetchWorkspaces(org.id, false).catch(reportError),
-      currentPage === 'trash' ? this._fetchWorkspaces(org.id, true).catch(reportError) : Promise.resolve(null),
+      currentPage === "trash" ? this._fetchWorkspaces(org.id, true).catch(reportError) : Promise.resolve(null),
       this._maybeFetchTemplates(),
     ] as const;
 
@@ -332,7 +332,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
 
   private _checkForDuplicates(name: string): void {
     if (this.workspaces.get().find(ws => ws.name === name)) {
-      throw new UserError('Name already exists. Please choose a different name.');
+      throw new UserError("Name already exists. Please choose a different name.");
     }
   }
 
@@ -375,7 +375,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
    * Fetches templates if on the Templates page.
    */
   private async _maybeFetchTemplates(): Promise<Workspace[] | null> {
-    if (!getGristConfig().templateOrg || this.currentPage.get() !== 'templates') {
+    if (!getGristConfig().templateOrg || this.currentPage.get() !== "templates") {
       return null;
     }
 
@@ -384,7 +384,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       templateWss = await this._app.api.getTemplates();
     }
     catch {
-      reportError('Failed to load templates');
+      reportError("Failed to load templates");
     }
     if (this.isDisposed()) { return null; }
 
@@ -403,7 +403,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   private async _loadWelcomeTutorial() {
     const { templateOrg, onboardingTutorialDocId } = getGristConfig();
     if (
-      !isFeatureEnabled('tutorials') ||
+      !isFeatureEnabled("tutorials") ||
       !templateOrg ||
       !onboardingTutorialDocId
     ) {
@@ -418,7 +418,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     }
     catch (e) {
       console.error(e);
-      reportError('Failed to load welcome tutorial');
+      reportError("Failed to load welcome tutorial");
     }
   }
 
@@ -427,7 +427,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     if (org) {
       org.userOrgPrefs = { ...org.userOrgPrefs, [key]: value };
       this._userOrgPrefs.set(org.userOrgPrefs);
-      await this._app.api.updateOrg('current', { userOrgPrefs: org.userOrgPrefs });
+      await this._app.api.updateOrg("current", { userOrgPrefs: org.userOrgPrefs });
     }
   }
 }
@@ -444,14 +444,14 @@ function getViewPrefDefault(workspaces: Workspace[]): ViewPref {
   const userWorkspaces = workspaces.filter(ws => !ws.isSupportWorkspace);
   const numDocs = userWorkspaces.reduce((sum, ws) => sum + ws.docs.length, 0);
   const pinnedDocs = userWorkspaces.some(ws => ws.docs.some(doc => doc.isPinned));
-  return (numDocs > 4 || pinnedDocs) ? 'list' : 'icons';
+  return (numDocs > 4 || pinnedDocs) ? "list" : "icons";
 }
 
 /**
  * Create observables for per-workspace view settings which default to org-wide settings, but can
  * be changed independently and persisted in localStorage.
  */
-export function makeLocalViewSettings(home: HomeModel | null, wsId: number | 'trash' | 'all' | 'templates'): ViewSettings {
+export function makeLocalViewSettings(home: HomeModel | null, wsId: number | "trash" | "all" | "templates"): ViewSettings {
   const userId = home?.app.currentUser?.id || 0;
   const sort = localStorageObs(`u=${userId}:ws=${wsId}:sort`);
   const view = localStorageObs(`u=${userId}:ws=${wsId}:view`);
@@ -459,11 +459,11 @@ export function makeLocalViewSettings(home: HomeModel | null, wsId: number | 'tr
   return {
     currentSort: Computed.create(null,
       // If no value in localStorage, use sort of All Documents.
-      use => SortPref.parse(use(sort)) || (home ? use(home.currentSort) : 'name'))
+      use => SortPref.parse(use(sort)) || (home ? use(home.currentSort) : "name"))
       .onWrite(val => sort.set(val)),
     currentView: Computed.create(null,
       // If no value in localStorage, use mode of All Documents, except Trash which defaults to 'list'.
-      use => ViewPref.parse(use(view)) || (wsId === 'trash' ? 'list' : (home ? use(home.currentView) : 'icons')))
+      use => ViewPref.parse(use(view)) || (wsId === "trash" ? "list" : (home ? use(home.currentView) : "icons")))
       .onWrite(val => view.set(val)),
   };
 }

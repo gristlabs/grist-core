@@ -1,21 +1,21 @@
-import { kbFocusHighlighterClass } from 'app/client/components/KeyboardFocusHighlighter';
-import { FocusLayer } from 'app/client/lib/FocusLayer';
-import { makeT } from 'app/client/lib/localization';
-import { reportError } from 'app/client/models/errors';
-import { cssInput } from 'app/client/ui/cssInput';
-import { prepareForTransition, TransitionWatcher } from 'app/client/ui/transitions';
-import { bigBasicButton, bigPrimaryButton, cssButton } from 'app/client/ui2018/buttons';
-import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
-import { mediaSmall, testId, theme, vars } from 'app/client/ui2018/cssVars';
-import { loadingSpinner } from 'app/client/ui2018/loaders';
-import { cssMenuElem } from 'app/client/ui2018/menus';
-import { waitGrainObs } from 'app/common/gutil';
-import { MaybePromise } from 'app/plugin/gutil';
+import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import { makeT } from "app/client/lib/localization";
+import { reportError } from "app/client/models/errors";
+import { cssInput } from "app/client/ui/cssInput";
+import { prepareForTransition, TransitionWatcher } from "app/client/ui/transitions";
+import { bigBasicButton, bigPrimaryButton, cssButton } from "app/client/ui2018/buttons";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { loadingSpinner } from "app/client/ui2018/loaders";
+import { cssMenuElem } from "app/client/ui2018/menus";
+import { waitGrainObs } from "app/common/gutil";
+import { MaybePromise } from "app/plugin/gutil";
 import { Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
-  MultiHolder, Observable, styled } from 'grainjs';
-import { IOpenController, IPopupOptions, PopupControl, popupOpen } from 'popweasel';
+  MultiHolder, Observable, styled } from "grainjs";
+import { IOpenController, IPopupOptions, PopupControl, popupOpen } from "popweasel";
 
-const t = makeT('modals');
+const t = makeT("modals");
 
 export const getConfirmText = () => t("Confirm");
 
@@ -136,7 +136,7 @@ export class ModalControl extends Disposable implements IModalControl {
  * Collapsing modals open with a expanding animation from a referenced DOM element, and
  * close with a collapsing animation into the referenced element.
  */
-export type IModalVariant = 'fade-in' | 'collapsing';
+export type IModalVariant = "fade-in" | "collapsing";
 
 export interface IModalOptions {
   // The modal variant. Defaults to "fade-in".
@@ -162,8 +162,8 @@ export class StayOpen extends Error {
 }
 
 export type ModalWidth =
-  'normal' |          // Normal dialog, from 428px to 480px in width.
-  'fixed-wide';       // Fixed 600px width.
+  "normal" |          // Normal dialog, from 428px to 480px in width.
+  "fixed-wide";       // Fixed 600px width.
 
 /**
  * A simple modal. Shows up in the middle of the screen with a tinted backdrop.
@@ -192,14 +192,14 @@ export function modal(
     noEscapeKey,
     noClickAway,
     refElement = document.body,
-    variant = 'fade-in',
+    variant = "fade-in",
     backerDomArgs = [],
   } = options;
 
   function doClose() {
     if (!modalDom.isConnected) { return; }
 
-    if (variant === 'collapsing') {
+    if (variant === "collapsing") {
       collapseAndCloseModal();
     }
     else {
@@ -216,16 +216,16 @@ export function modal(
   function collapseAndCloseModal() {
     const watcher = new TransitionWatcher(dialogDom);
     watcher.onDispose(() => closeModal());
-    modalDom.classList.add(cssModalBacker.className + '-collapsing');
+    modalDom.classList.add(cssModalBacker.className + "-collapsing");
     collapseModal();
   }
 
   function expandModal() {
     prepareForTransition(dialogDom, () => collapseModal());
     Object.assign(dialogDom.style, {
-      transform: '',
-      opacity: '',
-      visibility: 'visible',
+      transform: "",
+      opacity: "",
+      visibility: "visible",
     });
   }
 
@@ -237,7 +237,7 @@ export function modal(
     Object.assign(dialogDom.style, {
       transform: `scale(${collapsedRect.width / rect.width}, ${collapsedRect.height / rect.height})`,
       transformOrigin: `${originX}px ${originY}px`,
-      opacity: '0',
+      opacity: "0",
     });
   }
 
@@ -256,10 +256,10 @@ export function modal(
       dialogDom = cssModalDialog(
         createFn(ctl, owner),
         dom.cls(kbFocusHighlighterClass),
-        cssModalDialog.cls('-collapsing', variant === 'collapsing'),
-        dom.on('click', ev => ev.stopPropagation()),
+        cssModalDialog.cls("-collapsing", variant === "collapsing"),
+        dom.on("click", ev => ev.stopPropagation()),
         noEscapeKey ? null : dom.onKeyDown({ Escape: close }),
-        testId('modal-dialog'),
+        testId("modal-dialog"),
       );
       FocusLayer.create(owner, {
         defaultFocusElem: dialogDom,
@@ -270,12 +270,12 @@ export function modal(
       });
       return dialogDom;
     }),
-    noClickAway ? null : dom.on('click', () => close()),
+    noClickAway ? null : dom.on("click", () => close()),
     ...backerDomArgs,
   );
 
   document.body.appendChild(modalDom);
-  if (variant === 'collapsing') { expandModal(); }
+  if (variant === "collapsing") { expandModal(); }
 }
 
 export interface ISaveModalOptions {
@@ -336,21 +336,21 @@ export function saveModal(
     const save = ctl.doWork(options.saveFunc, { close: true, catchErrors: true });
 
     return [
-      cssModalTitle(options.title, testId('modal-title')),
+      cssModalTitle(options.title, testId("modal-title")),
       cssModalBody(options.body),
       cssModalButtons(
         bigPrimaryButton(options.saveLabel || t("Save"),
-          dom.boolAttr('disabled', isSaveDisabled),
-          dom.on('click', save),
-          testId('modal-confirm'),
+          dom.boolAttr("disabled", isSaveDisabled),
+          dom.on("click", save),
+          testId("modal-confirm"),
         ),
         options.extraButtons,
         options.hideCancel ? null : bigBasicButton(t("Cancel"),
-          dom.on('click', () => {
+          dom.on("click", () => {
             ctl.close();
             modalOptions?.onCancel?.();
           }),
-          testId('modal-cancel'),
+          testId("modal-cancel"),
         ),
       ),
       dom.onKeyDown({ Enter: () => isSaveDisabled.get() || save() }),
@@ -397,18 +397,18 @@ export function confirmModal(
       title,
       body: [
         explanation || null,
-        hideDontShowAgain ? null : dom('div',
+        hideDontShowAgain ? null : dom("div",
           cssDontShowAgainCheckbox(
             dontShowAgain,
             cssDontShowAgainCheckboxLabel(t("Don't show again")),
-            testId('modal-dont-show-again'),
+            testId("modal-dont-show-again"),
           ),
         ),
       ],
       saveLabel: btnText,
       saveFunc: async () => onConfirm(hideDontShowAgain ? undefined : dontShowAgain.get()),
       hideCancel,
-      width: width ?? 'normal',
+      width: width ?? "normal",
       extraButtons,
       saveDisabled,
     };
@@ -447,18 +447,18 @@ export function promptModal(
 ): void {
   saveModal((ctl, owner): ISaveModalOptions => {
     let confirmed = false;
-    const text = Observable.create(owner, initial ?? '');
-    const txtInput = input(text, { onInput: true }, { placeholder }, cssInput.cls(''), testId('modal-prompt'));
+    const text = Observable.create(owner, initial ?? "");
+    const txtInput = input(text, { onInput: true }, { placeholder }, cssInput.cls(""), testId("modal-prompt"));
     const options: ISaveModalOptions = {
       title,
       body: [body, txtInput],
-      saveLabel: btnText || t('Save'),
+      saveLabel: btnText || t("Save"),
       saveFunc: () => {
         // Mark that confirm was invoked.
         confirmed = true;
-        return onConfirm(text.get() || '');
+        return onConfirm(text.get() || "");
       },
-      width: 'normal',
+      width: "normal",
     };
     owner.onDispose(() => {
       if (confirmed) { return; }
@@ -518,13 +518,13 @@ export async function spinnerModal<T>(
     promise.then(close, close);
 
     return [
-      cssModalSpinner.cls(''),
+      cssModalSpinner.cls(""),
       cssModalTitle(
         title,
-        testId('modal-spinner-title'),
+        testId("modal-spinner-title"),
       ),
       cssSpinner(loadingSpinner()),
-      testId('modal-spinner'),
+      testId("modal-spinner"),
     ];
   }, {
     noClickAway: true,
@@ -540,7 +540,7 @@ export async function spinnerModal<T>(
  *    saveModal(() => {..., width: 'normal'})
  */
 export function cssModalWidth(style: ModalWidth) {
-  return cssModalDialog.cls('-' + style);
+  return cssModalDialog.cls("-" + style);
 }
 
 /**
@@ -576,15 +576,15 @@ export const cssModalTooltip = styled(cssMenuElem, `
   }
 `);
 
-export const cssModalTopPadding = styled('div', `
+export const cssModalTopPadding = styled("div", `
   padding-top: var(--css-modal-dialog-padding-vertical);
 `);
 
-export const cssModalBottomPadding = styled('div', `
+export const cssModalBottomPadding = styled("div", `
   padding-bottom: var(--css-modal-dialog-padding-vertical);
 `);
 
-export const cssModalHorizontalPadding = styled('div', `
+export const cssModalHorizontalPadding = styled("div", `
   padding-left: var(--css-modal-dialog-padding-horizontal);
   padding-right: var(--css-modal-dialog-padding-horizontal);
 `);
@@ -595,7 +595,7 @@ export const cssModalHorizontalPadding = styled('div', `
 //
 // If you want to control the padding yourself, use the cssModalTopPadding and other classes above and add -full-body
 // variant to the modal.
-export const cssModalDialog = styled('div', `
+export const cssModalDialog = styled("div", `
   --css-modal-dialog-padding-horizontal: 64px;
   --css-modal-dialog-padding-vertical: 40px;
   background-color: ${theme.modalBg};
@@ -631,7 +631,7 @@ export const cssModalDialog = styled('div', `
   }
 `);
 
-export const cssModalTitle = styled('div', `
+export const cssModalTitle = styled("div", `
   font-size: ${vars.xxxlargeFontSize};
   font-weight: ${vars.headerControlTextWeight};
   color: ${theme.text};
@@ -640,7 +640,7 @@ export const cssModalTitle = styled('div', `
   overflow-wrap: break-word;
 `);
 
-export const cssModalSubheading = styled('div', `
+export const cssModalSubheading = styled("div", `
   font-size: ${vars.xlargeFontSize};
   font-weight: ${vars.headerControlTextWeight};
   color: ${theme.text};
@@ -649,13 +649,13 @@ export const cssModalSubheading = styled('div', `
   overflow-wrap: break-word;
 `);
 
-export const cssModalBody = styled('div', `
+export const cssModalBody = styled("div", `
   color: ${theme.text};
   margin: 16px 0;
   overflow-wrap: break-word;
 `);
 
-export const cssModalButtons = styled('div', `
+export const cssModalButtons = styled("div", `
   margin: 40px 0 0 0;
 
   & > button,
@@ -664,7 +664,7 @@ export const cssModalButtons = styled('div', `
   }
 `);
 
-export const cssModalCloseButton = styled('div', `
+export const cssModalCloseButton = styled("div", `
   align-self: flex-end;
   margin: -8px;
   padding: 4px;
@@ -685,7 +685,7 @@ const cssFadeOut = keyframes(`
   from {background-color: ${theme.modalBackdrop}}
 `);
 
-const cssModalBacker = styled('div', `
+const cssModalBacker = styled("div", `
   position: fixed;
   display: flex;
   flex-direction: column;
@@ -706,14 +706,14 @@ const cssModalBacker = styled('div', `
   }
 `);
 
-export const cssSpinner = styled('div', `
+export const cssSpinner = styled("div", `
   display: flex;
   align-items: center;
   height: 80px;
   margin: auto;
 `);
 
-const cssModalSpinner = styled('div', `
+const cssModalSpinner = styled("div", `
   display: flex;
   flex-direction: column;
 `);
@@ -723,7 +723,7 @@ const cssFadeInFromTop = keyframes(`
   to {top: 0; opacity: 1}
 `);
 
-export const cssAnimatedModal = styled('div', `
+export const cssAnimatedModal = styled("div", `
   animation-name: ${cssFadeInFromTop};
   animation-duration: 0.4s;
   position: relative;
@@ -733,6 +733,6 @@ const cssDontShowAgainCheckbox = styled(labeledSquareCheckbox, `
   line-height: normal;
 `);
 
-const cssDontShowAgainCheckboxLabel = styled('span', `
+const cssDontShowAgainCheckboxLabel = styled("span", `
   color: ${theme.lightText};
 `);

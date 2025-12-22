@@ -1,26 +1,26 @@
-import { FormLayoutNode } from 'app/client/components/FormRenderer';
-import { buildEditor } from 'app/client/components/Forms/Editor';
-import { FieldModel } from 'app/client/components/Forms/Field';
-import { buildMenu } from 'app/client/components/Forms/Menu';
-import { BoxModel } from 'app/client/components/Forms/Model';
-import * as style from 'app/client/components/Forms/styles';
-import { makeTestId } from 'app/client/lib/domUtils';
-import { makeT } from 'app/client/lib/localization';
-import { icon } from 'app/client/ui2018/icons';
-import * as menus from 'app/client/ui2018/menus';
-import { inlineStyle, not } from 'app/common/gutil';
-import { bundleChanges, Computed, dom, IDomArgs, MultiHolder, Observable, styled } from 'grainjs';
-import { v4 as uuidv4 } from 'uuid';
+import { FormLayoutNode } from "app/client/components/FormRenderer";
+import { buildEditor } from "app/client/components/Forms/Editor";
+import { FieldModel } from "app/client/components/Forms/Field";
+import { buildMenu } from "app/client/components/Forms/Menu";
+import { BoxModel } from "app/client/components/Forms/Model";
+import * as style from "app/client/components/Forms/styles";
+import { makeTestId } from "app/client/lib/domUtils";
+import { makeT } from "app/client/lib/localization";
+import { icon } from "app/client/ui2018/icons";
+import * as menus from "app/client/ui2018/menus";
+import { inlineStyle, not } from "app/common/gutil";
+import { bundleChanges, Computed, dom, IDomArgs, MultiHolder, Observable, styled } from "grainjs";
+import { v4 as uuidv4 } from "uuid";
 
-const testId = makeTestId('test-forms-');
+const testId = makeTestId("test-forms-");
 
-const t = makeT('Columns');
+const t = makeT("Columns");
 
 export class ColumnsModel extends BoxModel {
   private _columnCount = Computed.create(this, use => use(this.children).length);
 
   public removeChild(box: BoxModel) {
-    if (box.type === 'Placeholder') {
+    if (box.type === "Placeholder") {
       // Make sure we have at least one rendered.
       if (this.children.get().length <= 1) {
         return;
@@ -33,7 +33,7 @@ export class ColumnsModel extends BoxModel {
 
   // Dropping a box on this component (Columns) directly will add it as a new column.
   public accept(dropped: FormLayoutNode): BoxModel {
-    if (!this.parent) { throw new Error('No parent'); }
+    if (!this.parent) { throw new Error("No parent"); }
 
     // We need to remove it from the parent, so find it first.
     const droppedRef = dropped.id ? this.root().find(dropped.id) : null;
@@ -54,7 +54,7 @@ export class ColumnsModel extends BoxModel {
     const content: HTMLElement = style.cssColumns(
       dom.autoDispose(dragHover),
 
-      testId('content'),
+      testId("content"),
 
       // Pass column count as a css variable (to style the grid).
       inlineStyle(`--css-columns-count`, this._columnCount),
@@ -62,28 +62,28 @@ export class ColumnsModel extends BoxModel {
       // Render placeholders as children.
       dom.forEach(this.children, (child) => {
         const toRender = child ?? BoxModel.new(Placeholder(), this);
-        return toRender.render(testId('column'));
+        return toRender.render(testId("column"));
       }),
 
       // Append + button at the end.
       cssPlaceholder(
-        testId('add'),
-        icon('Plus'),
-        dom.on('click', async () => {
+        testId("add"),
+        icon("Plus"),
+        dom.on("click", async () => {
           await this.save(() => {
             this.placeAfterListChild()(Placeholder());
           });
         }),
-        style.cssColumn.cls('-add-button'),
-        style.cssColumn.cls('-drag-over', dragHover),
+        style.cssColumn.cls("-add-button"),
+        style.cssColumn.cls("-drag-over", dragHover),
 
-        dom.on('dragleave', (ev) => {
+        dom.on("dragleave", (ev) => {
           ev.stopPropagation();
           ev.preventDefault();
           // Just remove the style and stop propagation.
           dragHover.set(false);
         }),
-        dom.on('dragover', (ev) => {
+        dom.on("dragover", (ev) => {
           // As usual, prevent propagation.
           ev.stopPropagation();
           ev.preventDefault();
@@ -149,33 +149,33 @@ export class PlaceholderModel extends BoxModel {
 
     return cssPlaceholder(
       style.cssDrop(),
-      testId('Placeholder'),
-      testId('element'),
-      dom.attr('data-box-model', String(box.type)),
+      testId("Placeholder"),
+      testId("element"),
+      dom.attr("data-box-model", String(box.type)),
       dom.autoDispose(scope),
 
-      style.cssColumn.cls('-drag-over', dragHover),
-      style.cssColumn.cls('-empty', not(boxModelAt)),
-      style.cssColumn.cls('-selected', use => use(view.selectedBox) === box),
+      style.cssColumn.cls("-drag-over", dragHover),
+      style.cssColumn.cls("-empty", not(boxModelAt)),
+      style.cssColumn.cls("-selected", use => use(view.selectedBox) === box),
 
       buildMenu({
         box: this,
         insertBox,
-        customItems: [menus.menuItem(removeColumn, menus.menuIcon('Remove'), t('Remove Column'))],
+        customItems: [menus.menuItem(removeColumn, menus.menuIcon("Remove"), t("Remove Column"))],
       }),
 
-      dom.on('contextmenu', (ev) => {
+      dom.on("contextmenu", (ev) => {
         ev.stopPropagation();
       }),
 
-      dom.on('dragleave', (ev) => {
+      dom.on("dragleave", (ev) => {
         ev.stopPropagation();
         ev.preventDefault();
         // Just remove the style and stop propagation.
         dragHover.set(false);
       }),
 
-      dom.on('dragover', (ev) => {
+      dom.on("dragover", (ev) => {
         // As usual, prevent propagation.
         ev.stopPropagation();
         ev.preventDefault();
@@ -184,13 +184,13 @@ export class PlaceholderModel extends BoxModel {
         dragHover.set(true);
       }),
 
-      dom.on('drop', (ev) => {
+      dom.on("drop", (ev) => {
         ev.stopPropagation();
         ev.preventDefault();
         dragHover.set(false);
 
         // Get the box that was dropped.
-        const dropped = JSON.parse(ev.dataTransfer!.getData('text/plain'));
+        const dropped = JSON.parse(ev.dataTransfer!.getData("text/plain"));
 
         // We need to remove it from the parent, so find it first.
         const droppedId = dropped.id;
@@ -217,14 +217,14 @@ export class PlaceholderModel extends BoxModel {
       dom.maybe(boxModelAt, child => child.render()),
       // If not, render a placeholder.
       dom.maybe(not(boxModelAt), () =>
-        dom('span', `Column `, dom.text(use => String(use(liveIndex) + 1))),
+        dom("span", `Column `, dom.text(use => String(use(liveIndex) + 1))),
       ),
       ...args,
     );
 
     function insertBox(childBox: FormLayoutNode) {
       // Make sure we have at least as many columns as the index we are inserting at.
-      if (!box.parent) { throw new Error('No parent'); }
+      if (!box.parent) { throw new Error("No parent"); }
       return box.parent.replace(box, childBox);
     }
 
@@ -235,14 +235,14 @@ export class PlaceholderModel extends BoxModel {
 }
 
 export function Placeholder(): FormLayoutNode {
-  return { id: uuidv4(), type: 'Placeholder' };
+  return { id: uuidv4(), type: "Placeholder" };
 }
 
 export function Columns(): FormLayoutNode {
-  return { id: uuidv4(), type: 'Columns', children: [Placeholder(), Placeholder()] };
+  return { id: uuidv4(), type: "Columns", children: [Placeholder(), Placeholder()] };
 }
 
-const cssPlaceholder = styled('div', `
+const cssPlaceholder = styled("div", `
   position: relative;
   & * {
     /* Otherwise it will emit drag events that we want to ignore to avoid flickering */

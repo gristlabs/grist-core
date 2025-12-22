@@ -1,11 +1,11 @@
-import { ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata } from 'app/common/DocSnapshot';
-import { ExternalStorageSupportingAttachments } from 'app/server/lib/AttachmentStore';
-import { AttachmentStoreProvider } from 'app/server/lib/AttachmentStoreProvider';
-import { CoreCreate } from 'app/server/lib/coreCreator';
-import { ExternalStorage, StreamDownloadResult, Unchanged } from 'app/server/lib/ExternalStorage';
-import { makeTestingFilesystemStoreConfig } from 'test/server/lib/FilesystemAttachmentStore';
-import { assert } from 'chai';
-import * as stream from 'node:stream';
+import { ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata } from "app/common/DocSnapshot";
+import { ExternalStorageSupportingAttachments } from "app/server/lib/AttachmentStore";
+import { AttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
+import { CoreCreate } from "app/server/lib/coreCreator";
+import { ExternalStorage, StreamDownloadResult, Unchanged } from "app/server/lib/ExternalStorage";
+import { makeTestingFilesystemStoreConfig } from "test/server/lib/FilesystemAttachmentStore";
+import { assert } from "chai";
+import * as stream from "node:stream";
 
 const testInstallationUUID = "FAKE-UUID";
 
@@ -13,8 +13,8 @@ function expectedStoreId(label: string) {
   return `${testInstallationUUID}-${label}`;
 }
 
-describe('AttachmentStoreProvider', () => {
-  it('constructs stores using the installations UID and store type', async () => {
+describe("AttachmentStoreProvider", () => {
+  it("constructs stores using the installations UID and store type", async () => {
     const storesConfig = [
       await makeTestingFilesystemStoreConfig("filesystem1"),
       await makeTestingFilesystemStoreConfig("filesystem2"),

@@ -1,11 +1,11 @@
-import { ACIndexImpl, ACItem } from 'app/client/lib/ACIndex';
-import { buildHighlightedDom } from 'app/client/lib/ACIndex';
-import { IAutocompleteOptions } from 'app/client/lib/autocomplete';
-import { IToken, TokenField } from 'app/client/lib/TokenField';
-import { colors, testId } from 'app/client/ui2018/cssVars';
-import { menuCssClass } from 'app/client/ui2018/menus';
-import { dom, styled } from 'grainjs';
-import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import { ACIndexImpl, ACItem } from "app/client/lib/ACIndex";
+import { buildHighlightedDom } from "app/client/lib/ACIndex";
+import { IAutocompleteOptions } from "app/client/lib/autocomplete";
+import { IToken, TokenField } from "app/client/lib/TokenField";
+import { colors, testId } from "app/client/ui2018/cssVars";
+import { menuCssClass } from "app/client/ui2018/menus";
+import { dom, styled } from "grainjs";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 /**
@@ -64,15 +64,15 @@ class Item implements ACItem, IToken {
 
 function setupTest() {
   const items: Item[] = [
-    new Item('Cat', 10),
-    new Item('Dog', 20),
-    new Item('Parakeet', 30),
-    new Item('Frog', 40),
-    new Item('Golden Monkey', 50),
+    new Item("Cat", 10),
+    new Item("Dog", 20),
+    new Item("Parakeet", 30),
+    new Item("Frog", 40),
+    new Item("Golden Monkey", 50),
   ];
   const acIndex = new ACIndexImpl<Item>(items);
   const acOptions: IAutocompleteOptions<Item> = {
-    menuCssClass: menuCssClass + ' test-autocomplete',
+    menuCssClass: menuCssClass + " test-autocomplete",
     search: async (term: string) => acIndex.search(term),
     renderItem: (item: Item, highlightFunc) =>
       cssItem(buildHighlightedDom(item.label, highlightFunc, cssMatchText)),
@@ -92,43 +92,43 @@ function setupTest() {
 
   return cssTestBox(
     cssExample(
-      'TokenField with plain input',
+      "TokenField with plain input",
       elem => tokenFieldPlain.attach(elem),
       cssValue(
         dom.text(use => JSON.stringify(
           (use(tokenFieldPlain.tokensObs) as Item[])
             .map((t: Item) => t.value()),
         )),
-        testId('json-value'),
+        testId("json-value"),
       ),
-      testId('tokenfield-plain'),
+      testId("tokenfield-plain"),
     ),
     cssExample(
-      'TokenField with autocomplete',
+      "TokenField with autocomplete",
       elem => tokenFieldAC.attach(elem),
       cssValue(
         dom.text(use => JSON.stringify(
           (use(tokenFieldAC.tokensObs) as Item[])
             .map((t: Item) => t.value()),
         )),
-        testId('json-value'),
+        testId("json-value"),
       ),
-      testId('tokenfield-ac'),
+      testId("tokenfield-ac"),
     ),
-    cssTextArea({ placeholder: 'Copy-paste testing area', rows: '3' },
-      testId('copypaste'),
+    cssTextArea({ placeholder: "Copy-paste testing area", rows: "3" },
+      testId("copypaste"),
     ),
   );
 }
 
-const cssTestBox = styled('div', `
+const cssTestBox = styled("div", `
   display: flex;
   flex-direction: column;
   margin: 40px;
   max-width: 600px;
 `);
 
-const cssItem = styled('li', `
+const cssItem = styled("li", `
   display: block;
   white-space: nowrap;
   overflow: hidden;
@@ -143,23 +143,23 @@ const cssItem = styled('li', `
   }
 `);
 
-const cssMatchText = styled('span', `
+const cssMatchText = styled("span", `
   color: ${colors.lightGreen};
   .selected > & {
     color: ${colors.lighterGreen};
   }
 `);
 
-const cssExample = styled('div', `
+const cssExample = styled("div", `
   margin: 16px;
 `);
 
-const cssValue = styled('div', `
+const cssValue = styled("div", `
   color: blue;
   margin: 8px 0;
 `);
 
-const cssTextArea = styled('textarea', `
+const cssTextArea = styled("textarea", `
   margin: 16px;
 `);
 

@@ -1,15 +1,15 @@
-import { domAsync } from 'app/client/lib/domAsync';
-import { constructUrl } from 'app/client/models/gristUrlState';
-import { buildCodeHighlighter } from 'app/client/ui/CodeHighlight';
-import { sanitizeHTMLIntoDOM } from 'app/client/ui/sanitizeHTML';
-import { cssLink, gristIconLink } from 'app/client/ui2018/links';
-import { AsyncCreate } from 'app/common/AsyncCreate';
-import { removePrefix } from 'app/common/gutil';
-import { dom, DomContents } from 'grainjs';
-import escape from 'lodash/escape';
-import { marked, Marked } from 'marked';
-import { markedHighlight } from 'marked-highlight';
-import markedLinkifyIt from 'marked-linkify-it';
+import { domAsync } from "app/client/lib/domAsync";
+import { constructUrl } from "app/client/models/gristUrlState";
+import { buildCodeHighlighter } from "app/client/ui/CodeHighlight";
+import { sanitizeHTMLIntoDOM } from "app/client/ui/sanitizeHTML";
+import { cssLink, gristIconLink } from "app/client/ui2018/links";
+import { AsyncCreate } from "app/common/AsyncCreate";
+import { removePrefix } from "app/common/gutil";
+import { dom, DomContents } from "grainjs";
+import escape from "lodash/escape";
+import { marked, Marked } from "marked";
+import { markedHighlight } from "marked-highlight";
+import markedLinkifyIt from "marked-linkify-it";
 
 export const renderer = new marked.Renderer();
 
@@ -18,8 +18,8 @@ export const renderer = new marked.Renderer();
  * are not supported in cells.
  */
 renderer.link = ({ href, text }) => {
-  const userRef = removePrefix(href, 'user:');
-  return userRef ? cssLink({ 'data-userref': userRef }, text, dom.cls('grist-mention')).outerHTML :
+  const userRef = removePrefix(href, "user:");
+  return userRef ? cssLink({ "data-userref": userRef }, text, dom.cls("grist-mention")).outerHTML :
     gristIconLink(constructUrl(href), text).outerHTML;
 };
 

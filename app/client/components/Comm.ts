@@ -22,16 +22,16 @@
  * communication libraries, and code outside of them should not rely on these details.
  */
 
-import { GristWSConnection } from 'app/client/components/GristWSConnection';
-import * as dispose from 'app/client/lib/dispose';
-import * as log from 'app/client/lib/log';
-import { ApiError } from 'app/common/ApiError';
-import { CommRequest, CommResponse, CommResponseBase, CommResponseError, ValidEvent } from 'app/common/CommTypes';
-import { UserAction } from 'app/common/DocActions';
-import { DocListAPI, OpenDocOptions, OpenLocalDocResult } from 'app/common/DocListAPI';
-import { GristServerAPI } from 'app/common/GristServerAPI';
-import { getInitialDocAssignment } from 'app/common/urlUtils';
-import { Events as BackboneEvents } from 'backbone';
+import { GristWSConnection } from "app/client/components/GristWSConnection";
+import * as dispose from "app/client/lib/dispose";
+import * as log from "app/client/lib/log";
+import { ApiError } from "app/common/ApiError";
+import { CommRequest, CommResponse, CommResponseBase, CommResponseError, ValidEvent } from "app/common/CommTypes";
+import { UserAction } from "app/common/DocActions";
+import { DocListAPI, OpenDocOptions, OpenLocalDocResult } from "app/common/DocListAPI";
+import { GristServerAPI } from "app/common/GristServerAPI";
+import { getInitialDocAssignment } from "app/common/urlUtils";
+import { Events as BackboneEvents } from "backbone";
 
 /**
  * A request that is currently being processed.
@@ -58,21 +58,21 @@ function isCommResponseError(msg: CommResponse | CommResponseError): msg is Comm
  */
 export class Comm extends dispose.Disposable implements GristServerAPI, DocListAPI {
   // methods defined by GristServerAPI
-  public logout = this._wrapMethod('logout');
-  public updateProfile = this._wrapMethod('updateProfile');
-  public getDocList = this._wrapMethod('getDocList');
-  public createNewDoc = this._wrapMethod('createNewDoc');
-  public importSampleDoc = this._wrapMethod('importSampleDoc');
-  public importDoc = this._wrapMethod('importDoc');
-  public deleteDoc = this._wrapMethod('deleteDoc');
+  public logout = this._wrapMethod("logout");
+  public updateProfile = this._wrapMethod("updateProfile");
+  public getDocList = this._wrapMethod("getDocList");
+  public createNewDoc = this._wrapMethod("createNewDoc");
+  public importSampleDoc = this._wrapMethod("importSampleDoc");
+  public importDoc = this._wrapMethod("importDoc");
+  public deleteDoc = this._wrapMethod("deleteDoc");
   // openDoc has special definition below
-  public renameDoc = this._wrapMethod('renameDoc');
-  public getConfig = this._wrapMethod('getConfig');
-  public updateConfig = this._wrapMethod('updateConfig');
-  public showItemInFolder = this._wrapMethod('showItemInFolder');
-  public getBasketTables = this._wrapMethod('getBasketTables');
-  public embedTable = this._wrapMethod('embedTable');
-  public reloadPlugins = this._wrapMethod('reloadPlugins');
+  public renameDoc = this._wrapMethod("renameDoc");
+  public getConfig = this._wrapMethod("getConfig");
+  public updateConfig = this._wrapMethod("updateConfig");
+  public showItemInFolder = this._wrapMethod("showItemInFolder");
+  public getBasketTables = this._wrapMethod("getBasketTables");
+  public embedTable = this._wrapMethod("embedTable");
+  public reloadPlugins = this._wrapMethod("reloadPlugins");
 
   public pendingRequests: Map<number, CommRequestInFlight>;
   public nextRequestNumber: number = 0;
@@ -122,13 +122,13 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
     if (connection) { return connection; }
     connection = GristWSConnection.create(null);
     this._connections.set(docId, connection);
-    this.listenTo(connection, 'serverMessage', this._onServerMessage.bind(this, docId));
-    this.listenTo(connection, 'connectionStatus', (message: any, status: any) => {
-      this.trigger('connectionStatus', message, status);
+    this.listenTo(connection, "serverMessage", this._onServerMessage.bind(this, docId));
+    this.listenTo(connection, "connectionStatus", (message: any, status: any) => {
+      this.trigger("connectionStatus", message, status);
     });
-    this.listenTo(connection, 'connectState', () => {
+    this.listenTo(connection, "connectState", () => {
       const isConnected = [...this._connections.values()].some(c => c.established);
-      this.trigger('connectState', isConnected);
+      this.trigger("connectState", isConnected);
     });
 
     connection.initialize(docId);
@@ -147,7 +147,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
    * are called via DocComm.
    */
   public async openDoc(docName: string, options?: OpenDocOptions): Promise<OpenLocalDocResult> {
-    return this._makeRequest(null, docName, 'openDoc', docName, options);
+    return this._makeRequest(null, docName, "openDoc", docName, options);
   }
 
   /**
@@ -241,7 +241,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
     if (clientId !== null && clientId !== connection.clientId) {
       log.warn("Comm: Rejecting " + methodName + " for outdated clientId %s (current %s)",
         clientId, connection.clientId);
-      return Promise.reject(new Error('Comm: outdated session'));
+      return Promise.reject(new Error("Comm: outdated session"));
     }
     const request: CommRequest = {
       reqId: this.nextRequestNumber++,
@@ -277,7 +277,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
       if (this._connections.size > 0) {
         return this._connections.values().next().value;
       }
-      throw new Error('no connection available');
+      throw new Error("no connection available");
     }
     const connection = this._connections.get(docId);
     if (!connection) {
@@ -296,7 +296,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
       if (reqMatchesConnection(req.docId, docId)) {
         log.warn(`Comm: Rejecting req #${reqId} ${req.methodName}: ${error}`);
         this.pendingRequests.delete(reqId);
-        req.reject(new Error('Comm: ' + error));
+        req.reject(new Error("Comm: " + error));
       }
     }
   }
@@ -310,12 +310,12 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
    *    There is probably no need for callers to deal with timeouts.
    */
   private _onServerMessage(docId: string | null, message: CommResponseBase) {
-    if ('reqId' in message) {
+    if ("reqId" in message) {
       const reqId = message.reqId;
       const r = this.pendingRequests.get(reqId);
       if (r) {
         try {
-          if ('errorCode' in message && message.errorCode === 'AUTH_NO_VIEW') {
+          if ("errorCode" in message && message.errorCode === "AUTH_NO_VIEW") {
             // We should only arrive here if the user had view access, and then lost it.
             // We should not let the user see the document any more.  Let's reload the
             // page, reducing this to the problem of arriving at a document the user
@@ -329,7 +329,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
               // Change type of error to be consistent with REST API calls.
               err = new ApiError(message.error, message.status, message.details);
             }
-            let code = '';
+            let code = "";
             if (message.errorCode) {
               code = ` [${message.errorCode}]`;
               err.code = message.errorCode;
@@ -337,12 +337,12 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
             if (message.details) {
               err.details = message.details;
             }
-            if (message.error?.startsWith('[Sandbox] UniqueReferenceError')) {
-              err.code = 'UNIQUE_REFERENCE_VIOLATION';
+            if (message.error?.startsWith("[Sandbox] UniqueReferenceError")) {
+              err.code = "UNIQUE_REFERENCE_VIOLATION";
             }
             err.shouldFork = message.shouldFork;
             log.warn(`Comm response #${reqId} ${r.methodName} ERROR:${code} ${message.error}` +
-              (message.shouldFork ? ` (should fork)` : ''));
+              (message.shouldFork ? ` (should fork)` : ""));
             this._reportError?.(err);
             r.reject(err);
           }
@@ -360,7 +360,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
       }
     }
     else {
-      if (message.type === 'clientConnect') {
+      if (message.type === "clientConnect") {
         // Reject or re-send any pending requests as appropriate in the order in which they were
         // added to the pendingRequests map.
         for (const [id, req] of this.pendingRequests) {
@@ -399,7 +399,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
     }
     if (error) {
       log.warn("Comm: Rejecting req #" + reqId + " " + r.methodName + ": " + error);
-      r.reject(new Error('Comm: ' + error));
+      r.reject(new Error("Comm: " + error));
       this.pendingRequests.delete(reqId);
     }
   }

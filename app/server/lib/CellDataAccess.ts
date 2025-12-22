@@ -51,7 +51,7 @@ export async function applyAndCheckActionsForCells(
   // If we don't have any actions, we are good to go.
   if (cellsActions.length === 0) { return; }
   const fail = () => {
-    throw new ErrorWithCode('ACL_DENY', 'Cannot access cell');
+    throw new ErrorWithCode("ACL_DENY", "Cannot access cell");
   };
 
   // In nutshell we will just test action one by one, and see if user
@@ -190,7 +190,7 @@ export async function applyAndCheckActionsForCells(
  * Checks if the action is a data action that modifies a _grist_Cells table.
  */
 export function isCellDataAction(a: DocAction): a is DataAction {
-  return getTableId(a) === '_grist_Cells' && isDataAction(a);
+  return getTableId(a) === "_grist_Cells" && isDataAction(a);
 }
 
 interface SingleCellInfo extends SingleCell {
@@ -224,8 +224,8 @@ export class CellData {
     });
   }
 
-  public getNewComments(actions: DocAction[]): MetaRowRecord<'_grist_Cells'>[] {
-    const rows: MetaRowRecord<'_grist_Cells'>[] = [];
+  public getNewComments(actions: DocAction[]): MetaRowRecord<"_grist_Cells">[] {
+    const rows: MetaRowRecord<"_grist_Cells">[] = [];
     for (const action of actions) {
       if (!isCellDataAction(action) || !isSomeAddRecordAction(action)) { continue; }
       for (const single of getSingleAction(action)) {
@@ -345,11 +345,11 @@ export class CellData {
     // renames.
     const updatedRows = new Map<string, Set<number>>();
     for (const action of actions) {
-      if (action[0] === 'RenameTable') {
+      if (action[0] === "RenameTable") {
         updatedRows.set(action[2], updatedRows.get(action[1]) || new Set());
         continue;
       }
-      if (action[0] === 'RemoveTable') {
+      if (action[0] === "RemoveTable") {
         updatedRows.delete(action[1]);
         continue;
       }
@@ -401,7 +401,7 @@ export class CellData {
         const cell = this.getCell(rowId);
         if (!cell || !await hasAccess(cell)) {
           colValues.content = [GristObjCode.Censored];
-          colValues.userRef = '';
+          colValues.userRef = "";
         }
       }
       else {
@@ -410,7 +410,7 @@ export class CellData {
           const cell = this.getCell(rowIds[idx]);
           if (!cell || !await hasAccess(cell)) {
             colValues.content[idx] = [GristObjCode.Censored];
-            colValues.userRef[idx] = '';
+            colValues.userRef[idx] = "";
           }
         }
       }
@@ -418,7 +418,7 @@ export class CellData {
     return docActions;
   }
 
-  public convertToCellInfo(cell: MetaRowRecord<'_grist_Cells'>): SingleCellInfoWithData {
+  public convertToCellInfo(cell: MetaRowRecord<"_grist_Cells">): SingleCellInfoWithData {
     const singleCell = {
       id: cell.id,
       tableId: this.getTableId(cell.tableRef) as string,
@@ -432,15 +432,15 @@ export class CellData {
   }
 
   public getColId(colRef: number) {
-    return this._docData.getMetaTable("_grist_Tables_column").getValue(colRef, 'colId');
+    return this._docData.getMetaTable("_grist_Tables_column").getValue(colRef, "colId");
   }
 
   public getTableId(tableRef: number) {
-    return this._docData.getMetaTable("_grist_Tables").getValue(tableRef, 'tableId');
+    return this._docData.getMetaTable("_grist_Tables").getValue(tableRef, "tableId");
   }
 
   public getTableRef(tableId: string) {
-    return this._docData.getMetaTable("_grist_Tables").findRow('tableId', tableId) || undefined;
+    return this._docData.getMetaTable("_grist_Tables").findRow("tableId", tableId) || undefined;
   }
 
   public getColRef(tableId: string, colId: string) {
@@ -496,7 +496,7 @@ export class CellData {
    */
   public convertToCells(action: DocAction): SingleCellInfo[] {
     if (!isDataAction(action)) { return []; }
-    if (getTableId(action) !== '_grist_Cells') { return []; }
+    if (getTableId(action) !== "_grist_Cells") { return []; }
     const result: { tableId: string, rowId: number, colId: string, id: number, userRef: string }[] = [];
     if (isBulkAction(action)) {
       const rowIds = getRowIds(action);
@@ -507,7 +507,7 @@ export class CellData {
             tableId: this.getTableId(colValues.tableRef[idx] as number) as string,
             colId: this.getColId(colValues.colRef[idx] as number) as string,
             rowId: colValues.rowId[idx] as number,
-            userRef: (colValues.userRef[idx] ?? '') as string,
+            userRef: (colValues.userRef[idx] ?? "") as string,
             id: rowIds[idx],
           });
         }
@@ -543,8 +543,8 @@ export class CellData {
 
   public generateInsert(ids: number[]): DataAction | null {
     const action: BulkAddRecord = [
-      'BulkAddRecord',
-      '_grist_Cells',
+      "BulkAddRecord",
+      "_grist_Cells",
       [],
       {
         tableRef: [],
@@ -576,8 +576,8 @@ export class CellData {
 
   public generateRemovals(ids: number[]) {
     const action: BulkRemoveRecord = [
-      'BulkRemoveRecord',
-      '_grist_Cells',
+      "BulkRemoveRecord",
+      "_grist_Cells",
       ids,
     ];
     return action[2].length > 1 ? action :
@@ -586,8 +586,8 @@ export class CellData {
 
   public generateUpdate(ids: number[]) {
     const action: BulkUpdateRecord = [
-      'BulkUpdateRecord',
-      '_grist_Cells',
+      "BulkUpdateRecord",
+      "_grist_Cells",
       [],
       {
         content: [],

@@ -14,8 +14,8 @@
  *     ),
  *   );
  */
-import { cssCheckboxSquare, cssLabel } from 'app/client/ui2018/checkbox';
-import { dom, DomArg, DomElementArg, Observable, styled } from 'grainjs';
+import { cssCheckboxSquare, cssLabel } from "app/client/ui2018/checkbox";
+import { dom, DomArg, DomElementArg, Observable, styled } from "grainjs";
 
 export {
   form,
@@ -33,7 +33,7 @@ export function checkboxItem(
   checkboxArgs: DomArg<HTMLInputElement>[], ...labelArgs: DomElementArg[]
 ): HTMLElement {
   return cssCheckboxLabel(
-    cssCheckbox({ type: 'checkbox' }, ...checkboxArgs),
+    cssCheckbox({ type: "checkbox" }, ...checkboxArgs),
     ...labelArgs);
 }
 
@@ -45,9 +45,9 @@ export function checkboxItem(
 export function checkboxOther(checkboxArgs: DomElementArg[], ...textboxArgs: DomElementArg[]): HTMLElement {
   let checkbox: HTMLInputElement;
   return cssCheckboxLabel(
-    checkbox = cssCheckbox({ type: 'checkbox' }, ...checkboxArgs),
+    checkbox = cssCheckbox({ type: "checkbox" }, ...checkboxArgs),
     cssTextBox(...textboxArgs,
-      dom.on('input', (e, elem) => { checkbox.checked = Boolean(elem.value); }),
+      dom.on("input", (e, elem) => { checkbox.checked = Boolean(elem.value); }),
     ),
   );
 }
@@ -68,7 +68,7 @@ export function isFormFilled(formElem: HTMLFormElement, names: string[]): boolea
  * any value for a key that starts with that prefix.
  */
 export function hasValue(formData: FormData, nameOrPrefix: string): boolean {
-  if (nameOrPrefix.endsWith('*')) {
+  if (nameOrPrefix.endsWith("*")) {
     const prefix = nameOrPrefix.slice(0, -1);
     return [...formData.keys()].filter(k => k.startsWith(prefix)).some(k => formData.get(k));
   }
@@ -78,7 +78,7 @@ export function hasValue(formData: FormData, nameOrPrefix: string): boolean {
 }
 
 function resize(el: HTMLElement) {
-  el.style.height = '5px'; // hack for triggering style update.
+  el.style.height = "5px"; // hack for triggering style update.
   const border = getComputedStyle(el, null).borderTopWidth || "0";
   el.style.height = `calc(${el.scrollHeight}px + 2 * ${border})`;
 }
@@ -96,20 +96,20 @@ export function autoGrow(text: Observable<unknown>) {
     });
     resizeObserver.observe(el);
     dom.onDisposeElem(el, () => resizeObserver.disconnect());
-    el.addEventListener('input', () => resize(el));
+    el.addEventListener("input", () => resize(el));
     dom.autoDisposeElem(el, text.addListener(() => setTimeout(() => resize(el), 0)));
     setTimeout(() => resize(el), 10);
     dom.autoDisposeElem(el, text.addListener((val) => {
       // Changes to the text are not reflected by the input event (witch is used by the autoGrow)
       // So we need to manually update the textarea when the text is cleared.
       if (!val) {
-        el.style.height = '5px'; // there is a min-height css attribute, so this is only to trigger a style update.
+        el.style.height = "5px"; // there is a min-height css attribute, so this is only to trigger a style update.
       }
     }));
   };
 }
 
-const cssForm = styled('form', `
+const cssForm = styled("form", `
   margin-bottom: 32px;
   font-size: 14px;
   &:focus {
@@ -121,7 +121,7 @@ const cssForm = styled('form', `
   }
 `);
 
-const cssQuestion = styled('div', `
+const cssQuestion = styled("div", `
   margin: 32px 0;
   padding-left: 24px;
   & > :first-child {
@@ -129,7 +129,7 @@ const cssQuestion = styled('div', `
   }
 `);
 
-const cssText = styled('div', `
+const cssText = styled("div", `
   margin: 16px 0;
   font-size: 15px;
 `);
@@ -149,7 +149,7 @@ const cssCheckbox = styled(cssCheckboxSquare, `
   border-radius: var(--radius);
 `);
 
-const cssTextBox = styled('input', `
+const cssTextBox = styled("input", `
   flex: auto;
   width: 100%;
   font-size: inherit;
@@ -162,5 +162,5 @@ const cssTextBox = styled('input', `
   }
 `);
 
-const form = cssForm.bind(null, { tabIndex: '-1' });
-const textBox = cssTextBox.bind(null, { type: 'text' });
+const form = cssForm.bind(null, { tabIndex: "-1" });
+const textBox = cssTextBox.bind(null, { type: "text" });

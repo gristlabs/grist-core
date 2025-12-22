@@ -1,12 +1,12 @@
-import ace, { Ace } from 'ace-builds';
-import { expandAndFilterSuggestions, ISuggestionWithSubAttrs } from 'app/client/lib/Suggestions';
-import { setupAceEditorCompletions } from 'app/client/components/AceEditorCompletions';
-import { ISuggestionWithValue } from 'app/common/ActiveDocAPI';
-import { theme } from 'app/client/ui2018/cssVars';
-import { gristThemeObs } from 'app/client/ui2018/theme';
-import { Theme } from 'app/common/ThemePrefs';
-import { dom, DomArg, Observable, styled } from 'grainjs';
-import debounce from 'lodash/debounce';
+import ace, { Ace } from "ace-builds";
+import { expandAndFilterSuggestions, ISuggestionWithSubAttrs } from "app/client/lib/Suggestions";
+import { setupAceEditorCompletions } from "app/client/components/AceEditorCompletions";
+import { ISuggestionWithValue } from "app/common/ActiveDocAPI";
+import { theme } from "app/client/ui2018/cssVars";
+import { gristThemeObs } from "app/client/ui2018/theme";
+import { Theme } from "app/common/ThemePrefs";
+import { dom, DomArg, Observable, styled } from "grainjs";
+import debounce from "lodash/debounce";
 
 export interface ACLFormulaOptions {
   initialValue: string;
@@ -19,13 +19,13 @@ export interface ACLFormulaOptions {
 
 export function aclFormulaEditor(options: ACLFormulaOptions) {
   // Create an element and an editor within it.
-  const editorElem = dom('div');
+  const editorElem = dom("div");
   const editor: Ace.Editor = ace.edit(editorElem);
 
   // Set various editor options.
   function setAceTheme(newTheme: Theme) {
     const { appearance } = newTheme;
-    const aceTheme = appearance === 'dark' ? 'dracula' : 'chrome';
+    const aceTheme = appearance === "dark" ? "dracula" : "chrome";
     editor.setTheme(`ace/theme/${aceTheme}`);
   }
   setAceTheme(gristThemeObs().get());
@@ -39,11 +39,11 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   editor.renderer.setScrollMargin(4, 4, 0, 0);
   (editor as any).$blockScrolling = Infinity;
   editor.setReadOnly(options.readOnly);
-  editor.setFontSize('12');
+  editor.setFontSize("12");
   editor.setHighlightActiveLine(false);
 
   const session = editor.getSession();
-  session.setMode('ace/mode/python');
+  session.setMode("ace/mode/python");
   session.setTabSize(2);
   session.setUseWrapMode(true);
 
@@ -57,11 +57,11 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   async function getSuggestions(prefix: string): Promise<ISuggestionWithValue[]> {
     return [
       // The few Python keywords and constants we support.
-      'and', 'or', 'not', 'in', 'is', 'True', 'False', 'None',
+      "and", "or", "not", "in", "is", "True", "False", "None",
       // Some grist-specific constants:
-      'OWNER', 'EDITOR', 'VIEWER',
+      "OWNER", "EDITOR", "VIEWER",
       // The common variables.
-      'user', 'rec', 'newRec',
+      "user", "rec", "newRec",
     ]
       .map<ISuggestionWithValue>(suggestion => [suggestion, null])   // null means no example value
       .concat(
@@ -82,12 +82,12 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
 
   // Blur (and save) on Enter key.
   editor.commands.addCommand({
-    name: 'onEnter',
-    bindKey: { win: 'Enter', mac: 'Enter' },
+    name: "onEnter",
+    bindKey: { win: "Enter", mac: "Enter" },
     exec: () => editor.blur(),
   });
   // Disable Tab/Shift+Tab commands to restore their regular behavior.
-  (editor.commands as any).removeCommands(['indent', 'outdent']);
+  (editor.commands as any).removeCommands(["indent", "outdent"]);
 
   // Set the editor's initial value.
   editor.setValue(options.initialValue);
@@ -98,18 +98,18 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
 
   return cssConditionInputAce(
     dom.autoDispose(themeListener ?? null),
-    cssConditionInputAce.cls('-disabled', options.readOnly),
+    cssConditionInputAce.cls("-disabled", options.readOnly),
     // ACE editor calls preventDefault on clicks into the scrollbar area, which prevents focus
     // being set when the click happens to be into there. To ensure we can focus on such clicks
     // anyway, listen to the mousedown event in the capture phase.
-    dom.on('mousedown', () => { editor.focus(); }, { useCapture: true }),
+    dom.on("mousedown", () => { editor.focus(); }, { useCapture: true }),
     dom.onDispose(() => editor.destroy()),
     dom.onDispose(() => save.cancel()),
     editorElem,
   );
 }
 
-const cssConditionInputAce = styled('div', `
+const cssConditionInputAce = styled("div", `
   width: 100%;
   min-height: 28px;
   padding: 1px;
@@ -149,7 +149,7 @@ const cssConditionInputAce = styled('div', `
   }
 `);
 
-const cssAcePlaceholder = styled('div', `
+const cssAcePlaceholder = styled("div", `
   padding: 4px 5px;
   opacity: 0.5;
 `);

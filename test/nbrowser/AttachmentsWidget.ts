@@ -588,9 +588,9 @@ describe("AttachmentsWidget", function() {
     );
 
     // the spinner should show up after a small delay, wait for 1 second tops
-    await driver.findWait('.test-attachment-spinner', 1000);
+    await driver.findWait(".test-attachment-spinner", 1000);
     // then wait for the spinner to disappear
-    await driver.wait(async () => !(await cell.find('.test-attachment-spinner').isPresent()), 2000);
+    await driver.wait(async () => !(await cell.find(".test-attachment-spinner").isPresent()), 2000);
 
     // check the upload was successful by comparing the number of thumbnails
     const newThumbnailsCount = (await cell.findAll(".test-pw-thumbnail"))?.length || 0;
@@ -609,9 +609,9 @@ describe("AttachmentsWidget", function() {
     });
 
     // the spinner should show up directly
-    await driver.findWait('.test-pw-spinner', 500);
+    await driver.findWait(".test-pw-spinner", 500);
     // wait for the spinner to disappear
-    await driver.wait(async () => !(await cell.find('.test-pw-spinner').isPresent()), 2000);
+    await driver.wait(async () => !(await cell.find(".test-pw-spinner").isPresent()), 2000);
 
     // check the upload was successful by checking the final counter
     await driver.findContentWait(".test-pw-counter", /of 2/, 3000);
@@ -652,18 +652,18 @@ describe("AttachmentsWidget", function() {
   // editor
   it("should show attachments editor for attachment formula column", async function() {
     const revert = await gu.begin();
-    await gu.addNewPage('Table', 'Table1');
+    await gu.addNewPage("Table", "Table1");
     await gu.sendActions([
-      ...['B', 'C', 'D', 'E'].map(col => ['RemoveColumn', 'Table1', col]),
-      ['AddVisibleColumn', 'Table1', 'B', {
+      ...["B", "C", "D", "E"].map(col => ["RemoveColumn", "Table1", col]),
+      ["AddVisibleColumn", "Table1", "B", {
         isFormula: true,
         formula: "$A",
-        type: 'Attachments',
+        type: "Attachments",
       }],
     ]);
 
     // Open the second attachment in preview in column B.
-    const cell = gu.getCell({ col: 'B', rowNum: 2 });
+    const cell = gu.getCell({ col: "B", rowNum: 2 });
     await driver.withActions(a =>
       a.doubleClick(cell.find(".test-pw-thumbnail[title*=png]")),
     );
@@ -682,7 +682,7 @@ describe("AttachmentsWidget", function() {
     await ensureDialogIsClosed();
 
     // Now double click on the empty cell in row 4, we should see "No attachments" message
-    const emptyCell = gu.getCell({ col: 'B', rowNum: 4 });
+    const emptyCell = gu.getCell({ col: "B", rowNum: 4 });
     await gu.dbClick(emptyCell);
     assert.equal(await driver.findWait(".test-pw-attachment-content", 1000).getText(), "No attachments");
     // Close the preview
@@ -691,19 +691,19 @@ describe("AttachmentsWidget", function() {
 
     // Now press F2 to edit the formula
     await gu.sendKeys(Key.F2);
-    await gu.checkFormulaEditor('$A');
+    await gu.checkFormulaEditor("$A");
     await gu.sendKeys(Key.ESCAPE);
     await gu.waitAppFocus();
 
     // Now do the same with Enter key
     await gu.sendKeys(Key.ENTER);
-    await gu.checkFormulaEditor('$A');
+    await gu.checkFormulaEditor("$A");
     await gu.sendKeys(Key.ESCAPE);
     await gu.waitAppFocus();
 
     // Now the same with any key
-    await gu.sendKeys('hello');
-    await gu.checkFormulaEditor('hello');
+    await gu.sendKeys("hello");
+    await gu.checkFormulaEditor("hello");
     await gu.sendKeys(Key.ESCAPE);
     await gu.waitAppFocus();
 

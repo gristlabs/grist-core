@@ -1,15 +1,15 @@
-import { ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata } from 'app/common/DocSnapshot';
-import log from 'app/server/lib/log';
-import { createTmpDir } from 'app/server/lib/uploads';
+import { ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata } from "app/common/DocSnapshot";
+import log from "app/server/lib/log";
+import { createTmpDir } from "app/server/lib/uploads";
 
-import { delay } from 'bluebird';
-import * as fse from 'fs-extra';
-import * as path from 'path';
-import stream from 'node:stream';
+import { delay } from "bluebird";
+import * as fse from "fs-extra";
+import * as path from "path";
+import stream from "node:stream";
 
 // A special token representing a deleted document, used in places where a
 // checksum is expected otherwise.
-export const DELETED_TOKEN = '*DELETED*';
+export const DELETED_TOKEN = "*DELETED*";
 
 export interface FileMetadata {
   size: number;
@@ -82,9 +82,9 @@ export interface ExternalStorage {
  * E.g. this could convert "<docId>" to "v1/<docId>.grist"
  */
 export class KeyMappedExternalStorage implements ExternalStorage {
-  public uploadStream: ExternalStorage['uploadStream'];
-  public downloadStream: ExternalStorage['downloadStream'];
-  public removeAllWithPrefix: ExternalStorage['removeAllWithPrefix'];
+  public uploadStream: ExternalStorage["uploadStream"];
+  public downloadStream: ExternalStorage["downloadStream"];
+  public removeAllWithPrefix: ExternalStorage["removeAllWithPrefix"];
 
   constructor(private _ext: ExternalStorage,
     private _map: (key: string) => string) {
@@ -186,12 +186,12 @@ export class ChecksummedExternalStorage implements ExternalStorage {
   }
 
   public async exists(key: string, snapshotId?: string): Promise<boolean> {
-    return this._retryWithExistenceCheck('exists', key, snapshotId,
+    return this._retryWithExistenceCheck("exists", key, snapshotId,
       this._ext.exists.bind(this._ext));
   }
 
   public async head(key: string, snapshotId?: string) {
-    return this._retryWithExistenceCheck('head', key, snapshotId,
+    return this._retryWithExistenceCheck("head", key, snapshotId,
       this._ext.head.bind(this._ext));
   }
 
@@ -225,11 +225,11 @@ export class ChecksummedExternalStorage implements ExternalStorage {
     try {
       // Removing most recent version by id is not something we should be doing, and
       // if we want to do it it would need to be done carefully - so just forbid it.
-      if (snapshotIds?.includes(await this._options.latestVersion.load(key) || '')) {
-        throw new Error('cannot remove most recent version of a document by id');
+      if (snapshotIds?.includes(await this._options.latestVersion.load(key) || "")) {
+        throw new Error("cannot remove most recent version of a document by id");
       }
       await this._ext.remove(key, snapshotIds);
-      log.info("ext %s remove: %s version %s", this.label, this._ext.url(key), snapshotIds || 'ALL');
+      log.info("ext %s remove: %s version %s", this.label, this._ext.url(key), snapshotIds || "ALL");
       if (!snapshotIds) {
         await this._options.latestVersion.save(key, DELETED_TOKEN);
         await this._options.sharedHash.save(key, DELETED_TOKEN);
@@ -260,15 +260,15 @@ export class ChecksummedExternalStorage implements ExternalStorage {
    * doing that.  So we add a downloadTo variant that takes before and after keys.
    */
   public async downloadTo(fromKey: string, toKey: string, fname: string, snapshotId?: string) {
-    return this._retry('download', async () => {
+    return this._retry("download", async () => {
       const { tmpDir, cleanupCallback } = await createTmpDir({});
       const tmpPath = path.join(tmpDir, `${toKey}-tmp`);  // NOTE: assumes key is file-system safe.
       try {
         const downloadedSnapshotId = await this._ext.download(fromKey, tmpPath, snapshotId);
         const checksum = await this._options.computeFileHash(tmpPath);
         log.info("ext %s download: %s%s%s with checksum %s and version %s saved to %s", this.label, fromKey,
-          snapshotId ? ` [VersionId ${snapshotId}]` : '',
-          fromKey !== toKey ? ` as ${toKey}` : '',
+          snapshotId ? ` [VersionId ${snapshotId}]` : "",
+          fromKey !== toKey ? ` as ${toKey}` : "",
           checksum, downloadedSnapshotId, tmpPath);
 
         // Check for consistency if mutable data fetched.
@@ -314,7 +314,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
   }
 
   public async versions(key: string) {
-    return this._retry('versions', async () => {
+    return this._retry("versions", async () => {
       const snapshotId = await this._options.latestVersion.load(key);
       if (snapshotId === DELETED_TOKEN) { return []; }
       const result = await this._ext.versions(key);
@@ -363,7 +363,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
         const [attemptMs, totalMs] = [Date.now() - attemptStart, Date.now() - start];
         log.info(`operation ${name} took ${attemptMs} ms (attempt: ${backoffCount}, total: ${totalMs} ms)`);
         if (result !== undefined) { return result; }
-        problems.push([Date.now() - start, 'not ready']);
+        problems.push([Date.now() - start, "not ready"]);
       }
       catch (err) {
         if (this._ext.isFatalError(err)) {
@@ -374,7 +374,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
       // Wait some time before attempting to reload from s3.  The longer we wait, the greater
       // the odds of success.  In practice, a second should be more than enough almost always.
       await delay(Math.round(backoffFactor));
-      if (this._closed) { throw new Error('storage closed'); }
+      if (this._closed) { throw new Error("storage closed"); }
       backoffCount++;
       backoffFactor *= 1.7;
     }
@@ -420,10 +420,10 @@ export interface PropStorage {
   load(key: string): Promise<string | null>;
 }
 
-export const Unchanged = Symbol('Unchanged');
+export const Unchanged = Symbol("Unchanged");
 
 export interface ExternalStorageSettings {
-  purpose: 'doc' | 'meta' | 'attachments';
+  purpose: "doc" | "meta" | "attachments";
   basePrefix?: string;
   extraPrefix?: string;
 }
@@ -470,22 +470,22 @@ export function joinKeySegments(keySegments: string[]): string {
  */
 export function getExternalStorageKeyMap(settings: ExternalStorageSettings): (originalKey: string) => string {
   const { basePrefix, extraPrefix, purpose } = settings;
-  let fullPrefix = basePrefix + (basePrefix?.endsWith('/') ? '' : '/');
+  let fullPrefix = basePrefix + (basePrefix?.endsWith("/") ? "" : "/");
   if (extraPrefix) {
-    fullPrefix += extraPrefix + (extraPrefix.endsWith('/') ? '' : '/');
+    fullPrefix += extraPrefix + (extraPrefix.endsWith("/") ? "" : "/");
   }
 
   // Set up how we name files/objects externally.
   let fileNaming: (originalKey: string) => string;
-  if (purpose === 'doc') {
+  if (purpose === "doc") {
     fileNaming = docId => `${docId}.grist`;
   }
-  else if (purpose === 'meta') {
+  else if (purpose === "meta") {
     // Put this in separate prefix so a lifecycle rule can prune old versions of the file.
     // Alternatively, could go in separate bucket.
     fileNaming = docId => `assets/unversioned/${docId}/meta.json`;
   }
-  else if (purpose === 'attachments') {
+  else if (purpose === "attachments") {
     // Prefix-only - attachments system handles exact naming
     fileNaming = attachmentPath => `attachments/${stripLeadingSlash(attachmentPath)}`;
   }

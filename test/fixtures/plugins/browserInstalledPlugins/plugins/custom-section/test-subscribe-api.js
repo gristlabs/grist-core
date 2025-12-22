@@ -1,23 +1,23 @@
 
 
 /* global grist, window, $, document */
-let tableId = 'Table1';
+let tableId = "Table1";
 
 grist.ready();
 grist.api.subscribe(tableId);
 
 window.onload = () => {
-  showColumn('A');
+  showColumn("A");
 };
 
 grist.rpc.on("message", (msg) => {
   if (msg.type === "docAction") {
     // There could by many doc actions and fetching table is expensive, in practice this call would
     // be be throttle
-    if (msg.action[0] === 'RenameTable') {
+    if (msg.action[0] === "RenameTable") {
       tableId = msg.action[2];
     }
-    showColumn('A');
+    showColumn("A");
   }
 });
 

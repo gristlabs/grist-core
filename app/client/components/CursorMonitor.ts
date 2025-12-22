@@ -1,9 +1,9 @@
-import { GristDoc } from 'app/client/components/GristDoc';
-import { getStorage } from 'app/client/lib/storage';
-import { IDocPage, isViewDocPage, ViewDocPage } from 'app/common/gristUrls';
-import { Disposable, Listener, Observable } from 'grainjs';
-import { reportError } from 'app/client/models/errors';
-import { CursorPos } from 'app/plugin/GristAPI';
+import { GristDoc } from "app/client/components/GristDoc";
+import { getStorage } from "app/client/lib/storage";
+import { IDocPage, isViewDocPage, ViewDocPage } from "app/common/gristUrls";
+import { Disposable, Listener, Observable } from "grainjs";
+import { reportError } from "app/client/models/errors";
+import { CursorPos } from "app/plugin/GristAPI";
 
 /**
  * Enriched cursor position with a view id
@@ -75,7 +75,7 @@ export class CursorMonitor extends Disposable {
 
     // if we are on raw data view, we need to set the position manually
     // as currentView observable will not be changed.
-    if (doc.activeViewId.get() === 'data') {
+    if (doc.activeViewId.get() === "data") {
       this._doRestorePosition(doc).catch(e => reportError(e));
       return;
     }

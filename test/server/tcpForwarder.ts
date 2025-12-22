@@ -1,5 +1,5 @@
-import { Server, Socket } from 'net';
-import { connect as connectSock, getAvailablePort, listenPromise } from 'app/server/lib/serverUtils';
+import { Server, Socket } from "net";
+import { connect as connectSock, getAvailablePort, listenPromise } from "app/server/lib/serverUtils";
 
 // We'll test reconnects by making a connection through this TcpForwarder, which we'll use to
 // simulate disconnects.
@@ -53,8 +53,8 @@ export class TcpForwarder {
     const serverSock = await connectSock(this._serverPort, this._serverHost);
     clientSock.pipe(serverSock);
     serverSock.pipe(clientSock);
-    clientSock.on('error', err => serverSock.destroy(err));
-    serverSock.on('error', err => clientSock.destroy(err));
+    clientSock.on("error", err => serverSock.destroy(err));
+    serverSock.on("error", err => clientSock.destroy(err));
     this._connections.set(clientSock, serverSock);
   }
 }
@@ -62,6 +62,6 @@ export class TcpForwarder {
 async function destroySock(sock: Socket): Promise<void> {
   if (!sock.destroyed) {
     await new Promise((resolve, reject) =>
-      sock.on('close', resolve).destroy());
+      sock.on("close", resolve).destroy());
   }
 }

@@ -1,5 +1,5 @@
-import * as WS from 'ws';
-import * as EIO from 'engine.io';
+import * as WS from "ws";
+import * as EIO from "engine.io";
 
 export abstract class GristServerSocket {
   public abstract set onerror(handler: (err: Error) => void);
@@ -26,8 +26,8 @@ export class GristServerSocketEIO extends GristServerSocket {
   public set onerror(handler: (err: Error) => void) {
     // Note that as far as I can tell, Engine.IO sockets never emit "error"
     // but instead include error information in the "close" event.
-    this._socket.on('error', handler);
-    this._eventHandlers.push({ event: 'error', handler });
+    this._socket.on("error", handler);
+    this._eventHandlers.push({ event: "error", handler });
   }
 
   public set onclose(handler: () => void) {
@@ -43,16 +43,16 @@ export class GristServerSocketEIO extends GristServerSocket {
 
       handler();
     };
-    this._socket.on('close', wrappedHandler);
-    this._eventHandlers.push({ event: 'close', handler: wrappedHandler });
+    this._socket.on("close", wrappedHandler);
+    this._eventHandlers.push({ event: "close", handler: wrappedHandler });
   }
 
   public set onmessage(handler: (data: string) => void) {
     const wrappedHandler = (msg: Buffer) => {
       handler(msg.toString());
     };
-    this._socket.on('message', wrappedHandler);
-    this._eventHandlers.push({ event: 'message', handler: wrappedHandler });
+    this._socket.on("message", wrappedHandler);
+    this._eventHandlers.push({ event: "message", handler: wrappedHandler });
   }
 
   public removeAllListeners() {
@@ -73,7 +73,7 @@ export class GristServerSocketEIO extends GristServerSocket {
   }
 
   public get isOpen() {
-    return this._socket.readyState === 'open';
+    return this._socket.readyState === "open";
   }
 
   public send(data: string, cb?: (err?: Error) => void) {
@@ -96,19 +96,19 @@ export class GristServerSocketWS extends GristServerSocket {
   constructor(private _ws: WS.WebSocket) { super(); }
 
   public set onerror(handler: (err: Error) => void) {
-    this._ws.on('error', handler);
-    this._eventHandlers.push({ event: 'error', handler });
+    this._ws.on("error", handler);
+    this._eventHandlers.push({ event: "error", handler });
   }
 
   public set onclose(handler: () => void) {
-    this._ws.on('close', handler);
-    this._eventHandlers.push({ event: 'close', handler });
+    this._ws.on("close", handler);
+    this._eventHandlers.push({ event: "close", handler });
   }
 
   public set onmessage(handler: (data: string) => void) {
     const wrappedHandler = (msg: Buffer) => handler(msg.toString());
-    this._ws.on('message', wrappedHandler);
-    this._eventHandlers.push({ event: 'message', handler: wrappedHandler });
+    this._ws.on("message", wrappedHandler);
+    this._eventHandlers.push({ event: "message", handler: wrappedHandler });
   }
 
   public removeAllListeners() {

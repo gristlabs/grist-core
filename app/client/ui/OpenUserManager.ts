@@ -1,6 +1,6 @@
-import { loadUserManager } from 'app/client/lib/imports';
-import { AppModel } from 'app/client/models/AppModel';
-import { FullUser, Organization, UserAPI } from 'app/common/UserAPI';
+import { loadUserManager } from "app/client/lib/imports";
+import { AppModel } from "app/client/models/AppModel";
+import { FullUser, Organization, UserAPI } from "app/common/UserAPI";
 
 export interface ManageTeamUsersOptions {
   org: Organization;
@@ -14,7 +14,7 @@ export async function manageTeamUsers({ org, user, api, onSave }: ManageTeamUser
   (await loadUserManager()).showUserManagerModal(api, {
     permissionData: api.getOrgAccess(org.id),
     activeUser: user,
-    resourceType: 'organization',
+    resourceType: "organization",
     resourceId: org.id,
     resource: org,
     onSave,

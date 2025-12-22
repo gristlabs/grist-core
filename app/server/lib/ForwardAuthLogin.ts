@@ -99,7 +99,7 @@ export function readForwardAuthConfigFromSettings(settings: AppSettings): Forwar
     throw new NotConfiguredError((e as Error).message);
   }
 
-  if (headerSetting.describe().foundInEnvVar === 'GRIST_PROXY_AUTH_HEADER') {
+  if (headerSetting.describe().foundInEnvVar === "GRIST_PROXY_AUTH_HEADER") {
     log.warn("GRIST_PROXY_AUTH_HEADER is deprecated; interpreted as a synonym of GRIST_FORWARD_AUTH_HEADER");
   }
 
@@ -108,13 +108,13 @@ export function readForwardAuthConfigFromSettings(settings: AppSettings): Forwar
     defaultValue: '',
   });
 
-  const loginPath = section.flag('loginPath').requireString({
-    envVar: 'GRIST_FORWARD_AUTH_LOGIN_PATH',
-    defaultValue: '/auth/login',
+  const loginPath = section.flag("loginPath").requireString({
+    envVar: "GRIST_FORWARD_AUTH_LOGIN_PATH",
+    defaultValue: "/auth/login",
   });
 
-  const skipSession = settings.section('login').flag('skipSession').readBool({
-    envVar: 'GRIST_IGNORE_SESSION',
+  const skipSession = settings.section("login").flag("skipSession").readBool({
+    envVar: "GRIST_IGNORE_SESSION",
     defaultValue: false,
   }) || false;
 
@@ -129,29 +129,29 @@ async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> 
   return {
     async getMiddleware(gristServer: GristServer) {
       async function getLoginRedirectUrl(req: express.Request, url: URL)  {
-        const target = new URL(trimEnd(gristServer.getHomeUrl(req), '/') +
-          '/' + trimStart(loginPath, '/'));
+        const target = new URL(trimEnd(gristServer.getHomeUrl(req), "/") +
+          "/" + trimStart(loginPath, "/"));
         // In lieu of sanitizing the next url, we include only the path
         // component. This will only work for single-domain installations.
-        target.searchParams.append('next', url.pathname);
+        target.searchParams.append("next", url.pathname);
         return target.href;
       }
       const middleware: GristLoginMiddleware = {
         getLoginRedirectUrl,
         getSignUpRedirectUrl: getLoginRedirectUrl,
         async getLogoutRedirectUrl(req: express.Request) {
-          return trimEnd(gristServer.getHomeUrl(req), '/') + '/' +
-            trimStart(logoutPath, '/');
+          return trimEnd(gristServer.getHomeUrl(req), "/") + "/" +
+            trimStart(logoutPath, "/");
         },
         async addEndpoints(app: express.Express) {
           app.get(loginPath, expressWrap(async (req, res) => {
             const profile = getRequestProfile(req, header);
             if (!profile) {
-              throw new ApiError('cannot find user', 401);
+              throw new ApiError("cannot find user", 401);
             }
             await setUserInSession(req, gristServer, profile);
             const target = new URL(gristServer.getHomeUrl(req));
-            const next = optStringParam(req.query.next, 'next');
+            const next = optStringParam(req.query.next, "next");
             if (next) {
               target.pathname = next;
             }

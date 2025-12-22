@@ -1,12 +1,12 @@
-import { FormLayoutNode, selectPlaceholder } from 'app/client/components/FormRenderer';
-import { buildEditor } from 'app/client/components/Forms/Editor';
-import { FormView } from 'app/client/components/Forms/FormView';
-import { BoxModel, ignoreClick } from 'app/client/components/Forms/Model';
-import * as css from 'app/client/components/Forms/styles';
-import { stopEvent } from 'app/client/lib/domUtils';
-import { makeT } from 'app/client/lib/localization';
-import { DocModel, refRecord } from 'app/client/models/DocModel';
-import TableModel from 'app/client/models/TableModel';
+import { FormLayoutNode, selectPlaceholder } from "app/client/components/FormRenderer";
+import { buildEditor } from "app/client/components/Forms/Editor";
+import { FormView } from "app/client/components/Forms/FormView";
+import { BoxModel, ignoreClick } from "app/client/components/Forms/Model";
+import * as css from "app/client/components/Forms/styles";
+import { stopEvent } from "app/client/lib/domUtils";
+import { makeT } from "app/client/lib/localization";
+import { DocModel, refRecord } from "app/client/models/DocModel";
+import TableModel from "app/client/models/TableModel";
 import {
   FormFieldOptions,
   FormNumberFormat,
@@ -15,13 +15,13 @@ import {
   FormSelectFormat,
   FormTextFormat,
   FormToggleFormat,
-} from 'app/client/ui/FormAPI';
-import { autoGrow } from 'app/client/ui/forms';
-import { cssCheckboxSquare, cssLabel, squareCheckbox } from 'app/client/ui2018/checkbox';
-import { cssRadioInput } from 'app/client/ui2018/radio';
-import { toggleSwitch } from 'app/client/ui2018/toggleSwitch';
-import { isBlankValue } from 'app/common/gristTypes';
-import { Constructor, not } from 'app/common/gutil';
+} from "app/client/ui/FormAPI";
+import { autoGrow } from "app/client/ui/forms";
+import { cssCheckboxSquare, cssLabel, squareCheckbox } from "app/client/ui2018/checkbox";
+import { cssRadioInput } from "app/client/ui2018/radio";
+import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
+import { isBlankValue } from "app/common/gristTypes";
+import { Constructor, not } from "app/common/gutil";
 import {
   BindableValue,
   Computed,
@@ -37,12 +37,12 @@ import {
   observable,
   Observable,
   toKo,
-} from 'grainjs';
-import * as ko from 'knockout';
+} from "grainjs";
+import * as ko from "knockout";
 
-const testId = makeTestId('test-forms-');
+const testId = makeTestId("test-forms-");
 
-const t = makeT('Field');
+const t = makeT("Field");
 
 /**
  * Container class for all fields.
@@ -59,7 +59,7 @@ export class FieldModel extends BoxModel {
   public required: Computed<boolean>;
   public question = Computed.create(this, (use) => {
     const field = use(this.field);
-    if (field.isDisposed() || use(field.id) === 0) { return ''; }
+    if (field.isDisposed() || use(field.id) === 0) { return ""; }
     return use(field.question) || use(field.origLabel);
   });
 
@@ -80,7 +80,7 @@ export class FieldModel extends BoxModel {
    * Field row id.
    */
   public get leaf() {
-    return this.prop('leaf') as Observable<number>;
+    return this.prop("leaf") as Observable<number>;
   }
 
   /**
@@ -98,7 +98,7 @@ export class FieldModel extends BoxModel {
 
     this.required = Computed.create(this, (use) => {
       const field = use(this.field);
-      return Boolean(use(field.widgetOptionsJson.prop('formRequired')));
+      return Boolean(use(field.widgetOptionsJson.prop("formRequired")));
     });
 
     this.question.onWrite((value) => {
@@ -135,18 +135,18 @@ export class FieldModel extends BoxModel {
     return buildEditor({
       box: this,
       overlay,
-      removeIcon: 'CrossBig',
-      removeTooltip: t('Hide'),
+      removeIcon: "CrossBig",
+      removeTooltip: t("Hide"),
       editMode: this.edit,
       content,
     },
-    dom.on('dblclick', () => this.selected.get() && this.edit.set(true)),
-    dom.style('opacity', (use) => {
+    dom.on("dblclick", () => this.selected.get() && this.edit.set(true)),
+    dom.style("opacity", (use) => {
       if ((use(use(this.field).widgetOptionsJson) as FormFieldOptions).formIsHidden) {
-        return '50%';
+        return "50%";
       }
       else {
-        return '';
+        return "";
       }
     }),
     ...args,
@@ -183,11 +183,11 @@ export abstract class Question extends Disposable {
     onSave: (value: string) => void,
   }, ...args: IDomArgs<HTMLElement>) {
     return css.cssQuestion(
-      testId('question'),
+      testId("question"),
       testType(this.model.colType),
       this.renderLabel(props),
       this.renderInput(),
-      css.cssQuestion.cls('-required', this.model.required),
+      css.cssQuestion.cls("-required", this.model.required),
       ...args,
     );
   }
@@ -242,9 +242,9 @@ export abstract class Question extends Disposable {
     return [
       dom.autoDispose(scope),
       css.cssRequiredWrapper(
-        testId('label'),
+        testId("label"),
         // When in edit - hide * and change display from grid to display
-        css.cssRequiredWrapper.cls('-required', use => use(this.model.required) && !use(this.model.edit)),
+        css.cssRequiredWrapper.cls("-required", use => use(this.model.required) && !use(this.model.edit)),
         dom.maybe(props.edit, () => [
           element = css.cssEditableLabel(
             controller,
@@ -255,23 +255,23 @@ export abstract class Question extends Disposable {
             // Auto grow for textarea.
             autoGrow(controller),
             // Enable normal menu.
-            dom.on('contextmenu', stopEvent),
-            dom.style('resize', 'none'),
-            css.cssEditableLabel.cls('-edit'),
-            testId('label-editor'),
+            dom.on("contextmenu", stopEvent),
+            dom.style("resize", "none"),
+            css.cssEditableLabel.cls("-edit"),
+            testId("label-editor"),
           ),
         ]),
         dom.maybe(not(props.edit), () => [
           css.cssRenderedLabel(
             dom.text(controller),
-            testId('label-rendered'),
+            testId("label-rendered"),
           ),
         ]),
         // When selected, we want to be able to edit the label by clicking it
         // so we need to make it relative and z-indexed.
-        dom.style('position', u => u(this.model.selected) ? 'relative' : 'static'),
-        dom.style('z-index', '2'),
-        dom.on('click', (ev) => {
+        dom.style("position", u => u(this.model.selected) ? "relative" : "static"),
+        dom.style("z-index", "2"),
+        dom.on("click", (ev) => {
           if (this.model.selected.get() && !props.edit.get()) {
             props.edit.set(true);
             ev.stopPropagation();
@@ -286,21 +286,21 @@ export abstract class Question extends Disposable {
 class TextModel extends Question {
   private _format = Computed.create<FormTextFormat>(this, (use) => {
     const field = use(this.field);
-    return use(field.widgetOptionsJson.prop('formTextFormat')) ?? 'singleline';
+    return use(field.widgetOptionsJson.prop("formTextFormat")) ?? "singleline";
   });
 
   private _rowCount = Computed.create<number>(this, (use) => {
     const field = use(this.field);
-    return use(field.widgetOptionsJson.prop('formTextLineCount')) || 3;
+    return use(field.widgetOptionsJson.prop("formTextLineCount")) || 3;
   });
 
   public renderInput() {
     return dom.domComputed(this._format, (format) => {
       switch (format) {
-        case 'singleline': {
+        case "singleline": {
           return this._renderSingleLineInput();
         }
-        case 'multiline': {
+        case "multiline": {
           return this._renderMultiLineInput();
         }
       }
@@ -309,15 +309,15 @@ class TextModel extends Question {
 
   private _renderSingleLineInput() {
     return css.cssInput(
-      dom.prop('name', u => u(u(this.field).colId)),
-      { type: 'text', tabIndex: "-1" },
+      dom.prop("name", u => u(u(this.field).colId)),
+      { type: "text", tabIndex: "-1" },
     );
   }
 
   private _renderMultiLineInput() {
     return css.cssTextArea(
-      dom.prop('name', u => u(u(this.field).colId)),
-      dom.prop('rows', this._rowCount),
+      dom.prop("name", u => u(u(this.field).colId)),
+      dom.prop("rows", this._rowCount),
       { tabIndex: "-1" },
     );
   }
@@ -326,16 +326,16 @@ class TextModel extends Question {
 class NumericModel extends Question {
   private _format = Computed.create<FormNumberFormat>(this, (use) => {
     const field = use(this.field);
-    return use(field.widgetOptionsJson.prop('formNumberFormat')) ?? 'text';
+    return use(field.widgetOptionsJson.prop("formNumberFormat")) ?? "text";
   });
 
   public renderInput() {
     return dom.domComputed(this._format, (format) => {
       switch (format) {
-        case 'text': {
+        case "text": {
           return this._renderTextInput();
         }
-        case 'spinner': {
+        case "spinner": {
           return this._renderSpinnerInput();
         }
       }
@@ -344,13 +344,13 @@ class NumericModel extends Question {
 
   private _renderTextInput() {
     return css.cssInput(
-      dom.prop('name', u => u(u(this.field).colId)),
-      { type: 'text', tabIndex: "-1" },
+      dom.prop("name", u => u(u(this.field).colId)),
+      { type: "text", tabIndex: "-1" },
     );
   }
 
   private _renderSpinnerInput() {
-    return css.cssSpinner(observable(''), {});
+    return css.cssSpinner(observable(""), {});
   }
 }
 
@@ -359,17 +359,17 @@ class ChoiceModel extends Question {
 
   protected alignment = Computed.create<FormOptionsAlignment>(this, (use) => {
     const field = use(this.field);
-    return use(field.widgetOptionsJson.prop('formOptionsAlignment')) ?? 'vertical';
+    return use(field.widgetOptionsJson.prop("formOptionsAlignment")) ?? "vertical";
   });
 
   private _format = Computed.create<FormSelectFormat>(this, (use) => {
     const field = use(this.field);
-    return use(field.widgetOptionsJson.prop('formSelectFormat')) ?? 'select';
+    return use(field.widgetOptionsJson.prop("formSelectFormat")) ?? "select";
   });
 
   private _sortOrder = Computed.create<FormOptionsSortOrder>(this, (use) => {
     const field = use(this.field);
-    return use(field.widgetOptionsJson.prop('formOptionsSortOrder')) ?? 'default';
+    return use(field.widgetOptionsJson.prop("formOptionsSortOrder")) ?? "default";
   });
 
   constructor(model: FieldModel) {
@@ -377,17 +377,17 @@ class ChoiceModel extends Question {
     this.choices = Computed.create(this, (use) => {
       // Read choices from field.
       const field = use(this.field);
-      const choices = use(field.widgetOptionsJson.prop('choices'))?.slice() ?? [];
+      const choices = use(field.widgetOptionsJson.prop("choices"))?.slice() ?? [];
 
       // Make sure it is an array of strings.
-      if (!Array.isArray(choices) || choices.some(choice => typeof choice !== 'string')) {
+      if (!Array.isArray(choices) || choices.some(choice => typeof choice !== "string")) {
         return [];
       }
       else {
         const sort = use(this._sortOrder);
-        if (sort !== 'default') {
+        if (sort !== "default") {
           choices.sort((a, b) => a.localeCompare(b));
-          if (sort === 'descending') {
+          if (sort === "descending") {
             choices.reverse();
           }
         }
@@ -397,9 +397,9 @@ class ChoiceModel extends Question {
   }
 
   public renderInput() {
-    return dom('div',
+    return dom("div",
       dom.domComputed(this._format, (format) => {
-        if (format === 'select') {
+        if (format === "select") {
           return this._renderSelectInput();
         }
         else {
@@ -407,7 +407,7 @@ class ChoiceModel extends Question {
         }
       }),
       dom.maybe(use => use(this.choices).length === 0, () => [
-        css.cssWarningMessage(css.cssWarningIcon('Warning'), t('No choices configured')),
+        css.cssWarningMessage(css.cssWarningIcon("Warning"), t("No choices configured")),
       ]),
     );
   }
@@ -416,12 +416,12 @@ class ChoiceModel extends Question {
     return css.cssSelect(
       { tabIndex: "-1" },
       ignoreClick,
-      dom.prop('name', use => use(use(this.field).colId)),
-      dom('option',
+      dom.prop("name", use => use(use(this.field).colId)),
+      dom("option",
         selectPlaceholder(),
-        { value: '' },
+        { value: "" },
       ),
-      dom.forEach(this.choices, choice => dom('option',
+      dom.forEach(this.choices, choice => dom("option",
         choice,
         { value: choice },
       )),
@@ -430,10 +430,10 @@ class ChoiceModel extends Question {
 
   private _renderRadioInput() {
     return css.cssRadioList(
-      css.cssRadioList.cls('-horizontal', use => use(this.alignment) === 'horizontal'),
-      dom.prop('name', use => use(use(this.field).colId)),
+      css.cssRadioList.cls("-horizontal", use => use(this.alignment) === "horizontal"),
+      dom.prop("name", use => use(use(this.field).colId)),
       dom.forEach(this.choices, choice => css.cssRadioLabel(
-        cssRadioInput({ type: 'radio' }),
+        cssRadioInput({ type: "radio" }),
         choice,
       )),
     );
@@ -449,15 +449,15 @@ class ChoiceListModel extends ChoiceModel {
   public renderInput() {
     const field = this.field;
     return css.cssCheckboxList(
-      css.cssCheckboxList.cls('-horizontal', use => use(this.alignment) === 'horizontal'),
-      dom.prop('name', use => use(use(field).colId)),
+      css.cssCheckboxList.cls("-horizontal", use => use(this.alignment) === "horizontal"),
+      dom.prop("name", use => use(use(field).colId)),
       dom.forEach(this._choices, choice => css.cssCheckboxLabel(
-        css.cssCheckboxLabel.cls('-horizontal', use => use(this.alignment) === 'horizontal'),
-        cssCheckboxSquare({ type: 'checkbox' }),
+        css.cssCheckboxLabel.cls("-horizontal", use => use(this.alignment) === "horizontal"),
+        cssCheckboxSquare({ type: "checkbox" }),
         choice,
       )),
       dom.maybe(use => use(this._choices).length === 0, () => [
-        css.cssWarningMessage(css.cssWarningIcon('Warning'), t('No choices configured')),
+        css.cssWarningMessage(css.cssWarningIcon("Warning"), t("No choices configured")),
       ]),
     );
   }
@@ -466,7 +466,7 @@ class ChoiceListModel extends ChoiceModel {
 class BoolModel extends Question {
   private _format = Computed.create<FormToggleFormat>(this, (use) => {
     const field = use(this.field);
-    return use(field.widgetOptionsJson.prop('formToggleFormat')) ?? 'switch';
+    return use(field.widgetOptionsJson.prop("formToggleFormat")) ?? "switch";
   });
 
   public override buildDom(props: {
@@ -476,18 +476,18 @@ class BoolModel extends Question {
     onSave: () => void,
   }) {
     return css.cssQuestion(
-      testId('question'),
+      testId("question"),
       testType(this.model.colType),
       css.cssToggle(
         this.renderInput(),
-        this.renderLabel(props, css.cssLabelInline.cls('')),
+        this.renderLabel(props, css.cssLabelInline.cls("")),
       ),
     );
   }
 
   public override renderInput() {
     return dom.domComputed(this._format, (format) => {
-      if (format === 'switch') {
+      if (format === "switch") {
         return this._renderSwitchInput();
       }
       else {
@@ -502,17 +502,17 @@ class BoolModel extends Question {
 
   private _renderCheckboxInput() {
     return cssLabel(
-      cssCheckboxSquare({ type: 'checkbox' }),
+      cssCheckboxSquare({ type: "checkbox" }),
     );
   }
 }
 
 class DateModel extends Question {
   public renderInput() {
-    return dom('div',
+    return dom("div",
       css.cssInput(
-        dom.prop('name', this.model.colId),
-        { type: 'date', style: 'margin-right: 5px;' },
+        dom.prop("name", this.model.colId),
+        { type: "date", style: "margin-right: 5px;" },
       ),
     );
   }
@@ -520,12 +520,12 @@ class DateModel extends Question {
 
 class DateTimeModel extends Question {
   public renderInput() {
-    return dom('div',
+    return dom("div",
       css.cssInput(
-        dom.prop('name', this.model.colId),
-        { type: 'datetime-local', style: 'margin-right: 5px;' },
+        dom.prop("name", this.model.colId),
+        { type: "datetime-local", style: "margin-right: 5px;" },
       ),
-      dom.style('width', '100%'),
+      dom.style("width", "100%"),
     );
   }
 }
@@ -535,12 +535,12 @@ class RefListModel extends Question {
 
   protected alignment = Computed.create<FormOptionsAlignment>(this, (use) => {
     const field = use(this.field);
-    return use(field.widgetOptionsJson.prop('formOptionsAlignment')) ?? 'vertical';
+    return use(field.widgetOptionsJson.prop("formOptionsAlignment")) ?? "vertical";
   });
 
   private _sortOrder = Computed.create<FormOptionsSortOrder>(this, (use) => {
     const field = use(this.field);
-    return use(field.widgetOptionsJson.prop('formOptionsSortOrder')) ?? 'default';
+    return use(field.widgetOptionsJson.prop("formOptionsSortOrder")) ?? "default";
   });
 
   constructor(model: FieldModel) {
@@ -550,16 +550,16 @@ class RefListModel extends Question {
 
   public renderInput() {
     return css.cssCheckboxList(
-      css.cssCheckboxList.cls('-horizontal', use => use(this.alignment) === 'horizontal'),
-      dom.prop('name', this.model.colId),
+      css.cssCheckboxList.cls("-horizontal", use => use(this.alignment) === "horizontal"),
+      dom.prop("name", this.model.colId),
       dom.forEach(this.options, option => css.cssCheckboxLabel(
         squareCheckbox(observable(false)),
         option.label,
       )),
       dom.maybe(use => use(this.options).length === 0, () => [
         css.cssWarningMessage(
-          css.cssWarningIcon('Warning'),
-          t('No values in show column of referenced table'),
+          css.cssWarningIcon("Warning"),
+          t("No values in show column of referenced table"),
         ),
       ]),
     );
@@ -568,12 +568,12 @@ class RefListModel extends Question {
   private _getOptions() {
     const tableId = Computed.create(this, (use) => {
       const refTable = use(use(this.model.column).refTable);
-      return refTable ? use(refTable.tableId) : '';
+      return refTable ? use(refTable.tableId) : "";
     });
 
     const colId = Computed.create(this, (use) => {
       const dispColumnIdObs = use(use(this.model.column).visibleColModel);
-      return use(dispColumnIdObs.colId) || 'id';
+      return use(dispColumnIdObs.colId) || "id";
     });
 
     const observer = this._columnObserver(this, this.model.view.gristDoc.docModel, tableId, colId);
@@ -583,9 +583,9 @@ class RefListModel extends Question {
       const values = use(observer)
         .filter(([_id, value]) => !isBlankValue(value))
         .map(([id, value]) => ({ label: String(value), value: String(id) }));
-      if (sort !== 'default') {
+      if (sort !== "default") {
         values.sort((a, b) => a.label.localeCompare(b.label));
-        if (sort === 'descending') {
+        if (sort === "descending") {
           values.reverse();
         }
       }
@@ -607,7 +607,7 @@ class RefListModel extends Question {
     const toggle = () => !refreshed.isDisposed() && refreshed.set(refreshed.get() + 1);
     const holder = Holder.create(owner);
     const listener = (tab: TableModel) => {
-      if (tab.tableData.tableId === '') { return; }
+      if (tab.tableData.tableId === "") { return; }
 
       // Now subscribe to any data change in that table.
       const subs = MultiHolder.create(holder);
@@ -630,13 +630,13 @@ class RefListModel extends Question {
 class RefModel extends RefListModel {
   private _format = Computed.create<FormSelectFormat>(this, (use) => {
     const field = use(this.field);
-    return use(field.widgetOptionsJson.prop('formSelectFormat')) ?? 'select';
+    return use(field.widgetOptionsJson.prop("formSelectFormat")) ?? "select";
   });
 
   public renderInput() {
-    return dom('div',
+    return dom("div",
       dom.domComputed(this._format, (format) => {
-        if (format === 'select') {
+        if (format === "select") {
           return this._renderSelectInput();
         }
         else {
@@ -645,8 +645,8 @@ class RefModel extends RefListModel {
       }),
       dom.maybe(use => use(this.options).length === 0, () => [
         css.cssWarningMessage(
-          css.cssWarningIcon('Warning'),
-          t('No values in show column of referenced table'),
+          css.cssWarningIcon("Warning"),
+          t("No values in show column of referenced table"),
         ),
       ]),
     );
@@ -656,12 +656,12 @@ class RefModel extends RefListModel {
     return css.cssSelect(
       { tabIndex: "-1" },
       ignoreClick,
-      dom.prop('name', this.model.colId),
-      dom('option',
+      dom.prop("name", this.model.colId),
+      dom("option",
         selectPlaceholder(),
-        { value: '' },
+        { value: "" },
       ),
-      dom.forEach(this.options, ({ label, value }) => dom('option',
+      dom.forEach(this.options, ({ label, value }) => dom("option",
         label,
         { value },
       )),
@@ -670,10 +670,10 @@ class RefModel extends RefListModel {
 
   private _renderRadioInput() {
     return css.cssRadioList(
-      css.cssRadioList.cls('-horizontal', use => use(this.alignment) === 'horizontal'),
-      dom.prop('name', use => use(use(this.field).colId)),
+      css.cssRadioList.cls("-horizontal", use => use(this.alignment) === "horizontal"),
+      dom.prop("name", use => use(use(this.field).colId)),
       dom.forEach(this.options, ({ label, value }) => css.cssRadioLabel(
-        cssRadioInput({ type: 'radio' }),
+        cssRadioInput({ type: "radio" }),
         label,
       )),
     );
@@ -684,11 +684,11 @@ const AnyModel = TextModel;
 
 class AttachmentsModel extends Question {
   public renderInput() {
-    return dom('div',
+    return dom("div",
       css.cssAttachmentInput(
-        dom.prop('name', use => use(use(this.field).colId)),
-        dom.prop('type', 'file'),
-        dom.prop('multiple', true),
+        dom.prop("name", use => use(use(this.field).colId)),
+        dom.prop("type", "file"),
+        dom.prop("multiple", true),
       ),
     );
   }
@@ -696,17 +696,17 @@ class AttachmentsModel extends Question {
 
 function fieldConstructor(type: string): Constructor<Question> {
   switch (type) {
-    case 'Any': return AnyModel;
-    case 'Bool': return BoolModel;
-    case 'Choice': return ChoiceModel;
-    case 'ChoiceList': return ChoiceListModel;
-    case 'Date': return DateModel;
-    case 'DateTime': return DateTimeModel;
-    case 'Int': return NumericModel;
-    case 'Numeric': return NumericModel;
-    case 'Ref': return RefModel;
-    case 'RefList': return RefListModel;
-    case 'Attachments': return AttachmentsModel;
+    case "Any": return AnyModel;
+    case "Bool": return BoolModel;
+    case "Choice": return ChoiceModel;
+    case "ChoiceList": return ChoiceListModel;
+    case "Date": return DateModel;
+    case "DateTime": return DateTimeModel;
+    case "Int": return NumericModel;
+    case "Numeric": return NumericModel;
+    case "Ref": return RefModel;
+    case "RefList": return RefListModel;
+    case "Attachments": return AttachmentsModel;
     default: return TextModel;
   }
 }
@@ -715,5 +715,5 @@ function fieldConstructor(type: string): Constructor<Question> {
  * Creates a hidden input element with element type. Used in tests.
  */
 function testType(value: BindableValue<string>) {
-  return dom('input', { type: 'hidden' }, dom.prop('value', value), testId('type'));
+  return dom("input", { type: "hidden" }, dom.prop("value", value), testId("type"));
 }

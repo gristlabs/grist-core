@@ -74,10 +74,10 @@ function merge(target, scanned) {
       console.log("Merging key", {key});
       target[key] = scanned[key];
       merges++;
-    } else if (typeof target[key] === 'object') {
+    } else if (typeof target[key] === "object") {
       merges += merge(target[key], scanned[key]);
     } else if (scanned[key] !== target[key]) {
-      if (!key.endsWith('_one')) {
+      if (!key.endsWith("_one")) {
         console.log("Value difference", {key, value: target[key]});
       }
     }
@@ -109,7 +109,7 @@ async function walkTranslation(dirs) {
   const originalKeys = _.cloneDeep(englishKeys);
   for await (const p of walk(dirs)) {
     const { name } = path.parse(p);
-    if (p.endsWith('.map')) { continue; }
+    if (p.endsWith(".map")) { continue; }
     getKeysFromFile(p, name);
   }
   const keys = parser.get({ sort: true });
@@ -117,7 +117,7 @@ async function walkTranslation(dirs) {
   const mergeCount = merge(englishKeys, sort(keys.en.translation));
   await fs.promises.writeFile(
     "static/locales/en.client.json",
-    JSON.stringify(englishKeys, null, 4) + '\n',  // match weblate's default
+    JSON.stringify(englishKeys, null, 4) + "\n",  // match weblate's default
     "utf-8"
   );
   // Now, print a report of unrecognized keys - candidates

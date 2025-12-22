@@ -3,22 +3,22 @@
  * the sample documents (those in the Support user's Examples & Templates workspace).
  */
 
-import { hooks } from 'app/client/Hooks';
-import { makeT } from 'app/client/lib/localization';
-import { AppModel, reportError } from 'app/client/models/AppModel';
-import { DocPageModel } from 'app/client/models/DocPageModel';
-import { urlState } from 'app/client/models/gristUrlState';
-import { getWorkspaceInfo, ownerName, workspaceName } from 'app/client/models/WorkspaceInfo';
-import { cssInput } from 'app/client/ui/cssInput';
-import { bigBasicButton, bigPrimaryButtonLink } from 'app/client/ui2018/buttons';
+import { hooks } from "app/client/Hooks";
+import { makeT } from "app/client/lib/localization";
+import { AppModel, reportError } from "app/client/models/AppModel";
+import { DocPageModel } from "app/client/models/DocPageModel";
+import { urlState } from "app/client/models/gristUrlState";
+import { getWorkspaceInfo, ownerName, workspaceName } from "app/client/models/WorkspaceInfo";
+import { cssInput } from "app/client/ui/cssInput";
+import { bigBasicButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
 import {
   cssRadioCheckboxOptions,
   labeledSquareCheckbox,
   radioCheckboxOption,
-} from 'app/client/ui2018/checkbox';
-import { testId } from 'app/client/ui2018/cssVars';
-import { loadingSpinner } from 'app/client/ui2018/loaders';
-import { IOptionFull, select } from 'app/client/ui2018/menus';
+} from "app/client/ui2018/checkbox";
+import { testId } from "app/client/ui2018/cssVars";
+import { loadingSpinner } from "app/client/ui2018/loaders";
+import { IOptionFull, select } from "app/client/ui2018/menus";
 import {
   confirmModal,
   cssModalBody,
@@ -26,9 +26,9 @@ import {
   cssModalTitle,
   modal,
   saveModal,
-} from 'app/client/ui2018/modals';
-import * as roles from 'app/common/roles';
-import { components, tokens } from 'app/common/ThemePrefs';
+} from "app/client/ui2018/modals";
+import * as roles from "app/common/roles";
+import { components, tokens } from "app/common/ThemePrefs";
 import {
   CreatableArchiveFormats,
   DocAttachmentsLocation,
@@ -36,7 +36,7 @@ import {
   isTemplatesOrg,
   Organization,
   Workspace,
-} from 'app/common/UserAPI';
+} from "app/common/UserAPI";
 import {
   Computed,
   Disposable,
@@ -46,11 +46,11 @@ import {
   styled,
   subscribe,
   subscribeElem,
-} from 'grainjs';
-import { cssLink } from 'app/client/ui2018/links';
-import sortBy from 'lodash/sortBy';
+} from "grainjs";
+import { cssLink } from "app/client/ui2018/links";
+import sortBy from "lodash/sortBy";
 
-const t = makeT('MakeCopyMenu');
+const t = makeT("MakeCopyMenu");
 
 export async function replaceTrunkWithFork(doc: Document, pageModel: DocPageModel, origUrlId: string) {
   const { appModel } = pageModel;
@@ -59,7 +59,7 @@ export async function replaceTrunkWithFork(doc: Document, pageModel: DocPageMode
     modal(ctl => [
       cssModalBody(t("Replacing the original requires editing rights on the original document.")),
       cssModalButtons(
-        bigBasicButton(t("Cancel"), dom.on('click', () => ctl.close())),
+        bigBasicButton(t("Cancel"), dom.on("click", () => ctl.close())),
       ),
     ]);
     return;
@@ -69,19 +69,19 @@ export async function replaceTrunkWithFork(doc: Document, pageModel: DocPageMode
   let titleText = t("Update Original");
   let buttonText = t("Update");
   let warningText = t("The original version of this document will be updated.");
-  if (cmp.summary === 'left' || cmp.summary === 'both') {
+  if (cmp.summary === "left" || cmp.summary === "both") {
     titleText = t("Original Has Modifications");
     buttonText = t("Overwrite");
     warningText = `${warningText} ${t("Be careful, the original has changes \
 not in this document. Those changes will be overwritten.")}`;
   }
-  else if (cmp.summary === 'unrelated') {
+  else if (cmp.summary === "unrelated") {
     titleText = t("Original Looks Unrelated");
     buttonText = t("Overwrite");
     warningText = `${warningText} ${t("It will be overwritten, losing any content not in this document.")}`;
   }
-  else if (cmp.summary === 'same') {
-    titleText = t('Original Looks Identical');
+  else if (cmp.summary === "same") {
+    titleText = t("Original Looks Identical");
     warningText = `${warningText} ${t("However, it appears to be already identical.")}`;
   }
   confirmModal(titleText, buttonText,
@@ -139,7 +139,7 @@ export async function makeCopy(options: {
       body: saveCopyModal.buildDom(),
       saveFunc: () => saveCopyModal.save(),
       saveDisabled: saveCopyModal.saveDisabled,
-      width: 'normal',
+      width: "normal",
     };
   });
 }
@@ -156,7 +156,7 @@ class SaveCopyModal extends Disposable {
   private _doc = this._params.doc;
   private _orgs = this._params.orgs;
   private _workspaces = Observable.create<Workspace[] | null>(this, null);
-  private _destName = Observable.create<string>(this, '');
+  private _destName = Observable.create<string>(this, "");
   private _destOrg = Observable.create<Organization | null>(this, this._app.currentOrg);
   private _destWS = Observable.create<Workspace | null>(this, this._doc.workspace);
   private _asTemplate = Observable.create<boolean>(this, false);
@@ -181,8 +181,8 @@ class SaveCopyModal extends Disposable {
   // If orgs is non-null, then we show a selector for orgs.
   constructor(private _params: SaveCopyModalParams) {
     super();
-    if (this._doc.name !== 'Untitled') {
-      this._destName.set(this._doc.name + ' (copy)');
+    if (this._doc.name !== "Untitled") {
+      this._destName.set(this._doc.name + " (copy)");
     }
     if (this._orgs && this._app.currentOrg) {
       // Set _destOrg to an Organization object from _orgs array; there should be one equivalent
@@ -228,13 +228,13 @@ class SaveCopyModal extends Disposable {
           // modal dialog grabs focus after 10ms delay; so to focus this input, wait a bit longer
           // (see the TODO in app/client/ui2018/modals.ts about weasel.js and focus).
           (elem) => { setTimeout(() => { elem.focus(); }, 20); },
-          dom.on('focus', (ev, elem) => { elem.select(); }),
-          testId('copy-dest-name')),
+          dom.on("focus", (ev, elem) => { elem.select(); }),
+          testId("copy-dest-name")),
       ),
       cssField(
         cssLabel(t("As template")),
         cssCheckbox(this._asTemplate, t("Include the structure without any of the data."),
-          testId('save-as-template')),
+          testId("save-as-template")),
       ),
       // Show the team picker only when saving to other teams is allowed and there are other teams
       // accessible.
@@ -242,7 +242,7 @@ class SaveCopyModal extends Disposable {
         cssField(
           cssLabel(t("Organization")),
           select(this._destOrg, this._orgs.map(value => ({ value, label: value.name }))),
-          testId('copy-dest-org'),
+          testId("copy-dest-org"),
         ) : null
       ),
       // Don't show the workspace picker when destOrg is a personal site and there is just one
@@ -251,7 +251,7 @@ class SaveCopyModal extends Disposable {
       dom.domComputed(use => use(this._showWorkspaces) && use(this._workspaces), wss =>
         wss === false ? null :
           wss?.length === 0 ? cssWarningText(t("You do not have write access to this site"),
-            testId('copy-warning')) :
+            testId("copy-warning")) :
             [
               cssField(
                 cssLabel(t("Workspace")),
@@ -263,12 +263,12 @@ class SaveCopyModal extends Disposable {
                     disabled: !roles.canEdit(value.access),
                   })))
                 ),
-                testId('copy-dest-workspace'),
+                testId("copy-dest-workspace"),
               ),
               wss ? dom.domComputed(this._destWS, destWs =>
                 destWs && !roles.canEdit(destWs.access) ?
                   cssWarningText(t("You do not have write access to the selected workspace"),
-                    testId('copy-warning'),
+                    testId("copy-warning"),
                   ) : null,
               ) : null,
             ],
@@ -331,30 +331,30 @@ class SaveCopyModal extends Disposable {
   }
 }
 
-type DownloadOption = 'full' | 'nohistory' | 'template';
+type DownloadOption = "full" | "nohistory" | "template";
 
 export function downloadDocModal(doc: Document, appModel: AppModel) {
   return modal((ctl, owner) => {
     const docApi = appModel.api.getDocAPI(doc.id);
-    const selected = Observable.create<DownloadOption>(owner, 'full');
+    const selected = Observable.create<DownloadOption>(owner, "full");
 
-    const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | 'unknown'>(owner, undefined);
+    const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | "unknown">(owner, undefined);
     docApi.getAttachmentTransferStatus()
       .then((status) => { attachmentStatusObs.set(status.locationSummary); })
-      .catch((err) => { reportError(err); attachmentStatusObs.set('unknown'); });
+      .catch((err) => { reportError(err); attachmentStatusObs.set("unknown"); });
 
     const hasExternalAttachments =
-      Computed.create(owner, attachmentStatusObs, (use, status) => status !== 'internal' && status !== 'none');
+      Computed.create(owner, attachmentStatusObs, (use, status) => status !== "internal" && status !== "none");
 
     const options = dom.domComputed(attachmentStatusObs, (status) => {
-      const isInternal = status === 'internal' || status === 'none';
+      const isInternal = status === "internal" || status === "none";
       const downloadText = isInternal ? t("Download full document and history") : t("Download document and history");
       return cssRadioCheckboxOptions(
-        radioCheckboxOption(selected, 'full', downloadText),
-        radioCheckboxOption(selected, 'nohistory', t(
+        radioCheckboxOption(selected, "full", downloadText),
+        radioCheckboxOption(selected, "nohistory", t(
           "Download document without history (can significantly reduce file size)",
         )),
-        radioCheckboxOption(selected, 'template', t("Download document structure only (no data, for template use)")),
+        radioCheckboxOption(selected, "template", t("Download document structure only (no data, for template use)")),
       );
     });
 
@@ -370,13 +370,13 @@ If uploading the document to a separate Grist installation, \
 you will also need to {{downloadLink}} separately. ",
             {
               downloadLink: cssLink(t("download attachments"), {
-                href: docApi.getDownloadAttachmentsArchiveUrl({ format: 'tar' }),
+                href: docApi.getDownloadAttachmentsArchiveUrl({ format: "tar" }),
                 target: "_blank",
                 download: "",
               }),
             },
           ),
-          testId('external-attachments-info'),
+          testId("external-attachments-info"),
         )),
         cssCopyMenuModalButtons(
           dom.domComputed((modalButtonUse) => {
@@ -386,16 +386,16 @@ you will also need to {{downloadLink}} separately. ",
             });
             return bigPrimaryButtonLink(t(`Download`), hooks.maybeModifyLinkAttrs({
               href,
-              target: '_blank',
-              download: '',
+              target: "_blank",
+              download: "",
             }),
-            dom.on('click', () => {
+            dom.on("click", () => {
               ctl.close();
             }),
-            testId('download-button-link'),
+            testId("download-button-link"),
             );
           }),
-          bigBasicButton(t('Cancel'), dom.on('click', () => {
+          bigBasicButton(t("Cancel"), dom.on("click", () => {
             ctl.close();
           })),
         ),
@@ -408,18 +408,18 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
   return modal((ctl, owner) => {
     const docApi = pageModel.appModel.api.getDocAPI(doc.id);
 
-    const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | 'unknown'>(owner, undefined);
+    const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | "unknown">(owner, undefined);
     docApi.getAttachmentTransferStatus()
       .then((status) => { attachmentStatusObs.set(status.locationSummary); })
-      .catch((err) => { reportError(err); attachmentStatusObs.set('unknown'); });
+      .catch((err) => { reportError(err); attachmentStatusObs.set("unknown"); });
     const isExternal = Computed.create(owner, attachmentStatusObs,
-      (use, status) => status !== 'none' && status !== 'internal',
+      (use, status) => status !== "none" && status !== "internal",
     );
 
-    const formatObs = Observable.create<CreatableArchiveFormats>(owner, 'tar');
+    const formatObs = Observable.create<CreatableArchiveFormats>(owner, "tar");
     const allFormats: IOptionFull<CreatableArchiveFormats>[] = [
-      { value: 'tar', label: t('.tar (recommended)') },
-      { value: 'zip', label: t('.zip') },
+      { value: "tar", label: t(".tar (recommended)") },
+      { value: "zip", label: t(".zip") },
     ];
     const attachmentArchiveDownloadHref: Computed<string> = Computed.create(owner, (use) => {
       const format = use(formatObs);
@@ -430,8 +430,8 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
       cssModalTitle(t(`Download attachments`)),
       dom.maybe(use => use(attachmentStatusObs) === undefined, () => cssSpinner(loadingSpinner())),
       dom.maybe(use => use(attachmentStatusObs) !== undefined, () => [
-        cssEagerWrap(dom('p', t('Download an archive of all the attachments present in this document.'))),
-        dom.maybe(isExternal, () => cssEagerWrap(dom('p',
+        cssEagerWrap(dom("p", t("Download an archive of all the attachments present in this document."))),
+        dom.maybe(isExternal, () => cssEagerWrap(dom("p",
           t(
             'If you\'re planning to upload this document to a Grist installation, \
 you will need the archive in the ".tar" format to restore attachments. ',
@@ -443,31 +443,31 @@ you will need the archive in the ".tar" format to restore attachments. ',
             },
             */
           ),
-          testId('attachments-external-message'),
+          testId("attachments-external-message"),
         ))),
         cssAttachmentsDownloadRow(
-          t('Format:'),
+          t("Format:"),
           dom.update(
             cssArchiveFormatSelect(formatObs, allFormats, { menuCssClass: "test-attachments-format-options" }),
-            testId('attachments-format-select'),
+            testId("attachments-format-select"),
           ),
         ),
         cssCopyMenuModalButtons(
           cssDownloadAttachmentsButton(
-            t('Download attachments'),
+            t("Download attachments"),
             elem => subscribeElem(elem, attachmentArchiveDownloadHref, (href) => {
               dom.attrsElem(elem, hooks.maybeModifyLinkAttrs({
                 href: href,
-                target: '_blank',
-                download: '',
+                target: "_blank",
+                download: "",
               }));
             }),
-            dom.on('click', () => {
+            dom.on("click", () => {
               ctl.close();
             }),
-            testId('download-attachments-button-link'),
+            testId("download-attachments-button-link"),
           ),
-          bigBasicButton(t('Cancel'), dom.on('click', () => {
+          bigBasicButton(t("Cancel"), dom.on("click", () => {
             ctl.close();
           })),
         ),
@@ -476,12 +476,12 @@ you will need the archive in the ".tar" format to restore attachments. ',
   });
 }
 
-export const cssField = styled('div', `
+export const cssField = styled("div", `
   margin: 16px 0;
   display: flex;
 `);
 
-export const cssLabel = styled('label', `
+export const cssLabel = styled("label", `
   font-weight: normal;
   font-size: ${tokens.mediumFontSize};
   color: ${components.text};
@@ -491,12 +491,12 @@ export const cssLabel = styled('label', `
   flex: none;
 `);
 
-const cssWarningText = styled('div', `
+const cssWarningText = styled("div", `
   color: ${components.errorText};
   margin-top: 8px;
 `);
 
-const cssSpinner = styled('div', `
+const cssSpinner = styled("div", `
   text-align: center;
   flex: 1;
   height: 30px;
@@ -506,7 +506,7 @@ const cssCheckbox = styled(labeledSquareCheckbox, `
   margin-top: 8px;
 `);
 
-const cssAttachmentsDownloadRow = styled('div', `
+const cssAttachmentsDownloadRow = styled("div", `
   margin: 16px 0;
   display: flex;
   gap: 16px;
@@ -520,7 +520,7 @@ const cssDownloadAttachmentsButton = styled(bigPrimaryButtonLink, `
 `);
 
 // Prevents the div from expanding the parent and makes it only use available space instead.
-const cssEagerWrap = styled('div', `
+const cssEagerWrap = styled("div", `
   contain: inline-size;
 `);
 

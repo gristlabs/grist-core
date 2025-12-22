@@ -1,6 +1,6 @@
-import { RequestWithLogin } from 'app/server/lib/Authorizer';
-import log from 'app/server/lib/log';
-import * as express from 'express';
+import { RequestWithLogin } from "app/server/lib/Authorizer";
+import log from "app/server/lib/log";
+import * as express from "express";
 
 export type AsyncRequestHandler = (
   req: express.Request,
@@ -60,7 +60,7 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.E
       res.end();
     }
     else {
-      res.status(status).json({ error: err.message || 'internal error', details });
+      res.status(status).json({ error: err.message || "internal error", details });
     }
   };
 };

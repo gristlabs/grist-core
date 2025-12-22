@@ -1,16 +1,16 @@
-import { LocalActionBundle } from 'app/common/ActionBundle';
-import { ActionGroup, MinimalActionGroup } from 'app/common/ActionGroup';
-import { DocState } from 'app/common/DocState';
+import { LocalActionBundle } from "app/common/ActionBundle";
+import { ActionGroup, MinimalActionGroup } from "app/common/ActionGroup";
+import { DocState } from "app/common/DocState";
 import { ActionGroupOptions, ActionHistory, ActionHistoryUndoInfo, asActionGroup,
-  asMinimalActionGroup } from 'app/server/lib/ActionHistory';
-import { ActionHistoryImpl, computeActionHash } from 'app/server/lib/ActionHistoryImpl';
-import { DocStorage } from 'app/server/lib/DocStorage';
-import { DocStorageManager } from 'app/server/lib/DocStorageManager';
-import * as path from 'path';
-import { createDocTools } from 'test/server/docTools';
-import { assert } from 'test/server/testUtils';
-import * as testUtils from 'test/server/testUtils';
-import * as tmp from 'tmp';
+  asMinimalActionGroup } from "app/server/lib/ActionHistory";
+import { ActionHistoryImpl, computeActionHash } from "app/server/lib/ActionHistoryImpl";
+import { DocStorage } from "app/server/lib/DocStorage";
+import { DocStorageManager } from "app/server/lib/DocStorageManager";
+import * as path from "path";
+import { createDocTools } from "test/server/docTools";
+import { assert } from "test/server/testUtils";
+import * as testUtils from "test/server/testUtils";
+import * as tmp from "tmp";
 
 /**
  *
@@ -150,7 +150,7 @@ class ToyActionHistory implements ActionHistory {
   }
 
   public async deleteActions(keepN: number): Promise<void> {
-    throw new Error('not implemented');
+    throw new Error("not implemented");
   }
 
   private _noteSharedAction(action: LocalActionBundle): void {
@@ -186,8 +186,8 @@ const versions: { name: string,
   {
     name: "ActionHistoryImplOnDisk",
     createDoc: () => {
-      const tmpDir = tmp.dirSync({ prefix: 'grist_action_history_test_', unsafeCleanup: true });
-      const fname = path.resolve(tmpDir.name, 'actionhistory.tmp.sqlite');
+      const tmpDir = tmp.dirSync({ prefix: "grist_action_history_test_", unsafeCleanup: true });
+      const fname = path.resolve(tmpDir.name, "actionhistory.tmp.sqlite");
       return getDoc(fname);
     },
     createHistory: async (doc) => {
@@ -234,7 +234,7 @@ function makeBundle(actionNum: number, desc: string): LocalActionBundle {
 for (const version of versions) {
   describe(version.name, function() {
     // Comment this out to see debug-log output from PluginManager when debugging tests.
-    testUtils.setTmpLogLevel('error');
+    testUtils.setTmpLogLevel("error");
 
     let doc: DocStorage | undefined;
     let history: ActionHistory;
@@ -253,7 +253,7 @@ for (const version of versions) {
     const b2 = makeBundle(2, "two");
     const b3 = makeBundle(3, "three");
 
-    it('check actionNums increment', async function() {
+    it("check actionNums increment", async function() {
       assert(history.isInitialized());
       assert.equal(history.getNextHubActionNum(), 1);
       assert.equal(history.getNextLocalActionNum(), 1);
@@ -265,7 +265,7 @@ for (const version of versions) {
       assert.equal(history.getNextLocalActionNum(), 3);
     });
 
-    it('check path to acceptance', async function() {           // [shared | sent | unsent]
+    it("check path to acceptance", async function() {           // [shared | sent | unsent]
       await history.recordNextShared(b1);                       // [b1     |      |       ]
       assert.equal(history.getNextHubActionNum(), 2);
       await history.recordNextLocalUnsent(b2);                  // [b1     |      | b2    ]
@@ -288,7 +288,7 @@ for (const version of versions) {
       assert.equal(history.getNextLocalActionNum(), 3);
     });
 
-    it('check reject disordered', async function() {
+    it("check reject disordered", async function() {
       await history.recordNextLocalUnsent(b1);
       await history.recordNextLocalUnsent(b2);
       assert.equal(history.getNextLocalActionNum(), 3);
@@ -299,13 +299,13 @@ for (const version of versions) {
       assert.deepEqual(await history.fetchAllLocal(), [b1, b2]);
     });
 
-    it('markAsSent checks sanity', async function() {
+    it("markAsSent checks sanity", async function() {
       await assert.isRejected(history.markAsSent([b1]), /nothing local/);
       await history.recordNextLocalUnsent(b1);
       await assert.isRejected(history.markAsSent([b2]), /unexpected action/);
     });
 
-    it('cleans local_unsent when local_sent is empty', async function() {
+    it("cleans local_unsent when local_sent is empty", async function() {
       await history.recordNextLocalUnsent(b1);
       await history.recordNextLocalUnsent(b2);
       assert.equal(history.getNextLocalActionNum(), 3);
@@ -318,7 +318,7 @@ for (const version of versions) {
       assert.equal(history.getNextLocalActionNum(), 1);
     });
 
-    it('cleans local_sent when local_unsent is empty', async function() {
+    it("cleans local_sent when local_unsent is empty", async function() {
       await history.recordNextLocalUnsent(b1);
       await history.recordNextLocalUnsent(b2);
       await history.markAsSent(await history.fetchAllLocalUnsent());
@@ -331,7 +331,7 @@ for (const version of versions) {
       assert.equal(history.getNextLocalActionNum(), 1);
     });
 
-    it('cleans local actions and continues correctly', async function() {
+    it("cleans local actions and continues correctly", async function() {
       await history.recordNextShared(b1);                       // [b1     |      |       ]
       await history.recordNextLocalUnsent(b2);                  // [b1     |      | b2    ]
       assert.deepEqual(await getActions(), [1, 2]);
@@ -341,7 +341,7 @@ for (const version of versions) {
       assert.deepEqual(await getActions(), [1, 3]);
     });
 
-    it('handles non-trivial load', async function() {
+    it("handles non-trivial load", async function() {
       const target = 500;
       async function addRecords() {
         for (let i = 1; i <= target; i++) {
@@ -362,7 +362,7 @@ for (const version of versions) {
       assert.lengthOf(await history.fetchAllLocal(), target - 1);
     });
 
-    it('tracks ownership', async function() {
+    it("tracks ownership", async function() {
       await history.recordNextLocalUnsent(b1);
       await history.recordNextLocalUnsent(b2);
       const defaultUndoInfo = { linkId: 0, otherId: 0, isUndo: false, rowIdHint: 0 };
@@ -372,7 +372,7 @@ for (const version of versions) {
       assert.equal(history.getActionUndoInfo(b2.actionHash!)?.clientId, "you");
     });
 
-    it('tracks recent actions', async function() {
+    it("tracks recent actions", async function() {
       assert.deepEqual(await getActions(), []);
       assert.deepEqual(await getActions(2), []);
       await history.recordNextShared(b1);
@@ -389,7 +389,7 @@ for (const version of versions) {
       assert.deepEqual(await getActions(2), [2, 3]);
     });
 
-    it('can force next actionNum value', async function() {
+    it("can force next actionNum value", async function() {
       await history.skipActionNum(50);
       assert.equal(history.getNextHubActionNum(), 51);
       assert.equal(history.getNextLocalActionNum(), 51);
@@ -409,10 +409,10 @@ describe("ActionHistoryImpl only", function() {
   testUtils.withoutSandboxing();
 
   // Comment this out to see debug-log output from PluginManager when debugging tests.
-  testUtils.setTmpLogLevel('error');
+  testUtils.setTmpLogLevel("error");
 
   const docTools = createDocTools();
-  it('can persist actionNum across restarts', async function() {
+  it("can persist actionNum across restarts", async function() {
     const doc = await docTools.createDoc("test.grist");
     const history = new ActionHistoryImpl(doc.docStorage);
     await history.initialize();
@@ -425,7 +425,7 @@ describe("ActionHistoryImpl only", function() {
     assert.equal(history2.getNextHubActionNum(), 51);
   });
 
-  it('can access actions by actionNum', async function() {
+  it("can access actions by actionNum", async function() {
     async function getServerActionNums(actionNums: number[]): Promise<number[]> {
       return (await history.getActions(actionNums))
         .map(act => act ? act.actionNum : 0);
@@ -445,7 +445,7 @@ describe("ActionHistoryImpl only", function() {
     assert.deepEqual(await getServerActionNums([25]), [0]);
   });
 
-  it('can automatically prune long history', async function() {
+  it("can automatically prune long history", async function() {
     const doc = await docTools.createDoc("test.grist");
     const history = new ActionHistoryImpl(doc.docStorage,
       { maxRows: 2, maxBytes: 40000, graceFactor: 2,
@@ -472,7 +472,7 @@ describe("ActionHistoryImpl only", function() {
     await doc.shutdown();
   });
 
-  it('can automatically prune bulky history', async function() {
+  it("can automatically prune bulky history", async function() {
     const doc = await docTools.createDoc("test.grist");
     // Set byte limit sufficiently low to dominate.
     const history = new ActionHistoryImpl(doc.docStorage, { maxRows: 4, maxBytes: 1000,

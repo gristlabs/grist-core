@@ -1,14 +1,14 @@
-import { cleanFormLayoutSpec, FormLayoutNode } from 'app/client/components/FormRenderer';
-import { TypedFormData, typedFormDataToJson } from 'app/client/lib/formUtils';
-import { makeT } from 'app/client/lib/localization';
-import { getHomeUrl } from 'app/client/models/AppModel';
-import { urlState } from 'app/client/models/gristUrlState';
-import { Form, FormAPI, FormAPIImpl } from 'app/client/ui/FormAPI';
-import { ApiError } from 'app/common/ApiError';
-import { safeJsonParse } from 'app/common/gutil';
-import { bundleChanges, Computed, Disposable, Observable } from 'grainjs';
+import { cleanFormLayoutSpec, FormLayoutNode } from "app/client/components/FormRenderer";
+import { TypedFormData, typedFormDataToJson } from "app/client/lib/formUtils";
+import { makeT } from "app/client/lib/localization";
+import { getHomeUrl } from "app/client/models/AppModel";
+import { urlState } from "app/client/models/gristUrlState";
+import { Form, FormAPI, FormAPIImpl } from "app/client/ui/FormAPI";
+import { ApiError } from "app/common/ApiError";
+import { safeJsonParse } from "app/common/gutil";
+import { bundleChanges, Computed, Disposable, Observable } from "grainjs";
 
-const t = makeT('FormModel');
+const t = makeT("FormModel");
 
 export interface FormModel {
   readonly form: Observable<Form | null>;
@@ -26,10 +26,10 @@ export class FormModelImpl extends Disposable implements FormModel {
     if (!form) { return null; }
 
     const layout = safeJsonParse(form.formLayoutSpec, null) as FormLayoutNode | null;
-    if (!layout) { throw new Error('invalid formLayoutSpec'); }
+    if (!layout) { throw new Error("invalid formLayoutSpec"); }
 
     const patchedLayout = cleanFormLayoutSpec(layout, new Set(Object.keys(form.formFieldsById).map(Number)));
-    if (!patchedLayout) { throw new Error('invalid formLayoutSpec'); }
+    if (!patchedLayout) { throw new Error("invalid formLayoutSpec"); }
 
     return patchedLayout;
   });
@@ -57,11 +57,11 @@ export class FormModelImpl extends Disposable implements FormModel {
       let error: string | undefined;
       if (e instanceof ApiError) {
         const code = e.details?.code;
-        if (code === 'FormNotFound') {
+        if (code === "FormNotFound") {
           error = t("Oops! The form you're looking for doesn't exist.");
         }
-        else if (code === 'FormNotPublished') {
-          error = t('Oops! This form is no longer published.');
+        else if (code === "FormNotPublished") {
+          error = t("Oops! This form is no longer published.");
         }
         else if (e.status === 401 || e.status === 403) {
           error = t("You don't have access to this form.");
@@ -71,7 +71,7 @@ export class FormModelImpl extends Disposable implements FormModel {
         }
       }
 
-      this.error.set(error || t('There was a problem loading the form.'));
+      this.error.set(error || t("There was a problem loading the form."));
       if (!(e instanceof ApiError && (e.status >= 400 && e.status < 500))) {
         // Re-throw if the error wasn't a user error (i.e. a 4XX HTTP response).
         throw e;
@@ -81,7 +81,7 @@ export class FormModelImpl extends Disposable implements FormModel {
 
   public async submitForm(formData: TypedFormData): Promise<void> {
     const form = this.form.get();
-    if (!form) { throw new Error('form is not defined'); }
+    if (!form) { throw new Error("form is not defined"); }
 
     for (const key of formData.keys()) {
       const value = formData.getAll(key);

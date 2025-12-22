@@ -24,10 +24,10 @@
  * 'stringToBuffer' option. Similarly, Python strings become JS Uint8Arrays, but can be
  * unmarshalled to JS strings if 'bufferToString' option is set.
  */
-import { BigInt } from 'app/common/BigInt';
-import MemBuffer from 'app/common/MemBuffer';
-import { EventEmitter } from 'events';
-import * as util from 'util';
+import { BigInt } from "app/common/BigInt";
+import MemBuffer from "app/common/MemBuffer";
+import { EventEmitter } from "events";
+import * as util from "util";
 
 export interface MarshalOptions {
   stringToBuffer?: boolean;
@@ -54,14 +54,14 @@ function ord(str: string): number {
  * See pypy: rpython/translator/sandbox/_marshal.py.
  */
 const marshalCodes = {
-  NULL: ord('0'),
-  NONE: ord('N'),
-  FALSE: ord('F'),
-  TRUE: ord('T'),
-  STOPITER: ord('S'),
-  ELLIPSIS: ord('.'),
-  INT: ord('i'),
-  INT64: ord('I'),
+  NULL: ord("0"),
+  NONE: ord("N"),
+  FALSE: ord("F"),
+  TRUE: ord("T"),
+  STOPITER: ord("S"),
+  ELLIPSIS: ord("."),
+  INT: ord("i"),
+  INT64: ord("I"),
   /*
     BFLOAT, for 'binary float', is an encoding of float that just encodes the bytes of the
     double in standard IEEE 754 float64 format. It is used by Version 2+ of Python's marshal
@@ -72,21 +72,21 @@ const marshalCodes = {
     is recommended for Grist's communication because it is more efficient and faster to
     encode/decode
    */
-  BFLOAT: ord('g'),
-  FLOAT: ord('f'),
-  COMPLEX: ord('x'),
-  LONG: ord('l'),
-  STRING: ord('s'),
-  INTERNED: ord('t'),
-  STRINGREF: ord('R'),
-  TUPLE: ord('('),
-  LIST: ord('['),
-  DICT: ord('{'),
-  CODE: ord('c'),
-  UNICODE: ord('u'),
-  UNKNOWN: ord('?'),
-  SET: ord('<'),
-  FROZENSET: ord('>'),
+  BFLOAT: ord("g"),
+  FLOAT: ord("f"),
+  COMPLEX: ord("x"),
+  LONG: ord("l"),
+  STRING: ord("s"),
+  INTERNED: ord("t"),
+  STRINGREF: ord("R"),
+  TUPLE: ord("("),
+  LIST: ord("["),
+  DICT: ord("{"),
+  CODE: ord("c"),
+  UNICODE: ord("u"),
+  UNKNOWN: ord("?"),
+  SET: ord("<"),
+  FROZENSET: ord(">"),
 };
 
 type MarshalCode = keyof typeof marshalCodes;
@@ -159,11 +159,11 @@ export class Marshaller {
 
   public getCode(value: any) {
     switch (typeof value) {
-      case 'number': return isInteger(value) ? marshalCodes.INT : this._floatCode;
-      case 'string': return this._stringCode;
-      case 'boolean': return value ? marshalCodes.TRUE : marshalCodes.FALSE;
-      case 'undefined': return marshalCodes.NONE;
-      case 'object': {
+      case "number": return isInteger(value) ? marshalCodes.INT : this._floatCode;
+      case "string": return this._stringCode;
+      case "boolean": return value ? marshalCodes.TRUE : marshalCodes.FALSE;
+      case "undefined": return marshalCodes.NONE;
+      case "object": {
         if (value instanceof WrappedObj) {
           return value.code;
         }
@@ -304,7 +304,7 @@ export class Unmarshaller extends EventEmitter {
     super();
     this.memBuf = new MemBuffer(undefined);
     this._bufferToString = Boolean(options?.bufferToString);
-    this._emitter = this.emit.bind(this, 'value');
+    this._emitter = this.emit.bind(this, "value");
   }
 
   /**
@@ -490,7 +490,7 @@ export function loads(byteArray: Uint8Array | Buffer, options?: UnmarshalOptions
     parsedValue = value;
     return false;
   });
-  if (typeof parsedValue === 'undefined') {
+  if (typeof parsedValue === "undefined") {
     throw new Error("loads: input data truncated");
   }
   else if (unmarshaller.memBuf.size() > 0) {
@@ -505,12 +505,12 @@ export function loads(byteArray: Uint8Array | Buffer, options?: UnmarshalOptions
 export function dumpBase64(data: any, options?: MarshalOptions) {
   const marshaller = new Marshaller(options || { version: 2 });
   marshaller.marshal(data);
-  return marshaller.dumpAsBuffer().toString('base64');
+  return marshaller.dumpAsBuffer().toString("base64");
 }
 
 /**
  * Loads data from a base64 string, as serialized by dumpBase64().
  */
 export function loadBase64(data: string, options?: UnmarshalOptions) {
-  return loads(Buffer.from(data, 'base64'), options);
+  return loads(Buffer.from(data, "base64"), options);
 }

@@ -1,12 +1,12 @@
-import * as modelUtil from 'app/client/models/modelUtil';
+import * as modelUtil from "app/client/models/modelUtil";
 // This is circular import, but only for types so it's fine.
-import type { DocModel, ViewFieldRec } from 'app/client/models/DocModel';
-import * as UserType from 'app/client/widgets/UserType';
-import { ifNotSet } from 'app/common/gutil';
-import * as ko from 'knockout';
+import type { DocModel, ViewFieldRec } from "app/client/models/DocModel";
+import * as UserType from "app/client/widgets/UserType";
+import { ifNotSet } from "app/common/gutil";
+import * as ko from "knockout";
 import intersection from "lodash/intersection";
 import isEqual from "lodash/isEqual";
-import zip from 'lodash/zip';
+import zip from "lodash/zip";
 
 export class ViewFieldConfig {
   /** If there are multiple columns selected in the viewSection */
@@ -111,7 +111,7 @@ export class ViewFieldConfig {
       let options: Set<string> | null = null;
       for (const field of fields) {
         // First get the data, and prepare initial set.
-        const widget = field.widget() || '';
+        const widget = field.widget() || "";
         const widgetOptions = UserType.typeDefs[field.column().pureType()]?.widgets[widget]?.options;
         if (!widgetOptions) { continue; }
         if (!options) { options = new Set(Object.keys(widgetOptions)); }
@@ -190,11 +190,11 @@ export class ViewFieldConfig {
     // This is repeated logic for wrap property in viewFieldRec,
     // every field has wrapping implicitly set to true on a card view.
     this.wrap = modelUtil.fieldWithDefault(
-      this.options.prop('wrap'),
-      () => this._field.viewSection().parentKey() !== 'record',
+      this.options.prop("wrap"),
+      () => this._field.viewSection().parentKey() !== "record",
     );
 
-    this.alignment = this.options.prop('alignment');
+    this.alignment = this.options.prop("alignment");
 
     // Style options are a bit different, as they are saved when style picker is disposed.
     // By the time it happens, fields may have changed (since user might have clicked some other column).
@@ -215,8 +215,8 @@ export class ViewFieldConfig {
           // First get all widgetOption jsons from all columns/fields.
           const optionList = fields.map(f => f.widgetOptionsJson());
           // And fill only those that are common
-          for (const key of ['textColor', 'fillColor', 'fontBold',
-            'fontItalic', 'fontUnderline', 'fontStrikethrough']) {
+          for (const key of ["textColor", "fillColor", "fontBold",
+            "fontItalic", "fontUnderline", "fontStrikethrough"]) {
             // Setting null means that this options is there, but has no value.
             result[key] = null;
             // If all columns have the same value, use it.
@@ -277,8 +277,8 @@ export class ViewFieldConfig {
           // First get all widgetOption jsons from all columns/fields.
           const optionList = fields.map(f => f.widgetOptionsJson());
           // And fill only those that are common
-          for (const key of ['headerTextColor', 'headerFillColor', 'headerFontBold',
-            'headerFontItalic', 'headerFontUnderline', 'headerFontStrikethrough']) {
+          for (const key of ["headerTextColor", "headerFillColor", "headerFontBold",
+            "headerFontItalic", "headerFontUnderline", "headerFontStrikethrough"]) {
             // Setting null means that this options is there, but has no value.
             result[key] = null;
             // If all columns have the same value, use it.

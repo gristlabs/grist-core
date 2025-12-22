@@ -8,13 +8,13 @@ import { dom, DomElementArg, IDisposableOwner, styled } from "grainjs";
  */
 export function menuToggle(obs: IDisposableOwner | null, ...args: DomElementArg[]) {
   const contextMenu = cssMenuToggle(
-    icon('Dropdown', dom.cls('menu_toggle_icon')),
+    icon("Dropdown", dom.cls("menu_toggle_icon")),
     ...args,
   );
   return contextMenu;
 }
 
-const cssMenuToggle = styled('div.menu_toggle', `
+const cssMenuToggle = styled("div.menu_toggle", `
   background: ${theme.menuToggleBg};
   cursor: pointer;
   --icon-color: ${theme.menuToggleFg};

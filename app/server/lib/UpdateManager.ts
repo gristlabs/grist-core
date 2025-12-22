@@ -3,11 +3,11 @@ import { MapWithTTL } from "app/common/AsyncCreate";
 import { GristDeploymentType } from "app/common/gristUrls";
 import { naturalCompare } from "app/common/SortFunc";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
-import { expressWrap } from 'app/server/lib/expressWrap';
+import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
 import { optIntegerParam, optStringParam } from "app/server/lib/requestUtils";
-import { rateLimit } from 'express-rate-limit';
-import { AbortController, AbortSignal } from 'node-abort-controller';
+import { rateLimit } from "express-rate-limit";
+import { AbortController, AbortSignal } from "node-abort-controller";
 import type * as express from "express";
 import fetch from "node-fetch";
 import * as semver from "semver";
@@ -19,13 +19,13 @@ const DOCKER_IMAGE_SITE = "https://hub.docker.com/r/gristlabs/grist";
 const DOCKER_ENDPOINT = process.env.GRIST_TEST_UPDATE_DOCKER_HUB_URL ||
   "https://hub.docker.com/v2/namespaces/gristlabs/repositories/grist/tags";
 // Timeout for the request to the external resource.
-const REQUEST_TIMEOUT = optIntegerParam(process.env.GRIST_TEST_UPDATE_REQUEST_TIMEOUT, '') ?? 10000; // 10s
+const REQUEST_TIMEOUT = optIntegerParam(process.env.GRIST_TEST_UPDATE_REQUEST_TIMEOUT, "") ?? 10000; // 10s
 // Delay between retries in case of rate limiting.
-const RETRY_TIMEOUT = optIntegerParam(process.env.GRIST_TEST_UPDATE_RETRY_TIMEOUT, '') ?? 4000; // 4s
+const RETRY_TIMEOUT = optIntegerParam(process.env.GRIST_TEST_UPDATE_RETRY_TIMEOUT, "") ?? 4000; // 4s
 // We cache the good result for an hour.
-const GOOD_RESULT_TTL = optIntegerParam(process.env.GRIST_TEST_UPDATE_CHECK_TTL, '') ?? 60 * 60 * 1000; // 1h
+const GOOD_RESULT_TTL = optIntegerParam(process.env.GRIST_TEST_UPDATE_CHECK_TTL, "") ?? 60 * 60 * 1000; // 1h
 // We cache the bad result errors from external resources for a minute.
-const BAD_RESULT_TTL = optIntegerParam(process.env.GRIST_TEST_UPDATE_ERROR_TTL, '') ?? 60 * 1000; // 1m
+const BAD_RESULT_TTL = optIntegerParam(process.env.GRIST_TEST_UPDATE_ERROR_TTL, "") ?? 60 * 1000; // 1m
 
 const OLDEST_RECOMMENDED_VERSION = process.env.GRIST_OLDEST_RECOMMENDED_VERSION;
 
@@ -141,7 +141,7 @@ export class UpdateManager {
       // For now we will just check the latest tag of docker stable image, assuming
       // that this is what the client wants. In the future we might have different
       // implementation based on the client deployment type.
-      const deploymentToCheck = 'core';
+      const deploymentToCheck = "core";
       const versionChecker: VersionChecker = getLatestStableDockerVersion;
 
       // To not spam the docker hub with requests, we will cache the good result for an hour.

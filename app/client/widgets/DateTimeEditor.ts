@@ -1,10 +1,10 @@
-import { DateEditor } from 'app/client/widgets/DateEditor';
-import { FieldOptions } from 'app/client/widgets/NewBaseEditor';
-import { removePrefix } from 'app/common/gutil';
-import { parseDate } from 'app/common/parseDate';
+import { DateEditor } from "app/client/widgets/DateEditor";
+import { FieldOptions } from "app/client/widgets/NewBaseEditor";
+import { removePrefix } from "app/common/gutil";
+import { parseDate } from "app/common/parseDate";
 
-import moment from 'moment-timezone';
-import { dom } from 'grainjs';
+import moment from "moment-timezone";
+import { dom } from "grainjs";
 
 /**
  * DateTimeEditor - Editor for DateTime type. Includes a dropdown datepicker.
@@ -32,7 +32,7 @@ export class DateTimeEditor extends DateEditor {
     }
 
     // Call the superclass.
-    super(options, timezone || 'UTC');
+    super(options, timezone || "UTC");
     this._timeFormat = this.options.field.widgetOptionsJson.peek().timeFormat;
 
     // To reuse code, this knows all about the DOM that DateEditor builds (using TextEditor), and
@@ -40,10 +40,10 @@ export class DateTimeEditor extends DateEditor {
     this._dateSizer = this.contentSizer;    // For consistency with _timeSizer.
     this._dateInput = this.textInput;       // For consistency with _timeInput.
 
-    const isValid = (typeof options.cellValue === 'number');
+    const isValid = (typeof options.cellValue === "number");
     const formatted = this.formatValue(options.cellValue, this._timeFormat, false);
     // Use a placeholder of 12:00am, since that is the autofill time value.
-    const placeholder = moment.tz('0', 'H', this.timezone).format(this._timeFormat);
+    const placeholder = moment.tz("0", "H", this.timezone).format(this._timeFormat);
 
     // for readonly
     if (options.readonly) {
@@ -53,31 +53,31 @@ export class DateTimeEditor extends DateEditor {
       else {
         // append time format or a placeholder
         const time = (formatted || placeholder);
-        const sep = time ? ' ' : '';
+        const sep = time ? " " : "";
         this.textInput.value = this.textInput.value + sep + time;
       }
     }
     else {
       const widgetElem = this.getDom();
-      dom.update(widgetElem, dom.cls('celleditor_datetime'));
-      dom.update(this.cellEditorDiv, dom.cls('celleditor_datetime_editor'));
+      dom.update(widgetElem, dom.cls("celleditor_datetime"));
+      dom.update(this.cellEditorDiv, dom.cls("celleditor_datetime_editor"));
       widgetElem.appendChild(
-        dom('div',
-          dom.cls('celleditor_cursor_editor'),
-          dom.cls('celleditor_datetime_editor'),
-          this._timeSizer = dom('div', dom.cls('celleditor_content_measure')),
-          this._timeInput = dom('textarea', dom.cls('celleditor_text_editor'),
-            dom.attr('placeholder', placeholder),
-            dom.prop('value', formatted),
+        dom("div",
+          dom.cls("celleditor_cursor_editor"),
+          dom.cls("celleditor_datetime_editor"),
+          this._timeSizer = dom("div", dom.cls("celleditor_content_measure")),
+          this._timeInput = dom("textarea", dom.cls("celleditor_text_editor"),
+            dom.attr("placeholder", placeholder),
+            dom.prop("value", formatted),
             this.commandGroup.attach(),
-            dom.on('input', () => this._onChange()),
+            dom.on("input", () => this._onChange()),
           ),
         ),
       );
     }
 
     // If the edit value is encoded json, use those values as a starting point
-    if (typeof options.state == 'string') {
+    if (typeof options.state == "string") {
       try {
         const { date, time } = JSON.parse(options.state);
         this._dateInput.value = date;
@@ -109,7 +109,7 @@ export class DateTimeEditor extends DateEditor {
       return;
     }
     this._dateSizer.style.maxWidth =
-      this._timeSizer.style.maxWidth = Math.ceil(maxSize.width / 2 - 6) + 'px';
+      this._timeSizer.style.maxWidth = Math.ceil(maxSize.width / 2 - 6) + "px";
   }
 
   /**
@@ -134,11 +134,11 @@ export class DateTimeEditor extends DateEditor {
       width: dateRect.width + timeRect.width + 12,
       height: Math.max(dateRect.height, timeRect.height) + 3,
     });
-    this.getDom().style.width = size.width + 'px';
-    this._dateInput.parentElement!.style.flexBasis = (dateRect.width + 6) + 'px';
-    this._timeInput.parentElement!.style.flexBasis = (timeRect.width + 6) + 'px';
-    this._dateInput.style.height = Math.ceil(size.height - 3) + 'px';
-    this._timeInput.style.height = Math.ceil(size.height - 3) + 'px';
+    this.getDom().style.width = size.width + "px";
+    this._dateInput.parentElement!.style.flexBasis = (dateRect.width + 6) + "px";
+    this._timeInput.parentElement!.style.flexBasis = (timeRect.width + 6) + "px";
+    this._dateInput.style.height = Math.ceil(size.height - 3) + "px";
+    this._timeInput.style.height = Math.ceil(size.height - 3) + "px";
   }
 
   /**

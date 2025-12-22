@@ -2,11 +2,11 @@
  * This modules contains helpers to generate toy data for the widget picker.
  */
 
-import { syncedKoArray } from 'app/client/lib/koArray';
-import { ColumnRec, TableRec } from 'app/client/models/DocModel';
-import { observable, toKo } from 'grainjs';
-import * as ko from 'knockout';
-import range from 'lodash/range';
+import { syncedKoArray } from "app/client/lib/koArray";
+import { ColumnRec, TableRec } from "app/client/models/DocModel";
+import { observable, toKo } from "grainjs";
+import * as ko from "knockout";
+import range from "lodash/range";
 
 function table(id: number, name: string) {
   return { id: ko.observable(id), tableId: ko.observable(name), tableNameDef: ko.observable(name) } as any as TableRec;
@@ -24,18 +24,18 @@ function column(id: number, name: string, tableRef: number) {
 }
 
 export const tables = observable([
-  table(0, 'Companies'),
-  table(1, 'History'),
-  table(2, 'A table with a very very long name, which include a description'),
+  table(0, "Companies"),
+  table(1, "History"),
+  table(2, "A table with a very very long name, which include a description"),
   ...range(6).map(i => table(3 + i, `Table${i}`)),
 ]);
 
 export const columns = observable([
-  column(0, 'Field', 0),
-  column(1, 'company_id', 1),
-  column(2, 'URL', 1),
-  column(3, 'city', 1),
-  column(4, 'Long long long column name, because why not', 2),
+  column(0, "Field", 0),
+  column(1, "company_id", 1),
+  column(2, "URL", 1),
+  column(3, "city", 1),
+  column(4, "Long long long column name, because why not", 2),
   ...range(10).map(i => column(4 + i, `column`, 3)),
 ]);
 

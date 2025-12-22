@@ -1,9 +1,9 @@
-import { styled } from 'grainjs';
+import { styled } from "grainjs";
 
 /**
  * Plain clickable button, light grey with dark text, slightly raised.
  */
-export const button1 = styled('button', `
+export const button1 = styled("button", `
   background: linear-gradient(to bottom, #fafafa 0%,#eaeaea 100%);
   border-radius: 0.5em;
   border: 1px solid #c9c9c9;
@@ -69,7 +69,7 @@ export const button1SmallBright = styled(button1Small, buttonBrightStyle);
  * Modifier class circleSymbolButton.cls("-light") makes it look disabled.
  * Modifier class circleSymbolButton.cls("-green") makes it green.
  */
-export const circleSymbolButton = styled('button', `
+export const circleSymbolButton = styled("button", `
   border: none;
   padding: 0px;
   width: 1em;

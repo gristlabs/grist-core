@@ -1,26 +1,26 @@
-import { getWelcomeHomeUrl } from 'app/client/lib/urlUtils';
-import { urlState } from 'app/client/models/gristUrlState';
-import { getTheme } from 'app/client/ui/CustomThemes';
-import { cssLeftPane } from 'app/client/ui/PagePanels';
-import { colors, theme, vars } from 'app/client/ui2018/cssVars';
-import { menu, menuItem, menuItemLink, menuSubHeader } from 'app/client/ui2018/menus';
-import { commonUrls } from 'app/common/gristUrls';
-import { getOrgName, isTemplatesOrg, Organization } from 'app/common/UserAPI';
-import { AppModel } from 'app/client/models/AppModel';
-import { icon } from 'app/client/ui2018/icons';
-import { unstyledButton } from 'app/client/ui2018/unstyled';
-import { DocPageModel } from 'app/client/models/DocPageModel';
-import * as roles from 'app/common/roles';
-import { manageTeamUsersApp } from 'app/client/ui/OpenUserManager';
-import { maybeAddSiteSwitcherSection } from 'app/client/ui/SiteSwitcher';
-import { Computed, Disposable, dom, DomContents, styled } from 'grainjs';
-import { makeT } from 'app/client/lib/localization';
-import { getGristConfig } from 'app/common/urlUtils';
-import { makeTestId } from 'app/client/lib/domUtils';
-import { createUserImage, cssUserImage } from 'app/client/ui/UserImage';
+import { getWelcomeHomeUrl } from "app/client/lib/urlUtils";
+import { urlState } from "app/client/models/gristUrlState";
+import { getTheme } from "app/client/ui/CustomThemes";
+import { cssLeftPane } from "app/client/ui/PagePanels";
+import { colors, theme, vars } from "app/client/ui2018/cssVars";
+import { menu, menuItem, menuItemLink, menuSubHeader } from "app/client/ui2018/menus";
+import { commonUrls } from "app/common/gristUrls";
+import { getOrgName, isTemplatesOrg, Organization } from "app/common/UserAPI";
+import { AppModel } from "app/client/models/AppModel";
+import { icon } from "app/client/ui2018/icons";
+import { unstyledButton } from "app/client/ui2018/unstyled";
+import { DocPageModel } from "app/client/models/DocPageModel";
+import * as roles from "app/common/roles";
+import { manageTeamUsersApp } from "app/client/ui/OpenUserManager";
+import { maybeAddSiteSwitcherSection } from "app/client/ui/SiteSwitcher";
+import { Computed, Disposable, dom, DomContents, styled } from "grainjs";
+import { makeT } from "app/client/lib/localization";
+import { getGristConfig } from "app/common/urlUtils";
+import { makeTestId } from "app/client/lib/domUtils";
+import { createUserImage, cssUserImage } from "app/client/ui/UserImage";
 
-const t = makeT('AppHeader');
-const testId = makeTestId('test-dm-');
+const t = makeT("AppHeader");
+const testId = makeTestId("test-dm-");
 
 // Maps a name of a Product (from app/gen-server/entity/Product.ts) to a tag (pill) to show next
 // to the org name.
@@ -43,12 +43,12 @@ interface AppLogoOrgNameAndLink {
 type AppLogoLink = AppLogoOrgDomain | AppLogoHref;
 
 interface AppLogoOrgDomain {
-  type: 'domain';
+  type: "domain";
   domain: string;
 }
 
 interface AppLogoHref {
-  type: 'href';
+  type: "href";
   href: string;
 }
 
@@ -63,7 +63,7 @@ export class AppHeader extends Disposable {
   private _appLogoOrg = Computed.create<AppLogoOrgNameAndLink>(this, (use) => {
     const availableOrgs = use(this._appModel.topAppModel.orgs);
     const currentOrgName = (this._appModel.currentOrgName ||
-      (this._docPageModel && use(this._docPageModel.currentOrgName))) ?? '';
+      (this._docPageModel && use(this._docPageModel.currentOrgName))) ?? "";
     const lastVisitedOrgDomain = use(this._appModel.lastVisitedOrgDomain);
     return this._getAppLogoOrgNameAndLink({ availableOrgs, currentOrgName, lastVisitedOrgDomain });
   });
@@ -82,15 +82,15 @@ export class AppHeader extends Disposable {
     // Check if we have a custom image.
     const customImage = this._appModel.currentOrg?.orgPrefs?.customLogoUrl;
 
-    const variant = () => [cssUserImage.cls('-border'), cssUserImage.cls('-square'), cssUserImage.cls('-inAppLogo')];
+    const variant = () => [cssUserImage.cls("-border"), cssUserImage.cls("-square"), cssUserImage.cls("-inAppLogo")];
 
     // Personal avatar is shown only for logged in users.
     const personalAvatar = () => !this._appModel.currentValidUser ?
-      cssAppLogo.cls('-grist-logo') :
-      createUserImage(this._appModel.currentValidUser, 'medium', variant());
+      cssAppLogo.cls("-grist-logo") :
+      createUserImage(this._appModel.currentValidUser, "medium", variant());
 
     // Team avatar is shown only for team sites (even for anonymous users).
-    const teamAvatar = () => cssAppLogo.cls('-grist-logo');
+    const teamAvatar = () => cssAppLogo.cls("-grist-logo");
 
     // Depending on site the avatar is either personal or team.
     const avatar = () => this._appModel.isPersonal ?
@@ -99,7 +99,7 @@ export class AppHeader extends Disposable {
 
     // Show the image if it's set, otherwise show the avatar.
     const image = () => customImage ?
-      dom.style('background-image', customImage ? `url(${customImage})` : '') :
+      dom.style("background-image", customImage ? `url(${customImage})` : "") :
       avatar();
 
     // Maybe we should show custom logo and make it wide (without site switcher).
@@ -108,16 +108,16 @@ export class AppHeader extends Disposable {
       null :
       image();
 
-    const altText = t('{{- organizationName }} - Back to home', { organizationName: this._appLogoOrg.get().name });
+    const altText = t("{{- organizationName }} - Back to home", { organizationName: this._appLogoOrg.get().name });
 
     return cssAppHeader(
-      cssAppHeader.cls('-widelogo', productFlavor.wideLogo || false),
+      cssAppHeader.cls("-widelogo", productFlavor.wideLogo || false),
       cssAppHeaderBox(
         dom.domComputed(this._appLogoOrgLink, orgLink => cssAppLogo(
-          { 'aria-label': altText },
+          { "aria-label": altText },
           this._setHomePageUrl(orgLink),
           content(),
-          testId('logo'),
+          testId("logo"),
         )),
         this._buildOrgLinkOrMenu(),
       ),
@@ -127,37 +127,37 @@ export class AppHeader extends Disposable {
   private _buildOrgLinkOrMenu() {
     const { currentValidUser, isTemplatesSite } = this._appModel;
     const { deploymentType } = getGristConfig();
-    if (deploymentType === 'saas' && !currentValidUser && isTemplatesSite) {
+    if (deploymentType === "saas" && !currentValidUser && isTemplatesSite) {
       // When signed out and on the templates site (in SaaS Grist), link to the templates page.
       return cssOrgLink(
-        cssOrgName(dom.text(this._appLogoOrgName), testId('orgname')),
+        cssOrgName(dom.text(this._appLogoOrgName), testId("orgname")),
         { href: commonUrls.templates },
-        testId('org'),
+        testId("org"),
       );
     }
     else {
       return cssOrg(
-        dom.cls('_cssOrg'),
-        cssOrgName(dom.text(this._appLogoOrgName), testId('orgname')),
+        dom.cls("_cssOrg"),
+        cssOrgName(dom.text(this._appLogoOrgName), testId("orgname")),
         productPill(this._currentOrg),
         dom.maybe(this._appLogoOrgName, () => [
           cssSpacer(),
-          cssDropdownIcon('Dropdown'),
+          cssDropdownIcon("Dropdown"),
         ]),
         menu(() => [
           menuSubHeader(
             this._appModel.isPersonal ?
-              t("Personal Site") + (this._appModel.isLegacySite ? ` (${t("Legacy")})` : '') :
+              t("Personal Site") + (this._appModel.isLegacySite ? ` (${t("Legacy")})` : "") :
               t("Team Site"),
-            testId('orgmenu-title'),
+            testId("orgmenu-title"),
           ),
-          menuItemLink(urlState().setLinkUrl({}), t("Home page"), testId('orgmenu-home-page')),
+          menuItemLink(urlState().setLinkUrl({}), t("Home page"), testId("orgmenu-home-page")),
 
           // Show 'Organization Settings' when on a home page of a valid org.
           (!this._docPageModel && this._currentOrg && !this._currentOrg.owner ?
             menuItem(() => manageTeamUsersApp({ app: this._appModel }),
-              t('Manage team'), testId('orgmenu-manage-team'),
-              dom.cls('disabled', !roles.canEditAccess(this._currentOrg.access))) :
+              t("Manage team"), testId("orgmenu-manage-team"),
+              dom.cls("disabled", !roles.canEditAccess(this._currentOrg.access))) :
             // Don't show on doc pages, or for personal orgs.
             null),
 
@@ -165,14 +165,14 @@ export class AppHeader extends Disposable {
           this._maybeBuildActivationPageMenuItem(),
 
           maybeAddSiteSwitcherSection(this._appModel),
-        ], { placement: 'bottom-start' }),
-        testId('org'),
+        ], { placement: "bottom-start" }),
+        testId("org"),
       );
     }
   }
 
   private _setHomePageUrl(link: AppLogoLink) {
-    if (link.type === 'href') {
+    if (link.type === "href") {
       return { href: link.href };
     }
     else {
@@ -182,7 +182,7 @@ export class AppHeader extends Disposable {
 
   private _maybeBuildBillingPageMenuItem() {
     const { deploymentType } = getGristConfig();
-    if (deploymentType !== 'saas') { return null; }
+    if (deploymentType !== "saas") { return null; }
 
     const { currentOrg } = this._appModel;
     const isBillingManager = this._appModel.isBillingManager() || this._appModel.isSupport();
@@ -191,15 +191,15 @@ export class AppHeader extends Disposable {
       // TODO weasel menus should support disabling menuItemLink.
       (isBillingManager ?
         menuItemLink(
-          urlState().setLinkUrl({ billing: 'billing' }),
-          t('Billing account'),
-          testId('orgmenu-billing'),
+          urlState().setLinkUrl({ billing: "billing" }),
+          t("Billing account"),
+          testId("orgmenu-billing"),
         ) :
         menuItem(
           () => null,
-          t('Billing account'),
-          dom.cls('disabled', true),
-          testId('orgmenu-billing'),
+          t("Billing account"),
+          dom.cls("disabled", true),
+          testId("orgmenu-billing"),
         )
       ) :
       null;
@@ -207,11 +207,11 @@ export class AppHeader extends Disposable {
 
   private _maybeBuildActivationPageMenuItem() {
     const { deploymentType } = getGristConfig();
-    if (deploymentType !== 'enterprise' || !this._appModel.isInstallAdmin()) {
+    if (deploymentType !== "enterprise" || !this._appModel.isInstallAdmin()) {
       return null;
     }
 
-    return menuItemLink('Activation', urlState().setLinkUrl({ activation: 'activation' }));
+    return menuItemLink("Activation", urlState().setLinkUrl({ activation: "activation" }));
   }
 
   private _getAppLogoOrgNameAndLink(params: {
@@ -224,12 +224,12 @@ export class AppHeader extends Disposable {
       isTemplatesSite,
     } = this._appModel;
     const { deploymentType } = getGristConfig();
-    if (deploymentType === 'saas' && !currentValidUser && isTemplatesSite) {
+    if (deploymentType === "saas" && !currentValidUser && isTemplatesSite) {
       // When signed out and on the templates site (in SaaS Grist), link to the templates page.
       return {
-        name: t('Grist Templates'),
+        name: t("Grist Templates"),
         link: {
-          type: 'href',
+          type: "href",
           href: commonUrls.templates,
         },
       };
@@ -242,7 +242,7 @@ export class AppHeader extends Disposable {
         return {
           name: getOrgName(lastVisitedOrg),
           link: {
-            type: 'domain',
+            type: "domain",
             domain: lastVisitedOrgDomain,
           },
         };
@@ -250,9 +250,9 @@ export class AppHeader extends Disposable {
     }
 
     return {
-      name: currentOrgName ?? '',
+      name: currentOrgName ?? "",
       link: {
-        type: 'href',
+        type: "href",
         href: getWelcomeHomeUrl(),
       },
     };
@@ -268,13 +268,13 @@ export function productPill(org: Organization | null, options: { large?: boolean
   if (!pillTag) {
     return null;
   }
-  return cssProductPill(cssProductPill.cls('-' + pillTag),
-    options.large ? cssProductPill.cls('-large') : null,
+  return cssProductPill(cssProductPill.cls("-" + pillTag),
+    options.large ? cssProductPill.cls("-large") : null,
     pillTag,
-    testId('product-pill'));
+    testId("product-pill"));
 }
 
-const cssAppHeader = styled('header._cssAppHeader', `
+const cssAppHeader = styled("header._cssAppHeader", `
   width: 100%;
   height: 100%;
   background-color: ${theme.leftPanelBg};
@@ -294,7 +294,7 @@ const cssAppHeader = styled('header._cssAppHeader', `
   }
 `);
 
-const cssAppHeaderBox = styled('div._cssAppHeaderBox', `
+const cssAppHeaderBox = styled("div._cssAppHeaderBox", `
   display: flex;
   align-items: center;
   width: 100%;
@@ -312,7 +312,7 @@ const cssAppHeaderBox = styled('div._cssAppHeaderBox', `
   }
 `);
 
-const cssAppLogo = styled('a._cssAppLogo', `
+const cssAppLogo = styled("a._cssAppLogo", `
   flex: none;
   height: 100%;
   aspect-ratio: 1 / 1;
@@ -396,13 +396,13 @@ const cssDropdownIcon = styled(icon, `
   margin-right: 8px;
 `);
 
-const cssSpacer = styled('div', `
+const cssSpacer = styled("div", `
   display: none;
   flex: 1;
   display: block;
 `);
 
-const cssOrgLink = styled('a.cssOrgLink', `
+const cssOrgLink = styled("a.cssOrgLink", `
   display: none;
   flex-grow: 1;
   align-items: center;
@@ -438,7 +438,7 @@ const cssOrgLink = styled('a.cssOrgLink', `
   }
 `);
 
-const cssOrgName = styled('div', `
+const cssOrgName = styled("div", `
   padding-left: 16px;
   padding-right: 8px;
   white-space: nowrap;
@@ -449,7 +449,7 @@ const cssOrgName = styled('div', `
   }
 `);
 
-const cssProductPill = styled('div', `
+const cssProductPill = styled("div", `
   border-radius: 4px;
   font-size: ${vars.smallFontSize};
   padding: 2px 4px;

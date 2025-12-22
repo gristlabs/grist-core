@@ -1,7 +1,7 @@
-import { SafeBrowser, ViewProcess } from 'app/client/lib/SafeBrowser';
-import { PluginInstance } from 'app/common/PluginInstance';
+import { SafeBrowser, ViewProcess } from "app/client/lib/SafeBrowser";
+import { PluginInstance } from "app/common/PluginInstance";
 
-export { ViewProcess } from 'app/client/lib/SafeBrowser';
+export { ViewProcess } from "app/client/lib/SafeBrowser";
 
 /**
  * A PluginCustomSection identifies one custom section in a plugin.

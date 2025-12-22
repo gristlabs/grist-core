@@ -6,9 +6,9 @@
  * Escape, it calls close(), which should destroy the <input>.
  */
 
-import { reportError } from 'app/client/models/AppModel';
-import { theme } from 'app/client/ui2018/cssVars';
-import { dom, DomArg, styled } from 'grainjs';
+import { reportError } from "app/client/models/AppModel";
+import { theme } from "app/client/ui2018/cssVars";
+import { dom, DomArg, styled } from "grainjs";
 
 export interface ITransientInputOptions {
   initialValue: string;
@@ -38,9 +38,9 @@ export function transientInput({ initialValue, save, close }: ITransientInputOpt
     setTimeout(() => { input.focus(); input.select(); }, 10);
   }
 
-  const input = cssInput({ type: 'text', placeholder: 'Enter name' },
-    dom.prop('value', initialValue),
-    dom.on('blur', () => onSave(false)),
+  const input = cssInput({ type: "text", placeholder: "Enter name" },
+    dom.prop("value", initialValue),
+    dom.on("blur", () => onSave(false)),
     dom.onKeyDown({
       Enter: () => onSave(true),
       Escape: () => close(),
@@ -51,7 +51,7 @@ export function transientInput({ initialValue, save, close }: ITransientInputOpt
   return input;
 }
 
-const cssInput = styled('input', `
+const cssInput = styled("input", `
   background-color: transparent;
   color: ${theme.inputFg};
 

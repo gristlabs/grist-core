@@ -1,7 +1,7 @@
-import { isVersions } from 'app/common/gristTypes';
-import { BaseFormatter } from 'app/common/ValueFormatter';
-import { CellValue } from 'app/plugin/GristData';
-import { Diff, DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, diff_match_patch as DiffMatchPatch } from 'diff-match-patch';
+import { isVersions } from "app/common/gristTypes";
+import { BaseFormatter } from "app/common/ValueFormatter";
+import { CellValue } from "app/plugin/GristData";
+import { Diff, DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, diff_match_patch as DiffMatchPatch } from "diff-match-patch";
 
 export class CellDiffTool {
   private _diffTool = new DiffMatchPatch();
@@ -32,13 +32,13 @@ export class CellDiffTool {
       return [[DIFF_EQUAL, formatter.formatAny(value)]];
     }
     const versions = value[1];
-    if (!('local' in versions)) {
+    if (!("local" in versions)) {
       // Change was made remotely only.
       return this._prepareTextDiff(
         formatter.formatAny(versions.parent),
         formatter.formatAny(versions.remote));
     }
-    else if (!('remote' in versions)) {
+    else if (!("remote" in versions)) {
       // Change was made locally only.
       return this._prepareTextDiff(
         formatter.formatAny(versions.parent),
@@ -64,7 +64,7 @@ export class CellDiffTool {
     if (diffs.length === 1 && diffs[0][0] === DIFF_DELETE) {
       // Add an empty set symbol, since otherwise it will be ambiguous
       // whether the deletion was done locally or remotely.
-      diffs.push([1, '\u2205']);
+      diffs.push([1, "\u2205"]);
     }
     return diffs;
   }
@@ -77,7 +77,7 @@ export class CellDiffTool {
 
   // Check is text has a lot of numeric content.
   private _isMostlyNumeric(txt: string) {
-    return [...txt].filter(c => c >= '0' && c <= '9').length > txt.length / 2;
+    return [...txt].filter(c => c >= "0" && c <= "9").length > txt.length / 2;
   }
 }
 

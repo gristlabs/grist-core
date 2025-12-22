@@ -1,11 +1,11 @@
-import { domAsync } from 'app/client/lib/domAsync';
-import { assert } from 'chai';
-import { dom } from 'grainjs';
-import { G, popGlobals, pushGlobals } from 'grainjs/dist/cjs/lib/browserGlobals';
-import { JSDOM } from 'jsdom';
-import * as sinon from 'sinon';
+import { domAsync } from "app/client/lib/domAsync";
+import { assert } from "chai";
+import { dom } from "grainjs";
+import { G, popGlobals, pushGlobals } from "grainjs/dist/cjs/lib/browserGlobals";
+import { JSDOM } from "jsdom";
+import * as sinon from "sinon";
 
-describe('domAsync', function() {
+describe("domAsync", function() {
   beforeEach(function() {
     // These grainjs browserGlobals are needed for using dom() in tests.
     const jsdomDoc = new JSDOM("<!doctype html><html><body></body></html>");
@@ -16,21 +16,21 @@ describe('domAsync', function() {
     popGlobals();
   });
 
-  it('should populate DOM once promises resolve', async function() {
+  it("should populate DOM once promises resolve", async function() {
     let a: HTMLElement, b: HTMLElement, c: HTMLElement, d: HTMLElement;
     const onError = sinon.spy();
-    const r1 = dom('button'), r2 = [dom('img'), dom('input')], r4 = dom('hr');
+    const r1 = dom("button"), r2 = [dom("img"), dom("input")], r4 = dom("hr");
     const promise1 = Promise.resolve(r1);
     const promise2 = new Promise(r => setTimeout(r, 20)).then(() => r2);
     const promise3 = Promise.reject(new Error("p3"));
     const promise4 = new Promise(r => setTimeout(r, 20)).then(() => r4);
 
     // A few elements get populated by promises.
-    G.document.body.appendChild(dom('div',
-      a = dom('span.a1', domAsync(promise1)),
-      b = dom('span.a2', domAsync(promise2)),
-      c = dom('span.a3', domAsync(promise3, onError)),
-      d = dom('span.a2', domAsync(promise4)),
+    G.document.body.appendChild(dom("div",
+      a = dom("span.a1", domAsync(promise1)),
+      b = dom("span.a2", domAsync(promise2)),
+      c = dom("span.a3", domAsync(promise3, onError)),
+      d = dom("span.a2", domAsync(promise4)),
     ));
 
     // Initially, none of the content is there.
@@ -59,7 +59,7 @@ describe('domAsync', function() {
     await promise3.catch(() => null);
     assert.deepEqual([...c.children], []);
     sinon.assert.calledOnce(onError);
-    sinon.assert.calledWithMatch(onError, { message: 'p3' });
+    sinon.assert.calledWithMatch(onError, { message: "p3" });
 
     assert.lengthOf(a.children, 1);
     assert.lengthOf(b.children, 2);

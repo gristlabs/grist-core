@@ -21,7 +21,7 @@ interface RequestedGlobals {
 
 const allGlobals: RequestedGlobals[] = [];
 
-let globalVars: Globals = (typeof window !== 'undefined' ? window : {});
+let globalVars: Globals = (typeof window !== "undefined" ? window : {});
 
 /**
  * Usage: to get access to global variables like `document` and `window`, call:

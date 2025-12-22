@@ -1,30 +1,30 @@
-import { allCommands } from 'app/client/components/commands';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { loadSearch } from 'app/client/lib/imports';
-import { makeT } from 'app/client/lib/localization';
-import { AppModel, reportError } from 'app/client/models/AppModel';
-import { DocPageModel } from 'app/client/models/DocPageModel';
-import { urlState } from 'app/client/models/gristUrlState';
-import { workspaceName } from 'app/client/models/WorkspaceInfo';
-import { AccountWidget } from 'app/client/ui/AccountWidget';
-import { buildActiveUserList } from 'app/client/ui/ActiveUserList';
-import { buildLanguageMenu } from 'app/client/ui/LanguageMenu';
-import { buildNotifyMenuButton } from 'app/client/ui/NotifyUI';
-import { manageTeamUsersApp } from 'app/client/ui/OpenUserManager';
-import { UpgradeButton } from 'app/client/ui/ProductUpgrades';
-import { buildShareMenuButton } from 'app/client/ui/ShareMenu';
-import { SupportGristButton } from 'app/client/ui/SupportGristButton';
-import { hoverTooltip } from 'app/client/ui/tooltips';
-import { cssHoverCircle, cssTopBarBtn } from 'app/client/ui/TopBarCss';
-import { docBreadcrumbs } from 'app/client/ui2018/breadcrumbs';
-import { basicButton } from 'app/client/ui2018/buttons';
-import { cssHideForNarrowScreen, isNarrowScreenObs, testId, theme } from 'app/client/ui2018/cssVars';
-import { IconName } from 'app/client/ui2018/IconList';
-import type * as searchModule from 'app/client/ui2018/search';
-import * as roles from 'app/common/roles';
-import { Computed, dom, DomElementArg, makeTestId, MultiHolder, Observable, styled } from 'grainjs';
+import { allCommands } from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
+import { loadSearch } from "app/client/lib/imports";
+import { makeT } from "app/client/lib/localization";
+import { AppModel, reportError } from "app/client/models/AppModel";
+import { DocPageModel } from "app/client/models/DocPageModel";
+import { urlState } from "app/client/models/gristUrlState";
+import { workspaceName } from "app/client/models/WorkspaceInfo";
+import { AccountWidget } from "app/client/ui/AccountWidget";
+import { buildActiveUserList } from "app/client/ui/ActiveUserList";
+import { buildLanguageMenu } from "app/client/ui/LanguageMenu";
+import { buildNotifyMenuButton } from "app/client/ui/NotifyUI";
+import { manageTeamUsersApp } from "app/client/ui/OpenUserManager";
+import { UpgradeButton } from "app/client/ui/ProductUpgrades";
+import { buildShareMenuButton } from "app/client/ui/ShareMenu";
+import { SupportGristButton } from "app/client/ui/SupportGristButton";
+import { hoverTooltip } from "app/client/ui/tooltips";
+import { cssHoverCircle, cssTopBarBtn } from "app/client/ui/TopBarCss";
+import { docBreadcrumbs } from "app/client/ui2018/breadcrumbs";
+import { basicButton } from "app/client/ui2018/buttons";
+import { cssHideForNarrowScreen, isNarrowScreenObs, testId, theme } from "app/client/ui2018/cssVars";
+import { IconName } from "app/client/ui2018/IconList";
+import type * as searchModule from "app/client/ui2018/search";
+import * as roles from "app/common/roles";
+import { Computed, dom, DomElementArg, makeTestId, MultiHolder, Observable, styled } from "grainjs";
 
-const t = makeT('TopBar');
+const t = makeT("TopBar");
 
 export function createTopBarHome(appModel: AppModel, onSave?: (personal: boolean) => Promise<unknown>) {
   const isAnonymous = !appModel.currentValidUser;
@@ -38,8 +38,8 @@ export function createTopBarHome(appModel: AppModel, onSave?: (personal: boolean
         [
           basicButton(
             t("Manage team"),
-            dom.on('click', () => manageTeamUsersApp({ app: appModel, onSave })),
-            testId('topbar-manage-team'),
+            dom.on("click", () => manageTeamUsersApp({ app: appModel, onSave })),
+            testId("topbar-manage-team"),
           ),
         ] :
         null
@@ -47,7 +47,7 @@ export function createTopBarHome(appModel: AppModel, onSave?: (personal: boolean
     ),
     buildLanguageMenu(appModel),
     isAnonymous ? null : buildNotifyMenuButton(appModel.notifier, appModel),
-    dom('div', dom.create(AccountWidget, appModel)),
+    dom("div", dom.create(AccountWidget, appModel)),
   ];
 }
 
@@ -64,7 +64,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
   // 'code' and 'acl' pages, so it's better to omit it, and let the browser's native search work.
   const enabledObs = Computed.create(owner, pageModel.gristDoc, (use, gristDoc) => {
     const viewId = gristDoc ? use(gristDoc.activeViewId) : null;
-    return viewId !== null && viewId !== 'code' && viewId !== 'acl';
+    return viewId !== null && viewId !== "code" && viewId !== "acl";
   });
 
   const searchModelObs = Computed.create(owner,
@@ -99,7 +99,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
           docNameSave: renameDoc,
           pageNameSave: getRenamePageFn(gristDoc),
           cancelRecoveryMode: getCancelRecoveryModeFn(gristDoc),
-          isPageNameReadOnly: use => use(gristDoc.isReadonly) || typeof use(gristDoc.activeViewId) !== 'number',
+          isPageNameReadOnly: use => use(gristDoc.isReadonly) || typeof use(gristDoc.activeViewId) !== "number",
           isDocNameReadOnly: use => use(gristDoc.isReadonly) || use(pageModel.isFork),
           isFork: pageModel.isFork,
           isBareFork: pageModel.isBareFork,
@@ -127,26 +127,26 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
     dom.maybe(pageModel.gristDoc, gristDoc => buildActiveUserList(owner, gristDoc.userPresenceModel)),
     // Don't show useless undo/redo buttons for sample docs, to leave more space for "Make copy".
     dom.maybe(pageModel.undoState, state => [
-      topBarUndoBtn('Undo',
-        dom.on('click', () => state.isUndoDisabled.get() || allCommands.undo.run()),
+      topBarUndoBtn("Undo",
+        dom.on("click", () => state.isUndoDisabled.get() || allCommands.undo.run()),
         dom.hide(use => use(isSearchOpen)),
-        hoverTooltip('Undo', { key: 'topBarBtnTooltip' }),
-        cssHoverCircle.cls('-disabled', use => use(state.isUndoDisabled) || !use(isUndoRedoAvailable)),
-        testId('undo'),
+        hoverTooltip("Undo", { key: "topBarBtnTooltip" }),
+        cssHoverCircle.cls("-disabled", use => use(state.isUndoDisabled) || !use(isUndoRedoAvailable)),
+        testId("undo"),
       ),
-      topBarUndoBtn('Redo',
-        dom.on('click', () => state.isRedoDisabled.get() || allCommands.redo.run()),
+      topBarUndoBtn("Redo",
+        dom.on("click", () => state.isRedoDisabled.get() || allCommands.redo.run()),
         dom.hide(use => use(isSearchOpen)),
-        hoverTooltip('Redo', { key: 'topBarBtnTooltip' }),
-        cssHoverCircle.cls('-disabled', use => use(state.isRedoDisabled) || !use(isUndoRedoAvailable)),
-        testId('redo'),
+        hoverTooltip("Redo", { key: "topBarBtnTooltip" }),
+        cssHoverCircle.cls("-disabled", use => use(state.isRedoDisabled) || !use(isUndoRedoAvailable)),
+        testId("redo"),
       ),
       cssSpacer(),
     ]),
     dom.domComputed((use) => {
       const model = use(searchModelObs);
       return model && use(moduleObs)?.searchBar(
-        model, makeTestId('test-tb-search-'),
+        model, makeTestId("test-tb-search-"),
         pageModel.gristDoc.get()?.regionFocusSwitcher,
       );
     }),
@@ -156,20 +156,20 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
         gristDoc => buildShowDiscussionButton(gristDoc)),
       dom.update(
         buildNotifyMenuButton(appModel.notifier, appModel),
-        cssHideForNarrowScreen.cls(''),
+        cssHideForNarrowScreen.cls(""),
       ),
     ]),
-    dom('div', dom.create(AccountWidget, appModel, pageModel)),
+    dom("div", dom.create(AccountWidget, appModel, pageModel)),
   ];
 }
 
 function buildShowDiscussionButton(gristDoc: GristDoc) {
   return cssHoverCircle({ style: `margin: 5px; position: relative;` },
-    cssTopBarBtn('Chat', dom.cls('tour-share-icon')),
-    hoverTooltip('Comments', { key: 'topBarBtnTooltip' }),
-    testId('open-discussion'),
-    dom.on('click', () => {
-      gristDoc.showTool('discussion');
+    cssTopBarBtn("Chat", dom.cls("tour-share-icon")),
+    hoverTooltip("Comments", { key: "topBarBtnTooltip" }),
+    testId("open-discussion"),
+    dom.on("click", () => {
+      gristDoc.showTool("discussion");
       allCommands.rightPanelOpen.run();
     }),
   );
@@ -181,7 +181,7 @@ function getRenamePageFn(gristDoc: GristDoc): (val: string) => Promise<void> {
   return async (val: string) => {
     const views = gristDoc.docModel.views;
     const viewId = gristDoc.activeViewId.get();
-    if (typeof viewId === 'number' && val.length > 0) {
+    if (typeof viewId === "number" && val.length > 0) {
       const name = views.rowModels[viewId].name;
       await name.saveOnly(val);
     }
@@ -202,7 +202,7 @@ function topBarUndoBtn(iconName: IconName, ...domArgs: DomElementArg[]): Element
   );
 }
 
-const cssButtons = styled('div', `
+const cssButtons = styled("div", `
   display: flex;
   gap: 8px;
   margin-right: 8px;
@@ -221,18 +221,18 @@ const cssTopBarUndoBtn = styled(cssTopBarBtn, `
   }
 `);
 
-const cssBreadcrumbContainer = styled('div', `
+const cssBreadcrumbContainer = styled("div", `
   padding: 7px;
   flex: 1 1 auto;
   min-width: 24px;
   overflow: hidden;
 `);
 
-const cssFlexSpace = styled('div', `
+const cssFlexSpace = styled("div", `
   flex: 1 1 0px;
 `);
 
-const cssSpacer = styled('div', `
+const cssSpacer = styled("div", `
   max-width: 10px;
   flex: auto;
 `);

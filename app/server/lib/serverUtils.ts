@@ -1,18 +1,18 @@
-import { EngineCode } from 'app/common/DocumentSettings';
-import { OptDocSession } from 'app/server/lib/DocSession';
-import log from 'app/server/lib/log';
-import { getLogMeta } from 'app/server/lib/sessionUtils';
-import { OpenMode, SQLiteDB } from 'app/server/lib/SQLiteDB';
-import bluebird from 'bluebird';
-import { ChildProcess } from 'child_process';
-import * as net from 'net';
-import { AbortSignal } from 'node-abort-controller';
-import * as path from 'path';
-import { ConnectionOptions } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
-import range from 'lodash/range';
+import { EngineCode } from "app/common/DocumentSettings";
+import { OptDocSession } from "app/server/lib/DocSession";
+import log from "app/server/lib/log";
+import { getLogMeta } from "app/server/lib/sessionUtils";
+import { OpenMode, SQLiteDB } from "app/server/lib/SQLiteDB";
+import bluebird from "bluebird";
+import { ChildProcess } from "child_process";
+import * as net from "net";
+import { AbortSignal } from "node-abort-controller";
+import * as path from "path";
+import { ConnectionOptions } from "typeorm";
+import { v4 as uuidv4 } from "uuid";
+import range from "lodash/range";
 // This method previously lived in this file. Re-export to avoid changing imports all over.
-export { timeoutReached } from 'app/common/gutil';
+export { timeoutReached } from "app/common/gutil";
 
 /**
  * Promisify a node-style callback function. E.g.
@@ -42,9 +42,9 @@ export function getAvailablePort(firstPort: number = 8000, optCount: number = 20
     }
     return new bluebird((resolve: (p: number) => void, reject: (e: Error) => void) => {
       const server = net.createServer();
-      server.on('error', reject);
-      server.on('close', () => resolve(port));
-      server.listen(port, 'localhost', () => server.close());
+      server.on("error", reject);
+      server.on("close", () => resolve(port));
+      server.listen(port, "localhost", () => server.close());
     })
       .catch(() => checkNext(port + 1));
   }
@@ -62,7 +62,7 @@ export function connect(sockPath: string): Promise<net.Socket>;
 export function connect(arg: any, ...moreArgs: any[]): Promise<net.Socket> {
   return new Promise((resolve, reject) => {
     const s = net.connect(arg, ...moreArgs, () => resolve(s));
-    s.on('error', reject);
+    s.on("error", reject);
   });
 }
 
@@ -70,7 +70,7 @@ export function connect(arg: any, ...moreArgs: any[]): Promise<net.Socket> {
  * Promisified version of net.Server.listen().
  */
 export function listenPromise<T extends net.Server>(server: T): Promise<void> {
-  return new Promise<void>((resolve, reject) => server.once('listening', resolve).once('error', reject));
+  return new Promise<void>((resolve, reject) => server.once("listening", resolve).once("error", reject));
 }
 
 /**
@@ -94,8 +94,8 @@ export function isPathWithin(outer: string, inner: string): boolean {
 export function exitPromise(child: ChildProcess): Promise<number | string> {
   return new Promise((resolve, reject) => {
     // Called if process could not be spawned, or could not be killed(!), or sending a message failed.
-    child.on('error', reject);
-    child.on('exit', (code: number, signal: string) => resolve(signal || code));
+    child.on("error", reject);
+    child.on("exit", (code: number, signal: string) => resolve(signal || code));
   });
 }
 
@@ -104,13 +104,13 @@ export function exitPromise(child: ChildProcess): Promise<number | string> {
  * use by psql, sqlalchemy, etc.
  */
 export function getDatabaseUrl(options: ConnectionOptions, includeCredentials: boolean): string {
-  if (options.type === 'sqlite') {
+  if (options.type === "sqlite") {
     return `sqlite://${options.database}`;
   }
-  else if (options.type === 'postgres') {
-    const pass = options.password ? `:${options.password}` : '';
-    const creds = includeCredentials && options.username ? `${options.username}${pass}@` : '';
-    const port = options.port ? `:${options.port}` : '';
+  else if (options.type === "postgres") {
+    const pass = options.password ? `:${options.password}` : "";
+    const creds = includeCredentials && options.username ? `${options.username}${pass}@` : "";
+    const port = options.port ? `:${options.port}` : "";
     return `postgres://${creds}${options.host}${port}/${options.database}`;
   }
   else {
@@ -126,10 +126,10 @@ export function getDatabaseUrl(options: ConnectionOptions, includeCredentials: b
 export async function checkAllegedGristDoc(docSession: OptDocSession, fname: string) {
   const db = await SQLiteDB.openDBRaw(fname, OpenMode.OPEN_READONLY);
   try {
-    const integrityCheckResults = await db.all('PRAGMA integrity_check');
-    if (integrityCheckResults.length !== 1 || integrityCheckResults[0].integrity_check !== 'ok') {
+    const integrityCheckResults = await db.all("PRAGMA integrity_check");
+    if (integrityCheckResults.length !== 1 || integrityCheckResults[0].integrity_check !== "ok") {
       const uuid = uuidv4();
-      log.info('Integrity check failure on import', {
+      log.info("Integrity check failure on import", {
         uuid,
         integrityCheckResults,
         ...getLogMeta(docSession),
@@ -146,7 +146,7 @@ export async function checkAllegedGristDoc(docSession: OptDocSession, fname: str
  * Only offer choices of engine on experimental deployments (staging/dev).
  */
 export function getSupportedEngineChoices(): EngineCode[] {
-  return ['python3'];
+  return ["python3"];
 }
 
 /**
@@ -158,11 +158,11 @@ export async function delayAbort(msec: number, signal?: AbortSignal): Promise<vo
   try {
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => resolve(), msec);
-      signal?.addEventListener('abort', reject);
+      signal?.addEventListener("abort", reject);
       cleanup = () => {
         // Be careful to clean up both the timer and the listener to avoid leaks.
         clearTimeout(timeout);
-        signal?.removeEventListener('abort', reject);
+        signal?.removeEventListener("abort", reject);
       };
     });
   }
@@ -180,10 +180,10 @@ export async function delayAbort(msec: number, signal?: AbortSignal): Promise<vo
  */
 export function getPubSubPrefix(): string {
   const redisUrl = process.env.REDIS_URL || process.env.TEST_REDIS_URL;
-  if (!redisUrl) { return 'db-x-'; }
-  const dbNumber = new URL(redisUrl).pathname.replace(/^\//, '');
+  if (!redisUrl) { return "db-x-"; }
+  const dbNumber = new URL(redisUrl).pathname.replace(/^\//, "");
   if (dbNumber.match(/[^0-9]/)) {
-    throw new Error('REDIS_URL has an unexpected structure');
+    throw new Error("REDIS_URL has an unexpected structure");
   }
   return `db-${dbNumber}-`;
 }
@@ -273,7 +273,7 @@ function calcPeriodEnd(anchor: number, nr: number) {
   function iterate(shift = 0): number {
     // Safe guard against infinite loops.
     if (maxIterations-- < 0) {
-      throw new Error('Too many iterations in expectedResetDate');
+      throw new Error("Too many iterations in expectedResetDate");
     }
     // We start by building up a date in the next month in the same day as the anchor date.
     const targetDate = new Date(Date.UTC(

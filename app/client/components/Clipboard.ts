@@ -19,23 +19,23 @@
  *      visible character (useful if component wants to interpret typing into a cell, for example).
  */
 
-import { getHumanKey, isMac } from 'app/client/components/commands';
-import type { CopySelection } from 'app/client/components/CopySelection';
-import * as commands from 'app/client/components/commands';
-import { copyToClipboard, readDataFromClipboard } from 'app/client/lib/clipboardUtils';
-import { FocusLayer } from 'app/client/lib/FocusLayer';
-import { makeT } from 'app/client/lib/localization';
-import { makePasteHtml, makePasteText, parsePasteHtml, PasteData } from 'app/client/lib/tableUtil';
-import type { App } from 'app/client/ui/App';
-import { ShortcutKey, ShortcutKeyContent } from 'app/client/ui/ShortcutKey';
-import { confirmModal } from 'app/client/ui2018/modals';
-import type { DocAction } from 'app/common/DocActions';
-import { isNonNullish } from 'app/common/gutil';
-import type { TableData } from 'app/common/TableData';
-import { tsvDecode } from 'app/common/tsvFormat';
-import { Disposable, dom, styled } from 'grainjs';
+import { getHumanKey, isMac } from "app/client/components/commands";
+import type { CopySelection } from "app/client/components/CopySelection";
+import * as commands from "app/client/components/commands";
+import { copyToClipboard, readDataFromClipboard } from "app/client/lib/clipboardUtils";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import { makeT } from "app/client/lib/localization";
+import { makePasteHtml, makePasteText, parsePasteHtml, PasteData } from "app/client/lib/tableUtil";
+import type { App } from "app/client/ui/App";
+import { ShortcutKey, ShortcutKeyContent } from "app/client/ui/ShortcutKey";
+import { confirmModal } from "app/client/ui2018/modals";
+import type { DocAction } from "app/common/DocActions";
+import { isNonNullish } from "app/common/gutil";
+import type { TableData } from "app/common/TableData";
+import { tsvDecode } from "app/common/tsvFormat";
+import { Disposable, dom, styled } from "grainjs";
 
-const t = makeT('Clipboard');
+const t = makeT("Clipboard");
 
 /**
  * Paste object that should be returned by implementation of `copy`.
@@ -78,10 +78,10 @@ export class Clipboard extends Disposable {
     if (!elem) {
       return false;
     }
-    if (elem.closest('.clipboard_group_focus') || elem.classList.contains('clipboard_allow_focus')) {
+    if (elem.closest(".clipboard_group_focus") || elem.classList.contains("clipboard_allow_focus")) {
       return true;
     }
-    if (elem.hasAttribute("tabindex") && elem.classList.contains('ignore_tabindex')) {
+    if (elem.hasAttribute("tabindex") && elem.classList.contains("ignore_tabindex")) {
       return false;
     }
     return FOCUS_TARGET_TAGS.has(elem.tagName) || elem.hasAttribute("tabindex");
@@ -99,17 +99,17 @@ export class Clipboard extends Disposable {
 
   constructor(private _app: App) {
     super();
-    this.copypasteField = dom('textarea', dom.cls('copypaste'), dom.cls('mousetrap'),
-      dom.on('input', (event, elem) => {
+    this.copypasteField = dom("textarea", dom.cls("copypaste"), dom.cls("mousetrap"),
+      dom.on("input", (event, elem) => {
         const value = elem.value;
-        elem.value = '';
+        elem.value = "";
         event.stopPropagation();
         event.preventDefault();
         commands.allCommands.input.run(value);
       }),
-      dom.on('copy', this._onCopy.bind(this)),
-      dom.on('cut', this._onCut.bind(this)),
-      dom.on('paste', this._onPaste.bind(this)),
+      dom.on("copy", this._onCopy.bind(this)),
+      dom.on("cut", this._onCut.bind(this)),
+      dom.on("paste", this._onPaste.bind(this)),
     );
     document.body.appendChild(this.copypasteField);
     this.onDispose(() => { dom.domDispose(this.copypasteField); this.copypasteField.remove(); });
@@ -118,12 +118,12 @@ export class Clipboard extends Disposable {
       defaultFocusElem: this.copypasteField,
       allowFocus: Clipboard.allowFocus,
       onDefaultFocus: () => {
-        this.copypasteField.value = ' ';
+        this.copypasteField.value = " ";
         this.copypasteField.select();
-        this._app.trigger('clipboard_focus');
+        this._app.trigger("clipboard_focus");
       },
       onDefaultBlur: () => {
-        this._app.trigger('clipboard_blur');
+        this._app.trigger("clipboard_blur");
       },
     });
 
@@ -133,7 +133,7 @@ export class Clipboard extends Disposable {
     // Some bugs may prevent Clipboard from re-grabbing focus. To limit the impact of such bugs on
     // the user, recover from a bad state in mousedown events. (At the moment of this comment, all
     // such known bugs are fixed.)
-    dom.onElem(window, 'mousedown', (ev) => {
+    dom.onElem(window, "mousedown", (ev) => {
       if (!document.activeElement || document.activeElement === document.body) {
         FocusLayer.grabFocus();
       }
@@ -154,12 +154,12 @@ export class Clipboard extends Disposable {
 
   private _doContextMenuCopy() {
     const pasteObj = commands.allCommands.copy.run();
-    void this._copyToClipboard(pasteObj, 'copy', false);
+    void this._copyToClipboard(pasteObj, "copy", false);
   }
 
   private _doContextMenuCopyWithHeaders() {
     const pasteObj = commands.allCommands.copy.run();
-    void this._copyToClipboard(pasteObj, 'copy', true);
+    void this._copyToClipboard(pasteObj, "copy", true);
   }
 
   private _onCut(event: ClipboardEvent, elem: HTMLTextAreaElement) {
@@ -170,30 +170,30 @@ export class Clipboard extends Disposable {
 
   private _doContextMenuCut() {
     const pasteObj: PasteObj = commands.allCommands.cut.run();
-    void this._copyToClipboard(pasteObj, 'cut');
+    void this._copyToClipboard(pasteObj, "cut");
   }
 
   private _setCBdata(pasteObj: PasteObj, clipboardData: DataTransfer) {
     if (!pasteObj) { return; }
 
     const plainText = makePasteText(pasteObj.data, pasteObj.selection, false);
-    clipboardData.setData('text/plain', plainText);
+    clipboardData.setData("text/plain", plainText);
     const htmlText = makePasteHtml(pasteObj.data, pasteObj.selection, false);
-    clipboardData.setData('text/html', htmlText);
+    clipboardData.setData("text/html", htmlText);
 
     this._setCutCallback(pasteObj, plainText);
   }
 
-  private async _copyToClipboard(pasteObj: PasteObj, action: 'cut' | 'copy', includeColHeaders: boolean = false) {
+  private async _copyToClipboard(pasteObj: PasteObj, action: "cut" | "copy", includeColHeaders: boolean = false) {
     if (!pasteObj) { return; }
 
     const plainText = makePasteText(pasteObj.data, pasteObj.selection, includeColHeaders);
     let data;
-    if (typeof ClipboardItem === 'function') {
+    if (typeof ClipboardItem === "function") {
       const htmlText = makePasteHtml(pasteObj.data, pasteObj.selection, includeColHeaders);
       data = new ClipboardItem({
-        'text/plain': new Blob([plainText], { type: 'text/plain' }),
-        'text/html': new Blob([htmlText], { type: 'text/html' }),
+        "text/plain": new Blob([plainText], { type: "text/plain" }),
+        "text/html": new Blob([htmlText], { type: "text/html" }),
       });
     }
     else {
@@ -237,8 +237,8 @@ export class Clipboard extends Disposable {
   private _onPaste(event: ClipboardEvent, elem: HTMLTextAreaElement) {
     event.preventDefault();
     const cb = event.clipboardData!;
-    const plainText = cb.getData('text/plain');
-    const htmlText = cb.getData('text/html');
+    const plainText = cb.getData("text/plain");
+    const htmlText = cb.getData("text/html");
     // We process and filter cb.items because the promising-sounding cb.files may not be set for
     // paste events, even when items include files.
     // Note that on Firefox, this is limited to a single file due to an old Firefox bug:
@@ -254,11 +254,11 @@ export class Clipboard extends Disposable {
       clipboardItems = await readDataFromClipboard();
     }
     catch {
-      showUnavailableMenuCommandModal('paste');
+      showUnavailableMenuCommandModal("paste");
       return;
     }
-    const plainText = await getTextFromClipboardItem(clipboardItems[0], 'text/plain');
-    const htmlText = await getTextFromClipboardItem(clipboardItems[0], 'text/html');
+    const plainText = await getTextFromClipboardItem(clipboardItems[0], "text/plain");
+    const htmlText = await getTextFromClipboardItem(clipboardItems[0], "text/html");
     const files = await getFilesFromClipboardItems(clipboardItems);
     const pasteData = getPasteData(plainText, htmlText, files);
     this._doPaste(pasteData, plainText);
@@ -282,10 +282,10 @@ export class Clipboard extends Disposable {
 }
 
 const FOCUS_TARGET_TAGS = new Set([
-  'INPUT',
-  'TEXTAREA',
-  'SELECT',
-  'IFRAME',
+  "INPUT",
+  "TEXTAREA",
+  "SELECT",
+  "IFRAME",
 ]);
 
 /**
@@ -300,14 +300,14 @@ function getPasteData(plainText: string, htmlText: string, fileItems: File[]): P
     return parsePasteHtml(htmlText);
   }
   catch (e) {
-    const text = plainText.replace(/^\uFEFF/, '');
+    const text = plainText.replace(/^\uFEFF/, "");
     if (text) {
       return tsvDecode(plainText.replace(/\r\n?/g, "\n").trimEnd());
     }
     if (fileItems.length > 0) {
       return [[fileItems]];
     }
-    return [['']];
+    return [[""]];
   }
 }
 
@@ -318,14 +318,14 @@ function getPasteData(plainText: string, htmlText: string, fileItems: File[]): P
  * for the given `type`.
  */
 async function getTextFromClipboardItem(clipboardItem: ClipboardItem | undefined, type: string) {
-  if (!clipboardItem) { return ''; }
+  if (!clipboardItem) { return ""; }
 
   try {
     return (await clipboardItem.getType(type)).text();
   }
   catch {
     // No clipboard data exists for the MIME type.
-    return '';
+    return "";
   }
 }
 
@@ -342,22 +342,22 @@ async function getFilesFromClipboardItems(clipboardItems: ClipboardItem[]): Prom
     })
       .filter(isNonNullish),
   );
-  return blobs.map(blob => new File([blob], 'from-clipboard', { type: blob.type }));
+  return blobs.map(blob => new File([blob], "from-clipboard", { type: blob.type }));
 }
 
-function showUnavailableMenuCommandModal(action: 'cut' | 'copy' | 'paste') {
+function showUnavailableMenuCommandModal(action: "cut" | "copy" | "paste") {
   let keys;
   switch (action) {
-    case 'cut': {
-      keys = 'Mod+X';
+    case "cut": {
+      keys = "Mod+X";
       break;
     }
-    case 'copy': {
-      keys = 'Mod+C';
+    case "copy": {
+      keys = "Mod+C";
       break;
     }
-    case 'paste': {
-      keys = 'Mod+V';
+    case "paste": {
+      keys = "Mod+V";
       break;
     }
     default: {
@@ -372,8 +372,8 @@ function showUnavailableMenuCommandModal(action: 'cut' | 'copy' | 'paste') {
     {
       explanation: cssModalContent(
         t(
-          'The {{action}} menu command is not available in this browser. You can still {{action}} \
-by using the keyboard shortcut {{shortcut}}.',
+          "The {{action}} menu command is not available in this browser. You can still {{action}} \
+by using the keyboard shortcut {{shortcut}}.",
           {
             action,
             shortcut: ShortcutKey(ShortcutKeyContent(getHumanKey(keys, isMac))),
@@ -385,6 +385,6 @@ by using the keyboard shortcut {{shortcut}}.',
   );
 }
 
-const cssModalContent = styled('div', `
+const cssModalContent = styled("div", `
   line-height: 18px;
 `);

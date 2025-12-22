@@ -1,19 +1,19 @@
-import axios from 'axios';
-import { delay } from 'bluebird';
-import { assert } from 'chai';
-import { ChildProcess, execFileSync, spawn } from 'child_process';
-import FormData from 'form-data';
-import * as fse from 'fs-extra';
-import fetch from 'node-fetch';
-import { tmpdir } from 'os';
-import * as path from 'path';
+import axios from "axios";
+import { delay } from "bluebird";
+import { assert } from "chai";
+import { ChildProcess, execFileSync, spawn } from "child_process";
+import FormData from "form-data";
+import * as fse from "fs-extra";
+import fetch from "node-fetch";
+import { tmpdir } from "os";
+import * as path from "path";
 
-import { GristClientSocket } from 'app/client/components/GristClientSocket';
-import { UserAPIImpl } from 'app/common/UserAPI';
-import log from 'app/server/lib/log';
-import { exitPromise } from 'app/server/lib/serverUtils';
-import { GristClient } from 'test/server/gristClient';
-import * as testUtils from 'test/server/testUtils';
+import { GristClientSocket } from "app/client/components/GristClientSocket";
+import { UserAPIImpl } from "app/common/UserAPI";
+import log from "app/server/lib/log";
+import { exitPromise } from "app/server/lib/serverUtils";
+import { GristClient } from "test/server/gristClient";
+import * as testUtils from "test/server/testUtils";
 
 /**
  * This suite tests that when we start node with limited memory, and then call openDoc on a doc
@@ -23,9 +23,9 @@ import * as testUtils from 'test/server/testUtils';
  * such a way that the actions on their own, and the doc data, are not enough to exceed memory
  * limit, but that ActionLog decoding puts it over the limit.
  */
-describe('ActionHistoryMemory', function() {
+describe("ActionHistoryMemory", function() {
   this.timeout(120000);
-  testUtils.setTmpLogLevel('info');
+  testUtils.setTmpLogLevel("info");
 
   const MAX_SPACE = 110;     // Memory limit for node to use (in MB).
   const RANGE = 200_000;    // Our "big actions" are formula calculations returning a python
@@ -52,35 +52,35 @@ describe('ActionHistoryMemory', function() {
     await fse.mkdirs(dataDir);
     log.warn(`Test logs and data are at: ${tmpDir}/`);
 
-    const nodeLogPath = path.join(tmpDir, 'node.log');
-    const serverLog = process.env.VERBOSE ? 'inherit' : await fse.open(nodeLogPath, 'a');
+    const nodeLogPath = path.join(tmpDir, "node.log");
+    const serverLog = process.env.VERBOSE ? "inherit" : await fse.open(nodeLogPath, "a");
 
-    const stubCmd = '_build/stubs/app/server/server';
-    const isCore = await fse.pathExists(stubCmd + '.js');
-    const cmd = isCore ? stubCmd : '_build/core/app/server/devServerMain';
+    const stubCmd = "_build/stubs/app/server/server";
+    const isCore = await fse.pathExists(stubCmd + ".js");
+    const cmd = isCore ? stubCmd : "_build/core/app/server/devServerMain";
 
     const env = {
-      TYPEORM_DATABASE: path.join(tmpDir, 'landing.db'),
-      TEST_CLEAN_DATABASE: 'true',
+      TYPEORM_DATABASE: path.join(tmpDir, "landing.db"),
+      TEST_CLEAN_DATABASE: "true",
       GRIST_DATA_DIR: dataDir,
       GRIST_INST_DIR: tmpDir,
-      HOME_PORT: '8110',
-      GRIST_SINGLE_PORT: 'true',
-      PORT: isCore ? '8110' : '0',
+      HOME_PORT: "8110",
+      GRIST_SINGLE_PORT: "true",
+      PORT: isCore ? "8110" : "0",
       ...process.env,
     };
 
     // Start up the server with the special flag.
-    serverProcess = spawn('node', [...flags, cmd], {
+    serverProcess = spawn("node", [...flags, cmd], {
       env,
-      stdio: ['inherit', serverLog, serverLog],
+      stdio: ["inherit", serverLog, serverLog],
     });
 
     // Dump output if server dies unexpectedly.
     serverExitPromise = exitPromise(serverProcess).then((code) => {
       if (!serverProcess.killed) {
         log.error("Server died unexpectedly, with code", code);
-        const output = execFileSync('tail', ['-30', nodeLogPath]);
+        const output = execFileSync("tail", ["-30", nodeLogPath]);
         log.warn(`\n===== BEGIN SERVER OUTPUT ====\n${output}\n===== END SERVER OUTPUT =====`);
         throw new Error("Server exited while waiting for it");
       }
@@ -104,7 +104,7 @@ describe('ActionHistoryMemory', function() {
         await delay(1000);
       }
       if (!await isServerReady()) {
-        throw new Error('server not ready');
+        throw new Error("server not ready");
       }
     }
 
@@ -116,43 +116,43 @@ describe('ActionHistoryMemory', function() {
     await serverExitPromise;
   });
 
-  it('should not run out of memory from loading many ActionHistory entries', async function() {
+  it("should not run out of memory from loading many ActionHistory entries", async function() {
     const api = new UserAPIImpl(`${serverUrl}/o/docs`, {
-      headers: { Authorization: 'Bearer api_key_for_chimpy' },
+      headers: { Authorization: "Bearer api_key_for_chimpy" },
       fetch: fetch as any,
       newFormData: () => new FormData() as any,
     });
 
     // Createa a doc.
-    const wsId = (await api.getOrgWorkspaces('current')).find(w => w.name === 'Public')!.id;
-    const docId = await api.newDoc({ name: 'large-actions' }, wsId);
+    const wsId = (await api.getOrgWorkspaces("current")).find(w => w.name === "Public")!.id;
+    const docId = await api.newDoc({ name: "large-actions" }, wsId);
 
     // Add a formula column returning a large value (so the .calc part of the action is large).
-    await api.applyUserActions(docId, [['AddRecord', 'Table1', null, { A: 0 }]]);
-    await api.applyUserActions(docId, [['ModifyColumn', 'Table1', 'B',
+    await api.applyUserActions(docId, [["AddRecord", "Table1", null, { A: 0 }]]);
+    await api.applyUserActions(docId, [["ModifyColumn", "Table1", "B",
       { formula: `range(int($A), int($A) + ${RANGE})` }]]);
 
     // Add a bunch of actions that each produce an equally large ActionBundle. Each action isn't
     // too large on its own, but if openDoc collects full recent actions in memory, node (running
     // with limited memory) would crash.
     for (let i = 1; i < 10; i++) {
-      await api.applyUserActions(docId, [['UpdateRecord', 'Table1', 1, { A: i }]]);
+      await api.applyUserActions(docId, [["UpdateRecord", "Table1", 1, { A: i }]]);
     }
 
     // Make the doc public, to simplify auth for websocket below.
-    await api.updateDocPermissions(docId, { users: { 'everyone@getgrist.com': 'viewers' } });
+    await api.updateDocPermissions(docId, { users: { "everyone@getgrist.com": "viewers" } });
 
     // Connect a websocket. We do this in order to call the websocket openDoc() method: it is the
     // only method that involves getRecentActions (unlike API calls like fetchTable).
     const resp = await axios.get(`${serverUrl}/test/session`);
-    const cookie = resp.headers['set-cookie']![0];
+    const cookie = resp.headers["set-cookie"]![0];
     const ws = new GristClientSocket(`ws://localhost:${serverPort}/o/docs`, { headers: { Cookie: cookie } });
     await new Promise((resolve, reject) => {
       ws.onopen = () => resolve(undefined);
       ws.onerror = reject;
     });
     const cli = new GristClient(ws);
-    assert.equal((await cli.readMessage()).type, 'clientConnect');
+    assert.equal((await cli.readMessage()).type, "clientConnect");
 
     // Once we have a connected websocket, call openDoc().
     const openDocPromise = cli.send("openDoc", docId);
@@ -160,7 +160,7 @@ describe('ActionHistoryMemory', function() {
     // On failure, the 'fail' promise would reject first, aborting the test.
     const fail = new Promise((resolve, reject) => {
       ws.onerror = reject;
-      ws.onclose = () => reject(new Error('socket closed'));
+      ws.onclose = () => reject(new Error("socket closed"));
     });
     await Promise.race([openDocPromise, fail]);
 

@@ -45,15 +45,15 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
       ...prefix,
       options.name,
       testId(`admin-panel-item-name-${options.id}`),
-      dom.attr('id', options.id),  // Add an id for use as an anchor,
+      dom.attr("id", options.id),  // Add an id for use as an anchor,
       // although it needs tricks (below)
-      prefix.length ? cssItemName.cls('-prefixed') : null,
-      cssItemName.cls('-full', options.description === undefined),
+      prefix.length ? cssItemName.cls("-prefixed") : null,
+      cssItemName.cls("-full", options.description === undefined),
       () => {
         // If there is an anchor, check if it points to us.
         // If not, do nothing. If yes, focus here once rendered.
         const hash = window.location.hash;
-        if (hash !== '#' + options.id) { return; }
+        if (hash !== "#" + options.id) { return; }
         // A setTimeout seems to be the "standard" for doing focus
         // after rendering throughout the app. Feels a little hacky,
         // but appears to work reliably, and consequences of failure
@@ -62,28 +62,28 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
           if (!item) { return; }
           item.scrollIntoView();
           item.focus();
-          item.classList.add(cssItemName.className + '-flash');
+          item.classList.add(cssItemName.className + "-flash");
         }, 0);
       },
     ),
     cssItemDescription(options.description, { id: `admin-panel-item-description-${options.id}` }),
     cssItemValue(options.value,
       testId(`admin-panel-item-value-${options.id}`),
-      dom.on('click', ev => ev.stopPropagation())),
+      dom.on("click", ev => ev.stopPropagation())),
   ];
   if (options.expandedContent && !options.disabled) {
     const isCollapsed = Observable.create(owner, true);
     return cssItem(
       cssItemShort(
-        itemContent(dom.domComputed(isCollapsed, c => cssCollapseIcon(c ? 'Expand' : 'Collapse'))),
-        cssItemShort.cls('-expandable'),
-        dom.on('click', () => isCollapsed.set(!isCollapsed.get())),
+        itemContent(dom.domComputed(isCollapsed, c => cssCollapseIcon(c ? "Expand" : "Collapse"))),
+        cssItemShort.cls("-expandable"),
+        dom.on("click", () => isCollapsed.set(!isCollapsed.get())),
       ),
       cssExpandedContentWrap(
         transition(isCollapsed, {
-          prepare(elem, close) { elem.style.maxHeight = close ? elem.scrollHeight + 'px' : '0'; },
-          run(elem, close) { elem.style.maxHeight = close ? '0' : elem.scrollHeight + 'px'; },
-          finish(elem, close) { elem.style.maxHeight = close ? '0' : 'unset'; },
+          prepare(elem, close) { elem.style.maxHeight = close ? elem.scrollHeight + "px" : "0"; },
+          run(elem, close) { elem.style.maxHeight = close ? "0" : elem.scrollHeight + "px"; },
+          finish(elem, close) { elem.style.maxHeight = close ? "0" : "unset"; },
         }),
         cssExpandedContent(
           options.expandedContent,
@@ -95,10 +95,10 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
   else {
     return cssItem(
       cssItemShort(itemContent(),
-        cssItemShort.cls('-disabled', Boolean(options.disabled)),
+        cssItemShort.cls("-disabled", Boolean(options.disabled)),
         options.disabled ? hoverTooltip(options.disabled, {
-          placement: 'bottom-end',
-          modifiers: { offset: { offset: '0, -10' } },
+          placement: "bottom-end",
+          modifiers: { offset: { offset: "0, -10" } },
         }) : null,
       ),
       testId(`admin-panel-item-${options.id}`),
@@ -140,7 +140,7 @@ export const cssItem = styled('div', `
   container-name: line;
 `);
 
-const cssItemShort = styled('div', `
+const cssItemShort = styled("div", `
   display: flex;
   row-gap: 4px;
   flex-wrap: nowrap;
@@ -169,7 +169,7 @@ const cssItemShort = styled('div', `
   }
 `);
 
-const cssItemName = styled('div', `
+const cssItemName = styled("div", `
   width: 230px;
   font-weight: bold;
   display: flex;
@@ -206,13 +206,13 @@ const cssItemName = styled('div', `
   }
 `);
 
-const cssItemDescription = styled('div', `
+const cssItemDescription = styled("div", `
   width: 250px;
   margin-right: auto;
   margin-bottom: -1px; /* aligns with the value */
 `);
 
-const cssItemValue = styled('div', `
+const cssItemValue = styled("div", `
   flex: none;
   margin: -8px 0;
   padding: 8px;
@@ -233,13 +233,13 @@ const cssCollapseIcon = styled(icon, `
   --icon-color: ${theme.lightText};
 `);
 
-const cssExpandedContentWrap = styled('div', `
+const cssExpandedContentWrap = styled("div", `
   transition: max-height 0.3s ease-in-out;
   overflow: hidden;
   max-height: 0;
 `);
 
-const cssExpandedContent = styled('div', `
+const cssExpandedContent = styled("div", `
   margin-left: 24px;
   padding: 18px 0;
   border-bottom: 1px solid ${theme.widgetBorder};
@@ -254,7 +254,7 @@ const cssExpandedContent = styled('div', `
   }
 `);
 
-export const cssValueLabel = styled('div', `
+export const cssValueLabel = styled("div", `
   padding: 4px 8px;
   color: ${theme.text};
   border: 1px solid ${theme.inputBorder};

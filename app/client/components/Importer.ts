@@ -3,30 +3,30 @@
  * TODO: hidden tables should be also deleted on page refresh, error...
  */
 
-import { GristDoc } from 'app/client/components/GristDoc';
-import { buildParseOptionsForm, ParseOptionValues } from 'app/client/components/ParseOptions';
-import { PluginScreen } from 'app/client/components/PluginScreen';
-import { makeTestId } from 'app/client/lib/domUtils';
-import { FocusLayer } from 'app/client/lib/FocusLayer';
-import { ImportSourceElement } from 'app/client/lib/ImportSourceElement';
-import { makeT } from 'app/client/lib/localization';
-import { EXTENSIONS_IMPORTABLE_WITHIN_DOC, fetchURL, isDriveUrl, selectFiles, uploadFiles } from 'app/client/lib/uploads';
-import { reportError } from 'app/client/models/AppModel';
-import { ColumnRec, ViewFieldRec, ViewSectionRec } from 'app/client/models/DocModel';
-import { SortedRowSet } from 'app/client/models/rowset';
-import { buildHighlightedCode } from 'app/client/ui/CodeHighlight';
-import { openFilePicker } from 'app/client/ui/FileDialog';
-import { ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading } from 'app/client/ui/googleAuth';
-import { cssPageIcon } from 'app/client/ui/LeftPanelCommon';
-import { hoverTooltip, overflowTooltip } from 'app/client/ui/tooltips';
-import { bigBasicButton, bigPrimaryButton, textButton } from 'app/client/ui2018/buttons';
-import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
-import { testId as baseTestId, theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { loadingSpinner } from 'app/client/ui2018/loaders';
-import { IOptionFull, menuDivider, menuItem, multiSelect, selectMenu, selectOption } from 'app/client/ui2018/menus';
-import { cssModalTitle } from 'app/client/ui2018/modals';
-import { openFormulaEditor } from 'app/client/widgets/FormulaEditor';
+import { GristDoc } from "app/client/components/GristDoc";
+import { buildParseOptionsForm, ParseOptionValues } from "app/client/components/ParseOptions";
+import { PluginScreen } from "app/client/components/PluginScreen";
+import { makeTestId } from "app/client/lib/domUtils";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
+import { makeT } from "app/client/lib/localization";
+import { EXTENSIONS_IMPORTABLE_WITHIN_DOC, fetchURL, isDriveUrl, selectFiles, uploadFiles } from "app/client/lib/uploads";
+import { reportError } from "app/client/models/AppModel";
+import { ColumnRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
+import { SortedRowSet } from "app/client/models/rowset";
+import { buildHighlightedCode } from "app/client/ui/CodeHighlight";
+import { openFilePicker } from "app/client/ui/FileDialog";
+import { ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading } from "app/client/ui/googleAuth";
+import { cssPageIcon } from "app/client/ui/LeftPanelCommon";
+import { hoverTooltip, overflowTooltip } from "app/client/ui/tooltips";
+import { bigBasicButton, bigPrimaryButton, textButton } from "app/client/ui2018/buttons";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { testId as baseTestId, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { loadingSpinner } from "app/client/ui2018/loaders";
+import { IOptionFull, menuDivider, menuItem, multiSelect, selectMenu, selectOption } from "app/client/ui2018/menus";
+import { cssModalTitle } from "app/client/ui2018/modals";
+import { openFormulaEditor } from "app/client/widgets/FormulaEditor";
 import {
   DataSourceTransformed,
   DestId,
@@ -40,11 +40,11 @@ import {
   TransformColumn,
   TransformRule,
   TransformRuleMap,
-} from 'app/common/ActiveDocAPI';
-import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
-import { byteString, not } from 'app/common/gutil';
-import { FetchUrlOptions, UploadResult } from 'app/common/uploads';
-import { ParseOptions, ParseOptionSchema } from 'app/plugin/FileParserAPI';
+} from "app/common/ActiveDocAPI";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { byteString, not } from "app/common/gutil";
+import { FetchUrlOptions, UploadResult } from "app/common/uploads";
+import { ParseOptions, ParseOptionSchema } from "app/plugin/FileParserAPI";
 import {
   Computed,
   Disposable,
@@ -59,12 +59,12 @@ import {
   Observable,
   styled,
   UseCBOwner,
-} from 'grainjs';
-import debounce from 'lodash/debounce';
+} from "grainjs";
+import debounce from "lodash/debounce";
 
-const t = makeT('Importer');
+const t = makeT("Importer");
 // Custom testId that can be appended conditionally.
-const testId = makeTestId('test-importer-');
+const testId = makeTestId("test-importer-");
 
 // We expect a function for creating the preview GridView, to avoid the need to require the
 // GridView module here. That brings many dependencies, making a simple test fixture difficult.
@@ -178,7 +178,7 @@ export async function selectAndImport(
       reportError(err1);
     }
     else {
-      const gdrivePlugin = imports.find(p => p.plugin.definition.id === 'builtIn/gdrive' && p !== importSourceElem);
+      const gdrivePlugin = imports.find(p => p.plugin.definition.id === "builtIn/gdrive" && p !== importSourceElem);
       if (!gdrivePlugin) {
         reportError(err1);
       }
@@ -211,7 +211,7 @@ export async function importFromFile(gristDoc: GristDoc, createPreview: CreatePr
   // Important to fork first before trying to import, so we end up uploading to a
   // consistent doc worker.
   await gristDoc.forkIfNeeded();
-  const label = files.map(f => f.name).join(', ');
+  const label = files.map(f => f.name).join(", ");
   const size = files.reduce((acc, f) => acc + f.size, 0);
   const app = gristDoc.app.topAppModel.appObs.get();
   const progress = app ? app.notifier.createProgressIndicator(label, byteString(size)) : null;
@@ -219,7 +219,7 @@ export async function importFromFile(gristDoc: GristDoc, createPreview: CreatePr
   try {
     onProgress(0);
     uploadResult = await uploadFiles(files, { docWorkerUrl: gristDoc.docComm.docWorkerUrl,
-      sizeLimit: 'import' }, onProgress);
+      sizeLimit: "import" }, onProgress);
     onProgress(100);
   }
   finally {
@@ -371,7 +371,7 @@ export class Importer extends DisposableWithEvents {
       const section = info && use(info.transformSection);
       if (!section || section.isDisposed() || use(section._isDeleted)) { return null; }
       const fields = use(use(section.viewFields).getObservable());
-      const labels = fields?.filter(f => (use(use(f.column).formula).trim() === ''))
+      const labels = fields?.filter(f => (use(use(f.column).formula).trim() === ""))
         .map(f => use(f.label)) ?? null;
       return labels?.length ? labels : null;
     };
@@ -406,7 +406,7 @@ export class Importer extends DisposableWithEvents {
         // On electron, it uses the native file selector (without actually uploading anything),
         // which is why this requires a slightly different flow.
         uploadResult = uploadResult || await selectFiles({ docWorkerUrl: this._docComm.docWorkerUrl,
-          multiple: true, sizeLimit: 'import' });
+          multiple: true, sizeLimit: "import" });
       }
       else {
         // Need to use plugin to get the data, and manually upload it.
@@ -422,7 +422,7 @@ export class Importer extends DisposableWithEvents {
           if (item.kind === "fileList") {
             const files = item.files.map(({ content, name }) => new File([content], name));
             uploadResult = await uploadFiles(files, { docWorkerUrl: this._docComm.docWorkerUrl,
-              sizeLimit: 'import' });
+              sizeLimit: "import" });
           }
           else if (item.kind ===  "url") {
             if (isDriveUrl(item.url)) {
@@ -465,9 +465,9 @@ export class Importer extends DisposableWithEvents {
     // by the preview itself.
     // TODO: refactor this code, the formula editor here should reuse global cleanup code.
     const closeGlobalEditor = () => this._gristDoc.fieldEditorHolder.clear();
-    this.on('importer_focus', closeGlobalEditor);
+    this.on("importer_focus", closeGlobalEditor);
     this.onDispose(() => {
-      this.off('importer_focus', closeGlobalEditor);
+      this.off("importer_focus", closeGlobalEditor);
       if (this._gristDoc.isDisposed()) { return; }
       closeGlobalEditor();
     });
@@ -490,7 +490,7 @@ export class Importer extends DisposableWithEvents {
     sourceInfo.transformSection.set(null);
 
     const genImporterViewPromise = this._gristDoc.docData.sendAction(
-      ['GenImporterView', sourceInfo.hiddenTableId, sourceInfo.destTableId.get(), null, null]);
+      ["GenImporterView", sourceInfo.hiddenTableId, sourceInfo.destTableId.get(), null, null]);
     sourceInfo.lastGenImporterViewPromise = genImporterViewPromise;
     const transformSectionRef = (await genImporterViewPromise).viewSectionRef;
 
@@ -651,7 +651,7 @@ export class Importer extends DisposableWithEvents {
         // Empty, user will select it for existing table.
         mergeCols: obsArray(),
         // Strategy for the backend (from UI we don't care about it).
-        mergeStrategy: Observable.create(null, { type: 'replace-with-nonblank-source' }),
+        mergeStrategy: Observable.create(null, { type: "replace-with-nonblank-source" }),
         // Helper to show the validation that something is wrong with the columns selected to merge.
         hasInvalidMergeCols: Observable.create(null, false),
       };
@@ -721,12 +721,12 @@ export class Importer extends DisposableWithEvents {
   }
 
   private _buildModalTitle(rightElement?: DomContents) {
-    const title =  this._importSourceElem ? this._importSourceElem.importSource.label : t('Import from file');
+    const title =  this._importSourceElem ? this._importSourceElem.importSource.label : t("Import from file");
     return cssModalHeader(cssModalTitle(title), rightElement);
   }
 
   private _buildStaticTitle() {
-    return cssStaticHeader(cssModalTitle(t('Import from file')));
+    return cssStaticHeader(cssModalTitle(t("Import from file")));
   }
 
   /**
@@ -810,9 +810,9 @@ export class Importer extends DisposableWithEvents {
   private _renderMain(upload: UploadResult) {
     const schema = this._parseOptions.get().SCHEMA;
     const header = this._buildModalTitle();
-    const options = schema ? cssActionLink(cssLinkIcon('Settings'), t('Import options'),
-      testId('options-link'),
-      dom.on('click', () => this._renderParseOptions(schema, upload)),
+    const options = schema ? cssActionLink(cssLinkIcon("Settings"), t("Import options"),
+      testId("options-link"),
+      dom.on("click", () => this._renderParseOptions(schema, upload)),
     ) : null;
 
     const selectTab = async (info: SourceInfo) => {
@@ -852,26 +852,26 @@ export class Importer extends DisposableWithEvents {
         return cssTabItem(
           dom.autoDispose(owner),
           cssBorderBottom(),
-          cssTabItem.cls('-not-selected', not(isSelected)),
-          testId('source'),
-          testId('source-selected', isSelected),
-          testId('source-not-selected', not(isSelected)),
+          cssTabItem.cls("-not-selected", not(isSelected)),
+          testId("source"),
+          testId("source-selected", isSelected),
+          testId("source-not-selected", not(isSelected)),
           cssTabItemContent(
             cssFileTypeIcon(getSourceFileExtension(info, upload),
-              cssFileTypeIcon.cls('-active', isSelected),
+              cssFileTypeIcon.cls("-active", isSelected),
             ),
-            cssTabItemContent.cls('-selected', isSelected),
+            cssTabItemContent.cls("-selected", isSelected),
             cssTableLine(cssTableSource(
               getSourceDescription(info, upload),
-              testId('from'),
+              testId("from"),
               overflowTooltip(),
             )),
-            dom.on('click', () => selectTab(info)),
+            dom.on("click", () => selectTab(info)),
           ),
           dom.maybe(unmatchedCount, count => cssError(
-            'Exclamation',
-            testId('error'),
-            hoverTooltip(t('{{count}} unmatched field', { count })),
+            "Exclamation",
+            testId("error"),
+            hoverTooltip(t("{{count}} unmatched field", { count })),
           )),
         );
       }),
@@ -903,13 +903,13 @@ export class Importer extends DisposableWithEvents {
       const isMergeTable = Computed.create(owner, use => ![NEW_TABLE, SKIP_TABLE].includes(use(info.destTableId)));
 
       // Changes the class if the item is selected. Creates a dom method that can be attached to element.
-      const selectIfDestIs = (destId: DestId) => cssDestination.cls('-selected', isSelected(destId));
+      const selectIfDestIs = (destId: DestId) => cssDestination.cls("-selected", isSelected(destId));
 
       // Helper to toggle visibility if target is selected.
       const visibleIfDestIs = (destId: DestId) => dom.show(isSelected(destId));
 
       // Creates a click handler that changes the destination table to the given value.
-      const onClickChangeDestTo = (destId: DestId) => dom.on('click', async () => {
+      const onClickChangeDestTo = (destId: DestId) => dom.on("click", async () => {
         if (info !== this._sourceInfoSelected.get() && !this._validateImportConfiguration()) {
           return;
         }
@@ -927,7 +927,7 @@ export class Importer extends DisposableWithEvents {
       });
 
       // Handler to switch the view, between destination and column mapping panes.
-      const onClickShowView = (view: ViewType) => dom.on('click', () => {
+      const onClickShowView = (view: ViewType) => dom.on("click", () => {
         info.selectedView.set(view);
       });
 
@@ -947,46 +947,46 @@ export class Importer extends DisposableWithEvents {
 
       return cssConfigAndPreview(
         cssConfigPanel(
-          cssConfigPanel.cls('-right', showRightPanel),
+          cssConfigPanel.cls("-right", showRightPanel),
           cssConfigLeft(
-            cssTitle(t('Destination table'), testId('target-top')),
+            cssTitle(t("Destination table"), testId("target-top")),
             cssDestinationWrapper(cssDestination(
-              cssPageIcon('Plus'),
-              dom('span', t('New Table')),
+              cssPageIcon("Plus"),
+              dom("span", t("New Table")),
               selectIfDestIs(NEW_TABLE),
               onClickChangeDestTo(NEW_TABLE),
-              testId('target'),
-              testId('target-new-table'),
-              testId('target-selected', isSelected(NEW_TABLE)),
+              testId("target"),
+              testId("target-new-table"),
+              testId("target-selected", isSelected(NEW_TABLE)),
             )),
             dom.maybe(use => use(this._sourceInfoArray).length > 1, () => [
               cssDestinationWrapper(cssDestination(
-                cssPageIcon('CrossBig'),
-                dom('span', t('Skip Import')),
+                cssPageIcon("CrossBig"),
+                dom("span", t("Skip Import")),
                 selectIfDestIs(SKIP_TABLE),
                 onClickChangeDestTo(SKIP_TABLE),
-                testId('target'),
-                testId('target-skip'),
-                testId('target-selected', isSelected(SKIP_TABLE)),
+                testId("target"),
+                testId("target-skip"),
+                testId("target-selected", isSelected(SKIP_TABLE)),
               )),
             ]),
             dom.forEach(this._destTables, (destTable) => {
               return cssDestinationWrapper(
-                testId('target'),
-                testId('target-existing-table'),
-                testId('target-selected', isSelected(destTable.value)),
+                testId("target"),
+                testId("target-existing-table"),
+                testId("target-selected", isSelected(destTable.value)),
                 cssDestination(
-                  cssPageIcon('TypeTable'),
-                  dom('span', destTable.label),
+                  cssPageIcon("TypeTable"),
+                  dom("span", destTable.label),
                   selectIfDestIs(destTable.value),
                   onClickChangeDestTo(destTable.value),
                   onClickShowView(COLUMN_MAPPING),
                 ),
-                cssDetailsIcon('ArrowRight',
+                cssDetailsIcon("ArrowRight",
                   onClickShowView(COLUMN_MAPPING),
                   visibleIfDestIs(destTable.value),
-                  hoverTooltip(t('Column mapping')),
-                  testId('target-column-mapping'),
+                  hoverTooltip(t("Column mapping")),
+                  testId("target-column-mapping"),
                 ),
               );
             }),
@@ -995,20 +995,20 @@ export class Importer extends DisposableWithEvents {
             cssNavigation(
               cssFlexBaseline(
                 cssDestinationTableSecondary(
-                  cssNavigationIcon('ArrowLeft'),
-                  t('Destination table'),
+                  cssNavigationIcon("ArrowLeft"),
+                  t("Destination table"),
                   onClickShowView(TABLE_MAPPING),
-                  testId('table-mapping'),
+                  testId("table-mapping"),
                 ),
-                cssSlash(' / '),
-                cssColumnMappingNav(t('Column Mapping')),
+                cssSlash(" / "),
+                cssColumnMappingNav(t("Column Mapping")),
               ),
             ),
             cssMergeOptions(
               dom.maybe(isMergeTable, () => cssMergeOptionsToggle(labeledSquareCheckbox(
                 updateExistingRecords,
                 t("Update existing records"),
-                testId('update-existing-records'),
+                testId("update-existing-records"),
               ))),
               dom.maybe(configSection, (section) => {
                 return dom.maybeOwned(updateExistingRecords, (owner2) => {
@@ -1022,7 +1022,7 @@ export class Importer extends DisposableWithEvents {
                   return [
                     cssMergeOptionsMessage(
                       t("Merge rows that match these fields:"),
-                      testId('merge-fields-message'),
+                      testId("merge-fields-message"),
                     ),
                     multiSelect(
                       mergeCols,
@@ -1031,7 +1031,7 @@ export class Importer extends DisposableWithEvents {
                         placeholder: t("Select fields to match on"),
                         error: hasInvalidMergeCols,
                       },
-                      testId('merge-fields-select'),
+                      testId("merge-fields-select"),
                     ),
                   ];
                 });
@@ -1041,11 +1041,11 @@ export class Importer extends DisposableWithEvents {
               owner1.autoDispose(updateExistingRecords.addListener(async () => {
                 await this._updateImportDiff(info);
               }));
-              return dom('div',
+              return dom("div",
                 cssColumnMatchHeader(
-                  dom('span', t('Grist column')),
-                  dom('div', null),
-                  dom('span', t('Source column')),
+                  dom("span", t("Grist column")),
+                  dom("div", null),
+                  dom("span", t("Source column")),
                 ),
                 dom.forEach(fromKo(section.viewFields().getObservable()), (field) => {
                   const owner2 = MultiHolder.create(null);
@@ -1053,14 +1053,14 @@ export class Importer extends DisposableWithEvents {
                     return use(info.customizedColumns).has(field.colId());
                   });
                   return cssColumnMatchRow(
-                    testId('column-match-source-destination'),
+                    testId("column-match-source-destination"),
                     dom.autoDispose(owner2),
                     dom.domComputed(field.label, () => cssDestinationFieldLabel(
                       dom.text(field.label),
                       overflowTooltip(),
-                      testId('column-match-destination'),
+                      testId("column-match-destination"),
                     )),
-                    cssIcon180('ArrowRightOutlined'),
+                    cssIcon180("ArrowRightOutlined"),
                     dom.domComputedOwned(isCustomFormula, (owner3, isCustom) => {
                       if (isCustom) {
                         return this._buildCustomFormula(owner3, field, info);
@@ -1069,11 +1069,11 @@ export class Importer extends DisposableWithEvents {
                         return this._buildSourceSelector(owner3, field, info);
                       }
                     }),
-                    dom('div',
-                      dom.maybe(isCustomFormula, () => icon('Revert',
-                        dom.style('cursor', 'pointer'),
-                        hoverTooltip(t('Revert')),
-                        dom.on('click', async () => {
+                    dom("div",
+                      dom.maybe(isCustomFormula, () => icon("Revert",
+                        dom.style("cursor", "pointer"),
+                        hoverTooltip(t("Revert")),
+                        dom.on("click", async () => {
                           toggleCustomized(info, field.colId(), false);
                           // Try to set the default label.
                           const transformCol = field.column.peek();
@@ -1091,13 +1091,13 @@ export class Importer extends DisposableWithEvents {
                     ),
                   );
                 }),
-                testId('column-match-options'),
+                testId("column-match-options"),
               );
             }),
           ),
         ),
         cssPreviewColumn(
-          dom.maybe(showLoader, () => cssPreviewSpinner(loadingSpinner(), testId('preview-spinner'))),
+          dom.maybe(showLoader, () => cssPreviewSpinner(loadingSpinner(), testId("preview-spinner"))),
           dom.maybe(previewSection, () => [
             cssOptions(
               dom.domComputed(info.destTableId, destId => cssTableName(
@@ -1110,10 +1110,10 @@ export class Importer extends DisposableWithEvents {
               options,
             ),
           ]),
-          cssWarningText(dom.text(use => use(this._parseOptions)?.WARNING || ""), testId('warning')),
+          cssWarningText(dom.text(use => use(this._parseOptions)?.WARNING || ""), testId("warning")),
           dom.domComputed((use) => {
             if (use(isSkipTable)) {
-              return cssOverlay(t('Skip Table on Import'), testId('preview-overlay'));
+              return cssOverlay(t("Skip Table on Import"), testId("preview-overlay"));
             }
             const section = use(previewSection);
             if (!section || section.isDisposed()) { return null; }
@@ -1121,7 +1121,7 @@ export class Importer extends DisposableWithEvents {
             return cssPreviewGrid(
               dom.autoDispose(gridView),
               gridView.viewPane,
-              testId('preview'),
+              testId("preview"),
             );
           }),
         ),
@@ -1129,17 +1129,17 @@ export class Importer extends DisposableWithEvents {
     });
 
     const buttons = cssImportButtons(cssImportButtonsLine(
-      bigPrimaryButton(t('Import'),
-        dom.on('click', () => this._maybeFinishImport(upload)),
-        dom.boolAttr('disabled', (use) => {
+      bigPrimaryButton(t("Import"),
+        dom.on("click", () => this._maybeFinishImport(upload)),
+        dom.boolAttr("disabled", (use) => {
           return use(this._previewViewSection) === null ||
             use(this._sourceInfoArray).every(i => use(i.destTableId) === SKIP_TABLE);
         }),
-        baseTestId('modal-confirm'),
+        baseTestId("modal-confirm"),
       ),
-      bigBasicButton(t('Cancel'),
-        dom.on('click', () => this._cancelImport()),
-        baseTestId('modal-cancel'),
+      bigBasicButton(t("Cancel"),
+        dom.on("click", () => this._cancelImport()),
+        baseTestId("modal-cancel"),
       ),
       dom.domComputed(this._unmatchedFieldsMap, (fields) => {
         const piles: HTMLElement[] = [];
@@ -1148,24 +1148,24 @@ export class Importer extends DisposableWithEvents {
           if (!list?.length) { continue; }
           count += list.length;
           piles.push(cssUnmatchedFieldsList(
-            list.join(', '),
-            dom.on('click', () => selectTab(info)),
+            list.join(", "),
+            dom.on("click", () => selectTab(info)),
             hoverTooltip(getSourceDescription(info, upload)),
           ));
         }
         if (!count) { return null; }
         return cssUnmatchedFields(
           cssUnmatchedFieldsIntro(
-            cssUnmatchedIcon('Exclamation'),
-            t('{{count}} unmatched field in import', { count }), ': ',
+            cssUnmatchedIcon("Exclamation"),
+            t("{{count}} unmatched field in import", { count }), ": ",
           ),
           ...piles,
-          testId('unmatched-fields'),
+          testId("unmatched-fields"),
         );
       }),
     ));
     const body = cssContainer(
-      { tabIndex: '-1' },
+      { tabIndex: "-1" },
       header,
       cssPreviewWrapper(
         cssTabsWrapper(
@@ -1192,7 +1192,7 @@ export class Importer extends DisposableWithEvents {
     const refTableId = refTable ? refTable.tableId.peek() : undefined;
 
     const visibleColId = gristCol.visibleColModel.peek().colId.peek();
-    const isRefDest = Boolean(info.destTableId.get() && gristCol.pureType.peek() === 'Ref');
+    const isRefDest = Boolean(info.destTableId.get() && gristCol.pureType.peek() === "Ref");
 
     for (const sourceField of sourceFields) {
       const sourceCol = sourceField.column.peek();
@@ -1205,7 +1205,7 @@ export class Importer extends DisposableWithEvents {
       else {
         options.set(`$${sourceId}`, sourceLabel);
       }
-      if (isRefDest && ['Numeric', 'Int'].includes(sourceCol.type.peek())) {
+      if (isRefDest && ["Numeric", "Int"].includes(sourceCol.type.peek())) {
         options.set(`${refTableId}.lookupOne(id=NUM($${sourceId})) or ($${sourceId} and str(NUM($${sourceId})))`,
           `${sourceLabel} (as row ID)`);
       }
@@ -1216,13 +1216,13 @@ export class Importer extends DisposableWithEvents {
   private _makeImportOptionsMenu(transformCol: ColumnRec, others: [string, string][], info: SourceInfo) {
     return [
       menuItem(() => this._setColumnFormula(transformCol, null, info),
-        'Skip',
-        testId('column-match-menu-item')),
+        "Skip",
+        testId("column-match-menu-item")),
       others.length ? menuDivider() : null,
       ...others.map(([formula, label]) =>
         menuItem(() => this._setColumnFormula(transformCol, formula, info),
           label,
-          testId('column-match-menu-item')),
+          testId("column-match-menu-item")),
       ),
     ];
   }
@@ -1231,7 +1231,7 @@ export class Importer extends DisposableWithEvents {
     dom.autoDisposeElem(container, new FocusLayer({
       defaultFocusElem: container,
       allowFocus: elem => (elem !== document.body),
-      onDefaultFocus: () => this.trigger('importer_focus'),
+      onDefaultFocus: () => this.trigger("importer_focus"),
     }));
   }
 
@@ -1248,7 +1248,7 @@ export class Importer extends DisposableWithEvents {
     }
     else {
       await this._gristDoc.docModel.columns.sendTableAction(
-        ['UpdateRecord', transformColRef, { formula, isFormula: true }]);
+        ["UpdateRecord", transformColRef, { formula, isFormula: true }]);
     }
     await this._updateImportDiff(info);
   }
@@ -1291,10 +1291,10 @@ export class Importer extends DisposableWithEvents {
     const saveEdit = () => _saveEdit().catch(reportError);
 
     // Whenever focus returns to the dialog, close the editor by saving the value.
-    this.on('importer_focus', saveEdit);
+    this.on("importer_focus", saveEdit);
 
     owner.onDispose(() => {
-      this.off('importer_focus', saveEdit);
+      this.off("importer_focus", saveEdit);
       editingFormula(false);
     });
   }
@@ -1336,12 +1336,12 @@ export class Importer extends DisposableWithEvents {
       const label = importOptions?.get(use(column.formula)) || null;
       return label;
     });
-    const selectedSourceText = Computed.create(owner, use => use(selectedSource) || t('Skip'));
+    const selectedSourceText = Computed.create(owner, use => use(selectedSource) || t("Skip"));
 
     const selectedOption = cssSelected(
       dom.text(selectedSourceText),
-      testId('column-match-formula'),
-      cssSelected.cls('-skip', not(selectedSource)),
+      testId("column-match-formula"),
+      cssSelected.cls("-skip", not(selectedSource)),
       overflowTooltip(),
     );
     const otherColsOptions = dom.domComputed(anyOtherColumns, x => x);
@@ -1354,14 +1354,14 @@ export class Importer extends DisposableWithEvents {
       },
       "Apply Formula",
       "Lighting",
-      testId('apply-formula'),
-      cssGreenIcon.cls(''),
+      testId("apply-formula"),
+      cssGreenIcon.cls(""),
     );
     const selectMenuElement = selectMenu(selectedOption, () => [
       otherColsOptions,
       menuDivider(),
       formulaOption,
-    ], testId('column-match-source'));
+    ], testId("column-match-source"));
     return selectMenuElement;
   }
 
@@ -1375,23 +1375,23 @@ export class Importer extends DisposableWithEvents {
       const column = use(field.column);
       return use(column.formula);
     });
-    const codeOptions = { placeholder: 'Skip', maxLines: 1 };
+    const codeOptions = { placeholder: "Skip", maxLines: 1 };
     return dom.create(buildHighlightedCode, formula, codeOptions,
       dom.cls(cssFieldFormula.className),
-      dom.cls('disabled'),
-      dom.cls('formula_field_sidepane'),
-      { tabIndex: '-1' },
-      dom.on('focus', (_ev, elem) => this._activateFormulaEditor(elem, field, async (newFormula) => {
+      dom.cls("disabled"),
+      dom.cls("formula_field_sidepane"),
+      { tabIndex: "-1" },
+      dom.on("focus", (_ev, elem) => this._activateFormulaEditor(elem, field, async (newFormula) => {
         toggleCustomized(info, field.colId.peek(), !!newFormula);
         await this._updateImportDiff(info);
       })),
-      testId('column-match-formula'),
+      testId("column-match-formula"),
     );
   }
 
   // The importer state showing parse options that may be changed.
   private _renderParseOptions(schema: ParseOptionSchema[], upload: UploadResult) {
-    const anotherScreen = PluginScreen.create(this._optionsScreenHolder, 'Import from file');
+    const anotherScreen = PluginScreen.create(this._optionsScreenHolder, "Import from file");
     anotherScreen.showImportDialog({
       noClickAway: false,
       noEscapeKey: false,
@@ -1476,17 +1476,17 @@ function getSourceDescription(sourceInfo: SourceInfo, upload: UploadResult) {
 
 function getSourceFileExtension(sourceInfo: SourceInfo, upload: UploadResult) {
   const origName = upload.files[sourceInfo.uploadFileIndex].origName;
-  return origName.includes(".") ? origName.split('.').pop() : "file";
+  return origName.includes(".") ? origName.split(".").pop() : "file";
 }
 
-const cssContainer = styled('div', `
+const cssContainer = styled("div", `
   height: 100%;
   display: flex;
   flex-direction: column;
   outline: unset;
 `);
 
-const cssActionLink = styled('div', `
+const cssActionLink = styled("div", `
   display: inline-flex;
   align-items: center;
   cursor: pointer;
@@ -1503,7 +1503,7 @@ const cssLinkIcon = styled(icon, `
   margin-right: 4px;
 `);
 
-const cssStaticHeader = styled('div', `
+const cssStaticHeader = styled("div", `
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1519,13 +1519,13 @@ const cssModalHeader = styled(cssStaticHeader, `
   padding-top: var(--css-modal-dialog-padding-vertical, 0px);
 `);
 
-const cssPreviewWrapper = styled('div', `
+const cssPreviewWrapper = styled("div", `
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 `);
 
-const cssBorderBottom = styled('div', `
+const cssBorderBottom = styled("div", `
   border-bottom: 1px solid ${theme.importerTableInfoBorder};
   display: none;
   height: 0px;
@@ -1534,7 +1534,7 @@ const cssBorderBottom = styled('div', `
   width: 100%;
 `);
 
-const cssFileTypeIcon = styled('div', `
+const cssFileTypeIcon = styled("div", `
   background: ${theme.importerInactiveFileBg};
   color: ${theme.importerInactiveFileFg};
   border-radius: 4px;
@@ -1552,26 +1552,26 @@ const cssFileTypeIcon = styled('div', `
   }
 `);
 
-const cssTabsWrapper = styled('div', `
+const cssTabsWrapper = styled("div", `
   border-bottom: 1px solid ${theme.importerTableInfoBorder};
   display: flex;
   flex-direction: column;
 `);
 
-const cssWarningText = styled('div', `
+const cssWarningText = styled("div", `
   margin-bottom: 8px;
   color: ${theme.errorText};
   white-space: pre-line;
 `);
 
-const cssTableList = styled('div', `
+const cssTableList = styled("div", `
   align-self: flex-start;
   max-width: 100%;
   display: flex;
   padding: 0px var(--css-modal-dialog-padding-horizontal, 0px);
 `);
 
-const cssTabItemContent = styled('div', `
+const cssTabItemContent = styled("div", `
   border: 1px solid transparent;
   padding-left: 20px;
   padding-right: 20px;
@@ -1589,7 +1589,7 @@ const cssTabItemContent = styled('div', `
   }
 `);
 
-const cssTabItem = styled('div', `
+const cssTabItem = styled("div", `
   background: ${theme.importerOutsideBg};
   position: relative;
   cursor: pointer;
@@ -1618,7 +1618,7 @@ const cssTabItem = styled('div', `
   }
 `);
 
-const cssTableLine = styled('div', `
+const cssTableLine = styled("div", `
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -1626,14 +1626,14 @@ const cssTableLine = styled('div', `
   height: 100%;
 `);
 
-const cssTableSource = styled('div', `
+const cssTableSource = styled("div", `
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   flex-shrink: 1;
 `);
 
-const cssConfigAndPreview = styled('div', `
+const cssConfigAndPreview = styled("div", `
   display: flex;
   gap: 8px;
   flex-grow: 1;
@@ -1642,7 +1642,7 @@ const cssConfigAndPreview = styled('div', `
   padding-right: var(--css-modal-dialog-padding-horizontal, 0px);
 `);
 
-const cssConfigLeft = styled('div', `
+const cssConfigLeft = styled("div", `
   padding-right: 8px;
   padding-top: 16px;
   position: absolute;
@@ -1659,7 +1659,7 @@ const cssConfigRight = styled(cssConfigLeft, `
   padding-left: var(--css-modal-dialog-padding-horizontal, 0px);
 `);
 
-const cssConfigPanel = styled('div', `
+const cssConfigPanel = styled("div", `
   width: 360px;
   height: 100%;
   position: relative;
@@ -1672,13 +1672,13 @@ const cssConfigPanel = styled('div', `
   }
 `);
 
-const cssPreviewColumn = styled('div', `
+const cssPreviewColumn = styled("div", `
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 `);
 
-const cssPreview = styled('div', `
+const cssPreview = styled("div", `
   display: flex;
   flex-grow: 1;
 `);
@@ -1688,7 +1688,7 @@ const cssPreviewSpinner = styled(cssPreview, `
   justify-content: center;
 `);
 
-const cssOverlay = styled('div', `
+const cssOverlay = styled("div", `
   background: ${theme.importerSkippedTableOverlay};
   flex: 1;
   display: grid;
@@ -1700,21 +1700,21 @@ const cssPreviewGrid = styled(cssPreview, `
   position: relative;
 `);
 
-const cssMergeOptions = styled('div', `
+const cssMergeOptions = styled("div", `
   margin-bottom: 16px;
 `);
 
-const cssMergeOptionsToggle = styled('div', `
+const cssMergeOptionsToggle = styled("div", `
   margin-bottom: 8px;
   margin-top: 8px;
 `);
 
-const cssMergeOptionsMessage = styled('div', `
+const cssMergeOptionsMessage = styled("div", `
   color: ${theme.lightText};
   margin-bottom: 8px;
 `);
 
-const cssColumnMatchHeader = styled('div', `
+const cssColumnMatchHeader = styled("div", `
   display: grid;
   grid-template-columns: 1fr 20px 1fr;
   text-transform: uppercase;
@@ -1724,7 +1724,7 @@ const cssColumnMatchHeader = styled('div', `
   margin-bottom: 12px;
 `);
 
-const cssColumnMatchRow = styled('div', `
+const cssColumnMatchRow = styled("div", `
   display: grid;
   grid-template-columns: 1fr 20px 1fr 20px;
   gap: 4px;
@@ -1735,7 +1735,7 @@ const cssColumnMatchRow = styled('div', `
   }
 `);
 
-const cssFieldFormula = styled('div', `
+const cssFieldFormula = styled("div", `
   flex: auto;
   cursor: pointer;
   margin-top: 1px;
@@ -1743,7 +1743,7 @@ const cssFieldFormula = styled('div', `
   --icon-color: ${theme.accentIcon};
 `);
 
-const cssDestinationFieldLabel = styled('div', `
+const cssDestinationFieldLabel = styled("div", `
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -1769,7 +1769,7 @@ const cssUnmatchedIcon = styled(icon, `
   margin-bottom: 2px;
 `);
 
-const cssUnmatchedFields = styled('div', `
+const cssUnmatchedFields = styled("div", `
   display: flex;
   flex-wrap: wrap;
   row-gap: 2px;
@@ -1777,11 +1777,11 @@ const cssUnmatchedFields = styled('div', `
   align-items: flex-start;
 `);
 
-const cssUnmatchedFieldsIntro = styled('div', `
+const cssUnmatchedFieldsIntro = styled("div", `
   padding: 4px 8px;
 `);
 
-const cssUnmatchedFieldsList = styled('div', `
+const cssUnmatchedFieldsList = styled("div", `
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -1794,7 +1794,7 @@ const cssUnmatchedFieldsList = styled('div', `
   cursor: pointer;
 `);
 
-const cssImportButtons = styled('div', `
+const cssImportButtons = styled("div", `
   padding-top: 40px;
   padding-left: var(--css-modal-dialog-padding-horizontal, 0px);
   padding-right: var(--css-modal-dialog-padding-horizontal, 0px);
@@ -1802,7 +1802,7 @@ const cssImportButtons = styled('div', `
   background-color: ${theme.importerMainContentBg};
 `);
 
-const cssImportButtonsLine = styled('div', `
+const cssImportButtonsLine = styled("div", `
   height: 52px;
   overflow: hidden;
   display: flex;
@@ -1810,7 +1810,7 @@ const cssImportButtonsLine = styled('div', `
   align-items: flex-start;
 `);
 
-const cssTitle = styled('span._cssToFrom', `
+const cssTitle = styled("span._cssToFrom", `
   color: ${theme.darkText};
   text-transform: uppercase;
   font-weight: 600;
@@ -1821,7 +1821,7 @@ const cssTitle = styled('span._cssToFrom', `
   margin-bottom: 16px;
 `);
 
-const cssDestinationWrapper = styled('div', `
+const cssDestinationWrapper = styled("div", `
   margin-bottom: 1px;
   /* Reuse the modal padding but move 16px to left if possible */
   margin-left: max(0px, calc(var(--css-modal-dialog-padding-horizontal, 0px) - 16px));
@@ -1829,7 +1829,7 @@ const cssDestinationWrapper = styled('div', `
   align-items: center;
 `);
 
-const cssDestination = styled('div', `
+const cssDestination = styled("div", `
   --icon-color: ${theme.lightText};
   align-items: center;
   border-radius: 0 3px 3px 0;
@@ -1850,7 +1850,7 @@ const cssDestination = styled('div', `
   }
 `);
 
-const cssOptions = styled('div', `
+const cssOptions = styled("div", `
   display: flex;
   align-items: flex-end;
   padding-bottom: 8px;
@@ -1858,11 +1858,11 @@ const cssOptions = styled('div', `
   height: 36px;
 `);
 
-const cssTableName = styled('span', `
+const cssTableName = styled("span", `
   font-weight: 600;
 `);
 
-const cssNavigation = styled('div', `
+const cssNavigation = styled("div", `
   display: flex;
   align-items: center;
   margin-bottom: 8px;
@@ -1897,7 +1897,7 @@ const cssNavigationIcon = styled(icon, `
   width: 12px;
 `);
 
-const cssFlexBaseline = styled('div', `
+const cssFlexBaseline = styled("div", `
   display: flex;
   align-items: baseline;
 `);
@@ -1916,7 +1916,7 @@ const cssGreenIcon = styled(`div`, `
 --icon-color: ${theme.accentIcon};
 `);
 
-const cssColumnMappingNav = styled('span', `
+const cssColumnMappingNav = styled("span", `
   text-transform: uppercase;
   color: ${theme.darkText};
   text-transform: uppercase;
@@ -1925,7 +1925,7 @@ const cssColumnMappingNav = styled('span', `
   letter-spacing: 0.5px;
 `);
 
-const cssSlash = styled('div', `
+const cssSlash = styled("div", `
   padding: 0px 4px;
   font-size: ${vars.xsmallFontSize};
   color: ${theme.lightText};

@@ -1,6 +1,6 @@
-import { StringUnion } from 'app/common/StringUnion';
-import { SessionOIDCInfo } from 'app/server/lib/BrowserSession';
-import { AuthorizationParameters, generators, OpenIDCallbackChecks } from 'openid-client';
+import { StringUnion } from "app/common/StringUnion";
+import { SessionOIDCInfo } from "app/server/lib/BrowserSession";
+import { AuthorizationParameters, generators, OpenIDCallbackChecks } from "openid-client";
 
 export const EnabledProtection = StringUnion(
   "STATE",
@@ -30,7 +30,7 @@ class PKCEProtection implements Protection {
   public forgeAuthUrlParams(sessionInfo: SessionOIDCInfo): AuthorizationParameters {
     return {
       code_challenge: generators.codeChallenge(checkIsSet(sessionInfo.code_verifier, "Login is stale")),
-      code_challenge_method: 'S256',
+      code_challenge_method: "S256",
     };
   }
 
@@ -85,13 +85,13 @@ export class ProtectionsManager implements Protection {
   private _protections: Protection[] = [];
 
   constructor(private _enabledProtections: Set<EnabledProtectionString>) {
-    if (this._enabledProtections.has('STATE')) {
+    if (this._enabledProtections.has("STATE")) {
       this._protections.push(new StateProtection());
     }
-    if (this._enabledProtections.has('NONCE')) {
+    if (this._enabledProtections.has("NONCE")) {
       this._protections.push(new NonceProtection());
     }
-    if (this._enabledProtections.has('PKCE')) {
+    if (this._enabledProtections.has("PKCE")) {
       this._protections.push(new PKCEProtection());
     }
   }

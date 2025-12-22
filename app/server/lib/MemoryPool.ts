@@ -1,4 +1,4 @@
-import Deque from 'double-ended-queue';
+import Deque from "double-ended-queue";
 
 /**
  * Usage:

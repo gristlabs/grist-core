@@ -15,12 +15,12 @@
  * Run `bin/mocha 'test/nbrowser/*.ts' -b --no-exit` to open a command-line prompt on
  * first-failure for debugging and quick reruns.
  */
-import log from 'app/server/lib/log';
+import log from "app/server/lib/log";
 import { addToRepl, assert, Capability, driver, enableDebugCapture, ITimeouts,
-  Key, setOptionsModifyFunc, useServer } from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
-import { server } from 'test/nbrowser/testServer';
-import { setupCleanup } from 'test/server/testCleanup';
+  Key, setOptionsModifyFunc, useServer } from "mocha-webdriver";
+import * as gu from "test/nbrowser/gristUtils";
+import { server } from "test/nbrowser/testServer";
+import { setupCleanup } from "test/server/testCleanup";
 
 // Exports the server object with useful methods such as getHost(), waitServerReady(),
 // simulateLogin(), etc.
@@ -42,7 +42,7 @@ setOptionsModifyFunc(({ chromeOpts, firefoxOpts }) => {
   // toggled by using the `set` method in `capabilities` interface, as it is done here (long URL):
 
   // https://github.com/shs96c/selenium/blob/ff82c4af6a493321d9eaec6ba8fa8589e4aa824d/javascript/node/selenium-webdriver/firefox.js#L415
-  chromeOpts.set('webSocketUrl', true);
+  chromeOpts.set("webSocketUrl", true);
   chromeOpts.set(Capability.UNHANDLED_PROMPT_BEHAVIOR, "ignore");
 
   chromeOpts.setUserPreferences({
@@ -53,7 +53,7 @@ setOptionsModifyFunc(({ chromeOpts, firefoxOpts }) => {
       content_settings: {
         exceptions: {
           clipboard: {
-            '*': {
+            "*": {
               // Grant access to the system clipboard. This applies to regular (non-headless)
               // Chrome. On headless Chrome, this has no effect.
               setting: 1,
@@ -76,9 +76,9 @@ setOptionsModifyFunc(({ chromeOpts, firefoxOpts }) => {
     }),
     "printing.print_preview_sticky_settings.appState": JSON.stringify({
       recentDestinations: [{
-        id: 'Save as PDF',
-        origin: 'local',
-        account: '',
+        id: "Save as PDF",
+        origin: "local",
+        account: "",
       }],
       version: 2,
     }),
@@ -113,9 +113,9 @@ interface TestSuiteOptions {
 export function setupTestSuite(options?: TestSuiteOptions) {
   useServer(server);
   enableDebugCapture();
-  addToRepl('gu', gu, 'gristUtils, grist-specific helpers');
-  addToRepl('Key', Key, 'key values such as Key.ENTER');
-  addToRepl('server', server, 'test server');
+  addToRepl("gu", gu, "gristUtils, grist-specific helpers");
+  addToRepl("Key", Key, "key values such as Key.ENTER");
+  addToRepl("server", server, "test server");
 
   // After every suite, assert it didn't leave an alert open.
   checkForAlerts();
@@ -200,9 +200,9 @@ export function cleanupExtraWindows() {
 }
 
 async function clearCurrentWindowStorage() {
-  if ((await driver.getCurrentUrl()).startsWith('http')) {
+  if ((await driver.getCurrentUrl()).startsWith("http")) {
     try {
-      await driver.executeScript('window.sessionStorage.clear(); window.localStorage.clear();');
+      await driver.executeScript("window.sessionStorage.clear(); window.localStorage.clear();");
     }
     catch (err) {
       log.info("Could not clear window storage after the test ended: %s", err.message);
@@ -253,7 +253,7 @@ export function setupRequirement(options: TestSuiteOptions) {
   }
 
   before(async function() {
-    if (new URL(server.getHost()).hostname !== 'localhost') {
+    if (new URL(server.getHost()).hostname !== "localhost") {
       // Non-dev servers should already meet the requirements; in any case we should not
       // fiddle with them here.
       return;
@@ -262,8 +262,8 @@ export function setupRequirement(options: TestSuiteOptions) {
     // Optionally ensure that a team site is available for tests.
     if (options.team) {
       await gu.addSupportUserIfPossible();
-      const api = gu.createHomeApi('support', 'docs');
-      for (const suffix of ['', '2'] as const) {
+      const api = gu.createHomeApi("support", "docs");
+      for (const suffix of ["", "2"] as const) {
         let orgName = `test${suffix}-grist`;
         const deployment = process.env.GRIST_ID_PREFIX;
         if (deployment) { orgName = `${orgName}-${deployment}`; }
@@ -278,22 +278,22 @@ export function setupRequirement(options: TestSuiteOptions) {
         if (isNew) {
           await api.updateOrgPermissions(orgName, {
             users: {
-              'gristoid+chimpy@gmail.com': 'owners',
+              "gristoid+chimpy@gmail.com": "owners",
             },
           });
           // Recreate the api for the correct org, then update billing.
-          const api2 = gu.createHomeApi('support', orgName);
+          const api2 = gu.createHomeApi("support", orgName);
           const billing = api2.getBillingAPI();
           try {
             await billing.updateBillingManagers({
               users: {
-                'gristoid+chimpy@gmail.com': 'managers',
+                "gristoid+chimpy@gmail.com": "managers",
               },
             });
           }
           catch (e) {
             // ignore if no billing endpoint
-            if (!String(e).match('404: Not Found')) {
+            if (!String(e).match("404: Not Found")) {
               throw e;
             }
           }

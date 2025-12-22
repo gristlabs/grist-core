@@ -1,7 +1,7 @@
-var _ = require('underscore');
-var assert = require('chai').assert;
-var gutil = require('app/common/gutil');
-var utils = require('../utils');
+var _ = require("underscore");
+var assert = require("chai").assert;
+var gutil = require("app/common/gutil");
+var utils = require("../utils");
 
 /**
  * Set env ENABLE_TIMING_TESTS=1 to run the timing tests.
@@ -550,7 +550,7 @@ describe("array copy functions", function() {
   }
 });
 
-describe('arraySplice', function() {
+describe("arraySplice", function() {
 
   // Make sure all our functions produce the same results as spliceApplyConcat for simple cases.
   var refSpliceFunc = spliceApplyConcat;

@@ -24,13 +24,13 @@ export class Secret1631286208009 implements MigrationInterface {
           columnNames: ["doc_id"],
           referencedColumnNames: ["id"],
           referencedTableName: "docs",
-          onDelete: 'CASCADE',  // delete secret if linked to doc that is deleted
+          onDelete: "CASCADE",  // delete secret if linked to doc that is deleted
         },
       ],
     }));
   }
 
   public async down(queryRunner: QueryRunner): Promise<any> {
-    await queryRunner.dropTable('secrets');
+    await queryRunner.dropTable("secrets");
   }
 }

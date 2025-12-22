@@ -1,21 +1,21 @@
-import { CellValue } from 'app/common/DocActions';
-import { GristObjCode } from 'app/plugin/GristData';
-import { CompiledPredicateFormula, compilePredicateFormula } from 'app/common/PredicateFormula';
-import { InfoView } from 'app/common/RecordView';
-import { User } from 'app/common/User';
-import { makeExceptionalDocSession } from 'app/server/lib/DocSession';
-import { assert } from 'chai';
-import { createDocTools } from 'test/server/docTools';
-import * as testUtils from 'test/server/testUtils';
+import { CellValue } from "app/common/DocActions";
+import { GristObjCode } from "app/plugin/GristData";
+import { CompiledPredicateFormula, compilePredicateFormula } from "app/common/PredicateFormula";
+import { InfoView } from "app/common/RecordView";
+import { User } from "app/common/User";
+import { makeExceptionalDocSession } from "app/server/lib/DocSession";
+import { assert } from "chai";
+import { createDocTools } from "test/server/docTools";
+import * as testUtils from "test/server/testUtils";
 
-describe('ACLFormula', function() {
+describe("ACLFormula", function() {
   this.timeout(10000);
 
   // Turn off logging for this test, and restore afterwards.
-  testUtils.setTmpLogLevel('error');
+  testUtils.setTmpLogLevel("error");
 
   const docTools = createDocTools({ persistAcrossCases: true });
-  const fakeSession = makeExceptionalDocSession('system');
+  const fakeSession = makeExceptionalDocSession("system");
 
   function getInfoView(row: Record<string, CellValue>): InfoView {
     return {
@@ -30,87 +30,87 @@ describe('ACLFormula', function() {
   let setAndCompile: SetAndCompile;
 
   before(async function() {
-    const docName = 'docdata1';
+    const docName = "docdata1";
     const activeDoc1 = await docTools.createDoc(docName);
 
     const resourceRef = (await activeDoc1.applyUserActions(fakeSession,
-      [['AddRecord', '_grist_ACLResources', null, { tableId: '*', colIds: '*' }]])).retValues[0];
+      [["AddRecord", "_grist_ACLResources", null, { tableId: "*", colIds: "*" }]])).retValues[0];
     const ruleRef = (await activeDoc1.applyUserActions(fakeSession,
-      [['AddRecord', '_grist_ACLRules', null, { resource: resourceRef }]])).retValues[0];
+      [["AddRecord", "_grist_ACLRules", null, { resource: resourceRef }]])).retValues[0];
 
     setAndCompile = async function setAndCompile(aclFormula) {
-      await activeDoc1.applyUserActions(fakeSession, [['UpdateRecord', '_grist_ACLRules', ruleRef, { aclFormula }]]);
+      await activeDoc1.applyUserActions(fakeSession, [["UpdateRecord", "_grist_ACLRules", ruleRef, { aclFormula }]]);
       const { tableData } = await activeDoc1.fetchQuery(
-        fakeSession, { tableId: '_grist_ACLRules', filters: { id: [ruleRef] } });
+        fakeSession, { tableId: "_grist_ACLRules", filters: { id: [ruleRef] } });
       assert(tableData[3].aclFormulaParsed, "Expected aclFormulaParsed to be populated");
       const parsedFormula = String(tableData[3].aclFormulaParsed[0]);
       return compilePredicateFormula(JSON.parse(parsedFormula));
     };
   });
 
-  it('should handle a comparison', async function() {
+  it("should handle a comparison", async function() {
     const compiled = await setAndCompile("user.Email == 'X@'");
-    assert.equal(compiled({ user: new User({ Email: 'X@' }) }), true);
-    assert.equal(compiled({ user: new User({ Email: 'Y@' }) }), false);
-    assert.equal(compiled({ user: new User({ Email: 'X' }), rec: V({ Email: 'Y@' }) }), false);
-    assert.equal(compiled({ user: new User({ Name: 'X@' }) }), false);
+    assert.equal(compiled({ user: new User({ Email: "X@" }) }), true);
+    assert.equal(compiled({ user: new User({ Email: "Y@" }) }), false);
+    assert.equal(compiled({ user: new User({ Email: "X" }), rec: V({ Email: "Y@" }) }), false);
+    assert.equal(compiled({ user: new User({ Name: "X@" }) }), false);
   });
 
   it('should handle the "in" operator', async function() {
     const compiled = await setAndCompile("user.Role in ('editors', 'owners')");
-    assert.equal(compiled({ user: new User({ Role: 'editors' }) }), true);
-    assert.equal(compiled({ user: new User({ Role: 'owners' }) }), true);
-    assert.equal(compiled({ user: new User({ Role: 'viewers' }) }), false);
+    assert.equal(compiled({ user: new User({ Role: "editors" }) }), true);
+    assert.equal(compiled({ user: new User({ Role: "owners" }) }), true);
+    assert.equal(compiled({ user: new User({ Role: "viewers" }) }), false);
     assert.equal(compiled({ user: new User({ Role: null }) }), false);
     assert.equal(compiled({ user: new User({}) }), false);
   });
 
   it('should handle the "not in" operator', async function() {
     const compiled = await setAndCompile("user.Role not in ('editors', 'owners')");
-    assert.equal(compiled({ user: new User({ Role: 'editors' }) }), false);
-    assert.equal(compiled({ user: new User({ Role: 'owners' }) }), false);
-    assert.equal(compiled({ user: new User({ Role: 'viewers' }) }), true);
+    assert.equal(compiled({ user: new User({ Role: "editors" }) }), false);
+    assert.equal(compiled({ user: new User({ Role: "owners" }) }), false);
+    assert.equal(compiled({ user: new User({ Role: "viewers" }) }), true);
     assert.equal(compiled({ user: new User({ Role: null }) }), true);
     assert.equal(compiled({ user: new User({}) }), true);
   });
 
   [{
-    op: 'in',
+    op: "in",
   }, {
-    op: 'not in',
+    op: "not in",
   }].forEach((ctx) => {
     it(`should handle the "${ctx.op}" operator with a string RHS to check if substring exist`, async function() {
       const compiled = await setAndCompile(`user.Name ${ctx.op} 'FooBar'`);
-      assert.equal(compiled({ user: new User({ Name: 'FooBar' }) }), ctx.op === 'in');
-      assert.equal(compiled({ user: new User({ Name: 'Foo' }) }), ctx.op === 'in');
-      assert.equal(compiled({ user: new User({ Name: 'Bar' }) }), ctx.op === 'in');
-      assert.equal(compiled({ user: new User({ Name: 'bar' }) }), ctx.op === 'not in');
-      assert.equal(compiled({ user: new User({ Name: 'qux' }) }), ctx.op === 'not in');
-      assert.equal(compiled({ user: new User({ Name: null }) }), ctx.op === 'not in');
+      assert.equal(compiled({ user: new User({ Name: "FooBar" }) }), ctx.op === "in");
+      assert.equal(compiled({ user: new User({ Name: "Foo" }) }), ctx.op === "in");
+      assert.equal(compiled({ user: new User({ Name: "Bar" }) }), ctx.op === "in");
+      assert.equal(compiled({ user: new User({ Name: "bar" }) }), ctx.op === "not in");
+      assert.equal(compiled({ user: new User({ Name: "qux" }) }), ctx.op === "not in");
+      assert.equal(compiled({ user: new User({ Name: null }) }), ctx.op === "not in");
     });
   });
 
   it('should handle the "and" operator', async function() {
     const compiled = await setAndCompile("rec.office == 'Seattle' and user.email in ['sally@', 'xie@']");
-    assert.throws(() => compiled({ user: new User({ email: 'xie@' }) }), /Missing row data 'rec'/);
-    assert.equal(compiled({ user: new User({ email: 'xie@' }), rec: V({}) }), false);
-    assert.equal(compiled({ user: new User({ email: 'xie@' }), rec: V({ office: null }) }), false);
-    assert.equal(compiled({ user: new User({ email: 'xie@home' }), rec: V({ office: 'Seattle' }) }), false);
-    assert.equal(compiled({ user: new User({ email: 'xie@' }), rec: V({ office: 'Seattle' }) }), true);
-    assert.equal(compiled({ user: new User({ email: 'sally@' }), rec: V({ office: 'Seattle' }) }), true);
-    assert.equal(compiled({ user: new User({ email: 'sally@' }), rec: V({ office: 'Chicago' }) }), false);
+    assert.throws(() => compiled({ user: new User({ email: "xie@" }) }), /Missing row data 'rec'/);
+    assert.equal(compiled({ user: new User({ email: "xie@" }), rec: V({}) }), false);
+    assert.equal(compiled({ user: new User({ email: "xie@" }), rec: V({ office: null }) }), false);
+    assert.equal(compiled({ user: new User({ email: "xie@home" }), rec: V({ office: "Seattle" }) }), false);
+    assert.equal(compiled({ user: new User({ email: "xie@" }), rec: V({ office: "Seattle" }) }), true);
+    assert.equal(compiled({ user: new User({ email: "sally@" }), rec: V({ office: "Seattle" }) }), true);
+    assert.equal(compiled({ user: new User({ email: "sally@" }), rec: V({ office: "Chicago" }) }), false);
     assert.equal(compiled({ user: new User({ email: null }), rec: V({ office: null }) }), false);
     assert.equal(compiled({ user: new User({}), rec: V({}) }), false);
   });
 
   it('should handle the "or" operator', async function() {
     const compiled = await setAndCompile('user.Email=="X@" or user.Email is None');
-    assert.equal(compiled({ user: new User({ Email: 'X@' }) }), true);
+    assert.equal(compiled({ user: new User({ Email: "X@" }) }), true);
     assert.equal(compiled({ user: new User({}) }), true);
-    assert.equal(compiled({ user: new User({ Email: 'Y@' }) }), false);
+    assert.equal(compiled({ user: new User({ Email: "Y@" }) }), false);
   });
 
-  it('should handle a complex combination of operators', async function() {
+  it("should handle a complex combination of operators", async function() {
     // This is not particularly meaningful, but involves more combinations.
     const compiled = await setAndCompile(
       "user.IsAdmin or rec.assigned is None or (not newRec.HasDuplicates and rec.StatusIndex <= newRec.StatusIndex)");
@@ -124,8 +124,8 @@ describe('ACLFormula', function() {
     assert.equal(compiled({ user: new User({ IsAdmin: 0.0 }), rec: V({}), newRec: V({}) }), false);
     assert.equal(compiled({ user: new User({ IsAdmin: false }), rec: V({ assigned: 0 }), newRec: V({}) }), false);
     assert.equal(compiled({ user: new User({ IsAdmin: false }), rec: V({ assigned: null }) }), true);
-    assert.equal(compiled({ user: new User({ IsAdmin: true }), rec: V({ assigned: 'never' }) }), true);
-    assert.equal(compiled({ user: new User({ IsAdmin: false }), rec: V({ assigned: 'None' }),
+    assert.equal(compiled({ user: new User({ IsAdmin: true }), rec: V({ assigned: "never" }) }), true);
+    assert.equal(compiled({ user: new User({ IsAdmin: false }), rec: V({ assigned: "None" }),
       newRec: V({ HasDuplicates: 1 }) }), false);
     assert.equal(compiled({ user: new User({ IsAdmin: false }), rec: V({ assigned: 1, StatusIndex: 1 }),
       newRec: V({ HasDuplicates: false, StatusIndex: 1 }) }), true);
@@ -139,7 +139,7 @@ describe('ACLFormula', function() {
       newRec: V({ HasDuplicates: true, StatusIndex: 17 }) }), false);
   });
 
-  it('should handle arithmetic tests', async function() {
+  it("should handle arithmetic tests", async function() {
     const compiled = await setAndCompile(
       "rec.A <= rec.B + 1 and rec.A >= rec.B - 1 and rec.A < rec.C * 2.5 and rec.A > rec.C / 2.5 and rec.A % 2 != 0");
     assert.equal(compiled({ user: new User({}), rec: V({ A: 3, B: 3, C: 3 }) }), true);
@@ -169,7 +169,7 @@ describe('ACLFormula', function() {
     assert.equal(compiled({ user: new User({}), rec: V({ A: null, B: 0 }) }), true);
   });
 
-  it('should handle the supported string methods', async function() {
+  it("should handle the supported string methods", async function() {
     let compiled = await setAndCompile("rec.A.lower() == rec.B");
     assert.equal(compiled({ user: new User({}), rec: V({ A: "foo", B: "foo" }) }), true);
     assert.equal(compiled({ user: new User({}), rec: V({ A: "FoO", B: "foo" }) }), true);
@@ -180,15 +180,15 @@ describe('ACLFormula', function() {
     assert.equal(compiled({ user: new User({}), rec: V({ A: "Foo", B: "Foo" }) }), false);
 
     compiled = await setAndCompile("user.email.upper() in [rec.A.upper()]");
-    assert.equal(compiled({ user: new User({ email: 'Foo@' }), rec: V({ A: "foo@" }) }), true);
-    assert.equal(compiled({ user: new User({ email: 'fOo@' }), rec: V({ A: "FOo@" }) }), true);
-    assert.equal(compiled({ user: new User({ email: 'foo@' }), rec: V({ A: "bar@" }) }), false);
-    assert.equal(compiled({ user: new User({ email: 'foo@' }), rec: V({ A: "foo" }) }), false);
-    assert.equal(compiled({ user: new User({ email: 'x1/Y2' }), rec: V({ A: "X1/y2" }) }), true);
-    assert.equal(compiled({ user: new User({ email: '' }), rec: V({ A: "foo" }) }), false);
+    assert.equal(compiled({ user: new User({ email: "Foo@" }), rec: V({ A: "foo@" }) }), true);
+    assert.equal(compiled({ user: new User({ email: "fOo@" }), rec: V({ A: "FOo@" }) }), true);
+    assert.equal(compiled({ user: new User({ email: "foo@" }), rec: V({ A: "bar@" }) }), false);
+    assert.equal(compiled({ user: new User({ email: "foo@" }), rec: V({ A: "foo" }) }), false);
+    assert.equal(compiled({ user: new User({ email: "x1/Y2" }), rec: V({ A: "X1/y2" }) }), true);
+    assert.equal(compiled({ user: new User({ email: "" }), rec: V({ A: "foo" }) }), false);
   });
 
-  it('should show reasonable errors for unsupported methods and functions', async function() {
+  it("should show reasonable errors for unsupported methods and functions", async function() {
     let compiled = await setAndCompile("rec.lower() == rec.B");
     assert.throws(() => compiled({ user: new User({}), rec: V({ A: "foo", B: "foo" }) }),
       /Not a function: 'rec.lower'/);
@@ -214,7 +214,7 @@ describe('ACLFormula', function() {
       /Not a function: 'rec.A'/);     // only explicitly supported functions are supported
   });
 
-  it('should handle nested attribute lookups', async function() {
+  it("should handle nested attribute lookups", async function() {
     const compiled = await setAndCompile('user.office.city == "New York"');
     assert.equal(compiled({ user: new User({ office: V({ city: "New York" }) }) }), true);
     assert.equal(compiled({ user: new User({ office: V({ city: "Boston" }) }) }), false);
@@ -224,74 +224,74 @@ describe('ACLFormula', function() {
     assert.throws(() => compiled({ user: new User({ office: null }) }), /No value for 'user.office'/);
   });
 
-  it('should not support unexpected attributes', async function() {
+  it("should not support unexpected attributes", async function() {
     let compiled = await setAndCompile("user.email.length == rec.A");
-    assert.equal(compiled({ user: new User({ email: 'Foo' }), rec: V({ A: 3 }) }), false);
-    assert.equal(compiled({ user: new User({ email: 'Foo' }), rec: V({ A: null }) }), false);
-    assert.equal(compiled({ user: new User({ email: 'Foo' }), rec: V({ A: "" }) }), false);
-    assert.equal(compiled({ user: new User({ email: 'Foo' }), rec: V({ A: undefined as any }) }), true);
+    assert.equal(compiled({ user: new User({ email: "Foo" }), rec: V({ A: 3 }) }), false);
+    assert.equal(compiled({ user: new User({ email: "Foo" }), rec: V({ A: null }) }), false);
+    assert.equal(compiled({ user: new User({ email: "Foo" }), rec: V({ A: "" }) }), false);
+    assert.equal(compiled({ user: new User({ email: "Foo" }), rec: V({ A: undefined as any }) }), true);
     assert.equal(compiled({ user: new User({ email: {} }), rec: V({ A: undefined as any }) }), true);
     assert.equal(compiled({ user: new User({ email: [] }), rec: V({ A: undefined as any }) }), true);
     assert.equal(compiled({ user: new User({ email: 5 }), rec: V({ A: undefined as any }) }), true);
-    assert.equal(compiled({ user: new User({ email: { length: 'x' } }), rec: V({ A: 'x' }) }), true);
+    assert.equal(compiled({ user: new User({ email: { length: "x" } }), rec: V({ A: "x" }) }), true);
 
     compiled = await setAndCompile("user.email.asdf == rec.A");
-    assert.equal(compiled({ user: new User({ email: 'Foo' }), rec: V({ A: undefined as any }) }), true);
+    assert.equal(compiled({ user: new User({ email: "Foo" }), rec: V({ A: undefined as any }) }), true);
 
     compiled = await setAndCompile("user.email.toUpperCase.name == rec.A");
-    assert.throws(() => compiled({ user: new User({ email: 'Foo' }), rec: V({ A: "" }) }),
+    assert.throws(() => compiled({ user: new User({ email: "Foo" }), rec: V({ A: "" }) }),
       /No value for 'user.email.toUpperCase'/);
   });
 
   it('should handle "in" and "not in" when RHS is nullish', async function() {
-    let compiled = await setAndCompile('user.Email in rec.emails');
-    const user = new User({ Email: 'X@' });
+    let compiled = await setAndCompile("user.Email in rec.emails");
+    const user = new User({ Email: "X@" });
     assert.equal(compiled({ user, rec: V({ emails: null }) }), false);
-    assert.equal(compiled({ user, rec: V({ unrelated: 'X@' }) }), false);
-    assert.equal(compiled({ user, rec: V({ emails: 'X@' }) }), true);
-    compiled = await setAndCompile('user.Email not in rec.emails');
+    assert.equal(compiled({ user, rec: V({ unrelated: "X@" }) }), false);
+    assert.equal(compiled({ user, rec: V({ emails: "X@" }) }), true);
+    compiled = await setAndCompile("user.Email not in rec.emails");
     assert.equal(compiled({ user, rec: V({ emails: null }) }), true);
-    assert.equal(compiled({ user, rec: V({ unrelated: 'X@' }) }), true);
-    assert.equal(compiled({ user, rec: V({ emails: 'X@' }) }), false);
-    compiled = await setAndCompile('(user.Email in rec.emails) == (user.Name in rec.emails)');
+    assert.equal(compiled({ user, rec: V({ unrelated: "X@" }) }), true);
+    assert.equal(compiled({ user, rec: V({ emails: "X@" }) }), false);
+    compiled = await setAndCompile("(user.Email in rec.emails) == (user.Name in rec.emails)");
     assert.equal(compiled({ user, rec: V({ emails: null }) }), true);
-    assert.equal(compiled({ user, rec: V({ emails: 'X@' }) }), false);
+    assert.equal(compiled({ user, rec: V({ emails: "X@" }) }), false);
 
     compiled = await setAndCompile('"A" in user.Office.Rooms');
     assert.equal(compiled({ user: new User({ Office: V({ Rooms: null }) }) }), false);
-    assert.equal(compiled({ user: new User({ Office: V({ Rooms: [GristObjCode.List, 'A'] }) }) }), true);
-    assert.equal(compiled({ user: new User({ Office: V({ Rooms: [GristObjCode.List, 'B'] }) }) }), false);
+    assert.equal(compiled({ user: new User({ Office: V({ Rooms: [GristObjCode.List, "A"] }) }) }), true);
+    assert.equal(compiled({ user: new User({ Office: V({ Rooms: [GristObjCode.List, "B"] }) }) }), false);
   });
 
   it('should handle "in" and "not in" when RHS is not a list', async function() {
-    let compiled = await setAndCompile('user.Email in rec.emails');
-    const user = new User({ Email: 'X@' });
-    assert.equal(compiled({ user, rec: V({ emails: 'X@' }) }), true);
+    let compiled = await setAndCompile("user.Email in rec.emails");
+    const user = new User({ Email: "X@" });
+    assert.equal(compiled({ user, rec: V({ emails: "X@" }) }), true);
     assert.equal(compiled({ user, rec: V({ emails: 0 }) }), false);
     assert.equal(compiled({ user, rec: V({ emails: 17.5 }) }), false);
     assert.equal(compiled({ user, rec: V({ emails: undefined as any }) }), false);
 
     // The substring behavior checked here isn't what we want necessarily, because of risk of
     // misuse, but it's been kept so far for backward compatibility.
-    assert.equal(compiled({ user, rec: V({ emails: 'AliceX@Y' }) }), true);
+    assert.equal(compiled({ user, rec: V({ emails: "AliceX@Y" }) }), true);
     // In case of a list, "in" checks for membership, not substrings.
-    assert.equal(compiled({ user, rec: V({ emails: [GristObjCode.List, 'X@'] }) }), true);
-    assert.equal(compiled({ user, rec: V({ emails: [GristObjCode.List, 'AliceX@Y'] }) }), false);
+    assert.equal(compiled({ user, rec: V({ emails: [GristObjCode.List, "X@"] }) }), true);
+    assert.equal(compiled({ user, rec: V({ emails: [GristObjCode.List, "AliceX@Y"] }) }), false);
 
-    compiled = await setAndCompile('user.Email not in rec.emails');
-    assert.equal(compiled({ user, rec: V({ emails: 'X@' }) }), false);
+    compiled = await setAndCompile("user.Email not in rec.emails");
+    assert.equal(compiled({ user, rec: V({ emails: "X@" }) }), false);
     assert.equal(compiled({ user, rec: V({ emails: 0 }) }), true);
     assert.equal(compiled({ user, rec: V({ emails: 17.5 }) }), true);
     assert.equal(compiled({ user, rec: V({ emails: undefined as any }) }), true);
   });
 
   it('should decode cell values so that "in" is safe to use with lists', async function() {
-    const user = new User({ Email: 'L' });
+    const user = new User({ Email: "L" });
 
     // A previous bug meant that the above user would always pass this formula,
     // because an encoded list always starts with the 'L' type code,
     // and encoded cell values were used in evaluating formulas.
-    let compiled = await setAndCompile('user.Email in rec.emails');
+    let compiled = await setAndCompile("user.Email in rec.emails");
     assert.equal(compiled({ user, rec: V({ emails: [GristObjCode.List] }) }), false);
     assert.equal(compiled({ user, rec: V({ emails: [GristObjCode.List, "X"] }) }), false);
     assert.equal(compiled({ user, rec: V({ emails: [GristObjCode.List, "L"] }) }), true);
@@ -300,10 +300,10 @@ describe('ACLFormula', function() {
     // this just shows what would happen.
     assert.equal(compiled({ user, rec: V({ emails: [] as any }) }), false);
     // This is also false because once decoded, the value isn't a list, but an UnknownValue.
-    assert.equal(compiled({ user, rec: V({ emails: ['A', 'L'] as any }) }), false);
+    assert.equal(compiled({ user, rec: V({ emails: ["A", "L"] as any }) }), false);
 
     // List literals aren't decoded and work as expected.
-    compiled = await setAndCompile('user.Email in []');
+    compiled = await setAndCompile("user.Email in []");
     assert.equal(compiled({ user, rec: V({}) }), false);
 
     compiled = await setAndCompile('user.Email in ["X"]');
@@ -313,10 +313,10 @@ describe('ACLFormula', function() {
     assert.equal(compiled({ user, rec: V({}) }), true);
   });
 
-  it('should allow comparing dates', async function() {
+  it("should allow comparing dates", async function() {
     const user = new User({});
 
-    const compiled = await setAndCompile('rec.date1 < rec.date2');
+    const compiled = await setAndCompile("rec.date1 < rec.date2");
     for (let i = 0; i < 150; i++) {
       const date1 = i * 10000000000;
       for (let j = 0; j < 150; j++) {

@@ -1,4 +1,4 @@
-import sortBy from 'lodash/sortBy';
+import sortBy from "lodash/sortBy";
 
 /**
  * Custom widget manifest definition.
@@ -107,7 +107,7 @@ export function matchWidget(widgets: ICustomWidget[], options: {
 }): ICustomWidget | undefined {
   const prefs = sortBy(widgets, (w) => {
     return [w.widgetId !== options.widgetId,
-      (w.source?.pluginId || '') !== options.pluginId];
+      (w.source?.pluginId || "") !== options.pluginId];
   });
   if (prefs.length === 0) { return; }
   if (prefs[0].widgetId !== options.widgetId) { return; }

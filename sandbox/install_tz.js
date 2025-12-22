@@ -2,15 +2,15 @@
  * This script converts the timezone data from moment-timezone to marshalled format, for fast
  * loading by Python.
  */
-const marshal = require('app/common/marshal');
-const fse = require('fs-extra');
-const moment = require('moment-timezone');
-const DEST_FILE = 'sandbox/grist/tzdata.data';
+const marshal = require("app/common/marshal");
+const fse = require("fs-extra");
+const moment = require("moment-timezone");
+const DEST_FILE = "sandbox/grist/tzdata.data";
 
 function main() {
   const zones = moment.tz.names().map((name) => {
     const z = moment.tz.zone(name);
-    return marshal.wrap('TUPLE', [z.name, z.abbrs, z.offsets, z.untils]);
+    return marshal.wrap("TUPLE", [z.name, z.abbrs, z.offsets, z.untils]);
   });
   const marshaller = new marshal.Marshaller({version: 2});
   marshaller.marshal(zones);

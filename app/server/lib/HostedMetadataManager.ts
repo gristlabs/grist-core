@@ -1,5 +1,5 @@
-import { DocumentMetadata } from 'app/gen-server/lib/homedb/HomeDBManager';
-import log from 'app/server/lib/log';
+import { DocumentMetadata } from "app/gen-server/lib/homedb/HomeDBManager";
+import log from "app/server/lib/log";
 
 // Callback that persists the updated metadata to storage for each document.
 export type SaveDocsMetadataFunc = (metadata: { [docId: string]: DocumentMetadata }) => Promise<any>;

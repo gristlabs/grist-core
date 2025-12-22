@@ -22,11 +22,11 @@ export type IRelativeDateSpec = IPeriod[];
 // false or missing then it will target the first day (of the week, month or year).
 export interface IPeriod {
   quantity: number;
-  unit: 'day' | 'week' | 'month' | 'year';
+  unit: "day" | "week" | "month" | "year";
   endOf?: boolean;
 }
 
-export const CURRENT_DATE: IRelativeDateSpec = [{ quantity: 0, unit: 'day' }];
+export const CURRENT_DATE: IRelativeDateSpec = [{ quantity: 0, unit: "day" }];
 
 export function isRelativeBound(bound?: number | IRelativeDateSpec): bound is IRelativeDateSpec {
   return !isUndefined(bound) && !isNumber(bound);
@@ -35,7 +35,7 @@ export function isRelativeBound(bound?: number | IRelativeDateSpec): bound is IR
 // Returns the number of seconds between 1 January 1970 00:00:00 UTC and the given bound, may it be
 // a relative date.
 export function relativeDateToUnixTimestamp(bound: IRelativeDateSpec): number {
-  const localDate = getCurrentTime().startOf('day');
+  const localDate = getCurrentTime().startOf("day");
   const date = moment.utc(localDate.toObject());
   const periods = Array.isArray(bound) ? bound : [bound];
 
@@ -47,7 +47,7 @@ export function relativeDateToUnixTimestamp(bound: IRelativeDateSpec): number {
       date.endOf(unit);
 
       // date must have "hh:mm:ss" set to "00:00:00"
-      date.startOf('day');
+      date.startOf("day");
     }
     else {
       date.startOf(unit);
@@ -63,10 +63,10 @@ export function formatRelBounds(periods: IPeriod[]): string {
 
   if (periods.length === 1) {
     const { quantity, unit, endOf } = periods[0];
-    if (unit === 'day') {
-      if (quantity === 0) { return 'Today'; }
-      if (quantity === -1) { return 'Yesterday'; }
-      if (quantity === 1) { return 'Tomorrow'; }
+    if (unit === "day") {
+      if (quantity === 0) { return "Today"; }
+      if (quantity === -1) { return "Yesterday"; }
+      if (quantity === 1) { return "Tomorrow"; }
       return formatReference(periods[0]);
     }
 
@@ -84,13 +84,13 @@ export function formatRelBounds(periods: IPeriod[]): string {
     // If the 1st period has the endOf flag, we're already 1 day back.
     if (periods[0].endOf) { dayQuantity -= 1; }
 
-    let startOrEnd = '';
-    if (periods[0].unit === 'week') {
+    let startOrEnd = "";
+    if (periods[0].unit === "week") {
       if (periods[1].quantity === 0) {
-        startOrEnd = 'start ';
+        startOrEnd = "start ";
       }
       else if (periods[1].quantity === 6) {
-        startOrEnd = 'end ';
+        startOrEnd = "end ";
       }
     }
 
@@ -110,16 +110,16 @@ export function localTimestampToUTC(timestamp: number, timezone: string): number
   return moment.unix(timestamp).utc().tz(timezone, true).unix();
 }
 
-function formatDay(quantity: number, refUnit: IPeriod['unit']): string {
-  if (refUnit === 'week') {
+function formatDay(quantity: number, refUnit: IPeriod["unit"]): string {
+  if (refUnit === "week") {
     const n = (quantity + 7) % 7;
-    return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][n];
+    return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][n];
   }
 
   const ord = (n: number) => moment.localeData().ordinal(n);
   if (quantity < 0) {
     if (quantity === -1) {
-      return 'Last day';
+      return "Last day";
     }
     return `${ord(-quantity)} to last day`;
   }
@@ -143,8 +143,8 @@ function formatReference(period: IPeriod): string {
   }
 
   const n = Math.abs(quantity);
-  const plurals = n > 1 ? 's' : '';
-  return `${n} ${unit}${plurals} ${quantity < 1 ? 'ago' : 'from now'}`;
+  const plurals = n > 1 ? "s" : "";
+  return `${n} ${unit}${plurals} ${quantity < 1 ? "ago" : "from now"}`;
 }
 
 export function isEquivalentRelativeDate(a: IPeriod | IPeriod[], b: IPeriod | IPeriod[]) {
@@ -161,6 +161,6 @@ export function isEquivalentRelativeDate(a: IPeriod | IPeriod[], b: IPeriod | IP
 
 // Get the difference in unit of measurement. If unit is week, makes sure that two dates that are in
 // two different weeks are always at least 1 number apart. Same for month and year.
-export function diffUnit(a: moment.Moment, b: moment.Moment, unit: 'day' | 'week' | 'month' | 'year') {
+export function diffUnit(a: moment.Moment, b: moment.Moment, unit: "day" | "week" | "month" | "year") {
   return a.clone().startOf(unit).diff(b.clone().startOf(unit), unit);
 }

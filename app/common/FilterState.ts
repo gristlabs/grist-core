@@ -29,7 +29,7 @@ interface RangeFilterState {
 
 // Creates a FilterState. Accepts spec as a json string or a FilterSpec.
 export function makeFilterState(spec: string | FilterSpec): FilterState {
-  if (typeof (spec) === 'string') {
+  if (typeof (spec) === "string") {
     return makeFilterState((spec && JSON.parse(spec)) || {});
   }
   if (spec.min !== undefined || spec.max !== undefined) {

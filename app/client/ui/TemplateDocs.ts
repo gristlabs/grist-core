@@ -1,13 +1,13 @@
-import { docUrl, urlState } from 'app/client/models/gristUrlState';
-import { theme } from 'app/client/ui2018/cssVars';
-import { Document, Workspace } from 'app/common/UserAPI';
-import { dom, makeTestId, styled } from 'grainjs';
-import { HomeModel, ViewSettings } from 'app/client/models/HomeModel';
-import * as css from 'app/client/ui/DocMenuCss';
-import { buildPinnedDoc } from 'app/client/ui/PinnedDocs';
-import sortBy from 'lodash/sortBy';
+import { docUrl, urlState } from "app/client/models/gristUrlState";
+import { theme } from "app/client/ui2018/cssVars";
+import { Document, Workspace } from "app/common/UserAPI";
+import { dom, makeTestId, styled } from "grainjs";
+import { HomeModel, ViewSettings } from "app/client/models/HomeModel";
+import * as css from "app/client/ui/DocMenuCss";
+import { buildPinnedDoc } from "app/client/ui/PinnedDocs";
+import sortBy from "lodash/sortBy";
 
-const testId = makeTestId('test-dm-');
+const testId = makeTestId("test-dm-");
 
 /**
  * Builds all `templateDocs` according to the specified `viewSettings`.
@@ -18,7 +18,7 @@ export function buildTemplateDocs(home: HomeModel, templateDocs: Document[], vie
     const [view, sort] = opts;
     // Template docs are sorted by name in HomeModel. We only re-sort if we want a different order.
     let sortedDocs = templateDocs;
-    if (sort === 'date') {
+    if (sort === "date") {
       sortedDocs = sortBy(templateDocs, d => d.removedAt || d.updatedAt).reverse();
     }
     return cssTemplateDocs(dom.forEach(sortedDocs, d => buildTemplateDoc(home, d, d.workspace, view)));
@@ -34,18 +34,18 @@ export function buildTemplateDocs(home: HomeModel, templateDocs: Document[], vie
  * If `view` is set to 'icons', the template will be rendered
  * as a clickable tile that includes a title, image and description.
  */
-function buildTemplateDoc(home: HomeModel, doc: Document, workspace: Workspace, view: 'list' | 'icons') {
-  if (view === 'icons') {
+function buildTemplateDoc(home: HomeModel, doc: Document, workspace: Workspace, view: "list" | "icons") {
+  if (view === "icons") {
     return buildPinnedDoc(home, doc, workspace, true);
   }
   else {
     return css.docRowWrapper(
       cssDocRowLink(
         urlState().setLinkUrl({ ...docUrl(doc), org: workspace.orgDomain }),
-        cssDocName(doc.name, testId('template-doc-title')),
-        doc.options?.description ? cssDocRowDetails(doc.options.description, testId('template-doc-description')) : null,
+        cssDocName(doc.name, testId("template-doc-title")),
+        doc.options?.description ? cssDocRowDetails(doc.options.description, testId("template-doc-description")) : null,
       ),
-      testId('template-doc'),
+      testId("template-doc"),
     );
   }
 }
@@ -61,12 +61,12 @@ const cssDocName = styled(css.docName, `
   margin: 0 16px;
 `);
 
-const cssDocRowDetails = styled('div', `
+const cssDocRowDetails = styled("div", `
   margin: 0 16px;
   line-height: 1.6;
   color: ${theme.lightText};
 `);
 
-const cssTemplateDocs = styled('div', `
+const cssTemplateDocs = styled("div", `
   margin-bottom: 16px;
 `);

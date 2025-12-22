@@ -1,9 +1,9 @@
-import { IExampleInfo } from 'app/client/ui/ExampleInfo';
-import { prepareForTransition, TransitionWatcher } from 'app/client/ui/transitions';
-import { mediaXSmall, testId, theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { cssLink } from 'app/client/ui2018/links';
-import { dom, styled } from 'grainjs';
+import { IExampleInfo } from "app/client/ui/ExampleInfo";
+import { prepareForTransition, TransitionWatcher } from "app/client/ui/transitions";
+import { mediaXSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { cssLink } from "app/client/ui2018/links";
+import { dom, styled } from "grainjs";
 import { AutomaticHelpToolInfo } from "app/client/ui/Tools";
 
 let prevCardClose: (() => void) | null = null;
@@ -29,19 +29,19 @@ export function showExampleCard(
       cssTitle(card.title),
       cssInfo(card.text),
       cssButtons(
-        cssLinkBtn(cssLinkIcon('Page'), card.tutorialName,
-          { href: example.tutorialUrl, target: '_blank' },
+        cssLinkBtn(cssLinkIcon("Page"), card.tutorialName,
+          { href: example.tutorialUrl, target: "_blank" },
         ),
         // TODO: Add a link to the overview video (as popup or to a support page that shows the
         // video). Also include a 'Video' icon.
         // cssLinkBtn(cssLinkIcon('Video'), 'Grist Video Tour'),
       ),
     ),
-    cssCloseButton(cssBigIcon('CrossBig'),
-      dom.on('click', close),
-      testId('example-card-close'),
+    cssCloseButton(cssBigIcon("CrossBig"),
+      dom.on("click", close),
+      testId("example-card-close"),
     ),
-    testId('example-card'),
+    testId("example-card"),
   );
   document.body.appendChild(cardElem);
 
@@ -75,7 +75,7 @@ function collapseCard(card: HTMLElement, collapsedRect: DOMRect) {
   Object.assign(card.style, {
     transform: `scale(${collapsedRect.width / rect.width}, ${collapsedRect.height / rect.height})`,
     transformOrigin: `${originX}px ${originY}px`,
-    opacity: '0',
+    opacity: "0",
   });
 }
 
@@ -84,13 +84,13 @@ function collapseCard(card: HTMLElement, collapsedRect: DOMRect) {
 function expandCard(card: HTMLElement, collapsedRect: DOMRect) {
   prepareForTransition(card, () => collapseCard(card, collapsedRect));
   Object.assign(card.style, {
-    transform: '',
-    opacity: '',
-    visibility: 'visible',
+    transform: "",
+    opacity: "",
+    visibility: "visible",
   });
 }
 
-const cssCard = styled('div', `
+const cssCard = styled("div", `
   position: absolute;
   left: 24px;
   bottom: 24px;
@@ -115,7 +115,7 @@ const cssCard = styled('div', `
   }
 `);
 
-const cssImage = styled('img', `
+const cssImage = styled("img", `
   flex: none;
   width: 180px;
   height: 140px;
@@ -127,24 +127,24 @@ const cssImage = styled('img', `
   }
 `);
 
-const cssBody = styled('div', `
+const cssBody = styled("div", `
   color: ${theme.text};
   min-width: 0px;
 `);
 
-const cssTitle = styled('div', `
+const cssTitle = styled("div", `
   color: ${theme.text};
   font-size: var(--title-font-size);
   font-weight: ${vars.headerControlTextWeight};
   margin-bottom: 16px;
 `);
 
-const cssInfo = styled('div', `
+const cssInfo = styled("div", `
   margin: 16px 0 24px 0;
   line-height: 1.6;
 `);
 
-export const cssButtons = styled('div', `
+export const cssButtons = styled("div", `
   display: flex;
 `);
 
@@ -159,7 +159,7 @@ export const cssLinkIcon = styled(icon, `
   margin-top: -2px;
 `);
 
-export const cssCloseButton = styled('div', `
+export const cssCloseButton = styled("div", `
   position: absolute;
   top: 8px;
   right: 8px;

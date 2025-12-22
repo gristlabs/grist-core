@@ -1,22 +1,22 @@
-import * as commands from 'app/client/components/commands';
-import { FormFieldRulesConfig } from 'app/client/components/Forms/FormConfig';
-import { fromKoSave } from 'app/client/lib/fromKoSave';
-import { makeT } from 'app/client/lib/localization';
-import { DataRowModel } from 'app/client/models/DataRowModel';
-import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
-import { fieldWithDefault, KoSaveableObservable } from 'app/client/models/modelUtil';
-import { FormToggleFormat } from 'app/client/ui/FormAPI';
-import { cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
-import { buttonSelect } from 'app/client/ui2018/buttonSelect';
-import { toggleSwitch } from 'app/client/ui2018/toggleSwitch';
-import { theme } from 'app/client/ui2018/cssVars';
-import { components } from 'app/common/ThemePrefs';
-import { NewAbstractWidget, Options } from 'app/client/widgets/NewAbstractWidget';
-import { dom, DomContents, DomElementArg, fromKo, makeTestId, styled } from 'grainjs';
+import * as commands from "app/client/components/commands";
+import { FormFieldRulesConfig } from "app/client/components/Forms/FormConfig";
+import { fromKoSave } from "app/client/lib/fromKoSave";
+import { makeT } from "app/client/lib/localization";
+import { DataRowModel } from "app/client/models/DataRowModel";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { fieldWithDefault, KoSaveableObservable } from "app/client/models/modelUtil";
+import { FormToggleFormat } from "app/client/ui/FormAPI";
+import { cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
+import { buttonSelect } from "app/client/ui2018/buttonSelect";
+import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
+import { theme } from "app/client/ui2018/cssVars";
+import { components } from "app/common/ThemePrefs";
+import { NewAbstractWidget, Options } from "app/client/widgets/NewAbstractWidget";
+import { dom, DomContents, DomElementArg, fromKo, makeTestId, styled } from "grainjs";
 
-const t = makeT('Toggle');
+const t = makeT("Toggle");
 
-const testId = makeTestId('test-toggle-');
+const testId = makeTestId("test-toggle-");
 
 /**
  * ToggleBase - The base class for toggle widgets, such as a checkbox or a switch.
@@ -24,20 +24,20 @@ const testId = makeTestId('test-toggle-');
 abstract class ToggleBase extends NewAbstractWidget {
   public buildFormConfigDom(): DomContents {
     const format = fieldWithDefault<FormToggleFormat>(
-      this.field.widgetOptionsJson.prop('formToggleFormat'),
-      'switch',
+      this.field.widgetOptionsJson.prop("formToggleFormat"),
+      "switch",
     );
 
     return [
-      cssLabel(t('Field Format')),
+      cssLabel(t("Field Format")),
       cssRow(
         buttonSelect(
           fromKoSave(format),
           [
-            { value: 'switch', label: t('Switch') },
-            { value: 'checkbox', label: t('Checkbox') },
+            { value: "switch", label: t("Switch") },
+            { value: "checkbox", label: t("Checkbox") },
           ],
-          testId('form-field-format'),
+          testId("form-field-format"),
         ),
       ),
       dom.create(FormFieldRulesConfig, this.field),
@@ -46,7 +46,7 @@ abstract class ToggleBase extends NewAbstractWidget {
 
   protected _addClickEventHandlers(row: DataRowModel) {
     return [
-      dom.on('click', (event) => {
+      dom.on("click", (event) => {
         if (event.shiftKey) {
           // Shift-click is for selection, don't also toggle the checkbox during it.
           return;
@@ -56,10 +56,10 @@ abstract class ToggleBase extends NewAbstractWidget {
           // flow which is handled by CheckBoxEditor.skipEditor(). This way the edit applies to
           // editRow, which handles setting default values based on widget linking.
           commands.allCommands.setCursor.run(row, this.field);
-          commands.allCommands.input.run('<enter>');
+          commands.allCommands.input.run("<enter>");
         }
       }),
-      dom.on('dblclick', (event) => {
+      dom.on("dblclick", (event) => {
         // Don't start editing the field when a toggle is double-clicked.
         event.stopPropagation();
         event.preventDefault();
@@ -75,7 +75,7 @@ export class ToggleCheckBox extends ToggleBase {
 
   public buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId.peek()] as KoSaveableObservable<boolean>;
-    return dom('div.field_clip',
+    return dom("div.field_clip",
       buildCheckbox(value, this._addClickEventHandlers(row)),
     );
   }
@@ -90,26 +90,26 @@ export class ToggleSwitch extends ToggleBase {
 
   public override buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId.peek()] as KoSaveableObservable<boolean>;
-    return dom('div.field_clip',
+    return dom("div.field_clip",
       // For printing, we will show this as a checkbox (without handlers).
-      buildCheckbox(value, dom.cls('screen-force-hide')),
+      buildCheckbox(value, dom.cls("screen-force-hide")),
       // For screen, we will show this as a switch (with handlers).
       buildSwitch(
         value,
         row._isRealChange,
         this._addClickEventHandlers(row),
-        dom.cls('print-force-hide'),
+        dom.cls("print-force-hide"),
       ),
     );
   }
 }
 
 function buildCheckbox(value: KoSaveableObservable<boolean>, ...args: DomElementArg[]) {
-  return dom('div.widget_checkbox',
-    dom('div.widget_checkmark',
+  return dom("div.widget_checkbox",
+    dom("div.widget_checkmark",
       dom.show(value),
-      dom('div.checkmark_kick'),
-      dom('div.checkmark_stem'),
+      dom("div.checkmark_kick"),
+      dom("div.checkmark_stem"),
     ),
     ...args,
   );
@@ -127,7 +127,7 @@ function buildSwitch(
 }
 
 /* user can define a color in the column config: expose it to the switch component */
-const cssToggleSwitch = styled('div', `
+const cssToggleSwitch = styled("div", `
   margin: -1px auto;
   --grist-theme-switch-active-slider: var(--grist-actual-cell-color, ${components.switchActiveSlider.getRawValue()});
 `);

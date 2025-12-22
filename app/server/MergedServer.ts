@@ -5,8 +5,8 @@
  *
  */
 
-import { FlexServer, FlexServerOptions } from 'app/server/lib/FlexServer';
-import log from 'app/server/lib/log';
+import { FlexServer, FlexServerOptions } from "app/server/lib/FlexServer";
+import log from "app/server/lib/log";
 import { getGlobalConfig } from "app/server/lib/globalConfig";
 
 // Allowed server types. We'll start one or a combination based on the value of GRIST_SERVERS
@@ -17,7 +17,7 @@ const allServerTypes: ServerType[] = ["home", "docs", "static", "app"];
 // Parse a comma-separate list of server types into an array, with validation.
 export function parseServerTypes(serverTypes: string | undefined): ServerType[] {
   // Split and filter out empty strings (including the one we get when splitting "").
-  const types = (serverTypes || "").trim().split(',').filter(part => Boolean(part));
+  const types = (serverTypes || "").trim().split(",").filter(part => Boolean(part));
 
   // Check that parts is non-empty and only contains valid options.
   if (!types.length) {
@@ -44,7 +44,7 @@ function checkUserContentPort(): number | null {
     // but the ports are different
     if (homeUrl.hostname === pluginUrl.hostname &&
       homeUrl.port !== pluginUrl.port) {
-      const port = parseInt(pluginUrl.port || '80', 10);
+      const port = parseInt(pluginUrl.port || "80", 10);
       return port;
     }
   }
@@ -208,10 +208,10 @@ export class MergedServer {
 
       if (this._options.extraWorkers) {
         if (!process.env.REDIS_URL) {
-          throw new Error('Redis needed to support multiple workers');
+          throw new Error("Redis needed to support multiple workers");
         }
         for (let i = 1; i <= this._options.extraWorkers; i++) {
-          const server = await MergedServer.create(0, ['docs'], {
+          const server = await MergedServer.create(0, ["docs"], {
             ...this._options,
             extraWorkers: undefined,
           });
@@ -245,7 +245,7 @@ export class MergedServer {
         return worker;
       }
     }
-    throw new Error('Worker not found');
+    throw new Error("Worker not found");
   }
 }
 
@@ -265,7 +265,7 @@ export async function startMain() {
       extraWorkers = parseInt(process.env.DOC_WORKER_COUNT, 10);
       // If the main server functions also as a doc worker, then
       // we need one fewer extra servers.
-      if (serverTypes.includes('docs')) { extraWorkers--; }
+      if (serverTypes.includes("docs")) { extraWorkers--; }
     }
 
     const server = await MergedServer.create(port, serverTypes, {
@@ -274,18 +274,18 @@ export async function startMain() {
     await server.run();
 
     const opt = process.argv[2];
-    if (opt === '--testingHooks') {
+    if (opt === "--testingHooks") {
       await server.flexServer.addTestingHooks();
     }
 
     return server.flexServer;
   }
   catch (e) {
-    log.error('mergedServer failed to start', e);
+    log.error("mergedServer failed to start", e);
     process.exit(1);
   }
 }
 
 if (require.main === module) {
-  startMain().catch(e => log.error('mergedServer failed to start', e));
+  startMain().catch(e => log.error("mergedServer failed to start", e));
 }

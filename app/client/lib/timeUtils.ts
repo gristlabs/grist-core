@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment from "moment";
 
 /**
  * Given a UTC Date ISO 8601 string (the doc updatedAt string), gives a reader-friendly
@@ -13,7 +13,7 @@ export function getTimeFromNow(ms: number): string;
 export function getTimeFromNow(isoOrTimestamp: string | number): string {
   const time = moment.utc(isoOrTimestamp);
   const now = moment();
-  const diff = now.diff(time, 's');
+  const diff = now.diff(time, "s");
   if (diff < 0 && diff > -60) {
     // If the time appears to be in the future, but less than a minute
     // in the future, chalk it up to a difference in time

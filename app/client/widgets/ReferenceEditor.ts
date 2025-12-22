@@ -1,15 +1,15 @@
-import { ACResults, buildHighlightedDom, HighlightFunc, normalizeText } from 'app/client/lib/ACIndex';
-import { Autocomplete } from 'app/client/lib/autocomplete';
-import { ICellItem } from 'app/client/models/ColumnACIndexes';
-import { reportError } from 'app/client/models/errors';
-import { testId, theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { menuCssClass } from 'app/client/ui2018/menus';
-import { FieldOptions } from 'app/client/widgets/NewBaseEditor';
-import { NTextEditor } from 'app/client/widgets/NTextEditor';
-import { nocaseEqual, ReferenceUtils } from 'app/client/lib/ReferenceUtils';
-import { undef } from 'app/common/gutil';
-import { styled } from 'grainjs';
+import { ACResults, buildHighlightedDom, HighlightFunc, normalizeText } from "app/client/lib/ACIndex";
+import { Autocomplete } from "app/client/lib/autocomplete";
+import { ICellItem } from "app/client/models/ColumnACIndexes";
+import { reportError } from "app/client/models/errors";
+import { testId, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menuCssClass } from "app/client/ui2018/menus";
+import { FieldOptions } from "app/client/widgets/NewBaseEditor";
+import { NTextEditor } from "app/client/widgets/NTextEditor";
+import { nocaseEqual, ReferenceUtils } from "app/client/lib/ReferenceUtils";
+import { undef } from "app/common/gutil";
+import { styled } from "grainjs";
 
 /**
  * A ReferenceEditor offers an autocomplete of choices from the referenced table.
@@ -38,7 +38,7 @@ export class ReferenceEditor extends NTextEditor {
     // But not on readonly mode - here we will reuse default decoration
     if (!options.readonly) {
       this.cellEditorDiv.classList.add(cssRefEditor.className);
-      this.cellEditorDiv.appendChild(cssRefEditIcon('FieldReference'));
+      this.cellEditorDiv.appendChild(cssRefEditIcon("FieldReference"));
     }
 
     this.textInput.value = undef(options.state, options.editValue, this._idToText());
@@ -49,7 +49,7 @@ export class ReferenceEditor extends NTextEditor {
     // Reference widget instantiated), but it's better to avoid this assumption.
     gristDoc.docData.fetchTable(this._utils.refTableId).then(() => {
       if (this.isDisposed()) { return; }
-      if (needReload && this.textInput.value === '') {
+      if (needReload && this.textInput.value === "") {
         this.textInput.value = undef(options.state, options.editValue, this._idToText());
         this.resizeInput();
       }
@@ -84,7 +84,7 @@ export class ReferenceEditor extends NTextEditor {
    */
   public async prepForSave() {
     const selectedItem = this._autocomplete?.getSelectedItem();
-    if (selectedItem?.rowId === 'new' &&
+    if (selectedItem?.rowId === "new" &&
       selectedItem.text === this.textInput.value) {
       const colInfo = { [this._utils.visibleColId]: this.textInput.value };
       selectedItem.rowId = await this._utils.tableData.sendTableAction(["AddRecord", null, colInfo]);
@@ -126,38 +126,38 @@ export class ReferenceEditor extends NTextEditor {
       return result;
     }
 
-    result.extraItems.push({ rowId: 'new', text, cleanText });
+    result.extraItems.push({ rowId: "new", text, cleanText });
     this._showAddNew = true;
 
     return result;
   }
 
   private _renderItem(item: ICellItem, highlightFunc: HighlightFunc) {
-    return renderACItem(item.text, highlightFunc, item.rowId === 'new', this._showAddNew);
+    return renderACItem(item.text, highlightFunc, item.rowId === "new", this._showAddNew);
   }
 }
 
 export function renderACItem(text: string, highlightFunc: HighlightFunc, isAddNew: boolean, withSpaceForNew: boolean) {
   if (isAddNew) {
-    return cssRefItem(cssRefItem.cls('-new'),
-      cssPlusButton(cssPlusIcon('Plus')), text,
-      testId('ref-editor-item'), testId('ref-editor-new-item'),
+    return cssRefItem(cssRefItem.cls("-new"),
+      cssPlusButton(cssPlusIcon("Plus")), text,
+      testId("ref-editor-item"), testId("ref-editor-new-item"),
     );
   }
-  return cssRefItem(cssRefItem.cls('-with-new', withSpaceForNew),
+  return cssRefItem(cssRefItem.cls("-with-new", withSpaceForNew),
     buildHighlightedDom(text, highlightFunc, cssMatchText),
-    testId('ref-editor-item'),
+    testId("ref-editor-item"),
   );
 }
 
-const cssRefEditor = styled('div', `
+const cssRefEditor = styled("div", `
   & > .celleditor_text_editor, & > .celleditor_content_measure {
     padding-left: 18px;
   }
 `);
 
 // Set z-index to be higher than the 1000 set for .cell_editor.
-export const cssRefList = styled('div', `
+export const cssRefList = styled("div", `
   z-index: 1001;
   overflow-y: auto;
   padding: 8px 0 0 0;
@@ -165,9 +165,9 @@ export const cssRefList = styled('div', `
 `);
 
 // We need to now the height of the sticky "+" element.
-const addNewHeight = '37px';
+const addNewHeight = "37px";
 
-const cssRefItem = styled('li', `
+const cssRefItem = styled("li", `
   display: block;
   font-family: ${vars.fontFamily};
   white-space: pre;
@@ -201,7 +201,7 @@ const cssRefItem = styled('li', `
   }
 `);
 
-export const cssPlusButton = styled('div', `
+export const cssPlusButton = styled("div", `
   display: flex;
   width: 20px;
   height: 20px;
@@ -229,7 +229,7 @@ const cssRefEditIcon = styled(icon, `
   margin: 3px 3px 0 3px;
 `);
 
-const cssMatchText = styled('span', `
+const cssMatchText = styled("span", `
   color: ${theme.autocompleteMatchText};
   .selected > & {
     color: ${theme.autocompleteSelectedMatchText};

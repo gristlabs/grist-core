@@ -1,23 +1,23 @@
-import { Disposable, dom, styled } from 'grainjs';
-import { getGristConfig } from 'app/common/urlUtils';
-import { safeJsonParse } from 'app/common/gutil';
-import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
-import { getStorage } from 'app/client/lib/storage';
-import { confirmModal } from 'app/client/ui2018/modals';
-import { cssLink } from 'app/client/ui2018/links';
-import { makeT } from 'app/client/lib/localization';
+import { Disposable, dom, styled } from "grainjs";
+import { getGristConfig } from "app/common/urlUtils";
+import { safeJsonParse } from "app/common/gutil";
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { getStorage } from "app/client/lib/storage";
+import { confirmModal } from "app/client/ui2018/modals";
+import { cssLink } from "app/client/ui2018/links";
+import { makeT } from "app/client/lib/localization";
 
-const t = makeT('Experiments');
+const t = makeT("Experiments");
 
-const G = getBrowserGlobals('document', 'window');
+const G = getBrowserGlobals("document", "window");
 
 const EXPERIMENTS = {
-  newRecordButton: () => t('New record button'),
+  newRecordButton: () => t("New record button"),
 };
 
 type Experiment = keyof typeof EXPERIMENTS;
 
-const EXPERIMENT_URL_PARAM = 'experiment';
+const EXPERIMENT_URL_PARAM = "experiment";
 
 export class Experiments extends Disposable {
   constructor(private _userId: number) {
@@ -55,26 +55,26 @@ export class Experiments extends Disposable {
 
     const experimentState = this._getExperimentState(experiment);
     const alreadyEnabled = experimentState.enabled;
-    const experimentLabel = dom('strong', EXPERIMENTS[experiment as keyof typeof EXPERIMENTS]());
+    const experimentLabel = dom("strong", EXPERIMENTS[experiment as keyof typeof EXPERIMENTS]());
 
     confirmModal(
-      t('Experimental feature'),
-      alreadyEnabled ? t('Disable feature') : t('Enable feature'),
+      t("Experimental feature"),
+      alreadyEnabled ? t("Disable feature") : t("Enable feature"),
       () => {
         this._setExperimentState(experiment, !alreadyEnabled);
         this._showFeedbackModal(experiment, !alreadyEnabled);
       },
       {
         explanation: cssWrapper(
-          dom('p', dom.cls(cssWrapper.className), alreadyEnabled ?
-            t('You are about to disable this experimental feature: {{experiment}}', {
+          dom("p", dom.cls(cssWrapper.className), alreadyEnabled ?
+            t("You are about to disable this experimental feature: {{experiment}}", {
               experiment: experimentLabel,
             }) :
-            t('You are about to enable this experimental feature: {{experiment}}', {
+            t("You are about to enable this experimental feature: {{experiment}}", {
               experiment: experimentLabel,
             }),
           ),
-          !alreadyEnabled ? dom('p', t("Don't worry, you can disable it later if needed.")) : null,
+          !alreadyEnabled ? dom("p", t("Don't worry, you can disable it later if needed.")) : null,
         ),
         modalOptions: {
           noEscapeKey: true,
@@ -95,22 +95,22 @@ export class Experiments extends Disposable {
       { href: experimentUrl.toString() },
       experimentUrl.toString(),
     );
-    const experimentLabel = dom('strong', EXPERIMENTS[experiment as keyof typeof EXPERIMENTS]());
+    const experimentLabel = dom("strong", EXPERIMENTS[experiment as keyof typeof EXPERIMENTS]());
     confirmModal(
-      t('Experimental feature'),
-      t('Reload the page'),
+      t("Experimental feature"),
+      t("Reload the page"),
       this._cleanAndReloadUrl,
       {
         explanation: cssWrapper(
-          dom('p', nowEnabled ?
-            t('{{experiment}} enabled.', { experiment: experimentLabel }) :
-            t('{{experiment}} disabled.', { experiment: experimentLabel }),
+          dom("p", nowEnabled ?
+            t("{{experiment}} enabled.", { experiment: experimentLabel }) :
+            t("{{experiment}} disabled.", { experiment: experimentLabel }),
           ),
           nowEnabled ?
             dom(
-              'p',
+              "p",
               dom.cls(cssWrapper.className),
-              t('Visit this URL at any time to stop using this feature: {{url}}', { url: urlBlock }),
+              t("Visit this URL at any time to stop using this feature: {{url}}", { url: urlBlock }),
             ) :
             null,
         ),
@@ -128,7 +128,7 @@ export class Experiments extends Disposable {
 
   private _getExperimentState(experiment: string): { enabled: boolean, timestamp: number | null } {
     return safeJsonParse(
-      getStorage().getItem(this._getStorageKey(experiment)) || '',
+      getStorage().getItem(this._getStorageKey(experiment)) || "",
       { enabled: false, timestamp: null },
     );
   }
@@ -154,7 +154,7 @@ export class Experiments extends Disposable {
   }
 }
 
-const cssWrapper = styled('div', `
+const cssWrapper = styled("div", `
   display: flex;
   flex-direction: column;
   gap: 1rem;

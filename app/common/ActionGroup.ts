@@ -1,4 +1,4 @@
-import { ActionSummary } from 'app/common/ActionSummary';
+import { ActionSummary } from "app/common/ActionSummary";
 
 /**
  * This is the action representation the client works with, for the purposes of undos/redos.

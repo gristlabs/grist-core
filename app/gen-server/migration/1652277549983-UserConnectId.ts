@@ -4,7 +4,7 @@ export class UserConnectId1652277549983 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.addColumn("users", new TableColumn({
       name: "connect_id",
-      type: 'varchar',
+      type: "varchar",
       isNullable: true,
       isUnique: true,
     }));

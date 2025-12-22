@@ -1,12 +1,12 @@
-import { LocalPlugin } from 'app/common/plugin';
-import * as clientUtil from 'test/client/clientUtil';
-import * as sinon from 'sinon';
-import { assert } from 'chai';
+import { LocalPlugin } from "app/common/plugin";
+import * as clientUtil from "test/client/clientUtil";
+import * as sinon from "sinon";
+import { assert } from "chai";
 
-import * as browserGlobals from 'app/client/lib/browserGlobals';
-const G: any = browserGlobals.get('$');
+import * as browserGlobals from "app/client/lib/browserGlobals";
+const G: any = browserGlobals.get("$");
 
-import { PluginInstance } from 'app/common/PluginInstance';
+import { PluginInstance } from "app/common/PluginInstance";
 
 describe("PluginInstance", function() {
   clientUtil.setTmpMochaGlobals();
@@ -17,8 +17,8 @@ describe("PluginInstance", function() {
     const renderTarget1 = sinon.spy();
     const renderTarget2 = sinon.spy();
 
-    const el1 = G.$('<h1>el1</h1>');
-    const el2 = G.$('<h1>el2</h1>');
+    const el1 = G.$("<h1>el1</h1>");
+    const el2 = G.$("<h1>el2</h1>");
 
     const handle1 = plugin.addRenderTarget(renderTarget1);
     plugin.getRenderTarget(handle1)(el1, {});

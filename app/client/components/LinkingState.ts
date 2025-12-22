@@ -1,7 +1,7 @@
 import { SequenceNEVER, SequenceNum } from "app/client/components/Cursor";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import DataTableModel from "app/client/models/DataTableModel";
-import { DocModel } from 'app/client/models/DocModel';
+import { DocModel } from "app/client/models/DocModel";
 import { ColumnRec } from "app/client/models/entities/ColumnRec";
 import { TableRec } from "app/client/models/entities/TableRec";
 import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
@@ -9,15 +9,15 @@ import { LinkConfig } from "app/client/ui/LinkConfig";
 import { FilterColValues, QueryOperation } from "app/common/ActiveDocAPI";
 import { isList, isListType, isRefListType } from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
-import { UIRowId } from 'app/plugin/GristAPI';
+import { UIRowId } from "app/plugin/GristAPI";
 import { CellValue } from "app/plugin/GristData";
-import { encodeObject } from 'app/plugin/objtypes';
+import { encodeObject } from "app/plugin/objtypes";
 import { Disposable, Holder, MultiHolder } from "grainjs";
 import * as  ko from "knockout";
-import merge from 'lodash/merge';
-import mapValues from 'lodash/mapValues';
-import pick from 'lodash/pick';
-import pickBy from 'lodash/pickBy';
+import merge from "lodash/merge";
+import mapValues from "lodash/mapValues";
+import pick from "lodash/pick";
+import pickBy from "lodash/pickBy";
 
 // Descriptive string enum for each case of linking
 // Currently used for rendering user-facing link info
@@ -41,7 +41,7 @@ type FilterState = FilterColValues & {
   filterLabels: {  [colId: string]: string[] }; // formatted and displayCol-ed values to show to user
   colTypes: { [colId: string]: string; }
 };
-function FilterStateToColValues(fs: FilterState) { return pick(fs, ['filters', 'operations']); }
+function FilterStateToColValues(fs: FilterState) { return pick(fs, ["filters", "operations"]); }
 
 // Since we're not making full objects for these, need to define sensible "empty" values here
 export const EmptyFilterState: FilterState = { filters: {}, filterLabels: {}, operations: {}, colTypes: {} };
@@ -125,7 +125,7 @@ export class LinkingState extends Disposable {
     }));
 
     if (srcSection.selectedRowsActive()) { // old, special-cased custom filter
-      const operation = (tgtColId && isRefListType(tgtCol.type())) ? 'intersects' : 'in';
+      const operation = (tgtColId && isRefListType(tgtCol.type())) ? "intersects" : "in";
       this.filterState = this._srcCustomFilter(tgtCol, operation); // works whether tgtCol is the empty col or not
     }
     else if (tgtColId) { // Standard filter link
@@ -354,7 +354,7 @@ export class LinkingState extends Disposable {
       return false;
     }
     const srcRowId = this._srcSection.activeRowId();
-    return srcRowId === 'new' || srcRowId === null;
+    return srcRowId === "new" || srcRowId === null;
   }
 
   /**
@@ -473,16 +473,16 @@ export class LinkingState extends Disposable {
 
       // ==== Determine operation to use for filter ====
       // Common case: use 'in' for single vals, or 'intersects' for ChoiceLists & RefLists
-      let operation = (tgtColId && isListType(tgtCol!.type())) ? 'intersects' : 'in';
+      let operation = (tgtColId && isListType(tgtCol!.type())) ? "intersects" : "in";
 
       // # Special case 1:
       // Blank selector shouldn't mean "show no records", it should mean "show records where tgt column is also blank"
       // This is the default behavior for single-ref -> single-ref links
       // However, if tgtCol is a list and the selectorVal is blank/empty, the default behavior ([] intersects tgtlist)
       //    doesn't work, we need to explicitly specify the operation to be 'empty', to select empty cells
-      if (tgtCol?.type() === "ChoiceList" && !isSrcRefList && selectorCellVal === "")    { operation = 'empty'; }
-      else if (isTgtRefList               && !isSrcRefList && selectorCellVal === 0)     { operation = 'empty'; }
-      else if (isTgtRefList               &&  isSrcRefList && filterValues.length === 0) { operation = 'empty'; }
+      if (tgtCol?.type() === "ChoiceList" && !isSrcRefList && selectorCellVal === "")    { operation = "empty"; }
+      else if (isTgtRefList               && !isSrcRefList && selectorCellVal === 0)     { operation = "empty"; }
+      else if (isTgtRefList               &&  isSrcRefList && filterValues.length === 0) { operation = "empty"; }
       // Note, we check each case separately since they have different "blank" values"
       // Other types can have different falsey values when non-blank (e.g. a Ref=0 is a blank cell, but for numbers,
       //      0 would be a valid value, and to check for an empty number-cell you'd check for null)
@@ -499,15 +499,15 @@ export class LinkingState extends Disposable {
       //  We create the 0 explicitly so the filter will select the blank Refs
       else if (!isTgtRefList && isSrcRefList && filterValues.length === 0) {
         filterValues = [0];
-        displayValues = [''];
+        displayValues = [""];
       }
 
       // # Special case 3:
       // If the srcSection has no row selected (cursor on the add-row, or no data in srcSection), we should
       //    show no rows in tgtSection. (we also gray it out and show the "No row selected in $SRCSEC" msg)
       // This should line up with when this.disableEditing() returns true
-      if (srcRowId === 'new' || srcRowId === null) {
-        operation = 'in';
+      if (srcRowId === "new" || srcRowId === null) {
+        operation = "in";
         filterValues = [];
         displayValues = [];
       }
@@ -553,7 +553,7 @@ export class LinkingState extends Disposable {
   ): (null | ((r: UIRowId | null) => CellValue | null)) // (null | ValGetter)
   {
     if (colId === undefined) { // passthrough for id cols
-      return (rowId: UIRowId | null) => { return rowId === 'new' ? null : rowId; };
+      return (rowId: UIRowId | null) => { return rowId === "new" ? null : rowId; };
     }
 
     const tableModel = this._docModel.dataTables[table.tableId()];
@@ -569,7 +569,7 @@ export class LinkingState extends Disposable {
 
     return (rowId: UIRowId | null) => { // returns cellValue | null
       rowModel.assign(rowId);
-      if (rowId === 'new') { return null; } // used to return "new", hopefully the change doesn't come back to haunt us
+      if (rowId === "new") { return null; } // used to return "new", hopefully the change doesn't come back to haunt us
       return cellObs();
     };
   }

@@ -18,8 +18,8 @@
  * parallel groups can be evened out as much as possible.
  */
 
-const fs = require('fs');
-const { assert } = require('chai');
+const fs = require("fs");
+const { assert } = require("chai");
 
 const testSuite = process.env.TEST_SUITE_FOR_TIMINGS || "unset_suite";
 const timingsFile = process.env.TIMINGS_FILE || "test/timings-all.txt";
@@ -57,7 +57,7 @@ exports.mochaHooks = {
 function getTimings() {
   const timings = new Map();
   try {
-    const content = fs.readFileSync(timingsFile, {encoding: 'utf8'});
+    const content = fs.readFileSync(timingsFile, {encoding: "utf8"});
     for (const line of content.split(/\r?\n/)) {
       const [bigSuite, fileSuite, duration] = line.split(/\s+/);
       if (bigSuite === testSuite && !isNaN(Number(duration))) {
@@ -65,7 +65,7 @@ function getTimings() {
       }
     }
   } catch (e) {
-    if (e.code === 'ENOENT') {
+    if (e.code === "ENOENT") {
       console.warn(`No timings found in ${timingsFile}; proceeding without timings`);
     } else {
       throw e;
@@ -102,7 +102,7 @@ function groupSuites(suites, timings, groupCount) {
   // Get timing for the given suite, falling back to fallbackDuration.
   function getTiming(suite) {
     const value = timings.get(suite.title);
-    return (typeof value !== 'number' || isNaN(value)) ? fallbackDuration : value;
+    return (typeof value !== "number" || isNaN(value)) ? fallbackDuration : value;
   }
 
   // Sort suites by descending duration.

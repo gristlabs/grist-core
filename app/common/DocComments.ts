@@ -1,6 +1,6 @@
-import { SchemaTypes } from 'app/common/schema';
-import { safeJsonParse } from 'app/common/gutil';
-import { makeAnchorLinkValue } from 'app/common/gristUrls';
+import { SchemaTypes } from "app/common/schema";
+import { safeJsonParse } from "app/common/gutil";
+import { makeAnchorLinkValue } from "app/common/gristUrls";
 
 /**
  * Comment data stored in the `content` field of a cell.
@@ -147,9 +147,9 @@ function replaceMentionsInText(text: string) {
   // Also, replace 'nbsp' characters (non-breaking spaces) with regular spaces in this text
   // version. (E.g. in Gmail, they seem to cause 'Message clipped' footer.)
   return splitTextWithMentions(text)
-    .map(chunk => typeof chunk === 'string' ? chunk : chunk.name)
-    .join('')
-    .replace(/\u00A0/g, ' ');
+    .map(chunk => typeof chunk === "string" ? chunk : chunk.name)
+    .join("")
+    .replace(/\u00A0/g, " ");
 }
 
 export function getMentions(cellContent: string): string[] {

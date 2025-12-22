@@ -29,7 +29,7 @@ async function buildMinimalLoginSystem(): Promise<GristLoginSystem> {
             user.isFirstTimeUser = false;
             await user.save();
           }
-          return 'no-logins';
+          return "no-logins";
         },
       };
     },
@@ -50,8 +50,8 @@ export const getMinimalLoginSystem = getFallbackLoginProvider(
 
 export function getDefaultProfile(): UserProfile {
   return {
-    email: process.env.GRIST_DEFAULT_EMAIL || 'you@example.com',
-    name: 'You',
+    email: process.env.GRIST_DEFAULT_EMAIL || "you@example.com",
+    name: "You",
   };
 }
 

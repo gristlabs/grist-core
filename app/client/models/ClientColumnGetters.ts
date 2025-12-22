@@ -1,9 +1,9 @@
-import DataTableModel from 'app/client/models/DataTableModel';
-import { ColumnGetter, ColumnGetters, ColumnGettersByColId } from 'app/common/ColumnGetters';
-import * as gristTypes from 'app/common/gristTypes';
-import { choiceGetter } from 'app/common/SortFunc';
-import { Sort } from 'app/common/SortSpec';
-import { TableData } from 'app/common/TableData';
+import DataTableModel from "app/client/models/DataTableModel";
+import { ColumnGetter, ColumnGetters, ColumnGettersByColId } from "app/common/ColumnGetters";
+import * as gristTypes from "app/common/gristTypes";
+import { choiceGetter } from "app/common/SortFunc";
+import { Sort } from "app/common/SortSpec";
+import { TableData } from "app/common/TableData";
 
 /**
  *
@@ -33,15 +33,15 @@ export class ClientColumnGetters implements ColumnGetters {
         const value = valueGetter(rowId);
         if (value && gristTypes.isVersions(value)) {
           const versions = value[1];
-          return ('parent' in versions) ? versions.parent :
-            ('local' in versions) ? versions.local : versions.remote;
+          return ("parent" in versions) ? versions.parent :
+            ("local" in versions) ? versions.local : versions.remote;
         }
         return value;
       };
     }
     const details = Sort.specToDetails(colSpec);
     if (details.orderByChoice) {
-      if (rowModel.pureType() === 'Choice') {
+      if (rowModel.pureType() === "Choice") {
         const choices: string[] = rowModel.widgetOptionsJson.peek()?.choices || [];
         getter = choiceGetter(getter, choices);
       }

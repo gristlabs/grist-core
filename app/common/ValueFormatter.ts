@@ -1,20 +1,20 @@
 
-import { csvEncodeRow } from 'app/common/csvFormat';
-import { CellValue } from 'app/common/DocActions';
-import { DocData } from 'app/common/DocData';
-import { DocumentSettings } from 'app/common/DocumentSettings';
-import * as gristTypes from 'app/common/gristTypes';
-import { getReferencedTableId, isList } from 'app/common/gristTypes';
-import * as gutil from 'app/common/gutil';
-import { isHiddenTable } from 'app/common/isHiddenTable';
-import { buildNumberFormat, NumberFormatOptions } from 'app/common/NumberFormat';
-import { createParserOrFormatterArguments, ReferenceParsingOptions } from 'app/common/ValueParser';
-import { GristObjCode } from 'app/plugin/GristData';
-import { decodeObject, GristDateTime } from 'app/plugin/objtypes';
-import moment from 'moment-timezone';
-import isPlainObject from 'lodash/isPlainObject';
+import { csvEncodeRow } from "app/common/csvFormat";
+import { CellValue } from "app/common/DocActions";
+import { DocData } from "app/common/DocData";
+import { DocumentSettings } from "app/common/DocumentSettings";
+import * as gristTypes from "app/common/gristTypes";
+import { getReferencedTableId, isList } from "app/common/gristTypes";
+import * as gutil from "app/common/gutil";
+import { isHiddenTable } from "app/common/isHiddenTable";
+import { buildNumberFormat, NumberFormatOptions } from "app/common/NumberFormat";
+import { createParserOrFormatterArguments, ReferenceParsingOptions } from "app/common/ValueParser";
+import { GristObjCode } from "app/plugin/GristData";
+import { decodeObject, GristDateTime } from "app/plugin/objtypes";
+import moment from "moment-timezone";
+import isPlainObject from "lodash/isPlainObject";
 
-export { PENDING_DATA_PLACEHOLDER } from 'app/plugin/objtypes';
+export { PENDING_DATA_PLACEHOLDER } from "app/plugin/objtypes";
 
 export interface FormatOptions {
   [option: string]: any;
@@ -32,7 +32,7 @@ export function formatUnknown(value: CellValue): string {
  * indicating that the list should be formatted like JSON rather than CSV.
  */
 function hasNestedObjects(value: any[]) {
-  return value.some(v => typeof v === 'object' && v && (Array.isArray(v) || isPlainObject(v)));
+  return value.some(v => typeof v === "object" && v && (Array.isArray(v) || isPlainObject(v)));
 }
 
 /**
@@ -42,10 +42,10 @@ function hasNestedObjects(value: any[]) {
  * Nested lists and objects are formatted slightly differently, with quoted strings and ISO format for dates.
  */
 export function formatDecoded(value: unknown, isTopLevel: boolean = true): string {
-  if (typeof value === 'object' && value) {
+  if (typeof value === "object" && value) {
     if (Array.isArray(value)) {
       if (!isTopLevel || hasNestedObjects(value)) {
-        return '[' + value.map(v => formatDecoded(v, false)).join(', ') + ']';
+        return "[" + value.map(v => formatDecoded(v, false)).join(", ") + "]";
       }
       else {
         return csvEncodeRow(value.map(v => formatDecoded(v, true)), { prettier: true });
@@ -54,7 +54,7 @@ export function formatDecoded(value: unknown, isTopLevel: boolean = true): strin
     else if (isPlainObject(value)) {
       const obj: any = value;
       const items = Object.keys(obj).map(k => `${JSON.stringify(k)}: ${formatDecoded(obj[k], false)}`);
-      return '{' + items.join(', ') + '}';
+      return "{" + items.join(", ") + "}";
     }
     else if (isTopLevel && value instanceof GristDateTime) {
       return moment(value).tz(value.timezone).format("YYYY-MM-DD HH:mm:ssZ");
@@ -74,7 +74,7 @@ export class BaseFormatter {
 
   constructor(public type: string, public widgetOpts: FormatOptions, public docSettings: DocumentSettings) {
     this.isRightType = gristTypes.isRightType(gristTypes.extractTypeFromColType(type)) ||
-      gristTypes.isRightType('Any')!;
+      gristTypes.isRightType("Any")!;
   }
 
   /**
@@ -96,7 +96,7 @@ export class BaseFormatter {
 
 export class BoolFormatter extends BaseFormatter {
   public format(value: boolean | 0 | 1, translate?: (val: string) => string): string {
-    if (typeof value === 'boolean' && translate) {
+    if (typeof value === "boolean" && translate) {
       return translate(String(value));
     }
     return super.format(value, translate);
@@ -116,11 +116,11 @@ export class NumericFormatter extends BaseFormatter {
   constructor(type: string, options: NumberFormatOptions, docSettings: DocumentSettings) {
     super(type, options, docSettings);
     this._numFormat = buildNumberFormat(options, docSettings);
-    this._formatter = (options.numSign === 'parens') ? this._formatParens : this._formatPlain;
+    this._formatter = (options.numSign === "parens") ? this._formatParens : this._formatPlain;
   }
 
   public format(value: any): string {
-    return value === null ? '' : this._formatter(value);
+    return value === null ? "" : this._formatter(value);
   }
 
   public _formatPlain(value: number): string {
@@ -149,7 +149,7 @@ class DateFormatter extends BaseFormatter {
   protected _dateTimeFormat: string;
   private _timezone: string;
 
-  constructor(type: string, widgetOpts: DateFormatOptions, docSettings: DocumentSettings, timezone: string = 'UTC') {
+  constructor(type: string, widgetOpts: DateFormatOptions, docSettings: DocumentSettings, timezone: string = "UTC") {
     super(type, widgetOpts, docSettings);
     // Allow encoded dates/datetimes ([d, number] or [D, number, timezone])
     // which are found in formula columns of type Any,
@@ -166,13 +166,13 @@ class DateFormatter extends BaseFormatter {
         value[0] === GristObjCode.DateTime
       )
     );
-    this._dateTimeFormat = widgetOpts.dateFormat || 'YYYY-MM-DD';
+    this._dateTimeFormat = widgetOpts.dateFormat || "YYYY-MM-DD";
     this._timezone = timezone;
   }
 
   public format(value: any): string {
     if (value === null) {
-      return '';
+      return "";
     }
 
     // For a DateTime object in an Any column, use the provided timezone (`value[2]`)
@@ -195,12 +195,12 @@ export interface DateTimeFormatOptions extends DateFormatOptions {
 
 class DateTimeFormatter extends DateFormatter {
   constructor(type: string, widgetOpts: DateTimeFormatOptions, docSettings: DocumentSettings) {
-    const timezone = gutil.removePrefix(type, "DateTime:") || '';
+    const timezone = gutil.removePrefix(type, "DateTime:") || "";
     // Pass up the original widgetOpts. It's helpful to have them available; e.g. ExcelFormatter
     // takes options from an initialized ValueFormatter.
     super(type, widgetOpts, docSettings, timezone);
-    const timeFormat = widgetOpts.timeFormat === undefined ? 'h:mma' : widgetOpts.timeFormat;
-    this._dateTimeFormat = (widgetOpts.dateFormat || 'YYYY-MM-DD') + " " + timeFormat;
+    const timeFormat = widgetOpts.timeFormat === undefined ? "h:mma" : widgetOpts.timeFormat;
+    this._dateTimeFormat = (widgetOpts.dateFormat || "YYYY-MM-DD") + " " + timeFormat;
   }
 }
 
@@ -225,7 +225,7 @@ class ReferenceFormatter extends BaseFormatter {
     // widgetOpts.visibleColFormatter shouldn't be undefined, but it can be if a referencing column
     // is displaying another referencing column, which is partially prohibited in the UI but still possible.
     this.visibleColFormatter = widgetOpts.visibleColFormatter ||
-      createFormatter('Id', { tableId: getReferencedTableId(type) }, docSettings);
+      createFormatter("Id", { tableId: getReferencedTableId(type) }, docSettings);
   }
 
   public formatAny(value: any): string {
@@ -362,6 +362,6 @@ export function createVisibleColFormatterRaw(
     if (isHiddenTable(tablesData, tableRef)) {
       referencedTableId = "";
     }
-    return createFormatter('Id', { tableId: referencedTableId }, docSettings);
+    return createFormatter("Id", { tableId: referencedTableId }, docSettings);
   }
 }

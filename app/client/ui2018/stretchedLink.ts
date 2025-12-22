@@ -5,9 +5,9 @@
  *
  * @see https://getbootstrap.com/docs/5.3/helpers/stretched-link
  */
-import { styled } from 'grainjs';
+import { styled } from "grainjs";
 
-export const stretchedLink = styled('a', `
+export const stretchedLink = styled("a", `
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -1,32 +1,32 @@
-import { GristDoc, GristDocImpl } from 'app/client/components/GristDoc';
-import { IUndoState } from 'app/client/components/UndoStack';
-import { UnsavedChange } from 'app/client/components/UnsavedChanges';
-import { loadGristDoc } from 'app/client/lib/imports';
-import { makeT } from 'app/client/lib/localization';
-import { logTelemetryEvent } from 'app/client/lib/telemetry';
-import { AppModel, getOrgNameOrGuest, reportError } from 'app/client/models/AppModel';
-import { getDoc } from 'app/client/models/gristConfigCache';
-import { docUrl, urlState } from 'app/client/models/gristUrlState';
-import { addNewButton, cssAddNewButton } from 'app/client/ui/AddNewButton';
-import { App } from 'app/client/ui/App';
-import { cssLeftPanel, cssScrollPane } from 'app/client/ui/LeftPanelCommon';
-import { buildPagesDom } from 'app/client/ui/Pages';
-import { openPageWidgetPicker } from 'app/client/ui/PageWidgetPicker';
-import { tools } from 'app/client/ui/Tools';
-import { bigBasicButton } from 'app/client/ui2018/buttons';
-import { testId } from 'app/client/ui2018/cssVars';
-import { menu, menuDivider, menuIcon, menuItem, menuText } from 'app/client/ui2018/menus';
-import { confirmModal } from 'app/client/ui2018/modals';
-import { mapGetOrSet, MapWithTTL } from 'app/common/AsyncCreate';
-import { AsyncFlow, CancelledError, FlowRunner } from 'app/common/AsyncFlow';
-import { delay } from 'app/common/delay';
-import { OpenDocMode, OpenDocOptions, UserOverride } from 'app/common/DocListAPI';
-import { FilteredDocUsageSummary } from 'app/common/DocUsage';
-import { Features, mergedFeatures, Product } from 'app/common/Features';
-import { buildUrlId, IGristUrlState, parseUrlId, UrlIdParts } from 'app/common/gristUrls';
-import { getReconnectTimeout } from 'app/common/gutil';
-import { canEdit, isOwner } from 'app/common/roles';
-import { UserInfo } from 'app/common/User';
+import { GristDoc, GristDocImpl } from "app/client/components/GristDoc";
+import { IUndoState } from "app/client/components/UndoStack";
+import { UnsavedChange } from "app/client/components/UnsavedChanges";
+import { loadGristDoc } from "app/client/lib/imports";
+import { makeT } from "app/client/lib/localization";
+import { logTelemetryEvent } from "app/client/lib/telemetry";
+import { AppModel, getOrgNameOrGuest, reportError } from "app/client/models/AppModel";
+import { getDoc } from "app/client/models/gristConfigCache";
+import { docUrl, urlState } from "app/client/models/gristUrlState";
+import { addNewButton, cssAddNewButton } from "app/client/ui/AddNewButton";
+import { App } from "app/client/ui/App";
+import { cssLeftPanel, cssScrollPane } from "app/client/ui/LeftPanelCommon";
+import { buildPagesDom } from "app/client/ui/Pages";
+import { openPageWidgetPicker } from "app/client/ui/PageWidgetPicker";
+import { tools } from "app/client/ui/Tools";
+import { bigBasicButton } from "app/client/ui2018/buttons";
+import { testId } from "app/client/ui2018/cssVars";
+import { menu, menuDivider, menuIcon, menuItem, menuText } from "app/client/ui2018/menus";
+import { confirmModal } from "app/client/ui2018/modals";
+import { mapGetOrSet, MapWithTTL } from "app/common/AsyncCreate";
+import { AsyncFlow, CancelledError, FlowRunner } from "app/common/AsyncFlow";
+import { delay } from "app/common/delay";
+import { OpenDocMode, OpenDocOptions, UserOverride } from "app/common/DocListAPI";
+import { FilteredDocUsageSummary } from "app/common/DocUsage";
+import { Features, mergedFeatures, Product } from "app/common/Features";
+import { buildUrlId, IGristUrlState, parseUrlId, UrlIdParts } from "app/common/gristUrls";
+import { getReconnectTimeout } from "app/common/gutil";
+import { canEdit, isOwner } from "app/common/roles";
+import { UserInfo } from "app/common/User";
 import {
   DOCTYPE_TEMPLATE,
   DOCTYPE_TUTORIAL,
@@ -38,12 +38,12 @@ import {
   Proposal,
   UserAPI,
   Workspace,
-} from 'app/common/UserAPI';
-import { Computed, Disposable, dom, DomArg, DomElementArg, Holder, Observable, subscribe } from 'grainjs';
-import isEqual from 'lodash/isEqual';
+} from "app/common/UserAPI";
+import { Computed, Disposable, dom, DomArg, DomElementArg, Holder, Observable, subscribe } from "grainjs";
+import isEqual from "lodash/isEqual";
 
 
-const t = makeT('DocPageModel');
+const t = makeT("DocPageModel");
 
 export interface DocInfo extends Document {
   isReadonly: boolean;
@@ -100,8 +100,8 @@ export interface DocPageModel {
   isTemplate: Observable<boolean>;
   type: Observable<DocumentType>;
   importSources: ImportSource[];
-  currentProposal: Observable<Proposal | 'empty' | null>;
-  proposalNewChangesCount: Observable<number | '...' | null>;
+  currentProposal: Observable<Proposal | "empty" | null>;
+  proposalNewChangesCount: Observable<number | "..." | null>;
 
   undoState: Observable<IUndoState | null>;          // See UndoStack for details.
 
@@ -114,7 +114,7 @@ export interface DocPageModel {
   renameDoc(value: string): Promise<void>;
   refreshCurrentDoc(doc: DocInfo): Promise<Document>;
   updateCurrentDocUsage(docUsage: FilteredDocUsageSummary): void;
-  refreshProposal(): Promise<Proposal | 'empty' | undefined>;
+  refreshProposal(): Promise<Proposal | "empty" | undefined>;
   // Offer to open document in recovery mode, if user is owner, and report
   // the error that prompted the offer. If user is not owner, just flag that
   // document needs attention of an owner.
@@ -155,7 +155,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly currentOrgName = Computed.create(this, this.currentOrg,
     (use, org) => getOrgNameOrGuest(org, this.appModel.currentUser));
 
-  public readonly currentDocTitle = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.name : '');
+  public readonly currentDocTitle = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.name : "");
   public readonly isReadonly = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isReadonly : false);
   public readonly isPrefork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isPreFork : false);
   public readonly isFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isFork : false);
@@ -178,8 +178,8 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly type = Computed.create(this, this.currentDoc,
     (use, doc) => doc?.type ?? null);
 
-  public readonly currentProposal = Observable.create<Proposal | 'empty' | null>(this, null);
-  public readonly proposalNewChangesCount = Observable.create<number | '...' | null>(this, null);
+  public readonly currentProposal = Observable.create<Proposal | "empty" | null>(this, null);
+  public readonly proposalNewChangesCount = Observable.create<number | "..." | null>(this, null);
 
   public readonly importSources: ImportSource[] = [];
 
@@ -188,7 +188,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
 
   public readonly docUsers = Observable.create<PermissionData | null>(this, null);
 
-  private readonly _docUsersData = new MapWithTTL<'users', Promise<PermissionData>>(60 * 1000);
+  private readonly _docUsersData = new MapWithTTL<"users", Promise<PermissionData>>(60 * 1000);
 
   // Combination of arguments needed to open a doc (docOrUrlId + openMod). It's obtained from the
   // URL, and when it changes, we need to re-open.
@@ -276,7 +276,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   }
 
   public async refreshDocumentAccess() {
-    const data = await mapGetOrSet(this._docUsersData, 'users', () =>
+    const data = await mapGetOrSet(this._docUsersData, "users", () =>
       this.appModel.api.getDocAccess(this.currentDocId.get()!),
     );
     if (this.isDisposed()) { return; }
@@ -286,7 +286,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     }
   }
 
-  public async refreshProposal(): Promise<Proposal | 'empty' | undefined> {
+  public async refreshProposal(): Promise<Proposal | "empty" | undefined> {
     const gristDoc = this.gristDoc.get();
     if (!gristDoc) { return; }
     const urlId = gristDoc.docPageModel.currentDocId.get();
@@ -295,9 +295,9 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       outgoing: true,
     });
     if (this.isDisposed()) { return; }
-    const proposal = (proposals.proposals[0] ?? 'empty') as Proposal | 'empty';
+    const proposal = (proposals.proposals[0] ?? "empty") as Proposal | "empty";
     this.currentProposal.set(proposal);
-    if (proposal === 'empty' || proposal.status.status === 'retracted') {
+    if (proposal === "empty" || proposal.status.status === "retracted") {
       this.gristDoc.get()?.getActionCounter().setMark();
     }
     else {
@@ -311,12 +311,12 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       dom.maybe(this.gristDoc, activeDoc => [
         addNewButton({ isOpen: leftPanelOpen },
           menu(() => addMenu(this.importSources, activeDoc, this.isReadonly.get()), {
-            placement: 'bottom-start',
+            placement: "bottom-start",
             // "Add New" menu should have the same width as the "Add New" button that opens it.
             stretchToSelector: `.${cssAddNewButton.className}`,
           }),
-          testId('dp-add-new'),
-          dom.cls('tour-add-new'),
+          testId("dp-add-new"),
+          dom.cls("tour-add-new"),
         ),
         cssScrollPane(
           dom.create(buildPagesDom, activeDoc, leftPanelOpen),
@@ -363,7 +363,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       ...state,
       doc: urlId,
       ...(removeSlug ? { slug: undefined } : undefined),
-      mode: urlOpenMode === 'default' ? undefined : urlOpenMode,
+      mode: urlOpenMode === "default" ? undefined : urlOpenMode,
     };
     // We preemptively update _openerDocKey so that the URL update doesn't trigger a reload.
     this._openerDocKey = this._getDocKey(nextState);
@@ -371,7 +371,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   }
 
   public offerRecovery(err: Error) {
-    const isDenied = (err as any).code === 'ACL_DENY';
+    const isDenied = (err as any).code === "ACL_DENY";
     const isDocOwner = isOwner(this.currentDoc.get());
     confirmModal(
       t("Error accessing document"),
@@ -384,18 +384,18 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
 Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. \
 It also disables formulas. [{{error}}]", { error: err.message }) :
             isDenied ?
-              t('Sorry, access to this document has been denied. [{{error}}]', { error: err.message }) :
+              t("Sorry, access to this document has been denied. [{{error}}]", { error: err.message }) :
               t("Please reload the document and if the error persist, \
 contact the document owners to attempt a document recovery. [{{error}}]", { error: err.message })
         ),
         hideCancel: true,
         extraButtons: !(isDocOwner && !isDenied) ? null : bigBasicButton(
           t("Enter recovery mode"),
-          dom.on('click', async () => {
+          dom.on("click", async () => {
             await this._api.getDocAPI(this.currentDocId.get()!).recover(true);
             window.location.reload(true);
           }),
-          testId('modal-recovery-mode'),
+          testId("modal-recovery-mode"),
         ),
       },
     );
@@ -431,7 +431,7 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
     comparisonUrlId: string | undefined): Promise<void> {
     const { openMode: urlOpenMode, linkParameters } = options;
     console.log(`DocPageModel _openDoc starting for ${urlId} (mode ${urlOpenMode})` +
-      (comparisonUrlId ? ` (compare ${comparisonUrlId})` : ''));
+      (comparisonUrlId ? ` (compare ${comparisonUrlId})` : ""));
     const gristDocModulePromise = loadGristDoc();
 
     const docResponse = await retryOnNetworkError(flow, getDoc.bind(null, this._api, urlId));
@@ -459,8 +459,8 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
         forkUrlId = forkResult.urlId;
       }
       // Remove the slug from the fork URL - they don't work with slugs.
-      await this.updateUrlNoReload(forkUrlId, 'default', { removeSlug: true });
-      await this._updateCurrentDoc(forkUrlId, 'default');
+      await this.updateUrlNoReload(forkUrlId, "default", { removeSlug: true });
+      await this._updateCurrentDoc(forkUrlId, "default");
       flow.checkIfCancelled();
       doc = this.currentDoc.get()!;
     }
@@ -471,7 +471,7 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
       }
 
       if (doc.isTemplate) {
-        logTelemetryEvent('openedTemplate', {
+        logTelemetryEvent("openedTemplate", {
           full: {
             templateId: parseUrlId(doc.urlId || doc.id).trunkId,
           },
@@ -511,8 +511,8 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
       const currentDoc = this.currentDoc.get();
       if (currentDoc) {
         // Remove the slug from the fork URL - they don't work with slugs.
-        await this.updateUrlNoReload(newUrlId, 'default', { removeSlug: true, replaceUrl: false });
-        await this._updateCurrentDoc(newUrlId, 'default');
+        await this.updateUrlNoReload(newUrlId, "default", { removeSlug: true, replaceUrl: false });
+        await this._updateCurrentDoc(newUrlId, "default");
       }
     });
 
@@ -540,7 +540,7 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
 
   private _getDocKey(state: IGristUrlState) {
     const urlId = state.doc;
-    const urlOpenMode = state.mode || 'default';
+    const urlOpenMode = state.mode || "default";
     const compareUrlId = state.params?.compare;
     const docKey = `${urlOpenMode}:${urlId}:${compareUrlId}`;
     return docKey;
@@ -552,32 +552,32 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
   return [
     menuItem(
       elem => openPageWidgetPicker(elem, gristDoc, val => gristDoc.addNewPage(val).catch(reportError),
-        { isNewPage: true, buttonLabel: t('Add page') }),
-      menuIcon("Page"), t("Add page"), testId('dp-add-new-page'),
-      dom.cls('disabled', isReadonly),
+        { isNewPage: true, buttonLabel: t("Add page") }),
+      menuIcon("Page"), t("Add page"), testId("dp-add-new-page"),
+      dom.cls("disabled", isReadonly),
     ),
     menuItem(
       elem => openPageWidgetPicker(elem, gristDoc, val => gristDoc.addWidgetToPage(val).catch(reportError),
         { isNewPage: false, selectBy }),
-      menuIcon("Widget"), t("Add widget to page"), testId('dp-add-widget-to-page'),
+      menuIcon("Widget"), t("Add widget to page"), testId("dp-add-widget-to-page"),
       // disable for readonly doc and all special views
-      dom.cls('disabled', use => typeof use(gristDoc.activeViewId) !== 'number' || isReadonly),
+      dom.cls("disabled", use => typeof use(gristDoc.activeViewId) !== "number" || isReadonly),
     ),
     menuItem(() => gristDoc.addEmptyTable().catch(reportError),
-      menuIcon("TypeTable"), t("Add empty table"), testId('dp-empty-table'),
-      dom.cls('disabled', isReadonly),
+      menuIcon("TypeTable"), t("Add empty table"), testId("dp-empty-table"),
+      dom.cls("disabled", isReadonly),
     ),
     menuDivider(),
     ...importSources.map((importSource, i) =>
       menuItem(importSource.action,
-        menuIcon('Import'),
+        menuIcon("Import"),
         importSource.label,
         testId(`dp-import-option`),
-        dom.cls('disabled', isReadonly),
+        dom.cls("disabled", isReadonly),
       ),
     ),
     isReadonly ? menuText(t("You do not have edit access to this document")) : null,
-    testId('dp-add-new-menu'),
+    testId("dp-add-new-menu"),
   ];
 }
 
@@ -588,7 +588,7 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
   const isSnapshot = Boolean(idParts.snapshotId);
   const type = doc.type;
   const isTutorial = type === DOCTYPE_TUTORIAL;
-  const isTutorialTrunk = isTutorial && !isFork && mode !== 'default';
+  const isTutorialTrunk = isTutorial && !isFork && mode !== "default";
   const isTutorialFork = isTutorial && isFork;
 
   const acceptProposals = doc.options?.proposedChanges?.acceptProposals;
@@ -601,21 +601,21 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
       // create a fork on load, which then behaves as a document that is in default
       // mode. Since the document's 'openMode' has no effect, don't bother trying
       // to set it here, as it'll potentially be confusing for other code reading it.
-      openMode = 'default';
+      openMode = "default";
     }
     else if (!isFork && (type === DOCTYPE_TEMPLATE || shouldSuggest)) {
       // Templates should always open in fork mode by default.
       // A doc soliciting suggestions should also open in fork mode
       // when user doesn't have write access.
-      openMode = 'fork';
+      openMode = "fork";
     }
     else {
       // Try to use the document's 'openMode' if it's set.
-      openMode = doc.options?.openMode ?? 'default';
+      openMode = doc.options?.openMode ?? "default";
     }
   }
 
-  const isPreFork = openMode === 'fork';
+  const isPreFork = openMode === "fork";
   const isTemplate = type === DOCTYPE_TEMPLATE && (isFork || isPreFork);
   const isEditable = !isSnapshot && (canEdit(doc.access) || isPreFork);
   return {

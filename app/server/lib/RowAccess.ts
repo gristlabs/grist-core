@@ -23,7 +23,7 @@ export function getRelatedRows(docActions: DocAction[]): readonly (readonly [str
   for (const docAction of docActions) {
     const currentTableId = getTableId(docAction);
     const tableId = tableIds.get(currentTableId) || currentTableId;
-    if (docAction[0] === 'RenameTable') {
+    if (docAction[0] === "RenameTable") {
       if (addedTables.has(currentTableId)) {
         addedTables.delete(currentTableId);
         addedTables.add(docAction[2]);
@@ -33,10 +33,10 @@ export function getRelatedRows(docActions: DocAction[]): readonly (readonly [str
       tableIds.set(docAction[2], tableId);
       continue;
     }
-    if (docAction[0] === 'AddTable') {
+    if (docAction[0] === "AddTable") {
       addedTables.add(currentTableId);
     }
-    if (docAction[0] === 'RemoveTable') {
+    if (docAction[0] === "RemoveTable") {
       addedTables.delete(currentTableId);
       continue;
     }
@@ -45,8 +45,8 @@ export function getRelatedRows(docActions: DocAction[]): readonly (readonly [str
     // tableId will now be that prior to docActions, regardless of renames.
     const tracker = getSetMapValue(rowIds, tableId, () => new RowIdTracker());
 
-    if (docAction[0] === 'RemoveRecord' || docAction[0] === 'BulkRemoveRecord' ||
-      docAction[0] === 'UpdateRecord' || docAction[0] === 'BulkUpdateRecord') {
+    if (docAction[0] === "RemoveRecord" || docAction[0] === "BulkRemoveRecord" ||
+      docAction[0] === "UpdateRecord" || docAction[0] === "BulkUpdateRecord") {
       // All row ids mentioned are external, unless created within this set of DocActions.
       if (!tracker.blocked) {
         for (const id of getRowIdsFromDocAction(docAction)) {
@@ -54,11 +54,11 @@ export function getRelatedRows(docActions: DocAction[]): readonly (readonly [str
         }
       }
     }
-    else if (docAction[0] === 'AddRecord' || docAction[0] === 'BulkAddRecord') {
+    else if (docAction[0] === "AddRecord" || docAction[0] === "BulkAddRecord") {
       // All row ids mentioned are created within this set of DocActions, and are not external.
       for (const id of getRowIdsFromDocAction(docAction)) { tracker.blockedIds.add(id); }
     }
-    else if (docAction[0] === 'ReplaceTableData' || docAction[0] === 'TableData') {
+    else if (docAction[0] === "ReplaceTableData" || docAction[0] === "TableData") {
       // No pre-existing rows can be referred to for this table from now on.
       tracker.blocked = true;
     }

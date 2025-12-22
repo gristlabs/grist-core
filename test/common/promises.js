@@ -6,9 +6,9 @@
  */
 
 
-var assert = require('chai').assert;
+var assert = require("chai").assert;
 
-var bluebird = require('bluebird');
+var bluebird = require("bluebird");
 
 // Disable longStackTraces, which seem to be enabled in the browser by default.
 bluebird.config({ longStackTraces: false });
@@ -24,7 +24,7 @@ function log(message) {
  *  var usec = usecElapsed(start);    // Returns microseconds.
  */
 var startTimer, usecElapsed;
-if (typeof process !== 'undefined' && typeof process.hrtime !== 'undefined') {
+if (typeof process !== "undefined" && typeof process.hrtime !== "undefined") {
   startTimer = function() {
     return process.hrtime();
   };
@@ -171,7 +171,7 @@ describe("promises", function() {
   // slower than bluebird.
   var isNode = Boolean(process.version);
 
-  testPromiseLib(bluebird, 'bluebird (no long traces)',
+  testPromiseLib(bluebird, "bluebird (no long traces)",
     // Sadly, no way to turn off bluebird.longStackTraces, so just do this test first.
     function() {
       assert.isFalse(bluebird.hasLongStackTraces(), "longStackTraces should be off");
@@ -211,7 +211,7 @@ describe("promises", function() {
     testRepeater(process.nextTick, "process.nextTick",
       { iters: process.maxTickDepth*9/10, reps: 20, expectedUs: 0.1, fudgeFactor: 4 });
   }
-  if (typeof setImmediate !== 'undefined') {
+  if (typeof setImmediate !== "undefined") {
     testRepeater(setImmediate, "setImmediate",
       { iters: 100, reps: 10, expectedUs: 2.0, fudgeFactor: 4 });
   }

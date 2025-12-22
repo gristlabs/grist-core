@@ -9,9 +9,9 @@
  *
  */
 
-import { FullUser } from 'app/common/LoginSessionAPI';
-import { StringUnion } from 'app/common/StringUnion';
-import { INotifier } from 'app/server/lib/INotifier';
+import { FullUser } from "app/common/LoginSessionAPI";
+import { StringUnion } from "app/common/StringUnion";
+import { INotifier } from "app/server/lib/INotifier";
 
 /**
  * Structure of email requests. Each request contains a list of
@@ -56,7 +56,7 @@ export interface SendGridPersonalization {
  * is the information we choose to send to an email template for invites.
  */
 export interface SendGridInviteTemplate {
-  type: 'invite' | 'billingManagerInvite';
+  type: "invite" | "billingManagerInvite";
   user: FullUser;
   host: FullUser;
   resource: SendGridInviteResource;
@@ -70,7 +70,7 @@ export interface SendGridInviteResource {
   url: string;
 }
 
-export type SendGridInviteResourceKind = 'team site' | 'workspace' | 'document';
+export type SendGridInviteResourceKind = "team site" | "workspace" | "document";
 
 export interface SendGridInviteAccess {
   role: string;
@@ -82,14 +82,14 @@ export interface SendGridInviteAccess {
 
 // Common parameters included in emails to active billing managers.
 export interface SendGridBillingTemplate {
-  type: 'billing' | 'memberChange',
+  type: "billing" | "memberChange",
   org: { id: number, name: string };
   orgUrl: string;
   billingUrl: string;
 }
 
 export interface SendGridMemberChangeTemplate extends SendGridBillingTemplate {
-  type: 'memberChange';
+  type: "memberChange";
   initiatingUser: FullUser;
   added: FullUser[];
   removed: FullUser[];
@@ -124,18 +124,18 @@ export interface SendGridConfig {
 }
 
 export const TwoFactorEvents = StringUnion(
-  'twoFactorMethodAdded',
-  'twoFactorMethodRemoved',
-  'twoFactorPhoneNumberChanged',
-  'twoFactorEnabled',
-  'twoFactorDisabled',
+  "twoFactorMethodAdded",
+  "twoFactorMethodRemoved",
+  "twoFactorPhoneNumberChanged",
+  "twoFactorEnabled",
+  "twoFactorDisabled",
 );
 
 export type TwoFactorEvent = typeof TwoFactorEvents.type;
 
 export const DocNotificationEvents = StringUnion(
-  'docChanges',
-  'comments',
+  "docChanges",
+  "comments",
 );
 export type DocNotificationEvent = typeof DocNotificationEvents.type;
 

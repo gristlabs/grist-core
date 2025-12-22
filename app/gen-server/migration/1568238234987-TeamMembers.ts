@@ -18,7 +18,7 @@ export class TeamMembers1568238234987 implements MigrationInterface {
       // (like `type`) that don't exist yet and `insert()` attempts to set their values as well.
       const groupInsertRes = await queryRunner.manager
         .query("INSERT into groups(name) values($1) RETURNING id", [roles.MEMBER]);
-      const groupId = getDatabaseType(queryRunner.connection) === 'postgres' ?
+      const groupId = getDatabaseType(queryRunner.connection) === "postgres" ?
         groupInsertRes[0].id :
         groupInsertRes;
 
@@ -39,7 +39,7 @@ export class TeamMembers1568238234987 implements MigrationInterface {
     const groups = await queryRunner.manager.createQueryBuilder()
       .select("groups")
       .from(Group, "groups")
-      .where('name = :name', { name: roles.MEMBER })
+      .where("name = :name", { name: roles.MEMBER })
       .getMany();
     for (const group of groups) {
       await queryRunner.manager.createQueryBuilder()

@@ -1,11 +1,11 @@
-import { summarizeAction } from 'app/common/ActionSummarizer';
-import { ActionSummary } from 'app/common/ActionSummary';
-import { TimeCursor, TimeLayout, TimeQuery } from 'app/common/TimeQuery';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
-import { SQLiteTimeData } from 'app/server/lib/TimeQuery';
-import { createDocTools } from 'test/server/docTools';
-import * as testUtils from 'test/server/testUtils';
-import { assert } from 'test/server/testUtils';
+import { summarizeAction } from "app/common/ActionSummarizer";
+import { ActionSummary } from "app/common/ActionSummary";
+import { TimeCursor, TimeLayout, TimeQuery } from "app/common/TimeQuery";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { SQLiteTimeData } from "app/server/lib/TimeQuery";
+import { createDocTools } from "test/server/docTools";
+import * as testUtils from "test/server/testUtils";
+import { assert } from "test/server/testUtils";
 
 /** get a summary of the last LocalActionBundle applied to a given document */
 async function summarizeLastAction(doc: ActiveDoc): Promise<ActionSummary> {
@@ -17,17 +17,17 @@ describe("TimeQuery", function() {
   testUtils.withoutSandboxing();
 
   // Comment this out to see debug-log output when debugging tests.
-  testUtils.setTmpLogLevel('error');
+  testUtils.setTmpLogLevel("error");
 
   const docTools = createDocTools();
 
-  it('can view state of table in past', async function() {
-    const doc: ActiveDoc = await docTools.createDoc('test.grist');
+  it("can view state of table in past", async function() {
+    const doc: ActiveDoc = await docTools.createDoc("test.grist");
     const db = doc.docStorage;
     const cursor = new TimeCursor(new SQLiteTimeData(db));
 
     // We'll be interested in viewing the state of table "Fish", column "age".
-    const fish = new TimeQuery(cursor, 'Fish', ['age']);
+    const fish = new TimeQuery(cursor, "Fish", ["age"]);
     const session = docTools.createFakeSession();
 
     // Stick some data in the Fish table.
@@ -48,14 +48,14 @@ describe("TimeQuery", function() {
     // Now read out the current state.
     await fish.update();
     assert.sameDeepMembers(fish.all(),
-      [{ id: 1, age: '111' }]);
+      [{ id: 1, age: "111" }]);
 
     // Go back one step in time.
     cursor.prepend(summary2);
     await fish.update();
     assert.sameDeepMembers(fish.all(),
-      [{ id: 1, age: '11' },
-        { id: 2, age: '22' }]);
+      [{ id: 1, age: "11" },
+        { id: 2, age: "22" }]);
 
     // and one more step
     cursor.prepend(summary1);
@@ -63,8 +63,8 @@ describe("TimeQuery", function() {
     assert.sameDeepMembers(fish.all(), []);
   });
 
-  it('can track column order and user-facing table name', async function() {
-    const doc: ActiveDoc = await docTools.createDoc('test.grist');
+  it("can track column order and user-facing table name", async function() {
+    const doc: ActiveDoc = await docTools.createDoc("test.grist");
     const db = doc.docStorage;
     const cursor = new TimeCursor(new SQLiteTimeData(db));
     const layout = new TimeLayout(cursor);
@@ -84,8 +84,8 @@ describe("TimeQuery", function() {
     // Now move the species column. We need its field id to do so.
     // Just for practice, we read its field id from the db.
     await layout.update();
-    const table = layout.tables.one({ tableId: 'Fish_' });
-    const column = layout.columns.one({ parentId: table.id, colId: 'species' });
+    const table = layout.tables.one({ tableId: "Fish_" });
+    const column = layout.columns.one({ parentId: table.id, colId: "species" });
     const field = layout.fields.one({ parentId: table.primaryViewId, colRef: column.id });
     const section = layout.sections.one({ id: table.rawViewSectionRef });
     await doc.applyUserActions(session, [
@@ -115,10 +115,10 @@ describe("TimeQuery", function() {
       /could not find/);
   });
 
-  it('can handle renames', async function() {
+  it("can handle renames", async function() {
     this.timeout(10000);
 
-    const doc: ActiveDoc = await docTools.createDoc('test.grist');
+    const doc: ActiveDoc = await docTools.createDoc("test.grist");
     const db = doc.docStorage;
     const cursor = new TimeCursor(new SQLiteTimeData(db));
     const session = docTools.createFakeSession();
@@ -135,10 +135,10 @@ describe("TimeQuery", function() {
       ["RenameTable", "Fish", "Fish2"],
     ]);
     cursor.append(await summarizeLastAction(doc));
-    const query = new TimeQuery(cursor, 'Fish', ['species']);
+    const query = new TimeQuery(cursor, "Fish", ["species"]);
     const expectedResult = [
-      { id: 1, species: 'flounder' },
-      { id: 2, species: 'bounder' },
+      { id: 1, species: "flounder" },
+      { id: 2, species: "bounder" },
     ];
     let result = await query.update();
     assert.deepEqual(result, expectedResult);
@@ -174,7 +174,7 @@ describe("TimeQuery", function() {
     assert.deepEqual(result, expectedResult);
 
     // Double check that we've actually made all the changes we think we have.
-    assert.deepEqual(await doc.fetchQuery(session, { tableId: 'Fish2', filters: {} }), {
+    assert.deepEqual(await doc.fetchQuery(session, { tableId: "Fish2", filters: {} }), {
       tableData: [
         "TableData",
         "Fish2",
@@ -200,22 +200,22 @@ describe("TimeQuery", function() {
       ],
     });
 
-    query.reset('Fish', '*');
+    query.reset("Fish", "*");
     result = await query.update();
     assert.deepEqual(result, [
       {
         id: 1,
         manualSort: 1,
-        age: '11',
-        species: 'flounder',
-        color: 'blue',
+        age: "11",
+        species: "flounder",
+        color: "blue",
       },
       {
         id: 2,
         manualSort: 2,
-        age: '22',
-        species: 'bounder',
-        color: 'red',
+        age: "22",
+        species: "bounder",
+        color: "red",
       },
     ]);
   });

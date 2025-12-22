@@ -1,27 +1,27 @@
-import * as commands from 'app/client/components/commands';
-import type { DocComm, GristDoc } from 'app/client/components/GristDoc';
-import { ViewLayout, ViewSectionHelper } from 'app/client/components/ViewLayout';
-import type BaseRowModel from 'app/client/models/BaseRowModel';
-import { DocData } from 'app/client/models/DocData';
-import { DocModel, ViewFieldRec, ViewRec } from 'app/client/models/DocModel';
-import { QuerySetManager } from 'app/client/models/QuerySet';
-import { IEdit, IExternalTable, VirtualTableRegistration } from 'app/client/models/VirtualTable';
-import { META_TABLES } from 'app/client/models/VirtualTableMeta';
-import type { App } from 'app/client/ui/App';
-import type { FieldEditor } from 'app/client/widgets/FieldEditor';
-import { WidgetType } from 'app/client/widgets/UserType';
-import type { ApplyUAOptions, ApplyUAResult } from 'app/common/ActiveDocAPI';
-import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
-import { DocAction, getColValues, TableDataAction, UserAction } from 'app/common/DocActions';
-import { DocDataCache } from 'app/common/DocDataCache';
-import { VirtualId } from 'app/common/SortSpec';
-import type { UIRowId } from 'app/plugin/GristAPI';
-import { GristType } from 'app/plugin/GristData';
-import camelCase from 'camelcase';
-import { Disposable, dom, Emitter, Holder, Observable, toKo } from 'grainjs';
-import * as ko from 'knockout';
-import omit from 'lodash/omit';
-import range from 'lodash/range';
+import * as commands from "app/client/components/commands";
+import type { DocComm, GristDoc } from "app/client/components/GristDoc";
+import { ViewLayout, ViewSectionHelper } from "app/client/components/ViewLayout";
+import type BaseRowModel from "app/client/models/BaseRowModel";
+import { DocData } from "app/client/models/DocData";
+import { DocModel, ViewFieldRec, ViewRec } from "app/client/models/DocModel";
+import { QuerySetManager } from "app/client/models/QuerySet";
+import { IEdit, IExternalTable, VirtualTableRegistration } from "app/client/models/VirtualTable";
+import { META_TABLES } from "app/client/models/VirtualTableMeta";
+import type { App } from "app/client/ui/App";
+import type { FieldEditor } from "app/client/widgets/FieldEditor";
+import { WidgetType } from "app/client/widgets/UserType";
+import type { ApplyUAOptions, ApplyUAResult } from "app/common/ActiveDocAPI";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { DocAction, getColValues, TableDataAction, UserAction } from "app/common/DocActions";
+import { DocDataCache } from "app/common/DocDataCache";
+import { VirtualId } from "app/common/SortSpec";
+import type { UIRowId } from "app/plugin/GristAPI";
+import { GristType } from "app/plugin/GristData";
+import camelCase from "camelcase";
+import { Disposable, dom, Emitter, Holder, Observable, toKo } from "grainjs";
+import * as ko from "knockout";
+import omit from "lodash/omit";
+import range from "lodash/range";
 
 /**
  * This is a simple wrapper around VirtualTableRegistration and ExternalTable. It exposes
@@ -92,7 +92,7 @@ export class VirtualTable extends Disposable {
    */
   public addColumn(...cols: (Partial<ColDef> & { label: string })[]) {
     this._columns ??= [];
-    cols.forEach(col => this._columns.push({ type: col.type || 'Any', colId: toId(col.label), ...col }));
+    cols.forEach(col => this._columns.push({ type: col.type || "Any", colId: toId(col.label), ...col }));
   }
 
   /**
@@ -104,7 +104,7 @@ export class VirtualTable extends Disposable {
    */
   public setData(func: () => Promise<any>): void;
   public setData(args: any) {
-    if (typeof args === 'function') {
+    if (typeof args === "function") {
       this._getData = args;
       return;
     }
@@ -115,8 +115,8 @@ export class VirtualTable extends Disposable {
 
   public buildDom() {
     this._build();
-    return dom('div',
-      dom.style('flex', '1'),
+    return dom("div",
+      dom.style("flex", "1"),
       dom.create(ViewLayout, this._gristDoc, this._viewId as any),
     );
   }
@@ -151,7 +151,7 @@ export class VirtualTable extends Disposable {
       async applyUserActions(actions: UserAction[], options?: ApplyUAOptions): Promise<ApplyUAResult> {
         const processed = await docDataCache.sendTableActions(actions);
         const retValues = processed.flatMap(action => action.retValues);
-        return { retValues, actionHash: '', actionNum: 1, isModification: true };
+        return { retValues, actionHash: "", actionNum: 1, isModification: true };
       },
     } as any;
 
@@ -160,9 +160,9 @@ export class VirtualTable extends Disposable {
     // docData needs at least one record in doc info.
     const metaWithData: typeof META_TABLES = {
       ...META_TABLES,
-      _grist_DocInfo: ['TableData', '_grist_DocInfo', [1], {
-        docId: ['1'],
-        documentSettings: ['{}'],
+      _grist_DocInfo: ["TableData", "_grist_DocInfo", [1], {
+        docId: ["1"],
+        documentSettings: ["{}"],
       }],
     };
     const docData = new DocData(docComm, metaWithData);
@@ -196,48 +196,48 @@ export class VirtualTable extends Disposable {
       return [
         [
           // Add the virtual table.
-          'AddTable', tableId, columnDefs.map(col => ({
+          "AddTable", tableId, columnDefs.map(col => ({
             id: col.colId,
             label: col.label,
             type: col.type,
             isFormula: false,
-            formula: '',
+            formula: "",
             widgetOptions: col.widgetOptions,
           })),
         ], [
           // Add an entry for the virtual table.
-          'AddRecord', '_grist_Tables', this._tableId as any, { tableId, primaryViewId: 0 },
+          "AddRecord", "_grist_Tables", this._tableId as any, { tableId, primaryViewId: 0 },
         ], [
           // Add entries for the columns of the virtual table.
-          'BulkAddRecord', '_grist_Tables_column',
+          "BulkAddRecord", "_grist_Tables_column",
           columnDefs.map(col => col.id) as any, getColValues(columnDefs.map(rec =>
             Object.assign({
               isFormula: false,
-              formula: '',
+              formula: "",
               parentId: this._tableId as any,
-            }, omit(rec, ['id']) as any))),
+            }, omit(rec, ["id"]) as any))),
         ],
         [
           // Add view instance.
-          'AddRecord', '_grist_Views', this._viewId as any, {
+          "AddRecord", "_grist_Views", this._viewId as any, {
             name: this._name,
-            type: 'raw_data',
+            type: "raw_data",
           },
         ],
         [
           // Add a view section.
-          'AddRecord', '_grist_Views_section', this._sectionId as any,
+          "AddRecord", "_grist_Views_section", this._sectionId as any,
           {
             tableRef: this._tableId,
             parentId: this._viewId,
-            parentKey: 'record',
-            title: this._name, layout: 'vertical', showHeader: true,
+            parentKey: "record",
+            title: this._name, layout: "vertical", showHeader: true,
             borderWidth: 1, defaultWidth: 100,
           },
         ],
         [
           // List the fields shown in the view section.
-          'BulkAddRecord', '_grist_Views_section_field', fieldsDefs.map(VirtualId.bind(null, undefined)) as any, {
+          "BulkAddRecord", "_grist_Views_section_field", fieldsDefs.map(VirtualId.bind(null, undefined)) as any, {
             colRef: fieldsDefs.map(colId => columnDefs.find(r => r.colId === colId)!.id),
             parentId: fieldsDefs.map(() => this._sectionId),
             parentPos: fieldsDefs.map((_, i) => i),
@@ -284,8 +284,8 @@ export class VirtualTable extends Disposable {
 
 /** This is default empty implementation of an external table used only for viewing */
 class ExternalTable extends Disposable implements IExternalTable {
-  public name = '';
-  public label = '';
+  public name = "";
+  public label = "";
   public saveableFields = [];
   public fetchAll: () => Promise<TableDataAction>;
   public initialActions: () => DocAction[];
@@ -297,13 +297,13 @@ class ExternalTable extends Disposable implements IExternalTable {
 
 /** Converts any kind of string to an identifier */
 function toId(label: string) {
-  return camelCase(label.replace(/[^a-zA-Z0-9]/g, ''));
+  return camelCase(label.replace(/[^a-zA-Z0-9]/g, ""));
 }
 
 /** Converts arbitrary records to a TableData action */
 function toTableData(name: string, data: Record<string, any>[]): TableDataAction {
   const indices = range(data.length).map(i => i + 1);
-  return ['TableData', name, indices,
+  return ["TableData", name, indices,
     getColValues(
       indices.map(rowId => ({
         id: rowId,
@@ -329,7 +329,7 @@ class InMemoryGristDoc extends Disposable {
   public readonly activeEditor: Observable<FieldEditor | null> = Observable.create(this, null);
   public comparison = false;
   public docData: DocData = {} as any; // Don't need anything from it here.
-  public docInfo = { timezone: Observable.create(null, 'UTC') };
+  public docInfo = { timezone: Observable.create(null, "UTC") };
   public querySetManager = new QuerySetManager(this.docModel, {} as any);
   public docPageModel = {
     appModel: {
@@ -356,19 +356,19 @@ class InMemoryGristDoc extends Disposable {
   }
 
   public getCsvLink() {
-    return '';
+    return "";
   }
 
   public getTsvLink() {
-    return '';
+    return "";
   }
 
   public getDsvLink() {
-    return '';
+    return "";
   }
 
   public getXlsxActiveViewLink() {
-    return '';
+    return "";
   }
 
   public async clearColumns() {}
@@ -392,11 +392,11 @@ class InMemoryGristDoc extends Disposable {
     };
     const viewInstance = this.viewModel.activeSection.peek().viewInstance.peek();
     viewInstance?.setCursorPos(cursorPos);
-    this.app?.trigger('clipboard_focus', null);
+    this.app?.trigger("clipboard_focus", null);
   }
 
   public getLinkingRowIds(sectionId: number): UIRowId[] | undefined {
-    throw new Error('Anchor links are not supported in virtual tables.');
+    throw new Error("Anchor links are not supported in virtual tables.");
   }
 }
 
@@ -413,7 +413,7 @@ interface ColDef {
     widget?: WidgetType;
     choices?: string[];
     choiceOptions?: Record<string, any>[];
-    alignment?: 'left' | 'right' | 'center';
+    alignment?: "left" | "right" | "center";
   };
   /**
    * If set, Virtual table will use this function to convert value before displaying it in the GridView.

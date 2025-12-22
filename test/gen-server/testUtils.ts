@@ -1,20 +1,20 @@
-import { GristLoadConfig } from 'app/common/gristUrls';
-import { BillingAccount } from 'app/gen-server/entity/BillingAccount';
-import { Organization } from 'app/gen-server/entity/Organization';
-import { Product } from 'app/gen-server/entity/Product';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { GristServer } from 'app/server/lib/GristServer';
-import { EmitNotifier } from 'app/server/lib/INotifier';
+import { GristLoadConfig } from "app/common/gristUrls";
+import { BillingAccount } from "app/gen-server/entity/BillingAccount";
+import { Organization } from "app/gen-server/entity/Organization";
+import { Product } from "app/gen-server/entity/Product";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { GristServer } from "app/server/lib/GristServer";
+import { EmitNotifier } from "app/server/lib/INotifier";
 
-import { AxiosRequestConfig } from 'axios';
-import { delay } from 'bluebird';
+import { AxiosRequestConfig } from "axios";
+import { delay } from "bluebird";
 
 export function configForApiKey(apiKey?: string): AxiosRequestConfig {
   return {
-    responseType: 'json',
+    responseType: "json",
     validateStatus: (status: number) => true,
     headers: {
-      'X-Requested-With': 'XMLHttpRequest',
+      "X-Requested-With": "XMLHttpRequest",
       ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
     },
   };
@@ -25,7 +25,7 @@ export function configForApiKey(apiKey?: string): AxiosRequestConfig {
  * failed request.
  */
 export function configForUser(username: string): AxiosRequestConfig {
-  const apiKey = username !== 'Anonymous' ? `api_key_for_${username.toLowerCase()}` : undefined;
+  const apiKey = username !== "Anonymous" ? `api_key_for_${username.toLowerCase()}` : undefined;
 
   return configForApiKey(apiKey);
 }
@@ -53,7 +53,7 @@ export async function createUser(dbManager: HomeDBManager, name: string): Promis
   user.apiKey = `api_key_for_${username}`;
   await user.save();
   const userHome = (await dbManager.getOrg({ userId: user.id }, null)).data;
-  if (!userHome) { throw new Error('failed to create personal org'); }
+  if (!userHome) { throw new Error("failed to create personal org"); }
   return userHome;
 }
 
@@ -64,11 +64,11 @@ export async function setPlan(dbManager: HomeDBManager, org: { billingAccount?: 
   productName: string) {
   const product = await dbManager.connection.manager.findOne(Product, { where: { name: productName } });
   if (!product) { throw new Error(`cannot find product ${productName}`); }
-  if (!org.billingAccount) { throw new Error('must join billingAccount'); }
+  if (!org.billingAccount) { throw new Error("must join billingAccount"); }
   await dbManager.connection.createQueryBuilder()
     .update(BillingAccount)
     .set({ product })
-    .where('id = :bid', { bid: org.billingAccount.id })
+    .where("id = :bid", { bid: org.billingAccount.id })
     .execute();
 }
 
@@ -77,7 +77,7 @@ export async function setPlan(dbManager: HomeDBManager, org: { billingAccount?: 
  */
 export function getGristConfig(page: string): Partial<GristLoadConfig> {
   const match = /window\.gristConfig = ([^;]*)/.exec(page);
-  if (!match) { throw new Error('cannot find grist config'); }
+  if (!match) { throw new Error("cannot find grist config"); }
   return JSON.parse(match[1]);
 }
 
@@ -91,7 +91,7 @@ export async function waitForAllNotifications(gristServer: GristServer, maxWait:
     if ((gristServer.getNotifier() as EmitNotifier).testPendingNotifications() === 0) { return; }
     await delay(1);
   }
-  throw new Error('waitForAllNotifications timed out');
+  throw new Error("waitForAllNotifications timed out");
 }
 
 // count the number of rows in a table
@@ -103,17 +103,17 @@ export async function getRowCount(dbManager: HomeDBManager, tableName: string): 
 // gather counts for all significant tables - handy as a sanity check on deletions
 export async function getRowCounts(dbManager: HomeDBManager) {
   return {
-    aclRules: await getRowCount(dbManager, 'acl_rules'),
-    docs: await getRowCount(dbManager, 'docs'),
-    groupGroups: await getRowCount(dbManager, 'group_groups'),
-    groupUsers: await getRowCount(dbManager, 'group_users'),
-    groups: await getRowCount(dbManager, 'groups'),
-    logins: await getRowCount(dbManager, 'logins'),
-    orgs: await getRowCount(dbManager, 'orgs'),
-    users: await getRowCount(dbManager, 'users'),
-    workspaces: await getRowCount(dbManager, 'workspaces'),
-    billingAccounts: await getRowCount(dbManager, 'billing_accounts'),
-    billingAccountManagers: await getRowCount(dbManager, 'billing_account_managers'),
-    products: await getRowCount(dbManager, 'products'),
+    aclRules: await getRowCount(dbManager, "acl_rules"),
+    docs: await getRowCount(dbManager, "docs"),
+    groupGroups: await getRowCount(dbManager, "group_groups"),
+    groupUsers: await getRowCount(dbManager, "group_users"),
+    groups: await getRowCount(dbManager, "groups"),
+    logins: await getRowCount(dbManager, "logins"),
+    orgs: await getRowCount(dbManager, "orgs"),
+    users: await getRowCount(dbManager, "users"),
+    workspaces: await getRowCount(dbManager, "workspaces"),
+    billingAccounts: await getRowCount(dbManager, "billing_accounts"),
+    billingAccountManagers: await getRowCount(dbManager, "billing_account_managers"),
+    products: await getRowCount(dbManager, "products"),
   };
 }

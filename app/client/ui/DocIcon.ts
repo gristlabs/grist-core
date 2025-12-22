@@ -1,5 +1,5 @@
 import { hashCode } from "app/client/lib/hashUtils";
-import { splitPageInitial } from 'app/client/ui2018/pages';
+import { splitPageInitial } from "app/client/ui2018/pages";
 import { isValidHex, useBindable } from "app/common/gutil";
 import emojiRegex from "emoji-regex";
 import { BindableValue, dom, DomElementArg, styled } from "grainjs";
@@ -74,7 +74,7 @@ function getIconFromName(name: string) {
     .map(w => [...w][0])
     .join("")
     // https://www.regular-expressions.info/unicode.html
-    .replace(/[^\p{L}\p{Nd}]$/u, '')
+    .replace(/[^\p{L}\p{Nd}]$/u, "")
     .toUpperCase();
 }
 

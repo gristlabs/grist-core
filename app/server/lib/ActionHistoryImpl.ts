@@ -1,34 +1,34 @@
 /**
  * Minimal ActionHistory implementation
  */
-import { LocalActionBundle } from 'app/common/ActionBundle';
-import { ActionGroup, MinimalActionGroup } from 'app/common/ActionGroup';
-import { DocState } from 'app/common/DocState';
-import * as marshaller from 'app/common/marshal';
-import { reportTimeTaken } from 'app/server/lib/reportTimeTaken';
-import * as crypto from 'crypto';
-import keyBy from 'lodash/keyBy';
-import mapValues from 'lodash/mapValues';
+import { LocalActionBundle } from "app/common/ActionBundle";
+import { ActionGroup, MinimalActionGroup } from "app/common/ActionGroup";
+import { DocState } from "app/common/DocState";
+import * as marshaller from "app/common/marshal";
+import { reportTimeTaken } from "app/server/lib/reportTimeTaken";
+import * as crypto from "crypto";
+import keyBy from "lodash/keyBy";
+import mapValues from "lodash/mapValues";
 import { ActionGroupOptions, ActionHistory, ActionHistoryUndoInfo, asActionGroup,
-  asMinimalActionGroup } from 'app/server/lib/ActionHistory';
-import { ISQLiteDB, ResultRow } from 'app/server/lib/SQLiteDB';
-import { appSettings } from 'app/server/lib/AppSettings';
+  asMinimalActionGroup } from "app/server/lib/ActionHistory";
+import { ISQLiteDB, ResultRow } from "app/server/lib/SQLiteDB";
+import { appSettings } from "app/server/lib/AppSettings";
 
-const section = appSettings.section('history').section('action');
+const section = appSettings.section("history").section("action");
 
 // History will from time to time be pruned back to within these limits
 // on rows and the maximum total number of bytes in the "body" column.
 // Pruning is done when the history has grown above these limits, to
 // the specified factor.
-const ACTION_HISTORY_MAX_ROWS = section.flag('maxRows').requireInt({
-  envVar: 'GRIST_ACTION_HISTORY_MAX_ROWS',
+const ACTION_HISTORY_MAX_ROWS = section.flag("maxRows").requireInt({
+  envVar: "GRIST_ACTION_HISTORY_MAX_ROWS",
   defaultValue: 1000,
 
   minValue: 1,
 });
 
-const ACTION_HISTORY_MAX_BYTES = section.flag('maxBytes').requireInt({
-  envVar: 'GRIST_ACTION_HISTORY_MAX_BYTES',
+const ACTION_HISTORY_MAX_BYTES = section.flag("maxBytes").requireInt({
+  envVar: "GRIST_ACTION_HISTORY_MAX_BYTES",
   defaultValue: 1e9, // 1 GB.
   minValue: 1,  // 1 B.
 });
@@ -76,7 +76,7 @@ function decodeActionFromRow(row: ResultRow): LocalActionBundle {
  *
  */
 export function computeActionHash(action: LocalActionBundle): string {
-  const shaSum = crypto.createHash('sha256');
+  const shaSum = crypto.createHash("sha256");
   const encoder = new marshaller.Marshaller({ version: 2 });
   encoder.marshal(action.actionNum);
   encoder.marshal(action.parentActionHash);
@@ -84,7 +84,7 @@ export function computeActionHash(action: LocalActionBundle): string {
   encoder.marshal(action.stored);
   const buf = encoder.dumpAsBuffer();
   shaSum.update(buf);
-  return shaSum.digest('hex');
+  return shaSum.digest("hex");
 }
 
 /** The important identifiers associated with an action */
@@ -419,10 +419,10 @@ export class ActionHistoryImpl implements ActionHistory {
   public async getActions(actionNums: number[]): Promise<(LocalActionBundle | undefined)[]> {
     const actions = await this._db.all(
       `SELECT actionHash, actionNum, body FROM _gristsys_ActionHistory
-       where actionNum in (${actionNums.map(x => '?').join(',')})`,
+       where actionNum in (${actionNums.map(x => "?").join(",")})`,
       ...actionNums);
     return reportTimeTaken("getActions", () => {
-      const actionsByActionNum = keyBy(actions, 'actionNum');
+      const actionsByActionNum = keyBy(actions, "actionNum");
       return actionNums
         .map(n => actionsByActionNum[n])
         .map(row => row ? decodeActionFromRow(row) : undefined);
@@ -472,7 +472,7 @@ export class ActionHistoryImpl implements ActionHistory {
   private async _getRecentActionRows(maxActions: number | undefined,
     withBody: boolean = true): Promise<ResultRow[]> {
     const branches = await this._getBranches();
-    const columns = '_gristsys_ActionHistory.id, actionNum, actionHash' + (withBody ? ', body' : '');
+    const columns = "_gristsys_ActionHistory.id, actionNum, actionHash" + (withBody ? ", body" : "");
     const result = await this._fetchParts(null,
       branches.local_unsent,
       columns,
@@ -530,7 +530,7 @@ export class ActionHistoryImpl implements ActionHistory {
                                        LEFT JOIN _gristsys_ActionHistory as History
                                          ON History.id = Branch.actionRef
                                        WHERE name in ('shared', 'local_sent', 'local_unsent')`);
-    const bits = mapValues(keyBy(rows, 'name'), this._asActionIdentifiers);
+    const bits = mapValues(keyBy(rows, "name"), this._asActionIdentifiers);
     const missing = { actionHash: null, actionRef: null, actionNum: null } as ActionIdentifiers;
     return {
       shared: bits.shared || missing,
@@ -641,9 +641,9 @@ export class ActionHistoryImpl implements ActionHistory {
     // in the SQL string.
     // TODO: deal with limit on max length of sql statement https://www.sqlite.org/limits.html
     const ids = rows.map(row => row.id);
-    const idList = ids.join(',');
+    const idList = ids.join(",");
     await this._db.run(`DELETE FROM _gristsys_ActionHistory
-                          WHERE id ${invert ? 'NOT' : ''} IN (${idList})`);
+                          WHERE id ${invert ? "NOT" : ""} IN (${idList})`);
     for (const row of rows) {
       this._actionUndoInfo.delete(row.actionHash);
     }

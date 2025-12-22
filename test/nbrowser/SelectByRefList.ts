@@ -1,23 +1,23 @@
-import * as _ from 'lodash';
-import { addToRepl, assert, driver } from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
-import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import * as _ from "lodash";
+import { addToRepl, assert, driver } from "mocha-webdriver";
+import * as gu from "test/nbrowser/gristUtils";
+import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
-describe('SelectByRefList', function() {
+describe("SelectByRefList", function() {
   this.timeout(90000);
   setupTestSuite();
-  addToRepl('gu2', gu);
+  addToRepl("gu2", gu);
   gu.bigScreen();
 
   async function setup() {
-    await server.simulateLogin("Chimpy", "chimpy@getgrist.com", 'nasa');
-    const doc = await gu.importFixturesDoc('chimpy', 'nasa', 'Horizon',
-      'SelectByRefList.grist', false);
+    await server.simulateLogin("Chimpy", "chimpy@getgrist.com", "nasa");
+    const doc = await gu.importFixturesDoc("chimpy", "nasa", "Horizon",
+      "SelectByRefList.grist", false);
     await driver.get(`${server.getHost()}/o/nasa/doc/${doc.id}`);
     await gu.waitForDocToLoad();
   }
 
-  it('should filter a table selected by ref and reflist columns', async function() {
+  it("should filter a table selected by ref and reflist columns", async function() {
     await setup();
 
     /*
@@ -46,70 +46,70 @@ describe('SelectByRefList', function() {
 
     let sourceData = [
       [
-        '1', 'a', 'a',
-        '2', 'a', 'b',
-        '', '', '',
+        "1", "a", "a",
+        "2", "a", "b",
+        "", "", "",
       ],
       [
-        '3', 'b', 'a\nb',
-        '4', 'b', '',
-        '', '', '',
+        "3", "b", "a\nb",
+        "4", "b", "",
+        "", "", "",
       ],
       [
-        '', '', '',
+        "", "", "",
       ],
     ];
     // The last row selected has value `c`, so that's the default value for the ref column
-    let newRow = ['99', 'c', ''];
-    await checkSelectingRecords('INDIRECTREF • A → ref', sourceData, newRow);
-    await checkSelectingRecords('REFTARGET → ref', sourceData, newRow);
+    let newRow = ["99", "c", ""];
+    await checkSelectingRecords("INDIRECTREF • A → ref", sourceData, newRow);
+    await checkSelectingRecords("REFTARGET → ref", sourceData, newRow);
 
     // Now selecting based on the reflist column (3rd column)
     // gives groups where that column *contains* `a`, then contains `b`, then
     // nothing because again LINKTARGET doesn't have references to `c`
     sourceData = [
       [
-        '1', 'a', 'a',
-        '3', 'b', 'a\nb',
-        '', '', '',
+        "1", "a", "a",
+        "3", "b", "a\nb",
+        "", "", "",
       ],
       [
-        '2', 'a', 'b',
-        '3', 'b', 'a\nb',
-        '', '', '',
+        "2", "a", "b",
+        "3", "b", "a\nb",
+        "", "", "",
       ],
       [
-        '', '', '',
+        "", "", "",
       ],
     ];
     // The last row selected has value `c`, so that's the default value for the reflist column
-    newRow = ['99', '', 'c'];
-    await checkSelectingRecords('INDIRECTREF • A → reflist', sourceData, newRow);
-    await checkSelectingRecords('REFTARGET → reflist', sourceData, newRow);
+    newRow = ["99", "", "c"];
+    await checkSelectingRecords("INDIRECTREF • A → reflist", sourceData, newRow);
+    await checkSelectingRecords("REFTARGET → reflist", sourceData, newRow);
 
     // This case is quite simple and direct: LINKTARGET should show the rows listed
     // in the REFLISTS.LinkTarget_reflist column. The values there are [1], [2], and [3, 4],
     // which you can see in the first column below.
     sourceData = [
       [
-        '1', 'a', 'a',
-        '', '', '',
+        "1", "a", "a",
+        "", "", "",
       ],
       [
-        '2', 'a', 'b',
-        '', '', '',
+        "2", "a", "b",
+        "", "", "",
       ],
       [
-        '3', 'b', 'a\nb',
-        '4', 'b', '',
-        '', '', '',
+        "3", "b", "a\nb",
+        "4", "b", "",
+        "", "", "",
       ],
     ];
     // LINKTARGET is being filtered by the `id` column
     // There's no column to set a default value for.
     // TODO should we be appending the new row ID to the reflist in the source table?
-    newRow = ['99', '', ''];
-    await checkSelectingRecords('REFLISTS • LinkTarget_reflist', sourceData, newRow);
+    newRow = ["99", "", ""];
+    await checkSelectingRecords("REFLISTS • LinkTarget_reflist", sourceData, newRow);
 
     // Similar to the above but indirect. We connect LINKTARGET.ref and REFLISTS.reflist,
     // which both point to REFTARGET. This gives rows where LINKTARGET.ref is contained in REFLISTS.reflist
@@ -118,27 +118,27 @@ describe('SelectByRefList', function() {
     // so the values in the second column must be in there.
     sourceData = [
       [
-        '1', 'a', 'a',
-        '2', 'a', 'b',
-        '', '', '',
+        "1", "a", "a",
+        "2", "a", "b",
+        "", "", "",
       ],
       [
-        '3', 'b', 'a\nb',
-        '4', 'b', '',
-        '', '', '',
+        "3", "b", "a\nb",
+        "4", "b", "",
+        "", "", "",
       ],
       [
-        '1', 'a', 'a',
-        '2', 'a', 'b',
-        '3', 'b', 'a\nb',
-        '4', 'b', '',
-        '', '', '',
+        "1", "a", "a",
+        "2", "a", "b",
+        "3", "b", "a\nb",
+        "4", "b", "",
+        "", "", "",
       ],
     ];
     // The last row selected has value [a,b] in REFLISTS.reflist
     // LINKTARGET.ref can only take one reference, so it defaults to the first
-    newRow = ['99', 'a', ''];
-    await checkSelectingRecords('REFLISTS • reflist → ref', sourceData, newRow);
+    newRow = ["99", "a", ""];
+    await checkSelectingRecords("REFLISTS • reflist → ref", sourceData, newRow);
 
     // Taking it one step further, connect LINKTARGET.reflist and REFLISTS.reflist.
     // Gives rows where the two reflists *intersect*.
@@ -146,26 +146,26 @@ describe('SelectByRefList', function() {
     // so the values in the third column must be in there.
     sourceData = [
       [
-        '1', 'a', 'a',
-        '3', 'b', 'a\nb',
-        '', '', '',
+        "1", "a", "a",
+        "3", "b", "a\nb",
+        "", "", "",
       ],
       [
-        '2', 'a', 'b',
-        '3', 'b', 'a\nb',
-        '', '', '',
+        "2", "a", "b",
+        "3", "b", "a\nb",
+        "", "", "",
       ],
       [
-        '1', 'a', 'a',
-        '2', 'a', 'b',
-        '3', 'b', 'a\nb',
-        '', '', '',
+        "1", "a", "a",
+        "2", "a", "b",
+        "3", "b", "a\nb",
+        "", "", "",
       ],
     ];
     // The last row selected has value [a,b] in REFLISTS.reflist
     // LINKTARGET.reflist gets that as a default value
-    newRow = ['99', '', 'a\nb'];
-    await checkSelectingRecords('REFLISTS • reflist → reflist', sourceData, newRow);
+    newRow = ["99", "", "a\nb"];
+    await checkSelectingRecords("REFLISTS • reflist → reflist", sourceData, newRow);
   });
 });
 
@@ -177,13 +177,13 @@ describe('SelectByRefList', function() {
  * The values will depend on the link and the last row selected in the driving table.
  */
 async function checkSelectingRecords(selectBy: string, sourceData: string[][], newRow: string[]) {
-  await gu.openSelectByForSection('LINKTARGET');
-  await gu.findOpenMenuItem('.test-select-row', new RegExp(selectBy + '$')).click();
+  await gu.openSelectByForSection("LINKTARGET");
+  await gu.findOpenMenuItem(".test-select-row", new RegExp(selectBy + "$")).click();
   await gu.waitForServer();
 
-  const selectByTable = selectBy.split(' ')[0];
+  const selectByTable = selectBy.split(" ")[0];
   const cell = await gu.getCell({ section: selectByTable, col: 0, rowNum: 3 });
-  if (selectByTable === 'REFLISTS') {
+  if (selectByTable === "REFLISTS") {
     await gu.clickReferenceListCell(cell);
   }
   else {
@@ -197,13 +197,13 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
     numSourceRows = sourceGroup.length / 3;
     assert.deepEqual(
       await gu.getVisibleGridCells({
-        section: 'LINKTARGET',
-        cols: ['rownum', 'ref', 'reflist'],
+        section: "LINKTARGET",
+        cols: ["rownum", "ref", "reflist"],
         rowNums: _.range(1, numSourceRows + 1),
       }),
       sourceGroup,
     );
-    const csvCells = await gu.downloadSectionCsvGridCells('LINKTARGET');
+    const csvCells = await gu.downloadSectionCsvGridCells("LINKTARGET");
     const expectedCsvCells = sourceGroup.slice(0, -3)  // remove 'add new' row of empty strings
       // visible cells text uses newlines to separate list items,
       // CSV export uses commas
@@ -213,7 +213,7 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
 
   for (let i = 0; i < sourceData.length; i++) {
     const cell = await gu.getCell({ section: selectByTable, col: 0, rowNum: i + 1 });
-    if (selectByTable === 'REFLISTS') {
+    if (selectByTable === "REFLISTS") {
       await gu.clickReferenceListCell(cell);
     }
     else {
@@ -223,13 +223,13 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
   }
 
   // Create a new record with rownum=99
-  await gu.getCell({ section: 'LINKTARGET', col: 'rownum', rowNum: numSourceRows }).click();
-  await gu.enterCell('99');
+  await gu.getCell({ section: "LINKTARGET", col: "rownum", rowNum: numSourceRows }).click();
+  await gu.enterCell("99");
 
   assert.deepEqual(
     await gu.getVisibleGridCells({
-      section: 'LINKTARGET',
-      cols: ['rownum', 'ref', 'reflist'],
+      section: "LINKTARGET",
+      cols: ["rownum", "ref", "reflist"],
       rowNums: [numSourceRows],
     }),
     newRow,
@@ -243,7 +243,7 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
   for (let rowNum = 1; rowNum <= 3; rowNum++) {
     // Click an anchor link
     const anchorCell = gu.getCell({ section: "Anchors", rowNum, col: 1 });
-    await driver.withActions(a => a.click(anchorCell.find('.test-tb-link')));
+    await driver.withActions(a => a.click(anchorCell.find(".test-tb-link")));
 
     // Check that navigation to the link target worked
     assert.equal(await gu.getActiveSectionTitle(), "LINKTARGET");

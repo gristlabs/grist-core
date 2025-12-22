@@ -1,11 +1,11 @@
-import { NumberFormatOptions } from 'app/common/NumberFormat';
+import { NumberFormatOptions } from "app/common/NumberFormat";
 
 export interface WidgetOptions extends NumberFormatOptions {
-  textColor?: 'string';
-  fillColor?: 'string';
-  alignment?: 'left' | 'center' | 'right';
+  textColor?: "string";
+  fillColor?: "string";
+  alignment?: "left" | "center" | "right";
   dateFormat?: string;
   timeFormat?: string;
-  widget?: 'HyperLink';
+  widget?: "HyperLink";
   choices?: string[];
 }

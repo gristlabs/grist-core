@@ -64,7 +64,7 @@ export class FileConfig<FileContents> {
     let rawFileContents: any = {};
 
     if (Deps.pathExists(configPath)) {
-      rawFileContents = JSON.parse(Deps.readFile(configPath, 'utf8'));
+      rawFileContents = JSON.parse(Deps.readFile(configPath, "utf8"));
     }
 
     let fileContents = null;

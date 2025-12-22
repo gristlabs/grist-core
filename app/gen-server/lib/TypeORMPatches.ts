@@ -12,22 +12,22 @@
 // We add a patch to throw an exception if a parameter value is ever set and then
 // changed during construction of a query.
 
-import * as sqlite3 from '@gristlabs/sqlite3';
-import { ApiError } from 'app/common/ApiError';
-import { delay } from 'app/common/delay';
-import log from 'app/server/lib/log';
-import { Mutex, MutexInterface } from 'async-mutex';
-import isEqual from 'lodash/isEqual';
-import { EntityManager, ObjectLiteral, QueryRunner, TypeORMError } from 'typeorm';
-import { PostgresDriver } from 'typeorm/driver/postgres/PostgresDriver';
-import { PostgresQueryRunner } from 'typeorm/driver/postgres/PostgresQueryRunner';
-import { SqliteDriver } from 'typeorm/driver/sqlite/SqliteDriver';
-import { SqliteQueryRunner } from 'typeorm/driver/sqlite/SqliteQueryRunner';
-import { IsolationLevel } from 'typeorm/driver/types/IsolationLevel';
+import * as sqlite3 from "@gristlabs/sqlite3";
+import { ApiError } from "app/common/ApiError";
+import { delay } from "app/common/delay";
+import log from "app/server/lib/log";
+import { Mutex, MutexInterface } from "async-mutex";
+import isEqual from "lodash/isEqual";
+import { EntityManager, ObjectLiteral, QueryRunner, TypeORMError } from "typeorm";
+import { PostgresDriver } from "typeorm/driver/postgres/PostgresDriver";
+import { PostgresQueryRunner } from "typeorm/driver/postgres/PostgresQueryRunner";
+import { SqliteDriver } from "typeorm/driver/sqlite/SqliteDriver";
+import { SqliteQueryRunner } from "typeorm/driver/sqlite/SqliteQueryRunner";
+import { IsolationLevel } from "typeorm/driver/types/IsolationLevel";
 import {
   QueryRunnerProviderAlreadyReleasedError,
-} from 'typeorm/error/QueryRunnerProviderAlreadyReleasedError';
-import { QueryBuilder } from 'typeorm/query-builder/QueryBuilder';
+} from "typeorm/error/QueryRunnerProviderAlreadyReleasedError";
+import { QueryBuilder } from "typeorm/query-builder/QueryBuilder";
 
 // Print a warning for transactions that take longer than this.
 const SLOW_TRANSACTION_MS = 5000;
@@ -50,7 +50,7 @@ class SqliteQueryRunnerPatched extends SqliteQueryRunner {
 
   public async commitTransaction(): Promise<void> {
     if (!this._releaseMutex) {
-      throw new Error('SqliteQueryRunnerPatched.commitTransaction -> mutex releaser unknown');
+      throw new Error("SqliteQueryRunnerPatched.commitTransaction -> mutex releaser unknown");
     }
     await super.commitTransaction();
     this._releaseMutex();
@@ -59,7 +59,7 @@ class SqliteQueryRunnerPatched extends SqliteQueryRunner {
 
   public async rollbackTransaction(): Promise<void> {
     if (!this._releaseMutex) {
-      throw new Error('SqliteQueryRunnerPatched.rollbackTransaction -> mutex releaser unknown');
+      throw new Error("SqliteQueryRunnerPatched.rollbackTransaction -> mutex releaser unknown");
     }
     await super.rollbackTransaction();
     this._releaseMutex();
@@ -119,7 +119,7 @@ export function applyPatch() {
       throw new QueryRunnerProviderAlreadyReleasedError();
     }
     const queryRunner = this.queryRunner || this.connection.createQueryRunner();
-    const isSqlite = this.connection.driver.options.type === 'sqlite';
+    const isSqlite = this.connection.driver.options.type === "sqlite";
     try {
       const runOrRollback = async () => {
         try {
@@ -145,7 +145,7 @@ export function applyPatch() {
           if (!(err instanceof ApiError)) {
             // Log with a stack trace in case of unexpected DB problems. Don't bother logging for
             // errors (like ApiError) that clearly come from our own code.
-            log.debug('TypeORM transaction error', err);
+            log.debug("TypeORM transaction error", err);
           }
           try {
             // we throw original error even if rollback thrown an error
@@ -225,7 +225,7 @@ async function callWithRetry<T>(op: () => Promise<T>, options: {
  *************************************************************/
 
 // Augment the interface globally
-declare module 'typeorm/query-builder/QueryBuilder' {
+declare module "typeorm/query-builder/QueryBuilder" {
   interface QueryBuilder<Entity> {
     chain<Q extends QueryBuilder<Entity>>(this: Q, callback: (qb: Q) => Q): Q
   }
@@ -305,7 +305,7 @@ const prefixCounts = new Map<string, number>();
  * Pick a name for a statement.
  */
 export function pickStatementName(query: string): string {
-  const prefix = query.toLowerCase().replace(/["']/g, '').replace(/[^a-z0-9]/g, '_').slice(0, 16);
+  const prefix = query.toLowerCase().replace(/["']/g, "").replace(/[^a-z0-9]/g, "_").slice(0, 16);
   const count = (prefixCounts.get(prefix) || 0) + 1;
   prefixCounts.set(prefix, count);
   return `prep_${prefix}_${count}`;
@@ -367,7 +367,7 @@ export class PostgresQueryRunnerPatched extends PostgresQueryRunner {
 }
 
 export class PostgresDriverPatched extends PostgresDriver {
-  public createQueryRunner(mode: 'master' | 'slave'): PostgresQueryRunner {
+  public createQueryRunner(mode: "master" | "slave"): PostgresQueryRunner {
     return new PostgresQueryRunnerPatched(this, mode);
   }
 }

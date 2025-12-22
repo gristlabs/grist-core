@@ -1,28 +1,28 @@
-import { UserAPIImpl } from 'app/common/UserAPI';
-import { WebhookSubscription } from 'app/server/lib/DocApi';
-import axios from 'axios';
-import { assert } from 'chai';
-import * as express from 'express';
-import { tmpdir } from 'os';
-import * as path from 'path';
-import { createClient } from 'redis';
-import { configForUser } from 'test/gen-server/testUtils';
-import { serveSomething, Serving } from 'test/server/customUtil';
-import { prepareDatabase } from 'test/server/lib/helpers/PrepareDatabase';
-import { prepareFilesystemDirectoryForTests } from 'test/server/lib/helpers/PrepareFilesystemDirectoryForTests';
-import { signal } from 'test/server/lib/helpers/Signal';
-import { TestProxyServer } from 'test/server/lib/helpers/TestProxyServer';
-import { TestServer } from 'test/server/lib/helpers/TestServer';
-import * as testUtils from 'test/server/testUtils';
+import { UserAPIImpl } from "app/common/UserAPI";
+import { WebhookSubscription } from "app/server/lib/DocApi";
+import axios from "axios";
+import { assert } from "chai";
+import * as express from "express";
+import { tmpdir } from "os";
+import * as path from "path";
+import { createClient } from "redis";
+import { configForUser } from "test/gen-server/testUtils";
+import { serveSomething, Serving } from "test/server/customUtil";
+import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";
+import { prepareFilesystemDirectoryForTests } from "test/server/lib/helpers/PrepareFilesystemDirectoryForTests";
+import { signal } from "test/server/lib/helpers/Signal";
+import { TestProxyServer } from "test/server/lib/helpers/TestProxyServer";
+import { TestServer } from "test/server/lib/helpers/TestServer";
+import * as testUtils from "test/server/testUtils";
 
-const chimpy = configForUser('Chimpy');
+const chimpy = configForUser("Chimpy");
 
 // some doc ids
 const docIds: { [name: string]: string } = {
-  ApiDataRecordsTest: 'sampledocid_7',
-  Timesheets: 'sampledocid_13',
-  Bananas: 'sampledocid_6',
-  Antartic: 'sampledocid_11',
+  ApiDataRecordsTest: "sampledocid_7",
+  Timesheets: "sampledocid_13",
+  Bananas: "sampledocid_6",
+  Antartic: "sampledocid_11",
 };
 
 let dataDir: string;
@@ -49,7 +49,7 @@ function backupEnvironmentVariables() {
 const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
 const webhooksTestProxyPort = Number(process.env.WEBHOOK_TEST_PROXY_PORT || 22335);
 
-describe('Webhooks-Proxy', function() {
+describe("Webhooks-Proxy", function() {
   // A testDir of the form grist_test_{USER}_{SERVER_NAME}
   // - its a directory that will be base for all test related files and activities
   const username = process.env.USER || "nobody";
@@ -58,7 +58,7 @@ describe('Webhooks-Proxy', function() {
   let docs: TestServer;
 
   this.timeout(30000);
-  testUtils.setTmpLogLevel('debug');
+  testUtils.setTmpLogLevel("debug");
   // test might override environment values, therefore we need to backup current ones to restore them later
   backupEnvironmentVariables();
 
@@ -71,8 +71,8 @@ describe('Webhooks-Proxy', function() {
 
       // create TestDoc as an empty doc into Private workspace
       userApi = api = home.makeUserApi(ORG_NAME);
-      const wid = await getWorkspaceId(api, 'Private');
-      docIds.TestDoc = await api.newDoc({ name: 'TestDoc' }, wid);
+      const wid = await getWorkspaceId(api, "Private");
+      docIds.TestDoc = await api.newDoc({ name: "TestDoc" }, wid);
     });
 
     after(async function() {
@@ -86,11 +86,11 @@ describe('Webhooks-Proxy', function() {
     });
   }
 
-  describe('Proxy is configured', function() {
+  describe("Proxy is configured", function() {
     runServerConfigurations({ GRIST_HTTPS_PROXY: `http://localhost:${webhooksTestProxyPort}` }, () => testWebhookProxy(true));
   });
 
-  describe('Proxy not configured', function() {
+  describe("Proxy not configured", function() {
     runServerConfigurations({ GRIST_HTTPS_PROXY: undefined }, () => testWebhookProxy(false));
   });
 
@@ -119,8 +119,8 @@ describe('Webhooks-Proxy', function() {
      *  Future tests must be added within the testDocApi() function.
      */
     describe("should work with a merged server", async () => {
-      setupMockServers('merged', tmpDir, async () => {
-        home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionaEnvConfiguration);
+      setupMockServers("merged", tmpDir, async () => {
+        home = docs = await TestServer.startServer("home,docs", tmpDir, suitename, additionaEnvConfiguration);
         serverUrl = home.serverUrl;
       });
       subTestCall();
@@ -129,18 +129,18 @@ describe('Webhooks-Proxy', function() {
     // the way these tests are written, non-merged server requires redis.
     if (process.env.TEST_REDIS_URL) {
       describe("should work with a home server and a docworker", async () => {
-        setupMockServers('separated', tmpDir, async () => {
-          home = await TestServer.startServer('home', tmpDir, suitename, additionaEnvConfiguration);
-          docs = await TestServer.startServer('docs', tmpDir, suitename, additionaEnvConfiguration, home.serverUrl);
+        setupMockServers("separated", tmpDir, async () => {
+          home = await TestServer.startServer("home", tmpDir, suitename, additionaEnvConfiguration);
+          docs = await TestServer.startServer("docs", tmpDir, suitename, additionaEnvConfiguration, home.serverUrl);
           serverUrl = home.serverUrl;
         });
         subTestCall();
       });
 
       describe("should work directly with a docworker", async () => {
-        setupMockServers('docs', tmpDir, async () => {
-          home = await TestServer.startServer('home', tmpDir, suitename, additionaEnvConfiguration);
-          docs = await TestServer.startServer('docs', tmpDir, suitename, additionaEnvConfiguration, home.serverUrl);
+        setupMockServers("docs", tmpDir, async () => {
+          home = await TestServer.startServer("home", tmpDir, suitename, additionaEnvConfiguration);
+          docs = await TestServer.startServer("docs", tmpDir, suitename, additionaEnvConfiguration, home.serverUrl);
           serverUrl = docs.serverUrl;
         });
         subTestCall();
@@ -149,7 +149,7 @@ describe('Webhooks-Proxy', function() {
   }
 
   function testWebhookProxy(shouldProxyBeCalled: boolean) {
-    describe('calling registered webhooks after data update', function() {
+    describe("calling registered webhooks after data update", function() {
       let serving: Serving;  // manages the test webhook server
       let testProxyServer: TestProxyServer;  // manages the test webhook server
 
@@ -169,10 +169,10 @@ describe('Webhooks-Proxy', function() {
         }) {
         // Subscribe helper that returns a method to unsubscribe.
         const data = await subscribe(endpoint, docId, options);
-        return () => unsubscribe(docId, data, options?.tableId ?? 'Table1');
+        return () => unsubscribe(docId, data, options?.tableId ?? "Table1");
       }
 
-      function unsubscribe(docId: string, data: any, tableId = 'Table1') {
+      function unsubscribe(docId: string, data: any, tableId = "Table1") {
         return axios.post(
           `${serverUrl}/api/docs/${docId}/tables/${tableId}/_unsubscribe`,
           data, chimpy,
@@ -186,11 +186,11 @@ describe('Webhooks-Proxy', function() {
       }) {
         // Subscribe helper that returns a method to unsubscribe.
         const { data, status } = await axios.post(
-          `${serverUrl}/api/docs/${docId}/tables/${options?.tableId ?? 'Table1'}/_subscribe`,
+          `${serverUrl}/api/docs/${docId}/tables/${options?.tableId ?? "Table1"}/_subscribe`,
           {
-            eventTypes: options?.eventTypes ?? ['add', 'update'],
+            eventTypes: options?.eventTypes ?? ["add", "update"],
             url: `${serving.url}/${endpoint}`,
-            isReadyColumn: options?.isReadyColumn === undefined ? 'B' : options?.isReadyColumn,
+            isReadyColumn: options?.isReadyColumn === undefined ? "B" : options?.isReadyColumn,
           }, chimpy,
         );
         assert.equal(status, 200);
@@ -208,17 +208,17 @@ describe('Webhooks-Proxy', function() {
         this.timeout(30000);
         serving = await serveSomething((app) => {
           app.use(express.json());
-          app.post('/200', ({ body }, res) => {
+          app.post("/200", ({ body }, res) => {
             successCalled.emit(body[0].A);
             res.sendStatus(200);
             res.end();
           });
-          app.post('/201', ({ body }, res) => {
+          app.post("/201", ({ body }, res) => {
             createdCalled.emit(body[0].A);
             res.sendStatus(201);
             res.end();
           });
-          app.post('/404', ({ body }, res) => {
+          app.post("/404", ({ body }, res) => {
             notFoundCalled.emit(body[0].A);
             res.sendStatus(404); // Webhooks treats it as an error and will retry. Probably it shouldn't work this way.
             res.end();
@@ -265,11 +265,11 @@ describe('Webhooks-Proxy', function() {
 
       async function runTestCase() {
         // Create a test document.
-        const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
-        const docId = await userApi.newDoc({ name: 'testdoc2' }, ws1);
+        const ws1 = (await userApi.getOrgWorkspaces("current"))[0].id;
+        const docId = await userApi.newDoc({ name: "testdoc2" }, ws1);
         const doc = userApi.getDocAPI(docId);
         await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
-          ['ModifyColumn', 'Table1', 'B', { type: 'Bool' }],
+          ["ModifyColumn", "Table1", "B", { type: "Bool" }],
         ], chimpy);
 
         // Try to clear the queue, even if it is empty.
@@ -278,10 +278,10 @@ describe('Webhooks-Proxy', function() {
         const cleanup: (() => Promise<any>)[] = [];
 
         // Subscribe a valid webhook endpoint.
-        cleanup.push(await autoSubscribe('200', docId));
-        cleanup.push(await autoSubscribe('201', docId));
+        cleanup.push(await autoSubscribe("200", docId));
+        cleanup.push(await autoSubscribe("201", docId));
         // Subscribe an invalid webhook endpoint.
-        cleanup.push(await autoSubscribe('404', docId));
+        cleanup.push(await autoSubscribe("404", docId));
 
         // Prepare signals, we will be waiting for those two to be called.
         successCalled.reset();
@@ -314,9 +314,9 @@ describe('Webhooks-Proxy', function() {
   }
 });
 
-const ORG_NAME = 'docs-1';
+const ORG_NAME = "docs-1";
 
 async function getWorkspaceId(api: UserAPIImpl, name: string) {
-  const workspaces = await api.getOrgWorkspaces('current');
+  const workspaces = await api.getOrgWorkspaces("current");
   return workspaces.find(w => w.name === name)!.id;
 }

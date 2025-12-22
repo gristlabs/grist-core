@@ -1,59 +1,59 @@
-import { UserAPI } from 'app/common/UserAPI';
-import axios from 'axios';
-import { assert } from 'chai';
-import * as fse from 'fs-extra';
-import { TestServer } from 'test/gen-server/apiUtils';
-import { configForUser } from 'test/gen-server/testUtils';
-import { createTmpDir } from 'test/server/docTools';
-import { openClient } from 'test/server/gristClient';
-import * as testUtils from 'test/server/testUtils';
+import { UserAPI } from "app/common/UserAPI";
+import axios from "axios";
+import { assert } from "chai";
+import * as fse from "fs-extra";
+import { TestServer } from "test/gen-server/apiUtils";
+import { configForUser } from "test/gen-server/testUtils";
+import { createTmpDir } from "test/server/docTools";
+import { openClient } from "test/server/gristClient";
+import * as testUtils from "test/server/testUtils";
 
-const chimpy = configForUser('Chimpy');
-const kiwi = configForUser('Kiwi');
+const chimpy = configForUser("Chimpy");
+const kiwi = configForUser("Kiwi");
 
-describe('DocApi2', function() {
+describe("DocApi2", function() {
   this.timeout(40000);
   let server: TestServer;
   let homeUrl: string;
   let owner: UserAPI;
   let wsId: number;
-  testUtils.setTmpLogLevel('error');
+  testUtils.setTmpLogLevel("error");
   let oldEnv: testUtils.EnvironmentSnapshot;
 
   before(async function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     const tmpDir = await createTmpDir();
     process.env.GRIST_DATA_DIR = tmpDir;
-    process.env.STRIPE_ENDPOINT_SECRET = 'TEST_WITHOUT_ENDPOINT_SECRET';
+    process.env.STRIPE_ENDPOINT_SECRET = "TEST_WITHOUT_ENDPOINT_SECRET";
     // Use the TEST_REDIS_URL as the global redis url, if supplied.
     if (process.env.TEST_REDIS_URL && !process.env.REDIS_URL) {
       process.env.REDIS_URL = process.env.TEST_REDIS_URL;
     }
 
     server = new TestServer(this);
-    homeUrl = await server.start(['home', 'docs']);
-    const api = await server.createHomeApi('chimpy', 'docs', true);
-    await api.newOrg({ name: 'testy', domain: 'testy' });
-    owner = await server.createHomeApi('chimpy', 'testy', true);
-    wsId = await owner.newWorkspace({ name: 'ws' }, 'current');
+    homeUrl = await server.start(["home", "docs"]);
+    const api = await server.createHomeApi("chimpy", "docs", true);
+    await api.newOrg({ name: "testy", domain: "testy" });
+    owner = await server.createHomeApi("chimpy", "testy", true);
+    wsId = await owner.newWorkspace({ name: "ws" }, "current");
   });
 
   after(async function() {
-    const api = await server.createHomeApi('chimpy', 'docs');
-    await api.deleteOrg('testy');
+    const api = await server.createHomeApi("chimpy", "docs");
+    await api.deleteOrg("testy");
     await server.stop();
     oldEnv.restore();
   });
 
-  describe('bugs and fixes', async () => {
-    it('/move endpoint scales well with user count', async function() {
+  describe("bugs and fixes", async () => {
+    it("/move endpoint scales well with user count", async function() {
       this.timeout(120000); // Increase timeout for creating many users
 
       const testScenarios = [
-        { userCount: 5, label: 'small document' },
-        { userCount: 5, label: 'small document' }, // Use results from second run to avoid cold start issues
-        { userCount: 100, label: 'large document' },
-        { userCount: 100, label: 'large document' },
+        { userCount: 5, label: "small document" },
+        { userCount: 5, label: "small document" }, // Use results from second run to avoid cold start issues
+        { userCount: 100, label: "large document" },
+        { userCount: 100, label: "large document" },
       ];
 
       const results = new Map<number, number>();
@@ -72,13 +72,13 @@ describe('DocApi2', function() {
         // Share the document with all users
         await owner.updateDocPermissions(docId, {
           users: userEmails.reduce((acc, email) => {
-            acc[email] = 'viewers';
+            acc[email] = "viewers";
             return acc;
-          }, {} as { [email: string]: 'viewers' }),
+          }, {} as { [email: string]: "viewers" }),
         });
 
         // Create a new workspace called "TO"
-        const toWsId = await owner.newWorkspace({ name: `TO_${scenario.userCount}` }, 'current');
+        const toWsId = await owner.newWorkspace({ name: `TO_${scenario.userCount}` }, "current");
 
         try {
           // Measure the time it takes to move the document
@@ -107,23 +107,23 @@ describe('DocApi2', function() {
       assert.isAtMost(largeDocTime, smallDocTime * 7); // As for 20251008 on my machine it is ~5x
     });
 
-    it('/move endpoint scales well with user count (cross-org)', async function() {
+    it("/move endpoint scales well with user count (cross-org)", async function() {
       this.timeout(120000); // Increase timeout for creating many users
 
       const testScenarios = [
-        { userCount: 5, label: 'small document' },
-        { userCount: 5, label: 'small document' }, // Use results from second run to avoid cold start issues
-        { userCount: 100, label: 'large document' },
-        { userCount: 100, label: 'large document' },
+        { userCount: 5, label: "small document" },
+        { userCount: 5, label: "small document" }, // Use results from second run to avoid cold start issues
+        { userCount: 100, label: "large document" },
+        { userCount: 100, label: "large document" },
       ];
 
       const results = new Map<number, number>();
 
       // Create a destination org
-      const destApi = await server.createHomeApi('chimpy', 'docs', true);
-      await destApi.newOrg({ name: 'dest-org', domain: 'dest-org' });
-      const destOwner = await server.createHomeApi('chimpy', 'dest-org', true);
-      const destWsId = await destOwner.newWorkspace({ name: 'dest-ws' }, 'current');
+      const destApi = await server.createHomeApi("chimpy", "docs", true);
+      await destApi.newOrg({ name: "dest-org", domain: "dest-org" });
+      const destOwner = await server.createHomeApi("chimpy", "dest-org", true);
+      const destWsId = await destOwner.newWorkspace({ name: "dest-ws" }, "current");
 
       try {
         for (const scenario of testScenarios) {
@@ -140,9 +140,9 @@ describe('DocApi2', function() {
           // Share the document with all users
           await owner.updateDocPermissions(docId, {
             users: userEmails.reduce((acc, email) => {
-              acc[email] = 'viewers';
+              acc[email] = "viewers";
               return acc;
-            }, {} as { [email: string]: 'viewers' }),
+            }, {} as { [email: string]: "viewers" }),
           });
 
           try {
@@ -172,20 +172,20 @@ describe('DocApi2', function() {
       }
       finally {
         // Clean up: delete the destination org
-        await destApi.deleteOrg('dest-org');
+        await destApi.deleteOrg("dest-org");
       }
     });
   });
 
-  describe('DELETE /docs/{did}', async () => {
-    it('permanently deletes a document and all of its forks', async function() {
+  describe("DELETE /docs/{did}", async () => {
+    it("permanently deletes a document and all of its forks", async function() {
       // Create a new document and fork it twice.
-      const docId = await owner.newDoc({ name: 'doc' }, wsId);
+      const docId = await owner.newDoc({ name: "doc" }, wsId);
       const session = await owner.getSessionActive();
-      const client = await openClient(server.server, session.user.email, session.org?.domain || 'docs');
+      const client = await openClient(server.server, session.user.email, session.org?.domain || "docs");
       await client.openDocOnConnect(docId);
-      const forkDocResponse1 = await client.send('fork', 0);
-      const forkDocResponse2 = await client.send('fork', 0);
+      const forkDocResponse1 = await client.send("fork", 0);
+      const forkDocResponse2 = await client.send("fork", 0);
 
       // Check that files were created for the trunk and forks.
       const docPath = server.server.getStorageManager().getPath(docId);
@@ -206,10 +206,10 @@ describe('DocApi2', function() {
     });
   });
 
-  describe('/docs/{did}/timing', async () => {
+  describe("/docs/{did}/timing", async () => {
     let docId: string;
     before(async function() {
-      docId = await owner.newDoc({ name: 'doc2' }, wsId);
+      docId = await owner.newDoc({ name: "doc2" }, wsId);
     });
 
     after(async function() {
@@ -221,11 +221,11 @@ describe('DocApi2', function() {
     // and that it returns sane results. Exact tests are done in python.
 
     // Smoke test.
-    it('POST /docs/{did}/timing smoke tests', async function() {
+    it("POST /docs/{did}/timing smoke tests", async function() {
       // We are disabled.
       let resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
       assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, { status: 'disabled' });
+      assert.deepEqual(resp.data, { status: "disabled" });
 
       // Start it.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
@@ -237,7 +237,7 @@ describe('DocApi2', function() {
       assert.deepEqual(resp.data, []);
     });
 
-    it('POST /docs/{did}/timing/start', async function() {
+    it("POST /docs/{did}/timing/start", async function() {
       // Start timing as non owner, should fail.
       let resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, kiwi);
       assert.equal(resp.status, 403);
@@ -249,7 +249,7 @@ describe('DocApi2', function() {
       // Check as owner.
       resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
       assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, { status: 'disabled' });
+      assert.deepEqual(resp.data, { status: "disabled" });
 
       // Start timing as owner.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
@@ -258,7 +258,7 @@ describe('DocApi2', function() {
       // Check we are started.
       resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
       assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, { status: 'active', timing: [] });
+      assert.deepEqual(resp.data, { status: "active", timing: [] });
 
       // Starting timing again works as expected, returns 400 as this is already.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
@@ -269,7 +269,7 @@ describe('DocApi2', function() {
       assert.equal(resp.status, 403);
     });
 
-    it('POST /docs/{did}/timing/stop', async function() {
+    it("POST /docs/{did}/timing/stop", async function() {
       // Timings are turned on, so we can stop them.
       // First as non owner, we should fail.
       let resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/stop`, {}, kiwi);
@@ -284,7 +284,7 @@ describe('DocApi2', function() {
       assert.equal(resp.status, 400);
     });
 
-    it('GET /docs/{did}/timing', async function() {
+    it("GET /docs/{did}/timing", async function() {
       // Now we can check the results. Start timing and check that we got [] in response.
       let resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
       assert.equal(resp.status, 200);
@@ -295,8 +295,8 @@ describe('DocApi2', function() {
 
       // Now create a table with a formula column and make sure we see it in the results.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/apply`, [
-        ['AddTable', 'Timings', [
-          { id: 'A', formula: '$id' },
+        ["AddTable", "Timings", [
+          { id: "A", formula: "$id" },
         ]],
       ], chimpy);
       assert.equal(resp.status, 200);
@@ -308,11 +308,11 @@ describe('DocApi2', function() {
       // Make sure we see that it is active and we have some intermediate results
       resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
       assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, { status: 'active', timing: [] });
+      assert.deepEqual(resp.data, { status: "active", timing: [] });
 
       // And trigger some formula calculations.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/apply`, [
-        ['BulkAddRecord', 'Timings', [null, null], {}],
+        ["BulkAddRecord", "Timings", [null, null], {}],
       ], chimpy);
       assert.equal(resp.status, 200, JSON.stringify(resp.data));
 
@@ -340,18 +340,18 @@ describe('DocApi2', function() {
       }[];
 
       assert.isAbove(data.length, 0);
-      assert.equal(data[0].tableId, 'Timings');
-      assert.isTrue(typeof data[0].sum === 'number');
-      assert.isTrue(typeof data[0].count === 'number');
-      assert.isTrue(typeof data[0].average === 'number');
-      assert.isTrue(typeof data[0].max === 'number');
+      assert.equal(data[0].tableId, "Timings");
+      assert.isTrue(typeof data[0].sum === "number");
+      assert.isTrue(typeof data[0].count === "number");
+      assert.isTrue(typeof data[0].average === "number");
+      assert.isTrue(typeof data[0].max === "number");
     });
 
-    it('POST /docs/{did}/timing/start remembers state after reload', async function() {
+    it("POST /docs/{did}/timing/start remembers state after reload", async function() {
       // Make sure we are off.
       let resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
       assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, { status: 'disabled' });
+      assert.deepEqual(resp.data, { status: "disabled" });
 
       // Now start it.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
@@ -364,7 +364,7 @@ describe('DocApi2', function() {
       // And check that we are still on.
       resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
       assert.equal(resp.status, 200, JSON.stringify(resp.data));
-      assert.equal(resp.data.status, 'active');
+      assert.equal(resp.data.status, "active");
       assert.isNotEmpty(resp.data.timing);
     });
   });

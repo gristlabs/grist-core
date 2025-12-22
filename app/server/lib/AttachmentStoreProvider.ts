@@ -1,11 +1,11 @@
-import { appSettings } from 'app/server/lib/AppSettings';
-import { FilesystemAttachmentStore, IAttachmentStore } from 'app/server/lib/AttachmentStore';
-import { create } from 'app/server/lib/create';
-import log from 'app/server/lib/log';
-import { ICreateAttachmentStoreOptions } from 'app/server/lib/ICreate';
-import * as fse from 'fs-extra';
-import path from 'path';
-import * as tmp from 'tmp-promise';
+import { appSettings } from "app/server/lib/AppSettings";
+import { FilesystemAttachmentStore, IAttachmentStore } from "app/server/lib/AttachmentStore";
+import { create } from "app/server/lib/create";
+import log from "app/server/lib/log";
+import { ICreateAttachmentStoreOptions } from "app/server/lib/ICreate";
+import * as fse from "fs-extra";
+import path from "path";
+import * as tmp from "tmp-promise";
 
 export type AttachmentStoreId = string;
 
@@ -143,7 +143,7 @@ export async function makeTempFilesystemStoreSpec(
   // Allow tests to override the temp directory used for attachments, otherwise Grist will
   // use different temp directory after restarting the server.
   const tempDir = process.env.GRIST_TEST_ATTACHMENTS_DIR ||
-    await fse.mkdtemp(path.join(tempFolder.path, 'filesystem-store-test-'));
+    await fse.mkdtemp(path.join(tempFolder.path, "filesystem-store-test-"));
 
   return {
     rootDirectory: tempDir,
@@ -160,10 +160,10 @@ const GRIST_EXTERNAL_ATTACHMENTS_MODE = settings.flag("mode").requireString({
 
 export function getConfiguredStandardAttachmentStore(): string | undefined {
   switch (GRIST_EXTERNAL_ATTACHMENTS_MODE) {
-    case 'snapshots':
-      return 'snapshots';
-    case 'test':
-      return 'test-filesystem';
+    case "snapshots":
+      return "snapshots";
+    case "test":
+      return "test-filesystem";
     default:
       return undefined;
   }
@@ -176,7 +176,7 @@ export class UnsupportedExternalAttachmentsMode extends Error {
 }
 
 export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachmentStoreConfig[]> {
-  if (GRIST_EXTERNAL_ATTACHMENTS_MODE === 'snapshots') {
+  if (GRIST_EXTERNAL_ATTACHMENTS_MODE === "snapshots") {
     const snapshotProvider = create.getAttachmentStoreOptions().snapshots;
     // This shouldn't happen - it could only happen if a version of Grist removes the snapshot provider from ICreate.
     if (snapshotProvider === undefined) {
@@ -187,14 +187,14 @@ export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachment
       return [];
     }
     return [{
-      label: 'snapshots',
+      label: "snapshots",
       spec: snapshotProvider,
     }];
   }
   // TODO This mode should be removed once stores can be configured fully via env vars.
-  if (GRIST_EXTERNAL_ATTACHMENTS_MODE === 'test') {
+  if (GRIST_EXTERNAL_ATTACHMENTS_MODE === "test") {
     return [{
-      label: 'test-filesystem',
+      label: "test-filesystem",
       spec: await makeTempFilesystemStoreSpec(),
     }];
   }

@@ -9,12 +9,12 @@
  *
  * TODO: Consider merging this into grainjs's input widget.
  */
-import { theme } from 'app/client/ui2018/cssVars';
-import { dom, DomArg, styled } from 'grainjs';
-import { Observable } from 'grainjs';
-import noop from 'lodash/noop';
+import { theme } from "app/client/ui2018/cssVars";
+import { dom, DomArg, styled } from "grainjs";
+import { Observable } from "grainjs";
+import noop from "lodash/noop";
 
-const cssWrapper = styled('div', `
+const cssWrapper = styled("div", `
   position: relative;
   display: inline-block;
 `);
@@ -42,7 +42,7 @@ export const cssLabelText = styled(rawTextInput, `
   color: inherit;
 `);
 
-export const cssTextInput = styled('input', `
+export const cssTextInput = styled("input", `
   outline: none;
   height: 28px;
   border: 1px solid ${theme.inputBorder};
@@ -50,7 +50,7 @@ export const cssTextInput = styled('input', `
   padding: 0 6px;
 `);
 
-const cssSizer = styled('div', `
+const cssSizer = styled("div", `
   visibility: hidden;
   overflow: visible;
   white-space: pre;
@@ -88,7 +88,7 @@ export function editableLabel(label: Observable<string>, options: EditableLabelO
   return cssWrapper(
     sizer = cssSizer(label.get()),
     input = rawTextInput(label, save, updateSizer, dom.cls(cssLabelText.className),
-      dom.on('focus', () => input.select()),
+      dom.on("focus", () => input.select()),
       ...inputArgs ?? [],
     ),
     ...args ?? [],
@@ -143,14 +143,14 @@ export function rawTextInput(value: Observable<string>, save: SaveFunc, onChange
     }
   }
 
-  return inputEl = dom('input',
+  return inputEl = dom("input",
     dom.autoDispose(lis),
-    { type: 'text' },
-    dom.on('input', () => { status = Status.EDITING; onChange(); }),
-    dom.on('blur', saveEdit),
+    { type: "text" },
+    dom.on("input", () => { status = Status.EDITING; onChange(); }),
+    dom.on("blur", saveEdit),
     // we set the attribute to the initial value and keep it updated for the convenience of usage
     // with selenium webdriver
-    dom.attr('value', value),
+    dom.attr("value", value),
     dom.onKeyDown({
       Escape: revertToSaved,
       Enter: saveEdit,

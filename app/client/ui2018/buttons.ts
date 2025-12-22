@@ -12,12 +12,12 @@
  * `primaryButton('Primary button', dom.prop('disabled', true))`
  */
 
-import { theme, vars } from 'app/client/ui2018/cssVars';
-import { tbind } from 'app/common/tbind';
-import { components, tokens } from 'app/common/ThemePrefs';
-import { BindableValue, dom, DomElementArg, styled } from 'grainjs';
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { tbind } from "app/common/tbind";
+import { components, tokens } from "app/common/ThemePrefs";
+import { BindableValue, dom, DomElementArg, styled } from "grainjs";
 
-export const cssButton = styled('button', `
+export const cssButton = styled("button", `
   /* Resets */
   position: relative;
   outline: none;
@@ -86,8 +86,8 @@ interface IButtonProps {
 export function button(props: IButtonProps, ...domArgs: DomElementArg[]) {
   const elem = props.link ? cssButtonLink(dom.cls(cssButton.className)) : cssButton();
   return dom.update(elem,
-    cssButton.cls('-large', props.large ?? false),
-    cssButton.cls('-primary', props.primary ?? false),
+    cssButton.cls("-large", props.large ?? false),
+    cssButton.cls("-primary", props.primary ?? false),
     ...domArgs,
   );
 }
@@ -144,14 +144,14 @@ export const textButton = styled(cssButton, `
   }
 `);
 
-const cssButtonLink = styled('a', `
+const cssButtonLink = styled("a", `
   display: inline-block;
   &, &:hover, &:focus {
     text-decoration: none;
   }
 `);
 
-export const cssButtonGroup = styled('div', `
+export const cssButtonGroup = styled("div", `
   display: flex;
   flex-direction: row;
 

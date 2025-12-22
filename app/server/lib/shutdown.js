@@ -3,10 +3,10 @@
  */
 
 
-import log from 'app/server/lib/log';
-import Promise from 'bluebird';
+import log from "app/server/lib/log";
+import Promise from "bluebird";
 
-import os from 'node:os';
+import os from "node:os";
 
 var cleanupHandlers = [];
 
@@ -21,7 +21,7 @@ var signalsHandled = {};
  *    because it's no good for a cleanup handler to block the shutdown process indefinitely.
  * @param {String} name A title to show in log messages to distinguish one handler from another.
  */
-export function addCleanupHandler(context, method, timeout = 1000, name = 'unknown') {
+export function addCleanupHandler(context, method, timeout = 1000, name = "unknown") {
   cleanupHandlers.push({
     context,
     method,
@@ -69,7 +69,7 @@ function runCleanupHandlers() {
  * exits propagating the same signal code than the one caught.
  */
 function signalExit(signal) {
-  var prog = 'grist[' + process.pid + ']';
+  var prog = "grist[" + process.pid + "]";
   log.info("Server %s got signal %s; cleaning up (%d handlers)",
     prog, signal, cleanupHandlers.length);
   function dup() {
@@ -108,7 +108,7 @@ export function cleanupOnSignals(varSignalNames) {
  * Run cleanup handlers and exit the process with the given exit code (0 if omitted).
  */
 export function exit(optExitCode) {
-  var prog = 'grist[' + process.pid + ']';
+  var prog = "grist[" + process.pid + "]";
   var code = optExitCode || 0;
   log.info("Server %s cleaning up", prog);
   return runCleanupHandlers()

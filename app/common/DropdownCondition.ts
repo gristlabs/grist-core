@@ -1,4 +1,4 @@
-import { CompiledPredicateFormula } from 'app/common/PredicateFormula';
+import { CompiledPredicateFormula } from "app/common/PredicateFormula";
 
 export interface DropdownCondition {
   text: string;
@@ -10,11 +10,11 @@ export type DropdownConditionCompilationResult =
   DropdownConditionCompilationFailure;
 
 interface DropdownConditionCompilationSuccess {
-  kind: 'success';
+  kind: "success";
   result: CompiledPredicateFormula;
 }
 
 interface DropdownConditionCompilationFailure {
-  kind: 'failure';
+  kind: "failure";
   error: string;
 }

@@ -1,5 +1,5 @@
-import { ThemeTokens, tokens } from 'app/common/ThemePrefs';
-import { Base } from 'app/common/themes/Base';
+import { ThemeTokens, tokens } from "app/common/ThemePrefs";
+import { Base } from "app/common/themes/Base";
 
 /**
  * Dark Grist theme. Uses the BaseTheme and describes the dark-theme colors.
@@ -11,45 +11,45 @@ export const GristDark: ThemeTokens = {
   emphasis: tokens.white,
   veryLight: "#efefef",
 
-  bg: '#32323f',
-  bgSecondary: '#262633',
-  bgTertiary: 'rgba(111,111,125,0.6)',
-  bgEmphasis: '#646473',
+  bg: "#32323f",
+  bgSecondary: "#262633",
+  bgTertiary: "rgba(111,111,125,0.6)",
+  bgEmphasis: "#646473",
 
-  decoration: '#70707d',
-  decorationSecondary: '#60606d',
-  decorationTertiary: '#555563',
+  decoration: "#70707d",
+  decorationSecondary: "#60606d",
+  decorationTertiary: "#555563",
 
-  primary: '#17b378',
-  primaryMuted: '#1da270',
-  primaryDim: '#157a54',
-  primaryEmphasis: '#13d78d',
-  primaryTranslucent: 'rgba(23, 179, 120, 0.5)',
+  primary: "#17b378",
+  primaryMuted: "#1da270",
+  primaryDim: "#157a54",
+  primaryEmphasis: "#13d78d",
+  primaryTranslucent: "rgba(23, 179, 120, 0.5)",
 
-  secondary: '#a4a4b1',
-  secondaryMuted: '#bebebe',
+  secondary: "#a4a4b1",
+  secondaryMuted: "#bebebe",
 
-  controlBorderRadius: '4px',
+  controlBorderRadius: "4px",
 
   cursor: tokens.primaryMuted,
-  cursorInactive: 'rgba(29,162,112,0.5)',
+  cursorInactive: "rgba(29,162,112,0.5)",
 
-  selection: 'rgba(22,179,120,0.15)',
-  selectionOpaque: '#2f4748',
-  selectionDarkerOpaque: '#253e3e',
-  selectionDarker: 'rgba(22,179,120,0.25)',
-  selectionDarkest: 'rgba(22,179,120,0.35)',
+  selection: "rgba(22,179,120,0.15)",
+  selectionOpaque: "#2f4748",
+  selectionDarkerOpaque: "#253e3e",
+  selectionDarker: "rgba(22,179,120,0.25)",
+  selectionDarkest: "rgba(22,179,120,0.35)",
 
-  hover: '#a4a4b1',
-  backdrop: 'rgba(0,0,0,0.6)',
+  hover: "#a4a4b1",
+  backdrop: "rgba(0,0,0,0.6)",
 
   components: {
     ...Base.components,
 
     /* Text */
-    mediumText: '#d5d5d5',
-    errorText: '#e63946',
-    errorTextHover: '#ff5c5c',
+    mediumText: "#d5d5d5",
+    errorText: "#e63946",
+    errorTextHover: "#ff5c5c",
 
     /* Page */
     pageBackdrop: tokens.black,
@@ -58,7 +58,7 @@ export const GristDark: ThemeTokens = {
     pagePanelsBorder: tokens.decorationSecondary,
 
     /* Add New */
-    addNewCircleBg: '#0a5438',
+    addNewCircleBg: "#0a5438",
     addNewCircleSmallBg: tokens.primaryDim,
 
     /* Top Bar */
@@ -66,9 +66,9 @@ export const GristDark: ThemeTokens = {
 
     /* Toasts */
     toastMemoBg: tokens.decorationTertiary,
-    toastControlFg: '#16b378',
-    toastSuccessIcon: '#009058',
-    toastSuccessBg: '#009058',
+    toastControlFg: "#16b378",
+    toastSuccessIcon: "#009058",
+    toastSuccessBg: "#009058",
 
     /* Modals */
     modalInnerShadow: tokens.black,
@@ -85,7 +85,7 @@ export const GristDark: ThemeTokens = {
     progressBarErrorFg: tokens.errorLight,
 
     /* Hover */
-    lightHover: 'rgba(111,111,125,0.4)',
+    lightHover: "rgba(111,111,125,0.4)",
 
     /* Cell Editor */
     cellEditorFg: tokens.white,
@@ -93,10 +93,10 @@ export const GristDark: ThemeTokens = {
     /* Tables */
     tableHeaderFg: tokens.body,
     tableHeaderSelectedFg: tokens.body,
-    tableHeaderSelectedBg: '#414358',
+    tableHeaderSelectedBg: "#414358",
     tableHeaderBorder: tokens.decoration,
     tableBodyBorder: tokens.decorationSecondary,
-    tableAddNewBg: '#4a4a5d',
+    tableAddNewBg: "#4a4a5d",
     tableScrollShadow: tokens.black,
     tableFrozenColumnsBorder: tokens.secondary,
     tableDragDropIndicator: tokens.secondary,
@@ -104,9 +104,9 @@ export const GristDark: ThemeTokens = {
 
     /* Cards */
     cardCompactWidgetBg: tokens.bgSecondary,
-    cardBlocksBg: '#404150',
+    cardBlocksBg: "#404150",
     cardFormBorder: tokens.decoration,
-    cardEditingLayoutBg: 'rgba(85,85,99,0.2)',
+    cardEditingLayoutBg: "rgba(85,85,99,0.2)",
 
     /* Card Lists */
     cardListFormBorder: tokens.decorationSecondary,
@@ -118,7 +118,7 @@ export const GristDark: ThemeTokens = {
     selectionDarkest: tokens.selectionDarkest,
     selectionOpaqueBg: tokens.selectionOpaque,
     selectionOpaqueDarkBg: tokens.selectionDarkerOpaque,
-    selectionHeader: 'rgba(107,107,144,0.4)',
+    selectionHeader: "rgba(107,107,144,0.4)",
 
     /* Widgets */
     widgetActiveBorder: tokens.primaryDim,
@@ -135,7 +135,7 @@ export const GristDark: ThemeTokens = {
     controlPrimaryBg: tokens.primaryDim,
     controlHoverFg: tokens.primaryEmphasis,
     controlSecondaryDisabledFg: tokens.decorationSecondary,
-    controlSecondaryHoverBg: '#41414e',
+    controlSecondaryHoverBg: "#41414e",
     controlDisabledFg: tokens.secondary,
     controlDisabledBg: tokens.decoration,
     controlBorder: `1px solid ${tokens.primary}`,
@@ -150,24 +150,24 @@ export const GristDark: ThemeTokens = {
     filterBarButtonSavedBg: tokens.decorationTertiary,
 
     /* Icons */
-    iconError: '#ffa500',
+    iconError: "#ffa500",
 
     /* Icon Buttons */
     iconButtonPrimaryHoverBg: tokens.primaryEmphasis,
 
     /* Left Panel */
-    pageHoverBg: 'rgba(111,111,117,0.25)',
+    pageHoverBg: "rgba(111,111,117,0.25)",
     disabledPageFg: tokens.decoration,
-    pageInitialsBg: '#8e8ea0',
+    pageInitialsBg: "#8e8ea0",
     pageInitialsEmojiOutline: tokens.decoration,
     pageInitialsEmojiBg: tokens.black,
 
     /* Right Panel */
     rightPanelTabBorder: tokens.decorationSecondary,
-    rightPanelTabSelectedIcon: '#16b378',
-    rightPanelTabButtonHoverBg: '#0a5438',
+    rightPanelTabSelectedIcon: "#16b378",
+    rightPanelTabButtonHoverBg: "#0a5438",
     rightPanelSubtabSelectedUnderline: tokens.primaryMuted,
-    rightPanelFieldSettingsBg: '#404150',
+    rightPanelFieldSettingsBg: "#404150",
     rightPanelFieldSettingsButtonBg: tokens.bgEmphasis,
     rightPanelCustomWidgetButtonBg: tokens.decorationSecondary,
 
@@ -188,7 +188,7 @@ export const GristDark: ThemeTokens = {
     /* Choice Tokens */
     choiceTokenBg: tokens.decoration,
     choiceTokenSelectedBg: tokens.decorationTertiary,
-    choiceTokenInvalidBg: '#323240',
+    choiceTokenInvalidBg: "#323240",
 
     /* Choice Entry */
     choiceEntryBorderHover: tokens.secondary,
@@ -210,7 +210,7 @@ export const GristDark: ThemeTokens = {
 
     /* Search */
     searchBorder: tokens.decoration,
-    searchPrevNextButtonBg: '#24242f',
+    searchPrevNextButtonBg: "#24242f",
 
     /* Site Switcher */
     siteSwitcherActiveBg: tokens.black,
@@ -227,29 +227,29 @@ export const GristDark: ThemeTokens = {
     widgetPickerShadow: tokens.black,
 
     /* Code View */
-    codeViewText: '#d2d2d2',
-    codeViewKeyword: '#d2d2d2',
-    codeViewComment: '#888888',
-    codeViewMeta: '#7cd4ff',
-    codeViewTitle: '#ed7373',
-    codeViewParams: '#d2d2d2',
-    codeViewString: '#ed7373',
-    codeViewNumber: '#ed7373',
-    codeViewBuiltin: '#bfe6d8',
-    codeViewLiteral: '#9ed682',
+    codeViewText: "#d2d2d2",
+    codeViewKeyword: "#d2d2d2",
+    codeViewComment: "#888888",
+    codeViewMeta: "#7cd4ff",
+    codeViewTitle: "#ed7373",
+    codeViewParams: "#d2d2d2",
+    codeViewString: "#ed7373",
+    codeViewNumber: "#ed7373",
+    codeViewBuiltin: "#bfe6d8",
+    codeViewLiteral: "#9ed682",
 
     /* Importer */
     importerOutsideBg: tokens.bg,
     importerMainContentBg: tokens.bgSecondary,
-    importerActiveFileBg: '#16b378',
-    importerInactiveFileBg: '#808080',
+    importerActiveFileBg: "#16b378",
+    importerInactiveFileBg: "#808080",
 
     /* Menu Toggles */
     menuToggleHoverFg: tokens.primary,
     menuToggleActiveFg: tokens.primaryEmphasis,
 
     /* Button Groups */
-    buttonGroupBgHover: '#41414e',
+    buttonGroupBgHover: "#41414e",
     buttonGroupBorderHover: tokens.bgEmphasis,
 
     /* Access Rules */
@@ -260,7 +260,7 @@ export const GristDark: ThemeTokens = {
 
     /* Charts */
     chartFg: tokens.secondary,
-    chartLegendBg: 'rgba(50,50,63,0.5)',
+    chartLegendBg: "rgba(50,50,63,0.5)",
     chartXAxis: tokens.secondary,
     chartYAxis: tokens.secondary,
 
@@ -271,36 +271,36 @@ export const GristDark: ThemeTokens = {
 
     /* Date Picker */
     datePickerSelectedFg: tokens.white,
-    datePickerSelectedBg: '#7a7a8d',
-    datePickerSelectedBgHover: '#8d8d9c',
+    datePickerSelectedBg: "#7a7a8d",
+    datePickerSelectedBgHover: "#8d8d9c",
     datePickerTodayBg: tokens.primaryDim,
-    datePickerRangeStartEndBg: '#7a7a8d',
-    datePickerRangeStartEndBgHover: '#8d8d9c',
+    datePickerRangeStartEndBg: "#7a7a8d",
+    datePickerRangeStartEndBgHover: "#8d8d9c",
     datePickerRangeBg: tokens.decorationSecondary,
-    datePickerRangeBgHover: '#7a7a8d',
+    datePickerRangeBgHover: "#7a7a8d",
 
     /* Tutorials */
     tutorialsPopupBoxBg: tokens.decorationSecondary,
     tutorialsPopupCodeFg: tokens.white,
     tutorialsPopupCodeBg: tokens.bgSecondary,
-    tutorialsPopupCodeBorder: '#929299',
+    tutorialsPopupCodeBorder: "#929299",
 
     /* Ace */
     aceAutocompletePrimaryFg: tokens.body,
     aceAutocompleteSecondaryFg: tokens.secondary,
     aceAutocompleteBg: tokens.bg,
     aceAutocompleteBorder: tokens.decoration,
-    aceAutocompleteLink: '#28be86',
-    aceAutocompleteLinkHighlighted: '#45d48b',
+    aceAutocompleteLink: "#28be86",
+    aceAutocompleteLinkHighlighted: "#45d48b",
     aceAutocompleteActiveLineBg: tokens.decorationTertiary,
-    aceAutocompleteLineBorderHover: 'rgba(111,111,125,0.3)',
-    aceAutocompleteLineBgHover: 'rgba(111,111,125,0.3)',
+    aceAutocompleteLineBorderHover: "rgba(111,111,125,0.3)",
+    aceAutocompleteLineBgHover: "rgba(111,111,125,0.3)",
 
     /* Color Select */
     colorSelectFg: tokens.secondary,
     colorSelectShadow: tokens.black,
     colorSelectFontOptionsBorder: tokens.decorationTertiary,
-    colorSelectFontOptionBgHover: 'rgba(111,111,125,0.25)',
+    colorSelectFontOptionBgHover: "rgba(111,111,125,0.25)",
     colorSelectColorSquareBorder: tokens.secondary,
 
     /* Highlighted Code */
@@ -309,16 +309,16 @@ export const GristDark: ThemeTokens = {
     highlightedCodeBgDisabled: tokens.bg,
 
     /* Login Page */
-    loginPageBackdrop: '#404150',
+    loginPageBackdrop: "#404150",
     loginPageLine: tokens.decorationSecondary,
     loginPageGoogleButtonFg: tokens.white,
-    loginPageGoogleButtonBg: '#404150',
+    loginPageGoogleButtonBg: "#404150",
     loginPageGoogleButtonBgHover: tokens.decorationTertiary,
 
     /* Attachments */
     attachmentsEditorButtonFg: tokens.primary,
     attachmentsEditorButtonHoverFg: tokens.primaryEmphasis,
-    attachmentsEditorButtonBg: '#404150',
+    attachmentsEditorButtonBg: "#404150",
     attachmentsEditorButtonHoverBg: tokens.decorationTertiary,
     attachmentsEditorBorder: tokens.secondary,
     attachmentsCellIconFg: tokens.secondary,
@@ -326,13 +326,13 @@ export const GristDark: ThemeTokens = {
     attachmentsCellIconHoverBg: tokens.decoration,
 
     /* Announcement Popups */
-    announcementPopupBg: '#404150',
+    announcementPopupBg: "#404150",
 
     /* Switches */
     switchActivePill: tokens.bgSecondary,
 
     /* Scroll Shadow */
-    scrollShadow: 'rgba(0,0,0,0.25)',
+    scrollShadow: "rgba(0,0,0,0.25)",
 
     /* Toggle Checkboxes */
     toggleCheckboxFg: tokens.secondary,
@@ -342,18 +342,18 @@ export const GristDark: ThemeTokens = {
 
     /* Custom Widget Gallery */
     widgetGalleryBorder: tokens.decorationTertiary,
-    widgetGalleryShadow: 'rgba(0,0,0,0.5)',
+    widgetGalleryShadow: "rgba(0,0,0,0.5)",
     widgetGallerySecondaryHeaderBg: tokens.decoration,
     widgetGallerySecondaryHeaderBgHover: tokens.decorationSecondary,
 
     /* Markdown Cell */
-    markdownCellLightBg: '#494958',
+    markdownCellLightBg: "#494958",
     markdownCellLightBorder: tokens.bg,
     markdownCellMediumBorder: tokens.decorationTertiary,
 
     /* App Header */
     appHeaderBorder: tokens.bg,
-    appHeaderBorderHover: '#78788c',
+    appHeaderBorderHover: "#78788c",
 
     /* Card Button */
     cardButtonBorder: tokens.decorationTertiary,

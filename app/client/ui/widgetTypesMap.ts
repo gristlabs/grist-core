@@ -3,18 +3,18 @@ import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
 import { IPageWidget } from "app/client/ui/PageWidgetPicker";
 import { IconName } from "app/client/ui2018/IconList";
 import { IWidgetType } from "app/common/widgetTypes";
-import { makeT } from 'app/client/lib/localization';
+import { makeT } from "app/client/lib/localization";
 
-const t = makeT('widgetTypesMap');
+const t = makeT("widgetTypesMap");
 
 export const widgetTypesMap = new Map<IWidgetType, IWidgetTypeInfo>([
-  ['record', { name: 'Table', icon: 'TypeTable', getLabel: () => t('Table') }],
-  ['single', { name: 'Card', icon: 'TypeCard', getLabel: () => t('Card') }],
-  ['detail', { name: 'Card List', icon: 'TypeCardList', getLabel: () => t('Card List') }],
-  ['chart', { name: 'Chart', icon: 'TypeChart', getLabel: () => t('Chart') }],
-  ['form', { name: 'Form', icon: 'Board', getLabel: () => t('Form') }],
-  ['custom', { name: 'Custom', icon: 'TypeCustom', getLabel: () => t('Custom') }],
-  ['custom.calendar', { name: 'Calendar', icon: 'TypeCalendar', getLabel: () => t('Calendar') }],
+  ["record", { name: "Table", icon: "TypeTable", getLabel: () => t("Table") }],
+  ["single", { name: "Card", icon: "TypeCard", getLabel: () => t("Card") }],
+  ["detail", { name: "Card List", icon: "TypeCardList", getLabel: () => t("Card List") }],
+  ["chart", { name: "Chart", icon: "TypeChart", getLabel: () => t("Chart") }],
+  ["form", { name: "Form", icon: "Board", getLabel: () => t("Form") }],
+  ["custom", { name: "Custom", icon: "TypeCustom", getLabel: () => t("Custom") }],
+  ["custom.calendar", { name: "Calendar", icon: "TypeCalendar", getLabel: () => t("Calendar") }],
 ]);
 
 // Widget type info.
@@ -26,7 +26,7 @@ export interface IWidgetTypeInfo {
 
 // Returns the widget type info for sectionType, or the one for 'record' if sectionType is null.
 export function getWidgetTypes(sectionType: IWidgetType | null): IWidgetTypeInfo {
-  return widgetTypesMap.get(sectionType || 'record') || widgetTypesMap.get('record')!;
+  return widgetTypesMap.get(sectionType || "record") || widgetTypesMap.get("record")!;
 }
 
 export interface GetTelemetryWidgetTypeOptions {
@@ -44,7 +44,7 @@ export function getTelemetryWidgetTypeFromVS(vs: ViewSectionRec) {
 
 export function getTelemetryWidgetTypeFromPageWidget(widget: IPageWidget) {
   return getTelemetryWidgetType(widget.type, {
-    isNewTable: widget.table === 'New Table',
+    isNewTable: widget.table === "New Table",
     isSummary: widget.summarize,
   });
 }
@@ -54,10 +54,10 @@ function getTelemetryWidgetType(type: IWidgetType, options: GetTelemetryWidgetTy
   if (!telemetryWidgetType) { return undefined; }
 
   if (options.isNewTable) {
-    telemetryWidgetType = 'New ' + telemetryWidgetType;
+    telemetryWidgetType = "New " + telemetryWidgetType;
   }
   if (options.isSummary) {
-    telemetryWidgetType += ' (Summary)';
+    telemetryWidgetType += " (Summary)";
   }
 
   return telemetryWidgetType;

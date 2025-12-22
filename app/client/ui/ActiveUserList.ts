@@ -1,15 +1,15 @@
-import { makeT } from 'app/client/lib/localization';
-import { UserPresenceModel } from 'app/client/models/UserPresenceModel';
-import { hoverTooltip } from 'app/client/ui/tooltips';
-import { createUserImage, cssUserImage } from 'app/client/ui/UserImage';
-import { cssHideForNarrowScreen } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { menu } from 'app/client/ui2018/menus';
-import { visuallyHidden } from 'app/client/ui2018/visuallyHidden';
-import { VisibleUserProfile } from 'app/common/ActiveDocAPI';
-import { nativeCompare } from 'app/common/gutil';
-import { components, tokens } from 'app/common/ThemePrefs';
-import { getGristConfig } from 'app/common/urlUtils';
+import { makeT } from "app/client/lib/localization";
+import { UserPresenceModel } from "app/client/models/UserPresenceModel";
+import { hoverTooltip } from "app/client/ui/tooltips";
+import { createUserImage, cssUserImage } from "app/client/ui/UserImage";
+import { cssHideForNarrowScreen } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menu } from "app/client/ui2018/menus";
+import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
+import { VisibleUserProfile } from "app/common/ActiveDocAPI";
+import { nativeCompare } from "app/common/gutil";
+import { components, tokens } from "app/common/ThemePrefs";
+import { getGristConfig } from "app/common/urlUtils";
 
 import {
   Computed,
@@ -19,10 +19,10 @@ import {
   makeTestId,
   Observable,
   styled,
-} from 'grainjs';
+} from "grainjs";
 
-const t = makeT('ActiveUserList');
-const testId = makeTestId('test-aul-');
+const t = makeT("ActiveUserList");
+const testId = makeTestId("test-aul-");
 
 export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: UserPresenceModel) {
   const totalUserIconSlots = 4;
@@ -65,11 +65,11 @@ export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: 
   const isRemainingUsersMenuOpen = Observable.create(owner, false);
 
   const computedUserIcons = dom.forEach(userIconProfilesObs, (user) => {
-    return dom('li', createUserIndicator(user, isRemainingUsersMenuOpen));
+    return dom("li", createUserIndicator(user, isRemainingUsersMenuOpen));
   });
 
   const remainingUsersIndicator = dom.maybe(showRemainingUsersIconObs, () => {
-    return dom('li',
+    return dom("li",
       createRemainingUsersIndicator(
         visibleUserProfilesObs,
         userMetadataObs,
@@ -79,11 +79,11 @@ export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: 
   });
 
   return cssActiveUserList(
-    cssHideForNarrowScreen.cls(''),
+    cssHideForNarrowScreen.cls(""),
     remainingUsersIndicator,
     computedUserIcons,
     { "aria-label": t("active user list") },
-    testId('container'),
+    testId("container"),
   );
 }
 
@@ -95,8 +95,8 @@ function createUserIndicator(
     user,
     dom.hide(isRemainingUsersMenuOpen),
     hoverTooltip(createTooltipContent(user), { key: "topBarBtnTooltip" }),
-    { 'aria-label': `${t('active user')}: ${user.name}` },
-    testId('user-icon'),
+    { "aria-label": `${t("active user")}: ${user.name}` },
+    testId("user-icon"),
   );
 }
 
@@ -109,7 +109,7 @@ function createRemainingUsersIndicator(
     cssRemainingUsersImage(
       dom.domComputed((use) => {
         if (use(isRemainingUsersMenuOpen)) {
-          return icon('CrossBig');
+          return icon("CrossBig");
         }
         else {
           return `+${use(metadataObs).totalHiddenUserIcons}`;
@@ -124,9 +124,9 @@ function createRemainingUsersIndicator(
         ctl.onDispose(() => isRemainingUsersMenuOpen.set(false));
 
         return domComputed(usersObs, users => users.map(user => remainingUsersMenuItem(
-          createUserImage(user, 'medium'),
-          dom('div', createUsername(user.name), createEmail(user.email)),
-          testId('user-list-user'),
+          createUserImage(user, "medium"),
+          dom("div", createUsername(user.name), createEmail(user.email)),
+          testId("user-list-user"),
         )));
       },
       {
@@ -135,8 +135,8 @@ function createRemainingUsersIndicator(
         allowNothingSelected: true,
       },
     ),
-    { 'aria-label': t('open full active user list') },
-    testId('all-users-button'),
+    { "aria-label": t("open full active user list") },
+    testId("all-users-button"),
   );
 }
 
@@ -145,26 +145,26 @@ const createTooltipContent = (user: VisibleUserProfile) => {
 };
 
 function createUsername(name: string) {
-  return cssUsername(visuallyHidden('Name: '), dom('span', testId('user-name'), name));
+  return cssUsername(visuallyHidden("Name: "), dom("span", testId("user-name"), name));
 }
 
 function createEmail(email?: string) {
   if (!email) {
     return null;
   }
-  return cssEmail(visuallyHidden('Email: '), dom('span', testId('user-email'), email));
+  return cssEmail(visuallyHidden("Email: "), dom("span", testId("user-email"), email));
 }
 
-const cssUsername = styled('div', `
+const cssUsername = styled("div", `
   font-weight: ${tokens.headerControlTextWeight};
 `);
 
-const cssEmail = styled('div', `
+const cssEmail = styled("div", `
   font-size: ${tokens.smallFontSize};
 `);
 
 // Flex-direction is reversed to give us the correct overlaps without messing with z-indexes.
-const cssActiveUserList = styled('ul', `
+const cssActiveUserList = styled("ul", `
   display: flex;
   align-items: center;
   justify-content: end;
@@ -197,8 +197,8 @@ const createStyledUserImage = styled(createUserImage, `
 const createUserListImage = (user: Parameters<typeof createUserImage>[0], ...args: DomElementArg[]) =>
   createStyledUserImage(
     user,
-    'medium',
-    cssUserImage.cls('-reduced'),
+    "medium",
+    cssUserImage.cls("-reduced"),
     ...args,
   );
 
@@ -213,7 +213,7 @@ const cssRemainingUsersImage = styled(cssUserImage, `
   }
 `);
 
-const cssRemainingUsersButton = styled('button', `
+const cssRemainingUsersButton = styled("button", `
   margin: 0;
   padding: 0;
   border: 0 solid;

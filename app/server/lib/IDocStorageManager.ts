@@ -1,8 +1,8 @@
-import { DocEntry } from 'app/common/DocListAPI';
-import { DocSnapshots } from 'app/common/DocSnapshot';
-import { DocumentUsage } from 'app/common/DocUsage';
-import { DocReplacementOptions } from 'app/common/UserAPI';
-import { SQLiteDB } from 'app/server/lib/SQLiteDB';
+import { DocEntry } from "app/common/DocListAPI";
+import { DocSnapshots } from "app/common/DocSnapshot";
+import { DocumentUsage } from "app/common/DocUsage";
+import { DocReplacementOptions } from "app/common/UserAPI";
+import { SQLiteDB } from "app/server/lib/SQLiteDB";
 
 export interface IDocStorageManager {
   getPath(docName: string): string;
@@ -26,7 +26,7 @@ export interface IDocStorageManager {
   closeDocument(docName: string): Promise<void>;
   // Mark document as needing a backup (due to edits, migrations, etc).
   // If reason is set to 'edit' the user-facing timestamp on the document should be updated.
-  markAsChanged(docName: string, reason?: 'edit'): void;
+  markAsChanged(docName: string, reason?: "edit"): void;
   scheduleUsageUpdate(docName: string, usage: DocumentUsage | null, minimizeDelay?: boolean): void;
   testReopenStorage(): void;                // restart storage during tests
   addToStorage(docName: string): Promise<void>;  // add a new local document to storage
@@ -55,26 +55,26 @@ export class TrivialDocStorageManager implements IDocStorageManager {
   public async getCanonicalDocName(altDocName: string) { return altDocName; }
   public async prepareLocalDoc() { return false; }
   public async prepareToCreateDoc() { }
-  public async prepareFork(): Promise<never> { throw new Error('no'); }
+  public async prepareFork(): Promise<never> { throw new Error("no"); }
   public async listDocs() { return []; }
-  public async deleteDoc(): Promise<never> { throw new Error('no'); }
-  public async renameDoc(): Promise<never> { throw new Error('no'); }
-  public async makeBackup(): Promise<never> { throw new Error('no'); }
-  public async showItemInFolder(): Promise<never> { throw new Error('no'); }
+  public async deleteDoc(): Promise<never> { throw new Error("no"); }
+  public async renameDoc(): Promise<never> { throw new Error("no"); }
+  public async makeBackup(): Promise<never> { throw new Error("no"); }
+  public async showItemInFolder(): Promise<never> { throw new Error("no"); }
   public async closeStorage() {}
   public async closeDocument() {}
   public markAsChanged() {}
   public scheduleUsageUpdate() {}
   public testReopenStorage() {}
-  public async addToStorage(): Promise<never> { throw new Error('no'); }
+  public async addToStorage(): Promise<never> { throw new Error("no"); }
   public prepareToCloseStorage() {}
-  public async getCopy(): Promise<never> { throw new Error('no'); }
+  public async getCopy(): Promise<never> { throw new Error("no"); }
   public async flushDoc() {}
-  public async getSnapshots(): Promise<never> { throw new Error('no'); }
-  public async removeSnapshots(): Promise<never> { throw new Error('no'); }
+  public async getSnapshots(): Promise<never> { throw new Error("no"); }
+  public async removeSnapshots(): Promise<never> { throw new Error("no"); }
   public getSnapshotProgress(): SnapshotProgress { return new EmptySnapshotProgress(); }
-  public async replace(): Promise<never> { throw new Error('no'); }
-  public async getFsFileSize(): Promise<number> { throw new Error('no'); }
+  public async replace(): Promise<never> { throw new Error("no"); }
+  public async getFsFileSize(): Promise<number> { throw new Error("no"); }
 }
 
 /**

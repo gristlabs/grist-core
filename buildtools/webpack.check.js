@@ -1,23 +1,23 @@
-import path from 'path';
+import path from "path";
 
 export default {
-  target: 'web',
-  mode: 'production',
+  target: "web",
+  mode: "production",
   entry: "./app/client/browserCheck",
   output: {
     path: path.resolve("./static"),
     filename: "browser-check.js"
   },
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: [".ts", ".js"],
   },
   module: {
     rules: [
       {
         test: /\.(js|ts)?$/,
-        loader: 'esbuild-loader',
+        loader: "esbuild-loader",
         options: {
-          target: 'es2017',
+          target: "es2017",
           sourcemap: true,
         },
         exclude: /node_modules/

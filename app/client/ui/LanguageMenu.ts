@@ -1,27 +1,27 @@
-import { detectCurrentLang, makeT, setAnonymousLocale } from 'app/client/lib/localization';
-import { AppModel } from 'app/client/models/AppModel';
-import { hoverTooltip } from 'app/client/ui/tooltips';
-import { cssHoverCircle } from 'app/client/ui/TopBarCss';
-import { theme } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { menu, menuItem } from 'app/client/ui2018/menus';
-import { getCountryCode } from 'app/common/Locales';
-import { getGristConfig } from 'app/common/urlUtils';
-import { dom, makeTestId, styled } from 'grainjs';
+import { detectCurrentLang, makeT, setAnonymousLocale } from "app/client/lib/localization";
+import { AppModel } from "app/client/models/AppModel";
+import { hoverTooltip } from "app/client/ui/tooltips";
+import { cssHoverCircle } from "app/client/ui/TopBarCss";
+import { theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menu, menuItem } from "app/client/ui2018/menus";
+import { getCountryCode } from "app/common/Locales";
+import { getGristConfig } from "app/common/urlUtils";
+import { dom, makeTestId, styled } from "grainjs";
 
-const testId = makeTestId('test-language-');
-const t = makeT('LanguageMenu');
+const testId = makeTestId("test-language-");
+const t = makeT("LanguageMenu");
 
 export function buildLanguageMenu(appModel: AppModel) {
   // Get the list of languages from the config, or default to English.
-  const languages = getGristConfig().supportedLngs ?? ['en'];
+  const languages = getGristConfig().supportedLngs ?? ["en"];
   // Get the current language (from user's preference, cookie or browser)
   const userLanguage = detectCurrentLang();
 
   if (appModel.currentValidUser) {
     // For logged in users, we don't need to show the menu (they have a preference in their profile).
     // But for tests we will show a hidden indicator.
-    return dom('input', { type: 'hidden' }, (testId(`current-` + userLanguage)));
+    return dom("input", { type: "hidden" }, (testId(`current-` + userLanguage)));
   }
 
   // When we switch language, we need to reload the page to get the new translations.
@@ -42,15 +42,15 @@ export function buildLanguageMenu(appModel: AppModel) {
         // Try to convert the locale to nice name, fallback to locale itself.
         cssFirstUpper(translateLocale(lng) ?? lng),
         // If this is current language, mark it with a tick (by default we mark en).
-        userLanguage === lng ? cssWrapper(icon('Tick'), testId('selected')) : null,
+        userLanguage === lng ? cssWrapper(icon("Tick"), testId("selected")) : null,
         testId(`lang-` + lng),
       ])),
       {
-        placement: 'bottom-end',
+        placement: "bottom-end",
       },
     ),
-    hoverTooltip(t('Language'), { key: 'topBarBtnTooltip' }),
-    testId('button'),
+    hoverTooltip(t("Language"), { key: "topBarBtnTooltip" }),
+    testId("button"),
   );
 }
 
@@ -61,9 +61,9 @@ function buildFlagIcon(locale: string) {
     !countryCode ? null : cssFlagIcon({
       // Unfortunately, Windows doesn't support emoji flags, so we need to use SVG icons.
       style: `background-image: url("icons/locales/${countryCode}.svg");`,
-    }, testId('button-icon')),
+    }, testId("button-icon")),
     // Display a placeholder icon behind the one above, to act as a fallback.
-    cssPlaceholderFlagIcon('Flag'),
+    cssPlaceholderFlagIcon("Flag"),
   ];
 }
 
@@ -71,7 +71,7 @@ export function translateLocale(locale: string) {
   try {
     locale = locale.replace("_", "-");
     // This API might not be available in all browsers.
-    const languageNames = new Intl.DisplayNames([locale], { type: 'language' });
+    const languageNames = new Intl.DisplayNames([locale], { type: "language" });
     return languageNames.of(locale) || null;
   }
   catch (err) {
@@ -79,12 +79,12 @@ export function translateLocale(locale: string) {
   }
 }
 
-const cssWrapper = styled('div', `
+const cssWrapper = styled("div", `
   margin-left: auto;
   display: inline-block;
 `);
 
-const cssFirstUpper = styled('span', `
+const cssFirstUpper = styled("span", `
   &::first-letter {
     text-transform: capitalize;
   }
@@ -98,13 +98,13 @@ const cssFlagButton = styled(cssHoverCircle, `
   cursor: pointer;
 `);
 
-const cssFlagIconWrapper = styled('div', `
+const cssFlagIconWrapper = styled("div", `
   position: relative;
   width: 16px;
   height: 16px;
 `);
 
-const cssFlagIcon = styled('div', `
+const cssFlagIcon = styled("div", `
   position: absolute;
   width: 16px;
   height: 16px;

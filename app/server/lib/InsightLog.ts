@@ -19,8 +19,8 @@
  * In case of nested decorated calls, only the entry for the outermost one is filled in and logged.
  */
 
-import log from 'app/server/lib/log';
-import { AsyncLocalStorage } from 'node:async_hooks';
+import log from "app/server/lib/log";
+import { AsyncLocalStorage } from "node:async_hooks";
 
 const asyncLocalStorage = new AsyncLocalStorage<InsightLogEntry>();
 
@@ -66,7 +66,7 @@ class InsightLogEntry {
 
   // Add a property "mark_{label}" with the ms elapsed since start.
   public mark(label: string) {
-    this._meta['mark_' + label] = Date.now() - this._start;
+    this._meta["mark_" + label] = Date.now() - this._start;
   }
 
   // Add some more metadata properties to the message to be logged.

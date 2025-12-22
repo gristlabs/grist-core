@@ -1,28 +1,28 @@
-import { GristWSConnection } from 'app/client/components/GristWSConnection';
-import { TableFetchResult } from 'app/common/ActiveDocAPI';
-import { UserAPIImpl } from 'app/common/UserAPI';
-import { delay } from 'app/common/delay';
-import { cookieName } from 'app/server/lib/gristSessions';
-import log from 'app/server/lib/log';
-import { getGristConfig } from 'test/gen-server/testUtils';
-import { prepareDatabase } from 'test/server/lib/helpers/PrepareDatabase';
-import { TestServer } from 'test/server/lib/helpers/TestServer';
-import { waitForIt } from 'test/server/wait';
-import { createTestDir, EnvironmentSnapshot, setTmpLogLevel } from 'test/server/testUtils';
-import { assert } from 'chai';
-import * as cookie from 'cookie';
-import fetch from 'node-fetch';
-import { GristClientSocket } from 'app/client/components/GristClientSocket';
+import { GristWSConnection } from "app/client/components/GristWSConnection";
+import { TableFetchResult } from "app/common/ActiveDocAPI";
+import { UserAPIImpl } from "app/common/UserAPI";
+import { delay } from "app/common/delay";
+import { cookieName } from "app/server/lib/gristSessions";
+import log from "app/server/lib/log";
+import { getGristConfig } from "test/gen-server/testUtils";
+import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";
+import { TestServer } from "test/server/lib/helpers/TestServer";
+import { waitForIt } from "test/server/wait";
+import { createTestDir, EnvironmentSnapshot, setTmpLogLevel } from "test/server/testUtils";
+import { assert } from "chai";
+import * as cookie from "cookie";
+import fetch from "node-fetch";
+import { GristClientSocket } from "app/client/components/GristClientSocket";
 
-describe('ManyFetches', function() {
+describe("ManyFetches", function() {
   this.timeout(30000);
 
-  setTmpLogLevel('info');   // Set to 'info' to see what heap size actually is.
+  setTmpLogLevel("info");   // Set to 'info' to see what heap size actually is.
   let oldEnv: EnvironmentSnapshot;
 
-  const userName = 'chimpy';
-  const email = 'chimpy@getgrist.com';
-  const org = 'docs';
+  const userName = "chimpy";
+  const email = "chimpy@getgrist.com";
+  const org = "docs";
 
   let testCounter = 0;
   let home: TestServer;
@@ -40,15 +40,15 @@ describe('ManyFetches', function() {
     log.info("Starting servers");
     const testDir = await createTestDir(`ManyFetches-${testCounter++}`);
     await prepareDatabase(testDir);
-    home = await TestServer.startServer('home', testDir, "home");
-    docs = await TestServer.startServer('docs', testDir, "docs", {
+    home = await TestServer.startServer("home", testDir, "home");
+    docs = await TestServer.startServer("docs", testDir, "docs", {
       // The test verifies memory usage by checking heap sizes. The line below limits doc-worker
       // process so that it crashes when memory management is wrong. With fetch sizes
       // in this test, doc-worker's heap size goes from ~110M to ~440M;
       // this limit is in-between as another way to verify that memory management helps.
       // Without this limit, there is no pressure on node to garbage-collect, so it may use more
       // memory than we expect, making the test less reliable.
-      NODE_OPTIONS: '--max-old-space-size=250',
+      NODE_OPTIONS: "--max-old-space-size=250",
     }, home.serverUrl);
     userApi = home.makeUserApi(org, userName);
   });
@@ -66,7 +66,7 @@ describe('ManyFetches', function() {
     assert.isBelow(value, expected);
   }
 
-  it('should limit the memory used to respond to many simultaneuous fetches', async function() {
+  it("should limit the memory used to respond to many simultaneuous fetches", async function() {
     // Here we create a large document, and fetch it in parallel 200 times, without reading
     // responses. This test relies on the fact that the server caches the fetched data, so only
     // the serialized responses to clients are responsible for large memory use. This is the
@@ -141,7 +141,7 @@ describe('ManyFetches', function() {
     }
   });
 
-  it('should cope gracefully when client messages fail', async function() {
+  it("should cope gracefully when client messages fail", async function() {
     // It used to be that sending data to the client could produce uncaught errors (in particular,
     // for exceeding V8 JSON limits). This test case fakes errors to make sure they get handled.
 
@@ -198,11 +198,11 @@ describe('ManyFetches', function() {
   // Creates a document with the given number of rows, and about 50 bytes per row.
   async function createLargeDoc({ rows}: { rows: number }): Promise<{ docId: string }> {
     log.info("Preparing a doc of %s rows", rows);
-    const ws = (await userApi.getOrgWorkspaces('current'))[0].id;
-    const docId = await userApi.newDoc({ name: 'testdoc' }, ws);
-    await userApi.applyUserActions(docId, [['AddTable', 'TestTable', [
-      { id: 'Num', type: 'Numeric' },
-      { id: 'Text', type: 'Text' },
+    const ws = (await userApi.getOrgWorkspaces("current"))[0].id;
+    const docId = await userApi.newDoc({ name: "testdoc" }, ws);
+    await userApi.applyUserActions(docId, [["AddTable", "TestTable", [
+      { id: "Num", type: "Numeric" },
+      { id: "Text", type: "Text" },
     ]]]);
     await addRows(docId, rows);
     return { docId };
@@ -211,7 +211,7 @@ describe('ManyFetches', function() {
   async function addRows(docId: string, rows: number, chunk = 10_000): Promise<void> {
     for (let i = 0; i < rows; i += chunk) {
       const currentNumRows = Math.min(chunk, rows - i);
-      await userApi.getDocAPI(docId).addRows('TestTable', {
+      await userApi.getDocAPI(docId).addRows("TestTable", {
         // Roughly 8 bytes per row
         Num: Array.from(Array(currentNumRows), (_, n) => (i + n) * 100),
         // Roughly 40 bytes per row
@@ -225,8 +225,8 @@ describe('ManyFetches', function() {
   async function prepareGristWSConnection(docId: string): Promise<() => GristWSConnection> {
     // Use cookies for access to stay as close as possible to regular operation.
     const resp = await fetch(`${home.serverUrl}/test/session`);
-    const sid = cookie.parse(resp.headers.get('set-cookie'))[cookieName];
-    if (!sid) { throw new Error('no session available'); }
+    const sid = cookie.parse(resp.headers.get("set-cookie"))[cookieName];
+    if (!sid) { throw new Error("no session available"); }
     await home.testingHooks.setLoginSessionProfile(sid, { name: userName, email }, org);
 
     // Load the document html.
@@ -238,10 +238,10 @@ describe('ManyFetches', function() {
     // Pull out the configuration object embedded in the html.
     const gristConfig = getGristConfig(pageBody);
     const { assignmentId, getWorker, homeUrl } = gristConfig;
-    if (!homeUrl) { throw new Error('no homeUrl'); }
-    if (!assignmentId) { throw new Error('no assignmentId'); }
+    if (!homeUrl) { throw new Error("no homeUrl"); }
+    if (!assignmentId) { throw new Error("no assignmentId"); }
     const docWorkerUrl = getWorker?.[assignmentId];
-    if (!docWorkerUrl) { throw new Error('no docWorkerUrl'); }
+    if (!docWorkerUrl) { throw new Error("no docWorkerUrl"); }
 
     // Place the config object in window.gristConfig as if we were a
     // real browser client.  GristWSConnection expects to find it there.
@@ -250,16 +250,16 @@ describe('ManyFetches', function() {
 
     // We return a function that constructs a GristWSConnection.
     return function createConnectionFunc() {
-      let clientId: string = '0';
+      let clientId: string = "0";
       return GristWSConnection.create(null, {
         makeWebSocket(url: string)  { return new GristClientSocket(url, { headers }); },
-        getTimezone()               { return Promise.resolve('UTC'); },
+        getTimezone()               { return Promise.resolve("UTC"); },
         getPageUrl()                { return pageUrl; },
         getDocWorkerUrl()           { return Promise.resolve(docWorkerUrl); },
         getClientId(did)            { return clientId; },
-        getUserSelector()           { return ''; },
+        getUserSelector()           { return ""; },
         updateClientId(did: string, cid: string) { clientId = cid; },
-        advanceCounter(): string    { return '0'; },
+        advanceCounter(): string    { return "0"; },
         log(msg, ...args)           {},
         warn(msg, ...args)          {},
       });
@@ -278,20 +278,20 @@ describe('ManyFetches', function() {
     }
 
     // Launch the websocket
-    const connectionPromise = getMessage('connectState', (isConnected: boolean) => isConnected);
+    const connectionPromise = getMessage("connectState", (isConnected: boolean) => isConnected);
     connection.initialize(null);
     await connectionPromise;  // Wait for connection to succeed.
 
-    const openPromise = getMessage('serverMessage', ({ reqId}: { reqId?: number }) => (reqId === 0));
-    connection.send(JSON.stringify({ reqId: 0, method: 'openDoc', args: [docId] }));
+    const openPromise = getMessage("serverMessage", ({ reqId}: { reqId?: number }) => (reqId === 0));
+    connection.send(JSON.stringify({ reqId: 0, method: "openDoc", args: [docId] }));
     await openPromise;
 
     let fetchPromise: Promise<TableFetchResult>;
     return {
       startPausedFetch: () => {
-        fetchPromise = getMessage<any>('serverMessage', ({ reqId}: { reqId?: number }) => (reqId === 1));
+        fetchPromise = getMessage<any>("serverMessage", ({ reqId}: { reqId?: number }) => (reqId === 1));
         (connection as any)._ws.pause();
-        connection.send(JSON.stringify({ reqId: 1, method: 'fetchTable', args: [0, 'TestTable'] }));
+        connection.send(JSON.stringify({ reqId: 1, method: "fetchTable", args: [0, "TestTable"] }));
       },
 
       completeFetch: async (): Promise<TableFetchResult> => {

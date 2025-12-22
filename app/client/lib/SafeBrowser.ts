@@ -28,24 +28,24 @@
 // activation.
 
 
-import { ClientScope } from 'app/client/components/ClientScope';
-import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
-import dom from 'app/client/lib/dom';
-import * as Mousetrap from 'app/client/lib/Mousetrap';
-import { gristThemeObs } from 'app/client/ui2018/theme';
-import { ActionRouter } from 'app/common/ActionRouter';
-import { BaseComponent, BaseLogger, createRpcLogger, PluginInstance, warnIfNotReady } from 'app/common/PluginInstance';
-import { tbind } from 'app/common/tbind';
-import { convertThemeKeysToCssVars, Theme } from 'app/common/ThemePrefs';
-import { getOriginUrl } from 'app/common/urlUtils';
-import { GristAPI, RPC_GRISTAPI_INTERFACE } from 'app/plugin/GristAPI';
-import { RenderOptions, RenderTarget } from 'app/plugin/RenderOptions';
-import { checkers } from 'app/plugin/TypeCheckers';
-import { dom as grainjsDom, Observable } from 'grainjs';
-import { IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc } from 'grain-rpc';
-import { Disposable } from 'app/client/lib/dispose';
-import isEqual from 'lodash/isEqual';
-const G = getBrowserGlobals('document', 'window');
+import { ClientScope } from "app/client/components/ClientScope";
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import dom from "app/client/lib/dom";
+import * as Mousetrap from "app/client/lib/Mousetrap";
+import { gristThemeObs } from "app/client/ui2018/theme";
+import { ActionRouter } from "app/common/ActionRouter";
+import { BaseComponent, BaseLogger, createRpcLogger, PluginInstance, warnIfNotReady } from "app/common/PluginInstance";
+import { tbind } from "app/common/tbind";
+import { convertThemeKeysToCssVars, Theme } from "app/common/ThemePrefs";
+import { getOriginUrl } from "app/common/urlUtils";
+import { GristAPI, RPC_GRISTAPI_INTERFACE } from "app/plugin/GristAPI";
+import { RenderOptions, RenderTarget } from "app/plugin/RenderOptions";
+import { checkers } from "app/plugin/TypeCheckers";
+import { dom as grainjsDom, Observable } from "grainjs";
+import { IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc } from "grain-rpc";
+import { Disposable } from "app/client/lib/dispose";
+import isEqual from "lodash/isEqual";
+const G = getBrowserGlobals("document", "window");
 
 /**
  * The SafeBrowser component implementation. Responsible for running the script, rendering the
@@ -85,7 +85,7 @@ export class SafeBrowser extends BaseComponent {
   private _plugin = this._options.pluginInstance;
   private _clientScope = this._options.clientScope;
   private _untrustedContentOrigin = this._options.untrustedContentOrigin;
-  private _mainPath = this._options.mainPath ?? '';
+  private _mainPath = this._options.mainPath ?? "";
   private _baseLogger = this._options.baseLogger ?? console;
 
   constructor(private _options: {
@@ -225,7 +225,7 @@ export class SafeBrowser extends BaseComponent {
     const rpc = new Rpc({ logger: createRpcLogger(this._baseLogger, `PLUGIN ${this._pluginId}/${path} SafeBrowser:`) });
     rpc.queueOutgoingUntilReadyMessage();
     warnIfNotReady(rpc, 3000, "Plugin isn't ready; be sure to call grist.ready() from plugin");
-    rpc.registerForwarder('*', this._pluginRpc);
+    rpc.registerForwarder("*", this._pluginRpc);
     // TODO: we should be able to stop serving plugins, it looks like there are some resources
     // required that should be disposed on component deactivation.
     this._clientScope.servePlugin(this._pluginId, rpc);
@@ -299,7 +299,7 @@ class IframeProcess extends ViewProcess {
     const iframe = this.element = this.autoDispose(
       grainjsDom(`iframe.safe_browser_process.clipboard_allow_focus`,
         { src },
-        grainjsDom.style('visibility', use => use(this._themeInitialized) ? 'visible' : 'hidden'),
+        grainjsDom.style("visibility", use => use(this._themeInitialized) ? "visible" : "hidden"),
       ) as HTMLIFrameElement,
     );
     const listener = async (event: MessageEvent) => {
@@ -308,18 +308,18 @@ class IframeProcess extends ViewProcess {
           await this._sendTheme({ theme: gristThemeObs().get(), fromReady: true });
         }
 
-        if (event.data.data?.message === 'themeInitialized') {
+        if (event.data.data?.message === "themeInitialized") {
           this._themeInitialized.set(true);
         }
 
         this.rpc.receiveMessage(event.data);
       }
     };
-    G.window.addEventListener('message', listener);
+    G.window.addEventListener("message", listener);
     this.autoDisposeCallback(() => {
-      G.window.removeEventListener('message', listener);
+      G.window.removeEventListener("message", listener);
     });
-    this.rpc.setSendMessage(msg => iframe.contentWindow!.postMessage(msg, '*'));
+    this.rpc.setSendMessage(msg => iframe.contentWindow!.postMessage(msg, "*"));
 
     this.autoDispose(gristThemeObs().addListener(async (newTheme, oldTheme) => {
       if (isEqual(newTheme, oldTheme)) { return; }
@@ -339,27 +339,27 @@ class IframeProcess extends ViewProcess {
 class WebviewProcess extends ViewProcess {
   public create(safeBrowser: SafeBrowser, rpc: Rpc, src: string) {
     super.create(safeBrowser, rpc, src);
-    const webview = this.element = this.autoDispose(dom('webview.safe_browser_process.clipboard_allow_focus', {
+    const webview = this.element = this.autoDispose(dom("webview.safe_browser_process.clipboard_allow_focus", {
       src,
-      allowpopups: '',
+      allowpopups: "",
       // Requests with this partition get an extra header (see main.js) to get access to plugin content.
-      partition: 'plugins',
+      partition: "plugins",
     }));
     // Temporaily disable "mousetrap" keyboard stealing for the duration of this webview.
     // This is acceptable since webviews are currently full-screen modals.
     // TODO: find a way for keyboard events to play nice when webviews are non-modal.
     Mousetrap.setPaused(true);
     this.autoDisposeCallback(() => Mousetrap.setPaused(false));
-    webview.addEventListener('ipc-message', (event: any /* IpcMessageEvent */) => {
+    webview.addEventListener("ipc-message", (event: any /* IpcMessageEvent */) => {
       // The event object passed to the listener is missing proper documentation. In the examples
       // listed in https://electronjs.org/docs/api/ipc-main the arguments should be passed to the
       // listener after the event object, but this is not happening here. Only we know it is a
       // DOMEvent with some extra porperties including a `channel` property of type `string` and an
       // `args` property of type `any[]`.
-      if (event.channel === 'grist') {
+      if (event.channel === "grist") {
         rpc.receiveMessage(event.args[0]);
       }
     });
-    this.rpc.setSendMessage(msg => webview.send('grist', msg));
+    this.rpc.setSendMessage(msg => webview.send("grist", msg));
   }
 }

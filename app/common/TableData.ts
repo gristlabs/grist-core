@@ -1,15 +1,15 @@
 /**
  * TableData maintains a single table's data.
  */
-import { ActionDispatcher } from 'app/common/ActionDispatcher';
+import { ActionDispatcher } from "app/common/ActionDispatcher";
 import { BulkAddRecord, BulkColValues, CellValue, ColInfo, ColInfoWithId, ColValues, DocAction,
-  isSchemaAction, ReplaceTableData, RowRecord, TableDataAction } from 'app/common/DocActions';
-import { getDefaultForType } from 'app/common/gristTypes';
-import { arrayRemove, arraySplice, getDistinctValues } from 'app/common/gutil';
-import { SchemaTypes } from 'app/common/schema';
-import { UIRowId } from 'app/plugin/GristAPI';
-import isEqual from 'lodash/isEqual';
-import fromPairs from 'lodash/fromPairs';
+  isSchemaAction, ReplaceTableData, RowRecord, TableDataAction } from "app/common/DocActions";
+import { getDefaultForType } from "app/common/gristTypes";
+import { arrayRemove, arraySplice, getDistinctValues } from "app/common/gutil";
+import { SchemaTypes } from "app/common/schema";
+import { UIRowId } from "app/plugin/GristAPI";
+import isEqual from "lodash/isEqual";
+import fromPairs from "lodash/fromPairs";
 
 export interface ColTypeMap { [colId: string]: string; }
 
@@ -77,7 +77,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
         this._colArray.push(colData);
       }
     }
-    this._columns.set('id', { colId: 'id', type: 'Id', defl: 0, values: this._rowIdCol });
+    this._columns.set("id", { colId: "id", type: "Id", defl: 0, values: this._rowIdCol });
 
     if (tableData) {
       this.loadData(tableData);
@@ -113,7 +113,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
 
     reassignArray(this._rowIdCol, rowIds);
     for (const colData of this._colArray) {
-      const values = colData.colId === 'id' ? rowIds : colValues[colData.colId];
+      const values = colData.colId === "id" ? rowIds : colValues[colData.colId];
       // If colId is missing from tableData, use an array of default values. Note that reusing
       // default value like this is only OK because all default values we use are primitive.
       reassignArray(colData.values, values || this._rowIdCol.map(() => colData.defl));
@@ -141,7 +141,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
   // Used by QuerySet to remove unused rows for onDemand tables when a QuerySet is disposed.
   public unloadPartial(rowIds: number[]): void {
     // Remove the unneeded rows, reusing BulkRemoveRecord code.
-    this.onBulkRemoveRecord(['BulkRemoveRecord', this.tableId, rowIds], this.tableId, rowIds);
+    this.onBulkRemoveRecord(["BulkRemoveRecord", this.tableId, rowIds], this.tableId, rowIds);
   }
 
   /**
@@ -199,7 +199,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
 
   // By default, no special row id for skip rows is needed.
   public getSkipRowId(): number {
-    throw new Error('no skip row id defined');
+    throw new Error("no skip row id defined");
   }
 
   /**
@@ -278,10 +278,10 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     else {
       bulkColValues = fromPairs(
         colIds
-          .filter(colId => colId !== 'id')
+          .filter(colId => colId !== "id")
           .map(colId => [colId, this.getColValues(colId)! as CellValue[]]));
     }
-    return ['TableData',
+    return ["TableData",
       this.tableId,
       rowIds as number[],
       bulkColValues];
@@ -290,7 +290,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
   public getBulkAddRecord(desiredRowIds?: number[]): BulkAddRecord {
     const tableData = this.getTableDataAction(desiredRowIds?.sort((a, b) => a - b));
     return [
-      'BulkAddRecord', tableData[1], tableData[2], tableData[3],
+      "BulkAddRecord", tableData[1], tableData[2], tableData[3],
     ];
   }
 
@@ -525,7 +525,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
 
   protected onModifyColumn(action: DocAction, tableId: string, oldColId: string, colInfo: ColInfo): void {
     const colData = this._columns.get(oldColId);
-    if (colData && colInfo.hasOwnProperty('type')) {
+    if (colData && colInfo.hasOwnProperty("type")) {
       colData.type = colInfo.type;
       colData.defl = getDefaultForType(colInfo.type);
     }

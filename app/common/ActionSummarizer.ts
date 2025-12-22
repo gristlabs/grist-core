@@ -1,16 +1,16 @@
-import { getEnvContent, LocalActionBundle } from 'app/common/ActionBundle';
+import { getEnvContent, LocalActionBundle } from "app/common/ActionBundle";
 import { ActionSummary, ColumnDelta, createEmptyActionSummary,
-  createEmptyTableDelta, defunctTableName, LabelDelta, TableDelta } from 'app/common/ActionSummary';
-import { DocAction } from 'app/common/DocActions';
-import * as Action from 'app/common/DocActions';
-import { arrayExtend } from 'app/common/gutil';
-import { CellDelta } from 'app/common/TabularDiff';
-import clone from 'lodash/clone';
-import fromPairs from 'lodash/fromPairs';
-import keyBy from 'lodash/keyBy';
-import sortBy from 'lodash/sortBy';
-import toPairs from 'lodash/toPairs';
-import values from 'lodash/values';
+  createEmptyTableDelta, defunctTableName, LabelDelta, TableDelta } from "app/common/ActionSummary";
+import { DocAction } from "app/common/DocActions";
+import * as Action from "app/common/DocActions";
+import { arrayExtend } from "app/common/gutil";
+import { CellDelta } from "app/common/TabularDiff";
+import clone from "lodash/clone";
+import fromPairs from "lodash/fromPairs";
+import keyBy from "lodash/keyBy";
+import sortBy from "lodash/sortBy";
+import toPairs from "lodash/toPairs";
+import values from "lodash/values";
 
 /**
  * The default maximum number of rows in a single bulk change that will be recorded
@@ -416,8 +416,8 @@ export interface RowChanges {
 function bulkCellFor(rc: RowChange | undefined): CellDelta | undefined {
   if (!rc) { return undefined; }
   const result: CellDelta = [null, null];
-  if (rc.removed || rc.updated) { result[0] = '?'; }
-  if (rc.added || rc.updated) { result[1] = '?'; }
+  if (rc.removed || rc.updated) { result[0] = "?"; }
+  if (rc.added || rc.updated) { result[1] = "?"; }
   return result;
 }
 
@@ -544,7 +544,7 @@ export function concatenateSummaries(sums: ActionSummary[]): ActionSummary {
 }
 
 export function getRenames(ref: ActionSummary | TableDelta) {
-  if ('tableRenames' in ref) {
+  if ("tableRenames" in ref) {
     return ref.tableRenames;
   }
   else {
@@ -553,7 +553,7 @@ export function getRenames(ref: ActionSummary | TableDelta) {
 }
 
 export function getDeltas<T extends ActionSummary | TableDelta>(ref: T) {
-  if ('tableRenames' in ref) {
+  if ("tableRenames" in ref) {
     return ref.tableDeltas;
   }
   else {

@@ -1,10 +1,10 @@
-import { exitPromise } from 'app/server/lib/serverUtils';
-import { Throttle, ThrottleTiming } from 'app/server/lib/Throttle';
-import { delay } from 'bluebird';
-import { assert } from 'chai';
-import { ChildProcess, spawn } from 'child_process';
-import pidusage from 'pidusage';
-import * as testUtils from 'test/server/testUtils';
+import { exitPromise } from "app/server/lib/serverUtils";
+import { Throttle, ThrottleTiming } from "app/server/lib/Throttle";
+import { delay } from "bluebird";
+import { assert } from "chai";
+import { ChildProcess, spawn } from "child_process";
+import pidusage from "pidusage";
+import * as testUtils from "test/server/testUtils";
 
 const testTiming: ThrottleTiming = {
   dutyCyclePositiveMs: 20,
@@ -24,8 +24,8 @@ interface ThrottleTestCase {
   cpuHog: boolean;
 }
 
-describe('Throttle', function() {
-  testUtils.setTmpLogLevel('error');
+describe("Throttle", function() {
+  testUtils.setTmpLogLevel("error");
 
   // Test with N processes, half very busy, half not busy at all.
   for (const processCount of [2, 10]) {
@@ -34,10 +34,10 @@ describe('Throttle', function() {
       const tests: ThrottleTestCase[] = [];
       for (let i = 0; i < processCount; i++) {
         const cpuHog = i % 2 === 0;
-        const cmd = cpuHog ? 'while true; do true; done' : 'sleep 10000';
-        const child = spawn(cmd, [], { shell: true, detached: true, stdio: 'ignore' });
+        const cmd = cpuHog ? "while true; do true; done" : "sleep 10000";
+        const child = spawn(cmd, [], { shell: true, detached: true, stdio: "ignore" });
         if (!child.pid) {
-          throw new Error('failed to spawn process');
+          throw new Error("failed to spawn process");
         }
 
         const done = exitPromise(child);
@@ -60,7 +60,7 @@ describe('Throttle', function() {
       for (const test of tests) {
         test.throttle.stop();
         const stats = test.throttle.testStats;
-        if (!stats) { throw new Error('throttling never ran'); }
+        if (!stats) { throw new Error("throttling never ran"); }
         if (test.cpuHog) {
           // Process should have received some cpu time.  Exactly how much depends on
           // the load on the test server, so don't be too fussy.

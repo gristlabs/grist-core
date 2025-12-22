@@ -1,19 +1,19 @@
 // TODO: Add documentation and clean up log statements.
 
-import { GristDoc } from 'app/client/components/GristDoc';
-import { PageRec, ViewFieldRec, ViewSectionRec } from 'app/client/models/DocModel';
-import { reportError } from 'app/client/models/errors';
-import { delay } from 'app/common/delay';
-import { IDocPage } from 'app/common/gristUrls';
-import { nativeCompare, waitObs } from 'app/common/gutil';
-import { TableData } from 'app/common/TableData';
-import { BaseFormatter } from 'app/common/ValueFormatter';
-import { makeT } from 'app/client/lib/localization';
-import { CursorPos } from 'app/plugin/GristAPI';
-import { Computed, Disposable, Observable } from 'grainjs';
-import debounce from 'lodash/debounce';
+import { GristDoc } from "app/client/components/GristDoc";
+import { PageRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
+import { reportError } from "app/client/models/errors";
+import { delay } from "app/common/delay";
+import { IDocPage } from "app/common/gristUrls";
+import { nativeCompare, waitObs } from "app/common/gutil";
+import { TableData } from "app/common/TableData";
+import { BaseFormatter } from "app/common/ValueFormatter";
+import { makeT } from "app/client/lib/localization";
+import { CursorPos } from "app/plugin/GristAPI";
+import { Computed, Disposable, Observable } from "grainjs";
+import debounce from "lodash/debounce";
 
-const t = makeT('SearchModel');
+const t = makeT("SearchModel");
 
 /**
  * SearchModel used to maintain the state of the search UI.
@@ -118,7 +118,7 @@ class RawSectionWrapper implements ISearchablePageRec {
   }
 
   public getViewId(): IDocPage {
-    return 'data';
+    return "data";
   }
 
   public async openPage() {
@@ -201,7 +201,7 @@ class FinderImpl implements IFinder {
   // Initialize the steppers. Returns false if anything goes wrong.
   public async init(): Promise<boolean> {
     // If we are on a raw view page, pretend that we are looking at true pages.
-    if ('data' === this._gristDoc.activeViewId.get()) {
+    if ("data" === this._gristDoc.activeViewId.get()) {
       // Get all raw sections.
       const rawSections = this._gristDoc.docModel.visibleTables.peek()
       // sort in order that is the same as on the raw data list page,
@@ -320,7 +320,7 @@ class FinderImpl implements IFinder {
   private _initNewSectionShown() {
     this._initNewSectionCommon();
     const viewInstance = this._sectionStepper.value.viewInstance.peek()!;
-    const skip = ['chart'].includes(this._sectionStepper.value.parentKey.peek());
+    const skip = ["chart"].includes(this._sectionStepper.value.parentKey.peek());
     this._rowStepper.array = skip ? [] : viewInstance.sortedRows.getKoArray().peek() as number[];
   }
 
@@ -328,7 +328,7 @@ class FinderImpl implements IFinder {
     const tableModel = this._initNewSectionCommon();
 
     const viewInstance = this._sectionStepper.value.viewInstance.peek();
-    const skip = ['chart'].includes(this._sectionStepper.value.parentKey.peek());
+    const skip = ["chart"].includes(this._sectionStepper.value.parentKey.peek());
     if (skip) {
       this._rowStepper.array = [];
     }
@@ -432,11 +432,11 @@ class FinderImpl implements IFinder {
     // was already in a matched record, but the record was scrolled away.
     viewInstance.scrollToCursor(true).catch(reportError);
 
-    const cursor = viewInstance.viewPane.querySelector('.selected_cursor');
+    const cursor = viewInstance.viewPane.querySelector(".selected_cursor");
     if (cursor) {
-      cursor.classList.add('search-match');
+      cursor.classList.add("search-match");
       this._clearCursorHighlight = () => {
-        cursor.classList.remove('search-match');
+        cursor.classList.remove("search-match");
         clearTimeout(timeout);
         this._clearCursorHighlight = undefined;
       };
@@ -458,7 +458,7 @@ class FinderImpl implements IFinder {
  * Implementation of SearchModel used to construct the search UI.
  */
 export class SearchModelImpl extends Disposable implements SearchModel {
-  public readonly value = Observable.create(this, '');
+  public readonly value = Observable.create(this, "");
   public readonly isOpen = Observable.create(this, false);
   public readonly isRunning = Observable.create(this, false);
   public readonly noMatch = Observable.create(this, true);
@@ -479,8 +479,8 @@ export class SearchModelImpl extends Disposable implements SearchModel {
     // Set this.noMatch to false when multiPage gets turned ON.
     this.autoDispose(this.multiPage.addListener((v) => { if (v) { this.noMatch.set(false); } }));
 
-    this.allLabel = Computed.create(this, use => use(this._gristDoc.activeViewId) === 'data' ?
-      t('Search all tables') : t('Search all pages'));
+    this.allLabel = Computed.create(this, use => use(this._gristDoc.activeViewId) === "data" ?
+      t("Search all tables") : t("Search all pages"));
 
     // Schedule a search restart when user changes pages (otherwise search would resume from the
     // previous page that is not shown anymore). Also revert noMatch flag when in single page mode.
@@ -491,7 +491,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
 
     // On Raw data view, whenever table is closed (so activeSectionId = 0), restart search.
     this.autoDispose(this._gristDoc.viewModel.activeSectionId.subscribe((sectionId) => {
-      if (this._gristDoc.activeViewId.get() === 'data' && sectionId === 0) {
+      if (this._gristDoc.activeViewId.get() === "data" && sectionId === 0) {
         this._isRestartNeeded = true;
         this.noMatch.set(false);
       }
@@ -568,6 +568,6 @@ export class SearchModelImpl extends Disposable implements SearchModel {
 
 function makeRegexp(value: string) {
   // From https://stackoverflow.com/a/3561711/328565
-  const escaped = value.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-  return new RegExp(escaped, 'i');
+  const escaped = value.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+  return new RegExp(escaped, "i");
 }

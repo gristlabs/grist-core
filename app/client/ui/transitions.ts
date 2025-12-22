@@ -32,7 +32,7 @@
  * prepare()); those triggered AFTER are subject to transitions (like run()).
  */
 
-import { BindableValue, Disposable, dom, DomElementMethod, subscribeElem } from 'grainjs';
+import { BindableValue, Disposable, dom, DomElementMethod, subscribeElem } from "grainjs";
 
 export interface ITransitionLogic<T = void> {
   prepare(elem: HTMLElement, value: T): void;
@@ -70,7 +70,7 @@ export function transition<T>(obs: BindableValue<T>, trans: ITransitionLogic<T>)
  */
 export function prepareForTransition(elem: HTMLElement, prepare: () => void) {
   const prior = elem.style.transitionProperty;
-  elem.style.transitionProperty = 'none';
+  elem.style.transitionProperty = "none";
   prepare();
 
   // Recompute styles while transitions are off. See https://stackoverflow.com/a/16575811/328565
@@ -113,7 +113,7 @@ export class TransitionWatcher extends Disposable {
     const duration = style.transitionDuration;
     this._durationMs = ((duration && parseFloat(duration)) || 0) * 1000;
 
-    this.autoDispose(dom.onElem(elem, 'transitionend', e =>
+    this.autoDispose(dom.onElem(elem, "transitionend", e =>
       (e.propertyName === this._propertyName) && this.dispose()));
 
     this._timer = setTimeout(() => this.dispose(), this._durationMs + 10);

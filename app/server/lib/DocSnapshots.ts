@@ -1,12 +1,12 @@
-import { integerParam } from 'app/server/lib/requestUtils';
-import { ObjSnapshotWithMetadata } from 'app/common/DocSnapshot';
-import { SnapshotWindow } from 'app/common/Features';
-import { KeyedMutex } from 'app/common/KeyedMutex';
-import { KeyedOps } from 'app/common/KeyedOps';
-import { ExternalStorage } from 'app/server/lib/ExternalStorage';
-import log from 'app/server/lib/log';
-import * as fse from 'fs-extra';
-import * as moment from 'moment-timezone';
+import { integerParam } from "app/server/lib/requestUtils";
+import { ObjSnapshotWithMetadata } from "app/common/DocSnapshot";
+import { SnapshotWindow } from "app/common/Features";
+import { KeyedMutex } from "app/common/KeyedMutex";
+import { KeyedOps } from "app/common/KeyedOps";
+import { ExternalStorage } from "app/server/lib/ExternalStorage";
+import log from "app/server/lib/log";
+import * as fse from "fs-extra";
+import * as moment from "moment-timezone";
 
 /**
  * A subset of the ExternalStorage interface, focusing on maintaining a list of versions.
@@ -46,7 +46,7 @@ export class DocSnapshotPruner {
 
   // Wait for all in-progress prunes to finish up in an orderly fashion.
   public async wait() {
-    await this._prunes.wait(() => 'waiting for pruning to finish');
+    await this._prunes.wait(() => "waiting for pruning to finish");
   }
 
   // Note that a document has changed, and should be pruned (or repruned).  Pruning operation
@@ -277,7 +277,7 @@ export class DocSnapshotInventory implements IInventory {
   private async _loadFromFile(fname: string): Promise<ObjSnapshotWithMetadata[] | null> {
     try {
       if (await fse.pathExists(fname)) {
-        return JSON.parse(await fse.readFile(fname, 'utf8'));
+        return JSON.parse(await fse.readFile(fname, "utf8"));
       }
       return null;
     }
@@ -288,7 +288,7 @@ export class DocSnapshotInventory implements IInventory {
 
   // Save inventory to local file system.
   private async _saveToFile(fname: string, data: ObjSnapshotWithMetadata[]) {
-    await fse.outputFile(fname, JSON.stringify(data, null, 2), 'utf8');
+    await fse.outputFile(fname, JSON.stringify(data, null, 2), "utf8");
   }
 
   // This is a relatively expensive operation, calling the S3 api for every stored
@@ -350,7 +350,7 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
   const current = snapshots[0];
   if (!current) { return []; }
 
-  const tz = current.metadata?.tz || 'UTC';
+  const tz = current.metadata?.tz || "UTC";
 
   // Get time of current version
   const start = moment.tz(current.lastModified, tz);
@@ -369,11 +369,11 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
   // Track saved version per hour, day, week, month, year, and number of times a version
   // has been saved based on a corresponding rule.
   const buckets: TimeBucket[] = [
-    { range: 'hour', prev: start, usage: 0, cap: capHour },
-    { range: 'day', prev: start, usage: 0, cap: capDay },
-    { range: 'isoWeek', prev: start, usage: 0, cap: capIsoWeek },
-    { range: 'month', prev: start, usage: 0, cap: capMonth },
-    { range: 'year', prev: start, usage: 0, cap: capYear },
+    { range: "hour", prev: start, usage: 0, cap: capHour },
+    { range: "day", prev: start, usage: 0, cap: capDay },
+    { range: "isoWeek", prev: start, usage: 0, cap: capIsoWeek },
+    { range: "month", prev: start, usage: 0, cap: capMonth },
+    { range: "year", prev: start, usage: 0, cap: capYear },
   ];
 
   // For each snapshot starting with newest, check if it is worth saving by comparing
@@ -400,7 +400,7 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
     // Preserve recent labelled snapshots in a naive and limited way.  No doubt this will
     // be elaborated on if we make this a user-facing feature.
     if (snapshot.metadata?.label &&
-      start.diff(date, 'days') < 32) { keep = true; }
+      start.diff(date, "days") < 32) { keep = true; }
     return keep;
   });
 }
@@ -426,7 +426,7 @@ function updateAndCheckRange(t: moment.Moment, bucket: TimeBucket) {
 }
 
 interface TimeBucket {
-  range: 'hour' | 'day' | 'isoWeek' | 'month' | 'year',
+  range: "hour" | "day" | "isoWeek" | "month" | "year",
   prev: moment.Moment;   // last time stored in this bucket
   usage: number;         // number of times this bucket justified saving a snapshot
   cap: number;           // maximum number of usages permitted

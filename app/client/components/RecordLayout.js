@@ -23,25 +23,25 @@
 //    detail view.
 // 6. [LATER] Implement saving and loading of widths in the layout spec.
 
-var _ = require('underscore');
-var ko = require('knockout');
-var Promise = require('bluebird');
+var _ = require("underscore");
+var ko = require("knockout");
+var Promise = require("bluebird");
 
-var gutil = require('app/common/gutil');
-var dispose = require('../lib/dispose');
-var dom = require('../lib/dom');
-var {Delay} = require('../lib/Delay');
-var kd = require('../lib/koDom');
-var {makeT} = require('../lib/localization');
-var Layout = require('./Layout');
-var RecordLayoutEditor = require('./RecordLayoutEditor');
-var commands = require('./commands');
-var {menuToggle} = require('app/client/ui/MenuToggle');
-var {menu} = require('../ui2018/menus');
-var {testId} = require('app/client/ui2018/cssVars');
-var {contextMenu} = require('app/client/ui/contextMenu');
+var gutil = require("app/common/gutil");
+var dispose = require("../lib/dispose");
+var dom = require("../lib/dom");
+var {Delay} = require("../lib/Delay");
+var kd = require("../lib/koDom");
+var {makeT} = require("../lib/localization");
+var Layout = require("./Layout");
+var RecordLayoutEditor = require("./RecordLayoutEditor");
+var commands = require("./commands");
+var {menuToggle} = require("app/client/ui/MenuToggle");
+var {menu} = require("../ui2018/menus");
+var {testId} = require("app/client/ui2018/cssVars");
+var {contextMenu} = require("app/client/ui/contextMenu");
 
-const t = makeT('RecordLayout');
+const t = makeT("RecordLayout");
 
 /**
  * Construct a RecordLayout.
@@ -97,7 +97,7 @@ RecordLayout.prototype.getField = function(fieldRowId) {
   // If fieldRowId is a string which includes ":", then it's actually "colRef:label:value"
   // placeholder that we use when adding a new field. If so, return a special object with the fields
   // available. Note that virtual tables also produces string fieldRowId but they have no ":".
-  if (typeof fieldRowId === 'string' && fieldRowId.includes(':')) {
+  if (typeof fieldRowId === "string" && fieldRowId.includes(":")) {
     var parts = gutil.maxsplit(fieldRowId, ":", 2);
     return {
       isNewField: true,        // To make it easy to distinguish from a ViewField MetaRowModel
@@ -146,7 +146,7 @@ RecordLayout.prototype.onEditLayoutSave = async function(layoutSpec) {
  */
 RecordLayout.updateLayoutSpecWithFields = function(spec, viewFields) {
   // We use tmpLayout as a way to manipulate the layout before we get a final spec from it.
-  var tmpLayout = Layout.Layout.create(spec, function(leafId) { return dom('div'); });
+  var tmpLayout = Layout.Layout.create(spec, function(leafId) { return dom("div"); });
 
   var specFieldIds = tmpLayout.getAllLeafIds();
   var viewFieldIds = viewFields.map(function(f) { return f.getRowId(); });
@@ -318,7 +318,7 @@ RecordLayout.prototype.buildLayoutDom = function(row, optCreateEditor) {
   const createEditor = Boolean(optCreateEditor && !this.layoutEditor.peek());
 
   const layout = Layout.Layout.create(this.layoutSpec(), (fieldRowId) =>
-    dom('div.g_record_layout_leaf.flexhbox.flexauto',
+    dom("div.g_record_layout_leaf.flexhbox.flexauto",
       this.buildFieldDom(this.getField(fieldRowId), row),
       (createEditor ?
         kd.maybe(this.layoutEditor, editor => editor.buildLeafDom()) :
@@ -333,7 +333,7 @@ RecordLayout.prototype.buildLayoutDom = function(row, optCreateEditor) {
     this.layoutEditor(RecordLayoutEditor.create(this, layout));
   }
 
-  return dom('div.g_record_detail.flexauto',
+  return dom("div.g_record_detail.flexauto",
     dom.autoDispose(layout),
     dom.autoDispose(sub),
     createEditor ? dom.onDispose(() => {
@@ -342,26 +342,26 @@ RecordLayout.prototype.buildLayoutDom = function(row, optCreateEditor) {
     }) : null,
     // enables field context menu anywhere on the card
     contextMenu(() => this.buildFieldContextMenu()),
-    dom('div.detail_row_num',
+    dom("div.detail_row_num",
       kd.text(() => (row._index() + 1)),
-      dom.on('contextmenu', ev => {
+      dom.on("contextmenu", ev => {
         // This is a little hack to position the menu the same way as with a click,
         // the same hack as on a column menu.
         ev.preventDefault();
         // prevent 2nd context menu to show up
         ev.stopPropagation();
-        ev.currentTarget.querySelector('.menu_toggle').click();
+        ev.currentTarget.querySelector(".menu_toggle").click();
       }),
       menuToggle(null,
-        dom.on('click', () => {
+        dom.on("click", () => {
           this.viewSection.hasFocus(true);
           commands.allCommands.setCursor.run(row);
         }),
         menu(() => this.buildCardContextMenu(row)),
-        testId('card-menu-trigger')
+        testId("card-menu-trigger")
       )
     ),
-    dom('div.g_record_detail_inner', layout.rootElem)
+    dom("div.g_record_detail_inner", layout.rootElem)
   );
 };
 
@@ -376,8 +376,8 @@ RecordLayout.prototype.getContainingField = function(elem, optContainer) {
  * Returns the RowModel for the record that the given DOM element belongs to.
  */
 RecordLayout.prototype.getContainingRow = function(elem, optContainer) {
-  var itemElem = dom.findAncestor(elem, optContainer, '.g_record_detail');
-  return ko.utils.domData.get(itemElem, 'itemModel');
+  var itemElem = dom.findAncestor(elem, optContainer, ".g_record_detail");
+  return ko.utils.domData.get(itemElem, "itemModel");
 };
 
 module.exports = RecordLayout;

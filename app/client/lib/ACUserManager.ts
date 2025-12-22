@@ -1,4 +1,4 @@
-import { makeT } from 'app/client/lib/localization';
+import { makeT } from "app/client/lib/localization";
 import { ACIndex, ACItem, ACResults, buildHighlightedDom, normalizeText } from "app/client/lib/ACIndex";
 import { cssSelectItem } from "app/client/lib/ACSelect";
 import { Autocomplete, IAutocompleteOptions } from "app/client/lib/autocomplete";
@@ -16,11 +16,11 @@ import {
   cssMemberText,
 } from "app/client/ui/UserItem";
 import { createUserImage, cssUserImage } from "app/client/ui/UserImage";
-import { getGristConfig } from 'app/common/urlUtils';
+import { getGristConfig } from "app/common/urlUtils";
 import { Computed, computed, dom, DomElementArg, Holder, IDisposableOwner, Observable, styled } from "grainjs";
 import { cssMenuItem } from "popweasel";
 
-const t = makeT('ACUserManager');
+const t = makeT("ACUserManager");
 
 export interface ACUserItem extends ACItem {
   value: string;
@@ -113,9 +113,9 @@ export function buildACMemberEmail(
   const renderSearchItem = (item: ACUserItem, highlightFunc: any): HTMLLIElement => (item?.isNew ? cssSelectItem(
     cssMemberListItem(
       cssUserImagePlus(
-        cssPlusIcon('Plus'),
+        cssPlusIcon("Plus"),
         cssUserImage.cls("-large"),
-        cssUserImagePlus.cls('-invalid', use => !use(enableAdd),
+        cssUserImagePlus.cls("-invalid", use => !use(enableAdd),
         )),
       cssMemberText(
         cssMemberPrimaryPlus(t("Invite new member")),
@@ -163,7 +163,7 @@ export function buildACMemberEmail(
         Tab: commitIfValid,
       }),
     )),
-    cssEmailInputContainer.cls('-green', enableAdd),
+    cssEmailInputContainer.cls("-green", enableAdd),
     ...args,
   );
 

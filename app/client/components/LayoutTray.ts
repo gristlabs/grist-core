@@ -1,22 +1,22 @@
-import BaseView from 'app/client/components/BaseView';
-import { buildCollapsedSectionDom, buildViewSectionDom } from 'app/client/components/buildViewSectionDom';
-import * as commands from 'app/client/components/commands';
-import { ContentBox } from 'app/client/components/Layout';
-import type { ViewLayout } from 'app/client/components/ViewLayout';
-import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
-import { Signal } from 'app/client/lib/Signal';
-import { urlState } from 'app/client/models/gristUrlState';
-import { TransitionWatcher } from 'app/client/ui/transitions';
-import { theme } from 'app/client/ui2018/cssVars';
-import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
-import { isNonNullish } from 'app/common/gutil';
+import BaseView from "app/client/components/BaseView";
+import { buildCollapsedSectionDom, buildViewSectionDom } from "app/client/components/buildViewSectionDom";
+import * as commands from "app/client/components/commands";
+import { ContentBox } from "app/client/components/Layout";
+import type { ViewLayout } from "app/client/components/ViewLayout";
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { Signal } from "app/client/lib/Signal";
+import { urlState } from "app/client/models/gristUrlState";
+import { TransitionWatcher } from "app/client/ui/transitions";
+import { theme } from "app/client/ui2018/cssVars";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { isNonNullish } from "app/common/gutil";
 import { Computed, Disposable, dom, IDisposable, IDisposableOwner,
-  makeTestId, obsArray, Observable, styled } from 'grainjs';
-import isEqual from 'lodash/isEqual';
+  makeTestId, obsArray, Observable, styled } from "grainjs";
+import isEqual from "lodash/isEqual";
 
-const testId = makeTestId('test-layoutTray-');
+const testId = makeTestId("test-layoutTray-");
 
-const G = getBrowserGlobals('document', 'window', '$');
+const G = getBrowserGlobals("document", "window", "$");
 
 type JQMouseEvent = JQuery.MouseEventBase | MouseEvent;
 
@@ -142,11 +142,11 @@ export class LayoutTray extends DisposableWithEvents {
 
   public buildDom() {
     return this._rootElement = cssCollapsedTray(
-      testId('editor'),
+      testId("editor"),
       // When drag is active we should show a dotted border around the tray.
-      cssCollapsedTray.cls('-is-active', this.active.state),
+      cssCollapsedTray.cls("-is-active", this.active.state),
       // If element is over the tray, we should indicate that we are ready by changing a color.
-      cssCollapsedTray.cls('-is-target', this.over.state),
+      cssCollapsedTray.cls("-is-target", this.over.state),
       // Synchronize the hovering state with the event.
       syncHover(this.hovering),
       // Create a drop zone (below actual sections)
@@ -212,7 +212,7 @@ export class LayoutTray extends DisposableWithEvents {
         const leafId = viewLayout.viewModel.activeCollapsedSectionId();
         if (!leafId) { return; }
 
-        viewLayout.docModel.docData.bundleActions('removing section', async () => {
+        viewLayout.docModel.docData.bundleActions("removing section", async () => {
           if (!await this.viewLayout.removeViewSection(leafId)) {
             return;
           }
@@ -223,7 +223,7 @@ export class LayoutTray extends DisposableWithEvents {
           const validSections = new Set(viewLayout.viewModel.viewSections.peek().peek().map(vs => vs.id.peek()));
           validSections.delete(leafId);
           currentSpec.collapsed = currentSpec.collapsed
-            ?.filter(x => typeof x.leaf === 'number' && validSections.has(x.leaf));
+            ?.filter(x => typeof x.leaf === "number" && validSections.has(x.leaf));
           await viewLayout.saveLayoutSpec(currentSpec);
         }).catch(reportError);
       },
@@ -297,12 +297,12 @@ class CollapsedDropZone extends Disposable {
           // We haven't found anything, remove the last drop target.
           this._removeDropZone().catch(err => console.error(`Failed to remove zone:`, err));// This should not happen.
         };
-        G.window.addEventListener('mousemove', listener);
+        G.window.addEventListener("mousemove", listener);
         // When mouse leaves, we need to remove the last drop target.
         owner.onDispose(() => {
           this._removeDropZone().catch(err => console.error(`Failed to remove zone:`, err));// This should not happen.
         });
-        owner.onDispose(() => G.window.removeEventListener('mousemove', listener));
+        owner.onDispose(() => G.window.removeEventListener("mousemove", listener));
         // For debugging, we can show the virtual zones.
         const show = false;
         return !show ? null : dom.domComputed(
@@ -453,8 +453,8 @@ class CollapsedLayout extends Disposable {
 
   public addBox(id: number | Leaf, index?: number) {
     index ??= -1;
-    const box = typeof id === 'number' ? CollapsedLeaf.create(this.holder, this.model, id) : id;
-    if (typeof id !== 'number') {
+    const box = typeof id === "number" ? CollapsedLeaf.create(this.holder, this.model, id) : id;
+    if (typeof id !== "number") {
       this.holder.autoDispose(box);
     }
     return this.insert(index, box);
@@ -498,7 +498,7 @@ class CollapsedLayout extends Disposable {
   }
 
   public leafIds() {
-    return this._boxes.get().map(l => l.id.get()).filter(x => x && typeof x === 'number');
+    return this._boxes.get().map(l => l.id.get()).filter(x => x && typeof x === "number");
   }
 
   public getBox(leaf: number): CollapsedLeaf | undefined {
@@ -507,7 +507,7 @@ class CollapsedLayout extends Disposable {
 
   public buildDom() {
     return (this.rootElement = cssLayout(
-      testId('layout'),
+      testId("layout"),
       useDragging(),
       dom.hide(use => use(this._boxes).length === 0),
       dom.forEach(this._boxes, line => line.buildDom()),
@@ -542,7 +542,7 @@ abstract class Leaf extends Disposable {
  * Empty leaf that is used to represent the empty space in the collapsed layout. Can be used to drop boxes.
  */
 class EmptyLeaf extends Leaf {
-  public name = Observable.create(this, 'empty');
+  public name = Observable.create(this, "empty");
 
   // If we are hovering over the empty leaf.
   private _onHover = Signal.create(this, false);
@@ -571,9 +571,9 @@ class EmptyLeaf extends Leaf {
 
   public buildDom() {
     return (this.rootElement = cssEmptyBox(
-      cssEmptyBox.cls('-can-accept', this._onHover.state),
+      cssEmptyBox.cls("-can-accept", this._onHover.state),
       syncHover(this._onHover),
-      testId('empty-box'),
+      testId("empty-box"),
     ));
   }
 }
@@ -583,12 +583,12 @@ class EmptyLeaf extends Leaf {
  */
 class TargetLeaf extends EmptyLeaf {
   public buildDom() {
-    this.name.set('target');
+    this.name.set("target");
     const element = super.buildDom();
     dom.update(element,
-      testId('target-box'),
+      testId("target-box"),
       dom.cls(cssProbe.className),
-      { style: 'width: 2px;' },
+      { style: "width: 2px;" },
     );
     return element;
   }
@@ -604,7 +604,7 @@ class TargetLeaf extends EmptyLeaf {
       watcher.onDispose(() => {
         resolve(undefined);
       });
-      this.rootElement.style.width = '';
+      this.rootElement.style.width = "";
     });
   }
 
@@ -615,7 +615,7 @@ class TargetLeaf extends EmptyLeaf {
         this.model.layout.destroy(this);
         resolve(undefined);
       });
-      this.rootElement.style.width = '0px';
+      this.rootElement.style.width = "0px";
     });
   }
 }
@@ -681,18 +681,18 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
   public buildDom() {
     this._content.set(this.model.buildContentDom(this.id.get()));
     return this.rootElement = cssBox(
-      testId('leaf-box'),
+      testId("leaf-box"),
       dom.domComputed(this._content, c => c),
       // Add draggable interface.
       asDraggable(this),
-      dom.on('click', (e) => {
+      dom.on("click", (e) => {
         this.model.viewLayout.viewModel.activeCollapsedSectionId(this.id.get());
         // Sanity (and type) check.
         if (!(e.target instanceof HTMLElement)) {
           return;
         }
         // If the click not landed in a draggable-handle ignore it. Might be a click to open the menu.
-        if (!e.target.closest('.draggable-handle')) {
+        if (!e.target.closest(".draggable-handle")) {
           return;
         }
         // Apparently the click was to open the section in the popup. Use the anchor link to do that.
@@ -819,13 +819,13 @@ class ExternalLeaf extends Disposable implements Dropped {
     // in the layout.
     const multipleLeaves = () => this.model.viewLayout.layout.getAllLeafIds().length > 1;
 
-    this.drag = Signal.fromEvents(this, this.model.viewLayout.layoutEditor, 'dragStart', 'dragEnd')
+    this.drag = Signal.fromEvents(this, this.model.viewLayout.layoutEditor, "dragStart", "dragEnd")
       .filter(multipleLeaves);
 
-    this._drop = Signal.fromEvents(this, this.model.viewLayout.layoutEditor, 'dragDrop')
+    this._drop = Signal.fromEvents(this, this.model.viewLayout.layoutEditor, "dragDrop")
       .filter(multipleLeaves);
 
-    this.dragMove = Signal.fromEvents(this, this.model.viewLayout.layoutEditor, 'dragMove')
+    this.dragMove = Signal.fromEvents(this, this.model.viewLayout.layoutEditor, "dragMove")
       .filter(multipleLeaves);
 
     // Now bubble up those events to the model.
@@ -917,7 +917,7 @@ class ExternalLeaf extends Disposable implements Dropped {
     if (!droppedBox) { return; }
     const leafId = this.leafId();
     const otherSection = this.model.viewLayout.layoutEditor
-      .layout.getAllLeafIds().find(x => typeof x === 'number' && x !== leafId);
+      .layout.getAllLeafIds().find(x => typeof x === "number" && x !== leafId);
     this.model.viewLayout.viewModel.activeSectionId(otherSection);
     // We can safely remove the box, because we should be called after viewInstance is grabbed by
     // the tray.
@@ -934,7 +934,7 @@ class ExternalLeaf extends Disposable implements Dropped {
   private _replaceFloater() {
     const model = this.model;
     // We will replace floater just after it starts till it is about to be dropped.
-    const period = Signal.fromEvents(model, model.viewLayout.layoutEditor, 'dragStart', 'dragStop');
+    const period = Signal.fromEvents(model, model.viewLayout.layoutEditor, "dragStart", "dragStop");
     const overEditor = Signal.compute(model, on => Boolean(on(period) && on(model.over))).distinct();
     let lastContent: HTMLElement | null = null;
     let lastTransform: string | null = null;
@@ -946,14 +946,14 @@ class ExternalLeaf extends Disposable implements Dropped {
         if (over) {
           const floater = model.viewLayout.layoutEditor.floater;
           const leafId = floater.leafId.peek();
-          if (typeof leafId !== 'number') {
+          if (typeof leafId !== "number") {
             return;
           }
           const content = floater.leafContent.peek() as HTMLElement;
           if (content) {
             lastContent = content;
             // Hide this element.
-            content.style.display = 'none';
+            content.style.display = "none";
             // Create another element to show in the floater.
             const newContent = cssFloaterWrapper(content, buildCollapsedSectionDom({
               gristDoc: model.viewLayout.gristDoc,
@@ -963,13 +963,13 @@ class ExternalLeaf extends Disposable implements Dropped {
             lastTransform = floater.dom.style.transform;
             lastX = floater.mouseOffsetX;
             lastY = floater.mouseOffsetY;
-            floater.dom.style.transform = 'none';
+            floater.dom.style.transform = "none";
             floater.mouseOffsetX = 0;
             floater.mouseOffsetY = 0;
           }
         }
         else if (lastContent) {
-          lastContent.style.display = '';
+          lastContent.style.display = "";
           const floater = model.viewLayout.layoutEditor.floater;
           const currentContent = floater.leafContent.peek() as HTMLElement;
           floater.leafContent(lastContent);
@@ -1022,7 +1022,7 @@ class ArrayHolder extends Disposable {
 }
 
 function syncHover(obs: Signal) {
-  return [dom.on('mouseenter', () => obs.emit(true)), dom.on('mouseleave', () => obs.emit(false))];
+  return [dom.on("mouseenter", () => obs.emit(true)), dom.on("mouseleave", () => obs.emit(false))];
 }
 
 /**
@@ -1044,7 +1044,7 @@ function detachedNode(node: Observable<HTMLElement | null>) {
 function findDraggable(ev: EventTarget | null) {
   if (ev instanceof HTMLElement) {
     const target = ev.closest(".draggable-handle")?.closest(".draggable");
-    return !target ? null : dom.getData(target, 'draggable') as Draggable;
+    return !target ? null : dom.getData(target, "draggable") as Draggable;
   }
   return null;
 }
@@ -1054,8 +1054,8 @@ function findDraggable(ev: EventTarget | null) {
  */
 function asDraggable(item: Draggable) {
   return [
-    dom.cls('draggable'),
-    dom.data('draggable', item),
+    dom.cls("draggable"),
+    dom.data("draggable", item),
   ];
 }
 
@@ -1077,7 +1077,7 @@ function useDragging() {
     let downY: number | null = null;
     const listener = (ev: JQMouseEvent) => {
       switch (ev.type) {
-        case 'mousedown':
+        case "mousedown":
           // Only handle left button.
           if (ev.button !== 0) {
             return;
@@ -1092,18 +1092,18 @@ function useDragging() {
           floater = new MiniFloater();
           // Start drag and attach mousemove and mouseup listeners.
           justStarted = true;
-          G.$(G.window).on('mousemove', mouseMoveListener);
-          G.$(G.window).on('mouseup', mouseUpListener);
+          G.$(G.window).on("mousemove", mouseMoveListener);
+          G.$(G.window).on("mouseup", mouseUpListener);
           downX = ev.clientX;
           downY = ev.clientY;
           return false;
-        case 'mouseup':
+        case "mouseup":
           if (!dragged) {
             return;
           }
           justStarted = false;
-          G.$(G.window).off('mousemove', mouseMoveListener);
-          G.$(G.window).off('mouseup', mouseUpListener);
+          G.$(G.window).off("mousemove", mouseMoveListener);
+          G.$(G.window).off("mouseup", mouseUpListener);
 
           if (isDragging) {
             isDragging = false;
@@ -1118,7 +1118,7 @@ function useDragging() {
           floater?.dispose();
           floater = null;
           return false;
-        case 'mousemove':
+        case "mousemove":
           if (justStarted) {
             const slightMove = downX && downY &&
               (Math.abs(ev.clientX - downX) > 3 || Math.abs(ev.clientY - downY) > 3);
@@ -1147,7 +1147,7 @@ function useDragging() {
     };
     const mouseMoveListener = (ev: JQMouseEvent) => listener(ev);
     const mouseUpListener = (ev: JQMouseEvent) => listener(ev);
-    dom.autoDisposeElem(el, dom.onElem(G.window, 'mousedown', e => listener(e)));
+    dom.autoDisposeElem(el, dom.onElem(G.window, "mousedown", e => listener(e)));
     dom.onDisposeElem(el, () => (floater?.dispose(), floater = null));
   };
 }
@@ -1175,12 +1175,12 @@ class VRect {
   }
 }
 
-const cssVirtualZone = styled('div', `
+const cssVirtualZone = styled("div", `
   position: absolute;
   inset: 0;
 `);
 
-const cssFloaterWrapper = styled('div', `
+const cssFloaterWrapper = styled("div", `
   height: 40px;
   width: 140px;
   max-width: 140px;
@@ -1195,7 +1195,7 @@ const cssFloaterWrapper = styled('div', `
   }
 `);
 
-const cssCollapsedTray = styled('div.collapsed_layout', `
+const cssCollapsedTray = styled("div.collapsed_layout", `
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1223,7 +1223,7 @@ const cssCollapsedTray = styled('div.collapsed_layout', `
 `,
 );
 
-const cssRow = styled('div', `display: flex`);
+const cssRow = styled("div", `display: flex`);
 const cssLayout = styled(cssRow, `
   padding: 8px 24px;
   column-gap: 16px;
@@ -1232,7 +1232,7 @@ const cssLayout = styled(cssRow, `
   position: relative;
 `);
 
-const cssBox = styled('div', `
+const cssBox = styled("div", `
   border: 1px solid ${theme.widgetBorder};
   border-radius: 3px;
   background: ${theme.widgetBg};
@@ -1241,7 +1241,7 @@ const cssBox = styled('div', `
   cursor: pointer;
 `);
 
-const cssEmptyBox = styled('div', `
+const cssEmptyBox = styled("div", `
   text-align: center;
   text-transform: uppercase;
   color: ${theme.widgetBorder};
@@ -1258,7 +1258,7 @@ const cssEmptyBox = styled('div', `
   }
 `);
 
-const cssProbe = styled('div', `
+const cssProbe = styled("div", `
   min-width: 0px;
   padding: 0px;
   transition: width 0.2s ease-out;
@@ -1275,11 +1275,11 @@ const cssMiniFloater = styled(cssBox, `
   transform-origin: top left;
 `);
 
-const cssVirtualPart = styled('div', `
+const cssVirtualPart = styled("div", `
   outline: 1px solid blue;
   position: absolute;
   z-index: 10;
   background: rgba(0, 0, 0, 0.1);
 `);
 
-const cssHidden = styled('div', `display: none;`);
+const cssHidden = styled("div", `display: none;`);

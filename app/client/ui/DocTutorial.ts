@@ -1,24 +1,24 @@
-import { GristDoc } from 'app/client/components/GristDoc';
-import { makeT } from 'app/client/lib/localization';
-import { sessionStorageJsonObs } from 'app/client/lib/localStorageObs';
-import { logTelemetryEvent } from 'app/client/lib/telemetry';
-import { getWelcomeHomeUrl } from 'app/client/lib/urlUtils';
-import { urlState } from 'app/client/models/gristUrlState';
-import { renderer } from 'app/client/ui/DocTutorialRenderer';
-import { cssPopupBody, FLOATING_POPUP_TOOLTIP_KEY, FloatingPopup, PopupPosition } from 'app/client/ui/FloatingPopup';
-import { sanitizeTutorialHTML } from 'app/client/ui/sanitizeHTML';
-import { hoverTooltip, setHoverTooltip } from 'app/client/ui/tooltips';
-import { basicButton, primaryButton, textButton } from 'app/client/ui2018/buttons';
-import { mediaXSmall, theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { loadingSpinner } from 'app/client/ui2018/loaders';
-import { confirmModal, modal } from 'app/client/ui2018/modals';
-import { parseUrlId } from 'app/common/gristUrls';
-import { Disposable, dom, Holder, makeTestId, Observable, styled } from 'grainjs';
-import { marked, Token } from 'marked';
-import debounce from 'lodash/debounce';
-import range from 'lodash/range';
-import sortBy from 'lodash/sortBy';
+import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
+import { sessionStorageJsonObs } from "app/client/lib/localStorageObs";
+import { logTelemetryEvent } from "app/client/lib/telemetry";
+import { getWelcomeHomeUrl } from "app/client/lib/urlUtils";
+import { urlState } from "app/client/models/gristUrlState";
+import { renderer } from "app/client/ui/DocTutorialRenderer";
+import { cssPopupBody, FLOATING_POPUP_TOOLTIP_KEY, FloatingPopup, PopupPosition } from "app/client/ui/FloatingPopup";
+import { sanitizeTutorialHTML } from "app/client/ui/sanitizeHTML";
+import { hoverTooltip, setHoverTooltip } from "app/client/ui/tooltips";
+import { basicButton, primaryButton, textButton } from "app/client/ui2018/buttons";
+import { mediaXSmall, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { loadingSpinner } from "app/client/ui2018/loaders";
+import { confirmModal, modal } from "app/client/ui2018/modals";
+import { parseUrlId } from "app/common/gristUrls";
+import { Disposable, dom, Holder, makeTestId, Observable, styled } from "grainjs";
+import { marked, Token } from "marked";
+import debounce from "lodash/debounce";
+import range from "lodash/range";
+import sortBy from "lodash/sortBy";
 
 interface DocTutorialSlide {
   slideContent: string;
@@ -27,9 +27,9 @@ interface DocTutorialSlide {
   imageUrls: string[];
 }
 
-const t = makeT('DocTutorial');
+const t = makeT("DocTutorial");
 
-const testId = makeTestId('test-doc-tutorial-');
+const testId = makeTestId("test-doc-tutorial-");
 
 export class DocTutorial extends Disposable {
   private _appModel = this._gristDoc.docPageModel.appModel;
@@ -86,12 +86,12 @@ export class DocTutorial extends Disposable {
     this._showPopup();
     await this._loadSlides();
 
-    const tableData = this._docData.getTable('GristDocTutorial');
+    const tableData = this._docData.getTable("GristDocTutorial");
     if (tableData) {
       this.autoDispose(tableData.tableActionEmitter.addListener(() => this._reloadSlides()));
     }
 
-    this._logTelemetryEvent('tutorialOpened');
+    this._logTelemetryEvent("tutorialOpened");
   }
 
   private _showPopup() {
@@ -118,7 +118,7 @@ export class DocTutorial extends Disposable {
   }
 
   private _buildPopupTitle() {
-    return dom('span', dom.text(this._gristDoc.docPageModel.currentDocTitle), testId('popup-header'));
+    return dom("span", dom.text(this._gristDoc.docPageModel.currentDocTitle), testId("popup-header"));
   }
 
   private _buildPopupContent() {
@@ -129,14 +129,14 @@ export class DocTutorial extends Disposable {
         const slide = slides?.[slideIndex];
         return cssPopupBody(
           !slide ? cssSpinner(loadingSpinner()) : [
-            dom('div', (elem) => {
+            dom("div", (elem) => {
               elem.innerHTML = slide.slideContent;
             }),
             !slide.boxContent ? null : cssTryItOutBox(
-              dom('div', (elem) => { elem.innerHTML = slide.boxContent!; }),
+              dom("div", (elem) => { elem.innerHTML = slide.boxContent!; }),
             ),
-            dom.on('click', (ev) => {
-              if ((ev.target as HTMLElement).tagName !== 'IMG') {
+            dom.on("click", (ev) => {
+              if ((ev.target as HTMLElement).tagName !== "IMG") {
                 return;
               }
 
@@ -144,7 +144,7 @@ export class DocTutorial extends Disposable {
             }),
             this._initializeImages(),
           ],
-          testId('popup-body'),
+          testId("popup-body"),
         );
       }),
       cssPopupFooter(
@@ -163,43 +163,43 @@ export class DocTutorial extends Disposable {
                   closeOnClick: false,
                   key: FLOATING_POPUP_TOOLTIP_KEY,
                 }),
-                cssProgressBarDot.cls('-current', i === slideIndex),
-                i === slideIndex ? null : dom.on('click', () => this._changeSlide(i)),
+                cssProgressBarDot.cls("-current", i === slideIndex),
+                i === slideIndex ? null : dom.on("click", () => this._changeSlide(i)),
                 testId(`popup-slide-${i + 1}`),
               )),
             ),
             cssFooterButtons(
-              basicButton(t('Previous'),
-                dom.on('click', async () => {
+              basicButton(t("Previous"),
+                dom.on("click", async () => {
                   await this._previousSlide();
                 }),
-                { style: `visibility: ${isFirstSlide ? 'hidden' : 'visible'}` },
-                testId('popup-previous'),
+                { style: `visibility: ${isFirstSlide ? "hidden" : "visible"}` },
+                testId("popup-previous"),
               ),
-              primaryButton(isLastSlide ? t('Finish') : t('Next'),
+              primaryButton(isLastSlide ? t("Finish") : t("Next"),
                 isLastSlide ?
-                  dom.on('click', async () => await this._exitTutorial(true)) :
-                  dom.on('click', async () => await this._nextSlide()),
-                testId('popup-next'),
+                  dom.on("click", async () => await this._exitTutorial(true)) :
+                  dom.on("click", async () => await this._nextSlide()),
+                testId("popup-next"),
               ),
             ),
           ];
         }),
-        testId('popup-footer'),
+        testId("popup-footer"),
       ),
       cssTutorialControls(
         cssTextButton(
-          cssRestartIcon('Undo'),
-          t('Restart'),
-          dom.on('click', () => this._restartTutorial()),
-          testId('popup-restart'),
+          cssRestartIcon("Undo"),
+          t("Restart"),
+          dom.on("click", () => this._restartTutorial()),
+          testId("popup-restart"),
         ),
         cssButtonsSeparator(),
         cssTextButton(
-          cssSkipIcon('Skip'),
-          t('End tutorial'),
-          dom.on('click', () => this._exitTutorial()),
-          testId('popup-end-tutorial'),
+          cssSkipIcon("Skip"),
+          t("End tutorial"),
+          dom.on("click", () => this._exitTutorial()),
+          testId("popup-end-tutorial"),
         ),
       ),
     ];
@@ -207,21 +207,21 @@ export class DocTutorial extends Disposable {
 
   private _buildPopupArgs() {
     return [
-      dom.cls('doc-tutorial-popup'),
+      dom.cls("doc-tutorial-popup"),
       // Pre-fetch images from all slides and store them in a hidden div.
       dom.maybe(this._slides, slides =>
-        dom('div',
-          { style: 'display: none;' },
+        dom("div",
+          { style: "display: none;" },
           dom.forEach(slides, (slide) => {
             if (slide.imageUrls.length === 0) { return null; }
-            return dom('div', slide.imageUrls.map(src => dom('img', { src })));
+            return dom("div", slide.imageUrls.map(src => dom("img", { src })));
           }),
         ),
       ),
     ];
   }
 
-  private _logTelemetryEvent(event: 'tutorialOpened' | 'tutorialProgressChanged') {
+  private _logTelemetryEvent(event: "tutorialOpened" | "tutorialProgressChanged") {
     logTelemetryEvent(event, {
       full: {
         tutorialForkIdDigest: this._currentFork?.id,
@@ -234,9 +234,9 @@ export class DocTutorial extends Disposable {
   }
 
   private async _loadSlides() {
-    const tableId = 'GristDocTutorial';
+    const tableId = "GristDocTutorial";
     if (!this._docData.getTable(tableId)) {
-      throw new Error('DocTutorial failed to find table GristDocTutorial');
+      throw new Error("DocTutorial failed to find table GristDocTutorial");
     }
 
     await this._docComm.waitForInitialization();
@@ -247,7 +247,7 @@ export class DocTutorial extends Disposable {
 
     const tableData = this._docData.getTable(tableId)!;
     const slides = (await Promise.all(
-      sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any)
+      sortBy(tableData.getRowIds(), tableData.getRowPropFunc("manualSort") as any)
         .map(async (rowId) => {
           let slideTitle: string | undefined;
           const imageUrls: string[] = [];
@@ -258,22 +258,22 @@ export class DocTutorial extends Disposable {
           };
 
           const walkTokens = (token: Token) => {
-            if (token.type === 'image') {
+            if (token.type === "image") {
               imageUrls.push(token.href);
             }
 
-            if (!slideTitle && token.type === 'heading' && token.depth === 1) {
+            if (!slideTitle && token.type === "heading" && token.depth === 1) {
               slideTitle = token.text;
             }
           };
 
-          let slideContent = getValue('slide_content');
+          let slideContent = getValue("slide_content");
           if (!slideContent) { return null; }
           slideContent = sanitizeTutorialHTML(await marked.parse(slideContent, {
             async: true, renderer, walkTokens,
           }));
 
-          let boxContent = getValue('box_content');
+          let boxContent = getValue("box_content");
           if (boxContent) {
             boxContent = sanitizeTutorialHTML(await marked.parse(boxContent, {
               async: true, renderer, walkTokens,
@@ -290,7 +290,7 @@ export class DocTutorial extends Disposable {
     if (this.isDisposed()) { return; }
 
     if (slides.length === 0) {
-      throw new Error('DocTutorial failed to find slides in table GristDocTutorial');
+      throw new Error("DocTutorial failed to find slides in table GristDocTutorial");
     }
 
     this._slides.set(slides);
@@ -316,7 +316,7 @@ export class DocTutorial extends Disposable {
         },
       },
     });
-    this._logTelemetryEvent('tutorialProgressChanged');
+    this._logTelemetryEvent("tutorialProgressChanged");
   }
 
   private async _changeSlide(slideIndex: number) {
@@ -354,14 +354,14 @@ export class DocTutorial extends Disposable {
     };
 
     confirmModal(
-      t('Do you want to restart the tutorial? All progress will be lost.'),
-      t('Restart'),
+      t("Do you want to restart the tutorial? All progress will be lost."),
+      t("Restart"),
       doRestart,
       {
         modalOptions: {
           backerDomArgs: [
             // Stack modal above the tutorial popup.
-            dom.style('z-index', vars.tutorialModalZIndex.toString()),
+            dom.style("z-index", vars.tutorialModalZIndex.toString()),
           ],
         },
       },
@@ -371,20 +371,20 @@ export class DocTutorial extends Disposable {
   private _initializeImages() {
     return (element: HTMLElement) => {
       setTimeout(() => {
-        const imgs = element.querySelectorAll('img');
+        const imgs = element.querySelectorAll("img");
         for (const img of imgs) {
           // Re-assigning src to itself is a neat way to restart a GIF.
           // eslint-disable-next-line no-self-assign
           img.src = img.src;
 
-          setHoverTooltip(img, t('Click to expand'), {
+          setHoverTooltip(img, t("Click to expand"), {
             key: FLOATING_POPUP_TOOLTIP_KEY,
             modifiers: {
               flip: {
-                boundariesElement: 'scrollParent',
+                boundariesElement: "scrollParent",
               },
             },
-            placement: 'bottom',
+            placement: "bottom",
           });
         }
       }, 0);
@@ -395,25 +395,25 @@ export class DocTutorial extends Disposable {
     modal((ctl) => {
       this.onDispose(ctl.close);
       return [
-        cssFullScreenModal.cls(''),
-        cssModalCloseButton('CrossBig',
-          dom.on('click', () => ctl.close()),
-          testId('lightbox-close'),
+        cssFullScreenModal.cls(""),
+        cssModalCloseButton("CrossBig",
+          dom.on("click", () => ctl.close()),
+          testId("lightbox-close"),
         ),
-        cssModalContent(cssModalImage({ src }, testId('lightbox-image'))),
-        dom.on('click', (ev, elem) => void (ev.target === elem ? ctl.close() : null)),
-        testId('lightbox'),
+        cssModalContent(cssModalImage({ src }, testId("lightbox-image"))),
+        dom.on("click", (ev, elem) => void (ev.target === elem ? ctl.close() : null)),
+        testId("lightbox"),
       ];
     }, {
       backerDomArgs: [
         // Stack modal above the tutorial popup.
-        dom.style('z-index', vars.tutorialModalZIndex.toString()),
+        dom.style("z-index", vars.tutorialModalZIndex.toString()),
       ],
     });
   }
 }
 
-const cssPopupFooter = styled('div', `
+const cssPopupFooter = styled("div", `
   display: flex;
   column-gap: 24px;
   align-items: center;
@@ -423,21 +423,21 @@ const cssPopupFooter = styled('div', `
   border-top: 1px solid ${theme.tutorialsPopupBorder};
 `);
 
-const cssTryItOutBox = styled('div', `
+const cssTryItOutBox = styled("div", `
   margin-top: 16px;
   padding: 24px;
   border-radius: 4px;
   background-color: ${theme.tutorialsPopupBoxBg};
 `);
 
-const cssProgressBar = styled('div', `
+const cssProgressBar = styled("div", `
   display: flex;
   gap: 8px;
   flex-grow: 1;
   flex-wrap: wrap;
 `);
 
-const cssProgressBarDot = styled('div', `
+const cssProgressBarDot = styled("div", `
   width: 10px;
   height: 10px;
   border-radius: 5px;
@@ -451,7 +451,7 @@ const cssProgressBarDot = styled('div', `
   }
 `);
 
-const cssFooterButtons = styled('div', `
+const cssFooterButtons = styled("div", `
   display: flex;
   justify-content: flex-end;
   column-gap: 8px;
@@ -468,7 +468,7 @@ const cssFooterButtons = styled('div', `
   }
 `);
 
-const cssFullScreenModal = styled('div', `
+const cssFullScreenModal = styled("div", `
   display: flex;
   flex-direction: column;
   row-gap: 8px;
@@ -493,26 +493,26 @@ const cssModalCloseButton = styled(icon, `
   }
 `);
 
-const cssModalContent = styled('div', `
+const cssModalContent = styled("div", `
   align-self: center;
   min-height: 0;
   margin-top: auto;
   margin-bottom: auto;
 `);
 
-const cssModalImage = styled('img', `
+const cssModalImage = styled("img", `
   height: 100%;
   max-width: min(100%, 1200px);
 `);
 
-const cssSpinner = styled('div', `
+const cssSpinner = styled("div", `
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
 `);
 
-const cssTutorialControls = styled('div', `
+const cssTutorialControls = styled("div", `
   background-color: ${theme.notificationsPanelHeaderBg};
   display: flex;
   justify-content: center;
@@ -532,7 +532,7 @@ const cssRestartIcon = styled(icon, `
   height: 14px;
 `);
 
-const cssButtonsSeparator = styled('div', `
+const cssButtonsSeparator = styled("div", `
   width: 0;
   border-right: 1px solid ${theme.controlFg};
 `);
@@ -544,7 +544,7 @@ const cssSkipIcon = styled(icon, `
 `);
 
 // This is aligned with css in ./DocTutorial.css
-export const cssCode = styled('code', `
+export const cssCode = styled("code", `
   padding: 2px 5px;
   color: ${theme.tutorialsPopupCodeFg};
   background: ${theme.tutorialsPopupCodeBg};

@@ -1,10 +1,10 @@
-import { PluginInstance } from 'app/common/PluginInstance';
-import { ParseFileAPI } from 'app/plugin/FileParserAPI';
-import { checkers } from 'app/plugin/TypeCheckers';
+import { PluginInstance } from "app/common/PluginInstance";
+import { ParseFileAPI } from "app/plugin/FileParserAPI";
+import { checkers } from "app/plugin/TypeCheckers";
 
-import { FileParser } from 'app/plugin/PluginManifest';
+import { FileParser } from "app/plugin/PluginManifest";
 
-import * as path from 'path';
+import * as path from "path";
 
 /**
  * Encapsulates together a file parse contribution with its plugin instance and callable stubs for

@@ -67,23 +67,23 @@
  * "migrations" array, and modifying create() to create correct new documents.
  */
 
-import { delay } from 'app/common/delay';
-import { ErrorWithCode } from 'app/common/ErrorWithCode';
-import { timeFormat } from 'app/common/timeFormat';
-import { create } from 'app/server/lib/create';
-import * as docUtils from 'app/server/lib/docUtils';
-import log from 'app/server/lib/log';
+import { delay } from "app/common/delay";
+import { ErrorWithCode } from "app/common/ErrorWithCode";
+import { timeFormat } from "app/common/timeFormat";
+import { create } from "app/server/lib/create";
+import * as docUtils from "app/server/lib/docUtils";
+import log from "app/server/lib/log";
 import {
   Backup, MinDB, MinDBOptions, MinRunResult, PreparedStatement, ResultRow,
-  SqliteVariant, Statement } from 'app/server/lib/SqliteCommon';
-import { NodeSqliteVariant } from 'app/server/lib/SqliteNode';
-import assert from 'assert';
-import * as fse from 'fs-extra';
-import fromPairs from 'lodash/fromPairs';
-import isEqual from 'lodash/isEqual';
-import noop from 'lodash/noop';
-import range from 'lodash/range';
-import { AsyncLocalStorage } from 'node:async_hooks';
+  SqliteVariant, Statement } from "app/server/lib/SqliteCommon";
+import { NodeSqliteVariant } from "app/server/lib/SqliteNode";
+import assert from "assert";
+import * as fse from "fs-extra";
+import fromPairs from "lodash/fromPairs";
+import isEqual from "lodash/isEqual";
+import noop from "lodash/noop";
+import range from "lodash/range";
+import { AsyncLocalStorage } from "node:async_hooks";
 
 export type { PreparedStatement, ResultRow, Statement };
 export type RunResult = MinRunResult;
@@ -179,7 +179,7 @@ export class SQLiteDB implements ISQLiteDB {
     }
     else if (mode === OpenMode.CREATE_EXCL) {
       await db.close();
-      throw new ErrorWithCode('EEXISTS', `EEXISTS: Database already exists: ${dbPath}`);
+      throw new ErrorWithCode("EEXISTS", `EEXISTS: Database already exists: ${dbPath}`);
     }
     else {
       // Don't attempt migrations in OPEN_READONLY mode.
@@ -241,7 +241,7 @@ export class SQLiteDB implements ISQLiteDB {
     // build. To build the metadata, we open an in-memory DB and apply "create" function to it.
     // Note that for tiny DBs it takes <10ms.
     if (!dbMetadataCache.has(schemaInfo.create)) {
-      const db = await SQLiteDB.openDB(':memory:', schemaInfo, OpenMode.CREATE_EXCL);
+      const db = await SQLiteDB.openDB(":memory:", schemaInfo, OpenMode.CREATE_EXCL);
       dbMetadataCache.set(schemaInfo.create, await db.collectMetadata());
       await db.close();
     }
@@ -279,7 +279,7 @@ export class SQLiteDB implements ISQLiteDB {
 
   public backup(filename: string): Backup {
     if (!this._db.backup) {
-      throw new Error('SQLite wrapper does not support backups');
+      throw new Error("SQLite wrapper does not support backups");
     }
     return this._db.backup(filename);
   }
@@ -386,7 +386,7 @@ export class SQLiteDB implements ISQLiteDB {
     const alreadyClosed = this._closed;
     this._closed = true;
     if (!alreadyClosed) {
-      this._pauseReject?.(new Error('SQLiteDB closing, writes should stop'));
+      this._pauseReject?.(new Error("SQLiteDB closing, writes should stop"));
       let tries: number = 0;
       // We might not be able to close immediately if a backup is in
       // progress. We will retry for about 10 seconds. Worst case is
@@ -654,7 +654,7 @@ async function isGristEmpty(db: SQLiteDB): Promise<boolean> {
  */
 async function createBackupFile(filePath: string, versionNum: number): Promise<string> {
   const backupPath = await docUtils.createNumberedTemplate(
-    `${filePath}.${timeFormat('D', new Date())}.V${versionNum}{NUM}.bak`,
+    `${filePath}.${timeFormat("D", new Date())}.V${versionNum}{NUM}.bak`,
     docUtils.createExclusive);
   await docUtils.copyFile(filePath, backupPath);
   return backupPath;

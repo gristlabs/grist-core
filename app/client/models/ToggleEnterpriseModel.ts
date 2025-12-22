@@ -1,14 +1,14 @@
-import { makeT } from 'app/client/lib/localization';
-import { getHomeUrl } from 'app/client/models/AppModel';
+import { makeT } from "app/client/lib/localization";
+import { getHomeUrl } from "app/client/models/AppModel";
 import { Disposable, Observable } from "grainjs";
-import { ConfigAPI } from 'app/common/ConfigAPI';
-import { ActivationAPIImpl, ActivationStatus } from 'app/common/ActivationAPI';
-import { delay } from 'app/common/delay';
-import { getGristConfig } from 'app/common/urlUtils';
-import { GristDeploymentType } from 'app/common/gristUrls';
-import { Notifier } from 'app/client/models/NotifyModel';
+import { ConfigAPI } from "app/common/ConfigAPI";
+import { ActivationAPIImpl, ActivationStatus } from "app/common/ActivationAPI";
+import { delay } from "app/common/delay";
+import { getGristConfig } from "app/common/urlUtils";
+import { GristDeploymentType } from "app/common/gristUrls";
+import { Notifier } from "app/client/models/NotifyModel";
 
-const t = makeT('ToggleEnterprise');
+const t = makeT("ToggleEnterprise");
 
 export class ToggleEnterpriseModel extends Disposable {
   public readonly edition: Observable<GristDeploymentType | null> = Observable.create(this, null);
@@ -25,7 +25,7 @@ export class ToggleEnterpriseModel extends Disposable {
   public async fetchEnterpriseToggle() {
     const { deploymentType } = getGristConfig();
     this.edition.set(deploymentType || null);
-    if (deploymentType === 'enterprise') {
+    if (deploymentType === "enterprise") {
       const status = await this._activationAPI.getActivationStatus();
       if (this.isDisposed()) {
         return;

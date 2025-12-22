@@ -1,9 +1,9 @@
-import { ColumnGetter, ColumnGetters, ColumnGettersByColId } from 'app/common/ColumnGetters';
-import * as gristTypes from 'app/common/gristTypes';
-import { safeJsonParse } from 'app/common/gutil';
-import { choiceGetter } from 'app/common/SortFunc';
-import { Sort } from 'app/common/SortSpec';
-import { BulkColValues } from 'app/plugin/GristData';
+import { ColumnGetter, ColumnGetters, ColumnGettersByColId } from "app/common/ColumnGetters";
+import * as gristTypes from "app/common/gristTypes";
+import { safeJsonParse } from "app/common/gutil";
+import { choiceGetter } from "app/common/SortFunc";
+import { Sort } from "app/common/SortSpec";
+import { BulkColValues } from "app/plugin/GristData";
 
 /**
  *
@@ -22,7 +22,7 @@ export class ServerColumnGetters implements ColumnGetters, ColumnGettersByColId 
 
   public getColGetter(colSpec: Sort.ColSpec): ColumnGetter | null {
     const colRef = Sort.getColRef(colSpec);
-    if (typeof colRef !== 'number') {
+    if (typeof colRef !== "number") {
       // colRef might be string for virtual tables, but we don't support them here.
       throw new Error(`Unsupported colRef type: ${typeof colRef}`);
     }
@@ -37,7 +37,7 @@ export class ServerColumnGetters implements ColumnGetters, ColumnGettersByColId 
     const details = Sort.specToDetails(colSpec);
     if (details.orderByChoice) {
       const rowModel = this._columns.find(c => c.id == colRef);
-      if (rowModel?.type === 'Choice') {
+      if (rowModel?.type === "Choice") {
         const choices: string[] = safeJsonParse(rowModel.widgetOptions, {}).choices || [];
         getter = choiceGetter(getter, choices);
       }

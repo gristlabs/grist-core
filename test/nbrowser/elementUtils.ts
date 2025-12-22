@@ -42,6 +42,6 @@ export const button = (testId: string): Button => ({
 export const option = (testId: string) => ({
   ...button(testId),
   async checked() {
-    return 'true' === await this.element().findClosest("label").find("input[type='checkbox']").getAttribute('checked');
+    return "true" === await this.element().findClosest("label").find("input[type='checkbox']").getAttribute("checked");
   },
 });

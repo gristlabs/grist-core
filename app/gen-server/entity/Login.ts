@@ -12,9 +12,9 @@ import {
 
 import { User } from "app/gen-server/entity/User";
 
-@Entity({ name: 'logins' })
+@Entity({ name: "logins" })
 export class Login extends BaseEntity {
-  public static readonly SERVICE_ACCOUNTS_TLD = 'serviceaccounts.invalid';
+  public static readonly SERVICE_ACCOUNTS_TLD = "serviceaccounts.invalid";
 
   @PrimaryColumn({ type: Number })
   public id: number;
@@ -25,14 +25,14 @@ export class Login extends BaseEntity {
   public email: string;
 
   // This is how the user's email address should be displayed.
-  @Column({ name: 'display_email', type: String })
+  @Column({ name: "display_email", type: String })
   public displayEmail: string;
 
-  @Column({ name: 'user_id', type: Number })
+  @Column({ name: "user_id", type: Number })
   public userId: number;
 
   @ManyToOne(type => User)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: "user_id" })
   public user: User;
 
   @BeforeInsert()

@@ -1,24 +1,24 @@
-import { reportError } from 'app/client/models/AppModel';
+import { reportError } from "app/client/models/AppModel";
 import { Banner } from "app/client/components/Banner";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { icon } from "app/client/ui2018/icons";
-import { primaryButtonLink } from 'app/client/ui2018/buttons';
+import { primaryButtonLink } from "app/client/ui2018/buttons";
 import { Disposable, dom, styled } from "grainjs";
-import { testId, theme } from 'app/client/ui2018/cssVars';
-import { urlState } from 'app/client/models/gristUrlState';
-import { userOverrideParams } from 'app/common/gristUrls';
-import { cssMenuItem } from 'popweasel';
-import { getUserRoleText } from 'app/common/UserAPI';
-import { PermissionDataWithExtraUsers } from 'app/common/ActiveDocAPI';
-import { waitGrainObs } from 'app/common/gutil';
-import { cssSelectBtn } from 'app/client/ui2018/select';
-import { ACLUsersPopup } from 'app/client/aclui/ACLUsers';
-import { UserOverride } from 'app/common/DocListAPI';
-import { makeT } from 'app/client/lib/localization';
-import { cssInfoTooltipButton, withInfoTooltip } from 'app/client/ui/tooltips';
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { urlState } from "app/client/models/gristUrlState";
+import { userOverrideParams } from "app/common/gristUrls";
+import { cssMenuItem } from "popweasel";
+import { getUserRoleText } from "app/common/UserAPI";
+import { PermissionDataWithExtraUsers } from "app/common/ActiveDocAPI";
+import { waitGrainObs } from "app/common/gutil";
+import { cssSelectBtn } from "app/client/ui2018/select";
+import { ACLUsersPopup } from "app/client/aclui/ACLUsers";
+import { UserOverride } from "app/common/DocListAPI";
+import { makeT } from "app/client/lib/localization";
+import { cssInfoTooltipButton, withInfoTooltip } from "app/client/ui/tooltips";
 
-const t = makeT('ViewAsBanner');
-const userT = makeT('UserManagerModel');
+const t = makeT("ViewAsBanner");
+const userT = makeT("UserManagerModel");
 
 export class ViewAsBanner extends Disposable {
   private _userOverride = this._docPageModel.userOverride;
@@ -33,7 +33,7 @@ export class ViewAsBanner extends Disposable {
       this._initViewAsUsers().catch(reportError);
       return dom.create(Banner, {
         content: this._buildContent(userOverride),
-        style: 'info',
+        style: "info",
         showCloseButton: false,
         showExpandButton: false,
         bannerCssClass: cssBanner.className,
@@ -46,40 +46,40 @@ export class ViewAsBanner extends Disposable {
     const sharedUser = user && user.id > 0;
     return cssContent(
       cssMessageText(
-        cssMessageIcon('EyeShow'),
-        sharedUser ? t('You are viewing this document as') :
+        cssMessageIcon("EyeShow"),
+        sharedUser ? t("You are viewing this document as") :
           t("You're seeing what this user would see if given access"),
       ),
       cssSelectBtn(
-        { tabIndex: '0' },
+        { tabIndex: "0" },
         cssBtnText(
           user ? cssMember(
             user.name || user.email,
-            cssRole('(', userT(getUserRoleText({ ...user, access })), ')', dom.show(Boolean(access))),
-          ) : t('UnknownUser'),
+            cssRole("(", userT(getUserRoleText({ ...user, access })), ")", dom.show(Boolean(access))),
+          ) : t("UnknownUser"),
         ),
         dom(
-          'div', { style: 'flex: none;' },
-          cssInlineCollapseIcon('Collapse'),
+          "div", { style: "flex: none;" },
+          cssInlineCollapseIcon("Collapse"),
         ),
         elem => this._usersPopup.attachPopup(elem, {}),
-        testId('select-open'),
+        testId("select-open"),
       ),
       withInfoTooltip(
         cssPrimaryButtonLink(
-          t('View as Yourself'), cssIcon('Convert'),
+          t("View as Yourself"), cssIcon("Convert"),
           urlState().setHref(userOverrideParams(null)),
-          testId('revert'),
+          testId("revert"),
         ),
-        'viewAsBanner',
+        "viewAsBanner",
         {
           iconDomArgs: [
-            cssInfoTooltipButton.cls('-in-banner'),
-            testId('view-as-help-tooltip'),
+            cssInfoTooltipButton.cls("-in-banner"),
+            testId("view-as-help-tooltip"),
           ],
         },
       ),
-      testId('view-as-banner'),
+      testId("view-as-banner"),
     );
   }
 
@@ -95,7 +95,7 @@ export class ViewAsBanner extends Disposable {
   }
 }
 
-const cssContent = styled('div', `
+const cssContent = styled("div", `
   display: flex;
   justify-content: center;
   width: 100%;
@@ -108,7 +108,7 @@ const cssContent = styled('div', `
 const cssIcon = styled(icon, `
   margin-left: 10px;
 `);
-const cssMember = styled('span', `
+const cssMember = styled("span", `
   font-weight: 500;
   color: ${theme.text};
 
@@ -116,11 +116,11 @@ const cssMember = styled('span', `
     color: ${theme.menuItemSelectedFg};
   }
 `);
-const cssRole = styled('span', `
+const cssRole = styled("span", `
   font-weight: 400;
   margin-left: 1ch;
 `);
-const cssMessageText = styled('span', `
+const cssMessageText = styled("span", `
 `);
 const cssMessageIcon = styled(icon, `
   margin-right: 10px;
@@ -128,7 +128,7 @@ const cssMessageIcon = styled(icon, `
 const cssPrimaryButtonLink = styled(primaryButtonLink, `
   margin-left: 5px;
 `);
-const cssBtnText = styled('div', `
+const cssBtnText = styled("div", `
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -137,7 +137,7 @@ const cssInlineCollapseIcon = styled(icon, `
   margin: 0 2px;
   pointer-events: none;
 `);
-const cssBanner = styled('div', `
+const cssBanner = styled("div", `
   border-bottom: 1px solid ${theme.pagePanelsBorder};
   height: 45px;
 `);

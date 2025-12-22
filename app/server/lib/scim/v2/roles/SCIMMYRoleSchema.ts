@@ -18,13 +18,13 @@ export class SCIMMYRoleSchema extends SCIMMY.Types.Schema {
       "Role", "urn:ietf:params:scim:schemas:Grist:1.0:Role", "Role in Grist (Owner)", [
         new Attribute("string", "displayName", {
           mutable: false, direction: "out" }),
-        SCIMMY.Schemas.Group.definition.attribute('members'),
+        SCIMMY.Schemas.Group.definition.attribute("members"),
         new Attribute("string", "docId", { required: false, description: "The docId associated to this role.",
-          mutable: false, direction: 'out' }),
+          mutable: false, direction: "out" }),
         new Attribute("integer", "workspaceId", { required: false, description: "The workspaceId for this role",
-          mutable: false, direction: 'out' }),
+          mutable: false, direction: "out" }),
         new Attribute("integer", "orgId", { required: false, description: "The orgId for this role",
-          mutable: false, direction: 'out' }),
+          mutable: false, direction: "out" }),
       ]);
   })();
 

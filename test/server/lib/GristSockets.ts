@@ -1,10 +1,10 @@
-import { assert } from 'chai';
-import * as http from 'http';
-import { GristClientSocket } from 'app/client/components/GristClientSocket';
-import { GristSocketServer, GristSocketServerOptions } from 'app/server/lib/GristSocketServer';
-import { fromCallback, listenPromise } from 'app/server/lib/serverUtils';
-import { AddressInfo } from 'net';
-import httpProxy from 'http-proxy';
+import { assert } from "chai";
+import * as http from "http";
+import { GristClientSocket } from "app/client/components/GristClientSocket";
+import { GristSocketServer, GristSocketServerOptions } from "app/server/lib/GristSocketServer";
+import { fromCallback, listenPromise } from "app/server/lib/serverUtils";
+import { AddressInfo } from "net";
+import httpProxy from "http-proxy";
 
 describe(`GristSockets`, function() {
   for (const webSocketsSupported of [true, false]) {
@@ -30,7 +30,7 @@ describe(`GristSockets`, function() {
       async function startSocketServer(options?: GristSocketServerOptions) {
         server = http.createServer((req, res) => res.writeHead(404).end());
         socketServer = new GristSocketServer(server, options);
-        await listenPromise(server.listen(0, 'localhost'));
+        await listenPromise(server.listen(0, "localhost"));
         serverPort = (server.address() as AddressInfo).port;
       }
 
@@ -47,23 +47,23 @@ describe(`GristSockets`, function() {
           ws: webSocketsSupported,
           timeout: 1000,
         });
-        proxy.on('error', () => { });
+        proxy.on("error", () => { });
         proxyServer = http.createServer();
 
         if (webSocketsSupported) {
           // prevent non-WebSocket requests
-          proxyServer.on('request', (req, res) => res.writeHead(404).end());
+          proxyServer.on("request", (req, res) => res.writeHead(404).end());
           // proxy WebSocket requests
-          proxyServer.on('upgrade', (req, socket, head) => proxy!.ws(req, socket, head));
+          proxyServer.on("upgrade", (req, socket, head) => proxy!.ws(req, socket, head));
         }
         else {
           // proxy non-WebSocket requests
-          proxyServer.on('request', (req, res) => proxy!.web(req, res));
+          proxyServer.on("request", (req, res) => proxy!.web(req, res));
           // don't leave WebSocket connection attempts hanging
-          proxyServer.on('upgrade', (req, socket, head) => socket.destroy());
+          proxyServer.on("upgrade", (req, socket, head) => socket.destroy());
         }
 
-        await listenPromise(proxyServer.listen(0, 'localhost'));
+        await listenPromise(proxyServer.listen(0, "localhost"));
         proxyPort = (proxyServer.address() as AddressInfo).port;
         wsAddress = `ws://localhost:${proxyPort}`;
       }
@@ -174,7 +174,7 @@ describe(`GristSockets`, function() {
         // Check whether we are getting an unhandledRejection.
         let rejection: unknown = null;
         const onUnhandledRejection = (err: unknown) => { rejection = err; };
-        process.on('unhandledRejection', onUnhandledRejection);
+        process.on("unhandledRejection", onUnhandledRejection);
 
         try {
           // The "poll error" comes from the fallback to polling.
@@ -183,7 +183,7 @@ describe(`GristSockets`, function() {
         finally {
           // Typings for process.removeListener are broken, possibly by electron's presence
           // (https://github.com/electron/electron/issues/9626).
-          process.removeListener('unhandledRejection' as any, onUnhandledRejection);
+          process.removeListener("unhandledRejection" as any, onUnhandledRejection);
         }
         // The important thing is that we don't get unhandledRejection.
         assert.equal(rejection, null);

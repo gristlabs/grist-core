@@ -1,38 +1,38 @@
-import { LocalActionBundle } from 'app/common/ActionBundle';
-import { summarizeAction } from 'app/common/ActionSummarizer';
-import { ActionSummary, TableDelta } from 'app/common/ActionSummary';
-import { ApiError } from 'app/common/ApiError';
-import { MapWithTTL } from 'app/common/AsyncCreate';
+import { LocalActionBundle } from "app/common/ActionBundle";
+import { summarizeAction } from "app/common/ActionSummarizer";
+import { ActionSummary, TableDelta } from "app/common/ActionSummary";
+import { ApiError } from "app/common/ApiError";
+import { MapWithTTL } from "app/common/AsyncCreate";
 import { WebhookMessageType } from "app/common/CommTypes";
-import { fromTableDataAction, RowRecord, TableColValues, TableDataAction } from 'app/common/DocActions';
-import { StringUnion } from 'app/common/StringUnion';
-import { MetaRowRecord } from 'app/common/TableData';
-import { CellDelta } from 'app/common/TabularDiff';
+import { fromTableDataAction, RowRecord, TableColValues, TableDataAction } from "app/common/DocActions";
+import { StringUnion } from "app/common/StringUnion";
+import { MetaRowRecord } from "app/common/TableData";
+import { CellDelta } from "app/common/TabularDiff";
 import {
   WebhookBatchStatus,
   WebhookStatus,
   WebhookSummary,
   WebhookSummaryCollection,
   WebhookUsage,
-} from 'app/common/Triggers';
-import { decodeObject } from 'app/plugin/objtypes';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
-import { makeExceptionalDocSession } from 'app/server/lib/DocSession';
-import log from 'app/server/lib/log';
-import { fetchUntrustedWithAgent } from 'app/server/lib/ProxyAgent';
-import { matchesBaseDomain } from 'app/server/lib/requestUtils';
-import { delayAbort } from 'app/server/lib/serverUtils';
+} from "app/common/Triggers";
+import { decodeObject } from "app/plugin/objtypes";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { makeExceptionalDocSession } from "app/server/lib/DocSession";
+import log from "app/server/lib/log";
+import { fetchUntrustedWithAgent } from "app/server/lib/ProxyAgent";
+import { matchesBaseDomain } from "app/server/lib/requestUtils";
+import { delayAbort } from "app/server/lib/serverUtils";
 import { LogSanitizer } from "app/server/utils/LogSanitizer";
-import { promisifyAll } from 'bluebird';
-import * as _ from 'lodash';
-import { AbortController, AbortSignal } from 'node-abort-controller';
-import { createClient, Multi, RedisClient } from 'redis';
+import { promisifyAll } from "bluebird";
+import * as _ from "lodash";
+import { AbortController, AbortSignal } from "node-abort-controller";
+import { createClient, Multi, RedisClient } from "redis";
 
 promisifyAll(RedisClient.prototype);
 
 // Only owners can manage triggers, but any user's activity can trigger them
 // and the corresponding actions get the full values
-const docSession = makeExceptionalDocSession('system');
+const docSession = makeExceptionalDocSession("system");
 
 // Describes the change in existence to a record, which determines the event type
 interface RecordDelta {
@@ -268,9 +268,9 @@ export class DocTriggers {
     const triggersTable = docData.getMetaTable("_grist_Triggers");
     const getTableId = docData.getMetaTable("_grist_Tables").getRowPropFunc("tableId");
     const getColId = docData.getMetaTable("_grist_Tables_column").getRowPropFunc("colId");
-    const getUrl = async (id: string) => (await this._getWebHook(id))?.url ?? '';
-    const getAuthorization = async (id: string) => (await this._getWebHook(id))?.authorization ?? '';
-    const getUnsubscribeKey = async (id: string) => (await this._getWebHook(id))?.unsubscribeKey ?? '';
+    const getUrl = async (id: string) => (await this._getWebHook(id))?.url ?? "";
+    const getAuthorization = async (id: string) => (await this._getWebHook(id))?.authorization ?? "";
+    const getUnsubscribeKey = async (id: string) => (await this._getWebHook(id))?.unsubscribeKey ?? "";
     const resultTable: WebhookSummary[] = [];
 
     // Go through all triggers int the document that we have.
@@ -322,11 +322,11 @@ export class DocTriggers {
     const docData = this._activeDoc.docData!;
     const triggersTable = docData.getMetaTable("_grist_Triggers");
     const trigger = triggersTable.getRecords().find((t) => {
-      const actions: TriggerAction[] = JSON.parse((t.actions || '[]') as string);
+      const actions: TriggerAction[] = JSON.parse((t.actions || "[]") as string);
       return actions.some(action => action.id === webhookId && action?.type === "webhook");
     });
     if (!trigger) {
-      throw new ApiError(`Webhook not found "${webhookId || ''}"`, 404);
+      throw new ApiError(`Webhook not found "${webhookId || ""}"`, 404);
     }
     return trigger;
   }
@@ -417,7 +417,7 @@ export class DocTriggers {
     if (!docData) {
       throw new Error("ActiveDoc not ready");
     }
-    if (!rowId) { return ''; }
+    if (!rowId) { return ""; }
     const colId = docData.getMetaTable("_grist_Tables_column").getValue(rowId, "colId");
     if (tableRef !== undefined &&
       docData.getMetaTable("_grist_Tables_column").getValue(rowId, "parentId") !== tableRef) {
@@ -438,8 +438,8 @@ export class DocTriggers {
     return this._webHookEventQueue.length >= MAX_QUEUE_SIZE;
   }
 
-  private _log(msg: string, { level = 'info', ...meta }: any = {}) {
-    log.origLog(level, 'DocTriggers: ' + msg, {
+  private _log(msg: string, { level = "info", ...meta }: any = {}) {
+    log.origLog(level, "DocTriggers: " + msg, {
       ...meta,
       docId: this._docId,
       queueLength: this._webHookEventQueue.length,
@@ -607,7 +607,7 @@ export class DocTriggers {
         else if (deltaBefore === "?") {
           // The ActionSummary shouldn't contain this kind of delta at all
           // since it comes from a single action bundle, not a combination of summaries.
-          this._log('Unexpected deltaBefore === "?"', { level: 'warn', trigger });
+          this._log('Unexpected deltaBefore === "?"', { level: "warn", trigger });
           readyBefore = true;
         }
         else {
@@ -655,7 +655,7 @@ export class DocTriggers {
     if (!webhook) {
       const secret = await this._activeDoc.getHomeDbManager()?.getSecret(id, this._docId);
       if (!secret) {
-        this._log(`No webhook secret found`, { level: 'warn', id });
+        this._log(`No webhook secret found`, { level: "warn", id });
         return;
       }
       webhook = JSON.parse(secret);
@@ -665,10 +665,10 @@ export class DocTriggers {
   }
 
   private async _getWebHookUrl(id: string): Promise<string | undefined> {
-    const url = (await this._getWebHook(id))?.url ?? '';
+    const url = (await this._getWebHook(id))?.url ?? "";
     if (!isUrlAllowed(url)) {
       // TODO: this is not a good place for a validation.
-      this._log(`Webhook not sent to forbidden URL`, { level: 'warn', url });
+      this._log(`Webhook not sent to forbidden URL`, { level: "warn", url });
       return;
     }
     return url;
@@ -678,7 +678,7 @@ export class DocTriggers {
     if (!this._sending) {  // only run one loop at a time
       this._sending = true;
       this._sendLoop().catch((e) => {  // run _sendLoop asynchronously (in the background)
-        this._log(`_sendLoop failed: ${e}`, { level: 'error' });
+        this._log(`_sendLoop failed: ${e}`, { level: "error" });
         this._sending = false;  // otherwise the following line will complete instantly
         this._startSendLoop();  // restart the loop on failure
       });
@@ -713,10 +713,10 @@ export class DocTriggers {
         success = true;
       }
       else {
-        await this._stats.logStatus(id, 'sending');
+        await this._stats.logStatus(id, "sending");
         meta = { webhookId: id, host: new URL(url).host, quantity: batch.length };
         this._log("Sending batch of webhook events", meta);
-        this._activeDoc.logTelemetryEvent(null, 'sendingWebhooks', {
+        this._activeDoc.logTelemetryEvent(null, "sendingWebhooks", {
           limited: { numEvents: meta.quantity },
         });
         success = await this._sendWebhookWithRetries(
@@ -739,7 +739,7 @@ export class DocTriggers {
       }
 
       if (!success) {
-        this._log("Failed to send batch of webhook events", { ...meta, level: 'warn' });
+        this._log("Failed to send batch of webhook events", { ...meta, level: "warn" });
         if (!this._drainingQueue) {
           // Put the failed events at the end of the queue to try again later
           // while giving other URLs a chance to receive events.
@@ -749,16 +749,16 @@ export class DocTriggers {
             multi.rpush(this._redisQueueKey, ...strings);
           }
           // We are postponed, so mark that.
-          await this._stats.logStatus(id, 'postponed');
+          await this._stats.logStatus(id, "postponed");
         }
         else {
           // We are draining the queue and we skipped some events, so mark that.
-          await this._stats.logStatus(id, 'error');
-          await this._stats.logBatch(id, 'rejected');
+          await this._stats.logStatus(id, "error");
+          await this._stats.logBatch(id, "rejected");
         }
       }
       else {
-        await this._stats.logStatus(id, 'idle');
+        await this._stats.logStatus(id, "idle");
         if (meta) {
           this._log("Successfully sent batch of webhook events", meta);
           const { webhookId, host, quantity } = meta;
@@ -790,7 +790,7 @@ export class DocTriggers {
 
     this._redisClient?.quitAsync().catch(e =>
       // Catch error to prevent sendLoop being restarted
-      this._log("Error quitting redis: " + e, { level: 'warn' }),
+      this._log("Error quitting redis: " + e, { level: "warn" }),
     );
   }
 
@@ -823,39 +823,39 @@ export class DocTriggers {
       }
       try {
         if (attempt > 0) {
-          await this._stats.logStatus(id, 'retrying');
+          await this._stats.logStatus(id, "retrying");
         }
         const response = await fetchUntrustedWithAgent(url, {
-          method: 'POST',
+          method: "POST",
           body,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             ...(authorization ? { Authorization: authorization } : {}),
           },
           signal,
         });
         if (response.ok) {
-          await this._stats.logBatch(id, 'success', {
+          await this._stats.logBatch(id, "success", {
             size, httpStatus: response.status, error: null, attempts: attempt + 1,
           });
           return true;
         }
-        await this._stats.logBatch(id, 'failure', {
+        await this._stats.logBatch(id, "failure", {
           httpStatus: response.status,
           error: await response.text(),
           attempts: attempt + 1,
           size,
         });
-        this._log(`Webhook responded with non-200 status`, { level: 'warn', status: response.status, attempt });
+        this._log(`Webhook responded with non-200 status`, { level: "warn", status: response.status, attempt });
       }
       catch (e) {
-        await this._stats.logBatch(id, 'failure', {
+        await this._stats.logBatch(id, "failure", {
           httpStatus: null,
-          error: (e.message || 'Unrecognized error during fetch'),
+          error: (e.message || "Unrecognized error during fetch"),
           attempts: attempt + 1,
           size,
         });
-        this._log(`Webhook sending error: ${e}`, { level: 'warn', attempt });
+        this._log(`Webhook sending error: ${e}`, { level: "warn", attempt });
       }
 
       if (signal.aborted) {
@@ -904,7 +904,7 @@ export function isUrlAllowed(urlString: string) {
 
   // Support a wildcard that allows all domains.
   // Allow either https or http if it is set.
-  if (process.env.ALLOWED_WEBHOOK_DOMAINS === '*') {
+  if (process.env.ALLOWED_WEBHOOK_DOMAINS === "*") {
     return true;
   }
 
@@ -965,10 +965,10 @@ class PersistedStore<Keys> {
   protected async get(id: string, keys: Keys[]): Promise<[Keys, string][]> {
     if (this._redisClient) {
       const values = (await this._redisClient.hgetallAsync(this._redisKey)) || {};
-      return keys.map(key => [key, values[`${id}:${key}`] || '']);
+      return keys.map(key => [key, values[`${id}:${key}`] || ""]);
     }
     else {
-      return keys.map(key => [key, this._statsCache.get(`${id}:${key}`) || '']);
+      return keys.map(key => [key, this._statsCache.get(`${id}:${key}`) || ""]);
     }
   }
 
@@ -1006,7 +1006,7 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
     // If everything is empty, we don't have any stats yet.
     if (Array.from(Object.values(values)).every(v => !v)) {
       return {
-        status: 'idle',
+        status: "idle",
         numWaiting: queue.filter(e => e.id === id).length,
         lastEventBatch: null,
       };
@@ -1014,7 +1014,7 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
 
     const usage: WebhookUsage = {
       // Overall status of the webhook.
-      status: values.status as WebhookStatus || 'idle',
+      status: values.status as WebhookStatus || "idle",
       numWaiting: queue.filter(x => x.id === id).length,
       updatedTime: parseInt(values.updatedTime || "0", 10),
       // Last values from batches.
@@ -1045,22 +1045,22 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
    */
   public async logStatus(id: string, status: WebhookStatus, now?: number | null) {
     const stats: [StatsKey, string][] = [
-      ['status', status],
-      ['updatedTime', (now ?? Date.now()).toString()],
+      ["status", status],
+      ["updatedTime", (now ?? Date.now()).toString()],
     ];
-    if (status === 'sending') {
+    if (status === "sending") {
       // clear any error message that could have been left from an earlier bad state (ie: invalid
       // fields)
-      stats.push(['errorMessage', '']);
+      stats.push(["errorMessage", ""]);
     }
     await this.set(id, stats);
     await this.markChange();
   }
 
   public async logInvalid(id: string, errorMessage: string) {
-    await this.logStatus(id, 'invalid');
+    await this.logStatus(id, "invalid");
     await this.set(id, [
-      ['errorMessage', errorMessage],
+      ["errorMessage", errorMessage],
     ]);
     await this.markChange();
   }
@@ -1086,31 +1086,31 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
       [`updatedTime`, now.toString()],
     ];
     if (stats?.httpStatus !== undefined) {
-      batchStats.push([`httpStatus`, (stats.httpStatus || '').toString()]);
+      batchStats.push([`httpStatus`, (stats.httpStatus || "").toString()]);
     }
     if (stats?.attempts !== undefined) {
-      batchStats.push([`attempts`, (stats.attempts || '0').toString()]);
+      batchStats.push([`attempts`, (stats.attempts || "0").toString()]);
     }
     if (stats?.error !== undefined) {
-      batchStats.push([`errorMessage`, stats?.error || '']);
+      batchStats.push([`errorMessage`, stats?.error || ""]);
     }
     if (stats?.size !== undefined) {
-      batchStats.push([`size`, (stats.size || '').toString()]);
+      batchStats.push([`size`, (stats.size || "").toString()]);
     }
 
     const batchSummary: [StatsKey, string][] = [];
     // Update webhook stats.
-    if (status === 'success') {
+    if (status === "success") {
       batchSummary.push([`lastSuccessTime`, now.toString()]);
     }
-    else if (status === 'failure') {
+    else if (status === "failure") {
       batchSummary.push([`lastFailureTime`, now.toString()]);
     }
     if (stats?.error) {
       batchSummary.push([`lastErrorMessage`, stats.error]);
     }
     if (stats?.httpStatus) {
-      batchSummary.push([`lastHttpStatus`, (stats.httpStatus || '').toString()]);
+      batchSummary.push([`lastHttpStatus`, (stats.httpStatus || "").toString()]);
     }
     await this.set(id, batchStats.concat(batchSummary));
     await this.markChange();
@@ -1118,14 +1118,14 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
 }
 
 type StatsKey =
-  'batchStatus' |
-  'httpStatus' |
-  'errorMessage' |
-  'attempts' |
-  'size' |
-  'updatedTime' |
-  'lastFailureTime' |
-  'lastSuccessTime' |
-  'lastErrorMessage' |
-  'lastHttpStatus' |
-  'status';
+  "batchStatus" |
+  "httpStatus" |
+  "errorMessage" |
+  "attempts" |
+  "size" |
+  "updatedTime" |
+  "lastFailureTime" |
+  "lastSuccessTime" |
+  "lastErrorMessage" |
+  "lastHttpStatus" |
+  "status";

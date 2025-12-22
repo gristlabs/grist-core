@@ -1,7 +1,7 @@
-import { theme } from 'app/client/ui2018/cssVars';
-import { styled } from 'grainjs';
+import { theme } from "app/client/ui2018/cssVars";
+import { styled } from "grainjs";
 
-export const ShortcutKeyContent = styled('span', `
+export const ShortcutKeyContent = styled("span", `
   font-style: normal;
   font-family: inherit;
   color: ${theme.shortcutKeyPrimaryFg};
@@ -11,7 +11,7 @@ export const ShortcutKeyContentStrong = styled(ShortcutKeyContent, `
   font-weight: 700;
 `);
 
-export const ShortcutKey = styled('div', `
+export const ShortcutKey = styled("div", `
   display: inline-block;
   padding: 2px 5px;
   border-radius: 4px;

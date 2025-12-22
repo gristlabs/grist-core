@@ -38,24 +38,24 @@
  * turn, starting from the bottommost part, and make sure it gets inserted in the right level.
  */
 
-import { extend, noop, pick } from 'underscore';
-import { observable, removeNode, utils } from 'knockout';
-import assert from 'assert';
-import Promise from 'bluebird';
-import { Events as BackboneEvents } from 'backbone';
+import { extend, noop, pick } from "underscore";
+import { observable, removeNode, utils } from "knockout";
+import assert from "assert";
+import Promise from "bluebird";
+import { Events as BackboneEvents } from "backbone";
 
-import { Disposable, emptyNode } from 'app/client/lib/dispose';
-import { Delay } from 'app/client/lib/Delay';
-import dom from 'app/client/lib/dom';
-import koDom from 'app/client/lib/koDom';
-import { ContentBox, Layout, LayoutBox } from 'app/client/components/Layout';
-import * as ko from 'knockout';
-import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import { Disposable, emptyNode } from "app/client/lib/dispose";
+import { Delay } from "app/client/lib/Delay";
+import dom from "app/client/lib/dom";
+import koDom from "app/client/lib/koDom";
+import { ContentBox, Layout, LayoutBox } from "app/client/components/Layout";
+import * as ko from "knockout";
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 
 /**
  * Use the browser globals in a way that allows replacing them with mocks in tests.
  */
-const G = getBrowserGlobals('document', 'window', '$');
+const G = getBrowserGlobals("document", "window", "$");
 
 type JQMouseEvent = JQuery.MouseEventBase | MouseEvent;
 
@@ -110,7 +110,7 @@ class Floater extends Disposable implements ContentBox {
     this.leafContent = observable<Element | null>(null);
     this.fillWindow = fillWindow || false;
 
-    this.dom = this.autoDispose(dom('div.layout_editor_floater',
+    this.dom = this.autoDispose(dom("div.layout_editor_floater",
       koDom.show(this.leafContent),
       koDom.scope(this.leafContent, (leafContent: Element) => {
         return leafContent;
@@ -125,8 +125,8 @@ class Floater extends Disposable implements ContentBox {
 
   public onInitialMouseMove(mouseEvent: JQMouseEvent, sourceBox: ContentBox) {
     const rect = sourceBox.dom!.getBoundingClientRect();
-    this.dom.style.width = rect.width + 'px';
-    this.dom.style.height = rect.height + 'px';
+    this.dom.style.width = rect.width + "px";
+    this.dom.style.height = rect.height + "px";
     this.mouseOffsetX = 0.2 * rect.width;
     this.mouseOffsetY = 0.1 * rect.height;
     this.onMouseMove(mouseEvent);
@@ -134,10 +134,10 @@ class Floater extends Disposable implements ContentBox {
     this.leafId(sourceBox.leafId());
     this.leafContent(sourceBox.leafContent());
     // We use a dummy non-null leafId here, to ensure that sourceBox remains considered a leaf.
-    sourceBox.leafId('empty');
-    sourceBox.leafContent(dom('div.layout_editor_empty_space',
-      koDom.style('margin', (rect.height * 0.02) + 'px'),
-      koDom.style('min-height', (rect.height * 0.96) + 'px'),
+    sourceBox.leafId("empty");
+    sourceBox.leafContent(dom("div.layout_editor_empty_space",
+      koDom.style("margin", (rect.height * 0.02) + "px"),
+      koDom.style("min-height", (rect.height * 0.96) + "px"),
     ));
   }
 
@@ -147,8 +147,8 @@ class Floater extends Disposable implements ContentBox {
 
   public onMouseMove(mouseEvent: JQMouseEvent) {
     this.lastMouseEvent = mouseEvent;
-    this.dom.style.left = (mouseEvent.clientX - this.mouseOffsetX) + 'px';
-    this.dom.style.top = (mouseEvent.clientY - this.mouseOffsetY) + 'px';
+    this.dom.style.left = (mouseEvent.clientX - this.mouseOffsetX) + "px";
+    this.dom.style.top = (mouseEvent.clientY - this.mouseOffsetY) + "px";
   }
 }
 
@@ -165,7 +165,7 @@ class DropOverlay extends Disposable {
   public hBorder: number | null;
   public vBorder: number | null;
   public create() {
-    this.overlayElem = this.autoDispose(dom('div.layout_editor_drop_overlay'));
+    this.overlayElem = this.autoDispose(dom("div.layout_editor_drop_overlay"));
     this.overlayRect = null;
     this.hBorder = null;
     this.vBorder = null;
@@ -199,8 +199,8 @@ class DropOverlay extends Disposable {
     this.hBorder = Math.floor(Math.min(rect.height, rect.width * 2) / 3);
     this.vBorder = Math.floor(Math.min(rect.width, rect.height * 2) / 3);
     const s = this.overlayElem.style;
-    s.borderTopWidth = s.borderBottomWidth = this.hBorder + 'px';
-    s.borderLeftWidth = s.borderRightWidth = this.vBorder + 'px';
+    s.borderTopWidth = s.borderBottomWidth = this.hBorder + "px";
+    s.borderLeftWidth = s.borderRightWidth = this.vBorder + "px";
   }
 
   /**
@@ -248,8 +248,8 @@ class DropTargeter extends Disposable {
 
   public removeTargetHints() {
     if (this.activeTarget?.box?.dom) {
-      this.activeTarget.box.dom.style.transition = '';
-      this.activeTarget.box.dom.style.padding = '0';
+      this.activeTarget.box.dom.style.transition = "";
+      this.activeTarget.box.dom.style.padding = "0";
     }
     this.activeTarget = null;
     this.delayedInsertion.cancel();
@@ -320,8 +320,8 @@ class DropTargeter extends Disposable {
     // it, we pretend below that we are dealing with an up-down situation (drop hints are horizontal
     // wide boxes stacked vertically), and use properties that are named using the up-down
     // situation, but whose values might reflect a left-right situation.
-    const pTop = upDown ? 'top' : 'left', pHeight = upDown ? 'height' : 'width',
-      pLeft = upDown ? 'left' : 'top', pWidth = upDown ? 'width' : 'height';
+    const pTop = upDown ? "top" : "left", pHeight = upDown ? "height" : "width",
+      pLeft = upDown ? "left" : "top", pWidth = upDown ? "width" : "height";
     let totalHeight = upDown ? overlay.hBorder! : overlay.vBorder!;
     const singleHeight = Math.floor(totalHeight / targetParts.length);
 
@@ -332,33 +332,33 @@ class DropTargeter extends Disposable {
     const innerRect = this.currentBox.dom!.getBoundingClientRect();
 
     const self = this;
-    this.targetsDom = dom('div.layout_editor_drop_targeter',
+    this.targetsDom = dom("div.layout_editor_drop_targeter",
       koDom.style(pTop,
         (innerRect[pTop] - outerRect[pTop] +
-          (isAfter ? innerRect[pHeight] - totalHeight : 0)) + 'px',
+          (isAfter ? innerRect[pHeight] - totalHeight : 0)) + "px",
       ),
       targetParts.map((part, index) => {
         const rect = part.box.dom!.getBoundingClientRect();
-        return dom('div.layout_editor_drop_target', (elem: HTMLDivElement) => {
-          elem.style[pHeight] = (singleHeight + 1) + 'px'; // 1px of overlap for better looks
-          elem.style[pWidth] = rect[pWidth] + 'px';
-          elem.style[pLeft] = (rect[pLeft] - outerRect[pLeft]) + 'px';
-          elem.style[pTop] = (singleHeight * index) + 'px';
+        return dom("div.layout_editor_drop_target", (elem: HTMLDivElement) => {
+          elem.style[pHeight] = (singleHeight + 1) + "px"; // 1px of overlap for better looks
+          elem.style[pWidth] = rect[pWidth] + "px";
+          elem.style[pLeft] = (rect[pLeft] - outerRect[pLeft]) + "px";
+          elem.style[pTop] = (singleHeight * index) + "px";
         },
-        dom.on('mouseenter', function(this: HTMLElement) {
+        dom.on("mouseenter", function(this: HTMLElement) {
           this.classList.add("layout_hover");
           self.activeTarget = part;
-          const padDir = upDown ? (isAfter ? 'Bottom' : 'Top') : (isAfter ? 'Right' : 'Left');
-          const padding = 'padding' + padDir;
-          part.box.dom!.style.transition = 'padding .3s';
-          part.box.dom!.style[padding as any] = '20px';
+          const padDir = upDown ? (isAfter ? "Bottom" : "Top") : (isAfter ? "Right" : "Left");
+          const padding = "padding" + padDir;
+          part.box.dom!.style.transition = "padding .3s";
+          part.box.dom!.style[padding as any] = "20px";
         }),
-        dom.on('mouseleave', function(this: HTMLElement) {
+        dom.on("mouseleave", function(this: HTMLElement) {
           this.classList.remove("layout_hover");
           self.activeTarget = null;
-          part.box.dom!.style.padding = '0';
+          part.box.dom!.style.padding = "0";
         }),
-        dom.on('transitionend', this.triggerInsertion.bind(this, part)),
+        dom.on("transitionend", this.triggerInsertion.bind(this, part)),
         );
       }),
     );
@@ -367,7 +367,7 @@ class DropTargeter extends Disposable {
 
   public triggerInsertion(part: TargetPart) {
     this.removeTargetHints();
-    this.trigger('insertBox', (box: LayoutBox) => {
+    this.trigger("insertBox", (box: LayoutBox) => {
       if (part.isChild) {
         part.box.addChild(box, part.isAfter);
       }
@@ -379,8 +379,8 @@ class DropTargeter extends Disposable {
 
   public accelerateInsertion() {
     if (this.activeTarget) {
-      this.activeTarget.box.dom!.style.transition = '';
-      this.activeTarget.box.dom!.style.padding = '0';
+      this.activeTarget.box.dom!.style.transition = "";
+      this.activeTarget.box.dom!.style.padding = "0";
       this.triggerInsertion(this.activeTarget);
     }
   }
@@ -434,11 +434,11 @@ export class LayoutEditor extends Disposable {
     this.floater = this.autoDispose(Floater.create(this.layout.fillWindow));
     this.dropOverlay = this.autoDispose(DropOverlay.create());
     this.dropTargeter = this.autoDispose(DropTargeter.create(this.rootElem));
-    this.listenTo(this.dropTargeter, 'insertBox', this.onInsertBox);
+    this.listenTo(this.dropTargeter, "insertBox", this.onInsertBox);
 
     // This is a place to put LayoutBoxes that should NOT be shown, but SHOULD be possible to
     // measure. It's used when a new box is being moved into the editor.
-    this.measuringBox = this.autoDispose(dom('div.layout_editor_measuring_box'));
+    this.measuringBox = this.autoDispose(dom("div.layout_editor_measuring_box"));
     this.rootElem.appendChild(this.measuringBox);
 
     // For better experience, we prevent new repositions while a transition is active, and we
@@ -457,7 +457,7 @@ export class LayoutEditor extends Disposable {
 
     // Make all LayoutBoxes resizable. Update whenever the layout changes.
     this.layout.forEachBox(this.makeResizable, this);
-    this.listenTo(this.layout, 'layoutChanged', () => {
+    this.listenTo(this.layout, "layoutChanged", () => {
       this.layout.forEachBox(this.makeResizable, this);
     });
 
@@ -467,16 +467,16 @@ export class LayoutEditor extends Disposable {
     };
     this.boundMouseMove = this.handleMouseMove.bind(this);
     this.boundMouseUp = this.handleMouseUp.bind(this);
-    G.$(this.rootElem).on('mousedown', '.layout_leaf', this.boundMouseDown);
+    G.$(this.rootElem).on("mousedown", ".layout_leaf", this.boundMouseDown);
 
     this.initialMouseDown = false;
 
-    this.lastTriggered = 'stop';
+    this.lastTriggered = "stop";
 
     this.autoDisposeCallback(() => {
-      G.$(G.window).off('mouseup', this.boundMouseUp);
-      G.$(G.window).off('mousemove', this.boundMouseMove);
-      G.$(this.rootElem).off('mousedown', this.boundMouseDown);
+      G.$(G.window).off("mouseup", this.boundMouseUp);
+      G.$(G.window).off("mousemove", this.boundMouseMove);
+      G.$(this.rootElem).off("mousedown", this.boundMouseDown);
       if (!this.layout.isDisposed()) {
         this.layout.buildLayout(this.layout.getLayoutSpec(), false);
         this.layout.forEachBox(this.unmakeResizable, this);
@@ -485,32 +485,32 @@ export class LayoutEditor extends Disposable {
   }
 
   public triggerUserEditStart() {
-    assert(this.lastTriggered === 'stop', "UserEditStart triggered twice in succession");
-    this.lastTriggered = 'start';
+    assert(this.lastTriggered === "stop", "UserEditStart triggered twice in succession");
+    this.lastTriggered = "start";
     // This attribute allows browser tests to tell when an edit is in progress.
-    this.rootElem.setAttribute('data-useredit', 'start');
-    this.layout.trigger('layoutUserEditStart');
+    this.rootElem.setAttribute("data-useredit", "start");
+    this.layout.trigger("layoutUserEditStart");
   }
 
   public triggerUserEditStop() {
-    assert(this.lastTriggered === 'start', "UserEditStop triggered twice in succession");
-    this.lastTriggered = 'stop';
-    this.layout.trigger('layoutUserEditStop');
+    assert(this.lastTriggered === "start", "UserEditStop triggered twice in succession");
+    this.lastTriggered = "stop";
+    this.layout.trigger("layoutUserEditStop");
     // This attribute allows browser tests to tell when an edit is finished.
-    this.rootElem.setAttribute('data-useredit', 'stop');
+    this.rootElem.setAttribute("data-useredit", "stop");
   }
 
   public makeResizable(box: LayoutBox) {
     // Do not add resizable if:
     // Box already resizable, box is not vertically resizable, box is last in it`s group.
-    if (G.$(box.dom!).resizable('instance') || (box.isHBox() && !this.layout.fillWindow) ||
+    if (G.$(box.dom!).resizable("instance") || (box.isHBox() && !this.layout.fillWindow) ||
       box.isLastChild()) {
       return;
     }
     const helperObj = new HelperBox({ box });
     const isWidth = box.isVBox();
     G.$(box.dom!).resizable({
-      handles: isWidth ? 'e' : 's',
+      handles: isWidth ? "e" : "s",
       start: this.onResizeStart.bind(this, helperObj, isWidth),
       resize: this.onResizeMove.bind(this, helperObj, isWidth),
       stop: this.triggerUserEditStop.bind(this),
@@ -520,7 +520,7 @@ export class LayoutEditor extends Disposable {
   public unmakeResizable(box: LayoutBox) {
     if (G.$(box.dom!).resizable("instance")) {
       // Resizable widget is set for this box.
-      G.$(box.dom!).resizable('destroy');
+      G.$(box.dom!).resizable("destroy");
     }
   }
 
@@ -563,21 +563,21 @@ export class LayoutEditor extends Disposable {
       helperObj.nextSiblings.forEach(function(b, i) {
         b.flexSize(newSizes[i]);
       });
-      this.layout.trigger('layoutResized');
+      this.layout.trigger("layoutResized");
     }
   }
 
   public handleMouseDown(event: JQMouseEvent, elem: HTMLElement) {
     const target = event.target as HTMLElement;
-    if (event.button !== 0 || target?.classList.contains('ui-resizable-handle')) {
+    if (event.button !== 0 || target?.classList.contains("ui-resizable-handle")) {
       return;
     }
-    if (target?.classList.contains('layout_grabbable')) {
+    if (target?.classList.contains("layout_grabbable")) {
       this.initialMouseDown = true;
-      this.originalBox = utils.domData.get(elem, 'layoutBox');
+      this.originalBox = utils.domData.get(elem, "layoutBox");
       assert(this.originalBox, "MouseDown on element without an associated layoutBox");
-      G.$(G.window).on('mousemove', this.boundMouseMove);
-      G.$(G.window).on('mouseup', this.boundMouseUp);
+      G.$(G.window).on("mousemove", this.boundMouseMove);
+      G.$(G.window).on("mouseup", this.boundMouseUp);
       return false;
     }
   }
@@ -596,12 +596,12 @@ export class LayoutEditor extends Disposable {
     this.triggerUserEditStart();
     this.targetBox = box;
     this.floater.onInitialMouseMove(event, box);
-    this.trigger('dragStart', this.originalBox);
+    this.trigger("dragStart", this.originalBox);
   }
 
   public handleMouseUp(event: JQMouseEvent) {
-    G.$(G.window).off('mousemove', this.boundMouseMove);
-    G.$(G.window).off('mouseup', this.boundMouseUp);
+    G.$(G.window).off("mousemove", this.boundMouseMove);
+    G.$(G.window).off("mouseup", this.boundMouseUp);
 
     if (this.initialMouseDown) {
       this.initialMouseDown = false;
@@ -610,29 +610,29 @@ export class LayoutEditor extends Disposable {
 
     // We stopped dragging, any listener can clean its modification
     // to the floater element.
-    this.trigger('dragStop');
+    this.trigger("dragStop");
     this.targetBox!.takeLeafFrom(this.floater);
     // We dropped back the box to its original position, now
     // anyone can hijack the box.
-    this.trigger('dragDrop', this.targetBox);
+    this.trigger("dragDrop", this.targetBox);
 
     // Check if the box was hijacked by a drop target.
-    if (this.originalBox?.leafId() !== 'empty') {
+    if (this.originalBox?.leafId() !== "empty") {
       if (this.dropTargeter.activeTarget) {
         this.dropTargeter.accelerateInsertion();
       }
       else {
-        resizeLayoutBox(this.targetBox!, 'reset');
+        resizeLayoutBox(this.targetBox!, "reset");
       }
     }
 
     this.dropTargeter.removeTargetHints();
     this.dropOverlay.detach();
-    this.trigger('dragEnd');
+    this.trigger("dragEnd");
     // Cleanup for any state.
     void this.transitionPromise.finally(() => {
       this.floater.onMouseUp();
-      resizeLayoutBox(this.targetBox!, 'reset');
+      resizeLayoutBox(this.targetBox!, "reset");
       this.targetBox = this.originalBox = null;
       emptyNode(this.measuringBox);
       this.triggerUserEditStop();
@@ -662,9 +662,9 @@ export class LayoutEditor extends Disposable {
 
   public doRemoveBox(box: ContentBox) {
     const rect = box.dom!.getBoundingClientRect();
-    box.leafId('empty');
-    box.leafContent(dom('div.layout_editor_empty_space',
-      koDom.style('min-height', rect.height + 'px'),
+    box.leafId("empty");
+    box.leafContent(dom("div.layout_editor_empty_space",
+      koDom.style("min-height", rect.height + "px"),
     ));
     this.onInsertBox(noop).catch(noop);
   }
@@ -681,7 +681,7 @@ export class LayoutEditor extends Disposable {
     }
     this.floater.onMouseMove(event);
 
-    this.trigger('dragMove', event, this.originalBox);
+    this.trigger("dragMove", event, this.originalBox);
 
     if (this.transitionPromise.isPending()) {
       // Don't attempt to do any repositioning while another reposition is happening.
@@ -689,7 +689,7 @@ export class LayoutEditor extends Disposable {
     }
 
     // Handle dragging to trash.
-    if (dom.findAncestor(event.target, null, '.layout_trash')) {
+    if (dom.findAncestor(event.target, null, ".layout_trash")) {
       const isTrashed = this.targetBox && this.targetBox.isDomDetached();
       if (!this.trashDelay.isPending() && !isTrashed) {
         // To "trash" a box, we call onInsertBox with noop for the inserter function. The new box
@@ -709,14 +709,14 @@ export class LayoutEditor extends Disposable {
     }
     // See if we are over a layout_leaf, and that the leaf is in the same layout as the dragged
     // element. If so, we are dealing with repositioning.
-    const elem = dom.findAncestor(event.target, this.rootElem, '.' + this.layout.leafId);
+    const elem = dom.findAncestor(event.target, this.rootElem, "." + this.layout.leafId);
     if (elem) {
-      const hoverBox = utils.domData.get(elem, 'layoutBox');
+      const hoverBox = utils.domData.get(elem, "layoutBox");
       this.dropOverlay.attach(elem);
       const affinity = this.dropOverlay.getAffinity(event);
       this.dropTargeter.updateTargetHints(hoverBox, affinity, this.dropOverlay, this.targetBox!);
     }
-    else if (!dom.findAncestor(event.target, this.rootElem, '.layout_editor_drop_target')) {
+    else if (!dom.findAncestor(event.target, this.rootElem, ".layout_editor_drop_target")) {
       this.dropTargeter.removeTargetHints();
     }
   }
@@ -745,23 +745,23 @@ export class LayoutEditor extends Disposable {
 
     // Set previous box size to 0 for accurate measurement of new target box
     const prevFlexGrow = prevTargetBox.dom!.style.flexGrow;
-    prevTargetBox.dom!.style.flexGrow = '0';
+    prevTargetBox.dom!.style.flexGrow = "0";
 
     const targetRect = this.targetBox.dom!.getBoundingClientRect();
 
     prevTargetBox.dom!.style.flexGrow = prevFlexGrow;
 
     await Promise.all([
-      resizeLayoutBoxSmoothly(prevTargetBox, prevRect, 'collapse'),
-      resizeLayoutBoxSmoothly(this.targetBox, 'collapse', targetRect),
+      resizeLayoutBoxSmoothly(prevTargetBox, prevRect, "collapse"),
+      resizeLayoutBoxSmoothly(this.targetBox, "collapse", targetRect),
     ]);
     prevTargetBox.dispose();
     if (this.targetBox) {
-      resizeLayoutBox(this.targetBox, 'reset');
+      resizeLayoutBox(this.targetBox, "reset");
       this.dropOverlay.attach(this.targetBox.dom!);
     }
     transitionPromiseResolve();
-    this.layout.trigger('layoutResized');
+    this.layout.trigger("layoutResized");
   }
 }
 
@@ -809,22 +809,22 @@ function snap(flexSize: number, sumPrev: number, sumAll: number) {
  *    'current': set and explicit value for the relevant style, which is needed for transitions.
  */
 function resizeLayoutBox(layoutBox: LayoutBox, sizeRect: string | DOMRect) {
-  const reset = (sizeRect === 'reset');
-  const collapse = (sizeRect === 'collapse');
-  if (sizeRect === 'current') {
+  const reset = (sizeRect === "reset");
+  const collapse = (sizeRect === "collapse");
+  if (sizeRect === "current") {
     sizeRect = layoutBox.dom!.getBoundingClientRect();
   }
   if (layoutBox.isHBox()) {
-    layoutBox.dom!.style.height = (reset ? '' : (collapse ? '0px' : (sizeRect as DOMRect).height + 'px'));
+    layoutBox.dom!.style.height = (reset ? "" : (collapse ? "0px" : (sizeRect as DOMRect).height + "px"));
   }
   else {
-    layoutBox.dom!.style.width = (reset ? '' : (collapse ? '0px' : (sizeRect as DOMRect).width + 'px'));
+    layoutBox.dom!.style.width = (reset ? "" : (collapse ? "0px" : (sizeRect as DOMRect).width + "px"));
   }
-  layoutBox.dom!.style.opacity = collapse ? '0.0' : '1.0';
+  layoutBox.dom!.style.opacity = collapse ? "0.0" : "1.0";
 }
 
 function rectDesc(rect: string | DOMRect) {
-  return (typeof rect === 'string') ? rect :
+  return (typeof rect === "string") ? rect :
     Math.floor(rect.width) + "x" + Math.floor(rect.height);
 }
 
@@ -837,18 +837,18 @@ function resizeLayoutBoxSmoothly(layoutBox: LayoutBox, startRect: string | DOMRe
     return Promise.resolve();
   }
   const prevFlexGrow = layoutBox.dom!.style.flexGrow;
-  layoutBox.dom!.style.flexGrow = '0';
+  layoutBox.dom!.style.flexGrow = "0";
   resizeLayoutBox(layoutBox, startRect);
 
   // Force the layout engine to compute the current state of the layoutBox.dom element before
   // applying the transition. This follows the recommendation here, and seems to work:
   // https://timtaubert.de/blog/2012/09/css-transitions-for-dynamically-created-dom-elements/
-  pick(G.window.getComputedStyle(layoutBox.dom!), 'height', 'width');
+  pick(G.window.getComputedStyle(layoutBox.dom!), "height", "width");
 
   // Start the transition.
-  layoutBox.dom!.classList.add('layout_editor_resize_transition');
+  layoutBox.dom!.classList.add("layout_editor_resize_transition");
   return new Promise(function(resolve, reject) {
-    dom.once(layoutBox.dom, 'transitionend', function() { resolve(); });
+    dom.once(layoutBox.dom, "transitionend", function() { resolve(); });
     resizeLayoutBox(layoutBox, endRect);
   })
     .timeout(600)    // Transitions are only 400ms long, so complain if nothing happened for longer.
@@ -862,7 +862,7 @@ function resizeLayoutBoxSmoothly(layoutBox: LayoutBox, startRect: string | DOMRe
       if (!layoutBox.dom) {
         return;
       }
-      layoutBox.dom.classList.remove('layout_editor_resize_transition');
+      layoutBox.dom.classList.remove("layout_editor_resize_transition");
       layoutBox.dom.style.flexGrow = prevFlexGrow;
     });
 }

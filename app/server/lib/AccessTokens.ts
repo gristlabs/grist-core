@@ -1,10 +1,10 @@
-import { ApiError } from 'app/common/ApiError';
-import { MapWithTTL } from 'app/common/AsyncCreate';
-import { KeyedMutex } from 'app/common/KeyedMutex';
-import { AccessTokenOptions } from 'app/plugin/GristAPI';
-import { makeId } from 'app/server/lib/idUtils';
-import * as jwt from 'jsonwebtoken';
-import { RedisClient } from 'redis';
+import { ApiError } from "app/common/ApiError";
+import { MapWithTTL } from "app/common/AsyncCreate";
+import { KeyedMutex } from "app/common/KeyedMutex";
+import { AccessTokenOptions } from "app/plugin/GristAPI";
+import { makeId } from "app/server/lib/idUtils";
+import * as jwt from "jsonwebtoken";
+import { RedisClient } from "redis";
 
 export const Deps = {
   // Signed tokens expire after this length of time.
@@ -115,12 +115,12 @@ export class AccessTokens implements IAccessTokens {
    */
   public async verify(token: string): Promise<AccessTokenInfo> {
     const content = jwt.decode(token);
-    if (typeof content !== 'object') {
-      throw new ApiError('Broken token', 401);
+    if (typeof content !== "object") {
+      throw new ApiError("Broken token", 401);
     }
     const docId = content?.docId as string;
-    if (typeof docId !== 'string' || !docId) {
-      throw new ApiError('Broken token', 401);
+    if (typeof docId !== "string" || !docId) {
+      throw new ApiError("Broken token", 401);
     }
     try {
       // Try to verify with the secrets we already know about.
@@ -153,26 +153,26 @@ export class AccessTokens implements IAccessTokens {
         // continue, to try another secret.
       }
     }
-    throw new ApiError('Cannot verify token', 401);
+    throw new ApiError("Cannot verify token", 401);
   }
 
   private _verifyWithGivenSecret(secret: string, token: string): AccessTokenInfo {
     try {
       const content: any = jwt.verify(token, secret);
-      if (typeof content !== 'object') {
-        throw new ApiError('Token mismatch', 401);
+      if (typeof content !== "object") {
+        throw new ApiError("Token mismatch", 401);
       }
       const userId = content.userId;
       const docId = content.docId;
-      if (!userId) { throw new ApiError('no userId in access token', 401); }
-      if (!docId) { throw new ApiError('no docId in access token', 401); }
+      if (!userId) { throw new ApiError("no userId in access token", 401); }
+      if (!docId) { throw new ApiError("no docId in access token", 401); }
       return content as AccessTokenInfo;
     }
     catch (e) {
-      if (e.name === 'TokenExpiredError') {
-        throw new ApiError('Token has expired', 401);
+      if (e.name === "TokenExpiredError") {
+        throw new ApiError("Token has expired", 401);
       }
-      throw new ApiError('Cannot verify token', 401);
+      throw new ApiError("Cannot verify token", 401);
     }
   }
 
@@ -254,11 +254,11 @@ export class RedisAccessTokenSignerStore implements IAccessTokenSignerStore {
 
   public async getSigners(docId: string): Promise<string[]> {
     const keys = await this._cli.getAsync(this._getKey(docId));
-    return keys?.split(',') || [];
+    return keys?.split(",") || [];
   }
 
   public async setSigners(docId: string, secrets: string[], ttlMsec: number): Promise<void> {
-    await this._cli.setexAsync(this._getKey(docId), ttlMsec, secrets.join(','));
+    await this._cli.setexAsync(this._getKey(docId), ttlMsec, secrets.join(","));
   }
 
   public async close() {

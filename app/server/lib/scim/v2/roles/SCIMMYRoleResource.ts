@@ -1,6 +1,6 @@
-import { SCIMMYRoleSchema } from 'app/server/lib/scim/v2/roles/SCIMMYRoleSchema';
+import { SCIMMYRoleSchema } from "app/server/lib/scim/v2/roles/SCIMMYRoleSchema";
 
-import SCIMMY from 'scimmy';
+import SCIMMY from "scimmy";
 
 /**
  * SCIMMY Role Resource. Heavily inspired by SCIMMY Group Resource.
@@ -9,7 +9,7 @@ import SCIMMY from 'scimmy';
 export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> {
   // NB: must be a getter, cannot override this property with readonly attribute
   public static get endpoint() {
-    return '/Roles';
+    return "/Roles";
   }
 
   public static get schema() {

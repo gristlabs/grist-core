@@ -26,23 +26,23 @@
  * TODO: client-side should show "..." or "50000 more rows not shown" in that case.
  * TODO: Reference columns don't work properly because always use a displayCol which relies on formulas
  */
-import { ClientColumnGettersByColId } from 'app/client/models/ClientColumnGetters';
-import DataTableModel from 'app/client/models/DataTableModel';
-import { DocModel } from 'app/client/models/DocModel';
-import { BaseFilteredRowSource, RowList, RowSource } from 'app/client/models/rowset';
-import { TableData } from 'app/client/models/TableData';
-import { ActiveDocAPI, ClientQuery, QueryOperation } from 'app/common/ActiveDocAPI';
-import { TableDataAction } from 'app/common/DocActions';
-import { DocData } from 'app/common/DocData';
-import { nativeCompare } from 'app/common/gutil';
-import { IRefCountSub, RefCountMap } from 'app/common/RefCountMap';
-import { getLinkingFilterFunc, RowFilterFunc } from 'app/common/RowFilterFunc';
-import { TableData as BaseTableData } from 'app/common/TableData';
-import { tbind } from 'app/common/tbind';
-import { UIRowId } from 'app/plugin/GristAPI';
-import { Disposable, Holder, IDisposableOwnerT } from 'grainjs';
-import * as ko from 'knockout';
-import debounce from 'lodash/debounce';
+import { ClientColumnGettersByColId } from "app/client/models/ClientColumnGetters";
+import DataTableModel from "app/client/models/DataTableModel";
+import { DocModel } from "app/client/models/DocModel";
+import { BaseFilteredRowSource, RowList, RowSource } from "app/client/models/rowset";
+import { TableData } from "app/client/models/TableData";
+import { ActiveDocAPI, ClientQuery, QueryOperation } from "app/common/ActiveDocAPI";
+import { TableDataAction } from "app/common/DocActions";
+import { DocData } from "app/common/DocData";
+import { nativeCompare } from "app/common/gutil";
+import { IRefCountSub, RefCountMap } from "app/common/RefCountMap";
+import { getLinkingFilterFunc, RowFilterFunc } from "app/common/RowFilterFunc";
+import { TableData as BaseTableData } from "app/common/TableData";
+import { tbind } from "app/common/tbind";
+import { UIRowId } from "app/plugin/GristAPI";
+import { Disposable, Holder, IDisposableOwnerT } from "grainjs";
+import * as ko from "knockout";
+import debounce from "lodash/debounce";
 
 // Limit on the how many rows to request for OnDemand tables.
 const ON_DEMAND_ROW_LIMIT = 10000;
@@ -59,7 +59,7 @@ export interface QueryRefs {
   filterTuples: FilterTuple[];
 }
 
-type ColRef = number | 'id';
+type ColRef = number | "id";
 type FilterTuple = [ColRef, QueryOperation, any[]];
 
 /**
@@ -182,13 +182,13 @@ export class DynamicQuerySet extends RowSource {
         this._querySet = nextQuerySet;
 
         if (oldQuerySet) {
-          this.stopListening(oldQuerySet, 'rowChange');
-          this.stopListening(oldQuerySet, 'rowNotify');
-          this.trigger('rowChange', 'remove', oldQuerySet.getAllRows());
+          this.stopListening(oldQuerySet, "rowChange");
+          this.stopListening(oldQuerySet, "rowNotify");
+          this.trigger("rowChange", "remove", oldQuerySet.getAllRows());
         }
-        this.trigger('rowChange', 'add', this._querySet.getAllRows());
-        this.listenTo(this._querySet, 'rowNotify', tbind(this.trigger, this, 'rowNotify'));
-        this.listenTo(this._querySet, 'rowChange', tbind(this.trigger, this, 'rowChange'));
+        this.trigger("rowChange", "add", this._querySet.getAllRows());
+        this.listenTo(this._querySet, "rowNotify", tbind(this.trigger, this, "rowNotify"));
+        this.listenTo(this._querySet, "rowChange", tbind(this.trigger, this, "rowChange"));
       }
       cb(null, true);
     }
@@ -336,7 +336,7 @@ function convertQueryToRefs(docModel: DocModel, query: ClientQuery): QueryRefs {
     throw new Error(`Table ${query.tableId} not found`);
   }
 
-  const colRefsByColId: { [colId: string]: ColRef } = { id: 'id' };
+  const colRefsByColId: { [colId: string]: ColRef } = { id: "id" };
   for (const col of tableRec.columns.peek().peek()) {
     colRefsByColId[col.colId.peek()] = col.getRowId();
   }
@@ -362,7 +362,7 @@ function convertQueryFromRefs(docModel: DocModel, queryRefs: QueryRefs): ClientQ
   const filters: { [colId: string]: any[] } = {};
   const operations: { [colId: string]: QueryOperation } = {};
   for (const [colRef, operation, values] of queryRefs.filterTuples) {
-    const colId = colRef === 'id' ? 'id' : docModel.columns.getRowModel(colRef).colId.peek();
+    const colId = colRef === "id" ? "id" : docModel.columns.getRowModel(colRef).colId.peek();
     filters[colId] = values;
     operations[colId] = operation;
   }
@@ -393,6 +393,6 @@ function decodeQuery(queryKey: string): QueryRefs {
 function makeQueryInvalidComputed(docModel: DocModel, queryRefs: QueryRefs): ko.Computed<boolean> {
   const tableFlag: ko.Observable<boolean> = docModel.tables.getRowModel(queryRefs.tableRef)._isDeleted;
   const colFlags: (ko.Observable<boolean> | null)[] = queryRefs.filterTuples.map(
-    ([colRef, ,]) => colRef === 'id' ? null : docModel.columns.getRowModel(colRef)._isDeleted);
+    ([colRef, ,]) => colRef === "id" ? null : docModel.columns.getRowModel(colRef)._isDeleted);
   return ko.computed(() => Boolean(tableFlag() || colFlags.some(c => c?.())));
 }

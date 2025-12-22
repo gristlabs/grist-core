@@ -22,13 +22,13 @@
  *
  * Note that the form of URLs depends on the settings in window.gristConfig object.
  */
-import { unsavedChanges } from 'app/client/components/UnsavedChanges';
-import { hooks } from 'app/client/Hooks';
-import { UrlState } from 'app/client/lib/UrlState';
-import { decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState } from 'app/common/gristUrls';
-import { Document } from 'app/common/UserAPI';
-import isEmpty from 'lodash/isEmpty';
-import isEqual from 'lodash/isEqual';
+import { unsavedChanges } from "app/client/components/UnsavedChanges";
+import { hooks } from "app/client/Hooks";
+import { UrlState } from "app/client/lib/UrlState";
+import { decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState } from "app/common/gristUrls";
+import { Document } from "app/common/UserAPI";
+import isEmpty from "lodash/isEmpty";
+import isEqual from "lodash/isEqual";
 import { CellValue } from "app/plugin/GristData";
 
 /**
@@ -180,17 +180,17 @@ export class UrlStateImpl {
  * if not, prepending `https://`.
  */
 export function constructUrl(value: CellValue): string {
-  if (typeof value !== 'string') {
-    return '';
+  if (typeof value !== "string") {
+    return "";
   }
-  const url = value.slice(value.lastIndexOf(' ') + 1);
+  const url = value.slice(value.lastIndexOf(" ") + 1);
   try {
     // Try to construct a valid URL
     return (new URL(url)).toString();
   }
   catch (e) {
     // Not a valid URL, so try to prefix it with https
-    return 'https://' + url;
+    return "https://" + url;
   }
 }
 

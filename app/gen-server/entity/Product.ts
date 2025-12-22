@@ -6,11 +6,11 @@ import { Features, FREE_PLAN,
   STUB_PLAN,
   SUSPENDED_PLAN,
   TEAM_FREE_PLAN,
-  TEAM_PLAN } from 'app/common/Features';
-import { nativeValues } from 'app/gen-server/lib/values';
-import * as assert from 'assert';
-import { BillingAccount } from 'app/gen-server/entity/BillingAccount';
-import { BaseEntity, Column, Connection, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+  TEAM_PLAN } from "app/common/Features";
+import { nativeValues } from "app/gen-server/lib/values";
+import * as assert from "assert";
+import { BillingAccount } from "app/gen-server/entity/BillingAccount";
+import { BaseEntity, Column, Connection, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 /**
  * A summary of features available in legacy personal sites.
@@ -54,7 +54,7 @@ export const teamFreeFeatures: Features = {
   vanityDomain: true,
   maxSharesPerWorkspace: 0,   // all workspace shares need to be org members.
   maxSharesPerDoc: 2,
-  snapshotWindow: { count: 30, unit: 'days' },
+  snapshotWindow: { count: 30, unit: "days" },
   baseMaxRowsPerDocument: 5000,
   baseMaxApiUnitsPerDocumentPerDay: 5000,
   baseMaxDataSizePerDocument: 5000 * 2 * 1024,  // 2KB per row
@@ -74,7 +74,7 @@ export const personalFreeFeatures: Features = {
   workspaces: true,
   maxSharesPerWorkspace: 0,   // workspace sharing is disabled.
   maxSharesPerDoc: 2,
-  snapshotWindow: { count: 30, unit: 'days' },
+  snapshotWindow: { count: 30, unit: "days" },
   baseMaxRowsPerDocument: 5000,
   baseMaxApiUnitsPerDocumentPerDay: 5000,
   baseMaxDataSizePerDocument: 5000 * 2 * 1024,  // 2KB per row
@@ -157,7 +157,7 @@ export function getDefaultProductNames() {
     // Team site starts off on a limited plan, requiring subscription.
     teamInitial: defaultProduct || STUB_PLAN,
     // Team site that has been 'turned off'.
-    teamCancel: 'suspended',
+    teamCancel: "suspended",
     // Functional team site.
     team: defaultProduct || TEAM_PLAN,
     teamFree: defaultProduct || TEAM_FREE_PLAN,
@@ -184,7 +184,7 @@ export function getAnonymousFeatures(): Features {
 /**
  * A Grist product.  Corresponds to a set of enabled features and a choice of limits.
  */
-@Entity({ name: 'products' })
+@Entity({ name: "products" })
 export class Product extends BaseEntity {
   @PrimaryGeneratedColumn()
   public id: number;
@@ -211,7 +211,7 @@ export async function synchronizeProducts(
   connection: Connection, apply: boolean, products = PRODUCTS,
 ): Promise<string[]> {
   try {
-    await connection.query('select name, features, stripe_product_id from products limit 1');
+    await connection.query("select name, features, stripe_product_id from products limit 1");
   }
   catch (e) {
     // No usable products table, do not try to synchronize.

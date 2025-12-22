@@ -1,9 +1,9 @@
-import { Interval } from 'app/common/Interval';
-import { delay } from 'bluebird';
-import { assert } from 'chai';
-import * as sinon from 'sinon';
+import { Interval } from "app/common/Interval";
+import { delay } from "bluebird";
+import { assert } from "chai";
+import * as sinon from "sinon";
 
-describe('Interval', function() {
+describe("Interval", function() {
   const delayMs = 100;
   const varianceMs = 50;
   const promiseDelayMs = 200;
@@ -22,14 +22,14 @@ describe('Interval', function() {
     }
   });
 
-  it('is not enabled by default', async function() {
+  it("is not enabled by default", async function() {
     interval = new Interval(spy, { delayMs }, { onError: () => { /* do nothing */ } });
     assert.equal(spy.callCount, 0);
     await delay(delayMs + delayBufferMs);
     assert.equal(spy.callCount, 0);
   });
 
-  it('can be disabled', async function() {
+  it("can be disabled", async function() {
     interval = new Interval(spy, { delayMs }, { onError: () => { /* do nothing */ } });
     interval.enable();
     await delay(delayMs + delayBufferMs);
@@ -47,8 +47,8 @@ describe('Interval', function() {
     spy.resetHistory();
   });
 
-  it('calls onError if callback throws an error', async function() {
-    const callback = () => { throw new Error('Something bad happened.'); };
+  it("calls onError if callback throws an error", async function() {
+    const callback = () => { throw new Error("Something bad happened."); };
     const onErrorSpy = sinon.spy();
     interval = new Interval(callback, { delayMs }, { onError: onErrorSpy });
     interval.enable();
@@ -63,13 +63,13 @@ describe('Interval', function() {
     assert.equal(onErrorSpy.callCount, 2);
   });
 
-  describe('with a fixed delay', function() {
+  describe("with a fixed delay", function() {
     beforeEach(() => {
       interval = new Interval(spy, { delayMs }, { onError: () => { /* do nothing */ } });
       interval.enable();
     });
 
-    it('calls the callback on a fixed interval', async function() {
+    it("calls the callback on a fixed interval", async function() {
       await delay(delayMs + delayBufferMs);
       assert.equal(spy.callCount, 1);
       await delay(delayMs + delayBufferMs);
@@ -77,7 +77,7 @@ describe('Interval', function() {
     });
   });
 
-  describe('with a randomized delay', function() {
+  describe("with a randomized delay", function() {
     beforeEach(() => {
       interval = new Interval(spy, { delayMs, varianceMs }, {
         onError: () => { /* do nothing */ },
@@ -85,7 +85,7 @@ describe('Interval', function() {
       interval.enable();
     });
 
-    it('calls the callback on a randomized interval', async function() {
+    it("calls the callback on a randomized interval", async function() {
       const delays: number[] = [];
       for (let i = 1; i <= 10; i++) {
         // Get the current delay and check that it's within the expected range.
@@ -105,7 +105,7 @@ describe('Interval', function() {
     });
   });
 
-  describe('with a promise-based callback', function() {
+  describe("with a promise-based callback", function() {
     let promiseSpy: sinon.SinonSpy;
 
     beforeEach(() => {
@@ -115,7 +115,7 @@ describe('Interval', function() {
       interval.enable();
     });
 
-    it('waits for promises to settle before scheduling the next call', async function() {
+    it("waits for promises to settle before scheduling the next call", async function() {
       assert.equal(promiseSpy.callCount, 0);
       await delay(delayMs + delayBufferMs);
       assert.equal(promiseSpy.callCount, 1);
@@ -127,7 +127,7 @@ describe('Interval', function() {
       assert.equal(promiseSpy.callCount, 2); // Now we finally call the callback again.
     });
 
-    it('can wait for last promise to settle when disabling', async function() {
+    it("can wait for last promise to settle when disabling", async function() {
       assert.equal(promiseSpy.callCount, 0);
       await delay(delayMs + delayBufferMs);
       assert.equal(promiseSpy.callCount, 1);

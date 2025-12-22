@@ -1,7 +1,7 @@
-import { InactivityTimer } from 'app/common/InactivityTimer';
-import { delay } from 'bluebird';
-import { assert } from 'chai';
-import * as sinon from 'sinon';
+import { InactivityTimer } from "app/common/InactivityTimer";
+import { delay } from "bluebird";
+import { assert } from "chai";
+import * as sinon from "sinon";
 
 describe("InactivityTimer", function() {
   let spy: sinon.SinonSpy, timer: InactivityTimer;

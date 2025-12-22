@@ -1,4 +1,4 @@
-import * as ko from 'knockout';
+import * as ko from "knockout";
 
 declare class KoArray<T> {
   public static syncedKoArray(...args: any[]): any;

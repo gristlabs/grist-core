@@ -1,6 +1,6 @@
-import { Layout } from 'app/client/components/Layout';
-import { dom } from 'grainjs';
-import * as _ from 'underscore';
+import { Layout } from "app/client/components/Layout";
+import { dom } from "grainjs";
+import * as _ from "underscore";
 
 export interface BoxSpec {
   leaf?: string | number;
@@ -16,7 +16,7 @@ export function purgeBoxSpec(options: {
 }): BoxSpec {
   const { spec, validLeafIds, restoreCollapsed } = options;
   // We use tmpLayout as a way to manipulate the layout before we get a final spec from it.
-  const tmpLayout = Layout.create(spec, () => dom('div'), true);
+  const tmpLayout = Layout.create(spec, () => dom("div"), true);
   const specFieldIds = tmpLayout.getAllLeafIds();
 
   // For any stale fields (no longer among validLeafIds), remove them from tmpLayout.

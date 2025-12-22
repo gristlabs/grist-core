@@ -18,11 +18,11 @@ export async function isMenuPresent() {
 
 export async function closeAddColumnMenu() {
   await driver.sendKeys(Key.ESCAPE);
-  await gu.waitToPass(async () => assert.isFalse(await isMenuPresent(), 'menu is still present'));
+  await gu.waitToPass(async () => assert.isFalse(await isMenuPresent(), "menu is still present"));
 }
 
 export async function hasAddNewColumMenu() {
-  await isDisplayed('.test-new-columns-menu-add-new', 'add new column menu is not present');
+  await isDisplayed(".test-new-columns-menu-add-new", "add new column menu is not present");
 }
 
 export async function isDisplayed(selector: string, message: string) {
@@ -30,18 +30,18 @@ export async function isDisplayed(selector: string, message: string) {
 }
 
 export async function hasShortcuts() {
-  await isDisplayed('.test-new-columns-menu-shortcuts', 'shortcuts section is not present');
-  await isDisplayed('.test-new-columns-menu-shortcuts-timestamp', 'timestamp shortcuts section is not present');
-  await isDisplayed('.test-new-columns-menu-shortcuts-author', 'authorship shortcuts section is not present');
+  await isDisplayed(".test-new-columns-menu-shortcuts", "shortcuts section is not present");
+  await isDisplayed(".test-new-columns-menu-shortcuts-timestamp", "timestamp shortcuts section is not present");
+  await isDisplayed(".test-new-columns-menu-shortcuts-author", "authorship shortcuts section is not present");
 }
 
 export async function hasLookupMenu(colId: string) {
-  await isDisplayed('.test-new-columns-menu-lookup', 'lookup section is not present');
+  await isDisplayed(".test-new-columns-menu-lookup", "lookup section is not present");
   await isDisplayed(`.test-new-columns-menu-lookup-${colId}`, `lookup section for ${colId} is not present`);
 }
 
 export async function collapsedHiddenColumns() {
-  return await driver.findAll('.test-new-columns-menu-hidden-column-collapsed', el => el.getText());
+  return await driver.findAll(".test-new-columns-menu-hidden-column-collapsed", el => el.getText());
 }
 
 export function revertEach() {
@@ -82,10 +82,10 @@ export async function addRefListLookup(refListId: string, colId: string, func: s
 
 export async function checkTypeAndFormula(type: string, formula: string) {
   assert.equal(await gu.getType(), type);
-  await driver.find('.formula_field_sidepane').click();
+  await driver.find(".formula_field_sidepane").click();
   const actual = await gu.getFormulaText(false).then(s => s.trim());
   if (!actual) {
-    throw new Error('Formula field is empty');
+    throw new Error("Formula field is empty");
   }
   assert.equal(actual, formula);
   await gu.sendKeys(Key.ESCAPE);

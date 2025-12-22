@@ -18,9 +18,9 @@
  *
  */
 
-import { Interval } from 'app/common/Interval';
-import log from 'app/server/lib/log';
-import pidusage from 'pidusage';
+import { Interval } from "app/common/Interval";
+import log from "app/server/lib/log";
+import pidusage from "pidusage";
 
 /**
  * Parameters related to throttling.
@@ -234,7 +234,7 @@ export class Throttle {
 
     if (!this._lastLogTime || now - this._lastLogTime > this._timing.minimumLogPeriodMs) {
       this._lastLogTime = now;
-      this._log('throttle', { ...this._options.logMeta,
+      this._log("throttle", { ...this._options.logMeta,
         throttle: Math.round(this._throttleFactor),
         throttledRate: Math.round(rate * 100),
         rate: Math.round(rateWithoutThrottling * 100) });
@@ -262,14 +262,14 @@ export class Throttle {
   private _letProcessRun(on: boolean) {
     this._active = on;
     try {
-      process.kill(this._options.pid, on ? 'SIGCONT' : 'SIGSTOP');
+      process.kill(this._options.pid, on ? "SIGCONT" : "SIGSTOP");
       const tracedPid = this._options.tracedPid;
       if (tracedPid && !on) {
-        process.kill(tracedPid, 'SIGSTOP');
+        process.kill(tracedPid, "SIGSTOP");
         if (this._timing.traceNudgeOffset > 0) {
           this._stopTraceNudge();
           this._traceNudgeTimeout = setTimeout(() => {
-            if (!this._active) { process.kill(tracedPid, 'SIGSTOP'); }
+            if (!this._active) { process.kill(tracedPid, "SIGSTOP"); }
           }, this._timing.traceNudgeOffset);
         }
       }

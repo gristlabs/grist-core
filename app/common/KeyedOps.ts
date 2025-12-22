@@ -173,7 +173,7 @@ export class KeyedOps {
   }
 
   private async _doOp(key: string) {
-    if (this._stopped) { throw new Error('operations forcibly stopped'); }
+    if (this._stopped) { throw new Error("operations forcibly stopped"); }
     return this._op(key);
   }
 

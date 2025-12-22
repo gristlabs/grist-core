@@ -14,22 +14,22 @@
  */
 
 
-import { logTelemetryEvent } from 'app/client/lib/telemetry';
-import { AppModel } from 'app/client/models/AppModel';
-import { reportWarning } from 'app/client/models/errors';
-import { IAppError } from 'app/client/models/NotifyModel';
-import { GristLoadConfig } from 'app/common/gristUrls';
-import { timeFormat } from 'app/common/timeFormat';
-import * as version from 'app/common/version';
-import { dom } from 'grainjs';
-import identity from 'lodash/identity';
-import pickBy from 'lodash/pickBy';
+import { logTelemetryEvent } from "app/client/lib/telemetry";
+import { AppModel } from "app/client/models/AppModel";
+import { reportWarning } from "app/client/models/errors";
+import { IAppError } from "app/client/models/NotifyModel";
+import { GristLoadConfig } from "app/common/gristUrls";
+import { timeFormat } from "app/common/timeFormat";
+import * as version from "app/common/version";
+import { dom } from "grainjs";
+import identity from "lodash/identity";
+import pickBy from "lodash/pickBy";
 
-export type BeaconCmd = 'init' | 'destroy' | 'open' | 'close' | 'toggle' | 'search' | 'suggest' |
-  'article' | 'navigate' | 'identify' | 'prefill' | 'reset' | 'logout' | 'config' | 'on' | 'off' |
-  'once' | 'event' | 'session-data';
+export type BeaconCmd = "init" | "destroy" | "open" | "close" | "toggle" | "search" | "suggest" |
+  "article" | "navigate" | "identify" | "prefill" | "reset" | "logout" | "config" | "on" | "off" |
+  "once" | "event" | "session-data";
 
-export type BeaconRoute = '/ask/message/' | '/answers/';
+export type BeaconRoute = "/ask/message/" | "/answers/";
 
 export interface IUserObj {
   name?: string;
@@ -61,18 +61,18 @@ interface ICallbackAttributes {
 /**
  * This provides the HelpScout Beacon API, taking care of initializing Beacon on first use.
  */
-export function Beacon(method: 'init', beaconId: string): void;
-export function Beacon(method: 'search', query: string): void;
-export function Beacon(method: 'suggest', articles?: string[]): void;
-export function Beacon(method: 'article', articleId: string, options?: unknown): void;
-export function Beacon(method: 'navigate', route: string): void;
-export function Beacon(method: 'identify', userObj: IUserObj): void;
-export function Beacon(method: 'prefill', formObj: IFormObj): void;
-export function Beacon(method: 'config', configObj: object): void;
-export function Beacon(method: 'on' | 'once', event: string,
+export function Beacon(method: "init", beaconId: string): void;
+export function Beacon(method: "search", query: string): void;
+export function Beacon(method: "suggest", articles?: string[]): void;
+export function Beacon(method: "article", articleId: string, options?: unknown): void;
+export function Beacon(method: "navigate", route: string): void;
+export function Beacon(method: "identify", userObj: IUserObj): void;
+export function Beacon(method: "prefill", formObj: IFormObj): void;
+export function Beacon(method: "config", configObj: object): void;
+export function Beacon(method: "on" | "once", event: string,
   callback: (attrs?: ICallbackAttributes) => void): void;
-export function Beacon(method: 'off', event: string, callback?: () => void): void;
-export function Beacon(method: 'session-data', data: ISessionData): void;
+export function Beacon(method: "off", event: string, callback?: () => void): void;
+export function Beacon(method: "session-data", data: ISessionData): void;
 export function Beacon(method: BeaconCmd): void;
 export function Beacon(method: BeaconCmd, options?: unknown, data?: unknown) {
   initBeacon();
@@ -92,21 +92,21 @@ function initBeacon(): void {
     const beaconId = gristConfig?.helpScoutBeaconId;
     if (beaconId) {
       (window as any).Beacon = _beacon;
-      document.head.appendChild(dom('script',
+      document.head.appendChild(dom("script",
         {
-          type: 'text/javascript',
-          src: 'https://beacon-v2.helpscout.net',
+          type: "text/javascript",
+          src: "https://beacon-v2.helpscout.net",
           async: true,
         },
         // Report when the beacon fails to load so that the user knows something is wrong, and we
         // have a log of the error. (Note: might not report all failures due to ad-blockers.)
-        dom.on('error', (e) => {
+        dom.on("error", (e) => {
           reportWarning("Support form failed to load. " +
             "Please email support@getgrist.com with questions instead.");
         }),
       ));
-      _beacon('init', beaconId);
-      _beacon('config', { display: { style: "manual" } });
+      _beacon("init", beaconId);
+      _beacon("config", { display: { style: "manual" } });
     }
     else {
       (window as any).Beacon = () => null;
@@ -115,7 +115,7 @@ function initBeacon(): void {
   }
 }
 
-let lastOpenType: 'error' | 'message' = 'message';
+let lastOpenType: "error" | "message" = "message";
 let lastRoute: BeaconRoute | null = null;
 
 /**
@@ -129,36 +129,36 @@ function _beaconOpen(userObj: IUserObj | null, options: IBeaconOpenOptions) {
 
   // The beacon remembers its content, so reset it when switching between reporting errors and
   // sending a message.
-  const openType = errors?.length ? 'error' : 'message';
+  const openType = errors?.length ? "error" : "message";
   if (openType !== lastOpenType) {
-    Beacon('reset');
+    Beacon("reset");
     lastOpenType = openType;
   }
 
-  const route: BeaconRoute = options.route || (errors?.length ? '/ask/message/' : '/answers/');
+  const route: BeaconRoute = options.route || (errors?.length ? "/ask/message/" : "/answers/");
   // If beacon was and still is being opened for help articles, avoid the 'navigate' call
   // altogether, to keep the beacon at the last article it was on.
-  const skipNav = (route === lastRoute && route === '/answers/');
+  const skipNav = (route === lastRoute && route === "/answers/");
   lastRoute = route;
 
-  Beacon('once', 'open', () => {
-    const iframe = document.querySelector('#beacon-container iframe') as HTMLIFrameElement;
+  Beacon("once", "open", () => {
+    const iframe = document.querySelector("#beacon-container iframe") as HTMLIFrameElement;
     if (iframe) { iframe.focus(); }
     if (onOpen) { onOpen(); }
   });
   // Fix base-href tag when opening an article.
-  Beacon('once', 'article-viewed', () => fixBeaconBaseHref());
+  Beacon("once", "article-viewed", () => fixBeaconBaseHref());
   // We duplicate this check for 'ready' event, because 'open' and 'article-viewed' events don't
   // trigger on page reload when a beacon article is already open (seems to be a HelpScout bug).
-  Beacon('once', 'ready', () => fixBeaconBaseHref());
+  Beacon("once", "ready", () => fixBeaconBaseHref());
 
-  Beacon('once', 'close', () => {
-    const iframe = document.querySelector('#beacon-container iframe') as HTMLIFrameElement;
+  Beacon("once", "close", () => {
+    const iframe = document.querySelector("#beacon-container iframe") as HTMLIFrameElement;
     if (iframe) { iframe.blur(); }
-    Beacon('off', 'article-viewed');
+    Beacon("off", "article-viewed");
   });
   if (userObj) {
-    Beacon('identify', userObj);
+    Beacon("identify", userObj);
   }
 
   const attrs: ISessionData = {};
@@ -166,41 +166,41 @@ function _beaconOpen(userObj: IUserObj | null, options: IBeaconOpenOptions) {
     // If sending errors, prefill part of the message (the user sees this and can add to it), and
     // include more detailed errors with stack traces into session-data.
     const messages = errors.map(({ error, timestamp }) =>
-      (timeFormat('T', new Date(timestamp)) + ' ' + error.message));
-    const lastMessage = errors.length > 0 ? errors[errors.length - 1].error.message : '';
+      (timeFormat("T", new Date(timestamp)) + " " + error.message));
+    const lastMessage = errors.length > 0 ? errors[errors.length - 1].error.message : "";
     const prefill: IFormObj = {
       subject: `Application Error: ${lastMessage}`.slice(0, 250), // subject has max-length of 250
-      text: `\n-- Include your description above --\nErrors encountered:\n${messages.join('\n')}\n`,
+      text: `\n-- Include your description above --\nErrors encountered:\n${messages.join("\n")}\n`,
     };
-    Beacon('prefill', prefill);
-    Beacon('config', { messaging: { contactForm: { showSubject: false } } });
+    Beacon("prefill", prefill);
+    Beacon("config", { messaging: { contactForm: { showSubject: false } } });
 
     errors.forEach(({ error, timestamp }, i) => {
-      attrs[`error-${i}`] =  timeFormat('D T', new Date(timestamp)) + ' ' + error.message;
+      attrs[`error-${i}`] =  timeFormat("D T", new Date(timestamp)) + " " + error.message;
       if (error.stack) {
-        attrs[`error-${i}-stack`] = JSON.stringify(error.stack.trim().split('\n'));
+        attrs[`error-${i}-stack`] = JSON.stringify(error.stack.trim().split("\n"));
       }
     });
   }
   else {
-    Beacon('config', { messaging: { contactForm: { showSubject: true } } });
+    Beacon("config", { messaging: { contactForm: { showSubject: true } } });
   }
 
-  Beacon('session-data', {
-    'Grist Version': `${version.version} (${version.gitcommit})`,
+  Beacon("session-data", {
+    "Grist Version": `${version.version} (${version.gitcommit})`,
     ...attrs,
   });
-  Beacon('open');
+  Beacon("open");
   if (!skipNav) {
-    Beacon('navigate', route);
+    Beacon("navigate", route);
   }
 
-  Beacon('once', 'open', () => logTelemetryEvent('beaconOpen'));
-  Beacon('on', 'article-viewed', article => logTelemetryEvent('beaconArticleViewed', {
+  Beacon("once", "open", () => logTelemetryEvent("beaconOpen"));
+  Beacon("on", "article-viewed", article => logTelemetryEvent("beaconArticleViewed", {
     full: { articleId: article!.id },
   }));
-  Beacon('on', 'email-sent', () => logTelemetryEvent('beaconEmailSent'));
-  Beacon('on', 'search', search => logTelemetryEvent('beaconSearch', {
+  Beacon("on", "email-sent", () => logTelemetryEvent("beaconEmailSent"));
+  Beacon("on", "search", search => logTelemetryEvent("beaconSearch", {
     full: { searchQuery: search!.query },
   }));
 }
@@ -212,10 +212,10 @@ function fixBeaconBaseHref() {
   //
   // Here we set a <base href> explicitly in the iframe to get consistent behavior of links
   // relative to the top page's URL (HelpScout then seems to handle clicks on them correctly).
-  const iframe = document.querySelector('#beacon-container iframe') as HTMLIFrameElement;
+  const iframe = document.querySelector("#beacon-container iframe") as HTMLIFrameElement;
   const iframeDoc = iframe?.contentDocument;
-  if (iframeDoc && !iframeDoc.querySelector('head > base')) {
-    iframeDoc.head.appendChild(dom('base', { href: '' }));
+  if (iframeDoc && !iframeDoc.querySelector("head > base")) {
+    iframeDoc.head.appendChild(dom("base", { href: "" }));
   }
 }
 

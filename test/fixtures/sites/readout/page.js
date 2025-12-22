@@ -4,7 +4,7 @@
 
 function readDoc() {
   const fetchTable = grist.docApi.fetchSelectedTable();
-  const placeholder = document.getElementById('placeholder');
+  const placeholder = document.getElementById("placeholder");
   const fallback = setTimeout(() => {
     placeholder.innerHTML = '<div id="output">no joy</div>';
   }, 1000);
@@ -17,20 +17,20 @@ function readDoc() {
 
 function setup() {
   grist.ready();
-  grist.on('message', function(e) {
-    if ('options' in e) return;
-    document.getElementById('rowId').innerHTML = e.rowId || '';
-    document.getElementById('tableId').innerHTML = e.tableId || '';
+  grist.on("message", function(e) {
+    if ("options" in e) return;
+    document.getElementById("rowId").innerHTML = e.rowId || "";
+    document.getElementById("tableId").innerHTML = e.tableId || "";
     readDoc();
   });
   grist.onRecord(function(rec) {
-    document.getElementById('record').innerHTML = JSON.stringify(rec);
+    document.getElementById("record").innerHTML = JSON.stringify(rec);
   });
   grist.onRecords(function(recs) {
-    document.getElementById('records').innerHTML = JSON.stringify(recs);
+    document.getElementById("records").innerHTML = JSON.stringify(recs);
   });
   grist.onNewRecord(function(rec) {
-    document.getElementById('record').innerHTML = 'new';
+    document.getElementById("record").innerHTML = "new";
   });
   grist.enableKeyboardShortcuts();
 }

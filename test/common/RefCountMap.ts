@@ -1,7 +1,7 @@
-import { delay } from 'app/common/delay';
-import { RefCountMap } from 'app/common/RefCountMap';
-import { assert } from 'chai';
-import * as sinon from 'sinon';
+import { delay } from "app/common/delay";
+import { RefCountMap } from "app/common/RefCountMap";
+import { assert } from "chai";
+import * as sinon from "sinon";
 
 function assertResetSingleCall(spy: sinon.SinonSpy, context: any, ...args: any[]): void {
   sinon.assert.calledOnce(spy);

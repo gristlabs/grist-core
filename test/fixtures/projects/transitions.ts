@@ -1,38 +1,38 @@
-import { transition } from 'app/client/ui/transitions';
+import { transition } from "app/client/ui/transitions";
 import { dom, input, Observable, styled } from "grainjs";
-import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 
 function setupTest() {
   const toggle = Observable.create(null, false);
-  const duration = Observable.create(null, '1s');
+  const duration = Observable.create(null, "1s");
   const finishCount = Observable.create(null, 0);
   return [
     testBox(
-      dom('div.test-left',
-        dom.style('transition-duration', duration),
+      dom("div.test-left",
+        dom.style("transition-duration", duration),
         transition(toggle, {
-          prepare(elem, val) { elem.style.opacity = '0'; },
-          run(elem, val) { elem.style.opacity = ''; },
+          prepare(elem, val) { elem.style.opacity = "0"; },
+          run(elem, val) { elem.style.opacity = ""; },
           finish(elem, val) { finishCount.set(finishCount.get() + 1); },
         }),
-        dom.cls('expanded', toggle),
+        dom.cls("expanded", toggle),
       ),
-      dom('div.test-right'),
+      dom("div.test-right"),
     ),
-    dom('div', { style: 'margin-left: 100px; margin-top: 25px' },
-      dom('button.test-toggle', 'Toggle', dom.on('click', () => { toggle.set(!toggle.get()); })),
-      'Transition time (ms): ',
-      input(duration, {}, dom.cls('test-duration')),
+    dom("div", { style: "margin-left: 100px; margin-top: 25px" },
+      dom("button.test-toggle", "Toggle", dom.on("click", () => { toggle.set(!toggle.get()); })),
+      "Transition time (ms): ",
+      input(duration, {}, dom.cls("test-duration")),
       dom.text(duration),
     ),
-    dom('div', { style: 'margin-left: 100px; margin-top: 25px' },
-      ' Number of finished transitions: ',
-      dom('span.test-finished', dom.text(use => '' + use(finishCount))),
+    dom("div", { style: "margin-left: 100px; margin-top: 25px" },
+      " Number of finished transitions: ",
+      dom("span.test-finished", dom.text(use => "" + use(finishCount))),
     ),
   ];
 }
 
-const testBox = styled('div', `
+const testBox = styled("div", `
   position: relative;
   display: flex;
   margin-top: 50px;

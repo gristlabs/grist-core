@@ -1,17 +1,17 @@
 import axios from "axios";
 import * as chai from "chai";
-import omit from 'lodash/omit';
-import * as sinon from 'sinon';
+import omit from "lodash/omit";
+import * as sinon from "sinon";
 
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
 import { Defer, serveSomething, Serving } from "test/server/customUtil";
-import { ILogMeta, LogMethods } from 'app/server/lib/LogMethods';
+import { ILogMeta, LogMethods } from "app/server/lib/LogMethods";
 import { Deps } from "app/server/lib/UpdateManager";
 import { TestServer } from "test/gen-server/apiUtils";
 import { delay } from "app/common/delay";
-import { LatestVersion } from 'app/server/lib/UpdateManager';
-import { TelemetryEvent } from 'app/common/Telemetry';
+import { LatestVersion } from "app/server/lib/UpdateManager";
+import { TelemetryEvent } from "app/common/Telemetry";
 
 const assert = chai.assert;
 
@@ -29,7 +29,7 @@ const logMessages: [TelemetryEvent, ILogMeta][] = [];
 
 const chimpy = configForUser("Chimpy");
 const headers = {
-  headers: { 'Content-Type': 'application/json' },
+  headers: { "Content-Type": "application/json" },
 };
 
 // Tests specific complex scenarios that may have previously resulted in wrong behavior.
@@ -54,9 +54,9 @@ describe("UpdateChecks", function() {
     sandbox.stub(Deps, "GOOD_RESULT_TTL").value(500);
     sandbox.stub(Deps, "BAD_RESULT_TTL").value(200);
     sandbox.stub(Deps, "DOCKER_ENDPOINT").value(dockerHub.url + "/tags");
-    sandbox.stub(Deps, "OLDEST_RECOMMENDED_VERSION").value('8.8.8');
-    sandbox.stub(LogMethods.prototype, 'rawLog').callsFake((_level, _info, name, meta) => {
-      if (name !== 'checkedUpdateAPI') {
+    sandbox.stub(Deps, "OLDEST_RECOMMENDED_VERSION").value("8.8.8");
+    sandbox.stub(LogMethods.prototype, "rawLog").callsFake((_level, _info, name, meta) => {
+      if (name !== "checkedUpdateAPI") {
         return;
       }
       logMessages.push([name, meta]);
@@ -244,13 +244,13 @@ describe("UpdateChecks", function() {
     setEndpoint(dockerHub.url + "/tags");
     const installationId = "randomInstallationId";
     const deploymentType = "test";
-    async function testVersion(version: string, isCritical: boolean | 'fail') {
+    async function testVersion(version: string, isCritical: boolean | "fail") {
       const resp = await axios.post(`${homeUrl}/api/version`, {
         installationId,
         deploymentType,
         currentVersion: version,
       }, chimpy);
-      if (isCritical === 'fail') {
+      if (isCritical === "fail") {
         assert.equal(resp.status, 400);
       }
       else {
@@ -259,19 +259,19 @@ describe("UpdateChecks", function() {
       }
     }
     // we've set 8.8.8 as the oldest recommended version.
-    await testVersion('1.1.1', true);
-    await testVersion('v1.1.1', true);
-    await testVersion('7.1.1', true);
-    await testVersion('8.1.1', true);
-    await testVersion('8.8.7', true);
-    await testVersion('8.8.8', false);
-    await testVersion('8.8.10', false);
-    await testVersion('10.1.1', false);
-    await testVersion('v10.9.0', false);
-    await testVersion('11.1.1', false);
-    await testVersion('10', 'fail');
-    await testVersion('goose', 'fail');
-    await testVersion('', false);
+    await testVersion("1.1.1", true);
+    await testVersion("v1.1.1", true);
+    await testVersion("7.1.1", true);
+    await testVersion("8.1.1", true);
+    await testVersion("8.8.7", true);
+    await testVersion("8.8.8", false);
+    await testVersion("8.8.10", false);
+    await testVersion("10.1.1", false);
+    await testVersion("v10.9.0", false);
+    await testVersion("11.1.1", false);
+    await testVersion("10", "fail");
+    await testVersion("goose", "fail");
+    await testVersion("", false);
   });
 });
 

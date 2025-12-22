@@ -18,18 +18,18 @@ describe("MinIOExternalStorage", function() {
       return new stream.Readable();
     }
   };
-  const dummyBucket = 'some-bucket';
+  const dummyBucket = "some-bucket";
   const dummyOptions = {
-    endPoint: 'some-endpoint',
-    accessKey: 'some-accessKey',
-    secretKey: 'some-secretKey',
-    region: 'some-region',
+    endPoint: "some-endpoint",
+    accessKey: "some-accessKey",
+    secretKey: "some-secretKey",
+    region: "some-region",
   };
   afterEach(function() {
     sandbox.restore();
   });
 
-  describe('upload()', function() {
+  describe("upload()", function() {
     const filename = "some-filename";
     let filestream: fse.ReadStream;
     let s3: sinon.SinonStubbedInstance<minio.Client>;
@@ -76,7 +76,7 @@ describe("MinIOExternalStorage", function() {
     });
   });
 
-  describe('versions()', function() {
+  describe("versions()", function() {
     function makeFakeStream(listedObjects: object[]) {
       const fakeStream = new stream.Readable({ objectMode: true });
       const readSpy = sandbox.stub(fakeStream, "_read");
@@ -142,13 +142,13 @@ describe("MinIOExternalStorage", function() {
         {
           name: key,
           lastModified,
-          versionId: 'regular-version-uuid',
+          versionId: "regular-version-uuid",
           isDeleteMarker: false,
         },
         {
           name: key,
           lastModified,
-          versionId: 'delete-marker-version-uuid',
+          versionId: "delete-marker-version-uuid",
           isDeleteMarker: true,
         },
       ];
@@ -191,7 +191,7 @@ describe("MinIOExternalStorage", function() {
       const error = new Error("dummy-error");
       sandbox.stub(fakeStream, "_read")
         .returns(fakeStream as any)
-        .callsFake(() => fakeStream.emit('error', error));
+        .callsFake(() => fakeStream.emit("error", error));
       s3.listObjects.returns(fakeStream);
       const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
 

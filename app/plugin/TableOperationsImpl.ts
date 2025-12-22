@@ -1,11 +1,11 @@
 import * as Types from "app/plugin/DocApiTypes";
-import { BulkColValues } from 'app/plugin/GristData';
-import { OpOptions, TableOperations, UpsertOptions } from 'app/plugin/TableOperations';
-import { arrayRepeat } from 'app/plugin/gutil';
-import flatMap from 'lodash/flatMap';
-import isEqual from 'lodash/isEqual';
-import pick from 'lodash/pick';
-import groupBy from 'lodash/groupBy';
+import { BulkColValues } from "app/plugin/GristData";
+import { OpOptions, TableOperations, UpsertOptions } from "app/plugin/TableOperations";
+import { arrayRepeat } from "app/plugin/gutil";
+import flatMap from "lodash/flatMap";
+import isEqual from "lodash/isEqual";
+import pick from "lodash/pick";
+import groupBy from "lodash/groupBy";
 
 /**
  * An implementation of the TableOperations interface, given a platform
@@ -36,13 +36,13 @@ export class TableOperationsImpl implements TableOperations {
   public async update(recordOrRecords: Types.Record | Types.Record[], options?: OpOptions) {
     await withRecords(recordOrRecords, async (records) => {
       if (!areSameFields(records)) {
-        this._platform.throwError('PATCH', 'requires all records to have same fields', 400);
+        this._platform.throwError("PATCH", "requires all records to have same fields", 400);
       }
       const rowIds = records.map(r => r.id);
       const columnValues = convertToBulkColValues(records);
       if (!rowIds.length || !columnValues) {
         // For patch method, we require at least one valid record.
-        this._platform.throwError('PATCH', 'requires a valid record object', 400);
+        this._platform.throwError("PATCH", "requires a valid record object", 400);
       }
       await this.updateRecords(columnValues, rowIds, options);
       return [];
@@ -59,15 +59,15 @@ export class TableOperationsImpl implements TableOperations {
         on_many: upsertOptions?.onMany,
         allow_empty_require: upsertOptions?.allowEmptyRequire,
       };
-      const recordOptions: OpOptions = pick(upsertOptions, 'parseStrings');
+      const recordOptions: OpOptions = pick(upsertOptions, "parseStrings");
 
       // Group records based on having the same keys in `require` and `fields`.
       // A single bulk action will be applied to each group.
       // We don't want one bulk action for all records that might have different shapes,
       // because that would require filling arrays with null values.
       const recGroups = groupBy(records, (rec) => {
-        const requireKeys = Object.keys(rec.require).sort().join(',');
-        const fieldsKeys = Object.keys(rec.fields || {}).sort().join(',');
+        const requireKeys = Object.keys(rec.require).sort().join(",");
+        const fieldsKeys = Object.keys(rec.fields || {}).sort().join(",");
         return `${requireKeys}:${fieldsKeys}`;
       });
       const actions = Object.values(recGroups).map((group) => {
@@ -84,7 +84,7 @@ export class TableOperationsImpl implements TableOperations {
   public async destroy(recordIdOrRecordIds: Types.RecordId | Types.RecordId[]): Promise<void> {
     await withRecords(recordIdOrRecordIds, async (recordIds) => {
       const tableId = await this._platform.getTableId();
-      const actions = [['BulkRemoveRecord', tableId, recordIds]];
+      const actions = [["BulkRemoveRecord", tableId, recordIds]];
       await this._applyUserActions(tableId, [], actions);
       return [];
     });
@@ -95,7 +95,7 @@ export class TableOperationsImpl implements TableOperations {
   // This is exposed as a public method to support the older /data endpoint.
   public async updateRecords(columnValues: BulkColValues, rowIds: number[],
     options?: OpOptions) {
-    await this._addOrUpdateRecords(columnValues, rowIds, 'BulkUpdateRecord', options);
+    await this._addOrUpdateRecords(columnValues, rowIds, "BulkUpdateRecord", options);
   }
 
   /**
@@ -109,12 +109,12 @@ export class TableOperationsImpl implements TableOperations {
   ): Promise<number[]> {
     // user actions expect [null, ...] as row ids
     const rowIds = arrayRepeat(count, null);
-    return this._addOrUpdateRecords(columnValues, rowIds, 'BulkAddRecord', options);
+    return this._addOrUpdateRecords(columnValues, rowIds, "BulkAddRecord", options);
   }
 
   private async _addOrUpdateRecords(
     columnValues: BulkColValues, rowIds: (number | null)[],
-    actionType: 'BulkUpdateRecord' | 'BulkAddRecord',
+    actionType: "BulkUpdateRecord" | "BulkAddRecord",
     options?: OpOptions,
   ) {
     const tableId = await this._platform.getTableId();
@@ -194,27 +194,27 @@ export async function handleSandboxErrorOnPlatform<T>(
     return await p;
   }
   catch (err) {
-    const message = ((err instanceof Error) && err.message?.startsWith('[Sandbox] ')) ? err.message : undefined;
+    const message = ((err instanceof Error) && err.message?.startsWith("[Sandbox] ")) ? err.message : undefined;
     if (message) {
       let match = message.match(/non-existent record #([0-9]+)/);
       if (match) {
-        platform.throwError('', `Invalid row id ${match[1]}`, 400);
+        platform.throwError("", `Invalid row id ${match[1]}`, 400);
       }
       match = message.match(
         /\[Sandbox] (?:KeyError u?'(?:Table \w+ has no column )?|ValueError No such table: |ValueError No such column: )([\w.]+)/,
       );
       if (match) {
         if (match[1] === tableId) {
-          platform.throwError('', `Table not found "${tableId}"`, 404);
+          platform.throwError("", `Table not found "${tableId}"`, 404);
         }
         else if (colNames.includes(match[1])) {
-          platform.throwError('', `Invalid column "${match[1]}"`, 400);
+          platform.throwError("", `Invalid column "${match[1]}"`, 400);
         }
-        else if (colNames.includes(match[1].replace(`${tableId}.`, ''))) {
-          platform.throwError('', `Table or column not found "${match[1]}"`, 404);
+        else if (colNames.includes(match[1].replace(`${tableId}.`, ""))) {
+          platform.throwError("", `Table or column not found "${match[1]}"`, 404);
         }
       }
-      platform.throwError('', `Error manipulating data: ${message}`, 400);
+      platform.throwError("", `Error manipulating data: ${message}`, 400);
     }
     throw err;
   }

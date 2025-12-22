@@ -1,8 +1,8 @@
-const fs = require('fs');
-const fetch = require('node-fetch');
-const path = require('path');
+const fs = require("fs");
+const fetch = require("node-fetch");
+const path = require("path");
 
-const {listLibs} = require('./packages');
+const {listLibs} = require("./packages");
 
 async function findOnDisk(src, dest) {
   console.log(`Organizing packages on disk`, {src, dest});
@@ -34,9 +34,9 @@ async function findOnNet(src, dest) {
   let libs = await listLibs(dest);
   console.log(`Cached`, {libs: libs.available.map(lib => lib.name)});
   for (const lib of libs.misses) {
-    console.log('Fetching', lib);
+    console.log("Fetching", lib);
     const url = new URL(src);
-    url.pathname = url.pathname + lib.name + '-' + lib.version + '.json';
+    url.pathname = url.pathname + lib.name + "-" + lib.version + ".json";
     const result = await fetch(url.href);
     if (result.status === 200) {
       const data = await result.json();
@@ -61,14 +61,14 @@ async function findOnNet(src, dest) {
 
 async function main(src, dest) {
   if (!src) {
-    console.error('please supply a source');
+    console.error("please supply a source");
     process.exit(1);
   }
   if (!dest) {
-    console.error('please supply a destination');
+    console.error("please supply a destination");
     process.exit(1);
   }
-  if (src.startsWith('http:') || src.startsWith('https:')) {
+  if (src.startsWith("http:") || src.startsWith("https:")) {
     await findOnNet(src, dest);
     return;
   }

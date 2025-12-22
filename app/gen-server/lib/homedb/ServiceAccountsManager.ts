@@ -1,12 +1,12 @@
-import { normalizeEmail } from 'app/common/emails';
-import { ApiError } from 'app/common/ApiError';
-import { Login } from 'app/gen-server/entity/Login';
-import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { RunInTransaction, ServiceAccountProperties } from 'app/gen-server/lib/homedb/Interfaces';
+import { normalizeEmail } from "app/common/emails";
+import { ApiError } from "app/common/ApiError";
+import { Login } from "app/gen-server/entity/Login";
+import { ServiceAccount } from "app/gen-server/entity/ServiceAccount";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { RunInTransaction, ServiceAccountProperties } from "app/gen-server/lib/homedb/Interfaces";
 
-import { EntityManager } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
+import { EntityManager } from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
 export class ServiceAccountsManager {
   private get _connection() {
@@ -25,7 +25,7 @@ export class ServiceAccountsManager {
     const manager = optManager || new EntityManager(this._connection);
     const queryBuilder = manager.createQueryBuilder()
       .delete()
-      .from(ServiceAccount, 'service_accounts');
+      .from(ServiceAccount, "service_accounts");
     return await queryBuilder.execute();
   }
 
@@ -44,7 +44,7 @@ export class ServiceAccountsManager {
       if (!owner) {
         throw new ApiError("owner not found", 404);
       }
-      if (owner.type !== 'login') {
+      if (owner.type !== "login") {
         throw new ApiError('Only regular users (of type "login") are allowed to create service accounts', 403);
       }
       const uuid = uuidv4();
@@ -53,7 +53,7 @@ export class ServiceAccountsManager {
       // and then be able to connect via link in email
       const login = `${uuid}@${Login.SERVICE_ACCOUNTS_TLD}`;
       // Using getUserByLogin will create the user... Yeah, please don't blame us.
-      const serviceUser = await this._homeDb.getUserByLogin(login, { manager }, 'service');
+      const serviceUser = await this._homeDb.getUserByLogin(login, { manager }, "service");
 
       await this._homeDb.createApiKey(serviceUser.id, false, manager);
 

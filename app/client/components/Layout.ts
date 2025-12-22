@@ -52,16 +52,16 @@
  *    just have a way to serialize the layout to and from a JSON blob.
  */
 
-import { BoxSpec } from 'app/client/lib/BoxSpec';
-import dom, { detachNode, findAncestor } from 'app/client/lib/dom';
-import koArray, { isKoArray, KoArray } from 'app/client/lib/koArray';
-import { cssClass, domData, foreach, scope, style, toggleClass } from 'app/client/lib/koDom';
-import { Disposable } from 'app/client/lib/dispose';
-import assert from 'assert';
-import { Events as BackboneEvents } from 'backbone';
-import * as ko from 'knockout';
-import { computed, isObservable, observable, utils } from 'knockout';
-import { identity, isEqual, last, uniqueId } from 'underscore';
+import { BoxSpec } from "app/client/lib/BoxSpec";
+import dom, { detachNode, findAncestor } from "app/client/lib/dom";
+import koArray, { isKoArray, KoArray } from "app/client/lib/koArray";
+import { cssClass, domData, foreach, scope, style, toggleClass } from "app/client/lib/koDom";
+import { Disposable } from "app/client/lib/dispose";
+import assert from "assert";
+import { Events as BackboneEvents } from "backbone";
+import * as ko from "knockout";
+import { computed, isObservable, observable, utils } from "knockout";
+import { identity, isEqual, last, uniqueId } from "underscore";
 
 export interface ContentBox {
   leafId: ko.Observable<any>;
@@ -157,19 +157,19 @@ export class LayoutBox extends Disposable implements ContentBox {
     const self = this;
     const wrap = this.layout.needDynamic ? identity : makeStatic;
 
-    return dom('div.layout_box',
-      toggleClass('layout_leaf', wrap(this.isLeaf)),
-      toggleClass('layout_hidden', this.isHidden),
+    return dom("div.layout_box",
+      toggleClass("layout_leaf", wrap(this.isLeaf)),
+      toggleClass("layout_hidden", this.isHidden),
       toggleClass(this.layout.leafId, wrap(this.isLeaf)),
       cssClass(wrap(function() { return self.isVBox() ? "layout_vbox" : "layout_hbox"; })),
       cssClass(wrap(function() {
-        return (self.layout.fillWindow ? 'layout_fill_window' :
-          (self.isLastChild() ? 'layout_last_child' : null));
+        return (self.layout.fillWindow ? "layout_fill_window" :
+          (self.isLastChild() ? "layout_last_child" : null));
       })),
-      style('--flex-grow', wrap(function() {
-        return (self.isVBox() || (self.isHBox() && self.layout.fillWindow)) ? self.flexSize() : '';
+      style("--flex-grow", wrap(function() {
+        return (self.isVBox() || (self.isHBox() && self.layout.fillWindow)) ? self.flexSize() : "";
       })),
-      domData('layoutBox', this),
+      domData("layoutBox", this),
       foreach(wrap(this.childBoxes), function(layoutBox: LayoutBox) {
         return layoutBox.getDom();
       }),
@@ -250,7 +250,7 @@ export class LayoutBox extends Disposable implements ContentBox {
         // add the new node two levels lower. And we should not create another level because the
         // root is the only place that can have a single child.
         const lowerBox = this.childBoxes.peek()[0];
-        assert(!lowerBox.isLeaf(), 'LayoutBox.addSibling: should not have leaf as a single child');
+        assert(!lowerBox.isLeaf(), "LayoutBox.addSibling: should not have leaf as a single child");
         lowerBox._addChild(childBox, isAfter);
       }
       else {
@@ -264,7 +264,7 @@ export class LayoutBox extends Disposable implements ContentBox {
         this.layout.setRoot(vbox);
       }
     }
-    this.layout.trigger('layoutChanged');
+    this.layout.trigger("layoutChanged");
   }
 
   public addChild(childBox: LayoutBox, isAfter: boolean) {
@@ -276,7 +276,7 @@ export class LayoutBox extends Disposable implements ContentBox {
       this._addChild(newBox, false);
     }
     this._addChild(childBox, isAfter);
-    this.layout.trigger('layoutChanged');
+    this.layout.trigger("layoutChanged");
   }
 
   public toString(): string {
@@ -308,7 +308,7 @@ export class LayoutBox extends Disposable implements ContentBox {
         // Move grandchildren into our place within our parent, and collapse two levels.
         // (Unless we are the root, in which case it's OK for us to have a single non-leaf child.)
         index = parentBox.childBoxes.peek().indexOf(this);
-        assert(index >= 0, 'LayoutBox._removeChildBox: box not found in parent');
+        assert(index >= 0, "LayoutBox._removeChildBox: box not found in parent");
 
         const grandchildBoxes = lowerBox.childBoxes.peek();
         grandchildBoxes.forEach(function(box) { box.parentBox(parentBox); });
@@ -330,7 +330,7 @@ export class LayoutBox extends Disposable implements ContentBox {
   public removeFromParent() {
     if (this.parentBox()) {
       this.parentBox()!._removeChildBox(this);
-      this.layout.trigger('layoutChanged');
+      this.layout.trigger("layoutChanged");
     }
   }
 
@@ -359,7 +359,7 @@ function makeStatic(valueOrFunc: any) {
   if (isObservable(valueOrFunc) || isKoArray(valueOrFunc)) {
     return valueOrFunc.peek();
   }
-  else if (typeof valueOrFunc === 'function') {
+  else if (typeof valueOrFunc === "function") {
     return valueOrFunc();
   }
   else {
@@ -379,8 +379,8 @@ export class Layout extends Disposable {
    * using Layout.Layout.getContainingBox. The Layout object is then accessible as box.layout.
    */
   public static getContainingBox(elem: Element | null, optContainer: any) {
-    const boxElem = findAncestor(elem, optContainer, '.layout_box');
-    return boxElem ? utils.domData.get(boxElem, 'layoutBox') : null;
+    const boxElem = findAncestor(elem, optContainer, ".layout_box");
+    return boxElem ? utils.domData.get(boxElem, "layoutBox") : null;
   }
 
   public listenTo: BackboneEvents["listenTo"];            // set by Backbone
@@ -406,12 +406,12 @@ export class Layout extends Disposable {
     this.rootElem = this.autoDispose(this.buildDom());
 
     // Generates a unique id class so boxes can only be placed next to other boxes in this layout.
-    this.leafId = uniqueId('layout_leaf_');
+    this.leafId = uniqueId("layout_leaf_");
 
     this.buildLayout(boxSpec || {});
 
     // Invalidate the _leafIdMap when the layout is adjusted.
-    this.listenTo(this, 'layoutChanged', () => { this._leafIdMap = null; });
+    this.listenTo(this, "layoutChanged", () => { this._leafIdMap = null; });
 
     this.autoDisposeCallback(() => {
       if (this.rootBox()) {
@@ -439,10 +439,10 @@ export class Layout extends Disposable {
   }
 
   public buildDom() {
-    return dom('div.layout_root',
-      domData('layoutModel', this),
-      toggleClass('layout_fill_window', this.fillWindow),
-      toggleClass('layout_box_maximized', this.maximizedLeaf),
+    return dom("div.layout_root",
+      domData("layoutModel", this),
+      toggleClass("layout_fill_window", this.fillWindow),
+      toggleClass("layout_box_maximized", this.maximizedLeaf),
       scope(this.rootBox, (rootBox: LayoutBox) => {
         return rootBox ? rootBox.getDom() : null;
       }),
@@ -490,7 +490,7 @@ export class Layout extends Disposable {
     this.needDynamic = needDynamic;
     const oldRootBox = this.rootBox();
     this.rootBox(this.buildLayoutBox(boxSpec));
-    this.trigger('layoutChanged');
+    this.trigger("layoutChanged");
     if (oldRootBox) {
       oldRootBox.dispose();
     }

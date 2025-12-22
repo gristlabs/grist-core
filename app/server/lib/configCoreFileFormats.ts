@@ -1,4 +1,4 @@
-import configCoreTI from 'app/server/lib/configCoreFileFormats-ti';
+import configCoreTI from "app/server/lib/configCoreFileFormats-ti";
 import { CheckerT, createCheckers } from "ts-interface-checker";
 
 /**

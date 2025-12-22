@@ -1,19 +1,19 @@
-import { csvDecodeRow } from 'app/common/csvFormat';
-import { BulkColValues, CellValue, ColValues, UserAction } from 'app/common/DocActions';
-import { DocData } from 'app/common/DocData';
-import { DocumentSettings } from 'app/common/DocumentSettings';
-import * as gristTypes from 'app/common/gristTypes';
-import { getReferencedTableId, isFullReferencingType } from 'app/common/gristTypes';
-import * as gutil from 'app/common/gutil';
-import { safeJsonParse } from 'app/common/gutil';
-import { NumberFormatOptions } from 'app/common/NumberFormat';
-import NumberParse from 'app/common/NumberParse';
-import { parseDateStrict, parseDateTime } from 'app/common/parseDate';
-import { MetaRowRecord, TableData } from 'app/common/TableData';
-import { DateFormatOptions, DateTimeFormatOptions, formatDecoded, FormatOptions } from 'app/common/ValueFormatter';
-import { encodeObject } from 'app/plugin/objtypes';
-import flatMap from 'lodash/flatMap';
-import mapValues from 'lodash/mapValues';
+import { csvDecodeRow } from "app/common/csvFormat";
+import { BulkColValues, CellValue, ColValues, UserAction } from "app/common/DocActions";
+import { DocData } from "app/common/DocData";
+import { DocumentSettings } from "app/common/DocumentSettings";
+import * as gristTypes from "app/common/gristTypes";
+import { getReferencedTableId, isFullReferencingType } from "app/common/gristTypes";
+import * as gutil from "app/common/gutil";
+import { safeJsonParse } from "app/common/gutil";
+import { NumberFormatOptions } from "app/common/NumberFormat";
+import NumberParse from "app/common/NumberParse";
+import { parseDateStrict, parseDateTime } from "app/common/parseDate";
+import { MetaRowRecord, TableData } from "app/common/TableData";
+import { DateFormatOptions, DateTimeFormatOptions, formatDecoded, FormatOptions } from "app/common/ValueFormatter";
+import { encodeObject } from "app/plugin/objtypes";
+import flatMap from "lodash/flatMap";
+import mapValues from "lodash/mapValues";
 
 export class ValueParser {
   constructor(public type: string, public widgetOpts: FormatOptions, public docSettings: DocumentSettings) {
@@ -56,7 +56,7 @@ class DateParser extends ValueParser {
 class DateTimeParser extends ValueParser {
   constructor(type: string, widgetOpts: DateTimeFormatOptions, docSettings: DocumentSettings) {
     super(type, widgetOpts, docSettings);
-    const timezone = gutil.removePrefix(type, "DateTime:") || '';
+    const timezone = gutil.removePrefix(type, "DateTime:") || "";
     this.widgetOpts = { ...widgetOpts, timezone };
   }
 
@@ -136,7 +136,7 @@ export class ReferenceParser extends ValueParser {
       return 0;  // default value for a reference column
     }
 
-    if (this._visibleColId === 'id') {
+    if (this._visibleColId === "id") {
       const n = Number(value);
       if (Number.isInteger(n)) {
         value = n;
@@ -152,7 +152,7 @@ export class ReferenceParser extends ValueParser {
       if (value !== raw) {
         options.raw = raw;
       }
-      return ['l', value, options];
+      return ["l", value, options];
     }
 
     return this.tableData.findMatchingRowId({ [this._visibleColId]: value }) || raw;
@@ -178,7 +178,7 @@ export class ReferenceListParser extends ReferenceParser {
       return null;  // null is the default value for a reference list column
     }
 
-    if (this._visibleColId === 'id') {
+    if (this._visibleColId === "id") {
       const numbers = values.map(Number);
       if (numbers.every(Number.isInteger)) {
         values = numbers;
@@ -194,7 +194,7 @@ export class ReferenceListParser extends ReferenceParser {
       if (!(values.length === 1 && values[0] === raw)) {
         options.raw = raw;
       }
-      return ['l', values, options];
+      return ["l", values, options];
     }
 
     const rowIds: number[] = [];
@@ -209,7 +209,7 @@ export class ReferenceListParser extends ReferenceParser {
         return raw;
       }
     }
-    return ['L', ...rowIds];
+    return ["L", ...rowIds];
   }
 }
 
@@ -263,11 +263,11 @@ export function createParserOrFormatterArguments(
   colRef: number,
   fieldRef?: number,
 ): [string, object, DocumentSettings] {
-  const columnsTable = docData.getMetaTable('_grist_Tables_column');
-  const fieldsTable = docData.getMetaTable('_grist_Views_section_field');
+  const columnsTable = docData.getMetaTable("_grist_Tables_column");
+  const fieldsTable = docData.getMetaTable("_grist_Views_section_field");
 
   const col = columnsTable.getRecord(colRef)!;
-  let fieldOrCol: MetaRowRecord<'_grist_Tables_column' | '_grist_Views_section_field'> = col;
+  let fieldOrCol: MetaRowRecord<"_grist_Tables_column" | "_grist_Views_section_field"> = col;
   if (fieldRef) {
     const field = fieldsTable.getRecord(fieldRef);
     fieldOrCol = field?.widgetOptions ? field : col;
@@ -282,14 +282,14 @@ export function createParserOrFormatterArgumentsRaw(
   widgetOptions: string,
   visibleColRef: number,
 ): [string, object, DocumentSettings] {
-  const columnsTable = docData.getMetaTable('_grist_Tables_column');
+  const columnsTable = docData.getMetaTable("_grist_Tables_column");
   const widgetOpts = safeJsonParse(widgetOptions, {});
 
   if (isFullReferencingType(type)) {
     const vcol = columnsTable.getRecord(visibleColRef);
-    widgetOpts.visibleColId = vcol?.colId || 'id';
+    widgetOpts.visibleColId = vcol?.colId || "id";
     widgetOpts.visibleColType = vcol?.type;
-    widgetOpts.visibleColWidgetOpts = safeJsonParse(vcol?.widgetOptions || '', {});
+    widgetOpts.visibleColWidgetOpts = safeJsonParse(vcol?.widgetOptions || "", {});
     widgetOpts.tableData = docData.getTable(getReferencedTableId(type)!);
   }
 
@@ -303,9 +303,9 @@ export function createParserOrFormatterArgumentsRaw(
 function parseColValues<T extends ColValues | BulkColValues>(
   tableId: string, colValues: T, docData: DocData, bulk: boolean,
 ): T {
-  const columnsTable = docData.getMetaTable('_grist_Tables_column');
-  const tablesTable = docData.getMetaTable('_grist_Tables');
-  const tableRef = tablesTable.findRow('tableId', tableId);
+  const columnsTable = docData.getMetaTable("_grist_Tables_column");
+  const tablesTable = docData.getMetaTable("_grist_Tables");
+  const tableRef = tablesTable.findRow("tableId", tableId);
   if (!tableRef) {
     return colValues;
   }
@@ -344,21 +344,21 @@ function parseColValues<T extends ColValues | BulkColValues>(
 
 export function parseUserAction(ua: UserAction, docData: DocData): UserAction {
   switch (ua[0]) {
-    case 'AddRecord':
-    case 'UpdateRecord':
+    case "AddRecord":
+    case "UpdateRecord":
       return _parseUserActionColValues(ua, docData, false);
-    case 'BulkAddRecord':
-    case 'BulkUpdateRecord':
-    case 'ReplaceTableData':
+    case "BulkAddRecord":
+    case "BulkUpdateRecord":
+    case "ReplaceTableData":
       return _parseUserActionColValues(ua, docData, true);
-    case 'AddOrUpdateRecord':
+    case "AddOrUpdateRecord":
       // Parse `require` (2) and `col_values` (3). The action looks like:
       // ['AddOrUpdateRecord', table_id, require, col_values, options]
       // (`col_values` is called `fields` in the API)
       ua = _parseUserActionColValues(ua, docData, false, 2);
       ua = _parseUserActionColValues(ua, docData, false, 3);
       return ua;
-    case 'BulkAddOrUpdateRecord':
+    case "BulkAddOrUpdateRecord":
       ua = _parseUserActionColValues(ua, docData, true, 2);
       ua = _parseUserActionColValues(ua, docData, true, 3);
       return ua;

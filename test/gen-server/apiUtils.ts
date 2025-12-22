@@ -1,27 +1,27 @@
-import { Role } from 'app/common/roles';
-import { UserAPIImpl, UserProfile } from 'app/common/UserAPI';
-import { AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs } from 'app/gen-server/entity/AclRule';
-import { BillingAccountManager } from 'app/gen-server/entity/BillingAccountManager';
-import { Document } from 'app/gen-server/entity/Document';
-import { Group } from 'app/gen-server/entity/Group';
-import { Organization } from 'app/gen-server/entity/Organization';
-import { Resource } from 'app/gen-server/entity/Resource';
-import { User } from 'app/gen-server/entity/User';
-import { Workspace } from 'app/gen-server/entity/Workspace';
-import { SessionUserObj } from 'app/server/lib/BrowserSession';
-import { getDocWorkerMap } from 'app/gen-server/lib/DocWorkerMap';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import * as docUtils from 'app/server/lib/docUtils';
-import { FlexServer, FlexServerOptions } from 'app/server/lib/FlexServer';
-import { MergedServer, ServerType } from 'app/server/MergedServer';
-import axios from 'axios';
-import FormData from 'form-data';
-import fetch from 'node-fetch';
-import * as path from 'path';
-import { createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed';
-import { setPlan, waitForAllNotifications } from 'test/gen-server/testUtils';
-import { fixturesRoot } from 'test/server/testUtils';
-import { isAffirmative } from 'app/common/gutil';
+import { Role } from "app/common/roles";
+import { UserAPIImpl, UserProfile } from "app/common/UserAPI";
+import { AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs } from "app/gen-server/entity/AclRule";
+import { BillingAccountManager } from "app/gen-server/entity/BillingAccountManager";
+import { Document } from "app/gen-server/entity/Document";
+import { Group } from "app/gen-server/entity/Group";
+import { Organization } from "app/gen-server/entity/Organization";
+import { Resource } from "app/gen-server/entity/Resource";
+import { User } from "app/gen-server/entity/User";
+import { Workspace } from "app/gen-server/entity/Workspace";
+import { SessionUserObj } from "app/server/lib/BrowserSession";
+import { getDocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import * as docUtils from "app/server/lib/docUtils";
+import { FlexServer, FlexServerOptions } from "app/server/lib/FlexServer";
+import { MergedServer, ServerType } from "app/server/MergedServer";
+import axios from "axios";
+import FormData from "form-data";
+import fetch from "node-fetch";
+import * as path from "path";
+import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
+import { setPlan, waitForAllNotifications } from "test/gen-server/testUtils";
+import { fixturesRoot } from "test/server/testUtils";
+import { isAffirmative } from "app/common/gutil";
 
 export class TestServer {
   public serverUrl: string;
@@ -39,7 +39,7 @@ export class TestServer {
       seedData = true,
       externalStorage = false,
     } = {}): Promise<string> {
-    await createInitialDb(undefined, seedData ? true : 'migrateOnly');
+    await createInitialDb(undefined, seedData ? true : "migrateOnly");
     const mergedServer = await MergedServer.create(0, servers, { logToConsole: isAffirmative(process.env.DEBUG),
       externalStorage, ...options });
     this.server = mergedServer.flexServer;
@@ -77,7 +77,7 @@ export class TestServer {
   public async addBillingManager(userName: string, orgDomain: string) {
     const ents = this.dbManager.connection.createEntityManager();
     const org = await ents.findOne(Organization, {
-      relations: ['billingAccount'],
+      relations: ["billingAccount"],
       where: { domain: orgDomain },
     });
     const user = await ents.findOne(User, { where: { name: userName } });
@@ -88,11 +88,11 @@ export class TestServer {
   }
 
   // change a user's personal org to a different product (by default, one that allows anything)
-  public async upgradePersonalOrg(userName: string, productName: string = 'Free') {
+  public async upgradePersonalOrg(userName: string, productName: string = "Free") {
     const user = await User.findOne({ where: { name: userName } });
     if (!user) { throw new Error(`Could not find user ${userName}`); }
     const org = await Organization.findOne({
-      relations: ['billingAccount', 'owner'],
+      relations: ["billingAccount", "owner"],
       where: { owner: { id: user.id } },  // for some reason finding by name generates wrong SQL.
     });
     if (!org) { throw new Error(`Could not find personal org of ${userName}`); }
@@ -124,12 +124,12 @@ export class TestServer {
    */
   public async listUserMemberships(email: string): Promise<ResourceWithRole[]> {
     const rules = await this.dbManager.connection.createQueryBuilder()
-      .select('acl_rules')
-      .from(AclRule, 'acl_rules')
-      .leftJoinAndSelect('acl_rules.group', 'groups')
-      .leftJoin('groups.memberUsers', 'users')
-      .leftJoin('users.logins', 'logins')
-      .where('logins.email = :email', { email })
+      .select("acl_rules")
+      .from(AclRule, "acl_rules")
+      .leftJoinAndSelect("acl_rules.group", "groups")
+      .leftJoin("groups.memberUsers", "users")
+      .leftJoin("users.logins", "logins")
+      .where("logins.email = :email", { email })
       .getMany();
     return Promise.all(rules.map(this._getResourceName.bind(this)));
   }
@@ -141,8 +141,8 @@ export class TestServer {
    */
   public async listOrgMembership(domain: string, role: Role | null): Promise<User[]> {
     return this._listMembers(role)
-      .leftJoin(Organization, 'orgs', 'orgs.id = acl_rules.org_id')
-      .andWhere('orgs.domain = :domain', { domain })
+      .leftJoin(Organization, "orgs", "orgs.id = acl_rules.org_id")
+      .andWhere("orgs.domain = :domain", { domain })
       .getMany();
   }
 
@@ -153,8 +153,8 @@ export class TestServer {
    */
   public async listWorkspaceMembership(wsId: number, role: Role | null): Promise<User[]> {
     return this._listMembers(role)
-      .leftJoin(Workspace, 'workspaces', 'workspaces.id = acl_rules.workspace_id')
-      .andWhere('workspaces.id = :wsId', { wsId })
+      .leftJoin(Workspace, "workspaces", "workspaces.id = acl_rules.workspace_id")
+      .andWhere("workspaces.id = :wsId", { wsId })
       .getMany();
   }
 
@@ -170,9 +170,9 @@ export class TestServer {
   public async getBadGroupLinks(): Promise<Group[]> {
     // guests and members should never be in other groups, or have groups.
     return this.dbManager.connection.createQueryBuilder()
-      .select('groups')
-      .from(Group, 'groups')
-      .innerJoinAndSelect('groups.memberGroups', 'memberGroups')
+      .select("groups")
+      .from(Group, "groups")
+      .innerJoinAndSelect("groups.memberGroups", "memberGroups")
       .where(`memberGroups.name IN ('guests', 'members')`)
       .orWhere(`groups.name IN ('guests', 'members')`)
       .getMany();
@@ -184,7 +184,7 @@ export class TestServer {
    */
   public async copyFixtureDoc(srcName: string, docId: string) {
     const docsRoot = this.server.docsRoot;
-    const srcPath = path.resolve(fixturesRoot, 'docs', srcName);
+    const srcPath = path.resolve(fixturesRoot, "docs", srcName);
     await docUtils.copyFile(srcPath, path.resolve(docsRoot, `${docId}.grist`));
   }
 
@@ -209,9 +209,9 @@ export class TestServer {
       res = await con.findOne(Organization, { where: { id: aclRule.orgId } });
     }
     else {
-      throw new Error('unknown type');
+      throw new Error("unknown type");
     }
-    if (!res) { throw new Error('could not find resource'); }
+    if (!res) { throw new Error("could not find resource"); }
     return { res, role: aclRule.group.name };
   }
 
@@ -221,13 +221,13 @@ export class TestServer {
    */
   private _listMembers(role: Role | null) {
     let q = this.dbManager.connection.createQueryBuilder()
-      .select('users')
-      .from(User, 'users')
-      .leftJoin('users.groups', 'groups')
-      .leftJoin('groups.aclRule', 'acl_rules')
-      .leftJoinAndSelect('users.logins', 'logins');
+      .select("users")
+      .from(User, "users")
+      .leftJoin("users.groups", "groups")
+      .leftJoin("groups.aclRule", "acl_rules")
+      .leftJoinAndSelect("users.logins", "logins");
     if (role) {
-      q = q.andWhere('groups.name = :role', { role });
+      q = q.andWhere("groups.name = :role", { role });
     }
     return q;
   }
@@ -258,10 +258,10 @@ export class TestSession {
   ) {
     const resp = await axios.get(`${this.home.getOwnUrl()}/test/session`,
       { validateStatus: s => s < 400, headers: this.headers });
-    const cookie = this.headers.Cookie || resp.headers['set-cookie']![0];
-    const cid = decodeURIComponent(cookie.split('=')[1].split(';')[0]);
+    const cookie = this.headers.Cookie || resp.headers["set-cookie"]![0];
+    const cid = decodeURIComponent(cookie.split("=")[1].split(";")[0]);
     const sessionId = this.home.getSessions().getSessionIdFromCookie(cid);
-    const scopedSession = this.home.getSessions().getOrCreateSession(sessionId as string, org, '');
+    const scopedSession = this.home.getSessions().getOrCreateSession(sessionId as string, org, "");
     await scopedSession.updateUserProfile({} as any, profile);
     if (sessionProps) { await scopedSession.updateUser({} as any, sessionProps); }
     if (clearCache) { this.home.getSessions().clearCacheIfNeeded(); }
@@ -269,8 +269,8 @@ export class TestSession {
     return {
       validateStatus: (_status: number) => true,
       headers: {
-        'Cookie': cookie,
-        'X-Requested-With': 'XMLHttpRequest',
+        "Cookie": cookie,
+        "X-Requested-With": "XMLHttpRequest",
       },
     };
   }
@@ -280,9 +280,9 @@ export class TestSession {
     useApiKey: boolean = false,
     checkAccess: boolean = true): Promise<UserAPIImpl> {
     const headers: { [key: string]: string } = {};
-    if (userName !== 'anonymous') {
+    if (userName !== "anonymous") {
       if (useApiKey) {
-        headers.Authorization = 'Bearer api_key_for_' + userName.toLowerCase();
+        headers.Authorization = "Bearer api_key_for_" + userName.toLowerCase();
       }
       else {
         const cookie = await this.getCookieLogin(orgDomain, {
@@ -298,7 +298,7 @@ export class TestSession {
       newFormData: () => new FormData() as any,
     });
     // Make sure api is functioning, and create user if this is their first time to hit API.
-    if (checkAccess) { await api.getOrg('current'); }
+    if (checkAccess) { await api.getOrg("current"); }
     return api;
   }
 }

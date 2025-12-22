@@ -1,9 +1,9 @@
-import { ACIndex, ACIndexImpl, ACItem, ACResults, highlightNone } from 'app/client/lib/ACIndex';
-import { nativeCompare } from 'app/common/gutil';
-import { assert } from 'chai';
-import * as fse from 'fs-extra';
-import * as path from 'path';
-import { fixturesRoot } from 'test/server/testUtils';
+import { ACIndex, ACIndexImpl, ACItem, ACResults, highlightNone } from "app/client/lib/ACIndex";
+import { nativeCompare } from "app/common/gutil";
+import { assert } from "chai";
+import * as fse from "fs-extra";
+import * as path from "path";
+import { fixturesRoot } from "test/server/testUtils";
 
 /**
  * Set env ENABLE_TIMING_TESTS=1 to run the timing "tests". These don't assert anything but let
@@ -31,8 +31,8 @@ const messy: TestACItem[] = [
   "", " \t", "  RED  ", "123", "-5.6", "red", "read ", "Bread", "#red", "\nred\n#red\nred", "\n\n", "REDIS/1",
 ].map(makeItem);
 
-describe('ACIndex', function() {
-  it('should find items with matching words', function() {
+describe("ACIndex", function() {
+  it("should find items with matching words", function() {
     const items: ACItem[] = ["blue", "dark red", "reddish", "red", "orange", "yellow", "radical green"].map(
       c => ({ cleanText: c }));
     const acIndex = new ACIndexImpl(items, { maxResults: 5 });
@@ -40,7 +40,7 @@ describe('ACIndex', function() {
       ["red", "reddish", "dark red", "radical green", "blue"]);
   });
 
-  it('should return first few items when search text is empty', function() {
+  it("should return first few items when search text is empty", function() {
     let acResult = new ACIndexImpl(colors).search("");
     assert.deepEqual(acResult.items, colors);
     assert.deepEqual(acResult.selectIndex, -1);
@@ -54,7 +54,7 @@ describe('ACIndex', function() {
     assert.deepEqual(acResult.selectIndex, -1);
   });
 
-  it('should ignore items with empty text', function() {
+  it("should ignore items with empty text", function() {
     const acIndex = new ACIndexImpl(messy);
     let acResult = acIndex.search("");
 
@@ -68,7 +68,7 @@ describe('ACIndex', function() {
     assert.deepEqual(acResult.selectIndex, 0);
   });
 
-  it('should find items with the most matching words, and order by best match', function() {
+  it("should find items with the most matching words, and order by best match", function() {
     const acIndex = new ACIndexImpl(colors);
     let acResult: ACResults<TestACItem>;
 
@@ -124,7 +124,7 @@ describe('ACIndex', function() {
       ["Reddish", "Red", "Radical Deep Green", "Dark Red",  "Bright Red", "Blue", "Orange", "Yellow"]);
   });
 
-  it('should maintain order of equally good matches', function() {
+  it("should maintain order of equally good matches", function() {
     const acIndex = new ACIndexImpl(rounds);
     let acResult: ACResults<TestACItem>;
 
@@ -140,7 +140,7 @@ describe('ACIndex', function() {
     assert.deepEqual(acResult.items.map(i => i.text), ["Round 3", "Round 1", "Round 2", "Round 4"]);
   });
 
-  it('should prefer items with words in a similar order to search text', function() {
+  it("should prefer items with words in a similar order to search text", function() {
     const acIndex = new ACIndexImpl(colors);
     let acResult: ACResults<TestACItem>;
 
@@ -156,7 +156,7 @@ describe('ACIndex', function() {
     assert.deepEqual(acResult.items.slice(0, 2).map(i => i.text), ["Radical Deep Green", "Dark Red"]);
   });
 
-  it('should limit results to maxResults', function() {
+  it("should limit results to maxResults", function() {
     const acIndex = new ACIndexImpl(colors, { maxResults: 3 });
     let acResult: ACResults<TestACItem>;
 
@@ -173,7 +173,7 @@ describe('ACIndex', function() {
     assert.deepEqual(acResult.selectIndex, 0);
   });
 
-  it('should split words on punctuation', function() {
+  it("should split words on punctuation", function() {
     // Same as `colors` but with extra punctuation
     const punctColors: TestACItem[] = [
       "$Blue$", "--Dark@#$%^&Red--", "(Reddish)", "]Red{", "**Orange", "-Yellow?!",
@@ -211,7 +211,7 @@ describe('ACIndex', function() {
     assert.deepEqual(acResult.items, punctColors);
   });
 
-  it('should return an item to select when the match is good', function() {
+  it("should return an item to select when the match is good", function() {
     const acIndex = new ACIndexImpl(rounds);
     let acResult: ACResults<TestACItem>;
 
@@ -242,7 +242,7 @@ describe('ACIndex', function() {
     assert.equal(acResult.items[0].text, "  RED  ");
   });
 
-  it('should return a useful highlight function', function() {
+  it("should return a useful highlight function", function() {
     const acIndex = new ACIndexImpl(colors, { maxResults: 3 });
     let acResult: ACResults<TestACItem>;
 
@@ -275,8 +275,8 @@ describe('ACIndex', function() {
       ["\n", "re", "d\n#", "re", "d\n", "re", "d"], ["", "RE", "DIS/1"]]);
   });
 
-  it('should highlight multi-byte unicode', function() {
-    const acIndex = new ACIndexImpl(['Lorem ipsum 𝌆 dolor sit ameͨ͆t.', "mañana", "Москва"].map(makeItem), {
+  it("should highlight multi-byte unicode", function() {
+    const acIndex = new ACIndexImpl(["Lorem ipsum 𝌆 dolor sit ameͨ͆t.", "mañana", "Москва"].map(makeItem), {
       maxResults: 3,
     });
     let acResult: ACResults<TestACItem> = acIndex.search("mañ моск am");
@@ -293,7 +293,7 @@ describe('ACIndex', function() {
     }
   });
 
-  it('should match a brute-force scoring implementation', function() {
+  it("should match a brute-force scoring implementation", function() {
     const acIndex1 = new ACIndexImpl(colors);
     const acIndex2 = new BruteForceACIndexImpl(colors);
     for (const text of ["RED", "blue", "a", "Z", "rea", "RZ", "da re", "re da", ""]) {
@@ -308,8 +308,8 @@ describe('ACIndex', function() {
     async function getCities(): Promise<TestACItem[]> {
       // Pick a file we have with 4k+ rows. First two columns are city,country.
       // To create more items, we'll return "city N, country" combinations for N in [0, 25).
-      const filePath = path.resolve(fixturesRoot, 'export-csv/many-rows.csv');
-      const data = await fse.readFile(filePath, { encoding: 'utf8' });
+      const filePath = path.resolve(fixturesRoot, "export-csv/many-rows.csv");
+      const data = await fse.readFile(filePath, { encoding: "utf8" });
       const result: TestACItem[] = [];
       for (const line of data.split("\n")) {
         const [city, country] = line.split(",");
@@ -341,7 +341,7 @@ describe('ACIndex', function() {
       });
 
      
-      it('main algorithm', function() {
+      it("main algorithm", function() {
         const [buildTime, acIndex] = repeat(10, () => new ACIndexImpl(items, { maxResults: 100 }));
         console.log(`Time to build index (${items.length} items): ${buildTime} ms`);
 
@@ -351,7 +351,7 @@ describe('ACIndex', function() {
         assert.equal(result.items[75].text, "New York 0, United States");
       });
 
-      it('brute-force algorithm', function() {
+      it("brute-force algorithm", function() {
         const [buildTime, acIndex] = repeat(10, () => new BruteForceACIndexImpl(items, 100));
         console.log(`Time to build index (${items.length} items): ${buildTime} ms`);
 
@@ -412,7 +412,7 @@ function getScore(text: string, searchWords: string[]) {
     const wordScore = Math.max(...textWords.map((sw, i) => getWordScore(sw, w, Math.pow(2, -(i + k)))));
     score += wordScore;
   }
-  if (text.startsWith(searchWords.join(' '))) {
+  if (text.startsWith(searchWords.join(" "))) {
     score += 1;
   }
   return score;

@@ -1,7 +1,7 @@
-import { FormLayoutNode, FormLayoutNodeType } from 'app/client/components/FormRenderer';
-import * as elements from 'app/client/components/Forms/elements';
-import { FormView } from 'app/client/components/Forms/FormView';
-import { MaybePromise } from 'app/plugin/gutil';
+import { FormLayoutNode, FormLayoutNodeType } from "app/client/components/FormRenderer";
+import * as elements from "app/client/components/Forms/elements";
+import { FormView } from "app/client/components/Forms/FormView";
+import { MaybePromise } from "app/plugin/gutil";
 import {
   bundleChanges,
   Computed,
@@ -11,7 +11,7 @@ import {
   MutableObsArray,
   obsArray,
   Observable,
-} from 'grainjs';
+} from "grainjs";
 
 type Callback = () => Promise<void>;
 
@@ -28,10 +28,10 @@ export abstract class BoxModel extends Disposable {
    * A factory method that creates a new BoxModel from a Box JSON by picking the right class based on the type.
    */
   public static new(box: FormLayoutNode, parent: BoxModel | null, view: FormView | null = null): BoxModel {
-    const subClassName = `${box.type.split(':')[0]}Model`;
+    const subClassName = `${box.type.split(":")[0]}Model`;
     const factories = elements as any;
     const factory = factories[subClassName];
-    if (!parent && !view) { throw new Error('Cannot create detached box'); }
+    if (!parent && !view) { throw new Error("Cannot create detached box"); }
     // If we have a factory, use it.
     if (factory) {
       return new factory(box, parent, view || parent!.view);
@@ -106,7 +106,7 @@ export abstract class BoxModel extends Disposable {
 
   public removeChild(box: BoxModel) {
     const myIndex = this.children.get().indexOf(box);
-    if (myIndex < 0) { throw new Error('Cannot remove box that is not in parent'); }
+    if (myIndex < 0) { throw new Error("Cannot remove box that is not in parent"); }
     this.children.splice(myIndex, 1);
   }
 
@@ -151,24 +151,24 @@ export abstract class BoxModel extends Disposable {
    * - child: it will add it as a child.
    * - swap: swaps with the box
    */
-  public willAccept(box?: FormLayoutNode | BoxModel | null): 'sibling' | 'child' | 'swap' | null {
+  public willAccept(box?: FormLayoutNode | BoxModel | null): "sibling" | "child" | "swap" | null {
     // If myself and the dropped element share the same parent, and the parent is a column
     // element, just swap us.
-    if (this.parent && box instanceof BoxModel && this.parent === box?.parent && box.parent?.type === 'Columns') {
-      return 'swap';
+    if (this.parent && box instanceof BoxModel && this.parent === box?.parent && box.parent?.type === "Columns") {
+      return "swap";
     }
 
     // If we are in column, we won't accept anything.
-    if (this.parent?.type === 'Columns') { return null; }
+    if (this.parent?.type === "Columns") { return null; }
 
-    return 'sibling';
+    return "sibling";
   }
 
   /**
    * Accepts box from clipboard and inserts it before this box or if this is a container box, then
    * as a first child. Default implementation is to insert before self.
    */
-  public accept(dropped: FormLayoutNode, hint: 'above' | 'below' = 'above') {
+  public accept(dropped: FormLayoutNode, hint: "above" | "below" = "above") {
     // Get the box that was dropped.
     if (!dropped) { return null; }
     if (dropped.id === this.id) {
@@ -180,7 +180,7 @@ export abstract class BoxModel extends Disposable {
     if (droppedRef) {
       droppedRef.removeSelf();
     }
-    return hint === 'above' ? this.placeBeforeMe()(dropped) : this.placeAfterMe()(dropped);
+    return hint === "above" ? this.placeBeforeMe()(dropped) : this.placeAfterMe()(dropped);
   }
 
   public prop(name: string, defaultValue?: any) {
@@ -195,7 +195,7 @@ export abstract class BoxModel extends Disposable {
   }
 
   public async save(before?: () => MaybePromise<void>): Promise<void> {
-    if (!this.parent) { throw new Error('Cannot save detached box'); }
+    if (!this.parent) { throw new Error("Cannot save detached box"); }
     return this.parent.save(before);
   }
 
@@ -211,7 +211,7 @@ export abstract class BoxModel extends Disposable {
   public swap(box1: BoxModel, box2: BoxModel) {
     const index1 = this.children.get().indexOf(box1);
     const index2 = this.children.get().indexOf(box2);
-    if (index1 < 0 || index2 < 0) { throw new Error('Cannot swap boxes that are not in parent'); }
+    if (index1 < 0 || index2 < 0) { throw new Error("Cannot swap boxes that are not in parent"); }
     const box1JSON = box1.toJSON();
     const box2JSON = box2.toJSON();
     this.replace(box1, box2JSON);
@@ -235,7 +235,7 @@ export abstract class BoxModel extends Disposable {
    */
   public replace(existing: BoxModel, newOne: FormLayoutNode | BoxModel) {
     const index = this.children.get().indexOf(existing);
-    if (index < 0) { throw new Error('Cannot replace box that is not in parent'); }
+    if (index < 0) { throw new Error("Cannot replace box that is not in parent"); }
     const model = newOne instanceof BoxModel ? newOne : BoxModel.new(newOne, this);
     model.parent = this;
     model.view = this.view;
@@ -323,7 +323,7 @@ export abstract class BoxModel extends Disposable {
   public update(boxDef: FormLayoutNode) {
     // If we have a type and the type is changed, then we need to replace the box.
     if (this.type && boxDef.type !== this.type) {
-      if (!this.parent) { throw new Error('Cannot replace detached box'); }
+      if (!this.parent) { throw new Error("Cannot replace detached box"); }
       this.parent.replace(this, BoxModel.new(boxDef, this.parent));
       return;
     }
@@ -332,7 +332,7 @@ export abstract class BoxModel extends Disposable {
     for (const someKey in boxDef) {
       const key = someKey as keyof FormLayoutNode;
       // Skip some keys.
-      if (key === 'id' || key === 'type' || key === 'children') { continue; }
+      if (key === "id" || key === "type" || key === "children") { continue; }
       // Skip any inherited properties.
       if (!boxDef.hasOwnProperty(key)) { continue; }
       // Skip if the value is the same.
@@ -404,7 +404,7 @@ export class LayoutModel extends BoxModel {
   ) {
     super(box, parent, view);
     this.disableDeleteSection = Computed.create(this, (use) => {
-      return use(this.children).filter(c => c.type === 'Section').length === 1;
+      return use(this.children).filter(c => c.type === "Section").length === 1;
     });
   }
 
@@ -413,17 +413,17 @@ export class LayoutModel extends BoxModel {
   }
 
   public override render(): HTMLElement {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 }
 
 class DefaultBoxModel extends BoxModel {
   public render(): HTMLElement {
-    return dom('div', `Unknown box type ${this.type}`);
+    return dom("div", `Unknown box type ${this.type}`);
   }
 }
 
-export const ignoreClick = dom.on('click', (ev) => {
+export const ignoreClick = dom.on("click", (ev) => {
   ev.stopPropagation();
   ev.preventDefault();
 });
@@ -435,7 +435,7 @@ export function unwrap<T>(val: T | Computed<T>): T {
 export function parseBox(text: string): FormLayoutNode | null {
   try {
     const json = JSON.parse(text);
-    return json && typeof json === 'object' && json.type ? json : null;
+    return json && typeof json === "object" && json.type ? json : null;
   }
   catch (e) {
     return null;

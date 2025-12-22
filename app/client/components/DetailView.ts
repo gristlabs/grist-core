@@ -1,35 +1,35 @@
-import BaseView from 'app/client/components/BaseView';
-import { parsePasteForView } from 'app/client/components/BaseView2';
-import * as selector from 'app/client/components/CellSelector';
-import { ElemType } from 'app/client/components/CellSelector';
-import { CutCallback } from 'app/client/components/Clipboard';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { renderAllRows } from 'app/client/components/Printing';
-import RecordLayout from 'app/client/components/RecordLayout';
-import { viewCommands } from 'app/client/components/RegionFocusSwitcher';
-import * as commands from 'app/client/components/commands';
-import kd from 'app/client/lib/koDom';
-import koDomScrolly from 'app/client/lib/koDomScrolly';
-import { makeT } from 'app/client/lib/localization';
-import { PasteData } from 'app/client/lib/tableUtil';
-import * as tableUtil from 'app/client/lib/tableUtil';
-import BaseRowModel from 'app/client/models/BaseRowModel';
-import { DataRowModel } from 'app/client/models/DataRowModel';
-import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
-import { ViewSectionRec } from 'app/client/models/entities/ViewSectionRec';
-import { CardContextMenu } from 'app/client/ui/CardContextMenu';
-import { FieldContextMenu } from 'app/client/ui/FieldContextMenu';
-import { descriptionInfoTooltip } from 'app/client/ui/tooltips';
-import { isNarrowScreen } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { indexOf } from 'app/common/gutil';
-import { UIRowId } from 'app/plugin/GristAPI';
+import BaseView from "app/client/components/BaseView";
+import { parsePasteForView } from "app/client/components/BaseView2";
+import * as selector from "app/client/components/CellSelector";
+import { ElemType } from "app/client/components/CellSelector";
+import { CutCallback } from "app/client/components/Clipboard";
+import { GristDoc } from "app/client/components/GristDoc";
+import { renderAllRows } from "app/client/components/Printing";
+import RecordLayout from "app/client/components/RecordLayout";
+import { viewCommands } from "app/client/components/RegionFocusSwitcher";
+import * as commands from "app/client/components/commands";
+import kd from "app/client/lib/koDom";
+import koDomScrolly from "app/client/lib/koDomScrolly";
+import { makeT } from "app/client/lib/localization";
+import { PasteData } from "app/client/lib/tableUtil";
+import * as tableUtil from "app/client/lib/tableUtil";
+import BaseRowModel from "app/client/models/BaseRowModel";
+import { DataRowModel } from "app/client/models/DataRowModel";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
+import { CardContextMenu } from "app/client/ui/CardContextMenu";
+import { FieldContextMenu } from "app/client/ui/FieldContextMenu";
+import { descriptionInfoTooltip } from "app/client/ui/tooltips";
+import { isNarrowScreen } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { indexOf } from "app/common/gutil";
+import { UIRowId } from "app/plugin/GristAPI";
 
-import { dom } from 'grainjs';
-import ko from 'knockout';
-import _ from 'underscore';
+import { dom } from "grainjs";
+import ko from "knockout";
+import _ from "underscore";
 
-const t = makeT('DetailView');
+const t = makeT("DetailView");
 
 // Disable member-ordering linting temporarily, so that it's easier to review the conversion to
 // typescript. It would be reasonable to reorder methods and re-enable this lint check.
@@ -56,7 +56,7 @@ export default class DetailView extends BaseView {
 
     this.cellSelector = selector.CellSelector.create(this, this);
 
-    this._isSingle = (this.viewSection.parentKey.peek() === 'single');
+    this._isSingle = (this.viewSection.parentKey.peek() === "single");
     this._isExternalSectionPopup = gristDoc.externalSectionId.get() === this.viewSection.id();
 
     // --------------------------------------------------
@@ -113,7 +113,7 @@ export default class DetailView extends BaseView {
     this._twoLastFieldIdsSelected = [null, null];
 
     // Clicking on a detail field selects that field.
-    this.autoDispose(dom.onMatchElem(this.viewPane, '.g_record_detail_el', 'mousedown', (event, elem) => {
+    this.autoDispose(dom.onMatchElem(this.viewPane, ".g_record_detail_el", "mousedown", (event, elem) => {
       this.viewSection.hasFocus(true);
       const rowModel = this.recordLayout.getContainingRow(elem as Element, this.viewPane);
       const field = this.recordLayout.getContainingField(elem as Element, this.viewPane);
@@ -122,21 +122,21 @@ export default class DetailView extends BaseView {
       // Trigger custom dom event that will bubble up. View components might not be rendered
       // inside a virtual table which don't register this global handler (as there might be
       // multiple instances of the virtual table component).
-      this.viewPane.dispatchEvent(new CustomEvent('setCursor', { detail: [rowModel, field], bubbles: true }));
+      this.viewPane.dispatchEvent(new CustomEvent("setCursor", { detail: [rowModel, field], bubbles: true }));
 
       this._twoLastFieldIdsSelected.unshift(field.id());
       this._twoLastFieldIdsSelected.pop();
     }));
 
     // Double-clicking on a field also starts editing the field.
-    this.autoDispose(dom.onMatchElem(this.viewPane, '.g_record_detail_el', 'dblclick', (event, elem) => {
+    this.autoDispose(dom.onMatchElem(this.viewPane, ".g_record_detail_el", "dblclick", (event, elem) => {
       this.activateEditorAtCursor({
         event,
       });
     }));
 
     // We authorize single click only on the value to avoid conflict with tooltip
-    this.autoDispose(dom.onMatchElem(this.viewPane, '.g_record_detail_value', 'click', (event, elem) => {
+    this.autoDispose(dom.onMatchElem(this.viewPane, ".g_record_detail_value", "click", (event, elem) => {
       // If the click was place in a link, we don't want to trigger the single click
       if ((event.target as HTMLElement)?.closest("a")) { return; }
 
@@ -158,7 +158,7 @@ export default class DetailView extends BaseView {
       this, this.viewSection.hasFocus));
     this.autoDispose(commands.createGroup(DetailView.detailFocusedCommands, this, this.viewSection.hasRegionFocus));
     const hasSelection = this.autoDispose(ko.pureComputed(() =>
-      Boolean(!this.cellSelector.isCurrentSelectType('') || this.copySelection())));
+      Boolean(!this.cellSelector.isCurrentSelectType("") || this.copySelection())));
     this.autoDispose(commands.createGroup(DetailView.selectionCommands, this, hasSelection));
   }
 
@@ -261,17 +261,17 @@ export default class DetailView extends BaseView {
 
     // Array containing the paste action to which the cut action will be added if it exists.
     const rowId = this.viewData.getRowId(this.cursor.rowIndex()!);
-    const action = (rowId === 'new') ? ['BulkAddRecord', [null], richData] :
-      ['BulkUpdateRecord', [rowId], richData];
+    const action = (rowId === "new") ? ["BulkAddRecord", [null], richData] :
+      ["BulkUpdateRecord", [rowId], richData];
     const cursorPos = this.cursor.getCursorPos();
 
     return this.sendPasteActions(isCompletePaste ? cutCallback : null,
       this.prepTableActions([action]))
       .then((results) => {
         // If a row was added, get its rowId from the action results.
-        const addRowId = (action[0] === 'BulkAddRecord' ? results[0][0] : null);
+        const addRowId = (action[0] === "BulkAddRecord" ? results[0][0] : null);
         // Restore the cursor to the right rowId, even if it jumped.
-        this.cursor.setCursorPos({ rowId: cursorPos.rowId === 'new' ? addRowId : cursorPos.rowId });
+        this.cursor.setCursorPos({ rowId: cursorPos.rowId === "new" ? addRowId : cursorPos.rowId });
         commands.allCommands.clearCopySelection.run();
       });
   }
@@ -293,13 +293,13 @@ export default class DetailView extends BaseView {
    * @param {DataRowModel} row: The record of data from which to render the given field.
    */
   protected buildFieldDom(field: RecordLayout.NewField | ViewFieldRec, row: DataRowModel) {
-    if ('isNewField' in field) {
-      return dom('div.g_record_detail_el.flexitem',
-        dom.cls(use => 'detail_theme_field_' + use(this.viewSection.themeDef)),
-        dom('div.g_record_detail_label_container',
-          dom('div.g_record_detail_label', field.label),
+    if ("isNewField" in field) {
+      return dom("div.g_record_detail_el.flexitem",
+        dom.cls(use => "detail_theme_field_" + use(this.viewSection.themeDef)),
+        dom("div.g_record_detail_label_container",
+          dom("div.g_record_detail_label", field.label),
         ),
-        dom('div.g_record_detail_value'),
+        dom("div.g_record_detail_value"),
       );
     }
 
@@ -318,26 +318,26 @@ export default class DetailView extends BaseView {
 
     this.autoDispose(isCellSelected.subscribe((yesNo) => {
       if (yesNo) {
-        const layoutBox = fieldDom.closest('.layout_hbox')!;
+        const layoutBox = fieldDom.closest(".layout_hbox")!;
         this.layoutBoxIdx(indexOf(layoutBox.parentElement!.childNodes, layoutBox));
       }
     }));
     const fieldBuilder = this.fieldBuilders.at(field._index()!)!;
-    const fieldDom = dom('div.g_record_detail_el.flexitem',
+    const fieldDom = dom("div.g_record_detail_el.flexitem",
       dom.autoDispose(isCellSelected),
       dom.autoDispose(isCellActive),
-      dom.cls(use => 'detail_theme_field_' + use(this.viewSection.themeDef)),
-      dom('div.g_record_detail_label_container',
-        dom('div.g_record_detail_label', dom.text(field.displayLabel)),
+      dom.cls(use => "detail_theme_field_" + use(this.viewSection.themeDef)),
+      dom("div.g_record_detail_label_container",
+        dom("div.g_record_detail_label", dom.text(field.displayLabel)),
         dom.domComputed(use => use(field.description),
           desc => desc ? descriptionInfoTooltip(desc, "column") : null),
       ),
-      dom('div.g_record_detail_value',
-        dom.cls('scissors', isCopyActive),
-        dom.cls('record-add', row._isAddRow),
+      dom("div.g_record_detail_value",
+        dom.cls("scissors", isCopyActive),
+        dom.cls("record-add", row._isAddRow),
         dom.autoDispose(isCopyActive),
         // Optional icon. Currently only use to show formula icon.
-        dom('div.field-icon'),
+        dom("div.field-icon"),
         fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected),
       ),
     );
@@ -345,24 +345,24 @@ export default class DetailView extends BaseView {
   }
 
   protected buildDom() {
-    return dom('div.flexvbox.flexitem',
+    return dom("div.flexvbox.flexitem",
       // Add .detailview_single when showing a single card or while editing layout.
-      dom.cls('detailview_single',
+      dom.cls("detailview_single",
         use => this._isSingle || use(this.recordLayout.isEditingLayout)),
       // Add a marker class that editor is active - used for hiding context menu toggle.
-      dom.cls('detailview_layout_editor', this.recordLayout.isEditingLayout),
+      dom.cls("detailview_layout_editor", this.recordLayout.isEditingLayout),
       dom.maybe(this.recordLayout.isEditingLayout, () => {
         const rowId = this.viewData.getRowId(this.recordLayout.editIndex.peek());
         const record = this.getRenderedRowModel(rowId);
         return dom.update(
           this.recordLayout.buildLayoutDom(record, true),
-          dom.cls(use => 'detail_theme_record_' + use(this.viewSection.themeDef)),
-          dom.cls('detailview_record_' + this.viewSection.parentKey.peek()),
+          dom.cls(use => "detail_theme_record_" + use(this.viewSection.themeDef)),
+          dom.cls("detailview_record_" + this.viewSection.parentKey.peek()),
         );
       }),
       dom.maybe(use => !use(this.recordLayout.isEditingLayout), () => {
         if (!this._isSingle) {
-          return this.scrollPane = dom('div.detailview_scroll_pane.flexitem',
+          return this.scrollPane = dom("div.detailview_scroll_pane.flexitem",
             kd.scrollChildIntoView(this.cursor.rowIndex),
             dom.onDispose(() => {
               // Save the previous scroll values to the section.
@@ -382,14 +382,14 @@ export default class DetailView extends BaseView {
         else {
           return dom.domComputed((use) => {
             if (use(this.cursor.rowIndex) === null) {
-              return dom('div',
-                dom('div.detailview_record_unavailable_overlay', t('This row is unavailable or does not exist')),
+              return dom("div",
+                dom("div.detailview_record_unavailable_overlay", t("This row is unavailable or does not exist")),
               );
             }
             else {
               return dom.update(
                 this.makeRecord(this.detailRecord!),
-                kd.domData('itemModel', this.detailRecord),
+                kd.domData("itemModel", this.detailRecord),
                 dom.hide(use2 => use2(this.cursor.rowIndex) === null),
               );
             }
@@ -417,36 +417,36 @@ export default class DetailView extends BaseView {
       const linkingState = this.viewSection.linkingState();
       return !(linkingState && Boolean(linkingState.cursorPos));
     });
-    return dom('div',
+    return dom("div",
       dom.autoDispose(showControls),
 
-      dom.cls('record-layout-editor', use => Boolean(use(this.recordLayout.layoutEditor))),
+      dom.cls("record-layout-editor", use => Boolean(use(this.recordLayout.layoutEditor))),
       dom.maybe(this.recordLayout.layoutEditor, (editor: any) => editor.buildEditorDom()),
 
-      dom.maybe(showControls, () => dom('div.grist-single-record__menu.flexhbox.flexnone',
-        dom('div.grist-single-record__menu__count.flexitem',
+      dom.maybe(showControls, () => dom("div.grist-single-record__menu.flexhbox.flexnone",
+        dom("div.grist-single-record__menu__count.flexitem",
           // Total should not include the add record row
-          kd.text(() => this._isAddRow() ? 'Add record' :
+          kd.text(() => this._isAddRow() ? "Add record" :
             `${this.cursor.rowIndex()! + 1} of ${this.getLastDataRowIndex() + 1}`),
         ),
-        dom('div.detail-buttons',
-          dom('div.detail-button.detail-left',
-            icon('ArrowLeft'),
-            dom.on('click', () => { this.cursor.rowIndex(this.cursor.rowIndex()! - 1); }),
-            dom.cls('disabled', use => use(this.cursor.rowIndex) === 0),
+        dom("div.detail-buttons",
+          dom("div.detail-button.detail-left",
+            icon("ArrowLeft"),
+            dom.on("click", () => { this.cursor.rowIndex(this.cursor.rowIndex()! - 1); }),
+            dom.cls("disabled", use => use(this.cursor.rowIndex) === 0),
           ),
-          dom('div.detail-button.detail-right',
-            icon('ArrowRight'),
-            dom.on('click', () => { this.cursor.rowIndex(this.cursor.rowIndex()! + 1); }),
-            dom.cls('disabled', use => use(this.cursor.rowIndex)! >= this.viewData.all().length - 1),
+          dom("div.detail-button.detail-right",
+            icon("ArrowRight"),
+            dom.on("click", () => { this.cursor.rowIndex(this.cursor.rowIndex()! + 1); }),
+            dom.cls("disabled", use => use(this.cursor.rowIndex)! >= this.viewData.all().length - 1),
           ),
-          dom('div.detail-button.detail-add-btn',
-            icon('Plus'),
-            dom.on('click', () => {
-              const addRowIndex = this.viewData.getRowIndex('new');
+          dom("div.detail-button.detail-add-btn",
+            icon("Plus"),
+            dom.on("click", () => {
+              const addRowIndex = this.viewData.getRowIndex("new");
               this.cursor.rowIndex(addRowIndex);
             }),
-            dom.cls('disabled', use => this.viewData.getRowId(use(this.cursor.rowIndex)!) === 'new'),
+            dom.cls("disabled", use => this.viewData.getRowId(use(this.cursor.rowIndex)!) === "new"),
           ),
         ),
       )),
@@ -454,7 +454,7 @@ export default class DetailView extends BaseView {
   }
 
   public override onNewRecordRequest() {
-    const addRowIndex = this.viewData.getRowIndex('new');
+    const addRowIndex = this.viewData.getRowIndex("new");
     this.cursor.rowIndex(addRowIndex);
   }
 
@@ -475,18 +475,18 @@ export default class DetailView extends BaseView {
   protected makeRecord(record: DataRowModel) {
     return dom.update(
       this.recordLayout.buildLayoutDom(record),
-      dom.cls(use => 'detail_theme_record_' + use(this.viewSection.themeDef)),
+      dom.cls(use => "detail_theme_record_" + use(this.viewSection.themeDef)),
       this.comparison ? dom.cls((use) => {
         const rowType = this.extraRows.getRowType(use(record.id));
-        return rowType && `diff-${rowType}` || '';
+        return rowType && `diff-${rowType}` || "";
       }) : null,
-      dom.cls('active', use =>
+      dom.cls("active", use =>
         (use(this.cursor.rowIndex) === use(record._index) && use(this.viewSection.hasFocus))),
-      dom.cls('selected', use =>
+      dom.cls("selected", use =>
         (use(this.cursor.rowIndex) === use(record._index)  && !use(this.viewSection.hasFocus))),
       // 'detailview_record_single' or 'detailview_record_detail' doesn't need to be an observable,
       // since a change to parentKey would cause a separate call to makeRecord.
-      dom.cls('detailview_record_' + this.viewSection.parentKey.peek()),
+      dom.cls("detailview_record_" + this.viewSection.parentKey.peek()),
     );
   }
 
@@ -508,7 +508,7 @@ export default class DetailView extends BaseView {
    * Index defaults to the current index of the cursor.
    */
   protected _isAddRow(index: number | null = this.cursor.rowIndex()) {
-    return index !== null && this.viewData.getRowId(index) === 'new';
+    return index !== null && this.viewData.getRowId(index) === "new";
   }
 
   public async scrollToCursor(sync: boolean = true): Promise<void> {
@@ -550,7 +550,7 @@ export default class DetailView extends BaseView {
     const selection = this.getSelection();
     const isFormula = Boolean(selection.fields[0]?.column.peek().isRealFormula.peek());
     if (isFormula) {
-      this.activateEditorAtCursor({ init: '' });
+      this.activateEditorAtCursor({ init: "" });
     }
     else {
       const clearAction = tableUtil.makeDeleteAction(this.getSelection());
@@ -562,10 +562,10 @@ export default class DetailView extends BaseView {
 
   protected _hideCardFields() {
     const selection = this.getSelection();
-    const actions = selection.fields.map(field => ['RemoveRecord', field.id()]);
+    const actions = selection.fields.map(field => ["RemoveRecord", field.id()]);
     return this.gristDoc.docModel.viewFields.sendTableActions(
       actions,
-      `Hide fields ${actions.map(a => a[1]).join(', ')} ` +
+      `Hide fields ${actions.map(a => a[1]).join(", ")} ` +
       `from ${this.tableModel.tableData.tableId}.`,
     );
   }

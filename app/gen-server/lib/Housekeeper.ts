@@ -1,27 +1,27 @@
-import { ApiError } from 'app/common/ApiError';
-import { delay } from 'app/common/delay';
-import { buildUrlId } from 'app/common/gristUrls';
-import { normalizedDateTimeString } from 'app/common/normalizedDateTimeString';
+import { ApiError } from "app/common/ApiError";
+import { delay } from "app/common/delay";
+import { buildUrlId } from "app/common/gristUrls";
+import { normalizedDateTimeString } from "app/common/normalizedDateTimeString";
 import { isAffirmative } from "app/common/gutil";
-import { Document } from 'app/gen-server/entity/Document';
-import { Organization } from 'app/gen-server/entity/Organization';
-import { Workspace } from 'app/gen-server/entity/Workspace';
-import { HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { fromNow } from 'app/gen-server/sqlUtils';
-import { appSettings } from 'app/server/lib/AppSettings';
-import { getAuthorizedUserId } from 'app/server/lib/Authorizer';
-import { expressWrap } from 'app/server/lib/expressWrap';
-import { GristServer } from 'app/server/lib/GristServer';
-import { IElectionStore } from 'app/server/lib/IElectionStore';
-import log from 'app/server/lib/log';
-import { IPermitStore } from 'app/server/lib/Permit';
-import { fetchUntrustedWithAgent } from 'app/server/lib/ProxyAgent';
-import { optStringParam, stringParam } from 'app/server/lib/requestUtils';
-import { updateGristServerLatestVersion } from 'app/server/lib/updateChecker';
-import * as express from 'express';
-import fetch from 'node-fetch';
-import * as Fetch from 'node-fetch';
-import { EntityManager } from 'typeorm';
+import { Document } from "app/gen-server/entity/Document";
+import { Organization } from "app/gen-server/entity/Organization";
+import { Workspace } from "app/gen-server/entity/Workspace";
+import { HomeDBManager, Scope } from "app/gen-server/lib/homedb/HomeDBManager";
+import { fromNow } from "app/gen-server/sqlUtils";
+import { appSettings } from "app/server/lib/AppSettings";
+import { getAuthorizedUserId } from "app/server/lib/Authorizer";
+import { expressWrap } from "app/server/lib/expressWrap";
+import { GristServer } from "app/server/lib/GristServer";
+import { IElectionStore } from "app/server/lib/IElectionStore";
+import log from "app/server/lib/log";
+import { IPermitStore } from "app/server/lib/Permit";
+import { fetchUntrustedWithAgent } from "app/server/lib/ProxyAgent";
+import { optStringParam, stringParam } from "app/server/lib/requestUtils";
+import { updateGristServerLatestVersion } from "app/server/lib/updateChecker";
+import * as express from "express";
+import fetch from "node-fetch";
+import * as Fetch from "node-fetch";
+import { EntityManager } from "typeorm";
 
 export const Timings = {
   DELETE_TRASH_PERIOD_MS: 1 * 60 * 60 * 1000,  // operate every 1 hour
@@ -29,23 +29,23 @@ export const Timings = {
   VERSION_CHECK_PERIOD_MS: 7 * 24 * 60 * 60 * 1000, // operate every week
   VERSION_CHECK_OFFSET_MS: 20 * 1000, // wait 20 seconds before running the first check
   TEST_PROXY_URL_PERIOD_MS: 5 * 60 * 1000,     // every five minutes
-  AGE_THRESHOLD_OFFSET: '-30 days',            // should be an interval known by postgres + sqlite
+  AGE_THRESHOLD_OFFSET: "-30 days",            // should be an interval known by postgres + sqlite
 
   // Don't keep doing synchronous work longer than this.
-  SYNC_WORK_LIMIT_MS: appSettings.section('telemetry').section('syncWork').flag('limitMs').requireInt({
-    envVar: 'GRIST_SYNC_WORK_LIMIT_MS',
+  SYNC_WORK_LIMIT_MS: appSettings.section("telemetry").section("syncWork").flag("limitMs").requireInt({
+    envVar: "GRIST_SYNC_WORK_LIMIT_MS",
     defaultValue: 50,
   }),
 
   // Once reached SYNC_WORK_LIMIT_MS, take a break of this length.
-  SYNC_WORK_BREAK_MS: appSettings.section('telemetry').section('syncWork').flag('breakMs').requireInt({
-    envVar: 'GRIST_SYNC_WORK_BREAK_MS',
+  SYNC_WORK_BREAK_MS: appSettings.section("telemetry").section("syncWork").flag("breakMs").requireInt({
+    envVar: "GRIST_SYNC_WORK_BREAK_MS",
     defaultValue: 50,
   }),
 };
 
-export const GRIST_TEST_PROXY_URL = appSettings.section('proxy').flag('testUrl').readString({
-  envVar: 'GRIST_TEST_PROXY_URL',
+export const GRIST_TEST_PROXY_URL = appSettings.section("proxy").flag("testUrl").readString({
+  envVar: "GRIST_TEST_PROXY_URL",
 });
 
 /**
@@ -103,10 +103,10 @@ export class Housekeeper {
    */
   public async stop() {
     for (const interval of [
-      '_deleteTrashinterval',
-      '_logMetricsInterval',
-      '_checkVersionUpdatesInterval',
-      '_testProxyUrlInterval'] as const) {
+      "_deleteTrashinterval",
+      "_logMetricsInterval",
+      "_checkVersionUpdatesInterval",
+      "_testProxyUrlInterval"] as const) {
       clearInterval(this[interval]);
       this[interval] = undefined;
     }
@@ -118,9 +118,9 @@ export class Housekeeper {
    * Deletes old trash if no other server is working on it or worked on it recently.
    */
   public async deleteTrashExclusively(): Promise<boolean> {
-    const electionKey = await this._electionStore.getElection('housekeeping', Timings.DELETE_TRASH_PERIOD_MS / 2.0);
+    const electionKey = await this._electionStore.getElection("housekeeping", Timings.DELETE_TRASH_PERIOD_MS / 2.0);
     if (!electionKey) {
-      log.info('Skipping deleteTrash since another server is working on it or worked on it recently');
+      log.info("Skipping deleteTrash since another server is working on it or worked on it recently");
       return false;
     }
     this._electionKey = electionKey;
@@ -182,7 +182,7 @@ export class Housekeeper {
         const result = await fetch(
           await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}`),
           {
-            method: 'DELETE',
+            method: "DELETE",
             headers: {
               Permit: permitKey,
             },
@@ -199,9 +199,9 @@ export class Housekeeper {
   }
 
   public async testProxyUrlExclusively(): Promise<boolean> {
-    const electionKey = await this._electionStore.getElection('testProxyUrl', Timings.TEST_PROXY_URL_PERIOD_MS / 2.0);
+    const electionKey = await this._electionStore.getElection("testProxyUrl", Timings.TEST_PROXY_URL_PERIOD_MS / 2.0);
     if (!electionKey) {
-      log.info('Skipping testProxyUrl since another server is working on it or worked on it recently');
+      log.info("Skipping testProxyUrl since another server is working on it or worked on it recently");
       return false;
     }
     this._electionKey = electionKey;
@@ -213,23 +213,23 @@ export class Housekeeper {
     const url = GRIST_TEST_PROXY_URL;
     if (!url) { return; }
     const response = await fetchUntrustedWithAgent(url, {
-      method: 'GET',
+      method: "GET",
       timeout: 5000,
     }).catch((e) => {
       return {
         ok: false,
-        status: 'error',
+        status: "error",
         async text() { return String(e); },
       };
     });
     if (response.ok) {
-      log.rawInfo('testProxyUrl passed', {
+      log.rawInfo("testProxyUrl passed", {
         url,
         status: response.status,
       });
     }
     else {
-      log.rawError('testProxyUrl failed', {
+      log.rawError("testProxyUrl failed", {
         url,
         status: response.status,
         body: await response.text().catch(e => String(e)),
@@ -241,9 +241,9 @@ export class Housekeeper {
    * Logs metrics if no other server is working on it or worked on it recently.
    */
   public async logMetricsExclusively(): Promise<boolean> {
-    const electionKey = await this._electionStore.getElection('logMetrics', Timings.LOG_METRICS_PERIOD_MS / 2.0);
+    const electionKey = await this._electionStore.getElection("logMetrics", Timings.LOG_METRICS_PERIOD_MS / 2.0);
     if (!electionKey) {
-      log.info('Skipping logMetrics since another server is working on it or worked on it recently');
+      log.info("Skipping logMetrics since another server is working on it or worked on it recently");
       return false;
     }
     this._electionKey = electionKey;
@@ -255,7 +255,7 @@ export class Housekeeper {
    * Logs metrics regardless of what other servers may be doing.
    */
   public async logMetrics() {
-    if (this._telemetry.shouldLogEvent('siteUsage')) {
+    if (this._telemetry.shouldLogEvent("siteUsage")) {
       log.warn("logMetrics siteUsage starting");
       // Avoid using a transaction since it may end up being held up for a while, and for no good
       // reason (atomicity matters for this reporting).
@@ -266,7 +266,7 @@ export class Housekeeper {
       // server for minutes (unclear why; perhaps filling up buffers, and allocating memory very
       // inefficiently?)
       await forEachWithBreaks("logMetrics siteUsage progress", usageSummaries, (summary) => {
-        this._telemetry.logEvent(null, 'siteUsage', {
+        this._telemetry.logEvent(null, "siteUsage", {
           limited: {
             siteId: summary.site_id,
             siteType: summary.site_type,
@@ -284,12 +284,12 @@ export class Housekeeper {
       });
     }
 
-    if (this._telemetry.shouldLogEvent('siteMembership')) {
+    if (this._telemetry.shouldLogEvent("siteMembership")) {
       log.warn("logMetrics siteMembership starting");
       const manager = this._dbManager.connection.manager;
       const membershipSummaries = await this._getOrgMembershipSummaries(manager);
       await forEachWithBreaks("logMetrics siteMembership progress", membershipSummaries, (summary) => {
-        this._telemetry.logEvent(null, 'siteMembership', {
+        this._telemetry.logEvent(null, "siteMembership", {
           limited: {
             siteId: summary.site_id,
             siteType: summary.site_type,
@@ -303,10 +303,10 @@ export class Housekeeper {
   }
 
   public async checkVersionUpdatesExclusively() {
-    const electionKey = await this._electionStore.getElection('checkVersionUpdates',
+    const electionKey = await this._electionStore.getElection("checkVersionUpdates",
       Timings.VERSION_CHECK_PERIOD_MS / 2.0);
     if (!electionKey) {
-      log.info('Skipping checkVersionUpdates since another server is working on it or worked on it recently');
+      log.info("Skipping checkVersionUpdates since another server is working on it or worked on it recently");
       return false;
     }
     this._electionKey = electionKey;
@@ -327,11 +327,11 @@ export class Housekeeper {
     // Remove unlisted snapshots that are not recorded in inventory.
     // Once all such snapshots have been removed, there should be no
     // further need for this endpoint.
-    app.post('/api/housekeeping/docs/:docId/snapshots/clean', this._withSupport(async (_req, docId, headers) => {
+    app.post("/api/housekeeping/docs/:docId/snapshots/clean", this._withSupport(async (_req, docId, headers) => {
       const url = await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/snapshots/remove`);
       return fetch(url, {
-        method: 'POST',
-        body: JSON.stringify({ select: 'unlisted' }),
+        method: "POST",
+        body: JSON.stringify({ select: "unlisted" }),
         headers,
       });
     }));
@@ -340,10 +340,10 @@ export class Housekeeper {
     // use, for allowing support to help users looking to purge some
     // information that leaked into document history that they'd
     // prefer not be there, until there's an alternative.
-    app.post('/api/housekeeping/docs/:docId/states/remove', this._withSupport(async (_req, docId, headers) => {
+    app.post("/api/housekeeping/docs/:docId/states/remove", this._withSupport(async (_req, docId, headers) => {
       const url = await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/states/remove`);
       return fetch(url, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify({ keep: 1 }),
         headers,
       });
@@ -351,10 +351,10 @@ export class Housekeeper {
 
     // Force a document to reload.  Can be useful during administrative
     // actions.
-    app.post('/api/housekeeping/docs/:docId/force-reload', this._withSupport(async (_req, docId, headers) => {
+    app.post("/api/housekeeping/docs/:docId/force-reload", this._withSupport(async (_req, docId, headers) => {
       const url = await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/force-reload`);
       return fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers,
       });
     }));
@@ -365,15 +365,15 @@ export class Housekeeper {
     // Optionally accepts a `group` query param for updating the document's group prior
     // to moving. A blank string unsets the current group, if any. This is useful for controlling
     // which worker group the document is assigned a worker from.
-    app.post('/api/housekeeping/docs/:docId/assign', this._withSupport(async (req, docId, headers) => {
+    app.post("/api/housekeeping/docs/:docId/assign", this._withSupport(async (req, docId, headers) => {
       const url = new URL(await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/assign`));
-      const group = optStringParam(req.query.group, 'group');
-      if (group !== undefined) { url.searchParams.set('group', group); }
+      const group = optStringParam(req.query.group, "group");
+      if (group !== undefined) { url.searchParams.set("group", group); }
       return fetch(url.toString(), {
-        method: 'POST',
+        method: "POST",
         headers,
       });
-    }, 'assign-doc'));
+    }, "assign-doc"));
   }
 
   /**
@@ -381,42 +381,42 @@ export class Housekeeper {
    */
   public async testClearExclusivity(): Promise<void> {
     if (this._electionKey) {
-      await this._electionStore.removeElection('housekeeping', this._electionKey);
+      await this._electionStore.removeElection("housekeeping", this._electionKey);
       this._electionKey = undefined;
     }
   }
 
   private async _getDocsToDelete() {
     const docs = await this._dbManager.connection.createQueryBuilder()
-      .select('docs')
-      .from(Document, 'docs')
-      .leftJoinAndSelect('docs.workspace', 'workspaces')
+      .select("docs")
+      .from(Document, "docs")
+      .leftJoinAndSelect("docs.workspace", "workspaces")
       .where(`COALESCE(docs.removed_at, workspaces.removed_at) <= ${this._getThreshold()}`)
       // the following has no effect (since null <= date is false) but added for clarity
-      .andWhere('COALESCE(docs.removed_at, workspaces.removed_at) IS NOT NULL')
+      .andWhere("COALESCE(docs.removed_at, workspaces.removed_at) IS NOT NULL")
       .getMany();
     return docs;
   }
 
   private async _getWorkspacesToDelete() {
     const workspaces = await this._dbManager.connection.createQueryBuilder()
-      .select('workspaces')
-      .from(Workspace, 'workspaces')
-      .leftJoin('workspaces.docs', 'docs')
+      .select("workspaces")
+      .from(Workspace, "workspaces")
+      .leftJoin("workspaces.docs", "docs")
       .where(`workspaces.removed_at <= ${this._getThreshold()}`)
       // the following has no effect (since null <= date is false) but added for clarity
-      .andWhere('workspaces.removed_at IS NOT NULL')
+      .andWhere("workspaces.removed_at IS NOT NULL")
       // wait for workspace to be empty
-      .andWhere('docs.id IS NULL')
+      .andWhere("docs.id IS NULL")
       .getMany();
     return workspaces;
   }
 
   private async _getForksToDelete() {
     const forks = await this._dbManager.connection.createQueryBuilder()
-      .select('forks')
-      .from(Document, 'forks')
-      .where('forks.trunk_id IS NOT NULL')
+      .select("forks")
+      .from(Document, "forks")
+      .where("forks.trunk_id IS NOT NULL")
       .andWhere(`forks.updated_at <= ${this._getThreshold()}`)
       .getMany();
     return forks;
@@ -424,47 +424,47 @@ export class Housekeeper {
 
   private async _getOrgUsageSummaries(manager: EntityManager) {
     const orgs = await manager.createQueryBuilder()
-      .select('orgs.id', 'site_id')
-      .addSelect('products.name', 'site_type')
-      .addSelect('billing_accounts.in_good_standing', 'in_good_standing')
-      .addSelect('billing_accounts.stripe_plan_id', 'stripe_plan_id')
-      .addSelect('COUNT(DISTINCT docs.id)', 'num_docs')
-      .addSelect('COUNT(DISTINCT workspaces.id)', 'num_workspaces')
-      .addSelect('COUNT(DISTINCT org_member_users.id)', 'num_members')
-      .addSelect('MAX(docs.updated_at)', 'last_activity')
-      .addSelect('MIN(docs.created_at)', 'earliest_doc_created_at')
-      .from(Organization, 'orgs')
-      .leftJoin('orgs.workspaces', 'workspaces')
-      .leftJoin('workspaces.docs', 'docs')
-      .leftJoin('orgs.billingAccount', 'billing_accounts')
-      .leftJoin('billing_accounts.product', 'products')
-      .leftJoin('orgs.aclRules', 'acl_rules')
-      .leftJoin('acl_rules.group', 'org_groups')
-      .leftJoin('org_groups.memberUsers', 'org_member_users')
-      .where('org_member_users.id IS NOT NULL')
-      .groupBy('orgs.id')
-      .addGroupBy('products.id')
-      .addGroupBy('billing_accounts.id')
+      .select("orgs.id", "site_id")
+      .addSelect("products.name", "site_type")
+      .addSelect("billing_accounts.in_good_standing", "in_good_standing")
+      .addSelect("billing_accounts.stripe_plan_id", "stripe_plan_id")
+      .addSelect("COUNT(DISTINCT docs.id)", "num_docs")
+      .addSelect("COUNT(DISTINCT workspaces.id)", "num_workspaces")
+      .addSelect("COUNT(DISTINCT org_member_users.id)", "num_members")
+      .addSelect("MAX(docs.updated_at)", "last_activity")
+      .addSelect("MIN(docs.created_at)", "earliest_doc_created_at")
+      .from(Organization, "orgs")
+      .leftJoin("orgs.workspaces", "workspaces")
+      .leftJoin("workspaces.docs", "docs")
+      .leftJoin("orgs.billingAccount", "billing_accounts")
+      .leftJoin("billing_accounts.product", "products")
+      .leftJoin("orgs.aclRules", "acl_rules")
+      .leftJoin("acl_rules.group", "org_groups")
+      .leftJoin("org_groups.memberUsers", "org_member_users")
+      .where("org_member_users.id IS NOT NULL")
+      .groupBy("orgs.id")
+      .addGroupBy("products.id")
+      .addGroupBy("billing_accounts.id")
       .getRawMany();
     return orgs;
   }
 
   private async _getOrgMembershipSummaries(manager: EntityManager) {
     const orgs = await manager.createQueryBuilder()
-      .select('orgs.id', 'site_id')
-      .addSelect('products.name', 'site_type')
-      .addSelect("SUM(CASE WHEN org_groups.name = 'owners' THEN 1 ELSE 0 END)", 'num_owners')
-      .addSelect("SUM(CASE WHEN org_groups.name = 'editors' THEN 1 ELSE 0 END)", 'num_editors')
-      .addSelect("SUM(CASE WHEN org_groups.name = 'viewers' THEN 1 ELSE 0 END)", 'num_viewers')
-      .from(Organization, 'orgs')
-      .leftJoin('orgs.billingAccount', 'billing_accounts')
-      .leftJoin('billing_accounts.product', 'products')
-      .leftJoin('orgs.aclRules', 'acl_rules')
-      .leftJoin('acl_rules.group', 'org_groups')
-      .leftJoin('org_groups.memberUsers', 'org_member_users')
-      .where('org_member_users.id IS NOT NULL')
-      .groupBy('orgs.id')
-      .addGroupBy('products.id')
+      .select("orgs.id", "site_id")
+      .addSelect("products.name", "site_type")
+      .addSelect("SUM(CASE WHEN org_groups.name = 'owners' THEN 1 ELSE 0 END)", "num_owners")
+      .addSelect("SUM(CASE WHEN org_groups.name = 'editors' THEN 1 ELSE 0 END)", "num_editors")
+      .addSelect("SUM(CASE WHEN org_groups.name = 'viewers' THEN 1 ELSE 0 END)", "num_viewers")
+      .from(Organization, "orgs")
+      .leftJoin("orgs.billingAccount", "billing_accounts")
+      .leftJoin("billing_accounts.product", "products")
+      .leftJoin("orgs.aclRules", "acl_rules")
+      .leftJoin("acl_rules.group", "org_groups")
+      .leftJoin("org_groups.memberUsers", "org_member_users")
+      .where("org_member_users.id IS NOT NULL")
+      .groupBy("orgs.id")
+      .addGroupBy("products.id")
       .getRawMany();
     return orgs;
   }
@@ -487,14 +487,14 @@ export class Housekeeper {
     return expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       if (userId !== this._dbManager.getSupportUserId()) {
-        throw new ApiError('access denied', 403);
+        throw new ApiError("access denied", 403);
       }
-      const docId = stringParam(req.params.docId, 'docId');
+      const docId = stringParam(req.params.docId, "docId");
       const permitKey = await this._permitStore.setPermit({ docId, action: permitAction });
       try {
         const result = await callback(req, docId, {
           "Permit": permitKey,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         });
         res.status(result.status);
         // Return JSON result, or an empty object if no result provided.

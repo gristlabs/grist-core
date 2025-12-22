@@ -1,6 +1,6 @@
-import { ApiError, ApiErrorDetails } from 'app/common/ApiError';
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { tbind } from 'app/common/tbind';
+import { ApiError, ApiErrorDetails } from "app/common/ApiError";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+import { tbind } from "app/common/tbind";
 
 export interface IOptions {
   headers?: Record<string, string>;
@@ -58,8 +58,8 @@ export class BaseAPI {
     this.fetch = options.fetch || tbind(window.fetch, window);
     this.newFormData = options.newFormData || (() => new FormData());
     this._headers = {
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
+      "Content-Type": "application/json",
+      "X-Requested-With": "XMLHttpRequest",
       ...options.headers,
     };
     // If we are in the client, and have a boot key query parameter,
@@ -67,11 +67,11 @@ export class BaseAPI {
     // This is a fallback mechanism if auth is broken to access the
     // admin panel.
     // TODO: should this be more selective?
-    if (typeof window !== 'undefined' && window.location &&
-      window.location.pathname.endsWith('/admin')) {
-      const bootKey = new URLSearchParams(window.location.search).get('boot-key');
+    if (typeof window !== "undefined" && window.location &&
+      window.location.pathname.endsWith("/admin")) {
+      const bootKey = new URLSearchParams(window.location.search).get("boot-key");
       if (bootKey) {
-        this._headers['X-Boot-Key'] = bootKey;
+        this._headers["X-Boot-Key"] = bootKey;
       }
     }
     this._extraParameters = options.extraParameters;
@@ -88,7 +88,7 @@ export class BaseAPI {
 
   public defaultHeadersWithoutContentType() {
     const headers = { ...this.defaultHeaders() };
-    delete headers['Content-Type'];
+    delete headers["Content-Type"];
     return headers;
   }
 
@@ -97,7 +97,7 @@ export class BaseAPI {
   protected async requestAxios(url: string, config: AxiosRequestConfig): Promise<AxiosResponse> {
     // If using with FormData in node, axios needs the headers prepared by FormData.
     let headers = config.headers;
-    if (config.data && typeof config.data.getHeaders === 'function') {
+    if (config.data && typeof config.data.getHeaders === "function") {
       headers = { ...config.data.getHeaders(), ...headers };
     }
     const resp = await axios.request({
@@ -115,7 +115,7 @@ export class BaseAPI {
 
   @BaseAPI.countRequest
   protected async request(input: string, init: RequestInit = {}): Promise<Response> {
-    init = Object.assign({ headers: this._headers, credentials: 'include' }, init);
+    init = Object.assign({ headers: this._headers, credentials: "include" }, init);
     if (this._extraParameters) {
       const url = new URL(input);
       for (const [key, val] of this._extraParameters.entries()) {
@@ -145,7 +145,7 @@ function throwApiError(url: string, resp: Response | AxiosResponse, body: any) {
   // If the response includes details, include them into the ApiError we construct. Include
   // also the error message from the server as details.userError. It's used by the Notifier.
   if (!body) { body = {}; }
-  const details: ApiErrorDetails = body.details && typeof body.details === 'object' ? body.details :
+  const details: ApiErrorDetails = body.details && typeof body.details === "object" ? body.details :
     { errorDetails: body.details };
   // If a userError is already specified, do not overwrite it.
   // (The error handling here is quite confusing, would it not be better
@@ -158,5 +158,5 @@ function throwApiError(url: string, resp: Response | AxiosResponse, body: any) {
     details.memos = body.memos;
   }
   throw new ApiError(`Request to ${url} failed with status ${resp.status}: ` +
-    `${resp.statusText} (${body.error || 'unknown cause'})`, resp.status, details);
+    `${resp.statusText} (${body.error || "unknown cause"})`, resp.status, details);
 }

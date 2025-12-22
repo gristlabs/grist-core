@@ -1,18 +1,18 @@
-import { VisibleUserProfile } from 'app/common/ActiveDocAPI';
-import { CommDocUserPresenceUpdate } from 'app/common/CommTypes';
-import * as roles from 'app/common/roles';
-import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, FullUser, getRealAccess } from 'app/common/UserAPI';
-import { appSettings } from 'app/server/lib/AppSettings';
-import { DocClients, isUserPresenceDisabled } from 'app/server/lib/DocClients';
-import { DocSession } from 'app/server/lib/DocSession';
-import { LogMethods } from 'app/server/lib/LogMethods';
+import { VisibleUserProfile } from "app/common/ActiveDocAPI";
+import { CommDocUserPresenceUpdate } from "app/common/CommTypes";
+import * as roles from "app/common/roles";
+import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, FullUser, getRealAccess } from "app/common/UserAPI";
+import { appSettings } from "app/server/lib/AppSettings";
+import { DocClients, isUserPresenceDisabled } from "app/server/lib/DocClients";
+import { DocSession } from "app/server/lib/DocSession";
+import { LogMethods } from "app/server/lib/LogMethods";
 
-import { fromPairs } from 'lodash';
+import { fromPairs } from "lodash";
 
 export class UserPresence {
   private _presenceSessionsById = new Map<string, UserPresenceSession>();
 
-  private _log = new LogMethods('UserPresence ', (s: DocSession | null) => this._activeDoc.getLogMeta(s));
+  private _log = new LogMethods("UserPresence ", (s: DocSession | null) => this._activeDoc.getLogMeta(s));
 
   constructor(private _docClients: DocClients) {
     this._docClients.addClientAddedListener(this._onNewDocSession.bind(this));
@@ -156,8 +156,8 @@ function getVisibleUserProfileFromDocSession(
   };
 }
 
-const GRIST_USER_PRESENCE_ICON_PER_TAB = Boolean(appSettings.section('userPresence').flag('iconPerTab').readBool({
-  envVar: 'GRIST_USER_PRESENCE_ICON_PER_TAB',
+const GRIST_USER_PRESENCE_ICON_PER_TAB = Boolean(appSettings.section("userPresence").flag("iconPerTab").readBool({
+  envVar: "GRIST_USER_PRESENCE_ICON_PER_TAB",
   defaultValue: false,
 }));
 

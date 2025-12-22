@@ -1,20 +1,20 @@
-import { urlState } from 'app/client/models/gristUrlState';
-import { ApplyUAResult } from 'app/common/ActiveDocAPI';
-import { ApiError } from 'app/common/ApiError';
-import { BillingAPI } from 'app/common/BillingAPI';
-import { ICustomWidget } from 'app/common/CustomWidget';
-import { TableColValues, UserAction } from 'app/common/DocActions';
-import { DocCreationInfo } from 'app/common/DocListAPI';
-import { createEmptyOrgUsageSummary, OrgUsageSummary } from 'app/common/DocUsage';
-import { arrayRemove } from 'app/common/gutil';
-import { FullUser } from 'app/common/LoginSessionAPI';
-import { NonGuestRole } from 'app/common/roles';
+import { urlState } from "app/client/models/gristUrlState";
+import { ApplyUAResult } from "app/common/ActiveDocAPI";
+import { ApiError } from "app/common/ApiError";
+import { BillingAPI } from "app/common/BillingAPI";
+import { ICustomWidget } from "app/common/CustomWidget";
+import { TableColValues, UserAction } from "app/common/DocActions";
+import { DocCreationInfo } from "app/common/DocListAPI";
+import { createEmptyOrgUsageSummary, OrgUsageSummary } from "app/common/DocUsage";
+import { arrayRemove } from "app/common/gutil";
+import { FullUser } from "app/common/LoginSessionAPI";
+import { NonGuestRole } from "app/common/roles";
 import { ActiveSessionInfo, DocAPI, Document, DocumentOptions, DocumentProperties, DocWorkerAPI,
   Organization, OrganizationProperties, PermissionData, PermissionDelta,
-  RenameDocOptions, UserAPI, Workspace } from 'app/common/UserAPI';
+  RenameDocOptions, UserAPI, Workspace } from "app/common/UserAPI";
 
-const createdAt = '2007-04-05T14:30Z';
-const updatedAt = '2007-04-05T14:30Z';
+const createdAt = "2007-04-05T14:30Z";
+const updatedAt = "2007-04-05T14:30Z";
 
 const TEMPLATES_ORG_ID = 5;
 
@@ -70,82 +70,82 @@ let keyIndex = 0;
  * Used by other tests that need to mock API calls, such as DocMenu and MFAConfig tests.
  */
 export class MockUserAPI implements UserAPI, DocWorkerAPI {
-  public readonly url: string = 'http://localhost:0';
-  public activeUser: string = 'santa';    // Can be changed to pretend to be a different user
+  public readonly url: string = "http://localhost:0";
+  public activeUser: string = "santa";    // Can be changed to pretend to be a different user
 
   private _nextOrgId = 4;
   private _nextWorkspaceId = 10;
   private _nextDocId = 32;
 
   private _orgs: OrgStore = {
-    1: { id: 1, domain: null, name: 'Personal', workspaces: [1, 2, 3], access: 'owners' },
-    2: { id: 2, domain: 'nike', name: 'Nike', workspaces: [4, 5], access: 'viewers' },
-    3: { id: 3, domain: 'chase', name: 'Chase', workspaces: [6], access: 'owners' },
-    4: { id: 4, domain: 'ms', name: 'Microsoft', workspaces: [7], access: 'owners' },
+    1: { id: 1, domain: null, name: "Personal", workspaces: [1, 2, 3], access: "owners" },
+    2: { id: 2, domain: "nike", name: "Nike", workspaces: [4, 5], access: "viewers" },
+    3: { id: 3, domain: "chase", name: "Chase", workspaces: [6], access: "owners" },
+    4: { id: 4, domain: "ms", name: "Microsoft", workspaces: [7], access: "owners" },
     [TEMPLATES_ORG_ID]: {
-      id: TEMPLATES_ORG_ID, domain: 'templates', name: 'Grist Templates', workspaces: [8, 9], access: 'viewers',
+      id: TEMPLATES_ORG_ID, domain: "templates", name: "Grist Templates", workspaces: [8, 9], access: "viewers",
     },
   };
 
   private _workspaces: WorkspaceStore = {
-    1: { id: 1, name: 'Real estate', org: 1, docs: [1, 2, 3, 4, 5, 6, 7, 8, 9], access: 'viewers' },
+    1: { id: 1, name: "Real estate", org: 1, docs: [1, 2, 3, 4, 5, 6, 7, 8, 9], access: "viewers" },
     2: {
-      id: 2, name: 'Personal', org: 1,
-      docs: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21], access: 'owners',
+      id: 2, name: "Personal", org: 1,
+      docs: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21], access: "owners",
     },
-    3: { id: 3, name: 'August', org: 1, docs: [22, 23], access: 'owners' },
-    4: { id: 4, name: 'Hosted', org: 2, docs: [24, 25, 26], access: 'owners' },
-    5: { id: 5, name: 'Management', org: 2, docs: [27], access: 'owners' },
-    6: { id: 6, name: 'New project', org: 3, docs: [28, 29, 30], access: 'owners' },
-    7: { id: 7, name: 'September', org: 4, docs: [31], access: 'owners' },
-    8: { id: 8, name: 'Invoice', org: TEMPLATES_ORG_ID, docs: [], access: 'viewers' },
-    9: { id: 9, name: 'CRM', org: TEMPLATES_ORG_ID, docs: [], access: 'viewers' },
+    3: { id: 3, name: "August", org: 1, docs: [22, 23], access: "owners" },
+    4: { id: 4, name: "Hosted", org: 2, docs: [24, 25, 26], access: "owners" },
+    5: { id: 5, name: "Management", org: 2, docs: [27], access: "owners" },
+    6: { id: 6, name: "New project", org: 3, docs: [28, 29, 30], access: "owners" },
+    7: { id: 7, name: "September", org: 4, docs: [31], access: "owners" },
+    8: { id: 8, name: "Invoice", org: TEMPLATES_ORG_ID, docs: [], access: "viewers" },
+    9: { id: 9, name: "CRM", org: TEMPLATES_ORG_ID, docs: [], access: "viewers" },
   };
 
   private _docs: DocStore = {
-    1: { id: 1, name: 'Doc01', workspace: 1, access: 'owners', isPinned: false },
-    2: { id: 2, name: 'Doc02', workspace: 1, access: 'owners', isPinned: false },
-    3: { id: 3, name: 'Doc03', workspace: 1, access: 'owners', isPinned: false },
-    4: { id: 4, name: 'Doc04', workspace: 1, access: 'owners', isPinned: false },
-    5: { id: 5, name: 'Doc05', workspace: 1, access: 'owners', isPinned: false },
-    6: { id: 6, name: 'Doc06', workspace: 1, access: 'owners', isPinned: false },
-    7: { id: 7, name: 'Doc07', workspace: 1, access: 'owners', isPinned: false },
-    8: { id: 8, name: 'Doc08', workspace: 1, access: 'owners', isPinned: false },
-    9: { id: 9, name: 'Doc09', workspace: 1, access: 'viewers', isPinned: false },
-    10: { id: 10, name: 'Doc10', workspace: 2, access: 'owners', isPinned: false, age: 600 },
-    11: { id: 11, name: 'Doc11', workspace: 2, access: 'owners', isPinned: false, age: 10 },
-    12: { id: 12, name: 'Doc12', workspace: 2, access: 'owners', isPinned: false, age: 100000 },
-    13: { id: 13, name: 'Doc13', workspace: 2, access: 'owners', isPinned: true, age: 5400 },
-    14: { id: 14, name: 'Doc14', workspace: 2, access: 'owners', isPinned: false, age: 60000000 },
-    15: { id: 15, name: 'Doc15', workspace: 2, access: 'owners', isPinned: false },
-    16: { id: 16, name: 'Doc16', workspace: 2, access: 'owners', isPinned: false },
+    1: { id: 1, name: "Doc01", workspace: 1, access: "owners", isPinned: false },
+    2: { id: 2, name: "Doc02", workspace: 1, access: "owners", isPinned: false },
+    3: { id: 3, name: "Doc03", workspace: 1, access: "owners", isPinned: false },
+    4: { id: 4, name: "Doc04", workspace: 1, access: "owners", isPinned: false },
+    5: { id: 5, name: "Doc05", workspace: 1, access: "owners", isPinned: false },
+    6: { id: 6, name: "Doc06", workspace: 1, access: "owners", isPinned: false },
+    7: { id: 7, name: "Doc07", workspace: 1, access: "owners", isPinned: false },
+    8: { id: 8, name: "Doc08", workspace: 1, access: "owners", isPinned: false },
+    9: { id: 9, name: "Doc09", workspace: 1, access: "viewers", isPinned: false },
+    10: { id: 10, name: "Doc10", workspace: 2, access: "owners", isPinned: false, age: 600 },
+    11: { id: 11, name: "Doc11", workspace: 2, access: "owners", isPinned: false, age: 10 },
+    12: { id: 12, name: "Doc12", workspace: 2, access: "owners", isPinned: false, age: 100000 },
+    13: { id: 13, name: "Doc13", workspace: 2, access: "owners", isPinned: true, age: 5400 },
+    14: { id: 14, name: "Doc14", workspace: 2, access: "owners", isPinned: false, age: 60000000 },
+    15: { id: 15, name: "Doc15", workspace: 2, access: "owners", isPinned: false },
+    16: { id: 16, name: "Doc16", workspace: 2, access: "owners", isPinned: false },
     17: {
-      id: 17, name: 'One doc to rule them all with a long name and a strong fist',
-      workspace: 2, access: 'owners', isPinned: true,
+      id: 17, name: "One doc to rule them all with a long name and a strong fist",
+      workspace: 2, access: "owners", isPinned: true,
     },
-    18: { id: 18, name: 'Doc18', workspace: 2, access: 'owners', isPinned: false },
-    19: { id: 19, name: 'Doc19', workspace: 2, access: 'owners', isPinned: false },
-    20: { id: 20, name: 'Doc20', workspace: 2, access: 'owners', isPinned: false },
-    21: { id: 21, name: 'Doc21', workspace: 2, access: 'owners', isPinned: false },
-    22: { id: 22, name: 'Doc22', workspace: 3, access: 'owners', isPinned: true },
-    23: { id: 23, name: 'Doc23', workspace: 3, access: 'owners', isPinned: false },
-    24: { id: 24, name: 'Plans', workspace: 4, access: 'owners', isPinned: false },
-    25: { id: 25, name: 'Progress', workspace: 4, access: 'owners', isPinned: false },
-    26: { id: 26, name: 'Ideas', workspace: 4, access: 'owners', isPinned: false },
-    27: { id: 27, name: 'Clients', workspace: 5, access: 'owners', isPinned: false },
-    28: { id: 28, name: 'Banking', workspace: 6, access: 'owners', isPinned: false },
-    29: { id: 29, name: 'Marketing', workspace: 6, access: 'owners', isPinned: false },
-    30: { id: 30, name: 'Money', workspace: 6, access: 'owners', isPinned: false },
-    31: { id: 31, name: 'Payroll', workspace: 7, access: 'owners', isPinned: false },
-    32: { id: 32, name: 'Timesheet', workspace: 8, access: 'viewers', isPinned: false },
-    33: { id: 33, name: 'Expense Report', workspace: 8, access: 'viewers', isPinned: false },
-    34: { id: 34, name: 'Lightweight CRM', workspace: 9, access: 'viewers', isPinned: true },
+    18: { id: 18, name: "Doc18", workspace: 2, access: "owners", isPinned: false },
+    19: { id: 19, name: "Doc19", workspace: 2, access: "owners", isPinned: false },
+    20: { id: 20, name: "Doc20", workspace: 2, access: "owners", isPinned: false },
+    21: { id: 21, name: "Doc21", workspace: 2, access: "owners", isPinned: false },
+    22: { id: 22, name: "Doc22", workspace: 3, access: "owners", isPinned: true },
+    23: { id: 23, name: "Doc23", workspace: 3, access: "owners", isPinned: false },
+    24: { id: 24, name: "Plans", workspace: 4, access: "owners", isPinned: false },
+    25: { id: 25, name: "Progress", workspace: 4, access: "owners", isPinned: false },
+    26: { id: 26, name: "Ideas", workspace: 4, access: "owners", isPinned: false },
+    27: { id: 27, name: "Clients", workspace: 5, access: "owners", isPinned: false },
+    28: { id: 28, name: "Banking", workspace: 6, access: "owners", isPinned: false },
+    29: { id: 29, name: "Marketing", workspace: 6, access: "owners", isPinned: false },
+    30: { id: 30, name: "Money", workspace: 6, access: "owners", isPinned: false },
+    31: { id: 31, name: "Payroll", workspace: 7, access: "owners", isPinned: false },
+    32: { id: 32, name: "Timesheet", workspace: 8, access: "viewers", isPinned: false },
+    33: { id: 33, name: "Expense Report", workspace: 8, access: "viewers", isPinned: false },
+    34: { id: 34, name: "Lightweight CRM", workspace: 9, access: "viewers", isPinned: true },
   };
 
   private _users = new Map<string, FullUser | null>([
-    ['santa', { id: 1, email: 'santa@getgrist.com', name: 'Santa' }],
-    ['anon', { id: 17, email: 'anon@getgrist.com', name: 'Anonymous', anonymous: true }],
-    ['null', null],
+    ["santa", { id: 1, email: "santa@getgrist.com", name: "Santa" }],
+    ["anon", { id: 17, email: "anon@getgrist.com", name: "Anonymous", anonymous: true }],
+    ["null", null],
   ]);
 
   public async getSessionActive(): Promise<ActiveSessionInfo> {
@@ -165,7 +165,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
   }
 
   public async getSessionAll(): Promise<{ users: FullUser[], orgs: Organization[] }> {
-    return { users: [this._users.get('santa')!], orgs: await this.getOrgs() };
+    return { users: [this._users.get("santa")!], orgs: await this.getOrgs() };
   }
 
   public async getOrgs(): Promise<Organization[]> {
@@ -218,7 +218,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
   }
 
   public async getTemplate(docId: string): Promise<Document> {
-    throw new Error('not implemented');
+    throw new Error("not implemented");
   }
 
   public async getDoc(docId: string): Promise<Document> {
@@ -228,7 +228,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
   public async newOrg(props: any): Promise<number> {
     const { domain, name } = props;
     const id = this._nextOrgId;
-    this._orgs[id] = { id, name, domain: domain || null, workspaces: [], access: 'owners' };
+    this._orgs[id] = { id, name, domain: domain || null, workspaces: [], access: "owners" };
     this._nextOrgId += 1;
     return id;
   }
@@ -241,7 +241,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
       name,
       org: orgId,
       docs: [],
-      access: 'owners',
+      access: "owners",
     };
     this._orgs[orgId].workspaces.push(id);
     this._nextWorkspaceId += 1;
@@ -251,18 +251,18 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
   public async newDoc(props: any, workspaceId: number): Promise<string> {
     const { name } = props;
     const id = this._nextDocId;
-    this._docs[id] = { id, name, workspace: workspaceId, access: 'owners', isPinned: false };
+    this._docs[id] = { id, name, workspace: workspaceId, access: "owners", isPinned: false };
     this._workspaces[workspaceId].docs.push(id);
     this._nextDocId += 1;
     return String(id);
   }
 
   public async newUnsavedDoc(): Promise<string> {
-    return 'new~doc';
+    return "new~doc";
   }
 
   public async importUnsavedDoc(material: any, options?: any): Promise<string> {
-    return 'new~doc';
+    return "new~doc";
   }
 
   public async importDocToWorkspace(uploadId: number, workspaceId: number): Promise<DocCreationInfo> {
@@ -313,7 +313,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
   }
 
   public async undeleteWorkspace(workspaceId: number): Promise<void> {
-    throw new Error('not implemented');
+    throw new Error("not implemented");
   }
 
   public async deleteDoc(docId: string): Promise<void> {
@@ -326,7 +326,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
   }
 
   public async undeleteDoc(docId: string): Promise<void> {
-    throw new Error('not implemented');
+    throw new Error("not implemented");
   }
 
   public async disableDoc(docId: string): Promise<void> {
@@ -334,7 +334,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
   }
 
   public async enableDoc(docId: string): Promise<void> {
-    throw new Error('not implemented');
+    throw new Error("not implemented");
   }
 
   public async updateOrgPermissions(orgId: number, delta: PermissionDelta): Promise<void> {
@@ -409,7 +409,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
 
   public async getWorkerFull() {
     return {
-      selfPrefix: '/',
+      selfPrefix: "/",
       docWorkerUrl: null,
       docWorkerId: null,
     };
@@ -420,7 +420,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
   }
 
   public getBillingAPI(): BillingAPI {
-    throw new Error('billing api not implemented');
+    throw new Error("billing api not implemented");
   }
 
   public getDocAPI(): DocAPI {
@@ -435,24 +435,24 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
             failures: 0,
             successes: 0,
           },
-          locationSummary: 'internal',
+          locationSummary: "internal",
         };
       },
       getDownloadUrl() {
-        return '/mock/download/url';
+        return "/mock/download/url";
       },
     };
     return api as DocAPI;
   }
 
   public fetchApiKey(): Promise<string> {
-    return Promise.resolve('');
+    return Promise.resolve("");
   }
 
   public createApiKey(): Promise<string> {
     const apiKeys = [
-      '9204c0f1ea5928b31e4e21e55cf975e874281d8e',
-      'e03ab513535137a7ec60978b40c9a896db6d8706'];
+      "9204c0f1ea5928b31e4e21e55cf975e874281d8e",
+      "e03ab513535137a7ec60978b40c9a896db6d8706"];
     return Promise.resolve(apiKeys[++keyIndex % 2]);
   }
 
@@ -510,11 +510,11 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
   }
 
   public getBaseUrl() {
-    return 'http://localhost';
+    return "http://localhost";
   }
 
   public forRemoved(): UserAPI {
-    throw new Error('not implemented');
+    throw new Error("not implemented");
   }
 
   public getGoogleAuthEndpoint(scope?: string): string {
@@ -526,11 +526,11 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
   }
 
   public async closeAccount(userId: number): Promise<boolean> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 
   public async closeOrg(): Promise<void> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 
   public formUrl(): string {

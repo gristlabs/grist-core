@@ -5,10 +5,10 @@ import { AclRule } from "app/gen-server/entity/AclRule";
 import { User } from "app/gen-server/entity/User";
 import { ApiError } from "app/common/ApiError";
 
-@Entity({ name: 'groups' })
+@Entity({ name: "groups" })
 export class Group extends BaseEntity {
-  public static readonly ROLE_TYPE = 'role';
-  public static readonly TEAM_TYPE = 'team';
+  public static readonly ROLE_TYPE = "role";
+  public static readonly TEAM_TYPE = "team";
 
   @PrimaryGeneratedColumn()
   public id: number;
@@ -18,17 +18,17 @@ export class Group extends BaseEntity {
 
   @ManyToMany(type => User)
   @JoinTable({
-    name: 'group_users',
-    joinColumn: { name: 'group_id' },
-    inverseJoinColumn: { name: 'user_id' },
+    name: "group_users",
+    joinColumn: { name: "group_id" },
+    inverseJoinColumn: { name: "user_id" },
   })
   public memberUsers: User[];
 
   @ManyToMany(type => Group)
   @JoinTable({
-    name: 'group_groups',
-    joinColumn: { name: 'group_id' },
-    inverseJoinColumn: { name: 'subgroup_id' },
+    name: "group_groups",
+    joinColumn: { name: "group_id" },
+    inverseJoinColumn: { name: "subgroup_id" },
   })
   public memberGroups: Group[];
 
@@ -54,7 +54,7 @@ export class Group extends BaseEntity {
     }
     const containItself = memberGroups.some(group => group.id === this.id);
     if (containItself) {
-      throw new ApiError('A group cannot contain itself.', 400);
+      throw new ApiError("A group cannot contain itself.", 400);
     }
   }
 }

@@ -1,6 +1,6 @@
-import { CellDelta, TabularDiff, TabularDiffs } from 'app/common/TabularDiff';
-import { ResultRow } from 'app/common/TimeQuery';
-import toPairs from 'lodash/toPairs';
+import { CellDelta, TabularDiff, TabularDiffs } from "app/common/TabularDiff";
+import { ResultRow } from "app/common/TimeQuery";
+import toPairs from "lodash/toPairs";
 
 /**
  * An ActionSummary represents the overall effect of changes that took place
@@ -144,7 +144,7 @@ export function asTabularDiffs(summary: ActionSummary, options: {
     const activeCols = new Set<string>();
     // First add any background context we have been handed.
     for (const row of singleTableContext || []) {
-      if (!(typeof row.id === 'number')) {
+      if (!(typeof row.id === "number")) {
         // Should not happen.
         throw new Error(`asTabularDiffs saw a non-numeric id: ${row.id}`);
       }
@@ -167,7 +167,7 @@ export function asTabularDiffs(summary: ActionSummary, options: {
     const reorder = options.order ?? ((_, colIds) => colIds);
     const activeColsWithoutManualSort = [
       ...reorder(tableId, [...activeCols]),
-    ].filter(c => c !== 'manualSort');
+    ].filter(c => c !== "manualSort");
     tableChanges.header = activeColsWithoutManualSort;
     const addedRows = new Set(td.addRows);
     const removedRows = new Set(td.removeRows);
@@ -189,7 +189,7 @@ export function asTabularDiffs(summary: ActionSummary, options: {
         // go isn't well defined at this point (there's a row number TODO above).
         if (rowId > droppedRows[0]) {
           tableChanges.cells.push({
-            type: '...',
+            type: "...",
             rowId: droppedRows[0],
             cellDeltas: activeColsWithoutManualSort.map(x => [null, null] as [null, null]),
           });
@@ -204,19 +204,19 @@ export function asTabularDiffs(summary: ActionSummary, options: {
       // after values refer to the same row.
       const versions: [string, (diff: CellDelta) => CellDelta][] = [];
       if (addedRows.has(rowId) && removedRows.has(rowId)) {
-        versions.push(['-', diff => [diff[0], null]]);
-        versions.push(['+', diff => [null, diff[1]]]);
+        versions.push(["-", diff => [diff[0], null]]);
+        versions.push(["+", diff => [null, diff[1]]]);
       }
       else {
-        let code: string = '...';
+        let code: string = "...";
         if (updatedRows.has(rowId)) {
-          code = '→';
+          code = "→";
         }
         if (addedRows.has(rowId)) {
-          code = '+';
+          code = "+";
         }
         if (removedRows.has(rowId)) {
-          code = '-';
+          code = "-";
         }
         versions.push([code, diff => diff]);
       }
@@ -252,7 +252,7 @@ export function defunctTableName(id: string): string {
 }
 
 export function rootTableName(id: string): string {
-  return id.replace('-', '');
+  return id.replace("-", "");
 }
 
 /**
@@ -287,6 +287,6 @@ export function getTableIdAfter(renames: LabelDelta[], tableIdBefore: string | n
   if (tableIdBefore === null) { return tableIdBefore; }
   const rename = renames.find(_rename => _rename[0] === tableIdBefore);
   const tableIdAfter = rename ? rename[1] : tableIdBefore;
-  if (tableIdAfter?.startsWith('-')) { return null; }
+  if (tableIdAfter?.startsWith("-")) { return null; }
   return tableIdAfter;
 }

@@ -1,15 +1,15 @@
-import { SandboxRequest } from 'app/common/ActionBundle';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
-import { makeExceptionalDocSession } from 'app/server/lib/DocSession';
-import { httpEncoding } from 'app/server/lib/httpEncoding';
-import * as path from 'path';
-import * as tmp from 'tmp';
-import * as fse from 'fs-extra';
-import log from 'app/server/lib/log';
-import chunk from 'lodash/chunk';
-import fromPairs from 'lodash/fromPairs';
-import zipObject from 'lodash/zipObject';
-import { fetchUntrustedWithAgent } from 'app/server/lib/ProxyAgent';
+import { SandboxRequest } from "app/common/ActionBundle";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { makeExceptionalDocSession } from "app/server/lib/DocSession";
+import { httpEncoding } from "app/server/lib/httpEncoding";
+import * as path from "path";
+import * as tmp from "tmp";
+import * as fse from "fs-extra";
+import log from "app/server/lib/log";
+import chunk from "lodash/chunk";
+import fromPairs from "lodash/fromPairs";
+import zipObject from "lodash/zipObject";
+import { fetchUntrustedWithAgent } from "app/server/lib/ProxyAgent";
 
 export class DocRequests {
   // Request responses are briefly cached in files only to handle multiple requests in a formula
@@ -71,7 +71,7 @@ export class DocRequests {
     catch {
       const result = await this._handleSingleRequestRaw(request);
       const resultForJson = { ...result } as any;
-      if ('content' in result) {
+      if ("content" in result) {
         resultForJson.content = result.content.toString("base64");
       }
       fse.writeJSON(cachePath, resultForJson).catch(e => log.warn(`Failed to save response to cache file: ${e}`));
@@ -81,7 +81,7 @@ export class DocRequests {
 
   private async _handleSingleRequestRaw(request: SandboxRequest): Promise<Response> {
     try {
-      if (process.env.GRIST_ENABLE_REQUEST_FUNCTION != '1') {
+      if (process.env.GRIST_ENABLE_REQUEST_FUNCTION != "1") {
         throw new Error("REQUEST is not enabled");
       }
       const { url, method, body, params, headers } = request;
@@ -97,7 +97,7 @@ export class DocRequests {
       });
       const content = await response.buffer();
       const { status, statusText } = response;
-      const encoding = httpEncoding(response.headers.get('content-type'), content);
+      const encoding = httpEncoding(response.headers.get("content-type"), content);
       return {
         content, status, statusText, encoding,
         headers: fromPairs([...response.headers]),

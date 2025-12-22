@@ -9,10 +9,10 @@
  * 4. It automatically prefixes channels to scope them to the current Redis database using
  *    getPubSubPrefix(), so that calling code doesn't have to worry about it.
  */
-import { mapGetOrSet } from 'app/common/AsyncCreate';
-import { getPubSubPrefix } from 'app/server/lib/serverUtils';
-import log from 'app/server/lib/log';
-import { arrayRemove, removePrefix, setDefault } from 'app/common/gutil';
+import { mapGetOrSet } from "app/common/AsyncCreate";
+import { getPubSubPrefix } from "app/server/lib/serverUtils";
+import log from "app/server/lib/log";
+import { arrayRemove, removePrefix, setDefault } from "app/common/gutil";
 import IORedis from "ioredis";
 
 /**
@@ -152,10 +152,10 @@ class PubSubManagerRedis extends PubSubManagerBase {
     this._redisSub = new IORedis(redisUrl, { retryStrategy });
     this._redisPub = new IORedis(redisUrl, { retryStrategy });
 
-    this._redisSub.on('error', err => log.error('PubSubManagerRedis: redisSub connection error:', String(err)));
-    this._redisPub.on('error', err => log.error('PubSubManagerRedis: redisPub connection error:', String(err)));
+    this._redisSub.on("error", err => log.error("PubSubManagerRedis: redisSub connection error:", String(err)));
+    this._redisPub.on("error", err => log.error("PubSubManagerRedis: redisPub connection error:", String(err)));
 
-    this._redisSub.on('message', (fullChannel, message) => {
+    this._redisSub.on("message", (fullChannel, message) => {
       const channel = this._unprefixChannel(fullChannel);
       if (channel != null) {
         this._deliverMessage(channel, message);

@@ -1,4 +1,4 @@
-import { dom } from 'grainjs';
+import { dom } from "grainjs";
 
 /**
  * Load dynamically an external JS script from the given URL. Returns a promise that is

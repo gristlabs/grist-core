@@ -1,15 +1,15 @@
-import { ICustomWidget } from 'app/common/CustomWidget';
-import log from 'app/server/lib/log';
-import * as fse from 'fs-extra';
-import fetch from 'node-fetch';
-import * as path from 'path';
-import { ApiError } from 'app/common/ApiError';
-import { isAffirmative, removeTrailingSlash } from 'app/common/gutil';
-import { GristServer } from 'app/server/lib/GristServer';
-import LRUCache from 'lru-cache';
-import * as url from 'url';
-import { AsyncCreate } from 'app/common/AsyncCreate';
-import { agents } from 'app/server/lib/ProxyAgent';
+import { ICustomWidget } from "app/common/CustomWidget";
+import log from "app/server/lib/log";
+import * as fse from "fs-extra";
+import fetch from "node-fetch";
+import * as path from "path";
+import { ApiError } from "app/common/ApiError";
+import { isAffirmative, removeTrailingSlash } from "app/common/gutil";
+import { GristServer } from "app/server/lib/GristServer";
+import LRUCache from "lru-cache";
+import * as url from "url";
+import { AsyncCreate } from "app/common/AsyncCreate";
+import { agents } from "app/server/lib/ProxyAgent";
 
 export const Deps = {
   /** Static url for UrlWidgetRepository */
@@ -45,7 +45,7 @@ export class DiskWidgetRepository implements IWidgetRepository {
     private _source?: any) {}
 
   public async getWidgets(): Promise<ICustomWidget[]> {
-    const txt = await fse.readFile(this._widgetFile, { encoding: 'utf8' });
+    const txt = await fse.readFile(this._widgetFile, { encoding: "utf8" });
     const widgets: ICustomWidget[] = JSON.parse(txt);
     fixUrls(widgets, this._widgetBaseUrl);
     if (this._source) {
@@ -105,9 +105,9 @@ export class UrlWidgetRepository implements IWidgetRepository {
   public async getWidgets(): Promise<ICustomWidget[]> {
     if (!this._staticUrl) {
       log.warn(
-        'WidgetRepository: Widget repository is not configured.' + (!Deps.STATIC_URL ?
-          ' Missing GRIST_WIDGET_LIST_URL environmental variable.' :
-          ''),
+        "WidgetRepository: Widget repository is not configured." + (!Deps.STATIC_URL ?
+          " Missing GRIST_WIDGET_LIST_URL environmental variable." :
+          ""),
       );
       return [];
     }
@@ -115,10 +115,10 @@ export class UrlWidgetRepository implements IWidgetRepository {
       const response = await fetch(this._staticUrl, { agent: agents.trusted });
       if (!response.ok) {
         if (response.status === 404) {
-          throw new ApiError('WidgetRepository: Remote widget list not found', 404);
+          throw new ApiError("WidgetRepository: Remote widget list not found", 404);
         }
         else {
-          const body = await response.text().catch(() => '');
+          const body = await response.text().catch(() => "");
           throw new ApiError(
             `WidgetRepository: Remote server returned an error: ${body || response.statusText}`, response.status,
           );
@@ -126,7 +126,7 @@ export class UrlWidgetRepository implements IWidgetRepository {
       }
       const widgets = await response.json().catch(() => null);
       if (!widgets || !Array.isArray(widgets)) {
-        throw new ApiError('WidgetRepository: Error reading widget list', 500);
+        throw new ApiError("WidgetRepository: Error reading widget list", 500);
       }
       fixUrls(widgets, this._staticUrl);
       return widgets;
@@ -239,7 +239,7 @@ export function buildWidgetRepository(gristServer?: GristServer,
   }) {
   return new CachedWidgetRepository({
     gristServer,
-    ...(options?.localOnly ? { staticUrl: '' } : undefined),
+    ...(options?.localOnly ? { staticUrl: "" } : undefined),
   });
 }
 
@@ -278,8 +278,8 @@ export function getWidgetsInPlugins(gristServer: GristServer,
     const components = plugin.manifest.components;
     if (!components.widgets) { continue; }
     const urlBase =
-      removeTrailingSlash(pluginUrl) + '/v/' +
-      gristServer.getTag() + '/widgets/' + plugin.id + '/';
+      removeTrailingSlash(pluginUrl) + "/v/" +
+      gristServer.getTag() + "/widgets/" + plugin.id + "/";
     places.push({
       urlBase,
       dir: path.resolve(plugin.path, path.dirname(components.widgets)),

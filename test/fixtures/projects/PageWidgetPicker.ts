@@ -1,9 +1,9 @@
-import { attachPageWidgetPicker, IOptions, IPageWidget, ISaveFunc } from 'app/client/ui/PageWidgetPicker';
-import { basicButton } from 'app/client/ui2018/buttons';
-import { testId } from 'app/client/ui2018/cssVars';
+import { attachPageWidgetPicker, IOptions, IPageWidget, ISaveFunc } from "app/client/ui/PageWidgetPicker";
+import { basicButton } from "app/client/ui2018/buttons";
+import { testId } from "app/client/ui2018/cssVars";
 import { dom, domComputed, DomElementMethod, obsArray, observable, styled } from "grainjs";
-import { gristDocMock } from 'test/fixtures/projects/helpers/widgetPicker';
-import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import { gristDocMock } from "test/fixtures/projects/helpers/widgetPicker";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 interface ISaveCall {
@@ -37,55 +37,55 @@ function setupTest() {
       return { isNewPage, value };
     }, option => [
       basicButton(
-        'Page widget picker',
+        "Page widget picker",
         pageWidgetPicker(onSelect, option),
-        testId('trigger'),
+        testId("trigger"),
       ),
       dom(
-        'div',
-        dom('h3', 'Options'),
+        "div",
+        dom("h3", "Options"),
         dom(
-          'div', 'isNewPage: ',
+          "div", "isNewPage: ",
           dom(
-            'input', { type: 'checkbox' },
-            dom.prop('checked', isNewPageObs),
-            dom.on('change', (ev, elem) => isNewPageObs.set(elem.checked)),
-            testId('option-isNewPage'),
+            "input", { type: "checkbox" },
+            dom.prop("checked", isNewPageObs),
+            dom.on("change", (ev, elem) => isNewPageObs.set(elem.checked)),
+            testId("option-isNewPage"),
           ),
         ),
         dom(
-          'div', 'value: ', dom.text(use => JSON.stringify(use(valueOpt))),
+          "div", "value: ", dom.text(use => JSON.stringify(use(valueOpt))),
           dom(
-            'button', 'Change',
+            "button", "Change",
             pageWidgetPicker(async val => valueOpt.set(val), option),
-            testId('option-value'),
+            testId("option-value"),
           ),
           dom(
-            'button', 'omit',
-            dom.on('click', () => valueOpt.set(null)),
-            testId('option-omit-value'),
+            "button", "omit",
+            dom.on("click", () => valueOpt.set(null)),
+            testId("option-omit-value"),
           ),
         ),
       ),
     ]),
 
     cssCallLogs(
-      dom('h3', 'Call logs: '),
+      dom("h3", "Call logs: "),
       dom.forEach(saveCalls, call => dom(
-        'div',
-        dom('span', JSON.stringify(call.value), testId('call-value')),
-        dom('button', 'Resolve', dom.on('click', (ev, el) => {
+        "div",
+        dom("span", JSON.stringify(call.value), testId("call-value")),
+        dom("button", "Resolve", dom.on("click", (ev, el) => {
           call.resolve();
-          el.toggleAttribute('disabled', true);
-        }), testId('resolve')),
-        testId('call-log'),
+          el.toggleAttribute("disabled", true);
+        }), testId("resolve")),
+        testId("call-log"),
       )),
-      testId('call-logs'),
+      testId("call-logs"),
     ),
   ];
 }
 
-const cssCallLogs = styled('div', `
+const cssCallLogs = styled("div", `
   position: absolute;
   z-index: 1000;
   border: 1px solid grey;

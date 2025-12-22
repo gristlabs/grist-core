@@ -50,7 +50,7 @@ import * as version from 'app/common/version';
 import {Computed, Disposable, dom, IDisposable, MultiHolder, Observable, styled, UseCBOwner} from 'grainjs';
 import {MINIMAL_PROVIDER_KEY} from 'app/common/loginProviders';
 
-const t = makeT('AdminPanel');
+const t = makeT("AdminPanel");
 
 // A fortnight of milliseconds is the default time after which we
 // consider a version check to be stale. It's a big number, but we're
@@ -58,7 +58,7 @@ const t = makeT('AdminPanel');
 const STALE_VERSION_CHECK_TIME_IN_MS = 14 * 24 * 60 * 60 * 1000;
 
 export class AdminPanel extends Disposable {
-  private _page = Computed.create<AdminPanelPage>(this, use => use(urlState().state).adminPanel || 'admin');
+  private _page = Computed.create<AdminPanelPage>(this, use => use(urlState().state).adminPanel || "admin");
 
   constructor(private _appModel: AppModel, private _appObj: App) {
     super();
@@ -66,7 +66,7 @@ export class AdminPanel extends Disposable {
   }
 
   public buildDom() {
-    const pageObs = Computed.create(this, use => use(urlState().state).adminPanel || 'admin');
+    const pageObs = Computed.create(this, use => use(urlState().state).adminPanel || "admin");
     return pagePanels({
       leftPanel: buildAdminLeftPanel(this, this._appModel),
       headerMain: this._buildMainHeader(pageObs),
@@ -79,17 +79,17 @@ export class AdminPanel extends Disposable {
   private _buildMainHeader(pageObs: Computed<AdminPanelPage>) {
     const pageNames = getPageNames();
     return [
-      cssBreadcrumbs({ style: 'margin-left: 16px;' },
+      cssBreadcrumbs({ style: "margin-left: 16px;" },
         cssLink(
           urlState().setLinkUrl({}),
-          t('Grist Instance'),
+          t("Grist Instance"),
         ),
-        separator(' / '),
-        dom('span', getAdminPanelName()),
-        separator(' / '),
-        dom('span', dom.domComputed(use => pageNames.pages[use(pageObs)].section)),
-        separator(' / '),
-        dom('span', dom.domComputed(use => pageNames.pages[use(pageObs)].name)),
+        separator(" / "),
+        dom("span", getAdminPanelName()),
+        separator(" / "),
+        dom("span", dom.domComputed(use => pageNames.pages[use(pageObs)].section)),
+        separator(" / "),
+        dom("span", dom.domComputed(use => pageNames.pages[use(pageObs)].name)),
       ),
       createTopBarHome(this._appModel),
     ];
@@ -100,17 +100,17 @@ export class AdminPanel extends Disposable {
       // Setting tabIndex allows selecting and copying text. This is helpful on admin pages, e.g.
       // to copy GRIST_BOOT_KEY or version number. But we don't set it for buidAdminData() pages
       // because it messes with focus in GridViews, and its unclear how to undo its effect.
-      dom.attr('tabindex', use => use(this._page) === 'admin' ? '-1' : null as any),
+      dom.attr("tabindex", use => use(this._page) === "admin" ? "-1" : null as any),
 
-      dom.domComputed(use => use(this._page) === 'admin', (isInstallationAdminPage) => {
+      dom.domComputed(use => use(this._page) === "admin", (isInstallationAdminPage) => {
         return isInstallationAdminPage ?
           dom.create(AdminInstallationPanel, this._appModel) :
           dom.create(buildAdminData, this._appModel);
       }),
 
-      cssPageContainer.cls('-admin-pages', use => use(this._page) !== 'admin'),
+      cssPageContainer.cls("-admin-pages", use => use(this._page) !== "admin"),
 
-      testId('admin-panel'),
+      testId("admin-panel"),
     );
   }
 }
@@ -192,17 +192,17 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
    */
   private _buildMainContentForOthers() {
     const exampleKey = _longCodeForExample();
-    return dom.create(AdminSection, t('Administrator Panel Unavailable'), [
-      dom('p', t(`You do not have access to the administrator panel.
+    return dom.create(AdminSection, t("Administrator Panel Unavailable"), [
+      dom("p", t(`You do not have access to the administrator panel.
 Please log in as an administrator.`)),
       dom(
-        'p',
+        "p",
         t(`Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}`, {
-          bootKey: dom('pre', `GRIST_BOOT_KEY=${exampleKey}`),
-          url: dom('pre', `/admin?boot-key=${exampleKey}`),
+          bootKey: dom("pre", `GRIST_BOOT_KEY=${exampleKey}`),
+          url: dom("pre", `/admin?boot-key=${exampleKey}`),
         }),
       ),
-      testId('admin-panel-error'),
+      testId("admin-panel-error"),
     ]);
   }
 
@@ -234,75 +234,75 @@ Please log in as an administrator.`)),
       ]),
       dom.create(AdminSection, t('Support Grist'), [
         dom.create(AdminSectionItem, {
-          id: 'telemetry',
-          name: t('Telemetry'),
-          description: t('Help us make Grist better'),
+          id: "telemetry",
+          name: t("Telemetry"),
+          description: t("Help us make Grist better"),
           value: dom.create(
             HidableToggle,
             this._supportGrist.getTelemetryOptInObservable(),
-            { labelId: 'admin-panel-item-description-telemetry' },
+            { labelId: "admin-panel-item-description-telemetry" },
           ),
           expandedContent: this._supportGrist.buildTelemetrySection(),
         }),
         dom.create(AdminSectionItem, {
-          id: 'sponsor',
-          name: t('Sponsor'),
-          description: t('Support Grist Labs on GitHub'),
+          id: "sponsor",
+          name: t("Sponsor"),
+          description: t("Support Grist Labs on GitHub"),
           value: this._supportGrist.buildSponsorshipSmallButton(),
           expandedContent: this._supportGrist.buildSponsorshipSection(),
         }),
       ]),
-      dom.create(AdminSection, t('Security Settings'), [
+      dom.create(AdminSection, t("Security Settings"), [
         dom.create(AdminSectionItem, {
-          id: 'admins',
-          name: t('Administrative accounts'),
-          description: t('The users with administrative accounts'),
+          id: "admins",
+          name: t("Administrative accounts"),
+          description: t("The users with administrative accounts"),
           value: this._buildAdminUsersDisplay(),
           expandedContent: this._buildAdminUsersDetail(),
         }),
         dom.create(AdminSectionItem, {
-          id: 'sandboxing',
-          name: t('Sandboxing'),
-          description: t('Sandbox settings for data engine'),
+          id: "sandboxing",
+          name: t("Sandboxing"),
+          description: t("Sandbox settings for data engine"),
           value: this._buildSandboxingDisplay(),
           expandedContent: this._buildSandboxingNotice(),
         }),
         dom.create(AdminSectionItem, {
-          id: 'authentication',
-          name: t('Authentication'),
-          description: t('Current authentication method'),
+          id: "authentication",
+          name: t("Authentication"),
+          description: t("Current authentication method"),
           value: this._buildAuthenticationDisplay(),
           expandedContent: this._buildAuthenticationPanelExtraContent(),
         }),
         dom.create(AdminSectionItem, {
-          id: 'session',
-          name: t('Session Secret'),
-          description: t('Key to sign sessions with'),
+          id: "session",
+          name: t("Session Secret"),
+          description: t("Key to sign sessions with"),
           value: this._buildSessionSecretDisplay(),
           expandedContent: this._buildSessionSecretNotice(),
         }),
       ]),
       this._buildAuditLogsSection(),
-      dom.create(AdminSection, t('Version'), [
+      dom.create(AdminSection, t("Version"), [
         dom.create(AdminSectionItem, {
-          id: 'version',
-          name: t('Current'),
-          description: t('Current version of Grist'),
-          value: cssValueLabel(t('Version {{versionNumber}}', { versionNumber: version.version })),
+          id: "version",
+          name: t("Current"),
+          description: t("Current version of Grist"),
+          value: cssValueLabel(t("Version {{versionNumber}}", { versionNumber: version.version })),
         }),
         this._maybeAddEnterpriseToggle(),
         dom.create(this._buildUpdates.bind(this)),
       ]),
-      dom.create(AdminSection, t('Self Checks'), [
+      dom.create(AdminSection, t("Self Checks"), [
         this._buildProbeItems({
           showRedundant: false,
           showNovel: true,
         }),
         dom.create(AdminSectionItem, {
-          id: 'probe-other',
-          name: t('more...'),
-          description: '',
-          value: '',
+          id: "probe-other",
+          name: t("more..."),
+          description: "",
+          value: "",
           expandedContent: this._buildProbeItems({
             showRedundant: true,
             showNovel: false,
@@ -320,7 +320,7 @@ Please log in as an administrator.`)),
     let makeToggle = () => dom.create(
       HidableToggle,
       this._toggleEnterprise.getEnterpriseToggleObservable(),
-      { labelId: 'admin-panel-item-description-enterprise' },
+      { labelId: "admin-panel-item-description-enterprise" },
     );
 
     // If the enterprise edition is forced, we don't show the toggle.
@@ -329,9 +329,9 @@ Please log in as an administrator.`)),
     }
 
     return dom.create(AdminSectionItem, {
-      id: 'enterprise',
-      name: t('Enterprise'),
-      description: t('Enable Grist Enterprise'),
+      id: "enterprise",
+      name: t("Enterprise"),
+      description: t("Enable Grist Enterprise"),
       value: makeToggle(),
       expandedContent: this._toggleEnterprise.buildEnterpriseSection(),
     });
@@ -340,23 +340,23 @@ Please log in as an administrator.`)),
   private _buildSandboxingDisplay() {
     return dom.domComputed(
       (use) => {
-        const req = this._checks.requestCheckById(use, 'sandboxing');
+        const req = this._checks.requestCheckById(use, "sandboxing");
         const result = req ? use(req.result) : undefined;
-        const success = result?.status === 'success';
+        const success = result?.status === "success";
         const details = result?.details as SandboxingBootProbeDetails | undefined;
         if (!details) {
           // Sandbox details get filled out relatively slowly if
           // this is first time on admin panel. So show "checking"
           // if we don't have a reported status yet.
-          return cssValueLabel(result?.status ? t('unknown') : t('checking'));
+          return cssValueLabel(result?.status ? t("unknown") : t("checking"));
         }
         const flavor = details.flavor;
         const configured = details.configured;
         return cssValueLabel(
           configured ?
-            (success ? cssHappyText(t('OK') + `: ${flavor}`) :
-              cssErrorText(t('Error') + `: ${flavor}`)) :
-            cssErrorText(t('unconfigured')));
+            (success ? cssHappyText(t("OK") + `: ${flavor}`) :
+              cssErrorText(t("Error") + `: ${flavor}`)) :
+            cssErrorText(t("unconfigured")));
       },
     );
   }
@@ -367,9 +367,9 @@ Please log in as an administrator.`)),
       // duplicate.
       probeDetails.sandboxing.info,
       dom(
-        'div',
-        { style: 'margin-top: 8px' },
-        cssLink({ href: commonUrls.helpSandboxing, target: '_blank' }, t('Learn more.')),
+        "div",
+        { style: "margin-top: 8px" },
+        cssLink({ href: commonUrls.helpSandboxing, target: "_blank" }, t("Learn more.")),
       ),
     ];
   }
@@ -378,16 +378,16 @@ Please log in as an administrator.`)),
     use: UseCBOwner,
     renderSuccess: (users: InstallAdminInfo[]) => Element,
   ) {
-    const req = this._checks.requestCheckById(use, 'admins');
+    const req = this._checks.requestCheckById(use, "admins");
     const result = req ? use(req.result) : undefined;
-    const success = result?.status === 'success';
+    const success = result?.status === "success";
 
     if (!result) {
-      return t('checking');
+      return t("checking");
     }
 
     if (!success) {
-      return cssErrorText(t('Error'));
+      return cssErrorText(t("Error"));
     }
 
     const users: InstallAdminInfo[] = result?.details?.users || [];
@@ -400,12 +400,12 @@ Please log in as an administrator.`)),
         use => this._buildAdminUsersComputed(use, (users) => {
           const actualUsers = users.filter(detail => detail.user !== null);
           if (actualUsers.length > 0) {
-            return cssHappyText(t('{{count}} admin accounts', { count: actualUsers.length }));
+            return cssHappyText(t("{{count}} admin accounts", { count: actualUsers.length }));
           }
-          return cssErrorText(t('no admin accounts'));
+          return cssErrorText(t("no admin accounts"));
         }),
       ),
-      testId('admin-panel-admin-accounts-display'),
+      testId("admin-panel-admin-accounts-display"),
     );
   }
 
@@ -415,11 +415,11 @@ Please log in as an administrator.`)),
         return cssAdminAccountList(
           users.map(({ user, reason }) => {
             const userDisplay = user ? cssUserInfo(
-              createUserImage(user, 'medium'),
-              cssUserName(dom('span', user.name, testId('admin-panel-admin-account-name')),
-                cssEmail(user.email, testId('admin-panel-admin-account-email')),
+              createUserImage(user, "medium"),
+              cssUserName(dom("span", user.name, testId("admin-panel-admin-account-name")),
+                cssEmail(user.email, testId("admin-panel-admin-account-email")),
               ),
-            ) : cssErrorText(t('Admin account not found'));
+            ) : cssErrorText(t("Admin account not found"));
             return cssAdminAccountListItem([
               cssAdminAccountItemPart(userDisplay),
               cssAdminAccountItemPart(cssAdminAccountReason(markdown(reason, { inline: true }))),
@@ -487,22 +487,22 @@ Please log in as an administrator.`)),
   private _buildSessionSecretDisplay() {
     return dom.domComputed(
       (use) => {
-        const req = this._checks.requestCheckById(use, 'session-secret');
+        const req = this._checks.requestCheckById(use, "session-secret");
         const result = req ? use(req.result) : undefined;
 
-        if (result?.status === 'warning') {
-          return cssValueLabel(cssDangerText(t('default')));
+        if (result?.status === "warning") {
+          return cssValueLabel(cssDangerText(t("default")));
         }
 
-        return cssValueLabel(cssHappyText(t('configured')));
+        return cssValueLabel(cssHappyText(t("configured")));
       },
     );
   }
 
   private _buildSessionSecretNotice() {
-    return t('Grist signs user session cookies with a secret key. Please set this key via the environment variable \
+    return t("Grist signs user session cookies with a secret key. Please set this key via the environment variable \
 GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice \
-in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.');
+in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.");
   }
 
   private _buildUpdates(owner: MultiHolder) {
@@ -550,7 +550,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
 
     // By default we link to the Docker Hub releases page, but the
     // endpoint might say something different.
-    const releaseURL = 'https://hub.docker.com/r/gristlabs/grist';
+    const releaseURL = "https://hub.docker.com/r/gristlabs/grist";
 
     // All the events that might occur
     const actions = {
@@ -604,16 +604,16 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
 
     const description = Computed.create(owner, (use) => {
       switch (use(state)) {
-        case State.NEVER: return t('No information available');
-        case State.CHECKING: return '⌛ ' + t('Checking for updates...');
-        case State.CURRENT: return '✅ ' + t('Grist is up to date');
-        case State.AVAILABLE: return t('Newer version available');
-        case State.ERROR: return '❌ ' + t('Error checking for updates');
+        case State.NEVER: return t("No information available");
+        case State.CHECKING: return "⌛ " + t("Checking for updates...");
+        case State.CURRENT: return "✅ " + t("Grist is up to date");
+        case State.AVAILABLE: return t("Newer version available");
+        case State.ERROR: return "❌ " + t("Error checking for updates");
         case State.STALE: {
           const lastCheck = latestVersionAvailable.get()?.dateChecked;
           return lastCheck ?
-            t('Last checked {{time}}', { time: getTimeFromNow(lastCheck) }) :
-            t('No record of last version check');
+            t("Last checked {{time}}", { time: getTimeFromNow(lastCheck) }) :
+            t("No record of last version check");
         }
       }
     });
@@ -660,9 +660,9 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
     });
 
     return dom.create(AdminSectionItem, {
-      id: 'updates',
-      name: t('Updates'),
-      description: dom('span', testId('admin-panel-updates-message'), dom.text(description)),
+      id: "updates",
+      name: t("Updates"),
+      description: dom("span", testId("admin-panel-updates-message"), dom.text(description)),
       value: cssValueButton(
         dom.domComputed((use) => {
           if (use(state) === State.CHECKING) {
@@ -671,34 +671,34 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
 
           if (use(upperCheckNowVisible)) {
             return basicButton(
-              t('Check now'),
-              dom.on('click', actions.checkForUpdates),
-              testId('admin-panel-updates-upper-check-now'),
+              t("Check now"),
+              dom.on("click", actions.checkForUpdates),
+              testId("admin-panel-updates-upper-check-now"),
             );
           }
 
           if (use(latestVersionAvailable)) {
             return cssValueLabel(
               `Version ${use(latestVersionAvailable)?.version}`,
-              testId('admin-panel-updates-version'),
+              testId("admin-panel-updates-version"),
             );
           }
 
-          throw new Error('Invalid state');
+          throw new Error("Invalid state");
         }),
       ),
-      expandedContent: dom('div',
+      expandedContent: dom("div",
         cssExpandedContent(
-          dom.domComputed(use => dom('div', t('Grist releases are at '),
+          dom.domComputed(use => dom("div", t("Grist releases are at "),
             makeLinks(use(latestVersionAvailable)?.releaseUrl || releaseURL),
           )),
         ),
         dom.maybe(latestVersionAvailable, latest => cssExpandedContent(
-          dom('div',
-            dom('span', t('Last checked {{time}}', {
+          dom("div",
+            dom("span", t("Last checked {{time}}", {
               time: getTimeFromNow(latest.dateChecked),
             })),
-            dom('span', ' '),
+            dom("span", " "),
             // Format date in local format.
             cssGrayed(`(${new Date(latest.dateChecked).toLocaleString()})`),
           ),
@@ -707,25 +707,25 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
           // no need to duplicate it.
           dom.maybe(use => !use(upperCheckNowVisible), () => [
             cssCheckNowButton(
-              t('Check now'),
-              testId('admin-panel-updates-lower-check-now'),
-              dom.on('click', actions.checkForUpdates),
-              dom.prop('disabled', use => use(state) === State.CHECKING),
+              t("Check now"),
+              testId("admin-panel-updates-lower-check-now"),
+              dom.on("click", actions.checkForUpdates),
+              dom.prop("disabled", use => use(state) === State.CHECKING),
             ),
           ]),
         )),
         dom.domComputed(allowAutomaticVersionChecking, allowAutomaticChecks =>
           allowAutomaticChecks ? cssExpandedContent(
-            dom('label', t('Auto-check weekly'), { for: 'admin-panel-updates-auto-check-switch' }),
-            dom('div', toggleSwitch(enabledController, {
-              args: [testId('admin-panel-updates-auto-check')],
-              inputArgs: [{ id: 'admin-panel-updates-auto-check-switch' }],
+            dom("label", t("Auto-check weekly"), { for: "admin-panel-updates-auto-check-switch" }),
+            dom("div", toggleSwitch(enabledController, {
+              args: [testId("admin-panel-updates-auto-check")],
+              inputArgs: [{ id: "admin-panel-updates-auto-check-switch" }],
             })),
           ) :
             cssExpandedContent(
-              dom('span', t('Automatic checks are disabled. \
+              dom("span", t('Automatic checks are disabled. \
 Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to enable them.'),
-              testId('admin-panel-updates-auto-check-disabled')),
+              testId("admin-panel-updates-auto-check-disabled")),
             ),
         )),
     });
@@ -744,9 +744,9 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
       use => [
         ...use(this._checks.probes).map((probe) => {
           const isRedundant = [
-            'sandboxing',
-            'authentication',
-            'session-secret',
+            "sandboxing",
+            "authentication",
+            "session-secret",
           ].includes(probe.id);
           const show = isRedundant ? options.showRedundant : options.showNovel;
           if (!show) { return null; }
@@ -771,28 +771,28 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
       value: cssStatus(status),
       expandedContent: [
         cssCheckHeader(
-          t('Results'),
-          { style: 'margin-top: 0px; padding-top: 0px;' },
+          t("Results"),
+          { style: "margin-top: 0px; padding-top: 0px;" },
         ),
-        result.verdict ? dom('pre', result.verdict) : null,
-        (result.status === 'none') ? null :
-          dom('p',
-            (result.status === 'success') ? t('Check succeeded.') : t('Check failed.')),
-        (result.status !== 'none') ? null :
-          dom('p', t('No fault detected.')),
+        result.verdict ? dom("pre", result.verdict) : null,
+        (result.status === "none") ? null :
+          dom("p",
+            (result.status === "success") ? t("Check succeeded.") : t("Check failed.")),
+        (result.status !== "none") ? null :
+          dom("p", t("No fault detected.")),
         (details?.info === undefined) ? null : [
-          cssCheckHeader(t('Notes')),
+          cssCheckHeader(t("Notes")),
           details.info,
         ],
         (result.details === undefined) ? null : [
-          cssCheckHeader(t('Details')),
+          cssCheckHeader(t("Details")),
           ...Object.entries(result.details).map(([key, val]) => {
             return dom(
-              'div',
+              "div",
               cssLabel(key),
-              dom('input', dom.prop(
-                'value',
-                typeof val === 'string' ? val : JSON.stringify(val))));
+              dom("input", dom.prop(
+                "value",
+                typeof val === "string" ? val : JSON.stringify(val))));
           }),
         ],
       ],
@@ -806,19 +806,19 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
    */
   private _encodeSuccess(result: BootProbeResult) {
     switch (result.status) {
-      case 'success':
-        return '✅';
-      case 'fault':
-        return '❌';
-      case 'warning':
-        return '❗';
-      case 'hmm':
-        return '?';
-      case 'none':
-        return '―';
+      case "success":
+        return "✅";
+      case "fault":
+        return "❌";
+      case "warning":
+        return "❗";
+      case "hmm":
+        return "?";
+      case "none":
+        return "―";
       default:
         // should not arrive here
-        return '??';
+        return "??";
     }
   }
 
@@ -909,19 +909,19 @@ learn more.",
 
 // Ugh I'm not a front end person. h5 small-caps, sure why not.
 // Hopefully someone with taste will edit someday!
-const cssCheckHeader = styled('h5', `
+const cssCheckHeader = styled("h5", `
   margin-bottom: 5px;
   font-variant: small-caps;
 `);
 
-const cssStatus = styled('div', `
+const cssStatus = styled("div", `
   display: inline-block;
   text-align: center;
   width: 40px;
   padding: 5px;
 `);
 
-const cssPageContainer = styled('div', `
+const cssPageContainer = styled("div", `
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -944,7 +944,7 @@ const cssPageContainer = styled('div', `
   }
 `);
 
-const cssExpandedContent = styled('div', `
+const cssExpandedContent = styled("div", `
   display: flex;
   justify-content: space-between;
   margin-right: 8px;
@@ -952,7 +952,7 @@ const cssExpandedContent = styled('div', `
   align-items: center;
 `);
 
-const cssValueButton = styled('div', `
+const cssValueButton = styled("div", `
   height: 30px;
 `);
 
@@ -962,30 +962,30 @@ const cssCheckNowButton = styled(basicButton, `
   }
 `);
 
-const cssGrayed = styled('span', `
+const cssGrayed = styled("span", `
   color: ${theme.lightText};
 `);
 
-const cssErrorText = styled('span', `
+const cssErrorText = styled("span", `
   color: ${theme.errorText};
 `);
 
-const cssDangerText = styled('div', `
+const cssDangerText = styled("div", `
   color: ${theme.dangerText};
 `);
 
-const cssHappyText = styled('span', `
+const cssHappyText = styled("span", `
   color: ${theme.controlFg};
 `);
 
-const cssLabel = styled('div', `
+const cssLabel = styled("div", `
   display: inline-block;
   min-width: 100px;
   text-align: right;
   padding-right: 5px;
 `);
 
-const cssSectionTag = styled('span', `
+const cssSectionTag = styled("span", `
   color: ${theme.accentText};
   text-transform: uppercase;
   font-size: 8px;
@@ -995,14 +995,14 @@ const cssSectionTag = styled('span', `
   font-weight: bold;
 `);
 
-const cssAdminAccountList = styled('ul', `
+const cssAdminAccountList = styled("ul", `
   list-style: none;
   padding: 0;
   max-width: 700px;
   margin: 0 auto;
 `);
 
-const cssAdminAccountListItem = styled('li', `
+const cssAdminAccountListItem = styled("li", `
   padding: 1rem 0rem;
   margin: 0rem 1.2rem;
   display: flex;
@@ -1012,13 +1012,13 @@ const cssAdminAccountListItem = styled('li', `
   }
 `);
 
-const cssAdminAccountReason = styled('span', `
+const cssAdminAccountReason = styled("span", `
   font-size: 0.9rem;
   font-weight: 500;
   display: inherit;
 `);
 
-const cssAdminAccountItemPart = styled('span', `
+const cssAdminAccountItemPart = styled("span", `
   width: 50%;
   &>:not(div) {
     padding: 12px 24px 12px 16px;
@@ -1033,9 +1033,9 @@ const cssAdminAccountItemPart = styled('span', `
 function _longCodeForExample() {
   // Crypto in insecure contexts doesn't have randomUUID
   if (window.isSecureContext) {
-    return 'example-a' + window.crypto.randomUUID();
+    return "example-a" + window.crypto.randomUUID();
   }
-  return 'example-b' + 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/x/g, () => {
+  return "example-b" + "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx".replace(/x/g, () => {
     return Math.floor(Math.random() * 16).toString(16);
   });
 }

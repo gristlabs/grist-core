@@ -1,7 +1,7 @@
-import * as express from 'express';
-import { ApiError } from 'app/common/ApiError';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
-import { DownloadOptions, ExportColumn, exportTable } from 'app/server/lib/Export';
+import * as express from "express";
+import { ApiError } from "app/common/ApiError";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { DownloadOptions, ExportColumn, exportTable } from "app/server/lib/Export";
 
 interface FrictionlessFields {
   name: string;
@@ -40,13 +40,13 @@ export async function collectTableSchemaInFrictionlessFormat(
 ): Promise<FrictionlessFormat> {
   const { tableId, header } = options;
   if (!activeDoc.docData) {
-    throw new Error('No docData in active document');
+    throw new Error("No docData in active document");
   }
 
   // Look up the table to make a CSV from.
   const settings = activeDoc.docData.docSettings();
-  const tables = activeDoc.docData.getMetaTable('_grist_Tables');
-  const tableRef = tables.findRow('tableId', tableId);
+  const tables = activeDoc.docData.getMetaTable("_grist_Tables");
+  const tableRef = tables.findRow("tableId", tableId);
 
   if (tableRef === 0) {
     throw new ApiError(`Table ${tableId} not found.`, 404);
@@ -54,7 +54,7 @@ export async function collectTableSchemaInFrictionlessFormat(
 
   const { tableName, columns } = await exportTable(activeDoc, tableRef, req);
   return {
-    name: tableId.toLowerCase().replace(/_/g, '-'),
+    name: tableId.toLowerCase().replace(/_/g, "-"),
     title: tableName,
     schema: {
       fields: columns.map(col => ({
@@ -67,60 +67,60 @@ export async function collectTableSchemaInFrictionlessFormat(
 }
 
 function buildTypeField(col: ExportColumn, locale: string): { type: string } & Partial<FrictionlessFields> {
-  const type = col.type.split(':', 1)[0];
+  const type = col.type.split(":", 1)[0];
   const widgetOptions = col.formatter.widgetOpts;
   switch (type) {
-    case 'Text':
+    case "Text":
       return {
-        type: 'string',
-        format: widgetOptions.widget === 'HyperLink' ? 'uri' : 'default',
+        type: "string",
+        format: widgetOptions.widget === "HyperLink" ? "uri" : "default",
       };
-    case 'Numeric':
+    case "Numeric":
       return {
-        type: 'number',
-        bareNumber: widgetOptions?.numMode === 'decimal',
+        type: "number",
+        bareNumber: widgetOptions?.numMode === "decimal",
         ...getNumberSeparators(locale),
       };
-    case 'Integer':
+    case "Integer":
       return {
-        type: 'integer',
-        bareNumber: widgetOptions?.numMode === 'decimal',
+        type: "integer",
+        bareNumber: widgetOptions?.numMode === "decimal",
         groupChar: getNumberSeparators(locale).groupChar,
       };
-    case 'Date':
+    case "Date":
       return {
-        type: 'date',
-        format: 'any',
-        gristFormat: widgetOptions?.dateFormat || 'YYYY-MM-DD',
+        type: "date",
+        format: "any",
+        gristFormat: widgetOptions?.dateFormat || "YYYY-MM-DD",
       };
-    case 'DateTime':
+    case "DateTime":
       return {
-        type: 'datetime',
-        format: 'any',
+        type: "datetime",
+        format: "any",
         gristFormat: `${widgetOptions?.dateFormat} ${widgetOptions?.timeFormat}`,
       };
-    case 'Bool':
+    case "Bool":
       return {
-        type: 'boolean',
-        trueValue: ['TRUE'],
-        falseValue: ['FALSE'],
+        type: "boolean",
+        trueValue: ["TRUE"],
+        falseValue: ["FALSE"],
       };
-    case 'Choice':
+    case "Choice":
       return {
-        type: 'string',
+        type: "string",
         constraints: { enum: widgetOptions?.choices },
       };
-    case 'ChoiceList':
+    case "ChoiceList":
       return {
-        type: 'array',
+        type: "array",
         constraints: { enum: widgetOptions?.choices },
       };
-    case 'Reference':
-      return { type: 'string' };
-    case 'ReferenceList':
-      return { type: 'array' };
+    case "Reference":
+      return { type: "string" };
+    case "ReferenceList":
+      return { type: "array" };
     default:
-      return { type: 'string' };
+      return { type: "string" };
   }
 }
 
@@ -128,7 +128,7 @@ function getNumberSeparators(locale: string) {
   const numberWithGroupAndDecimalSeparator = 1000.1;
   const parts = Intl.NumberFormat(locale).formatToParts(numberWithGroupAndDecimalSeparator);
   return {
-    groupChar: parts.find(obj => obj.type === 'group')?.value,
-    decimalChar: parts.find(obj => obj.type === 'decimal')?.value,
+    groupChar: parts.find(obj => obj.type === "group")?.value,
+    decimalChar: parts.find(obj => obj.type === "decimal")?.value,
   };
 }

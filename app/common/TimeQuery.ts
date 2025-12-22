@@ -1,10 +1,10 @@
-import { ActionSummary, ColumnDelta, createEmptyActionSummary, createEmptyTableDelta } from 'app/common/ActionSummary';
-import { CellDelta } from 'app/common/TabularDiff';
-import { concatenateSummaries } from 'app/common/ActionSummarizer';
-import keyBy from 'lodash/keyBy';
-import matches from 'lodash/matches';
-import sortBy from 'lodash/sortBy';
-import toPairs from 'lodash/toPairs';
+import { ActionSummary, ColumnDelta, createEmptyActionSummary, createEmptyTableDelta } from "app/common/ActionSummary";
+import { CellDelta } from "app/common/TabularDiff";
+import { concatenateSummaries } from "app/common/ActionSummarizer";
+import keyBy from "lodash/keyBy";
+import matches from "lodash/matches";
+import sortBy from "lodash/sortBy";
+import toPairs from "lodash/toPairs";
 
 /**
  * We can combine an ActionSummary with the current state of the database
@@ -74,11 +74,11 @@ export class TimeQuery {
 
   constructor(public tc: TimeCursor,
     public tableId: string,
-    public colIds: string[] | '*',
+    public colIds: string[] | "*",
     public rowIds?: number[]) {
   }
 
-  public reset(tableId: string, colIds: string[] | '*', rowIds?: number[]) {
+  public reset(tableId: string, colIds: string[] | "*", rowIds?: number[]) {
     this.tableId = tableId;
     this.colIds = colIds;
     this.rowIds = rowIds;
@@ -109,7 +109,7 @@ export class TimeQuery {
     const columnBackwardRenames: Record<string, string | null> =
       Object.fromEntries(td.columnRenames.map(([a, b]) => [b, a]).filter(delta => delta[0]));
 
-    const colIdsExpanded = this.colIds === '*' ?
+    const colIdsExpanded = this.colIds === "*" ?
       (await this.tc.db.getColIds(tableRenamed)).map(colId => columnBackwardRenames[colId] ?? colId) :
       this.colIds;
 
@@ -117,7 +117,7 @@ export class TimeQuery {
       colIdsExpanded.map(colId => columnForwardRenames[colId] ?? colId).filter(colId => colId);
     this._currentRows = await this.tc.db.fetch(
       tableRenamed,
-      ['id', ...colIdsRenamed],
+      ["id", ...colIdsRenamed],
       this.rowIds,
     );
 
@@ -128,7 +128,7 @@ export class TimeQuery {
       for (const [rowId, cell] of toPairs(columns) as unknown as [keyof ColumnDelta, CellDelta][]) {
         if (!summaryRows[rowId]) { summaryRows[rowId] = {}; }
         const val = cell[0];
-        summaryRows[rowId][colId] = (val !== null && typeof val === 'object') ? val[0] : null;
+        summaryRows[rowId][colId] = (val !== null && typeof val === "object") ? val[0] : null;
       }
     }
 
@@ -151,7 +151,7 @@ export class TimeQuery {
     for (const id of Array.from(pastRowIds).sort()) {
       const rowCurrent: ResultRow = rowsById[id] || { id };
       const row: ResultRow = {};
-      for (const colId of ['id', ...colIdsExpanded]) {
+      for (const colId of ["id", ...colIdsExpanded]) {
         const colIdRenamed = columnForwardRenames[colId] ?? colId;
         if (!colIdRenamed) { continue; }
         row[colId] = rowCurrent[colIdRenamed];
@@ -200,12 +200,12 @@ export class TimeLayout {
   public sections: TimeQuery;
 
   constructor(public tc: TimeCursor) {
-    this.tables = new TimeQuery(tc, '_grist_Tables', ['tableId', 'primaryViewId', 'rawViewSectionRef']);
-    this.fields = new TimeQuery(tc, '_grist_Views_section_field',
-      ['parentId', 'parentPos', 'colRef']);
-    this.columns = new TimeQuery(tc, '_grist_Tables_column', ['parentId', 'colId']);
-    this.views = new TimeQuery(tc, '_grist_Views', ['id', 'name']);
-    this.sections = new TimeQuery(tc, '_grist_Views_section', ['id', 'title']);
+    this.tables = new TimeQuery(tc, "_grist_Tables", ["tableId", "primaryViewId", "rawViewSectionRef"]);
+    this.fields = new TimeQuery(tc, "_grist_Views_section_field",
+      ["parentId", "parentPos", "colRef"]);
+    this.columns = new TimeQuery(tc, "_grist_Tables_column", ["parentId", "colId"]);
+    this.views = new TimeQuery(tc, "_grist_Views", ["id", "name"]);
+    this.sections = new TimeQuery(tc, "_grist_Views_section", ["id", "title"]);
   }
 
   /** update from TimeCursor */
@@ -220,8 +220,8 @@ export class TimeLayout {
   public getColumnOrder(tableId: string): string[] {
     const primaryViewId = this.tables.one({ tableId }).primaryViewId;
     const preorder = this.fields.all({ parentId: primaryViewId });
-    const precol = keyBy(this.columns.all(), 'id');
-    const ordered = sortBy(preorder, 'parentPos');
+    const precol = keyBy(this.columns.all(), "id");
+    const ordered = sortBy(preorder, "parentPos");
     const names = ordered.map(r => precol[r.colRef].colId);
     return names;
   }

@@ -1,19 +1,19 @@
-import * as commands from 'app/client/components/commands';
-import { DataTables } from 'app/client/components/DataTables';
-import { DocumentUsage } from 'app/client/components/DocumentUsage';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { printViewSection } from 'app/client/components/Printing';
-import { ViewSectionHelper } from 'app/client/components/ViewLayout';
-import { logTelemetryEvent } from 'app/client/lib/telemetry';
-import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { Computed, Disposable, dom, fromKo, makeTestId, Observable, styled } from 'grainjs';
-import { reportError } from 'app/client/models/errors';
-import { ViewSectionRec } from 'app/client/models/DocModel';
-import { buildViewSectionDom } from 'app/client/components/buildViewSectionDom';
-import { getTelemetryWidgetTypeFromVS } from 'app/client/ui/widgetTypesMap';
+import * as commands from "app/client/components/commands";
+import { DataTables } from "app/client/components/DataTables";
+import { DocumentUsage } from "app/client/components/DocumentUsage";
+import { GristDoc } from "app/client/components/GristDoc";
+import { printViewSection } from "app/client/components/Printing";
+import { ViewSectionHelper } from "app/client/components/ViewLayout";
+import { logTelemetryEvent } from "app/client/lib/telemetry";
+import { mediaSmall, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { Computed, Disposable, dom, fromKo, makeTestId, Observable, styled } from "grainjs";
+import { reportError } from "app/client/models/errors";
+import { ViewSectionRec } from "app/client/models/DocModel";
+import { buildViewSectionDom } from "app/client/components/buildViewSectionDom";
+import { getTelemetryWidgetTypeFromVS } from "app/client/ui/widgetTypesMap";
 
-const testId = makeTestId('test-raw-data-');
+const testId = makeTestId("test-raw-data-");
 
 export class RawDataPage extends Disposable {
   private _lightboxVisible: Observable<boolean>;
@@ -46,8 +46,8 @@ export class RawDataPage extends Disposable {
   public buildDom() {
     return cssContainer(
       cssPage(
-        dom('div', this._gristDoc.behavioralPromptsManager.attachPopup('rawDataPage', { hideArrow: true })),
-        dom('div',
+        dom("div", this._gristDoc.behavioralPromptsManager.attachPopup("rawDataPage", { hideArrow: true })),
+        dom("div",
           dom.create(DataTables, this._gristDoc),
           dom.create(DocumentUsage, this._gristDoc.docPageModel),
         ),
@@ -86,9 +86,9 @@ export class RawDataPopup extends Disposable {
         }
 
         const widgetType = getTelemetryWidgetTypeFromVS(this._viewSection);
-        logTelemetryEvent('deletedWidget', { full: { docIdDigest: this._gristDoc.docId(), widgetType } });
+        logTelemetryEvent("deletedWidget", { full: { docIdDigest: this._gristDoc.docId(), widgetType } });
 
-        this._gristDoc.docData.sendAction(['RemoveViewSection', this._viewSection.id.peek()]).catch(reportError);
+        this._gristDoc.docData.sendAction(["RemoveViewSection", this._viewSection.id.peek()]).catch(reportError);
       },
     };
     this.autoDispose(commands.createGroup(commandGroup, this, true));
@@ -97,7 +97,7 @@ export class RawDataPopup extends Disposable {
   public buildDom() {
     ViewSectionHelper.create(this, this._gristDoc, this._viewSection);
     return cssOverlay(
-      testId('overlay'),
+      testId("overlay"),
       cssSectionWrapper(
         buildViewSectionDom({
           gristDoc: this._gristDoc,
@@ -109,24 +109,24 @@ export class RawDataPopup extends Disposable {
           renamable: !this._viewSection.isRecordCard.peek(),
         }),
       ),
-      cssCloseButton('CrossBig',
-        testId('close-button'),
-        dom.on('click', () => this._onClose()),
+      cssCloseButton("CrossBig",
+        testId("close-button"),
+        dom.on("click", () => this._onClose()),
       ),
       // Close the lightbox when user clicks exactly on the overlay.
-      dom.on('click', (ev, elem) => void (ev.target === elem ? this._onClose() : null)),
+      dom.on("click", (ev, elem) => void (ev.target === elem ? this._onClose() : null)),
     );
   }
 }
 
-const cssContainer = styled('div', `
+const cssContainer = styled("div", `
   height: 100%;
   overflow: hidden;
   inset: 0px;
   position: absolute;
 `);
 
-const cssPage = styled('div', `
+const cssPage = styled("div", `
   overflow-y: auto;
   height: 100%;
   padding: 32px 64px 24px 64px;
@@ -137,7 +137,7 @@ const cssPage = styled('div', `
   }
 `);
 
-export const cssOverlay = styled('div', `
+export const cssOverlay = styled("div", `
   background-color: ${theme.modalBackdrop};
   inset: 0px;
   padding: 20px 56px 20px 56px;
@@ -151,7 +151,7 @@ export const cssOverlay = styled('div', `
   }
 `);
 
-const cssSectionWrapper = styled('div', `
+const cssSectionWrapper = styled("div", `
   background: ${theme.mainPanelBg};
   height: 100%;
   display: flex;

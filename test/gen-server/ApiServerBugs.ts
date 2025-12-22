@@ -1,12 +1,12 @@
-import axios from 'axios';
-import * as chai from 'chai';
+import axios from "axios";
+import * as chai from "chai";
 
-import { configForUser } from 'test/gen-server/testUtils';
-import * as testUtils from 'test/server/testUtils';
+import { configForUser } from "test/gen-server/testUtils";
+import * as testUtils from "test/server/testUtils";
 
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 
-import { TestServer } from 'test/gen-server/apiUtils';
+import { TestServer } from "test/gen-server/apiUtils";
 
 const assert = chai.assert;
 
@@ -14,17 +14,17 @@ let server: TestServer;
 let dbManager: HomeDBManager;
 let homeUrl: string;
 
-const charon = configForUser('Charon');
-const chimpy = configForUser('Chimpy');
-const kiwi = configForUser('Kiwi');
+const charon = configForUser("Charon");
+const chimpy = configForUser("Chimpy");
+const kiwi = configForUser("Kiwi");
 
-const chimpyEmail = 'chimpy@getgrist.com';
-const kiwiEmail = 'kiwi@getgrist.com';
-const charonEmail = 'charon@getgrist.com';
+const chimpyEmail = "chimpy@getgrist.com";
+const kiwiEmail = "kiwi@getgrist.com";
+const charonEmail = "charon@getgrist.com";
 
 // Tests specific complex scenarios that may have previously resulted in wrong behavior.
-describe('ApiServerBugs', function() {
-  testUtils.setTmpLogLevel('error');
+describe("ApiServerBugs", function() {
+  testUtils.setTmpLogLevel("error");
   let userRef: (email: string) => Promise<string>;
 
   before(async function() {
@@ -40,16 +40,16 @@ describe('ApiServerBugs', function() {
 
   // Re-create a bug scenario in which users being in normal groups and guests groups at the
   // same time resulted in them being dropped from groups arbitrarily on subsequent patches.
-  it('should properly handle users in multiple groups at once', async function() {
+  it("should properly handle users in multiple groups at once", async function() {
     // Add Chimpy/Charon/Kiwi to 'Herring' doc and set inheritance to none. They
     // will become guests in the 'Fish' org along with their owner/viewer roles.
-    const fishOrg = await dbManager.testGetId('Fish');
-    const herringDoc = await dbManager.testGetId('Herring');
+    const fishOrg = await dbManager.testGetId("Fish");
+    const herringDoc = await dbManager.testGetId("Herring");
     const delta1 = {
       maxInheritedRole: null,
       users: {
-        [kiwiEmail]: 'editors',
-        [charonEmail]: 'viewers',
+        [kiwiEmail]: "editors",
+        [charonEmail]: "viewers",
       },
     };
     let resp = await axios.patch(`${homeUrl}/api/docs/${herringDoc}/access`, {
@@ -63,7 +63,7 @@ describe('ApiServerBugs', function() {
       maxInheritedRole: null,
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: await userRef(chimpyEmail),
         picture: null,
@@ -72,7 +72,7 @@ describe('ApiServerBugs', function() {
         isMember: true,
       }, {
         id: 2,
-        name: 'Kiwi',
+        name: "Kiwi",
         email: kiwiEmail,
         ref: await userRef(kiwiEmail),
         picture: null,
@@ -81,7 +81,7 @@ describe('ApiServerBugs', function() {
         isMember: true,
       }, {
         id: 3,
-        name: 'Charon',
+        name: "Charon",
         email: charonEmail,
         ref: await userRef(charonEmail),
         picture: null,
@@ -107,7 +107,7 @@ describe('ApiServerBugs', function() {
     assert.deepEqual(resp.data, {
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: await userRef(chimpyEmail),
         picture: null,
@@ -115,7 +115,7 @@ describe('ApiServerBugs', function() {
         isMember: true,
       }, {
         id: 2,
-        name: 'Kiwi',
+        name: "Kiwi",
         email: kiwiEmail,
         ref: await userRef(kiwiEmail),
         picture: null,

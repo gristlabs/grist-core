@@ -1,17 +1,17 @@
-const util = require('util');
-const childProcess = require('child_process');
-const fs = require('fs/promises');
+const util = require("util");
+const childProcess = require("child_process");
+const fs = require("fs/promises");
 
 const exec = util.promisify(childProcess.exec);
 
 const org = "grist-labs";
 const expirationSec = 30 * 24 * 60 * 60;  // 30 days
 
-const getAppName = () => "grist-" + getBranchName().toLowerCase().replace(/[\W|_]+/g, '-');
-const getVolumeName = () => ("gv_" + getBranchName().toLowerCase().replace(/\W+/g, '_')).substring(0, 30);
+const getAppName = () => "grist-" + getBranchName().toLowerCase().replace(/[\W|_]+/g, "-");
+const getVolumeName = () => ("gv_" + getBranchName().toLowerCase().replace(/\W+/g, "_")).substring(0, 30);
 
 const getBranchName = () => {
-  if (!process.env.BRANCH_NAME) { console.log('Usage: Need BRANCH_NAME env var'); process.exit(1); }
+  if (!process.env.BRANCH_NAME) { console.log("Usage: Need BRANCH_NAME env var"); process.exit(1); }
   return process.env.BRANCH_NAME;
 };
 
@@ -92,13 +92,13 @@ async function prepConfig(name, volName) {
   const configPath = "./fly.toml";
   const configTemplatePath = "./buildtools/fly-template.toml";
   const envVarsPath = "./buildtools/fly-template.env";
-  const template = await fs.readFile(configTemplatePath, {encoding: 'utf8'});
+  const template = await fs.readFile(configTemplatePath, {encoding: "utf8"});
 
   // Parse envVarsPath manually to avoid the need to install npm modules. It supports comments,
   // strips whitespace, and splits on "=". (If not for comments, we could've used json.)
   // The reason it's separate is to allow it to come from untrusted branches.
   const envVars = [];
-  const envVarsContent = await fs.readFile(envVarsPath, {encoding: 'utf8'});
+  const envVarsContent = await fs.readFile(envVarsPath, {encoding: "utf8"});
   for (const line of envVarsContent.split(/\n/)) {
     const match = /^(?:\s*([^#=]+?)\s*=\s*([^#]*?))?\s*(?:#.*)?$/.exec(line);
     if (!match) {
@@ -131,12 +131,12 @@ async function prepConfig(name, volName) {
 function extraVars() {
   const lines = [];
   for (const [name, value] of Object.entries(process.env)) {
-    if (name.startsWith('FLY_ENV__')) {
-      const varName = name.slice('FLY_ENV__'.length);
+    if (name.startsWith("FLY_ENV__")) {
+      const varName = name.slice("FLY_ENV__".length);
       lines.push(`  ${stringifyTomlString(varName)} = ${stringifyTomlString(value)}`);
     }
   }
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 // Stringify a string for safe inclusion into toml. (We are careful not to allow it to escape
@@ -157,10 +157,10 @@ async function runAction(cmd) {
     return;
   }
   console.log(`Running: ${cmd}`);
-  const cp = childProcess.spawn(cmd, {shell: true, stdio: 'inherit'});
+  const cp = childProcess.spawn(cmd, {shell: true, stdio: "inherit"});
   return new Promise((resolve, reject) => {
-    cp.on('error', reject);
-    cp.on('exit', function (code) {
+    cp.on("error", reject);
+    cp.on("exit", function (code) {
       if (code === 0) {
         resolve();
       } else {

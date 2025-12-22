@@ -1,8 +1,8 @@
 /**
  * Includes a fake schema and values for ParseOptions, to Importer fixture.
  */
-import { ParseOptionValues } from 'app/client/components/ParseOptions';
-import { ParseOptionSchema } from 'app/plugin/FileParserAPI';
+import { ParseOptionValues } from "app/client/components/ParseOptions";
+import { ParseOptionSchema } from "app/plugin/FileParserAPI";
 
 export const initValues: ParseOptionValues = {
   delimiter: ",",
@@ -15,31 +15,31 @@ export const initValues: ParseOptionValues = {
 };
 
 export const initSchema: ParseOptionSchema[] = [{
-  name: 'delimiter',
-  type: 'string',
+  name: "delimiter",
+  type: "string",
   visible: true,
 }, {
-  name: 'lineterminator',
-  type: 'string',
+  name: "lineterminator",
+  type: "string",
   visible: true,
 }, {
-  name: 'doublequote',
-  type: 'boolean',
+  name: "doublequote",
+  type: "boolean",
   visible: true,
 }, {
-  name: 'quoting',
-  type: 'number',
+  name: "quoting",
+  type: "number",
   visible: true,
 }, {
-  name: 'include_col_names_as_headers',
-  type: 'boolean',
+  name: "include_col_names_as_headers",
+  type: "boolean",
   visible: true,
 }, {
-  name: 'excludes',
-  type: 'string',
+  name: "excludes",
+  type: "string",
   visible: true,
 }, {
-  name: 'unused',
-  type: 'number',
+  name: "unused",
+  type: "number",
   visible: false,
 }];

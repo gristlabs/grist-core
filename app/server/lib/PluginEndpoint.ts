@@ -1,10 +1,10 @@
-import { FlexServer } from 'app/server/lib/FlexServer';
-import { GristServer } from 'app/server/lib/GristServer';
-import log from 'app/server/lib/log';
-import { PluginManager } from 'app/server/lib/PluginManager';
-import * as express from 'express';
-import * as mimeTypes from 'mime-types';
-import * as path from 'path';
+import { FlexServer } from "app/server/lib/FlexServer";
+import { GristServer } from "app/server/lib/GristServer";
+import log from "app/server/lib/log";
+import { PluginManager } from "app/server/lib/PluginManager";
+import * as express from "express";
+import * as mimeTypes from "mime-types";
+import * as path from "path";
 
 // Get the host serving plugin material
 export function getUntrustedContentHost(origin: string | undefined): string | undefined {
@@ -28,7 +28,7 @@ function servePluginContent(req: express.Request, res: express.Response,
   const untrustedContentHost = getUntrustedContentHost(pluginUrl);
   if (!untrustedContentHost) {
     // not expected
-    throw new Error('plugin host unexpectedly not set');
+    throw new Error("plugin host unexpectedly not set");
   }
 
   const pluginKind = req.params[0];
@@ -42,8 +42,8 @@ function servePluginContent(req: express.Request, res: express.Response,
   // - We also allow "application/javascript" content from the main domain for serving the
   //   WebWorker main script, since that's hard to distinguish in electron case, and should not
   //   enable XSS.
-  if (matchHost(req.get('host'), untrustedContentHost) ||
-    req.get('X-From-Plugin-WebView') === "true" ||
+  if (matchHost(req.get("host"), untrustedContentHost) ||
+    req.get("X-From-Plugin-WebView") === "true" ||
     mimeTypes.lookup(path.extname(pluginPath)) === "application/javascript") {
     const dirs = pluginManager.dirs();
     const contentRoot = pluginKind === "installed" ? dirs.installed :
@@ -54,8 +54,8 @@ function servePluginContent(req: express.Request, res: express.Response,
     return res.sendFile(`${pluginId}/${pluginPath}`, { root: contentRoot });
   }
 
-  log.warn(`Refusing to serve untrusted plugin content on ${req.get('host')}`);
-  res.status(403).end('Plugin content is not accessible to this request');
+  log.warn(`Refusing to serve untrusted plugin content on ${req.get("host")}`);
+  res.status(403).end("Plugin content is not accessible to this request");
 }
 
 // Middleware to restrict some assets to untrusted host.
@@ -65,7 +65,7 @@ export function limitToPlugins(gristServer: GristServer,
     const pluginUrl = gristServer.getPluginUrl();
     const host = getUntrustedContentHost(pluginUrl);
     if (!host) { return next(); }
-    if (matchHost(req.get('host'), host) || req.get('X-From-Plugin-WebView') === "true") {
+    if (matchHost(req.get("host"), host) || req.get("X-From-Plugin-WebView") === "true") {
       return handler(req, resp, next);
     }
     return next();
@@ -77,7 +77,7 @@ export function limitToPlugins(gristServer: GristServer,
 function matchHost(host1: string | undefined, host2: string) {
   if (!host1) { return false; }
   if (host1 === host2) { return true; }
-  if (!host1.includes(':')) { host1 += ":443"; }
-  if (!host2.includes(':')) { host2 += ":443"; }
+  if (!host1.includes(":")) { host1 += ":443"; }
+  if (!host2.includes(":")) { host2 += ":443"; }
   return host1 === host2;
 }

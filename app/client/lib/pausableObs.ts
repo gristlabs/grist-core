@@ -1,4 +1,4 @@
-import { IDisposableOwner, Observable } from 'grainjs';
+import { IDisposableOwner, Observable } from "grainjs";
 
 export interface PausableObservable<T> extends Observable<T> {
   pause(shouldPause?: boolean): void;
@@ -19,7 +19,7 @@ export function createPausableObs<T>(
   let _isPaused = false;
   let _lastValue: T | undefined = undefined;
   const obs = Observable.create<T>(owner, value);
-  const set = Symbol('set');
+  const set = Symbol("set");
   return Object.assign(obs, {
     pause(shouldPause: boolean = true) {
       _isPaused = shouldPause;

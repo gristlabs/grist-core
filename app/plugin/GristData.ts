@@ -2,19 +2,19 @@
  * Letter codes for {@link CellValue} types encoded as [code, args...] tuples.
  */
 export enum GristObjCode {
-  List            = 'L',
-  LookUp          = 'l',
-  Dict            = 'O',
-  DateTime        = 'D',
-  Date            = 'd',
-  Skip            = 'S',
-  Censored        = 'C',
-  Reference       = 'R',
-  ReferenceList   = 'r',
-  Exception       = 'E',
-  Pending         = 'P',
-  Unmarshallable  = 'U',
-  Versions        = 'V',
+  List            = "L",
+  LookUp          = "l",
+  Dict            = "O",
+  DateTime        = "D",
+  Date            = "d",
+  Skip            = "S",
+  Censored        = "C",
+  Reference       = "R",
+  ReferenceList   = "r",
+  Exception       = "E",
+  Pending         = "P",
+  Unmarshallable  = "U",
+  Versions        = "V",
 }
 
 /**
@@ -64,6 +64,6 @@ export interface RowRecords {
   [colId: string]: CellValue[];
 }
 
-export type GristType = 'Any' | 'Attachments' | 'Blob' | 'Bool' | 'Choice' | 'ChoiceList' |
-  'Date' | 'DateTime' |
-  'Id' | 'Int' | 'ManualSortPos' | 'Numeric' | 'PositionNumber' | 'Ref' | 'RefList' | 'Text';
+export type GristType = "Any" | "Attachments" | "Blob" | "Bool" | "Choice" | "ChoiceList" |
+  "Date" | "DateTime" |
+  "Id" | "Int" | "ManualSortPos" | "Numeric" | "PositionNumber" | "Ref" | "RefList" | "Text";

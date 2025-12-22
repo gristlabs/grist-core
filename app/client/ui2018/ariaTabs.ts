@@ -51,7 +51,7 @@ export const ariaTab = (tabListId: string, tabId: string, state: Observable<stri
     dom.attr("tabindex", use => use(state) === tabId ? "0" : "-1"),
     // this is important to bypass default handling of tabindex in the RegionFocusSwitcher and Clipboard
     dom.cls("ignore_tabindex"),
-    dom.on('click', () => state.set(tabId)),
+    dom.on("click", () => state.set(tabId)),
     dom.onKeyDown({
       // Only horizontal tabs are currently implemented.
       ArrowLeft: event => cycle(event.target, state, -1),
@@ -87,7 +87,7 @@ export const ariaTabPanel = (tabListId: string, tabId: string, state: Observable
       "role": "tabpanel",
       "aria-labelledby": `aria-tab-${tabListId}-${tabId}`,
     },
-    dom.attr('aria-hidden', use => use(state) !== tabId ? "true" : "false"),
+    dom.attr("aria-hidden", use => use(state) !== tabId ? "true" : "false"),
     dom.domComputed(state, currentTabId => currentTabId === tabId ? children : null),
   ];
 };
@@ -103,7 +103,7 @@ const cycle = (fromElement: EventTarget | null, state: Observable<string>, direc
   const tabs = tabList.querySelectorAll('[role="tab"]');
   const currentIndex = Array.from(tabs).indexOf(fromElement as HTMLElement);
   const newIndex = (currentIndex + direction + tabs.length) % tabs.length;
-  const newTabId = tabs[newIndex].getAttribute('data-tab-id');
+  const newTabId = tabs[newIndex].getAttribute("data-tab-id");
   if (newTabId) {
     state.set(newTabId);
     const newTab = tabs[newIndex];

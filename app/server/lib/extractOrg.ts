@@ -1,13 +1,13 @@
-import { ApiError } from 'app/common/ApiError';
-import { mapGetOrSet, MapWithTTL } from 'app/common/AsyncCreate';
-import { extractOrgParts, getHostType, getSingleOrg } from 'app/common/gristUrls';
-import { isAffirmative } from 'app/common/gutil';
-import { Organization } from 'app/gen-server/entity/Organization';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { GristServer } from 'app/server/lib/GristServer';
-import { getOriginUrl } from 'app/server/lib/requestUtils';
-import { NextFunction, Request, RequestHandler, Response } from 'express';
-import { IncomingMessage } from 'http';
+import { ApiError } from "app/common/ApiError";
+import { mapGetOrSet, MapWithTTL } from "app/common/AsyncCreate";
+import { extractOrgParts, getHostType, getSingleOrg } from "app/common/gristUrls";
+import { isAffirmative } from "app/common/gutil";
+import { Organization } from "app/gen-server/entity/Organization";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { GristServer } from "app/server/lib/GristServer";
+import { getOriginUrl } from "app/server/lib/requestUtils";
+import { NextFunction, Request, RequestHandler, Response } from "express";
+import { IncomingMessage } from "http";
 
 // How long we cache information about the relationship between
 // orgs and custom hosts.  The higher this is, the fewer requests
@@ -79,7 +79,7 @@ export class Hosts {
   // Extract org, isCustomHost, and the URL with /o/ORG stripped away. Throws ApiError for
   // mismatching org or invalid custom domain. Hostname should not include port.
   public async getOrgInfoFromParts(host: string, urlPath: string): Promise<RequestOrgInfo> {
-    const hostname = host.split(':')[0];    // Strip out port (ignores IPv6 but is OK for us).
+    const hostname = host.split(":")[0];    // Strip out port (ignores IPv6 but is OK for us).
 
     // Extract the org from the host and URL path.
     const parts = extractOrgParts(hostname, urlPath);
@@ -91,15 +91,15 @@ export class Hosts {
     }
 
     const hostType = this._getHostType(host);
-    if (hostType === 'native') {
+    if (hostType === "native") {
       if (parts.mismatch) {
         throw new ApiError(`Wrong org for this domain: ` +
           `'${parts.orgFromPath}' does not match '${parts.orgFromHost}'`, 400);
       }
-      return { org: parts.subdomain || '', url: parts.pathRemainder, isCustomHost: false };
+      return { org: parts.subdomain || "", url: parts.pathRemainder, isCustomHost: false };
     }
-    else if (hostType === 'plugin') {
-      return { org: '', url: parts.pathRemainder, isCustomHost: false };
+    else if (hostType === "plugin") {
+      return { org: "", url: parts.pathRemainder, isCustomHost: false };
     }
     else {
       // Otherwise check for a custom host.
@@ -153,7 +153,7 @@ export class Hosts {
   private async _redirectHost(req: Request, resp: Response, next: NextFunction) {
     const { org } = req as RequestWithOrg;
 
-    if (org && this._getHostType(req.headers.host!) === 'native' && !this._dbManager.isMergedOrg(org)) {
+    if (org && this._getHostType(req.headers.host!) === "native" && !this._dbManager.isMergedOrg(org)) {
       // Check if the org has a preferred host.
       const orgHost = await mapGetOrSet(this._org2host, org, async () => {
         const o = await this._dbManager.connection.manager.findOne(Organization, { where: { domain: org } });

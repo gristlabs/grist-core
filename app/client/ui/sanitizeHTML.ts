@@ -1,4 +1,4 @@
-import createDOMPurifier from 'dompurify';
+import createDOMPurifier from "dompurify";
 
 export function sanitizeHTML(source: string | Node): string {
   return defaultPurifier.sanitize(source);
@@ -13,7 +13,7 @@ export function sanitizeHTMLIntoDOM(source: string | Node): DocumentFragment {
     // https://issues.chromium.org/issues/40138301). We attempt a workaround by forcing
     // DOMPurify to avoid using TrustedTypes. Keep workaround narrowly limited to printing.
     if ((window as any).isCurrentlyPrinting) {
-      console.warn('Working around error from dompurify during printing', err);
+      console.warn("Working around error from dompurify during printing", err);
       return defaultPurifier.sanitize(source, {
         RETURN_DOM_FRAGMENT: true,
         TRUSTED_TYPES_POLICY: {
@@ -29,8 +29,8 @@ export function sanitizeHTMLIntoDOM(source: string | Node): DocumentFragment {
 
 export function sanitizeTutorialHTML(source: string | Node): string {
   return tutorialPurifier.sanitize(source, {
-    ADD_TAGS: ['iframe'],
-    ADD_ATTR: ['allowFullscreen'],
+    ADD_TAGS: ["iframe"],
+    ADD_ATTR: ["allowFullscreen"],
   });
 }
 
@@ -39,27 +39,27 @@ const tutorialPurifier = createDOMPurifier();
 
 // If we are executed in a browser, we can add hooks to the purifiers to customize their behavior.
 // But sometimes this code is included in tests, where `window` is not defined.
-if (typeof window !== 'undefined') {
-  defaultPurifier.addHook('afterSanitizeAttributes', handleAfterSanitizeAttributes);
+if (typeof window !== "undefined") {
+  defaultPurifier.addHook("afterSanitizeAttributes", handleAfterSanitizeAttributes);
 
-  tutorialPurifier.addHook('afterSanitizeAttributes', handleAfterSanitizeAttributes);
-  tutorialPurifier.addHook('uponSanitizeElement', handleSanitizeTutorialElement);
+  tutorialPurifier.addHook("afterSanitizeAttributes", handleAfterSanitizeAttributes);
+  tutorialPurifier.addHook("uponSanitizeElement", handleSanitizeTutorialElement);
 }
 
 function handleAfterSanitizeAttributes(node: Element) {
   // Code copied from:
   // https://github.com/cure53/DOMPurify/blob/main/demos/hooks-target-blank-demo.html
-  if ('target' in node) {
-    node.setAttribute('target', '_blank');
-    node.setAttribute('rel', 'noopener noreferrer');
+  if ("target" in node) {
+    node.setAttribute("target", "_blank");
+    node.setAttribute("rel", "noopener noreferrer");
   }
 }
 
 function handleSanitizeTutorialElement(node: Node, data: createDOMPurifier.UponSanitizeElementHookEvent) {
-  if (data.tagName !== 'iframe') { return; }
+  if (data.tagName !== "iframe") { return; }
 
-  const src = (node as Element).getAttribute('src');
-  if (src?.startsWith('https://www.youtube.com/embed/')) {
+  const src = (node as Element).getAttribute("src");
+  if (src?.startsWith("https://www.youtube.com/embed/")) {
     return;
   }
 

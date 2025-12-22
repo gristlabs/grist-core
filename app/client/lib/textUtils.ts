@@ -67,7 +67,7 @@ export function hashFnv32a(str: string): string {
  * A poor man's hash for when proper crypto isn't worth it.
  */
 export function simpleStringHash(str: string) {
-  let result = '';
+  let result = "";
   // Crudely convert 32 bits to 128 bits to reduce collisions
   for (let i = 0; i < 4; i++) {
     result += hashFnv32a(result + str);

@@ -22,7 +22,7 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-import { isFocusable } from 'app/client/lib/isFocusable';
+import { isFocusable } from "app/client/lib/isFocusable";
 
 /**
  * Trap the tab key within the given element.
@@ -92,7 +92,7 @@ function findFocusableEl(
 
     // Case 2: If this element is a slot for a Custom Element, search its
     // assigned elements recursively.
-    else if (el.localName === 'slot') {
+    else if (el.localName === "slot") {
       const assignedElements = (el as HTMLSlotElement).assignedElements({
         flatten: true,
       }) as HTMLElement[];
@@ -165,12 +165,12 @@ function canHaveFocusableChildren(el: HTMLElement) {
   // The browser will never send focus into a Shadow DOM if the host element
   // has a negative tabindex. This applies to both slotted Light DOM Shadow DOM
   // children
-  if (el.shadowRoot && el.getAttribute('tabindex') === '-1') { return false; }
+  if (el.shadowRoot && el.getAttribute("tabindex") === "-1") { return false; }
 
   // Elemments matching this selector are either hidden entirely from the user,
   // or are visible but unavailable for interaction. Their descentants can never
   // receive focus.
-  return !el.matches(':disabled,[hidden],[inert]');
+  return !el.matches(":disabled,[hidden],[inert]");
 }
 
 function getNextChildEl(el: ParentNode, forward: boolean) {

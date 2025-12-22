@@ -24,7 +24,7 @@ export interface IFilterCount {
 
 type ICompare<T> = (a: T, b: T) => number;
 
-const localeCompare = new Intl.Collator('en-US', { numeric: true }).compare;
+const localeCompare = new Intl.Collator("en-US", { numeric: true }).compare;
 
 interface ColumnFilterMenuModelParams {
   columnFilter: ColumnFilter;
@@ -45,14 +45,14 @@ export class ColumnFilterMenuModel extends Disposable {
 
   public readonly limitShown = this._params.limitShow ?? MAXIMUM_SHOWN_FILTER_ITEMS;
 
-  public readonly searchValue = Observable.create(this, '');
+  public readonly searchValue = Observable.create(this, "");
 
   public readonly isSortedByCount = Observable.create(this, false);
 
   // computes a set of all keys that matches the search text.
   public readonly filterSet = Computed.create(this, this.searchValue, (_use, searchValue) => {
-    const searchRegex = new RegExp(escapeRegExp(normalizeText(searchValue)), 'i');
-    const showAllOptions = ['Bool', 'Choice', 'ChoiceList'].includes(this.columnFilter.columnType);
+    const searchRegex = new RegExp(escapeRegExp(normalizeText(searchValue)), "i");
+    const showAllOptions = ["Bool", "Choice", "ChoiceList"].includes(this.columnFilter.columnType);
     return new Set(
       this._params.valueCount
         .filter(([_, { label, count }]) => (showAllOptions ? true : count) && searchRegex.test(normalizeText(label)))
@@ -72,10 +72,10 @@ export class ColumnFilterMenuModel extends Disposable {
       // TODO: The comparator below is not comparing labels (strings) but actual values (like boolean or numbers),
       // as this is the value of the `displayValue` column (though it uses localeCompare for strings).
       // For anyone reading this here is the context https://phab.getgrist.com/D3441 (sorry for the private repo).
-      const displayValue = this.columnFilter.visibleColumnType === 'Text' ? 'label' : 'displayValue';
-      const prop: keyof IFilterCount = isSortedByCount ? 'count' : displayValue;
+      const displayValue = this.columnFilter.visibleColumnType === "Text" ? "label" : "displayValue";
+      const prop: keyof IFilterCount = isSortedByCount ? "count" : displayValue;
       let isShownFirst: (val: any) => boolean = isNull;
-      if (['Date', 'DateTime', 'Numeric', 'Int'].includes(this.columnFilter.visibleColumnType)) {
+      if (["Date", "DateTime", "Numeric", "Int"].includes(this.columnFilter.visibleColumnType)) {
         isShownFirst = val => isNull(val) || isNaN(val);
       }
 

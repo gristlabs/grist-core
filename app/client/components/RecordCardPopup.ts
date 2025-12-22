@@ -1,15 +1,15 @@
-import { buildViewSectionDom } from 'app/client/components/buildViewSectionDom';
-import * as commands from 'app/client/components/commands';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { cssCloseButton, cssOverlay } from 'app/client/components/RawDataPage';
-import { ViewSectionHelper } from 'app/client/components/ViewLayout';
-import { ViewSectionRec } from 'app/client/models/DocModel';
-import { ChangeType, RowList } from 'app/client/models/rowset';
-import { theme } from 'app/client/ui2018/cssVars';
-import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
-import { dom, makeTestId, styled } from 'grainjs';
+import { buildViewSectionDom } from "app/client/components/buildViewSectionDom";
+import * as commands from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
+import { cssCloseButton, cssOverlay } from "app/client/components/RawDataPage";
+import { ViewSectionHelper } from "app/client/components/ViewLayout";
+import { ViewSectionRec } from "app/client/models/DocModel";
+import { ChangeType, RowList } from "app/client/models/rowset";
+import { theme } from "app/client/ui2018/cssVars";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { dom, makeTestId, styled } from "grainjs";
 
-const testId = makeTestId('test-record-card-popup-');
+const testId = makeTestId("test-record-card-popup-");
 
 interface RecordCardPopupOptions {
   gristDoc: GristDoc;
@@ -34,14 +34,14 @@ export class RecordCardPopup extends DisposableWithEvents {
 
     // Close the popup if the underlying row is removed.
     const onRowChange = this._onRowChange.bind(this);
-    this._tableModel.on('rowChange', onRowChange);
-    this.onDispose(() => this._tableModel.off('rowChange', onRowChange));
+    this._tableModel.on("rowChange", onRowChange);
+    this.onDispose(() => this._tableModel.off("rowChange", onRowChange));
   }
 
   public buildDom() {
     ViewSectionHelper.create(this, this._gristDoc, this._viewSection);
     return cssOverlay(
-      testId('overlay'),
+      testId("overlay"),
       cssSectionWrapper(
         buildViewSectionDom({
           gristDoc: this._gristDoc,
@@ -50,24 +50,24 @@ export class RecordCardPopup extends DisposableWithEvents {
           focusable: false,
           renamable: false,
         }),
-        testId('wrapper'),
+        testId("wrapper"),
       ),
-      cssCloseButton('CrossBig',
-        dom.on('click', () => this._handleClose()),
-        testId('close'),
+      cssCloseButton("CrossBig",
+        dom.on("click", () => this._handleClose()),
+        testId("close"),
       ),
-      dom.on('click', (ev, elem) => void (ev.target === elem ? this._handleClose() : null)),
+      dom.on("click", (ev, elem) => void (ev.target === elem ? this._handleClose() : null)),
     );
   }
 
   private _onRowChange(type: ChangeType, rows: RowList) {
-    if (type === 'remove' && [...rows].includes(this._rowId)) {
+    if (type === "remove" && [...rows].includes(this._rowId)) {
       this._handleClose();
     }
   }
 }
 
-const cssSectionWrapper = styled('div', `
+const cssSectionWrapper = styled("div", `
   background: ${theme.mainPanelBg};
   height: 100%;
   display: flex;

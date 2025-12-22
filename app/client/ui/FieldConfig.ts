@@ -1,26 +1,26 @@
-import { makeT } from 'app/client/lib/localization';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { BEHAVIOR, ColumnRec } from 'app/client/models/entities/ColumnRec';
-import { buildHighlightedCode, cssCodeBlock } from 'app/client/ui/CodeHighlight';
-import { cssBlockedCursor, cssFieldFormula, cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
-import { withInfoTooltip } from 'app/client/ui/tooltips';
-import { buildFormulaTriggers } from 'app/client/ui/TriggerFormulas';
-import { textButton } from 'app/client/ui2018/buttons';
-import { testId, theme } from 'app/client/ui2018/cssVars';
-import { textInput } from 'app/client/ui2018/editableLabel';
-import { cssIconButton, icon } from 'app/client/ui2018/icons';
-import { IconName } from 'app/client/ui2018/IconList';
-import { selectMenu, selectOption, selectTitle } from 'app/client/ui2018/menus';
-import { createFormulaErrorObs, cssError } from 'app/client/widgets/FormulaEditor';
-import { RecalcWhen } from 'app/common/gristTypes';
-import { sanitizeIdent } from 'app/common/gutil';
-import { CursorPos } from 'app/plugin/GristAPI';
+import { makeT } from "app/client/lib/localization";
+import { GristDoc } from "app/client/components/GristDoc";
+import { BEHAVIOR, ColumnRec } from "app/client/models/entities/ColumnRec";
+import { buildHighlightedCode, cssCodeBlock } from "app/client/ui/CodeHighlight";
+import { cssBlockedCursor, cssFieldFormula, cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
+import { withInfoTooltip } from "app/client/ui/tooltips";
+import { buildFormulaTriggers } from "app/client/ui/TriggerFormulas";
+import { textButton } from "app/client/ui2018/buttons";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { textInput } from "app/client/ui2018/editableLabel";
+import { cssIconButton, icon } from "app/client/ui2018/icons";
+import { IconName } from "app/client/ui2018/IconList";
+import { selectMenu, selectOption, selectTitle } from "app/client/ui2018/menus";
+import { createFormulaErrorObs, cssError } from "app/client/widgets/FormulaEditor";
+import { RecalcWhen } from "app/common/gristTypes";
+import { sanitizeIdent } from "app/common/gutil";
+import { CursorPos } from "app/plugin/GristAPI";
 import { bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
-  Observable, styled } from 'grainjs';
-import * as ko from 'knockout';
-import { components, tokens } from 'app/common/ThemePrefs';
+  Observable, styled } from "grainjs";
+import * as ko from "knockout";
+import { components, tokens } from "app/common/ThemePrefs";
 
-const t = makeT('FieldConfig');
+const t = makeT("FieldConfig");
 
 export const LIMITED_COLUMN_OPTIONS = t("Column options are limited in summary tables.");
 
@@ -32,10 +32,10 @@ export function buildNameConfig(
 ) {
   const untieColId = origColumn.untieColIdFromLabel;
 
-  const editedLabel = Observable.create(owner, '');
+  const editedLabel = Observable.create(owner, "");
   const editableColId = Computed.create(owner, editedLabel, (use, edited) =>
-    '$' + (edited ? sanitizeIdent(edited) : use(origColumn.colId)));
-  const saveColId = (val: string) => origColumn.colId.saveOnly(val.startsWith('$') ? val.slice(1) : val);
+    "$" + (edited ? sanitizeIdent(edited) : use(origColumn.colId)));
+  const saveColId = (val: string) => origColumn.colId.saveOnly(val.startsWith("$") ? val.slice(1) : val);
 
   const isSummaryTable = Computed.create(owner, use => Boolean(use(use(origColumn.table).summarySourceTable)));
   // We will listen to cursor position and force a blur event on both the id and
@@ -65,19 +65,19 @@ export function buildNameConfig(
         cssInput(fromKo(origColumn.label),
           val => origColumn.label.setAndSaveOrRevert(val)
             .catch(reportError)
-            .finally(() => editedLabel.set('')),
-          dom.on('input', (ev, elem) => { if (!untieColId.peek()) { editedLabel.set(elem.value); } }),
-          dom.boolAttr('readonly', use => use(origColumn.disableModify) || use(disabled)),
-          testId('field-label'),
+            .finally(() => editedLabel.set("")),
+          dom.on("input", (ev, elem) => { if (!untieColId.peek()) { editedLabel.set(elem.value); } }),
+          dom.boolAttr("readonly", use => use(origColumn.disableModify) || use(disabled)),
+          testId("field-label"),
           setEditor(0),
         ),
         cssInput(editableColId,
           saveColId,
-          dom.boolAttr('readonly',
+          dom.boolAttr("readonly",
             use => use(disabled) || use(origColumn.disableModify) || !use(origColumn.untieColIdFromLabel)),
-          cssCodeBlock.cls(''),
-          { style: 'margin-top: 8px' },
-          testId('field-col-id'),
+          cssCodeBlock.cls(""),
+          { style: "margin-top: 8px" },
+          testId("field-col-id"),
           setEditor(1),
         ),
       ),
@@ -85,12 +85,12 @@ export function buildNameConfig(
         cssColTieConnectors(),
         cssToggleButton(
           dom.domComputed(untieColId, isUntied =>
-            isUntied ? icon('FieldReferenceDisabled') : icon('FieldReference'),
+            isUntied ? icon("FieldReferenceDisabled") : icon("FieldReference"),
           ),
-          cssToggleButton.cls('-selected', use => !use(untieColId)),
-          dom.on('click', toggleUntieColId),
+          cssToggleButton.cls("-selected", use => !use(untieColId)),
+          dom.on("click", toggleUntieColId),
           cssToggleButton.cls("-disabled", use => use(origColumn.disableModify) || use(disabled)),
-          testId('field-derive-id'),
+          testId("field-derive-id"),
         ),
       ),
     ),
@@ -201,13 +201,13 @@ export function buildFormulaConfig(
     () => Promise.all([
       gristDoc.docModel.clearColumns(selectedColumnIds()),
     ]),
-    'Clear and reset', 'CrossSmall',
+    "Clear and reset", "CrossSmall",
   );
 
   // Convert the given columns to data, saving the calculated values and unsetting the formulas.
   const convertIsFormula = async (colRefs: number[], opts: { toFormula: boolean, noRecalc?: boolean }) => {
     return gristDoc.docModel.columns.sendTableAction(
-      ['BulkUpdateRecord', colRefs, {
+      ["BulkUpdateRecord", colRefs, {
         isFormula: colRefs.map(f => opts.toFormula),
         recalcWhen: colRefs.map(f => opts.noRecalc ? RecalcWhen.NEVER : RecalcWhen.DEFAULT),
         recalcDeps: colRefs.map(f => null),
@@ -218,8 +218,8 @@ export function buildFormulaConfig(
   // Convert to data option for multiple selected columns.
   const convertToDataAll = () => selectOption(
     () => convertIsFormula(selectedColumnIds(), { toFormula: false, noRecalc: true }),
-    'Convert columns to data', 'Database',
-    dom.cls('disabled', isSummaryTable),
+    "Convert columns to data", "Database",
+    dom.cls("disabled", isSummaryTable),
   );
 
   // Menu helper that will show normal menu with some default options
@@ -244,20 +244,20 @@ export function buildFormulaConfig(
   const behaviorName = Computed.create(owner, behavior, (use, type) => {
     if (use(isMultiSelect)) {
       const commonType = use(multiType);
-      if (commonType === 'formula') { return t('Formula columns', { count: 2 }); }
-      if (commonType === 'data') { return t('Data columns', { count: 2 }); }
-      if (commonType === 'mixed') { return t('Mixed Behavior'); }
-      return t('Empty columns', { count: 2 });
+      if (commonType === "formula") { return t("Formula columns", { count: 2 }); }
+      if (commonType === "data") { return t("Data columns", { count: 2 }); }
+      if (commonType === "mixed") { return t("Mixed Behavior"); }
+      return t("Empty columns", { count: 2 });
     }
     else {
-      if (type === 'formula') { return t('Formula columns', { count: 1 }); }
-      if (type === 'data') { return t('Data columns', { count: 1 }); }
-      return t('Empty columns', { count: 1 });
+      if (type === "formula") { return t("Formula columns", { count: 1 }); }
+      if (type === "data") { return t("Data columns", { count: 1 }); }
+      return t("Empty columns", { count: 1 });
     }
   });
   const behaviorIcon = Computed.create<IconName>(owner, (use) => {
-    return use(behaviorName) === t('Data columns', { count: 2 }) ||
-      use(behaviorName) === t('Data columns', { count: 1 }) ? "Database" : "Script";
+    return use(behaviorName) === t("Data columns", { count: 2 }) ||
+      use(behaviorName) === t("Data columns", { count: 1 }) ? "Database" : "Script";
   });
   const behaviorLabel = () => selectTitle(behaviorName, behaviorIcon);
 
@@ -266,26 +266,26 @@ export function buildFormulaConfig(
   // Converts data column to formula column.
   const convertDataColumnToFormulaOption = () => selectOption(
     () => (maybeFormula.set(true), focusFormulaField()),
-    t("Clear and make into formula"), 'Script');
+    t("Clear and make into formula"), "Script");
 
   // Converts to empty column and opens up the editor. (label is the same, but this is used when we have no formula)
   const convertTriggerToFormulaOption = () => selectOption(
     () => convertIsFormula([origColumn.id.peek()], { toFormula: true, noRecalc: true }),
-    t("Clear and make into formula"), 'Script');
+    t("Clear and make into formula"), "Script");
 
   // Convert column to data.
   // This method is also available through a text button.
   const convertToData = () => convertIsFormula([origColumn.id.peek()], { toFormula: false, noRecalc: true });
   const convertToDataOption = () => selectOption(
     convertToData,
-    t("Convert column to data"), 'Database',
-    dom.cls('disabled', isSummaryTable),
+    t("Convert column to data"), "Database",
+    dom.cls("disabled", isSummaryTable),
   );
 
   // Clears the column
   const clearAndResetOption = () => selectOption(
     () => gristDoc.docModel.clearColumns([origColumn.id.peek()]),
-    t("Clear and reset"), 'CrossSmall');
+    t("Clear and reset"), "CrossSmall");
 
   // Actions on text buttons:
 
@@ -364,7 +364,7 @@ export function buildFormulaConfig(
         (el) => { formulaField = el; },
       ),
     ),
-    dom.maybe(errorMessage, errMsg => cssRow(cssError(errMsg), testId('field-error-count'))),
+    dom.maybe(errorMessage, errMsg => cssRow(cssError(errMsg), testId("field-error-count"))),
   ];
 
   return dom.maybe(behavior, (type: BEHAVIOR) => [
@@ -387,7 +387,7 @@ export function buildFormulaConfig(
           dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
           testId("field-set-trigger"),
         ),
-        'setTriggerFormula',
+        "setTriggerFormula",
       )),
       cssRow(textButton(
         t("Make into data column"),
@@ -440,7 +440,7 @@ export function buildFormulaConfig(
             dom.prop("disabled", disableOtherActions),
             testId("field-set-trigger"),
           ),
-          'setTriggerFormula',
+          "setTriggerFormula",
         )),
       ]),
     ]),
@@ -463,14 +463,14 @@ function buildFormula(
   const { disabled, canDetach = true, onSave, onCancel } = options;
   return dom.create(buildHighlightedCode, column.formula, { maxLines: 2 },
     dom.cls(cssFieldFormula.className),
-    dom.cls('formula_field_sidepane'),
-    cssFieldFormula.cls('-disabled', disabled),
-    cssFieldFormula.cls('-disabled-icon', use => !use(column.formula)),
-    dom.cls('disabled'),
-    { tabIndex: '-1' },
+    dom.cls("formula_field_sidepane"),
+    cssFieldFormula.cls("-disabled", disabled),
+    cssFieldFormula.cls("-disabled-icon", use => !use(column.formula)),
+    dom.cls("disabled"),
+    { tabIndex: "-1" },
     // Focus event use used by a user to edit an existing formula.
     // It can also be triggered manually to open up the editor.
-    dom.on('focus', (_, refElem) => buildEditor({
+    dom.on("focus", (_, refElem) => buildEditor({
       refElem,
       editValue: undefined,
       canDetach,
@@ -504,18 +504,18 @@ const cssToggleButton = styled(cssIconButton, `
   }
 `);
 
-const cssColLabelBlock = styled('div', `
+const cssColLabelBlock = styled("div", `
   display: flex;
   flex-direction: column;
   flex: auto;
   min-width: 80px;
 `);
 
-const cssColTieBlock = styled('div', `
+const cssColTieBlock = styled("div", `
   position: relative;
 `);
 
-const cssColTieConnectors = styled('div', `
+const cssColTieConnectors = styled("div", `
   position: absolute;
   border: 2px solid ${theme.inputBorder};
   top: -9px;
@@ -526,7 +526,7 @@ const cssColTieConnectors = styled('div', `
   z-index: -1;
 `);
 
-const cssEmptySeparator = styled('div', `
+const cssEmptySeparator = styled("div", `
   margin-top: 16px;
 `);
 

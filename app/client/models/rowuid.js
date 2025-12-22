@@ -43,6 +43,6 @@ exports.rowId = rowId;
  * Returns a human-readable string representation of the rowUid, as "tableRef:rowId".
  */
 function toString(rowUid) {
-  return typeof rowUid === 'number' ? tableRef(rowUid) + ":" + rowId(rowUid) : rowUid;
+  return typeof rowUid === "number" ? tableRef(rowUid) + ":" + rowId(rowUid) : rowUid;
 }
 exports.toString = toString;

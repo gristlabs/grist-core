@@ -6,24 +6,24 @@ import {
   LocalActionBundle,
   SandboxActionBundle,
   UserActionBundle,
-} from 'app/common/ActionBundle';
-import { ApplyUAExtendedOptions, ApplyUAResult } from 'app/common/ActiveDocAPI';
-import { DocAction, getNumRows, SYSTEM_ACTIONS, UserAction } from 'app/common/DocActions';
-import { GranularAccessForBundle } from 'app/server/lib/GranularAccess';
-import { insightLogEntry } from 'app/server/lib/InsightLog';
-import log from 'app/server/lib/log';
+} from "app/common/ActionBundle";
+import { ApplyUAExtendedOptions, ApplyUAResult } from "app/common/ActiveDocAPI";
+import { DocAction, getNumRows, SYSTEM_ACTIONS, UserAction } from "app/common/DocActions";
+import { GranularAccessForBundle } from "app/server/lib/GranularAccess";
+import { insightLogEntry } from "app/server/lib/InsightLog";
+import log from "app/server/lib/log";
 import { LogMethods } from "app/server/lib/LogMethods";
-import { shortDesc } from 'app/server/lib/shortDesc';
-import assert from 'assert';
-import { Mutex } from 'async-mutex';
-import isEqual from 'lodash/isEqual';
-import { ActionHistory, asActionGroup, getActionUndoInfo } from 'app/server/lib/ActionHistory';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
-import { makeExceptionalDocSession, OptDocSession } from 'app/server/lib/DocSession';
-import { summarizeAction } from 'app/common/ActionSummarizer';
+import { shortDesc } from "app/server/lib/shortDesc";
+import assert from "assert";
+import { Mutex } from "async-mutex";
+import isEqual from "lodash/isEqual";
+import { ActionHistory, asActionGroup, getActionUndoInfo } from "app/server/lib/ActionHistory";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { makeExceptionalDocSession, OptDocSession } from "app/server/lib/DocSession";
+import { summarizeAction } from "app/common/ActionSummarizer";
 
 // Don't log details of action bundles in production.
-const LOG_ACTION_BUNDLE = (process.env.NODE_ENV !== 'production');
+const LOG_ACTION_BUNDLE = (process.env.NODE_ENV !== "production");
 
 interface ApplyResult {
   /**
@@ -43,7 +43,7 @@ interface ApplyResult {
 
 export class Sharing {
   private _userActionLock = new Mutex();
-  private _log = new LogMethods('Sharing ', (s: OptDocSession) => this._activeDoc.getLogMeta(s));
+  private _log = new LogMethods("Sharing ", (s: OptDocSession) => this._activeDoc.getLogMeta(s));
 
   constructor(private _activeDoc: ActiveDoc, private _actionHistory: ActionHistory, private _modificationLock: Mutex) {
     assert(_actionHistory.isInitialized());
@@ -175,7 +175,7 @@ export class Sharing {
 
       // Don't trigger webhooks for single Calculate actions, this causes a deadlock on document load.
       // See gh issue #799
-      const isSingleCalculateAction = userActions.length === 1 && userActions[0][0] === 'Calculate';
+      const isSingleCalculateAction = userActions.length === 1 && userActions[0][0] === "Calculate";
       const actionSummary = !isSingleCalculateAction ?
         await this._activeDoc.handleTriggers(localActionBundle) :
         summarizeAction(localActionBundle);
@@ -185,7 +185,7 @@ export class Sharing {
       if (actionSummary.tableDeltas._grist_Shares) {
         // This is a little risky, since it entangles us with home db
         // availability. But we aren't doing a lot...?
-        await this._activeDoc.syncShares(makeExceptionalDocSession('system'));
+        await this._activeDoc.syncShares(makeExceptionalDocSession("system"));
         insightLog?.mark("syncShares");
       }
 
@@ -258,7 +258,7 @@ export class Sharing {
       try {
         // We can't apply those actions, so we need to revert them.
         const undoResult = await this._activeDoc.applyActionsToDataEngine(docSession, [
-          ['ApplyUndoActions', getEnvContent(applyResult.undo)],
+          ["ApplyUndoActions", getEnvContent(applyResult.undo)],
         ]);
 
         // We managed to reject and undo actions in the data-engine. Now we need to calculate if we have any extra
@@ -312,7 +312,7 @@ export class Sharing {
     const docActions = getEnvContent(bundle.stored).concat(getEnvContent(bundle.calc));
     const isDirect = getEnvContent(bundle.direct);
     return this._activeDoc.getGranularAccessForBundle(
-      docSession || makeExceptionalDocSession('share'),
+      docSession || makeExceptionalDocSession("share"),
       docActions,
       undo,
       userActions,
@@ -357,7 +357,7 @@ export class Sharing {
   }
 }
 
-const allToken: string = '#ALL';
+const allToken: string = "#ALL";
 
 /**
  * Returns the index of the envelope containing the '#ALL' recipient, adding such an envelope to

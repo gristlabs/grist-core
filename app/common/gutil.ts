@@ -12,15 +12,15 @@ import {
   subscribeElem,
   UseCB,
   UseCBOwner,
-} from 'grainjs';
-import { Observable as KoObservable } from 'knockout';
-import identity from 'lodash/identity';
+} from "grainjs";
+import { Observable as KoObservable } from "knockout";
+import identity from "lodash/identity";
 
 // Some definitions have moved to be used by plugin API.
-export { arrayRepeat } from 'app/plugin/gutil';
+export { arrayRepeat } from "app/plugin/gutil";
 
-export const UP_TRIANGLE = '\u25B2';
-export const DOWN_TRIANGLE = '\u25BC';
+export const UP_TRIANGLE = "\u25B2";
+export const DOWN_TRIANGLE = "\u25BC";
 
 const EMAIL_RE = new RegExp("^\\w[\\w%+/='-]*(\\.[\\w%+/='-]+)*@([A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z" +
   "0-9])?\\.)+[A-Za-z]{2,24}$", "u");
@@ -47,7 +47,7 @@ export function removeSuffix(str: string, suffix: string): string | null {
 }
 
 export function removeTrailingSlash(str: string): string {
-  const result = removeSuffix(str, '/');
+  const result = removeSuffix(str, "/");
   return result === null ? str : result;
 }
 
@@ -167,10 +167,10 @@ export function undef<T extends any[]>(...list: T): Undef<T> {
  * be represented as a valid number.
  */
 export function numberOrDefault<T>(value: unknown, defaultVal: T): number | T {
-  if (typeof value === 'number') {
+  if (typeof value === "number") {
     return !Number.isNaN(value) ? value : defaultVal;
   }
-  else if (typeof value === 'string') {
+  else if (typeof value === "string") {
     const maybeNumber = Number.parseFloat(value);
     return !Number.isNaN(maybeNumber) ? maybeNumber : defaultVal;
   }
@@ -184,7 +184,7 @@ export function numberOrDefault<T>(value: unknown, defaultVal: T): number | T {
  */
 export function safeJsonParse(json: string, defaultVal: any): any {
   try {
-    return json !== '' && json !== undefined ? JSON.parse(json) : defaultVal;
+    return json !== "" && json !== undefined ? JSON.parse(json) : defaultVal;
   }
   catch (e) {
     return defaultVal;
@@ -196,7 +196,7 @@ export function safeJsonParse(json: string, defaultVal: any): any {
  * URL parameters, and look much friendlier not encoded.
  */
 export function encodeQueryParam(str: string | number | undefined): string {
-  return encodeURIComponent(String(str === undefined ? null : str)).replace(/%2F/g, '/');
+  return encodeURIComponent(String(str === undefined ? null : str)).replace(/%2F/g, "/");
 }
 
 /**
@@ -204,7 +204,7 @@ export function encodeQueryParam(str: string | number | undefined): string {
  * This is similar to JQuery's $.param, but only works on shallow objects.
  */
 export function encodeQueryParams(obj: { [key: string]: string | number | undefined }): string {
-  return Object.keys(obj).map((k: string) => encodeQueryParam(k) + '=' + encodeQueryParam(obj[k])).join('&');
+  return Object.keys(obj).map((k: string) => encodeQueryParam(k) + "=" + encodeQueryParam(obj[k])).join("&");
 }
 
 /**
@@ -488,7 +488,7 @@ export function multiCompareFunc<T, U>(sortKeyFuncs: readonly ((a: T) => U)[],
   compareFuncs: ArrayLike<CompareFunc<U>>,
   optAscending?: number[]): CompareFunc<T> {
   if (sortKeyFuncs.length !== compareFuncs.length) {
-    throw new Error('Number of sort key funcs must be the same as the number of compare funcs');
+    throw new Error("Number of sort key funcs must be the same as the number of compare funcs");
   }
   const ascending = optAscending || sortKeyFuncs.map(() => 1);
   return function(a: T, b: T): number {
@@ -517,7 +517,7 @@ export function propertyCompare<T>(property: keyof T) {
 }
 
 // TODO: In the future, locale should be a value associated with the document or the user.
-export const defaultLocale = 'en-US';
+export const defaultLocale = "en-US";
 export const defaultCollator = new Intl.Collator(defaultLocale);
 export const localeCompare = defaultCollator.compare;
 
@@ -601,8 +601,8 @@ export function deepExtend(target: any, _varArgObjects: any): any {
         if (Array.isArray(src)) {
           src = deepExtend(tgt && Array.isArray(tgt) ? tgt : [], src);
         }
-        else if (typeof src === 'object') {
-          src = deepExtend(tgt && typeof tgt === 'object' ? tgt : {}, src);
+        else if (typeof src === "object") {
+          src = deepExtend(tgt && typeof tgt === "object" ? tgt : {}, src);
         }
       }
       target[name] = src;
@@ -619,13 +619,13 @@ export function deepExtend(target: any, _varArgObjects: any): any {
  */
 export function byteString(bytes: number): string {
   if (bytes < 1024) {
-    return bytes + 'B';
+    return bytes + "B";
   }
   else if (bytes < 1024 * 1024) {
-    return (bytes / 1024).toFixed(1) + 'KB';
+    return (bytes / 1024).toFixed(1) + "KB";
   }
   else {
-    return (bytes / 1024 / 1024).toFixed(1) + 'MB';
+    return (bytes / 1024 / 1024).toFixed(1) + "MB";
   }
 }
 
@@ -681,20 +681,20 @@ export function pruneArray<T>(arr: T[], indexes: number[]) {
  * plus additional illegal identifiers None, False, True
  * Using [] instead of new Array causes a "comprehension error" for some reason
  */
-const _kwlist = ['False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
-  'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally',
-  'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal',
-  'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield'];
+const _kwlist = ["False", "None", "True", "and", "as", "assert", "async", "await", "break",
+  "class", "continue", "def", "del", "elif", "else", "except", "finally",
+  "for", "from", "global", "if", "import", "in", "is", "lambda", "nonlocal",
+  "not", "or", "pass", "raise", "return", "try", "while", "with", "yield"];
 /**
  * Given an arbitrary string, makes substitutions to make it a valid SQL/Python identifier.
  * Corresponds to sandbox/grist/gencode.sanitize_ident
  */
 export function sanitizeIdent(ident: string, prefix?: string) {
-  prefix = prefix || 'c';
+  prefix = prefix || "c";
   // Remove non-alphanumeric non-_ chars
-  ident = ident.replace(/[^a-zA-Z0-9_]+/g, '_');
+  ident = ident.replace(/[^a-zA-Z0-9_]+/g, "_");
   // Remove leading and trailing _
-  ident = ident.replace(/^_+|_+$/g, '');
+  ident = ident.replace(/^_+|_+$/g, "");
   // Place prefix at front if the beginning isn't a number
   ident = ident.replace(/^(?=[0-9])/g, prefix);
   // Append prefix until it is not  python keyword
@@ -713,15 +713,15 @@ export function sanitizeIdent(ident: string, prefix?: string) {
  * As with all micro-optimizations, only do this when the optimization matters.
  */
 export function cloneFunc(fn: Function): Function {      /* jshint evil:true */  // suppress eval warning.
-  return eval('(' + fn.toString() + ')');  }
+  return eval("(" + fn.toString() + ")");  }
 
 /**
  * Generates a random id using a sequence of uppercase alphanumeric characters
  * preceded by an optional prefix.
  */
 export function genRandomId(len: number, optPrefix?: string): string {
-  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let ret = optPrefix || '';
+  const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let ret = optPrefix || "";
   for (let i = 0; i < len; i++) {
     ret += chars[Math.floor(Math.random() * chars.length)];
   }
@@ -835,7 +835,7 @@ export async function waitGrainObs<T>(observable: Observable<T>,
 // TODO: consider making PR to fix `dom.style` in grainjs.
 export function inlineStyle(property: string, valueObs: BindableValue<any>): DomElementMethod {
   return elem => subscribeElem(elem, valueObs, (val) => {
-    elem.style.setProperty(property, String(val ?? ''));
+    elem.style.setProperty(property, String(val ?? ""));
   });
 }
 
@@ -933,7 +933,7 @@ export async function isLongerThan(promise: Promise<unknown>, timeoutMsec: numbe
  * parameters that may have been manually set.
  */
 export function isAffirmative(parameter: any): boolean {
-  return ['1', 'on', 'true', 'yes'].includes(String(parameter).toLowerCase());
+  return ["1", "on", "true", "yes"].includes(String(parameter).toLowerCase());
 }
 
 /**
@@ -957,7 +957,7 @@ export function truthy<T>(value: T | null | undefined): value is Exclude<T, fals
  * Returns the value of both grainjs and knockout observable without creating a dependency.
  */
 export const unwrap: UseCB = (obs: ISubscribable) => {
-  if ('_getDepItem' in obs) {
+  if ("_getDepItem" in obs) {
     return obs.get();
   }
   return (obs as ko.Observable).peek();
@@ -972,11 +972,11 @@ export function useBindable<T>(use: UseCBOwner, obs: BindableValue<T>): T {
   const smth = obs as any;
 
   // If knockout
-  if (typeof smth === 'function' && 'peek' in smth) { return use(smth) as T; }
+  if (typeof smth === "function" && "peek" in smth) { return use(smth) as T; }
   // If grainjs Observable or Computed
-  if (typeof smth === 'object' && '_getDepItem' in smth) { return use(smth) as T; }
+  if (typeof smth === "object" && "_getDepItem" in smth) { return use(smth) as T; }
   // If use function ComputedCallback
-  if (typeof smth === 'function') { return smth(use) as T; }
+  if (typeof smth === "function") { return smth(use) as T; }
 
   return obs as T;
 }
@@ -985,7 +985,7 @@ export function useBindable<T>(use: UseCBOwner, obs: BindableValue<T>): T {
  * Useful helper for simple boolean negation.
  */
 export const not = (obs: Observable<any> | IKnockoutReadObservable<any> | boolean | undefined | null) => (use: UseCBOwner) =>  {
-  if (typeof obs === 'boolean') { return !obs; }
+  if (typeof obs === "boolean") { return !obs; }
   if (obs === null || obs === undefined) { return true; }
   return !use(obs);
 };
@@ -1030,10 +1030,10 @@ export async function retryOnce<T>(fn: () => Promise<T>, recover: (e: unknown) =
  * Values like 0, true, false are not empty.
  */
 export function notSet(value: any) {
-  return value === undefined || value === null || value === '' ||
+  return value === undefined || value === null || value === "" ||
     (Array.isArray(value) && !value.length) ||
-    (typeof value === 'object' && !Object.keys(value).length) ||
-    (['[object Map]', '[object Set'].includes(value.toString()) && !value.size);
+    (typeof value === "object" && !Object.keys(value).length) ||
+    (["[object Map]", "[object Set"].includes(value.toString()) && !value.size);
 }
 
 /**
@@ -1087,10 +1087,10 @@ export function inSeconds(text: string): number {
   const [, value, unit] = match;
   const seconds = parseInt(value, 10);
   switch (unit) {
-    case 's': return seconds;
-    case 'm': return seconds * 60;
-    case 'h': return seconds * 60 * 60;
-    case 'd': return seconds * 60 * 60 * 24;
+    case "s": return seconds;
+    case "m": return seconds * 60;
+    case "h": return seconds * 60 * 60;
+    case "d": return seconds * 60 * 60 * 24;
     default: throw new Error(`Invalid duration unit: ${unit}`);
   }
 }

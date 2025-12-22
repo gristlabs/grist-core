@@ -1,38 +1,38 @@
-import { BehavioralPromptsManager } from 'app/client/components/BehavioralPromptsManager';
-import { hooks } from 'app/client/Hooks';
-import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
-import { makeT } from 'app/client/lib/localization';
-import { sessionStorageObs } from 'app/client/lib/localStorageObs';
-import { error } from 'app/client/lib/log';
-import { reportError, setErrorNotifier } from 'app/client/models/errors';
-import { urlState } from 'app/client/models/gristUrlState';
-import { Notifier } from 'app/client/models/NotifyModel';
-import { getFlavor, ProductFlavor } from 'app/client/ui/CustomThemes';
-import { buildNewSiteModal, buildUpgradeModal } from 'app/client/ui/ProductUpgrades';
-import { gristThemePrefs } from 'app/client/ui2018/theme';
-import { Experiments } from 'app/client/ui/Experiments';
-import { AsyncCreate } from 'app/common/AsyncCreate';
-import { PlanSelection } from 'app/common/BillingAPI';
-import { ICustomWidget } from 'app/common/CustomWidget';
-import { OrgUsageSummary } from 'app/common/DocUsage';
-import { Features, isFreePlan, isLegacyPlan, mergedFeatures, Product } from 'app/common/Features';
-import { GristLoadConfig, IGristUrlState } from 'app/common/gristUrls';
-import { FullUser } from 'app/common/LoginSessionAPI';
-import { LocalPlugin } from 'app/common/plugin';
-import { DismissedPopup, DismissedReminder, UserPrefs } from 'app/common/Prefs';
-import { isOwner, isOwnerOrEditor } from 'app/common/roles';
-import { getTagManagerScript } from 'app/common/tagManager';
-import { getDefaultThemePrefs, ThemePrefs } from 'app/common/ThemePrefs';
-import { getGristConfig } from 'app/common/urlUtils';
-import { ExtendedUser } from 'app/common/UserAPI';
-import { getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl } from 'app/common/UserAPI';
-import { getUserPrefObs, getUserPrefsObs, markAsSeen } from 'app/client/models/UserPrefs';
-import { bundleChanges, Computed, Disposable, Observable, subscribe } from 'grainjs';
+import { BehavioralPromptsManager } from "app/client/components/BehavioralPromptsManager";
+import { hooks } from "app/client/Hooks";
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { makeT } from "app/client/lib/localization";
+import { sessionStorageObs } from "app/client/lib/localStorageObs";
+import { error } from "app/client/lib/log";
+import { reportError, setErrorNotifier } from "app/client/models/errors";
+import { urlState } from "app/client/models/gristUrlState";
+import { Notifier } from "app/client/models/NotifyModel";
+import { getFlavor, ProductFlavor } from "app/client/ui/CustomThemes";
+import { buildNewSiteModal, buildUpgradeModal } from "app/client/ui/ProductUpgrades";
+import { gristThemePrefs } from "app/client/ui2018/theme";
+import { Experiments } from "app/client/ui/Experiments";
+import { AsyncCreate } from "app/common/AsyncCreate";
+import { PlanSelection } from "app/common/BillingAPI";
+import { ICustomWidget } from "app/common/CustomWidget";
+import { OrgUsageSummary } from "app/common/DocUsage";
+import { Features, isFreePlan, isLegacyPlan, mergedFeatures, Product } from "app/common/Features";
+import { GristLoadConfig, IGristUrlState } from "app/common/gristUrls";
+import { FullUser } from "app/common/LoginSessionAPI";
+import { LocalPlugin } from "app/common/plugin";
+import { DismissedPopup, DismissedReminder, UserPrefs } from "app/common/Prefs";
+import { isOwner, isOwnerOrEditor } from "app/common/roles";
+import { getTagManagerScript } from "app/common/tagManager";
+import { getDefaultThemePrefs, ThemePrefs } from "app/common/ThemePrefs";
+import { getGristConfig } from "app/common/urlUtils";
+import { ExtendedUser } from "app/common/UserAPI";
+import { getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl } from "app/common/UserAPI";
+import { getUserPrefObs, getUserPrefsObs, markAsSeen } from "app/client/models/UserPrefs";
+import { bundleChanges, Computed, Disposable, Observable, subscribe } from "grainjs";
 
-const t = makeT('AppModel');
+const t = makeT("AppModel");
 
 // Reexported for convenience.
-export { reportError } from 'app/client/models/errors';
+export { reportError } from "app/client/models/errors";
 
 export type PageType =
   | "doc" |
@@ -44,7 +44,7 @@ export type PageType =
   "activation" |
   "audit-logs";
 
-const G = getBrowserGlobals('document', 'window');
+const G = getBrowserGlobals("document", "window");
 
 // TopAppModel is the part of the app model that persists across org and user switches.
 export interface TopAppModel {
@@ -246,7 +246,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   private async _doInitialize() {
     this.appObs.set(null);
     if (this.options.useApi === false) {
-      AppModelImpl.create(this.appObs, this, null, null, { error: 'no-api', status: 500 });
+      AppModelImpl.create(this.appObs, this, null, null, { error: "no-api", status: 500 });
       return;
     }
     try {
@@ -260,10 +260,10 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
           // to "stick" only if paid for.
           await urlState().pushUrl({ ...state, org: org.domain });
         }
-        if (org.billingAccount?.product?.name === 'suspended') {
+        if (org.billingAccount?.product?.name === "suspended") {
           this.notifier.createUserMessage(
             t("This team site is suspended. Documents can be read, but not modified."),
-            { actions: ['renew', 'personal'] },
+            { actions: ["renew", "personal"] },
           );
         }
       }
@@ -289,7 +289,7 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   public readonly currentOrgUsage: Observable<OrgUsageSummary | null> = Observable.create(this, null);
 
-  public readonly lastVisitedOrgDomain = this.autoDispose(sessionStorageObs('grist-last-visited-org-domain'));
+  public readonly lastVisitedOrgDomain = this.autoDispose(sessionStorageObs("grist-last-visited-org-domain"));
 
   public readonly currentProduct = this.currentOrg?.billingAccount?.product ?? null;
   public readonly currentPriceId = this.currentOrg?.billingAccount?.stripePlanId ?? null;
@@ -304,44 +304,44 @@ export class AppModelImpl extends Disposable implements AppModel {
   public readonly isTemplatesSite = isTemplatesOrg(this.currentOrg);
 
   public readonly userPrefsObs = getUserPrefsObs(this);
-  public readonly themePrefs = getUserPrefObs(this.userPrefsObs, 'theme', {
+  public readonly themePrefs = getUserPrefObs(this.userPrefsObs, "theme", {
     defaultValue: getDefaultThemePrefs(),
   }) as Observable<ThemePrefs>;
 
   public readonly experiments?: Experiments;
 
-  public readonly dismissedPopups = getUserPrefObs(this.userPrefsObs, 'dismissedPopups',
+  public readonly dismissedPopups = getUserPrefObs(this.userPrefsObs, "dismissedPopups",
     { defaultValue: [] }) as Observable<DismissedPopup[]>;
 
-  public readonly dismissedWelcomePopups = getUserPrefObs(this.userPrefsObs, 'dismissedWelcomePopups',
+  public readonly dismissedWelcomePopups = getUserPrefObs(this.userPrefsObs, "dismissedWelcomePopups",
     { defaultValue: [] }) as Observable<DismissedReminder[]>;
 
   // Get the current PageType from the URL.
   public readonly pageType: Observable<PageType> = Computed.create(this, urlState().state,
     (_use, state) => {
       if (state.doc) {
-        return 'doc';
+        return "doc";
       }
       else if (state.billing) {
-        return 'billing';
+        return "billing";
       }
       else if (state.welcome) {
-        return 'welcome';
+        return "welcome";
       }
       else if (state.account) {
-        return 'account';
+        return "account";
       }
       else if (state.adminPanel) {
-        return 'admin';
+        return "admin";
       }
       else if (state.activation) {
-        return 'activation';
+        return "activation";
       }
       else if (state.auditLogs) {
-        return 'audit-logs';
+        return "audit-logs";
       }
       else {
-        return 'home';
+        return "home";
       }
     });
 
@@ -349,7 +349,7 @@ export class AppModelImpl extends Disposable implements AppModel {
     this, urlState().state, (use, state) => {
       return !(
         Boolean(state.welcome) ||
-        state.billing === 'scheduled' ||
+        state.billing === "scheduled" ||
         Boolean(state.account) ||
         Boolean(state.activation) ||
         Boolean(state.adminPanel)
@@ -399,7 +399,7 @@ export class AppModelImpl extends Disposable implements AppModel {
     };
 
     G.window.resetOnboarding = () => {
-      getUserPrefObs(this.userPrefsObs, 'showNewUserQuestions').set(true);
+      getUserPrefObs(this.userPrefsObs, "showNewUserQuestions").set(true);
     };
 
     this.autoDispose(subscribe(urlState().state, this.topAppModel.orgs, async (_use, s, orgs) => {
@@ -425,7 +425,7 @@ export class AppModelImpl extends Disposable implements AppModel {
         await buildUpgradeModal(this, {
           appModel: this,
           pickPlan: plan,
-          reason: 'upgrade',
+          reason: "upgrade",
         });
       }
       else {
@@ -490,7 +490,7 @@ export class AppModelImpl extends Disposable implements AppModel {
   }
 
   public isFreePlan() {
-    return isFreePlan(this.planName || '');
+    return isFreePlan(this.planName || "");
   }
 
   private _updateLastVisitedOrgDomain({ doc, org }: IGristUrlState, availableOrgs: Organization[]) {
@@ -524,7 +524,7 @@ export class AppModelImpl extends Disposable implements AppModel {
     let dataLayer = (window as any).dataLayer;
     if (!dataLayer) {
       // Load the Google Tag Manager script into the document.
-      const script = document.createElement('script');
+      const script = document.createElement("script");
       script.innerHTML = getTagManagerScript(tagManagerId);
       document.head.appendChild(script);
       dataLayer = (window as any).dataLayer;
@@ -534,13 +534,13 @@ export class AppModelImpl extends Disposable implements AppModel {
     }
 
     // Send the sign-up event, and remove the recordSignUpEvent flag from preferences.
-    dataLayer.push({ event: 'new-sign-up' });
-    getUserPrefObs(this.userPrefsObs, 'recordSignUpEvent').set(undefined);
+    dataLayer.push({ event: "new-sign-up" });
+    getUserPrefObs(this.userPrefsObs, "recordSignUpEvent").set(undefined);
   }
 }
 
 export function getOrgNameOrGuest(org: Organization | null, user: FullUser | null) {
-  if (!org) { return ''; }
+  if (!org) { return ""; }
   if (user && user.anonymous && org.owner && org.owner.id === user.id) {
     return "@Guest";
   }

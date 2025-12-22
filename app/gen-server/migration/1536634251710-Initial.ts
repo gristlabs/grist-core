@@ -17,7 +17,7 @@ export class Initial1536634251710 implements MigrationInterface {
           name: "id",
           type: "integer",
           isGenerated: true,
-          generationStrategy: 'increment',
+          generationStrategy: "increment",
           isPrimary: true,
         },
         {
@@ -40,7 +40,7 @@ export class Initial1536634251710 implements MigrationInterface {
           name: "id",
           type: "integer",
           isGenerated: true,
-          generationStrategy: 'increment',
+          generationStrategy: "increment",
           isPrimary: true,
         },
         {
@@ -85,7 +85,7 @@ export class Initial1536634251710 implements MigrationInterface {
           name: "id",
           type: "integer",
           isGenerated: true,
-          generationStrategy: 'increment',
+          generationStrategy: "increment",
           isPrimary: true,
         },
         {
@@ -161,7 +161,7 @@ export class Initial1536634251710 implements MigrationInterface {
           name: "id",
           type: "integer",
           isGenerated: true,
-          generationStrategy: 'increment',
+          generationStrategy: "increment",
           isPrimary: true,
         },
         {
@@ -178,7 +178,7 @@ export class Initial1536634251710 implements MigrationInterface {
           name: "id",
           type: "integer",
           isGenerated: true,
-          generationStrategy: 'increment',
+          generationStrategy: "increment",
           isPrimary: true,
         },
         {

@@ -1,56 +1,56 @@
-import { AccessLevel, ICustomWidget } from 'app/common/CustomWidget';
-import { AccessTokenResult } from 'app/plugin/GristAPI';
-import { TableOperations } from 'app/plugin/TableOperations';
-import { getAppRoot } from 'app/server/lib/places';
-import * as fse from 'fs-extra';
-import { assert, driver, Key } from 'mocha-webdriver';
-import fetch from 'node-fetch';
-import * as path from 'path';
-import * as gu from 'test/nbrowser/gristUtils';
-import { server, setupTestSuite } from 'test/nbrowser/testUtils';
-import { serveSomething } from 'test/server/customUtil';
-import { createTmpDir } from 'test/server/docTools';
-import { EnvironmentSnapshot } from 'test/server/testUtils';
+import { AccessLevel, ICustomWidget } from "app/common/CustomWidget";
+import { AccessTokenResult } from "app/plugin/GristAPI";
+import { TableOperations } from "app/plugin/TableOperations";
+import { getAppRoot } from "app/server/lib/places";
+import * as fse from "fs-extra";
+import { assert, driver, Key } from "mocha-webdriver";
+import fetch from "node-fetch";
+import * as path from "path";
+import * as gu from "test/nbrowser/gristUtils";
+import { server, setupTestSuite } from "test/nbrowser/testUtils";
+import { serveSomething } from "test/server/customUtil";
+import { createTmpDir } from "test/server/docTools";
+import { EnvironmentSnapshot } from "test/server/testUtils";
 
 // Valid manifest url.
-const manifestEndpoint = '/manifest.json';
+const manifestEndpoint = "/manifest.json";
 // Valid widget url.
-const widgetEndpoint = '/widget';
+const widgetEndpoint = "/widget";
 // Custom URL label in selectbox.
-const CUSTOM_URL = 'Custom URL';
+const CUSTOM_URL = "Custom URL";
 
 // Create some widgets:
 const widget1: ICustomWidget = {
-  widgetId: '1',
-  name: 'W1',
-  url: widgetEndpoint + '?name=W1',
-  description: 'Widget 1 description',
+  widgetId: "1",
+  name: "W1",
+  url: widgetEndpoint + "?name=W1",
+  description: "Widget 1 description",
   authors: [
     {
-      name: 'Developer 1',
+      name: "Developer 1",
     },
     {
-      name: 'Developer 2',
+      name: "Developer 2",
     },
   ],
   isGristLabsMaintained: true,
-  lastUpdatedAt: '2024-07-30T00:13:31-04:00',
+  lastUpdatedAt: "2024-07-30T00:13:31-04:00",
 };
 const widget2: ICustomWidget = {
-  widgetId: '2',
-  name: 'W2',
-  url: widgetEndpoint + '?name=W2',
+  widgetId: "2",
+  name: "W2",
+  url: widgetEndpoint + "?name=W2",
 };
 const widgetWithTheme: ICustomWidget = {
-  widgetId: '3',
-  name: 'WithTheme',
-  url: widgetEndpoint + '?name=WithTheme',
+  widgetId: "3",
+  name: "WithTheme",
+  url: widgetEndpoint + "?name=WithTheme",
   isGristLabsMaintained: true,
 };
 const widgetNoPluginApi: ICustomWidget = {
-  widgetId: '4',
-  name: 'NoPluginApi',
-  url: widgetEndpoint + '?name=NoPluginApi',
+  widgetId: "4",
+  name: "NoPluginApi",
+  url: widgetEndpoint + "?name=NoPluginApi",
   isGristLabsMaintained: true,
 };
 const fromAccess = (level: AccessLevel): ICustomWidget => ({
@@ -69,10 +69,10 @@ let widgets: ICustomWidget[] = [];
 
 // Helper function to get iframe with custom widget.
 function getCustomWidgetFrame() {
-  return driver.findWait('iframe', 500);
+  return driver.findWait("iframe", 500);
 }
 
-describe('CustomWidgets', function() {
+describe("CustomWidgets", function() {
   this.timeout(20000);
   gu.bigScreen();
   const cleanup = setupTestSuite();
@@ -80,11 +80,11 @@ describe('CustomWidgets', function() {
   let oldEnv: EnvironmentSnapshot;
 
   // Holds url for sample widget server.
-  let widgetServerUrl = '';
+  let widgetServerUrl = "";
 
   // Switches widget manifest url
   async function useManifest(url: string) {
-    await server.testingHooks.setWidgetRepositoryUrl(url ? `${widgetServerUrl}${url}` : '');
+    await server.testingHooks.setWidgetRepositoryUrl(url ? `${widgetServerUrl}${url}` : "");
   }
 
   async function reloadWidgets() {
@@ -100,34 +100,34 @@ describe('CustomWidgets', function() {
 
     // Create simple widget server that serves manifest.json file, some widgets and some error pages.
     const widgetServer = await serveSomething((app) => {
-      app.get('/404', (_, res) => res.sendStatus(404).end()); // not found
-      app.get('/500', (_, res) => res.sendStatus(500).end()); // internal error
-      app.get('/200', (_, res) => res.sendStatus(200).end()); // valid response with OK
-      app.get('/401', (_, res) => res.sendStatus(401).end()); // unauthorized
-      app.get('/403', (_, res) => res.sendStatus(403).end()); // forbidden
+      app.get("/404", (_, res) => res.sendStatus(404).end()); // not found
+      app.get("/500", (_, res) => res.sendStatus(500).end()); // internal error
+      app.get("/200", (_, res) => res.sendStatus(200).end()); // valid response with OK
+      app.get("/401", (_, res) => res.sendStatus(401).end()); // unauthorized
+      app.get("/403", (_, res) => res.sendStatus(403).end()); // forbidden
       app.get(widgetEndpoint, (req, res) =>
         res
-          .header('Content-Type', 'text/html')
-          .send('<html><head>' +
-            (req.query.name === 'NoPluginApi' ? '' : '<script src="/grist-plugin-api.js"></script>') +
-            (req.query.name === 'WithTheme' ? '<script>grist.ready();</script>' : '') +
-            '</head><body>\n' +
-            (req.query.name === 'WithTheme' ? '<span style="color: var(--grist-theme-text);">' : '') +
+          .header("Content-Type", "text/html")
+          .send("<html><head>" +
+            (req.query.name === "NoPluginApi" ? "" : '<script src="/grist-plugin-api.js"></script>') +
+            (req.query.name === "WithTheme" ? "<script>grist.ready();</script>" : "") +
+            "</head><body>\n" +
+            (req.query.name === "WithTheme" ? '<span style="color: var(--grist-theme-text);">' : "") +
             (req.query.name || req.query.access) + // send back widget name from query string or access level
-            (req.query.name === 'WithTheme' ? '</span>' : '') +
-            '</body></html>\n')
+            (req.query.name === "WithTheme" ? "</span>" : "") +
+            "</body></html>\n")
           .end(),
       );
       app.get(manifestEndpoint, (_, res) =>
         res
-          .header('Content-Type', 'application/json')
+          .header("Content-Type", "application/json")
           // prefix widget endpoint with server address
           .json(widgets.map(widget => ({ ...widget, url: `${widgetServerUrl}${widget.url}` })))
           .end(),
       );
-      app.get('/grist-plugin-api.js', (_, res) =>
+      app.get("/grist-plugin-api.js", (_, res) =>
         res.sendFile(
-          'grist-plugin-api.js', {
+          "grist-plugin-api.js", {
             root: path.resolve(getAppRoot(), "static"),
           }));
     });
@@ -146,14 +146,14 @@ describe('CustomWidgets', function() {
     const session = await gu.session().user("fresh").login({
       freshAccount: true, isFirstLogin: false, showTips: false, showGristTour: false,
     });
-    await session.tempDoc(cleanup, 'Hello.grist');
+    await session.tempDoc(cleanup, "Hello.grist");
 
     // Add custom section.
     await gu.addNewSection(/Custom/, /Table1/, { customWidget: /Custom URL/, selectBy: /TABLE1/ });
   });
 
   after(async function() {
-    await server.testingHooks.setWidgetRepositoryUrl('');
+    await server.testingHooks.setWidgetRepositoryUrl("");
     oldEnv.restore();
     await server.restart();
   });
@@ -161,12 +161,12 @@ describe('CustomWidgets', function() {
   afterEach(() => gu.checkForErrors());
 
   // Get available widgets from widget gallery (must be first opened).
-  const galleryWidgets = () => driver.findAll('.test-custom-widget-gallery-widget-name', e => e.getText());
+  const galleryWidgets = () => driver.findAll(".test-custom-widget-gallery-widget-name", e => e.getText());
 
   // Get rendered content from custom section.
   const content = async () => {
     return gu.doInIframe(await getCustomWidgetFrame(), async () => {
-      const text = await driver.find('body').getText();
+      const text = await driver.find("body").getText();
       return text;
     });
   };
@@ -192,11 +192,11 @@ describe('CustomWidgets', function() {
         }
       };
       const cmd =
-        'const done = arguments[arguments.length - 1];\n' +
-        'const op = ' + op.toString() + ';\n' +
-        'const tableSelector = ' + tableSelector.toString() + ';\n' +
-        'const harness = ' + harness.toString() + ';\n' +
-        'harness(done);\n';
+        "const done = arguments[arguments.length - 1];\n" +
+        "const op = " + op.toString() + ";\n" +
+        "const tableSelector = " + tableSelector.toString() + ";\n" +
+        "const harness = " + harness.toString() + ";\n" +
+        "harness(done);\n";
       const result = await driver.executeAsyncScript(cmd);
       // done callback will return null instead of undefined
       return result === "__undefined__" ? undefined : result;
@@ -206,8 +206,8 @@ describe('CustomWidgets', function() {
   const getErrorMessage = async () => (await gu.getToasts())[0];
   // Changes active section to recreate creator panel.
   async function recreatePanel() {
-    await gu.getSection('TABLE1').click();
-    await gu.getSection('TABLE1 Custom').click();
+    await gu.getSection("TABLE1").click();
+    await gu.getSection("TABLE1 Custom").click();
     await gu.waitForServer();
   }
   // Gets or sets access level
@@ -218,12 +218,12 @@ describe('CustomWidgets', function() {
       [AccessLevel.full]: "Full document access",
     };
     if (!level) {
-      const currentAccess = await driver.find('.test-config-widget-access .test-select-open').getText();
+      const currentAccess = await driver.find(".test-config-widget-access .test-select-open").getText();
       return Object.entries(text).find(e => e[1] === currentAccess)![0];
     }
     else {
-      await driver.find('.test-config-widget-access .test-select-open').click();
-      await gu.findOpenMenuItem('li', text[level]).click();
+      await driver.find(".test-config-widget-access .test-select-open").click();
+      await gu.findOpenMenuItem("li", text[level]).click();
       await gu.waitForServer();
     }
   }
@@ -237,68 +237,68 @@ describe('CustomWidgets', function() {
 
   async function enableWidgetsAndShowPanel() {
     // We need to be sure that widget configuration panel is open all the time.
-    await gu.toggleSidePanel('right', 'open');
+    await gu.toggleSidePanel("right", "open");
     await recreatePanel();
-    await gu.retryOnStale(() => driver.findWait('.test-right-tab-pagewidget', 100).click());
+    await gu.retryOnStale(() => driver.findWait(".test-right-tab-pagewidget", 100).click());
   }
 
-  describe('RightWidgetMenu', () => {
+  describe("RightWidgetMenu", () => {
     beforeEach(enableWidgetsAndShowPanel);
 
     afterEach(() => gu.checkForErrors());
 
-    it('should show button to open gallery', async () => {
-      const button = await driver.find('.test-config-widget-open-custom-widget-gallery');
-      assert.equal(await button.getText(), 'Custom URL');
+    it("should show button to open gallery", async () => {
+      const button = await driver.find(".test-config-widget-open-custom-widget-gallery");
+      assert.equal(await button.getText(), "Custom URL");
       await button.click();
-      assert.isTrue(await driver.find('.test-custom-widget-gallery-container').isDisplayed());
+      assert.isTrue(await driver.find(".test-custom-widget-gallery-container").isDisplayed());
       await gu.sendKeys(Key.ESCAPE, Key.ESCAPE);
-      assert.isFalse(await driver.find('.test-custom-widget-gallery-container').isPresent());
+      assert.isFalse(await driver.find(".test-custom-widget-gallery-container").isPresent());
     });
 
-    it('should switch between widgets', async () => {
+    it("should switch between widgets", async () => {
       // Test Custom URL.
       assert.equal(await gu.getCustomWidgetName(), CUSTOM_URL);
-      assert.isTrue((await content()).startsWith('Custom widget'));
+      assert.isTrue((await content()).startsWith("Custom widget"));
       await gu.setCustomWidgetUrl(`${widgetServerUrl}/200`);
       assert.equal(await gu.getCustomWidgetName(), CUSTOM_URL);
-      assert.equal(await content(), 'OK');
+      assert.equal(await content(), "OK");
 
       // Test first widget.
       await gu.setCustomWidget(widget1.name);
       assert.equal(await gu.getCustomWidgetName(), widget1.name);
-      assert.equal(await gu.getCustomWidgetInfo('description'), widget1.description);
-      assert.equal(await gu.getCustomWidgetInfo('developer'), widget1.authors?.[0].name);
-      assert.equal(await gu.getCustomWidgetInfo('last-updated'), 'July 30, 2024');
+      assert.equal(await gu.getCustomWidgetInfo("description"), widget1.description);
+      assert.equal(await gu.getCustomWidgetInfo("developer"), widget1.authors?.[0].name);
+      assert.equal(await gu.getCustomWidgetInfo("last-updated"), "July 30, 2024");
       assert.equal(await content(), widget1.name);
 
       // Test second widget.
       await gu.setCustomWidget(widget2.name);
       assert.equal(await gu.getCustomWidgetName(), widget2.name);
-      assert.equal(await gu.getCustomWidgetInfo('description'), '');
-      assert.equal(await gu.getCustomWidgetInfo('developer'), '');
-      assert.equal(await gu.getCustomWidgetInfo('last-updated'), '');
+      assert.equal(await gu.getCustomWidgetInfo("description"), "");
+      assert.equal(await gu.getCustomWidgetInfo("developer"), "");
+      assert.equal(await gu.getCustomWidgetInfo("last-updated"), "");
       assert.equal(await content(), widget2.name);
 
       // Go back to Custom URL.
       await gu.setCustomWidget(CUSTOM_URL);
       assert.equal(await gu.getCustomWidgetName(), CUSTOM_URL);
-      assert.isTrue((await content()).startsWith('Custom widget'));
+      assert.isTrue((await content()).startsWith("Custom widget"));
       await gu.setCustomWidgetUrl(`${widgetServerUrl}/200`);
       assert.equal(await gu.getCustomWidgetName(), CUSTOM_URL);
-      assert.equal(await content(), 'OK');
+      assert.equal(await content(), "OK");
 
       // Clear url and test if message page is shown.
-      await gu.setCustomWidgetUrl('');
+      await gu.setCustomWidgetUrl("");
       assert.equal(await gu.getCustomWidgetName(), CUSTOM_URL);
-      assert.isTrue((await content()).startsWith('Custom widget'));
+      assert.isTrue((await content()).startsWith("Custom widget"));
 
       await recreatePanel();
       assert.equal(await gu.getCustomWidgetName(), CUSTOM_URL);
       await gu.undo(6);
     });
 
-    it('should support theme variables', async () => {
+    it("should support theme variables", async () => {
       widgets = [widgetWithTheme];
       await reloadWidgets();
       await recreatePanel();
@@ -307,31 +307,31 @@ describe('CustomWidgets', function() {
       assert.equal(await content(), widgetWithTheme.name);
 
       const getWidgetColor = async () => {
-        const iframe = driver.find('iframe');
+        const iframe = driver.find("iframe");
         await driver.switchTo().frame(iframe);
-        const color = await driver.find('span').getCssValue('color');
+        const color = await driver.find("span").getCssValue("color");
         await driver.switchTo().defaultContent();
         return color;
       };
 
       // Check that the widget is using the text color from the GristLight theme.
-      assert.equal(await getWidgetColor(), 'rgba(38, 38, 51, 1)');
+      assert.equal(await getWidgetColor(), "rgba(38, 38, 51, 1)");
 
       // Switch the theme to GristDark.
-      await gu.setGristTheme({ themeName: 'GristDark', syncWithOS: false });
+      await gu.setGristTheme({ themeName: "GristDark", syncWithOS: false });
       await driver.navigate().back();
       await gu.waitForDocToLoad();
 
       // Check that the span is using the text color from the GristDark theme.
-      assert.equal(await getWidgetColor(), 'rgba(239, 239, 239, 1)');
+      assert.equal(await getWidgetColor(), "rgba(239, 239, 239, 1)");
 
       // Switch back to GristLight.
-      await gu.setGristTheme({ themeName: 'GristLight', syncWithOS: false });
+      await gu.setGristTheme({ themeName: "GristLight", syncWithOS: false });
       await driver.navigate().back();
       await gu.waitForDocToLoad();
 
       // Check that the widget is back to using the GristLight text color.
-      assert.equal(await getWidgetColor(), 'rgba(38, 38, 51, 1)');
+      assert.equal(await getWidgetColor(), "rgba(38, 38, 51, 1)");
     });
 
     it("should support widgets that don't use the plugin api", async () => {
@@ -343,7 +343,7 @@ describe('CustomWidgets', function() {
 
       // Check that the widget loaded and its iframe is visible.
       assert.equal(await content(), widgetNoPluginApi.name);
-      assert.isTrue(await driver.find('iframe').isDisplayed());
+      assert.isTrue(await driver.find("iframe").isDisplayed());
 
       // Revert to original configuration.
       widgets = [widget1, widget2];
@@ -351,7 +351,7 @@ describe('CustomWidgets', function() {
       await recreatePanel();
     });
 
-    it('should show error message for invalid widget url list', async () => {
+    it("should show error message for invalid widget url list", async () => {
       const testError = async (url: string, error: string) => {
         // Switch section to rebuild the creator panel.
         await useManifest(url);
@@ -366,12 +366,12 @@ describe('CustomWidgets', function() {
         await gu.sendKeys(Key.ESCAPE);
       };
 
-      await testError('/404', "Remote widget list not found");
-      await testError('/500', "Remote server returned an error");
-      await testError('/401', "Remote server returned an error");
-      await testError('/403', "Remote server returned an error");
+      await testError("/404", "Remote widget list not found");
+      await testError("/500", "Remote server returned an error");
+      await testError("/401", "Remote server returned an error");
+      await testError("/403", "Remote server returned an error");
       // Invalid content in a response.
-      await testError('/200', "Error reading widget list");
+      await testError("/200", "Error reading widget list");
 
       // Reset to valid manifest.
       await useManifest(manifestEndpoint);
@@ -384,7 +384,7 @@ describe('CustomWidgets', function() {
      * The document could be on a different Grist installation to the
      * one where it was created.
      */
-    it.skip('should show widget when it was removed from list', async () => {
+    it.skip("should show widget when it was removed from list", async () => {
       // Select widget1 and then remove it from the list.
       await gu.setCustomWidget(widget1.name);
       widgets = [widget2];
@@ -398,7 +398,7 @@ describe('CustomWidgets', function() {
       await gu.undo(1);
     });
 
-    it('should switch access level to none on new widget', async () => {
+    it("should switch access level to none on new widget", async () => {
       widgets = [widget1, widget2];
       await recreatePanel();
       await gu.setCustomWidget(widget1.name);
@@ -424,7 +424,7 @@ describe('CustomWidgets', function() {
       await gu.undo(8);
     });
 
-    it('should prompt for access change', async () => {
+    it("should prompt for access change", async () => {
       widgets = [widget1, widget2, widgetFull, widgetNone, widgetRead];
       await reloadWidgets();
       await recreatePanel();
@@ -467,7 +467,7 @@ describe('CustomWidgets', function() {
       await test(widgetRead);
     });
 
-    it('should auto accept none access level', async () => {
+    it("should auto accept none access level", async () => {
       // Select widget without access level
       await gu.setCustomWidget(widget1.name);
       assert.isFalse(await hasPrompt());
@@ -480,7 +480,7 @@ describe('CustomWidgets', function() {
       assert.equal(await content(), AccessLevel.none);
     });
 
-    it('should show prompt when user switches sections', async () => {
+    it("should show prompt when user switches sections", async () => {
       // Select widget without access level
       await gu.setCustomWidget(widget1.name);
       assert.isFalse(await hasPrompt());
@@ -497,7 +497,7 @@ describe('CustomWidgets', function() {
       assert.equal(await content(), AccessLevel.none);
     });
 
-    it('should hide prompt when user switches widget', async () => {
+    it("should hide prompt when user switches widget", async () => {
       // Select widget without access level
       await gu.setCustomWidget(widget1.name);
       assert.isFalse(await hasPrompt());
@@ -513,7 +513,7 @@ describe('CustomWidgets', function() {
       assert.equal(await access(), AccessLevel.none);
     });
 
-    it('should hide prompt when manually changes access level', async () => {
+    it("should hide prompt when manually changes access level", async () => {
       // Select widget with no access level
       const selectNone = async () => {
         await gu.setCustomWidget(widgetNone.name);
@@ -559,122 +559,122 @@ describe('CustomWidgets', function() {
     });
   });
 
-  describe('gallery', () => {
+  describe("gallery", () => {
     afterEach(() => gu.checkForErrors());
 
-    it('should show available widgets', async () => {
+    it("should show available widgets", async () => {
       await gu.openCustomWidgetGallery();
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-        ['Custom URL', 'full', 'none', 'read table', 'W1', 'W2'],
+        await driver.findAll(".test-custom-widget-gallery-widget-name", el => el.getText()),
+        ["Custom URL", "full", "none", "read table", "W1", "W2"],
       );
     });
 
-    it('should show available metadata', async () => {
+    it("should show available metadata", async () => {
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget', el =>
-          el.matches('.test-custom-widget-gallery-widget-custom')),
+        await driver.findAll(".test-custom-widget-gallery-widget", el =>
+          el.matches(".test-custom-widget-gallery-widget-custom")),
         [true, false, false, false, false, false],
       );
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget', el =>
-          el.matches('.test-custom-widget-gallery-widget-grist')),
+        await driver.findAll(".test-custom-widget-gallery-widget", el =>
+          el.matches(".test-custom-widget-gallery-widget-grist")),
         [false, true, true, true, true, false],
       );
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget', el =>
-          el.matches('.test-custom-widget-gallery-widget-community')),
+        await driver.findAll(".test-custom-widget-gallery-widget", el =>
+          el.matches(".test-custom-widget-gallery-widget-community")),
         [false, false, false, false, false, true],
       );
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget-description', el => el.getText()),
+        await driver.findAll(".test-custom-widget-gallery-widget-description", el => el.getText()),
         [
-          'Add a widget from outside this gallery.',
-          '(Missing info)',
-          '(Missing info)',
-          '(Missing info)',
-          'Widget 1 description',
-          '(Missing info)',
+          "Add a widget from outside this gallery.",
+          "(Missing info)",
+          "(Missing info)",
+          "(Missing info)",
+          "Widget 1 description",
+          "(Missing info)",
         ],
       );
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget-developer', el => el.getText()),
+        await driver.findAll(".test-custom-widget-gallery-widget-developer", el => el.getText()),
         [
-          '(Missing info)',
-          '(Missing info)',
+          "(Missing info)",
+          "(Missing info)",
         ],
       );
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget-last-updated', el => el.getText()),
+        await driver.findAll(".test-custom-widget-gallery-widget-last-updated", el => el.getText()),
         [
-          '(Missing info)',
-          '(Missing info)',
-          '(Missing info)',
-          'July 30, 2024',
-          '(Missing info)',
+          "(Missing info)",
+          "(Missing info)",
+          "(Missing info)",
+          "July 30, 2024",
+          "(Missing info)",
         ],
       );
     });
 
-    it('should filter widgets on search', async () => {
-      await driver.find('.test-custom-widget-gallery-search').click();
-      await gu.sendKeys('Custom');
+    it("should filter widgets on search", async () => {
+      await driver.find(".test-custom-widget-gallery-search").click();
+      await gu.sendKeys("Custom");
       await gu.waitToPass(async () => {
         assert.deepEqual(
-          await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-          ['Custom URL'],
+          await driver.findAll(".test-custom-widget-gallery-widget-name", el => el.getText()),
+          ["Custom URL"],
         );
       }, 200);
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE);
       await gu.waitToPass(async () => {
         assert.deepEqual(
-          await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-          ['Custom URL', 'full', 'none', 'read table', 'W1', 'W2'],
+          await driver.findAll(".test-custom-widget-gallery-widget-name", el => el.getText()),
+          ["Custom URL", "full", "none", "read table", "W1", "W2"],
         );
       }, 200);
-      await gu.sendKeys('W');
+      await gu.sendKeys("W");
       await gu.waitToPass(async () => {
         assert.deepEqual(
-          await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-          ['Custom URL', 'W1', 'W2'],
+          await driver.findAll(".test-custom-widget-gallery-widget-name", el => el.getText()),
+          ["Custom URL", "W1", "W2"],
         );
       }, 200);
-      await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, 'tab');
+      await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, "tab");
       await gu.waitToPass(async () => {
         assert.deepEqual(
-          await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-          ['read table'],
+          await driver.findAll(".test-custom-widget-gallery-widget-name", el => el.getText()),
+          ["read table"],
         );
       }, 200);
-      await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, 'Markdown');
+      await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, "Markdown");
       await gu.waitToPass(async () => {
         assert.deepEqual(
-          await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
+          await driver.findAll(".test-custom-widget-gallery-widget-name", el => el.getText()),
           [],
         );
       }, 200);
-      await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, 'Developer 1');
+      await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, "Developer 1");
       await gu.waitToPass(async () => {
         assert.deepEqual(
-          await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-          ['W1'],
+          await driver.findAll(".test-custom-widget-gallery-widget-name", el => el.getText()),
+          ["W1"],
         );
       }, 200);
     });
 
-    it('should only show Custom URL widget when repository is disabled', async () => {
+    it("should only show Custom URL widget when repository is disabled", async () => {
       await gu.sendKeys(Key.ESCAPE);
-      await driver.executeScript('window.gristConfig.enableWidgetRepository = false;');
+      await driver.executeScript("window.gristConfig.enableWidgetRepository = false;");
       await driver.executeAsyncScript(
         (done: any) => (window as any).gristApp?.topAppModel.testReloadWidgets().then(done).catch(done) || done(),
       );
       await gu.openCustomWidgetGallery();
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-        ['Custom URL'],
+        await driver.findAll(".test-custom-widget-gallery-widget-name", el => el.getText()),
+        ["Custom URL"],
       );
       await gu.sendKeys(Key.ESCAPE);
-      await driver.executeScript('window.gristConfig.enableWidgetRepository = true;');
+      await driver.executeScript("window.gristConfig.enableWidgetRepository = true;");
       await driver.executeAsyncScript(
         (done: any) => (window as any).gristApp?.topAppModel.testReloadWidgets().then(done).catch(done) || done(),
       );
@@ -689,72 +689,72 @@ describe('CustomWidgets', function() {
 
     it("should only allow adding a Custom URL widget with an empty or valid url", async () => {
       await gu.openCustomWidgetGallery();
-      await driver.findContent('.test-custom-widget-gallery-widget-name', 'Custom URL').click();
+      await driver.findContent(".test-custom-widget-gallery-widget-name", "Custom URL").click();
 
-      const saveBtn = '.test-custom-widget-gallery-save';
-      const urlInput = '.test-custom-widget-gallery-custom-url';
+      const saveBtn = ".test-custom-widget-gallery-save";
+      const urlInput = ".test-custom-widget-gallery-custom-url";
 
       // empty url should work without showing a warning modal
       await driver.find(urlInput).click();
       await gu.clearInput();
       await driver.find(saveBtn).click();
       await gu.waitForServer();
-      assert.isTrue((await content()).startsWith('Custom widget'));
+      assert.isTrue((await content()).startsWith("Custom widget"));
       await gu.undo(1);
       await gu.waitForServer();
 
       // non-url text should not work: when submitting, we should still be in the gallery, no risk modal shown
       await gu.openCustomWidgetGallery();
-      await driver.findContent('.test-custom-widget-gallery-widget-name', 'Custom URL').click();
+      await driver.findContent(".test-custom-widget-gallery-widget-name", "Custom URL").click();
       await driver.find(urlInput).click();
       await gu.clearInput();
-      await gu.sendKeys('not a url');
+      await gu.sendKeys("not a url");
       await driver.find(saveBtn).click();
-      assert.equal(await driver.find('.test-modal-title').isPresent(), false);
-      assert.isTrue(await driver.find('.test-custom-widget-gallery-container').isDisplayed());
+      assert.equal(await driver.find(".test-modal-title").isPresent(), false);
+      assert.isTrue(await driver.find(".test-custom-widget-gallery-container").isDisplayed());
 
       // url should work: when submitting, the risk modal should be shown
       await driver.find(urlInput).click();
       await gu.clearInput();
-      await gu.sendKeys('https://grist-dummy-custom-widget.com');
+      await gu.sendKeys("https://grist-dummy-custom-widget.com");
       await driver.find(saveBtn).click();
-      assert.equal(await driver.find('.test-modal-title').isDisplayed(), true);
+      assert.equal(await driver.find(".test-modal-title").isDisplayed(), true);
 
       // cleanup after test: close modal and gallery
-      await driver.find('.test-modal-cancel').click();
-      await driver.find('.test-custom-widget-gallery-cancel').click();
+      await driver.find(".test-modal-cancel").click();
+      await driver.find(".test-custom-widget-gallery-cancel").click();
     });
 
     it("should show a modal explaining the risks when adding a Custom URL widget", async () => {
       await gu.openCustomWidgetGallery();
-      await driver.find('.test-custom-widget-gallery-custom-url').click();
+      await driver.find(".test-custom-widget-gallery-custom-url").click();
       await gu.clearInput();
-      await gu.sendKeys('https://grist-dummy-custom-widget.com');
-      await driver.find('.test-custom-widget-gallery-save').click();
+      await gu.sendKeys("https://grist-dummy-custom-widget.com");
+      await driver.find(".test-custom-widget-gallery-save").click();
 
       assert.equal(await driver.findContent(
-        '.test-modal-title',
+        ".test-modal-title",
         /Be careful with unknown custom widgets/,
       ).isDisplayed(), true);
-      assert.equal(await driver.find('.test-custom-widget-warning-modal-confirm-checkbox').isDisplayed(), true);
+      assert.equal(await driver.find(".test-custom-widget-warning-modal-confirm-checkbox").isDisplayed(), true);
 
-      assert.equal(await driver.find('.test-modal-cancel').isDisplayed(), true);
-      assert.equal(await driver.find('.test-modal-confirm').isDisplayed(), true);
+      assert.equal(await driver.find(".test-modal-cancel").isDisplayed(), true);
+      assert.equal(await driver.find(".test-modal-confirm").isDisplayed(), true);
 
       // cleanup after test: close modal and gallery
-      await driver.find('.test-modal-cancel').click();
-      await driver.find('.test-custom-widget-gallery-cancel').click();
+      await driver.find(".test-modal-cancel").click();
+      await driver.find(".test-custom-widget-gallery-cancel").click();
     });
 
     it("should allow adding a Custom URL widget only when accepting the risks", async () => {
       await gu.openCustomWidgetGallery();
-      await driver.find('.test-custom-widget-gallery-custom-url').click();
+      await driver.find(".test-custom-widget-gallery-custom-url").click();
       await gu.clearInput();
-      await gu.sendKeys('https://grist-dummy-custom-widget.com');
-      await driver.find('.test-custom-widget-gallery-save').click();
+      await gu.sendKeys("https://grist-dummy-custom-widget.com");
+      await driver.find(".test-custom-widget-gallery-save").click();
 
-      const confirmCb = '.test-custom-widget-warning-modal-confirm-checkbox';
-      const saveBtn = '.test-modal-confirm';
+      const confirmCb = ".test-custom-widget-warning-modal-confirm-checkbox";
+      const saveBtn = ".test-modal-confirm";
 
       // make sure confirm checkbox and confirm modal button are linked:
       // should be both unchecked/disabled at first, then toggle together
@@ -777,25 +777,25 @@ describe('CustomWidgets', function() {
     });
   });
 
-  describe('gristApiSupport', async () => {
+  describe("gristApiSupport", async () => {
     beforeEach(async function() {
       // We need to be sure that widget configuration panel is open all the time.
-      await gu.toggleSidePanel('right', 'open');
+      await gu.toggleSidePanel("right", "open");
       await recreatePanel();
-      await gu.retryOnStale(() => driver.findWait('.test-right-tab-pagewidget', 100).click());
+      await gu.retryOnStale(() => driver.findWait(".test-right-tab-pagewidget", 100).click());
     });
 
     afterEach(() => gu.checkForErrors());
 
-    it('should set language in widget url', async () => {
+    it("should set language in widget url", async () => {
       function languageMenu() {
-        return gu.currentDriver().find('.test-account-page-language .test-select-open');
+        return gu.currentDriver().find(".test-account-page-language .test-select-open");
       }
       async function language() {
         return await gu.doInIframe(await getCustomWidgetFrame(), async () => {
-          const urlText = await driver.executeScript<string>('return document.location.href');
+          const urlText = await driver.executeScript<string>("return document.location.href");
           const url = new URL(urlText);
-          return url.searchParams.get('language');
+          return url.searchParams.get("language");
         });
       }
 
@@ -803,7 +803,7 @@ describe('CustomWidgets', function() {
         await gu.openProfileSettingsPage();
         await gu.waitForServer();
         await languageMenu().click();
-        await gu.findOpenMenuItem('li',  lang, 100).click();
+        await gu.findOpenMenuItem("li",  lang, 100).click();
         await gu.waitForServer();
         await driver.navigate().back();
         await gu.waitForServer();
@@ -814,66 +814,66 @@ describe('CustomWidgets', function() {
       await gu.openWidgetPanel();
       await gu.setCustomWidget(widget1.name);
       // Switch language to Polish
-      await switchLanguage('Polski');
+      await switchLanguage("Polski");
       // Check if widgets have "pl" in url
-      assert.equal(await language(), 'pl');
+      assert.equal(await language(), "pl");
       // Switch back to English
-      await switchLanguage('English');
+      await switchLanguage("English");
       // Check if widgets have "en" in url
-      assert.equal(await language(), 'en');
+      assert.equal(await language(), "en");
     });
 
     it("should support grist.selectedTable", async () => {
       // Open a custom widget with full access.
-      await gu.toggleSidePanel('right', 'open');
-      await driver.find('.test-config-widget').click();
+      await gu.toggleSidePanel("right", "open");
+      await driver.find(".test-config-widget").click();
       await gu.waitForServer();
       await access(AccessLevel.full);
 
       // Check an upsert works.
       await execute(async (table) => {
         await table.upsert({
-          require: { A: 'hello' },
-          fields: { A: 'goodbye' },
+          require: { A: "hello" },
+          fields: { A: "goodbye" },
         });
       });
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: 1, col: 0 }).getText(), 'goodbye');
+        assert.equal(await gu.getCell({ section: "TABLE1", rowNum: 1, col: 0 }).getText(), "goodbye");
       });
 
       // Check an update works.
       await execute(async (table) => {
         return table.update({
           id: 2,
-          fields: { A: 'farewell' },
+          fields: { A: "farewell" },
         });
       });
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: 2, col: 0 }).getText(), 'farewell');
+        assert.equal(await gu.getCell({ section: "TABLE1", rowNum: 2, col: 0 }).getText(), "farewell");
       });
 
       // Check options are passed along.
       await execute(async (table) => {
         return table.upsert({
           require: {},
-          fields: { A: 'goodbyes' },
-        }, { onMany: 'all', allowEmptyRequire: true });
+          fields: { A: "goodbyes" },
+        }, { onMany: "all", allowEmptyRequire: true });
       });
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: 1, col: 0 }).getText(), 'goodbyes');
-        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: 2, col: 0 }).getText(), 'goodbyes');
+        assert.equal(await gu.getCell({ section: "TABLE1", rowNum: 1, col: 0 }).getText(), "goodbyes");
+        assert.equal(await gu.getCell({ section: "TABLE1", rowNum: 2, col: 0 }).getText(), "goodbyes");
       });
 
       // Check a create works.
       const { id } = await execute(async (table) => {
         return table.create({
-          fields: { A: 'partA', B: 'partB' },
+          fields: { A: "partA", B: "partB" },
         });
       }) as { id: number };
       assert.equal(id, 5);
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: id, col: 0 }).getText(), 'partA');
-        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: id, col: 1 }).getText(), 'partB');
+        assert.equal(await gu.getCell({ section: "TABLE1", rowNum: id, col: 0 }).getText(), "partA");
+        assert.equal(await gu.getCell({ section: "TABLE1", rowNum: id, col: 1 }).getText(), "partB");
       });
 
       // Check a destroy works.
@@ -882,14 +882,14 @@ describe('CustomWidgets', function() {
       });
       assert.isUndefined(result);
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: id - 1, col: 0 }).getText(), 'partA');
+        assert.equal(await gu.getCell({ section: "TABLE1", rowNum: id - 1, col: 0 }).getText(), "partA");
       });
       result = await execute(async (table) => {
         await table.destroy([2]);
       });
       assert.isUndefined(result);
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: id - 2, col: 0 }).getText(), 'partA');
+        assert.equal(await gu.getCell({ section: "TABLE1", rowNum: id - 2, col: 0 }).getText(), "partA");
       });
 
       // Check errors are friendly.
@@ -904,20 +904,20 @@ describe('CustomWidgets', function() {
       await execute(async (table) => {
         return table.update({
           id: 3,
-          fields: { A: 'back again' },
+          fields: { A: "back again" },
         });
-      }, grist => grist.getTable('Table1'));
+      }, grist => grist.getTable("Table1"));
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: 1, col: 0 }).getText(), 'back again');
+        assert.equal(await gu.getCell({ section: "TABLE1", rowNum: 1, col: 0 }).getText(), "back again");
       });
 
       // Check an update on a nonexistent table fails.
       assert.match(String(await execute(async (table) => {
         return table.update({
           id: 3,
-          fields: { A: 'back again' },
+          fields: { A: "back again" },
         });
-      }, grist => grist.getTable('Table2'))), /Table not found/);
+      }, grist => grist.getTable("Table2"))), /Table not found/);
     });
 
     it("should support grist.getAccessTokens", async () => {
@@ -925,14 +925,14 @@ describe('CustomWidgets', function() {
         const tokenResult: AccessTokenResult = await driver.executeAsyncScript(
           (done: any) => (window as any).grist.getAccessToken().then(done),
         );
-        assert.sameMembers(Object.keys(tokenResult), ['ttlMsecs', 'token', 'baseUrl']);
+        assert.sameMembers(Object.keys(tokenResult), ["ttlMsecs", "token", "baseUrl"]);
         const result = await fetch(tokenResult.baseUrl + `/tables/Table1/records?auth=${tokenResult.token}`);
-        assert.sameMembers(Object.keys(await result.json()), ['records']);
+        assert.sameMembers(Object.keys(await result.json()), ["records"]);
       });
     });
   });
 
-  describe('Bundling', function() {
+  describe("Bundling", function() {
     let oldEnv: EnvironmentSnapshot;
 
     before(async function() {
@@ -946,7 +946,7 @@ describe('CustomWidgets', function() {
       await gu.reloadDoc();
     });
 
-    for (const variant of ['flat', 'nested'] as const) {
+    for (const variant of ["flat", "nested"] as const) {
       it(`can add widgets via plugins (${variant} layout)`, async function() {
         // Double-check that using one external widget, we see
         // just that widget listed.
@@ -970,38 +970,38 @@ describe('CustomWidgets', function() {
         // In 'nested' variant, widgets.json and the files it refers to are in
         // a subdirectory.
         const dir = await createTmpDir();
-        const pluginDir = path.join(dir, 'plugins', 'my-widgets');
-        const widgetDir = variant === 'nested' ? path.join(pluginDir, 'nested') : pluginDir;
+        const pluginDir = path.join(dir, "plugins", "my-widgets");
+        const widgetDir = variant === "nested" ? path.join(pluginDir, "nested") : pluginDir;
         await fse.mkdirp(pluginDir);
         await fse.mkdirp(widgetDir);
 
         // A plugin, with some widgets in it.
         await fse.writeFile(
-          path.join(pluginDir, 'manifest.yml'),
+          path.join(pluginDir, "manifest.yml"),
           `name: My Widgets\n` +
           `components:\n` +
-          `  widgets: ${variant === 'nested' ? 'nested/' : ''}widgets.json\n`,
+          `  widgets: ${variant === "nested" ? "nested/" : ""}widgets.json\n`,
         );
 
         // A list of a pair of custom widgets, with the widget
         // source in the same directory.
         await fse.writeFile(
-          path.join(widgetDir, 'widgets.json'),
+          path.join(widgetDir, "widgets.json"),
           JSON.stringify([
             {
-              widgetId: 'p1',
-              name: 'P1',
-              url: './p1.html',
+              widgetId: "p1",
+              name: "P1",
+              url: "./p1.html",
             },
             {
-              widgetId: 'p2',
-              name: 'P2',
-              url: './p2.html',
+              widgetId: "p2",
+              name: "P2",
+              url: "./p2.html",
             },
             {
-              widgetId: 'p3',
-              name: 'P3',
-              url: './p3.html',
+              widgetId: "p3",
+              name: "P3",
+              url: "./p3.html",
               published: false,
             },
           ]),
@@ -1009,8 +1009,8 @@ describe('CustomWidgets', function() {
 
         // The first widget - just contains the text P1.
         await fse.writeFile(
-          path.join(widgetDir, 'p1.html'),
-          '<html><body>P1</body></html>',
+          path.join(widgetDir, "p1.html"),
+          "<html><body>P1</body></html>",
         );
 
         // The second widget. This contains the text P2
@@ -1018,7 +1018,7 @@ describe('CustomWidgets', function() {
         // (but the js bundled with the widget just throws an
         // alert).
         await fse.writeFile(
-          path.join(widgetDir, 'p2.html'),
+          path.join(widgetDir, "p2.html"),
           `
           <html>
           <head><script src="./grist-plugin-api.js"></script></head>
@@ -1036,15 +1036,15 @@ describe('CustomWidgets', function() {
 
         // The third widget - just contains the text P3.
         await fse.writeFile(
-          path.join(widgetDir, 'p3.html'),
-          '<html><body>P3</body></html>',
+          path.join(widgetDir, "p3.html"),
+          "<html><body>P3</body></html>",
         );
 
         // A dummy grist-plugin-api.js - hopefully the actual
         // js for the current version of Grist will be served in
         // its place.
         await fse.writeFile(
-          path.join(widgetDir, 'grist-plugin-api.js'),
+          path.join(widgetDir, "grist-plugin-api.js"),
           'alert("Error: built in api version used");',
         );
 
@@ -1060,7 +1060,7 @@ describe('CustomWidgets', function() {
         // Check we see one external widget and two bundled ones.
         await gu.openCustomWidgetGallery();
         assert.deepEqual(await galleryWidgets(), [
-          CUSTOM_URL, 'P1 (My Widgets)', 'P2 (My Widgets)', widget1.name,
+          CUSTOM_URL, "P1 (My Widgets)", "P2 (My Widgets)", widget1.name,
         ]);
 
         // Prepare to check content of widgets.
@@ -1074,29 +1074,29 @@ describe('CustomWidgets', function() {
 
         // Check built-in P1 works as expected.
         await gu.setCustomWidget(/P1/, { openGallery: false });
-        assert.equal(await gu.getCustomWidgetName(), 'P1 (My Widgets)');
+        assert.equal(await gu.getCustomWidgetName(), "P1 (My Widgets)");
         await gu.waitToPass(async () => {
-          assert.equal(await getWidgetText(), 'P1');
+          assert.equal(await getWidgetText(), "P1");
         });
 
         // Check external W1 works as expected.
         await gu.setCustomWidget(/W1/);
-        assert.equal(await gu.getCustomWidgetName(), 'W1');
+        assert.equal(await gu.getCustomWidgetName(), "W1");
         await gu.waitToPass(async () => {
-          assert.equal(await getWidgetText(), 'W1');
+          assert.equal(await getWidgetText(), "W1");
         });
 
         // Check build-in P2 works as expected.
         await gu.setCustomWidget(/P2/);
-        assert.equal(await gu.getCustomWidgetName(), 'P2 (My Widgets)');
+        assert.equal(await gu.getCustomWidgetName(), "P2 (My Widgets)");
         await gu.waitToPass(async () => {
-          assert.equal(await getWidgetText(), 'P2');
+          assert.equal(await getWidgetText(), "P2");
         });
 
         // Make sure widget setting is sticky.
         await gu.reloadDoc();
         await gu.waitToPass(async () => {
-          assert.equal(await getWidgetText(), 'P2');
+          assert.equal(await getWidgetText(), "P2");
         });
       });
     }

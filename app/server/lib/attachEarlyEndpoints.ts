@@ -89,7 +89,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     expressWrap(async (req, res) => {
       const mreq = req as RequestWithLogin;
       const meta = {
-        host: mreq.get('host'),
+        host: mreq.get("host"),
         path: mreq.path,
         email: mreq.user?.loginEmail,
       };

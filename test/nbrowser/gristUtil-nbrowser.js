@@ -1,17 +1,17 @@
-import * as _ from 'lodash';
+import * as _ from "lodash";
 import { assert, driver, Key, stackWrapFunc, WebElement,
-  WebElementPromise } from 'mocha-webdriver';
+  WebElementPromise } from "mocha-webdriver";
 import { driverCompanion, findOldTimey, waitImpl,
-  webdriverjqWrapper } from 'test/nbrowser/webdriverjq-nbrowser';
-import * as guBase from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
-import { server } from 'test/nbrowser/testServer';
+  webdriverjqWrapper } from "test/nbrowser/webdriverjq-nbrowser";
+import * as guBase from "test/nbrowser/gristUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
+import { server } from "test/nbrowser/testServer";
 
 // Simulate the old "$" object.
 
 const _webdriverjqFactory = webdriverjqWrapper(driver);
 function $(key) {
-  if (typeof key !== 'string') {
+  if (typeof key !== "string") {
     return key;
   }
   return _webdriverjqFactory(key);
@@ -66,7 +66,7 @@ const gu = {
     }
     patchesApplied = true;
     // Login as someone so old code doesn't have to be upgraded to do it.
-    session = await gu.session().user('userz');
+    session = await gu.session().user("userz");
     const dbManager = await server.getDatabase();
     const profile = {email: session.email, name: session.name};
     await dbManager.getUserByLogin(session.email, {profile});
@@ -98,11 +98,11 @@ const gu = {
    * conversion to complete.
    */
   async applyTypeConversion() {
-    await $('.test-type-transform-apply').wait().scrollIntoView({
-      block: 'nearest',
-      inline: 'nearest',
+    await $(".test-type-transform-apply").wait().scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
     }).click();
-    await $('.test-type-transform-apply').waitDrop(assert.isPresent, false);
+    await $(".test-type-transform-apply").waitDrop(assert.isPresent, false);
     return gu.waitForServer();
   },
 
@@ -115,7 +115,7 @@ const gu = {
   },
 
   getOpenEditingLabel(parentElem) {
-    return driver.find('.test-column-title-label');
+    return driver.find(".test-column-title-label");
   },
 
   enterGridValues(startRowIndex, startColIndex, dataMatrix) {
@@ -127,15 +127,15 @@ const gu = {
   },
 
   async openSidePane(tabName) {
-    if (['log', 'validate', 'repl', 'code'].includes(tabName)) {
-      await guBase.toggleSidePanel('right', 'open');
+    if (["log", "validate", "repl", "code"].includes(tabName)) {
+      await guBase.toggleSidePanel("right", "open");
       return $(`.test-tools-${tabName}`).wait().click();
-    } else if (tabName === 'field') {
-      await guBase.toggleSidePanel('right', 'open');
-      return $('.test-right-tab-field').click();
-    } else if (tabName === 'view') {
-      await guBase.toggleSidePanel('right', 'open');
-      return $('.test-right-tab-pagewidget').wait().click();
+    } else if (tabName === "field") {
+      await guBase.toggleSidePanel("right", "open");
+      return $(".test-right-tab-field").click();
+    } else if (tabName === "view") {
+      await guBase.toggleSidePanel("right", "open");
+      return $(".test-right-tab-pagewidget").wait().click();
     }
   },
 
@@ -169,7 +169,7 @@ const gu = {
    * hasCursor(getCell(...)) or getCell(...).waitFor(hasCursor, optTimeout).
    */
   hasCursor(cellElem) {
-    return cellElem.find('.selected_cursor').isDisplayed();
+    return cellElem.find(".selected_cursor").isDisplayed();
   },
 
   async useFixtureDoc(cleanup, fname, flag) {
@@ -177,18 +177,18 @@ const gu = {
   },
 
   async copyDoc(docId, flag) {
-    const result = await guBase.copyDoc(session.name, 'docs', 'Home', docId);
+    const result = await guBase.copyDoc(session.name, "docs", "Home", docId);
     await session.loadDoc(`/doc/${result.id}`);
     return result;
   },
 
   async clickCell(rowIndexOrPosOrCell, colIndex) {
-    if (typeof rowIndexOrPosOrCell === 'object' && 'driver_' in rowIndexOrPosOrCell) {
+    if (typeof rowIndexOrPosOrCell === "object" && "driver_" in rowIndexOrPosOrCell) {
       return rowIndexOrPosOrCell.click();
     }
     // Best just to force a rewrite of clickCell, e.g. to clickCellRC,
     // since newer gristUtils interprets arguments entirely differently.
-    if (typeof rowIndexOrPosOrCell === 'number') {
+    if (typeof rowIndexOrPosOrCell === "number") {
       throw new Error("ambiguous row/col");
     }
     const cell = guBase.getCell(rowIndexOrPosOrCell, colIndex);
@@ -199,8 +199,8 @@ const gu = {
    * Sets the visibleCol of the currently selected field to value.
    */
   async setVisibleCol(value) {
-    await gu.openSidePane('field');
-    await $('.test-fbuilder-ref-col-select').click();
+    await gu.openSidePane("field");
+    await $(".test-fbuilder-ref-col-select").click();
     await $(`.test-select-menu .test-select-row:contains(${value})`).wait().click();
     return waitForServer();
   },
@@ -209,12 +209,12 @@ const gu = {
    * Asserts the type of the currently selected field.
    */
   async assertType(value) {
-    await gu.openSidePane('field');
-    assert.equal(await $('.test-fbuilder-type-select .test-select-row').getText(), value);
+    await gu.openSidePane("field");
+    assert.equal(await $(".test-fbuilder-type-select .test-select-row").getText(), value);
   },
 
   closeSidePane() {
-    return gu.toggleSidePanel('right', 'close');
+    return gu.toggleSidePanel("right", "close");
   },
 
   clickVisibleDetailCells(column, rowNums, section) {
@@ -222,7 +222,7 @@ const gu = {
   },
 
   async clickRowMenuItem(rowNum, item) {
-    await (await gu.openRowMenu(rowNum)).findContent('li', item).click();
+    await (await gu.openRowMenu(rowNum)).findContent("li", item).click();
   },
 
   /**
@@ -234,9 +234,9 @@ const gu = {
    * defaults to drag to select.
    */
   async selectRows(rowStart, rowEnd, optMethod) {
-    let start = await driver.findContent('.active_section .gridview_data_row_num', gu.exactMatch(rowStart.toString()));
-    let end = await driver.findContent('.active_section .gridview_data_row_num', gu.exactMatch(rowEnd.toString()));
-    if (optMethod === 'shift') {
+    let start = await driver.findContent(".active_section .gridview_data_row_num", gu.exactMatch(rowStart.toString()));
+    let end = await driver.findContent(".active_section .gridview_data_row_num", gu.exactMatch(rowEnd.toString()));
+    if (optMethod === "shift") {
       await driver.withActions(a => a.click(start).keyDown($.SHIFT).click(end).keyUp($.SHIFT));
     } else {
       await driver.withActions(a => a.move({origin: start}).press().move({origin: end}).release());
@@ -244,15 +244,15 @@ const gu = {
   },
 
   async _fieldSettingsClickOption(isCommonToSeparate, optionSubstring) {
-    assert.include(await $('.fieldbuilder_settings_button').text(), isCommonToSeparate ? 'Common' : 'Separate');
-    await $('.fieldbuilder_settings_button').click();
+    assert.include(await $(".fieldbuilder_settings_button").text(), isCommonToSeparate ? "Common" : "Separate");
+    await $(".fieldbuilder_settings_button").click();
     await gu.actions.selectFloatingOption(optionSubstring);
     await waitForServer();
-    assert.include(await $('.fieldbuilder_settings_button').text(), isCommonToSeparate ? 'Separate' : 'Common');
+    assert.include(await $(".fieldbuilder_settings_button").text(), isCommonToSeparate ? "Separate" : "Common");
   },
-  fieldSettingsUseSeparate: () => gu._fieldSettingsClickOption(true, 'Use separate'),
-  fieldSettingsSaveAsCommon: () => gu._fieldSettingsClickOption(false, 'Save as common'),
-  fieldSettingsRevertToCommon: () => gu._fieldSettingsClickOption(false, 'Revert to common'),
+  fieldSettingsUseSeparate: () => gu._fieldSettingsClickOption(true, "Use separate"),
+  fieldSettingsSaveAsCommon: () => gu._fieldSettingsClickOption(false, "Save as common"),
+  fieldSettingsRevertToCommon: () => gu._fieldSettingsClickOption(false, "Revert to common"),
 
   /**
    * Changes date format for date and datetime editor or returns current format
@@ -260,9 +260,9 @@ const gu = {
    */
   async dateFormat(value) {
     if (!value) {
-      return $('$Widget_dateFormat .test-select-row').text();
+      return $("$Widget_dateFormat .test-select-row").text();
     }
-    await $('$Widget_dateFormat').wait().click();
+    await $("$Widget_dateFormat").wait().click();
     await $(`.test-select-menu .test-select-row:contains(${value})`).wait().click();
   },
 
@@ -272,9 +272,9 @@ const gu = {
    */
   async timeFormat(value) {
     if (!value) {
-      return $('$Widget_timeFormat .test-select-row').getText();
+      return $("$Widget_timeFormat .test-select-row").getText();
     }
-    await $('$Widget_timeFormat').wait().click();
+    await $("$Widget_timeFormat").wait().click();
     await $(`.test-select-menu .test-select-row:contains(${value})`).wait().click();
   },
 
@@ -337,17 +337,17 @@ const gu = {
    * Asserts the widget of the currently selected field.
    */
   async assertWidget(value) {
-    await gu.openSidePane('field');
-    assert.equal(await $('.test-fbuilder-widget-select .test-select-row').getText(), value);
+    await gu.openSidePane("field");
+    assert.equal(await $(".test-fbuilder-widget-select .test-select-row").getText(), value);
   },
 
   /**
    * Sets the widget of the currently selected field to value.
    */
   async setWidget(value) {
-    await gu.openSidePane('field');
-    const selector = $('.test-fbuilder-widget-select');
-    const btnChildren = await selector.elem().findAll('.test-select-button');
+    await gu.openSidePane("field");
+    const selector = $(".test-fbuilder-widget-select");
+    const btnChildren = await selector.elem().findAll(".test-select-button");
     if (btnChildren.length > 0) {
       // This is a button select.
       await selector.findOldTimey(`.test-select-button:contains(${value})`).click();
@@ -389,36 +389,36 @@ const gu = {
   actions: {
     createNewDoc: async (optDocName) => {
       await gu.simulateLogin("Chimpy", "chimpy@getgrist.com", "nasa");
-      const docId = await gu.createNewDoc('chimpy', 'nasa', 'Horizon', optDocName || 'Untitled');
+      const docId = await gu.createNewDoc("chimpy", "nasa", "Horizon", optDocName || "Untitled");
       await gu.loadDoc(`/o/nasa/doc/${docId}`);
     },
     getDocTitle: () => {
-      return $('.test-bc-doc').val();
+      return $(".test-bc-doc").val();
     },
     getActiveTab: () => {
-      return $('.test-treeview-itemHeader.selected .test-docpage-label').wait();
+      return $(".test-treeview-itemHeader.selected .test-docpage-label").wait();
     },
     getTabs: () => {
-      return $('.test-docpage-label');
+      return $(".test-docpage-label");
     },
     renameDoc: (newName) => {
-      $('.test-bc-doc').click();
+      $(".test-bc-doc").click();
       $.driver.sendKeys(newName, $.ENTER);
-      return $.wait(1000, () => $.driver.getTitle().startsWith(newName + ' - '));
+      return $.wait(1000, () => $.driver.getTitle().startsWith(newName + " - "));
     },
     selectTabView: async (viewTitle) => {
-      const isOpen = await gu.isSidePanelOpen('left');
+      const isOpen = await gu.isSidePanelOpen("left");
       if (!isOpen) {
-        await gu.toggleSidePanel('left', 'open');
+        await gu.toggleSidePanel("left", "open");
       }
       await gu.openPage(viewTitle);
       if (!isOpen) {
-        await gu.toggleSidePanel('left', 'close');
+        await gu.toggleSidePanel("left", "close");
       }
     },
     addNewTable: async () => {
-      await $('.test-dp-add-new').wait().click();
-      await $('.test-dp-empty-table').click();
+      await $(".test-dp-add-new").wait().click();
+      await $(".test-dp-empty-table").click();
       // if we selected a new table, there will be a popup for a name
       const prompts = await $(".test-modal-prompt");
       const prompt = prompts[0];
@@ -467,7 +467,7 @@ const gu = {
          * @param {string} which - Which menu to open, coud be: 'sortAndFilter' or 'viewLayout'
          */
         openMenu: async function (which) {
-          await driver.withActions(a => a.move({origin: section.find('.viewsection_title')})); // to display menu buttons on hover
+          await driver.withActions(a => a.move({origin: section.find(".viewsection_title")})); // to display menu buttons on hover
           const item = section.find(`.test-section-menu-${which}`);
           await gu.waitToPass(() => item.click());
         },
@@ -512,7 +512,7 @@ function applyPatchesToWebElements() {
         driver,
         gu.waitToPass(async () => {
           if (!(await this.isPresent())) {
-            throw new Error('not present');
+            throw new Error("not present");
           }
         }).then(() => this));
     }
@@ -534,7 +534,7 @@ function applyPatchesToWebElements() {
   };
 
   WebElement.prototype.classList = async function() {
-    return (await this.getAttribute('className')).split(' ');
+    return (await this.getAttribute("className")).split(" ");
   };
 
   // Lists of WebElements work differently - if we did a find() we
@@ -549,7 +549,7 @@ function applyPatchesToWebElements() {
 
   WebElement.prototype.val = function(newVal) {
     if (newVal === undefined) {
-      return this.getAttribute('value');
+      return this.getAttribute("value");
     }
     return gu.setValue(this, newVal);
   };
@@ -575,7 +575,7 @@ function applyPatchesToWebElements() {
   };
 
   WebElement.prototype.scrollIntoView = function(opts) {
-    opts = opts || {behavior: 'auto'};
+    opts = opts || {behavior: "auto"};
     return new WebElementPromise(
       driver,
       driver.executeScript((elem, opts) => elem.scrollIntoView(opts),
@@ -586,7 +586,7 @@ function applyPatchesToWebElements() {
     return new WebElementPromise(
       driver,
       driver.executeScript(elem => {
-        return elem.parentNode.closest('*');
+        return elem.parentNode.closest("*");
       }, this)
     );
   };
@@ -598,7 +598,7 @@ function applyPatchesToWebElements() {
   WebElement.prototype.children = async function(mapper) {
     // Collect children.
     let result = await driver.executeScript(elem => {
-      return [...elem.children].map(c => c.closest('*'));
+      return [...elem.children].map(c => c.closest("*"));
     }, this);
     // Fix up type.
     result = result.map(v => new WebElementPromise(
@@ -638,11 +638,11 @@ function applyPatchesToAssert() {
     if (present === undefined) {
       present = true;
     }
-    const c = await elem.getAttribute('class');
+    const c = await elem.getAttribute("class");
     if (present) {
-      await assert.include(c.split(' '), className);
+      await assert.include(c.split(" "), className);
     } else {
-      await assert.notInclude(c.split(' '), className);
+      await assert.notInclude(c.split(" "), className);
     }
   });
 

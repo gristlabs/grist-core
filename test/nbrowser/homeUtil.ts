@@ -1,22 +1,22 @@
 /**
  * Contains some non-webdriver functionality needed by tests.
  */
-import FormData from 'form-data';
-import * as fse from 'fs-extra';
-import defaults from 'lodash/defaults';
-import { Key, WebDriver, WebElement } from 'mocha-webdriver';
-import fetch from 'node-fetch';
-import { authenticator } from 'otplib';
-import * as path from 'path';
+import FormData from "form-data";
+import * as fse from "fs-extra";
+import defaults from "lodash/defaults";
+import { Key, WebDriver, WebElement } from "mocha-webdriver";
+import fetch from "node-fetch";
+import { authenticator } from "otplib";
+import * as path from "path";
 
-import { normalizeEmail } from 'app/common/emails';
-import { UserProfile } from 'app/common/LoginSessionAPI';
-import { BehavioralPrompt, UserPrefs, WelcomePopup } from 'app/common/Prefs';
-import { DocWorkerAPI, UserAPI, UserAPIImpl } from 'app/common/UserAPI';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { TestingHooksClient } from 'app/server/lib/TestingHooks';
-import EventEmitter from 'events';
-import { BaseAPI, IOptions } from 'app/common/BaseAPI';
+import { normalizeEmail } from "app/common/emails";
+import { UserProfile } from "app/common/LoginSessionAPI";
+import { BehavioralPrompt, UserPrefs, WelcomePopup } from "app/common/Prefs";
+import { DocWorkerAPI, UserAPI, UserAPIImpl } from "app/common/UserAPI";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { TestingHooksClient } from "app/server/lib/TestingHooks";
+import EventEmitter from "events";
+import { BaseAPI, IOptions } from "app/common/BaseAPI";
 
 export interface Server extends EventEmitter {
   driver: WebDriver;
@@ -56,7 +56,7 @@ export class HomeUtil {
   private _apiKey = new Map<string, string>();
 
   constructor(public fixturesRoot: string, public server: Server) {
-    server.on('stop', () => {
+    server.on("stop", () => {
       this._apiKey.clear();
     });
   }
@@ -79,7 +79,7 @@ export class HomeUtil {
    * done via the Grist login page.
    */
   public async simulateLogin(name: string, email: string, org: string = "", options: {
-    loginMethod?: UserProfile['loginMethod'],
+    loginMethod?: UserProfile["loginMethod"],
     freshAccount?: boolean,
     isFirstLogin?: boolean,
     showGristTour?: boolean,
@@ -87,7 +87,7 @@ export class HomeUtil {
     cacheCredentials?: boolean,
   } = {}) {
     const { loginMethod, isFirstLogin, showTips } = defaults(options, {
-      loginMethod: 'Email + Password',
+      loginMethod: "Email + Password",
       showTips: false,
     });
     const showGristTour = options.showGristTour ?? (options.freshAccount ?? isFirstLogin);
@@ -107,7 +107,7 @@ export class HomeUtil {
       // through it. Using the empty string happens to work though.
       const testingHooks = await this.server.getTestingHooks();
       const sid = await this.getGristSid();
-      if (!sid) { throw new Error('no session available'); }
+      if (!sid) { throw new Error("no session available"); }
       await testingHooks.setLoginSessionProfile(
         sid,
         { name, email, loginEmail: normalizeEmail(email), loginMethod },
@@ -115,17 +115,17 @@ export class HomeUtil {
       );
     }
     else {
-      if (loginMethod && loginMethod !== 'Email + Password') {
-        throw new Error('only Email + Password logins supported for external server tests');
+      if (loginMethod && loginMethod !== "Email + Password") {
+        throw new Error("only Email + Password logins supported for external server tests");
       }
       // Make sure we revisit page in case login is changing.
-      await this.driver.get('about:blank');
+      await this.driver.get("about:blank");
       await this._acceptAlertIfPresent();
       // When running against an external server, we log in through the Grist login page.
       await this.driver.get(this.server.getUrl(org, ""));
       if (!await this.isOnLoginPage()) {
         // Explicitly click Sign In button if necessary.
-        await this.driver.findWait('.test-user-sign-in', 4000).click();
+        await this.driver.findWait(".test-user-sign-in", 4000).click();
       }
 
       // Fill the login form (either test or Grist).
@@ -143,10 +143,10 @@ export class HomeUtil {
     if (options.freshAccount) {
       this._apiKey.delete(email);
     }
-    if (options.cacheCredentials && email !== 'anon@getgrist.com') {
+    if (options.cacheCredentials && email !== "anon@getgrist.com") {
       // Take this opportunity to cache access info.
       if (!this._apiKey.has(email)) {
-        await this.driver.get(this.server.getUrl(org || 'docs', ''));
+        await this.driver.get(this.server.getUrl(org || "docs", ""));
         const apiKey = await this._getApiKey();
         this._apiKey.set(email, apiKey);
       }
@@ -194,9 +194,9 @@ export class HomeUtil {
    */
   public async fillTestLoginForm(email: string, name?: string) {
     const password = process.env.TEST_ACCOUNT_PASSWORD;
-    if (!password) { throw new Error('TEST_ACCOUNT_PASSWORD not set'); }
+    if (!password) { throw new Error("TEST_ACCOUNT_PASSWORD not set"); }
 
-    const form = await this.driver.find('div.modal-content-desktop');
+    const form = await this.driver.find("div.modal-content-desktop");
     await this.setValue(form.find('input[name="username"]'), email);
     if (name) { await this.setValue(form.find('input[name="name"]'), name); }
     await this.setValue(form.find('input[name="password"]'), password);
@@ -215,7 +215,7 @@ export class HomeUtil {
     if (!password) {
       password = process.env.TEST_ACCOUNT_PASSWORD;
       if (!password) {
-        throw new Error('TEST_ACCOUNT_PASSWORD not set');
+        throw new Error("TEST_ACCOUNT_PASSWORD not set");
       }
     }
     await this.checkGristLoginPage();
@@ -225,24 +225,24 @@ export class HomeUtil {
 
     await this.driver.findWait('input[name="email"]', 4000).sendKeys(email);
     await this.driver.find('input[name="password"]').sendKeys(password);
-    await this.driver.find('.test-lp-sign-in').click();
+    await this.driver.find(".test-lp-sign-in").click();
     await this.driver.wait(async () => !await this.isOnGristLoginPage(), 4000);
-    if (!await this.driver.findContent('.test-mfa-title', 'Almost there!').isPresent()) {
+    if (!await this.driver.findContent(".test-mfa-title", "Almost there!").isPresent()) {
       return;
     }
 
     const secret = process.env.TEST_ACCOUNT_TOTP_SECRET;
-    if (!secret) { throw new Error('TEST_ACCOUNT_TOTP_SECRET not set'); }
+    if (!secret) { throw new Error("TEST_ACCOUNT_TOTP_SECRET not set"); }
 
     const code = authenticator.generate(secret);
     await this.driver.find('input[name="verificationCode"]').sendKeys(code);
-    await this.driver.find('.test-mfa-submit').click();
+    await this.driver.find(".test-mfa-submit").click();
     await this.driver.wait(
       async () => {
-        return !await this.driver.findContent('.test-mfa-title', 'Almost there!').isPresent();
+        return !await this.driver.findContent(".test-mfa-title", "Almost there!").isPresent();
       },
       4000,
-      'Possible reason: verification code is invalid or expired (i.e. was recently used to log in)',
+      "Possible reason: verification code is invalid or expired (i.e. was recently used to log in)",
     );
   }
 
@@ -264,7 +264,7 @@ export class HomeUtil {
     // Load a cheap page on our server to get the session-id cookie from browser.
     await this.driver.get(`${this.server.getHost()}/test/session`);
     await this._acceptAlertIfPresent();
-    const cookie = await this.driver.manage().getCookie(process.env.GRIST_SESSION_COOKIE || 'grist_sid');
+    const cookie = await this.driver.manage().getCookie(process.env.GRIST_SESSION_COOKIE || "grist_sid");
     if (!cookie) { return null; }
     return decodeURIComponent(cookie.value);
   }
@@ -285,7 +285,7 @@ export class HomeUtil {
   public async importFixturesDoc(username: string, org: string, workspace: string,
     filename: string, options: { newName?: string, email?: string } = {}) {
     const homeApi = this.createHomeApi(username, org, options.email);
-    const docWorker = await homeApi.getWorkerAPI('import');
+    const docWorker = await homeApi.getWorkerAPI("import");
     const workspaceId = await this.getWorkspaceId(homeApi, workspace);
     const uploadId = await this.uploadFixtureDoc(docWorker, filename, options.newName);
     return docWorker.importDocToWorkspace(uploadId, workspaceId);
@@ -297,7 +297,7 @@ export class HomeUtil {
   public async copyDoc(username: string, org: string, workspace: string,
     docId: string, options: { newName?: string } = {}) {
     const homeApi = this.createHomeApi(username, org);
-    const docWorker = await homeApi.getWorkerAPI('import');
+    const docWorker = await homeApi.getWorkerAPI("import");
     const workspaceId = await this.getWorkspaceId(homeApi, workspace);
     const uploadId = await docWorker.copyDoc(docId);
     return docWorker.importDocToWorkspace(uploadId, workspaceId);
@@ -316,7 +316,7 @@ export class HomeUtil {
 
   // A helper that find a workspace id by name for a given username and org.
   public async getWorkspaceId(homeApi: UserAPIImpl, workspace: string): Promise<number> {
-    return (await homeApi.getOrgWorkspaces('current')).find(w => w.name === workspace)!.id;
+    return (await homeApi.getOrgWorkspaces("current")).find(w => w.name === workspace)!.id;
   }
 
   // A helper that returns the list of names of all documents within a workspace.
@@ -342,7 +342,7 @@ export class HomeUtil {
   }
 
   public getApiKey(username: string | null, email?: string): string | null {
-    const name = (username || '').toLowerCase();
+    const name = (username || "").toLowerCase();
     const apiKey = username && ((email && this._apiKey.get(email)) || `api_key_for_${name}`);
     return apiKey;
   }
@@ -373,8 +373,8 @@ export class HomeUtil {
    * Returns whether we are currently on a Grist login page.
    */
   public async isOnGristLoginPage() {
-    const isOnSignupPage = await this.driver.find('.test-sp-heading').isPresent();
-    const isOnLoginPage = await this.driver.find('.test-lp-heading').isPresent();
+    const isOnSignupPage = await this.driver.find(".test-sp-heading").isPresent();
+    const isOnLoginPage = await this.driver.find(".test-lp-heading").isPresent();
     return isOnSignupPage || isOnLoginPage;
   }
 
@@ -382,7 +382,7 @@ export class HomeUtil {
    * Returns whether we are currently on the test login page.
    */
   public isOnTestLoginPage() {
-    return this.driver.findContent('h1', 'A Very Credulous Login Page').isPresent();
+    return this.driver.findContent("h1", "A Very Credulous Login Page").isPresent();
   }
 
   /**
@@ -407,7 +407,7 @@ export class HomeUtil {
     await this.deleteCurrentUser();
     await this.removeLogin(org);
     await this.driver.get(this.server.getUrl(org, ""));
-    await this.driver.findWait('.test-user-sign-in', 4000).click();
+    await this.driver.findWait(".test-user-sign-in", 4000).click();
     await this.checkLoginPage();
     // Fill the login form (either test or Grist).
     if (await this.isOnTestLoginPage()) {
@@ -432,7 +432,7 @@ export class HomeUtil {
 
   // Delete a user using their email address.  Requires access to the database.
   private async _deleteUserByEmail(email: string) {
-    if (this.server.isExternalServer()) { throw new Error('not supported'); }
+    if (this.server.isExternalServer()) { throw new Error("not supported"); }
     const dbManager = await this.server.getDatabase();
     const user = await dbManager.getUserByLogin(email);
     await dbManager.deleteUser({ userId: user.id }, user.id, user.name);
@@ -440,7 +440,7 @@ export class HomeUtil {
 
   // Set whether this is the user's first time logging in.  Requires access to the database.
   private async _setFirstLogin(email: string, isFirstLogin: boolean) {
-    if (this.server.isExternalServer()) { throw new Error('not supported'); }
+    if (this.server.isExternalServer()) { throw new Error("not supported"); }
     const dbManager = await this.server.getDatabase();
     const user = await dbManager.getUserByLogin(email);
     user.isFirstTimeUser = isFirstLogin;
@@ -448,7 +448,7 @@ export class HomeUtil {
   }
 
   private async _initShowGristTour(email: string, showGristTour: boolean) {
-    if (this.server.isExternalServer()) { throw new Error('not supported'); }
+    if (this.server.isExternalServer()) { throw new Error("not supported"); }
     const dbManager = await this.server.getDatabase();
     const user = await dbManager.getUserByLogin(email);
     if (user && user.personalOrg) {
@@ -464,7 +464,7 @@ export class HomeUtil {
     apiKey: string | null,
     org?: string): T {
     const headers = apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined;
-    return new creator(org ? this.server.getUrl(org, '') : this.server.getHost(), {
+    return new creator(org ? this.server.getUrl(org, "") : this.server.getHost(), {
       headers,
       fetch: fetch as any,
       newFormData: () => new FormData() as any,  // form-data isn't quite type compatible

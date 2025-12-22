@@ -1,7 +1,7 @@
 import { commonUrls, LatestVersionAvailable } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { version as installedVersion } from "app/common/version";
-import { naturalCompare } from 'app/common/SortFunc';
+import { naturalCompare } from "app/common/SortFunc";
 import { GristServer } from "app/server/lib/GristServer";
 import { ApiError } from "app/common/ApiError";
 import { LatestVersion } from "app/server/lib/UpdateManager";
@@ -28,7 +28,7 @@ export async function checkForUpdates(gristServer: GristServer): Promise<LatestV
     const errorData = response.headers.get("content-type")?.includes("application/json") ?
       await response.json() :
       await response.text();
-    throw new ApiError('Version update checking failed', response.status, errorData);
+    throw new ApiError("Version update checking failed", response.status, errorData);
   }
 
   return await response.json();

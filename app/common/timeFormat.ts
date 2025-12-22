@@ -31,10 +31,10 @@ const timeFormatKeys: { [spec: string]: FormatHelper } = {
   n: (out, date) => out.push(pad(date.getMonth() + 1, 2)),
   y: (out, date) => out.push("" + date.getFullYear()),
   M: (out, date) => out.push(pad(date.getMilliseconds(), 3)),
-  Y: (out, date) => timeFormatHelper(out, 'ynd', date),
-  D: (out, date) => timeFormatHelper(out, 'y-n-d', date),
-  T: (out, date) => timeFormatHelper(out, 'h:m:s', date),
-  A: (out, date) => timeFormatHelper(out, 'D T.M', date),
+  Y: (out, date) => timeFormatHelper(out, "ynd", date),
+  D: (out, date) => timeFormatHelper(out, "y-n-d", date),
+  T: (out, date) => timeFormatHelper(out, "h:m:s", date),
+  A: (out, date) => timeFormatHelper(out, "D T.M", date),
 };
 
 function timeFormatHelper(out: string[], format: string, date: Date) {

@@ -1,17 +1,17 @@
-var _ = require('underscore');
-var BackboneEvents = require('backbone').Events;
+var _ = require("underscore");
+var BackboneEvents = require("backbone").Events;
 
-var dispose = require('app/client/lib/dispose');
-var {makeT} = require('app/client/lib/localization');
-var commands = require('./commands');
-var LayoutEditor = require('./LayoutEditor');
+var dispose = require("app/client/lib/dispose");
+var {makeT} = require("app/client/lib/localization");
+var commands = require("./commands");
+var LayoutEditor = require("./LayoutEditor");
 
-const t = makeT('RecordLayoutEditor');
-const {basicButton, cssButton, primaryButton} = require('app/client/ui2018/buttons');
-const {icon} = require('app/client/ui2018/icons');
-const {menu, menuDivider, menuItem} = require('app/client/ui2018/menus');
-const {testId} = require('app/client/ui2018/cssVars');
-const {dom, Observable, styled} = require('grainjs');
+const t = makeT("RecordLayoutEditor");
+const {basicButton, cssButton, primaryButton} = require("app/client/ui2018/buttons");
+const {icon} = require("app/client/ui2018/icons");
+const {menu, menuDivider, menuItem} = require("app/client/ui2018/menus");
+const {testId} = require("app/client/ui2018/cssVars");
+const {dom, Observable, styled} = require("grainjs");
 
 //----------------------------------------------------------------------
 
@@ -30,13 +30,13 @@ function RecordLayoutEditor(recordLayout, layout, optResizeCallback) {
   this.layoutEditor = this.autoDispose(LayoutEditor.LayoutEditor.create(layout));
   this._hiddenColumns = this.autoDispose(Observable.create(null, this.getHiddenColumns()));
 
-  this.listenTo(layout, 'layoutChanged', function() {
+  this.listenTo(layout, "layoutChanged", function() {
     this._hiddenColumns.set(this.getHiddenColumns());
   });
 
   if (optResizeCallback) {
-    this.listenTo(layout, 'layoutChanged', optResizeCallback);
-    this.listenTo(layout, 'layoutResized', optResizeCallback);
+    this.listenTo(layout, "layoutChanged", optResizeCallback);
+    this.listenTo(layout, "layoutResized", optResizeCallback);
   }
 
   // Command group implementing the commands available while editing the layout.
@@ -85,49 +85,49 @@ RecordLayoutEditor.prototype._addField = function(leafId) {
 };
 
 RecordLayoutEditor.prototype.buildEditorDom = function() {
-  const addNewField = () => { this._addField(':New_Field:'); };
+  const addNewField = () => { this._addField(":New_Field:"); };
   const showField = (col) => {
     // Use setTimeout, since showing a field synchronously removes it from the list, which would
     // prevent the menu from closing if we don't let the event to run its course.
-    setTimeout(() => this._addField(col.getRowId() + ':' + col.label()), 0);
+    setTimeout(() => this._addField(col.getRowId() + ":" + col.label()), 0);
   };
 
   return cssControls(
-    basicButton(t('Add field'), cssCollapseIcon('Collapse'),
+    basicButton(t("Add field"), cssCollapseIcon("Collapse"),
       menu((ctl) => [
-        menuItem(() => addNewField(), t('Create new field')),
+        menuItem(() => addNewField(), t("Create new field")),
         dom.maybe((use) => use(this._hiddenColumns).length > 0,
           () => menuDivider()),
         dom.forEach(this._hiddenColumns, (col) =>
           menuItem(() => showField(col), t("Show field {{- label}}", {label:col.label()}))
         ),
-        testId('edit-layout-add-menu'),
+        testId("edit-layout-add-menu"),
       ]),
     ),
 
-    dom('div.flexauto', {style: 'margin-left: 8px'}),
+    dom("div.flexauto", {style: "margin-left: 8px"}),
     this.buildFinishButtons(),
-    testId('edit-layout-controls'),
+    testId("edit-layout-controls"),
   );
 };
 
 RecordLayoutEditor.prototype.buildFinishButtons = function() {
   return [
-    primaryButton(t('Save layout'),
-      dom.on('click', () => commands.allCommands.accept.run()),
+    primaryButton(t("Save layout"),
+      dom.on("click", () => commands.allCommands.accept.run()),
     ),
-    basicButton(t('Cancel'),
-      dom.on('click', () => commands.allCommands.cancel.run()),
-      {style: 'margin-left: 8px'},
+    basicButton(t("Cancel"),
+      dom.on("click", () => commands.allCommands.cancel.run()),
+      {style: "margin-left: 8px"},
     ),
   ];
 };
 
 RecordLayoutEditor.prototype.buildLeafDom = function() {
-  return dom('div.layout_grabbable.g_record_layout_editing',
+  return dom("div.layout_grabbable.g_record_layout_editing",
     cssIconEyeClose(
-      dom.on('mousedown', (ev) => ev.stopPropagation()),
-      dom.on('click', (ev, elem) => {
+      dom.on("mousedown", (ev) => ev.stopPropagation()),
+      dom.on("click", (ev, elem) => {
         ev.preventDefault();
         ev.stopPropagation();
         const box = this.layoutEditor.getBoxFromElement(elem);
@@ -137,7 +137,7 @@ RecordLayoutEditor.prototype.buildLeafDom = function() {
   );
 };
 
-const cssControls = styled('div', `
+const cssControls = styled("div", `
   display: flex;
   align-items: flex-start;
 
@@ -151,7 +151,7 @@ const cssCollapseIcon = styled(icon, `
   margin: -3px -2px -2px 2px;
 `);
 
-const cssIconEyeClose = styled('div.g_record_delete_field', `
+const cssIconEyeClose = styled("div.g_record_delete_field", `
   &::before {
     display: block;
     background-color: var(--grist-color-dark-text);

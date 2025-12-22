@@ -5,7 +5,7 @@
  */
 
 // Use version of bowser with polyfill for old browsers.
-import * as bowser from 'bowser/bundled';
+import * as bowser from "bowser/bundled";
 
 // This code will run in the browser.
 const version = bowser.getParser(window.navigator.userAgent);
@@ -29,10 +29,10 @@ if (document && window && !document.cookie.includes("gristbrowser=accept")) {
       firefox: ">=108",     // end-of-2022 version, couldn't try an earlier one
     },
   });
-  const isMobile = version.isPlatform('mobile') || version.isPlatform('tablet');
+  const isMobile = version.isPlatform("mobile") || version.isPlatform("tablet");
   if (!isHappyBrowser) {
-    const problemElement = document.getElementById('browser-check-problem');
-    const dismissElement = document.getElementById('browser-check-problem-dismiss');
+    const problemElement = document.getElementById("browser-check-problem");
+    const dismissElement = document.getElementById("browser-check-problem-dismiss");
     if (problemElement && dismissElement) {
       // Prepare a button for dismissing the warning.
       dismissElement.onclick = function() {
@@ -51,14 +51,14 @@ if (document && window && !document.cookie.includes("gristbrowser=accept")) {
         }
         document.cookie = cookie;
         // Hide the warning, showing the loaded page that it was obscuring.
-        problemElement.style.display = 'none';
+        problemElement.style.display = "none";
         return false;
       };
       // Show modal describing problem, and some possible solutions.
       if (isMobile) {
-        problemElement.className += ' browser-check-is-mobile';
+        problemElement.className += " browser-check-is-mobile";
       }
-      problemElement.style.display = 'block';
+      problemElement.style.display = "block";
     }
   }
 }

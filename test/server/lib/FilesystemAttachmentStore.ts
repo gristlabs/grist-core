@@ -1,21 +1,21 @@
 import {
   FilesystemAttachmentStore,
   loadAttachmentFileIntoMemory,
-} from 'app/server/lib/AttachmentStore';
-import { IAttachmentStoreConfig } from 'app/server/lib/AttachmentStoreProvider';
-import { createTmpDir } from 'test/server/docTools';
+} from "app/server/lib/AttachmentStore";
+import { IAttachmentStoreConfig } from "app/server/lib/AttachmentStoreProvider";
+import { createTmpDir } from "test/server/docTools";
 
-import { assert } from 'chai';
-import { mkdtemp, pathExists } from 'fs-extra';
-import * as stream from 'node:stream';
-import * as path from 'path';
+import { assert } from "chai";
+import { mkdtemp, pathExists } from "fs-extra";
+import * as stream from "node:stream";
+import * as path from "path";
 
 const testingDocPoolId = "1234-5678";
 const testingFileId = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.grist";
 const testingFileContents = "Grist is the best tool ever.";
 
 function getTestingFileAsBuffer(contents: string = testingFileContents) {
-  return Buffer.from(contents, 'utf8');
+  return Buffer.from(contents, "utf8");
 }
 
 function getTestingFileAsReadableStream(contents?: string): stream.Readable {
@@ -26,7 +26,7 @@ export async function makeTestingFilesystemStoreSpec(
   name: string = "filesystem",
 ) {
   const tempFolder = await createTmpDir();
-  const tempDir = await mkdtemp(path.join(tempFolder, 'filesystem-store-test-'));
+  const tempDir = await mkdtemp(path.join(tempFolder, "filesystem-store-test-"));
   return {
     rootDirectory: tempDir,
     name,
@@ -43,8 +43,8 @@ export async function makeTestingFilesystemStoreConfig(
   };
 }
 
-describe('FilesystemAttachmentStore', () => {
-  it('can upload a file', async () => {
+describe("FilesystemAttachmentStore", () => {
+  it("can upload a file", async () => {
     const spec = await makeTestingFilesystemStoreSpec();
     const store = await spec.create("test-filesystem-store");
     await store.upload(testingDocPoolId, testingFileId, getTestingFileAsReadableStream());
@@ -53,7 +53,7 @@ describe('FilesystemAttachmentStore', () => {
     assert.isTrue(exists, "uploaded file does not exist on the filesystem");
   });
 
-  it('can download a file', async () => {
+  it("can download a file", async () => {
     const spec = await makeTestingFilesystemStoreSpec();
     const store = await spec.create("test-filesystem-store");
     await store.upload(testingDocPoolId, testingFileId, getTestingFileAsReadableStream());
@@ -64,7 +64,7 @@ describe('FilesystemAttachmentStore', () => {
     assert.equal(file.contents.toString(), testingFileContents, "file contents do not match");
   });
 
-  it('can check if a file exists', async () => {
+  it("can check if a file exists", async () => {
     const spec = await makeTestingFilesystemStoreSpec();
     const store = await spec.create("test-filesystem-store");
 
@@ -73,7 +73,7 @@ describe('FilesystemAttachmentStore', () => {
     assert.isTrue(await store.exists(testingDocPoolId, testingFileId));
   });
 
-  it('can delete a file', async () => {
+  it("can delete a file", async () => {
     const spec = await makeTestingFilesystemStoreSpec();
     const store = await spec.create("test-filesystem-store");
 
@@ -84,7 +84,7 @@ describe('FilesystemAttachmentStore', () => {
     assert.isFalse(await store.exists(testingDocPoolId, testingFileId));
   });
 
-  it('can remove an entire pool', async () => {
+  it("can remove an entire pool", async () => {
     const spec = await makeTestingFilesystemStoreSpec();
     const store = await spec.create("test-filesystem-store");
     await store.upload(testingDocPoolId, testingFileId, getTestingFileAsReadableStream());

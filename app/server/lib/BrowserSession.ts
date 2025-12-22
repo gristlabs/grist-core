@@ -1,9 +1,9 @@
-import { normalizeEmail } from 'app/common/emails';
-import { UserProfile } from 'app/common/LoginSessionAPI';
-import { SessionStore } from 'app/server/lib/gristSessions';
-import log from 'app/server/lib/log';
-import { fromCallback } from 'app/server/lib/serverUtils';
-import { Request } from 'express';
+import { normalizeEmail } from "app/common/emails";
+import { UserProfile } from "app/common/LoginSessionAPI";
+import { SessionStore } from "app/server/lib/gristSessions";
+import log from "app/server/lib/log";
+import { fromCallback } from "app/server/lib/serverUtils";
+import { Request } from "express";
 
 // Part of a session related to a single user.
 export interface SessionUserObj {
@@ -96,11 +96,11 @@ export function forceSessionChange(session: SessionObj) {
 // - "S": the user is signed in once; in this case an automatic signin can be unambiguous and seamless.
 // - "M": the user is signed in multiple times.
 // - "": the user is not signed in.
-export type SignInStatus = 'S' | 'M' | '';
+export type SignInStatus = "S" | "M" | "";
 
 export function getSignInStatus(sessionObj: SessionObj | null): SignInStatus {
   const length = sessionObj?.users?.length;
-  return !length ? "" : (length === 1 ? 'S' : 'M');
+  return !length ? "" : (length === 1 ? "S" : "M");
 }
 
 /**

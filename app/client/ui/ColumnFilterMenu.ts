@@ -3,53 +3,53 @@
  * callback that's triggered on Apply or on Cancel. Changes to the UI result in changes to the underlying model,
  * but on Cancel the model is reset to its initial state prior to menu closing.
  */
-import * as commands from 'app/client/components/commands';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { kbFocusHighlighterClass } from 'app/client/components/KeyboardFocusHighlighter';
-import { FocusLayer } from 'app/client/lib/FocusLayer';
-import { makeT } from 'app/client/lib/localization';
-import { stripLinks } from 'app/client/lib/markdown';
-import { ColumnFilter, NEW_FILTER_JSON } from 'app/client/models/ColumnFilter';
-import { ColumnFilterMenuModel, IFilterCount } from 'app/client/models/ColumnFilterMenuModel';
-import { ColumnRec, ViewFieldRec } from 'app/client/models/DocModel';
-import { FilterInfo } from 'app/client/models/entities/ViewSectionRec';
-import { RowSource } from 'app/client/models/rowset';
-import { ColumnFilterFunc, SectionFilter } from 'app/client/models/SectionFilter';
-import { TableData } from 'app/client/models/TableData';
-import { ColumnFilterCalendarView } from 'app/client/ui/ColumnFilterCalendarView';
-import { relativeDatesControl } from 'app/client/ui/ColumnFilterMenuUtils';
-import { cssInput } from 'app/client/ui/cssInput';
-import { getDateRangeOptions, IDateRangeOption } from 'app/client/ui/DateRangeOptions';
-import { cssPinButton } from 'app/client/ui/RightPanelStyles';
-import { basicButton, primaryButton, textButton } from 'app/client/ui2018/buttons';
+import * as commands from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
+import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import { makeT } from "app/client/lib/localization";
+import { stripLinks } from "app/client/lib/markdown";
+import { ColumnFilter, NEW_FILTER_JSON } from "app/client/models/ColumnFilter";
+import { ColumnFilterMenuModel, IFilterCount } from "app/client/models/ColumnFilterMenuModel";
+import { ColumnRec, ViewFieldRec } from "app/client/models/DocModel";
+import { FilterInfo } from "app/client/models/entities/ViewSectionRec";
+import { RowSource } from "app/client/models/rowset";
+import { ColumnFilterFunc, SectionFilter } from "app/client/models/SectionFilter";
+import { TableData } from "app/client/models/TableData";
+import { ColumnFilterCalendarView } from "app/client/ui/ColumnFilterCalendarView";
+import { relativeDatesControl } from "app/client/ui/ColumnFilterMenuUtils";
+import { cssInput } from "app/client/ui/cssInput";
+import { getDateRangeOptions, IDateRangeOption } from "app/client/ui/DateRangeOptions";
+import { cssPinButton } from "app/client/ui/RightPanelStyles";
+import { basicButton, primaryButton, textButton } from "app/client/ui2018/buttons";
 import { cssLabel as cssCheckboxLabel, cssCheckboxSquare,
-  cssLabelText, Indeterminate, labeledTriStateSquareCheckbox } from 'app/client/ui2018/checkbox';
-import { theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { cssOptionRowIcon, menu, menuCssClass, menuDivider, menuItem } from 'app/client/ui2018/menus';
-import { unstyledButton } from 'app/client/ui2018/unstyled';
-import { cssDeleteButton, cssDeleteIcon, cssToken as cssTokenTokenBase } from 'app/client/widgets/ChoiceListEditor';
-import { ChoiceOptions } from 'app/client/widgets/ChoiceTextBox';
-import { choiceToken } from 'app/client/widgets/ChoiceToken';
-import { CellValue } from 'app/common/DocActions';
-import { IRelativeDateSpec, isEquivalentFilter, isRelativeBound } from 'app/common/FilterState';
-import { extractTypeFromColType, isDateLikeType, isList, isNumberType, isRefListType } from 'app/common/gristTypes';
-import { formatRelBounds } from 'app/common/RelativeDates';
-import { createFormatter } from 'app/common/ValueFormatter';
-import { UIRowId } from 'app/plugin/GristAPI';
-import { decodeObject } from 'app/plugin/objtypes';
+  cssLabelText, Indeterminate, labeledTriStateSquareCheckbox } from "app/client/ui2018/checkbox";
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { cssOptionRowIcon, menu, menuCssClass, menuDivider, menuItem } from "app/client/ui2018/menus";
+import { unstyledButton } from "app/client/ui2018/unstyled";
+import { cssDeleteButton, cssDeleteIcon, cssToken as cssTokenTokenBase } from "app/client/widgets/ChoiceListEditor";
+import { ChoiceOptions } from "app/client/widgets/ChoiceTextBox";
+import { choiceToken } from "app/client/widgets/ChoiceToken";
+import { CellValue } from "app/common/DocActions";
+import { IRelativeDateSpec, isEquivalentFilter, isRelativeBound } from "app/common/FilterState";
+import { extractTypeFromColType, isDateLikeType, isList, isNumberType, isRefListType } from "app/common/gristTypes";
+import { formatRelBounds } from "app/common/RelativeDates";
+import { createFormatter } from "app/common/ValueFormatter";
+import { UIRowId } from "app/plugin/GristAPI";
+import { decodeObject } from "app/plugin/objtypes";
 import { Computed, dom, DomArg, DomElementArg, DomElementMethod, IDisposableOwner,
-  input, makeTestId, Observable, styled } from 'grainjs';
-import { IOpenController, IPopupOptions, setPopupToCreateDom } from 'popweasel';
-import concat from 'lodash/concat';
-import identity from 'lodash/identity';
-import noop from 'lodash/noop';
-import partition from 'lodash/partition';
-import some from 'lodash/some';
-import tail from 'lodash/tail';
-import debounce from 'lodash/debounce';
+  input, makeTestId, Observable, styled } from "grainjs";
+import { IOpenController, IPopupOptions, setPopupToCreateDom } from "popweasel";
+import concat from "lodash/concat";
+import identity from "lodash/identity";
+import noop from "lodash/noop";
+import partition from "lodash/partition";
+import some from "lodash/some";
+import tail from "lodash/tail";
+import debounce from "lodash/debounce";
 
-const t = makeT('ColumnFilterMenu');
+const t = makeT("ColumnFilterMenu");
 
 export interface IFilterMenuOptions {
   model: ColumnFilterMenuModel;
@@ -64,9 +64,9 @@ export interface IFilterMenuOptions {
   valueFormatter?(val: any): string;
 }
 
-const testId = makeTestId('test-filter-menu-');
+const testId = makeTestId("test-filter-menu-");
 
-export type IColumnFilterViewType = 'listView' | 'calendarView';
+export type IColumnFilterViewType = "listView" | "calendarView";
 
 /**
  * Returns the DOM content for the column filter menu.
@@ -76,7 +76,7 @@ export type IColumnFilterViewType = 'listView' | 'calendarView';
 export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptions): HTMLElement {
   const { model, doCancel, doSave, onClose, renderValue, valueParser, showAllFiltersButton } = opts;
   const { columnFilter, filterInfo, gristDoc } = model;
-  const valueFormatter = opts.valueFormatter || (val => val?.toString() || '');
+  const valueFormatter = opts.valueFormatter || (val => val?.toString() || "");
 
   // Map to keep track of displayed checkboxes
   const checkboxMap = new Map<CellValue, HTMLInputElement>();
@@ -96,21 +96,21 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
   const isSearchingObs = Computed.create(owner, use => Boolean(use(searchValueObs)));
   const showRangeFilter = isNumberType(columnFilter.columnType) || isDateLikeType(columnFilter.columnType);
   const isDateFilter = isDateLikeType(columnFilter.columnType);
-  const selectedBoundObs = Observable.create<'min' | 'max' | null>(owner, null);
+  const selectedBoundObs = Observable.create<"min" | "max" | null>(owner, null);
   const viewTypeObs = Computed.create<IColumnFilterViewType>(owner,
-    use => isDateFilter && use(selectedBoundObs) ? 'calendarView' : 'listView'
+    use => isDateFilter && use(selectedBoundObs) ? "calendarView" : "listView"
   );
-  const isMinSelected = Computed.create<boolean>(owner, use => use(selectedBoundObs) === 'min')
-    .onWrite(val => val ? selectedBoundObs.set('min') : selectedBoundObs.set('max'));
-  const isMaxSelected = Computed.create<boolean>(owner, use => use(selectedBoundObs) === 'max')
-    .onWrite(val => val ? selectedBoundObs.set('max') : selectedBoundObs.set('min'));
+  const isMinSelected = Computed.create<boolean>(owner, use => use(selectedBoundObs) === "min")
+    .onWrite(val => val ? selectedBoundObs.set("min") : selectedBoundObs.set("max"));
+  const isMaxSelected = Computed.create<boolean>(owner, use => use(selectedBoundObs) === "max")
+    .onWrite(val => val ? selectedBoundObs.set("max") : selectedBoundObs.set("min"));
 
   let searchInput: HTMLInputElement;
   let cancel = false;
 
   const filterMenu: HTMLElement = cssMenu(
-    { tabindex: '-1' }, // Allow menu to be focused
-    testId('wrapper'),
+    { tabindex: "-1" }, // Allow menu to be focused
+    testId("wrapper"),
 
     // Makes sure focus goes back to menu container and disable grist keyboard shortcut while open.
     (elem) => {
@@ -150,10 +150,10 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             valueFormatter,
             isSelected: isMinSelected,
             viewTypeObs,
-            nextSelected: () => selectedBoundObs.set('max'),
+            nextSelected: () => selectedBoundObs.set("max"),
           },
-          testId('min'),
-          dom.onKeyDown({ Tab: e => e.shiftKey || selectedBoundObs.set('max') }),
+          testId("min"),
+          dom.onKeyDown({ Tab: e => e.shiftKey || selectedBoundObs.set("max") }),
         ),
         rangeInput(
           columnFilter.max, {
@@ -164,8 +164,8 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             isSelected: isMaxSelected,
             viewTypeObs,
           },
-          testId('max'),
-          dom.onKeyDown({ Tab: e => e.shiftKey ? selectedBoundObs.set('min') : selectedBoundObs.set('max') }),
+          testId("max"),
+          dom.onKeyDown({ Tab: e => e.shiftKey ? selectedBoundObs.set("min") : selectedBoundObs.set("max") }),
         ),
       ),
 
@@ -176,24 +176,24 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           columnFilter.min.set(min);
           columnFilter.max.set(max);
           // open the calendar view
-          selectedBoundObs.set('min');
+          selectedBoundObs.set("min");
         }
         return [
           cssLinkRow(
-            testId('presets-links'),
+            testId("presets-links"),
             cssLink(
               getDateRangeOptions()[0].label,
-              dom.on('click', () => action(getDateRangeOptions()[0])),
+              dom.on("click", () => action(getDateRangeOptions()[0])),
             ),
             cssLink(
               getDateRangeOptions()[1].label,
-              dom.on('click', () => action(getDateRangeOptions()[1])),
+              dom.on("click", () => action(getDateRangeOptions()[1])),
             ),
             cssLink(
-              'More ', icon('Dropdown'),
+              "More ", icon("Dropdown"),
               menu(() => getDateRangeOptions().map(
                 option => menuItem(() => action(option), option.label),
-              ), { attach: '.' + cssMenu.className }),
+              ), { attach: "." + cssMenu.className }),
             ),
           ),
         ];
@@ -201,7 +201,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
       cssMenuDivider(),
     ]),
 
-    dom.domComputed(viewTypeObs, viewType => viewType === 'listView' ? ListView() :
+    dom.domComputed(viewTypeObs, viewType => viewType === "listView" ? ListView() :
       dom.create(ColumnFilterCalendarView, {
         viewTypeObs, selectedBoundObs, columnFilter,
       })),
@@ -210,20 +210,20 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
     // Prevents click on presets links submenus (any one of the 'More' submenus) from bubling up and
     // eventually cause the parent menu to close (which used to happen when opening the column
     // filter from the section sort&filter menu)
-    dom.on('click', ev => ev.stopPropagation()),
+    dom.on("click", ev => ev.stopPropagation()),
   );
 
   function ListView() {
     return [
       cssMenuHeader(
-        cssSearchIcon('Search'),
+        cssSearchIcon("Search"),
         searchInput = cssSearch(
           searchValueObs, { onInput: true },
-          testId('search-input'),
+          testId("search-input"),
           {
-            "type": 'search',
-            "placeholder": t('Search values'),
-            'aria-label': t('Search values'),
+            "type": "search",
+            "placeholder": t("Search values"),
+            "aria-label": t("Search values"),
           },
           dom.onKeyDown({
             Enter: () => {
@@ -233,7 +233,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             },
             Escape$: (ev) => {
               if (searchValueObs.get()) {
-                searchValueObs.set('');
+                searchValueObs.set("");
                 searchInput.focus();
                 ev.stopPropagation();
               }
@@ -241,18 +241,18 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           }),
         ),
         dom.maybe(searchValueObs, () => cssCloseIcon(
-          icon('CrossSmall'),
-          { 'aria-label': t('Clear search') },
-          testId('search-close'),
-          dom.on('click', () => {
-            searchValueObs.set('');
+          icon("CrossSmall"),
+          { "aria-label": t("Clear search") },
+          testId("search-close"),
+          dom.on("click", () => {
+            searchValueObs.set("");
             searchInput.focus();
           }),
           // We need to register the keydown event here to prevent triggering the one registered
           // on the parent when pressing Enter on the clear button.
           dom.onKeyDown({
             Enter: () => {
-              searchValueObs.set('');
+              searchValueObs.set("");
               searchInput.focus();
             },
           }),
@@ -270,38 +270,38 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           const state = use(columnFilter.state);
           return [
             cssSelectAll(
-              dom.text(searchValue ? t('All shown') : t('All')),
-              dom.attr('aria-disabled', isEquivalentFilter(state, allSpec) ? 'true' : 'false'),
-              dom.on('click', () => !isEquivalentFilter(state, allSpec) && columnFilter.setState(allSpec)),
-              testId('bulk-action'),
+              dom.text(searchValue ? t("All shown") : t("All")),
+              dom.attr("aria-disabled", isEquivalentFilter(state, allSpec) ? "true" : "false"),
+              dom.on("click", () => !isEquivalentFilter(state, allSpec) && columnFilter.setState(allSpec)),
+              testId("bulk-action"),
             ),
-            cssDotSeparator('•'),
+            cssDotSeparator("•"),
             cssSelectAll(
-              searchValue ? t('All except') : t('None'),
-              dom.attr('aria-disabled', isEquivalentFilter(state, noneSpec) ? 'true' : 'false'),
-              dom.on('click', () => !isEquivalentFilter(state, noneSpec) && columnFilter.setState(noneSpec)),
-              testId('bulk-action'),
+              searchValue ? t("All except") : t("None"),
+              dom.attr("aria-disabled", isEquivalentFilter(state, noneSpec) ? "true" : "false"),
+              dom.on("click", () => !isEquivalentFilter(state, noneSpec) && columnFilter.setState(noneSpec)),
+              testId("bulk-action"),
             ),
           ];
         }),
         cssSortIconButton(
-          cssSortIcon('Sort', cssSortIcon.cls('-active', isSortedByCount)),
-          dom.attr('aria-label', use => use(isSortedByCount) ?
-            t('Sort alphabetically (current: sorted by number of occurrences)') :
-            t('Sort by number of occurrences (current: sorted alphabetically)'),
+          cssSortIcon("Sort", cssSortIcon.cls("-active", isSortedByCount)),
+          dom.attr("aria-label", use => use(isSortedByCount) ?
+            t("Sort alphabetically (current: sorted by number of occurrences)") :
+            t("Sort by number of occurrences (current: sorted alphabetically)"),
           ),
-          dom.on('click', () => isSortedByCount.set(!isSortedByCount.get())),
+          dom.on("click", () => isSortedByCount.set(!isSortedByCount.get())),
         ),
       ),
       cssItemList(
-        testId('list'),
+        testId("list"),
         dom.maybe(use => use(filteredValues).length === 0, () => cssNoResults(t("No matching values"))),
         dom.domComputed(filteredValues, values => values.slice(0, model.limitShown).map(([key, value]) => (
           cssMenuItem(
             cssLabel(
               cssCheckboxSquare(
-                { type: 'checkbox' },
-                dom.on('change', (_ev, elem) => {
+                { type: "checkbox" },
+                dom.on("change", (_ev, elem) => {
                   if (elem.checked) {
                     columnFilter.add(key);
                   }
@@ -310,10 +310,10 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
                   }
                 }),
                 (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); },
-                dom.style('position', 'relative'),
+                dom.style("position", "relative"),
               ),
-              dom('span', renderValue(key, value), testId('value')),
-              cssItemCount(value.count.toLocaleString(), testId('count')),
+              dom("span", renderValue(key, value), testId("value")),
+              cssItemCount(value.count.toLocaleString(), testId("count")),
             ),
           )
         ))), // Include comma separator
@@ -332,7 +332,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           const anyOtherValues = Boolean(otherValues.length);
           const valuesBeyondLimit = use(model.valuesBeyondLimit);
           const isRangeFilter = use(columnFilter.isRange);
-          if (isRangeFilter || use(viewTypeObs) === 'calendarView') {
+          if (isRangeFilter || use(viewTypeObs) === "calendarView") {
             return [];
           }
           if (isAboveLimit) {
@@ -346,50 +346,50 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           }
           else {
             return anyOtherValues ? [
-              buildSummary(t('Others'), otherValues, true, model),
+              buildSummary(t("Others"), otherValues, true, model),
             ] : [
               buildSummary(t("Future values"), [], true, model),
             ];
           }
         }),
         cssFooterButtons(
-          dom('div',
-            cssPrimaryButton('Close', testId('apply-btn'),
-              dom.on('click', () => {
+          dom("div",
+            cssPrimaryButton("Close", testId("apply-btn"),
+              dom.on("click", () => {
                 onClose();
               }),
             ),
-            basicButton('Cancel', testId('cancel-btn'),
-              dom.on('click', () => {
+            basicButton("Cancel", testId("cancel-btn"),
+              dom.on("click", () => {
                 cancel = true;
                 onClose();
               }),
             ),
             !showAllFiltersButton ? null : cssAllFiltersButton(
-              'All filters',
-              dom.on('click', () => {
+              "All filters",
+              dom.on("click", () => {
                 onClose();
                 commands.allCommands.sortFilterMenuOpen.run(filterInfo.viewSection.getRowId());
               }),
-              testId('all-filters-btn'),
+              testId("all-filters-btn"),
             ),
           ),
-          dom('div',
+          dom("div",
             cssPinButton(
-              icon('PinTilted'),
-              cssPinButton.cls('-pinned', model.filterInfo.isPinned),
-              dom.attr('aria-label', use => use(model.filterInfo.isPinned) ?
-                t('Unpin filter') :
-                t('Pin filter'),
+              icon("PinTilted"),
+              cssPinButton.cls("-pinned", model.filterInfo.isPinned),
+              dom.attr("aria-label", use => use(model.filterInfo.isPinned) ?
+                t("Unpin filter") :
+                t("Pin filter"),
               ),
-              dom.on('click', () => filterInfo.pinned(!filterInfo.pinned())),
-              gristDoc.behavioralPromptsManager.attachPopup('filterButtons', {
+              dom.on("click", () => filterInfo.pinned(!filterInfo.pinned())),
+              gristDoc.behavioralPromptsManager.attachPopup("filterButtons", {
                 popupOptions: {
                   attach: null,
-                  placement: 'right',
+                  placement: "right",
                 },
               }),
-              testId('pin-btn'),
+              testId("pin-btn"),
             ),
           ),
         ),
@@ -420,18 +420,18 @@ function rangeInput(obs: Observable<number | undefined | IRelativeDateSpec>, opt
   return cssRangeInputContainer(
 
     dom.maybe(opts.isDateFilter, () => [
-      cssRangeInputIcon('FieldDate'),
+      cssRangeInputIcon("FieldDate"),
       buildInput(),
-      icon('Dropdown'),
+      icon("Dropdown"),
     ]),
 
     dom.maybe(!opts.isDateFilter, () => [
       buildInput(),
     ]),
 
-    cssRangeInputContainer.cls('-relative', use => isRelativeBound(use(obs))),
-    dom.cls('selected', use => use(opts.viewTypeObs) === 'calendarView' && use(opts.isSelected)),
-    dom.on('click', () => opts.isSelected.set(true)),
+    cssRangeInputContainer.cls("-relative", use => isRelativeBound(use(obs))),
+    dom.cls("selected", use => use(opts.viewTypeObs) === "calendarView" && use(opts.isSelected)),
+    dom.on("click", () => opts.isSelected.set(true)),
     elem => opts.isDateFilter ? attachRelativeDatesOptions(elem, obs, opts) : null,
     dom.onKeyDown({
       Backspace$: () => isRelativeBound(obs.get()) && obs.set(undefined),
@@ -445,8 +445,8 @@ function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number | 
   opts: IRangeInputOptions) {
   const popupCtl = relativeDatesControl(elem, obs, {
     ...opts,
-    placement: 'right-start',
-    attach: '.' + cssMenu.className,
+    placement: "right-start",
+    attach: "." + cssMenu.className,
   });
 
   // makes sure the options are shown any time the value changes.
@@ -461,12 +461,12 @@ function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number | 
 
   // toggle popup on click
   dom.update(elem, [
-    dom.on('click', () => popupCtl.toggle()),
+    dom.on("click", () => popupCtl.toggle()),
     dom.autoDispose(opts.isSelected.addListener(onValueChange)),
     dom.autoDispose(obs.addListener(onValueChange)),
     dom.onKeyDown({
       Enter$: (e) => {
-        if (opts.viewTypeObs.get() === 'listView') { return; }
+        if (opts.viewTypeObs.get() === "listView") { return; }
         if (opts.isSelected.get()) {
           if (popupCtl.isOpen()) {
             opts.nextSelected?.();
@@ -499,7 +499,7 @@ function numericInput(obs: Observable<number | undefined | IRelativeDateSpec>,
     setTimeout(() => {
       // Make sure focus is trapped on input during calendar view, so that uses can still use keyboard
       // to navigate relative date options just after picking a date on the calendar.
-      if (opts.viewTypeObs.get() === 'calendarView' && opts.isSelected.get()) {
+      if (opts.viewTypeObs.get() === "calendarView" && opts.isSelected.get()) {
         inputEl.focus();
       }
     });
@@ -508,15 +508,15 @@ function numericInput(obs: Observable<number | undefined | IRelativeDateSpec>,
     if (isRelativeBound(obs.get())) { return; }
     editMode = true;
     const val = inputEl.value ? valueParser(inputEl.value) : undefined;
-    if (val === undefined || typeof val === 'number' && !isNaN(val)) {
+    if (val === undefined || typeof val === "number" && !isNaN(val)) {
       obs.set(val);
     }
   }, 100);
   // TODO: could be nice to have the cursor positioned at the end of the input
   return inputEl = cssRangeInput(
-    { inputmode: 'numeric', placeholder, value: formatValue(obs.get()) },
-    dom.on('input', onInput),
-    dom.on('blur', onBlur),
+    { inputmode: "numeric", placeholder, value: formatValue(obs.get()) },
+    dom.on("input", onInput),
+    dom.on("blur", onBlur),
     // keep input content in sync only when no edit are going on.
     dom.autoDispose(obs.addListener(() => editMode ? null : inputEl.value = formatValue(obs.get()))),
     dom.autoDispose(opts.isSelected.addListener(val => val && inputEl.focus())),
@@ -536,12 +536,12 @@ function relativeToken(obs: Observable<number | undefined | IRelativeDateSpec>,
       dom.text(use => formatRelBounds(use(obs) as IRelativeDateSpec)),
       cssDeleteButton(
         // Ignore mousedown events, so that tokens aren't draggable by the delete button.
-        dom.on('mousedown', ev => ev.stopPropagation()),
-        cssDeleteIcon('CrossSmall'),
-        dom.on('click', () => obs.set(undefined)),
-        testId('tokenfield-delete'),
+        dom.on("mousedown", ev => ev.stopPropagation()),
+        cssDeleteIcon("CrossSmall"),
+        dom.on("click", () => obs.set(undefined)),
+        testId("tokenfield-delete"),
       ),
-      testId('tokenfield-token'),
+      testId("tokenfield-token"),
     ),
   );
 }
@@ -604,23 +604,23 @@ function buildSummary(label: string | Computed<string>, values: [CellValue, IFil
 
   return cssMenuItem(
     dom.autoDispose(checkboxState),
-    testId('summary'),
+    testId("summary"),
     labeledTriStateSquareCheckbox(
       checkboxState,
       `${label} ${formatUniqueCount(values)}`.trim(),
     ),
-    cssItemCount(formatCount(values), testId('count')),
+    cssItemCount(formatCount(values), testId("count")),
   );
 }
 
 function formatCount(values: [CellValue, IFilterCount][]) {
   const count = getCount(values);
-  return count ? count.toLocaleString() : '';
+  return count ? count.toLocaleString() : "";
 }
 
 function formatUniqueCount(values: [CellValue, IFilterCount][]) {
   const count = values.length;
-  return count ? '(' + count.toLocaleString() + ')' : '';
+  return count ? "(" + count.toLocaleString() + ")" : "";
 }
 
 /**
@@ -631,12 +631,12 @@ function formatUniqueCount(values: [CellValue, IFilterCount][]) {
 function getEmptyCountMap(fieldOrColumn: ViewFieldRec | ColumnRec): Map<CellValue, IFilterCount> {
   const columnType = fieldOrColumn.origCol().type();
   let values: any[] = [];
-  if (columnType === 'Bool') {
+  if (columnType === "Bool") {
     values = [true, false];
   }
-  else if (['Choice', 'ChoiceList'].includes(columnType)) {
+  else if (["Choice", "ChoiceList"].includes(columnType)) {
     const options = fieldOrColumn.origCol().widgetOptionsJson;
-    values = options.prop('choices')() ?? [];
+    values = options.prop("choices")() ?? [];
   }
   return new Map(values.map(v => [v, { label: String(v), count: 0, displayValue: v }]));
 }
@@ -683,10 +683,10 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
   let colFormatter = fieldOrColumn.visibleColFormatter();
 
   // Show only the date part of the datetime format in range picker.
-  if (extractTypeFromColType(colFormatter.type) === 'DateTime') {
+  if (extractTypeFromColType(colFormatter.type) === "DateTime") {
     const { docSettings } = colFormatter;
     const widgetOpts = fieldOrColumn.origCol.peek().widgetOptionsJson();
-    colFormatter = createFormatter('Date', widgetOpts, docSettings);
+    colFormatter = createFormatter("Date", widgetOpts, docSettings);
   }
 
   // formatting values for Numeric columns entail issues. For instance with '%' when users type
@@ -784,7 +784,7 @@ function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: Vi
   if (isRefListType(columnType)) {
     labelMapFunc = (rowId: number) => {
       const maybeLabels = labelGetter(rowId);
-      if (!maybeLabels) { return ''; }
+      if (!maybeLabels) { return ""; }
       const labels = isList(maybeLabels) ? maybeLabels.slice(1) : [maybeLabels];
       return labels.map(l => formatter.formatAny(l));
     };
@@ -792,7 +792,7 @@ function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: Vi
   else {
     // If this is Markdown widget, remove all formatting (mostly for links).
     const widget = fieldOrColumn.widget();
-    const isMarkdown = widget === 'Markdown';
+    const isMarkdown = widget === "Markdown";
     const cleaned = isMarkdown ? stripLinks : identity<string>;
     labelMapFunc = (rowId: number) => cleaned(formatter.formatAny(labelGetter(rowId)));
   }
@@ -807,13 +807,13 @@ function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: Vi
  * text.
  */
 function getRenderFunc(columnType: string, fieldOrColumn: ViewFieldRec | ColumnRec) {
-  if (['Choice', 'ChoiceList'].includes(columnType)) {
+  if (["Choice", "ChoiceList"].includes(columnType)) {
     const options = fieldOrColumn.widgetOptionsJson.peek();
     const choiceSet = new Set<string>(options.choices || []);
     const choiceOptions: ChoiceOptions = options.choiceOptions || {};
 
     return (_key: CellValue, value: IFilterCount) => {
-      if (value.label === '') {
+      if (value.label === "") {
         return cssItemValue(value.label);
       }
 
@@ -829,7 +829,7 @@ function getRenderFunc(columnType: string, fieldOrColumn: ViewFieldRec | ColumnR
           invalid: !choiceSet.has(value.label),
         },
         dom.cls(cssToken.className),
-        testId('choice-token'),
+        testId("choice-token"),
       );
     };
   }
@@ -865,11 +865,11 @@ function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: UIRowId[
     let key = keyMapFunc(rowId);
 
     // If row contains a list and the column is a Choice List, treat each choice as a separate key
-    if (isList(key) && (columnType === 'ChoiceList')) {
+    if (isList(key) && (columnType === "ChoiceList")) {
       const list = decodeObject(key) as unknown[];
       if (!list.length) {
         // If the list is empty, add an item for the whole list, otherwise the row will be missing from filters.
-        addSingleCountToMap(valueMap, '', () => '', () => '', areHiddenRows);
+        addSingleCountToMap(valueMap, "", () => "", () => "", areHiddenRows);
       }
       for (const item of list) {
         addSingleCountToMap(valueMap, item, () => item, () => item, areHiddenRows);
@@ -916,9 +916,9 @@ function getCount(values: [CellValue, IFilterCount][]) {
 }
 
 const defaultPopupOptions: IPopupOptions = {
-  placement: 'bottom-start',
-  boundaries: 'viewport',
-  trigger: ['click'],
+  placement: "bottom-start",
+  boundaries: "viewport",
+  trigger: ["click"],
 };
 
 interface IColumnFilterPopupOptions {
@@ -944,7 +944,7 @@ export function attachColumnFilterMenu(
   };
 }
 
-const cssMenu = styled('div', `
+const cssMenu = styled("div", `
   display: flex;
   flex-direction: column;
   min-width: 252px;
@@ -955,7 +955,7 @@ const cssMenu = styled('div', `
   padding-top: 0;
   padding-bottom: 12px;
 `);
-const cssMenuHeader = styled('div', `
+const cssMenuHeader = styled("div", `
   height: 40px;
   flex-shrink: 0;
 
@@ -967,7 +967,7 @@ const cssMenuHeader = styled('div', `
 const cssSelectAll = styled(textButton, `
   --icon-color: ${theme.controlFg};
 `);
-const cssDotSeparator = styled('span', `
+const cssDotSeparator = styled("span", `
   color: ${theme.controlFg};
   margin: 0 8px;
   user-select: none;
@@ -976,14 +976,14 @@ const cssMenuDivider = styled(menuDivider, `
   flex-shrink: 0;
   margin: 0;
 `);
-const cssItemList = styled('div', `
+const cssItemList = styled("div", `
   flex-shrink: 1;
   overflow: auto;
   min-height: 80px;
   margin-top: 4px;
   padding-bottom: 8px;
 `);
-const cssMenuItem = styled('div', `
+const cssMenuItem = styled("div", `
   display: flex;
   padding: 8px 16px;
 `);
@@ -997,19 +997,19 @@ export const cssItemValue = styled(cssLabelText, `
   margin-right: 12px;
   white-space: pre;
 `);
-const cssItemCount = styled('div', `
+const cssItemCount = styled("div", `
   flex-grow: 1;
   align-self: normal;
   text-align: right;
   color: ${theme.lightText};
 `);
-const cssMenuFooter = styled('div', `
+const cssMenuFooter = styled("div", `
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
   padding-top: 4px;
 `);
-const cssFooterButtons = styled('div', `
+const cssFooterButtons = styled("div", `
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1070,7 +1070,7 @@ const cssLabel = styled(cssCheckboxLabel, `
   font-weight: initial;   /* negate bootstrap */
   flex-grow: 1;
 `);
-const cssToken = styled('div', `
+const cssToken = styled("div", `
   margin-left: 8px;
   margin-right: 12px;
 `);
@@ -1081,7 +1081,7 @@ const cssRangeContainer = styled(cssMenuItem, `
   flex-direction: column;
   padding: 16px 16px;
 `);
-const cssRangeInputContainer = styled('div', `
+const cssRangeInputContainer = styled("div", `
   position: relative;
   width: 100%;
   display: flex;
@@ -1114,7 +1114,7 @@ const cssTokenToken = styled(cssTokenTokenBase, `
   align-self: center;
   cursor: default;
 `);
-const cssTokenContainer = styled('div', `
+const cssTokenContainer = styled("div", `
   width: 100%;
   display: flex;
   outline: none;

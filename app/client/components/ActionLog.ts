@@ -2,30 +2,30 @@
  * ActionLog manages the list of actions from server and displays them in the side bar.
  */
 
-import { GristDoc } from 'app/client/components/GristDoc';
-import * as dispose from 'app/client/lib/dispose';
-import koArray from 'app/client/lib/koArray';
-import { KoArray } from 'app/client/lib/koArray';
-import * as koDom from 'app/client/lib/koDom';
-import { makeT } from 'app/client/lib/localization';
-import { ClientTimeData } from 'app/client/models/TimeQuery';
-import { basicButton } from 'app/client/ui2018/buttons';
-import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
-import { theme } from 'app/client/ui2018/cssVars';
-import { ActionGroup } from 'app/common/ActionGroup';
-import { concatenateSummaryPair } from 'app/common/ActionSummarizer';
+import { GristDoc } from "app/client/components/GristDoc";
+import * as dispose from "app/client/lib/dispose";
+import koArray from "app/client/lib/koArray";
+import { KoArray } from "app/client/lib/koArray";
+import * as koDom from "app/client/lib/koDom";
+import { makeT } from "app/client/lib/localization";
+import { ClientTimeData } from "app/client/models/TimeQuery";
+import { basicButton } from "app/client/ui2018/buttons";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { theme } from "app/client/ui2018/cssVars";
+import { ActionGroup } from "app/common/ActionGroup";
+import { concatenateSummaryPair } from "app/common/ActionSummarizer";
 import {
   ActionSummary, asTabularDiffs, createEmptyActionSummary, defunctTableName, getAffectedTables,
   LabelDelta,
-} from 'app/common/ActionSummary';
-import { CellDelta, TabularDiff, TabularDiffs } from 'app/common/TabularDiff';
-import { timeFormat } from 'app/common/timeFormat';
-import { ResultRow, TimeCursor, TimeQuery } from 'app/common/TimeQuery';
-import { Disposable, dom, DomContents, fromKo, IDomComponent, makeTestId, styled } from 'grainjs';
-import * as ko from 'knockout';
-import takeWhile from 'lodash/takeWhile';
+} from "app/common/ActionSummary";
+import { CellDelta, TabularDiff, TabularDiffs } from "app/common/TabularDiff";
+import { timeFormat } from "app/common/timeFormat";
+import { ResultRow, TimeCursor, TimeQuery } from "app/common/TimeQuery";
+import { Disposable, dom, DomContents, fromKo, IDomComponent, makeTestId, styled } from "grainjs";
+import * as ko from "knockout";
+import takeWhile from "lodash/takeWhile";
 
-const testId = makeTestId('test-actionlog-');
+const testId = makeTestId("test-actionlog-");
 
 /**
  *
@@ -51,12 +51,12 @@ const gristNotify = window.gristNotify!;
 
 // Action display state enum.
 const state = {
-  UNDONE: 'undone',
-  BURIED: 'buried',
-  DEFAULT: 'default',
+  UNDONE: "undone",
+  BURIED: "buried",
+  DEFAULT: "default",
 };
 
-const t = makeT('ActionLog');
+const t = makeT("ActionLog");
 
 export class ActionLog extends dispose.Disposable implements IDomComponent {
   public displayStack: KoArray<ActionGroupWithState>;
@@ -191,7 +191,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
       // Tables are renamed from time to time - prepare dictionary of updates.
       const renames = new Map(ag.actionSummary.tableRenames);
       for (const name of Object.keys(prev.tableFilters!)) {
-        if (name.startsWith('-')) {
+        if (name.startsWith("-")) {
           // skip
         }
         else if (renames.has(name)) {
@@ -224,42 +224,42 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
 
   private _buildLogDom() {
     this._loadActionSummaries().catch(() => gristNotify(t("Action Log failed to load")));
-    return dom('div.action_log',
-      { tabIndex: '-1' },
+    return dom("div.action_log",
+      { tabIndex: "-1" },
       dom.maybe(this._censored, () => {
         return cssHistoryCensored(dom(
-          'p',
-          t('History blocked because of access rules.'),
+          "p",
+          t("History blocked because of access rules."),
         ));
       }),
       // currently, if censored, no history at all available - so drop checkbox
       dom.maybe(use => !use(this._censored), () => {
-        return dom('div',
+        return dom("div",
           labeledSquareCheckbox(fromKo(this.showAllTables),
-            t('All tables'),
+            t("All tables"),
           ),
         );
       }),
-      dom('div.action_log_load',
+      dom("div.action_log_load",
         koDom.show(() => this._loading()),
-        'Loading...'),
+        "Loading..."),
       koDom.foreach(this.displayStack, (ag: ActionGroupWithState) => {
         const timestamp = ag.time ? timeFormat("D T", new Date(ag.time)) : "";
         let desc: DomContents = ag.desc || "";
         if (ag.actionSummary) {
           desc = this.renderTabularDiffs(ag.actionSummary, desc, ag);
         }
-        return dom('div.action_log_item',
+        return dom("div.action_log_item",
           koDom.cssClass(ag.state),
           koDom.show(() => this.showAllTables() || this._hasSelectedTable(ag)),
-          dom('div.action_info',
-            dom('span.action_info_action_num', `#${ag.actionNum}`),
-            ag.user ? dom('span.action_info_user',
+          dom("div.action_info",
+            dom("span.action_info_action_num", `#${ag.actionNum}`),
+            ag.user ? dom("span.action_info_user",
               ag.user,
-              koDom.toggleClass('action_info_from_self', ag.fromSelf),
-            ) : '',
-            dom('span.action_info_timestamp', timestamp)),
-          dom('span.action_desc', desc),
+              koDom.toggleClass("action_info_from_self", ag.fromSelf),
+            ) : "",
+            dom("span.action_info_timestamp", timestamp)),
+          dom("span.action_desc", desc),
         );
       }),
     );
@@ -332,50 +332,50 @@ export abstract class ActionLogPart extends Disposable {
         context,
         order: this._naiveColumnOrder.bind(this),
       });
-      return dom('div',
-        testId('tabular-diffs'),
+      return dom("div",
+        testId("tabular-diffs"),
         this._renderTableSchemaChanges(sum),
         this._renderColumnSchemaChanges(sum),
         options.customRender ? options.customRender?.(act, contextObs!, this.selectCell.bind(this)) :
           Object.entries(act).map(([table, tdiff]: [string, TabularDiff]) => {
-            if (tdiff.cells.length === 0) { return dom('div'); }
+            if (tdiff.cells.length === 0) { return dom("div"); }
             return dom(
-              'table.action_log_table',
+              "table.action_log_table",
               koDom.show(() => this.showForTable(table)),
-              dom('caption',
+              dom("caption",
                 this._renderTableName(table),
                 // Add a little button to show or hide extra context.
                 // This is a baby step, there's a lot more that could
                 // and should be done here.
                 contextObs ? cssBasicButton(
-                  context[table] ? ' <' : ' >',
-                  dom.on('click', () => this.toggleContext(contextObs, table))) : null,
-                dom.style('text-align', 'left'),
+                  context[table] ? " <" : " >",
+                  dom.on("click", () => this.toggleContext(contextObs, table))) : null,
+                dom.style("text-align", "left"),
               ),
               dom(
-                'tr',
-                dom('th'),
+                "tr",
+                dom("th"),
                 tdiff.header.map((diff) => {
-                  return dom('th', this._renderCell(diff));
+                  return dom("th", this._renderCell(diff));
                 })),
               tdiff.cells.map(
                 (row) => {
                   return dom(
-                    'tr',
-                    dom('td', this._renderCell(row.type)),
+                    "tr",
+                    dom("td", this._renderCell(row.type)),
                     row.cellDeltas.map((diff, idx: number) => {
-                      return dom('td',
+                      return dom("td",
                         this._renderCell(diff),
-                        dom.on('click', () => {
+                        dom.on("click", () => {
                           return this.selectCell(row.rowId, act[table].header[idx], table);
                         }));
                     }));
                 }));
           }),
-        txt ? dom('span.action_comment', txt) : null,
+        txt ? dom("span.action_comment", txt) : null,
       );
     });
-    return dom('div', editDom);
+    return dom("div", editDom);
   }
 
   public async toggleContext(contextObs: ko.Observable<ActionContext>, table: string) {
@@ -402,7 +402,7 @@ export abstract class ActionLogPart extends Disposable {
       return "...";
     }
     // strings are shown as themselves
-    if (typeof (cell) === 'string') {
+    if (typeof (cell) === "string") {
       return cell;
     }
     if (!Array.isArray(cell)) {
@@ -416,17 +416,17 @@ export abstract class ActionLogPart extends Disposable {
     }
     else if (pre && !post) {
       // this is a cell that was removed
-      return dom('span.action_log_cell_remove', pre[0]);
+      return dom("span.action_log_cell_remove", pre[0]);
     }
-    else if (post && (pre === null || (pre[0] === null || pre[0] === ''))) {
+    else if (post && (pre === null || (pre[0] === null || pre[0] === ""))) {
       // this is a cell that was added, or modified from a previously empty value
-      return dom('span.action_log_cell_add', post[0]);
+      return dom("span.action_log_cell_add", post[0]);
     }
     else if (pre && post) {
       // a modified cell
-      return dom('div',
-        dom('span.action_log_cell_remove.action_log_cell_pre', pre[0]),
-        dom('span.action_log_cell_add', post[0]));
+      return dom("div",
+        dom("span.action_log_cell_remove.action_log_cell_pre", pre[0]),
+        dom("span.action_log_cell_add", post[0]));
     }
     return JSON.stringify(cell);
   }
@@ -438,12 +438,12 @@ export abstract class ActionLogPart extends Disposable {
    * @returns {string} a friendlier name for the table
    */
   private _renderTableName(name: string): string {
-    if (!name.startsWith('_grist_')) {
+    if (!name.startsWith("_grist_")) {
       // Ordinary data table.  Ideally, we would look up
       // a friendly name from a raw data view - TODO.
       return name;
     }
-    const metaName = name.split('_grist_')[1].replace(/_/g, '.');
+    const metaName = name.split("_grist_")[1].replace(/_/g, ".");
     return `[${metaName}]`;
   }
 
@@ -460,8 +460,8 @@ export abstract class ActionLogPart extends Disposable {
   private _renderSchemaChange(scope: string, pair: LabelDelta) {
     const [pre, post] = pair;
     // ignore addition/removal of manualSort column
-    if ((pre || post) === 'manualSort') { return dom('div'); }
-    return dom('div.action_log_rename',
+    if ((pre || post) === "manualSort") { return dom("div"); }
+    return dom("div.action_log_rename",
       koDom.show(() => this.showForTable(post || defunctTableName(pre!))),
       (!post ? ["Remove ", scope, dom("span.action_log_rename_pre", pre)] :
         (!pre ? ["Add ", scope, dom("span.action_log_rename_post", post)] :
@@ -473,7 +473,7 @@ export abstract class ActionLogPart extends Disposable {
    * Show any table additions/removals/renames.
    */
   private _renderTableSchemaChanges(sum: ActionSummary) {
-    return dom('div',
+    return dom("div",
       sum.tableRenames.map(pair => this._renderSchemaChange("", pair)));
   }
 
@@ -481,9 +481,9 @@ export abstract class ActionLogPart extends Disposable {
    * Show any column additions/removals/renames.
    */
   private _renderColumnSchemaChanges(sum: ActionSummary) {
-    return dom('div',
-      Object.keys(sum.tableDeltas).filter(key => !key.startsWith('-')).map(key =>
-        dom('div',
+    return dom("div",
+      Object.keys(sum.tableDeltas).filter(key => !key.startsWith("-")).map(key =>
+        dom("div",
           koDom.show(() => this.showForTable(key)),
           sum.tableDeltas[key].columnRenames.map(pair =>
             this._renderSchemaChange(key + ".", pair)))));
@@ -514,7 +514,7 @@ export abstract class ActionLogPart extends Disposable {
     const refColIds = this._gristDocBase?.docData.getTable(tableId)?.getColIds();
     if (!refColIds) { return colIds; }
     const order = new Map(refColIds.map((id, i) => [id, i]));
-    order.set('id', 0);
+    order.set("id", 0);
     return [...colIds].sort((a, b) => {
       const ai = order.get(a);
       const bi = order.get(b);
@@ -694,7 +694,7 @@ export async function computeContext(gristDoc: GristDoc, base: ActionSummary, in
   init?.(cursor);
 
   async function getTable(tableId: string, rowIds: number[]) {
-    const query = new TimeQuery(cursor, tableId, '*', rowIds);
+    const query = new TimeQuery(cursor, tableId, "*", rowIds);
     await query.update();
     return query.all();
   }
@@ -750,7 +750,7 @@ interface RenderTabularDiffOptions {
   ): DomContents;
 }
 
-const cssHistoryCensored = styled('div', `
+const cssHistoryCensored = styled("div", `
   margin: 8px 16px;
   text-align: center;
   color: ${theme.text};

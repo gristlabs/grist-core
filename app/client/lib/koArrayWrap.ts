@@ -1,5 +1,5 @@
-import { KoArray } from 'app/client/lib/koArray';
-import { IDisposableOwnerT, MutableObsArray, ObsArray, setDisposeOwner } from 'grainjs';
+import { KoArray } from "app/client/lib/koArray";
+import { IDisposableOwnerT, MutableObsArray, ObsArray, setDisposeOwner } from "grainjs";
 
 /**
  * Returns a grainjs ObsArray that reflects the given koArray, mapping small changes using
@@ -31,7 +31,7 @@ class KoWrapObsArray<T> extends MutableObsArray<T> {
     this._koSub = _koArray.subscribe((splice: any) => {
       const newValues = splice.array.slice(splice.start, splice.start + splice.added);
       this.splice(splice.start, splice.deleted.length, ...newValues);
-    }, null, 'spliceChange');
+    }, null, "spliceChange");
   }
 
   public dispose(): void {

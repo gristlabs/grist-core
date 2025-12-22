@@ -1,15 +1,15 @@
-import type { App } from 'app/client/ui/App';
-import { textarea } from 'app/client/ui/inputs';
-import { sanitizeHTMLIntoDOM } from 'app/client/ui/sanitizeHTML';
-import { basicButton, basicButtonLink, primaryButtonLink, textButton } from 'app/client/ui2018/buttons';
-import { cssLabel } from 'app/client/ui2018/checkbox';
-import { colors, theme } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { numericSpinner } from 'app/client/widgets/NumericSpinner';
-import { BindableValue, dom, DomElementArg, IDomArgs, Observable, styled } from 'grainjs';
-import { marked } from 'marked';
+import type { App } from "app/client/ui/App";
+import { textarea } from "app/client/ui/inputs";
+import { sanitizeHTMLIntoDOM } from "app/client/ui/sanitizeHTML";
+import { basicButton, basicButtonLink, primaryButtonLink, textButton } from "app/client/ui2018/buttons";
+import { cssLabel } from "app/client/ui2018/checkbox";
+import { colors, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { numericSpinner } from "app/client/widgets/NumericSpinner";
+import { BindableValue, dom, DomElementArg, IDomArgs, Observable, styled } from "grainjs";
+import { marked } from "marked";
 
-export const cssFormView = styled('div.flexauto.flexvbox', `
+export const cssFormView = styled("div.flexauto.flexvbox", `
   color: ${theme.text};
   display: flex;
   flex-direction: column;
@@ -22,7 +22,7 @@ export const cssFormView = styled('div.flexauto.flexvbox', `
   width: 100%;
 `);
 
-export const cssFormContainer = styled('div', `
+export const cssFormContainer = styled("div", `
   background-color: ${theme.mainPanelBg};
   color: ${theme.text};
   width: 600px;
@@ -42,7 +42,7 @@ export const cssFormContainer = styled('div', `
   }
 `);
 
-export const cssFieldEditor = styled('div.hover_border.field_editor', `
+export const cssFieldEditor = styled("div.hover_border.field_editor", `
   position: relative;
   cursor: pointer;
   user-select: none;
@@ -88,14 +88,14 @@ export const cssFieldEditor = styled('div.hover_border.field_editor', `
   }
 `);
 
-export const cssSection = styled('div', `
+export const cssSection = styled("div", `
   position: relative;
   color: ${theme.text};
   margin: 0px auto;
   min-height: 50px;
 `);
 
-export const cssCheckboxList = styled('div', `
+export const cssCheckboxList = styled("div", `
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -123,21 +123,21 @@ export const cssRadioList = cssCheckboxList;
 export const cssRadioLabel = cssCheckboxLabel;
 
 export function textbox(obs: Observable<string | undefined>, ...args: DomElementArg[]): HTMLInputElement {
-  return dom('input',
-    dom.prop('value', u => u(obs) || ''),
-    dom.on('input', (_e, elem) => obs.set(elem.value)),
+  return dom("input",
+    dom.prop("value", u => u(obs) || ""),
+    dom.on("input", (_e, elem) => obs.set(elem.value)),
     ...args,
   );
 }
 
-export const cssQuestion = styled('div', `
+export const cssQuestion = styled("div", `
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 `);
 
-export const cssRequiredWrapper = styled('div', `
+export const cssRequiredWrapper = styled("div", `
   margin: 8px 0px;
   min-height: 16px;
   overflow-wrap: break-word;
@@ -155,7 +155,7 @@ export const cssRequiredWrapper = styled('div', `
   }
 `);
 
-export const cssRenderedLabel = styled('div', `
+export const cssRenderedLabel = styled("div", `
   font-weight: normal;
   padding: 0px;
   border: 0px;
@@ -203,13 +203,13 @@ export const cssEditableLabel = styled(textarea, `
   }
 `);
 
-export const cssLabelInline = styled('div', `
+export const cssLabelInline = styled("div", `
   line-height: 16px;
   margin: 0px;
   overflow-wrap: anywhere;
 `);
 
-export const cssDesc = styled('div', `
+export const cssDesc = styled("div", `
   font-size: 12px;
   font-weight: 400;
   margin-top: 4px;
@@ -220,7 +220,7 @@ export const cssDesc = styled('div', `
   line-height: 1.6;
 `);
 
-export const cssInput = styled('input', `
+export const cssInput = styled("input", `
   background-color: ${theme.inputBg};
   font-size: inherit;
   height: 29px;
@@ -242,7 +242,7 @@ export const cssInput = styled('input', `
   }
 `);
 
-export const cssTextArea = styled('textarea', `
+export const cssTextArea = styled("textarea", `
   background-color: ${theme.inputBg};
   font-size: inherit;
   min-height: 29px;
@@ -264,7 +264,7 @@ export const cssSpinner = styled(numericSpinner, `
   height: 29px;
 `);
 
-export const cssSelect = styled('select', `
+export const cssSelect = styled("select", `
   flex: auto;
   width: 100%;
   background-color: ${theme.inputBg};
@@ -277,7 +277,7 @@ export const cssSelect = styled('select', `
   pointer-events: none;
 `);
 
-export const cssToggle = styled('div', `
+export const cssToggle = styled("div", `
   display: grid;
   grid-template-columns: auto 1fr;
   margin-top: 12px;
@@ -285,7 +285,7 @@ export const cssToggle = styled('div', `
   --grist-actual-cell-color: ${colors.lightGreen};
 `);
 
-export const cssWarningMessage = styled('div', `
+export const cssWarningMessage = styled("div", `
   margin-top: 8px;
   display: flex;
   align-items: center;
@@ -297,11 +297,11 @@ export const cssWarningIcon = styled(icon, `
   flex-shrink: 0;
 `);
 
-export const cssFieldEditorContent = styled('div', `
+export const cssFieldEditorContent = styled("div", `
   height: 100%;
 `);
 
-export const cssSelectedOverlay = styled('div._cssSelectedOverlay', `
+export const cssSelectedOverlay = styled("div._cssSelectedOverlay", `
   inset: 0;
   position: absolute;
   opacity: 0;
@@ -311,7 +311,7 @@ export const cssSelectedOverlay = styled('div._cssSelectedOverlay', `
   }
 `);
 
-export const cssPlusButton = styled('div', `
+export const cssPlusButton = styled("div", `
   position: relative;
   min-height: 32px;
   cursor: pointer;
@@ -320,7 +320,7 @@ export const cssPlusButton = styled('div', `
   align-items: center;
 `);
 
-export const cssCircle = styled('div', `
+export const cssCircle = styled("div", `
   border-radius: 50%;
   width: 24px;
   height: 24px;
@@ -338,14 +338,14 @@ export const cssPlusIcon = styled(icon, `
  --icon-color: ${theme.controlPrimaryFg};
 `);
 
-export const cssColumns = styled('div', `
+export const cssColumns = styled("div", `
   display: grid;
   grid-template-columns: repeat(var(--css-columns-count), 1fr) 32px;
   gap: 8px;
   padding: 8px 4px;
 `);
 
-export const cssColumn = styled('div', `
+export const cssColumn = styled("div", `
   position: relative;
   &-empty, &-add-button {
     position: relative;
@@ -379,7 +379,7 @@ export const cssColumn = styled('div', `
   }
 `);
 
-export const cssButtonGroup = styled('div', `
+export const cssButtonGroup = styled("div", `
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -422,7 +422,7 @@ const textSmallButton = `
 export const cssSmallButton = styled(basicButton, textSmallButton);
 export const cssPrimarySmallLink = styled(primaryButtonLink, textSmallButton);
 
-export const cssMarkdownRendered = styled('div', `
+export const cssMarkdownRendered = styled("div", `
   min-height: 1.5rem;
   font-size: 15px;
   overflow-wrap: break-word;
@@ -459,7 +459,7 @@ export const cssMarkdownRendered = styled('div', `
   }
 `);
 
-const cssMarkdownContainer = styled('div', `
+const cssMarkdownContainer = styled("div", `
   clip-path: inset(0px);
 `);
 
@@ -510,10 +510,10 @@ export function bindMarkdown(textObs: BindableValue<string>) {
     (shadowStyle as any).replaceSync(SHADOW_STYLE);
   }
   return function(container: HTMLElement) {
-    const shadow = container.attachShadow({ mode: 'open' });
+    const shadow = container.attachShadow({ mode: "open" });
     (shadow as any).adoptedStyleSheets = [shadowStyle!];
     dom.update(shadow,
-      dom.domComputed(textObs, text => sanitizeHTMLIntoDOM(marked(text || '', {
+      dom.domComputed(textObs, text => sanitizeHTMLIntoDOM(marked(text || "", {
         async: false,
       })),
       ));
@@ -527,7 +527,7 @@ export function buildMarkdown(obs: BindableValue<string>, ...args: IDomArgs<HTML
   );
 }
 
-export const cssDrop = styled('div.test-forms-drag', `
+export const cssDrop = styled("div.test-forms-drag", `
   position: absolute;
   pointer-events: none;
   top: 2px;
@@ -536,7 +536,7 @@ export const cssDrop = styled('div.test-forms-drag', `
   height: 1px;
 `);
 
-export const cssDragWrapper = styled('div', `
+export const cssDragWrapper = styled("div", `
   position: absolute;
   inset: 0px;
   left: -16px;
@@ -557,23 +557,23 @@ export const cssDrag = styled(icon, `
   }
 `);
 
-export const cssPreview = styled('iframe', `
+export const cssPreview = styled("iframe", `
   height: 100%;
   width: 100%;
   border: 0px;
 `);
 
-export const cssSwitcher = styled('div', `
+export const cssSwitcher = styled("div", `
   border-top: 1px solid ${theme.menuBorder};
   width: 100%;
 `);
 
-export const cssSwitcherMessage = styled('div', `
+export const cssSwitcherMessage = styled("div", `
   display: flex;
   padding: 8px 16px;
 `);
 
-export const cssSwitcherMessageBody = styled('div', `
+export const cssSwitcherMessageBody = styled("div", `
   flex-grow: 1;
   display: flex;
   justify-content: center;
@@ -581,7 +581,7 @@ export const cssSwitcherMessageBody = styled('div', `
   padding: 8px 16px;
 `);
 
-export const cssSwitcherMessageDismissButton = styled('div', `
+export const cssSwitcherMessageDismissButton = styled("div", `
   align-self: flex-start;
   flex-shrink: 0;
   padding: 0px;
@@ -594,17 +594,17 @@ export const cssSwitcherMessageDismissButton = styled('div', `
   }
 `);
 
-export const cssParagraph = styled('div', `
+export const cssParagraph = styled("div", `
   margin-bottom: 16px;
 `);
 
-export const cssFormEditBody = styled('div', `
+export const cssFormEditBody = styled("div", `
   width: 100%;
   overflow: auto;
   padding: 20px;
 `);
 
-export const cssRemoveButton = styled('div', `
+export const cssRemoveButton = styled("div", `
   position: absolute;
   right: 11px;
   top: 11px;
@@ -634,7 +634,7 @@ export const cssRemoveButton = styled('div', `
   }
 `);
 
-export const cssShareMenu = styled('div', `
+export const cssShareMenu = styled("div", `
   color: ${theme.text};
   background-color: ${theme.popupBg};
   width: min(calc(100% - 16px), 400px);
@@ -642,12 +642,12 @@ export const cssShareMenu = styled('div', `
   padding: 8px;
 `);
 
-export const cssShareMenuHeader = styled('div', `
+export const cssShareMenuHeader = styled("div", `
   display: flex;
   justify-content: flex-end;
 `);
 
-export const cssShareMenuBody = styled('div', `
+export const cssShareMenuBody = styled("div", `
   box-sizing: content-box;
   display: flex;
   flex-direction: column;
@@ -656,7 +656,7 @@ export const cssShareMenuBody = styled('div', `
   min-height: 160px;
 `);
 
-export const cssShareMenuCloseButton = styled('div', `
+export const cssShareMenuCloseButton = styled("div", `
   flex-shrink: 0;
   border-radius: 4px;
   cursor: pointer;
@@ -668,7 +668,7 @@ export const cssShareMenuCloseButton = styled('div', `
   }
 `);
 
-export const cssShareMenuSectionHeading = styled('div', `
+export const cssShareMenuSectionHeading = styled("div", `
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -676,24 +676,24 @@ export const cssShareMenuSectionHeading = styled('div', `
   margin-bottom: 16px;
 `);
 
-export const cssShareMenuHintText = styled('div', `
+export const cssShareMenuHintText = styled("div", `
   color: ${theme.lightText};
 `);
 
-export const cssShareMenuSpinner = styled('div', `
+export const cssShareMenuSpinner = styled("div", `
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: inherit;
 `);
 
-export const cssShareMenuSectionButtons = styled('div', `
+export const cssShareMenuSectionButtons = styled("div", `
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
 `);
 
-export const cssShareMenuUrlBlock = styled('div', `
+export const cssShareMenuUrlBlock = styled("div", `
   display: flex;
   background-color: ${theme.inputReadonlyBg};
   padding: 8px;
@@ -702,7 +702,7 @@ export const cssShareMenuUrlBlock = styled('div', `
   margin-top: 16px;
 `);
 
-export const cssShareMenuUrl = styled('input', `
+export const cssShareMenuUrl = styled("input", `
   background: transparent;
   flex-grow: 1;
   overflow: hidden;
@@ -720,18 +720,18 @@ export const cssShareMenuEmbedFormButton = styled(textButton, `
   font-weight: 500;
 `);
 
-export const cssShareMenuCodeBlock = styled('div', `
+export const cssShareMenuCodeBlock = styled("div", `
   border-radius: 3px;
   background-color: ${theme.inputReadonlyBg};
   padding: 8px;
 `);
 
-export const cssShareMenuCodeBlockButtons = styled('div', `
+export const cssShareMenuCodeBlockButtons = styled("div", `
   display: flex;
   justify-content: flex-end;
 `);
 
-export const cssShareMenuCode = styled('textarea', `
+export const cssShareMenuCode = styled("textarea", `
   background-color: transparent;
   border: none;
   border-radius: 3px;
@@ -741,7 +741,7 @@ export const cssShareMenuCode = styled('textarea', `
   resize: none;
 `);
 
-export const cssFormDisabledOverlay = styled('div', `
+export const cssFormDisabledOverlay = styled("div", `
   background-color: ${theme.widgetBg};
   opacity: 0.8;
   position: absolute;
@@ -752,7 +752,7 @@ export const cssFormDisabledOverlay = styled('div', `
   z-index: 100;
 `);
 
-export const cssAttachmentInput = styled('input', `
+export const cssAttachmentInput = styled("input", `
   display: flex;
   flex-wrap: wrap;
   white-space: pre-wrap;
@@ -796,14 +796,14 @@ export function saveControls(editMode: Observable<boolean>, save: (ok: boolean) 
         ev.preventDefault();
         save(true);
         editMode.set(false);
-        if (ev.target && 'blur' in ev.target) {
+        if (ev.target && "blur" in ev.target) {
           (ev.target as any).blur();
         }
       },
       Escape: (ev) => {
         save(false);
         editMode.set(false);
-        if (ev.target && 'blur' in ev.target) {
+        if (ev.target && "blur" in ev.target) {
           (ev.target as any).blur();
         }
       },
@@ -817,8 +817,8 @@ export function saveControls(editMode: Observable<boolean>, save: (ok: boolean) 
         }
       }
       const app = (window as any).gristApp as App;
-      app.on('clipboard_focus', saveEdit);
-      owner.onDispose(() => app.off('clipboard_focus', saveEdit));
+      app.on("clipboard_focus", saveEdit);
+      owner.onDispose(() => app.off("clipboard_focus", saveEdit));
     }),
   ];
 }

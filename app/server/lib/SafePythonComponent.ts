@@ -1,9 +1,9 @@
-import { LocalPlugin } from 'app/common/plugin';
-import { BaseComponent, createRpcLogger } from 'app/common/PluginInstance';
-import { GristServer } from 'app/server/lib/GristServer';
-import { ISandbox } from 'app/server/lib/ISandbox';
-import log from 'app/server/lib/log';
-import { IMsgCustom, IMsgRpcCall } from 'grain-rpc';
+import { LocalPlugin } from "app/common/plugin";
+import { BaseComponent, createRpcLogger } from "app/common/PluginInstance";
+import { GristServer } from "app/server/lib/GristServer";
+import { ISandbox } from "app/server/lib/ISandbox";
+import log from "app/server/lib/log";
+import { IMsgCustom, IMsgRpcCall } from "grain-rpc";
 
 // TODO safePython component should be able to call other components function
 // TODO calling a function on safePython component with a name that was not register chould fail
@@ -40,18 +40,18 @@ export class SafePythonComponent extends BaseComponent {
       importMount: this._tmpDir,
       logTimes: true,
       logMeta: this._logMeta,
-      preferredPythonVersion: '3',
+      preferredPythonVersion: "3",
     });
   }
 
   protected async deactivateImplementation(): Promise<void> {
-    log.info('SafePython deactivating ...');
+    log.info("SafePython deactivating ...");
     if (!this._sandbox) {
-      log.info('  sandbox is undefined');
+      log.info("  sandbox is undefined");
     }
     if (this._sandbox) {
       await this._sandbox.shutdown();
-      log.info('SafePython done deactivating the sandbox');
+      log.info("SafePython done deactivating the sandbox");
       delete this._sandbox;
     }
   }

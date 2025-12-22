@@ -21,28 +21,28 @@ export interface IRelativeDateOption {
 const DEFAULT_OPTION_LIST: IRelativeDateSpec[] = [
   CURRENT_DATE, [{
     quantity: -3,
-    unit: 'day',
+    unit: "day",
   }], [{
     quantity: -7,
-    unit: 'day',
+    unit: "day",
   }], [{
     quantity: -30,
-    unit: 'day',
+    unit: "day",
   }], [{
     quantity: 0,
-    unit: 'year',
+    unit: "year",
   }], [{
     quantity: 3,
-    unit: 'day',
+    unit: "day",
   }], [{
     quantity: 7,
-    unit: 'day',
+    unit: "day",
   }], [{
     quantity: 30,
-    unit: 'day',
+    unit: "day",
   }], [{
     quantity: 0,
-    unit: 'year',
+    unit: "year",
     endOf: true,
   }]];
 
@@ -66,35 +66,35 @@ function relativeDateOptionsSpec(value: IRangeBoundType): IRangeBoundType[] {
   const date = moment.utc(value * 1000);
   const res: IRangeBoundType[] = [value];
 
-  let relDate = getMatchingDoubleRelativeDate(value, { unit: 'day' });
+  let relDate = getMatchingDoubleRelativeDate(value, { unit: "day" });
   if (Math.abs(relDate[0].quantity) <= 90) {
     res.push(relDate);
   }
 
-  relDate = getMatchingDoubleRelativeDate(value, { unit: 'week' });
+  relDate = getMatchingDoubleRelativeDate(value, { unit: "week" });
   if (Math.abs(relDate[0].quantity) <= 4) {
     res.push(relDate);
   }
 
   // any day of the month (with longer limit for 1st day of the month)
-  relDate = getMatchingDoubleRelativeDate(value, { unit: 'month' });
+  relDate = getMatchingDoubleRelativeDate(value, { unit: "month" });
   if (Math.abs(relDate[0].quantity) <= (date.date() === 1 ? 12  : 3)) {
     res.push(relDate);
   }
 
   // If date is 1st of Jan show 1st day of year options
   if (date.date() === 1 && date.month() === 0) {
-    res.push(getMatchingDoubleRelativeDate(value, { unit: 'year' }));
+    res.push(getMatchingDoubleRelativeDate(value, { unit: "year" }));
   }
 
   // 31st of Dec
   if (date.date() === 31 && date.month() === 11) {
-    res.push(getMatchingDoubleRelativeDate(value, { unit: 'year', endOf: true }));
+    res.push(getMatchingDoubleRelativeDate(value, { unit: "year", endOf: true }));
   }
 
   // Last day of any month
-  if (date.clone().endOf('month').date() === date.date()) {
-    relDate = getMatchingDoubleRelativeDate(value, { unit: 'month', endOf: true });
+  if (date.clone().endOf("month").date() === date.date()) {
+    relDate = getMatchingDoubleRelativeDate(value, { unit: "month", endOf: true });
     if (Math.abs(relDate[0].quantity) < 12) {
       res.push(relDate);
     }
@@ -113,19 +113,19 @@ function now(): moment.Moment {
 // passed in option.
 export function getMatchingDoubleRelativeDate(
   dateValue: number,
-  option: { unit: 'day' | 'week' | 'month' | 'year', endOf?: boolean },
+  option: { unit: "day" | "week" | "month" | "year", endOf?: boolean },
 ): IPeriod[] {
   const { unit } = option;
   const date = moment.utc(dateValue * 1000);
   const dateNow = now();
   const quantity = diffUnit(date, dateNow.clone(), unit);
   const m = dateNow.clone().add(quantity, unit);
-  if (option.endOf) { m.endOf(unit); m.startOf('day'); }
+  if (option.endOf) { m.endOf(unit); m.startOf("day"); }
   else { m.startOf(unit); }
-  const dayQuantity = diffUnit(date, m, 'day');
+  const dayQuantity = diffUnit(date, m, "day");
   const res = [{ quantity, ...option }];
   // Only add a 2nd period when it is not moot.
-  if (dayQuantity) { res.push({ quantity: dayQuantity, unit: 'day' }); }
+  if (dayQuantity) { res.push({ quantity: dayQuantity, unit: "day" }); }
   return res;
 }
 

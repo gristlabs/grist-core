@@ -1,7 +1,7 @@
-import log from 'app/server/lib/log';
-import { assert, driver } from 'mocha-webdriver';
-import * as path from 'path';
-import * as fs from 'fs/promises';
+import log from "app/server/lib/log";
+import { assert, driver } from "mocha-webdriver";
+import * as path from "path";
+import * as fs from "fs/promises";
 
 export async function fetchScreenshotAndLogs(test: Mocha.Runnable | undefined) {
   const dir = process.env.MOCHA_WEBDRIVER_LOGDIR!;
@@ -10,7 +10,7 @@ export async function fetchScreenshotAndLogs(test: Mocha.Runnable | undefined) {
   const logPath = path.resolve(dir, `${testName}-driverLogging.log`);
   await fs.mkdir(dir, { recursive: true });
   await driver.saveScreenshot(`${testName}-driverLoggingScreenshot-{N}.png`);
-  const messages = await driver.fetchLogs('driver');
+  const messages = await driver.fetchLogs("driver");
   await fs.appendFile(logPath, messages.join("\n") + "\n");
 }
 

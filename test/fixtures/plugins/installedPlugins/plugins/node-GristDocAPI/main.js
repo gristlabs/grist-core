@@ -1,5 +1,5 @@
-const grist = require('grist-plugin-api');
-const TestSubscribe = require('./TestSubscribe');
+const grist = require("grist-plugin-api");
+const TestSubscribe = require("./TestSubscribe");
 
 grist.rpc.registerImpl("testApiNode", { // todo rename to testGristDocApiNode
   invoke: (name, args) => {

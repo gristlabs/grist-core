@@ -1,4 +1,4 @@
-import { Disposable, dom, Emitter } from 'grainjs';
+import { Disposable, dom, Emitter } from "grainjs";
 
 export interface ISize {
   width: number;
@@ -62,16 +62,16 @@ export class EditorPlacement extends Disposable {
     this._maxRect = document.body.getBoundingClientRect();
     this._cellRect = rectWithoutBorders(this._cellElem);
 
-    this.autoDispose(dom.onElem(window, 'resize', () => {
+    this.autoDispose(dom.onElem(window, "resize", () => {
       this._maxRect = document.body.getBoundingClientRect();
       this._cellRect = rectWithoutBorders(this._cellElem);
       this.onReposition.emit();
     }));
 
-    const editorRoot = this._editorRoot = dom('div.cell_editor', editorDom);
+    const editorRoot = this._editorRoot = dom("div.cell_editor", editorDom);
     // To hide from the user the incorrectly-sized element, we set visibility to hidden, and
     // reset it in _calcEditorSize() as soon as we have the sizes.
-    editorRoot.style.visibility = 'hidden';
+    editorRoot.style.visibility = "hidden";
 
     document.body.appendChild(editorRoot);
     this.onDispose(() => {
@@ -105,15 +105,15 @@ export class EditorPlacement extends Disposable {
     // to hidden until we can get the sizes. As soon as sizes are available, restore visibility.
     if (!options.calcOnly) {
       Object.assign(this._editorRoot.style, {
-        "visibility": 'visible',
-        "left": left + 'px',
-        "top": top + 'px',
+        "visibility": "visible",
+        "left": left + "px",
+        "top": top + "px",
         // Set the width (but not the height) of the outer container explicitly to accommodate the
         // particular setup where a formula may include error details below -- these should
         // stretch to the calculated width (so need an explicit value), but may be dynamic in
         // height. (This feels hacky, but solves the problem.)
-        "width": width + 'px',
-        'max-height': maxHeight + 'px',
+        "width": width + "px",
+        "max-height": maxHeight + "px",
       });
     }
 
@@ -146,10 +146,10 @@ export class EditorPlacement extends Disposable {
 function rectWithoutBorders(elem: Element): IRect {
   const rect = elem.getBoundingClientRect();
   const style = getComputedStyle(elem, null);
-  const bTop = parseFloat(style.getPropertyValue('border-top-width'));
-  const bRight = parseFloat(style.getPropertyValue('border-right-width'));
-  const bBottom = parseFloat(style.getPropertyValue('border-bottom-width'));
-  const bLeft = parseFloat(style.getPropertyValue('border-left-width'));
+  const bTop = parseFloat(style.getPropertyValue("border-top-width"));
+  const bRight = parseFloat(style.getPropertyValue("border-right-width"));
+  const bBottom = parseFloat(style.getPropertyValue("border-bottom-width"));
+  const bLeft = parseFloat(style.getPropertyValue("border-left-width"));
   return {
     width: rect.width - bLeft - bRight,
     height: rect.height - bTop - bBottom,

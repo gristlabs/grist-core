@@ -1,8 +1,8 @@
-import { getCurrency, locales } from 'app/common/Locales';
-import { NumMode, parseNumMode } from 'app/common/NumberFormat';
-import NumberParse from 'app/common/NumberParse';
-import { assert } from 'chai';
-import * as _ from 'lodash';
+import { getCurrency, locales } from "app/common/Locales";
+import { NumMode, parseNumMode } from "app/common/NumberFormat";
+import NumberParse from "app/common/NumberParse";
+import { assert } from "chai";
+import * as _ from "lodash";
 
 describe("NumberParse", function() {
   let parser = new NumberParse("en", "USD");
@@ -134,11 +134,11 @@ describe("NumberParse", function() {
 
     // This locale uses 'opposite' separators to the above, i.e. ',' and '.' have swapped roles
     formatter = Intl.NumberFormat("de-AT", { useGrouping: true, currency: "EUR", style: "currency" });
-    assert.equal(formatter.format(123456789.123), '€ 123.456.789,12');
+    assert.equal(formatter.format(123456789.123), "€ 123.456.789,12");
 
     // But only for currency amounts! Non-currency amounts use NBSP (non-breaking space) for the digit separator
     formatter = Intl.NumberFormat("de-AT", { useGrouping: true });
-    assert.equal(formatter.format(123456789.123), '123 456 789,123');
+    assert.equal(formatter.format(123456789.123), "123 456 789,123");
 
     parser = new NumberParse("de-AT", "EUR");
 
@@ -154,7 +154,7 @@ describe("NumberParse", function() {
     check("  123 456 789,123", 123456789.123);  // NBSP
 
     formatter = Intl.NumberFormat("af-ZA", { useGrouping: true });
-    assert.equal(formatter.format(123456789.123), '123 456 789,123');
+    assert.equal(formatter.format(123456789.123), "123 456 789,123");
 
     parser = new NumberParse("af-ZA", "ZAR");
 
@@ -215,11 +215,11 @@ describe("NumberParse", function() {
     assert.deepEqual(parser.guessOptions(["$1", "$2", "3%"]), { numMode: "currency", decimals: 0 });
     assert.deepEqual(parser.guessOptions(["$1", "2%", "3%"]), { numMode: "percent" });
 
-    assert.deepEqual(parser.guessOptions(["(2)"]), { numSign: 'parens' });
-    assert.deepEqual(parser.guessOptions(["(2)", "3"]), { numSign: 'parens' });
+    assert.deepEqual(parser.guessOptions(["(2)"]), { numSign: "parens" });
+    assert.deepEqual(parser.guessOptions(["(2)", "3"]), { numSign: "parens" });
     // If we see a negative number not surrounded by parens, assume that other parens mean something else
     assert.deepEqual(parser.guessOptions(["(2)", "-3"]), {});
-    assert.deepEqual(parser.guessOptions(["($2)"]), { numSign: 'parens', numMode: "currency", decimals: 0 });
+    assert.deepEqual(parser.guessOptions(["($2)"]), { numSign: "parens", numMode: "currency", decimals: 0 });
 
     // Guess 'decimal' (i.e. with thousands separators) even if most numbers don't have separators
     assert.deepEqual(parser.guessOptions(["1", "10", "100", "1,000"]), { numMode: "decimal" });
@@ -267,7 +267,7 @@ describe("NumberParse", function() {
   });
 
   // All values supported by parseNumMode
-  const numModes: (NumMode | undefined)[] = ['currency', 'decimal', 'percent', 'scientific', undefined];
+  const numModes: (NumMode | undefined)[] = ["currency", "decimal", "percent", "scientific", undefined];
 
   // Generate a test suite for every supported locale
   for (const locale of locales) {

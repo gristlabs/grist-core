@@ -1,10 +1,10 @@
-import { delay } from 'app/common/delay';
-import log from 'app/server/lib/log';
-import { Throttle } from 'app/server/lib/Throttle';
+import { delay } from "app/common/delay";
+import log from "app/server/lib/log";
+import { Throttle } from "app/server/lib/Throttle";
 
-import * as childProcess from 'child_process';
-import pidusage from 'pidusage';
-import * as util from 'util';
+import * as childProcess from "child_process";
+import pidusage from "pidusage";
+import * as util from "util";
 
 const execFile = util.promisify(childProcess.execFile);
 
@@ -55,7 +55,7 @@ export class DirectProcessControl implements ISandboxControl {
   }
 
   public async kill() {
-    this._process.kill('SIGKILL');
+    this._process.kill("SIGKILL");
   }
 
   public async getUsage() {
@@ -78,7 +78,7 @@ export class NoProcessControl implements ISandboxControl {
   }
 
   public async kill() {
-    this._process.kill('SIGKILL');
+    this._process.kill("SIGKILL");
   }
 
   public async getUsage() {
@@ -140,16 +140,16 @@ export class SubprocessControl implements ISandboxControl {
 
   public async kill() {
     if (this._foundDocker) {
-      process.kill(this._options.pid, 'SIGKILL');
+      process.kill(this._options.pid, "SIGKILL");
       return;
     }
     for (const proc of await this._getAllProcesses()) {
       try {
-        process.kill(proc.pid, 'SIGKILL');
+        process.kill(proc.pid, "SIGKILL");
       }
       catch (e) {
         // Don't worry if process is already killed.
-        if (e.code !== 'ESRCH') { throw e; }
+        if (e.code !== "ESRCH") { throw e; }
       }
     }
   }
@@ -190,9 +190,9 @@ export class SubprocessControl implements ISandboxControl {
         const recognizer = this._options.recognizers[key];
         if (!recognizer) { continue; }
         for (const proc of processes) {
-          if (proc.label.includes('docker')) {
+          if (proc.label.includes("docker")) {
             this._foundDocker = true;
-            throw new Error('docker barrier found');
+            throw new Error("docker barrier found");
           }
           if (recognizer(proc)) {
             recognizedProcesses[key] = proc;
@@ -207,7 +207,7 @@ export class SubprocessControl implements ISandboxControl {
       }
       await delay(1000);
     }
-    throw new Error('not found');
+    throw new Error("not found");
   }
 
   /**
@@ -235,7 +235,7 @@ export class SubprocessControl implements ISandboxControl {
    * Return the root process and all its (nested) children.
    */
   private _getAllProcesses(): Promise<ProcessInfo[]> {
-    const rootProcess = { pid: this._options.pid, label: 'root', parentLabel: '' };
+    const rootProcess = { pid: this._options.pid, label: "root", parentLabel: "" };
     return this._addChildren([rootProcess]);
   }
 
@@ -262,18 +262,18 @@ export class SubprocessControl implements ISandboxControl {
     // but process naming is slightly different. But this class is currently only useful
     // for gvisor's runsc, which runs on Linux only.
     const cmd =
-      execFile('pgrep', ['--list-full', '--parent', String(pid)])
-        .catch(() => execFile('pgrep', ['-l', '-P', String(pid)]))   // mac version of pgrep
-        .catch(() => ({ stdout: '' }));
+      execFile("pgrep", ["--list-full", "--parent", String(pid)])
+        .catch(() => execFile("pgrep", ["-l", "-P", String(pid)]))   // mac version of pgrep
+        .catch(() => ({ stdout: "" }));
     const result = (await cmd).stdout;
     const parts = result
-      .split('\n')
+      .split("\n")
       .map(line => line.trim())
-      .map(line => line.split(' ', 2))
+      .map(line => line.split(" ", 2))
       .map((part) => {
         return {
           pid: parseInt(part[0], 10) || 0,
-          label: part[1] || '',
+          label: part[1] || "",
           parentLabel,
         };
       });

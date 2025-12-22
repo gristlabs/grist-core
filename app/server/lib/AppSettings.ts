@@ -48,7 +48,7 @@ export class AppSettings {
   public getAsInt(): number | undefined {
     if (this._value === undefined) { return undefined; }
     const datum = this._value?.valueOf();
-    if (typeof datum === 'number') {
+    if (typeof datum === "number") {
       return datum;
     }
     if (isNumber(String(datum))) {
@@ -64,7 +64,7 @@ export class AppSettings {
   public getAsFloat(): number | undefined {
     if (this._value === undefined) { return undefined; }
     const datum = this._value?.valueOf();
-    if (typeof datum === 'number') {
+    if (typeof datum === "number") {
       return datum;
     }
     if (isNumber(String(datum))) {
@@ -87,7 +87,7 @@ export class AppSettings {
 
     const envVars = getEnvVarsFromQuery(query);
     if (!envVars.length) {
-      throw new Error('could not find an environment variable to read');
+      throw new Error("could not find an environment variable to read");
     }
 
     const sources = [{name: 'env', vars: process.env}];
@@ -290,7 +290,7 @@ export class AppSettings {
     if (this._children) {
       for (const child of Object.values(this._children)) {
         for (const item of child.describeAll()) {
-          inv.push({ ...item, name: this.name + '.' + item.name });
+          inv.push({ ...item, name: this.name + "." + item.name });
         }
       }
     }
@@ -303,7 +303,7 @@ export class AppSettings {
 /**
  * A global object for Grist application settings.
  */
-export const appSettings = new AppSettings('grist');
+export const appSettings = new AppSettings("grist");
 
 /**
  * Hints for how to define a setting, including possible

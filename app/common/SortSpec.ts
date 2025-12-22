@@ -363,7 +363,7 @@ const _virtualSymbols = new Map<string, string>();
  *
  * The resulting id looks like _vid\d+.
  */
-export function VirtualId(symbol = '') {
+export function VirtualId(symbol = "") {
   if (symbol) {
     if (!_virtualSymbols.has(symbol)) {
       const generated = `${VirtualId.PREFIX}${_virtualIdCounter++}`;
@@ -378,4 +378,4 @@ export function VirtualId(symbol = '') {
     return `${VirtualId.PREFIX}${_virtualIdCounter++}`;
   }
 }
-VirtualId.PREFIX = '_vid';
+VirtualId.PREFIX = "_vid";

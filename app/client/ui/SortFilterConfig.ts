@@ -1,15 +1,15 @@
-import { GristDoc } from 'app/client/components/GristDoc';
-import { makeT } from 'app/client/lib/localization';
-import { ViewSectionRec } from 'app/client/models/DocModel';
-import { FilterConfig } from 'app/client/ui/FilterConfig';
-import { cssLabel, cssSaveButtonsRow } from 'app/client/ui/RightPanelStyles';
-import { SortConfig } from 'app/client/ui/SortConfig';
-import { basicButton, primaryButton } from 'app/client/ui2018/buttons';
-import { Computed, Disposable, dom, makeTestId, styled } from 'grainjs';
+import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
+import { ViewSectionRec } from "app/client/models/DocModel";
+import { FilterConfig } from "app/client/ui/FilterConfig";
+import { cssLabel, cssSaveButtonsRow } from "app/client/ui/RightPanelStyles";
+import { SortConfig } from "app/client/ui/SortConfig";
+import { basicButton, primaryButton } from "app/client/ui2018/buttons";
+import { Computed, Disposable, dom, makeTestId, styled } from "grainjs";
 
-const testId = makeTestId('test-sort-filter-config-');
+const testId = makeTestId("test-sort-filter-config-");
 
-const t = makeT('SortFilterConfig');
+const t = makeT("SortFilterConfig");
 
 export class SortFilterConfig extends Disposable {
   private _docModel = this._gristDoc.docModel;
@@ -25,37 +25,37 @@ export class SortFilterConfig extends Disposable {
 
   public buildDom() {
     return [
-      dom('div', { "role": 'group', 'aria-labelledby': 'sortfilterconfig-sort-label' },
-        cssLabel(t('Sort'), { id: 'sortfilterconfig-sort-label' }),
+      dom("div", { "role": "group", "aria-labelledby": "sortfilterconfig-sort-label" },
+        cssLabel(t("Sort"), { id: "sortfilterconfig-sort-label" }),
         dom.create(SortConfig, this._section, this._gristDoc, {
-          menuOptions: { attach: 'body', allowNothingSelected: true },
+          menuOptions: { attach: "body", allowNothingSelected: true },
         }),
       ),
-      dom('div', { "role": 'group', 'aria-labelledby': 'sortfilterconfig-filter-label' },
-        cssLabel(t('Filter'), { id: 'sortfilterconfig-filter-label' }),
+      dom("div", { "role": "group", "aria-labelledby": "sortfilterconfig-filter-label" },
+        cssLabel(t("Filter"), { id: "sortfilterconfig-filter-label" }),
         dom.create(FilterConfig, this._section, {
-          menuOptions: { attach: 'body' },
+          menuOptions: { attach: "body" },
         }),
       ),
       dom.maybe(this._hasChanges, () => [
         cssSaveButtonsRow(
-          cssSaveButton(t('Save'),
-            dom.on('click', () => this._save()),
-            dom.boolAttr('disabled', this._isReadonly),
-            testId('save'),
+          cssSaveButton(t("Save"),
+            dom.on("click", () => this._save()),
+            dom.boolAttr("disabled", this._isReadonly),
+            testId("save"),
           ),
-          basicButton(t('Revert'),
-            dom.on('click', () => this._revert()),
-            testId('revert'),
+          basicButton(t("Revert"),
+            dom.on("click", () => this._revert()),
+            testId("revert"),
           ),
-          testId('save-btns'),
+          testId("save-btns"),
         ),
       ]),
     ];
   }
 
   private async _save() {
-    await this._docModel.docData.bundleActions(t('Update Sort & Filter settings'), () => Promise.all([
+    await this._docModel.docData.bundleActions(t("Update Sort & Filter settings"), () => Promise.all([
       this._section.activeSortJson.save(),
       this._section.saveFilters(),
     ]));

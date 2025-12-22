@@ -1,7 +1,7 @@
-import { ApiError } from 'app/common/ApiError';
+import { ApiError } from "app/common/ApiError";
 import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
 import { UserOptions } from "app/common/UserAPI";
-import * as roles from 'app/common/roles';
+import * as roles from "app/common/roles";
 import { Document } from "app/gen-server/entity/Document";
 import { Group } from "app/gen-server/entity/Group";
 import { AccessOptionWithRole, Organization } from "app/gen-server/entity/Organization";
@@ -10,7 +10,7 @@ import { Workspace } from "app/gen-server/entity/Workspace";
 
 import { EntityManager } from "typeorm";
 import { GroupTypes } from "app/gen-server/lib/homedb/GroupsManager";
-import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
+import { ServiceAccount } from "app/gen-server/entity/ServiceAccount";
 
 export interface QueryResult<T> {
   status: number;
@@ -88,7 +88,7 @@ interface AccessChanges {
     })[];
 }
 
-export type ServiceAccountProperties = Partial<Pick<ServiceAccount, 'label' | 'description' | 'expiresAt'>>;
+export type ServiceAccountProperties = Partial<Pick<ServiceAccount, "label" | "description" | "expiresAt">>;
 
 // Identifies a request to access a document. This combination of values is also used for caching
 // DocAuthResult for DOC_AUTH_CACHE_TTL.  Other request scope information is passed along.

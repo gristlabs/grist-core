@@ -1,14 +1,14 @@
-import { MapWithTTL } from 'app/common/AsyncCreate';
-import { isAffirmative } from 'app/common/gutil';
-import * as version from 'app/common/version';
-import { DocStatus, DocWorkerInfo, IDocWorkerMap } from 'app/server/lib/DocWorkerMap';
-import log from 'app/server/lib/log';
-import { checkPermitKey, formatPermitKey, IPermitStore, Permit } from 'app/server/lib/Permit';
-import { promisifyAll } from 'bluebird';
-import mapValues from 'lodash/mapValues';
-import { createClient, Multi, RedisClient } from 'redis';
-import Redlock from 'redlock';
-import { v4 as uuidv4 } from 'uuid';
+import { MapWithTTL } from "app/common/AsyncCreate";
+import { isAffirmative } from "app/common/gutil";
+import * as version from "app/common/version";
+import { DocStatus, DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
+import log from "app/server/lib/log";
+import { checkPermitKey, formatPermitKey, IPermitStore, Permit } from "app/server/lib/Permit";
+import { promisifyAll } from "bluebird";
+import mapValues from "lodash/mapValues";
+import { createClient, Multi, RedisClient } from "redis";
+import Redlock from "redlock";
+import { v4 as uuidv4 } from "uuid";
 
 promisifyAll(RedisClient.prototype);
 promisifyAll(Multi.prototype);
@@ -26,7 +26,7 @@ const CHECKSUM_TTL_MSEC = 24 * 60 * 60 * 1000;  // 24 hours
 const PERMIT_TTL_MSEC = 1 * 60 * 1000;  // 1 minute
 
 // Default doc worker group.
-const DEFAULT_GROUP = 'default';
+const DEFAULT_GROUP = "default";
 
 class DummyDocWorkerMap implements IDocWorkerMap {
   private _worker?: DocWorkerInfo;
@@ -35,19 +35,19 @@ class DummyDocWorkerMap implements IDocWorkerMap {
   private _permitStores = new Map<string, IPermitStore>();
 
   public async getDocWorker(docId: string) {
-    if (!this._worker) { throw new Error('no workers'); }
-    return { docMD5: 'unknown', docWorker: this._worker, isActive: true };
+    if (!this._worker) { throw new Error("no workers"); }
+    return { docMD5: "unknown", docWorker: this._worker, isActive: true };
   }
 
   public async assignDocWorker(docId: string) {
-    if (!this._worker || !this._available) { throw new Error('no workers'); }
-    return { docMD5: 'unknown', docWorker: this._worker, isActive: true };
+    if (!this._worker || !this._available) { throw new Error("no workers"); }
+    return { docMD5: "unknown", docWorker: this._worker, isActive: true };
   }
 
   public async getDocWorkerOrAssign(docId: string, workerId: string): Promise<DocStatus> {
-    if (!this._worker || !this._available) { throw new Error('no workers'); }
-    if (this._worker.id !== workerId) { throw new Error('worker not known'); }
-    return { docMD5: 'unknown', docWorker: this._worker, isActive: true };
+    if (!this._worker || !this._available) { throw new Error("no workers"); }
+    if (this._worker.id !== workerId) { throw new Error("worker not known"); }
+    return { docMD5: "unknown", docWorker: this._worker, isActive: true };
   }
 
   public async updateDocStatus(docId: string, checksum: string) {
@@ -108,7 +108,7 @@ class DummyDocWorkerMap implements IDocWorkerMap {
         _permits.clear();
       },
       getKeyPrefix() {
-        return formatPermitKey('', prefix);
+        return formatPermitKey("", prefix);
       },
     };
     this._permitStores.set(prefix, store);
@@ -204,19 +204,19 @@ export class DocWorkerMap implements IDocWorkerMap {
     this._clients = _clients || [createClient(process.env.REDIS_URL)];
     this._redlock = new Redlock(this._clients);
     this._client = this._clients[0]!;
-    this._client.on('error', err => log.warn(`DocWorkerMap: redisClient error`, String(err)));
-    this._client.on('end', () => log.warn(`DocWorkerMap: redisClient connection closed`));
-    this._client.on('reconnecting', () => log.warn(`DocWorkerMap: redisClient reconnecting`));
+    this._client.on("error", err => log.warn(`DocWorkerMap: redisClient error`, String(err)));
+    this._client.on("end", () => log.warn(`DocWorkerMap: redisClient connection closed`));
+    this._client.on("reconnecting", () => log.warn(`DocWorkerMap: redisClient reconnecting`));
   }
 
   public async addWorker(info: DocWorkerInfo): Promise<void> {
     log.info(`DocWorkerMap.addWorker ${info.id}`);
-    const lock = await this._redlock.lock('workers-lock', LOCK_TIMEOUT);
+    const lock = await this._redlock.lock("workers-lock", LOCK_TIMEOUT);
     try {
       // Make a worker-{workerId} key with contact info.
       await this._client.hmsetAsync(`worker-${info.id}`, info);
       // Add this worker to set of workers (but don't make it available for work yet).
-      await this._client.saddAsync('workers', info.id);
+      await this._client.saddAsync("workers", info.id);
 
       if (info.group) {
         // Accept work only for a specific group.
@@ -230,13 +230,13 @@ export class DocWorkerMap implements IDocWorkerMap {
         // but there is no worker available for that group, it may open on any worker.
         // And if a worker is assigned to a group, it may still end up assigned work
         // not associated with that group if it is the only worker available.
-        const groups = await this._client.hgetallAsync('groups');
+        const groups = await this._client.hgetallAsync("groups");
         if (groups) {
           const elections = await this._client.hgetallAsync(`elections-${this._deploymentKey}`) || {};
           for (const group of Object.keys(groups).sort()) {
             const count = parseInt(groups[group], 10) || 0;
             if (count < 1) { continue; }
-            const elected: string[] = JSON.parse(elections[group] || '[]');
+            const elected: string[] = JSON.parse(elections[group] || "[]");
             if (elected.length >= count) { continue; }
             elected.push(info.id);
             await this._client.setAsync(`worker-${info.id}-group`, group);
@@ -253,10 +253,10 @@ export class DocWorkerMap implements IDocWorkerMap {
 
   public async removeWorker(workerId: string): Promise<void> {
     log.info(`DocWorkerMap.removeWorker ${workerId}`);
-    const lock = await this._redlock.lock('workers-lock', LOCK_TIMEOUT);
+    const lock = await this._redlock.lock("workers-lock", LOCK_TIMEOUT);
     try {
       // Drop out of available set first.
-      await this._client.sremAsync('workers-available', workerId);
+      await this._client.sremAsync("workers-available", workerId);
       const group = await this._client.getAsync(`worker-${workerId}-group`) || DEFAULT_GROUP;
       // TODO: remove `workers-available-${group}`.
       await this._client.sremAsync(`workers-available-${group}`, workerId);
@@ -301,7 +301,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       await this._client.delAsync(`worker-${workerId}`);
 
       // Forget about this worker completely.
-      await this._client.sremAsync('workers', workerId);
+      await this._client.sremAsync("workers", workerId);
     }
     finally {
       await lock.unlock();
@@ -313,7 +313,7 @@ export class DocWorkerMap implements IDocWorkerMap {
     const group = await this._client.getAsync(`worker-${workerId}-group`) || DEFAULT_GROUP;
     if (available) {
       const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo | null;
-      if (!docWorker) { throw new Error('no doc worker contact info available'); }
+      if (!docWorker) { throw new Error("no doc worker contact info available"); }
       // TODO: remove `workers-available-${group}`.
       await this._client.saddAsync(`workers-available-${group}`, workerId);
       await this._client.zaddAsync(
@@ -325,11 +325,11 @@ export class DocWorkerMap implements IDocWorkerMap {
       // If we're not assigned exclusively to a group, add this worker also to the general
       // pool of workers.
       if (!docWorker.group) {
-        await this._client.saddAsync('workers-available', workerId);
+        await this._client.saddAsync("workers-available", workerId);
       }
     }
     else {
-      await this._client.sremAsync('workers-available', workerId);
+      await this._client.sremAsync("workers-available", workerId);
       // TODO: remove `workers-available-${group}`.
       await this._client.sremAsync(`workers-available-${group}`, workerId);
       await this._client.zremAsync(`workers-available-by-load-${group}`, workerId);
@@ -343,13 +343,13 @@ export class DocWorkerMap implements IDocWorkerMap {
    * Note: This method should only be called by the worker.
    */
   public async setWorkerLoad(workerInfo: DocWorkerInfo, load: number): Promise<void> {
-    log.rawInfo('DocWorkerMap.setWorkerLoad', {
+    log.rawInfo("DocWorkerMap.setWorkerLoad", {
       workerId: workerInfo.id,
       load,
     });
     const group = workerInfo.group || DEFAULT_GROUP;
     // The "XX" argument means only update the key if it exists.
-    await this._client.zaddAsync(`workers-available-by-load-${group}`, 'XX', load, workerInfo.id);
+    await this._client.zaddAsync(`workers-available-by-load-${group}`, "XX", load, workerInfo.id);
   }
 
   public async isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean> {
@@ -402,13 +402,13 @@ export class DocWorkerMap implements IDocWorkerMap {
    */
   public async assignDocWorker(docId: string, workerId?: string): Promise<DocStatus> {
     log.info(`DocWorkerMap.assignDocWorker ${docId} ${String(workerId)}`);
-    if (docId === 'import') {
+    if (docId === "import") {
       const lock = await this._redlock.lock(`workers-lock`, LOCK_TIMEOUT);
       try {
         const _workerId = await this._getAvailableWorkerId(DEFAULT_GROUP);
-        if (!_workerId) { throw new Error('no doc worker available'); }
+        if (!_workerId) { throw new Error("no doc worker available"); }
         const docWorker = await this._client.hgetallAsync(`worker-${_workerId}`) as DocWorkerInfo | null;
-        if (!docWorker) { throw new Error('no doc worker contact info available'); }
+        if (!docWorker) { throw new Error("no doc worker contact info available"); }
         log.info(`DocWorkerMap.assignDocWorker ${docId} assigned to ${docWorker.id}`);
         return {
           docMD5: null,
@@ -456,19 +456,19 @@ export class DocWorkerMap implements IDocWorkerMap {
           // or not starting enough workers).  It has the downside of potentially disguising
           // problems, so we log a warning.
           log.warn(`DocWorkerMap.assignDocWorker ${docId} found no workers for group ${group}`);
-          workerId = await this._client.srandmemberAsync('workers-available') || undefined;
+          workerId = await this._client.srandmemberAsync("workers-available") || undefined;
         }
-        if (!workerId) { throw new Error('no doc workers available'); }
+        if (!workerId) { throw new Error("no doc workers available"); }
       }
       else {
-        if (!await this._client.sismemberAsync('workers-available', workerId)) {
+        if (!await this._client.sismemberAsync("workers-available", workerId)) {
           throw new Error(`worker ${workerId} not known or not available`);
         }
       }
 
       // Look up how to contact the worker.
       const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo | null;
-      if (!docWorker) { throw new Error('no doc worker contact info available'); }
+      if (!docWorker) { throw new Error("no doc worker contact info available"); }
 
       // We can now construct a DocStatus, preserving any existing checksum.
       const checksum = docAndChecksum.checksum;
@@ -481,9 +481,9 @@ export class DocWorkerMap implements IDocWorkerMap {
           docWorker: JSON.stringify(docWorker),  // redis can't store nested objects, strings only
           isActive: JSON.stringify(true),         // redis can't store booleans, strings only
         })
-        .setex(`doc-${docId}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum || 'null')
+        .setex(`doc-${docId}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum || "null")
         .execAsync();
-      if (!result) { throw new Error('failed to store new assignment'); }
+      if (!result) { throw new Error("failed to store new assignment"); }
       log.info(`DocWorkerMap.assignDocWorker ${docId} assigned to ${newDocStatus.docWorker.id}`);
       return newDocStatus;
     }
@@ -504,7 +504,7 @@ export class DocWorkerMap implements IDocWorkerMap {
   }
 
   public async updateDocStatus(docId: string, checksum: string): Promise<void> {
-    return this.updateChecksum('doc', docId, checksum);
+    return this.updateChecksum("doc", docId, checksum);
   }
 
   public async updateChecksum(family: string, key: string, checksum: string) {
@@ -513,7 +513,7 @@ export class DocWorkerMap implements IDocWorkerMap {
 
   public async getChecksum(family: string, key: string) {
     const checksum = await this._client.getAsync(`${family}-${key}-checksum`);
-    return checksum === 'null' ? null : checksum;
+    return checksum === "null" ? null : checksum;
   }
 
   public getPermitStore(prefix: string, defaultTtlMs?: number): IPermitStore {
@@ -528,19 +528,19 @@ export class DocWorkerMap implements IDocWorkerMap {
         return key;
       },
       async getPermit(key: string): Promise<Permit | null> {
-        if (!checkPermitKey(key, prefix)) { throw new Error('permit could not be read'); }
+        if (!checkPermitKey(key, prefix)) { throw new Error("permit could not be read"); }
         const result = await client.getAsync(key);
         return result && JSON.parse(result);
       },
       async removePermit(key: string): Promise<void> {
-        if (!checkPermitKey(key, prefix)) { throw new Error('permit could not be read'); }
+        if (!checkPermitKey(key, prefix)) { throw new Error("permit could not be read"); }
         await client.delAsync(key);
       },
       async close() {
         // nothing to do
       },
       getKeyPrefix() {
-        return formatPermitKey('', prefix);
+        return formatPermitKey("", prefix);
       },
     };
   }
@@ -578,7 +578,7 @@ export class DocWorkerMap implements IDocWorkerMap {
         await this._client.delAsync(redisKey);
       }
       else if (current !== null) {
-        throw new Error('could not remove election');
+        throw new Error("could not remove election");
       }
     }
     finally {
@@ -623,7 +623,7 @@ export class DocWorkerMap implements IDocWorkerMap {
     const doc = props?.[0] ? mapValues(props[0], val => JSON.parse(val)) as DocStatus : null;
     // Redis cannot store a null value, so we encode it as 'null', which does
     // not match any possible MD5.
-    const checksum = (props?.[1] === 'null' ? null : props?.[1]) || null;
+    const checksum = (props?.[1] === "null" ? null : props?.[1]) || null;
     if (doc) { doc.docMD5 = checksum; }  // the checksum goes in the DocStatus too.
     return { doc, checksum };
   }

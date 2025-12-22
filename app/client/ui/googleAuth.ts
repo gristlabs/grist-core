@@ -1,5 +1,5 @@
-import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
-import type { Disposable } from 'grainjs';
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import type { Disposable } from "grainjs";
 import { GristLoadConfig } from "app/common/gristUrls";
 
 /**
@@ -19,7 +19,7 @@ import { GristLoadConfig } from "app/common/gristUrls";
  *                            configured this way by an environmental variable.
  */
 
-const G = getBrowserGlobals('window');
+const G = getBrowserGlobals("window");
 
 export const ACCESS_DENIED = "access_denied";
 export const AUTH_INTERRUPTED = "auth_interrupted";
@@ -107,9 +107,9 @@ function attachListener(owner: Disposable, popup: Window, listener: (e: MessageE
     listener = () => {};
   });
   owner.onDispose(closeHandler);
-  G.window.addEventListener('message', wrapped);
+  G.window.addEventListener("message", wrapped);
   owner.onDispose(() => {
-    G.window.removeEventListener('message', wrapped);
+    G.window.removeEventListener("message", wrapped);
   });
 }
 
@@ -137,7 +137,7 @@ function openPopup(url: string): Window {
 
   // If window will be too large (for example on mobile) - open as a new tab
   if (screen.width <= width || screen.height <= height) {
-    windowFeatures = '';
+    windowFeatures = "";
   }
 
   const authWindow = G.window.open(url, "GoogleAuthPopup", windowFeatures);

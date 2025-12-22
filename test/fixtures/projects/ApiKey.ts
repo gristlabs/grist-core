@@ -1,13 +1,13 @@
-import * as bluebird from 'bluebird';
+import * as bluebird from "bluebird";
 import { dom, observable, styled } from "grainjs";
 
-import { ApiKey } from 'app/client/ui/ApiKey';
-import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import { ApiKey } from "app/client/ui/ApiKey";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 const apiKeys = [
-  '9204c0f1ea5928b31e4e21e55cf975e874281d8e',
-  'e03ab513535137a7ec60978b40c9a896db6d8706'];
+  "9204c0f1ea5928b31e4e21e55cf975e874281d8e",
+  "e03ab513535137a7ec60978b40c9a896db6d8706"];
 let i = 0;
 
 // a delay below 200 was breaking test on dev environment.
@@ -18,7 +18,7 @@ function newApiKey() {
 }
 
 function setupTest() {
-  const apiKey = observable('');
+  const apiKey = observable("");
 
   async function onCreate() {
     await delay();
@@ -27,7 +27,7 @@ function setupTest() {
 
   async function onDelete() {
     await delay();
-    apiKey.set('');
+    apiKey.set("");
   }
 
   return [
@@ -35,7 +35,7 @@ function setupTest() {
   ];
 }
 
-const testBox = styled('div', `
+const testBox = styled("div", `
   float: left;
   width: 25rem;
   font-family: sans-serif;

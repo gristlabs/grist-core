@@ -1,11 +1,11 @@
-import { CellPosition, toCursor } from 'app/client/components/CellPosition';
-import { oneTimeListener } from 'app/client/components/CursorMonitor';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { getStorage } from 'app/client/lib/storage';
-import { UserError } from 'app/client/models/errors';
-import { FieldEditor, FieldEditorStateEvent } from 'app/client/widgets/FieldEditor';
-import { isViewDocPage } from 'app/common/gristUrls';
-import { Disposable, Emitter, IDisposableOwner } from 'grainjs';
+import { CellPosition, toCursor } from "app/client/components/CellPosition";
+import { oneTimeListener } from "app/client/components/CursorMonitor";
+import { GristDoc } from "app/client/components/GristDoc";
+import { getStorage } from "app/client/lib/storage";
+import { UserError } from "app/client/models/errors";
+import { FieldEditor, FieldEditorStateEvent } from "app/client/widgets/FieldEditor";
+import { isViewDocPage } from "app/common/gristUrls";
+import { Disposable, Emitter, IDisposableOwner } from "grainjs";
 
 /**
  * Feature for GristDoc that allows it to keep track of current editor's state.
@@ -71,7 +71,7 @@ export class EditorMonitor extends Disposable {
     }
     // if we are on raw data view, we need to set the position manually
     // as currentView observable will not be changed.
-    if (doc.activeViewId.get() === 'data') {
+    if (doc.activeViewId.get() === "data") {
       await this._doRestorePosition(doc);
     }
     else {
@@ -163,7 +163,7 @@ class EditMemoryStorage {
     if (data) {
       try {
         const { entry, timestamp } = JSON.parse(data);
-        if (typeof entry === 'undefined' || typeof timestamp != 'number') {
+        if (typeof entry === "undefined" || typeof timestamp != "number") {
           console.error("[EditMemory] Data in local storage has a different structure");
           return;
         }

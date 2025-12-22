@@ -1,8 +1,8 @@
 import { TreeItem } from "app/client/models/TreeModel";
 import { TreeViewComponent } from "app/client/ui/TreeViewComponent";
 import { dom, MutableObsArray, obsArray, observable, styled } from "grainjs";
-import constant from 'lodash/constant';
-import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import constant from "lodash/constant";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 const modelCalls = obsArray<string>();
@@ -28,10 +28,10 @@ function treeItem(label: string, children: TreeItem[] | null = null) {
   let item: any;
   return item = {
     label,
-    buildDom: () => dom('div',
+    buildDom: () => dom("div",
       dom.text(label),
       dom.onDispose(() => disposed.push(label)),
-      dom.on('click', () => selected.set(item)),
+      dom.on("click", () => selected.set(item)),
     ),
     children: constant(children ? obsArray(children) : null),
     ...callbacks(label),
@@ -41,16 +41,16 @@ function treeItem(label: string, children: TreeItem[] | null = null) {
 function buildTreeModel() {
   return {
     children: constant(obsArray([
-      treeItem('Page1', [
-        treeItem('Page2'),
-        treeItem('Page3', [
-          treeItem('Page4'),
+      treeItem("Page1", [
+        treeItem("Page2"),
+        treeItem("Page3", [
+          treeItem("Page4"),
         ]),
       ]),
-      treeItem('Page5', []),
-      treeItem('Page6'),
+      treeItem("Page5", []),
+      treeItem("Page6"),
     ])),
-    ...callbacks('Root'),
+    ...callbacks("Root"),
   };
 }
 
@@ -63,27 +63,27 @@ function setupTest() {
   const isReadonly = observable(false);
   return [
     testBox(
-      dom.style('width', '224px'),
+      dom.style("width", "224px"),
       dom.create(TreeViewComponent, treeModel, { expanderDelay: 1100, isOpen, dragStartDelay: 500, selected, isReadonly }),
     ),
     testBox(
-      dom.style('float', 'right'),
-      dom('input.insert', { type: 'button', value: 'top insert' },
-        dom.on('click', () => treeModel.get().children().push(treeItem('New Page'))),
+      dom.style("float", "right"),
+      dom("input.insert", { type: "button", value: "top insert" },
+        dom.on("click", () => treeModel.get().children().push(treeItem("New Page"))),
       ),
-      dom('input.subInsert', { type: 'button', value: 'sub insert' },
-        dom.on('click', () => subFolderChildren().push(treeItem('New Page 5'))),
+      dom("input.subInsert", { type: "button", value: "sub insert" },
+        dom.on("click", () => subFolderChildren().push(treeItem("New Page 5"))),
       ),
-      dom('input.clearLogs', { type: 'button', value: 'clear calls' },
-        dom.on('click', () => {
+      dom("input.clearLogs", { type: "button", value: "clear calls" },
+        dom.on("click", () => {
           modelCalls.set([]);
           disposed.set([]);
         }),
       ),
-      dom('input.reset', { type: 'button', value: 'reset' },
-        dom.on('click', () => treeModel.set(buildTreeModel()))),
-      dom('input.move', { type: 'button', value: 'move' },
-        dom.on('click', () => {
+      dom("input.reset", { type: "button", value: "reset" },
+        dom.on("click", () => treeModel.set(buildTreeModel()))),
+      dom("input.move", { type: "button", value: "move" },
+        dom.on("click", () => {
           const src = treeModel.get().children().get()[0];
           const dest = treeModel.get();
           const item = src.children()!.get()[1];
@@ -92,12 +92,12 @@ function setupTest() {
           // insertBefore
           dest.children().splice(2, 0, item as any);
         })),
-      dom('input.remove', { type: 'button', value: 'remove' },
-        dom.on('click', () => {
+      dom("input.remove", { type: "button", value: "remove" },
+        dom.on("click", () => {
           treeModel.get().children().splice(0, 1);
         })),
-      dom('input.removePage4', { type: 'button', value: 'remove Page4' },
-        dom.on('click', () => {
+      dom("input.removePage4", { type: "button", value: "remove Page4" },
+        dom.on("click", () => {
           const page1 = treeModel.get().children().get()[0];
           const page3 = page1.children()!.get()[1];
           // remove page4
@@ -105,28 +105,28 @@ function setupTest() {
           // then resinsert page3 to update
           page1.children()!.splice(1, 1, page3);
         })),
-      dom('h3', 'Options'),
+      dom("h3", "Options"),
       dom(
-        'div',
+        "div",
         dom(
-          'input.isOpen', { type: 'checkbox', value: 'isOpen', checked: true },
-          dom.on('click', () => isOpen.set(!isOpen.get())),
+          "input.isOpen", { type: "checkbox", value: "isOpen", checked: true },
+          dom.on("click", () => isOpen.set(!isOpen.get())),
         ),
-        'isOpen option',
+        "isOpen option",
       ),
       dom(
-        'div',
+        "div",
         dom(
-          'input.isReadonly', { type: 'checkbox', value: 'isReadonly', checked: false },
-          dom.on('click', () => isReadonly.set(!isReadonly.get())),
+          "input.isReadonly", { type: "checkbox", value: "isReadonly", checked: false },
+          dom.on("click", () => isReadonly.set(!isReadonly.get())),
         ),
-        'readonly mode',
+        "readonly mode",
       ),
     ),
   ];
 }
 
-const testBox = styled('div', `
+const testBox = styled("div", `
   width: 25rem;
   font-family: sans-serif;
   font-size: 1rem;
@@ -138,8 +138,8 @@ const testBox = styled('div', `
 initGristStyles();
 void withLocale(() => {
   dom.update(document.body, setupTest(),
-    dom('h3', "model calls"),
-    dom.forEach(modelCalls, log => dom('div.model-calls', log)),
-    dom('h3', "Disposed Items: "),
-    dom.forEach(disposed, log => dom('div.disposed-items', log)));
+    dom("h3", "model calls"),
+    dom.forEach(modelCalls, log => dom("div.model-calls", log)),
+    dom("h3", "Disposed Items: "),
+    dom.forEach(disposed, log => dom("div.disposed-items", log)));
 });

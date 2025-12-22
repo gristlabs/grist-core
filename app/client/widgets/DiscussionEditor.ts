@@ -1,27 +1,27 @@
-import { allCommands } from 'app/client/components/commands';
-import { showUndoDiscardNotification } from 'app/client/components/Drafts';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { domDispatch, domOnCustom, makeTestId } from 'app/client/lib/domUtils';
-import { createObsArray } from 'app/client/lib/koArrayWrap';
-import { makeT } from 'app/client/lib/localization';
-import { localStorageBoolObs } from 'app/client/lib/localStorageObs';
-import { CellRec, ViewSectionRec } from 'app/client/models/DocModel';
-import { reportError } from 'app/client/models/errors';
-import { INotification } from 'app/client/models/NotifyModel';
-import { RowSource, RowWatcher } from 'app/client/models/rowset';
-import { renderCellMarkdown } from 'app/client/ui/MarkdownCellRenderer';
-import { createUserImage } from 'app/client/ui/UserImage';
-import { basicButton, primaryButton, textButton } from 'app/client/ui2018/buttons';
-import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
-import { theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { menu, menuItem } from 'app/client/ui2018/menus';
-import { cssMarkdown } from 'app/client/widgets/MarkdownTextBox';
-import { buildMentionTextBox, CommentWithMentions } from 'app/client/widgets/MentionTextBox';
-import { CommentContent } from 'app/common/DocComments';
-import { CellInfoType } from 'app/common/gristTypes';
-import { FullUser, PermissionData } from 'app/common/UserAPI';
-import { CursorPos } from 'app/plugin/GristAPI';
+import { allCommands } from "app/client/components/commands";
+import { showUndoDiscardNotification } from "app/client/components/Drafts";
+import { GristDoc } from "app/client/components/GristDoc";
+import { domDispatch, domOnCustom, makeTestId } from "app/client/lib/domUtils";
+import { createObsArray } from "app/client/lib/koArrayWrap";
+import { makeT } from "app/client/lib/localization";
+import { localStorageBoolObs } from "app/client/lib/localStorageObs";
+import { CellRec, ViewSectionRec } from "app/client/models/DocModel";
+import { reportError } from "app/client/models/errors";
+import { INotification } from "app/client/models/NotifyModel";
+import { RowSource, RowWatcher } from "app/client/models/rowset";
+import { renderCellMarkdown } from "app/client/ui/MarkdownCellRenderer";
+import { createUserImage } from "app/client/ui/UserImage";
+import { basicButton, primaryButton, textButton } from "app/client/ui2018/buttons";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menu, menuItem } from "app/client/ui2018/menus";
+import { cssMarkdown } from "app/client/widgets/MarkdownTextBox";
+import { buildMentionTextBox, CommentWithMentions } from "app/client/widgets/MentionTextBox";
+import { CommentContent } from "app/common/DocComments";
+import { CellInfoType } from "app/common/gristTypes";
+import { FullUser, PermissionData } from "app/common/UserAPI";
+import { CursorPos } from "app/plugin/GristAPI";
 import {
   bundleChanges,
   Computed,
@@ -36,14 +36,14 @@ import {
   ObsArray,
   Observable,
   styled,
-} from 'grainjs';
-import * as ko from 'knockout';
-import flatMap from 'lodash/flatMap';
-import moment from 'moment';
-import { PopupControl, popupOpen } from 'popweasel';
+} from "grainjs";
+import * as ko from "knockout";
+import flatMap from "lodash/flatMap";
+import moment from "moment";
+import { PopupControl, popupOpen } from "popweasel";
 
-const testId = makeTestId('test-discussion-');
-const t = makeT('DiscussionEditor');
+const testId = makeTestId("test-discussion-");
+const t = makeT("DiscussionEditor");
 const COMMENTS_LIMIT = 200;
 
 export interface DiscardedComment extends CursorPos {
@@ -91,7 +91,7 @@ interface DiscussionModel {
 
 export class DiscussionModelImpl extends Disposable implements DiscussionModel {
   public static fromCursor(owner: MultiHolder, gristDoc: GristDoc, cursorPos: CursorPos): DiscussionModelImpl {
-    if (!cursorPos.sectionId || cursorPos.fieldIndex === undefined || typeof cursorPos.rowId !== 'number') {
+    if (!cursorPos.sectionId || cursorPos.fieldIndex === undefined || typeof cursorPos.rowId !== "number") {
       throw new Error("Cannot create CellImpl without sectionId, fieldIndex and rowId in cursor position");
     }
     const section = gristDoc.docModel.viewSections.getRowModel(cursorPos.sectionId);
@@ -125,7 +125,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
 
   public async startIn(pos: CursorPos, commentText: CommentWithMentions): Promise<void> {
     this.gristDoc.commentMonitor?.clear();
-    if (!pos.sectionId || pos.fieldIndex === undefined || typeof pos.rowId !== 'number') {
+    if (!pos.sectionId || pos.fieldIndex === undefined || typeof pos.rowId !== "number") {
       throw new Error("Cannot start discussion without sectionId, fieldIndex and rowId in cursor position");
     }
     const section = this.gristDoc.docModel.viewSections.getRowModel(pos.sectionId);
@@ -150,7 +150,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
           ...commentText,
         } as CommentContent),
       },
-    ]], t('Started discussion'));
+    ]], t("Started discussion"));
   }
 
   public async reply(comment: CellRec, commentText: CommentWithMentions): Promise<void> {
@@ -232,7 +232,7 @@ export class CommentPopup extends Disposable {
         }
       });
       return cssCommentPopup(
-        testId('popup'),
+        testId("popup"),
         dom.domComputed(this._props.cell.isEmpty, (empty) => {
           if (!empty) {
             return dom.create(SingleThread, {
@@ -256,9 +256,9 @@ export class CommentPopup extends Disposable {
         }),
       );
     }, {
-      placement: 'bottom',
-      attach: 'body',
-      boundaries: 'window',
+      placement: "bottom",
+      attach: "body",
+      boundaries: "window",
     });
 
     this.onDispose(() => {
@@ -325,12 +325,12 @@ class EmptyThread extends Disposable {
     this._entry = CommentEntry.create(this, {
       currentUserId: this.props.currentUserId,
       access: this.props.access,
-      mode: 'start',
+      mode: "start",
       text: this.props.text,
-      editorArgs: [{ placeholder: t('Write a comment') }],
-      mainButton: t('Comment'),
-      buttons: [t('Cancel')],
-      args: [testId('editor-start')],
+      editorArgs: [{ placeholder: t("Write a comment") }],
+      mainButton: t("Comment"),
+      buttons: [t("Cancel")],
+      args: [testId("editor-start")],
       onSave: this._onSave.bind(this),
       onCancel: this._onCancel.bind(this),
     });
@@ -338,8 +338,8 @@ class EmptyThread extends Disposable {
 
   public buildDom() {
     return cssTopic(
-      testId('topic-empty'),
-      testId('topic'),
+      testId("topic-empty"),
+      testId("topic"),
       cssCommonPadding(
         this._entry.buildDom(),
       ),
@@ -414,12 +414,12 @@ class SingleThread extends Disposable implements IDomComponent {
     this._truncated = Computed.create(this, use => use(this._comments).length > COMMENTS_LIMIT);
     this._entry = CommentEntry.create(this, {
       access: this.props.access,
-      mode: 'comment',
+      mode: "comment",
       text: this._newText,
       currentUserId: this.props.gristDoc.currentUser.get()?.id ?? 0,
-      mainButton: 'Reply',
-      editorArgs: [{ placeholder: t('Reply') }],
-      args: [testId('editor-add')],
+      mainButton: "Reply",
+      editorArgs: [{ placeholder: t("Reply") }],
+      args: [testId("editor-add")],
       onSave: () => this._save(),
       onCancel: () => this.props.closeClicked?.(),
     });
@@ -431,10 +431,10 @@ class SingleThread extends Disposable implements IDomComponent {
       domOnCustom(Comment.EDIT, (s: Comment) => this._onEditComment(s)),
       domOnCustom(Comment.CANCEL, () => this._onCancelEdit()),
       dom.hide(this._closing),
-      testId('topic'),
-      testId('topic-filled'),
+      testId("topic"),
+      testId("topic-filled"),
       this._commentList = cssCommentList(
-        testId('topic-comments'),
+        testId("topic-comments"),
         dom.forEach(this._commentsToRender, (comment) => {
           return cssDiscussion(
             cssDiscussion.cls("-resolved", use => Boolean(use(comment.resolved))),
@@ -531,14 +531,14 @@ class MultiThreads extends Disposable implements IDomComponent {
   public buildDom() {
     return cssTopic(
       dom.maybe(this._truncated, () => cssTruncate(t("Showing last {{nb}} comments", { nb: COMMENTS_LIMIT }))),
-      cssTopic.cls('-panel'),
+      cssTopic.cls("-panel"),
       domOnCustom(Comment.EDIT, (s: Comment) => this._onEditComment(s)),
       domOnCustom(Comment.CANCEL, () => this._onCancelEdit()),
       dom.hide(this._closing),
-      testId('topic'),
-      testId('topic-filled'),
+      testId("topic"),
+      testId("topic-filled"),
       cssCommentList(
-        testId('topic-comments'),
+        testId("topic-comments"),
         dom.forEach(this._commentsToRender, (comment) => {
           return cssDiscussionWrapper(
             cssDiscussion(
@@ -581,9 +581,9 @@ class MultiThreads extends Disposable implements IDomComponent {
 class Comment extends Disposable {
   // Public custom events. Those are propagated to the parent component (TopicView) to make
   // sure only one comment is in edit mode at a time.
-  public static EDIT = 'comment-edit'; // comment is in edit mode
-  public static CANCEL = 'comment-cancel'; // edit mode was cancelled or turned off
-  public static SELECT = 'comment-select'; // comment was clicked
+  public static EDIT = "comment-edit"; // comment is in edit mode
+  public static CANCEL = "comment-cancel"; // edit mode was cancelled or turned off
+  public static SELECT = "comment-select"; // comment was clicked
   // Public modes that are modified by topic view.
   public replying = Observable.create(this, false);
   private _isEditing = Observable.create(this, false);
@@ -656,13 +656,13 @@ class Comment extends Disposable {
       dom.maybe(use => !use(comment.hidden), () => [
         cssColumns(
           // 1. Column with avatar only
-          buildAvatar(user(comment), testId('comment-avatar')),
+          buildAvatar(user(comment), testId("comment-avatar")),
           // 2. Column with nickname/date, menu and text
           cssCommentHeader(
             // User name date and buttons
             cssCommentBodyHeader(
               cssCommentBodyText(
-                buildNick(user(comment), testId('comment-nick')),
+                buildNick(user(comment), testId("comment-nick")),
                 dom.domComputed(use => cssTime(
                   formatTime(use(comment.timeUpdated) || use(comment.timeCreated) || 0),
                   testId('comment-time'),
@@ -672,14 +672,14 @@ class Comment extends Disposable {
               // if this is reply in a resolved comment, don't show menu
               dom.maybe(use => !(this._isReply && use(this._resolved)), () => [
                 cssIconButton(
-                  icon('Dots'),
-                  testId('comment-menu'),
-                  dom.style('margin-left', `3px`),
+                  icon("Dots"),
+                  testId("comment-menu"),
+                  dom.style("margin-left", `3px`),
                   menu(() => this._menuItems(), {
-                    placement: 'bottom-start',
+                    placement: "bottom-start",
                     attach: `.${containerClass()}`,
                   }),
-                  dom.on('click', stopPropagation),
+                  dom.on("click", stopPropagation),
                 ),
               ]),
             ),
@@ -691,23 +691,23 @@ class Comment extends Disposable {
             if (hidden) {
               return cssCommentCensored(
                 "CENSORED",
-                testId('comment-text'),
+                testId("comment-text"),
               );
             }
             return cssRenderedCommentMarkdown(
               dom.domComputed(comment.text, (text?: string) => text && renderCellMarkdown(text)),
-              testId('comment-text'),
+              testId("comment-text"),
             );
           }),
         ),
         // Comment editor
         dom.maybeOwned(this._isEditing,
           (owner) => {
-            const text = Observable.create(owner, new CommentWithMentions(comment.text.peek() ?? ''));
+            const text = Observable.create(owner, new CommentWithMentions(comment.text.peek() ?? ""));
             return dom.create(CommentEntry, {
               text,
-              mainButton: t('Save'),
-              buttons: [t('Cancel')],
+              mainButton: t("Save"),
+              buttons: [t("Cancel")],
               currentUserId: this.props.gristDoc.currentUser.get()?.id ?? 0,
               onSave: async () => {
                 const value = text.get();
@@ -717,24 +717,24 @@ class Comment extends Disposable {
               onCancel: () => {
                 this.setEditing(false);
               },
-              mode: 'start',
-              args: [testId('editor-edit')],
+              mode: "start",
+              args: [testId("editor-edit")],
               access: this.props.access,
             });
           },
         ),
         dom.maybe(this._showReplies, () =>
           cssCommentReplyWrapper(
-            testId('replies'),
+            testId("replies"),
             cssReplyList(
               dom.forEach(this._replies, (commentReply) => {
-                return dom('div',
+                return dom("div",
                   dom.create(Comment, {
                     ...this.props,
                     access: this.props.access,
                     comment: commentReply,
                     parent: this.props.comment,
-                    args: [dom.style('padding-left', '0px'), dom.style('padding-right', '0px')],
+                    args: [dom.style("padding-left", "0px"), dom.style("padding-right", "0px")],
                   }),
                 );
               }),
@@ -750,18 +750,18 @@ class Comment extends Disposable {
           !use(comment.resolved),
         () => dom.domComputed((use) => {
           if (!use(this.replying)) {
-            return cssReplyButton(icon('Message'), t('Reply'),
-              testId('comment-reply-button'),
-              dom.on('click', withStop(() => this.replying.set(true))),
-              dom.style('margin-left', use2 => use2(this._hasReplies) ? '16px' : '0px'),
+            return cssReplyButton(icon("Message"), t("Reply"),
+              testId("comment-reply-button"),
+              dom.on("click", withStop(() => this.replying.set(true))),
+              dom.style("margin-left", use2 => use2(this._hasReplies) ? "16px" : "0px"),
             );
           }
           else {
             return dom.create(CommentEntry, {
               text: Observable.create(null, new CommentWithMentions()),
-              args: [dom.style('margin-top', '8px'), testId('editor-reply')],
-              mainButton: t('Reply'),
-              buttons: [t('Cancel')],
+              args: [dom.style("margin-top", "8px"), testId("editor-reply")],
+              mainButton: t("Reply"),
+              buttons: [t("Cancel")],
               currentUserId: this.props.gristDoc.currentUser.get()?.id ?? 0,
               onSave: (value: CommentWithMentions) => {
                 this.replying.set(false);
@@ -769,11 +769,11 @@ class Comment extends Disposable {
               },
               onCancel: () => this.replying.set(false),
               onClick: (button) => {
-                if (button === t('Cancel')) {
+                if (button === t("Cancel")) {
                   this.replying.set(false);
                 }
               },
-              mode: 'reply',
+              mode: "reply",
               access: this.props.access,
             });
           }
@@ -783,8 +783,8 @@ class Comment extends Disposable {
         dom.domComputed((use) => {
           if (!use(comment.resolved) || this._isReply) { return null; }
           return cssResolvedBlock(
-            testId('comment-resolved'),
-            icon('FieldChoice'),
+            testId("comment-resolved"),
+            icon("FieldChoice"),
             cssResolvedText(dom.text(
               t(`Marked as resolved`),
             )));
@@ -884,7 +884,7 @@ class CommentEntry extends Disposable {
 
   constructor(public props: {
     text: Observable<CommentWithMentions>,
-    mode?: 'comment' | 'start' | 'reply', // inline for reply, full for new discussion
+    mode?: "comment" | "start" | "reply", // inline for reply, full for new discussion
     mainButton?: string, // Text for the main button (defaults to Send)
     buttons?: string[], // Additional buttons to show.
     editorArgs?: DomArg<HTMLElement>[]
@@ -899,7 +899,7 @@ class CommentEntry extends Disposable {
   }
 
   public buildDom() {
-    const clickBuilder = (button: string) => dom.on('click', () => {
+    const clickBuilder = (button: string) => dom.on("click", () => {
       if (button === t("Cancel")) {
         this.props.onCancel?.();
       }
@@ -915,9 +915,9 @@ class CommentEntry extends Disposable {
     };
     return cssCommentEntry(
       ...(this.props.args ?? []),
-      cssCommentEntry.cls(`-${this.props.mode ?? 'comment'}`),
-      testId('comment-input'),
-      dom.on('click', stopPropagation),
+      cssCommentEntry.cls(`-${this.props.mode ?? "comment"}`),
+      testId("comment-input"),
+      dom.on("click", stopPropagation),
       this._editableDiv = buildMentionTextBox(
         this.props.text,
         this.props.access,
@@ -939,14 +939,14 @@ class CommentEntry extends Disposable {
           },
         }),
         ...(this.props.editorArgs || []),
-        testId('textarea'),
+        testId("textarea"),
       ),
       cssCommentEntryButtons(
         primaryButton(
-          this.props.mainButton ?? 'Send',
-          dom.prop('disabled', use => use(this.props.text).isEmpty()),
-          dom.on('click', withStop(onEnter)),
-          testId('button-send'),
+          this.props.mainButton ?? "Send",
+          dom.prop("disabled", use => use(this.props.text).isEmpty()),
+          dom.on("click", withStop(onEnter)),
+          testId("button-send"),
         ),
         dom.forEach(this.props.buttons || [], button => basicButton(
           button, clickBuilder(button), testId(`button-${button}`),
@@ -956,7 +956,7 @@ class CommentEntry extends Disposable {
   }
 
   public clear() {
-    this._editableDiv.innerHTML = '';
+    this._editableDiv.innerHTML = "";
   }
 }
 
@@ -1060,7 +1060,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
       const filterCol = use(columnFilter);
       const showAll = use(this._resolved);
       const showOnlyMine = use(this._onlyMine);
-      const currentUser = use(this._grist.currentUser)?.ref ?? '';
+      const currentUser = use(this._grist.currentUser)?.ref ?? "";
       const userFilter = (d: CellRec) => {
         const replies = use(use(d.children).getObservable());
         return use(d.userRef) === currentUser ||
@@ -1095,7 +1095,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
     // Selector for page all whole document.
     return cssDiscussionPanel(
       dom.autoDispose(owner),
-      testId('panel'),
+      testId("panel"),
       // Discussion list - actually we are showing first comment of each discussion.
       cssDiscussionPanelList(
         dom.create(MultiThreads, {
@@ -1112,18 +1112,18 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
 
   public buildMenu(): DomContents {
     return cssPanelHeader(
-      dom('span', dom.text(use => t("{{count}} comments", { count: use(this._length) })), testId('comment-count')),
+      dom("span", dom.text(use => t("{{count}} comments", { count: use(this._length) })), testId("comment-count")),
       cssIconButtonMenu(
-        icon('Dots'),
-        testId('panel-menu'),
+        icon("Dots"),
+        testId("panel-menu"),
         menu(() => {
           return [cssDropdownMenu(
-            labeledSquareCheckbox(this._onlyMine, t("Only my threads"), testId('my-threads')),
-            labeledSquareCheckbox(this._currentPage, t("Only current page"), testId('only-page')),
-            labeledSquareCheckbox(this._resolved, t("Show resolved comments"), testId('show-resolved')),
+            labeledSquareCheckbox(this._onlyMine, t("Only my threads"), testId("my-threads")),
+            labeledSquareCheckbox(this._currentPage, t("Only current page"), testId("only-page")),
+            labeledSquareCheckbox(this._resolved, t("Show resolved comments"), testId("show-resolved")),
           )];
-        }, { placement: 'bottom-start' }),
-        dom.on('click', stopPropagation),
+        }, { placement: "bottom-start" }),
+        dom.on("click", stopPropagation),
       ),
     );
   }
@@ -1192,11 +1192,11 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
 }
 
 function buildAvatar(user: FullUser | null, ...args: DomElementArg[]) {
-  return cssAvatar(user, 'small', ...args);
+  return cssAvatar(user, "small", ...args);
 }
 
 function buildNick(user: { name: string } | null, ...args: DomArg<HTMLElement>[]) {
-  return cssNick(user?.name ?? 'Anonymous', ...args);
+  return cssNick(user?.name ?? "Anonymous", ...args);
 }
 
 // // Helper binding function to handle click outside an element. Takes into account floating menus.
@@ -1218,11 +1218,11 @@ function buildNick(user: { name: string } | null, ...args: DomArg<HTMLElement>[]
 function formatTime(timeStampSec: number) {
   const time = moment(Math.floor(timeStampSec * 1000));
   const now = moment();
-  const diff = now.diff(time, 'days');
+  const diff = now.diff(time, "days");
   if (diff < 1) {
     return time.fromNow();
   }
-  return time.format('MMM D, YYYY');
+  return time.format("MMM D, YYYY");
 }
 
 function commentAuthor(grist: GristDoc, userRef?: string, userName?: string): FullUser | null {
@@ -1230,9 +1230,9 @@ function commentAuthor(grist: GristDoc, userRef?: string, userName?: string): Fu
     const loggedInUser = grist.app.topAppModel.appObs.get()?.currentValidUser;
     if (!loggedInUser) {
       return {
-        name: userName || '',
-        ref: userRef || '',
-        email: '',
+        name: userName || "",
+        ref: userRef || "",
+        email: "",
         id: 0,
       };
     }
@@ -1242,13 +1242,13 @@ function commentAuthor(grist: GristDoc, userRef?: string, userName?: string): Fu
     return loggedInUser;
   }
   else {
-    if (typeof userName !== 'string') {
+    if (typeof userName !== "string") {
       return null;
     }
     return {
       name: userName,
-      ref: userRef || '',
-      email: '',
+      ref: userRef || "",
+      email: "",
       id: 0,
     };
   }
@@ -1270,13 +1270,13 @@ const cssAvatar = styled(createUserImage, `
   margin-top: 2px;
 `);
 
-const cssCommentPopup = styled('div', `
+const cssCommentPopup = styled("div", `
   width: 350px;
   max-width: min(350px, calc(100vw - 10px));
   max-height: min(600px, calc(100vh - 10px));
 `);
 
-const cssDiscussionPanel = styled('div', `
+const cssDiscussionPanel = styled("div", `
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1284,22 +1284,22 @@ const cssDiscussionPanel = styled('div', `
   padding: 8px;
 `);
 
-const cssDiscussionPanelList = styled('div', `
+const cssDiscussionPanelList = styled("div", `
   margin-bottom: 0px;
 `);
 
-const cssCommonPadding = styled('div', `
+const cssCommonPadding = styled("div", `
   padding: 16px;
 `);
 
-const cssPanelHeader = styled('div', `
+const cssPanelHeader = styled("div", `
   display: flex;
   flex: 1;
   align-items: center;
   justify-content: space-between;
 `);
 
-const cssDropdownMenu = styled('div', `
+const cssDropdownMenu = styled("div", `
   display: flex;
   padding: 12px;
   padding-left: 16px;
@@ -1312,7 +1312,7 @@ const cssReplyBox = styled(cssCommonPadding, `
   border-top: 1px solid ${theme.commentsPopupBorder};
 `);
 
-const cssCommentEntry = styled('div', `
+const cssCommentEntry = styled("div", `
   display: grid;
   &-comment {
     grid-template-columns: 1fr auto;
@@ -1329,18 +1329,18 @@ const cssCommentEntry = styled('div', `
 
 `);
 
-const cssCommentEntryText = styled('div', `
+const cssCommentEntryText = styled("div", `
   grid-area: text;
 `);
 
-const cssCommentEntryButtons = styled('div', `
+const cssCommentEntryButtons = styled("div", `
   grid-area: buttons;
   display: flex;
   align-items: flex-start;
   gap: 8px;
 `);
 
-const cssContentEditable = styled('div', `
+const cssContentEditable = styled("div", `
   min-height: 5em;
   border-radius: 3px;
   padding: 4px 6px;
@@ -1361,7 +1361,7 @@ const cssContentEditable = styled('div', `
   }
 `);
 
-const cssTopic = styled('div', `
+const cssTopic = styled("div", `
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1384,7 +1384,7 @@ const cssTopic = styled('div', `
   }
 `);
 
-const cssDiscussionWrapper = styled('div', `
+const cssDiscussionWrapper = styled("div", `
   border-bottom: 1px solid ${theme.commentsPopupBorder};
   max-height: inherit;
   &:last-child {
@@ -1399,7 +1399,7 @@ const cssDiscussionWrapper = styled('div', `
   }
 `);
 
-const cssDiscussion = styled('div', `
+const cssDiscussion = styled("div", `
   display: flex;
   flex-direction: column;
   padding: 16px;
@@ -1413,7 +1413,7 @@ const cssDiscussion = styled('div', `
   }
 `);
 
-const cssCommentCensored = styled('div', `
+const cssCommentCensored = styled("div", `
   color: ${theme.text};
   margin-top: 4px;
 `);
@@ -1425,37 +1425,37 @@ const cssRenderedCommentMarkdown = styled(cssMarkdown, `
   word-break: break-word;
 `);
 
-const cssCommentList = styled('div', `
+const cssCommentList = styled("div", `
   display: flex;
   flex-direction: column;
   overflow: auto;
 `);
 
-const cssColumns = styled('div', `
+const cssColumns = styled("div", `
   display: flex;
   align-items: flex-start;
   gap: 8px;
 `);
 
-const cssCommentReplyWrapper = styled('div', `
+const cssCommentReplyWrapper = styled("div", `
   margin-top: 16px;
 `);
 
-const cssComment = styled('div', `
+const cssComment = styled("div", `
   border-bottom: 1px solid ${theme.commentsPopupBorder};
   .${cssCommentList.className} &:last-child {
     border-bottom: 0px;
   }
 `);
 
-const cssReplyList = styled('div', `
+const cssReplyList = styled("div", `
   margin-left: 8px;
   & > div + div {
     margin-top: 20px;
   }
 `);
 
-const cssCommentHeader = styled('div', `
+const cssCommentHeader = styled("div", `
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1463,18 +1463,18 @@ const cssCommentHeader = styled('div', `
   overflow: hidden;
 `);
 
-const cssCommentBodyHeader = styled('div', `
+const cssCommentBodyHeader = styled("div", `
   display: flex;
   align-items: baseline;
   overflow: hidden;
 `);
 
-const cssCommentBodyText = styled('div', `
+const cssCommentBodyText = styled("div", `
   flex: 1;
   min-width: 0px;
 `);
 
-const cssIconButton = styled('div', `
+const cssIconButton = styled("div", `
   flex: none;
   margin: 0 4px 0 auto;
   height: 24px;
@@ -1489,7 +1489,7 @@ const cssIconButton = styled('div', `
   }
 `);
 
-const cssIconButtonMenu = styled('div', `
+const cssIconButtonMenu = styled("div", `
   flex: none;
   margin: 0 4px 0 auto;
   height: 24px;
@@ -1516,7 +1516,7 @@ const cssReplyButton = styled(textButton, `
   margin-top: 16px;
 `);
 
-const cssTime = styled('div', `
+const cssTime = styled("div", `
   color: ${theme.lightText};
   font-size: ${vars.smallFontSize};
   text-overflow: ellipsis;
@@ -1526,7 +1526,7 @@ const cssTime = styled('div', `
   overflow: hidden;
 `);
 
-const cssNick = styled('div', `
+const cssNick = styled("div", `
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1537,18 +1537,18 @@ const cssNick = styled('div', `
   }
 `);
 
-const cssResolvedBlock = styled('div', `
+const cssResolvedBlock = styled("div", `
   margin-top: 5px;
   --icon-color: ${theme.text};
 `);
 
-const cssResolvedText = styled('span', `
+const cssResolvedText = styled("span", `
   color: ${theme.text};
   font-size: ${vars.smallFontSize};
   margin-left: 5px;
 `);
 
-const cssTruncate = styled('div', `
+const cssTruncate = styled("div", `
   position: absolute;
   background: white;
   inset: 0;

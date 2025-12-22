@@ -1,15 +1,15 @@
-import ko from 'knockout';
-import type BaseView from 'app/client/components/BaseView';
-import type { DataRowModel } from 'app/client/models/DataRowModel';
-import { between } from 'app/common/gutil';
-import { Disposable } from 'grainjs';
+import ko from "knockout";
+import type BaseView from "app/client/components/BaseView";
+import type { DataRowModel } from "app/client/models/DataRowModel";
+import { between } from "app/common/gutil";
+import { Disposable } from "grainjs";
 
-export const ROW = 'row';
-export const COL = 'col';
-export const CELL = 'cell';
-export const NONE = '';
+export const ROW = "row";
+export const COL = "col";
+export const CELL = "cell";
+export const NONE = "";
 
-export type ElemType = 'row' | 'col' | 'cell' | '';
+export type ElemType = "row" | "col" | "cell" | "";
 
 interface GridView extends BaseView {
   domToRowModel(elem: Element, elemType: ElemType): DataRowModel | undefined;
@@ -23,14 +23,14 @@ export class CellSelector extends Disposable {
   public row = {
     start: ko.observable(0),
     end: ko.observable(0),
-    linePos: ko.observable('0px'),    // Used by GridView for dragging rows
+    linePos: ko.observable("0px"),    // Used by GridView for dragging rows
     dropIndex: ko.observable(-1),     // Used by GridView for dragging rows
   };
 
   public col =  {
     start: ko.observable(0),
     end: ko.observable(0),
-    linePos: ko.observable('0px'),    // Used by GridView for dragging columns
+    linePos: ko.observable("0px"),    // Used by GridView for dragging columns
     dropIndex: ko.observable(-1),     // Used by GridView for dragging columns
   };
 
@@ -91,7 +91,7 @@ export class CellSelector extends Disposable {
       case CELL:
         return this.containsCell(row!._index()!, col!._index()!);
       default:
-        console.error('Given element is not a row, cell or column');
+        console.error("Given element is not a row, cell or column");
         return false;
     }
   }

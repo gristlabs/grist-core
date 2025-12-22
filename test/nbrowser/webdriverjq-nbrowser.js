@@ -16,11 +16,11 @@
  * easier to read.
  */
 
-var _ = require('underscore');
-var util = require('util');
+var _ = require("underscore");
+var util = require("util");
 
 import { driver, error, stackWrapFunc,
-  WebElement, WebElementPromise } from 'mocha-webdriver';
+  WebElement, WebElementPromise } from "mocha-webdriver";
 
 export const driverCompanion = {
   $: null,
@@ -147,12 +147,12 @@ JQueryMethodNames.forEach(function(methodName) {
 });
 
 // .length property is a special case.
-Object.defineProperty(WebdriverJQ.prototype, 'length', {
+Object.defineProperty(WebdriverJQ.prototype, "length", {
   configurable: false,
   enumerable: false,
   get: function() {
     var newObj = this.clone();
-    newObj._callChain.push(['length']);
+    newObj._callChain.push(["length"]);
     return newObj.resolve();
   }
 });
@@ -192,7 +192,7 @@ Object.keys(WebElementMethodNames).forEach(function(methodName) {
     var result = elem[methodName].apply(elem, argList)
       .then(function(value) {
       // Chrome makes some values unprintable by including a bogus .toString property.
-        if (value && typeof value.toString !== 'function') { delete value.toString; }
+        if (value && typeof value.toString !== "function") { delete value.toString; }
         return value;
       }, function(err) {
         throw err;
@@ -242,7 +242,7 @@ WebdriverJQ.prototype._chain = function(elemFn, optPromise) {
  */
 WebdriverJQ.prototype.toString = function() {
   var sel = this._selectorDesc;
-  if (typeof sel === 'string') {
+  if (typeof sel === "string") {
     sel = "'" + sel.replace(/'/g, "\\'")  + "'";
   } else {
     sel = sel.toString();
@@ -374,7 +374,7 @@ WebdriverJQ.prototype.then = function(success, failure) {
  */
 WebdriverJQ.prototype.waitCore = function(chained, optTimeoutSec, func, ...extraArgs) {
   var timeoutMs;
-  if (typeof optTimeoutSec === 'number') {
+  if (typeof optTimeoutSec === "number") {
     timeoutMs = optTimeoutSec * 1000;
     if (arguments.length === 2) { func = null; }
   } else {
@@ -391,7 +391,7 @@ WebdriverJQ.prototype.waitCore = function(chained, optTimeoutSec, func, ...extra
 
   var self = this;
   async function conditionFunc() {
-    const result = await (typeof func === 'string' ?
+    const result = await (typeof func === "string" ?
       self[func].apply(self, extraArgs) :
       func.apply(null, [self].concat(extraArgs)));
     return result === undefined ? true : result;
@@ -469,13 +469,13 @@ WebElement.prototype.toString = function() {
 async function executeChain(selector, callChain) {
   const cc = callChain.map(c => c[0]);
   let result = selector;
-  if (typeof selector === 'string') {
+  if (typeof selector === "string") {
     result = await findOldTimey(driver, selector,
-      cc.includes('array') ||
-                                cc.includes('length') ||
-                                cc.includes('toArray') ||
-                                cc.includes('eq') ||
-                                cc.includes('last'));
+      cc.includes("array") ||
+                                cc.includes("length") ||
+                                cc.includes("toArray") ||
+                                cc.includes("eq") ||
+                                cc.includes("last"));
   }
   result = await applyCallChain(callChain, result);
   if (result instanceof WebElement) {
@@ -510,16 +510,16 @@ async function applyCallChain(callChain, value) {
 }
 
 function translateTestId(selector) {
-  return (typeof selector === 'string' ?
-    selector.replace(/\$(\w+)/, '[data-test-id="$1"]', 'g') :
+  return (typeof selector === "string" ?
+    selector.replace(/\$(\w+)/, '[data-test-id="$1"]', "g") :
     selector);
 }
 
 export function findOldTimey(obj, key, multiple, multipleOptions) {
   key = translateTestId(key);
-  const contains = key.split(':contains');
+  const contains = key.split(":contains");
   if (contains.length === 2) {
-    const content = contains[1].replace(/["'()]/g, '');
+    const content = contains[1].replace(/["'()]/g, "");
     return obj.findContent(contains[0], content);
   }
   if (multiple) {
@@ -544,10 +544,10 @@ export async function waitImpl(timeoutMs, conditionFunc) {
 }
 
 function isPromise(obj) {
-  if (typeof obj !== 'object') {
+  if (typeof obj !== "object") {
     return false;
   }
-  if (typeof obj['then'] !== 'function') {
+  if (typeof obj["then"] !== "function") {
     return false;
   }
   return true;

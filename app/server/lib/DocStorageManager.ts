@@ -1,20 +1,20 @@
-import * as bluebird from 'bluebird';
-import * as fse from 'fs-extra';
-import moment from 'moment';
-import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import * as bluebird from "bluebird";
+import * as fse from "fs-extra";
+import moment from "moment";
+import * as path from "path";
+import { v4 as uuidv4 } from "uuid";
 
-import { DocEntry, DocEntryTag } from 'app/common/DocListAPI';
-import { DocSnapshots } from 'app/common/DocSnapshot';
-import { DocumentUsage } from 'app/common/DocUsage';
-import * as gutil from 'app/common/gutil';
-import { backupUsingBestConnection } from 'app/server/lib/backupSqliteDatabase';
-import { Comm } from 'app/server/lib/Comm';
-import * as docUtils from 'app/server/lib/docUtils';
-import { GristServer } from 'app/server/lib/GristServer';
-import { EmptySnapshotProgress, IDocStorageManager, SnapshotProgress } from 'app/server/lib/IDocStorageManager';
-import { IShell } from 'app/server/lib/IShell';
-import log from 'app/server/lib/log';
+import { DocEntry, DocEntryTag } from "app/common/DocListAPI";
+import { DocSnapshots } from "app/common/DocSnapshot";
+import { DocumentUsage } from "app/common/DocUsage";
+import * as gutil from "app/common/gutil";
+import { backupUsingBestConnection } from "app/server/lib/backupSqliteDatabase";
+import { Comm } from "app/server/lib/Comm";
+import * as docUtils from "app/server/lib/docUtils";
+import { GristServer } from "app/server/lib/GristServer";
+import { EmptySnapshotProgress, IDocStorageManager, SnapshotProgress } from "app/server/lib/IDocStorageManager";
+import { IShell } from "app/server/lib/IShell";
+import log from "app/server/lib/log";
 
 /**
  * DocStorageManager manages Grist documents. This implementation deals with files in the file
@@ -40,8 +40,8 @@ export class DocStorageManager implements IDocStorageManager {
     private _comm?: Comm, shell?: IShell, private _gristServer?: GristServer) {
     // If we have a way to communicate with clients, watch the docsRoot for changes.
     this._shell = shell ?? {
-      trashItem() { throw new Error('Unable to move document to trash'); },
-      showItemInFolder() { throw new Error('Unable to show item in folder'); },
+      trashItem() { throw new Error("Unable to move document to trash"); },
+      showItemInFolder() { throw new Error("Unable to show item in folder"); },
     };
   }
 
@@ -52,7 +52,7 @@ export class DocStorageManager implements IDocStorageManager {
    * @returns {String} path: Filesystem path.
    */
   public getPath(docName: string): string {
-    docName += (path.extname(docName) === '.grist' ? '' : '.grist');
+    docName += (path.extname(docName) === ".grist" ? "" : ".grist");
     return path.resolve(this._docsRoot, docName);
   }
 
@@ -76,7 +76,7 @@ export class DocStorageManager implements IDocStorageManager {
    */
   public async getCanonicalDocName(altDocName: string): Promise<string> {
     const p = await docUtils.realPath(this.getPath(altDocName));
-    return path.dirname(p) === this._docsRoot ? path.basename(p, '.grist') : p;
+    return path.dirname(p) === this._docsRoot ? path.basename(p, ".grist") : p;
   }
 
   /**
@@ -121,7 +121,7 @@ export class DocStorageManager implements IDocStorageManager {
   public async deleteDoc(docName: string, deletePermanently?: boolean): Promise<void> {
     const docPath = this.getPath(docName);
     // Keep this check, to protect against wiping out the whole disk or the user's home.
-    if (path.extname(docPath) !== '.grist') {
+    if (path.extname(docPath) !== ".grist") {
       return Promise.reject(new Error("Refusing to delete path which does not end in .grist"));
     }
     else if (deletePermanently) {
@@ -144,7 +144,7 @@ export class DocStorageManager implements IDocStorageManager {
     const newPath = this.getPath(newName);
     return docUtils.createExclusive(newPath)
       .catch(async (e: any) => {
-        if (e.code !== 'EEXIST') { throw e; }
+        if (e.code !== "EEXIST") { throw e; }
         const isSame = await docUtils.isSameFile(oldPath, newPath);
         if (!isSame) { throw e; }
       })
@@ -152,7 +152,7 @@ export class DocStorageManager implements IDocStorageManager {
     // Send 'renameDocs' event immediately after the rename. Previously, this used to be sent by
     // DocManager after reopening the renamed doc. The extra delay caused issue T407, where
     // chokidar.watch() triggered 'removeDocs' before 'renameDocs'.
-      .then(() => { this._sendDocListAction('renameDocs', oldPath, [oldName, newName]); })
+      .then(() => { this._sendDocListAction("renameDocs", oldPath, [oldName, newName]); })
       .catch((err: Error) => {
         log.warn("DocStorageManager: rename %s -> %s failed: %s", oldPath, newPath, err.message);
         throw err;
@@ -178,7 +178,7 @@ export class DocStorageManager implements IDocStorageManager {
         // create a file at bakPath, adding numbers if necessary
         ext = path.extname(bakPath); // persists to makeBackup closure
         const bakPathPrefix = bakPath.slice(0, -ext.length);
-        return docUtils.createNumbered(bakPathPrefix, '-',
+        return docUtils.createNumbered(bakPathPrefix, "-",
           (pathPrefix: string) => docUtils.createExclusive(pathPrefix + ext),
         );
       }).tap((numberedBakPathPrefix: string) => { // do the copying, but return bakPath anyway
@@ -248,11 +248,11 @@ export class DocStorageManager implements IDocStorageManager {
   }
 
   public async getSnapshots(docName: string, skipMetadataCache?: boolean): Promise<DocSnapshots> {
-    throw new Error('getSnapshots not implemented');
+    throw new Error("getSnapshots not implemented");
   }
 
   public removeSnapshots(docName: string, snapshotIds: string[]): Promise<void> {
-    throw new Error('removeSnapshots not implemented');
+    throw new Error("removeSnapshots not implemented");
   }
 
   public getSnapshotProgress(): SnapshotProgress {
@@ -260,7 +260,7 @@ export class DocStorageManager implements IDocStorageManager {
   }
 
   public async replace(docName: string, options: any): Promise<void> {
-    throw new Error('replacement not implemented');
+    throw new Error("replacement not implemented");
   }
 
   public async getFsFileSize(docName: string): Promise<number> {
@@ -276,7 +276,7 @@ export class DocStorageManager implements IDocStorageManager {
     return fse.readdir(dirPath)
     // Filter out for .grist files, and strip the .grist extension.
       .then(entries => Promise.all(
-        entries.filter(e => (path.extname(e) === '.grist'))
+        entries.filter(e => (path.extname(e) === ".grist"))
           .map((e) => {
             const docPath = path.resolve(dirPath, e);
             return fse.stat(docPath)
@@ -287,7 +287,7 @@ export class DocStorageManager implements IDocStorageManager {
       .then(entries => entries.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())))
     // If the root directory is missing, just return an empty array.
       .catch((err) => {
-        if (err.cause?.code === 'ENOENT') { return []; }
+        if (err.cause?.code === "ENOENT") { return []; }
         throw err;
       });
   }
@@ -320,9 +320,9 @@ export class DocStorageManager implements IDocStorageManager {
    * @param {Any} data - Data to send as the message.
    */
   private _sendDocListAction(actionType: string, docPath: string, data: any): void {
-    if (this._comm && gutil.endsWith(docPath, '.grist')) {
+    if (this._comm && gutil.endsWith(docPath, ".grist")) {
       log.debug(`Sending ${actionType} action for doc ${getDocName(docPath)}`);
-      this._comm.broadcastMessage('docListAction', { [actionType]: [data] });
+      this._comm.broadcastMessage("docListAction", { [actionType]: [data] });
     }
   }
 
@@ -341,7 +341,7 @@ export class DocStorageManager implements IDocStorageManager {
  * Helper to return the docname (without .grist) given the path to the .grist file.
  */
 function getDocName(docPath: string): string {
-  return path.basename(docPath, '.grist');
+  return path.basename(docPath, ".grist");
 }
 
 /**

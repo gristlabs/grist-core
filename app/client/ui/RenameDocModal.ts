@@ -131,7 +131,7 @@ class RenameDocModal extends Disposable {
               },
             ),
             textButton(
-              cssIconAndLabel(icon("Smiley"), t("Choose icon"), testId('choose-icon')),
+              cssIconAndLabel(icon("Smiley"), t("Choose icon"), testId("choose-icon")),
               (el) => {
                 setPopupToCreateDom(
                   el,

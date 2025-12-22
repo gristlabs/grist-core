@@ -9,21 +9,21 @@
  *                        Defaults to before the end of the head.
  */
 export function getOrCreateStyleElement(id: string, insertOptions: {
-  position: 'beforebegin' | 'afterbegin' | 'beforeend' | 'afterend'
+  position: "beforebegin" | "afterbegin" | "beforeend" | "afterend"
   element: Element | null
-} = { position: 'beforeend', element: null }): HTMLElement {
+} = { position: "beforeend", element: null }): HTMLElement {
   let style = document.getElementById(id);
   if (style) {
     return style;
   }
 
-  style = document.createElement('style');
-  style.setAttribute('id', id);
+  style = document.createElement("style");
+  style.setAttribute("id", id);
 
   (insertOptions.element || document.head).insertAdjacentElement(
     insertOptions.element ?
       insertOptions.position :
-      'beforeend',
+      "beforeend",
     style,
   );
   return style;

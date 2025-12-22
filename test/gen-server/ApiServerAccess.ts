@@ -1,21 +1,21 @@
-import { Role } from 'app/common/roles';
-import { getRealAccess, PermissionData, PermissionDelta, UserAPI } from 'app/common/UserAPI';
-import { Organization } from 'app/gen-server/entity/Organization';
-import { Product } from 'app/gen-server/entity/Product';
-import { User } from 'app/gen-server/entity/User';
-import { HomeDBManager, Deps as HomeDBManagerDeps, UserChange } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { SendGridConfig, SendGridMailWithTemplateId } from 'app/gen-server/lib/NotifierTypes';
-import { create } from 'app/server/lib/create';
-import axios, { AxiosResponse } from 'axios';
-import * as chai from 'chai';
-import fromPairs from 'lodash/fromPairs';
-import pick from 'lodash/pick';
-import moment from 'moment';
-import * as sinon from 'sinon';
-import { TestServer } from 'test/gen-server/apiUtils';
-import { configForUser, waitForAllNotifications } from 'test/gen-server/testUtils';
-import * as testUtils from 'test/server/testUtils';
-import * as roles from 'app/common/roles';
+import { Role } from "app/common/roles";
+import { getRealAccess, PermissionData, PermissionDelta, UserAPI } from "app/common/UserAPI";
+import { Organization } from "app/gen-server/entity/Organization";
+import { Product } from "app/gen-server/entity/Product";
+import { User } from "app/gen-server/entity/User";
+import { HomeDBManager, Deps as HomeDBManagerDeps, UserChange } from "app/gen-server/lib/homedb/HomeDBManager";
+import { SendGridConfig, SendGridMailWithTemplateId } from "app/gen-server/lib/NotifierTypes";
+import { create } from "app/server/lib/create";
+import axios, { AxiosResponse } from "axios";
+import * as chai from "chai";
+import fromPairs from "lodash/fromPairs";
+import pick from "lodash/pick";
+import moment from "moment";
+import * as sinon from "sinon";
+import { TestServer } from "test/gen-server/apiUtils";
+import { configForUser, waitForAllNotifications } from "test/gen-server/testUtils";
+import * as testUtils from "test/server/testUtils";
+import * as roles from "app/common/roles";
 
 const assert = chai.assert;
 
@@ -27,40 +27,40 @@ let lastMail: SendGridMailWithTemplateId | null = null;
 let lastMailDesc: string | null = null;
 const sandbox = sinon.createSandbox();
 
-const chimpy = configForUser('Chimpy');
-const kiwi = configForUser('Kiwi');
-const charon = configForUser('Charon');
-const nobody = configForUser('Anonymous');
+const chimpy = configForUser("Chimpy");
+const kiwi = configForUser("Kiwi");
+const charon = configForUser("Charon");
+const nobody = configForUser("Anonymous");
 
-const chimpyEmail = 'chimpy@getgrist.com';
-const kiwiEmail = 'kiwi@getgrist.com';
-const charonEmail = 'charon@getgrist.com';
-const supportEmail = 'support@getgrist.com';
-const everyoneEmail = 'everyone@getgrist.com';
+const chimpyEmail = "chimpy@getgrist.com";
+const kiwiEmail = "kiwi@getgrist.com";
+const charonEmail = "charon@getgrist.com";
+const supportEmail = "support@getgrist.com";
+const everyoneEmail = "everyone@getgrist.com";
 
-let chimpyRef = '';
-let kiwiRef = '';
-let charonRef = '';
+let chimpyRef = "";
+let kiwiRef = "";
+let charonRef = "";
 
 // Test concerns only access-related functions of the ApiServer. Created to help break up the
 // large amount of tests on the ApiServer.
-describe('ApiServerAccess', function() {
+describe("ApiServerAccess", function() {
   if (process.env.DEBUG) {
-    this.timeout('10m');
+    this.timeout("10m");
   }
 
-  testUtils.setTmpLogLevel('error');
+  testUtils.setTmpLogLevel("error");
 
   let notificationsConfig: SendGridConfig | undefined;
   before(async function() {
     server = new TestServer(this);
-    homeUrl = await server.start(['home', 'docs']);
+    homeUrl = await server.start(["home", "docs"]);
     const extensions = server.server.getNotifier().testSendGridExtensions?.();
     notificationsConfig = extensions?.getConfig();
     extensions?.setSendMessageCallback(
       async (payload, desc) => {
         // Filter for invite emails only - ignore any other categories of email
-        if (desc.includes('invite')) {
+        if (desc.includes("invite")) {
           lastMail = payload;
           lastMailDesc = desc;
         }
@@ -107,7 +107,7 @@ describe('ApiServerAccess', function() {
   async function assertLastMail(maxWait: number = 1000) {
     const { payload, description } = await getLastMail(maxWait);
     if (payload === null || description === null) {
-      throw new Error('no mail available');
+      throw new Error("no mail available");
     }
     return { payload, description };
   }
@@ -150,19 +150,19 @@ describe('ApiServerAccess', function() {
     assert.deepEqual(resp.data, expected.data);
   }
 
-  it('PATCH /api/orgs/{oid}/access is operational', async function() {
-    const oid = await dbManager.testGetId('Chimpyland');
-    const nasaOrgId = await dbManager.testGetId('NASA');
+  it("PATCH /api/orgs/{oid}/access is operational", async function() {
+    const oid = await dbManager.testGetId("Chimpyland");
+    const nasaOrgId = await dbManager.testGetId("NASA");
     // Assert that Charon is NOT allowed to rename a workspace in Chimpyland
-    const wid = await dbManager.testGetId('Private');
+    const wid = await dbManager.testGetId("Private");
     const charonResp1 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
-      name: 'Charon-Illegal-Rename',
+      name: "Charon-Illegal-Rename",
     }, charon);
     assert.equal(charonResp1.status, 403);
     // Move Charon from 'viewers' to 'editors'.
     const delta1 = {
       users: {
-        [charonEmail]: 'editors',
+        [charonEmail]: "editors",
       },
     };
     const resp1 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: delta1 }, chimpy);
@@ -175,14 +175,14 @@ describe('ApiServerAccess', function() {
     assert.deepEqual(userCountUpdates[oid as number], undefined);
     // Assert that Charon is still not allowed to rename workspaces in Chimpyland
     const charonResp2 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
-      name: 'Charon-Rename',
+      name: "Charon-Rename",
     }, charon);
     assert.equal(charonResp2.status, 403);
     // Move Charon back to 'viewers' and add Kiwi to 'editors' (from no permission).
     const delta2 = {
       users: {
-        [charonEmail]: 'viewers',
-        [kiwiEmail]: 'editors',
+        [charonEmail]: "viewers",
+        [kiwiEmail]: "editors",
       },
     };
     const resp2 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: delta2 }, chimpy);
@@ -192,35 +192,35 @@ describe('ApiServerAccess', function() {
       const mail = await assertLastMail();
       assert.match(mail.description, /^invite kiwi@getgrist.com to http.*\/o\/docs\/\?utm_id=invite-org$/);
       const env = mail.payload.personalizations[0].dynamic_template_data;
-      assert.deepEqual(pick(env, ['resource.name', 'resource.kind', 'resource.kindUpperFirst',
-        'resource.isTeamSite', 'resource.isWorkspace', 'resource.isDocument',
-        'host.name', 'host.email',
-        'user.name', 'user.email',
-        'access.role', 'access.canEdit', 'access.canView']), {
+      assert.deepEqual(pick(env, ["resource.name", "resource.kind", "resource.kindUpperFirst",
+        "resource.isTeamSite", "resource.isWorkspace", "resource.isDocument",
+        "host.name", "host.email",
+        "user.name", "user.email",
+        "access.role", "access.canEdit", "access.canView"]), {
         resource: {
-          name: 'Chimpyland', kind: 'team site', kindUpperFirst: 'Team site',
+          name: "Chimpyland", kind: "team site", kindUpperFirst: "Team site",
           isTeamSite: true, isWorkspace: false, isDocument: false,
         },
-        host: { name: 'Chimpy', email: 'chimpy@getgrist.com' },
-        user: { name: 'Kiwi', email: 'kiwi@getgrist.com' },
-        access: { role: 'editors', canEdit: true, canView: true },
+        host: { name: "Chimpy", email: "chimpy@getgrist.com" },
+        user: { name: "Kiwi", email: "kiwi@getgrist.com" },
+        access: { role: "editors", canEdit: true, canView: true },
       } as any);
       assert.match(env.resource.url, /^http.*\/o\/docs\/\?utm_id=invite-org$/);
-      assert.deepEqual(mail.payload.personalizations[0].to[0], { email: 'kiwi@getgrist.com', name: 'Kiwi' });
-      assert.deepEqual(mail.payload.from, { email: 'support@getgrist.com', name: 'Chimpy (via Grist)' });
-      assert.deepEqual(mail.payload.reply_to, { email: 'chimpy@getgrist.com', name: 'Chimpy' });
+      assert.deepEqual(mail.payload.personalizations[0].to[0], { email: "kiwi@getgrist.com", name: "Kiwi" });
+      assert.deepEqual(mail.payload.from, { email: "support@getgrist.com", name: "Chimpy (via Grist)" });
+      assert.deepEqual(mail.payload.reply_to, { email: "chimpy@getgrist.com", name: "Chimpy" });
       assert.deepEqual(mail.payload.template_id, notificationsConfig.template.invite);
     }
     // Assert that the number of users in the org has updated (Kiwi was added).
     assert.deepEqual(userCountUpdates[oid as number], [3]);
     // Assert that Charon is once again NOT allowed to rename workspaces in Chimpyland
     const charonResp3 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
-      name: 'Charon-Illegal-Rename-2',
+      name: "Charon-Illegal-Rename-2",
     }, charon);
     assert.equal(charonResp3.status, 403);
     // Assert that Kiwi is still not allowed to rename workspaces in Chimpyland
     const kiwiResp1 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
-      name: 'Private',
+      name: "Private",
     }, kiwi);
     assert.equal(kiwiResp1.status, 403);
     // Revert the changes and check that behavior is expected once more for good measure.
@@ -238,7 +238,7 @@ describe('ApiServerAccess', function() {
     assert.deepEqual(userCountUpdates[oid as number], [3, 2]);
     // Assert that Kiwi is NOT allowed to rename workspaces in Chimpyland
     const kiwiResp2 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
-      name: 'Kiwi-Illegal-Rename-2',
+      name: "Kiwi-Illegal-Rename-2",
     }, kiwi);
     assert.equal(kiwiResp2.status, 403);
 
@@ -247,7 +247,7 @@ describe('ApiServerAccess', function() {
     // guests of the org to be removed on any access update.
     const delta4 = {
       users: {
-        [kiwiEmail]: 'editors',
+        [kiwiEmail]: "editors",
       },
     };
     const resp4 = await axios.patch(`${homeUrl}/api/orgs/${nasaOrgId}/access`, { delta: delta4 }, chimpy);
@@ -266,7 +266,7 @@ describe('ApiServerAccess', function() {
     assert.deepEqual(resp5.data, {
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
@@ -274,7 +274,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 2,
-        name: 'Kiwi',
+        name: "Kiwi",
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
@@ -282,7 +282,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 3,
-        name: 'Charon',
+        name: "Charon",
         email: charonEmail,
         ref: charonRef,
         picture: null,
@@ -309,7 +309,7 @@ describe('ApiServerAccess', function() {
     assert.deepEqual(resp7.data, {
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
@@ -317,7 +317,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 3,
-        name: 'Charon',
+        name: "Charon",
         email: charonEmail,
         ref: charonRef,
         picture: null,
@@ -327,13 +327,13 @@ describe('ApiServerAccess', function() {
     });
   });
 
-  it('PATCH /api/orgs/{oid}/access allows non-owners to remove themselves', async function() {
-    const oid = await dbManager.testGetId('NASA');
+  it("PATCH /api/orgs/{oid}/access allows non-owners to remove themselves", async function() {
+    const oid = await dbManager.testGetId("NASA");
     const url = `${homeUrl}/api/orgs/${oid}/access`;
     await testAllowNonOwnersToRemoveThemselves(url);
   });
 
-  it('PATCH /api/orgs/{oid}/access returns 404 appropriately', async function() {
+  it("PATCH /api/orgs/{oid}/access returns 404 appropriately", async function() {
     const delta = {
       users: {
         [charonEmail]: null,
@@ -343,21 +343,21 @@ describe('ApiServerAccess', function() {
     assert.equal(resp.status, 404);
   });
 
-  it('PATCH /api/orgs/{oid}/access returns 403 appropriately', async function() {
+  it("PATCH /api/orgs/{oid}/access returns 403 appropriately", async function() {
     // Attempt to set access with a user that does not have ACL_EDIT permissions.
-    const oid = await dbManager.testGetId('Chimpyland');
+    const oid = await dbManager.testGetId("Chimpyland");
     const delta = {
       users: {
-        [kiwiEmail]: 'viewers',
+        [kiwiEmail]: "viewers",
       },
     };
     const resp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta }, charon);
     assert.equal(resp.status, 403);
   });
 
-  it('PATCH /api/orgs/{oid}/access returns 400 appropriately', async function() {
+  it("PATCH /api/orgs/{oid}/access returns 400 appropriately", async function() {
     // Omit the delta and check that the operation fails with 400.
-    const oid = await dbManager.testGetId('Chimpyland');
+    const oid = await dbManager.testGetId("Chimpyland");
     const resp1 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {}, chimpy);
     assert.equal(resp1.status, 400);
     // Omit the users object and check that the operation fails with 400.
@@ -370,14 +370,14 @@ describe('ApiServerAccess', function() {
     // Attempt to update own permissions check that the operation fails with 400.
     const delta2 = {
       users: {
-        [chimpyEmail]: 'viewers',
+        [chimpyEmail]: "viewers",
       },
     };
     const resp4 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: delta2 }, chimpy);
     assert.equal(resp4.status, 400);
   });
 
-  it('PATCH /api/orgs/{oid}/access returns 403 if too many invites are pending', async function() {
+  it("PATCH /api/orgs/{oid}/access returns 403 if too many invites are pending", async function() {
     const orgId = await dbManager.testGetId("TestMaxNewUserInvites");
     const orgId2 = await dbManager.testGetId("Chimpyland");
     const sandbox = sinon.createSandbox();
@@ -543,21 +543,21 @@ describe('ApiServerAccess', function() {
     }
   });
 
-  it('PATCH /api/workspaces/{wid}/access is operational', async function() {
-    const oid = await dbManager.testGetId('Chimpyland');
-    const wid = await dbManager.testGetId('Private');
+  it("PATCH /api/workspaces/{wid}/access is operational", async function() {
+    const oid = await dbManager.testGetId("Chimpyland");
+    const wid = await dbManager.testGetId("Private");
 
     // Assert that Kiwi is unable to GET the org, since Kiwi has no permissions on the org.
     const kiwiResp1 = await axios.get(`${homeUrl}/api/orgs/${oid}`, kiwi);
     assert.equal(kiwiResp1.status, 403);
     const delta0 = {
-      users: { [kiwiEmail]: 'members' },
+      users: { [kiwiEmail]: "members" },
     };
     const resp0 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: delta0 }, chimpy);
     assert.equal(resp0.status, 200);
     // Make Kiwi an editor of the workspace
     const delta1 = {
-      users: { [kiwiEmail]: 'editors' },
+      users: { [kiwiEmail]: "editors" },
     };
     const resp2 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta: delta1 }, chimpy);
     assert.equal(resp2.status, 200);
@@ -567,19 +567,19 @@ describe('ApiServerAccess', function() {
       assert.match(mail.description, /^invite kiwi@getgrist.com to http.*\/o\/docs\/ws\/[0-9]+\/\?utm_id=invite-ws$/);
       const env = mail.payload.personalizations[0].dynamic_template_data;
       assert.match(env.resource.url, /^http.*\/o\/docs\/ws\/[0-9]+\/\?utm_id=invite-ws$/);
-      assert.equal(env.resource.kind, 'workspace');
-      assert.equal(env.resource.kindUpperFirst, 'Workspace');
+      assert.equal(env.resource.kind, "workspace");
+      assert.equal(env.resource.kindUpperFirst, "Workspace");
       assert.equal(env.resource.isTeamSite, false);
       assert.equal(env.resource.isWorkspace, true);
       assert.equal(env.resource.isDocument, false);
-      assert.equal(env.resource.name, 'Private');
+      assert.equal(env.resource.name, "Private");
     }
 
     // Assert that the number of users in Chimpyland has updated (Kiwi was added).
     assert.deepEqual(userCountUpdates[oid as number], [3]);
     // Assert that Kiwi is still now allowed to rename workspace 'Private' in Chimpyland
     const kiwiResp2 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
-      name: 'Kiwi-Rename',
+      name: "Kiwi-Rename",
     }, kiwi);
     assert.equal(kiwiResp2.status, 403);
     // Assert that Kiwi is also now able to GET the org, since Kiwi is now a guest of the org.
@@ -588,7 +588,7 @@ describe('ApiServerAccess', function() {
 
     // Set the maxInheritedRole to 'viewers'
     const delta2 = {
-      maxInheritedRole: 'viewers',
+      maxInheritedRole: "viewers",
     };
     const resp3 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta: delta2 }, chimpy);
     assert.equal(resp3.status, 200);
@@ -597,7 +597,7 @@ describe('ApiServerAccess', function() {
     }
     // Assert that Kiwi is still not allowed to rename the workspace.
     const kiwiResp4 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
-      name: 'Kiwi-Rename2',
+      name: "Kiwi-Rename2",
     }, kiwi);
     assert.equal(kiwiResp4.status, 403);
     // Assert that Charon is still allowed to GET the workspace.
@@ -605,7 +605,7 @@ describe('ApiServerAccess', function() {
     assert.equal(charonResp1.status, 200);
     // Assert that as the owner, Chimpy can still rename the workspace.
     const resp4 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
-      name: 'Chimpy-Rename',
+      name: "Chimpy-Rename",
     }, chimpy);
     assert.equal(resp4.status, 200);
 
@@ -613,7 +613,7 @@ describe('ApiServerAccess', function() {
     const delta3 = {
       maxInheritedRole: null,
       users: {
-        [kiwiEmail]: 'viewers',
+        [kiwiEmail]: "viewers",
       },
     };
     const resp5 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta: delta3 }, chimpy);
@@ -629,16 +629,16 @@ describe('ApiServerAccess', function() {
     assert.equal(charonResp2.status, 403);
     // Assert that as the owner, Chimpy can still rename the workspace.
     const resp6 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
-      name: 'Chimpy-Rename2',
+      name: "Chimpy-Rename2",
     }, chimpy);
     assert.equal(resp6.status, 200);
 
     // Add Charon as an editor to 'Public', and make sure it does NOT affect org
     // guest access for Kiwi.
-    const wid2 = await dbManager.testGetId('Public');
+    const wid2 = await dbManager.testGetId("Public");
     const delta4 = {
       users: {
-        [charonEmail]: 'editors',
+        [charonEmail]: "editors",
       },
     };
     const resp7 = await axios.patch(`${homeUrl}/api/workspaces/${wid2}/access`, { delta: delta4 }, chimpy);
@@ -665,7 +665,7 @@ describe('ApiServerAccess', function() {
 
     // Reset inheritance and remove Kiwi's custom permissions
     const delta6 = {
-      maxInheritedRole: 'owners',
+      maxInheritedRole: "owners",
     };
     const resp9 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta: delta6 }, chimpy);
     assert.equal(resp9.status, 200);
@@ -695,7 +695,7 @@ describe('ApiServerAccess', function() {
     assert.equal(charonResp3.status, 200);
     // Assert that as the owner, Chimpy can still rename the workspace.
     const resp10 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
-      name: 'Private',
+      name: "Private",
     }, chimpy);
     assert.equal(resp10.status, 200);
     // Assert that Kiwi is no longer able to GET the org, since Kiwi is no longer a guest
@@ -704,13 +704,13 @@ describe('ApiServerAccess', function() {
     assert.equal(kiwiResp8.status, 403);
   });
 
-  it('PATCH /api/workspaces/{wid}/access allows non-owners to remove themselves', async function() {
-    const wid = await dbManager.testGetId('Private');
+  it("PATCH /api/workspaces/{wid}/access allows non-owners to remove themselves", async function() {
+    const wid = await dbManager.testGetId("Private");
     const url = `${homeUrl}/api/workspaces/${wid}/access`;
     await testAllowNonOwnersToRemoveThemselves(url);
   });
 
-  it('PATCH /api/workspaces/{wid}/access returns 404 appropriately', async function() {
+  it("PATCH /api/workspaces/{wid}/access returns 404 appropriately", async function() {
     const delta = {
       users: {
         [charonEmail]: null,
@@ -720,21 +720,21 @@ describe('ApiServerAccess', function() {
     assert.equal(resp.status, 404);
   });
 
-  it('PATCH /api/workspaces/{wid}/access returns 403 appropriately', async function() {
+  it("PATCH /api/workspaces/{wid}/access returns 403 appropriately", async function() {
     // Attempt to set access with a user that does not have ACL_EDIT permissions.
-    const wid = await dbManager.testGetId('Private');
+    const wid = await dbManager.testGetId("Private");
     const delta = {
       users: {
-        [kiwiEmail]: 'viewers',
+        [kiwiEmail]: "viewers",
       },
     };
     const resp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta }, charon);
     assert.equal(resp.status, 403);
   });
 
-  it('PATCH /api/workspaces/{wid}/access returns 400 appropriately', async function() {
+  it("PATCH /api/workspaces/{wid}/access returns 400 appropriately", async function() {
     // Omit the delta and check that the operation fails with 400.
-    const wid = await dbManager.testGetId('Private');
+    const wid = await dbManager.testGetId("Private");
     const resp1 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {}, chimpy);
     assert.equal(resp1.status, 400);
     // Omit the content and check that the operation fails with 400.
@@ -743,14 +743,14 @@ describe('ApiServerAccess', function() {
     // Attempt to update own permissions check that the operation fails with 400.
     const delta = {
       users: {
-        [chimpyEmail]: 'viewers',
+        [chimpyEmail]: "viewers",
       },
     };
     const resp3 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta }, chimpy);
     assert.equal(resp3.status, 400);
   });
 
-  it('PATCH /api/workspaces/{wid}/access returns 403 if too many invites are pending', async function() {
+  it("PATCH /api/workspaces/{wid}/access returns 403 if too many invites are pending", async function() {
     const orgId = await dbManager.testGetId("TestMaxNewUserInvites");
     const wsId = await dbManager.testGetId("TestMaxNewUserInvitesWs");
     try {
@@ -825,10 +825,10 @@ describe('ApiServerAccess', function() {
     }
   });
 
-  it('PATCH /api/docs/{did}/access is operational', async function() {
-    const oid = await dbManager.testGetId('Chimpyland');
-    const wid = await dbManager.testGetId('Private');
-    const did = await dbManager.testGetId('Timesheets');
+  it("PATCH /api/docs/{did}/access is operational", async function() {
+    const oid = await dbManager.testGetId("Chimpyland");
+    const wid = await dbManager.testGetId("Private");
+    const did = await dbManager.testGetId("Timesheets");
 
     // Assert that Kiwi is unable to GET the workspace, since Kiwi has no permissions on
     // the org/workspace.
@@ -836,14 +836,14 @@ describe('ApiServerAccess', function() {
     assert.equal(kiwiResp1.status, 403);
     // Make Kiwi a member of the org.
     const delta0 = {
-      users: { [kiwiEmail]: 'members' },
+      users: { [kiwiEmail]: "members" },
     };
     const resp1 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: delta0 }, chimpy);
     assert.equal(resp1.status, 200);
 
     // Make Kiwi a doc editor for Timesheets
     const delta1 = {
-      users: { [kiwiEmail]: 'editors' },
+      users: { [kiwiEmail]: "editors" },
     };
     const resp2 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta: delta1 }, chimpy);
     assert.equal(resp2.status, 200);
@@ -853,19 +853,19 @@ describe('ApiServerAccess', function() {
       assert.match(mail.description, /^invite kiwi@getgrist.com to http.*\/o\/docs\/doc\/.*$/);
       const env = mail.payload.personalizations[0].dynamic_template_data;
       assert.match(env.resource.url, /^http.*\/o\/docs\/doc\/.*$/);
-      assert.equal(env.resource.kind, 'document');
-      assert.equal(env.resource.kindUpperFirst, 'Document');
+      assert.equal(env.resource.kind, "document");
+      assert.equal(env.resource.kindUpperFirst, "Document");
       assert.equal(env.resource.isTeamSite, false);
       assert.equal(env.resource.isWorkspace, false);
       assert.equal(env.resource.isDocument, true);
-      assert.equal(env.resource.name, 'Timesheets');
+      assert.equal(env.resource.name, "Timesheets");
     }
 
     // Assert that the number of users in Chimpyland has updated (Kiwi was added).
     assert.deepEqual(userCountUpdates[oid as number], [3]);
     // Assert that Kiwi is not allowed to rename doc 'Timesheets' in Chimpyland
     const kiwiResp2 = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      name: 'Kiwi-Rename',
+      name: "Kiwi-Rename",
     }, kiwi);
     assert.equal(kiwiResp2.status, 403);
     // Assert that Kiwi is also now able to GET the workspace, since Kiwi is now a guest of
@@ -885,24 +885,24 @@ describe('ApiServerAccess', function() {
     }
     // Assert that Kiwi is still not allowed to rename the doc.
     const kiwiResp5 = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      name: 'Kiwi-Rename2',
+      name: "Kiwi-Rename2",
     }, kiwi);
     assert.equal(kiwiResp5.status, 403);
     // Assert that Charon cannot view 'Timesheets'.
     const charonResp1 = await axios.get(`${homeUrl}/api/workspaces/${wid}`, charon);
     assert.equal(charonResp1.status, 200);
-    assert.deepEqual(charonResp1.data.docs.map((doc: any) => doc.name), ['Appointments']);
+    assert.deepEqual(charonResp1.data.docs.map((doc: any) => doc.name), ["Appointments"]);
     // Assert that as the owner, Chimpy can still rename the doc.
     const resp4 = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      name: 'Chimpy-Rename',
+      name: "Chimpy-Rename",
     }, chimpy);
     assert.equal(resp4.status, 200);
 
     // Add inheritance for viewers and also update Kiwi's role to viewer.
     const delta3 = {
-      maxInheritedRole: 'viewers',
+      maxInheritedRole: "viewers",
       users: {
-        [kiwiEmail]: 'viewers',
+        [kiwiEmail]: "viewers",
       },
     };
     const resp5 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta: delta3 }, chimpy);
@@ -914,29 +914,29 @@ describe('ApiServerAccess', function() {
     const kiwiResp6 = await axios.get(`${homeUrl}/api/workspaces/${wid}`, kiwi);
     assert.equal(kiwiResp6.status, 200);
     assert.deepEqual(kiwiResp6.data.docs.map((doc: any) => doc.name),
-      ['Chimpy-Rename']);
+      ["Chimpy-Rename"]);
     // Assert that Charon can now view the doc.
     const charonResp2 = await axios.get(`${homeUrl}/api/workspaces/${wid}`, charon);
     assert.equal(charonResp2.status, 200);
     assert.deepEqual(charonResp2.data.docs.map((doc: any) => doc.name),
-      ['Chimpy-Rename', 'Appointments']);
+      ["Chimpy-Rename", "Appointments"]);
     // Assert that Charon can NOT rename the doc.
     const charonResp3 = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      name: 'Charon-Invalid-Rename',
+      name: "Charon-Invalid-Rename",
     }, charon);
     assert.equal(charonResp3.status, 403);
     // Assert that as the owner, Chimpy can still rename the doc.
     const resp6 = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      name: 'Timesheets',
+      name: "Timesheets",
     }, chimpy);
     assert.equal(resp6.status, 200);
 
     // Add Charon as an editor to 'Appointments', and make sure it does NOT affect org
     // or workspace guest access for Kiwi.
-    const did2 = await dbManager.testGetId('Appointments');
+    const did2 = await dbManager.testGetId("Appointments");
     const delta4 = {
       users: {
-        [charonEmail]: 'editors',
+        [charonEmail]: "editors",
       },
     };
     const resp7 = await axios.patch(`${homeUrl}/api/docs/${did2}/access`, { delta: delta4 }, chimpy);
@@ -964,7 +964,7 @@ describe('ApiServerAccess', function() {
 
     // Reset doc inheritance setting
     const delta6 = {
-      maxInheritedRole: 'owners',
+      maxInheritedRole: "owners",
     };
     const resp9 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta: delta6 }, chimpy);
     assert.equal(resp9.status, 200);
@@ -996,20 +996,20 @@ describe('ApiServerAccess', function() {
     assert.equal(kiwiResp10.status, 403);
   });
 
-  it('PATCH /api/docs/{did}/access allows non-owners to remove themselves', async function() {
-    const did = await dbManager.testGetId('Timesheets');
+  it("PATCH /api/docs/{did}/access allows non-owners to remove themselves", async function() {
+    const did = await dbManager.testGetId("Timesheets");
     const url = `${homeUrl}/api/docs/${did}/access`;
     await testAllowNonOwnersToRemoveThemselves(url);
   });
 
-  it('PATCH /api/docs/{did}/access can send multiple invites', async function() {
-    const did = await dbManager.testGetId('Timesheets');
+  it("PATCH /api/docs/{did}/access can send multiple invites", async function() {
+    const did = await dbManager.testGetId("Timesheets");
 
     let delta: PermissionDelta = {
       users: {
-        'user1@getgrist.com': 'editors',
-        'user2@getgrist.com': 'viewers',
-        'user3@getgrist.com': 'viewers',
+        "user1@getgrist.com": "editors",
+        "user2@getgrist.com": "viewers",
+        "user3@getgrist.com": "viewers",
       },
     };
     let resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta }, chimpy);
@@ -1018,17 +1018,17 @@ describe('ApiServerAccess', function() {
       const mail = await assertLastMail();
       assert.lengthOf(mail.payload.personalizations, 3);
       assert.sameMembers(mail.payload.personalizations.map(p => p.to[0].email),
-        ['user1@getgrist.com', 'user2@getgrist.com', 'user3@getgrist.com']);
+        ["user1@getgrist.com", "user2@getgrist.com", "user3@getgrist.com"]);
       assert.deepEqual(mail.payload.personalizations.map(p => p.dynamic_template_data.access),
-        [{ role: 'editors', canEdit: true, canView: true, canEditAccess: false },
-          { role: 'viewers', canEdit: false, canView: true, canEditAccess: false },
-          { role: 'viewers', canEdit: false, canView: true, canEditAccess: false }]);
+        [{ role: "editors", canEdit: true, canView: true, canEditAccess: false },
+          { role: "viewers", canEdit: false, canView: true, canEditAccess: false },
+          { role: "viewers", canEdit: false, canView: true, canEditAccess: false }]);
     }
     delta = {
       users: {
-        'user2@getgrist.com': null,
-        'user3@getgrist.com': 'editors',
-        'user4@getgrist.com': 'viewers',
+        "user2@getgrist.com": null,
+        "user3@getgrist.com": "editors",
+        "user4@getgrist.com": "viewers",
       },
     };
     resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta }, chimpy);
@@ -1037,15 +1037,15 @@ describe('ApiServerAccess', function() {
       const mail = await assertLastMail();
       assert.lengthOf(mail.payload.personalizations, 1);
       assert.deepEqual(mail.payload.personalizations[0].to, [{
-        email: 'user4@getgrist.com',
-        name: '',  // name is blank since this user has never logged in.
+        email: "user4@getgrist.com",
+        name: "",  // name is blank since this user has never logged in.
       }]);
     }
     delta = {
       users: {
-        'user1@getgrist.com': null,
-        'user3@getgrist.com': null,
-        'user4@getgrist.com': null,
+        "user1@getgrist.com": null,
+        "user3@getgrist.com": null,
+        "user4@getgrist.com": null,
       },
     };
     resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta }, chimpy);
@@ -1055,7 +1055,7 @@ describe('ApiServerAccess', function() {
     }
   });
 
-  it('PATCH /api/docs/{did}/access returns 404 appropriately', async function() {
+  it("PATCH /api/docs/{did}/access returns 404 appropriately", async function() {
     const delta = {
       users: {
         [charonEmail]: null,
@@ -1065,19 +1065,19 @@ describe('ApiServerAccess', function() {
     assert.equal(resp.status, 404);
   });
 
-  it('PATCH /api/docs/{did}/access returns 403 appropriately', async function() {
+  it("PATCH /api/docs/{did}/access returns 403 appropriately", async function() {
     // Attempt to set access with a user that does not have ACL_EDIT permissions.
-    const did = await dbManager.testGetId('Timesheets');
+    const did = await dbManager.testGetId("Timesheets");
     const delta = {
       users: {
-        [kiwiEmail]: 'viewers',
+        [kiwiEmail]: "viewers",
       },
     };
     const resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta }, charon);
     assert.equal(resp.status, 403);
   });
 
-  it('PATCH /api/docs/{did}/access returns 403 if too many invites are pending', async function() {
+  it("PATCH /api/docs/{did}/access returns 403 if too many invites are pending", async function() {
     const did1 = await dbManager.testGetId("TestMaxNewUserInvitesDoc1");
     const did2 = await dbManager.testGetId("TestMaxNewUserInvitesDoc2");
     try {
@@ -1158,9 +1158,9 @@ describe('ApiServerAccess', function() {
     }
   });
 
-  it('PATCH /api/docs/{did}/access returns 400 appropriately', async function() {
+  it("PATCH /api/docs/{did}/access returns 400 appropriately", async function() {
     // Omit the delta and check that the operation fails with 400.
-    const did = await dbManager.testGetId('Timesheets');
+    const did = await dbManager.testGetId("Timesheets");
     const resp1 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {}, chimpy);
     assert.equal(resp1.status, 400);
     // Omit the content and check that the operation fails with 400.
@@ -1169,21 +1169,21 @@ describe('ApiServerAccess', function() {
     // Attempt to update own permissions check that the operation fails with 400.
     const delta = {
       users: {
-        [chimpyEmail]: 'viewers',
+        [chimpyEmail]: "viewers",
       },
     };
     const resp3 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta }, chimpy);
     assert.equal(resp3.status, 400);
   });
 
-  it('GET /api/orgs/{oid}/access is operational', async function() {
-    const oid = await dbManager.testGetId('Chimpyland');
+  it("GET /api/orgs/{oid}/access is operational", async function() {
+    const oid = await dbManager.testGetId("Chimpyland");
     const resp = await axios.get(`${homeUrl}/api/orgs/${oid}/access`, chimpy);
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.data, {
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
@@ -1191,7 +1191,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 3,
-        name: 'Charon',
+        name: "Charon",
         email: charonEmail,
         ref: charonRef,
         picture: null,
@@ -1201,28 +1201,28 @@ describe('ApiServerAccess', function() {
     });
   });
 
-  it('GET /api/orgs/{oid}/access returns 404 appropriately', async function() {
+  it("GET /api/orgs/{oid}/access returns 404 appropriately", async function() {
     const resp = await axios.get(`${homeUrl}/api/orgs/9999/access`, chimpy);
     assert.equal(resp.status, 404);
   });
 
-  it('GET /api/orgs/{oid}/access returns 403 appropriately', async function() {
-    const oid = await dbManager.testGetId('Chimpyland');
+  it("GET /api/orgs/{oid}/access returns 403 appropriately", async function() {
+    const oid = await dbManager.testGetId("Chimpyland");
     const resp = await axios.get(`${homeUrl}/api/orgs/${oid}/access`, kiwi);
     assert.equal(resp.status, 403);
   });
 
-  it('GET /api/workspaces/{wid}/access is operational', async function() {
+  it("GET /api/workspaces/{wid}/access is operational", async function() {
     // Run a simple case on a Chimpyland workspace
-    const oid = await dbManager.testGetId('Chimpyland');
-    const wid = await dbManager.testGetId('Public');
+    const oid = await dbManager.testGetId("Chimpyland");
+    const wid = await dbManager.testGetId("Public");
     const resp1 = await axios.get(`${homeUrl}/api/workspaces/${wid}/access`, chimpy);
     assert.equal(resp1.status, 200);
     assert.deepEqual(resp1.data, {
       maxInheritedRole: "owners",
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
@@ -1231,7 +1231,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 3,
-        name: 'Charon',
+        name: "Charon",
         email: charonEmail,
         ref: charonRef,
         picture: null,
@@ -1264,7 +1264,7 @@ describe('ApiServerAccess', function() {
       maxInheritedRole: null,
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
@@ -1274,7 +1274,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 2,
-        name: 'Kiwi',
+        name: "Kiwi",
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
@@ -1283,7 +1283,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 3,
-        name: 'Charon',
+        name: "Charon",
         email: charonEmail,
         ref: charonRef,
         picture: null,
@@ -1329,7 +1329,7 @@ describe('ApiServerAccess', function() {
     // Add a doc to 'Public', and add Kiwi to the doc.
     // Add a doc to 'Public'
     const addDocResp = await axios.post(`${homeUrl}/api/workspaces/${wid}/docs`, {
-      name: 'PublicDoc',
+      name: "PublicDoc",
     }, chimpy);
     // Assert that the response is successful
     assert.equal(addDocResp.status, 200);
@@ -1346,7 +1346,7 @@ describe('ApiServerAccess', function() {
       maxInheritedRole: "owners",
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
@@ -1355,7 +1355,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 2,
-        name: 'Kiwi',
+        name: "Kiwi",
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
@@ -1364,7 +1364,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 3,
-        name: 'Charon',
+        name: "Charon",
         email: charonEmail,
         ref: charonRef,
         picture: null,
@@ -1385,7 +1385,7 @@ describe('ApiServerAccess', function() {
       maxInheritedRole: "owners",
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
@@ -1403,7 +1403,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 3,
-        name: 'Charon',
+        name: "Charon",
         email: charonEmail,
         ref: charonRef,
         picture: null,
@@ -1422,28 +1422,28 @@ describe('ApiServerAccess', function() {
     assert.equal(orgPatchResp2.status, 200);
   });
 
-  it('GET /api/workspaces/{wid}/access returns 404 appropriately', async function() {
+  it("GET /api/workspaces/{wid}/access returns 404 appropriately", async function() {
     const resp = await axios.get(`${homeUrl}/api/workspaces/9999/access`, chimpy);
     assert.equal(resp.status, 404);
   });
 
-  it('GET /api/workspaces/{wid}/access returns 403 appropriately', async function() {
-    const wid = await dbManager.testGetId('Private');
+  it("GET /api/workspaces/{wid}/access returns 403 appropriately", async function() {
+    const wid = await dbManager.testGetId("Private");
     const resp = await axios.get(`${homeUrl}/api/workspaces/${wid}/access`, kiwi);
     assert.equal(resp.status, 403);
   });
 
-  it('GET /api/docs/{did}/access is operational', async function() {
+  it("GET /api/docs/{did}/access is operational", async function() {
     // Run a simple case on a Chimpyland doc
-    const oid = await dbManager.testGetId('Chimpyland');
-    const did = await dbManager.testGetId('Timesheets');
+    const oid = await dbManager.testGetId("Chimpyland");
+    const did = await dbManager.testGetId("Timesheets");
     const resp1 = await axios.get(`${homeUrl}/api/docs/${did}/access`, chimpy);
     assert.equal(resp1.status, 200);
     assert.deepEqual(resp1.data, {
       maxInheritedRole: "owners",
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
@@ -1453,7 +1453,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 3,
-        name: 'Charon',
+        name: "Charon",
         email: charonEmail,
         ref: charonRef,
         picture: null,
@@ -1485,7 +1485,7 @@ describe('ApiServerAccess', function() {
       maxInheritedRole: null,
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
@@ -1494,7 +1494,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 2,
-        name: 'Kiwi',
+        name: "Kiwi",
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
@@ -1503,7 +1503,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 3,
-        name: 'Charon',
+        name: "Charon",
         email: charonEmail,
         ref: charonRef,
         picture: null,
@@ -1531,8 +1531,8 @@ describe('ApiServerAccess', function() {
 
     // Run another complex case by modifying maxInheritedRole and individual roles of the workspace
     // the doc is in then querying for access.
-    const shark = await dbManager.testGetId('Shark');
-    const sharkWs = await dbManager.testGetId('Big');
+    const shark = await dbManager.testGetId("Shark");
+    const sharkWs = await dbManager.testGetId("Big");
     const wsDelta = {
       maxInheritedRole: "viewers",
     };
@@ -1542,10 +1542,10 @@ describe('ApiServerAccess', function() {
     assert.equal(resp3.status, 200);
     // Assert that the maxInheritedRole of the workspace limits inherited access from the org.
     assert.deepEqual(resp3.data, {
-      maxInheritedRole: 'owners',
+      maxInheritedRole: "owners",
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
@@ -1556,7 +1556,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 2,
-        name: 'Kiwi',
+        name: "Kiwi",
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
@@ -1565,7 +1565,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 3,
-        name: 'Charon',
+        name: "Charon",
         email: charonEmail,
         ref: charonRef,
         picture: null,
@@ -1582,23 +1582,23 @@ describe('ApiServerAccess', function() {
     assert.equal(resetResp2.status, 200);
   });
 
-  it('GET /api/docs/{did}/access returns 404 appropriately', async function() {
+  it("GET /api/docs/{did}/access returns 404 appropriately", async function() {
     const resp = await axios.get(`${homeUrl}/api/docs/9999/access`, chimpy);
     assert.equal(resp.status, 404);
   });
 
-  it('GET /api/docs/{did}/access returns 403 appropriately', async function() {
-    const did = await dbManager.testGetId('Timesheets');
+  it("GET /api/docs/{did}/access returns 403 appropriately", async function() {
+    const did = await dbManager.testGetId("Timesheets");
     const resp = await axios.get(`${homeUrl}/api/docs/${did}/access`, kiwi);
     assert.equal(resp.status, 403);
   });
 
-  describe('GET /api/docs/{did}/access shows collaborators', async function() {
+  describe("GET /api/docs/{did}/access shows collaborators", async function() {
     // Chimpy will be our org owner.
-    let thisDoc = ''; // This is a default document we will work with
+    let thisDoc = ""; // This is a default document we will work with
     let thisWs = 0; // This is the default workspace we will work with
-    let otherDocInWs = '';
-    const hamEmail = 'ham@getgrist.com';
+    let otherDocInWs = "";
+    const hamEmail = "ham@getgrist.com";
     let otherWs = 0;
     let chimpyApi: UserAPI, kiwiApi: UserAPI, charonApi: UserAPI, hamApi: UserAPI, anonApi: UserAPI;
 
@@ -1617,84 +1617,84 @@ describe('ApiServerAccess', function() {
 
     before(async function() {
       // Create a new document and add some users to it.
-      chimpyApi = await server.createHomeApi('chimpy', 'fish', true);
-      kiwiApi = await server.createHomeApi('kiwi', 'fish', true);
-      charonApi = await server.createHomeApi('charon', 'fish', true);
-      hamApi = await server.createHomeApi('ham', 'fish', true, false);
-      anonApi = await server.createHomeApi('anonymous', 'fish', true, false);
+      chimpyApi = await server.createHomeApi("chimpy", "fish", true);
+      kiwiApi = await server.createHomeApi("kiwi", "fish", true);
+      charonApi = await server.createHomeApi("charon", "fish", true);
+      hamApi = await server.createHomeApi("ham", "fish", true, false);
+      anonApi = await server.createHomeApi("anonymous", "fish", true, false);
 
-      otherWs = await chimpyApi.getOrgWorkspaces('fish').then(w => w.find(w => w.name === 'Big')!.id);
-      thisWs = await chimpyApi.getOrgWorkspaces('fish').then(w => w.find(w => w.name === 'Small')!.id);
+      otherWs = await chimpyApi.getOrgWorkspaces("fish").then(w => w.find(w => w.name === "Big")!.id);
+      thisWs = await chimpyApi.getOrgWorkspaces("fish").then(w => w.find(w => w.name === "Small")!.id);
 
-      thisDoc = await chimpyApi.getWorkspace(thisWs).then(w => w.docs.find(d => d.name === 'Anchovy')!.id);
-      otherDocInWs = await chimpyApi.getWorkspace(thisWs).then(w => w.docs.find(d => d.name === 'Herring')!.id);
+      thisDoc = await chimpyApi.getWorkspace(thisWs).then(w => w.docs.find(d => d.name === "Anchovy")!.id);
+      otherDocInWs = await chimpyApi.getWorkspace(thisWs).then(w => w.docs.find(d => d.name === "Herring")!.id);
     });
 
     // Each test will revert all changes in the permissions.
 
-    it('org owners should see all users', async function() {
+    it("org owners should see all users", async function() {
       // Owner see everyone.
-      await check(chimpyApi, thisDoc, ['Chimpy', 'Charon', 'Kiwi']);
+      await check(chimpyApi, thisDoc, ["Chimpy", "Charon", "Kiwi"]);
 
       // Add Ham as a guest to the workspace.
       let revert = await shareWs(chimpyApi, thisWs, hamEmail, roles.VIEWER);
 
       // Now we see the guest.
-      await check(chimpyApi, thisDoc, ['Chimpy', 'Charon', 'Kiwi', 'Ham']);
+      await check(chimpyApi, thisDoc, ["Chimpy", "Charon", "Kiwi", "Ham"]);
 
       // Add Ham as a guest to the doc.
       await revert();
-      await check(chimpyApi, thisDoc, ['Chimpy', 'Charon', 'Kiwi']);
+      await check(chimpyApi, thisDoc, ["Chimpy", "Charon", "Kiwi"]);
       revert = await shareDoc(chimpyApi, hamEmail, thisDoc, roles.VIEWER);
-      await check(chimpyApi, thisDoc, ['Chimpy', 'Charon', 'Kiwi', 'Ham']);
+      await check(chimpyApi, thisDoc, ["Chimpy", "Charon", "Kiwi", "Ham"]);
       await revert();
 
       // Break the inheritance for the doc.
       await breakInheritance(chimpyApi, thisDoc);
 
       // Owner still see everyone.
-      await check(chimpyApi, thisDoc, ['Chimpy', 'Charon', 'Kiwi']);
+      await check(chimpyApi, thisDoc, ["Chimpy", "Charon", "Kiwi"]);
 
       // Even ws level guests.
       revert = await shareWs(chimpyApi, thisWs, hamEmail, roles.VIEWER);
-      await check(chimpyApi, thisDoc, ['Chimpy', 'Charon', 'Kiwi', 'Ham']);
+      await check(chimpyApi, thisDoc, ["Chimpy", "Charon", "Kiwi", "Ham"]);
       await revert();
 
       // Restore the inheritance for the doc.
       await fullInheritance(chimpyApi, thisDoc);
     });
 
-    it('viewers should see themselves only', async function() {
+    it("viewers should see themselves only", async function() {
       // Add Ham as doc viewer guest.
       let revert = await shareDoc(chimpyApi, hamEmail, thisDoc, roles.VIEWER);
-      await check(charonApi, thisDoc, ['Charon']);
-      await check(hamApi, thisDoc,  ['Ham']);
+      await check(charonApi, thisDoc, ["Charon"]);
+      await check(hamApi, thisDoc,  ["Ham"]);
       await revert();
 
       // Add Ham as ws viewer guest.
       revert = await shareWs(chimpyApi, thisWs, hamEmail, roles.VIEWER);
-      await check(charonApi, thisDoc, ['Charon']);
-      await check(hamApi, thisDoc, ['Ham']);
+      await check(charonApi, thisDoc, ["Charon"]);
+      await check(hamApi, thisDoc, ["Ham"]);
       await revert();
     });
 
-    it('anonymous should see no one', async function() {
+    it("anonymous should see no one", async function() {
       // Sanity check that anonymous user don't have access.
       await assert.isRejected(anonApi.getDocAccess(thisDoc));
       // Make doc public as viewers.
       let revert = await shareDoc(chimpyApi, everyoneEmail, thisDoc, roles.VIEWER);
       await check(anonApi, thisDoc, []);
-      await check(charonApi, thisDoc, ['Charon']);
+      await check(charonApi, thisDoc, ["Charon"]);
       await revert();
 
       // Make ws public as viewers.
       revert = await shareDoc(chimpyApi, everyoneEmail, thisDoc, roles.EDITOR);
       await check(anonApi, thisDoc, []);
-      await check(charonApi, thisDoc, ['Charon']);
+      await check(charonApi, thisDoc, ["Charon"]);
       await revert();
     });
 
-    it('non-team collaborators should see only users with access to doc', async function() {
+    it("non-team collaborators should see only users with access to doc", async function() {
       // First lets remove charon from the org.
       await unshareOrg(chimpyApi, charonEmail);
 
@@ -1705,44 +1705,44 @@ describe('ApiServerAccess', function() {
       await shareDoc(chimpyApi, hamEmail, thisDoc, roles.EDITOR);
 
       // Ham does not see Charon, as he is not a team member.
-      await check(hamApi, thisDoc, ['Chimpy', 'Ham', 'Kiwi']);
+      await check(hamApi, thisDoc, ["Chimpy", "Ham", "Kiwi"]);
 
       // Check if Ham will see Charon if he is an owner of a doc in the same ws.
       await unshareWs(chimpyApi, charonEmail, otherWs);
       await shareDoc(chimpyApi, charonEmail, otherDocInWs, roles.OWNER);
       // He still can't see him.
-      await check(hamApi, thisDoc, ['Chimpy', 'Ham', 'Kiwi']);
+      await check(hamApi, thisDoc, ["Chimpy", "Ham", "Kiwi"]);
       // Check what Kiwi sees as a team member (editor on org). Charon should not be listed.
-      await check(kiwiApi, thisDoc, ['Chimpy', 'Ham', 'Kiwi']);
+      await check(kiwiApi, thisDoc, ["Chimpy", "Ham", "Kiwi"]);
       // But Chimpy sees everyone.
-      await check(chimpyApi, thisDoc, ['Charon', 'Chimpy', 'Ham', 'Kiwi']);
+      await check(chimpyApi, thisDoc, ["Charon", "Chimpy", "Ham", "Kiwi"]);
 
       // Revert all.
       await unshareDoc(chimpyApi, charonEmail, otherDocInWs);
       await shareOrg(chimpyApi, charonEmail, roles.VIEWER);
     });
 
-    it('doc collaborators should see users with view access on doc', async function() {
+    it("doc collaborators should see users with view access on doc", async function() {
       // Add Ham as workspace editor (so now he is a guest in the org)
       let revert = await shareWs(chimpyApi, thisWs, hamEmail, roles.EDITOR);
 
       // Team editor can see all doc collaborators
       await check(kiwiApi, thisDoc, [
-        'Chimpy', 'Charon', 'Kiwi', 'Ham',
+        "Chimpy", "Charon", "Kiwi", "Ham",
       ]);
       // Workspace editor can see all doc collaborators
       await check(hamApi, thisDoc, [
-        'Chimpy', 'Charon', 'Kiwi', 'Ham',
+        "Chimpy", "Charon", "Kiwi", "Ham",
       ]);
       await revert();
 
       // Add Ham as doc editor guest.
       revert = await shareDoc(chimpyApi, hamEmail, thisDoc, roles.EDITOR);
       await check(kiwiApi, thisDoc, [
-        'Chimpy', 'Charon', 'Kiwi', 'Ham',
+        "Chimpy", "Charon", "Kiwi", "Ham",
       ]);
       await check(hamApi, thisDoc, [
-        'Chimpy', 'Charon', 'Kiwi', 'Ham',
+        "Chimpy", "Charon", "Kiwi", "Ham",
       ]);
       await revert();
 
@@ -1758,7 +1758,7 @@ describe('ApiServerAccess', function() {
 
       // Kiwi is a team editor without any ownership, so he will only see doc collaborators
       await check(kiwiApi, thisDoc, [
-        'Chimpy', 'Kiwi',
+        "Chimpy", "Kiwi",
       ]);
 
       // Since Charon has no access to the doc, Kiwi doesn't see Charon listed at all.
@@ -1777,7 +1777,7 @@ describe('ApiServerAccess', function() {
       await fullInheritance(chimpyApi, thisDoc);
     });
 
-    it('public users see only themselves', async function() {
+    it("public users see only themselves", async function() {
       // Remove Kiwi from the org.
       await unshareOrg(chimpyApi, kiwiEmail);
 
@@ -1791,11 +1791,11 @@ describe('ApiServerAccess', function() {
       await shareDoc(chimpyApi, everyoneEmail, thisDoc, roles.VIEWER);
       await assert.isFulfilled(charonApi.getDocAccess(thisDoc));
       // And Charon can see only himself, he is public viewer.
-      await check(charonApi, thisDoc, ['Charon']);
+      await check(charonApi, thisDoc, ["Charon"]);
       // Make him public editor.
       await shareDoc(chimpyApi, everyoneEmail, thisDoc, roles.EDITOR);
       // Still, though he is team member, he has public access to the doc.
-      await check(charonApi, thisDoc, ['Charon']);
+      await check(charonApi, thisDoc, ["Charon"]);
       // Kiwi is an outside collaborator, so the list is empty, as grist treats Kiwi as anonymous
       await assert.isFulfilled(kiwiApi.getDocAccess(thisDoc));
       await check(kiwiApi, thisDoc, []);
@@ -1806,7 +1806,7 @@ describe('ApiServerAccess', function() {
       await shareOrg(chimpyApi, kiwiEmail, roles.EDITOR);
     });
 
-    it('workspace owner should see all users from workspace', async function() {
+    it("workspace owner should see all users from workspace", async function() {
       // Remove everyone from the the org.
       await unshareOrg(chimpyApi, kiwiEmail);
       await unshareOrg(chimpyApi, charonEmail);
@@ -1819,11 +1819,11 @@ describe('ApiServerAccess', function() {
       await shareDoc(chimpyApi, hamEmail, thisDoc, roles.EDITOR);
       // He will see only doc collaborators (so not Charon).
       await check(hamApi, thisDoc, [
-        'Chimpy', 'Kiwi', 'Ham',
+        "Chimpy", "Kiwi", "Ham",
       ]);
       // But Kiwi as a workspace owner will see Charon.
       await check(kiwiApi, thisDoc, [
-        'Chimpy', 'Kiwi', 'Ham', 'Charon',
+        "Chimpy", "Kiwi", "Ham", "Charon",
       ]);
 
       // Make sure Kiwi, despite being a workspace owner, does not see Ham as a team member.
@@ -1831,13 +1831,13 @@ describe('ApiServerAccess', function() {
       await shareOrg(chimpyApi, hamEmail, roles.EDITOR);
       // With full inheritance, Kiwi can see Ham.
       await check(kiwiApi, thisDoc, [
-        'Chimpy', 'Kiwi', 'Charon', 'Ham',
+        "Chimpy", "Kiwi", "Charon", "Ham",
       ]);
 
       // Without workspace inheritance, Kiwi won't see Ham (he is a editor member of the org).
       await breakInheritance(chimpyApi, thisWs);
       await check(kiwiApi, thisDoc, [
-        'Chimpy', 'Kiwi', 'Charon',
+        "Chimpy", "Kiwi", "Charon",
       ]);
 
       // If we break inheritance for the doc, Kiwi won't be able to access document (despite being a ws owner).
@@ -1849,7 +1849,7 @@ describe('ApiServerAccess', function() {
 
       // Kiwi still only sees Kiwi, as this is what viewer can see.
       await check(kiwiApi, thisDoc, [
-        'Kiwi',
+        "Kiwi",
       ]);
 
       await unshareDoc(chimpyApi, kiwiEmail, thisDoc);
@@ -1874,12 +1874,12 @@ describe('ApiServerAccess', function() {
     }
   });
 
-  it('should show special users if they are added', async function() {
+  it("should show special users if they are added", async function() {
     // TODO We may want to expose special flags in requests and responses rather than allow adding
     // and retrieving special email addresses. For now, just make sure that if we succeed adding a
     // a special user, that we can also retrieve it.
-    const wid = await dbManager.testGetId('Private');
-    const did = await dbManager.testGetId('Timesheets');    // This is inside workspace `wid`
+    const wid = await dbManager.testGetId("Private");
+    const did = await dbManager.testGetId("Timesheets");    // This is inside workspace `wid`
 
     // Turns users from PermissionData into a mapping from email address to [access, parentAccess],
     // for more concise comparisons below.
@@ -1888,23 +1888,23 @@ describe('ApiServerAccess', function() {
     }
 
     let resp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`,
-      { delta: { users: { [everyoneEmail]: 'viewers' } } }, chimpy);
+      { delta: { users: { [everyoneEmail]: "viewers" } } }, chimpy);
     assert.equal(resp.status, 200);
 
     // The special user should be visible when we get the access list.
     resp = await axios.get(`${homeUrl}/api/workspaces/${wid}/access`, chimpy);
     assert.deepEqual(compactAccess(resp.data), {
-      [chimpyEmail]: ['owners', 'owners'],
-      [charonEmail]: [null, 'viewers'],
-      [everyoneEmail]: ['viewers', null],
+      [chimpyEmail]: ["owners", "owners"],
+      [charonEmail]: [null, "viewers"],
+      [everyoneEmail]: ["viewers", null],
     });
 
     // The special user should be visible on the doc too, since it's inherited.
     resp = await axios.get(`${homeUrl}/api/docs/${did}/access`, chimpy);
     assert.deepEqual(compactAccess(resp.data), {
-      [chimpyEmail]: ['owners', 'owners'],
-      [charonEmail]: [null, 'viewers'],
-      [everyoneEmail]: [null, 'viewers'],
+      [chimpyEmail]: ["owners", "owners"],
+      [charonEmail]: [null, "viewers"],
+      [everyoneEmail]: [null, "viewers"],
     });
 
     // Remove the special user; it should no longer be visible on either.
@@ -1912,31 +1912,31 @@ describe('ApiServerAccess', function() {
       { delta: { users: { [everyoneEmail]: null } } }, chimpy);
     resp = await axios.get(`${homeUrl}/api/workspaces/${wid}/access`, chimpy);
     assert.deepEqual(compactAccess(resp.data), {
-      [chimpyEmail]: ['owners', 'owners'],
-      [charonEmail]: [null, 'viewers'],
+      [chimpyEmail]: ["owners", "owners"],
+      [charonEmail]: [null, "viewers"],
     });
     resp = await axios.get(`${homeUrl}/api/docs/${did}/access`, chimpy);
     assert.deepEqual(compactAccess(resp.data), {
-      [chimpyEmail]: ['owners', 'owners'],
-      [charonEmail]: [null, 'viewers'],
+      [chimpyEmail]: ["owners", "owners"],
+      [charonEmail]: [null, "viewers"],
     });
 
     // Add special user to the doc.
     resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`,
-      { delta: { users: { [everyoneEmail]: 'editors' } } }, chimpy);
+      { delta: { users: { [everyoneEmail]: "editors" } } }, chimpy);
     assert.equal(resp.status, 200);
     resp = await axios.get(`${homeUrl}/api/docs/${did}/access`, chimpy);
     assert.deepEqual(compactAccess(resp.data), {
-      [chimpyEmail]: ['owners', 'owners'],
-      [charonEmail]: [null, 'viewers'],
-      [everyoneEmail]: ['editors', null],
+      [chimpyEmail]: ["owners", "owners"],
+      [charonEmail]: [null, "viewers"],
+      [everyoneEmail]: ["editors", null],
     });
 
     // But it should not be visible on the workspace.
     resp = await axios.get(`${homeUrl}/api/workspaces/${wid}/access`, chimpy);
     assert.deepEqual(compactAccess(resp.data), {
-      [chimpyEmail]: ['owners', 'owners'],
-      [charonEmail]: [null, 'viewers'],
+      [chimpyEmail]: ["owners", "owners"],
+      [charonEmail]: [null, "viewers"],
     });
 
     // Remove the special user.
@@ -1944,15 +1944,15 @@ describe('ApiServerAccess', function() {
       { delta: { users: { [everyoneEmail]: null } } }, chimpy);
     resp = await axios.get(`${homeUrl}/api/docs/${did}/access`, chimpy);
     assert.deepEqual(compactAccess(resp.data), {
-      [chimpyEmail]: ['owners', 'owners'],
-      [charonEmail]: [null, 'viewers'],
+      [chimpyEmail]: ["owners", "owners"],
+      [charonEmail]: [null, "viewers"],
     });
   });
 
-  it('should allow setting member role', async function() {
-    const oid = await dbManager.testGetId('Chimpyland');
-    const wid = await dbManager.testGetId('Private');
-    const did = await dbManager.testGetId('Timesheets');
+  it("should allow setting member role", async function() {
+    const oid = await dbManager.testGetId("Chimpyland");
+    const wid = await dbManager.testGetId("Private");
+    const did = await dbManager.testGetId("Timesheets");
     const addDelta = {
       users: { [kiwiEmail]: "members" },
     };
@@ -1969,10 +1969,10 @@ describe('ApiServerAccess', function() {
     const kiwiWsAccess = await axios.get(`${homeUrl}/api/workspaces/${wid}/access`, chimpy);
     assert.equal(kiwiWsAccess.status, 200);
     assert.deepEqual(kiwiWsAccess.data, {
-      maxInheritedRole: 'owners',
+      maxInheritedRole: "owners",
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
@@ -1982,7 +1982,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 2,
-        name: 'Kiwi',
+        name: "Kiwi",
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
@@ -1991,7 +1991,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 3,
-        name: 'Charon',
+        name: "Charon",
         email: charonEmail,
         ref: charonRef,
         picture: null,
@@ -2007,7 +2007,7 @@ describe('ApiServerAccess', function() {
     assert.deepEqual(kiwiOrgAccess.data, {
       users: [{
         id: 1,
-        name: 'Chimpy',
+        name: "Chimpy",
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
@@ -2015,7 +2015,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 2,
-        name: 'Kiwi',
+        name: "Kiwi",
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
@@ -2023,7 +2023,7 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }, {
         id: 3,
-        name: 'Charon',
+        name: "Charon",
         email: charonEmail,
         ref: charonRef,
         picture: null,
@@ -2102,11 +2102,11 @@ describe('ApiServerAccess', function() {
     before(async function() {
       // Set NASA to be specifically on a team plan, with team plan restrictions.
       const db = dbManager.connection.manager;
-      nasaOrg = (await db.findOne(Organization, { where: { domain: 'nasa' },
-        relations: ['billingAccount',
-          'billingAccount.product'] }))!;
+      nasaOrg = (await db.findOne(Organization, { where: { domain: "nasa" },
+        relations: ["billingAccount",
+          "billingAccount.product"] }))!;
       oldProduct = nasaOrg.billingAccount.product;
-      nasaOrg.billingAccount.product = (await db.findOne(Product, { where: { name: 'team' } }))!;
+      nasaOrg.billingAccount.product = (await db.findOne(Product, { where: { name: "team" } }))!;
       await nasaOrg.billingAccount.save();
     });
 
@@ -2115,40 +2115,40 @@ describe('ApiServerAccess', function() {
       await nasaOrg.billingAccount.save();
     });
 
-    it('should prevent adding non-org-members to workspaces', async function() {
+    it("should prevent adding non-org-members to workspaces", async function() {
       // Add Kiwi to Horizon
-      const horizonWs = await dbManager.testGetId('Horizon');
+      const horizonWs = await dbManager.testGetId("Horizon");
       const addDelta = {
-        users: { [kiwiEmail]: 'viewers' },
+        users: { [kiwiEmail]: "viewers" },
       };
       const errorResp = await axios.patch(`${homeUrl}/api/workspaces/${horizonWs}/access`,
         { delta: addDelta }, chimpy);
       assert.equal(errorResp.status, 403);
-      assert.equal(errorResp.data.error, 'No external workspace shares permitted');
+      assert.equal(errorResp.data.error, "No external workspace shares permitted");
     });
 
-    it('should prevent adding more than n non-org-members to docs', async function() {
+    it("should prevent adding more than n non-org-members to docs", async function() {
       // Add Kiwi to Apathy
-      const apathyDoc = await dbManager.testGetId('Apathy');
+      const apathyDoc = await dbManager.testGetId("Apathy");
       let resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-        { delta: { users: { [kiwiEmail]: 'viewers' } } }, chimpy);
+        { delta: { users: { [kiwiEmail]: "viewers" } } }, chimpy);
       assert.equal(resp.status, 200);
 
       // Add Support to Apathy, should not count
       resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-        { delta: { users: { [supportEmail]: 'viewers' } } }, chimpy);
+        { delta: { users: { [supportEmail]: "viewers" } } }, chimpy);
       assert.equal(resp.status, 200);
 
       // Add Ella to Apathy
       resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-        { delta: { users: { 'ella@getgrist.com': 'editors' } } }, chimpy);
+        { delta: { users: { "ella@getgrist.com": "editors" } } }, chimpy);
       assert.equal(resp.status, 200);
 
       // Add Charon to Apathy
       resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-        { delta: { users: { [charonEmail]: 'viewers' } } }, chimpy);
+        { delta: { users: { [charonEmail]: "viewers" } } }, chimpy);
       assert.equal(resp.status, 403);
-      assert.equal(resp.data.error, 'No more external document shares permitted');
+      assert.equal(resp.data.error, "No more external document shares permitted");
 
       // Remove added users
       const removeDelta = {
@@ -2163,9 +2163,9 @@ describe('ApiServerAccess', function() {
     });
   });
 
-  it('should emit userChange events when expected', async function() {
+  it("should emit userChange events when expected", async function() {
     // Change org permissions ==>
-    const fishOrgId = await dbManager.testGetId('Fish');
+    const fishOrgId = await dbManager.testGetId("Fish");
 
     // Remove charon and kiwi from org
     const removeCharonKiwi = {
@@ -2178,7 +2178,7 @@ describe('ApiServerAccess', function() {
 
     // Re-add charon
     const addCharon = {
-      users: { [charonEmail]: 'viewers' },
+      users: { [charonEmail]: "viewers" },
     };
     const fishResp2 = await axios.patch(`${homeUrl}/api/orgs/${fishOrgId}/access`,
       { delta: addCharon }, chimpy);
@@ -2187,7 +2187,7 @@ describe('ApiServerAccess', function() {
 
     // Re-add kiwi
     const addKiwi = {
-      users: { [kiwiEmail]: 'editors' },
+      users: { [kiwiEmail]: "editors" },
     };
     const fishResp3 = await axios.patch(`${homeUrl}/api/orgs/${fishOrgId}/access`,
       { delta: addKiwi }, chimpy);
@@ -2195,8 +2195,8 @@ describe('ApiServerAccess', function() {
     assert.deepEqual(userCountUpdates[fishOrgId as number], [1, 2, 3]);
 
     // Change workspace permissions ==>
-    const clOrgId = await dbManager.testGetId('Chimpyland');
-    const publicWsId = await dbManager.testGetId('Public');
+    const clOrgId = await dbManager.testGetId("Chimpyland");
+    const publicWsId = await dbManager.testGetId("Public");
 
     // Add charon to ws
     const publicResp1 = await axios.patch(`${homeUrl}/api/workspaces/${publicWsId}/access`,
@@ -2214,25 +2214,25 @@ describe('ApiServerAccess', function() {
     assert.deepEqual(userCountUpdates[clOrgId as number], undefined);
   });
 
-  it('GET /api/profile/apikey gives user\'s api key', async function() {
+  it("GET /api/profile/apikey gives user's api key", async function() {
     const resp = await axios.get(`${homeUrl}/api/profile/apikey`, chimpy);
     assert.equal(resp.status, 200);
-    assert.equal(resp.data, 'api_key_for_chimpy');
+    assert.equal(resp.data, "api_key_for_chimpy");
   });
 
-  it('POST /api/profile/apiKey fails for anonymous', async function() {
+  it("POST /api/profile/apiKey fails for anonymous", async function() {
     const resp = await axios.post(`${homeUrl}/api/profile/apikey`, null, nobody);
     assert.equal(resp.status, 401);
     assert.deepEqual(resp.data, { error: "user not authorized" });
   });
 
-  it('DELETE /api/profile/apiKey fails for anonymous', async function() {
+  it("DELETE /api/profile/apiKey fails for anonymous", async function() {
     const resp = await axios.delete(`${homeUrl}/api/profile/apikey`, nobody);
     assert.equal(resp.status, 401);
     assert.deepEqual(resp.data, { error: "user not authorized" });
   });
 
-  it('DELETE /api/profile/apikey delete api key', async function() {
+  it("DELETE /api/profile/apikey delete api key", async function() {
     let resp: AxiosResponse;
     resp = await axios.delete(`${homeUrl}/api/profile/apikey`, chimpy);
     assert.equal(resp.status, 200);
@@ -2244,7 +2244,7 @@ describe('ApiServerAccess', function() {
 
     // check that the apikey '' does not work either
     resp = await axios.get(`${homeUrl}/api/orgs`, {
-      responseType: 'json',
+      responseType: "json",
       validateStatus: () => true,
       headers: { Authorization: "Bearer " },
     });
@@ -2252,23 +2252,23 @@ describe('ApiServerAccess', function() {
     assert.deepEqual(resp.data, "Bad request: invalid API key");
 
     // check that db encoded null for the apikey
-    const chimpyUser = (await User.findOne({ where: { name: 'Chimpy' } }))!;
+    const chimpyUser = (await User.findOne({ where: { name: "Chimpy" } }))!;
     assert.deepEqual(chimpyUser.apiKey, null);
 
     // restore api key for chimpy
-    chimpyUser.apiKey = 'api_key_for_chimpy';
+    chimpyUser.apiKey = "api_key_for_chimpy";
     await chimpyUser.save();
   });
 
-  describe('POST /api/profile/apikey', function() {
+  describe("POST /api/profile/apikey", function() {
     let resp: AxiosResponse;
-    it('fails if apiKey already set', async function() {
+    it("fails if apiKey already set", async function() {
       resp = await axios.post(`${homeUrl}/api/profile/apikey`, null, kiwi);
       assert.equal(resp.status, 400);
       assert.match(resp.data.error, /apikey is already set/);
     });
 
-    it('succeed if apiKey already set but force flag is used', async function() {
+    it("succeed if apiKey already set but force flag is used", async function() {
       resp = await axios.post(`${homeUrl}/api/profile/apikey`, { force: true }, kiwi);
       assert.equal(resp.status, 200);
       const apiKey = resp.data;
@@ -2279,14 +2279,14 @@ describe('ApiServerAccess', function() {
       assert.deepEqual(resp.data, "Bad request: invalid API key");
 
       // check that the new api key works
-      kiwi.headers = { Authorization: 'Bearer ' + apiKey };
+      kiwi.headers = { Authorization: "Bearer " + apiKey };
       resp = await axios.get(`${homeUrl}/api/orgs`, kiwi);
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.data.map((org: any) => org.name),
-        ['Kiwiland', 'Fish', 'Flightless', 'Primately']);
+        ["Kiwiland", "Fish", "Flightless", "Primately"]);
     });
 
-    describe('force flag is not needed if apiKey is not set', function() {
+    describe("force flag is not needed if apiKey is not set", function() {
       before(function() {
         // turn off api key access for chimpy
         return dbManager.connection.query(`update users set api_key = null where name = 'Chimpy'`);
@@ -2297,13 +2297,13 @@ describe('ApiServerAccess', function() {
         return dbManager.connection.query(`update users set api_key = 'api_key_for_chimpy' where name = 'Chimpy'`);
       });
 
-      it('force flag is not needed', async function() {
+      it("force flag is not needed", async function() {
         // make sure api key access is off
         resp = await axios.get(`${homeUrl}/api/orgs`, chimpy);
         assert.equal(resp.status, 401);
 
-        const cookie = await server.getCookieLogin('nasa', { email: 'chimpy@getgrist.com',
-          name: 'Chimpy' });
+        const cookie = await server.getCookieLogin("nasa", { email: "chimpy@getgrist.com",
+          name: "Chimpy" });
 
         // let's create an apikey
         resp = await axios.post(`${homeUrl}/o/nasa/api/profile/apikey`, {}, cookie);
@@ -2311,13 +2311,13 @@ describe('ApiServerAccess', function() {
         assert.equal(resp.status, 200);
 
         // check that new api key works
-        chimpy.headers = { Authorization: 'Bearer ' + resp.data };
+        chimpy.headers = { Authorization: "Bearer " + resp.data };
         resp = await axios.get(`${homeUrl}/api/orgs`, chimpy);
         assert.equal(resp.status, 200);
         assert.deepEqual(resp.data.map((org: any) => org.name),
-          ['Chimpyland', 'EmptyOrg', 'EmptyWsOrg', 'Fish', 'Flightless',
-            'FreeTeam', 'NASA', 'Primately', 'TestAuditLogs', 'TestDailyApiLimit',
-            'TestMaxNewUserInvites']);
+          ["Chimpyland", "EmptyOrg", "EmptyWsOrg", "Fish", "Flightless",
+            "FreeTeam", "NASA", "Primately", "TestAuditLogs", "TestDailyApiLimit",
+            "TestMaxNewUserInvites"]);
       });
     });
   });
@@ -2328,8 +2328,8 @@ async function testAllowNonOwnersToRemoveThemselves(url: string) {
   let resp = await axios.patch(url, {
     delta: {
       users: {
-        [charonEmail]: 'editors',
-        [kiwiEmail]: 'viewers',
+        [charonEmail]: "editors",
+        [kiwiEmail]: "viewers",
       },
     },
   }, chimpy);
@@ -2377,7 +2377,7 @@ async function realAccess(view: UserAPI, email: string, doc: string) {
 }
 
 async function breakInheritance(api: UserAPI, docWs: string | number) {
-  if (typeof docWs === 'number') {
+  if (typeof docWs === "number") {
     await api.updateWorkspacePermissions(docWs, {
       maxInheritedRole: null,
     });
@@ -2391,14 +2391,14 @@ async function breakInheritance(api: UserAPI, docWs: string | number) {
 }
 
 async function fullInheritance(api: UserAPI, docWs: string | number) {
-  if (typeof docWs === 'number') {
+  if (typeof docWs === "number") {
     await api.updateWorkspacePermissions(docWs, {
-      maxInheritedRole: 'owners',
+      maxInheritedRole: "owners",
     });
   }
   else {
     await api.updateDocPermissions(docWs, {
-      maxInheritedRole: 'owners',
+      maxInheritedRole: "owners",
     });
   }
 }
@@ -2420,7 +2420,7 @@ async function unshareWs(api: UserAPI, email: string, wsId: number) {
 }
 
 async function unshareOrg(api: UserAPI, email: string) {
-  await api.updateOrgPermissions('fish', {
+  await api.updateOrgPermissions("fish", {
     users: {
       [email]: null,
     },
@@ -2446,7 +2446,7 @@ async function shareWs(api: UserAPI, wsId: number, email: string, role: roles.Ba
 }
 
 async function shareOrg(api: UserAPI, email: string, role: roles.BasicRole) {
-  await api.updateOrgPermissions('fish', {
+  await api.updateOrgPermissions("fish", {
     users: {
       [email]: role,
     },

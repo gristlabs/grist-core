@@ -1,6 +1,6 @@
-import ace, { Ace } from 'ace-builds';
-import { ISuggestionWithValue } from 'app/common/ActiveDocAPI';
-import { commonUrls } from 'app/common/gristUrls';
+import ace, { Ace } from "ace-builds";
+import { ISuggestionWithValue } from "app/common/ActiveDocAPI";
+import { commonUrls } from "app/common/gristUrls";
 
 export interface ICompletionOptions {
   getSuggestions(prefix: string): Promise<ISuggestionWithValue[]>;
@@ -17,7 +17,7 @@ export function setupAceEditorCompletions(editor: Ace.Editor, options: ICompleti
   // It is important for autoSelect to be off so that hitting enter doesn't automatically
   // use a suggestion, a change of behavior that doesn't seem particularly desirable and
   // which also breaks several existing tests.
-  const { Autocomplete } = ace.require('ace/autocomplete');
+  const { Autocomplete } = ace.require("ace/autocomplete");
 
   const completer = new Autocomplete();
   // Here is the source code:
@@ -76,7 +76,7 @@ export function setupAceEditorCompletions(editor: Ace.Editor, options: ICompleti
   // it adds to body even when it detaches itself. Ace's AutoCompleter doesn't expose any
   // interface for this, so this takes some hacking. (One reason for this is that Ace seems to
   // expect that a single AutoCompleter would be used for all editor instances.)
-  editor.on('destroy' as any, () => {
+  editor.on("destroy" as any, () => {
     if (completer.editor) {
       completer.detach();
     }
@@ -100,7 +100,7 @@ function initCustomCompleter() {
   // Monkey-patch getCompletionPrefix. This is based on the source code in
   // node_modules/ace-builds/src-noconflict/ext-language_tools.js, simplified to do the one thing
   // we want here (since the original method's generality doesn't help us here).
-  const util = ace.require('ace/autocomplete/util');
+  const util = ace.require("ace/autocomplete/util");
   util.getCompletionPrefix = function getCompletionPrefix(this: any, editor: Ace.Editor) {
     const pos = editor.getCursorPosition();
     const line = editor.session.getLine(pos.row);
@@ -109,7 +109,7 @@ function initCustomCompleter() {
   };
 
   // Add some autocompletion with partial access to document
-  const aceLanguageTools = ace.require('ace/ext/language_tools');
+  const aceLanguageTools = ace.require("ace/ext/language_tools");
   aceLanguageTools.setCompleters([]);
   aceLanguageTools.addCompleter({
     // For autocompletion we ship text to the sandbox and run standard completion there.
@@ -132,8 +132,8 @@ function initCustomCompleter() {
       const wordRange = session.getWordRange(pos.row, pos.column);
       const token = session.getTokenAt(pos.row, wordRange.end.column) as Ace.Token;
       const nextToken = session.getTokenAt(pos.row, wordRange.end.column + 1);
-      const isRenamingFunc = ['function.support', 'identifier'].includes(token.type) &&
-        nextToken?.type === 'paren.lparen';
+      const isRenamingFunc = ["function.support", "identifier"].includes(token.type) &&
+        nextToken?.type === "paren.lparen";
 
       const suggestions = await options.getSuggestions(prefix);
       // ACE autocompletions are very poorly documented. This is somewhat helpful:
@@ -143,7 +143,7 @@ function initCustomCompleter() {
         if (Array.isArray(suggestion)) {
           const [funcname, argSpec] = suggestion;
           return {
-            value: funcname + (isRenamingFunc ? '' : '('),
+            value: funcname + (isRenamingFunc ? "" : "("),
             caption: funcname + argSpec,
             score: 1,
             example,
@@ -156,7 +156,7 @@ function initCustomCompleter() {
             caption: suggestion,
             score: 1,
             example,
-            funcname: '',
+            funcname: "",
           };
         }
       });
@@ -175,7 +175,7 @@ function initCustomCompleter() {
       for (const c of completions) {
         if (!c.example) { continue; }
         const numSpaces = Math.max(0, sharedPadding - c.caption.length) + BASE_PADDING;
-        c.caption = c.caption + ' '.repeat(numSpaces) + c.example;
+        c.caption = c.caption + " ".repeat(numSpaces) + c.example;
       }
 
       callback(null, completions);
@@ -274,7 +274,7 @@ function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: Ace.Token[]):
   // click, we find it to know what URL to open.
   const href = `${commonUrls.functions}/#` +
     rowData.funcname.slice(linkStart, linkEnd).toLowerCase();
-  newTokens.push({ value: href, type: 'grist_link_hidden' });
+  newTokens.push({ value: href, type: "grist_link_hidden" });
 
   // Find where the example value (if any) starts, so that it can be shown in grey.
   let exampleStart: number | undefined;
@@ -298,10 +298,10 @@ function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: Ace.Token[]):
       const end = exampleStart - position;
       if (end > 0) {
         newTokens.push({ value: t.value.slice(0, end), type: t.type });
-        newTokens.push({ value: t.value.slice(end), type: 'grist_example' });
+        newTokens.push({ value: t.value.slice(end), type: "grist_example" });
       }
       else {
-        newTokens.push({ value: t.value, type: 'grist_example' });
+        newTokens.push({ value: t.value, type: "grist_example" });
       }
     }
     else {
@@ -314,7 +314,7 @@ function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: Ace.Token[]):
       }
       if (lEnd > 0) {
         const inLink = t.value.slice(Math.max(0, lStart), lEnd);
-        const newType = t.type + (t.type ? '.' : '') + 'grist_link';
+        const newType = t.type + (t.type ? "." : "") + "grist_link";
         newTokens.push({ value: inLink, type: newType });
         if (lEnd < t.value.length) {
           const afterLink = t.value.slice(lEnd);
@@ -334,8 +334,8 @@ function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: Ace.Token[]):
 // so, we should be able to find the URL and open another window to it.
 function maybeAceCompleterLinkClick(domEvent: Event) {
   const tgt = domEvent.target as HTMLElement;
-  if (tgt && tgt.matches('.ace_grist_link')) {
-    const dest = tgt.parentElement?.querySelector('.ace_grist_link_hidden');
+  if (tgt && tgt.matches(".ace_grist_link")) {
+    const dest = tgt.parentElement?.querySelector(".ace_grist_link_hidden");
     if (dest) {
       window.open(dest.textContent!, "_blank");
       return true;

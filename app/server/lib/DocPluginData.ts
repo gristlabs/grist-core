@@ -1,6 +1,6 @@
-import { Promisified } from 'app/common/tpromisified';
-import { Storage } from 'app/plugin/StorageAPI';
-import { DocStorage } from 'app/server/lib/DocStorage';
+import { Promisified } from "app/common/tpromisified";
+import { Storage } from "app/plugin/StorageAPI";
+import { DocStorage } from "app/server/lib/DocStorage";
 
 /**
  * DocPluginData implements a document's `Storage` for plugin.
@@ -12,7 +12,7 @@ export class DocPluginData implements Promisified<Storage> {
 
   public async getItem(key: string): Promise<any> {
     const res = await this._docStorage.getPluginDataItem(this._pluginId, key);
-    if (typeof res === 'string') {
+    if (typeof res === "string") {
       return JSON.parse(res);
     }
     return res;

@@ -1,18 +1,18 @@
-import { PartialPermissionSet } from 'app/common/ACLPermissions';
-import { CellValue, RowRecord } from 'app/common/DocActions';
-import { CompiledPredicateFormula } from 'app/common/PredicateFormula';
-import { MetaRowRecord } from 'app/common/TableData';
+import { PartialPermissionSet } from "app/common/ACLPermissions";
+import { CellValue, RowRecord } from "app/common/DocActions";
+import { CompiledPredicateFormula } from "app/common/PredicateFormula";
+import { MetaRowRecord } from "app/common/TableData";
 
 export interface RuleSet {
   tableId: string;
-  colIds: '*' | string[];
+  colIds: "*" | string[];
   // The default permissions for this resource, if set, are represented by a RulePart with
   // aclFormula of "", which must be the last element of body.
   body: RulePart[];
 }
 
 export interface RulePart {
-  origRecord?: MetaRowRecord<'_grist_ACLRules'>;  // Original record used to create this RulePart.
+  origRecord?: MetaRowRecord<"_grist_ACLRules">;  // Original record used to create this RulePart.
   aclFormula: string;
   permissions: PartialPermissionSet;
   permissionsText: string;        // The text version of PermissionSet, as stored.

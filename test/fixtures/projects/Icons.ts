@@ -1,9 +1,9 @@
-import { IconList, IconName } from 'app/client/ui2018/IconList';
-import { icon } from 'app/client/ui2018/icons';
-import { loadingSpinner } from 'app/client/ui2018/loaders';
-import { dom, styled } from 'grainjs';
-import { times } from 'lodash';
-import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import { IconList, IconName } from "app/client/ui2018/IconList";
+import { icon } from "app/client/ui2018/icons";
+import { loadingSpinner } from "app/client/ui2018/loaders";
+import { dom, styled } from "grainjs";
+import { times } from "lodash";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 const bigBlueIconCss = `
@@ -17,9 +17,9 @@ const searchIconCss = `
   background-color: lightgrey;
   margin: 4px;
 `;
-const searchIcon = styled('span', searchIconCss);
+const searchIcon = styled("span", searchIconCss);
 
-const searchBox = styled('div', `
+const searchBox = styled("div", `
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -27,14 +27,14 @@ const searchBox = styled('div', `
   border-radius: 8px;
 `);
 
-const searchInput = styled('input#search', `
+const searchInput = styled("input#search", `
   outline: none;
   border: none;
   margin: 4px;
   line-height: 1.4;
 `);
 
-const checkbox = styled('input#checkbox', `
+const checkbox = styled("input#checkbox", `
   -webkit-appearance: none;
   -moz-appearance: none;
   width: 1rem;
@@ -48,10 +48,10 @@ const checkbox = styled('input#checkbox', `
   }
 `);
 
-const allIcons = styled('div', `
+const allIcons = styled("div", `
   width: 650px;
 `);
-const iconBlock = styled('div', `
+const iconBlock = styled("div", `
   display: inline-flex;
   align-items: center;
   width: 120px;
@@ -60,57 +60,57 @@ const iconBlock = styled('div', `
   overflow: hidden;
   text-overflow: ellipsis;
 `);
-const iconBox = styled('div', `
+const iconBox = styled("div", `
   flex: none;
   border: 1px solid lightgrey;
   padding: 1px;
   margin-right: 4px;
 `);
-const testPage = styled('div', `
+const testPage = styled("div", `
   font-size: 14px;
   font-family: sans-serif;
 `);
 
 function setupTest() {
   return testPage(
-    dom('h4', 'All icons'),
-    dom('div#all_icons',
+    dom("h4", "All icons"),
+    dom("div#all_icons",
       allIcons(
         dom.forEach(IconList.slice().sort(), (name: IconName) =>
-          iconBlock(iconBox(icon(name)), dom('span', name)),
+          iconBlock(iconBox(icon(name)), dom("span", name)),
         ),
       ),
     ),
-    dom('hr'),
-    dom('div#search_icon',
-      icon('Search'), ` unstyled`,
+    dom("hr"),
+    dom("div#search_icon",
+      icon("Search"), ` unstyled`,
     ),
-    dom('div#big_search_icon',
-      bigBlueIcon('Search'), ` styled with {${bigBlueIconCss.replace(/\s+/g, ' ')}}`,
+    dom("div#big_search_icon",
+      bigBlueIcon("Search"), ` styled with {${bigBlueIconCss.replace(/\s+/g, " ")}}`,
     ),
-    dom('section',
+    dom("section",
       searchBox(
-        icon('Search', dom.cls(searchIcon.className)),
-        searchInput({ type: 'search' }),
+        icon("Search", dom.cls(searchIcon.className)),
+        searchInput({ type: "search" }),
       ),
-      ` styled with {${searchIconCss.replace(/\s+/g, ' ')}}`,
+      ` styled with {${searchIconCss.replace(/\s+/g, " ")}}`,
     ),
-    dom('hr'),
-    dom('div',
-      times(100, () => icon('FieldDateTime')),
+    dom("hr"),
+    dom("div",
+      times(100, () => icon("FieldDateTime")),
     ),
-    dom('section',
-      checkbox({ type: 'checkbox', checked: true }),
+    dom("section",
+      checkbox({ type: "checkbox", checked: true }),
     ),
-    dom('hr'),
+    dom("hr"),
     thumbPreview(),
-    dom('hr'),
-    dom('h2', 'Loaders'),
+    dom("hr"),
+    dom("h2", "Loaders"),
     loadingSpinner(),
   );
 }
 
-const thumbPreview = styled('div', `
+const thumbPreview = styled("div", `
   flex: none;
   height: 48px;
   width: 48px;

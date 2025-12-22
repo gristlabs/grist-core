@@ -1,12 +1,12 @@
-import { assert } from 'chai';
-import * as fs from 'fs';
-import * as path from 'path';
+import { assert } from "chai";
+import * as fs from "fs";
+import * as path from "path";
 
-import { createSandbox, NSandbox } from 'app/server/lib/NSandbox';
-import { timeoutReached } from 'app/server/lib/serverUtils';
-import * as testUtils from 'test/server/testUtils';
+import { createSandbox, NSandbox } from "app/server/lib/NSandbox";
+import { timeoutReached } from "app/server/lib/serverUtils";
+import * as testUtils from "test/server/testUtils";
 
-describe('Sandbox', function() {
+describe("Sandbox", function() {
   this.timeout(12000);
 
   const output: { stdout: string[], stderr: string[] } = {
@@ -16,8 +16,8 @@ describe('Sandbox', function() {
 
   function capture(level: string, msg: string) {
     const match = /^Sandbox.*(stdout|stderr): (.*)$/s.exec(msg);
-    if (match && level === 'info') {
-      const stream = match[1] as 'stdout' | 'stderr';
+    if (match && level === "info") {
+      const stream = match[1] as "stdout" | "stderr";
       output[stream].push(match[2]);
     }
   }
@@ -27,7 +27,7 @@ describe('Sandbox', function() {
     output.stderr.length = 0;
   }
 
-  testUtils.setTmpLogLevel('warn', capture);
+  testUtils.setTmpLogLevel("warn", capture);
 
   beforeEach(function() {
     clear();
@@ -35,12 +35,12 @@ describe('Sandbox', function() {
 
   describe("Basic operation", function() {
     it("should echo hello world", async function() {
-      const sandbox = createSandbox('sandboxed', {});
+      const sandbox = createSandbox("sandboxed", {});
       try {
         const result = await sandbox.pyCall(
-          'test_echo', 'Hello world',
+          "test_echo", "Hello world",
         );
-        assert.equal(result, 'Hello world');
+        assert.equal(result, "Hello world");
       }
       finally {
         await sandbox.shutdown();
@@ -48,13 +48,13 @@ describe('Sandbox', function() {
     });
 
     it("should handle exceptions", async function() {
-      const sandbox = createSandbox('sandboxed', {});
+      const sandbox = createSandbox("sandboxed", {});
       try {
         await assert.isRejected(sandbox.pyCall(
-          'test_fail', 'Hello world',
+          "test_fail", "Hello world",
         ), /Hello world/);
         assert.deepEqual(output.stdout, []);
-        const stderr = output.stderr.join('\n');
+        const stderr = output.stderr.join("\n");
         assert.match(stderr, /Traceback \(most recent call last\):/);
         assert.match(stderr, /Exception: Hello world/);
       }
@@ -66,10 +66,10 @@ describe('Sandbox', function() {
 
   describe("sandbox.pyCall", function() {
     it("should invoke python functions", async function() {
-      const sandbox = createSandbox('sandboxed', {});
+      const sandbox = createSandbox("sandboxed", {});
       // Startup can be noisy in logs, wait for it to be done
       // and for the sandbox to be available, then clear the logs.
-      await sandbox.pyCall('test_echo', '1');
+      await sandbox.pyCall("test_echo", "1");
       clear();
       try {
         let value = await sandbox.pyCall("test_operation", 0, "uppercase", "hello");
@@ -85,7 +85,7 @@ describe('Sandbox', function() {
     });
 
     it("should fail when sandbox has exited", async function() {
-      const sandbox = createSandbox('sandboxed', {});
+      const sandbox = createSandbox("sandboxed", {});
       try {
         // Normally pyCall should succeed.
         const value = await sandbox.pyCall("test_operation", 1.5, "uppercase", "hello");
@@ -113,7 +113,7 @@ describe('Sandbox', function() {
     });
 
     it("should get killed if sandbox refuses to exit", async function() {
-      const sandbox = createSandbox('sandboxed', {});
+      const sandbox = createSandbox("sandboxed", {});
       const expectedRejection = assert.isRejected(
         sandbox.pyCall("test_operation", 100, "uppercase", "hello"),
         /PipeFromSandbox is closed/,
@@ -123,7 +123,7 @@ describe('Sandbox', function() {
     });
 
     it("should be reasonably quick with big data", async function() {
-      const sandbox = createSandbox('sandboxed', {});
+      const sandbox = createSandbox("sandboxed", {});
       const bigString = new Array(1000001).join("*");
       assert.equal(bigString.length, 1000000);
 
@@ -153,7 +153,7 @@ describe('Sandbox', function() {
   describe("sandbox restrictions", function() {
     let sandbox: NSandbox;
     before(function() {
-      sandbox = createSandbox('sandboxed', {}) as NSandbox;
+      sandbox = createSandbox("sandboxed", {}) as NSandbox;
     });
 
     after(function() {
@@ -161,46 +161,46 @@ describe('Sandbox', function() {
     });
 
     it("should only have access to directories inside the sandbox root", async function() {
-      const sandboxRoot = await sandbox.pyCall('test_get_sandbox_root');
-      const sandboxDirs = await sandbox.pyCall('test_list_files', sandboxRoot, false);
+      const sandboxRoot = await sandbox.pyCall("test_get_sandbox_root");
+      const sandboxDirs = await sandbox.pyCall("test_list_files", sandboxRoot, false);
       const hostDirs = getSubDirs(`${testUtils.appRoot}/sandbox/grist`, sandboxRoot);
       assert.deepEqual(sandboxDirs.sort(), hostDirs.sort());
 
-      if (sandbox.getFlavor() === 'macSandboxExec') {
+      if (sandbox.getFlavor() === "macSandboxExec") {
         // Mac sandbox doesn't allow this kind of tmpfs overlay. End
         // this test early.
         return;
       }
-      const emptyTmp = await sandbox.pyCall('test_list_files', "/tmp", true);
+      const emptyTmp = await sandbox.pyCall("test_list_files", "/tmp", true);
       assert.deepEqual(emptyTmp, ["/tmp"]);
     });
 
     it("gvisor and macSandboxExec should have no write access to sandbox files", async function() {
-      if (!['gvisor', 'macSandboxExec'].includes(sandbox.getFlavor())) {
+      if (!["gvisor", "macSandboxExec"].includes(sandbox.getFlavor())) {
         this.skip();
       }
-      const sandboxRoot = await sandbox.pyCall('test_get_sandbox_root');
-      const mainFile = path.join(sandboxRoot, 'main.py');
+      const sandboxRoot = await sandbox.pyCall("test_get_sandbox_root");
+      const mainFile = path.join(sandboxRoot, "main.py");
 
       // gvisor mounts the sandbox files as read-only
       await assert.isRejected(
-        sandbox.pyCall('test_write_file', mainFile, '# A rambunctious little edit'),
+        sandbox.pyCall("test_write_file", mainFile, "# A rambunctious little edit"),
       );
-      const fileContents = await sandbox.pyCall('test_read_file', mainFile);
+      const fileContents = await sandbox.pyCall("test_read_file", mainFile);
       assert.match(fileContents, /defines what sandbox functions are made available to the Node controller/);
       assert.notMatch(fileContents, /rambunctious/);
     });
 
     it("pyodide writes to sandbox files should not survive outside the sandbox", async function() {
-      if (sandbox.getFlavor() !== 'pyodide') {
+      if (sandbox.getFlavor() !== "pyodide") {
         this.skip();
       }
-      const sandboxRoot = await sandbox.pyCall('test_get_sandbox_root');
-      const mainFile = path.join(sandboxRoot, 'main.py');
+      const sandboxRoot = await sandbox.pyCall("test_get_sandbox_root");
+      const mainFile = path.join(sandboxRoot, "main.py");
 
       // pyodide works on a copy of the original files
-      await sandbox.pyCall('test_write_file', mainFile, '# A rambunctious little edit');
-      const fileContentsInSandbox = await sandbox.pyCall('test_read_file', mainFile);
+      await sandbox.pyCall("test_write_file", mainFile, "# A rambunctious little edit");
+      const fileContentsInSandbox = await sandbox.pyCall("test_read_file", mainFile);
       assert.match(fileContentsInSandbox, /defines what sandbox functions are made available to the Node controller/);
       assert.match(fileContentsInSandbox, /rambunctious/);
 
@@ -210,29 +210,29 @@ describe('Sandbox', function() {
     });
 
     it("should have write access to some directories", async function() {
-      if (sandbox.getFlavor() === 'macSandboxExec') {
+      if (sandbox.getFlavor() === "macSandboxExec") {
         // Mac sandbox doesn't allow this kind of tmpfs overlay.
         this.skip();
       }
       // gvisor mounts /tmp as a tmpfs, so it can be written to but is
       // invisible to the host
-      const tmpFile = '/tmp/grist-fake-file-does-not-exist';
-      const testContents = 'chimpy + kiwi = <3';
-      await sandbox.pyCall('test_write_file', tmpFile, testContents);
-      const fileContents = await sandbox.pyCall('test_read_file', tmpFile);
-      assert.equal(fileContents, testContents, 'File should be writable in the sandbox');
-      assert.isFalse(fs.existsSync(tmpFile), 'File should not exist in the host OS');
+      const tmpFile = "/tmp/grist-fake-file-does-not-exist";
+      const testContents = "chimpy + kiwi = <3";
+      await sandbox.pyCall("test_write_file", tmpFile, testContents);
+      const fileContents = await sandbox.pyCall("test_read_file", tmpFile);
+      assert.equal(fileContents, testContents, "File should be writable in the sandbox");
+      assert.isFalse(fs.existsSync(tmpFile), "File should not exist in the host OS");
     });
   });
 
-  describe('pyodide', function() {
+  describe("pyodide", function() {
     before(function() {
-      if (process.env.GRIST_SANDBOX_FLAVOR !== 'pyodide') {
+      if (process.env.GRIST_SANDBOX_FLAVOR !== "pyodide") {
         this.skip();
       }
     });
 
-    describe('execute via external node command', function() {
+    describe("execute via external node command", function() {
       let oldEnv: testUtils.EnvironmentSnapshot;
       before(function() {
         oldEnv = new testUtils.EnvironmentSnapshot();
@@ -244,12 +244,12 @@ describe('Sandbox', function() {
       });
 
       it("can create a pyodide sandbox by spawning", async function() {
-        const sandbox = createSandbox('sandboxed', {});
+        const sandbox = createSandbox("sandboxed", {});
         try {
           const result = await sandbox.pyCall(
-            'test_echo', 'Hello world',
+            "test_echo", "Hello world",
           );
-          assert.equal(result, 'Hello world');
+          assert.equal(result, "Hello world");
         }
         finally {
           await sandbox.shutdown();

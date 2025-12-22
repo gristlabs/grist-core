@@ -6,7 +6,7 @@ import { Group } from "app/gen-server/entity/Group";
 import { Organization } from "app/gen-server/entity/Organization";
 import { Workspace } from "app/gen-server/entity/Workspace";
 
-@Entity('acl_rules')
+@Entity("acl_rules")
 @TableInheritance({ column: { type: "int", name: "type" } })
 export class AclRule extends BaseEntity {
   @PrimaryGeneratedColumn()

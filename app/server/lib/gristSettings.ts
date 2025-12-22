@@ -1,8 +1,8 @@
 import {appSettings} from 'app/server/lib/AppSettings';
 
 export function getTemplateOrg() {
-  let org = appSettings.section('templates').flag('org').readString({
-    envVar: 'GRIST_TEMPLATE_ORG',
+  let org = appSettings.section("templates").flag("org").readString({
+    envVar: "GRIST_TEMPLATE_ORG",
   });
   if (!org) { return null; }
 
@@ -13,8 +13,8 @@ export function getTemplateOrg() {
 }
 
 export function getUserPresenceMaxUsers(): number {
-  return appSettings.section('userPresence').flag('maxUsers').requireInt({
-    envVar: 'GRIST_USER_PRESENCE_MAX_USERS',
+  return appSettings.section("userPresence").flag("maxUsers").requireInt({
+    envVar: "GRIST_USER_PRESENCE_MAX_USERS",
     defaultValue: 99,
     minValue: 0,
     maxValue: 99,
@@ -22,7 +22,7 @@ export function getUserPresenceMaxUsers(): number {
 }
 
 export function getOnboardingTutorialDocId() {
-  return appSettings.section('tutorials').flag('onboardingTutorialDocId').readString({
-    envVar: 'GRIST_ONBOARDING_TUTORIAL_DOC_ID',
+  return appSettings.section("tutorials").flag("onboardingTutorialDocId").readString({
+    envVar: "GRIST_ONBOARDING_TUTORIAL_DOC_ID",
   });
 }

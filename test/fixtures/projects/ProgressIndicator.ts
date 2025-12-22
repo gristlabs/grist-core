@@ -3,8 +3,8 @@
  * soon be replaced with a Notifications-based version (but probably a similar look).
  */
 import { Notifier } from "app/client/models/NotifyModel";
-import { buildSnackbarDom } from 'app/client/ui/NotifyUI';
-import { dom } from 'grainjs';
+import { buildSnackbarDom } from "app/client/ui/NotifyUI";
+import { dom } from "grainjs";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 function setupTest() {

@@ -1,9 +1,9 @@
 import { BulkColValues, ColValues, DocAction, isSchemaAction,
-  TableDataAction, UserAction } from 'app/common/DocActions';
+  TableDataAction, UserAction } from "app/common/DocActions";
 
 const ACTION_TYPES = new Set([
-  'AddRecord', 'BulkAddRecord', 'UpdateRecord', 'BulkUpdateRecord',
-  'RemoveRecord', 'BulkRemoveRecord',
+  "AddRecord", "BulkAddRecord", "UpdateRecord", "BulkUpdateRecord",
+  "RemoveRecord", "BulkRemoveRecord",
 ]);
 
 /**
@@ -69,15 +69,15 @@ export class AlternateActions {
       // Check that the actionType can be applied without the sandbox and also that the action
       // is on a data table.
       const isOnDemandAction = ACTION_TYPES.has(a[0] as string);
-      const isDataTableAction = typeof a[1] === 'string' && !a[1].startsWith('_grist_');
-      if (a[0] === 'ApplyUndoActions') {
+      const isDataTableAction = typeof a[1] === "string" && !a[1].startsWith("_grist_");
+      if (a[0] === "ApplyUndoActions") {
         // Split actions inside the undo action array.
         const [undoNormal, undoOnDemand] = this.splitByStorage(a[1] as UserAction[]);
         if (undoNormal.length > 0) {
-          normal.push(['ApplyUndoActions', undoNormal]);
+          normal.push(["ApplyUndoActions", undoNormal]);
         }
         if (undoOnDemand.length > 0) {
-          onDemand.push(['ApplyUndoActions', undoOnDemand]);
+          onDemand.push(["ApplyUndoActions", undoOnDemand]);
         }
       }
       else if (isDataTableAction && isOnDemandAction && this.usesAlternateStorage(a[1] as string)) {
@@ -123,8 +123,8 @@ export class AlternateActions {
     // at the end of the table.
     colValues.manualSort = rowId;
     return {
-      stored: [['AddRecord', tableId, rowId, colValues]],
-      undo: [['RemoveRecord', tableId, rowId]],
+      stored: [["AddRecord", tableId, rowId, colValues]],
+      undo: [["RemoveRecord", tableId, rowId]],
       retValues: rowId,
     };
   }
@@ -146,8 +146,8 @@ export class AlternateActions {
     // added at the end of the table.
     colValues.manualSort = rowIds;
     return {
-      stored: [['BulkAddRecord', tableId, rowIds as number[], colValues]],
-      undo: [['BulkRemoveRecord', tableId, rowIds as number[]]],
+      stored: [["BulkAddRecord", tableId, rowIds as number[], colValues]],
+      undo: [["BulkRemoveRecord", tableId, rowIds as number[]]],
       retValues: rowIds,
     };
   }
@@ -160,8 +160,8 @@ export class AlternateActions {
     const [, , oldRowIds, oldColValues] =
       await this._storage.fetchActionData(tableId, [rowId], Object.keys(colValues));
     return {
-      stored: [['UpdateRecord', tableId, rowId, colValues]],
-      undo: [['BulkUpdateRecord', tableId, oldRowIds, oldColValues]],
+      stored: [["UpdateRecord", tableId, rowId, colValues]],
+      undo: [["BulkUpdateRecord", tableId, oldRowIds, oldColValues]],
       retValues: null,
     };
   }
@@ -174,8 +174,8 @@ export class AlternateActions {
     const [, , oldRowIds, oldColValues] =
       await this._storage.fetchActionData(tableId, rowIds, Object.keys(colValues));
     return {
-      stored: [['BulkUpdateRecord', tableId, rowIds, colValues]],
-      undo: [['BulkUpdateRecord', tableId, oldRowIds, oldColValues]],
+      stored: [["BulkUpdateRecord", tableId, rowIds, colValues]],
+      undo: [["BulkUpdateRecord", tableId, oldRowIds, oldColValues]],
       retValues: null,
     };
   }
@@ -183,8 +183,8 @@ export class AlternateActions {
   private async _doRemoveRecord(tableId: string, rowId: number): Promise<ProcessedAction> {
     const [, , oldRowIds, oldColValues] = await this._storage.fetchActionData(tableId, [rowId]);
     return {
-      stored: [['RemoveRecord', tableId, rowId]],
-      undo: [['BulkAddRecord', tableId, oldRowIds, oldColValues]],
+      stored: [["RemoveRecord", tableId, rowId]],
+      undo: [["BulkAddRecord", tableId, oldRowIds, oldColValues]],
       retValues: null,
     };
   }
@@ -192,8 +192,8 @@ export class AlternateActions {
   private async _doBulkRemoveRecord(tableId: string, rowIds: number[]): Promise<ProcessedAction> {
     const [, , oldRowIds, oldColValues] = await this._storage.fetchActionData(tableId, rowIds);
     return {
-      stored: [['BulkRemoveRecord', tableId, rowIds]],
-      undo: [['BulkAddRecord', tableId, oldRowIds, oldColValues]],
+      stored: [["BulkRemoveRecord", tableId, rowIds]],
+      undo: [["BulkAddRecord", tableId, oldRowIds, oldColValues]],
       retValues: null,
     };
   }

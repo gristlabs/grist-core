@@ -1,31 +1,31 @@
-import { makeT } from 'app/client/lib/localization';
+import { makeT } from "app/client/lib/localization";
 import {
   buildFormMessagePage,
   cssFormMessageImage,
   cssFormMessageImageContainer,
   cssFormMessageText,
-} from 'app/client/ui/FormContainer';
-import { getPageTitleSuffix } from 'app/common/gristUrls';
-import { getGristConfig } from 'app/common/urlUtils';
-import { Disposable, makeTestId, styled } from 'grainjs';
+} from "app/client/ui/FormContainer";
+import { getPageTitleSuffix } from "app/common/gristUrls";
+import { getGristConfig } from "app/common/urlUtils";
+import { Disposable, makeTestId, styled } from "grainjs";
 
-const testId = makeTestId('test-form-');
+const testId = makeTestId("test-form-");
 
-const t = makeT('FormErrorPage');
+const t = makeT("FormErrorPage");
 
 export class FormErrorPage extends Disposable {
   constructor(private _message: string) {
     super();
-    document.title = `${t('Error')}${getPageTitleSuffix(getGristConfig())}`;
+    document.title = `${t("Error")}${getPageTitleSuffix(getGristConfig())}`;
   }
 
   public buildDom() {
     return buildFormMessagePage(() => [
       cssFormErrorMessageImageContainer(
-        cssFormErrorMessageImage({ src: 'img/form-error.svg' }),
+        cssFormErrorMessageImage({ src: "img/form-error.svg" }),
       ),
-      cssFormMessageText(this._message, testId('error-page-text')),
-    ], testId('error-page'));
+      cssFormMessageText(this._message, testId("error-page-text")),
+    ], testId("error-page"));
   }
 }
 

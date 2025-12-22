@@ -18,40 +18,40 @@
 
 
 import { ColumnsToMap, CustomSectionAPI, InteractionOptions, InteractionOptionsRequest,
-  WidgetColumnMap } from 'app/plugin/CustomSectionAPI';
+  WidgetColumnMap } from "app/plugin/CustomSectionAPI";
 import {
   AccessTokenOptions, AccessTokenResult, FetchSelectedOptions, GristAPI, GristDocAPI,
   GristView, RPC_GRISTAPI_INTERFACE,
-} from 'app/plugin/GristAPI';
-import { RowRecord } from 'app/plugin/GristData';
-import { ImportSource, ImportSourceAPI, InternalImportSourceAPI } from 'app/plugin/InternalImportSourceAPI';
-import { decodeObject, mapValues } from 'app/plugin/objtypes';
-import { RenderOptions, RenderTarget } from 'app/plugin/RenderOptions';
-import { TableOperations } from 'app/plugin/TableOperations';
-import { TableOperationsImpl } from 'app/plugin/TableOperationsImpl';
-import { checkers } from 'app/plugin/TypeCheckers';
-import { WidgetAPI } from 'app/plugin/WidgetAPI';
+} from "app/plugin/GristAPI";
+import { RowRecord } from "app/plugin/GristData";
+import { ImportSource, ImportSourceAPI, InternalImportSourceAPI } from "app/plugin/InternalImportSourceAPI";
+import { decodeObject, mapValues } from "app/plugin/objtypes";
+import { RenderOptions, RenderTarget } from "app/plugin/RenderOptions";
+import { TableOperations } from "app/plugin/TableOperations";
+import { TableOperationsImpl } from "app/plugin/TableOperationsImpl";
+import { checkers } from "app/plugin/TypeCheckers";
+import { WidgetAPI } from "app/plugin/WidgetAPI";
 
-export * from 'app/plugin/TypeCheckers';
-export * from 'app/plugin/FileParserAPI';
-export * from 'app/plugin/GristAPI';
-export * from 'app/plugin/GristData';
-export * from 'app/plugin/GristTable';
-export * from 'app/plugin/ImportSourceAPI';
-export * from 'app/plugin/StorageAPI';
-export * from 'app/plugin/RenderOptions';
-export * from 'app/plugin/WidgetAPI';
-export * from 'app/plugin/CustomSectionAPI';
+export * from "app/plugin/TypeCheckers";
+export * from "app/plugin/FileParserAPI";
+export * from "app/plugin/GristAPI";
+export * from "app/plugin/GristData";
+export * from "app/plugin/GristTable";
+export * from "app/plugin/ImportSourceAPI";
+export * from "app/plugin/StorageAPI";
+export * from "app/plugin/RenderOptions";
+export * from "app/plugin/WidgetAPI";
+export * from "app/plugin/CustomSectionAPI";
 
-import { IRpcLogger, Rpc } from 'grain-rpc';
-import isEqual from 'lodash/isEqual';
+import { IRpcLogger, Rpc } from "grain-rpc";
+import isEqual from "lodash/isEqual";
 
 export const rpc: Rpc = new Rpc({ logger: createRpcLogger() });
 
 export const api = rpc.getStub<GristAPI>(RPC_GRISTAPI_INTERFACE, checkers.GristAPI);
-export const coreDocApi = rpc.getStub<GristDocAPI>('GristDocAPI@grist', checkers.GristDocAPI);
+export const coreDocApi = rpc.getStub<GristDocAPI>("GristDocAPI@grist", checkers.GristDocAPI);
 
-const viewApiStub = rpc.getStub<GristView>('GristView', checkers.GristView);
+const viewApiStub = rpc.getStub<GristView>("GristView", checkers.GristView);
 
 /**
  * Interface for the records backing a custom widget.
@@ -64,7 +64,7 @@ export const viewApi: GristView = {
     if (options.keepEncoded === false) {
       data = mapValues<any[], any[]>(data, col => col.map(decodeObject));
     }
-    if (options.format === 'rows') {
+    if (options.format === "rows") {
       const rows: RowRecord[] = [];
       for (let i = 0; i < data.id.length; i++) {
         const row: RowRecord = { id: data.id[i] };
@@ -88,14 +88,14 @@ export const viewApi: GristView = {
 /**
  * Interface for the state of a custom widget.
  */
-export const widgetApi = rpc.getStub<WidgetAPI>('WidgetAPI', checkers.WidgetAPI);
+export const widgetApi = rpc.getStub<WidgetAPI>("WidgetAPI", checkers.WidgetAPI);
 
 /**
  * Interface for the mapping of a custom widget.
  */
-export const sectionApi = rpc.getStub<CustomSectionAPI>('CustomSectionAPI', checkers.CustomSectionAPI);
+export const sectionApi = rpc.getStub<CustomSectionAPI>("CustomSectionAPI", checkers.CustomSectionAPI);
 
-export const commandApi = rpc.getStub<any>('CommandAPI');
+export const commandApi = rpc.getStub<any>("CommandAPI");
 
 /**
  * Shortcut for {@link GristView.allowSelectBy}.
@@ -314,7 +314,7 @@ export function mapColumnNames(data: any, options?: {
     return Boolean(
       // Columns passed as strings are required.
       !options!.columns?.includes(col) &&
-      options!.columns?.find(c => typeof c === 'object' && c?.name === col && c.optional),
+      options!.columns?.find(c => typeof c === "object" && c?.name === col && c.optional),
     );
   }
   // For each widget column in mapping.
@@ -383,8 +383,8 @@ export function onRecord(
   options: FetchSelectedOptions = {},
 ) {
   // TODO: currently this will be called even if the content of a different row changes.
-  on('message', async function(msg) {
-    if (!msg.tableId || !msg.rowId || msg.rowId === 'new') { return; }
+  on("message", async function(msg) {
+    if (!msg.tableId || !msg.rowId || msg.rowId === "new") { return; }
     const rec = await docApi.fetchSelectedRecord(msg.rowId, options);
     callback(rec, await getMappingsIfChanged(msg));
   });
@@ -395,8 +395,8 @@ export function onRecord(
  * new (blank) row is selected.
  */
 export function onNewRecord(callback: (mappings: WidgetColumnMap | null) => unknown) {
-  on('message', async function(msg) {
-    if (msg.tableId && msg.rowId === 'new') {
+  on("message", async function(msg) {
+    if (msg.tableId && msg.rowId === "new") {
       callback(await getMappingsIfChanged(msg));
     }
   });
@@ -411,8 +411,8 @@ export function onRecords(
   callback: (data: RowRecord[], mappings: WidgetColumnMap | null) => unknown,
   options: FetchSelectedOptions = {},
 ) {
-  options = { ...options, format: options.format || 'rows' };
-  on('message', async function(msg) {
+  options = { ...options, format: options.format || "rows" };
+  on("message", async function(msg) {
     if (!msg.tableId || !msg.dataChange) { return; }
     const data = await docApi.fetchSelectedTable(options);
     callback(data, await getMappingsIfChanged(msg));
@@ -427,7 +427,7 @@ export function onRecords(
  * the document that contains it.
  */
 export function onOptions(callback: (options: any, settings: InteractionOptions) => unknown) {
-  on('message', function(msg) {
+  on("message", function(msg) {
     if (msg.settings) {
       callback(msg.options || null, msg.settings);
     }
@@ -438,13 +438,13 @@ export function onOptions(callback: (options: any, settings: InteractionOptions)
  * Called whenever the Grist theme changes (and on initial ready message).
  */
 function onThemeChange(callback: (theme: any) => unknown) {
-  on('message', function(msg) {
+  on("message", function(msg) {
     if (msg.theme) {
       callback(msg.theme);
 
       if (msg.fromReady) {
         void (async function() {
-          await rpc.postMessage({ message: 'themeInitialized' });
+          await rpc.postMessage({ message: "themeInitialized" });
         })();
       }
     }
@@ -464,11 +464,11 @@ function onThemeChange(callback: (theme: any) => unknown) {
  *
  * @internal
  */
-export async function addImporter(name: string, path: string, mode: 'fullscreen' | 'inline', options?: RenderOptions) {
+export async function addImporter(name: string, path: string, mode: "fullscreen" | "inline", options?: RenderOptions) {
   // checker is omitted for implementation because call was already checked by grist.
   rpc.registerImpl<InternalImportSourceAPI>(name, {
     async getImportSource(target: RenderTarget): Promise<ImportSource | undefined> {
-      const procId = await api.render(path, mode === 'inline' ? target : 'fullscreen', options);
+      const procId = await api.render(path, mode === "inline" ? target : "fullscreen", options);
       try {
         // stubName for the interface `name` at forward destination `path`
         const stubName = `${name}@${path}`;
@@ -484,9 +484,9 @@ export async function addImporter(name: string, path: string, mode: 'fullscreen'
 
 export function enableKeyboardShortcuts() {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const Mousetrap = require('mousetrap');
-  Mousetrap.bind('mod+z', () => commandApi.run('undo'));
-  Mousetrap.bind(['mod+shift+z', 'ctrl+y'], () => commandApi.run('redo'));
+  const Mousetrap = require("mousetrap");
+  Mousetrap.bind("mod+z", () => commandApi.run("undo"));
+  Mousetrap.bind(["mod+shift+z", "ctrl+y"], () => commandApi.run("redo"));
 }
 
 /**
@@ -508,9 +508,9 @@ export function ready(settings?: ReadyPayload): void {
   _readyCalled = true;
 
   if (settings?.onEditOptions) {
-    rpc.registerFunc('editOptions', settings.onEditOptions);
+    rpc.registerFunc("editOptions", settings.onEditOptions);
   }
-  on('message', async function(msg) {
+  on("message", async function(msg) {
     if (msg.tableId && msg.tableId !== _tableId) {
       if (!_tableId) { _setInitialized(); }
       _tableId = msg.tableId;
@@ -533,10 +533,10 @@ export function ready(settings?: ReadyPayload): void {
 
 /** @internal */
 function getPluginPath(location: Location) {
-  return location.pathname.replace(/^\/plugins\//, '');
+  return location.pathname.replace(/^\/plugins\//, "");
 }
 
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   // Window or iframe.
   const preloadWindow: any = window;
   if (preloadWindow.isRunningUnderElectron) {
@@ -552,19 +552,19 @@ if (typeof window !== 'undefined') {
   // iframe.contentWindow.print(), but that call does not work cross-domain.
   rpc.registerFunc("print", () => window.print());
 }
-else if (typeof process === 'undefined') {
+else if (typeof process === "undefined") {
   // Web worker. We can't really bring in the types for WebWorker (available with --lib flag)
   // without conflicting with a regular window, so use just use `self as any` here.
   self.onmessage = (e: MessageEvent) => rpc.receiveMessage(e.data);
   rpc.setSendMessage((mssg: any) => (self as any).postMessage(mssg));
 }
-else if (typeof process.send !== 'undefined') {
+else if (typeof process.send !== "undefined") {
   // Forked ChildProcess of node or electron.
   // sendMessage callback returns void 0 because rpc process.send returns a boolean and rpc
   // expecting void|Promise interprets truthy values as Promise which cause failure.
   rpc.setSendMessage((data) => { process.send!(data); });
-  process.on('message', (data: any) => rpc.receiveMessage(data));
-  process.on('disconnect', () => { process.exit(0); });
+  process.on("message", (data: any) => rpc.receiveMessage(data));
+  process.on("disconnect", () => { process.exit(0); });
 }
 else {
   // Not a recognized environment, perhaps plain nodejs run independently of Grist, or tests
@@ -577,13 +577,13 @@ else {
 /** @internal */
 function createRpcLogger(): IRpcLogger {
   let prefix: string;
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     prefix = `PLUGIN VIEW ${getPluginPath(window.location)}:`;
   }
-  else if (typeof process === 'undefined') {
+  else if (typeof process === "undefined") {
     prefix = `PLUGIN VIEW ${getPluginPath(self.location)}:`;
   }
-  else if (typeof process.send !== 'undefined') {
+  else if (typeof process.send !== "undefined") {
     prefix = `PLUGIN NODE ${process.env.GRIST_PLUGIN_PATH || "<unset-plugin-id>"}:`;
   }
   else {
@@ -615,9 +615,9 @@ function attachCssThemeVars({ appearance, name, colors: cssVars }: any) {
   // Apply the properties to the theme style element.
   // The 'grist-theme' layer takes precedence over the 'grist-base' layer where
   // default CSS variables are defined.
-  getOrCreateStyleElement('grist-theme').textContent = `@layer grist-theme {
+  getOrCreateStyleElement("grist-theme").textContent = `@layer grist-theme {
   :root {
-${properties.join('\n')}
+${properties.join("\n")}
   }
 }
 `;
@@ -626,28 +626,28 @@ ${properties.join('\n')}
   document.documentElement.style.setProperty(`color-scheme`, appearance);
 
   // Add data-attributes to let plugins easily identify theme name and appearance with CSS.
-  document.documentElement.setAttribute('data-grist-theme', name);
-  document.documentElement.setAttribute('data-grist-appearance', appearance);
+  document.documentElement.setAttribute("data-grist-theme", name);
+  document.documentElement.setAttribute("data-grist-appearance", appearance);
 }
 
-function getCssScrollbarProperties(appearance: 'light' | 'dark') {
+function getCssScrollbarProperties(appearance: "light" | "dark") {
   return [
-    '--scroll-bar-fg: ' +
-    (appearance === 'dark' ? '#6B6B6B;' : '#A8A8A8;'),
-    '--scroll-bar-hover-fg: ' +
-    (appearance === 'dark' ? '#7B7B7B;' : '#8F8F8F;'),
-    '--scroll-bar-active-fg: ' +
-    (appearance === 'dark' ? '#8B8B8B;' : '#7C7C7C;'),
-    '--scroll-bar-bg: ' +
-    (appearance === 'dark' ? '#2B2B2B;' : '#F0F0F0;'),
+    "--scroll-bar-fg: " +
+    (appearance === "dark" ? "#6B6B6B;" : "#A8A8A8;"),
+    "--scroll-bar-hover-fg: " +
+    (appearance === "dark" ? "#7B7B7B;" : "#8F8F8F;"),
+    "--scroll-bar-active-fg: " +
+    (appearance === "dark" ? "#8B8B8B;" : "#7C7C7C;"),
+    "--scroll-bar-bg: " +
+    (appearance === "dark" ? "#2B2B2B;" : "#F0F0F0;"),
   ];
 }
 
 function getOrCreateStyleElement(id: string) {
   let style = document.head.querySelector(`#${id}`);
   if (style) { return style; }
-  style = document.createElement('style');
-  style.setAttribute('id', id);
+  style = document.createElement("style");
+  style.setAttribute("id", id);
   document.head.append(style);
   return style;
 }

@@ -1,5 +1,5 @@
-import { theme } from 'app/client/ui2018/cssVars';
-import { Disposable, dom, Observable, styled } from 'grainjs';
+import { theme } from "app/client/ui2018/cssVars";
+import { Disposable, dom, Observable, styled } from "grainjs";
 
 /**
  * Simple validation controls. Renders as a red text with a validation message.
@@ -46,7 +46,7 @@ export class ValidationGroup {
         // When validator has a void/Promise<void> result it means that it just asserts certain invariant, and should
         // throw an exception when this invariant is not met. Error message can be used to amend the message in the
         // validator instance.
-        const isValid = typeof result === 'boolean' ? result : true;
+        const isValid = typeof result === "boolean" ? result : true;
         val.set(isValid);
         if (!isValid) { valid = false; break; }
       }
@@ -71,7 +71,7 @@ export class ValidationGroup {
    * Helper that can be attached to the input element to reset validation status.
    */
   public inputReset() {
-    return dom.on('input', this.reset.bind(this));
+    return dom.on("input", this.reset.bind(this));
   }
 
   /**
@@ -87,7 +87,7 @@ export class ValidationGroup {
  */
 export class Validator extends Disposable {
   private _isValid = Observable.create(this, true);
-  private _message = Observable.create(this, '');
+  private _message = Observable.create(this, "");
   constructor(public group: ValidationGroup, message: string, public check: ValidationFunction) {
     super();
     group.add(this);
@@ -98,7 +98,7 @@ export class Validator extends Disposable {
    * Helper that can be attached to the input element to reset validation status.
    */
   public inputReset() {
-    return dom.on('input', this.set.bind(this, true));
+    return dom.on("input", this.set.bind(this, true));
   }
 
   /**
@@ -107,7 +107,7 @@ export class Validator extends Disposable {
    */
   public set(isValid: boolean | string) {
     if (this.isDisposed()) { return; }
-    if (typeof isValid === 'string') {
+    if (typeof isValid === "string") {
       this._message.set(isValid);
       this._isValid.set(!isValid);
     }
@@ -124,6 +124,6 @@ export class Validator extends Disposable {
   }
 }
 
-const cssError = styled('div.validator', `
+const cssError = styled("div.validator", `
   color: ${theme.errorText};
 `);

@@ -108,47 +108,47 @@ describe("DocTypeConversion", function() {
   });
 
   // If the next six tests succeed so each document type can properly be converted to every other
-  it('should convert from Regular to Template', async function() {
+  it("should convert from Regular to Template", async function() {
     await convert("Regular", "Template");
     await isTemplate();
   });
 
-  it('should convert from Template to Tutorial', async function() {
+  it("should convert from Template to Tutorial", async function() {
     await convert("Template", "Tutorial");
     await isTutorial();
   });
 
-  it('should convert from Tutorial to Regular', async function() {
+  it("should convert from Tutorial to Regular", async function() {
     await convert("Tutorial", "Regular");
     await isRegular();
   });
 
-  it('should convert from Regular to Tutorial', async function() {
+  it("should convert from Regular to Tutorial", async function() {
     await convert("Regular", "Tutorial");
     await isTutorial();
   });
 
-  it('should convert from Tutorial to Template', async function() {
+  it("should convert from Tutorial to Template", async function() {
     await convert("Tutorial", "Template");
     await isTemplate();
   });
 
-  it('should convert from Template to Regular', async function() {
+  it("should convert from Template to Regular", async function() {
     await convert("Template", "Regular");
     await isRegular();
   });
 
-  it('should be disabled for non-owners', async function() {
+  it("should be disabled for non-owners", async function() {
     await userApi.updateDocPermissions(docId, { users: {
-      [gu.translateUser('user2').email]: 'editors',
+      [gu.translateUser("user2").email]: "editors",
     } });
 
-    const session = await gu.session().teamSite.user('user2').login();
+    const session = await gu.session().teamSite.user("user2").login();
     await session.loadDoc(`/doc/${docId}`);
     await driver.sleep(500);
     await gu.openDocumentSettings();
 
-    const start = driver.find('.test-settings-doctype-edit');
+    const start = driver.find(".test-settings-doctype-edit");
     assert.equal(await start.isPresent(), true);
 
     // Check that we have an informative tooltip.
@@ -156,7 +156,7 @@ describe("DocTypeConversion", function() {
     // Note that .test-tooltip may appear blank a first time,
     // hence the necessity to use waitToPass instead of findWait.
     await gu.waitToPass(async () => {
-      assert.match(await driver.find('.test-tooltip').getText(), /Only available to document owners/);
+      assert.match(await driver.find(".test-tooltip").getText(), /Only available to document owners/);
     });
 
     // Nothing should happen on click. We click the location rather than the element, since the
@@ -169,18 +169,18 @@ describe("DocTypeConversion", function() {
   });
 });
 
-const editButton = button('.test-settings-doctype-edit');
-const saveCopyButton = button('.test-tb-share-action');
-const displayedLabel = label('.test-settings-doctype-value');
-const modal = element('.test-settings-doctype-modal');
-const optionRegular = option('.test-settings-doctype-modal-option-regular');
-const optionTemplate = option('.test-settings-doctype-modal-option-template');
-const optionTutorial = option('.test-settings-doctype-modal-option-tutorial');
+const editButton = button(".test-settings-doctype-edit");
+const saveCopyButton = button(".test-tb-share-action");
+const displayedLabel = label(".test-settings-doctype-value");
+const modal = element(".test-settings-doctype-modal");
+const optionRegular = option(".test-settings-doctype-modal-option-regular");
+const optionTemplate = option(".test-settings-doctype-modal-option-template");
+const optionTutorial = option(".test-settings-doctype-modal-option-tutorial");
 const optionByLabel = {
   Tutorial: optionTutorial,
   Template: optionTemplate,
   Regular: optionRegular,
 };
-const modalConfirm = button('.test-settings-doctype-modal-confirm');
-const modalCancel = button('.test-settings-doctype-modal-cancel');
-const fiddleTag = element('.test-fiddle-tag');
+const modalConfirm = button(".test-settings-doctype-modal-confirm");
+const modalCancel = button(".test-settings-doctype-modal-cancel");
+const fiddleTag = element(".test-fiddle-tag");

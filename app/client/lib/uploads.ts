@@ -7,23 +7,23 @@
  * upload, and if that fails due to CORS, would fetch the file on the server side instead.
  */
 
-import { DocComm } from 'app/client/components/DocComm';
-import { UserError } from 'app/client/models/errors';
-import { FileDialogOptions, openFilePicker } from 'app/client/ui/FileDialog';
-import { getTestState } from 'app/client/lib/testState';
-import { GristLoadConfig } from 'app/common/gristUrls';
-import { byteString, safeJsonParse } from 'app/common/gutil';
-import { FetchUrlOptions, UPLOAD_URL_PATH, UploadResult } from 'app/common/uploads';
-import { docUrl } from 'app/common/urlUtils';
-import noop from 'lodash/noop';
-import trimStart from 'lodash/trimStart';
-import { basename } from 'path';      // made available by webpack using path-browserify module.
+import { DocComm } from "app/client/components/DocComm";
+import { UserError } from "app/client/models/errors";
+import { FileDialogOptions, openFilePicker } from "app/client/ui/FileDialog";
+import { getTestState } from "app/client/lib/testState";
+import { GristLoadConfig } from "app/common/gristUrls";
+import { byteString, safeJsonParse } from "app/common/gutil";
+import { FetchUrlOptions, UPLOAD_URL_PATH, UploadResult } from "app/common/uploads";
+import { docUrl } from "app/common/urlUtils";
+import noop from "lodash/noop";
+import trimStart from "lodash/trimStart";
+import { basename } from "path";      // made available by webpack using path-browserify module.
 
 type ProgressCB = (percent: number) => void;
 
 export interface UploadOptions {
   docWorkerUrl?: string;
-  sizeLimit?: 'import' | 'attachment';
+  sizeLimit?: "import" | "attachment";
 }
 
 export interface SelectFileOptions extends UploadOptions {
@@ -48,7 +48,7 @@ export async function selectFiles(options: SelectFileOptions,
   onProgress: ProgressCB = noop): Promise<UploadResult | null> {
   let result: UploadResult | null = null;
   const electronSelectFiles: any = (window as any).electronSelectFiles;
-  if (typeof electronSelectFiles === 'function') {
+  if (typeof electronSelectFiles === "function") {
     onProgress(0);
     result = await electronSelectFiles(getElectronOptions(options));
   }
@@ -84,15 +84,15 @@ function getFileDialogOptions(options: SelectFileOptions): FileDialogOptions {
 function getElectronOptions(options: SelectFileOptions) /* : OpenDialogOptions */ {
   const resOptions /* : OpenDialogOptions */ = {
     filters: [] as { name: string, extensions: any }[],
-    properties: ['openFile'],
+    properties: ["openFile"],
   };
   if (options.extensions) {
     // Electron does not expect leading period.
-    const extensions = options.extensions.map(e => trimStart(e, '.'));
-    resOptions.filters.push({ name: 'Select files', extensions });
+    const extensions = options.extensions.map(e => trimStart(e, "."));
+    resOptions.filters.push({ name: "Select files", extensions });
   }
   if (options.multiple) {
-    resOptions.properties.push('multiSelections');
+    resOptions.properties.push("multiSelections");
   }
   return resOptions;
 }
@@ -107,7 +107,7 @@ export async function uploadFiles(
 
   const formData = new FormData();
   for (const file of fileList) {
-    formData.append('upload', file);
+    formData.append("upload", file);
   }
 
   await maybeFakeSlowUploadsForTests();
@@ -115,7 +115,7 @@ export async function uploadFiles(
   // Check for upload limits.
   const gristConfig: Partial<GristLoadConfig> = window.gristConfig || {};
   const { maxUploadSizeImport, maxUploadSizeAttachment } = gristConfig;
-  if (options.sizeLimit === 'import' && maxUploadSizeImport) {
+  if (options.sizeLimit === "import" && maxUploadSizeImport) {
     // For imports, we limit the total upload size, but exempt .grist files from the upload limit.
     // Grist docs can be uploaded to make copies or restore from backup, and may legitimately be
     // very large (e.g. contain many attachments or on-demand tables).
@@ -124,7 +124,7 @@ export async function uploadFiles(
       throw new UserError(`Imported files may not exceed ${byteString(maxUploadSizeImport)}`);
     }
   }
-  else if (options.sizeLimit === 'attachment' && maxUploadSizeAttachment) {
+  else if (options.sizeLimit === "attachment" && maxUploadSizeAttachment) {
     // For attachments, we limit the size of each attachment.
     if (fileList.some(f => (f.size > maxUploadSizeAttachment))) {
       throw new UserError(`Attachments may not exceed ${byteString(maxUploadSizeAttachment)}`);
@@ -147,24 +147,24 @@ async function uploadFormData(
 ): Promise<any> {
   return new Promise<any>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('post', url, true);
-    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.open("post", url, true);
+    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
     xhr.withCredentials = true;
     onProgress(0);
-    xhr.upload.addEventListener('progress', (e) => {
+    xhr.upload.addEventListener("progress", (e) => {
       if (e.lengthComputable) {
         onProgress(e.loaded / e.total * 100);   // percentage complete
       }
     });
-    xhr.addEventListener('error', (e: ProgressEvent) => {
+    xhr.addEventListener("error", (e: ProgressEvent) => {
       console.warn("Upload error", e);         // The event does not seem to have any helpful info in it, to add to the message.
-      reject(new Error('Upload error'));
+      reject(new Error("Upload error"));
     });
-    xhr.addEventListener('load', () => {
+    xhr.addEventListener("load", () => {
       if (xhr.status !== 200) {
                console.warn("Upload failed", xhr.status, xhr.responseText);
         const err = safeJsonParse(xhr.responseText, null);
-        reject(new UserError('Upload failed: ' + (err?.error || xhr.status)));
+        reject(new UserError("Upload failed: " + (err?.error || xhr.status)));
       }
       else {
         onProgress(100);
@@ -200,7 +200,7 @@ export async function fetchURL(
   // TODO: We should probably parse response.headers.get('content-disposition') when available
   // (see content-disposition npm module).
   const fileName = basename(url);
-  const mimeType = response.headers.get('content-type');
+  const mimeType = response.headers.get("content-type");
   const fileOptions = mimeType ? { type: mimeType } : {};
   const fileObj = new File([await response.blob()], fileName, fileOptions);
   const res = await uploadFiles([fileObj], { docWorkerUrl: docComm.docWorkerUrl }, onProgress);

@@ -1,70 +1,70 @@
-var assert = require('assert');
-var ko = require('knockout');
-var sinon = require('sinon');
+var assert = require("assert");
+var ko = require("knockout");
+var sinon = require("sinon");
 
-var dom = require('app/client/lib/dom');
-var kd = require('app/client/lib/koDom');
-var koArray = require('app/client/lib/koArray');
-var clientUtil = require('../clientUtil');
+var dom = require("app/client/lib/dom");
+var kd = require("app/client/lib/koDom");
+var koArray = require("app/client/lib/koArray");
+var clientUtil = require("../clientUtil");
 
-describe('koDom', function() {
+describe("koDom", function() {
 
   clientUtil.setTmpMochaGlobals();
 
   describe("simple properties", function() {
     it("should update dynamically", function() {
-      var obs = ko.observable('bar');
+      var obs = ko.observable("bar");
       var width = ko.observable(17);
-      var elem = dom('div',
-        kd.attr('a1', 'foo'),
-        kd.attr('a2', obs),
-        kd.attr('a3', function() { return "a3" + obs(); }),
+      var elem = dom("div",
+        kd.attr("a1", "foo"),
+        kd.attr("a2", obs),
+        kd.attr("a3", function() { return "a3" + obs(); }),
         kd.text(obs),
-        kd.style('width', function() { return width() + 'px'; }),
-        kd.toggleClass('isbar', function() { return obs() === 'bar'; }),
-        kd.cssClass(function() { return 'class' + obs(); }));
+        kd.style("width", function() { return width() + "px"; }),
+        kd.toggleClass("isbar", function() { return obs() === "bar"; }),
+        kd.cssClass(function() { return "class" + obs(); }));
 
-      assert.equal(elem.getAttribute('a1'), 'foo');
-      assert.equal(elem.getAttribute('a2'), 'bar');
-      assert.equal(elem.getAttribute('a3'), 'a3bar');
-      assert.equal(elem.textContent, 'bar');
-      assert.equal(elem.style.width, '17px');
-      assert.equal(elem.className, 'isbar classbar');
-      obs('BAZ');
-      width('34');
-      assert.equal(elem.getAttribute('a1'), 'foo');
-      assert.equal(elem.getAttribute('a2'), 'BAZ');
-      assert.equal(elem.getAttribute('a3'), 'a3BAZ');
-      assert.equal(elem.textContent, 'BAZ');
-      assert.equal(elem.style.width, '34px');
-      assert.equal(elem.className, 'classBAZ');
-      obs('bar');
-      assert.equal(elem.className, 'isbar classbar');
+      assert.equal(elem.getAttribute("a1"), "foo");
+      assert.equal(elem.getAttribute("a2"), "bar");
+      assert.equal(elem.getAttribute("a3"), "a3bar");
+      assert.equal(elem.textContent, "bar");
+      assert.equal(elem.style.width, "17px");
+      assert.equal(elem.className, "isbar classbar");
+      obs("BAZ");
+      width("34");
+      assert.equal(elem.getAttribute("a1"), "foo");
+      assert.equal(elem.getAttribute("a2"), "BAZ");
+      assert.equal(elem.getAttribute("a3"), "a3BAZ");
+      assert.equal(elem.textContent, "BAZ");
+      assert.equal(elem.style.width, "34px");
+      assert.equal(elem.className, "classBAZ");
+      obs("bar");
+      assert.equal(elem.className, "isbar classbar");
     });
   });
 
   describe("domData", function() {
     it("should set domData and reflect observables", function() {
       var foo = ko.observable(null);
-      var elem = dom('div',
-        kd.domData('foo', foo),
-        kd.domData('bar', 'BAR')
+      var elem = dom("div",
+        kd.domData("foo", foo),
+        kd.domData("bar", "BAR")
       );
-      assert.equal(ko.utils.domData.get(elem, 'foo'), null);
-      assert.equal(ko.utils.domData.get(elem, 'bar'), 'BAR');
+      assert.equal(ko.utils.domData.get(elem, "foo"), null);
+      assert.equal(ko.utils.domData.get(elem, "bar"), "BAR");
       foo(123);
-      assert.equal(ko.utils.domData.get(elem, 'foo'), 123);
+      assert.equal(ko.utils.domData.get(elem, "foo"), 123);
     });
   });
 
   describe("scope", function() {
     it("should handle any number of children", function() {
       var obs = ko.observable();
-      var elem = dom('div', 'Hello',
+      var elem = dom("div", "Hello",
         kd.scope(obs, function(value) {
           return value;
         }),
-        'World');
+        "World");
       assert.equal(elem.textContent, "HelloWorld");
       obs("Foo");
       assert.equal(elem.textContent, "HelloFooWorld");
@@ -80,21 +80,21 @@ describe('koDom', function() {
 
     it("should cope with children getting removed outside", function() {
       var obs = ko.observable();
-      var elem = dom('div', 'Hello', kd.scope(obs, function(v) { return v; }), 'World');
-      assert.equal(elem.innerHTML, 'Hello<!---->World');
+      var elem = dom("div", "Hello", kd.scope(obs, function(v) { return v; }), "World");
+      assert.equal(elem.innerHTML, "Hello<!---->World");
 
-      obs(dom.frag(dom('div', 'Foo'), dom('div', 'Bar')));
-      assert.equal(elem.innerHTML, 'Hello<!----><div>Foo</div><div>Bar</div>World');
+      obs(dom.frag(dom("div", "Foo"), dom("div", "Bar")));
+      assert.equal(elem.innerHTML, "Hello<!----><div>Foo</div><div>Bar</div>World");
       elem.removeChild(elem.childNodes[2]);
-      assert.equal(elem.innerHTML, 'Hello<!----><div>Bar</div>World');
+      assert.equal(elem.innerHTML, "Hello<!----><div>Bar</div>World");
       obs(null);
-      assert.equal(elem.innerHTML, 'Hello<!---->World');
+      assert.equal(elem.innerHTML, "Hello<!---->World");
 
-      obs(dom.frag(dom('div', 'Foo'), dom('div', 'Bar')));
+      obs(dom.frag(dom("div", "Foo"), dom("div", "Bar")));
       elem.removeChild(elem.childNodes[3]);
-      assert.equal(elem.innerHTML, 'Hello<!----><div>Foo</div>World');
-      obs(dom.frag(dom('div', 'Foo'), dom('div', 'Bar')));
-      assert.equal(elem.innerHTML, 'Hello<!----><div>Foo</div><div>Bar</div>World');
+      assert.equal(elem.innerHTML, "Hello<!----><div>Foo</div>World");
+      obs(dom.frag(dom("div", "Foo"), dom("div", "Bar")));
+      assert.equal(elem.innerHTML, "Hello<!----><div>Foo</div><div>Bar</div>World");
     });
 
   });
@@ -102,7 +102,7 @@ describe('koDom', function() {
   describe("maybe", function() {
     it("should handle any number of children", function() {
       var obs = ko.observable(0);
-      var elem = dom('div', 'Hello',
+      var elem = dom("div", "Hello",
         kd.maybe(function() { return obs() > 0; }, function() {
           return dom("span", "Foo");
         }),
@@ -121,12 +121,12 @@ describe('koDom', function() {
 
     it("should pass truthy value to content function", function() {
       var obs = ko.observable(null);
-      var elem = dom('div', 'Hello', kd.maybe(obs, function(x) { return x; }), 'World');
-      assert.equal(elem.innerHTML, 'Hello<!---->World');
-      obs(dom('span', 'Foo'));
-      assert.equal(elem.innerHTML, 'Hello<!----><span>Foo</span>World');
+      var elem = dom("div", "Hello", kd.maybe(obs, function(x) { return x; }), "World");
+      assert.equal(elem.innerHTML, "Hello<!---->World");
+      obs(dom("span", "Foo"));
+      assert.equal(elem.innerHTML, "Hello<!----><span>Foo</span>World");
       obs(0);   // Falsy values should destroy the content
-      assert.equal(elem.innerHTML, 'Hello<!---->World');
+      assert.equal(elem.innerHTML, "Hello<!---->World");
     });
   });
 
@@ -136,9 +136,9 @@ describe('koDom', function() {
 
       // Make sure the loop notices elements already in the model.
       model.assign(["a", "b", "c"]);
-      var elem = dom('div', "[",
+      var elem = dom("div", "[",
         kd.foreach(model, function(item) {
-          return dom('span', ":", dom('span', kd.text(item)));
+          return dom("span", ":", dom("span", kd.text(item)));
         }),
         "]"
       );
@@ -169,10 +169,10 @@ describe('koDom', function() {
     });
 
     it("should work when items disappear from under it", function() {
-      var elements = [dom('span', 'a'), dom('span', 'b'), dom('span', 'c')];
+      var elements = [dom("span", "a"), dom("span", "b"), dom("span", "c")];
       var model = koArray();
       model.assign(elements);
-      var elem = dom('div', '[', kd.foreach(model, function(item) { return item; }), ']');
+      var elem = dom("div", "[", kd.foreach(model, function(item) { return item; }), "]");
       assert.equal(elem.textContent, "[abc]");
 
       // Plain splice out.
@@ -204,9 +204,9 @@ describe('koDom', function() {
 
     it("should work when items are null", function() {
       var model = koArray();
-      var elem = dom('div', '[',
-        kd.foreach(model, function(item) { return item && dom('span', item); }),
-        ']');
+      var elem = dom("div", "[",
+        kd.foreach(model, function(item) { return item && dom("span", item); }),
+        "]");
       assert.equal(elem.textContent, "[]");
 
       model.splice(0, 0, "a", "b", "c");
@@ -235,20 +235,20 @@ describe('koDom', function() {
       var cb = sinon.spy(function(x) { return x; });
       var data = koArray([ko.observable("foo"), ko.observable("bar")]);
 
-      var elem = dom('div', kd.foreach(data, function(item) {
-        return dom('div', kd.text(function() { return cb(item() + ":" + obs()); }));
+      var elem = dom("div", kd.foreach(data, function(item) {
+        return dom("div", kd.text(function() { return cb(item() + ":" + obs()); }));
       }));
 
-      assert.equal(elem.innerHTML, '<!----><div>foo:AAA</div><div>bar:AAA</div>');
+      assert.equal(elem.innerHTML, "<!----><div>foo:AAA</div><div>bar:AAA</div>");
       obs("BBB");
-      assert.equal(elem.innerHTML, '<!----><div>foo:BBB</div><div>bar:BBB</div>');
+      assert.equal(elem.innerHTML, "<!----><div>foo:BBB</div><div>bar:BBB</div>");
       data.splice(1, 1);
-      assert.equal(elem.innerHTML, '<!----><div>foo:BBB</div>');
+      assert.equal(elem.innerHTML, "<!----><div>foo:BBB</div>");
       cb.resetHistory();
       // Below is the core of the test: we are checking that the computed observable created for
       // the second item of the array ("bar") does NOT trigger a call to cb.
       obs("CCC");
-      assert.equal(elem.innerHTML, '<!----><div>foo:CCC</div>');
+      assert.equal(elem.innerHTML, "<!----><div>foo:CCC</div>");
       sinon.assert.calledOnce(cb);
       sinon.assert.calledWith(cb, "foo:CCC");
     });

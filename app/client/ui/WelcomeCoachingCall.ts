@@ -1,27 +1,27 @@
-import { makeT } from 'app/client/lib/localization';
-import { logTelemetryEvent } from 'app/client/lib/telemetry';
-import { AppModel } from 'app/client/models/AppModel';
-import { bigBasicButton, bigPrimaryButtonLink } from 'app/client/ui2018/buttons';
-import { testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { makeT } from "app/client/lib/localization";
+import { logTelemetryEvent } from "app/client/lib/telemetry";
+import { AppModel } from "app/client/models/AppModel";
+import { bigBasicButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
+import { testId, theme, vars } from "app/client/ui2018/cssVars";
 import { cardPopup, cssPopupBody, cssPopupButtons, cssPopupCloseButton,
-  cssPopupTitle } from 'app/client/ui2018/popups';
-import { icon } from 'app/client/ui2018/icons';
-import { cssLink } from 'app/client/ui2018/links';
-import { getGristConfig } from 'app/common/urlUtils';
-import { dom, styled } from 'grainjs';
-import { commonUrls } from 'app/common/gristUrls';
+  cssPopupTitle } from "app/client/ui2018/popups";
+import { icon } from "app/client/ui2018/icons";
+import { cssLink } from "app/client/ui2018/links";
+import { getGristConfig } from "app/common/urlUtils";
+import { dom, styled } from "grainjs";
+import { commonUrls } from "app/common/gristUrls";
 
-const t = makeT('WelcomeCoachingCall');
+const t = makeT("WelcomeCoachingCall");
 
 export function shouldShowWelcomeCoachingCall(appModel: AppModel) {
   const { deploymentType } = getGristConfig();
-  if (deploymentType !== 'saas') { return false; }
+  if (deploymentType !== "saas") { return false; }
 
   // Defer showing coaching call until Add New tip is dismissed.
   const { behavioralPromptsManager, dismissedWelcomePopups } = appModel;
-  if (behavioralPromptsManager.shouldShowPopup('addNew')) { return false; }
+  if (behavioralPromptsManager.shouldShowPopup("addNew")) { return false; }
 
-  const popup = dismissedWelcomePopups.get().find(p => p.id === 'coachingCall');
+  const popup = dismissedWelcomePopups.get().find(p => p.id === "coachingCall");
   return (
     // Only show if the user is an owner.
     appModel.isOwner() && (
@@ -43,10 +43,10 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
     const dismissPopup = (scheduleNextAppearance?: boolean) => {
       const dismissedPopups = dismissedWelcomePopups.get();
       const newDismissedPopups = [...dismissedPopups];
-      const coachingPopup = newDismissedPopups.find(p => p.id === 'coachingCall');
+      const coachingPopup = newDismissedPopups.find(p => p.id === "coachingCall");
       if (!coachingPopup) {
         newDismissedPopups.push({
-          id: 'coachingCall',
+          id: "coachingCall",
           lastDismissedAt: Date.now(),
           timesDismissed: 1,
           nextAppearanceAt: scheduleNextAppearance ?
@@ -68,78 +68,78 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
     };
 
     return [
-      cssPopup.cls(''),
+      cssPopup.cls(""),
       cssPopupHeader(
         cssLogoAndName(
           cssLogo(),
-          cssName('Grist'),
+          cssName("Grist"),
         ),
         cssPopupCloseButton(
-          cssCloseIcon('CrossBig'),
-          dom.on('click', () => dismissPopup(true)),
-          testId('popup-close-button'),
+          cssCloseIcon("CrossBig"),
+          dom.on("click", () => dismissPopup(true)),
+          testId("popup-close-button"),
         ),
       ),
-      cssPopupTitle(t('Free coaching call'),
-        testId('popup-title'),
+      cssPopupTitle(t("Free coaching call"),
+        testId("popup-title"),
       ),
       cssPopupBody(
         cssBody(
-          dom('div',
-            t('Schedule your {{freeCoachingCall}} with a member of our team.',
-              { freeCoachingCall: cssBoldText(t('free coaching call')) },
+          dom("div",
+            t("Schedule your {{freeCoachingCall}} with a member of our team.",
+              { freeCoachingCall: cssBoldText(t("free coaching call")) },
             ),
           ),
-          dom('div',
+          dom("div",
             t("On the call, we'll take the time to understand your needs and tailor the call to you. \
 We can show you the Grist basics, or start working with your data right away to build the dashboards you need."),
           ),
-          dom('div',
+          dom("div",
             t("You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users \
 navigate the fundamentals of Grist.",
             {
               ourWeeklyWebinars: cssLink(
-                { href: commonUrls.webinars, target: '_blank' },
-                t('Grist 101'),
+                { href: commonUrls.webinars, target: "_blank" },
+                t("Grist 101"),
               ),
             },
             ),
-            testId('popup-body-webinar'),
+            testId("popup-body-webinar"),
           ),
         ),
-        testId('popup-body'),
+        testId("popup-body"),
       ),
       cssPopupButtons(
         bigPrimaryButtonLink(
-          t('Schedule call'),
-          dom.on('click', () => {
+          t("Schedule call"),
+          dom.on("click", () => {
             dismissPopup(false);
-            logTelemetryEvent('clickedScheduleCoachingCall');
+            logTelemetryEvent("clickedScheduleCoachingCall");
           }),
           {
             href: commonUrls.freeCoachingCall,
-            target: '_blank',
+            target: "_blank",
           },
-          testId('popup-primary-button'),
+          testId("popup-primary-button"),
         ),
         bigBasicButton(
-          t('Maybe later'),
-          dom.on('click', () => dismissPopup(true)),
-          testId('popup-basic-button'),
+          t("Maybe later"),
+          dom.on("click", () => dismissPopup(true)),
+          testId("popup-basic-button"),
         ),
       ),
-      testId('coaching-call'),
+      testId("coaching-call"),
     ];
   });
 }
 
-const cssBody = styled('div', `
+const cssBody = styled("div", `
   display: flex;
   flex-direction: column;
   row-gap: 16px;
 `);
 
-const cssBoldText = styled('span', `
+const cssBoldText = styled("span", `
   font-weight: 600;
 `);
 
@@ -147,13 +147,13 @@ const cssCloseIcon = styled(icon, `
   padding: 12px;
 `);
 
-const cssName = styled('div', `
+const cssName = styled("div", `
   color: ${theme.popupCloseButtonFg};
   font-size: ${vars.largeFontSize};
   font-weight: 600;
 `);
 
-const cssLogo = styled('div', `
+const cssLogo = styled("div", `
   flex: none;
   height: 32px;
   width: 32px;
@@ -163,18 +163,18 @@ const cssLogo = styled('div', `
   background-position: center;
 `);
 
-const cssLogoAndName = styled('div', `
+const cssLogoAndName = styled("div", `
   display: flex;
   align-items: center;
   gap: 4px;
 `);
 
-const cssPopup = styled('div', `
+const cssPopup = styled("div", `
   display: flex;
   flex-direction: column;
 `);
 
-const cssPopupHeader = styled('div', `
+const cssPopupHeader = styled("div", `
   display: flex;
   justify-content: space-between;
   margin-bottom: 16px;

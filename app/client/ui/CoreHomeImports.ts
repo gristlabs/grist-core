@@ -1,13 +1,13 @@
-import { AppModel, reportError } from 'app/client/models/AppModel';
-import { AxiosProgressEvent } from 'axios';
-import { PluginScreen } from 'app/client/components/PluginScreen';
-import { guessTimezone } from 'app/client/lib/guessTimezone';
-import { ImportSourceElement } from 'app/client/lib/ImportSourceElement';
-import { ImportProgress } from 'app/client/ui/ImportProgress';
-import { EXTENSIONS_IMPORTABLE_AS_DOC } from 'app/client/lib/uploads';
-import { openFilePicker } from 'app/client/ui/FileDialog';
-import { byteString } from 'app/common/gutil';
-import { uploadFiles } from 'app/client/lib/uploads';
+import { AppModel, reportError } from "app/client/models/AppModel";
+import { AxiosProgressEvent } from "axios";
+import { PluginScreen } from "app/client/components/PluginScreen";
+import { guessTimezone } from "app/client/lib/guessTimezone";
+import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
+import { ImportProgress } from "app/client/ui/ImportProgress";
+import { EXTENSIONS_IMPORTABLE_AS_DOC } from "app/client/lib/uploads";
+import { openFilePicker } from "app/client/ui/FileDialog";
+import { byteString } from "app/common/gutil";
+import { uploadFiles } from "app/client/lib/uploads";
 
 /**
  * Imports a document and returns its docId, or null if no files were selected.
@@ -50,10 +50,10 @@ export async function fileImport(
     else {
       // Connect to a docworker.  Imports share some properties of documents but not all. In place of
       // docId, for the purposes of work allocation, we use the special assigmentId `import`.
-      const docWorker = await app.api.getWorkerAPI('import');
+      const docWorker = await app.api.getWorkerAPI("import");
 
       // This uploads to the docWorkerUrl saved in window.gristConfig
-      const uploadResult = await uploadFiles(files, { docWorkerUrl: docWorker.url, sizeLimit: 'import' },
+      const uploadResult = await uploadFiles(files, { docWorkerUrl: docWorker.url, sizeLimit: "import" },
         p => progress.setUploadProgress(p));
       const importResult = await docWorker.importDocToWorkspace(uploadResult!.uploadId, workspaceId, { timezone });
       return importResult.id;

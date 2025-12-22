@@ -1,5 +1,5 @@
-import { datetime, now } from 'app/gen-server/sqlUtils';
-import { MigrationInterface, QueryRunner, TableColumn, TableIndex } from 'typeorm';
+import { datetime, now } from "app/gen-server/sqlUtils";
+import { MigrationInterface, QueryRunner, TableColumn, TableIndex } from "typeorm";
 
 export class UserCreatedAt1738912357827 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {

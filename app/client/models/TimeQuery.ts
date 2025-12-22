@@ -1,6 +1,6 @@
-import { DocData } from 'app/client/models/DocData';
-import { getActionColValues, getRowIdsFromDocAction } from 'app/common/DocActions';
-import { ITimeData, ResultRow } from 'app/common/TimeQuery';
+import { DocData } from "app/client/models/DocData";
+import { getActionColValues, getRowIdsFromDocAction } from "app/common/DocActions";
+import { ITimeData, ResultRow } from "app/common/TimeQuery";
 
 /**
  * A client-side implementation of ITimeData, so we can do a
@@ -23,7 +23,7 @@ export class ClientTimeData implements ITimeData {
     const records = getRowIdsFromDocAction(data).map((rowId, i) => {
       const rec: Record<string, any> = { id: rowId };
       for (const [colId, values] of Object.entries(getActionColValues(data))) {
-        if (colId !== 'id') {
+        if (colId !== "id") {
           rec[colId] = values[i];
         }
       }

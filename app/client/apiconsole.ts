@@ -1,16 +1,16 @@
-import { loadCssFile, loadScript } from 'app/client/lib/loadScript';
-import { makeT } from 'app/client/lib/localization';
-import type { AppModel } from 'app/client/models/AppModel';
-import { urlState } from 'app/client/models/gristUrlState';
-import { reportError } from 'app/client/models/errors';
-import { createAppPage } from 'app/client/ui/createAppPage';
-import { invokePrompt } from 'app/client/ui2018/modals';
-import { DocAPIImpl } from 'app/common/UserAPI';
-import type { RecordWithStringId } from 'app/plugin/DocApiTypes';
-import { dom, styled } from 'grainjs';
-import type SwaggerUI from 'swagger-ui';
+import { loadCssFile, loadScript } from "app/client/lib/loadScript";
+import { makeT } from "app/client/lib/localization";
+import type { AppModel } from "app/client/models/AppModel";
+import { urlState } from "app/client/models/gristUrlState";
+import { reportError } from "app/client/models/errors";
+import { createAppPage } from "app/client/ui/createAppPage";
+import { invokePrompt } from "app/client/ui2018/modals";
+import { DocAPIImpl } from "app/common/UserAPI";
+import type { RecordWithStringId } from "app/plugin/DocApiTypes";
+import { dom, styled } from "grainjs";
+import type SwaggerUI from "swagger-ui";
 
-const t = makeT('apiconsole');
+const t = makeT("apiconsole");
 
 /**
  * This loads the swagger resources as if included as separate <script> and <link> tags in <head>.
@@ -21,10 +21,10 @@ const t = makeT('apiconsole');
  */
 function loadExternal() {
   return Promise.all([
-    loadScript('swagger-ui-bundle.js'),
-    loadCssFile('swagger-ui.css'),
+    loadScript("swagger-ui-bundle.js"),
+    loadCssFile("swagger-ui.css"),
     // Stylesheet that's only applied when prefers-color-scheme is dark.
-    loadCssFile('swagger-ui-dark.css'),
+    loadCssFile("swagger-ui-dark.css"),
   ]);
 }
 
@@ -121,7 +121,7 @@ function setParamValue(resolvedParam: any, value: ParamValue) {
       for (const [method, operation] of path.entries()) {
         // Skip the $ref for now, it is only used in `scim` endpoints which don't share
         // parameters with other endpoints.
-        if (method === '$ref') {
+        if (method === "$ref") {
           continue;
         }
         const parameters = operation.get("parameters");
@@ -240,10 +240,10 @@ function initialize(appModel: AppModel) {
   // To be called after the spec is downloaded and parsed.
   function onComplete() {
     // Add an instruction for where to get API key.
-    const description = document.querySelector('.information-container .info');
+    const description = document.querySelector(".information-container .info");
     if (description) {
-      const href = urlState().makeUrl({ account: 'account' });
-      dom.update(description, dom('div', 'Find or create your API key at ', dom('a', { href }, href), '.'));
+      const href = urlState().makeUrl({ account: "account" });
+      dom.update(description, dom("div", "Find or create your API key at ", dom("a", { href }, href), "."));
     }
 
     updateSpec((spec) => {
@@ -256,8 +256,8 @@ function initialize(appModel: AppModel) {
       // Some table-specific parameters have examples with fake data in grist.yml. We don't want
       // to actually use this for running requests, so clear those out.
       for (const paramName of [
-        'filterQueryParam', 'sortQueryParam', 'sortHeaderParam',
-        'limitQueryParam', 'limitHeaderParam',
+        "filterQueryParam", "sortQueryParam", "sortHeaderParam",
+        "limitQueryParam", "limitHeaderParam",
       ]) {
         spec = spec.removeIn(["components", "parameters", paramName, "example"]);
       }
@@ -268,8 +268,8 @@ function initialize(appModel: AppModel) {
     // set. Actual requests from the console use cookies, so can work anyway. When the key is set,
     // showing it in cleartext makes it riskier to ask for help with screenshots and the like.
     // We set a fake key anyway to be clear that it's needed in the curl command.
-    const key = 'XXXXXXXXXXX';
-    swaggerUI!.preauthorizeApiKey('ApiKey', key);
+    const key = "XXXXXXXXXXX";
+    swaggerUI!.preauthorizeApiKey("ApiKey", key);
 
     // Set examples for orgs, workspaces, and docs.
     orgsPromise.then((orgs) => {
@@ -316,32 +316,32 @@ async function requestInterceptor(request: SwaggerUI.Request) {
     // Without this header, unauthenticated multipart POST requests
     // (i.e. file uploads) would fail in the API console. We want those
     // requests to succeed.
-    request.headers['X-Requested-With'] = 'XMLHttpRequest';
-    if (request.method.toLowerCase() === 'delete') {
+    request.headers["X-Requested-With"] = "XMLHttpRequest";
+    if (request.method.toLowerCase() === "delete") {
       const text = await invokePrompt(
-        t('Confirm Deletion'), {
-          btnText: t('Delete'),
-          placeholder: t('Type DELETE here if you wish to proceed.'),
+        t("Confirm Deletion"), {
+          btnText: t("Delete"),
+          placeholder: t("Type DELETE here if you wish to proceed."),
           body: [
             dom(
-              'p',
-              t('Are you sure you want to delete the following?'),
+              "p",
+              t("Are you sure you want to delete the following?"),
             ),
             dom(
-              'p',
-              dom('tt', url.pathname),
+              "p",
+              dom("tt", url.pathname),
             ),
             dom(
-              'p',
+              "p",
               t(`Type DELETE if you are sure you do indeed wish to do this deletion.
 If you are not sure, or do not understand what this operation will do,
 it would be wise to cancel it.`),
             ),
           ],
         });
-      if (text !== 'DELETE') {
-        reportError(t('Deletion was not confirmed, skipping.'));
-        throw new Error('Deletion was not confirmed');
+      if (text !== "DELETE") {
+        reportError(t("Deletion was not confirmed, skipping."));
+        throw new Error("Deletion was not confirmed");
       }
     }
   }
@@ -350,7 +350,7 @@ it would be wise to cancel it.`),
 
 createAppPage((appModel) => {
   // Default Grist page prevents scrolling unnecessarily.
-  document.documentElement.style.overflow = 'initial';
+  document.documentElement.style.overflow = "initial";
 
   const rootNode = cssWrapper();
   const onComplete = initialize(appModel);
@@ -360,7 +360,7 @@ createAppPage((appModel) => {
     swaggerUI = buildSwaggerUI({
       filter: true,
       plugins: [gristPlugin.bind(null, appModel)],
-      url: 'https://raw.githubusercontent.com/gristlabs/grist-help/master/api/grist.yml',
+      url: "https://raw.githubusercontent.com/gristlabs/grist-help/master/api/grist.yml",
       domNode: rootNode,
       showMutatedRequest: false,
       requestInterceptor,
@@ -372,7 +372,7 @@ createAppPage((appModel) => {
   return rootNode;
 });
 
-const cssWrapper = styled('div', `
+const cssWrapper = styled("div", `
   & .scheme-container {
     display: none;
   }

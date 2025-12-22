@@ -4,17 +4,17 @@
 import { StringUnion } from "app/common/StringUnion";
 
 // Custom widgets that are attached to "Add New" menu.
-export const AttachedCustomWidgets = StringUnion('custom.calendar');
+export const AttachedCustomWidgets = StringUnion("custom.calendar");
 export type IAttachedCustomWidget = typeof AttachedCustomWidgets.type;
 
 // all widget types
-export type IWidgetType = 'record' | 'detail' | 'single' | 'chart' | 'custom' | 'form' | IAttachedCustomWidget;
+export type IWidgetType = "record" | "detail" | "single" | "chart" | "custom" | "form" | IAttachedCustomWidget;
 export enum WidgetType {
-  Table = 'record',
-  Card = 'single',
-  CardList = 'detail',
-  Chart = 'chart',
-  Custom = 'custom',
-  Form = 'form',
-  Calendar = 'custom.calendar',
+  Table = "record",
+  Card = "single",
+  CardList = "detail",
+  Chart = "chart",
+  Custom = "custom",
+  Form = "form",
+  Calendar = "custom.calendar",
 }

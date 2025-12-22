@@ -1,7 +1,7 @@
 /**
  * Plugin's utilities common to server and client.
  */
-import { BarePlugin, Implementation } from 'app/plugin/PluginManifest';
+import { BarePlugin, Implementation } from "app/plugin/PluginManifest";
 
 export type LocalPluginKind = "installed" | "builtIn";
 

@@ -1,14 +1,14 @@
-import { BaseAPI, IOptions } from 'app/common/BaseAPI';
-import { TEAM_FREE_PLAN } from 'app/common/Features';
-import { FullUser } from 'app/common/LoginSessionAPI';
-import { StringUnion } from 'app/common/StringUnion';
-import { addCurrentOrgToPath } from 'app/common/urlUtils';
-import { BillingAccount, ManagerDelta, OrganizationWithoutAccessInfo } from 'app/common/UserAPI';
+import { BaseAPI, IOptions } from "app/common/BaseAPI";
+import { TEAM_FREE_PLAN } from "app/common/Features";
+import { FullUser } from "app/common/LoginSessionAPI";
+import { StringUnion } from "app/common/StringUnion";
+import { addCurrentOrgToPath } from "app/common/urlUtils";
+import { BillingAccount, ManagerDelta, OrganizationWithoutAccessInfo } from "app/common/UserAPI";
 
-export const BillingSubPage = StringUnion('payment', 'scheduled');
+export const BillingSubPage = StringUnion("payment", "scheduled");
 export type BillingSubPage = typeof BillingSubPage.type;
 
-export const BillingPage = StringUnion(...BillingSubPage.values, 'billing');
+export const BillingPage = StringUnion(...BillingSubPage.values, "billing");
 export type BillingPage = typeof BillingPage.type;
 
 // updateDomain - it is a subpage for billing page, to update domain name.
@@ -16,7 +16,7 @@ export type BillingPage = typeof BillingPage.type;
 // signUpLite - it is a subpage for payment, to finalize (complete) signup process
 // and set domain and team name when they are not set yet (currently only from landing pages).
 // signUp - it is landing page for new team sites (it doesn't ask for the name of the team)
-export const BillingTask = StringUnion('signUpLite', 'updateDomain', 'signUp', 'cancelPlan', 'upgraded');
+export const BillingTask = StringUnion("signUpLite", "updateDomain", "signUp", "cancelPlan", "upgraded");
 export type BillingTask = typeof BillingTask.type;
 
 // Note that IBillingPlan includes selected fields from the Stripe plan object along with
@@ -25,7 +25,7 @@ export type BillingTask = typeof BillingTask.type;
 export interface IBillingPlan {
   id: string;                 // the Stripe plan id
   nickname: string;
-  interval: 'day' | 'week' | 'month' | 'year';           // billing frequency - one of day, week, month or year
+  interval: "day" | "week" | "month" | "year";           // billing frequency - one of day, week, month or year
   // Merged metadata from price and product.
   metadata: {
     family?: string;          // groups plans for filtering by GRIST_STRIPE_FAMILY env variable
@@ -170,7 +170,7 @@ export interface ChangeSummary {
   priceId: string,
   interval: string,
   quantity: number,
-  type: 'upgrade' | 'downgrade',
+  type: "upgrade" | "downgrade",
   regular: {
     lines: SummaryLine[];
     subTotal: number;
@@ -233,45 +233,45 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
 
   public async isDomainAvailable(domain: string): Promise<boolean> {
     return this.requestJson(`${this._url}/api/billing/domain`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ domain }),
     });
   }
 
   public async getPlans(plan?: PlanSelection): Promise<IBillingPlan[]> {
     const url = new URL(`${this._url}/api/billing/plans`);
-    url.searchParams.set('product', plan?.product || '');
-    url.searchParams.set('priceId', plan?.priceId || '');
+    url.searchParams.set("product", plan?.product || "");
+    url.searchParams.set("priceId", plan?.priceId || "");
     return this.requestJson(url.href, {
-      method: 'GET',
+      method: "GET",
     });
   }
 
   // Returns an IBillingSubscription
   public async getSubscription(): Promise<IBillingSubscription> {
-    return this.requestJson(`${this._url}/api/billing/subscription`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/billing/subscription`, { method: "GET" });
   }
 
   public async getBillingAccount(): Promise<FullBillingAccount> {
-    return this.requestJson(`${this._url}/api/billing`, { method: 'GET' });
+    return this.requestJson(`${this._url}/api/billing`, { method: "GET" });
   }
 
   public async cancelCurrentPlan() {
     await this.request(`${this._url}/api/billing/cancel-plan`, {
-      method: 'POST',
+      method: "POST",
     });
   }
 
   public async updateSettings(settings?: Partial<IBillingOrgSettings>): Promise<void> {
     await this.request(`${this._url}/api/billing/settings`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ settings }),
     });
   }
 
   public async updateBillingManagers(delta: ManagerDelta): Promise<void> {
     await this.request(`${this._url}/api/billing/managers`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify({ delta }),
     });
   }
@@ -283,7 +283,7 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     orgUrl?: string,
   }> {
     const data = await this.requestJson(`${this._url}/api/billing/team`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({
         domain,
         name,
@@ -302,14 +302,14 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
 
   public async changePlan(plan: PlanSelection): Promise<void> {
     await this.requestJson(`${this._url}/api/billing/change-plan`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(plan),
     });
   }
 
   public async confirmChange(plan: PlanSelection): Promise<ChangeSummary | { checkoutUrl: string }> {
     return this.requestJson(`${this._url}/api/billing/confirm-change`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(plan),
     });
   }
@@ -320,14 +320,14 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
 
   public renewPlan(plan: PlanSelection): Promise<{ checkoutUrl: string }> {
     return this.requestJson(`${this._url}/api/billing/renew`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(plan),
     });
   }
 
   public async updateAssistantPlan(tier: number): Promise<void> {
     await this.request(`${this._url}/api/billing/upgrade-assistant`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ tier }),
     });
   }
@@ -337,7 +337,7 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
    */
   public async subscriptionStatus(planId: string): Promise<boolean> {
     const data = await this.requestJson(`${this._url}/api/billing/status`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ planId }),
     });
     return data.active;
@@ -345,35 +345,35 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
 
   public async changeProduct(product: string): Promise<void> {
     await this.request(`${this._url}/api/billing/change-product`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ product }),
     });
   }
 
   public async attachSubscription(subscriptionId: string): Promise<void> {
     await this.request(`${this._url}/api/billing/attach-subscription`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ subscriptionId }),
     });
   }
 
   public async attachPayment(paymentLink: string): Promise<void> {
     await this.request(`${this._url}/api/billing/attach-payment`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ paymentLink }),
     });
   }
 
   public async getPaymentLink(): Promise<{ checkoutUrl: string }> {
-    return await this.requestJson(`${this._url}/api/billing/payment-link`, { method: 'GET' });
+    return await this.requestJson(`${this._url}/api/billing/payment-link`, { method: "GET" });
   }
 
   public async cancelPlanChange(): Promise<void> {
-    await this.request(`${this._url}/api/billing/cancel-plan-change`, { method: 'POST' });
+    await this.request(`${this._url}/api/billing/cancel-plan-change`, { method: "POST" });
   }
 
   public async dontCancelPlan(): Promise<void> {
-    await this.request(`${this._url}/api/billing/dont-cancel-plan`, { method: 'POST' });
+    await this.request(`${this._url}/api/billing/dont-cancel-plan`, { method: "POST" });
   }
 
   private get _url(): string {

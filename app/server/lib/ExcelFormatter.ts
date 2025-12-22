@@ -1,18 +1,18 @@
-import { CellValue } from 'app/common/DocActions';
-import * as gristTypes from 'app/common/gristTypes';
-import * as gutil from 'app/common/gutil';
-import { NumberFormatOptions } from 'app/common/NumberFormat';
-import { FormatOptions, formatUnknown, IsRightTypeFunc } from 'app/common/ValueFormatter';
-import { GristType } from 'app/plugin/GristData';
-import { decodeObject } from 'app/plugin/objtypes';
-import getSymbolFromCurrency from 'currency-symbol-map';
-import { Style } from 'exceljs';
-import moment from 'moment-timezone';
+import { CellValue } from "app/common/DocActions";
+import * as gristTypes from "app/common/gristTypes";
+import * as gutil from "app/common/gutil";
+import { NumberFormatOptions } from "app/common/NumberFormat";
+import { FormatOptions, formatUnknown, IsRightTypeFunc } from "app/common/ValueFormatter";
+import { GristType } from "app/plugin/GristData";
+import { decodeObject } from "app/plugin/objtypes";
+import getSymbolFromCurrency from "currency-symbol-map";
+import { Style } from "exceljs";
+import moment from "moment-timezone";
 
 interface WidgetOptions extends NumberFormatOptions {
-  textColor?: 'string';
-  fillColor?: 'string';
-  alignment?: 'left' | 'center' | 'right';
+  textColor?: "string";
+  fillColor?: "string";
+  alignment?: "left" | "center" | "right";
   dateFormat?: string;
   timeFormat?: string;
 }
@@ -22,7 +22,7 @@ class BaseFormatter {
 
   constructor(public type: string, public opts: FormatOptions) {
     this.isRightType = gristTypes.isRightType(gristTypes.extractTypeFromColType(type)) ||
-      gristTypes.isRightType('Any')!;
+      gristTypes.isRightType("Any")!;
     this.widgetOptions = opts;
   }
 
@@ -39,8 +39,8 @@ class BaseFormatter {
     const style: Partial<Style> = {};
     if (this.widgetOptions.fillColor) {
       style.fill = {
-        type: 'pattern',
-        pattern: 'solid',
+        type: "pattern",
+        pattern: "solid",
         fgColor: { argb: argb(this.widgetOptions.fillColor) },
       };
     }
@@ -55,16 +55,16 @@ class BaseFormatter {
       };
     }
     if (this.widgetOptions.dateFormat) {
-      style.numFmt = excelDateFormat(this.widgetOptions.dateFormat, 'yyyy-mm-dd');
+      style.numFmt = excelDateFormat(this.widgetOptions.dateFormat, "yyyy-mm-dd");
     }
     if (this.widgetOptions.timeFormat) {
-      style.numFmt = excelDateFormat(this.widgetOptions.dateFormat!, 'yyyy-mm-dd') + ' ' +
-        excelDateFormat(this.widgetOptions.timeFormat, 'h:mm am/pm');
+      style.numFmt = excelDateFormat(this.widgetOptions.dateFormat!, "yyyy-mm-dd") + " " +
+        excelDateFormat(this.widgetOptions.timeFormat, "h:mm am/pm");
     }
     // For number formats - we will support default excel formatting only,
     // those formats strings are the defaults that LibreOffice Calc is using.
     if (this.widgetOptions.numMode) {
-      if (this.widgetOptions.numMode === 'currency') {
+      if (this.widgetOptions.numMode === "currency") {
         // If currency name is undefined or null, it should be cast to unknown currency, because
         // "getSymbolFromCurrency" expect argument to be string
         const currencyName = this.widgetOptions.currency ?? "";
@@ -73,14 +73,14 @@ class BaseFormatter {
           "$";
         style.numFmt = `"${currencySymbol} "#,##0.000`;
       }
-      else if (this.widgetOptions.numMode === 'percent') {
-        style.numFmt = '0.00%';
+      else if (this.widgetOptions.numMode === "percent") {
+        style.numFmt = "0.00%";
       }
-      else if (this.widgetOptions.numMode === 'decimal') {
-        style.numFmt = '0.00';
+      else if (this.widgetOptions.numMode === "decimal") {
+        style.numFmt = "0.00";
       }
-      else if (this.widgetOptions.numMode === 'scientific') {
-        style.numFmt = '0.00E+00';
+      else if (this.widgetOptions.numMode === "scientific") {
+        style.numFmt = "0.00E+00";
       }
     }
     return style;
@@ -113,29 +113,29 @@ class ChoiceListFormatter extends BaseFormatter {
 
 class UnsupportedFormatter extends BaseFormatter {
   public format(value: any): any {
-    return '';
+    return "";
   }
 }
 
 class NumberFormatter extends BaseFormatter {
   public format(value: any): any {
-    return Number.isFinite(value) ? value : '';
+    return Number.isFinite(value) ? value : "";
   }
 }
 
 class DateFormatter extends BaseFormatter {
   private _timezone: string;
 
-  constructor(type: string, opts: WidgetOptions, timezone: string = 'UTC') {
-    opts.dateFormat = opts.dateFormat || 'YYYY-MM-DD';
+  constructor(type: string, opts: WidgetOptions, timezone: string = "UTC") {
+    opts.dateFormat = opts.dateFormat || "YYYY-MM-DD";
     super(type, opts);
-    this._timezone = timezone || 'UTC';
+    this._timezone = timezone || "UTC";
     // For native conversion - booleans are not a right type.
-    this.isRightType = (value: CellValue) => typeof value === 'number';
+    this.isRightType = (value: CellValue) => typeof value === "number";
   }
 
   public format(value: any): any {
-    if (value === null) { return ''; }
+    if (value === null) { return ""; }
     // convert time to correct timezone
     const time = moment(value * 1000).tz(this._timezone);
     // in case moment is not able to interpret this as a valid date
@@ -152,8 +152,8 @@ class DateFormatter extends BaseFormatter {
 
 class DateTimeFormatter extends DateFormatter {
   constructor(type: string, opts: WidgetOptions) {
-    const timezone = gutil.removePrefix(type, "DateTime:") || '';
-    opts.timeFormat = opts.timeFormat === undefined ? 'h:mma' : opts.timeFormat;
+    const timezone = gutil.removePrefix(type, "DateTime:") || "";
+    opts.timeFormat = opts.timeFormat === undefined ? "h:mma" : opts.timeFormat;
     super(type, opts, timezone);
   }
 }
@@ -195,43 +195,43 @@ export function createExcelFormatter(type: string, opts: FormatOptions): BaseFor
 // https://docs.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.numberingformats?view=openxml-2.8.1
 // http://officeopenxml.com/WPdateTimeFieldSwitches.php
 const mapping = new Map<string, string>();
-mapping.set('YYYY', 'yyyy');
-mapping.set('YY', 'yy');
-mapping.set('M', 'm');
-mapping.set('MM', 'mm');
-mapping.set('MMM', 'mmm');
-mapping.set('MMMM', 'mmmm');
-mapping.set('D', 'd');
-mapping.set('DD', 'dd');
-mapping.set('DDD', 'ddd');
-mapping.set('DDDD', 'dddd');
-mapping.set('Do', 'dd'); // no direct match
-mapping.set('L', 'yyyy-mm-dd');
-mapping.set('LL', 'mmmmm d yyyy');
-mapping.set('LLL', 'mmmmm d yyyy h:mm am/pm');
-mapping.set('LLLL', 'ddd, mmmmm d yyyy h:mm am/pm');
-mapping.set('h', 'h');
-mapping.set('HH', 'hh');
+mapping.set("YYYY", "yyyy");
+mapping.set("YY", "yy");
+mapping.set("M", "m");
+mapping.set("MM", "mm");
+mapping.set("MMM", "mmm");
+mapping.set("MMMM", "mmmm");
+mapping.set("D", "d");
+mapping.set("DD", "dd");
+mapping.set("DDD", "ddd");
+mapping.set("DDDD", "dddd");
+mapping.set("Do", "dd"); // no direct match
+mapping.set("L", "yyyy-mm-dd");
+mapping.set("LL", "mmmmm d yyyy");
+mapping.set("LLL", "mmmmm d yyyy h:mm am/pm");
+mapping.set("LLLL", "ddd, mmmmm d yyyy h:mm am/pm");
+mapping.set("h", "h");
+mapping.set("HH", "hh");
 // Minutes formats are the same as month's ones, but when they are after hour format
 // they are treated as minutes.
-mapping.set('m', 'm');
-mapping.set('mm', 'mm');
-mapping.set('mma', 'mm am/pm');
-mapping.set('ss', 'ss');
-mapping.set('s', 's');
-mapping.set('a', 'am/pm');
-mapping.set('A', 'am/pm');
-mapping.set('S', '0');
-mapping.set('SS', '00');
-mapping.set('SSS', '000');
-mapping.set('SSSS', '0000');
-mapping.set('SSSSS', '00000');
-mapping.set('SSSSSS', '000000');
+mapping.set("m", "m");
+mapping.set("mm", "mm");
+mapping.set("mma", "mm am/pm");
+mapping.set("ss", "ss");
+mapping.set("s", "s");
+mapping.set("a", "am/pm");
+mapping.set("A", "am/pm");
+mapping.set("S", "0");
+mapping.set("SS", "00");
+mapping.set("SSS", "000");
+mapping.set("SSSS", "0000");
+mapping.set("SSSSS", "00000");
+mapping.set("SSSSSS", "000000");
 // We will omit timezone formats
-mapping.set('z', '');
-mapping.set('zz', '');
-mapping.set('Z', '');
-mapping.set('ZZ', '');
+mapping.set("z", "");
+mapping.set("zz", "");
+mapping.set("Z", "");
+mapping.set("ZZ", "");
 
 /**
  * Converts Moment js format string to excel numFormat
@@ -256,13 +256,13 @@ function excelDateFormat(format: string, def: string) {
   // fix the separators - they need to be prefixed by backslash
   for (let i = 1; i < chunks.length; i += 2) {
     const sep = chunks[i];
-    if (sep === '-') {
-      chunks[i] = '\\-';
+    if (sep === "-") {
+      chunks[i] = "\\-";
     }
-    if (sep.trim() === '') {
-      chunks[i] = '\\' + sep;
+    if (sep.trim() === "") {
+      chunks[i] = "\\" + sep;
     }
   }
 
-  return chunks.join('');
+  return chunks.join("");
 }

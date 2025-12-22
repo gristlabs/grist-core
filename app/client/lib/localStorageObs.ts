@@ -1,9 +1,9 @@
-import { safeJsonParse } from 'app/common/gutil';
-import { Observable } from 'grainjs';
-import { getSessionStorage, getStorage } from 'app/client/lib/storage';
+import { safeJsonParse } from "app/common/gutil";
+import { Observable } from "grainjs";
+import { getSessionStorage, getStorage } from "app/client/lib/storage";
 
 function getStorageBoolObs(store: Storage, key: string, defValue: boolean) {
-  const storedNegation = defValue ? 'false' : 'true';
+  const storedNegation = defValue ? "false" : "true";
   const obs = Observable.create(null, store.getItem(key) === storedNegation ? !defValue : defValue);
   obs.addListener(val => val === defValue ? store.removeItem(key) : store.setItem(key, storedNegation));
   return obs;
@@ -47,7 +47,7 @@ export function sessionStorageObs(key: string, defaultValue?: string): Observabl
 }
 
 function getStorageJsonObs<T>(store: Storage, key: string, defaultValue: T): Observable<T> {
-  const currentValue = safeJsonParse(store.getItem(key) || '', defaultValue ?? null);
+  const currentValue = safeJsonParse(store.getItem(key) || "", defaultValue ?? null);
   const obs = Observable.create<T>(null, currentValue);
   obs.addListener(val => (val === null) ? store.removeItem(key) : store.setItem(key, JSON.stringify(val ?? null)));
   return obs;

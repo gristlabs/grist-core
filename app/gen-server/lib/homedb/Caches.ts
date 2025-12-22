@@ -1,9 +1,9 @@
-import { DocPrefs } from 'app/common/Prefs';
-import { PermissionData } from 'app/common/UserAPI';
-import { DocScope, HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { QueryResult } from 'app/gen-server/lib/homedb/Interfaces';
-import { PubSubCache } from 'app/server/lib/PubSubCache';
-import { IPubSubManager } from 'app/server/lib/PubSubManager';
+import { DocPrefs } from "app/common/Prefs";
+import { PermissionData } from "app/common/UserAPI";
+import { DocScope, HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { QueryResult } from "app/gen-server/lib/homedb/Interfaces";
+import { PubSubCache } from "app/server/lib/PubSubCache";
+import { IPubSubManager } from "app/server/lib/PubSubManager";
 
 // Defaults for how long we'll cache the results of these calls for. If invalidations were
 // perfect, we could cache indefinitely, but if we've missed cases, or if the DB is changed
@@ -31,7 +31,7 @@ export class HomeDBCaches {
 
     this._docPrefsCache = new PubSubCache<string, Map<number | null, DocPrefs>>({
       pubSubManager,
-      fetch: docId => this._homeDb.getDocPrefsForUsers(docId, 'any'),
+      fetch: docId => this._homeDb.getDocPrefsForUsers(docId, "any"),
       getChannel: docId => `docPrefsCache:${docId}`,
       ttlMs: Deps.DocPrefsCacheTTL,
     });

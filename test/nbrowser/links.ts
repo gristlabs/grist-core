@@ -1,6 +1,6 @@
 import { assert, driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
-import { setupExternalSite } from 'test/server/customUtil';
+import { setupExternalSite } from "test/server/customUtil";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
 describe("links", function() {
@@ -10,7 +10,7 @@ describe("links", function() {
   let docId: string;
   let urlId: string;
 
-  const externalSite = setupExternalSite('Dolphins are cool.');
+  const externalSite = setupExternalSite("Dolphins are cool.");
 
   before(async function() {
     session = await gu.session().login();

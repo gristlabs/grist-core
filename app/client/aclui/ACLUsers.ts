@@ -1,24 +1,24 @@
-import { DocPageModel } from 'app/client/models/DocPageModel';
-import { urlState } from 'app/client/models/gristUrlState';
-import { createUserImage } from 'app/client/ui/UserImage';
+import { DocPageModel } from "app/client/models/DocPageModel";
+import { urlState } from "app/client/models/gristUrlState";
+import { createUserImage } from "app/client/ui/UserImage";
 import { cssMemberImage, cssMemberListItem, cssMemberPrimary,
-  cssMemberSecondary, cssMemberText } from 'app/client/ui/UserItem';
-import { testId, theme, vars } from 'app/client/ui2018/cssVars';
-import { PermissionDataWithExtraUsers } from 'app/common/ActiveDocAPI';
-import { gristFloatingMenuClass, menu, menuCssClass, menuItemLink } from 'app/client/ui2018/menus';
-import { IGristUrlState, userOverrideParams } from 'app/common/gristUrls';
-import { FullUser } from 'app/common/LoginSessionAPI';
-import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL } from 'app/common/UserAPI';
-import { getRealAccess, UserAccessData } from 'app/common/UserAPI';
-import { Disposable, dom, Observable, styled } from 'grainjs';
-import { cssMenu, cssMenuWrap, defaultMenuOptions, IMenuOptions, IPopupOptions, setPopupToCreateDom } from 'popweasel';
-import { getUserRoleText } from 'app/common/UserAPI';
-import { makeT } from 'app/client/lib/localization';
-import { waitGrainObs } from 'app/common/gutil';
-import noop from 'lodash/noop';
+  cssMemberSecondary, cssMemberText } from "app/client/ui/UserItem";
+import { testId, theme, vars } from "app/client/ui2018/cssVars";
+import { PermissionDataWithExtraUsers } from "app/common/ActiveDocAPI";
+import { gristFloatingMenuClass, menu, menuCssClass, menuItemLink } from "app/client/ui2018/menus";
+import { IGristUrlState, userOverrideParams } from "app/common/gristUrls";
+import { FullUser } from "app/common/LoginSessionAPI";
+import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL } from "app/common/UserAPI";
+import { getRealAccess, UserAccessData } from "app/common/UserAPI";
+import { Disposable, dom, Observable, styled } from "grainjs";
+import { cssMenu, cssMenuWrap, defaultMenuOptions, IMenuOptions, IPopupOptions, setPopupToCreateDom } from "popweasel";
+import { getUserRoleText } from "app/common/UserAPI";
+import { makeT } from "app/client/lib/localization";
+import { waitGrainObs } from "app/common/gutil";
+import noop from "lodash/noop";
 
 const t = makeT("ViewAsDropdown");
-const userT = makeT('UserManagerModel');
+const userT = makeT("UserManagerModel");
 
 function isSpecialEmail(email: string) {
   return email === ANONYMOUS_USER_EMAIL || email === EVERYONE_EMAIL;
@@ -78,8 +78,8 @@ export class ACLUsersPopup extends Disposable {
       return cssMenuWrap(cssMenu(
         dom.cls(menuCssClass),
         dom.cls(gristFloatingMenuClass),
-        cssUsers.cls(''),
-        cssHeader(t('Shared users'), dom.show(this._shareUsers.length > 0)),
+        cssUsers.cls(""),
+        cssHeader(t("Shared users"), dom.show(this._shareUsers.length > 0)),
         dom.forEach(this._shareUsers, buildRow),
         (this._attributeTableUsers.length > 0) ? cssHeader(t("Other users from table")) : null,
         dom.forEach(this._attributeTableUsers, buildExampleUserRow),
@@ -101,10 +101,10 @@ export class ACLUsersPopup extends Disposable {
     return menu(() => {
       this.load().catch(noop);
       return [
-        cssMenuHeader('view as'),
+        cssMenuHeader("view as"),
         dom.forEach(this.allUsers, user => menuItemLink(
           `${user.name || user.email} (${getUserRoleText(user)})`,
-          testId('acl-user-access'),
+          testId("acl-user-access"),
           this._viewAs(user),
         )),
       ];
@@ -122,19 +122,19 @@ export class ACLUsersPopup extends Disposable {
   }
 
   private _buildUserRow(user: UserAccessData, opt: { isExampleUser?: boolean, resetDocPage?: boolean } = {}) {
-    return dom('a',
-      { class: cssMemberListItem.className + ' ' + cssUserItem.className },
+    return dom("a",
+      { class: cssMemberListItem.className + " " + cssUserItem.className },
       cssMemberImage(
-        createUserImage(opt.isExampleUser ? 'exampleUser' : user, 'large'),
+        createUserImage(opt.isExampleUser ? "exampleUser" : user, "large"),
       ),
       cssMemberText(
-        cssMemberPrimary(user.name || dom('span', user.email),
-          cssRole('(', userT(getUserRoleText(user)), ')', testId('acl-user-access')),
+        cssMemberPrimary(user.name || dom("span", user.email),
+          cssRole("(", userT(getUserRoleText(user)), ")", testId("acl-user-access")),
         ),
         user.name ? cssMemberSecondary(user.email) : null,
       ),
       this._viewAs(user, opt.resetDocPage),
-      testId('acl-user-item'),
+      testId("acl-user-item"),
     );
   }
 
@@ -142,15 +142,15 @@ export class ACLUsersPopup extends Disposable {
     const extraState: IGristUrlState = {};
     if (resetDocPage) { extraState.docPage = undefined; }
     if (this.pageModel?.isPrefork.get() &&
-      this.pageModel?.currentDoc.get()?.access !== 'owners') {
+      this.pageModel?.currentDoc.get()?.access !== "owners") {
       // "View As" is restricted to document owners on the back-end. Non-owners can be
       // permitted to pretend to be owners of a pre-forked document, but if they want
       // to do "View As", that would be layering pretence over pretense. Better to just
       // go ahead and create the fork, so the user becomes a genuine owner, so the
       // back-end doesn't have to become too metaphysical (and maybe hard to review).
-      return dom.on('click', async () => {
+      return dom.on("click", async () => {
         const forkResult = await this.pageModel?.gristDoc.get()?.docComm.fork();
-        if (!forkResult) { throw new Error('Failed to create fork'); }
+        if (!forkResult) { throw new Error("Failed to create fork"); }
         window.location.assign(urlState().makeUrl(userOverrideParams(user.email,
           { ...extraState, doc: forkResult.urlId })));
       });
@@ -163,7 +163,7 @@ export class ACLUsersPopup extends Disposable {
   }
 }
 
-const cssUsers = styled('div', `
+const cssUsers = styled("div", `
   max-width: unset;
 `);
 
@@ -179,12 +179,12 @@ const cssUserItem = styled(cssMemberListItem, `
   }
 `);
 
-const cssRole = styled('span', `
+const cssRole = styled("span", `
   margin: 0 8px;
   font-weight: normal;
 `);
 
-const cssHeader = styled('div', `
+const cssHeader = styled("div", `
   margin: 11px 24px 14px 24px;
   font-weight: 700;
   text-transform: uppercase;
@@ -192,7 +192,7 @@ const cssHeader = styled('div', `
   color: ${theme.darkText};
 `);
 
-const cssMenuHeader = styled('div', `
+const cssMenuHeader = styled("div", `
   margin: 8px 24px;
   margin-bottom: 4px;
   font-weight: 700;

@@ -1,4 +1,4 @@
-import { UserProfile } from 'app/common/LoginSessionAPI';
+import { UserProfile } from "app/common/LoginSessionAPI";
 
 export interface ClientJsonMemoryLimits {
   totalSize?: number;
@@ -16,7 +16,7 @@ export interface ITestingHooks {
   commSetClientPersistence(ttlMs: number): Promise<number>;
   commSetClientJsonMemoryLimits(limits: ClientJsonMemoryLimits): Promise<ClientJsonMemoryLimits>;
   closeDocs(): Promise<void>;
-  setDocWorkerActivation(workerId: string, active: 'active' | 'inactive' | 'crash'): Promise<void>;
+  setDocWorkerActivation(workerId: string, active: "active" | "inactive" | "crash"): Promise<void>;
   flushAuthorizerCache(): Promise<void>;
   flushDocs(): Promise<void>;
   getDocClientCounts(): Promise<[string, number][]>;

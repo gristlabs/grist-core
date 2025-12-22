@@ -3,8 +3,8 @@
  * sandbox/grist/objtypes.py.
  */
 
-import { CellValue, GristObjCode } from 'app/plugin/GristData';
-import isPlainObject from 'lodash/isPlainObject';
+import { CellValue, GristObjCode } from "app/plugin/GristData";
+import isPlainObject from "lodash/isPlainObject";
 
 // The text to show on cells whose values are pending.
 export const PENDING_DATA_PLACEHOLDER = "Loading...";
@@ -87,11 +87,11 @@ export class RaisedException {
    */
   public toString() {
     switch (this.name) {
-      case 'ZeroDivisionError': return '#DIV/0!';
-      case 'UnmarshallableError': return this.details || ('#' + this.name);
-      case 'InvalidTypedValue': return `#Invalid ${this.message}: ${this.details}`;
+      case "ZeroDivisionError": return "#DIV/0!";
+      case "UnmarshallableError": return this.details || ("#" + this.name);
+      case "InvalidTypedValue": return `#Invalid ${this.message}: ${this.details}`;
     }
-    return '#' + this.name;
+    return "#" + this.name;
   }
 }
 
@@ -131,7 +131,7 @@ export class PendingValue {
  */
 export class SkipValue {
   public toString() {
-    return '...';
+    return "...";
   }
 }
 
@@ -144,7 +144,7 @@ export class SkipValue {
  */
 export class CensoredValue {
   public toString() {
-    return 'CENSORED';
+    return "CENSORED";
   }
 }
 
@@ -157,9 +157,9 @@ export class CensoredValue {
 export function encodeObject(value: unknown): CellValue {
   try {
     switch (typeof value) {
-      case 'string':
-      case 'number':
-      case 'boolean':
+      case "string":
+      case "number":
+      case "boolean":
         return value;
     }
     if (value == null) {
@@ -173,12 +173,12 @@ export function encodeObject(value: unknown): CellValue {
     }
     else if (value instanceof Date) {
       const timestamp = value.valueOf() / 1000;
-      if ('timezone' in value) {
+      if ("timezone" in value) {
         return [GristObjCode.DateTime, timestamp, (value as GristDateTime).timezone];
       }
       else {
         // TODO Depending on how it's used, may want to return ['d', timestamp] for UTC midnight.
-        return [GristObjCode.DateTime, timestamp, 'UTC'];
+        return [GristObjCode.DateTime, timestamp, "UTC"];
       }
     }
     else if (value instanceof CensoredValue) {
@@ -215,17 +215,17 @@ export function decodeObject(value: CellValue): unknown {
   let err: Error | undefined;
   try {
     switch (code) {
-      case 'D': return GristDateTime.fromGristValue(args[0], String(args[1]));
-      case 'd': return GristDate.fromGristValue(args[0]);
-      case 'E': return new RaisedException(args);
-      case 'L': return (args as CellValue[]).map(decodeObject);
-      case 'O': return mapValues(args[0] as { [key: string]: CellValue }, decodeObject, { sort: true });
-      case 'P': return new PendingValue();
-      case 'r': return new ReferenceList(String(args[0]), args[1]);
-      case 'R': return new Reference(String(args[0]), args[1]);
-      case 'S': return new SkipValue();
-      case 'C': return new CensoredValue();
-      case 'U': return new UnknownValue(args[0]);
+      case "D": return GristDateTime.fromGristValue(args[0], String(args[1]));
+      case "d": return GristDate.fromGristValue(args[0]);
+      case "E": return new RaisedException(args);
+      case "L": return (args as CellValue[]).map(decodeObject);
+      case "O": return mapValues(args[0] as { [key: string]: CellValue }, decodeObject, { sort: true });
+      case "P": return new PendingValue();
+      case "r": return new ReferenceList(String(args[0]), args[1]);
+      case "R": return new Reference(String(args[0]), args[1]);
+      case "S": return new SkipValue();
+      case "C": return new CensoredValue();
+      case "U": return new UnknownValue(args[0]);
     }
   }
   catch (e) {
@@ -234,7 +234,7 @@ export function decodeObject(value: CellValue): unknown {
   // If we can't decode, return an UnknownValue with some attempt to represent what we couldn't
   // decode as long as some info about the error if any.
   return new UnknownValue(`${code}(${JSON.stringify(args).slice(1, -1)})` +
-    (err ? `#${err.name}(${err.message})` : ''));
+    (err ? `#${err.name}(${err.message})` : ""));
 }
 
 // Like lodash's mapValues, with support for sorting keys, for friendlier output.

@@ -1,15 +1,15 @@
-import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
-import { getCollapsedSection, openCollapsedSectionMenu } from 'test/nbrowser/ViewLayoutUtils';
-import { assert, driver, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
-import { arrayRepeat } from 'app/plugin/gutil';
-import { addStatic, serveSomething } from 'test/server/customUtil';
-import { AccessLevel } from 'app/common/CustomWidget';
+import * as gu from "test/nbrowser/gristUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
+import { getCollapsedSection, openCollapsedSectionMenu } from "test/nbrowser/ViewLayoutUtils";
+import { assert, driver, Key, WebElement, WebElementPromise } from "mocha-webdriver";
+import { arrayRepeat } from "app/plugin/gutil";
+import { addStatic, serveSomething } from "test/server/customUtil";
+import { AccessLevel } from "app/common/CustomWidget";
 
 const GAP = 16;     // Distance between buttons representing collapsed widgets.
 
 describe("ViewLayoutCollapse", function() {
-  this.timeout('50s');
+  this.timeout("50s");
   const cleanup = setupTestSuite();
   gu.bigScreen();
   let session: gu.Session;
@@ -19,64 +19,64 @@ describe("ViewLayoutCollapse", function() {
     await session.tempNewDoc(cleanup);
   });
 
-  it('preserves collapsed state when summary widget is changed', async function() {
+  it("preserves collapsed state when summary widget is changed", async function() {
     // When there was a collapsed section, and one of the widget in the main area was changed, the
     // collapsed section try was destroyed (putting all sections in the main area).
     const revert = await gu.begin();
 
     // Add new widget with new table to the page.
-    await gu.addNewSection('Table', 'New Table');
+    await gu.addNewSection("Table", "New Table");
 
     // Collapse it.
-    await collapseByMenu('Table2');
-    assert.deepEqual(await mainSectionTitles(), ['TABLE1']);
-    assert.deepEqual(await collapsedSectionTitles(), ['TABLE2']);
+    await collapseByMenu("Table2");
+    assert.deepEqual(await mainSectionTitles(), ["TABLE1"]);
+    assert.deepEqual(await collapsedSectionTitles(), ["TABLE2"]);
 
     // Now click the change widget button on in the creator panel.
-    await gu.openWidgetPanel('widget');
+    await gu.openWidgetPanel("widget");
 
     // Try to change the widget type.
-    await driver.findContent('.test-right-panel button', /Change widget/).click();
+    await driver.findContent(".test-right-panel button", /Change widget/).click();
 
     // Click the summary icon next to the table name.
-    await driver.findContentWait('.test-wselect-table', /Table1/, 50).find('.test-wselect-pivot').doClick();
+    await driver.findContentWait(".test-wselect-table", /Table1/, 50).find(".test-wselect-pivot").doClick();
 
     // But don't select any column, just click save.
-    await driver.find('.test-wselect-addBtn').click();
+    await driver.find(".test-wselect-addBtn").click();
     await gu.waitForServer();
 
     // Now check how many sections we have in the main area.
-    assert.deepEqual(await mainSectionTitles(), ['TABLE1 [Totals]']);
-    assert.deepEqual(await collapsedSectionTitles(), ['TABLE2']);
+    assert.deepEqual(await mainSectionTitles(), ["TABLE1 [Totals]"]);
+    assert.deepEqual(await collapsedSectionTitles(), ["TABLE2"]);
 
     await revert();
   });
 
-  it('fix:copies collapsed sections properly', async function() {
+  it("fix:copies collapsed sections properly", async function() {
     // When one of 2 widget was collapsed, the resulting widget can become a root section. Then,
     // when a page was duplicated, the layout was duplicated incorrectly (with wrong collapsed
     // section). This resulted in a bug, when the root section was deleted, as it was the last
     // section in the saved layout, but not the last section on the visible layout.
 
     // Add new page with new table.
-    await gu.addNewPage('Table', 'New Table', {
-      tableName: 'Broken',
+    await gu.addNewPage("Table", "New Table", {
+      tableName: "Broken",
     });
 
-    await gu.renameActiveSection('Collapsed');
+    await gu.renameActiveSection("Collapsed");
 
     // Add section here (with the same table).
-    await gu.addNewSection('Table', 'Broken');
+    await gu.addNewSection("Table", "Broken");
 
     // Rename it so that it is easier to find.
-    await gu.renameActiveSection('NotCollapsed');
+    await gu.renameActiveSection("NotCollapsed");
 
     // Now store the layout, by amending it (so move the collapsed widget below).
-    const { height } = await gu.getSection('NotCollapsed').getRect();
-    await dragMain('Collapsed');
-    await move(gu.getSection('NotCollapsed'), { x: 50, y: height / 2 });
+    const { height } = await gu.getSection("NotCollapsed").getRect();
+    await dragMain("Collapsed");
+    await move(gu.getSection("NotCollapsed"), { x: 50, y: height / 2 });
     await driver.sleep(300);
-    await move(gu.getSection('NotCollapsed'), { x: 100, y: height / 2 });
+    await move(gu.getSection("NotCollapsed"), { x: 100, y: height / 2 });
     await driver.sleep(300);
     await driver.withActions(actions => actions.release());
     // Wait for the debounced save.
@@ -84,24 +84,24 @@ describe("ViewLayoutCollapse", function() {
     await gu.waitForServer();
 
     // Now collapse it.
-    await collapseByMenu('Collapsed');
+    await collapseByMenu("Collapsed");
 
     // Now duplicate the page.
-    await gu.duplicatePage('Broken', 'Broken2');
+    await gu.duplicatePage("Broken", "Broken2");
 
     // Now on this page we saw two uncollapsed sections (make sure this is not the case).
-    assert.deepEqual(await gu.getSectionTitles(), ['NotCollapsed']);
+    assert.deepEqual(await gu.getSectionTitles(), ["NotCollapsed"]);
     // And one collapsed.
-    assert.deepEqual(await collapsedSectionTitles(), ['Collapsed']);
+    assert.deepEqual(await collapsedSectionTitles(), ["Collapsed"]);
   });
 
-  it('fix:can delete root section', async function() {
+  it("fix:can delete root section", async function() {
     // But even if the layout spec was corrupted, we still should be able to delete the root section
     // when replacing it with new one.
 
     // Break the spec.
     const specJson: string = await driver.executeScript(
-      'return gristDocPageModel.gristDoc.get().docModel.views.rowModels[3].layoutSpec()',
+      "return gristDocPageModel.gristDoc.get().docModel.views.rowModels[3].layoutSpec()",
     );
 
     // To break the spec, we will replace id of the collapsed section, then viewLayout will try to fix it,
@@ -117,46 +117,46 @@ describe("ViewLayoutCollapse", function() {
     await gu.waitForServer();
 
     // We now should see two sections.
-    assert.deepEqual(await gu.getSectionTitles(), ['NotCollapsed', 'Collapsed']);
+    assert.deepEqual(await gu.getSectionTitles(), ["NotCollapsed", "Collapsed"]);
 
     // And we should be able to delete the top one (NotCollapsed).
-    await gu.openSectionMenu('viewLayout', 'NotCollapsed');
-    await driver.findContent('.test-cmd-name', 'Delete widget').click();
+    await gu.openSectionMenu("viewLayout", "NotCollapsed");
+    await driver.findContent(".test-cmd-name", "Delete widget").click();
     await gu.waitForServer();
 
     await gu.checkForErrors();
   });
 
-  it('fix: custom widget should restart when added back after collapsing', async function() {
-    await session.tempDoc(cleanup, 'Investment Research (smaller).grist');
+  it("fix: custom widget should restart when added back after collapsing", async function() {
+    await session.tempDoc(cleanup, "Investment Research (smaller).grist");
     await gu.openPage("Overview");
 
     const revert = await gu.begin();
 
     // Add custom section.
-    await gu.addNewPage('Table', 'Companies');
-    await gu.addNewSection('Custom', 'Companies', { selectBy: 'COMPANIES' });
+    await gu.addNewPage("Table", "Companies");
+    await gu.addNewSection("Custom", "Companies", { selectBy: "COMPANIES" });
 
     // Serve custom widget.
     const widgetServer = await serveSomething((app) => {
       addStatic(app);
     });
     cleanup.addAfterAll(widgetServer.shutdown);
-    await gu.setCustomWidgetUrl(widgetServer.url + '/probe/index.html', { openGallery: false });
+    await gu.setCustomWidgetUrl(widgetServer.url + "/probe/index.html", { openGallery: false });
     await gu.openWidgetPanel();
     await gu.widgetAccess(AccessLevel.full);
 
     // Collapse it.
-    await collapseByMenu('COMPANIES Custom');
+    await collapseByMenu("COMPANIES Custom");
 
     // Now restore its position.
-    await addToMainByMenu('COMPANIES Custom');
+    await addToMainByMenu("COMPANIES Custom");
 
     // Collapsed widget used to lost connection with Grist as it was disposed to early.
     // Make sure that this widget can call the API.
     await gu.doInIframe(async () => {
       await gu.waitToPass(async () => {
-        assert.equal(await driver.find('#output').getText(),
+        assert.equal(await driver.find("#output").getText(),
           `["Companies","Investments","Companies_summary_category_code","Investments_summary_funded_year",` +
           `"Investments_summary_Company_category_code_funded_year","Investments_summary_Company_category_code"]`,
         );
@@ -168,30 +168,30 @@ describe("ViewLayoutCollapse", function() {
     await revert();
   });
 
-  it('fix: custom widget should not throw errors when collapsed', async function() {
+  it("fix: custom widget should not throw errors when collapsed", async function() {
     const revert = await gu.begin();
 
     // Add custom section.
-    await gu.addNewPage('Table', 'Companies');
-    await gu.addNewSection('Custom', 'Companies', { selectBy: 'COMPANIES' });
+    await gu.addNewPage("Table", "Companies");
+    await gu.addNewSection("Custom", "Companies", { selectBy: "COMPANIES" });
 
     // Serve custom widget.
     const widgetServer = await serveSomething((app) => {
       addStatic(app);
     });
     cleanup.addAfterAll(widgetServer.shutdown);
-    await gu.setCustomWidgetUrl(widgetServer.url + '/probe/index.html', { openGallery: false });
+    await gu.setCustomWidgetUrl(widgetServer.url + "/probe/index.html", { openGallery: false });
     await gu.openWidgetPanel();
     await gu.widgetAccess(AccessLevel.full);
 
     // Collapse it.
-    await collapseByMenu('COMPANIES Custom');
+    await collapseByMenu("COMPANIES Custom");
 
     // Change cursor position in the active section.
     await gu.getCell(2, 4).click();
 
     // Put custom section in popup.
-    await openCollapsedSection('COMPANIES Custom');
+    await openCollapsedSection("COMPANIES Custom");
 
     // Close it by pressing escape.
     await gu.sendKeys(Key.ESCAPE);
@@ -205,45 +205,45 @@ describe("ViewLayoutCollapse", function() {
     await revert();
   });
 
-  it('fix: should resize other sections correctly when maximized and linked', async function() {
+  it("fix: should resize other sections correctly when maximized and linked", async function() {
     const revert = await gu.begin();
     // If there are two sections linked, but one is collapsed, and user is changing the row
     // in the popup of the maximized section, the other section should resize correctly.
 
     // Add two linked tables.
-    await gu.addNewTable('Table1');
-    await gu.addNewSection('Table', 'New Table');
+    await gu.addNewTable("Table1");
+    await gu.addNewSection("Table", "New Table");
 
-    await gu.toggleSidePanel('right', 'open');
+    await gu.toggleSidePanel("right", "open");
 
     // Set A in Table2 to be linked in Table1, by ref column
-    await gu.openColumnMenu('A', 'Column Options');
+    await gu.openColumnMenu("A", "Column Options");
 
     // Change it to the Ref column of TABLE1
-    await gu.setType('Reference');
-    await gu.setRefTable('Table1');
-    await gu.setRefShowColumn('A');
+    await gu.setType("Reference");
+    await gu.setRefTable("Table1");
+    await gu.setRefShowColumn("A");
 
     // Select it by Table1.
-    await gu.selectBy('TABLE1');
+    await gu.selectBy("TABLE1");
 
     // Now add 2 records with 'White' and 'Black' in Table1
     await gu.sendActions([
-      ['BulkAddRecord', 'Table1', arrayRepeat(2, null), { A: ['White', 'Black'] }],
+      ["BulkAddRecord", "Table1", arrayRepeat(2, null), { A: ["White", "Black"] }],
       // And 30 records in Table2 that are connected to White.
-      ['BulkAddRecord', 'Table2', arrayRepeat(30, null), { A: arrayRepeat(30, 1) }],
+      ["BulkAddRecord", "Table2", arrayRepeat(30, null), { A: arrayRepeat(30, 1) }],
       // And 30 records in Table2 that are connected to Black.
-      ['BulkAddRecord', 'Table2', arrayRepeat(30, null), { A: arrayRepeat(30, 2) }],
+      ["BulkAddRecord", "Table2", arrayRepeat(30, null), { A: arrayRepeat(30, 2) }],
     ]);
 
     // Now select White in Table1.
-    await gu.getCell('A', 1, 'Table1').click();
+    await gu.getCell("A", 1, "Table1").click();
 
     // Now expand Table1.
     await gu.expandSection();
 
     // Change to black.
-    await gu.getCell('A', 2, 'Table1').click();
+    await gu.getCell("A", 2, "Table1").click();
 
     // Close popup by sending ESCAPE
     await gu.sendKeys(Key.ESCAPE);
@@ -263,12 +263,12 @@ describe("ViewLayoutCollapse", function() {
     await revert();
   });
 
-  it('fix: should support searching', async function() {
+  it("fix: should support searching", async function() {
     // Collapse Companies section (a first one).
     await collapseByMenu(COMPANIES);
 
     // Clear any saved position state.
-    await driver.executeScript('window.sessionStorage.clear(); window.localStorage.clear();');
+    await driver.executeScript("window.sessionStorage.clear(); window.localStorage.clear();");
 
     // Refresh.
     await driver.navigate().refresh();
@@ -278,7 +278,7 @@ describe("ViewLayoutCollapse", function() {
     // starting with the hidden section.
 
     // Now search (for something in the INVESTMENTS section)
-    await gu.search('2006');
+    await gu.search("2006");
     await gu.closeSearch();
 
     // Make sure we don't have an error.
@@ -289,25 +289,25 @@ describe("ViewLayoutCollapse", function() {
 
     // Hide companies chart, and search for mobile (should show no results).
     await collapseByMenu(COMPANIES_CHART);
-    await gu.search('mobile');
+    await gu.search("mobile");
     await gu.hasNoResult();
     await gu.closeSearch();
 
     // Open companies in the popup.
     await openCollapsedSection(COMPANIES);
     // Search for 2006, there will be no results.
-    await gu.search('2006');
+    await gu.search("2006");
     await gu.hasNoResult();
     // Now search for web.
     await gu.closeSearch();
-    await gu.search('web');
+    await gu.search("web");
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: 0 });
 
     // Recreate document (can't undo).
-    await session.tempDoc(cleanup, 'Investment Research (smaller).grist');
+    await session.tempDoc(cleanup, "Investment Research (smaller).grist");
   });
 
-  it('fix: should not dispose the instance when drag is cancelled', async function() {
+  it("fix: should not dispose the instance when drag is cancelled", async function() {
     const revert = await gu.begin();
 
     // Collapse a section.
@@ -315,7 +315,7 @@ describe("ViewLayoutCollapse", function() {
 
     // Drag it and then cancel.
     await dragCollapsed(INVESTMENTS);
-    const logo = driver.find('.test-dm-logo');
+    const logo = driver.find(".test-dm-logo");
     await move(logo, { y: 0 });
     await move(logo, { y: -1 });
     // Drop it here.
@@ -331,7 +331,7 @@ describe("ViewLayoutCollapse", function() {
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: 1 });
 
     // Change its type, and check that it works.
-    await gu.changeWidget('Card List');
+    await gu.changeWidget("Card List");
     // Undo it.
     await gu.undo();
     await gu.getCell(1, 3).click();
@@ -366,7 +366,7 @@ describe("ViewLayoutCollapse", function() {
     await revert();
   });
 
-  it('fix: should work when the page is refreshed', async function() {
+  it("fix: should work when the page is refreshed", async function() {
     const revert = await gu.begin();
 
     await gu.openPage("Companies");
@@ -375,7 +375,7 @@ describe("ViewLayoutCollapse", function() {
     await gu.getCell(0, 2).click();
 
     // Make sure we see correct company card.
-    assert.equal(await gu.getCardCell('name', 'COMPANIES Card').getText(), '#NAME?');
+    assert.equal(await gu.getCardCell("name", "COMPANIES Card").getText(), "#NAME?");
 
     // Hide first section.
     await collapseByMenu("Companies");
@@ -387,24 +387,24 @@ describe("ViewLayoutCollapse", function() {
 
     // Make sure card is still at the correct row.
     await gu.waitToPass(async () => {
-      assert.equal(await gu.getCardCell('name', 'COMPANIES Card').getText(), '#NAME?');
+      assert.equal(await gu.getCardCell("name", "COMPANIES Card").getText(), "#NAME?");
     });
 
     await addToMainByMenu("Companies");
     await revert();
   });
 
-  it('fix: should support anchor links', async function() {
+  it("fix: should support anchor links", async function() {
     const revert = await gu.begin();
 
     // Open 42Floors in Companies section.
     assert.equal(await gu.getActiveSectionTitle(), "COMPANIES");
-    await gu.getCell('Link', 11).click();
-    assert.equal(await gu.getActiveCell().getText(), '42Floors');
+    await gu.getCell("Link", 11).click();
+    assert.equal(await gu.getActiveCell().getText(), "42Floors");
 
     // Open 12 row (Alex Bresler, angel).
-    await gu.getCell('funding_round_type', 12, 'Investments').click();
-    assert.equal(await gu.getActiveCell().getText(), 'angel');
+    await gu.getCell("funding_round_type", 12, "Investments").click();
+    assert.equal(await gu.getActiveCell().getText(), "angel");
 
     // Copy anchor link.
     const link = await gu.getAnchor();
@@ -413,10 +413,10 @@ describe("ViewLayoutCollapse", function() {
     await collapseByMenu("COMPANIES");
 
     // Clear any saved position state.
-    await driver.executeScript('window.sessionStorage.clear(); window.localStorage.clear();');
+    await driver.executeScript("window.sessionStorage.clear(); window.localStorage.clear();");
 
     // Navigate to the home screen.
-    await gu.loadDocMenu('/o/docs');
+    await gu.loadDocMenu("/o/docs");
 
     // Now go to the anchor.
     await driver.get(link);
@@ -425,8 +425,8 @@ describe("ViewLayoutCollapse", function() {
     const cursor = await gu.getCursorPosition();
     assert.equal(cursor.rowNum, 12);
     assert.equal(cursor.col, 1);
-    assert.equal(await gu.getActiveCell().getText(), 'angel');
-    assert.equal(await gu.getActiveSectionTitle(), 'INVESTMENTS');
+    assert.equal(await gu.getActiveCell().getText(), "angel");
+    assert.equal(await gu.getActiveSectionTitle(), "INVESTMENTS");
     assert.match(await driver.getCurrentUrl(), /Investment-Research-smaller\/p\/1$/);
     await revert();
   });
@@ -439,7 +439,7 @@ describe("ViewLayoutCollapse", function() {
     await dragMain("INVESTMENTS");
 
     // Move it over the logo, so that the tray thinks that it should expand.
-    const logo = driver.find('.test-dm-logo');
+    const logo = driver.find(".test-dm-logo");
     await move(logo, { y: 0 });
     await move(logo, { y: -1 });
     await driver.sleep(100);
@@ -461,7 +461,7 @@ describe("ViewLayoutCollapse", function() {
     // The tray should not be expanded.
     assert.isFalse(await layoutTray().isDisplayed());
 
-    const logo = driver.find('.test-dm-logo');
+    const logo = driver.find(".test-dm-logo");
     // Now move it to the top, so that tray should be expanded.
     await move(logo, { y: 0 });
     await driver.sleep(100);
@@ -469,8 +469,8 @@ describe("ViewLayoutCollapse", function() {
     // Now the tray is visible
     assert.isTrue(await layoutTray().isDisplayed());
     assert.lengthOf(await layoutTray().findAll(".test-layoutTray-empty-box"), 1); // One empty box
-    assert.isTrue(await layoutEditor().matches('[class*=-is-active]')); // Is active
-    assert.isFalse(await layoutEditor().matches('[class*=-is-target]')); // Is not a target
+    assert.isTrue(await layoutEditor().matches("[class*=-is-active]")); // Is active
+    assert.isFalse(await layoutEditor().matches("[class*=-is-target]")); // Is not a target
 
     // Drop it on the button, it should go back to where it was.
     await driver.withActions(actions => actions.release());
@@ -501,7 +501,7 @@ describe("ViewLayoutCollapse", function() {
     assertDistance(dCords.y, chartCords.y, 20);
 
     // Move away from the drop target.
-    const addButton = driver.find('.test-dp-add-new');
+    const addButton = driver.find(".test-dp-add-new");
     await move(addButton);
     await driver.sleep(300);
 
@@ -617,14 +617,14 @@ describe("ViewLayoutCollapse", function() {
     assert.deepEqual(await collapsedSectionTitles(), [INVESTMENTS, COMPANIES_CHART]);
 
     // Layout should be active and accepting.
-    assert.isTrue(await layoutEditor().matches('[class*=-is-active]'));
-    assert.isTrue(await layoutEditor().matches('[class*=-is-target]'));
+    assert.isTrue(await layoutEditor().matches("[class*=-is-active]"));
+    assert.isTrue(await layoutEditor().matches("[class*=-is-target]"));
 
     // Move mouse somewhere else, layout should not by highlighted.
-    const addButton = driver.find('.test-dp-add-new');
+    const addButton = driver.find(".test-dp-add-new");
     await move(addButton);
-    assert.isTrue(await layoutEditor().matches('[class*=-is-active]'));
-    assert.isFalse(await layoutEditor().matches('[class*=-is-target]'));
+    assert.isTrue(await layoutEditor().matches("[class*=-is-active]"));
+    assert.isFalse(await layoutEditor().matches("[class*=-is-target]"));
 
     // Move to the first leaf, and wait for the target to show up.
     const first = await firstLeaf().getRect();
@@ -687,8 +687,8 @@ describe("ViewLayoutCollapse", function() {
     assert.deepEqual(await mainSectionTitles(), [INVESTMENTS]);
 
     // The last section is INVESTMENTS, which can't be collapsed.
-    await gu.openSectionMenu('viewLayout', INVESTMENTS);
-    assert.equal(await driver.find('.test-section-collapse').matches('[class*=disabled]'), true);
+    await gu.openSectionMenu("viewLayout", INVESTMENTS);
+    assert.equal(await driver.find(".test-section-collapse").matches("[class*=disabled]"), true);
     await driver.sendKeys(Key.ESCAPE);
 
     // Now expand them one by one and test.
@@ -793,92 +793,92 @@ describe("ViewLayoutCollapse", function() {
     await gu.checkForErrors();
   });
 
-  it('should prompt when last section is removed from tray', async () => {
+  it("should prompt when last section is removed from tray", async () => {
     const revert = await gu.begin();
 
     // Add brand new table and collapse it.
-    await gu.addNewSection('Table', 'New Table', { tableName: 'ToCollapse' });
-    await collapseByMenu('ToCollapse');
+    await gu.addNewSection("Table", "New Table", { tableName: "ToCollapse" });
+    await collapseByMenu("ToCollapse");
 
     // Now try to remove it, we should see prompt.
-    await openCollapsedSectionMenu('ToCollapse');
-    await driver.find('.test-section-delete').click();
+    await openCollapsedSectionMenu("ToCollapse");
+    await driver.find(".test-section-delete").click();
     assert.match(
-      await driver.find('.test-modal-title').getText(),
+      await driver.find(".test-modal-title").getText(),
       /Table ToCollapse will no longer be visible/,
     );
 
     // Select first option, to delete both table and widget.
-    await driver.find('.test-option-deleteDataAndWidget').click();
-    await driver.find('.test-modal-confirm').click();
+    await driver.find(".test-option-deleteDataAndWidget").click();
+    await driver.find(".test-modal-confirm").click();
     await gu.waitForServer();
 
     // Make sure it is removed.
     assert.deepEqual(await collapsedSectionTitles(), []);
-    assert.deepEqual(await visibleTables(), ['Companies', 'Investments']);
+    assert.deepEqual(await visibleTables(), ["Companies", "Investments"]);
     await gu.sendKeys(Key.ESCAPE);
 
     // Single undo should add it back.
     await gu.undo();
-    assert.deepEqual(await collapsedSectionTitles(), ['TOCOLLAPSE']);
-    assert.deepEqual(await visibleTables(), ['Companies', 'Investments', 'ToCollapse']);
+    assert.deepEqual(await collapsedSectionTitles(), ["TOCOLLAPSE"]);
+    assert.deepEqual(await visibleTables(), ["Companies", "Investments", "ToCollapse"]);
 
     // Now do the same but, keep data.
-    await openCollapsedSectionMenu('ToCollapse');
-    await driver.find('.test-section-delete').click();
-    await driver.findWait('.test-modal-dialog', 100);
-    await driver.find('.test-option-deleteOnlyWidget').click();
-    await driver.find('.test-modal-confirm').click();
+    await openCollapsedSectionMenu("ToCollapse");
+    await driver.find(".test-section-delete").click();
+    await driver.findWait(".test-modal-dialog", 100);
+    await driver.find(".test-option-deleteOnlyWidget").click();
+    await driver.find(".test-modal-confirm").click();
     await gu.waitForServer();
 
     // Make sure it is removed.
     assert.deepEqual(await collapsedSectionTitles(), []);
-    assert.deepEqual(await visibleTables(), ['Companies', 'Investments', 'ToCollapse']);
+    assert.deepEqual(await visibleTables(), ["Companies", "Investments", "ToCollapse"]);
 
     // Test single undo.
     await gu.undo();
-    assert.deepEqual(await collapsedSectionTitles(), ['TOCOLLAPSE']);
-    assert.deepEqual(await visibleTables(), ['Companies', 'Investments', 'ToCollapse']);
+    assert.deepEqual(await collapsedSectionTitles(), ["TOCOLLAPSE"]);
+    assert.deepEqual(await visibleTables(), ["Companies", "Investments", "ToCollapse"]);
 
     // Uncollapse it, and do the same with normal section.
-    await addToMainByMenu('ToCollapse');
+    await addToMainByMenu("ToCollapse");
 
     // Now try to remove it, we should see prompt.
     assert.include(
-      await driver.findAll('.test-viewsection-title', e => e.getText()), 'TOCOLLAPSE');
+      await driver.findAll(".test-viewsection-title", e => e.getText()), "TOCOLLAPSE");
 
-    await gu.openSectionMenu('viewLayout', 'ToCollapse');
-    await driver.find('.test-section-delete').click();
-    await driver.findWait('.test-modal-dialog', 100);
-    await driver.find('.test-option-deleteOnlyWidget').click();
-    await driver.find('.test-modal-confirm').click();
+    await gu.openSectionMenu("viewLayout", "ToCollapse");
+    await driver.find(".test-section-delete").click();
+    await driver.findWait(".test-modal-dialog", 100);
+    await driver.find(".test-option-deleteOnlyWidget").click();
+    await driver.find(".test-modal-confirm").click();
     await gu.waitForServer();
     assert.notInclude(
-      await driver.findAll('.test-viewsection-title', e => e.getText()), 'TOCOLLAPSE');
-    assert.deepEqual(await visibleTables(), ['Companies', 'Investments', 'ToCollapse']);
+      await driver.findAll(".test-viewsection-title", e => e.getText()), "TOCOLLAPSE");
+    assert.deepEqual(await visibleTables(), ["Companies", "Investments", "ToCollapse"]);
     // Test undo.
     await gu.undo();
     assert.include(
-      await driver.findAll('.test-viewsection-title', e => e.getText()), 'TOCOLLAPSE');
+      await driver.findAll(".test-viewsection-title", e => e.getText()), "TOCOLLAPSE");
 
     // Do the same but delete data and widget.
-    await gu.openSectionMenu('viewLayout', 'ToCollapse');
-    await driver.find('.test-section-delete').click();
-    await driver.findWait('.test-modal-dialog', 100);
-    await driver.find('.test-option-deleteDataAndWidget').click();
-    await driver.find('.test-modal-confirm').click();
+    await gu.openSectionMenu("viewLayout", "ToCollapse");
+    await driver.find(".test-section-delete").click();
+    await driver.findWait(".test-modal-dialog", 100);
+    await driver.find(".test-option-deleteDataAndWidget").click();
+    await driver.find(".test-modal-confirm").click();
     await gu.waitForServer();
 
     // Make sure it is removed.
     assert.notInclude(
-      await driver.findAll('.test-viewsection-title', e => e.getText()), 'TOCOLLAPSE');
-    assert.deepEqual(await visibleTables(), ['Companies', 'Investments']);
+      await driver.findAll(".test-viewsection-title", e => e.getText()), "TOCOLLAPSE");
+    assert.deepEqual(await visibleTables(), ["Companies", "Investments"]);
 
     // Test undo.
     await gu.undo();
     assert.include(
-      await driver.findAll('.test-viewsection-title', e => e.getText()), 'TOCOLLAPSE');
-    assert.deepEqual(await visibleTables(), ['Companies', 'Investments', 'ToCollapse']);
+      await driver.findAll(".test-viewsection-title", e => e.getText()), "TOCOLLAPSE");
+    assert.deepEqual(await visibleTables(), ["Companies", "Investments", "ToCollapse"]);
 
     await revert();
   });
@@ -910,15 +910,15 @@ describe("ViewLayoutCollapse", function() {
     assert.isTrue(await driver.find(".test-viewLayout-overlay").matches("[class*=-active]"));
     assert.equal(await gu.getActiveSectionTitle(), COMPANIES);
     // Make sure that the panel shows it.
-    await gu.toggleSidePanel('right', 'open');
-    await driver.find('.test-config-widget').click();
-    assert.equal(await driver.find('.test-right-widget-title').value(), COMPANIES);
+    await gu.toggleSidePanel("right", "open");
+    await driver.find(".test-config-widget").click();
+    assert.equal(await driver.find(".test-right-widget-title").value(), COMPANIES);
     // Make sure we see proper items in the menu.
-    await gu.openSectionMenu('viewLayout', COMPANIES);
+    await gu.openSectionMenu("viewLayout", COMPANIES);
     // Collapse widget menu item is disabled.
-    assert.equal(await driver.find('.test-section-collapse').matches('[class*=disabled]'), true);
+    assert.equal(await driver.find(".test-section-collapse").matches("[class*=disabled]"), true);
     // Delete widget is enabled.
-    assert.equal(await driver.find('.test-section-delete').matches('[class*=disabled]'), false);
+    assert.equal(await driver.find(".test-section-delete").matches("[class*=disabled]"), false);
     await driver.sendKeys(Key.ESCAPE);
     // Expand button is not visible
     assert.lengthOf(await driver.findAll(".active_section .test-section-menu-expandSection"), 0);
@@ -934,8 +934,8 @@ describe("ViewLayoutCollapse", function() {
     await gu.undo();
     assert.equal(await gu.getActiveSectionTitle(), COMPANIES);
     // Now remove it.
-    await gu.openSectionMenu('viewLayout', COMPANIES);
-    await driver.find('.test-section-delete').click();
+    await gu.openSectionMenu("viewLayout", COMPANIES);
+    await driver.find(".test-section-delete").click();
     await gu.waitForServer();
     // Make sure it is closed.
     assert.isFalse(await driver.find(".test-viewLayout-overlay").matches("[class*=-active]"));
@@ -966,7 +966,7 @@ describe("ViewLayoutCollapse", function() {
     // Get one of the sections and start dragging it.
     await dragMain(COMPANIES_CHART);
     // Move it over the logo to show the tray.
-    const logo = driver.find('.test-dm-logo');
+    const logo = driver.find(".test-dm-logo");
     await move(logo, { y: 0 });
     await move(logo, { y: -20 });
     await driver.sleep(100);
@@ -977,7 +977,7 @@ describe("ViewLayoutCollapse", function() {
     const emptyBoxCords = await emptyBox.getRect();
     await move(emptyBox, { x: emptyBoxCords.width + 100 });
     // Make sure that the empty box is not active.
-    assert.isFalse(await emptyBox.matches('[class*=-is-active]'));
+    assert.isFalse(await emptyBox.matches("[class*=-is-active]"));
     // Drop it here
     await driver.withActions(actions => actions.release());
     await driver.sleep(600); // Wait for animation to finish.
@@ -995,36 +995,36 @@ describe("ViewLayoutCollapse", function() {
   });
 
   it("should clear layout when dropped section is removed", async () => {
-    await session.tempNewDoc(cleanup, 'CollapsedBug.grist');
+    await session.tempNewDoc(cleanup, "CollapsedBug.grist");
     // Add a new section based on current table.
-    await gu.addNewSection('Table', 'Table1');
+    await gu.addNewSection("Table", "Table1");
     // It will have id 3 (1 is raw, 2 is visible).
     // Collapse it.
-    await gu.renameActiveSection('ToDelete');
-    await collapseByMenu('ToDelete');
+    await gu.renameActiveSection("ToDelete");
+    await collapseByMenu("ToDelete");
     // Remove it from the tray.
-    await openCollapsedSectionMenu('ToDelete');
-    await driver.find('.test-section-delete').click();
+    await openCollapsedSectionMenu("ToDelete");
+    await driver.find(".test-section-delete").click();
     await gu.waitForServer();
     await waitForSave();
     // Now add another one, it will have the same id (3) and it used to be collapsed when added
     // as the layout was not cleared.
-    await gu.addNewSection('Table', 'Table1');
+    await gu.addNewSection("Table", "Table1");
     // Make sure it is expanded.
-    assert.deepEqual(await mainSectionTitles(), ['TABLE1', 'TABLE1']);
+    assert.deepEqual(await mainSectionTitles(), ["TABLE1", "TABLE1"]);
     assert.deepEqual(await collapsedSectionTitles(), []);
   });
 });
 
 async function addToMainByMenu(section: string) {
   await openCollapsedSectionMenu(section);
-  await driver.find('.test-section-expand').click();
+  await driver.find(".test-section-expand").click();
   await gu.waitForServer();
   await gu.checkForErrors();
 }
 
 async function dragCollapsed(section: string) {
-  const handle = getCollapsedSection(section).find('.draggable-handle');
+  const handle = getCollapsedSection(section).find(".draggable-handle");
   await driver.withActions(actions => actions
     .move({ origin: handle })
     .press());
@@ -1033,7 +1033,7 @@ async function dragCollapsed(section: string) {
 }
 
 async function dragMain(section: string) {
-  const handle = gu.getSection(section).find('.viewsection_drag_indicator');
+  const handle = gu.getSection(section).find(".viewsection_drag_indicator");
   await driver.withActions(actions => actions
     .move({ origin: handle }));
   await driver.withActions(actions => actions
@@ -1044,31 +1044,31 @@ async function dragMain(section: string) {
 }
 
 async function openCollapsedSection(section: string) {
-  await getCollapsedSection(section).find('.draggable-handle').click();
+  await getCollapsedSection(section).find(".draggable-handle").click();
 }
 
 async function removeMiniSection(section: string) {
   await openCollapsedSectionMenu(section);
-  await driver.find('.test-section-delete').click();
+  await driver.find(".test-section-delete").click();
   await gu.waitForServer();
   await gu.checkForErrors();
 }
 
 async function collapseByMenu(section: string) {
-  await gu.openSectionMenu('viewLayout', section);
-  await driver.find('.test-section-collapse').click();
+  await gu.openSectionMenu("viewLayout", section);
+  await driver.find(".test-section-collapse").click();
   await gu.waitForServer();
   await gu.checkForErrors();
 }
 
 // Returns the titles of all collapsed sections.
 async function collapsedSectionTitles() {
-  return await layoutTray().findAll('.test-layoutTray-leaf-box .test-collapsed-section-title', e => e.getText());
+  return await layoutTray().findAll(".test-layoutTray-leaf-box .test-collapsed-section-title", e => e.getText());
 }
 
 // Returns titles of all sections in the view layout.
 async function mainSectionTitles() {
-  return await driver.findAll('.layout_root .test-viewsection-title', e => e.getText());
+  return await driver.findAll(".layout_root .test-viewsection-title", e => e.getText());
 }
 
 async function move(element: WebElementPromise | WebElement, offset: { x?: number, y?: number } = { x: 0, y: 0 }) {
@@ -1079,7 +1079,7 @@ async function move(element: WebElementPromise | WebElement, offset: { x?: numbe
 }
 
 function getDragElement(section: string) {
-  return gu.getSection(section).find('.viewsection_drag_indicator');
+  return gu.getSection(section).find(".viewsection_drag_indicator");
 }
 
 function layoutTray() {
@@ -1094,10 +1094,10 @@ function layoutEditor() {
   return driver.find(".test-layoutTray-editor");
 }
 
-const COMPANIES_CHART = 'COMPANIES [by category_code] Chart';
-const INVESTMENTS_CHART = 'INVESTMENTS [by funded_year] Chart';
-const COMPANIES = 'COMPANIES [by category_code]';
-const INVESTMENTS = 'INVESTMENTS [by funded_year]';
+const COMPANIES_CHART = "COMPANIES [by category_code] Chart";
+const INVESTMENTS_CHART = "INVESTMENTS [by funded_year] Chart";
+const COMPANIES = "COMPANIES [by category_code]";
+const INVESTMENTS = "INVESTMENTS [by funded_year]";
 
 function assertDistance(left: number, right: number, max: number) {
   return assert.isBelow(Math.abs(left - right), max);
@@ -1112,11 +1112,11 @@ async function waitForSave() {
 }
 
 async function visibleTables() {
-  await driver.findWait('.test-dp-add-new', 2000).doClick();
+  await driver.findWait(".test-dp-add-new", 2000).doClick();
   await gu.findOpenMenu();
-  await driver.find('.test-dp-add-new-page').doClick();
-  await driver.findWait('.test-wselect-heading', 100);
-  const titles = await driver.findAll('.test-wselect-table', e => e.getText());
+  await driver.find(".test-dp-add-new-page").doClick();
+  await driver.findWait(".test-wselect-heading", 100);
+  const titles = await driver.findAll(".test-wselect-table", e => e.getText());
   await gu.sendKeys(Key.ESCAPE);
-  return titles.map(x => x.trim()).filter(Boolean).filter(x => x !== 'New Table');
+  return titles.map(x => x.trim()).filter(Boolean).filter(x => x !== "New Table");
 }

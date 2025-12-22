@@ -20,13 +20,13 @@
  *  an observable koArray via getKoArray(), which maintains rows from RowSources in sorted order.
  */
 
-import koArray, { KoArray } from 'app/client/lib/koArray';
-import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
-import { CompareFunc, sortedIndex } from 'app/common/gutil';
-import { SkippableRows } from 'app/common/TableData';
+import koArray, { KoArray } from "app/client/lib/koArray";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { CompareFunc, sortedIndex } from "app/common/gutil";
+import { SkippableRows } from "app/common/TableData";
 import { RowFilterFunc } from "app/common/RowFilterFunc";
-import { UIRowId } from 'app/plugin/GristAPI';
-import { Observable } from 'grainjs';
+import { UIRowId } from "app/plugin/GristAPI";
+import { Observable } from "grainjs";
 
 /**
  * Special constant value that can be used for the `rows` array for the 'rowNotify'
@@ -34,8 +34,8 @@ import { Observable } from 'grainjs';
  */
 export const ALL: unique symbol = Symbol("ALL");
 
-export type ChangeType = 'add' | 'remove' | 'update';
-export type ChangeMethod = 'onAddRows' | 'onRemoveRows' | 'onUpdateRows';
+export type ChangeType = "add" | "remove" | "update";
+export type ChangeMethod = "onAddRows" | "onRemoveRows" | "onUpdateRows";
 export type RowList = Iterable<UIRowId>;
 export type RowsChanged = RowList | typeof ALL;
 
@@ -66,9 +66,9 @@ export abstract class RowSource extends DisposableWithEvents {
 // ----------------------------------------------------------------------
 
 const _changeTypes: { [key: string]: ChangeMethod } = {
-  add: 'onAddRows',
-  remove: 'onRemoveRows',
-  update: 'onUpdateRows',
+  add: "onAddRows",
+  remove: "onRemoveRows",
+  update: "onUpdateRows",
 };
 
 /**
@@ -82,11 +82,11 @@ export class RowListener extends DisposableWithEvents {
    */
   public subscribeTo(rowSource: RowSource): void {
     this.onAddRows(rowSource.getAllRows(), rowSource);
-    this.listenTo(rowSource, 'rowChange', (changeType: ChangeType, rows: RowList) => {
+    this.listenTo(rowSource, "rowChange", (changeType: ChangeType, rows: RowList) => {
       const method: ChangeMethod = _changeTypes[changeType];
       this[method](rows, rowSource);
     });
-    this.listenTo(rowSource, 'rowNotify', this.onRowNotify);
+    this.listenTo(rowSource, "rowNotify", this.onRowNotify);
   }
 
   /**
@@ -94,8 +94,8 @@ export class RowListener extends DisposableWithEvents {
    * dispose() on its own is sufficient and faster.
    */
   public unsubscribeFrom(rowSource: RowSource): void {
-    this.stopListening(rowSource, 'rowChange');
-    this.stopListening(rowSource, 'rowNotify');
+    this.stopListening(rowSource, "rowChange");
+    this.stopListening(rowSource, "rowNotify");
     this.onRemoveRows(rowSource.getAllRows());
   }
 
@@ -119,7 +119,7 @@ export class RowListener extends DisposableWithEvents {
    * rowNotify on the RowListener itself.
    */
   protected onRowNotify(rows: RowList, notifyValue: any) {
-    this.trigger('rowNotify', rows, notifyValue);
+    this.trigger("rowNotify", rows, notifyValue);
   }
 }
 
@@ -148,11 +148,11 @@ export class MappedRowSource extends RowSource {
     this._mapperFunc = row => mapperFunc(row);
 
     // Listen to the two event types a rowSource might produce, and map the rows in them.
-    this.listenTo(parentRowSource, 'rowChange', (changeType: ChangeType, rows: RowList) => {
-      this.trigger('rowChange', changeType, Array.from(rows, this._mapperFunc));
+    this.listenTo(parentRowSource, "rowChange", (changeType: ChangeType, rows: RowList) => {
+      this.trigger("rowChange", changeType, Array.from(rows, this._mapperFunc));
     });
-    this.listenTo(parentRowSource, 'rowNotify', (rows: RowsChanged, notifyValue: any) => {
-      this.trigger('rowNotify', rows === ALL ? ALL : Array.from(rows, this._mapperFunc), notifyValue);
+    this.listenTo(parentRowSource, "rowNotify", (rows: RowsChanged, notifyValue: any) => {
+      this.trigger("rowNotify", rows === ALL ? ALL : Array.from(rows, this._mapperFunc), notifyValue);
     });
   }
 
@@ -176,11 +176,11 @@ export class ExtendedRowSource extends RowSource {
     super();
 
     // Listen to the two event types a rowSource might produce, and map the rows in them.
-    this.listenTo(parentRowSource, 'rowChange', (changeType: ChangeType, rows: RowList) => {
-      this.trigger('rowChange', changeType, rows);
+    this.listenTo(parentRowSource, "rowChange", (changeType: ChangeType, rows: RowList) => {
+      this.trigger("rowChange", changeType, rows);
     });
-    this.listenTo(parentRowSource, 'rowNotify', (rows: RowsChanged, notifyValue: any) => {
-      this.trigger('rowNotify', rows === ALL ? ALL : rows, notifyValue);
+    this.listenTo(parentRowSource, "rowNotify", (rows: RowsChanged, notifyValue: any) => {
+      this.trigger("rowNotify", rows === ALL ? ALL : rows, notifyValue);
     });
   }
 
@@ -234,7 +234,7 @@ export class BaseFilteredRowSource extends RowListener implements RowSource {
       }
     }
     if (outputRows.length > 0) {
-      this.trigger('rowChange', 'add', outputRows);
+      this.trigger("rowChange", "add", outputRows);
     }
   }
 
@@ -247,20 +247,20 @@ export class BaseFilteredRowSource extends RowListener implements RowSource {
       this._deleteExcludedRow(r);
     }
     if (outputRows.length > 0) {
-      this.trigger('rowChange', 'remove', outputRows);
+      this.trigger("rowChange", "remove", outputRows);
     }
   }
 
   public onUpdateRows(rows: RowList) {
     const changes = this._updateRowsHelper({}, rows);
-    if (changes.removes) { this.trigger('rowChange', 'remove', changes.removes); }
-    if (changes.updates) { this.trigger('rowChange', 'update', changes.updates); }
-    if (changes.adds) { this.trigger('rowChange', 'add', changes.adds); }
+    if (changes.removes) { this.trigger("rowChange", "remove", changes.removes); }
+    if (changes.updates) { this.trigger("rowChange", "update", changes.updates); }
+    if (changes.adds) { this.trigger("rowChange", "add", changes.adds); }
   }
 
   public onRowNotify(rows: RowsChanged, notifyValue: any) {
     if (rows === ALL) {
-      this.trigger('rowNotify', ALL, notifyValue);
+      this.trigger("rowNotify", ALL, notifyValue);
     }
     else {
       const outputRows = [];
@@ -270,7 +270,7 @@ export class BaseFilteredRowSource extends RowListener implements RowSource {
         }
       }
       if (outputRows.length > 0) {
-        this.trigger('rowNotify', outputRows, notifyValue);
+        this.trigger("rowNotify", outputRows, notifyValue);
       }
     }
   }
@@ -327,8 +327,8 @@ export class FilteredRowSource extends BaseFilteredRowSource {
     // as we know they don't match, and so will be ignored by _updateRowsHelper.
     this._updateRowsHelper(changes, this._matchingRows);
     this._updateRowsHelper(changes, this._excludedRows);
-    if (changes.removes) { this.trigger('rowChange', 'remove', changes.removes); }
-    if (changes.adds) { this.trigger('rowChange', 'add', changes.adds); }
+    if (changes.removes) { this.trigger("rowChange", "remove", changes.removes); }
+    if (changes.adds) { this.trigger("rowChange", "add", changes.adds); }
   }
 
   /**
@@ -338,8 +338,8 @@ export class FilteredRowSource extends BaseFilteredRowSource {
    */
   public refilterRows(rows: RowList) {
     const changes = this._updateRowsHelper({}, rows);
-    if (changes.removes) { this.trigger('rowChange', 'remove', changes.removes); }
-    if (changes.adds) { this.trigger('rowChange', 'add', changes.adds); }
+    if (changes.removes) { this.trigger("rowChange", "remove", changes.removes); }
+    if (changes.adds) { this.trigger("rowChange", "add", changes.adds); }
   }
 
   /**
@@ -444,7 +444,7 @@ export class RowGrouping<Value> extends RowListener {
     groupedRows.forEach((groupRows, groupValue) => {
       const group = this.getGroup(groupValue);
       group._addAll(groupRows);
-      group.trigger('rowChange', 'add', groupRows);
+      group.trigger("rowChange", "add", groupRows);
     });
   }
 
@@ -461,7 +461,7 @@ export class RowGrouping<Value> extends RowListener {
     groupedRows.forEach((groupRows, groupValue) => {
       const group = this._valuesToGroups.get(groupValue)!;
       group._removeAll(groupRows);
-      group.trigger('rowChange', 'remove', groupRows);
+      group.trigger("rowChange", "remove", groupRows);
     });
   }
 
@@ -483,20 +483,20 @@ export class RowGrouping<Value> extends RowListener {
       removeGroup.forEach((groupRows, groupValue) => {
         const group = this._valuesToGroups.get(groupValue)!;
         group._removeAll(groupRows);
-        group.trigger('rowChange', 'remove', groupRows);
+        group.trigger("rowChange", "remove", groupRows);
       });
     }
     if (updateGroup) {
       updateGroup.forEach((groupRows, groupValue) => {
         const group = this._valuesToGroups.get(groupValue)!;
-        group.trigger('rowChange', 'update', groupRows);
+        group.trigger("rowChange", "update", groupRows);
       });
     }
     if (insertGroup) {
       insertGroup.forEach((groupRows, groupValue) => {
         const group = this.getGroup(groupValue);
         group._addAll(groupRows);
-        group.trigger('rowChange', 'add', groupRows);
+        group.trigger("rowChange", "add", groupRows);
       });
     }
   }
@@ -504,7 +504,7 @@ export class RowGrouping<Value> extends RowListener {
   public onRowNotify(rows: RowsChanged, notifyValue: any) {
     if (rows === ALL) {
       for (const group of this._valuesToGroups.values()) {
-        group.trigger('rowNotify', ALL, notifyValue);
+        group.trigger("rowNotify", ALL, notifyValue);
       }
     }
     else {
@@ -515,7 +515,7 @@ export class RowGrouping<Value> extends RowListener {
 
       groupedRows.forEach((groupRows, groupValue) => {
         const group = this._valuesToGroups.get(groupValue)!;
-        group.trigger('rowNotify', groupRows, notifyValue);
+        group.trigger("rowNotify", groupRows, notifyValue);
       });
     }
   }
@@ -535,7 +535,7 @@ export class SortedRowSet extends RowListener {
   private _allRows = new Set<UIRowId>();
   private _isPaused: boolean = false;
   private _koArray: KoArray<UIRowId>;
-  private _keepFunc?: (rowId: number | 'new') => boolean;
+  private _keepFunc?: (rowId: number | "new") => boolean;
 
   constructor(private _compareFunc: CompareFunc<UIRowId>,
     private _skippableRows?: SkippableRows) {
@@ -699,7 +699,7 @@ export class SortedRowSet extends RowListener {
     const skipRowId = this._skippableRows?.getSkipRowId() || 0;
     return rows
       .map((v, i) => edge[i] ? skipRowId : v)
-      .filter((v, i) => keeping[i] || edge[i] || v === 'new');
+      .filter((v, i) => keeping[i] || edge[i] || v === "new");
   }
 }
 
@@ -793,7 +793,7 @@ export class ExemptFromFilterRowSource extends BaseFilteredRowSource {
       }
     }
     if (newRows.length > 0) {
-      this.trigger('rowChange', 'add', newRows);
+      this.trigger("rowChange", "add", newRows);
     }
   }
 

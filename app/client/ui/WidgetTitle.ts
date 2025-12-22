@@ -1,19 +1,19 @@
-import * as commands from 'app/client/components/commands';
-import { makeT } from 'app/client/lib/localization';
-import { FocusLayer } from 'app/client/lib/FocusLayer';
-import { ViewSectionRec } from 'app/client/models/entities/ViewSectionRec';
-import { basicButton, cssButton, primaryButton } from 'app/client/ui2018/buttons';
-import { theme } from 'app/client/ui2018/cssVars';
-import { menuCssClass } from 'app/client/ui2018/menus';
-import { ModalControl } from 'app/client/ui2018/modals';
-import { Computed, dom, DomElementArg, makeTestId, Observable, styled } from 'grainjs';
-import { IOpenController, IPopupOptions, PopupControl, setPopupToCreateDom } from 'popweasel';
-import { descriptionInfoTooltip } from 'app/client/ui/tooltips';
-import { autoGrow } from 'app/client/ui/forms';
-import { cssInput, cssLabel, cssRenamePopup, cssTextArea } from 'app/client/ui/RenamePopupStyles';
+import * as commands from "app/client/components/commands";
+import { makeT } from "app/client/lib/localization";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
+import { basicButton, cssButton, primaryButton } from "app/client/ui2018/buttons";
+import { theme } from "app/client/ui2018/cssVars";
+import { menuCssClass } from "app/client/ui2018/menus";
+import { ModalControl } from "app/client/ui2018/modals";
+import { Computed, dom, DomElementArg, makeTestId, Observable, styled } from "grainjs";
+import { IOpenController, IPopupOptions, PopupControl, setPopupToCreateDom } from "popweasel";
+import { descriptionInfoTooltip } from "app/client/ui/tooltips";
+import { autoGrow } from "app/client/ui/forms";
+import { cssInput, cssLabel, cssRenamePopup, cssTextArea } from "app/client/ui/RenamePopupStyles";
 
-const testId = makeTestId('test-widget-title-');
-const t = makeT('WidgetTitle');
+const testId = makeTestId("test-widget-title-");
+const t = makeT("WidgetTitle");
 
 interface WidgetTitleOptions {
   tableNameHidden?: boolean,
@@ -69,9 +69,9 @@ function buildRenamableTitle(
   let popupControl: PopupControl | undefined;
   return cssTitleContainer(
     cssTitle(
-      testId('text'),
+      testId("text"),
       dom.text(title),
-      dom.on('click', () => {
+      dom.on("click", () => {
         // The popup doesn't close if `openOnClick` is false and the title is
         // clicked. Make sure that it does.
         if (!openOnClick) { popupControl?.close(); }
@@ -89,8 +89,8 @@ function buildRenamableTitle(
         //
         // Typically, the former should be set. The latter is useful for triggering the
         // popup from a different part of the UI, like a menu item.
-        const trigger: IPopupOptions['trigger'] = [];
-        if (openOnClick) { trigger.push('click'); }
+        const trigger: IPopupOptions["trigger"] = [];
+        if (openOnClick) { trigger.push("click"); }
         if (isEditing) {
           trigger.push((_: Element, ctl: PopupControl) => {
             popupControl = ctl;
@@ -111,13 +111,13 @@ function buildRenamableTitle(
 
           return buildRenameTitlePopup(ctl, vs, renameTitleOptions);
         }, {
-          placement: 'bottom-start',
+          placement: "bottom-start",
           trigger,
-          attach: 'body',
-          boundaries: 'viewport',
+          attach: "body",
+          boundaries: "viewport",
         });
       },
-      openOnClick ? dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }) : null,
+      openOnClick ? dom.on("click", (ev) => { ev.stopPropagation(); ev.preventDefault(); }) : null,
     ),
     dom.maybe(description, () => [
       descriptionInfoTooltip(description.get(), "widget"),
@@ -133,23 +133,23 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
   // Table name, for summary table it contains also a grouping description, but it is not editable.
   // Example: Table1 or Table1 [by B, C]
   const tableName = [tableRec.tableNameDef.peek(), tableRec.groupDesc.peek()]
-    .filter(p => Boolean(p?.trim())).join(' ');
+    .filter(p => Boolean(p?.trim())).join(" ");
   // User input for table name.
   const inputTableName = Observable.create(ctrl, tableName);
   // User input for widget title.
-  const inputWidgetTitle = Observable.create(ctrl, vs.title.peek() ?? '');
+  const inputWidgetTitle = Observable.create(ctrl, vs.title.peek() ?? "");
   // Placeholder for widget title:
   // - when widget title is empty shows a default widget title (what would be shown when title is empty)
   // - when widget title is set, shows just a text to override it.
   const inputWidgetPlaceholder = !vs.title.peek() ? t("Override widget title") : vs.defaultWidgetTitle.peek();
 
   // User input for widget description
-  const inputWidgetDesc = Observable.create(ctrl, vs.description.peek() ?? '');
+  const inputWidgetDesc = Observable.create(ctrl, vs.description.peek() ?? "");
 
   const disableSave = Computed.create(ctrl, (use) => {
-    const newTableName = use(inputTableName)?.trim() ?? '';
-    const newWidgetTitle = use(inputWidgetTitle)?.trim() ?? '';
-    const newWidgetDesc = use(inputWidgetDesc)?.trim() ?? '';
+    const newTableName = use(inputTableName)?.trim() ?? "";
+    const newWidgetTitle = use(inputWidgetTitle)?.trim() ?? "";
+    const newWidgetDesc = use(inputWidgetDesc)?.trim() ?? "";
     // Can't save when table name is empty or there wasn't any change.
     return !newTableName || (
       newTableName === tableName &&
@@ -175,7 +175,7 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
   };
 
   const saveWidgetTitle = async () => {
-    const newTitle = inputWidgetTitle.get()?.trim() ?? '';
+    const newTitle = inputWidgetTitle.get()?.trim() ?? "";
     // If value was changed.
     if (newTitle !== vs.title.peek()) {
       await vs.title.saveOnly(newTitle);
@@ -183,7 +183,7 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
   };
 
   const saveWidgetDesc = async () => {
-    const newWidgetDesc = inputWidgetDesc.get().trim() ?? '';
+    const newWidgetDesc = inputWidgetDesc.get().trim() ?? "";
     // If value was changed.
     if (newWidgetDesc !== vs.description.peek()) {
       await vs.description.saveOnly(newWidgetDesc);
@@ -287,7 +287,7 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
     (elem) => { FocusLayer.create(ctrl, { defaultFocusElem: elem, pauseMousetrap: false }); },
     dom.onDispose(onClose),
     dom.autoDispose(commandGroup),
-    testId('popup'),
+    testId("popup"),
     dom.cls(menuCssClass),
     dom.maybe(!options.tableNameHidden, () => [
       cssLabel(t("DATA TABLE NAME")),
@@ -297,32 +297,32 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
         inputTableName,
         updateOnKey,
         { disabled: isSummary, placeholder: t("Provide a table name") },
-        testId('table-name-input'),
+        testId("table-name-input"),
         commandGroup.attach(),
       ),
     ]),
     dom.maybe(!options.widgetNameHidden, () => [
       cssLabel(t("WIDGET TITLE")),
       widgetInput = cssInput(inputWidgetTitle, updateOnKey, { placeholder: inputWidgetPlaceholder },
-        testId('section-name-input'),
+        testId("section-name-input"),
         commandGroup.attach(),
       ),
     ]),
     cssLabel(t("WIDGET DESCRIPTION")),
     descInput = cssTextArea(inputWidgetDesc, updateOnKey,
-      testId('section-description-input'),
+      testId("section-description-input"),
       commandGroup.attach(),
       autoGrow(inputWidgetDesc),
     ),
     cssButtons(
       primaryButton(t("Save"),
-        dom.on('click', close),
-        dom.boolAttr('disabled', use => use(disableSave) || use(modalCtl.workInProgress)),
-        testId('save'),
+        dom.on("click", close),
+        dom.boolAttr("disabled", use => use(disableSave) || use(modalCtl.workInProgress)),
+        testId("save"),
       ),
       basicButton(t("Cancel"),
-        testId('cancel'),
-        dom.on('click', cancel),
+        testId("cancel"),
+        dom.on("click", cancel),
       ),
     ),
     dom.onKeyDown({
@@ -340,7 +340,7 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
 const updateOnKey = { onInput: true };
 
 // Leave class for tests.
-const cssTitleContainer = styled('div', `
+const cssTitleContainer = styled("div", `
   flex: 1 1 0px;
   min-width: 0px;
   display: flex;
@@ -350,7 +350,7 @@ const cssTitleContainer = styled('div', `
   }
 `);
 
-const cssTitle = styled('div', `
+const cssTitle = styled("div", `
   overflow: hidden;
   border-radius: 3px;
   margin: -4px;
@@ -369,7 +369,7 @@ const cssTitle = styled('div', `
   }
 `);
 
-const cssButtons = styled('div', `
+const cssButtons = styled("div", `
   display: flex;
   margin-top: 16px;
   & > .${cssButton.className}:not(:first-child) {

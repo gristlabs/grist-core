@@ -6,8 +6,8 @@
  * or 'none'. Note that empty string is also valid, and corresponds to the PermissionSet {}.
  */
 
-import fromPairs from 'lodash/fromPairs';
-import mapValues from 'lodash/mapValues';
+import fromPairs from "lodash/fromPairs";
+import mapValues from "lodash/mapValues";
 
 // A PermissionValue is the result of evaluating rules. It provides a definitive answer.
 export type PermissionValue = "allow" | "deny";
@@ -43,11 +43,11 @@ export type TablePermissionSet = PermissionSet<TablePermissionValue>;
 export type PermissionKey = keyof PermissionSet;
 
 const PERMISSION_BITS: { [letter: string]: PermissionKey } = {
-  R: 'read',
-  C: 'create',
-  U: 'update',
-  D: 'delete',
-  S: 'schemaEdit',
+  R: "read",
+  C: "create",
+  U: "update",
+  D: "delete",
+  S: "schemaEdit",
 };
 
 const ALL_PERMISSION_BITS = "CRUDS";
@@ -56,13 +56,13 @@ export const ALL_PERMISSION_PROPS: (keyof PermissionSet)[] =
   Array.from(ALL_PERMISSION_BITS, ch => PERMISSION_BITS[ch]);
 
 const ALIASES: { [key: string]: string } = {
-  all: '+CRUDS',
-  none: '-CRUDS',
+  all: "+CRUDS",
+  none: "-CRUDS",
 };
 const REVERSE_ALIASES = fromPairs(Object.entries(ALIASES).map(([alias, value]) => [value, alias]));
 
-export const AVAILABLE_BITS_TABLES: PermissionKey[] = ['read', 'update', 'create', 'delete'];
-export const AVAILABLE_BITS_COLUMNS: PermissionKey[] = ['read', 'update'];
+export const AVAILABLE_BITS_TABLES: PermissionKey[] = ["read", "update", "create", "delete"];
+export const AVAILABLE_BITS_COLUMNS: PermissionKey[] = ["read", "update"];
 
 // Comes in useful for initializing unset PermissionSets.
 export function emptyPermissionSet(): PartialPermissionSet {
@@ -79,10 +79,10 @@ export function parsePermissions(permissionsText: string): PartialPermissionSet 
   const pset: PartialPermissionSet = emptyPermissionSet();
   let value: PartialPermissionValue = "";
   for (const ch of permissionsText) {
-    if (ch === '+') {
+    if (ch === "+") {
       value = "allow";
     }
-    else if (ch === '-') {
+    else if (ch === "-") {
       value = "deny";
     }
     else if (!PERMISSION_BITS.hasOwnProperty(ch) || value === "") {
@@ -135,8 +135,8 @@ function combinePartialPermission(a: PartialPermissionValue, b: PartialPermissio
   if (!a) { return b; }
   if (!b) { return a; }
   // If the first is uncertain, the second may keep it unchanged, or make certain, or finalize as mixed.
-  if (a === 'allowSome') { return (b === 'allowSome' || b === 'allow') ? b : 'mixed'; }
-  if (a === 'denySome') { return (b === 'denySome' || b === 'deny') ? b : 'mixed'; }
+  if (a === "allowSome") { return (b === "allowSome" || b === "allow") ? b : "mixed"; }
+  if (a === "denySome") { return (b === "denySome" || b === "deny") ? b : "mixed"; }
   // If the first is certain, it's not affected by the second.
   return a;
 }
@@ -179,7 +179,7 @@ export function mergePermissions<T, U>(psets: PermissionSet<T>[], combine: (bits
  * hard-coded fallback rules should finalize all bits.
  */
 export function toMixed(pset: PartialPermissionSet): MixedPermissionSet {
-  return mergePermissions([pset], ([bit]) => (bit === 'allow' || bit === 'mixed' ? bit : 'deny'));
+  return mergePermissions([pset], ([bit]) => (bit === "allow" || bit === "mixed" ? bit : "deny"));
 }
 
 /**
@@ -187,28 +187,28 @@ export function toMixed(pset: PartialPermissionSet): MixedPermissionSet {
  * A rule that neither adds nor removes permissions is treated as mixed.
  */
 export function summarizePermissionSet(pset: PartialPermissionSet): MixedPermissionValue {
-  let sign = '';
+  let sign = "";
   for (const key of Object.keys(pset) as (keyof PartialPermissionSet)[]) {
     const pWithSome = pset[key];
     // "Some" postfix is not significant for summarization.
-    const p = pWithSome === 'allowSome' ? 'allow' : (pWithSome === 'denySome' ? 'deny' : pWithSome);
+    const p = pWithSome === "allowSome" ? "allow" : (pWithSome === "denySome" ? "deny" : pWithSome);
     if (!p || p === sign) { continue; }
     if (!sign) {
       sign = p;
       continue;
     }
-    sign = 'mixed';
+    sign = "mixed";
   }
-  return (sign === 'allow' || sign === 'deny') ? sign : 'mixed';
+  return (sign === "allow" || sign === "deny") ? sign : "mixed";
 }
 
 /**
  * Summarize whether a set of permissions are all 'allow', all 'deny', or other ('mixed').
  */
 export function summarizePermissions(perms: MixedPermissionValue[]): MixedPermissionValue {
-  if (perms.length === 0) { return 'mixed'; }
+  if (perms.length === 0) { return "mixed"; }
   const perm = perms[0];
-  return perms.some(p => p !== perm) ? 'mixed' : perm;
+  return perms.some(p => p !== perm) ? "mixed" : perm;
 }
 
 function isEmpty(permissions: PartialPermissionSet): boolean {

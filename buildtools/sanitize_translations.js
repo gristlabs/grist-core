@@ -1,17 +1,17 @@
 // This file should be run during build. It will go through all the translations in the static/locales
 // directory, and pass every key and value through the sanitizer.
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 // Initialize purifier.
-const createDOMPurify = require('dompurify');
-const { JSDOM } = require('jsdom');
-const window = new JSDOM('').window;
+const createDOMPurify = require("dompurify");
+const { JSDOM } = require("jsdom");
+const window = new JSDOM("").window;
 const DOMPurify = createDOMPurify(window);
-DOMPurify.addHook('uponSanitizeAttribute', handleSanitizeAttribute);
+DOMPurify.addHook("uponSanitizeAttribute", handleSanitizeAttribute);
 function handleSanitizeAttribute(node) {
-  if (!('target' in node)) { return; }
-  node.setAttribute('target', '_blank');
+  if (!("target" in node)) { return; }
+  node.setAttribute("target", "_blank");
 }
 
 // If the the first arg is test, do the self test.
@@ -106,15 +106,15 @@ function selfTest() {
   console.log("Self test passed");
 
   function createTmpDir() {
-    const os = require('os');
+    const os = require("os");
     const tmpDir = os.tmpdir();
-    const prefix = path.join(tmpDir, 'tmp-folder-');
+    const prefix = path.join(tmpDir, "tmp-folder-");
     const tmpFolderPath = fs.mkdtempSync(prefix);
     return tmpFolderPath;
   }
 
   function exitCode(args) {
-    const {execSync} = require('child_process');
+    const {execSync} = require("child_process");
     try {
       execSync(args); // will throw if exit code is not 0
       return 0;

@@ -46,12 +46,12 @@ export interface URLOptions {
 export function buildURL(path: string, options: URLOptions = {}): URL {
   const { base = window.location.href, hash, searchParams } = options;
   const url = new URL(base);
-  url.pathname = addOrgToPath('', base, true) + '/' + path.replace(/^\//, '');
+  url.pathname = addOrgToPath("", base, true) + "/" + path.replace(/^\//, "");
   if (hash !== undefined) {
-    url.hash = hash ?? '';
+    url.hash = hash ?? "";
   }
   if (searchParams !== undefined) {
-    url.search = searchParams?.toString() ?? '';
+    url.search = searchParams?.toString() ?? "";
   }
   return url;
 }
@@ -64,52 +64,52 @@ export interface GetLoginOrSignupUrlOptions {
 
 // Get URL for the login page.
 export function getLoginUrl(options: GetLoginOrSignupUrlOptions = {}): string {
-  return getLoginPageUrl('login', options);
+  return getLoginPageUrl("login", options);
 }
 
 // Get URL for the signup page.
 export function getSignupUrl(options: GetLoginOrSignupUrlOptions = {}): string {
-  return getLoginPageUrl('signup', options);
+  return getLoginPageUrl("signup", options);
 }
 
 // Get URL for the logout page.
 export function getLogoutUrl(): string {
-  return getLoginPageUrl('logout');
+  return getLoginPageUrl("logout");
 }
 
 // Get the URL that users are redirect to after deleting their account.
 export function getAccountDeletedUrl(): string {
-  return getLoginPageUrl('account-deleted', { nextUrl: '' });
+  return getLoginPageUrl("account-deleted", { nextUrl: "" });
 }
 
 // Get URL for the signin page.
 export function getLoginOrSignupUrl(options: GetLoginOrSignupUrlOptions = {}): string {
-  return getLoginPageUrl('signin', options);
+  return getLoginPageUrl("signin", options);
 }
 
 export function getWelcomeHomeUrl() {
-  const url = buildURL('/welcome/home', {
+  const url = buildURL("/welcome/home", {
     hash: null,
     searchParams: null,
   });
   return url.href;
 }
 
-const FINAL_PATHS = ['/signed-out', '/account-deleted'];
+const FINAL_PATHS = ["/signed-out", "/account-deleted"];
 
 // Returns the relative URL (i.e. path) of the current page, except when it's the
 // "/signed-out" page or "/account-deleted", in which case it returns the home page ("/").
 // This is a good URL to use for a post-login redirect.
 function _getCurrentUrl(): string {
   const { hash, pathname, search } = new URL(window.location.href);
-  if (FINAL_PATHS.some(final => pathname.endsWith(final))) { return '/'; }
+  if (FINAL_PATHS.some(final => pathname.endsWith(final))) { return "/"; }
 
-  return parseFirstUrlPart('o', pathname).path + search + hash;
+  return parseFirstUrlPart("o", pathname).path + search + hash;
 }
 
 // Returns the URL for the given login page.
 function getLoginPageUrl(
-  page: 'login' | 'logout' | 'signin' | 'signup' | 'account-deleted',
+  page: "login" | "logout" | "signin" | "signup" | "account-deleted",
   options: GetLoginOrSignupUrlOptions = {},
 ): string {
   const { srcDocId, nextUrl = _getCurrentUrl() } = options;
@@ -117,7 +117,7 @@ function getLoginPageUrl(
     hash: null,
     searchParams: null,
   });
-  if (srcDocId) { startUrl.searchParams.set('srcDocId', srcDocId); }
-  if (nextUrl) { startUrl.searchParams.set('next', nextUrl); }
+  if (srcDocId) { startUrl.searchParams.set("srcDocId", srcDocId); }
+  if (nextUrl) { startUrl.searchParams.set("next", nextUrl); }
   return startUrl.href;
 }

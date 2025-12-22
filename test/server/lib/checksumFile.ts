@@ -1,9 +1,9 @@
-import { checksumFile, HashPassthroughStream } from 'app/server/lib/checksumFile';
-import { MemoryWritableStream } from 'app/server/utils/streams';
-import { assert } from 'chai';
-import times from 'lodash/times';
-import stream from 'node:stream';
-import * as testUtils from 'test/server/testUtils';
+import { checksumFile, HashPassthroughStream } from "app/server/lib/checksumFile";
+import { MemoryWritableStream } from "app/server/utils/streams";
+import { assert } from "chai";
+import times from "lodash/times";
+import stream from "node:stream";
+import * as testUtils from "test/server/testUtils";
 
 const testValues = {
   small: {
@@ -26,13 +26,13 @@ describe("#checksumFile", function() {
   it("should compute correct checksum of a small file", async function() {
     const path = await testUtils.writeTmpFile(testValues.small.contents);
     assert.equal(await checksumFile(path), testValues.small.hashes.sha1);
-    assert.equal(await checksumFile(path, 'md5'), testValues.small.hashes.md5);
+    assert.equal(await checksumFile(path, "md5"), testValues.small.hashes.md5);
   });
 
   it("should compute correct checksum of the empty file", async function() {
     const path = await testUtils.writeTmpFile(testValues.empty.contents);
     assert.equal(await checksumFile(path), testValues.empty.hashes.sha1);
-    assert.equal(await checksumFile(path, 'md5'), testValues.empty.hashes.md5);
+    assert.equal(await checksumFile(path, "md5"), testValues.empty.hashes.md5);
   });
 
   it("should compute correct checksum of a large file", async function() {
@@ -42,7 +42,7 @@ describe("#checksumFile", function() {
     await Promise.all(times(10, async () => {
       const path = await testUtils.generateTmpFile(100000);   // about 3MB
       assert.equal(await checksumFile(path), "894159eca97e575f0ddbf712175a1853d7d3e619");
-      assert.equal(await checksumFile(path, 'md5'), "5dd0680c1ee14351a5aa300d5e6460d6");
+      assert.equal(await checksumFile(path, "md5"), "5dd0680c1ee14351a5aa300d5e6460d6");
     }));
   });
 

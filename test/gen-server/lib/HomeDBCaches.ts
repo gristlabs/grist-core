@@ -1,28 +1,28 @@
-import { assert } from 'chai';
-import { delay } from 'app/common/delay';
-import { DocPrefs } from 'app/common/Prefs';
-import { EDITOR, OWNER, Role, VIEWER } from 'app/common/roles';
-import { PermissionData, PermissionDelta } from 'app/common/UserAPI';
-import { Deps as CachesDeps, HomeDBCaches } from 'app/gen-server/lib/homedb/Caches';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { QueryResult } from 'app/gen-server/lib/homedb/Interfaces';
-import { User } from 'app/gen-server/entity/User';
-import { createPubSubManager } from 'app/server/lib/PubSubManager';
-import { createInitialDb, removeConnection } from 'test/gen-server/seed';
-import { TestServer } from 'test/server/lib/helpers/TestServer';
-import * as testUtils from 'test/server/testUtils';
-import { setupCleanup } from 'test/server/testCleanup';
-import { waitForIt } from 'test/server/wait';
-import * as path from 'path';
-import * as sinon from 'sinon';
+import { assert } from "chai";
+import { delay } from "app/common/delay";
+import { DocPrefs } from "app/common/Prefs";
+import { EDITOR, OWNER, Role, VIEWER } from "app/common/roles";
+import { PermissionData, PermissionDelta } from "app/common/UserAPI";
+import { Deps as CachesDeps, HomeDBCaches } from "app/gen-server/lib/homedb/Caches";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { QueryResult } from "app/gen-server/lib/homedb/Interfaces";
+import { User } from "app/gen-server/entity/User";
+import { createPubSubManager } from "app/server/lib/PubSubManager";
+import { createInitialDb, removeConnection } from "test/gen-server/seed";
+import { TestServer } from "test/server/lib/helpers/TestServer";
+import * as testUtils from "test/server/testUtils";
+import { setupCleanup } from "test/server/testCleanup";
+import { waitForIt } from "test/server/wait";
+import * as path from "path";
+import * as sinon from "sinon";
 
 /**
  * Tests homedb/Caches.ts, that caches work, expire appropriately, and are invalidated by correct
  * actions, including changes to parent resources, etc.
  */
-describe('HomeDBCaches', function() {
+describe("HomeDBCaches", function() {
   this.timeout(10_000);
-  testUtils.setTmpLogLevel('error');
+  testUtils.setTmpLogLevel("error");
   const cleanup = setupCleanup();
 
   let homeDb: HomeDBManager;
@@ -40,21 +40,21 @@ describe('HomeDBCaches', function() {
     // If running with default DB type (SQLite), TestServer() will use :memory:. Let's keep a copy
     // instead, so that it can be examined if a test fails.
     if (!process.env.TYPEORM_DATABASE) {
-      const tmpDir = await testUtils.createTestDir('HomeDBCaches');
-      process.env.TYPEORM_DATABASE = path.join(tmpDir, 'landing.db');
+      const tmpDir = await testUtils.createTestDir("HomeDBCaches");
+      process.env.TYPEORM_DATABASE = path.join(tmpDir, "landing.db");
     }
-    process.env.TEST_CLEAN_DATABASE = 'true';
+    process.env.TEST_CLEAN_DATABASE = "true";
 
     // For this test, set cache TTL to a low value, just high enough not to trigger unexpectedly.
-    sandboxAll.stub(CachesDeps, 'DocAccessCacheTTL').value(1000);
-    sandboxAll.stub(CachesDeps, 'DocPrefsCacheTTL').value(1000);
+    sandboxAll.stub(CachesDeps, "DocAccessCacheTTL").value(1000);
+    sandboxAll.stub(CachesDeps, "DocPrefsCacheTTL").value(1000);
 
     const pubSubManager = createPubSubManager(process.env.TEST_REDIS_URL);
     cleanup.addAfterAll(() => pubSubManager.close());
 
     // Set up a homeDB with a few users, and some nested resources: org/workspaces/docs.
     homeDb = new HomeDBManager(undefined, undefined, pubSubManager);
-    await createInitialDb(homeDb.connection, 'migrateOnly');
+    await createInitialDb(homeDb.connection, "migrateOnly");
     await homeDb.connect();
     await homeDb.initializeSpecialIds();
     entities = await createTestFixture(homeDb);
@@ -79,8 +79,8 @@ describe('HomeDBCaches', function() {
     return Object.fromEntries(users.map(u => [u.name, u.access]));
   }
 
-  it('should cache and expire docAccess values', async function() {
-    const rawCallSpy = sandbox.spy(HomeDBManager.prototype, 'getDocAccess');
+  it("should cache and expire docAccess values", async function() {
+    const rawCallSpy = sandbox.spy(HomeDBManager.prototype, "getDocAccess");
 
     const expect1 = { Alice: OWNER, Bob: OWNER, Carol: EDITOR } as const;
     assert.deepEqual(shortDocAccessResult(await caches.getDocAccess(entities.docDesignSpec.id)), expect1);
@@ -127,8 +127,8 @@ describe('HomeDBCaches', function() {
     assert.deepEqual(rawCallSpy.callCount, 4);
   });
 
-  it('should cache invalidate docAccess values on access changes', async function() {
-    const rawCallSpy = sandbox.spy(HomeDBManager.prototype, 'getDocAccess');
+  it("should cache invalidate docAccess values on access changes", async function() {
+    const rawCallSpy = sandbox.spy(HomeDBManager.prototype, "getDocAccess");
     const alice = entities.users.Alice;
 
     assert.deepEqual(shortDocAccessResult(await caches.getDocAccess(entities.docDesignSpec.id)),
@@ -142,10 +142,10 @@ describe('HomeDBCaches', function() {
     assert.deepEqual(rawCallSpy.callCount, 2);
 
     // Change org sharing. The result of getDocAccess() should get affected immediately in the local homeDb.
-    await homeDb.updateOrgPermissions({ userId: alice.id }, entities.org.id, { users: { 'dave@example.com': VIEWER } });
+    await homeDb.updateOrgPermissions({ userId: alice.id }, entities.org.id, { users: { "dave@example.com": VIEWER } });
     // Prepare an undo after this test case.
     cleanup.addAfterEach(async () => {
-      await homeDb.updateOrgPermissions({ userId: alice.id }, entities.org.id, { users: { 'dave@example.com': null } });
+      await homeDb.updateOrgPermissions({ userId: alice.id }, entities.org.id, { users: { "dave@example.com": null } });
     });
 
     assert.deepEqual(shortDocAccessResult(await caches.getDocAccess(entities.docDesignSpec.id)),
@@ -165,11 +165,11 @@ describe('HomeDBCaches', function() {
 
     // Change doc sharing, share it with Carol now.
     await homeDb.updateDocPermissions({ userId: alice.id, urlId: entities.docDesignSpec.id },
-      { users: { 'carol@example.com': VIEWER } });
+      { users: { "carol@example.com": VIEWER } });
     // Prepare an undo after this test case.
     cleanup.addAfterEach(async () => {
       await homeDb.updateDocPermissions({ userId: alice.id, urlId: entities.docDesignSpec.id },
-        { users: { 'carol@example.com': null } });
+        { users: { "carol@example.com": null } });
     });
 
     assert.deepEqual(shortDocAccessResult(await caches.getDocAccess(entities.docDesignSpec.id)),
@@ -181,8 +181,8 @@ describe('HomeDBCaches', function() {
     assert.deepEqual(rawCallSpy.callCount, 5);      // No extra underlying calls here.
   });
 
-  it('should invalidate docAccess values when doc is moved', async function() {
-    const rawCallSpy = sandbox.spy(HomeDBManager.prototype, 'getDocAccess');
+  it("should invalidate docAccess values when doc is moved", async function() {
+    const rawCallSpy = sandbox.spy(HomeDBManager.prototype, "getDocAccess");
     const alice = entities.users.Alice;
     const bob = entities.users.Bob;
 
@@ -218,10 +218,10 @@ describe('HomeDBCaches', function() {
     assert.deepEqual(rawCallSpy.callCount, 3);      // No new underlying calls.
 
     // Since wsEng inherits from the org, making a change to the org should affect both docs.
-    await homeDb.updateOrgPermissions({ userId: alice.id }, entities.org.id, { users: { 'dave@example.com': VIEWER } });
+    await homeDb.updateOrgPermissions({ userId: alice.id }, entities.org.id, { users: { "dave@example.com": VIEWER } });
     // Prepare an undo after this test case.
     cleanup.addAfterEach(async () => {
-      await homeDb.updateOrgPermissions({ userId: alice.id }, entities.org.id, { users: { 'dave@example.com': null } });
+      await homeDb.updateOrgPermissions({ userId: alice.id }, entities.org.id, { users: { "dave@example.com": null } });
     });
     assert.deepEqual(shortDocAccessResult(await caches.getDocAccess(entities.docDesignSpec.id)),
       { Alice: OWNER, Bob: OWNER, Carol: EDITOR, Dave: VIEWER });
@@ -242,12 +242,12 @@ describe('HomeDBCaches', function() {
     assert.deepEqual(rawCallSpy.callCount, 7);    // Two more underlying call.
   });
 
-  it('happens not to invalidate on user name changes', async function() {
+  it("happens not to invalidate on user name changes", async function() {
     // Here's an example of a change that does not invalidate: if a user changes their name, we
     // don't (currently) invalidate all docs that belong to them. This test would be fine to change
     // or remove if we change the behavior, it's mainly here to confirm that this missed
     // invalidation is known and considered acceptable (because name changes are very rare).
-    const rawCallSpy = sandbox.spy(HomeDBManager.prototype, 'getDocAccess');
+    const rawCallSpy = sandbox.spy(HomeDBManager.prototype, "getDocAccess");
     const bob = entities.users.Bob;
 
     // Check initial sharing for 'docDesignSpec'.
@@ -255,10 +255,10 @@ describe('HomeDBCaches', function() {
       { Alice: OWNER, Bob: OWNER, Carol: EDITOR });
     assert.deepEqual(rawCallSpy.callCount, 1);
 
-    bob.name = 'Robert';
+    bob.name = "Robert";
     await bob.save();
     // Prepare an undo after this test case.
-    cleanup.addAfterEach(async () => { bob.name = 'Bob'; await bob.save(); });
+    cleanup.addAfterEach(async () => { bob.name = "Bob"; await bob.save(); });
 
     // No invalidation: same result, no new underlying call.
     assert.deepEqual(shortDocAccessResult(await caches.getDocAccess(entities.docDesignSpec.id)),
@@ -276,8 +276,8 @@ describe('HomeDBCaches', function() {
     return { foo: { num } } as DocPrefs;
   }
 
-  it('should cache docPrefs and refetch when invalidated or expired', async function() {
-    const rawCallSpy = sandbox.spy(HomeDBManager.prototype, 'getDocPrefsForUsers');
+  it("should cache docPrefs and refetch when invalidated or expired", async function() {
+    const rawCallSpy = sandbox.spy(HomeDBManager.prototype, "getDocPrefsForUsers");
     const bob = entities.users.Bob;
 
     assert.deepEqual(Array.from(await caches.getDocPrefs(entities.docDesignSpec.id)), []);
@@ -313,13 +313,13 @@ describe('HomeDBCaches', function() {
     assert.deepEqual(Array.from(await caches.getDocPrefs(entities.docDesignSpec.id)), [[bob.id, {}]]);
   });
 
-  it('should invalidate across servers', async function() {
+  it("should invalidate across servers", async function() {
     // The Redis operation is mainly tested in PubSubCache and PubSubManager. This is a small but
     // more comprehensive check that multiple instances of HomeDBManager notice invalidations from
     // one another.
 
     // This test case only makes sense for postgres.
-    if (process.env.TYPEORM_TYPE !== 'postgres') { this.skip(); }
+    if (process.env.TYPEORM_TYPE !== "postgres") { this.skip(); }
 
     // Start a server in a separate process pointing to the same DB. Make sure this step does not wipe the DB.
     const tempEnv = new testUtils.EnvironmentSnapshot();
@@ -327,7 +327,7 @@ describe('HomeDBCaches', function() {
     cleanup.addAfterEach(() => tempEnv.restore());
 
     const testDir = await testUtils.createTestDir("HomeDBCaches");
-    const server = await TestServer.startServer('home', testDir, 'home');
+    const server = await TestServer.startServer("home", testDir, "home");
     cleanup.addAfterEach(() => server.stop());
 
     // Check what our local instance of HomeDBManager sees initially.
@@ -337,13 +337,13 @@ describe('HomeDBCaches', function() {
     // Remove Carol from wsHr sharing using the OTHER server.
     const bob = entities.users.Bob;
     const changedAt = Date.now();
-    const api = server.makeUserApi(entities.org.domain, 'bob');
-    await api.updateWorkspacePermissions(entities.wsHr.id, { users: { 'carol@example.com': null } });
+    const api = server.makeUserApi(entities.org.domain, "bob");
+    await api.updateWorkspacePermissions(entities.wsHr.id, { users: { "carol@example.com": null } });
 
     // Prepare an undo for after this test case.
     cleanup.addAfterEach(async () => {
       await homeDb.updateWorkspacePermissions({ userId: bob.id }, entities.wsHr.id,
-        { users: { 'carol@example.com': EDITOR } });
+        { users: { "carol@example.com": EDITOR } });
     });
 
     // We may not notice immediately, but should notice fairly quickly.
@@ -376,10 +376,10 @@ async function createTestFixture(homeDb: HomeDBManager) {
 
   // Create or fetch users, returns map { alice: dbUser, ... }
   const users = {
-    Alice: await addUser('Alice'),
-    Bob: await addUser('Bob'),
-    Carol: await addUser('Carol'),
-    Dave: await addUser('Dave'),
+    Alice: await addUser("Alice"),
+    Bob: await addUser("Bob"),
+    Carol: await addUser("Carol"),
+    Dave: await addUser("Dave"),
   };
   type UserName = keyof typeof users;
 
@@ -406,21 +406,21 @@ async function createTestFixture(homeDb: HomeDBManager) {
   };
 
   const orgCreator = users.Alice;
-  const org = (await homeDb.addOrg(orgCreator, { name: 'ACME', domain: 'acme' },
+  const org = (await homeDb.addOrg(orgCreator, { name: "ACME", domain: "acme" },
     { setUserAsOwner: false, useNewPlan: true })).data!;
-  await homeDb.updateOrgPermissions({ userId: orgCreator.id }, org.id, perms([['Bob', OWNER], ['Carol', EDITOR]]));
+  await homeDb.updateOrgPermissions({ userId: orgCreator.id }, org.id, perms([["Bob", OWNER], ["Carol", EDITOR]]));
 
   // Workspaces
-  const wsEng = await addWs(users.Alice, org.id, 'Engineering', { maxInheritedRole: OWNER });
-  const wsHr  = await addWs(users.Bob, org.id, 'HR', { maxInheritedRole: null, ...perms([['Carol', EDITOR]]) });
+  const wsEng = await addWs(users.Alice, org.id, "Engineering", { maxInheritedRole: OWNER });
+  const wsHr  = await addWs(users.Bob, org.id, "HR", { maxInheritedRole: null, ...perms([["Carol", EDITOR]]) });
 
   // Docs
-  const docDesignSpec   = await addDoc(users.Alice, wsEng.id, 'DesignSpec', { maxInheritedRole: OWNER });
-  const docBudget       = await addDoc(users.Bob,   wsEng.id, 'Budget',
-    { maxInheritedRole: null, ...perms([['Carol', EDITOR], ['Dave', VIEWER]]) });
-  const docManual       = await addDoc(users.Bob, wsHr.id, 'Manual', { maxInheritedRole: OWNER });
-  const docPayroll      = await addDoc(users.Bob, wsHr.id, 'Payroll',
-    { maxInheritedRole: null, ...perms([['Alice', EDITOR]]) });
+  const docDesignSpec   = await addDoc(users.Alice, wsEng.id, "DesignSpec", { maxInheritedRole: OWNER });
+  const docBudget       = await addDoc(users.Bob,   wsEng.id, "Budget",
+    { maxInheritedRole: null, ...perms([["Carol", EDITOR], ["Dave", VIEWER]]) });
+  const docManual       = await addDoc(users.Bob, wsHr.id, "Manual", { maxInheritedRole: OWNER });
+  const docPayroll      = await addDoc(users.Bob, wsHr.id, "Payroll",
+    { maxInheritedRole: null, ...perms([["Alice", EDITOR]]) });
 
   return {
     users,

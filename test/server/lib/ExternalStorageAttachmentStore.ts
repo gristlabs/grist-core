@@ -1,11 +1,11 @@
 import {
   ExternalStorageAttachmentStore,
   ExternalStorageSupportingAttachments, loadAttachmentFileIntoMemory,
-} from 'app/server/lib/AttachmentStore';
+} from "app/server/lib/AttachmentStore";
 
-import { assert } from 'chai';
-import * as stream from 'node:stream';
-import sinon from 'sinon';
+import { assert } from "chai";
+import * as stream from "node:stream";
+import sinon from "sinon";
 
 const testStoreId = "test-store-1";
 const testPoolId = "pool1";
@@ -15,8 +15,8 @@ const testFileContents = "This is the contents of a file";
 const testFileBuffer = Buffer.from(testFileContents);
 const getExpectedFilePath = (fileId: string) => `${expectedPoolPrefix}/${fileId}`;
 
-describe('ExternalStorageAttachmentStore', () => {
-  it('can upload a file', async () => {
+describe("ExternalStorageAttachmentStore", () => {
+  it("can upload a file", async () => {
     const fakeStorage = {
       uploadStream: sinon.fake.resolves(undefined),
     };
@@ -33,7 +33,7 @@ describe('ExternalStorageAttachmentStore', () => {
     assert.equal(call.args[1], fileStream, "file stream is incorrect");
   });
 
-  it('can download a file', async () => {
+  it("can download a file", async () => {
     const fakeStorage = {
       downloadStream: sinon.fake(async (_) => {
         return {
@@ -44,7 +44,7 @@ describe('ExternalStorageAttachmentStore', () => {
     };
 
     // This line will error if downloadStream's return type changes in a way that breaks fakeStorage.
-    const downloadStreamStorage: Pick<ExternalStorageSupportingAttachments, 'downloadStream'> = fakeStorage;
+    const downloadStreamStorage: Pick<ExternalStorageSupportingAttachments, "downloadStream"> = fakeStorage;
 
     const storage = downloadStreamStorage as unknown as ExternalStorageSupportingAttachments;
     const store = new ExternalStorageAttachmentStore(testStoreId, storage);
@@ -57,7 +57,7 @@ describe('ExternalStorageAttachmentStore', () => {
     assert.equal(file.contents.toString(), testFileContents, "downloaded file contents don't match");
   });
 
-  it('can check if a file exists', async () => {
+  it("can check if a file exists", async () => {
     const fakeStorage = {
       exists: sinon.fake.resolves(true),
     };
@@ -72,7 +72,7 @@ describe('ExternalStorageAttachmentStore', () => {
     assert.isTrue(exists, "correct exists value should be returned");
   });
 
-  it('can delete a file', async () => {
+  it("can delete a file", async () => {
     const fakeStorage = {
       remove: sinon.fake.resolves(undefined),
     };
@@ -86,7 +86,7 @@ describe('ExternalStorageAttachmentStore', () => {
     assert.equal(call.args[0], getExpectedFilePath(testFileId), "file path is incorrect");
   });
 
-  it('can remove an entire pool', async () => {
+  it("can remove an entire pool", async () => {
     const fakeStorage = {
       removeAllWithPrefix: sinon.fake.resolves(undefined),
     };

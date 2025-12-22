@@ -38,6 +38,6 @@ declare module "app-module-path" {
 
 declare module "csv";
 
-declare module 'winston/lib/winston/common' {
+declare module "winston/lib/winston/common" {
   export function serialize(meta: any): string;
 }

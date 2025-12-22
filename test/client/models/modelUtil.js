@@ -1,27 +1,27 @@
-var assert = require('assert');
-var ko = require('knockout');
+var assert = require("assert");
+var ko = require("knockout");
 
-var modelUtil = require('app/client/models/modelUtil');
-var sinon = require('sinon');
+var modelUtil = require("app/client/models/modelUtil");
+var sinon = require("sinon");
 
-describe('modelUtil', function() {
+describe("modelUtil", function() {
 
   describe("fieldWithDefault", function() {
     it("should be an observable with a default", function() {
-      var foo = modelUtil.createField('foo');
-      var bar = modelUtil.fieldWithDefault(foo, 'defaultValue');
-      assert.equal(bar(), 'defaultValue');
-      foo('test');
-      assert.equal(bar(), 'test');
-      bar('hello');
-      assert.equal(bar(), 'hello');
-      assert.equal(foo(), 'hello');
-      foo('');
-      assert.equal(bar(), 'defaultValue');
-      assert.equal(foo(), '');
+      var foo = modelUtil.createField("foo");
+      var bar = modelUtil.fieldWithDefault(foo, "defaultValue");
+      assert.equal(bar(), "defaultValue");
+      foo("test");
+      assert.equal(bar(), "test");
+      bar("hello");
+      assert.equal(bar(), "hello");
+      assert.equal(foo(), "hello");
+      foo("");
+      assert.equal(bar(), "defaultValue");
+      assert.equal(foo(), "");
     });
     it("should exhibit specific behavior when used as a jsonObservable", function() {
-      var custom = modelUtil.createField('custom');
+      var custom = modelUtil.createField("custom");
       var common = ko.observable('{"foo": 2, "bar": 3}');
       var combined = modelUtil.fieldWithDefault(custom, function() { return common(); });
       combined = modelUtil.jsonObservable(combined);
@@ -35,11 +35,11 @@ describe('modelUtil', function() {
       assert.deepEqual(combined(), {"foo": 2, "bar": 3});
       // Setting a property with an undefined custom object should initially copy all defaults from common.
       combined(undefined);
-      combined.prop('foo')(50);
+      combined.prop("foo")(50);
       assert.deepEqual(combined(), {"foo": 50, "bar": 3});
       // Once the custom object is defined, changes to common should not affect the combined read value.
       common('{"bar": 60}');
-      combined.prop('foo')(70);
+      combined.prop("foo")(70);
       assert.deepEqual(combined(), {"foo": 70, "bar": 3});
     });
   });

@@ -1,13 +1,13 @@
-import { Features } from 'app/common/Features';
-import { normalizeEmail } from 'app/common/emails';
+import { Features } from "app/common/Features";
+import { normalizeEmail } from "app/common/emails";
 import {
   ANONYMOUS_USER_EMAIL,
   EVERYONE_EMAIL,
   PermissionData,
   PermissionDelta,
   PREVIEWER_EMAIL,
-} from 'app/common/UserAPI';
-import omitBy from 'lodash/omitBy';
+} from "app/common/UserAPI";
+import omitBy from "lodash/omitBy";
 
 /**
  * Mark that the share is share number #at of a maximum of #top. The #at values
@@ -117,8 +117,8 @@ export class ShareAnnotator {
       const annotation = annotations.users.get(email) || makeAnnotation({
         email,
         isMember: false,
-        isSupport: Boolean(email.trim() !== '' && email === this._supportEmail),
-        access: '<set>',
+        isSupport: Boolean(email.trim() !== "" && email === this._supportEmail),
+        access: "<set>",
       });
       annotations.users.set(email, annotation);
     }

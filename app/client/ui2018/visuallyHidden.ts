@@ -34,7 +34,7 @@ export const visuallyHiddenStyles = `
  *
  * You should use this with div, span, p, headings. Certainly not much else.
  */
-export const visuallyHidden = styled('div', `
+export const visuallyHidden = styled("div", `
   ${commonStyles}
 
   &:not(caption) {

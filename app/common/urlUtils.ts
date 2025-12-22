@@ -1,4 +1,4 @@
-import { extractOrgParts, GristLoadConfig } from 'app/common/gristUrls';
+import { extractOrgParts, GristLoadConfig } from "app/common/gristUrls";
 
 export function getGristConfig(): GristLoadConfig {
   return (window as any).gristConfig || {};
@@ -11,7 +11,7 @@ export function getGristConfig(): GristLoadConfig {
  *
  */
 export function addCurrentOrgToPath(path: string, skipIfInDomain: boolean = false) {
-  if (typeof window === 'undefined' || !window) { return path; }
+  if (typeof window === "undefined" || !window) { return path; }
   return addOrgToPath(path, window.location.href, skipIfInDomain);
 }
 
@@ -22,14 +22,14 @@ export function addCurrentOrgToPath(path: string, skipIfInDomain: boolean = fals
  *
  */
 export function addOrgToPath(path: string, page: string, skipIfInDomain: boolean = false) {
-  if (typeof window === 'undefined' || !window) { return path; }
-  if (path.includes('/o/')) { return path; }
+  if (typeof window === "undefined" || !window) { return path; }
+  if (path.includes("/o/")) { return path; }
   const src = new URL(page);
   const srcParts = extractOrgParts(src.host, src.pathname);
   if (srcParts.mismatch) {
-    throw new Error('Cannot figure out what organization the URL is for.');
+    throw new Error("Cannot figure out what organization the URL is for.");
   }
-  path = path.replace(/\/$/, '');
+  path = path.replace(/\/$/, "");
   if (!srcParts.subdomain) {
     return path;
   }
@@ -45,16 +45,16 @@ export function addOrgToPath(path: string, page: string, skipIfInDomain: boolean
  * Expands an endpoint path to a full url anchored to the given doc worker base url.
  */
 export function docUrl(docWorkerUrl: string | null | undefined, path?: string) {
-  const base = document.querySelector('base');
+  const base = document.querySelector("base");
   const baseHref = base && base.href;
   const baseUrl = new URL(docWorkerUrl || baseHref || window.location.origin);
-  return baseUrl.toString().replace(/\/$/, '') + (path ? `/${path}` : '');
+  return baseUrl.toString().replace(/\/$/, "") + (path ? `/${path}` : "");
 }
 
 // Get a url on the same webserver as the current page, adding a prefix to encode
 // the current organization if necessary.
 export function getOriginUrl(path: string) {
-  return `${window.location.origin}${addCurrentOrgToPath('/', true)}${path}`;
+  return `${window.location.origin}${addCurrentOrgToPath("/", true)}${path}`;
 }
 
 // Return a string docId if server has provided one (as in hosted Grist), otherwise null

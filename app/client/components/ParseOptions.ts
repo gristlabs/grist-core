@@ -1,18 +1,18 @@
-import { makeT } from 'app/client/lib/localization';
-import { markdown } from 'app/client/lib/markdown';
-import { bigBasicButton, bigPrimaryButton } from 'app/client/ui2018/buttons';
-import { squareCheckbox } from 'app/client/ui2018/checkbox';
-import { testId, theme } from 'app/client/ui2018/cssVars';
-import { cssModalButtons } from 'app/client/ui2018/modals';
-import { ParseOptionSchema } from 'app/plugin/FileParserAPI';
+import { makeT } from "app/client/lib/localization";
+import { markdown } from "app/client/lib/markdown";
+import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
+import { squareCheckbox } from "app/client/ui2018/checkbox";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { cssModalButtons } from "app/client/ui2018/modals";
+import { ParseOptionSchema } from "app/plugin/FileParserAPI";
 
-import { Computed, dom, DomContents, IDisposableOwner, input, Observable, styled } from 'grainjs';
-import fromPairs from 'lodash/fromPairs';
-import invert from 'lodash/invert';
+import { Computed, dom, DomContents, IDisposableOwner, input, Observable, styled } from "grainjs";
+import fromPairs from "lodash/fromPairs";
+import invert from "lodash/invert";
 
 export type ParseOptionValueType = boolean | string | number;
 
-const t = makeT('ParseOptions');
+const t = makeT("ParseOptions");
 
 export interface ParseOptionValues {
   [name: string]: ParseOptionValueType;
@@ -27,9 +27,9 @@ interface EscapeChars {
 }
 
 const escapeCharDict: EscapeChars = {
-  '\n': '\\n',
-  '\r': '\\r',
-  '\t': '\\t',
+  "\n": "\\n",
+  "\r": "\\r",
+  "\t": "\\t",
 };
 const invertedEscapeCharDict: EscapeChars = invert(escapeCharDict);
 
@@ -63,17 +63,17 @@ export function buildParseOptionsForm(
   }
 
   const labelsByName: { [key: string]: string } = {
-    lineterminator: t('Line terminator'),
-    include_col_names_as_headers: t('First row contains headers'),
-    delimiter: t('Field separator'),
-    skipinitialspace: t('Skip leading whitespace'),
-    quotechar: t('Quote character'),
-    doublequote: t('Quotes in fields are doubled'),
-    quoting: t('Convert quoted fields'),
-    escapechar: t('Escape character'),
-    start_with_row: t('Start with row'),
-    NUM_ROWS: t('Number of rows'),
-    encoding: t('Character encoding. See [the supported codecs]({{link}})', { link: 'https://tinyurl.com/py3codecs' }),
+    lineterminator: t("Line terminator"),
+    include_col_names_as_headers: t("First row contains headers"),
+    delimiter: t("Field separator"),
+    skipinitialspace: t("Skip leading whitespace"),
+    quotechar: t("Quote character"),
+    doublequote: t("Quotes in fields are doubled"),
+    quoting: t("Convert quoted fields"),
+    escapechar: t("Escape character"),
+    start_with_row: t("Start with row"),
+    NUM_ROWS: t("Number of rows"),
+    encoding: t("Character encoding. See [the supported codecs]({{link}})", { link: "https://tinyurl.com/py3codecs" }),
   };
 
   return [
@@ -81,15 +81,15 @@ export function buildParseOptionsForm(
       items.map(item => cssParseOption(
         cssParseOptionName(markdown(labelsByName[item.name])),
         optionToInput(owner, item.type, optionsMap.get(item.name)!),
-        testId('parseopts-opt'),
+        testId("parseopts-opt"),
       )),
     ),
     cssModalButtons(
       dom.domComputed(use => items.every(item => use(optionsMap.get(item.name)!) === values[item.name]),
         unchanged => (unchanged ?
-          bigBasicButton(t('Close'), dom.on('click', doCancel), testId('parseopts-back')) :
-          bigPrimaryButton(t('Update preview'), dom.on('click', () => doUpdate(collectParseOptions())),
-            testId('parseopts-update'))
+          bigBasicButton(t("Close"), dom.on("click", doCancel), testId("parseopts-back")) :
+          bigPrimaryButton(t("Update preview"), dom.on("click", () => doUpdate(collectParseOptions())),
+            testId("parseopts-update"))
         ),
       ),
     ),
@@ -98,17 +98,17 @@ export function buildParseOptionsForm(
 
 function optionToInput(owner: IDisposableOwner, type: string, value: Observable<ParseOptionValueType>): HTMLElement {
   switch (type) {
-    case 'boolean': return squareCheckbox(value as Observable<boolean>);
+    case "boolean": return squareCheckbox(value as Observable<boolean>);
     default: {
       const obs = Computed.create(owner, use => escapeChars(String(use(value) || "")))
         .onWrite(val => value.set(unescapeChars(val)));
       return cssInputText(obs, { onInput: true },
-        dom.on('focus', (ev, elem) => elem.select()));
+        dom.on("focus", (ev, elem) => elem.select()));
     }
   }
 }
 
-const cssParseOptionForm = styled('div', `
+const cssParseOptionForm = styled("div", `
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -116,13 +116,13 @@ const cssParseOptionForm = styled('div', `
   width: 400px;
   overflow-y: auto;
 `);
-const cssParseOption = styled('div', `
+const cssParseOption = styled("div", `
   flex: none;
   margin: 8px 0;
   width: calc(50% - 16px);
   font-weight: initial;   /* negate bootstrap */
 `);
-const cssParseOptionName = styled('div', `
+const cssParseOptionName = styled("div", `
   margin-bottom: 8px;
 `);
 const cssInputText = styled(input, `

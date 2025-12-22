@@ -1,16 +1,16 @@
 import BaseRowModel from "app/client/models/BaseRowModel";
-import DataTableModel from 'app/client/models/DataTableModel';
-import { DocModel } from 'app/client/models/DocModel';
-import { TableRec } from 'app/client/models/entities/TableRec';
-import { TableQuerySets } from 'app/client/models/QuerySet';
-import { RowGrouping, SortedRowSet } from 'app/client/models/rowset';
-import { TableData } from 'app/client/models/TableData';
-import { createEmptyTableDelta, getTableIdAfter, getTableIdBefore, TableDelta } from 'app/common/ActionSummary';
-import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
-import { CellVersions, UserAction } from 'app/common/DocActions';
-import { DocStateComparisonDetails } from 'app/common/DocState';
-import { CellDelta } from 'app/common/TabularDiff';
-import { CellValue, GristObjCode } from 'app/plugin/GristData';
+import DataTableModel from "app/client/models/DataTableModel";
+import { DocModel } from "app/client/models/DocModel";
+import { TableRec } from "app/client/models/entities/TableRec";
+import { TableQuerySets } from "app/client/models/QuerySet";
+import { RowGrouping, SortedRowSet } from "app/client/models/rowset";
+import { TableData } from "app/client/models/TableData";
+import { createEmptyTableDelta, getTableIdAfter, getTableIdBefore, TableDelta } from "app/common/ActionSummary";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { CellVersions, UserAction } from "app/common/DocActions";
+import { DocStateComparisonDetails } from "app/common/DocState";
+import { CellDelta } from "app/common/TabularDiff";
+import { CellValue, GristObjCode } from "app/plugin/GristData";
 
 // A special row id, representing omitted rows.
 const ROW_ID_SKIP = -1;
@@ -29,11 +29,11 @@ export class ExtraRows {
   /**
    * Map back from a possibly synthetic row id to an original strictly-positive row id.
    */
-  public static interpretRowId(rowId: number): { type: 'remote-add' | 'local-remove' | 'shared' | 'skipped', id: number } {
-    if (rowId >= 0) { return { type: 'shared', id: rowId }; }
-    else if (rowId === ROW_ID_SKIP) { return { type: 'skipped', id: rowId }; }
-    else if (rowId % 2 !== 0) { return { type: 'remote-add', id: -(rowId + 1) / 2 }; }
-    return { type: 'local-remove', id: -(rowId + 2) / 2 };
+  public static interpretRowId(rowId: number): { type: "remote-add" | "local-remove" | "shared" | "skipped", id: number } {
+    if (rowId >= 0) { return { type: "shared", id: rowId }; }
+    else if (rowId === ROW_ID_SKIP) { return { type: "skipped", id: rowId }; }
+    else if (rowId % 2 !== 0) { return { type: "remote-add", id: -(rowId + 1) / 2 }; }
+    return { type: "local-remove", id: -(rowId + 2) / 2 };
   }
 
   public readonly leftTableDelta?: TableDelta;
@@ -66,12 +66,12 @@ export class ExtraRows {
    * Classify the row as either remote-add, remote-remove, local-add, or local-remove.
    */
   public getRowType(rowId: number) {
-    if (this.rightAddRows.has(rowId))         { return 'remote-add'; }
-    else if (this.leftAddRows.has(rowId))     { return 'local-add';  }
-    else if (this.rightRemoveRows.has(rowId)) { return 'remote-remove'; }
-    else if (this.leftRemoveRows.has(rowId))  { return 'local-remove'; }
+    if (this.rightAddRows.has(rowId))         { return "remote-add"; }
+    else if (this.leftAddRows.has(rowId))     { return "local-add";  }
+    else if (this.rightRemoveRows.has(rowId)) { return "remote-remove"; }
+    else if (this.leftRemoveRows.has(rowId))  { return "local-remove"; }
     // TODO: consider what should happen when a row is removed both locally and remotely.
-    return '';
+    return "";
   }
 }
 
@@ -105,7 +105,7 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
     this.tableQuerySets = core.tableQuerySets;
     this.docModel = core.docModel;
     const tableId = core.tableData.tableId;
-    const remoteTableId = getRemoteTableId(tableId, comparison) || '';
+    const remoteTableId = getRemoteTableId(tableId, comparison) || "";
     this.tableData = new TableDataWithDiff(
       core.tableData,
       comparison.leftChanges.tableDeltas[tableId] || createEmptyTableDelta(),
@@ -193,7 +193,7 @@ export class TableDataWithDiff {
     const fn = this.core.getRowPropFunc(colId);
     if (!fn) { return fn; }
     return (rowId: number | "new") => {
-      if (rowId !== 'new' && (rowId < 0 || this._updates.has(rowId))) {
+      if (rowId !== "new" && (rowId < 0 || this._updates.has(rowId))) {
         return this.getValue(rowId, colId);
       }
       return fn(rowId);
@@ -201,8 +201,8 @@ export class TableDataWithDiff {
   }
 
   public getKeepFunc(): undefined | ((rowId: number | "new") => boolean) {
-    return (rowId: number | 'new') => {
-      return rowId === 'new' || this._updates.has(rowId) || rowId < 0 ||
+    return (rowId: number | "new") => {
+      return rowId === "new" || this._updates.has(rowId) || rowId < 0 ||
         this._leftRemovals.has(rowId) || this._rightRemovals.has(rowId);
     };
   }
@@ -219,7 +219,7 @@ export class TableDataWithDiff {
    * Intercept requests for updated cells or cells from remote rows.
    */
   public getValue(rowId: number, colId: string): CellValue | undefined {
-    if (rowId === ROW_ID_SKIP && colId !== 'id') {
+    if (rowId === ROW_ID_SKIP && colId !== "id") {
       return [GristObjCode.Skip];
     }
     if (this._updates.has(rowId)) {
@@ -247,14 +247,14 @@ export class TableDataWithDiff {
     }
     else {
       // keep row.id consistent with rowId for convenience.
-      if (colId === 'id') { return rowId; }
+      if (colId === "id") { return rowId; }
       const { type, id } = ExtraRows.interpretRowId(rowId);
-      if (type === 'remote-add') {
+      if (type === "remote-add") {
         const cell = this.rightTableDelta.columnDeltas[colId]?.[id];
         const value = (cell !== undefined) ? newValue(cell) : undefined;
         return value;
       }
-      else if (type === 'local-remove') {
+      else if (type === "local-remove") {
         const cell = this.leftTableDelta.columnDeltas[colId]?.[id];
         const value = (cell !== undefined) ? oldValue(cell) : undefined;
         return value;
@@ -274,7 +274,7 @@ export class TableDataWithDiff {
  * Get original value from a cell change, if available.
  */
 function oldValue(delta: CellDelta) {
-  if (delta[0] === '?') { return null; }
+  if (delta[0] === "?") { return null; }
   return delta[0]?.[0];
 }
 
@@ -282,7 +282,7 @@ function oldValue(delta: CellDelta) {
  * Get new value from a cell change, if available.
  */
 function newValue(delta: CellDelta) {
-  if (delta[1] === '?') { return null; }
+  if (delta[1] === "?") { return null; }
   return delta[1]?.[0];
 }
 

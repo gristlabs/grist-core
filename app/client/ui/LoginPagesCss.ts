@@ -4,12 +4,12 @@ import {
   bigPrimaryButton as gristBigPrimaryButton,
   bigPrimaryButtonLink as gristBigPrimaryButtonLink,
   textButton as gristTextButton,
-} from 'app/client/ui2018/buttons';
-import { mediaXSmall, theme } from 'app/client/ui2018/cssVars';
-import { textInput } from 'app/client/ui/inputs';
-import { styled } from 'grainjs';
+} from "app/client/ui2018/buttons";
+import { mediaXSmall, theme } from "app/client/ui2018/cssVars";
+import { textInput } from "app/client/ui/inputs";
+import { styled } from "grainjs";
 
-export const text = styled('div', `
+export const text = styled("div", `
   color: ${theme.text};
   font-weight: 400;
   line-height: 20px;
@@ -20,7 +20,7 @@ export const lightText = styled(text, `
   color: ${theme.lightText};
 `);
 
-export const lightColor = styled('span', `
+export const lightColor = styled("span", `
   color: ${theme.lightText};
 `);
 
@@ -28,7 +28,7 @@ export const centeredText = styled(text, `
   text-align: center;
 `);
 
-export const lightlyBolded = styled('span', `
+export const lightlyBolded = styled("span", `
   font-weight: 500;
 `);
 
@@ -38,7 +38,7 @@ export const codeInput = styled(input, `
   width: 200px;
 `);
 
-export const label = styled('label', `
+export const label = styled("label", `
   color: ${theme.text};
   display: inline-block;
   line-height: 20px;
@@ -50,7 +50,7 @@ export const formLabel = styled(label, `
   margin-bottom: 8px;
 `);
 
-export const googleButton = styled('button', `
+export const googleButton = styled("button", `
   /* Resets */
   position: relative;
   border-style: none;
@@ -77,7 +77,7 @@ export const googleButton = styled('button', `
   }
 `);
 
-export const image = styled('div', `
+export const image = styled("div", `
   display: inline-block;
   background-size: contain;
   background-repeat: no-repeat;
@@ -96,14 +96,14 @@ export const googleLogo = styled(image, `
   background-image: var(--icon-GoogleLogo);
 `);
 
-export const loginMethodsSeparator = styled('div', `
+export const loginMethodsSeparator = styled("div", `
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 24px 0px 24px 0px;
 `);
 
-export const horizontalLine = styled('hr', `
+export const horizontalLine = styled("hr", `
   border: 1px solid ${theme.loginPageLine};
   flex-grow: 1;
 `);
@@ -138,7 +138,7 @@ export const textButton = styled(gristTextButton, `
   font-size: 14px;
 `);
 
-export const pageContainer = styled('div', `
+export const pageContainer = styled("div", `
   height: 100%;
   overflow: auto;
   background-color: ${theme.loginPageBackdrop};
@@ -150,12 +150,12 @@ export const pageContainer = styled('div', `
   }
 `);
 
-export const flexJustifyCenter = styled('div', `
+export const flexJustifyCenter = styled("div", `
   display: flex;
   justify-content: center;
 `);
 
-export const formContainer = styled('div', `
+export const formContainer = styled("div", `
   background-color: ${theme.loginPageBg};
   max-width: 576px;
   width: 100%;
@@ -171,7 +171,7 @@ export const formContainer = styled('div', `
   }
 `);
 
-export const formHeading = styled('div', `
+export const formHeading = styled("div", `
   font-weight: 500;
   font-size: 32px;
   line-height: 40px;
@@ -186,7 +186,7 @@ export const formHeading = styled('div', `
   }
 `);
 
-export const formInstructions = styled('div', `
+export const formInstructions = styled("div", `
   margin-bottom: 32px;
 `);
 
@@ -199,7 +199,7 @@ export const centeredFormError = styled(formError, `
   text-align: center;
 `);
 
-export const formButtons = styled('div', `
+export const formButtons = styled("div", `
   margin: 32px 0px 0px 0px;
 `);
 
@@ -207,13 +207,13 @@ export const formFooter = styled(text, `
   margin-top: 24px;
 `);
 
-export const formBody = styled('div', ``);
+export const formBody = styled("div", ``);
 
 export const resendCode = styled(text, `
   margin-top: 16px;
 `);
 
-export const spinner = styled('div', `
+export const spinner = styled("div", `
   display: flex;
   justify-content: center;
   align-items: center;

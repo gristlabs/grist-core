@@ -1,11 +1,11 @@
-import { createSandbox } from 'app/server/lib/NSandbox';
-import { assert } from 'chai';
-import * as moment from 'moment-timezone';
-import { setupCleanup } from 'test/server/testCleanup';
-import * as testUtils from 'test/server/testUtils';
+import { createSandbox } from "app/server/lib/NSandbox";
+import { assert } from "chai";
+import * as moment from "moment-timezone";
+import { setupCleanup } from "test/server/testCleanup";
+import * as testUtils from "test/server/testUtils";
 
 describe("PyMomentTest", function() {
-  testUtils.setTmpLogLevel('warn');
+  testUtils.setTmpLogLevel("warn");
   const cleanup = setupCleanup();
 
   it("should use correct timezone data", async function() {
@@ -15,7 +15,7 @@ describe("PyMomentTest", function() {
       return [z.name, z.abbrs, z.offsets, z.untils];
     });
 
-    const sandbox = createSandbox('sandboxed', {});
+    const sandbox = createSandbox("sandboxed", {});
     cleanup.addAfterEach(async () => { await sandbox.shutdown(); });
 
     const pyZones = await sandbox.pyCall("test_tz_data");

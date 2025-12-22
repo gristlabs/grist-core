@@ -1,11 +1,11 @@
-import { ServerQuery } from 'app/common/ActiveDocAPI';
-import { ApiError } from 'app/common/ApiError';
-import { CellValue } from 'app/common/DocActions';
-import { DocData } from 'app/common/DocData';
-import { parseFormula } from 'app/common/Formula';
-import { removePrefix } from 'app/common/gutil';
-import { GristObjCode } from 'app/plugin/GristData';
-import { quoteIdent } from 'app/server/lib/SQLiteDB';
+import { ServerQuery } from "app/common/ActiveDocAPI";
+import { ApiError } from "app/common/ApiError";
+import { CellValue } from "app/common/DocActions";
+import { DocData } from "app/common/DocData";
+import { parseFormula } from "app/common/Formula";
+import { removePrefix } from "app/common/gutil";
+import { GristObjCode } from "app/plugin/GristData";
+import { quoteIdent } from "app/server/lib/SQLiteDB";
 
 /**
  * Represents a query for Grist data with support for SQL-based
@@ -55,16 +55,16 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
   // Iterate through all formulas, adding joins and selects as we go.
   if (onDemandFormulas) {
     // Look up the main table for the query.
-    const tables = docData.getMetaTable('_grist_Tables');
-    const columns = docData.getMetaTable('_grist_Tables_column');
-    const tableRef = tables.findRow('tableId', query.tableId);
-    if (!tableRef) { throw new ApiError('table not found: ' + query.tableId, 404); }
+    const tables = docData.getMetaTable("_grist_Tables");
+    const columns = docData.getMetaTable("_grist_Tables_column");
+    const tableRef = tables.findRow("tableId", query.tableId);
+    if (!tableRef) { throw new ApiError("table not found: " + query.tableId, 404); }
 
     // Find any references to other tables.
     const dataColumns = columns.filterRecords({ parentId: tableRef, isFormula: false });
     const references = new Map<string, string>();
     for (const column of dataColumns) {
-      const refTableId = removePrefix(column.type as string, 'Ref:');
+      const refTableId = removePrefix(column.type as string, "Ref:");
       if (refTableId) { references.set(column.colId as string, refTableId); }
     }
 
@@ -78,9 +78,9 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
       const colId = column.colId as string;
       let sqlFormula = "";
       let error = "";
-      if (formula.kind === 'foreignColumn') {
+      if (formula.kind === "foreignColumn") {
         const altTableId = references.get(formula.refColId);
-        const altTableRef = tables.findRow('tableId', altTableId!);
+        const altTableRef = tables.findRow("tableId", altTableId!);
         if (altTableId && altTableRef) {
           const altColumn = columns.filterRecords({ parentId: altTableRef, isFormula: false, colId: formula.colId });
           // TODO: deal with a formula column in the other table.
@@ -99,7 +99,7 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
           error = "Cannot find table";
         }
       }
-      else if (formula.kind === 'column') {
+      else if (formula.kind === "column") {
         const altColumn = columns.filterRecords({ parentId: tableRef, isFormula: false, colId: formula.colId });
         // TODO: deal with a formula column.
         if (altColumn.length > 0) {
@@ -109,18 +109,18 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
           error = "Cannot find column";
         }
       }
-      else if (formula.kind === 'literalNumber') {
+      else if (formula.kind === "literalNumber") {
         sqlFormula = `${formula.value}`;
       }
-      else if (formula.kind === 'error') {
+      else if (formula.kind === "error") {
         error = formula.msg;
       }
       else {
-        throw new Error('Unrecognized type of formula');
+        throw new Error("Unrecognized type of formula");
       }
       if (error) {
         // We add a trivial selection, and store errors in the query for substitution later.
-        sqlFormula = '0';
+        sqlFormula = "0";
         if (!query.constants) { query.constants = {}; }
         query.constants[colId] = [GristObjCode.Exception, error];
       }
@@ -192,8 +192,8 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
 
   // Include the 'id' column from both tables.
   selects.push(
-    `${quoteIdent(leftTableId)}.id AS ${quoteIdent(leftTableId + '.id')}`,
-    `${quoteIdent(rightTableId)}.id AS ${quoteIdent(rightTableId + '.id')}`,
+    `${quoteIdent(leftTableId)}.id AS ${quoteIdent(leftTableId + ".id")}`,
+    `${quoteIdent(rightTableId)}.id AS ${quoteIdent(rightTableId + ".id")}`,
   );
 
   // Select columns from both tables, using the table id as a prefix for each column name.
@@ -218,10 +218,10 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
    * the left table can only be matched with at most 1 equivalent row from the right table.
    */
   const dedupedRightTableQuery =
-    `SELECT MIN(id) AS id, ${[...joinColumns.keys()].map(v => quoteIdent(v)).join(', ')} ` +
+    `SELECT MIN(id) AS id, ${[...joinColumns.keys()].map(v => quoteIdent(v)).join(", ")} ` +
     `FROM ${quoteIdent(rightTableId)} ` +
-    `GROUP BY ${[...joinColumns.keys()].map(v => quoteIdent(v)).join(', ')}`;
-  const dedupedRightTableAlias = quoteIdent('deduped_' + rightTableId);
+    `GROUP BY ${[...joinColumns.keys()].map(v => quoteIdent(v)).join(", ")}`;
+  const dedupedRightTableAlias = quoteIdent("deduped_" + rightTableId);
 
   // Join the left table to the (de-duplicated) right table, and include unmatched left rows.
   const joinConditions: string[] = [];
@@ -232,7 +232,7 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
   });
   joins.push(
     `LEFT JOIN (${dedupedRightTableQuery}) AS ${dedupedRightTableAlias} ` +
-    `ON ${joinConditions.join(' AND ')}`);
+    `ON ${joinConditions.join(" AND ")}`);
 
   // Finally, join the de-duplicated right table to the original right table to get all its columns.
   joins.push(
@@ -254,7 +254,7 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
     }
   }
   if (whereConditions.length > 0) {
-    wheres.push(combineExpr('OR', whereConditions));
+    wheres.push(combineExpr("OR", whereConditions));
   }
 
   // Copy decisions to the query object, and return.
@@ -263,7 +263,7 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
 
   if (wheres) {
     query.where = {
-      clause: combineExpr('AND', [query.where?.clause, ...wheres]),
+      clause: combineExpr("AND", [query.where?.clause, ...wheres]),
       params: query.where?.params ?? [],
     };
   }

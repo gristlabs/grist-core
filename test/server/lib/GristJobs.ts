@@ -1,10 +1,10 @@
-import { delay } from 'app/common/delay';
-import { createGristJobs, GristJobs } from 'app/server/lib/GristJobs';
-import { assert } from 'chai';
-import { EnvironmentSnapshot } from 'test/server/testUtils';
-import { waitForIt } from 'test/server/wait';
+import { delay } from "app/common/delay";
+import { createGristJobs, GristJobs } from "app/server/lib/GristJobs";
+import { assert } from "chai";
+import { EnvironmentSnapshot } from "test/server/testUtils";
+import { waitForIt } from "test/server/wait";
 
-describe('GristJobs', function() {
+describe("GristJobs", function() {
   this.timeout(20000);
 
   // Clean up any jobs left over from previous round of tests,
@@ -16,14 +16,14 @@ describe('GristJobs', function() {
     await jobs.stop();
   });
 
-  describe('with redis', function() {
+  describe("with redis", function() {
     before(async function() {
       if (!process.env.REDIS_URL && !process.env.TEST_REDIS_URL) { this.skip(); }
     });
     runSuite();
   });
 
-  describe('without redis', function() {
+  describe("without redis", function() {
     let oldEnv: EnvironmentSnapshot;
     before(async function() {
       oldEnv = new EnvironmentSnapshot();
@@ -37,29 +37,29 @@ describe('GristJobs', function() {
   });
 
   function runSuite() {
-    it('can run immediate jobs', async function() {
+    it("can run immediate jobs", async function() {
       const jobs: GristJobs = createGristJobs();
       const q = jobs.queue();
       try {
         let ct = 0;
         let defaultCt = 0;
-        q.handleName('add', async (job) => {
+        q.handleName("add", async (job) => {
           ct += job.data.delta;
         });
         q.handleDefault(async (job) => {
           defaultCt++;
         });
-        await q.add('add', { delta: 2 });
+        await q.add("add", { delta: 2 });
         await waitForIt(async () => {
           assert.equal(ct, 2);
           assert.equal(defaultCt, 0);
         }, 2000, 10);
-        await q.add('add', { delta: 3 });
+        await q.add("add", { delta: 3 });
         await waitForIt(async () => {
           assert.equal(ct, 5);
           assert.equal(defaultCt, 0);
         }, 2000, 10);
-        await q.add('badd', { delta: 4 });
+        await q.add("badd", { delta: 4 });
         await waitForIt(async () => {
           assert.equal(ct, 5);
           assert.equal(defaultCt, 1);
@@ -70,19 +70,19 @@ describe('GristJobs', function() {
       }
     });
 
-    it('can run delayed jobs', async function() {
+    it("can run delayed jobs", async function() {
       const jobs: GristJobs = createGristJobs();
       const q = jobs.queue();
       try {
         let ct = 0;
         let defaultCt = 0;
-        q.handleName('add', async (job) => {
+        q.handleName("add", async (job) => {
           ct += job.data.delta;
         });
         q.handleDefault(async () => {
           defaultCt++;
         });
-        await q.add('add', { delta: 2 }, { delay: 500 });
+        await q.add("add", { delta: 2 }, { delay: 500 });
         assert.equal(ct, 0);
         assert.equal(defaultCt, 0);
         // We need to wait long enough to see the effect.
@@ -98,20 +98,20 @@ describe('GristJobs', function() {
       }
     });
 
-    it('can run repeated jobs', async function() {
+    it("can run repeated jobs", async function() {
       const jobs: GristJobs = createGristJobs();
       const q = jobs.queue();
       try {
         let ct = 0;
         let defaultCt = 0;
-        q.handleName('add', async (job) => {
+        q.handleName("add", async (job) => {
           ct += job.data.delta;
         });
         q.handleDefault(async () => {
           defaultCt++;
         });
-        await q.add('add', { delta: 2 }, { repeat: { every: 250 } });
-        await q.add('badd', { delta: 2 }, { repeat: { every: 100 } });
+        await q.add("add", { delta: 2 }, { repeat: { every: 250 } });
+        await q.add("badd", { delta: 2 }, { repeat: { every: 100 } });
         assert.equal(ct, 0);
         assert.equal(defaultCt, 0);
         await delay(1000);
@@ -126,7 +126,7 @@ describe('GristJobs', function() {
       }
     });
 
-    it('can pick up jobs again', async function() {
+    it("can pick up jobs again", async function() {
       // this test is only appropriate if we have an external queue.
       if (!process.env.REDIS_URL &&
         !process.env.TEST_REDIS_URL) { this.skip(); }
@@ -134,19 +134,19 @@ describe('GristJobs', function() {
       const q = jobs1.queue();
       try {
         let ct = 0;
-        q.handleName('add', async (job) => {
+        q.handleName("add", async (job) => {
           ct += job.data.delta;
         });
         q.handleDefault(async () => {});
-        await q.add('add', { delta: 1 }, { delay: 250 });
-        await q.add('add', { delta: 1 }, { delay: 1000 });
+        await q.add("add", { delta: 1 }, { delay: 250 });
+        await q.add("add", { delta: 1 }, { delay: 1000 });
         await delay(500);
         assert.equal(ct, 1);
         await jobs1.stop();
         const jobs2: GristJobs = createGristJobs();
         const q2 = jobs2.queue();
         try {
-          q2.handleName('add', async (job) => {
+          q2.handleName("add", async (job) => {
             ct += job.data.delta * 2;
           });
           q2.handleDefault(async () => {});

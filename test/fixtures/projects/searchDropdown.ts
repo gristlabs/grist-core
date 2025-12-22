@@ -5,54 +5,54 @@ import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 const options = [
-  'Foo', 'Bar',
-  'Fusion', 'Maya', 'Santa', 'Alice', 'Bob', 'Sam', 'Clara', 'Tarzan',
-  'Apple', 'Microsoft', 'Bill Gates', 'Elon Musk', 'Klimt', 'Goran', 'Vengo',
-  'Bach', 'Otello', 'Romeo', 'Juliet', 'Grease', 'Stencil', 'Yahoo', 'AOL', 'Bing', 'Google',
-  'Meta', 'Metaverse', 'Zoro', 'Atom', 'Tesla', 'Lenovo',
-  'A very very long even longer than that nameeeeeee ' +
-  'A very very long even longer than that nameeeeeee',
+  "Foo", "Bar",
+  "Fusion", "Maya", "Santa", "Alice", "Bob", "Sam", "Clara", "Tarzan",
+  "Apple", "Microsoft", "Bill Gates", "Elon Musk", "Klimt", "Goran", "Vengo",
+  "Bach", "Otello", "Romeo", "Juliet", "Grease", "Stencil", "Yahoo", "AOL", "Bing", "Google",
+  "Meta", "Metaverse", "Zoro", "Atom", "Tesla", "Lenovo",
+  "A very very long even longer than that nameeeeeee " +
+  "A very very long even longer than that nameeeeeee",
 ];
 
 function setupTest() {
-  const logElem = dom('div');
+  const logElem = dom("div");
 
   const addDropdown = () => dropdownWithSearch<string>({
     options: () => options,
-    action: val => logElem.appendChild(cssLogEntry(`click: ${val}`, testId('logs'))),
+    action: val => logElem.appendChild(cssLogEntry(`click: ${val}`, testId("logs"))),
   });
 
-  const resetBtn = () => dom('button', dom.on('click', () => {
+  const resetBtn = () => dom("button", dom.on("click", () => {
     while (logElem.firstChild) { logElem.firstChild.remove(); }
-  }), 'Reset', { style: 'width: 50px' }, testId('reset'));
+  }), "Reset", { style: "width: 50px" }, testId("reset"));
 
   return cssTestBox(
 
     cssExample(
-      'searchableDropdown with a plain button',
+      "searchableDropdown with a plain button",
       dom(
-        'button', 'Add column',
+        "button", "Add column",
         addDropdown(),
       ),
     ),
 
-    dom('h3', 'Logs: '), resetBtn(),
+    dom("h3", "Logs: "), resetBtn(),
     logElem,
   );
 }
 
-const cssTestBox = styled('div', `
+const cssTestBox = styled("div", `
   display: flex;
   flex-direction: column;
   margin: 40px;
   max-width: 600px;
 `);
 
-const cssLogEntry = styled('p', `
+const cssLogEntry = styled("p", `
   color: red;
 `);
 
-const cssExample = styled('div', `
+const cssExample = styled("div", `
   margin: 16px;
 `);
 

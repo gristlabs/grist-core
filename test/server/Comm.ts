@@ -1,30 +1,30 @@
-import { Events as BackboneEvents } from 'backbone';
-import { promisifyAll } from 'bluebird';
-import { assert } from 'chai';
-import * as http from 'http';
-import { AddressInfo } from 'net';
-import * as sinon from 'sinon';
-import * as path from 'path';
-import * as tmp from 'tmp';
+import { Events as BackboneEvents } from "backbone";
+import { promisifyAll } from "bluebird";
+import { assert } from "chai";
+import * as http from "http";
+import { AddressInfo } from "net";
+import * as sinon from "sinon";
+import * as path from "path";
+import * as tmp from "tmp";
 
-import { GristWSConnection, GristWSSettings } from 'app/client/components/GristWSConnection';
-import { GristClientSocket, GristClientSocketOptions } from 'app/client/components/GristClientSocket';
-import { Comm as ClientComm } from 'app/client/components/Comm';
-import * as log from 'app/client/lib/log';
-import { Comm } from 'app/server/lib/Comm';
-import { Client, ClientMethod } from 'app/server/lib/Client';
-import { CommClientConnect } from 'app/common/CommTypes';
-import { delay } from 'app/common/delay';
-import { isLongerThan } from 'app/common/gutil';
-import { fromCallback, listenPromise } from 'app/server/lib/serverUtils';
-import { Sessions } from 'app/server/lib/Sessions';
-import { TcpForwarder } from 'test/server/tcpForwarder';
-import * as testUtils from 'test/server/testUtils';
-import * as session from '@gristlabs/express-session';
-import { Hosts, RequestOrgInfo } from 'app/server/lib/extractOrg';
+import { GristWSConnection, GristWSSettings } from "app/client/components/GristWSConnection";
+import { GristClientSocket, GristClientSocketOptions } from "app/client/components/GristClientSocket";
+import { Comm as ClientComm } from "app/client/components/Comm";
+import * as log from "app/client/lib/log";
+import { Comm } from "app/server/lib/Comm";
+import { Client, ClientMethod } from "app/server/lib/Client";
+import { CommClientConnect } from "app/common/CommTypes";
+import { delay } from "app/common/delay";
+import { isLongerThan } from "app/common/gutil";
+import { fromCallback, listenPromise } from "app/server/lib/serverUtils";
+import { Sessions } from "app/server/lib/Sessions";
+import { TcpForwarder } from "test/server/tcpForwarder";
+import * as testUtils from "test/server/testUtils";
+import * as session from "@gristlabs/express-session";
+import { Hosts, RequestOrgInfo } from "app/server/lib/extractOrg";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const SQLiteStore = require('@gristlabs/connect-sqlite3')(session);
+const SQLiteStore = require("@gristlabs/connect-sqlite3")(session);
 promisifyAll(SQLiteStore.prototype);
 
 // Just enough implementation of Hosts to be able to fake using a custom host.
@@ -42,8 +42,8 @@ class FakeHosts {
   }
 }
 
-describe('Comm', function() {
-  testUtils.setTmpLogLevel(process.env.VERBOSE ? 'debug' : 'warn');
+describe("Comm", function() {
+  testUtils.setTmpLogLevel(process.env.VERBOSE ? "debug" : "warn");
 
   // Allow test cases to register afterEach callbacks here for easier cleanup.
   const cleanup: (() => Promise<void>)[] = [];
@@ -59,10 +59,10 @@ describe('Comm', function() {
     const sessionStore = new SQLiteStore({
       dir: path.dirname(sessionDB.name),
       db: path.basename(sessionDB.name),
-      table: 'sessions',
+      table: "sessions",
     });
     // Random string to use for the test session secret.
-    const sessionSecret = 'xkwriagasaqystubgkkbwhqtyyncwqjemyncnmetjpkiwtfzvllejpfneldmoyri';
+    const sessionSecret = "xkwriagasaqystubgkkbwhqtyyncwqjemyncnmetjpkiwtfzvllejpfneldmoyri";
     sessions = new Sessions(sessionSecret, sessionStore);
   });
 
@@ -71,7 +71,7 @@ describe('Comm', function() {
     fakeHosts = new FakeHosts();
     comm = new Comm(server, { sessions, hosts: fakeHosts.asHosts });
     comm.registerMethods(methods);
-    return listenPromise(server.listen(0, 'localhost'));
+    return listenPromise(server.listen(0, "localhost"));
   }
 
   async function stopComm() {
@@ -129,7 +129,7 @@ describe('Comm', function() {
    * Returns a promise for the connected websocket.
    */
   function connect(options?: GristClientSocketOptions): Promise<GristClientSocket> {
-    const ws = new GristClientSocket('ws://localhost:' + (server.address() as AddressInfo).port, options);
+    const ws = new GristClientSocket("ws://localhost:" + (server.address() as AddressInfo).port, options);
     return new Promise<GristClientSocket>((resolve, reject) => {
       ws.onopen = () => {
         ws.onerror = null;
@@ -181,13 +181,13 @@ describe('Comm', function() {
     });
 
     it("should return error when a call fails", async function() {
-      const logMessages = await testUtils.captureLog('warn', async () => {
+      const logMessages = await testUtils.captureLog("warn", async () => {
         ws.send(JSON.stringify({ reqId: 40, method: "methodError", args: ["hello"] }));
         const messages = await getMessages(ws, 1);
         const resp = messages[0];
         assert.equal(resp.reqId, 40);
         assert.equal(resp.data, undefined);
-        assert(resp.error.indexOf('fake error') >= 0);
+        assert(resp.error.indexOf("fake error") >= 0);
       });
       testUtils.assertMatchArray(logMessages, [
         /^warn: Client.* Error: fake error[^]+at methodError/,
@@ -196,31 +196,31 @@ describe('Comm', function() {
     });
 
     it("should return error for unknown methods", async function() {
-      const logMessages  = await testUtils.captureLog('warn', async () => {
+      const logMessages  = await testUtils.captureLog("warn", async () => {
         ws.send(JSON.stringify({ reqId: 50, method: "someUnknownMethod", args: [] }));
         const messages = await getMessages(ws, 1);
         const resp = messages[0];
         assert.equal(resp.reqId, 50);
         assert.equal(resp.data, undefined);
-        assert(resp.error.indexOf('Unknown method') >= 0);
+        assert(resp.error.indexOf("Unknown method") >= 0);
       });
       testUtils.assertMatchArray(logMessages, [
         /^warn: Client.* Unknown method.*someUnknownMethod/,
       ]);
     });
 
-    it('should only log warning for malformed JSON data', async function() {
-      const logMessages  = await testUtils.captureLog('warn', async () => {
-        ws.send('foobar');
+    it("should only log warning for malformed JSON data", async function() {
+      const logMessages  = await testUtils.captureLog("warn", async () => {
+        ws.send("foobar");
       }, { waitForFirstLog: true });
       testUtils.assertMatchArray(logMessages, [
         /^warn: Client.* Unexpected token.*/,
       ]);
     });
 
-    it('should log warning when null value is passed', async function() {
-      const logMessages  = await testUtils.captureLog('warn', async () => {
-        ws.send('null');
+    it("should log warning when null value is passed", async function() {
+      const logMessages  = await testUtils.captureLog("warn", async () => {
+        ws.send("null");
       }, { waitForFirstLog: true });
       testUtils.assertMatchArray(logMessages, [
         /^warn: Client.*Cannot read properties of null*/,
@@ -228,23 +228,23 @@ describe('Comm', function() {
     });
 
     it("should support app-level events correctly", async function() {
-      comm!.broadcastMessage('fooType' as any, 'hello');
-      comm!.broadcastMessage('barType' as any, 'world');
+      comm!.broadcastMessage("fooType" as any, "hello");
+      comm!.broadcastMessage("barType" as any, "world");
       const messages = await getMessages(ws, 2);
-      assert.equal(messages[0].type, 'fooType');
-      assert.equal(messages[0].data, 'hello');
-      assert.equal(messages[1].type, 'barType');
-      assert.equal(messages[1].data, 'world');
+      assert.equal(messages[0].type, "fooType");
+      assert.equal(messages[0].data, "hello");
+      assert.equal(messages[1].type, "barType");
+      assert.equal(messages[1].data, "world");
     });
 
     it("should support doc-level events", async function() {
       ws.send(JSON.stringify({ reqId: 60, method: "methodSend", args: [13] }));
       const messages = await getMessages(ws, 3);
-      assert.equal(messages[0].type, 'fooType');
-      assert.equal(messages[0].data, 'foo');
+      assert.equal(messages[0].type, "fooType");
+      assert.equal(messages[0].data, "foo");
       assert.equal(messages[0].docFD, 13);
-      assert.equal(messages[1].type, 'barType');
-      assert.equal(messages[1].data, 'bar');
+      assert.equal(messages[1].type, "barType");
+      assert.equal(messages[1].data, "bar");
       assert.equal(messages[1].docFD, 13);
       assert.equal(messages[2].reqId, 60);
       assert.equal(messages[2].data, undefined);
@@ -273,13 +273,13 @@ describe('Comm', function() {
       // To create a client-side Comm object, we need to trick GristWSConnection's check for
       // whether there is a worker to connect to.
       (global as any).window = undefined;
-      sandbox.stub(global as any, 'window').value({ gristConfig: { getWorker: 'STUB', assignmentId: docId } });
+      sandbox.stub(global as any, "window").value({ gristConfig: { getWorker: "STUB", assignmentId: docId } });
 
       // We also need to get GristWSConnection to use a custom GristWSSettings object, and to
       // connect to the forwarder's port.
       const docWorkerUrl = `http://localhost:${forwarderPort}`;
       const settings = getWSSettings(docWorkerUrl);
-      const stubGristWsCreate = sandbox.stub(GristWSConnection, 'create').callsFake(function(this: any, owner) {
+      const stubGristWsCreate = sandbox.stub(GristWSConnection, "create").callsFake(function(this: any, owner) {
         return (stubGristWsCreate as any).wrappedMethod.call(this, owner, settings);
       });
 
@@ -291,28 +291,28 @@ describe('Comm', function() {
       return { cliComm, forwarder };
     }
 
-    it('should forward calls on a normal connection', async function() {
+    it("should forward calls on a normal connection", async function() {
       const { cliComm } = await startManagedConnection(assortedMethods);
 
       // A couple of regular requests.
       const resp1 = await cliComm._makeRequest(null, null, "methodSync", "foo", 1);
-      assert.deepEqual(resp1, { name: 'methodSync', x: "foo", y: 1 });
+      assert.deepEqual(resp1, { name: "methodSync", x: "foo", y: 1 });
       const resp2 = await cliComm._makeRequest(null, null, "methodAsync", "foo", 2);
-      assert.deepEqual(resp2, { name: 'methodAsync', x: "foo", y: 2 });
+      assert.deepEqual(resp2, { name: "methodAsync", x: "foo", y: 2 });
 
       // Try calls that return out of order.
       const [resp3, resp4] = await Promise.all([
         cliComm._makeRequest(null, null, "methodAsync", "foo", 3),
         cliComm._makeRequest(null, null, "methodSync", "foo", 4),
       ]);
-      assert.deepEqual(resp3, { name: 'methodAsync', x: "foo", y: 3 });
-      assert.deepEqual(resp4, { name: 'methodSync', x: "foo", y: 4 });
+      assert.deepEqual(resp3, { name: "methodAsync", x: "foo", y: 3 });
+      assert.deepEqual(resp4, { name: "methodSync", x: "foo", y: 4 });
     });
 
-    it('should forward missed responses when a server send fails', async function() {
+    it("should forward missed responses when a server send fails", async function() {
       await testMissedResponses(true);
     });
-    it('should forward missed responses when a server send is queued', async function() {
+    it("should forward missed responses when a server send is queued", async function() {
       await testMissedResponses(false);
     });
 
@@ -332,18 +332,18 @@ describe('Comm', function() {
       });
 
       const resp1 = await cliComm._makeRequest(null, null, "methodSync", "foo", 1);
-      assert.deepEqual(resp1, { name: 'methodSync', x: "foo", y: 1 });
+      assert.deepEqual(resp1, { name: "methodSync", x: "foo", y: 1 });
 
       if (sendShouldFail) {
         // In Node 18, the socket is closed during the call to 'testDisconnect'.
         // In prior versions of Node, the socket was still disconnecting.
         // This test is sensitive to timing and only passes in the latter, unless we
         // stub the method below to produce similar behavior in the former.
-        sandbox.stub(Client.prototype as any, '_sendToWebsocket')
+        sandbox.stub(Client.prototype as any, "_sendToWebsocket")
           .onFirstCall()
           .callsFake(() => {
             failedSendCount += 1;
-            throw new Error('WebSocket is not open');
+            throw new Error("WebSocket is not open");
           })
           .callThrough();
       }
@@ -355,11 +355,11 @@ describe('Comm', function() {
 
       // Once we reconnect, the response should arrive.
       await forwarder.connect();
-      assert.deepEqual(await resp2Promise, { name: 'testDisconnect', x: "foo", y: 2 });
-      assert.deepEqual(await resp3Promise, { name: 'methodAsync', x: "foo", y: 3 });
+      assert.deepEqual(await resp2Promise, { name: "testDisconnect", x: "foo", y: 2 });
+      assert.deepEqual(await resp3Promise, { name: "methodAsync", x: "foo", y: 3 });
 
       // Check that we saw the situation we were hoping to test.
-      assert.equal(failedSendCount, sendShouldFail ? 1 : 0, 'Expected to see a failed send');
+      assert.equal(failedSendCount, sendShouldFail ? 1 : 0, "Expected to see a failed send");
     }
 
     it("should receive all server messages (small) in order when send doesn't fail", async function() {
@@ -381,7 +381,7 @@ describe('Comm', function() {
     async function testSendOrdering(
       options: { noFailedSend?: boolean, closeHappensFirst?: boolean, useSmallMsgs?: boolean },
     ) {
-      const eventsSeen: ('failedSend' | 'close')[] = [];
+      const eventsSeen: ("failedSend" | "close")[] = [];
 
       // Server-side Client object.
       let ssClient!: Client;
@@ -390,23 +390,23 @@ describe('Comm', function() {
 
       // Intercept the call to _onClose to know when it occurs, since we are trying to hit a
       // situation where 'close' and 'failedSend' events happen in either order.
-      const stubOnClose: any = sandbox.stub(Client.prototype as any, '_onClose')
+      const stubOnClose: any = sandbox.stub(Client.prototype as any, "_onClose")
         .callsFake(function(this: Client) {
-          eventsSeen.push('close');
+          eventsSeen.push("close");
           return stubOnClose.wrappedMethod.apply(this, arguments);
         });
 
       // Intercept calls to client.sendMessage(), to know when it fails, and possibly to delay the
       // failures to hit a particular order in which 'close' and 'failedSend' events are seen by
       // Client.ts. This is the only reliable way I found to reproduce this order of events.
-      const stubSendToWebsocket: any = sandbox.stub(Client.prototype as any, '_sendToWebsocket')
+      const stubSendToWebsocket: any = sandbox.stub(Client.prototype as any, "_sendToWebsocket")
         .callsFake(async function(this: Client) {
           try {
             return await stubSendToWebsocket.wrappedMethod.apply(this, arguments);
           }
           catch (err) {
             if (options.closeHappensFirst) { await delay(100); }
-            eventsSeen.push('failedSend');
+            eventsSeen.push("failedSend");
             throw err;
           }
         });
@@ -414,13 +414,13 @@ describe('Comm', function() {
       // Watch the events received all the way on the client side.
       const eventSpy = sinon.spy();
       const clientConnectSpy = sinon.spy();
-      cliComm.on('docUserAction', eventSpy);
-      cliComm.on('clientConnect', clientConnectSpy);
+      cliComm.on("docUserAction", eventSpy);
+      cliComm.on("clientConnect", clientConnectSpy);
 
       // We need to simulate an important property of the browser client: when needReload is set
       // in the clientConnect message, we are expected to reload the app. In the test, we replace
       // the GristWSConnection.
-      cliComm.on('clientConnect', async (msg: CommClientConnect) => {
+      cliComm.on("clientConnect", async (msg: CommClientConnect) => {
         ssClient = comm!.getClient(msg.clientId);
         if (msg.needReload) {
           await delay(0);
@@ -434,13 +434,13 @@ describe('Comm', function() {
 
       // Send large buffers, to fill up the socket's buffers to get it to block.
       const data = "x".repeat(options.useSmallMsgs ? 100_000 : 10_000_000);
-      const makeMessage = (n: number) => ({ type: 'docUserAction', n, data });
+      const makeMessage = (n: number) => ({ type: "docUserAction", n, data });
 
       let n = 0;
       const sendPromises: Promise<void>[] = [];
       const sendNextMessage = () => sendPromises.push(ssClient.sendMessage(makeMessage(n++) as any));
 
-      await testUtils.captureLog('warn', async () => {
+      await testUtils.captureLog("warn", async () => {
         // Make a few sends. These are big enough not to return immediately. Keep the first two
         // successful (by awaiting them). And keep a few more that will fail. This is to test the
         // ordering of successful and failed messages that may be missed.
@@ -482,28 +482,28 @@ describe('Comm', function() {
       // situations we were trying to hit.
       if (options.noFailedSend) {
         if (options.useSmallMsgs) {
-          assert.deepEqual(eventsSeen, ['close']);
+          assert.deepEqual(eventsSeen, ["close"]);
         }
         else {
           // Make sure to have waited long enough for the 'close' event we may have delayed
           await delay(20);
 
           // Large messages now cause a send to fail, after filling up buffer, and close the socket.
-          assert.deepEqual(eventsSeen, ['close', 'close']);
+          assert.deepEqual(eventsSeen, ["close", "close"]);
         }
       }
       else if (options.closeHappensFirst) {
-        assert.equal(eventsSeen[0], 'close');
-        assert.include(eventsSeen, 'failedSend');
+        assert.equal(eventsSeen[0], "close");
+        assert.include(eventsSeen, "failedSend");
       }
       else {
-        assert.equal(eventsSeen[0], 'failedSend');
-        assert.include(eventsSeen, 'close');
+        assert.equal(eventsSeen[0], "failedSend");
+        assert.include(eventsSeen, "close");
       }
 
       // After a successful reconnect, subsequent calls should work normally.
       assert.deepEqual(await cliComm._makeRequest(null, null, "methodSync", 1, 2),
-        { name: 'methodSync', x: 1, y: 2 });
+        { name: "methodSync", x: 1, y: 2 });
 
       // Check that all the received messages are in order.
       const messageNums = eventSpy.getCalls().map(call => call.args[0].n);
@@ -538,7 +538,7 @@ describe('Comm', function() {
       }
     }
 
-    it('origin should match base domain of host', async () => {
+    it("origin should match base domain of host", async () => {
       await checkOrigin({ origin: "https://www.toto.com", host: "worker.example.com" }, false);
       await checkOrigin({ origin: "https://badexample.com", host: "worker.example.com" }, false);
       await checkOrigin({ origin: "https://bad.com/example.com", host: "worker.example.com" }, false);
@@ -547,7 +547,7 @@ describe('Comm', function() {
       await checkOrigin({ origin: "https://example.com", host: "example.com" }, true);
     });
 
-    it('with custom domains, origin should match the full hostname', async () => {
+    it("with custom domains, origin should match the full hostname", async () => {
       fakeHosts.isCustomHost = true;
 
       // For a request to a custom domain, the full hostname must match.
@@ -576,15 +576,15 @@ function nrange(start: number, count: number): number[] {
 
 // Returns a GristWSSettings object, for use with GristWSConnection.
 function getWSSettings(docWorkerUrl: string): GristWSSettings {
-  let clientId: string = 'clientid-abc';
+  let clientId: string = "clientid-abc";
   let counter: number = 0;
   return {
     makeWebSocket(url: string): any { return new GristClientSocket(url); },
-    async getTimezone()         { return 'UTC'; },
+    async getTimezone()         { return "UTC"; },
     getPageUrl()                { return "http://localhost"; },
     async getDocWorkerUrl()     { return docWorkerUrl; },
     getClientId(did: any)       { return clientId; },
-    getUserSelector()           { return ''; },
+    getUserSelector()           { return ""; },
     updateClientId(did: string, cid: string) { clientId = cid; },
     advanceCounter(): string    { return String(counter++); },
     log()                       { (log as any).debug(...arguments); },

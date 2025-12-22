@@ -34,5 +34,5 @@ export function csvEncodeCell(value: string): string {
 }
 
 export function csvDecodeCell(value: string): string {
-  return value.trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+  return value.trim().replace(/^"|"$/g, "").replace(/""/g, '"');
 }

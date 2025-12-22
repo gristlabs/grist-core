@@ -1,8 +1,8 @@
-import { DocModel, IRowModel, refRecord, ViewRec } from 'app/client/models/DocModel';
-import { ShareRec } from 'app/client/models/entities/ShareRec';
-import * as modelUtil from 'app/client/models/modelUtil';
-import { Computed, Observable } from 'grainjs';
-import * as ko from 'knockout';
+import { DocModel, IRowModel, refRecord, ViewRec } from "app/client/models/DocModel";
+import { ShareRec } from "app/client/models/entities/ShareRec";
+import * as modelUtil from "app/client/models/modelUtil";
+import { Computed, Observable } from "grainjs";
+import * as ko from "knockout";
 
 // Represents a page entry in the tree of pages.
 export interface PageRec extends IRowModel<"_grist_Pages"> {
@@ -35,8 +35,8 @@ export function createPageRec(this: PageRec, docModel: DocModel): void {
       return !!primaryTable && primaryTable.tableId()?.startsWith("GristHidden_");
     };
     return (
-      (name === 'GristDocTour' && !docModel.showDocTourTable) ||
-      (name === 'GristDocTutorial' && !docModel.showDocTutorialTable) ||
+      (name === "GristDocTour" && !docModel.showDocTourTable) ||
+      (name === "GristDocTutorial" && !docModel.showDocTutorialTable) ||
       isTableHidden()
     );
   });

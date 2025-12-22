@@ -1,10 +1,10 @@
-import { Group } from 'app/gen-server/entity/Group';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { BaseController } from 'app/server/lib/scim/v2/BaseController';
-import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
-import { toGroupDescriptor, toSCIMMYGroup } from 'app/server/lib/scim/v2/ScimUtils';
+import { Group } from "app/gen-server/entity/Group";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { BaseController } from "app/server/lib/scim/v2/BaseController";
+import { RequestContext } from "app/server/lib/scim/v2/ScimTypes";
+import { toGroupDescriptor, toSCIMMYGroup } from "app/server/lib/scim/v2/ScimUtils";
 
-import SCIMMY from 'scimmy';
+import SCIMMY from "scimmy";
 
 type GroupSchema = SCIMMY.Schemas.Group;
 type GroupResource = SCIMMY.Resources.Group;
@@ -15,7 +15,7 @@ class ScimGroupController extends BaseController {
     checkAccess: (context: RequestContext) => void,
   ) {
     super(dbManager, checkAccess);
-    this.invalidIdError = 'Invalid passed group ID';
+    this.invalidIdError = "Invalid passed group ID";
   }
 
   /**

@@ -1,5 +1,5 @@
-import WS from 'ws';
-import { Socket as EIOSocket } from 'engine.io-client';
+import WS from "ws";
+import { Socket as EIOSocket } from "engine.io-client";
 
 export interface GristClientSocketOptions {
   headers?: Record<string, string>;
@@ -79,7 +79,7 @@ export class GristClientSocket {
     // node defines WebSocket, so we narrow down this path to when
     // a global document is defined (window doesn't work because
     // some tests mock it).
-    if (typeof document !== 'undefined') {
+    if (typeof document !== "undefined") {
       this._wsSocket = new WebSocket(this._url);
     }
     else {
@@ -136,16 +136,16 @@ export class GristClientSocket {
     this._eioSocket = new EIOSocket(this._url, {
       path: new URL(this._url).pathname,
       addTrailingSlash: false,
-      transports: ['polling'],
+      transports: ["polling"],
       upgrade: false,
       extraHeaders: this._options?.headers,
       withCredentials: true,
     });
 
-    this._eioSocket.on('message', this._onEIOMessage.bind(this));
-    this._eioSocket.on('open', this._onEIOOpen.bind(this));
-    this._eioSocket.on('error', this._onEIOError.bind(this));
-    this._eioSocket.on('close', this._onEIOClose.bind(this));
+    this._eioSocket.on("message", this._onEIOMessage.bind(this));
+    this._eioSocket.on("open", this._onEIOOpen.bind(this));
+    this._eioSocket.on("error", this._onEIOError.bind(this));
+    this._eioSocket.on("close", this._onEIOClose.bind(this));
   }
 
   private _onEIOMessage(data: string) {

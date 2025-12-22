@@ -1,109 +1,109 @@
-import { makeT } from 'app/client/lib/localization';
-import { logTelemetryEvent } from 'app/client/lib/telemetry';
-import * as commands from 'app/client/components/commands';
-import { urlState } from 'app/client/models/gristUrlState';
+import { makeT } from "app/client/lib/localization";
+import { logTelemetryEvent } from "app/client/lib/telemetry";
+import * as commands from "app/client/components/commands";
+import { urlState } from "app/client/models/gristUrlState";
 import { IOnBoardingMsg, startOnBoarding } from "app/client/ui/OnBoardingPopups";
-import { ShortcutKey, ShortcutKeyContent } from 'app/client/ui/ShortcutKey';
-import { theme } from 'app/client/ui2018/cssVars';
+import { ShortcutKey, ShortcutKeyContent } from "app/client/ui/ShortcutKey";
+import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
 import { getGristConfig } from "app/common/urlUtils";
 import { dom, styled } from "grainjs";
 
-const t = makeT('WelcomeTour');
+const t = makeT("WelcomeTour");
 
 export function getOnBoardingMessages(): IOnBoardingMsg[] {
   const { assistant, features } = getGristConfig();
   return [
     {
-      title: t('Editing Data'),
+      title: t("Editing Data"),
       body: () => [
-        dom('p',
-          t('Double-click or hit {{enter}} on a cell to edit it. ', {
-            enter: ShortcutKey(ShortcutKeyContent(t('Enter'))),
+        dom("p",
+          t("Double-click or hit {{enter}} on a cell to edit it. ", {
+            enter: ShortcutKey(ShortcutKeyContent(t("Enter"))),
           }),
-          t('Start with {{equal}} to enter a formula.', {
-            equal: ShortcutKey(ShortcutKeyContent('=')),
+          t("Start with {{equal}} to enter a formula.", {
+            equal: ShortcutKey(ShortcutKeyContent("=")),
           })),
       ],
-      selector: '.field_clip',
-      placement: 'bottom',
+      selector: ".field_clip",
+      placement: "bottom",
     },
     {
-      selector: '.tour-creator-panel',
-      title: t('Configuring your document'),
+      selector: ".tour-creator-panel",
+      title: t("Configuring your document"),
       body: () => [
-        dom('p',
-          t('Toggle the {{creatorPanel}} to format columns, ', { creatorPanel: dom('em', t('creator panel')) }),
-          t('convert to card view, select data, and more.'),
+        dom("p",
+          t("Toggle the {{creatorPanel}} to format columns, ", { creatorPanel: dom("em", t("creator panel")) }),
+          t("convert to card view, select data, and more."),
         ),
       ],
-      placement: 'left',
+      placement: "left",
       cropPadding: true,
     },
     {
-      selector: '.tour-type-selector',
-      title: t('Customizing columns'),
+      selector: ".tour-type-selector",
+      title: t("Customizing columns"),
       body: () => [
-        dom('p',
-          t('Set formatting options, formulas, or column types, such as dates, choices, or attachments. ')),
-        dom('p',
-          t('Make it relational! Use the {{ref}} type to link tables. ', {
-            ref: ShortcutKey(t('Reference')),
+        dom("p",
+          t("Set formatting options, formulas, or column types, such as dates, choices, or attachments. ")),
+        dom("p",
+          t("Make it relational! Use the {{ref}} type to link tables. ", {
+            ref: ShortcutKey(t("Reference")),
           })),
       ],
-      placement: 'right',
+      placement: "right",
     },
     {
-      selector: '.tour-add-new',
-      title: t('Building up'),
+      selector: ".tour-add-new",
+      title: t("Building up"),
       body: () => [
-        dom('p', t('Use {{addNew}} to add widgets, pages, or import more data. ', {
-          addNew: ShortcutKey(t('Add new')),
+        dom("p", t("Use {{addNew}} to add widgets, pages, or import more data. ", {
+          addNew: ShortcutKey(t("Add new")),
         })),
       ],
-      placement: 'right',
+      placement: "right",
     },
     {
-      selector: '.tour-share-icon',
-      title: t('Sharing'),
+      selector: ".tour-share-icon",
+      title: t("Sharing"),
       body: () => [
-        dom('p', t('Use the Share button ({{share}}) to share the document or export data.',
-          { share: TopBarButtonIcon(t('Share')) })),
+        dom("p", t("Use the Share button ({{share}}) to share the document or export data.",
+          { share: TopBarButtonIcon(t("Share")) })),
       ],
-      placement: 'bottom',
+      placement: "bottom",
       cropPadding: true,
     },
     ...(assistant?.version === 2 ? [{
-      selector: '.tour-assistant',
-      title: t('AI Assistant'),
+      selector: ".tour-assistant",
+      title: t("AI Assistant"),
       body: () => [
-        dom('p',
+        dom("p",
           t(
-            'Understand, modify and work with your data and formulas ' +
+            "Understand, modify and work with your data and formulas " +
             "with the help of Grist's AI Assistant!",
           ),
         ),
       ],
-      placement: 'right' as const,
+      placement: "right" as const,
     }] : []),
     {
-      selector: '.tour-help-center',
-      title: t('Flying higher'),
+      selector: ".tour-help-center",
+      title: t("Flying higher"),
       body: () => [
-        dom('p', t('Use {{helpCenter}} for documentation or questions.',
-          { helpCenter: ShortcutKey(GreyIcon('Help'), t('Help Center')) })),
+        dom("p", t("Use {{helpCenter}} for documentation or questions.",
+          { helpCenter: ShortcutKey(GreyIcon("Help"), t("Help Center")) })),
       ],
-      placement: 'right',
+      placement: "right",
     },
-    ...(features?.includes('templates') && Boolean(getGristConfig().templateOrg) ? [{
-      selector: '.tour-welcome',
-      title: t('Welcome to Grist!'),
+    ...(features?.includes("templates") && Boolean(getGristConfig().templateOrg) ? [{
+      selector: ".tour-welcome",
+      title: t("Welcome to Grist!"),
       body: () => [
-        dom('p', t("Browse our {{templateLibrary}} to discover what's possible and get inspired.",
+        dom("p", t("Browse our {{templateLibrary}} to discover what's possible and get inspired.",
           {
-            templateLibrary: cssLink({ target: '_blank', href: urlState().makeUrl({ homePage: "templates" }) },
-              t('template library'), cssInlineIcon('FieldLink')),
+            templateLibrary: cssLink({ target: "_blank", href: urlState().makeUrl({ homePage: "templates" }) },
+              t("template library"), cssInlineIcon("FieldLink")),
           },
         )),
       ],
@@ -116,7 +116,7 @@ export function startWelcomeTour(onFinishCB: () => void) {
   commands.allCommands.fieldTabOpen.run();
   const messages = getOnBoardingMessages();
   startOnBoarding(messages, (lastMessageIndex) => {
-    logTelemetryEvent('viewedWelcomeTour', {
+    logTelemetryEvent("viewedWelcomeTour", {
       full: {
         percentComplete: Math.floor(((lastMessageIndex + 1) / messages.length) * 100),
       },

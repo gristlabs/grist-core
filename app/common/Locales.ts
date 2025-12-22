@@ -1,6 +1,6 @@
-import * as LocaleCurrencyMap from 'locale-currency/map';
-import * as LocaleCurrency from 'locale-currency';
-import { nativeCompare } from 'app/common/gutil';
+import * as LocaleCurrencyMap from "locale-currency/map";
+import * as LocaleCurrency from "locale-currency";
+import { nativeCompare } from "app/common/gutil";
 import { localeCodes } from "app/common/LocaleCodes";
 
 const DEFAULT_CURRENCY = "USD";
@@ -14,8 +14,8 @@ export let locales: readonly Locale[];
 
 // Intl.DisplayNames is only supported on recent browsers, so proceed with caution.
 try {
-  const regionDisplay = new Intl.DisplayNames('en', { type: 'region' });
-  const languageDisplay = new Intl.DisplayNames('en', { type: 'language' });
+  const regionDisplay = new Intl.DisplayNames("en", { type: "region" });
+  const languageDisplay = new Intl.DisplayNames("en", { type: "language" });
   const display = (code: string) => {
     try {
       const locale = new Intl.Locale(code);
@@ -51,14 +51,14 @@ LocaleCurrencyMap.SS = "SSP";
 LocaleCurrencyMap.XK = "EUR";
 const currenciesCodes = Object.values(LocaleCurrencyMap);
 export function getCurrency(code: string) {
-  const currency = LocaleCurrency.getCurrency(code ?? 'en-US');
+  const currency = LocaleCurrency.getCurrency(code ?? "en-US");
   // Fallback to USD
   return currency ?? DEFAULT_CURRENCY;
 }
 
 // Intl.DisplayNames is only supported on recent browsers, so proceed with caution.
 try {
-  const currencyDisplay = new Intl.DisplayNames('en', { type: 'currency' });
+  const currencyDisplay = new Intl.DisplayNames("en", { type: "currency" });
   currencies = [...new Set(currenciesCodes)].map((code) => {
     return { name: currencyDisplay.of(code)!, code };
   });
@@ -74,13 +74,13 @@ currencies = [...currencies].sort((a, b) => nativeCompare(a.code, b.code));
 
 export function getCountryCode(locale: string) {
   // We have some defaults defined.
-  if (locale === 'en') { return 'US'; }
+  if (locale === "en") { return "US"; }
   let countryCode = locale.split(/[-_]/)[1];
   if (countryCode) { return countryCode.toUpperCase(); }
 
   // Some defaults that we support and can't be read from language code.
   countryCode = {
-    uk: 'UA', // Ukraine
+    uk: "UA", // Ukraine
   }[locale] ?? locale.toUpperCase();
 
   // Test if we can use language as a country code.

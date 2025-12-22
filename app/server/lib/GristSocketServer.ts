@@ -1,10 +1,10 @@
-import * as http from 'http';
-import * as WS from 'ws';
-import * as EIO from 'engine.io';
-import { GristServerSocket, GristServerSocketEIO, GristServerSocketWS } from 'app/server/lib/GristServerSocket';
-import * as net from 'net';
-import * as stream from 'stream';
-import { EngineRequest } from 'engine.io/build/transport';
+import * as http from "http";
+import * as WS from "ws";
+import * as EIO from "engine.io";
+import { GristServerSocket, GristServerSocketEIO, GristServerSocketWS } from "app/server/lib/GristServerSocket";
+import * as net from "net";
+import * as stream from "stream";
+import { EngineRequest } from "engine.io/build/transport";
 
 const MAX_PAYLOAD = 100e6;
 
@@ -32,7 +32,7 @@ export class GristSocketServer {
       // We only use Engine.IO for its polling transport,
       // so we disable the built-in Engine.IO upgrade mechanism.
       allowUpgrades: false,
-      transports: ['polling'],
+      transports: ["polling"],
       maxHttpBufferSize: MAX_PAYLOAD,
       cors: {
         // This will cause Engine.IO to reflect any client-provided Origin into
@@ -134,7 +134,7 @@ export class GristSocketServer {
         // Because we are handling an "upgrade" event, we don't have access to
         // a "response" object, just the raw socket. We can still construct
         // a well-formed HTTP error response.
-        socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
+        socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
         socket.destroy();
         return;
       }
@@ -147,7 +147,7 @@ export class GristSocketServer {
   private _handleHTTPRequest(req: http.IncomingMessage, res: http.ServerResponse) {
     destroyOnRejection(req.socket, async () => {
       // Intercept requests that have transport=polling in their querystring
-      if (/[&?]transport=polling(&|$)/.test(req.url ?? '')) {
+      if (/[&?]transport=polling(&|$)/.test(req.url ?? "")) {
         if (this._options?.verifyClient && !await this._options.verifyClient(req)) {
           res.writeHead(403).end();
           return;

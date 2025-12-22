@@ -86,15 +86,15 @@ import pick from 'lodash/pick';
 
 import {
   Client, ClientMetadata, custom, Issuer, errors as OIDCError, TokenSet, UserinfoResponse,
-} from 'openid-client';
+} from "openid-client";
 
 
 function formatTokenForLogs(token: TokenSet) {
-  const showValueInClear = ['token_type', 'expires_in', 'expires_at', 'scope'];
+  const showValueInClear = ["token_type", "expires_in", "expires_at", "scope"];
   const result: Record<string, any> = {};
   for (const [key, value] of Object.entries(token)) {
-    if (typeof value !== 'function') {
-      result[key] = showValueInClear.includes(key) ? value : 'REDACTED';
+    if (typeof value !== "function") {
+      result[key] = showValueInClear.includes(key) ? value : "REDACTED";
     }
   }
   return result;
@@ -156,8 +156,8 @@ export function readOIDCConfigFromSettings(settings: AppSettings): OIDCConfig {
     throw new NotConfiguredError((e as Error).message);
   }
 
-  const spHost = section.flag('spHost').requireString({
-    envVar: 'GRIST_OIDC_SP_HOST',
+  const spHost = section.flag("spHost").requireString({
+    envVar: "GRIST_OIDC_SP_HOST",
     defaultValue: process.env.APP_HOME_URL,
   });
 
@@ -165,51 +165,51 @@ export function readOIDCConfigFromSettings(settings: AppSettings): OIDCConfig {
     envVar: 'GRIST_OIDC_IDP_CLIENT_ID',
   });
 
-  const clientSecret = section.flag('clientSecret').requireString({
-    envVar: 'GRIST_OIDC_IDP_CLIENT_SECRET',
+  const clientSecret = section.flag("clientSecret").requireString({
+    envVar: "GRIST_OIDC_IDP_CLIENT_SECRET",
     censor: true,
   });
 
-  const httpTimeout = section.flag('httpTimeout').readInt({
-    envVar: 'GRIST_OIDC_SP_HTTP_TIMEOUT',
+  const httpTimeout = section.flag("httpTimeout").readInt({
+    envVar: "GRIST_OIDC_SP_HTTP_TIMEOUT",
     minValue: 0, // 0 means no timeout
   });
 
-  const namePropertyKey = section.flag('namePropertyKey').readString({
-    envVar: 'GRIST_OIDC_SP_PROFILE_NAME_ATTR',
+  const namePropertyKey = section.flag("namePropertyKey").readString({
+    envVar: "GRIST_OIDC_SP_PROFILE_NAME_ATTR",
   });
 
-  const emailPropertyKey = section.flag('emailPropertyKey').requireString({
-    envVar: 'GRIST_OIDC_SP_PROFILE_EMAIL_ATTR',
-    defaultValue: 'email',
+  const emailPropertyKey = section.flag("emailPropertyKey").requireString({
+    envVar: "GRIST_OIDC_SP_PROFILE_EMAIL_ATTR",
+    defaultValue: "email",
   });
 
-  const endSessionEndpoint = section.flag('endSessionEndpoint').readString({
-    envVar: 'GRIST_OIDC_IDP_END_SESSION_ENDPOINT',
-    defaultValue: '',
+  const endSessionEndpoint = section.flag("endSessionEndpoint").readString({
+    envVar: "GRIST_OIDC_IDP_END_SESSION_ENDPOINT",
+    defaultValue: "",
   })!;
 
-  const skipEndSessionEndpoint = section.flag('skipEndSessionEndpoint').readBool({
-    envVar: 'GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT',
+  const skipEndSessionEndpoint = section.flag("skipEndSessionEndpoint").readBool({
+    envVar: "GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT",
     defaultValue: false,
   })!;
 
-  const acrValues = section.flag('acrValues').readString({
-    envVar: 'GRIST_OIDC_IDP_ACR_VALUES',
+  const acrValues = section.flag("acrValues").readString({
+    envVar: "GRIST_OIDC_IDP_ACR_VALUES",
   })!;
 
-  const ignoreEmailVerified = section.flag('ignoreEmailVerified').readBool({
-    envVar: 'GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED',
+  const ignoreEmailVerified = section.flag("ignoreEmailVerified").readBool({
+    envVar: "GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED",
     defaultValue: false,
   })!;
 
-  const extraMetadata = JSON.parse(section.flag('extraClientMetadata').readString({
-    envVar: 'GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA',
-  }) || '{}');
+  const extraMetadata = JSON.parse(section.flag("extraClientMetadata").readString({
+    envVar: "GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA",
+  }) || "{}");
 
   const enabledProtections = buildEnabledProtections(section);
 
-  const scopes = process.env.GRIST_OIDC_IDP_SCOPES || 'openid email profile';
+  const scopes = process.env.GRIST_OIDC_IDP_SCOPES || "openid email profile";
 
   return {
     spHost,
@@ -230,11 +230,11 @@ export function readOIDCConfigFromSettings(settings: AppSettings): OIDCConfig {
 }
 
 function buildEnabledProtections(section: AppSettings): Set<EnabledProtectionString> {
-  const enabledProtections = section.flag('enabledProtections').readString({
-    envVar: 'GRIST_OIDC_IDP_ENABLED_PROTECTIONS',
-    defaultValue: 'PKCE,STATE',
-  })!.split(',');
-  if (enabledProtections.length === 1 && enabledProtections[0] === 'UNPROTECTED') {
+  const enabledProtections = section.flag("enabledProtections").readString({
+    envVar: "GRIST_OIDC_IDP_ENABLED_PROTECTIONS",
+    defaultValue: "PKCE,STATE",
+  })!.split(",");
+  if (enabledProtections.length === 1 && enabledProtections[0] === "UNPROTECTED") {
     log.warn("You chose to enable OIDC connection with no protection, you are exposed to vulnerabilities." +
       " Please never do that in production.");
     return new Set();
@@ -295,9 +295,9 @@ export class OIDCBuilder {
 
     if (this._client.issuer.metadata.end_session_endpoint === undefined &&
       !this._config.endSessionEndpoint && !this._config.skipEndSessionEndpoint) {
-      throw new Error('The Identity provider does not propose end_session_endpoint. ' +
-        'If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true ' +
-        'or provide an alternative logout URL in GRIST_OIDC_IDP_END_SESSION_ENDPOINT');
+      throw new Error("The Identity provider does not propose end_session_endpoint. " +
+        "If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true " +
+        "or provide an alternative logout URL in GRIST_OIDC_IDP_END_SESSION_ENDPOINT");
     }
     log.info(`OIDCConfig: initialized with issuer ${this._config.issuerUrl}`);
   }
@@ -321,7 +321,7 @@ export class OIDCBuilder {
     try {
       const params = this._client.callbackParams(req);
       if (!mreq.session.oidc) {
-        throw new Error('Missing OIDC information associated to this session');
+        throw new Error("Missing OIDC information associated to this session");
       }
 
       targetUrl = mreq.session.oidc.targetUrl;
@@ -357,13 +357,13 @@ export class OIDCBuilder {
       mreq.session.oidc = {
         idToken: tokenSet.id_token,
       };
-      res.redirect(targetUrl ?? '/');
+      res.redirect(targetUrl ?? "/");
     }
     catch (err) {
       log.error(`OIDC callback failed: ${err.stack}`);
       const maybeResponse = this._maybeExtractDetailsFromError(err);
       if (maybeResponse) {
-        log.error('Response received: %o',  maybeResponse);
+        log.error("Response received: %o",  maybeResponse);
       }
 
       // Delete entirely the session data when the login failed.
@@ -401,7 +401,7 @@ export class OIDCBuilder {
       return this._config.endSessionEndpoint;
     }
     // Ignore redirectUrl because OIDC providers don't allow variable redirect URIs
-    const stableRedirectUri = new URL('/signed-out', getOriginUrl(req)).href;
+    const stableRedirectUri = new URL("/signed-out", getOriginUrl(req)).href;
     const session: SessionObj | undefined = (req as RequestWithLogin).session;
     return this._client.endSessionUrl({
       post_logout_redirect_uri: stableRedirectUri,
@@ -440,10 +440,10 @@ export class OIDCBuilder {
     targetUrl?: string,
   ) {
     return this._sendAppPage(req, res, {
-      path: 'error.html',
+      path: "error.html",
       status: 500,
       config: {
-        errPage: 'signin-failed',
+        errPage: "signin-failed",
         errMessage: userFriendlyMessage,
         // Always set an errTargetUrl so that the browser isn't left on the callback URL.
         errTargetUrl: targetUrl ?? "/",
@@ -453,7 +453,7 @@ export class OIDCBuilder {
 
   private _getRequestWithSession(req: express.Request) {
     const mreq = req as RequestWithLogin;
-    if (!mreq.session) { throw new Error('no session available'); }
+    if (!mreq.session) { throw new Error("no session available"); }
 
     return mreq;
   }
@@ -463,7 +463,7 @@ export class OIDCBuilder {
       email: String(userInfo[this._config.emailPropertyKey]),
       name: this._extractName(userInfo),
       // extra fields could be returned by the IdP that we might want to store
-      extra: pick(userInfo, process.env.GRIST_IDP_EXTRA_PROPS?.split(',') || []),
+      extra: pick(userInfo, process.env.GRIST_IDP_EXTRA_PROPS?.split(",") || []),
     };
   }
 
@@ -471,8 +471,8 @@ export class OIDCBuilder {
     if (this._config.namePropertyKey) {
       return (userInfo[this._config.namePropertyKey] as any)?.toString();
     }
-    const fname = userInfo.given_name ?? '';
-    const lname = userInfo.family_name ?? '';
+    const fname = userInfo.given_name ?? "";
+    const lname = userInfo.family_name ?? "";
 
     return `${fname} ${lname}`.trim() || userInfo.name;
   }

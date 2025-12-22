@@ -1,15 +1,15 @@
-import { CellValue } from 'app/common/DocActions';
-import { DocData } from 'app/common/DocData';
-import { DocumentSettings } from 'app/common/DocumentSettings';
-import { isObject } from 'app/common/gristTypes';
-import { countIf } from 'app/common/gutil';
-import { NumberFormatOptions } from 'app/common/NumberFormat';
-import NumberParse from 'app/common/NumberParse';
-import { dateTimeWidgetOptions, guessDateFormat } from 'app/common/parseDate';
-import { MetaRowRecord } from 'app/common/TableData';
-import { createFormatter } from 'app/common/ValueFormatter';
-import { createParserRaw, ValueParser } from 'app/common/ValueParser';
-import * as moment from 'moment-timezone';
+import { CellValue } from "app/common/DocActions";
+import { DocData } from "app/common/DocData";
+import { DocumentSettings } from "app/common/DocumentSettings";
+import { isObject } from "app/common/gristTypes";
+import { countIf } from "app/common/gutil";
+import { NumberFormatOptions } from "app/common/NumberFormat";
+import NumberParse from "app/common/NumberParse";
+import { dateTimeWidgetOptions, guessDateFormat } from "app/common/parseDate";
+import { MetaRowRecord } from "app/common/TableData";
+import { createFormatter } from "app/common/ValueFormatter";
+import { createParserRaw, ValueParser } from "app/common/ValueParser";
+import * as moment from "moment-timezone";
 
 interface GuessedColInfo {
   type: string;
@@ -21,7 +21,7 @@ export interface GuessResult {
   colInfo: GuessedColInfo;
 }
 
-type ColMetadata = Partial<MetaRowRecord<'_grist_Tables_column'>>;
+type ColMetadata = Partial<MetaRowRecord<"_grist_Tables_column">>;
 
 export interface GuessColMetadata {
   values: CellValue[];
@@ -93,7 +93,7 @@ abstract class ValueGuesser<T> {
 
 class BoolGuesser extends ValueGuesser<boolean> {
   public colInfo(): GuessedColInfo {
-    return { type: 'Bool' };
+    return { type: "Bool" };
   }
 
   public parse(value: string): boolean | string {
@@ -120,11 +120,11 @@ class NumericGuesser extends ValueGuesser<number> {
   private _parser: ValueParser;
   constructor(docSettings: DocumentSettings, private _options: NumberFormatOptions) {
     super();
-    this._parser = createParserRaw('Numeric', _options, docSettings);
+    this._parser = createParserRaw("Numeric", _options, docSettings);
   }
 
   public colInfo(): GuessedColInfo {
-    const result: GuessedColInfo = { type: 'Numeric' };
+    const result: GuessedColInfo = { type: "Numeric" };
     if (Object.keys(this._options).length) {
       result.widgetOptions = this._options;
     }
@@ -155,10 +155,10 @@ class DateGuesser extends ValueGuesser<number> {
     const widgetOptions = dateTimeWidgetOptions(this._format, false);
     let type;
     if (widgetOptions.timeFormat) {
-      type = 'DateTime:' + this._tz;
+      type = "DateTime:" + this._tz;
     }
     else {
-      type = 'Date';
+      type = "Date";
       this._tz = "UTC";
     }
     return { widgetOptions, type };
@@ -193,7 +193,7 @@ export function guessColInfo(
         .guess(values, docSettings) ||
     // Don't return the same values back if there's no conversion to be done,
     // as they have to be serialized and transferred over a pipe to Python.
-        { colInfo: { type: 'Text' } }
+        { colInfo: { type: "Text" } }
   );
 }
 
@@ -203,15 +203,15 @@ export function guessColInfo(
  * Will suggest turning the column to an empty one if all the values are empty (null or "").
  */
 export function guessColInfoForImports(values: CellValue[], docData: DocData): GuessColMetadata {
-  if (values.every(v => (v === null || v === ''))) {
+  if (values.every(v => (v === null || v === ""))) {
     // Suggest empty column.
-    return { values, colMetadata: { type: 'Any', isFormula: true, formula: '' } };
+    return { values, colMetadata: { type: "Any", isFormula: true, formula: "" } };
   }
   if (values.some(isObject)) {
     // Suggest no changes.
     return { values };
   }
-  const strValues = values.map(v => (v === null || typeof v === 'string' ? v : String(v)));
+  const strValues = values.map(v => (v === null || typeof v === "string" ? v : String(v)));
   const guessed = guessColInfoWithDocData(strValues, docData);
   values = guessed.values || values;
 

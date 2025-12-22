@@ -1,8 +1,8 @@
-import koArray from 'app/client/lib/koArray';
-import { createObsArray } from 'app/client/lib/koArrayWrap';
-import { assert } from 'chai';
-import { Holder } from 'grainjs';
-import * as sinon from 'sinon';
+import koArray from "app/client/lib/koArray";
+import { createObsArray } from "app/client/lib/koArrayWrap";
+import { assert } from "chai";
+import { Holder } from "grainjs";
+import * as sinon from "sinon";
 
 function assertResetSingleCall(spy: sinon.SinonSpy, ...args: any[]): void {
   sinon.assert.calledOnce(spy);
@@ -11,8 +11,8 @@ function assertResetSingleCall(spy: sinon.SinonSpy, ...args: any[]): void {
   spy.resetHistory();
 }
 
-describe('koArrayWrap', function() {
-  it('should map splice changes correctly', function() {
+describe("koArrayWrap", function() {
+  it("should map splice changes correctly", function() {
     const kArr = koArray([1, 2, 3]);
     const holder = Holder.create(null);
     const gArr = createObsArray(holder, kArr);
@@ -58,7 +58,7 @@ describe('koArrayWrap', function() {
     assertResetSingleCall(spy, gArr.get(), gArr.get(), { start: 0, numAdded: 2, deleted: [] });
   });
 
-  it('should handle array assignment', function() {
+  it("should handle array assignment", function() {
     const kArr = koArray([1, 2, 3]);
     const holder = Holder.create(null);
     const gArr = createObsArray(holder, kArr);
@@ -74,7 +74,7 @@ describe('koArrayWrap', function() {
     assertResetSingleCall(spy, gArr.get(), gArr.get(), { start: 0, numAdded: 2, deleted: [1, 2, 3] });
   });
 
-  it('should unsubscribe when disposed', function() {
+  it("should unsubscribe when disposed", function() {
     const kArr = koArray([1, 2, 3]);
     const holder = Holder.create(null);
     const gArr = createObsArray(holder, kArr);

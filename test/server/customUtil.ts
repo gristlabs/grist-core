@@ -1,15 +1,15 @@
 import { version as installedVersion } from "app/common/version";
-import { getAppRoot } from 'app/server/lib/places';
-import { fromCallback, listenPromise } from 'app/server/lib/serverUtils';
-import express from 'express';
-import * as http from 'http';
-import { AddressInfo, Socket } from 'net';
-import * as path from 'path';
-import { fixturesRoot } from 'test/server/testUtils';
+import { getAppRoot } from "app/server/lib/places";
+import { fromCallback, listenPromise } from "app/server/lib/serverUtils";
+import express from "express";
+import * as http from "http";
+import { AddressInfo, Socket } from "net";
+import * as path from "path";
+import { fixturesRoot } from "test/server/testUtils";
 
 // An alternative domain for localhost, to test links that look external. We have a record for
 // localtest.datagrist.com set up to point to localhost.
-const TEST_GRIST_HOST = 'localtest.datagrist.com';
+const TEST_GRIST_HOST = "localtest.datagrist.com";
 
 export interface Serving {
   url: string;
@@ -38,7 +38,7 @@ export async function serveStatic(rootDir: string): Promise<Serving> {
 // Serve a string of html.
 export async function serveSinglePage(html: string): Promise<Serving> {
   return serveSomething((app) => {
-    app.get('', (req, res) => res.send(html));
+    app.get("", (req, res) => res.send(html));
   });
 }
 
@@ -52,9 +52,9 @@ export async function serveSomething(setup: (app: express.Express) => void, port
   await listenPromise(server.listen(port));
 
   const connections = new Set<Socket>();
-  server.on('connection', (conn) => {
+  server.on("connection", (conn) => {
     connections.add(conn);
-    conn.on('close', () => connections.delete(conn));
+    conn.on("close", () => connections.delete(conn));
   });
 
   async function shutdown() {
@@ -63,7 +63,7 @@ export async function serveSomething(setup: (app: express.Express) => void, port
   }
 
   port = (server.address() as AddressInfo).port;
-  app.set('port', port);
+  app.set("port", port);
   setup(app);
   const url = `http://localhost:${port}`;
   return { url, shutdown };
@@ -127,12 +127,12 @@ export async function startFakeUpdateServer() {
 
   let server: Serving | null = await serveSomething((app) => {
     app.use(express.json());
-    app.post('/version', async (req, res, next) => {
+    app.post("/version", async (req, res, next) => {
       API.payload = req.body;
       try {
         await mutex;
         if (API.failNext) {
-          res.status(500).json({ error: 'some error' });
+          res.status(500).json({ error: "some error" });
           API.failNext = false;
           return;
         }
@@ -151,11 +151,11 @@ export async function startFakeUpdateServer() {
 }
 
 function bumpVersion(version: string) {
-  const parts = version.split('.').map((part) => {
-    return Number(part.replace(/\D/g, ''));
+  const parts = version.split(".").map((part) => {
+    return Number(part.replace(/\D/g, ""));
   });
   parts[parts.length - 1] += 1;
-  return parts.join('.');
+  return parts.join(".");
 }
 
 export interface FakeUpdateServer {

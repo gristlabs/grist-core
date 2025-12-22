@@ -1,7 +1,7 @@
-import { INotifyOptions, Notifier } from 'app/client/models/NotifyModel';
-import { buildNotifyMenuButton, buildSnackbarDom } from 'app/client/ui/NotifyUI';
-import { delay } from 'bluebird';
-import { dom, Holder, MultiHolder, styled } from 'grainjs';
+import { INotifyOptions, Notifier } from "app/client/models/NotifyModel";
+import { buildNotifyMenuButton, buildSnackbarDom } from "app/client/ui/NotifyUI";
+import { delay } from "bluebird";
+import { dom, Holder, MultiHolder, styled } from "grainjs";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 let errHolder1 = Holder.create(null);
@@ -21,11 +21,11 @@ function radioGroup(clb: (value: string) => any) {
     const radioId = store.radioId++;
     return [
       dom("input", {
-        type: 'radio',
+        type: "radio",
         name: `radio_group_${group}`,
         value: value,
         id: `radio${radioId}`,
-      }, dom.on('change', () => clb(value))),
+      }, dom.on("change", () => clb(value))),
       dom("label", { for: `radio${radioId}` }, dom.text(name)),
     ];
   };
@@ -70,9 +70,9 @@ function setupTest() {
       radio("Error", "error"),
       radio("All", "all"),
     ]),
-    dom('button',
-      'Close all',
-      dom.on('click', () =>  {
+    dom("button",
+      "Close all",
+      dom.on("click", () =>  {
         multiHolder.dispose();
         multiHolder = new MultiHolder();
         errHolder1 = new Holder();
@@ -81,25 +81,25 @@ function setupTest() {
         multiHolder.autoDispose(errHolder2);
       }),
     ),
-    dom('br'),
-    dom('button.user-error-default',
-      'User error example (default expire)',
-      dom.on('click', () =>  {
+    dom("br"),
+    dom("button.user-error-default",
+      "User error example (default expire)",
+      dom.on("click", () =>  {
         notify(`Workspace name is duplicated (default)`, { expireSec: 1 });
       }),
     ),
-    dom('br'),
-    dom('button.user-error-2sec',
-      'User multi-line error example (custom expire in 2 secs)',
-      dom.on('click', () => {
+    dom("br"),
+    dom("button.user-error-2sec",
+      "User multi-line error example (custom expire in 2 secs)",
+      dom.on("click", () => {
         notify(`Workspace name is duplicated and the error is way too long for one line (custom)`,
           { expireSec: 2 });
       }),
     ),
-    dom('br'),
-    dom('button',
-      'User error example (default expire or on click)',
-      dom.on('click', () => {
+    dom("br"),
+    dom("button",
+      "User error example (default expire or on click)",
+      dom.on("click", () => {
         if (errHolder1.isEmpty()) {
           errHolder1.autoDispose(notify(`Workspace name is duplicated (clear on click)`));
         }
@@ -108,10 +108,10 @@ function setupTest() {
         }
       }),
     ),
-    dom('br'),
-    dom('button',
-      'User error example (no expire until click)',
-      dom.on('click', () => {
+    dom("br"),
+    dom("button",
+      "User error example (no expire until click)",
+      dom.on("click", () => {
         if (errHolder2.isEmpty()) {
           errHolder2.autoDispose(notify(`Workspace name is duplicated (no expire)`,
             { expireSec: 0 }));
@@ -121,38 +121,38 @@ function setupTest() {
         }
       }),
     ),
-    dom('br'),
-    dom('button',
-      'User error with dismiss',
-      dom.on('click', () => {
+    dom("br"),
+    dom("button",
+      "User error with dismiss",
+      dom.on("click", () => {
         notify(`Example error with dismiss`, { expireSec: 0, canUserClose: true });
       }),
     ),
-    dom('br'),
-    dom('button',
-      'User multi-line error with dismiss',
-      dom.on('click', () => {
+    dom("br"),
+    dom("button",
+      "User multi-line error with dismiss",
+      dom.on("click", () => {
         notify(`Example error with dismiss and a long, long, long message`, { canUserClose: true });
       }),
     ),
-    dom('br'),
-    dom('button',
-      'Unexpected error',
-      dom.on('click', () => {
+    dom("br"),
+    dom("button",
+      "Unexpected error",
+      dom.on("click", () => {
         notify("10:03:10 Cannot read property of null (reading 'callback')",
           {
             title: "Unexpected error",
-            actions: ['report-problem'],
+            actions: ["report-problem"],
             expireSec: 0,
             canUserClose: true,
           });
       }),
     ),
-    dom('hr'),
-    dom('button',
-      'Import a file - success',
-      dom.on('click', async () => {
-        const progress = notifier.createProgressIndicator('Foo Sample.pdf', '12mb');
+    dom("hr"),
+    dom("button",
+      "Import a file - success",
+      dom.on("click", async () => {
+        const progress = notifier.createProgressIndicator("Foo Sample.pdf", "12mb");
         multiHolder.autoDispose(progress);
         for (let i = 1; i <= 4; i++) {
           await delay(500);
@@ -163,12 +163,12 @@ function setupTest() {
         }
       }),
     ),
-    dom('button',
-      'Import a file - failure',
-      dom.on('click', async () => {
+    dom("button",
+      "Import a file - failure",
+      dom.on("click", async () => {
         const holder = Holder.create(null);
         multiHolder.autoDispose(holder);
-        const progress = notifier.createProgressIndicator('Foo Sample.pdf', '12mb');
+        const progress = notifier.createProgressIndicator("Foo Sample.pdf", "12mb");
         holder.autoDispose(progress);
         for (let i = 1; i <= 3; i++) {
           await delay(500);
@@ -177,22 +177,22 @@ function setupTest() {
           }
           progress.setProgress(25 * i);
         }
-        holder.autoDispose(notifier.createUserMessage('Unable to upload Foo Sample.pdf',
-          { expireSec: 0, canUserClose: true, level: 'error' }));
+        holder.autoDispose(notifier.createUserMessage("Unable to upload Foo Sample.pdf",
+          { expireSec: 0, canUserClose: true, level: "error" }));
       }),
     ),
-    dom('hr'),
-    dom('button',
-      'Common popups',
-      dom.on('click', async () => {
+    dom("hr"),
+    dom("button",
+      "Common popups",
+      dom.on("click", async () => {
         multiHolder.dispose();
         multiHolder = new MultiHolder();
         const noExp = { expireSec: 0, canUserClose: true };
         let n = notifier.createUserMessage("10:03:10 Cannot read property of null (reading 'callback')",
           {
             title: "Unexpected error",
-            actions: ['report-problem'],
-            level: 'error',
+            actions: ["report-problem"],
+            level: "error",
             ...noExp,
           });
         multiHolder.autoDispose(n);
@@ -200,7 +200,7 @@ function setupTest() {
         multiHolder.autoDispose(n);
         n = notifier.createUserMessage("No more documents permitted", {
           title: "Reached plan limit",
-          actions: ['upgrade'],
+          actions: ["upgrade"],
           ...noExp,
         });
         multiHolder.autoDispose(n);
@@ -209,19 +209,19 @@ function setupTest() {
         n = notifier.createUserMessage("Link copied to clipboard", noExp);
         multiHolder.autoDispose(n);
         n = notifier.createUserMessage("Cannot change summary column 'count' between formula and data", {
-          actions: ['ask-for-help'],
-          level: 'error',
+          actions: ["ask-for-help"],
+          level: "error",
           ...noExp,
         });
         multiHolder.autoDispose(n);
         n = notifier.createUserMessage("Cannot change summary column 'count' between formula and data", {
-          actions: ['ask-for-help'],
+          actions: ["ask-for-help"],
           title: "Warning",
-          level: 'error',
+          level: "error",
           ...noExp,
         });
         multiHolder.autoDispose(n);
-        const progress = notifier.createProgressIndicator('Foo Sample.pdf', '12mb');
+        const progress = notifier.createProgressIndicator("Foo Sample.pdf", "12mb");
         progress.setProgress(25);
         multiHolder.autoDispose(progress);
       }),
@@ -230,7 +230,7 @@ function setupTest() {
   );
 }
 
-const cssWrapper = styled('div', `
+const cssWrapper = styled("div", `
 `);
 
 // Load icons.css, wait for it to load, then build the page.

@@ -1,35 +1,35 @@
-import { MigrationInterface, QueryRunner, Table, TableColumn, TableForeignKey } from 'typeorm';
-import { BillingAccount } from 'app/gen-server/entity/BillingAccount';
-import { BillingAccountManager } from 'app/gen-server/entity/BillingAccountManager';
-import { Organization } from 'app/gen-server/entity/Organization';
-import { Product } from 'app/gen-server/entity/Product';
-import { nativeValues } from 'app/gen-server/lib/values';
+import { MigrationInterface, QueryRunner, Table, TableColumn, TableForeignKey } from "typeorm";
+import { BillingAccount } from "app/gen-server/entity/BillingAccount";
+import { BillingAccountManager } from "app/gen-server/entity/BillingAccountManager";
+import { Organization } from "app/gen-server/entity/Organization";
+import { Product } from "app/gen-server/entity/Product";
+import { nativeValues } from "app/gen-server/lib/values";
 
 export class Billing1556726945436 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {
     // Create table for products.
     await queryRunner.createTable(new Table({
-      name: 'products',
+      name: "products",
       columns: [
         {
-          name: 'id',
-          type: 'integer',
+          name: "id",
+          type: "integer",
           isGenerated: true,
-          generationStrategy: 'increment',
+          generationStrategy: "increment",
           isPrimary: true,
         },
         {
-          name: 'name',
-          type: 'varchar',
+          name: "name",
+          type: "varchar",
         },
         {
-          name: 'stripe_product_id',
-          type: 'varchar',
+          name: "stripe_product_id",
+          type: "varchar",
           isUnique: true,
           isNullable: true,
         },
         {
-          name: 'features',
+          name: "features",
           type: nativeValues.jsonType,
         },
       ],
@@ -37,111 +37,111 @@ export class Billing1556726945436 implements MigrationInterface {
 
     // Create a basic free product that existing orgs can use.
     const product = new Product();
-    product.name = 'Free';
+    product.name = "Free";
     product.features = {};
     await queryRunner.manager.save(product);
 
     // Create billing accounts and billing account managers.
     await queryRunner.createTable(new Table({
-      name: 'billing_accounts',
+      name: "billing_accounts",
       columns: [
         {
-          name: 'id',
-          type: 'integer',
+          name: "id",
+          type: "integer",
           isGenerated: true,
-          generationStrategy: 'increment',
+          generationStrategy: "increment",
           isPrimary: true,
         },
         {
-          name: 'product_id',
-          type: 'integer',
+          name: "product_id",
+          type: "integer",
         },
         {
-          name: 'individual',
+          name: "individual",
           type: nativeValues.booleanType,
         },
         {
-          name: 'in_good_standing',
+          name: "in_good_standing",
           type: nativeValues.booleanType,
           default: nativeValues.trueValue,
         },
         {
-          name: 'status',
+          name: "status",
           type: nativeValues.jsonType,
           isNullable: true,
         },
         {
-          name: 'stripe_customer_id',
-          type: 'varchar',
+          name: "stripe_customer_id",
+          type: "varchar",
           isUnique: true,
           isNullable: true,
         },
         {
-          name: 'stripe_subscription_id',
-          type: 'varchar',
+          name: "stripe_subscription_id",
+          type: "varchar",
           isUnique: true,
           isNullable: true,
         },
         {
-          name: 'stripe_plan_id',
-          type: 'varchar',
+          name: "stripe_plan_id",
+          type: "varchar",
           isNullable: true,
         },
       ],
       foreignKeys: [
         {
-          columnNames: ['product_id'],
-          referencedColumnNames: ['id'],
-          referencedTableName: 'products',
+          columnNames: ["product_id"],
+          referencedColumnNames: ["id"],
+          referencedTableName: "products",
         },
       ],
     }));
 
     await queryRunner.createTable(new Table({
-      name: 'billing_account_managers',
+      name: "billing_account_managers",
       columns: [
         {
-          name: 'id',
-          type: 'integer',
+          name: "id",
+          type: "integer",
           isGenerated: true,
-          generationStrategy: 'increment',
+          generationStrategy: "increment",
           isPrimary: true,
         },
         {
-          name: 'billing_account_id',
-          type: 'integer',
+          name: "billing_account_id",
+          type: "integer",
         },
         {
-          name: 'user_id',
-          type: 'integer',
+          name: "user_id",
+          type: "integer",
         },
       ],
       foreignKeys: [
         {
-          columnNames: ['billing_account_id'],
-          referencedColumnNames: ['id'],
-          referencedTableName: 'billing_accounts',
-          onDelete: 'CASCADE',  // delete manager if referenced billing_account goes away
+          columnNames: ["billing_account_id"],
+          referencedColumnNames: ["id"],
+          referencedTableName: "billing_accounts",
+          onDelete: "CASCADE",  // delete manager if referenced billing_account goes away
         },
         {
-          columnNames: ['user_id'],
-          referencedColumnNames: ['id'],
-          referencedTableName: 'users',
-          onDelete: 'CASCADE',  // delete manager if referenced user goes away
+          columnNames: ["user_id"],
+          referencedColumnNames: ["id"],
+          referencedTableName: "users",
+          onDelete: "CASCADE",  // delete manager if referenced user goes away
         },
       ],
     }));
 
     // Add a reference to billing accounts from orgs.
-    await queryRunner.addColumn('orgs', new TableColumn({
-      name: 'billing_account_id',
-      type: 'integer',
+    await queryRunner.addColumn("orgs", new TableColumn({
+      name: "billing_account_id",
+      type: "integer",
       isNullable: true,
     }));
-    await queryRunner.createForeignKey('orgs', new TableForeignKey({
-      columnNames: ['billing_account_id'],
-      referencedColumnNames: ['id'],
-      referencedTableName: 'billing_accounts',
+    await queryRunner.createForeignKey("orgs", new TableForeignKey({
+      columnNames: ["billing_account_id"],
+      referencedColumnNames: ["id"],
+      referencedTableName: "billing_accounts",
     }));
 
     // Let's add billing accounts to all existing orgs.
@@ -150,15 +150,15 @@ export class Billing1556726945436 implements MigrationInterface {
     // list of payment managers seeded by owners of that account.
     const query =
       queryRunner.manager.createQueryBuilder()
-        .select('orgs.id')
-        .from(Organization, 'orgs')
-        .leftJoin('orgs.owner', 'owners')
-        .addSelect('orgs.owner.id')
-        .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
-        .leftJoinAndSelect('acl_rules.group', 'groups')
-        .leftJoin('groups.memberUsers', 'users')
-        .addSelect('users.id')
-        .where('permissions & 8 = 8');  // seed managers with owners+editors, omitting guests+viewers
+        .select("orgs.id")
+        .from(Organization, "orgs")
+        .leftJoin("orgs.owner", "owners")
+        .addSelect("orgs.owner.id")
+        .leftJoinAndSelect("orgs.aclRules", "acl_rules")
+        .leftJoinAndSelect("acl_rules.group", "groups")
+        .leftJoin("groups.memberUsers", "users")
+        .addSelect("users.id")
+        .where("permissions & 8 = 8");  // seed managers with owners+editors, omitting guests+viewers
     // (permission 8 is "Remove")
     const orgs = await query.getMany();
     for (const org of orgs) {
@@ -190,7 +190,7 @@ export class Billing1556726945436 implements MigrationInterface {
       await queryRunner.manager.createQueryBuilder()
         .update(Organization)
         .set({ billingAccountId })
-        .where('id = :id', { id: org.id })
+        .where("id = :id", { id: org.id })
         .execute();
     }
 
@@ -212,13 +212,13 @@ export class Billing1556726945436 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<any> {
     // this is a bit ugly, but is the documented way to remove a foreign key
-    const table = await queryRunner.getTable('orgs');
-    const foreignKey = table!.foreignKeys.find(fk => fk.columnNames.includes('billing_account_id'));
-    await queryRunner.dropForeignKey('orgs', foreignKey!);
+    const table = await queryRunner.getTable("orgs");
+    const foreignKey = table!.foreignKeys.find(fk => fk.columnNames.includes("billing_account_id"));
+    await queryRunner.dropForeignKey("orgs", foreignKey!);
 
-    await queryRunner.dropColumn('orgs', 'billing_account_id');
-    await queryRunner.dropTable('billing_account_managers');
-    await queryRunner.dropTable('billing_accounts');
-    await queryRunner.dropTable('products');
+    await queryRunner.dropColumn("orgs", "billing_account_id");
+    await queryRunner.dropTable("billing_account_managers");
+    await queryRunner.dropTable("billing_accounts");
+    await queryRunner.dropTable("products");
   }
 }

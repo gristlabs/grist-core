@@ -13,7 +13,7 @@
  * help with tests, and when Grist is embedded.
  */
 export function getStorage(): Storage {
-  _storage ??= testStorage('localStorage') || getSessionStorage();
+  _storage ??= testStorage("localStorage") || getSessionStorage();
   return _storage;
 }
 
@@ -22,7 +22,7 @@ export function getStorage(): Storage {
  */
 export function getSessionStorage(): Storage {
   // If can't use sessionStorage, fall back to a Map-based non-persistent implementation.
-  _sessionStorage ??= testStorage('sessionStorage') || createInMemoryStorage();
+  _sessionStorage ??= testStorage("sessionStorage") || createInMemoryStorage();
   return _sessionStorage;
 }
 
@@ -34,9 +34,9 @@ let _sessionStorage: Storage | undefined;
  * cases (e.g. when embedded), using localStorage may throw errors, in which case we return null.
  * This is similar to the approach taken by store.js.
  */
-function testStorage(storageName: 'localStorage' | 'sessionStorage'): Storage | null {
+function testStorage(storageName: "localStorage" | "sessionStorage"): Storage | null {
   try {
-    const testStr = '__localStorage_test';
+    const testStr = "__localStorage_test";
     const storage = window[storageName];
     storage.setItem(testStr, testStr);
     const ok = (storage.getItem(testStr) === testStr);
@@ -60,6 +60,6 @@ function createInMemoryStorage(): Storage {
     removeItem(key: string) { values.delete(key); },
     clear() { values.clear(); },
     get length() { return values.size; },
-    key(index: number): string | null { throw new Error('Not implemented'); },
+    key(index: number): string | null { throw new Error("Not implemented"); },
   };
 }

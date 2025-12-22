@@ -1,18 +1,18 @@
-import { MinimalActionGroup } from 'app/common/ActionGroup';
-import { TableDataAction } from 'app/common/DocActions';
-import { FilteredDocUsageSummary } from 'app/common/DocUsage';
-import { Role } from 'app/common/roles';
-import { StringUnion } from 'app/common/StringUnion';
-import { UserInfo } from 'app/common/User';
-import { FullUser } from 'app/common/UserAPI';
+import { MinimalActionGroup } from "app/common/ActionGroup";
+import { TableDataAction } from "app/common/DocActions";
+import { FilteredDocUsageSummary } from "app/common/DocUsage";
+import { Role } from "app/common/roles";
+import { StringUnion } from "app/common/StringUnion";
+import { UserInfo } from "app/common/User";
+import { FullUser } from "app/common/UserAPI";
 
 // Possible flavors of items in a list of documents.
-export type DocEntryTag = '' | 'sample' | 'invite' | 'shared';
+export type DocEntryTag = "" | "sample" | "invite" | "shared";
 
 export const OpenDocMode = StringUnion(
-  'default',  // open doc with user's maximal access level
-  'view',     // open doc limited to view access (if user has at least that level of access)
-  'fork',     // as for 'view', but suggest a fork on any attempt to edit - the client will
+  "default",  // open doc with user's maximal access level
+  "view",     // open doc limited to view access (if user has at least that level of access)
+  "fork",     // as for 'view', but suggest a fork on any attempt to edit - the client will
   // enable the editing UI experience and trigger a fork on any edit.
 );
 export type OpenDocMode = typeof OpenDocMode.type;

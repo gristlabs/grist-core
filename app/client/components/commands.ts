@@ -7,17 +7,17 @@
  * command is active at any time.
  */
 
-import * as Mousetrap from 'app/client/lib/Mousetrap';
-import { arrayRemove, unwrap } from 'app/common/gutil';
-import dom from 'app/client/lib/dom';
-import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
-import { CommandDef, CommandName, CommendGroupDef, groups } from 'app/client/components/commandList';
+import * as Mousetrap from "app/client/lib/Mousetrap";
+import { arrayRemove, unwrap } from "app/common/gutil";
+import dom from "app/client/lib/dom";
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { CommandDef, CommandName, CommendGroupDef, groups } from "app/client/components/commandList";
 
-import { Disposable, Observable } from 'grainjs';
-import * as _ from 'underscore';
-import * as ko from 'knockout';
+import { Disposable, Observable } from "grainjs";
+import * as _ from "underscore";
+import * as ko from "knockout";
 
-const G = getBrowserGlobals('window');
+const G = getBrowserGlobals("window");
 type BoolLike = boolean | ko.Observable<boolean> | ko.Computed<boolean> | Observable<boolean>;
 
 /**
@@ -31,12 +31,12 @@ function subscribe(value: Exclude<BoolLike, boolean>, fn: (value: boolean) => vo
     return value.addListener(fn);
   }
   else {
-    throw new Error('Expected an observable');
+    throw new Error("Expected an observable");
   }
 }
 
 // Same logic as used by mousetrap to map 'Mod' key to platform-specific key.
-export const isMac = (typeof navigator !== 'undefined' && navigator &&
+export const isMac = (typeof navigator !== "undefined" && navigator &&
   /Mac|iPod|iPhone|iPad/.test(navigator.platform));
 
 /**
@@ -96,33 +96,33 @@ export function init(optCommandGroups?: CommendGroupDef[]) {
 // ----------------------------------------------------------------------
 
 const KEY_MAP_MAC = {
-  Mod: '⌘',
-  Alt: '⌥',
-  Shift: '⇧',
-  Ctrl: '⌃',
-  Left: '←',
-  Right: '→',
-  Up: '↑',
-  Down: '↓',
+  Mod: "⌘",
+  Alt: "⌥",
+  Shift: "⇧",
+  Ctrl: "⌃",
+  Left: "←",
+  Right: "→",
+  Up: "↑",
+  Down: "↓",
 };
 
 const KEY_MAP_WIN = {
-  Mod: 'Ctrl',
-  Left: '←',
-  Right: '→',
-  Up: '↑',
-  Down: '↓',
+  Mod: "Ctrl",
+  Left: "←",
+  Right: "→",
+  Up: "↑",
+  Down: "↓",
 };
 
 export function getHumanKey(key: string, mac: boolean): string {
   const keyMap = mac ? KEY_MAP_MAC : KEY_MAP_WIN;
-  let keys = key.split('+').map(s => s.trim());
+  let keys = key.split("+").map(s => s.trim());
   keys = keys.map((k) => {
     if (k in keyMap) { return (keyMap as any)[k]; }
     if (k.length === 1) { return k.toUpperCase(); }
     return k;
   });
-  return keys.join(mac ? '' : ' + ');
+  return keys.join(mac ? "" : " + ");
 }
 
 export interface CommandOptions {
@@ -159,7 +159,7 @@ export class Command implements CommandDef {
     this.name = name;
     this.desc = desc;
     this.humanKeys = keys.map(key => getHumanKey(key, isMac));
-    this.keys = keys.map(function(k) { return k.trim().toLowerCase().replace(/ *\+ */g, '+'); });
+    this.keys = keys.map(function(k) { return k.trim().toLowerCase().replace(/ *\+ */g, "+"); });
     this.bindKeys = options.bindKeys ?? true;
     this.alwaysOn = options.alwaysOn ?? false;
     this.isActive = ko.observable(false);
@@ -177,27 +177,27 @@ export class Command implements CommandDef {
   public getKeysDesc() {
     if (this.humanKeys.length === 0) { return null; }
 
-    return `(${this.humanKeys.join(', ')})`;
+    return `(${this.humanKeys.join(", ")})`;
   }
 
   /**
    * Returns the text description for the command, including the keyboard shortcuts.
    */
   public getDesc() {
-    const parts = [this.desc?.() ?? ''];
+    const parts = [this.desc?.() ?? ""];
     const keysDesc = this.getKeysDesc();
     if (keysDesc) { parts.push(keysDesc); }
 
-    return parts.join(' ');
+    return parts.join(" ");
   }
 
   /**
    * Returns DOM for the keyboard shortcuts, wrapped in cute boxes that look like keyboard keys.
    */
   public getKeysDom(separator?: ko.Observable<string>) {
-    return dom('span.shortcut_keys',
-      separator ? this.humanKeys.map((key, i) => [i ? separator() : null, dom('span.shortcut_key_image', key)]) :
-        this.humanKeys.map(key => dom('span.shortcut_key_image', key)),
+    return dom("span.shortcut_keys",
+      separator ? this.humanKeys.map((key, i) => [i ? separator() : null, dom("span.shortcut_key_image", key)]) :
+        this.humanKeys.map(key => dom("span.shortcut_key_image", key)),
     );
   }
 
@@ -324,7 +324,7 @@ export class CommandGroup extends Disposable {
     this.onDispose(this._removeGroup.bind(this));
 
     // Finally, set the activation status of the command group, subscribing if an observable.
-    if (typeof activate === 'boolean' || activate === undefined) {
+    if (typeof activate === "boolean" || activate === undefined) {
       this.activate(activate ?? false);
     }
     else if (activate) {
@@ -395,6 +395,6 @@ export function createGroup<T>(commands: BoundedMap<T> | null, context: T, activ
  */
 export const setButtonCommand = dom.inlinable(function(elem: Element, commandName: CommandName) {
   const cmd = allCommands[commandName];
-  elem.setAttribute('title', cmd.getDesc());
-  dom.on(elem, 'click', cmd.run);
+  elem.setAttribute("title", cmd.getDesc());
+  dom.on(elem, "click", cmd.run);
 });

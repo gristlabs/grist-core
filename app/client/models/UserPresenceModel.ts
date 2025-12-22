@@ -1,9 +1,9 @@
-import { Comm } from 'app/client/components/Comm';
-import { DocComm } from 'app/client/components/DocComm';
-import { VisibleUserProfile } from 'app/common/ActiveDocAPI';
-import { CommDocUserPresenceUpdate } from 'app/common/CommTypes';
-import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
-import { Disposable, Observable } from 'grainjs';
+import { Comm } from "app/client/components/Comm";
+import { DocComm } from "app/client/components/DocComm";
+import { VisibleUserProfile } from "app/common/ActiveDocAPI";
+import { CommDocUserPresenceUpdate } from "app/common/CommTypes";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { Disposable, Observable } from "grainjs";
 
 export interface UserPresenceModel extends Disposable {
   userProfiles: Observable<VisibleUserProfile[]>;
@@ -17,7 +17,7 @@ export class UserPresenceModelImpl extends DisposableWithEvents implements UserP
   constructor(private _docComm: DocComm, private _comm: Comm) {
     super();
     this.userProfiles = Observable.create<VisibleUserProfile[]>(this, []);
-    this.listenTo(this._comm, 'docUserPresenceUpdate', this._onUserPresenceUpdateMessage);
+    this.listenTo(this._comm, "docUserPresenceUpdate", this._onUserPresenceUpdateMessage);
   }
 
   public async initialize(): Promise<void> {

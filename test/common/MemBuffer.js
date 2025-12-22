@@ -1,12 +1,12 @@
-var assert = require('assert');
-var MemBuffer = require('app/common/MemBuffer');
+var assert = require("assert");
+var MemBuffer = require("app/common/MemBuffer");
 
 function repeat(str, n) {
   return new Array(n+1).join(str);
 }
 
 describe("MemBuffer", function() {
-  describe('#reserve', function() {
+  describe("#reserve", function() {
     it("should reserve exponentially", function() {
       var mbuf = new MemBuffer();
       assert.equal(mbuf.size(), 0);
@@ -17,7 +17,7 @@ describe("MemBuffer", function() {
 
       // Append 1 char at a time, 1000 times, and make sure we don't have more than 10 reallocs.
       for (var i = 0; i < 1000; i++) {
-        var ch = 'a'.charCodeAt(0) + (i % 10);
+        var ch = "a".charCodeAt(0) + (i % 10);
         str += String.fromCharCode(ch);
 
         mbuf.writeUint8(ch);
@@ -73,7 +73,7 @@ describe("MemBuffer", function() {
     });
   });
 
-  describe('#write', function() {
+  describe("#write", function() {
     it("should append to the buffer", function() {
       var mbuf = new MemBuffer();
       mbuf.writeString("a");
@@ -86,7 +86,7 @@ describe("MemBuffer", function() {
     });
   });
 
-  describe('#consume', function() {
+  describe("#consume", function() {
     it("should remove from start of buffer", function() {
       var mbuf = new MemBuffer();
       mbuf.writeString(repeat("x", 90));

@@ -1,22 +1,22 @@
 /**
  * Test for copy-pasting from a Grist column into a blank column, which should copy the options.
  */
-import { safeJsonParse } from 'app/common/gutil';
-import { GristObjCode } from 'app/plugin/GristData';
-import { assert } from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { safeJsonParse } from "app/common/gutil";
+import { GristObjCode } from "app/plugin/GristData";
+import { assert } from "mocha-webdriver";
+import * as gu from "test/nbrowser/gristUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
 
-describe('CopyPasteColumnOptions', function() {
+describe("CopyPasteColumnOptions", function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
   const clipboard = gu.getLockableClipboard();
   afterEach(() => gu.checkForErrors());
   gu.bigScreen();
 
-  it('should copy column options into blank columns', async function() {
+  it("should copy column options into blank columns", async function() {
     const session = await gu.session().login();
-    const doc = await session.tempDoc(cleanup, 'CopyOptions.grist');
+    const doc = await session.tempDoc(cleanup, "CopyOptions.grist");
     const api = session.createHomeApi().getDocAPI(doc.id);
     const data1 = await api.getRows("Table1");
     const data2 = await api.getRows("Table2");
@@ -50,11 +50,11 @@ describe('CopyPasteColumnOptions', function() {
     });
 
     // Copy all the data from Table1 to Table2, which will copy the column options
-    await gu.getCell({ section: 'TABLE1', col: 0, rowNum: 1 }).click();
+    await gu.getCell({ section: "TABLE1", col: 0, rowNum: 1 }).click();
     await gu.sendKeys(await gu.selectAllKey());
     await clipboard.lockAndPerform(async (cb) => {
       await cb.copy();
-      await gu.getCell({ section: 'TABLE2', col: 0, rowNum: 1 }).click();
+      await gu.getCell({ section: "TABLE2", col: 0, rowNum: 1 }).click();
       await cb.paste();
     });
     await gu.waitForServer();

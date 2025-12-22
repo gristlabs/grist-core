@@ -1,7 +1,7 @@
-import { theme } from 'app/client/ui2018/cssVars';
-import { styled } from 'grainjs';
+import { theme } from "app/client/ui2018/cssVars";
+import { styled } from "grainjs";
 
-export const cssRadioInput = styled('input', `
+export const cssRadioInput = styled("input", `
   appearance: none;
   width: 16px;
   height: 16px;

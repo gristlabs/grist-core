@@ -1,40 +1,40 @@
-import { ICustomWidget } from 'app/common/CustomWidget';
-import { GristDeploymentType, GristLoadConfig, LatestVersionAvailable } from 'app/common/gristUrls';
-import { LocalPlugin } from 'app/common/plugin';
-import { SandboxInfo } from 'app/common/SandboxInfo';
-import { UserProfile } from 'app/common/UserAPI';
-import { Document } from 'app/gen-server/entity/Document';
-import { Organization } from 'app/gen-server/entity/Organization';
-import { User } from 'app/gen-server/entity/User';
-import { Workspace } from 'app/gen-server/entity/Workspace';
-import { ActivationsManager } from 'app/gen-server/lib/ActivationsManager';
-import { Doom } from 'app/gen-server/lib/Doom';
-import { HomeDBManager, UserChange } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { IAccessTokens } from 'app/server/lib/AccessTokens';
-import { RequestWithLogin } from 'app/server/lib/Authorizer';
-import { Comm } from 'app/server/lib/Comm';
-import { create } from 'app/server/lib/create';
-import { DocManager } from 'app/server/lib/DocManager';
-import { Hosts } from 'app/server/lib/extractOrg';
-import { GristJobs } from 'app/server/lib/GristJobs';
-import { IAssistant } from 'app/server/lib/IAssistant';
-import { createNullAuditLogger, IAuditLogger } from 'app/server/lib/IAuditLogger';
-import { IBilling } from 'app/server/lib/IBilling';
-import { ICreate } from 'app/server/lib/ICreate';
-import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
-import { IDocNotificationManager } from 'app/server/lib/IDocNotificationManager';
-import { INotifier } from 'app/server/lib/INotifier';
-import { InstallAdmin } from 'app/server/lib/InstallAdmin';
-import { IPermitStore } from 'app/server/lib/Permit';
-import { IPubSubManager } from 'app/server/lib/PubSubManager';
-import { ISendAppPageOptions } from 'app/server/lib/sendAppPage';
-import { fromCallback } from 'app/server/lib/serverUtils';
-import { Sessions } from 'app/server/lib/Sessions';
-import { ITelemetry } from 'app/server/lib/Telemetry';
-import { IWidgetRepository } from 'app/server/lib/WidgetRepository';
+import { ICustomWidget } from "app/common/CustomWidget";
+import { GristDeploymentType, GristLoadConfig, LatestVersionAvailable } from "app/common/gristUrls";
+import { LocalPlugin } from "app/common/plugin";
+import { SandboxInfo } from "app/common/SandboxInfo";
+import { UserProfile } from "app/common/UserAPI";
+import { Document } from "app/gen-server/entity/Document";
+import { Organization } from "app/gen-server/entity/Organization";
+import { User } from "app/gen-server/entity/User";
+import { Workspace } from "app/gen-server/entity/Workspace";
+import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
+import { Doom } from "app/gen-server/lib/Doom";
+import { HomeDBManager, UserChange } from "app/gen-server/lib/homedb/HomeDBManager";
+import { IAccessTokens } from "app/server/lib/AccessTokens";
+import { RequestWithLogin } from "app/server/lib/Authorizer";
+import { Comm } from "app/server/lib/Comm";
+import { create } from "app/server/lib/create";
+import { DocManager } from "app/server/lib/DocManager";
+import { Hosts } from "app/server/lib/extractOrg";
+import { GristJobs } from "app/server/lib/GristJobs";
+import { IAssistant } from "app/server/lib/IAssistant";
+import { createNullAuditLogger, IAuditLogger } from "app/server/lib/IAuditLogger";
+import { IBilling } from "app/server/lib/IBilling";
+import { ICreate } from "app/server/lib/ICreate";
+import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
+import { IDocNotificationManager } from "app/server/lib/IDocNotificationManager";
+import { INotifier } from "app/server/lib/INotifier";
+import { InstallAdmin } from "app/server/lib/InstallAdmin";
+import { IPermitStore } from "app/server/lib/Permit";
+import { IPubSubManager } from "app/server/lib/PubSubManager";
+import { ISendAppPageOptions } from "app/server/lib/sendAppPage";
+import { fromCallback } from "app/server/lib/serverUtils";
+import { Sessions } from "app/server/lib/Sessions";
+import { ITelemetry } from "app/server/lib/Telemetry";
+import { IWidgetRepository } from "app/server/lib/WidgetRepository";
 import { IGristCoreConfig, loadGristCoreConfig } from "app/server/lib/configCore";
-import * as express from 'express';
-import { IncomingMessage } from 'http';
+import * as express from "express";
+import { IncomingMessage } from "http";
 
 /**
  *
@@ -61,7 +61,7 @@ export interface GristServer extends StorageCoordinator {
   getOrgUrl(orgKey: string | number): Promise<string>;
   getMergedOrgUrl(req: RequestWithLogin, pathname?: string): string;
   getResourceUrl(resource: Organization | Workspace | Document,
-    purpose?: 'api' | 'html'): Promise<string>;
+    purpose?: "api" | "html"): Promise<string>;
   getGristConfig(): GristLoadConfig;
   getPermitStore(): IPermitStore;
   getExternalPermitStore(): IPermitStore;
@@ -170,60 +170,60 @@ export function createDummyGristServer(): GristServer {
   return {
     create,
     settings: loadGristCoreConfig(),
-    getHost() { return 'localhost:4242'; },
-    getHomeUrl() { return 'http://localhost:4242'; },
-    getHomeInternalUrl() { return 'http://localhost:4242'; },
-    getHomeUrlByDocId() { return Promise.resolve('http://localhost:4242'); },
-    getMergedOrgUrl() { return 'http://localhost:4242'; },
-    getOwnUrl() { return 'http://localhost:4242'; },
-    getPermitStore() { throw new Error('no permit store'); },
-    getExternalPermitStore() { throw new Error('no external permit store'); },
-    getGristConfig() { return { homeUrl: '', timestampMs: 0, serveSameOrigin: true, checkForLatestVersion: false }; },
-    getOrgUrl() { return Promise.resolve(''); },
-    getResourceUrl() { return Promise.resolve(''); },
-    getSessions() { throw new Error('no sessions'); },
-    getComm() { throw new Error('no comms'); },
-    getDeploymentType() { return 'core'; },
-    getHosts() { throw new Error('no hosts'); },
-    getActivations() { throw new Error('no activations'); },
-    getInstallAdmin() { throw new Error('no install admin'); },
-    getHomeDBManager() { throw new Error('no db'); },
-    getStorageManager() { throw new Error('no storage manager'); },
+    getHost() { return "localhost:4242"; },
+    getHomeUrl() { return "http://localhost:4242"; },
+    getHomeInternalUrl() { return "http://localhost:4242"; },
+    getHomeUrlByDocId() { return Promise.resolve("http://localhost:4242"); },
+    getMergedOrgUrl() { return "http://localhost:4242"; },
+    getOwnUrl() { return "http://localhost:4242"; },
+    getPermitStore() { throw new Error("no permit store"); },
+    getExternalPermitStore() { throw new Error("no external permit store"); },
+    getGristConfig() { return { homeUrl: "", timestampMs: 0, serveSameOrigin: true, checkForLatestVersion: false }; },
+    getOrgUrl() { return Promise.resolve(""); },
+    getResourceUrl() { return Promise.resolve(""); },
+    getSessions() { throw new Error("no sessions"); },
+    getComm() { throw new Error("no comms"); },
+    getDeploymentType() { return "core"; },
+    getHosts() { throw new Error("no hosts"); },
+    getActivations() { throw new Error("no activations"); },
+    getInstallAdmin() { throw new Error("no install admin"); },
+    getHomeDBManager() { throw new Error("no db"); },
+    getStorageManager() { throw new Error("no storage manager"); },
     getAuditLogger() { return createNullAuditLogger(); },
     getTelemetry() { return createDummyTelemetry(); },
-    getWidgetRepository() { throw new Error('no widget repository'); },
-    getNotifier() { throw new Error('no notifier'); },
+    getWidgetRepository() { throw new Error("no widget repository"); },
+    getNotifier() { throw new Error("no notifier"); },
     getDocNotificationManager(): IDocNotificationManager | undefined { return undefined; },
-    getPubSubManager(): IPubSubManager { throw new Error('no PubSubManager'); },
+    getPubSubManager(): IPubSubManager { throw new Error("no PubSubManager"); },
     hasNotifier() { return false; },
     getAssistant() { return undefined; },
-    getDocTemplate() { throw new Error('no doc template'); },
-    getTag() { return 'tag'; },
+    getDocTemplate() { throw new Error("no doc template"); },
+    getTag() { return "tag"; },
     sendAppPage() { return Promise.resolve(); },
-    getAccessTokens() { throw new Error('no access tokens'); },
-    resolveLoginSystem() { throw new Error('no login system'); },
+    getAccessTokens() { throw new Error("no access tokens"); },
+    resolveLoginSystem() { throw new Error("no login system"); },
     getPluginUrl() { return undefined; },
     servesPlugins() { return false; },
     getPlugins() { return []; },
     getBundledWidgets() { return []; },
     getBootKey() { return undefined; },
-    getSandboxInfo() { throw new Error('no sandbox'); },
+    getSandboxInfo() { throw new Error("no sandbox"); },
     getInfo(key: string) { return undefined; },
-    getJobs(): GristJobs { throw new Error('no job system'); },
-    getBilling() { throw new Error('no billing'); },
-    getDoomTool() { throw new Error('no doom tool'); },
-    getLatestVersionAvailable() { throw new Error('no version checking'); },
+    getJobs(): GristJobs { throw new Error("no job system"); },
+    getBilling() { throw new Error("no billing"); },
+    getDoomTool() { throw new Error("no doom tool"); },
+    getLatestVersionAvailable() { throw new Error("no version checking"); },
     setLatestVersionAvailable() { /* do nothing */ },
     publishLatestVersionAvailable() { return Promise.resolve(); },
     setRestrictedMode() { /* do nothing */ },
-    getDocManager() { throw new Error('no DocManager'); },
+    getDocManager() { throw new Error("no DocManager"); },
     isRestrictedMode() { return false; },
     onUserChange() { /* do nothing */ },
     onStreamingDestinationsChange() { /* do nothing */ },
     hardDeleteDoc() { return Promise.resolve(); },
     setReady() { /* do nothing */ },
-    getSigninUrl() { return Promise.resolve(''); },
-    getUserIdMiddleware() { throw new Error('no user id middleware'); },
+    getSigninUrl() { return Promise.resolve(""); },
+    getUserIdMiddleware() { throw new Error("no user id middleware"); },
   };
 }
 

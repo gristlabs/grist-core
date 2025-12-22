@@ -1,6 +1,6 @@
-import { fromFile } from 'file-type';
-import { extension, lookup } from 'mime-types';
-import * as path from 'path';
+import { fromFile } from "file-type";
+import { extension, lookup } from "mime-types";
+import * as path from "path";
 
 /**
  * Get our best guess of the file extension, based on its original extension (as received from the
@@ -41,7 +41,7 @@ export async function guessExt(filePath: string, fileName: string, mimeType: str
     return detectedExt;
   }
 
-  if (mimeExt === '.txt' || mimeExt === '.bin') {
+  if (mimeExt === ".txt" || mimeExt === ".bin") {
     // text/plain (txt) and application/octet-stream (bin) are too generic, only use them if we
     // don't have anything better.
     return origExt || mimeExt;

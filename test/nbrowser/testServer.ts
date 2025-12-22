@@ -10,23 +10,23 @@
  * Run with VERBOSE=1 in the environment to see the server log on the console. Normally it goes
  * into a file whose path is printed when server starts.
  */
-import { encodeUrl, IGristUrlState, parseSubdomain } from 'app/common/gristUrls';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import log from 'app/server/lib/log';
-import { getAppRoot } from 'app/server/lib/places';
-import { makeGristConfig } from 'app/server/lib/sendAppPage';
-import { exitPromise } from 'app/server/lib/serverUtils';
-import { connectTestingHooks, TestingHooksClient } from 'app/server/lib/TestingHooks';
-import { ChildProcess, execFileSync, spawn } from 'child_process';
-import EventEmitter from 'events';
-import * as fse from 'fs-extra';
-import { driver, IMochaServer, WebDriver } from 'mocha-webdriver';
-import fetch from 'node-fetch';
-import { tmpdir } from 'os';
-import * as path from 'path';
-import { removeConnection } from 'test/gen-server/seed';
-import { HomeUtil } from 'test/nbrowser/homeUtil';
-import { getDatabase } from 'test/testUtils';
+import { encodeUrl, IGristUrlState, parseSubdomain } from "app/common/gristUrls";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import log from "app/server/lib/log";
+import { getAppRoot } from "app/server/lib/places";
+import { makeGristConfig } from "app/server/lib/sendAppPage";
+import { exitPromise } from "app/server/lib/serverUtils";
+import { connectTestingHooks, TestingHooksClient } from "app/server/lib/TestingHooks";
+import { ChildProcess, execFileSync, spawn } from "child_process";
+import EventEmitter from "events";
+import * as fse from "fs-extra";
+import { driver, IMochaServer, WebDriver } from "mocha-webdriver";
+import fetch from "node-fetch";
+import { tmpdir } from "os";
+import * as path from "path";
+import { removeConnection } from "test/gen-server/seed";
+import { HomeUtil } from "test/nbrowser/homeUtil";
+import { getDatabase } from "test/testUtils";
 
 export class TestServerMerged extends EventEmitter implements IMochaServer {
   public testDir: string;
@@ -65,7 +65,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
       await this.stop();
     }
     this._starts++;
-    const workerIdText = process.env.MOCHA_WORKER_ID || '0';
+    const workerIdText = process.env.MOCHA_WORKER_ID || "0";
     if (reset) {
       // Make sure this test server doesn't keep using the DB that's about to disappear.
       await this.closeDatabase();
@@ -84,8 +84,8 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     await fse.mkdirs(this.testDocDir);
     log.warn(`Test logs and data are at: ${this.testDir}/`);
 
-    const nodeLogPath = path.join(this.testDir, 'node.log');
-    const nodeLogFd = await fse.open(nodeLogPath, 'a');
+    const nodeLogPath = path.join(this.testDir, "node.log");
+    const nodeLogFd = await fse.open(nodeLogPath, "a");
 
     // The server isn't set up to close the testing socket cleanly and
     // immediately.  It is simplest to use a diffent socket each time
@@ -96,9 +96,9 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
       throw new Error(`Path of testingSocket too long: ${testingSocket.length} (${testingSocket})`);
     }
 
-    const stubCmd = '_build/stubs/app/server/server';
-    const isCore = await fse.pathExists(stubCmd + '.js');
-    const cmd = isCore ? stubCmd : '_build/core/app/server/devServerMain';
+    const stubCmd = "_build/stubs/app/server/server";
+    const isCore = await fse.pathExists(stubCmd + ".js");
+    const cmd = isCore ? stubCmd : "_build/core/app/server/devServerMain";
     // If a proxy is set, use a single port - otherwise we'd need a lot of
     // proxies.
     const useSinglePort = this._proxyUrl !== null;
@@ -106,7 +106,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     // The reason we fork a process rather than start a server within the same process is mainly
     // logging. Server code uses a global logger, so it's hard to separate out (especially so if
     // we ever run different servers for different tests).
-    const serverLog = process.env.VERBOSE ? 'inherit' : nodeLogFd;
+    const serverLog = process.env.VERBOSE ? "inherit" : nodeLogFd;
     const workerId = parseInt(workerIdText, 10);
     const corePort = String(8295 + workerId * 2);
     const untrustedPort = String(8295 + workerId * 2 + 1);
@@ -115,52 +115,52 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
       GRIST_DATA_DIR: this.testDocDir,
       GRIST_INST_DIR: this.testDir,
       // uses the test installed plugins folder as the user installed plugins.
-      GRIST_USER_ROOT: path.resolve(getAppRoot(), 'test/fixtures/plugins/browserInstalledPlugins/'),
+      GRIST_USER_ROOT: path.resolve(getAppRoot(), "test/fixtures/plugins/browserInstalledPlugins/"),
       GRIST_TESTING_SOCKET: testingSocket,
       // Set low limits for uploads, for testing.
-      GRIST_MAX_UPLOAD_IMPORT_MB: '1',
-      GRIST_MAX_UPLOAD_ATTACHMENT_MB: '2',
+      GRIST_MAX_UPLOAD_IMPORT_MB: "1",
+      GRIST_MAX_UPLOAD_ATTACHMENT_MB: "2",
       // The following line only matters for testing with non-localhost URLs, which some tests do.
-      GRIST_SERVE_SAME_ORIGIN: 'true',
+      GRIST_SERVE_SAME_ORIGIN: "true",
       // Run with HOME_PORT, STATIC_PORT, DOC_PORT, DOC_WORKER_COUNT in the environment to override.
       ...(useSinglePort ? {
         // APP_HOME_URL needed if proxyUrl is set, otherwise can be omitted.
         ...(this._proxyUrl ? {
           APP_HOME_URL: this.getHost(),
         } : undefined),
-        GRIST_SINGLE_PORT: 'true',
+        GRIST_SINGLE_PORT: "true",
       } : (isCore ? {
         HOME_PORT: corePort,
         STATIC_PORT: corePort,
         DOC_PORT: corePort,
-        DOC_WORKER_COUNT: '1',
+        DOC_WORKER_COUNT: "1",
         PORT: corePort,
         APP_UNTRUSTED_URL: `http://localhost:${untrustedPort}`,
         GRIST_SERVE_PLUGINS_PORT: untrustedPort,
       } : {
-        HOME_PORT: '8095',
-        STATIC_PORT: '8096',
-        DOC_PORT: '8100',
-        DOC_WORKER_COUNT: '5',
-        PORT: '0',
+        HOME_PORT: "8095",
+        STATIC_PORT: "8096",
+        DOC_PORT: "8100",
+        DOC_WORKER_COUNT: "5",
+        PORT: "0",
         APP_UNTRUSTED_URL: "http://localhost:18096",
       })),
       // This skips type-checking when running server, but reduces startup time a lot.
-      TS_NODE_TRANSPILE_ONLY: 'true',
+      TS_NODE_TRANSPILE_ONLY: "true",
       ...process.env,
-      TEST_CLEAN_DATABASE: reset ? 'true' : '',
+      TEST_CLEAN_DATABASE: reset ? "true" : "",
     };
     if (!process.env.REDIS_URL) {
       // Multiple doc workers only possible when redis is available.
-      log.warn('Running without redis and without multiple doc workers');
+      log.warn("Running without redis and without multiple doc workers");
       delete env.DOC_WORKER_COUNT;
     }
-    this._server = spawn('node', [cmd], {
+    this._server = spawn("node", [cmd], {
       env: {
         ...env,
         ...(process.env.SERVER_NODE_OPTIONS ? { NODE_OPTIONS: process.env.SERVER_NODE_OPTIONS } : {}),
       },
-      stdio: quiet ? 'ignore' : ['inherit', serverLog, serverLog],
+      stdio: quiet ? "ignore" : ["inherit", serverLog, serverLog],
     });
     this._exitPromise = exitPromise(this._server);
 
@@ -172,7 +172,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     this._exitPromise.then((code) => {
       if (this._server.killed || quiet) { return; }
       log.error("Server died unexpectedly, with code", code);
-      const output = execFileSync('tail', ['-30', nodeLogPath]);
+      const output = execFileSync("tail", ["-30", nodeLogPath]);
       log.info(`\n===== BEGIN SERVER OUTPUT ====\n${output}\n===== END SERVER OUTPUT =====`);
     })
       .catch(() => undefined);
@@ -181,7 +181,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
 
     // Prepare testingHooks for certain behind-the-scenes interactions with the server.
     this.testingHooks = await connectTestingHooks(testingSocket);
-    this.emit('start');
+    this.emit("start");
   }
 
   public async stop() {
@@ -192,7 +192,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
       this.testingHooks.close();
     }
     await this._exitPromise;
-    this.emit('stop');
+    this.emit("stop");
   }
 
   /**
@@ -205,7 +205,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
       throw new Error("Can't pause external server");
     }
     log.info("Pausing node server");
-    this._server.kill('SIGSTOP');
+    this._server.kill("SIGSTOP");
     try {
       await callback();
     }
@@ -217,7 +217,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
 
   public resume() {
     if (this.isExternalServer()) { return; }
-    this._server.kill('SIGCONT');
+    this._server.kill("SIGCONT");
   }
 
   public getHost(): string {
@@ -304,12 +304,12 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
    * Returns the path to the database.
    */
   private _getDatabaseFile(): string {
-    if (process.env.TYPEORM_TYPE === 'postgres') {
+    if (process.env.TYPEORM_TYPE === "postgres") {
       const db = process.env.TYPEORM_DATABASE;
       if (!db) { throw new Error("Missing TYPEORM_DATABASE"); }
       return db;
     }
-    return path.join(this.testDir, 'landing.db');
+    return path.join(this.testDir, "landing.db");
   }
 }
 

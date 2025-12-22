@@ -1,6 +1,6 @@
-import { ApiError } from 'app/common/ApiError';
-import { TelemetryConfig } from 'app/common/gristUrls';
-import { assertIsDefined } from 'app/common/gutil';
+import { ApiError } from "app/common/ApiError";
+import { TelemetryConfig } from "app/common/gristUrls";
+import { assertIsDefined } from "app/common/gutil";
 import {
   buildTelemetryEventChecker,
   Level,
@@ -13,25 +13,25 @@ import {
   TelemetryMetadata,
   TelemetryMetadataByLevel,
   TelemetryRetentionPeriod,
-} from 'app/common/Telemetry';
-import { TelemetryPrefsWithSources } from 'app/common/InstallAPI';
-import { Activation } from 'app/gen-server/entity/Activation';
-import { ActivationsManager } from 'app/gen-server/lib/ActivationsManager';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { appSettings } from 'app/server/lib/AppSettings';
-import { RequestWithLogin } from 'app/server/lib/Authorizer';
-import { expressWrap } from 'app/server/lib/expressWrap';
-import { GristServer } from 'app/server/lib/GristServer';
-import { hashId } from 'app/server/lib/hashingUtils';
-import { LogMethods } from 'app/server/lib/LogMethods';
-import { stringParam } from 'app/server/lib/requestUtils';
-import { getAuthSession, getLogMeta, isRequest, RequestOrSession } from 'app/server/lib/sessionUtils';
+} from "app/common/Telemetry";
+import { TelemetryPrefsWithSources } from "app/common/InstallAPI";
+import { Activation } from "app/gen-server/entity/Activation";
+import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { appSettings } from "app/server/lib/AppSettings";
+import { RequestWithLogin } from "app/server/lib/Authorizer";
+import { expressWrap } from "app/server/lib/expressWrap";
+import { GristServer } from "app/server/lib/GristServer";
+import { hashId } from "app/server/lib/hashingUtils";
+import { LogMethods } from "app/server/lib/LogMethods";
+import { stringParam } from "app/server/lib/requestUtils";
+import { getAuthSession, getLogMeta, isRequest, RequestOrSession } from "app/server/lib/sessionUtils";
 
-import * as cookie from 'cookie';
-import * as express from 'express';
-import fetch from 'node-fetch';
-import merge from 'lodash/merge';
-import pickBy from 'lodash/pickBy';
+import * as cookie from "cookie";
+import * as express from "express";
+import fetch from "node-fetch";
+import merge from "lodash/merge";
+import pickBy from "lodash/pickBy";
 
 interface RequestWithMatomoVisitorId extends RequestWithLogin {
   /**
@@ -70,15 +70,15 @@ export class Telemetry implements ITelemetry {
   private _activation: Activation | undefined;
   private _telemetryPrefs: TelemetryPrefsWithSources | undefined;
   private readonly _deploymentType = this._gristServer.getDeploymentType();
-  private readonly _shouldForwardTelemetryEvents = this._deploymentType !== 'saas';
+  private readonly _shouldForwardTelemetryEvents = this._deploymentType !== "saas";
   private readonly _forwardTelemetryEventsUrl = process.env.GRIST_TELEMETRY_URL ||
-    'https://telemetry.getgrist.com/api/telemetry';
+    "https://telemetry.getgrist.com/api/telemetry";
 
   private _numPendingForwardEventRequests = 0;
-  private readonly _logger = new LogMethods<RequestOrSession | undefined>('Telemetry ', requestOrSession =>
+  private readonly _logger = new LogMethods<RequestOrSession | undefined>("Telemetry ", requestOrSession =>
     getLogMeta(requestOrSession));
 
-  private readonly _telemetryLogger = new LogMethods<string>('Telemetry ', eventType => ({
+  private readonly _telemetryLogger = new LogMethods<string>("Telemetry ", eventType => ({
     eventType,
   }));
 
@@ -167,11 +167,11 @@ export class Telemetry implements ITelemetry {
      * source. Otherwise, the event will only be logged after passing various
      * checks.
      */
-    app.post('/api/telemetry', expressWrap(async (req, resp) => {
+    app.post("/api/telemetry", expressWrap(async (req, resp) => {
       const mreq = req as RequestWithLogin;
-      const event = stringParam(req.body.event, 'event', { allowed: TelemetryEvents.values }) as TelemetryEvent;
-      if ('eventSource' in (req.body.metadata ?? {})) {
-        this._telemetryLogger.rawLog('info', getEventType(event), event, {
+      const event = stringParam(req.body.event, "event", { allowed: TelemetryEvents.values }) as TelemetryEvent;
+      if ("eventSource" in (req.body.metadata ?? {})) {
+        this._telemetryLogger.rawLog("info", getEventType(event), event, {
           ...(removeNullishKeys(req.body.metadata)),
           eventName: event,
         });
@@ -201,7 +201,7 @@ export class Telemetry implements ITelemetry {
   public getTelemetryConfig(requestOrSession?: RequestOrSession): TelemetryConfig | undefined {
     const prefs = this._telemetryPrefs;
     if (!prefs) {
-      this._logger.error(requestOrSession, 'getTelemetryConfig called but telemetry preferences are undefined');
+      this._logger.error(requestOrSession, "getTelemetryConfig called but telemetry preferences are undefined");
       return undefined;
     }
 
@@ -229,13 +229,13 @@ export class Telemetry implements ITelemetry {
     event: TelemetryEvent,
   ): { checkTelemetryEvent: TelemetryEventChecker, telemetryLevel: TelemetryLevel } | undefined {
     if (!this._checkTelemetryEvent) {
-      this._logger.error(null, 'telemetry event checker is undefined');
+      this._logger.error(null, "telemetry event checker is undefined");
       return;
     }
 
     const prefs = this._telemetryPrefs;
     if (!prefs) {
-      this._logger.error(null, 'telemetry preferences are undefined');
+      this._logger.error(null, "telemetry preferences are undefined");
       return;
     }
 
@@ -283,7 +283,7 @@ export class Telemetry implements ITelemetry {
       }
       const email = authSession.normalizedEmail;
       if (email) {
-        isInternalUser = email !== 'anon@getgrist.com' && email.endsWith('@getgrist.com');
+        isInternalUser = email !== "anon@getgrist.com" && email.endsWith("@getgrist.com");
       }
       const org = authSession.org;
       if (org && !process.env.GRIST_SINGLE_ORG) {
@@ -291,7 +291,7 @@ export class Telemetry implements ITelemetry {
       }
     }
     const { category: eventCategory } = TelemetryContracts[event];
-    this._telemetryLogger.rawLog('info', getEventType(event), event, {
+    this._telemetryLogger.rawLog("info", getEventType(event), event, {
       ...metadata,
       eventName: event,
       ...(eventCategory !== undefined ? { eventCategory } : undefined),
@@ -306,11 +306,11 @@ export class Telemetry implements ITelemetry {
 
   private _getAndSetMatomoVisitorId(req: RequestWithMatomoVisitorId) {
     if (req.matomoVisitorId === undefined) {
-      const cookies = cookie.parse(req.headers.cookie || '');
+      const cookies = cookie.parse(req.headers.cookie || "");
       const matomoVisitorCookie = Object.entries(cookies)
-        .find(([key]) => key.startsWith('_pk_id'));
+        .find(([key]) => key.startsWith("_pk_id"));
       if (matomoVisitorCookie) {
-        req.matomoVisitorId = (matomoVisitorCookie[1] as string).split('.')[0];
+        req.matomoVisitorId = (matomoVisitorCookie[1] as string).split(".")[0];
       }
       else {
         req.matomoVisitorId = null;
@@ -325,7 +325,7 @@ export class Telemetry implements ITelemetry {
     metadata?: TelemetryMetadata,
   ) {
     if (this._numPendingForwardEventRequests === MAX_PENDING_FORWARD_EVENT_REQUESTS) {
-      this._logger.warn(requestOrSession, 'exceeded the maximum number of pending forwardEvent calls ' +
+      this._logger.warn(requestOrSession, "exceeded the maximum number of pending forwardEvent calls " +
       `(${MAX_PENDING_FORWARD_EVENT_REQUESTS}). Skipping forwarding of event ${event}.`);
       return;
     }
@@ -335,11 +335,11 @@ export class Telemetry implements ITelemetry {
       const { category: eventCategory } = TelemetryContracts[event];
 
       if (metadata) {
-        if ('installationId' in metadata ||
-          'eventSource' in metadata ||
-          'eventName' in metadata ||
-          'eventCategory' in metadata) {
-          throw new Error('metadata contains reserved keys');
+        if ("installationId" in metadata ||
+          "eventSource" in metadata ||
+          "eventName" in metadata ||
+          "eventCategory" in metadata) {
+          throw new Error("metadata contains reserved keys");
         }
       }
 
@@ -364,9 +364,9 @@ export class Telemetry implements ITelemetry {
 
   private async _doForwardEvent(payload: string) {
     await fetch(this._forwardTelemetryEventsUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: payload,
     });
@@ -374,11 +374,11 @@ export class Telemetry implements ITelemetry {
 
   private _assertTelemetryIsReady() {
     try {
-      assertIsDefined('activation', this._activation);
+      assertIsDefined("activation", this._activation);
     }
     catch (e) {
-      this._logger.error(null, 'activation is undefined', e);
-      throw new ApiError('Telemetry is not ready', 500);
+      this._logger.error(null, "activation is undefined", e);
+      throw new ApiError("Telemetry is not ready", 500);
     }
   }
 }
@@ -387,15 +387,15 @@ export async function getTelemetryPrefs(
   db: HomeDBManager,
   activation?: Activation,
 ): Promise<TelemetryPrefsWithSources> {
-  const GRIST_TELEMETRY_LEVEL = appSettings.section('telemetry').flag('level').readString({
-    envVar: 'GRIST_TELEMETRY_LEVEL',
+  const GRIST_TELEMETRY_LEVEL = appSettings.section("telemetry").flag("level").readString({
+    envVar: "GRIST_TELEMETRY_LEVEL",
   });
   if (GRIST_TELEMETRY_LEVEL !== undefined) {
     const value = TelemetryLevels.check(GRIST_TELEMETRY_LEVEL);
     return {
       telemetryLevel: {
         value,
-        source: 'environment-variable',
+        source: "environment-variable",
       },
     };
   }
@@ -403,8 +403,8 @@ export async function getTelemetryPrefs(
   const { prefs } = activation ?? await new ActivationsManager(db).current();
   return {
     telemetryLevel: {
-      value: prefs?.telemetry?.telemetryLevel ?? 'off',
-      source: 'preferences',
+      value: prefs?.telemetry?.telemetryLevel ?? "off",
+      source: "preferences",
     },
   };
 }
@@ -426,7 +426,7 @@ export function filterMetadata(
   if (!metadata) { return; }
 
   let filteredMetadata: TelemetryMetadata = {};
-  for (const level of ['limited', 'full'] as const) {
+  for (const level of ["limited", "full"] as const) {
     if (Level[telemetryLevel] < Level[level]) { break; }
 
     filteredMetadata = { ...filteredMetadata, ...metadata[level] };
@@ -453,7 +453,7 @@ export function removeNullishKeys(object: Record<string, any>) {
 export function hashDigestKeys(metadata: TelemetryMetadata): TelemetryMetadata {
   const filteredMetadata: TelemetryMetadata = {};
   Object.entries(metadata).forEach(([key, value]) => {
-    if (key.endsWith('Digest') && typeof value === 'string') {
+    if (key.endsWith("Digest") && typeof value === "string") {
       filteredMetadata[key] = hashId(value);
     }
     else {
@@ -463,11 +463,11 @@ export function hashDigestKeys(metadata: TelemetryMetadata): TelemetryMetadata {
   return filteredMetadata;
 }
 
-type TelemetryEventType = 'telemetry' | 'telemetry-short-retention';
+type TelemetryEventType = "telemetry" | "telemetry-short-retention";
 
 const EventTypeByRetentionPeriod: Record<TelemetryRetentionPeriod, TelemetryEventType> = {
-  indefinitely: 'telemetry',
-  short: 'telemetry-short-retention',
+  indefinitely: "telemetry",
+  short: "telemetry-short-retention",
 };
 
 function getEventType(event: TelemetryEvent) {

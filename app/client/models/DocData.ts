@@ -4,16 +4,16 @@
  * It also provides the interface to apply actions to data.
  */
 
-import { DocComm } from 'app/client/components/DocComm';
-import { MetaTableData, TableData } from 'app/client/models/TableData';
-import { ApplyUAOptions, ApplyUAResult } from 'app/common/ActiveDocAPI';
-import { CellValue, getTableId, isDataAction, TableDataAction, UserAction } from 'app/common/DocActions';
-import { DocData as BaseDocData } from 'app/common/DocData';
-import { SchemaTypes } from 'app/common/schema';
-import { ColTypeMap } from 'app/common/TableData';
-import * as bluebird from 'bluebird';
-import { Emitter } from 'grainjs';
-import defaults from 'lodash/defaults';
+import { DocComm } from "app/client/components/DocComm";
+import { MetaTableData, TableData } from "app/client/models/TableData";
+import { ApplyUAOptions, ApplyUAResult } from "app/common/ActiveDocAPI";
+import { CellValue, getTableId, isDataAction, TableDataAction, UserAction } from "app/common/DocActions";
+import { DocData as BaseDocData } from "app/common/DocData";
+import { SchemaTypes } from "app/common/schema";
+import { ColTypeMap } from "app/common/TableData";
+import * as bluebird from "bluebird";
+import { Emitter } from "grainjs";
+import defaults from "lodash/defaults";
 
 const gristNotify = window.gristNotify!;
 
@@ -89,7 +89,7 @@ export class DocData extends BaseDocData {
       // pending, a new bundle should immediately finalize it. Here we refuse to queue up more
       // actions than that. (This could crop up in theory while disconnected, but is hard to
       // trigger to test.)
-      throw new Error('Too many actions already pending');
+      throw new Error("Too many actions already pending");
     }
     this._bundlesPending++;
 
@@ -204,10 +204,10 @@ export class DocData extends BaseDocData {
       // Actions applying to virtual tables are handled directly by their TableData instance.
       for (const action of actions) {
         if (!isDataAction(action)) {
-          throw new Error('virtual table received an action it cannot handle');
+          throw new Error("virtual table received an action it cannot handle");
         }
         if (getTableId(action) !== tableName) {
-          throw new Error('virtual table actions mixed with other actions');
+          throw new Error("virtual table actions mixed with other actions");
         }
       }
       const tableActions = actions.map(a => [a[0], ...a.slice(2)]);

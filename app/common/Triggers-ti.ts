@@ -23,9 +23,9 @@ export const WebhookFields = t.iface([], {
   memo: t.opt("string"),
 });
 
-export const WebhookBatchStatus = t.union(t.lit('success'), t.lit('failure'), t.lit('rejected'));
+export const WebhookBatchStatus = t.union(t.lit("success"), t.lit("failure"), t.lit("rejected"));
 
-export const WebhookStatus = t.union(t.lit('idle'), t.lit('sending'), t.lit('retrying'), t.lit('postponed'), t.lit('error'), t.lit('invalid'));
+export const WebhookStatus = t.union(t.lit("idle"), t.lit("sending"), t.lit("retrying"), t.lit("postponed"), t.lit("error"), t.lit("invalid"));
 
 export const WebhookSubscribe = t.iface([], {
   url: "string",

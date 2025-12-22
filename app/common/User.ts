@@ -1,11 +1,11 @@
-import { getTableId } from 'app/common/DocActions';
-import { EmptyRecordView, RecordView } from 'app/common/RecordView';
-import { Role } from 'app/common/roles';
+import { getTableId } from "app/common/DocActions";
+import { EmptyRecordView, RecordView } from "app/common/RecordView";
+import { Role } from "app/common/roles";
 
 /**
  * User type to distinguish between Users and service accounts
  */
-export type UserType = 'login' | 'service';
+export type UserType = "login" | "service";
 
 /**
  * Information about a user, including any user attributes.
@@ -59,7 +59,7 @@ export class User implements UserInfo {
   public toJSON() {
     return this._toObject((value) => {
       if (value instanceof RecordView) {
-        return [getTableId(value.data), value.get('id')];
+        return [getTableId(value.data), value.get("id")];
       }
       else if (value instanceof EmptyRecordView) {
         return null;

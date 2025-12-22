@@ -1,6 +1,6 @@
-import { ActionSummary, createEmptyActionSummary } from 'app/common/ActionSummary';
+import { ActionSummary, createEmptyActionSummary } from "app/common/ActionSummary";
 // Because of -ti files, DocState needs to be in DocumentSettings.
-import { DocState } from 'app/common/DocumentSettings';
+import { DocState } from "app/common/DocumentSettings";
 
 export type { DocState };
 
@@ -28,7 +28,7 @@ export interface DocStateComparison {
   //       right: the right document has actions not yet in the left
   //        both: both documents have changes (possible divergence)
   //   unrelated: no common history found
-  summary: 'same' | 'left' | 'right' | 'both' | 'unrelated';
+  summary: "same" | "left" | "right" | "both" | "unrelated";
   // optionally, details of what changed may be included.
   details?: DocStateComparisonDetails;
 }
@@ -62,7 +62,7 @@ function removeMetadataChangesFromSummary(summary: ActionSummary) {
   const tables = Object.keys(summary.tableDeltas);
   const metaTables = new Set();
   for (const table of tables) {
-    if (table.startsWith('_grist_')) {
+    if (table.startsWith("_grist_")) {
       metaTables.add(table);
       continue;
     }

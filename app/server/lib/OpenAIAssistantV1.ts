@@ -25,7 +25,7 @@ import {
 } from "app/server/lib/IAssistant";
 import { OptDocSession } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
-import { agents } from 'app/server/lib/ProxyAgent';
+import { agents } from "app/server/lib/ProxyAgent";
 
 import fetch from "node-fetch";
 

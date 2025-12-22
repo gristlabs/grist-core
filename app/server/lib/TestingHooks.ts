@@ -1,21 +1,21 @@
-import * as net from 'net';
+import * as net from "net";
 
-import { UserProfile } from 'app/common/LoginSessionAPI';
-import { Deps as ActiveDocDeps } from 'app/server/lib/ActiveDoc';
-import { Deps as DiscourseConnectDeps } from 'app/server/lib/DiscourseConnect';
-import { Deps as CommClientDeps } from 'app/server/lib/Client';
-import * as Client from 'app/server/lib/Client';
-import { Comm } from 'app/server/lib/Comm';
-import log from 'app/server/lib/log';
-import { IMessage, Rpc } from 'grain-rpc';
-import { EventEmitter } from 'events';
-import { Request } from 'express';
-import * as t from 'ts-interface-checker';
-import { FlexServer } from 'app/server/lib/FlexServer';
-import { ClientJsonMemoryLimits, ITestingHooks } from 'app/server/lib/ITestingHooks';
-import ITestingHooksTI from 'app/server/lib/ITestingHooks-ti';
-import { connect, fromCallback } from 'app/server/lib/serverUtils';
-import { WidgetRepositoryImpl } from 'app/server/lib/WidgetRepository';
+import { UserProfile } from "app/common/LoginSessionAPI";
+import { Deps as ActiveDocDeps } from "app/server/lib/ActiveDoc";
+import { Deps as DiscourseConnectDeps } from "app/server/lib/DiscourseConnect";
+import { Deps as CommClientDeps } from "app/server/lib/Client";
+import * as Client from "app/server/lib/Client";
+import { Comm } from "app/server/lib/Comm";
+import log from "app/server/lib/log";
+import { IMessage, Rpc } from "grain-rpc";
+import { EventEmitter } from "events";
+import { Request } from "express";
+import * as t from "ts-interface-checker";
+import { FlexServer } from "app/server/lib/FlexServer";
+import { ClientJsonMemoryLimits, ITestingHooks } from "app/server/lib/ITestingHooks";
+import ITestingHooksTI from "app/server/lib/ITestingHooks-ti";
+import { connect, fromCallback } from "app/server/lib/serverUtils";
+import { WidgetRepositoryImpl } from "app/server/lib/WidgetRepository";
 
 const tiCheckers = t.createCheckers(ITestingHooksTI, { UserProfile: t.name("object") });
 
@@ -25,13 +25,13 @@ export function startTestingHooks(socketPath: string, port: number,
   // Create socket server listening on the given path for testing connections.
   return new Promise((resolve, reject) => {
     const server = net.createServer();
-    server.on('error', reject);
-    server.on('listening', () => resolve(server));
-    server.on('connection', (socket) => {
+    server.on("error", reject);
+    server.on("listening", () => resolve(server));
+    server.on("connection", (socket) => {
       // On connection, create an Rpc object communicating over that socket.
       const rpc = connectToSocket(new Rpc({ logger: {} }), socket);
       // Register the testing implementation.
-      rpc.registerImpl('testing',
+      rpc.registerImpl("testing",
         new TestingHooks(port, comm, flexServer, workerServers),
         tiCheckers.ITestingHooks);
     });
@@ -40,11 +40,11 @@ export function startTestingHooks(socketPath: string, port: number,
 }
 
 function connectToSocket(rpc: Rpc, socket: net.Socket): Rpc {
-  socket.setEncoding('utf8');
+  socket.setEncoding("utf8");
   // Poor-man's JSON processing, only OK because this is for testing only. If multiple messages
   // are received quickly, they may arrive in the same buf, and JSON.parse will fail.
-  socket.on('data', (buf: string) => rpc.receiveMessage(JSON.parse(buf)));
-  rpc.setSendMessage((m: IMessage) => fromCallback(cb => socket.write(JSON.stringify(m), 'utf8', cb)));
+  socket.on("data", (buf: string) => rpc.receiveMessage(JSON.parse(buf)));
+  rpc.setSendMessage((m: IMessage) => fromCallback(cb => socket.write(JSON.stringify(m), "utf8", cb)));
   return rpc;
 }
 
@@ -55,7 +55,7 @@ export interface TestingHooksClient extends ITestingHooks {
 export async function connectTestingHooks(socketPath: string): Promise<TestingHooksClient> {
   const socket = await connect(socketPath);
   const rpc = connectToSocket(new Rpc({ logger: {} }), socket);
-  return Object.assign(rpc.getStub<TestingHooks>('testing', tiCheckers.ITestingHooks), {
+  return Object.assign(rpc.getStub<TestingHooks>("testing", tiCheckers.ITestingHooks), {
     close: () => socket.end(),
   });
 }
@@ -173,28 +173,28 @@ export class TestingHooks implements ITestingHooks {
     }
   }
 
-  public async setDocWorkerActivation(workerId: string, active: 'active' | 'inactive' | 'crash'):
+  public async setDocWorkerActivation(workerId: string, active: "active" | "inactive" | "crash"):
   Promise<void> {
     log.info("TestingHooks.setDocWorkerActivation called with", workerId, active);
     const matches = this._workerServers.filter(
       server => server.worker.id === workerId ||
         server.worker.publicUrl === workerId ||
-        (server.worker.publicUrl.startsWith('http://localhost:') &&
-          workerId.startsWith('http://localhost:') &&
+        (server.worker.publicUrl.startsWith("http://localhost:") &&
+          workerId.startsWith("http://localhost:") &&
           new URL(server.worker.publicUrl).host === new URL(workerId).host));
     if (matches.length !== 1) {
       throw new Error(`could not find worker: ${workerId}`);
     }
     const server = matches[0];
     switch (active) {
-      case 'active':
+      case "active":
         await server.restartListening();
         break;
-      case 'inactive':
+      case "inactive":
         await server.stopListening();
         break;
-      case 'crash':
-        await server.stopListening('crash');
+      case "crash":
+        await server.stopListening("crash");
         break;
     }
   }
@@ -261,16 +261,16 @@ export class TestingHooks implements ITestingHooks {
   }
 
   // This is for testing the handling of unhandled exceptions and rejections.
-  public async tickleUnhandledErrors(errType: 'exception' | 'rejection' | 'error-event'): Promise<void> {
-    if (errType === 'exception') {
+  public async tickleUnhandledErrors(errType: "exception" | "rejection" | "error-event"): Promise<void> {
+    if (errType === "exception") {
       setTimeout(() => { throw new Error("TestingHooks: Fake exception"); }, 0);
     }
-    else if (errType === 'rejection') {
+    else if (errType === "rejection") {
       void (Promise.resolve(null).then(() => { throw new Error("TestingHooks: Fake rejection"); }));
     }
-    else if (errType === 'error-event') {
+    else if (errType === "error-event") {
       const emitter = new EventEmitter();
-      setTimeout(() => emitter.emit('error', new Error('TestingHooks: Fake error-event')), 0);
+      setTimeout(() => emitter.emit("error", new Error("TestingHooks: Fake error-event")), 0);
     }
     else {
       throw new Error(`Unrecognized errType ${errType}`);

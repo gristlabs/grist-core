@@ -1,9 +1,9 @@
-import { ApiError } from 'app/common/ApiError';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { LogMethods } from 'app/server/lib/LogMethods';
-import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
+import { ApiError } from "app/common/ApiError";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { LogMethods } from "app/server/lib/LogMethods";
+import { RequestContext } from "app/server/lib/scim/v2/ScimTypes";
 
-import SCIMMY from 'scimmy';
+import SCIMMY from "scimmy";
 
 export class BaseController {
   protected logger = new LogMethods(this.constructor.name, () => ({}));
@@ -17,7 +17,7 @@ export class BaseController {
   protected getIdFromResource(resource: SCIMMY.Types.Resource) {
     const id = parseInt(resource.id!, 10);
     if (Number.isNaN(id)) {
-      throw new SCIMMY.Types.Error(400, 'invalidValue', this.invalidIdError);
+      throw new SCIMMY.Types.Error(400, "invalidValue", this.invalidIdError);
     }
     return id;
   }
@@ -49,18 +49,18 @@ export class BaseController {
     }
     catch (err) {
       if (err instanceof ApiError) {
-        this.logger.error(null, ' ApiError: ', err.status, err.message);
+        this.logger.error(null, " ApiError: ", err.status, err.message);
         if (err.status === 409) {
-          throw new SCIMMY.Types.Error(err.status, 'uniqueness', err.message);
+          throw new SCIMMY.Types.Error(err.status, "uniqueness", err.message);
         }
         throw new SCIMMY.Types.Error(err.status, null!, err.message);
       }
       if (err instanceof SCIMMY.Types.Error) {
-        this.logger.error(null, ' SCIMMY.Types.Error: ', err.message);
+        this.logger.error(null, " SCIMMY.Types.Error: ", err.message);
         throw err;
       }
       // By default, return a 500 error
-      this.logger.error(null, ' Error: ', err.message);
+      this.logger.error(null, " Error: ", err.message);
       throw new SCIMMY.Types.Error(500, null!, err.message);
     }
   }

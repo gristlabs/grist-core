@@ -1,26 +1,26 @@
-import { GristDoc } from 'app/client/components/GristDoc';
-import { makeT } from 'app/client/lib/localization';
-import { ViewSectionRec } from 'app/client/models/DocModel';
-import { textInput } from 'app/client/ui/inputs';
-import { shadowScroll } from 'app/client/ui/shadowScroll';
-import { withInfoTooltip } from 'app/client/ui/tooltips';
-import { bigBasicButton, bigPrimaryButton } from 'app/client/ui2018/buttons';
-import { theme } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { cssLink } from 'app/client/ui2018/links';
-import { loadingSpinner } from 'app/client/ui2018/loaders';
-import { IModalControl, modal } from 'app/client/ui2018/modals';
-import { AccessLevel, ICustomWidget, matchWidget, WidgetAuthor } from 'app/common/CustomWidget';
-import { userTrustsCustomWidget } from 'app/client/ui/userTrustsCustomWidget';
-import { commonUrls } from 'app/common/gristUrls';
-import { bundleChanges, Computed, Disposable, dom, makeTestId, Observable, styled } from 'grainjs';
-import escapeRegExp from 'lodash/escapeRegExp';
+import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
+import { ViewSectionRec } from "app/client/models/DocModel";
+import { textInput } from "app/client/ui/inputs";
+import { shadowScroll } from "app/client/ui/shadowScroll";
+import { withInfoTooltip } from "app/client/ui/tooltips";
+import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
+import { theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { cssLink } from "app/client/ui2018/links";
+import { loadingSpinner } from "app/client/ui2018/loaders";
+import { IModalControl, modal } from "app/client/ui2018/modals";
+import { AccessLevel, ICustomWidget, matchWidget, WidgetAuthor } from "app/common/CustomWidget";
+import { userTrustsCustomWidget } from "app/client/ui/userTrustsCustomWidget";
+import { commonUrls } from "app/common/gristUrls";
+import { bundleChanges, Computed, Disposable, dom, makeTestId, Observable, styled } from "grainjs";
+import escapeRegExp from "lodash/escapeRegExp";
 
-const testId = makeTestId('test-custom-widget-gallery-');
+const testId = makeTestId("test-custom-widget-gallery-");
 
-const t = makeT('CustomWidgetGallery');
+const t = makeT("CustomWidgetGallery");
 
-export const CUSTOM_URL_WIDGET_ID = 'custom';
+export const CUSTOM_URL_WIDGET_ID = "custom";
 
 interface Options {
   sectionRef?: number;
@@ -30,7 +30,7 @@ interface Options {
 export function showCustomWidgetGallery(gristDoc: GristDoc, options: Options = {}) {
   modal(ctl => [
     dom.create(CustomWidgetGallery, ctl, gristDoc, options),
-    cssModal.cls(''),
+    cssModal.cls(""),
   ]);
 }
 
@@ -47,14 +47,14 @@ interface CustomWidgetACItem extends ICustomWidget {
   cleanText: string;
 }
 
-type WidgetVariant = 'custom' | 'grist' | 'community';
+type WidgetVariant = "custom" | "grist" | "community";
 
 class CustomWidgetGallery extends Disposable {
   private readonly _customUrl: Observable<string>;
   private _customUrlInput: HTMLInputElement;
   private readonly _filteredWidgets = Observable.create<ICustomWidget[] | null>(this, null);
   private readonly _section: ViewSectionRec | null = null;
-  private readonly _searchText = Observable.create(this, '');
+  private readonly _searchText = Observable.create(this, "");
   private readonly _saveDisabled: Computed<boolean>;
   private readonly _savedWidgetId: Computed<string | null>;
   private readonly _selectedWidgetId = Observable.create<string | null>(this, null);
@@ -80,9 +80,9 @@ class CustomWidgetGallery extends Disposable {
       }));
     }
 
-    let customUrl = '';
+    let customUrl = "";
     if (this._section) {
-      customUrl = this._section.customDef.url() ?? '';
+      customUrl = this._section.customDef.url() ?? "";
     }
     this._customUrl = Observable.create(this, customUrl);
 
@@ -121,40 +121,40 @@ class CustomWidgetGallery extends Disposable {
   public buildDom() {
     return cssCustomWidgetGallery(
       cssHeader(
-        cssTitle(t('Choose custom widget')),
+        cssTitle(t("Choose custom widget")),
         cssSearchInputWrapper(
-          cssSearchIcon('Search'),
+          cssSearchIcon("Search"),
           cssSearchInput(
             this._searchText,
-            { placeholder: t('Search') },
+            { placeholder: t("Search") },
             (el) => { setTimeout(() => el.focus(), 10); },
-            testId('search'),
+            testId("search"),
           ),
         ),
       ),
       shadowScroll(
         this._buildWidgets(),
-        cssShadowScroll.cls(''),
+        cssShadowScroll.cls(""),
       ),
       cssFooter(
-        dom('div',
+        dom("div",
           cssHelpLink(
-            { href: commonUrls.helpCustomWidgets, target: '_blank' },
-            cssHelpIcon('Question'),
-            t('Learn more about custom widgets'),
+            { href: commonUrls.helpCustomWidgets, target: "_blank" },
+            cssHelpIcon("Question"),
+            t("Learn more about custom widgets"),
           ),
         ),
         cssFooterButtons(
           bigBasicButton(
-            t('Cancel'),
-            dom.on('click', () => this._ctl.close()),
-            testId('cancel'),
+            t("Cancel"),
+            dom.on("click", () => this._ctl.close()),
+            testId("cancel"),
           ),
           bigPrimaryButton(
-            this._options.addWidget ? t('Add widget') : t('Change widget'),
-            dom.on('click', () => this._save()),
-            dom.boolAttr('disabled', this._saveDisabled),
-            testId('save'),
+            this._options.addWidget ? t("Add widget") : t("Change widget"),
+            dom.on("click", () => this._save()),
+            dom.boolAttr("disabled", this._saveDisabled),
+            testId("save"),
           ),
         ),
       ),
@@ -162,18 +162,18 @@ class CustomWidgetGallery extends Disposable {
         Enter: () => this._save(),
         Escape: () => this._deselectOrClose(),
       }),
-      dom.on('click', ev => this._maybeClearSelection(ev)),
-      testId('container'),
+      dom.on("click", ev => this._maybeClearSelection(ev)),
+      testId("container"),
     );
   }
 
   private async _initializeWidgets() {
     const widgets: ICustomWidget[] = [
       {
-        widgetId: 'custom',
-        name: t('Custom URL'),
-        description: t('Add a widget from outside this gallery.'),
-        url: '',
+        widgetId: "custom",
+        name: t("Custom URL"),
+        description: t("Add a widget from outside this gallery."),
+        url: "",
       },
     ];
     try {
@@ -204,7 +204,7 @@ class CustomWidgetGallery extends Disposable {
     else {
       const searchTerms = searchText.trim().split(/\s+/);
       const searchPatterns = searchTerms.map(term =>
-        new RegExp(`\\b${escapeRegExp(term)}`, 'i'));
+        new RegExp(`\\b${escapeRegExp(term)}`, "i"));
       const filteredWidgets = widgets.filter(({ cleanText }) =>
         searchPatterns.some(pattern => pattern.test(cleanText)),
       );
@@ -218,7 +218,7 @@ class CustomWidgetGallery extends Disposable {
         return cssLoadingSpinner(loadingSpinner());
       }
       else if (widgets.length === 0) {
-        return cssNoMatchingWidgets(t('No matching widgets'));
+        return cssNoMatchingWidgets(t("No matching widgets"));
       }
       else {
         return cssWidgets(
@@ -243,77 +243,77 @@ class CustomWidgetGallery extends Disposable {
     const { variant, id, name, description, developer, lastUpdated } = info;
 
     return cssWidget(
-      dom.cls('custom-widget'),
+      dom.cls("custom-widget"),
       cssWidgetHeader(
-        variant === 'custom' ? t('Add Your Own Widget') :
-          variant === 'grist' ? t('Grist Widget') :
+        variant === "custom" ? t("Add Your Own Widget") :
+          variant === "grist" ? t("Grist Widget") :
             withInfoTooltip(
-              t('Community Widget'),
-              'communityWidgets',
+              t("Community Widget"),
+              "communityWidgets",
               {
-                variant: 'hover',
-                iconDomArgs: [cssTooltipIcon.cls('')],
+                variant: "hover",
+                iconDomArgs: [cssTooltipIcon.cls("")],
               },
             ),
-        cssWidgetHeader.cls('-secondary', ['custom', 'community'].includes(variant)),
+        cssWidgetHeader.cls("-secondary", ["custom", "community"].includes(variant)),
       ),
       cssWidgetBody(
         cssWidgetName(
           name,
-          testId('widget-name'),
+          testId("widget-name"),
         ),
         cssWidgetDescription(
-          description ?? t('(Missing info)'),
-          cssWidgetDescription.cls('-missing', !description),
-          testId('widget-description'),
+          description ?? t("(Missing info)"),
+          cssWidgetDescription.cls("-missing", !description),
+          testId("widget-description"),
         ),
-        variant === 'custom' ? null : cssWidgetMetadata(
-          variant === 'grist' ? null : cssWidgetMetadataRow(
-            cssWidgetMetadataName(t('Developer:')),
+        variant === "custom" ? null : cssWidgetMetadata(
+          variant === "grist" ? null : cssWidgetMetadataRow(
+            cssWidgetMetadataName(t("Developer:")),
             cssWidgetMetadataValue(
               developer?.url ?
                 cssDeveloperLink(
                   developer.name,
-                  { href: developer.url, target: '_blank' },
-                  dom.on('click', ev => ev.stopPropagation()),
-                  testId('widget-developer'),
+                  { href: developer.url, target: "_blank" },
+                  dom.on("click", ev => ev.stopPropagation()),
+                  testId("widget-developer"),
                 ) :
-                dom('span',
-                  developer?.name ?? t('(Missing info)'),
-                  testId('widget-developer'),
+                dom("span",
+                  developer?.name ?? t("(Missing info)"),
+                  testId("widget-developer"),
                 ),
-              cssWidgetMetadataValue.cls('-missing', !developer?.name),
-              testId('widget-developer'),
+              cssWidgetMetadataValue.cls("-missing", !developer?.name),
+              testId("widget-developer"),
             ),
           ),
           cssWidgetMetadataRow(
-            cssWidgetMetadataName(t('Last updated:')),
+            cssWidgetMetadataName(t("Last updated:")),
             cssWidgetMetadataValue(
               lastUpdated ?
-                new Date(lastUpdated).toLocaleDateString('default', {
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric',
+                new Date(lastUpdated).toLocaleDateString("default", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
                 }) :
-                t('(Missing info)'),
-              cssWidgetMetadataValue.cls('-missing', !lastUpdated),
-              testId('widget-last-updated'),
+                t("(Missing info)"),
+              cssWidgetMetadataValue.cls("-missing", !lastUpdated),
+              testId("widget-last-updated"),
             ),
           ),
-          testId('widget-metadata'),
+          testId("widget-metadata"),
         ),
-        variant !== 'custom' ? null : cssCustomUrlInput(
+        variant !== "custom" ? null : cssCustomUrlInput(
           this._customUrl,
           (el) => {
             this._customUrlInput = el as HTMLInputElement;
           },
-          { placeholder: t('Widget URL'), type: 'url' },
-          testId('custom-url'),
+          { placeholder: t("Widget URL"), type: "url" },
+          testId("custom-url"),
         ),
       ),
-      cssWidget.cls('-selected', use => id === use(this._selectedWidgetId)),
-      dom.on('click', () => this._selectedWidgetId.set(id)),
-      testId('widget'),
+      cssWidget.cls("-selected", use => id === use(this._selectedWidgetId)),
+      dom.on("click", () => this._selectedWidgetId.set(id)),
+      testId("widget"),
       testId(`widget-${variant}`),
     );
   }
@@ -354,13 +354,13 @@ class CustomWidgetGallery extends Disposable {
 
   private async _saveSelectedWidget() {
     await this._gristDoc.docData.bundleActions(
-      'Save selected custom widget',
+      "Save selected custom widget",
       async () => {
         let section = this._section;
         if (!section) {
           const { addWidget } = this._options;
           if (!addWidget) {
-            throw new Error('Cannot add custom widget: missing `addWidget` implementation');
+            throw new Error("Cannot add custom widget: missing `addWidget` implementation");
           }
 
           const { sectionRef } = await addWidget();
@@ -387,7 +387,7 @@ class CustomWidgetGallery extends Disposable {
       section.customDef.url(this._customUrl.get());
       section.customDef.widgetId(null);
       section.customDef.widgetDef(null);
-      section.customDef.pluginId('');
+      section.customDef.pluginId("");
       section.customDef.access(AccessLevel.none);
       section.customDef.widgetOptions(null);
       section.hasCustomOptions(false);
@@ -399,7 +399,7 @@ class CustomWidgetGallery extends Disposable {
   }
 
   private async _saveRemoteWidget(section: ViewSectionRec) {
-    const [pluginId, widgetId] = this._selectedWidgetId.get()!.split(':');
+    const [pluginId, widgetId] = this._selectedWidgetId.get()!.split(":");
     const { customDef } = section;
     if (customDef.pluginId.peek() === pluginId && customDef.widgetId.peek() === widgetId) {
       return;
@@ -420,7 +420,7 @@ class CustomWidgetGallery extends Disposable {
       // served from elsewhere.
       section.customDef.widgetDef(selectedWidget);
       section.customDef.widgetId(selectedWidget.widgetId);
-      section.customDef.pluginId(selectedWidget.source?.pluginId ?? '');
+      section.customDef.pluginId(selectedWidget.source?.pluginId ?? "");
       section.customDef.url(null);
       section.customDef.widgetOptions(null);
       section.hasCustomOptions(false);
@@ -433,10 +433,10 @@ class CustomWidgetGallery extends Disposable {
   private _maybeClearSelection(event: MouseEvent) {
     const target = event.target as HTMLElement;
     if (
-      !target.closest('.custom-widget') &&
-      !target.closest('button') &&
-      !target.closest('a') &&
-      !target.closest('input')
+      !target.closest(".custom-widget") &&
+      !target.closest("button") &&
+      !target.closest("a") &&
+      !target.closest("input")
     ) {
       this._selectedWidgetId.set(null);
     }
@@ -449,13 +449,13 @@ export function getWidgetName({ name, source }: ICustomWidget) {
 
 function getWidgetVariant({ isGristLabsMaintained = false, widgetId }: ICustomWidget): WidgetVariant {
   if (widgetId === CUSTOM_URL_WIDGET_ID) {
-    return 'custom';
+    return "custom";
   }
   else if (isGristLabsMaintained) {
-    return 'grist';
+    return "grist";
   }
   else {
-    return 'community';
+    return "community";
   }
 }
 
@@ -464,7 +464,7 @@ function getWidgetId({ source, widgetId }: ICustomWidget) {
     return CUSTOM_URL_WIDGET_ID;
   }
   else {
-    return `${source?.pluginId ?? ''}:${widgetId}`;
+    return `${source?.pluginId ?? ""}:${widgetId}`;
   }
 }
 
@@ -475,24 +475,24 @@ function getWidgetCleanText({ name, description, authors = [] }: ICustomWidget) 
   return cleanText;
 }
 
-export const cssWidgetMetadata = styled('div', `
+export const cssWidgetMetadata = styled("div", `
   margin-top: auto;
   display: flex;
   flex-direction: column;
   row-gap: 4px;
 `);
 
-export const cssWidgetMetadataRow = styled('div', `
+export const cssWidgetMetadataRow = styled("div", `
   display: flex;
   column-gap: 4px;
 `);
 
-export const cssWidgetMetadataName = styled('span', `
+export const cssWidgetMetadataName = styled("span", `
   color: ${theme.lightText};
   font-weight: 600;
 `);
 
-export const cssWidgetMetadataValue = styled('div', `
+export const cssWidgetMetadataValue = styled("div", `
   &-missing {
     color: ${theme.lightText};
   }
@@ -502,7 +502,7 @@ export const cssDeveloperLink = styled(cssLink, `
   font-weight: 600;
 `);
 
-const cssCustomWidgetGallery = styled('div', `
+const cssCustomWidgetGallery = styled("div", `
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -514,7 +514,7 @@ const WIDGET_WIDTH_PX = 240;
 
 const WIDGETS_GAP_PX = 16;
 
-const cssHeader = styled('div', `
+const cssHeader = styled("div", `
   display: flex;
   column-gap: 16px;
   row-gap: 8px;
@@ -526,13 +526,13 @@ const cssHeader = styled('div', `
   max-width: ${(3 * WIDGET_WIDTH_PX) + (2 * WIDGETS_GAP_PX)}px;
 `);
 
-const cssTitle = styled('div', `
+const cssTitle = styled("div", `
   font-size: 24px;
   font-weight: 500;
   line-height: 32px;
 `);
 
-const cssSearchInputWrapper = styled('div', `
+const cssSearchInputWrapper = styled("div", `
   position: relative;
   display: flex;
   align-items: center;
@@ -549,7 +549,7 @@ const cssSearchInput = styled(textInput, `
   padding-left: 32px;
 `);
 
-const cssShadowScroll = styled('div', `
+const cssShadowScroll = styled("div", `
   display: flex;
   flex-direction: column;
   flex: unset;
@@ -557,7 +557,7 @@ const cssShadowScroll = styled('div', `
   padding: 16px 40px;
 `);
 
-const cssCenteredFlexGrow = styled('div', `
+const cssCenteredFlexGrow = styled("div", `
   flex-grow: 1;
   display: flex;
   justify-content: center;
@@ -570,13 +570,13 @@ const cssNoMatchingWidgets = styled(cssCenteredFlexGrow, `
   color: ${theme.lightText};
 `);
 
-const cssWidgets = styled('div', `
+const cssWidgets = styled("div", `
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(0px, ${WIDGET_WIDTH_PX}px));
   gap: ${WIDGETS_GAP_PX}px;
 `);
 
-const cssWidget = styled('div', `
+const cssWidget = styled("div", `
   display: flex;
   flex-direction: column;
   box-shadow: 1px 1px 4px 1px ${theme.widgetGalleryShadow};
@@ -593,7 +593,7 @@ const cssWidget = styled('div', `
   }
 `);
 
-const cssWidgetHeader = styled('div', `
+const cssWidgetHeader = styled("div", `
   flex-shrink: 0;
   border: 2px solid ${theme.widgetGalleryBorder};
   border-bottom: 1px solid ${theme.widgetGalleryBorder};
@@ -615,7 +615,7 @@ const cssWidgetHeader = styled('div', `
   }
 `);
 
-const cssWidgetBody = styled('div', `
+const cssWidgetBody = styled("div", `
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -625,13 +625,13 @@ const cssWidgetBody = styled('div', `
   padding: 16px;
 `);
 
-const cssWidgetName = styled('div', `
+const cssWidgetName = styled("div", `
   font-size: 15px;
   font-weight: 600;
   margin-bottom: 16px;
 `);
 
-const cssWidgetDescription = styled('div', `
+const cssWidgetDescription = styled("div", `
   margin-bottom: 24px;
 
   &-missing {
@@ -653,7 +653,7 @@ const cssHelpIcon = styled(icon, `
   flex-shrink: 0;
 `);
 
-const cssFooter = styled('div', `
+const cssFooter = styled("div", `
   flex-shrink: 0;
   display: flex;
   flex-wrap: wrap;
@@ -664,12 +664,12 @@ const cssFooter = styled('div', `
   border-top: 1px solid ${theme.widgetGalleryBorder};
 `);
 
-const cssFooterButtons = styled('div', `
+const cssFooterButtons = styled("div", `
   display: flex;
   column-gap: 8px;
 `);
 
-const cssModal = styled('div', `
+const cssModal = styled("div", `
   width: 100%;
   height: 100%;
   max-width: 930px;
@@ -677,7 +677,7 @@ const cssModal = styled('div', `
   padding: 0px;
 `);
 
-const cssTooltipIcon = styled('div', `
+const cssTooltipIcon = styled("div", `
   color: ${theme.widgetGallerySecondaryHeaderFg};
   border-color: ${theme.widgetGallerySecondaryHeaderFg};
 `);

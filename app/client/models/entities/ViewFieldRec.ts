@@ -1,17 +1,17 @@
-import { ColumnRec, DocModel, IRowModel, refListRecords, refRecord, ViewSectionRec } from 'app/client/models/DocModel';
-import { formatterForRec } from 'app/client/models/entities/ColumnRec';
-import * as modelUtil from 'app/client/models/modelUtil';
-import { removeRule, RuleOwner } from 'app/client/models/RuleOwner';
-import { HeaderStyle, Style } from 'app/client/models/Styles';
-import { ViewFieldConfig } from 'app/client/models/ViewFieldConfig';
-import * as UserType from 'app/client/widgets/UserType';
-import { DocumentSettings } from 'app/common/DocumentSettings';
-import { DropdownCondition, DropdownConditionCompilationResult } from 'app/common/DropdownCondition';
-import { compilePredicateFormula } from 'app/common/PredicateFormula';
-import { BaseFormatter } from 'app/common/ValueFormatter';
-import { createParser } from 'app/common/ValueParser';
-import { Computed } from 'grainjs';
-import * as ko from 'knockout';
+import { ColumnRec, DocModel, IRowModel, refListRecords, refRecord, ViewSectionRec } from "app/client/models/DocModel";
+import { formatterForRec } from "app/client/models/entities/ColumnRec";
+import * as modelUtil from "app/client/models/modelUtil";
+import { removeRule, RuleOwner } from "app/client/models/RuleOwner";
+import { HeaderStyle, Style } from "app/client/models/Styles";
+import { ViewFieldConfig } from "app/client/models/ViewFieldConfig";
+import * as UserType from "app/client/widgets/UserType";
+import { DocumentSettings } from "app/common/DocumentSettings";
+import { DropdownCondition, DropdownConditionCompilationResult } from "app/common/DropdownCondition";
+import { compilePredicateFormula } from "app/common/PredicateFormula";
+import { BaseFormatter } from "app/common/ValueFormatter";
+import { createParser } from "app/common/ValueParser";
+import { Computed } from "grainjs";
+import * as ko from "knockout";
 
 // Represents a page entry in the tree of pages.
 export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, RuleOwner {
@@ -121,7 +121,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.viewSection = refRecord(docModel.viewSections, this.parentId);
   this.widthDef = modelUtil.fieldWithDefault(this.width, () => this.viewSection().defaultWidth());
 
-  this.widthPx = this.autoDispose(ko.pureComputed(() => this.widthDef() + 'px'));
+  this.widthPx = this.autoDispose(ko.pureComputed(() => this.widthDef() + "px"));
   this.column = this.autoDispose(refRecord(docModel.columns, this.colRef));
   this.origCol = this.autoDispose(ko.pureComputed(() => this.column().origCol()));
   this.pureType = this.autoDispose(ko.pureComputed(() => this.column().pureType()));
@@ -135,7 +135,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   // displayLabel displays label by default but switches to the more helpful colId whenever a
   // formula field in the view is being edited.
   this.displayLabel = modelUtil.savingComputed({
-    read: () => docModel.editingFormula() ? '$' + this.origCol().colId() : this.origCol().label(),
+    read: () => docModel.editingFormula() ? "$" + this.origCol().colId() : this.origCol().label(),
     write: (setter, val) => setter(this.column().label, val),
   });
 
@@ -180,7 +180,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
 
   // Helper which adds/removes/updates this field's displayCol to match the formula.
   this.saveDisplayFormula = function(formula) {
-    if (formula !== (this._displayColModel().formula() || '')) {
+    if (formula !== (this._displayColModel().formula() || "")) {
       return docModel.docData.sendAction(["SetDisplayFormula", this.column().table().tableId(),
         this.getRowId(), null, formula]);
     }
@@ -209,7 +209,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
     const col = docModel.columns.getRowModel(colRef);
     await Promise.all([
       this._fieldOrColumn().visibleCol.saveOnly(colRef),
-      this._fieldOrColumn().saveDisplayFormula(colRef ? `$${this.colId()}.${col.colId()}` : ''),
+      this._fieldOrColumn().saveDisplayFormula(colRef ? `$${this.colId()}.${col.colId()}` : ""),
     ]);
   }, { nestInActiveBundle: this.column.peek().isTransforming.peek() }),
   );
@@ -221,11 +221,11 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   // Helper for Reference/ReferenceList columns, which returns a formatter according to the visibleCol
   // associated with this field. If no visible column available, return formatting for the field itself.
   this.visibleColFormatter = this.autoDispose(
-    ko.pureComputed(() => formatterForRec(this, this.column(), docModel, 'vcol')),
+    ko.pureComputed(() => formatterForRec(this, this.column(), docModel, "vcol")),
   );
 
   this.formatter = this.autoDispose(
-    ko.pureComputed(() => formatterForRec(this, this.column(), docModel, 'full')),
+    ko.pureComputed(() => formatterForRec(this, this.column(), docModel, "full")),
   );
 
   this.createValueParser = function() {
@@ -248,23 +248,23 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   // When user has yet to specify a desired wrapping state, we use different defaults for
   // GridView (no wrap) and DetailView (wrap).
   this.wrap = this.autoDispose(modelUtil.fieldWithDefault(
-    this.widgetOptionsJson.prop('wrap'),
-    () => this.viewSection().parentKey() !== 'record',
+    this.widgetOptionsJson.prop("wrap"),
+    () => this.viewSection().parentKey() !== "record",
   ));
-  this.widget = this.widgetOptionsJson.prop('widget');
-  this.textColor = this.widgetOptionsJson.prop('textColor');
-  this.fillColor = this.widgetOptionsJson.prop('fillColor');
-  this.fontBold = this.widgetOptionsJson.prop('fontBold');
-  this.fontUnderline = this.widgetOptionsJson.prop('fontUnderline');
-  this.fontItalic = this.widgetOptionsJson.prop('fontItalic');
-  this.fontStrikethrough = this.widgetOptionsJson.prop('fontStrikethrough');
-  this.headerTextColor = this.widgetOptionsJson.prop('headerTextColor');
-  this.headerFillColor = this.widgetOptionsJson.prop('headerFillColor');
-  this.headerFontBold = this.widgetOptionsJson.prop('headerFontBold');
-  this.headerFontUnderline = this.widgetOptionsJson.prop('headerFontUnderline');
-  this.headerFontItalic = this.widgetOptionsJson.prop('headerFontItalic');
-  this.headerFontStrikethrough = this.widgetOptionsJson.prop('headerFontStrikethrough');
-  this.question = this.widgetOptionsJson.prop('question');
+  this.widget = this.widgetOptionsJson.prop("widget");
+  this.textColor = this.widgetOptionsJson.prop("textColor");
+  this.fillColor = this.widgetOptionsJson.prop("fillColor");
+  this.fontBold = this.widgetOptionsJson.prop("fontBold");
+  this.fontUnderline = this.widgetOptionsJson.prop("fontUnderline");
+  this.fontItalic = this.widgetOptionsJson.prop("fontItalic");
+  this.fontStrikethrough = this.widgetOptionsJson.prop("fontStrikethrough");
+  this.headerTextColor = this.widgetOptionsJson.prop("headerTextColor");
+  this.headerFillColor = this.widgetOptionsJson.prop("headerFillColor");
+  this.headerFontBold = this.widgetOptionsJson.prop("headerFontBold");
+  this.headerFontUnderline = this.widgetOptionsJson.prop("headerFontUnderline");
+  this.headerFontItalic = this.widgetOptionsJson.prop("headerFontItalic");
+  this.headerFontStrikethrough = this.widgetOptionsJson.prop("headerFontStrikethrough");
+  this.question = this.widgetOptionsJson.prop("question");
 
   this.documentSettings = this.autoDispose(ko.pureComputed(() => docModel.docInfoRow.documentSettingsJson()));
   this.style = this.autoDispose(ko.pureComputed({
@@ -314,7 +314,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.addEmptyRule = async () => {
     const useCol = this.useColOptions.peek();
     const action = [
-      'AddEmptyRule',
+      "AddEmptyRule",
       this.column.peek().table.peek().tableId.peek(),
       useCol ? 0 : this.id.peek(), // field_ref
       useCol ? this.column.peek().id.peek() : 0, // col_ref
@@ -330,21 +330,21 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.disableModify = this.autoDispose(ko.pureComputed(() => this.column().disableModify()));
   this.disableEditData = this.autoDispose(ko.pureComputed(() => this.column().disableEditData()));
 
-  this.dropdownCondition = this.widgetOptionsJson.prop('dropdownCondition');
+  this.dropdownCondition = this.widgetOptionsJson.prop("dropdownCondition");
   this.dropdownConditionCompiled = Computed.create(this, (use) => {
     const dropdownCondition = use(this.dropdownCondition);
     if (!dropdownCondition?.parsed) { return null; }
 
     try {
       return {
-        kind: 'success',
+        kind: "success",
         result: compilePredicateFormula(JSON.parse(dropdownCondition.parsed), {
-          variant: 'dropdown-condition',
+          variant: "dropdown-condition",
         }),
       };
     }
     catch (e) {
-      return { kind: 'failure', error: e.message };
+      return { kind: "failure", error: e.message };
     }
   });
 }

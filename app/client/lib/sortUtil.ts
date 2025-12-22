@@ -1,13 +1,13 @@
-import { GristDoc } from 'app/client/components/GristDoc';
-import { ClientColumnGetters } from 'app/client/models/ClientColumnGetters';
-import { ViewSectionRec } from 'app/client/models/entities/ViewSectionRec';
-import * as rowset from 'app/client/models/rowset';
-import { MANUALSORT } from 'app/common/gristTypes';
-import { SortFunc } from 'app/common/SortFunc';
-import { Sort } from 'app/common/SortSpec';
-import { UIRowId } from 'app/plugin/GristAPI';
-import * as ko from 'knockout';
-import range from 'lodash/range';
+import { GristDoc } from "app/client/components/GristDoc";
+import { ClientColumnGetters } from "app/client/models/ClientColumnGetters";
+import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
+import * as rowset from "app/client/models/rowset";
+import { MANUALSORT } from "app/common/gristTypes";
+import { SortFunc } from "app/common/SortFunc";
+import { Sort } from "app/common/SortSpec";
+import { UIRowId } from "app/plugin/GristAPI";
+import * as ko from "knockout";
+import range from "lodash/range";
 
 /**
  * Adds a column to the given sort spec, replacing its previous occurrence if
@@ -58,8 +58,8 @@ export async function updatePositions(gristDoc: GristDoc, section: ViewSectionRe
   await gristDoc.docData.sendActions(
     [
       // Update row positions and clear the saved sort spec as a single action bundle.
-      ['BulkUpdateRecord', tableId, sortedRowIds, colInfo],
-      ['UpdateRecord', '_grist_Views_section', section.getRowId(), { sortColRefs: '[]' }],
+      ["BulkUpdateRecord", tableId, sortedRowIds, colInfo],
+      ["UpdateRecord", "_grist_Views_section", section.getRowId(), { sortColRefs: "[]" }],
     ],
     `Updated table ${tableId} row positions.`,
   );

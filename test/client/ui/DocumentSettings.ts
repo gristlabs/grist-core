@@ -2,9 +2,9 @@
 
 import { timezoneOptionsImpl } from "app/client/widgets/TZAutocomplete";
 import { assert } from "chai";
-import * as momentTimezone from 'moment-timezone';
+import * as momentTimezone from "moment-timezone";
 
-describe('DocumentSettings', function() {
+describe("DocumentSettings", function() {
   describe("timezoneOptionsImpl", function() {
     it("should return zones in correct order", function() {
       // let's test ordering of zones at time the test was written (Tue Jul 18 12:04:56.641 2017)

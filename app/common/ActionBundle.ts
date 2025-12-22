@@ -3,9 +3,9 @@
  * See also EncActionBundle for how these are packaged for encryption.
  */
 
-import { ApplyUAOptions } from 'app/common/ActiveDocAPI';
-import { DocAction, UserAction } from 'app/common/DocActions';
-import { RowCounts } from 'app/common/DocUsage';
+import { ApplyUAOptions } from "app/common/ActiveDocAPI";
+import { DocAction, UserAction } from "app/common/DocActions";
+import { RowCounts } from "app/common/DocUsage";
 
 // Metadata about the action.
 export interface ActionInfo {

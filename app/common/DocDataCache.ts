@@ -1,7 +1,7 @@
-import { AlternateActions, AlternateStorage, ProcessedAction } from 'app/common/AlternateActions';
-import { DocAction, UserAction } from 'app/common/DocActions';
-import { DocData } from 'app/common/DocData';
-import max from 'lodash/max';
+import { AlternateActions, AlternateStorage, ProcessedAction } from "app/common/AlternateActions";
+import { DocAction, UserAction } from "app/common/DocActions";
+import { DocData } from "app/common/DocData";
+import max from "lodash/max";
 
 /**
  * An implementation of an in-memory storage that can handle UserActions,

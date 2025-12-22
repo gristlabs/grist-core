@@ -1,10 +1,10 @@
-import { ColumnFilter } from 'app/client/models/ColumnFilter';
-import { ColumnRec, ViewFieldRec, ViewSectionRec } from 'app/client/models/DocModel';
-import { TableData } from 'app/client/models/TableData';
-import { buildColFilter, ColumnFilterFunc } from 'app/common/ColumnFilterFunc';
-import { buildRowFilter, RowFilterFunc, RowValueFunc } from 'app/common/RowFilterFunc';
-import { UIRowId } from 'app/plugin/GristAPI';
-import { Computed, Disposable, Observable, UseCB } from 'grainjs';
+import { ColumnFilter } from "app/client/models/ColumnFilter";
+import { ColumnRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
+import { TableData } from "app/client/models/TableData";
+import { buildColFilter, ColumnFilterFunc } from "app/common/ColumnFilterFunc";
+import { buildRowFilter, RowFilterFunc, RowValueFunc } from "app/common/RowFilterFunc";
+import { UIRowId } from "app/plugin/GristAPI";
+import { Computed, Disposable, Observable, UseCB } from "grainjs";
 
 export type { ColumnFilterFunc };
 
@@ -75,6 +75,6 @@ export class SectionFilter extends Disposable {
       return buildRowFilter(getter as RowValueFunc<UIRowId>, filterFunc);
     }).filter(f => f !== null); // Filter out columns that don't have a filter
 
-    return (rowId: UIRowId) => rowId === 'new' || funcs.every(f => Boolean(f && f(rowId)));
+    return (rowId: UIRowId) => rowId === "new" || funcs.every(f => Boolean(f && f(rowId)));
   }
 }

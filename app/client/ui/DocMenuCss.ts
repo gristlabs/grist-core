@@ -1,16 +1,16 @@
-import { components } from 'app/common/ThemePrefs';
-import { cssFocusedPanel } from 'app/client/components/RegionFocusSwitcher';
-import { transientInput } from 'app/client/ui/transientInput';
-import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { styled } from 'grainjs';
-import { bigBasicButton } from 'app/client/ui2018/buttons';
+import { components } from "app/common/ThemePrefs";
+import { cssFocusedPanel } from "app/client/components/RegionFocusSwitcher";
+import { transientInput } from "app/client/ui/transientInput";
+import { mediaSmall, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { styled } from "grainjs";
+import { bigBasicButton } from "app/client/ui2018/buttons";
 
 // Import popweasel to ensure that sortSelector style below comes later in CSS than popweasel
 // styles, which gives it priority.
-import 'popweasel';
+import "popweasel";
 
-export const docList = styled('div', `
+export const docList = styled("div", `
   height: 100%;
   padding: 0px 40px 64px 40px;
   overflow-y: auto;
@@ -30,18 +30,18 @@ export const docList = styled('div', `
   }
 `);
 
-export const docListContent = styled('div', `
+export const docListContent = styled("div", `
   display: flex;
   width: 100%;
   max-width: 1340px;
   margin: 0 auto;
 `);
 
-export const docMenu = styled('div', `
+export const docMenu = styled("div", `
   width: 100%;
 `);
 
-const headerWrap = styled('div', `
+const headerWrap = styled("div", `
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -52,7 +52,7 @@ export const docListHeaderWrap = styled(headerWrap, `
   margin: 16px 0px 24px 0px;
 `);
 
-export const listHeader = styled('div', `
+export const listHeader = styled("div", `
   min-height: 32px;
   line-height: 32px;
   color: ${theme.text};
@@ -70,7 +70,7 @@ export const docListHeader = styled(listHeader, `
   margin-bottom: 24px;
 `);
 
-export const workspaceHeaderWrap = styled('div', `
+export const workspaceHeaderWrap = styled("div", `
   display: flex;
   overflow: hidden;
 `);
@@ -80,7 +80,7 @@ export const workspaceHeader = styled(listHeaderNoWrap, `
   font-weight: 500;
 `);
 
-export const templatesHeaderWrap = styled('div', `
+export const templatesHeaderWrap = styled("div", `
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -129,11 +129,11 @@ export const stickyHeader = styled(headerWrap, `
   }
 `);
 
-export const allDocsTemplates = styled('div', `
+export const allDocsTemplates = styled("div", `
   display: flex;
 `);
 
-export const docBlock = styled('div', `
+export const docBlock = styled("div", `
   color: ${theme.text};
   max-width: 550px;
   min-width: 300px;
@@ -149,12 +149,12 @@ export const templatesDocBlock = styled(docBlock, `
   margin-top: 32px;
 `);
 
-export const otherSitesBlock = styled('div', `
+export const otherSitesBlock = styled("div", `
   color: ${theme.text};
   margin-bottom: 32px;
 `);
 
-export const otherSitesButtons = styled('div', `
+export const otherSitesButtons = styled("div", `
   display: flex;
   overflow: auto;
   padding-bottom: 16px;
@@ -216,18 +216,18 @@ const docBlockHeader = `
   }
 `;
 
-export const docBlockHeaderLink = styled('a', docBlockHeader);
+export const docBlockHeaderLink = styled("a", docBlockHeader);
 
-export const templateBlockHeader = styled('div', docBlockHeader);
+export const templateBlockHeader = styled("div", docBlockHeader);
 
-export const wsLeft = styled('div', `
+export const wsLeft = styled("div", `
   color: ${theme.text};
   flex: 1 0 50%;
   min-width: 0px;
   margin-right: 24px;
 `);
 
-export const docRowWrapper = styled('div', `
+export const docRowWrapper = styled("div", `
   position: relative;
   margin: 0px -16px 8px -16px;
   border-radius: 3px;
@@ -240,7 +240,7 @@ export const docRowWrapper = styled('div', `
   }
 `);
 
-export const docRowLink = styled('a', `
+export const docRowLink = styled("a", `
   display: flex;
   align-items: center;
   height: 40px;
@@ -259,7 +259,7 @@ export const docRowLink = styled('a', `
   }
 `);
 
-export const docLeft = styled('div', `
+export const docLeft = styled("div", `
   flex: 1 0 50%;
   min-width: 0px;
   margin: 0 16px;
@@ -267,7 +267,7 @@ export const docLeft = styled('div', `
   align-items: center;
 `);
 
-export const docName = styled('div', `
+export const docName = styled("div", `
   flex: 0 1 auto;
   white-space: nowrap;
   overflow: hidden;
@@ -295,7 +295,7 @@ export const docEditorInput = styled(transientInput, `
   line-height: initial;
 `);
 
-export const docRowUpdatedAt = styled('div', `
+export const docRowUpdatedAt = styled("div", `
   flex: 1 1 50%;
   color: ${theme.lightText};
   white-space: nowrap;
@@ -304,7 +304,7 @@ export const docRowUpdatedAt = styled('div', `
   font-weight: normal;
 `);
 
-export const docMenuTrigger = styled('div', `
+export const docMenuTrigger = styled("div", `
   flex: none;
   margin: 0 4px 0 auto;
   height: 24px;
@@ -323,7 +323,7 @@ export const docMenuTrigger = styled('div', `
   }
 `);
 
-export const moveDocModalBody = styled('div', `
+export const moveDocModalBody = styled("div", `
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid ${theme.modalBorderDark};
@@ -331,7 +331,7 @@ export const moveDocModalBody = styled('div', `
   height: 200px;
 `);
 
-export const moveDocListItem = styled('div', `
+export const moveDocListItem = styled("div", `
   display: flex;
   justify-content: space-between;
   width: 100%;
@@ -350,7 +350,7 @@ export const moveDocListItem = styled('div', `
   }
 `);
 
-export const moveDocListText = styled('div', `
+export const moveDocListText = styled("div", `
   display: flex;
   flex: 1 1 0;
   flex-direction: column;
@@ -361,7 +361,7 @@ export const moveDocListHintText = styled(moveDocListText, `
   text-align: right;
 `);
 
-export const spinner = styled('div', `
+export const spinner = styled("div", `
   display: flex;
   align-items: center;
   height: 80px;
@@ -369,13 +369,13 @@ export const spinner = styled('div', `
   margin-top: 80px;
 `);
 
-export const prefSelectors = styled('div', `
+export const prefSelectors = styled("div", `
   float: right;
   display: flex;
   align-items: center;
 `);
 
-export const sortSelector = styled('div', `
+export const sortSelector = styled("div", `
   margin-right: 24px;
 
   /* negate the styles of a select that normally looks like a button */
@@ -401,7 +401,7 @@ export const sortSelector = styled('div', `
   }
 `);
 
-export const upgradeButton = styled('div', `
+export const upgradeButton = styled("div", `
   margin-left: 32px;
 
   @media ${mediaSmall} {
@@ -411,7 +411,7 @@ export const upgradeButton = styled('div', `
   }
 `);
 
-export const upgradeCard = styled('div', `
+export const upgradeCard = styled("div", `
   margin-left: 64px;
 `);
 

@@ -1,7 +1,7 @@
-var assert = require('assert');
-var gutil = require('app/common/gutil');
-var _ = require('underscore');
-var utils = require('../utils');
+var assert = require("assert");
+var gutil = require("app/common/gutil");
+var _ = require("underscore");
+var utils = require("../utils");
 
 // Uncomment to see logs
 function log(messages) {
@@ -33,15 +33,15 @@ function benchmarkSortedIndex(arr, keyFunc, cmp, options, msg) {
   // across the 3 benchmark functions. This is kind of messy to abstract b/c of issues
   // with array sorting side effects and function context.
   for(var p = 1; 2 * currArray.length <= arr.length; p++) {
-    log(['==========================================================']);
+    log(["=========================================================="]);
     currArray = sortedArr.slice(0, Math.pow(2, p));
     currSearchElems = arr.slice(0, Math.pow(2, p));
-    log(['Calling sortedIndex', currArray.length, 'times averaged over', options.iters,
-      'iterations |', msg]);
+    log(["Calling sortedIndex", currArray.length, "times averaged over", options.iters,
+      "iterations |", msg]);
     t1 = utils.time(testUnderscore, null, [currArray, currSearchElems], options);
     t2 = utils.time(testGutil, null, [currArray, currSearchElems], options);
-    log(["Underscore.sortedIndex:", t1, 'ms.', 'Avg time per call:', t1/currArray.length]);
-    log(["gutil.sortedIndex     :", t2, 'ms.', 'Avg time per call:', t2/currArray.length]);
+    log(["Underscore.sortedIndex:", t1, "ms.", "Avg time per call:", t1/currArray.length]);
+    log(["gutil.sortedIndex     :", t2, "ms.", "Avg time per call:", t2/currArray.length]);
   }
 }
 
@@ -65,12 +65,12 @@ function benchmarkMultiCompareSort(arr, keys, cmps, asc, options, msg) {
 
   for(var p = 1; 2 * currArray.length <= arr.length; p++) {
     currArray = arr.slice(0, Math.pow(2, p));
-    log(['==========================================================']);
-    log(['Sorting', currArray.length, 'elements averaged over', options.iters,
-      'iterations |', msg]);
+    log(["=========================================================="]);
+    log(["Sorting", currArray.length, "elements averaged over", options.iters,
+      "iterations |", msg]);
     for(var i = 0; i < compareFuncs.length; i++) {
       elapsed = utils.time(Array.prototype.sort, currArray, [compareFuncs[i]], options);
-      log([(i+1) + "-key compare sort took: ", elapsed, 'ms']);
+      log([(i+1) + "-key compare sort took: ", elapsed, "ms"]);
     }
   }
 }
@@ -91,44 +91,44 @@ function benchmarkNormalSort(arr, compareFunc, keyFunc, options, msg) {
   var gutilCompare = gutil.multiCompareFunc([keyFunc], [compareFunc], [true]);
 
   for (var p = 1; 2 * currArray.length <= arr.length; p++) {
-    log(['==========================================================']);
+    log(["=========================================================="]);
     currArray = arr.slice(0, Math.pow(2, p));
-    log(['Sorting', currArray.length, 'elements averaged over', options.iters,
-      'iterations |', msg]);
+    log(["Sorting", currArray.length, "elements averaged over", options.iters,
+      "iterations |", msg]);
     t1 = utils.time(Array.prototype.sort, currArray, [compareFunc], options);
     t2 = utils.time(Array.prototype.sort, currArray, [gutilCompare], options);
     t3 = utils.time(_.sortBy, null, [currArray, keyFunc], options);
-    log(['Array.sort with compare func                 :', t1]);
-    log(['Array.sort with constructed multicompare func:', t2]);
-    log(['Underscore sort                              :', t3]);
+    log(["Array.sort with compare func                 :", t1]);
+    log(["Array.sort with constructed multicompare func:", t2]);
+    log(["Underscore sort                              :", t3]);
   }
 }
 
-describe('Performance tests', function() {
+describe("Performance tests", function() {
   var maxPower = 10; // tweak as needed
-  var options = {'iters': 10, 'avg': true};
+  var options = {"iters": 10, "avg": true};
   var timeout = 5000000; // arbitrary
   var length = Math.pow(2, maxPower);
 
   // sample data to do our sorting on. generating these random lists can take a while...
-  var nums = utils.genItems('floating', length, {min:0, max:length});
+  var nums = utils.genItems("floating", length, {min:0, max:length});
   var people = utils.genPeople(length);
-  var strings = utils.genItems('string', length, {length:10});
+  var strings = utils.genItems("string", length, {length:10});
 
-  describe('Benchmark test for gutil.sortedIndex', function() {
-    it('should be close to underscore.sortedIndex\'s performance', function() {
+  describe("Benchmark test for gutil.sortedIndex", function() {
+    it("should be close to underscore.sortedIndex's performance", function() {
       this.timeout(timeout);
       benchmarkSortedIndex(nums, _.identity, gutil.nativeCompare, options,
-        'Sorted index benchmark on numbers');
+        "Sorted index benchmark on numbers");
       benchmarkSortedIndex(strings, _.identity, gutil.nativeCompare, options,
-        'Sorted index benchmark on strings');
+        "Sorted index benchmark on strings");
       assert(true);
     });
   });
 
-  describe('Benchmarks for various sorting', function() {
-    var peopleKeys = [_.property('last'), _.property('first'), _.property('age'),
-      _.property('year'), _.property('month'), _.property('day')];
+  describe("Benchmarks for various sorting", function() {
+    var peopleKeys = [_.property("last"), _.property("first"), _.property("age"),
+      _.property("year"), _.property("month"), _.property("day")];
     var cmp1 = [gutil.nativeCompare, gutil.nativeCompare, gutil.nativeCompare, gutil.nativeCompare,
       gutil.nativeCompare, gutil.nativeCompare];
     var stringKeys = [_.identity, function (x) { return x.length; },
@@ -138,27 +138,27 @@ describe('Performance tests', function() {
     var cmp3 = numKeys.map(function() { return gutil.nativeCompare; });
     var asc = [1, 1, -1, 1, 1]; // bools for ascending/descending in multicompare
 
-    it('should be close to _.sortBy with only 1 compare key', function() {
+    it("should be close to _.sortBy with only 1 compare key", function() {
       this.timeout(timeout);
       benchmarkNormalSort(strings, gutil.nativeCompare, _.identity, options,
-        'Regular sort test on string array');
-      benchmarkNormalSort(people, function(a, b) { return a.age - b.age; }, _.property('age'),
-        options, 'Regular sort test on people array using age as sort key');
+        "Regular sort test on string array");
+      benchmarkNormalSort(people, function(a, b) { return a.age - b.age; }, _.property("age"),
+        options, "Regular sort test on people array using age as sort key");
       benchmarkNormalSort(nums, gutil.nativeCompare, _.identity, options,
-        'Regular sort test on number array');
+        "Regular sort test on number array");
       assert(true);
     });
 
-    it('should have consistent performance when no tie breakers are needed', function() {
+    it("should have consistent performance when no tie breakers are needed", function() {
       this.timeout(timeout);
-      benchmarkMultiCompareSort(strings, stringKeys, cmp2, asc, options, 'Consistency test on string array');
-      benchmarkMultiCompareSort(nums, numKeys, cmp3, asc, options, 'Consistency test on number array');
+      benchmarkMultiCompareSort(strings, stringKeys, cmp2, asc, options, "Consistency test on string array");
+      benchmarkMultiCompareSort(nums, numKeys, cmp3, asc, options, "Consistency test on number array");
       assert(true);
     });
 
-    it('should scale linearly in the number of compare keys used', function() {
+    it("should scale linearly in the number of compare keys used", function() {
       this.timeout(timeout);
-      benchmarkMultiCompareSort(people, peopleKeys, cmp1, asc, options, 'Linear scaling test on people array');
+      benchmarkMultiCompareSort(people, peopleKeys, cmp1, asc, options, "Linear scaling test on people array");
       assert(true);
     });
   });

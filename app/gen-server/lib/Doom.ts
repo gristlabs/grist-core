@@ -1,14 +1,14 @@
-import { ApiError } from 'app/common/ApiError';
-import { FullUser } from 'app/common/UserAPI';
-import { Organization } from 'app/gen-server/entity/Organization';
-import { HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { INotifier } from 'app/server/lib/INotifier';
-import { scrubUserFromOrg } from 'app/gen-server/lib/scrubUserFromOrg';
-import { GristLoginSystem } from 'app/server/lib/GristServer';
-import { IPermitStore } from 'app/server/lib/Permit';
-import remove from 'lodash/remove';
-import sortBy from 'lodash/sortBy';
-import fetch from 'node-fetch';
+import { ApiError } from "app/common/ApiError";
+import { FullUser } from "app/common/UserAPI";
+import { Organization } from "app/gen-server/entity/Organization";
+import { HomeDBManager, Scope } from "app/gen-server/lib/homedb/HomeDBManager";
+import { INotifier } from "app/server/lib/INotifier";
+import { scrubUserFromOrg } from "app/gen-server/lib/scrubUserFromOrg";
+import { GristLoginSystem } from "app/server/lib/GristServer";
+import { IPermitStore } from "app/server/lib/Permit";
+import remove from "lodash/remove";
+import sortBy from "lodash/sortBy";
+import fetch from "node-fetch";
 
 /**
  *
@@ -59,7 +59,7 @@ export class Doom {
       try {
         const docApiUrl = this._homeApiUrl + `/api/docs/${doc.id}`;
         const result = await fetch(docApiUrl, {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
             Permit: permitKey,
           },
@@ -111,7 +111,7 @@ export class Doom {
       orgs = await this._getOrgs(userId);
     }
     if (orgs.length > 0) {
-      throw new ApiError('Cannot remove user from a site', 500);
+      throw new ApiError("Cannot remove user from a site", 500);
     }
 
     // Remove user from sendgrid
@@ -136,7 +136,7 @@ export class Doom {
     const scope = { userId: this._dbManager.getPreviewerUserId() };
     const members = this._dbManager.unwrapQueryResult(await this._dbManager.getOrgAccess(scope, orgId));
     const owners: FullUser[] = members.users
-      .filter(u => u.access === 'owners' && u.id !== userId);
+      .filter(u => u.access === "owners" && u.id !== userId);
     if (owners.length === 0) {
       throw new ApiError(`No owner available for ${org.id}/${org.domain}/${org.name}`, 401);
     }
@@ -152,7 +152,7 @@ export class Doom {
         owners.push(...nonBillingManagers);
       }
     }
-    const candidate = sortBy(owners, ['email'])[0];
+    const candidate = sortBy(owners, ["email"])[0];
     await scrubUserFromOrg(orgId, userId, candidate.id, this._dbManager.connection.manager);
   }
 
@@ -191,7 +191,7 @@ export class Doom {
     const permitKey = await this._permitStore.setPermit({ org: orgKey });
     try {
       const result = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
           Permit: permitKey,
         },

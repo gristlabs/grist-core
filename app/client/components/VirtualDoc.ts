@@ -56,10 +56,10 @@ import {
   Observable,
   toKo,
   UseCB,
-} from 'grainjs';
-import * as ko from 'knockout';
-import difference from 'lodash/difference';
-import omit from 'lodash/omit';
+} from "grainjs";
+import * as ko from "knockout";
+import difference from "lodash/difference";
+import omit from "lodash/omit";
 
 /**
  * Minimal implementation of the GristDoc interface that is suitable for virtual tables. The GristDoc created
@@ -81,7 +81,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   public maximizedSectionId = Observable.create(this, null);
   public externalSectionId = Observable.create(this, null);
   public comparison: any = null;
-  public docInfo: DocInfoRec = { timezone: Observable.create(null, 'UTC') } as any;
+  public docInfo: DocInfoRec = { timezone: Observable.create(null, "UTC") } as any;
   public docModel: DocModel;
   public viewModel: ViewRec;
   public userPresenceModel: UserPresenceModel = new UserPresenceModelStub();
@@ -165,13 +165,13 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     // render each section can show the green border around active one. But it is entirely possible to have multiple
     // pages and render multiple sections on each page.
     this.docData.receiveAction([
-      'AddRecord', '_grist_Views', 'main' as any as number, {
-        name: 'main',
-        type: 'raw_data',
+      "AddRecord", "_grist_Views", "main" as any as number, {
+        name: "main",
+        type: "raw_data",
       },
     ]);
 
-    this.activeViewId.set('main' as any);
+    this.activeViewId.set("main" as any);
 
     this.activeSectionId = this.viewModel.activeSectionId as any;
   }
@@ -180,7 +180,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
    * Emits the `clipboard_focus` event. Some components (like editors) listen to this event to close themselves.
    */
   public focus() {
-    this.app?.trigger('clipboard_focus', null);
+    this.app?.trigger("clipboard_focus", null);
   }
 
   /**
@@ -189,9 +189,9 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
    * attached to GristDoc for easy access by other components.
    */
   public buildDom() {
-    return dom('div',
-      dom.style('flex', '1'),
-      dom.on('setCursor', (ev: any) => {
+    return dom("div",
+      dom.style("flex", "1"),
+      dom.on("setCursor", (ev: any) => {
         // This is a custom event triggered by Detail/GridView component. GristDoc normally registers a global
         // command handler to handle cursor change. But this won't work if there will be more then one VirtualDoc
         // on a page (we would need to somehow synchronize those two). So we will just listen to this event more
@@ -241,7 +241,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
         // Action looks like ['TableData', 'tableId', [rowIds], {colId: [values]}]
         const formatted: TableDataAction = table.format ? table.format.convert(tableId, data, definedColumns) : data;
         if (!Array.isArray(formatted) || formatted.length !== 4 || !Array.isArray(formatted[2]) || !formatted[3]) {
-          throw new Error('Invalid data format');
+          throw new Error("Invalid data format");
         }
 
         // Some columns may require adjustments (like converting ms to s)
@@ -283,7 +283,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
 
     // Some column might be hidden with is an observable value. We will listen to it and hide/show columns as needed.
     if (table.columns) {
-      const dynamicHidden = table.columns.filter(c => c.hidden && typeof c.hidden !== 'boolean');
+      const dynamicHidden = table.columns.filter(c => c.hidden && typeof c.hidden !== "boolean");
       for (const col of dynamicHidden) {
         if (col.hidden === undefined) {
           continue;
@@ -319,7 +319,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     // we don't allow those two combined.
     if (table.data instanceof Observable) {
       if (table.watch) {
-        throw new Error('Table data and watch cannot be both observables');
+        throw new Error("Table data and watch cannot be both observables");
       }
       this.autoDispose(table.data.addListener(async () => {
         await this.refreshTableData(tableId);
@@ -362,7 +362,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     }
     // Hide using meta action.
     await this.docData.sendActions([
-      ['RemoveRecord', '_grist_Views_section_field', hasField.id.peek()],
+      ["RemoveRecord", "_grist_Views_section_field", hasField.id.peek()],
     ]);
   }
 
@@ -382,7 +382,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     // Else generate action.
     const fieldId = VirtualId();
     await this.docData.sendActions([
-      ['AddRecord', '_grist_Views_section_field', fieldId, {
+      ["AddRecord", "_grist_Views_section_field", fieldId, {
         colRef: columnRec.id.peek(),
         parentId: sectionRec.id.peek(),
         parentPos: 0, // move first
@@ -409,7 +409,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     const rows = this.docModel.viewSections.tableData.filterRecords({ tableRef: tableRec?.id.peek() });
     const row = rows[0];
     if (rows.length > 1) {
-      throw new Error('Multiple sections per table not supported');
+      throw new Error("Multiple sections per table not supported");
     }
     return this.docModel.viewSections.getRowModel(row.id);
   }
@@ -451,7 +451,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     };
     const viewInstance = this.viewModel.activeSection.peek().viewInstance.peek();
     viewInstance?.setCursorPos(cursorPos);
-    this.app?.trigger('clipboard_focus', null);
+    this.app?.trigger("clipboard_focus", null);
   }
 
   ///////////////////////
@@ -478,7 +478,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     return Promise.resolve();
   }
 
-  public showTool(tool: 'none' | 'docHistory' | 'validations' | 'discussion'): void {
+  public showTool(tool: "none" | "docHistory" | "validations" | "discussion"): void {
   }
 
   public async moveToCursorPos(cursorPos?: CursorPos, optActionGroup?: MinimalActionGroup): Promise<void> {
@@ -490,7 +490,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   }
 
   public getActionCounter(): ActionCounter {
-    throw new Error('no action counter');
+    throw new Error("no action counter");
   }
 
   public async addEmptyTable(): Promise<void> {
@@ -537,25 +537,25 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   public async copyAnchorLink(_anchorInfo: unknown) {}
 
   public getCsvLink() {
-    return '';
+    return "";
   }
 
   public getTsvLink() {
-    return '';
+    return "";
   }
 
   public getDsvLink() {
-    return '';
+    return "";
   }
 
   public getXlsxActiveViewLink() {
-    return '';
+    return "";
   }
 
   public async sendTableAction() {}
   public async sendTableActions() {}
   public getActionLog(): ActionLog {
-    throw new Error('no ActionLog available');
+    throw new Error("no ActionLog available");
   }
 }
 
@@ -592,7 +592,7 @@ export class VirtualSection extends Disposable {
     /** Optional section id to use. Useful for linking sections together */
     sectionId?: string | number,
     /** Grid or Detail view */
-    type?: 'single' | 'record',
+    type?: "single" | "record",
     /** Optional label for the section, defaults to table name */
     label?: string,
     /** Sorted list of fields to render */
@@ -638,10 +638,10 @@ export class VirtualSection extends Disposable {
 
     const linkSrcSectionRef = this.props.selectBy?.sectionId ?? 0;
     this._doc.docData.receiveAction([
-      'AddRecord', '_grist_Views_section', this._sectionId as any as number, {
+      "AddRecord", "_grist_Views_section", this._sectionId as any as number, {
         tableRef: tableRec.id.peek(),
-        parentId: 'main' as any as number,
-        parentKey: this.props.type ?? 'record',
+        parentId: "main" as any as number,
+        parentKey: this.props.type ?? "record",
         title: this.props?.label ?? tableRec.tableName.peek(),
         borderWidth: 1,
         linkSrcSectionRef,
@@ -653,10 +653,10 @@ export class VirtualSection extends Disposable {
         { parentId: sectionId as any as number });
 
       this._doc.docData.receiveAction([
-        'BulkRemoveRecord', '_grist_Views_section_field', fieldsIds,
+        "BulkRemoveRecord", "_grist_Views_section_field", fieldsIds,
       ]);
       this._doc.docData.receiveAction([
-        'RemoveRecord', '_grist_Views_section', sectionId as any as number,
+        "RemoveRecord", "_grist_Views_section", sectionId as any as number,
       ]);
     });
 
@@ -719,7 +719,7 @@ export class VirtualSection extends Disposable {
           ev.stopPropagation();
           ev.preventDefault();
         }
-        this._doc.app?.trigger('clipboard_focus', null);
+        this._doc.app?.trigger("clipboard_focus", null);
         return true;
       },
     }, this, viewSectionRec.hasFocus));
@@ -729,7 +729,7 @@ export class VirtualSection extends Disposable {
         // String IDs are allowed in virtual documents, and are intended to be supported by the Grist UI.
         // The type system doesn't allow that, so forcibly cast the string as number.
         // Only cast strings to retain as much type safety as possible.
-        const rowId = typeof virtualRowId === 'string' ? virtualRowId as unknown as number : virtualRowId;
+        const rowId = typeof virtualRowId === "string" ? virtualRowId as unknown as number : virtualRowId;
         const pos = !rowId || rowId === 0 ? { rowIndex: 0 } : { rowId };
         viewSectionRec.viewInstance.peek()?.setCursorPos(pos);
       };
@@ -757,9 +757,9 @@ export class VirtualSection extends Disposable {
   public buildDom() {
     const vs = this._sectionRec;
     const visible = Observable.create(this, true);
-    return dom('div.layout_root',
+    return dom("div.layout_root",
       // Catch custom CustomEvent('setCursor', {detail: {row, col}}) event and set cursor position.
-      dom.on('setCursor', (ev: any) => {
+      dom.on("setCursor", (ev: any) => {
         vs.hasFocus(true);
         const [rowModel, fieldModel] = ev.detail;
         const cursorPos = {
@@ -774,11 +774,11 @@ export class VirtualSection extends Disposable {
         ev.stopPropagation();
         ev.preventDefault();
       }),
-      dom.style('flex', '1'),
-      dom('div.layout_box layout_vbox',
+      dom.style("flex", "1"),
+      dom("div.layout_box layout_vbox",
         dom.show(visible),
-        dom('div.layout_box layout_leaf',
-          dom.style('--flex-grow', '100'),
+        dom("div.layout_box layout_leaf",
+          dom.style("--flex-grow", "100"),
           buildViewSectionDom({
             gristDoc: this._doc,
             sectionRowId: this._sectionId as number,
@@ -802,11 +802,11 @@ export class VirtualSection extends Disposable {
         { parentId: sectionId as any as number });
 
       this._doc.docData.receiveAction([
-        'BulkRemoveRecord', '_grist_Views_section_field', fieldsIds,
+        "BulkRemoveRecord", "_grist_Views_section_field", fieldsIds,
       ]);
       const newFieldIds = columns.map(VirtualId.bind(null, undefined)) as any as number[];
       this._doc.docData.receiveAction([
-        'BulkAddRecord', '_grist_Views_section_field', newFieldIds, {
+        "BulkAddRecord", "_grist_Views_section_field", newFieldIds, {
           colRef: columns.map(c => this._doc.getColumnRec(tableId, c)!.id.peek()),
           parentId: columns.map(() => sectionId as any as number),
           parentPos: columns.map((_, i) => i + 1),
@@ -835,13 +835,13 @@ export class ApiData implements ExternalData {
 export class RecordsFormat implements ExternalFormat {
   public convert(tableId: string, data: TableRecordValues, keys: string[]): TableDataAction {
     if (!data.records.length) {
-      return ['TableData', tableId, [], {}];
+      return ["TableData", tableId, [], {}];
     }
     const rows = data.records.map(r => r.id) as number[];
     const cols = Object.fromEntries(keys
-      .filter(k => k !== 'id')
+      .filter(k => k !== "id")
       .map(k => [k, data.records.map(r => r.fields[k] ?? null)]));
-    return ['TableData', tableId, rows, cols];
+    return ["TableData", tableId, rows, cols];
   }
 }
 
@@ -851,12 +851,12 @@ export class RecordsFormat implements ExternalFormat {
 export class RawFormat implements ExternalFormat {
   public convert(tableId: string, data: any[], keys: string[]): TableDataAction {
     if (!data.length) {
-      return ['TableData', tableId, [], {}];
+      return ["TableData", tableId, [], {}];
     }
-    const colIds = keys.filter(k => k !== 'id');
+    const colIds = keys.filter(k => k !== "id");
     const rowIds = data.map((row, index) => row.id ?? (index + 1));
     const cols = Object.fromEntries(colIds.map(k => [k, data.map(r => r[k] ?? null)]));
-    return ['TableData', tableId, rowIds, cols];
+    return ["TableData", tableId, rowIds, cols];
   }
 }
 
@@ -867,7 +867,7 @@ export interface TableSpec {
   name: string;
   data: ExternalData | Observable<ExternalData>;
   watch?: Observable<any>;
-  type?: 'record' | 'single' | 'detail'; // default 'record'
+  type?: "record" | "single" | "detail"; // default 'record'
   tableId?: string;
   fields?: string[];
   columns?: ColumnSpec[];
@@ -892,7 +892,7 @@ export interface ColumnSpec<T = string> {
     widget?: WidgetType;
     choices?: string[];
     choiceOptions?: Record<string, any>[];
-    alignment?: 'left' | 'right' | 'center';
+    alignment?: "left" | "right" | "center";
   };
   // Optional col id, if not provided it will be autogenerated. Useful fo linking two sections together.
   colRef?: string | number;
@@ -916,16 +916,16 @@ class InMemoryDocModel extends DocModel {
       async applyUserActions(actions: UserAction[], options?: ApplyUAOptions): Promise<ApplyUAResult> {
         const processed = await docDataCache.sendTableActions(actions);
         const retValues = processed.flatMap(action => action.retValues);
-        return { retValues, actionHash: '', actionNum: 1, isModification: true };
+        return { retValues, actionHash: "", actionNum: 1, isModification: true };
       },
     } as any;
 
     // docData needs at least one record in doc info.
     const metaWithData: typeof META_TABLES = {
       ...META_TABLES,
-      _grist_DocInfo: ['TableData', '_grist_DocInfo', [1], {
-        docId: ['1'],
-        documentSettings: ['{}'],
+      _grist_DocInfo: ["TableData", "_grist_DocInfo", [1], {
+        docId: ["1"],
+        documentSettings: ["{}"],
       }],
     };
     const docData = new DocData(docComm, metaWithData);
@@ -979,42 +979,42 @@ function generateInitialActions(tabDef: TableSpec): DocAction[] {
   return [
     [
       // Add the virtual table.
-      'AddTable', tableId, columnDefs.map(col => ({
+      "AddTable", tableId, columnDefs.map(col => ({
         id: col.colId,
         label: col.label,
         type: col.type,
         isFormula: false,
-        formula: '',
-        widgetOptions: col.widgetOptions ? JSON.stringify(col.widgetOptions) : '',
+        formula: "",
+        widgetOptions: col.widgetOptions ? JSON.stringify(col.widgetOptions) : "",
       })),
     ], [
       // Add an entry for the virtual table.
-      'AddRecord', '_grist_Tables', tableRowId as any, { tableId, primaryViewId: viewId },
+      "AddRecord", "_grist_Tables", tableRowId as any, { tableId, primaryViewId: viewId },
     ], [
       // Add entries for the columns of the virtual table.
-      'BulkAddRecord', '_grist_Tables_column',
+      "BulkAddRecord", "_grist_Tables_column",
       columnDefs.map(col => col.id as any), getColValues(columnDefs.map(col =>
         Object.assign({
           isFormula: false,
-          formula: '',
+          formula: "",
           parentId: tableRowId as any,
-          widgetOptions: col.widgetOptions ? JSON.stringify(col.widgetOptions) : '',
-        }, omit(col, ['id', 'widgetOptions']) as any))),
+          widgetOptions: col.widgetOptions ? JSON.stringify(col.widgetOptions) : "",
+        }, omit(col, ["id", "widgetOptions"]) as any))),
     ],
     [
       // Add view instance.
-      'AddRecord', '_grist_Views', viewId as any, {
+      "AddRecord", "_grist_Views", viewId as any, {
         name: tabDef.name,
-        type: 'raw_data',
+        type: "raw_data",
       },
     ],
     [
       // Add a view section.
-      'AddRecord', '_grist_Views_section', sectionRowId as any,
+      "AddRecord", "_grist_Views_section", sectionRowId as any,
       {
         tableRef: tableRowId,
         parentId: viewId,
-        parentKey: tabDef.type ?? 'record',
+        parentKey: tabDef.type ?? "record",
         title: tabDef.name,
         // By default virtual table are producing vertical layouts (where fields are just below each other).
         layoutSpec: JSON.stringify({
@@ -1027,7 +1027,7 @@ function generateInitialActions(tabDef: TableSpec): DocAction[] {
     ],
     [
       // List the fields shown in the view section.
-      'BulkAddRecord', '_grist_Views_section_field', fieldsIds, {
+      "BulkAddRecord", "_grist_Views_section_field", fieldsIds, {
         colRef: fields.map(colId => columnDefs.find(r => r.colId === colId)!.id),
         parentId: fields.map(() => sectionRowId),
         parentPos: fields.map((_, i) => i + 1),
@@ -1038,7 +1038,7 @@ function generateInitialActions(tabDef: TableSpec): DocAction[] {
 }
 
 function properId(label: string) {
-  return camelCase(label.replace(/[^a-zA-Z0-9]/g, ''));
+  return camelCase(label.replace(/[^a-zA-Z0-9]/g, ""));
 }
 
 function maybePeek<T>(value: T | Observable<T>) {

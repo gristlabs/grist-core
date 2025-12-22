@@ -49,10 +49,10 @@
  *   `);
  */
 
-import { theme } from 'app/client/ui2018/cssVars';
-import { dom, DomElementArg, styled } from 'grainjs';
-import { IconName } from 'app/client/ui2018/IconList';
-import { unstyledButton } from 'app/client/ui2018/unstyled';
+import { theme } from "app/client/ui2018/cssVars";
+import { dom, DomElementArg, styled } from "grainjs";
+import { IconName } from "app/client/ui2018/IconList";
+import { unstyledButton } from "app/client/ui2018/unstyled";
 
 /**
  * Defaults for all icons.
@@ -80,29 +80,29 @@ const iconColorStyles = `
   background-size: contain;
 `;
 
-const cssIconDiv = styled('div', iconStyles);
+const cssIconDiv = styled("div", iconStyles);
 
-const cssIconSpan = styled('span', iconStyles);
+const cssIconSpan = styled("span", iconStyles);
 
-const cssColorIcon = styled('div', iconColorStyles);
+const cssColorIcon = styled("div", iconColorStyles);
 
 export function icon(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
   return cssIconDiv(
-    dom.style('-webkit-mask-image', `var(--icon-${name})`),
+    dom.style("-webkit-mask-image", `var(--icon-${name})`),
     ...domArgs,
   );
 }
 
 export function iconSpan(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
   return cssIconSpan(
-    dom.style('-webkit-mask-image', `var(--icon-${name})`),
+    dom.style("-webkit-mask-image", `var(--icon-${name})`),
     ...domArgs,
   );
 }
 
 export function colorIcon(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
   return cssColorIcon(
-    dom.style('background-image', `var(--icon-${name})`),
+    dom.style("background-image", `var(--icon-${name})`),
     ...domArgs,
   );
 }

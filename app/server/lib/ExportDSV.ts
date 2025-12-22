@@ -1,12 +1,12 @@
-import { ApiError } from 'app/common/ApiError';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { ApiError } from "app/common/ApiError";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { FilterColValues } from "app/common/ActiveDocAPI";
-import { DownloadOptions, ExportData, ExportHeader, exportSection, exportTable, Filter } from 'app/server/lib/Export';
-import log from 'app/server/lib/log';
-import contentDisposition from 'content-disposition';
-import { stringify } from 'csv';
-import * as express from 'express';
-import { promisify } from 'util';
+import { DownloadOptions, ExportData, ExportHeader, exportSection, exportTable, Filter } from "app/server/lib/Export";
+import log from "app/server/lib/log";
+import contentDisposition from "content-disposition";
+import { stringify } from "csv";
+import * as express from "express";
+import { promisify } from "util";
 
 const stringifyAsync = promisify(stringify);
 
@@ -14,7 +14,7 @@ export interface DownloadDsvOptions extends DownloadOptions {
   delimiter: Delimiter;
 }
 
-type Delimiter = ',' | '\t' | '💩';
+type Delimiter = "," | "\t" | "💩";
 
 /**
  * Converts `activeDoc` to delimiter-separated values (e.g. CSV) and sends
@@ -35,8 +35,8 @@ export async function downloadDSV(
       linkingFilter: linkingFilter || null, header, delimiter, req,
     }) :
     await makeDSVFromTable({ activeDoc, tableId, header, delimiter, req });
-  res.set('Content-Type', getDSVMimeType(delimiter));
-  res.setHeader('Content-Disposition', contentDisposition(filename + extension));
+  res.set("Content-Type", getDSVMimeType(delimiter));
+  res.setHeader("Content-Disposition", contentDisposition(filename + extension));
   res.send(data);
 }
 
@@ -101,12 +101,12 @@ export async function makeDSVFromTable({ activeDoc, tableId, delimiter, header, 
   req: express.Request
 }) {
   if (!activeDoc.docData) {
-    throw new Error('No docData in active document');
+    throw new Error("No docData in active document");
   }
 
   // Look up the table to make a CSV from.
-  const tables = activeDoc.docData.getMetaTable('_grist_Tables');
-  const tableRef = tables.findRow('tableId', tableId);
+  const tables = activeDoc.docData.getMetaTable("_grist_Tables");
+  const tableRef = tables.findRow("tableId", tableId);
 
   if (tableRef === 0) {
     throw new ApiError(`Table ${tableId} not found.`, 404);
@@ -128,7 +128,7 @@ function convertToDsv(data: ExportData, options: ConvertToDsvOptions) {
   // create formatters for columns
   const formatters = viewColumns.map(col => col.formatter);
   // Arrange the data into a row-indexed matrix, starting with column headers.
-  const colPropertyAsHeader = header ?? 'label';
+  const colPropertyAsHeader = header ?? "label";
   const csvMatrix = [viewColumns.map(col => col[colPropertyAsHeader])];
   // populate all the rows with values as strings
   rowIds.forEach((row) => {
@@ -137,39 +137,39 @@ function convertToDsv(data: ExportData, options: ConvertToDsvOptions) {
   return stringifyAsync(csvMatrix, { delimiter });
 }
 
-type DSVFileExtension = '.csv' | '.tsv' | '.dsv';
+type DSVFileExtension = ".csv" | ".tsv" | ".dsv";
 
 function getDSVFileExtension(delimiter: Delimiter): DSVFileExtension {
   switch (delimiter) {
-    case ',': {
-      return '.csv';
+    case ",": {
+      return ".csv";
     }
-    case '\t': {
-      return '.tsv';
+    case "\t": {
+      return ".tsv";
     }
-    case '💩': {
-      return '.dsv';
+    case "💩": {
+      return ".dsv";
     }
   }
 }
 
 type DSVMimeType =
-  | 'text/csv' |
+  | "text/csv" |
   // Reference: https://www.iana.org/assignments/media-types/text/tab-separated-values
-  'text/tab-separated-values' |
+  "text/tab-separated-values" |
   // Note: not a registered MIME type, hence the "x-" prefix.
-  'text/x-doo-separated-values';
+  "text/x-doo-separated-values";
 
 function getDSVMimeType(delimiter: Delimiter): DSVMimeType {
   switch (delimiter) {
-    case ',': {
-      return 'text/csv';
+    case ",": {
+      return "text/csv";
     }
-    case '\t': {
-      return 'text/tab-separated-values';
+    case "\t": {
+      return "text/tab-separated-values";
     }
-    case '💩': {
-      return 'text/x-doo-separated-values';
+    case "💩": {
+      return "text/x-doo-separated-values";
     }
   }
 }

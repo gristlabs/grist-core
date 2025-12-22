@@ -15,9 +15,9 @@
  * test/browser/gristUtils.js provides a `gu.fileDialogUpload()` to make it easy.
  */
 
-import * as browserGlobals from 'app/client/lib/browserGlobals';
-import dom from 'app/client/lib/dom';
-const G = browserGlobals.get('document', 'window');
+import * as browserGlobals from "app/client/lib/browserGlobals";
+import dom from "app/client/lib/dom";
+const G = browserGlobals.get("document", "window");
 
 export interface FileDialogOptions {
   multiple?: boolean;   // Whether multiple files may be selected.
@@ -59,12 +59,12 @@ export function openFilePicker(options: FileDialogOptions): Promise<File[]> {
 export function open(options: FileDialogOptions, callback: FilesCB): void {
   if (!_fileInput) {
     // The IDs are only needed for the sake of browser tests.
-    _fileForm = dom('form#file_dialog_form', { style: 'position: absolute; top: 0; display: none' },
-      _fileInput = dom('input#file_dialog_input', { type: 'file' }));
+    _fileForm = dom("form#file_dialog_form", { style: "position: absolute; top: 0; display: none" },
+      _fileInput = dom("input#file_dialog_input", { type: "file" }));
 
     G.document.body.appendChild(_fileForm);
 
-    _fileInput.addEventListener('change', (ev) => {
+    _fileInput.addEventListener("change", (ev) => {
       _currentCB(_fileInput.files ? Array.from(_fileInput.files) : []);
       _currentCB = noop;
     });
@@ -74,7 +74,7 @@ export function open(options: FileDialogOptions, callback: FilesCB): void {
   // triggers a 'change' event.
   _fileForm.reset();
   _fileInput.multiple = Boolean(options.multiple);
-  _fileInput.accept = options.accept || '';
+  _fileInput.accept = options.accept || "";
   _currentCB = callback;
 
   // .click() is a well-supported shorthand for dispatching a mouseclick event on input elements.

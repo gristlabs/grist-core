@@ -41,7 +41,7 @@ export interface FileUploadResult {
  * Path where the server accepts POST requests with uploads.  Don't include a leading / so that
  * the page's <base> will be respected.
  */
-export const UPLOAD_URL_PATH = 'uploads';
+export const UPLOAD_URL_PATH = "uploads";
 
 /**
  * Additional options for fetching external resources.

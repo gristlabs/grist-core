@@ -1,4 +1,4 @@
-import { ISandbox } from 'app/server/lib/ISandbox';
+import { ISandbox } from "app/server/lib/ISandbox";
 
 export class UnavailableSandboxMethodError extends Error {
   constructor(message: string) {
@@ -8,19 +8,19 @@ export class UnavailableSandboxMethodError extends Error {
 
 export class NullSandbox implements ISandbox {
   public async shutdown(): Promise<unknown> {
-    throw new UnavailableSandboxMethodError('shutdown is not available');
+    throw new UnavailableSandboxMethodError("shutdown is not available");
   }
 
   public async pyCall(_funcName: string, ..._varArgs: unknown[]) {
-    throw new UnavailableSandboxMethodError('pyCall is not available');
+    throw new UnavailableSandboxMethodError("pyCall is not available");
   }
 
   public async reportMemoryUsage(): Promise<never> {
-    throw new UnavailableSandboxMethodError('reportMemoryUsage is not available');
+    throw new UnavailableSandboxMethodError("reportMemoryUsage is not available");
   }
 
   public getFlavor() {
-    return 'null';
+    return "null";
   }
 
   public isProcessDown() { return true; }

@@ -6,9 +6,9 @@
  * class should support freezing of row positions until the user chooses to re-sort. This is not
  * currently implemented.
  */
-import { ColumnGetter, ColumnGetters } from 'app/common/ColumnGetters';
-import { localeCompare, nativeCompare } from 'app/common/gutil';
-import { Sort } from 'app/common/SortSpec';
+import { ColumnGetter, ColumnGetters } from "app/common/ColumnGetters";
+import { localeCompare, nativeCompare } from "app/common/gutil";
+import { Sort } from "app/common/SortSpec";
 
 // Function that will amend column getter to return entry index instead
 // of entry value. Result will be a string padded with zeros, so the ordering
@@ -29,7 +29,7 @@ type Comparator = (val1: any, val2: any) => number;
  */
 const collator = new Intl.Collator(undefined, { numeric: true });
 export function naturalCompare(val1: any, val2: any) {
-  if (typeof val1 === 'string' && typeof val2 === 'string') {
+  if (typeof val1 === "string" && typeof val2 === "string") {
     return collator.compare(val1, val2);
   }
   return typedCompare(val1, val2);
@@ -39,8 +39,8 @@ export function naturalCompare(val1: any, val2: any) {
  * Empty comparator will treat empty values as last.
  */
 export const emptyCompare = (next: Comparator) => (val1: any, val2: any) => {
-  const isEmptyValue1 = !val1 && typeof val1 !== 'number';
-  const isEmptyValue2 = !val2 && typeof val2 !== 'number';
+  const isEmptyValue1 = !val1 && typeof val1 !== "number";
+  const isEmptyValue2 = !val2 && typeof val2 !== "number";
 
   // If both values are empty values, rely on next to compare.
   if (isEmptyValue1 && !isEmptyValue2) {
@@ -69,7 +69,7 @@ export function typedCompare(val1: any, val2: any): number {
   // We need to worry about Array comparisons because formulas returning Any may return null or
   // object values represented as arrays (e.g. ['D', ...] for dates). Comparing those without
   // distinguishing types would break the sort. Also, arrays need a special comparator.
-  if (type1 === 'object') {
+  if (type1 === "object") {
        if ((result = nativeCompare(array1 = val1 instanceof Array, val2 instanceof Array)) !== 0) {
       return result;
     }
@@ -77,7 +77,7 @@ export function typedCompare(val1: any, val2: any): number {
       return _arrayCompare(val1, val2);
     }
   }
-  if (type1 === 'string') {
+  if (type1 === "string") {
     return localeCompare(val1, val2);
   }
   return nativeCompare(val1, val2);

@@ -1,8 +1,8 @@
-import * as sqlite3 from '@gristlabs/sqlite3';
-import { fromCallback } from 'app/server/lib/serverUtils';
+import * as sqlite3 from "@gristlabs/sqlite3";
+import { fromCallback } from "app/server/lib/serverUtils";
 import { Backup, MinDB, MinDBOptions, PreparedStatement,
-  ResultRow, SqliteVariant } from 'app/server/lib/SqliteCommon';
-import { OpenMode, RunResult } from 'app/server/lib/SQLiteDB';
+  ResultRow, SqliteVariant } from "app/server/lib/SqliteCommon";
+import { OpenMode, RunResult } from "app/server/lib/SQLiteDB";
 
 export class NodeSqliteVariant implements SqliteVariant {
   public opener(dbPath: string, mode: OpenMode): Promise<MinDB> {
@@ -25,7 +25,7 @@ export class NodeSqlite3PreparedStatement implements PreparedStatement {
   public columns(): string[] {
     // This method is only needed if marshalling is not built in -
     // and node-sqlite3 has marshalling built in.
-    throw new Error('not available (but should not be needed)');
+    throw new Error("not available (but should not be needed)");
   }
 }
 
@@ -77,7 +77,7 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
     let stmt: sqlite3.Statement | undefined;
     // The original interface is a little strange; we resolve to Statement if prepare() succeeded.
     await fromCallback((cb) => { stmt = this._db.prepare(sql, cb); }).then(() => stmt);
-    if (!stmt) { throw new Error('could not prepare statement'); }
+    if (!stmt) { throw new Error("could not prepare statement"); }
     return new NodeSqlite3PreparedStatement(stmt);
   }
 
@@ -125,7 +125,7 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
         // [^2]: https://github.com/TryGhost/node-sqlite3/blob/528e15ae605bac7aab8de60dd7c46e9fdc1fffd0/src/database.cc#L390
         //
         // Also cast because types are out of date.
-        (this._db as any).configure('limit', SQLITE_LIMIT_ATTACHED, maxAttach);
+        (this._db as any).configure("limit", SQLITE_LIMIT_ATTACHED, maxAttach);
         resolve();
       });
     });

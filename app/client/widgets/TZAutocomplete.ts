@@ -1,9 +1,9 @@
-import { MomentTimezone } from 'app/client/lib/imports';
-import { ACIndexImpl } from 'app/client/lib/ACIndex';
-import { ACSelectItem, buildACSelect } from 'app/client/lib/ACSelect';
+import { MomentTimezone } from "app/client/lib/imports";
+import { ACIndexImpl } from "app/client/lib/ACIndex";
+import { ACSelectItem, buildACSelect } from "app/client/lib/ACSelect";
 import { testId } from "app/client/ui2018/cssVars";
-import { nativeCompare } from 'app/common/gutil';
-import { IDisposableOwner, Observable } from 'grainjs';
+import { nativeCompare } from "app/common/gutil";
+import { IDisposableOwner, Observable } from "grainjs";
 
 /**
  * Returns the ordered list of offsets for names at time timestamp. See timezoneOptions for details
@@ -20,7 +20,7 @@ export function timezoneOptionsImpl(
   const options = names.map(value => ({
     cleanText: value.toLowerCase().trim(),
     value,
-    label: `(GMT${m.tz(value).format('Z')}) ${value}`,
+    label: `(GMT${m.tz(value).format("Z")}) ${value}`,
     // A quick test reveal that it is a bit more efficient (~0.02ms) to get the offset using
     // `moment.tz.Zone#parse` than creating a Moment instance for each zone and then getting the
     // offset with `moment#utcOffset`.

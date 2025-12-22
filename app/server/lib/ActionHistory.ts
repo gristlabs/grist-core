@@ -13,11 +13,11 @@
  * blobs, which can simplify the database storage.
  */
 
-import { LocalActionBundle } from 'app/common/ActionBundle';
-import { ActionGroup, MinimalActionGroup } from 'app/common/ActionGroup';
-import { createEmptyActionSummary } from 'app/common/ActionSummary';
-import { summarizeAction } from 'app/common/ActionSummarizer';
-import { DocState } from 'app/common/DocState';
+import { LocalActionBundle } from "app/common/ActionBundle";
+import { ActionGroup, MinimalActionGroup } from "app/common/ActionGroup";
+import { createEmptyActionSummary } from "app/common/ActionSummary";
+import { summarizeAction } from "app/common/ActionSummarizer";
+import { DocState } from "app/common/DocState";
 
 export interface ActionGroupOptions {
   // If set, inspect the action in detail in order to include a summary of
@@ -236,11 +236,11 @@ function getActionUndoInfoWithoutClient(act: LocalActionBundle, retValues?: any[
     for (let i = 0; i < act.userActions.length; i++) {
       const name = act.userActions[i][0];
       const retValue = retValues[i];
-      if (name === 'AddRecord') {
+      if (name === "AddRecord") {
         rowIdHint = retValue;
         break;
       }
-      else if (name === 'BulkAddRecord') {
+      else if (name === "BulkAddRecord") {
         rowIdHint = retValue[0];
         break;
       }
@@ -249,7 +249,7 @@ function getActionUndoInfoWithoutClient(act: LocalActionBundle, retValues?: any[
 
   const info = act.info[1];
   const primaryAction: string = String((act.userActions[0] || [""])[0]);
-  const isUndo = primaryAction === 'ApplyUndoActions';
+  const isUndo = primaryAction === "ApplyUndoActions";
   return {
     minimal: {
       rowIdHint,

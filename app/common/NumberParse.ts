@@ -4,16 +4,16 @@
  * not tied to documents or anything.
  */
 
-import { DocumentSettings } from 'app/common/DocumentSettings';
-import { getDistinctValues } from 'app/common/gutil';
-import { getCurrency, NumberFormatOptions, NumMode, parseNumMode } from 'app/common/NumberFormat';
-import { buildNumberFormat } from 'app/common/NumberFormat';
-import escapeRegExp from 'lodash/escapeRegExp';
-import last from 'lodash/last';
+import { DocumentSettings } from "app/common/DocumentSettings";
+import { getDistinctValues } from "app/common/gutil";
+import { getCurrency, NumberFormatOptions, NumMode, parseNumMode } from "app/common/NumberFormat";
+import { buildNumberFormat } from "app/common/NumberFormat";
+import escapeRegExp from "lodash/escapeRegExp";
+import last from "lodash/last";
 
 // Possible values of Intl.NumberFormat.formatToParts[i].type
 // Seems Intl.NumberFormatPartTypes is not quite complete
-type NumberFormatPartTypes = Intl.NumberFormatPartTypes | 'exponentSeparator';
+type NumberFormatPartTypes = Intl.NumberFormatPartTypes | "exponentSeparator";
 
 /**
  * Returns a map converting the decimal digits used in the given formatter
@@ -84,23 +84,23 @@ export default class NumberParse {
     function getPart(partType: NumberFormatPartTypes, numMode: NumMode = "decimal"): string {
       const part = parts.get(numMode)!.find(p => p.type === partType);
       // Only time we expect `part` to be undefined is for digitGroupSeparatorCurrency
-      return part?.value || '';
+      return part?.value || "";
     }
 
-    this.currencySymbol = getPart('currency', 'currency');
-    this.percentageSymbol = getPart('percentSign', 'percent');
-    this.exponentSeparator = getPart('exponentSeparator', 'scientific');
-    this.minusSign = getPart('minusSign');
-    this.decimalSeparator = getPart('decimal');
+    this.currencySymbol = getPart("currency", "currency");
+    this.percentageSymbol = getPart("percentSign", "percent");
+    this.exponentSeparator = getPart("exponentSeparator", "scientific");
+    this.minusSign = getPart("minusSign");
+    this.decimalSeparator = getPart("decimal");
 
     // Separators for groups of digits, typically groups of 3, i.e. 'thousands separators'.
     // A few locales have different separators for currency and non-currency.
     // We check for both but don't check which one is used, currency or not.
-    this.digitGroupSeparator = getPart('group');
-    this.digitGroupSeparatorCurrency = getPart('group', 'currency');
+    this.digitGroupSeparator = getPart("group");
+    this.digitGroupSeparatorCurrency = getPart("group", "currency");
 
     // A few locales format negative currency amounts ending in '-', e.g. '€ 1,00-'
-    this.currencyEndsInMinusSign = last(parts.get('currency'))!.type === 'minusSign';
+    this.currencyEndsInMinusSign = last(parts.get("currency"))!.type === "minusSign";
 
     // Default number of fractional digits for currency,
     // e.g. this is 2 for USD because 1 is formatted as $1.00
@@ -108,7 +108,7 @@ export default class NumberParse {
 
     // Since JS and Python allow both e and E for scientific notation, it seems fair that other
     // locales should be case insensitive for this.
-    this._exponentSeparatorRegex = new RegExp(escapeRegExp(this.exponentSeparator), 'i');
+    this._exponentSeparatorRegex = new RegExp(escapeRegExp(this.exponentSeparator), "i");
 
     // Overall the parser is quite lax about digit separators.
     // We only require that the separator is followed by at least 2 digits,
@@ -119,7 +119,7 @@ export default class NumberParse {
         this.digitGroupSeparator +
         this.digitGroupSeparatorCurrency,
       )}](\\d\\d)`,
-      'g',
+      "g",
     );
 
     const digitsMap = this.digitsMap = getDigitsMap(locale);
@@ -158,7 +158,7 @@ export default class NumberParse {
     // Must check for empty string directly because Number('') is 0 :facepalm:
     // Check early so we can return early for performance.
     // Nothing after this should potentially produce an empty string.
-    if (value === '') {
+    if (value === "") {
       return null;
     }
 
@@ -184,7 +184,7 @@ export default class NumberParse {
 
     // Must come after the digit separator replacement
     // because the digit separator might be '.'
-    value = value.replace(this.decimalSeparator, '.');
+    value = value.replace(this.decimalSeparator, ".");
 
     // .replace with a string only replaces once,
     // and a number can contain two minus signs when using scientific notation

@@ -1,16 +1,16 @@
-import { DocModel } from 'app/client/models/DocModel';
-import { reportError } from 'app/client/models/errors';
-import { TableData } from 'app/client/models/TableData';
-import { concatenateSummaries, summarizeStoredAndUndo } from 'app/common/ActionSummarizer';
-import { TableDelta } from 'app/common/ActionSummary';
-import { ProcessedAction } from 'app/common/AlternateActions';
-import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
-import { DocAction, TableDataAction, UserAction } from 'app/common/DocActions';
-import { DocDataCache } from 'app/common/DocDataCache';
-import { RowRecord } from 'app/plugin/GristData';
-import * as commands from 'app/client/components/commands';
-import debounce from 'lodash/debounce';
-import { bundleChanges } from 'grainjs';
+import { DocModel } from "app/client/models/DocModel";
+import { reportError } from "app/client/models/errors";
+import { TableData } from "app/client/models/TableData";
+import { concatenateSummaries, summarizeStoredAndUndo } from "app/common/ActionSummarizer";
+import { TableDelta } from "app/common/ActionSummary";
+import { ProcessedAction } from "app/common/AlternateActions";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { DocAction, TableDataAction, UserAction } from "app/common/DocActions";
+import { DocDataCache } from "app/common/DocDataCache";
+import { RowRecord } from "app/plugin/GristData";
+import * as commands from "app/client/components/commands";
+import debounce from "lodash/debounce";
+import { bundleChanges } from "grainjs";
 
 /**
  * An interface for use while editing a virtual table.
@@ -155,7 +155,7 @@ export class VirtualTableData extends TableData {
           _counterForUndoActions++;
           commands.allCommands.pushUndoAction.run({
             actionNum: code,
-            actionHash: 'hash',
+            actionHash: "hash",
             fromSelf: true,
             otherId: options.actionNum || 0,
             linkId: 0,
@@ -233,8 +233,8 @@ export class VirtualTableRegistration extends DisposableWithEvents {
 
   public listenToEvents(source: DisposableWithEvents) {
     const listener = () => this._tableData.schemaChange().catch(e => reportError(e));
-    this.listenTo(source, 'schemaUpdateAction', listener);
-    this.onDispose(() => this.stopListening(source, 'schemaUpdateAction', listener));
+    this.listenTo(source, "schemaUpdateAction", listener);
+    this.onDispose(() => this.stopListening(source, "schemaUpdateAction", listener));
   }
 
   public updateSchema() {
@@ -257,10 +257,10 @@ export class VirtualTableRegistration extends DisposableWithEvents {
 function generateDestroyActions(initialActions: DocAction[]): DocAction[] {
   return initialActions.map((action) => {
     switch (action[0]) {
-      case 'AddTable': return ['RemoveTable', action[1]];
-      case 'AddColumn': return ['RemoveColumn', action[1]];
-      case 'AddRecord': return ['RemoveRecord', action[1], action[2]];
-      case 'BulkAddRecord': return ['BulkRemoveRecord', action[1], action[2]];
+      case "AddTable": return ["RemoveTable", action[1]];
+      case "AddColumn": return ["RemoveColumn", action[1]];
+      case "AddRecord": return ["RemoveRecord", action[1], action[2]];
+      case "BulkAddRecord": return ["BulkRemoveRecord", action[1], action[2]];
       default: throw new Error(`Cannot generate destroy action for ${action[0]}`);
     }
   }).reverse() as unknown as DocAction[];

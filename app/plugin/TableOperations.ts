@@ -1,4 +1,4 @@
-import * as Types from 'app/plugin/DocApiTypes';
+import * as Types from "app/plugin/DocApiTypes";
 
 /**
  * Offer CRUD-style operations on a table.
@@ -52,7 +52,7 @@ export interface UpsertOptions extends OpOptions {
   /** Permit updating a record. Defaults to true. */
   update?: boolean;
   /** Whether to update none, one, or all matching records. Defaults to "first". */
-  onMany?: 'none' | 'first' | 'all';
+  onMany?: "none" | "first" | "all";
   /** Allow "wildcard" operation. Defaults to false. */
   allowEmptyRequire?: boolean;
 }

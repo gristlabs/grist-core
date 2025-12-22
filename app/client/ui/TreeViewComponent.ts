@@ -1,18 +1,18 @@
 import { makeT } from "app/client/lib/localization";
 import { TreeItem, TreeModel, TreeNode, walkTree } from "app/client/models/TreeModel";
 import { mouseDrag, MouseDragHandler, MouseDragStart } from "app/client/ui/mouseDrag";
-import * as css from 'app/client/ui/TreeViewComponentCss';
+import * as css from "app/client/ui/TreeViewComponentCss";
 import { Computed, dom, DomArg, Holder } from "grainjs";
 import { Disposable, IDisposable, makeTestId, ObsArray, Observable, observable } from "grainjs";
-import debounce from 'lodash/debounce';
+import debounce from "lodash/debounce";
 import defaults from "lodash/defaults";
-import noop from 'lodash/noop';
+import noop from "lodash/noop";
 
-const t = makeT('TreeViewComponent');
+const t = makeT("TreeViewComponent");
 
 // DropZone identifies a location where an item can be inserted
 interface DropZone {
-  zone: 'above' | 'below' | 'within';
+  zone: "above" | "below" | "within";
   item: ItemModel;
 
   // `locked` allows to lock the dropzone until the cursor leaves the current item. This is useful
@@ -82,7 +82,7 @@ export interface TreeViewOptions {
   isReadonly?: Observable<boolean>;
 }
 
-const testId = makeTestId('test-treeview-');
+const testId = makeTestId("test-treeview-");
 
 /**
  * The TreeViewComponent is a component that can show hierarchical data. It supports collapsing
@@ -141,19 +141,19 @@ export class TreeViewComponent extends Disposable {
     this._containerElement = css.treeViewContainer(
 
       // hides the drop zone and target when the cursor leaves the component
-      dom.on('mouseleave', () => {
+      dom.on("mouseleave", () => {
         this._setDropZone(null);
         const drag = this._drag.get();
         if (drag) {
           drag.autoExpander.clear();
-          drag.item.handleElement.style.display = 'none';
+          drag.item.handleElement.style.display = "none";
         }
       }),
 
-      dom.on('mouseenter', () => {
+      dom.on("mouseenter", () => {
         const drag = this._drag.get();
         if (drag) {
-          drag.item.handleElement.style.display = '';
+          drag.item.handleElement.style.display = "";
         }
       }),
 
@@ -164,9 +164,9 @@ export class TreeViewComponent extends Disposable {
       // insert children
       dom.domComputed(this._childrenDom),
 
-      css.treeViewContainer.cls('-close', this._isClosed),
-      css.treeViewContainer.cls('-dragging', this._dragging),
-      testId('container'),
+      css.treeViewContainer.cls("-close", this._isClosed),
+      css.treeViewContainer.cls("-dragging", this._dragging),
+      testId("container"),
     );
   }
 
@@ -189,7 +189,7 @@ export class TreeViewComponent extends Disposable {
         drag.autoExpander.dispose();
         drag.highlightedBox.dispose();
         drag.item.dragged.set(false);
-        drag.item.handleElement.style.display = '';
+        drag.item.handleElement.style.display = "";
         drag.item.deltaY.set(0);
       },
     };
@@ -221,12 +221,12 @@ export class TreeViewComponent extends Disposable {
   // above or below any particular item to indicate where the dragged item would be inserted.
   private _buildTarget() {
     return css.target(
-      testId('target'),
+      testId("target"),
       // show only if a drop zone is set
       dom.hide(this._hideTarget),
-      dom.style('width', use => use(this._target).width + 'px'),
-      dom.style('top', use => use(this._target).top + 'px'),
-      dom.style('left', use => use(this._target).left + 'px'),
+      dom.style("width", use => use(this._target).width + "px"),
+      dom.style("top", use => use(this._target).top + "px"),
+      dom.style("left", use => use(this._target).left + "px"),
     );
   }
 
@@ -256,15 +256,15 @@ export class TreeViewComponent extends Disposable {
         this._setOffset(elem, level);
         const itemHeaderElem = elem.children[0];
         const itemChildren = treeItem.children();
-        const arrowElement = dom.getData(elem, 'item').arrowElement;
+        const arrowElement = dom.getData(elem, "item").arrowElement;
         if (itemChildren) {
           const itemChildrenElem = this._buildChildren(treeItem.children()!, level + 1);
           replaceChildren(elem, itemHeaderElem, itemChildrenElem);
-          dom.styleElem(arrowElement, 'visibility', itemChildren.get().length ? 'visible' : 'hidden');
+          dom.styleElem(arrowElement, "visibility", itemChildren.get().length ? "visible" : "hidden");
         }
         else {
           replaceChildren(elem, itemHeaderElem);
-          dom.styleElem(arrowElement, 'visibility', 'hidden');
+          dom.styleElem(arrowElement, "visibility", "hidden");
         }
         return elem;
       }),
@@ -285,7 +285,7 @@ export class TreeViewComponent extends Disposable {
   }
 
   private _setOffset(el: Element, level: number) {
-    const item = dom.getData(el, 'item') as ItemModel;
+    const item = dom.getData(el, "item") as ItemModel;
     item.offsetElement.style.width = level * this._options.offset + "px";
   }
 
@@ -305,40 +305,40 @@ export class TreeViewComponent extends Disposable {
     let offsetElement: HTMLElement;
     let arrowElement: HTMLElement;
 
-    const containerElement = dom('div.itemContainer',
-      testId('itemContainer'),
-      dom.cls('collapsed', collapsed),
+    const containerElement = dom("div.itemContainer",
+      testId("itemContainer"),
+      dom.cls("collapsed", collapsed),
       css.itemHeaderWrapper(
-        testId('itemHeaderWrapper'),
-        dom.cls('dragged', dragged),
-        css.itemHeaderWrapper.cls('-not-dragging', use => !use(this._dragging)),
+        testId("itemHeaderWrapper"),
+        dom.cls("dragged", dragged),
+        css.itemHeaderWrapper.cls("-not-dragging", use => !use(this._dragging)),
         headerElement = css.itemHeader(
-          testId('itemHeader'),
-          dom.cls('highlight', highlight),
-          dom.cls('selected', use => use(this._options.selected) === treeItem),
-          offsetElement = css.offset(testId('offset')),
+          testId("itemHeader"),
+          dom.cls("highlight", highlight),
+          dom.cls("selected", use => use(this._options.selected) === treeItem),
+          offsetElement = css.offset(testId("offset")),
           // The label is first in the DOM but visibly shown after the arrow thanks to flexbox re-ordering.
           // This is done mostly so that screen reader users better understand the context of the arrow button.
           labelElement = css.itemLabel(
-            testId('label'),
+            testId("label"),
             treeItem.buildDom(),
-            dom.style('top', use => use(deltaY) + 'px'),
+            dom.style("top", use => use(deltaY) + "px"),
           ),
           arrowElement = css.arrow(
-            dom.attr('aria-label', use => use(collapsed) ? t('Expand') : t('Collapse')),
-            css.dropdown('Dropdown'),
-            testId('itemArrow'),
-            dom.style('transform', use => use(collapsed) ? 'rotate(-90deg)' : ''),
-            dom.on('click', ev => toggle(collapsed)),
+            dom.attr("aria-label", use => use(collapsed) ? t("Expand") : t("Collapse")),
+            css.dropdown("Dropdown"),
+            testId("itemArrow"),
+            dom.style("transform", use => use(collapsed) ? "rotate(-90deg)" : ""),
+            dom.on("click", ev => toggle(collapsed)),
             // Let's prevent dragging to start when un-intentionally holding the mouse down on an arrow.
-            dom.on('mousedown', ev => ev.stopPropagation()),
+            dom.on("mousedown", ev => ev.stopPropagation()),
           ),
           delayedMouseDrag(this._startDrag.bind(this), this._options.dragStartDelay),
         ),
         treeItem.hidden ? null : css.itemLabelRight(
-          handleElement = css.centeredIcon('DragDrop',
-            dom.style('top', use => use(deltaY) + 'px'),
-            testId('handle'),
+          handleElement = css.centeredIcon("DragDrop",
+            dom.style("top", use => use(deltaY) + "px"),
+            testId("handle"),
             dom.hide(this._options.isReadonly),
           ),
           mouseDrag((startEvent, elem) => this._startDrag(startEvent)),
@@ -359,7 +359,7 @@ export class TreeViewComponent extends Disposable {
       offsetElement,
       arrowElement,
     } as ItemModel;
-    dom.dataElem(containerElement, 'item', itemModel);
+    dom.dataElem(containerElement, "item", itemModel);
 
     return containerElement;
   }
@@ -433,7 +433,7 @@ export class TreeViewComponent extends Disposable {
   // compute the px distance between the left side of the container and the drop zone
   private _getDropZoneOffsetLeft(dropZone: DropZone): number {
     // when target is 'within' the item we must add one level of indentation to the items left offset
-    return dropZone.item.offsetLeft() + (dropZone.zone === 'within' ? this._options.offset : 0);
+    return dropZone.item.offsetLeft() + (dropZone.zone === "within" ? this._options.offset : 0);
   }
 
   // compute the px distance between the top of the container and the drop zone
@@ -442,7 +442,7 @@ export class TreeViewComponent extends Disposable {
     // when crossing the border between 2 consecutive items A and B while dragging another item, in
     // order to allow the target to remain steady between A and B we need to remove 2 px when
     // dropzone is 'above', otherwise it causes the target to flicker.
-    return dropZone.zone === 'above' ? el.offsetTop - 2 : el.offsetTop + el.clientHeight;
+    return dropZone.zone === "above" ? el.offsetTop - 2 : el.offsetTop + el.clientHeight;
   }
 
   // Turns off the highlight on the former parent, and turns it on the new parent.
@@ -485,7 +485,7 @@ export class TreeViewComponent extends Disposable {
 
     // if cursor is over the top half of the header set the drop zone to above this item
     if ((mouseY - rect.top) <= rect.height / 2) {
-      return { zone: 'above', item };
+      return { zone: "above", item };
     }
 
     // if cursor is over the bottom half of the header set the drop zone to below this item, unless
@@ -497,10 +497,10 @@ export class TreeViewComponent extends Disposable {
         if (eq(item, drag.item)) {
           return null;
         }
-        return { zone: 'within', item };
+        return { zone: "within", item };
       }
       else {
-        return { zone: 'below', item };
+        return { zone: "below", item };
       }
     }
     return null;
@@ -524,8 +524,8 @@ export class TreeViewComponent extends Disposable {
     if (element) {
       let el: HTMLElement | null = element;
       while (el && el !== this._containerElement) {
-        if (el.classList.contains('itemContainer')) {
-          return dom.getData(el, 'item');
+        if (el.classList.contains("itemContainer")) {
+          return dom.getData(el, "item");
         }
         el = el.parentElement;
       }
@@ -540,7 +540,7 @@ export class TreeViewComponent extends Disposable {
 
   // Return the ItemModel of the dropZone's parent or 'root' if parent is the root.
   private _getDropZoneParent(zone: DropZone): ItemModel | "root" {
-    return zone.zone === 'within' ? zone.item : this._getParent(zone.item);
+    return zone.zone === "within" ? zone.item : this._getParent(zone.item);
   }
 
   // Returns the TreeNode associated with the item or the TreeModel if item is the root.
@@ -570,7 +570,7 @@ export class TreeViewComponent extends Disposable {
     const parentFrom = this._getTreeNode(this._getParent(draggedItem));
 
     if (!childrenTo) {
-      throw new Error('Should not be possible to drop into an item with `null` children');
+      throw new Error("Should not be possible to drop into an item with `null` children");
     }
 
     if (parentTo === parentFrom) {
@@ -613,7 +613,7 @@ export class TreeViewComponent extends Disposable {
         drag.item.deltaY.set(drag.item.deltaY.get() - offset);
 
         // then set the dropzone.
-        this._setDropZone({ zone: 'within', item, locked: true });
+        this._setDropZone({ zone: "within", item, locked: true });
       };
       const timeoutId = window.setTimeout(callback, this._options.expanderDelay);
       const dispose = () => window.clearTimeout(timeoutId);

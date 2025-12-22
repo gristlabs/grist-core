@@ -19,11 +19,11 @@ function setupTest() {
   const _myStates = obsArray([]);
   return cssTestBox(
     dom.create(StateSelector, _myStates),
-    dom('pre', dom.text(use => JSON.stringify(use(_myStates), null, 2))),
+    dom("pre", dom.text(use => JSON.stringify(use(_myStates), null, 2))),
   );
 }
 
-const cssTestBox = styled('div', `
+const cssTestBox = styled("div", `
   display: flex;
 `);
 

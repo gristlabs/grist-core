@@ -1,5 +1,5 @@
-import { makeId } from 'app/server/lib/idUtils';
-import { chunk } from 'lodash';
+import { makeId } from "app/server/lib/idUtils";
+import { chunk } from "lodash";
 import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 export class UserUUID1663851423064 implements MigrationInterface {
@@ -8,7 +8,7 @@ export class UserUUID1663851423064 implements MigrationInterface {
     // first need to put a value in it for all existing users.
     await queryRunner.addColumn("users", new TableColumn({
       name: "ref",
-      type: 'varchar',
+      type: "varchar",
       isNullable: true,
       isUnique: false,
     }));

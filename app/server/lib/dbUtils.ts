@@ -1,7 +1,7 @@
-import { synchronizeProducts } from 'app/gen-server/entity/Product';
-import { codeRoot } from 'app/server/lib/places';
-import { Mutex } from 'async-mutex';
-import { DatabaseType, DataSource, DataSourceOptions } from 'typeorm';
+import { synchronizeProducts } from "app/gen-server/entity/Product";
+import { codeRoot } from "app/server/lib/places";
+import { Mutex } from "async-mutex";
+import { DatabaseType, DataSource, DataSourceOptions } from "typeorm";
 
 // Summary of migrations found in database and in code.
 interface MigrationSummary {
@@ -14,14 +14,14 @@ interface MigrationSummary {
 export async function getMigrations(dataSource: DataSource): Promise<MigrationSummary> {
   let migrationsInDb: string[];
   try {
-    migrationsInDb = (await dataSource.query('select name from migrations')).map((rec: any) => rec.name);
+    migrationsInDb = (await dataSource.query("select name from migrations")).map((rec: any) => rec.name);
   }
   catch (e) {
     // If no migrations have run, there'll be no migrations table - which is fine,
     // it just means 0 migrations run yet.  Sqlite+Postgres report this differently,
     // so any query error that mentions the name of our table is treated as ok.
     // Everything else is unexpected.
-    if (!(e.name === 'QueryFailedError' && e.message.includes('migrations'))) {
+    if (!(e.name === "QueryFailedError" && e.message.includes("migrations"))) {
       throw e;
     }
     migrationsInDb = [];
@@ -47,7 +47,7 @@ export async function updateDb(dataSource?: DataSource) {
 }
 
 export function getConnectionName() {
-  return process.env.TYPEORM_NAME || 'default';
+  return process.env.TYPEORM_NAME || "default";
 }
 
 /**
@@ -63,7 +63,7 @@ export async function getOrCreateConnection(): Promise<DataSource> {
     // with Sqlite.
     if (!gristDataSource?.isInitialized) {
       let settings = getTypeORMSettings();
-      if (settings.type === 'postgres') {
+      if (settings.type === "postgres") {
         // We're having problems with the Postgres JIT compiler slowing
         // down a particular query, so we'll turn it off for this
         // session.
@@ -88,14 +88,14 @@ export async function getOrCreateConnection(): Promise<DataSource> {
 
       gristDataSource = new DataSource(settings);
       await gristDataSource.initialize();
-      if (settings.type === 'sqlite') {
+      if (settings.type === "sqlite") {
         // When using Sqlite, set a busy timeout of 3s to tolerate a little
         // interference from connections made by tests. Logging doesn't show
         // any particularly slow queries, but bad luck is possible.
         // This doesn't affect when Postgres is in use. It also doesn't have
         // any impact when there is a single connection to the db, as is the
         // case when Grist is run as a single process.
-        await gristDataSource.query('PRAGMA busy_timeout = 3000');
+        await gristDataSource.query("PRAGMA busy_timeout = 3000");
       }
     }
     return gristDataSource;
@@ -124,7 +124,7 @@ export async function undoLastMigration(dataSource: DataSource) {
 export async function withSqliteForeignKeyConstraintDisabled<T>(
   dataSource: DataSource, cb: () => Promise<T>,
 ): Promise<T> {
-  const sqlite = getDatabaseType(dataSource) === 'sqlite';
+  const sqlite = getDatabaseType(dataSource) === "sqlite";
   if (sqlite) { await dataSource.query("PRAGMA foreign_keys = OFF;"); }
   try {
     return await cb();

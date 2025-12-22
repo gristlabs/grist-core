@@ -1,6 +1,6 @@
-import { makeT } from 'app/client/lib/localization';
-import { DocModel, ViewSectionRec } from 'app/client/models/DocModel';
-import { IPageWidget } from 'app/client/ui/PageWidgetPicker';
+import { makeT } from "app/client/lib/localization";
+import { DocModel, ViewSectionRec } from "app/client/models/DocModel";
+import { IPageWidget } from "app/client/ui/PageWidgetPicker";
 import {
   buildLinkNodes,
   buildRefColLinkNodes,
@@ -11,15 +11,15 @@ import {
   LinkNodeOperations,
   LinkNodeSection,
   LinkNodeTable,
-} from 'app/common/LinkNode';
-import { IOptionFull } from 'grainjs';
-import isEqual from 'lodash/isEqual';
+} from "app/common/LinkNode";
+import { IOptionFull } from "grainjs";
+import isEqual from "lodash/isEqual";
 
-const t = makeT('selectBy');
+const t = makeT("selectBy");
 
 // some unicode characters
-const BLACK_CIRCLE = '\u2022';
-const RIGHT_ARROW = '\u2192';
+const BLACK_CIRCLE = "\u2022";
+const RIGHT_ARROW = "\u2192";
 
 // Describes a link
 export interface IPageWidgetLink {
@@ -155,7 +155,7 @@ function getLinkNodeSectionById(
 
 // Creates an array of LinkNode from a page widget.
 function createNodesFromPageWidget(docModel: DocModel, pageWidget: IPageWidget): LinkNode[] {
-  if (typeof pageWidget.table !== 'number') { return []; }
+  if (typeof pageWidget.table !== "number") { return []; }
 
   const nodes: LinkNode[] = [];
   let table = docModel.tables.getRowModel(pageWidget.table);

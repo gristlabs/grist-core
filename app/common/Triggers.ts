@@ -19,8 +19,8 @@ export interface WebhookFields {
 }
 
 // Union discriminated by type
-export type WebhookBatchStatus = 'success' | 'failure' | 'rejected';
-export type WebhookStatus = 'idle' | 'sending' | 'retrying' | 'postponed' | 'error' | 'invalid';
+export type WebhookBatchStatus = "success" | "failure" | "rejected";
+export type WebhookStatus = "idle" | "sending" | "retrying" | "postponed" | "error" | "invalid";
 
 // WebhookSubscribe should be `Omit<WebhookFields, 'tableId'>` (because subscribe endpoint read
 // tableId from the url) but generics are not yet supported by ts-interface-builder

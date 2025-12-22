@@ -1,17 +1,17 @@
-import { makeT } from 'app/client/lib/localization';
-import { HomeModel } from 'app/client/models/HomeModel';
-import { productPill } from 'app/client/ui/AppHeader';
-import * as css from 'app/client/ui/DocMenuCss';
-import { buildHomeIntroCards } from 'app/client/ui/HomeIntroCards';
-import { isNarrowScreenObs, testId, theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { menu, menuCssClass } from 'app/client/ui2018/menus';
-import { toggleSwitch } from 'app/client/ui2018/toggleSwitch';
-import { FullUser } from 'app/common/LoginSessionAPI';
-import { dom, DomContents, styled } from 'grainjs';
-import { defaultMenuOptions } from 'popweasel';
+import { makeT } from "app/client/lib/localization";
+import { HomeModel } from "app/client/models/HomeModel";
+import { productPill } from "app/client/ui/AppHeader";
+import * as css from "app/client/ui/DocMenuCss";
+import { buildHomeIntroCards } from "app/client/ui/HomeIntroCards";
+import { isNarrowScreenObs, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menu, menuCssClass } from "app/client/ui2018/menus";
+import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
+import { FullUser } from "app/common/LoginSessionAPI";
+import { dom, DomContents, styled } from "grainjs";
+import { defaultMenuOptions } from "popweasel";
 
-const t = makeT('HomeIntro');
+const t = makeT("HomeIntro");
 
 export function buildHomeIntro(homeModel: HomeModel): DomContents {
   const user = homeModel.app.currentValidUser;
@@ -40,7 +40,7 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
           ),
         ),
         cssPill(productPill(homeModel.app.currentOrg, { large: true })),
-        testId('welcome-title'),
+        testId("welcome-title"),
       ),
       buildPreferencesMenu(homeModel),
     ),
@@ -54,13 +54,13 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
       cssHeader(
         // this is like using a `<h1>` element, but in our case it's easier to use aria attributes than changing
         // some common `styled` components in order to use a specific h1 here
-        { "role": 'heading', 'aria-level': '1' },
+        { "role": "heading", "aria-level": "1" },
         dom.text(use =>
           use(isNarrowScreenObs()) ?
             t("Welcome to Grist!") :
             t("Welcome to Grist, {{- name}}!", { name: user.name }),
         ),
-        testId('welcome-title'),
+        testId("welcome-title"),
       ),
       buildPreferencesMenu(homeModel),
     ),
@@ -73,7 +73,7 @@ function makeAnonIntro(homeModel: HomeModel) {
     css.stickyHeader(
       cssHeader(
         t("Welcome to Grist!"),
-        testId('welcome-title'),
+        testId("welcome-title"),
       ),
     ),
     dom.create(buildHomeIntroCards, { homeModel }),
@@ -84,23 +84,23 @@ function buildPreferencesMenu(homeModel: HomeModel) {
   const { onlyShowDocuments } = homeModel;
 
   return cssDotsMenu(
-    cssDots(icon('Dots')),
+    cssDots(icon("Dots")),
     menu(
       () => [
         toggleSwitch(onlyShowDocuments, {
-          label: t('Only show documents'),
+          label: t("Only show documents"),
           args: [
-            testId('welcome-menu-only-show-documents'),
+            testId("welcome-menu-only-show-documents"),
           ],
         }),
       ],
       {
         ...defaultMenuOptions,
         menuCssClass: `${menuCssClass} ${cssPreferencesMenu.className}`,
-        placement: 'bottom-end',
+        placement: "bottom-end",
       },
     ),
-    testId('welcome-menu'),
+    testId("welcome-menu"),
   );
 }
 
@@ -109,21 +109,21 @@ const cssHeader = styled(css.listHeaderNoWrap, `
   line-height: 36px;
 `);
 
-const cssHeaderWithPill = styled('div', `
+const cssHeaderWithPill = styled("div", `
   display: flex;
   align-items: center;
   overflow: hidden;
 `);
 
-const cssPill = styled('div', `
+const cssPill = styled("div", `
   flex-shrink: 0;
 `);
 
-const cssPreferencesMenu = styled('div', `
+const cssPreferencesMenu = styled("div", `
   padding: 10px 16px;
 `);
 
-const cssDotsMenu = styled('div', `
+const cssDotsMenu = styled("div", `
   display: flex;
   cursor: pointer;
   border-radius: ${vars.controlBorderRadius};
@@ -133,7 +133,7 @@ const cssDotsMenu = styled('div', `
   }
 `);
 
-const cssDots = styled('div', `
+const cssDots = styled("div", `
   --icon-color: ${theme.lightText};
   padding: 8px;
 `);

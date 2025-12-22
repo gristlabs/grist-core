@@ -1,18 +1,18 @@
-import { DocumentUsage } from 'app/common/DocUsage';
-import { Role } from 'app/common/roles';
-import { Document } from 'app/gen-server/entity/Document';
-import { RequestWithLogin } from 'app/server/lib/Authorizer';
-import { AuthSession } from 'app/server/lib/AuthSession';
-import { OptDocSession } from 'app/server/lib/DocSession';
-import { ILogMeta } from 'app/server/lib/log';
-import { IncomingMessage } from 'http';
+import { DocumentUsage } from "app/common/DocUsage";
+import { Role } from "app/common/roles";
+import { Document } from "app/gen-server/entity/Document";
+import { RequestWithLogin } from "app/server/lib/Authorizer";
+import { AuthSession } from "app/server/lib/AuthSession";
+import { OptDocSession } from "app/server/lib/DocSession";
+import { ILogMeta } from "app/server/lib/log";
+import { IncomingMessage } from "http";
 
 export type RequestOrSession = RequestWithLogin | OptDocSession | null;
 
 export function isRequest(
   requestOrSession: RequestOrSession,
 ): requestOrSession is RequestWithLogin {
-  return Boolean(requestOrSession && 'get' in requestOrSession);
+  return Boolean(requestOrSession && "get" in requestOrSession);
 }
 
 export function getAuthSession(requestOrSession: RequestOrSession | null): AuthSession {
@@ -75,21 +75,21 @@ export function getDocSessionAccess(docSession: OptDocSession): Role {
   // "nascent" DocSessions are for when a document is being created, and user is
   // its only owner as yet.
   // "system" DocSessions are for access without access control.
-  if (docSession.mode === 'nascent' || docSession.mode === 'system') { return 'owners'; }
+  if (docSession.mode === "nascent" || docSession.mode === "system") { return "owners"; }
   // "plugin" DocSessions are for access from plugins, which is currently quite crude,
   // and granted only to editors.
-  if (docSession.mode === 'plugin') { return 'editors'; }
+  if (docSession.mode === "plugin") { return "editors"; }
   if (docSession.authorizer) {
     const access = docSession.authorizer.getCachedAuth().access;
-    if (!access) { throw new Error('getDocSessionAccess expected authorizer.getCachedAuth'); }
+    if (!access) { throw new Error("getDocSessionAccess expected authorizer.getCachedAuth"); }
     return access;
   }
   if (docSession.req) {
     const access =  docSession.req.docAuth?.access;
-    if (!access) { throw new Error('getDocSessionAccess expected req.docAuth.access'); }
+    if (!access) { throw new Error("getDocSessionAccess expected req.docAuth.access"); }
     return access;
   }
-  throw new Error('getDocSessionAccess could not find access information in DocSession');
+  throw new Error("getDocSessionAccess could not find access information in DocSession");
 }
 
 export function getDocSessionShare(docSession: OptDocSession): string | null {

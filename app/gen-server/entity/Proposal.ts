@@ -1,7 +1,7 @@
-import { ProposalComparison, ProposalStatus } from 'app/common/UserAPI';
-import { Document } from 'app/gen-server/entity/Document';
-import { nativeValues } from 'app/gen-server/lib/values';
-import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { ProposalComparison, ProposalStatus } from "app/common/UserAPI";
+import { Document } from "app/gen-server/entity/Document";
+import { nativeValues } from "app/gen-server/lib/values";
+import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 
 /**
  *
@@ -46,37 +46,37 @@ import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from
  *
  */
 
-@Entity({ name: 'proposals' })
+@Entity({ name: "proposals" })
 export class Proposal extends BaseEntity {
-  @Column({ name: 'short_id', type: Number })
+  @Column({ name: "short_id", type: Number })
   public shortId: number;
 
-  @Column({ name: 'comparison', type: nativeValues.jsonEntityType, nullable: true })
+  @Column({ name: "comparison", type: nativeValues.jsonEntityType, nullable: true })
   public comparison: ProposalComparison;
 
-  @Column({ name: 'status', type: nativeValues.jsonEntityType, nullable: true })
+  @Column({ name: "status", type: nativeValues.jsonEntityType, nullable: true })
   public status: ProposalStatus;
 
-  @PrimaryColumn({ name: 'src_doc_id', type: String })
+  @PrimaryColumn({ name: "src_doc_id", type: String })
   public srcDocId: string;
 
-  @ManyToOne(_type => Document, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'src_doc_id' })
+  @ManyToOne(_type => Document, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "src_doc_id" })
   public srcDoc: Document;
 
-  @PrimaryColumn({ name: 'dest_doc_id', type: String })
+  @PrimaryColumn({ name: "dest_doc_id", type: String })
   public destDocId: string;
 
-  @ManyToOne(_type => Document, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'dest_doc_id' })
+  @ManyToOne(_type => Document, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "dest_doc_id" })
   public destDoc: Document;
 
-  @Column({ name: 'created_at', type: Date, default: () => "CURRENT_TIMESTAMP" })
+  @Column({ name: "created_at", type: Date, default: () => "CURRENT_TIMESTAMP" })
   public createdAt: Date;
 
-  @Column({ name: 'updated_at', type: Date, default: () => "CURRENT_TIMESTAMP" })
+  @Column({ name: "updated_at", type: Date, default: () => "CURRENT_TIMESTAMP" })
   public updatedAt: Date;
 
-  @Column({ name: 'applied_at', type: Date })
+  @Column({ name: "applied_at", type: Date })
   public appliedAt: Date | null;
 }

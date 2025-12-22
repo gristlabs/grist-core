@@ -20,21 +20,21 @@
  * At the moment, flexbox width resizing is the only need, but the same approach is intended to be
  * easily extended to non-flexbox situation, and to height-resizing.
  */
-import { mouseDrag } from 'app/client/ui/mouseDrag';
+import { mouseDrag } from "app/client/ui/mouseDrag";
 import { DomElementArg, styled } from "grainjs";
 
 export type ChangeFunc = (value: number) => void;
-export type Edge = 'left' | 'right';
+export type Edge = "left" | "right";
 
 export interface IResizeFlexOptions {
   // Whether to change the width of the flex item to the left or to the right of this handle.
-  target: 'left' | 'right';
+  target: "left" | "right";
   onDrag?(value: number): void;
   onSave?(value: number): void;
 }
 
 export interface IResizeOptions {
-  prop: 'width' | 'height';
+  prop: "width" | "height";
   sign: 1 | -1;
   getTarget(handle: Element): Element | null;
   onDrag?(value: number): void;
@@ -44,10 +44,10 @@ export interface IResizeOptions {
 // See module documentation for usage.
 export function resizeFlexVHandle(options: IResizeFlexOptions, ...args: DomElementArg[]): Element {
   const resizeOptions: IResizeOptions = {
-    prop: 'width',
-    sign: options.target === 'left' ? 1 : -1,
+    prop: "width",
+    sign: options.target === "left" ? 1 : -1,
     getTarget(handle: Element) {
-      return options.target === 'left' ? handle.previousElementSibling : handle.nextElementSibling;
+      return options.target === "left" ? handle.previousElementSibling : handle.nextElementSibling;
     },
     onDrag: options.onDrag,
     onSave: options.onSave,
@@ -78,7 +78,7 @@ function onResizeStart(startEv: MouseEvent, handle: Element, options: IResizeOpt
     // While moving, just adjust the size of the target, relying on min-width/max-width for
     // constraints.
     onMove(ev: MouseEvent) {
-      target.style[prop] = (startSize + sign * (ev.pageX - startEv.pageX)) + 'px';
+      target.style[prop] = (startSize + sign * (ev.pageX - startEv.pageX)) + "px";
       if (onDrag) { onDrag(getComputedSize(target, prop)); }
     },
 
@@ -89,7 +89,7 @@ function onResizeStart(startEv: MouseEvent, handle: Element, options: IResizeOpt
       // Restore the body cursor to what it was.
       document.body.style.cursor = startBodyCursor;
 
-      target.style[prop] = (startSize + sign * (ev.pageX - startEv.pageX)) + 'px';
+      target.style[prop] = (startSize + sign * (ev.pageX - startEv.pageX)) + "px";
       onSave?.(getComputedSize(target, prop));
     },
   };
@@ -98,14 +98,14 @@ function onResizeStart(startEv: MouseEvent, handle: Element, options: IResizeOpt
 // Compute the CSS width or height of the element. If element.style[prop] is set to it, it should
 // be unchanged. (Note that when an element has borders or padding, the size from
 // getBoundingClientRect() would be different, and isn't suitable for style[prop].)
-function getComputedSize(elem: Element, prop: 'width' | 'height'): number {
+function getComputedSize(elem: Element, prop: "width" | "height"): number {
   const sizePx = window.getComputedStyle(elem)[prop];
   const sizeNum = sizePx && parseFloat(sizePx);
   // If we can't get the size, fall back to getBoundingClientRect().
   return Number.isFinite(sizeNum as number) ? sizeNum as number : elem.getBoundingClientRect()[prop];
 }
 
-const cssResizeFlexVHandle = styled('div', `
+const cssResizeFlexVHandle = styled("div", `
   position: relative;
   flex: none;
   top: 0;
@@ -146,7 +146,7 @@ const cssResizeFlexVHandle = styled('div', `
 `);
 
 // May be applied to Handle class to show the highlighted line while dragging.
-const cssResizeDragging = styled('div', `
+const cssResizeDragging = styled("div", `
   &::after {
     opacity: 1;
     transition: none !important;

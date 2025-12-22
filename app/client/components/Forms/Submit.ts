@@ -11,13 +11,13 @@ export class SubmitModel extends BoxModel {
   }
 
   public override render() {
-    const text = this.view.viewSection.layoutSpecObj.prop('submitText');
+    const text = this.view.viewSection.layoutSpecObj.prop("submitText");
     return dom(
       "div",
       css.error(testId("error")),
       css.submitButtons(
         bigPrimaryButton(
-          dom.text(use => use(text) || 'Submit'),
+          dom.text(use => use(text) || "Submit"),
           { disabled: true },
           testId("submit"),
         ),

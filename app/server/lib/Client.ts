@@ -1,20 +1,20 @@
-import { BrowserSettings } from 'app/common/BrowserSettings';
-import { CommClientConnect, CommMessage, CommResponse, CommResponseError } from 'app/common/CommTypes';
-import { delay } from 'app/common/delay';
-import { ErrorWithCode } from 'app/common/ErrorWithCode';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
-import { AuthSession } from 'app/server/lib/AuthSession';
-import type { Comm } from 'app/server/lib/Comm';
-import { DocSession, DocSessionPrecursor } from 'app/server/lib/DocSession';
-import { GristServerSocket } from 'app/server/lib/GristServerSocket';
-import log from 'app/server/lib/log';
-import { LogMethods } from 'app/server/lib/LogMethods';
-import { MemoryPool } from 'app/server/lib/MemoryPool';
-import { fromCallback } from 'app/server/lib/serverUtils';
-import { shortDesc } from 'app/server/lib/shortDesc';
-import * as crypto from 'crypto';
-import { IncomingMessage } from 'http';
-import { i18n } from 'i18next';
+import { BrowserSettings } from "app/common/BrowserSettings";
+import { CommClientConnect, CommMessage, CommResponse, CommResponseError } from "app/common/CommTypes";
+import { delay } from "app/common/delay";
+import { ErrorWithCode } from "app/common/ErrorWithCode";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { AuthSession } from "app/server/lib/AuthSession";
+import type { Comm } from "app/server/lib/Comm";
+import { DocSession, DocSessionPrecursor } from "app/server/lib/DocSession";
+import { GristServerSocket } from "app/server/lib/GristServerSocket";
+import log from "app/server/lib/log";
+import { LogMethods } from "app/server/lib/LogMethods";
+import { MemoryPool } from "app/server/lib/MemoryPool";
+import { fromCallback } from "app/server/lib/serverUtils";
+import { shortDesc } from "app/server/lib/shortDesc";
+import * as crypto from "crypto";
+import { IncomingMessage } from "http";
+import { i18n } from "i18next";
 
 // How many messages and bytes to accumulate for a disconnected client before booting it.
 // The benefit is that a client who temporarily disconnects and reconnects without missing much,
@@ -50,7 +50,7 @@ export const Deps = { clientRemovalTimeoutMs, jsonResponseReservation };
 function generateClientId(): string {
   // Non-blocking version of randomBytes may fail if insufficient entropy is available without
   // blocking. If we encounter that, we could either block, or maybe use less random values.
-  return crypto.randomBytes(8).toString('hex');
+  return crypto.randomBytes(8).toString("hex");
 }
 
 /**
@@ -58,7 +58,7 @@ function generateClientId(): string {
  * not authorized to use this instance (e.g. not a member of the team for this subdomain).
  */
 const MESSAGE_TYPES_NO_AUTH = new Set([
-  'clientConnect',
+  "clientConnect",
 ]);
 
 void (MESSAGE_TYPES_NO_AUTH);
@@ -80,7 +80,7 @@ export class Client {
 
   public browserSettings: BrowserSettings = {};
 
-  private _log = new LogMethods('Client ', (extra?: object | null) => this.getLogMeta(extra || {}));
+  private _log = new LogMethods("Client ", (extra?: object | null) => this.getLogMeta(extra || {}));
 
   // Maps docFDs to DocSession objects.
   private _docFDs: (DocSession | null)[] = [];
@@ -209,7 +209,7 @@ export class Client {
       await this.sendMessage(messageObj);
     }
     catch (e) {
-      this._log.error(null, 'sendMessage error', e);
+      this._log.error(null, "sendMessage error", e);
       this.interruptConnection();
     }
   }
@@ -245,11 +245,11 @@ export class Client {
       }
       const seqId = this._nextSeqId++;
       const message: string = JSON.stringify({ ...messageObj, seqId });
-      const size = Buffer.byteLength(message, 'utf8');
+      const size = Buffer.byteLength(message, "utf8");
       updateReservation(size);
 
       // Log something useful about the message being sent.
-      if ('error' in messageObj && messageObj.error) {
+      if ("error" in messageObj && messageObj.error) {
         this._log.warn(null, "responding to #%d ERROR %s", messageObj.reqId, messageObj.error);
       }
 
@@ -340,12 +340,12 @@ export class Client {
     const needReload = !newClient && !seamlessReconnect;
 
     this._log.debug({ newClient, needReload, docsClosed, missedMessages: missedMessages?.length },
-      'sending clientConnect');
+      "sending clientConnect");
 
     // Don't use sendMessage here, since we don't want to queue up this message on failure.
     const clientConnectMsg: CommClientConnect = {
       ...parts,
-      type: 'clientConnect',
+      type: "clientConnect",
       clientId: this.clientId,
       missedMessages,
       needReload,
@@ -433,7 +433,7 @@ export class Client {
     const request = JSON.parse(message);
     if (request.beat) {
       // this is a heart beat, to keep the websocket alive.  No need to reply.
-      log.rawInfo('heartbeat', {
+      log.rawInfo("heartbeat", {
         ...this.getLogMeta(),
         url: request.url,
         docId: request.docId,  // caution: trusting client for docId for this purpose.
@@ -458,11 +458,11 @@ export class Client {
         const skipStack = (
           !err.stack ||
           err.stack.match(/^SandboxError:/) ||
-          (typeof code === 'string' && code.startsWith('AUTH_NO'))
+          (typeof code === "string" && code.startsWith("AUTH_NO"))
         );
 
         this._log.warn(null, "Responding to method %s with error: %s %s",
-          request.method, skipStack ? err : err.stack, code || '');
+          request.method, skipStack ? err : err.stack, code || "");
         response = { reqId: request.reqId, error: err.message };
         if (err.code) {
           response.errorCode = err.code;
@@ -473,7 +473,7 @@ export class Client {
         if (err.status) {
           response.status = err.status;
         }
-        if (typeof code === 'string' && code === 'AUTH_NO_EDIT' && err.accessMode === 'fork') {
+        if (typeof code === "string" && code === "AUTH_NO_EDIT" && err.accessMode === "fork") {
           response.shouldFork = true;
         }
       }
@@ -488,7 +488,7 @@ export class Client {
   private async _isAuthorized(): Promise<boolean> {
     for (const docFD of this._docFDs) {
       try {
-        if (docFD !== null) { await docFD.authorizer.assertAccess('viewers'); }
+        if (docFD !== null) { await docFD.authorizer.assertAccess("viewers"); }
       }
       catch (e) {
         return false;

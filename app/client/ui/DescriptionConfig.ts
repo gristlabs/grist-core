@@ -1,15 +1,15 @@
-import { makeT } from 'app/client/lib/localization';
-import { KoSaveableObservable } from 'app/client/models/modelUtil';
-import { autoGrow } from 'app/client/ui/forms';
-import { textarea, textInput } from 'app/client/ui/inputs';
-import { cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
-import { textButton } from 'app/client/ui2018/buttons';
-import { testId, theme } from 'app/client/ui2018/cssVars';
-import { tokens } from 'app/common/ThemePrefs';
-import { CursorPos } from 'app/plugin/GristAPI';
-import { dom, DomArg, fromKo, MultiHolder, Observable, styled } from 'grainjs';
+import { makeT } from "app/client/lib/localization";
+import { KoSaveableObservable } from "app/client/models/modelUtil";
+import { autoGrow } from "app/client/ui/forms";
+import { textarea, textInput } from "app/client/ui/inputs";
+import { cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
+import { textButton } from "app/client/ui2018/buttons";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { tokens } from "app/common/ThemePrefs";
+import { CursorPos } from "app/plugin/GristAPI";
+import { dom, DomArg, fromKo, MultiHolder, Observable, styled } from "grainjs";
 
-const t = makeT('DescriptionConfig');
+const t = makeT("DescriptionConfig");
 
 export function buildDescriptionConfig(
   owner: MultiHolder,
@@ -60,7 +60,7 @@ export function buildDescriptionConfig(
   return dom.domComputed(editing, (isEditing) => {
     editor = preview = undefined;
     if (isEditing) {
-      const rows = String(description.peek().split('\n').length);
+      const rows = String(description.peek().split("\n").length);
       return [
         cssLabel(t("DESCRIPTION"), { for: `${options.testPrefix}-description-input` }),
         cssRow(
@@ -70,7 +70,7 @@ export function buildDescriptionConfig(
               Enter$: (ev, elem) => { if (!ev.shiftKey) { return save(elem.value); } },
               Escape: closeEditor,
             }),
-            dom.on('blur', (ev, elem) => save(elem.value)),
+            dom.on("blur", (ev, elem) => save(elem.value)),
             testId(`${options.testPrefix}-description`),
             autoGrow(fromKo(description)),
           ),
@@ -85,12 +85,12 @@ export function buildDescriptionConfig(
             cssLabel(t("DESCRIPTION"), { for: `${options.testPrefix}-description-preview` }),
             cssRow(
               preview = cssPreview(
-                cssTextInput.cls(''),
+                cssTextInput.cls(""),
                 dom.text(description),
-                { tabIndex: '0', id: `${options.testPrefix}-description-preview` },
+                { tabIndex: "0", id: `${options.testPrefix}-description-preview` },
                 dom.onKeyDown({ Enter: openEditor }),
                 dom.on("click", openEditor),
-                testId('description-preview'),
+                testId("description-preview"),
               ),
             ),
           ];
@@ -99,7 +99,7 @@ export function buildDescriptionConfig(
           return cssRow(cssTextButton(
             t("Set description"),
             dom.on("click", openEditor),
-            testId('description-add'),
+            testId("description-add"),
           ),
           );
         }
@@ -132,10 +132,10 @@ export function buildTextInput(
     cssLabel(options.label),
     cssRow(
       cssTextInput(fromKo(options.value),
-        dom.on('blur', () => {
+        dom.on("blur", () => {
           return options.value.save();
         }),
-        dom.prop('placeholder', options.placeholder || ''),
+        dom.prop("placeholder", options.placeholder || ""),
         ...args,
       ),
     ),
@@ -186,7 +186,7 @@ const cssTextButton = styled(textButton, `
   margin-top: 8px;
 `);
 
-const cssPreview = styled('div', `
+const cssPreview = styled("div", `
   background-color: ${tokens.bgTertiary};
   overflow: hidden;
   text-overflow: ellipsis;

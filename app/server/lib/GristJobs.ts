@@ -1,12 +1,12 @@
-import { getSetMapValue } from 'app/common/gutil';
-import { makeId } from 'app/server/lib/idUtils';
-import log from 'app/server/lib/log';
-import { Job as BullMQJob, JobsOptions, Queue, Worker } from 'bullmq';
-import IORedis from 'ioredis';
+import { getSetMapValue } from "app/common/gutil";
+import { makeId } from "app/server/lib/idUtils";
+import log from "app/server/lib/log";
+import { Job as BullMQJob, JobsOptions, Queue, Worker } from "bullmq";
+import IORedis from "ioredis";
 
 // Name of the queue for doc-notification emails. Let's define queue names in this file, to ensure
 // that different users of GristJobs don't accidentally use conflicting queue names.
-export const docEmailsQueue = 'deq';
+export const docEmailsQueue = "deq";
 
 /**
  *
@@ -82,7 +82,7 @@ export type JobHandler<Job extends GristJob = GristJob> = (job: Job) => Promise<
 /**
  * The name used for a queue if no specific name is given.
  */
-export const DEFAULT_QUEUE_NAME = 'default';
+export const DEFAULT_QUEUE_NAME = "default";
 
 /**
  * BullMQ jobs are a string name, and then a data object.
@@ -164,7 +164,7 @@ function getRedisConnection(): IORedis | undefined {
   // Connect to Redis for use with BullMQ, if REDIS_URL is set.
   const urlTxt = process.env.REDIS_URL || process.env.TEST_REDIS_URL;
   if (!urlTxt) {
-    log.warn('Using in-memory queues, Redis is unavailable');
+    log.warn("Using in-memory queues, Redis is unavailable");
     return;
   }
   const conn = new IORedis(urlTxt, {
@@ -172,8 +172,8 @@ function getRedisConnection(): IORedis | undefined {
     // Back off faster and retry more slowly than the default, to avoid filling up logs needlessly.
     retryStrategy: times => Math.min((times ** 2) * 50, 10000),
   });
-  conn.on('error', err => log.error('GristJobs: Redis connection error:', String(err)));
-  log.info('Storing queues externally in Redis');
+  conn.on("error", err => log.error("GristJobs: Redis connection error:", String(err)));
+  log.info("Storing queues externally in Redis");
   return conn;
 }
 
@@ -303,7 +303,7 @@ class GristWorker {
     if (options?.delay) {
       if (options.repeat) {
         // Unexpected combination.
-        throw new Error('cannot delay and repeat');
+        throw new Error("cannot delay and repeat");
       }
       const jobId = options.jobId || makeId();
       this._clearJob(jobId);

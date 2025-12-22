@@ -1,7 +1,7 @@
-import { DataLimitInfo, DataLimitStatus, DocumentUsage } from 'app/common/DocUsage';
-import { Features } from 'app/common/Features';
-import { APPROACHING_LIMIT_RATIO, getUsageRatio } from 'app/common/Limits';
-import moment from 'moment-timezone';
+import { DataLimitInfo, DataLimitStatus, DocumentUsage } from "app/common/DocUsage";
+import { Features } from "app/common/Features";
+import { APPROACHING_LIMIT_RATIO, getUsageRatio } from "app/common/Limits";
+import moment from "moment-timezone";
 
 export interface GetDataLimitStatusParams {
   docUsage: DocumentUsage | null;
@@ -20,16 +20,16 @@ export function getDataLimitInfo(params: GetDataLimitStatusParams): DataLimitInf
     const start = gracePeriodStart;
     // In case we forgot to define a grace period, we'll default to two weeks.
     const days = productFeatures?.gracePeriodDays ?? 14;
-    const daysRemaining = start && days ? days - moment().diff(moment(start), 'days') : NaN;
+    const daysRemaining = start && days ? days - moment().diff(moment(start), "days") : NaN;
     if (daysRemaining > 0) {
-      return { status: 'gracePeriod', daysRemaining };
+      return { status: "gracePeriod", daysRemaining };
     }
     else {
-      return { status: 'deleteOnly' };
+      return { status: "deleteOnly" };
     }
   }
   else if (ratio > APPROACHING_LIMIT_RATIO) {
-    return { status: 'approachingLimit' };
+    return { status: "approachingLimit" };
   }
 
   return { status: null };
@@ -64,8 +64,8 @@ export function getDataLimitRatio(
 export function getSeverity(dataLimitStatus: DataLimitStatus): number {
   switch (dataLimitStatus) {
     case null: { return 0; }
-    case 'approachingLimit': { return 1; }
-    case 'gracePeriod': { return 2; }
-    case 'deleteOnly': { return 3; }
+    case "approachingLimit": { return 1; }
+    case "gracePeriod": { return 2; }
+    case "deleteOnly": { return 3; }
   }
 }

@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
-import { nativeValues } from 'app/gen-server/lib/values';
+import { nativeValues } from "app/gen-server/lib/values";
 
 export class FirstTimeUser1569946508569 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {

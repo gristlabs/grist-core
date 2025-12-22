@@ -2,22 +2,22 @@
  * DocWorker collects the methods and endpoints that relate to a single Grist document.
  * In hosted environment, this comprises the functionality of the DocWorker instance type.
  */
-import { isAffirmative } from 'app/common/gutil';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { assertAccess, getOrSetDocAuth, RequestWithLogin } from 'app/server/lib/Authorizer';
-import { Client } from 'app/server/lib/Client';
-import { Comm } from 'app/server/lib/Comm';
-import { DocSession, docSessionFromRequest } from 'app/server/lib/DocSession';
-import { filterDocumentInPlace } from 'app/server/lib/filterUtils';
-import { GristServer } from 'app/server/lib/GristServer';
-import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
-import log from 'app/server/lib/log';
-import { getDocId, integerParam, optIntegerParam, optStringParam, stringParam } from 'app/server/lib/requestUtils';
-import contentDisposition from 'content-disposition';
-import * as express from 'express';
-import * as fse from 'fs-extra';
-import * as mimeTypes from 'mime-types';
-import * as path from 'path';
+import { isAffirmative } from "app/common/gutil";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { assertAccess, getOrSetDocAuth, RequestWithLogin } from "app/server/lib/Authorizer";
+import { Client } from "app/server/lib/Client";
+import { Comm } from "app/server/lib/Comm";
+import { DocSession, docSessionFromRequest } from "app/server/lib/DocSession";
+import { filterDocumentInPlace } from "app/server/lib/filterUtils";
+import { GristServer } from "app/server/lib/GristServer";
+import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
+import log from "app/server/lib/log";
+import { getDocId, integerParam, optIntegerParam, optStringParam, stringParam } from "app/server/lib/requestUtils";
+import contentDisposition from "content-disposition";
+import * as express from "express";
+import * as fse from "fs-extra";
+import * as mimeTypes from "mime-types";
+import * as path from "path";
 
 export interface AttachOptions {
   comm: Comm;                             // Comm object for methods called via websocket
@@ -34,16 +34,16 @@ export class DocWorker {
 
   public async getAttachment(req: express.Request, res: express.Response): Promise<void> {
     try {
-      const docSession = this._getDocSession(stringParam(req.query.clientId, 'clientId'),
-        integerParam(req.query.docFD, 'docFD'));
+      const docSession = this._getDocSession(stringParam(req.query.clientId, "clientId"),
+        integerParam(req.query.docFD, "docFD"));
       const activeDoc = docSession.activeDoc;
-      const colId = optStringParam(req.query.colId, 'colId');
-      const tableId = optStringParam(req.query.tableId, 'tableId');
-      const rowId = optIntegerParam(req.query.rowId, 'rowId');
+      const colId = optStringParam(req.query.colId, "colId");
+      const tableId = optStringParam(req.query.tableId, "tableId");
+      const rowId = optIntegerParam(req.query.rowId, "rowId");
       const cell =
         colId && tableId && rowId ? { colId, tableId, rowId } : undefined;
       const maybeNew = isAffirmative(req.query.maybeNew);
-      const attId = integerParam(req.query.attId, 'attId');
+      const attId = integerParam(req.query.attId, "attId");
       const attRecord = activeDoc.getAttachmentMetadata(attId);
       const ext = path.extname(attRecord.fileIdent);
       const type = mimeTypes.lookup(ext);
@@ -54,12 +54,12 @@ export class DocWorker {
 
       // Construct a content-disposition header of the form 'inline|attachment; filename="NAME"'
       const contentDispType = inline ? "inline" : "attachment";
-      const contentDispHeader = contentDisposition(stringParam(req.query.name, 'name'), { type: contentDispType });
+      const contentDispHeader = contentDisposition(stringParam(req.query.name, "name"), { type: contentDispType });
       const data = await activeDoc.getAttachmentData(docSession, attRecord, { cell, maybeNew });
       res.status(200)
         .type(ext)
-        .set('Content-Disposition', contentDispHeader)
-        .set('Cache-Control', 'private, max-age=3600')
+        .set("Content-Disposition", contentDispHeader)
+        .set("Cache-Control", "private, max-age=3600")
         .set("Content-Security-Policy", "sandbox; default-src: 'none'")
         .send(data);
     }
@@ -91,7 +91,7 @@ export class DocWorker {
       markAction: true,
     });
     // NOTE: We may want to reconsider the mimeType used for Grist files.
-    return res.type('application/x-sqlite3')
+    return res.type("application/x-sqlite3")
       .download(
         tmpPath,
         filename + ".grist",
@@ -113,50 +113,50 @@ export class DocWorker {
   public registerCommCore(): void {
     const comm = this._comm;
     comm.registerMethods({
-      closeDoc: activeDocMethod.bind(null, null, 'closeDoc'),
-      fetchTable: activeDocMethod.bind(null, 'viewers', 'fetchTable'),
-      fetchPythonCode: activeDocMethod.bind(null, 'viewers', 'fetchPythonCode'),
-      useQuerySet: activeDocMethod.bind(null, 'viewers', 'useQuerySet'),
-      disposeQuerySet: activeDocMethod.bind(null, 'viewers', 'disposeQuerySet'),
-      applyUserActions: activeDocMethod.bind(null, 'editors', 'applyUserActions'),
-      applyUserActionsById: activeDocMethod.bind(null, 'editors', 'applyUserActionsById'),
-      findColFromValues: activeDocMethod.bind(null, 'viewers', 'findColFromValues'),
-      getFormulaError: activeDocMethod.bind(null, 'viewers', 'getFormulaError'),
-      importFiles: activeDocMethod.bind(null, 'editors', 'importFiles'),
-      finishImportFiles: activeDocMethod.bind(null, 'editors', 'finishImportFiles'),
-      cancelImportFiles: activeDocMethod.bind(null, 'editors', 'cancelImportFiles'),
-      generateImportDiff: activeDocMethod.bind(null, 'editors', 'generateImportDiff'),
-      addAttachments: activeDocMethod.bind(null, 'editors', 'addAttachments'),
-      startBundleUserActions: activeDocMethod.bind(null, 'editors', 'startBundleUserActions'),
-      stopBundleUserActions: activeDocMethod.bind(null, 'editors', 'stopBundleUserActions'),
-      autocomplete: activeDocMethod.bind(null, 'viewers', 'autocomplete'),
-      fetchURL: activeDocMethod.bind(null, 'viewers', 'fetchURL'),
-      getActionSummaries: activeDocMethod.bind(null, 'viewers', 'getActionSummaries'),
-      reloadDoc: activeDocMethod.bind(null, 'editors', 'reloadDoc'),
-      fork: activeDocMethod.bind(null, 'viewers', 'fork'),
-      checkAclFormula: activeDocMethod.bind(null, 'viewers', 'checkAclFormula'),
-      getAclResources: activeDocMethod.bind(null, 'viewers', 'getAclResources'),
-      waitForInitialization: activeDocMethod.bind(null, 'viewers', 'waitForInitialization'),
-      getUsersForViewAs: activeDocMethod.bind(null, 'viewers', 'getUsersForViewAs'),
-      getAccessToken: activeDocMethod.bind(null, 'viewers', 'getAccessToken'),
-      getShare: activeDocMethod.bind(null, 'owners', 'getShare'),
-      startTiming: activeDocMethod.bind(null, 'owners', 'startTiming'),
-      stopTiming: activeDocMethod.bind(null, 'owners', 'stopTiming'),
-      getAssistantState: activeDocMethod.bind(null, 'owners', 'getAssistantState'),
-      listActiveUserProfiles: activeDocMethod.bind(null, null, 'listActiveUserProfiles'),
-      applyProposal: activeDocMethod.bind(null, 'owners', 'applyProposal'),
-      getAssistance: activeDocMethod.bind(null, 'viewers', 'getAssistance'),
+      closeDoc: activeDocMethod.bind(null, null, "closeDoc"),
+      fetchTable: activeDocMethod.bind(null, "viewers", "fetchTable"),
+      fetchPythonCode: activeDocMethod.bind(null, "viewers", "fetchPythonCode"),
+      useQuerySet: activeDocMethod.bind(null, "viewers", "useQuerySet"),
+      disposeQuerySet: activeDocMethod.bind(null, "viewers", "disposeQuerySet"),
+      applyUserActions: activeDocMethod.bind(null, "editors", "applyUserActions"),
+      applyUserActionsById: activeDocMethod.bind(null, "editors", "applyUserActionsById"),
+      findColFromValues: activeDocMethod.bind(null, "viewers", "findColFromValues"),
+      getFormulaError: activeDocMethod.bind(null, "viewers", "getFormulaError"),
+      importFiles: activeDocMethod.bind(null, "editors", "importFiles"),
+      finishImportFiles: activeDocMethod.bind(null, "editors", "finishImportFiles"),
+      cancelImportFiles: activeDocMethod.bind(null, "editors", "cancelImportFiles"),
+      generateImportDiff: activeDocMethod.bind(null, "editors", "generateImportDiff"),
+      addAttachments: activeDocMethod.bind(null, "editors", "addAttachments"),
+      startBundleUserActions: activeDocMethod.bind(null, "editors", "startBundleUserActions"),
+      stopBundleUserActions: activeDocMethod.bind(null, "editors", "stopBundleUserActions"),
+      autocomplete: activeDocMethod.bind(null, "viewers", "autocomplete"),
+      fetchURL: activeDocMethod.bind(null, "viewers", "fetchURL"),
+      getActionSummaries: activeDocMethod.bind(null, "viewers", "getActionSummaries"),
+      reloadDoc: activeDocMethod.bind(null, "editors", "reloadDoc"),
+      fork: activeDocMethod.bind(null, "viewers", "fork"),
+      checkAclFormula: activeDocMethod.bind(null, "viewers", "checkAclFormula"),
+      getAclResources: activeDocMethod.bind(null, "viewers", "getAclResources"),
+      waitForInitialization: activeDocMethod.bind(null, "viewers", "waitForInitialization"),
+      getUsersForViewAs: activeDocMethod.bind(null, "viewers", "getUsersForViewAs"),
+      getAccessToken: activeDocMethod.bind(null, "viewers", "getAccessToken"),
+      getShare: activeDocMethod.bind(null, "owners", "getShare"),
+      startTiming: activeDocMethod.bind(null, "owners", "startTiming"),
+      stopTiming: activeDocMethod.bind(null, "owners", "stopTiming"),
+      getAssistantState: activeDocMethod.bind(null, "owners", "getAssistantState"),
+      listActiveUserProfiles: activeDocMethod.bind(null, null, "listActiveUserProfiles"),
+      applyProposal: activeDocMethod.bind(null, "owners", "applyProposal"),
+      getAssistance: activeDocMethod.bind(null, "viewers", "getAssistance"),
     });
   }
 
   // Register methods related to plugins.
   public registerCommPlugin(): void {
     this._comm.registerMethods({
-      forwardPluginRpc: activeDocMethod.bind(null, 'editors', 'forwardPluginRpc'),
+      forwardPluginRpc: activeDocMethod.bind(null, "editors", "forwardPluginRpc"),
       // TODO: consider not providing reloadPlugins on hosted grist, since it affects the
       // plugin manager shared across docs on a given doc worker, and seems useful only in
       // standalone case.
-      reloadPlugins: activeDocMethod.bind(null, 'editors', 'reloadPlugins'),
+      reloadPlugins: activeDocMethod.bind(null, "editors", "reloadPlugins"),
     });
   }
 
@@ -171,9 +171,9 @@ export class DocWorker {
     const mreq = req as RequestWithLogin;
     let urlId: string | undefined;
     try {
-      if (optStringParam(req.query.clientId, 'clientId')) {
-        const activeDoc = this._getDocSession(stringParam(req.query.clientId, 'clientId'),
-          integerParam(req.query.docFD, 'docFD')).activeDoc;
+      if (optStringParam(req.query.clientId, "clientId")) {
+        const activeDoc = this._getDocSession(stringParam(req.query.clientId, "clientId"),
+          integerParam(req.query.docFD, "docFD")).activeDoc;
         // TODO: The docId should be stored in the ActiveDoc class. Currently docName is
         // used instead, which will coincide with the docId for hosted grist but not for
         // standalone grist.
@@ -182,12 +182,12 @@ export class DocWorker {
       else {
         // Otherwise, if being used without a client, expect the doc query parameter to
         // be the docId.
-        urlId = stringParam(req.query.doc, 'doc');
+        urlId = stringParam(req.query.doc, "doc");
       }
-      if (!urlId) { return res.status(403).send({ error: 'missing document id' }); }
+      if (!urlId) { return res.status(403).send({ error: "missing document id" }); }
 
       const docAuth = await getOrSetDocAuth(mreq, this._dbManager, this._gristServer, urlId);
-      assertAccess('viewers', docAuth);
+      assertAccess("viewers", docAuth);
       next();
     }
     catch (err) {
@@ -206,12 +206,12 @@ export class DocWorker {
  * Translates calls from the browser client into calls of the form
  * `activeDoc.method(docSession, ...args)`.
  */
-async function activeDocMethod(role: 'viewers' | 'editors' | 'owners' | null, methodName: string, client: Client,
+async function activeDocMethod(role: "viewers" | "editors" | "owners" | null, methodName: string, client: Client,
   docFD: number, ...args: any[]): Promise<any> {
   const docSession = client.getDocSession(docFD);
   const activeDoc = docSession.activeDoc;
   if (role) { await docSession.authorizer.assertAccess(role); }
   // Include a basic log record for each ActiveDoc method call.
-  log.rawDebug('activeDocMethod', activeDoc.getLogMeta(docSession, methodName));
+  log.rawDebug("activeDocMethod", activeDoc.getLogMeta(docSession, methodName));
   return (activeDoc as any)[methodName](docSession, ...args);
 }

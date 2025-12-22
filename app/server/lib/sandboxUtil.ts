@@ -1,15 +1,15 @@
 /**
  * Various utilities and constants for communicating with the python sandbox.
  */
-import * as MemBuffer from 'app/common/MemBuffer';
-import log from 'app/server/lib/log';
+import * as MemBuffer from "app/common/MemBuffer";
+import log from "app/server/lib/log";
 
 /**
  * SandboxError is an error type for reporting errors forwarded from the sandbox.
  */
 export class SandboxError extends Error {
   constructor(message: string) {
-    super("[Sandbox] " + (message || 'Python reported an error'));
+    super("[Sandbox] " + (message || "Python reported an error"));
   }
 }
 
@@ -30,7 +30,7 @@ export const EXC = false;
  * Binary data is encoded as with JSON.stringify.
  */
 export function makeLinePrefixer(prefix: string, logMeta: object) {
-  return _makeLinePrefixer(prefix, logMeta, text => text.indexOf('\n'));
+  return _makeLinePrefixer(prefix, logMeta, text => text.indexOf("\n"));
 }
 
 /**
@@ -46,7 +46,7 @@ export function makeLogLinePrefixer(prefix: string, logMeta: object) {
 }
 
 function _makeLinePrefixer(prefix: string, logMeta: object, findLineEnd: (text: string) => number) {
-  let partial = '';
+  let partial = "";
   return (data: Uint8Array) => {
     partial += MemBuffer.arrayToString(data);
     let newline;
@@ -54,8 +54,8 @@ function _makeLinePrefixer(prefix: string, logMeta: object, findLineEnd: (text: 
       const line = partial.slice(0, newline);
       partial = partial.slice(newline + 1);
       // Escape some parts of the string by serializing it to JSON (without the quotes).
-      log.origLog('info', "%s%s", prefix,
-        JSON.stringify(line).slice(1, -1).replace(/\\(['"\\])/g, '$1').replace(/\\n/g, '\n'),
+      log.origLog("info", "%s%s", prefix,
+        JSON.stringify(line).slice(1, -1).replace(/\\(['"\\])/g, "$1").replace(/\\n/g, "\n"),
         logMeta);
     }
   };

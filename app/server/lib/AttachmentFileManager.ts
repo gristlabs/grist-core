@@ -1,20 +1,20 @@
-import { AttachmentTransferStatus, DocAttachmentsLocation } from 'app/common/UserAPI';
+import { AttachmentTransferStatus, DocAttachmentsLocation } from "app/common/UserAPI";
 import {
   AttachmentFile,
   AttachmentStoreDocInfo,
   DocPoolId,
   getDocPoolIdFromDocInfo,
   IAttachmentStore, loadAttachmentFileIntoMemory,
-} from 'app/server/lib/AttachmentStore';
-import { AttachmentStoreId, IAttachmentStoreProvider } from 'app/server/lib/AttachmentStoreProvider';
-import { checksumFileStream, HashPassthroughStream } from 'app/server/lib/checksumFile';
-import { DocStorage, FileInfo } from 'app/server/lib/DocStorage';
-import log from 'app/server/lib/log';
-import { LogMethods } from 'app/server/lib/LogMethods';
-import { MemoryWritableStream } from 'app/server/utils/streams';
-import { EventEmitter } from 'events';
-import * as stream from 'node:stream';
-import { AbortController } from 'node-abort-controller';
+} from "app/server/lib/AttachmentStore";
+import { AttachmentStoreId, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
+import { checksumFileStream, HashPassthroughStream } from "app/server/lib/checksumFile";
+import { DocStorage, FileInfo } from "app/server/lib/DocStorage";
+import log from "app/server/lib/log";
+import { LogMethods } from "app/server/lib/LogMethods";
+import { MemoryWritableStream } from "app/server/utils/streams";
+import { EventEmitter } from "events";
+import * as stream from "node:stream";
+import { AbortController } from "node-abort-controller";
 
 export interface AddFileResult {
   fileIdent: string;
@@ -23,7 +23,7 @@ export interface AddFileResult {
 
 export class StoresNotConfiguredError extends Error {
   constructor() {
-    super('Attempted to access a file store, but AttachmentFileManager was initialized without store access');
+    super("Attempted to access a file store, but AttachmentFileManager was initialized without store access");
   }
 }
 
@@ -93,8 +93,8 @@ export class MismatchedFileHashError extends Error {
  */
 export class AttachmentFileManager extends EventEmitter {
   public static events = {
-    TRANSFER_STARTED: 'transfer-started',
-    TRANSFER_COMPLETED: 'transfer-completed',
+    TRANSFER_STARTED: "transfer-started",
+    TRANSFER_COMPLETED: "transfer-completed",
   };
 
   // _docPoolId is a critical point for security. Documents with a common pool id can access each others' attachments.

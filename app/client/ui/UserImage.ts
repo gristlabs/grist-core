@@ -1,13 +1,13 @@
-import { hashCode } from 'app/client/lib/hashUtils';
-import { colors } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { UserProfile } from 'app/common/LoginSessionAPI';
-import { components } from 'app/common/ThemePrefs';
-import { dom, DomElementArg, styled } from 'grainjs';
+import { hashCode } from "app/client/lib/hashUtils";
+import { colors } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { UserProfile } from "app/common/LoginSessionAPI";
+import { components } from "app/common/ThemePrefs";
+import { dom, DomElementArg, styled } from "grainjs";
 
 export type User = Partial<UserProfile> | "exampleUser" | "addUser" | null;
 
-export type Size = 'small' | 'medium' | 'large';
+export type Size = "small" | "medium" | "large";
 
 /**
  * Returns a DOM element showing a circular icon with a user's picture, or the user's initials if
@@ -15,25 +15,25 @@ export type Size = 'small' | 'medium' | 'large';
  */
 export function createUserImage(user: User, size: Size, ...args: DomElementArg[]): HTMLElement {
   return cssUserImage(
-    cssUserImage.cls('-' + size),
+    cssUserImage.cls("-" + size),
     ...(function* () {
-      if (user === 'exampleUser') {
-        yield [cssUserImage.cls('-example'), cssExampleUserIcon('EyeShow')];
+      if (user === "exampleUser") {
+        yield [cssUserImage.cls("-example"), cssExampleUserIcon("EyeShow")];
       }
-      else if (user === 'addUser') {
-        yield [cssUserImage.cls('-add'), cssUserIcon('AddUser')];
+      else if (user === "addUser") {
+        yield [cssUserImage.cls("-add"), cssUserIcon("AddUser")];
       }
       else if (!user || user.anonymous) {
-        yield cssUserImage.cls('-anon');
+        yield cssUserImage.cls("-anon");
       }
       else {
         if (user.picture) {
-          yield cssUserPicture({ src: user.picture }, dom.on('error', (ev, el) => dom.hideElem(el, true)));
+          yield cssUserPicture({ src: user.picture }, dom.on("error", (ev, el) => dom.hideElem(el, true)));
         }
-        yield dom.style('background-color', pickColor(user));
+        yield dom.style("background-color", pickColor(user));
         const initials = getInitials(user);
         if (initials.length > 1) {
-          yield cssUserImage.cls('-reduced');
+          yield cssUserImage.cls("-reduced");
         }
         yield initials;
       }
@@ -49,37 +49,37 @@ export function createUserImage(user: User, size: Size, ...args: DomElementArg[]
  * Exported for testing.
  */
 export function getInitials(user: Partial<UserProfile>) {
-  const source = (user.name?.trim()) || (user.email?.trim()) || '';
-  return source.split(/\s+/, 2).map(p => p.slice(0, 1)).join('');
+  const source = (user.name?.trim()) || (user.email?.trim()) || "";
+  return source.split(/\s+/, 2).map(p => p.slice(0, 1)).join("");
 }
 
 /**
  * Hashes the username to return a color.
  */
 function pickColor(user: Partial<UserProfile>): string {
-  let c = hashCode(user.name + ':' + user.email) % someColors.length;
+  let c = hashCode(user.name + ":" + user.email) % someColors.length;
   if (c < 0) { c += someColors.length; }
   return someColors[c];
 }
 
 // These mostly come from https://clrs.cc/
 const someColors = [
-  '#0B437D',
-  '#0074D9',
-  '#7FDBFF',
-  '#39CCCC',
-  '#16DD6D',
-  '#2ECC40',
-  '#16B378',
-  '#EFCC00',
-  '#FF851B',
-  '#FF4136',
-  '#85144b',
-  '#F012BE',
-  '#B10DC9',
+  "#0B437D",
+  "#0074D9",
+  "#7FDBFF",
+  "#39CCCC",
+  "#16DD6D",
+  "#2ECC40",
+  "#16B378",
+  "#EFCC00",
+  "#FF851B",
+  "#FF4136",
+  "#85144b",
+  "#F012BE",
+  "#B10DC9",
 ];
 
-export const cssUserImage = styled('div', `
+export const cssUserImage = styled("div", `
   --text-color: white;
   position: relative;
   text-align: center;
@@ -141,7 +141,7 @@ export const cssUserImage = styled('div', `
   }
 `);
 
-const cssUserPicture = styled('img', `
+const cssUserPicture = styled("img", `
   position: absolute;
   width: 100%;
   height: 100%;

@@ -1,8 +1,8 @@
-import { ForkResult } from 'app/common/ActiveDocAPI';
-import { buildUrlId, parseUrlId } from 'app/common/gristUrls';
-import { padStart } from 'app/common/gutil';
-import { IDocWorkerMap } from 'app/server/lib/DocWorkerMap';
-import * as shortUUID from 'short-uuid';
+import { ForkResult } from "app/common/ActiveDocAPI";
+import { buildUrlId, parseUrlId } from "app/common/gristUrls";
+import { padStart } from "app/common/gutil";
+import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
+import * as shortUUID from "short-uuid";
 
 // make an id that is a standard UUID compressed into fewer characters.
 export function makeId(): string {
@@ -12,7 +12,7 @@ export function makeId(): string {
   // lack of confusability. The character encoding zero is '1'.  We pad the
   // result so that the length of the id remains consistent, since there is
   // routing that depends on the id length exceeding a minimum threshold.
-  return padStart(shortUUID.generate(), 22, '1');
+  return padStart(shortUUID.generate(), 22, "1");
 }
 
 /**

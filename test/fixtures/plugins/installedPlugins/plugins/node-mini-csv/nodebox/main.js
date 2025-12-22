@@ -6,9 +6,9 @@
  *
  */
 
-const csv = require('csv');
-const fs = require('fs');
-const path = require('path');
+const csv = require("csv");
+const fs = require("fs");
+const path = require("path");
 
 function readCsv(data, replier) {
   csv.parse(data, {}, function(err, output) {
@@ -18,11 +18,11 @@ function readCsv(data, replier) {
       },
       tables: [
         {
-          table_name: "space-monkey" + require('dependency_test'),
+          table_name: "space-monkey" + require("dependency_test"),
           column_metadata: output[0].map(name => {
             return {
               id: name,
-              type: 'Text'
+              type: "Text"
             };
           }),
           table_data: output[0].map((name, idx) => {
@@ -36,17 +36,17 @@ function readCsv(data, replier) {
 }
 
 function processMessage(msg, replier, error_replier) {
-  if (msg.meth == 'parseFile') {
+  if (msg.meth == "parseFile") {
     var dir = msg.dir;
     var fname = msg.args[0].path;
     var data = fs.readFileSync(path.resolve(dir, fname));
     readCsv(data, replier);
   } else {
-    error_replier('unknown method');
+    error_replier("unknown method");
   }
 }
 
-process.on('message', (m) => {
+process.on("message", (m) => {
   const sendReply = (result) => {
     process.send({
       mtype: 2, /* RespData */

@@ -7,22 +7,22 @@
  */
 
 // Use the browser globals in a way that allows replacing them with mocks in tests.
-var G = require('./browserGlobals').get('$', 'window', 'document');
+var G = require("./browserGlobals").get("$", "window", "document");
 
-const identity = require('lodash/identity');
-const defaults = require('lodash/defaults');
-const debounce = require('lodash/debounce');
-const pick     = require('lodash/pick');
-var ko      = require('knockout');
-var Promise = require('bluebird');
+const identity = require("lodash/identity");
+const defaults = require("lodash/defaults");
+const debounce = require("lodash/debounce");
+const pick     = require("lodash/pick");
+var ko      = require("knockout");
+var Promise = require("bluebird");
 
-var gutil = require('app/common/gutil');
+var gutil = require("app/common/gutil");
 
-var dom      = require('./dom');
-var kd       = require('./koDom');
-var koArray  = require('./koArray');
+var dom      = require("./dom");
+var kd       = require("./koDom");
+var koArray  = require("./koArray");
 
-var modelUtil = require('../models/modelUtil');
+var modelUtil = require("../models/modelUtil");
 
 var setSaveValue = modelUtil.setSaveValue;
 
@@ -32,9 +32,9 @@ var setSaveValue = modelUtil.setSaveValue;
  * The button is not clickable if it contains the class 'disabled'.
  */
 exports.button = function(clickFunc, ...moreContentArgs) {
-  return dom('div.kf_button.flexitem',
-    dom.on('click', function() {
-      if (!this.classList.contains('disabled')) {
+  return dom("div.kf_button.flexitem",
+    dom.on("click", function() {
+      if (!this.classList.contains("disabled")) {
         clickFunc();
       }
     }),
@@ -48,7 +48,7 @@ exports.button = function(clickFunc, ...moreContentArgs) {
  */
 exports.accentButton = function(clickFunc, ...moreContentArgs) {
   return this.button(clickFunc,
-    {'class': 'kf_button flexitem accent'},
+    {"class": "kf_button flexitem accent"},
     moreContentArgs
   );
 };
@@ -59,7 +59,7 @@ exports.accentButton = function(clickFunc, ...moreContentArgs) {
  */
 exports.liteButton = function(clickFunc, ...moreContentArgs) {
   return this.button(clickFunc,
-    {'class': 'kf_button flexitem lite'},
+    {"class": "kf_button flexitem lite"},
     moreContentArgs
   );
 };
@@ -70,9 +70,9 @@ exports.liteButton = function(clickFunc, ...moreContentArgs) {
  */
 exports.logoButton = function(clickFunc, logoUrl, text, ...moreContentArgs) {
   return this.button(clickFunc,
-    {'class': 'kf_button kf_logo_button flexitem flexhbox'},
-    dom('div.kf_btn_logo', { style: `background-image: url(${logoUrl})` }),
-    dom('div.kf_btn_text', text),
+    {"class": "kf_button kf_logo_button flexitem flexhbox"},
+    dom("div.kf_btn_logo", { style: `background-image: url(${logoUrl})` }),
+    dom("div.kf_btn_text", text),
     moreContentArgs
   );
 };
@@ -81,7 +81,7 @@ exports.logoButton = function(clickFunc, logoUrl, text, ...moreContentArgs) {
  * Creates a button group. Arguments should be `button` and `checkButton` objects.
  */
 exports.buttonGroup = function(moreButtonArgs) {
-  return dom('div.kf_button_group.kf_elem.flexhbox',
+  return dom("div.kf_button_group.kf_elem.flexhbox",
     dom.fwdArgs(arguments, 0));
 };
 
@@ -91,7 +91,7 @@ exports.buttonGroup = function(moreButtonArgs) {
  */
 exports.accentButtonGroup = function(moreButtonArgs) {
   return this.buttonGroup(
-    [{'class': 'kf_button_group kf_elem flexhbox accent'}].concat(dom.fwdArgs(arguments, 0))
+    [{"class": "kf_button_group kf_elem flexhbox accent"}].concat(dom.fwdArgs(arguments, 0))
   );
 };
 
@@ -101,7 +101,7 @@ exports.accentButtonGroup = function(moreButtonArgs) {
  */
 exports.liteButtonGroup = function(moreButtonArgs) {
   return this.buttonGroup(
-    [{'class': 'kf_button_group kf_elem flexhbox lite'}].concat(dom.fwdArgs(arguments, 0))
+    [{"class": "kf_button_group kf_elem flexhbox lite"}].concat(dom.fwdArgs(arguments, 0))
   );
 };
 
@@ -109,10 +109,10 @@ exports.liteButtonGroup = function(moreButtonArgs) {
  * Creates a button-looking div that acts as a checkbox, toggling `valueObservable` on click.
  */
 exports.checkButton = function(valueObservable, moreContentArgs) {
-  return dom('div.kf_button.kf_check_button.flexitem',
-    kd.toggleClass('active', valueObservable),
-    dom.on('click', function() {
-      if (!this.classList.contains('disabled')) {
+  return dom("div.kf_button.kf_check_button.flexitem",
+    kd.toggleClass("active", valueObservable),
+    dom.on("click", function() {
+      if (!this.classList.contains("disabled")) {
         setSaveValue(valueObservable, !valueObservable());
       }
     }),
@@ -127,10 +127,10 @@ exports.checkButton = function(valueObservable, moreContentArgs) {
  *    class name conventions. We should reconcile them.
  */
 exports.flatCheckButton = function(valueObservable, moreContentArgs) {
-  return dom('div.flexnone',
-    kd.toggleClass('mod-active', valueObservable),
-    dom.on('click', function() {
-      if (!this.classList.contains('mod-disabled')) {
+  return dom("div.flexnone",
+    kd.toggleClass("mod-active", valueObservable),
+    dom.on("click", function() {
+      if (!this.classList.contains("mod-disabled")) {
         setSaveValue(valueObservable, !valueObservable());
       }
     }),
@@ -142,17 +142,17 @@ exports.flatCheckButton = function(valueObservable, moreContentArgs) {
  * objects. The single `valueObservable` reflects the value of the selected `optionButton`.
  */
 exports.buttonSelect = function(valueObservable, moreButtonArgs) {
-  var groupElem = dom('div.kf_button_group.kf_elem.flexhbox', dom.fwdArgs(arguments, 1));
+  var groupElem = dom("div.kf_button_group.kf_elem.flexhbox", dom.fwdArgs(arguments, 1));
 
   // TODO: Is adding ":not(.disabled)" the best way to avoid execution?
-  G.$(groupElem).on('click', '.kf_button:not(.disabled)', function() {
-    setSaveValue(valueObservable, ko.utils.domData.get(this, 'kfOptionValue'));
+  G.$(groupElem).on("click", ".kf_button:not(.disabled)", function() {
+    setSaveValue(valueObservable, ko.utils.domData.get(this, "kfOptionValue"));
   });
 
   kd.makeBinding(valueObservable, function(groupElem, value) {
-    Array.prototype.forEach.call(groupElem.querySelectorAll('.kf_button'), function(elem, i) {
-      var v = ko.utils.domData.get(elem, 'kfOptionValue');
-      elem.classList.toggle('active', v === value);
+    Array.prototype.forEach.call(groupElem.querySelectorAll(".kf_button"), function(elem, i) {
+      var v = ko.utils.domData.get(elem, "kfOptionValue");
+      elem.classList.toggle("active", v === value);
     });
   })(groupElem);
 
@@ -164,8 +164,8 @@ exports.buttonSelect = function(valueObservable, moreButtonArgs) {
  * value of the `buttonSelect` observable when this button is selected.
  */
 exports.optionButton = function(value, moreContentArgs) {
-  return dom('div.kf_button.flexitem',
-    function(elem) { ko.utils.domData.set(elem, 'kfOptionValue', value); },
+  return dom("div.kf_button.flexitem",
+    function(elem) { ko.utils.domData.set(elem, "kfOptionValue", value); },
     dom.fwdArgs(arguments, 1));
 };
 
@@ -174,14 +174,14 @@ exports.optionButton = function(value, moreContentArgs) {
  * its parent when hovered.
  */
 exports.toolTip = function(contentArgs) {
-  return dom('div.kf_tooltip',
-    dom('div.kf_tooltip_pointer'),
-    dom('div.kf_tooltip_content', dom.fwdArgs(arguments, 0)),
+  return dom("div.kf_tooltip",
+    dom("div.kf_tooltip_pointer"),
+    dom("div.kf_tooltip_content", dom.fwdArgs(arguments, 0)),
     dom.defer(function(elem) {
       var elemWidth = elem.getBoundingClientRect().width;
       var parentRect = elem.parentNode.getBoundingClientRect();
-      elem.style.left = (-elemWidth/2 + parentRect.width/2) + 'px';
-      elem.style.top = parentRect.height + 'px';
+      elem.style.left = (-elemWidth/2 + parentRect.width/2) + "px";
+      elem.style.top = parentRect.height + "px";
     })
   );
 };
@@ -190,10 +190,10 @@ exports.toolTip = function(contentArgs) {
  * Creates a prompt to provide feedback or request more information in the sidepane.
  */
 exports.prompt = function(contentArgs) {
-  return dom('div.kf_prompt',
-    dom('div.kf_prompt_pointer'),
-    dom('div.kf_prompt_pointer_overlap'),
-    dom('div.kf_prompt_content', dom.fwdArgs(arguments, 0))
+  return dom("div.kf_prompt",
+    dom("div.kf_prompt_pointer"),
+    dom("div.kf_prompt_pointer_overlap"),
+    dom("div.kf_prompt_content", dom.fwdArgs(arguments, 0))
   );
 };
 
@@ -201,12 +201,12 @@ exports.prompt = function(contentArgs) {
  * Checkbox which toggles `valueObservable`. Other arguments become part of the clickable label.
  */
 exports.checkbox = function(valueObservable, moreContentArgs) {
-  return dom('label.kf_checkbox_label.kf_elem',
-    dom('input.kf_checkbox', {type: 'checkbox'},
+  return dom("label.kf_checkbox_label.kf_elem",
+    dom("input.kf_checkbox", {type: "checkbox"},
       kd.makeBinding(valueObservable, function(elem, value) {
         elem.checked = value;
       }),
-      dom.on('change', function() {
+      dom.on("change", function() {
         setSaveValue(valueObservable, this.checked);
       })
     ),
@@ -220,10 +220,10 @@ exports.checkbox = function(valueObservable, moreContentArgs) {
  * part of the clickable label.
  */
 exports.radio = function(value, valueObservable, ...domArgs) {
-  return dom('label.kf_radio_label',
-    dom('input.kf_radio', {type: 'radio'},
+  return dom("label.kf_radio_label",
+    dom("input.kf_radio", {type: "radio"},
       kd.makeBinding(valueObservable, (elem, val) => { elem.checked = (val === value); }),
-      dom.on('change', function() {
+      dom.on("change", function() {
         if (this.checked) {
           setSaveValue(valueObservable, value);
         }
@@ -248,13 +248,13 @@ function genSpinner(valueObservable, getNewValue, shouldDisable) {
 
   function startChange(elem, direction) {
     stopAutoRepeat();
-    G.$(G.window).on('mouseup', onMouseUp);
+    G.$(G.window).on("mouseup", onMouseUp);
     origValue = valueObservable.peek();
     doChange(direction, true);
   }
 
   function onMouseUp() {
-    G.$(G.window).off('mouseup', onMouseUp);
+    G.$(G.window).off("mouseup", onMouseUp);
     stopAutoRepeat();
     setSaveValue(valueObservable, valueObservable.peek(), origValue);
   }
@@ -272,16 +272,16 @@ function genSpinner(valueObservable, getNewValue, shouldDisable) {
     }
   }
 
-  return dom('div.kf_spinner',
-    dom('div.kf_spinner_half', dom('div.kf_spinner_arrow.up'),
-      kd.toggleClass('disabled', () => shouldDisable(valueObservable(), 1)),
-      dom.on('mousedown', () => { startChange(this, 1); })
+  return dom("div.kf_spinner",
+    dom("div.kf_spinner_half", dom("div.kf_spinner_arrow.up"),
+      kd.toggleClass("disabled", () => shouldDisable(valueObservable(), 1)),
+      dom.on("mousedown", () => { startChange(this, 1); })
     ),
-    dom('div.kf_spinner_half', dom('div.kf_spinner_arrow.down'),
-      kd.toggleClass('disabled', () => shouldDisable(valueObservable(), -1)),
-      dom.on('mousedown', () => { startChange(this, -1); })
+    dom("div.kf_spinner_half", dom("div.kf_spinner_arrow.down"),
+      kd.toggleClass("disabled", () => shouldDisable(valueObservable(), -1)),
+      dom.on("mousedown", () => { startChange(this, -1); })
     ),
-    dom.on('dblclick', () => false)
+    dom.on("dblclick", () => false)
   );
 }
 
@@ -332,13 +332,13 @@ exports.selectSpinner = function(valueObservable, optionObservable) {
  * observable.
  */
 exports.collapserLabel = function(isCollapsedObs, moreContentArgs) {
-  return dom('div.kf_collapser.kf_elem',
-    dom('span.kf_triangle_toggle',
+  return dom("div.kf_collapser.kf_elem",
+    dom("span.kf_triangle_toggle",
       kd.text(function() {
-        return isCollapsedObs() ? '\u25BA' : '\u25BC';
+        return isCollapsedObs() ? "\u25BA" : "\u25BC";
       })
     ),
-    dom.on('click', function() {
+    dom.on("click", function() {
       isCollapsedObs(!isCollapsedObs.peek());
     }),
     dom.fwdArgs(arguments, 1));
@@ -365,7 +365,7 @@ exports.collapsible = function(contentFunc, isMountedCollapsed) {
   var content = contentFunc(isCollapsed);
   return [
     content[0],
-    dom('div',
+    dom("div",
       kd.hide(isCollapsed),
       dom.fwdArgs(content, 1))
   ];
@@ -433,51 +433,51 @@ exports.draggableList = function(contentArray, itemCreateFunc, options) {
     removeButton: true,
     axis: "y",
     drag_indicator: true,
-    itemClass: 'kf_draggable__item'
+    itemClass: "kf_draggable__item"
   });
 
   var reorderFunc, removeFunc;
   itemCreateFunc = itemCreateFunc || identity;
-  var list = dom('ul.kf_drag_container',
+  var list = dom("ul.kf_drag_container",
     function(elem) {
       if (options.reorder) {
         reorderFunc = Promise.method(options.reorder);
-        ko.utils.domData.set(elem, 'reorderFunc', reorderFunc);
+        ko.utils.domData.set(elem, "reorderFunc", reorderFunc);
       }
       if (options.remove) {
         removeFunc = Promise.method(options.remove);
-        ko.utils.domData.set(elem, 'removeFunc', removeFunc);
+        ko.utils.domData.set(elem, "removeFunc", removeFunc);
       }
       if (options.receive) {
-        ko.utils.domData.set(elem, 'receiveFunc', Promise.method(options.receive));
+        ko.utils.domData.set(elem, "receiveFunc", Promise.method(options.receive));
       }
     },
     kd.foreach(contentArray, item => {
       var row = itemCreateFunc(item);
       if (row) {
-        return dom('li.kf_draggable',
+        return dom("li.kf_draggable",
           // Fix for JQueryUI bug where mousedown on draggable elements fail to blur
           // active element. See: https://bugs.jqueryui.com/ticket/4261
-          dom.on('mousedown', () => G.document.activeElement.blur()),
-          kd.toggleClass('kf_draggable--vertical', options.axis === 'y'),
+          dom.on("mousedown", () => G.document.activeElement.blur()),
+          kd.toggleClass("kf_draggable--vertical", options.axis === "y"),
           kd.cssClass(options.itemClass),
           (options.drag_indicator ?
-            (typeof options.drag_indicator === 'boolean' ?
-              dom('span.kf_drag_indicator.kf_draggable__icon.icon-dragdrop') :
+            (typeof options.drag_indicator === "boolean" ?
+              dom("span.kf_drag_indicator.kf_draggable__icon.icon-dragdrop") :
               options.drag_indicator()
             ) : null),
-          kd.domData('model', item),
+          kd.domData("model", item),
           kd.maybe(removeFunc !== undefined && options.removeButton, function() {
-            return dom('span.drag_delete.kf_draggable__icon.icon-remove',
-              dom.on('click', function() {
+            return dom("span.drag_delete.kf_draggable__icon.icon-remove",
+              dom.on("click", function() {
                 removeFunc(item)
                   .catch(function(err) {
-                    console.warn('Failed to remove item', err);
+                    console.warn("Failed to remove item", err);
                   });
               })
             );
           }),
-          dom('span.kf_draggable_content.flexauto', row));
+          dom("span.kf_draggable_content.flexauto", row));
       } else {
         return null;
       }
@@ -488,19 +488,19 @@ exports.draggableList = function(contentArray, itemCreateFunc, options) {
     axis: options.axis,
     tolerance: "pointer",
     forcePlaceholderSize: true,
-    placeholder: 'kf_draggable__placeholder--' + (options.axis === 'x' ? 'horizontal' : 'vertical'),
+    placeholder: "kf_draggable__placeholder--" + (options.axis === "x" ? "horizontal" : "vertical"),
     handle: options.handle,
   });
   if (reorderFunc === undefined) {
     G.$(list).sortable("option", {disabled: true});
   }
 
-  G.$(list).on('sortstart', function(e, ui) {
-    ko.utils.domData.set(ui.item[0], 'originalParent', ui.item.parent());
-    ko.utils.domData.set(ui.item[0], 'originalPrev', ui.item.prev());
+  G.$(list).on("sortstart", function(e, ui) {
+    ko.utils.domData.set(ui.item[0], "originalParent", ui.item.parent());
+    ko.utils.domData.set(ui.item[0], "originalPrev", ui.item.prev());
   });
-  G.$(list).on('sortstop', function(e, ui) {
-    if (!ko.utils.domData.get(ui.item[0], 'crossedContainers')) {
+  G.$(list).on("sortstop", function(e, ui) {
+    if (!ko.utils.domData.get(ui.item[0], "crossedContainers")) {
       handleReorderStop.bind(null, list).call(this, e, ui);
     } else {
       handleConnectedStop.call(list, e, ui);
@@ -511,14 +511,14 @@ exports.draggableList = function(contentArray, itemCreateFunc, options) {
 };
 
 function handleReorderStop(container, e, ui) {
-  var reorderFunc = ko.utils.domData.get(container, 'reorderFunc');
-  var originalPrev = ko.utils.domData.get(ui.item[0], 'originalPrev');
+  var reorderFunc = ko.utils.domData.get(container, "reorderFunc");
+  var originalPrev = ko.utils.domData.get(ui.item[0], "originalPrev");
   if (reorderFunc && !ui.item.prev().is(originalPrev)) {
-    var movingItem = ko.utils.domData.get(ui.item[0], 'model');
+    var movingItem = ko.utils.domData.get(ui.item[0], "model");
     reorderFunc(movingItem, getNextDraggableItemModel(ui.item))
       .catch(function(err) {
-        console.warn('Failed to reorder item', err);
-        G.$(container).sortable('cancel');
+        console.warn("Failed to reorder item", err);
+        G.$(container).sortable("cancel");
       });
   }
   resetDraggedItem(ui.item[0]);
@@ -526,12 +526,12 @@ function handleReorderStop(container, e, ui) {
 
 
 function handleConnectedStop(e, ui) {
-  var originalParent = ko.utils.domData.get(ui.item[0], 'originalParent');
-  var removeOriginal = ko.utils.domData.get(originalParent[0], 'removeFunc');
-  var receive = ko.utils.domData.get(ui.item.parent()[0], 'receiveFunc');
+  var originalParent = ko.utils.domData.get(ui.item[0], "originalParent");
+  var removeOriginal = ko.utils.domData.get(originalParent[0], "removeFunc");
+  var receive = ko.utils.domData.get(ui.item.parent()[0], "receiveFunc");
 
   if (removeOriginal && receive) {
-    removeOriginal(ko.utils.domData.get(ui.item[0], 'model'))
+    removeOriginal(ko.utils.domData.get(ui.item[0], "model"))
       .then(function(removedItem) {
         return receive(removedItem, getNextDraggableItemModel(ui.item))
           .then(function() {
@@ -540,28 +540,28 @@ function handleConnectedStop(e, ui) {
           .catch(revertRemovedItem.bind(null, ui, originalParent, removedItem));
       })
       .catch(function(err) {
-        console.warn('Error removing item', err);
-        G.$(originalParent).sortable('cancel');
+        console.warn("Error removing item", err);
+        G.$(originalParent).sortable("cancel");
       })
       .finally(function() {
         resetDraggedItem(ui.item[0]);
       });
   } else {
-    console.warn('Missing remove or receive');
+    console.warn("Missing remove or receive");
   }
 }
 
 function revertRemovedItem(ui, parent, item, err) {
-  console.warn('Error receiving item. Trying to return removed item.', err);
-  var originalReceiveFunc = ko.utils.domData.get(parent[0], 'receiveFunc');
+  console.warn("Error receiving item. Trying to return removed item.", err);
+  var originalReceiveFunc = ko.utils.domData.get(parent[0], "receiveFunc");
   if (originalReceiveFunc) {
-    var originalPrev = ko.utils.domData.get(ui.item[0], 'originalPrev');
+    var originalPrev = ko.utils.domData.get(ui.item[0], "originalPrev");
     var originalNextItem = originalPrev.length > 0 ?
       getNextDraggableItemModel(originalPrev) :
-      getDraggableItemModel(parent.children('.kf_draggable').first());
+      getDraggableItemModel(parent.children(".kf_draggable").first());
     originalReceiveFunc(item, originalNextItem)
       .catch(function(err) {
-        console.warn('Failed to receive item in original collection.', err);
+        console.warn("Failed to receive item in original collection.", err);
       }).finally(function() {
         ui.item.remove();
       });
@@ -570,30 +570,30 @@ function revertRemovedItem(ui, parent, item, err) {
 
 function getDraggableItemModel(elem) {
   if (elem.length && elem.length > 0) {
-    return ko.utils.domData.get(elem[0], 'model');
+    return ko.utils.domData.get(elem[0], "model");
   }
   return null;
 }
 
 function getNextDraggableItemModel(elem) {
-  return elem.next ? getDraggableItemModel(elem.next('.kf_draggable')) : null;
+  return elem.next ? getDraggableItemModel(elem.next(".kf_draggable")) : null;
 }
 
 function resetDraggedItem(elem) {
-  ko.utils.domData.set(elem, 'originalPrev', null);
-  ko.utils.domData.set(elem, 'originalParent', null);
-  ko.utils.domData.set(elem, 'crossedContainers', false);
+  ko.utils.domData.set(elem, "originalPrev", null);
+  ko.utils.domData.set(elem, "originalParent", null);
+  ko.utils.domData.set(elem, "crossedContainers", false);
 }
 
 function enableDraggableConnection(draggable) {
-  G.$(draggable).on('sortremove', function(e, ui) {
-    ko.utils.domData.set(ui.item[0], 'crossedContainers', true);
-    ko.utils.domData.set(ui.item[0], 'stopIndex', ui.item.index());
+  G.$(draggable).on("sortremove", function(e, ui) {
+    ko.utils.domData.set(ui.item[0], "crossedContainers", true);
+    ko.utils.domData.set(ui.item[0], "stopIndex", ui.item.index());
   });
 
   if (G.$(draggable).sortable("option", "disabled") && (
-    ko.utils.domData.get(draggable, 'receiveFunc') ||
-      ko.utils.domData.get(draggable, 'removeFunc')
+    ko.utils.domData.get(draggable, "receiveFunc") ||
+      ko.utils.domData.get(draggable, "removeFunc")
   )) {
     G.$(draggable).sortable( "option", { disabled: false });
   }
@@ -613,7 +613,7 @@ function connectDraggableToClass(draggable, className) {
 var connectedDraggables = 0;
 exports.connectAllDraggables = function(draggableArgs) {
   if (draggableArgs.length < 2) {
-    console.warn('connectAllDraggables requires at least 2 draggable components');
+    console.warn("connectAllDraggables requires at least 2 draggable components");
   }
   var className = "connected-draggable-" + connectedDraggables++;
   for (var i=0; i<arguments.length; i++) {
@@ -639,14 +639,14 @@ exports.connectDraggableOneWay = function(fromDraggable, toDraggable) {
  * A bold label. Typically takes a string argument, but accepts any children.
  */
 exports.label = function(moreContentArgs) {
-  return dom('div.kf_label.kf_elem', dom.fwdArgs(arguments, 0));
+  return dom("div.kf_label.kf_elem", dom.fwdArgs(arguments, 0));
 };
 
 /**
  * A regular (not bold) label. Typically takes a string argument, but accepts any children.
  */
 exports.lightLabel = function(moreContentArgs) {
-  return dom('div.kf_light_label.kf_elem', dom.fwdArgs(arguments, 0));
+  return dom("div.kf_light_label.kf_elem", dom.fwdArgs(arguments, 0));
 };
 
 
@@ -657,9 +657,9 @@ exports.lightLabel = function(moreContentArgs) {
  *    created if omitted.
  */
 exports.midTabs = function(optObservable) {
-  return _initTabs(optObservable, '.kf_mid_tab_label',
-    dom('div.flexitem.kf_mid_tabs',
-      dom('div.flexhbox.flexnone.kf_mid_tab_labels'),
+  return _initTabs(optObservable, ".kf_mid_tab_label",
+    dom("div.flexitem.kf_mid_tabs",
+      dom("div.flexhbox.flexnone.kf_mid_tab_labels"),
       exports.scrollable()
     )
   );
@@ -671,9 +671,9 @@ exports.midTabs = function(optObservable) {
  * The content is created once, but is hidden when a different tab is selected.
  */
 exports.midTab = function(label, moreContentArgs) {
-  return _addTab('.kf_mid_tabs',
-    dom('div.kf_mid_tab_label.flexitem', label),
-    dom('div.kf_mid_tab_content', dom.fwdArgs(arguments, 1)));
+  return _addTab(".kf_mid_tabs",
+    dom("div.kf_mid_tab_label.flexitem", label),
+    dom("div.kf_mid_tab_content", dom.fwdArgs(arguments, 1)));
 };
 
 
@@ -686,16 +686,16 @@ exports.midTab = function(label, moreContentArgs) {
  * @param {Object} options.max The maximum (numeric or date-time) value for this item, which must not be less than its minimum (min attribute) value.
  */
 exports.numText = function(valueObservable, options) {
-  var attr = {type: 'number'};
+  var attr = {type: "number"};
   options = options || {};
   if (options.placeholder) attr.placeholder = options.placeholder;
-  if (typeof options.min !== 'undefined') attr.min = options.min;
-  if (typeof options.max !== 'undefined') attr.max = options.max;
-  return dom('div.kf_elem', dom('input.kf_num_text', attr,
+  if (typeof options.min !== "undefined") attr.min = options.min;
+  if (typeof options.max !== "undefined") attr.max = options.max;
+  return dom("div.kf_elem", dom("input.kf_num_text", attr,
     kd.value(valueObservable),
     // while 'change' seems better suited, sometimes it does not fire when user click on the spinner
     // arrow before it moves the cursor away.
-    dom.on('input', function() {
+    dom.on("input", function() {
       setSaveValue(valueObservable, Number(this.value));
     })
   ));
@@ -724,7 +724,7 @@ function textInput(valueObservable, options, moreArgs) {
     }
     if (options.maxSize) {
       attr.maxlength = options.maxSize;
-      attr.style = 'max-width: ' + (options.maxSize + 2) + 'em';
+      attr.style = "max-width: " + (options.maxSize + 2) + "em";
     }
     if (options.placeholder) {
       attr.placeholder = options.placeholder;
@@ -737,18 +737,18 @@ function textInput(valueObservable, options, moreArgs) {
   var setValue = elem => {
     if (options && options.delay) {
       dom(elem,
-        dom.on('input', debounced),
-        dom.on('change', e => {
+        dom.on("input", debounced),
+        dom.on("change", e => {
           debounced(e);
           debounced.flush();
         }));
     } else {
-      dom(elem, dom.on('change', saveValue));
+      dom(elem, dom.on("change", saveValue));
     }
   };
 
-  return dom('div.kf_elem',
-    dom('input.kf_text',
+  return dom("div.kf_elem",
+    dom("input.kf_text",
       attr,
       kd.toggleDisabled(options.disabled || false),
       kd.value(valueObservable),
@@ -762,7 +762,7 @@ function textInput(valueObservable, options, moreArgs) {
  * A regular textbox tied to `valueObservable`.
  */
 exports.text = function(valueObservable, options, ...moreArgs) {
-  options = Object.assign({type: 'text'}, options || {});
+  options = Object.assign({type: "text"}, options || {});
   return textInput(valueObservable, options, moreArgs);
 };
 
@@ -772,11 +772,11 @@ exports.text = function(valueObservable, options, ...moreArgs) {
 exports.color = function(valueObservable, ...moreArgs) {
   // On some machine (seen on chrome running on a Mac) the `change` event fires as many times as the `input` event, hence debounce.
   const saveValue = debounce(e => setSaveValue(valueObservable, e.target.value), 300);
-  return dom('div.kf_elem',
-    dom('input.kf_color',
-      {type: 'color'},
+  return dom("div.kf_elem",
+    dom("input.kf_color",
+      {type: "color"},
       kd.value(valueObservable),
-      dom.on('change', saveValue),
+      dom.on("change", saveValue),
       ...moreArgs
     ));
 };
@@ -785,7 +785,7 @@ exports.color = function(valueObservable, ...moreArgs) {
  * Identical to koForm.text, but with input type=password
  */
 exports.password = function(valueObservable, options, ...moreArgs) {
-  options = Object.assign({type: 'password'}, options || {});
+  options = Object.assign({type: "password"}, options || {});
   return textInput(valueObservable, options, moreArgs);
 };
 
@@ -821,30 +821,30 @@ exports.password = function(valueObservable, options, ...moreArgs) {
  */
 exports.statusPanel = function(valueObservable, options) {
   var statusMap = {};
-  ['success', 'info', 'warning', 'error'].forEach(function(key) {
+  ["success", "info", "warning", "error"].forEach(function(key) {
     var statusLookupValue;
     if (options[key]) {
       statusLookupValue = options[key].value !== undefined ? options[key].value : options[key];
       statusMap[statusLookupValue] = {};
-      statusMap[statusLookupValue].className = 'kf_status_' + key;
+      statusMap[statusLookupValue].className = "kf_status_" + key;
       statusMap[statusLookupValue].label = options[key].label || null;
     }
   });
   var hasLabel = ko.pureComputed(function() {
     return statusMap[valueObservable()].label !== undefined;
   });
-  return dom('div.kf_status_panel.flexhbox',
+  return dom("div.kf_status_panel.flexhbox",
     dom.autoDispose(hasLabel),
-    dom('div.kf_status_indicator.flexauto',
+    dom("div.kf_status_indicator.flexauto",
       kd.cssClass(function() {
         if (statusMap[valueObservable()]) {
           return statusMap[valueObservable()].className;
         }
-        console.error('Status must match an available status code', Object.keys(statusMap));
+        console.error("Status must match an available status code", Object.keys(statusMap));
       }),
-      '\u25CF' // solid circle
+      "\u25CF" // solid circle
     ),
-    dom('div.kf_status_detail.flexauto',
+    dom("div.kf_status_detail.flexauto",
       kd.maybe(options.heading, function() {
         return exports.row(exports.label(options.heading));
       }),
@@ -865,16 +865,16 @@ exports.statusPanel = function(valueObservable, options) {
  */
 exports.row = function(childOrColSpanArgs) {
   var colSpan = 1;
-  var elem = dom('div.kf_row.flexhbox');
+  var elem = dom("div.kf_row.flexhbox");
   for (var i = 0; i < arguments.length; i++) {
     var arg = arguments[i];
-    if (typeof arg === 'number') {
+    if (typeof arg === "number") {
       colSpan = arg;
-    } else if (typeof arg === 'function') {
+    } else if (typeof arg === "function") {
       arg(elem);
-    } else if (typeof arg !== 'undefined') {
-      if (typeof arg === 'string' || Array.isArray(arg)) {
-        arg = dom('div', arg);
+    } else if (typeof arg !== "undefined") {
+      if (typeof arg === "string" || Array.isArray(arg)) {
+        arg = dom("div", arg);
       }
       arg.style.flex = arg.style.webkitFlex = colSpan + " 1 0px";
       elem.appendChild(arg);
@@ -891,7 +891,7 @@ exports.row = function(childOrColSpanArgs) {
  */
 exports.helpRow = function(childOrColSpan) {
   var elem = exports.row.apply(null, arguments);
-  elem.classList.add('kf_help_row');
+  elem.classList.add("kf_help_row");
   return elem;
 };
 
@@ -901,12 +901,12 @@ exports.helpRow = function(childOrColSpan) {
 exports.scrollable = function(contentArgs) {
   var elem, shadow;
   return [
-    dom('div.flexnone.kf_scroll_shadow_outer',
-      shadow = dom('div.kf_scroll_shadow', dom.hide)
+    dom("div.flexnone.kf_scroll_shadow_outer",
+      shadow = dom("div.kf_scroll_shadow", dom.hide)
     ),
-    elem = dom('div.flexitem.kf_scrollable',
-      dom.on('scroll', function() {
-        shadow.style.display = (elem.scrollTop > 0 ? '' : 'none');
+    elem = dom("div.flexitem.kf_scrollable",
+      dom.on("scroll", function() {
+        shadow.style.display = (elem.scrollTop > 0 ? "" : "none");
       }),
       dom.fwdArgs(arguments, 0)
     )
@@ -947,28 +947,28 @@ exports.select = function(valueObservable, optionArray, options) {
   // Sets elem.value to value. Useful for setting the displayed multiselect value.
   var setValue = (elem, value) => {
     let valuesSet = new Set(options.multiple ? value : [value]);
-    for (let option of elem.querySelectorAll('option')) {
-      option.selected = valuesSet.has(ko.utils.domData.get(option, 'value'));
+    for (let option of elem.querySelectorAll("option")) {
+      option.selected = valuesSet.has(ko.utils.domData.get(option, "value"));
     }
   };
-  return dom('div.kf_elem',
-    dom('div.kf_select_arrow',
-      dom('select.kf_select',
-        pick(options, ['size', 'multiple']),
+  return dom("div.kf_elem",
+    dom("div.kf_select_arrow",
+      dom("select.kf_select",
+        pick(options, ["size", "multiple"]),
         kd.toggleDisabled(options.disabled || false),
         kd.foreach(optionArray, function(option) {
           if (!option) {
             return null;
           }
 
-          let value = (typeof option === 'string' ? option : option.value);
-          let label = (typeof option === 'string' ? option : option.label);
-          let disabled = (typeof option === 'string' ? false : option.disabled);
+          let value = (typeof option === "string" ? option : option.value);
+          let label = (typeof option === "string" ? option : option.label);
+          let disabled = (typeof option === "string" ? false : option.disabled);
 
           return dom(
-            'option',
+            "option",
             { value }, // To keep older browser tests from breaking, store stringified value in DOM
-            kd.domData('value', value),
+            kd.domData("value", value),
             kd.toggleDisabled(disabled),
             kd.text(label)
           );
@@ -978,12 +978,12 @@ exports.select = function(valueObservable, optionArray, options) {
         kd.makeBinding(koArray.isKoArray(optionArray) ? optionArray.getObservable() : optionArray,
           elem => setValue(elem, valueObservable())),
         kd.makeBinding(valueObservable, (elem, value) => setValue(elem, value)),
-        dom.on('change', function() {
+        dom.on("change", function() {
           let valuesArray = [];
-          let optionElements = this.querySelectorAll('option');
+          let optionElements = this.querySelectorAll("option");
           for (let i = 0; i < optionElements.length; i++) {
             if (optionElements[i].selected) {
-              let value = ko.utils.domData.get(optionElements[i], 'value');
+              let value = ko.utils.domData.get(optionElements[i], "value");
               valuesArray.push(value);
               if (!options.multiple) { break; }
             }
@@ -1000,7 +1000,7 @@ exports.select = function(valueObservable, optionArray, options) {
  * A separator (thin horizontal line).
  */
 exports.separator = function() {
-  return dom('hr.kf_separator');
+  return dom("hr.kf_separator");
 };
 
 /**
@@ -1010,10 +1010,10 @@ exports.separator = function() {
  *    created if omitted.
  */
 exports.topTabs = function(optObservable) {
-  return _initTabs(optObservable, '.kf_top_tab_label',
-    dom('div.flexvbox.kf_top_tabs',
-      dom('div.flexhbox.flexnone.kf_top_tab_labels'),
-      dom('div.flexitem.kf_top_tab_container')
+  return _initTabs(optObservable, ".kf_top_tab_label",
+    dom("div.flexvbox.kf_top_tabs",
+      dom("div.flexhbox.flexnone.kf_top_tab_labels"),
+      dom("div.flexitem.kf_top_tab_container")
     )
   );
 };
@@ -1024,9 +1024,9 @@ exports.topTabs = function(optObservable) {
  * The content is created once, but is hidden when a different tab is selected.
  */
 exports.topTab = function(label, moreContentArgs) {
-  return _addTab('.kf_top_tabs',
-    dom('div.kf_top_tab_label.flexitem', label),
-    dom('div.kf_top_tab_content.flexvbox', dom.fwdArgs(arguments, 1)));
+  return _addTab(".kf_top_tabs",
+    dom("div.kf_top_tab_label.flexitem", label),
+    dom("div.kf_top_tab_content.flexvbox", dom.fwdArgs(arguments, 1)));
 };
 
 /**
@@ -1040,10 +1040,10 @@ exports.topTab = function(label, moreContentArgs) {
  */
 function _initTabs(optObservable, labelSelector, elem) {
   var selectedTab = optObservable || ko.observable(0);
-  G.$(elem).on('click', labelSelector, function() {
+  G.$(elem).on("click", labelSelector, function() {
     selectedTab(dom.childIndex(this));
   });
-  ko.utils.domData.set(elem, 'kfSelectedTab', selectedTab);
+  ko.utils.domData.set(elem, "kfSelectedTab", selectedTab);
   return elem;
 }
 
@@ -1061,7 +1061,7 @@ function _addTab(tabsSelector, labelElem, contentElem) {
       console.log("koForm: Attempting to add tab without an existing tabs container");
       return;
     }
-    var selectedTab = ko.utils.domData.get(tabsEl, 'kfSelectedTab');
+    var selectedTab = ko.utils.domData.get(tabsEl, "kfSelectedTab");
     var labels = tabsEl.firstChild;
     var container = tabsEl.lastChild;
     var index = labels.childNodes.length;
@@ -1069,7 +1069,7 @@ function _addTab(tabsSelector, labelElem, contentElem) {
 
     // These methods are indended to be used as arguments to dom() function, so they return a
     // function that should be applied to the target element.
-    kd.toggleClass('active', isSelected)(labelElem);
+    kd.toggleClass("active", isSelected)(labelElem);
     dom.autoDispose(labelElem, isSelected);
     kd.show(isSelected)(contentElem);
 

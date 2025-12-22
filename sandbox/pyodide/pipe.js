@@ -1,8 +1,8 @@
-const path = require('path');
-const fs = require('fs');
+const path = require("path");
+const fs = require("fs");
 
-const { loadPyodide } = require('./_build/worker/node_modules/pyodide');
-const { listLibs } = require('./packages');
+const { loadPyodide } = require("./_build/worker/node_modules/pyodide");
+const { listLibs } = require("./packages");
 
 const INCOMING_FD = 4;
 const OUTGOING_FD = 5;
@@ -26,7 +26,7 @@ class GristPipe {
             setTimeout(code, delay);
             // Seems to be OK not to return anything, so we don't.
           } else {
-            throw new Error('setTimeout not available');
+            throw new Error("setTimeout not available");
           }
         },
         sendFromSandbox: (data) => {
@@ -56,16 +56,16 @@ class GristPipe {
 
   async loadCode() {
     // Load python packages.
-    const src = path.join(__dirname, '_build', 'packages');
+    const src = path.join(__dirname, "_build", "packages");
     const lsty = (await listLibs(src)).available.map(item => item.fullName);
     await this.pyodide.loadPackage(lsty, {
-      messageCallback: (msg) => this.log('[package]', msg),
+      messageCallback: (msg) => this.log("[package]", msg),
     });
 
     // Load Grist data engine code.
     // We mount it as /grist_src, copy to /grist, then unmount.
     // Note that path to source must be a realpath.
-    const root = fs.realpathSync(path.join(__dirname, '../grist'));
+    const root = fs.realpathSync(path.join(__dirname, "../grist"));
     await this.pyodide.FS.mkdir("/grist_src");
     // careful, needs to be a realpath
     await this.pyodide.FS.mount(this.pyodide.FS.filesystems.NODEFS, { root }, "/grist_src");

@@ -17,14 +17,14 @@
  * It will start up webpack-dev-server before this suite is run, so that MyPage is available to
  * fetch using webdriver.
  */
-import { exitPromise } from 'app/server/lib/serverUtils';
-import { ChildProcess, spawn } from 'child_process';
-import { driver, IMochaContext, IMochaServer } from 'mocha-webdriver';
-import fetch from 'node-fetch';
+import { exitPromise } from "app/server/lib/serverUtils";
+import { ChildProcess, spawn } from "child_process";
+import { driver, IMochaContext, IMochaServer } from "mocha-webdriver";
+import fetch from "node-fetch";
 import stripAnsi from "strip-ansi";
-import * as path from 'path';
+import * as path from "path";
 
-const configPath = process.env.PROJECTS_WEBPACK_CONFIG || path.resolve(__dirname, 'webpack.config.js');
+const configPath = process.env.PROJECTS_WEBPACK_CONFIG || path.resolve(__dirname, "webpack.config.js");
 
 export class WebpackServer implements IMochaServer {
   // Fork a WebpackDevServer. See https://github.com/webpack/docs/wiki/webpack-dev-server
@@ -43,9 +43,9 @@ export class WebpackServer implements IMochaServer {
     context.timeout(60000);
     logMessage(`starting with config ${configPath}`);
 
-    this._server = spawn('node',
-      ['node_modules/.bin/webpack-dev-server', '--config', configPath, '--no-open'], {
-        stdio: ['inherit', 'pipe', 'inherit'],
+    this._server = spawn("node",
+      ["node_modules/.bin/webpack-dev-server", "--config", configPath, "--no-open"], {
+        stdio: ["inherit", "pipe", "inherit"],
       });
     this._exitPromise = exitPromise(this._server);
 

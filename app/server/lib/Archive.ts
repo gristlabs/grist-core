@@ -1,8 +1,8 @@
-import { drainWhenSettled } from 'app/server/utils/streams';
-import { ZipArchiveEntry } from 'compress-commons';
-import stream from 'node:stream';
-import * as tar from 'tar-stream';
-import ZipStream, { ZipStreamOptions } from 'zip-stream';
+import { drainWhenSettled } from "app/server/utils/streams";
+import { ZipArchiveEntry } from "compress-commons";
+import stream from "node:stream";
+import * as tar from "tar-stream";
+import ZipStream, { ZipStreamOptions } from "zip-stream";
 
 export interface ArchiveEntry {
   name: string;
@@ -150,7 +150,7 @@ export async function unpackTarArchive(
 
   const extractor = tar.extract();
 
-  extractor.on('entry', function(header, contentStream, next) {
+  extractor.on("entry", function(header, contentStream, next) {
     // Ensures contentStream is drained when onFile is finished.
     // Failure to drain contentStream will block the whole extraction.
     drainWhenSettled(contentStream,
@@ -166,8 +166,8 @@ export async function unpackTarArchive(
       .finally(() => { next(); });
   });
 
-  extractor.on('error', (err: any) => { rejectFinished(err); });
-  extractor.on('finish', () => { resolveFinished(); });
+  extractor.on("error", (err: any) => { rejectFinished(err); });
+  extractor.on("finish", () => { resolveFinished(); });
 
   tarStream.pipe(extractor);
 

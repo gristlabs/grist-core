@@ -1,10 +1,10 @@
-import Checkers, { Features as FeaturesTi } from 'app/common/Features-ti';
-import { CheckerT, createCheckers } from 'ts-interface-checker';
-import defaultsDeep from 'lodash/defaultsDeep';
+import Checkers, { Features as FeaturesTi } from "app/common/Features-ti";
+import { CheckerT, createCheckers } from "ts-interface-checker";
+import defaultsDeep from "lodash/defaultsDeep";
 
 export interface SnapshotWindow {
   count: number;
-  unit: 'days' | 'month' | 'year';
+  unit: "days" | "month" | "year";
 }
 
 // Information about the product associated with an org or orgs.
@@ -186,11 +186,11 @@ export function parseMetadata(meta: Record<string, string>): Record<string, any>
   for (const key in copy) {
     // We support only booleans, integers, floats, empty strings are nulls.
     const value = copy[key];
-    if (value === '') {
+    if (value === "") {
       copy[key] = null;
     }
-    else if (value === 'true' || value === 'false') {
-      copy[key] = value === 'true';
+    else if (value === "true" || value === "false") {
+      copy[key] = value === "true";
     }
     else if (!isNaN(parseFloat(value))) {
       copy[key] = parseFloat(value);
@@ -199,8 +199,8 @@ export function parseMetadata(meta: Record<string, string>): Record<string, any>
       copy[key] = parseInt(value, 10);
     }
 
-    if (key.includes('.')) {
-      const [topProp, ...rest] = key.split('.');
+    if (key.includes(".")) {
+      const [topProp, ...rest] = key.split(".");
       if (rest.length > 1) {
         throw new Error(`Only one level of nesting is supported, got ${key}`);
       }
@@ -224,38 +224,38 @@ export function canAddOrgMembers(features: Features): boolean {
 
 // Grist is aware only about those plans.
 // Those plans are synchronized with database only if they don't exists currently.
-export const PERSONAL_FREE_PLAN = 'personalFree';
-export const TEAM_FREE_PLAN = 'teamFree';
+export const PERSONAL_FREE_PLAN = "personalFree";
+export const TEAM_FREE_PLAN = "teamFree";
 
 // This is a plan for suspended users.
-export const SUSPENDED_PLAN = 'suspended';
+export const SUSPENDED_PLAN = "suspended";
 
 // This is virtual plan for anonymous users.
-export const ANONYMOUS_PLAN = 'anonymous';
+export const ANONYMOUS_PLAN = "anonymous";
 // This is free plan. Grist doesn't offer a way to create it using API, but
 // it can be configured as a substitute for any other plan using environment variables (like DEFAULT_TEAM_PLAN)
-export const FREE_PLAN = 'Free';
+export const FREE_PLAN = "Free";
 
 // This is a plan for temporary org, before assigning a real plan.
-export const STUB_PLAN = 'stub';
+export const STUB_PLAN = "stub";
 
 // Legacy free personal plan, which is not available anymore or created in new instances, but used
 // here for displaying purposes and in tests.
-export const PERSONAL_LEGACY_PLAN = 'starter';
+export const PERSONAL_LEGACY_PLAN = "starter";
 
 // Pro plan for team sites (first tier). It is generally read from Stripe, but we use it in tests, so
 // by default all installation have it. When Stripe updates it, it will be synchronized with Grist.
-export const TEAM_PLAN = 'team';
+export const TEAM_PLAN = "team";
 
 export const displayPlanName: { [key: string]: string } = {
-  [PERSONAL_FREE_PLAN]: 'Free Personal',
-  [TEAM_FREE_PLAN]: 'Team Free',
-  [SUSPENDED_PLAN]: 'Suspended',
-  [ANONYMOUS_PLAN]: 'Anonymous',
-  [FREE_PLAN]: 'Free',
-  [TEAM_PLAN]: 'Pro',
-  teamPro: 'Pro', // Plans available at getgrist.com
-  business: 'Business', // Business plan, available at getgrist.com
+  [PERSONAL_FREE_PLAN]: "Free Personal",
+  [TEAM_FREE_PLAN]: "Team Free",
+  [SUSPENDED_PLAN]: "Suspended",
+  [ANONYMOUS_PLAN]: "Anonymous",
+  [FREE_PLAN]: "Free",
+  [TEAM_PLAN]: "Pro",
+  teamPro: "Pro", // Plans available at getgrist.com
+  business: "Business", // Business plan, available at getgrist.com
 } as const;
 
 // Returns true if `planName` is for a legacy product.

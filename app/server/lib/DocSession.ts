@@ -1,10 +1,10 @@
-import { BrowserSettings } from 'app/common/BrowserSettings';
-import { decodeLinkParameters } from 'app/common/gristUrls';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
-import { RequestWithLogin } from 'app/server/lib/Authorizer';
-import { AuthSession } from 'app/server/lib/AuthSession';
-import { Client } from 'app/server/lib/Client';
-import type { DocAuthorizer } from 'app/server/lib/DocAuthorizer';
+import { BrowserSettings } from "app/common/BrowserSettings";
+import { decodeLinkParameters } from "app/common/gristUrls";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { RequestWithLogin } from "app/server/lib/Authorizer";
+import { AuthSession } from "app/server/lib/AuthSession";
+import { Client } from "app/server/lib/Client";
+import type { DocAuthorizer } from "app/server/lib/DocAuthorizer";
 
 /**
  * OptDocSession allows for certain ActiveDoc operations to work with or without an open document.
@@ -29,7 +29,7 @@ export class OptDocSession extends AuthSession {
   public linkId?: number;
 
   // special permissions for creating, plugins, system, and share access
-  public mode?: 'nascent' | 'plugin' | 'system' | 'share';
+  public mode?: "nascent" | "plugin" | "system" | "share";
   public authorizer?: DocAuthorizer;
   public forkingAsOwner?: boolean;  // Set if it is appropriate in a pre-fork state to become an owner.
   public linkParameters?: Record<string, string>;
@@ -49,7 +49,7 @@ export class OptDocSession extends AuthSession {
     this.browserSettings = options.browserSettings ?? (this.client?.browserSettings);
     this.req = options.req;
     this.linkParameters = options.linkParameters ??
-      (this.req?.url ? decodeLinkParameters(new URLSearchParams(this.req.url.split('?')[1])) : undefined);
+      (this.req?.url ? decodeLinkParameters(new URLSearchParams(this.req.url.split("?")[1])) : undefined);
   }
 
   // Expose AuthSession interface directly. Note that other AuthSession helper methods are also
@@ -74,7 +74,7 @@ export function makeOptDocSession(client: Client | null): OptDocSession {
  *  - plugin: user is treated as editor (because plugin access control is crude)
  *  - system: user is treated as owner (because of some operation bypassing access control)
  */
-export function makeExceptionalDocSession(mode: 'nascent' | 'plugin' | 'system' | 'share',
+export function makeExceptionalDocSession(mode: "nascent" | "plugin" | "system" | "share",
   options: { client?: Client,
     req?: RequestWithLogin,
     browserSettings?: BrowserSettings } = {}): OptDocSession {

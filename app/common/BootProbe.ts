@@ -1,16 +1,16 @@
-import { SandboxInfo } from 'app/common/SandboxInfo';
+import { SandboxInfo } from "app/common/SandboxInfo";
 
 export type BootProbeIds =
-  'admins' |
-  'boot-page' |
-  'health-check' |
-  'reachable' |
-  'host-header' |
-  'sandboxing' |
-  'system-user' |
-  'authentication' |
-  'websockets' |
-  'session-secret'
+  "admins" |
+  "boot-page" |
+  "health-check" |
+  "reachable" |
+  "host-header" |
+  "sandboxing" |
+  "system-user" |
+  "authentication" |
+  "websockets" |
+  "session-secret"
 ;
 
 export interface BootProbeResult {
@@ -20,7 +20,7 @@ export interface BootProbeResult {
   // "none" means no fault detected (but that the test is not exhaustive
   // enough to claim "success").
   // "fault" is a bad error, "warning" a ... warning, "hmm" almost a debug message.
-  status: 'success' | 'fault' | 'warning' | 'hmm' | 'none';
+  status: "success" | "fault" | "warning" | "hmm" | "none";
   details?: Record<string, any>;
 }
 

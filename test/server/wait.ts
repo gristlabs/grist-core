@@ -1,5 +1,5 @@
-import { delay } from 'app/common/delay';
-import { MaybePromise } from 'app/plugin/gutil';
+import { delay } from "app/common/delay";
+import { MaybePromise } from "app/plugin/gutil";
 
 /**
  * A helper function that invokes a function until it passes without throwing an error.

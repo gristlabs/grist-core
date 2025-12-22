@@ -1,5 +1,5 @@
-import { useBindable } from 'app/common/gutil';
-import { BindableValue, Computed, dom, EventCB, IDisposable, IDisposableOwner, Observable, UseCB } from 'grainjs';
+import { useBindable } from "app/common/gutil";
+import { BindableValue, Computed, dom, EventCB, IDisposable, IDisposableOwner, Observable, UseCB } from "grainjs";
 
 /**
  * Version of makeTestId that can be appended conditionally.
@@ -8,7 +8,7 @@ export function makeTestId(prefix: string) {
   return (id: BindableValue<string>, obs?: BindableValue<boolean>) => {
     return dom.cls((use) => {
       if (obs !== undefined && !useBindable(use, obs)) {
-        return '';
+        return "";
       }
       return `${useBindable(use, prefix)}${useBindable(use, id)}`;
     });
@@ -120,7 +120,7 @@ export function onClickOutsideElem(elem: Node, click: () => void) {
       click();
     }
   };
-  return dom.onElem(document, 'click', onClick, { useCapture: true });
+  return dom.onElem(document, "click", onClick, { useCapture: true });
 }
 
 /**
@@ -142,13 +142,13 @@ export function findAncestorChild(ancestor: Element, elem: Element | null): Elem
  */
 export function attachMouseOverOnMove<T extends EventTarget>(elem: T, callback: EventCB<MouseEvent, T>) {
   let lis: IDisposable | undefined;
-  function setListener(eventType: 'mouseover' | 'mousemove', cb: EventCB<MouseEvent, T>) {
+  function setListener(eventType: "mouseover" | "mousemove", cb: EventCB<MouseEvent, T>) {
     if (lis) { lis.dispose(); }
     lis = dom.onElem(elem, eventType, cb);
   }
   function reset() {
-    setListener('mousemove', (ev, _elem) => {
-      setListener('mouseover', callback);
+    setListener("mousemove", (ev, _elem) => {
+      setListener("mouseover", callback);
       callback(ev, _elem);
     });
   }

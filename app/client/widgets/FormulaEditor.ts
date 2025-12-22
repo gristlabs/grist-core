@@ -1,33 +1,33 @@
-import * as AceEditor from 'app/client/components/AceEditor';
-import { CommandName } from 'app/client/components/commandList';
-import * as commands from 'app/client/components/commands';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { makeT } from 'app/client/lib/localization';
-import { DataRowModel } from 'app/client/models/DataRowModel';
-import { ColumnRec } from 'app/client/models/DocModel';
-import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
-import { reportError } from 'app/client/models/errors';
-import { hoverTooltip } from 'app/client/ui/tooltips';
-import { textButton } from 'app/client/ui2018/buttons';
-import { colors, testId, theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { createMobileButtons, getButtonMargins } from 'app/client/widgets/EditorButtons';
-import { EditorPlacement, ISize } from 'app/client/widgets/EditorPlacement';
-import { createDetachedIcon } from 'app/client/widgets/FloatingEditor';
-import { FormulaAssistant } from 'app/client/widgets/FormulaAssistant';
-import { NewBaseEditor, Options } from 'app/client/widgets/NewBaseEditor';
-import { asyncOnce } from 'app/common/AsyncCreate';
-import { CellValue } from 'app/common/DocActions';
-import { isRaisedException } from 'app/common/gristTypes';
-import { undef } from 'app/common/gutil';
-import { getGristConfig } from 'app/common/urlUtils';
-import { decodeObject, RaisedException } from 'app/plugin/objtypes';
-import { Computed, Disposable, dom, Holder, MultiHolder, Observable, styled, subscribe } from 'grainjs';
-import debounce from 'lodash/debounce';
+import * as AceEditor from "app/client/components/AceEditor";
+import { CommandName } from "app/client/components/commandList";
+import * as commands from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
+import { DataRowModel } from "app/client/models/DataRowModel";
+import { ColumnRec } from "app/client/models/DocModel";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { reportError } from "app/client/models/errors";
+import { hoverTooltip } from "app/client/ui/tooltips";
+import { textButton } from "app/client/ui2018/buttons";
+import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { createMobileButtons, getButtonMargins } from "app/client/widgets/EditorButtons";
+import { EditorPlacement, ISize } from "app/client/widgets/EditorPlacement";
+import { createDetachedIcon } from "app/client/widgets/FloatingEditor";
+import { FormulaAssistant } from "app/client/widgets/FormulaAssistant";
+import { NewBaseEditor, Options } from "app/client/widgets/NewBaseEditor";
+import { asyncOnce } from "app/common/AsyncCreate";
+import { CellValue } from "app/common/DocActions";
+import { isRaisedException } from "app/common/gristTypes";
+import { undef } from "app/common/gutil";
+import { getGristConfig } from "app/common/urlUtils";
+import { decodeObject, RaisedException } from "app/plugin/objtypes";
+import { Computed, Disposable, dom, Holder, MultiHolder, Observable, styled, subscribe } from "grainjs";
+import debounce from "lodash/debounce";
 
 // How wide to expand the FormulaEditor when an error is shown in it.
 const minFormulaErrorWidth = 400;
-const t = makeT('FormulaEditor');
+const t = makeT("FormulaEditor");
 
 export interface IFormulaEditorOptions extends Options {
   cssClass?: string;
@@ -68,7 +68,7 @@ export class FormulaEditor extends NewBaseEditor {
     // create editor state observable (used by draft and latest position memory)
     this.editorState = Observable.create(this, initialValue);
 
-    this._isEmpty = Computed.create(this, this.editorState, (_use, state) => state === '');
+    this._isEmpty = Computed.create(this, this.editorState, (_use, state) => state === "");
 
     this._aceEditor = AceEditor.create({
       // A bit awkward, but we need to assume calcSize is not used until attach() has been called
@@ -107,9 +107,9 @@ export class FormulaEditor extends NewBaseEditor {
       return commands.allCommands[name]?.run() ?? false;
     };
     const detachedCommands = this.autoDispose(commands.createGroup({
-      nextField: passThrough('nextField'),
-      prevField: passThrough('prevField'),
-      fieldEditSave: passThrough('fieldEditSave'),
+      nextField: passThrough("nextField"),
+      prevField: passThrough("prevField"),
+      fieldEditSave: passThrough("fieldEditSave"),
     }, this, false /* don't activate, we're just borrowing constructor */));
 
     Object.assign(aceCommands.knownKeys, detachedCommands.knownKeys);
@@ -172,7 +172,7 @@ export class FormulaEditor extends NewBaseEditor {
       options.cssClass ? dom.cls(options.cssClass) : null,
 
       // This shouldn't be needed, but needed for tests.
-      dom.on('mousedown', (ev) => {
+      dom.on("mousedown", (ev) => {
         // If we are detached, allow user to click and select error text.
         if (this.isDetached.get()) {
           // If we clicked on input element in our dom, don't do anything. We probably clicked on chat input, in AI
@@ -185,8 +185,8 @@ export class FormulaEditor extends NewBaseEditor {
         }
         // Allow clicking the error message.
         if (ev.target instanceof HTMLElement && (
-          ev.target.classList.contains('error_msg') ||
-          ev.target.classList.contains('error_details_inner')
+          ev.target.classList.contains("error_msg") ||
+          ev.target.classList.contains("error_details_inner")
         )) {
           return;
         }
@@ -194,11 +194,11 @@ export class FormulaEditor extends NewBaseEditor {
         this.focus();
       }),
       !this._canDetach ? null : createDetachedIcon(
-        hoverTooltip(t('Expand Editor')),
+        hoverTooltip(t("Expand Editor")),
         dom.hide(this.isDetached),
       ),
-      cssFormulaEditor.cls('-detached', this.isDetached),
-      dom('div.formula_editor.formula_field_edit', testId('formula-editor'),
+      cssFormulaEditor.cls("-detached", this.isDetached),
+      dom("div.formula_editor.formula_field_edit", testId("formula-editor"),
         this._aceEditor.buildDom((aceObj: any) => {
           initializeAceOptions(aceObj);
           const val = initialValue;
@@ -219,20 +219,20 @@ export class FormulaEditor extends NewBaseEditor {
             editingFormula?.(true);
           });
 
-          if (val === '') {
+          if (val === "") {
             // Show placeholder text if the formula is blank.
             this._updateEditorPlaceholder();
           }
         }),
       ),
       dom.maybe(options.formulaError, () => [
-        dom('div.error_msg', testId('formula-error-msg'),
-          dom.attr('tabindex', '-1'),
+        dom("div.error_msg", testId("formula-error-msg"),
+          dom.attr("tabindex", "-1"),
           dom.maybe(errorDetails, () =>
             dom.domComputed(hideErrDetails, hide => cssCollapseIcon(
-              hide ? 'Expand' : 'Collapse',
-              testId('formula-error-expand'),
-              dom.on('click', () => {
+              hide ? "Expand" : "Collapse",
+              testId("formula-error-expand"),
+              dom.on("click", () => {
                 if (errorDetails.get()) {
                   hideErrDetails.set(!hideErrDetails.get());
                   this._aceEditor.resize();
@@ -243,12 +243,12 @@ export class FormulaEditor extends NewBaseEditor {
           dom.text(errorText),
         ),
         dom.maybe(use => Boolean(use(errorDetails) && !use(hideErrDetails)), () =>
-          dom('div.error_details',
-            dom.attr('tabindex', '-1'),
-            dom('div.error_details_inner',
+          dom("div.error_details",
+            dom.attr("tabindex", "-1"),
+            dom("div.error_details_inner",
               dom.text(errorDetails),
             ),
-            testId('formula-error-details'),
+            testId("formula-error-details"),
           ),
         ),
       ]),
@@ -287,7 +287,7 @@ export class FormulaEditor extends NewBaseEditor {
     const value = this._aceEditor.getValue();
     // Strip the leading "=" sign, if any, in case users think it should start the formula body (as
     // it does in Excel, and because the equal sign is also used for formulas in Grist UI).
-    return (value[0] === '=') ? value.slice(1) : value;
+    return (value[0] === "=") ? value.slice(1) : value;
   }
 
   public getTextValue() {
@@ -343,12 +343,12 @@ export class FormulaEditor extends NewBaseEditor {
         getGristConfig().assistant?.version === 1;
       editor.renderer.emptyMessageNode = cssFormulaPlaceholder(
         !withAiButton ?
-          t('Enter formula.') :
-          t('Enter formula or {{button}}.', {
+          t("Enter formula.") :
+          t("Enter formula or {{button}}.", {
             button: cssUseAssistantButton(
-              t('use AI Assistant'),
-              dom.on('click', ev => this._handleUseAssistantButtonClick(ev)),
-              testId('formula-editor-use-ai-assistant'),
+              t("use AI Assistant"),
+              dom.on("click", ev => this._handleUseAssistantButtonClick(ev)),
+              testId("formula-editor-use-ai-assistant"),
             ),
           }),
       );
@@ -381,7 +381,7 @@ export class FormulaEditor extends NewBaseEditor {
       });
     }
 
-    const errorBox: HTMLElement | null = this._dom.querySelector('.error_details');
+    const errorBox: HTMLElement | null = this._dom.querySelector(".error_details");
     const errorBoxStartHeight = errorBox?.getBoundingClientRect().height || 0;
     const errorBoxDesiredHeight = errorBox?.scrollHeight || 0;
 
@@ -434,7 +434,7 @@ export class FormulaEditor extends NewBaseEditor {
     const aceObj = this._aceEditor.getEditor();
     if (!aceObj.selection.isEmpty()) {
       // If text selected, replace whole selection
-      aceObj.session.replace(aceObj.selection.getRange(), '$' + colId);
+      aceObj.session.replace(aceObj.selection.getRange(), "$" + colId);
     }
     else {
       // Not a selection, gotta figure out what to replace
@@ -443,13 +443,13 @@ export class FormulaEditor extends NewBaseEditor {
       const result = _isInIdentifier(line, pos.column); // returns {start, end, id} | null
       if (!result) {
         // Not touching an identifier, insert colId as normal
-        aceObj.insert('$' + colId);
+        aceObj.insert("$" + colId);
         // We are touching an identifier
       }
-      else if (result.ident.startsWith('$')) {
+      else if (result.ident.startsWith("$")) {
         // If ident is a colId, replace it
         const idRange = AceEditor.makeRange(pos.row, result.start, pos.row, result.end);
-        aceObj.session.replace(idRange, '$' + colId);
+        aceObj.session.replace(idRange, "$" + colId);
       }
       // Else touching a normal identifier, don't mangle it
     }
@@ -461,7 +461,7 @@ export class FormulaEditor extends NewBaseEditor {
     // call doesn't usually help is that this is called on 'mousedown' before its corresponding
     // focus/blur occur. We can do a bit better by restoring focus immediately after blur occurs.
     aceObj.focus();
-    const lis = dom.onElem(aceObj.textInput.getElement(), 'blur', (e) => { lis.dispose(); aceObj.focus(); });
+    const lis = dom.onElem(aceObj.textInput.getElement(), "blur", (e) => { lis.dispose(); aceObj.focus(); });
     // If no blur right away, clear the listener, to avoid unexpected interference.
     setTimeout(() => lis.dispose(), 0);
   }
@@ -520,14 +520,14 @@ export function openFormulaEditor(options: {
     options.column = options.field.origCol();
   }
   else if (options.canDetach) {
-    throw new Error('Field is required for detached editor');
+    throw new Error("Field is required for detached editor");
   }
 
   // We can't rely on the field passed in, we need to create our own.
   const column = options.column ?? options.field?.column();
 
   if (!column) {
-    throw new Error('Column or field is required');
+    throw new Error("Column or field is required");
   }
 
   // AsyncOnce ensures it's called once even if triggered multiple times.
@@ -577,7 +577,7 @@ export function openFormulaEditor(options: {
     editValue: options.editValue,
     cursorPos: Number.POSITIVE_INFINITY,    // Position of the caret within the editor.
     commands: editCommands,
-    cssClass: 'formula_editor_sidepane',
+    cssClass: "formula_editor_sidepane",
     readonly: false,
     canDetach: options.canDetach,
   };
@@ -588,7 +588,7 @@ export function openFormulaEditor(options: {
   const editingFormula = options.editingFormula ?? options?.field?.editingFormula;
 
   if (!editingFormula) {
-    throw new Error(t('editingFormula is required'));
+    throw new Error(t("editingFormula is required"));
   }
 
   // When formula is empty enter formula-editing mode (highlight formula icons; click on a column inserts its ID).
@@ -692,7 +692,7 @@ function errorMonitor(
  * response to changes in origColumn and in user data.
  */
 export function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, origColumn: ColumnRec) {
-  const errorMessage = Observable.create(owner, '');
+  const errorMessage = Observable.create(owner, "");
 
   // Count errors in origColumn when it's a formula column. Counts get cached by the
   // tableData.countErrors() method, and invalidated on relevant data changes.
@@ -705,14 +705,14 @@ export function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, or
       const numCells = tableData.getColValues(colId)?.length || 0;
       const numErrors = tableData.countErrors(colId) || 0;
       errorMessage.set(
-        (numErrors === 0) ? '' :
+        (numErrors === 0) ? "" :
           (numCells === 1) ? t(`Error in the cell`) :
             (numErrors === numCells) ? t(`Errors in all {{numErrors}} cells`, { numErrors }) :
               t(`Errors in {{numErrors}} of {{numCells}} cells`, { numErrors, numCells }),
       );
     }
     else {
-      errorMessage.set('');
+      errorMessage.set("");
     }
   }
 
@@ -751,11 +751,11 @@ const cssCollapseIcon = styled(icon, `
   flex-shrink: 0;
 `);
 
-export const cssError = styled('div', `
+export const cssError = styled("div", `
   color: ${theme.errorText};
 `);
 
-const cssFormulaEditor = styled('div.default_editor.formula_editor_wrapper', `
+const cssFormulaEditor = styled("div.default_editor.formula_editor_wrapper", `
   &-detached {
     height: 100%;
     position: relative;
@@ -782,7 +782,7 @@ const cssFormulaEditor = styled('div.default_editor.formula_editor_wrapper', `
   }
 `);
 
-const cssFormulaPlaceholder = styled('div', `
+const cssFormulaPlaceholder = styled("div", `
   color: ${theme.lightText};
   font-style: italic;
   white-space: nowrap;

@@ -1,28 +1,28 @@
-import * as kf from 'app/client/lib/koForm';
-import { makeT } from 'app/client/lib/localization';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { ColumnRec } from 'app/client/models/DocModel';
-import { KoSaveableObservable } from 'app/client/models/modelUtil';
-import { RuleOwner } from 'app/client/models/RuleOwner';
-import { Style } from 'app/client/models/Styles';
-import { buildHighlightedCode } from 'app/client/ui/CodeHighlight';
-import { cssFieldFormula } from 'app/client/ui/RightPanelStyles';
-import { withInfoTooltip } from 'app/client/ui/tooltips';
-import { textButton } from 'app/client/ui2018/buttons';
-import { ColorOption, colorSelect } from 'app/client/ui2018/ColorSelect';
-import { theme, vars } from 'app/client/ui2018/cssVars';
-import { cssDragger } from 'app/client/ui2018/draggableList';
-import { icon } from 'app/client/ui2018/icons';
-import { setupEditorCleanup } from 'app/client/widgets/FieldEditor';
-import { cssError, openFormulaEditor } from 'app/client/widgets/FormulaEditor';
-import { isRaisedException, isValidRuleValue } from 'app/common/gristTypes';
-import { GristObjCode, RowRecord } from 'app/plugin/GristData';
-import { decodeObject } from 'app/plugin/objtypes';
-import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled } from 'grainjs';
-import debounce from 'lodash/debounce';
+import * as kf from "app/client/lib/koForm";
+import { makeT } from "app/client/lib/localization";
+import { GristDoc } from "app/client/components/GristDoc";
+import { ColumnRec } from "app/client/models/DocModel";
+import { KoSaveableObservable } from "app/client/models/modelUtil";
+import { RuleOwner } from "app/client/models/RuleOwner";
+import { Style } from "app/client/models/Styles";
+import { buildHighlightedCode } from "app/client/ui/CodeHighlight";
+import { cssFieldFormula } from "app/client/ui/RightPanelStyles";
+import { withInfoTooltip } from "app/client/ui/tooltips";
+import { textButton } from "app/client/ui2018/buttons";
+import { ColorOption, colorSelect } from "app/client/ui2018/ColorSelect";
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { cssDragger } from "app/client/ui2018/draggableList";
+import { icon } from "app/client/ui2018/icons";
+import { setupEditorCleanup } from "app/client/widgets/FieldEditor";
+import { cssError, openFormulaEditor } from "app/client/widgets/FormulaEditor";
+import { isRaisedException, isValidRuleValue } from "app/common/gristTypes";
+import { GristObjCode, RowRecord } from "app/plugin/GristData";
+import { decodeObject } from "app/plugin/objtypes";
+import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled } from "grainjs";
+import debounce from "lodash/debounce";
 
-const testId = makeTestId('test-widget-style-');
-const t = makeT('ConditionalStyle');
+const testId = makeTestId("test-widget-style-");
+const t = makeT("ConditionalStyle");
 
 type ColumnRecAndIndex = [ColumnRec, number];
 
@@ -55,7 +55,7 @@ export class ConditionalStyle extends Disposable {
       const tableData = _gristDoc.docData.getTable(tableId)!;
       const cursor = use(_gristDoc.cursorPosition);
       // Make sure we are not on the new row.
-      if (!cursor || typeof cursor.rowId !== 'number') {
+      if (!cursor || typeof cursor.rowId !== "number") {
         return undefined;
       }
       return tableData.getRecord(cursor.rowId);
@@ -80,15 +80,15 @@ export class ConditionalStyle extends Disposable {
   public buildDom(): DomContents {
     return [
       cssRow(
-        { style: 'margin-top: 16px' },
+        { style: "margin-top: 16px" },
         withInfoTooltip(
           textButton(
-            t('Add conditional style'),
-            testId('add-conditional-style'),
-            dom.on('click', () => this._ruleOwner.addEmptyRule()),
-            dom.prop('disabled', this._disabled),
+            t("Add conditional style"),
+            testId("add-conditional-style"),
+            dom.on("click", () => this._ruleOwner.addEmptyRule()),
+            dom.prop("disabled", this._disabled),
           ),
-          this._label === t('Row Style') ? 'addRowConditionalStyle' : 'addColumnConditionalStyle',
+          this._label === t("Row Style") ? "addRowConditionalStyle" : "addColumnConditionalStyle",
         ),
         dom.hide(use => use(this._ruleOwner.hasRules)),
       ),
@@ -107,10 +107,10 @@ export class ConditionalStyle extends Disposable {
           ),
       ),
       cssRow(
-        textButton(t('Add another rule'),
-          dom.on('click', () => this._ruleOwner.addEmptyRule()),
-          testId('add-another-rule'),
-          dom.prop('disabled', use => this._disabled && use(this._disabled)),
+        textButton(t("Add another rule"),
+          dom.on("click", () => this._ruleOwner.addEmptyRule()),
+          testId("add-another-rule"),
+          dom.prop("disabled", use => this._disabled && use(this._disabled)),
         ),
         dom.show(use => use(this._ruleOwner.hasRules)),
       ),
@@ -119,12 +119,12 @@ export class ConditionalStyle extends Disposable {
 
   private _buildRule(owner: Disposable, rule: ColumnRecAndIndex) {
     const [column, index] = rule;
-    const textColor = this._buildStyleOption(owner, index, 'textColor');
-    const fillColor = this._buildStyleOption(owner, index, 'fillColor');
-    const fontBold = this._buildStyleOption(owner, index, 'fontBold');
-    const fontItalic = this._buildStyleOption(owner, index, 'fontItalic');
-    const fontUnderline = this._buildStyleOption(owner, index, 'fontUnderline');
-    const fontStrikethrough = this._buildStyleOption(owner, index, 'fontStrikethrough');
+    const textColor = this._buildStyleOption(owner, index, "textColor");
+    const fillColor = this._buildStyleOption(owner, index, "fillColor");
+    const fontBold = this._buildStyleOption(owner, index, "fontBold");
+    const fontItalic = this._buildStyleOption(owner, index, "fontItalic");
+    const fontUnderline = this._buildStyleOption(owner, index, "fontUnderline");
+    const fontStrikethrough = this._buildStyleOption(owner, index, "fontStrikethrough");
     const save = async () => {
       // This will save both options.
       await this._ruleOwner.rulesStyles.save();
@@ -142,14 +142,14 @@ export class ConditionalStyle extends Disposable {
     });
     const errorMessage = Computed.create(owner, (use) => {
       const value = use(currentValue);
-      return (!use(hasError) ? '' :
-        isRaisedException(value) ? t('Error in style rule') :
-          t('Rule must return True or False'));
+      return (!use(hasError) ? "" :
+        isRaisedException(value) ? t("Error in style rule") :
+          t("Rule must return True or False"));
     });
-    return dom('div',
+    return dom("div",
       testId(`conditional-rule-${index}`),
       testId(`conditional-rule`), // for testing
-      cssLineLabel(t('IF...')),
+      cssLineLabel(t("IF...")),
       cssColumnsRow(
         cssLeftColumn(
           this._buildRuleFormula(column.formula, column, hasError),
@@ -160,22 +160,22 @@ export class ConditionalStyle extends Disposable {
           ),
           colorSelect(
             {
-              textColor: new ColorOption({ color: textColor, allowsNone: true, noneText: 'default' }),
-              fillColor: new ColorOption({ color: fillColor, allowsNone: true, noneText: 'none' }),
+              textColor: new ColorOption({ color: textColor, allowsNone: true, noneText: "default" }),
+              fillColor: new ColorOption({ color: fillColor, allowsNone: true, noneText: "none" }),
               fontBold,
               fontItalic,
               fontUnderline,
               fontStrikethrough,
             }, {
               onSave: save,
-              placeholder: this._label || t('Conditional Style'),
+              placeholder: this._label || t("Conditional Style"),
             },
           ),
         ),
         cssRemoveButton(
-          'Remove',
+          "Remove",
           testId(`remove-rule-${index}`),
-          dom.on('click', () => this._ruleOwner.removeRule(index)),
+          dom.on("click", () => this._ruleOwner.removeRule(index)),
         ),
       ),
     );
@@ -184,7 +184,7 @@ export class ConditionalStyle extends Disposable {
   private async _reorderRule(rule: ColumnRecAndIndex, nextRule: ColumnRecAndIndex | null) {
     const rulesList = decodeObject(this._ruleOwner.rulesList.peek());
     if (!Array.isArray(rulesList) || rulesList.length === 0) {
-      throw new Error('No conditional style rules');
+      throw new Error("No conditional style rules");
     }
 
     const ruleColRef = rule[0].id.peek();
@@ -231,11 +231,11 @@ export class ConditionalStyle extends Disposable {
     return dom.create(buildHighlightedCode,
       formula,
       { maxLines: 1 },
-      dom.cls('formula_field_sidepane'),
+      dom.cls("formula_field_sidepane"),
       dom.cls(cssFieldFormula.className),
       dom.cls(cssErrorBorder.className, hasError),
-      { tabIndex: '-1' },
-      dom.on('focus', (_, refElem) => {
+      { tabIndex: "-1" },
+      dom.on("focus", (_, refElem) => {
         const section = this._gristDoc.viewModel.activeSection();
         const vsi = section.viewInstance();
         const editorHolder = openFormulaEditor({
@@ -258,14 +258,14 @@ const cssIcon = styled(icon, `
   flex: 0 0 auto;
 `);
 
-const cssLabel = styled('div', `
+const cssLabel = styled("div", `
   text-transform: uppercase;
   margin: 16px 16px 12px 0px;
   color: ${theme.text};
   font-size: ${vars.xsmallFontSize};
 `);
 
-const cssRow = styled('div', `
+const cssRow = styled("div", `
   display: flex;
   margin: 8px 16px;
   align-items: center;
@@ -294,7 +294,7 @@ const cssLineLabel = styled(cssLabel, `
   margin-bottom: 4px;
 `);
 
-const cssRuleList = styled('div', `
+const cssRuleList = styled("div", `
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -302,7 +302,7 @@ const cssRuleList = styled('div', `
   margin-bottom: 12px;
 `);
 
-const cssErrorBorder = styled('div', `
+const cssErrorBorder = styled("div", `
   border-color: ${theme.inputInvalid};
 `);
 
@@ -315,7 +315,7 @@ const cssColumnsRow = styled(cssRow, `
   margin: 0px 16px 0px 0px;
 `);
 
-const cssLeftColumn = styled('div', `
+const cssLeftColumn = styled("div", `
   overflow: hidden;
   flex: 1;
   display: flex;
@@ -323,7 +323,7 @@ const cssLeftColumn = styled('div', `
   gap: 4px;
 `);
 
-const cssDragRow = styled('div', `
+const cssDragRow = styled("div", `
   display: flex;
   align-items: center;
   & > .kf_draggable_content {

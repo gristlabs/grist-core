@@ -12,7 +12,7 @@ function encode(rawValue: any): string {
   // but neither Excel nor Google Sheets do it. They both decode such values to something
   // different than what produced them (e.g. `"foo""bar"` is encoded into `"foo""bar"`, and
   // that is decoded into `foo"bar`).
-  const value: string = typeof rawValue === 'string' ? rawValue :
+  const value: string = typeof rawValue === "string" ? rawValue :
     (rawValue == null ? "" : String(rawValue));
   if (value.includes("\t") || value.includes("\n")) {
     return '"' + value.replace(/"/g, '""') + '"';
@@ -46,10 +46,10 @@ export function tsvDecode(tsvString: string): string[][] {
       value = value.replace(/"([^"]*"")*[^"]*"(?!")/, q => q.slice(1, -1).replace(/""/g, '"'));
     }
     row.push(value);
-    if (sep !== '\t') {
+    if (sep !== "\t") {
       lines.push(row);
       row = [];
-      if (sep === '') {
+      if (sep === "") {
         break;
       }
     }

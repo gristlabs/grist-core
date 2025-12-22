@@ -185,7 +185,7 @@ export class DocWorkerLoadTracker {
         Deps.docWorkerMaxMemoryBytesPath,
         // When the value is "max", return Infinity, otherwise return undefined
         // so the function reads what's probably an integer value.
-        val => val === 'max' ? Infinity : undefined,
+        val => val === "max" ? Infinity : undefined,
       );
     }
 

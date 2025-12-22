@@ -27,30 +27,30 @@
  */
 
 import { ActiveDoc, Deps as ActiveDocDeps } from "app/server/lib/ActiveDoc";
-import log from 'app/server/lib/log';
+import log from "app/server/lib/log";
 import { configureOpenAIAssistantV1 } from "app/server/lib/configureOpenAIAssistantV1";
 import { DEPS } from "app/server/lib/OpenAIAssistantV1";
-import { parse } from 'csv-parse/sync';
-import fetch from 'node-fetch';
+import { parse } from "csv-parse/sync";
+import fetch from "node-fetch";
 import * as fs from "fs";
 import JSZip from "jszip";
 import { isEqual } from "lodash";
-import path from 'path';
-import * as os from 'os';
-import { pipeline } from 'stream';
+import path from "path";
+import * as os from "os";
+import { pipeline } from "stream";
 import { createDocTools } from "test/server/docTools";
 import { CachedFetcher } from "test/server/utils/CachedFetcher";
-import { promisify } from 'util';
+import { promisify } from "util";
 import { AssistanceResponseV1, AssistanceState } from "app/common/Assistance";
 import { CellValue } from "app/plugin/GristData";
 
 const streamPipeline = promisify(pipeline);
 
-const DATA_PATH = process.env.DATA_PATH || path.join(path.dirname(__dirname), 'data');
-const PATH_TO_DOC = path.join(DATA_PATH, 'templates');
-const PATH_TO_RESULTS = path.join(DATA_PATH, 'results');
-const PATH_TO_CSV = path.join(DATA_PATH, 'formula-dataset-index.csv');
-const PATH_TO_CACHE = path.join(DATA_PATH, 'cache');
+const DATA_PATH = process.env.DATA_PATH || path.join(path.dirname(__dirname), "data");
+const PATH_TO_DOC = path.join(DATA_PATH, "templates");
+const PATH_TO_RESULTS = path.join(DATA_PATH, "results");
+const PATH_TO_CSV = path.join(DATA_PATH, "formula-dataset-index.csv");
+const PATH_TO_CACHE = path.join(DATA_PATH, "cache");
 const TEMPLATE_URL = "https://grist-static.com/datasets/grist_dataset_formulai_2023_02_20.zip";
 
 const oldFetch = DEPS.fetch;
@@ -69,7 +69,7 @@ const FOLLOWUP_EVALUATE = false;
 export async function runCompletion() {
   const assistant = configureOpenAIAssistantV1();
   if (!assistant) {
-    throw new Error('Please set OPENAI_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT');
+    throw new Error("Please set OPENAI_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT");
   }
 
   // This could take a long time for LLMs running on underpowered hardware >:)
@@ -80,8 +80,8 @@ export async function runCompletion() {
     fs.mkdirSync(path.join(PATH_TO_DOC), { recursive: true });
 
     // create tempdir
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grist-templates-'));
-    const destPath = path.join(dir, 'template.zip');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "grist-templates-"));
+    const destPath = path.join(dir, "template.zip");
 
     // start downloading
     console.log(
@@ -92,16 +92,16 @@ export async function runCompletion() {
     const response = await fetch(TEMPLATE_URL);
     if (!response.ok) { throw new Error(`unexpected response ${response.statusText}`); }
     await streamPipeline(response.body, fs.createWriteStream(destPath));
-    console.log('done!\n\n' +
-      'start extraction...');
+    console.log("done!\n\n" +
+      "start extraction...");
 
     // unzip to directory
     const data = fs.readFileSync(destPath);
     const zip = await JSZip.loadAsync(data);
     let count = 0;
     for (const filename of Object.keys(zip.files)) {
-      if (filename.includes('/')) { continue; }
-      const fileBuffer = await zip.files[filename].async('nodebuffer');
+      if (filename.includes("/")) { continue; }
+      const fileBuffer = await zip.files[filename].async("nodebuffer");
       fs.writeFileSync(path.join(PATH_TO_DOC, filename), fileBuffer);
       count++;
     }
@@ -110,17 +110,17 @@ export async function runCompletion() {
     );
   }
 
-  const content = fs.readFileSync(PATH_TO_CSV, { encoding: 'utf8' });
+  const content = fs.readFileSync(PATH_TO_CSV, { encoding: "utf8" });
   const records = parse(content, { columns: true }) as FormulaRec[];
 
   // let's group by doc id to save on document loading time
   records.sort((a, b) => a.doc_id.localeCompare(b.doc_id));
 
   if (!process.env.VERBOSE) {
-    log.transports.file.level = 'error';  // Suppress most of log output.
+    log.transports.file.level = "error";  // Suppress most of log output.
   }
   const docTools = createDocTools();
-  const session = docTools.createFakeSession('owners');
+  const session = docTools.createFakeSession("owners");
   await docTools.before();
   let successCount = 0;
   let caseCount = 0;
@@ -128,7 +128,7 @@ export async function runCompletion() {
 
   const fetcher = new CachedFetcher(PATH_TO_CACHE);
 
-  console.log('Testing AI assistance: ');
+  console.log("Testing AI assistance: ");
 
   try {
     DEPS.fetch = ((info, init) =>
@@ -137,7 +137,7 @@ export async function runCompletion() {
     let activeDoc: ActiveDoc | undefined;
     for (const rec of records) {
       let success: boolean = false;
-      let suggestedActions: AssistanceResponseV1['suggestedActions'] | undefined;
+      let suggestedActions: AssistanceResponseV1["suggestedActions"] | undefined;
       let newValues: CellValue[] | undefined;
       let formula: string | undefined;
       let history: AssistanceState = { messages: [] };
@@ -145,7 +145,7 @@ export async function runCompletion() {
 
       // load new document
       if (!activeDoc || activeDoc.docName !== rec.doc_id) {
-        const docPath = path.join(PATH_TO_DOC, rec.doc_id + '.grist');
+        const docPath = path.join(PATH_TO_DOC, rec.doc_id + ".grist");
         activeDoc = await docTools.loadLocalDoc(docPath);
         await activeDoc.waitForInitialization();
       }
@@ -173,7 +173,7 @@ export async function runCompletion() {
         formula = colInfo?.formula;
 
         const result = await assistant!.getAssistance(session, activeDoc, {
-          conversationId: 'conversationId',
+          conversationId: "conversationId",
           context: {
             tableId,
             colId,
@@ -211,9 +211,9 @@ export async function runCompletion() {
             const v = newValues[i];
             if (String(e) !== String(v)) {
               const txt = `I got \`${v}\` where I expected \`${e}\`\n` +
-                'Please answer with the code block you (the assistant) just gave, ' +
-                'revised based on this information. Your answer must include a code ' +
-                'block. If you have to explain anything, do it after.\n';
+                "Please answer with the code block you (the assistant) just gave, " +
+                "revised based on this information. Your answer must include a code " +
+                "block. If you have to explain anything, do it after.\n";
               const rowIds = activeDoc.docData!.getTable(rec.table_id)!.getRowIds();
               const rowId = rowIds[i];
               if (followUp) {
@@ -238,7 +238,7 @@ export async function runCompletion() {
         console.error(e);
       }
 
-      console.log(` ${success ? 'Successfully' : 'Failed to'} complete formula ` +
+      console.log(` ${success ? "Successfully" : "Failed to"} complete formula ` +
         `for column ${rec.table_id}.${rec.col_id} (doc=${rec.doc_id})`);
 
       if (success) {
@@ -251,13 +251,13 @@ export async function runCompletion() {
         // console.log('actual=', newValues);
       }
       const suggestedFormula = suggestedActions?.length === 1 &&
-        suggestedActions[0][0] === 'ModifyColumn' &&
+        suggestedActions[0][0] === "ModifyColumn" &&
         suggestedActions[0][3].formula || suggestedActions;
       fs.writeFileSync(
         path.join(
           PATH_TO_RESULTS,
           `${rec.table_id}_${rec.col_id}_` +
-          caseCount.toLocaleString('en', { minimumIntegerDigits: 8, useGrouping: false }) + '.json'),
+          caseCount.toLocaleString("en", { minimumIntegerDigits: 8, useGrouping: false }) + ".json"),
         JSON.stringify({
           formula,
           suggestedFormula, success,
@@ -271,7 +271,7 @@ export async function runCompletion() {
   }
   finally {
     await docTools.after();
-    log.transports.file.level = 'debug';
+    log.transports.file.level = "debug";
     console.log(`Ai assistance requests stats: ${fetcher.callCount} calls`);
     DEPS.fetch = oldFetch;
     console.log(

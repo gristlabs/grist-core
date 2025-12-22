@@ -1,31 +1,31 @@
-import { hooks } from 'app/client/Hooks';
-import { getGristConfig } from 'app/common/urlUtils';
-import { DomContents } from 'grainjs';
-import i18next from 'i18next';
-import { G } from 'grainjs/dist/cjs/lib/browserGlobals';
+import { hooks } from "app/client/Hooks";
+import { getGristConfig } from "app/common/urlUtils";
+import { DomContents } from "grainjs";
+import i18next from "i18next";
+import { G } from "grainjs/dist/cjs/lib/browserGlobals";
 
 export async function setupLocale() {
   const now = Date.now();
-  const supportedLngs = getGristConfig().supportedLngs ?? ['en'];
+  const supportedLngs = getGristConfig().supportedLngs ?? ["en"];
   const lng = detectCurrentLang();
-  const ns = getGristConfig().namespaces ?? ['client'];
+  const ns = getGristConfig().namespaces ?? ["client"];
   // Initialize localization plugin
   try {
     // We don't await this promise, as it is resolved synchronously due to initImmediate: false.
     i18next.init({
       // By default we use english language.
-      fallbackLng: 'en',
+      fallbackLng: "en",
       // We will load resources ourselves.
       initImmediate: false,
       // Read language from navigator object.
       lng,
       // By default we use client namespace.
-      defaultNS: 'client',
+      defaultNS: "client",
       // Read namespaces that are supported by the server.
       // TODO: this can be converted to a dynamic list of namespaces, for async components.
       // for now just import all what server offers.
       // We can fallback to client namespace for any addons.
-      fallbackNS: 'client',
+      fallbackNS: "client",
       ns,
     }).catch((err: any) => {
       // This should not happen, the promise should be resolved synchronously, without
@@ -38,7 +38,7 @@ export async function setupLocale() {
     const loadPath = `${hooks.baseURI || document.baseURI}locales/{{lng}}.{{ns}}.json`;
     const pathsToLoad: Promise<any>[] = [];
     async function load(lang: string, n: string) {
-      const resourceUrl = loadPath.replace('{{lng}}', lang.replace("-", "_")).replace('{{ns}}', n);
+      const resourceUrl = loadPath.replace("{{lng}}", lang.replace("-", "_")).replace("{{ns}}", n);
       const response = await fetch(resourceUrl);
       if (!response.ok) {
         // Throw only if we don't have any fallbacks.
@@ -70,18 +70,18 @@ export function detectCurrentLang() {
   const detected = userLocale ||
     document.cookie.match(/grist_user_locale=([^;]+)/)?.[1] ||
     window.navigator.language ||
-    'en';
-  const supportedList = supportedLngs ?? ['en'];
+    "en";
+  const supportedList = supportedLngs ?? ["en"];
   // If we have this language in the list (or more general version) mark it as selected.
   // Compare languages in lower case, as navigator.language can return en-US, en-us (for older Safari).
   const selected = supportedList.find(supported => supported.toLowerCase() === detected.toLowerCase()) ??
-    supportedList.find(supported => supported === detected.split(/[-_]/)[0]) ?? 'en';
+    supportedList.find(supported => supported === detected.split(/[-_]/)[0]) ?? "en";
   return selected;
 }
 
 export function setAnonymousLocale(lng: string) {
   document.cookie = lng ? `grist_user_locale=${lng}; path=/; max-age=31536000` :
-    'grist_user_locale=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
+    "grist_user_locale=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC";
 }
 
 /**
@@ -130,7 +130,7 @@ function domT(key: string, args: any, tImpl: typeof i18next.t) {
       const domElement = args[propName] ?? `{{${propName}}}`; // If the prop is not there, simulate default behavior.
       parts[i] = domElement;
     }
-    return parts.filter(p => p !== '') as any; // Remove empty parts.
+    return parts.filter(p => p !== "") as any; // Remove empty parts.
   }
 }
 
@@ -153,7 +153,7 @@ function isLikeDomContents(value: any): boolean {
   if (value === null || value === undefined) { return false; }
   return value instanceof G.Node || // Node
     (Array.isArray(value) && isLikeDomContents(value[0])) || // DomComputed
-    typeof value === 'function'; // DomMethod
+    typeof value === "function"; // DomMethod
 }
 
 /**

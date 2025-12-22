@@ -33,7 +33,7 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
   const check = (value: string): UnionType => {
     if (!guard(value)) {
       const actual = JSON.stringify(value);
-      const expected = values.map(s => JSON.stringify(s)).join(' | ');
+      const expected = values.map(s => JSON.stringify(s)).join(" | ");
       throw new StringUnionError(`Value '${actual}' is not assignable to type '${expected}'.`, actual, values);
     }
     return value;

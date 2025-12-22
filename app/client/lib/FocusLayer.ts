@@ -7,10 +7,10 @@
  * FocusLayerManager will watch for this element to lose focus or to get disposed, and will
  * restore focus to the default element.
  */
-import * as Mousetrap from 'app/client/lib/Mousetrap';
-import { arrayRemove } from 'app/common/gutil';
-import { RefCountMap } from 'app/common/RefCountMap';
-import { Disposable, dom, DomMethod } from 'grainjs';
+import * as Mousetrap from "app/client/lib/Mousetrap";
+import { arrayRemove } from "app/common/gutil";
+import { RefCountMap } from "app/common/RefCountMap";
+import { Disposable, dom, DomMethod } from "grainjs";
 
 /**
  * The default focus is organized into layers. A layer determines when focus should move to the
@@ -57,7 +57,7 @@ class FocusLayerManager extends Disposable {
 
     const grabFocus = this.grabFocus.bind(this);
 
-    this.autoDispose(dom.onElem(window, 'focus', grabFocus));
+    this.autoDispose(dom.onElem(window, "focus", grabFocus));
     this.grabFocus();
 
     // The following block of code deals with what happens when the window is in the background.
@@ -68,12 +68,12 @@ class FocusLayerManager extends Disposable {
       const addRemove = onOff ? window.addEventListener : window.removeEventListener;
       // Note the third argument useCapture=true, which lets us notice these events before other
       // code that might call .stopPropagation on them.
-      addRemove.call(window, 'click', grabFocus, true);
-      addRemove.call(window, 'mousedown', grabFocus, true);
-      addRemove.call(window, 'keydown', grabFocus, true);
+      addRemove.call(window, "click", grabFocus, true);
+      addRemove.call(window, "mousedown", grabFocus, true);
+      addRemove.call(window, "keydown", grabFocus, true);
     }
-    this.autoDispose(dom.onElem(window, 'blur', setBackgroundCapture.bind(null, true)));
-    this.autoDispose(dom.onElem(window, 'focus', setBackgroundCapture.bind(null, false)));
+    this.autoDispose(dom.onElem(window, "blur", setBackgroundCapture.bind(null, true)));
+    this.autoDispose(dom.onElem(window, "focus", setBackgroundCapture.bind(null, false)));
     setBackgroundCapture(!document.hasFocus());
   }
 
@@ -162,8 +162,8 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
     this._onDefaultBlur = options.onDefaultBlur;
 
     // Make sure the element has a tabIndex attribute, to make it focusable.
-    if (!this.defaultFocusElem.hasAttribute('tabindex')) {
-      this.defaultFocusElem.setAttribute('tabindex', '-1');
+    if (!this.defaultFocusElem.hasAttribute("tabindex")) {
+      this.defaultFocusElem.setAttribute("tabindex", "-1");
     }
 
     if (options.pauseMousetrap) {
@@ -175,7 +175,7 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
     const manager = managerRefCount.get();
     manager.addLayer(this);
     this.onDispose(() => manager.removeLayer(this));
-    this.autoDispose(dom.onElem(this.defaultFocusElem, 'blur', () => manager.grabFocus()));
+    this.autoDispose(dom.onElem(this.defaultFocusElem, "blur", () => manager.grabFocus()));
   }
 
   public onDefaultFocus() {
@@ -206,7 +206,7 @@ export function watchElementForBlur(elem: Element, callback: () => void) {
       callback();
     }
   };
-  const lis = dom.onElem(elem, 'blur', maybeDone);
+  const lis = dom.onElem(elem, "blur", maybeDone);
 
   // Watch for the removal of elem by observing the childList of all its ancestors.
   // (Just guessing that it is more efficient than watching document.body with {subtree: true}).

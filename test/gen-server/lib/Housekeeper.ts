@@ -1,21 +1,21 @@
-import { TelemetryEvent, TelemetryMetadataByLevel } from 'app/common/Telemetry';
-import { Document } from 'app/gen-server/entity/Document';
-import { Workspace } from 'app/gen-server/entity/Workspace';
-import { Housekeeper } from 'app/gen-server/lib/Housekeeper';
-import { Telemetry } from 'app/server/lib/Telemetry';
-import { assert } from 'chai';
-import * as fse from 'fs-extra';
-import moment from 'moment';
-import * as sinon from 'sinon';
-import { TestServer } from 'test/gen-server/apiUtils';
-import { openClient } from 'test/server/gristClient';
-import * as testUtils from 'test/server/testUtils';
+import { TelemetryEvent, TelemetryMetadataByLevel } from "app/common/Telemetry";
+import { Document } from "app/gen-server/entity/Document";
+import { Workspace } from "app/gen-server/entity/Workspace";
+import { Housekeeper } from "app/gen-server/lib/Housekeeper";
+import { Telemetry } from "app/server/lib/Telemetry";
+import { assert } from "chai";
+import * as fse from "fs-extra";
+import moment from "moment";
+import * as sinon from "sinon";
+import { TestServer } from "test/gen-server/apiUtils";
+import { openClient } from "test/server/gristClient";
+import * as testUtils from "test/server/testUtils";
 
-describe('Housekeeper', function() {
-  testUtils.setTmpLogLevel('error');
+describe("Housekeeper", function() {
+  testUtils.setTmpLogLevel("error");
   this.timeout(60000);
 
-  const org: string = 'testy';
+  const org: string = "testy";
   const sandbox = sinon.createSandbox();
   let home: TestServer;
   let keeper: Housekeeper;
@@ -24,11 +24,11 @@ describe('Housekeeper', function() {
 
   before(async function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
-    process.env.GRIST_DEFAULT_EMAIL = 'ham@getgrist.com';
+    process.env.GRIST_DEFAULT_EMAIL = "ham@getgrist.com";
 
     home = new TestServer(this);
-    await home.start(['home', 'docs']);
-    const api = await home.createHomeApi('chimpy', 'docs');
+    await home.start(["home", "docs"]);
+    const api = await home.createHomeApi("chimpy", "docs");
     await api.newOrg({ name: org, domain: org });
     keeper = home.server.housekeeper;
     await keeper.stop();
@@ -51,7 +51,7 @@ describe('Housekeeper', function() {
   }
 
   function daysAgo(days: number): Date {
-    return moment().subtract(days, 'days').toDate();
+    return moment().subtract(days, "days").toDate();
   }
 
   async function ageDoc(docId: string, days: number) {
@@ -78,19 +78,19 @@ describe('Housekeeper', function() {
     await dbFork.save();
   }
 
-  it('can delete old soft-deleted docs and workspaces', async function() {
+  it("can delete old soft-deleted docs and workspaces", async function() {
     // Make four docs in one workspace, two in another.
-    const api = await home.createHomeApi('chimpy', org);
-    const adminApi = await home.createHomeApi('ham', 'docs', true);
-    const ws1 = await api.newWorkspace({ name: 'ws1' }, 'current');
-    const ws2 = await api.newWorkspace({ name: 'ws2' }, 'current');
-    const doc11 = await api.newDoc({ name: 'doc11' }, ws1);
-    const doc12 = await api.newDoc({ name: 'doc12' }, ws1);
-    const doc13 = await api.newDoc({ name: 'doc13' }, ws1);
-    const doc14 = await api.newDoc({ name: 'doc14' }, ws1);
-    const doc15 = await api.newDoc({ name: 'doc15' }, ws1);
-    const doc21 = await api.newDoc({ name: 'doc21' }, ws2);
-    const doc22 = await api.newDoc({ name: 'doc22' }, ws2);
+    const api = await home.createHomeApi("chimpy", org);
+    const adminApi = await home.createHomeApi("ham", "docs", true);
+    const ws1 = await api.newWorkspace({ name: "ws1" }, "current");
+    const ws2 = await api.newWorkspace({ name: "ws2" }, "current");
+    const doc11 = await api.newDoc({ name: "doc11" }, ws1);
+    const doc12 = await api.newDoc({ name: "doc12" }, ws1);
+    const doc13 = await api.newDoc({ name: "doc13" }, ws1);
+    const doc14 = await api.newDoc({ name: "doc14" }, ws1);
+    const doc15 = await api.newDoc({ name: "doc15" }, ws1);
+    const doc21 = await api.newDoc({ name: "doc21" }, ws2);
+    const doc22 = await api.newDoc({ name: "doc22" }, ws2);
 
     // Soft-delete some of the docs, and one workspace.
     await api.softDeleteDoc(doc11);
@@ -146,7 +146,7 @@ describe('Housekeeper', function() {
     await assert.isRejected(getDoc(doc15));
   });
 
-  it('enforces exclusivity of housekeeping', async function() {
+  it("enforces exclusivity of housekeeping", async function() {
     const first = keeper.deleteTrashExclusively();
     const second = keeper.deleteTrashExclusively();
     assert.equal(await first, true);
@@ -156,16 +156,16 @@ describe('Housekeeper', function() {
     assert.equal(await keeper.deleteTrashExclusively(), true);
   });
 
-  it('can delete old forks', async function() {
+  it("can delete old forks", async function() {
     // Make a document with some forks.
-    const api = await home.createHomeApi('chimpy', org);
-    const ws3 = await api.newWorkspace({ name: 'ws3' }, 'current');
-    const trunk = await api.newDoc({ name: 'trunk' }, ws3);
+    const api = await home.createHomeApi("chimpy", org);
+    const ws3 = await api.newWorkspace({ name: "ws3" }, "current");
+    const trunk = await api.newDoc({ name: "trunk" }, ws3);
     const session = await api.getSessionActive();
-    const client = await openClient(home.server, session.user.email, session.org?.domain || 'docs');
+    const client = await openClient(home.server, session.user.email, session.org?.domain || "docs");
     await client.openDocOnConnect(trunk);
-    const forkResponse1 = await client.send('fork', 0);
-    const forkResponse2 = await client.send('fork', 0);
+    const forkResponse1 = await client.send("fork", 0);
+    const forkResponse2 = await client.send("fork", 0);
     const forkPath1 = home.server.getStorageManager().getPath(forkResponse1.data.docId);
     const forkPath2 = home.server.getStorageManager().getPath(forkResponse2.data.docId);
     const forkId1 = forkResponse1.data.forkId;
@@ -191,13 +191,13 @@ describe('Housekeeper', function() {
     assert.equal(await fse.pathExists(forkPath2), false);
   });
 
-  it('can log metrics about sites', async function() {
+  it("can log metrics about sites", async function() {
     const logMessages: [TelemetryEvent, TelemetryMetadataByLevel?][] = [];
-    sandbox.stub(Telemetry.prototype, 'shouldLogEvent').callsFake(name => true);
-    sandbox.stub(Telemetry.prototype, 'logEvent').callsFake((_, name, meta) => {
+    sandbox.stub(Telemetry.prototype, "shouldLogEvent").callsFake(name => true);
+    sandbox.stub(Telemetry.prototype, "logEvent").callsFake((_, name, meta) => {
       // Skip document usage events that could be arriving in the
       // middle of this test.
-      if (name !== 'documentUsage') {
+      if (name !== "documentUsage") {
         logMessages.push([name, meta]);
       }
       return Promise.resolve();
@@ -205,28 +205,28 @@ describe('Housekeeper', function() {
     await keeper.logMetrics();
     assert.isNotEmpty(logMessages);
     let [event, meta] = logMessages[0];
-    assert.equal(event, 'siteUsage');
+    assert.equal(event, "siteUsage");
     assert.hasAllKeys(meta?.limited, [
-      'siteId',
-      'siteType',
-      'inGoodStanding',
-      'numDocs',
-      'numWorkspaces',
-      'numMembers',
-      'lastActivity',
-      'earliestDocCreatedAt',
+      "siteId",
+      "siteType",
+      "inGoodStanding",
+      "numDocs",
+      "numWorkspaces",
+      "numMembers",
+      "lastActivity",
+      "earliestDocCreatedAt",
     ]);
     assert.hasAllKeys(meta?.full, [
-      'stripePlanId',
+      "stripePlanId",
     ]);
     [event, meta] = logMessages[logMessages.length - 1];
-    assert.equal(event, 'siteMembership');
+    assert.equal(event, "siteMembership");
     assert.hasAllKeys(meta?.limited, [
-      'siteId',
-      'siteType',
-      'numOwners',
-      'numEditors',
-      'numViewers',
+      "siteId",
+      "siteType",
+      "numOwners",
+      "numEditors",
+      "numViewers",
     ]);
     assert.isUndefined(meta?.full);
   });

@@ -1,7 +1,7 @@
-import { DocAction, getTableId } from 'app/common/DocActions';
-import { DocData } from 'app/common/DocData';
-import { isMetadataTable } from 'app/common/isHiddenTable';
-import { SchemaTypes } from 'app/common/schema';
+import { DocAction, getTableId } from "app/common/DocActions";
+import { DocData } from "app/common/DocData";
+import { isMetadataTable } from "app/common/isHiddenTable";
+import { SchemaTypes } from "app/common/schema";
 
 export interface DocActionsDescription {
   userTableNames: string[];
@@ -89,7 +89,7 @@ const categoryMap: { [tableId in keyof SchemaTypes]: DocActionCategory | typeof 
 };
 
 function getTableName(tableId: string, docData: DocData) {
-  const tableRec = docData.getMetaTable("_grist_Tables").findRecord('tableId', tableId);
+  const tableRec = docData.getMetaTable("_grist_Tables").findRecord("tableId", tableId);
   const vsRec = tableRec && docData.getMetaTable("_grist_Views_section").getRecord(tableRec.rawViewSectionRef);
   return vsRec?.title;
 }

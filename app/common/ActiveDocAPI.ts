@@ -1,13 +1,13 @@
-import { ActionGroup } from 'app/common/ActionGroup';
-import { AssistanceRequest, AssistanceResponse } from 'app/common/Assistance';
-import { BulkAddRecord, CellValue, TableDataAction, UserAction } from 'app/common/DocActions';
-import { DocStateComparison } from 'app/common/DocState';
-import { PredicateFormulaProperties } from 'app/common/PredicateFormula';
-import { FetchUrlOptions, UploadResult } from 'app/common/uploads';
-import { PermissionData, Proposal, UserAccessData } from 'app/common/UserAPI';
-import { ParseOptions } from 'app/plugin/FileParserAPI';
-import { AccessTokenOptions, AccessTokenResult, UIRowId } from 'app/plugin/GristAPI';
-import { IMessage } from 'grain-rpc';
+import { ActionGroup } from "app/common/ActionGroup";
+import { AssistanceRequest, AssistanceResponse } from "app/common/Assistance";
+import { BulkAddRecord, CellValue, TableDataAction, UserAction } from "app/common/DocActions";
+import { DocStateComparison } from "app/common/DocState";
+import { PredicateFormulaProperties } from "app/common/PredicateFormula";
+import { FetchUrlOptions, UploadResult } from "app/common/uploads";
+import { PermissionData, Proposal, UserAccessData } from "app/common/UserAPI";
+import { ParseOptions } from "app/plugin/FileParserAPI";
+import { AccessTokenOptions, AccessTokenResult, UIRowId } from "app/plugin/GristAPI";
+import { IMessage } from "grain-rpc";
 
 export interface ApplyUAOptions {
   desc?: string;      // Overrides the description of the action.
@@ -130,7 +130,7 @@ export interface MergeOptions {
 }
 
 export interface MergeStrategy {
-  type: 'replace-with-nonblank-source' | 'replace-all-fields' | 'replace-blank-fields-only';
+  type: "replace-with-nonblank-source" | "replace-all-fields" | "replace-blank-fields-only";
 }
 
 /**
@@ -265,13 +265,13 @@ export interface AclRuleProblem {
 export function getTableTitle(table: AclTableDescription): string {
   let { title } = table;
   if (table.groupByColLabels) {
-    title += ' ' + summaryGroupByDescription(table.groupByColLabels);
+    title += " " + summaryGroupByDescription(table.groupByColLabels);
   }
   return title;
 }
 
 export function summaryGroupByDescription(groupByColumnLabels: string[]): string {
-  return `[${groupByColumnLabels.length ? 'by ' + groupByColumnLabels.join(", ") : "Totals"}]`;
+  return `[${groupByColumnLabels.length ? "by " + groupByColumnLabels.join(", ") : "Totals"}]`;
 }
 
 /// / Types for autocomplete suggestions
@@ -336,7 +336,7 @@ export interface TimingStatus {
    * If disabled then 'disabled', else 'active' or 'pending'. Pending means that the engine is busy
    * and can't respond to confirm the status (but it used to be active before that).
    */
-  status: 'active' | 'pending' | 'disabled';
+  status: "active" | "pending" | "disabled";
   /**
    * Will be undefined if we can't get the timing info (e.g. if the document is locked by other call).
    * Otherwise, contains the intermediate results gathered so far.

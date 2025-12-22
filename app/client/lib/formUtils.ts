@@ -1,9 +1,9 @@
-import { reportError } from 'app/client/models/errors';
-import { ApiError } from 'app/common/ApiError';
-import { BaseAPI } from 'app/common/BaseAPI';
-import { MaybePromise } from 'app/plugin/gutil';
-import { dom, Observable } from 'grainjs';
-import noop from 'lodash/noop';
+import { reportError } from "app/client/models/errors";
+import { ApiError } from "app/common/ApiError";
+import { BaseAPI } from "app/common/BaseAPI";
+import { MaybePromise } from "app/plugin/gutil";
+import { dom, Observable } from "grainjs";
+import noop from "lodash/noop";
 
 interface SubmitOptions<T> {
   pending?: Observable<boolean>;
@@ -35,7 +35,7 @@ export function handleSubmit<T>(
     onSuccess = noop,
     onError = e => reportError(e as string | Error),
   } = options;
-  return dom.on('submit', async (e, form) => {
+  return dom.on("submit", async (e, form) => {
     e.preventDefault();
     if (pending?.get() || disabled?.get()) {
       return;
@@ -66,7 +66,7 @@ export function formDataToObj(formElem: HTMLFormElement): { [key: string]: strin
   const formData = new FormData(formElem);
   const data: { [key: string]: string } = {};
   for (const [name, value] of formData.entries()) {
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       data[name] = value;
     }
   }
@@ -77,7 +77,7 @@ export function formDataToObj(formElem: HTMLFormElement): { [key: string]: strin
  * Submit a form using BaseAPI. Send inputs as JSON, and interpret any reply as JSON.
  */
 async function submitForm(fields: { [key: string]: string }, form: HTMLFormElement): Promise<any> {
-  return BaseAPI.requestJson(form.action, { method: 'POST', body: JSON.stringify(fields) });
+  return BaseAPI.requestJson(form.action, { method: "POST", body: JSON.stringify(fields) });
 }
 
 /**
@@ -117,12 +117,12 @@ export class TypedFormData {
 
       // If the value is an empty string or null, don't return the key.
       const value = this._formData.get(key);
-      return value !== '' && value !== null;
+      return value !== "" && value !== null;
     });
   }
 
   public type(key: string) {
-    return this._formElement.querySelector(`[name="${key}"]`)?.getAttribute('data-grist-type');
+    return this._formElement.querySelector(`[name="${key}"]`)?.getAttribute("data-grist-type");
   }
 
   public get(key: string) {
@@ -130,7 +130,7 @@ export class TypedFormData {
     if (value === null) { return null; }
 
     const type = this.type(key);
-    return type === 'Ref' || type === 'RefList' ? Number(value) : value;
+    return type === "Ref" || type === "RefList" ? Number(value) : value;
   }
 
   public set(key: string, value: any) {
@@ -139,7 +139,7 @@ export class TypedFormData {
 
   public getAll(key: string) {
     const values = Array.from(this._formData.getAll(key));
-    if (['Ref', 'RefList'].includes(String(this.type(key)))) {
+    if (["Ref", "RefList"].includes(String(this.type(key)))) {
       return values.map(v => Number(v));
     }
     else {
@@ -153,5 +153,5 @@ export class TypedFormData {
  */
 export function typedFormDataToJson(formData: TypedFormData) {
   return Object.fromEntries(Array.from(formData.keys()).map(k =>
-    k.endsWith('[]') ? [k.slice(0, -2), ['L', ...formData.getAll(k)]] : [k, formData.get(k)]));
+    k.endsWith("[]") ? [k.slice(0, -2), ["L", ...formData.getAll(k)]] : [k, formData.get(k)]));
 }

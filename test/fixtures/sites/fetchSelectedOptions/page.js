@@ -9,7 +9,7 @@ function setup() {
 
   function showData() {
     data.shown += 1;
-    document.getElementById('data').innerHTML = JSON.stringify(data, null, 2);
+    document.getElementById("data").innerHTML = JSON.stringify(data, null, 2);
   }
 
   grist.onRecord(function (rec) {
@@ -42,14 +42,14 @@ function setup() {
   grist.onRecord(function (rec) {
     data.options.onRecord = rec;
     showData();
-  }, {keepEncoded: true, includeColumns: 'normal', format: 'columns'});
+  }, {keepEncoded: true, includeColumns: "normal", format: "columns"});
   grist.onRecords(function (recs) {
     data.options.onRecords = recs;
     showData();
-  }, {keepEncoded: true, includeColumns: 'all', format: 'columns'});
+  }, {keepEncoded: true, includeColumns: "all", format: "columns"});
 
   grist.fetchSelectedTable(
-    {keepEncoded: true, includeColumns: 'all', format: 'rows'}
+    {keepEncoded: true, includeColumns: "all", format: "rows"}
   ).then(function (table) {
     data.options.fetchSelectedTable = table;
     showData();
@@ -58,7 +58,7 @@ function setup() {
     showData();
   });
   grist.fetchSelectedRecord(1,
-    {keepEncoded: true, includeColumns: 'normal', format: 'rows'}
+    {keepEncoded: true, includeColumns: "normal", format: "rows"}
   ).then(function (rec) {
     data.options.fetchSelectedRecord = rec;
     showData();
@@ -67,7 +67,7 @@ function setup() {
     showData();
   });
   grist.viewApi.fetchSelectedTable(
-    {keepEncoded: false, includeColumns: 'all', format: 'rows'}
+    {keepEncoded: false, includeColumns: "all", format: "rows"}
   ).then(function (table) {
     data.options.viewApiFetchSelectedTable = table;
     showData();
@@ -76,7 +76,7 @@ function setup() {
     showData();
   });
   grist.viewApi.fetchSelectedRecord(2,
-    {keepEncoded: false, includeColumns: 'normal', format: 'rows'}
+    {keepEncoded: false, includeColumns: "normal", format: "rows"}
   ).then(function (rec) {
     data.options.viewApiFetchSelectedRecord = rec;
     showData();

@@ -1,18 +1,18 @@
-import { makeT } from 'app/client/lib/localization';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { AppModel } from 'app/client/models/AppModel';
-import { DocPageModel } from 'app/client/models/DocPageModel';
-import { ShareAnnotations, ShareAnnotator } from 'app/common/ShareAnnotator';
-import { normalizeEmail } from 'app/common/emails';
-import { GristLoadConfig } from 'app/common/gristUrls';
-import * as roles from 'app/common/roles';
-import { getGristConfig } from 'app/common/urlUtils';
+import { makeT } from "app/client/lib/localization";
+import { GristDoc } from "app/client/components/GristDoc";
+import { AppModel } from "app/client/models/AppModel";
+import { DocPageModel } from "app/client/models/DocPageModel";
+import { ShareAnnotations, ShareAnnotator } from "app/common/ShareAnnotator";
+import { normalizeEmail } from "app/common/emails";
+import { GristLoadConfig } from "app/common/gristUrls";
+import * as roles from "app/common/roles";
+import { getGristConfig } from "app/common/urlUtils";
 import { ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess, Organization,
-  PermissionData, PermissionDelta, UserAPI, Workspace } from 'app/common/UserAPI';
-import { computed, Computed, Disposable, obsArray, ObsArray, observable, Observable } from 'grainjs';
-import some from 'lodash/some';
+  PermissionData, PermissionDelta, UserAPI, Workspace } from "app/common/UserAPI";
+import { computed, Computed, Disposable, obsArray, ObsArray, observable, Observable } from "grainjs";
+import some from "lodash/some";
 
-const t = makeT('UserManagerModel');
+const t = makeT("UserManagerModel");
 
 export interface UserManagerModel {
   initData: PermissionData;                    // PermissionData used to initialize the UserManager
@@ -55,7 +55,7 @@ export interface UserManagerModel {
   getDelta(): PermissionDelta;
 }
 
-export type ResourceType = 'organization' | 'workspace' | 'document';
+export type ResourceType = "organization" | "workspace" | "document";
 
 export type Resource = Organization | Workspace | Document;
 
@@ -155,7 +155,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
 
   public isPublicMember = this.initData.public ?? false;
 
-  public isOrg: boolean = this.resourceType === 'organization';
+  public isOrg: boolean = this.resourceType === "organization";
 
   public gristDoc: GristDoc | null = this._options.docPageModel?.gristDoc.get() ?? null;
 
@@ -215,13 +215,13 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   }
 
   public async save(userApi: UserAPI, resourceId: number | string): Promise<void> {
-    if (this.resourceType === 'organization') {
+    if (this.resourceType === "organization") {
       await userApi.updateOrgPermissions(resourceId as number, this.getDelta());
     }
-    else if (this.resourceType === 'workspace') {
+    else if (this.resourceType === "workspace") {
       await userApi.updateWorkspacePermissions(resourceId as number, this.getDelta());
     }
-    else if (this.resourceType === 'document') {
+    else if (this.resourceType === "document") {
       await userApi.updateDocPermissions(resourceId as string, this.getDelta());
     }
   }
@@ -288,7 +288,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   // Give warnings or errors as appropriate (these are suppressed if silent is set).
   public getDelta(options?: { silent: boolean }): PermissionDelta {
     const delta: PermissionDelta = { users: {} };
-    if (this.resourceType !== 'organization') {
+    if (this.resourceType !== "organization") {
       const maxInheritedRole = this.maxInheritedRole.get();
       if (this.initData.maxInheritedRole !== maxInheritedRole) {
         delta.maxInheritedRole = maxInheritedRole;
@@ -343,7 +343,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     // shouldSupportAnon() exceptions.
     const email =
       shouldSupportAnon() ? ANONYMOUS_USER_EMAIL :
-        (this.resourceType === 'document') ? EVERYONE_EMAIL : null;
+        (this.resourceType === "document") ? EVERYONE_EMAIL : null;
     if (!email) { return null; }
     const user = this.initData.users.find(m => m.email === email);
     return this._buildEditableMember({
@@ -405,11 +405,11 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
 }
 
 export function getResourceParent(resource: ResourceType): ResourceType | null {
-  if (resource === 'workspace') {
-    return 'organization';
+  if (resource === "workspace") {
+    return "organization";
   }
-  else if (resource === 'document') {
-    return 'workspace';
+  else if (resource === "document") {
+    return "workspace";
   }
   else {
     return null;

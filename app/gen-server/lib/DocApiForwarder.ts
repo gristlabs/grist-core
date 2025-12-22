@@ -1,12 +1,12 @@
 import * as express from "express";
-import fetch, { RequestInit } from 'node-fetch';
-import { AbortController } from 'node-abort-controller';
+import fetch, { RequestInit } from "node-fetch";
+import { AbortController } from "node-abort-controller";
 
-import { ApiError } from 'app/common/ApiError';
-import { SHARE_KEY_PREFIX } from 'app/common/gristUrls';
-import { removeTrailingSlash } from 'app/common/gutil';
+import { ApiError } from "app/common/ApiError";
+import { SHARE_KEY_PREFIX } from "app/common/gristUrls";
+import { removeTrailingSlash } from "app/common/gutil";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
-import { assertAccess, getOrSetDocAuth, getTransitiveHeaders, RequestWithLogin } from 'app/server/lib/Authorizer';
+import { assertAccess, getOrSetDocAuth, getTransitiveHeaders, RequestWithLogin } from "app/server/lib/Authorizer";
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
@@ -34,8 +34,8 @@ export class DocApiForwarder {
 
   public addEndpoints(app: express.Application) {
     app.use((req, res, next) => {
-      if (req.url.startsWith('/api/s/')) {
-        req.url = req.url.replace('/api/s/', `/api/docs/${SHARE_KEY_PREFIX}`);
+      if (req.url.startsWith("/api/s/")) {
+        req.url = req.url.replace("/api/s/", `/api/docs/${SHARE_KEY_PREFIX}`);
       }
       next();
     });
@@ -43,54 +43,54 @@ export class DocApiForwarder {
     // Middleware to forward a request about an existing document that user has access to.
     // We do not check whether the document has been soft-deleted; that will be checked by
     // the worker if needed.
-    const withDoc = expressWrap(this._forwardToDocWorker.bind(this, true, 'viewers'));
+    const withDoc = expressWrap(this._forwardToDocWorker.bind(this, true, "viewers"));
     // Middleware to forward a request without a pre-existing document (for imports/uploads).
     const withoutDoc = expressWrap(this._forwardToDocWorker.bind(this, false, null));
     const withDocWithoutAuth = expressWrap(this._forwardToDocWorker.bind(this, true, null));
-    app.use('/api/docs/:docId/tables', withDoc);
-    app.use('/api/docs/:docId/force-reload', withDoc);
-    app.use('/api/docs/:docId/recover', withDoc);
-    app.use('/api/docs/:docId/remove', withDoc);
-    app.use('/api/docs/:docId/disable', withDocWithoutAuth);
-    app.use('/api/docs/:docId/enable', withDocWithoutAuth);
-    app.delete('/api/docs/:docId', withDoc);
-    app.use('/api/docs/:docId/download', withDoc);
-    app.use('/api/docs/:docId/send-to-drive', withDoc);
-    app.use('/api/docs/:docId/fork', withDoc);
-    app.use('/api/docs/:docId/create-fork', withDoc);
-    app.use('/api/docs/:docId/apply', withDoc);
-    app.use('/api/docs/:docId/attachments', withDoc);
-    app.use('/api/docs/:docId/attachments/archive', withDoc);
-    app.use('/api/docs/:docId/attachments/download', withDoc);
-    app.use('/api/docs/:docId/attachments/transferStatus', withDoc);
-    app.use('/api/docs/:docId/attachments/transferAll', withDoc);
-    app.use('/api/docs/:docId/attachments/store', withDoc);
-    app.use('/api/docs/:docId/attachments/stores', withDoc);
-    app.use('/api/docs/:docId/snapshots', withDoc);
-    app.use('/api/docs/:docId/usersForViewAs', withDoc);
-    app.use('/api/docs/:docId/replace', withDoc);
-    app.use('/api/docs/:docId/flush', withDoc);
-    app.use('/api/docs/:docId/states', withDoc);
-    app.use('/api/docs/:docId/compare', withDoc);
-    app.use('/api/docs/:docId/assign', withDocWithoutAuth);
-    app.use('/api/docs/:docId/webhooks/queue', withDoc);
-    app.use('/api/docs/:docId/webhooks', withDoc);
-    app.use('/api/docs/:docId/assistant', withDoc);
-    app.use('/api/docs/:docId/sql', withDoc);
-    app.use('/api/docs/:docId/timing', withDoc);
-    app.use('/api/docs/:docId/timing/start', withDoc);
-    app.use('/api/docs/:docId/timing/stop', withDoc);
-    app.use('/api/docs/:docId/forms/:vsId', withDoc);
-    app.use('/api/docs/:docId/propose', withDoc);
-    app.use('/api/docs/:docId/proposals', withDoc);
+    app.use("/api/docs/:docId/tables", withDoc);
+    app.use("/api/docs/:docId/force-reload", withDoc);
+    app.use("/api/docs/:docId/recover", withDoc);
+    app.use("/api/docs/:docId/remove", withDoc);
+    app.use("/api/docs/:docId/disable", withDocWithoutAuth);
+    app.use("/api/docs/:docId/enable", withDocWithoutAuth);
+    app.delete("/api/docs/:docId", withDoc);
+    app.use("/api/docs/:docId/download", withDoc);
+    app.use("/api/docs/:docId/send-to-drive", withDoc);
+    app.use("/api/docs/:docId/fork", withDoc);
+    app.use("/api/docs/:docId/create-fork", withDoc);
+    app.use("/api/docs/:docId/apply", withDoc);
+    app.use("/api/docs/:docId/attachments", withDoc);
+    app.use("/api/docs/:docId/attachments/archive", withDoc);
+    app.use("/api/docs/:docId/attachments/download", withDoc);
+    app.use("/api/docs/:docId/attachments/transferStatus", withDoc);
+    app.use("/api/docs/:docId/attachments/transferAll", withDoc);
+    app.use("/api/docs/:docId/attachments/store", withDoc);
+    app.use("/api/docs/:docId/attachments/stores", withDoc);
+    app.use("/api/docs/:docId/snapshots", withDoc);
+    app.use("/api/docs/:docId/usersForViewAs", withDoc);
+    app.use("/api/docs/:docId/replace", withDoc);
+    app.use("/api/docs/:docId/flush", withDoc);
+    app.use("/api/docs/:docId/states", withDoc);
+    app.use("/api/docs/:docId/compare", withDoc);
+    app.use("/api/docs/:docId/assign", withDocWithoutAuth);
+    app.use("/api/docs/:docId/webhooks/queue", withDoc);
+    app.use("/api/docs/:docId/webhooks", withDoc);
+    app.use("/api/docs/:docId/assistant", withDoc);
+    app.use("/api/docs/:docId/sql", withDoc);
+    app.use("/api/docs/:docId/timing", withDoc);
+    app.use("/api/docs/:docId/timing/start", withDoc);
+    app.use("/api/docs/:docId/timing/stop", withDoc);
+    app.use("/api/docs/:docId/forms/:vsId", withDoc);
+    app.use("/api/docs/:docId/propose", withDoc);
+    app.use("/api/docs/:docId/proposals", withDoc);
 
-    app.use('/api/docs/:docId/copy', withoutDoc);
-    app.use('^/api/docs$', withoutDoc);
-    app.use('/api/workspaces/:wid/import', withoutDoc);
+    app.use("/api/docs/:docId/copy", withoutDoc);
+    app.use("^/api/docs$", withoutDoc);
+    app.use("/api/workspaces/:wid/import", withoutDoc);
   }
 
   private async _forwardToDocWorker(
-    withDocId: boolean, role: 'viewers' | null, req: express.Request, res: express.Response,
+    withDocId: boolean, role: "viewers" | null, req: express.Request, res: express.Response,
   ): Promise<void> {
     let docId: string | null = null;
     if (withDocId) {
@@ -102,10 +102,10 @@ export class DocApiForwarder {
       docId = docAuth.docId;
     }
     // Use the docId for worker assignment, rather than req.params.docId, which could be a urlId.
-    const assignmentId = getAssignmentId(this._docWorkerMap, docId === null ? 'import' : docId);
+    const assignmentId = getAssignmentId(this._docWorkerMap, docId === null ? "import" : docId);
 
     if (!this._docWorkerMap) {
-      throw new ApiError('no worker map', 404);
+      throw new ApiError("no worker map", 404);
     }
     const docStatus = await this._docWorkerMap.assignDocWorker(assignmentId);
 
@@ -121,9 +121,9 @@ export class DocApiForwarder {
       // Including this header also would break features like form submissions,
       // as the "Host" header is not retrieved when calling getTransitiveHeaders().
       ...getTransitiveHeaders(req, { includeOrigin: false }),
-      'Content-Type': req.get('Content-Type') || 'application/json',
+      "Content-Type": req.get("Content-Type") || "application/json",
     };
-    for (const key of ['X-Sort', 'X-Limit']) {
+    for (const key of ["X-Sort", "X-Limit"]) {
       const hdr = req.get(key);
       if (hdr) { headers[key] = hdr; }
     }
@@ -139,21 +139,21 @@ export class DocApiForwarder {
       headers,
       signal: controller.signal,
     };
-    if (['POST', 'PATCH', 'PUT'].includes(req.method)) {
+    if (["POST", "PATCH", "PUT"].includes(req.method)) {
       // uses `req` as a stream
       options.body = req;
     }
 
     const docWorkerRes = await fetch(url.href, options);
     res.status(docWorkerRes.status);
-    for (const key of ['content-type', 'content-disposition', 'cache-control']) {
+    for (const key of ["content-type", "content-disposition", "cache-control"]) {
       const value = docWorkerRes.headers.get(key);
       if (value) { res.set(key, value); }
     }
     return new Promise<void>((resolve, reject) => {
-      docWorkerRes.body.on('error', reject);
-      res.on('error', reject);
-      res.on('finish', resolve);
+      docWorkerRes.body.on("error", reject);
+      res.on("error", reject);
+      res.on("finish", resolve);
       docWorkerRes.body.pipe(res);
     });
   }

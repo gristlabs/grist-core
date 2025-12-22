@@ -4,6 +4,6 @@ export interface SandboxInfo {
   effective: boolean;   // whether the sandbox is actually giving protection
   configured: boolean;  // whether a sandbox type has been specified
   // if sandbox fails to run, this records the last step that worked
-  lastSuccessfulStep: 'none' | 'create' | 'use' | 'all';
+  lastSuccessfulStep: "none" | "create" | "use" | "all";
   error?: string;       // if sandbox fails, this stores an error
 }

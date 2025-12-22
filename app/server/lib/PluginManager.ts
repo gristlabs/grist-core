@@ -1,9 +1,9 @@
-import { DirectoryScanEntry, LocalPlugin } from 'app/common/plugin';
-import log from 'app/server/lib/log';
-import { readManifest } from 'app/server/lib/manifest';
-import { getAppPathTo } from 'app/server/lib/places';
-import * as fse from 'fs-extra';
-import * as path from 'path';
+import { DirectoryScanEntry, LocalPlugin } from "app/common/plugin";
+import log from "app/server/lib/log";
+import { readManifest } from "app/server/lib/manifest";
+import { getAppPathTo } from "app/server/lib/places";
+import * as fse from "fs-extra";
+import * as path from "path";
 
 /**
  * Various plugins' related directories.
@@ -50,9 +50,9 @@ export class PluginManager {
   public constructor(public appRoot?: string, userRoot?: string,
     public bundledRoot?: string) {
     this._dirs = {
-      installed: userRoot ? path.join(userRoot, 'plugins') : undefined,
-      builtIn: appRoot ? getAppPathTo(appRoot, 'plugins') : undefined,
-      bundled: bundledRoot ? getAppPathTo(bundledRoot, 'plugins') : undefined,
+      installed: userRoot ? path.join(userRoot, "plugins") : undefined,
+      builtIn: appRoot ? getAppPathTo(appRoot, "plugins") : undefined,
+      bundled: bundledRoot ? getAppPathTo(bundledRoot, "plugins") : undefined,
     };
   }
 
@@ -103,7 +103,7 @@ export class PluginManager {
     }
 
     if (!process.env.GRIST_EXPERIMENTAL_PLUGINS ||
-      process.env.GRIST_EXPERIMENTAL_PLUGINS === '0') {
+      process.env.GRIST_EXPERIMENTAL_PLUGINS === "0") {
       // Remove experimental plugins
       this._entries = this._entries.filter((entry) => {
         if (entry.manifest?.experimental) {

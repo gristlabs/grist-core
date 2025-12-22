@@ -1,4 +1,4 @@
-import { OpenDocMode } from 'app/common/DocListAPI';
+import { OpenDocMode } from "app/common/DocListAPI";
 
 interface ErrorDetails {
   status?: number;

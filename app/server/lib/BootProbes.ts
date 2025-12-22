@@ -46,7 +46,7 @@ export class BootProbes {
       expressWrap(async (req, res) => {
         const probe = this._probeById.get(req.params.probeId);
         if (!probe) {
-          throw new ApiError('unknown probe', 400);
+          throw new ApiError("unknown probe", 400);
         }
         const result = await probe.apply(this._server, req);
         res.json(result);
@@ -83,19 +83,19 @@ export interface Probe {
 }
 
 const _admins: Probe = {
-  id: 'admins',
-  name: 'Currently defined install admins',
+  id: "admins",
+  name: "Currently defined install admins",
   apply: async (server, req) => {
     try {
       const users = await server.getInstallAdmin().getAdminUsers(req);
       return {
-        status: 'success',
+        status: "success",
         details: { users },
       };
     }
     catch (e) {
       return {
-        status: 'fault',
+        status: "fault",
         details: { error: String(e) },
       };
     }
@@ -103,8 +103,8 @@ const _admins: Probe = {
 };
 
 const _homeUrlReachableProbe: Probe = {
-  id: 'reachable',
-  name: 'Is home page available at expected URL',
+  id: "reachable",
+  name: "Is home page available at expected URL",
   apply: async (server, req) => {
     const url = server.getHomeInternalUrl();
     const details: Record<string, any> = {
@@ -117,7 +117,7 @@ const _homeUrlReachableProbe: Probe = {
         throw new ApiError(await resp.text(), resp.status);
       }
       return {
-        status: 'success',
+        status: "success",
         details,
       };
     }
@@ -127,35 +127,35 @@ const _homeUrlReachableProbe: Probe = {
           ...details,
           error: String(e),
         },
-        status: 'fault',
+        status: "fault",
       };
     }
   },
 };
 
 const _webSocketsProbe: Probe = {
-  id: 'websockets',
-  name: 'Can we open a websocket with the server',
+  id: "websockets",
+  name: "Can we open a websocket with the server",
   apply: async (server, req) => {
     return new Promise((resolve) => {
       const url = new URL(server.getHomeUrl(req));
-      url.protocol = (url.protocol === 'https:') ? 'wss:' : 'ws:';
+      url.protocol = (url.protocol === "https:") ? "wss:" : "ws:";
       const ws = new WS.WebSocket(url.href);
       const details: Record<string, any> = {
         url,
       };
-      ws.on('open', () => {
+      ws.on("open", () => {
         ws.send('{"msg": "Just nod if you can hear me."}');
         resolve({
-          status: 'success',
+          status: "success",
           details,
         });
         ws.close();
       });
-      ws.on('error', (ev) => {
+      ws.on("error", (ev) => {
         details.error = ev.message;
         resolve({
-          status: 'fault',
+          status: "fault",
           details,
         });
         ws.close();
@@ -165,12 +165,12 @@ const _webSocketsProbe: Probe = {
 };
 
 const _statusCheckProbe: Probe = {
-  id: 'health-check',
-  name: 'Is an internal health check passing',
+  id: "health-check",
+  name: "Is an internal health check passing",
   apply: async (server, req) => {
     const baseUrl = server.getHomeInternalUrl();
     const url = new URL(baseUrl);
-    url.pathname = removeTrailingSlash(url.pathname) + '/status';
+    url.pathname = removeTrailingSlash(url.pathname) + "/status";
     const details: Record<string, any> = {
       url: url.href,
     };
@@ -181,11 +181,11 @@ const _statusCheckProbe: Probe = {
         throw new Error(`Failed with status ${resp.status}`);
       }
       const txt = await resp.text();
-      if (!txt.includes('is alive')) {
+      if (!txt.includes("is alive")) {
         throw new Error(`Failed, page has unexpected content`);
       }
       return {
-        status: 'success',
+        status: "success",
         details,
       };
     }
@@ -195,29 +195,29 @@ const _statusCheckProbe: Probe = {
           ...details,
           error: String(e),
         },
-        status: 'fault',
+        status: "fault",
       };
     }
   },
 };
 
 const _userProbe: Probe = {
-  id: 'system-user',
-  name: 'Is the system user following best practice',
+  id: "system-user",
+  name: "Is the system user following best practice",
   apply: async () => {
     const details = {
-      uid: process.getuid ? process.getuid() : 'unavailable',
+      uid: process.getuid ? process.getuid() : "unavailable",
     };
     if (process.getuid && process.getuid() === 0) {
       return {
         details,
-        verdict: 'User appears to be root (UID 0)',
-        status: 'warning',
+        verdict: "User appears to be root (UID 0)",
+        status: "warning",
       };
     }
     else {
       return {
-        status: 'success',
+        status: "success",
         details,
       };
     }
@@ -225,29 +225,29 @@ const _userProbe: Probe = {
 };
 
 const _bootProbe: Probe = {
-  id: 'boot-page',
-  name: 'Is the boot page adequately protected',
+  id: "boot-page",
+  name: "Is the boot page adequately protected",
   apply: async (server) => {
-    const bootKey = server.getBootKey() || '';
+    const bootKey = server.getBootKey() || "";
     const hasBoot = Boolean(bootKey);
     const details: Record<string, any> = {
       bootKeySet: hasBoot,
     };
     if (!hasBoot) {
-      return { status: 'success', details };
+      return { status: "success", details };
     }
     details.bootKeyLength = bootKey.length;
     if (bootKey.length < 10) {
       return {
-        verdict: 'Boot key length is shorter than 10.',
+        verdict: "Boot key length is shorter than 10.",
         details,
-        status: 'fault',
+        status: "fault",
       };
     }
     return {
-      verdict: 'Boot key ideally should be removed after installation.',
+      verdict: "Boot key ideally should be removed after installation.",
       details,
-      status: 'warning',
+      status: "warning",
     };
   },
 };
@@ -260,41 +260,41 @@ const _bootProbe: Probe = {
  * to have an accurate Host header.
  */
 const _hostHeaderProbe: Probe = {
-  id: 'host-header',
-  name: 'Does the host header look correct',
+  id: "host-header",
+  name: "Does the host header look correct",
   apply: async (server, req) => {
-    const host = req.header('host');
+    const host = req.header("host");
     const url = new URL(server.getHomeUrl(req));
     const details = {
       homeUrlHost: url.hostname,
       headerHost: host,
     };
-    if (url.hostname === 'localhost') {
+    if (url.hostname === "localhost") {
       return {
-        status: 'none',
+        status: "none",
         details,
       };
     }
     if (String(url.hostname).toLowerCase() !== String(host).toLowerCase()) {
       return {
         details,
-        status: 'hmm',
+        status: "hmm",
       };
     }
     return {
-      status: 'none',
+      status: "none",
       details,
     };
   },
 };
 
 const _sandboxingProbe: Probe = {
-  id: 'sandboxing',
-  name: 'Is document sandboxing effective',
+  id: "sandboxing",
+  name: "Is document sandboxing effective",
   apply: async (server, req) => {
     const details = await server.getSandboxInfo();
     return {
-      status: (details?.configured && details?.functional) ? 'success' : 'fault',
+      status: (details?.configured && details?.functional) ? "success" : "fault",
       details,
     };
   },
@@ -329,12 +329,12 @@ const _authenticationProbe: Probe = {
 };
 
 const _sessionSecretProbe: Probe = {
-  id: 'session-secret',
-  name: 'Session secret',
+  id: "session-secret",
+  name: "Session secret",
   apply: async (server, req) => {
     const usingDefaultSessionSecret = server.create.sessionSecret() === DEFAULT_SESSION_SECRET;
     return {
-      status: usingDefaultSessionSecret ? 'warning' : 'success',
+      status: usingDefaultSessionSecret ? "warning" : "success",
       details: {
         GRIST_SESSION_SECRET: process.env.GRIST_SESSION_SECRET ? "set" : "not set",
       },

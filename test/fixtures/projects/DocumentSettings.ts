@@ -1,11 +1,11 @@
-import { addSaveInterface, KoSaveableObservable, objObservable } from 'app/client/models/modelUtil';
-import { DocSettingsPage } from 'app/client/ui/DocumentSettings';
-import { testId } from 'app/client/ui2018/cssVars';
-import { ColValues } from 'app/common/DocActions';
-import { DocumentSettings } from 'app/common/DocumentSettings';
+import { addSaveInterface, KoSaveableObservable, objObservable } from "app/client/models/modelUtil";
+import { DocSettingsPage } from "app/client/ui/DocumentSettings";
+import { testId } from "app/client/ui2018/cssVars";
+import { ColValues } from "app/common/DocActions";
+import { DocumentSettings } from "app/common/DocumentSettings";
 import { Computed, dom, fromKo, input, observable, Observable, styled } from "grainjs";
 import * as ko from "knockout";
-import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 function savable<T>(initial: T) {
@@ -17,9 +17,9 @@ function savable<T>(initial: T) {
 }
 
 function setupTest() {
-  const timezone = savable('');
+  const timezone = savable("");
   const documentSettingsJson: KoSaveableObservable<DocumentSettings> = objObservable(savable<DocumentSettings>({
-    locale: 'en-US',
+    locale: "en-US",
   }));
   const docInfo = {
     timezone,
@@ -30,8 +30,8 @@ function setupTest() {
     },
   };
   const docPageModel = {
-    currentDocId: Observable.create(null, 'docId'),
-    currentDoc: Observable.create(null, { access: 'owners' }),
+    currentDocId: Observable.create(null, "docId"),
+    currentDoc: Observable.create(null, { access: "owners" }),
     type: Observable.create(null, null),
     isFork: Observable.create(null, false),
   };
@@ -54,25 +54,25 @@ function setupTest() {
 
   return [
     testBox(
-      dom('div', "Document Settings"),
+      dom("div", "Document Settings"),
       dom.create(DocSettingsPage, gristDoc),
     ),
     testBox(
-      dom('div', "Timezone Value"),
-      dom('div', input(fromKo(timezone), {}, testId('result-timezone'))),
+      dom("div", "Timezone Value"),
+      dom("div", input(fromKo(timezone), {}, testId("result-timezone"))),
     ),
     testBox(
-      dom('div', "Locale Value"),
-      dom('div', input(locale, {}, testId('result-locale'))),
+      dom("div", "Locale Value"),
+      dom("div", input(locale, {}, testId("result-locale"))),
     ),
     testBox(
-      dom('div', "Currency Value"),
-      dom('div', input(currency, {}, testId('result-currency'))),
+      dom("div", "Currency Value"),
+      dom("div", input(currency, {}, testId("result-currency"))),
     ),
   ];
 }
 
-const testBox = styled('div', `
+const testBox = styled("div", `
   float: left;
   width: 25rem;
   font-family: sans-serif;

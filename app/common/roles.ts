@@ -1,18 +1,18 @@
-import { Organization } from 'app/common/UserAPI';
+import { Organization } from "app/common/UserAPI";
 
-export const OWNER  = 'owners';
-export const EDITOR = 'editors';
-export const VIEWER = 'viewers';
-export const GUEST  = 'guests';
-export const MEMBER = 'members';
+export const OWNER  = "owners";
+export const EDITOR = "editors";
+export const VIEWER = "viewers";
+export const GUEST  = "guests";
+export const MEMBER = "members";
 
 // Roles ordered from most to least permissive.
 const roleOrder: (Role | null)[] = [OWNER, EDITOR, VIEWER, MEMBER, GUEST, null];
 
-export type BasicRole = 'owners' | 'editors' | 'viewers';
-export type NonMemberRole = BasicRole | 'guests';
-export type NonGuestRole = BasicRole | 'members';
-export type Role = NonMemberRole | 'members';
+export type BasicRole = "owners" | "editors" | "viewers";
+export type NonMemberRole = BasicRole | "guests";
+export type NonGuestRole = BasicRole | "members";
+export type Role = NonMemberRole | "members";
 
 // Returns the BasicRole (or null) with the same effective access as the given role.
 export function getEffectiveRole(role: Role | null): BasicRole | null {

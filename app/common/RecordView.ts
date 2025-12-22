@@ -1,4 +1,4 @@
-import { CellValue, TableDataAction } from 'app/common/DocActions';
+import { CellValue, TableDataAction } from "app/common/DocActions";
 
 /** Light wrapper for reading records or user attributes. */
 export interface InfoView {
@@ -17,14 +17,14 @@ export class RecordView implements InfoView {
 
   public get(colId: string): CellValue {
     if (this.index === undefined) { return null; }
-    if (colId === 'id') {
+    if (colId === "id") {
       return this.data[2][this.index];
     }
     return this.data[3][colId]?.[this.index];
   }
 
   public has(colId: string) {
-    return colId === 'id' || colId in this.data[3];
+    return colId === "id" || colId in this.data[3];
   }
 
   public toJSON() {

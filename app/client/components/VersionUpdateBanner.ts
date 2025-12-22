@@ -1,12 +1,12 @@
-import { Banner, buildBannerMessage } from 'app/client/components/Banner';
-import { makeT } from 'app/client/lib/localization';
-import { localStorageJsonObs } from 'app/client/lib/localStorageObs';
-import { getGristConfig } from 'app/common/urlUtils';
-import { Disposable, dom, makeTestId, Observable } from 'grainjs';
-import { AppModel } from 'app/client/models/AppModel';
+import { Banner, buildBannerMessage } from "app/client/components/Banner";
+import { makeT } from "app/client/lib/localization";
+import { localStorageJsonObs } from "app/client/lib/localStorageObs";
+import { getGristConfig } from "app/common/urlUtils";
+import { Disposable, dom, makeTestId, Observable } from "grainjs";
+import { AppModel } from "app/client/models/AppModel";
 
 const t = makeT("VersionUpdateBanner");
-const testId = makeTestId('test-version-update-banner-');
+const testId = makeTestId("test-version-update-banner-");
 
 interface ShowVersionUpdateBannerPrefer {
   dismissed: boolean,
@@ -60,8 +60,8 @@ Consider upgrading to version {{version}} as soon as possible.`, versionParam) :
 Consider upgrading to version {{version}} as soon as possible.`, versionParam);
 
         return dom.create(Banner, {
-          content: buildBannerMessage(msg, testId('text')),
-          style: latestVersionAvailable.isCritical ? 'error' : 'warning',
+          content: buildBannerMessage(msg, testId("text")),
+          style: latestVersionAvailable.isCritical ? "error" : "warning",
           showCloseButton: true,
           onClose: () => this._showVersionUpdateBannerPref.set({
             dismissed: true,

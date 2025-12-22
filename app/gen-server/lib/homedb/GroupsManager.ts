@@ -5,7 +5,7 @@ import { Group } from "app/gen-server/entity/Group";
 import { GroupWithMembersDescriptor, NonGuestGroup,
   Resource, RoleGroupDescriptor, RunInTransaction } from "app/gen-server/lib/homedb/Interfaces";
 import { Organization } from "app/gen-server/entity/Organization";
-import { Permissions } from 'app/gen-server/lib/Permissions';
+import { Permissions } from "app/gen-server/lib/Permissions";
 import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
 
@@ -147,7 +147,7 @@ export class GroupsManager {
 
     // The destination must be a reserved inheritance group or null.
     if (dest && !reverseDefaultNames.includes(dest)) {
-      throw new Error('moveInheritedGroups called with invalid destination name');
+      throw new Error("moveInheritedGroups called with invalid destination name");
     }
 
     // Mapping from group names to top-level groups
@@ -189,7 +189,7 @@ export class GroupsManager {
     if (toDelete.length > 0) {
       await manager.createQueryBuilder()
         .delete()
-        .from('group_users')
+        .from("group_users")
         .whereInIds(toDelete.map(id => ({ user_id: id, group_id: groupId })))
         .execute();
     }
@@ -199,7 +199,7 @@ export class GroupsManager {
         // Since we are adding new records in group_users, we may get a duplicate key error if two documents
         // are added at the same time (even in transaction, since we are not blocking the whole table).
         .orIgnore()
-        .into('group_users')
+        .into("group_users")
         .values(toAdd.map(id => ({ user_id: id, group_id: groupId })))
         .execute();
     }
@@ -355,8 +355,8 @@ export class GroupsManager {
       }
       await manager.createQueryBuilder()
         .delete()
-        .from('group_groups')
-        .where('subgroup_id = :id', { id })
+        .from("group_groups")
+        .where("subgroup_id = :id", { id })
         .execute();
       await manager.remove(group);
     });
@@ -388,7 +388,7 @@ export class GroupsManager {
   ): Promise<Group[]> {
     return this._runInTransaction(optManager, async (manager: EntityManager) => {
       return this._getGroupsQueryBuilder(manager, opts)
-        .where('groups.type = :type', { type })
+        .where("groups.type = :type", { type })
         .getMany();
     });
   }
@@ -408,7 +408,7 @@ export class GroupsManager {
   ): Promise<Group | null> {
     return await this._runInTransaction(optManager, async (manager) => {
       return await this._getGroupsQueryBuilder(manager, opts)
-        .andWhere('groups.id = :groupId', { groupId: id })
+        .andWhere("groups.id = :groupId", { groupId: id })
         .getOne();
     });
   }
@@ -449,7 +449,7 @@ export class GroupsManager {
     }
     return await this._runInTransaction(optManager, async (manager) => {
       const queryBuilder = this._getGroupsQueryBuilder(manager)
-        .where('groups.id IN (:...groupIds)', { groupIds });
+        .where("groups.id IN (:...groupIds)", { groupIds });
       return await queryBuilder.getMany();
     });
   }
@@ -466,7 +466,7 @@ export class GroupsManager {
     if (groups.length !== groupIds.length) {
       const foundGroupIds = new Set(groups.map(group => group.id));
       const missingGroupIds = groupIds.filter(id => !foundGroupIds.has(id));
-      throw new ApiError('Groups not found: ' + missingGroupIds.join(', '), 404);
+      throw new ApiError("Groups not found: " + missingGroupIds.join(", "), 404);
     }
     return groups;
   }
@@ -480,25 +480,25 @@ export class GroupsManager {
    */
   private _getGroupsQueryBuilder(optManager: EntityManager, opts: { aclRule?: boolean } = {}) {
     let queryBuilder = optManager.createQueryBuilder()
-      .select('groups')
-      .addSelect('groups.type')
-      .addSelect('memberGroups.type')
-      .from(Group, 'groups')
-      .leftJoinAndSelect('groups.memberUsers', 'memberUsers')
-      .leftJoinAndSelect('groups.memberGroups', 'memberGroups');
+      .select("groups")
+      .addSelect("groups.type")
+      .addSelect("memberGroups.type")
+      .from(Group, "groups")
+      .leftJoinAndSelect("groups.memberUsers", "memberUsers")
+      .leftJoinAndSelect("groups.memberGroups", "memberGroups");
     if (opts.aclRule) {
       queryBuilder = queryBuilder
-        .leftJoinAndSelect('groups.aclRule', 'aclRule');
+        .leftJoinAndSelect("groups.aclRule", "aclRule");
     }
     return queryBuilder;
   }
 
   private async _throwIfTeamNameCollision(name: string, manager: EntityManager, existingId?: number) {
     const query = this._getGroupsQueryBuilder(manager)
-      .where('groups.name = :name', { name })
-      .andWhere('groups.type = :type', { type: Group.TEAM_TYPE });
+      .where("groups.name = :name", { name })
+      .andWhere("groups.type = :type", { type: Group.TEAM_TYPE });
     if (existingId !== undefined) {
-      query.andWhere('groups.id != :id', { id: existingId });
+      query.andWhere("groups.id != :id", { id: existingId });
     }
     const group = await query.getOne();
     if (group) {

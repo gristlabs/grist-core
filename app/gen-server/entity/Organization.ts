@@ -22,7 +22,7 @@ export interface AccessOptionWithRole extends AccessOption {
   access: Role;   // summary of permissions
 }
 
-@Entity({ name: 'orgs' })
+@Entity({ name: "orgs" })
 export class Organization extends Resource {
   @PrimaryGeneratedColumn()
   public id: number;
@@ -34,7 +34,7 @@ export class Organization extends Resource {
   public domain: string;
 
   @OneToOne(type => User, user => user.personalOrg)
-  @JoinColumn({ name: 'owner_id' })
+  @JoinColumn({ name: "owner_id" })
   public owner: User;
 
   @RelationId((org: Organization) => org.owner)
@@ -46,11 +46,11 @@ export class Organization extends Resource {
   @OneToMany(type => AclRuleOrg, aclRule => aclRule.organization)
   public aclRules: AclRuleOrg[];
 
-  @Column({ name: 'billing_account_id', type: Number })
+  @Column({ name: "billing_account_id", type: Number })
   public billingAccountId: number;
 
   @ManyToOne(type => BillingAccount)
-  @JoinColumn({ name: 'billing_account_id' })
+  @JoinColumn({ name: "billing_account_id" })
   public billingAccount: BillingAccount;
 
   // Property that may be returned when the org is fetched to indicate the access the
@@ -63,11 +63,11 @@ export class Organization extends Resource {
   // a computed column with permissions.
   // {insert: false} makes sure typeorm doesn't try to put values into such
   // a column when creating organizations.
-  @Column({ name: 'permissions', type: 'text', select: false, insert: false })
+  @Column({ name: "permissions", type: "text", select: false, insert: false })
   public permissions?: any;
 
   // For custom domains, this is the preferred host associated with this org/team.
-  @Column({ name: 'host', type: 'text', nullable: true })
+  @Column({ name: "host", type: "text", nullable: true })
   public host: string | null;
 
   // Any prefs relevant to the org and user.  This relation is marked to not result

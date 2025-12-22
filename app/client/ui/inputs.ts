@@ -1,8 +1,8 @@
-import { autoGrow } from 'app/client/ui/forms';
-import { theme, vars } from 'app/client/ui2018/cssVars';
-import { dom, DomElementArg, IDomArgs, IInputOptions, Observable, styled, subscribe } from 'grainjs';
+import { autoGrow } from "app/client/ui/forms";
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { dom, DomElementArg, IDomArgs, IInputOptions, Observable, styled, subscribe } from "grainjs";
 
-export const cssInput = styled('input', `
+export const cssInput = styled("input", `
   font-size: ${vars.mediumFontSize};
   height: 48px;
   line-height: 20px;
@@ -42,8 +42,8 @@ export const cssInput = styled('input', `
  */
 export function textInput(obs: Observable<string | undefined>, ...args: DomElementArg[]): HTMLInputElement {
   return cssInput(
-    dom.prop('value', u => u(obs) || ''),
-    dom.on('input', (_e, elem) => obs.set(elem.value)),
+    dom.prop("value", u => u(obs) || ""),
+    dom.on("input", (_e, elem) => obs.set(elem.value)),
     ...args,
   );
 }
@@ -66,7 +66,7 @@ export function textarea(
 
   const value = options?.autoGrow ? Observable.create(null, obs.get()) : null;
   const trackInput = Boolean(options?.onInput || options?.autoGrow);
-  const onInput = trackInput ? dom.on('input', (e, elem: HTMLTextAreaElement) => {
+  const onInput = trackInput ? dom.on("input", (e, elem: HTMLTextAreaElement) => {
     if (options?.onInput) {
       setValue(elem);
     }
@@ -75,12 +75,12 @@ export function textarea(
     }
   }) : null;
 
-  return dom('textarea', ...args,
+  return dom("textarea", ...args,
     value ? [
       dom.autoDispose(value),
       dom.autoDispose(obs.addListener(v => value.set(v))),
     ] : null,
-    dom.prop('value', use => use(obs) ?? ''),
+    dom.prop("value", use => use(obs) ?? ""),
     (isValid ?
       elem => dom.autoDisposeElem(elem,
         subscribe(obs, use => isValid.set(elem.checkValidity()))) :
@@ -88,8 +88,8 @@ export function textarea(
     onInput,
     options?.autoGrow ? [
       autoGrow(value!),
-      dom.style('resize', 'none'),
+      dom.style("resize", "none"),
     ] : null,
-    dom.on('change', (e, elem) => setValue(elem)),
+    dom.on("change", (e, elem) => setValue(elem)),
   );
 }

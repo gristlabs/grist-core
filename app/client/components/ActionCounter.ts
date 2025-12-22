@@ -1,8 +1,8 @@
-import * as dispose from 'app/client/lib/dispose';
-import { DocData } from 'app/client/models/DocData';
-import { MinimalActionGroup } from 'app/common/ActionGroup';
-import { DocState } from 'app/common/DocState';
-import { Computed, Observable } from 'grainjs';
+import * as dispose from "app/client/lib/dispose";
+import { DocData } from "app/client/models/DocData";
+import { MinimalActionGroup } from "app/common/ActionGroup";
+import { DocState } from "app/common/DocState";
+import { Computed, Observable } from "grainjs";
 
 const MAX_MEMORY_OF_COUNTED_ACTIONS = 250;
 const MAX_COUNT = 20;
@@ -20,11 +20,11 @@ const MAX_COUNT = 20;
  */
 export class ActionCounter extends dispose.Disposable {
   // The full count from the base action.
-  public count: Observable<number | '...'>;
+  public count: Observable<number | "...">;
 
   // The count from the marked actionNum, if there is one
   // (otherwise is same as `count`).
-  public countFromMark: Observable<number | '...'>;
+  public countFromMark: Observable<number | "...">;
 
   public isUndoBlocked: Observable<boolean>;
 
@@ -138,7 +138,7 @@ export class ActionCounter extends dispose.Disposable {
     this.countFromMark.set(this._truncated(this._count + this._countOffset));
   }
 
-  private _truncated(value: number): number | '...' {
-    return (value > MAX_COUNT) ? '...' : value;
+  private _truncated(value: number): number | "..." {
+    return (value > MAX_COUNT) ? "..." : value;
   }
 }

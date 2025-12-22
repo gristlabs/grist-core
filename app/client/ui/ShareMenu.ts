@@ -1,23 +1,23 @@
-import { hooks } from 'app/client/Hooks';
-import { loadUserManager } from 'app/client/lib/imports';
-import { makeT } from 'app/client/lib/localization';
-import { getLoginOrSignupUrl } from 'app/client/lib/urlUtils';
-import { AppModel, reportError } from 'app/client/models/AppModel';
-import { DocInfo, DocPageModel } from 'app/client/models/DocPageModel';
-import { reportWarning } from 'app/client/models/errors';
-import { docUrl, urlState } from 'app/client/models/gristUrlState';
+import { hooks } from "app/client/Hooks";
+import { loadUserManager } from "app/client/lib/imports";
+import { makeT } from "app/client/lib/localization";
+import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
+import { AppModel, reportError } from "app/client/models/AppModel";
+import { DocInfo, DocPageModel } from "app/client/models/DocPageModel";
+import { reportWarning } from "app/client/models/errors";
+import { docUrl, urlState } from "app/client/models/gristUrlState";
 import {
   downloadAttachmentsModal,
   downloadDocModal,
   makeCopy,
   replaceTrunkWithFork,
-} from 'app/client/ui/MakeCopyMenu';
-import { sendToDrive } from 'app/client/ui/sendToDrive';
-import { hoverTooltip, withInfoTooltip } from 'app/client/ui/tooltips';
-import { cssHoverCircle, cssTopBarBtn } from 'app/client/ui/TopBarCss';
-import { primaryButton } from 'app/client/ui2018/buttons';
-import { mediaXSmall, testId, theme } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
+} from "app/client/ui/MakeCopyMenu";
+import { sendToDrive } from "app/client/ui/sendToDrive";
+import { hoverTooltip, withInfoTooltip } from "app/client/ui/tooltips";
+import { cssHoverCircle, cssTopBarBtn } from "app/client/ui/TopBarCss";
+import { primaryButton } from "app/client/ui2018/buttons";
+import { mediaXSmall, testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
 import {
   menu,
   menuDivider,
@@ -26,14 +26,14 @@ import {
   menuItemLink,
   menuItemSubmenu,
   menuText,
-} from 'app/client/ui2018/menus';
-import { buildUrlId, isFeatureEnabled, parseUrlId } from 'app/common/gristUrls';
-import * as roles from 'app/common/roles';
-import { Document } from 'app/common/UserAPI';
-import { dom, DomContents, styled } from 'grainjs';
-import { cssMenuItem, MenuCreateFunc } from 'popweasel';
+} from "app/client/ui2018/menus";
+import { buildUrlId, isFeatureEnabled, parseUrlId } from "app/common/gristUrls";
+import * as roles from "app/common/roles";
+import { Document } from "app/common/UserAPI";
+import { dom, DomContents, styled } from "grainjs";
+import { cssMenuItem, MenuCreateFunc } from "popweasel";
 
-const t = makeT('ShareMenu');
+const t = makeT("ShareMenu");
 
 export function buildOriginalUrlId(urlId: string, isSnapshot: boolean): string {
   const parts = parseUrlId(urlId);
@@ -91,7 +91,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
           menuExports(doc, pageModel),
         ], { buttonAction: async () => {
           await urlState().pushUrl({
-            docPage: 'suggestions',
+            docPage: "suggestions",
           });
         } });
       }
@@ -138,38 +138,38 @@ function shareButton(buttonText: DomContents | null, menuCreateFunc: MenuCreateF
   if (!buttonText) {
     // Regular circular button that opens a menu.
     return cssHoverCircle({ style: `margin: 5px;` },
-      cssTopBarBtn('Share', dom.cls('tour-share-icon')),
-      menu(menuCreateFunc, { placement: 'bottom-end' }),
-      hoverTooltip(t('Share'), { key: 'topBarBtnTooltip' }),
-      testId('tb-share'),
+      cssTopBarBtn("Share", dom.cls("tour-share-icon")),
+      menu(menuCreateFunc, { placement: "bottom-end" }),
+      hoverTooltip(t("Share"), { key: "topBarBtnTooltip" }),
+      testId("tb-share"),
     );
   }
   else if (options.buttonAction) {
     // Split button: the left text part calls `buttonAction`, and the circular icon opens menu.
     return cssShareButton(
       cssShareAction(buttonText,
-        dom.on('click', options.buttonAction),
-        testId('tb-share-action'),
+        dom.on("click", options.buttonAction),
+        testId("tb-share-action"),
       ),
       cssShareCircle(
-        cssShareIcon('Share'),
-        menu(menuCreateFunc, { placement: 'bottom-end' }),
-        hoverTooltip(t('Share'), { key: 'topBarBtnTooltip' }),
-        testId('tb-share'),
+        cssShareIcon("Share"),
+        menu(menuCreateFunc, { placement: "bottom-end" }),
+        hoverTooltip(t("Share"), { key: "topBarBtnTooltip" }),
+        testId("tb-share"),
       ),
     );
   }
   else {
     // Combined button: the left text part and circular icon open the menu as a single button.
     return cssShareButton(
-      cssShareButton.cls('-combined'),
+      cssShareButton.cls("-combined"),
       cssShareAction(buttonText),
       cssShareCircle(
-        cssShareIcon('Share'),
+        cssShareIcon("Share"),
       ),
-      menu(menuCreateFunc, { placement: 'bottom-end' }),
-      hoverTooltip(t('Share'), { key: 'topBarBtnTooltip' }),
-      testId('tb-share'),
+      menu(menuCreateFunc, { placement: "bottom-end" }),
+      hoverTooltip(t("Share"), { key: "topBarBtnTooltip" }),
+      testId("tb-share"),
     );
   }
 }
@@ -195,8 +195,8 @@ function menuManageUsers(doc: DocInfo, pageModel: DocPageModel) {
   return [
     menuItem(() => manageUsers(doc, pageModel),
       roles.canEditAccess(doc.access) ? t("Manage users") : t("Access Details"),
-      dom.cls('disabled', doc.isFork),
-      testId('tb-share-option'),
+      dom.cls("disabled", doc.isFork),
+      testId("tb-share-option"),
     ),
     menuDivider(),
   ];
@@ -232,7 +232,7 @@ function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOrigi
 
   // Preserve the current state in order to stay on the selected page. TODO: Should auto-switch to
   // first page when the requested page is not in the document.
-  const compareHref = dom.attr('href', use => urlState().makeUrl({
+  const compareHref = dom.attr("href", use => urlState().makeUrl({
     ...use(urlState().state), doc: leftDocId, params: { compare: rightDocId } }));
 
   const compareUrlId = urlState().state.get().params?.compare;
@@ -244,22 +244,22 @@ function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOrigi
   return [
     isTutorialFork ? null : cssMenuSplitLink({ href: originalUrl },
       cssMenuSplitLinkText(t("Return to {{termToUse}}", { termToUse })),
-      cssMenuIconLink({ href: originalUrl, target: '_blank' },
-        cssMenuIcon('FieldLink'),
-        testId('open-original'),
+      cssMenuIconLink({ href: originalUrl, target: "_blank" },
+        cssMenuIcon("FieldLink"),
+        testId("open-original"),
       ),
-      dom.on('click', () => { pageModel.clearUnsavedChanges(); }),
-      testId('return-to-original'),
+      dom.on("click", () => { pageModel.clearUnsavedChanges(); }),
+      testId("return-to-original"),
     ),
     menuItem(replaceOriginal, t("Replace {{termToUse}}...", { termToUse }),
       // Disable if original is not writable, and also when comparing snapshots (since it's
       // unclear which of the versions to use).
-      dom.cls('disabled', !roles.canEdit(doc.trunkAccess || null) || comparingSnapshots),
-      testId('replace-original'),
+      dom.cls("disabled", !roles.canEdit(doc.trunkAccess || null) || comparingSnapshots),
+      testId("replace-original"),
     ),
-    isTutorialFork ? null : menuItemLink(compareHref, { target: '_blank' }, t("Compare to {{termToUse}}", { termToUse }),
-      dom.on('click', () => { pageModel.clearUnsavedChanges(); }),
-      testId('compare-original'),
+    isTutorialFork ? null : menuItemLink(compareHref, { target: "_blank" }, t("Compare to {{termToUse}}", { termToUse }),
+      dom.on("click", () => { pageModel.clearUnsavedChanges(); }),
+      testId("compare-original"),
     ),
   ];
 }
@@ -275,7 +275,7 @@ function menuSaveCopy(options: {
   const saveCopy = () => handleSaveCopy({ pageModel, doc, modalTitle: saveActionTitle });
   return [
     // TODO Disable these when user has no accessible destinations.
-    menuItem(saveCopy, `${saveActionTitle}...`, testId('save-copy')),
+    menuItem(saveCopy, `${saveActionTitle}...`, testId("save-copy")),
   ];
 }
 
@@ -293,11 +293,11 @@ function menuWorkOnCopy(pageModel: DocPageModel, options?: {
 
   const label = options?.suggestChanges ? t("Suggest Changes") : t("Work on a copy");
   return [
-    menuItem(makeUnsavedCopy, label, testId('work-on-copy')),
+    menuItem(makeUnsavedCopy, label, testId("work-on-copy")),
     menuText(
       withInfoTooltip(
         t("Edit without affecting the original"),
-        'workOnACopy',
+        "workOnACopy",
         { popupOptions: { attach: null } },
       ),
     ),
@@ -312,9 +312,9 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
   const gristDoc = pageModel.gristDoc.get();
   if (!gristDoc) { return null; }
 
-  const onClick = dom.on('click', (e) => {
+  const onClick = dom.on("click", (e) => {
     const currentPage = pageModel.gristDoc.get()?.activeViewId.get();
-    const notDataPage = typeof currentPage !== 'number';
+    const notDataPage = typeof currentPage !== "number";
     if (notDataPage) {
       // Disable navigation.
       e.preventDefault();
@@ -322,7 +322,7 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
       setTimeout(() => reportWarning(
         t("Exporting is only available from document pages. Please select a document page and try again."),
         {
-          key: 'exporting-not-available',
+          key: "exporting-not-available",
         },
       ));
     }
@@ -333,46 +333,46 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
     menuDivider(),
     (isElectron ?
       menuItem(() => gristDoc.app.comm.showItemInFolder(doc.name),
-        t("Show in folder"), testId('tb-share-option')) :
+        t("Show in folder"), testId("tb-share-option")) :
       menuItem(() => downloadDocModal(doc, pageModel.appModel),
-        menuIcon('Download'), t("Download document..."), testId('tb-share-option'))
+        menuIcon("Download"), t("Download document..."), testId("tb-share-option"))
     ),
     menuItem(
       () => downloadAttachmentsModal(doc, pageModel),
-      menuIcon('Download'),
-      t('Download attachments...'),
-      testId('tb-share-option'),
+      menuIcon("Download"),
+      t("Download attachments..."),
+      testId("tb-share-option"),
     ),
     menuItemSubmenu(
       () => [
         menuItemLink(
           onClick,
-          hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: '' }),
+          hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: "_blank", download: "" }),
           t("Comma Separated Values (.csv)"),
-          testId('tb-share-option'),
+          testId("tb-share-option"),
         ),
         menuItemLink(
           onClick,
-          hooks.maybeModifyLinkAttrs({ href: gristDoc.getTsvLink(), target: '_blank', download: '' }),
-          t("Tab Separated Values (.tsv)"), testId('tb-share-option')),
+          hooks.maybeModifyLinkAttrs({ href: gristDoc.getTsvLink(), target: "_blank", download: "" }),
+          t("Tab Separated Values (.tsv)"), testId("tb-share-option")),
         menuItemLink(
           onClick,
-          hooks.maybeModifyLinkAttrs({ href: gristDoc.getDsvLink(), target: '_blank', download: '' }),
-          t("DOO Separated Values (.dsv)"), testId('tb-share-option')),
+          hooks.maybeModifyLinkAttrs({ href: gristDoc.getDsvLink(), target: "_blank", download: "" }),
+          t("DOO Separated Values (.dsv)"), testId("tb-share-option")),
         menuItemLink(
           onClick,
           hooks.maybeModifyLinkAttrs({
             href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadXlsxUrl(),
-            target: '_blank', download: '',
-          }), t("Microsoft Excel (.xlsx)"), testId('tb-share-option')),
+            target: "_blank", download: "",
+          }), t("Microsoft Excel (.xlsx)"), testId("tb-share-option")),
       ],
       {},
-      menuIcon('Download'),
+      menuIcon("Download"),
       t("Export as..."),
-      testId('tb-share-option'),
+      testId("tb-share-option"),
     ),
     (!isFeatureEnabled("sendToDrive") ? null : menuItem(() => sendToDrive(doc, pageModel),
-      menuIcon('Download'), t("Send to Google Drive"), testId('tb-share-option'))),
+      menuIcon("Download"), t("Send to Google Drive"), testId("tb-share-option"))),
   ];
 }
 
@@ -386,7 +386,7 @@ async function manageUsers(doc: DocInfo, docPageModel: DocPageModel) {
   (await loadUserManager()).showUserManagerModal(api, {
     permissionData: api.getDocAccess(doc.id),
     activeUser: user,
-    resourceType: 'document',
+    resourceType: "document",
     resourceId: doc.id,
     resource: doc,
     docPageModel,
@@ -402,11 +402,11 @@ async function manageUsers(doc: DocInfo, docPageModel: DocPageModel) {
 
 export function makeShareDocUrl(doc: Document) {
   const url = new URL(urlState().makeUrl(docUrl(doc)));
-  url.searchParams.set('utm_id', 'share-doc');
+  url.searchParams.set("utm_id", "share-doc");
   return url.href;
 }
 
-const cssShareButton = styled('div', `
+const cssShareButton = styled("div", `
   display: flex;
   align-items: center;
   position: relative;
@@ -455,7 +455,7 @@ const cssMenuSplitLink = styled(menuItemLink, `
   align-items: stretch;
 `);
 
-const cssMenuSplitLinkText = styled('div', `
+const cssMenuSplitLinkText = styled("div", `
   flex: auto;
   padding: var(--weaseljs-menu-item-padding, 8px 24px);
   &:not(:hover) {
@@ -464,7 +464,7 @@ const cssMenuSplitLinkText = styled('div', `
   }
 `);
 
-const cssMenuIconLink = styled('a', `
+const cssMenuIconLink = styled("a", `
   display: block;
   flex: none;
   padding: 8px 24px;
@@ -483,6 +483,6 @@ const cssMenuIcon = styled(icon, `
   display: block;
 `);
 
-const cssChangeCount = styled('span', `
+const cssChangeCount = styled("span", `
   font-weight: bold;
 `);

@@ -1,4 +1,4 @@
-import { ITelemetry } from 'app/server/lib/Telemetry';
+import { ITelemetry } from "app/server/lib/Telemetry";
 
 const MONITOR_PERIOD_MS = 5_000;        // take a look at memory usage this often
 const MEMORY_DELTA_FRACTION = 0.1;      // fraction by which usage should change to get reported
@@ -66,7 +66,7 @@ function monitor(telemetry: ITelemetry) {
     Math.abs(heapUsed - _lastReportedHeapUsed) > _lastReportedHeapUsed * MEMORY_DELTA_FRACTION ||
     Math.abs(cpuAverage - _lastReportedCpuAverage) > CPU_DELTA_FRACTION
   ) {
-    telemetry.logEvent(null, 'processMonitor', {
+    telemetry.logEvent(null, "processMonitor", {
       full: {
         heapUsedMB: Math.round(memoryUsage.heapUsed / 1024 / 1024),
         heapTotalMB: Math.round(memoryUsage.heapTotal / 1024 / 1024),

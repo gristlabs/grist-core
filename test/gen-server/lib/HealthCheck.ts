@@ -1,15 +1,15 @@
-import { delay } from 'app/common/delay';
-import { assert } from 'chai';
-import fetch from 'node-fetch';
-import { TestServer } from 'test/gen-server/apiUtils';
-import { TcpForwarder } from 'test/server/tcpForwarder';
-import * as testUtils from 'test/server/testUtils';
-import { waitForIt } from 'test/server/wait';
+import { delay } from "app/common/delay";
+import { assert } from "chai";
+import fetch from "node-fetch";
+import { TestServer } from "test/gen-server/apiUtils";
+import { TcpForwarder } from "test/server/tcpForwarder";
+import * as testUtils from "test/server/testUtils";
+import { waitForIt } from "test/server/wait";
 
-describe('HealthCheck', function() {
-  testUtils.setTmpLogLevel('error');
+describe("HealthCheck", function() {
+  testUtils.setTmpLogLevel("error");
 
-  for (const serverType of ['home', 'docs'] as ('home' | 'docs')[]) {
+  for (const serverType of ["home", "docs"] as ("home" | "docs")[]) {
     describe(serverType, function() {
       let server: TestServer;
       let oldEnv: testUtils.EnvironmentSnapshot;
@@ -39,8 +39,8 @@ describe('HealthCheck', function() {
         oldEnv.restore();
       });
 
-      it('has a working simple /status endpoint', async function() {
-        const result = await fetch(server.server.getOwnUrl() + '/status');
+      it("has a working simple /status endpoint", async function() {
+        const result = await fetch(server.server.getOwnUrl() + "/status");
         const text = await result.text();
         assert.match(text, /Grist server.*alive/);
         assert.notMatch(text, /db|redis/);
@@ -48,8 +48,8 @@ describe('HealthCheck', function() {
         assert.equal(result.status, 200);
       });
 
-      it('allows asking for db and redis status', async function() {
-        const result = await fetch(server.server.getOwnUrl() + '/status?db=1&redis=1&timeout=500');
+      it("allows asking for db and redis status", async function() {
+        const result = await fetch(server.server.getOwnUrl() + "/status?db=1&redis=1&timeout=500");
         assert.match(await result.text(), /Grist server.*alive.*db ok, redis ok/);
         assert.equal(result.ok, true);
         assert.equal(result.status, 200);
@@ -70,8 +70,8 @@ describe('HealthCheck', function() {
         };
       }
 
-      it('reports error when database is unhealthy', async function() {
-        if (server.dbManager.connection.options.type !== 'postgres') {
+      it("reports error when database is unhealthy", async function() {
+        if (server.dbManager.connection.options.type !== "postgres") {
           // On postgres, we have a way to interfere with connections. Elsewhere (sqlite) it's not
           // so obvious how to make DB unhealthy, so don't bother testing that.
           this.skip();
@@ -80,32 +80,32 @@ describe('HealthCheck', function() {
 
         const { blockerPromise, resolve } = blockPostgres(server.dbManager.connection.driver as any);
         try {
-          const result = await fetch(server.server.getOwnUrl() + '/status?db=1&redis=1&timeout=500');
+          const result = await fetch(server.server.getOwnUrl() + "/status?db=1&redis=1&timeout=500");
           assert.match(await result.text(), /Grist server.*unhealthy.*db not ok, redis ok/);
           assert.equal(result.ok, false);
           assert.equal(result.status, 500);
 
           // Plain /status endpoint should be unaffected.
-          assert.isTrue((await fetch(server.server.getOwnUrl() + '/status')).ok);
+          assert.isTrue((await fetch(server.server.getOwnUrl() + "/status")).ok);
         }
         finally {
           resolve();
           await blockerPromise;
         }
-        assert.isTrue((await fetch(server.server.getOwnUrl() + '/status?db=1&redis=1&timeout=100')).ok);
+        assert.isTrue((await fetch(server.server.getOwnUrl() + "/status?db=1&redis=1&timeout=100")).ok);
       });
 
-      it('reports error when redis is unhealthy', async function() {
+      it("reports error when redis is unhealthy", async function() {
         this.timeout(5000);
         await redisForwarder.disconnect();
         try {
-          const result = await fetch(server.server.getOwnUrl() + '/status?db=1&redis=1&timeout=500');
+          const result = await fetch(server.server.getOwnUrl() + "/status?db=1&redis=1&timeout=500");
           assert.match(await result.text(), /Grist server.*unhealthy.*db ok, redis not ok/);
           assert.equal(result.ok, false);
           assert.equal(result.status, 500);
 
           // Plain /status endpoint should be unaffected.
-          assert.isTrue((await fetch(server.server.getOwnUrl() + '/status')).ok);
+          assert.isTrue((await fetch(server.server.getOwnUrl() + "/status")).ok);
         }
         finally {
           await redisForwarder.connect();
@@ -114,7 +114,7 @@ describe('HealthCheck', function() {
           await delay(400);
         }
         await waitForIt(async () =>
-          assert.isTrue((await fetch(server.server.getOwnUrl() + '/status?db=1&redis=1&timeout=100')).ok),
+          assert.isTrue((await fetch(server.server.getOwnUrl() + "/status?db=1&redis=1&timeout=100")).ok),
         2000);
       });
     });

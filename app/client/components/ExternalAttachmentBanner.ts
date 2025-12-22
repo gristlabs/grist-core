@@ -1,14 +1,14 @@
-import { Banner, buildBannerMessage, cssBannerLink } from 'app/client/components/Banner';
-import { makeT } from 'app/client/lib/localization';
-import { localStorageJsonObs } from 'app/client/lib/localStorageObs';
-import { DocPageModel } from 'app/client/models/DocPageModel';
-import { urlState } from 'app/client/models/gristUrlState';
-import { PREFERRED_STORAGE_ANCHOR } from 'app/common/gristUrls';
-import { Disposable, dom, makeTestId, Observable } from 'grainjs';
+import { Banner, buildBannerMessage, cssBannerLink } from "app/client/components/Banner";
+import { makeT } from "app/client/lib/localization";
+import { localStorageJsonObs } from "app/client/lib/localStorageObs";
+import { DocPageModel } from "app/client/models/DocPageModel";
+import { urlState } from "app/client/models/gristUrlState";
+import { PREFERRED_STORAGE_ANCHOR } from "app/common/gristUrls";
+import { Disposable, dom, makeTestId, Observable } from "grainjs";
 
-const t = makeT('ExternalAttachmentBanner');
+const t = makeT("ExternalAttachmentBanner");
 
-const testId = makeTestId('test-external-attachment-banner-');
+const testId = makeTestId("test-external-attachment-banner-");
 
 interface ShowExternalAttachmentBannerPrefer {
   dismissed: boolean,
@@ -51,9 +51,9 @@ export class ExternalAttachmentBanner extends Disposable {
         return dom.create(Banner, {
           content: buildBannerMessage(
             getExternalStorageRecommendation(),
-            testId('text'),
+            testId("text"),
           ),
-          style: 'warning',
+          style: "warning",
           showCloseButton: true,
           onClose: () => this._showBannerPref.set({
             dismissed: true,
@@ -80,9 +80,9 @@ keeping them in external storage. This document is currently
 using internal storage for attachments, which keeps it
 self-contained but may limit performance.`, {
     storageRecommendation: cssBannerLink(
-      t('Set the document to use external storage.'),
+      t("Set the document to use external storage."),
       urlState().setLinkUrl({
-        docPage: 'settings',
+        docPage: "settings",
         hash: {
           anchor: PREFERRED_STORAGE_ANCHOR,
         },

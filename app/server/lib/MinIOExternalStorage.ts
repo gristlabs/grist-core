@@ -1,10 +1,10 @@
-import { ApiError } from 'app/common/ApiError';
-import { ObjMetadata, ObjSnapshotWithMetadata, toExternalMetadata, toGristMetadata } from 'app/common/DocSnapshot';
-import { ExternalStorage, StreamDownloadResult } from 'app/server/lib/ExternalStorage';
-import { IncomingMessage } from 'http';
-import * as fse from 'fs-extra';
-import * as minio from 'minio';
-import * as stream from 'node:stream';
+import { ApiError } from "app/common/ApiError";
+import { ObjMetadata, ObjSnapshotWithMetadata, toExternalMetadata, toGristMetadata } from "app/common/DocSnapshot";
+import { ExternalStorage, StreamDownloadResult } from "app/server/lib/ExternalStorage";
+import { IncomingMessage } from "http";
+import * as fse from "fs-extra";
+import * as minio from "minio";
+import * as stream from "node:stream";
 
 // The minio-js v8.0.0 typings are sometimes incorrect. Here are some workarounds.
 interface MinIOClient extends
@@ -74,7 +74,7 @@ export class MinIOExternalStorage implements ExternalStorage {
       );
       if (!head.lastModified || !head.versionId) {
         // AWS documentation says these fields will be present.
-        throw new Error('MinIOExternalStorage.head did not get expected fields');
+        throw new Error("MinIOExternalStorage.head did not get expected fields");
       }
       return {
         lastModified: head.lastModified.toISOString(),
@@ -120,16 +120,16 @@ export class MinIOExternalStorage implements ExternalStorage {
     );
     const statusCode = request.statusCode || 500;
     if (statusCode >= 300) {
-      throw new ApiError('download error', statusCode);
+      throw new ApiError("download error", statusCode);
     }
     // See https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/requests-using-stream-objects.html
     // for an example of streaming data.
     const headers = request.headers;
     // For a versioned bucket, the header 'x-amz-version-id' contains a version id.
-    const downloadedSnapshotId = String(headers['x-amz-version-id'] || '');
-    const fileSize = Number(headers['content-length']);
+    const downloadedSnapshotId = String(headers["x-amz-version-id"] || "");
+    const fileSize = Number(headers["content-length"]);
     if (Number.isNaN(fileSize)) {
-      throw new ApiError('download error - bad file size', 500);
+      throw new ApiError("download error - bad file size", 500);
     }
     return {
       metadata: {
@@ -169,7 +169,7 @@ export class MinIOExternalStorage implements ExternalStorage {
     const versioning = await this._s3.getBucketVersioning(this.bucket);
     // getBucketVersioning() may return an empty string when versioning has never been enabled.
     // This situation is not addressed in minio-js v8.0.0, but included in our workaround.
-    return versioning !== '' && versioning?.Status === 'Enabled';
+    return versioning !== "" && versioning?.Status === "Enabled";
   }
 
   public async versions(key: string, options?: { includeDeleteMarkers?: boolean }) {
@@ -200,13 +200,13 @@ export class MinIOExternalStorage implements ExternalStorage {
     // NotFound and NoSuchKey are "expected" errors when checking for existence of a document
     // Other errors like 'ECONNRESET' and 'InternalError' were added to the list by mistake
     // which caused problems like overriding an existing document when MinIO was experiencing hiccups.
-    return err.code === 'NotFound' || err.code === 'NoSuchKey';
+    return err.code === "NotFound" || err.code === "NoSuchKey";
   }
 
   public isRetryableError(err: any) {
     // Retry MinIO requests on some common transient errors.
-    return err.code === 'ECONNRESET' || err.code === 'InternalError' ||
-      err.code === 'EAI_AGAIN';
+    return err.code === "ECONNRESET" || err.code === "InternalError" ||
+      err.code === "EAI_AGAIN";
   }
 
   public async close() {

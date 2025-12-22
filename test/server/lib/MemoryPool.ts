@@ -1,8 +1,8 @@
-import { MemoryPool } from 'app/server/lib/MemoryPool';
-import { delay } from 'app/common/delay';
-import { isLongerThan } from 'app/common/gutil';
-import { assert } from 'chai';
-import * as sinon from 'sinon';
+import { MemoryPool } from "app/server/lib/MemoryPool";
+import { delay } from "app/common/delay";
+import { isLongerThan } from "app/common/gutil";
+import { assert } from "chai";
+import * as sinon from "sinon";
 
 async function isResolved(promise: Promise<unknown>): Promise<boolean> {
   return !await isLongerThan(promise, 0);

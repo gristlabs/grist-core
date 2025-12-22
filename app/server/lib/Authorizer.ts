@@ -1,29 +1,29 @@
-import { ApiError } from 'app/common/ApiError';
-import { OpenDocMode } from 'app/common/DocListAPI';
-import { ErrorWithCode } from 'app/common/ErrorWithCode';
-import { ActivationState } from 'app/common/gristUrls';
-import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
-import { canEdit, canView, getWeakestRole } from 'app/common/roles';
-import { UserOptions } from 'app/common/UserAPI';
-import { User } from 'app/gen-server/entity/User';
-import { DocAuthResult, HomeDBAuth } from 'app/gen-server/lib/homedb/Interfaces';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { ApiError } from "app/common/ApiError";
+import { OpenDocMode } from "app/common/DocListAPI";
+import { ErrorWithCode } from "app/common/ErrorWithCode";
+import { ActivationState } from "app/common/gristUrls";
+import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
+import { canEdit, canView, getWeakestRole } from "app/common/roles";
+import { UserOptions } from "app/common/UserAPI";
+import { User } from "app/gen-server/entity/User";
+import { DocAuthResult, HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
-  SessionUserObj, SignInStatus } from 'app/server/lib/BrowserSession';
-import { expressWrap } from 'app/server/lib/expressWrap';
-import { RequestWithOrg } from 'app/server/lib/extractOrg';
-import { GristServer } from 'app/server/lib/GristServer';
+  SessionUserObj, SignInStatus } from "app/server/lib/BrowserSession";
+import { expressWrap } from "app/server/lib/expressWrap";
+import { RequestWithOrg } from "app/server/lib/extractOrg";
+import { GristServer } from "app/server/lib/GristServer";
 import { COOKIE_MAX_AGE, getAllowedOrgForSessionID, getCookieDomain,
-  cookieName as sessionCookieName } from 'app/server/lib/gristSessions';
-import { makeId } from 'app/server/lib/idUtils';
-import log from 'app/server/lib/log';
-import { IPermitStore, Permit } from 'app/server/lib/Permit';
-import { AccessTokenInfo } from 'app/server/lib/AccessTokens';
-import { allowHost, buildXForwardedForHeader, getOriginUrl, optStringParam } from 'app/server/lib/requestUtils';
-import * as cookie from 'cookie';
-import { NextFunction, Request, RequestHandler, Response } from 'express';
-import { IncomingMessage } from 'http';
-import onHeaders from 'on-headers';
+  cookieName as sessionCookieName } from "app/server/lib/gristSessions";
+import { makeId } from "app/server/lib/idUtils";
+import log from "app/server/lib/log";
+import { IPermitStore, Permit } from "app/server/lib/Permit";
+import { AccessTokenInfo } from "app/server/lib/AccessTokens";
+import { allowHost, buildXForwardedForHeader, getOriginUrl, optStringParam } from "app/server/lib/requestUtils";
+import * as cookie from "cookie";
+import { NextFunction, Request, RequestHandler, Response } from "express";
+import { IncomingMessage } from "http";
+import onHeaders from "on-headers";
 
 export interface RequestWithLogin extends Request {
   sessionID: string;
@@ -95,7 +95,7 @@ export function isAnonymousUser(req: Request) {
 // True if Grist is configured for a single user without specific authorization
 // (classic standalone/electron mode).
 export function isSingleUserMode(): boolean {
-  return process.env.GRIST_SINGLE_USER === '1';
+  return process.env.GRIST_SINGLE_USER === "1";
 }
 
 /**
@@ -111,7 +111,7 @@ export function getRequestProfile(req: Request | IncomingMessage,
 
   // Careful reading headers. If we have an IncomingMessage, there is no
   // get() function, and header names are lowercased.
-  const headerContent = ('get' in req) ? req.get(header) : req.headers[header.toLowerCase()];
+  const headerContent = ("get" in req) ? req.get(header) : req.headers[header.toLowerCase()];
   if (headerContent) {
     const userEmail = headerContent.toString();
     const [userName] = userEmail.split("@", 1);
@@ -184,7 +184,7 @@ export async function addRequestUser(
   // Support providing an access token via an `auth` query parameter.
   // This is useful for letting the browser load assets like image
   // attachments.
-  const auth = optStringParam(mreq.query.auth, 'auth');
+  const auth = optStringParam(mreq.query.auth, "auth");
   if (auth) {
     const tokens = options.gristServer.getAccessTokens();
     const token = await tokens.verify(auth);
@@ -197,26 +197,26 @@ export async function addRequestUser(
   // Now, check for an apiKey
   if (!authDone && mreq.headers?.authorization) {
     // header needs to be of form "Bearer XXXXXXXXX" to apply
-    const parts = String(mreq.headers.authorization).split(' ');
+    const parts = String(mreq.headers.authorization).split(" ");
     if (parts[0] === "Bearer") {
       const user = parts[1] ? await dbManager.getUserByKey(parts[1]) : undefined;
       if (!user) {
-        return res.status(401).send('Bad request: invalid API key');
+        return res.status(401).send("Bad request: invalid API key");
       }
       if (user.type === "service") {
         const serviceAccount = (await dbManager.getServiceAccountByLoginWithOwner(user.loginEmail as string))!;
         if (serviceAccount.owner.disabledAt) {
-          return res.status(403).send('Owner account is disabled');
+          return res.status(403).send("Owner account is disabled");
         }
         if (!serviceAccount.isActive()) {
-          return res.status(401).send('Service Account has expired');
+          return res.status(401).send("Service Account has expired");
         }
       }
       if (user.id === dbManager.getAnonymousUserId()) {
         // We forbid the anonymous user to present an api key.  That saves us
         // having to think through the consequences of authorized access to the
         // anonymous user's profile via the api (e.g. how should the api key be managed).
-        return res.status(401).send('Credentials cannot be presented for the anonymous user account via API key');
+        return res.status(401).send("Credentials cannot be presented for the anonymous user account via API key");
       }
       setRequestUser(mreq, dbManager, user);
       hasApiKey = true;
@@ -226,16 +226,16 @@ export async function addRequestUser(
   // Check if we have a boot key. This is a fallback mechanism for an
   // administrator to authenticate themselves by demonstrating access
   // to the environment.
-  if (!authDone && mreq.headers?.['x-boot-key']) {
-    const reqBootKey = String(mreq.headers['x-boot-key']);
+  if (!authDone && mreq.headers?.["x-boot-key"]) {
+    const reqBootKey = String(mreq.headers["x-boot-key"]);
     const bootKey = options.gristServer.getBootKey();
     if (!bootKey || bootKey !== reqBootKey) {
-      return res.status(401).send('Bad request: invalid Boot key');
+      return res.status(401).send("Bad request: invalid Boot key");
     }
     const admin = options.gristServer.getInstallAdmin();
     const user = await admin.getAdminUser();
     if (!user) {
-      return res.status(500).send('No admin user available');
+      return res.status(500).send("No admin user available");
     }
     setRequestUser(mreq, dbManager, user);
     authDone = true;
@@ -246,13 +246,13 @@ export async function addRequestUser(
     const permitKey = String(mreq.headers.permit);
     try {
       const permit = await permitStore.getPermit(permitKey);
-      if (!permit) { return res.status(401).send('Bad request: unknown permit'); }
+      if (!permit) { return res.status(401).send("Bad request: unknown permit"); }
       setRequestUser(mreq, dbManager, dbManager.getAnonymousUser());
       mreq.specialPermit = permit;
     }
     catch (err) {
       log.error(`problem reading permit: ${err}`);
-      return res.status(401).send('Bad request: permit could not be read');
+      return res.status(401).send("Bad request: permit could not be read");
     }
   }
 
@@ -268,7 +268,7 @@ export async function addRequestUser(
   if (
     !mreq.userId &&
     !(mreq.xhr || mreq.get("content-type") === "application/json") &&
-    !['GET', 'HEAD', 'OPTIONS'].includes(mreq.method)
+    !["GET", "HEAD", "OPTIONS"].includes(mreq.method)
   ) {
     return res.status(401).json({
       error: "Unauthenticated requests require one of the headers" +
@@ -297,7 +297,7 @@ export async function addRequestUser(
 
   // A bit of extra info we'll add to the "Auth" log message when this request passes the check
   // for custom-host-specific sessionID.
-  let customHostSession = '';
+  let customHostSession = "";
 
   if (!authDone && !skipSession) {
     // If we haven't selected a user by other means, and have profiles available in the
@@ -327,15 +327,15 @@ export async function addRequestUser(
           // open door to all orgs accessible by this user.
           // TODO Issue 2: Organization header is easy for an attacker (who has stolen a session
           // cookie) to include too; it does nothing to prove that the request is internal.
-          const org = req.header('organization');
+          const org = req.header("organization");
           if (org && org === allowedOrg.org) {
             customHostSession = ` custom-host-fwd ${org}`;
           }
           else {
             // Log error and fail.
             log.warn("Auth[%s]: sessionID for host %s org %s; wrong for host %s org %s", mreq.method,
-              allowedOrg.host, allowedOrg.org, mreq.get('host'), mreq.org);
-            return res.status(403).send('Bad request: invalid session ID');
+              allowedOrg.host, allowedOrg.org, mreq.get("host"), mreq.org);
+            return res.status(403).send("Bad request: invalid session ID");
           }
         }
       }
@@ -353,7 +353,7 @@ export async function addRequestUser(
       // See if we have a profile linked with the active organization already.
       // TODO: implement userSelector for rest API, to allow "sticky" user selection on pages.
       let sessionUser: SessionUserObj | null = getSessionUser(session, mreq.org,
-        optStringParam(mreq.query.user, 'user') || '');
+        optStringParam(mreq.query.user, "user") || "");
 
       if (!sessionUser) {
         // No profile linked yet, so let's elect one.
@@ -364,7 +364,7 @@ export async function addRequestUser(
           // profile.  Express-session will save this change.
           sessionUser = linkOrgWithEmail(session, option.email, mreq.org);
           const userOptions: UserOptions = {};
-          if (sessionUser?.profile?.loginMethod === 'Email + Password') {
+          if (sessionUser?.profile?.loginMethod === "Email + Password") {
             // Link the session authSubject, if present, to the user. This has no effect
             // if the user already has an authSubject set in the db.
             userOptions.authSubject = sessionUser.authSubject;
@@ -395,7 +395,7 @@ export async function addRequestUser(
       // A user record will be created automatically for emails we've never seen before.
       if (profile && !mreq.userId) {
         const userOptions: UserOptions = {};
-        if (profile?.loginMethod === 'Email + Password') {
+        if (profile?.loginMethod === "Email + Password") {
           // Link the session authSubject, if present, to the user. This has no effect
           // if the user already has an authSubject set in the db.
           userOptions.authSubject = sessionUser.authSubject;
@@ -419,12 +419,12 @@ export async function addRequestUser(
     // get an active user and thinks the user isn't logged in at all,
     // which can be more confusing than necessary.
     const isSessionGetRequest = (
-      ['/session/access/active', '/session/access/all'].includes(mreq.url) &&
-      mreq.method === 'GET'
+      ["/session/access/active", "/session/access/all"].includes(mreq.url) &&
+      mreq.method === "GET"
     );
 
     if (!isSessionGetRequest) {
-      throw new ApiError('User is disabled', 403);
+      throw new ApiError("User is disabled", 403);
     }
   }
 
@@ -444,7 +444,7 @@ export async function addRequestUser(
   const meta = {
     customHostSession,
     method: mreq.method,
-    host: mreq.get('host'),
+    host: mreq.get("host"),
     path: mreq.path,
     org: mreq.org,
     email: mreq.user?.loginEmail,
@@ -453,11 +453,11 @@ export async function addRequestUser(
   };
   log.rawDebug(`Auth[${meta.method}]: ${meta.host} ${meta.path}`, meta);
   if (hasApiKey) {
-    options.gristServer.getTelemetry().logEvent(mreq, 'apiUsage', {
+    options.gristServer.getTelemetry().logEvent(mreq, "apiUsage", {
       full: {
         method: mreq.method,
         userId: mreq.userId,
-        userAgent: mreq.headers['user-agent'],
+        userAgent: mreq.headers["user-agent"],
       },
     });
   }
@@ -481,7 +481,7 @@ export function redirectToLoginUnconditionally(
     // this browser)  After logging in, `users` will be set in the session.  Even after
     // logging out again, `users` will still be set.
     const signUp: boolean = (mreq.session.users === undefined);
-    log.debug(`Authorizer: redirecting to ${signUp ? 'sign up' : 'log in'}`);
+    log.debug(`Authorizer: redirecting to ${signUp ? "sign up" : "log in"}`);
     const redirectUrl = new URL(getOriginUrl(req) + req.originalUrl);
     if (signUp) {
       return resp.redirect(await getSignUpRedirectUrl(req, redirectUrl));
@@ -563,11 +563,11 @@ export async function getOrSetDocAuth(
       // Sanity check: does the current document match the document the token is
       // for? If not, fail.
       if (!mreq.docAuth.docId || mreq.docAuth.docId !== tokenObj.docId) {
-        throw new ApiError('token misuse', 401);
+        throw new ApiError("token misuse", 401);
       }
       // Limit access to read-only if specified.
       if (tokenObj.readOnly) {
-        mreq.docAuth = { ...mreq.docAuth, access: getWeakestRole('viewers', mreq.docAuth.access) };
+        mreq.docAuth = { ...mreq.docAuth, access: getWeakestRole("viewers", mreq.docAuth.access) };
       }
     }
 
@@ -575,14 +575,14 @@ export async function getOrSetDocAuth(
     // gets updated to full access.
     if (mreq.specialPermit && mreq.userId === dbManager.getAnonymousUserId() &&
       mreq.specialPermit.docId === mreq.docAuth.docId) {
-      mreq.docAuth = { ...mreq.docAuth, access: 'owners' };
+      mreq.docAuth = { ...mreq.docAuth, access: "owners" };
     }
   }
   return mreq.docAuth;
 }
 
 export interface ResourceSummary {
-  kind: 'doc';
+  kind: "doc";
   id: string | number;
 }
 
@@ -598,8 +598,8 @@ interface AssertAccessOptions {
 }
 
 export function assertAccess(
-  role: 'viewers' | 'editors' | 'owners', docAuth: DocAuthResult, options: AssertAccessOptions = {}) {
-  const openMode = options.openMode || 'default';
+  role: "viewers" | "editors" | "owners", docAuth: DocAuthResult, options: AssertAccessOptions = {}) {
+  const openMode = options.openMode || "default";
   const details = { status: 403, accessMode: openMode };
   if (docAuth.error) {
     if ([400, 401, 403].includes(docAuth.error.status)) {
@@ -624,16 +624,16 @@ export function assertAccess(
     throw new ErrorWithCode("AUTH_NO_VIEW", "No view access", details);
   }
 
-  if (role === 'editors') {
+  if (role === "editors") {
     // If opening in a fork or view mode, treat user as viewer and deny write access.
-    const access = (openMode === 'fork' || openMode === 'view') ?
-      getWeakestRole('viewers', docAuth.access) : docAuth.access;
+    const access = (openMode === "fork" || openMode === "view") ?
+      getWeakestRole("viewers", docAuth.access) : docAuth.access;
     if (!canEdit(access)) {
       throw new ErrorWithCode("AUTH_NO_EDIT", "No write access", details);
     }
   }
 
-  if (role === 'owners' && docAuth.access !== 'owners') {
+  if (role === "owners" && docAuth.access !== "owners") {
     throw new ErrorWithCode("AUTH_NO_OWNER", "No owner access", details);
   }
 }
@@ -646,13 +646,13 @@ export function getTransitiveHeaders(
   req: Request,
   { includeOrigin }: { includeOrigin: boolean },
 ): { [key: string]: string } {
-  const Authorization = req.get('Authorization');
-  const Cookie = req.get('Cookie');
-  const PermitHeader = req.get('Permit');
+  const Authorization = req.get("Authorization");
+  const Cookie = req.get("Cookie");
+  const PermitHeader = req.get("Permit");
   const Organization = (req as RequestWithOrg).org;
-  const XRequestedWith = req.get('X-Requested-With');
-  const UserAgent = req.get('User-Agent');
-  const Origin = req.get('Origin');  // Pass along the original Origin since it may
+  const XRequestedWith = req.get("X-Requested-With");
+  const UserAgent = req.get("User-Agent");
+  const Origin = req.get("Origin");  // Pass along the original Origin since it may
   // play a role in granular access control.
 
   const result: Record<string, string> = {
@@ -660,8 +660,8 @@ export function getTransitiveHeaders(
     ...(Cookie ? { Cookie } : undefined),
     ...(Organization ? { Organization } : undefined),
     ...(PermitHeader ? { Permit: PermitHeader } : undefined),
-    ...(XRequestedWith ? { 'X-Requested-With': XRequestedWith } : undefined),
-    ...(UserAgent ? { 'User-Agent': UserAgent } : undefined),
+    ...(XRequestedWith ? { "X-Requested-With": XRequestedWith } : undefined),
+    ...(UserAgent ? { "User-Agent": UserAgent } : undefined),
     ...buildXForwardedForHeader(req),
     ...((includeOrigin && Origin) ? { Origin } : undefined),
   };
@@ -673,7 +673,7 @@ export function getTransitiveHeaders(
   return result;
 }
 
-export const signInStatusCookieName = sessionCookieName + '_status';
+export const signInStatusCookieName = sessionCookieName + "_status";
 
 // We expose a sign-in status in a cookie accessible to all subdomains, to assist in auto-signin.
 // Its value is SignInStatus ("S", "M" or unset). This middleware keeps this cookie in sync with
@@ -686,10 +686,10 @@ export const signInStatusCookieName = sessionCookieName + '_status';
 export function signInStatusMiddleware(req: Request, resp: Response, next: NextFunction) {
   const mreq = req as RequestWithLogin;
 
-  let origSignInStatus: SignInStatus = '';
+  let origSignInStatus: SignInStatus = "";
   if (req.headers.cookie) {
     const cookies = cookie.parse(req.headers.cookie);
-    origSignInStatus = cookies[signInStatusCookieName] || '';
+    origSignInStatus = cookies[signInStatusCookieName] || "";
   }
 
   onHeaders(resp, () => {
@@ -697,12 +697,12 @@ export function signInStatusMiddleware(req: Request, resp: Response, next: NextF
     if (newSignInStatus !== origSignInStatus) {
       // If not signed-in any more, set a past date to delete this cookie.
       const expires = (newSignInStatus && mreq.session.cookie.expires) || new Date(0);
-      resp.append('Set-Cookie', cookie.serialize(signInStatusCookieName, newSignInStatus, {
+      resp.append("Set-Cookie", cookie.serialize(signInStatusCookieName, newSignInStatus, {
         httpOnly: false,    // make available to client-side scripts
         expires,
         domain: getCookieDomain(req),
-        path: '/',
-        sameSite: 'lax',    // same setting as for grist-sid is fine here.
+        path: "/",
+        sameSite: "lax",    // same setting as for grist-sid is fine here.
       }));
     }
   });

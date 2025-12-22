@@ -1,6 +1,6 @@
-import { cssButton } from 'app/client/ui2018/buttons';
-import { mediaSmall, testId, theme, vars } from 'app/client/ui2018/cssVars';
-import { Disposable, dom, DomElementArg, styled } from 'grainjs';
+import { cssButton } from "app/client/ui2018/buttons";
+import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { Disposable, dom, DomElementArg, styled } from "grainjs";
 
 interface IPopupController extends Disposable {
   /** Close the popup. */
@@ -50,12 +50,12 @@ export function cardPopup(
       // Create a controller for this popup. We'll pass it into `createFn` so that
       // the body of the popup can close this popup, if needed.
       const ctl = PopupController.create(owner, closePopup);
-      return dom('div',
+      return dom("div",
         createFn(ctl),
-        testId('popup-card-content'),
+        testId("popup-card-content"),
       );
     }),
-    testId('popup-card'),
+    testId("popup-card"),
   );
 
   // Show the popup by appending it to the DOM.
@@ -65,7 +65,7 @@ export function cardPopup(
   dom.onDisposeElem(triggerElement, closePopup);
 }
 
-const cssPopupCard = styled('div', `
+const cssPopupCard = styled("div", `
   position: absolute;
   right: 16px;
   bottom: 16px;
@@ -83,7 +83,7 @@ const cssPopupCard = styled('div', `
   }
 `);
 
-export const cssPopupTitle = styled('div', `
+export const cssPopupTitle = styled("div", `
   font-size: ${vars.xxxlargeFontSize};
   font-weight: ${vars.headerControlTextWeight};
   color: ${theme.text};
@@ -92,11 +92,11 @@ export const cssPopupTitle = styled('div', `
   overflow-wrap: break-word;
 `);
 
-export const cssPopupBody = styled('div', `
+export const cssPopupBody = styled("div", `
   color: ${theme.text};
 `);
 
-export const cssPopupButtons = styled('div', `
+export const cssPopupButtons = styled("div", `
   margin: 24px 0 0 0;
 
   & > button,
@@ -105,7 +105,7 @@ export const cssPopupButtons = styled('div', `
   }
 `);
 
-export const cssPopupCloseButton = styled('div', `
+export const cssPopupCloseButton = styled("div", `
   align-self: flex-end;
   border-radius: 4px;
   cursor: pointer;

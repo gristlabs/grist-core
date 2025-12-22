@@ -1,23 +1,23 @@
-import { createGroup } from 'app/client/components/commands';
-import { buildDuplicatePageDialog } from 'app/client/components/duplicatePage';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { makeT } from 'app/client/lib/localization';
-import { logTelemetryEvent } from 'app/client/lib/telemetry';
-import { PageRec } from 'app/client/models/DocModel';
-import { urlState } from 'app/client/models/gristUrlState';
-import MetaTableModel from 'app/client/models/MetaTableModel';
+import { createGroup } from "app/client/components/commands";
+import { buildDuplicatePageDialog } from "app/client/components/duplicatePage";
+import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
+import { logTelemetryEvent } from "app/client/lib/telemetry";
+import { PageRec } from "app/client/models/DocModel";
+import { urlState } from "app/client/models/gristUrlState";
+import MetaTableModel from "app/client/models/MetaTableModel";
 import { find as findInTree, fromTableData, TreeItemRecord, TreeRecord,
-  TreeTableData } from 'app/client/models/TreeModel';
-import { TreeViewComponent } from 'app/client/ui/TreeViewComponent';
-import { cssRadioCheckboxOptions, radioCheckboxOption } from 'app/client/ui2018/checkbox';
-import { theme } from 'app/client/ui2018/cssVars';
-import { cssLink } from 'app/client/ui2018/links';
-import { ISaveModalOptions, saveModal } from 'app/client/ui2018/modals';
-import { buildCensoredPage, buildPageDom, PageOptions } from 'app/client/ui2018/pages';
-import { mod } from 'app/common/gutil';
-import { Computed, Disposable, dom, fromKo, makeTestId, observable, Observable, styled } from 'grainjs';
+  TreeTableData } from "app/client/models/TreeModel";
+import { TreeViewComponent } from "app/client/ui/TreeViewComponent";
+import { cssRadioCheckboxOptions, radioCheckboxOption } from "app/client/ui2018/checkbox";
+import { theme } from "app/client/ui2018/cssVars";
+import { cssLink } from "app/client/ui2018/links";
+import { ISaveModalOptions, saveModal } from "app/client/ui2018/modals";
+import { buildCensoredPage, buildPageDom, PageOptions } from "app/client/ui2018/pages";
+import { mod } from "app/common/gutil";
+import { Computed, Disposable, dom, fromKo, makeTestId, observable, Observable, styled } from "grainjs";
 
-const t = makeT('Pages');
+const t = makeT("Pages");
 
 // build dom for the tree view of pages
 export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Observable<boolean>) {
@@ -56,13 +56,13 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
   }, null, true));
 
   // dom
-  return dom('nav',
-    { 'aria-label': t("Document pages") },
+  return dom("nav",
+    { "aria-label": t("Document pages") },
     dom.create(TreeViewComponent, model, { isOpen, selected, isReadonly: activeDoc.isReadonly }),
   );
 }
 
-const testId = makeTestId('test-removepage-');
+const testId = makeTestId("test-removepage-");
 
 function buildDomFromTable(
   pagesTable: MetaTableModel<PageRec>,
@@ -104,7 +104,7 @@ function buildDomFromTable(
 }
 
 function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {
-  logTelemetryEvent('deletedPage', { full: { docIdDigest: activeDoc.docId() } });
+  logTelemetryEvent("deletedPage", { full: { docIdDigest: activeDoc.docId() } });
 
   const docData = activeDoc.docData;
   // Create a set with tables on other pages (but not on this one).
@@ -120,20 +120,20 @@ function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {
     .filter(vs => vs.table.peek().tableId.peek()) // Which we can access (has tableId)
     .map(vs => vs.table.peek()))]; // Return tableRec object, and remove duplicates.
 
-  const removePage = () => [['RemoveRecord', '_grist_Views', viewId]];
+  const removePage = () => [["RemoveRecord", "_grist_Views", viewId]];
   const removeAll = () => [
     ...removePage(),
-    ...notVisibleTables.map(tb => ['RemoveTable', tb.tableId.peek()]),
+    ...notVisibleTables.map(tb => ["RemoveTable", tb.tableId.peek()]),
   ];
 
   if (notVisibleTables.length) {
     const tableNames = notVisibleTables.map(tb => tb.tableNameDef.peek());
     buildPrompt(tableNames, async (option) => {
       // Errors are handled in the dialog.
-      if (option === 'data') {
+      if (option === "data") {
         await docData.sendActions(removeAll(), `Remove page ${pageName} with tables ${tableNames}`);
       }
-      else if (option === 'page') {
+      else if (option === "page") {
         await docData.sendActions(removePage(), `Remove only page ${pageName}`);
       }
       else {
@@ -146,7 +146,7 @@ function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {
   }
 }
 
-type RemoveOption = '' | 'data' | 'page';
+type RemoveOption = "" | "data" | "page";
 
 // Select another page in cyclic ordering of pages. Order is downard if given a positive `delta`,
 // upward otherwise.
@@ -159,23 +159,23 @@ function otherPage(currentPage: TreeItemRecord, delta: number) {
 
 function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Promise<any>) {
   saveModal((ctl, owner): ISaveModalOptions => {
-    const selected = Observable.create<RemoveOption>(owner, '');
-    const saveDisabled = Computed.create(owner, use => use(selected) === '');
+    const selected = Observable.create<RemoveOption>(owner, "");
+    const saveDisabled = Computed.create(owner, use => use(selected) === "");
     const saveFunc = () => onSave(selected.get());
     return {
-      title: t('The following tables will no longer be visible', { count: tableNames.length }),
-      body: dom('div',
-        testId('popup'),
+      title: t("The following tables will no longer be visible", { count: tableNames.length }),
+      body: dom("div",
+        testId("popup"),
         buildWarning(tableNames),
         cssRadioCheckboxOptions(
-          radioCheckboxOption(selected, 'data', t("Delete data and this page.")),
-          radioCheckboxOption(selected, 'page',
+          radioCheckboxOption(selected, "data", t("Delete data and this page.")),
+          radioCheckboxOption(selected, "page",
             t("Keep data and delete page. Table will remain available in {{rawDataLink}}",
               {
                 rawDataLink: cssLink(
-                  t('raw data page'),
-                  urlState().setHref({ docPage: 'data' }),
-                  { target: '_blank' },
+                  t("raw data page"),
+                  urlState().setHref({ docPage: "data" }),
+                  { target: "_blank" },
                 ),
               },
             ),
@@ -185,7 +185,7 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
       saveDisabled,
       saveLabel: t("Delete"),
       saveFunc,
-      width: 'fixed-wide',
+      width: "fixed-wide",
       extraButtons: [],
     };
   });
@@ -193,18 +193,18 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
 
 function buildWarning(tables: string[]) {
   return cssWarning(
-    dom.forEach(tables, tb => cssTableName(tb, testId('table'))),
+    dom.forEach(tables, tb => cssTableName(tb, testId("table"))),
   );
 }
 
-const cssWarning = styled('div', `
+const cssWarning = styled("div", `
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
 `);
 
-const cssTableName = styled('div', `
+const cssTableName = styled("div", `
   color: ${theme.choiceTokenFg};
   background-color: ${theme.choiceTokenBg};
   padding: 3px 6px;

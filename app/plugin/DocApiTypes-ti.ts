@@ -93,7 +93,7 @@ export const SetAttachmentStorePost = t.iface([], {
   type: "AttachmentStore",
 });
 
-export const AttachmentStore = t.union(t.lit('internal'), t.lit('external'));
+export const AttachmentStore = t.union(t.lit("internal"), t.lit("external"));
 
 export const AttachmentStoreDesc = t.iface([], {
   label: "string",

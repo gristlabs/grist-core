@@ -1,5 +1,5 @@
 import * as sqlUtils from "app/gen-server/sqlUtils";
-import { MigrationInterface, QueryRunner, Table } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table } from "typeorm";
 
 export class Activations1652273656610 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {
@@ -8,7 +8,7 @@ export class Activations1652273656610 implements MigrationInterface {
     const datetime = sqlUtils.datetime(dbType);
     const now = sqlUtils.now(dbType);
     await queryRunner.createTable(new Table({
-      name: 'activations',
+      name: "activations",
       columns: [
         {
           name: "id",
@@ -34,6 +34,6 @@ export class Activations1652273656610 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<any> {
-    await queryRunner.dropTable('activations');
+    await queryRunner.dropTable("activations");
   }
 }

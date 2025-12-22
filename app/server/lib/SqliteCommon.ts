@@ -1,5 +1,5 @@
-import { Marshaller } from 'app/common/marshal';
-import { OpenMode, quoteIdent } from 'app/server/lib/SQLiteDB';
+import { Marshaller } from "app/common/marshal";
+import { OpenMode, quoteIdent } from "app/server/lib/SQLiteDB";
 
 /**
  * Code common to SQLite wrappers.
@@ -150,9 +150,9 @@ interface GristMarshalIntermediateValue {
 export async function allMarshalQuery(db: MinDB, sql: string, ...params: any[]): Promise<Buffer> {
   const statement = await db.prepare(sql);
   const columns = statement.columns();
-  const quotedColumnList = columns.map(quoteIdent).join(',');
+  const quotedColumnList = columns.map(quoteIdent).join(",");
   const query = await db.all(`select grist_marshal(${quotedColumnList}) as buf FROM ` +
-    `(select ${quotedColumnList} UNION ALL select * from (` + sql + '))', ..._fixParameters(params));
+    `(select ${quotedColumnList} UNION ALL select * from (` + sql + "))", ..._fixParameters(params));
   return query[0].buf;
 }
 

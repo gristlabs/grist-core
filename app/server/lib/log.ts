@@ -6,9 +6,9 @@
  *    log.info(...);
  */
 
-import { timeFormat } from 'app/common/timeFormat';
-import { appSettings } from 'app/server/lib/AppSettings';
-import * as winston from 'winston';
+import { timeFormat } from "app/common/timeFormat";
+import { appSettings } from "app/server/lib/AppSettings";
+import * as winston from "winston";
 
 const logAsJson = appSettings.section("log").flag("json").readBool({
   envVar: ["GRIST_LOG_AS_JSON", "GRIST_HOSTED_VERSION"],
@@ -55,10 +55,10 @@ const log: LogWithTimestamp = Object.assign(rawLog, {
    * rather than stringified into the message field, which
    * is what we want and why we are adding these variants.
    */
-  rawError: (msg: string, meta: ILogMeta) => origLog.call(log, 'error', msg, meta),
-  rawInfo: (msg: string, meta: ILogMeta) => origLog.call(log, 'info', msg, meta),
-  rawWarn: (msg: string, meta: ILogMeta) => origLog.call(log, 'warn', msg, meta),
-  rawDebug: (msg: string, meta: ILogMeta) => origLog.call(log, 'debug', msg, meta),
+  rawError: (msg: string, meta: ILogMeta) => origLog.call(log, "error", msg, meta),
+  rawInfo: (msg: string, meta: ILogMeta) => origLog.call(log, "info", msg, meta),
+  rawWarn: (msg: string, meta: ILogMeta) => origLog.call(log, "warn", msg, meta),
+  rawDebug: (msg: string, meta: ILogMeta) => origLog.call(log, "debug", msg, meta),
   origLog,
   add: rawLog.add.bind(rawLog),  // Explicitly pass add method along - otherwise
   // there's an odd glitch under Electron.
@@ -73,7 +73,7 @@ function timestamp() {
 
 const fileTransportOptions = {
   stream: process.stderr,
-  level: process.env.GRIST_LOG_LEVEL || 'debug',
+  level: process.env.GRIST_LOG_LEVEL || "debug",
   timestamp: log.timestamp,
   colorize: true,
   json: logAsJson,

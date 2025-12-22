@@ -1,6 +1,6 @@
-import { assert, driver, Key, WebElement } from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { assert, driver, Key, WebElement } from "mocha-webdriver";
+import * as gu from "test/nbrowser/gristUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
 
 interface CellSelection {
   /** 0-based column index. */
@@ -24,14 +24,14 @@ interface SelectionRange {
   end: number;
 }
 
-describe('ShiftSelection', function() {
+describe("ShiftSelection", function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
   gu.bigScreen();
 
   before(async function() {
     const session = await gu.session().personalSite.login();
-    await session.tempDoc(cleanup, 'ShiftSelection.grist');
+    await session.tempDoc(cleanup, "ShiftSelection.grist");
   });
 
   async function getSelectionRange(parent: WebElement, selector: string): Promise<SelectionRange | undefined> {
@@ -41,7 +41,7 @@ describe('ShiftSelection', function() {
     const elements = await parent.findAll(selector);
     for (let i = 0; i < elements.length; i++) {
       const element = elements[i];
-      const isSelected = await element.matches('.selected');
+      const isSelected = await element.matches(".selected");
 
       if (isSelected && !selectionActive) {
         start = i;
@@ -70,14 +70,14 @@ describe('ShiftSelection', function() {
   }
 
   async function getSelectedCells(): Promise<CellSelection | undefined> {
-    const activeSection = await driver.find('.active_section');
+    const activeSection = await driver.find(".active_section");
 
-    const colSelection = await getSelectionRange(activeSection, '.column_names .column_name');
+    const colSelection = await getSelectionRange(activeSection, ".column_names .column_name");
     if (!colSelection) {
       return undefined;
     }
 
-    const rowSelection = await getSelectionRange(activeSection, '.gridview_row .gridview_data_row_num');
+    const rowSelection = await getSelectionRange(activeSection, ".gridview_row .gridview_data_row_num");
     if (!rowSelection) {
       // Edge case if only a cell in the "new" row is selected
       // Not relevant for our tests
@@ -97,45 +97,45 @@ describe('ShiftSelection', function() {
     assert.deepEqual(currentSelection, expected);
   }
 
-  it('Shift+Up extends the selection up', async function() {
+  it("Shift+Up extends the selection up", async function() {
     await gu.getCell(1, 2).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.UP));
     await assertCellSelection({ colStart: 1, colEnd: 1, rowStart: 0, rowEnd: 1 });
   });
 
-  it('Shift+Down extends the selection down', async function() {
+  it("Shift+Down extends the selection down", async function() {
     await gu.getCell(1, 2).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.DOWN));
     await assertCellSelection({ colStart: 1, colEnd: 1, rowStart: 1, rowEnd: 2 });
   });
 
-  it('Shift+Left extends the selection left', async function() {
+  it("Shift+Left extends the selection left", async function() {
     await gu.getCell(1, 2).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.LEFT));
     await assertCellSelection({ colStart: 0, colEnd: 1, rowStart: 1, rowEnd: 1 });
   });
 
-  it('Shift+Right extends the selection right', async function() {
+  it("Shift+Right extends the selection right", async function() {
     await gu.getCell(1, 2).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.RIGHT));
     await assertCellSelection({ colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 1 });
   });
 
-  it('Shift+Right + Shift+Left leads to the initial selection', async function() {
+  it("Shift+Right + Shift+Left leads to the initial selection", async function() {
     await gu.getCell(1, 2).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.RIGHT));
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.LEFT));
     await assertCellSelection({ colStart: 1, colEnd: 1, rowStart: 1, rowEnd: 1 });
   });
 
-  it('Shift+Up + Shift+Down leads to the initial selection', async function() {
+  it("Shift+Up + Shift+Down leads to the initial selection", async function() {
     await gu.getCell(1, 2).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.UP));
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.DOWN));
     await assertCellSelection({ colStart: 1, colEnd: 1, rowStart: 1, rowEnd: 1 });
   });
 
-  it('Ctrl+Shift+Up extends the selection blockwise up', async function() {
+  it("Ctrl+Shift+Up extends the selection blockwise up", async function() {
     await gu.getCell(5, 7).click();
 
     const ctrlKey = await gu.modKey();
@@ -150,7 +150,7 @@ describe('ShiftSelection', function() {
     await assertCellSelection({ colStart: 5, colEnd: 5, rowStart: 0, rowEnd: 6 });
   });
 
-  it('Ctrl+Shift+Down extends the selection blockwise down', async function() {
+  it("Ctrl+Shift+Down extends the selection blockwise down", async function() {
     await gu.getCell(5, 5).click();
 
     const ctrlKey = await gu.modKey();
@@ -165,7 +165,7 @@ describe('ShiftSelection', function() {
     await assertCellSelection({ colStart: 5, colEnd: 5, rowStart: 4, rowEnd: 10 });
   });
 
-  it('Ctrl+Shift+Left extends the selection blockwise left', async function() {
+  it("Ctrl+Shift+Left extends the selection blockwise left", async function() {
     await gu.getCell(6, 5).click();
 
     const ctrlKey = await gu.modKey();
@@ -180,7 +180,7 @@ describe('ShiftSelection', function() {
     await assertCellSelection({ colStart: 0, colEnd: 6, rowStart: 4, rowEnd: 4 });
   });
 
-  it('Ctrl+Shift+Right extends the selection blockwise right', async function() {
+  it("Ctrl+Shift+Right extends the selection blockwise right", async function() {
     await gu.getCell(4, 5).click();
 
     const ctrlKey = await gu.modKey();
@@ -195,7 +195,7 @@ describe('ShiftSelection', function() {
     await assertCellSelection({ colStart: 4, colEnd: 10, rowStart: 4, rowEnd: 4 });
   });
 
-  it('Ctrl+Shift+* extends the selection until all the next cells are empty', async function() {
+  it("Ctrl+Shift+* extends the selection until all the next cells are empty", async function() {
     await gu.getCell(3, 7).click();
 
     const ctrlKey = await gu.modKey();

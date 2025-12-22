@@ -1,6 +1,6 @@
-import { DatabaseType, ObjectLiteral, QueryRunner, SelectQueryBuilder } from 'typeorm';
-import { RelationCountLoader } from 'typeorm/query-builder/relation-count/RelationCountLoader';
-import { RelationIdLoader } from 'typeorm/query-builder/relation-id/RelationIdLoader';
+import { DatabaseType, ObjectLiteral, QueryRunner, SelectQueryBuilder } from "typeorm";
+import { RelationCountLoader } from "typeorm/query-builder/relation-count/RelationCountLoader";
+import { RelationIdLoader } from "typeorm/query-builder/relation-id/RelationIdLoader";
 import { RawSqlResultsToEntityTransformer } from "typeorm/query-builder/transformer/RawSqlResultsToEntityTransformer";
 
 /**
@@ -21,7 +21,7 @@ export function sqliteBitOr(column: string, bits: number): string {
     parts.push(`((sum(${column}&${mask})>0)<<${b})`);
     mask *= 2;
   }
-  return `(${parts.join('+')})`;
+  return `(${parts.join("+")})`;
 }
 
 /**
@@ -33,9 +33,9 @@ export function sqliteBitOr(column: string, bits: number): string {
  */
 export function bitOr(dbType: DatabaseType, column: string, bits: number): string {
   switch (dbType) {
-    case 'postgres':
+    case "postgres":
       return `bit_or(${column})`;
-    case 'sqlite':
+    case "sqlite":
       return sqliteBitOr(column, bits);
     default:
       throw new Error(`bitOr not implemented for ${dbType}`);
@@ -49,10 +49,10 @@ export function bitOr(dbType: DatabaseType, column: string, bits: number): strin
  */
 export function hasOnlyTheseIdsOrNull(dbType: DatabaseType, ids: number[], columns: string[]): string {
   switch (dbType) {
-    case 'postgres':
-      return `array[${ids.join(',')}] @> array_remove(array[${columns.join(',')}],null)`;
-    case 'sqlite':
-      return columns.map(col => `coalesce(${col} in (${ids.join(',')}), true)`).join(' AND ');
+    case "postgres":
+      return `array[${ids.join(",")}] @> array_remove(array[${columns.join(",")}],null)`;
+    case "sqlite":
+      return columns.map(col => `coalesce(${col} in (${ids.join(",")}), true)`).join(" AND ");
     default:
       throw new Error(`hasOnlyTheseIdsOrNull not implemented for ${dbType}`);
   }
@@ -65,10 +65,10 @@ export function hasOnlyTheseIdsOrNull(dbType: DatabaseType, ids: number[], colum
  */
 export function hasAtLeastOneOfTheseIds(dbType: DatabaseType, ids: number[], columns: string[]): string {
   switch (dbType) {
-    case 'postgres':
-      return `array[${ids.join(',')}] OPERATOR(pg_catalog.&&) array[${columns.join(',')}]`;
-    case 'sqlite':
-      return ids.map(id => `${id} in (${columns.join(',')})`).join(' OR ');
+    case "postgres":
+      return `array[${ids.join(",")}] OPERATOR(pg_catalog.&&) array[${columns.join(",")}]`;
+    case "sqlite":
+      return ids.map(id => `${id} in (${columns.join(",")})`).join(" OR ");
     default:
       throw new Error(`hasAtLeastOneOfTheseIds not implemented for ${dbType}`);
   }
@@ -79,8 +79,8 @@ export function hasAtLeastOneOfTheseIds(dbType: DatabaseType, ids: number[], col
  */
 export function makeJsonArray(dbType: DatabaseType, content: string): string {
   switch (dbType) {
-    case 'postgres': return `json_agg(${content})`;
-    case 'sqlite': return `json_group_array(${content})`;
+    case "postgres": return `json_agg(${content})`;
+    case "sqlite": return `json_group_array(${content})`;
     default: throw new Error(`makeJsonArray not implemented for ${dbType}`);
   }
 }
@@ -92,9 +92,9 @@ export function makeJsonArray(dbType: DatabaseType, content: string): string {
  */
 export function readJson(dbType: DatabaseType, selection: any) {
   switch (dbType) {
-    case 'postgres':
+    case "postgres":
       return selection;
-    case 'sqlite':
+    case "sqlite":
       return JSON.parse(selection);
     default:
       throw new Error(`readJson not implemented for ${dbType}`);
@@ -103,9 +103,9 @@ export function readJson(dbType: DatabaseType, selection: any) {
 
 export function now(dbType: DatabaseType) {
   switch (dbType) {
-    case 'postgres':
-      return 'now()';
-    case 'sqlite':
+    case "postgres":
+      return "now()";
+    case "sqlite":
       return "datetime('now')";
     default:
       throw new Error(`now not implemented for ${dbType}`);
@@ -115,9 +115,9 @@ export function now(dbType: DatabaseType) {
 // Understands strings like: "-30 days" or "1 year"
 export function fromNow(dbType: DatabaseType, relative: string) {
   switch (dbType) {
-    case 'postgres':
+    case "postgres":
       return `(now() + interval '${relative}')`;
-    case 'sqlite':
+    case "sqlite":
       return `datetime('now','${relative}')`;
     default:
       throw new Error(`fromNow not implemented for ${dbType}`);
@@ -126,9 +126,9 @@ export function fromNow(dbType: DatabaseType, relative: string) {
 
 export function datetime(dbType: DatabaseType) {
   switch (dbType) {
-    case 'postgres':
-      return 'timestamp with time zone';
-    case 'sqlite':
+    case "postgres":
+      return "timestamp with time zone";
+    case "sqlite":
       return "datetime";
     default:
       throw new Error(`now not implemented for ${dbType}`);

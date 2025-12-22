@@ -1,17 +1,17 @@
-import { allCommands } from 'app/client/components/commands';
-import { FormLayoutNodeType } from 'app/client/components/FormRenderer';
-import * as components from 'app/client/components/Forms/elements';
-import { FormView } from 'app/client/components/Forms/FormView';
-import { BoxModel, Place } from 'app/client/components/Forms/Model';
-import { makeTestId, stopEvent } from 'app/client/lib/domUtils';
-import { FocusLayer } from 'app/client/lib/FocusLayer';
-import { makeT } from 'app/client/lib/localization';
-import { getColumnTypes as getNewColumnTypes } from 'app/client/ui/GridViewMenus';
-import * as menus from 'app/client/ui2018/menus';
-import { Computed, dom, IDomArgs, MultiHolder } from 'grainjs';
+import { allCommands } from "app/client/components/commands";
+import { FormLayoutNodeType } from "app/client/components/FormRenderer";
+import * as components from "app/client/components/Forms/elements";
+import { FormView } from "app/client/components/Forms/FormView";
+import { BoxModel, Place } from "app/client/components/Forms/Model";
+import { makeTestId, stopEvent } from "app/client/lib/domUtils";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import { makeT } from "app/client/lib/localization";
+import { getColumnTypes as getNewColumnTypes } from "app/client/ui/GridViewMenus";
+import * as menus from "app/client/ui2018/menus";
+import { Computed, dom, IDomArgs, MultiHolder } from "grainjs";
 
-const t = makeT('Menu');
-const testId = makeTestId('test-forms-menu-');
+const t = makeT("Menu");
+const testId = makeTestId("test-forms-menu-");
 
 // New box to add, either a new column of type, an existing column (by column id), or a structure.
 export type NewBox = { add: string } | { show: string } | { structure: FormLayoutNodeType };
@@ -53,7 +53,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
     const list = normalCols.map((col) => {
       return {
         label: use(col.label),
-        icon: types.find(type => type.colType === use(col.pureType))?.icon ?? 'TypeCell',
+        icon: types.find(type => type.colType === use(col.pureType))?.icon ?? "TypeCell",
         colId: use(col.colId),
       };
     });
@@ -64,7 +64,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
   const moreThan5 = Computed.create(owner, use => use(unmapped).length > 5);
 
   // If we are in a column, then we can't insert a new column.
-  const disableInsert = box?.parent?.type === 'Columns' && box.type !== 'Placeholder';
+  const disableInsert = box?.parent?.type === "Columns" && box.type !== "Placeholder";
 
   return [
     dom.autoDispose(owner),
@@ -87,7 +87,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
         allCommands.insertField.run(el);
       };
       const custom = props.insertBox ? (el: NewBox) => () => {
-        if ('add' in el || 'show' in el) {
+        if ("add" in el || "show" in el) {
           return view.addNewQuestion(props.insertBox!, el);
         }
         else {
@@ -97,7 +97,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
       } : null;
 
       // Field menus.
-      const quick = ['Text', 'Numeric', 'Choice', 'Date'];
+      const quick = ["Text", "Numeric", "Choice", "Date"];
       const disabled: string[] = [];
       const commonTypes = () => getNewColumnTypes(gristDoc, viewSection.tableId());
       const isQuick = ({ colType}: { colType: string }) => quick.includes(colType);
@@ -106,7 +106,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
 
       const insertMenu = (where: typeof above) => () => {
         return [
-          menus.menuSubHeader(t('New question')),
+          menus.menuSubHeader(t("New question")),
           ...commonTypes()
             .filter(isQuick)
             .filter(isEnabled)
@@ -121,19 +121,19 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
                 ct.displayName,
               )),
             {},
-            menus.menuIcon('Dots'),
-            dom('span', t("More"), dom.style('margin-right', '8px')),
+            menus.menuIcon("Dots"),
+            dom("span", t("More"), dom.style("margin-right", "8px")),
           ),
           dom.maybe(oneTo5, () => [
             menus.menuDivider(),
-            menus.menuSubHeader(t('Unmapped fields')),
+            menus.menuSubHeader(t("Unmapped fields")),
             dom.domComputed(unmapped, uf =>
               uf.map(({ label, icon, colId }) => menus.menuItem(
                 where({ show: colId }),
                 menus.menuIcon(icon),
                 label,
-                testId('unmapped'),
-                testId('unmapped-' + colId),
+                testId("unmapped"),
+                testId("unmapped-" + colId),
               )),
             ),
           ]),
@@ -145,19 +145,19 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
                   where({ show: colId }),
                   menus.menuIcon(icon),
                   label,
-                  testId('unmapped'),
-                  testId('unmapped-' + colId),
+                  testId("unmapped"),
+                  testId("unmapped-" + colId),
                 )),
               {},
-              dom('span', "Unmapped fields", dom.style('margin-right', '8px')),
+              dom("span", "Unmapped fields", dom.style("margin-right", "8px")),
             ),
           ]),
           menus.menuDivider(),
-          menus.menuSubHeader(t('Building blocks')),
-          menus.menuItem(where(struct('Header')), menus.menuIcon('Headband'), t("Header")),
-          menus.menuItem(where(struct('Paragraph')), menus.menuIcon('Paragraph'), t("Paragraph")),
-          menus.menuItem(where(struct('Columns')), menus.menuIcon('Columns'), t("Columns")),
-          menus.menuItem(where(struct('Separator')), menus.menuIcon('Separator'), t("Separator")),
+          menus.menuSubHeader(t("Building blocks")),
+          menus.menuItem(where(struct("Header")), menus.menuIcon("Headband"), t("Header")),
+          menus.menuItem(where(struct("Paragraph")), menus.menuIcon("Paragraph"), t("Paragraph")),
+          menus.menuItem(where(struct("Columns")), menus.menuIcon("Columns"), t("Columns")),
+          menus.menuItem(where(struct("Separator")), menus.menuIcon("Separator"), t("Separator")),
 
           props.customItems ? menus.menuDivider() : null,
           ...(props.customItems ?? []),
@@ -170,8 +170,8 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
 
       return [
         disableInsert ? null : [
-          menus.menuItemSubmenu(insertMenu(above), { action: above({ add: 'Text' }) }, t("Insert question above")),
-          menus.menuItemSubmenu(insertMenu(below), { action: below({ add: 'Text' }) }, t("Insert question below")),
+          menus.menuItemSubmenu(insertMenu(above), { action: above({ add: "Text" }) }, t("Insert question above")),
+          menus.menuItemSubmenu(insertMenu(below), { action: below({ add: "Text" }) }, t("Insert question below")),
           menus.menuDivider(),
         ],
         menus.menuItemCmd(allCommands.contextMenuCopy, t("Copy")),
@@ -180,11 +180,11 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
         menus.menuDivider(),
         menus.menuItemCmd(allCommands.deleteFields, "Hide"),
         elem => void FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }),
-        customItems?.length ? menus.menuDivider(dom.style('min-width', '200px')) : null,
+        customItems?.length ? menus.menuDivider(dom.style("min-width", "200px")) : null,
         ...(customItems ?? []),
         ...args,
       ];
-    }, { trigger: [context ? 'contextmenu' : 'click'] }),
-    context ? dom.on('contextmenu', stopEvent) : null,
+    }, { trigger: [context ? "contextmenu" : "click"] }),
+    context ? dom.on("contextmenu", stopEvent) : null,
   ];
 }

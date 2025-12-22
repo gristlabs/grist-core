@@ -1,12 +1,12 @@
-import { hoverTooltip } from 'app/client/ui/tooltips';
-import { colors, testId, theme, vars } from 'app/client/ui2018/cssVars';
-import { IconName } from 'app/client/ui2018/IconList';
-import { icon } from 'app/client/ui2018/icons';
-import { unstyledButton } from 'app/client/ui2018/unstyled';
-import { isColorDark } from 'app/common/gutil';
-import { components } from 'app/common/ThemePrefs';
-import { dom, DomElementArg, Observable, styled } from 'grainjs';
-import debounce from 'lodash/debounce';
+import { hoverTooltip } from "app/client/ui/tooltips";
+import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { IconName } from "app/client/ui2018/IconList";
+import { icon } from "app/client/ui2018/icons";
+import { unstyledButton } from "app/client/ui2018/unstyled";
+import { isColorDark } from "app/common/gutil";
+import { components } from "app/common/ThemePrefs";
+import { dom, DomElementArg, Observable, styled } from "grainjs";
+import debounce from "lodash/debounce";
 
 export interface ISelectorOptionFull<T> {
   value: T;
@@ -69,11 +69,11 @@ export function buttonToggleSelect<T>(
  */
 export function alignmentSelect(obs: Observable<string>, ...domArgs: DomElementArg[]) {
   const alignments: ISelectorOption<string>[] = [
-    { value: 'left',   icon: 'LeftAlign' },
-    { value: 'center', icon: 'CenterAlign' },
-    { value: 'right',  icon: 'RightAlign' },
+    { value: "left",   icon: "LeftAlign" },
+    { value: "center", icon: "CenterAlign" },
+    { value: "right",  icon: "RightAlign" },
   ];
-  return buttonSelect(obs, alignments, {}, testId('alignment-select'), ...domArgs);
+  return buttonSelect(obs, alignments, {}, testId("alignment-select"), ...domArgs);
 }
 
 /**
@@ -94,14 +94,14 @@ export function colorSelect(value: Observable<string>, save: (val: string) => Pr
     // latest saved value we should rebind the <input .../> element each time the value is changed
     // by the server.
     cssColorPicker(
-      { type: 'color' },
-      dom.attr('value', use => use(value).slice(0, 7)),
-      dom.on('input', setValue),
-      dom.on('change', onSave),
+      { type: "color" },
+      dom.attr("value", use => use(value).slice(0, 7)),
+      dom.on("input", setValue),
+      dom.on("change", onSave),
     ),
-    dom.style('background-color', use => use(value) || '#000000'),
-    cssColorBtn.cls('-dark', use => isColorDark(use(value) || '#000000')),
-    cssColorIcon('Dots'),
+    dom.style("background-color", use => use(value) || "#000000"),
+    cssColorBtn.cls("-dark", use => isColorDark(use(value) || "#000000")),
+    cssColorIcon("Dots"),
     ...domArgs,
   );
 }
@@ -121,11 +121,11 @@ export function makeButtonSelect<T>(
       return cssSelectorBtn(
         tooltip ? hoverTooltip(tooltip) : null,
         screenReaderLabel ? { "aria-label": screenReaderLabel } : null,
-        cssSelectorBtn.cls('-selected', use => use(obs) === value),
-        dom.on('click', () => onClick(value)),
+        cssSelectorBtn.cls("-selected", use => use(obs) === value),
+        dom.on("click", () => onClick(value)),
         isFullOption(option) && option.icon ? icon(option.icon) : null,
         label ? cssSelectorLabel(label) : null,
-        testId('select-button'),
+        testId("select-button"),
       );
     }),
     ...domArgs,
@@ -144,7 +144,7 @@ function getOptionValue<T>(option: ISelectorOption<T>): T {
   return isFullOption(option) ? option.value : option;
 }
 
-export const cssButtonSelect = styled('div', `
+export const cssButtonSelect = styled("div", `
   /* Resets */
   position: relative;
   outline: none;
@@ -239,12 +239,12 @@ const cssSelectorBtn = styled(unstyledButton, `
   }
 `);
 
-const cssSelectorLabel = styled('span', `
+const cssSelectorLabel = styled("span", `
   margin: 0 2px;
   vertical-align: middle;
 `);
 
-const cssColorBtn = styled('div', `
+const cssColorBtn = styled("div", `
   position: relative;
   display: flex;
   justify-content: center;
@@ -265,7 +265,7 @@ const cssColorBtn = styled('div', `
   }
 `);
 
-const cssColorPicker = styled('input', `
+const cssColorPicker = styled("input", `
   position: absolute;
   cursor: pointer;
   opacity: 0;

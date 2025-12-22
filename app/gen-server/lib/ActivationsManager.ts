@@ -51,36 +51,36 @@ export class ActivationsManager {
       const excludedUsers = userManager.getExcludedUserIds();
       const { count } = await manager
         .createQueryBuilder()
-        .select('CAST(COUNT(*) AS INTEGER)', 'count') // Cast to integer for postgres, which returns strings.
+        .select("CAST(COUNT(*) AS INTEGER)", "count") // Cast to integer for postgres, which returns strings.
         .from((qb) => {
           const sub = qb
-            .select('DISTINCT u.id', 'id')
-            .from('acl_rules', 'a')
-            .innerJoin('groups', 'g', 'a.group_id = g.id')
-            .innerJoin('orgs', 'o', 'a.org_id = o.id')
-            .innerJoin('group_users', 'gu', 'g.id = gu.group_id')
-            .innerJoin('users', 'u', 'gu.user_id = u.id');
+            .select("DISTINCT u.id", "id")
+            .from("acl_rules", "a")
+            .innerJoin("groups", "g", "a.group_id = g.id")
+            .innerJoin("orgs", "o", "a.org_id = o.id")
+            .innerJoin("group_users", "gu", "g.id = gu.group_id")
+            .innerJoin("users", "u", "gu.user_id = u.id");
 
-          if (process.env.GRIST_SINGLE_ORG === 'docs') {
+          if (process.env.GRIST_SINGLE_ORG === "docs") {
             // Count only personal orgs.
             return sub
-              .where('o.owner_id = u.id')
-              .andWhere('u.id NOT IN (:...excludedUsers)', { excludedUsers });
+              .where("o.owner_id = u.id")
+              .andWhere("u.id NOT IN (:...excludedUsers)", { excludedUsers });
           }
           else if (process.env.GRIST_SINGLE_ORG) {
             // Count users of this single org.
             return sub
-              .where('o.owner_id IS NULL')
-              .andWhere('o.domain = :domain', { domain: process.env.GRIST_SINGLE_ORG })
-              .andWhere('u.id NOT IN (:...excludedUsers)', { excludedUsers });
+              .where("o.owner_id IS NULL")
+              .andWhere("o.domain = :domain", { domain: process.env.GRIST_SINGLE_ORG })
+              .andWhere("u.id NOT IN (:...excludedUsers)", { excludedUsers });
           }
           else {
             // Count users of all teams except personal.
             return sub
-              .where('o.owner_id IS NULL')
-              .andWhere('u.id NOT IN (:...excludedUsers)', { excludedUsers });
+              .where("o.owner_id IS NULL")
+              .andWhere("u.id NOT IN (:...excludedUsers)", { excludedUsers });
           }
-        }, 'subquery')
+        }, "subquery")
         .getRawOne();
       return count;
     });

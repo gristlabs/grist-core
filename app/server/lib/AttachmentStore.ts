@@ -1,11 +1,11 @@
 import {
   ExternalStorage,
   joinKeySegments,
-} from 'app/server/lib/ExternalStorage';
-import { MemoryWritableStream } from 'app/server/utils/streams';
-import * as fse from 'fs-extra';
-import * as stream from 'node:stream';
-import * as path from 'path';
+} from "app/server/lib/ExternalStorage";
+import { MemoryWritableStream } from "app/server/utils/streams";
+import * as fse from "fs-extra";
+import * as stream from "node:stream";
+import * as path from "path";
 
 export type DocPoolId = string;
 type FileId = string;
@@ -136,9 +136,9 @@ export class AttachmentStoreCreationError extends Error {
 }
 
 export interface ExternalStorageSupportingAttachments extends ExternalStorage {
-  uploadStream: NonNullable<ExternalStorage['uploadStream']>;
-  downloadStream: NonNullable<ExternalStorage['downloadStream']>;
-  removeAllWithPrefix: NonNullable<ExternalStorage['removeAllWithPrefix']>;
+  uploadStream: NonNullable<ExternalStorage["uploadStream"]>;
+  downloadStream: NonNullable<ExternalStorage["downloadStream"]>;
+  removeAllWithPrefix: NonNullable<ExternalStorage["removeAllWithPrefix"]>;
 }
 
 export function storageSupportsAttachments(storage: ExternalStorage): storage is ExternalStorageSupportingAttachments {

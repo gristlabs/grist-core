@@ -4,13 +4,13 @@ import {
   IDomArgs, MultiHolder, styled, TagElem,
 } from "grainjs";
 import { GristDoc } from "app/client/components/GristDoc";
-import { makeT } from 'app/client/lib/localization';
+import { makeT } from "app/client/lib/localization";
 import { ITooltipControl, showTooltip, tooltipCloseButton } from "app/client/ui/tooltips";
 import { FieldEditorStateEvent } from "app/client/widgets/FieldEditor";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
 
-const t = makeT('components.Drafts');
+const t = makeT("components.Drafts");
 
 /**
  * Component that keeps track of editor's state (draft value). If user hits an escape button
@@ -266,7 +266,7 @@ class StorageAdapter extends Disposable implements Storage {
 export function showUndoDiscardNotification(doc: GristDoc, onClick: () => void) {
   const notifier = doc.app.topAppModel.notifier;
   const notification = notifier.createUserMessage(t("Undo discard"), {
-    key: 'undo-discard',
+    key: "undo-discard",
     message: () =>
       discardNotification(
         dom.on("click", onClick),
@@ -424,7 +424,7 @@ class EditorAdapter extends Disposable implements Editor {
 // Ui components
 
 // Cell tooltip to restore the draft - it is visible over active editor
-const styledTooltip = styled('div', `
+const styledTooltip = styled("div", `
   display: flex;
   align-items: center;
   --icon-color: ${theme.controlFg};
@@ -438,8 +438,8 @@ function cellTooltip(clb: () => any) {
   return function(ctl: ITooltipControl) {
     return styledTooltip(
       cssLink(t("Restore last edit"),
-        dom.on('mousedown', (ev) => { ev.preventDefault(); ctl.close(); clb(); }),
-        testId('draft-tooltip'),
+        dom.on("mousedown", (ev) => { ev.preventDefault(); ctl.close(); clb(); }),
+        testId("draft-tooltip"),
       ),
       tooltipCloseButton(ctl),
     );
@@ -447,7 +447,7 @@ function cellTooltip(clb: () => any) {
 }
 
 // Discard notification dom
-const styledNotification = styled('div', `
+const styledNotification = styled("div", `
   cursor: pointer;
   color: ${theme.controlFg};
   &:hover {

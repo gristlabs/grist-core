@@ -7,8 +7,8 @@
  * "lush" would only match the "L" in "Lavender".
  */
 
-import { localeCompare, nativeCompare, sortedIndex } from 'app/common/gutil';
-import { DomContents } from 'grainjs';
+import { localeCompare, nativeCompare, sortedIndex } from "app/common/gutil";
+import { DomContents } from "grainjs";
 import escapeRegExp from "lodash/escapeRegExp";
 import deburr from "lodash/deburr";
 import split from "lodash/split";
@@ -259,10 +259,10 @@ const wordSepRegexpParen = new RegExp(`(${wordSepRegexp.source})`);
  */
 function highlightMatches(searchWords: string[], text: string): string[] {
   const textParts = text.split(wordSepRegexpParen);
-  const outputs = [''];
+  const outputs = [""];
   for (let i = 0; i < textParts.length; i += 2) {
     const word = textParts[i];
-    const separator = textParts[i + 1] || '';
+    const separator = textParts[i + 1] || "";
     // deburr (remove diacritics) was used to produce searchWords, so `word` needs to match that.
     const prefixLen = findLongestPrefixLen(deburr(word).toLowerCase(), searchWords);
     if (prefixLen === 0) {
@@ -270,10 +270,10 @@ function highlightMatches(searchWords: string[], text: string): string[] {
     }
     else {
       // Split into unicode 'characters' that keep diacritics combined
-      const chars = split(word, '');
+      const chars = split(word, "");
       outputs.push(
-        chars.slice(0, prefixLen).join(''),
-        chars.slice(prefixLen).join('') + separator,
+        chars.slice(0, prefixLen).join(""),
+        chars.slice(prefixLen).join("") + separator,
       );
     }
   }
@@ -297,7 +297,7 @@ function findCommonPrefixLength(text1: string, text2: string): number {
 function startsWithText(item: ACItem, text: string, searchWords: string[]): boolean {
   if (item.cleanText.startsWith(text)) { return true; }
 
-  const regexp = new RegExp(searchWords.map(w => `\\b` + escapeRegExp(w)).join('.*'));
-  const cleanText = item.cleanText.split(wordSepRegexp).join(' ');
+  const regexp = new RegExp(searchWords.map(w => `\\b` + escapeRegExp(w)).join(".*"));
+  const cleanText = item.cleanText.split(wordSepRegexp).join(" ");
   return regexp.test(cleanText);
 }

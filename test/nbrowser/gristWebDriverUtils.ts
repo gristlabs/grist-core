@@ -8,12 +8,12 @@
  * easily.
  */
 
-import escapeRegExp from 'lodash/escapeRegExp';
-import { CommandName } from 'app/client/components/commandList';
-import { DocAction, UserAction } from 'app/common/DocActions';
-import { WebDriver, WebElement, WebElementPromise } from 'mocha-webdriver';
+import escapeRegExp from "lodash/escapeRegExp";
+import { CommandName } from "app/client/components/commandList";
+import { DocAction, UserAction } from "app/common/DocActions";
+import { WebDriver, WebElement, WebElementPromise } from "mocha-webdriver";
 
-type SectionTypes = 'Table' | 'Card' | 'Card List' | 'Chart' | 'Custom' | 'Form';
+type SectionTypes = "Table" | "Card" | "Card List" | "Chart" | "Custom" | "Form";
 
 // it is sometimes useful in debugging to turn off automatic cleanup of docs and workspaces.
 export const noCleanup = Boolean(process.env.NO_CLEANUP);
@@ -22,8 +22,8 @@ export class GristWebDriverUtils {
   public constructor(public driver: WebDriver) {
   }
 
-  public isSidePanelOpen(which: 'right' | 'left'): Promise<boolean> {
-    return this.driver.find(`.test-${which}-panel`).matches('[class*=-open]');
+  public isSidePanelOpen(which: "right" | "left"): Promise<boolean> {
+    return this.driver.find(`.test-${which}-panel`).matches("[class*=-open]");
   }
 
   /**
@@ -63,14 +63,14 @@ export class GristWebDriverUtils {
    * Toggles (opens or closes) the right or left panel and wait for the transition to complete. An optional
    * argument can specify the desired state.
    */
-  public async toggleSidePanel(which: 'right' | 'left', goal: 'open' | 'close' | 'toggle' = 'toggle') {
-    if ((goal === 'open' && await this.isSidePanelOpen(which)) ||
-      (goal === 'close' && !await this.isSidePanelOpen(which))) {
+  public async toggleSidePanel(which: "right" | "left", goal: "open" | "close" | "toggle" = "toggle") {
+    if ((goal === "open" && await this.isSidePanelOpen(which)) ||
+      (goal === "close" && !await this.isSidePanelOpen(which))) {
       return;
     }
 
     // Adds '-ns' when narrow screen
-    const suffix = (await this.getWindowDimensions()).width < 768 ? '-ns' : '';
+    const suffix = (await this.getWindowDimensions()).width < 768 ? "-ns" : "";
 
     // click the opener and wait for the duration of the transition
     await this.driver.find(`.test-${which}-opener${suffix}`).doClick();
@@ -97,8 +97,8 @@ export class GristWebDriverUtils {
     typeRe: RegExp | SectionTypes, tableRe: RegExp | string, options?: PageWidgetPickerOptions,
   ) {
     // Click the 'Add widget to page' entry in the 'Add New' menu
-    await this.driver.findWait('.test-dp-add-new', 2000).doClick();
-    await this.driver.findWait('.test-dp-add-widget-to-page', 500).doClick();
+    await this.driver.findWait(".test-dp-add-new", 2000).doClick();
+    await this.driver.findWait(".test-dp-add-widget-to-page", 500).doClick();
 
     // add widget
     await this.selectWidget(typeRe, tableRe, options);
@@ -108,7 +108,7 @@ export class GristWebDriverUtils {
   // must be already opened when calling this function.
   public async selectWidget(
     typeRe: RegExp | string,
-    tableRe: RegExp | string = '',
+    tableRe: RegExp | string = "",
     options: PageWidgetPickerOptions = {},
   ) {
     const { customWidget, dismissTips, dontAdd, selectBy, summarize, tableName } = options;
@@ -116,15 +116,15 @@ export class GristWebDriverUtils {
     if (dismissTips) { await this.dismissBehavioralPrompts(); }
 
     // select right type
-    await driver.findContentWait('.test-wselect-type', typeRe, 500).doClick();
+    await driver.findContentWait(".test-wselect-type", typeRe, 500).doClick();
 
     if (dismissTips) { await this.dismissBehavioralPrompts(); }
 
     if (tableRe) {
-      const tableEl = driver.findContentWait('.test-wselect-table', tableRe, 100);
+      const tableEl = driver.findContentWait(".test-wselect-table", tableRe, 100);
 
       // unselect all selected columns
-      for (const col of (await driver.findAll('.test-wselect-column[class*=-selected]'))) {
+      for (const col of (await driver.findAll(".test-wselect-column[class*=-selected]"))) {
         await col.click();
       }
 
@@ -133,13 +133,13 @@ export class GristWebDriverUtils {
 
       if (dismissTips) { await this.dismissBehavioralPrompts(); }
 
-      const pivotEl = tableEl.find('.test-wselect-pivot');
+      const pivotEl = tableEl.find(".test-wselect-pivot");
       if (await pivotEl.isPresent()) {
         await this.toggleSelectable(pivotEl, Boolean(summarize));
       }
 
       if (summarize) {
-        for (const columnEl of await driver.findAll('.test-wselect-column')) {
+        for (const columnEl of await driver.findAll(".test-wselect-column")) {
           const label = await columnEl.getText();
           // TODO: Matching cols with regexp calls for trouble and adds no value. I think function should be
           // rewritten using string matching only.
@@ -150,15 +150,15 @@ export class GristWebDriverUtils {
 
       if (selectBy) {
         // select link
-        await driver.findWait('.test-wselect-selectby', 100).doClick();
-        await driver.findContentWait('.test-wselect-selectby option', selectBy, 100).doClick();
+        await driver.findWait(".test-wselect-selectby", 100).doClick();
+        await driver.findContentWait(".test-wselect-selectby option", selectBy, 100).doClick();
       }
     }
 
     if (dontAdd) { return; }
 
     // add the widget
-    await driver.find('.test-wselect-addBtn').doClick();
+    await driver.find(".test-wselect-addBtn").doClick();
 
     // if we selected a new table, there will be a popup for a name
     const prompts = await driver.findAll(".test-modal-prompt");
@@ -174,8 +174,8 @@ export class GristWebDriverUtils {
 
     if (customWidget) {
       await this.waitForServer();
-      await driver.findContent('.test-custom-widget-gallery-widget-name', customWidget).click();
-      await driver.find('.test-custom-widget-gallery-save').click();
+      await driver.findContent(".test-custom-widget-gallery-widget-name", customWidget).click();
+      await driver.find(".test-custom-widget-gallery-save").click();
     }
 
     await this.waitForServer();
@@ -189,12 +189,12 @@ export class GristWebDriverUtils {
     const max = 10;
 
     // Keep dismissing prompts until there are no more, up to a maximum of 10 times.
-    while (i < max && await this.driver.find('.test-behavioral-prompt').isPresent()) {
+    while (i < max && await this.driver.find(".test-behavioral-prompt").isPresent()) {
       try {
-        await this.driver.findWait('.test-behavioral-prompt-dismiss', 100).click();
+        await this.driver.findWait(".test-behavioral-prompt-dismiss", 100).click();
       }
       catch (e) {
-        if (await this.driver.find('.test-behavioral-prompt').isPresent()) {
+        if (await this.driver.find(".test-behavioral-prompt").isPresent()) {
           throw e;
         }
         break;
@@ -209,7 +209,7 @@ export class GristWebDriverUtils {
    * -selected when selected.
    */
   public async toggleSelectable(elem: WebElement, goal: boolean) {
-    const isSelected = await elem.matches('[class*=-selected]');
+    const isSelected = await elem.matches("[class*=-selected]");
     if (goal !== isSelected) {
       await elem.click();
     }
@@ -280,7 +280,7 @@ export class GristWebDriverUtils {
    * ensure you are checking the new page and not the old.
    */
   public async waitForDocToLoad(timeoutMs: number = 10000): Promise<void> {
-    await this.driver.findWait('.viewsection_title', timeoutMs);
+    await this.driver.findWait(".viewsection_title", timeoutMs);
     await this.waitForServer();
   }
 
@@ -300,7 +300,7 @@ export class GristWebDriverUtils {
     // Make quick test that we have a list of actions not just a single action, by checking
     // if the first element is an array.
     if (actions.length && !Array.isArray(actions[0])) {
-      throw new Error('actions argument should be a list of actions, not a single action');
+      throw new Error("actions argument should be a list of actions, not a single action");
     }
 
     const result = await this.driver.executeAsyncScript(`
@@ -332,22 +332,22 @@ export class GristWebDriverUtils {
   }
 
   public async openAccountMenu() {
-    await this.driver.findWait('.test-dm-account', 2000).click();
+    await this.driver.findWait(".test-dm-account", 2000).click();
     // Since the AccountWidget loads orgs and the user data asynchronously, the menu
     // can expand itself causing the click to land on a wrong button.
     await this.waitForServer();
-    await this.driver.findWait('.test-site-switcher-org', 2000);
+    await this.driver.findWait(".test-site-switcher-org", 2000);
     await this.driver.sleep(250);  // There's still some jitter (scroll-bar? other user accounts?)
   }
 
   public async openProfileSettingsPage(): Promise<ProfileSettingsPage> {
     await this.openAccountMenu();
-    await this.driver.find('.grist-floating-menu .test-dm-account-settings').click();
+    await this.driver.find(".grist-floating-menu .test-dm-account-settings").click();
     // close alert if it is shown
     if (await this.isAlertShown()) {
       await this.acceptAlert();
     }
-    await this.driver.findWait('.test-account-page-login-method', 5000);
+    await this.driver.findWait(".test-account-page-login-method", 5000);
     await this.waitForServer();
     return new ProfileSettingsPage(this);
   }
@@ -358,7 +358,7 @@ export class GristWebDriverUtils {
   public async undo(optCount: number = 1, optTimeout?: number) {
     await this.waitForServer(optTimeout);
     for (let i = 0; i < optCount; ++i) {
-      await this.driver.find('.test-undo').doClick();
+      await this.driver.find(".test-undo").doClick();
       await this.waitForServer(optTimeout);
     }
   }
@@ -380,9 +380,9 @@ export class GristWebDriverUtils {
   /**
    * Changes browser window dimensions to FullHd for a test suite.
    */
-  public bigScreen(size: 'big' | 'medium' = 'medium') {
+  public bigScreen(size: "big" | "medium" = "medium") {
     // Note that the default (small) is 1024x640.
-    if (size === 'medium') {
+    if (size === "medium") {
       this.resizeWindowForSuite(1440, 900);
     }
     else {
@@ -414,7 +414,7 @@ export class GristWebDriverUtils {
   public async getVisibleGridCells<T>(
     colOrOptions: number | string | IColSelect<T> | IColsSelect<T>, _rowNums?: number[], _section?: string,
   ): Promise<T[]> {
-    if (typeof colOrOptions === 'object' && 'cols' in colOrOptions) {
+    if (typeof colOrOptions === "object" && "cols" in colOrOptions) {
       const { rowNums, section, mapper } = colOrOptions;         const columns = await Promise.all(colOrOptions.cols.map(oneCol =>
         this.getVisibleGridCells({ col: oneCol, rowNums, section, mapper })));
       // This zips column-wise data into a flat row-wise array of values.
@@ -422,20 +422,20 @@ export class GristWebDriverUtils {
     }
 
     const { col, rowNums, section, mapper = el => el.getText() }: IColSelect<any> = (
-      typeof colOrOptions === 'object' ? colOrOptions :
+      typeof colOrOptions === "object" ? colOrOptions :
         { col: colOrOptions, rowNums: _rowNums!, section: _section }
     );
 
     if (rowNums.includes(0)) {
       // Row-numbers should be what the users sees: 0 is a mistake, so fail with a helpful message.
-      throw new Error('rowNum must not be 0');
+      throw new Error("rowNum must not be 0");
     }
 
-    const sectionElem = section ? await this.getSection(section) : await this.driver.findWait('.active_section', 4000);
-    const colIndex = (typeof col === 'number' ? col :
-      await sectionElem.findContent('.column_name', this.exactMatch(col)).index());
+    const sectionElem = section ? await this.getSection(section) : await this.driver.findWait(".active_section", 4000);
+    const colIndex = (typeof col === "number" ? col :
+      await sectionElem.findContent(".column_name", this.exactMatch(col)).index());
 
-    const visibleRowNums: number[] = await sectionElem.findAll('.gridview_data_row_num',
+    const visibleRowNums: number[] = await sectionElem.findAll(".gridview_data_row_num",
       async el => parseInt(await el.getText(), 10));
 
     const selector = `.gridview_data_scroll .record:not(.column_names) .field:nth-child(${colIndex + 1})`;
@@ -453,7 +453,7 @@ export class GristWebDriverUtils {
   public getCell(options: ICellSelect): WebElementPromise;
   public getCell(colOrOptions: number | string | ICellSelect, rowNum?: number, section?: string): WebElementPromise {
     const mapper = async (el: WebElement) => el;
-    const options: IColSelect<WebElement> = (typeof colOrOptions === 'object' ?
+    const options: IColSelect<WebElement> = (typeof colOrOptions === "object" ?
       { col: colOrOptions.col, rowNums: [colOrOptions.rowNum], section: colOrOptions.section, mapper } :
       { col: colOrOptions, rowNums: [rowNum!], section, mapper });
     return new WebElementPromise(this.driver, this.getVisibleGridCells(options).then(elems => elems[0]));
@@ -464,9 +464,9 @@ export class GristWebDriverUtils {
    * the given text (case insensitive) content.
    */
   public getSection(sectionOrTitle: string | WebElement): WebElement | WebElementPromise {
-    if (typeof sectionOrTitle !== 'string') { return sectionOrTitle; }
-    return this.driver.findContent(`.test-viewsection-title`, new RegExp("^" + escapeRegExp(sectionOrTitle) + "$", 'i'))
-      .findClosest('.viewsection_content');
+    if (typeof sectionOrTitle !== "string") { return sectionOrTitle; }
+    return this.driver.findContent(`.test-viewsection-title`, new RegExp("^" + escapeRegExp(sectionOrTitle) + "$", "i"))
+      .findClosest(".viewsection_content");
   }
 
   /**
@@ -485,8 +485,8 @@ export class GristWebDriverUtils {
    */
   public async selectSectionByTitle(title: string | RegExp) {
     try {
-      if (typeof title === 'string') {
-        title = new RegExp("^" + escapeRegExp(title) + "$", 'i');
+      if (typeof title === "string") {
+        title = new RegExp("^" + escapeRegExp(title) + "$", "i");
       }
       // .test-viewsection is a special 1px width element added for tests only.
       await this.driver.findContent(`.test-viewsection-title`, title).find(".test-viewsection-blank").click();
@@ -501,7 +501,7 @@ export class GristWebDriverUtils {
    * Click into a section without disrupting cursor positions.
    */
   public async selectSectionByIndex(index: number) {
-    const sections = await this.driver.findAll('.test-viewsection-title');
+    const sections = await this.driver.findAll(".test-viewsection-title");
     const section = sections.at(-1);
     if (section === undefined) {
       throw new Error(`No view section at index ${index}`);
@@ -546,8 +546,8 @@ export class ProfileSettingsPage {
   }
 
   public async setLanguage(language: string) {
-    await this._driver.findWait('.test-account-page-language .test-select-open', 100).click();
-    await this._driver.findContentWait('.test-select-menu li', language, 100).click();
+    await this._driver.findWait(".test-account-page-language .test-select-open", 100).click();
+    await this._driver.findContentWait(".test-select-menu li", language, 100).click();
     await this._gu.waitForServer();
   }
 }

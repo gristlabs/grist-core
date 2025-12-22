@@ -1,11 +1,11 @@
-import { KoArray } from 'app/client/lib/koArray';
-import { DocModel, IRowModel, recordSet, refRecord, ViewSectionRec } from 'app/client/models/DocModel';
-import { ColumnRec, ValidationRec, ViewRec } from 'app/client/models/DocModel';
-import * as modelUtil from 'app/client/models/modelUtil';
-import { summaryGroupByDescription } from 'app/common/ActiveDocAPI';
-import { MANUALSORT } from 'app/common/gristTypes';
-import * as ko from 'knockout';
-import randomcolor from 'randomcolor';
+import { KoArray } from "app/client/lib/koArray";
+import { DocModel, IRowModel, recordSet, refRecord, ViewSectionRec } from "app/client/models/DocModel";
+import { ColumnRec, ValidationRec, ViewRec } from "app/client/models/DocModel";
+import * as modelUtil from "app/client/models/modelUtil";
+import { summaryGroupByDescription } from "app/common/ActiveDocAPI";
+import { MANUALSORT } from "app/common/gristTypes";
+import * as ko from "knockout";
+import randomcolor from "randomcolor";
 
 // Represents a user-defined table.
 export interface TableRec extends IRowModel<"_grist_Tables"> {
@@ -47,10 +47,10 @@ export interface TableRec extends IRowModel<"_grist_Tables"> {
 }
 
 export function createTableRec(this: TableRec, docModel: DocModel): void {
-  this.columns = recordSet(this, docModel.columns, 'parentId', { sortBy: 'parentPos' });
+  this.columns = recordSet(this, docModel.columns, "parentId", { sortBy: "parentPos" });
   this.visibleColumns = this.autoDispose(ko.pureComputed(() =>
     this.columns().all().filter(c => !c.isHiddenCol())));
-  this.validations = recordSet(this, docModel.validations, 'tableRef');
+  this.validations = recordSet(this, docModel.validations, "tableRef");
 
   this.primaryView = refRecord(docModel.views, this.primaryViewId);
   this.rawViewSection = refRecord(docModel.viewSections, this.rawViewSectionRef);
@@ -75,15 +75,15 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
 
   this.groupDesc = ko.pureComputed(() => {
     if (!this.summarySourceTable()) {
-      return '';
+      return "";
     }
     return summaryGroupByDescription(this.groupByColumns().map(c => c.label()));
   });
 
   // TODO: We should save this value and let users change it.
   this.tableColor = randomcolor({
-    luminosity: 'light',
-    seed: typeof this.id() === 'number' ? 5 * this.id() : this.id(),
+    luminosity: "light",
+    seed: typeof this.id() === "number" ? 5 * this.id() : this.id(),
   });
 
   this.disableAddRemoveRows = ko.pureComputed(() => Boolean(this.summarySourceTable()));
@@ -93,7 +93,7 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
   this.tableName = modelUtil.savingComputed({
     read: () => {
       if (this.isDisposed()) {
-        return '';
+        return "";
       }
       if (this.summarySourceTable()) {
         return this.summarySource().rawViewSection().title();
@@ -101,7 +101,7 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
       else {
         // Need to be extra careful here, rawViewSection might be disposed.
         if (this.rawViewSection().isDisposed()) {
-          return '';
+          return "";
         }
         return this.rawViewSection().title();
       }
@@ -121,10 +121,10 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
     ko.computed(() => {
       // During table removal, we could be disposed.
       if (this.isDisposed()) {
-        return '';
+        return "";
       }
       const table = this.summarySourceTable() ? this.summarySource() : this;
-      return table.tableId() || '';
+      return table.tableId() || "";
     }),
   );
   this.formattedTableName = ko.pureComputed(() => {

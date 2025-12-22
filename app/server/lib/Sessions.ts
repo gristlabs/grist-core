@@ -1,10 +1,10 @@
-import { ScopedSession } from 'app/server/lib/BrowserSession';
-import { RequestWithOrg } from 'app/server/lib/extractOrg';
-import { cookieName, SessionStore } from 'app/server/lib/gristSessions';
-import * as cookie from 'cookie';
-import * as cookieParser from 'cookie-parser';
-import { Request } from 'express';
-import { IncomingMessage } from 'http';
+import { ScopedSession } from "app/server/lib/BrowserSession";
+import { RequestWithOrg } from "app/server/lib/extractOrg";
+import { cookieName, SessionStore } from "app/server/lib/gristSessions";
+import * as cookie from "cookie";
+import * as cookieParser from "cookie-parser";
+import { Request } from "express";
+import { IncomingMessage } from "http";
 
 /**
  *
@@ -39,16 +39,16 @@ export class Sessions {
     org?: string
   }): ScopedSession {
     const sid = options?.sessionId ?? this.getSessionIdFromRequest(req);
-    const org = options?.org ?? ('org' in req ? req.org : undefined);
+    const org = options?.org ?? ("org" in req ? req.org : undefined);
     if (!sid) { throw new Error("session not found"); }
-    return this.getOrCreateSession(sid, org, '');  // TODO: allow for tying to a preferred user.
+    return this.getOrCreateSession(sid, org, "");  // TODO: allow for tying to a preferred user.
   }
 
   /**
    * Get or create a session given the session id and organization name.
    */
-  public getOrCreateSession(sid: string, org: string | undefined, userSelector: string = ''): ScopedSession {
-    org = org || '';
+  public getOrCreateSession(sid: string, org: string | undefined, userSelector: string = ""): ScopedSession {
+    org = org || "";
     const key = this._getSessionOrgKey(sid, org, userSelector);
     if (!this._sessions.has(key)) {
       const scopedSession = new ScopedSession(sid, this._sessionStore, org, userSelector);

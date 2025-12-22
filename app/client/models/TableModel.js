@@ -3,11 +3,11 @@
  */
 
 
-var _ = require('underscore');
-var ko = require('knockout');
-var dispose = require('../lib/dispose');
-var rowset = require('./rowset');
-var modelUtil = require('./modelUtil');
+var _ = require("underscore");
+var ko = require("knockout");
+var dispose = require("../lib/dispose");
+var rowset = require("./rowset");
+var modelUtil = require("./modelUtil");
 
 function TableModel(docModel, tableData) {
   this.docModel = docModel;
@@ -50,8 +50,8 @@ TableModel.prototype.getRowGrouping = function(groupByCol) {
 };
 
 TableModel.prototype.onDataLoaded = function(oldRowIds, newRowIds) {
-  this.trigger('rowChange', 'remove', oldRowIds);
-  this.trigger('rowChange', 'add', newRowIds);
+  this.trigger("rowChange", "remove", oldRowIds);
+  this.trigger("rowChange", "add", newRowIds);
   this.isLoaded(true);
 };
 
@@ -75,14 +75,14 @@ TableModel.prototype.sendTableAction = function(action, optDesc) {
  */
 
 TableModel.prototype._process_AddRecord = function(action, tableId, rowId, columnValues) {
-  this.trigger('rowChange', 'add', [rowId]);
+  this.trigger("rowChange", "add", [rowId]);
 };
 TableModel.prototype._process_RemoveRecord = function(action, tableId, rowId) {
-  this.trigger('rowChange', 'remove', [rowId]);
+  this.trigger("rowChange", "remove", [rowId]);
 };
 TableModel.prototype._process_UpdateRecord = function(action, tableId, rowId, columnValues) {
-  this.trigger('rowChange', 'update', [rowId]);
-  this.trigger('rowNotify', [rowId], action);
+  this.trigger("rowChange", "update", [rowId]);
+  this.trigger("rowNotify", [rowId], action);
 };
 
 TableModel.prototype._process_ReplaceTableData = function() {
@@ -90,21 +90,21 @@ TableModel.prototype._process_ReplaceTableData = function() {
 };
 
 TableModel.prototype._process_BulkAddRecord = function(action, tableId, rowIds, columns) {
-  this.trigger('rowChange', 'add', rowIds);
+  this.trigger("rowChange", "add", rowIds);
 };
 TableModel.prototype._process_BulkRemoveRecord = function(action, tableId, rowIds) {
-  this.trigger('rowChange', 'remove', rowIds);
+  this.trigger("rowChange", "remove", rowIds);
 };
 TableModel.prototype._process_BulkUpdateRecord = function(action, tableId, rowIds, columns) {
-  this.trigger('rowChange', 'update', rowIds);
-  this.trigger('rowNotify', rowIds, action);
+  this.trigger("rowChange", "update", rowIds);
+  this.trigger("rowNotify", rowIds, action);
 };
 
 // All schema changes to this table should be forwarded to each row.
 // TODO: we may need to worry about groupings (e.g. recreate the grouping function) once we do row
 // groupings of user data. Metadata isn't subject to schema changes, so that doesn't matter.
 TableModel.prototype.applySchemaAction = function(action) {
-  this.trigger('rowNotify', rowset.ALL, action);
+  this.trigger("rowNotify", rowset.ALL, action);
 };
 
 TableModel.prototype._process_AddColumn = function(action) { this.applySchemaAction(action); };

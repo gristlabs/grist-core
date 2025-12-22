@@ -1,17 +1,17 @@
-import { isDesktop } from 'app/client/lib/browserInfo';
-import { makeT } from 'app/client/lib/localization';
+import { isDesktop } from "app/client/lib/browserInfo";
+import { makeT } from "app/client/lib/localization";
 import { cssEditorInput } from "app/client/ui/HomeLeftPane";
 import { itemHeader, itemHeaderWrapper, treeViewContainer } from "app/client/ui/TreeViewComponentCss";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { hoverTooltip, overflowTooltip } from 'app/client/ui/tooltips';
-import { unstyledButton, unstyledLink } from 'app/client/ui2018/unstyled';
+import { hoverTooltip, overflowTooltip } from "app/client/ui/tooltips";
+import { unstyledButton, unstyledLink } from "app/client/ui2018/unstyled";
 import { menu, menuDivider, menuItem, menuItemAsync, menuText } from "app/client/ui2018/menus";
 import { Computed, dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
 
-const t = makeT('pages');
+const t = makeT("pages");
 
-const testId = makeTestId('test-docpage-');
+const testId = makeTestId("test-docpage-");
 
 export interface PageOptions {
   onRename: (name: string) => Promise<void>;
@@ -28,8 +28,8 @@ export interface PageOptions {
 }
 
 function isTargetSelected(target: HTMLElement) {
-  const parentItemHeader = target.closest('.' + itemHeader.className);
-  return parentItemHeader ? parentItemHeader.classList.contains('selected') : false;
+  const parentItemHeader = target.closest("." + itemHeader.className);
+  return parentItemHeader ? parentItemHeader.classList.contains("selected") : false;
 }
 
 // build the dom for a document page entry. It shows an icon (for now the first letter of the name,
@@ -114,36 +114,36 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
   // toggle '-renaming' class on the item's header. This is useful to make the background remain the
   // same while opening dots menu
   const lis = isRenaming.addListener(() => {
-    const parent = pageElem.closest('.' + itemHeader.className);
+    const parent = pageElem.closest("." + itemHeader.className);
     if (parent) {
-      dom.clsElem(parent, itemHeader.className + '-renaming', isRenaming.get());
+      dom.clsElem(parent, itemHeader.className + "-renaming", isRenaming.get());
     }
   });
 
   const splitName = Computed.create(null, name, (use, _name) => splitPageInitial(_name));
 
   return pageElem = dom(
-    'div',
+    "div",
     dom.autoDispose(lis),
     dom.autoDispose(splitName),
-    domComputed(use => use(name) === '', blank => blank ? dom('div', '-') :
+    domComputed(use => use(name) === "", blank => blank ? dom("div", "-") :
       domComputed(isRenaming, isrenaming => (
         isrenaming ?
           cssPageItem(
             cssPageInitial(
-              testId('initial'),
+              testId("initial"),
               dom.text(use => use(splitName).initial),
-              cssPageInitial.cls('-emoji', use => use(splitName).hasEmoji),
+              cssPageInitial.cls("-emoji", use => use(splitName).hasEmoji),
             ),
             cssEditorInput(
               {
-                initialValue: name.get() || '',
+                initialValue: name.get() || "",
                 save: async val => onRename(val),
                 close: () => isRenaming.set(false),
               },
-              testId('editor'),
-              dom.on('mousedown', ev => ev.stopPropagation()),
-              dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+              testId("editor"),
+              dom.on("mousedown", ev => ev.stopPropagation()),
+              dom.on("click", (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
             ),
             // Note that we don't pass extra args when renaming is on, because they usually includes
             // mouse event handlers interfering with input editor and yields wrong behavior on
@@ -151,33 +151,33 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
           ) :
           cssPageItem(
             cssPageLink(
-              testId('link'),
+              testId("link"),
               href,
               cssPageInitial(
-                testId('initial'),
+                testId("initial"),
                 dom.text(use => use(splitName).initial),
-                cssPageInitial.cls('-emoji', use => use(splitName).hasEmoji),
+                cssPageInitial.cls("-emoji", use => use(splitName).hasEmoji),
               ),
               cssPageName(
                 dom.text(use => use(splitName).displayName),
-                testId('label'),
-                dom.on('click', ev => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
+                testId("label"),
+                dom.on("click", ev => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
                 overflowTooltip(),
               ),
             ),
             cssPageMenuTrigger(
-              dom.attr('aria-label', use => t("context menu - {{- pageName }}", { pageName: use(name) })),
-              cssPageMenuIcon('Dots'),
-              menu(pageMenu, { placement: 'bottom-start', parentSelectorToMark: '.' + itemHeader.className }),
-              dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+              dom.attr("aria-label", use => t("context menu - {{- pageName }}", { pageName: use(name) })),
+              cssPageMenuIcon("Dots"),
+              menu(pageMenu, { placement: "bottom-start", parentSelectorToMark: "." + itemHeader.className }),
+              dom.on("click", (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
 
               // Let's prevent dragging to start when un-intentionally holding the mouse down on '...' menu.
-              dom.on('mousedown', ev => ev.stopPropagation()),
-              testId('dots'),
+              dom.on("mousedown", ev => ev.stopPropagation()),
+              testId("dots"),
             ),
             // Prevents the default dragging behaviour that Firefox support for links which conflicts
             // with our own dragging pages.
-            dom.on('dragstart', ev => ev.preventDefault()),
+            dom.on("dragstart", ev => ev.preventDefault()),
             args,
           )
       )),
@@ -187,14 +187,14 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
 export function buildCensoredPage() {
   return cssPageItem(
     cssPageInitial(
-      testId('initial'),
-      dom.text('C'),
+      testId("initial"),
+      dom.text("C"),
     ),
     cssCensoredPageName(
-      dom.text('CENSORED'),
-      testId('label'),
+      dom.text("CENSORED"),
+      testId("label"),
     ),
-    hoverTooltip('This page is censored due to access rules.'),
+    hoverTooltip("This page is censored due to access rules."),
   );
 }
 
@@ -219,7 +219,7 @@ export function splitPageInitial(name: string): { initial: string, displayName: 
   }
 }
 
-const cssPageItem = styled('div', `
+const cssPageItem = styled("div", `
   position: relative;
   display: flex;
   flex-direction: row;
@@ -256,7 +256,7 @@ const cssPageLink = styled(unstyledLink, `
   }
 `);
 
-const cssPageInitial = styled('div', `
+const cssPageInitial = styled("div", `
   flex-shrink: 0;
   color: ${theme.pageInitialsFg};
   border-radius: 3px;
@@ -283,7 +283,7 @@ const cssPageInitial = styled('div', `
   }
 `);
 
-const cssPageName = styled('div', `
+const cssPageName = styled("div", `
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -309,10 +309,10 @@ function onHoverSupport(yesNo: boolean) {
   // matches (hover: none). To work around it, we assume desktop browsers can always hover,
   // and use trivial match-all/match-none media queries on desktop browsers.
   if (isDesktop()) {
-    return yesNo ? 'all' : 'not all';
+    return yesNo ? "all" : "not all";
   }
   else {
-    return yesNo ? '(hover: hover)' : '(hover: none)';
+    return yesNo ? "(hover: hover)" : "(hover: none)";
   }
 }
 

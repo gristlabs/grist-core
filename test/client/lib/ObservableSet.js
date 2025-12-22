@@ -1,10 +1,10 @@
-var assert = require('chai').assert;
-var ko = require('knockout');
+var assert = require("chai").assert;
+var ko = require("knockout");
 
-var clientUtil = require('../clientUtil');
-var ObservableSet = require('app/client/lib/ObservableSet');
+var clientUtil = require("../clientUtil");
+var ObservableSet = require("app/client/lib/ObservableSet");
 
-describe('ObservableSet', function() {
+describe("ObservableSet", function() {
   clientUtil.setTmpMochaGlobals();
 
   it("should keep track of items", function() {

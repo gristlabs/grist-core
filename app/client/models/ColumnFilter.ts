@@ -1,11 +1,11 @@
 import { ColumnFilterFunc, makeFilterFunc } from "app/common/ColumnFilterFunc";
-import { CellValue } from 'app/common/DocActions';
+import { CellValue } from "app/common/DocActions";
 import {
   FilterSpec, FilterState, IRelativeDateSpec, isRangeFilter, isRelativeBound, makeFilterState,
 } from "app/common/FilterState";
 import { relativeDateToUnixTimestamp } from "app/common/RelativeDates";
-import { nativeCompare } from 'app/common/gutil';
-import { Computed, Disposable, Observable } from 'grainjs';
+import { nativeCompare } from "app/common/gutil";
+import { Computed, Disposable, Observable } from "grainjs";
 
 /**
  * ColumnFilter implements a custom filter on a column, i.e. a filter that's diverged from what's
@@ -32,8 +32,8 @@ export class ColumnFilter extends Disposable {
   private _include: boolean;
   private _values: Set<CellValue>;
 
-  constructor(private _initialFilterJson: string, private _columnType: string = '',
-    public visibleColumnType: string = '', private _allValues: CellValue[] = []) {
+  constructor(private _initialFilterJson: string, private _columnType: string = "",
+    public visibleColumnType: string = "", private _allValues: CellValue[] = []) {
     super();
     this.setState(_initialFilterJson);
     this.autoDispose(this.min.addListener(() => this._updateState()));
@@ -126,7 +126,7 @@ export class ColumnFilter extends Disposable {
     }
     else {
       const values = Array.from(this._values).sort(nativeCompare);
-      filter = { [this._include ? 'included' : 'excluded']: values };
+      filter = { [this._include ? "included" : "excluded"]: values };
     }
     return JSON.stringify(filter);
   }
@@ -136,9 +136,9 @@ export class ColumnFilter extends Disposable {
   }
 
   // Retuns min or max as a numeric value.
-  public getBoundsValue(minMax: 'min' | 'max'): number {
+  public getBoundsValue(minMax: "min" | "max"): number {
     const value = this[minMax].get();
-    if (value === undefined) { return minMax === 'min' ? -Infinity : +Infinity; }
+    if (value === undefined) { return minMax === "min" ? -Infinity : +Infinity; }
     return isRelativeBound(value) ? relativeDateToUnixTimestamp(value) : value;
   }
 
@@ -179,4 +179,4 @@ export const ALL_INCLUSIVE_FILTER_JSON = '{"excluded":[]}';
  * a `ColumnFilter` with `NEW_FIlTER_JSON` makes it clear that a new filter
  * is being created.
  */
-export const NEW_FILTER_JSON = '{}';
+export const NEW_FILTER_JSON = "{}";

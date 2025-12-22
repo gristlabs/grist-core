@@ -1,7 +1,7 @@
-var assert = require('chai').assert;
-var Promise = require('bluebird');
+var assert = require("chai").assert;
+var Promise = require("bluebird");
 
-var browserGlobals = require('app/client/lib/browserGlobals');
+var browserGlobals = require("app/client/lib/browserGlobals");
 
 /**
  * Set up browserGlobals to jsdom-mocked DOM globals and an empty document. Call this within test
@@ -12,11 +12,11 @@ var browserGlobals = require('app/client/lib/browserGlobals');
  * test actual browser behavior.
  */
 function setTmpMochaGlobals() {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     return;
   }
 
-  const {JSDOM} = require('jsdom');
+  const {JSDOM} = require("jsdom");
 
   var prevGlobals;
 
@@ -24,7 +24,7 @@ function setTmpMochaGlobals() {
     const dom = new JSDOM("<!doctype html><html></html>");
 
     // Include JQuery ($) as an available global. Surprising, but it works.
-    const jquery = require('jquery');
+    const jquery = require("jquery");
     dom.window.$ = jquery(dom.window);
 
     prevGlobals = browserGlobals.setGlobals(dom.window);
@@ -46,7 +46,7 @@ exports.setTmpMochaGlobals = setTmpMochaGlobals;
  * @returns {Promise} - NodeList of found elements whose `length` is at least `count`.
  */
 function waitForSelectorAll(el, selector, count) {
-  assert(el.querySelectorAll, 'Must provide a DOMElement or HTMLElement');
+  assert(el.querySelectorAll, "Must provide a DOMElement or HTMLElement");
   count = count || 1;
   var i;
   return new Promise(function(resolve, reject) {
@@ -103,7 +103,7 @@ function waitForChange(observable, delay) {
   var sub;
   return new Promise(function(resolve, reject) {
     sub = observable.subscribe(function(val) {
-      console.warn('observable changed: ' + val.toString());
+      console.warn("observable changed: " + val.toString());
       resolve(val);
     });
   })

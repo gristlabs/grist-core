@@ -7,7 +7,7 @@ declare module "app/client/lib/koForm";
 
 
 declare module "app/client/components/RecordLayout" {
-  import { Disposable } from 'app/client/lib/dispose';
+  import { Disposable } from "app/client/lib/dispose";
 
   namespace RecordLayout {
     interface NewField {
@@ -36,11 +36,11 @@ declare module "app/client/components/RecordLayout" {
 }
 
 declare module "app/client/components/ViewConfigTab" {
-  import { GristDoc } from 'app/client/components/GristDoc';
-  import { Disposable } from 'app/client/lib/dispose';
+  import { GristDoc } from "app/client/components/GristDoc";
+  import { Disposable } from "app/client/lib/dispose";
   import { KoArray } from "app/client/lib/koArray";
   import { ColumnRec, ViewRec, ViewSectionRec } from "app/client/models/DocModel";
-  import { DomArg, DomContents } from 'grainjs';
+  import { DomArg, DomContents } from "grainjs";
 
   namespace ViewConfigTab {
     interface ViewSectionData {
@@ -66,16 +66,16 @@ declare module "app/client/components/ViewConfigTab" {
 }
 
 declare module "app/client/models/BaseRowModel" {
-  import { Disposable } from 'app/client/lib/dispose';
-  import TableModel from 'app/client/models/TableModel';
-  import { ColValues } from 'app/common/DocActions';
+  import { Disposable } from "app/client/lib/dispose";
+  import TableModel from "app/client/models/TableModel";
+  import { ColValues } from "app/common/DocActions";
 
   namespace BaseRowModel {}
   class BaseRowModel extends Disposable {
     public id: ko.Computed<number>;
     public _index: ko.Observable<number | null>;
     public _table: TableModel;
-    protected _rowId: number | 'new' | null;
+    protected _rowId: number | "new" | null;
     protected _fields: string[];
     public getRowId(): number;
     public updateColValues(colValues: ColValues): Promise<void>;
@@ -85,8 +85,8 @@ declare module "app/client/models/BaseRowModel" {
 
 declare module "app/client/models/MetaRowModel" {
   import BaseRowModel from "app/client/models/BaseRowModel";
-  import { ColValues } from 'app/common/DocActions';
-  import { SchemaTypes } from 'app/common/schema';
+  import { ColValues } from "app/common/DocActions";
+  import { SchemaTypes } from "app/common/schema";
 
   type NPartial<T> = {
     [P in keyof T]?: T[P] | null;
@@ -208,7 +208,7 @@ declare module "app/client/models/MetaTableModel" {
 declare module "app/client/models/DataTableModel" {
   import { KoArray } from "app/client/lib/koArray";
   import { DocModel, TableRec } from "app/client/models/DocModel";
-  import { TableQuerySets } from 'app/client/models/QuerySet';
+  import { TableQuerySets } from "app/client/models/QuerySet";
   import { SortedRowSet } from "app/client/models/rowset";
   import { TableData } from "app/client/models/TableData";
   import TableModel from "app/client/models/TableModel";

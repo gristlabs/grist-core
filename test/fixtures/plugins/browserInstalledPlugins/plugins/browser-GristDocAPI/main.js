@@ -2,19 +2,19 @@
 
 /* global grist, self */
 
-self.importScripts('/grist-plugin-api.js');
+self.importScripts("/grist-plugin-api.js");
 
 grist.rpc.registerImpl("testApiBrowser", {
   getImportSource() {
-    const api = grist.rpc.getStub('GristDocAPI@grist', grist.checkers.GristDocAPI);
+    const api = grist.rpc.getStub("GristDocAPI@grist", grist.checkers.GristDocAPI);
     return api.getDocName()
       .then((result) => {
         const content = JSON.stringify({
           tables: [{
-            table_name: '',
+            table_name: "",
             column_metadata: [{
-              id: 'getDocName',
-              type: 'Text'
+              id: "getDocName",
+              type: "Text"
             }],
             table_data: [[result]]
           }]

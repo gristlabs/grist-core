@@ -4,18 +4,18 @@
 
 import { ACIndexImpl, ACIndexOptions, ACItem, buildHighlightedDom, HighlightFunc,
   normalizeText } from "app/client/lib/ACIndex";
-import { makeT } from 'app/client/lib/localization';
+import { makeT } from "app/client/lib/localization";
 import { getOptionFull, SimpleList } from "app/client/lib/simpleList";
-import { theme, vars } from 'app/client/ui2018/cssVars';
+import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menuDivider } from "app/client/ui2018/menus";
 import { Disposable, dom, DomElementMethod, IOptionFull, makeTestId, Observable, styled } from "grainjs";
 import mergeWith from "lodash/mergeWith";
 import { cssMenuItem, defaultMenuOptions, IOpenController, IPopupOptions, setPopupToFunc } from "popweasel";
 
-const t = makeT('searchDropdown');
+const t = makeT("searchDropdown");
 
-const testId = makeTestId('test-sd-');
+const testId = makeTestId("test-sd-");
 
 export type { HighlightFunc } from "app/client/lib/ACIndex";
 
@@ -63,7 +63,7 @@ class TruncatedListItem<T> extends OptionItem<T> {
   constructor(label: string) {
     super({
       label,
-      value: '' as unknown as T,
+      value: "" as unknown as T,
       disabled: true,
     });
   }
@@ -122,16 +122,16 @@ class DropdownWithSearch<T> extends Disposable {
   private _buildHeader() {
     return [
       cssMenuHeader(
-        cssSearchIcon('Search'),
+        cssSearchIcon("Search"),
         this._inputElem = cssSearch(
-          { placeholder: this._options.placeholder || t('Search') },
-          dom.on('input', () => { this._update(); }),
-          dom.on('blur', () => setTimeout(() => this._inputElem.focus(), 0)),
+          { placeholder: this._options.placeholder || t("Search") },
+          dom.on("input", () => { this._update(); }),
+          dom.on("blur", () => setTimeout(() => this._inputElem.focus(), 0)),
         ),
 
         // Prevents click on header to close menu
-        dom.on('click', ev => ev.stopPropagation()),
-        testId('search'),
+        dom.on("click", ev => ev.stopPropagation()),
+        testId("search"),
       ),
       cssMenuDivider(),
     ];
@@ -139,25 +139,25 @@ class DropdownWithSearch<T> extends Disposable {
 
   private _buildItem(item: OptionItem<T>) {
     return item instanceof TruncatedListItem ?
-      [this._buildTruncatedMsgItem(item), testId('truncated-message')] :
-      [buildHighlightedDom(item.label, this._highlightFunc, cssMatchText), testId('searchable-list-item')];
+      [this._buildTruncatedMsgItem(item), testId("truncated-message")] :
+      [buildHighlightedDom(item.label, this._highlightFunc, cssMatchText), testId("searchable-list-item")];
   }
 
   private _buildTruncatedMsgItem(item: TruncatedListItem<T>) {
     return cssTruncatedMessageItem(
       item.label,
       // Prevents click to close menu
-      dom.on('click', ev => ev.stopPropagation()),
+      dom.on("click", ev => ev.stopPropagation()),
     );
   }
 
   private _update() {
-    const acResults = this._acIndex.search(this._inputElem?.value || '');
+    const acResults = this._acIndex.search(this._inputElem?.value || "");
     this._highlightFunc = acResults.highlightFunc;
     let items = acResults.items;
     if (items.length < this._acIndex.totalItems) {
       items = items.concat(new TruncatedListItem(
-        t('Showing {{displayedCount}} of {{totalCount}} items. Search for more.', {
+        t("Showing {{displayedCount}} of {{totalCount}} items. Search for more.", {
           displayedCount: items.length,
           totalCount: this._acIndex.totalItems,
         }),
@@ -177,13 +177,13 @@ class DropdownWithSearch<T> extends Disposable {
   }
 }
 
-const cssMatchText = styled('span', `
+const cssMatchText = styled("span", `
   color: ${theme.autocompleteMatchText};
   .${cssMenuItem.className}-sel > & {
     color: ${theme.autocompleteSelectedMatchText};
   }
 `);
-const cssMenuHeader = styled('div', `
+const cssMenuHeader = styled("div", `
   display: flex;
   padding: 13px 17px 15px 17px;
 `);
@@ -193,7 +193,7 @@ const cssSearchIcon = styled(icon, `
   margin-left: auto;
   margin-right: 4px;
 `);
-const cssSearch = styled('input', `
+const cssSearch = styled("input", `
   color: ${theme.inputFg};
   background-color: ${theme.inputBg};
   flex-grow: 1;
@@ -217,6 +217,6 @@ const cssMenuDivider = styled(menuDivider, `
   flex-shrink: 0;
   margin: 0;
 `);
-const cssTruncatedMessageItem = styled('div', `
+const cssTruncatedMessageItem = styled("div", `
   color: ${theme.inputPlaceholderFg};
 `);

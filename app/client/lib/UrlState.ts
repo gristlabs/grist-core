@@ -16,8 +16,8 @@
  * These will set actual hrefs (e.g. allowing links to be opened in a new tab), and also will
  * intercept clicks and update history (using pushUrl()) without reloading the page.
  */
-import * as log from 'app/client/lib/log';
-import { BaseObservable, Disposable, dom, DomElementMethod, observable } from 'grainjs';
+import * as log from "app/client/lib/log";
+import { BaseObservable, Disposable, dom, DomElementMethod, observable } from "grainjs";
 
 export interface UrlStateSpec<IUrlState> {
   encodeUrl(state: IUrlState, baseLocation: Location | URL): string;
@@ -51,7 +51,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
     }
 
     // On navigation events, update our current state, including the observables.
-    this.autoDispose(dom.onElem(this._window, 'popstate', ev => this.loadState()));
+    this.autoDispose(dom.onElem(this._window, "popstate", ev => this.loadState()));
   }
 
   /**
@@ -79,10 +79,10 @@ export class UrlState<IUrlState extends object> extends Disposable {
       await this._stateImpl.delayPushUrl(prevState, newState);
       try {
         if (options.replace) {
-          this._window.history.replaceState(null, '', newUrl);
+          this._window.history.replaceState(null, "", newUrl);
         }
         else {
-          this._window.history.pushState(null, '', newUrl);
+          this._window.history.pushState(null, "", newUrl);
         }
         // pushState/replaceState above do not trigger 'popstate' event, so we call loadState() manually.
         this.loadState();
@@ -121,7 +121,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
    * current url state (e.g. due to switching pages).
    */
   public setHref(urlState: IUrlState | UpdateFunc<IUrlState>): DomElementMethod {
-    return dom.attr('href', use => this.makeUrl(urlState, use));
+    return dom.attr("href", use => this.makeUrl(urlState, use));
   }
 
   /**
@@ -142,8 +142,8 @@ export class UrlState<IUrlState extends object> extends Disposable {
     },
   ): DomElementMethod[] {
     return [
-      dom.attr('href', use => this.makeUrl(urlState, use)),
-      dom.on('click', (ev) => {
+      dom.attr("href", use => this.makeUrl(urlState, use)),
+      dom.on("click", (ev) => {
         // Only override plain-vanilla clicks.
         if (ev.shiftKey || ev.metaKey || ev.ctrlKey || ev.altKey) { return; }
         ev.preventDefault();
@@ -167,7 +167,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
   }
 
   private _mergeState(prevState: IUrlState, newState: IUrlState | UpdateFunc<IUrlState>): IUrlState {
-    return (typeof newState === 'object') ?
+    return (typeof newState === "object") ?
       this._stateImpl.updateState(prevState, newState) :
       newState(prevState);
   }
