@@ -38,12 +38,12 @@ type LinkType = "Filter:Summary-Group" |
 // to the backend in some cases (CSV export)
 // The filterState includes extra info to display filter state to the user
 type FilterState = FilterColValues & {
-  filterLabels: {  [colId: string]: string[] }; //formatted and displayCol-ed values to show to user
+  filterLabels: {  [colId: string]: string[] }; // formatted and displayCol-ed values to show to user
   colTypes: { [colId: string]: string; }
 };
 function FilterStateToColValues(fs: FilterState) { return pick(fs, ['filters', 'operations']); }
 
-//Since we're not making full objects for these, need to define sensible "empty" values here
+// Since we're not making full objects for these, need to define sensible "empty" values here
 export const EmptyFilterState: FilterState = { filters: {}, filterLabels: {}, operations: {}, colTypes: {} };
 export const EmptyFilterColValues: FilterColValues = FilterStateToColValues(EmptyFilterState);
 
@@ -54,7 +54,7 @@ export class LinkingState extends Disposable {
 
   // Cursor-links can be cyclic, need to keep track of both rowId and the lastCursorEdit that it came from to
   // resolve it correctly, (use just one observable so they update at the same time)
-  //NOTE: observables don't do deep-equality check, so need to replace the whole array when updating
+  // NOTE: observables don't do deep-equality check, so need to replace the whole array when updating
   public readonly incomingCursorPos: ko.Computed<[UIRowId|null, SequenceNum]>;
 
   // If linking affects filtering, this is a computed for the current filtering state, including user-facing
@@ -95,14 +95,14 @@ export class LinkingState extends Disposable {
 
     this.linkTypeDescription = this.autoDispose(ko.computed((): LinkType => {
       if (srcSection.isDisposed()) {
-        //srcSection disposed can happen transiently. Can happen when deleting tables and then undoing?
-        //nbrowser tests: LinkingErrors and RawData seem to hit this case
+        // srcSection disposed can happen transiently. Can happen when deleting tables and then undoing?
+        // nbrowser tests: LinkingErrors and RawData seem to hit this case
         console.warn("srcSection disposed in linkingState: linkTypeDescription");
         return "Error:Invalid";
       }
 
       if (srcSection.table().summarySourceTable() && srcColId === "group") {
-        return "Filter:Summary-Group"; //implemented as col->col, but special-cased in select-by
+        return "Filter:Summary-Group"; // implemented as col->col, but special-cased in select-by
       }
       else if (srcColId && tgtColId) {
         return "Filter:Col->Col";
@@ -115,7 +115,7 @@ export class LinkingState extends Disposable {
         { return "Show-Referenced-Records"; }
         else { return "Cursor:Reference"; }
       }
-      else if (!srcColId && !tgtColId) { //Either same-table cursor link OR summary link
+      else if (!srcColId && !tgtColId) { // Either same-table cursor link OR summary link
         if (isSummaryOf(srcSection.table(), tgtSection.table())) { return "Summary"; }
         else { return "Cursor:Same-Table"; }
       }
@@ -141,7 +141,7 @@ export class LinkingState extends Disposable {
       // (NOTE: currently we only do this for reflists, single refs handled as cursor links for now)
       this.filterState = this._makeFilterObs(srcCol, undefined);
     }
-    else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) { //Summary linking
+    else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) { // Summary linking
       // We do summary filtering if no cols specified and summary section is linked to a more detailed summary
       // (or to the summarySource table)
       // Implemented as multiple column filters, one for each groupByCol of the src table
@@ -167,23 +167,23 @@ export class LinkingState extends Disposable {
           return;
         }
 
-        //Make a MultiHolder to own this invocation's objects (disposes of old one)
-        //TODO (MultiHolder in a Holder is a bit of a hack, but needed to hold multiple objects I think)
+        // Make a MultiHolder to own this invocation's objects (disposes of old one)
+        // TODO (MultiHolder in a Holder is a bit of a hack, but needed to hold multiple objects I think)
         const updateMultiHolder = MultiHolder.create(updateHolder);
 
-        //Make one filter for each groupBycolumn of srcSection
+        // Make one filter for each groupBycolumn of srcSection
         const resultFilters: (ko.Computed<FilterState>|undefined)[] = srcSection.table().groupByColumns().map(srcGCol =>
           this._makeFilterObs(srcGCol, summaryGetCorrespondingCol(srcGCol, tgtSection.table()), updateMultiHolder),
         );
 
-        //If any are undef (i.e. error in makeFilterObs), error out
+        // If any are undef (i.e. error in makeFilterObs), error out
         if (resultFilters.some(f => f === undefined)) {
           console.warn("LINKINGSTATE: some of filters are undefined", resultFilters);
           _filterState(EmptyFilterState);
           return;
         }
 
-        //Merge them together in a computed
+        // Merge them together in a computed
         const resultComputed = updateMultiHolder.autoDispose(ko.computed(() => {
           return merge({}, ...resultFilters.map(filtObs => filtObs!())) as FilterState;
         }));
@@ -197,7 +197,7 @@ export class LinkingState extends Disposable {
 
       // ================ CURSOR LINKS: =================
     }
-    else { //!tgtCol && !summary-link && (!lookup-link || !reflist),
+    else { // !tgtCol && !summary-link && (!lookup-link || !reflist),
       //        either same-table cursor-link (!srcCol && !tgtCol, so do activeRowId -> cursorPos)
       //        or cursor-link by reference   ( srcCol && !tgtCol, so do srcCol -> cursorPos)
 
@@ -265,8 +265,8 @@ export class LinkingState extends Disposable {
 
       // check for failure
       if (srcValueFunc) {
-        //Incoming-cursor-pos determines what the linked cursor position should be, considering the previous
-        //linked section (srcSection) and all upstream sections (through srcSection.linkingState)
+        // Incoming-cursor-pos determines what the linked cursor position should be, considering the previous
+        // linked section (srcSection) and all upstream sections (through srcSection.linkingState)
         this.incomingCursorPos = this.autoDispose((ko.computed(() => {
           // NOTE: This computed primarily decides between srcSec and prevLink. Here's what those mean:
           // e.g. consider sections A->B->C, (where this === C)
@@ -277,7 +277,7 @@ export class LinkingState extends Disposable {
           // Therefore: we either use srcSection (1 back), or prevLink = srcSection.linkingState (2+ back)
 
           // Get srcSection's info (1 hop back)
-          const srcSecPos = this._srcSection.activeRowId.peek(); //we don't depend on this, only on its cursor version
+          const srcSecPos = this._srcSection.activeRowId.peek(); // we don't depend on this, only on its cursor version
           const srcSecVersion = this._srcSection.lastCursorEdit();
 
           // If cursors haven't been initialized, cursor-linking doesn't make sense, so don't do it
@@ -308,7 +308,7 @@ export class LinkingState extends Disposable {
 
           return [
             tgtCursorPos,
-            usePrev ? prevLinkedVersion : srcSecVersion, //propagate which version our cursorPos is from
+            usePrev ? prevLinkedVersion : srcSecVersion, // propagate which version our cursorPos is from
           ] as [UIRowId|null, SequenceNum];
         })));
 
@@ -384,13 +384,13 @@ export class LinkingState extends Disposable {
     const srcColId = srcCol?.colId();
     const tgtColId = tgtCol?.colId();
 
-    //Assert: if both are null then it's a summary filter or same-table cursor-link, neither of which should go here
+    // Assert: if both are null then it's a summary filter or same-table cursor-link, neither of which should go here
     if (!srcColId && !tgtColId) {
       throw Error("ERROR in _makeFilterObs: srcCol and tgtCol can't both be empty");
     }
 
-    //if (srcCol), selectorVal is the value in activeRowId[srcCol].
-    //if (!srcCol), then selectorVal is the entire record, so func just returns the rowId, or null if the rowId is "new"
+    // if (srcCol), selectorVal is the value in activeRowId[srcCol].
+    // if (!srcCol), then selectorVal is the entire record, so func just returns the rowId, or null if the rowId is "new"
     const selectorValGetter = this._makeValGetter(this._srcSection.table(), srcColId);
 
     // Figure out display val to show for the selector (if selector is a Ref)
@@ -407,10 +407,10 @@ export class LinkingState extends Disposable {
       tgtCol!.visibleColModel().colId();
     const displayValGetter = this._makeValGetter(this._srcSection.table(), displayColId);
 
-    //Note: if src is a reflist, its displayVal will be a list of the visibleCol vals,
+    // Note: if src is a reflist, its displayVal will be a list of the visibleCol vals,
     // i.e ["L", visVal1, visVal2], but they won't be formatter()-ed
 
-    //Grab the formatter (for numerics, dates, etc)
+    // Grab the formatter (for numerics, dates, etc)
     const displayValFormatter = srcColId ? srcCol!.visibleColFormatter() : tgtCol!.visibleColFormatter();
 
     const isSrcRefList = srcColId && isRefListType(srcCol!.type());
@@ -421,26 +421,26 @@ export class LinkingState extends Disposable {
       return undefined;
     }
 
-    //Now, create the actual observable that updates with activeRowId
-    //(we autodispose/return it at the end of the function) is this right? TODO JV
+    // Now, create the actual observable that updates with activeRowId
+    // (we autodispose/return it at the end of the function) is this right? TODO JV
     return owner.autoDispose(ko.computed(() => {
       if (this._srcSection.isDisposed()) {
-        //srcSection disposed can happen transiently. Can happen when deleting tables and then undoing?
-        //nbrowser tests: LinkingErrors and RawData seem to hit this case
+        // srcSection disposed can happen transiently. Can happen when deleting tables and then undoing?
+        // nbrowser tests: LinkingErrors and RawData seem to hit this case
         console.warn("srcSection disposed in LinkingState._makeFilterObs");
         return EmptyFilterState;
       }
 
       if (this._srcSection.isDisposed()) {
-        //happened transiently in test: "RawData should remove all tables except one (...)"
+        // happened transiently in test: "RawData should remove all tables except one (...)"
         console.warn("LinkingState._makeFilterObs: srcSectionDisposed");
         return EmptyFilterState;
       }
 
-      //Get selector-rowId
+      // Get selector-rowId
       const srcRowId = this._srcSection.activeRowId();
 
-      //Get values from selector row
+      // Get values from selector row
       const selectorCellVal = selectorValGetter(srcRowId);
       const displayCellVal  = displayValGetter(srcRowId);
 
@@ -451,19 +451,19 @@ export class LinkingState extends Disposable {
         filterValues = [selectorCellVal];
         displayValues = [displayCellVal];
       }
-      else if (isSrcRefList && isList(selectorCellVal)) { //Reflists are: ["L", ref1, ref2, ...], slice off the L
+      else if (isSrcRefList && isList(selectorCellVal)) { // Reflists are: ["L", ref1, ref2, ...], slice off the L
         filterValues = selectorCellVal.slice(1);
 
-        //selectorValue and displayValue might not match up? Shouldn't happen, but let's yell loudly if it does
+        // selectorValue and displayValue might not match up? Shouldn't happen, but let's yell loudly if it does
         if (isList(displayCellVal) && displayCellVal.length === selectorCellVal.length) {
           displayValues = displayCellVal.slice(1);
         }
         else {
           console.warn("Error in LinkingState: displayVal list doesn't match selectorVal list ");
-          displayValues = filterValues; //fallback to unformatted values
+          displayValues = filterValues; // fallback to unformatted values
         }
       }
-      else { //isSrcRefList && !isList(val), probably null. Happens with blank reflists, or if cursor on the 'new' row
+      else { // isSrcRefList && !isList(val), probably null. Happens with blank reflists, or if cursor on the 'new' row
         filterValues = [];
         displayValues = [];
         if (selectorCellVal !== null) { // should be null, but let's warn if it's not
@@ -520,25 +520,25 @@ export class LinkingState extends Disposable {
         filterLabels: { [tgtColId || "id"]: filterLabelVals },
         operations: { [tgtColId || "id"]: operation },
         colTypes: { [tgtColId || "id"]: (tgtCol || srcCol)!.type() },
-        //at least one of tgt/srcCol is guaranteed to be non-null, and they will have the same type
+        // at least one of tgt/srcCol is guaranteed to be non-null, and they will have the same type
       } as FilterState;
     }));
   }
 
   // Value for this.filterColValues based on the values in srcSection.selectedRows
-  //"null" for column implies id column
+  // "null" for column implies id column
   private _srcCustomFilter(
     column: ColumnRec|undefined, operation: QueryOperation): ko.Computed<FilterState> {
-    //Note: column may be the empty column, i.e. column != undef, but column.colId() is undefined
+    // Note: column may be the empty column, i.e. column != undef, but column.colId() is undefined
     const colId = (!column || column.colId() === undefined) ? "id" : column.colId();
     return this.autoDispose(ko.computed(() => {
       const values = this._srcSection.selectedRows();
       return {
         filters: { [colId]: values },
-        filterLabels: { [colId]: values?.map(v => String(v)) }, //selectedRows should never be null if customFiltered
+        filterLabels: { [colId]: values?.map(v => String(v)) }, // selectedRows should never be null if customFiltered
         operations: { [colId]: operation },
         colTypes: { [colId]: column?.type() || `Ref:${column?.table().tableId}` },
-      } as FilterState; //TODO: fix this once we have cases of customwidget linking to test with
+      } as FilterState; // TODO: fix this once we have cases of customwidget linking to test with
     }));
   }
 
@@ -552,7 +552,7 @@ export class LinkingState extends Disposable {
     table: TableRec, colId: string | undefined, owner: MultiHolder=this,
   ): ( null | ((r: UIRowId | null) => CellValue | null) ) // (null | ValGetter)
   {
-    if (colId === undefined) { //passthrough for id cols
+    if (colId === undefined) { // passthrough for id cols
       return (rowId: UIRowId | null) => { return rowId === 'new' ? null : rowId; };
     }
 
@@ -609,12 +609,12 @@ function isSummaryOf(summary: TableRec, detail: TableRec): boolean {
 function summaryGetCorrespondingCol(srcGBCol: ColumnRec, tgtTable: TableRec): ColumnRec {
   if (!isSummaryOf(srcGBCol.table(), tgtTable)) { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: srcTable must be summary of tgtTable"); }
 
-  if (tgtTable.summarySourceTable() === 0) { //if direct summary
+  if (tgtTable.summarySourceTable() === 0) { // if direct summary
     return srcGBCol.summarySource();
   }
   else { // else summary->summary, match by colId
     const srcColId = srcGBCol.colId();
-    const retVal = tgtTable.groupByColumns().find(tgtCol => tgtCol.colId() === srcColId); //should always exist
+    const retVal = tgtTable.groupByColumns().find(tgtCol => tgtCol.colId() === srcColId); // should always exist
     if (!retVal) { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: summary table lacks groupby col"); }
     return retVal;
   }

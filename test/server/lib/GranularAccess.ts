@@ -316,7 +316,7 @@ describe('GranularAccess', function() {
         ['AddRecord', '_grist_ACLRules', null, {
           resource: -1, aclFormula: 'user.Access == OWNER', permissionsText: 'all',  // Owner can do anything
         }],
-        //######### A column rules
+        // ######### A column rules
         ['AddRecord', '_grist_ACLRules', null, {
           resource: -1, aclFormula: 'rec.A == 1', permissionsText: '-U',
         }],
@@ -353,7 +353,7 @@ describe('GranularAccess', function() {
         ['AddRecord', '_grist_ACLRules', null, {
           resource: -1, aclFormula: 'user.Access == OWNER', permissionsText: 'all',  // Owner can do anything
         }],
-        //######### A column rules
+        // ######### A column rules
         ['AddRecord', '_grist_ACLRules', null, {
           resource: -1, aclFormula: 'rec.A == 1', permissionsText: '-U',
         }],
@@ -390,7 +390,7 @@ describe('GranularAccess', function() {
         ['AddRecord', '_grist_ACLRules', null, {
           resource: -1, aclFormula: 'user.Access == OWNER', permissionsText: 'all',  // Owner can do anything
         }],
-        //######### A column rules
+        // ######### A column rules
         ['AddRecord', '_grist_ACLRules', null, {
           resource: -1, aclFormula: 'rec.A == 1', permissionsText: '-U',
         }],

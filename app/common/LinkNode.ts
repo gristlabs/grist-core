@@ -230,7 +230,7 @@ export function isValidLink(source: LinkNode, target: LinkNode) {
     return false;
   }
 
-  //cannot select from attachments, even though they're implemented as reflists
+  // cannot select from attachments, even though they're implemented as reflists
   if (source.isAttachments || target.isAttachments) {
     return false;
   }

@@ -214,7 +214,7 @@ export class VirtualTableRegistration extends DisposableWithEvents {
     docData.receiveActions(initialActions);
     // pass in gristDoc and external interface
     this._tableData = docData.getTable(ext.name)! as VirtualTableData;
-    //this.tableData.docApi = this.docApi;
+    // this.tableData.docApi = this.docApi;
     this._tableData.docModel = docModel;
     this._tableData.setExt(ext);
     // subscribe to schema changes

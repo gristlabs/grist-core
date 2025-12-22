@@ -133,7 +133,7 @@ export interface CommDocUsage extends CommMessageBase {
   docFD: number;           // The file descriptor of the open document, specific to each client.
   data: {
     docUsage: FilteredDocUsageSummary;  // Document usage summary.
-    product?: Product;                  //Product that was used to compute `data.docUsage`
+    product?: Product;                  // Product that was used to compute `data.docUsage`
   };
 }
 

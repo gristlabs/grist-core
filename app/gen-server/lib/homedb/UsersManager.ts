@@ -495,7 +495,7 @@ export class UsersManager {
       }
       const getTimestampStartOfDay = (date: Date) => {
         const timestamp = Math.floor(date.getTime() / 1000); // unix timestamp seconds from epoc
-        const startOfDay = timestamp - (timestamp % 86400 /*24h*/); // start of a day in seconds since epoc
+        const startOfDay = timestamp - (timestamp % 86400 /* 24h */); // start of a day in seconds since epoc
         return startOfDay;
       };
       if (!user.lastConnectionAt || getTimestampStartOfDay(user.lastConnectionAt) !== getTimestampStartOfDay(nowish)) {

@@ -248,7 +248,7 @@ describe('Webhooks-Proxy', function() {
 
       if (shouldProxyBeCalled) {
         it("Should call proxy", async function() {
-          //Run standard subscribe-modify data-check response - unsubscribe scenario, we are not mutch
+          // Run standard subscribe-modify data-check response - unsubscribe scenario, we are not mutch
           // intrested in it, only want to check if proxy was used
           await runTestCase();
           assert.isTrue(testProxyServer.wasProxyCalled());
@@ -256,7 +256,7 @@ describe('Webhooks-Proxy', function() {
       }
       else {
         it("Should not call proxy", async function() {
-          //Run standard subscribe-modify data-check response - unsubscribe scenario, we are not mutch
+          // Run standard subscribe-modify data-check response - unsubscribe scenario, we are not mutch
           // intrested in it, only want to check if proxy was used
           await runTestCase();
           assert.isFalse(testProxyServer.wasProxyCalled());
@@ -264,7 +264,7 @@ describe('Webhooks-Proxy', function() {
       }
 
       async function runTestCase() {
-        //Create a test document.
+        // Create a test document.
         const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
         const docId = await userApi.newDoc({ name: 'testdoc2' }, ws1);
         const doc = userApi.getDocAPI(docId);
@@ -306,7 +306,7 @@ describe('Webhooks-Proxy', function() {
         successCalled.assertNotCalled();
         createdCalled.assertNotCalled();
 
-        //Cleanup all
+        // Cleanup all
         await Promise.all(cleanup.map(fn => fn())).finally(() => cleanup.length = 0);
         await clearQueue(docId);
       }

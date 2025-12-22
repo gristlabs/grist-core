@@ -48,7 +48,7 @@ export class DataTables extends Disposable {
   public buildDom() {
     return container(
       cssTableList(
-        /***************  List section **********/
+        /** *************  List section **********/
         testId('list'),
         cssHeader(t("Raw Data Tables")),
         cssList(

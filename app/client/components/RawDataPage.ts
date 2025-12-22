@@ -54,7 +54,7 @@ export class RawDataPage extends Disposable {
         // We are hiding it, because overlay doesn't have a z-index (it conflicts with a searchbar and list buttons)
         dom.hide(this._lightboxVisible),
       ),
-      /***************  Lightbox section **********/
+      /** *************  Lightbox section **********/
       dom.domComputed(fromKo(this._gristDoc.viewModel.activeSection), (viewSection) => {
         const sectionId = viewSection.getRowId();
         if (!sectionId || (!viewSection.isRaw.peek() && !viewSection.isRecordCard.peek())) {

@@ -608,7 +608,7 @@ namespace gristUtils {
     const arrow = section.find('.gridview_data_row_info.linked_dst');
     const hasArrow = await arrow.isPresent();
     return hasArrow ? Number(
-      await arrow.findElement(By.xpath("./..")) //Get its parent
+      await arrow.findElement(By.xpath("./..")) // Get its parent
         .getText(),
     ) : null;
   }

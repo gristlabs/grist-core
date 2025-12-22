@@ -1285,7 +1285,7 @@ describe('UsersManager', function() {
         }, ws.id);
         // Have our user-to-delete fork the document.
         const fork = await api.getDocAPI(doc).fork();
-        //const urlId = buildUrlId({trunkId: doc.id, forkId, forkUserId: userToDelete.id});
+        // const urlId = buildUrlId({trunkId: doc.id, forkId, forkUserId: userToDelete.id});
         const urlId = fork.docId;
 
         // Check the fork exists.

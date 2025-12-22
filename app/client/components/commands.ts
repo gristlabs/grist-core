@@ -93,7 +93,7 @@ export function init(optCommandGroups?: CommendGroupDef[]) {
   });
 }
 
-//----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 const KEY_MAP_MAC = {
   Mod: '⌘',
@@ -266,7 +266,7 @@ function wrapKeyCallback(callback: Func) {
   };
 }
 
-//----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 type Func = (...args: any[]) => any;
 type CommandMap = { [key in CommandName]?: Func };
@@ -383,7 +383,7 @@ export function createGroup<T>(commands: BoundedMap<T>|null, context: T, activat
   return CommandGroup.create(null, commands ?? {}, context, activate);
 }
 
-//----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 /**
  * Tie the button to an command listed in commandList.js, triggering the callback from the

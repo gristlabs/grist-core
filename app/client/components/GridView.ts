@@ -184,7 +184,7 @@ export default class GridView extends BaseView {
       this.viewSection.isVirtual() ||
       this.isPreview;
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Observables local to this view
 
     // Some observables/variables used for select and drag/drop
@@ -255,11 +255,11 @@ export default class GridView extends BaseView {
       top: this.isScrolledTop,
     };
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Set up row and column context menus.
     this.ctxMenuHolder = Holder.create(this);
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Set frozen columns variables
 
     // keep track of the width for this component
@@ -338,7 +338,7 @@ export default class GridView extends BaseView {
       }
     }, 0);
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Create and attach the DOM for the view.
 
     this.isColSelected = this.autoDispose(this.viewSection.viewFields().map((field) => {
@@ -349,7 +349,7 @@ export default class GridView extends BaseView {
     this.attachSelectorHandlers();
     this.scrolly = koDomScrolly.getInstance(this.viewData);
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Set up DOM event handling.
     onDblClickMatchElem(this.scrollPane, '.field:not(.column_name)', (event) => {
       if (this.gridOptions?.onCellDblClick) {
@@ -366,7 +366,7 @@ export default class GridView extends BaseView {
     }
     this.autoDispose(dom.onElem(this.scrollPane, 'scroll', () => this.onScroll()));
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Command groups implementing all grid level commands (except cancel)
     this.autoDispose(commands.createGroup(viewCommands(GridView.gridCommands, this), this, this.viewSection.hasFocus));
     this.autoDispose(commands.createGroup(GridView.gridFocusedCommands, this, this.viewSection.hasRegionFocus));
@@ -1314,7 +1314,7 @@ export default class GridView extends BaseView {
   /**
    * Recalculate various positioning variables.
    */
-  //TODO : is this necessary? make passive. Also this could be removed soon I think
+  // TODO : is this necessary? make passive. Also this could be removed soon I think
   protected onScroll() {
     const pane = this.scrollPane;
     this.scrollLeft(pane.scrollLeft);
@@ -1327,7 +1327,7 @@ export default class GridView extends BaseView {
     const v = this.viewSection;
     const editIndex = this.currentEditingColumnIndex;
 
-    //each row has toggle classes on these props, so grab them once to save on lookups
+    // each row has toggle classes on these props, so grab them once to save on lookups
     const vHorizontalGridlines = v.optionsObj.prop('horizontalGridlines');
     const vVerticalGridlines   = v.optionsObj.prop('verticalGridlines');
     const vZebraStripes        = v.optionsObj.prop('zebraStripes');
@@ -1367,7 +1367,7 @@ export default class GridView extends BaseView {
         // pass current scroll position
         styleCustomVar('--frozen-scroll-offset', this.frozenScrollOffset)),
       dom('div.frozen_line', dom.show(this.frozenLine)),
-      dom('div.gridview_header_backdrop_left'), //these hide behind the actual headers to keep them from flashing
+      dom('div.gridview_header_backdrop_left'), // these hide behind the actual headers to keep them from flashing
       dom('div.gridview_header_backdrop_top'),
       // When there are frozen columns, right border for number row will not be visible (as actually there is no border,
       // it comes from the first cell in the grid) making a gap between row-number and actual column. So when we scroll
@@ -1543,7 +1543,7 @@ export default class GridView extends BaseView {
                   )
                 )),
               ),
-            ), //end hbox
+            ), // end hbox
           ), // END COL HEADER BOX
 
           koDomScrolly.scrolly(data, {
@@ -1672,7 +1672,7 @@ export default class GridView extends BaseView {
           styleCustomVar('--grist-row-rule-background-color', fillColor),
           styleCustomVar('--grist-row-rule-background-color-zebra', zebraColor),
           styleCustomVar('--grist-row-color', textColor),
-          //These are grabbed from v.optionsObj at start of GridView buildDom
+          // These are grabbed from v.optionsObj at start of GridView buildDom
           kd.toggleClass('record-hlines', vHorizontalGridlines),
           kd.toggleClass('record-vlines', vVerticalGridlines),
           kd.toggleClass('record-zebra', vZebraStripes),
@@ -1739,8 +1739,8 @@ export default class GridView extends BaseView {
               dom.autoDispose(isTooltip),
               this._showTooltipOnHover(field, isTooltip),
               kd.style('width', field.widthPx),
-              //TODO: Ensure that fields in a row resize when
-              //a cell in that row becomes larger
+              // TODO: Ensure that fields in a row resize when
+              // a cell in that row becomes larger
               kd.style('borderRightWidth', v.borderWidthPx),
               kd.toggleClass('selected', isSelected),
               // Optional icon. Currently only use to show formula icon.

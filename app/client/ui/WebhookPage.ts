@@ -354,7 +354,7 @@ export class WebhookPage extends DisposableWithEvents {
 
   constructor(public gristDoc: GristDoc) {
     super();
-    //this._webhooks = observableArray<WebhookSummary>();
+    // this._webhooks = observableArray<WebhookSummary>();
     this._webhookExternalTable = new WebhookExternalTable(this.docApi);
     const table = this.autoDispose(new VirtualTableRegistration(gristDoc.docModel, this._webhookExternalTable));
     this.listenTo(gristDoc, 'webhooks', async () => {

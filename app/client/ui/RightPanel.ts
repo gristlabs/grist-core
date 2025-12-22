@@ -78,7 +78,7 @@ import * as ko from 'knockout';
 
 // some unicode characters
 const BLACK_CIRCLE = '\u2022';
-const ELEMENTOF = '\u2208'; //220A for small elementof
+const ELEMENTOF = '\u2208'; // 220A for small elementof
 
 const t = makeT('RightPanel');
 
@@ -602,11 +602,11 @@ export class RightPanel extends Disposable {
   }
 
   private _buildLinkInfo(activeSection: ViewSectionRec, ...domArgs: DomElementArg[]) {
-    //NOTE!: linkingState.filterState might transiently be EmptyFilterState while things load
-    //Each case (filters-table, id cols, etc) needs to be able to handle having lfilter.filterLabels = {}
+    // NOTE!: linkingState.filterState might transiently be EmptyFilterState while things load
+    // Each case (filters-table, id cols, etc) needs to be able to handle having lfilter.filterLabels = {}
     const tgtSec = activeSection;
     return dom.domComputed((use) => {
-      const srcSec = use(tgtSec.linkSrcSection); //might be the empty section
+      const srcSec = use(tgtSec.linkSrcSection); // might be the empty section
       const srcCol = use(tgtSec.linkSrcCol);
       const srcColId = use(use(tgtSec.linkSrcCol).colId); // if srcCol is the empty col, colId will be undefined
 
@@ -614,7 +614,7 @@ export class RightPanel extends Disposable {
         return cssLinkInfoPanel("");
       }
 
-      //const tgtColId = use(use(tgtSec.linkTargetCol).colId);
+      // const tgtColId = use(use(tgtSec.linkTargetCol).colId);
       const srcTable = use(srcSec.table);
       const tgtTable = use(tgtSec.table);
 
@@ -624,7 +624,7 @@ export class RightPanel extends Disposable {
       // if not filter-linking, this will be incorrect, but we don't use it then
       const lfilter = lstate.filterState ? use(lstate.filterState): EmptyFilterState;
 
-      //If it's null then no cursor-link is set, but in that case we won't show the string anyway.
+      // If it's null then no cursor-link is set, but in that case we won't show the string anyway.
       const cursorPos = lstate.cursorPos ? use(lstate.cursorPos) : 0;
       const linkedCursorStr =  cursorPos ? `${use(tgtTable.tableId)}[${cursorPos}]` : '';
 
@@ -632,28 +632,28 @@ export class RightPanel extends Disposable {
       const fromTableDom = [
         dom.maybe(use2 => use2(srcTable.summarySourceTable), () => cssLinkInfoIcon("Pivot")),
         use(srcSec.titleDef) + (srcColId ? ` ${BLACK_CIRCLE} ${use(srcCol.label)}` : ''),
-        dom.style("white-space", "normal"), //Allow table name to wrap, reduces how often scrollbar needed
+        dom.style("white-space", "normal"), // Allow table name to wrap, reduces how often scrollbar needed
       ];
 
-      //Count filters for proper pluralization
+      // Count filters for proper pluralization
       const hasId = lfilter.filterLabels?.hasOwnProperty("id");
       const numFilters = Object.keys(lfilter.filterLabels).length - (hasId ? 1 : 0);
 
       // ================== Link-info Helpers
 
-      //For each col-filter in lfilters, makes a row showing "${icon} colName = [filterVals]"
-      //FilterVals is in a box to look like a grid cell
+      // For each col-filter in lfilters, makes a row showing "${icon} colName = [filterVals]"
+      // FilterVals is in a box to look like a grid cell
       const makeFiltersTable = (): DomContents => {
         return cssLinkInfoBody(
-          dom.style("width", "100%"), //width 100 keeps table from growing outside bounds of flex parent if overfull
+          dom.style("width", "100%"), // width 100 keeps table from growing outside bounds of flex parent if overfull
           dom("table",
             dom.style("margin-left", "8px"),
             Object.keys(lfilter.filterLabels).map( (colId) => {
               const vals = lfilter.filterLabels[colId];
               let operationSymbol = "=";
-              //if [filter (reflist) <- ref], op="intersects", need to convey "list has value". symbol =":"
-              //if [filter (ref) <- reflist], op="in", vals.length>1, need to convey "ref in list"
-              //Sometimes operation will be 'empty', but in that case "=" still works fine, i.e. "list = []"
+              // if [filter (reflist) <- ref], op="intersects", need to convey "list has value". symbol =":"
+              // if [filter (ref) <- reflist], op="in", vals.length>1, need to convey "ref in list"
+              // Sometimes operation will be 'empty', but in that case "=" still works fine, i.e. "list = []"
               if (lfilter.operations[colId] == "intersects") { operationSymbol = ":"; }
               else if (vals.length > 1) { operationSymbol = ELEMENTOF; }
 
@@ -671,17 +671,17 @@ export class RightPanel extends Disposable {
                     `${vals.join(', ')}`)),
                 );
               }
-            }), //end of keys(filterLabels).map
+            }), // end of keys(filterLabels).map
           ));
       };
 
-      //Given a list of filterLabels, show them all in a box, as if a grid cell
-      //Shows a "Reference" icon in the left side, since this should only be used for reflinks and cursor links
+      // Given a list of filterLabels, show them all in a box, as if a grid cell
+      // Shows a "Reference" icon in the left side, since this should only be used for reflinks and cursor links
       const makeValuesBox = (valueLabels: string[]): DomContents => {
         return cssLinkInfoBody((
           cssLinkInfoValuesBox(
             cssLinkInfoIcon("FieldReference"),
-            valueLabels.join(', ') ) //TODO: join labels like "Entries[1], Entries[2]" to "Entries[[1,2]]"
+            valueLabels.join(', ') ) // TODO: join labels like "Entries[1], Entries[2]" to "Entries[[1,2]]"
         ));
       };
 
@@ -699,7 +699,7 @@ export class RightPanel extends Disposable {
               dom("div", `Linked from `, fromTableDom),
             ];
           case "Show-Referenced-Records": {
-            //filterLabels might be {} if EmptyFilterState, so filterLabels["id"] might be undefined
+            // filterLabels might be {} if EmptyFilterState, so filterLabels["id"] might be undefined
             const displayValues = lfilter.filterLabels["id"] ?? [];
             return [
               dom("div", `Link shows record${displayValues.length > 1 ? "s" : ""}:`),
@@ -726,9 +726,9 @@ export class RightPanel extends Disposable {
 
   private _buildLinkInfoAdvanced(activeSection: ViewSectionRec) {
     return  dom.domComputed((use): DomContents => {
-      //TODO: if this just outputs a string, this could really be in LinkingState as a toDebugStr function
+      // TODO: if this just outputs a string, this could really be in LinkingState as a toDebugStr function
       //      but the fact that it's all observables makes that trickier to do correctly, so let's leave it here
-      const srcSec = use(activeSection.linkSrcSection); //might be the empty section
+      const srcSec = use(activeSection.linkSrcSection); // might be the empty section
       const tgtSec = activeSection;
 
       if (srcSec.isDisposed()) { // can happen when deleting srcSection with rightpanel open
@@ -761,7 +761,7 @@ export class RightPanel extends Disposable {
         `\n srclastEdited: T+${use(srcSec.lastCursorEdit)} \n tgtLastEdited: T+${use(tgtSec.lastCursorEdit)}` +
         `\n incomingCursorPos: ${inPos ? `${inPos[0]}@T+${inPos[1]}` : "N/A"}`;
 
-      //Main link info as a big string, will be in a <pre></pre> block
+      // Main link info as a big string, will be in a <pre></pre> block
       let preString = "No Incoming Link";
       if (hasLink) {
         preString = [
@@ -911,7 +911,7 @@ export class RightPanel extends Disposable {
         ] : null;
       }),
 
-      //Advanced link info is a little too JSON-ish for general use. But it's very useful for debugging
+      // Advanced link info is a little too JSON-ish for general use. But it's very useful for debugging
       this._buildLinkInfoAdvanced(activeSection),
     ];
   }
@@ -1417,10 +1417,10 @@ const cssSection = styled('div', `
   position: relative;
 `);
 
-//============ LinkInfo CSS ============
+// ============ LinkInfo CSS ============
 
-//LinkInfoPanel is a flex-column
-//`LinkInfoPanel > table` is the table where we show linked filters, if there are any
+// LinkInfoPanel is a flex-column
+// `LinkInfoPanel > table` is the table where we show linked filters, if there are any
 const cssLinkInfoPanel = styled('div', `
   width: 100%;
 
@@ -1463,8 +1463,8 @@ const cssLinkInfoValuesBox = styled('div', `
   white-space: normal;
 `);
 
-//If inline with text, icons look better shifted up slightly
-//since icons are position:relative, bottom:1 should shift it without affecting layout
+// If inline with text, icons look better shifted up slightly
+// since icons are position:relative, bottom:1 should shift it without affecting layout
 const cssLinkInfoIcon = styled(icon, `
   bottom: 1px;
   margin-right: 3px;

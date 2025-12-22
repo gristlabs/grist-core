@@ -343,7 +343,7 @@ export class GristWebDriverUtils {
   public async openProfileSettingsPage(): Promise<ProfileSettingsPage> {
     await this.openAccountMenu();
     await this.driver.find('.grist-floating-menu .test-dm-account-settings').click();
-    //close alert if it is shown
+    // close alert if it is shown
     if (await this.isAlertShown()) {
       await this.acceptAlert();
     }

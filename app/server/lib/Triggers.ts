@@ -87,7 +87,7 @@ const MAX_QUEUE_SIZE =
 
 const WEBHOOK_CACHE_TTL = 10_000;
 
-const WEBHOOK_STATS_CACHE_TTL = 1000 /*s*/ * 60 /*m*/ * 24/*h*/;
+const WEBHOOK_STATS_CACHE_TTL = 1000 /* s */ * 60 /* m */ * 24/* h */;
 
 // A time to wait for between retries of a webhook. Exposed for tests.
 const TRIGGER_WAIT_DELAY =

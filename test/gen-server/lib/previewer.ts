@@ -101,7 +101,7 @@ describe('previewer', function() {
     const externalStore = home.getWorkStore().getPermitStore('external');
     const externalDocPermit = await externalStore.setPermit({ docId });
     resp = await axios.get(`${homeUrl}/api/docs/${docId}`, permit(externalDocPermit));
-    //assert.equal(resp.status, 401);
+    // assert.equal(resp.status, 401);
 
     resp = await axios.get(`${homeUrl}/api/docs/${docId}`, permit(badDocPermit));
     assert.equal(resp.status, 403);

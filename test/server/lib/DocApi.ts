@@ -3917,7 +3917,7 @@ function testDocApi(settings: {
           ['enabled', 'isReadyColumn', 'memo', 'name', 'tableId', 'eventTypes', 'url']);
       }
       finally {
-        //cleanup
+        // cleanup
         await deleteWebhookCheck(registerResponse.webhooks[0].id);
       }
     });
@@ -4094,13 +4094,13 @@ function testDocApi(settings: {
       const check = userCheck.bind(null, kiwi);
 
       await check({ webhookId: "foo" }, 404, `Webhook not found "foo"`);
-      //no unsubscribeKey - should be not accepted for role other that owner
+      // no unsubscribeKey - should be not accepted for role other that owner
       await check({ webhookId: subscribeResponse.webhookId }, 400, 'Bad request: unsubscribeKey required');
-      //wrong unsubscribeKey - it should not be accepted
-      //subscribeResponse = await subscribeWebhook();
+      // wrong unsubscribeKey - it should not be accepted
+      // subscribeResponse = await subscribeWebhook();
       await check({ webhookId: subscribeResponse.webhookId, unsubscribeKey: "foo" },
         401, 'Wrong unsubscribeKey');
-      //subscribeResponse = await subscribeWebhook();
+      // subscribeResponse = await subscribeWebhook();
       // Actually unsubscribe with the same unsubscribeKey that was returned by registration
       await check({ webhookId: subscribeResponse.webhookId, unsubscribeKey: subscribeResponse.unsubscribeKey },
         200, { success: true });

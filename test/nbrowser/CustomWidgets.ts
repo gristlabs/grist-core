@@ -813,13 +813,13 @@ describe('CustomWidgets', function() {
       await reloadWidgets();
       await gu.openWidgetPanel();
       await gu.setCustomWidget(widget1.name);
-      //Switch language to Polish
+      // Switch language to Polish
       await switchLanguage('Polski');
-      //Check if widgets have "pl" in url
+      // Check if widgets have "pl" in url
       assert.equal(await language(), 'pl');
-      //Switch back to English
+      // Switch back to English
       await switchLanguage('English');
-      //Check if widgets have "en" in url
+      // Check if widgets have "en" in url
       assert.equal(await language(), 'en');
     });
 

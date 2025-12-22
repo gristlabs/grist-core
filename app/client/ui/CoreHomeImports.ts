@@ -94,8 +94,8 @@ export async function importFromPlugin(
         return docId;
       }
       else if (item.kind === "url") {
-        //TODO: importing from url is not yet implemented.
-        //uploadResult = await fetchURL(this._docComm, item.url);
+        // TODO: importing from url is not yet implemented.
+        // uploadResult = await fetchURL(this._docComm, item.url);
         throw new Error("Url is not supported yet");
       }
       else {

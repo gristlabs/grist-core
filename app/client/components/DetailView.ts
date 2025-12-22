@@ -59,7 +59,7 @@ export default class DetailView extends BaseView {
     this._isSingle = (this.viewSection.parentKey.peek() === 'single');
     this._isExternalSectionPopup = gristDoc.externalSectionId.get() === this.viewSection.id();
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Create and attach the DOM for the view.
     this.recordLayout = this.autoDispose(RecordLayout.create({
       viewSection: this.viewSection,
@@ -92,7 +92,7 @@ export default class DetailView extends BaseView {
 
     this.layoutBoxIdx = ko.observable(0);
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     if (this._isSingle) {
       this.detailRecord = this.autoDispose(this.tableModel.createFloatingRowModel());
       this._updateFloatingRow();
@@ -103,12 +103,12 @@ export default class DetailView extends BaseView {
       this.detailRecord = null;
     }
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Construct DOM
     this.viewPane = this.buildDom();
     this.onDispose(() => { dom.domDispose(this.viewPane); this.viewPane.remove(); });
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Set up DOM event handling.
     this._twoLastFieldIdsSelected = [null, null];
 
@@ -152,7 +152,7 @@ export default class DetailView extends BaseView {
       }
     }));
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Instantiate CommandGroups for the different modes.
     this.autoDispose(commands.createGroup(viewCommands(DetailView.detailCommands, this),
       this, this.viewSection.hasFocus));
@@ -216,7 +216,7 @@ export default class DetailView extends BaseView {
     cancel: function() { this._clearSelection(); },
   };
 
-  //----------------------------------------------------------------------
+  // ----------------------------------------------------------------------
   // To satisfy CellSelector interface, though it's not actually used.
   public domToRowModel(elem: Element, elemType: ElemType): DataRowModel|undefined { return; }
   public domToColModel(elem: Element, elemType: ElemType): DataRowModel|undefined { return; }

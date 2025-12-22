@@ -288,7 +288,7 @@ export class LayoutBox extends Disposable implements ContentBox {
   }
 
   public _removeChildBox(childBox: LayoutBox) {
-    //console.log("_removeChildBox %s from %s", childBox.toString(), this.toString());
+    // console.log("_removeChildBox %s from %s", childBox.toString(), this.toString());
     let index = this.childBoxes.peek().indexOf(childBox);
     childBox.parentBox(null);
     if (index >= 0) {
@@ -367,7 +367,7 @@ function makeStatic(valueOrFunc: any) {
   }
 }
 
-//----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 /**
  * @event layoutChanged: Triggered on changes to the structure of the layout.

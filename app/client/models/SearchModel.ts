@@ -160,7 +160,7 @@ class PageRecWrapper implements ISearchablePageRec {
   }
 }
 
-//activeSectionId
+// activeSectionId
 
 /**
  * An implementation of an IFinder.

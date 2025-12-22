@@ -424,7 +424,7 @@ function buildLookupSection(gridView: GridView, index?: number) {
       ];
     }
   }
-  //colTypeOverload allow to change created column type if default is wrong.
+  // colTypeOverload allow to change created column type if default is wrong.
   function buildColumnInfo(
     fun: string,
     referenceToSource: string,

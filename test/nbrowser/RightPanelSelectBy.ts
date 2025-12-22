@@ -63,7 +63,7 @@ describe('RightPanelSelectBy', function() {
   });
 
   it('should disallow creating cycles if not cursor-linked', async function() {
-    //Link "films record" by "performances record"
+    // Link "films record" by "performances record"
     await gu.openSelectByForSection('FILMS RECORD');
     await gu.findOpenMenuItem('.test-select-row', /Performances record.*Film/i).click();
     await gu.waitForServer();

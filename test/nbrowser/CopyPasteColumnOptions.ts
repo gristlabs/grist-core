@@ -226,7 +226,7 @@ describe('CopyPasteColumnOptions', function() {
       },
 
       /////////////////
-      ///// Table2 starts here. Most of the column options are now the same.
+      /// // Table2 starts here. Most of the column options are now the same.
       /////////////////
       {
         "id": 13,

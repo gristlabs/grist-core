@@ -120,7 +120,7 @@ export default class BaseView extends DisposableWithEvents {
     this.options = options || {};
     this._name = this.viewSection.titleDef.peek();
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Observable models mapped to the document
 
     // Instantiate the models for the view metadata and for the data itself.
@@ -208,7 +208,7 @@ export default class BaseView extends DisposableWithEvents {
     this.autoDispose(commands.createGroup(
       BaseView._commonFocusedCommands, this, this.viewSection.hasRegionFocus));
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Prepare logic for linking with other sections.
 
     // A computed for the rowId of the row selected by section linking.
@@ -249,7 +249,7 @@ export default class BaseView extends DisposableWithEvents {
     this.autoDispose(this.enableAddRow.subscribe(updateEnableAddRow));
     updateEnableAddRow(this.enableAddRow.peek());
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Observables local to this view
     this._isLoading = ko.observable(true);
     this._pendingCursorPos = this.viewSection.lastCursorPos;

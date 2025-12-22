@@ -104,9 +104,9 @@ describe('GridViewNewColumnMenu', function() {
       await clickAddColumn();
       await driver.findWait('.test-new-columns-menu-add-new', STANDARD_WAITING_TIME).click();
       await gu.waitForServer();
-      //discard rename menu
+      // discard rename menu
       await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
-      //check if new column is present
+      // check if new column is present
       const columns = await gu.getColumnNames();
       assert.include(columns, 'D', 'new column is not present');
       assert.lengthOf(columns, 4, 'wrong number of columns');
@@ -241,9 +241,9 @@ describe('GridViewNewColumnMenu', function() {
           // click on the option and check if column is added with a proper type
           await element.click();
           await gu.waitForServer();
-          //discard rename menu
+          // discard rename menu
           await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
-          //check if new column is present
+          // check if new column is present
           await gu.selectColumn('D');
           await gu.openColumnPanel();
           const type = await gu.getType();
@@ -257,7 +257,7 @@ describe('GridViewNewColumnMenu', function() {
         columnsThatShouldTriggerSideMenu.includes(option.type))) {
         it(`should open Right Menu on Column section after choosing ${optionsTriggeringMenu.type}`, async function() {
           await gu.enableTips(session.email);
-          //close right panel just in case.
+          // close right panel just in case.
           await gu.toggleSidePanel("right", "close");
           // open add new colum menu
           await clickAddColumn();
@@ -273,11 +273,11 @@ describe('GridViewNewColumnMenu', function() {
           // click on the option and check if column is added with a proper type
           await element.click();
           await gu.waitForServer();
-          //discard rename menu
+          // discard rename menu
           await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
           // Wait for the side panel animation.
           await gu.waitForSidePanel();
-          //check if right menu is opened on column section
+          // check if right menu is opened on column section
           await gu.waitForSidePanel();
           assert.isTrue(await driver.find('.test-right-tab-field').isDisplayed());
           await gu.toggleSidePanel("right", "close");
@@ -287,7 +287,7 @@ describe('GridViewNewColumnMenu', function() {
         it(`should show referenceColumnsConfig in right Column section
          when ${optionsTriggeringMenu.type} type is chosen`,
         async function() {
-          //close right panel just in case.
+          // close right panel just in case.
           await gu.toggleSidePanel("right", "close");
           await gu.enableTips(session.email);
           await driver.executeScript('resetDismissedPopups()');
@@ -305,9 +305,9 @@ describe('GridViewNewColumnMenu', function() {
           // click on the option and check if column is added with a proper type
           await element.click();
           await gu.waitForServer();
-          //discard rename menu
+          // discard rename menu
           await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
-          //check if referenceColumnsConfig is present
+          // check if referenceColumnsConfig is present
           await gu.waitToPass(async () => assert.isTrue(
             await driver.findContentWait(
               '.test-behavioral-prompt-title',
@@ -328,7 +328,7 @@ describe('GridViewNewColumnMenu', function() {
         columnsThatShouldTriggerSideMenu.includes(option.type))) {
         it('should not show Right Menu when user is on the mobile/narrow screen', async function() {
           await gu.enableTips(session.email);
-          //close right panel just in case.
+          // close right panel just in case.
           await gu.toggleSidePanel("right", "close");
           // open add new colum menu
           await clickAddColumn();
@@ -344,9 +344,9 @@ describe('GridViewNewColumnMenu', function() {
           // click on the option and check if column is added with a proper type
           await element.click();
           await gu.waitForServer();
-          //discard rename menu
+          // discard rename menu
           await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
-          //check if right menu is opened on column section
+          // check if right menu is opened on column section
           assert.isFalse(await driver.find('.test-right-tab-field').isPresent());
           await gu.toggleSidePanel("right", "close");
           await gu.undo(1);
@@ -400,7 +400,7 @@ describe('GridViewNewColumnMenu', function() {
       await clickAddColumn();
       // select "create formula column" option
       await driver.findWait('.test-new-columns-menu-add-formula', STANDARD_WAITING_TIME).click();
-      //check if new column is present
+      // check if new column is present
       await gu.waitForServer();
       // there should not be a rename popup
       assert.isFalse(await driver.find('test-column-title-popup').isPresent());

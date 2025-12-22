@@ -59,7 +59,7 @@ const G = getBrowserGlobals('document', 'window', '$');
 
 type JQMouseEvent = JQuery.MouseEventBase | MouseEvent;
 
-//----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 class HelperBox {
   public box!: LayoutBox;
@@ -152,7 +152,7 @@ class Floater extends Disposable implements ContentBox {
   }
 }
 
-//----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 /**
  * DropOverlay is a rectangular indicator that's displayed over a leaf box under the mouse
@@ -218,7 +218,7 @@ class DropOverlay extends Disposable {
   }
 }
 
-//----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 /**
  * DropTargeter displays a set of rectangles, each of which represents a particular allowed
@@ -388,7 +388,7 @@ class DropTargeter extends Disposable {
 
 extend(DropTargeter.prototype, BackboneEvents);
 
-//----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 /**
  * When a LayoutEditor is created for a given Layout object, it makes it possible to drag
@@ -733,7 +733,7 @@ export class LayoutEditor extends Disposable {
     // Sizing boxes vertically requires extra care that the sum of values doesn't change.
     this.targetBox.getDom(); // Make sure its dom is created.
 
-    //console.log("onInsertBox %s -> %s", prevTargetBox, this.targetBox);
+    // console.log("onInsertBox %s -> %s", prevTargetBox, this.targetBox);
     let transitionPromiseResolve!: () => void;
     this.transitionPromise = new Promise(function(resolve, reject) {
       transitionPromiseResolve = resolve;
@@ -767,14 +767,14 @@ export class LayoutEditor extends Disposable {
 
 extend(LayoutEditor.prototype, BackboneEvents);
 
-//----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 /**
  * When the user hovers near the edge of a box, we call the direction the "affinity", and it
  * indicates where an insertion is to happen. Affinities are represented by numbers 0 - 3. The
  * functions below distinguish top-down vs left-right, and top/left vs down/right.
  */
-//const AFFINITY_NAMES = { 0: 'TOP', 1: 'DOWN', 2: 'LEFT', 3: 'RIGHT' };
+// const AFFINITY_NAMES = { 0: 'TOP', 1: 'DOWN', 2: 'LEFT', 3: 'RIGHT' };
 function isAffinityUpDown(affinity: number): boolean {
   return (affinity >> 1) === 0;
 }

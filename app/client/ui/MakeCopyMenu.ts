@@ -435,7 +435,7 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
           t(
             'If you\'re planning to upload this document to a Grist installation, \
 you will need the archive in the ".tar" format to restore attachments. ',
-            /*'{{learnMore}}.',
+            /* '{{learnMore}}.',
             {
               learnMore: cssLink(t("Learn more"), {
                 href: "https://TODO",

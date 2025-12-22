@@ -81,8 +81,8 @@ function getFileDialogOptions(options: SelectFileOptions): FileDialogOptions {
 }
 
 // Helper to convert SelectFileOptions to electron's OpenDialogOptions.
-function getElectronOptions(options: SelectFileOptions) /*: OpenDialogOptions */ {
-  const resOptions /*: OpenDialogOptions*/ = {
+function getElectronOptions(options: SelectFileOptions) /* : OpenDialogOptions */ {
+  const resOptions /* : OpenDialogOptions */ = {
     filters: [] as Array<{ name: string, extensions: any }>,
     properties: ['openFile'],
   };

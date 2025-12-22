@@ -274,7 +274,7 @@ export function summaryGroupByDescription(groupByColumnLabels: string[]): string
   return `[${groupByColumnLabels.length ? 'by ' + groupByColumnLabels.join(", ") : "Totals"}]`;
 }
 
-//// Types for autocomplete suggestions
+/// / Types for autocomplete suggestions
 
 // Suggestion may be a string, or a tuple [funcname, argSpec, isGrist], where:
 //  - funcname (e.g. "DATEADD") will be auto-completed with "(", AND linked to Grist
