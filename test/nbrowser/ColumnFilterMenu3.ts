@@ -2,8 +2,8 @@ import { assert, driver, Key } from "mocha-webdriver";
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
-void(driver);
-void(Key);
+void (driver);
+void (Key);
 
 async function getValues() {
   return driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText());

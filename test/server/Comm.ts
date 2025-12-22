@@ -95,8 +95,8 @@ describe('Comm', function() {
       return { x: x, y: y, name: "methodAsync" };
     },
     methodSend: async function(client, docFD) {
-      void(client.sendMessage({ docFD, type: "fooType" as any, data: "foo" }));
-      void(client.sendMessage({ docFD, type: "barType" as any, data: "bar" }));
+      void (client.sendMessage({ docFD, type: "fooType" as any, data: "foo" }));
+      void (client.sendMessage({ docFD, type: "barType" as any, data: "bar" }));
     },
   };
 
@@ -459,7 +459,7 @@ describe('Comm', function() {
         const countToWaitFor = options.noFailedSend ? 5 : 2;
         await waitForCondition(() => eventSpy.callCount >= countToWaitFor);
 
-        void(forwarder.disconnectServerSide());
+        void (forwarder.disconnectServerSide());
 
         // Wait less than the delay that we add for delayFailedSend, and send another message. There
         // used to be a bug that such a message would get recorded into missedMessages out of order.

@@ -453,5 +453,5 @@ function isTutorialTable(tablesData: TableData, tableRef: UIRowId): boolean {
  * by having a string rowId rather than the expected integer.
  */
 function isVirtualTable(tablesData: TableData, tableRef: UIRowId): boolean {
-  return typeof(tableRef) === 'string';
+  return typeof (tableRef) === 'string';
 }

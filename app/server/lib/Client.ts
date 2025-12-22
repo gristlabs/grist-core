@@ -62,7 +62,7 @@ const MESSAGE_TYPES_NO_AUTH = new Set([
 ]);
 
 // tslint:disable-next-line:no-unused-expression Silence "unused variable" warning.
-void(MESSAGE_TYPES_NO_AUTH);
+void (MESSAGE_TYPES_NO_AUTH);
 
 /**
  * Class that encapsulates the information for a client. A Client may survive

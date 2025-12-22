@@ -722,7 +722,7 @@ export class FlexServer implements GristServer {
       if (counter === 0) {
         // Only call shutdown once. It's async and could in theory fail, in which case it would be
         // another unhandledRejection, and would get caught and reported by this same handler.
-        void(shutdown.exit(1));
+        void (shutdown.exit(1));
       }
       counter++;
     });

@@ -266,7 +266,7 @@ export class TestingHooks implements ITestingHooks {
       setTimeout(() => { throw new Error("TestingHooks: Fake exception"); }, 0);
     }
     else if (errType === 'rejection') {
-      void(Promise.resolve(null).then(() => { throw new Error("TestingHooks: Fake rejection"); }));
+      void (Promise.resolve(null).then(() => { throw new Error("TestingHooks: Fake rejection"); }));
     }
     else if (errType === 'error-event') {
       const emitter = new EventEmitter();

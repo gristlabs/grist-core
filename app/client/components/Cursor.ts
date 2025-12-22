@@ -182,7 +182,7 @@ export class Cursor extends Disposable {
         newRowIndex = cursorPos.rowIndex;
       }
 
-      if (typeof(newRowIndex) === "number" && newRowIndex < 0) {
+      if (typeof (newRowIndex) === "number" && newRowIndex < 0) {
         newRowIndex = null;
       }
 

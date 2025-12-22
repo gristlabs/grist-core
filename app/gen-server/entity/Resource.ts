@@ -40,7 +40,7 @@ export class Resource extends BaseEntity {
 
 // Ensure iso-string-or-date value is converted to a date.
 function _propertyToDate(d: string | Date): Date {
-  if (typeof(d) === 'string') {
+  if (typeof (d) === 'string') {
     return new Date(d);
   }
   return d;

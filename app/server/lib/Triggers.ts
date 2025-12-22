@@ -148,7 +148,7 @@ export class DocTriggers {
     this._shuttingDown = true;
     this._loopAbort?.abort();
     if (!this._sending) {
-      void(this._redisClientField?.quitAsync());
+      void (this._redisClientField?.quitAsync());
     }
   }
 

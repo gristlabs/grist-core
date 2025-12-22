@@ -34,7 +34,7 @@ export function buildWelcomeSitePicker(owner: IDisposableOwner, appModel: AppMod
                   dom('div', user.email, testId('personal-org-email')),
                 ),
                 dom.attr('href', use => urlState().makeUrl({ org: use(personalOrg) })),
-                dom.on('click', (ev) => { void(switchToPersonalUrl(ev, appModel, personalOrg.get(), user)); }),
+                dom.on('click', (ev) => { void (switchToPersonalUrl(ev, appModel, personalOrg.get(), user)); }),
                 testId('personal-org'),
               )
             )),

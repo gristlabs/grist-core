@@ -494,12 +494,12 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     if (gristType == 'ChoiceList') {
       // See also app/plugin/objtype.ts for decodeObject(). Here we manually check and decode
       // the "List" object type.
-      if (isList(val) && val.every(tok => (typeof(tok) === 'string'))) {
+      if (isList(val) && val.every(tok => (typeof (tok) === 'string'))) {
         return JSON.stringify(val.slice(1));
       }
     }
     else if (isRefListType(gristType)) {
-      if (isList(val) && val.slice(1).every((tok: any) => (typeof(tok) === 'number'))) {
+      if (isList(val) && val.slice(1).every((tok: any) => (typeof (tok) === 'number'))) {
         return JSON.stringify(val.slice(1));
       }
     }
@@ -516,7 +516,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     // also even though it is not currently used.
     const affinity = this._getAffinity(sqlType);
     // For strings, numbers, and booleans, we have distinct strategies and problems.
-    switch (typeof(val)) {
+    switch (typeof (val)) {
       case 'string':
         // Strings are easy with TEXT and BLOB affinity, they can be stored verbatim.
         if (affinity === 'TEXT' || affinity === 'BLOB') { return val; }

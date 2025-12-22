@@ -1199,7 +1199,7 @@ export class ActiveDoc extends EventEmitter {
           continue;
         }
         filesAdded.add(name);
-        yield({
+        yield ({
           name,
           size: file.metadata.size,
           data: file.contentStream,

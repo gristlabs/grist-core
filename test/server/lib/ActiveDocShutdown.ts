@@ -397,7 +397,7 @@ return c
       const adoc = await prepareVacuumableDoc();
       const storageManager = docTools.getStorageManager();
       await storageManager.flushDoc(adoc.docName);
-      void(adoc.docStorage.getDB().all(LONG_QUERY)); // let's run the long query without awaiting it to finish
+      void (adoc.docStorage.getDB().all(LONG_QUERY)); // let's run the long query without awaiting it to finish
       const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
       await (adoc as any)._onInactive();
       sinon.assert.calledOnceWithExactly(markAsChangedSpy, adoc.docName);
@@ -412,7 +412,7 @@ return c
         waitStub.wrappedMethod.call(this, callback);
 
         // let's add the long query right after having invoked wait() and before configure()
-        void(adoc.docStorage.getDB().all(LONG_QUERY));
+        void (adoc.docStorage.getDB().all(LONG_QUERY));
         return this;
       });
       const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');

@@ -667,7 +667,7 @@ export class SortedRowSet extends RowListener {
 
     // Sweep forwards through the list of kept rows, keeping an extra nContext rows
     // after each.
-    let last = - nContext - 1;
+    let last = -nContext - 1;
     for (let i = 0; i < n; i++) {
       if (keeping[i]) { last = i; }
       else if (i - last <= nContext) { keeping[i] = true; }

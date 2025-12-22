@@ -402,7 +402,7 @@ export abstract class ActionLogPart extends Disposable {
       return "...";
     }
     // strings are shown as themselves
-    if (typeof(cell) === 'string') {
+    if (typeof (cell) === 'string') {
       return cell;
     }
     if (!Array.isArray(cell)) {
