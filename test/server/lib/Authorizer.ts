@@ -385,6 +385,72 @@ describe('Authorizer', function() {
     await cli.close();
     await localServer.close();
   });
+
+  it('forbids access to stranger if GRIST_AUTO_USER=false by session', async function() {
+    // These variables are reset by our beforeEach/afterEach hooks.
+    process.env.GRIST_AUTO_USER = 'false';
+    process.env.GRIST_FORCE_LOGIN = 'true';
+
+    // need a server with the above env vars for this test
+    const localServer = new FlexServer(0, 'test docWorker');
+    await activateServer(localServer, docTools.getDocManager());
+
+    try {
+      const session = new TestSession(localServer)
+      const strangerReqConfig = await session.getCookieLogin('testOrgName', {
+        email: 'nonexistant-email@getgrist.com',
+        name: 'Nonexistant User'
+      });
+
+      const resp = await axios.get(localServer.getOwnUrl(), strangerReqConfig);
+      const strangerUser = await dbManager.getExistingUserByLogin('nonexistant-email@getgrist.com');
+      assert.isUndefined(strangerUser, 'does not create user for stranger');
+      assert.equal(resp.status, 403, 'home page denied!');
+    } finally {
+      await localServer.close();
+    }
+  });
+
+  it('allows access to known user with GRIST_AUTO_USER=false', async function() {
+    // These variables are reset by our beforeEach/afterEach hooks.
+    process.env.GRIST_AUTO_USER = 'false';
+    process.env.GRIST_FORCE_LOGIN = 'true';
+
+    // need a server with the above env vars for this test
+    const localServer = new FlexServer(0, 'test docWorker');
+    await activateServer(localServer, docTools.getDocManager());
+
+    try {
+      const resp = await axios.get(localServer.getOwnUrl(), chimpy);
+      assert.equal(resp.status, 200, 'home page accessed');
+    } finally {
+      await localServer.close();
+    }
+  });
+
+  it('forbids access to stranger if GRIST_AUTO_USER=false by GRIST_PROXY_AUTH_HEADER', async function() {
+    // These variables are reset by our beforeEach/afterEach hooks.
+    process.env.GRIST_AUTO_USER = 'false';
+    process.env.GRIST_FORCE_LOGIN = 'true';
+    process.env.GRIST_PROXY_AUTH_HEADER = 'X-email';
+    process.env.GRIST_IGNORE_SESSION = 'true';
+
+    // need a server with the above env vars for this test
+    const localServer = new FlexServer(0, 'test docWorker');
+    await activateServer(localServer, docTools.getDocManager());
+
+    try {
+      await assert.isRejected(
+        axios.get(localServer.getOwnUrl(), {headers: {'X-email': 'notchimpy@getgrist.com'}}),
+        '403'
+      );
+      const strangerUser = await dbManager.getExistingUserByLogin('nonexistant-email@getgrist.com');
+      assert.isUndefined(strangerUser, 'does not create user for stranger');
+
+    } finally {
+      await localServer.close();
+    }
+  });
 });
 
 function withoutTimestamp(txt: string): string {
