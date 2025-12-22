@@ -342,7 +342,7 @@ describe("NumberParse", function() {
             const fnum = formatter.format(num);
             const formattedNumbers = [fnum];
 
-            if (num > 0 && fnum[0] === "0") {
+            if (num > 0 && fnum.startsWith("0")) {
               // E.g. test that '.5' is parsed as '0.5'
               formattedNumbers.push(fnum.substring(1));
             }

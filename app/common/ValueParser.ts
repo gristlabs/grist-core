@@ -81,7 +81,7 @@ class ChoiceListParser extends ValueParser {
 
   private _parseJson(value: string): string[] | undefined {
     // Don't parse JSON non-arrays
-    if (value[0] === "[") {
+    if (value.startsWith("[")) {
       const arr: unknown[] | null = safeJsonParse(value, null);
       return arr
         // Remove nulls and empty strings

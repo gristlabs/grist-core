@@ -2270,7 +2270,7 @@ export class FlexServer implements GristServer {
     if (this.deps.has(part)) { return true; }
     for (const precedent of precedents) {
       if (!precedent) { continue; }
-      if (precedent[0] === '!') {
+      if (precedent.startsWith('!')) {
         const antecedent = precedent.slice(1);
         if (this._has(antecedent)) {
           throw new Error(`${part} is needed before ${antecedent}`);

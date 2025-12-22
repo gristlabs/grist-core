@@ -52,7 +52,7 @@ describe("ActionSummary", function() {
         ["Bricks", "Blocks"]]);
     // Last change touched content of Ducks, Frogs, and Moons.  Bricks was renamed but had
     // no column or row changes.  Ducks was removed, so it is referred to as "-Ducks".
-    assert.sameDeepMembers(Object.keys(sum.tableDeltas).filter(name => !(name[0] === '_')),
+    assert.sameDeepMembers(Object.keys(sum.tableDeltas).filter(name => !(name.startsWith('_'))),
       ["-Ducks", "Frogs", "Moons"]);
   });
 

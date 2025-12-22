@@ -219,7 +219,7 @@ describe('SortFilterSectionOptions', function() {
     await gu.openSectionMenu('sortAndFilter');
     let sortColumn = await driver.findContent('.test-sort-config-column', 'Name');
     let sortIcon = await sortColumn.find('.test-sort-config-order');
-    assert.isTrue((await sortIcon.getAttribute('class')).split(' ').some(c => /-asc$/.test(c)),
+    assert.isTrue((await sortIcon.getAttribute('class')).split(' ').some(c => c.endsWith("-asc")),
       'should include -asc class');
 
     // Change sort direction in menu
@@ -228,7 +228,7 @@ describe('SortFilterSectionOptions', function() {
     // Verify that the icon changed
     sortColumn = await driver.findContent('.test-sort-config-column', 'Name');
     sortIcon = await sortColumn.find('.test-sort-config-order');
-    assert.isTrue((await sortIcon.getAttribute('class')).split(' ').some(c => /-desc$/.test(c)),
+    assert.isTrue((await sortIcon.getAttribute('class')).split(' ').some(c => c.endsWith("-desc")),
       'should include -desc class');
 
     // Verify that the column direction has been changed
@@ -249,7 +249,7 @@ describe('SortFilterSectionOptions', function() {
     // Verify that sort column direction was saved
     sortColumn = await driver.findContent('.test-sort-config-column', 'Name');
     sortIcon = await sortColumn.find('.test-sort-config-order');
-    assert.isTrue((await sortIcon.getAttribute('class')).split(' ').some(c => /-desc$/.test(c)),
+    assert.isTrue((await sortIcon.getAttribute('class')).split(' ').some(c => c.endsWith("-desc")),
       'should include a -desc class');
 
     // Reload
@@ -263,7 +263,7 @@ describe('SortFilterSectionOptions', function() {
     await gu.openSectionMenu('sortAndFilter');
     sortColumn = await driver.findContent('.test-sort-config-column', 'Name');
     sortIcon = await sortColumn.find('.test-sort-config-order');
-    assert.isTrue((await sortIcon.getAttribute('class')).split(' ').some(c => /-desc$/.test(c)),
+    assert.isTrue((await sortIcon.getAttribute('class')).split(' ').some(c => c.endsWith("-desc")),
       'should include a -desc class');
 
     // Verify that column is properly sorted
@@ -278,7 +278,7 @@ describe('SortFilterSectionOptions', function() {
     // Verify that sort icon direction is changed
     sortColumn = await driver.findContent('.test-sort-config-column', 'Name');
     sortIcon = await sortColumn.find('.test-sort-config-order');
-    assert.isTrue((await sortIcon.getAttribute('class')).split(' ').some(c => /-asc$/.test(c)),
+    assert.isTrue((await sortIcon.getAttribute('class')).split(' ').some(c => c.endsWith("-asc")),
       'should include a -asc class');
 
     // Change the sort direction again
@@ -289,7 +289,7 @@ describe('SortFilterSectionOptions', function() {
     // Verify that sort icon direction is changed
     sortColumn = await driver.findContent('.test-sort-config-column', 'Name');
     sortIcon = await sortColumn.find('.test-sort-config-order');
-    assert.isTrue((await sortIcon.getAttribute('class')).split(' ').some(c => /-desc$/.test(c)),
+    assert.isTrue((await sortIcon.getAttribute('class')).split(' ').some(c => c.endsWith("-desc")),
       'should include a -desc class');
 
     // Click remove sort

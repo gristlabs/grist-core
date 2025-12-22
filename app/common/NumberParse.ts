@@ -150,7 +150,7 @@ export default class NumberParse {
     // Remove whitespace and special characters, after currency because some currencies contain spaces.
     value = value3.replace(NumberParse.removeCharsRegex, "");
 
-    const isParenthesised = value[0] === "(" && value[value.length - 1] === ")";
+    const isParenthesised = value.startsWith("(") && value.endsWith(")");
     if (isParenthesised) {
       value = value.substring(1, value.length - 1);
     }

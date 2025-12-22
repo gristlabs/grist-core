@@ -448,7 +448,7 @@ function stripTrailingSlash(text: string): string {
 }
 
 function stripLeadingSlash(text: string): string {
-  return text[0] === "/" ? text.slice(1) : text;
+  return text.startsWith("/") ? text.slice(1) : text;
 }
 
 export function joinKeySegments(keySegments: string[]): string {

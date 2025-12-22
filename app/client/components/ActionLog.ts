@@ -438,7 +438,7 @@ export abstract class ActionLogPart extends Disposable {
    * @returns {string} a friendlier name for the table
    */
   private _renderTableName(name: string): string {
-    if (name.indexOf('_grist_') !== 0) {
+    if (!name.startsWith('_grist_')) {
       // Ordinary data table.  Ideally, we would look up
       // a friendly name from a raw data view - TODO.
       return name;
