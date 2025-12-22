@@ -42,6 +42,12 @@ function apiKeyGenerator(): string {
   return crypto.randomBytes(20).toString('hex');
 }
 
+// Admin Email
+const DEFAULT_EMAIL = appSettings.section('access').flag('installAdminEmail').readString({
+  envVar: 'GRIST_DEFAULT_EMAIL',
+  defaultValue: 'you@example.com',
+})!;
+
 // A special user allowed to add/remove both the EVERYONE_EMAIL and ANONYMOUS_USER_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
   envVar: 'GRIST_SUPPORT_EMAIL',
@@ -645,12 +651,8 @@ export class UsersManager {
       email: SUPPORT_EMAIL,
       name: "Support"
     });
-    const installAdminEmail = appSettings.section('access').flag('installAdminEmail').readString({
-      envVar: 'GRIST_DEFAULT_EMAIL',
-      defaultValue: 'you@example.com',
-    })!;
     await this._maybeCreateSpecialUserId({
-      email: installAdminEmail,
+      email: DEFAULT_EMAIL,
       name: "You"
     });
   }
