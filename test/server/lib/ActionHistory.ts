@@ -58,7 +58,7 @@ class ToyActionHistory implements ActionHistory {
   }
 
   public async fetchAllLocalUnsent(): Promise<LocalActionBundle[]> {
-    return [... this._storeLocalUnsent];
+    return [...this._storeLocalUnsent];
   }
 
   public async fetchAllLocal(): Promise<LocalActionBundle[]> {
