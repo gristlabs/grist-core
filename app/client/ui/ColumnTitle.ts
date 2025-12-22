@@ -310,7 +310,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
           descInput?.focus();
           descInput?.select();
         }
-      }, 0); 
+      }, 0);
     },
     // Create a FocusLayer to keep focus in this popup while it's active, by default when focus is stolen
     // by someone else, we will bring back it to the label element. Clicking anywhere outside the popup
@@ -321,7 +321,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
         defaultFocusElem: elem,
         pauseMousetrap: false,
         allowFocus: Clipboard.allowFocus,
-      }); 
+      });
     },
     restoreFocus,
   );

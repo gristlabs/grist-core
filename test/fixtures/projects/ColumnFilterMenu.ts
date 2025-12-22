@@ -122,7 +122,7 @@ function setupTest(owner: IDisposableOwner, opts: {limitShown?: number, filterTy
               attach: 'body',
               placement: 'bottom-start',
               trigger: ['click'],
-            }); 
+            });
           }),
       ),
       testContent(

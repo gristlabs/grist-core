@@ -110,7 +110,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
           ...commonTypes()
             .filter(isQuick)
             .filter(isEnabled)
-            .map(ct => menus.menuItem(where({add: ct.colType}), menus.menuIcon(ct.icon!), ct.displayName)),          
+            .map(ct => menus.menuItem(where({add: ct.colType}), menus.menuIcon(ct.icon!), ct.displayName)),
           menus.menuItemSubmenu(
             () => commonTypes()
               .filter(notQuick)

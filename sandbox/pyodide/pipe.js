@@ -99,7 +99,7 @@ copytree('/grist_src', '/grist')`);
       }, "/import");
     }
   }
-  
+
   async runCode() {
     await this.pyodide.runPython(`
   import sys

@@ -401,10 +401,10 @@ export default class GridView extends BaseView {
     },
     selectAll: function() { this.selectAll(); },
     insertFieldBefore: function(event?: KeyboardEvent) {
-      this._insertField(event, this.cursor.fieldIndex())?.catch(reportError); 
+      this._insertField(event, this.cursor.fieldIndex())?.catch(reportError);
     },
     insertFieldAfter: function(event?: KeyboardEvent) {
-      this._insertField(event, this.cursor.fieldIndex() + 1)?.catch(reportError); 
+      this._insertField(event, this.cursor.fieldIndex() + 1)?.catch(reportError);
     },
     makeHeadersFromRow: function() {
       this.makeHeadersFromRow(this.getSelection()).catch(reportError);

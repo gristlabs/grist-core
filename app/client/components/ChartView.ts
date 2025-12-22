@@ -552,7 +552,7 @@ export class ChartConfig extends GrainJSDisposable {
   });
 
   // The label to show for the first field in the axis configurator.
-  private _firstFieldLabel = Computed.create(this, fromKo(this._section.chartTypeDef), 
+  private _firstFieldLabel = Computed.create(this, fromKo(this._section.chartTypeDef),
     (_use, chartType) => firstFieldIsLabels(chartType) ? t('LABEL') : t('X-AXIS')
   );
 

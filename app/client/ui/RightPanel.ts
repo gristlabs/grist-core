@@ -671,7 +671,7 @@ export class RightPanel extends Disposable {
                       cssLinkInfoIcon("FieldReference"): null,
                     `${vals.join(', ')}`)),
                 );
-              } 
+              }
             }), //end of keys(filterLabels).map
           ));
       };
@@ -718,7 +718,7 @@ export class RightPanel extends Disposable {
           case "Error:Invalid":
           default:
             return dom("div", `Error: Couldn't identify link state`);
-        } 
+        }
       },
       ...domArgs,
       ); // End of cssLinkInfoPanel
