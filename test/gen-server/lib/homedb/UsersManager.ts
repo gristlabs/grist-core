@@ -303,6 +303,8 @@ describe('UsersManager', function () {
       const PREVIEWER_USER_ID = 7;
       const EVERYONE_USER_ID = 8;
       const SUPPORT_USER_ID = 5;
+      const DEFAULT_USER_ID = 9;
+
       it('getAnonymousUserId() should retrieve anonymous user id', function () {
         assert.strictEqual(db.getAnonymousUserId(), ANONYMOUS_USER_ID);
       });
@@ -319,12 +321,17 @@ describe('UsersManager', function () {
         assert.strictEqual(db.getSupportUserId(), SUPPORT_USER_ID);
       });
 
+      it("getDefaultUserId() should retrieve 'support' user id", function () {
+        assert.strictEqual(db.getDefaultUserId(), DEFAULT_USER_ID);
+      });
+
       it("getSpecialUserIds() should retrieve all the special user ids", function () {
         assert.deepEqual(db.getSpecialUserIds(), [
           ANONYMOUS_USER_ID,
           PREVIEWER_USER_ID,
           EVERYONE_USER_ID,
-          SUPPORT_USER_ID
+          SUPPORT_USER_ID,
+          DEFAULT_USER_ID,
         ]);
       });
     });
