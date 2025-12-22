@@ -7,6 +7,7 @@ import { addViewportTag } from "app/client/ui/viewport";
 import { attachCssRootVars } from "app/client/ui2018/cssVars";
 import { attachDefaultLightTheme, attachTheme } from "app/client/ui2018/theme";
 import { BaseAPI } from "app/common/BaseAPI";
+
 import { dom, DomContents } from "grainjs";
 
 const G = getBrowserGlobals("document", "window");

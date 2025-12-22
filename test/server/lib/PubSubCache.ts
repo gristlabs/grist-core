@@ -1,8 +1,9 @@
 import { delay } from "app/common/delay";
-import { createPubSubManager, IPubSubManager } from "app/server/lib/PubSubManager";
 import { PubSubCache } from "app/server/lib/PubSubCache";
+import { createPubSubManager, IPubSubManager } from "app/server/lib/PubSubManager";
 import { setupCleanup } from "test/server/testCleanup";
 import { waitForIt } from "test/server/wait";
+
 import { assert } from "chai";
 import IORedis from "ioredis";
 import sinon from "sinon";

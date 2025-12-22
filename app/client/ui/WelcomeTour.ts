@@ -1,6 +1,6 @@
+import * as commands from "app/client/components/commands";
 import { makeT } from "app/client/lib/localization";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
-import * as commands from "app/client/components/commands";
 import { urlState } from "app/client/models/gristUrlState";
 import { IOnBoardingMsg, startOnBoarding } from "app/client/ui/OnBoardingPopups";
 import { ShortcutKey, ShortcutKeyContent } from "app/client/ui/ShortcutKey";
@@ -8,6 +8,7 @@ import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { dom, styled } from "grainjs";
 
 const t = makeT("WelcomeTour");

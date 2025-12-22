@@ -18,11 +18,15 @@
  *  - logout redirect (in Users): GRIST_SITE/logout?next=DISCOURSE_SITE
  */
 
-import type { Express, NextFunction, Request, RequestHandler, Response } from "express";
-import type { RequestWithLogin } from "app/server/lib/Authorizer";
+
 import { expressWrap } from "app/server/lib/expressWrap";
 import { getOriginUrl } from "app/server/lib/requestUtils";
+
 import * as crypto from "crypto";
+
+import type { RequestWithLogin } from "app/server/lib/Authorizer";
+import type { Express, NextFunction, Request, RequestHandler, Response } from "express";
+
 
 const DISCOURSE_CONNECT_SECRET = process.env.DISCOURSE_CONNECT_SECRET;
 const DISCOURSE_SITE = process.env.DISCOURSE_SITE;

@@ -1,4 +1,5 @@
 import { buildTelemetryEventChecker, TelemetryEvent } from "app/common/Telemetry";
+
 import { assert } from "chai";
 
 describe("Telemetry", function() {

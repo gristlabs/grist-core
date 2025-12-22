@@ -1,7 +1,8 @@
-import { assert, driver } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { Session } from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver } from "mocha-webdriver";
 
 describe("ToggleColumns", function() {
   this.timeout(20000);

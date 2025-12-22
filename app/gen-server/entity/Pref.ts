@@ -2,6 +2,7 @@ import { Prefs } from "app/common/Prefs";
 import { Organization } from "app/gen-server/entity/Organization";
 import { User } from "app/gen-server/entity/User";
 import { nativeValues } from "app/gen-server/lib/values";
+
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 
 @Entity({ name: "prefs" })

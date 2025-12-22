@@ -1,15 +1,15 @@
 /**
  * Test various error situations with linking page widgets.
  */
-import { assert, driver } from "mocha-webdriver";
-import * as gu from "test/nbrowser/gristUtils";
-import { setupTestSuite } from "test/nbrowser/testUtils";
-import * as testUtils from "test/server/testUtils";
-
 import { toTableDataAction } from "app/common/DocActions";
 import { schema } from "app/common/schema";
 import { TableData } from "app/common/TableData";
 import { DocAPI, UserAPI } from "app/common/UserAPI";
+import * as gu from "test/nbrowser/gristUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
+import * as testUtils from "test/server/testUtils";
+
+import { assert, driver } from "mocha-webdriver";
 
 describe("LinkingErrors", function() {
   this.timeout(20000);

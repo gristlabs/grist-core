@@ -1,4 +1,5 @@
 import { AssistantState } from "app/common/ActiveDocAPI";
+
 import { Disposable } from "grainjs";
 
 export interface IAssistantPopup extends Disposable {

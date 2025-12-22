@@ -1,5 +1,6 @@
 import { CellDelta, TabularDiff, TabularDiffs } from "app/common/TabularDiff";
 import { ResultRow } from "app/common/TimeQuery";
+
 import toPairs from "lodash/toPairs";
 
 /**

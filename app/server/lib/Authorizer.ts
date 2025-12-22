@@ -1,3 +1,4 @@
+
 import { ApiError } from "app/common/ApiError";
 import { OpenDocMode } from "app/common/DocListAPI";
 import { ErrorWithCode } from "app/common/ErrorWithCode";
@@ -6,23 +7,25 @@ import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
 import { canEdit, canView, getWeakestRole } from "app/common/roles";
 import { UserOptions } from "app/common/UserAPI";
 import { User } from "app/gen-server/entity/User";
-import { DocAuthResult, HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { DocAuthResult, HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
+import { AccessTokenInfo } from "app/server/lib/AccessTokens";
 import { forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
   SessionUserObj, SignInStatus } from "app/server/lib/BrowserSession";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristServer } from "app/server/lib/GristServer";
-import { COOKIE_MAX_AGE, getAllowedOrgForSessionID, getCookieDomain,
-  cookieName as sessionCookieName } from "app/server/lib/gristSessions";
+import { COOKIE_MAX_AGE,
+  cookieName as sessionCookieName, getAllowedOrgForSessionID, getCookieDomain } from "app/server/lib/gristSessions";
 import { makeId } from "app/server/lib/idUtils";
 import log from "app/server/lib/log";
 import { IPermitStore, Permit } from "app/server/lib/Permit";
-import { AccessTokenInfo } from "app/server/lib/AccessTokens";
 import { allowHost, buildXForwardedForHeader, getOriginUrl, optStringParam } from "app/server/lib/requestUtils";
+
+import { IncomingMessage } from "http";
+
 import * as cookie from "cookie";
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import { IncomingMessage } from "http";
 import onHeaders from "on-headers";
 
 export interface RequestWithLogin extends Request {

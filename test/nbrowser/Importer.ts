@@ -2,11 +2,12 @@
  * Test of the Importer dialog (part 1), for imports inside an open doc.
  * (See Import.ts for tests from the DocMenu page.)
  */
-import { assert, driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { getColumnMatchingRows, getParseOptionInput, getPreviewDiffCellValues,
   openTableMapping, waitForColumnMapping, waitForDiffPreviewToLoad } from "test/nbrowser/importerTestUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("Importer", function() {
   this.timeout(70000); // Imports can take some time, especially in tests that import larger files.

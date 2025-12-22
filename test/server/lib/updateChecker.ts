@@ -1,14 +1,14 @@
-import { LatestVersion } from "app/server/lib/UpdateManager";
 import { version as installedVersion } from "app/common/version";
+import { Timings } from "app/gen-server/lib/Housekeeper";
+import { FlexServer } from "app/server/lib/FlexServer";
+import { LatestVersion } from "app/server/lib/UpdateManager";
 import { TestServer } from "test/gen-server/apiUtils";
 import { getGristConfig } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
 
 import { assert } from "chai";
-import * as sinon from "sinon";
 import fetch from "node-fetch";
-import { FlexServer } from "app/server/lib/FlexServer";
-import { Timings } from "app/gen-server/lib/Housekeeper";
+import * as sinon from "sinon";
 
 const fakeVersionUrl = "https://whatever.computer/version";
 describe("updateChecker", function() {

@@ -1,7 +1,8 @@
 import crypto from "crypto";
 import * as fs from "fs";
-import fetch, { RequestInfo, RequestInit, Response } from "node-fetch";
 import { join } from "path";
+
+import fetch, { RequestInfo, RequestInit, Response } from "node-fetch";
 
 /**
  * A wrapper around `node-fetch` that caches responses on the local filesystem.

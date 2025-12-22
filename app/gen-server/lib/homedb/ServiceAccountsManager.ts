@@ -1,5 +1,5 @@
-import { normalizeEmail } from "app/common/emails";
 import { ApiError } from "app/common/ApiError";
+import { normalizeEmail } from "app/common/emails";
 import { Login } from "app/gen-server/entity/Login";
 import { ServiceAccount } from "app/gen-server/entity/ServiceAccount";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";

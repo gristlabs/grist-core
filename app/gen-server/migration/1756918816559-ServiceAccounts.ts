@@ -1,5 +1,6 @@
 import { User } from "app/gen-server/entity/User";
 import { nativeValues } from "app/gen-server/lib/values";
+
 import { MigrationInterface, QueryRunner, Table, TableColumn } from "typeorm";
 
 export class ServiceAccounts1756918816559 implements MigrationInterface {

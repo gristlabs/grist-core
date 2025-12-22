@@ -8,6 +8,7 @@ import { cssLink } from "app/client/ui2018/links";
 import { commonUrls, GristDeploymentType } from "app/common/gristUrls";
 import { BehavioralPrompt } from "app/common/Prefs";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { dom, DomContents, DomElementArg, styled } from "grainjs";
 
 const t = makeT("GristTooltips");

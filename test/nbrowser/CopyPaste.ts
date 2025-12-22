@@ -4,13 +4,16 @@
  * TODO Most of the testing for copy-pasting lives in test/nbrowser/CopyPaste.ntest.js.
  * This file just has some more recent additions to these test.
  */
+
 import { arrayRepeat } from "app/common/gutil";
-import * as _ from "lodash";
-import { assert, driver, Key, WebElement } from "mocha-webdriver";
-import * as path from "path";
 import { serveStatic } from "test/nbrowser/customUtil";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import * as path from "path";
+
+import * as _ from "lodash";
+import { assert, driver, Key, WebElement } from "mocha-webdriver";
 
 describe("CopyPaste", function() {
   this.timeout(90000);

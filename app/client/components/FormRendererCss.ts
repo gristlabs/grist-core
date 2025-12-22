@@ -1,9 +1,10 @@
 import { colors, mediaXSmall, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { numericSpinner } from "app/client/widgets/NumericSpinner";
 import { loadingSpinner } from "app/client/ui2018/loaders";
-import { styled } from "grainjs";
 import { unstyledButton } from "app/client/ui2018/unstyled";
+import { numericSpinner } from "app/client/widgets/NumericSpinner";
+
+import { styled } from "grainjs";
 
 export const label = styled("div", `
   &-required::after {

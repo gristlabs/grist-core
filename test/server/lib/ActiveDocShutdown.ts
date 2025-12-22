@@ -1,12 +1,9 @@
-import { assert } from "chai";
-import * as sinon from "sinon";
-import * as sqlite3 from "@gristlabs/sqlite3";
-
 import { delay } from "app/common/delay";
 import { Role } from "app/common/roles";
 import { ParseFileResult } from "app/plugin/FileParserAPI";
 import { ActionHistoryImpl } from "app/server/lib/ActionHistoryImpl";
 import { ActiveDoc, Deps } from "app/server/lib/ActiveDoc";
+import { AuthSession } from "app/server/lib/AuthSession";
 import { Client } from "app/server/lib/Client";
 import { DummyAuthorizer } from "app/server/lib/DocAuthorizer";
 import { DocPluginManager } from "app/server/lib/DocPluginManager";
@@ -14,7 +11,10 @@ import { DocSession, DocSessionPrecursor, makeExceptionalDocSession } from "app/
 import { createDocTools, createUpload } from "test/server/docTools";
 import * as testUtils from "test/server/testUtils";
 import { waitForIt } from "test/server/wait";
-import { AuthSession } from "app/server/lib/AuthSession";
+
+import * as sqlite3 from "@gristlabs/sqlite3";
+import { assert } from "chai";
+import * as sinon from "sinon";
 
 // This makes just enough of a Client to use with ActiveDoc.addClient() and ActiveDoc.closeDoc().
 function _makeFakeClient(): Client {

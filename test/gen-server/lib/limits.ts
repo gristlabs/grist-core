@@ -1,5 +1,6 @@
 import { ApiError } from "app/common/ApiError";
 import { AssistanceRequestV1, AssistanceRequestV2 } from "app/common/Assistance";
+import { IOptions } from "app/common/BaseAPI";
 import { Features } from "app/common/Features";
 import { resetOrg } from "app/common/resetOrg";
 import { UserAPI, UserAPIImpl } from "app/common/UserAPI";
@@ -9,13 +10,13 @@ import { Organization } from "app/gen-server/entity/Organization";
 import { Product } from "app/gen-server/entity/Product";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { GristObjCode } from "app/plugin/GristData";
-import { assert } from "chai";
-import { IOptions } from "app/common/BaseAPI";
-import FormData from "form-data";
-import fetch from "node-fetch";
 import { TestServer } from "test/gen-server/apiUtils";
 import { configForUser, createUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
+
+import { assert } from "chai";
+import FormData from "form-data";
+import fetch from "node-fetch";
 
 describe("limits", function() {
   let home: TestServer;

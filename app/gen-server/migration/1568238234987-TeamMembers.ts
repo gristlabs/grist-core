@@ -1,10 +1,11 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
 import * as roles from "app/common/roles";
 import { AclRuleOrg } from "app/gen-server/entity/AclRule";
 import { Group } from "app/gen-server/entity/Group";
 import { Organization } from "app/gen-server/entity/Organization";
 import { Permissions } from "app/gen-server/lib/Permissions";
 import { getDatabaseType } from "app/server/lib/dbUtils";
+
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class TeamMembers1568238234987 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {

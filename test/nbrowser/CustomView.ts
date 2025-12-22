@@ -1,9 +1,10 @@
 import { safeJsonParse } from "app/common/gutil";
-import * as chai from "chai";
-import { assert, driver, Key } from "mocha-webdriver";
 import { serveCustomViews, Serving, setAccess } from "test/nbrowser/customUtil";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
+import * as chai from "chai";
+import { assert, driver, Key } from "mocha-webdriver";
 
 chai.config.truncateThreshold = 5000;
 

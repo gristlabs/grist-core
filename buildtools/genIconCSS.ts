@@ -1,9 +1,10 @@
+import * as path from "path";
+
 import { fromCallback } from "bluebird";
 import { program } from "commander";
 import * as fse from "fs-extra";
 import glob from "glob";
 import { union } from "lodash";
-import * as path from "path";
 import { optimize } from "svgo";
 
 async function main() {

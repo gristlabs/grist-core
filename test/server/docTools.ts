@@ -1,9 +1,10 @@
+
 import { Role } from "app/common/roles";
 import { getDocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { AttachmentStoreProvider, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
-import { DummyAuthorizer } from "app/server/lib/DocAuthorizer";
 import { create } from "app/server/lib/create";
+import { DummyAuthorizer } from "app/server/lib/DocAuthorizer";
 import { DocManager } from "app/server/lib/DocManager";
 import { makeExceptionalDocSession, makeOptDocSession, OptDocSession } from "app/server/lib/DocSession";
 import { createDummyGristServer, GristServer } from "app/server/lib/GristServer";
@@ -13,10 +14,11 @@ import { PluginManager } from "app/server/lib/PluginManager";
 import { createTmpDir as createTmpUploadDir, FileUploadInfo, globalUploadSet } from "app/server/lib/uploads";
 import * as testUtils from "test/server/testUtils";
 
-import { assert } from "chai";
-import * as fse from "fs-extra";
 import { tmpdir } from "os";
 import * as path from "path";
+
+import { assert } from "chai";
+import * as fse from "fs-extra";
 import * as tmp from "tmp-promise";
 
 tmp.setGracefulCleanup();

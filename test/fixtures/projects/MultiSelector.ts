@@ -1,7 +1,8 @@
 import { BaseItem, MultiItemSelector } from "app/client/ui/MultiSelector";
-import { dom, MutableObsArray, obsArray, styled } from "grainjs";
 import { States } from "test/fixtures/projects/helpers/States";
 import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { dom, MutableObsArray, obsArray, styled } from "grainjs";
 
 // Sample data
 class StateSelector extends MultiItemSelector<{ label: string, value: string }> {

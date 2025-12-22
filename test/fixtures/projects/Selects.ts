@@ -1,10 +1,10 @@
 import { bigBasicButton } from "app/client/ui2018/buttons";
 import { theme } from "app/client/ui2018/cssVars";
 import { select, selectMenu, selectOption, selectTitle } from "app/client/ui2018/menus";
-import { dom, observable, styled } from "grainjs";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 
+import { dom, observable, styled } from "grainjs";
 
 function setupTest() {
   const text = observable("1");

@@ -1,3 +1,4 @@
+import { isAffirmative } from "app/common/gutil";
 import {
   createConfigValue,
   FileConfig,
@@ -5,7 +6,6 @@ import {
   IWritableConfigValue,
 } from "app/server/lib/config";
 import { convertToCoreFileContents, IGristCoreConfigFileLatest } from "app/server/lib/configCoreFileFormats";
-import { isAffirmative } from "app/common/gutil";
 
 export type Edition = "core" | "enterprise";
 

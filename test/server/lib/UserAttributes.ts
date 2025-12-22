@@ -1,12 +1,13 @@
-import { UserAPI, UserAPIImpl } from "app/common/UserAPI";
 import { CellValue, fromTableDataAction, TableColValues, toTableDataAction } from "app/common/DocActions";
+import { UserAPI, UserAPIImpl } from "app/common/UserAPI";
 import { GristObjCode } from "app/plugin/GristData";
-import axios from "axios";
-import fetch from "node-fetch";
-import { assert } from "chai";
 import { TestServer } from "test/gen-server/apiUtils";
 import { GristClient, openClient } from "test/server/gristClient";
 import * as testUtils from "test/server/testUtils";
+
+import axios from "axios";
+import { assert } from "chai";
+import fetch from "node-fetch";
 
 describe("UserAttributes", function() {
   this.timeout(60000);

@@ -30,6 +30,7 @@
 
 import { ClientScope } from "app/client/components/ClientScope";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { Disposable } from "app/client/lib/dispose";
 import dom from "app/client/lib/dom";
 import * as Mousetrap from "app/client/lib/Mousetrap";
 import { gristThemeObs } from "app/client/ui2018/theme";
@@ -41,9 +42,9 @@ import { getOriginUrl } from "app/common/urlUtils";
 import { GristAPI, RPC_GRISTAPI_INTERFACE } from "app/plugin/GristAPI";
 import { RenderOptions, RenderTarget } from "app/plugin/RenderOptions";
 import { checkers } from "app/plugin/TypeCheckers";
-import { dom as grainjsDom, Observable } from "grainjs";
+
 import { IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc } from "grain-rpc";
-import { Disposable } from "app/client/lib/dispose";
+import { dom as grainjsDom, Observable } from "grainjs";
 import isEqual from "lodash/isEqual";
 const G = getBrowserGlobals("document", "window");
 

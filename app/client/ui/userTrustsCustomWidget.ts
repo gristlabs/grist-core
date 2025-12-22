@@ -1,10 +1,11 @@
-import { Computed, dom, makeTestId, Observable, styled } from "grainjs";
 import { makeT } from "app/client/lib/localization";
-import { getConfirmText, saveModal } from "app/client/ui2018/modals";
+import { inlineMarkdown } from "app/client/lib/markdown";
 import { alert } from "app/client/ui2018/alerts";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
-import { inlineMarkdown } from "app/client/lib/markdown";
+import { getConfirmText, saveModal } from "app/client/ui2018/modals";
 import { gristThemeObs } from "app/client/ui2018/theme";
+
+import { Computed, dom, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("userTrustsCustomWidget");
 const testId = makeTestId("test-custom-widget-warning-modal-");

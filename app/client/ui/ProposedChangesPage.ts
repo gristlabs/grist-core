@@ -24,6 +24,7 @@ import { buildUrlId, commonUrls, parseUrlId } from "app/common/gristUrls";
 import { isLongerThan } from "app/common/gutil";
 import { TabularDiff, TabularDiffs } from "app/common/TabularDiff";
 import { Proposal } from "app/common/UserAPI";
+
 import {
   Computed, Disposable, dom, makeTestId, MultiHolder, MutableObsArray,
   obsArray, Observable, styled,

@@ -1,5 +1,6 @@
-import { assert, driver, Key, until } from "mocha-webdriver";
 import { server, setupTestSuite } from "test/projects/testUtils";
+
+import { assert, driver, Key, until } from "mocha-webdriver";
 
 describe("ColumnFilterMenu", function() {
   setupTestSuite();

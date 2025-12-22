@@ -1,6 +1,7 @@
 import Checkers, { Features as FeaturesTi } from "app/common/Features-ti";
-import { CheckerT, createCheckers } from "ts-interface-checker";
+
 import defaultsDeep from "lodash/defaultsDeep";
+import { CheckerT, createCheckers } from "ts-interface-checker";
 
 export interface SnapshotWindow {
   count: number;

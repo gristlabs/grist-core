@@ -7,11 +7,12 @@ import { DataRowModel } from "app/client/models/DataRowModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { isList } from "app/common/gristTypes";
-import { Computed, dom, styled } from "grainjs";
 import { cssChoiceList, cssToken } from "app/client/widgets/ChoiceListCell";
-import { Reference } from "app/client/widgets/Reference";
 import { choiceToken } from "app/client/widgets/ChoiceToken";
+import { Reference } from "app/client/widgets/Reference";
+import { isList } from "app/common/gristTypes";
+
+import { Computed, dom, styled } from "grainjs";
 
 /**
  * ReferenceList - The widget for displaying lists of references to another table's records.

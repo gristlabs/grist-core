@@ -7,17 +7,20 @@
  * upload, and if that fails due to CORS, would fetch the file on the server side instead.
  */
 
+
 import { DocComm } from "app/client/components/DocComm";
+import { getTestState } from "app/client/lib/testState";
 import { UserError } from "app/client/models/errors";
 import { FileDialogOptions, openFilePicker } from "app/client/ui/FileDialog";
-import { getTestState } from "app/client/lib/testState";
 import { GristLoadConfig } from "app/common/gristUrls";
 import { byteString, safeJsonParse } from "app/common/gutil";
 import { FetchUrlOptions, UPLOAD_URL_PATH, UploadResult } from "app/common/uploads";
 import { docUrl } from "app/common/urlUtils";
+
+import { basename } from "path";      // made available by webpack using path-browserify module.
+
 import noop from "lodash/noop";
 import trimStart from "lodash/trimStart";
-import { basename } from "path";      // made available by webpack using path-browserify module.
 
 type ProgressCB = (percent: number) => void;
 

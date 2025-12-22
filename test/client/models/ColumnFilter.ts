@@ -1,6 +1,7 @@
 import { ALL_INCLUSIVE_FILTER_JSON, ColumnFilter } from "app/client/models/ColumnFilter";
-import { GristObjCode } from "app/plugin/GristData";
 import { CellValue } from "app/common/DocActions";
+import { GristObjCode } from "app/plugin/GristData";
+
 import { assert } from "chai";
 
 const L = GristObjCode.List;

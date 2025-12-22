@@ -3,8 +3,8 @@
  * purpose of allowing the user to transform a column. It is currently extended by FormulaTransform
  * and TypeTransform.
  */
-import * as commands from "app/client/components/commands";
 import * as AceEditor from "app/client/components/AceEditor";
+import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import { ColumnRec } from "app/client/models/entities/ColumnRec";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
@@ -12,9 +12,10 @@ import { TableData } from "app/client/models/TableData";
 import { FieldBuilder } from "app/client/widgets/FieldBuilder";
 import { UserAction } from "app/common/DocActions";
 import { GristObjCode } from "app/plugin/GristData";
+
 import { Disposable, Observable } from "grainjs";
-import isPlainObject from "lodash/isPlainObject";
 import * as ko from "knockout";
+import isPlainObject from "lodash/isPlainObject";
 import noop from "lodash/noop";
 
 // To simplify diff (avoid rearranging methods to satisfy private/public order).

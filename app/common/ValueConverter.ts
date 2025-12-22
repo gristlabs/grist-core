@@ -1,3 +1,4 @@
+import { TableDataActionSet } from "app/common/DocActions";
 import { DocData } from "app/common/DocData";
 import * as gristTypes from "app/common/gristTypes";
 import { isList } from "app/common/gristTypes";
@@ -10,7 +11,6 @@ import {
   ValueParser,
 } from "app/common/ValueParser";
 import { CellValue, GristObjCode } from "app/plugin/GristData";
-import { TableDataActionSet } from "app/common/DocActions";
 
 /**
  * Base class for converting values from one type to another with the convert() method.

@@ -1,13 +1,14 @@
-import { computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
-import { cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
-  IModalControl, modal } from "app/client/ui2018/modals";
+import { IOrgMemberSelectOption, UserManagerModel } from "app/client/models/UserManagerModel";
+import { textarea } from "app/client/ui/inputs";
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { mediaXSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
-import { IOrgMemberSelectOption, UserManagerModel } from "app/client/models/UserManagerModel";
 import { icon } from "app/client/ui2018/icons";
-import { textarea } from "app/client/ui/inputs";
-import { BasicRole, isBasicRole, NonGuestRole, VIEWER } from "app/common/roles";
 import { menu, menuItem } from "app/client/ui2018/menus";
+import { cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
+  IModalControl, modal } from "app/client/ui2018/modals";
+import { BasicRole, isBasicRole, NonGuestRole, VIEWER } from "app/common/roles";
+
+import { computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
 
 function parseEmailList(emailListRaw: string): string[] {
   return emailListRaw

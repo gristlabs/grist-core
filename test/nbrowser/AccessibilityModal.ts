@@ -1,6 +1,7 @@
-import { assert, By, driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, By, driver, Key } from "mocha-webdriver";
 
 const ACCESSIBILITY_SHORTCUT_KEY = "F4";
 const ACCESSIBILITY_SHORTCUT_LABEL = "Accessibility";

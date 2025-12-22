@@ -1,11 +1,10 @@
-import { dom, makeTestId, Observable, styled } from "grainjs";
-import { makeT } from "app/client/lib/localization";
-import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
-import { urlState } from "app/client/models/gristUrlState";
-import { tokens } from "app/common/ThemePrefs";
 import { allCommands } from "app/client/components/commands";
+import { makeT } from "app/client/lib/localization";
 import { inlineMarkdown, markdown } from "app/client/lib/markdown";
 import { AppModel } from "app/client/models/AppModel";
+import { urlState } from "app/client/models/gristUrlState";
+import { bigPrimaryButton, cssButton } from "app/client/ui2018/buttons";
+import { cssLink, cssNestedLinks } from "app/client/ui2018/links";
 import { cssModalBody,
   cssModalButtons,
   cssModalSubheading,
@@ -14,8 +13,10 @@ import { cssModalBody,
   IModalControl,
   modal,
 } from "app/client/ui2018/modals";
-import { bigPrimaryButton, cssButton } from "app/client/ui2018/buttons";
-import { cssLink, cssNestedLinks } from "app/client/ui2018/links";
+import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
+import { tokens } from "app/common/ThemePrefs";
+
+import { dom, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("OpenAccessibilityModal");
 

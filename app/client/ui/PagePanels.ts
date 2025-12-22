@@ -1,23 +1,24 @@
-import { makeT } from "app/client/lib/localization";
 import * as commands from "app/client/components/commands";
+import { RegionFocusSwitcher } from "app/client/components/RegionFocusSwitcher";
 import { watchElementForBlur } from "app/client/lib/FocusLayer";
+import { makeT } from "app/client/lib/localization";
+import { SessionObs } from "app/client/lib/sessionObs";
 import { urlState } from "app/client/models/gristUrlState";
+import { App } from "app/client/ui/App";
 import { resizeFlexVHandle } from "app/client/ui/resizeHandle";
 import { hoverTooltip } from "app/client/ui/tooltips";
 import { transition, TransitionWatcher } from "app/client/ui/transitions";
 import { cssHideForNarrowScreen, isScreenResizing, mediaNotSmall, mediaSmall, theme } from "app/client/ui2018/cssVars";
 import { isNarrowScreenObs } from "app/client/ui2018/cssVars";
-import { unstyledButton } from "app/client/ui2018/unstyled";
 import { icon } from "app/client/ui2018/icons";
+import { unstyledButton } from "app/client/ui2018/unstyled";
+
 import {
   dom, DomElementArg, DomElementMethod, MultiHolder, noTestId, Observable, styled, subscribe, TestId,
 } from "grainjs";
+import debounce from "lodash/debounce";
 import noop from "lodash/noop";
 import once from "lodash/once";
-import { SessionObs } from "app/client/lib/sessionObs";
-import debounce from "lodash/debounce";
-import { RegionFocusSwitcher } from "app/client/components/RegionFocusSwitcher";
-import { App } from "app/client/ui/App";
 
 const t = makeT("PagePanels");
 

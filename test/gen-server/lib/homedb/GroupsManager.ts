@@ -1,12 +1,13 @@
-import { assert } from "chai";
-import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
-import { EnvironmentSnapshot, setTmpLogLevel } from "test/server/testUtils";
-import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
-import { Group } from "app/gen-server/entity/Group";
-import omit from "lodash/omit";
-import { User } from "app/gen-server/entity/User";
-import { GroupWithMembersDescriptor } from "app/gen-server/lib/homedb/Interfaces";
 import { isAffirmative } from "app/common/gutil";
+import { Group } from "app/gen-server/entity/Group";
+import { User } from "app/gen-server/entity/User";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { GroupWithMembersDescriptor } from "app/gen-server/lib/homedb/Interfaces";
+import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
+import { EnvironmentSnapshot, setTmpLogLevel } from "test/server/testUtils";
+
+import { assert } from "chai";
+import omit from "lodash/omit";
 
 describe("GroupsManager", function() {
   this.timeout("3m");

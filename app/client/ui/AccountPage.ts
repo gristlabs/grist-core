@@ -1,10 +1,10 @@
 import { detectCurrentLang, makeT } from "app/client/lib/localization";
 import { checkName } from "app/client/lib/nameUtils";
 import { AppModel, reportError } from "app/client/models/AppModel";
-import { App } from "app/client/ui/App";
 import { urlState } from "app/client/models/gristUrlState";
 import * as css from "app/client/ui/AccountPageCss";
 import { ApiKey } from "app/client/ui/ApiKey";
+import { App } from "app/client/ui/App";
 import { AppHeader } from "app/client/ui/AppHeader";
 import { buildChangePasswordDialog } from "app/client/ui/ChangePasswordDialog";
 import { DeleteAccountDialog } from "app/client/ui/DeleteAccountDialog";
@@ -22,6 +22,7 @@ import { select } from "app/client/ui2018/menus";
 import { getPageTitleSuffix, isFeatureEnabled } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
 import { FullUser } from "app/common/UserAPI";
+
 import { Computed, Disposable, dom, domComputed, makeTestId, Observable, styled, subscribe } from "grainjs";
 
 const testId = makeTestId("test-account-page-");

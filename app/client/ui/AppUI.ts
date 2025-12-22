@@ -27,6 +27,7 @@ import { WelcomePage } from "app/client/ui/WelcomePage";
 import { testId } from "app/client/ui2018/cssVars";
 import { getPageTitleSuffix } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { Computed, dom, IDisposable, IDisposableOwner, Observable, replaceContent, subscribe } from "grainjs";
 
 // When integrating into the old app, we might in theory switch between new-style and old-style

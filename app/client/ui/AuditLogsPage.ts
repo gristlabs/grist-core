@@ -1,9 +1,9 @@
 import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { AppModel, reportError } from "app/client/models/AppModel";
-import { App } from "app/client/ui/App";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
+import { App } from "app/client/ui/App";
 import { AppHeader } from "app/client/ui/AppHeader";
 import { AuditLogStreamingConfig } from "app/client/ui/AuditLogStreamingConfig";
 import { OrgConfigsAPI } from "app/client/ui/ConfigsAPI";
@@ -17,6 +17,7 @@ import { theme, vars } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
 import { commonUrls, getPageTitleSuffix } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
+
 import {
   Computed,
   Disposable,

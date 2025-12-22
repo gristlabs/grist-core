@@ -1,5 +1,6 @@
-import { assert } from "chai";
 import { Signal } from "app/client/lib/Signal";
+
+import { assert } from "chai";
 
 describe("Signal", function() {
   it("computes new signal from other events", function() {

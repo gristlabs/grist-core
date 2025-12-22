@@ -12,10 +12,11 @@ import * as gutil from "app/common/gutil";
 import { UIRowId } from "app/plugin/GristAPI";
 import { CellValue } from "app/plugin/GristData";
 import { encodeObject } from "app/plugin/objtypes";
+
 import { Disposable, Holder, MultiHolder } from "grainjs";
 import * as  ko from "knockout";
-import merge from "lodash/merge";
 import mapValues from "lodash/mapValues";
+import merge from "lodash/merge";
 import pick from "lodash/pick";
 import pickBy from "lodash/pickBy";
 

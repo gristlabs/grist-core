@@ -1,6 +1,8 @@
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
+import { makeTestId } from "app/client/lib/domUtils";
+import { makeT } from "app/client/lib/localization";
 import { setTestState } from "app/client/lib/testState";
 import { TableRec } from "app/client/models/DocModel";
 import { docListHeader, docMenuTrigger } from "app/client/ui/DocMenuCss";
@@ -12,9 +14,8 @@ import { icon } from "app/client/ui2018/icons";
 import { loadingDots } from "app/client/ui2018/loaders";
 import { menu, menuDivider, menuIcon, menuItem, menuItemAsync, menuText } from "app/client/ui2018/menus";
 import { confirmModal } from "app/client/ui2018/modals";
+
 import { Computed, Disposable, dom, fromKo, observable, Observable, styled } from "grainjs";
-import { makeT } from "app/client/lib/localization";
-import { makeTestId } from "app/client/lib/domUtils";
 import * as weasel from "popweasel";
 
 const testId = makeTestId("test-raw-data-");

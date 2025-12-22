@@ -1,6 +1,7 @@
 import { delay } from "app/common/delay";
-import { assert, driver, Key } from "mocha-webdriver";
 import { server, setupTestSuite } from "test/projects/testUtils";
+
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("PageWidgetPicker", () => {
   setupTestSuite();

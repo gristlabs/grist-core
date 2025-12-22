@@ -1,6 +1,6 @@
 import { ColumnRec, DocModel } from "app/client/models/DocModel";
-import { Style } from "app/client/models/Styles";
 import * as modelUtil from "app/client/models/modelUtil";
+import { Style } from "app/client/models/Styles";
 import { GristObjCode } from "app/plugin/GristData";
 
 export interface RuleOwner {

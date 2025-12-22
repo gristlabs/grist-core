@@ -9,20 +9,22 @@
 
 /* global before, after */
 
-import * as _ from "underscore";
-import { assert } from "chai";
-import { tmpdir } from "os";
-import * as path from "path";
-import * as fse from "fs-extra";
-import clone from "lodash/clone";
-import * as tmp from "tmp-promise";
-import { FileOptions as TmpOptions } from "tmp";
-import * as winston from "winston";
-import { serialize } from "winston/lib/winston/common";
 
 import * as docUtils from "app/server/lib/docUtils";
 import log from "app/server/lib/log";
 import { getAppRoot } from "app/server/lib/places";
+
+import { tmpdir } from "os";
+import * as path from "path";
+
+import { assert } from "chai";
+import * as fse from "fs-extra";
+import clone from "lodash/clone";
+import { FileOptions as TmpOptions } from "tmp";
+import * as tmp from "tmp-promise";
+import * as _ from "underscore";
+import * as winston from "winston";
+import { serialize } from "winston/lib/winston/common";
 
 /**
  * Creates a temporary file with the given contents.

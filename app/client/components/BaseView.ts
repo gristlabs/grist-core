@@ -1,24 +1,19 @@
 import { getDefaultColValues } from "app/client/components/BaseView2";
 import { CutCallback } from "app/client/components/Clipboard";
+import * as commands from "app/client/components/commands";
 import { CopySelection } from "app/client/components/CopySelection";
 import { Cursor } from "app/client/components/Cursor";
 import { GristDoc } from "app/client/components/GristDoc";
+import { buildConfirmDelete, reportUndo } from "app/client/components/modals";
 import { viewCommands } from "app/client/components/RegionFocusSwitcher";
 import { SelectionSummary } from "app/client/components/SelectionSummary";
-import * as commands from "app/client/components/commands";
-import { buildConfirmDelete, reportUndo } from "app/client/components/modals";
 import { KoArray } from "app/client/lib/koArray";
 import * as tableUtil from "app/client/lib/tableUtil";
 import BaseRowModel from "app/client/models/BaseRowModel";
 import { ClientColumnGetters } from "app/client/models/ClientColumnGetters";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import DataTableModel from "app/client/models/DataTableModel";
-import type { LazyArrayModel } from "app/client/models/DataTableModel";
 import { ExtraRows } from "app/client/models/DataTableModelWithDiff";
-import { DynamicQuerySet } from "app/client/models/QuerySet";
-import { SectionFilter } from "app/client/models/SectionFilter";
-import { UnionRowSource } from "app/client/models/UnionRowSource";
-import { markAsSeen } from "app/client/models/UserPrefs";
 import { ColumnRec } from "app/client/models/entities/ColumnRec";
 import { TableRec } from "app/client/models/entities/TableRec";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
@@ -26,22 +21,25 @@ import { FilterInfo, ViewSectionRec } from "app/client/models/entities/ViewSecti
 import { MutedError } from "app/client/models/errors";
 import { reportError } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
+import { DynamicQuerySet } from "app/client/models/QuerySet";
 import * as rowset from "app/client/models/rowset";
 import { RowSource, SortedRowSet } from "app/client/models/rowset";
-import { createFilterMenu, IColumnFilterMenuOptions } from "app/client/ui/ColumnFilterMenu";
+import { SectionFilter } from "app/client/models/SectionFilter";
+import { UnionRowSource } from "app/client/models/UnionRowSource";
+import { markAsSeen } from "app/client/models/UserPrefs";
 import { buildReassignModal } from "app/client/ui/buildReassignModal";
+import { createFilterMenu, IColumnFilterMenuOptions } from "app/client/ui/ColumnFilterMenu";
 import { closeRegisteredMenu } from "app/client/ui2018/menus";
-import type { CommentWithMentions } from "app/client/widgets/MentionTextBox";
 import { BuildEditorOptions, createAllFieldWidgets, FieldBuilder } from "app/client/widgets/FieldBuilder";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 import { BulkColValues, CellValue, DocAction, UserAction } from "app/common/DocActions";
 import { DocStateComparison } from "app/common/DocState";
-import { DismissedPopup } from "app/common/Prefs";
-import { SortFunc } from "app/common/SortFunc";
-import { Sort } from "app/common/SortSpec";
 import * as gristTypes from "app/common/gristTypes";
 import { IGristUrlState } from "app/common/gristUrls";
 import { arrayRepeat, nativeCompare, roundDownToMultiple, waitObs } from "app/common/gutil";
+import { DismissedPopup } from "app/common/Prefs";
+import { SortFunc } from "app/common/SortFunc";
+import { Sort } from "app/common/SortSpec";
 import { CursorPos, UIRowId } from "app/plugin/GristAPI";
 
 import { DomArg } from "grainjs";
@@ -49,6 +47,9 @@ import ko from "knockout";
 import mapValues from "lodash/mapValues";
 import moment from "moment-timezone";
 import { IOpenController } from "popweasel";
+
+import type { LazyArrayModel } from "app/client/models/DataTableModel";
+import type { CommentWithMentions } from "app/client/widgets/MentionTextBox";
 
 // Disable member-ordering linting temporarily, so that it's easier to review the conversion to
 // typescript. It would be reasonable to reorder methods and re-enable this lint check.

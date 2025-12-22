@@ -1,5 +1,6 @@
 import { ColumnRec, DocModel, IRowModel, refRecord, ViewSectionRec } from "app/client/models/DocModel";
 import * as modelUtil from "app/client/models/modelUtil";
+
 import * as ko from "knockout";
 
 // Represents a column filter for a view section.

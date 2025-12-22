@@ -4,6 +4,7 @@ import { localStorageJsonObs } from "app/client/lib/localStorageObs";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { PREFERRED_STORAGE_ANCHOR } from "app/common/gristUrls";
+
 import { Disposable, dom, makeTestId, Observable } from "grainjs";
 
 const t = makeT("ExternalAttachmentBanner");

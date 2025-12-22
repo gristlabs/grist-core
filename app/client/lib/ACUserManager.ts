@@ -1,10 +1,8 @@
-import { makeT } from "app/client/lib/localization";
 import { ACIndex, ACItem, ACResults, buildHighlightedDom, normalizeText } from "app/client/lib/ACIndex";
 import { cssSelectItem } from "app/client/lib/ACSelect";
 import { Autocomplete, IAutocompleteOptions } from "app/client/lib/autocomplete";
-import { colors, testId, theme } from "app/client/ui2018/cssVars";
-import { icon } from "app/client/ui2018/icons";
-import { menuCssClass } from "app/client/ui2018/menus";
+import { makeT } from "app/client/lib/localization";
+import { createUserImage, cssUserImage } from "app/client/ui/UserImage";
 import {
   cssEmailInput,
   cssEmailInputContainer,
@@ -15,8 +13,11 @@ import {
   cssMemberSecondary,
   cssMemberText,
 } from "app/client/ui/UserItem";
-import { createUserImage, cssUserImage } from "app/client/ui/UserImage";
+import { colors, testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menuCssClass } from "app/client/ui2018/menus";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { Computed, computed, dom, DomElementArg, Holder, IDisposableOwner, Observable, styled } from "grainjs";
 import { cssMenuItem } from "popweasel";
 

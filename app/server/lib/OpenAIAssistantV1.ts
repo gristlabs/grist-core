@@ -16,6 +16,7 @@ import {
   TokensExceededFirstMessageError,
   TokensExceededLaterMessageError,
 } from "app/server/lib/Assistant";
+import { OptDocSession } from "app/server/lib/DocSession";
 import {
   AssistanceDoc,
   AssistanceSchemaPromptGenerator,
@@ -23,7 +24,6 @@ import {
   AssistantV1,
   AssistantV1Options,
 } from "app/server/lib/IAssistant";
-import { OptDocSession } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
 import { agents } from "app/server/lib/ProxyAgent";
 

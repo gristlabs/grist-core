@@ -1,4 +1,5 @@
 import { buildNumberFormat } from "app/common/NumberFormat";
+
 import { assert } from "chai";
 
 describe("NumberFormat", function() {

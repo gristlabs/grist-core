@@ -1,6 +1,8 @@
-import { parse as languageParser } from "accept-language-parser";
-import { IncomingMessage } from "http";
 import { locales } from "app/common/Locales";
+
+import { IncomingMessage } from "http";
+
+import { parse as languageParser } from "accept-language-parser";
 
 /**
  * Returns the locale from a request, falling back to `defaultLocale`

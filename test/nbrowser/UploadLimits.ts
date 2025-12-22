@@ -1,15 +1,17 @@
 /**
  * Test of the importing logic in the DocMenu page.
  */
-import * as fs from "fs";
-import { assert, driver, Key } from "mocha-webdriver";
-import * as tmp from "tmp-promise";
-import * as util from "util";
 
 import { SQLiteDB } from "app/server/lib/SQLiteDB";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 import { copyFixtureDoc } from "test/server/testUtils";
+
+import * as fs from "fs";
+import * as util from "util";
+
+import { assert, driver, Key } from "mocha-webdriver";
+import * as tmp from "tmp-promise";
 
 const write = util.promisify(fs.write);
 

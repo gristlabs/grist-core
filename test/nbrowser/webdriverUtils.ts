@@ -1,7 +1,9 @@
 import log from "app/server/lib/log";
-import { assert, driver } from "mocha-webdriver";
-import * as path from "path";
+
 import * as fs from "fs/promises";
+import * as path from "path";
+
+import { assert, driver } from "mocha-webdriver";
 
 export async function fetchScreenshotAndLogs(test: Mocha.Runnable | undefined) {
   const dir = process.env.MOCHA_WEBDRIVER_LOGDIR!;

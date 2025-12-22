@@ -1,15 +1,17 @@
 import { AttachmentsArchiveParams, DocAPI } from "app/common/UserAPI";
-import fs from "fs";
-import { assert, driver, Key, WebElementPromise } from "mocha-webdriver";
-import path from "path";
 import { enableExternalAttachmentsForTestSuite } from "test/nbrowser/externalAttachmentsHelpers";
 import * as gu from "test/nbrowser/gristUtils";
 import { fileDialogUpload, TestUser } from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 import { createTmpDir } from "test/server/docTools";
-import axios from "axios";
+
+import fs from "fs";
 import stream from "node:stream";
+import path from "path";
+
+import axios from "axios";
 import fse from "fs-extra";
+import { assert, driver, Key, WebElementPromise } from "mocha-webdriver";
 
 describe("AttachmentsTransfer", function() {
   this.timeout("6m");

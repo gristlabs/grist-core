@@ -1,6 +1,6 @@
-import { addToRepl, driver, enableDebugCapture, Key, useServer } from "mocha-webdriver";
 import { server } from "test/fixtures/projects/webpack-test-server";
 
+import { addToRepl, driver, enableDebugCapture, Key, useServer } from "mocha-webdriver";
 
 // Exports the webpack-dev-server that we set up in setupTestSuite(), mainly for its getHost()
 // method, e.g.

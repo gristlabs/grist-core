@@ -1,5 +1,6 @@
 import { arrayRepeat } from "app/common/gutil";
 import { guessColInfo, guessColInfoForImports, GuessResult } from "app/common/ValueGuesser";
+
 import { assert } from "chai";
 
 const defaultDocSettings = {

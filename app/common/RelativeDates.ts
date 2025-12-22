@@ -3,6 +3,7 @@
 // periods gets applied successively which eventually yields to the final date. Typical relative
 
 import getCurrentTime from "app/common/getCurrentTime";
+
 import isEqual from "lodash/isEqual";
 import isNumber from "lodash/isNumber";
 import isUndefined from "lodash/isUndefined";

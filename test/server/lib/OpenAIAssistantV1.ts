@@ -5,17 +5,18 @@ import { OptDocSession } from "app/server/lib/DocSession";
 import { AssistantV1 } from "app/server/lib/IAssistant";
 import { DEPS, OpenAIAssistantV1 } from "app/server/lib/OpenAIAssistantV1";
 import { GristProxyAgent } from "app/server/lib/ProxyAgent";
-import { assert } from "chai";
-import { Response } from "node-fetch";
-import * as sinon from "sinon";
 import { createDocTools } from "test/server/docTools";
 import { EnvironmentSnapshot } from "test/server/testUtils";
+
+import { assert } from "chai";
+import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
+import { Response } from "node-fetch";
+import * as sinon from "sinon";
 
 // For some reason, assert.isRejected is not getting defined,
 // though test/chai-as-promised.js should be taking care of this.
 // So test/chai-as-promised.js is just repeated here.
-import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
 
 /**

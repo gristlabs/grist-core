@@ -1,6 +1,7 @@
 import { createGroup } from "app/client/components/commands";
 import { ACItem, ACResults, HighlightFunc, normalizeText } from "app/client/lib/ACIndex";
 import { IAutocompleteOptions } from "app/client/lib/autocomplete";
+import { ReferenceUtils } from "app/client/lib/ReferenceUtils";
 import { IToken, TokenField, tokenFieldStyles } from "app/client/lib/TokenField";
 import { reportError } from "app/client/models/errors";
 import { colors, testId, theme } from "app/client/ui2018/cssVars";
@@ -10,10 +11,10 @@ import { createMobileButtons, getButtonMargins } from "app/client/widgets/Editor
 import { EditorPlacement } from "app/client/widgets/EditorPlacement";
 import { FieldOptions, NewBaseEditor } from "app/client/widgets/NewBaseEditor";
 import { cssRefList, renderACItem } from "app/client/widgets/ReferenceEditor";
-import { ReferenceUtils } from "app/client/lib/ReferenceUtils";
 import { csvEncodeRow } from "app/common/csvFormat";
 import { CellValue } from "app/common/DocActions";
 import { decodeObject, encodeObject } from "app/plugin/objtypes";
+
 import { dom, styled } from "grainjs";
 
 class ReferenceItem implements IToken, ACItem {

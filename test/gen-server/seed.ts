@@ -22,10 +22,12 @@
  *
  */
 
+/* eslint-disable @import-x/order */
+
+import * as path from "path";
+
 import { addPath } from "app-module-path";
 import { Context } from "mocha";
-import * as path from "path";
-import { Connection, Repository } from "typeorm";
 
 if (require.main === module) {
   addPath(path.dirname(path.dirname(__dirname)));
@@ -47,6 +49,7 @@ import {
 } from "app/server/lib/dbUtils";
 import { FlexServer } from "app/server/lib/FlexServer";
 import * as fse from "fs-extra";
+import { Connection, Repository } from "typeorm";
 
 const ACCESS_GROUPS = ["owners", "editors", "viewers", "guests", "members"];
 

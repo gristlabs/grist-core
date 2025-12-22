@@ -1,10 +1,10 @@
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
-import { ChatHistory } from "app/client/models/ChatHistory";
 import { makeT } from "app/client/lib/localization";
 import { localStorageBoolObs } from "app/client/lib/localStorageObs";
 import { movable } from "app/client/lib/popupUtils";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
+import { ChatHistory } from "app/client/models/ChatHistory";
 import { ColumnRec, ViewFieldRec } from "app/client/models/DocModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { basicButton, primaryButton } from "app/client/ui2018/buttons";
@@ -18,6 +18,7 @@ import { AssistanceState } from "app/common/Assistance";
 import { commonUrls } from "app/common/gristUrls";
 import { TelemetryEvent, TelemetryMetadata } from "app/common/Telemetry";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { Disposable, dom, DomElementArg, makeTestId, Observable, styled } from "grainjs";
 import debounce from "lodash/debounce";
 import noop from "lodash/noop";

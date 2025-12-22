@@ -1,10 +1,11 @@
 import { ActionSummaryOptions, concatenateSummaries, rebaseSummary, summarizeAction } from "app/common/ActionSummarizer";
 import { ActionSummary, asTabularDiffs, createEmptyTableDelta, LabelDelta, TableDelta } from "app/common/ActionSummary";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
-import { cloneDeep, keyBy } from "lodash";
 import { createDocTools } from "test/server/docTools";
 import * as testUtils from "test/server/testUtils";
 import { assert } from "test/server/testUtils";
+
+import { cloneDeep, keyBy } from "lodash";
 
 /** get a summary of the last LocalActionBundle applied to a given document */
 async function summarizeLastAction(doc: ActiveDoc, options?: ActionSummaryOptions) {

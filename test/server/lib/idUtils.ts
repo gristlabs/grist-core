@@ -1,4 +1,5 @@
 import { makeId } from "app/server/lib/idUtils";
+
 import { assert } from "chai";
 
 describe("idUtils", function() {

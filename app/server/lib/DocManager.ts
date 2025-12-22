@@ -1,8 +1,4 @@
-import { Document } from "app/gen-server/entity/Document";
-import { getScope } from "app/server/lib/requestUtils";
-import { EventEmitter } from "events";
-import * as path from "path";
-import pidusage from "pidusage";
+
 
 import { ApiError } from "app/common/ApiError";
 import { mapSetOrClear, MapWithTTL } from "app/common/AsyncCreate";
@@ -10,19 +6,23 @@ import { BrowserSettings } from "app/common/BrowserSettings";
 import { delay } from "app/common/delay";
 import { DocCreationInfo, DocEntry, DocListAPI,
   OpenDocMode, OpenDocOptions, OpenLocalDocResult } from "app/common/DocListAPI";
+import { DocumentSettings, DocumentSettingsChecker } from "app/common/DocumentSettings";
 import { FilteredDocUsageSummary } from "app/common/DocUsage";
 import { parseUrlId } from "app/common/gristUrls";
+import { safeJsonParse } from "app/common/gutil";
 import { tbind } from "app/common/tbind";
 import { TelemetryMetadataByLevel } from "app/common/Telemetry";
 import { NEW_DOCUMENT_CODE } from "app/common/UserAPI";
+import { Document } from "app/gen-server/entity/Document";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
-import { isSingleUserMode, RequestWithLogin } from "app/server/lib/Authorizer";
-import { DocAuthorizer, DocAuthorizerImpl, DummyAuthorizer } from "app/server/lib/DocAuthorizer";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import {
   getConfiguredStandardAttachmentStore,
   IAttachmentStoreProvider,
 } from "app/server/lib/AttachmentStoreProvider";
+import { isSingleUserMode, RequestWithLogin } from "app/server/lib/Authorizer";
 import { Client } from "app/server/lib/Client";
+import { DocAuthorizer, DocAuthorizerImpl, DummyAuthorizer } from "app/server/lib/DocAuthorizer";
 import { DocSessionPrecursor,
   makeExceptionalDocSession, makeOptDocSession, OptDocSession } from "app/server/lib/DocSession";
 import * as docUtils from "app/server/lib/docUtils";
@@ -30,18 +30,21 @@ import { GristServer } from "app/server/lib/GristServer";
 import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import { makeForkIds, makeId } from "app/server/lib/idUtils";
 import { insightLogDecorate, insightLogEntry } from "app/server/lib/InsightLog";
+import log from "app/server/lib/log";
+import { PluginManager } from "app/server/lib/PluginManager";
+import { getScope } from "app/server/lib/requestUtils";
 import { checkAllegedGristDoc } from "app/server/lib/serverUtils";
 import { getDocSessionCachedDoc } from "app/server/lib/sessionUtils";
 import { OpenMode, SQLiteDB } from "app/server/lib/SQLiteDB";
-import log from "app/server/lib/log";
-import { ActiveDoc } from "app/server/lib/ActiveDoc";
-import { PluginManager } from "app/server/lib/PluginManager";
 import { getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo } from "app/server/lib/uploads";
+
+import { EventEmitter } from "events";
+import * as path from "path";
+
 import isDeepEqual from "lodash/isEqual";
 import merge from "lodash/merge";
 import noop from "lodash/noop";
-import { DocumentSettings, DocumentSettingsChecker } from "app/common/DocumentSettings";
-import { safeJsonParse } from "app/common/gutil";
+import pidusage from "pidusage";
 
 // A TTL in milliseconds to use for material that can easily be recomputed / refetched
 // but is a bit of a burden under heavy traffic.

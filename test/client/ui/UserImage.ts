@@ -1,4 +1,5 @@
 import { getInitials } from "app/client/ui/UserImage";
+
 import { assert } from "chai";
 
 describe("AppModel", function() {

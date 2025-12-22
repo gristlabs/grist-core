@@ -1,26 +1,27 @@
 // External dependencies
-import { computed, Computed, computedArray } from "grainjs";
-import { MutableObsArray, obsArray, ObsArray, observable, Observable } from "grainjs";
-import { dom, LiveIndex, makeLiveIndex, styled } from "grainjs";
 
 // Grist client libs
 import { DocComm } from "app/client/components/DocComm";
+import { makeT } from "app/client/lib/localization";
 import { selectFiles, uploadFiles } from "app/client/lib/uploads";
 import { DocData } from "app/client/models/DocData";
 import { MetaTableData } from "app/client/models/TableData";
 import { basicButton, basicButtonLink, cssButtonGroup } from "app/client/ui2018/buttons";
-import { makeT } from "app/client/lib/localization";
 import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { editableLabel } from "app/client/ui2018/editableLabel";
 import { icon } from "app/client/ui2018/icons";
-import { IModalControl, modal } from "app/client/ui2018/modals";
 import { loadingSpinner } from "app/client/ui2018/loaders";
+import { IModalControl, modal } from "app/client/ui2018/modals";
 import { renderFileType } from "app/client/widgets/AttachmentsWidget";
 import { FieldOptions, NewBaseEditor } from "app/client/widgets/NewBaseEditor";
 import { CellValue } from "app/common/DocActions";
-import { SingleCell } from "app/common/TableData";
 import { clamp, encodeQueryParams } from "app/common/gutil";
+import { SingleCell } from "app/common/TableData";
 import { UploadResult } from "app/common/uploads";
+
+import { dom, LiveIndex, makeLiveIndex, styled } from "grainjs";
+import { MutableObsArray, obsArray, ObsArray, observable, Observable } from "grainjs";
+import { computed, Computed, computedArray } from "grainjs";
 import * as mimeTypes from "mime-types";
 
 const t = makeT("AttachmentsEditor");

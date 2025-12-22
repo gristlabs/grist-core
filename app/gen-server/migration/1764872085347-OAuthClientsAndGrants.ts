@@ -1,5 +1,6 @@
 import { nativeValues } from "app/gen-server/lib/values";
 import * as sqlUtils from "app/gen-server/sqlUtils";
+
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
 
 export class OAuthClientsAndGrants1764872085347 implements MigrationInterface {

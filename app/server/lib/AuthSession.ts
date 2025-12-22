@@ -17,9 +17,11 @@
 
 import { ApiError } from "app/common/ApiError";
 import { FullUser } from "app/common/LoginSessionAPI";
-import type { RequestWithLogin } from "app/server/lib/Authorizer";
 import { ILogMeta } from "app/server/lib/log";
+
 import moment from "moment";
+
+import type { RequestWithLogin } from "app/server/lib/Authorizer";
 
 export abstract class AuthSession {
   // Create AuthSession from request. (This is very cheap to create.)

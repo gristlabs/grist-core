@@ -7,11 +7,12 @@ import { ActiveDoc, Deps } from "app/server/lib/ActiveDoc";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
 import { DocStorage } from "app/server/lib/DocStorage";
 import { OnDemandActions, ProcessedAction } from "app/server/lib/OnDemandActions";
+import { createDocTools } from "test/server/docTools";
+import * as testUtils from "test/server/testUtils";
+
 import { assert } from "chai";
 import times from "lodash/times";
 import * as sinon from "sinon";
-import { createDocTools } from "test/server/docTools";
-import * as testUtils from "test/server/testUtils";
 
 describe("OnDemandActions", function() {
   testUtils.withoutSandboxing();

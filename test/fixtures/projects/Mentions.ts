@@ -1,8 +1,9 @@
-import { dom, input, makeTestId, observable, styled } from "grainjs";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 import { buildMentionTextBox, CommentWithMentions } from "app/client/widgets/MentionTextBox";
 import { PermissionData } from "app/common/UserAPI";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { dom, input, makeTestId, observable, styled } from "grainjs";
 
 const testId = makeTestId("test-");
 

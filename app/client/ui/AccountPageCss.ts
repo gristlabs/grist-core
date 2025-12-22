@@ -1,5 +1,6 @@
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon as gristIcon } from "app/client/ui2018/icons";
+
 import { styled } from "grainjs";
 
 export const container = styled("div", `

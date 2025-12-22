@@ -1,6 +1,7 @@
-import { assert, driver, WebElement, WebElementPromise } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver, WebElement, WebElementPromise } from "mocha-webdriver";
 
 describe("ActionLog", function() {
   this.timeout(20000);

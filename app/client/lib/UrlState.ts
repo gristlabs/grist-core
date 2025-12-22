@@ -17,6 +17,7 @@
  * intercept clicks and update history (using pushUrl()) without reloading the page.
  */
 import * as log from "app/client/lib/log";
+
 import { BaseObservable, Disposable, dom, DomElementMethod, observable } from "grainjs";
 
 export interface UrlStateSpec<IUrlState> {

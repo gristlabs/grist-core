@@ -6,15 +6,16 @@ import { FlexServer } from "app/server/lib/FlexServer";
 import { NSandbox } from "app/server/lib/NSandbox";
 import { Permit } from "app/server/lib/Permit";
 import { MergedServer } from "app/server/MergedServer";
+import { TestSession } from "test/gen-server/apiUtils";
+import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
+import * as testUtils from "test/server/testUtils";
+import { waitForIt } from "test/server/wait";
+
 import { delay, promisifyAll } from "bluebird";
 import { assert, expect } from "chai";
 import { countBy, values } from "lodash";
 import { createClient, RedisClient } from "redis";
-import { TestSession } from "test/gen-server/apiUtils";
-import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
 import sinon from "sinon";
-import * as testUtils from "test/server/testUtils";
-import { waitForIt } from "test/server/wait";
 
 promisifyAll(RedisClient.prototype);
 

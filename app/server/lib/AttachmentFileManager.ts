@@ -1,3 +1,4 @@
+
 import { AttachmentTransferStatus, DocAttachmentsLocation } from "app/common/UserAPI";
 import {
   AttachmentFile,
@@ -12,8 +13,10 @@ import { DocStorage, FileInfo } from "app/server/lib/DocStorage";
 import log from "app/server/lib/log";
 import { LogMethods } from "app/server/lib/LogMethods";
 import { MemoryWritableStream } from "app/server/utils/streams";
+
 import { EventEmitter } from "events";
 import * as stream from "node:stream";
+
 import { AbortController } from "node-abort-controller";
 
 export interface AddFileResult {

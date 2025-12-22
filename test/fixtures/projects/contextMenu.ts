@@ -1,9 +1,10 @@
-import { testId } from "app/client/ui2018/cssVars";
 import { contextMenu } from  "app/client/ui/contextMenu";
+import { testId } from "app/client/ui2018/cssVars";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
 import { dom, observable, styled } from "grainjs";
 import { menuItem } from "popweasel";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 initGristStyles();
 
 function setupTest() {

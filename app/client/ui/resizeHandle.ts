@@ -21,6 +21,7 @@
  * easily extended to non-flexbox situation, and to height-resizing.
  */
 import { mouseDrag } from "app/client/ui/mouseDrag";
+
 import { DomElementArg, styled } from "grainjs";
 
 export type ChangeFunc = (value: number) => void;

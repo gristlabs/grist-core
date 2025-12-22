@@ -1,14 +1,15 @@
+import { makeT } from "app/client/lib/localization";
 import { getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, getSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { getAdminPanelName } from "app/client/ui/AdminPanelName";
 import { manageTeamUsers } from "app/client/ui/OpenUserManager";
+import { maybeAddSiteSwitcherSection } from "app/client/ui/SiteSwitcher";
 import { createUserImage } from "app/client/ui/UserImage";
 import * as viewport from "app/client/ui/viewport";
 import { bigPrimaryButtonLink, primaryButtonLink } from "app/client/ui2018/buttons";
 import { mediaDeviceNotSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
-import { unstyledButton } from "app/client/ui2018/unstyled";
 import { icon } from "app/client/ui2018/icons";
 import {
   menu,
@@ -17,14 +18,14 @@ import {
   menuItemLink,
   menuSubHeader,
 } from "app/client/ui2018/menus";
+import { unstyledButton } from "app/client/ui2018/unstyled";
 import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
 import { FullUser } from "app/common/LoginSessionAPI";
 import * as roles from "app/common/roles";
+import { getGristConfig } from "app/common/urlUtils";
+
 import { Disposable, dom, DomElementArg, styled } from "grainjs";
 import { cssMenuItem } from "popweasel";
-import { maybeAddSiteSwitcherSection } from "app/client/ui/SiteSwitcher";
-import { makeT } from "app/client/lib/localization";
-import { getGristConfig } from "app/common/urlUtils";
 
 const t = makeT("AccountWidget");
 

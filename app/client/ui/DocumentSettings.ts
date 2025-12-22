@@ -10,7 +10,6 @@ import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { makeT } from "app/client/lib/localization";
 import { cssMarkdownSpan } from "app/client/lib/markdown";
 import { reportError } from "app/client/models/AppModel";
-import type { DocPageModel } from "app/client/models/DocPageModel";
 import { reportWarning } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
 import { KoSaveableObservable } from "app/client/models/modelUtil";
@@ -39,6 +38,7 @@ import {
   DOCTYPE_TUTORIAL,
   DocumentType,
 } from "app/common/UserAPI";
+
 import {
   Computed,
   Disposable,
@@ -52,6 +52,8 @@ import {
   styled,
 } from "grainjs";
 import * as moment from "moment-timezone";
+
+import type { DocPageModel } from "app/client/models/DocPageModel";
 
 const t = makeT("DocumentSettings");
 const testId = makeTestId("test-settings-");

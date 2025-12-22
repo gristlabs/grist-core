@@ -1,7 +1,8 @@
 import { Workspace } from "app/common/UserAPI";
-import { assert } from "chai";
 import { TestServer } from "test/gen-server/apiUtils";
 import * as testUtils from "test/server/testUtils";
+
+import { assert } from "chai";
 
 describe("everyone", function() {
   let home: TestServer;

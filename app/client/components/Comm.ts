@@ -31,6 +31,7 @@ import { UserAction } from "app/common/DocActions";
 import { DocListAPI, OpenDocOptions, OpenLocalDocResult } from "app/common/DocListAPI";
 import { GristServerAPI } from "app/common/GristServerAPI";
 import { getInitialDocAssignment } from "app/common/urlUtils";
+
 import { Events as BackboneEvents } from "backbone";
 
 /**

@@ -1,5 +1,6 @@
-import { assert, driver, Key, stackWrapFunc, WebElement } from "mocha-webdriver";
 import { server, setupTestSuite } from "test/projects/testUtils";
+
+import { assert, driver, Key, stackWrapFunc, WebElement } from "mocha-webdriver";
 
 describe("transitions", function() {
   setupTestSuite();

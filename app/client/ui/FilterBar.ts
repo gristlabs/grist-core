@@ -1,15 +1,16 @@
 import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
 import { NEW_FILTER_JSON } from "app/client/models/ColumnFilter";
 import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
 import { FilterInfo } from "app/client/models/entities/ViewSectionRec";
 import { attachColumnFilterMenu } from "app/client/ui/ColumnFilterMenu";
+import { dropdownWithSearch } from "app/client/ui/searchDropdown";
 import { cssButton } from "app/client/ui2018/buttons";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+
 import { dom, IDisposableOwner, IDomArgs, styled } from "grainjs";
 import { IPopupOptions, PopupControl } from "popweasel";
-import { makeT } from "app/client/lib/localization";
-import { dropdownWithSearch } from "app/client/ui/searchDropdown";
 
 const t = makeT("FilterBar");
 

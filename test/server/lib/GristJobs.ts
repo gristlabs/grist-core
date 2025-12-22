@@ -1,8 +1,9 @@
 import { delay } from "app/common/delay";
 import { createGristJobs, GristJobs } from "app/server/lib/GristJobs";
-import { assert } from "chai";
 import { EnvironmentSnapshot } from "test/server/testUtils";
 import { waitForIt } from "test/server/wait";
+
+import { assert } from "chai";
 
 describe("GristJobs", function() {
   this.timeout(20000);

@@ -5,11 +5,6 @@ import { HomeModel } from "app/client/models/HomeModel";
 import { getWorkspaceInfo, workspaceName } from "app/client/models/WorkspaceInfo";
 import { addNewButton, cssAddNewButton } from "app/client/ui/AddNewButton";
 import { getAdminPanelName } from "app/client/ui/AdminPanelName";
-import { createVideoTourToolsButton } from "app/client/ui/OpenVideoTour";
-import { transientInput } from "app/client/ui/transientInput";
-import { testId, theme } from "app/client/ui2018/cssVars";
-import { icon } from "app/client/ui2018/icons";
-import { stretchedLink } from "app/client/ui2018/stretchedLink";
 import {
   createAccessibilityTools,
   createHelpTools,
@@ -27,13 +22,19 @@ import {
   cssSectionHeaderText,
 } from "app/client/ui/LeftPanelCommon";
 import { newDocMethods } from "app/client/ui/NewDocMethods";
+import { createVideoTourToolsButton } from "app/client/ui/OpenVideoTour";
+import { transientInput } from "app/client/ui/transientInput";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
 import { menu, menuIcon, menuItem, upgradableMenuItem, upgradeText } from "app/client/ui2018/menus";
 import { confirmModal } from "app/client/ui2018/modals";
-import * as version from "app/common/version";
+import { stretchedLink } from "app/client/ui2018/stretchedLink";
 import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
 import * as roles from "app/common/roles";
 import { getGristConfig } from "app/common/urlUtils";
 import { Workspace } from "app/common/UserAPI";
+import * as version from "app/common/version";
+
 import { computed, dom, domComputed, DomElementArg, observable, Observable, styled } from "grainjs";
 
 const t = makeT("HomeLeftPane");

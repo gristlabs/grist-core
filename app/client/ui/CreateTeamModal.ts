@@ -8,10 +8,11 @@ import { bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink } from "app/clie
 import { mediaSmall, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { IModalControl, modal } from "app/client/ui2018/modals";
+import { PlanSelection } from "app/common/BillingAPI";
 import { TEAM_PLAN } from "app/common/Features";
 import { checkSubdomainValidity } from "app/common/orgNameUtils";
 import { UserAPIImpl } from "app/common/UserAPI";
-import { PlanSelection } from "app/common/BillingAPI";
+
 import { Disposable, dom, DomContents, DomElementArg, input, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("CreateTeamModal");

@@ -8,8 +8,9 @@ import { getDefaultForType } from "app/common/gristTypes";
 import { arrayRemove, arraySplice, getDistinctValues } from "app/common/gutil";
 import { SchemaTypes } from "app/common/schema";
 import { UIRowId } from "app/plugin/GristAPI";
-import isEqual from "lodash/isEqual";
+
 import fromPairs from "lodash/fromPairs";
+import isEqual from "lodash/isEqual";
 
 export interface ColTypeMap { [colId: string]: string; }
 

@@ -1,10 +1,13 @@
 import { Hosts } from "app/server/lib/extractOrg";
 import { listenPromise } from "app/server/lib/serverUtils";
+
+import * as http from "http";
+import { AddressInfo } from "net";
+
+
 import { assert } from "chai";
 import express from "express";
-import * as http from "http";
 import { pick } from "lodash";
-import { AddressInfo } from "net";
 import fetch from "node-fetch";
 
 describe("extractOrg", function() {

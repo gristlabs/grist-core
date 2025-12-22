@@ -9,6 +9,8 @@ import { assert, driver, Key, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
+import { assert, driver, Key, WebElement } from "mocha-webdriver";
+
 describe("AccessRulesAttrs", function() {
   this.timeout("20s");
   const cleanup = setupTestSuite();

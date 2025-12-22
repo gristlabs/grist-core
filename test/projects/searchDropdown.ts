@@ -1,5 +1,6 @@
-import { assert, driver, Key, useServer } from "mocha-webdriver";
 import { server } from "test/fixtures/projects/webpack-test-server";
+
+import { assert, driver, Key, useServer } from "mocha-webdriver";
 
 describe("searchDropdown", function() {
   useServer(server);

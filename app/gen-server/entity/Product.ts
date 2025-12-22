@@ -1,15 +1,18 @@
+
 import { Features, FREE_PLAN,
-  Product as IProduct,
   isManagedPlan,
   PERSONAL_FREE_PLAN,
   PERSONAL_LEGACY_PLAN,
+  Product as IProduct,
   STUB_PLAN,
   SUSPENDED_PLAN,
   TEAM_FREE_PLAN,
   TEAM_PLAN } from "app/common/Features";
-import { nativeValues } from "app/gen-server/lib/values";
-import * as assert from "assert";
 import { BillingAccount } from "app/gen-server/entity/BillingAccount";
+import { nativeValues } from "app/gen-server/lib/values";
+
+import * as assert from "assert";
+
 import { BaseEntity, Column, Connection, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 /**

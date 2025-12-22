@@ -7,8 +7,9 @@
  * context menu) dont forget to prevent it by including below line at the root of the dom:
  *   `dom.on('contextmenu', ev => ev.preventDefault())`
  */
-import { Disposable, dom, DomArg, DomContents, Holder } from "grainjs";
 import { cssMenuElem, registerMenuOpen } from "app/client/ui2018/menus";
+
+import { Disposable, dom, DomArg, DomContents, Holder } from "grainjs";
 import { IMenuOptions, IOpenController, Menu } from "popweasel";
 
 export type IContextMenuContentFunc = (ctx: ContextMenuController) => DomContents;

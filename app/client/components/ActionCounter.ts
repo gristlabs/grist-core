@@ -2,6 +2,7 @@ import * as dispose from "app/client/lib/dispose";
 import { DocData } from "app/client/models/DocData";
 import { MinimalActionGroup } from "app/common/ActionGroup";
 import { DocState } from "app/common/DocState";
+
 import { Computed, Observable } from "grainjs";
 
 const MAX_MEMORY_OF_COUNTED_ACTIONS = 250;

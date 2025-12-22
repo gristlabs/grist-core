@@ -1,4 +1,3 @@
-import { EntityManager } from "typeorm";
 import * as roles from "app/common/roles";
 import { BillingAccount } from "app/gen-server/entity/BillingAccount";
 import { BillingAccountManager } from "app/gen-server/entity/BillingAccountManager";
@@ -6,7 +5,9 @@ import { Document } from "app/gen-server/entity/Document";
 import { Group } from "app/gen-server/entity/Group";
 import { Organization } from "app/gen-server/entity/Organization";
 import { Workspace } from "app/gen-server/entity/Workspace";
+
 import pick from "lodash/pick";
+import { EntityManager } from "typeorm";
 
 /**
  *

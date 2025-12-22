@@ -1,6 +1,8 @@
+
 import { exitPromise, expectedResetDate } from "app/server/lib/serverUtils";
-import { spawn } from "child_process";
 import { assert } from "test/server/testUtils";
+
+import { spawn } from "child_process";
 
 describe("serverUtils2", function() {
   describe("exitPromise", function() {

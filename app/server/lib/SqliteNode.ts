@@ -1,8 +1,9 @@
-import * as sqlite3 from "@gristlabs/sqlite3";
 import { fromCallback } from "app/server/lib/serverUtils";
 import { Backup, MinDB, MinDBOptions, PreparedStatement,
   ResultRow, SqliteVariant } from "app/server/lib/SqliteCommon";
 import { OpenMode, RunResult } from "app/server/lib/SQLiteDB";
+
+import * as sqlite3 from "@gristlabs/sqlite3";
 
 export class NodeSqliteVariant implements SqliteVariant {
   public opener(dbPath: string, mode: OpenMode): Promise<MinDB> {

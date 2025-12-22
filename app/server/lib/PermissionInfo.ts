@@ -4,10 +4,11 @@ import { ALL_PERMISSION_PROPS, emptyPermissionSet,
   toMixed } from "app/common/ACLPermissions";
 import { ACLRuleCollection } from "app/common/ACLRuleCollection";
 import { RuleSet } from "app/common/GranularAccessClause";
+import { getSetMapValue } from "app/common/gutil";
 import { PredicateFormulaInput } from "app/common/PredicateFormula";
 import { User } from "app/common/User";
-import { getSetMapValue } from "app/common/gutil";
 import log from "app/server/lib/log";
+
 import { mapValues } from "lodash";
 
 /**

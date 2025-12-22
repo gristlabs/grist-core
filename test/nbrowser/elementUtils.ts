@@ -1,5 +1,6 @@
-import { driver, WebElementPromise } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
+
+import { driver, WebElementPromise } from "mocha-webdriver";
 
 export interface Button {
   click(): Promise<void>;

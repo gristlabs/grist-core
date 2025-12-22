@@ -1,6 +1,7 @@
-import { assert, WebElement } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, WebElement } from "mocha-webdriver";
 
 describe("LinkingSelector", function() {
   this.timeout(20000);

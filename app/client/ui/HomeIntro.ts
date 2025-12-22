@@ -8,6 +8,7 @@ import { icon } from "app/client/ui2018/icons";
 import { menu, menuCssClass } from "app/client/ui2018/menus";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { FullUser } from "app/common/LoginSessionAPI";
+
 import { dom, DomContents, styled } from "grainjs";
 import { defaultMenuOptions } from "popweasel";
 

@@ -15,10 +15,10 @@ import {
   WidgetFrame,
 } from "app/client/components/WidgetFrame";
 import { CustomSectionElement, ViewProcess } from "app/client/lib/CustomSectionElement";
-import { makeT } from "app/client/lib/localization";
 import dom from "app/client/lib/dom";
 import { makeTestId } from "app/client/lib/domUtils";
 import * as kd from "app/client/lib/koDom";
+import { makeT } from "app/client/lib/localization";
 import { ViewSectionRec } from "app/client/models/DocModel";
 import { CustomViewSectionDef } from "app/client/models/entities/ViewSectionRec";
 import { UserError } from "app/client/models/errors";
@@ -26,6 +26,7 @@ import { closeRegisteredMenu } from "app/client/ui2018/menus";
 import { AccessLevel } from "app/common/CustomWidget";
 import { defaultLocale } from "app/common/gutil";
 import { PluginInstance } from "app/common/PluginInstance";
+
 import { dom as grains } from "grainjs";
 import * as ko from "knockout";
 

@@ -1,12 +1,13 @@
 import { getSingleAction } from "app/common/DocActions";
 import { DocData } from "app/common/DocData";
 import { UserAPI } from "app/common/UserAPI";
-import { DocManager } from "app/server/lib/DocManager";
 import { CellData } from "app/server/lib/CellDataAccess";
+import { DocManager } from "app/server/lib/DocManager";
 import { GranularAccess } from "app/server/lib/GranularAccess";
 import { TestServer } from "test/gen-server/apiUtils";
 import { GristClient, openClient } from "test/server/gristClient";
 import * as testUtils from "test/server/testUtils";
+
 import { assert } from "chai";
 
 describe('CommentAccess', function() {

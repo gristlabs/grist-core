@@ -1,4 +1,5 @@
 import { AppModel } from "app/client/models/AppModel";
+
 import { Disposable, IDomCreator } from "grainjs";
 
 export type IActivationPageCreator = IDomCreator<[AppModel]>;

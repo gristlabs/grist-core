@@ -1,6 +1,7 @@
 /**
  * JS controller for the pypy sandbox.
  */
+
 import { arrayToString } from "app/common/arrayToString";
 import * as marshal from "app/common/marshal";
 import { create } from "app/server/lib/create";
@@ -16,11 +17,13 @@ import {
 } from "app/server/lib/SandboxControl";
 import * as sandboxUtil from "app/server/lib/sandboxUtil";
 import * as shutdown from "app/server/lib/shutdown";
+
 import { ChildProcess, fork, spawn, SpawnOptionsWithoutStdio } from "child_process";
 import * as fs from "fs";
-import * as _ from "lodash";
 import * as path from "path";
 import { Stream, Writable } from "stream";
+
+import * as _ from "lodash";
 import * as which from "which";
 
 type SandboxMethod = (...args: any[]) => any;

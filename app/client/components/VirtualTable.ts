@@ -1,27 +1,29 @@
 import * as commands from "app/client/components/commands";
-import type { DocComm, GristDoc } from "app/client/components/GristDoc";
 import { ViewLayout, ViewSectionHelper } from "app/client/components/ViewLayout";
-import type BaseRowModel from "app/client/models/BaseRowModel";
 import { DocData } from "app/client/models/DocData";
 import { DocModel, ViewFieldRec, ViewRec } from "app/client/models/DocModel";
 import { QuerySetManager } from "app/client/models/QuerySet";
 import { IEdit, IExternalTable, VirtualTableRegistration } from "app/client/models/VirtualTable";
 import { META_TABLES } from "app/client/models/VirtualTableMeta";
-import type { App } from "app/client/ui/App";
-import type { FieldEditor } from "app/client/widgets/FieldEditor";
 import { WidgetType } from "app/client/widgets/UserType";
-import type { ApplyUAOptions, ApplyUAResult } from "app/common/ActiveDocAPI";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 import { DocAction, getColValues, TableDataAction, UserAction } from "app/common/DocActions";
 import { DocDataCache } from "app/common/DocDataCache";
 import { VirtualId } from "app/common/SortSpec";
-import type { UIRowId } from "app/plugin/GristAPI";
 import { GristType } from "app/plugin/GristData";
+
 import camelCase from "camelcase";
 import { Disposable, dom, Emitter, Holder, Observable, toKo } from "grainjs";
 import * as ko from "knockout";
 import omit from "lodash/omit";
 import range from "lodash/range";
+
+import type { DocComm, GristDoc } from "app/client/components/GristDoc";
+import type BaseRowModel from "app/client/models/BaseRowModel";
+import type { App } from "app/client/ui/App";
+import type { FieldEditor } from "app/client/widgets/FieldEditor";
+import type { ApplyUAOptions, ApplyUAResult } from "app/common/ActiveDocAPI";
+import type { UIRowId } from "app/plugin/GristAPI";
 
 /**
  * This is a simple wrapper around VirtualTableRegistration and ExternalTable. It exposes

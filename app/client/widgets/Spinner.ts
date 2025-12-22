@@ -3,6 +3,7 @@ import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { NumericTextBox } from "app/client/widgets/NumericTextBox";
 import { buildNumberFormat } from "app/common/NumberFormat";
+
 import { dom } from "grainjs";
 import * as ko from "knockout";
 

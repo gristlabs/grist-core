@@ -2,13 +2,14 @@ import { delay } from "app/common/delay";
 import { UserAPI } from "app/common/UserAPI";
 import { AccessTokenResult } from "app/plugin/GristAPI";
 import { Deps as AccessTokensDeps } from "app/server/lib/AccessTokens";
+import { TestServer } from "test/gen-server/apiUtils";
+import { GristClient, openClient } from "test/server/gristClient";
+import * as testUtils from "test/server/testUtils";
+
 import { assert } from "chai";
 import fetch from "node-fetch";
 import { RequestInit } from "node-fetch";
 import * as sinon from "sinon";
-import { TestServer } from "test/gen-server/apiUtils";
-import { GristClient, openClient } from "test/server/gristClient";
-import * as testUtils from "test/server/testUtils";
 
 describe("AccessTokens", function() {
   this.timeout(10000);

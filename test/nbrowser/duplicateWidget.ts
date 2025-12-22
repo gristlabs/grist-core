@@ -1,8 +1,9 @@
 import { StringUnion } from "app/common/StringUnion";
-import { assert } from "chai";
-import { driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert } from "chai";
+import { driver, Key } from "mocha-webdriver";
 
 describe("duplicateWidget", function() {
   this.timeout(20000);

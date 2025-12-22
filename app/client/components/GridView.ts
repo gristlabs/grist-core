@@ -3,17 +3,17 @@ import { parsePasteForView } from "app/client/components/BaseView2";
 import * as selector from "app/client/components/CellSelector";
 import { ElemType } from "app/client/components/CellSelector";
 import { CutCallback } from "app/client/components/Clipboard";
+import * as commands from "app/client/components/commands";
 import { CopySelection } from "app/client/components/CopySelection";
 import { GristDoc } from "app/client/components/GristDoc";
+import { reportUndo } from "app/client/components/modals";
 import { renderAllRows } from "app/client/components/Printing";
 import { viewCommands } from "app/client/components/RegionFocusSwitcher";
 import { SelectionSummary } from "app/client/components/SelectionSummary";
-import * as commands from "app/client/components/commands";
-import { reportUndo } from "app/client/components/modals";
 import viewCommon from "app/client/components/viewCommon";
-import { FocusLayer } from "app/client/lib/FocusLayer";
 import { onDblClickMatchElem } from "app/client/lib/dblclick";
 import { testId as oldTestId } from "app/client/lib/dom";
+import { FocusLayer } from "app/client/lib/FocusLayer";
 import { KoArray } from "app/client/lib/koArray";
 import * as kd from "app/client/lib/koDom";
 import koDomScrolly from "app/client/lib/koDomScrolly";
@@ -25,13 +25,14 @@ import * as tableUtil from "app/client/lib/tableUtil";
 import BaseRowModel from "app/client/models/BaseRowModel";
 import { NEW_FILTER_JSON } from "app/client/models/ColumnFilter";
 import { DataRowModel } from "app/client/models/DataRowModel";
-import { CombinedStyle } from "app/client/models/Styles";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { ColInfo, NewColInfo, ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
 import { reportWarning } from "app/client/models/errors";
+import { CombinedStyle } from "app/client/models/Styles";
 import { CellContextMenu, ICellContextMenu } from "app/client/ui/CellContextMenu";
 import { IColumnFilterMenuOptions } from "app/client/ui/ColumnFilterMenu";
 import { buildRenameColumn, columnHeaderWithInfo } from "app/client/ui/ColumnTitle";
+import { contextMenu } from "app/client/ui/contextMenu";
 import {
   buildAddColumnMenu,
   buildColumnContextMenu,
@@ -41,18 +42,17 @@ import {
   IMultiColumnContextMenu,
 } from "app/client/ui/GridViewMenus";
 import { menuToggle } from "app/client/ui/MenuToggle";
+import { mouseDragMatchElem } from "app/client/ui/mouseDrag";
 import { IRowContextMenu, RowContextMenu } from "app/client/ui/RowContextMenu";
 import { applyRowHeightLimit } from "app/client/ui/RowHeightConfig";
-import { contextMenu } from "app/client/ui/contextMenu";
-import { mouseDragMatchElem } from "app/client/ui/mouseDrag";
 import { ITooltipControl, showTooltip } from "app/client/ui/tooltips";
 import { isNarrowScreen, testId } from "app/client/ui2018/cssVars";
 import { closeRegisteredMenu, menu } from "app/client/ui2018/menus";
 import BinaryIndexedTree from "app/common/BinaryIndexedTree";
 import { BulkColValues, CellValue, UserAction } from "app/common/DocActions";
-import { Sort } from "app/common/SortSpec";
 import { isList } from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
+import { Sort } from "app/common/SortSpec";
 import { CursorPos, UIRowId } from "app/plugin/GristAPI";
 
 import convert from "color-convert";

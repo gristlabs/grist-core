@@ -7,6 +7,7 @@ import { infoTooltip } from "app/client/ui/tooltips";
 import { textButton } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { testId } from "app/client/ui2018/cssVars";
+
 import { Computed, dom, DomContents, DomElementArg, IDisposableOwner, styled, subscribeElem } from "grainjs";
 
 const t = makeT("RowHeightConfig");

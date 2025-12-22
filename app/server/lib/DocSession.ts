@@ -4,6 +4,7 @@ import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { AuthSession } from "app/server/lib/AuthSession";
 import { Client } from "app/server/lib/Client";
+
 import type { DocAuthorizer } from "app/server/lib/DocAuthorizer";
 
 /**

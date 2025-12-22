@@ -9,22 +9,23 @@ import { sanitizeHttpUrl } from "app/client/lib/sanitizeUrl";
 import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
 import { reportError } from "app/client/models/errors";
 import { gristThemeObs } from "app/client/ui2018/theme";
-import { convertThemeKeysToCssVars } from "app/common/ThemePrefs";
 import { AccessLevel, ICustomWidget, isSatisfied, matchWidget } from "app/common/CustomWidget";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 import { BulkColValues, fromTableDataAction, RowRecord } from "app/common/DocActions";
 import { extractInfoFromColType, reencodeAsAny } from "app/common/gristTypes";
+import { convertThemeKeysToCssVars } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 import {
   AccessTokenOptions, CursorPos, CustomSectionAPI, FetchSelectedOptions, GristDocAPI, GristView,
   InteractionOptionsRequest, WidgetAPI, WidgetColumnMap,
 } from "app/plugin/grist-plugin-api";
+
 import { MsgType, Rpc } from "grain-rpc";
 import { Computed, Disposable, dom, Observable } from "grainjs";
-import noop from "lodash/noop";
 import debounce from "lodash/debounce";
-import isEqual from "lodash/isEqual";
 import flatMap from "lodash/flatMap";
+import isEqual from "lodash/isEqual";
+import noop from "lodash/noop";
 
 const testId = makeTestId("test-custom-widget-");
 

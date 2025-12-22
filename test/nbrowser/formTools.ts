@@ -1,6 +1,7 @@
+import * as gu from "test/nbrowser/gristUtils";
+
 import { escapeRegExp } from "lodash";
 import { By, driver, WebElement, WebElementPromise } from "mocha-webdriver";
-import * as gu from "test/nbrowser/gristUtils";
 
 export function element(type: string, parent?: WebElement): ExtraElement;
 export function element(type: string, index: number, parent?: WebElement): ExtraElement;

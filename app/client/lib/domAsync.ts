@@ -1,4 +1,5 @@
 import { reportError } from "app/client/models/errors";
+
 import { DomContents, onDisposeElem, replaceContent } from "grainjs";
 // grainjs annoyingly doesn't export browserGlobals tools, useful for testing in a simulated environment.
 import { G } from "grainjs/dist/cjs/lib/browserGlobals";

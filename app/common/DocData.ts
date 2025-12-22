@@ -3,11 +3,6 @@
  * subscribes to actions which change it, and forwards those actions to individual tables.
  * It also provides the interface to apply actions to data.
  */
-import { DocumentSettings } from "app/common/DocumentSettings";
-import { safeJsonParse } from "app/common/gutil";
-import { schema, SchemaTypes } from "app/common/schema";
-import fromPairs from "lodash/fromPairs";
-import groupBy from "lodash/groupBy";
 import { ActionDispatcher } from "app/common/ActionDispatcher";
 import { TableFetchResult } from "app/common/ActiveDocAPI";
 import {
@@ -15,7 +10,13 @@ import {
   getColIdsFromDocAction,
   RowRecord, TableDataAction,
 } from "app/common/DocActions";
+import { DocumentSettings } from "app/common/DocumentSettings";
+import { safeJsonParse } from "app/common/gutil";
+import { schema, SchemaTypes } from "app/common/schema";
 import { ColTypeMap, MetaRowRecord, MetaTableData, TableData } from "app/common/TableData";
+
+import fromPairs from "lodash/fromPairs";
+import groupBy from "lodash/groupBy";
 
 type FetchTableFunc = (tableId: string) => Promise<TableFetchResult>;
 

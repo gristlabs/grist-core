@@ -4,8 +4,8 @@ import { AclRuleDoc, AclRuleOrg, AclRuleWs } from "app/gen-server/entity/AclRule
 import { Group } from "app/gen-server/entity/Group";
 import { User } from "app/gen-server/entity/User";
 import { GroupWithMembersDescriptor } from "app/gen-server/lib/homedb/Interfaces";
-import { SCIMMYRoleSchema } from "app/server/lib/scim/v2/roles/SCIMMYRoleSchema";
 import log from "app/server/lib/log";
+import { SCIMMYRoleSchema } from "app/server/lib/scim/v2/roles/SCIMMYRoleSchema";
 
 import SCIMMY from "scimmy";
 

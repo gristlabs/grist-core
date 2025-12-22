@@ -1,5 +1,5 @@
-import WS from "ws";
 import { Socket as EIOSocket } from "engine.io-client";
+import WS from "ws";
 
 export interface GristClientSocketOptions {
   headers?: Record<string, string>;

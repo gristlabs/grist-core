@@ -4,11 +4,11 @@ import {
   cssBannerLink,
 } from "app/client/components/Banner";
 import { GristDoc } from "app/client/components/GristDoc";
-import { ChatHistory, ChatMessage } from "app/client/models/ChatHistory";
 import { domAsync } from "app/client/lib/domAsync";
 import { makeT } from "app/client/lib/localization";
 import { sessionStorageBoolObs } from "app/client/lib/localStorageObs";
 import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
+import { ChatHistory, ChatMessage } from "app/client/models/ChatHistory";
 import { constructUrl, urlState } from "app/client/models/gristUrlState";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
 import { buildCodeHighlighter } from "app/client/ui/CodeHighlight";
@@ -17,10 +17,10 @@ import { sanitizeHTML } from "app/client/ui/sanitizeHTML";
 import { createUserImage } from "app/client/ui/UserImage";
 import { bigPrimaryButtonLink, primaryButton, textButton } from "app/client/ui2018/buttons";
 import { colors, theme, vars } from "app/client/ui2018/cssVars";
-import { gristThemeObs } from "app/client/ui2018/theme";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink, gristIconLink } from "app/client/ui2018/links";
 import { loadingDots } from "app/client/ui2018/loaders";
+import { gristThemeObs } from "app/client/ui2018/theme";
 import { ApiError } from "app/common/ApiError";
 import { AssistanceResponse } from "app/common/Assistance";
 import { AsyncCreate } from "app/common/AsyncCreate";
@@ -29,6 +29,7 @@ import { isFreePlan } from "app/common/Features";
 import { commonUrls } from "app/common/gristUrls";
 import { TelemetryEvent, TelemetryMetadata } from "app/common/Telemetry";
 import { getGristConfig } from "app/common/urlUtils";
+
 import {
   Computed,
   Disposable,

@@ -50,9 +50,10 @@
  */
 
 import { theme } from "app/client/ui2018/cssVars";
-import { dom, DomElementArg, styled } from "grainjs";
 import { IconName } from "app/client/ui2018/IconList";
 import { unstyledButton } from "app/client/ui2018/unstyled";
+
+import { dom, DomElementArg, styled } from "grainjs";
 
 /**
  * Defaults for all icons.

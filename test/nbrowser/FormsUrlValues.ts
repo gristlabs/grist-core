@@ -2,10 +2,11 @@
  * Test for acceptance of URL values in forms.
  */
 import { UserAPI } from "app/common/UserAPI";
-import { assert, driver } from "mocha-webdriver";
+import { plusButton, question } from "test/nbrowser/formTools";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
-import { plusButton, question } from "test/nbrowser/formTools";
+
+import { assert, driver } from "mocha-webdriver";
 
 describe("FormsUrlValues", function() {
   this.timeout(60000);

@@ -9,6 +9,7 @@ import { TableData } from "app/client/models/TableData";
 import { getReferencedTableId, isRefListType } from "app/common/gristTypes";
 import { EmptyRecordView } from "app/common/RecordView";
 import { BaseFormatter } from "app/common/ValueFormatter";
+
 import { Disposable, dom, Observable } from "grainjs";
 
 const t = makeT("ReferenceUtils");

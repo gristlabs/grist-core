@@ -1,7 +1,8 @@
-import { assert, driver, Key, stackWrapFunc } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { Session } from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver, Key, stackWrapFunc } from "mocha-webdriver";
 
 describe("ReferenceColumns", function() {
   this.timeout(20000);

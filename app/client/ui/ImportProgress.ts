@@ -1,4 +1,5 @@
 import { IProgress } from "app/client/models/NotifyModel";
+
 import { Disposable } from "grainjs";
 
 export class ImportProgress extends Disposable {

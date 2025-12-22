@@ -1,12 +1,13 @@
 import { isDesktop } from "app/client/lib/browserInfo";
 import { makeT } from "app/client/lib/localization";
 import { cssEditorInput } from "app/client/ui/HomeLeftPane";
+import { hoverTooltip, overflowTooltip } from "app/client/ui/tooltips";
 import { itemHeader, itemHeaderWrapper, treeViewContainer } from "app/client/ui/TreeViewComponentCss";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { hoverTooltip, overflowTooltip } from "app/client/ui/tooltips";
-import { unstyledButton, unstyledLink } from "app/client/ui2018/unstyled";
 import { menu, menuDivider, menuItem, menuItemAsync, menuText } from "app/client/ui2018/menus";
+import { unstyledButton, unstyledLink } from "app/client/ui2018/unstyled";
+
 import { Computed, dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
 
 const t = makeT("pages");

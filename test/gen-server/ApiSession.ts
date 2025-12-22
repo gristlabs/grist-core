@@ -1,11 +1,12 @@
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { AccessOptionWithRole } from "app/gen-server/entity/Organization";
+import { TestServer } from "test/gen-server/apiUtils";
+import * as testUtils from "test/server/testUtils";
+
 import axios from "axios";
 import { AxiosRequestConfig } from "axios";
 import { assert } from "chai";
 import omit from "lodash/omit";
-import { TestServer } from "test/gen-server/apiUtils";
-import * as testUtils from "test/server/testUtils";
 
 const nobody: AxiosRequestConfig = {
   responseType: "json",

@@ -1,10 +1,11 @@
-import {
-  decodeUrl, commonUrls as defaultCommonUrls, getCommonUrls,
+import { commonUrls as defaultCommonUrls,
+  decodeUrl, getCommonUrls,
   getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart,
 } from "app/common/gristUrls";
+import * as testUtils from "test/server/testUtils";
+
 import { assert } from "chai";
 import Sinon from "sinon";
-import * as testUtils from "test/server/testUtils";
 
 describe("gristUrls", function() {
   let sandbox: Sinon.SinonSandbox;

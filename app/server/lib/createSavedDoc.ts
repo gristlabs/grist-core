@@ -3,6 +3,7 @@ import { localeCompare } from "app/common/gutil";
 import { getTransitiveHeaders, getUserId } from "app/server/lib/Authorizer";
 import { GristServer } from "app/server/lib/GristServer";
 import { getScope } from "app/server/lib/requestUtils";
+
 import * as express from "express";
 
 /**

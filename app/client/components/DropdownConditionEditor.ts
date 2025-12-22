@@ -8,6 +8,7 @@ import { EditorPlacement, ISize } from "app/client/widgets/EditorPlacement";
 import { initializeAceOptions } from "app/client/widgets/FormulaEditor";
 import { IEditorCommandGroup } from "app/client/widgets/NewBaseEditor";
 import { ISuggestionWithValue } from "app/common/ActiveDocAPI";
+
 import {
   Computed,
   Disposable,

@@ -1,9 +1,10 @@
 import { AccessLevel } from "app/common/CustomWidget";
-import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import { addStatic, serveSomething } from "test/server/customUtil";
 import { EnvironmentSnapshot } from "test/server/testUtils";
+
+import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 
 // Valid manifest url.
 const manifestEndpoint = "/manifest.json";

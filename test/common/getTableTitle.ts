@@ -1,4 +1,5 @@
 import { getTableTitle } from "app/common/ActiveDocAPI";
+
 import { assert } from "chai";
 
 describe("getTableTitle", function() {

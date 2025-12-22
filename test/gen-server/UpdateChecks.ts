@@ -1,17 +1,17 @@
+import { delay } from "app/common/delay";
+import { TelemetryEvent } from "app/common/Telemetry";
+import { ILogMeta, LogMethods } from "app/server/lib/LogMethods";
+import { Deps } from "app/server/lib/UpdateManager";
+import { LatestVersion } from "app/server/lib/UpdateManager";
+import { TestServer } from "test/gen-server/apiUtils";
+import { configForUser } from "test/gen-server/testUtils";
+import { Defer, serveSomething, Serving } from "test/server/customUtil";
+import * as testUtils from "test/server/testUtils";
+
 import axios from "axios";
 import * as chai from "chai";
 import omit from "lodash/omit";
 import * as sinon from "sinon";
-
-import { configForUser } from "test/gen-server/testUtils";
-import * as testUtils from "test/server/testUtils";
-import { Defer, serveSomething, Serving } from "test/server/customUtil";
-import { ILogMeta, LogMethods } from "app/server/lib/LogMethods";
-import { Deps } from "app/server/lib/UpdateManager";
-import { TestServer } from "test/gen-server/apiUtils";
-import { delay } from "app/common/delay";
-import { LatestVersion } from "app/server/lib/UpdateManager";
-import { TelemetryEvent } from "app/common/Telemetry";
 
 const assert = chai.assert;
 

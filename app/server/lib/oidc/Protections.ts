@@ -1,5 +1,6 @@
 import { StringUnion } from "app/common/StringUnion";
 import { SessionOIDCInfo } from "app/server/lib/BrowserSession";
+
 import { AuthorizationParameters, generators, OpenIDCallbackChecks } from "openid-client";
 
 export const EnabledProtection = StringUnion(

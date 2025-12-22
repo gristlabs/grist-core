@@ -1,6 +1,7 @@
+import * as path from "path";
+
 import { fromFile } from "file-type";
 import { extension, lookup } from "mime-types";
-import * as path from "path";
 
 /**
  * Get our best guess of the file extension, based on its original extension (as received from the

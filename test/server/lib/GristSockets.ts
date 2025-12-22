@@ -1,9 +1,12 @@
-import { assert } from "chai";
-import * as http from "http";
+
 import { GristClientSocket } from "app/client/components/GristClientSocket";
 import { GristSocketServer, GristSocketServerOptions } from "app/server/lib/GristSocketServer";
 import { fromCallback, listenPromise } from "app/server/lib/serverUtils";
+
+import * as http from "http";
 import { AddressInfo } from "net";
+
+import { assert } from "chai";
 import httpProxy from "http-proxy";
 
 describe(`GristSockets`, function() {

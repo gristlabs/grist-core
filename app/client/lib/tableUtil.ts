@@ -1,15 +1,17 @@
-import type { CopySelection } from "app/client/components/CopySelection";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
-import type { KoArray } from "app/client/lib/koArray";
 import { simpleStringHash } from "app/client/lib/textUtils";
-import type { ViewFieldRec } from "app/client/models/DocModel";
 import TableModel from "app/client/models/TableModel";
-import type { BulkColValues, BulkUpdateRecord } from "app/common/DocActions";
 import { safeJsonParse } from "app/common/gutil";
-import type { TableData } from "app/common/TableData";
 import { tsvEncode } from "app/common/tsvFormat";
+
 import { dom } from "grainjs";
 import zipObject from "lodash/zipObject";
+
+import type { CopySelection } from "app/client/components/CopySelection";
+import type { KoArray } from "app/client/lib/koArray";
+import type { ViewFieldRec } from "app/client/models/DocModel";
+import type { BulkColValues, BulkUpdateRecord } from "app/common/DocActions";
+import type { TableData } from "app/common/TableData";
 
 const G = getBrowserGlobals("document", "DOMParser");
 

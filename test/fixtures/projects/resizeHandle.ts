@@ -1,6 +1,7 @@
 import { resizeFlexVHandle } from "app/client/ui/resizeHandle";
-import { dom, observable, styled } from "grainjs";
 import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { dom, observable, styled } from "grainjs";
 
 function setupTest() {
   const width1 = observable<number | null>(null);

@@ -9,6 +9,7 @@
 
 import { getReferencedTableId } from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
+
 import pick from "lodash/pick";
 
 export interface LinkNodeSection {

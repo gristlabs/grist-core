@@ -1,10 +1,11 @@
 import { CellValue } from "app/common/DocActions";
 import { FilterState, IRangeBoundType, isRangeFilter, makeFilterState } from "app/common/FilterState";
-import { decodeObject } from "app/plugin/objtypes";
-import moment, { Moment } from "moment-timezone";
 import { extractInfoFromColType, isDateLikeType, isList, isListType, isNumberType } from "app/common/gristTypes";
 import { isRelativeBound, relativeDateToUnixTimestamp } from "app/common/RelativeDates";
+import { decodeObject } from "app/plugin/objtypes";
+
 import noop from "lodash/noop";
+import moment, { Moment } from "moment-timezone";
 
 export type ColumnFilterFunc = (value: CellValue) => boolean;
 

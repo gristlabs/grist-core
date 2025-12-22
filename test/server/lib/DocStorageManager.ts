@@ -1,13 +1,14 @@
 /* global describe, before, it */
 
-import { assert } from "chai";
-import * as fse from "fs-extra";
-import * as path from "path";
-import * as tmp from "tmp-promise";
-
 import { DocStorageManager } from "app/server/lib/DocStorageManager";
 import * as docUtils from "app/server/lib/docUtils";
 import * as testUtils from "test/server/testUtils";
+
+import * as path from "path";
+
+import { assert } from "chai";
+import * as fse from "fs-extra";
+import * as tmp from "tmp-promise";
 
 tmp.setGracefulCleanup();
 

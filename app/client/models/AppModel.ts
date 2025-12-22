@@ -7,10 +7,11 @@ import { error } from "app/client/lib/log";
 import { reportError, setErrorNotifier } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
 import { Notifier } from "app/client/models/NotifyModel";
+import { getUserPrefObs, getUserPrefsObs, markAsSeen } from "app/client/models/UserPrefs";
 import { getFlavor, ProductFlavor } from "app/client/ui/CustomThemes";
+import { Experiments } from "app/client/ui/Experiments";
 import { buildNewSiteModal, buildUpgradeModal } from "app/client/ui/ProductUpgrades";
 import { gristThemePrefs } from "app/client/ui2018/theme";
-import { Experiments } from "app/client/ui/Experiments";
 import { AsyncCreate } from "app/common/AsyncCreate";
 import { PlanSelection } from "app/common/BillingAPI";
 import { ICustomWidget } from "app/common/CustomWidget";
@@ -26,7 +27,7 @@ import { getDefaultThemePrefs, ThemePrefs } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 import { ExtendedUser } from "app/common/UserAPI";
 import { getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl } from "app/common/UserAPI";
-import { getUserPrefObs, getUserPrefsObs, markAsSeen } from "app/client/models/UserPrefs";
+
 import { bundleChanges, Computed, Disposable, Observable, subscribe } from "grainjs";
 
 const t = makeT("AppModel");

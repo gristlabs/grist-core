@@ -8,9 +8,10 @@
  * easily.
  */
 
-import escapeRegExp from "lodash/escapeRegExp";
 import { CommandName } from "app/client/components/commandList";
 import { DocAction, UserAction } from "app/common/DocActions";
+
+import escapeRegExp from "lodash/escapeRegExp";
 import { WebDriver, WebElement, WebElementPromise } from "mocha-webdriver";
 
 type SectionTypes = "Table" | "Card" | "Card List" | "Chart" | "Custom" | "Form";

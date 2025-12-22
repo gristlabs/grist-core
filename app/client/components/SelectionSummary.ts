@@ -2,6 +2,7 @@ import { CellSelector, COL, ROW } from "app/client/components/CellSelector";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { Delay } from "app/client/lib/Delay";
 import { KoArray } from "app/client/lib/koArray";
+import { makeT } from "app/client/lib/localization";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { UserError } from "app/client/models/errors";
 import { ALL, RowsChanged, SortedRowSet } from "app/client/models/rowset";
@@ -12,9 +13,9 @@ import { CellValue } from "app/common/DocActions";
 import { isEmptyList, isListType, isRefListType } from "app/common/gristTypes";
 import { TableData } from "app/common/TableData";
 import { BaseFormatter } from "app/common/ValueFormatter";
-import ko from "knockout";
+
 import { Computed, Disposable, dom, makeTestId, Observable, styled, subscribe } from "grainjs";
-import { makeT } from "app/client/lib/localization";
+import ko from "knockout";
 
 const t = makeT("SelectionSummary");
 

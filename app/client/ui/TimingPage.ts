@@ -8,6 +8,7 @@ import { loadingSpinner } from "app/client/ui2018/loaders";
 import { FormulaTimingInfo } from "app/common/ActiveDocAPI";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 import { not } from "app/common/gutil";
+
 import { dom, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("TimingPage");

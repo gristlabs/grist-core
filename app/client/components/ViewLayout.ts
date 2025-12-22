@@ -16,18 +16,19 @@ import { printViewSection } from "app/client/components/Printing";
 import { BoxSpec, purgeBoxSpec } from "app/client/lib/BoxSpec";
 import { Delay } from "app/client/lib/Delay";
 import { createObsArray } from "app/client/lib/koArrayWrap";
+import { makeT } from "app/client/lib/localization";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
 import { ViewRec, ViewSectionRec } from "app/client/models/DocModel";
 import { reportError } from "app/client/models/errors";
+import { urlState } from "app/client/models/gristUrlState";
 import { getTelemetryWidgetTypeFromVS } from "app/client/ui/widgetTypesMap";
+import { cssRadioCheckboxOptions, radioCheckboxOption } from "app/client/ui2018/checkbox";
 import { isNarrowScreen, mediaSmall, testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+import { cssLink } from "app/client/ui2018/links";
 import { ISaveModalOptions, saveModal } from "app/client/ui2018/modals";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
-import { makeT } from "app/client/lib/localization";
-import { urlState } from "app/client/models/gristUrlState";
-import { cssRadioCheckboxOptions, radioCheckboxOption } from "app/client/ui2018/checkbox";
-import { cssLink } from "app/client/ui2018/links";
+
 import {
   Computed,
   computedArray,

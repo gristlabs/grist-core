@@ -1,6 +1,7 @@
+import { server, setupTestSuite } from "test/projects/testUtils";
+
 import * as bluebird from "bluebird";
 import { assert, driver } from "mocha-webdriver";
-import { server, setupTestSuite } from "test/projects/testUtils";
 
 const delay = () => bluebird.delay(350);
 

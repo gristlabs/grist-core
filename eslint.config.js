@@ -102,6 +102,10 @@ module.exports = defineConfig([
       "!stubs",
     ],
 
+    settings: {
+      "import-x/internal-regex": "^(app|test|stubs|plugins)/"
+    },
+
     rules: {
       "curly": ["warn", "all"],
       "no-console": "off",

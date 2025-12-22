@@ -1,11 +1,15 @@
 import { version as installedVersion } from "app/common/version";
 import { getAppRoot } from "app/server/lib/places";
 import { fromCallback, listenPromise } from "app/server/lib/serverUtils";
-import express from "express";
+import { fixturesRoot } from "test/server/testUtils";
+
 import * as http from "http";
 import { AddressInfo, Socket } from "net";
 import * as path from "path";
-import { fixturesRoot } from "test/server/testUtils";
+
+
+import express from "express";
+
 
 // An alternative domain for localhost, to test links that look external. We have a record for
 // localtest.datagrist.com set up to point to localhost.

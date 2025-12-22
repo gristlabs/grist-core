@@ -1,4 +1,5 @@
 import { trustOrigin } from "app/server/lib/requestUtils";
+
 import { assert } from "chai";
 
 describe("requestUtils", function() {

@@ -1,5 +1,5 @@
-import { Features } from "app/common/Features";
 import { normalizeEmail } from "app/common/emails";
+import { Features } from "app/common/Features";
 import {
   ANONYMOUS_USER_EMAIL,
   EVERYONE_EMAIL,
@@ -7,6 +7,7 @@ import {
   PermissionDelta,
   PREVIEWER_EMAIL,
 } from "app/common/UserAPI";
+
 import omitBy from "lodash/omitBy";
 
 /**

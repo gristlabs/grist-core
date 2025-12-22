@@ -1,15 +1,16 @@
+import { makeT } from "app/client/lib/localization";
 import { basicButton, primaryButton } from "app/client/ui2018/buttons";
 import { isLight, swatches } from "app/client/ui2018/ColorPalette";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
 import { textInput } from "app/client/ui2018/editableLabel";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
+import { gristFloatingMenuClass } from "app/client/ui2018/menus";
 import { cssSelectBtn } from "app/client/ui2018/select";
 import { isValidHex } from "app/common/gutil";
+
 import { BindableValue, Computed, Disposable, dom, DomElementArg, Observable, onKeyDown, styled } from "grainjs";
 import { defaultMenuOptions, IOpenController, setPopupToCreateDom } from "popweasel";
-import { makeT } from "app/client/lib/localization";
-import { gristFloatingMenuClass } from "app/client/ui2018/menus";
 
 const t = makeT("ColorSelect");
 

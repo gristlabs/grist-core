@@ -1,6 +1,7 @@
-import { assert, driver, Key, WebElement } from "mocha-webdriver";
-import { server, setupTestSuite } from "test/projects/testUtils";
 import * as gu from "test/nbrowser/gristUtils";
+import { server, setupTestSuite } from "test/projects/testUtils";
+
+import { assert, driver, Key, WebElement } from "mocha-webdriver";
 
 describe("UserManager", () => {
   setupTestSuite();

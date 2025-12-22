@@ -1,7 +1,5 @@
+
 import { UserAPI } from "app/common/UserAPI";
-import { addToRepl, assert, driver, Key } from "mocha-webdriver";
-import path from "path";
-import { setupExternalSite } from "test/server/customUtil";
 import {
   arrow,
   clickMenu,
@@ -21,7 +19,12 @@ import {
 } from "test/nbrowser/formTools";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+import { setupExternalSite } from "test/server/customUtil";
 import { EnvironmentSnapshot, fixturesRoot } from "test/server/testUtils";
+
+import path from "path";
+
+import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 
 describe("FormView1", function() {
   this.timeout(20_000);   // Default for each test or hook.

@@ -1,12 +1,13 @@
 import { UserAPI } from "app/common/UserAPI";
-import axios from "axios";
-import { assert } from "chai";
-import * as fse from "fs-extra";
 import { TestServer } from "test/gen-server/apiUtils";
 import { configForUser } from "test/gen-server/testUtils";
 import { createTmpDir } from "test/server/docTools";
 import { openClient } from "test/server/gristClient";
 import * as testUtils from "test/server/testUtils";
+
+import axios from "axios";
+import { assert } from "chai";
+import * as fse from "fs-extra";
 
 const chimpy = configForUser("Chimpy");
 const kiwi = configForUser("Kiwi");

@@ -38,19 +38,21 @@
  * turn, starting from the bottommost part, and make sure it gets inserted in the right level.
  */
 
-import { extend, noop, pick } from "underscore";
-import { observable, removeNode, utils } from "knockout";
-import assert from "assert";
-import Promise from "bluebird";
-import { Events as BackboneEvents } from "backbone";
 
-import { Disposable, emptyNode } from "app/client/lib/dispose";
+import { ContentBox, Layout, LayoutBox } from "app/client/components/Layout";
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { Delay } from "app/client/lib/Delay";
+import { Disposable, emptyNode } from "app/client/lib/dispose";
 import dom from "app/client/lib/dom";
 import koDom from "app/client/lib/koDom";
-import { ContentBox, Layout, LayoutBox } from "app/client/components/Layout";
+
+import assert from "assert";
+
+import { Events as BackboneEvents } from "backbone";
+import Promise from "bluebird";
 import * as ko from "knockout";
-import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { observable, removeNode, utils } from "knockout";
+import { extend, noop, pick } from "underscore";
 
 /**
  * Use the browser globals in a way that allows replacing them with mocks in tests.

@@ -1,7 +1,8 @@
-import mapValues from "lodash/mapValues";
-import { assert, driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
+import mapValues from "lodash/mapValues";
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("SelectBy", function() {
   this.timeout(20000);

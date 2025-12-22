@@ -1,13 +1,14 @@
+import { allCommands } from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
 import { hooks } from "app/client/Hooks";
 import { makeT } from "app/client/lib/localization";
-import { allCommands } from "app/client/components/commands";
 import { ViewSectionRec } from "app/client/models/DocModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { testId } from "app/client/ui2018/cssVars";
 import { menuDivider, menuItemCmd, menuItemLink } from "app/client/ui2018/menus";
-import { GristDoc } from "app/client/components/GristDoc";
-import { dom, UseCB } from "grainjs";
 import { WidgetType } from "app/common/widgetTypes";
+
+import { dom, UseCB } from "grainjs";
 
 const t = makeT("ViewLayoutMenu");
 

@@ -1,8 +1,9 @@
 import { Role } from "app/common/roles";
 import { PermissionData } from "app/common/UserAPI";
-import { assert } from "chai";
 import { TestServer } from "test/gen-server/apiUtils";
 import * as testUtils from "test/server/testUtils";
+
+import { assert } from "chai";
 
 describe("scrubUserFromOrg", function() {
   let server: TestServer;

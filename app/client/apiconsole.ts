@@ -1,13 +1,15 @@
 import { loadCssFile, loadScript } from "app/client/lib/loadScript";
 import { makeT } from "app/client/lib/localization";
-import type { AppModel } from "app/client/models/AppModel";
-import { urlState } from "app/client/models/gristUrlState";
 import { reportError } from "app/client/models/errors";
+import { urlState } from "app/client/models/gristUrlState";
 import { createAppPage } from "app/client/ui/createAppPage";
 import { invokePrompt } from "app/client/ui2018/modals";
 import { DocAPIImpl } from "app/common/UserAPI";
-import type { RecordWithStringId } from "app/plugin/DocApiTypes";
+
 import { dom, styled } from "grainjs";
+
+import type { AppModel } from "app/client/models/AppModel";
+import type { RecordWithStringId } from "app/plugin/DocApiTypes";
 import type SwaggerUI from "swagger-ui";
 
 const t = makeT("apiconsole");

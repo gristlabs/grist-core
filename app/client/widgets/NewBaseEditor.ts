@@ -5,6 +5,7 @@
 import { GristDoc } from "app/client/components/GristDoc";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { CellValue } from "app/common/DocActions";
+
 import { Disposable, IDisposableOwner, Observable } from "grainjs";
 
 export interface IEditorCommandGroup {

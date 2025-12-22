@@ -1,7 +1,8 @@
-import { assert } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { Session } from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert } from "mocha-webdriver";
 
 describe("AttachmentsLinking", function() {
   this.timeout(20000);

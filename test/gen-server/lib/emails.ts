@@ -1,9 +1,10 @@
 import { PermissionData, PermissionDelta } from "app/common/UserAPI";
-import axios from "axios";
-import { assert } from "chai";
 import { TestServer } from "test/gen-server/apiUtils";
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
+
+import axios from "axios";
+import { assert } from "chai";
 
 describe("emails", function() {
   let server: TestServer;

@@ -1,5 +1,6 @@
-import { assert } from "chai";
 import { convertToCoreFileContents, IGristCoreConfigFileLatest } from "app/server/lib/configCoreFileFormats";
+
+import { assert } from "chai";
 
 describe("convertToCoreFileContents", () => {
   it("fails with a malformed config", () => {

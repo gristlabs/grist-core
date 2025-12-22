@@ -1,10 +1,9 @@
 import { makeTestId } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
-import type { AppModel } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
+import { AppHeader } from "app/client/ui/AppHeader";
 import * as css from "app/client/ui/LeftPanelCommon";
 import { PageSidePanel } from "app/client/ui/PagePanels";
-import { AppHeader } from "app/client/ui/AppHeader";
 import { infoTooltip } from "app/client/ui/tooltips";
 import { colors, vars } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
@@ -12,7 +11,10 @@ import { cssLink } from "app/client/ui2018/links";
 import { AdminPanelPage } from "app/common/gristUrls";
 import { commonUrls } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { Computed, dom, DomContents, MultiHolder, Observable, styled } from "grainjs";
+
+import type { AppModel } from "app/client/models/AppModel";
 
 const t = makeT("AdminPanel");
 const testId = makeTestId("test-admin-controls-");

@@ -10,6 +10,7 @@ import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 import { Gristifier } from "app/server/utils/gristify";
 import { pruneActionHistory } from "app/server/utils/pruneActionHistory";
 import { showAuditLogEvents } from "app/server/utils/showAuditLogEvents";
+
 import * as commander from "commander";
 import { Connection } from "typeorm";
 

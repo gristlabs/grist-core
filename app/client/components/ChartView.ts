@@ -5,26 +5,28 @@ import { consolidateValues, formatPercent, sortByXValues, splitValuesByIndex,
 import { Delay } from "app/client/lib/Delay";
 import { fromKoSave } from "app/client/lib/fromKoSave";
 import { loadPlotly, PlotlyType } from "app/client/lib/imports";
+import { makeT } from "app/client/lib/localization";
 import { ColumnRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
+import { ChartOptions, ViewSectionOptions } from "app/client/models/entities/ViewSectionRec";
 import { reportError } from "app/client/models/errors";
 import { KoSaveableObservable, ObjObservable, setSaveValue } from "app/client/models/modelUtil";
-import { ChartOptions, ViewSectionOptions } from "app/client/models/entities/ViewSectionRec";
 import { IPageWidget, toPageWidget } from "app/client/ui/PageWidgetPicker";
 import { cssGroupLabel, cssRow, cssSeparator } from "app/client/ui/RightPanelStyles";
 import { cssFieldEntry, cssFieldLabel, IField, VisibleFieldsConfig } from "app/client/ui/VisibleFieldsConfig";
-import { IconName } from "app/client/ui2018/IconList";
 import { squareCheckbox } from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";
-import { gristThemeObs } from "app/client/ui2018/theme";
 import { cssDragger } from "app/client/ui2018/draggableList";
+import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
 import { IOptionFull, linkSelect, menu, menuItem, menuText, select } from "app/client/ui2018/menus";
+import { gristThemeObs } from "app/client/ui2018/theme";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { nativeCompare, unwrap } from "app/common/gutil";
 import { Sort } from "app/common/SortSpec";
 import { BaseFormatter } from "app/common/ValueFormatter";
 import { decodeObject } from "app/plugin/objtypes";
-import { Computed, dom, DomContents, DomElementArg, fromKo, Disposable as GrainJSDisposable,
+
+import { Computed, Disposable as GrainJSDisposable, dom, DomContents, DomElementArg, fromKo,
   IDisposable, IOption, makeTestId, Observable, styled, UseCB } from "grainjs";
 import * as ko from "knockout";
 import clamp from "lodash/clamp";
@@ -34,9 +36,9 @@ import isNumber from "lodash/isNumber";
 import merge from "lodash/merge";
 import sum from "lodash/sum";
 import union from "lodash/union";
+
 import type { Annotations, Config, Datum, ErrorBar, Layout, LayoutAxis, Margin,
   PlotData as PlotlyPlotData } from "plotly.js";
-import { makeT } from "app/client/lib/localization";
 
 let Plotly: PlotlyType;
 

@@ -1,12 +1,13 @@
 /**
  * Test of the UI for Granular Access Control, part 3.
  */
-import { assert, driver } from "mocha-webdriver";
 import { assertChanged, assertSaved, enterRulePart, findDefaultRuleSet,
          findRuleSet, findRuleSetWait, findTableWait, getRules, hasExtraAdd, removeRules,
          removeTable, startEditingAccessRules } from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
+
+import { assert, driver } from "mocha-webdriver";
 
 describe("AccessRules3", function() {
   this.timeout(40000);

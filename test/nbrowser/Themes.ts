@@ -1,6 +1,7 @@
-import { assert, By, ChromiumWebDriver, driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, By, ChromiumWebDriver, driver, Key } from "mocha-webdriver";
 
 const findSyncWithOSCheckbox = () => driver.find(".test-theme-config-sync-with-os");
 const appearanceSelectCssSelector = ".test-theme-config-appearance .test-select-open:not(.disabled)";

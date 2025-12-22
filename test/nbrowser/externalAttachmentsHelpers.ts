@@ -1,8 +1,10 @@
 import { server } from "test/nbrowser/testServer";
 import { createTmpDir } from "test/server/docTools";
-import { mkdtemp } from "fs-extra";
-import path from "path";
+
 import * as process from "node:process";
+import path from "path";
+
+import { mkdtemp } from "fs-extra";
 
 /**
  * Adds a before() hook that sets the environment variables for external attachments, then restarts

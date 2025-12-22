@@ -3,9 +3,10 @@
  * page, both for anonymous and logged-in users.
  */
 
-import { assert, driver, stackWrapFunc, WebElement } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver, stackWrapFunc, WebElement } from "mocha-webdriver";
 
 describe("HomeIntro", function() {
   this.timeout(40000);

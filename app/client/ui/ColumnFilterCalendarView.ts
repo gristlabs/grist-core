@@ -1,11 +1,12 @@
-import { Disposable, dom, Observable, styled } from "grainjs";
 import { ColumnFilter } from "app/client/models/ColumnFilter";
-import { testId } from "app/client/ui2018/cssVars";
-import { textButton } from "app/client/ui2018/buttons";
 import { IColumnFilterViewType } from "app/client/ui/ColumnFilterMenu";
-import getCurrentTime from "app/common/getCurrentTime";
-import { IRelativeDateSpec, isRelativeBound } from "app/common/FilterState";
 import { updateRelativeDate } from "app/client/ui/RelativeDatesOptions";
+import { textButton } from "app/client/ui2018/buttons";
+import { testId } from "app/client/ui2018/cssVars";
+import { IRelativeDateSpec, isRelativeBound } from "app/common/FilterState";
+import getCurrentTime from "app/common/getCurrentTime";
+
+import { Disposable, dom, Observable, styled } from "grainjs";
 import moment from "moment-timezone";
 
 export class ColumnFilterCalendarView extends Disposable {

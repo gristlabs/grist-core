@@ -2,6 +2,7 @@
  * DocWorker collects the methods and endpoints that relate to a single Grist document.
  * In hosted environment, this comprises the functionality of the DocWorker instance type.
  */
+
 import { isAffirmative } from "app/common/gutil";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { assertAccess, getOrSetDocAuth, RequestWithLogin } from "app/server/lib/Authorizer";
@@ -13,11 +14,13 @@ import { GristServer } from "app/server/lib/GristServer";
 import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import log from "app/server/lib/log";
 import { getDocId, integerParam, optIntegerParam, optStringParam, stringParam } from "app/server/lib/requestUtils";
+
+import * as path from "path";
+
 import contentDisposition from "content-disposition";
 import * as express from "express";
 import * as fse from "fs-extra";
 import * as mimeTypes from "mime-types";
-import * as path from "path";
 
 export interface AttachOptions {
   comm: Comm;                             // Comm object for methods called via websocket

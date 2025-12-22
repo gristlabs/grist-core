@@ -13,11 +13,12 @@ import { editableLabel } from "app/client/ui2018/editableLabel";
 import { icon } from "app/client/ui2018/icons";
 import * as menu from "app/client/ui2018/menus";
 import { searchBar } from "app/client/ui2018/search";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
 import { Computed, dom, makeTestId, obsArray, styled } from "grainjs";
 import { observable, Observable } from "grainjs";
 import noop from "lodash/noop";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 function setupTest() {
   const actionText = observable("");

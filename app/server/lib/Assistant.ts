@@ -1,3 +1,4 @@
+
 import { ApiError } from "app/common/ApiError";
 import { AssistantProvider } from "app/common/Assistant";
 import { appSettings } from "app/server/lib/AppSettings";
@@ -8,6 +9,7 @@ import {
 } from "app/server/lib/IAssistant";
 import log from "app/server/lib/log";
 import { getLogMeta } from "app/server/lib/sessionUtils";
+
 import { createHash } from "crypto";
 
 export function getAssistantV1Options(): AssistantV1Options {

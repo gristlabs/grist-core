@@ -1,9 +1,8 @@
 /**
  * Test of the UI for the SchemaEdit permission in Granular Access Control.
  */
-import { UserAPI } from "app/common/UserAPI";
 import { TableRecordValue } from "app/common/DocActions";
-import { assert, driver } from "mocha-webdriver";
+import { UserAPI } from "app/common/UserAPI";
 import { assertChanged, assertSaved, enterRulePart,
          findDefaultRuleSet, findTable, getRules, startEditingAccessRules} from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';

@@ -4,6 +4,7 @@ import { ViewSectionRec } from "app/client/models/DocModel";
 import { textInput } from "app/client/ui/inputs";
 import { shadowScroll } from "app/client/ui/shadowScroll";
 import { withInfoTooltip } from "app/client/ui/tooltips";
+import { userTrustsCustomWidget } from "app/client/ui/userTrustsCustomWidget";
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
@@ -11,8 +12,8 @@ import { cssLink } from "app/client/ui2018/links";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { IModalControl, modal } from "app/client/ui2018/modals";
 import { AccessLevel, ICustomWidget, matchWidget, WidgetAuthor } from "app/common/CustomWidget";
-import { userTrustsCustomWidget } from "app/client/ui/userTrustsCustomWidget";
 import { commonUrls } from "app/common/gristUrls";
+
 import { bundleChanges, Computed, Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 import escapeRegExp from "lodash/escapeRegExp";
 

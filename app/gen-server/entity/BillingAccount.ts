@@ -1,10 +1,11 @@
-import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Features, mergedFeatures } from "app/common/Features";
 import { BillingAccountManager } from "app/gen-server/entity/BillingAccountManager";
+import { Limit } from "app/gen-server/entity/Limit";
 import { Organization } from "app/gen-server/entity/Organization";
 import { Product } from "app/gen-server/entity/Product";
 import { nativeValues } from "app/gen-server/lib/values";
-import { Limit } from "app/gen-server/entity/Limit";
-import { Features, mergedFeatures } from "app/common/Features";
+
+import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 // This type is for billing account status information.  Intended for stuff
 // like "free trial running out in N days".

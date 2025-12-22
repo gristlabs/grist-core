@@ -1,5 +1,6 @@
-import { assert } from "chai";
 import { ColumnsToMap, mapColumnNames, mapColumnNamesBack } from "app/plugin/grist-plugin-api";
+
+import { assert } from "chai";
 
 describe("PluginApi", function() {
   it("should map columns according to configuration", function() {

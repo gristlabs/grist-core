@@ -20,9 +20,11 @@ import { docBreadcrumbs } from "app/client/ui2018/breadcrumbs";
 import { basicButton } from "app/client/ui2018/buttons";
 import { cssHideForNarrowScreen, isNarrowScreenObs, testId, theme } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
-import type * as searchModule from "app/client/ui2018/search";
 import * as roles from "app/common/roles";
+
 import { Computed, dom, DomElementArg, makeTestId, MultiHolder, Observable, styled } from "grainjs";
+
+import type * as searchModule from "app/client/ui2018/search";
 
 const t = makeT("TopBar");
 

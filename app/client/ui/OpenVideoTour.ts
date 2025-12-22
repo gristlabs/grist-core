@@ -7,6 +7,7 @@ import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssModalCloseButton, modal } from "app/client/ui2018/modals";
 import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
+
 import { dom, keyframes, makeTestId, styled } from "grainjs";
 
 const t = makeT("OpenVideoTour");

@@ -1,9 +1,10 @@
-import { assert } from "chai";
+import { FullUser } from "app/common/LoginSessionAPI";
 import { DocPrefs } from "app/common/Prefs";
 import { DocScope, HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
-import { FullUser } from "app/common/LoginSessionAPI";
 import { TestServer } from "test/gen-server/apiUtils";
 import * as testUtils from "test/server/testUtils";
+
+import { assert } from "chai";
 
 describe("DocPrefs", function() {
   this.timeout(60000);

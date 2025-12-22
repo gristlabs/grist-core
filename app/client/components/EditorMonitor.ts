@@ -5,6 +5,7 @@ import { getStorage } from "app/client/lib/storage";
 import { UserError } from "app/client/models/errors";
 import { FieldEditor, FieldEditorStateEvent } from "app/client/widgets/FieldEditor";
 import { isViewDocPage } from "app/common/gristUrls";
+
 import { Disposable, Emitter, IDisposableOwner } from "grainjs";
 
 /**

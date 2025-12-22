@@ -1,21 +1,22 @@
 import { Role } from "app/common/roles";
+import * as roles from "app/common/roles";
 import { getRealAccess, PermissionData, PermissionDelta, UserAPI } from "app/common/UserAPI";
 import { Organization } from "app/gen-server/entity/Organization";
 import { Product } from "app/gen-server/entity/Product";
 import { User } from "app/gen-server/entity/User";
-import { HomeDBManager, Deps as HomeDBManagerDeps, UserChange } from "app/gen-server/lib/homedb/HomeDBManager";
+import { Deps as HomeDBManagerDeps, HomeDBManager, UserChange } from "app/gen-server/lib/homedb/HomeDBManager";
 import { SendGridConfig, SendGridMailWithTemplateId } from "app/gen-server/lib/NotifierTypes";
 import { create } from "app/server/lib/create";
+import { TestServer } from "test/gen-server/apiUtils";
+import { configForUser, waitForAllNotifications } from "test/gen-server/testUtils";
+import * as testUtils from "test/server/testUtils";
+
 import axios, { AxiosResponse } from "axios";
 import * as chai from "chai";
 import fromPairs from "lodash/fromPairs";
 import pick from "lodash/pick";
 import moment from "moment";
 import * as sinon from "sinon";
-import { TestServer } from "test/gen-server/apiUtils";
-import { configForUser, waitForAllNotifications } from "test/gen-server/testUtils";
-import * as testUtils from "test/server/testUtils";
-import * as roles from "app/common/roles";
 
 const assert = chai.assert;
 

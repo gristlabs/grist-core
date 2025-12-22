@@ -1,9 +1,10 @@
 import { Banner, buildBannerMessage } from "app/client/components/Banner";
 import { makeT } from "app/client/lib/localization";
 import { localStorageJsonObs } from "app/client/lib/localStorageObs";
-import { getGristConfig } from "app/common/urlUtils";
-import { Disposable, dom, makeTestId, Observable } from "grainjs";
 import { AppModel } from "app/client/models/AppModel";
+import { getGristConfig } from "app/common/urlUtils";
+
+import { Disposable, dom, makeTestId, Observable } from "grainjs";
 
 const t = makeT("VersionUpdateBanner");
 const testId = makeTestId("test-version-update-banner-");

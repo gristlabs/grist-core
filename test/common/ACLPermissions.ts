@@ -2,6 +2,7 @@ import { emptyPermissionSet, PartialPermissionSet, PermissionKey,
   summarizePermissions, summarizePermissionSet } from "app/common/ACLPermissions";
 import { makePartialPermissions, parsePermissions, permissionSetToText } from "app/common/ACLPermissions";
 import { mergePartialPermissions, mergePermissions, trimPermissions } from "app/common/ACLPermissions";
+
 import { assert } from "chai";
 
 describe("ACLPermissions", function() {

@@ -1,7 +1,8 @@
-import { assert, driver, Key } from "mocha-webdriver";
+import { DocCreationInfo } from "app/common/DocListAPI";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
-import { DocCreationInfo } from "app/common/DocListAPI";
+
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("CellFormat", function() {
   this.timeout(20000);

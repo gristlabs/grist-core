@@ -1,6 +1,6 @@
+import { GristDoc } from "app/client/components/GristDoc";
 import * as kf from "app/client/lib/koForm";
 import { makeT } from "app/client/lib/localization";
-import { GristDoc } from "app/client/components/GristDoc";
 import { ColumnRec } from "app/client/models/DocModel";
 import { KoSaveableObservable } from "app/client/models/modelUtil";
 import { RuleOwner } from "app/client/models/RuleOwner";
@@ -18,6 +18,7 @@ import { cssError, openFormulaEditor } from "app/client/widgets/FormulaEditor";
 import { isRaisedException, isValidRuleValue } from "app/common/gristTypes";
 import { GristObjCode, RowRecord } from "app/plugin/GristData";
 import { decodeObject } from "app/plugin/objtypes";
+
 import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled } from "grainjs";
 import debounce from "lodash/debounce";
 

@@ -1,18 +1,19 @@
-import { GristDoc } from "app/client/components/GristDoc";
 import { allCommands } from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/AppModel";
 import { DocModel, ViewSectionRec } from "app/client/models/DocModel";
 import { FilterConfig } from "app/client/ui/FilterConfig";
 import { cssLabel, cssSaveButtonsRow } from "app/client/ui/RightPanelStyles";
-import { hoverTooltip } from "app/client/ui/tooltips";
 import { SortConfig } from "app/client/ui/SortConfig";
+import { hoverTooltip } from "app/client/ui/tooltips";
 import { makeViewLayoutMenu } from "app/client/ui/ViewLayoutMenu";
 import { basicButton, primaryButton } from "app/client/ui2018/buttons";
 import { isNarrowScreenObs, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menu } from "app/client/ui2018/menus";
+
 import { Computed, dom, IDisposableOwner, makeTestId, styled } from "grainjs";
 import { defaultMenuOptions } from "popweasel";
 

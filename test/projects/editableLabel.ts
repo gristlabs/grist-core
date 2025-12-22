@@ -1,5 +1,6 @@
-import { assert, driver, Key, useServer, WebElement } from "mocha-webdriver";
 import { server } from "test/fixtures/projects/webpack-test-server";
+
+import { assert, driver, Key, useServer, WebElement } from "mocha-webdriver";
 
 describe("editableLabel", function() {
   useServer(server);

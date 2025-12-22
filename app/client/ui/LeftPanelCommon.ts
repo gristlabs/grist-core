@@ -13,16 +13,17 @@
  *      )
  *    )
  */
+import { allCommands } from "app/client/components/commands";
 import { beaconOpenMessage } from "app/client/lib/helpScout";
 import { makeT } from "app/client/lib/localization";
 import { AppModel } from "app/client/models/AppModel";
-import { allCommands } from "app/client/components/commands";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
 import { colorIcon, icon } from "app/client/ui2018/icons";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { dom, DomContents, Observable, styled } from "grainjs";
 
 const t = makeT("LeftPanelCommon");

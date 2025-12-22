@@ -4,6 +4,7 @@ import * as version from "app/common/version";
 import { DocStatus, DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import log from "app/server/lib/log";
 import { checkPermitKey, formatPermitKey, IPermitStore, Permit } from "app/server/lib/Permit";
+
 import { promisifyAll } from "bluebird";
 import mapValues from "lodash/mapValues";
 import { createClient, Multi, RedisClient } from "redis";

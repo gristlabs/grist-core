@@ -6,7 +6,6 @@ import { AccessRules } from "app/client/aclui/AccessRules";
 import { ActionCounter } from "app/client/components/ActionCounter";
 import { ActionLog } from "app/client/components/ActionLog";
 import BaseView from "app/client/components/BaseView";
-import type { BehavioralPromptsManager } from "app/client/components/BehavioralPromptsManager";
 import { isNumericLike, isNumericOnly } from "app/client/components/ChartView";
 import { CodeEditorPanel } from "app/client/components/CodeEditorPanel";
 import * as commands from "app/client/components/commands";
@@ -19,9 +18,9 @@ import GridView from "app/client/components/GridView";
 import { importFromFile, selectAndImport } from "app/client/components/Importer";
 import { RawDataPage, RawDataPopup } from "app/client/components/RawDataPage";
 import { RecordCardPopup } from "app/client/components/RecordCardPopup";
+import { RegionFocusSwitcher } from "app/client/components/RegionFocusSwitcher";
 import { ActionGroupWithCursorPos, UndoStack } from "app/client/components/UndoStack";
 import { ViewLayout } from "app/client/components/ViewLayout";
-import { RegionFocusSwitcher } from "app/client/components/RegionFocusSwitcher";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { DocPluginManager } from "app/client/lib/DocPluginManager";
@@ -50,8 +49,8 @@ import { DocTutorial } from "app/client/ui/DocTutorial";
 import { DocSettingsPage } from "app/client/ui/DocumentSettings";
 import { isTourActive, isTourActiveObs } from "app/client/ui/OnBoardingPopups";
 import { DefaultPageWidget, IPageWidget, toPageWidget } from "app/client/ui/PageWidgetPicker";
-import { linkFromId, NoLink, selectBy } from "app/client/ui/selectBy";
 import { ProposedChangesPage } from "app/client/ui/ProposedChangesPage";
+import { linkFromId, NoLink, selectBy } from "app/client/ui/selectBy";
 import { TimingPage } from "app/client/ui/TimingPage";
 import { WebhookPage } from "app/client/ui/WebhookPage";
 import { startWelcomeTour } from "app/client/ui/WelcomeTour";
@@ -76,13 +75,13 @@ import { isList, isListType, isRefListType } from "app/common/gristTypes";
 import { HashLink, IDocPage, isViewDocPage, parseUrlId, SpecialDocPage, ViewDocPage } from "app/common/gristUrls";
 import { undef, waitObs } from "app/common/gutil";
 import { LocalPlugin } from "app/common/plugin";
-import type { UserOrgPrefs } from "app/common/Prefs";
 import { StringUnion } from "app/common/StringUnion";
 import { TableData } from "app/common/TableData";
 import { getGristConfig } from "app/common/urlUtils";
 import { AttachmentTransferStatus, DocAPI, ExtendedUser } from "app/common/UserAPI";
 import { AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType, WidgetType } from "app/common/widgetTypes";
 import { CursorPos } from "app/plugin/GristAPI";
+
 import {
   bundleChanges,
   Computed,
@@ -105,6 +104,9 @@ import cloneDeepWith from "lodash/cloneDeepWith";
 import isEqual from "lodash/isEqual";
 import omit from "lodash/omit";
 import pick from "lodash/pick";
+
+import type { BehavioralPromptsManager } from "app/client/components/BehavioralPromptsManager";
+import type { UserOrgPrefs } from "app/common/Prefs";
 
 const RICK_ROLL_YOUTUBE_EMBED_ID = "dQw4w9WgXcQ";
 

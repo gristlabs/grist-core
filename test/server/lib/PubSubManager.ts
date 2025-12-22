@@ -1,10 +1,11 @@
 import { delay } from "app/common/delay";
 import { createPubSubManager, IPubSubManager } from "app/server/lib/PubSubManager";
 import { getPubSubPrefix } from "app/server/lib/serverUtils";
-import { assert } from "chai";
-import * as sinon from "sinon";
-import IORedis from "ioredis";
 import { setupCleanup } from "test/server/testCleanup";
+
+import { assert } from "chai";
+import IORedis from "ioredis";
+import * as sinon from "sinon";
 
 describe("PubSubManager", function() {
   const sandbox = sinon.createSandbox();

@@ -4,11 +4,14 @@
  * attempted that doesn't belong in the bundle, the bundle should be finalized before the change
  * is appled.
  */
-import { assert, driver, Key } from "mocha-webdriver";
+
+import { SQLiteDB } from "app/server/lib/SQLiteDB";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
-import { SQLiteDB } from "app/server/lib/SQLiteDB";
+
 import fs from "fs";
+
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("BundleActions", function() {
   this.timeout(30000);

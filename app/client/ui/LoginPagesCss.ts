@@ -1,3 +1,4 @@
+import { textInput } from "app/client/ui/inputs";
 import {
   bigBasicButton as gristBigBasicButton,
   bigBasicButtonLink as gristBigBasicButtonLink,
@@ -6,7 +7,7 @@ import {
   textButton as gristTextButton,
 } from "app/client/ui2018/buttons";
 import { mediaXSmall, theme } from "app/client/ui2018/cssVars";
-import { textInput } from "app/client/ui/inputs";
+
 import { styled } from "grainjs";
 
 export const text = styled("div", `

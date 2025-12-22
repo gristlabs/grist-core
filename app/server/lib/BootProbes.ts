@@ -9,6 +9,10 @@ import * as express from 'express';
 import fetch from 'node-fetch';
 import WS from 'ws';
 
+import * as express from "express";
+import fetch from "node-fetch";
+import WS from "ws";
+
 /**
  * Self-diagnostics useful when installing Grist.
  */

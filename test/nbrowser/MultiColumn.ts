@@ -1,8 +1,9 @@
+import { UserAPIImpl } from "app/common/UserAPI";
 import { arrayRepeat } from "app/plugin/gutil";
 import * as gu from "test/nbrowser/gristUtils";
 import { ColumnType } from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
-import { UserAPIImpl } from "app/common/UserAPI";
+
 import { assert, driver, Key } from "mocha-webdriver";
 let api: UserAPIImpl;
 let doc: string;

@@ -3,10 +3,11 @@ import { ViewSectionRec } from "app/client/models/DocModel";
 import { attachColumnFilterMenu } from "app/client/ui/ColumnFilterMenu";
 import { addFilterMenu } from "app/client/ui/FilterBar";
 import { cssIcon, cssPinButton, cssRow, cssSortFilterColumn } from "app/client/ui/RightPanelStyles";
+import { textButton } from "app/client/ui2018/buttons";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { textButton } from "app/client/ui2018/buttons";
 import { unstyledButton } from "app/client/ui2018/unstyled";
+
 import { Computed, Disposable, dom, makeTestId, styled } from "grainjs";
 import { IMenuOptions } from "popweasel";
 

@@ -1,8 +1,8 @@
 import { DataRowModel } from "app/client/models/DataRowModel";
-
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { getObjCode } from "app/common/gristTypes";
 import { formatUnknown } from "app/common/ValueFormatter";
+
 import { dom } from "grainjs";
 
 export function buildErrorDom(row: DataRowModel, field: ViewFieldRec) {

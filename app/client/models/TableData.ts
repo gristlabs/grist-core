@@ -9,6 +9,7 @@ import { isRaisedException } from "app/common/gristTypes";
 import { countIf } from "app/common/gutil";
 import { SchemaTypes } from "app/common/schema";
 import { ColTypeMap, MetaTableData as MetaTableDataBase, TableData as TableDataBase } from "app/common/TableData";
+
 import { Emitter } from "grainjs";
 
 /**

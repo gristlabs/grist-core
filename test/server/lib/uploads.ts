@@ -1,17 +1,20 @@
-import { setTmpLogLevel } from "test/server/testUtils";
-
 import { createTmpDir, Deps, fetchURL, moveUpload, UploadSet } from "app/server/lib/uploads";
 import { globalUploadSet } from "app/server/lib/uploads";
+import { createFile } from "test/server/docTools";
+import { setTmpLogLevel } from "test/server/testUtils";
+
+import * as path from "path";
+import { Readable } from "stream";
+
+
 import { delay } from "bluebird";
 import { assert } from "chai";
 import * as fse from "fs-extra";
 import noop from "lodash/noop";
 import pick from "lodash/pick";
 import { Response } from "node-fetch";
-import * as path from "path";
 import * as sinon from "sinon";
-import { Readable } from "stream";
-import { createFile } from "test/server/docTools";
+
 
 describe("uploads", function() {
   setTmpLogLevel("warn");

@@ -10,6 +10,7 @@ import { cssModalBody, cssModalButtons, cssModalTitle, cssModalWidth, modal } fr
 import { DocAction } from "app/common/DocActions";
 import { cached } from "app/common/gutil";
 import { decodeObject, encodeObject } from "app/plugin/objtypes";
+
 import { dom, Observable, styled } from "grainjs";
 import mapValues from "lodash/mapValues";
 

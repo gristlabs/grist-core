@@ -10,6 +10,7 @@
 import * as Mousetrap from "app/client/lib/Mousetrap";
 import { arrayRemove } from "app/common/gutil";
 import { RefCountMap } from "app/common/RefCountMap";
+
 import { Disposable, dom, DomMethod } from "grainjs";
 
 /**

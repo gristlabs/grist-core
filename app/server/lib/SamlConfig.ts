@@ -56,9 +56,6 @@
  *
  */
 
-import * as express from "express";
-import * as fse from "fs-extra";
-import * as saml2 from "saml2-js";
 
 import {SAML_PROVIDER_KEY} from 'app/common/loginProviders';
 import {AppSettings} from 'app/server/lib/AppSettings';
@@ -70,6 +67,10 @@ import { Permit } from 'app/server/lib/Permit';
 import { getOriginUrl } from 'app/server/lib/requestUtils';
 import { fromCallback } from 'app/server/lib/serverUtils';
 import { Sessions } from 'app/server/lib/Sessions';
+
+import * as express from "express";
+import * as fse from "fs-extra";
+import * as saml2 from "saml2-js";
 
 /**
  * Interface for SAML configuration.

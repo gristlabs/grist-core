@@ -1,3 +1,4 @@
+import { buildViewSectionDom } from "app/client/components/buildViewSectionDom";
 import * as commands from "app/client/components/commands";
 import { DataTables } from "app/client/components/DataTables";
 import { DocumentUsage } from "app/client/components/DocumentUsage";
@@ -5,13 +6,13 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { printViewSection } from "app/client/components/Printing";
 import { ViewSectionHelper } from "app/client/components/ViewLayout";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
+import { ViewSectionRec } from "app/client/models/DocModel";
+import { reportError } from "app/client/models/errors";
+import { getTelemetryWidgetTypeFromVS } from "app/client/ui/widgetTypesMap";
 import { mediaSmall, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+
 import { Computed, Disposable, dom, fromKo, makeTestId, Observable, styled } from "grainjs";
-import { reportError } from "app/client/models/errors";
-import { ViewSectionRec } from "app/client/models/DocModel";
-import { buildViewSectionDom } from "app/client/components/buildViewSectionDom";
-import { getTelemetryWidgetTypeFromVS } from "app/client/ui/widgetTypesMap";
 
 const testId = makeTestId("test-raw-data-");
 

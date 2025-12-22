@@ -3,6 +3,7 @@ import { ITooltipControl, showTooltip, tooltipCloseButton } from "app/client/ui/
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
+
 import { dom, styled } from "grainjs";
 
 const t = makeT("EditorTooltip");

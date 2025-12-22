@@ -12,6 +12,7 @@ import {
 import { choiceToken } from "app/client/widgets/ChoiceToken";
 import { CellValue } from "app/common/DocActions";
 import { decodeObject } from "app/plugin/objtypes";
+
 import { dom, styled } from "grainjs";
 
 /**

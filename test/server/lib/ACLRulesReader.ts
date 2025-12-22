@@ -4,9 +4,10 @@ import { MetaRowRecord } from "app/common/TableData";
 import { CellValue } from "app/plugin/GristData";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
+import { createDocTools } from "test/server/docTools";
+
 import { assert } from "chai";
 import * as sinon from "sinon";
-import { createDocTools } from "test/server/docTools";
 
 describe("ACLRulesReader", function() {
   this.timeout(10000);

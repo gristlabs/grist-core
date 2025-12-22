@@ -1,4 +1,3 @@
-import { BasicType, createCheckers, ICheckerSuite } from "ts-interface-checker";
 import CustomSectionAPITI from "app/plugin/CustomSectionAPI-ti";
 import FileParserAPITI from "app/plugin/FileParserAPI-ti";
 import GristAPITI from "app/plugin/GristAPI-ti";
@@ -8,6 +7,8 @@ import InternalImportSourceAPITI from "app/plugin/InternalImportSourceAPI-ti";
 import RenderOptionsTI from "app/plugin/RenderOptions-ti";
 import StorageAPITI from "app/plugin/StorageAPI-ti";
 import WidgetAPITI from "app/plugin/WidgetAPI-ti";
+
+import { BasicType, createCheckers, ICheckerSuite } from "ts-interface-checker";
 
 /**
  * The ts-interface-checker type suites are all exported with the "TI" suffix.

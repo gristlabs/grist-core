@@ -1,12 +1,12 @@
-import { LocalPlugin } from "app/common/plugin";
-import * as clientUtil from "test/client/clientUtil";
-import * as sinon from "sinon";
-import { assert } from "chai";
-
 import * as browserGlobals from "app/client/lib/browserGlobals";
-const G: any = browserGlobals.get("$");
-
+import { LocalPlugin } from "app/common/plugin";
 import { PluginInstance } from "app/common/PluginInstance";
+import * as clientUtil from "test/client/clientUtil";
+
+import { assert } from "chai";
+import * as sinon from "sinon";
+
+const G: any = browserGlobals.get("$");
 
 describe("PluginInstance", function() {
   clientUtil.setTmpMochaGlobals();

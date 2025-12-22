@@ -1,6 +1,7 @@
+import { concatenateSummaries } from "app/common/ActionSummarizer";
 import { ActionSummary, ColumnDelta, createEmptyActionSummary, createEmptyTableDelta } from "app/common/ActionSummary";
 import { CellDelta } from "app/common/TabularDiff";
-import { concatenateSummaries } from "app/common/ActionSummarizer";
+
 import keyBy from "lodash/keyBy";
 import matches from "lodash/matches";
 import sortBy from "lodash/sortBy";

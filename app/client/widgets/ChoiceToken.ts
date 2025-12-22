@@ -1,8 +1,9 @@
 import { Style } from "app/client/models/Styles";
 import { theme, vars } from "app/client/ui2018/cssVars";
-import { dom, DomContents, DomElementArg, styled } from "grainjs";
+
 import { colord, extend } from "colord";
 import a11yPlugin from "colord/plugins/a11y";
+import { dom, DomContents, DomElementArg, styled } from "grainjs";
 
 extend([a11yPlugin]);
 

@@ -1,12 +1,15 @@
 import * as modelUtil from "app/client/models/modelUtil";
+
 // This is circular import, but only for types so it's fine.
-import type { DocModel, ViewFieldRec } from "app/client/models/DocModel";
 import * as UserType from "app/client/widgets/UserType";
 import { ifNotSet } from "app/common/gutil";
+
 import * as ko from "knockout";
 import intersection from "lodash/intersection";
 import isEqual from "lodash/isEqual";
 import zip from "lodash/zip";
+
+import type { DocModel, ViewFieldRec } from "app/client/models/DocModel";
 
 export class ViewFieldConfig {
   /** If there are multiple columns selected in the viewSection */

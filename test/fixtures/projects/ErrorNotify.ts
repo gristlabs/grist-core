@@ -1,8 +1,9 @@
 import { INotifyOptions, Notifier } from "app/client/models/NotifyModel";
 import { buildNotifyMenuButton, buildSnackbarDom } from "app/client/ui/NotifyUI";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+
 import { delay } from "bluebird";
 import { dom, Holder, MultiHolder, styled } from "grainjs";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 let errHolder1 = Holder.create(null);
 let errHolder2 = Holder.create(null);

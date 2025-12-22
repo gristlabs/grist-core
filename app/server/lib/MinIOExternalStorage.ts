@@ -1,10 +1,14 @@
+
 import { ApiError } from "app/common/ApiError";
 import { ObjMetadata, ObjSnapshotWithMetadata, toExternalMetadata, toGristMetadata } from "app/common/DocSnapshot";
 import { ExternalStorage, StreamDownloadResult } from "app/server/lib/ExternalStorage";
+
 import { IncomingMessage } from "http";
+import * as stream from "node:stream";
+
 import * as fse from "fs-extra";
 import * as minio from "minio";
-import * as stream from "node:stream";
+
 
 // The minio-js v8.0.0 typings are sometimes incorrect. Here are some workarounds.
 interface MinIOClient extends

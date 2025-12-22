@@ -1,10 +1,11 @@
-import * as sqlite3 from "@gristlabs/sqlite3";
 import { delay } from "app/common/delay";
 import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import { LogMethods } from "app/server/lib/LogMethods";
 import { fromCallback } from "app/server/lib/serverUtils";
 import { Backup } from "app/server/lib/SqliteCommon";
 import { SQLiteDB } from "app/server/lib/SQLiteDB";
+
+import * as sqlite3 from "@gristlabs/sqlite3";
 import * as fse from "fs-extra";
 
 // This constant controls how many pages of the database we back up in a single step.

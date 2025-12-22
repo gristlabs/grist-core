@@ -1,5 +1,6 @@
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { components } from "app/common/ThemePrefs";
+
 import { dom, DomElementArg, Observable, styled } from "grainjs";
 
 interface ToggleSwitchOptions {

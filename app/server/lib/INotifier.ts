@@ -22,6 +22,7 @@
  * if notications are subject to delays and failures and we wish to
  * be robust, a job queue would be a good idea for all of this.
  */
+
 import { FullUser } from "app/common/LoginSessionAPI";
 import * as roles from "app/common/roles";
 import { BillingAccount } from "app/gen-server/entity/BillingAccount";
@@ -33,6 +34,7 @@ import { UserChange, UserIdDelta } from "app/gen-server/lib/homedb/HomeDBManager
 import { SendGridConfig, SendGridMailWithTemplateId, TwoFactorEvent } from "app/gen-server/lib/NotifierTypes";
 import { DocNotificationEvent, DocNotificationTemplateBase } from "app/gen-server/lib/NotifierTypes";
 import log from "app/server/lib/log";
+
 import { EventEmitter } from "events";
 
 interface INotifierMethods {

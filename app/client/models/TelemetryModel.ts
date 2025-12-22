@@ -1,6 +1,7 @@
 import { AppModel, getHomeUrl } from "app/client/models/AppModel";
 import { TelemetryPrefs } from "app/common/Install";
 import { InstallAPI, InstallAPIImpl, TelemetryPrefsWithSources } from "app/common/InstallAPI";
+
 import { bundleChanges, Disposable, Observable } from "grainjs";
 
 export interface TelemetryModel {

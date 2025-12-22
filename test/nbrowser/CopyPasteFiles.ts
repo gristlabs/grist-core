@@ -1,12 +1,14 @@
 /**
  * Test for copy-pasting file data into Attachments columns.
  */
-import fs from "fs/promises";
-import { assert, driver, Key, WebElement } from "mocha-webdriver";
-import * as path from "path";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 import { fixturesRoot } from "test/server/testUtils";
+
+import fs from "fs/promises";
+import * as path from "path";
+
+import { assert, driver, Key, WebElement } from "mocha-webdriver";
 
 describe("CopyPasteFiles", function() {
   this.timeout(90000);

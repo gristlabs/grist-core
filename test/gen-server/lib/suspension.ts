@@ -1,9 +1,10 @@
 import { Organization } from "app/common/UserAPI";
-import { assert } from "chai";
 import { TestServer } from "test/gen-server/apiUtils";
 import { setPlan } from "test/gen-server/testUtils";
 import { createTmpDir } from "test/server/docTools";
 import * as testUtils from "test/server/testUtils";
+
+import { assert } from "chai";
 
 describe("suspension", function() {
   let home: TestServer;

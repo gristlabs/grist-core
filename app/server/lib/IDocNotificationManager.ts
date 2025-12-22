@@ -1,6 +1,6 @@
-import type { Express } from "express";
 import type { OptDocSession } from "app/server/lib/DocSession";
 import type { GranularAccessForBundle } from "app/server/lib/GranularAccess";
+import type { Express } from "express";
 
 export interface IDocNotificationManager {
   /**

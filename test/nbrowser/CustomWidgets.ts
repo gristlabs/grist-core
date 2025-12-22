@@ -1,16 +1,19 @@
+
 import { AccessLevel, ICustomWidget } from "app/common/CustomWidget";
 import { AccessTokenResult } from "app/plugin/GristAPI";
 import { TableOperations } from "app/plugin/TableOperations";
 import { getAppRoot } from "app/server/lib/places";
-import * as fse from "fs-extra";
-import { assert, driver, Key } from "mocha-webdriver";
-import fetch from "node-fetch";
-import * as path from "path";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import { serveSomething } from "test/server/customUtil";
 import { createTmpDir } from "test/server/docTools";
 import { EnvironmentSnapshot } from "test/server/testUtils";
+
+import * as path from "path";
+
+import * as fse from "fs-extra";
+import { assert, driver, Key } from "mocha-webdriver";
+import fetch from "node-fetch";
 
 // Valid manifest url.
 const manifestEndpoint = "/manifest.json";

@@ -1,7 +1,8 @@
 import { ColorOption, colorSelect } from "app/client/ui2018/ColorSelect";
-import { Disposable, dom, IDisposableOwner, makeTestId, obsArray, Observable, styled } from "grainjs";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { Disposable, dom, IDisposableOwner, makeTestId, obsArray, Observable, styled } from "grainjs";
 
 const testId = makeTestId("test-");
 

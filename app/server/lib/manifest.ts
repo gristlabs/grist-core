@@ -1,8 +1,11 @@
+
 import { BarePlugin } from "app/plugin/PluginManifest";
 import PluginManifestTI from "app/plugin/PluginManifest-ti";
+
+import * as path from "path";
+
 import * as fse from "fs-extra";
 import * as yaml from "js-yaml";
-import * as path from "path";
 import { createCheckers } from "ts-interface-checker";
 
 const manifestChecker = createCheckers(PluginManifestTI).BarePlugin;

@@ -4,9 +4,10 @@ import { IAutocompleteOptions } from "app/client/lib/autocomplete";
 import { IToken, TokenField } from "app/client/lib/TokenField";
 import { colors, testId } from "app/client/ui2018/cssVars";
 import { menuCssClass } from "app/client/ui2018/menus";
-import { dom, styled } from "grainjs";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { dom, styled } from "grainjs";
 
 /**
  * Tokenfield wishes ("+" means our implementation supports it).

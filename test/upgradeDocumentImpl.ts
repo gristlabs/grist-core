@@ -4,14 +4,17 @@
  * Usage:
  *    test/upgradeDocument <docPaths...>
  */
+
 import { DocStorage } from "app/server/lib/DocStorage";
 import { DocStorageManager } from "app/server/lib/DocStorageManager";
 import { copyFile } from "app/server/lib/docUtils";
-import { createDocTools } from "test/server/docTools";
 import log from "app/server/lib/log";
+import { createDocTools } from "test/server/docTools";
+
 import * as fs from "fs";
-import * as fse from "fs-extra";
 import * as path from "path";
+
+import * as fse from "fs-extra";
 import * as tmp from "tmp-promise";
 
 export async function upgradeDocuments(docPaths: string[]): Promise<void> {

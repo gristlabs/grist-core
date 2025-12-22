@@ -1,6 +1,7 @@
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
-import type { Disposable } from "grainjs";
 import { GristLoadConfig } from "app/common/gristUrls";
+
+import type { Disposable } from "grainjs";
 
 /**
  * Functions to perform server side authentication with Google.

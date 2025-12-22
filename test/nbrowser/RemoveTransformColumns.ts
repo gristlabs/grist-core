@@ -1,8 +1,8 @@
 import { DocAPI } from "app/common/UserAPI";
-import { assert, driver } from "mocha-webdriver";
-
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver } from "mocha-webdriver";
 
 describe("RemoveTransformColumns", function() {
   this.timeout(20000);

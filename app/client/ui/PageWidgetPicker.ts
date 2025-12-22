@@ -14,6 +14,7 @@ import { icon } from "app/client/ui2018/icons";
 import { spinnerModal } from "app/client/ui2018/modals";
 import { isLongerThan, nativeCompare } from "app/common/gutil";
 import { IAttachedCustomWidget, IWidgetType } from "app/common/widgetTypes";
+
 import {
   computed,
   Computed,
@@ -29,9 +30,9 @@ import {
   select,
   styled,
 } from "grainjs";
+import without from "lodash/without";
 import Popper from "popper.js";
 import { IOpenController, popupOpen, setPopupToCreateDom } from "popweasel";
-import without from "lodash/without";
 
 const t = makeT("PageWidgetPicker");
 

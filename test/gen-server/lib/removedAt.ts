@@ -1,10 +1,11 @@
 import { BaseAPI } from "app/common/BaseAPI";
 import { UserAPI, Workspace } from "app/common/UserAPI";
+import { TestServer } from "test/gen-server/apiUtils";
+import * as testUtils from "test/server/testUtils";
+
 import { assert } from "chai";
 import flatten from "lodash/flatten";
 import sortBy from "lodash/sortBy";
-import { TestServer } from "test/gen-server/apiUtils";
-import * as testUtils from "test/server/testUtils";
 
 describe("removedAt", function() {
   let home: TestServer;

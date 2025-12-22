@@ -11,8 +11,9 @@ import {
 import { withInfoTooltip } from "app/client/ui/tooltips";
 import { buttonSelect } from "app/client/ui2018/buttonSelect";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
-import { select } from "app/client/ui2018/menus";
 import { theme } from "app/client/ui2018/cssVars";
+import { select } from "app/client/ui2018/menus";
+
 import { Computed, Disposable, dom, IDisposableOwner, makeTestId, styled } from "grainjs";
 
 const t = makeT("FormConfig");

@@ -1,18 +1,19 @@
+import { GristClientSocket } from "app/client/components/GristClientSocket";
 import { GristWSConnection } from "app/client/components/GristWSConnection";
 import { TableFetchResult } from "app/common/ActiveDocAPI";
-import { UserAPIImpl } from "app/common/UserAPI";
 import { delay } from "app/common/delay";
+import { UserAPIImpl } from "app/common/UserAPI";
 import { cookieName } from "app/server/lib/gristSessions";
 import log from "app/server/lib/log";
 import { getGristConfig } from "test/gen-server/testUtils";
 import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";
 import { TestServer } from "test/server/lib/helpers/TestServer";
-import { waitForIt } from "test/server/wait";
 import { createTestDir, EnvironmentSnapshot, setTmpLogLevel } from "test/server/testUtils";
+import { waitForIt } from "test/server/wait";
+
 import { assert } from "chai";
 import * as cookie from "cookie";
 import fetch from "node-fetch";
-import { GristClientSocket } from "app/client/components/GristClientSocket";
 
 describe("ManyFetches", function() {
   this.timeout(30000);

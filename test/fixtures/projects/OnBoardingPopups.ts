@@ -1,8 +1,9 @@
-import { testId } from "app/client/ui2018/cssVars";
 import { IOnBoardingMsg, startOnBoarding } from "app/client/ui/OnBoardingPopups";
-import { dom, DomElementArg, observable, styled } from "grainjs";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+import { testId } from "app/client/ui2018/cssVars";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { dom, DomElementArg, observable, styled } from "grainjs";
 
 const message: IOnBoardingMsg[] = [
   {

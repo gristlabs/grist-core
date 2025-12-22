@@ -1,5 +1,3 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne,
-  PrimaryGeneratedColumn, RelationId } from "typeorm";
 
 import { Role } from "app/common/roles";
 import { OrganizationProperties, organizationPropertyKeys } from "app/common/UserAPI";
@@ -9,6 +7,9 @@ import { Pref } from "app/gen-server/entity/Pref";
 import { Resource } from "app/gen-server/entity/Resource";
 import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
+
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne,
+  PrimaryGeneratedColumn, RelationId } from "typeorm";
 
 // Information about how an organization may be accessed.
 export interface AccessOption {

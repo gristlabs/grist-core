@@ -1,6 +1,7 @@
-import { addToRepl, assert, driver, stackWrapFunc } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
+import { addToRepl, assert, driver, stackWrapFunc } from "mocha-webdriver";
 
 describe("VisibleFieldsConfig", function() {
   this.timeout(20000);

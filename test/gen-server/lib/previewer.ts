@@ -1,11 +1,12 @@
 import { Organization } from "app/gen-server/entity/Organization";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
-import axios from "axios";
-import { AxiosRequestConfig } from "axios";
-import { assert } from "chai";
 import { TestServer } from "test/gen-server/apiUtils";
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
+
+import axios from "axios";
+import { AxiosRequestConfig } from "axios";
+import { assert } from "chai";
 
 const previewer = configForUser("thumbnail");
 

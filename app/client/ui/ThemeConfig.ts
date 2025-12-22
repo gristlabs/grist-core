@@ -2,9 +2,10 @@ import { makeT } from "app/client/lib/localization";
 import { AppModel } from "app/client/models/AppModel";
 import * as css from "app/client/ui/AccountPageCss";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
-import { prefersColorSchemeDarkObs } from "app/client/ui2018/theme";
 import { select } from "app/client/ui2018/menus";
+import { prefersColorSchemeDarkObs } from "app/client/ui2018/theme";
 import { ThemeName, themeNameAppearances } from "app/common/ThemePrefs";
+
 import { Computed, Disposable, dom, makeTestId, styled } from "grainjs";
 
 const testId = makeTestId("test-theme-config-");

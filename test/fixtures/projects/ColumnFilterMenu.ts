@@ -6,12 +6,13 @@ import { columnFilterMenu, cssItemValue, IFilterMenuOptions } from "app/client/u
 import { createFormatter } from "app/common/ValueFormatter";
 import { createParserRaw } from "app/common/ValueParser";
 import { CellValue } from "app/plugin/GristData";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
 import { dom, DomArg, IDisposableOwner, makeTestId, Observable, styled } from "grainjs";
 import ko from "knockout";
 import { noop } from "lodash";
 import { IOpenController, setPopupToCreateDom } from "popweasel";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 const testId = makeTestId("fixture-");
 const dateFormatter = createFormatter("Date", { dateFormat: "YYYY-MM-DD" }, { locale: "en-US" });

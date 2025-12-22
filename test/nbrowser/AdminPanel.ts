@@ -6,6 +6,8 @@ import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 import { FakeUpdateServer, startFakeUpdateServer } from 'test/server/customUtil';
 import * as testUtils from 'test/server/testUtils';
 
+import { assert, driver, Key, WebElement } from "mocha-webdriver";
+
 describe("AdminPanel", function() {
   this.timeout(300000);
   setupTestSuite();

@@ -2,6 +2,7 @@ import { makeT } from "app/client/lib/localization";
 import { cssConfigContainer } from "app/client/ui/RightPanelStyles";
 import { IconName } from "app/client/ui2018/IconList";
 import { IWidgetType } from "app/common/widgetTypes";
+
 import { dom, DomElementArg } from "grainjs";
 
 const t = makeT("RightPanel");

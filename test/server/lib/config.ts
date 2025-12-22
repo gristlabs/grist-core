@@ -1,6 +1,7 @@
+import { ConfigAccessors, createConfigValue, Deps, FileConfig } from "app/server/lib/config";
+
 import { assert } from "chai";
 import * as sinon from "sinon";
-import { ConfigAccessors, createConfigValue, Deps, FileConfig } from "app/server/lib/config";
 
 interface TestFileContents {
   myNum?: number

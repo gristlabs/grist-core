@@ -1,12 +1,13 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/AppModel";
-import { Disposable, Observable } from "grainjs";
-import { ConfigAPI } from "app/common/ConfigAPI";
-import { ActivationAPIImpl, ActivationStatus } from "app/common/ActivationAPI";
-import { delay } from "app/common/delay";
-import { getGristConfig } from "app/common/urlUtils";
-import { GristDeploymentType } from "app/common/gristUrls";
 import { Notifier } from "app/client/models/NotifyModel";
+import { ActivationAPIImpl, ActivationStatus } from "app/common/ActivationAPI";
+import { ConfigAPI } from "app/common/ConfigAPI";
+import { delay } from "app/common/delay";
+import { GristDeploymentType } from "app/common/gristUrls";
+import { getGristConfig } from "app/common/urlUtils";
+
+import { Disposable, Observable } from "grainjs";
 
 const t = makeT("ToggleEnterprise");
 

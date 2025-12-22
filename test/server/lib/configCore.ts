@@ -1,7 +1,8 @@
-import * as sinon from "sinon";
-import { assert } from "chai";
-import { IGristCoreConfig, loadGristCoreConfig, loadGristCoreConfigFile } from "app/server/lib/configCore";
 import { createConfigValue, Deps, IWritableConfigValue } from "app/server/lib/config";
+import { IGristCoreConfig, loadGristCoreConfig, loadGristCoreConfigFile } from "app/server/lib/configCore";
+
+import { assert } from "chai";
+import * as sinon from "sinon";
 
 describe("loadGristCoreConfig", () => {
   afterEach(() => {

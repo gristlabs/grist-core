@@ -32,11 +32,7 @@
  * In other words, there is an opportunity for untangling and simplifying.
  */
 
-import { EventEmitter } from "events";
-import * as http from "http";
-import * as https from "https";
-import { GristSocketServer } from "app/server/lib/GristSocketServer";
-import { GristServerSocket } from "app/server/lib/GristServerSocket";
+
 
 import { parseFirstUrlPart } from "app/common/gristUrls";
 import { safeJsonParse } from "app/common/gutil";
@@ -48,12 +44,19 @@ import { ScopedSession } from "app/server/lib/BrowserSession";
 import { Client, ClientMethod } from "app/server/lib/Client";
 import { Hosts, RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristLoginMiddleware } from "app/server/lib/GristServer";
+import { GristServerSocket } from "app/server/lib/GristServerSocket";
+import { GristSocketServer } from "app/server/lib/GristSocketServer";
 import log from "app/server/lib/log";
+import { trustOrigin } from "app/server/lib/requestUtils";
 import { localeFromRequest } from "app/server/lib/ServerLocale";
 import { fromCallback } from "app/server/lib/serverUtils";
 import { Sessions } from "app/server/lib/Sessions";
+
+import { EventEmitter } from "events";
+import * as http from "http";
+import * as https from "https";
+
 import { i18n } from "i18next";
-import { trustOrigin } from "app/server/lib/requestUtils";
 
 export interface CommOptions {
   sessions: Sessions;                   // A collection of all sessions for this instance of Grist

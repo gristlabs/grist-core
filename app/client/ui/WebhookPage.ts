@@ -20,6 +20,7 @@ import { VirtualId } from "app/common/SortSpec";
 import { WebhookSummary } from "app/common/Triggers";
 import { DocAPI } from "app/common/UserAPI";
 import { GristObjCode, RowRecord } from "app/plugin/GristData";
+
 import { dom, styled } from "grainjs";
 import { observableArray, ObservableArray } from "knockout";
 import omit from "lodash/omit";

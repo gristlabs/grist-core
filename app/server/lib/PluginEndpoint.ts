@@ -1,10 +1,13 @@
+
 import { FlexServer } from "app/server/lib/FlexServer";
 import { GristServer } from "app/server/lib/GristServer";
 import log from "app/server/lib/log";
 import { PluginManager } from "app/server/lib/PluginManager";
+
+import * as path from "path";
+
 import * as express from "express";
 import * as mimeTypes from "mime-types";
-import * as path from "path";
 
 // Get the host serving plugin material
 export function getUntrustedContentHost(origin: string | undefined): string | undefined {

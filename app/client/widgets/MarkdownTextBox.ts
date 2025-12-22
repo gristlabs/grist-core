@@ -4,6 +4,7 @@ import { renderCellMarkdown } from "app/client/ui/MarkdownCellRenderer";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { handleGristLinkClick } from "app/client/ui2018/links";
 import { NTextBox } from "app/client/widgets/NTextBox";
+
 import { dom, styled } from "grainjs";
 
 /**

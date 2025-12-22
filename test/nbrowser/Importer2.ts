@@ -1,14 +1,15 @@
 /**
  * Test of the Importer dialog (part 2), for imports inside an open doc.
  */
-import { DocAPI } from "app/common/UserAPI";
 import { DocCreationInfo } from "app/common/DocListAPI";
-import * as _ from "lodash";
-import { assert, driver, Key } from "mocha-webdriver";
+import { DocAPI } from "app/common/UserAPI";
 import * as gu from "test/nbrowser/gristUtils";
 import { getColumnMatchingRows, getPreviewDiffCellValues, openSource as openSourceFor,
   openTableMapping, waitForColumnMapping, waitForDiffPreviewToLoad } from "test/nbrowser/importerTestUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import * as _ from "lodash";
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("Importer2", function() {
   this.timeout(60000);

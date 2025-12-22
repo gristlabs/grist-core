@@ -1,8 +1,8 @@
 import { DocumentSettings } from "app/common/DocumentSettings";
 import { NumberFormatOptions } from "app/common/NumberFormat";
 import { parseDateTime } from "app/common/parseDate";
-
 import { createFormatter, DateTimeFormatOptions } from "app/common/ValueFormatter";
+
 import { assert } from "chai";
 
 const defaultDocSettings = {

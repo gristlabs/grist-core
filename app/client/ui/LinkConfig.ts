@@ -1,5 +1,7 @@
+
 import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
 import { getReferencedTableId } from "app/common/gristTypes";
+
 import assert from "assert";
 
 export class LinkConfig {

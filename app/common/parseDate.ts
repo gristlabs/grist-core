@@ -1,9 +1,10 @@
+import { getDistinctValues, isNonNullish } from "app/common/gutil";
+
+import guessFormat from "@gristlabs/moment-guess/dist/bundle.js";
 import escapeRegExp from "lodash/escapeRegExp";
 import last from "lodash/last";
 import memoize from "lodash/memoize";
-import { getDistinctValues, isNonNullish } from "app/common/gutil";
 // Simply importing 'moment-guess' inconsistently imports bundle.js or bundle.esm.js depending on environment
-import guessFormat from "@gristlabs/moment-guess/dist/bundle.js";
 import moment from "moment-timezone";
 
 // When using YY format, use a consistent interpretation in datepicker and in moment parsing: add

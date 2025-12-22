@@ -1,6 +1,7 @@
-import { assert } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert } from "mocha-webdriver";
 
 describe("FilterLinkChain", function() {
   this.timeout(10000);

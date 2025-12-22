@@ -8,9 +8,10 @@
  */
 
 import { localeCompare, nativeCompare, sortedIndex } from "app/common/gutil";
+
 import { DomContents } from "grainjs";
-import escapeRegExp from "lodash/escapeRegExp";
 import deburr from "lodash/deburr";
+import escapeRegExp from "lodash/escapeRegExp";
 import split from "lodash/split";
 
 export interface ACItem {

@@ -21,6 +21,7 @@ import { IAppError } from "app/client/models/NotifyModel";
 import { GristLoadConfig } from "app/common/gristUrls";
 import { timeFormat } from "app/common/timeFormat";
 import * as version from "app/common/version";
+
 import { dom } from "grainjs";
 import identity from "lodash/identity";
 import pickBy from "lodash/pickBy";

@@ -1,9 +1,9 @@
-import { CellValue } from "app/common/DocActions";
-import { ColumnFilterFunc } from "app/common/ColumnFilterFunc";
 import { FilterColValues } from "app/common/ActiveDocAPI";
+import { ColumnFilterFunc } from "app/common/ColumnFilterFunc";
+import { ColumnGettersByColId } from "app/common/ColumnGetters";
+import { CellValue } from "app/common/DocActions";
 import { isList } from "app/common/gristTypes";
 import { decodeObject } from "app/plugin/objtypes";
-import { ColumnGettersByColId } from "app/common/ColumnGetters";
 
 export type RowFilterFunc<T> = (row: T) => boolean;
 

@@ -1,4 +1,5 @@
 import * as roles from "app/common/roles";
+
 import { assert } from "chai";
 
 describe("roles", function() {

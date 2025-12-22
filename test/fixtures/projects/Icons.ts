@@ -1,10 +1,11 @@
 import { IconList, IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
 import { loadingSpinner } from "app/client/ui2018/loaders";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
 import { dom, styled } from "grainjs";
 import { times } from "lodash";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 const bigBlueIconCss = `
   background-color: blue;

@@ -1,19 +1,22 @@
-import { assert } from "chai";
+
 import { delay } from "app/common/delay";
 import { DocPrefs } from "app/common/Prefs";
 import { EDITOR, OWNER, Role, VIEWER } from "app/common/roles";
 import { PermissionData, PermissionDelta } from "app/common/UserAPI";
+import { User } from "app/gen-server/entity/User";
 import { Deps as CachesDeps, HomeDBCaches } from "app/gen-server/lib/homedb/Caches";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { QueryResult } from "app/gen-server/lib/homedb/Interfaces";
-import { User } from "app/gen-server/entity/User";
 import { createPubSubManager } from "app/server/lib/PubSubManager";
 import { createInitialDb, removeConnection } from "test/gen-server/seed";
 import { TestServer } from "test/server/lib/helpers/TestServer";
-import * as testUtils from "test/server/testUtils";
 import { setupCleanup } from "test/server/testCleanup";
+import * as testUtils from "test/server/testUtils";
 import { waitForIt } from "test/server/wait";
+
 import * as path from "path";
+
+import { assert } from "chai";
 import * as sinon from "sinon";
 
 /**

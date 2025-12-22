@@ -8,17 +8,18 @@
 import { ColumnTransform } from "app/client/components/ColumnTransform";
 import { GristDoc } from "app/client/components/GristDoc";
 import * as TypeConversion from "app/client/components/TypeConversion";
+import { makeT } from "app/client/lib/localization";
+import { ColumnRec } from "app/client/models/DocModel";
 import { reportError } from "app/client/models/errors";
 import { cssButtonRow } from "app/client/ui/RightPanelStyles";
 import { basicButton, primaryButton } from "app/client/ui2018/buttons";
 import { testId } from "app/client/ui2018/cssVars";
 import { FieldBuilder } from "app/client/widgets/FieldBuilder";
-import { ColumnRec } from "app/client/models/DocModel";
 import { NewAbstractWidget } from "app/client/widgets/NewAbstractWidget";
 import { UserAction } from "app/common/DocActions";
-import { Computed, dom, fromKo, Observable } from "grainjs";
-import { makeT } from "app/client/lib/localization";
 import { WidgetType } from "app/common/widgetTypes";
+
+import { Computed, dom, fromKo, Observable } from "grainjs";
 
 const t = makeT("TypeTransform");
 

@@ -8,10 +8,11 @@ import { fieldWithDefault, KoSaveableObservable } from "app/client/models/modelU
 import { FormToggleFormat } from "app/client/ui/FormAPI";
 import { cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
 import { buttonSelect } from "app/client/ui2018/buttonSelect";
-import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { theme } from "app/client/ui2018/cssVars";
-import { components } from "app/common/ThemePrefs";
+import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { NewAbstractWidget, Options } from "app/client/widgets/NewAbstractWidget";
+import { components } from "app/common/ThemePrefs";
+
 import { dom, DomContents, DomElementArg, fromKo, makeTestId, styled } from "grainjs";
 
 const t = makeT("Toggle");

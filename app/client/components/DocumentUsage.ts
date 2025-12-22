@@ -1,5 +1,6 @@
 import { cssBannerLink } from "app/client/components/Banner";
 import { getExternalStorageRecommendation } from "app/client/components/ExternalAttachmentBanner";
+import { makeT } from "app/client/lib/localization";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { docListHeader } from "app/client/ui/DocMenuCss";
@@ -14,8 +15,8 @@ import { capitalizeFirstWord } from "app/common/gutil";
 import { APPROACHING_LIMIT_RATIO } from "app/common/Limits";
 import { canUpgradeOrg } from "app/common/roles";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled } from "grainjs";
-import { makeT } from "app/client/lib/localization";
 
 const t = makeT("DocumentUsage");
 

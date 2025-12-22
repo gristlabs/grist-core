@@ -1,6 +1,7 @@
-import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/projects/testUtils";
+
+import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 
 describe("Mentions", function() {
   setupTestSuite();

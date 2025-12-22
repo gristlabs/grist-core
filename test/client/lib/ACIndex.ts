@@ -1,9 +1,13 @@
 import { ACIndex, ACIndexImpl, ACItem, ACResults, highlightNone } from "app/client/lib/ACIndex";
 import { nativeCompare } from "app/common/gutil";
+import { fixturesRoot } from "test/server/testUtils";
+
+import * as path from "path";
+
+
 import { assert } from "chai";
 import * as fse from "fs-extra";
-import * as path from "path";
-import { fixturesRoot } from "test/server/testUtils";
+
 
 /**
  * Set env ENABLE_TIMING_TESTS=1 to run the timing "tests". These don't assert anything but let

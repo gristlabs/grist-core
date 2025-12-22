@@ -1,5 +1,6 @@
-import { MigrationInterface, QueryRunner, TableColumn, TableIndex } from "typeorm";
 import { Group } from "app/gen-server/entity/Group";
+
+import { MigrationInterface, QueryRunner, TableColumn, TableIndex } from "typeorm";
 
 export class GroupTypes1753088213255 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {

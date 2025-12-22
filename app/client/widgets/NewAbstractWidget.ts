@@ -10,6 +10,7 @@ import { SaveableObjObservable } from "app/client/models/modelUtil";
 import { theme } from "app/client/ui2018/cssVars";
 import { CellStyle } from "app/client/widgets/CellStyle";
 import { BaseFormatter } from "app/common/ValueFormatter";
+
 import {
   Disposable,
   dom,

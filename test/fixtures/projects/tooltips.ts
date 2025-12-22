@@ -1,8 +1,9 @@
 import { descriptionInfoTooltip, hoverTooltip, tooltipCloseButton, withInfoTooltip } from "app/client/ui/tooltips";
 import { testId } from "app/client/ui2018/cssVars";
-import { dom, observable, styled } from "grainjs";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { dom, observable, styled } from "grainjs";
 
 function setupTest() {
   const showTriggerObs = observable(true);

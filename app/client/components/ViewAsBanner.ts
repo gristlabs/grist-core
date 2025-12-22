@@ -1,21 +1,22 @@
-import { reportError } from "app/client/models/AppModel";
-import { Banner } from "app/client/components/Banner";
-import { DocPageModel } from "app/client/models/DocPageModel";
-import { icon } from "app/client/ui2018/icons";
-import { primaryButtonLink } from "app/client/ui2018/buttons";
-import { Disposable, dom, styled } from "grainjs";
-import { testId, theme } from "app/client/ui2018/cssVars";
-import { urlState } from "app/client/models/gristUrlState";
-import { userOverrideParams } from "app/common/gristUrls";
-import { cssMenuItem } from "popweasel";
-import { getUserRoleText } from "app/common/UserAPI";
-import { PermissionDataWithExtraUsers } from "app/common/ActiveDocAPI";
-import { waitGrainObs } from "app/common/gutil";
-import { cssSelectBtn } from "app/client/ui2018/select";
 import { ACLUsersPopup } from "app/client/aclui/ACLUsers";
-import { UserOverride } from "app/common/DocListAPI";
+import { Banner } from "app/client/components/Banner";
 import { makeT } from "app/client/lib/localization";
+import { reportError } from "app/client/models/AppModel";
+import { DocPageModel } from "app/client/models/DocPageModel";
+import { urlState } from "app/client/models/gristUrlState";
 import { cssInfoTooltipButton, withInfoTooltip } from "app/client/ui/tooltips";
+import { primaryButtonLink } from "app/client/ui2018/buttons";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { cssSelectBtn } from "app/client/ui2018/select";
+import { PermissionDataWithExtraUsers } from "app/common/ActiveDocAPI";
+import { UserOverride } from "app/common/DocListAPI";
+import { userOverrideParams } from "app/common/gristUrls";
+import { waitGrainObs } from "app/common/gutil";
+import { getUserRoleText } from "app/common/UserAPI";
+
+import { Disposable, dom, styled } from "grainjs";
+import { cssMenuItem } from "popweasel";
 
 const t = makeT("ViewAsBanner");
 const userT = makeT("UserManagerModel");

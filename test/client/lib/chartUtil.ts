@@ -1,4 +1,5 @@
 import { consolidateValues, sortByXValues, splitValuesByIndex } from "app/client/lib/chartUtil";
+
 import { assert } from "chai";
 import { Datum } from "plotly.js";
 

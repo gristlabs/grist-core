@@ -7,6 +7,7 @@ import { icon } from "app/client/ui2018/icons";
 import { menu, menuItem } from "app/client/ui2018/menus";
 import { getCountryCode } from "app/common/Locales";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { dom, makeTestId, styled } from "grainjs";
 
 const testId = makeTestId("test-language-");

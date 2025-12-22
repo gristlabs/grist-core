@@ -2,11 +2,12 @@ import { ApiError } from "app/common/ApiError";
 import { parseSubdomainStrictly } from "app/common/gristUrls";
 import { removeTrailingSlash } from "app/common/gutil";
 import { DocStatus, DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
+import { getAssignmentId } from "app/server/lib/idUtils";
 import log from "app/server/lib/log";
 import { adaptServerUrl } from "app/server/lib/requestUtils";
+
 import * as express from "express";
-import fetch, { Response as FetchResponse, RequestInit } from "node-fetch";
-import { getAssignmentId } from "app/server/lib/idUtils";
+import fetch, { RequestInit, Response as FetchResponse } from "node-fetch";
 
 /**
  * This method transforms a doc worker's public url as needed based on the request.

@@ -1,9 +1,10 @@
 import { GristLoadConfig } from "app/common/gristUrls";
 import { TelemetryLevel } from "app/common/Telemetry";
-import { assert, driver } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import * as testUtils from "test/server/testUtils";
+
+import { assert, driver } from "mocha-webdriver";
 
 const sponsorshipUrl = "https://github.com/sponsors/gristlabs";
 

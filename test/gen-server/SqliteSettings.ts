@@ -1,9 +1,10 @@
 import { UserAPI } from "app/common/UserAPI";
-import { assert } from "chai";
-import * as fse from "fs-extra";
 import { TestServer } from "test/gen-server/apiUtils";
 import * as testUtils from "test/server/testUtils";
 import { EnvironmentSnapshot } from "test/server/testUtils";
+
+import { assert } from "chai";
+import * as fse from "fs-extra";
 
 describe("SqliteSettings", function() {
   this.timeout(60000);

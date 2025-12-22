@@ -1,9 +1,10 @@
-import { dom, styled } from "grainjs";
-import { testId, zIndexes } from "app/client/ui2018/cssVars";
+import BaseView from "app/client/components/BaseView";
 import { makeT } from "app/client/lib/localization";
 import { primaryButton } from "app/client/ui2018/buttons";
+import { testId, zIndexes } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import BaseView from "app/client/components/BaseView";
+
+import { dom, styled } from "grainjs";
 
 const t = makeT("NewRecordButton");
 

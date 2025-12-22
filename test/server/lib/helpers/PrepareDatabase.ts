@@ -1,6 +1,8 @@
-import path from "path";
 import * as testUtils from "test/server/testUtils";
+
 import { execFileSync } from "child_process";
+import path from "path";
+
 
 export async function prepareDatabase(tempDirectory: string, filename: string = "landing.db") {
   // Let's create a sqlite db that we can share with servers that run in other processes, hence

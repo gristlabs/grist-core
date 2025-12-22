@@ -1,18 +1,21 @@
 /**
  * Minimal ActionHistory implementation
  */
+
 import { LocalActionBundle } from "app/common/ActionBundle";
 import { ActionGroup, MinimalActionGroup } from "app/common/ActionGroup";
 import { DocState } from "app/common/DocState";
 import * as marshaller from "app/common/marshal";
-import { reportTimeTaken } from "app/server/lib/reportTimeTaken";
-import * as crypto from "crypto";
-import keyBy from "lodash/keyBy";
-import mapValues from "lodash/mapValues";
 import { ActionGroupOptions, ActionHistory, ActionHistoryUndoInfo, asActionGroup,
   asMinimalActionGroup } from "app/server/lib/ActionHistory";
-import { ISQLiteDB, ResultRow } from "app/server/lib/SQLiteDB";
 import { appSettings } from "app/server/lib/AppSettings";
+import { reportTimeTaken } from "app/server/lib/reportTimeTaken";
+import { ISQLiteDB, ResultRow } from "app/server/lib/SQLiteDB";
+
+import * as crypto from "crypto";
+
+import keyBy from "lodash/keyBy";
+import mapValues from "lodash/mapValues";
 
 const section = appSettings.section("history").section("action");
 

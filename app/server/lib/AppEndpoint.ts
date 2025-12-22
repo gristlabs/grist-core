@@ -3,8 +3,6 @@
  * a browser with Grist. It handles sessions, redirect-to-login, and serving up a suitable version
  * of the client-side code.
  */
-import * as express from "express";
-import pick from "lodash/pick";
 
 import { ApiError } from "app/common/ApiError";
 import { getSlugIfNeeded, parseUrlId, SHARE_KEY_PREFIX } from "app/common/gristUrls";
@@ -25,6 +23,9 @@ import { getCookieDomain } from "app/server/lib/gristSessions";
 import log from "app/server/lib/log";
 import { addOrgToPathIfNeeded, pruneAPIResult, trustOrigin } from "app/server/lib/requestUtils";
 import { ISendAppPageOptions } from "app/server/lib/sendAppPage";
+
+import * as express from "express";
+import pick from "lodash/pick";
 
 export interface AttachOptions {
   app: express.Application;                 // Express app to which to add endpoints

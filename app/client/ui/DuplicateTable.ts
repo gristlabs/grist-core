@@ -1,5 +1,5 @@
-import { makeT } from "app/client/lib/localization";
 import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
 import { cssInput } from "app/client/ui/cssInput";
 import { cssField } from "app/client/ui/MakeCopyMenu";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
@@ -8,6 +8,7 @@ import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
 import { saveModal } from "app/client/ui2018/modals";
 import { commonUrls } from "app/common/gristUrls";
+
 import { Computed, Disposable, dom, input, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("DuplicateTable");

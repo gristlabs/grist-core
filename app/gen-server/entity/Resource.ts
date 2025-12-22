@@ -1,6 +1,7 @@
-import { BaseEntity, Column } from "typeorm";
 import { ApiError } from "app/common/ApiError";
 import { CommonProperties } from "app/common/UserAPI";
+
+import { BaseEntity, Column } from "typeorm";
 
 export class Resource extends BaseEntity {
   @Column({ type: String })

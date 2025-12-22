@@ -1,6 +1,6 @@
-import { SchemaTypes } from "app/common/schema";
-import { safeJsonParse } from "app/common/gutil";
 import { makeAnchorLinkValue } from "app/common/gristUrls";
+import { safeJsonParse } from "app/common/gutil";
+import { SchemaTypes } from "app/common/schema";
 
 /**
  * Comment data stored in the `content` field of a cell.

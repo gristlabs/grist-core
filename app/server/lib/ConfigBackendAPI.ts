@@ -13,6 +13,8 @@ import {LOGIN_SYSTEMS} from 'app/server/lib/loginSystems';
 import {sendOkReply} from 'app/server/lib/requestUtils';
 import * as express from 'express';
 
+import * as express from "express";
+
 export class ConfigBackendAPI {
 
   constructor(private _activations: ActivationsManager) {

@@ -12,7 +12,6 @@ import { downloadDocModal } from "app/client/ui/MakeCopyMenu";
 import { showRenameDocModal } from "app/client/ui/RenameDocModal";
 import { shadowScroll } from "app/client/ui/shadowScroll";
 import { makeShareDocUrl } from "app/client/ui/ShareMenu";
-import { buildTabs, TabProps } from "app/client/ui2018/tabs";
 import {
   isNarrowScreenObs,
   mediaMedium,
@@ -21,15 +20,17 @@ import {
 } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon as cssIcon } from "app/client/ui2018/icons";
-import { unstyledButton, unstyledH2, unstyledUl } from "app/client/ui2018/unstyled";
-import { stretchedLink } from "app/client/ui2018/stretchedLink";
-import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { menu, menuIcon, menuItem, select } from "app/client/ui2018/menus";
 import { confirmModal, saveModal } from "app/client/ui2018/modals";
+import { stretchedLink } from "app/client/ui2018/stretchedLink";
+import { buildTabs, TabProps } from "app/client/ui2018/tabs";
+import { unstyledButton, unstyledH2, unstyledUl } from "app/client/ui2018/unstyled";
+import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { HomePageTab } from "app/common/gristUrls";
 import { SortPref } from "app/common/Prefs";
 import * as roles from "app/common/roles";
 import { Document } from "app/common/UserAPI";
+
 import {
   Computed,
   computedArray,

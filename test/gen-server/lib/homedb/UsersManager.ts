@@ -1,3 +1,4 @@
+import { delay } from "app/common/delay";
 import { buildUrlId, parseUrlId } from "app/common/gristUrls";
 import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
 import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, PREVIEWER_EMAIL, UserAPIImpl, UserOptions } from "app/common/UserAPI";
@@ -14,20 +15,19 @@ import { GetUserOptions, NonGuestGroup, Resource } from "app/gen-server/lib/home
 import { SUPPORT_EMAIL, UsersManager } from "app/gen-server/lib/homedb/UsersManager";
 import { updateDb } from "app/server/lib/dbUtils";
 import { EmitNotifier } from "app/server/lib/INotifier";
-import { MergedServer } from "app/server/MergedServer";
-import { createTestDir, EnvironmentSnapshot } from "test/server/testUtils";
-import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
-
 import log from "app/server/lib/log";
+import { MergedServer } from "app/server/MergedServer";
+import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
+import { createTestDir, EnvironmentSnapshot } from "test/server/testUtils";
+
 import { assert } from "chai";
 import * as fse from "fs-extra";
+import omit from "lodash/omit";
+import fetch from "node-fetch";
 import Sinon, { SinonSandbox, SinonSpy } from "sinon";
 import { EntityManager } from "typeorm";
 import winston from "winston";
-import omit from "lodash/omit";
-import fetch from "node-fetch";
 
-import { delay } from "app/common/delay";
 
 describe("UsersManager", function() {
   this.timeout("3m");

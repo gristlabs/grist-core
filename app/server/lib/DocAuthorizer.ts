@@ -1,9 +1,9 @@
 import { OpenDocMode } from "app/common/DocListAPI";
 // import {Document} from 'app/gen-server/entity/Document';
+import { Role } from "app/common/roles";
 import { DocAuthKey, DocAuthResult, HomeDBDocAuth } from "app/gen-server/lib/homedb/Interfaces";
 import { assertAccess } from "app/server/lib/Authorizer";
 import { AuthSession } from "app/server/lib/AuthSession";
-import { Role } from "app/common/roles";
 
 /**
  *

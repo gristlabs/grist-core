@@ -1,8 +1,9 @@
 import { DocAPI, UserAPI } from "app/common/UserAPI";
-import { assert } from "chai";
 import { TestServer } from "test/gen-server/apiUtils";
 import { createTmpDir } from "test/server/docTools";
 import * as testUtils from "test/server/testUtils";
+
+import { assert } from "chai";
 
 describe("Proposals", function() {
   this.timeout(40000);

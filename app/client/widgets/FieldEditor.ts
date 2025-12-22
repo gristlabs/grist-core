@@ -1,3 +1,4 @@
+import { CellPosition } from "app/client/components/CellPosition";
 import * as commands from "app/client/components/commands";
 import { Cursor } from "app/client/components/Cursor";
 import { GristDoc } from "app/client/components/GristDoc";
@@ -7,16 +8,16 @@ import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { reportError } from "app/client/models/errors";
 import { showTooltipToCreateFormula } from "app/client/widgets/EditorTooltip";
+import { FloatingEditor } from "app/client/widgets/FloatingEditor";
 import { FormulaEditor, getFormulaError } from "app/client/widgets/FormulaEditor";
 import { IEditorCommandGroup, IEditorConstructor, NewBaseEditor } from "app/client/widgets/NewBaseEditor";
 import { asyncOnce } from "app/common/AsyncCreate";
 import { CellValue } from "app/common/DocActions";
 import * as gutil from "app/common/gutil";
-import { CellPosition } from "app/client/components/CellPosition";
-import { FloatingEditor } from "app/client/widgets/FloatingEditor";
 import { CursorPos } from "app/plugin/GristAPI";
-import isEqual from "lodash/isEqual";
+
 import { Disposable, dom, Emitter, Holder, MultiHolder, Observable } from "grainjs";
+import isEqual from "lodash/isEqual";
 
 const t = makeT("FieldEditor");
 

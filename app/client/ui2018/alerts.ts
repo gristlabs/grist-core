@@ -5,9 +5,10 @@
  *
  * `alert('This is some important information')`
  */
-import { dom, DomElementArg, styled } from "grainjs";
 import { vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+
+import { dom, DomElementArg, styled } from "grainjs";
 
 /**
  * Creates an alert element with an icon and message.

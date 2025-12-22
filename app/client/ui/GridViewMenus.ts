@@ -1,10 +1,11 @@
 import { allCommands } from "app/client/components/commands";
-import { GristDoc } from "app/client/components/GristDoc";
+import * as commands from "app/client/components/commands";
 import GridView from "app/client/components/GridView";
+import { GristDoc } from "app/client/components/GristDoc";
 import { makeT } from "app/client/lib/localization";
 import { ColumnRec } from "app/client/models/entities/ColumnRec";
-import { buildDateHelpersMenuItems } from "app/client/ui/GridViewMenusDateHelpers";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { buildDateHelpersMenuItems } from "app/client/ui/GridViewMenusDateHelpers";
 import { withInfoTooltip } from "app/client/ui/tooltips";
 import { isNarrowScreen, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
@@ -26,10 +27,10 @@ import {
 import * as UserType from "app/client/widgets/UserType";
 import { isFullReferencingType, isListType, RecalcWhen } from "app/common/gristTypes";
 import { Sort } from "app/common/SortSpec";
+
 import { dom, DomElementArg, styled } from "grainjs";
-import * as weasel from "popweasel";
-import * as commands from "app/client/components/commands";
 import isEqual from "lodash/isEqual";
+import * as weasel from "popweasel";
 
 const t = makeT("GridViewMenus");
 

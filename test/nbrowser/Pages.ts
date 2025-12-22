@@ -1,10 +1,11 @@
 import { DocCreationInfo } from "app/common/DocListAPI";
 import { UserAPI } from "app/common/UserAPI";
-import { assert, driver, Key } from "mocha-webdriver";
 import { Session } from "test/nbrowser/gristUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
 import values from "lodash/values";
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("Pages", function() {
   this.timeout(60000);

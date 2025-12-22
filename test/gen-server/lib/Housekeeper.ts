@@ -3,13 +3,14 @@ import { Document } from "app/gen-server/entity/Document";
 import { Workspace } from "app/gen-server/entity/Workspace";
 import { Housekeeper } from "app/gen-server/lib/Housekeeper";
 import { Telemetry } from "app/server/lib/Telemetry";
+import { TestServer } from "test/gen-server/apiUtils";
+import { openClient } from "test/server/gristClient";
+import * as testUtils from "test/server/testUtils";
+
 import { assert } from "chai";
 import * as fse from "fs-extra";
 import moment from "moment";
 import * as sinon from "sinon";
-import { TestServer } from "test/gen-server/apiUtils";
-import { openClient } from "test/server/gristClient";
-import * as testUtils from "test/server/testUtils";
 
 describe("Housekeeper", function() {
   testUtils.setTmpLogLevel("error");

@@ -7,6 +7,7 @@ import { ViewSectionRec } from "app/client/models/DocModel";
 import { ChangeType, RowList } from "app/client/models/rowset";
 import { theme } from "app/client/ui2018/cssVars";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+
 import { dom, makeTestId, styled } from "grainjs";
 
 const testId = makeTestId("test-record-card-popup-");

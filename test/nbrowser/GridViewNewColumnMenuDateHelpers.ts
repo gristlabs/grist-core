@@ -1,5 +1,3 @@
-import { assert } from "chai";
-import { driver } from "mocha-webdriver";
 import {
   checkTypeAndFormula,
   clickAddColumn,
@@ -10,6 +8,9 @@ import {
 } from "test/nbrowser/GridViewNewColumnMenuUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert } from "chai";
+import { driver } from "mocha-webdriver";
 
 describe("GridViewNewColumnMenuDateHelpers", function() {
   const STANDARD_WAITING_TIME = 1000;

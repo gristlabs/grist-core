@@ -1,11 +1,14 @@
+
 import { ICustomWidget } from "app/common/CustomWidget";
 import { getAppRoot } from "app/server/lib/places";
-import { assert, By, driver } from "mocha-webdriver";
-import path from "path";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import { serveSomething } from "test/server/customUtil";
 import { EnvironmentSnapshot } from "test/server/testUtils";
+
+import path from "path";
+
+import { assert, By, driver } from "mocha-webdriver";
 
 describe("AttachedCustomWidget", function() {
   this.timeout(20000);

@@ -7,6 +7,7 @@ import { ValidationRec } from "app/client/models/entities/ValidationRec";
 import * as modelUtil from "app/client/models/modelUtil";
 import { buildReassignModal } from "app/client/ui/buildReassignModal";
 import { CellValue, ColValues, DocAction } from "app/common/DocActions";
+
 import * as ko from "knockout";
 
 /**

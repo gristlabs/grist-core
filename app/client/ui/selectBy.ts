@@ -12,6 +12,7 @@ import {
   LinkNodeSection,
   LinkNodeTable,
 } from "app/common/LinkNode";
+
 import { IOptionFull } from "grainjs";
 import isEqual from "lodash/isEqual";
 

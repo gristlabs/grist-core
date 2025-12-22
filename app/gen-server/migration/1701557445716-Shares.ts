@@ -1,4 +1,5 @@
 import { nativeValues } from "app/gen-server/lib/values";
+
 import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableUnique } from "typeorm";
 
 export class Shares1701557445716 implements MigrationInterface {

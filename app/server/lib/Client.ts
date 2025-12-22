@@ -1,10 +1,10 @@
+
 import { BrowserSettings } from "app/common/BrowserSettings";
 import { CommClientConnect, CommMessage, CommResponse, CommResponseError } from "app/common/CommTypes";
 import { delay } from "app/common/delay";
 import { ErrorWithCode } from "app/common/ErrorWithCode";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { AuthSession } from "app/server/lib/AuthSession";
-import type { Comm } from "app/server/lib/Comm";
 import { DocSession, DocSessionPrecursor } from "app/server/lib/DocSession";
 import { GristServerSocket } from "app/server/lib/GristServerSocket";
 import log from "app/server/lib/log";
@@ -12,9 +12,13 @@ import { LogMethods } from "app/server/lib/LogMethods";
 import { MemoryPool } from "app/server/lib/MemoryPool";
 import { fromCallback } from "app/server/lib/serverUtils";
 import { shortDesc } from "app/server/lib/shortDesc";
+
 import * as crypto from "crypto";
 import { IncomingMessage } from "http";
+
 import { i18n } from "i18next";
+
+import type { Comm } from "app/server/lib/Comm";
 
 // How many messages and bytes to accumulate for a disconnected client before booting it.
 // The benefit is that a client who temporarily disconnects and reconnects without missing much,

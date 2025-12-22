@@ -1,15 +1,16 @@
+import { AppModel, TopAppModelImpl } from "app/client/models/AppModel";
 import { addNewButton, cssAddNewButton } from "app/client/ui/AddNewButton";
 import { AppHeader } from "app/client/ui/AppHeader";
 import { PageContents, pagePanels } from "app/client/ui/PagePanels";
 import { attachPageWidgetPicker, openPageWidgetPicker } from "app/client/ui/PageWidgetPicker";
 import { primaryButton } from "app/client/ui2018/buttons";
 import { menu, menuIcon, menuItem } from "app/client/ui2018/menus";
-import { AppModel, TopAppModelImpl } from "app/client/models/AppModel";
-import { dom, DomContents, makeTestId, observable, styled } from "grainjs";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 import { addNewPage, addPages, selected } from "test/fixtures/projects/helpers/Pages";
 import { gristDocMock } from "test/fixtures/projects/helpers/widgetPicker";
 import { withLocale } from "test/fixtures/projects/helpers/withLocale";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+
+import { dom, DomContents, makeTestId, observable, styled } from "grainjs";
 
 const testId = makeTestId("test-pp-");
 

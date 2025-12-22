@@ -1,6 +1,7 @@
 import { AlternateActions, AlternateStorage, ProcessedAction } from "app/common/AlternateActions";
 import { DocAction, UserAction } from "app/common/DocActions";
 import { DocData } from "app/common/DocData";
+
 import max from "lodash/max";
 
 /**

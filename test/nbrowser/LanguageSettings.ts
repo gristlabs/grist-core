@@ -1,6 +1,7 @@
-import { assert, createDriver, driver, WebDriver } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, createDriver, driver, WebDriver } from "mocha-webdriver";
 
 describe("LanguageSettings", function() {
   this.timeout("50s");

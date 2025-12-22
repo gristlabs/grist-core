@@ -1,9 +1,10 @@
+import { CellDiffTool, DIFF_LOCAL } from "app/client/lib/CellDiffTool";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { NewAbstractWidget } from "app/client/widgets/NewAbstractWidget";
 import { inlineStyle } from "app/common/gutil";
+
 import { Diff, DIFF_DELETE, DIFF_INSERT } from "diff-match-patch";
 import { Computed, dom } from "grainjs";
-import { CellDiffTool, DIFF_LOCAL } from "app/client/lib/CellDiffTool";
 
 /**
  *

@@ -5,11 +5,12 @@ import { NEW_DOCUMENT_CODE } from "app/common/UserAPI";
 import { getAnonymousFeatures, Product } from "app/gen-server/entity/Product";
 import { Share } from "app/gen-server/entity/Share";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
-import { assert } from "chai";
 import { TestServer } from "test/gen-server/apiUtils";
 import * as testUtils from "test/server/testUtils";
-import { v4 as uuidv4 } from "uuid";
+
+import { assert } from "chai";
 import omit from "lodash/omit";
+import { v4 as uuidv4 } from "uuid";
 
 const charonProfile = { email: "charon@getgrist.com", name: "Charon" };
 const chimpyProfile = { email: "chimpy@getgrist.com", name: "Chimpy" };

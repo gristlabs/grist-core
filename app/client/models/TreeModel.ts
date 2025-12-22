@@ -14,6 +14,7 @@
 
 import { BulkColValues, UserAction } from "app/common/DocActions";
 import { nativeCompare } from "app/common/gutil";
+
 import { obsArray, ObsArray, Observable } from "grainjs";
 import forEach from "lodash/forEach";
 import forEachRight from "lodash/forEachRight";

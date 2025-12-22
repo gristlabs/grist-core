@@ -8,6 +8,7 @@ import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { getColumnTypes as getNewColumnTypes } from "app/client/ui/GridViewMenus";
 import * as menus from "app/client/ui2018/menus";
+
 import { Computed, dom, IDomArgs, MultiHolder } from "grainjs";
 
 const t = makeT("Menu");

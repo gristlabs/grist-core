@@ -1,3 +1,4 @@
+
 import {
   ActionBundle,
   ActionInfo,
@@ -7,20 +8,22 @@ import {
   SandboxActionBundle,
   UserActionBundle,
 } from "app/common/ActionBundle";
+import { summarizeAction } from "app/common/ActionSummarizer";
 import { ApplyUAExtendedOptions, ApplyUAResult } from "app/common/ActiveDocAPI";
 import { DocAction, getNumRows, SYSTEM_ACTIONS, UserAction } from "app/common/DocActions";
+import { ActionHistory, asActionGroup, getActionUndoInfo } from "app/server/lib/ActionHistory";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { makeExceptionalDocSession, OptDocSession } from "app/server/lib/DocSession";
 import { GranularAccessForBundle } from "app/server/lib/GranularAccess";
 import { insightLogEntry } from "app/server/lib/InsightLog";
 import log from "app/server/lib/log";
 import { LogMethods } from "app/server/lib/LogMethods";
 import { shortDesc } from "app/server/lib/shortDesc";
+
 import assert from "assert";
+
 import { Mutex } from "async-mutex";
 import isEqual from "lodash/isEqual";
-import { ActionHistory, asActionGroup, getActionUndoInfo } from "app/server/lib/ActionHistory";
-import { ActiveDoc } from "app/server/lib/ActiveDoc";
-import { makeExceptionalDocSession, OptDocSession } from "app/server/lib/DocSession";
-import { summarizeAction } from "app/common/ActionSummarizer";
 
 // Don't log details of action bundles in production.
 const LOG_ACTION_BUNDLE = (process.env.NODE_ENV !== "production");

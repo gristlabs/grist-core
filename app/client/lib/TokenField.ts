@@ -16,11 +16,12 @@
  * - Supports undo/redo for token changes.
  */
 import { ACItem } from "app/client/lib/ACIndex";
-import { modKeyProp } from "app/client/lib/browserInfo";
 import { Autocomplete, IAutocompleteOptions } from "app/client/lib/autocomplete";
+import { modKeyProp } from "app/client/lib/browserInfo";
 import { colors, testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { csvDecodeRow, csvEncodeRow } from "app/common/csvFormat";
+
 import { computedArray, IDisposableCtor, IObsArraySplice, ObsArray, obsArray, Observable } from "grainjs";
 import { Disposable, dom, DomElementArg, Holder, styled } from "grainjs";
 

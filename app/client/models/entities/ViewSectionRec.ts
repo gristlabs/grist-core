@@ -19,7 +19,6 @@ import {
 import { BEHAVIOR } from "app/client/models/entities/ColumnRec";
 import * as modelUtil from "app/client/models/modelUtil";
 import { removeRule, RuleOwner } from "app/client/models/RuleOwner";
-import type { Style } from "app/client/models/Styles";
 import { LinkConfig } from "app/client/ui/LinkConfig";
 import { getWidgetTypes } from "app/client/ui/widgetTypesMap";
 import { FilterColValues } from "app/common/ActiveDocAPI";
@@ -32,9 +31,12 @@ import { WidgetType } from "app/common/widgetTypes";
 import { ColumnsToMap, WidgetColumnMap } from "app/plugin/CustomSectionAPI";
 import { CursorPos, UIRowId } from "app/plugin/GristAPI";
 import { GristObjCode } from "app/plugin/GristData";
+
 import { Computed, Holder, Observable, subscribe } from "grainjs";
 import * as ko from "knockout";
 import defaults from "lodash/defaults";
+
+import type { Style } from "app/client/models/Styles";
 
 export interface InsertColOptions {
   colInfo?: ColInfo;

@@ -20,20 +20,22 @@
  */
 
 import { getHumanKey, isMac } from "app/client/components/commands";
-import type { CopySelection } from "app/client/components/CopySelection";
 import * as commands from "app/client/components/commands";
 import { copyToClipboard, readDataFromClipboard } from "app/client/lib/clipboardUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { makePasteHtml, makePasteText, parsePasteHtml, PasteData } from "app/client/lib/tableUtil";
-import type { App } from "app/client/ui/App";
 import { ShortcutKey, ShortcutKeyContent } from "app/client/ui/ShortcutKey";
 import { confirmModal } from "app/client/ui2018/modals";
-import type { DocAction } from "app/common/DocActions";
 import { isNonNullish } from "app/common/gutil";
-import type { TableData } from "app/common/TableData";
 import { tsvDecode } from "app/common/tsvFormat";
+
 import { Disposable, dom, styled } from "grainjs";
+
+import type { CopySelection } from "app/client/components/CopySelection";
+import type { App } from "app/client/ui/App";
+import type { DocAction } from "app/common/DocActions";
+import type { TableData } from "app/common/TableData";
 
 const t = makeT("Clipboard");
 

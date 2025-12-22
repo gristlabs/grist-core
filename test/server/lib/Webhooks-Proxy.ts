@@ -1,11 +1,6 @@
+
 import { UserAPIImpl } from "app/common/UserAPI";
 import { WebhookSubscription } from "app/server/lib/DocApi";
-import axios from "axios";
-import { assert } from "chai";
-import * as express from "express";
-import { tmpdir } from "os";
-import * as path from "path";
-import { createClient } from "redis";
 import { configForUser } from "test/gen-server/testUtils";
 import { serveSomething, Serving } from "test/server/customUtil";
 import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";
@@ -14,6 +9,14 @@ import { signal } from "test/server/lib/helpers/Signal";
 import { TestProxyServer } from "test/server/lib/helpers/TestProxyServer";
 import { TestServer } from "test/server/lib/helpers/TestServer";
 import * as testUtils from "test/server/testUtils";
+
+import { tmpdir } from "os";
+import * as path from "path";
+
+import axios from "axios";
+import { assert } from "chai";
+import * as express from "express";
+import { createClient } from "redis";
 
 const chimpy = configForUser("Chimpy");
 

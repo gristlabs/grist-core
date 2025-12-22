@@ -1,5 +1,5 @@
-import { makeT } from "app/client/lib/localization";
 import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
 import { BEHAVIOR, ColumnRec } from "app/client/models/entities/ColumnRec";
 import { buildHighlightedCode, cssCodeBlock } from "app/client/ui/CodeHighlight";
 import { cssBlockedCursor, cssFieldFormula, cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
@@ -8,17 +8,18 @@ import { buildFormulaTriggers } from "app/client/ui/TriggerFormulas";
 import { textButton } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { textInput } from "app/client/ui2018/editableLabel";
-import { cssIconButton, icon } from "app/client/ui2018/icons";
 import { IconName } from "app/client/ui2018/IconList";
+import { cssIconButton, icon } from "app/client/ui2018/icons";
 import { selectMenu, selectOption, selectTitle } from "app/client/ui2018/menus";
 import { createFormulaErrorObs, cssError } from "app/client/widgets/FormulaEditor";
 import { RecalcWhen } from "app/common/gristTypes";
 import { sanitizeIdent } from "app/common/gutil";
+import { components, tokens } from "app/common/ThemePrefs";
 import { CursorPos } from "app/plugin/GristAPI";
+
 import { bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
   Observable, styled } from "grainjs";
 import * as ko from "knockout";
-import { components, tokens } from "app/common/ThemePrefs";
 
 const t = makeT("FieldConfig");
 

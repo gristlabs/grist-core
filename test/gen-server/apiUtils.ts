@@ -1,3 +1,5 @@
+
+import { isAffirmative } from "app/common/gutil";
 import { Role } from "app/common/roles";
 import { UserAPIImpl, UserProfile } from "app/common/UserAPI";
 import { AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs } from "app/gen-server/entity/AclRule";
@@ -8,20 +10,21 @@ import { Organization } from "app/gen-server/entity/Organization";
 import { Resource } from "app/gen-server/entity/Resource";
 import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
-import { SessionUserObj } from "app/server/lib/BrowserSession";
 import { getDocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { SessionUserObj } from "app/server/lib/BrowserSession";
 import * as docUtils from "app/server/lib/docUtils";
 import { FlexServer, FlexServerOptions } from "app/server/lib/FlexServer";
 import { MergedServer, ServerType } from "app/server/MergedServer";
-import axios from "axios";
-import FormData from "form-data";
-import fetch from "node-fetch";
-import * as path from "path";
 import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
 import { setPlan, waitForAllNotifications } from "test/gen-server/testUtils";
 import { fixturesRoot } from "test/server/testUtils";
-import { isAffirmative } from "app/common/gutil";
+
+import * as path from "path";
+
+import axios from "axios";
+import FormData from "form-data";
+import fetch from "node-fetch";
 
 export class TestServer {
   public serverUrl: string;

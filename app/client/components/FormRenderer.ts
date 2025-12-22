@@ -10,6 +10,7 @@ import { confirmModal } from "app/client/ui2018/modals";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { isAffirmative, isNumber } from "app/common/gutil";
 import { CellValue } from "app/plugin/GristData";
+
 import { Disposable, dom, DomContents, IAttrObj, makeTestId, MutableObsArray, obsArray, Observable } from "grainjs";
 import { IPopupOptions, PopupControl } from "popweasel";
 

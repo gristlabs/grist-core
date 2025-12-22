@@ -1,4 +1,5 @@
 import * as csvFormat from "app/common/csvFormat";
+
 import { assert } from "chai";
 
 describe("csvFormat", function() {

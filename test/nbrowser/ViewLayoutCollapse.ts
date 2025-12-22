@@ -1,10 +1,11 @@
+import { AccessLevel } from "app/common/CustomWidget";
+import { arrayRepeat } from "app/plugin/gutil";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 import { getCollapsedSection, openCollapsedSectionMenu } from "test/nbrowser/ViewLayoutUtils";
-import { assert, driver, Key, WebElement, WebElementPromise } from "mocha-webdriver";
-import { arrayRepeat } from "app/plugin/gutil";
 import { addStatic, serveSomething } from "test/server/customUtil";
-import { AccessLevel } from "app/common/CustomWidget";
+
+import { assert, driver, Key, WebElement, WebElementPromise } from "mocha-webdriver";
 
 const GAP = 16;     // Distance between buttons representing collapsed widgets.
 

@@ -1,4 +1,5 @@
 import * as sqlUtils from "app/gen-server/sqlUtils";
+
 import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 export class GroupUsersCreatedAt1749454162428 implements MigrationInterface {

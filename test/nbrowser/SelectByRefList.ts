@@ -1,7 +1,8 @@
-import * as _ from "lodash";
-import { addToRepl, assert, driver } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
+import * as _ from "lodash";
+import { addToRepl, assert, driver } from "mocha-webdriver";
 
 describe("SelectByRefList", function() {
   this.timeout(90000);

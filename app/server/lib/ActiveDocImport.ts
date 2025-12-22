@@ -1,7 +1,6 @@
 /*  Helper file to separate ActiveDoc import functions and convert them to TypeScript. */
 
-import * as path from "path";
-import * as _ from "underscore";
+
 
 import { ColumnDelta, createEmptyActionSummary } from "app/common/ActionSummary";
 import { ApplyUAResult, DataSourceTransformed, ImportOptions, ImportResult, ImportTableResult,
@@ -19,10 +18,14 @@ import { ParseFileResult, ParseOptions } from "app/plugin/FileParserAPI";
 import { GristColumn, GristTable } from "app/plugin/GristTable";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { DocSession, OptDocSession } from "app/server/lib/DocSession";
+import { buildComparisonQuery } from "app/server/lib/ExpandedQuery";
 import log from "app/server/lib/log";
 import { globalUploadSet, moveUpload, UploadInfo } from "app/server/lib/uploads";
-import { buildComparisonQuery } from "app/server/lib/ExpandedQuery";
+
+import * as path from "path";
+
 import flatten from "lodash/flatten";
+import * as _ from "underscore";
 
 const IMPORT_TRANSFORM_COLUMN_PREFIX = "gristHelper_Import_";
 

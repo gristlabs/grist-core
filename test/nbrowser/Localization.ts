@@ -1,12 +1,16 @@
+import { getAppRoot } from "app/server/lib/places";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
-import { assert, driver } from "mocha-webdriver";
 import * as testUtils from "test/server/testUtils";
-import { getAppRoot } from "app/server/lib/places";
-import fetch from "node-fetch";
+
 import fs from "fs";
 import os from "os";
 import path from "path";
+
+import { assert, driver } from "mocha-webdriver";
+import fetch from "node-fetch";
+
+
 
 // We only support those formats for now:
 // en.client.json

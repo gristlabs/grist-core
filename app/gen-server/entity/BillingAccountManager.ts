@@ -1,6 +1,7 @@
-import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { BillingAccount } from "app/gen-server/entity/BillingAccount";
 import { User } from "app/gen-server/entity/User";
+
+import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 /**
  * A list of users with the right to modify a giving billing account.

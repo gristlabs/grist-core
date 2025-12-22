@@ -8,6 +8,7 @@ import { DocumentSettings } from "app/common/DocumentSettings";
 import { getDistinctValues } from "app/common/gutil";
 import { getCurrency, NumberFormatOptions, NumMode, parseNumMode } from "app/common/NumberFormat";
 import { buildNumberFormat } from "app/common/NumberFormat";
+
 import escapeRegExp from "lodash/escapeRegExp";
 import last from "lodash/last";
 

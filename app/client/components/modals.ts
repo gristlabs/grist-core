@@ -1,16 +1,17 @@
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import { FocusLayer } from "app/client/lib/FocusLayer";
+import { makeT } from "app/client/lib/localization";
 import { reportSuccess } from "app/client/models/errors";
 import { basicButton, bigPrimaryButton, primaryButton } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { mediaXSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssModalTooltip, modalTooltip } from "app/client/ui2018/modals";
+
 import { dom, DomContents, keyframes, observable, styled, svg } from "grainjs";
-import { IPopupOptions } from "popweasel";
-import { makeT } from "app/client/lib/localization";
 import merge from "lodash/merge";
+import { IPopupOptions } from "popweasel";
 
 const t = makeT("modals");
 

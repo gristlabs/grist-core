@@ -1,7 +1,9 @@
-import type { UserAPI } from "app/common/UserAPI";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
 import { assert, driver, Key } from "mocha-webdriver";
+
+import type { UserAPI } from "app/common/UserAPI";
 
 describe("NumericEditor", function() {
   this.timeout(20000);

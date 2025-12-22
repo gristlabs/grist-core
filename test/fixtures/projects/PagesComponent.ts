@@ -1,7 +1,8 @@
-import { dom, observable, styled } from "grainjs";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 import { addNewPage, addPages } from "test/fixtures/projects/helpers/Pages";
 import { withLocale } from "test/fixtures/projects/helpers/withLocale";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+
+import { dom, observable, styled } from "grainjs";
 
 const container = styled("div", `
   width: 240px;

@@ -12,10 +12,11 @@
 // We add a patch to throw an exception if a parameter value is ever set and then
 // changed during construction of a query.
 
-import * as sqlite3 from "@gristlabs/sqlite3";
 import { ApiError } from "app/common/ApiError";
 import { delay } from "app/common/delay";
 import log from "app/server/lib/log";
+
+import * as sqlite3 from "@gristlabs/sqlite3";
 import { Mutex, MutexInterface } from "async-mutex";
 import isEqual from "lodash/isEqual";
 import { EntityManager, ObjectLiteral, QueryRunner, TypeORMError } from "typeorm";

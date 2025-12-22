@@ -52,11 +52,12 @@ import { icon } from "app/client/ui2018/icons";
 import { select } from "app/client/ui2018/menus";
 import { unstyledButton, unstyledUl } from "app/client/ui2018/unstyled";
 import { FieldBuilder } from "app/client/widgets/FieldBuilder";
-import { components } from "app/common/ThemePrefs";
 import { isFullReferencingType } from "app/common/gristTypes";
 import { not } from "app/common/gutil";
 import { StringUnion } from "app/common/StringUnion";
+import { components } from "app/common/ThemePrefs";
 import { IWidgetType } from "app/common/widgetTypes";
+
 import {
   bundleChanges,
   Computed,

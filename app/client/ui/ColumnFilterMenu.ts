@@ -22,7 +22,7 @@ import { cssInput } from "app/client/ui/cssInput";
 import { getDateRangeOptions, IDateRangeOption } from "app/client/ui/DateRangeOptions";
 import { cssPinButton } from "app/client/ui/RightPanelStyles";
 import { basicButton, primaryButton, textButton } from "app/client/ui2018/buttons";
-import { cssLabel as cssCheckboxLabel, cssCheckboxSquare,
+import { cssCheckboxSquare, cssLabel as cssCheckboxLabel,
   cssLabelText, Indeterminate, labeledTriStateSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
@@ -38,16 +38,17 @@ import { formatRelBounds } from "app/common/RelativeDates";
 import { createFormatter } from "app/common/ValueFormatter";
 import { UIRowId } from "app/plugin/GristAPI";
 import { decodeObject } from "app/plugin/objtypes";
+
 import { Computed, dom, DomArg, DomElementArg, DomElementMethod, IDisposableOwner,
   input, makeTestId, Observable, styled } from "grainjs";
-import { IOpenController, IPopupOptions, setPopupToCreateDom } from "popweasel";
 import concat from "lodash/concat";
+import debounce from "lodash/debounce";
 import identity from "lodash/identity";
 import noop from "lodash/noop";
 import partition from "lodash/partition";
 import some from "lodash/some";
 import tail from "lodash/tail";
-import debounce from "lodash/debounce";
+import { IOpenController, IPopupOptions, setPopupToCreateDom } from "popweasel";
 
 const t = makeT("ColumnFilterMenu");
 

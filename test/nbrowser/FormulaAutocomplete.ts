@@ -1,9 +1,10 @@
 import { arrayRepeat } from "app/common/gutil";
 import { UserAPI } from "app/common/UserAPI";
-import { assert, driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 import { withoutSandboxing } from "test/server/testUtils";
+
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("FormulaAutocomplete", function() {
   withoutSandboxing();

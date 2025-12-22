@@ -8,13 +8,14 @@ import { textInput } from "app/client/ui/inputs";
 import { PlayerState, YouTubePlayer } from "app/client/ui/YouTubePlayer";
 import { bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
 import { colors, mediaMedium, mediaXSmall, theme } from "app/client/ui2018/cssVars";
-import { icon } from "app/client/ui2018/icons";
 import { IconName } from "app/client/ui2018/IconList";
+import { icon } from "app/client/ui2018/icons";
 import { modal } from "app/client/ui2018/modals";
 import { BaseAPI } from "app/common/BaseAPI";
 import { commonUrls, getPageTitleSuffix } from "app/common/gristUrls";
 import { UserPrefs } from "app/common/Prefs";
 import { getGristConfig } from "app/common/urlUtils";
+
 import {
   Computed,
   Disposable,

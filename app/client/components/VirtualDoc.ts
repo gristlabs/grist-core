@@ -61,6 +61,15 @@ import * as ko from "knockout";
 import difference from "lodash/difference";
 import omit from "lodash/omit";
 
+import type { BoxSpec } from "app/client/lib/BoxSpec";
+import type { AppModel, TopAppModel } from "app/client/models/AppModel";
+import type { App } from "app/client/ui/App";
+import type { ApplyUAOptions, ApplyUAResult } from "app/common/ActiveDocAPI";
+import type { UserAction } from "app/common/DocActions";
+import type { ISupportedFeatures } from "app/common/UserConfig";
+import type { GristType, RowRecord } from "app/plugin/GristData";
+import type { MaybePromise } from "app/plugin/gutil";
+
 /**
  * Minimal implementation of the GristDoc interface that is suitable for virtual tables. The GristDoc created
  * appears as readonly version of the document.

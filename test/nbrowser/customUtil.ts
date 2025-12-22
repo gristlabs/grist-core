@@ -1,6 +1,7 @@
 export * from "test/server/customUtil";
-import { driver } from "mocha-webdriver";
 import { gu } from "test/nbrowser/gristUtil-nbrowser";
+
+import { driver } from "mocha-webdriver";
 
 export async function setAccess(option: "none" | "read table" | "full") {
   const text = {

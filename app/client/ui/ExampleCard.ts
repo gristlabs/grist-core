@@ -1,10 +1,11 @@
 import { IExampleInfo } from "app/client/ui/ExampleInfo";
+import { AutomaticHelpToolInfo } from "app/client/ui/Tools";
 import { prepareForTransition, TransitionWatcher } from "app/client/ui/transitions";
 import { mediaXSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
+
 import { dom, styled } from "grainjs";
-import { AutomaticHelpToolInfo } from "app/client/ui/Tools";
 
 let prevCardClose: (() => void) | null = null;
 

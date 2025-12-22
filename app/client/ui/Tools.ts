@@ -30,6 +30,7 @@ import { stretchedLink } from "app/client/ui2018/stretchedLink";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { buildOpenAssistantButton } from "app/client/widgets/AssistantPopup";
 import { isOwner } from "app/common/roles";
+
 import { Computed, computed, Disposable, dom, makeTestId,
   Observable, observable, styled } from "grainjs";
 import noop from "lodash/noop";

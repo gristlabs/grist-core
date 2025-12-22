@@ -1,7 +1,8 @@
-import { InstallPrefs } from "app/common/Install";
 import { ApiError } from "app/common/ApiError";
+import { InstallPrefs } from "app/common/Install";
 import { InstallProperties, installPropertyKeys } from "app/common/InstallAPI";
 import { nativeValues } from "app/gen-server/lib/values";
+
 import { BaseEntity, Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity({ name: "activations" })

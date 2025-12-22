@@ -10,10 +10,11 @@ import { reportError } from "app/client/models/AppModel";
 import { SearchModel } from "app/client/models/SearchModel";
 import { hoverTooltip } from "app/client/ui/tooltips";
 import { cssHoverCircle, cssTopBarBtn } from "app/client/ui/TopBarCss";
-import { unstyledButton } from "app/client/ui2018/unstyled";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { mediaSmall, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+import { unstyledButton } from "app/client/ui2018/unstyled";
+
 import { dom, input, styled } from "grainjs";
 import { noTestId, TestId } from "grainjs";
 import debounce from "lodash/debounce";

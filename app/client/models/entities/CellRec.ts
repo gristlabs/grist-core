@@ -1,9 +1,10 @@
-import { isCensored } from "app/common/gristTypes";
-import * as ko from "knockout";
 import { KoArray } from "app/client/lib/koArray";
+import { ColumnRec, DocModel, IRowModel, recordSet, refRecord, TableRec } from "app/client/models/DocModel";
 import { jsonObservable } from "app/client/models/modelUtil";
 import * as modelUtil from "app/client/models/modelUtil";
-import { ColumnRec, DocModel, IRowModel, recordSet, refRecord, TableRec } from "app/client/models/DocModel";
+import { isCensored } from "app/common/gristTypes";
+
+import * as ko from "knockout";
 
 export interface CellRec extends IRowModel<"_grist_Cells"> {
   column: ko.Computed<ColumnRec>;

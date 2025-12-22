@@ -1,6 +1,3 @@
-import * as express from "express";
-import fetch, { RequestInit } from "node-fetch";
-import { AbortController } from "node-abort-controller";
 
 import { ApiError } from "app/common/ApiError";
 import { SHARE_KEY_PREFIX } from "app/common/gristUrls";
@@ -12,6 +9,10 @@ import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
 import { getAssignmentId } from "app/server/lib/idUtils";
 import { addAbortHandler } from "app/server/lib/requestUtils";
+
+import * as express from "express";
+import { AbortController } from "node-abort-controller";
+import fetch, { RequestInit } from "node-fetch";
 
 /**
  * Forwards all /api/docs/:docId/tables requests to the doc worker handling the :docId document. Makes

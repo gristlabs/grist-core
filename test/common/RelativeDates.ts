@@ -1,8 +1,9 @@
 import { DEPS, getMatchingDoubleRelativeDate } from "app/client/ui/RelativeDatesOptions";
-import sinon from "sinon";
+import { diffUnit } from "app/common/RelativeDates";
+
 import { assert } from "chai";
 import moment from "moment-timezone";
-import { diffUnit } from "app/common/RelativeDates";
+import sinon from "sinon";
 
 const CURRENT_TIME = moment.tz("2022-09-26T12:13:32.018Z", "utc");
 const now = () => moment(CURRENT_TIME);

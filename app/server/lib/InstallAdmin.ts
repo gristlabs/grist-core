@@ -1,9 +1,10 @@
 import { ApiError } from "app/common/ApiError";
-import { HomeDBManager, SUPPORT_EMAIL } from "app/gen-server/lib/homedb/HomeDBManager";
 import { InstallAdminInfo } from "app/common/LoginSessionAPI";
+import { User } from "app/gen-server/entity/User";
+import { HomeDBManager, SUPPORT_EMAIL } from "app/gen-server/lib/homedb/HomeDBManager";
 import { appSettings } from "app/server/lib/AppSettings";
 import { getUser, RequestWithLogin } from "app/server/lib/Authorizer";
-import { User } from "app/gen-server/entity/User";
+
 import express from "express";
 
 /**

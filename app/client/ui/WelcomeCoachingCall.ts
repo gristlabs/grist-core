@@ -3,13 +3,14 @@ import { logTelemetryEvent } from "app/client/lib/telemetry";
 import { AppModel } from "app/client/models/AppModel";
 import { bigBasicButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
-import { cardPopup, cssPopupBody, cssPopupButtons, cssPopupCloseButton,
-  cssPopupTitle } from "app/client/ui2018/popups";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
-import { getGristConfig } from "app/common/urlUtils";
-import { dom, styled } from "grainjs";
+import { cardPopup, cssPopupBody, cssPopupButtons, cssPopupCloseButton,
+  cssPopupTitle } from "app/client/ui2018/popups";
 import { commonUrls } from "app/common/gristUrls";
+import { getGristConfig } from "app/common/urlUtils";
+
+import { dom, styled } from "grainjs";
 
 const t = makeT("WelcomeCoachingCall");
 

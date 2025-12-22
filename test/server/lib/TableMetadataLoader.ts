@@ -1,6 +1,6 @@
-import { TableMetadataLoader } from "app/server/lib/TableMetadataLoader";
-import { TableColValues } from "app/common/DocActions";
 import { delay } from "app/common/delay";
+import { TableColValues } from "app/common/DocActions";
+import { TableMetadataLoader } from "app/server/lib/TableMetadataLoader";
 
 import { assert } from "chai";
 

@@ -1,5 +1,6 @@
 import { colors, isNarrowScreenObs } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+
 import { Disposable, dom, DomArg, DomElementArg, makeTestId, Observable, styled } from "grainjs";
 
 const testId = makeTestId("test-banner-");

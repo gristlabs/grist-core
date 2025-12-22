@@ -1,8 +1,8 @@
 import { DEPS, relativeDatesOptions } from "app/client/ui/RelativeDatesOptions";
 
-import sinon, { SinonStub } from "sinon";
 import { assert } from "chai";
 import moment from "moment-timezone";
+import sinon, { SinonStub } from "sinon";
 
 const valueFormatter = (val: any) => moment(val * 1000).format("YYYY-MM-DD");
 const toGristDate = (val: moment.Moment) => Math.floor(val.valueOf() / 1000);

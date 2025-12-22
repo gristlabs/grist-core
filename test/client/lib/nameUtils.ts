@@ -1,4 +1,5 @@
 import { checkName } from "app/client/lib/nameUtils";
+
 import { assert } from "chai";
 
 describe("nameUtils", function() {

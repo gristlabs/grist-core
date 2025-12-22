@@ -1,12 +1,13 @@
 /**
  * Implements an autocomplete dropdown.
  */
-import { createPopper, Modifier, Instance as Popper, Options as PopperOptions } from "@popperjs/core";
 import { ACItem, ACResults, HighlightFunc } from "app/client/lib/ACIndex";
 import { attachMouseOverOnMove, findAncestorChild } from "app/client/lib/domUtils";
 import { reportError } from "app/client/models/errors";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { MaybePromise } from "app/plugin/gutil";
+
+import { createPopper, Instance as Popper, Modifier, Options as PopperOptions } from "@popperjs/core";
 import { Disposable, dom, DomContents } from "grainjs";
 import { obsArray, onKeyElem, styled } from "grainjs";
 import merge from "lodash/merge";

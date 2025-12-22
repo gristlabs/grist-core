@@ -1,6 +1,7 @@
 import { ProposalComparison, ProposalStatus } from "app/common/UserAPI";
 import { Document } from "app/gen-server/entity/Document";
 import { nativeValues } from "app/gen-server/lib/values";
+
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 
 /**

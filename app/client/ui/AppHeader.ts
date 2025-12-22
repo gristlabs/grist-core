@@ -1,23 +1,24 @@
+import { makeTestId } from "app/client/lib/domUtils";
+import { makeT } from "app/client/lib/localization";
 import { getWelcomeHomeUrl } from "app/client/lib/urlUtils";
+import { AppModel } from "app/client/models/AppModel";
+import { DocPageModel } from "app/client/models/DocPageModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { getTheme } from "app/client/ui/CustomThemes";
-import { cssLeftPane } from "app/client/ui/PagePanels";
-import { colors, theme, vars } from "app/client/ui2018/cssVars";
-import { menu, menuItem, menuItemLink, menuSubHeader } from "app/client/ui2018/menus";
-import { commonUrls } from "app/common/gristUrls";
-import { getOrgName, isTemplatesOrg, Organization } from "app/common/UserAPI";
-import { AppModel } from "app/client/models/AppModel";
-import { icon } from "app/client/ui2018/icons";
-import { unstyledButton } from "app/client/ui2018/unstyled";
-import { DocPageModel } from "app/client/models/DocPageModel";
-import * as roles from "app/common/roles";
 import { manageTeamUsersApp } from "app/client/ui/OpenUserManager";
+import { cssLeftPane } from "app/client/ui/PagePanels";
 import { maybeAddSiteSwitcherSection } from "app/client/ui/SiteSwitcher";
-import { Computed, Disposable, dom, DomContents, styled } from "grainjs";
-import { makeT } from "app/client/lib/localization";
-import { getGristConfig } from "app/common/urlUtils";
-import { makeTestId } from "app/client/lib/domUtils";
 import { createUserImage, cssUserImage } from "app/client/ui/UserImage";
+import { colors, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menu, menuItem, menuItemLink, menuSubHeader } from "app/client/ui2018/menus";
+import { unstyledButton } from "app/client/ui2018/unstyled";
+import { commonUrls } from "app/common/gristUrls";
+import * as roles from "app/common/roles";
+import { getGristConfig } from "app/common/urlUtils";
+import { getOrgName, isTemplatesOrg, Organization } from "app/common/UserAPI";
+
+import { Computed, Disposable, dom, DomContents, styled } from "grainjs";
 
 const t = makeT("AppHeader");
 const testId = makeTestId("test-dm-");

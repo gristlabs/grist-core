@@ -8,6 +8,7 @@ import * as commands from "app/client/components/commands";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { LazyArrayModel } from "app/client/models/DataTableModel";
 import { CursorPos, UIRowId } from "app/plugin/GristAPI";
+
 import { Disposable } from "grainjs";
 import * as ko from "knockout";
 

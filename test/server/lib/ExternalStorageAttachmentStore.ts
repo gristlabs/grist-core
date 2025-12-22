@@ -3,8 +3,9 @@ import {
   ExternalStorageSupportingAttachments, loadAttachmentFileIntoMemory,
 } from "app/server/lib/AttachmentStore";
 
-import { assert } from "chai";
 import * as stream from "node:stream";
+
+import { assert } from "chai";
 import sinon from "sinon";
 
 const testStoreId = "test-store-1";

@@ -1,6 +1,7 @@
 import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, UserAPI } from "app/common/UserAPI";
-import { GristClient, openClient } from "test/server/gristClient";
 import { TestServer } from "test/gen-server/apiUtils";
+import { GristClient, openClient } from "test/server/gristClient";
+
 import { assert } from "chai";
 import { zipObject } from "lodash";
 import * as sinon from "sinon";

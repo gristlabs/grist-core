@@ -1,4 +1,5 @@
 import * as sqlUtils from "app/gen-server/sqlUtils";
+
 import { MigrationInterface, QueryRunner, Table, TableIndex } from "typeorm";
 
 export class AssistantLimit1685343047786 implements MigrationInterface {

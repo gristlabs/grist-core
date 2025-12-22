@@ -1,8 +1,9 @@
 import { UserAPI } from "app/common/UserAPI";
-import { assert, driver, until } from "mocha-webdriver";
+import { Button, button, element, label, option } from "test/nbrowser/elementUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
-import { Button, button, element, label, option } from "test/nbrowser/elementUtils";
+
+import { assert, driver, until } from "mocha-webdriver";
 
 type TypeLabels = "Regular" | "Template" | "Tutorial";
 

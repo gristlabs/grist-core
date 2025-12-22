@@ -3,9 +3,10 @@
  */
 import { safeJsonParse } from "app/common/gutil";
 import { GristObjCode } from "app/plugin/GristData";
-import { assert } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert } from "mocha-webdriver";
 
 describe("CopyPasteColumnOptions", function() {
   this.timeout(20000);

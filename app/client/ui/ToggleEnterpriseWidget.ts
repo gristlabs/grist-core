@@ -14,6 +14,7 @@ import { icon } from "app/client/ui2018/icons";
 import { ActivationState, commonUrls } from "app/common/gristUrls";
 import { not } from "app/common/gutil";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { BindableValue, Computed, Disposable, dom, input, MultiHolder, Observable, styled } from "grainjs";
 
 const t = makeT("ToggleEnterpriseWidget");

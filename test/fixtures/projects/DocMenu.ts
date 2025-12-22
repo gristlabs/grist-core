@@ -1,10 +1,11 @@
 import { TopAppModelImpl } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { createAppUI } from "app/client/ui/AppUI";
-import { dom } from "grainjs";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 import { MockUserAPI } from "test/fixtures/projects/helpers/MockUserAPI";
 import { withLocale } from "test/fixtures/projects/helpers/withLocale";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+
+import { dom } from "grainjs";
 
 const mockUserApi = new MockUserAPI();
 // Simple mock values - not used in tests, but required for home plugins

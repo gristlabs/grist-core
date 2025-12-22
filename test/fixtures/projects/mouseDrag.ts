@@ -1,7 +1,8 @@
 import { mouseDrag } from "app/client/ui/mouseDrag";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
 import { dom, makeTestId, observable, styled } from "grainjs";
 import pick from "lodash/pick";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 
 const testId = makeTestId("test-");
 

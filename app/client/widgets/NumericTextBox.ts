@@ -16,6 +16,7 @@ import { buildCurrencyPicker } from "app/client/widgets/CurrencyPicker";
 import { NTextBox } from "app/client/widgets/NTextBox";
 import { numberOrDefault } from "app/common/gutil";
 import { buildNumberFormat, NumberFormatOptions, NumMode, NumSign } from "app/common/NumberFormat";
+
 import { Computed, dom, DomContents, fromKo, MultiHolder, styled } from "grainjs";
 import * as LocaleCurrency from "locale-currency";
 

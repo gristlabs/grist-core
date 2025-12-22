@@ -1,5 +1,6 @@
-import { assert, driver, stackWrapFunc, until } from "mocha-webdriver";
 import { server, setupTestSuite } from "test/projects/testUtils";
+
+import { assert, driver, stackWrapFunc, until } from "mocha-webdriver";
 
 describe("NotifyBar", function() {
   setupTestSuite();

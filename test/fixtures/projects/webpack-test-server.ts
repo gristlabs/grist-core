@@ -18,11 +18,14 @@
  * fetch using webdriver.
  */
 import { exitPromise } from "app/server/lib/serverUtils";
+
 import { ChildProcess, spawn } from "child_process";
+import * as path from "path";
+
 import { driver, IMochaContext, IMochaServer } from "mocha-webdriver";
 import fetch from "node-fetch";
 import stripAnsi from "strip-ansi";
-import * as path from "path";
+
 
 const configPath = process.env.PROJECTS_WEBPACK_CONFIG || path.resolve(__dirname, "webpack.config.js");
 

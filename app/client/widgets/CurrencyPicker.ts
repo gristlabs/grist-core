@@ -1,9 +1,10 @@
-import { makeT } from "app/client/lib/localization";
-import { ACSelectItem, buildACSelect } from "app/client/lib/ACSelect";
-import { Computed, IDisposableOwner, Observable } from "grainjs";
 import { ACIndexImpl } from "app/client/lib/ACIndex";
+import { ACSelectItem, buildACSelect } from "app/client/lib/ACSelect";
+import { makeT } from "app/client/lib/localization";
 import { testId } from "app/client/ui2018/cssVars";
 import { currencies } from "app/common/Locales";
+
+import { Computed, IDisposableOwner, Observable } from "grainjs";
 
 const t = makeT("CurrencyPicker");
 

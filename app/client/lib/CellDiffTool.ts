@@ -1,6 +1,7 @@
 import { isVersions } from "app/common/gristTypes";
 import { BaseFormatter } from "app/common/ValueFormatter";
 import { CellValue } from "app/plugin/GristData";
+
 import { Diff, DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, diff_match_patch as DiffMatchPatch } from "diff-match-patch";
 
 export class CellDiffTool {

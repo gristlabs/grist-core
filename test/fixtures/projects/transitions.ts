@@ -1,6 +1,7 @@
 import { transition } from "app/client/ui/transitions";
-import { dom, input, Observable, styled } from "grainjs";
 import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { dom, input, Observable, styled } from "grainjs";
 
 function setupTest() {
   const toggle = Observable.create(null, false);

@@ -7,10 +7,11 @@ import { Expirable, IAppError, Notification, Notifier, NotifyAction, Progress } 
 import { hoverTooltip } from "app/client/ui/tooltips";
 import { cssHoverCircle, cssTopBarBtn } from "app/client/ui/TopBarCss";
 import { theme, vars } from "app/client/ui2018/cssVars";
-import { icon } from "app/client/ui2018/icons";
 import { IconName } from "app/client/ui2018/IconList";
+import { icon } from "app/client/ui2018/icons";
 import { menuCssClass } from "app/client/ui2018/menus";
 import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
+
 import { dom, makeTestId, styled } from "grainjs";
 import { cssMenu, defaultMenuOptions, IOpenController, setPopupToCreateDom } from "popweasel";
 

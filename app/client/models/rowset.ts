@@ -23,9 +23,10 @@
 import koArray, { KoArray } from "app/client/lib/koArray";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 import { CompareFunc, sortedIndex } from "app/common/gutil";
-import { SkippableRows } from "app/common/TableData";
 import { RowFilterFunc } from "app/common/RowFilterFunc";
+import { SkippableRows } from "app/common/TableData";
 import { UIRowId } from "app/plugin/GristAPI";
+
 import { Observable } from "grainjs";
 
 /**

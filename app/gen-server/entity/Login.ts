@@ -1,3 +1,5 @@
+import { User } from "app/gen-server/entity/User";
+
 import {
   BaseEntity,
   BeforeInsert,
@@ -10,7 +12,6 @@ import {
   PrimaryColumn,
 } from "typeorm";
 
-import { User } from "app/gen-server/entity/User";
 
 @Entity({ name: "logins" })
 export class Login extends BaseEntity {

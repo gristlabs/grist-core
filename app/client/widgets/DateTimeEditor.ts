@@ -3,8 +3,8 @@ import { FieldOptions } from "app/client/widgets/NewBaseEditor";
 import { removePrefix } from "app/common/gutil";
 import { parseDate } from "app/common/parseDate";
 
-import moment from "moment-timezone";
 import { dom } from "grainjs";
+import moment from "moment-timezone";
 
 /**
  * DateTimeEditor - Editor for DateTime type. Includes a dropdown datepicker.

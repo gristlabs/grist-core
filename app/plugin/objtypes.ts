@@ -4,6 +4,7 @@
  */
 
 import { CellValue, GristObjCode } from "app/plugin/GristData";
+
 import isPlainObject from "lodash/isPlainObject";
 
 // The text to show on cells whose values are pending.

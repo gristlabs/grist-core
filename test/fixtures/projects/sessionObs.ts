@@ -1,8 +1,9 @@
 import { createSessionObs, isBoolean, isNumber } from "app/client/lib/sessionObs";
 import { safeJsonParse } from "app/common/gutil";
 import { StringUnion } from "app/common/StringUnion";
-import { dom, makeTestId, MultiHolder, Observable, styled } from "grainjs";
 import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { dom, makeTestId, MultiHolder, Observable, styled } from "grainjs";
 
 const testId = makeTestId("test-");
 

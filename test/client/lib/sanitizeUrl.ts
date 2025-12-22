@@ -3,6 +3,7 @@ import {
   sanitizeHttpUrl,
   sanitizeLinkUrl,
 } from "app/client/lib/sanitizeUrl";
+
 import { assert } from "chai";
 import DOMPurify from "dompurify";
 import { JSDOM } from "jsdom";

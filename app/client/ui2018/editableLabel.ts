@@ -10,6 +10,7 @@
  * TODO: Consider merging this into grainjs's input widget.
  */
 import { theme } from "app/client/ui2018/cssVars";
+
 import { dom, DomArg, styled } from "grainjs";
 import { Observable } from "grainjs";
 import noop from "lodash/noop";

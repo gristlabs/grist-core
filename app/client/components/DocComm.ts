@@ -6,6 +6,7 @@ import { CommMessage } from "app/common/CommTypes";
 import { UserAction } from "app/common/DocActions";
 import { OpenLocalDocResult } from "app/common/DocListAPI";
 import { docUrl } from "app/common/urlUtils";
+
 import { Events as BackboneEvents } from "backbone";
 import { Disposable, Emitter } from "grainjs";
 

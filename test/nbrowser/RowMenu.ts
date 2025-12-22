@@ -1,5 +1,6 @@
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
 import { assert, driver, Key, WebElement } from "mocha-webdriver";
 
 describe("RowMenu", function() {

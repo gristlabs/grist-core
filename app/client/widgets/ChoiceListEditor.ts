@@ -6,7 +6,10 @@ import { IAutocompleteOptions } from "app/client/lib/autocomplete";
 import { makeT } from "app/client/lib/localization";
 import { IToken, TokenField, tokenFieldStyles } from "app/client/lib/TokenField";
 import { colors, testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
 import { menuCssClass } from "app/client/ui2018/menus";
+import { ChoiceOptions } from "app/client/widgets/ChoiceTextBox";
+import { choiceToken, choiceTokenDomArgs, cssChoiceACItem } from "app/client/widgets/ChoiceToken";
 import { createMobileButtons, getButtonMargins } from "app/client/widgets/EditorButtons";
 import { EditorPlacement } from "app/client/widgets/EditorPlacement";
 import { FieldOptions, NewBaseEditor } from "app/client/widgets/NewBaseEditor";
@@ -15,9 +18,7 @@ import { CellValue } from "app/common/DocActions";
 import { CompiledPredicateFormula } from "app/common/PredicateFormula";
 import { EmptyRecordView } from "app/common/RecordView";
 import { decodeObject, encodeObject } from "app/plugin/objtypes";
-import { ChoiceOptions } from "app/client/widgets/ChoiceTextBox";
-import { choiceToken, choiceTokenDomArgs, cssChoiceACItem } from "app/client/widgets/ChoiceToken";
-import { icon } from "app/client/ui2018/icons";
+
 import { dom, styled } from "grainjs";
 
 const t = makeT("ChoiceListEditor");

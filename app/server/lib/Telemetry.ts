@@ -1,6 +1,7 @@
 import { ApiError } from "app/common/ApiError";
 import { TelemetryConfig } from "app/common/gristUrls";
 import { assertIsDefined } from "app/common/gutil";
+import { TelemetryPrefsWithSources } from "app/common/InstallAPI";
 import {
   buildTelemetryEventChecker,
   Level,
@@ -14,7 +15,6 @@ import {
   TelemetryMetadataByLevel,
   TelemetryRetentionPeriod,
 } from "app/common/Telemetry";
-import { TelemetryPrefsWithSources } from "app/common/InstallAPI";
 import { Activation } from "app/gen-server/entity/Activation";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
@@ -29,9 +29,9 @@ import { getAuthSession, getLogMeta, isRequest, RequestOrSession } from "app/ser
 
 import * as cookie from "cookie";
 import * as express from "express";
-import fetch from "node-fetch";
 import merge from "lodash/merge";
 import pickBy from "lodash/pickBy";
+import fetch from "node-fetch";
 
 interface RequestWithMatomoVisitorId extends RequestWithLogin {
   /**

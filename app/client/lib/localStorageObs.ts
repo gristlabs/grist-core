@@ -1,6 +1,7 @@
-import { safeJsonParse } from "app/common/gutil";
-import { Observable } from "grainjs";
 import { getSessionStorage, getStorage } from "app/client/lib/storage";
+import { safeJsonParse } from "app/common/gutil";
+
+import { Observable } from "grainjs";
 
 function getStorageBoolObs(store: Storage, key: string, defValue: boolean) {
   const storedNegation = defValue ? "false" : "true";

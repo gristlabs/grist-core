@@ -1,10 +1,11 @@
-import { Placement } from "@popperjs/core";
-import { IRangeBoundType, isEquivalentBound } from "app/common/FilterState";
-import { Disposable, dom, Observable } from "grainjs";
-import { IOpenController, IPopupOptions, PopupControl } from "popweasel";
 import { popupControl } from "app/client/lib/popupControl";
 import { IOptionFull, SimpleList } from "app/client/lib/simpleList";
 import { relativeDatesOptions } from "app/client/ui/RelativeDatesOptions";
+import { IRangeBoundType, isEquivalentBound } from "app/common/FilterState";
+
+import { Placement } from "@popperjs/core";
+import { Disposable, dom, Observable } from "grainjs";
+import { IOpenController, IPopupOptions, PopupControl } from "popweasel";
 
 export interface IOptionsDropdownOpt {
   placement: Placement;

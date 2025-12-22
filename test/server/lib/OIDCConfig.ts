@@ -10,7 +10,7 @@ import { EnvironmentSnapshot } from "test/server/testUtils";
 import { assert } from "chai";
 import express from "express";
 import _ from "lodash";
-import { Client, custom, generators, errors as OIDCError } from "openid-client";
+import { Client, custom, errors as OIDCError, generators } from "openid-client";
 import Sinon from "sinon";
 
 const NOOPED_SEND_APP_PAGE: SendAppPageFunction = () => Promise.resolve();

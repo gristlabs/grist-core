@@ -1,8 +1,9 @@
 import { hooks } from "app/client/Hooks";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { DomContents } from "grainjs";
-import i18next from "i18next";
 import { G } from "grainjs/dist/cjs/lib/browserGlobals";
+import i18next from "i18next";
 
 export async function setupLocale() {
   const now = Date.now();

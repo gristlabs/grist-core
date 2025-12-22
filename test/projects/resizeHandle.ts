@@ -1,5 +1,6 @@
-import { assert, driver, Origin } from "mocha-webdriver";
 import { server, setupTestSuite } from "test/projects/testUtils";
+
+import { assert, driver, Origin } from "mocha-webdriver";
 
 describe("resizeHandle", function() {
   setupTestSuite();

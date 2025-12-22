@@ -21,6 +21,7 @@ import {
 import { CellDelta, TabularDiff, TabularDiffs } from "app/common/TabularDiff";
 import { timeFormat } from "app/common/timeFormat";
 import { ResultRow, TimeCursor, TimeQuery } from "app/common/TimeQuery";
+
 import { Disposable, dom, DomContents, fromKo, IDomComponent, makeTestId, styled } from "grainjs";
 import * as ko from "knockout";
 import takeWhile from "lodash/takeWhile";

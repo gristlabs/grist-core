@@ -1,7 +1,8 @@
-import * as LocaleCurrencyMap from "locale-currency/map";
-import * as LocaleCurrency from "locale-currency";
 import { nativeCompare } from "app/common/gutil";
 import { localeCodes } from "app/common/LocaleCodes";
+
+import * as LocaleCurrency from "locale-currency";
+import * as LocaleCurrencyMap from "locale-currency/map";
 
 const DEFAULT_CURRENCY = "USD";
 

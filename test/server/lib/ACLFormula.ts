@@ -1,12 +1,13 @@
 import { CellValue } from "app/common/DocActions";
-import { GristObjCode } from "app/plugin/GristData";
 import { CompiledPredicateFormula, compilePredicateFormula } from "app/common/PredicateFormula";
 import { InfoView } from "app/common/RecordView";
 import { User } from "app/common/User";
+import { GristObjCode } from "app/plugin/GristData";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
-import { assert } from "chai";
 import { createDocTools } from "test/server/docTools";
 import * as testUtils from "test/server/testUtils";
+
+import { assert } from "chai";
 
 describe("ACLFormula", function() {
   this.timeout(10000);

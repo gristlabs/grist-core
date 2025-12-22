@@ -2,9 +2,10 @@
  * This test page shows the circular user-icons for users with and without images.
  */
 import { createUserImage, Size } from "app/client/ui/UserImage";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+
 import { dom, styled } from "grainjs";
 import range from "lodash/range";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 function setupTest() {
   return dom("div",

@@ -85,7 +85,7 @@ import * as express from 'express';
 import pick from 'lodash/pick';
 
 import {
-  Client, ClientMetadata, custom, Issuer, errors as OIDCError, TokenSet, UserinfoResponse,
+  Client, ClientMetadata, custom, errors as OIDCError, Issuer, TokenSet, UserinfoResponse,
 } from "openid-client";
 
 

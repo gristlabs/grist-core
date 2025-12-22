@@ -1,16 +1,16 @@
 import { ApiError } from "app/common/ApiError";
 import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
-import { UserOptions } from "app/common/UserAPI";
 import * as roles from "app/common/roles";
+import { UserOptions } from "app/common/UserAPI";
 import { Document } from "app/gen-server/entity/Document";
 import { Group } from "app/gen-server/entity/Group";
 import { AccessOptionWithRole, Organization } from "app/gen-server/entity/Organization";
+import { ServiceAccount } from "app/gen-server/entity/ServiceAccount";
 import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
+import { GroupTypes } from "app/gen-server/lib/homedb/GroupsManager";
 
 import { EntityManager } from "typeorm";
-import { GroupTypes } from "app/gen-server/lib/homedb/GroupsManager";
-import { ServiceAccount } from "app/gen-server/entity/ServiceAccount";
 
 export interface QueryResult<T> {
   status: number;

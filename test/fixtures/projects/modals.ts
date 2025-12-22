@@ -1,10 +1,11 @@
 import { basicButton } from "app/client/ui2018/buttons";
 import { primaryButton } from "app/client/ui2018/buttons";
 import { confirmModal, modal, saveModal, spinnerModal } from "app/client/ui2018/modals";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
 import { dom, input, makeTestId, styled } from "grainjs";
 import { Computed, Observable, observable } from "grainjs";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 function setupTest() {
   const confirmed = observable(false);

@@ -1,6 +1,6 @@
+import BaseRowModel from "app/client/models/BaseRowModel";
 import { DocModel, ViewFieldRec } from "app/client/models/DocModel";
 import { CursorPos } from "app/plugin/GristAPI";
-import BaseRowModel from "app/client/models/BaseRowModel";
 
 /**
  * Absolute position of a cell in a document

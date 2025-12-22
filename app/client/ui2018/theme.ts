@@ -1,7 +1,8 @@
+import { getOrCreateStyleElement } from "app/client/lib/getOrCreateStyleElement";
 import { createPausableObs, PausableObservable } from "app/client/lib/pausableObs";
 import { getStorage } from "app/client/lib/storage";
-import { getOrCreateStyleElement } from "app/client/lib/getOrCreateStyleElement";
 import { urlState } from "app/client/models/gristUrlState";
+import { isFeatureEnabled } from "app/common/gristUrls";
 import {
   components,
   componentsCssMapping,
@@ -17,7 +18,7 @@ import {
 } from "app/common/ThemePrefs";
 import { getThemeTokens } from "app/common/Themes";
 import { getGristConfig } from "app/common/urlUtils";
-import { isFeatureEnabled } from "app/common/gristUrls";
+
 import { Computed, Observable } from "grainjs";
 import isEqual from "lodash/isEqual";
 

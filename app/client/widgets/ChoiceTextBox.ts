@@ -1,9 +1,9 @@
+import { DropdownConditionConfig } from "app/client/components/DropdownConditionConfig";
 import {
   FormFieldRulesConfig,
   FormOptionsSortConfig,
   FormSelectConfig,
 } from "app/client/components/Forms/FormConfig";
-import { DropdownConditionConfig } from "app/client/components/DropdownConditionConfig";
 import { GristDoc } from "app/client/components/GristDoc";
 import { makeT } from "app/client/lib/localization";
 import { DataRowModel } from "app/client/models/DataRowModel";
@@ -16,6 +16,7 @@ import { icon } from "app/client/ui2018/icons";
 import { ChoiceListEntry } from "app/client/widgets/ChoiceListEntry";
 import { choiceToken } from "app/client/widgets/ChoiceToken";
 import { NTextBox } from "app/client/widgets/NTextBox";
+
 import { Computed, dom, styled } from "grainjs";
 
 export type IChoiceOptions = Style;

@@ -1,17 +1,17 @@
+import { ApiError } from "app/common/ApiError";
 import * as roles from "app/common/roles";
 import { AclRule } from "app/gen-server/entity/AclRule";
 import { Document } from "app/gen-server/entity/Document";
 import { Group } from "app/gen-server/entity/Group";
-import { GroupWithMembersDescriptor, NonGuestGroup,
-  Resource, RoleGroupDescriptor, RunInTransaction } from "app/gen-server/lib/homedb/Interfaces";
 import { Organization } from "app/gen-server/entity/Organization";
-import { Permissions } from "app/gen-server/lib/Permissions";
 import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
+import { GroupWithMembersDescriptor, NonGuestGroup,
+  Resource, RoleGroupDescriptor, RunInTransaction } from "app/gen-server/lib/homedb/Interfaces";
+import { UsersManager } from "app/gen-server/lib/homedb/UsersManager";
+import { Permissions } from "app/gen-server/lib/Permissions";
 
 import { EntityManager } from "typeorm";
-import { UsersManager } from "app/gen-server/lib/homedb/UsersManager";
-import { ApiError } from "app/common/ApiError";
 
 export type GroupTypes = typeof Group.ROLE_TYPE | typeof Group.TEAM_TYPE;
 

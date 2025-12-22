@@ -1,21 +1,23 @@
-import * as net from "net";
 
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { Deps as ActiveDocDeps } from "app/server/lib/ActiveDoc";
-import { Deps as DiscourseConnectDeps } from "app/server/lib/DiscourseConnect";
 import { Deps as CommClientDeps } from "app/server/lib/Client";
 import * as Client from "app/server/lib/Client";
 import { Comm } from "app/server/lib/Comm";
-import log from "app/server/lib/log";
-import { IMessage, Rpc } from "grain-rpc";
-import { EventEmitter } from "events";
-import { Request } from "express";
-import * as t from "ts-interface-checker";
+import { Deps as DiscourseConnectDeps } from "app/server/lib/DiscourseConnect";
 import { FlexServer } from "app/server/lib/FlexServer";
 import { ClientJsonMemoryLimits, ITestingHooks } from "app/server/lib/ITestingHooks";
 import ITestingHooksTI from "app/server/lib/ITestingHooks-ti";
+import log from "app/server/lib/log";
 import { connect, fromCallback } from "app/server/lib/serverUtils";
 import { WidgetRepositoryImpl } from "app/server/lib/WidgetRepository";
+
+import { EventEmitter } from "events";
+import * as net from "net";
+
+import { Request } from "express";
+import { IMessage, Rpc } from "grain-rpc";
+import * as t from "ts-interface-checker";
 
 const tiCheckers = t.createCheckers(ITestingHooksTI, { UserProfile: t.name("object") });
 

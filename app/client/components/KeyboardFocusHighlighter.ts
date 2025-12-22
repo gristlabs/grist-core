@@ -8,6 +8,7 @@
  * without impacting touch/mouse users, and without having to change the whole codebase.
  */
 import { components } from "app/common/ThemePrefs";
+
 import { Disposable, dom, styled } from "grainjs";
 
 export class KeyboardFocusHighlighter extends Disposable {

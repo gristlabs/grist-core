@@ -2,6 +2,7 @@ import { DocPrefs } from "app/common/Prefs";
 import { Document } from "app/gen-server/entity/Document";
 import { User } from "app/gen-server/entity/User";
 import { nativeValues } from "app/gen-server/lib/values";
+
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 
 @Entity({ name: "doc_prefs" })

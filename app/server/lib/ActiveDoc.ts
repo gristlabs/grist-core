@@ -4,6 +4,7 @@
  * change events.
  */
 
+
 import { ACLRuleCollection } from "app/common/ACLRuleCollection";
 import {
   getEnvContent,
@@ -40,6 +41,9 @@ import {
   VisibleUserProfile,
 } from "app/common/ActiveDocAPI";
 import { ApiError } from "app/common/ApiError";
+import {
+  AssistanceContextV1, AssistanceRequest, AssistanceResponse, isAssistanceRequestV2,
+} from "app/common/Assistance";
 import { mapGetOrSet, MapWithTTL } from "app/common/AsyncCreate";
 import { AttachmentColumns, gatherAttachmentIds, getAttachmentColumns } from "app/common/AttachmentColumns";
 import { WebhookMessageType } from "app/common/CommTypes";
@@ -92,11 +96,11 @@ import { TelemetryEvent, TelemetryMetadataByLevel } from "app/common/Telemetry";
 import { FetchUrlOptions, UploadResult } from "app/common/uploads";
 import {
   ANONYMOUS_USER_EMAIL,
-  Document as APIDocument,
   ArchiveUploadResult,
   AttachmentTransferStatus,
   CreatableArchiveFormats,
   DocReplacementOptions,
+  Document as APIDocument,
   NEW_DOCUMENT_CODE,
 } from "app/common/UserAPI";
 import { convertFromColumn } from "app/common/ValueConverter";
@@ -108,6 +112,10 @@ import { Scope } from "app/gen-server/lib/homedb/HomeDBManager";
 import { RecordWithStringId } from "app/plugin/DocApiTypes";
 import { ParseFileResult, ParseOptions } from "app/plugin/FileParserAPI";
 import { AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId } from "app/plugin/GristAPI";
+import { ActionHistory } from "app/server/lib/ActionHistory";
+import { ActionHistoryImpl } from "app/server/lib/ActionHistoryImpl";
+import { ActiveDocImport, FileImportOptions } from "app/server/lib/ActiveDocImport";
+import { appSettings } from "app/server/lib/AppSettings";
 import {
   Archive,
   ArchiveEntry,
@@ -115,29 +123,37 @@ import {
   create_zip_archive, unpackTarArchive,
 } from "app/server/lib/Archive";
 import { getAndRemoveAssistantStatePermit } from "app/server/lib/AssistantStatePermit";
+import { AttachmentFileManager, MismatchedFileHashError } from "app/server/lib/AttachmentFileManager";
+import { IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
+import { AuditEventAction } from "app/server/lib/AuditEvent";
+import { RequestWithLogin } from "app/server/lib/Authorizer";
+import { Client } from "app/server/lib/Client";
+import { getChanges, getMetaTables } from "app/server/lib/DocApi";
+import { DocClients } from "app/server/lib/DocClients";
+import { DEFAULT_CACHE_TTL, DocManager } from "app/server/lib/DocManager";
+import { DocPluginManager } from "app/server/lib/DocPluginManager";
+import { DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSession } from "app/server/lib/DocSession";
+import { createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY } from "app/server/lib/DocStorage";
+import { expandQuery, getFormulaErrorForExpandQuery } from "app/server/lib/ExpandedQuery";
+import { GranularAccess, GranularAccessForBundle } from "app/server/lib/GranularAccess";
+import { GristServer } from "app/server/lib/GristServer";
 import {
   AssistanceFormulaEvaluationResult,
   AssistanceSchemaPromptV1Context,
   isAssistantV2,
 } from "app/server/lib/IAssistant";
-import {
-  AssistanceContextV1, AssistanceRequest, AssistanceResponse, isAssistanceRequestV2,
-} from "app/common/Assistance";
-import { appSettings } from "app/server/lib/AppSettings";
-import { AuditEventAction } from "app/server/lib/AuditEvent";
-import { RequestWithLogin } from "app/server/lib/Authorizer";
-import { Client } from "app/server/lib/Client";
-import { getChanges, getMetaTables } from "app/server/lib/DocApi";
-import { DEFAULT_CACHE_TTL, DocManager } from "app/server/lib/DocManager";
-import { GristServer } from "app/server/lib/GristServer";
 import { AuditEventProperties } from "app/server/lib/IAuditLogger";
 import { makeForkIds } from "app/server/lib/idUtils";
 import { GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL } from "app/server/lib/initialDocSql";
+import { insightLogDecorate, insightLogEntry, insightLogWrap } from "app/server/lib/InsightLog";
 import { ISandbox } from "app/server/lib/ISandbox";
 import log from "app/server/lib/log";
 import { LogMethods } from "app/server/lib/LogMethods";
 import { ISandboxOptions } from "app/server/lib/NSandbox";
 import { NullSandbox, UnavailableSandboxMethodError } from "app/server/lib/NullSandbox";
+import { OnDemandActions } from "app/server/lib/OnDemandActions";
+import { Patch } from "app/server/lib/Patch";
+import { isUntrustedRequestBehaviorSet } from "app/server/lib/ProxyAgent";
 import { DocRequests } from "app/server/lib/Requests";
 import { SandboxError } from "app/server/lib/sandboxUtil";
 import {
@@ -148,39 +164,23 @@ import {
   getLogMeta,
   RequestOrSession,
 } from "app/server/lib/sessionUtils";
+import { findOrAddAllEnvelope, Sharing } from "app/server/lib/Sharing";
 import { shortDesc } from "app/server/lib/shortDesc";
 import { TableMetadataLoader } from "app/server/lib/TableMetadataLoader";
 import { DocTriggers } from "app/server/lib/Triggers";
 import { fetchURL, FileUploadInfo, globalUploadSet, UploadInfo } from "app/server/lib/uploads";
 import { UserPresence } from "app/server/lib/UserPresence";
+
 import assert from "assert";
-import { Mutex } from "async-mutex";
-import * as bluebird from "bluebird";
 import { EventEmitter } from "events";
-import { readFile } from "fs-extra";
-import { IMessage, MsgType } from "grain-rpc";
-import imageSize from "image-size";
-import * as moment from "moment-timezone";
-import fetch from "node-fetch";
 import stream from "node:stream";
 import path from "path";
 
-import { ActionHistory } from "app/server/lib/ActionHistory";
-import { ActionHistoryImpl } from "app/server/lib/ActionHistoryImpl";
-import { ActiveDocImport, FileImportOptions } from "app/server/lib/ActiveDocImport";
-import { AttachmentFileManager, MismatchedFileHashError } from "app/server/lib/AttachmentFileManager";
-import { IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
-import { DocClients } from "app/server/lib/DocClients";
-import { DocPluginManager } from "app/server/lib/DocPluginManager";
-import { DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSession } from "app/server/lib/DocSession";
-import { createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY } from "app/server/lib/DocStorage";
-import { expandQuery, getFormulaErrorForExpandQuery } from "app/server/lib/ExpandedQuery";
-import { GranularAccess, GranularAccessForBundle } from "app/server/lib/GranularAccess";
-import { insightLogDecorate, insightLogEntry, insightLogWrap } from "app/server/lib/InsightLog";
-import { OnDemandActions } from "app/server/lib/OnDemandActions";
-import { Patch } from "app/server/lib/Patch";
-import { isUntrustedRequestBehaviorSet } from "app/server/lib/ProxyAgent";
-import { findOrAddAllEnvelope, Sharing } from "app/server/lib/Sharing";
+import { Mutex } from "async-mutex";
+import * as bluebird from "bluebird";
+import { readFile } from "fs-extra";
+import { IMessage, MsgType } from "grain-rpc";
+import imageSize from "image-size";
 import { Cancelable } from "lodash";
 import cloneDeep from "lodash/cloneDeep";
 import flatten from "lodash/flatten";
@@ -189,6 +189,8 @@ import pick from "lodash/pick";
 import sum from "lodash/sum";
 import throttle from "lodash/throttle";
 import without from "lodash/without";
+import * as moment from "moment-timezone";
+import fetch from "node-fetch";
 
 const MAX_RECENT_ACTIONS = 100;
 

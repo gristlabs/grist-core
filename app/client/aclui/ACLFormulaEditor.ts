@@ -1,10 +1,11 @@
-import ace, { Ace } from "ace-builds";
-import { expandAndFilterSuggestions, ISuggestionWithSubAttrs } from "app/client/lib/Suggestions";
 import { setupAceEditorCompletions } from "app/client/components/AceEditorCompletions";
-import { ISuggestionWithValue } from "app/common/ActiveDocAPI";
+import { expandAndFilterSuggestions, ISuggestionWithSubAttrs } from "app/client/lib/Suggestions";
 import { theme } from "app/client/ui2018/cssVars";
 import { gristThemeObs } from "app/client/ui2018/theme";
+import { ISuggestionWithValue } from "app/common/ActiveDocAPI";
 import { Theme } from "app/common/ThemePrefs";
+
+import ace, { Ace } from "ace-builds";
 import { dom, DomArg, Observable, styled } from "grainjs";
 import debounce from "lodash/debounce";
 

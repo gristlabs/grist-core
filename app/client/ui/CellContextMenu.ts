@@ -1,7 +1,8 @@
 import { allCommands } from "app/client/components/commands";
 import { makeT } from "app/client/lib/localization";
-import { menuDivider, menuItemCmd } from "app/client/ui2018/menus";
 import { IMultiColumnContextMenu } from "app/client/ui/GridViewMenus";
+import { menuDivider, menuItemCmd } from "app/client/ui2018/menus";
+
 import { dom } from "grainjs";
 
 const t = makeT("CellContextMenu");

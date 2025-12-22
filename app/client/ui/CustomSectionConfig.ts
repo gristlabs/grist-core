@@ -17,9 +17,9 @@ import {
   getWidgetName,
   showCustomWidgetGallery,
 } from "app/client/ui/CustomWidgetGallery";
-import { userTrustsCustomWidget } from "app/client/ui/userTrustsCustomWidget";
 import { cssGroupLabel, cssHelp, cssLabel, cssRow, cssSeparator } from "app/client/ui/RightPanelStyles";
 import { hoverTooltip } from "app/client/ui/tooltips";
+import { userTrustsCustomWidget } from "app/client/ui/userTrustsCustomWidget";
 import { cssDragRow, cssFieldEntry, cssFieldLabel } from "app/client/ui/VisibleFieldsConfig";
 import { basicButton, primaryButton, textButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
@@ -31,6 +31,7 @@ import { unstyledButton } from "app/client/ui2018/unstyled";
 import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { AccessLevel, ICustomWidget, isSatisfied, matchWidget } from "app/common/CustomWidget";
 import { not, unwrap } from "app/common/gutil";
+
 import {
   bundleChanges,
   Computed,

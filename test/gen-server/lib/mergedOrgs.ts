@@ -2,11 +2,12 @@ import { Workspace } from "app/common/UserAPI";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { FlexServer } from "app/server/lib/FlexServer";
 import { MergedServer } from "app/server/MergedServer";
-import axios from "axios";
-import { assert } from "chai";
 import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
 import { configForUser, createUser, setPlan } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
+
+import axios from "axios";
+import { assert } from "chai";
 
 describe("mergedOrgs", function() {
   let mergedServer: MergedServer;

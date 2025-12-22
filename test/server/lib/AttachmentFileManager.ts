@@ -1,4 +1,4 @@
-import { DocStorage, FileInfo } from "app/server/lib/DocStorage";
+
 import {
   AttachmentFileManager,
   AttachmentRetrievalError,
@@ -15,10 +15,13 @@ import {
   IAttachmentStoreConfig,
   IAttachmentStoreProvider,
 } from "app/server/lib/AttachmentStoreProvider";
+import { DocStorage, FileInfo } from "app/server/lib/DocStorage";
 import { makeTestingFilesystemStoreConfig } from "test/server/lib/FilesystemAttachmentStore";
 import { waitForIt } from "test/server/wait";
-import { assert } from "chai";
+
 import * as stream from "node:stream";
+
+import { assert } from "chai";
 import * as sinon from "sinon";
 
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.

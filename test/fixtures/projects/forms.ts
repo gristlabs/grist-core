@@ -3,8 +3,9 @@
  */
 import { formDataToObj } from "app/client/lib/formUtils";
 import * as forms from "app/client/ui/forms";
-import { dom, IDisposableOwner, Observable } from "grainjs";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+
+import { dom, IDisposableOwner, Observable } from "grainjs";
 
 function setupTest(owner: IDisposableOwner) {
   const formValue = Observable.create(owner, "");

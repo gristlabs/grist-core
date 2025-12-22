@@ -16,6 +16,7 @@
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { attachMouseOverOnMove, findAncestorChild } from "app/client/lib/domUtils";
 import { menuCssClass, menuItem } from "app/client/ui2018/menus";
+
 import { Disposable, dom, DomArg, Observable, styled } from "grainjs";
 import { cssMenu, cssMenuItem, cssMenuWrap, getOptionFull, IOpenController, IOption } from "popweasel";
 

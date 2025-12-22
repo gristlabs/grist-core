@@ -1,7 +1,8 @@
 import { UserAPI } from "app/common/UserAPI";
-import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
+import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 
 describe("ViewLayout", function() {
   this.timeout(20000);

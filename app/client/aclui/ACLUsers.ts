@@ -1,21 +1,22 @@
+import { makeT } from "app/client/lib/localization";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { createUserImage } from "app/client/ui/UserImage";
 import { cssMemberImage, cssMemberListItem, cssMemberPrimary,
   cssMemberSecondary, cssMemberText } from "app/client/ui/UserItem";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
-import { PermissionDataWithExtraUsers } from "app/common/ActiveDocAPI";
 import { gristFloatingMenuClass, menu, menuCssClass, menuItemLink } from "app/client/ui2018/menus";
+import { PermissionDataWithExtraUsers } from "app/common/ActiveDocAPI";
 import { IGristUrlState, userOverrideParams } from "app/common/gristUrls";
+import { waitGrainObs } from "app/common/gutil";
 import { FullUser } from "app/common/LoginSessionAPI";
 import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL } from "app/common/UserAPI";
 import { getRealAccess, UserAccessData } from "app/common/UserAPI";
-import { Disposable, dom, Observable, styled } from "grainjs";
-import { cssMenu, cssMenuWrap, defaultMenuOptions, IMenuOptions, IPopupOptions, setPopupToCreateDom } from "popweasel";
 import { getUserRoleText } from "app/common/UserAPI";
-import { makeT } from "app/client/lib/localization";
-import { waitGrainObs } from "app/common/gutil";
+
+import { Disposable, dom, Observable, styled } from "grainjs";
 import noop from "lodash/noop";
+import { cssMenu, cssMenuWrap, defaultMenuOptions, IMenuOptions, IPopupOptions, setPopupToCreateDom } from "popweasel";
 
 const t = makeT("ViewAsDropdown");
 const userT = makeT("UserManagerModel");

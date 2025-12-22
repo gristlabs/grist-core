@@ -7,15 +7,15 @@
  * command is active at any time.
  */
 
+import { CommandDef, CommandName, CommendGroupDef, groups } from "app/client/components/commandList";
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import dom from "app/client/lib/dom";
 import * as Mousetrap from "app/client/lib/Mousetrap";
 import { arrayRemove, unwrap } from "app/common/gutil";
-import dom from "app/client/lib/dom";
-import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
-import { CommandDef, CommandName, CommendGroupDef, groups } from "app/client/components/commandList";
 
 import { Disposable, Observable } from "grainjs";
-import * as _ from "underscore";
 import * as ko from "knockout";
+import * as _ from "underscore";
 
 const G = getBrowserGlobals("window");
 type BoolLike = boolean | ko.Observable<boolean> | ko.Computed<boolean> | Observable<boolean>;

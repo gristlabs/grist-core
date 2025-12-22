@@ -1,6 +1,6 @@
+import { ImportSource } from "app/plugin/ImportSourceAPI";
 import { RenderTarget } from "app/plugin/RenderOptions";
 
-import { ImportSource } from "app/plugin/ImportSourceAPI";
 
 export * from  "app/plugin/ImportSourceAPI";
 

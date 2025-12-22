@@ -15,6 +15,7 @@
  *   );
  */
 import { cssCheckboxSquare, cssLabel } from "app/client/ui2018/checkbox";
+
 import { dom, DomArg, DomElementArg, Observable, styled } from "grainjs";
 
 export {

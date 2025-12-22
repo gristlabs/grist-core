@@ -34,14 +34,15 @@ import * as gristTypes from "app/common/gristTypes";
 import { getSetMapValue, isNonNullish, pruneArray } from "app/common/gutil";
 import { isMetadataTable } from "app/common/isHiddenTable";
 import { compilePredicateFormula, PredicateFormulaInput } from "app/common/PredicateFormula";
-import { SingleCell } from "app/common/TableData";
 import { EmptyRecordView, InfoView, RecordView } from "app/common/RecordView";
 import { canEdit, canView, isValidRole, Role } from "app/common/roles";
+import { SingleCell } from "app/common/TableData";
 import { User } from "app/common/User";
 import { FullUser, UserAccessData } from "app/common/UserAPI";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { GristObjCode } from "app/plugin/GristData";
 import { appSettings } from "app/server/lib/AppSettings";
+import { getConfiguredStandardAttachmentStore } from "app/server/lib/AttachmentStoreProvider";
 import { applyAndCheckActionsForCells, CellData, isCellDataAction } from "app/server/lib/CellDataAccess";
 import { describeDocActions, DocActionsDescription } from "app/server/lib/describeDocActions";
 import { DocAuthorizer, DummyAuthorizer } from "app/server/lib/DocAuthorizer";
@@ -56,11 +57,11 @@ import { integerParam } from "app/server/lib/requestUtils";
 import { getRelatedRows } from "app/server/lib/RowAccess";
 import { getDocSessionAccess, getDocSessionShare } from "app/server/lib/sessionUtils";
 import { quoteIdent } from "app/server/lib/SQLiteDB";
+
 import cloneDeep from "lodash/cloneDeep";
 import fromPairs from "lodash/fromPairs";
 import get from "lodash/get";
 import memoize from "lodash/memoize";
-import { getConfiguredStandardAttachmentStore } from "app/server/lib/AttachmentStoreProvider";
 
 /**
  * A threshold beyond which for this installation it would be

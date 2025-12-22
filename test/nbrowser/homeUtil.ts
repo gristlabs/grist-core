@@ -1,22 +1,25 @@
 /**
  * Contains some non-webdriver functionality needed by tests.
  */
-import FormData from "form-data";
-import * as fse from "fs-extra";
-import defaults from "lodash/defaults";
-import { Key, WebDriver, WebElement } from "mocha-webdriver";
-import fetch from "node-fetch";
-import { authenticator } from "otplib";
-import * as path from "path";
 
+import { BaseAPI, IOptions } from "app/common/BaseAPI";
 import { normalizeEmail } from "app/common/emails";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { BehavioralPrompt, UserPrefs, WelcomePopup } from "app/common/Prefs";
 import { DocWorkerAPI, UserAPI, UserAPIImpl } from "app/common/UserAPI";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { TestingHooksClient } from "app/server/lib/TestingHooks";
+
 import EventEmitter from "events";
-import { BaseAPI, IOptions } from "app/common/BaseAPI";
+import * as path from "path";
+
+import FormData from "form-data";
+import * as fse from "fs-extra";
+import defaults from "lodash/defaults";
+import { Key, WebDriver, WebElement } from "mocha-webdriver";
+import fetch from "node-fetch";
+import { authenticator } from "otplib";
+
 
 export interface Server extends EventEmitter {
   driver: WebDriver;

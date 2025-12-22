@@ -40,6 +40,7 @@ declare module "app/client/components/ViewConfigTab" {
   import { Disposable } from "app/client/lib/dispose";
   import { KoArray } from "app/client/lib/koArray";
   import { ColumnRec, ViewRec, ViewSectionRec } from "app/client/models/DocModel";
+
   import { DomArg, DomContents } from "grainjs";
 
   namespace ViewConfigTab {

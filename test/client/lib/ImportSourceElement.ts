@@ -1,6 +1,7 @@
 import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
 import { createRpcLogger, PluginInstance } from "app/common/PluginInstance";
 import { FileListItem } from "app/plugin/grist-plugin-api";
+
 import { assert } from "chai";
 import { Rpc } from "grain-rpc";
 

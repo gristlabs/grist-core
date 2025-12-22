@@ -6,8 +6,8 @@ import { NTextEditor } from "app/client/widgets/NTextEditor";
 import { CellValue } from "app/common/DocActions";
 import { parseDate, TWO_DIGIT_YEAR_THRESHOLD } from "app/common/parseDate";
 
-import moment from "moment-timezone";
 import { dom } from "grainjs";
+import moment from "moment-timezone";
 
 // These are all the locales available for the datepicker. Having a prepared list lets us find a
 // suitable one without trying combinations that don't exist. This list can be rebuilt using:

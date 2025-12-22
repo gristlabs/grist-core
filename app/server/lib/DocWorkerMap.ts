@@ -6,6 +6,7 @@
 import { IChecksumStore } from "app/server/lib/IChecksumStore";
 import { IElectionStore } from "app/server/lib/IElectionStore";
 import { IPermitStores } from "app/server/lib/Permit";
+
 import { RedisClient } from "redis";
 
 export interface DocWorkerInfo {

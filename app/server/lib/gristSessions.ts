@@ -1,4 +1,4 @@
-import session from "@gristlabs/express-session";
+
 import { parseSubdomain } from "app/common/gristUrls";
 import { isNumber } from "app/common/gutil";
 import { RequestWithOrg } from "app/server/lib/extractOrg";
@@ -6,11 +6,14 @@ import { GristServer } from "app/server/lib/GristServer";
 import log from "app/server/lib/log";
 import { fromCallback } from "app/server/lib/serverUtils";
 import { Sessions } from "app/server/lib/Sessions";
-import { promisifyAll } from "bluebird";
+
 import * as crypto from "crypto";
+import * as path from "path";
+
+import session from "@gristlabs/express-session";
+import { promisifyAll } from "bluebird";
 import * as express from "express";
 import assignIn from "lodash/assignIn";
-import * as path from "path";
 import { createClient } from "redis";
 
 export const cookieName = process.env.GRIST_SESSION_COOKIE || "grist_sid";

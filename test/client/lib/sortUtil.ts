@@ -1,4 +1,5 @@
 import { Sort, VirtualId } from "app/common/SortSpec";
+
 import { assert } from "chai";
 
 const { flipSort: flipColDirection, parseSortColRefs, reorderSortRefs } = Sort;

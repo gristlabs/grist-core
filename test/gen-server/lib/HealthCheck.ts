@@ -1,10 +1,11 @@
 import { delay } from "app/common/delay";
-import { assert } from "chai";
-import fetch from "node-fetch";
 import { TestServer } from "test/gen-server/apiUtils";
 import { TcpForwarder } from "test/server/tcpForwarder";
 import * as testUtils from "test/server/testUtils";
 import { waitForIt } from "test/server/wait";
+
+import { assert } from "chai";
+import fetch from "node-fetch";
 
 describe("HealthCheck", function() {
   testUtils.setTmpLogLevel("error");

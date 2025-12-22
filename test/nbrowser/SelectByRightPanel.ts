@@ -1,8 +1,9 @@
 import { getColValues } from "app/common/DocActions";
 import { UserAPI } from "app/common/UserAPI";
-import { assert, driver } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver } from "mocha-webdriver";
 
 /**
  * This is test for a bug that was on the Right Panel. [Select by] dropdown wasn't updated

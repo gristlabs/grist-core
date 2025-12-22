@@ -3,6 +3,7 @@ import { Autocomplete, IAutocompleteOptions } from "app/client/lib/autocomplete"
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menuCssClass } from "app/client/ui2018/menus";
+
 import { dom, DomElementArg, Holder, IDisposableOwner, Observable, styled } from "grainjs";
 
 export interface ACSelectItem extends ACItem {

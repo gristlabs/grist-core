@@ -1,9 +1,10 @@
 import { GristDoc } from "app/client/components/GristDoc";
 import { getStorage } from "app/client/lib/storage";
-import { IDocPage, isViewDocPage, ViewDocPage } from "app/common/gristUrls";
-import { Disposable, Listener, Observable } from "grainjs";
 import { reportError } from "app/client/models/errors";
+import { IDocPage, isViewDocPage, ViewDocPage } from "app/common/gristUrls";
 import { CursorPos } from "app/plugin/GristAPI";
+
+import { Disposable, Listener, Observable } from "grainjs";
 
 /**
  * Enriched cursor position with a view id

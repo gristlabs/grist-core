@@ -9,6 +9,7 @@ import { testId, theme } from "app/client/ui2018/cssVars";
 import { ISuggestionWithValue } from "app/common/ActiveDocAPI";
 import { getPredicateFormulaProperties } from "app/common/PredicateFormula";
 import { UserInfo } from "app/common/User";
+
 import { Computed, Disposable, dom, Observable, styled } from "grainjs";
 import isPlainObject from "lodash/isPlainObject";
 

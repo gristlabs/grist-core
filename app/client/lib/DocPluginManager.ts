@@ -3,6 +3,7 @@ import { SafeBrowser } from "app/client/lib/SafeBrowser";
 import { ActiveDocAPI } from "app/common/ActiveDocAPI";
 import { LocalPlugin } from "app/common/plugin";
 import { createRpcLogger, PluginInstance } from "app/common/PluginInstance";
+
 import { Rpc } from "grain-rpc";
 
 /**

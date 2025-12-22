@@ -1,10 +1,11 @@
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { HostedMetadataManager } from "app/server/lib/HostedMetadataManager";
+import { removeConnection } from "test/gen-server/seed";
+import { setTmpLogLevel } from "test/server/testUtils";
+
 import { delay } from "bluebird";
 import { assert } from "chai";
 import * as sinon from "sinon";
-import { removeConnection } from "test/gen-server/seed";
-import { setTmpLogLevel } from "test/server/testUtils";
 
 // Note that this is a stubbed test of the HostedMetadataManager and does not test interaction
 // with the live DB. We may want to revisit this with the DB running for a complete test.

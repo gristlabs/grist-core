@@ -1,6 +1,7 @@
-import { assert, driver } from "mocha-webdriver";
 import { $, gu, test } from "test/nbrowser/gristUtil-nbrowser";
+
 import bluebird from "bluebird";
+import { assert, driver } from "mocha-webdriver";
 
 function currentSectionDesc() {
   return $(".active_section .test-viewsection-title").text();

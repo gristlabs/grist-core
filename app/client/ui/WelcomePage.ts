@@ -1,11 +1,10 @@
-import { Disposable, dom, domComputed, DomContents, MultiHolder, Observable, styled } from "grainjs";
 
 import { handleSubmit } from "app/client/lib/formUtils";
 import { getLoginUrl, getSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
-import { App } from "app/client/ui/App";
 import { urlState } from "app/client/models/gristUrlState";
 import { AccountWidget } from "app/client/ui/AccountWidget";
+import { App } from "app/client/ui/App";
 import { AppHeader } from "app/client/ui/AppHeader";
 import { textInput } from "app/client/ui/inputs";
 import { pagePanels } from "app/client/ui/PagePanels";
@@ -17,6 +16,8 @@ import { basicButtonLink, bigBasicButtonLink, bigPrimaryButton } from "app/clien
 import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
 import { WelcomePage as WelcomePageEnum } from "app/common/gristUrls";
+
+import { Disposable, dom, domComputed, DomContents, MultiHolder, Observable, styled } from "grainjs";
 
 // Redirect from ..../welcome/thing to .../welcome/${name}
 function _redirectToSiblingPage(name: string) {

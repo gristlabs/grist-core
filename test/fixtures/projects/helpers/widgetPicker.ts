@@ -4,6 +4,7 @@
 
 import { syncedKoArray } from "app/client/lib/koArray";
 import { ColumnRec, TableRec } from "app/client/models/DocModel";
+
 import { observable, toKo } from "grainjs";
 import * as ko from "knockout";
 import range from "lodash/range";

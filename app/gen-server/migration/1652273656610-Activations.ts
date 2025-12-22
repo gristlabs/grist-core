@@ -1,4 +1,5 @@
 import * as sqlUtils from "app/gen-server/sqlUtils";
+
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
 
 export class Activations1652273656610 implements MigrationInterface {

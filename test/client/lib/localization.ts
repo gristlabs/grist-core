@@ -1,8 +1,9 @@
 import { makeT, t } from "app/client/lib/localization";
+
 import { assert } from "chai";
-import i18next, { i18n } from "i18next";
 import { Disposable, dom, DomContents, observable } from "grainjs";
 import { G, popGlobals, pushGlobals } from "grainjs/dist/cjs/lib/browserGlobals";
+import i18next, { i18n } from "i18next";
 import { JSDOM } from "jsdom";
 
 describe("localization", function() {

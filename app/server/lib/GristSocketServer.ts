@@ -1,10 +1,12 @@
-import * as http from "http";
-import * as WS from "ws";
-import * as EIO from "engine.io";
 import { GristServerSocket, GristServerSocketEIO, GristServerSocketWS } from "app/server/lib/GristServerSocket";
+
+import * as http from "http";
 import * as net from "net";
 import * as stream from "stream";
+
+import * as EIO from "engine.io";
 import { EngineRequest } from "engine.io/build/transport";
+import * as WS from "ws";
 
 const MAX_PAYLOAD = 100e6;
 

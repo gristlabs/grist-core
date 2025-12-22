@@ -2,8 +2,9 @@
  * Testing utilities used in Importer test suites.
  */
 
-import { driver, Key, stackWrapFunc, WebElementPromise } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
+
+import { driver, Key, stackWrapFunc, WebElementPromise } from "mocha-webdriver";
 
 // Helper to get the input of a matching parse option in the ParseOptions dialog.
 export const getParseOptionInput = stackWrapFunc((labelRE: RegExp): WebElementPromise =>

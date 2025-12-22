@@ -1,6 +1,7 @@
 import { serveSomething, Serving } from "test/server/customUtil";
-import * as express from "express";
+
 import axios from "axios";
+import * as express from "express";
 
 export class TestProxyServer {
   public static async Prepare(portNumber: number): Promise<TestProxyServer> {

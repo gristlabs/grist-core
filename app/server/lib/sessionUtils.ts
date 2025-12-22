@@ -1,3 +1,4 @@
+
 import { DocumentUsage } from "app/common/DocUsage";
 import { Role } from "app/common/roles";
 import { Document } from "app/gen-server/entity/Document";
@@ -5,6 +6,7 @@ import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { AuthSession } from "app/server/lib/AuthSession";
 import { OptDocSession } from "app/server/lib/DocSession";
 import { ILogMeta } from "app/server/lib/log";
+
 import { IncomingMessage } from "http";
 
 export type RequestOrSession = RequestWithLogin | OptDocSession | null;

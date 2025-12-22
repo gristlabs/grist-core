@@ -37,12 +37,13 @@ import { getReferencedTableId, isFullReferencingType } from "app/common/gristTyp
 import * as gristTypes from "app/common/gristTypes";
 import { WidgetType } from "app/common/widgetTypes";
 import { CellValue } from "app/plugin/GristData";
+
 import {
   bundleChanges,
   Computed,
   Disposable,
-  fromKo,
   dom as grainjsDom,
+  fromKo,
   makeTestId,
   MultiHolder,
   Observable,

@@ -1,10 +1,11 @@
 import { attachPageWidgetPicker, IOptions, IPageWidget, ISaveFunc } from "app/client/ui/PageWidgetPicker";
 import { basicButton } from "app/client/ui2018/buttons";
 import { testId } from "app/client/ui2018/cssVars";
-import { dom, domComputed, DomElementMethod, obsArray, observable, styled } from "grainjs";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 import { gristDocMock } from "test/fixtures/projects/helpers/widgetPicker";
 import { withLocale } from "test/fixtures/projects/helpers/withLocale";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+
+import { dom, domComputed, DomElementMethod, obsArray, observable, styled } from "grainjs";
 
 interface ISaveCall {
   resolve: () => void;

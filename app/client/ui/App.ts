@@ -1,15 +1,17 @@
 import { ClientScope } from "app/client/components/ClientScope";
 import { Clipboard } from "app/client/components/Clipboard";
-import { RegionFocusSwitcher } from "app/client/components/RegionFocusSwitcher";
-import { KeyboardFocusHighlighter } from "app/client/components/KeyboardFocusHighlighter";
 import { Comm } from "app/client/components/Comm";
 import * as commandList from "app/client/components/commandList";
 import * as commands from "app/client/components/commands";
+import { KeyboardFocusHighlighter } from "app/client/components/KeyboardFocusHighlighter";
+import { RegionFocusSwitcher } from "app/client/components/RegionFocusSwitcher";
 import { unsavedChanges } from "app/client/components/UnsavedChanges";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { isDesktop } from "app/client/lib/browserInfo";
+import { onClickOutside } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import * as koUtil from "app/client/lib/koUtil";
+import { makeT } from "app/client/lib/localization";
 import { reportError, TopAppModel, TopAppModelImpl } from "app/client/models/AppModel";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { setUpErrorHandling } from "app/client/models/errors";
@@ -23,10 +25,9 @@ import { CommDocError } from "app/common/CommTypes";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 import { fetchFromHome } from "app/common/urlUtils";
 import { ISupportedFeatures } from "app/common/UserConfig";
+
 import { dom } from "grainjs";
 import * as ko from "knockout";
-import { makeT } from "app/client/lib/localization";
-import { onClickOutside } from "app/client/lib/domUtils";
 
 const t = makeT("App");
 

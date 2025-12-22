@@ -5,10 +5,13 @@ import {
 import { IAttachmentStoreConfig } from "app/server/lib/AttachmentStoreProvider";
 import { createTmpDir } from "test/server/docTools";
 
-import { assert } from "chai";
-import { mkdtemp, pathExists } from "fs-extra";
 import * as stream from "node:stream";
 import * as path from "path";
+
+
+import { assert } from "chai";
+import { mkdtemp, pathExists } from "fs-extra";
+
 
 const testingDocPoolId = "1234-5678";
 const testingFileId = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.grist";

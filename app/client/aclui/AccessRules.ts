@@ -49,7 +49,6 @@ import {
 } from "app/common/GranularAccessClause";
 import { getDefaultForType, isHiddenCol } from "app/common/gristTypes";
 import { isNonNullish, localeCompare, unwrap } from "app/common/gutil";
-import { EmptyRecordView, InfoView, RecordView } from "app/common/RecordView";
 import {
   getPredicateFormulaProperties,
   ParsedPredicateFormula,
@@ -72,7 +71,6 @@ import {
   Observable,
   styled,
 } from "grainjs";
-import { makeT } from "app/client/lib/localization";
 import isEqual from "lodash/isEqual";
 
 const t = makeT("AccessRules");

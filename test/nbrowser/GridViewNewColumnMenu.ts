@@ -1,6 +1,4 @@
 import { UserAPIImpl } from "app/common/UserAPI";
-import { assert } from "chai";
-import { driver, Key } from "mocha-webdriver";
 import {
   addRefListLookup,
   AVERAGE,
@@ -20,6 +18,9 @@ import {
 } from "test/nbrowser/GridViewNewColumnMenuUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert } from "chai";
+import { driver, Key } from "mocha-webdriver";
 
 describe("GridViewNewColumnMenu", function() {
   const STANDARD_WAITING_TIME = 1000;

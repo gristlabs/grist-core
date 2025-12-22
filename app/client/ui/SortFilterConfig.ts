@@ -5,6 +5,7 @@ import { FilterConfig } from "app/client/ui/FilterConfig";
 import { cssLabel, cssSaveButtonsRow } from "app/client/ui/RightPanelStyles";
 import { SortConfig } from "app/client/ui/SortConfig";
 import { basicButton, primaryButton } from "app/client/ui2018/buttons";
+
 import { Computed, Disposable, dom, makeTestId, styled } from "grainjs";
 
 const testId = makeTestId("test-sort-filter-config-");

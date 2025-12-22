@@ -1,9 +1,9 @@
+import { ApiKey } from "app/client/ui/ApiKey";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
 import * as bluebird from "bluebird";
 import { dom, observable, styled } from "grainjs";
-
-import { ApiKey } from "app/client/ui/ApiKey";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 const apiKeys = [
   "9204c0f1ea5928b31e4e21e55cf975e874281d8e",

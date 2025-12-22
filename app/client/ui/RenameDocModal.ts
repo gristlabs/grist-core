@@ -11,6 +11,7 @@ import { icon } from "app/client/ui2018/icons";
 import { saveModal } from "app/client/ui2018/modals";
 import { gristThemeObs, gristThemePrefs } from "app/client/ui2018/theme";
 import { Document } from "app/common/UserAPI";
+
 import {
   Computed,
   Disposable,

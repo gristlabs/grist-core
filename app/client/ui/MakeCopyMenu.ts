@@ -17,6 +17,7 @@ import {
   radioCheckboxOption,
 } from "app/client/ui2018/checkbox";
 import { testId } from "app/client/ui2018/cssVars";
+import { cssLink } from "app/client/ui2018/links";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { IOptionFull, select } from "app/client/ui2018/menus";
 import {
@@ -37,6 +38,7 @@ import {
   Organization,
   Workspace,
 } from "app/common/UserAPI";
+
 import {
   Computed,
   Disposable,
@@ -47,7 +49,6 @@ import {
   subscribe,
   subscribeElem,
 } from "grainjs";
-import { cssLink } from "app/client/ui2018/links";
 import sortBy from "lodash/sortBy";
 
 const t = makeT("MakeCopyMenu");

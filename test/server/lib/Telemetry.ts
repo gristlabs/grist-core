@@ -3,12 +3,13 @@ import { PrefSource } from "app/common/InstallAPI";
 import { TelemetryEvent, TelemetryLevel } from "app/common/Telemetry";
 import { ILogMeta, LogMethods } from "app/server/lib/LogMethods";
 import { filterMetadata, ITelemetry, Telemetry } from "app/server/lib/Telemetry";
-import axios from "axios";
-import { assert } from "chai";
-import * as sinon from "sinon";
 import { TestServer } from "test/gen-server/apiUtils";
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
+
+import axios from "axios";
+import { assert } from "chai";
+import * as sinon from "sinon";
 
 const chimpy = configForUser("Chimpy");
 const kiwi = configForUser("Kiwi");

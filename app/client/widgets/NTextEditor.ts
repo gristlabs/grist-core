@@ -8,6 +8,7 @@ import { EditorPlacement, ISize } from "app/client/widgets/EditorPlacement";
 import { FieldOptions, NewBaseEditor } from "app/client/widgets/NewBaseEditor";
 import { CellValue } from "app/common/DocActions";
 import { undef } from "app/common/gutil";
+
 import { dom, Observable } from "grainjs";
 
 export class NTextEditor extends NewBaseEditor {

@@ -10,6 +10,7 @@
  * Run with VERBOSE=1 in the environment to see the server log on the console. Normally it goes
  * into a file whose path is printed when server starts.
  */
+
 import { encodeUrl, IGristUrlState, parseSubdomain } from "app/common/gristUrls";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import log from "app/server/lib/log";
@@ -17,16 +18,18 @@ import { getAppRoot } from "app/server/lib/places";
 import { makeGristConfig } from "app/server/lib/sendAppPage";
 import { exitPromise } from "app/server/lib/serverUtils";
 import { connectTestingHooks, TestingHooksClient } from "app/server/lib/TestingHooks";
-import { ChildProcess, execFileSync, spawn } from "child_process";
-import EventEmitter from "events";
-import * as fse from "fs-extra";
-import { driver, IMochaServer, WebDriver } from "mocha-webdriver";
-import fetch from "node-fetch";
-import { tmpdir } from "os";
-import * as path from "path";
 import { removeConnection } from "test/gen-server/seed";
 import { HomeUtil } from "test/nbrowser/homeUtil";
 import { getDatabase } from "test/testUtils";
+
+import { ChildProcess, execFileSync, spawn } from "child_process";
+import EventEmitter from "events";
+import { tmpdir } from "os";
+import * as path from "path";
+
+import * as fse from "fs-extra";
+import { driver, IMochaServer, WebDriver } from "mocha-webdriver";
+import fetch from "node-fetch";
 
 export class TestServerMerged extends EventEmitter implements IMochaServer {
   public testDir: string;

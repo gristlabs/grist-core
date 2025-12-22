@@ -1,6 +1,4 @@
 import { makeT } from "app/client/lib/localization";
-import type { ColumnRec } from "app/client/models/entities/ColumnRec";
-import type { TableRec } from "app/client/models/entities/TableRec";
 import { reportError } from "app/client/models/errors";
 import { cssRow } from "app/client/ui/RightPanelStyles";
 import { shadowScroll } from "app/client/ui/shadowScroll";
@@ -14,9 +12,13 @@ import { CellValue } from "app/common/DocActions";
 import { isEmptyList, RecalcWhen } from "app/common/gristTypes";
 import { nativeCompare } from "app/common/gutil";
 import { decodeObject, encodeObject } from "app/plugin/objtypes";
+
 import { Computed, dom, IDisposableOwner, MultiHolder, Observable, styled } from "grainjs";
-import { cssMenu, cssMenuItem, defaultMenuOptions, IOpenController, setPopupToCreateDom } from "popweasel";
 import isEqual from "lodash/isEqual";
+import { cssMenu, cssMenuItem, defaultMenuOptions, IOpenController, setPopupToCreateDom } from "popweasel";
+
+import type { ColumnRec } from "app/client/models/entities/ColumnRec";
+import type { TableRec } from "app/client/models/entities/TableRec";
 
 const t = makeT("TriggerFormulas");
 

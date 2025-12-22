@@ -3,14 +3,7 @@
  *
  * The helpers are themselves tested in TestGristUtils.ts.
  */
-import * as fse from "fs-extra";
-import escapeRegExp from "lodash/escapeRegExp";
-import noop from "lodash/noop";
-import startCase from "lodash/startCase";
-import { assert, By, driver as driverOrig, error, Key, WebElement, WebElementPromise } from "mocha-webdriver";
-import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from "mocha-webdriver";
-import * as path from "path";
-import * as PluginApi from "app/plugin/grist-plugin-api";
+
 import { BaseAPI } from "app/common/BaseAPI";
 import { csvDecodeRow } from "app/common/csvFormat";
 import { AccessLevel } from "app/common/CustomWidget";
@@ -23,21 +16,31 @@ import { Organization as APIOrganization,
   UserAPI, UserAPIImpl, Workspace } from "app/common/UserAPI";
 import { Organization } from "app/gen-server/entity/Organization";
 import { Product } from "app/gen-server/entity/Product";
+import * as PluginApi from "app/plugin/grist-plugin-api";
 import { create } from "app/server/lib/create";
 import { getAppRoot } from "app/server/lib/places";
-
-import { ICellSelect as _ICellSelect, noCleanup as _noCleanup, GristWebDriverUtils,
-  IColSelect, IColsSelect, PageWidgetPickerOptions,
+import { GristWebDriverUtils, ICellSelect as _ICellSelect,
+  IColSelect, IColsSelect, noCleanup as _noCleanup, PageWidgetPickerOptions,
   WindowDimensions as WindowDimensionsBase } from "test/nbrowser/gristWebDriverUtils";
 import { APIConstructor, HomeUtil } from "test/nbrowser/homeUtil";
 import { server } from "test/nbrowser/testServer";
 import { fetchScreenshotAndLogs } from "test/nbrowser/webdriverUtils";
-import type { Cleanup } from "test/server/testCleanup";
 import * as testUtils from "test/server/testUtils";
 
-import type { AssertionError } from "assert";
+import * as path from "path";
+
 import axios from "axios";
+import * as fse from "fs-extra";
+import escapeRegExp from "lodash/escapeRegExp";
+import noop from "lodash/noop";
+import startCase from "lodash/startCase";
+import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from "mocha-webdriver";
+import { assert, By, driver as driverOrig, error, Key, WebElement, WebElementPromise } from "mocha-webdriver";
 import { lock } from "proper-lockfile";
+
+
+import type { AssertionError } from "assert";
+import type { Cleanup } from "test/server/testCleanup";
 
 // Wrap in a namespace so that we can apply stackWrapOwnMethods to all the exports together.
 namespace gristUtils {

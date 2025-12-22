@@ -1,7 +1,8 @@
-import { assert, driver, Key } from "mocha-webdriver";
-import { describe } from "mocha";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { describe } from "mocha";
+import { assert, driver, Key } from "mocha-webdriver";
 
 // Check that the focus is on the clipboard element, with a short wait in case it's not entirely
 // synchronous. You may set waitMs to 0.

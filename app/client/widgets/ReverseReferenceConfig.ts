@@ -15,6 +15,7 @@ import { testId, theme, vars } from "app/client/ui2018/cssVars";
 import { cssIconButton, icon } from "app/client/ui2018/icons";
 import { confirmModal } from "app/client/ui2018/modals";
 import { not } from "app/common/gutil";
+
 import { Computed, Disposable, dom, styled } from "grainjs";
 
 const t = makeT("ReverseReferenceConfig");

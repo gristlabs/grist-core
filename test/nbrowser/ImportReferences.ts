@@ -1,10 +1,11 @@
 /**
  * Parsing strings as references when importing into an existing table
  */
-import { assert, driver, Key, WebElement } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { openSource as openSourceMenu, waitForColumnMapping } from "test/nbrowser/importerTestUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver, Key, WebElement } from "mocha-webdriver";
 
 describe("ImportReferences", function() {
   this.timeout(30000);

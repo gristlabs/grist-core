@@ -1,7 +1,8 @@
 import { UserAPI } from "app/common/UserAPI";
-import { assert } from "chai";
 import { TestServer } from "test/gen-server/apiUtils";
 import * as testUtils from "test/server/testUtils";
+
+import { assert } from "chai";
 
 /**
  * Tests details of listing workspaces or documents via API.

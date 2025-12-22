@@ -4,6 +4,7 @@ import { TableData } from "app/client/models/TableData";
 import { buildColFilter, ColumnFilterFunc } from "app/common/ColumnFilterFunc";
 import { buildRowFilter, RowFilterFunc, RowValueFunc } from "app/common/RowFilterFunc";
 import { UIRowId } from "app/plugin/GristAPI";
+
 import { Computed, Disposable, Observable, UseCB } from "grainjs";
 
 export type { ColumnFilterFunc };

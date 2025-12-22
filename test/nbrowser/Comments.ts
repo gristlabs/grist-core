@@ -1,10 +1,11 @@
+import { TableColValues } from "app/common/DocActions";
 import { UserAPIImpl } from "app/common/UserAPI";
 import { arrayRepeat } from "app/plugin/gutil";
-import { TableColValues } from "app/common/DocActions";
-import { assert, driver, Key, WebElement } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { modKey, Session } from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver, Key, WebElement } from "mocha-webdriver";
 let docId: string;
 let MODKEY: string;
 let session: Session;

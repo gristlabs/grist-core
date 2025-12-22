@@ -7,6 +7,8 @@ import * as gu from 'test/nbrowser/gristUtils';
 import {assertChanged, assertSaved, startEditingAccessRules} from 'test/nbrowser/aclTestUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
+import { assert, driver, Key } from "mocha-webdriver";
+
 describe("AccessRules4", function() {
   this.timeout(process.env.DEBUG ? "20m" : "20s");
   const cleanup = setupTestSuite();

@@ -1,5 +1,6 @@
 import { stripLinks } from "app/client/lib/markdown";
 import { hashFnv32a, simpleStringHash } from "app/client/lib/textUtils";
+
 import { assert } from "chai";
 
 describe("textUtils", function() {

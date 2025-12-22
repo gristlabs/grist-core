@@ -1,4 +1,5 @@
 import { nativeValues } from "app/gen-server/lib/values";
+
 import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 export class DocumentUsage1651469582887 implements MigrationInterface {

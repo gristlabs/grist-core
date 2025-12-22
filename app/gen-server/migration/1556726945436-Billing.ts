@@ -1,9 +1,10 @@
-import { MigrationInterface, QueryRunner, Table, TableColumn, TableForeignKey } from "typeorm";
 import { BillingAccount } from "app/gen-server/entity/BillingAccount";
 import { BillingAccountManager } from "app/gen-server/entity/BillingAccountManager";
 import { Organization } from "app/gen-server/entity/Organization";
 import { Product } from "app/gen-server/entity/Product";
 import { nativeValues } from "app/gen-server/lib/values";
+
+import { MigrationInterface, QueryRunner, Table, TableColumn, TableForeignKey } from "typeorm";
 
 export class Billing1556726945436 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {

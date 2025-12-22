@@ -1,14 +1,17 @@
-import { PassThrough } from "stream";
+
 import { FilterColValues } from "app/common/ActiveDocAPI";
+import { createExcelFormatter } from "app/server/lib/ExcelFormatter";
 import { ActiveDocSource, doExportDoc, doExportSection, doExportTable,
   ExportData, ExportHeader, ExportParameters, Filter } from "app/server/lib/Export";
-import { createExcelFormatter } from "app/server/lib/ExcelFormatter";
 import log from "app/server/lib/log";
-import { Alignment, Border, Buffer as ExcelBuffer, stream as ExcelWriteStream,
-  Fill, Workbook } from "exceljs";
-import { Rpc } from "grain-rpc";
+
 import { Stream } from "stream";
+import { PassThrough } from "stream";
 import { MessagePort, threadId } from "worker_threads";
+
+import { Alignment, Border, Buffer as ExcelBuffer,
+  Fill, stream as ExcelWriteStream, Workbook } from "exceljs";
+import { Rpc } from "grain-rpc";
 
 export const makeXLSXFromOptions = handleExport(doMakeXLSXFromOptions);
 

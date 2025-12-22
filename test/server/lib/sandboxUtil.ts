@@ -1,6 +1,7 @@
-import { assert } from "chai";
 import * as sandboxUtil from "app/server/lib/sandboxUtil";
 import { captureLog } from "test/server/testUtils";
+
+import { assert } from "chai";
 
 describe("sandboxUtil", function() {
   describe("makeLinePrefixer", function() {

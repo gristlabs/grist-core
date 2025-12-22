@@ -1,17 +1,18 @@
-import { Disposable, dom, Holder, Observable, styled, UseCBOwner } from "grainjs";
-import { mod } from "app/common/gutil";
-import { SpecialDocPage } from "app/common/gristUrls";
-import isEqual from "lodash/isEqual";
-import { makeT } from "app/client/lib/localization";
-import { FocusLayer } from "app/client/lib/FocusLayer";
-import { trapTabKey } from "app/client/lib/trapTabKey";
-import { isFocusable } from "app/client/lib/isFocusable";
-import * as commands from "app/client/components/commands";
-import { App } from "app/client/ui/App";
-import { GristDoc } from "app/client/components/GristDoc";
 import BaseView from "app/client/components/BaseView";
+import * as commands from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import { isFocusable } from "app/client/lib/isFocusable";
+import { makeT } from "app/client/lib/localization";
+import { trapTabKey } from "app/client/lib/trapTabKey";
+import { App } from "app/client/ui/App";
+import { SpecialDocPage } from "app/common/gristUrls";
+import { mod } from "app/common/gutil";
 import { components } from "app/common/ThemePrefs";
+
+import { Disposable, dom, Holder, Observable, styled, UseCBOwner } from "grainjs";
+import isEqual from "lodash/isEqual";
 
 const t = makeT("RegionFocusSwitcher");
 

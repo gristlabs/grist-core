@@ -22,19 +22,20 @@
  *   the caller. Pass an `onFinishCB` to handle when a user dimiss the popups.
  */
 
-import { Disposable, dom, DomElementArg, Holder, makeTestId, Observable, styled, svg } from "grainjs";
-import { createPopper, Placement } from "@popperjs/core";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import * as Mousetrap from "app/client/lib/Mousetrap";
+import { reportError } from "app/client/models/errors";
+import { urlState } from "app/client/models/gristUrlState";
+import { cssBigIcon, cssCloseButton } from "app/client/ui/ExampleCard";
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
-import range from "lodash/range";
-import { IGristUrlState } from "app/common/gristUrls";
-import { urlState } from "app/client/models/gristUrlState";
 import { delay } from "app/common/delay";
-import { reportError } from "app/client/models/errors";
-import { cssBigIcon, cssCloseButton } from "app/client/ui/ExampleCard";
+import { IGristUrlState } from "app/common/gristUrls";
+
+import { createPopper, Placement } from "@popperjs/core";
+import { Disposable, dom, DomElementArg, Holder, makeTestId, Observable, styled, svg } from "grainjs";
+import range from "lodash/range";
 
 const t = makeT("OnBoardingPopups");
 

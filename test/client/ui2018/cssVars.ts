@@ -1,7 +1,8 @@
-import { assert } from "chai";
 import { colors, vars } from "app/client/ui2018/cssVars";
-import { legacyVarsMapping } from "app/common/ThemePrefs";
 import { CssCustomProp } from "app/common/CssCustomProp";
+import { legacyVarsMapping } from "app/common/ThemePrefs";
+
+import { assert } from "chai";
 
 describe("cssVars", function() {
   describe("legacy variables", function() {

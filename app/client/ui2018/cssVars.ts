@@ -10,11 +10,12 @@
  * with `theme.ts#attachCssThemeVars` and are required to be attached, as most theme-agnostic
  * CSS variables described below consume those variables.
  */
-import { CssCustomProp as CustomProp } from "app/common/CssCustomProp";
-import { components, tokens } from "app/common/ThemePrefs";
+import { getOrCreateStyleElement } from "app/client/lib/getOrCreateStyleElement";
 import { urlState } from "app/client/models/gristUrlState";
 import { getTheme, ProductFlavor } from "app/client/ui/CustomThemes";
-import { getOrCreateStyleElement } from "app/client/lib/getOrCreateStyleElement";
+import { CssCustomProp as CustomProp } from "app/common/CssCustomProp";
+import { components, tokens } from "app/common/ThemePrefs";
+
 import { DomElementMethod, makeTestId, Observable, styled, TestId } from "grainjs";
 import debounce from "lodash/debounce";
 import values from "lodash/values";

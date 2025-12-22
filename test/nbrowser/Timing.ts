@@ -1,9 +1,10 @@
 import { DocAPI, UserAPI } from "app/common/UserAPI";
-import difference from "lodash/difference";
-import { assert, driver } from "mocha-webdriver";
+import { button, element, label, option } from "test/nbrowser/elementUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
-import { button, element, label, option } from "test/nbrowser/elementUtils";
+
+import difference from "lodash/difference";
+import { assert, driver } from "mocha-webdriver";
 
 describe("Timing", function() {
   this.timeout(20000);

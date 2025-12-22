@@ -1,13 +1,15 @@
+import { delay } from "app/common/delay";
+import { timeoutReached } from "app/common/gutil";
+import { OpenMode, SchemaInfo, SQLiteDB } from "app/server/lib/SQLiteDB";
+import * as testUtils from "test/server/testUtils";
+
+import { join as pathJoin } from "path";
+
+
 import { assert } from "chai";
 import * as fse from "fs-extra";
 import { map, noop } from "lodash";
-import { join as pathJoin } from "path";
 import * as tmp from "tmp-promise";
-
-import { delay } from "app/common/delay";
-import { OpenMode, SchemaInfo, SQLiteDB } from "app/server/lib/SQLiteDB";
-import * as testUtils from "test/server/testUtils";
-import { timeoutReached } from "app/common/gutil";
 
 tmp.setGracefulCleanup();
 

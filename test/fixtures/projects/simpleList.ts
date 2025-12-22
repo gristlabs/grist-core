@@ -1,10 +1,11 @@
 import { popupControl } from "app/client/lib/popupControl";
 import { SimpleList } from "app/client/lib/simpleList";
-import { dom, obsArray, observable, styled } from "grainjs";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 import { testId } from "app/client/ui2018/cssVars";
-import { PopupControl } from "popweasel";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { dom, obsArray, observable, styled } from "grainjs";
+import { PopupControl } from "popweasel";
 
 function setupTest() {
   const items = observable(["foo", "bar"]);

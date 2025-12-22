@@ -1,5 +1,6 @@
-import { CheckerT, createCheckers } from "ts-interface-checker";
 import DocumentSettingsTI from "app/common/DocumentSettings-ti";
+
+import { CheckerT, createCheckers } from "ts-interface-checker";
 
 export interface DocumentSettings {
   locale: string;

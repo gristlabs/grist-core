@@ -1,10 +1,13 @@
+import { MinIOExternalStorage } from "app/server/lib/MinIOExternalStorage";
+import { waitForIt } from "test/server/wait";
+
+import * as stream from "node:stream";
+
+import { assert } from "chai";
+import fse from "fs-extra";
 import * as minio from "minio";
 import sinon from "sinon";
-import * as stream from "node:stream";
-import fse from "fs-extra";
-import { MinIOExternalStorage } from "app/server/lib/MinIOExternalStorage";
-import { assert } from "chai";
-import { waitForIt } from "test/server/wait";
+
 
 describe("MinIOExternalStorage", function() {
   const sandbox = sinon.createSandbox();

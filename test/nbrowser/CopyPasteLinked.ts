@@ -4,9 +4,10 @@
  * In particular, when multiple rows are selected in GridView, on switching to a different linked
  * record, the selection should be cleared, or else paste will misbehave.
  */
-import { assert, Key, WebElement } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, Key, WebElement } from "mocha-webdriver";
 
 describe("CopyPasteLinked", function() {
   this.timeout(30000);

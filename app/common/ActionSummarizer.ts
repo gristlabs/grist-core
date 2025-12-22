@@ -5,6 +5,7 @@ import { DocAction } from "app/common/DocActions";
 import * as Action from "app/common/DocActions";
 import { arrayExtend } from "app/common/gutil";
 import { CellDelta } from "app/common/TabularDiff";
+
 import clone from "lodash/clone";
 import fromPairs from "lodash/fromPairs";
 import keyBy from "lodash/keyBy";

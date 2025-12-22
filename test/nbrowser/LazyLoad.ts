@@ -1,7 +1,8 @@
 import { UserAPI } from "app/common/UserAPI";
-import { assert } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupCleanup, setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert } from "mocha-webdriver";
 
 describe("LazyLoad", function() {
   this.timeout(20000);

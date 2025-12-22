@@ -1,12 +1,13 @@
 import { allCommands } from "app/client/components/commands";
-import { BoxModel, parseBox } from "app/client/components/Forms/Model";
 import { buildMenu } from "app/client/components/Forms/Menu";
+import { BoxModel, parseBox } from "app/client/components/Forms/Model";
 import * as style from "app/client/components/Forms/styles";
 import { makeTestId, stopEvent } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { hoverTooltip } from "app/client/ui/tooltips";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
+
 import { BindableValue, dom, DomContents, IDomArgs, MultiHolder, Observable } from "grainjs";
 
 const testId = makeTestId("test-forms-");

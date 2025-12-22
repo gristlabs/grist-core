@@ -18,6 +18,7 @@ import { cssLink } from "app/client/ui2018/links";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { commonUrls } from "app/common/gristUrls";
 import { TelemetryPrefsWithSources } from "app/common/InstallAPI";
+
 import { Computed, Disposable, dom, makeTestId } from "grainjs";
 
 const testId = makeTestId("test-support-grist-page-");

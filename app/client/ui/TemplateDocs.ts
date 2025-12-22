@@ -1,10 +1,11 @@
 import { docUrl, urlState } from "app/client/models/gristUrlState";
-import { theme } from "app/client/ui2018/cssVars";
-import { Document, Workspace } from "app/common/UserAPI";
-import { dom, makeTestId, styled } from "grainjs";
 import { HomeModel, ViewSettings } from "app/client/models/HomeModel";
 import * as css from "app/client/ui/DocMenuCss";
 import { buildPinnedDoc } from "app/client/ui/PinnedDocs";
+import { theme } from "app/client/ui2018/cssVars";
+import { Document, Workspace } from "app/common/UserAPI";
+
+import { dom, makeTestId, styled } from "grainjs";
 import sortBy from "lodash/sortBy";
 
 const testId = makeTestId("test-dm-");

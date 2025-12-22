@@ -2,10 +2,11 @@
  * Test for copying Grist data with headers.
  */
 
-import { assert, driver, Key } from "mocha-webdriver";
+import { createDummyTextArea, removeDummyTextArea } from "test/nbrowser/CopyPaste";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
-import { createDummyTextArea, removeDummyTextArea } from "test/nbrowser/CopyPaste";
+
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("CopyWithHeaders", function() {
   this.timeout(90000);

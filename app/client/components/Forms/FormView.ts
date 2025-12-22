@@ -26,6 +26,7 @@ import { confirmModal } from "app/client/ui2018/modals";
 import { INITIAL_FIELDS_COUNT } from "app/common/Forms";
 import { isOwner } from "app/common/roles";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { Computed, dom, Holder, IDomArgs, MultiHolder, Observable } from "grainjs";
 import * as ko from "knockout";
 import isEqual from "lodash/isEqual";

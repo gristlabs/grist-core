@@ -1,14 +1,15 @@
-import { makeT } from "app/client/lib/localization";
 import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
 import { AppModel } from "app/client/models/AppModel";
 import { DocPageModel } from "app/client/models/DocPageModel";
-import { ShareAnnotations, ShareAnnotator } from "app/common/ShareAnnotator";
 import { normalizeEmail } from "app/common/emails";
 import { GristLoadConfig } from "app/common/gristUrls";
 import * as roles from "app/common/roles";
+import { ShareAnnotations, ShareAnnotator } from "app/common/ShareAnnotator";
 import { getGristConfig } from "app/common/urlUtils";
 import { ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess, Organization,
   PermissionData, PermissionDelta, UserAPI, Workspace } from "app/common/UserAPI";
+
 import { computed, Computed, Disposable, obsArray, ObsArray, observable, Observable } from "grainjs";
 import some from "lodash/some";
 

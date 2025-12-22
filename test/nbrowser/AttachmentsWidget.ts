@@ -1,3 +1,6 @@
+import * as gu from "test/nbrowser/gristUtils";
+import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
 import {
   assert,
   driver,
@@ -6,8 +9,6 @@ import {
   WebElement,
 } from "mocha-webdriver";
 import fetch from "node-fetch";
-import * as gu from "test/nbrowser/gristUtils";
-import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
 describe("AttachmentsWidget", function() {
   this.timeout(20000);

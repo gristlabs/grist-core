@@ -1,4 +1,5 @@
 import { fromTableDataAction, TableDataAction, toTableDataAction } from "app/common/DocActions";
+
 import { assert } from "chai";
 
 describe("DocActions", function() {

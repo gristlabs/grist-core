@@ -18,11 +18,12 @@
  * numbers. It is Ignored and disabled when mode is 'scientific'.
  */
 
+import { DocumentSettings } from "app/common/DocumentSettings";
 import { clamp } from "app/common/gutil";
 import { StringUnion } from "app/common/StringUnion";
-import * as LocaleCurrency from "locale-currency";
 import { FormatOptions } from "app/common/ValueFormatter";
-import { DocumentSettings } from "app/common/DocumentSettings";
+
+import * as LocaleCurrency from "locale-currency";
 
 // Options for number formatting.
 export const NumMode = StringUnion("currency", "decimal", "percent", "scientific");

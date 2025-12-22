@@ -1,12 +1,15 @@
+
 import { DocStorage } from "app/server/lib/DocStorage";
 import { DocStorageManager } from "app/server/lib/DocStorageManager";
 import { OpenMode, SQLiteDB } from "app/server/lib/SQLiteDB";
-import { promisify } from "bluebird";
-import * as child_process from "child_process";
-import * as fse from "fs-extra";
-import * as path from "path";
 import * as testUtils from "test/server/testUtils";
 import { assert } from "test/server/testUtils";
+
+import * as child_process from "child_process";
+import * as path from "path";
+
+import { promisify } from "bluebird";
+import * as fse from "fs-extra";
 import * as tmp from "tmp-promise";
 
 tmp.setGracefulCleanup();

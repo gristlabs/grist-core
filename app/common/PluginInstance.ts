@@ -1,12 +1,12 @@
-import { IForwarderDest, IMessage, IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc } from "grain-rpc";
-import { Checker } from "ts-interface-checker";
 
 import { InactivityTimer } from "app/common/InactivityTimer";
 import { LocalPlugin } from "app/common/plugin";
 import { BarePlugin } from "app/plugin/PluginManifest";
-
 import { Implementation } from "app/plugin/PluginManifest";
 import { RenderOptions, RenderTarget } from "app/plugin/RenderOptions";
+
+import { IForwarderDest, IMessage, IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc } from "grain-rpc";
+import { Checker } from "ts-interface-checker";
 
 export type ComponentKind = "safeBrowser" | "safePython" | "unsafeNode";
 

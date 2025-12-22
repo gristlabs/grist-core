@@ -1,5 +1,6 @@
 import { nativeValues } from "app/gen-server/lib/values";
 import * as sqlUtils from "app/gen-server/sqlUtils";
+
 import { MigrationInterface, QueryRunner, Table, TableUnique } from "typeorm";
 
 export class Proposals1759256005608 implements MigrationInterface {

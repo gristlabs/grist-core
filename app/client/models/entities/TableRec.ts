@@ -4,6 +4,7 @@ import { ColumnRec, ValidationRec, ViewRec } from "app/client/models/DocModel";
 import * as modelUtil from "app/client/models/modelUtil";
 import { summaryGroupByDescription } from "app/common/ActiveDocAPI";
 import { MANUALSORT } from "app/common/gristTypes";
+
 import * as ko from "knockout";
 import randomcolor from "randomcolor";
 

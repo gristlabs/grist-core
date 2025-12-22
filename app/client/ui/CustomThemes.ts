@@ -1,6 +1,7 @@
 // TODO: document this all, no tests are exercising this code.
 
 import { getGristConfig } from "app/common/urlUtils";
+
 import { styled } from "grainjs";
 
 /**

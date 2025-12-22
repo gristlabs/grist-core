@@ -1,3 +1,4 @@
+
 import { ClientScope } from "app/client/components/ClientScope";
 import { Disposable } from "app/client/lib/dispose";
 import { ClientProcess, SafeBrowser } from "app/client/lib/SafeBrowser";
@@ -6,15 +7,18 @@ import { PluginInstance } from "app/common/PluginInstance";
 import { GristAPI, RPC_GRISTAPI_INTERFACE } from "app/plugin/GristAPI";
 import { Storage } from "app/plugin/StorageAPI";
 import { checkers } from "app/plugin/TypeCheckers";
+import * as clientUtil from "test/client/clientUtil";
+
+import { basename } from "path";
+import * as url from "url";
+
 import { assert } from "chai";
 import { Rpc } from "grain-rpc";
 import { noop } from "lodash";
-import { basename } from "path";
 import * as sinon from "sinon";
-import * as clientUtil from "test/client/clientUtil";
 import * as tic from "ts-interface-checker";
 import { createCheckers } from "ts-interface-checker";
-import * as url from "url";
+
 
 clientUtil.setTmpMochaGlobals();
 

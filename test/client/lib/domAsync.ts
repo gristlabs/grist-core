@@ -1,4 +1,5 @@
 import { domAsync } from "app/client/lib/domAsync";
+
 import { assert } from "chai";
 import { dom } from "grainjs";
 import { G, popGlobals, pushGlobals } from "grainjs/dist/cjs/lib/browserGlobals";

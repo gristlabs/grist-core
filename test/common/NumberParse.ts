@@ -1,6 +1,7 @@
 import { getCurrency, locales } from "app/common/Locales";
 import { NumMode, parseNumMode } from "app/common/NumberFormat";
 import NumberParse from "app/common/NumberParse";
+
 import { assert } from "chai";
 import * as _ from "lodash";
 

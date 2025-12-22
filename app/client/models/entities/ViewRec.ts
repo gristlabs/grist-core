@@ -4,6 +4,7 @@ import * as koUtil from "app/client/lib/koUtil";
 import { DocModel, IRowModel, PageRec, recordSet, refRecord } from "app/client/models/DocModel";
 import { TabBarRec, ViewSectionRec } from "app/client/models/DocModel";
 import * as modelUtil from "app/client/models/modelUtil";
+
 import * as ko from "knockout";
 
 // Represents a view (now also referred to as a "page") containing one or more view sections.

@@ -1,6 +1,7 @@
-import { assert, driver, Key, WebElement } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver, Key, WebElement } from "mocha-webdriver";
 
 async function checkHasLinkStyle(elem: WebElement, yesNo: boolean) {
   assert.equal(await elem.getCssValue("text-decoration-line"), yesNo ? "underline" : "none");

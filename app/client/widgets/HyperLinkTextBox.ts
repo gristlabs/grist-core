@@ -7,6 +7,7 @@ import { cssIconSpanBackground, iconSpan } from "app/client/ui2018/icons";
 import { cssHoverIn, gristLink } from "app/client/ui2018/links";
 import { NTextBox } from "app/client/widgets/NTextBox";
 import { CellValue } from "app/common/DocActions";
+
 import { Computed, dom, styled } from "grainjs";
 
 /**

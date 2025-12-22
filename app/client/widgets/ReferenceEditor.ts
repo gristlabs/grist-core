@@ -1,5 +1,6 @@
 import { ACResults, buildHighlightedDom, HighlightFunc, normalizeText } from "app/client/lib/ACIndex";
 import { Autocomplete } from "app/client/lib/autocomplete";
+import { nocaseEqual, ReferenceUtils } from "app/client/lib/ReferenceUtils";
 import { ICellItem } from "app/client/models/ColumnACIndexes";
 import { reportError } from "app/client/models/errors";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
@@ -7,8 +8,8 @@ import { icon } from "app/client/ui2018/icons";
 import { menuCssClass } from "app/client/ui2018/menus";
 import { FieldOptions } from "app/client/widgets/NewBaseEditor";
 import { NTextEditor } from "app/client/widgets/NTextEditor";
-import { nocaseEqual, ReferenceUtils } from "app/client/lib/ReferenceUtils";
 import { undef } from "app/common/gutil";
+
 import { styled } from "grainjs";
 
 /**

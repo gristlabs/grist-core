@@ -11,6 +11,7 @@ import { CellValue, getTableId, isDataAction, TableDataAction, UserAction } from
 import { DocData as BaseDocData } from "app/common/DocData";
 import { SchemaTypes } from "app/common/schema";
 import { ColTypeMap } from "app/common/TableData";
+
 import * as bluebird from "bluebird";
 import { Emitter } from "grainjs";
 import defaults from "lodash/defaults";

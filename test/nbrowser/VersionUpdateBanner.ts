@@ -1,8 +1,9 @@
 import { version as installedVersion } from "app/common/version";
-import * as testUtils from "test/server/testUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import { FakeUpdateServer, startFakeUpdateServer } from "test/server/customUtil";
+import * as testUtils from "test/server/testUtils";
+
 import { assert, driver } from "mocha-webdriver";
 
 describe("VersionUpdateBanner", function() {

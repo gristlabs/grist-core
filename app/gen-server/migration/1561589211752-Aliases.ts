@@ -1,5 +1,6 @@
-import { MigrationInterface, QueryRunner, Table, TableColumn, TableIndex } from "typeorm";
 import { datetime, now } from "app/gen-server/sqlUtils";
+
+import { MigrationInterface, QueryRunner, Table, TableColumn, TableIndex } from "typeorm";
 
 export class Aliases1561589211752 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {

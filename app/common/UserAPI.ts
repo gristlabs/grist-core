@@ -16,6 +16,7 @@ import { encodeQueryParams } from "app/common/gutil";
 import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
 import { OrgPrefs, UserOrgPrefs, UserPrefs } from "app/common/Prefs";
 import * as roles from "app/common/roles";
+import { StringUnion } from "app/common/StringUnion";
 import {
   WebhookFields,
   WebhookSubscribe,
@@ -23,8 +24,8 @@ import {
   WebhookUpdate,
 } from "app/common/Triggers";
 import { addCurrentOrgToPath, getGristConfig } from "app/common/urlUtils";
-import { StringUnion } from "app/common/StringUnion";
 import { AttachmentStore, AttachmentStoreDesc } from "app/plugin/DocApiTypes";
+
 import { AxiosProgressEvent } from "axios";
 import omitBy from "lodash/omitBy";
 

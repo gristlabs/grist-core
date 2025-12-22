@@ -22,17 +22,17 @@ import * as roles from "app/common/roles";
 import { UserType } from "app/common/User";
 import {
   ANONYMOUS_USER_EMAIL,
-  Proposal as ApiProposal,
   DocumentProperties,
   EVERYONE_EMAIL,
   getRealAccess,
   ManagerDelta,
   NEW_DOCUMENT_CODE,
-  OrganizationProperties,
   Organization as OrgInfo,
+  OrganizationProperties,
   PermissionData,
   PermissionDelta,
   PREVIEWER_EMAIL,
+  Proposal as ApiProposal,
   ProposalStatus,
   UserAccessData,
   UserOptions,
@@ -81,8 +81,8 @@ import {
   UserProfileChange,
   WorkspaceAccessChanges,
 } from "app/gen-server/lib/homedb/Interfaces";
-import { SUPPORT_EMAIL, UsersManager } from "app/gen-server/lib/homedb/UsersManager";
 import { ServiceAccountsManager } from "app/gen-server/lib/homedb/ServiceAccountsManager";
+import { SUPPORT_EMAIL, UsersManager } from "app/gen-server/lib/homedb/UsersManager";
 import { Permissions } from "app/gen-server/lib/Permissions";
 import { scrubUserFromOrg } from "app/gen-server/lib/scrubUserFromOrg";
 import { applyPatch, maybePrepareStatement } from "app/gen-server/lib/TypeORMPatches";
@@ -106,6 +106,7 @@ import { IPubSubManager } from "app/server/lib/PubSubManager";
 import { getScope } from "app/server/lib/requestUtils";
 import { expectedResetDate } from "app/server/lib/serverUtils";
 import { WebHookSecret } from "app/server/lib/Triggers";
+
 import { Request } from "express";
 import { flatten, pick, size } from "lodash";
 import moment from "moment";

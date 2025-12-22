@@ -3,18 +3,19 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { makeT } from "app/client/lib/localization";
 import { ViewRec, ViewSectionRec } from "app/client/models/DocModel";
 import { filterBar } from "app/client/ui/FilterBar";
+import { maybeShowNewRecordExperiment } from "app/client/ui/NewRecordButton";
 import { cssIcon } from "app/client/ui/RightPanelStyles";
 import { makeCollapsedLayoutMenu } from "app/client/ui/ViewLayoutMenu";
 import { cssDotsIconWrapper, cssMenu, viewSectionMenu } from "app/client/ui/ViewSectionMenu";
 import { buildWidgetTitle } from "app/client/ui/WidgetTitle";
+import { getWidgetTypes } from "app/client/ui/widgetTypesMap";
 import { isNarrowScreenObs, mediaSmall, testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menu } from "app/client/ui2018/menus";
-import { getWidgetTypes } from "app/client/ui/widgetTypesMap";
+import { undef } from "app/common/gutil";
+
 import { Computed, dom, DomElementArg, Observable, styled } from "grainjs";
 import { defaultMenuOptions } from "popweasel";
-import { undef } from "app/common/gutil";
-import { maybeShowNewRecordExperiment } from "app/client/ui/NewRecordButton";
 
 const t = makeT("ViewSection");
 

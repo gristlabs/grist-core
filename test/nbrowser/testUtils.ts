@@ -16,11 +16,12 @@
  * first-failure for debugging and quick reruns.
  */
 import log from "app/server/lib/log";
-import { addToRepl, assert, Capability, driver, enableDebugCapture, ITimeouts,
-  Key, setOptionsModifyFunc, useServer } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server } from "test/nbrowser/testServer";
 import { setupCleanup } from "test/server/testCleanup";
+
+import { addToRepl, assert, Capability, driver, enableDebugCapture, ITimeouts,
+  Key, setOptionsModifyFunc, useServer } from "mocha-webdriver";
 
 // Exports the server object with useful methods such as getHost(), waitServerReady(),
 // simulateLogin(), etc.

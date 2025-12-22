@@ -1,8 +1,9 @@
-import { assert, driver, Key, stackWrapFunc } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
-import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import { Session } from "test/nbrowser/gristUtils";
+import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import * as testUtils from "test/server/testUtils";
+
+import { assert, driver, Key, stackWrapFunc } from "mocha-webdriver";
 
 describe("ReferenceList", function() {
   this.timeout(60000);

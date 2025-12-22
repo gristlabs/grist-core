@@ -1,16 +1,17 @@
 import * as commands from "app/client/components/commands";
-import { makeT } from "app/client/lib/localization";
 import { FocusLayer } from "app/client/lib/FocusLayer";
+import { makeT } from "app/client/lib/localization";
 import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
+import { autoGrow } from "app/client/ui/forms";
+import { cssInput, cssLabel, cssRenamePopup, cssTextArea } from "app/client/ui/RenamePopupStyles";
+import { descriptionInfoTooltip } from "app/client/ui/tooltips";
 import { basicButton, cssButton, primaryButton } from "app/client/ui2018/buttons";
 import { theme } from "app/client/ui2018/cssVars";
 import { menuCssClass } from "app/client/ui2018/menus";
 import { ModalControl } from "app/client/ui2018/modals";
+
 import { Computed, dom, DomElementArg, makeTestId, Observable, styled } from "grainjs";
 import { IOpenController, IPopupOptions, PopupControl, setPopupToCreateDom } from "popweasel";
-import { descriptionInfoTooltip } from "app/client/ui/tooltips";
-import { autoGrow } from "app/client/ui/forms";
-import { cssInput, cssLabel, cssRenamePopup, cssTextArea } from "app/client/ui/RenamePopupStyles";
 
 const testId = makeTestId("test-widget-title-");
 const t = makeT("WidgetTitle");

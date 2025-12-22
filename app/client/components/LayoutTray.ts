@@ -2,7 +2,6 @@ import BaseView from "app/client/components/BaseView";
 import { buildCollapsedSectionDom, buildViewSectionDom } from "app/client/components/buildViewSectionDom";
 import * as commands from "app/client/components/commands";
 import { ContentBox } from "app/client/components/Layout";
-import type { ViewLayout } from "app/client/components/ViewLayout";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { Signal } from "app/client/lib/Signal";
 import { urlState } from "app/client/models/gristUrlState";
@@ -10,9 +9,12 @@ import { TransitionWatcher } from "app/client/ui/transitions";
 import { theme } from "app/client/ui2018/cssVars";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 import { isNonNullish } from "app/common/gutil";
+
 import { Computed, Disposable, dom, IDisposable, IDisposableOwner,
   makeTestId, obsArray, Observable, styled } from "grainjs";
 import isEqual from "lodash/isEqual";
+
+import type { ViewLayout } from "app/client/components/ViewLayout";
 
 const testId = makeTestId("test-layoutTray-");
 

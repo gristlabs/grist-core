@@ -1,8 +1,9 @@
 import { UserManagerModelImpl } from "app/client/models/UserManagerModel";
 import { UserManager } from "app/client/ui/UserManager";
 import { PermissionData, PermissionDelta } from "app/common/UserAPI";
-import { dom, observable, styled } from "grainjs";
 import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { dom, observable, styled } from "grainjs";
 
 function getInitialData(): PermissionData {
   return {

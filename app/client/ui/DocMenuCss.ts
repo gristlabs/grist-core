@@ -1,10 +1,11 @@
-import { components } from "app/common/ThemePrefs";
 import { cssFocusedPanel } from "app/client/components/RegionFocusSwitcher";
 import { transientInput } from "app/client/ui/transientInput";
+import { bigBasicButton } from "app/client/ui2018/buttons";
 import { mediaSmall, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+import { components } from "app/common/ThemePrefs";
+
 import { styled } from "grainjs";
-import { bigBasicButton } from "app/client/ui2018/buttons";
 
 // Import popweasel to ensure that sortSelector style below comes later in CSS than popweasel
 // styles, which gives it priority.

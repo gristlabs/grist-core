@@ -1,9 +1,9 @@
 import { BaseAPI, IOptions } from "app/common/BaseAPI";
 import { BootProbeInfo, BootProbeResult } from "app/common/BootProbe";
+import { LatestVersionAvailable } from "app/common/gristUrls";
 import { InstallPrefs } from "app/common/Install";
 import { TelemetryLevel } from "app/common/Telemetry";
 import { addCurrentOrgToPath } from "app/common/urlUtils";
-import { LatestVersionAvailable } from "app/common/gristUrls";
 
 export const installPropertyKeys = ["prefs"];
 

@@ -1,12 +1,13 @@
 import { makeT } from "app/client/lib/localization";
 import { AppModel } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
+import * as css from "app/client/ui/LoginPagesCss";
 import { createUserImage } from "app/client/ui/UserImage";
 import { bigBasicButtonLink } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { FullUser } from "app/common/LoginSessionAPI";
 import { getOrgName } from "app/common/UserAPI";
-import * as css from "app/client/ui/LoginPagesCss";
+
 import { Computed, dom, DomContents, IDisposableOwner, styled } from "grainjs";
 
 const t = makeT("WelcomeSitePicker");

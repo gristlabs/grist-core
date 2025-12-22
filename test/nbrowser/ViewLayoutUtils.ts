@@ -1,5 +1,6 @@
-import { assert, driver } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
+
+import { assert, driver } from "mocha-webdriver";
 
 export async function closeExpandedSection() {
   await driver.find(".test-viewLayout-overlay .test-close-button").click();

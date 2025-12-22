@@ -1,12 +1,10 @@
-import axios from "axios";
+import { FlexServer } from "app/server/lib/FlexServer";
+import { createBenchmarkServer, removeConnection, setUpDB } from "test/gen-server/seed";
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
 
+import axios from "axios";
 import { assert } from "chai";
-
-import { FlexServer } from "app/server/lib/FlexServer";
-
-import { createBenchmarkServer, removeConnection, setUpDB } from "test/gen-server/seed";
 
 let home: FlexServer;
 let homeUrl: string;

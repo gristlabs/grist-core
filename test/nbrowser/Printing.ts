@@ -18,10 +18,11 @@
  *    simulation of `@media print`. That's what we use here. We don't get to see anything about
  *    pagination, but we can at least check whether various elements are visible for printing.
  */
-import { assert, driver } from "mocha-webdriver";
 import { serveCustomViews, Serving } from "test/nbrowser/customUtil";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver } from "mocha-webdriver";
 
 function emulateMediaPrint(print: boolean) {
   return (driver as any).sendDevToolsCommand("Emulation.setEmulatedMedia", { media: print ? "print" : "screen" });

@@ -1,5 +1,6 @@
-import { collectDefaultMetrics, register } from "prom-client";
 import http from "http";
+
+import { collectDefaultMetrics, register } from "prom-client";
 
 const reqListener = (req: http.IncomingMessage, res: http.ServerResponse) => {
   register.metrics().then((metrics) => {

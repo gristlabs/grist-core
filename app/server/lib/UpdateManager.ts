@@ -6,11 +6,13 @@ import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
 import { optIntegerParam, optStringParam } from "app/server/lib/requestUtils";
+
 import { rateLimit } from "express-rate-limit";
 import { AbortController, AbortSignal } from "node-abort-controller";
-import type * as express from "express";
 import fetch from "node-fetch";
 import * as semver from "semver";
+
+import type * as express from "express";
 
 // URL to show to the client where the new version for docker based deployments can be found.
 const DOCKER_IMAGE_SITE = "https://hub.docker.com/r/gristlabs/grist";

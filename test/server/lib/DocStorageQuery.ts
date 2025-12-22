@@ -1,8 +1,9 @@
 import { DocStorage } from "app/server/lib/DocStorage";
 import { ExpandedQuery } from "app/server/lib/ExpandedQuery";
+import * as testUtils from "test/server/testUtils";
+
 import { assert } from "chai";
 import * as sinon from "sinon";
-import * as testUtils from "test/server/testUtils";
 
 describe("DocStorageQuery", function() {
   const sandbox = sinon.createSandbox();

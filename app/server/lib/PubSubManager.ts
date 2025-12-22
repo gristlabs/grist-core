@@ -10,9 +10,10 @@
  *    getPubSubPrefix(), so that calling code doesn't have to worry about it.
  */
 import { mapGetOrSet } from "app/common/AsyncCreate";
-import { getPubSubPrefix } from "app/server/lib/serverUtils";
-import log from "app/server/lib/log";
 import { arrayRemove, removePrefix, setDefault } from "app/common/gutil";
+import log from "app/server/lib/log";
+import { getPubSubPrefix } from "app/server/lib/serverUtils";
+
 import IORedis from "ioredis";
 
 /**

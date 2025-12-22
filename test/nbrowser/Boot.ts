@@ -1,7 +1,8 @@
-import { assert, driver } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import * as testUtils from "test/server/testUtils";
+
+import { assert, driver } from "mocha-webdriver";
 
 /**
  * The boot page functionality has been merged with the Admin Panel.

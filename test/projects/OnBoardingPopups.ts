@@ -1,5 +1,6 @@
-import { assert, driver, stackWrapFunc } from "mocha-webdriver";
 import { server, setupTestSuite } from "test/projects/testUtils";
+
+import { assert, driver, stackWrapFunc } from "mocha-webdriver";
 
 const getLogs = stackWrapFunc(() => driver.findAll(".test-logs", e => e.getText()));
 

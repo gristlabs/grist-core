@@ -1,12 +1,16 @@
-import fetch from "node-fetch";
+import { cookieName } from "app/server/lib/gristSessions";
 import { TestServer } from "test/gen-server/apiUtils";
+import * as testUtils from "test/server/testUtils";
+
+import * as path from "path";
+import zlib from "zlib";
+
 import { assert } from "chai";
 import * as cookie from "cookie";
 import * as fse from "fs-extra";
-import { cookieName } from "app/server/lib/gristSessions";
-import * as testUtils from "test/server/testUtils";
-import * as path from "path";
-import zlib from "zlib";
+import fetch from "node-fetch";
+
+
 
 describe("SamlConfig", () => {
   testUtils.setTmpLogLevel("error");

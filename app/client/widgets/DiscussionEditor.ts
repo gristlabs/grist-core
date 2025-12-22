@@ -22,6 +22,7 @@ import { CommentContent } from "app/common/DocComments";
 import { CellInfoType } from "app/common/gristTypes";
 import { FullUser, PermissionData } from "app/common/UserAPI";
 import { CursorPos } from "app/plugin/GristAPI";
+
 import {
   bundleChanges,
   Computed,

@@ -1,8 +1,9 @@
-import { MomentTimezone } from "app/client/lib/imports";
 import { ACIndexImpl } from "app/client/lib/ACIndex";
 import { ACSelectItem, buildACSelect } from "app/client/lib/ACSelect";
+import { MomentTimezone } from "app/client/lib/imports";
 import { testId } from "app/client/ui2018/cssVars";
 import { nativeCompare } from "app/common/gutil";
+
 import { IDisposableOwner, Observable } from "grainjs";
 
 /**

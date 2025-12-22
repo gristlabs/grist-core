@@ -1,8 +1,8 @@
 import { IClipboard } from "test/nbrowser/gristUtils";
-
-import { assert, driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver, Key } from "mocha-webdriver";
 
 // TODO: Assert that non-basic actions work on an onDemand table.
 describe("OnDemand", function() {

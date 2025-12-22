@@ -1,7 +1,8 @@
 import { editableLabel, textInput } from "app/client/ui2018/editableLabel";
-import { Computed, Disposable, dom, IDisposableOwner, makeTestId, obsArray, Observable, select, styled } from "grainjs";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { Computed, Disposable, dom, IDisposableOwner, makeTestId, obsArray, Observable, select, styled } from "grainjs";
 
 interface PendingCall {
   callValue: string;

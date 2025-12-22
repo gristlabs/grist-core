@@ -1,7 +1,8 @@
-import { assert, driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
-import { setupExternalSite } from "test/server/customUtil";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+import { setupExternalSite } from "test/server/customUtil";
+
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("links", function() {
   this.timeout(20000);

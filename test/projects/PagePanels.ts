@@ -1,6 +1,7 @@
-import { assert, driver, Key, Origin, stackWrapFunc } from "mocha-webdriver";
-import { server, setupTestSuite } from "test/projects/testUtils";
 import * as gu from "test/nbrowser/gristUtils";
+import { server, setupTestSuite } from "test/projects/testUtils";
+
+import { assert, driver, Key, Origin, stackWrapFunc } from "mocha-webdriver";
 
 async function checkLeftPanelIsCollapsed() {
   assert.closeTo((await driver.find(".test-pp-left-panel").rect()).width, 50, 25);

@@ -5,12 +5,12 @@ import { ViewSectionRec } from "app/client/models/DocModel";
 import { SortedRowSet } from "app/client/models/rowset";
 import { bigBasicButton, cssButton } from "app/client/ui2018/buttons";
 import { UploadResult } from "app/common/uploads";
-import { dom, Holder, Observable, styled } from "grainjs";
-import * as ko from "knockout";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 import { initSchema, initValues } from "test/fixtures/projects/helpers/ParseOptionsData";
 import { withLocale } from "test/fixtures/projects/helpers/withLocale";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
+import { dom, Holder, Observable, styled } from "grainjs";
+import * as ko from "knockout";
 
 let colRef = 1;
 

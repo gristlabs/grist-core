@@ -1,3 +1,4 @@
+import * as commands from "app/client/components/commands";
 import { DocModel } from "app/client/models/DocModel";
 import { reportError } from "app/client/models/errors";
 import { TableData } from "app/client/models/TableData";
@@ -8,9 +9,9 @@ import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 import { DocAction, TableDataAction, UserAction } from "app/common/DocActions";
 import { DocDataCache } from "app/common/DocDataCache";
 import { RowRecord } from "app/plugin/GristData";
-import * as commands from "app/client/components/commands";
-import debounce from "lodash/debounce";
+
 import { bundleChanges } from "grainjs";
+import debounce from "lodash/debounce";
 
 /**
  * An interface for use while editing a virtual table.

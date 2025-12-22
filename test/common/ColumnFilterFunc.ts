@@ -1,7 +1,8 @@
 import { makeFilterFunc } from "app/common/ColumnFilterFunc";
 import { FilterState } from "app/common/FilterState";
-import moment from "moment-timezone";
+
 import { assert } from "chai";
+import moment from "moment-timezone";
 
 const format = "YYYY-MM-DD HH:mm:ss";
 const timezone = "Europe/Paris";

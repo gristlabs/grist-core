@@ -12,6 +12,7 @@ import { isFullReferencingType } from "app/common/gristTypes";
 import { getSetMapValue } from "app/common/gutil";
 import { SchemaTypes } from "app/common/schema";
 import { BulkColValues, CellValue, GristObjCode } from "app/plugin/GristData";
+
 import omit from "lodash/omit";
 import pick from "lodash/pick";
 

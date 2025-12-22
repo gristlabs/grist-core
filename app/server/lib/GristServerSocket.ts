@@ -1,5 +1,5 @@
-import * as WS from "ws";
 import * as EIO from "engine.io";
+import * as WS from "ws";
 
 export abstract class GristServerSocket {
   public abstract set onerror(handler: (err: Error) => void);

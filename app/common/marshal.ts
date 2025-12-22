@@ -26,8 +26,10 @@
  */
 import { BigInt } from "app/common/BigInt";
 import MemBuffer from "app/common/MemBuffer";
+
 import { EventEmitter } from "events";
 import * as util from "util";
+
 
 export interface MarshalOptions {
   stringToBuffer?: boolean;

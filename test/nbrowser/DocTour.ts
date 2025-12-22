@@ -1,9 +1,10 @@
 import { DocCreationInfo } from "app/common/DocListAPI";
 import { UserAPI } from "app/common/UserAPI";
-import { assert, driver } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server } from "test/nbrowser/testServer";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver } from "mocha-webdriver";
 
 describe("DocTour", function() {
   this.timeout(30000);

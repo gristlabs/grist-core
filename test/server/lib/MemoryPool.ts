@@ -1,6 +1,7 @@
-import { MemoryPool } from "app/server/lib/MemoryPool";
 import { delay } from "app/common/delay";
 import { isLongerThan } from "app/common/gutil";
+import { MemoryPool } from "app/server/lib/MemoryPool";
+
 import { assert } from "chai";
 import * as sinon from "sinon";
 

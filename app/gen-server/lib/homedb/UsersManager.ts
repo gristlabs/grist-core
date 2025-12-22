@@ -20,14 +20,16 @@ import { AclRule } from "app/gen-server/entity/AclRule";
 import { Document } from "app/gen-server/entity/Document";
 import { Group } from "app/gen-server/entity/Group";
 import { Login } from "app/gen-server/entity/Login";
+import { Pref } from "app/gen-server/entity/Pref";
 import { User } from "app/gen-server/entity/User";
-import { appSettings } from "app/server/lib/AppSettings";
 import { HomeDBManager, PermissionDeltaAnalysis, Scope, UserIdDelta } from "app/gen-server/lib/homedb/HomeDBManager";
 import {
   AvailableUsers, GetUserOptions, NonGuestGroup, QueryResult, Resource, RunInTransaction, UserProfileChange,
 } from "app/gen-server/lib/homedb/Interfaces";
 import { Permissions } from "app/gen-server/lib/Permissions";
-import { Pref } from "app/gen-server/entity/Pref";
+import { appSettings } from "app/server/lib/AppSettings";
+
+import * as crypto from "crypto";
 
 import flatten from "lodash/flatten";
 import { EntityManager, IsNull, Not } from "typeorm";

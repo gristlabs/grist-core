@@ -5,22 +5,13 @@
  *
  * It can be instantiated by calling showUserManagerModal with the UserAPI and IUserManagerOptions.
  */
-import { makeT } from "app/client/lib/localization";
-import { normalizeEmail } from "app/common/emails";
-import { commonUrls, isOrgInPathOnly } from "app/common/gristUrls";
-import { capitalizeFirstWord, isLongerThan } from "app/common/gutil";
-import { getGristConfig } from "app/common/urlUtils";
-import { FullUser } from "app/common/LoginSessionAPI";
-import * as roles from "app/common/roles";
-import { Organization, PermissionData, UserAPI } from "app/common/UserAPI";
-import { Computed, Disposable, dom, DomElementArg, IDomArgs, Observable, observable, styled } from "grainjs";
-import pick from "lodash/pick";
 
 import { ACIndexImpl, normalizeText } from "app/client/lib/ACIndex";
-import { copyToClipboard } from "app/client/lib/clipboardUtils";
-import { setTestState } from "app/client/lib/testState";
-import { buildMultiUserManagerModal } from "app/client/lib/MultiUserManager";
 import { ACUserItem, buildACMemberEmail } from "app/client/lib/ACUserManager";
+import { copyToClipboard } from "app/client/lib/clipboardUtils";
+import { makeT } from "app/client/lib/localization";
+import { buildMultiUserManagerModal } from "app/client/lib/MultiUserManager";
+import { setTestState } from "app/client/lib/testState";
 import { AppModel } from "app/client/models/AppModel";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { reportError } from "app/client/models/errors";
@@ -43,6 +34,16 @@ import { loadingSpinner } from "app/client/ui2018/loaders";
 import { menu, menuItem, menuText } from "app/client/ui2018/menus";
 import { confirmModal, cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
   IModalControl, modal } from "app/client/ui2018/modals";
+import { normalizeEmail } from "app/common/emails";
+import { commonUrls, isOrgInPathOnly } from "app/common/gristUrls";
+import { capitalizeFirstWord, isLongerThan } from "app/common/gutil";
+import { FullUser } from "app/common/LoginSessionAPI";
+import * as roles from "app/common/roles";
+import { getGristConfig } from "app/common/urlUtils";
+import { Organization, PermissionData, UserAPI } from "app/common/UserAPI";
+
+import { Computed, Disposable, dom, DomElementArg, IDomArgs, Observable, observable, styled } from "grainjs";
+import pick from "lodash/pick";
 
 const t = makeT("UserManager");
 

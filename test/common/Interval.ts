@@ -1,4 +1,5 @@
 import { Interval } from "app/common/Interval";
+
 import { delay } from "bluebird";
 import { assert } from "chai";
 import * as sinon from "sinon";

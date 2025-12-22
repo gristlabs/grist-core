@@ -1,15 +1,15 @@
-import axios, { AxiosResponse } from "axios";
-import capitalize from "lodash/capitalize";
-import { assert } from "chai";
-import Sinon from "sinon";
+import { isAffirmative } from "app/common/gutil";
+import { UserType } from "app/common/User";
+import { Group } from "app/gen-server/entity/Group";
 import log from "app/server/lib/log";
-
 import { TestServer } from "test/gen-server/apiUtils";
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
-import { Group } from "app/gen-server/entity/Group";
-import { isAffirmative } from "app/common/gutil";
-import { UserType } from "app/common/User";
+
+import axios, { AxiosResponse } from "axios";
+import { assert } from "chai";
+import capitalize from "lodash/capitalize";
+import Sinon from "sinon";
 
 function scimConfigForUser(user: string) {
   const config = configForUser(user);

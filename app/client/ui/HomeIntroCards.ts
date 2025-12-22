@@ -9,6 +9,7 @@ import { icon } from "app/client/ui2018/icons";
 import { unstyledButton, unstyledH2 } from "app/client/ui2018/unstyled";
 import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { Computed, dom, IDisposableOwner, makeTestId, styled, subscribeElem } from "grainjs";
 
 interface BuildHomeIntroCardsOptions {

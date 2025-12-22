@@ -1,20 +1,23 @@
+
 import { delay } from "app/common/delay";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { Deps } from "app/server/lib/DocClients";
 import { FlexServer } from "app/server/lib/FlexServer";
 import log from "app/server/lib/log";
 import { MergedServer } from "app/server/MergedServer";
-import axios from "axios";
-import { assert } from "chai";
-import * as fse from "fs-extra";
-import { tmpdir } from "os";
-import * as path from "path";
-import * as sinon from "sinon";
 import { TestSession } from "test/gen-server/apiUtils";
 import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
 import { configForUser, getGristConfig } from "test/gen-server/testUtils";
 import { openClient } from "test/server/gristClient";
 import * as testUtils from "test/server/testUtils";
+
+import { tmpdir } from "os";
+import * as path from "path";
+
+import axios from "axios";
+import { assert } from "chai";
+import * as fse from "fs-extra";
+import * as sinon from "sinon";
 
 async function createTestDir(ident: string): Promise<string> {
   // Create a testDir of the form grist_test_{USER}_{SERVER_NAME}, removing any previous one.

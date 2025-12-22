@@ -1,6 +1,7 @@
-import ace, { Ace } from "ace-builds";
 import { ISuggestionWithValue } from "app/common/ActiveDocAPI";
 import { commonUrls } from "app/common/gristUrls";
+
+import ace, { Ace } from "ace-builds";
 
 export interface ICompletionOptions {
   getSuggestions(prefix: string): Promise<ISuggestionWithValue[]>;

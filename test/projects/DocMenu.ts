@@ -1,6 +1,7 @@
-import { assert, driver, Key, stackWrapFunc } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/projects/testUtils";
+
+import { assert, driver, Key, stackWrapFunc } from "mocha-webdriver";
 
 describe("DocMenu", function() {
   this.timeout(60000);      // Set a longer default timeout.

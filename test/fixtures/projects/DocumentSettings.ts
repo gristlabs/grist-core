@@ -3,10 +3,11 @@ import { DocSettingsPage } from "app/client/ui/DocumentSettings";
 import { testId } from "app/client/ui2018/cssVars";
 import { ColValues } from "app/common/DocActions";
 import { DocumentSettings } from "app/common/DocumentSettings";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
 import { Computed, dom, fromKo, input, observable, Observable, styled } from "grainjs";
 import * as ko from "knockout";
-import { withLocale } from "test/fixtures/projects/helpers/withLocale";
-import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 function savable<T>(initial: T) {
   async function save(value: T) {

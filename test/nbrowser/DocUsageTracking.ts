@@ -1,12 +1,13 @@
 import { UserAPI } from "app/common/UserAPI";
-import { assert, driver, Key } from "mocha-webdriver";
-import fetch from "node-fetch";
-import * as gu from "test/nbrowser/gristUtils";
-import { server } from "test/nbrowser/testServer";
-import { setupTestSuite } from "test/nbrowser/testUtils";
 import {
   enableExternalAttachmentsForTestSuite,
 } from "test/nbrowser/externalAttachmentsHelpers";
+import * as gu from "test/nbrowser/gristUtils";
+import { server } from "test/nbrowser/testServer";
+import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver, Key } from "mocha-webdriver";
+import fetch from "node-fetch";
 
 describe("DocUsageTracking", function() {
   this.timeout(20000);

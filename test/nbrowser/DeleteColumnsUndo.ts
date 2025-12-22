@@ -1,7 +1,7 @@
-import { assert, driver, Key } from "mocha-webdriver";
-
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("DeleteColumnsUndo", function() {
   this.timeout(20000);

@@ -24,13 +24,14 @@ import { DocManager } from "app/server/lib/DocManager";
 import { docSessionFromRequest, makeExceptionalDocSession } from "app/server/lib/DocSession";
 import { filterColValues, GranularAccess } from "app/server/lib/GranularAccess";
 import { globalUploadSet } from "app/server/lib/uploads";
-import { assert } from "chai";
-import { cloneDeep, isMatch, pick } from "lodash";
-import * as sinon from "sinon";
 import { TestServer } from "test/gen-server/apiUtils";
 import { createDocTools } from "test/server/docTools";
 import { GristClient, openClient } from "test/server/gristClient";
 import * as testUtils from "test/server/testUtils";
+
+import { assert } from "chai";
+import { cloneDeep, isMatch, pick } from "lodash";
+import * as sinon from "sinon";
 
 describe("GranularAccess", function() {
   this.timeout(60000);

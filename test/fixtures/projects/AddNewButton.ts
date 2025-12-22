@@ -1,7 +1,8 @@
 import { addNewButton } from "app/client/ui/AddNewButton";
 import { resizeFlexVHandle } from "app/client/ui/resizeHandle";
-import { dom, makeTestId, observable, styled } from "grainjs";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+
+import { dom, makeTestId, observable, styled } from "grainjs";
 
 const testId = makeTestId("test-add-");
 

@@ -1,8 +1,9 @@
 import { GristDoc } from "app/client/components/GristDoc";
+import { normalizeText } from "app/client/lib/ACIndex";
 import { ColumnFilter } from "app/client/models/ColumnFilter";
 import { FilterInfo } from "app/client/models/entities/ViewSectionRec";
 import { CellValue } from "app/plugin/GristData";
-import { normalizeText } from "app/client/lib/ACIndex";
+
 import { Computed, Disposable, Observable } from "grainjs";
 import escapeRegExp from "lodash/escapeRegExp";
 import isNull from "lodash/isNull";

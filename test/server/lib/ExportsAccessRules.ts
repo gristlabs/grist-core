@@ -1,6 +1,7 @@
+import { UserAPIImpl } from "app/common/UserAPI";
 import { TestServer } from "test/gen-server/apiUtils";
 import * as testUtils from "test/server/testUtils";
-import { UserAPIImpl } from "app/common/UserAPI";
+
 import chai, { assert } from "chai";
 import Excel from "exceljs";
 import * as sinon from "sinon";

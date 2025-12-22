@@ -1,7 +1,8 @@
 import { DocAPI, UserAPI } from "app/common/UserAPI";
-import { assert, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, Key } from "mocha-webdriver";
 
 describe("Choice", function() {
   this.timeout(20000);

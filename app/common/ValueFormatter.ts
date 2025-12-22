@@ -11,8 +11,9 @@ import { buildNumberFormat, NumberFormatOptions } from "app/common/NumberFormat"
 import { createParserOrFormatterArguments, ReferenceParsingOptions } from "app/common/ValueParser";
 import { GristObjCode } from "app/plugin/GristData";
 import { decodeObject, GristDateTime } from "app/plugin/objtypes";
-import moment from "moment-timezone";
+
 import isPlainObject from "lodash/isPlainObject";
+import moment from "moment-timezone";
 
 export { PENDING_DATA_PLACEHOLDER } from "app/plugin/objtypes";
 

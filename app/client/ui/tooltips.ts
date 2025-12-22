@@ -12,10 +12,11 @@ import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { makeLinks } from "app/client/ui2018/links";
 import { menuCssClass } from "app/client/ui2018/menus";
+
 import { BindableValue, dom, DomContents, DomElementArg, DomElementMethod, Observable, styled } from "grainjs";
+import merge from "lodash/merge";
 import Popper from "popper.js";
 import { cssMenu, cssMenuItem, defaultMenuOptions, IPopupOptions, setPopupToCreateDom } from "popweasel";
-import merge from "lodash/merge";
 
 export interface ITipOptions {
   /**

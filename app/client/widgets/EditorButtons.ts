@@ -1,6 +1,7 @@
 import { colors, isNarrowScreen, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { IEditorCommandGroup } from "app/client/widgets/NewBaseEditor";
+
 import { dom, styled } from "grainjs";
 
 /**

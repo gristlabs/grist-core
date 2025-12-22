@@ -1,10 +1,11 @@
 import { UserAPI } from "app/common/UserAPI";
-import { assert, driver, Key } from "mocha-webdriver";
 import { addYAxis, checkAxisConfig, checkAxisRange, findYAxis, getAxisTitle, getChartData,
   removeYAxis, selectChartType, selectXAxis,
   setSplitSeries } from "test/nbrowser/chartViewTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("ChartView1", function() {
   this.timeout(20000);

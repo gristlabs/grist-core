@@ -1,6 +1,7 @@
-import { assert, driver, Key, stackWrapFunc, WebElement } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, driver, Key, stackWrapFunc, WebElement } from "mocha-webdriver";
 
 const normalFont = { bold: false, underline: false, italic: false, strikethrough: false };
 const bold = true;

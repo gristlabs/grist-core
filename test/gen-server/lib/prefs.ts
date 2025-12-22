@@ -1,7 +1,8 @@
 import { UserAPI, UserAPIImpl } from "app/common/UserAPI";
-import { assert } from "chai";
 import { TestServer } from "test/gen-server/apiUtils";
 import * as testUtils from "test/server/testUtils";
+
+import { assert } from "chai";
 
 describe("prefs", function() {
   this.timeout(60000);

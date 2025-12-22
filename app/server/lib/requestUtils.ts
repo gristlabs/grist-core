@@ -1,3 +1,4 @@
+
 import { ApiError } from "app/common/ApiError";
 import { DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail } from "app/common/gristUrls";
 import * as gutil from "app/common/gutil";
@@ -9,10 +10,12 @@ import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { RequestWithGrist } from "app/server/lib/GristServer";
 import log from "app/server/lib/log";
 import { Permit } from "app/server/lib/Permit";
-import { Request, Response } from "express";
+
 import { IncomingMessage } from "http";
 import { Writable } from "stream";
 import { TLSSocket } from "tls";
+
+import { Request, Response } from "express";
 
 const shouldLogApiDetails = appSettings.section("log").flag("apiDetails").readBool({
   envVar: ["GRIST_LOG_API_DETAILS", "GRIST_HOSTED_VERSION"],

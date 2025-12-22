@@ -6,6 +6,7 @@ import { GristBehavioralPrompts } from "app/client/ui/GristTooltips";
 import { isNarrowScreen } from "app/client/ui2018/cssVars";
 import { BehavioralPrompt, BehavioralPromptPrefs } from "app/common/Prefs";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { Computed, Disposable, dom, Observable } from "grainjs";
 import { IPopupOptions, PopupControl } from "popweasel";
 

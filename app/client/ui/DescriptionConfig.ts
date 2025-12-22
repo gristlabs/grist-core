@@ -7,6 +7,7 @@ import { textButton } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { tokens } from "app/common/ThemePrefs";
 import { CursorPos } from "app/plugin/GristAPI";
+
 import { dom, DomArg, fromKo, MultiHolder, Observable, styled } from "grainjs";
 
 const t = makeT("DescriptionConfig");

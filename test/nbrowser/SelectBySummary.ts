@@ -4,6 +4,9 @@ import {enterRulePart, findDefaultRuleSetWait, startEditingAccessRules} from 'te
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
+import * as _ from "lodash";
+import { assert, driver } from "mocha-webdriver";
+
 describe("SelectBySummary", function() {
   this.timeout(50000);
   const cleanup = setupTestSuite();

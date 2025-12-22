@@ -2,23 +2,24 @@ import { cleanFormLayoutSpec } from "app/client/components/FormRenderer";
 import { GristDoc } from "app/client/components/GristDoc";
 import { BoxSpec, purgeBoxSpec } from "app/client/lib/BoxSpec";
 import { makeT } from "app/client/lib/localization";
+import { logTelemetryEvent } from "app/client/lib/telemetry";
 import { ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
 import { cssField, cssLabel } from "app/client/ui/MakeCopyMenu";
 import { IPageWidget, toPageWidget } from "app/client/ui/PageWidgetPicker";
+import { testId } from "app/client/ui2018/cssVars";
 import { IOption, select } from "app/client/ui2018/menus";
 import { saveModal } from "app/client/ui2018/modals";
 import { BulkColValues, getColValues, RowRecord, UserAction } from "app/common/DocActions";
 import { arrayRepeat } from "app/common/gutil";
 import { schema } from "app/common/schema";
+
 import { dom, fromKo, Observable } from "grainjs";
+import ko from "knockout";
 import cloneDeepWith from "lodash/cloneDeepWith";
 import flatten from "lodash/flatten";
 import forEach from "lodash/forEach";
-import { testId } from "app/client/ui2018/cssVars";
-import { logTelemetryEvent } from "app/client/lib/telemetry";
-import sortBy from "lodash/sortBy";
 import fromPairs from "lodash/fromPairs";
-import ko from "knockout";
+import sortBy from "lodash/sortBy";
 
 const t = makeT("duplicateWidget");
 

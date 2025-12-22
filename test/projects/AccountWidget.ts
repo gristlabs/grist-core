@@ -1,5 +1,6 @@
-import { assert, driver, Key, stackWrapFunc } from "mocha-webdriver";
 import { server, setupTestSuite } from "test/projects/testUtils";
+
+import { assert, driver, Key, stackWrapFunc } from "mocha-webdriver";
 
 describe("AccountWidget", function() {
   this.timeout(60000);      // Set a longer default timeout.

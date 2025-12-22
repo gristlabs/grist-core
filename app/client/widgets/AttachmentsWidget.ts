@@ -1,25 +1,28 @@
-import { CellValue } from "app/common/DocActions";
+
 import * as commands from "app/client/components/commands";
+import { FormFieldRulesConfig } from "app/client/components/Forms/FormConfig";
 import { dragOverClass } from "app/client/lib/dom";
 import { stopEvent } from "app/client/lib/domUtils";
-import { selectFiles, uploadFiles } from "app/client/lib/uploads";
 import { makeT } from "app/client/lib/localization";
+import { selectFiles, uploadFiles } from "app/client/lib/uploads";
+import { DataRowModel } from "app/client/models/DataRowModel";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { KoSaveableObservable } from "app/client/models/modelUtil";
+import { MetaTableData } from "app/client/models/TableData";
 import { cssRow } from "app/client/ui/RightPanelStyles";
 import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { NewAbstractWidget } from "app/client/widgets/NewAbstractWidget";
+import { CellValue } from "app/common/DocActions";
 import { encodeQueryParams } from "app/common/gutil";
-import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
-import { DataRowModel } from "app/client/models/DataRowModel";
-import { MetaTableData } from "app/client/models/TableData";
 import { SingleCell } from "app/common/TableData";
-import { KoSaveableObservable } from "app/client/models/modelUtil";
 import { UploadResult } from "app/common/uploads";
 import { UIRowId } from "app/plugin/GristAPI";
 import { GristObjCode } from "app/plugin/GristData";
-import { Computed, dom, DomContents, fromKo, input, Observable, onElem, styled } from "grainjs";
+
 import { extname } from "path";
-import { FormFieldRulesConfig } from "app/client/components/Forms/FormConfig";
+
+import { Computed, dom, DomContents, fromKo, input, Observable, onElem, styled } from "grainjs";
 
 const t = makeT("AttachmentsWidget");
 

@@ -8,6 +8,7 @@ import { icon } from "app/client/ui2018/icons";
 import { menu } from "app/client/ui2018/menus";
 import * as roles from "app/common/roles";
 import { Document, Workspace } from "app/common/UserAPI";
+
 import { dom, makeTestId, Observable, styled } from "grainjs";
 
 const testId = makeTestId("test-dm-");

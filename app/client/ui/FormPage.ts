@@ -6,12 +6,13 @@ import { FormModel, FormModelImpl } from "app/client/models/FormModel";
 import { buildFormFooter } from "app/client/ui/FormContainer";
 import { FormErrorPage } from "app/client/ui/FormErrorPage";
 import { FormSuccessPage } from "app/client/ui/FormSuccessPage";
+import { withInfoTooltip } from "app/client/ui/tooltips";
 import { colors } from "app/client/ui2018/cssVars";
 import { ApiError } from "app/common/ApiError";
 import { getPageTitleSuffix } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
+
 import { Disposable, dom, makeTestId, Observable, styled, subscribe } from "grainjs";
-import { withInfoTooltip } from "app/client/ui/tooltips";
 
 const t = makeT("FormPage");
 
