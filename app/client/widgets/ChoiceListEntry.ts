@@ -188,7 +188,7 @@ export class ChoiceListEntry extends Disposable {
           ),
           this._editorSaveButtons = cssButtonRow(
             primaryButton(t('Save'),
-              dom.on('click', () => this._save() ),
+              dom.on('click', () => this._save()),
               testId('choice-list-entry-save'),
             ),
             basicButton(t('Cancel'),

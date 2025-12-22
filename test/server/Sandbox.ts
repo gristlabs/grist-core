@@ -202,7 +202,7 @@ describe('Sandbox', function() {
       await sandbox.pyCall('test_write_file', mainFile, '# A rambunctious little edit');
       const fileContentsInSandbox = await sandbox.pyCall('test_read_file', mainFile);
       assert.match(fileContentsInSandbox, /defines what sandbox functions are made available to the Node controller/);
-      assert.match(fileContentsInSandbox, /rambunctious/ );
+      assert.match(fileContentsInSandbox, /rambunctious/);
 
       const fileContents = fs.readFileSync(`./sandbox/${mainFile}`).toString();
       assert.match(fileContents, /defines what sandbox functions are made available to the Node controller/);

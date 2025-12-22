@@ -717,9 +717,9 @@ export class ApiServer {
           const serviceAccountId = parseInt(req.params.said);
           const payload = req.body as SATypes.PatchServiceAccount;
           const updateProps = {
-            ...( payload.label ? { label: payload.label } : {} ),
-            ...( payload.description ? { description: payload.description } : {} ),
-            ...( payload.expiresAt ? { expiresAt: new Date(payload.expiresAt) } : {} ),
+            ...(payload.label ? { label: payload.label } : {}),
+            ...(payload.description ? { description: payload.description } : {}),
+            ...(payload.expiresAt ? { expiresAt: new Date(payload.expiresAt) } : {}),
             expiresAt: payload.expiresAt !== undefined ? new Date(payload.expiresAt) : undefined,
           };
 

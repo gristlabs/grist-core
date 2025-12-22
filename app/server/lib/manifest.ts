@@ -28,7 +28,7 @@ function isValidManifest(manifest: any, notices: string[]): boolean {
     manifestChecker.strictCheck(manifest);
   }
   catch (e) {
-    notices.push(`WARNING: ${e.message}` );
+    notices.push(`WARNING: ${e.message}`);
     /* but don't fail */
   }
   if (Object.keys(manifest.contributions).length === 0) {

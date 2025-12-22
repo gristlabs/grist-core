@@ -2203,7 +2203,7 @@ describe('GranularAccess', function() {
     await assert.isFulfilled(owner.getDocAPI(docId).addRows('Data1', { A: [400] }));
     assert.equal((await owner.getDocAPI(docId).getRows('Data1')).id.length, 4);
     // Adding a row with a duplicated key should fail.
-    await noop(assertDeniedFor(owner.getDocAPI(docId).addRows( 'Data1', { A: [200] }),
+    await noop(assertDeniedFor(owner.getDocAPI(docId).addRows('Data1', { A: [200] }),
       ['duplicate check']));
     assert.equal((await owner.getDocAPI(docId).getRows('Data1')).id.length, 4);
     // If original is removed, adding the row should now succeed.

@@ -74,7 +74,7 @@ export interface ExternalStorage {
     size?: number,
     metadata?: ObjMetadata
   ): Promise<string | null | typeof Unchanged>;
-  downloadStream?(key: string, snapshotId?: string ): Promise<StreamDownloadResult>;
+  downloadStream?(key: string, snapshotId?: string): Promise<StreamDownloadResult>;
 }
 
 /**

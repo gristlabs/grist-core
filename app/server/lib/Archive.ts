@@ -68,7 +68,7 @@ export function create_zip_archive(
 // In some circumstances the callback doesn't fire (e.g. there's a downstream error).
 async function addEntriesToZipArchive(archive: ZipStream, entries: AsyncIterable<ArchiveEntry>): Promise<void> {
   // ZipStream will break if multiple entries try to be added at the same time.
-  for await ( const entry of entries) {
+  for await (const entry of entries) {
     await addEntryToZipArchive(archive, entry);
   }
 }
@@ -125,7 +125,7 @@ export function create_tar_archive(
 
 async function addEntriesToTarArchive(archive: tar.Pack, entries: AsyncIterable<ArchiveEntry>): Promise<void> {
   // ZipStream will break if multiple entries try to be added at the same time.
-  for await ( const entry of entries) {
+  for await (const entry of entries) {
     const entryStream = archive.entry({ name: entry.name, size: entry.size });
     await stream.promises.pipeline(entry.data, entryStream);
   }

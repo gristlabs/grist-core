@@ -1013,11 +1013,11 @@ export class DocWorkerApi {
         for (const col of body.columns) {
           const id = columnsTable.findMatchingRowId({ parentId: tableRef, colId: col.id });
           if (id) {
-            updateActions.push( ['UpdateRecord', '_grist_Tables_column', id, col.fields] );
-            updatedColumnsIds.add( id );
+            updateActions.push(['UpdateRecord', '_grist_Tables_column', id, col.fields]);
+            updatedColumnsIds.add(id);
           }
           else {
-            addActions.push( ['AddVisibleColumn', tableId, col.id, col.fields] );
+            addActions.push(['AddVisibleColumn', tableId, col.id, col.fields]);
           }
         }
 
@@ -1034,7 +1034,7 @@ export class DocWorkerApi {
         const actions = [
           ...(!isAffirmative(req.query.noupdate) ? updateActions : []),
           ...(!isAffirmative(req.query.noadd) ? addActions : []),
-          ...(isAffirmative(req.query.replaceall) ? [await getRemoveAction()] : [] ),
+          ...(isAffirmative(req.query.replaceall) ? [await getRemoveAction()] : []),
         ];
         await handleSandboxError(tableId, [],
           activeDoc.applyUserActions(docSessionFromRequest(req), actions),
@@ -2644,7 +2644,7 @@ export class DocWorkerApi {
       throw new Error('document with no history');
     }
     const rightHashes = new Set(states2.map(state => state.h));
-    const parent = states.find(state => rightHashes.has(state.h )) || null;
+    const parent = states.find(state => rightHashes.has(state.h)) || null;
     const leftChanged = parent && parent.h !== left.h;
     const rightChanged = parent && parent.h !== right.h;
     const summary = leftChanged ? (rightChanged ? 'both' : 'left') :

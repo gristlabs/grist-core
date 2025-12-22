@@ -203,7 +203,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
       let prefix = searchWord;
       let index = insertIndex + (step > 0 ? 0 : -1);
       while (prefix && index >= 0 && index < this._words.length) {
-        for ( ; index >= 0 && index < this._words.length; index += step) {
+        for (; index >= 0 && index < this._words.length; index += step) {
           const wordEntry = this._words[index];
           // Once we reach a word that doesn't start with our prefix, break this loop, so we can
           // reduce the length of the prefix and keep scanning.

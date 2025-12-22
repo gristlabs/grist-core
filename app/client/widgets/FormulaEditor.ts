@@ -662,7 +662,7 @@ function errorMonitor(
   column: ColumnRec,
   editRow: DataRowModel,
   holder: Disposable,
-  formulaError: Observable<CellValue | undefined> ) {
+  formulaError: Observable<CellValue | undefined>) {
   return  function onValueChange(cellCurrentValue: CellValue) {
     const isFormula = column.isFormula() || column.hasTriggerFormula();
     if (isFormula && isRaisedException(cellCurrentValue)) {

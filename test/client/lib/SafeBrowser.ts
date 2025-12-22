@@ -35,7 +35,7 @@ describe('SafeBrowser', function() {
     const callPluginFunction = sinon.stub();
     callPluginFunction
       .withArgs('testing-plugin', 'unsafeNode', 'func1')
-      .callsFake( (...args) => 'From Russia ' + args[3][0] + "!");
+      .callsFake((...args) => 'From Russia ' + args[3][0] + "!");
     callPluginFunction
       .withArgs('testing-plugin', 'unsafeNode', 'funkyName')
       .throws();

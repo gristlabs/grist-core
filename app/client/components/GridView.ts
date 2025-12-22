@@ -1112,7 +1112,7 @@ export default class GridView extends BaseView {
     this.cellSelector.currentSelectType(selector.COL);
   }
 
-  public async showColumn( colRef: number,
+  public async showColumn(colRef: number,
     index: number = this.viewSection.viewFields().peekLength,
   ): Promise<void> {
     await this.viewSection.showColumn(colRef, index);
@@ -1677,7 +1677,7 @@ export default class GridView extends BaseView {
           kd.toggleClass('record-vlines', vVerticalGridlines),
           kd.toggleClass('record-zebra', vZebraStripes),
           // even by 1-indexed rownum, so +1 (makes more sense for user-facing display stuff)
-          dom.cls('record-even', use => (use(row._index)! + 1) % 2 === 0 ),
+          dom.cls('record-even', use => (use(row._index)! + 1) % 2 === 0),
 
           dom.on("mouseleave", (ev) => {
             // Leave only when leaving record row.

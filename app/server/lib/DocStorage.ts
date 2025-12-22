@@ -1587,7 +1587,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     log.rawInfo("Start Vacuum of doc ", { docId: this.docName });
     await db.vacuum();
     const size = await this.storageManager.getFsFileSize(this.docName);
-    if (size <= initSize * (1 - SHRINK_RATIO_FOR_PUSH) ) {
+    if (size <= initSize * (1 - SHRINK_RATIO_FOR_PUSH)) {
       log.rawInfo("Mark doc as changed because vacuuming saved more space than the minimal ratio.", {
         docId: this.docName,
         minimalRatio: SHRINK_RATIO_FOR_PUSH,

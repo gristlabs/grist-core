@@ -648,7 +648,7 @@ export class RightPanel extends Disposable {
           dom.style("width", "100%"), // width 100 keeps table from growing outside bounds of flex parent if overfull
           dom("table",
             dom.style("margin-left", "8px"),
-            Object.keys(lfilter.filterLabels).map( (colId) => {
+            Object.keys(lfilter.filterLabels).map((colId) => {
               const vals = lfilter.filterLabels[colId];
               let operationSymbol = "=";
               // if [filter (reflist) <- ref], op="intersects", need to convey "list has value". symbol =":"
@@ -681,7 +681,7 @@ export class RightPanel extends Disposable {
         return cssLinkInfoBody((
           cssLinkInfoValuesBox(
             cssLinkInfoIcon("FieldReference"),
-            valueLabels.join(', ') ) // TODO: join labels like "Entries[1], Entries[2]" to "Entries[[1,2]]"
+            valueLabels.join(', ')) // TODO: join labels like "Entries[1], Entries[2]" to "Entries[[1,2]]"
         ));
       };
 

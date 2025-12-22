@@ -343,7 +343,7 @@ export function arrayCopyBackward<T>(toArray: T[], toStart: number,
     toArray[i - 6] = fromArray[j - 6];
     toArray[i - 7] = fromArray[j - 7];
   }
-  for ( ; i >= toStart; --i, --j) {
+  for (; i >= toStart; --i, --j) {
     toArray[i] = fromArray[j];
   }
 }

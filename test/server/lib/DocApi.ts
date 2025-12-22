@@ -4986,7 +4986,7 @@ function testDocApi(settings: {
           ['ModifyColumn', 'Table1', 'B', { type: 'Bool' }],
         ], chimpy);
 
-        const modifyColumn = async (newValues: { [key: string]: any; } ) => {
+        const modifyColumn = async (newValues: { [key: string]: any; }) => {
           await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
             ['UpdateRecord', 'Table1', newRowIds[0], newValues],
           ], chimpy);

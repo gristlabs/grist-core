@@ -122,7 +122,7 @@ export function getHumanKey(key: string, mac: boolean): string {
     if (k.length === 1) { return k.toUpperCase(); }
     return k;
   });
-  return keys.join( mac ? '' : ' + ');
+  return keys.join(mac ? '' : ' + ');
 }
 
 export interface CommandOptions {

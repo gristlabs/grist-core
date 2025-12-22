@@ -646,7 +646,7 @@ export class ActiveDocImport {
     const tablesByOrigName = _.indexBy(tables, 'origTableName');
 
     //  gather all of the user actions
-    let userActions: any[] = references.map( (ref) => {
+    let userActions: any[] = references.map((ref) => {
       const fixedTableId = tables[ref.tableIndex].hiddenTableId;
       return [
         'ModifyColumn',

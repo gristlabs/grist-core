@@ -1309,7 +1309,7 @@ export class Importer extends DisposableWithEvents {
     const anyOtherColumns = Computed.create(owner, (use) => {
       const transformCol = field.column.peek();
       const options = use(this._transformColImportOptions).get(transformCol.getRowId()) ?? new Map<string, string>();
-      const otherFilter = ([formula]: [string, string] ) => {
+      const otherFilter = ([formula]: [string, string]) => {
         // Notice how this is only reactive to the formula value, every other observable is
         // just picked without being tracked. This is because we only want to recompute this
         // when the formula is changed (so the target column is changed). If anything other is

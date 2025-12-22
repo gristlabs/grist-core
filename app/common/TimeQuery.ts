@@ -128,7 +128,7 @@ export class TimeQuery {
       for (const [rowId, cell] of toPairs(columns) as unknown as Array<[keyof ColumnDelta, CellDelta]>) {
         if (!summaryRows[rowId]) { summaryRows[rowId] = {}; }
         const val = cell[0];
-        summaryRows[rowId][colId] = (val !== null && typeof val === 'object' ) ? val[0] : null;
+        summaryRows[rowId][colId] = (val !== null && typeof val === 'object') ? val[0] : null;
       }
     }
 

@@ -200,7 +200,7 @@ export default class BaseView extends DisposableWithEvents {
     // Reset heights of rows when there is an action that affects them.
     this.listenTo(this.viewData, 'rowModelNotify', this.onRowResize);
 
-    this.listenTo(this.viewSection.events, 'rowHeightChange', this.onResize );
+    this.listenTo(this.viewSection.events, 'rowHeightChange', this.onResize);
 
     // Create a command group for keyboard shortcuts common to all views.
     this.autoDispose(commands.createGroup(

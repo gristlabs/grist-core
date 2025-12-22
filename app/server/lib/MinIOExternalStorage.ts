@@ -113,7 +113,7 @@ export class MinIOExternalStorage implements ExternalStorage {
     }
   }
 
-  public async downloadStream(key: string, snapshotId?: string ): Promise<StreamDownloadResult> {
+  public async downloadStream(key: string, snapshotId?: string): Promise<StreamDownloadResult> {
     const request = await this._s3.getObject(
       this.bucket, key,
       snapshotId ? { versionId: snapshotId } : {},

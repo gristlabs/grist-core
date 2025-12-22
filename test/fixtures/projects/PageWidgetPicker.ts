@@ -31,7 +31,7 @@ function setupTest() {
 
   return [
 
-    domComputed( (use) => {
+    domComputed((use) => {
       const isNewPage = use(isNewPageObs);
       const value = use(valueOpt) ? () => valueOpt.get()! : undefined;
       return { isNewPage, value };

@@ -36,7 +36,7 @@ import { getAssignmentId } from 'app/server/lib/idUtils';
  * TODO: doc worker registration could be redesigned to remove the assumption
  * of a fixed base domain.
  */
-export function customizeDocWorkerUrl( docWorkerUrlSeed: string, req: express.Request): string {
+export function customizeDocWorkerUrl(docWorkerUrlSeed: string, req: express.Request): string {
   const docWorkerUrl = new URL(docWorkerUrlSeed);
   const workerSubdomain = parseSubdomainStrictly(docWorkerUrl.hostname).org;
   adaptServerUrl(docWorkerUrl, req);

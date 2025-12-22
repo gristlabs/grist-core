@@ -1992,7 +1992,7 @@ class ObsRulePart extends Disposable {
     this._error = Computed.create(this, (use) => {
       return use(this._formulaError) ||
         this._warnInvalidFormula(use(this._formulaProperties)) ||
-        ( !this._ruleSet.isLastCondition(use, this) &&
+        (!this._ruleSet.isLastCondition(use, this) &&
           use(this._aclFormula) === '' &&
           permissionSetToText(use(this._permissions)) !== '' ?
           t('Condition cannot be blank') : ''

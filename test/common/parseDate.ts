@@ -430,8 +430,8 @@ describe('parseDate', function() {
     testParse(null, '1000000000000', null);
 
     // Test exact times.
-    assert.equal(parseDate( '123456789'), 123456789);
-    assert.equal(parseDate( '100000000'), 100000000);
+    assert.equal(parseDate('123456789'), 123456789);
+    assert.equal(parseDate('100000000'), 100000000);
 
     // Now those that don't fit into our format.
     assert.isNull(parseDate('1234567'));

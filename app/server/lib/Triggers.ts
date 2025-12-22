@@ -592,7 +592,7 @@ export class DocTriggers {
       if (!recordDelta.existedBefore) {
         readyBefore = false;
       }
-      else if (!cellDelta ) {
+      else if (!cellDelta) {
         // Cell wasn't changed, and the record is ready now, so it was ready before.
         // This requires that the ActionSummary contains all changes to the isReady column.
         readyBefore = true;

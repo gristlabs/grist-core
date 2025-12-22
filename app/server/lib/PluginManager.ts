@@ -124,7 +124,7 @@ export class PluginManager {
   }
 
   private _logScanningReport() {
-    const invalidPlugins = this._entries.filter( entry => entry.errors);
+    const invalidPlugins = this._entries.filter(entry => entry.errors);
     if (invalidPlugins.length) {
       for (const plugin of invalidPlugins) {
         log.warn(`Error loading plugins: Failed to load extension from ${plugin.path}\n` +

@@ -855,7 +855,7 @@ describe('UsersManager', function() {
       }
 
       it('should work just like getUserByLogin', async function() {
-        await ensureGetUserByLoginWithRetryWorks( ensureUnique('getuserbyloginwithretry-works-like-getuserbylogin'));
+        await ensureGetUserByLoginWithRetryWorks(ensureUnique('getuserbyloginwithretry-works-like-getuserbylogin'));
       });
 
       it('should make a second attempt on special error', async function() {

@@ -3693,7 +3693,7 @@ function getTelemetryMeta(docSession: OptDocSession | null): TelemetryMetadataBy
   };
 }
 
-export function attachmentToArchiveFilePath(fileDetails: { fileIdent: string, fileName: string } ): string {
+export function attachmentToArchiveFilePath(fileDetails: { fileIdent: string, fileName: string }): string {
   const fileIdentParts = fileDetails.fileIdent.split(".");
   const fileHash = fileIdentParts[0];
   const fileIdentExt = path.extname(fileDetails.fileIdent);

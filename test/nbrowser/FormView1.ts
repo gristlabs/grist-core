@@ -727,7 +727,7 @@ describe('FormView1', function() {
         await gu.sendKeys(Key.BACK_SPACE);
         assert.equal(await driver.find('.test-form-search-select').getText(), 'Select...');
         await gu.sendKeys(Key.ENTER);
-        await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000 ).click();
+        await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
         await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });

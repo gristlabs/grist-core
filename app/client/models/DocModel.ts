@@ -343,7 +343,7 @@ export class DocModel extends Disposable {
   public async convertToTrigger(
     colRefs: number,
     formula: string,
-    recalcWhen: RecalcWhen = RecalcWhen.DEFAULT ): Promise<void> {
+    recalcWhen: RecalcWhen = RecalcWhen.DEFAULT): Promise<void> {
     return this.columns.sendTableAction(
       ['UpdateRecord', colRefs, {
         isFormula: false,

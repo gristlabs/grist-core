@@ -156,7 +156,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
 
     // If the current column is transforming, assign the CSS class "transform_field"
     if (col.isTransforming()) {
-      if ( col.origCol().isFormula() && col.origCol().formula() !== "") {
+      if (col.origCol().isFormula() && col.origCol().formula() !== "") {
         return "transform_field formula_field";
       }
       return "transform_field";
