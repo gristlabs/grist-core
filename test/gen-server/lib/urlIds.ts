@@ -25,7 +25,7 @@ describe('urlIds', function() {
     await support.newDoc({name: 'an example', urlId: 'example'}, supportWorkspaceId);
     await support.updateWorkspacePermissions(supportWorkspaceId, {
       users: {'everyone@getgrist.com': 'viewers',
-              'anon@getgrist.com': 'viewers'}
+              'anon@getgrist.com': 'viewers'},
     });
     // Update special workspace informationn
     await home.dbManager.initializeSpecialIds();

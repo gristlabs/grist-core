@@ -463,7 +463,7 @@ export class SQLiteDB implements ISQLiteDB {
       return await (
         this._prevTransaction =
             this._prevTransaction.catch(noop).then(
-              () => asyncLocalStorage.run(true, () => this._execTransactionImpl(callback))
+              () => asyncLocalStorage.run(true, () => this._execTransactionImpl(callback)),
             )
       );
     }

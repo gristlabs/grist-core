@@ -131,13 +131,13 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.origLabel = this.autoDispose(ko.pureComputed(() => this.origCol().label()));
   this.description = this.autoDispose(modelUtil.savingComputed({
     read: () => this.column().description(),
-    write: (setter, val) => setter(this.column().description, val)
+    write: (setter, val) => setter(this.column().description, val),
   }));
   // displayLabel displays label by default but switches to the more helpful colId whenever a
   // formula field in the view is being edited.
   this.displayLabel = modelUtil.savingComputed({
     read: () => docModel.editingFormula() ? '$' + this.origCol().colId() : this.origCol().label(),
-    write: (setter, val) => setter(this.column().label, val)
+    write: (setter, val) => setter(this.column().label, val),
   });
 
   // The field knows when we are editing a formula, so that all rows can reflect that.
@@ -148,7 +148,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
       // Whenever any view field changes its editingFormula status, let the docModel know.
       docModel.editingFormula(val);
       _editingFormula(val);
-    }
+    },
   }));
 
   // CSS class to add to formula cells, incl. to show that we are editing this field's formula.
@@ -210,9 +210,9 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
       const col = docModel.columns.getRowModel(colRef);
       await Promise.all([
         this._fieldOrColumn().visibleCol.saveOnly(colRef),
-        this._fieldOrColumn().saveDisplayFormula(colRef ? `$${this.colId()}.${col.colId()}` : '')
+        this._fieldOrColumn().saveDisplayFormula(colRef ? `$${this.colId()}.${col.colId()}` : ''),
       ]);
-    }, {nestInActiveBundle: this.column.peek().isTransforming.peek()})
+    }, {nestInActiveBundle: this.column.peek().isTransforming.peek()}),
   );
 
   // The display column to use for the field, or the column itself when no displayCol is set.
@@ -222,11 +222,11 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   // Helper for Reference/ReferenceList columns, which returns a formatter according to the visibleCol
   // associated with this field. If no visible column available, return formatting for the field itself.
   this.visibleColFormatter = this.autoDispose(
-    ko.pureComputed(() => formatterForRec(this, this.column(), docModel, 'vcol'))
+    ko.pureComputed(() => formatterForRec(this, this.column(), docModel, 'vcol')),
   );
 
   this.formatter = this.autoDispose(
-    ko.pureComputed(() => formatterForRec(this, this.column(), docModel, 'full'))
+    ko.pureComputed(() => formatterForRec(this, this.column(), docModel, 'full')),
   );
 
   this.createValueParser = function() {
@@ -238,7 +238,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   // The widgetOptions to read and write: either the column's or the field's own.
   this._widgetOptionsStr = this.autoDispose(modelUtil.savingComputed({
     read: () => this._fieldOrColumn().widgetOptions(),
-    write: (setter, val) => setter(this._fieldOrColumn().widgetOptions, val)
+    write: (setter, val) => setter(this._fieldOrColumn().widgetOptions, val),
   }));
 
   // Observable for the object with the current options, either for the field or for the column,
@@ -250,7 +250,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   // GridView (no wrap) and DetailView (wrap).
   this.wrap = this.autoDispose(modelUtil.fieldWithDefault(
     this.widgetOptionsJson.prop('wrap'),
-    () => this.viewSection().parentKey() !== 'record'
+    () => this.viewSection().parentKey() !== 'record',
   ));
   this.widget = this.widgetOptionsJson.prop('widget');
   this.textColor = this.widgetOptionsJson.prop('textColor');
@@ -298,10 +298,10 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.tableId = this.autoDispose(ko.pureComputed(() => this.column().table().tableId()));
   this.rulesList = modelUtil.savingComputed({
     read: () => this._fieldOrColumn().rules(),
-    write: (setter, val) => setter(this._fieldOrColumn().rules, val)
+    write: (setter, val) => setter(this._fieldOrColumn().rules, val),
   });
   this.rulesCols = this.autoDispose(
-    refListRecords(docModel.columns, ko.pureComputed(() => this._fieldOrColumn().rules()))
+    refListRecords(docModel.columns, ko.pureComputed(() => this._fieldOrColumn().rules())),
   );
   this.rulesColsIds = this.autoDispose(ko.pureComputed(() => this.rulesCols().map(c => c.colId())));
   this.rulesStyles = modelUtil.fieldWithDefault(

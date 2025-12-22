@@ -10,7 +10,7 @@ import { icon } from 'app/client/ui2018/icons';
 import { cssSelectBtn } from 'app/client/ui2018/select';
 import {
   BindableValue, Computed, dom, DomContents, DomElementArg, DomElementMethod, IDomArgs,
-  MaybeObsArray, MutableObsArray, Observable, styled
+  MaybeObsArray, MutableObsArray, Observable, styled,
 } from 'grainjs';
 import debounce from 'lodash/debounce';
 import * as weasel from 'popweasel';
@@ -65,7 +65,7 @@ export interface SearchableMenuItem {
 
 export function searchableMenu(
   menuItems: MaybeObsArray<SearchableMenuItem>,
-  options: SearchableMenuOptions = {}
+  options: SearchableMenuOptions = {},
 ): DomElementArg[] {
   const {searchInputPlaceholder} = options;
 
@@ -129,7 +129,7 @@ export function menuItemSubmenu(
       ...options,
     },
     dom.cls(cssMenuItemSubmenu.className),
-    ...args
+    ...args,
   );
 }
 
@@ -285,8 +285,8 @@ export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption
       op.icon ? cssOptionRowIcon(op.icon) : null,
       cssOptionLabel(options.translateOptionLabels ? t(op.label) : op.label),
       renderOptionArgs ? renderOptionArgs(op) : null,
-      testId('select-row')
-    )
+      testId('select-row'),
+    ),
   );
 }
 
@@ -336,7 +336,7 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
       FocusLayer.attach({pauseMousetrap: true}),
       dom.onKeyDown({
         Enter: () => ctl.close(),
-        Escape: () => ctl.close()
+        Escape: () => ctl.close(),
       }),
       (elem) => {
         // Set focus on open, so that keyboard events work.
@@ -364,14 +364,14 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
                 }
               }),
               dom.style('position', 'relative'),
-              testId('multi-select-menu-option-checkbox')
+              testId('multi-select-menu-option-checkbox'),
             ),
             cssCheckboxText(fullOption.label, testId('multi-select-menu-option-text')),
-            testId('multi-select-menu-option')
+            testId('multi-select-menu-option'),
           );
         });
       }),
-      testId('multi-select-menu')
+      testId('multi-select-menu'),
     );
   }
 
@@ -380,7 +380,7 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
     dom.autoDispose(selectedOptionsText),
     cssMultiSelectSummary(
       dom.text(selectedOptionsText),
-      cssMultiSelectSummary.cls('-placeholder', use => use(selectedOptionsSet).size === 0)
+      cssMultiSelectSummary.cls('-placeholder', use => use(selectedOptionsSet).size === 0),
     ),
     icon('Dropdown'),
     (elem) => {
@@ -391,7 +391,7 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
         ? `1px solid ${theme.selectButtonBorderInvalid}`
         : `1px solid ${theme.selectButtonBorder}`;
     }),
-    ...domArgs
+    ...domArgs,
   );
 }
 
@@ -422,9 +422,9 @@ export function formSelect(obs: Observable<string>, optionArray: MaybeObsArray<I
       dom.forEach(optionArray, (option) => {
         const obj: weasel.IOptionFull<string> = weasel.getOptionFull(option);
         return dom('option', {value: obj.value}, obj.label);
-      })
+      }),
     ),
-    cssCollapseIcon('Collapse')
+    cssCollapseIcon('Collapse'),
   );
   return container;
 }
@@ -444,7 +444,7 @@ export function inputMenu(createFunc: weasel.MenuCreateFunc, options?: weasel.IM
   return weasel.inputMenu(createFunc, {
     trigger: [inputTrigger],
     menuCssClass: `${cssMenuElem.className} ${cssInputButtonMenuElem.className}`,
-    ...options
+    ...options,
   });
 }
 
@@ -465,7 +465,7 @@ export function upgradeText(needUpgrade: boolean, onClick: () => void) {
     cssUpgradeTextButton(
       t("Upgrade now"),
       textButton.cls('-hover-bg-padding-sm'),
-      dom.on('click', () => onClick())
+      dom.on('click', () => onClick()),
     )));
 }
 
@@ -480,11 +480,11 @@ export function upgradeText(needUpgrade: boolean, onClick: () => void) {
 export function autocomplete(
   inputElem: HTMLInputElement,
   choices: MaybeObsArray<string>,
-  options: weasel.IAutocompleteOptions = {}
+  options: weasel.IAutocompleteOptions = {},
 ) {
   return weasel.autocomplete(inputElem, choices, {
     ...defaults, ...options,
-    menuCssClass: defaults.menuCssClass + ' ' + cssSelectMenuElem.className + ' ' + (options.menuCssClass || '')
+    menuCssClass: defaults.menuCssClass + ' ' + cssSelectMenuElem.className + ' ' + (options.menuCssClass || ''),
   });
 }
 
@@ -524,7 +524,7 @@ export function selectMenu(
   );
 }
 
-export function listOfMenuItems(items: () => DomElementArg[],) {
+export function listOfMenuItems(items: () => DomElementArg[]) {
   const _menu = cssSelectMenuElem(testId('select-menu'));
   return menu(
       items,
@@ -538,9 +538,9 @@ export function listOfMenuItems(items: () => DomElementArg[],) {
           dom.onElem(triggerElem, 'click', () => isDisabled() || ctl.toggle());
           dom.onKeyElem(triggerElem as HTMLElement, 'keydown', {
             ArrowDown: () => isDisabled() || ctl.open(),
-            ArrowUp: () => isDisabled() || ctl.open()
+            ArrowUp: () => isDisabled() || ctl.open(),
           });
-        }]
+        }],
       },
   );
 }
@@ -548,7 +548,7 @@ export function listOfMenuItems(items: () => DomElementArg[],) {
 export function selectTitle(label: BindableValue<string>, iconName?: BindableValue<IconName>) {
   return cssOptionRow(
     iconName ? dom.domComputed(iconName, name => cssOptionRowIcon(name)) : null,
-    dom.text(label)
+    dom.text(label),
   );
 }
 
@@ -617,7 +617,7 @@ export function menuItemCmd(
           : dom('div', label(), testId('cmd-name')),
     cmd.humanKeys?.length ? cssCmdKey(cmd.humanKeys[0]) : null,
     cssMenuItemCmd.cls(''), // overrides some menu item styles
-    ...args
+    ...args,
   );
 }
 
@@ -914,7 +914,7 @@ export function *buildMenuItems(current: Array<MenuItem>): IterableIterator<Elem
       item.icon && menuIcon(item.icon),
       item.label,
       item.shortcut && cssCmdKey(item.shortcut),
-      item.disabled ? dom.cls('disabled', item.disabled) : null
+      item.disabled ? dom.cls('disabled', item.disabled) : null,
     );
   }
 }

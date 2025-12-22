@@ -72,7 +72,7 @@ export class DataRowModel extends BaseRowModel {
           docModel: this._table.docModel,
           actions: [
             action as DocAction,
-          ]
+          ],
         });
         // Ignore the error here, no point in returning it.
       }

@@ -69,7 +69,7 @@ export class FormPage extends Disposable {
             cssFormBorderHelp(withInfoTooltip(
               'Grist Form',
               'formFraming',
-              {iconDomArgs: [cssFormBorderHelpButton.cls('')]}
+              {iconDomArgs: [cssFormBorderHelpButton.cls('')]},
             )),
           cssForm(
             cssFormBody(

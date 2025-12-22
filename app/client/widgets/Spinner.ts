@@ -29,7 +29,7 @@ export class Spinner extends NumericTextBox {
     const value = row.cells[this.field.colId.peek()];
     return dom.update(super.buildDom(row),
       dom.cls('widget_spinner'),
-      kf.spinner(value, this._stepSize)
+      kf.spinner(value, this._stepSize),
     );
   }
 }

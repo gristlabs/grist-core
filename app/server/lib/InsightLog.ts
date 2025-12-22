@@ -39,7 +39,7 @@ export function insightLogDecorate(prefix: string, logIfLongerThanMs: number = 5
 }
 
 export async function insightLogWrap<T>(
-  prefix: string, callback: () => Promise<T>, logIfLongerThanMs: number = 5000
+  prefix: string, callback: () => Promise<T>, logIfLongerThanMs: number = 5000,
 ): Promise<T> {
   const entry = new InsightLogEntry();
   const timer = setTimeout(() => log.rawInfo(`${prefix} running`, entry.getMeta()), logIfLongerThanMs);

@@ -65,7 +65,7 @@ class TruncatedListItem<T> extends OptionItem<T> {
     super({
       label,
       value: '' as unknown as T,
-      disabled: true
+      disabled: true,
     });
   }
 }
@@ -74,12 +74,12 @@ export function dropdownWithSearch<T>(options: IDropdownWithSearchOptions<T>): D
   return (elem) => {
     const popupOptions = mergeWith(
       {}, defaultMenuOptions, options.popupOptions,
-      (_objValue: any, srcValue: any) => Array.isArray(srcValue) ? srcValue : undefined
+      (_objValue: any, srcValue: any) => Array.isArray(srcValue) ? srcValue : undefined,
     );
     setPopupToFunc(
       elem,
       ctl => (DropdownWithSearch<T>).create(null, ctl, options),
-      popupOptions
+      popupOptions,
     );
   };
 }
@@ -149,7 +149,7 @@ class DropdownWithSearch<T> extends Disposable {
     return cssTruncatedMessageItem(
       item.label,
       // Prevents click to close menu
-      dom.on('click', ev => ev.stopPropagation())
+      dom.on('click', ev => ev.stopPropagation()),
     );
   }
 
@@ -161,8 +161,8 @@ class DropdownWithSearch<T> extends Disposable {
       items = items.concat(new TruncatedListItem(
         t('Showing {{displayedCount}} of {{totalCount}} items. Search for more.', {
           displayedCount: items.length,
-          totalCount: this._acIndex.totalItems
-        })
+          totalCount: this._acIndex.totalItems,
+        }),
       ) as OptionItem<T>);
     }
     this._items.set(items);

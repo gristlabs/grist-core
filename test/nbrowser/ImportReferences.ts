@@ -47,7 +47,7 @@ describe('ImportReferences', function() {
 
         // 'add new' row
         '',        '',      '',
-      ]
+      ],
     );
 
     // TODO this test relies on the imported data referring to names (Alice,Bob)

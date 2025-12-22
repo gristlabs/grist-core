@@ -10,7 +10,7 @@ import {
   LocalActionBundle,
   SandboxActionBundle,
   SandboxRequest,
-  UserActionBundle
+  UserActionBundle,
 } from 'app/common/ActionBundle';
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
 import {rebaseSummary} from 'app/common/ActionSummarizer';
@@ -37,7 +37,7 @@ import {
   ServerQuery,
   TableFetchResult,
   TransformRule,
-  VisibleUserProfile
+  VisibleUserProfile,
 } from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
@@ -53,7 +53,7 @@ import {
   isSchemaAction,
   TableDataAction,
   toTableDataAction,
-  UserAction
+  UserAction,
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {getDataLimitInfo, getDataLimitRatio, getSeverity} from 'app/common/DocLimits';
@@ -61,7 +61,7 @@ import {DocSnapshots} from 'app/common/DocSnapshot';
 import {
   DocState,
   DocStateComparison,
-  removeMetadataChangesFromDetails
+  removeMetadataChangesFromDetails,
 } from 'app/common/DocState';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import {
@@ -112,7 +112,7 @@ import {
   Archive,
   ArchiveEntry,
   create_tar_archive,
-  create_zip_archive, unpackTarArchive
+  create_zip_archive, unpackTarArchive,
 } from 'app/server/lib/Archive';
 import {getAndRemoveAssistantStatePermit} from 'app/server/lib/AssistantStatePermit';
 import {
@@ -121,7 +121,7 @@ import {
   isAssistantV2,
 } from 'app/server/lib/IAssistant';
 import {
-  AssistanceContextV1, AssistanceRequest, AssistanceResponse, isAssistanceRequestV2
+  AssistanceContextV1, AssistanceRequest, AssistanceResponse, isAssistanceRequestV2,
 } from 'app/common/Assistance';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
@@ -356,14 +356,14 @@ export class ActiveDoc extends EventEmitter {
     {
       leading: true,
       trailing: true,
-    }
+    },
   );
 
   constructor(
     private readonly _docManager: DocManager,
     private _docName: string,
     private _attachmentStoreProvider?: IAttachmentStoreProvider,
-    private _options?: ActiveDocOptions
+    private _options?: ActiveDocOptions,
   ) {
     super();
     const { trunkId, forkId, snapshotId } = parseUrlId(_docName);
@@ -452,7 +452,7 @@ export class ActiveDoc extends EventEmitter {
           _docManager.pluginManager.getPlugins(),
           _docManager.pluginManager.appRoot!,
           this,
-          this._server
+          this._server,
         )
       : null;
     this._tableMetadataLoader = new TableMetadataLoader({
@@ -467,7 +467,7 @@ export class ActiveDoc extends EventEmitter {
     this._attachmentFileManager = new AttachmentFileManager(
       this.docStorage,
       _attachmentStoreProvider,
-      forkId ? { id: forkId, trunkId, } : { id: trunkId, trunkId: undefined },
+      forkId ? { id: forkId, trunkId } : { id: trunkId, trunkId: undefined },
       (extraBytes: number) => this._assertAttachmentSizeBelowLimit(extraBytes, {
         checkInternal: true,
         checkProduct: false,
@@ -517,14 +517,14 @@ export class ActiveDoc extends EventEmitter {
   public get rowLimitRatio(): number {
     return getUsageRatio(
       this._docUsage?.rowCount?.total,
-      this._features?.baseMaxRowsPerDocument
+      this._features?.baseMaxRowsPerDocument,
     );
   }
 
   public get dataSizeLimitRatio(): number {
     return getUsageRatio(
       this._docUsage?.dataSizeBytes,
-      this._features?.baseMaxDataSizePerDocument
+      this._features?.baseMaxDataSizePerDocument,
     );
   }
 
@@ -550,7 +550,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async getFilteredDocUsageSummary(
-    docSession: OptDocSession
+    docSession: OptDocSession,
   ): Promise<FilteredDocUsageSummary> {
     return this._granularAccess.filterDocUsageSummary(docSession, this.getDocUsageSummary());
   }
@@ -611,7 +611,7 @@ export class ActiveDoc extends EventEmitter {
    * action summaries are computed and included.
    */
   public async getRecentActions(
-    docSession: OptDocSession, summarize: boolean
+    docSession: OptDocSession, summarize: boolean,
   ): Promise<GetActionSummariesResult> {
     const groups = await this._actionHistory.getRecentActionGroups(MAX_RECENT_ACTIONS,
       {clientId: docSession.client?.clientId, summarize});
@@ -864,7 +864,7 @@ export class ActiveDoc extends EventEmitter {
     // ask the shutdown method to do the replacement when the ActiveDoc is shutdown but
     // before a new one could be opened.
     return this.shutdown({
-      afterShutdown: () => this._docManager.storageManager.replace(this.docName, source)
+      afterShutdown: () => this._docManager.storageManager.replace(this.docName, source),
     });
   }
 
@@ -1012,7 +1012,7 @@ export class ActiveDoc extends EventEmitter {
       result = await patch.applyChanges(details);
       if (result.applied) {
         await this._getHomeDbManagerOrFail().updateProposalStatus(urlId, proposalId, {
-          status: 'applied'
+          status: 'applied',
         });
       }
     }
@@ -1024,7 +1024,7 @@ export class ActiveDoc extends EventEmitter {
     const proposalUpdated = await this._getHomeDbManagerOrFail().getProposal(urlId, proposalId);
     return {
       proposal: proposalUpdated,
-      log: result
+      log: result,
     };
   }
 
@@ -1056,7 +1056,7 @@ export class ActiveDoc extends EventEmitter {
    * It's exposed publicly for use by grist-static which doesn't use the plugin system.
    */
   public async importParsedFileAsNewTable(
-    docSession: OptDocSession, optionsAndData: ParseFileResult, importOptions: FileImportOptions
+    docSession: OptDocSession, optionsAndData: ParseFileResult, importOptions: FileImportOptions,
   ): Promise<ImportResult> {
     return this._activeDocImport.importParsedFileAsNewTable(docSession, optionsAndData, importOptions);
   }
@@ -1087,7 +1087,7 @@ export class ActiveDoc extends EventEmitter {
             // No point in retrying if nothing changed.
             throw e;
           }
-        }
+        },
       );
       const userActions: UserAction[] = [];
       // Process uploads sequentially to reduce risk of race conditions.
@@ -1722,7 +1722,7 @@ export class ActiveDoc extends EventEmitter {
     txt: string,
     tableId: string,
     columnId: string,
-    rowId: UIRowId | null
+    rowId: UIRowId | null,
   ): Promise<ISuggestionWithValue[]> {
     // Autocompletion can leak names of tables and columns.
     if (!await this._granularAccess.canScanData(docSession)) { return []; }
@@ -1736,7 +1736,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async assistanceSchemaPromptV1(
     docSession: OptDocSession,
-    context: AssistanceSchemaPromptV1Context
+    context: AssistanceSchemaPromptV1Context,
   ): Promise<string> {
     // Making a prompt leaks names of tables and columns etc.
     if (!await this._granularAccess.canScanData(docSession)) {
@@ -1748,7 +1748,7 @@ export class ActiveDoc extends EventEmitter {
       context.tableId,
       context.colId,
       context.includeAllTables ?? true,
-      context.includeLookups ?? true
+      context.includeLookups ?? true,
     );
   }
 
@@ -1769,7 +1769,7 @@ export class ActiveDoc extends EventEmitter {
    * Only used by version 1 of the AI assistant.
    */
   public assistanceEvaluateFormula(
-    options: AssistanceContextV1
+    options: AssistanceContextV1,
   ): Promise<AssistanceFormulaEvaluationResult> {
     if (!options.evaluateCurrentFormula) {
       throw new Error('evaluateCurrentFormula must be true');
@@ -1864,7 +1864,7 @@ export class ActiveDoc extends EventEmitter {
     try {
       const url = await this._server.getHomeUrlByDocId(
         forkIds.docId,
-        `/api/docs/${forkIds.docId}/create-fork`
+        `/api/docs/${forkIds.docId}/create-fork`,
       );
       const resp = await fetch(url, {
         method: 'POST',
@@ -2070,7 +2070,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async applyActionsToDataEngine(
     docSession: OptDocSession|null,
-    userActions: UserAction[]
+    userActions: UserAction[],
   ): Promise<SandboxActionBundle> {
     const [normalActions, onDemandActions] = this._onDemandActions.splitByStorage(userActions);
 
@@ -2302,34 +2302,34 @@ export class ActiveDoc extends EventEmitter {
    */
   public async sendAttachmentTransferStatusNotification(attachmentTransfer: AttachmentTransferStatus) {
     await this.docClients.broadcastDocMessage(null, 'docChatter', {
-      attachmentTransfer
+      attachmentTransfer,
     });
   }
 
   public async sendTimingsNotification() {
     await this.docClients.broadcastDocMessage(null, 'docChatter', {
       timing: {
-        status: this.isTimingOn ? 'active' : 'disabled'
+        status: this.isTimingOn ? 'active' : 'disabled',
       },
     });
   }
 
   public logAuditEvent<Action extends AuditEventAction>(
     requestOrSession: RequestOrSession,
-    properties: AuditEventProperties<Action>
+    properties: AuditEventProperties<Action>,
   ) {
     this._server
       .getAuditLogger()
       .logEvent(
         requestOrSession,
-        merge(this._getAuditEventProperties<Action>(), properties)
+        merge(this._getAuditEventProperties<Action>(), properties),
       );
   }
 
   public logTelemetryEvent(
     docSession: OptDocSession | null,
     event: TelemetryEvent,
-    metadata?: TelemetryMetadataByLevel
+    metadata?: TelemetryMetadataByLevel,
   ) {
     this._server.getTelemetry().logEvent(docSession, event, merge(
       this._getTelemetryMeta(docSession),
@@ -2505,7 +2505,7 @@ export class ActiveDoc extends EventEmitter {
    */
   @insightLogDecorate("ActiveDoc")
   protected async _applyUserActions(docSession: OptDocSession, actions: UserAction[],
-                                    options: ApplyUAExtendedOptions = {}
+                                    options: ApplyUAExtendedOptions = {},
   ): Promise<ApplyUAResult> {
 
     const insightLog = insightLogEntry();
@@ -2613,7 +2613,7 @@ export class ActiveDoc extends EventEmitter {
           // Note that this must happen before `this._shuttingDown = true` because of this line in Sharing.ts:
           //     if (this._activeDoc.isShuttingDown && isCalculate) {
           await safeCallAndWait("RemoveStaleObjects",
-            () => this.applyUserActions(docSession, [["RemoveStaleObjects"]])
+            () => this.applyUserActions(docSession, [["RemoveStaleObjects"]]),
           );
         }
 
@@ -2846,7 +2846,7 @@ export class ActiveDoc extends EventEmitter {
     this._log.info(
       docSession, "addAttachment: store: '%s', file: '%s' (image %sx%s) %s",
       attachmentStoreId ?? 'local document', addFileResult.fileIdent, dimensions.width, dimensions.height,
-      addFileResult.isNewFile ? "attached" : "already exists"
+      addFileResult.isNewFile ? "attached" : "already exists",
     );
     return ['AddRecord', '_grist_Attachments', null, {
       fileIdent: addFileResult.fileIdent,
@@ -2857,7 +2857,7 @@ export class ActiveDoc extends EventEmitter {
       fileExt: fileData.ext,
       imageHeight: dimensions.height,
       imageWidth: dimensions.width,
-      timeUploaded: Date.now()
+      timeUploaded: Date.now(),
     }];
   }
 
@@ -2879,7 +2879,7 @@ export class ActiveDoc extends EventEmitter {
     }
 
     const action: BulkUpdateRecord = ['BulkUpdateRecord', '_grist_Attachments', rowIdsToUpdate, {
-      fileSize: newFileSizesForRows
+      fileSize: newFileSizesForRows,
     }];
 
     try {
@@ -3389,7 +3389,7 @@ export class ActiveDoc extends EventEmitter {
     }
     await this.applyUserActions(docSessions, [
       // Use docInfo.id to avoid hard-coding a reference to a specific row id, in case it changes.
-      ["UpdateRecord", "_grist_DocInfo", docInfo.id, { documentSettings: JSON.stringify(settings) }]
+      ["UpdateRecord", "_grist_DocInfo", docInfo.id, { documentSettings: JSON.stringify(settings) }],
     ]);
   }
 
@@ -3405,7 +3405,7 @@ export class ActiveDoc extends EventEmitter {
           request: (key: string, args: SandboxRequest) => this._requests.handleSingleRequestWithCache(key, args),
           guessColInfo,
           convertFromColumn,
-        }
+        },
       },
     });
   }
@@ -3487,7 +3487,7 @@ export class ActiveDoc extends EventEmitter {
    */
   private async _withDataEngine(
     cb: () => Promise<void>,
-    options: {shutdownAfter?: boolean} = {}
+    options: {shutdownAfter?: boolean} = {},
   ) {
     const {shutdownAfter} = options;
     this._dataEngine = this._dataEngine || this._makeEngine();
@@ -3538,7 +3538,7 @@ export class ActiveDoc extends EventEmitter {
               this._log.warn(null, `Vacuum on inactive: Doc ${this.docName}\n ${err}`);
             }
           }
-        }
+        },
       });
     }
   }
@@ -3558,7 +3558,7 @@ export class ActiveDoc extends EventEmitter {
 
   private _logForkDocumentEvents(
     docSession: OptDocSession,
-    { document, fork }: { document: Document; fork: ForkResult }
+    { document, fork }: { document: Document; fork: ForkResult },
   ) {
     this.logAuditEvent(docSession, {
       action: "document.fork",
@@ -3639,7 +3639,7 @@ interface ActiveDocAndReq {
 }
 export async function getRealTableId(
   tableId: string,
-  options:  MetaTables | ActiveDocAndReq
+  options:  MetaTables | ActiveDocAndReq,
   ): Promise<string> {
   if (parseInt(tableId)) {
     const metaTables = "metaTables" in options

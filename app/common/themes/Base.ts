@@ -502,5 +502,5 @@ export const Base: BaseThemeTokens = {
 
     /* Keyboard Focus Highlighter */
     kbFocusHighlight: tokens.primary,
-  }
+  },
 };

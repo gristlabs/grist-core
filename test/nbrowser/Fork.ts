@@ -53,7 +53,7 @@ describe("Fork", function() {
     await driver.findContentWait(
       '.test-notifier-toast-wrapper',
       /Cannot fork a document that's already a fork/s,
-      2000
+      2000,
     );
     assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1');
     assert.equal(await driver.getCurrentUrl(), `${forkUrl}/m/fork`);

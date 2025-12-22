@@ -54,7 +54,7 @@ export const Deps = {
 export function getDocWorkerLoadTracker(
   docWorkerInfo: DocWorkerInfo,
   docWorkerMap: IDocWorkerMap,
-  docManager: DocManager
+  docManager: DocManager,
 ): DocWorkerLoadTracker | undefined {
   if (docWorkerMap instanceof DocWorkerMap) {
     log.info("Creating Redis-based DocWorkerLoadTracker");
@@ -79,13 +79,13 @@ export class DocWorkerLoadTracker {
     },
     {
       onError: e => this._log.error(null, "failed to update worker load", e),
-    }
+    },
   );
 
   constructor(
     private _docWorkerInfo: DocWorkerInfo,
     private _docWorkerMap: IDocWorkerMap,
-    private _docManager: IMemoryLoadEstimator
+    private _docManager: IMemoryLoadEstimator,
   ) {}
 
   /**
@@ -132,14 +132,14 @@ export class DocWorkerLoadTracker {
    */
   private async _readValueFromFileInMB(
     filePath: string,
-    valueProcessor?: (val: string) => number|undefined
+    valueProcessor?: (val: string) => number|undefined,
   ): Promise<number> {
     const rawVal = await fs.readFile(filePath, "utf-8");
     const valInBytes = valueProcessor?.(rawVal) ?? parseInt(rawVal, 10);
 
     if (isNaN(valInBytes)) {
       throw new Error(
-        `Unexpected value (not a number) found in file in "${filePath}". value = ${rawVal.slice(0, 1000)}`
+        `Unexpected value (not a number) found in file in "${filePath}". value = ${rawVal.slice(0, 1000)}`,
       );
     }
 
@@ -185,7 +185,7 @@ export class DocWorkerLoadTracker {
         Deps.docWorkerMaxMemoryBytesPath,
         // When the value is "max", return Infinity, otherwise return undefined
         // so the function reads what's probably an integer value.
-        val => val === 'max' ? Infinity : undefined
+        val => val === 'max' ? Infinity : undefined,
       );
     }
 
@@ -195,7 +195,7 @@ export class DocWorkerLoadTracker {
   private async _updateLoad() {
     await this._docWorkerMap.setWorkerLoad(
       this._docWorkerInfo,
-      await this.getLoad()
+      await this.getLoad(),
     );
   }
 }

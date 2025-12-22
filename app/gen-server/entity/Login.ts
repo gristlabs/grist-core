@@ -7,7 +7,7 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
-  PrimaryColumn
+  PrimaryColumn,
 } from "typeorm";
 
 import {User} from "app/gen-server/entity/User";

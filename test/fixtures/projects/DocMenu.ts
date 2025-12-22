@@ -13,8 +13,8 @@ const globalWindow = {
     homeUrl : 'http://localhost:0',
     timestampMs : 0,
     pluginUrl : 'http://localhost:0',
-    plugins: []
-  }
+    plugins: [],
+  },
 };
 const mockAppModel = TopAppModelImpl.create(null, globalWindow, mockUserApi);
 

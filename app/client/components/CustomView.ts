@@ -12,7 +12,7 @@ import {
   TableNotifier,
   ThemeNotifier,
   WidgetAPIImpl,
-  WidgetFrame
+  WidgetFrame,
 } from 'app/client/components/WidgetFrame';
 import {CustomSectionElement, ViewProcess} from 'app/client/lib/CustomSectionElement';
 import {makeT} from 'app/client/lib/localization';
@@ -249,20 +249,20 @@ export class CustomView extends BaseView {
         kd.maybe(this._hasAclHiddenColumns, () => [
           dom('h1', kd.text(t("Some required columns are hidden by access rules"))),
           dom('p',
-      t('To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.')
+      t('To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.'),
           ),
         ]),
         kd.maybe(() => !this._hasAclHiddenColumns(), () => [
           dom('h1', kd.text(t("Some required columns aren't mapped"))),
           dom('p',
-            t('To use this widget, please map all non-optional columns from the creator panel on the right.')
+            t('To use this widget, please map all non-optional columns from the creator panel on the right.'),
           ),
         ]),
       )),
       // todo: should display content in webview when running electron
       // prefer widgetId; spelunk in widgetDef for older docs
       kd.scope(() => [
-        this._hasUnmappedColumns(), mode(), url(), access(), widgetId() || widgetDef()?.widgetId || '', pluginId()
+        this._hasUnmappedColumns(), mode(), url(), access(), widgetId() || widgetDef()?.widgetId || '', pluginId(),
       ], ([_hide, _mode, _url, _access, _widgetId, _pluginId]: string[]) =>
         _mode === "url" ?
           dom("div.flexauto.custom_view_content",
@@ -273,22 +273,22 @@ export class CustomView extends BaseView {
               showAfterReady: showAfterReady(),
               widgetId: builtInSettings.widgetId || _widgetId,
               pluginId: _pluginId,
-            })
+            }),
           )
-          : null
+          : null,
       ),
       kd.maybe(showPluginNotification, () => buildNotification('Plugin ',
         dom('strong', kd.text(this.customDef.pluginId)), ' was not found',
-        dom.testId('customView_notification_plugin')
+        dom.testId('customView_notification_plugin'),
       )),
       kd.maybe(showSectionNotification, () => buildNotification('Section ',
         dom('strong', kd.text(this.customDef.sectionId)), ' was not found in plugin ',
         dom('strong', kd.text(this.customDef.pluginId)),
-        dom.testId('customView_notification_section')
+        dom.testId('customView_notification_section'),
       )),
       // When showPluginContent() is true then _foundSection() is also and _customSection is not
       // undefined (invariant).
-      kd.maybe(showPluginContent, () => this._customSection!.element)
+      kd.maybe(showPluginContent, () => this._customSection!.element),
     );
   }
 
@@ -432,6 +432,6 @@ function onFrameFocus(frame: HTMLIFrameElement, handler: () => void) {
     grains.onDispose(() => {
       stop();
       disposed = true;
-    })
+    }),
   );
 }

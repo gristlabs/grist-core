@@ -14,7 +14,7 @@ import {PassThrough, Stream} from 'stream';
 export async function exportToDrive(
   activeDoc: ActiveDoc,
   req: Request,
-  res: Response
+  res: Response,
 ) {
   // Token should come from auth middleware
   const access_token = optStringParam(req.query.access_token, 'access_token');
@@ -69,19 +69,19 @@ async function sendFileToDrive(fileNameNoExt: string, stream: Stream, oauth_toke
     // name of the spreadsheet to create
     name: fileNameNoExt,
     // mime type of the google spreadsheet
-    mimeType: 'application/vnd.google-apps.spreadsheet'
+    mimeType: 'application/vnd.google-apps.spreadsheet',
   };
   // Define what gets send - excel file
   const media = {
     mimeType: 'application/vnd.ms-excel',
-    body: stream
+    body: stream,
   };
   const googleDrive = drive("v3");
   const fileRes = await googleDrive.files.create({
     requestBody, // what to do with file - convert to spreadsheet
     oauth_token, // access token
     media, // file
-    fields: "webViewLink" // return webViewLink after creating file
+    fields: "webViewLink", // return webViewLink after creating file
   });
   const url = fileRes.data.webViewLink;
   if (!url) {

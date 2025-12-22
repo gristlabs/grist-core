@@ -122,7 +122,7 @@ export class SelectionSummary extends Disposable {
           cssSummaryPart.cls('-copyable', Boolean(clickToCopy)),
           (clickToCopy ? dom.on('click', (ev, elem) => doCopy(value, elem)) : null),
           testId(id),
-        )
+        ),
       ),
     );
   }

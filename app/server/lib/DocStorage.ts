@@ -166,7 +166,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
                 `CREATE TABLE ${quoteIdent(tmpTableId)} (${colSpecSql})`,
                 `INSERT INTO ${quoteIdent(tmpTableId)} SELECT ${colListSql} FROM ${quoteIdent(tableId)}`,
                 `DROP TABLE ${quoteIdent(tableId)}`,
-                `ALTER TABLE ${quoteIdent(tmpTableId)} RENAME TO ${quoteIdent(tableId)}`
+                `ALTER TABLE ${quoteIdent(tmpTableId)} RENAME TO ${quoteIdent(tableId)}`,
               );
             });
         }
@@ -181,7 +181,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
           return DocStorage._sqlColSpecFromDBInfo(Object.assign({}, info, {
             type: 'BLOB',
-            dflt_value: dfltValue
+            dflt_value: dfltValue,
           }));
         }
 
@@ -257,8 +257,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
                   inst: "",
                   desc: action.desc,
                   otherId: action.otherId,
-                  linkId: action.linkId
-                }
+                  linkId: action.linkId,
+                },
               ],
               // Take what was logged as a UserAction and treat it as a DocAction.  Summarization
               // currently depends on stored+undo fields to understand what changed in an ActionBundle.
@@ -266,7 +266,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
               stored: [[0, JSON.parse(action.json) as DocAction]],
               calc: [],
               userActions: [JSON.parse(action.json)],
-              undo: step.map(row => JSON.parse(row.json))
+              undo: step.map(row => JSON.parse(row.json)),
             };
             await history.recordNextShared(crudeTranslation);
           }
@@ -331,7 +331,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
               `CREATE TABLE ${quoteIdent(tmpTableId)} (${newColSpecSql})`,
               `INSERT INTO ${quoteIdent(tmpTableId)} SELECT ${valuesSql} FROM ${quoteIdent(tableId)}`,
               `DROP TABLE ${quoteIdent(tableId)}`,
-              `ALTER TABLE ${quoteIdent(tmpTableId)} RENAME TO ${quoteIdent(tableId)}`
+              `ALTER TABLE ${quoteIdent(tmpTableId)} RENAME TO ${quoteIdent(tableId)}`,
             );
           }
         }
@@ -415,7 +415,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         // Default should be NULL.
         await db.exec(`ALTER TABLE _gristsys_Files ADD COLUMN storageId TEXT`);
       },
-    ]
+    ],
   };
 
   /**
@@ -487,7 +487,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * which such encoding/marshalling is not used, and e.g. binary data is stored to BLOBs directly.
    */
   private static _encodeValue(
-    marshaller: marshal.Marshaller, gristType: string, sqlType: string, val: any
+    marshaller: marshal.Marshaller, gristType: string, sqlType: string, val: any,
   ): Uint8Array|string|number|boolean|null {
     const marshalled = () => {
       marshaller.marshal(val);
@@ -1320,7 +1320,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           `CREATE TABLE ${quote(tmpTableId)} (id INTEGER PRIMARY KEY${colSpecSql})`,
           `INSERT INTO ${quote(tmpTableId)} SELECT id${colListSql} FROM ${quote(tableId)}`,
           `DROP TABLE ${quote(tableId)}`,
-          `ALTER TABLE ${quote(tmpTableId)} RENAME TO ${quote(tableId)}`
+          `ALTER TABLE ${quote(tmpTableId)} RENAME TO ${quote(tableId)}`,
         );
       });
   }
@@ -1815,7 +1815,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       // The following are not in the instructions, but are needed for SQLite to notice the
       // changes for subsequent queries.
       `ALTER TABLE ${quoteIdent(tableId)} RENAME TO ${quoteIdent(tmpTableId)}`,
-      `ALTER TABLE ${quoteIdent(tmpTableId)} RENAME TO ${quoteIdent(tableId)}`
+      `ALTER TABLE ${quoteIdent(tmpTableId)} RENAME TO ${quoteIdent(tableId)}`,
     );
   }
 
@@ -1949,7 +1949,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       if (first[0] === 'AddRecord' &&
         docActions.slice(1).every(
           // Check other actions are UpdateRecords for the same table and row.
-          a => a[0] === 'UpdateRecord' && a[1] === first[1] && a[2] === first[2]
+          a => a[0] === 'UpdateRecord' && a[1] === first[1] && a[2] === first[2],
         )) {
         const merged = cloneDeep(first);
         for (const a2 of docActions.slice(1)) {
@@ -1997,7 +1997,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   private async _updateFileRecord(
-    db: SQLiteDB, fileIdent: string, fileData?: Buffer, storageId?: string
+    db: SQLiteDB, fileIdent: string, fileData?: Buffer, storageId?: string,
   ): Promise<void> {
     await db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent);
   }

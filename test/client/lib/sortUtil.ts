@@ -112,7 +112,7 @@ describe('sortUtil', function () {
     assert.deepEqual(Sort.detailsToSpec({ colRef: 2, direction: Sort.DESC, emptyLast: true }), '-2:emptyLast');
     assert.deepEqual(
       Sort.detailsToSpec({ colRef: 1, direction: Sort.DESC, emptyLast: true, orderByChoice: true }),
-      '-1:emptyLast;orderByChoice'
+      '-1:emptyLast;orderByChoice',
     );
   });
 

@@ -21,7 +21,7 @@ const testId = makeTestId('test-intro-');
 
 export function buildHomeIntroCards(
   owner: IDisposableOwner,
-  {homeModel}: BuildHomeIntroCardsOptions
+  {homeModel}: BuildHomeIntroCardsOptions,
 ) {
   const {onboardingTutorialDocId, templateOrg} = getGristConfig();
 
@@ -62,7 +62,7 @@ export function buildHomeIntroCards(
           cssTutorialProgressBar(
             elem => subscribeElem(elem, percentComplete, (val) => {
               elem.style.setProperty('--percent-complete', String(val ?? 0));
-            })
+            }),
           ),
         ),
         dom('div',
@@ -70,7 +70,7 @@ export function buildHomeIntroCards(
             t('Tutorial'),
             urlState().setLinkUrl({org: templateOrg!, doc: onboardingTutorialDocId}),
           ),
-        )
+        ),
       ),
       testId('tutorial'),
     ),
@@ -108,7 +108,7 @@ export function buildHomeIntroCards(
         t('Webinars'),
         {href: commonUrls.webinars, target: '_blank'},
         testId('webinars'),
-      )
+      ),
     ),
     cssHelpCenter(
       dom.show(isFeatureEnabled('helpCenter')),

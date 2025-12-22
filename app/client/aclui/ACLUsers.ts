@@ -88,7 +88,7 @@ export class ACLUsersPopup extends Disposable {
         // by default, but that's beyond my UI ken.
         this._showExampleUsers() ? [
           (this._exampleUsers.length > 0) ? cssHeader(t("Example Users")) : null,
-          dom.forEach(this._exampleUsers, buildExampleUserRow)
+          dom.forEach(this._exampleUsers, buildExampleUserRow),
         ] : null,
         (el) => { setTimeout(() => el.focus(), 0); },
         dom.onKeyDown({Escape: () => ctl.close()}),
@@ -125,13 +125,13 @@ export class ACLUsersPopup extends Disposable {
     return dom('a',
       {class: cssMemberListItem.className + ' ' + cssUserItem.className},
       cssMemberImage(
-        createUserImage(opt.isExampleUser ? 'exampleUser' : user, 'large')
+        createUserImage(opt.isExampleUser ? 'exampleUser' : user, 'large'),
       ),
       cssMemberText(
         cssMemberPrimary(user.name || dom('span', user.email),
           cssRole('(', userT(getUserRoleText(user)), ')', testId('acl-user-access')),
         ),
-        user.name ? cssMemberSecondary(user.email) : null
+        user.name ? cssMemberSecondary(user.email) : null,
       ),
       this._viewAs(user, opt.resetDocPage),
       testId('acl-user-item'),

@@ -11,7 +11,7 @@ import SCIMMY from 'scimmy';
 class ScimRoleController extends BaseController {
   public constructor(
     dbManager: HomeDBManager,
-    checkAccess: (context: RequestContext) => void
+    checkAccess: (context: RequestContext) => void,
   ) {
     super(dbManager, checkAccess);
     this.invalidIdError = 'Invalid passed role ID';
@@ -56,7 +56,7 @@ class ScimRoleController extends BaseController {
    * @param context The request context
    */
   public async overwriteRole(
-    resource: SCIMMYRoleResource, data: SCIMMYRoleSchema, context: RequestContext
+    resource: SCIMMYRoleResource, data: SCIMMYRoleSchema, context: RequestContext,
   ): Promise<SCIMMYRoleSchema> {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
@@ -68,7 +68,7 @@ class ScimRoleController extends BaseController {
 }
 
 export function getScimRoleConfig(
-  dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void
+  dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void,
 ) {
   const controller = new ScimRoleController(dbManager, checkAccess);
   return {
@@ -86,6 +86,6 @@ export function getScimRoleConfig(
     },
     degress: async () => {
       throw new SCIMMY.Types.Error(501, null!, 'Cannot delete roles');
-    }
+    },
   };
 }

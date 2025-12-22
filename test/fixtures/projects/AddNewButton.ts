@@ -20,7 +20,7 @@ function setupTest() {
           dom('input', {type: 'checkbox'},
             testId('expand'),
             dom.prop('checked', isOpen),
-            dom.on('change', (ev, elem) => isOpen.set(elem.checked))
+            dom.on('change', (ev, elem) => isOpen.set(elem.checked)),
           ),
           'Expand this button',
         ),

@@ -75,9 +75,9 @@ describe('ACLFormula', function() {
   });
 
   [{
-    op: 'in'
+    op: 'in',
   }, {
-    op: 'not in'
+    op: 'not in',
   }].forEach((ctx) => {
     it(`should handle the "${ctx.op}" operator with a string RHS to check if substring exist`, async function() {
       const compiled = await setAndCompile(`user.Name ${ctx.op} 'FooBar'`);
@@ -120,7 +120,7 @@ describe('ACLFormula', function() {
     assert.throws(() => compiled({user: new User({IsAdmin: 0.0})}), /Missing row data 'rec'/);
     assert.throws(
       () => compiled({user: new User({IsAdmin: 0.0}), rec: V({assigned: true})}),
-      /Missing row data 'newRec'/
+      /Missing row data 'newRec'/,
     );
     assert.equal(compiled({user: new User({IsAdmin: 0.0}), rec: V({}), newRec: V({})}), false);
     assert.equal(compiled({user: new User({IsAdmin: false}), rec: V({assigned: 0}), newRec: V({})}), false);

@@ -37,7 +37,7 @@ export const initSchema: ParseOptionSchema[] = [{
 }, {
   name: 'excludes',
   type: 'string',
-  visible: true
+  visible: true,
 }, {
   name: 'unused',
   type: 'number',

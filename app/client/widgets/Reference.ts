@@ -2,7 +2,7 @@ import {DropdownConditionConfig} from 'app/client/components/DropdownConditionCo
 import {
   FormFieldRulesConfig,
   FormOptionsSortConfig,
-  FormSelectConfig
+  FormSelectConfig,
 } from 'app/client/components/Forms/FormConfig';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {stopEvent} from 'app/client/lib/domUtils';
@@ -50,7 +50,7 @@ export class Reference extends NTextBox {
           label: use(col.label),
           value: col.getRowId(),
           icon: 'FieldColumn',
-          disabled: isFullReferencingType(use(col.type)) || use(col.isTransforming)
+          disabled: isFullReferencingType(use(col.type)) || use(col.isTransforming),
         }))
         .concat([{label: t('Row ID'), value: 0, icon: 'FieldColumn'}]);
     });
@@ -73,10 +73,10 @@ export class Reference extends NTextBox {
       cssRow(
         dom.autoDispose(disabled),
         select(this._visibleColRef, this._validCols, {
-          disabled
+          disabled,
         }),
-        testId('fbuilder-ref-col-select')
-      )
+        testId('fbuilder-ref-col-select'),
+      ),
     ];
   }
 
@@ -143,7 +143,7 @@ export class Reference extends NTextBox {
       dom.cls('text_wrapping', this.wrapping),
       cssRefIcon('FieldReference',
         cssRefIcon.cls('-view-as-card', use =>
-          use(referenceId) !== 0 && use(formattedValue).hasRecordCard
+          use(referenceId) !== 0 && use(formattedValue).hasRecordCard,
         ),
         dom.on('click', async (ev) => {
           stopEvent(ev);

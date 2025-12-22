@@ -32,7 +32,7 @@ describe('VersionUpdateBanner', function() {
     await driver.wait(
       () => fakeServer.payload !== null,
       100,
-      'fake server should have received a version payload'
+      'fake server should have received a version payload',
     );
   });
 

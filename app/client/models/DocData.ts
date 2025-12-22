@@ -259,7 +259,7 @@ class BundleSender {
       actionNum: result.actionNum,
       actionHash: result.actionHash,
       retValues: result.retValues.slice(start, end),
-      isModification: result.isModification
+      isModification: result.isModification,
     }));
   }
 

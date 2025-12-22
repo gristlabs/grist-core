@@ -72,7 +72,7 @@ import {
   Observable,
   styled,
   subscribe,
-  toKo
+  toKo,
 } from 'grainjs';
 import * as ko from 'knockout';
 
@@ -210,7 +210,7 @@ export class RightPanel extends Disposable {
         dom.on('click', () => this._gristDoc.showTool('none')),
         testId('right-tool-close'),
       ),
-      cssTopBarItem.cls('-selected', true)
+      cssTopBarItem.cls('-selected', true),
     );
   }
 
@@ -225,15 +225,15 @@ export class RightPanel extends Disposable {
             this._topTabComponents.tab('pageWidget'),
             cssTopBarIcon(widgetInfo.icon),
             widgetInfo.getLabel(),
-            testId('right-tab-pagewidget')
+            testId('right-tab-pagewidget'),
           ),
           cssTopBarItem(
             this._topTabComponents.tab('field'),
             cssTopBarIcon(fieldInfo.icon),
             fieldInfo.label,
-            testId('right-tab-field')
-          )
-        )
+            testId('right-tab-field'),
+          ),
+        ),
       ];
     });
   }
@@ -258,18 +258,18 @@ export class RightPanel extends Disposable {
                   dom.create(this._buildPageWidgetHeader.bind(this)),
                   dom.create(() => this._buildPageWidgetContent(isForm)),
                 ]
-                : null
+                : null,
           ),
-          testId('right-tabpanel-pagewidget')
+          testId('right-tabpanel-pagewidget'),
         ),
         cssTabPanel(
           this._topTabComponents.tabPanel('field',
             isForm
               ? dom.create(this._buildQuestionContent.bind(this))
-              : dom.create(this._buildFieldContent.bind(this))
+              : dom.create(this._buildFieldContent.bind(this)),
           ),
-          testId('right-tabpanel-field')
-        )
+          testId('right-tabpanel-field'),
+        ),
       ];
     });
   }
@@ -346,7 +346,7 @@ export class RightPanel extends Disposable {
             builder.buildColorConfigDom(),
             cssSection(
               builder.buildSettingOptions(),
-              dom.maybe(isMultiSelect, () => disabledSection())
+              dom.maybe(isMultiSelect, () => disabledSection()),
             ),
           ]),
           cssSeparator(),
@@ -354,14 +354,14 @@ export class RightPanel extends Disposable {
             dom.maybe(refSelect.isForeignRefCol, () => [
               cssLabel(t('Add referenced columns')),
               cssRow(refSelect.buildDom()),
-              cssSeparator()
+              cssSeparator(),
             ]),
             cssLabel(t("TRANSFORM")),
             dom.maybe<FieldBuilder|null>(fieldBuilder, builder => builder.buildTransformDom()),
             testId('panel-transform'),
           ),
           this._disableIfReadonly(),
-        )
+        ),
       );
     }));
   }
@@ -388,34 +388,34 @@ export class RightPanel extends Disposable {
       return [
         dom('div',
           this._subTabComponents.tabPanel('widget',
-            dom.create(this._buildPageWidgetConfig.bind(this), activeSection)
+            dom.create(this._buildPageWidgetConfig.bind(this), activeSection),
           ),
-          testId('right-subtabpanel-widget')
+          testId('right-subtabpanel-widget'),
         ),
         isForm
           ? dom('div',
             this._subTabComponents.tabPanel('submission',
-              dom.create(this._buildPageSubmissionConfig.bind(this), activeSection)
+              dom.create(this._buildPageSubmissionConfig.bind(this), activeSection),
             ),
-            testId('right-subtabpanel-submission')
+            testId('right-subtabpanel-submission'),
           )
           : dom('div',
             this._subTabComponents.tabPanel('sortAndFilter',
               dom.create(this._buildPageSortFilterConfig.bind(this)),
             ),
             cssConfigContainer.cls('-disabled', activeSection.isRecordCard),
-            testId('right-subtabpanel-sortAndFilter')
+            testId('right-subtabpanel-sortAndFilter'),
           ),
         dom('div',
           this._subTabComponents.tabPanel('data',
-            dom.create(this._buildPageDataConfig.bind(this), activeSection)
+            dom.create(this._buildPageDataConfig.bind(this), activeSection),
           ),
-          testId('right-subtabpanel-data')
+          testId('right-subtabpanel-data'),
         ),
       ];
     };
     return dom.maybe(this._validSection, activeSection =>
-      buildConfigContainer(content(activeSection))
+      buildConfigContainer(content(activeSection)),
     );
   }
 
@@ -508,7 +508,7 @@ export class RightPanel extends Disposable {
             return isRawTable && isSummaryTable;
           }),
           {id: "right-widget-title-input"},
-          testId('right-widget-title')
+          testId('right-widget-title'),
         )),
 
         cssSection(
@@ -520,7 +520,7 @@ export class RightPanel extends Disposable {
         use => !use(activeSection.isRaw) && !use(activeSection.isRecordCard),
         () => cssRow(
           primaryButton(t("Change widget"), this._createPageWidgetPicker()),
-          cssRow.cls('-top-space')
+          cssRow.cls('-top-space'),
         ),
       ),
 
@@ -528,7 +528,7 @@ export class RightPanel extends Disposable {
         cssGroupLabel(t("Theme")),
         dom('div',
           vct._buildThemeDom(),
-          vct._buildLayoutDom())
+          vct._buildLayoutDom()),
       ]),
 
       domComputed((use) => {
@@ -543,8 +543,8 @@ export class RightPanel extends Disposable {
           cssGroupLabel(t("Row style"), {id: 'row-style-label'}),
           dom.create(rowHeightConfigTable, activeSection.optionsObj),
           domAsync(imports.loadViewPane().then(ViewPane =>
-            dom.create(ViewPane.ConditionalStyle, t("Row style"), activeSection, this._gristDoc)
-          ))
+            dom.create(ViewPane.ConditionalStyle, t("Row style"), activeSection, this._gristDoc),
+          )),
         );
       }),
 
@@ -552,7 +552,7 @@ export class RightPanel extends Disposable {
         dom('div', {role: 'group', 'aria-label': t('Chart options')},
           cssGroupLabel(t("CHART TYPE")),
           vct._buildChartConfigDom(),
-        )
+        ),
       ),
 
       dom.maybe(use => use(this._pageWidgetType) === 'custom', () => {
@@ -682,7 +682,7 @@ export class RightPanel extends Disposable {
         return cssLinkInfoBody((
             cssLinkInfoValuesBox(
             cssLinkInfoIcon("FieldReference"),
-            valueLabels.join(', '), ) //TODO: join labels like "Entries[1], Entries[2]" to "Entries[[1,2]]"
+            valueLabels.join(', ') ) //TODO: join labels like "Entries[1], Entries[2]" to "Entries[[1,2]]"
         ));
       };
 
@@ -720,7 +720,7 @@ export class RightPanel extends Disposable {
             return dom("div", `Error: Couldn't identify link state`);
         } 
 },
-        ...domArgs
+        ...domArgs,
       ); // End of cssLinkInfoPanel
     });
 }
@@ -781,7 +781,7 @@ export class RightPanel extends Disposable {
               !lfilter ? "Filter State: null" :
                 ["Filter State:", ...(Object.keys(lfilter).map(key =>
                   `- ${key}: ${JSON.stringify((lfilter as any)[key])}`))].join('\n'),
-            ].join('\n')
+            ].join('\n'),
         ].join('\n');
       }
 
@@ -795,7 +795,7 @@ export class RightPanel extends Disposable {
             dom.style('cursor', 'pointer'),
             dom.on('click', () => collapsed.set(!collapsed.get())),
           ),
-          dom.maybe(not(collapsed), () => cssRow(cssLinkInfoPre(preString)))
+          dom.maybe(not(collapsed), () => cssRow(cssLinkInfoPre(preString))),
       ] : null;
     });
   }
@@ -809,7 +809,7 @@ export class RightPanel extends Disposable {
       return linkId({
         srcSectionRef: use(activeSection.linkSrcSectionRef),
         srcColRef: use(activeSection.linkSrcColRef),
-        targetColRef: use(activeSection.linkTargetColRef)
+        targetColRef: use(activeSection.linkTargetColRef),
       });
     });
 
@@ -847,14 +847,14 @@ export class RightPanel extends Disposable {
         cssRow(
           cssIcon('TypeTable'), cssDataLabel(t("SOURCE DATA")),
           cssContent(dom.text(use => use(use(table).primaryTableId)),
-                    testId('pwc-table'))
+                    testId('pwc-table')),
         ),
         dom(
           'div',
           cssRow(cssIcon('Pivot'), cssDataLabel(t("GROUPED BY"), {id: 'data-grouped-by-label'})),
           cssRow(domComputed(groupedBy, cols => cssList(
             cols.map(c => cssListItem(dom.text(c.label), testId('pwc-groupedBy-col'))),
-            {'aria-labelledby': 'data-grouped-by-label'}
+            {'aria-labelledby': 'data-grouped-by-label'},
           ))),
 
           testId('pwc-groupedBy'),
@@ -891,9 +891,9 @@ export class RightPanel extends Disposable {
             select(link, linkOptions, {defaultLabel: t("Select widget")}),
             dom.on('click', () => {
               refreshTrigger.set(!refreshTrigger.get());
-            })
+            }),
           ),
-          testId('right-select-by')
+          testId('right-select-by'),
         ),
       ]),
 
@@ -940,7 +940,7 @@ export class RightPanel extends Disposable {
     return cssListItem(
       dom.text(sec.titleDef),
       this._buildLinkInfo(sec, dom.style("border", "none")),
-      testId('selector-for-entry')
+      testId('selector-for-entry'),
     );
   }
 
@@ -990,7 +990,7 @@ export class RightPanel extends Disposable {
         cssTextArea(
           successText,
           {autoGrow: true, save: val => successText.set(val)},
-          {placeholder: t('Thank you! Your response has been recorded.')}
+          {placeholder: t('Thank you! Your response has been recorded.')},
         ),
       ),
       cssLabel(t("Submit another response")),
@@ -1004,17 +1004,17 @@ export class RightPanel extends Disposable {
         labeledSquareCheckbox(
           redirection,
           t("Redirect automatically after submission"),
-          testId("form-redirect")
-        )
+          testId("form-redirect"),
+        ),
       ),
       cssRow(
         cssTextInput(
           successURL,
           val => successURL.set(val),
           { placeholder: t("Enter redirect URL") },
-          testId("form-redirect-url")
+          testId("form-redirect-url"),
         ),
-        dom.show(redirection)
+        dom.show(redirection),
       ),
     ];
   }
@@ -1111,16 +1111,16 @@ export class RightPanel extends Disposable {
           buttonSelect(box.prop('alignment'), [
             {value: 'left',   icon: 'LeftAlign'},
             {value: 'center', icon: 'CenterAlign'},
-            {value: 'right',  icon: 'RightAlign'}
+            {value: 'right',  icon: 'RightAlign'},
           ]),
           dom.autoDispose(box.prop('alignment').addListener(() => box.save().catch(reportError))),
-        )
+        ),
       ]),
 
       // Default.
       dom.maybe(u => !u(selectedField) && !u(selectedBoxWithOptions), () => [
         buildFormConfigPlaceholder(),
-      ])
+      ]),
     ))));
   }
 }
@@ -1131,7 +1131,7 @@ function buildFormConfigPlaceholder() {
     cssFormConfigMessage(
       cssFormConfigMessageTitle(t('No field selected')),
       dom('div', t('Select a field in the form widget to configure.')),
-    )
+    ),
   );
 }
 
@@ -1149,7 +1149,7 @@ function tabContentToDom(content: Observable<TabContent[]>|TabContent[]|IDomComp
   function buildItemDom(item: any) {
     return dom('div.config_item',
       dom.show(item.showObs || true),
-      item.buildDom()
+      item.buildDom(),
     );
   }
 
@@ -1169,7 +1169,7 @@ function tabContentToDom(content: Observable<TabContent[]>|TabContent[]|IDomComp
  else {
         return buildItemDom(itemOrHeader);
       }
-    })
+    }),
   );
 }
 

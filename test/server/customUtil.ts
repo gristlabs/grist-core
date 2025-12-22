@@ -27,7 +27,7 @@ export function addStatic(app: express.Express, rootDir?: string) {
   app.use(express.static(rootDir || path.resolve(fixturesRoot, "sites"), {
     setHeaders: (res: express.Response) => {
       res.set("Access-Control-Allow-Origin", "*");
-    }
+    },
   }));
 }
 
@@ -190,6 +190,6 @@ export function setupExternalSite(content: string) {
     if (serving) { await serving.shutdown(); }
   });
   return {
-    getUrl() { return servingUrl; }
+    getUrl() { return servingUrl; },
   };
 }

@@ -13,7 +13,7 @@ import * as winston from 'winston';
 const logAsJson = appSettings.section("log").flag("json").readBool({
   envVar: ["GRIST_LOG_AS_JSON", "GRIST_HOSTED_VERSION"],
   preferredEnvVar: "GRIST_LOG_AS_JSON",
-  defaultValue: false
+  defaultValue: false,
 });
 
 interface LogWithTimestamp extends winston.LoggerInstance {
@@ -76,7 +76,7 @@ const fileTransportOptions = {
   level: process.env.GRIST_LOG_LEVEL || 'debug',
   timestamp: log.timestamp,
   colorize: true,
-  json: logAsJson
+  json: logAsJson,
 };
 
 // Configure logging to use console and simple timestamps.

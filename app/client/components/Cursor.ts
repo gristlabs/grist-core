@@ -156,7 +156,7 @@ export class Cursor extends Disposable {
       rowId: nullAsUndefined(this._properRowId()),
       rowIndex: nullAsUndefined(this.rowIndex()),
       fieldIndex: this.fieldIndex(),
-      sectionId: this._sectionId()
+      sectionId: this._sectionId(),
     };
   }
 

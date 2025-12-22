@@ -57,7 +57,7 @@ export class DateEditor extends NTextEditor {
       // the arrow keys for date selection.
       const datepickerCommands = {
         ...options.commands,
-        datepickerFocus: () => { this._allowKeyboardNav(true); }
+        datepickerFocus: () => { this._allowKeyboardNav(true); },
       };
       const datepickerCommandGroup = this.autoDispose(createGroup(datepickerCommands, this, true));
       this._attachDatePicker(datepickerCommandGroup)
@@ -68,7 +68,7 @@ export class DateEditor extends NTextEditor {
   public getCellValue() {
     const timestamp = parseDate(this.textInput.value, {
       dateFormat: this.safeFormat,
-      timezone: this.timezone
+      timezone: this.timezone,
     });
     return timestamp !== null ? timestamp : this.textInput.value;
   }
@@ -138,7 +138,7 @@ export class DateEditor extends NTextEditor {
       if (datepickerElem) {
         dom.update(datepickerElem,
           dom.attr('tabIndex', '0'),      // allows datepicker to gain focus
-          dom.cls('clipboard_allow_focus')      // tells clipboard to not steal focus from us
+          dom.cls('clipboard_allow_focus'),      // tells clipboard to not steal focus from us
         );
       }
 
@@ -146,7 +146,7 @@ export class DateEditor extends NTextEditor {
       dom.update(this.textInput,
         // If the user inputs text into the textbox, take keyboard focus from the datepicker.
         dom.on('input', () => { this._allowKeyboardNav(false); }),
-        datepickerCommands.attach()
+        datepickerCommands.attach(),
       );
     });
     datePickerWidget.datepicker('show');

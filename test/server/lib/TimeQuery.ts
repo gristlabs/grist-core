@@ -41,7 +41,7 @@ describe("TimeQuery", function() {
     // Change some data, remove some data.
     await doc.applyUserActions(session, [
       ["UpdateRecord", "Fish", 1, {age: "111"}],
-      ["RemoveRecord", "Fish", 2]
+      ["RemoveRecord", "Fish", 2],
     ]);
     const summary2 = await summarizeLastAction(doc);
 
@@ -132,19 +132,19 @@ describe("TimeQuery", function() {
       ["AddRecord", "Fish", null, {age: "22", species: "bounder", color: "red"}],
     ]);
     await doc.applyUserActions(session, [
-      ["RenameTable", "Fish", "Fish2"]
+      ["RenameTable", "Fish", "Fish2"],
     ]);
     cursor.append(await summarizeLastAction(doc));
     const query = new TimeQuery(cursor, 'Fish', ['species']);
     const expectedResult = [
       { id: 1, species: 'flounder' },
-      { id: 2, species: 'bounder' }
+      { id: 2, species: 'bounder' },
     ];
     let result = await query.update();
     assert.deepEqual(result, expectedResult);
 
     await doc.applyUserActions(session, [
-      ["RenameColumn", "Fish2", "species", "species2"]
+      ["RenameColumn", "Fish2", "species", "species2"],
     ]);
     cursor.append(await summarizeLastAction(doc));
     result = await query.update();
@@ -167,7 +167,7 @@ describe("TimeQuery", function() {
     assert.deepEqual(result, expectedResult);
 
     await doc.applyUserActions(session, [
-      ["UpdateRecord", "Fish2", 1, {color: "whale"}]
+      ["UpdateRecord", "Fish2", 1, {color: "whale"}],
     ]);
     cursor.append(await summarizeLastAction(doc));
     result = await query.update();
@@ -182,22 +182,22 @@ describe("TimeQuery", function() {
         {
           "manualSort": [
             1,
-            2
+            2,
           ],
           "age": [
             "11",
-            "22"
+            "22",
           ],
           "color2": [
             "blue",
-            "red"
+            "red",
           ],
           "color": [
             "whale",
-            "bounder"
-          ]
-        }
-      ]
+            "bounder",
+          ],
+        },
+      ],
     });
 
     query.reset('Fish', '*');
@@ -208,15 +208,15 @@ describe("TimeQuery", function() {
         manualSort: 1,
         age: '11',
         species: 'flounder',
-        color: 'blue'
+        color: 'blue',
       },
       {
         id: 2,
         manualSort: 2,
         age: '22',
         species: 'bounder',
-        color: 'red'
-      }
+        color: 'red',
+      },
     ]);
   });
 });

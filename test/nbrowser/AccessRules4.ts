@@ -106,7 +106,7 @@ describe("AccessRules4", function() {
     // Add user table with this user.
     await gu.sendActions([
       ['AddTable', 'Users', [
-        {id: 'Email', type: 'Text'}
+        {id: 'Email', type: 'Text'},
       ]],
       ['AddRecord', 'Users', -1, {Email: email}],
     ]);
@@ -168,7 +168,7 @@ describe("AccessRules4", function() {
     // There should be a proper role in the banner.
     assert.equal(
       await driver.find('.test-view-as-banner .test-select-open').getText(),
-      'Unknown User(Viewer)'
+      'Unknown User(Viewer)',
     );
 
     await driver.find('.test-view-as-banner .test-revert').click();
@@ -189,7 +189,7 @@ describe("AccessRules4", function() {
 
     assert.equal(
       await driver.find('.test-view-as-banner .test-select-open').getText(),
-      'Unknown User(Editor)'
+      'Unknown User(Editor)',
     );
 
     // And try to add a new record.

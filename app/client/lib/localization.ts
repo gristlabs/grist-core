@@ -26,7 +26,7 @@ export async function setupLocale() {
       // for now just import all what server offers.
       // We can fallback to client namespace for any addons.
       fallbackNS: 'client',
-      ns
+      ns,
     }).catch((err: any) => {
       // This should not happen, the promise should be resolved synchronously, without
       // any errors reported.
@@ -172,7 +172,7 @@ export function makeT(scope: string, instance?: typeof i18next) {
         keySeparator: false,
         nsSeparator: false,
         saveMissing: true,
-        missingKeyHandler: (lng, ns, _key) => console.warn(`Missing translation for key: ${_key}`)
+        missingKeyHandler: (lng, ns, _key) => console.warn(`Missing translation for key: ${_key}`),
       });
 
       // Create a version of `t` function that will use the provided prefix as default.

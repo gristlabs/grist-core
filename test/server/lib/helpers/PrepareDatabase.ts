@@ -12,6 +12,6 @@ export async function prepareDatabase(tempDirectory: string, filename: string = 
   const seed = await testUtils.getBuildFile('test/gen-server/seed.js');
   execFileSync('node', [seed, 'init'], {
     env: process.env,
-    stdio: 'inherit'
+    stdio: 'inherit',
   });
 }

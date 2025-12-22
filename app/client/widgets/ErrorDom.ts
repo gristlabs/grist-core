@@ -15,6 +15,6 @@ export function buildErrorDom(row: DataRowModel, field: ViewFieldRec) {
     dom.clsPrefix('field-error-', use => getObjCode(use(value)) || ''),
     dom.style('text-align', options.prop('alignment')),
     dom.cls('text_wrapping', use => Boolean(use(options.prop('wrap')))),
-    dom.text(use => formatUnknown(value ? use(value) : '???'))
+    dom.text(use => formatUnknown(value ? use(value) : '???')),
   );
 }

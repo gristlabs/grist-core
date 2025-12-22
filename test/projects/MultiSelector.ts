@@ -30,7 +30,7 @@ describe('MultiSelector', () => {
     const items = await driver.find('.test-ms-list').findAll('.test-ms-item');
     assert.equal(items.length, 1);
     assert.deepEqual(JSON.parse(await driver.find('pre').getText()), [
-      { label: "New York", value: "NY" }
+      { label: "New York", value: "NY" },
     ]);
   });
 
@@ -48,14 +48,14 @@ describe('MultiSelector', () => {
     assert.equal((await driver.find('.test-ms-list').findAll('.test-ms-item')).length, 2);
     assert.deepEqual(JSON.parse(await driver.find('pre').getText()), [
       { label: "New York", value: "NY" },
-      { label: "Alaska", value: "AK" }
+      { label: "Alaska", value: "AK" },
     ]);
   });
 
   it('should allow changing values', async function() {
     assert.deepEqual(JSON.parse(await driver.find('pre').getText()), [
       { label: "New York", value: "NY" },
-      { label: "Alaska", value: "AK" }
+      { label: "Alaska", value: "AK" },
     ]);
 
     const items = await driver.find('.test-ms-list').findAll('.test-ms-item');
@@ -66,14 +66,14 @@ describe('MultiSelector', () => {
 
     assert.deepEqual(JSON.parse(await driver.find('pre').getText()), [
       { label: "New Jersey", value: "NJ" },
-      { label: "Rhode Island", value: "RI" }
+      { label: "Rhode Island", value: "RI" },
     ]);
   });
 
   it('should allow removing a column', async function() {
     assert.deepEqual(JSON.parse(await driver.find('pre').getText()), [
       { label: "New Jersey", value: "NJ" },
-      { label: "Rhode Island", value: "RI" }
+      { label: "Rhode Island", value: "RI" },
     ]);
 
     const items = await driver.find('.test-ms-list').findAll('.test-ms-item');
@@ -81,7 +81,7 @@ describe('MultiSelector', () => {
 
     assert.equal((await driver.find('.test-ms-list').findAll('.test-ms-item')).length, 1);
     assert.deepEqual(JSON.parse(await driver.find('pre').getText()), [
-      { label: "Rhode Island", value: "RI" }
+      { label: "Rhode Island", value: "RI" },
     ]);
 
     await items[1].find('.test-ms-remove-btn').doClick();

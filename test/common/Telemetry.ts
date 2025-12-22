@@ -66,7 +66,7 @@ describe('Telemetry', function() {
       const checker = buildTelemetryEventChecker('full');
       assert.throws(
         () => checker('invalidEvent' as TelemetryEvent, {}),
-        /Unknown telemetry event: invalidEvent/
+        /Unknown telemetry event: invalidEvent/,
       );
     });
 
@@ -74,7 +74,7 @@ describe('Telemetry', function() {
       const checker = buildTelemetryEventChecker('full');
       assert.throws(
         () => checker('apiUsage', {invalidMetadata: '123'}),
-        /Unknown metadata for telemetry event apiUsage: invalidMetadata/
+        /Unknown metadata for telemetry event apiUsage: invalidMetadata/,
       );
     });
 
@@ -82,27 +82,27 @@ describe('Telemetry', function() {
       const checker = buildTelemetryEventChecker('full');
       assert.throws(
         () => checker('siteUsage', {siteId: '1'}),
-        /Telemetry metadata siteId of event siteUsage expected a value of type number but received a value of type string/
+        /Telemetry metadata siteId of event siteUsage expected a value of type number but received a value of type string/,
       );
       assert.throws(
         () => checker('siteUsage', {lastActivity: 1234567890}),
-        /Telemetry metadata lastActivity of event siteUsage expected a value of type Date or string but received a value of type number/
+        /Telemetry metadata lastActivity of event siteUsage expected a value of type Date or string but received a value of type number/,
       );
       assert.throws(
         () => checker('siteUsage', {inGoodStanding: 'true'}),
-        /Telemetry metadata inGoodStanding of event siteUsage expected a value of type boolean but received a value of type string/
+        /Telemetry metadata inGoodStanding of event siteUsage expected a value of type boolean but received a value of type string/,
       );
       assert.throws(
         () => checker('siteUsage', {numDocs: '1'}),
-        /Telemetry metadata numDocs of event siteUsage expected a value of type number but received a value of type string/
+        /Telemetry metadata numDocs of event siteUsage expected a value of type number but received a value of type string/,
       );
       assert.throws(
         () => checker('documentUsage', {attachmentTypes: '1,2,3'}),
-        /Telemetry metadata attachmentTypes of event documentUsage expected a value of type array but received a value of type string/
+        /Telemetry metadata attachmentTypes of event documentUsage expected a value of type array but received a value of type string/,
       );
       assert.throws(
         () => checker('documentUsage', {attachmentTypes: ['.txt', 1, true]}),
-        /Telemetry metadata attachmentTypes of event documentUsage expected a value of type string\[\] but received a value of type object\[\]/
+        /Telemetry metadata attachmentTypes of event documentUsage expected a value of type string\[\] but received a value of type object\[\]/,
       );
     });
 
@@ -110,7 +110,7 @@ describe('Telemetry', function() {
       const checker = buildTelemetryEventChecker('limited');
       assert.throws(
         () => checker('signupVerified', {}),
-        /Telemetry event signupVerified requires a minimum telemetry level of 2 but the current level is 1/
+        /Telemetry event signupVerified requires a minimum telemetry level of 2 but the current level is 1/,
       );
     });
 
@@ -122,7 +122,7 @@ describe('Telemetry', function() {
           userId: 1,
           altSessionId: 'altSessionId',
         }),
-        /Telemetry metadata userId of event watchedVideoTour requires a minimum telemetry level of 2 but the current level is 1/
+        /Telemetry metadata userId of event watchedVideoTour requires a minimum telemetry level of 2 but the current level is 1/,
       );
     });
   });

@@ -32,7 +32,7 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
       viewRef: use(page.viewRef),
       hidden: use(page.isCensored),
       collapsed: page.isCollapsed,
-    }))
+    })),
   );
   const getTreeTableData = (): TreeTableData => ({
     getRecords: () => records.get(),
@@ -47,18 +47,18 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
 
   // create a computed that reads the selected page from the url and return the corresponding item
   const selected = Computed.create(owner, activeDoc.activeViewId, (use, viewId) =>
-    findInTree(model.get(), (i: TreeItemRecord) => i.record.viewRef === viewId) || null
+    findInTree(model.get(), (i: TreeItemRecord) => i.record.viewRef === viewId) || null,
   );
 
   owner.autoDispose(createGroup({
     nextPage: () => selected.get() && otherPage(selected.get()!, +1),
-    prevPage: () => selected.get() && otherPage(selected.get()!, -1)
+    prevPage: () => selected.get() && otherPage(selected.get()!, -1),
   }, null, true));
 
   // dom
   return dom('nav',
     {'aria-label': t("Document pages")},
-    dom.create(TreeViewComponent, model, {isOpen, selected, isReadonly: activeDoc.isReadonly})
+    dom.create(TreeViewComponent, model, {isOpen, selected, isReadonly: activeDoc.isReadonly}),
   );
 }
 
@@ -68,7 +68,7 @@ function buildDomFromTable(
   pagesTable: MetaTableModel<PageRec>,
   activeDoc: GristDoc,
   pageId: number,
-  item: TreeItemRecord
+  item: TreeItemRecord,
 ) {
   if (item.hidden) {
     return buildCensoredPage();
@@ -123,7 +123,7 @@ function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {
   const removePage = () => [['RemoveRecord', '_grist_Views', viewId]];
   const removeAll = () => [
     ...removePage(),
-    ...notVisibleTables.map(tb => ['RemoveTable', tb.tableId.peek()])
+    ...notVisibleTables.map(tb => ['RemoveTable', tb.tableId.peek()]),
   ];
 
   if (notVisibleTables.length) {
@@ -176,11 +176,11 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
                   t('raw data page'),
                   urlState().setHref({docPage: 'data'}),
                   {target: '_blank'},
-                )
-              }
-            )
-          )
-        )
+                ),
+              },
+            ),
+          ),
+        ),
       ),
       saveDisabled,
       saveLabel: t("Delete"),
@@ -194,7 +194,7 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
 
 function buildWarning(tables: string[]) {
   return cssWarning(
-    dom.forEach(tables, tb => cssTableName(tb, testId('table')))
+    dom.forEach(tables, tb => cssTableName(tb, testId('table'))),
   );
 }
 

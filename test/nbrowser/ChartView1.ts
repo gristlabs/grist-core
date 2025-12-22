@@ -26,7 +26,7 @@ describe('ChartView1', function() {
     await gu.sendActions([
       ['AddTable', 'Text', [
         {id: 'X', type: 'Int'},
-        {id: 'Y', type: 'Int'}
+        {id: 'Y', type: 'Int'},
       ]],
       ['AddRecord', 'Text', null, {X: 1, Y: 1}],
       ['AddRecord', 'Text', null, {X: 100, Y: 2}],
@@ -192,7 +192,7 @@ describe('ChartView1', function() {
     // Check intial visible fields.
     await checkAxisConfig({
       xaxis: 'label',
-      yaxis: ['value']
+      yaxis: ['value'],
     });
 
     // Adds 'largeValue'
@@ -203,7 +203,7 @@ describe('ChartView1', function() {
     // Check axis are correct
     await checkAxisConfig({
       xaxis: 'label',
-      yaxis: ['value', 'largeValue']
+      yaxis: ['value', 'largeValue'],
     });
 
     // Move 'largeValue' above 'value'. Scroll it into view first, since dragging is a bit messed
@@ -214,7 +214,7 @@ describe('ChartView1', function() {
 
     await checkAxisConfig({
       xaxis: 'label',
-      yaxis: ['largeValue', 'value']
+      yaxis: ['largeValue', 'value'],
     });
 
     // Make sure only y axis updates to the new column of data
@@ -236,7 +236,7 @@ describe('ChartView1', function() {
     // check x-axis is correct
     await checkAxisConfig({
       xaxis: 'largeValue',
-      yaxis: ['value'] // note: 'largeValue' was correctly removed from y-axis
+      yaxis: ['value'], // note: 'largeValue' was correctly removed from y-axis
     });
 
     // adds 'label' as y axis
@@ -245,7 +245,7 @@ describe('ChartView1', function() {
     // check axis are correct
     await checkAxisConfig({
       xaxis: 'largeValue',
-      yaxis: ['value', 'label']
+      yaxis: ['value', 'label'],
     });
 
     // Reverse the order of the columns and make sure the data updates to reflect that.
@@ -274,7 +274,7 @@ describe('ChartView1', function() {
     // check axis correctness
     await checkAxisConfig({
       xaxis: 'label',
-      yaxis: ['largeValue', 'value']
+      yaxis: ['largeValue', 'value'],
     });
   });
 
@@ -326,7 +326,7 @@ describe('ChartView1', function() {
     // check axis
     await checkAxisConfig({
       xaxis: 'person',
-      yaxis: ['label', 'largeValue', 'value']
+      yaxis: ['label', 'largeValue', 'value'],
     });
 
     const chartDom = await driver.find('.test-chart-container');
@@ -348,7 +348,7 @@ describe('ChartView1', function() {
     // check axis
     await checkAxisConfig({
       xaxis: 'label',
-      yaxis: ['largeValue', 'value']
+      yaxis: ['largeValue', 'value'],
     });
 
     // check chart type
@@ -373,7 +373,7 @@ describe('ChartView1', function() {
     // check axis
     await checkAxisConfig({
       xaxis: 'label',
-      yaxis: ['largeValue', 'value']
+      yaxis: ['largeValue', 'value'],
     });
     // check chart type
     assert.equal(await driver.find('.test-chart-type').getText(), 'Area chart');
@@ -459,7 +459,7 @@ describe('ChartView1', function() {
     // check group-data options
     assert.deepEqual(
       await gu.findOpenMenuAllItems('li', e => e.getText()),
-      ['Pick a column', 'Name', 'B']
+      ['Pick a column', 'Name', 'B'],
     );
 
     // send ESCAPE to close menu
@@ -471,7 +471,7 @@ describe('ChartView1', function() {
     // check x axis options
     assert.deepEqual(
       await gu.findOpenMenuAllItems('li', e => e.getText()),
-      ['Name', 'B']
+      ['Name', 'B'],
     );
 
     // send ESCAPE to close menu
@@ -487,7 +487,7 @@ describe('ChartView1', function() {
 
     // add a row with person left as blank
     const {retValues} = await api.applyUserActions(doc.id, [
-      ['AddRecord', 'ChartData', 7, {largeValue: 44}]
+      ['AddRecord', 'ChartData', 7, {largeValue: 44}],
     ]);
     await setSplitSeries('person');
 
@@ -497,7 +497,7 @@ describe('ChartView1', function() {
 
     // remove row
     await api.applyUserActions(doc.id, [
-      ['RemoveRecord', 'ChartData', retValues[0]]
+      ['RemoveRecord', 'ChartData', retValues[0]],
     ]);
 
     // undo
@@ -571,7 +571,7 @@ describe('ChartView1', function() {
 
     // Enter some values.
     await gu.enterGridRows({col: 0, rowNum: 1}, [
-      ["2018-01-15"], ["2018-01-31"], ["2018-02-14"], ["2018-03-04"], ["2018-03-14"], ["2018-03-26"]
+      ["2018-01-15"], ["2018-01-31"], ["2018-02-14"], ["2018-03-04"], ["2018-03-14"], ["2018-03-26"],
     ]);
 
     // Open the view config pane for the Chart section.
@@ -590,14 +590,14 @@ describe('ChartView1', function() {
     assert.deepEqual(data[0].name, 'largeValue');
     assert.deepEqual(data[0].x, [
       "2018-01-15T00:00:00.000Z", "2018-01-31T00:00:00.000Z", "2018-02-14T00:00:00.000Z",
-      "2018-03-04T00:00:00.000Z", "2018-03-14T00:00:00.000Z", "2018-03-26T00:00:00.000Z"
+      "2018-03-04T00:00:00.000Z", "2018-03-14T00:00:00.000Z", "2018-03-26T00:00:00.000Z",
     ]);
     assert.deepEqual(data[0].y, [22, 33, 11, 44, 22, 55]);
     assert.deepEqual(data[1].type, 'scatter');
     assert.deepEqual(data[1].name, 'value');
     assert.deepEqual(data[0].x, [
       "2018-01-15T00:00:00.000Z", "2018-01-31T00:00:00.000Z", "2018-02-14T00:00:00.000Z",
-      "2018-03-04T00:00:00.000Z", "2018-03-14T00:00:00.000Z", "2018-03-26T00:00:00.000Z"
+      "2018-03-04T00:00:00.000Z", "2018-03-14T00:00:00.000Z", "2018-03-26T00:00:00.000Z",
     ]);
     assert.deepEqual(data[1].y, [16, 2, 3, 4, 5, 6]);
   });
@@ -775,7 +775,7 @@ describe('ChartView1', function() {
     await gu.waitToPass(async () => {
       assert.equal(
         await gu.getActiveSectionTitle(),
-        'CHARTDATA [Totals] Chart'
+        'CHARTDATA [Totals] Chart',
       );
     });
 

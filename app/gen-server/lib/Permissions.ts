@@ -17,5 +17,5 @@ export enum Permissions {
 
   // A virtual permission bit signifying that the general public has some access to
   // the resource via ACLs involving the everyone@ user.
-  PUBLIC        = 0x80
+  PUBLIC        = 0x80,
 }

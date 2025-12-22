@@ -63,7 +63,7 @@ class CustomWidgetGallery extends Disposable {
   constructor(
     private _ctl: IModalControl,
     private _gristDoc: GristDoc,
-    private _options: Options = {}
+    private _options: Options = {},
   ) {
     super();
 
@@ -206,7 +206,7 @@ class CustomWidgetGallery extends Disposable {
       const searchPatterns = searchTerms.map(term =>
         new RegExp(`\\b${escapeRegExp(term)}`, 'i'));
       const filteredWidgets = widgets.filter(({cleanText}) =>
-        searchPatterns.some(pattern => pattern.test(cleanText))
+        searchPatterns.some(pattern => pattern.test(cleanText)),
       );
       this._filteredWidgets.set(filteredWidgets);
     }
@@ -253,7 +253,7 @@ class CustomWidgetGallery extends Disposable {
           {
             variant: 'hover',
             iconDomArgs: [cssTooltipIcon.cls('')],
-          }
+          },
         ),
         cssWidgetHeader.cls('-secondary', ['custom', 'community'].includes(variant)),
       ),
@@ -377,7 +377,7 @@ class CustomWidgetGallery extends Disposable {
  else {
           return this._saveRemoteWidget(section);
         }
-      }
+      },
     );
   }
 

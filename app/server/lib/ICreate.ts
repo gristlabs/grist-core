@@ -1,7 +1,7 @@
 import {GristDeploymentType} from 'app/common/gristUrls';
 import {
   AttachmentStoreCreationError,
-  ExternalStorageAttachmentStore, storageSupportsAttachments
+  ExternalStorageAttachmentStore, storageSupportsAttachments,
 } from 'app/server/lib/AttachmentStore';
 import {getCoreLoginSystem} from 'app/server/lib/coreLogins';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
@@ -126,7 +126,7 @@ export interface ICreateAttachmentStoreOptions {
 export class BaseCreate implements ICreate {
   constructor(
     private readonly _deploymentType: GristDeploymentType,
-    private _storage: ICreateStorageOptions[] = []
+    private _storage: ICreateStorageOptions[] = [],
   ) {}
 
   public deploymentType(): GristDeploymentType { return this._deploymentType; }
@@ -214,8 +214,8 @@ export class BaseCreate implements ICreate {
             storeId,
             storage,
           );
-        }
-      }
+        },
+      },
     };
   }
 

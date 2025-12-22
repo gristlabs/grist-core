@@ -25,7 +25,7 @@ class ContextMenuController extends Disposable implements IOpenController {
   constructor(
     private _event: MouseEvent,
     contentFunc: IContextMenuContentFunc,
-    private _options: ContextMenuControllerOptions
+    private _options: ContextMenuControllerOptions,
   ) {
     super();
 
@@ -43,7 +43,7 @@ class ContextMenuController extends Disposable implements IOpenController {
     // Prevents arrow to move the cursor while menu is open.
     dom.onKeyElem(content, 'keydown', {
       ArrowLeft: ev => ev.stopPropagation(),
-      ArrowRight: ev => ev.stopPropagation()
+      ArrowRight: ev => ev.stopPropagation(),
       // UP and DOWN are already handle by the menu to navigate the menu)
     });
 
@@ -101,7 +101,7 @@ class ContextMenuController extends Disposable implements IOpenController {
  */
 export function contextMenu(
   contentFunc: IContextMenuContentFunc,
-  options: IMenuOptions = {}
+  options: IMenuOptions = {},
 ): DomArg {
   return (elem) => {
     const holder = Holder.create(null);

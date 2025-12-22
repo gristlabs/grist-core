@@ -41,7 +41,7 @@ export function getDataLimitInfo(params: GetDataLimitStatusParams): DataLimitInf
  */
 export function getDataLimitRatio(
   docUsage: DocumentUsage | null,
-  productFeatures: Features | undefined
+  productFeatures: Features | undefined,
 ): number {
   if (!docUsage) { return 0; }
 

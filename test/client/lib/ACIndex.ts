@@ -21,15 +21,15 @@ function makeItem(text: string): TestACItem {
 }
 
 const colors: TestACItem[] = [
-  "Blue", "Dark Red", "Reddish", "Red", "Orange", "Yellow", "Radical Deep Green", "Bright Red"
+  "Blue", "Dark Red", "Reddish", "Red", "Orange", "Yellow", "Radical Deep Green", "Bright Red",
 ].map(makeItem);
 
 const rounds: TestACItem[] = [
-  "Round 1", "Round 2", "Round 3", "Round 4"
+  "Round 1", "Round 2", "Round 3", "Round 4",
 ].map(makeItem);
 
 const messy: TestACItem[] = [
-  "", " \t", "  RED  ", "123", "-5.6", "red", "read ", "Bread", "#red", "\nred\n#red\nred", "\n\n", "REDIS/1"
+  "", " \t", "  RED  ", "123", "-5.6", "red", "read ", "Bread", "#red", "\nred\n#red\nred", "\n\n", "REDIS/1",
 ].map(makeItem);
 
 
@@ -181,7 +181,7 @@ describe('ACIndex', function() {
     // Same as `colors` but with extra punctuation
     const punctColors: TestACItem[] = [
       "$Blue$", "--Dark@#$%^&Red--", "(Reddish)", "]Red{", "**Orange", "-Yellow?!",
-      "_Radical ``Deep'' !!Green!!", "<Bright>=\"Red\""
+      "_Radical ``Deep'' !!Green!!", "<Bright>=\"Red\"",
     ].map(makeItem);
 
     const acIndex = new ACIndexImpl(punctColors);

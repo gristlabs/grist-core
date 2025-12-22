@@ -240,15 +240,15 @@ describe('gristUrlState', function() {
     state.loadState();
     assert.equal(
       state.makeUrl({doc: undefined, form: {vsId: 4, shareKey: 'key'}}),
-      'https://foo.example.com/forms/key/4'
+      'https://foo.example.com/forms/key/4',
     );
     assert.equal(
       state.makeUrl({doc: 'abc', form: {vsId: 4}}),
-      'https://foo.example.com/doc/abc/f/4'
+      'https://foo.example.com/doc/abc/f/4',
     );
     assert.equal(
       state.makeUrl({doc: 'abc', slug: '123', form: {vsId: 4}}),
-      'https://foo.example.com/abc/123/f/4'
+      'https://foo.example.com/abc/123/f/4',
     );
   });
 
@@ -285,15 +285,15 @@ describe('gristUrlState', function() {
     state.loadState();
     assert.equal(
       state.makeUrl({doc: undefined, form: {vsId: 4, shareKey: 'key'}}),
-      'https://example.com/o/foo/forms/key/4'
+      'https://example.com/o/foo/forms/key/4',
     );
     assert.equal(
       state.makeUrl({doc: 'abc', form: {vsId: 4}}),
-      'https://example.com/o/foo/doc/abc/f/4'
+      'https://example.com/o/foo/doc/abc/f/4',
     );
     assert.equal(
       state.makeUrl({doc: 'abc', slug: '123', form: {vsId: 4}}),
-      'https://example.com/o/foo/abc/123/f/4'
+      'https://example.com/o/foo/abc/123/f/4',
     );
   });
 

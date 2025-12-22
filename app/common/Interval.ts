@@ -27,7 +27,7 @@ export class Interval {
   constructor(
     private _callback: () => Promise<unknown>,
     private _delay: IntervalDelay,
-    private _options: IntervalOptions
+    private _options: IntervalOptions,
   ) {}
 
   /**

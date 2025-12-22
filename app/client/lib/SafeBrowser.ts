@@ -101,8 +101,8 @@ export class SafeBrowser extends BaseComponent {
       _options.pluginInstance.definition.manifest,
       _options.rpcLogger ?? createRpcLogger(
         _options.baseLogger ?? console,
-        `PLUGIN ${_options.pluginInstance.definition.id} SafeBrowser:`
-      )
+        `PLUGIN ${_options.pluginInstance.definition.id} SafeBrowser:`,
+      ),
     );
     this._pluginId = this._plugin.definition.id;
     this._pluginRpc = this._plugin.rpc;
@@ -305,7 +305,7 @@ class IframeProcess extends ViewProcess {
       grainjsDom(`iframe.safe_browser_process.clipboard_allow_focus`,
         {src},
         grainjsDom.style('visibility', use => use(this._themeInitialized) ? 'visible' : 'hidden'),
-      ) as HTMLIFrameElement
+      ) as HTMLIFrameElement,
     );
     const listener = async (event: MessageEvent) => {
       if (event.source === iframe.contentWindow) {

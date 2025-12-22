@@ -118,7 +118,7 @@ export function getRequestProfile(req: Request|IncomingMessage,
     if (userEmail && userName) {
       profile = {
         "email": userEmail,
-        "name": userName
+        "name": userName,
       };
     }
   }
@@ -168,7 +168,7 @@ export async function addRequestUser(
     skipSession?: boolean,
     overrideProfile?(req: Request|IncomingMessage): Promise<UserProfile|null|undefined>,
   },
-  req: Request, res: Response, next: NextFunction
+  req: Request, res: Response, next: NextFunction,
 ) {
   const mreq = req as RequestWithLogin;
   let profile: UserProfile|undefined;
@@ -272,7 +272,7 @@ export async function addRequestUser(
   ) {
     return res.status(401).json({
       error: "Unauthenticated requests require one of the headers" +
-        "'Content-Type: application/json' or 'X-Requested-With: XMLHttpRequest'"
+        "'Content-Type: application/json' or 'X-Requested-With: XMLHttpRequest'",
     });
   }
 
@@ -470,7 +470,7 @@ export async function addRequestUser(
  */
 export function redirectToLoginUnconditionally(
   getLoginRedirectUrl: (req: Request, redirectUrl: URL) => Promise<string>,
-  getSignUpRedirectUrl: (req: Request, redirectUrl: URL) => Promise<string>
+  getSignUpRedirectUrl: (req: Request, redirectUrl: URL) => Promise<string>,
 ) {
   return expressWrap(async (req: Request, resp: Response, next: NextFunction) => {
     const mreq = req as RequestWithLogin;
@@ -502,7 +502,7 @@ export function redirectToLogin(
   allowExceptions: boolean,
   getLoginRedirectUrl: (req: Request, redirectUrl: URL) => Promise<string>,
   getSignUpRedirectUrl: (req: Request, redirectUrl: URL) => Promise<string>,
-  dbManager: HomeDBManager
+  dbManager: HomeDBManager,
 ): RequestHandler {
   const redirectUnconditionally = redirectToLoginUnconditionally(getLoginRedirectUrl,
                                                                  getSignUpRedirectUrl);
@@ -543,7 +543,7 @@ export function redirectToLogin(
 export async function getOrSetDocAuth(
   mreq: RequestWithLogin, dbManager: HomeDBManager,
   gristServer: GristServer,
-  urlId: string
+  urlId: string,
 ): Promise<DocAuthResult> {
   if (!mreq.docAuth) {
     let effectiveUserId = getUserId(mreq);
@@ -645,7 +645,7 @@ export function assertAccess(
  */
 export function getTransitiveHeaders(
   req: Request,
-  { includeOrigin }: { includeOrigin: boolean }
+  { includeOrigin }: { includeOrigin: boolean },
 ): {[key: string]: string} {
   const Authorization = req.get('Authorization');
   const Cookie = req.get('Cookie');

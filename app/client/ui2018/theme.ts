@@ -13,7 +13,7 @@ import {
   themeNameAppearances,
   ThemePrefs,
   tokens,
-  tokensCssMapping
+  tokensCssMapping,
 } from 'app/common/ThemePrefs';
 import { getThemeTokens } from 'app/common/Themes';
 import { getGristConfig } from 'app/common/urlUtils';
@@ -158,7 +158,7 @@ function getThemeObject(themeName: ThemeName): Theme {
   return {
     appearance: themeNameAppearances[themeName],
     colors: getThemeTokens(themeName),
-    name: themeName
+    name: themeName,
   };
 }
 
@@ -192,7 +192,7 @@ function attachCssThemeVars(theme: Theme) {
   // default CSS variables are defined.
   getOrCreateStyleElement('grist-theme', {
     element: document.getElementById('grist-root-css'),
-    position: 'afterend'
+    position: 'afterend',
   }).textContent = `@layer grist-theme {
   :root {
 ${properties.join('\n')}
@@ -269,7 +269,7 @@ function fixOldCustomCss() {
   // Find all `:root` rules at the root of the custom css file or in the `grist-custom` layers
   const rootCssRules = [
     ...cssRulesArray,
-    ...gristCustomLayers.map(layer => Array.from((layer as any).cssRules)).flat()
+    ...gristCustomLayers.map(layer => Array.from((layer as any).cssRules)).flat(),
   ].filter((rule) => {
     return (rule as CSSRule).constructor.name === 'CSSStyleRule' && (rule as CSSStyleRule).selectorText === ':root';
   }) as CSSStyleRule[];
@@ -298,7 +298,7 @@ function fixOldCustomCss() {
     ) {
       missingVars.push({
         name: newVariable,
-        value: `var(${old}) !important`
+        value: `var(${old}) !important`,
       });
     }
   });
@@ -310,7 +310,7 @@ function fixOldCustomCss() {
   // Add the missing variables to the dom
   getOrCreateStyleElement('grist-custom-css-fixes', {
     element: document.getElementById('grist-custom-css'),
-    position: 'afterend'
+    position: 'afterend',
   }).textContent = `@layer grist-custom {
   :root {
 ${missingVars.map(({name, value}) => `${name}: ${value};`).join('\n')}
@@ -318,6 +318,6 @@ ${missingVars.map(({name, value}) => `${name}: ${value};`).join('\n')}
 }`;
   console.warn(
     'The custom.css file uses deprecated variables that will be removed in the future. '
-    + '\nPlease follow the example custom.css file to update the variables: https://support.getgrist.com/self-managed/#how-do-i-customize-styling.'
+    + '\nPlease follow the example custom.css file to update the variables: https://support.getgrist.com/self-managed/#how-do-i-customize-styling.',
   );
 }

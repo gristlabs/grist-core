@@ -34,7 +34,7 @@ describe('emails', function() {
     let resp = await axios.get(`${serverUrl}/o/nasa/api/profile/user`, cookie);
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.data, {
-      id: 1, email: regular, name: "Chimpy", ref: userRef, picture: null, allowGoogleLogin: true
+      id: 1, email: regular, name: "Chimpy", ref: userRef, picture: null, allowGoogleLogin: true,
     });
 
     // now we log in with simulated provider giving a Chimpy@ capitalization.
@@ -43,14 +43,14 @@ describe('emails', function() {
     assert.equal(resp.status, 200);
     // Chimpy@ is now what we see in our profile, but our id is still the same.
     assert.deepEqual(resp.data, {
-      id: 1, email: variant, loginEmail: regular, name: "Chimpy", ref: userRef, picture: null, allowGoogleLogin: true
+      id: 1, email: variant, loginEmail: regular, name: "Chimpy", ref: userRef, picture: null, allowGoogleLogin: true,
     });
 
     // read our profile with api key (no session involved) and make sure result is the same.
     resp = await axios.get(`${serverUrl}/api/profile/user`, apiKey);
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.data, {
-      id: 1, email: variant, loginEmail: regular, name: "Chimpy", ref: userRef, picture: null, allowGoogleLogin: true
+      id: 1, email: variant, loginEmail: regular, name: "Chimpy", ref: userRef, picture: null, allowGoogleLogin: true,
     });
 
   });
@@ -88,9 +88,9 @@ describe('emails', function() {
       const delta2: {delta: PermissionDelta} = {
         delta: {
           users: {
-            'chImPy@getGRIst.com': 'viewers'
-          }
-        }
+            'chImPy@getGRIst.com': 'viewers',
+          },
+        },
       };
       resp = await axios.patch(`${serverUrl}/api/${res.type}/${res.id}/access`, delta2, apiKey);
       // expect an error complaining about not being able to change own permissions.
@@ -129,8 +129,8 @@ describe('emails', function() {
           'kiWI@getGRIst.com': 'viewers',
           'KIwi@getgrist.com': 'editors',
           'charON@getgrist.com': null,
-        }
-      }
+        },
+      },
     };
     resp = await axios.patch(`${serverUrl}/api/orgs/${orgId}/access`, delta, apiKey);
     assert.equal(resp.status, 200);

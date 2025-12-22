@@ -22,7 +22,7 @@ import { ColumnsToMap, CustomSectionAPI, InteractionOptions, InteractionOptionsR
          WidgetColumnMap } from 'app/plugin/CustomSectionAPI';
 import {
   AccessTokenOptions, AccessTokenResult, FetchSelectedOptions, GristAPI, GristDocAPI,
-  GristView, RPC_GRISTAPI_INTERFACE
+  GristView, RPC_GRISTAPI_INTERFACE,
 } from 'app/plugin/GristAPI';
 import { RowRecord } from 'app/plugin/GristData';
 import { ImportSource, ImportSourceAPI, InternalImportSourceAPI } from 'app/plugin/InternalImportSourceAPI';
@@ -317,7 +317,7 @@ export function mapColumnNames(data: any, options?: {
     return Boolean(
       // Columns passed as strings are required.
       !options!.columns?.includes(col)
-      && options!.columns?.find(c => typeof c === 'object' && c?.name === col && c.optional)
+      && options!.columns?.find(c => typeof c === 'object' && c?.name === col && c.optional),
     );
   }
   // For each widget column in mapping.
@@ -481,7 +481,7 @@ export async function addImporter(name: string, path: string, mode: 'fullscreen'
  finally {
         await api.dispose(procId);
       }
-    }
+    },
   });
 }
 

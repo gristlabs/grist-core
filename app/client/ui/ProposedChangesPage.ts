@@ -26,7 +26,7 @@ import {TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
 import {Proposal} from 'app/common/UserAPI';
 import {
   Computed, Disposable, dom, makeTestId, MultiHolder, MutableObsArray,
-  obsArray, Observable, styled
+  obsArray, Observable, styled,
 } from 'grainjs';
 import * as ko from 'knockout';
 
@@ -75,7 +75,7 @@ export class ProposedChangesPage extends Disposable {
  else {
           return this.body.buildDom();
         }
-      })
+      }),
     );
     // Common pattern on other pages to avoid clipboard deactivation.
     return dom('div.clipboard',
@@ -100,7 +100,7 @@ export class ProposedChangesTrunkPage extends Disposable {
         .filter(p => p.srcDoc.creator.id === user?.id && !user?.anonymous)
         .filter(p => p.status.status !== 'dismissed' || showDismissed);
       return (proposals.length > 0) ? proposals : null;
-    }
+    },
   );
 
   constructor(public gristDoc: GristDoc) {
@@ -127,7 +127,7 @@ export class ProposedChangesTrunkPage extends Disposable {
     await Promise.all([...tablesToFetch].map(tableId =>
       this.gristDoc.docData.fetchTable(tableId).catch((err) => {
         console.warn(`Failed to fetch table ${tableId}:`, err);
-      })
+      }),
     ));
 
     return true;
@@ -238,7 +238,7 @@ and is subject to change and withdrawal.`,
             testId('patches'),
           ),
         ];
-      })
+      }),
     ];
   }
 
@@ -259,10 +259,10 @@ and is subject to change and withdrawal.`,
             forkId: proposal.srcDoc.id,
             ...(proposal.srcDoc.creator.anonymous ? {} : {
               forkUserId: proposal.srcDoc.creator.id,
-            })
+            }),
           }),
           docPage: 'suggestions',
-        })
+        }),
       ) : name;
   }
 }
@@ -281,7 +281,7 @@ export class ProposedChangesForkPage extends Disposable {
       (_owner, actionState, proposal) => {
         const proposed = proposal?.comparison.comparison?.left;
         return Boolean(proposed && actionState && proposed.h !== actionState.h);
-      }
+      },
     );
   }
 
@@ -300,12 +300,12 @@ export class ProposedChangesForkPage extends Disposable {
     const parts = parseUrlId(urlId || '');
     const comparisonUrlId = parts.trunkId;
     const comparison = await this.gristDoc.appModel.api.getDocAPI(urlId).compareDoc(
-      comparisonUrlId, {detail: true}
+      comparisonUrlId, {detail: true},
     );
     if (this.isDisposed()) { return; }
     this._comparison = comparison;
     const proposals = await this.gristDoc.appModel.api.getDocAPI(urlId).getProposals({
-      outgoing: true
+      outgoing: true,
     });
     if (this.isDisposed()) { return; }
     this._proposalObs.set(proposals.proposals[0] || null);
@@ -317,7 +317,7 @@ export class ProposedChangesForkPage extends Disposable {
       await Promise.all(tablesToFetch.map(tableId =>
         this.gristDoc.docData.fetchTable(tableId).catch((err) => {
           console.warn(`Failed to fetch table ${tableId}:`, err);
-        })
+        }),
       ));
     }
 
@@ -342,7 +342,7 @@ export class ProposedChangesForkPage extends Disposable {
           dom.maybe(!trunkAcceptsProposals, () => {
             return cssWarningMessage(
               cssWarningIcon('Warning'),
-              t(`The original document isn't asking for proposed changes.`)
+              t(`The original document isn't asking for proposed changes.`),
             );
           }),
           dom('p',
@@ -367,9 +367,9 @@ export class ProposedChangesForkPage extends Disposable {
                     // to this page, you can get it from the original
                     // document.
                     this.gristDoc.docPageModel.clearUnsavedChanges();
-                  }
-                })
-              )
+                  },
+                }),
+              ),
             }),
           ),
           dom.maybe(!maybeHasChanges, () => {
@@ -402,9 +402,9 @@ export class ProposedChangesForkPage extends Disposable {
                   await this.update();
                 }),
                 testId('retract'),
-              ) : null
-            )
-          ]
+              ) : null,
+            ),
+          ],
         ];
       });
   }
@@ -424,7 +424,7 @@ export class ProposedChangesForkPage extends Disposable {
       if (outOfDate) {
         return dom(
           'p',
-          t(`There are fresh changes that haven't been added to the suggestion yet.`)
+          t(`There are fresh changes that haven't been added to the suggestion yet.`),
         );
       }
     });
@@ -492,10 +492,10 @@ class ActionLogPartInProposal extends ActionLogPart {
       const data = convertTabularDiffToTableData(table, tdiff);
       const tableRow = this._gristDoc.docModel.tables.rowModels.filter(tr => tr.tableId() === table)[0];
       const columnRows = tableRow ? this._gristDoc.docModel.columns.rowModels.filter(
-        cr => cr.parentId() === tableRow.id()
+        cr => cr.parentId() === tableRow.id(),
       ) : null;
       const types = columnRows ? Object.fromEntries(
-        columnRows.map(cr => [cr.colId(), cr])
+        columnRows.map(cr => [cr.colId(), cr]),
       ) : {};
       const haveId = tdiff.header.includes('id');
       doc.addTable({
@@ -515,7 +515,7 @@ class ActionLogPartInProposal extends ActionLogPart {
               colId,
               label: colId,
               type: (types[colId]?.pureType.peek() as any) || 'Any',
-              widgetOptions: types[colId]?.widgetOptionsJson.peek()
+              widgetOptions: types[colId]?.widgetOptionsJson.peek(),
             };
           }),
         ],

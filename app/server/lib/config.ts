@@ -58,7 +58,7 @@ export class FileConfig<FileContents> {
    */
   public static create<CreateConfigFileContents>(
     configPath: string,
-    validator: FileContentsValidator<CreateConfigFileContents>
+    validator: FileContentsValidator<CreateConfigFileContents>,
   ): FileConfig<CreateConfigFileContents> {
     // Start with empty object, as it can be upgraded to a full config.
     let rawFileContents: any = {};
@@ -109,12 +109,12 @@ export class FileConfig<FileContents> {
  * @param fileConfig - Config to load/save values to.
  */
 export function fileConfigAccessorFactory<FileContents>(
-  fileConfig?: FileConfig<FileContents>
+  fileConfig?: FileConfig<FileContents>,
 ): <Key extends keyof FileContents>(key: Key) => ConfigAccessors<FileContents[Key]> | undefined {
   if (!fileConfig) { return key => undefined; }
   return key => ({
     get: () => fileConfig.get(key),
-    set: value => fileConfig.set(key, value)
+    set: value => fileConfig.set(key, value),
   });
 }
 
@@ -138,6 +138,6 @@ export function createConfigValue<ValueType>(
         await persistence.set(value);
       }
       inMemoryValue = value;
-    }
+    },
   };
 }

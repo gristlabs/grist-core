@@ -87,7 +87,7 @@ describe('DocStorageQuery', function() {
 
     assert.deepEqual(await getFetchQueryDbCalls(docStorage,
       {tableId: 'foo', filters: {tag: [1, 2, 3], X: ['Y']},
-        where: {clause: "name LIKE ? OR ? = ?", params: ['J%', 4, 5]}
+        where: {clause: "name LIKE ? OR ? = ?", params: ['J%', 4, 5]},
       }),
       [['allMarshal',
         'SELECT * FROM "foo" WHERE (name LIKE ? OR ? = ?) AND ("foo"."tag" IN (?, ?, ?)) AND ("foo"."X" IN (?))',
@@ -114,7 +114,7 @@ describe('DocStorageQuery', function() {
         /^SELECT \* FROM "foo" WHERE /.source +
         /\("foo"\."values" IN \(SELECT data FROM (?<table1>_grist_tmp\w+)\)\) AND /.source +
         /\("foo"\."ages" IN \(SELECT data FROM (?<table2>_grist_tmp\w+)\)\)/.source),
-        []
+        [],
       ],
       ['exec', /^DROP TABLE (?<table1>_grist_tmp\w+)$/],
       ['exec', /^DROP TABLE (?<table2>_grist_tmp\w+)$/],

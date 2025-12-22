@@ -258,7 +258,7 @@ describe('HomeIntro', function() {
       ['Lightweight CRM']);
     assert.includeMembers(
       await driver.findAll('.test-dm-pinned-doc-list .test-dm-pinned-doc-desc', el => el.getText()),
-      ['CRM template and example for linking data, and creating productive layouts.']
+      ['CRM template and example for linking data, and creating productive layouts.'],
     );
 
     // External servers may have additional templates beyond the 3 above, so stop here.
@@ -284,7 +284,7 @@ describe('HomeIntro', function() {
       await otherSection.findAll('.test-dm-pinned-doc-desc', el => el.getText()),
       [
         'Example for how to model business data, use formulas, and manage complexity.',
-        'Example for analyzing and visualizing with summary tables and linked charts.'
+        'Example for analyzing and visualizing with summary tables and linked charts.',
       ]);
 
     const docItem = await driver.findContent('.test-dm-pinned-doc', /Lightweight CRM/);

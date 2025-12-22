@@ -59,7 +59,7 @@ export interface CompilePredicateFormulaOptions {
  */
 export function compilePredicateFormula(
   parsedPredicateFormula: ParsedPredicateFormula,
-  options: CompilePredicateFormulaOptions = {}
+  options: CompilePredicateFormulaOptions = {},
 ): CompiledPredicateFormula {
   const {variant = 'acl'} = options;
 
@@ -140,7 +140,7 @@ export function compilePredicateFormula(
    */
   function compileAndCombine(
     args: ParsedPredicateFormula[],
-    combine: (values: any[]) => any
+    combine: (values: any[]) => any,
   ): IntermediatePredicateFormula {
     const compiled = args.map(compileNode);
     return (input: PredicateFormulaInput) => combine(compiled.map(c => c(input)));
@@ -242,7 +242,7 @@ export interface PredicateFormulaProperties {
  * conditions.
  */
 export function getPredicateFormulaProperties(
-  formula: ParsedPredicateFormula
+  formula: ParsedPredicateFormula,
 ): PredicateFormulaProperties {
   return {
     formulaParsed: formula,

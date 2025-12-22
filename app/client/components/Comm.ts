@@ -246,7 +246,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
     const request: CommRequest = {
       reqId: this.nextRequestNumber++,
       method: methodName,
-      args
+      args,
     };
     log.debug("Comm request #" + request.reqId + " " + methodName, request.args);
     return new Promise((resolve, reject) => {
@@ -259,7 +259,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
         docId,
         methodName,
         requestMsg,
-        sent
+        sent,
       });
     });
   }

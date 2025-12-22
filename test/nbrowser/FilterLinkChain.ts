@@ -15,7 +15,7 @@ describe('FilterLinkChain', function () {
     async function checkCells(sectionName: string, cols: string[], expected: string[]) {
       assert.deepEqual(
         await gu.getVisibleGridCells({section: sectionName, cols, rowNums: [1, 2]}),
-        expected
+        expected,
       );
 
       // Sanity-check the selectors in checkSectionEmpty() below.

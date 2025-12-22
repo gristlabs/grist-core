@@ -435,11 +435,11 @@ describe('Importer', function() {
       await driver.find('.test-importer-update-existing-records').click();
       assert.equal(
         await driver.find('.test-importer-merge-fields-message').getText(),
-        'Merge rows that match these fields:'
+        'Merge rows that match these fields:',
       );
       assert.equal(
         await driver.find('.test-importer-merge-fields-select').getText(),
-        'Select fields to match on'
+        'Select fields to match on',
       );
 
       // Open the field select menu and check that all the preview table columns are available options.
@@ -448,7 +448,7 @@ describe('Importer', function() {
 
       assert.deepEqual(
         await driver.findAll('.test-multi-select-menu .test-multi-select-menu-option-text', e => e.getText()),
-        ['Name', 'Phone', 'Title']
+        ['Name', 'Phone', 'Title'],
       );
 
       // Close the field select menu.
@@ -463,7 +463,7 @@ describe('Importer', function() {
       // Check that the merge field select button has a red outline.
       assert.match(
         await driver.find('.test-importer-merge-fields-select').getCssValue('border'),
-        /solid rgb\(208, 2, 27\)/
+        /solid rgb\(208, 2, 27\)/,
       );
 
       // Select a merge field, and check that the red outline is gone.
@@ -471,11 +471,11 @@ describe('Importer', function() {
       await driver.findContentWait(
         '.test-multi-select-menu .test-multi-select-menu-option',
         /Name/,
-        100
+        100,
       ).click();
       assert.match(
         await driver.find('.test-importer-merge-fields-select').getCssValue('border'),
-        /solid rgb\(217, 217, 217\)/
+        /solid rgb\(217, 217, 217\)/,
       );
       // Hide dropdown
       await gu.sendKeys(Key.ESCAPE);
@@ -502,8 +502,8 @@ describe('Importer', function() {
         ['Lily', 'Jones', 'director',
           'Kathy', 'Mills', 'student',
           'Karen', 'Gold', 'professor',
-          '', '', ''
-        ]
+          '', '', '',
+        ],
       );
 
       // Undo the import, and check that the destination table is still unchanged.
@@ -512,8 +512,8 @@ describe('Importer', function() {
         ['Lily', 'Jones', 'director',
           'Kathy', 'Mills', 'student',
           'Karen', 'Gold', 'professor',
-          '', '', ''
-        ]
+          '', '', '',
+        ],
       );
 
       // Import from another file containing some duplicates (with new values).
@@ -529,11 +529,11 @@ describe('Importer', function() {
       await driver.findContentWait(
         '.test-multi-select-menu .test-multi-select-menu-option',
         /Name/,
-        100
+        100,
       ).click();
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Phone/
+        /Phone/,
       ).click();
 
       // Close the merge fields menu.
@@ -549,7 +549,7 @@ describe('Importer', function() {
           [undefined, 'Michael', undefined], [undefined, 'Smith', undefined], [undefined, 'student', undefined],
           [undefined, 'Lily', undefined], [undefined, 'James', undefined], [undefined, 'student', undefined],
           '', '', '',
-        ]
+        ],
       );
 
       // Complete the import, and verify that incoming data was merged into matching records in UploadedData1.
@@ -561,8 +561,8 @@ describe('Importer', function() {
           'Karen', 'Gold', 'director',
           'Michael', 'Smith', 'student',
           'Lily', 'James', 'student',
-          '', '', ''
-        ]
+          '', '', '',
+        ],
       );
 
       // Undo the import, and check the table is back to how it was pre-import.
@@ -571,8 +571,8 @@ describe('Importer', function() {
         ['Lily', 'Jones', 'director',
           'Kathy', 'Mills', 'student',
           'Karen', 'Gold', 'professor',
-          '', '', ''
-        ]
+          '', '', '',
+        ],
       );
     });
 
@@ -599,11 +599,11 @@ describe('Importer', function() {
       // Check that it failed, and that the merge fields select button is outlined in red.
       assert.match(
         await driver.find('.test-importer-merge-fields-select').getCssValue('border'),
-        /solid rgb\(208, 2, 27\)/
+        /solid rgb\(208, 2, 27\)/,
       );
       assert.equal(
         await driver.find('.test-importer-source-selected .test-importer-from').getText(),
-        'UploadedData1Extended.csv'
+        'UploadedData1Extended.csv',
       );
 
       // Now pick the merge fields, and check that the preview diff looks correct.
@@ -611,11 +611,11 @@ describe('Importer', function() {
       await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Name/
+        /Name/,
       ).click();
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Phone/
+        /Phone/,
       ).click();
       await gu.sendKeys(Key.ESCAPE);
 
@@ -627,7 +627,7 @@ describe('Importer', function() {
           [undefined, 'Michael', undefined], [undefined, 'Smith', undefined], [undefined, 'student', undefined],
           [undefined, 'Lily', undefined], [undefined, 'James', undefined], [undefined, 'student', undefined],
           '', '', '',
-        ]
+        ],
       );
 
       // Check that clicking UploadedData2 now works.
@@ -637,7 +637,7 @@ describe('Importer', function() {
       await gu.waitForServer();
       assert.equal(
         await driver.find('.test-importer-source-selected .test-importer-from').getText(),
-        'UploadedData2Extended.csv'
+        'UploadedData2Extended.csv',
       );
 
       // Set the merge fields for UploadedData2 to 'CourseId'.
@@ -647,7 +647,7 @@ describe('Importer', function() {
       await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /CourseId/
+        /CourseId/,
       ).click();
 
       // Close the merge fields menu.
@@ -668,8 +668,8 @@ describe('Importer', function() {
           [undefined, 'BUS539', undefined], [undefined, 'Independent Study', undefined],   '',
             [undefined, '01/13/2021', undefined], [undefined, 'true', undefined],
           'BUS540',      'Capstone',            '',                    '01/13/2021',      ['true', 'false', undefined],
-          '', '', '', '', ''
-        ]
+          '', '', '', '', '',
+        ],
       );
 
       // Complete the import, and verify that incoming data was merged into both UploadedData1 and UploadedData2.
@@ -681,7 +681,7 @@ describe('Importer', function() {
         'Homicide counts and rates (2000',
         'Sheet1',
         'UploadedData1',
-        'UploadedData2'
+        'UploadedData2',
       ]);
 
       // Check the contents of UploadedData1.
@@ -691,8 +691,8 @@ describe('Importer', function() {
           'Karen', 'Gold', 'director',
           'Michael', 'Smith', 'student',
           'Lily', 'James', 'student',
-          '', '', ''
-        ]
+          '', '', '',
+        ],
       );
 
       // Check the contents of UploadedData2.
@@ -739,15 +739,15 @@ describe('Importer', function() {
 
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Name/
+        /Name/,
       ).click();
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /District/
+        /District/,
       ).click();
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Country/
+        /Country/,
       ).click();
       await gu.sendKeys(Key.ESCAPE);
 
@@ -760,7 +760,7 @@ describe('Importer', function() {
           'Herat', 'Herat', ['186800', '373600', undefined], '2', ['186.8', '373.6', undefined],
           'Mazar-e-Sharif', 'Balkh', ['127800', '255600', undefined], '2', ['127.8', '255.6', undefined],
           'Amsterdam', 'Noord-Holland', ['731200', '1462400', undefined], '159',  ['731.2', '1462.4', undefined],
-        ]
+        ],
       );
 
       // For sheet Country, merge on Code.
@@ -774,7 +774,7 @@ describe('Importer', function() {
       await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Code/
+        /Code/,
       ).click();
       await gu.sendKeys(Key.ESCAPE);
 
@@ -789,8 +789,8 @@ describe('Importer', function() {
           'AFG', ['22720000', '45440000', undefined],
           'AGO', ['12878000', '25756000', undefined],
           'AIA', ['8000', '16000', undefined],
-          'ALB', ['3401200', '6802400', undefined]
-        ]
+          'ALB', ['3401200', '6802400', undefined],
+        ],
       );
 
       // For sheet CountryLanguage, merge on Country and Language.
@@ -805,11 +805,11 @@ describe('Importer', function() {
       await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Country/
+        /Country/,
       ).click();
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Language/
+        /Language/,
       ).click();
       await gu.sendKeys(Key.ESCAPE);
 
@@ -820,8 +820,8 @@ describe('Importer', function() {
           'English', ['9.5', '9.3', undefined], 'ABW', '',
           'Papiamento', ['76.7', '76.3', undefined], 'ABW', '',
           'Spanish', ['7.4', '7.8', undefined], 'ABW', '',
-          'Balochi', ['0.9', '1.1', undefined], 'AFG', ''
-        ]
+          'Balochi', ['0.9', '1.1', undefined], 'AFG', '',
+        ],
       );
 
       // Complete the import, and verify that incoming data was merged correctly.
@@ -837,7 +837,7 @@ describe('Importer', function() {
         'Table1',
         'City',
         'Country',
-        'CountryLanguage'
+        'CountryLanguage',
       ]);
 
       // Check the contents of Table1; it should have duplicates of the original 2 rows.
@@ -848,7 +848,7 @@ describe('Importer', function() {
           'hello', '', '', '', 'HELLO',
           '', 'world', '', '', '',
           '', '', '', '', '',
-        ]
+        ],
       );
 
       // Check the contents of City. The population should have doubled in every row.
@@ -861,7 +861,7 @@ describe('Importer', function() {
           'Herat', 'Herat', '373600', '2', '373.6',
           'Mazar-e-Sharif', 'Balkh', '255600', '2', '255.6',
           'Amsterdam', 'Noord-Holland', '1462400', '159', '1462.4',
-        ]
+        ],
       );
 
       // Check that no new rows were added to City.
@@ -873,14 +873,14 @@ describe('Importer', function() {
       assert.deepEqual(
         await gu.getVisibleGridCells({
           cols: [0, 6],
-          rowNums: [1, 2, 3, 4, 5]
+          rowNums: [1, 2, 3, 4, 5],
         }),
         ['ABW', '206000',
           'AFG', '45440000',
           'AGO', '25756000',
           'AIA', '16000',
-          'ALB', '6802400'
-        ]
+          'ALB', '6802400',
+        ],
       );
 
       // Check that no new rows were added to Country.
@@ -894,8 +894,8 @@ describe('Importer', function() {
           'English', '9.3', 'ABW', '',
           'Papiamento', '76.3', 'ABW', '',
           'Spanish', '7.8', 'ABW', '',
-          'Balochi', '1.1', 'AFG', ''
-        ]
+          'Balochi', '1.1', 'AFG', '',
+        ],
       );
 
       // Check that no new rows were added to CountryLanguage.
@@ -926,7 +926,7 @@ describe('Importer', function() {
       await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /CourseId/
+        /CourseId/,
       ).click();
       await gu.sendKeys(Key.ESCAPE);
       await gu.waitForServer();
@@ -973,7 +973,7 @@ describe('Importer', function() {
       // Before saving the formula, check that the preview isn't showing the hidden helper column ids.
       assert.deepEqual(
         await driver.find('.test-importer-preview').findAll('.g-column-label', el => el.getText()),
-        ['CourseId', 'CourseName', 'Instructor', 'StartDate', 'PassFail']
+        ['CourseId', 'CourseName', 'Instructor', 'StartDate', 'PassFail'],
       );
       await gu.sendKeys(Key.ENTER);
       await gu.waitForServer();
@@ -998,8 +998,8 @@ describe('Importer', function() {
             [undefined, 'false', undefined],
           [undefined, 'BUS540-NEW', undefined], [undefined, 'Capstone', undefined], '',
             [undefined, '01/13/2021', undefined], [undefined, 'true', undefined],
-          '', '', '', '', ''
-        ]
+          '', '', '', '', '',
+        ],
       );
 
       // Check the column mapping section updated with the new formula.

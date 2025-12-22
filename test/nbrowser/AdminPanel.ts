@@ -63,7 +63,7 @@ describe('AdminPanel', function() {
   it('should include support-grist section', async function() {
     assert.match(
       await driver.findWait('.test-admin-panel-item-sponsor', 3000).getText(),
-      /Support Grist Labs on GitHub/
+      /Support Grist Labs on GitHub/,
     );
     await withExpandedItem('sponsor', async () => {
       const button = await driver.find('.test-support-grist-page-sponsorship-section');
@@ -85,7 +85,7 @@ describe('AdminPanel', function() {
       await driver.findContentWait('.test-support-grist-page-telemetry-section button', /Opt out of Telemetry/, 2000);
       assert.equal(
         await driver.find('.test-support-grist-page-telemetry-section-message').getText(),
-        'You have opted in to telemetry. Thank you! 🙏'
+        'You have opted in to telemetry. Thank you! 🙏',
       );
       assert.equal(await isEnabled(toggle), true);
     });
@@ -102,7 +102,7 @@ describe('AdminPanel', function() {
     await driver.findContentWait('.test-support-grist-page-telemetry-section button', /Opt out of Telemetry/, 2000);
     assert.equal(
       await driver.findWait('.test-support-grist-page-telemetry-section-message', 2000).getText(),
-      'You have opted in to telemetry. Thank you! 🙏'
+      'You have opted in to telemetry. Thank you! 🙏',
     );
     await assertTelemetryLevel('limited');
   });
@@ -154,7 +154,7 @@ describe('AdminPanel', function() {
     await toggleItem('telemetry');
     assert.equal(
       await driver.findWait('.test-support-grist-page-telemetry-section-message', 2000).getText(),
-      'You have opted in to telemetry. Thank you! 🙏'
+      'You have opted in to telemetry. Thank you! 🙏',
     );
     assert.isFalse(await driver.findContent('.test-support-grist-page-telemetry-section button',
       /Opt out of Telemetry/).isPresent());
@@ -169,7 +169,7 @@ describe('AdminPanel', function() {
     await toggleItem('telemetry');
     assert.equal(
       await driver.findWait('.test-support-grist-page-telemetry-section-message', 2000).getText(),
-      'You have opted out of telemetry.'
+      'You have opted out of telemetry.',
     );
     assert.isFalse(await driver.findContent('.test-support-grist-page-telemetry-section button',
       /Opt in to Telemetry/).isPresent());

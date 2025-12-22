@@ -9,7 +9,7 @@ import * as testUtils from 'test/server/testUtils';
 
 const nobody: AxiosRequestConfig = {
   responseType: 'json',
-  validateStatus: (status: number) => true
+  validateStatus: (status: number) => true,
 };
 
 describe('ApiSession', function() {
@@ -48,7 +48,7 @@ describe('ApiSession', function() {
       access: "owners",
       domain: "nasa",
       host: null,
-      owner: null
+      owner: null,
     });
   });
 
@@ -108,7 +108,7 @@ describe('ApiSession', function() {
     assert.equal(resp.data.org, null);
     assert.deepEqual(resp.data.orgError, {
       status: 403,
-      error: 'access denied'
+      error: 'access denied',
     });
   });
 
@@ -127,7 +127,7 @@ describe('ApiSession', function() {
     assert.equal(resp.data.org, null);
     assert.deepEqual(resp.data.orgError, {
       status: 404,
-      error: 'organization not found'
+      error: 'organization not found',
     });
   });
 
@@ -138,7 +138,7 @@ describe('ApiSession', function() {
 
     // pick kiwi profile for fish org
     let resp = await axios.post(`${serverUrl}/o/fish/api/session/access/active`, {
-      email: 'kiwi@getgrist.com'
+      email: 'kiwi@getgrist.com',
     }, cookie);
     assert.equal(resp.status, 200);
 
@@ -152,7 +152,7 @@ describe('ApiSession', function() {
 
     // pick charon profile for fish org
     resp = await axios.post(`${serverUrl}/o/fish/api/session/access/active`, {
-      email: 'charon@getgrist.com'
+      email: 'charon@getgrist.com',
     }, cookie);
     assert.equal(resp.status, 200);
 
@@ -162,7 +162,7 @@ describe('ApiSession', function() {
 
     // make sure bogus profile for fish org fails
     resp = await axios.post(`${serverUrl}/o/fish/api/session/access/active`, {
-      email: 'nonexistent@getgrist.com'
+      email: 'nonexistent@getgrist.com',
     }, cookie);
     assert.equal(resp.status, 403);
   });

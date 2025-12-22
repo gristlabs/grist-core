@@ -58,14 +58,14 @@ describe('DocSnapshots', async function() {
         metadata: {
           ...(t.includes('|') ? {label: t.split(' | ')[1]} : undefined),
           ...options.timezone && {tz: options.timezone},
-        }
+        },
       }));
 
       // Check that versions are classified as we expect.
       const inventory: IInventory = {
         getSnapshotWindow: async () => options.window,
         async versions() { return snapshotsWithMetadata; },
-        async remove() { /* nothing to do */ }
+        async remove() { /* nothing to do */ },
       };
       const pruner = new DocSnapshotPruner(inventory);
       const versions = await pruner.classify('doc');
@@ -245,7 +245,7 @@ describe('DocSnapshots', async function() {
         '+1990-04-05 00:00Z',  // because: new month, year
         '+1990-01-02 00:00Z',  // because: new month
         '+1980-04-05 07:50Z',  // because: new month, year
-        '-1980-04-05 07:40Z'
+        '-1980-04-05 07:40Z',
       ];
       await checkDecisions(times);
     });

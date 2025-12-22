@@ -77,7 +77,7 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
             IconList.includes(linkIcon) ? cssLinkIcon(linkIcon) : null,
             linkText,
             {href: linkUrl, target: '_blank'},
-          ))
+          )),
         ),
       );
     }
@@ -89,7 +89,7 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
       urlState,
       selector: '.active_cursor',
       // Center the popup if the user doesn't provide a link to a cell
-      showHasModal: !urlState?.hash
+      showHasModal: !urlState?.hash,
     };
   }).filter(x => x !== null) as IOnBoardingMsg[];
   if (!result.length) {
@@ -106,6 +106,6 @@ function exposeDocTour(docTour: IOnBoardingMsg[]) {
       body: typeof msg.body === "string" ? msg.body
         : (msg.body as HTMLElement)?.outerHTML
           .replace(/_grain\d+_/g, "_grainXXX_"),
-      urlState: msg.urlState?.hash
+      urlState: msg.urlState?.hash,
     }));
 }

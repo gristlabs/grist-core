@@ -52,9 +52,9 @@ export function buildConfirmDelete(
           onSave(remember.get());
           ctl.close();
         })),
-        basicButton(t('Cancel'), testId('confirm-cancel'), dom.on('click', () => ctl.close()))
-      )
-    ), {}
+        basicButton(t('Cancel'), testId('confirm-cancel'), dom.on('click', () => ctl.close())),
+      ),
+    ), {},
   );
   // Attach this tooltip to a cell so that it is automatically closed when the cell is disposed.
   // or scrolled out of view (and then disposed).
@@ -89,10 +89,10 @@ export function showDeprecatedWarning(
           labeledSquareCheckbox(remember, t("Don't show again."), testId('confirm-remember')),
         ),
         basicButton(t('Dismiss'), testId('confirm-save'),
-          dom.on('click', () => { ctl.close(); onClose(remember.get()); })
-        )
+          dom.on('click', () => { ctl.close(); onClose(remember.get()); }),
+        ),
       ),
-    )
+    ),
   );
   // Attach this warning to a cell so that it is automatically closed when the cell is disposed.
   // or scrolled out of view (and then disposed).
@@ -110,7 +110,7 @@ export function showDeprecatedWarning(
 export function reportUndo(
   doc: GristDoc,
   messageLabel: string,
-  buttonLabel = t('Undo to restore')
+  buttonLabel = t('Undo to restore'),
 ) {
   // First create a notification with a button to undo the delete.
   let notification = reportSuccess(messageLabel, {
@@ -123,7 +123,7 @@ export function reportUndo(
         // And remove this notification.
         close();
       },
-    }]
+    }],
   });
 
   // When we received some actions from the server, cancel this popup,
@@ -152,7 +152,7 @@ export function showTipPopup(
   refElement: Element,
   title: DomContents,
   content: DomContents,
-  options: ShowTipPopupOptions
+  options: ShowTipPopupOptions,
 ) {
   const {onClose, hideArrow = false, hideDontShowTips = false, popupOptions} = options;
   const arrow = hideArrow ? null : buildArrow();
@@ -185,12 +185,12 @@ export function showTipPopup(
             dom('div',
               cssSkipTipsCheckbox(dontShowTips,
                 cssSkipTipsCheckboxLabel(t("Don't show tips")),
-                testId('behavioral-prompt-dont-show-tips')
+                testId('behavioral-prompt-dont-show-tips'),
               ),
               dom.style('visibility', hideDontShowTips ? 'hidden' : ''),
             ),
             cssDismissPromptButton(t('Got it'), testId('behavioral-prompt-dismiss'),
-              dom.on('click', () => { onClose(dontShowTips.get()); ctl.close(); })
+              dom.on('click', () => { onClose(dontShowTips.get()); ctl.close(); }),
             ),
           ),
         ),
@@ -214,7 +214,7 @@ export function showNewsPopup(
   refElement: Element,
   title: DomContents,
   content: DomContents,
-  options: ShowNewsPopupOptions = {}
+  options: ShowNewsPopupOptions = {},
 ) {
   const {popupOptions} = options;
   const popup = modalTooltip(refElement,
@@ -261,7 +261,7 @@ const defaultPopupOptions = {
       // GPU acceleration makes text look blurry.
       gpuAcceleration: false,
     },
-  }
+  },
 };
 
 function buildArrow() {

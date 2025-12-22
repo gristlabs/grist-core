@@ -39,7 +39,7 @@ export function createTopBarHome(appModel: AppModel, onSave?: (personal: boolean
           basicButton(
             t("Manage team"),
             dom.on('click', () => manageTeamUsersApp({app: appModel, onSave})),
-            testId('topbar-manage-team')
+            testId('topbar-manage-team'),
           ),
         ] :
         null
@@ -112,7 +112,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
           isAnonymous,
           isProposable: Computed.create(
             owner, gristDoc.docPageModel.currentDoc,
-            (_use, currentDoc) => Boolean(currentDoc?.options?.proposedChanges?.acceptProposals)
+            (_use, currentDoc) => Boolean(currentDoc?.options?.proposedChanges?.acceptProposals),
           ),
           isReadonly: pageModel.isReadonly,
           proposeChanges: async () => {
@@ -121,7 +121,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
           },
         }),
         dom.hide(use => use(isSearchOpen) && use(isNarrowScreenObs())),
-      )
+      ),
     ),
     cssFlexSpace(),
     dom.maybe(pageModel.gristDoc, gristDoc => buildActiveUserList(owner, gristDoc.userPresenceModel)),
@@ -171,7 +171,7 @@ function buildShowDiscussionButton(gristDoc: GristDoc) {
     dom.on('click', () => {
       gristDoc.showTool('discussion');
       allCommands.rightPanelOpen.run();
-    })
+    }),
   );
 }
 
@@ -198,7 +198,7 @@ function getCancelRecoveryModeFn(gristDoc: GristDoc): () => Promise<void> {
 function topBarUndoBtn(iconName: IconName, ...domArgs: DomElementArg[]): Element {
   return cssHoverCircle(
     cssTopBarUndoBtn(iconName),
-    ...domArgs
+    ...domArgs,
   );
 }
 

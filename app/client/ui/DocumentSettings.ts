@@ -37,7 +37,7 @@ import {
   DOCTYPE_NORMAL,
   DOCTYPE_TEMPLATE,
   DOCTYPE_TUTORIAL,
-  DocumentType
+  DocumentType,
 } from 'app/common/UserAPI';
 import {
   Computed,
@@ -49,7 +49,7 @@ import {
   IDomArgs,
   makeTestId,
   Observable,
-  styled
+  styled,
 } from 'grainjs';
 import * as moment from 'moment-timezone';
 
@@ -64,7 +64,7 @@ export class DocSettingsPage extends Disposable {
   private _currency: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('currency');
   private _acceptProposals = Observable.create(
     this,
-    Boolean(this._gristDoc.docPageModel.currentDoc.get()?.options?.proposedChanges?.acceptProposals)
+    Boolean(this._gristDoc.docPageModel.currentDoc.get()?.options?.proposedChanges?.acceptProposals),
   );
   private _working: Observable<boolean> = Observable.create(this, false);
 
@@ -99,8 +99,8 @@ export class DocSettingsPage extends Disposable {
           description: t('For currency columns'),
           value: dom.domComputed(fromKo(this._locale), l =>
             dom.create(cssCurrencyPicker, fromKo(this._currency), val => this._currency.saveOnly(val),
-              {defaultCurrencyLabel: t("Local currency ({{currency}})", {currency: getCurrency(l)})})
-          )
+              {defaultCurrencyLabel: t("Local currency ({{currency}})", {currency: getCurrency(l)})}),
+          ),
         }),
         dom.create(AdminSectionItem, {
           id: 'templateMode',
@@ -113,7 +113,7 @@ export class DocSettingsPage extends Disposable {
             ),
             cssSmallButton(t('Edit'),
               dom.on('click', this._buildDocumentTypeModal.bind(this)),
-              testId('doctype-edit')
+              testId('doctype-edit'),
             ),
           ),
           disabled: isDocOwner ? false : t('Only available to document owners'),
@@ -123,7 +123,7 @@ export class DocSettingsPage extends Disposable {
           name: [t('Suggestions'), betaTag(t('experiment'))],
           description: withInfoTooltip(
             t('Allow others to suggest changes'),
-            'suggestions'
+            'suggestions',
           ),
           value: labeledSquareCheckbox(
             this._acceptProposals,
@@ -164,7 +164,7 @@ export class DocSettingsPage extends Disposable {
           description: dom('div',
             dom.maybe(isTimingOn, () => cssRedText(t('Timing is on') + '...')),
             dom.maybe(not(isTimingOn), () => t('Find slow formulas')),
-            testId('timing-desc')
+            testId('timing-desc'),
           ),
           value: dom.domComputed(isTimingOn, (timingOn) => {
             if (timingOn) {
@@ -173,21 +173,21 @@ export class DocSettingsPage extends Disposable {
                   t('Stop timing...'),
                   urlState().setHref({docPage: 'timing'}),
                   {target: '_blank'},
-                  testId('timing-stop')
-                )
+                  testId('timing-stop'),
+                ),
               );
             }
  else {
               return cssSmallButtonSettings(t('Start timing'),
                 dom.on('click', this._startTiming.bind(this)),
-                testId('timing-start')
+                testId('timing-start'),
               );
             }
           }),
           expandedContent: dom('div', t(
             'Once you start timing, Grist will measure the time it takes to evaluate each formula. \
 This allows diagnosing which formulas are responsible for slow performance when a \
-document is first opened, or when a document responds to changes.'
+document is first opened, or when a document responds to changes.',
           )),
           disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
@@ -219,8 +219,8 @@ document is first opened, or when a document responds to changes.'
             cssWrap(
               t('Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}', {
                 apiURL: cssLink({href: commonUrls.helpAPI, target: '_blank'}, t('API documentation.')),
-                docId: dom('code', 'docId')
-              })
+                docId: dom('code', 'docId'),
+              }),
             ),
             dom.domComputed(urlState().makeUrl({
               api: true,
@@ -235,7 +235,7 @@ document is first opened, or when a document responds to changes.'
                   hoverTooltip(t('Copy to clipboard'), {
                     key: TOOLTIP_KEY,
                   }),
-                )
+                ),
               })),
             ]),
           ),
@@ -342,7 +342,7 @@ document is first opened, or when a document responds to changes.'
             cssButton(
               t('Start transfer'),
               dom.on('click', () => beginTransfer()),
-              testId('transfer-start-button')
+              testId('transfer-start-button'),
             ),
           ]),
           dom.maybe(inProgress, () => [
@@ -350,35 +350,35 @@ document is first opened, or when a document responds to changes.'
               cssLoadingSpinner(
                 loadingSpinner.cls('-inline'),
                 cssLoadingSpinner.cls('-disabled'),
-                testId('transfer-spinner')
+                testId('transfer-spinner'),
               ),
               t('Transfer in progress'),
               dom.prop('disabled', true),
-              testId('transfer-button-in-progress')
+              testId('transfer-button-in-progress'),
             ),
           ]),
           dom.update(cssSmallSelect(storageType, storageOptions, {
             disabled: use => use(inProgress) || !use(attachmentsReady) || use(stores).length === 0,
           }), testId('transfer-storage-select')),
-        )
+        ),
       }),
       dom('div',
         dom.maybe(attachmentsReady, () => [
           dom.maybe(stillInternal, () => stillInternalCopy(
             inProgress,
             testId('transfer-message'),
-            testId('transfer-still-internal-copy')
+            testId('transfer-still-internal-copy'),
           )),
           dom.maybe(stillExternal, () => stillExternalCopy(
             inProgress,
             testId('transfer-message'),
-            testId('transfer-still-external-copy')
+            testId('transfer-still-external-copy'),
           )),
           dom.maybe(use => use(stores).length === 0, () => [
             dom('span',
               t('No external stores available'),
               testId('transfer-message'),
-              testId('transfer-no-stores-warning')
+              testId('transfer-no-stores-warning'),
             ),
           ]),
         ]),
@@ -413,7 +413,7 @@ document is first opened, or when a document responds to changes.'
           }
         }),
       dom.prop('disabled', isUploadingObs),
-      testId('upload-attachment-archive')
+      testId('upload-attachment-archive'),
     );
 
     return dom.create(AdminSectionItem, {
@@ -450,7 +450,7 @@ document is first opened, or when a document responds to changes.'
       reportWarning(err.toString(), {
         key: "attachmentArchiveUploadError",
         title: "Attachments upload failed",
-        level: 'error'
+        level: 'error',
       });
     }
   }
@@ -468,8 +468,8 @@ document is first opened, or when a document responds to changes.'
         'This will perform a hard reload of the data engine. This \
 may help if the data engine is stuck in an infinite loop, is \
 indefinitely processing the latest change, or has crashed. \
-No data will be lost, except possibly currently pending actions.'
-      )
+No data will be lost, except possibly currently pending actions.',
+      ),
     });
   }
 
@@ -502,7 +502,7 @@ No data will be lost, except possibly currently pending actions.'
             ),
             dom('div',
               dom.style('margin-top', '8px'),
-              dom('span', t('You can make changes to the document, then stop timing to see the results.'))
+              dom('span', t('You can make changes to the document, then stop timing to see the results.')),
             ),
             testId('timing-modal-option-adhoc'),
           )),
@@ -512,10 +512,10 @@ No data will be lost, except possibly currently pending actions.'
             ),
             dom('div',
               dom.style('margin-top', '8px'),
-              dom('span', t('Force reload the document while timing formulas, and show the result.'))
+              dom('span', t('Force reload the document while timing formulas, and show the result.')),
             ),
             testId('timing-modal-option-reload'),
-          ))
+          )),
         ),
         cssModalButtons(
           bigPrimaryButton(t(`Start timing`),
@@ -523,14 +523,14 @@ No data will be lost, except possibly currently pending actions.'
             testId('timing-modal-confirm'),
           ),
           bigBasicButton(t('Cancel'), dom.on('click', () => ctl.close()), testId('timing-modal-cancel')),
-        )
+        ),
       ];
 
       const spinnerPage = () => [
         cssSpinner(
           loadingSpinner(),
           testId('timing-modal-spinner'),
-          dom.style('width', 'fit-content')
+          dom.style('width', 'fit-content'),
         ),
       ];
 
@@ -587,7 +587,7 @@ No data will be lost, except possibly currently pending actions.'
           type,
           label,
           description,
-          itemTestId
+          itemTestId,
         }: {
           type: DocTypeOption,
           label: string,
@@ -600,7 +600,7 @@ No data will be lost, except possibly currently pending actions.'
           ),
           dom('div',
             dom.style('margin-top', '8px'),
-            dom('span', description)
+            dom('span', description),
           ),
           itemTestId,
         ));
@@ -621,8 +621,8 @@ No data will be lost, except possibly currently pending actions.'
             description:  t('Document automatically opens in {{fiddleModeDocUrl}}. \
 Anyone may edit, which will create a new unsaved copy.',
               {
-                fiddleModeDocUrl: cssLink({href: commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode'))
-              }
+                fiddleModeDocUrl: cssLink({href: commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode')),
+              },
             ),
             itemTestId: testId('doctype-modal-option-template'),
           }),
@@ -639,7 +639,7 @@ Anyone may edit, which will create a new unsaved copy.',
             dom.on('click', doSetDocumentType),
             testId('doctype-modal-confirm'),
           ),
-        )
+        ),
       ];
       return [
         cssModalTitle(t(`Change document type`)),
@@ -689,7 +689,7 @@ function buildLocaleSelect(
         locale.saveOnly(item.locale!).catch(reportError);
       },
     },
-    testId("locale-autocomplete")
+    testId("locale-autocomplete"),
   );
 }
 
@@ -701,17 +701,17 @@ function displayCurrentType(
 ) {
   const typeList: DocumentTypeItem[] = [{
     label: t('Regular'),
-    type: ''
+    type: '',
   }, {
       label: t('Template'),
-      type: 'template'
+      type: 'template',
     }, {
       label: t('Tutorial'),
-      type: 'tutorial'
+      type: 'tutorial',
     }].map(el => ({
     ...el,
     value: el.label,
-    cleanText: el.label.trim().toLowerCase()
+    cleanText: el.label.trim().toLowerCase(),
   }));
   const typeObs = Computed.create(owner, (use) => {
     const typeCode = use(type) ?? "";
@@ -721,28 +721,28 @@ function displayCurrentType(
   return dom(
     'div',
     dom.text(typeObs),
-    testId('doctype-value')
+    testId('doctype-value'),
   );
 }
 
 
 const learnMore = () => t(
   '[Learn more.]({{learnLink}})',
-  {learnLink: commonUrls.attachmentStorage}
+  {learnLink: commonUrls.attachmentStorage},
 );
 
 function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HTMLSpanElement>) {
   const someExternal = () => t(
     '**Some existing attachments are still [external]({{externalLink}})**.',
-    {externalLink: commonUrls.attachmentStorage}
+    {externalLink: commonUrls.attachmentStorage},
   );
 
   const startToInternal = () => t(
-    'Click "Start transfer" to transfer those to Internal storage (stored in the document SQLite file).'
+    'Click "Start transfer" to transfer those to Internal storage (stored in the document SQLite file).',
   );
 
   const newInInternal = () => t(
-    'Newly uploaded attachments will be placed in Internal storage.'
+    'Newly uploaded attachments will be placed in Internal storage.',
   );
 
   return dom.domComputed(inProgress, (yes) => {
@@ -762,15 +762,15 @@ function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
 function stillInternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HTMLSpanElement>) {
   const someInternal = () => t(
     '**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).',
-    {internalLink: commonUrls.attachmentStorage}
+    {internalLink: commonUrls.attachmentStorage},
   );
 
   const startToExternal = () => t(
-    'Click "Start transfer" to transfer those to External storage.'
+    'Click "Start transfer" to transfer those to External storage.',
   );
 
   const newInExternal = () => t(
-    'Newly uploaded attachments will be placed in External storage.'
+    'Newly uploaded attachments will be placed in External storage.',
   );
 
   return dom.domComputed(inProgress, (yes) => {
@@ -778,14 +778,14 @@ function stillInternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
       return cssMarkdownSpan(
         `${someInternal()} ${newInExternal()}\n\n${learnMore()}`,
         testId('transfer-message-in-progress'),
-        ...args
+        ...args,
       );
     }
  else {
       return cssMarkdownSpan(
         `${someInternal()} ${startToExternal()} ${newInExternal()}\n\n${learnMore()}`,
         testId('transfer-message-static'),
-        ...args
+        ...args,
       );
     }
   });
@@ -887,7 +887,7 @@ function copyHandler(value: () => string, confirmation: string) {
     e.stopImmediatePropagation();
     e.preventDefault();
     showTransientTooltip(d as Element, confirmation, {
-      key: TOOLTIP_KEY
+      key: TOOLTIP_KEY,
     });
     await copyToClipboard(value());
   });

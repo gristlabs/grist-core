@@ -80,7 +80,7 @@ describe('FormView2', function() {
       await textArea.click();
       // Add some HTML that should not escape the border.
       await gu.sendKeys(
-        '<div style="width: 100vw; height: 100vh; background-color: red; inset: 0; position: fixed;" />'
+        '<div style="width: 100vw; height: 100vh; background-color: red; inset: 0; position: fixed;" />',
       );
       await gu.sendKeys(Key.ENTER);
       await gu.waitForServer();
@@ -318,7 +318,7 @@ describe('FormView2', function() {
         assert.isTrue(await driver.findWait('.test-form-error-page', 2000).isDisplayed());
         assert.equal(
           await driver.find('.test-form-error-page-text').getText(),
-          "Oops! The form you're looking for doesn't exist."
+          "Oops! The form you're looking for doesn't exist.",
         );
       });
       await api.undeleteDoc(docId);
@@ -339,7 +339,7 @@ describe('FormView2', function() {
         assert.isTrue(await driver.findWait('.test-form-error-page', 2000).isDisplayed());
         assert.equal(
           await driver.find('.test-form-error-page-text').getText(),
-          "Oops! The form you're looking for doesn't exist."
+          "Oops! The form you're looking for doesn't exist.",
         );
       });
       await api.undeleteDoc(docId);
@@ -372,7 +372,7 @@ function widget(selector: string) {
     },
     async isPresent() {
       return await driver.find(selector).isPresent();
-    }
+    },
   };
 }
 

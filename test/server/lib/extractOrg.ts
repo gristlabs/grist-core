@@ -25,11 +25,11 @@ describe("extractOrg", function() {
           if (options.where.host === 'zoom.quick.com') { return {domain: 'zoomy'}; }
           if (options.where.domain === 'zoomy') { return {host: 'zoom.quick.com'}; }
           return undefined;
-        }
-      }
-    }
+        },
+      },
+    },
   } as any, {
-    getPluginUrl() { return 'https://prod.grist-usercontent.com'; }
+    getPluginUrl() { return 'https://prod.grist-usercontent.com'; },
   } as any);
 
   before(async () => {

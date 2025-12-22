@@ -147,7 +147,7 @@ export class Patch {
       this._docSession, actions, {
         otherId: this._otherId,
         linkId: this._linkId,
-      }
+      },
     );
     if (!this._otherId) {
       this._otherId = result.actionNum;

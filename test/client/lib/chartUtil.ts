@@ -35,10 +35,10 @@ describe('chartUtil', function() {
       splitValuesByIndex([{label: 'test', values: []}, {label: 'foo', values: []}], 0);
       assert.deepEqual(splitValuesByIndex([
         {label: 'foo', values: [['L', 'foo', 'bar'], ['L', 'baz']] as any},
-        {label: 'bar', values: ['santa', 'janus']}
+        {label: 'bar', values: ['santa', 'janus']},
       ], 0), [
         {label: 'foo', values: ['foo', 'bar', 'baz']},
-        {label: 'bar', values: ['santa', 'santa', 'janus']}
+        {label: 'bar', values: ['santa', 'santa', 'janus']},
       ]);
 
       assert.deepEqual(splitValuesByIndex([
@@ -57,42 +57,42 @@ describe('chartUtil', function() {
         consolidateValues(
           [
             {values: []},
-            {values: []}
+            {values: []},
           ],
-          ['A', 'B']
+          ['A', 'B'],
         ),
         [
           {values: ['A', 'B']},
           {values: [0, 0]},
-        ]
+        ],
       );
 
       assert.deepEqual(
         consolidateValues(
           [
             {values: ['A']},
-            {values: [3]}
+            {values: [3]},
           ],
-          ['A', 'B']
+          ['A', 'B'],
         ),
         [
           {values: ['A', 'B']},
           {values: [3, 0]},
-        ]
+        ],
       );
 
       assert.deepEqual(
         consolidateValues(
           [
             {values: ['B']},
-            {values: [1]}
+            {values: [1]},
           ],
-          ['A', 'B']
+          ['A', 'B'],
         ),
         [
           {values: ['A', 'B']},
           {values: [0, 1]},
-        ]
+        ],
       );
     });
 
@@ -102,28 +102,28 @@ describe('chartUtil', function() {
         consolidateValues(
           [
             {values: ['A', 'A']},
-            {values: [1, 2]}
+            {values: [1, 2]},
           ],
-          ['A', 'B']
+          ['A', 'B'],
         ),
         [
           {values: ['A', 'A', 'B']},
           {values: [1, 2, 0]},
-        ]
+        ],
       );
 
       assert.deepEqual(
         consolidateValues(
           [
             {values: ['B', 'B']},
-            {values: [1, 2]}
+            {values: [1, 2]},
           ],
-          ['A', 'B']
+          ['A', 'B'],
         ),
         [
           {values: ['A', 'B', 'B']},
           {values: [0, 1, 2]},
-        ]
+        ],
       );
     });
 
@@ -134,12 +134,12 @@ describe('chartUtil', function() {
             {values: ['A', 'C']},
             {values: [1, 2]},
           ],
-          ['A', 'B', 'C', 'D']
+          ['A', 'B', 'C', 'D'],
         ),
         [
           {values: ['A', 'B', 'C', 'D']},
           {values: [1, 0, 2, 0]},
-        ]
+        ],
       );
     });
   });

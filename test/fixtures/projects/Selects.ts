@@ -20,7 +20,7 @@ function setupTest() {
       'Click me',
       dom.on('click', () => {
         elements.set([...elements.get(), selectOption(() => {}, 'Option2', 'Script')]);
-      })
+      }),
     ),
     select(text, ['1', '2', '3']),
     dom('div', 'Selected ', dom.text(text)),

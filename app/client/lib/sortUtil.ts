@@ -48,7 +48,7 @@ export async function updatePositions(gristDoc: GristDoc, section: ViewSectionRe
   const sortedRows = rowset.SortedRowSet.create(
     null,
     (a: UIRowId, b: UIRowId) => sortFunc.compare(a as number, b as number),
-    tableModel.tableData
+    tableModel.tableData,
   );
   sortedRows.subscribeTo(tableModel);
   const sortedRowIds = sortedRows.getKoArray().peek().slice(0);
@@ -62,7 +62,7 @@ export async function updatePositions(gristDoc: GristDoc, section: ViewSectionRe
       ['BulkUpdateRecord', tableId, sortedRowIds, colInfo],
       ['UpdateRecord', '_grist_Views_section', section.getRowId(), {sortColRefs: '[]'}],
     ],
-    `Updated table ${tableId} row positions.`
+    `Updated table ${tableId} row positions.`,
   );
   // Finally clear out the local sort spec.
   section.activeSortJson.revert();

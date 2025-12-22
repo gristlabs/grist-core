@@ -13,49 +13,49 @@ export class Aliases1561589211752 implements MigrationInterface {
         {
           name: 'url_id',
           type: 'varchar',
-          isPrimary: true
+          isPrimary: true,
         },
         {
           name: 'org_id',
           type: 'integer',
-          isPrimary: true
+          isPrimary: true,
         },
         {
           name: 'doc_id',
           type: 'varchar',
-          isNullable: true   // nullable in case in future we make aliases for other resources
+          isNullable: true,   // nullable in case in future we make aliases for other resources
         },
         {
           name: "created_at",
           type: datetime(dbType),
-          default: now(dbType)
-        }
+          default: now(dbType),
+        },
       ],
       foreignKeys: [
         {
           columnNames: ['doc_id'],
           referencedColumnNames: ['id'],
           referencedTableName: 'docs',
-          onDelete: 'CASCADE'  // delete alias if doc goes away
+          onDelete: 'CASCADE',  // delete alias if doc goes away
         },
         {
           columnNames: ['org_id'],
           referencedColumnNames: ['id'],
-          referencedTableName: 'orgs'
+          referencedTableName: 'orgs',
           // no CASCADE set - let deletions be triggered via docs
-        }
-      ]
+        },
+      ],
     }));
 
     // Add preferred alias to docs.  Not quite a foreign key (we'd need org as well)
     await queryRunner.addColumn('docs', new TableColumn({
         name: 'url_id',
         type: 'varchar',
-        isNullable: true
+        isNullable: true,
     }));
     await queryRunner.createIndex("docs", new TableIndex({
       name: "docs__url_id",
-      columnNames: ["url_id"]
+      columnNames: ["url_id"],
     }));
   }
 

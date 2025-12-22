@@ -7,7 +7,7 @@ export class DocumentUsage1651469582887 implements MigrationInterface {
     await queryRunner.addColumn("docs", new TableColumn({
       name: "usage",
       type: nativeValues.jsonType,
-      isNullable: true
+      isNullable: true,
     }));
   }
 

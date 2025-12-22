@@ -21,16 +21,16 @@ function setupTest() {
       dom('div',
         testBox(
           dom.domComputed(use =>
-            dom.create(buildParseOptionsForm, use(schemaObs), use(valuesObs), doUpdate, doCancel)
+            dom.create(buildParseOptionsForm, use(schemaObs), use(valuesObs), doUpdate, doCancel),
           ),
-          testId('parse-options')
+          testId('parse-options'),
         ),
         testBox(
           dom.text(use => JSON.stringify(use(valuesObs), null, 2)),
           testId('values'),
         ),
       ),
-    )
+    ),
   ];
 }
 

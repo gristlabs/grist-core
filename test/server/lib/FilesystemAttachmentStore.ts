@@ -1,6 +1,6 @@
 import {
   FilesystemAttachmentStore,
-  loadAttachmentFileIntoMemory
+  loadAttachmentFileIntoMemory,
 } from 'app/server/lib/AttachmentStore';
 import {IAttachmentStoreConfig} from 'app/server/lib/AttachmentStoreProvider';
 import {createTmpDir} from 'test/server/docTools';
@@ -23,19 +23,19 @@ function getTestingFileAsReadableStream(contents?: string): stream.Readable {
 }
 
 export async function makeTestingFilesystemStoreSpec(
-  name: string = "filesystem"
+  name: string = "filesystem",
 ) {
   const tempFolder = await createTmpDir();
   const tempDir = await mkdtemp(path.join(tempFolder, 'filesystem-store-test-'));
   return {
     rootDirectory: tempDir,
     name,
-    create: async (storeId: string) => (new FilesystemAttachmentStore(storeId, tempDir))
+    create: async (storeId: string) => (new FilesystemAttachmentStore(storeId, tempDir)),
   };
 }
 
 export async function makeTestingFilesystemStoreConfig(
-  name: string = "test-filesystem"
+  name: string = "test-filesystem",
 ): Promise<IAttachmentStoreConfig> {
   return {
     label: name,

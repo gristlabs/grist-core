@@ -618,7 +618,7 @@ describe('PagePanels', function() {
       // using driver.findContent(...).click(). But it does when using a script call.
       await driver.executeScript(
         (el: any) => el.click(),
-        driver.findContent('.grist-floating-menu li', 'Rename')
+        driver.findContent('.grist-floating-menu li', 'Rename'),
       );
       await driver.sleep(20);
 

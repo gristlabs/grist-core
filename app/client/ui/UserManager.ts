@@ -70,7 +70,7 @@ async function getModel(options: IUserManagerOptions): Promise<UserManagerModelI
   const permissionData = await options.permissionData;
   return new UserManagerModelImpl(
     permissionData, options.resourceType,
-    pick(options, ['activeUser', 'reload', 'appModel', 'docPageModel', 'resource'])
+    pick(options, ['activeUser', 'reload', 'appModel', 'docPageModel', 'resource']),
   );
 }
 
@@ -117,7 +117,7 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
 you will not be able to get it back without assistance \
 from someone else with sufficient access to the {{resourceType}}.`, { resourceType })
           ),
-        }
+        },
       );
     }
  else {
@@ -138,7 +138,7 @@ from someone else with sufficient access to the {{resourceType}}.`, { resourceTy
 function buildUserManagerModal(
   modelObs: Observable<UserManagerModel|null|"slow">,
   onConfirm: (ctl: IModalControl) => Promise<void>,
-  options: IUserManagerOptions
+  options: IUserManagerOptions,
 ) {
   return modal(ctl => [
     // We set the padding to 0 since the body scroll shadows extend to the edge of the modal.
@@ -162,8 +162,8 @@ function buildUserManagerModal(
           cssBody(
             new UserManager(
               model,
-              pick(options, 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource', 'isReadonly')
-            ).buildDom()
+              pick(options, 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource', 'isReadonly'),
+            ).buildDom(),
           ),
         ),
         cssModalButtons(
@@ -172,13 +172,13 @@ function buildUserManagerModal(
             bigPrimaryButton(t('Confirm'),
               dom.boolAttr('disabled', use => !use(model.isAnythingChanged)),
               dom.on('click', () => onConfirm(ctl)),
-              testId('um-confirm')
+              testId('um-confirm'),
             )
           ),
           bigBasicButton(
             model.isPublicMember || options.isReadonly ? t('Close') : t('Cancel'),
             dom.on('click', () => ctl.close()),
-            testId('um-cancel')
+            testId('um-cancel'),
           ),
           (model.resourceType === 'document' && model.gristDoc && !model.isPersonal
             ? withInfoTooltip(
@@ -197,9 +197,9 @@ function buildUserManagerModal(
             : null
           ),
           testId('um-buttons'),
-        )
+        ),
       ];
-    })
+    }),
   ]);
 }
 
@@ -292,14 +292,14 @@ export class UserManager extends Disposable {
           (email, role) => {
             this._onAddOrEdit(email, role);
           },
-        ))
+        )),
       ),
       cssOptionRow(
         // TODO: Consider adding a tooltip explaining inheritance. A brief text caption may
         // be used to fill whitespace in org UserManager.
         this._model.isOrg ? null : dom('span', { style: `float: left;` },
           dom('span', t('Inherit access: ')),
-          this._inheritRoleSelector()
+          this._inheritRoleSelector(),
         ),
         publicMember ? dom('span', { style: `float: right;` },
           cssSmallPublicMemberIcon('PublicFilled'),
@@ -312,18 +312,18 @@ export class UserManager extends Disposable {
                 menuItem(() => publicMember.access.set(null), t('Off'),
                   // Disable null access if anonymous access is inherited.
                   dom.cls('disabled', use => use(publicMember.inheritedAccess) !== null),
-                  testId(`um-public-option`)
+                  testId(`um-public-option`),
                 ),
                 // If the 'Off' setting is disabled, show an explanation.
                 dom.maybe(use => use(publicMember.inheritedAccess) !== null, () => menuText(
                   t(`Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.`,
-                    { parent: getResourceParent(this._model.resourceType) }
-                  )))
+                    { parent: getResourceParent(this._model.resourceType) },
+                  ))),
               ];
             }),
             dom.text(use => use(publicMember.effectiveAccess) ? t('On') : t('Off')),
             cssCollapseIcon('Collapse'),
-            testId('um-public-access')
+            testId('um-public-access'),
           ),
           hoverTooltip((ctl) => {
             tooltipControl = ctl;
@@ -351,7 +351,7 @@ export class UserManager extends Disposable {
         cssMemberListItem(
           cssMemberListItem.cls('-removed', member.isRemoved),
           cssMemberImage(
-            createUserImage(getFullUser(member), 'large')
+            createUserImage(getFullUser(member), 'large'),
           ),
           cssMemberText(
             cssMemberPrimary(
@@ -360,7 +360,7 @@ export class UserManager extends Disposable {
               testId('um-member-name'),
             ),
             !member.name ? null : cssMemberSecondary(
-              member.email, dom.cls('member-email'), testId('um-member-email')
+              member.email, dom.cls('member-email'), testId('um-member-email'),
             ),
             (this._model.isPersonal
               ? this._buildSelfAnnotationDom(member)
@@ -383,10 +383,10 @@ export class UserManager extends Disposable {
             // Click handler.
             dom.on('click', () => disableRemove.get() ||
               (member.isRemoved ? this._model.add(member.email, member.access.get()) :
-                this._model.remove(member)))
+                this._model.remove(member))),
           ),
-          testId('um-member')
-        )
+          testId('um-member'),
+        ),
       ),
     );
   }
@@ -408,12 +408,12 @@ export class UserManager extends Disposable {
       const elements: HTMLSpanElement[] = [];
       if (limit.at <= limit.top) {
         elements.push(cssMemberType(
-          t(`{{limitAt}} of {{limitTop}} {{collaborator}}s`, { limitAt: limit.at, limitTop: limit.top, collaborator }))
+          t(`{{limitAt}} of {{limitTop}} {{collaborator}}s`, { limitAt: limit.at, limitTop: limit.top, collaborator })),
         );
       }
  else {
         elements.push(cssMemberTypeProblem(
-          t(`{{collaborator}} limit exceeded`, { collaborator: capitalizeFirstWord(collaborator) }))
+          t(`{{collaborator}} limit exceeded`, { collaborator: capitalizeFirstWord(collaborator) })),
         );
       }
       if (annotations.hasTeam) {
@@ -476,16 +476,16 @@ export class UserManager extends Disposable {
             cssMemberSecondary(t('Anyone with link '), makeCopyBtn(this._options.linkToCopy)),
           ),
           this._memberRoleSelector(publicMember.effectiveAccess, publicMember.inheritedAccess, false,
-            this._model.publicUserSelectOptions
+            this._model.publicUserSelectOptions,
           ),
           cssMemberBtn(
             cssMemberBtn.cls('-disabled', this._options.isReadonly),
             cssRemoveIcon('Remove', testId('um-member-delete')),
             dom.on('click', () => publicMember.access.set(null)),
           ),
-          testId('um-public-member')
-        )
-      )
+          testId('um-public-member'),
+        ),
+      ),
     );
   }
 
@@ -544,9 +544,9 @@ export class UserManager extends Disposable {
           cssAccessOverviewList(
             dom.forEach(others, member => this._buildMemberDom({member, readonly: true})),
           ),
-          testId('um-access-overview')
-        ]
-      ))
+          testId('um-access-overview'),
+        ],
+      )),
     );
   }
 
@@ -571,8 +571,8 @@ export class UserManager extends Disposable {
             // Disable everything providing less access than the inherited access
             dom.cls('disabled', use =>
               roles.getStrongestRole(_role.value, use(inherited)) !== _role.value),
-            testId(`um-role-option`)
-          )
+            testId(`um-role-option`),
+          ),
         ),
         // If the user's access is inherited, give an explanation on how to change it.
         isActiveUser ? menuText(t(`User may not modify their own access.`)) : null,
@@ -586,7 +586,7 @@ set 'Inherit access' option to 'None'.`, { parent: getResourceParent(this._model
 to resources inside. If removed here, this user will lose access to resources inside.`,
             { resource: this._model.resourceType }))),
         this._model.isOrg ? menuText(t(`No default access allows access to be \
-granted to individual documents or workspaces, rather than the full team site.`)) : null
+granted to individual documents or workspaces, rather than the full team site.`)) : null,
       ]),
       dom.text((use) => {
         // Get the label of the active role. Note that the 'Guest' role is assigned when the role
@@ -596,7 +596,7 @@ granted to individual documents or workspaces, rather than the full team site.`)
       }),
       cssCollapseIcon('Collapse'),
       this._options.isReadonly || this._model.isPersonal ? dom.cls('disabled') : null,
-      testId('um-member-role')
+      testId('um-member-role'),
     );
   }
 
@@ -608,9 +608,9 @@ granted to individual documents or workspaces, rather than the full team site.`)
       menu(() => [
         dom.forEach(allRoles, _role =>
           menuItem(() => role.set(_role.value), _role.label,
-            testId(`um-role-option`)
-          )
-        )
+            testId(`um-role-option`),
+          ),
+        ),
       ]),
       dom.text((use) => {
         // Get the label of the active role.
@@ -618,7 +618,7 @@ granted to individual documents or workspaces, rather than the full team site.`)
         return activeRole ? activeRole.label : "";
       }),
       cssCollapseIcon('Collapse'),
-      testId('um-max-inherited-role')
+      testId('um-max-inherited-role'),
     );
   }
 }
@@ -644,7 +644,7 @@ export class ACMemberEmail extends Disposable {
   constructor(
     private _onAdd: (email: string, role: roles.NonGuestRole) => void,
     private _members: Array<IEditableMember>,
-    private _prompt?: {email: string}
+    private _prompt?: {email: string},
   ) {
     super();
     if (_prompt) {
@@ -666,7 +666,7 @@ export class ACMemberEmail extends Disposable {
         save: this._handleSave.bind(this),
         prompt: this._prompt,
       },
-      testId('um-member-new')
+      testId('um-member-new'),
     );
   }
 
@@ -682,7 +682,7 @@ function getFullUser(member: IEditableMember): FullUser {
     name: member.name,
     email: member.email,
     picture: member.picture,
-    locale: member.locale
+    locale: member.locale,
   };
 }
 

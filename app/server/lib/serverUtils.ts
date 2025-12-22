@@ -242,7 +242,7 @@ export function expectedResetDate(startMs: number, endMs: number, now?: number):
     return Object.assign([start, end] as [number, number], {
       has(x: number) {
         return x >= start && x < end;
-      }
+      },
     });
   }
 }

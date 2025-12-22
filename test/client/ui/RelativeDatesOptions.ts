@@ -77,7 +77,7 @@ describe('RelativeDatesOptions', function() {
 
       assert.notDeepInclude(getOptions('2022-08-24'), {
         label: 'Wednesday of 5 weeks ago',
-        spec: [{quantity: -5, unit: 'week'}, {quantity: 3, unit: 'day'}]
+        spec: [{quantity: -5, unit: 'week'}, {quantity: 3, unit: 'day'}],
       });
       assert.notOk(getOptions('2022-08-24').find(o => /Wednesday/.test(o.label)));
 

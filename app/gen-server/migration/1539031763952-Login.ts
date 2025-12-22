@@ -11,25 +11,25 @@ export class Login1539031763952 implements MigrationInterface {
             type: "integer",
             isGenerated: true,
             generationStrategy: 'increment',
-            isPrimary: true
+            isPrimary: true,
           },
           {
             name: 'user_id',
-            type: 'integer'
+            type: 'integer',
           },
           {
             name: 'email',
             type: 'varchar',
-            isUnique: true
-          }
+            isUnique: true,
+          },
         ],
         foreignKeys: [
           {
             columnNames: ["user_id"],
             referencedColumnNames: ["id"],
-            referencedTableName: "users"
-          }
-        ]
+            referencedTableName: "users",
+          },
+        ],
       }));
     }
 

@@ -13,7 +13,7 @@ function setupTest() {
 
   dom.update(
     document.body,
-    dom.on('contextmenu', ev => ev.preventDefault())
+    dom.on('contextmenu', ev => ev.preventDefault()),
   );
 
   return cssFullscreen(
@@ -23,7 +23,7 @@ function setupTest() {
       menuItem(() => logs.set(logs.get().concat('bar')), 'Bar'),
       menuItem(() => logs.set([]), 'Reset'),
     ]),
-    dom.forEach(logs, name => dom('div', `${name} added`, testId('logs')))
+    dom.forEach(logs, name => dom('div', `${name} added`, testId('logs'))),
   );
 }
 

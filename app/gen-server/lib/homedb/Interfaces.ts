@@ -47,7 +47,7 @@ export type Resource = Organization|Workspace|Document;
 
 export type RunInTransaction = <T>(
   transaction: EntityManager|undefined,
-  op: ((manager: EntityManager) => Promise<T>)
+  op: ((manager: EntityManager) => Promise<T>),
 ) => Promise<T>;
 
 export interface DocumentAccessChanges {

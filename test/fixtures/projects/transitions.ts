@@ -27,7 +27,7 @@ function setupTest() {
     ),
     dom('div', {style: 'margin-left: 100px; margin-top: 25px'},
       ' Number of finished transitions: ',
-      dom('span.test-finished', dom.text(use => '' + use(finishCount)))
+      dom('span.test-finished', dom.text(use => '' + use(finishCount))),
     ),
   ];
 }

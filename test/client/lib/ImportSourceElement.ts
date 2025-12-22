@@ -15,10 +15,10 @@ describe("ImportSourceElement.importSourceStub#getImportSource()", function() {
           kind: "fileList",
           files: [{
             content: new Uint8Array([1, 2]),
-            name: "MyFile"
-          }]
-        }
-      }))
+            name: "MyFile",
+          }],
+        },
+      })),
     });
     const importSourceStub = ImportSourceElement.fromArray([plugin])[0].importSourceStub;
     const res = await importSourceStub.getImportSource(0);
@@ -34,17 +34,17 @@ function createImportSourcePlugin(importSource: any): PluginInstance {
     path: "",
     manifest: {
       components: {
-        safeBrowser: "index.html"
+        safeBrowser: "index.html",
       },
       contributions: {
         importSources: [{
           label: "Importer",
           importSource: {
             component: "safeBrowser",
-            name: "importer"
-          }
-        }]
-      }
+            name: "importer",
+          },
+        }],
+      },
     },
   }, createRpcLogger(logger, "plugin instance"));
   const rpc = new Rpc({logger: createRpcLogger(logger, 'rpc')});

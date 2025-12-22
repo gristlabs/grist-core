@@ -15,7 +15,7 @@ export class CellStyle extends Disposable {
   constructor(
     private _field: ViewFieldRec,
     private _gristDoc: GristDoc,
-    private _defaultTextColor: string|undefined
+    private _defaultTextColor: string|undefined,
   ) {
     super();
   }
@@ -45,7 +45,7 @@ export class CellStyle extends Disposable {
                   use(options.mixed('headerFontBold')),
                   use(options.mixed('headerFontUnderline')),
                   use(options.mixed('headerFontItalic')),
-                  use(options.mixed('headerFontStrikethrough'))
+                  use(options.mixed('headerFontStrikethrough')),
                 ];
                 return commonStyle.some(Boolean);
               });
@@ -65,13 +65,13 @@ export class CellStyle extends Disposable {
                   fontBold: headerFontBold,
                   fontItalic: headerFontItalic,
                   fontUnderline: headerFontUnderline,
-                  fontStrikethrough: headerFontStrikethrough
+                  fontStrikethrough: headerFontStrikethrough,
                 },
                 {
                   onSave: () => options.save(),
                   onRevert: () => options.revert(),
-                  placeholder: use => use(hasMixedStyle) ? t('Mixed style') : t('Default header style')
-                }
+                  placeholder: use => use(hasMixedStyle) ? t('Mixed style') : t('Default header style'),
+                },
               );
             }),
           )];
@@ -101,7 +101,7 @@ export class CellStyle extends Disposable {
               use(options.mixed('fontBold')),
               use(options.mixed('fontUnderline')),
               use(options.mixed('fontItalic')),
-              use(options.mixed('fontStrikethrough'))
+              use(options.mixed('fontStrikethrough')),
             ];
             return commonStyle.some(Boolean);
           });
@@ -121,16 +121,16 @@ export class CellStyle extends Disposable {
               fontBold: fontBold,
               fontItalic: fontItalic,
               fontUnderline: fontUnderline,
-              fontStrikethrough: fontStrikethrough
+              fontStrikethrough: fontStrikethrough,
             }, {
               onSave: () => options.save(),
               onRevert: () => options.revert(),
-              placeholder: use => use(hasMixedStyle) ? t('Mixed style') : t('Default cell style')
-            }
+              placeholder: use => use(hasMixedStyle) ? t('Mixed style') : t('Default cell style'),
+            },
           );
         }),
       ),
-      dom.create(ConditionalStyle, t("Cell style"), this._field, this._gristDoc, fromKo(this._field.config.multiselect))
+      dom.create(ConditionalStyle, t("Cell style"), this._field, this._gristDoc, fromKo(this._field.config.multiselect)),
     ];
   }
 }

@@ -21,7 +21,7 @@ export async function downloadFromGDrive(url: string, code?: string) {
   const googleDrive = await initDriveApi(code);
   const fileRes = await googleDrive.files.get({
     key,
-    fileId
+    fileId,
   });
   if (fileRes.data.mimeType === SPREADSHEETS_MIMETYPE) {
     let filename = fileRes.data.name;
@@ -30,13 +30,13 @@ export async function downloadFromGDrive(url: string, code?: string) {
     }
     return await asFetchResponse(googleDrive.files.export(
       {key, fileId, alt: 'media', mimeType: XLSX_MIMETYPE},
-      {responseType: 'stream'}
+      {responseType: 'stream'},
     ), filename);
   }
  else {
     return await asFetchResponse(googleDrive.files.get(
       {key, fileId, alt: 'media'},
-      {responseType: 'stream'}
+      {responseType: 'stream'},
     ), fileRes.data.name);
   }
 }
@@ -65,7 +65,7 @@ async function asFetchResponse(req: GaxiosPromise<Readable>, filename?: string |
     return new FetchResponse(res.data, {
       headers,
       status: res.status,
-      statusText: res.statusText
+      statusText: res.statusText,
     });
   }
  catch (err) {
@@ -80,7 +80,7 @@ async function asFetchResponse(req: GaxiosPromise<Readable>, filename?: string |
       const resInit = error.response ? {
         status: error.response.status,
         headers: new Headers(error.response.headers),
-        statusText: error.response.statusText
+        statusText: error.response.statusText,
       } : undefined;
       return new FetchResponse(error.response.data, resInit);
     }

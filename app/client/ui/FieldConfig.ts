@@ -28,7 +28,7 @@ export function buildNameConfig(
   owner: MultiHolder,
   origColumn: ColumnRec,
   cursor: ko.Computed<CursorPos>,
-  disabled: ko.Computed<boolean> // Whether the name is editable (it's not editable for multiple selected columns).
+  disabled: ko.Computed<boolean>, // Whether the name is editable (it's not editable for multiple selected columns).
 ) {
   const untieColId = origColumn.untieColIdFromLabel;
 
@@ -47,7 +47,7 @@ export function buildNameConfig(
   owner.autoDispose(
    cursor.subscribe(() => {
      editors.forEach(e => e.blur());
-   })
+   }),
   );
   const setEditor = (id: number) => (el: HTMLInputElement) => { editors[id] = el; };
 
@@ -85,17 +85,17 @@ export function buildNameConfig(
         cssColTieConnectors(),
         cssToggleButton(
           dom.domComputed(untieColId, isUntied =>
-            isUntied ? icon('FieldReferenceDisabled') : icon('FieldReference')
+            isUntied ? icon('FieldReferenceDisabled') : icon('FieldReference'),
           ),
           cssToggleButton.cls('-selected', use => !use(untieColId)),
           dom.on('click', toggleUntieColId),
           cssToggleButton.cls("-disabled", use => use(origColumn.disableModify) || use(disabled)),
-          testId('field-derive-id')
+          testId('field-derive-id'),
         ),
-      )
+      ),
     ),
     dom.maybe(isSummaryTable,
-      () => cssRow(LIMITED_COLUMN_OPTIONS))
+      () => cssRow(LIMITED_COLUMN_OPTIONS)),
   ];
 }
 
@@ -117,7 +117,7 @@ type SaveHandler = (column: ColumnRec, formula: string) => Promise<void>;
 type BuildEditor = (options: BuildEditorOptions) => void;
 
 export function buildFormulaConfig(
-  owner: MultiHolder, origColumn: ColumnRec, gristDoc: GristDoc, buildEditor: BuildEditor
+  owner: MultiHolder, origColumn: ColumnRec, gristDoc: GristDoc, buildEditor: BuildEditor,
 ) {
 
   // If we can't modify anything about the column.
@@ -200,9 +200,9 @@ export function buildFormulaConfig(
    // Clear and reset all option for multiple selected columns.
   const clearAndResetAll = () => selectOption(
     () => Promise.all([
-      gristDoc.docModel.clearColumns(selectedColumnIds())
+      gristDoc.docModel.clearColumns(selectedColumnIds()),
     ]),
-    'Clear and reset', 'CrossSmall'
+    'Clear and reset', 'CrossSmall',
   );
 
 
@@ -213,7 +213,7 @@ export function buildFormulaConfig(
         isFormula: colRefs.map(f => opts.toFormula),
         recalcWhen: colRefs.map(f => opts.noRecalc ? RecalcWhen.NEVER : RecalcWhen.DEFAULT),
         recalcDeps: colRefs.map(f => null),
-      }]
+      }],
     );
   };
 
@@ -221,7 +221,7 @@ export function buildFormulaConfig(
   const convertToDataAll = () => selectOption(
     () => convertIsFormula(selectedColumnIds(), {toFormula: false, noRecalc: true}),
     'Convert columns to data', 'Database',
-    dom.cls('disabled', isSummaryTable)
+    dom.cls('disabled', isSummaryTable),
   );
 
   // Menu helper that will show normal menu with some default options
@@ -282,7 +282,7 @@ export function buildFormulaConfig(
   const convertToDataOption = () => selectOption(
     convertToData,
     t("Convert column to data"), 'Database',
-    dom.cls('disabled', isSummaryTable)
+    dom.cls('disabled', isSummaryTable),
     );
 
   // Clears the column
@@ -348,7 +348,7 @@ export function buildFormulaConfig(
   // we will disable them when multiple columns are selected, or any of the column selected
   // can't be modified or if the column has a reverse column.
   const disableOtherActions = Computed.create(owner,
-    use => use(disableModify) || use(isMultiSelect) || use(origColumn.hasReverse)
+    use => use(disableModify) || use(isMultiSelect) || use(origColumn.hasReverse),
   );
 
   const errorMessage = createFormulaErrorObs(owner, gristDoc, origColumn);
@@ -365,7 +365,7 @@ export function buildFormulaConfig(
           onCancel: clearState,
         },
         (el) => { formulaField = el; },
-      )
+      ),
     ),
     dom.maybe(errorMessage, errMsg => cssRow(cssError(errMsg), testId('field-error-count'))),
   ];
@@ -381,14 +381,14 @@ export function buildFormulaConfig(
           t("Set formula"),
           dom.on("click", setFormula),
           dom.prop("disabled", disableOtherActions),
-          testId("field-set-formula")
+          testId("field-set-formula"),
         )),
         cssRow(withInfoTooltip(
           textButton(
             t("Set trigger formula"),
             dom.on("click", setTrigger),
             dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
-            testId("field-set-trigger")
+            testId("field-set-trigger"),
           ),
           'setTriggerFormula',
         )),
@@ -396,8 +396,8 @@ export function buildFormulaConfig(
           t("Make into data column"),
           dom.on("click", convertToData),
           dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
-          testId("field-set-data")
-        ))
+          testId("field-set-data"),
+        )),
       ] : type === "formula" ? [
         menu(behaviorLabel(), [
           convertToDataOption(),
@@ -410,8 +410,8 @@ export function buildFormulaConfig(
           dom.on("click", convertFormulaToTrigger),
           dom.hide(maybeFormula),
           dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
-          testId("field-set-trigger")
-        ))
+          testId("field-set-trigger"),
+        )),
       ] : /* type == 'data' */ [
         menu(behaviorLabel(),
           [
@@ -419,10 +419,10 @@ export function buildFormulaConfig(
               // If we have trigger, we will convert it directly to a formula column
               convertTriggerToFormulaOption() :
               // else we will convert to empty column and open up the editor
-              convertDataColumnToFormulaOption()
+              convertDataColumnToFormulaOption(),
             ),
             clearAndResetOption(),
-          ]
+          ],
         ),
         // If data column is or wants to be a trigger formula:
         dom.maybe(use => use(maybeTrigger) || use(origColumn.hasTriggerFormula), () => [
@@ -431,7 +431,7 @@ export function buildFormulaConfig(
           dom.create(buildFormulaTriggers, origColumn, {
             disabled: disableOtherActions,
             notTrigger: maybeTrigger,
-          })
+          }),
         ]),
         // Else offer a way to convert to trigger formula.
         dom.maybe(use => !(use(maybeTrigger) || use(origColumn.hasTriggerFormula)), () => [
@@ -441,12 +441,12 @@ export function buildFormulaConfig(
               t("Set trigger formula"),
               dom.on("click", convertDataColumnToTriggerColumn),
               dom.prop("disabled", disableOtherActions),
-              testId("field-set-trigger")
+              testId("field-set-trigger"),
             ),
-            'setTriggerFormula'
+            'setTriggerFormula',
           )),
-        ])
-      ])
+        ]),
+      ]),
   ]);
 }
 

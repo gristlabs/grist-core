@@ -84,7 +84,7 @@ describe('DropdownConditionEditor', function () {
       await gu.waitForServer();
       assert.equal(
         await driver.find('.test-field-dropdown-condition').getText(),
-        'choice not in $Role'
+        'choice not in $Role',
       );
 
       // Check that autocomplete values are filtered.
@@ -111,7 +111,7 @@ describe('DropdownConditionEditor', function () {
       await gu.setType('Choice List', {apply: true});
       assert.equal(
         await driver.find('.test-field-dropdown-condition').getText(),
-        'choice not in $Role'
+        'choice not in $Role',
       );
       await gu.getCell(1, 4).click();
       await gu.sendKeys(Key.ENTER);
@@ -163,19 +163,19 @@ describe('DropdownConditionEditor', function () {
       await gu.waitForServer();
       assert.equal(
         await driver.find('.test-field-dropdown-condition-error').getText(),
-        "Unknown variable 'foo'"
+        "Unknown variable 'foo'",
       );
       await gu.reloadDoc();
       assert.equal(
         await driver.find('.test-field-dropdown-condition-error').getText(),
-        "Unknown variable 'foo'"
+        "Unknown variable 'foo'",
       );
 
       // Check that the autocomplete dropdown also reports an error.
       await gu.sendKeys(Key.ENTER);
       assert.equal(
         await driver.find('.test-autocomplete-no-items-message').getText(),
-        'Error in dropdown condition'
+        'Error in dropdown condition',
       );
       await gu.sendKeys(Key.ESCAPE);
     });
@@ -200,14 +200,14 @@ describe('DropdownConditionEditor', function () {
           'choice\n.id\n ',
           'choice\n.Name\n ',
           'choice\n.Role\n ',
-          'choice\n.Supervisor\n '
+          'choice\n.Supervisor\n ',
         ]);
       });
       await gu.sendKeys('.Role == "Supervisor" and $Role != "Supervisor" and $id != 2', Key.ENTER);
       await gu.waitForServer();
       assert.equal(
         await driver.find('.test-field-dropdown-condition .ace_line').getAttribute('textContent'),
-        'choice.Role == "Supervisor" and $Role != "Supervisor" and $id != 2\n'
+        'choice.Role == "Supervisor" and $Role != "Supervisor" and $id != 2\n',
       );
 
       // Check that autocomplete values are filtered.
@@ -250,7 +250,7 @@ describe('DropdownConditionEditor', function () {
       await gu.setType('Reference List', {apply: true});
       assert.equal(
         await driver.find('.test-field-dropdown-condition .ace_line').getAttribute('textContent'),
-        'choice.Role == "Supervisor" and $Role != "Supervisor" and $id != 2\n'
+        'choice.Role == "Supervisor" and $Role != "Supervisor" and $id != 2\n',
       );
       await gu.getCell(2, 4).click();
       await gu.sendKeys(Key.ENTER);
@@ -295,7 +295,7 @@ describe('DropdownConditionEditor', function () {
       await gu.waitForServer();
       assert.equal(
         await driver.find('.test-field-dropdown-condition-error').getText(),
-        'SyntaxError invalid syntax on line 1 col 1'
+        'SyntaxError invalid syntax on line 1 col 1',
       );
       await gu.reloadDoc();
       assert.isFalse(await driver.find('.test-field-dropdown-condition-error').isPresent());
@@ -308,12 +308,12 @@ describe('DropdownConditionEditor', function () {
 
       assert.equal(
         await driver.find('.test-field-dropdown-condition-error').getText(),
-        "Unknown variable 'foo'"
+        "Unknown variable 'foo'",
       );
       await gu.reloadDoc();
       assert.equal(
         await driver.find('.test-field-dropdown-condition-error').getText(),
-        "Unknown variable 'foo'"
+        "Unknown variable 'foo'",
       );
 
       // Check that the autocomplete dropdown also reports an error.
@@ -321,7 +321,7 @@ describe('DropdownConditionEditor', function () {
 
       assert.equal(
         await driver.findWait('.test-autocomplete-no-items-message', 100).getText(),
-        'Error in dropdown condition'
+        'Error in dropdown condition',
       );
       await gu.sendKeys(Key.ESCAPE);
 
@@ -333,7 +333,7 @@ describe('DropdownConditionEditor', function () {
 
       assert.equal(
         await driver.findWait('.test-autocomplete-no-items-message', 100).getText(),
-        'Error in dropdown condition'
+        'Error in dropdown condition',
       );
       await gu.sendKeys(Key.ESCAPE);
     });
@@ -356,7 +356,7 @@ describe('DropdownConditionEditor', function () {
         'user.\nOrigin\n ',
         'user.\nRoles.Admin\n ',
         'user.\nRoles.Email\n ',
-        ''
+        '',
       ]);
     });
     await gu.sendKeys('Roles.Admin == True', Key.ENTER);

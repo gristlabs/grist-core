@@ -20,6 +20,6 @@ export function addViewportTag() {
       // pinch-to-zoom. On Android, it's not needed, and would prevent manual zoom.
       const viewportContent = "width=device-width,initial-scale=1.0" + (isIOS() ? ",maximum-scale=1" : "");
       return dom('meta', {name: "viewport", content: viewportContent});
-    })
+    }),
   );
 }

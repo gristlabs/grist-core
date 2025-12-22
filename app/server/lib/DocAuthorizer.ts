@@ -40,7 +40,7 @@ export class DocAuthorizerImpl implements DocAuthorizer {
   private _key: DocAuthKey;
   private _docAuth?: DocAuthResult;
   constructor(
-    private _options: DocAuthorizerOptions
+    private _options: DocAuthorizerOptions,
   ) {
     this.openMode = _options.openMode;
     const {dbManager, authSession} = _options;

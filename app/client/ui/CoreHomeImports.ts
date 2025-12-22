@@ -75,7 +75,7 @@ export async function fileImport(
 export async function importFromPlugin(
   app: AppModel,
   workspaceId: number | "unsaved",
-  importSourceElem: ImportSourceElement
+  importSourceElem: ImportSourceElement,
 ) {
   const screen = PluginScreen.create(null, importSourceElem.importSource.label);
   try {

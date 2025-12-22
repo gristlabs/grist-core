@@ -146,7 +146,7 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
       {
         method: "POST",
         body: JSON.stringify({ records: [{ fields: colValues }] }),
-      }
+      },
     );
   }
 

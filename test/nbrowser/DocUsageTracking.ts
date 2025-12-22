@@ -5,7 +5,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 import {server} from 'test/nbrowser/testServer';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 import {
-  enableExternalAttachmentsForTestSuite
+  enableExternalAttachmentsForTestSuite,
 } from 'test/nbrowser/externalAttachmentsHelpers';
 
 describe('DocUsageTracking', function() {
@@ -63,7 +63,7 @@ describe('DocUsageTracking', function() {
         'docs/Covid-19.grist,docs/World-v0.grist,docs/World-v1.grist,docs/World-v3.grist,'
         + 'docs/Landlord.grist,docs/ImportReferences.grist,docs/WorldUndo.grist,'
         + 'docs/Ref-List-AC-Test.grist,docs/PasteParsing.grist',
-        () => driver.find('.test-pw-add').click()
+        () => driver.find('.test-pw-add').click(),
       );
       // Check all 9 attachments have uploaded.
       await driver.findContentWait('.test-pw-counter', /of 9/, 4000);
@@ -191,6 +191,6 @@ async function removeUnusedAttachments(api: UserAPI, docId: string) {
   const url = server.getUrl('docs', `/api/docs/${docId}`);
   await fetch(url + "/attachments/removeUnused?verifyfiles=0&expiredonly=0", {
     headers,
-    method: "POST"
+    method: "POST",
   });
 }

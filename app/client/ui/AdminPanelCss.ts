@@ -16,7 +16,7 @@ export interface AdminPanelControls {
 export function HidableToggle(
   owner: IDisposableOwner,
   value: Observable<boolean|null>,
-  options: {labelId?: string} = {}
+  options: {labelId?: string} = {},
 ) {
   return toggleSwitch(value, {
     args: [dom.hide(use => use(value) === null)],

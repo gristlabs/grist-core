@@ -35,7 +35,7 @@ import {
   MultiHolder,
   ObsArray,
   Observable,
-  styled
+  styled,
 } from 'grainjs';
 import * as ko from 'knockout';
 import flatMap from 'lodash/flatMap';
@@ -111,7 +111,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
 
   constructor(
     protected gristDoc: GristDoc,
-    public comments: Observable<CellRec[]>
+    public comments: Observable<CellRec[]>,
   ) {
     super();
 
@@ -148,8 +148,8 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
           userName: author?.name ?? '',
           sectionId: pos.sectionId,
           ...commentText,
-        } as CommentContent)
-      }
+        } as CommentContent),
+      },
     ]], t('Started discussion'));
   }
 
@@ -172,8 +172,8 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
           tableRef: comment.tableRef.peek(),
           colRef: comment.colRef.peek(),
           rowId: comment.rowId.peek(),
-        }
-      ])
+        },
+      ]),
     );
   }
 
@@ -252,7 +252,7 @@ export class CommentPopup extends Disposable {
               onSave: text => this._onSave(text).catch(reportError),
             });
           }
-        })
+        }),
       );
     }, {
       placement: 'bottom',
@@ -303,7 +303,7 @@ export class CommentMonitor extends Disposable {
           .then(() => this.isDisposed() || allCommands.openDiscussion.run(null, discarded.text))
           .then(() => this.clear())
           .catch(reportError);
-      })
+      }),
     );
   }
 }
@@ -342,11 +342,11 @@ class EmptyThread extends Disposable {
       testId('topic-empty'),
       testId('topic'),
       cssCommonPadding(
-        this._entry.buildDom()
+        this._entry.buildDom(),
       ),
       dom.onKeyDown({
         Escape: () => this.props.closeClicked?.(),
-      })
+      }),
     );
   }
 
@@ -442,15 +442,15 @@ class SingleThread extends Disposable implements IDomComponent {
             cssDiscussion.cls("-resolved", use => Boolean(use(comment.resolved))),
             dom.create(Comment, {
               ...this.props,
-              comment
-            })
+              comment,
+            }),
           );
-        })
+        }),
       ),
       dom.maybe(use => !use(this.props.gristDoc.isReadonly), () => this._createCommentEntry()),
       dom.onKeyDown({
         Escape: () => this.props.closeClicked?.(),
-      })
+      }),
     );
   }
 
@@ -551,15 +551,15 @@ class MultiThreads extends Disposable implements IDomComponent {
                 ...this._props,
                 access: this._access,
                 panel: true,
-                comment
-              })
-            )
+                comment,
+              }),
+            ),
           );
-        })
+        }),
       ),
       dom.onKeyDown({
         Escape: () => this._props.closeClicked?.(),
-      })
+      }),
     );
   }
 
@@ -620,7 +620,7 @@ class Comment extends Disposable {
     this._resolved = Computed.create(this, use =>
       this._isReply && this.props.parent
         ? Boolean(use(this.props.parent.resolved))
-        : Boolean(use(this.props.comment.resolved))
+        : Boolean(use(this.props.comment.resolved)),
     );
     this._showReplies = Computed.create(this, (use) => {
       // We don't show replies if we are reply.
@@ -680,8 +680,8 @@ class Comment extends Disposable {
                     placement: 'bottom-start',
                     attach: `.${containerClass()}`,
                   }),
-                  dom.on('click', stopPropagation)
-                )
+                  dom.on('click', stopPropagation),
+                ),
               ]),
             ),
           ),
@@ -699,7 +699,7 @@ class Comment extends Disposable {
               dom.domComputed(comment.text, (text?: string) => text && renderCellMarkdown(text)),
               testId('comment-text'),
             );
-          })
+          }),
         ),
         // Comment editor
         dom.maybeOwned(this._isEditing,
@@ -722,7 +722,7 @@ class Comment extends Disposable {
               args: [testId('editor-edit')],
               access: this.props.access,
             });
-          }
+          },
         ),
         dom.maybe(this._showReplies, () =>
           cssCommentReplyWrapper(
@@ -736,11 +736,11 @@ class Comment extends Disposable {
                     comment: commentReply,
                     parent: this.props.comment,
                     args: [dom.style('padding-left', '0px'), dom.style('padding-right', '0px')],
-                  })
+                  }),
                 );
               }),
-            )
-          )
+            ),
+          ),
         ),
         // Reply editor or button
         dom.maybe(use =>
@@ -778,7 +778,7 @@ class Comment extends Disposable {
                 access: this.props.access,
               });
             }
-          })
+          }),
         ),
         // Resolved marker
         dom.domComputed((use) => {
@@ -787,7 +787,7 @@ class Comment extends Disposable {
             testId('comment-resolved'),
             icon('FieldChoice'),
             cssResolvedText(dom.text(
-              t(`Marked as resolved`)
+              t(`Marked as resolved`),
             )));
         }),
       ]),
@@ -832,7 +832,7 @@ class Comment extends Disposable {
       (this.props.cursorPos ?
         menuItem(
           () => this.props.gristDoc.copyAnchorLink({comments: true, ...this.props.cursorPos}).catch(reportError),
-          t("Copy link")
+          t("Copy link"),
         ) :
         null
       ),
@@ -871,7 +871,7 @@ class Comment extends Disposable {
         dom.cls('disabled', use => {
           // Only comment author can edit
           return currentUser !== use(comment.userRef) || use(this.props.gristDoc.isReadonly);
-        })
+        }),
       ),
     ];
   }
@@ -951,9 +951,9 @@ class CommentEntry extends Disposable {
           testId('button-send'),
         ),
         dom.forEach(this.props.buttons || [], button => basicButton(
-          button, clickBuilder(button), testId(`button-${button}`)
+          button, clickBuilder(button), testId(`button-${button}`),
         )),
-      )
+      ),
     );
   }
 
@@ -1104,11 +1104,11 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
           readonly: this._grist.isReadonly,
           gristDoc: this._grist,
           cell: topic,
-        })
+        }),
       ),
       domOnCustom(Comment.SELECT, (ds: CellRec) => {
         this._navigate(ds).catch(() => {});
-      })
+      }),
     );
   }
 
@@ -1125,7 +1125,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
             labeledSquareCheckbox(this._resolved, t("Show resolved comments"), testId('show-resolved')),
           )];
         }, {placement: 'bottom-start'}),
-        dom.on('click', stopPropagation)
+        dom.on('click', stopPropagation),
       ),
     );
   }
@@ -1185,7 +1185,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
     const ok = await this._grist.recursiveMoveToCursorPos({
       rowId,
       sectionId,
-      fieldIndex
+      fieldIndex,
     }, true);
     if (!ok) {
       return;
@@ -1239,7 +1239,7 @@ function commentAuthor(grist: GristDoc, userRef?: string, userName?: string): Fu
         name: userName || '',
         ref: userRef || '',
         email: '',
-        id: 0
+        id: 0,
       };
     }
     if (!loggedInUser.ref) {
@@ -1255,7 +1255,7 @@ function commentAuthor(grist: GristDoc, userRef?: string, userName?: string): Fu
       name: userName,
       ref: userRef || '',
       email: '',
-      id: 0
+      id: 0,
     };
   }
 }

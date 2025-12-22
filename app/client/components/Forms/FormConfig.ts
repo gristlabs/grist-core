@@ -27,7 +27,7 @@ export class FormSelectConfig extends Disposable {
   public buildDom() {
     const format = fieldWithDefault<FormSelectFormat>(
       this._field.widgetOptionsJson.prop('formSelectFormat'),
-      'select'
+      'select',
     );
 
     return [
@@ -55,7 +55,7 @@ export class FormOptionsAlignmentConfig extends Disposable {
   public buildDom() {
     const alignment = fieldWithDefault<FormOptionsAlignment>(
       this._field.widgetOptionsJson.prop('formOptionsAlignment'),
-      'vertical'
+      'vertical',
     );
 
     return [
@@ -67,7 +67,7 @@ export class FormOptionsAlignmentConfig extends Disposable {
             {value: 'vertical', label: t('Vertical')},
             {value: 'horizontal', label: t('Horizontal')},
           ],
-          {defaultLabel: t('Vertical')}
+          {defaultLabel: t('Vertical')},
         ),
       ),
     ];
@@ -82,7 +82,7 @@ export class FormOptionsSortConfig extends Disposable {
   public buildDom() {
     const optionsSortOrder = fieldWithDefault<FormOptionsSortOrder>(
       this._field.widgetOptionsJson.prop('formOptionsSortOrder'),
-      'default'
+      'default',
     );
 
     return [
@@ -95,7 +95,7 @@ export class FormOptionsSortConfig extends Disposable {
             {value: 'ascending', label: t('Ascending')},
             {value: 'descending', label: t('Descending')},
           ],
-          {defaultLabel: t('Default')}
+          {defaultLabel: t('Default')},
         ),
       ),
     ];
@@ -154,13 +154,13 @@ export class FormFieldRulesConfig extends Disposable {
           t('Accept value from URL'),
           testId('field-accept-from-url'),
         ),
-        'formUrlValues'
+        'formUrlValues',
       )),
       dom.maybe(acceptFromUrl, () => [
         // We set tabIndex to let the user select the text to copy-paste the column ID (parameter name).
         cssHintRow({tabIndex: '-1'},
           t('URL parameter:\n{{colId}}=VALUE', {colId: dom('b', dom.text(this._field.colId))}),
-          testId('field-url-hint')
+          testId('field-url-hint'),
         ),
       ]),
     ];

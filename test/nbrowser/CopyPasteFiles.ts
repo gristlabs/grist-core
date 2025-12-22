@@ -38,7 +38,7 @@ describe('CopyPasteFiles', function() {
 
     // Add a couple more records
     await api.applyUserActions(docId, [
-      ['BulkAddRecord', 'Table1', [null, null], {Name: ['Alice', 'Bob']}]
+      ['BulkAddRecord', 'Table1', [null, null], {Name: ['Alice', 'Bob']}],
     ]);
 
     await gu.selectGridArea([2, 1], [3, 2]);

@@ -11,7 +11,7 @@ export class GroupUsersCreatedAt1749454162428 implements MigrationInterface {
       comment: 'When the user has been added to the associated group. This column is not exposed to the ORM.',
       type: datetime,
       default: now,
-      isNullable: true
+      isNullable: true,
     }));
   }
 

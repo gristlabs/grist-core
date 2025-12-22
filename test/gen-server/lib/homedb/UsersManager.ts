@@ -70,7 +70,7 @@ describe('UsersManager', function () {
      * @returns The Resources and their respective members
      */
     function populateResourcesWithMembers(
-      resources: Resource[], nbUsersByResource: number, makeResourceGrpName?: (idx: number) => string
+      resources: Resource[], nbUsersByResource: number, makeResourceGrpName?: (idx: number) => string,
     ): Map<Resource, User[]> {
       const membersByResource = new Map<Resource, User[]>();
       const idxIterator = makeUserIdIterator();
@@ -80,11 +80,11 @@ describe('UsersManager', function () {
         const group = Group.create({
           name: makeResourceGrpName?.(idx),
           type: Group.ROLE_TYPE,
-          memberUsers: members
+          memberUsers: members,
         });
         aclRule.group = group;
         resource.aclRules = [
-          aclRule
+          aclRule,
         ];
         membersByResource.set(resource, members);
       }
@@ -165,7 +165,7 @@ describe('UsersManager', function () {
 
       it('should retrieve no users if passed groups do not contain any', function () {
         const groups = makeGroups({
-          'members': undefined
+          'members': undefined,
         });
 
         const result = UsersManager.getUsersWithRole(groups);
@@ -179,7 +179,7 @@ describe('UsersManager', function () {
           'editors': makeUsers(3, idxIt),
           'owners': makeUsers(4, idxIt),
           'members': makeUsers(5, idxIt),
-          'viewers': []
+          'viewers': [],
         };
         const groups = makeGroups(groupsUsersMap);
 
@@ -254,8 +254,8 @@ describe('UsersManager', function () {
         connectId: `ConnectId-${localPart}`,
         picture: `https://mypic.com/${localPart}.png`,
         extra: {
-          extrafield: 'randomvalue'
-        }
+          extrafield: 'randomvalue',
+        },
       };
     }
 
@@ -277,7 +277,7 @@ describe('UsersManager', function () {
             const parts = parseUrlId(docId);
             await db.connection.query('delete from docs where id = $1', [parts.forkId || parts.trunkId]);
             docDeletes.push(docId);
-          }
+          },
         },
         notifier);
       await createInitialDb();
@@ -324,7 +324,7 @@ describe('UsersManager', function () {
           ANONYMOUS_USER_ID,
           PREVIEWER_USER_ID,
           EVERYONE_USER_ID,
-          SUPPORT_USER_ID
+          SUPPORT_USER_ID,
         ]);
       });
     });
@@ -363,7 +363,7 @@ describe('UsersManager', function () {
         assert.deepEqual(user.prefs, [{
           userId: expectedUser.id,
           orgId: expectedUser.personalOrg.id,
-          prefs: { showGristTour: true } as any
+          prefs: { showGristTour: true } as any,
         }]);
       });
 
@@ -382,7 +382,7 @@ describe('UsersManager', function () {
           isSupport: true,
           email: SUPPORT_EMAIL,
           id: supportId,
-          name: 'Support'
+          name: 'Support',
         };
         assert.deepInclude(user, expectedResult);
         assert.notOk(user.anonymous, 'anonymous property should be falsy');
@@ -423,7 +423,7 @@ describe('UsersManager', function () {
         prefs: {placeholder: 'pref-without-org'},
         orgId: null,
         user: new User(),
-        userId: SOME_USER_ID
+        userId: SOME_USER_ID,
       };
 
 
@@ -434,7 +434,7 @@ describe('UsersManager', function () {
           name: 'some user',
           picture: 'https://grist.com/mypic',
           options: {
-            locale: someUserLocale
+            locale: someUserLocale,
           },
           logins: [
             Login.create({
@@ -445,8 +445,8 @@ describe('UsersManager', function () {
           ],
           prefs: [
             prefWithOrg,
-            prefWithoutOrg
-          ]
+            prefWithoutOrg,
+          ],
         });
       }
 
@@ -515,12 +515,12 @@ describe('UsersManager', function () {
         assert.deepInclude(user, {
           isFirstTimeUser: false,
           name: profile.name,
-          picture: profile.picture
+          picture: profile.picture,
         });
         assert.exists(user.logins?.[0]);
         assert.deepInclude(user.logins[0], {
           email: profile.email.toLowerCase(),
-          displayEmail: profile.email
+          displayEmail: profile.email,
         });
         return user;
       }
@@ -805,7 +805,7 @@ describe('UsersManager', function () {
           const timers = sandbox.useFakeTimers(42_000);
           const localPart = ensureUnique('getuserbylogin-with-profile-populates-first_time_login-and-name');
           const user = await db.getUserByLogin(makeEmail(localPart), {
-            profile: {name: '', email: makeEmail(localPart)}
+            profile: {name: '', email: makeEmail(localPart)},
           });
           assert.equal(user.name, localPart);
           assert.equal(user.firstLoginAt?.getTime(), 42_000);
@@ -832,7 +832,7 @@ describe('UsersManager', function () {
               ssoExtraInfo: {
                 extrafield: profile.extra!.extrafield,
               },
-            }
+            },
           });
           assert.deepInclude(updatedUser.logins[0], {
             displayEmail: profile.email,
@@ -931,7 +931,7 @@ describe('UsersManager', function () {
           profile: {
             name: 'someone to delete',
             email: makeEmail(localPart),
-          }
+          },
         });
 
         const promise = db.deleteUser({userId: userToDelete.id}, userToDelete.id, 'wrong name');
@@ -947,7 +947,7 @@ describe('UsersManager', function () {
           profile: {
             name: 'someone to delete',
             email: makeEmail(localPart),
-          }
+          },
         });
 
         assertExists(await getPersonalOrg(userToDelete));
@@ -974,7 +974,7 @@ describe('UsersManager', function () {
           profile: {
             name: 'someone to delete',
             email: makeEmail(localPart),
-          }
+          },
         });
 
         // Make a little org owned by someone else, to hold a doc
@@ -991,29 +991,29 @@ describe('UsersManager', function () {
         await db.updateOrgPermissions({userId: support.id},
                                       'deleteuser-org', {
                                         users: {
-                                          'everyone@getgrist.com': 'owners'
-                                        }
+                                          'everyone@getgrist.com': 'owners',
+                                        },
                                       });
         // Get the default workspace.
         const ws = db.unwrapQueryResult(
           await db.getOrgWorkspaces({userId: support.id},
-                                    'deleteuser-org')
+                                    'deleteuser-org'),
         )[0];
         // Add a document to the workspace.
         const doc = db.unwrapQueryResult(
           await db.addDocument({userId: support.id}, ws.id,
-                               {name: 'doc-name'})
+                               {name: 'doc-name'}),
         );
         // Have our user-to-delete fork the document.
         const forkId = db.unwrapQueryResult(
-          await db.forkDoc(userToDelete.id, doc, 'xyz')
+          await db.forkDoc(userToDelete.id, doc, 'xyz'),
         );
         const urlId = buildUrlId({trunkId: doc.id, forkId, forkUserId: userToDelete.id});
 
         // Check the fork is listed in the home db.
         assert.deepEqual(
           await db.connection.query("select name from docs where id = 'xyz'"),
-          [{name: 'doc-name'}]
+          [{name: 'doc-name'}],
         );
 
         // Delete the user, and make sure the fork is deleted.
@@ -1025,7 +1025,7 @@ describe('UsersManager', function () {
         // Confirm the fork is no longer listed in the home db.
         assert.deepEqual(
           await db.connection.query("select name from docs where id = 'xyz'"),
-          []
+          [],
         );
 
         // Confirm the user is gone.
@@ -1039,7 +1039,7 @@ describe('UsersManager', function () {
           profile: {
             name: userName,
             email: makeEmail(localPart),
-          }
+          },
         });
 
         const promise = db.deleteUser({userId: userToDelete.id}, userToDelete.id, userName);
@@ -1073,7 +1073,7 @@ describe('UsersManager', function () {
           ...profile,
           id: userCreated.id,
           locale: someLocale,
-          anonymous: false
+          anonymous: false,
         }]);
       });
 
@@ -1082,13 +1082,13 @@ describe('UsersManager', function () {
         const seq = Array(10).fill(null).map((_, i) => i+1);
         const localParts = seq.map(i => `${localPartPrefix}_${i}`);
         const usersCreated = await Promise.all(
-          localParts.map(localPart => getOrCreateUser(localPart))
+          localParts.map(localPart => getOrCreateUser(localPart)),
         );
 
         const res = await db.completeProfiles(
           localParts.map(
-            localPart => ({name: 'whatever', email: makeEmail(localPart)})
-          )
+            localPart => ({name: 'whatever', email: makeEmail(localPart)}),
+          ),
         );
         assert.lengthOf(res, localParts.length);
         for (const [index, localPart] of localParts.entries()) {
@@ -1188,7 +1188,7 @@ describe('UsersManager', function () {
           {name: "Support", email: SUPPORT_EMAIL},
           {name: "Anonymous", email: ANONYMOUS_USER_EMAIL},
           {name: "Preview", email: PREVIEWER_EMAIL},
-          {name: "Everyone", email: EVERYONE_EMAIL}
+          {name: "Everyone", email: EVERYONE_EMAIL},
         ];
         for (const {email} of specialAccounts) {
           assert.notExists(await db.getExistingUserByLogin(email));
@@ -1256,8 +1256,8 @@ describe('UsersManager', function () {
         const api = new UserAPIImpl(server.flexServer.getDefaultHomeUrl(), {
           fetch: fetch as any,
           headers: {
-            Authorization: `Bearer ${apiKey}`
-          }
+            Authorization: `Bearer ${apiKey}`,
+          },
         });
 
         // Make a little org owned by someone else, to hold a doc
@@ -1274,13 +1274,13 @@ describe('UsersManager', function () {
         await db.updateOrgPermissions({userId: support.id},
                                       'deleteuser-org-multi', {
                                         users: {
-                                          'everyone@getgrist.com': 'owners'
-                                        }
+                                          'everyone@getgrist.com': 'owners',
+                                        },
                                       });
         // Get the default workspace.
         const ws = db.unwrapQueryResult(
           await db.getOrgWorkspaces({userId: support.id},
-                                    'deleteuser-org-multi')
+                                    'deleteuser-org-multi'),
         )[0];
         // Add a document to the workspace.
         // Created by user-to-delete, but belongs to workspace.
@@ -1309,7 +1309,7 @@ describe('UsersManager', function () {
         // Check the fork is listed in the home db.
         assert.deepEqual(
           await db.connection.query("select name from docs where id = $1", [fork.forkId]),
-          [{name: 'doc-name'}]
+          [{name: 'doc-name'}],
         );
 
         // Delete the user.
@@ -1318,7 +1318,7 @@ describe('UsersManager', function () {
         // Confirm the fork is no longer listed in the home db.
         assert.deepEqual(
           await db.connection.query("select name from docs where id = $1", [fork.forkId]),
-          []
+          [],
         );
         // Confirm the fork is no longer on the file system.
         assert.isFalse(await fse.pathExists(docPath));

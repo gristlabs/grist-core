@@ -557,7 +557,7 @@ describe('CellColor', function() {
 
     // check the switch's color
     assert.equal(
-      await cell().find('.test-toggle-switch-slider').getCssValue('background-color'), gu.hexToRgb('#009058')
+      await cell().find('.test-toggle-switch-slider').getCssValue('background-color'), gu.hexToRgb('#009058'),
     );
 
   });

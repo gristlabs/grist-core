@@ -98,8 +98,8 @@ export class Assistant extends Disposable {
       `org:${
         this._appModel.currentOrg?.id ?? 0
       };assistantShowApproachingLimitBanner`,
-      true
-    )
+      true,
+    ),
   );
   private _showUpgradeBanner = Computed.create(this, (use) => {
     const { assistant, deploymentType } = getGristConfig();
@@ -191,7 +191,7 @@ export class Assistant extends Disposable {
             t("You have used all available credits."),
             " ",
             this._buildBannerUpgradeMessage(),
-            testId("banner-message")
+            testId("banner-message"),
           ),
           style: "error",
           bannerCssClass: cssBanner.className,
@@ -207,7 +207,7 @@ export class Assistant extends Disposable {
             t("You have {{numCredits}} remaining credits.", { numCredits }),
             " ",
             this._buildBannerUpgradeMessage(),
-            testId("banner-message")
+            testId("banner-message"),
           ),
           style: "warning",
           showCloseButton: true,
@@ -223,10 +223,10 @@ export class Assistant extends Disposable {
             t("Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}", {
               learnMoreLink: cssBannerAnchorLink(
                 { href: commonUrls.helpAssistant, target: "_blank" },
-                t("Learn more.")
-              )
+                t("Learn more."),
+              ),
             }),
-            testId("banner-message")
+            testId("banner-message"),
           ),
           style: "custom",
           background: "linear-gradient(to right, #29A3A3, #16A772)",
@@ -262,7 +262,7 @@ export class Assistant extends Disposable {
  else {
             await urlState().pushUrl({ billing: "billing" });
           }
-        })
+        }),
       ),
     });
   }
@@ -303,7 +303,7 @@ export class Assistant extends Disposable {
         Escape: () => this._options.onEscape?.(),
       }),
       dom.autoDispose(
-        this._userInput.addListener(value => (this._input.value = value))
+        this._userInput.addListener(value => (this._input.value = value)),
       ),
       dom.prop("disabled", this._conversation.thinking),
       dom.prop("placeholder", (use) => {
@@ -320,7 +320,7 @@ export class Assistant extends Disposable {
           if (!value) {
             setTimeout(() => this.focus(), 0);
           }
-        })
+        }),
       ),
     );
 
@@ -338,24 +338,24 @@ export class Assistant extends Disposable {
             dom.show(use => !use(this._conversation.thinking)),
             cssButton.cls(
               "-disabled",
-              use => use(this._conversation.thinking) || use(this._userInput).length === 0
+              use => use(this._conversation.thinking) || use(this._userInput).length === 0,
             ),
-            testId("send")
+            testId("send"),
           ),
           cssCancelButton(
             cssCancelIcon("Stop"),
             dom.on("click", this._cancel.bind(this)),
             dom.show(this._conversation.thinking),
-            testId("cancel")
+            testId("cancel"),
           ),
           dom.on("click", (ev) => {
             ev.stopPropagation();
             this.focus();
           }),
-          cssInputButtonsRow.cls("-disabled", this._conversation.thinking)
+          cssInputButtonsRow.cls("-disabled", this._conversation.thinking),
         ),
-        cssInputWrapper.cls("-disabled", this._conversation.thinking)
-      )
+        cssInputWrapper.cls("-disabled", this._conversation.thinking),
+      ),
     ));
   }
 
@@ -507,7 +507,7 @@ class AssistantConversation extends Disposable {
       buildIntroMessage: (...args: DomElementArg[]) => DomContents;
       onClearConversation: () => void;
       onApplyFormula?: (formula: string) => void;
-    }
+    },
   ) {
     super();
 
@@ -539,7 +539,7 @@ class AssistantConversation extends Disposable {
         });
         this.allMessages.set([]);
         this.newMessages.set([]);
-      })
+      }),
     );
 
     // Create observable array of messages that is connected to the ChatHistory.
@@ -547,13 +547,13 @@ class AssistantConversation extends Disposable {
     this.autoDispose(
       this.allMessages.addListener((messages) => {
         this._history.set({ ...this._history.get(), messages: [...messages] });
-      })
+      }),
     );
     this.newMessages = this.autoDispose(obsArray());
 
     this.historyLength = Computed.create(
       this,
-      use => use(this.allMessages).length
+      use => use(this.allMessages).length,
     );
     this.length = Computed.create(this, use => use(this.newMessages).length);
 
@@ -634,15 +634,15 @@ class AssistantConversation extends Disposable {
                 dom("span",
                   dom.text(entry.message),
                   testId("message-user"),
-                  testId("message")
+                  testId("message"),
                 ),
-                cssAvatar(buildAvatar(this._gristDoc))
+                cssAvatar(buildAvatar(this._gristDoc)),
               );
             }
  else if (entry.error) {
               return cssAiMessage(
                 cssAvatar(cssAiImage()),
-                this._buildErrorMessage(entry.error)
+                this._buildErrorMessage(entry.error),
               );
             }
  else {
@@ -652,8 +652,8 @@ class AssistantConversation extends Disposable {
                   this._render(
                     entry.message,
                     testId("message-ai"),
-                    testId("message")
-                  )
+                    testId("message"),
+                  ),
                 ),
                 !this._options.onApplyFormula
                   ? null
@@ -663,11 +663,11 @@ class AssistantConversation extends Disposable {
                           t("Apply"),
                           dom.on("click", () => {
                             this._options.onApplyFormula?.(entry.formula!);
-                          })
-                        )
+                          }),
+                        ),
                       ),
-                      dom.show(Boolean(entry.formula))
-                    )
+                      dom.show(Boolean(entry.formula)),
+                    ),
               );
             }
           }),
@@ -675,13 +675,13 @@ class AssistantConversation extends Disposable {
             dom("div",
               cssAiMessage(
                 cssAvatar(cssAiImage()),
-                cssLoadingDots()
-              )
-            )
+                cssLoadingDots(),
+              ),
+            ),
           ),
           () => { this.scrollDown({ smooth: false }); },
         ));
-      })
+      }),
     );
   }
 
@@ -699,9 +699,9 @@ receiving assistance.",
                 textButton.cls('-hover-bg-padding-sm'),
                 t("start a new chat"),
                 dom.on("click", () => this._options.onClearConversation()),
-              )
-            }
-          )
+              ),
+            },
+          ),
         );
       }
       default: {
@@ -726,12 +726,12 @@ receiving assistance.",
           el =>
             subscribeElem(el, gristThemeObs(), () => {
               el.innerHTML = sanitizeHTML(
-                parse(message, { async: false, renderer })
+                parse(message, { async: false, renderer }),
               );
             }),
-          ...args
+          ...args,
         );
-      })
+      }),
     );
   }
 }
@@ -739,15 +739,15 @@ receiving assistance.",
 function buildSignupNudge() {
   return cssSignupNudgeWrapper(
     cssSignupNudgeParagraph(
-      t("Sign up for a free Grist account to start using the AI Assistant.")
+      t("Sign up for a free Grist account to start using the AI Assistant."),
     ),
     cssSignupNudgeButtonsRow(
       bigPrimaryButtonLink(
         t("Sign Up for Free"),
         { href: getLoginOrSignupUrl() },
-        testId("sign-up")
-      )
-    )
+        testId("sign-up"),
+      ),
+    ),
   );
 }
 
@@ -755,8 +755,8 @@ function buildAnonNudge() {
   return cssSignupNudgeWrapper(
     cssSignupNudgeWrapper.cls("-center"),
     cssSignupNudgeParagraph(
-      t("AI Assistant is only available for logged in users.")
-    )
+      t("AI Assistant is only available for logged in users."),
+    ),
   );
 }
 

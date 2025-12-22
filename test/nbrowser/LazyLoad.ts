@@ -30,7 +30,7 @@ describe('LazyLoad', function() {
       'time.sleep(1.5)\n' +
       'return "42:%s" % int(time.time())';
     await api.applyUserActions(docId, [['AddTable', 'Foo', [
-      {id: 'B', type: 'Any', formula, isFormula: true}
+      {id: 'B', type: 'Any', formula, isFormula: true},
     ]]]);
     await api.applyUserActions(docId, [['AddTable', 'Bar', [
       {id: 'B', type: 'Any'},

@@ -65,7 +65,7 @@ export class ChoiceTextBox extends NTextBox {
               invalid: !use(this._choiceValuesSet).has(formattedValue),
             },
             dom.cls(cssChoiceText.className),
-            testId('choice-token')
+            testId('choice-token'),
           );
         }),
       ),
@@ -112,7 +112,7 @@ export class ChoiceTextBox extends NTextBox {
   protected save(choices: string[], choiceOptions: ChoiceOptionsByName, renames: Record<string, string>) {
     const options = {
       choices,
-      choiceOptions: toObject(choiceOptions)
+      choiceOptions: toObject(choiceOptions),
     };
     return this.field.config.updateChoices(renames, options);
   }
@@ -121,12 +121,12 @@ export class ChoiceTextBox extends NTextBox {
     const disabled = Computed.create(null,
       use => use(this.field.disableModify)
         || use(use(this.field.column).disableEditData)
-        || use(this.field.config.options.disabled('choices'))
+        || use(this.field.config.options.disabled('choices')),
       );
 
     const mixed = Computed.create(null,
       use => !use(disabled)
-        && (use(this.field.config.options.mixed('choices')) || use(this.field.config.options.mixed('choiceOptions')))
+        && (use(this.field.config.options.mixed('choices')) || use(this.field.config.options.mixed('choiceOptions'))),
       );
 
     return [
@@ -140,9 +140,9 @@ export class ChoiceTextBox extends NTextBox {
           this._choiceOptionsByName,
           this.save.bind(this),
           disabled,
-          mixed
-        )
-      )
+          mixed,
+        ),
+      ),
     ];
   }
 }

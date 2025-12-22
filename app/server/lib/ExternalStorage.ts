@@ -459,7 +459,7 @@ export function joinKeySegments(keySegments: string[]): string {
   const remainingParts = keySegments.slice(1);
   const strippedParts = [
     stripTrailingSlash(firstPart),
-    ...remainingParts.map(stripTrailingSlash).map(stripLeadingSlash)
+    ...remainingParts.map(stripTrailingSlash).map(stripLeadingSlash),
   ];
   return strippedParts.join("/");
 }

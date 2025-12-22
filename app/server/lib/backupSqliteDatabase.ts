@@ -240,6 +240,6 @@ export async function backupUsingBestConnection(
   return retryOnClose(
     db,
     options.log,
-    () => backupSqliteDatabase(db, docPath, outPath, undefined, postfix, {docId})
+    () => backupSqliteDatabase(db, docPath, outPath, undefined, postfix, {docId}),
   );
 }

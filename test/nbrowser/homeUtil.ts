@@ -111,7 +111,7 @@ export class HomeUtil {
       await testingHooks.setLoginSessionProfile(
         sid,
         {name, email, loginEmail: normalizeEmail(email), loginMethod},
-        org
+        org,
       );
     }
  else {
@@ -242,7 +242,7 @@ export class HomeUtil {
         return !await this.driver.findContent('.test-mfa-title', 'Almost there!').isPresent();
       },
       4000,
-      'Possible reason: verification code is invalid or expired (i.e. was recently used to log in)'
+      'Possible reason: verification code is invalid or expired (i.e. was recently used to log in)',
     );
   }
 
@@ -335,7 +335,7 @@ export class HomeUtil {
     creator: APIConstructor<T>,
     username: string|null,
     org: string,
-    email?: string
+    email?: string,
   ): T {
     const apiKey = this.getApiKey(username, email);
     return this._createApiUsingApiKey(creator, apiKey, org);
@@ -358,7 +358,7 @@ export class HomeUtil {
   public async setValue(inputEl: WebElement, value: string) {
     await this.driver.executeScript(
       (input: HTMLInputElement, val: string) => { input.value = val; },
-      inputEl, value
+      inputEl, value,
     );
   }
 

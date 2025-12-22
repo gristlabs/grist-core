@@ -146,7 +146,7 @@ export class GristClient {
     const req: GristRequest = {
       reqId: this._requestId,
       method,
-      args
+      args,
     };
     this.ws.send(JSON.stringify(req));
     const result = await p;
@@ -186,7 +186,7 @@ export async function openClient(server: FlexServer, email: string, org: string,
     headers[emailHeader] = email;
   }
   const ws = new GristClientSocket('ws://localhost:' + server.getOwnPort() + `/o/${org}`, {
-    headers
+    headers,
   });
   const client = new GristClient(ws);
   await new Promise(function(resolve, reject) {

@@ -35,8 +35,8 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
       body: () => [
         dom('p',
             t('Toggle the {{creatorPanel}} to format columns, ', {creatorPanel: dom('em', t('creator panel'))}),
-            t('convert to card view, select data, and more.')
-          )
+            t('convert to card view, select data, and more.'),
+          ),
       ],
       placement: 'left',
       cropPadding: true,
@@ -69,7 +69,7 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
       title: t('Sharing'),
       body: () => [
         dom('p', t('Use the Share button ({{share}}) to share the document or export data.',
-        {share: TopBarButtonIcon(t('Share'))}))
+        {share: TopBarButtonIcon(t('Share'))})),
       ],
       placement: 'bottom',
       cropPadding: true,
@@ -82,7 +82,7 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
           t(
             'Understand, modify and work with your data and formulas ' +
             "with the help of Grist's AI Assistant!",
-          )
+          ),
         ),
       ],
       placement: 'right' as const,
@@ -92,7 +92,7 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
       title: t('Flying higher'),
       body: () => [
         dom('p', t('Use {{helpCenter}} for documentation or questions.',
-        {helpCenter: ShortcutKey(GreyIcon('Help'), t('Help Center'))}))
+        {helpCenter: ShortcutKey(GreyIcon('Help'), t('Help Center'))})),
       ],
       placement: 'right',
     },
@@ -103,8 +103,8 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
         dom('p', t("Browse our {{templateLibrary}} to discover what's possible and get inspired.",
           {
             templateLibrary: cssLink({ target: '_blank', href: urlState().makeUrl({ homePage: "templates" }) },
-              t('template library'), cssInlineIcon('FieldLink'))
-          }
+              t('template library'), cssInlineIcon('FieldLink')),
+          },
         )),
       ],
       showHasModal: true,

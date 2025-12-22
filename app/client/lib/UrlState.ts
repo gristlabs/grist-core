@@ -139,7 +139,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
       replace?: boolean,
       avoidReload?: boolean,
       beforeChange?: () => void;
-    }
+    },
   ): DomElementMethod[] {
     return [
       dom.attr('href', use => this.makeUrl(urlState, use)),

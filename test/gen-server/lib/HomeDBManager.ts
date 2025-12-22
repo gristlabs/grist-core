@@ -16,7 +16,7 @@ const chimpyProfile = {email: 'chimpy@getgrist.com', name: 'Chimpy'};
 const kiwiProfile = {email: 'kiwi@getgrist.com', name: 'Kiwi'};
 
 const teamOptions = {
-  setUserAsOwner: false, useNewPlan: true, product: TEAM_PLAN
+  setUserAsOwner: false, useNewPlan: true, product: TEAM_PLAN,
 };
 
 describe('HomeDBManager', function() {
@@ -52,7 +52,7 @@ describe('HomeDBManager', function() {
   it('parallel requests resulting in user creation give consistent results', async function() {
     const profile = {
       email: uuidv4() + "@getgrist.com",
-      name: "Testy McTestyTest"
+      name: "Testy McTestyTest",
     };
     const queries = [];
     for (let i = 0; i < 100; i++) {
@@ -152,10 +152,10 @@ describe('HomeDBManager', function() {
     const misses = [
       'thing!', ' thing', 'ww', 'docs-999', 'o-99', '_domainkey', 'www', 'api',
       'thissubdomainiswaytoolongmyfriendyoushouldrethinkitoratleastsummarizeit',
-      'google', 'login', 'doc-worker-1-1-1-1', 'a', 'bb', 'x_y', '1ogin'
+      'google', 'login', 'doc-worker-1-1-1-1', 'a', 'bb', 'x_y', '1ogin',
     ];
     const hits = [
-      'thing', 'jpl', 'xyz', 'appel', '123', '1google'
+      'thing', 'jpl', 'xyz', 'appel', '123', '1google',
     ];
     for (const domain of misses) {
       const result = await home.addOrg(user, {name: `${domain}!`, domain}, teamOptions);
@@ -278,7 +278,7 @@ describe('HomeDBManager', function() {
       email: kiwiProfile.email,
       name: kiwiProfile.name,
       access: 'editors',
-      perms: 15
+      perms: 15,
     });
     suggestion = await home.getBestUserForOrg([charonProfile, kiwiProfile],
                                               await home.testGetId('Abyss') as number);
@@ -358,11 +358,11 @@ describe('HomeDBManager', function() {
     const user = await home.getUserByLogin('chimpy@getgrist.com');
     const userId = user.id;
     const orgId = (await home.addOrg(user, {name: 'features', domain: 'features'}, {
-      ...teamOptions, product: product.name
+      ...teamOptions, product: product.name,
     })).data!.id;
 
     const ws = home.unwrapQueryResult(
-        await home.getOrgWorkspaces({userId}, 'features')
+        await home.getOrgWorkspaces({userId}, 'features'),
       )[0];
 
     // Add a doc to that org.
@@ -444,7 +444,7 @@ describe('HomeDBManager', function() {
           createdBy: user1Id,
           options: null,
         },
-      ]
+      ],
     );
 
     // Fork "Shark" again and check that Kiwi can see both forks.
@@ -467,7 +467,7 @@ describe('HomeDBManager', function() {
           createdBy: user1Id,
           options: null,
         },
-      ]
+      ],
     );
 
     // Now fork "Shark" as Chimpy, and check that Kiwi's forks aren't listed.
@@ -490,7 +490,7 @@ describe('HomeDBManager', function() {
           createdBy: user2Id,
           options: null,
         },
-      ]
+      ],
     );
   });
 });

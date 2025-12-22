@@ -99,16 +99,16 @@ describe("ACLPermissions", function() {
     // Combining multiple bits.
     assert.deepEqual(merge(
         {read: 'allowSome', create: 'allow', update: 'denySome', delete: 'deny'},
-        {read: 'deny', create: 'denySome', update: 'deny', delete: 'denySome', schemaEdit: 'deny'}
+        {read: 'deny', create: 'denySome', update: 'deny', delete: 'denySome', schemaEdit: 'deny'},
       ),
-      {read: 'mixed', create: 'allow', update: 'deny', delete: 'deny', schemaEdit: 'deny'}
+      {read: 'mixed', create: 'allow', update: 'deny', delete: 'deny', schemaEdit: 'deny'},
     );
 
     assert.deepEqual(merge(makePartialPermissions(parsePermissions("all")), parsePermissions("+U-D")),
-      {read: 'allowSome', create: 'allowSome', update: 'allow', delete: 'mixed', schemaEdit: 'allowSome'}
+      {read: 'allowSome', create: 'allowSome', update: 'allow', delete: 'mixed', schemaEdit: 'allowSome'},
     );
     assert.deepEqual(merge(parsePermissions("+U-D"), makePartialPermissions(parsePermissions("all"))),
-      {read: 'allowSome', create: 'allowSome', update: 'allow', delete: 'deny', schemaEdit: 'allowSome'}
+      {read: 'allowSome', create: 'allowSome', update: 'allow', delete: 'deny', schemaEdit: 'allowSome'},
     );
   });
 

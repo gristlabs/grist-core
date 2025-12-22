@@ -17,7 +17,7 @@ const G = getBrowserGlobals('document', 'window');
  */
 export function createAppPage(
   buildAppPage: (appModel: AppModel) => DomContents,
-  modelOptions: TopAppModelOptions = {}
+  modelOptions: TopAppModelOptions = {},
 ) {
   setUpErrorHandling();
 

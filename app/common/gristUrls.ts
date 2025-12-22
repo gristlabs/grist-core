@@ -1059,7 +1059,7 @@ export function isClient() {
 
 function getCustomizableValue(
   clientSideConfigKey: keyof GristLoadConfig,
-  serverSideEnvVar: keyof NodeJS.ProcessEnv
+  serverSideEnvVar: keyof NodeJS.ProcessEnv,
 ) {
   return isClient() ? (window as any).gristConfig?.[clientSideConfigKey] : process.env[serverSideEnvVar];
 }
@@ -1360,7 +1360,7 @@ function withAdminDefinedUrls(defaultUrls: ICommonUrls): ICommonUrls {
 
   const merged = {
     ...defaultUrls,
-    ...(adminDefinedUrls)
+    ...(adminDefinedUrls),
   };
   ICommonUrlsChecker.strictCheck(merged);
   return merged;

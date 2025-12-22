@@ -23,7 +23,7 @@ describe('SortPositions', function() {
       .move({origin: rowHeaderFirst}).press()
       .move({origin: rowHeaderSecond}).release()
       .move({origin: rowHeaderFirst}).press()
-      .move({origin: rowHeaderTo}).release()
+      .move({origin: rowHeaderTo}).release(),
     );
     await gu.waitForServer();
   }
@@ -32,7 +32,7 @@ describe('SortPositions', function() {
     // First check that we CAN rearrange rows in a regular table.
     // Check the contents of the first 5 rows
     assert.deepEqual(await gu.getVisibleGridCells({
-      section: 'Sheet1 record', cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5]
+      section: 'Sheet1 record', cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5],
     }), [
       '2015-01-12', 'Howard Washington', '-1745.53',
       '2015-01-17', 'Howard Washington', '382.06',
@@ -103,7 +103,7 @@ describe('SortPositions', function() {
     await gu.addNewSection(/Table/, /Sheet1/, {summarize: [/Card_Member/]});
 
     // Check the first few cells.
-    assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1], rowNums: [1, 2, 3]}
+    assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1], rowNums: [1, 2, 3]},
     ), [
       'Howard Washington', '58',
       'Nyssa O\'Neil', '14',
@@ -118,7 +118,7 @@ describe('SortPositions', function() {
     await row2Header.click();
     await driver.withActions(actions => actions
       .move({origin: row2Header}).press()
-      .move({origin: row3Header}).release()
+      .move({origin: row3Header}).release(),
     );
     await gu.waitForServer();
 
@@ -172,7 +172,7 @@ describe('SortPositions', function() {
       await mainSession.createHomeApi().applyUserActions(docId, [
         ['ApplyDocActions', [
           ['BulkUpdateRecord', 'Table1', [1, 2], {manualSort: [0.006602524127749098, 0.006602524127749099]}],
-        ]]
+        ]],
       ]);
       await mainSession.loadDoc(`/doc/${docId}`);
 
@@ -200,7 +200,7 @@ describe('SortPositions', function() {
       await mainSession.createHomeApi().applyUserActions(docId, [
         ['ApplyDocActions', [
           ['BulkUpdateRecord', 'Table1', [1, 2, 3, 4], {manualSort: [1, 2, 3, 4]}],
-        ]]
+        ]],
       ]);
       await mainSession.loadDoc(`/doc/${docId}`);
 
@@ -235,7 +235,7 @@ describe('SortPositions', function() {
       const docId = await mainSession.tempNewDoc(cleanup, 'SortPositions_Bug.grist', {load: false});
       const api = mainSession.createHomeApi();
       await api.applyUserActions(docId, [
-        ['BulkAddRecord', 'Table1', [1, 2, 3], {'A': [10, 30, 20]}]
+        ['BulkAddRecord', 'Table1', [1, 2, 3], {'A': [10, 30, 20]}],
       ]);
 
       await mainSession.loadDoc(`/doc/${docId}`);
@@ -247,7 +247,7 @@ describe('SortPositions', function() {
       // Update rows 1 and 2 (first and last) in a way that keeps the newly-first row (2) in the
       // right place relative to its neighbor.
       await api.applyUserActions(docId, [
-        ['BulkUpdateRecord', 'Table1', [1, 2], {'A': [25, 24]}]
+        ['BulkUpdateRecord', 'Table1', [1, 2], {'A': [25, 24]}],
       ]);
 
       await gu.waitToPass(async () =>

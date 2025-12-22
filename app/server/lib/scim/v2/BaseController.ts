@@ -29,7 +29,7 @@ export class BaseController {
    * (See: https://github.com/scimmyjs/scimmy/pull/87)
    */
   protected maybeApplyFilter<T extends SCIMMY.Types.Schema>(
-    prefilteredResults: T[], filter?: SCIMMY.Types.Filter
+    prefilteredResults: T[], filter?: SCIMMY.Types.Filter,
   ): T[] {
     return filter ? filter.match(prefilteredResults) : prefilteredResults;
   }

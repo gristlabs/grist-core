@@ -11,7 +11,7 @@ export class UserConnectId1652277549983 implements MigrationInterface {
     await queryRunner.createIndex("users", new TableIndex({
       name: "users_connect_id",
       columnNames: ["connect_id"],
-      isUnique: true
+      isUnique: true,
     }));
   }
 

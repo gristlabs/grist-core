@@ -11,7 +11,7 @@ import {
   BaseFormatter,
   createFullFormatterRaw,
   createVisibleColFormatterRaw,
-  FullFormatterArgs
+  FullFormatterArgs,
 } from 'app/common/ValueFormatter';
 import {createParser} from 'app/common/ValueParser';
 import {Observable} from 'grainjs';
@@ -216,7 +216,7 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
 }
 
 export function formatterForRec(
-  rec: ColumnRec | ViewFieldRec, colRec: ColumnRec, docModel: DocModel, kind: 'full' | 'vcol'
+  rec: ColumnRec | ViewFieldRec, colRec: ColumnRec, docModel: DocModel, kind: 'full' | 'vcol',
 ): BaseFormatter {
   const vcol = rec.visibleColModel();
   const func = kind === 'full' ? createFullFormatterRaw : createVisibleColFormatterRaw;

@@ -53,7 +53,7 @@ describe('DocApi2', function() {
         {userCount: 5, label: 'small document'},
         {userCount: 5, label: 'small document'}, // Use results from second run to avoid cold start issues
         {userCount: 100, label: 'large document'},
-        {userCount: 100, label: 'large document'}
+        {userCount: 100, label: 'large document'},
       ];
 
       const results = new Map<number, number>();
@@ -74,7 +74,7 @@ describe('DocApi2', function() {
           users: userEmails.reduce((acc, email) => {
             acc[email] = 'viewers';
             return acc;
-          }, {} as {[email: string]: 'viewers'})
+          }, {} as {[email: string]: 'viewers'}),
         });
 
         // Create a new workspace called "TO"
@@ -115,7 +115,7 @@ describe('DocApi2', function() {
         {userCount: 5, label: 'small document'},
         {userCount: 5, label: 'small document'}, // Use results from second run to avoid cold start issues
         {userCount: 100, label: 'large document'},
-        {userCount: 100, label: 'large document'}
+        {userCount: 100, label: 'large document'},
       ];
 
       const results = new Map<number, number>();
@@ -143,7 +143,7 @@ describe('DocApi2', function() {
             users: userEmails.reduce((acc, email) => {
               acc[email] = 'viewers';
               return acc;
-            }, {} as {[email: string]: 'viewers'})
+            }, {} as {[email: string]: 'viewers'}),
           });
 
           try {
@@ -299,7 +299,7 @@ describe('DocApi2', function() {
       // Now create a table with a formula column and make sure we see it in the results.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/apply`, [
         ['AddTable', 'Timings', [
-          {id: 'A', formula: '$id'}
+          {id: 'A', formula: '$id'},
         ]],
       ], chimpy);
       assert.equal(resp.status, 200);

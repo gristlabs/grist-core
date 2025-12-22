@@ -52,13 +52,13 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
         menuDivider(),
         menuItemCmd(allCommands.copyLink,
           t("Copy anchor link"),
-          dom.cls('disabled', cellOptions.disableAnchorLink ?? false)
+          dom.cls('disabled', cellOptions.disableAnchorLink ?? false),
         ),
         menuDivider(),
         menuItemCmd(allCommands.filterByThisCellValue, t("Filter by this value")),
         menuItemCmd(allCommands.openDiscussion, t('Comment'), dom.cls('disabled', (
          isReadonly || numRows === 0 || numColumns === 0 || onlyAddRowSelected
-        )))
+        ))),
       ]
     ),
 

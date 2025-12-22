@@ -53,7 +53,7 @@ export class TimingPage extends DisposableWithEvents {
       dom.maybe(this._data, () =>
         dom('div', {style: 'display: flex; justify-content: space-between; align-items: baseline'},
           cssHeader(t('Formula timer')),
-        )
+        ),
       ),
       dom.maybe(this._data, () => {
         return this._doc.buildDom();
@@ -62,7 +62,7 @@ export class TimingPage extends DisposableWithEvents {
         loadingSpinner(),
         dom('div', t('Loading timing data. Don\'t close this tab.')),
         testId('spinner'),
-      ))
+      )),
     );
   }
 

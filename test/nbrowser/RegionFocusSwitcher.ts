@@ -12,7 +12,7 @@ const expectClipboardFocus = (yesNo: boolean, waitMs: number = 100) => {
 const isNormalElementFocused = async (containerSelector?: string) => {
   const activeElement = await driver.switchTo().activeElement();
   const isException = await activeElement.matches(
-    '.test-left-panel, .test-top-header, .test-right-panel, .test-main-content, body, textarea.copypaste.mousetrap'
+    '.test-left-panel, .test-top-header, .test-right-panel, .test-main-content, body, textarea.copypaste.mousetrap',
   );
   const isInContainer = containerSelector
     ? await activeElement.matches(`${containerSelector} *`)

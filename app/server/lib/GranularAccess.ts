@@ -452,7 +452,7 @@ export class GranularAccess implements GranularAccessForBundle {
   public async inputs(docSession: OptDocSession): Promise<PredicateFormulaInput> {
     return {
       user: await this.getUser(docSession),
-      docId: this._docId
+      docId: this._docId,
     };
   }
 
@@ -500,7 +500,7 @@ export class GranularAccess implements GranularAccessForBundle {
  else {
       rows = await this._fetchQueryFromDB({
         tableId: cell.tableId,
-        filters: { id: [cell.rowId] }
+        filters: { id: [cell.rowId] },
       });
     }
     if (!rows || rows[2].length === 0) {
@@ -846,7 +846,7 @@ export class GranularAccess implements GranularAccessForBundle {
   public async filterActionGroup(
     docSession: OptDocSession,
     actionGroup: ActionGroup,
-    options: {role?: Role | null} = {}
+    options: {role?: Role | null} = {},
   ): Promise<ActionGroup> {
     if (await this.allowActionGroup(docSession, actionGroup, options)) { return actionGroup; }
     // For now, if there's any nuance at all, suppress the summary and description.
@@ -863,7 +863,7 @@ export class GranularAccess implements GranularAccessForBundle {
   public async allowActionGroup(
     docSession: OptDocSession,
     _actionGroup: ActionGroup,
-    options: {role?: Role | null} = {}
+    options: {role?: Role | null} = {},
   ): Promise<boolean> {
     return this.canReadEverything(docSession, options);
   }
@@ -893,7 +893,7 @@ export class GranularAccess implements GranularAccessForBundle {
   public async filterDocUsageSummary(
     docSession: OptDocSession,
     docUsage: DocUsageSummary,
-    options: {role?: Role | null} = {}
+    options: {role?: Role | null} = {},
   ): Promise<FilteredDocUsageSummary> {
     const usageRecommendations = await this.getUsageRecommendations(docSession, docUsage);
     const result: FilteredDocUsageSummary = { ...docUsage, usageRecommendations };
@@ -1098,7 +1098,7 @@ export class GranularAccess implements GranularAccessForBundle {
    */
   public async canReadEverything(
     docSession: OptDocSession,
-    options: {role?: Role | null} = {}
+    options: {role?: Role | null} = {},
   ): Promise<boolean> {
     const access = options.role ?? await this.getNominalAccess(docSession);
     if (!canView(access)) { return false; }
@@ -1222,7 +1222,7 @@ export class GranularAccess implements GranularAccessForBundle {
       return {
         perms: {read: 'allow', create: 'allow', delete: 'allow', update: 'allow', schemaEdit: 'allow'},
         ruleType: 'table',
-        getMemos() { throw new Error('never needed'); }
+        getMemos() { throw new Error('never needed'); },
       };
     }
     return (await this._getAccess(docSession)).getTableAccess(tableId);
@@ -1395,13 +1395,13 @@ export class GranularAccess implements GranularAccessForBundle {
       async (tableId) => {
         return {
           tableData: await this._fetchQueryFromDB(
-            {tableId, filters: {id: [...rows.get(tableId)!]}})
+            {tableId, filters: {id: [...rows.get(tableId)!]}}),
         };
       }, {
         _grist_Cells: this._docData.getMetaTable('_grist_Cells').getTableDataAction(),
         // We need some basic table information to translate numeric ids to string ids (refs to ids).
         _grist_Tables: this._docData.getMetaTable('_grist_Tables').getTableDataAction(),
-        _grist_Tables_column: this._docData.getMetaTable('_grist_Tables_column').getTableDataAction()
+        _grist_Tables_column: this._docData.getMetaTable('_grist_Tables_column').getTableDataAction(),
       },
     );
     // Load pre-existing rows touched by the bundle.
@@ -2126,7 +2126,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
     const dbAccess = dbUser ? await this._homeDbManager?.getDocAuthCached({
       urlId: this._docId,
-      userId: dbUser.id
+      userId: dbUser.id,
     }) : null;
 
     // If we want to preview as an existing user who has access to the document, we will use users' real
@@ -2134,7 +2134,7 @@ export class GranularAccess implements GranularAccessForBundle {
     if (dbUser && dbAccess?.access) {
       return {
         access: dbAccess.access,
-        user: this._homeDbManager?.makeFullUser(dbUser) || null
+        user: this._homeDbManager?.makeFullUser(dbUser) || null,
       };
     }
  else if (linkParameters.aclAsUser) {
@@ -2164,7 +2164,7 @@ export class GranularAccess implements GranularAccessForBundle {
             id: -1,
             email: dummyUser.email!,
             name: dummyUser.name || dummyUser.email!,
-          }
+          },
         };
       }
     }
@@ -2275,7 +2275,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const docData = new DocData(
       async (tableId) => {
         return {
-          tableData: await this._fetchQueryFromDB({tableId, filters: {id: [...rows.get(tableId)!]}})
+          tableData: await this._fetchQueryFromDB({tableId, filters: {id: [...rows.get(tableId)!]}}),
         };
       },
       metaData,
@@ -2661,7 +2661,7 @@ export class GranularAccess implements GranularAccessForBundle {
    */
   private async _filterSchemaActionsForNotifications(
     docSession: OptDocSession,
-    docActions: DocAction[]
+    docActions: DocAction[],
   ): Promise<DocAction[]> {
     try {
       await this._assertSchemaAccess(docSession);
@@ -2778,7 +2778,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const cursor = {
       docSession,
       action: before[before.length - 1],
-      actionIdx: before.length - 1
+      actionIdx: before.length - 1,
     };
     const ruler = await this._getRuler(cursor);
     const permInfo = await ruler.getAccess(docSession);
@@ -2804,7 +2804,7 @@ export class GranularAccess implements GranularAccessForBundle {
       // Probably there are rules at the cell level, check them.
       const rows = await readRows({
         tableId: cell.tableId,
-        filters: { id: [cell.rowId] }
+        filters: { id: [cell.rowId] },
       });
       // Make sure we have row.
       if (!rows || rows[2].length === 0) {
@@ -2856,7 +2856,7 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   private async _getOutgoingDocActionsForNotifications(
-    userData?: UserAccessData
+    userData?: UserAccessData,
   ): Promise<DocAction[]> {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
     const { docActions, isDirect, docSession } = this._activeBundle;
@@ -3046,7 +3046,7 @@ class AccessCheck implements IAccessCheck {
       this.access;
     throw new ErrorWithCode('ACL_DENY', `Blocked by ${ps.ruleType} ${label} access rules`, {
       memos,
-      status: 403
+      status: 403,
     });
   }
 }
@@ -3061,7 +3061,7 @@ export const accessChecks = {
 const dummyAccessCheck: IAccessCheck = {
   get() { return 'allow'; },
   throwIfDenied() {},
-  throwIfNotFullyAllowed() {}
+  throwIfNotFullyAllowed() {},
 };
 
 /**
@@ -3135,7 +3135,7 @@ class CellAccessHelper {
     if (this._fetchQueryFromDB) {
       return await this._fetchQueryFromDB({
         tableId,
-        filters: { id: [...rowIds] }
+        filters: { id: [...rowIds] },
       });
     }
     return ['TableData', tableId, [], {}] as TableDataAction;
@@ -3284,7 +3284,7 @@ export class CensorshipInfo {
         const cell = {
           tableId: tableRefToTableId.get(rec.get('tableRef') as number)!,
           colId: columnRefToColId.get(rec.get('colRef') as number)!,
-          rowId: rec.get('rowId') as number
+          rowId: rec.get('rowId') as number,
         };
         return !cell.tableId || !cell.colId || cellAccessInfo.hasAccess(cell);
       };
@@ -3467,7 +3467,7 @@ function actionHasRuleChange(a: DocAction): boolean {
     && ["_grist_Tables_column", "_grist_Views_section_field"].includes(getTableId(a))
     && Boolean(
       a[3]?.hasOwnProperty('rules') ||
-      a[3]?.hasOwnProperty('displayCol')
+      a[3]?.hasOwnProperty('displayCol'),
     )
   );
 }
@@ -3492,7 +3492,7 @@ class TransformColumnPermissionInfo implements IPermissionInfo {
           update: 'deny',
           delete: 'deny',
           schemaEdit: 'deny',
-        }
+        },
       };
     }
     return access;

@@ -11,7 +11,7 @@ describe('Sandbox', function () {
 
   const output: { stdout: string[], stderr: string[] } = {
     stdout: [],
-    stderr: []
+    stderr: [],
   };
 
   function capture(level: string, msg: string) {
@@ -38,7 +38,7 @@ describe('Sandbox', function () {
       const sandbox = createSandbox('sandboxed', {});
       try {
         const result = await sandbox.pyCall(
-          'test_echo', 'Hello world'
+          'test_echo', 'Hello world',
         );
         assert.equal(result, 'Hello world');
       }
@@ -51,7 +51,7 @@ describe('Sandbox', function () {
       const sandbox = createSandbox('sandboxed', {});
       try {
         await assert.isRejected(sandbox.pyCall(
-          'test_fail', 'Hello world'
+          'test_fail', 'Hello world',
         ), /Hello world/);
         assert.deepEqual(output.stdout, []);
         const stderr = output.stderr.join('\n');
@@ -116,7 +116,7 @@ describe('Sandbox', function () {
       const sandbox = createSandbox('sandboxed', {});
       const expectedRejection = assert.isRejected(
         sandbox.pyCall("test_operation", 100, "uppercase", "hello"),
-        /PipeFromSandbox is closed/
+        /PipeFromSandbox is closed/,
       );
       await sandbox.shutdown();
       await expectedRejection;
@@ -184,7 +184,7 @@ describe('Sandbox', function () {
 
       // gvisor mounts the sandbox files as read-only
       await assert.isRejected(
-        sandbox.pyCall('test_write_file', mainFile, '# A rambunctious little edit')
+        sandbox.pyCall('test_write_file', mainFile, '# A rambunctious little edit'),
       );
       const fileContents = await sandbox.pyCall('test_read_file', mainFile);
       assert.match(fileContents, /defines what sandbox functions are made available to the Node controller/);
@@ -202,7 +202,7 @@ describe('Sandbox', function () {
       await sandbox.pyCall('test_write_file', mainFile, '# A rambunctious little edit');
       const fileContentsInSandbox = await sandbox.pyCall('test_read_file', mainFile);
       assert.match(fileContentsInSandbox, /defines what sandbox functions are made available to the Node controller/);
-      assert.match(fileContentsInSandbox, /rambunctious/, );
+      assert.match(fileContentsInSandbox, /rambunctious/ );
 
       const fileContents = fs.readFileSync(`./sandbox/${mainFile}`).toString();
       assert.match(fileContents, /defines what sandbox functions are made available to the Node controller/);
@@ -247,7 +247,7 @@ describe('Sandbox', function () {
         const sandbox = createSandbox('sandboxed', {});
         try {
           const result = await sandbox.pyCall(
-            'test_echo', 'Hello world'
+            'test_echo', 'Hello world',
           );
           assert.equal(result, 'Hello world');
         }

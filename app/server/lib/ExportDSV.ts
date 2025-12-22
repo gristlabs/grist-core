@@ -24,7 +24,7 @@ export async function downloadDSV(
   activeDoc: ActiveDoc,
   req: express.Request,
   res: express.Response,
-  options: DownloadDsvOptions
+  options: DownloadDsvOptions,
 ) {
   const {filename, tableId, viewSectionId, filters, sortOrder, linkingFilter, delimiter, header} = options;
   const extension = getDSVFileExtension(delimiter);
@@ -32,7 +32,7 @@ export async function downloadDSV(
   const data = viewSectionId ?
     await makeDSVFromViewSection({
       activeDoc, viewSectionId, sortOrder: sortOrder || null, filters: filters || null,
-      linkingFilter: linkingFilter || null, header, delimiter, req
+      linkingFilter: linkingFilter || null, header, delimiter, req,
     }) :
     await makeDSVFromTable({activeDoc, tableId, header, delimiter, req});
   res.set('Content-Type', getDSVMimeType(delimiter));
@@ -65,7 +65,7 @@ export async function makeDSVFromViewSection({
   linkingFilter = null,
   delimiter,
   header,
-  req
+  req,
 }: {
   activeDoc: ActiveDoc,
   viewSectionId: number,

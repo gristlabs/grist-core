@@ -116,7 +116,7 @@ export class TokensExceededFirstMessageError extends TokensExceededError {
       400,
       {
         code: "ContextLimitExceeded",
-      }
+      },
     );
   }
 }
@@ -129,7 +129,7 @@ export class TokensExceededLaterMessageError extends TokensExceededError {
       400,
       {
         code: "ContextLimitExceeded",
-      }
+      },
     );
   }
 }
@@ -139,7 +139,7 @@ export class QuotaExceededError extends NonRetryableError {
     super(
       "Sorry, the assistant is facing some long term capacity issues. " +
         "Maybe try again tomorrow.",
-      503
+      503,
     );
   }
 }
@@ -149,7 +149,7 @@ export class RetryableError extends Error {
     super(
       "Sorry, the assistant is unavailable right now. " +
         "Try again in a few minutes.\n\n" +
-        "```\n(" + message + ")\n```"
+        "```\n(" + message + ")\n```",
     );
   }
 }

@@ -11,7 +11,7 @@ import {IDisposableOwner, Observable} from 'grainjs';
  */
 // exported for testing
 export function timezoneOptionsImpl(
-  timestamp: number, names: string[], moment: MomentTimezone
+  timestamp: number, names: string[], moment: MomentTimezone,
 ): ACSelectItem[] {
   // What we want is moment(timestamp) but the dynamic import with our compiling settings produces
   // "moment is not a function". The following is equivalent, and easier than fixing import setup.
@@ -24,7 +24,7 @@ export function timezoneOptionsImpl(
     // A quick test reveal that it is a bit more efficient (~0.02ms) to get the offset using
     // `moment.tz.Zone#parse` than creating a Moment instance for each zone and then getting the
     // offset with `moment#utcOffset`.
-    offset: -moment.tz.zone(value)!.parse(timestamp)
+    offset: -moment.tz.zone(value)!.parse(timestamp),
   }));
   options.sort((a, b) => nativeCompare(a.offset, b.offset) || nativeCompare(a.value, b.value));
   return options;
@@ -48,7 +48,7 @@ export function buildTZAutocomplete(
   moment: MomentTimezone,
   valueObs: Observable<string>,
   save: (value: string) => Promise<void>|void,
-  options?: { disabled?: Observable<boolean> }
+  options?: { disabled?: Observable<boolean> },
 ) {
   // Set a large maxResults, since it's sometimes nice to see all supported timezones (there are
   // fewer than 1000 in practice).
@@ -74,6 +74,6 @@ export function buildTZAutocomplete(
   };
   return buildACSelect(owner,
     {...options, acIndex, valueObs, save: saveTZ},
-    testId("tz-autocomplete")
+    testId("tz-autocomplete"),
   );
 }

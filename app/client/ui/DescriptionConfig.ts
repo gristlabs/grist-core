@@ -29,7 +29,7 @@ export function buildDescriptionConfig(
   owner.autoDispose(
     options.cursor.subscribe(() => {
       editor?.blur();
-    })
+    }),
   );
 
   let preview: HTMLDivElement | undefined;
@@ -101,7 +101,7 @@ export function buildDescriptionConfig(
               t("Set description"),
               dom.on("click", openEditor),
               testId('description-add'),
-            )
+            ),
           );
         }
       });
@@ -126,7 +126,7 @@ export function buildTextInput(
     owner.autoDispose(
       options.cursor.subscribe(() => {
         options.value.save().catch(reportError);
-      })
+      }),
     );
   }
   return [
@@ -137,7 +137,7 @@ export function buildTextInput(
           return options.value.save();
         }),
         dom.prop('placeholder', options.placeholder || ''),
-        ...args
+        ...args,
       ),
     ),
   ];

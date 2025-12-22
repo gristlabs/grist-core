@@ -94,7 +94,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
       if (!this.id && Array.isArray(target)) {
         return new SCIMMY.Messages.ListResponse(target
           .map(u => new SCIMMYRoleSchema(
-            u, "out", SCIMMYRoleResource.basepath(), this.attributes)
+            u, "out", SCIMMYRoleResource.basepath(), this.attributes),
           ), this.constraints);
       }
       // For specific resources, make sure egress returned an object
@@ -104,7 +104,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
       // Otherwise, egress has not been implemented correctly
       else {
         throw new SCIMMY.Types.Error(
-          500, null!, `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by egress handler`
+          500, null!, `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by egress handler`,
         );
       }
     }
@@ -133,13 +133,13 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
   public async write(instance: SCIMMYRoleSchema, ctx: any) {
     if (instance === undefined) {
       throw new SCIMMY.Types.Error(
-        400, "invalidSyntax", `Missing request body payload for ${this.id ? "PUT" : "POST"} operation`
+        400, "invalidSyntax", `Missing request body payload for ${this.id ? "PUT" : "POST"} operation`,
       );
     }
     if (Object(instance) !== instance || Array.isArray(instance)) {
       throw new SCIMMY.Types.Error(
         400, "invalidSyntax",
-        `Operation ${this.id ? "PUT" : "POST"} expected request body payload to be single complex value`
+        `Operation ${this.id ? "PUT" : "POST"} expected request body payload to be single complex value`,
       );
     }
 
@@ -153,7 +153,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
         // Otherwise, ingress has not been implemented correctly
       else {
         throw new SCIMMY.Types.Error(500, null!,
-          `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by ingress handler`
+          `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by ingress handler`,
         );
       }
     }
@@ -183,7 +183,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
     }
     if (Object(message) !== message || Array.isArray(message)) {
       throw new SCIMMY.Types.Error(
-        400, "invalidSyntax", "PatchOp request expected message body to be single complex value"
+        400, "invalidSyntax", "PatchOp request expected message body to be single complex value",
       );
     }
 
@@ -204,7 +204,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
   public async dispose(ctx: any) {
     if (!this.id) {
       throw new SCIMMY.Types.Error(
-        404, null!, "DELETE operation must target a specific resource"
+        404, null!, "DELETE operation must target a specific resource",
       );
     }
     try {

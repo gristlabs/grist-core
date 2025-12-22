@@ -64,7 +64,7 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
     options: {
       defaultValue?: Exclude<PrefsType[Name], undefined>;
       checker?: CheckerT<PrefsType[Name]>;
-    } = {}
+    } = {},
   ): Observable<PrefsType[Name] | undefined> {
     const {defaultValue, checker} = options;
     return Computed.create(null, (use) => {

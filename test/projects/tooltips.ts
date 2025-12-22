@@ -27,7 +27,7 @@ describe('tooltips', function() {
     });
     assert.equal(
       await driver.executeScript(`return window.getSelection().toString()`),
-      `Multi line text\nAnd a \nhttps://link.to/page.html?with=filter in it`
+      `Multi line text\nAnd a \nhttps://link.to/page.html?with=filter in it`,
     );
     // It hides itself after ~2 seconds.
     await waitEqual(() => driver.find('.test-tooltip').isPresent(), false, 3000);
@@ -174,9 +174,9 @@ describe('tooltips', function() {
     await waitDeepEqual(
       () => driver.findAll('.test-info-tooltip-popup', e => e.getText()),
       [
-        'A UUID is a randomly-generated string that is useful for unique identifiers and link keys.\nLearn more.'
+        'A UUID is a randomly-generated string that is useful for unique identifiers and link keys.\nLearn more.',
       ],
-      500
+      500,
     );
     await driver.find('.test-none').mouseMove();
     await waitDeepEqual(() => driver.findAll('.test-info-tooltip-popup', e => e.getText()),

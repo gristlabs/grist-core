@@ -25,7 +25,7 @@ import {SqliteDriver} from 'typeorm/driver/sqlite/SqliteDriver';
 import {SqliteQueryRunner} from 'typeorm/driver/sqlite/SqliteQueryRunner';
 import {IsolationLevel} from 'typeorm/driver/types/IsolationLevel';
 import {
-  QueryRunnerProviderAlreadyReleasedError
+  QueryRunnerProviderAlreadyReleasedError,
 } from 'typeorm/error/QueryRunnerProviderAlreadyReleasedError';
 import {QueryBuilder} from 'typeorm/query-builder/QueryBuilder';
 
@@ -355,7 +355,7 @@ export class PostgresQueryRunnerPatched extends PostgresQueryRunner {
               });
             }
             return originalQuery({
-              name, text, values
+              name, text, values,
             });
           }
         }

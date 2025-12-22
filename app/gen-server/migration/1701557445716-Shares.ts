@@ -12,7 +12,7 @@ export class Shares1701557445716 implements MigrationInterface {
           type: 'integer',
           isGenerated: true,
           generationStrategy: 'increment',
-          isPrimary: true
+          isPrimary: true,
         },
         {
           name: 'key',
@@ -31,7 +31,7 @@ export class Shares1701557445716 implements MigrationInterface {
           name: 'options',
           type: nativeValues.jsonType,
         },
-      ]
+      ],
     }));
     await queryRunner.createForeignKeys('shares', [
       new TableForeignKey({

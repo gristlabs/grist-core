@@ -178,7 +178,7 @@ export class LinkingState extends Disposable {
 
         //Make one filter for each groupBycolumn of srcSection
         const resultFilters: (ko.Computed<FilterState>|undefined)[] = srcSection.table().groupByColumns().map(srcGCol =>
-          this._makeFilterObs(srcGCol, summaryGetCorrespondingCol(srcGCol, tgtSection.table()), updateMultiHolder)
+          this._makeFilterObs(srcGCol, summaryGetCorrespondingCol(srcGCol, tgtSection.table()), updateMultiHolder),
         );
 
         //If any are undef (i.e. error in makeFilterObs), error out
@@ -346,7 +346,7 @@ export class LinkingState extends Disposable {
         const {filters, operations} = this.filterState.peek();
         return mapValues(
           pickBy(filters, (value: any[], key: string) => value.length > 0 && key !== "id"),
-          (value, key) => operations[key] === "intersects" ? encodeObject(value) : value[0]
+          (value, key) => operations[key] === "intersects" ? encodeObject(value) : value[0],
         );
       };
     }
@@ -528,7 +528,7 @@ export class LinkingState extends Disposable {
         filters:      {[tgtColId || "id"]: filterValues},
         filterLabels: {[tgtColId || "id"]: filterLabelVals},
         operations:   {[tgtColId || "id"]: operation},
-        colTypes:     {[tgtColId || "id"]: (tgtCol || srcCol)!.type()}
+        colTypes:     {[tgtColId || "id"]: (tgtCol || srcCol)!.type()},
         //at least one of tgt/srcCol is guaranteed to be non-null, and they will have the same type
       } as FilterState;
     }));
@@ -546,7 +546,7 @@ export class LinkingState extends Disposable {
         filters: {[colId]: values},
         filterLabels: {[colId]: values?.map(v => String(v))}, //selectedRows should never be null if customFiltered
         operations: {[colId]: operation},
-        colTypes: {[colId]: column?.type() || `Ref:${column?.table().tableId}`}
+        colTypes: {[colId]: column?.type() || `Ref:${column?.table().tableId}`},
       } as FilterState; //TODO: fix this once we have cases of customwidget linking to test with
     }));
   }
@@ -558,7 +558,7 @@ export class LinkingState extends Disposable {
   // - ValGetter returns null for the 'new' row
   // - An undefined colId means to use the 'id' column, i.e. Valgetter is (rowId)=>rowId
   private _makeValGetter(
-    table: TableRec, colId: string | undefined, owner: MultiHolder=this
+    table: TableRec, colId: string | undefined, owner: MultiHolder=this,
   ): ( null | ((r: UIRowId | null) => CellValue | null) ) // (null | ValGetter)
   {
     if(colId === undefined) { //passthrough for id cols

@@ -61,7 +61,7 @@ export class FilterConfig extends Disposable {
                 ...menuOptions,
                 trigger: [
                   'click',
-                  (_el, popupControl) => this._popupControls.set(fieldOrColumn.origCol(), popupControl)
+                  (_el, popupControl) => this._popupControls.set(fieldOrColumn.origCol(), popupControl),
                 ],
               },
             }),
@@ -74,7 +74,7 @@ export class FilterConfig extends Disposable {
               : t('Pin filter - {{- columnName}} column (current: unpinned)', {columnName: use(fieldOrColumn.label)}),
             ),
             dom.on('click', () => this._section.setFilter(fieldOrColumn.origCol().origColRef(), {
-              pinned: !isPinned.peek()
+              pinned: !isPinned.peek(),
             })),
             cssPinButton.cls('-pinned', isPinned),
             testId('pin-filter'),

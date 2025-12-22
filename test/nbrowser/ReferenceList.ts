@@ -138,8 +138,8 @@ describe('ReferenceList', function() {
           'The Dark Knight',
           'Forrest Gump',
           'Alien',
-          ''
-        ]
+          '',
+        ],
       );
 
       // Apply the conversion.
@@ -156,8 +156,8 @@ describe('ReferenceList', function() {
           'The Dark Knight',
           'Forrest Gump',
           'Alien',
-          ''
-        ]
+          '',
+        ],
       );
     });
   });
@@ -185,8 +185,8 @@ describe('ReferenceList', function() {
           'Avatar',
           'The Dark Knight\nThe Avengers',
           'Forrest Gump',
-          'Alien'
-        ]
+          'Alien',
+        ],
       );
 
       // Change a few of the film titles.
@@ -204,8 +204,8 @@ describe('ReferenceList', function() {
           'Avatar',
           'The Dark Knight Rises\nThe Avengers',
           'Forrest Gump',
-          'Aliens'
-        ]
+          'Aliens',
+        ],
       );
     });
 
@@ -224,8 +224,8 @@ describe('ReferenceList', function() {
           '[Blank]',
           'The Dark Knight Rises\nThe Avengers',
           'Forrest Gump',
-          'Aliens'
-        ]
+          'Aliens',
+        ],
       );
 
       // Check that a '[Blank]' token is shown when the reference list editor is open.
@@ -233,7 +233,7 @@ describe('ReferenceList', function() {
       await gu.sendKeys(Key.ENTER);
       assert.deepEqual(
         await driver.findAll('.cell_editor .test-tokenfield .test-tokenfield-token', el => el.getText()),
-        ['Toy Story 2', '[Blank]', 'The Avengers']
+        ['Toy Story 2', '[Blank]', 'The Avengers'],
       );
       await gu.sendKeys(Key.ESCAPE);
 
@@ -247,8 +247,8 @@ describe('ReferenceList', function() {
           'Avatar',
           'The Dark Knight Rises\nThe Avengers',
           'Forrest Gump',
-          'Aliens'
-        ]
+          'Aliens',
+        ],
       );
 
       // Now delete the row containing Avatar.
@@ -264,8 +264,8 @@ describe('ReferenceList', function() {
           '',
           'The Dark Knight Rises\nThe Avengers',
           'Forrest Gump',
-          'Aliens'
-        ]
+          'Aliens',
+        ],
       );
 
       await gu.undo();
@@ -299,8 +299,8 @@ describe('ReferenceList', function() {
           'Avatar',
           'The Dark Knight Rises\nThe Avengers',
           'Forrest Gump',
-          'Aliens'
-        ]
+          'Aliens',
+        ],
       );
 
       // Undo and verify again.
@@ -315,8 +315,8 @@ describe('ReferenceList', function() {
           'Avatar',
           'The Dark Knight Rises\nThe Avengers',
           'Forrest Gump',
-          'Aliens'
-        ]
+          'Aliens',
+        ],
       );
     });
 
@@ -338,8 +338,8 @@ describe('ReferenceList', function() {
           'Films[4]',
           'Films[5]\nFilms[6]',
           'Films[2]',
-          'Films[3]'
-        ]
+          'Films[3]',
+        ],
       );
 
       await gu.undo();
@@ -459,8 +459,8 @@ describe('ReferenceList', function() {
           'Forrest Gump',
           'Forrest Gump\nAliens',
           'The Dark Knight Rises\nThe Avengers',
-          'Toy Story 2\nAvatar\nThe Avengers'
-        ]
+          'Toy Story 2\nAvatar\nThe Avengers',
+        ],
       );
     });
 
@@ -479,8 +479,8 @@ describe('ReferenceList', function() {
           'Batman Begins\nThe Avengers',
           'Forrest Gump',
           'Forrest Gump\nAliens',
-          'Toy Story 2\nAvatar\nThe Avengers'
-        ]
+          'Toy Story 2\nAvatar\nThe Avengers',
+        ],
       );
 
       // Clear a film title to cause the sort order to change.
@@ -497,8 +497,8 @@ describe('ReferenceList', function() {
           'Aliens',
           'Avatar',
           'Batman Begins\nThe Avengers',
-          'Toy Story 2\nAvatar\nThe Avengers'
-        ]
+          'Toy Story 2\nAvatar\nThe Avengers',
+        ],
       );
 
       // Clear a film reference to cause the sort order to change.
@@ -515,8 +515,8 @@ describe('ReferenceList', function() {
           '[Blank]\nAliens',
           'Aliens',
           'Batman Begins\nThe Avengers',
-          'Toy Story 2\nAvatar\nThe Avengers'
-        ]
+          'Toy Story 2\nAvatar\nThe Avengers',
+        ],
       );
     });
 
@@ -537,8 +537,8 @@ describe('ReferenceList', function() {
           '[Blank]',
           '[Blank]\nAliens',
           'Batman Begins\nThe Avengers',
-          'Toy Story 2\nAvatar\nThe Avengers'
-        ]
+          'Toy Story 2\nAvatar\nThe Avengers',
+        ],
       );
     });
   });
@@ -595,12 +595,12 @@ describe('ReferenceList', function() {
       // It should get added; and undo should revert adding it.
       assert.deepEqual(
         await driver.findAll('.cell_editor .test-tokenfield .test-tokenfield-token', el => el.getText()),
-        ['Red', 'Rosy Brown']
+        ['Red', 'Rosy Brown'],
       );
       await gu.sendKeys(Key.chord(await gu.modKey(), 'z'));
       assert.deepEqual(
         await driver.findAll('.cell_editor .test-tokenfield .test-tokenfield-token', el => el.getText()),
-        ['Red']
+        ['Red'],
       );
       await gu.sendKeys(Key.ESCAPE);
       assert.equal(await cell.getText(), 'Red');
@@ -637,12 +637,12 @@ describe('ReferenceList', function() {
       // It should get added; and undo should revert adding it.
       assert.deepEqual(
         await driver.findAll('.cell_editor .test-tokenfield .test-tokenfield-token', el => el.getText()),
-        ['Red', 'Pale Violet Red']
+        ['Red', 'Pale Violet Red'],
       );
       await gu.sendKeys(Key.chord(await gu.modKey(), 'z'));
       assert.deepEqual(
         await driver.findAll('.cell_editor .test-tokenfield .test-tokenfield-token', el => el.getText()),
-        ['Red']
+        ['Red'],
       );
       await gu.sendKeys(Key.ESCAPE);
       assert.equal(await cell.getText(), 'Red');
@@ -731,28 +731,28 @@ describe('ReferenceList', function() {
       await driver.find('.test-ref-editor-new-item').click();
       assert.deepEqual(
         await driver.findAll('.cell_editor .test-tokenfield .test-tokenfield-token', el => el.getText()),
-        ['pinkish']
+        ['pinkish'],
       );
       assert.deepEqual(
         await driver.findAll(
           '.cell_editor .test-tokenfield .test-tokenfield-token',
-          el => el.matches('[class*=-invalid]')
+          el => el.matches('[class*=-invalid]'),
         ),
-        [false]
+        [false],
       );
 
       // Add another new item (with the keyboard), and check that it also appears correctly.
       await driver.sendKeys("almost pink", Key.ARROW_UP, Key.ENTER);
       assert.deepEqual(
         await driver.findAll('.cell_editor .test-tokenfield .test-tokenfield-token', el => el.getText()),
-        ['pinkish', 'almost pink']
+        ['pinkish', 'almost pink'],
       );
       assert.deepEqual(
         await driver.findAll(
           '.cell_editor .test-tokenfield .test-tokenfield-token',
-          el => el.matches('[class*=-invalid]')
+          el => el.matches('[class*=-invalid]'),
         ),
-        [false, false]
+        [false, false],
       );
 
       // Save the changes to the cell.
@@ -766,11 +766,11 @@ describe('ReferenceList', function() {
       await gu.sendKeys(Key.chord(await gu.modKey(), Key.ARROW_DOWN));
       assert.deepEqual(
         await gu.getVisibleGridCells('Color Name', [146, 147]),
-        ['pinkish', 'almost pink']
+        ['pinkish', 'almost pink'],
       );
       assert.deepEqual(
         await gu.getVisibleGridCells('C2', [146, 147]),
-        ['pinkish', 'almost pink']
+        ['pinkish', 'almost pink'],
       );
 
       // Requires 2 undos, because adding the "pinkish" and "almost pink" records is a separate action. TODO these

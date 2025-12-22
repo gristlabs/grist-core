@@ -28,7 +28,7 @@ export class GridOptions extends Disposable {
             setSaveValueFromKo(this, section.optionsObj.prop('verticalGridlines')),
             t("Vertical gridlines"),
           ),
-          testId('v-grid-button')
+          testId('v-grid-button'),
         ),
 
         cssRow(
@@ -36,7 +36,7 @@ export class GridOptions extends Disposable {
             setSaveValueFromKo(this, section.optionsObj.prop('horizontalGridlines')),
             t("Horizontal gridlines"),
           ),
-          testId('h-grid-button')
+          testId('h-grid-button'),
         ),
 
         cssRow(
@@ -44,10 +44,10 @@ export class GridOptions extends Disposable {
             setSaveValueFromKo(this, section.optionsObj.prop('zebraStripes')),
             t("Zebra stripes"),
           ),
-          testId('zebra-stripe-button')
+          testId('zebra-stripe-button'),
         ),
 
-        testId('grid-options')
+        testId('grid-options'),
       ]),
     );
   }

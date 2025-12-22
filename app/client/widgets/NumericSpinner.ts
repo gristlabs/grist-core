@@ -97,7 +97,7 @@ export function numericSpinner(
         testId('decrement'),
       ),
     ),
-    ...args
+    ...args,
   );
 }
 

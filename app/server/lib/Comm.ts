@@ -246,7 +246,7 @@ export class Comm extends EventEmitter {
             // no particular reason to log these.
             return false;
           }
-        }
+        },
       });
 
       wssi.onconnection = async (websocket: GristServerSocket, req) => {
@@ -267,7 +267,7 @@ export class Comm extends EventEmitter {
 // This is a subset of the logic in Authorizer addRequestUser(), but sufficient for websocket
 // connections, which rely on having an existing session.
 async function getAuthSession(
-  dbManager: HomeDBAuth|undefined, scopedSession: ScopedSession, profile: UserProfile|null
+  dbManager: HomeDBAuth|undefined, scopedSession: ScopedSession, profile: UserProfile|null,
 ): Promise<AuthSession> {
   if (!dbManager) {
     return AuthSession.unauthenticated();

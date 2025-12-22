@@ -7,7 +7,7 @@ function getItems() {
   return driver.findAll('.test-filter-menu-list label', async e => ({
     checked: await e.find('input').isSelected(),
     label: await e.find('.test-filter-menu-value').getText(),
-    count: await e.find('.test-filter-menu-count').getText()
+    count: await e.find('.test-filter-menu-count').getText(),
   }));
 }
 
@@ -27,23 +27,23 @@ describe('ColumnFilterMenu2', function() {
     await api.applyUserActions(docId, [
       ['AddTable', 'Test', []],
       ['AddVisibleColumn', 'Test', 'Bool', {
-        type: 'Bool', widgetOptions: JSON.stringify({widget:"TextBox"})
+        type: 'Bool', widgetOptions: JSON.stringify({widget:"TextBox"}),
       }],
       ['AddVisibleColumn', 'Test', 'Choice', {
-        type: 'Choice', widgetOptions: JSON.stringify({choices: ['foo', 'bar']})
+        type: 'Choice', widgetOptions: JSON.stringify({choices: ['foo', 'bar']}),
       }],
       ['AddVisibleColumn', 'Test', 'ChoiceList', {
-        type: 'ChoiceList', widgetOptions: JSON.stringify({choices: ['foo', 'bar']})
+        type: 'ChoiceList', widgetOptions: JSON.stringify({choices: ['foo', 'bar']}),
       }],
       ['AddVisibleColumn', 'Test', 'Marked', {
-        type: 'Text', widgetOptions: JSON.stringify({widget: 'Markdown'})
+        type: 'Text', widgetOptions: JSON.stringify({widget: 'Markdown'}),
       }],
 
       ['AddVisibleColumn', 'Test', 'Nr', {type: 'Int'}],
 
       ['AddRecord', 'Test', null, {
         Bool: true, Choice: 'foo', ChoiceList: ['L', 'foo'],
-        Marked: '[Some link](http://example.com)'
+        Marked: '[Some link](http://example.com)',
       }],
     ]);
     return docId;
@@ -76,13 +76,13 @@ describe('ColumnFilterMenu2', function() {
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Bool', 'Choice', 'ChoiceList'], rowNums: [1, 2]}),
       ['true', 'foo', 'foo',
-       '', '', ''
-      ] as any
+       '', '', '',
+      ] as any,
     );
 
     // remove added record
     await api.applyUserActions(docId, [
-      ['RemoveRecord', 'Test', retValues[0]]
+      ['RemoveRecord', 'Test', retValues[0]],
     ]);
   });
 
@@ -109,13 +109,13 @@ describe('ColumnFilterMenu2', function() {
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Bool', 'Choice', 'ChoiceList'], rowNums: [1, 2]}),
       ['true', 'foo', 'foo',
-       '', '', ''
-      ] as any
+       '', '', '',
+      ] as any,
     );
 
     // remove added record
     await api.applyUserActions(docId, [
-      ['RemoveRecord', 'Test', retValues[0]]
+      ['RemoveRecord', 'Test', retValues[0]],
     ]);
 
     // check ChoiceList filter offeres all options
@@ -142,8 +142,8 @@ describe('ColumnFilterMenu2', function() {
       ['ReplaceTableData', 'Test', [], {}],
       ['BulkAddRecord', 'Test', vals.map(() => null), {
         Nr: vals.map(([nr]) => nr),
-        Marked: vals.map(([, marked]) => marked)
-      }]
+        Marked: vals.map(([, marked]) => marked),
+      }],
     ]);
 
     // Whole test case.
@@ -178,7 +178,7 @@ describe('ColumnFilterMenu2', function() {
         // look for.
         assert.deepEqual(
           await gu.getVisibleGridCells('Nr', [1]), [String(nr)],
-          `Failed to filter by ${strippedMarkdown}`
+          `Failed to filter by ${strippedMarkdown}`,
         );
 
         assert.equal(await gu.getGridRowCount(), 1 + 1 /* add row */);

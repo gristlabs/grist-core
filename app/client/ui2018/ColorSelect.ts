@@ -221,11 +221,11 @@ export function buildColorPicker(
       }),
       dom.create(PickerComponent, textColorModel, {
         title: 'text',
-        ...textColor
+        ...textColor,
       }),
       dom.create(PickerComponent, fillColorModel, {
         title: 'fill',
-        ...fillColor
+        ...fillColor,
       }),
     ),
     // gives focus and binds keydown events
@@ -239,12 +239,12 @@ export function buildColorPicker(
       primaryButton(t("Apply"),
         dom.on('click', () => ctl.close()),
         dom.boolAttr("disabled", notChanged),
-        testId('colors-save')
+        testId('colors-save'),
       ),
       basicButton(t("Cancel"),
         dom.on('click', () => revert()),
-        testId('colors-cancel')
-      )
+        testId('colors-cancel'),
+      ),
     ),
 
     // Set focus when `focusout` is bubbling from a children element. This is to allow to receive
@@ -332,7 +332,7 @@ class PickerComponent extends Disposable {
               cssLightBorder.cls(''),
               dom.style('background-color', this._colorCss),
               cssNoneIcon('Empty',
-                dom.hide(use => Boolean(use(this._colorCss)))
+                dom.hide(use => Boolean(use(this._colorCss))),
               ),
               testId(`${title}-color-square`),
             ),
@@ -355,7 +355,7 @@ class PickerComponent extends Disposable {
             // select the hex value on click. Doing it using settimeout allows to avoid some
             // sporadically losing the selection just after the click.
             dom.on('click', (ev, elem) => setTimeout(() => elem.select(), 0)),
-          )
+          ),
         ),
         cssEmptyBox(
           cssEmptyBox.cls('-selected', use => !use(this._colorHex)),
@@ -363,7 +363,7 @@ class PickerComponent extends Disposable {
           dom.hide(!this._options.allowsNone),
           cssNoneIcon('Empty'),
           testId(`${title}-empty`),
-        )
+        ),
       ),
       cssPalette(
         swatches.map((color, index) => (
@@ -398,7 +398,7 @@ class FontComponent extends Disposable {
       fontUnderlineModel?: BooleanModel,
       fontItalicModel?: BooleanModel,
       fontStrikethroughModel?: BooleanModel,
-    }
+    },
   ) {
     super();
   }
@@ -409,7 +409,7 @@ class FontComponent extends Disposable {
         cssFontIcon(iconName),
         dom.on('click', () => model.setValue(!model.obs.get())),
         cssFontOption.cls('-selected', use => use(model.obs) ?? false),
-        testId(`font-option-${iconName}`)
+        testId(`font-option-${iconName}`),
       );
     }
     return cssFontOptions(

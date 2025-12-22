@@ -47,7 +47,7 @@ export function buildLanguageMenu(appModel: AppModel) {
       ])),
       {
         placement: 'bottom-end',
-      }
+      },
     ),
     hoverTooltip(t('Language'), {key: 'topBarBtnTooltip'}),
     testId('button'),

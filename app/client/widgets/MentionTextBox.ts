@@ -20,7 +20,7 @@ import {
   IDomArgs,
   MultiHolder,
   Observable,
-  styled
+  styled,
 } from 'grainjs';
 
 const testId = makeTestId('test-mention-textbox-');
@@ -195,7 +195,7 @@ export function buildMentionTextBox(
       FocusLayer.create(owner, {
         defaultFocusElem: el,
         allowFocus: e => (e !== document.body),
-        pauseMousetrap: true
+        pauseMousetrap: true,
       });
       setTimeout(() => {
         el.focus();
@@ -211,7 +211,7 @@ function renderMarkdownForEditing(text: string) {
   return splitTextWithMentions(text).map(chunk =>
     typeof chunk === 'string'
       ? chunk
-      : cssLink({ 'data-userref': chunk.ref }, chunk.name, dom.cls('grist-mention'))
+      : cssLink({ 'data-userref': chunk.ref }, chunk.name, dom.cls('grist-mention')),
   );
 }
 
@@ -406,7 +406,7 @@ class MentionPicker extends Disposable {
         testId('acitem-text'),
       ),
       dom.maybe(!item.hasAccess, () => dom('span',
-        '(', t('no access'), ')')
+        '(', t('no access'), ')'),
       ),
     );
   }

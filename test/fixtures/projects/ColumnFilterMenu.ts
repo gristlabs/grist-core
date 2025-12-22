@@ -28,8 +28,8 @@ const DATA_BY_TYPES: {[k: string]: Partial<IFilterMenuOptions>} = {
       [31, {label: '311', count: 1}],
       [541, {label: '541', count: 1}],
       [44, {label: '44', count: 1}],
-      [81, {label: '81', count: 43}]
-    ]))
+      [81, {label: '81', count: 43}],
+    ])),
   },
   'Date': {
     valueCounts: new Map(([['2022-05-05', 3], ['2022-04-05', 1], ['2022-01-05', 5]] as const)
@@ -59,9 +59,9 @@ const DATA_BY_TYPES: {[k: string]: Partial<IFilterMenuOptions>} = {
       ['Oranges',      {label: 'Oranges', count: 14}],
       ['Plums',        {label: 'Plums', count: 32}],
       ['Quince',       {label: 'Quince', count: 15}],
-      ['Rhubarb',      {label: 'Rhubarb', count: 42}]
-    ]))
-  }
+      ['Rhubarb',      {label: 'Rhubarb', count: 42}],
+    ])),
+  },
 };
 
 function setupTest(owner: IDisposableOwner, opts: {limitShown?: number, filterType?: string|null} = {},
@@ -110,7 +110,7 @@ function setupTest(owner: IDisposableOwner, opts: {limitShown?: number, filterTy
       doSave: noop,
       onClose: () => ctl.close(),
       ...DATA_BY_TYPES[filterType],
-    })
+    }),
   );
 
   return [
@@ -121,16 +121,16 @@ function setupTest(owner: IDisposableOwner, opts: {limitShown?: number, filterTy
  setPopupToCreateDom(elem, openFilterMenu, {
             attach: 'body',
             placement: 'bottom-start',
-            trigger: ['click']
+            trigger: ['click'],
           }); 
-})
+}),
       ),
       testContent(
         dom(
           'div',
           testId('stored-menu'),
           dom.create(columnFilterMenu, ({ model, valueCounts, renderValue, doCancel, doSave: noop, onClose: noop,
-                                          ...DATA_BY_TYPES[filterType] }))
+                                          ...DATA_BY_TYPES[filterType] })),
         ),
         dom.domComputed(columnFilter.filterFunc, filterFunc =>
           testOutput(
@@ -142,10 +142,10 @@ function setupTest(owner: IDisposableOwner, opts: {limitShown?: number, filterTy
             dom('div', 'Displayed values: ',
             dom('span', testId('displayed-values'),
             `[${Array.from(valueCounts.keys()).filter(filterFunc).join(', ')}]`)),
-          )
-        )
-      )
-    )
+          ),
+        ),
+      ),
+    ),
   ];
 }
 
@@ -178,21 +178,21 @@ function setup(owner: IDisposableOwner) {
       'limitShown: ',
       limitShownInput = dom(
         'input', {type: 'text', value: ''},
-        testId('limit-shown')
-      )
+        testId('limit-shown'),
+      ),
     ),
     dom(
       'input', {type: 'button', value: 'Reset All'},
       testId('reset'),
-      dom.on('click', () => { value.set(dom.create(setupTest, getOpt(), resetBtn)); })
+      dom.on('click', () => { value.set(dom.create(setupTest, getOpt(), resetBtn)); }),
     ),
     dom(
       'select',
       ['Numeric', 'Date', 'Text'].map(value => (
         dom('option', {value, selected: filterType === value}, value)
       )),
-      dom.on('input', (ev, el) => setFilterType(el.value))
-    )
+      dom.on('input', (ev, el) => setFilterType(el.value)),
+    ),
   ];
   const value = Observable.create(owner, dom.create(setupTest, getOpt(), resetBtn));
   return [

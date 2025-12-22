@@ -31,7 +31,7 @@ export function buildFormFooter() {
         },
         t('Powered by'),
         cssGristLogo(),
-      )
+      ),
     ),
     cssBuildForm(
       cssBuildFormLink(

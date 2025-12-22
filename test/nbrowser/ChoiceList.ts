@@ -26,7 +26,7 @@ function getEditorTokenStyles() {
         underline: classList.includes("font-underline"),
         strikethrough: classList.includes("font-strikethrough"),
       };
-    }
+    },
   );
 }
 
@@ -48,7 +48,7 @@ function getCellTokenStyles(cell: WebElement) {
         underline: classList.includes("font-underline"),
         strikethrough: classList.includes("font-strikethrough"),
       };
-    }
+    },
   );
 }
 
@@ -59,7 +59,7 @@ function getChoiceLabels() {
 function getChoiceColors() {
   return driver.findAll(
     '.test-right-panel .test-choice-list-entry-color',
-    el => el.getCssValue('background-color')
+    el => el.getCssValue('background-color'),
   );
 }
 
@@ -70,14 +70,14 @@ function getEditModeChoiceLabels() {
 function getEditModeFillColors() {
   return driver.findAll(
     '.test-right-panel .test-tokenfield-token .test-color-button',
-    el => el.getCssValue('background-color')
+    el => el.getCssValue('background-color'),
   );
 }
 
 function getEditModeTextColors() {
   return driver.findAll(
     '.test-right-panel .test-tokenfield-token .test-color-button',
-    el => el.getCssValue('color')
+    el => el.getCssValue('color'),
   );
 }
 
@@ -100,7 +100,7 @@ function getEditModeFontOptions() {
         options['strikethrough'] = true;
       }
       return options;
-    }
+    },
   );
 }
 
@@ -181,18 +181,18 @@ describe('ChoiceList', function() {
             'Green': {
               fillColor: '#e1fede',
               textColor: '#000000',
-              fontBold: true
+              fontBold: true,
             },
             'Blue': {
               fillColor: '#ccfefe',
-              textColor: '#000000'
+              textColor: '#000000',
             },
             'Black': {
               fillColor: '#000000',
-              textColor: '#ffffff'
-            }
-          }
-        })
+              textColor: '#ffffff',
+            },
+          },
+        }),
       }],
       ['BulkAddRecord', 'Table1', [null, null, null], {}],
     ]);
@@ -208,7 +208,7 @@ describe('ChoiceList', function() {
       [
         {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold},
         INVALID_CHOICE,
-      ]
+      ],
     );
 
     // Escape to cancel; check nothing got saved.
@@ -224,11 +224,11 @@ describe('ChoiceList', function() {
     const blueChoice = await driver.findContent('.test-autocomplete li', /Blue/);
     assert.equal(
       await blueChoice.find('.test-choice-list-editor-item-label').getCssValue('background-color'),
-      BLUE_FILL
+      BLUE_FILL,
     );
     assert.equal(
       await blueChoice.find('.test-choice-list-editor-item-label').getCssValue('color'),
-      BLACK_TEXT
+      BLACK_TEXT,
     );
     await blueChoice.click();
 
@@ -241,8 +241,8 @@ describe('ChoiceList', function() {
       [
         INVALID_CHOICE,
         {fillColor: BLUE_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE},
-        {fillColor: BLACK_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE}
-      ]
+        {fillColor: BLACK_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE},
+      ],
     );
 
     // Enter to save; check values got saved.
@@ -255,8 +255,8 @@ describe('ChoiceList', function() {
       [
         INVALID_CHOICE,
         {fillColor: BLUE_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE},
-        {fillColor: BLACK_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE}
-      ]
+        {fillColor: BLACK_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE},
+      ],
     );
 
     // Enter to edit. Enter token, remove two tokens, with a key and with an x-click.
@@ -311,7 +311,7 @@ describe('ChoiceList', function() {
         type: 'ChoiceList',
         widgetOptions: JSON.stringify({
           choices: ['Adélaïde', 'Adèle', 'Agnès', 'Amélie'],
-        })
+        }),
       }],
     ]);
     await gu.getCell({rowNum: 1, col: 'Accents'}).click();
@@ -375,7 +375,7 @@ describe('ChoiceList', function() {
     assert.deepEqual(await getChoiceLabels(), ['Green', 'Blue', 'Black']);
     assert.deepEqual(
       await getChoiceColors(),
-      [GREEN_FILL, BLUE_FILL, BLACK_FILL]
+      [GREEN_FILL, BLUE_FILL, BLACK_FILL],
     );
 
     // Select a token from autocomplete
@@ -400,11 +400,11 @@ describe('ChoiceList', function() {
     assert.equal(await newChoice.getText(), 'Apricot');
     assert.equal(
       await newChoice.find('.test-choice-list-editor-item-label').getCssValue('background-color'),
-      DEFAULT_FILL
+      DEFAULT_FILL,
     );
     assert.equal(
       await newChoice.find('.test-choice-list-editor-item-label').getCssValue('color'),
-      DEFAULT_TEXT
+      DEFAULT_TEXT,
     );
     await driver.find('.test-autocomplete .test-choice-list-editor-new-item').click();
     assert.deepEqual(await getEditorTokens(), ['Green', 'Orange', 'Apricot']);
@@ -414,8 +414,8 @@ describe('ChoiceList', function() {
       [
         {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold},
         INVALID_CHOICE,
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE}
-      ]
+        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
+      ],
     );
 
     // Save: check tokens
@@ -427,15 +427,15 @@ describe('ChoiceList', function() {
       [
         {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold},
         INVALID_CHOICE,
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE}
-      ]
+        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
+      ],
     );
 
     // New option should be listed in config.
     assert.deepEqual(await getChoiceLabels(), ['Green', 'Blue', 'Black', 'Apricot']);
     assert.deepEqual(
       await getChoiceColors(),
-      [GREEN_FILL, BLUE_FILL, BLACK_FILL, UNSET_FILL]
+      [GREEN_FILL, BLUE_FILL, BLACK_FILL, UNSET_FILL],
     );
   });
 
@@ -472,14 +472,14 @@ describe('ChoiceList', function() {
     assert.deepEqual(await getChoiceLabels(), ['Hello', 'World', 'Foo', 'Bar;Baz!', 'Qux, quux corge', '80\'s']);
     assert.deepEqual(
       await getChoiceColors(),
-      [UNSET_FILL, UNSET_FILL, UNSET_FILL, UNSET_FILL, UNSET_FILL, UNSET_FILL]
+      [UNSET_FILL, UNSET_FILL, UNSET_FILL, UNSET_FILL, UNSET_FILL, UNSET_FILL],
     );
 
     // Check that the result contains the right tags.
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['A']}), [
       'Hello',
       'World',
-      'Foo\nBar;Baz!\nQux, quux corge\n80\'s'
+      'Foo\nBar;Baz!\nQux, quux corge\n80\'s',
     ]);
     await gu.checkForErrors();
 
@@ -487,7 +487,7 @@ describe('ChoiceList', function() {
     for (const rowNum of [1, 2]) {
       assert.deepEqual(
         await getCellTokenStyles(await gu.getCell({rowNum, col: 'A'})),
-        [{fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE}]
+        [{fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE}],
       );
     }
     assert.deepEqual(
@@ -497,7 +497,7 @@ describe('ChoiceList', function() {
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
-      ]
+      ],
     );
 
     // Open a cell to see the actual tags.
@@ -511,8 +511,8 @@ describe('ChoiceList', function() {
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE}
-      ]
+        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
+      ],
     );
     await driver.sendKeys("hooray", Key.TAB, Key.ENTER);
     await gu.waitForServer();
@@ -525,7 +525,7 @@ describe('ChoiceList', function() {
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['A']}), [
       'Hello',
       'World',
-      'Foo, Bar;Baz!, "Qux, quux corge", 80\'s, hooray'
+      'Foo, Bar;Baz!, "Qux, quux corge", 80\'s, hooray',
     ]);
 
     // Undo the cell change and both conversions (back to ChoiceList, back to Text), and check
@@ -593,7 +593,7 @@ describe('ChoiceList', function() {
         {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold},
         INVALID_CHOICE,
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
-      ]
+      ],
     );
     await gu.getCell({rowNum: 1, col: 'B'}).click();
     await driver.sendKeys(Key.ENTER);
@@ -605,7 +605,7 @@ describe('ChoiceList', function() {
         {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE,  bold},
         INVALID_CHOICE,
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
-      ]
+      ],
     );
     await driver.sendKeys(Key.ESCAPE);
   });
@@ -639,14 +639,14 @@ describe('ChoiceList', function() {
       [
         {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold},
         INVALID_CHOICE,
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE}
-      ]
+        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
+      ],
     );
     assert.deepEqual(
       await getCellTokenStyles(await gu.getCell({rowNum: 3, col: 'B'})),
       [
-        {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold}
-      ]
+        {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold},
+      ],
     );
 
     // Click save, and check that the new colors are now used in the grid
@@ -657,15 +657,15 @@ describe('ChoiceList', function() {
       [
         {fillColor: DARK_GREEN_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE, strikethrough, underline, bold},
         INVALID_CHOICE,
-        {fillColor: APRICOT_FILL, textColor: APRICOT_TEXT, ...VALID_CHOICE, bold, italic}
-      ]
+        {fillColor: APRICOT_FILL, textColor: APRICOT_TEXT, ...VALID_CHOICE, bold, italic},
+      ],
     );
     assert.deepEqual(
       await getCellTokenStyles(await gu.getCell({rowNum: 3, col: 'B'})),
       [
         {fillColor: DARK_GREEN_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE,
-         strikethrough, underline, bold}
-      ]
+         strikethrough, underline, bold},
+      ],
     );
   });
 
@@ -959,7 +959,7 @@ describe('ChoiceList', function() {
       'foo',
       'one',
       'one\nfoo',
-      '' // add row
+      '', // add row
     ]);
 
     // Filter by single value and save.
@@ -978,7 +978,7 @@ describe('ChoiceList', function() {
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['ChoiceList']}), [
       'one',
       'one\nfoo',
-      '' // new row
+      '', // new row
     ]);
     // Rename one to five, foo to bar
     await editChoiceEntries();
@@ -989,21 +989,21 @@ describe('ChoiceList', function() {
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['ChoiceList']}), [
       'five',
       'five\nbar',
-      '' // new row
+      '', // new row
     ]);
     // Make sure that it also renamed filters in diffrent section.
     await gu.getPageItem('Table1 (copy)').click();
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['ChoiceList']}), [
       'five',
       'five\nbar',
-      '' // new row
+      '', // new row
     ]);
     // Go back to previous names, filter still should work.
     await gu.undo();
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['ChoiceList']}), [
       'one',
       'one\nfoo',
-      '' // new row
+      '', // new row
     ]);
   },
   // Test if the column is reverted to state before the test

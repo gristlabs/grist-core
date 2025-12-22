@@ -33,7 +33,7 @@ export function getDefaultThemePrefs(): ThemePrefs {
       // This is why we just repeat the name in both `light` and `dark` properties.
       light: 'GristLight',
       dark: 'GristLight',
-    }
+    },
   };
 }
 
@@ -591,15 +591,15 @@ export const componentsCssMapping = {
 export const tokens = Object.fromEntries(
   Object.entries(tokensCssMapping).map(([name, value]) => [
     name,
-    new CssCustomProp(value, undefined, undefined, 'theme')
-  ])
+    new CssCustomProp(value, undefined, undefined, 'theme'),
+  ]),
 ) as {[K in keyof typeof tokensCssMapping]: CssCustomProp};
 
 export const components = Object.fromEntries(
   Object.entries(componentsCssMapping).map(([name, value]) => [
     name,
-    new CssCustomProp(value, undefined, undefined, 'theme')
-  ])
+    new CssCustomProp(value, undefined, undefined, 'theme'),
+  ]),
 ) as {[K in keyof typeof componentsCssMapping]: CssCustomProp};
 
 /**
@@ -702,18 +702,18 @@ export const convertThemeKeysToCssVars = (theme: Theme): ThemeWithCssVars => {
     Object.entries(rest).map(([key, value]) => {
       return [
         tokensCssMapping[key as keyof typeof tokensCssMapping],
-        value.toString()
+        value.toString(),
       ];
-    })
+    }),
   );
 
   const componentsCssVars = Object.fromEntries(
     Object.entries(componentsTokens).map(([key, value]) => {
       return [
         componentsCssMapping[key as keyof typeof componentsCssMapping],
-        value.toString()
+        value.toString(),
       ];
-    })
+    }),
   );
 
   return {

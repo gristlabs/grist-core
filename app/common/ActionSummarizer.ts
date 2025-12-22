@@ -530,7 +530,7 @@ export function concatenateSummaryPair(sum1: ActionSummary, sum2: ActionSummary)
   const rowChanges = mergeNames(names, sum1.tableDeltas, copyOnWrite(sum2.tableDeltas), mergeTable);
   const sum: ActionSummary = {
     tableRenames: names.merge,
-    tableDeltas: rowChanges
+    tableDeltas: rowChanges,
   };
   return sum;
 }

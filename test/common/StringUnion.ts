@@ -6,7 +6,7 @@ describe('StringUnion', function() {
   const Dog = StringUnion(
     "bulldog",
     "poodle",
-    "greyhound"
+    "greyhound",
   );
   type Dog = typeof Dog.type;
 
@@ -14,7 +14,7 @@ describe('StringUnion', function() {
   const Cat = StringUnion(
     "siamese",
     "sphynx",
-    "bengal"
+    "bengal",
   );
   type Cat = typeof Cat.type;
 

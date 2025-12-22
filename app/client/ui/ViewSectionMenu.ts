@@ -115,7 +115,7 @@ export function viewSectionMenu(
         makeFilterPanel(viewSection),
         // Widget options
         dom.maybe(use => use(viewSection.parentKey) === 'custom', () =>
-          makeCustomOptions(viewSection)
+          makeCustomOptions(viewSection),
         ),
         // [Save] [Revert] buttons
         dom.domComputed(displaySaveObs, displaySave => [
@@ -124,7 +124,7 @@ export function viewSectionMenu(
                           dom.on('click', () => { ctl.close(); save(); }),
                           dom.boolAttr('disabled', isReadonly)),
             basicButton(t("Revert"), testId('btn-revert'),
-                        dom.on('click', () => { ctl.close(); revert(); }))
+                        dom.on('click', () => { ctl.close(); revert(); })),
           ) : null,
         ]),
         // Updates to active sort or filters can cause menu contents to grow, while
@@ -158,7 +158,7 @@ export function viewSectionMenu(
       menu(_ctl => makeViewLayoutMenu(viewSection, isReadonly.get()), {
         ...defaultMenuOptions,
         placement: 'bottom-end',
-      })
+      }),
     ),
     dom.maybe(showExpandIcon, () =>
       cssExpandIconWrapper(
@@ -167,7 +167,7 @@ export function viewSectionMenu(
         dom.on('click', () =>  allCommands.expandSection.run()),
         hoverTooltip('Expand section', {key: 'expandSection'}),
       ),
-    )
+    ),
   ];
 }
 
@@ -216,12 +216,12 @@ function makeCustomOptions(section: ViewSectionRec) {
       dom.maybe(use => Boolean(use(section.activeCustomOptions)), () =>
         cssMenuIconWrapper(
           cssIcon('Remove', testId('btn-remove-options'), dom.on('click', () =>
-            section.activeCustomOptions(null)
-          ))
+            section.activeCustomOptions(null),
+          )),
         ),
       ),
-      testId("custom-options")
-    )
+      testId("custom-options"),
+    ),
   ];
 }
 

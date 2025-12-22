@@ -12,7 +12,7 @@ const blue = '#0000FF';
 const red = '#FF0000';
 const types: Array<ColumnType> = [
   'Any', 'Text', 'Integer', 'Numeric', 'Toggle', 'Date', 'DateTime', 'Choice', 'Choice List',
-  'Reference', 'Reference List', 'Attachment'
+  'Reference', 'Reference List', 'Attachment',
 ];
 
 describe('MultiColumn', function() {
@@ -23,7 +23,7 @@ describe('MultiColumn', function() {
     doc = await session.tempNewDoc(cleanup, "MultiColumn", {load: false});
     api = session.createHomeApi();
     await api.applyUserActions(doc, [
-      ['BulkAddRecord', 'Table1', arrayRepeat(2, null), {}]
+      ['BulkAddRecord', 'Table1', arrayRepeat(2, null), {}],
     ]);
     // Leave only A column which will have AnyType. We don't need it, but
     // table must have at least one column and we will be removing all columns
@@ -1042,7 +1042,7 @@ const choiceEditor = {
   },
   async cancel() {
     await driver.find(".test-choice-list-entry-cancel").click();
-  }
+  },
 };
 
 async function testAlignment(colA: string = 'Left', colB: string = 'Right') {
@@ -1330,14 +1330,14 @@ async function addConditionDisabled() {
 
 async function addAnyColumn(name: string) {
   await gu.sendActions([
-    ['AddVisibleColumn', 'Table1', name, {}]
+    ['AddVisibleColumn', 'Table1', name, {}],
   ]);
   await gu.waitForServer();
 }
 
 async function removeColumn(...names: string[]) {
   await gu.sendActions([
-    ...names.map(name => (['RemoveColumn', 'Table1', name]))
+    ...names.map(name => (['RemoveColumn', 'Table1', name])),
   ]);
   await gu.waitForServer();
 }

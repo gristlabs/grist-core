@@ -59,7 +59,7 @@ describe('VisibleFieldsConfig', function() {
     // check 'A' is listed as hidden
     assert.deepEqual(
       await driver.findAll(`.test-vfc-hidden-fields .kf_draggable`, e => e.getText()),
-        ['A']
+        ['A'],
       );
 
     // check 'A' is hidden
@@ -212,13 +212,13 @@ describe('VisibleFieldsConfig', function() {
     await gu.waitForServer();
     assert.deepEqual(
       await driver.findAll(`.test-vfc-visible-fields .kf_draggable`, e => e.getText()),
-        ['C']
+        ['C'],
       );
     await findField('hidden', /B/).mouseMove().find('.test-vfc-hide').click();
     await gu.waitForServer();
     assert.deepEqual(
       await driver.findAll(`.test-vfc-hidden-fields .kf_draggable`, e => e.getText()),
-        ['A']
+        ['A'],
       );
 
     await gu.undo(4);
@@ -245,7 +245,7 @@ describe('VisibleFieldsConfig', function() {
         // check all fields are present in the hidden draggable
         assert.deepEqual(
           await driver.findAll(`.test-vfc-hidden-fields .kf_draggable`, e => e.getText()),
-          ['A', 'B', 'C']
+          ['A', 'B', 'C'],
         );
       });
 
@@ -279,7 +279,7 @@ describe('VisibleFieldsConfig', function() {
       // check 'A', 'B', 'C' are present
       assert.deepEqual(
         await driver.findAll(`.test-vfc-${state}-fields .kf_draggable`, e => e.getText()),
-        ['A', 'B', 'C']
+        ['A', 'B', 'C'],
       );
 
       // click select All
@@ -299,7 +299,7 @@ describe('VisibleFieldsConfig', function() {
       // check 'A', 'B', 'C' are not present
       assert.deepEqual(
         await driver.findAll(`.test-vfc-${state}-fields .kf_draggable`, e => e.getText()),
-        []
+        [],
       );
 
       // check button are hidden
@@ -387,7 +387,7 @@ describe('VisibleFieldsConfig', function() {
       // check that select all is not present
       assert.equal(
         await driver.find(`.test-vfc-${state}-fields-select-all`).isPresent(),
-        false
+        false,
       );
 
       // undo

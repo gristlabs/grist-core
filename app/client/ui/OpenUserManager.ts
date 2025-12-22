@@ -17,7 +17,7 @@ export async function manageTeamUsers({org, user, api, onSave}: ManageTeamUsersO
     resourceType: 'organization',
     resourceId: org.id,
     resource: org,
-    onSave
+    onSave,
   });
 }
 

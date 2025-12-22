@@ -37,7 +37,7 @@ describe('SectionFilter', function() {
       assert.deepEqual(await gu.getFilterMenuState(), [
         { checked: true, value: 'Apples', count: 3},
         { checked: true, value: 'Bananas', count: 2},
-        { checked: true, value: 'Oranges', count: 1}
+        { checked: true, value: 'Oranges', count: 1},
       ]);
       assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
         ['Apples', 'Oranges', 'Bananas', 'Apples', 'Bananas', 'Apples']);
@@ -46,7 +46,7 @@ describe('SectionFilter', function() {
       assert.deepEqual(await gu.getFilterMenuState(), [
         { checked: false, value: 'Apples', count: 3},
         { checked: true, value: 'Bananas', count: 2},
-        { checked: true, value: 'Oranges', count: 1}
+        { checked: true, value: 'Oranges', count: 1},
       ]);
       assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
         ['Oranges', 'Bananas', 'Bananas']);
@@ -55,7 +55,7 @@ describe('SectionFilter', function() {
       assert.deepEqual(await gu.getFilterMenuState(), [
         { checked: true, value: 'Apples', count: 3},
         { checked: true, value: 'Bananas', count: 2},
-        { checked: true, value: 'Oranges', count: 1}
+        { checked: true, value: 'Oranges', count: 1},
       ]);
       assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
         ['Apples', 'Oranges', 'Bananas', 'Apples', 'Bananas', 'Apples']);
@@ -73,7 +73,7 @@ describe('SectionFilter', function() {
       assert.deepEqual(await gu.getFilterMenuState(), [
         { checked: false, value: 'Apples', count: 3},
         { checked: true, value: 'Bananas', count: 2},
-        { checked: true, value: 'Oranges', count: 1}
+        { checked: true, value: 'Oranges', count: 1},
       ]);
       assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
         ['Oranges', 'Bananas', 'Bananas']);
@@ -103,7 +103,7 @@ describe('SectionFilter', function() {
       assert.deepEqual(await gu.getFilterMenuState(), [
         { checked: true, value: 'Apples', count: 3},
         { checked: false, value: 'Bananas', count: 2},
-        { checked: false, value: 'Oranges', count: 1}
+        { checked: false, value: 'Oranges', count: 1},
       ]);
 
       await driver.find('.test-filter-menu-apply-btn').click();
@@ -132,7 +132,7 @@ describe('SectionFilter', function() {
         { checked: false, value: '', count: 1},
         { checked: true, value: 'Apples', count: 2},
         { checked: false, value: 'Bananas', count: 3},
-        { checked: false, value: 'Oranges', count: 2}
+        { checked: false, value: 'Oranges', count: 2},
       ]);
 
       // Apply the filter to make it only-Apples again.
@@ -199,7 +199,7 @@ describe('SectionFilter', function() {
         { checked: true, value: '', count: 1},
         { checked: false, value: 'Apples', count: 4},
         { checked: true, value: 'Bananas', count: 3},
-        { checked: true, value: 'Oranges', count: 1}
+        { checked: true, value: 'Oranges', count: 1},
       ]);
 
       await menu.findContent('label', /Apples/).click();
@@ -231,7 +231,7 @@ describe('SectionFilter', function() {
         { checked: true, value: '5+6', count: 1},
         { checked: true, value: '2016-01-01', count: 1},
         { checked: true, value: 'Bar', count: 1},
-        { checked: true, value: 'Foo', count: 1}
+        { checked: true, value: 'Foo', count: 1},
       ]);
       await menu.findContent('label .test-filter-menu-value', /^$/).click();
       await menu.findContent('label', /Bar/).click();
@@ -290,16 +290,16 @@ describe('SectionFilter', function() {
       assert.lengthOf(await gu.getFilterMenuState(), 7);
       await driver.sendKeys('07');
       assert.deepEqual(await gu.getFilterMenuState(), [
-        { checked: true, value: '2019-06-07', count: 1}
+        { checked: true, value: '2019-06-07', count: 1},
       ]);
       assert.deepEqual(
         await menu.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()),
-        ['2019-06-07']
+        ['2019-06-07'],
       );
       await menu.findContent('.test-filter-menu-bulk-action', /All shown/).click();
       assert.deepEqual(
         await gu.getVisibleGridCells(2, [1, 2]),
-        ['2019-06-07', '']
+        ['2019-06-07', ''],
       );
       await menu.find('.test-filter-menu-cancel-btn').click();
     });
@@ -366,7 +366,7 @@ describe('SectionFilter', function() {
       // Check that all the choices are rendered in the right colors.
       const choiceColors = await menu.findAll(
         'label .test-filter-menu-choice-token',
-        async c => [await c.getCssValue('background-color'), await c.getCssValue('color')]
+        async c => [await c.getCssValue('background-color'), await c.getCssValue('color')],
       );
 
       assert.deepEqual(
@@ -375,14 +375,14 @@ describe('SectionFilter', function() {
           ['rgba(254, 204, 129, 1)', 'rgba(0, 0, 0, 1)'],
           ['rgba(53, 253, 49, 1)', 'rgba(0, 0, 0, 1)'],
           ['rgba(204, 254, 254, 1)', 'rgba(0, 0, 0, 1)'],
-          ['rgba(255, 255, 255, 1)', 'rgba(0, 0, 0, 1)']
-        ]
+          ['rgba(255, 255, 255, 1)', 'rgba(0, 0, 0, 1)'],
+        ],
       );
 
       // Check that Foo is rendered with font options.
       const boldFonts = await menu.findAll(
         'label .test-filter-menu-choice-token.font-italic.font-bold',
-        c => c.getText()
+        c => c.getText(),
       );
 
       assert.deepEqual(boldFonts, ['Foo']);
@@ -442,7 +442,7 @@ describe('SectionFilter', function() {
       // Check that all the choices are rendered in the right colors.
       const choiceColors = await menu.findAll(
         'label .test-filter-menu-choice-token',
-        async c => [await c.getCssValue('background-color'), await c.getCssValue('color')]
+        async c => [await c.getCssValue('background-color'), await c.getCssValue('color')],
       );
 
       assert.deepEqual(
@@ -451,14 +451,14 @@ describe('SectionFilter', function() {
           ['rgba(255, 255, 255, 1)', 'rgba(0, 0, 0, 1)'],
           ['rgba(254, 204, 129, 1)', 'rgba(0, 0, 0, 1)'],
           ['rgba(252, 54, 59, 1)', 'rgba(255, 255, 255, 1)'],
-          ['rgba(255, 250, 205, 1)', 'rgba(0, 0, 0, 1)']
-        ]
+          ['rgba(255, 250, 205, 1)', 'rgba(0, 0, 0, 1)'],
+        ],
       );
 
       // Check that Red is rendered with font options.
       const withFonts = await menu.findAll(
         'label .test-filter-menu-choice-token.font-underline.font-strikethrough',
-        c => c.getText()
+        c => c.getText(),
       );
 
       assert.deepEqual(withFonts, ['Red']);
@@ -483,16 +483,16 @@ describe('SectionFilter', function() {
         {
           checked: true,
           value: '#Invalid RefList: [u\'denis\', u\'edward\']',
-          count: 1
+          count: 1,
         },
         {
           checked: true,
           value: '#Invalid RefList: [u\'denis\']',
-          count: 1
+          count: 1,
         },
         { checked: true, value: 'alice', count: 2 },
         { checked: true, value: 'bob', count: 2 },
-        { checked: true, value: 'carol', count: 2 }
+        { checked: true, value: 'carol', count: 2 },
       ]);
 
       await menu.findContent('label .test-filter-menu-value', /^$/).click();
@@ -522,7 +522,7 @@ describe('SectionFilter', function() {
         { checked: true, value: '#Invalid Ref: denis', count: 2 },
         { checked: true, value: 'blue', count: 1 },
         { checked: true, value: 'green', count: 1 },
-        { checked: true, value: 'red', count: 1 }
+        { checked: true, value: 'red', count: 1 },
       ]);
 
       await menu.find('.test-filter-menu-cancel-btn').click();

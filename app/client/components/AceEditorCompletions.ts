@@ -118,7 +118,7 @@ function initCustomCompleter() {
       session: Ace.EditSession,
       pos: Ace.Position,
       prefix: string,
-      callback: any
+      callback: any,
     ) {
       const options = completionOptions.get(editor);
       if (!options || prefix.length === 0) { callback(null, []); return; }

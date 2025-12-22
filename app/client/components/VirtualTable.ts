@@ -153,7 +153,7 @@ export class VirtualTable extends Disposable {
         const processed = await docDataCache.sendTableActions(actions);
         const retValues = processed.flatMap(action => action.retValues);
         return { retValues, actionHash: '', actionNum: 1, isModification: true };
-      }
+      },
     } as any;
 
     // Next is the DocData object, it will be managed by the DocDataCache.
@@ -164,7 +164,7 @@ export class VirtualTable extends Disposable {
       _grist_DocInfo: ['TableData', '_grist_DocInfo', [1], {
         docId: ['1'],
         documentSettings: ['{}'],
-      }]
+      }],
     };
     const docData = new DocData(docComm, metaWithData);
     const docDataCache = new DocDataCache();
@@ -204,8 +204,8 @@ export class VirtualTable extends Disposable {
             type: col.type,
             isFormula: false,
             formula: '',
-            widgetOptions: col.widgetOptions
-          }))
+            widgetOptions: col.widgetOptions,
+          })),
         ], [
           // Add an entry for the virtual table.
           'AddRecord', '_grist_Tables', this._tableId as any, {tableId, primaryViewId: 0},
@@ -235,7 +235,7 @@ export class VirtualTable extends Disposable {
             parentKey: 'record',
             title: this._name, layout: 'vertical', showHeader: true,
             borderWidth: 1, defaultWidth: 100,
-          }
+          },
         ],
         [
           // List the fields shown in the view section.
@@ -243,8 +243,8 @@ export class VirtualTable extends Disposable {
             colRef: fieldsDefs.map(colId => columnDefs.find(r => r.colId === colId)!.id),
             parentId: fieldsDefs.map(() => this._sectionId),
             parentPos: fieldsDefs.map((_, i) => i),
-          }
-        ]
+          },
+        ],
       ];
     };
 
@@ -310,7 +310,7 @@ function toTableData(name: string, data: Record<string, any>[]): TableDataAction
       indices.map(rowId => ({
         id: rowId,
         ...data[rowId - 1],
-      }))
+      })),
     )];
 }
 

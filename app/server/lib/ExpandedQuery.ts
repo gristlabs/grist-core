@@ -193,7 +193,7 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
   // Include the 'id' column from both tables.
   selects.push(
     `${quoteIdent(leftTableId)}.id AS ${quoteIdent(leftTableId + '.id')}`,
-    `${quoteIdent(rightTableId)}.id AS ${quoteIdent(rightTableId + '.id')}`
+    `${quoteIdent(rightTableId)}.id AS ${quoteIdent(rightTableId + '.id')}`,
   );
 
   // Select columns from both tables, using the table id as a prefix for each column name.
@@ -203,7 +203,7 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
 
     rightTableColumns.forEach((colId) => {
       const rightColumnAlias = `${rightTableId}.${colId}`;
-      selects.push(`${quoteIdent(rightTableId)}.${quoteIdent(colId)} AS ${quoteIdent(rightColumnAlias)}`
+      selects.push(`${quoteIdent(rightTableId)}.${quoteIdent(colId)} AS ${quoteIdent(rightColumnAlias)}`,
       );
     });
   });

@@ -44,8 +44,8 @@ export function setupLocale(appRoot: string): i18n {
     ns: [...supportedNamespaces],
     fallbackLng: 'en',
     detection: {
-      lookupCookie: 'grist_user_locale'
-    }
+      lookupCookie: 'grist_user_locale',
+    },
   }, (err: any) => {
     if (err) {
       errorDuringLoad = err;

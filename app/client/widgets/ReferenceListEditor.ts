@@ -93,7 +93,7 @@ export class ReferenceListEditor extends NewBaseEditor {
         return [
           isBlankReference ? '[Blank]' : item.text,
           cssToken.cls('-blank', isBlankReference),
-          cssChoiceToken.cls('-invalid', item.rowId === 'invalid')
+          cssChoiceToken.cls('-invalid', item.rowId === 'invalid'),
         ];
       },
       createToken: text => new ReferenceItem(text, 'invalid'),
@@ -129,7 +129,7 @@ export class ReferenceListEditor extends NewBaseEditor {
     );
 
     dom.update(this._dom,
-      dom.on('click', () => this._textInput.focus())
+      dom.on('click', () => this._textInput.focus()),
     );
 
     // The referenced table has probably already been fetched (because there must already be a
@@ -138,7 +138,7 @@ export class ReferenceListEditor extends NewBaseEditor {
       if (this.isDisposed()) { return; }
       if (needReload) {
         this._tokenField.setTokens(
-          startRowIds.map(id => new ReferenceItem(this._utils.idToText(id), typeof id === 'number' ? id : 'invalid'))
+          startRowIds.map(id => new ReferenceItem(this._utils.idToText(id), typeof id === 'number' ? id : 'invalid')),
         );
         this.resizeInput();
       }
@@ -202,7 +202,7 @@ export class ReferenceListEditor extends NewBaseEditor {
     // Add the new items to the referenced table.
     const colInfo = {[this._utils.visibleColId]: newValues.map(({text}) => text)};
     const rowIds = await this._utils.tableData.sendTableAction(
-      ["BulkAddRecord", new Array(newValues.length).fill(null), colInfo]
+      ["BulkAddRecord", new Array(newValues.length).fill(null), colInfo],
     );
 
     // Update the TokenField tokens with the returned row ids.
@@ -245,7 +245,7 @@ export class ReferenceListEditor extends NewBaseEditor {
           // Remove the testId('tokenfield') from the cloned element, to simplify tests (so that
           // selecting .test-tokenfield only returns the actual visible tokenfield container).
           dom.cls('test-tokenfield', false),
-        )
+        ),
       );
     }
 
@@ -293,7 +293,7 @@ export class ReferenceListEditor extends NewBaseEditor {
       item.text,
       highlightFunc,
       item.rowId === 'new',
-      this._showAddNew
+      this._showAddNew,
     );
   }
 }

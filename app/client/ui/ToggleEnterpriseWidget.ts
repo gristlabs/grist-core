@@ -140,8 +140,8 @@ not need an activation key to run Grist Core.
 
 Learn more in our [Help Center]({{helpCenter}}).`, {
             contactLink: commonUrls.contact,
-            helpCenter: commonUrls.helpEnterpriseOptIn
-        }))
+            helpCenter: commonUrls.helpEnterpriseOptIn,
+        })),
       ),
       this._buildPasteYourKey(),
     ];
@@ -220,7 +220,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
               cssInline(markdown(`Limit: **${use(maxSeats)}**, Current: **${use(currentSeats)}**`)),
               dom.domComputed(exceeded, valid => [
                 planStatusIcon(!valid ? 'Tick' : 'CrossSmall', planStatusIcon.cls(!valid ? '-valid' : '-invalid')),
-              ])
+              ]),
             ])),
           ),
         ]),
@@ -252,7 +252,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
           cssParagraph(
             dom('b',
               use(exceeded) ? t('Your activation key has expired due to exceeding limits.') :
-                t('Your subscription expired on {{date}}.', {date: use(expireAt)})
+                t('Your subscription expired on {{date}}.', {date: use(expireAt)}),
             ),
             testId('expired-reason'),
           ),
@@ -279,7 +279,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
   private _coreCopy() {
     return [
       cssParagraph(
-        enterpriseNotEnabledCopy()
+        enterpriseNotEnabledCopy(),
       ),
       cssOptInButton(t('Enable Grist Enterprise'),
         dom.on('click', () => this._isEnterpriseEdition.set(true)),
@@ -306,7 +306,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
     return [
       cssParagraph(
         testId('not-active-key'),
-        dom('b', t('You do not have an active subscription.'))
+        dom('b', t('You do not have an active subscription.')),
       ),
       dom.maybe(trialExpiredLocal, expireAt => [
         cssParagraph(
@@ -315,7 +315,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
 [sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.`, {
             signupLink: commonUrls.plans,
             expireAt,
-          }))
+          })),
         ),
         dom('span', dom.text(trialExpiredIso), {style: 'display: none;'}, testId('trial-expiration-date')),
       ]),
@@ -325,7 +325,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
 you activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your
 activation key below.`, {
             signupLink: commonUrls.plans,
-          }))
+          })),
         ),
       ]),
       learnMoreLink(),
@@ -362,7 +362,7 @@ function learnMoreLink() {
   return cssParagraph(
     markdown(t(`Learn more in our [Help Center]({{helpCenter}}).`, {
       signupLink: commonUrls.plans,
-      helpCenter: commonUrls.helpEnterpriseOptIn
+      helpCenter: commonUrls.helpEnterpriseOptIn,
     })));
 }
 
@@ -371,7 +371,7 @@ function copyHandler(value: () => string, confirmation: string) {
     e.stopImmediatePropagation();
     e.preventDefault();
     showTransientTooltip(d as Element, confirmation, {
-      key: TOOLTIP_KEY
+      key: TOOLTIP_KEY,
     });
     await copyToClipboard(value());
   });

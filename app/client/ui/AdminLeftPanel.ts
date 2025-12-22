@@ -36,7 +36,7 @@ export function getPageNames() {
       orgs: {section: adminControls, name: t('Orgs')},
       workspaces: {section: adminControls, name: t('Workspaces')},
       docs: {section: adminControls, name: t('Docs')},
-    } as {[key in AdminPanelPage]: {section: DomContents, name: DomContents}}
+    } as {[key in AdminPanelPage]: {section: DomContents, name: DomContents}},
   };
 }
 
@@ -69,7 +69,7 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
         (adminControlsAvailable ?
           infoTooltip('adminControls', {popupOptions: {placement: 'bottom-start'}}) :
           cssEnterprisePill('Enterprise', testId('enterprise-tag'))
-        )
+        ),
       ),
       buildPageEntry('users', 'AddUser', adminControlsAvailable),
       buildPageEntry('orgs', 'Public', adminControlsAvailable),
@@ -82,7 +82,7 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
           testId('learn-more'),
         ))
       ),
-    )
+    ),
   );
 
   return {

@@ -29,7 +29,7 @@ const logMessages: [TelemetryEvent, ILogMeta][] = [];
 
 const chimpy = configForUser("Chimpy");
 const headers = {
-  headers: {'Content-Type': 'application/json'}
+  headers: {'Content-Type': 'application/json'},
 };
 
 // Tests specific complex scenarios that may have previously resulted in wrong behavior.

@@ -183,11 +183,11 @@ export class FloatingPopup extends Disposable {
   private _getDefaultPosition(): PopupPosition {
     const top = Math.max(
       document.body.offsetHeight - this._height.get(),
-      getPopupTopBottomGapPx()
+      getPopupTopBottomGapPx(),
     );
     const left = Math.max(
       document.body.offsetWidth - this._width.get(),
-      POPUP_GAP_PX
+      POPUP_GAP_PX,
     );
     return {
       top,
@@ -305,12 +305,12 @@ export class FloatingPopup extends Disposable {
     const newWidth = clamp(
       this._width.get(),
       this._minWidth,
-      document.body.offsetWidth - (2 * POPUP_GAP_PX)
+      document.body.offsetWidth - (2 * POPUP_GAP_PX),
     );
     const newHeight = clamp(
       this._height.get(),
       this._minHeight,
-      document.body.offsetHeight - (2 * getPopupTopBottomGapPx())
+      document.body.offsetHeight - (2 * getPopupTopBottomGapPx()),
     );
     this._popupElement!.style.width = `${newWidth}px`;
     this._popupElement!.style.height = `${newHeight}px`;
@@ -387,7 +387,7 @@ export class FloatingPopup extends Disposable {
                 // Disable dragging when a button in the header is clicked.
                 dom.on('mousedown', ev => ev.stopPropagation()),
                 dom.on('touchstart', ev => ev.stopPropagation()),
-              )
+              ),
             ];
           }),
           dom.on('mousedown', this._handleMouseDown),
@@ -412,7 +412,7 @@ export class FloatingPopup extends Disposable {
       cssPopupWrap.cls('-minimized', this._isMinimized),
       cssPopupWrap.cls('-hidden', this._isHidden),
       this._testId('popup'),
-      this._buildArgs()
+      this._buildArgs(),
     );
 
     return popup;
@@ -443,7 +443,7 @@ export class FloatingPopup extends Disposable {
 
   private _handleResize(
     _event: Event,
-    {position, originalPosition, size, originalSize}: JQueryUI
+    {position, originalPosition, size, originalSize}: JQueryUI,
   ) {
     // Constrain resizing to the portion of the viewport that the popup is
     // allowed to be positioned.
@@ -458,7 +458,7 @@ export class FloatingPopup extends Disposable {
       position.top = clamp(
         position.top,
         getPopupTopBottomGapPx(),
-        document.body.offsetHeight - POPUP_HEADER_HEIGHT_PX
+        document.body.offsetHeight - POPUP_HEADER_HEIGHT_PX,
       );
       size.height = originalPosition.top + originalSize.height - position.top;
     }
@@ -466,7 +466,7 @@ export class FloatingPopup extends Disposable {
       position.left = clamp(
         position.left,
         POPUP_GAP_PX,
-        document.body.offsetWidth - (POPUP_HEADER_HEIGHT_PX * 4)
+        document.body.offsetWidth - (POPUP_HEADER_HEIGHT_PX * 4),
       );
       size.width = originalPosition.left + originalSize.width - position.left;
     }
@@ -477,7 +477,7 @@ export class FloatingPopup extends Disposable {
       size.height = clamp(
         size.height,
         this._minHeight,
-        document.body.offsetHeight - position.top - POPUP_GAP_PX
+        document.body.offsetHeight - position.top - POPUP_GAP_PX,
       );
     }
     if (
@@ -487,7 +487,7 @@ export class FloatingPopup extends Disposable {
       size.width = clamp(
         size.width,
         Math.max(this._minWidth, position.left < 0 ? -position.left + (POPUP_HEADER_HEIGHT_PX * 4) : 0),
-        document.body.offsetWidth - position.left - POPUP_GAP_PX
+        document.body.offsetWidth - position.left - POPUP_GAP_PX,
       );
     }
   }

@@ -26,7 +26,7 @@ describe('FillSelectionDown', function () {
         A: ['foo', 'bar', 'baz'],
         C: [10, 20, 30],
         D: [100, 200, 300],
-      }]
+      }],
     ]);
     await session.loadDoc(`/doc/${docId}/p/2`);
 
@@ -35,7 +35,7 @@ describe('FillSelectionDown', function () {
       'foo', 'FOO', '10', '100',
       'bar', 'BAR', '20', '200',
       'baz', 'BAZ', '30', '300',
-      '', '', '', ''
+      '', '', '', '',
     ]);
 
     const revert = await gu.begin();
@@ -50,7 +50,7 @@ describe('FillSelectionDown', function () {
         'foo', 'FOO', '10', '100',
         'foo', 'FOO', '10', '200',
         'baz', 'BAZ', '30', '300',
-        '', '', '', ''
+        '', '', '', '',
       ]);
       await gu.checkForErrors();
     }
@@ -74,7 +74,7 @@ describe('FillSelectionDown', function () {
         'foo', 'FOO', '10', '100',
         'foo', 'FOO', '10', '200',
         'foo', 'FOO', '10', '300',
-        '', '', '', ''
+        '', '', '', '',
       ]);
 
       await gu.checkForErrors();
@@ -113,7 +113,7 @@ describe('FillSelectionDown', function () {
         'foo', 'FOO', '10', '100',
         'bar', 'BAR', '20', '200',
         'baz', 'BAZ', '30', '300',
-        '', '', '', ''
+        '', '', '', '',
       ]);
     }
  finally {

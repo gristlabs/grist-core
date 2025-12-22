@@ -241,7 +241,7 @@ export function decodeObject(value: CellValue): unknown {
 
 // Like lodash's mapValues, with support for sorting keys, for friendlier output.
 export function mapValues<A, B>(
-  sourceObj: {[key: string]: A}, mapper: (value: A) => B, options: {sort?: boolean} = {}
+  sourceObj: {[key: string]: A}, mapper: (value: A) => B, options: {sort?: boolean} = {},
 ): {[key: string]: B} {
   const result: {[key: string]: B} = {};
   const keys = Object.keys(sourceObj);

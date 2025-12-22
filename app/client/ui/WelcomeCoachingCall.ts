@@ -81,18 +81,18 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
         ),
       ),
       cssPopupTitle(t('Free coaching call'),
-        testId('popup-title')
+        testId('popup-title'),
       ),
       cssPopupBody(
         cssBody(
           dom('div',
             t('Schedule your {{freeCoachingCall}} with a member of our team.',
-              {freeCoachingCall: cssBoldText(t('free coaching call'))}
-            )
+              {freeCoachingCall: cssBoldText(t('free coaching call'))},
+            ),
           ),
           dom('div',
             t("On the call, we'll take the time to understand your needs and tailor the call to you. \
-We can show you the Grist basics, or start working with your data right away to build the dashboards you need.")
+We can show you the Grist basics, or start working with your data right away to build the dashboards you need."),
           ),
           dom('div',
             t("You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users \
@@ -100,9 +100,9 @@ navigate the fundamentals of Grist.",
               {
                 ourWeeklyWebinars: cssLink(
                   {href: commonUrls.webinars, target: '_blank'},
-                  t('Grist 101')
-                )
-              }
+                  t('Grist 101'),
+                ),
+              },
             ),
             testId('popup-body-webinar'),
           ),

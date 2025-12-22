@@ -39,8 +39,8 @@ export class DocHistory extends Disposable implements IDomComponent {
         buildConfigContainer(
           subTab === 'activity' ? this._actionLog.buildDom() :
           subTab === 'snapshots' ? dom.create(this._buildSnapshots.bind(this)) :
-          null
-        )
+          null,
+        ),
       ),
     ];
   }
@@ -63,7 +63,7 @@ export class DocHistory extends Disposable implements IDomComponent {
     function setLink(snapshot: DocSnapshot, compareDocId?: string) {
       return dom.attr('href', use => urlState().makeUrl({
         ...use(urlState().state), doc: snapshot.docId,
-        params: (compareDocId ? {compare: compareDocId} : {})
+        params: (compareDocId ? {compare: compareDocId} : {}),
       }));
     }
 
@@ -102,11 +102,11 @@ export class DocHistory extends Disposable implements IDomComponent {
           cssSnapshotCard(
             cssSnapshotCard.cls('-current', Boolean(
               snapshot.snapshotId === doc.idParts.snapshotId ||
-              (compareSnapshotId && snapshot.snapshotId === compareSnapshotId)
+              (compareSnapshotId && snapshot.snapshotId === compareSnapshotId),
             )),
             dom('div',
               cssDatePart(modified.format('ddd ll')), ' ',
-              cssDatePart(modified.format('LT'))
+              cssDatePart(modified.format('LT')),
             ),
             cssMenuDots(icon('Dots'),
               menu(() => [
@@ -114,7 +114,7 @@ export class DocHistory extends Disposable implements IDomComponent {
                   menuItemLink(setLink(snapshot, origUrlId), t("Compare to current")),
                   prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), t("Compare to previous")),
                 ],
-                {placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className}
+                {placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className},
               ),
               testId('doc-history-snapshot-menu'),
             ),

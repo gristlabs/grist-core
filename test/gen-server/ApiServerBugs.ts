@@ -50,11 +50,11 @@ describe('ApiServerBugs', function() {
       maxInheritedRole: null,
       users: {
         [kiwiEmail]: 'editors',
-        [charonEmail]: 'viewers'
-      }
+        [charonEmail]: 'viewers',
+      },
     };
     let resp = await axios.patch(`${homeUrl}/api/docs/${herringDoc}/access`, {
-      delta: delta1
+      delta: delta1,
     }, chimpy);
     assert.equal(resp.status, 200);
     // Ensure that the doc access is as expected.
@@ -89,18 +89,18 @@ describe('ApiServerBugs', function() {
         parentAccess: "viewers",
         access: "viewers",
         isMember: true,
-      }]
+      }],
     });
 
     // Remove Charon from the 'Fish' org and ensure that Chimpy and Kiwi still have
     // owner/editor roles on 'Fish'. Charon should no longer have guest access to the org.
     const delta2 = {
       users: {
-        [charonEmail]: null
-      }
+        [charonEmail]: null,
+      },
     };
     resp = await axios.patch(`${homeUrl}/api/orgs/${fishOrg}/access`, {
-      delta: delta2
+      delta: delta2,
     }, chimpy);
     assert.equal(resp.status, 200);
     resp = await axios.get(`${homeUrl}/api/orgs/${fishOrg}/access`, chimpy);
@@ -122,7 +122,7 @@ describe('ApiServerBugs', function() {
         picture: null,
         access: "editors",
         isMember: true,
-      }]
+      }],
     });
 
     // Charon should no longer have access to the 'Herring' doc, now that user access
@@ -136,11 +136,11 @@ describe('ApiServerBugs', function() {
     // access to 'Fish' or 'Herring'
     const delta3 = {
       users: {
-        [kiwiEmail]: null
-      }
+        [kiwiEmail]: null,
+      },
     };
     resp = await axios.patch(`${homeUrl}/api/orgs/${fishOrg}/access`, {
-      delta: delta3
+      delta: delta3,
     }, chimpy);
     assert.equal(resp.status, 200);
     resp = await axios.get(`${homeUrl}/api/docs/${herringDoc}`, kiwi);
@@ -153,21 +153,21 @@ describe('ApiServerBugs', function() {
       maxInheritedRole: "owners",
       users: {
         [charonEmail]: null,
-        [kiwiEmail]: null
-      }
+        [kiwiEmail]: null,
+      },
     };
     resp = await axios.patch(`${homeUrl}/api/docs/${herringDoc}/access`, {
-      delta: delta4
+      delta: delta4,
     }, chimpy);
     assert.equal(resp.status, 200);
     const delta5 = {
       users: {
         [kiwiEmail]: "editors",
-        [charonEmail]: "viewers"
-      }
+        [charonEmail]: "viewers",
+      },
     };
     resp = await axios.patch(`${homeUrl}/api/orgs/${fishOrg}/access`, {
-      delta: delta5
+      delta: delta5,
     }, chimpy);
     assert.equal(resp.status, 200);
   });

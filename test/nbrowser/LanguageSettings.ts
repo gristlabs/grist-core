@@ -17,7 +17,7 @@ describe("LanguageSettings", function() {
     ['fr', 'FR', 'Français'],
     ['te', 'US', 'English'], // Telugu is not supported yet, so Grist should fallback to English (US).
     ['en', 'US', 'English'], // This is a default language for Grist.
-    ['pt-BR', 'BR', 'Português (Brasil)']
+    ['pt-BR', 'BR', 'Português (Brasil)'],
   ];
 
   for (const [locale, countryCode, language] of locales) {
@@ -236,8 +236,8 @@ function withLang(locale: string): {skipped: boolean} {
     customDriver = await createDriver({
       extraArgs: [
         'lang=' + locale,
-        ...(process.env.MOCHA_WEBDRIVER_HEADLESS ? [`headless=chrome`] : [])
-      ]
+        ...(process.env.MOCHA_WEBDRIVER_HEADLESS ? [`headless=chrome`] : []),
+      ],
     });
     server.setDriver(customDriver);
     gu.setDriver(customDriver);

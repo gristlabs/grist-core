@@ -42,7 +42,7 @@ describe('ColumnFilterMenu', function() {
           id: 'A', type: 'RefList:Table2', isFormula: true,
           // This means that the first cell will contain [] while the second will contain null.
           // The test asserts that both end up being treated the same.
-          formula: 'if $id == 1: return table.lookupRecords(B="foobar")'
+          formula: 'if $id == 1: return table.lookupRecords(B="foobar")',
         },
         {id: 'B'},
       ]],
@@ -59,8 +59,8 @@ describe('ColumnFilterMenu', function() {
       [
         '', '1',
         '', '2',
-        '', ''
-      ]
+        '', '',
+      ],
     );
 
     await gu.openColumnMenu('A', 'Filter');
@@ -91,7 +91,7 @@ describe('ColumnFilterMenu', function() {
     // check `Other` summary is present
     assert.deepEqual(
       await driver.findAll('.test-filter-menu-summary', e => e.find('label').getText()),
-      ['Other values (3,501)', 'Future values']
+      ['Other values (3,501)', 'Future values'],
     );
 
     // check counts add up
@@ -103,7 +103,7 @@ describe('ColumnFilterMenu', function() {
     // check summary has `Other matching` and Other Non-matching`
     assert.deepEqual(
       await driver.findAll('.test-filter-menu-summary', e => e.find('label').getText()),
-      ['Other Matching (2,493)', 'Other Non-Matching (1,008)']
+      ['Other Matching (2,493)', 'Other Non-Matching (1,008)'],
     );
 
     // check count adds up
@@ -128,8 +128,8 @@ describe('ColumnFilterMenu', function() {
       [
         'Aba',
         'Abadan',
-        ''
-      ]
+        '',
+      ],
     );
 
   });
@@ -144,12 +144,12 @@ describe('ColumnFilterMenu', function() {
     // check Other values was propertly unchecked
     assert.equal(
       await driver.findContent('.test-filter-menu-summary', /Other values/).find('input').matches(':checked'),
-      false
+      false,
     );
 
     assert.equal(
       await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').matches(':checked'),
-      false
+      false,
     );
   });
 
@@ -167,7 +167,7 @@ describe('ColumnFilterMenu', function() {
         'Bananas', '2',
         'Grapes', '-1',
         'Grapefruit', 'n/a',
-        'Clementines', '5'
+        'Clementines', '5',
       ]);
 
     // add Name Filter
@@ -316,7 +316,7 @@ describe('ColumnFilterMenu', function() {
         'Grapes', '-1',
         'Grapefruit', 'n/a',
         'Clementines', '5',
-        'Apples', '0'
+        'Apples', '0',
       ]);
 
     // open the Count filter
@@ -339,7 +339,7 @@ describe('ColumnFilterMenu', function() {
     // check count is (1)
     assert.deepEqual(
       await driver.findAll('.test-filter-menu-summary', e => e.find('label').getText()),
-      ['Others (1)']
+      ['Others (1)'],
     );
 
     // close filter
@@ -361,8 +361,8 @@ describe('ColumnFilterMenu', function() {
       ['Oranges', '3',
         'Bananas', '2',
         'Clementines', '5',
-        '', ''
-      ]
+        '', '',
+      ],
     );
 
     // reopen the filter
@@ -377,8 +377,8 @@ describe('ColumnFilterMenu', function() {
       ['Oranges', '3',
         'Bananas', '2',
         '', '',
-        undefined, undefined
-      ]
+        undefined, undefined,
+      ],
     );
 
     // remove both min and max
@@ -396,7 +396,7 @@ describe('ColumnFilterMenu', function() {
         'Grapes', '-1',
         'Grapefruit', 'n/a',
         'Clementines', '5',
-        'Apples', '0'
+        'Apples', '0',
       ]);
 
   });
@@ -411,9 +411,9 @@ describe('ColumnFilterMenu', function() {
         {checked: true, value: '2019-07-15', count: 1},
         {checked: true, value: '2019-07-16', count: 1},
         {checked: true, value: '2019-07-17', count: 1},
-        {checked: true, value: '2019-07-18', count: 1}
+        {checked: true, value: '2019-07-18', count: 1},
       ],
-      await gu.getFilterMenuState()
+      await gu.getFilterMenuState(),
     );
 
     // Check that the Date filter is pinned.
@@ -423,7 +423,7 @@ describe('ColumnFilterMenu', function() {
         {name: 'Count', hasUnsavedChanges: true},
         {name: 'Date', hasUnsavedChanges: true},
       ],
-      await gu.getPinnedFilters()
+      await gu.getPinnedFilters(),
     );
 
     // Set a min filter of '2019-07-16'.
@@ -442,8 +442,8 @@ describe('ColumnFilterMenu', function() {
         'Grapes', '-1',
         'Grapefruit', 'n/a',
         'Clementines', '5',
-        'Apples', '0'
-      ]
+        'Apples', '0',
+      ],
     );
 
     // Check that the Date filter was removed.
@@ -455,7 +455,7 @@ describe('ColumnFilterMenu', function() {
         {name: 'Name', hasUnsavedChanges: true},
         {name: 'Count', hasUnsavedChanges: true},
       ],
-      await gu.getPinnedFilters()
+      await gu.getPinnedFilters(),
     );
   });
 
@@ -480,8 +480,8 @@ describe('ColumnFilterMenu', function() {
         'Grapes', '-1',
         'Grapefruit', 'n/a',
         'Clementines', '5',
-        'Apples', '0'
-      ]
+        'Apples', '0',
+      ],
     );
 
     // Check that Count is still pinned to the filter bar.
@@ -490,7 +490,7 @@ describe('ColumnFilterMenu', function() {
         {name: 'Name', hasUnsavedChanges: true},
         {name: 'Count', hasUnsavedChanges: true},
       ],
-      await gu.getPinnedFilters()
+      await gu.getPinnedFilters(),
     );
 
     // Check the filter menu state of Count.
@@ -505,7 +505,7 @@ describe('ColumnFilterMenu', function() {
         {checked: true, value: '3', count: 1},
         {checked: true, value: '5', count: 1},
       ],
-      await gu.getFilterMenuState()
+      await gu.getFilterMenuState(),
     );
 
     await gu.sendKeys(Key.ESCAPE);
@@ -531,8 +531,8 @@ describe('ColumnFilterMenu', function() {
       ['Apples', '2019-07-17' + timeChunk,
         'Oranges', '2019-07-16' + timeChunk,
         'Bananas', '2019-07-18' + timeChunk,
-        '', ''
-      ]
+        '', '',
+      ],
     );
 
     // reopen the filter
@@ -548,8 +548,8 @@ describe('ColumnFilterMenu', function() {
       ['Apples', '2019-07-17' + timeChunk,
         'Oranges', '2019-07-16' + timeChunk,
         '', '',
-        undefined, undefined
-      ]
+        undefined, undefined,
+      ],
     );
 
     // remove both min and max
@@ -582,7 +582,7 @@ describe('ColumnFilterMenu', function() {
     // adds a DateTime column
     await api.applyUserActions(doc.id, [
       ['AddVisibleColumn', 'Table1', 'DateTime', {
-        type: "DateTime:UTC", widgetOptions: '{"dateFormat": "YYYY-MM-DD", "timeFormat": "h:mma"}'
+        type: "DateTime:UTC", widgetOptions: '{"dateFormat": "YYYY-MM-DD", "timeFormat": "h:mma"}',
       }],
       ['BulkUpdateRecord', 'Table1', [1, 2, 3, 4, 5, 6], {
         DateTime: [
@@ -593,7 +593,7 @@ describe('ColumnFilterMenu', function() {
           "",
           "2019-07-15T00:00Z",
           "n/a",
-        ]
+        ],
       }],
     ]);
 

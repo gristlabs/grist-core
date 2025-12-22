@@ -41,7 +41,7 @@ import {
   MultiHolder,
   Observable,
   styled,
-  UseCBOwner
+  UseCBOwner,
 } from 'grainjs';
 
 const t = makeT('CustomSectionConfig');
@@ -132,13 +132,13 @@ class ColumnPicker extends Disposable {
                       cssBlank(t("Clear selection")),
                       testId('clear-selection'),
                     ];
-                  }
-                }
+                  },
+                },
               ),
               dom.on('click', () => {
                 // When the menu is opened or closed, refresh the options.
                 refreshTrigger.set(!refreshTrigger.get());
-              })
+              }),
             ),
             testId('mapping-for-' + this._column.name),
             testId('enabled'),
@@ -150,8 +150,8 @@ class ColumnPicker extends Disposable {
               Observable.create(this, null),
               [], {
                 disabled: true,
-                defaultLabel: t("No {{columnType}} columns in table.", {"columnType": this._column.typeDesc})
-              }
+                defaultLabel: t("No {{columnType}} columns in table.", {"columnType": this._column.typeDesc}),
+              },
             ),
             hoverTooltip(t("No {{columnType}} columns in table.", {"columnType": this._column.typeDesc})),
             testId('mapping-for-' + this._column.name),
@@ -177,7 +177,7 @@ class ColumnListPicker extends Disposable {
           testId('label-for-' + this._column.name),
         ),
         this._buildDraggableList(use),
-        this._buildAddColumn()
+        this._buildAddColumn(),
       ];
     });
   }
@@ -214,14 +214,14 @@ class ColumnListPicker extends Disposable {
                 t("{{wrongTypeCount}} non-{{columnType}} columns are not shown", {
                   wrongTypeCount,
                   columnType: this._column.type.toLowerCase(),
-                  count: wrongTypeCount
+                  count: wrongTypeCount,
                 }),
-                testId('map-message-' + this._column.name)
-              ) : null
+                testId('map-message-' + this._column.name),
+              ) : null,
             ];
           }),
           testId('add-column-for-' + this._column.name),
-        )
+        ),
       ),
     ];
   }
@@ -239,7 +239,7 @@ class ColumnListPicker extends Disposable {
         reorder: this._reorder.bind(this),
         receive: this._addColumn.bind(this),
         drag_indicator: cssDragger,
-      }
+      },
     ), testId('map-list-for-' + this._column.name));
   }
 
@@ -334,9 +334,9 @@ class CustomSectionConfigurationConfig extends Disposable{
           textButton(
             t("Open configuration"),
             dom.on('click', () => this._openConfiguration()),
-            testId('open-configuration')
-          )
-        )
+            testId('open-configuration'),
+          ),
+        ),
       ),
       dom.maybeOwned(use => use(this._section.columnsToMap), (owner, columns) => {
         const createObs = (column: ColumnToMapImpl) => {
@@ -354,7 +354,7 @@ class CustomSectionConfigurationConfig extends Disposable{
         // Create observables for all columns to pick.
         const mappings = columns.map(c => new ColumnToMapImpl(c)).map(column => ({
           value: createObs(column),
-          column
+          column,
         }));
         return dom('div',
           this._attachColumnMappingTip(this._section.customDef.url()),
@@ -362,7 +362,7 @@ class CustomSectionConfigurationConfig extends Disposable{
             ? dom.create(ColumnListPicker, m.value, m.column, this._section)
             : dom.create(ColumnPicker, m.value, m.column, this._section)),
         );
-      })
+      }),
     ]);
   }
   private _openConfiguration(): void {
@@ -467,7 +467,7 @@ export class CustomSectionConfig extends Disposable {
     const userId = this._gristDoc.appModel.currentUser?.id ?? 0;
     this._widgetDetailsExpanded = this.autoDispose(localStorageBoolObs(
       `u:${userId};customWidgetDetailsExpanded`,
-      true
+      true,
     ));
 
     this._getWidgets()
@@ -520,7 +520,7 @@ export class CustomSectionConfig extends Disposable {
         testId('toggle-custom-widget-details'),
         testId(use => !use(this._widgetDetailsExpanded)
           ? 'show-custom-widget-details'
-          : 'hide-custom-widget-details'
+          : 'hide-custom-widget-details',
         ),
       ),
       cssWidgetLabel(t('Widget')),
@@ -547,7 +547,7 @@ export class CustomSectionConfig extends Disposable {
         }
         return [
           dom('span', visibleText, testId('open-custom-widget-gallery')),
-          visuallyHidden(t('Change custom widget'))
+          visuallyHidden(t('Change custom widget')),
         ];
       }),
       dom.on('click', () => showCustomWidgetGallery(this._gristDoc, {
@@ -562,8 +562,8 @@ export class CustomSectionConfig extends Disposable {
         cssRow(
           this._buildWidgetDetails(widget),
           {id: 'custom-widget-details'},
-        )
-      )
+        ),
+      ),
     );
   }
 
@@ -621,7 +621,7 @@ export class CustomSectionConfig extends Disposable {
                 testId('custom-widget-last-updated'),
               ),
             ),
-          )
+          ),
         );
       }
     });
@@ -638,21 +638,21 @@ export class CustomSectionConfig extends Disposable {
           cssWarningWrapper(icon('Lock')),
           dom('div',
             cssConfirmRow(
-              dom.domComputed(this._desiredAccess, level => this._buildAccessLevelPrompt(level))
+              dom.domComputed(this._desiredAccess, level => this._buildAccessLevelPrompt(level)),
             ),
             cssConfirmRow(
               primaryButton(
                 t('Accept'),
                 testId('access-accept'),
-                dom.on('click', () => this._grantDesiredAccess())
+                dom.on('click', () => this._grantDesiredAccess()),
               ),
               basicButton(
                 t('Reject'),
                 testId('access-reject'),
-                dom.on('click', () => this._dismissAccessPrompt())
-              )
-            )
-          )
+                dom.on('click', () => this._dismissAccessPrompt()),
+              ),
+            ),
+          ),
         ),
         dom.onKeyDown({
           Enter: () => this._grantDesiredAccess(),
@@ -674,7 +674,7 @@ export class CustomSectionConfig extends Disposable {
       }
       case AccessLevel.full: {
         return cssConfirmLine(t("Widget needs {{fullAccess}} to this document.", {
-          fullAccess: dom("b", "full access")
+          fullAccess: dom("b", "full access"),
         }));
       }
     }

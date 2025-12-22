@@ -45,7 +45,7 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
     return cssMultiSelectorWrapper(
       cssItemList(testId('list'),
         dom.forEach(this._incItems, item => this.buildItemDom(item)),
-        this._buildAddItemDom(this._options.addItemLabel, this._options.addItemText)
+        this._buildAddItemDom(this._options.addItemLabel, this._options.addItemText),
       ),
     );
   }
@@ -91,7 +91,7 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
     const result = select(
       obs,
       this._allItems,
-      selectOptions
+      selectOptions,
     );
     dom.autoDisposeElem(result, obs);
 
@@ -101,7 +101,7 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
   protected buildRemoveButton(removeCb: () => void): Element {
     return cssItemRemove(testId('remove-btn'),
       dom.on('click', removeCb),
-      '✖'
+      '✖',
     );
   }
 
@@ -110,7 +110,7 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
     return dom('li', testId('item'),
       // this.buildDragHandle(item), TODO: once dragging is implemented
       this.buildSelectBox(item.value, async newItem => this.changeItem(item, newItem)),
-      this.buildRemoveButton(() => this.remove(item))
+      this.buildRemoveButton(() => this.remove(item)),
     );
   }
 
@@ -136,8 +136,8 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
           }, { defLabel }),
           this.buildRemoveButton(() => addNewItem.set(false)))
         : button1(defText, testId('add-btn'),
-          dom.on('click', () => addNewItem.set(true)))
-      )
+          dom.on('click', () => addNewItem.set(true))),
+      ),
     );
   }
 }

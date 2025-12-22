@@ -9,7 +9,7 @@ export function tbind<T, R, Args extends any[]>(func: (this: T, ...a: Args) => R
 
 // Bind context and first arg for a function of up to 5 args.
 export function tbind<T, R, X, Args extends any[]>(
-  func: (this: T, x: X, ...a: Args) => R, context: T, x: X
+  func: (this: T, x: X, ...a: Args) => R, context: T, x: X,
 ): (...a: Args) => R;
 
 export function tbind(func: any, context: any, ...boundArgs: any[]): any {

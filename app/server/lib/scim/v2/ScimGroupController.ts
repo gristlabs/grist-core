@@ -12,7 +12,7 @@ type GroupResource = SCIMMY.Resources.Group;
 class ScimGroupController extends BaseController {
   public constructor(
     dbManager: HomeDBManager,
-    checkAccess: (context: RequestContext) => void
+    checkAccess: (context: RequestContext) => void,
   ) {
     super(dbManager, checkAccess);
     this.invalidIdError = 'Invalid passed group ID';
@@ -71,7 +71,7 @@ class ScimGroupController extends BaseController {
    * @param context The request context
    */
   public async overwriteGroup(
-    resource: GroupResource, data: GroupSchema, context: RequestContext
+    resource: GroupResource, data: GroupSchema, context: RequestContext,
   ): Promise<GroupSchema> {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
@@ -97,7 +97,7 @@ class ScimGroupController extends BaseController {
 }
 
 export function getScimGroupConfig(
-  dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void
+  dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void,
 ) {
   const controller = new ScimGroupController(dbManager, checkAccess);
 
@@ -116,6 +116,6 @@ export function getScimGroupConfig(
     },
     degress: async (resource: GroupResource, context: RequestContext): Promise<void> => {
       return await controller.deleteGroup(resource, context);
-    }
+    },
   };
 }

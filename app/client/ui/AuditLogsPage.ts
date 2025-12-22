@@ -38,7 +38,7 @@ export class AuditLogsPage extends Disposable {
   private readonly _currentPage = Computed.create(
     this,
     urlState().state,
-    (_use, s) => s.auditLogs
+    (_use, s) => s.auditLogs,
   );
 
   constructor(private _appModel: AppModel, private _appObj: App) {
@@ -58,7 +58,7 @@ export class AuditLogsPage extends Disposable {
     if (!this._appModel.isOwner()) {
       return createForbiddenPage(
         this._appModel,
-        t("Only site owners may access audit logs.")
+        t("Only site owners may access audit logs."),
       );
     }
 
@@ -84,9 +84,9 @@ export class AuditLogsPage extends Disposable {
         { style: "margin-left: 16px;" },
         cssLink(urlState().setLinkUrl({}), t("Home"), testId("home")),
         separator(" / "),
-        dom("span", t("Audit Logs"))
+        dom("span", t("Audit Logs")),
       ),
-      createTopBarHome(this._appModel)
+      createTopBarHome(this._appModel),
     );
   }
 
@@ -96,13 +96,13 @@ export class AuditLogsPage extends Disposable {
         cssPageTitle(
           t("Audit logs for {{siteName}}", {
             siteName: this._appModel.currentOrgName,
-          })
+          }),
         ),
         cssSection(
           cssSectionTitle(t("Log streaming")),
-          cssSectionBody(this._buildLogStreamingConfig())
-        )
-      )
+          cssSectionBody(this._buildLogStreamingConfig()),
+        ),
+      ),
     );
   }
 
@@ -116,9 +116,9 @@ enable Grist Enterprise. {{contactUsLink}} to learn more.",
         {
           contactUsLink: cssLink(
             { href: commonUrls.contact, target: "_blank" },
-            t("Contact us")
+            t("Contact us"),
           ),
-        }
+        },
       );
     }
  else if (
@@ -132,9 +132,9 @@ SIEM (security information and event management) system if you \
         {
           upgradePlanButton: textButton(
             dom.on("click", () => this._appModel.showUpgradeModal()),
-            t("upgrade your plan")
+            t("upgrade your plan"),
           ),
-        }
+        },
       );
     }
  else {
@@ -153,7 +153,7 @@ SIEM (security information and event management) system if you \
             return (document.title = t("Audit Logs") + suffix);
           }
         }
-      })
+      }),
     );
   }
 }

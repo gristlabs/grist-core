@@ -26,8 +26,8 @@ export class VersionUpdateBanner extends Disposable {
       `u=${userId}:showVersionUpdateBanner`,
       {
         dismissed: false,
-        version: latestVersionAvailable?.version
-      }
+        version: latestVersionAvailable?.version,
+      },
     );
   }
 

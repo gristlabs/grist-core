@@ -36,7 +36,7 @@ function makeDummyViewSection(name: string) {
         colId: ko.observable(ref),
       }),
       pureType: ko.observable('Text'),
-    })
+    }),
   });
   return {
     _isDeleted: ko.observable(false),
@@ -117,16 +117,16 @@ const sampleUploadResult: UploadResult = {
   files: [{
     origName: "foo.csv",
     size: 13,
-    ext: ".csv"
+    ext: ".csv",
   }, {
     origName: "Hello World, what a long name you have.csv",
     size: 57,
-    ext: ".csv"
+    ext: ".csv",
   }, {
     origName: "NYC Restaurants.xlsx",
     size: 68259,
-    ext: ".xlsx"
-  }]
+    ext: ".xlsx",
+  }],
 };
 
 function setupTest() {
@@ -137,8 +137,8 @@ function setupTest() {
     viewSections: {
       getRowModel() {
         return makeDummyViewSection('dest3');
-      }
-    }
+      },
+    },
   };
   const gristDoc: GristDoc = {
     docComm: null,
@@ -149,15 +149,15 @@ function setupTest() {
     docData: {
       sendAction() {
         return Promise.resolve(1);
-      }
-    }
+      },
+    },
   } as any;
   const holder = Holder.create<Importer>(null);
   const createPreview = (vs: ViewSectionRec) => ({
     viewPane: dom('div', `GridView for ${vs.titleDef()}`),
     dispose: () => null,
     listenTo: (..._args: any[]) => undefined,
-    sortedRows: SortedRowSet.create(null, (a, b) => 0)
+    sortedRows: SortedRowSet.create(null, (a, b) => 0),
   });
 
   function render(modeValue: string) {
@@ -173,7 +173,7 @@ function setupTest() {
       case 'spinner': return (importer as any)._renderSpinner();
       case 'error': return (importer as any)._renderError("This is a test error message");
       case 'plugin': return (importer as any)._renderPlugin(
-        dom('div', 'Hello, ', dom('input', {type: 'text'}), ' world', dom('button', 'Go!'))
+        dom('div', 'Hello, ', dom('input', {type: 'text'}), ' world', dom('button', 'Go!')),
       );
       case 'preview': return (importer as any)._renderMain(sampleUploadResult);
       case 'parseopts': return (importer as any)._renderParseOptions(initSchema, null);

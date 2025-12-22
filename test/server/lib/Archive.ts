@@ -3,7 +3,7 @@ import {
   ArchiveEntry,
   ArchivePackingOptions,
   create_tar_archive,
-  create_zip_archive
+  create_zip_archive,
 } from 'app/server/lib/Archive';
 import {MemoryWritableStream} from 'app/server/utils/streams';
 import decompress from 'decompress';
@@ -18,7 +18,7 @@ const testFiles = [
   {
     name: "Test2.txt",
     contents: "This is some other file.",
-  }
+  },
 ];
 
 async function* generateTestArchiveContents() {

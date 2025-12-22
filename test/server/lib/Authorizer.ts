@@ -278,7 +278,7 @@ describe('Authorizer', function() {
     await dbManager.updateDocPermissions({
       userId: await dbManager.testGetId('Chimpy') as number,
       urlId: 'sampledocid_2',
-      org: 'nasa'
+      org: 'nasa',
     }, {users: {"anon@getgrist.com": "viewers"}});
     dbManager.flushDocAuthCache();
     openDoc = await cli.send("openDoc", "sampledocid_2");
@@ -359,13 +359,13 @@ describe('Authorizer', function() {
     // User can access a doc by setting header.
     const docUrl = `${localServer.getOwnUrl()}/o/pr/api/docs/sampledocid_6`;
     const resp = await axios.get(docUrl, {
-      headers: {'X-email': 'chimpy@getgrist.com'}
+      headers: {'X-email': 'chimpy@getgrist.com'},
     });
     assert.equal(resp.data.name, 'Bananas');
 
     // Unknown user is denied.
     await assert.isRejected(axios.get(docUrl, {
-      headers: {'X-email': 'notchimpy@getgrist.com'}
+      headers: {'X-email': 'notchimpy@getgrist.com'},
     }));
 
     // User can access a doc via websocket by setting header.
@@ -397,6 +397,6 @@ function withoutTimestamp(txt: string): string {
 async function getChimpyCookie() {
   const session = new TestSession(server);
   return await session.getCookieLogin(
-    'pr', { email: 'chimpy@getgrist.com', name: 'Chimpy' }
+    'pr', { email: 'chimpy@getgrist.com', name: 'Chimpy' },
   );
 }

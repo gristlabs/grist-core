@@ -48,7 +48,7 @@ describe('NumericEditor', function() {
       {initial: '17,500',   expect: '17,500',  exp0: '0,000',  expPlain: '-4,400',  expFmt: '-1234,560'   },
       {initial: '(1,2)',    expect: '(1,2)',   exp0: ' 0 ',    expPlain: '(4,4)',   expFmt: '(1234,56)'   },
       {initial: '1000,456', expect: '1000,456', exp0: '0',     expPlain: '-4,4',    expFmt: '-1234,56'    },
-      {initial: '1.000,0',  expect: '1.000,0', exp0: '0,0',    expPlain: '-4,4',    expFmt: '-1.234,56',  },
+      {initial: '1.000,0',  expect: '1.000,0', exp0: '0,0',    expPlain: '-4,4',    expFmt: '-1.234,56'  },
       {initial: '5,00€',    expect: '5,00 €',  exp0: '0,00 €', expPlain: '-4,40 €', expFmt: '-1.234,56 €' },
       {initial: '4,5%',     expect: '4,5 %',   exp0: '0 %',    expPlain: '-440 %',   expFmt: '-123.456 %' },
     ],

@@ -245,7 +245,7 @@ export type BuildHighlightFunc = (match: string) => DomContents;
  * Converts text to DOM with matching bits of text rendered using highlight(match) function.
  */
 export function buildHighlightedDom(
-  text: string, highlightFunc: HighlightFunc, highlight: BuildHighlightFunc
+  text: string, highlightFunc: HighlightFunc, highlight: BuildHighlightFunc,
 ): DomContents {
   if (!text) { return text; }
   const parts = highlightFunc(text);
@@ -276,7 +276,7 @@ function highlightMatches(searchWords: string[], text: string): string[] {
       const chars = split(word, '');
       outputs.push(
         chars.slice(0, prefixLen).join(''),
-        chars.slice(prefixLen).join('') + separator
+        chars.slice(prefixLen).join('') + separator,
       );
     }
   }

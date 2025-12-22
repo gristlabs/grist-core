@@ -126,7 +126,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
       ...(useSinglePort ? {
         // APP_HOME_URL needed if proxyUrl is set, otherwise can be omitted.
         ...(this._proxyUrl ? {
-          APP_HOME_URL: this.getHost()
+          APP_HOME_URL: this.getHost(),
         } : undefined),
         GRIST_SINGLE_PORT: 'true',
       } : (isCore ? {
@@ -158,7 +158,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     this._server = spawn('node', [cmd], {
       env: {
         ...env,
-        ...(process.env.SERVER_NODE_OPTIONS ? {NODE_OPTIONS: process.env.SERVER_NODE_OPTIONS} : {})
+        ...(process.env.SERVER_NODE_OPTIONS ? {NODE_OPTIONS: process.env.SERVER_NODE_OPTIONS} : {}),
       },
       stdio: quiet ? 'ignore' : ['inherit', serverLog, serverLog],
     });

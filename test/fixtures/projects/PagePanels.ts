@@ -23,17 +23,17 @@ function renderPage(appModel: AppModel, showRightPane: boolean, showLeftOpener: 
       hideOpener: !showLeftOpener,
       header: dom.create(
         AppHeader,
-        appModel
+        appModel,
       ),
       content: dom('div',
         addNewButton({isOpen: leftPanelOpen},
           menu(() => addMenu(), {
             placement: 'bottom-start',
-            stretchToSelector: `.${cssAddNewButton.className}`
+            stretchToSelector: `.${cssAddNewButton.className}`,
           }),
           testId('addNew')),
         addPages(leftPanelOpen),
-        'This is long left-pane content'
+        'This is long left-pane content',
       ),
     },
     rightPanel: showRightPane ? {
@@ -51,9 +51,9 @@ function renderPage(appModel: AppModel, showRightPane: boolean, showLeftOpener: 
             }),
           "Edit Data Selection",
           dom.prop('disabled', use => !use(selected)),
-          testId('editDataBtn')
+          testId('editDataBtn'),
         ),
-        testContent('Long right-pane content')
+        testContent('Long right-pane content'),
       ),
     } : undefined,
     headerMain: testContent('Header Middle'),
@@ -79,23 +79,23 @@ function setupTest() {
       dom('input', {type: 'checkbox'},
         testId('show-right'),
         dom.prop('checked', showRightPane),
-        dom.on('change', (ev, elem: any) => showRightPane.set(elem.checked))
+        dom.on('change', (ev, elem: any) => showRightPane.set(elem.checked)),
       ),
       'Show right pane',
       dom('br'),
       dom('input', {type: 'checkbox'},
         testId('show-left-opener'),
         dom.prop('checked', showLeftOpener),
-        dom.on('change', (ev, elem: any) => showLeftOpener.set(elem.checked))
+        dom.on('change', (ev, elem: any) => showLeftOpener.set(elem.checked)),
       ),
       'Show left opener',
       dom('br'),
       dom('input', {type: 'checkbox'},
           testId('optimize-narrow-screen'),
           dom.prop('checked', optimizeNarrowScreen),
-          dom.on('change', (ev, elem: any) => optimizeNarrowScreen.set(elem.checked))
+          dom.on('change', (ev, elem: any) => optimizeNarrowScreen.set(elem.checked)),
          ),
-      'Optimize narrow screen'
+      'Optimize narrow screen',
 
     ),
   ];

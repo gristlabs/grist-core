@@ -118,8 +118,8 @@ describe("ActionSummary", function() {
               3: [null, ["Northern France"]],
             },
           },
-        }
-      }
+        },
+      },
     });
   });
 
@@ -168,7 +168,7 @@ describe("ActionSummary", function() {
         species: ids.map(x => 'species ' + x),
         color: ids.map(x => 'color ' + x),
         place: ids.map(x => 'place ' + x),
-      }]
+      }],
     ]);
     const sum = await summarizeLastAction(doc);
     const tabularDiffs = asTabularDiffs(sum, {});
@@ -192,10 +192,10 @@ describe("ActionSummary", function() {
           columnDeltas: {
             color: {
               1: [["yellow"], ["red"]],
-            }
-          }
-        }
-      }
+            },
+          },
+        },
+      },
     };
     const tabularDiffs = asTabularDiffs(sum, {});
     assert.lengthOf(tabularDiffs.Duck.cells, 2);
@@ -214,7 +214,7 @@ describe("ActionSummary", function() {
     ]);
     await doc.applyUserActions(session, [
       ["ReplaceTableData", "Frogs", [1],
-       {species: ["bouncers"], color: ["blue"], place: ["Bouncy Castle"]}]
+       {species: ["bouncers"], color: ["blue"], place: ["Bouncy Castle"]}],
     ]);
     const sum = await summarizeLastAction(doc);
     assert.deepEqual(sum, {
@@ -243,8 +243,8 @@ describe("ActionSummary", function() {
               2: [["Jungletown"], null],
             },
           },
-        }
-      }
+        },
+      },
     });
   });
 
@@ -361,7 +361,7 @@ describe("ActionSummary", function() {
                           [null, 'color'],
                           ['depth', null],
                           [null, 'transient']],
-        }
+        },
       },
     };
     const summary2: ActionSummary = {
@@ -376,7 +376,7 @@ describe("ActionSummary", function() {
                           [null, 'weight'],
                           ['anger', null],
                           ['transient', null]],
-        }
+        },
       },
     };
     const summary3: ActionSummary = {
@@ -392,7 +392,7 @@ describe("ActionSummary", function() {
                           ['age', 'minutes'],
                           ['anger', null],
                           ['depth', null]],
-        }
+        },
       },
     };
     const result = concatenateSummariesCleanly([summary1, summary2]);
@@ -417,10 +417,10 @@ describe("ActionSummary", function() {
               1: [["gray"], null],
               11: [["gray"], null],
               12: [["gray"], null],
-            }
+            },
           },
           columnRenames: [['age', 'years'], ['color', null]],
-        }
+        },
       },
     };
     const summary2: ActionSummary = {
@@ -436,10 +436,10 @@ describe("ActionSummary", function() {
               9: [["99"], null],
               11: [["15"], ["6000"]],
               12: [["99"], null],
-            }
+            },
           },
           columnRenames: [['years', 'minutes']],
-        }
+        },
       },
     };
     const summary3: ActionSummary = {
@@ -459,10 +459,10 @@ describe("ActionSummary", function() {
             "-color": {
               1: [["gray"], null],
               11: [["gray"], null],
-            }
+            },
           },
           columnRenames: [['age', 'minutes'], ['color', null]],
-        }
+        },
       },
     };
     const result = concatenateSummariesCleanly([summary1, summary2]);
@@ -528,10 +528,10 @@ describe("ActionSummary", function() {
               // rows 12 + 13 + 14 happen not to be cached.
               15: [["white"], null],
               16: [["black"], null],
-            }
+            },
           },
           columnRenames: [['age', 'years'], ['color', null]],
-        }
+        },
       },
     };
     const summary2: ActionSummary = {
@@ -550,10 +550,10 @@ describe("ActionSummary", function() {
               14: [["14"], ["55"]],
               // row 15 happens not to be cached.
               // row 16 happens not to be cached.
-            }
+            },
           },
           columnRenames: [['years', 'minutes']],
-        }
+        },
       },
     };
     const summary3: ActionSummary = {
@@ -581,10 +581,10 @@ describe("ActionSummary", function() {
               11: [["gray"], null],
               15: [["white"], null],
               16: [["black"], null],
-            }
+            },
           },
           columnRenames: [['age', 'minutes'], ['color', null]],
-        }
+        },
       },
     };
     const result = concatenateSummariesCleanly([summary1, summary2]);
@@ -600,7 +600,7 @@ describe("ActionSummary", function() {
       ["AddRecord", "Frogs", null, {species: "parrots", color: "green", place: "Jungletown"}],
     ]);
     await doc.applyUserActions(session, [
-      ["BulkRemoveRecord", "Frogs", [1, 2]]
+      ["BulkRemoveRecord", "Frogs", [1, 2]],
     ]);
     const sum = await summarizeLastAction(doc);
     assert.deepEqual(sum.tableDeltas.Frogs.removeRows, [1, 2]);
@@ -626,7 +626,7 @@ describe("ActionSummary", function() {
         species: ids.map(x => 'species ' + x),
         color: ids.map(x => 'color ' + x),
         place: ids.map(x => 'place ' + x),
-      }]
+      }],
     ]);
 
     // Request a summarization with no row limit.
@@ -647,7 +647,7 @@ describe("ActionSummary", function() {
               '5': [null, [5]],
               '6': [null, [6]],
               '7': [null, [7]],
-              '8': [null, [8]]
+              '8': [null, [8]],
             },
             species: {
               '3': [null, ['species 3']],
@@ -655,7 +655,7 @@ describe("ActionSummary", function() {
               '5': [null, ['species 5']],
               '6': [null, ['species 6']],
               '7': [null, ['species 7']],
-              '8': [null, ['species 8']]
+              '8': [null, ['species 8']],
             },
             color: {
               '3': [null, ['color 3']],
@@ -663,7 +663,7 @@ describe("ActionSummary", function() {
               '5': [null, ['color 5']],
               '6': [null, ['color 6']],
               '7': [null, ['color 7']],
-              '8': [null, ['color 8']]
+              '8': [null, ['color 8']],
             },
             place: {
               '3': [null, ['place 3']],
@@ -671,12 +671,12 @@ describe("ActionSummary", function() {
               '5': [null, ['place 5']],
               '6': [null, ['place 6']],
               '7': [null, ['place 7']],
-              '8': [null, ['place 8']]
-            }
+              '8': [null, ['place 8']],
+            },
           },
-          columnRenames: []
-        }
-      }
+          columnRenames: [],
+        },
+      },
     });
 
     // Request a summarization with a row limit but full preservation of some columns.
@@ -688,13 +688,13 @@ describe("ActionSummary", function() {
       '3': [null, [3]],
       '4': [null, [4]],
       '5': [null, [5]],
-      '8': [null, [8]]
+      '8': [null, [8]],
     };
     sum.tableDeltas.Frogs.columnDeltas.place = {
       '3': [null, ['place 3']],
       '4': [null, ['place 4']],
       '5': [null, ['place 5']],
-      '8': [null, ['place 8']]
+      '8': [null, ['place 8']],
     };
     assert.deepEqual(sum2, sum);
   });
@@ -749,7 +749,7 @@ describe("ActionSummary", function() {
       });
       assertRebase({
         trunk: { renames: [['table1', 'table2']],
-                 deltas: { table2: empty } }
+                 deltas: { table2: empty } },
       });
     });
 
@@ -771,11 +771,11 @@ describe("ActionSummary", function() {
         trunk: { renames: [['table1', 'table2'], ['table2', 'table1']] },
         fork: {
           renames: [['table2', 'table3']],
-          deltas: { table1: empty, table3: something }
+          deltas: { table1: empty, table3: something },
         },
         result: {
           renames: [['table1', 'table3']],
-          deltas: { table3: something, table2: empty }
+          deltas: { table3: something, table2: empty },
         },
       });
     });
@@ -785,11 +785,11 @@ describe("ActionSummary", function() {
         trunk: { renames: [['table1', null]] },
         fork: {
           renames: [['table1', 'table2'], ['table4', 'table5']],
-          deltas: { table2: something, table3: empty }
+          deltas: { table2: something, table3: empty },
         },
         result: {
           renames: [['table4', 'table5']],
-          deltas: { table3: empty }
+          deltas: { table3: empty },
         },
       });
       assertRebase({

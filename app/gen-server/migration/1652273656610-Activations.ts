@@ -24,12 +24,12 @@ export class Activations1652273656610 implements MigrationInterface {
         {
           name: "created_at",
           type: datetime,
-          default: now
+          default: now,
         },
         {
           name: "updated_at",
           type: datetime,
-          default: now
+          default: now,
         },
       ]}));
   }

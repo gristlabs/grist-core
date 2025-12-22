@@ -108,7 +108,7 @@ export abstract class FormRenderer extends Disposable {
   public static new(
     layoutNode: FormLayoutNode,
     context: FormRendererContext,
-    parent?: FormRenderer
+    parent?: FormRenderer,
   ): FormRenderer {
     const Renderer = FormRenderers[layoutNode.type] ?? ParagraphRenderer;
     return new Renderer(layoutNode, context, parent);
@@ -119,7 +119,7 @@ export abstract class FormRenderer extends Disposable {
   constructor(
     protected layoutNode: FormLayoutNode,
     protected context: FormRendererContext,
-    protected parent?: FormRenderer
+    protected parent?: FormRenderer,
   ) {
     super();
     this.children = (this.layoutNode.children ?? []).map(child =>
@@ -146,7 +146,7 @@ class ParagraphRenderer extends FormRenderer {
   public render() {
     return css.paragraph(
       css.paragraph.cls(`-alignment-${this.layoutNode.alignment || 'left'}`),
-      bindMarkdown(this.layoutNode.text || '')
+      bindMarkdown(this.layoutNode.text || ''),
     );
   }
 }
@@ -188,7 +188,7 @@ class SubmitRenderer extends FormRenderer {
             return confirmModal(
               'Are you sure you want to reset your form?',
               'Reset',
-              () => this.parent?.reset()
+              () => this.parent?.reset(),
             );
           }),
           testId('reset'),
@@ -208,7 +208,7 @@ class SubmitRenderer extends FormRenderer {
               }
               return validateRequiredLists();
             }),
-          )
+          ),
         ),
       ),
     ];
@@ -408,7 +408,7 @@ class NumericRenderer extends BaseFieldRenderer {
           },
           preventSubmitOnEnter(),
         ],
-      }
+      },
     );
   }
 }
@@ -504,7 +504,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
         this._choices.map(choice => dom('option',
           {value: choice},
           dom.prop('selected', use => use(this.value) === choice),
-          choice
+          choice,
         )),
         dom.onKeyDown({
           Enter$: ev => this._maybeOpenSearchSelect(ev),
@@ -545,7 +545,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
               ev.stopPropagation();
               ev.preventDefault();
             }),
-            testId('search-select-clear-btn')
+            testId('search-select-clear-btn'),
           ),
           css.searchSelectIcon('Collapse'),
           testId('search-select'),
@@ -574,7 +574,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
             preventSubmitOnEnter(),
           ),
           dom('span', radioButton.label),
-        )
+        ),
       ),
     );
   }
@@ -710,7 +710,7 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
             preventSubmitOnEnter(),
           ),
           dom('span', checkbox.label),
-        )
+        ),
       ),
     );
   }
@@ -782,7 +782,7 @@ class RefListRenderer extends BaseFieldRenderer {
             preventSubmitOnEnter(),
           ),
           dom('span', checkbox.label),
-        )
+        ),
       ),
     );
   }
@@ -929,12 +929,12 @@ class RefRenderer extends BaseFieldRenderer {
               ev.stopPropagation();
               ev.preventDefault();
             }),
-            testId('search-select-clear-btn')
+            testId('search-select-clear-btn'),
           ),
           css.searchSelectIcon('Collapse'),
           testId('search-select'),
         ),
-      )
+      ),
     );
   }
 
@@ -958,7 +958,7 @@ class RefRenderer extends BaseFieldRenderer {
             preventSubmitOnEnter(),
           ),
           dom('span', radioButton.label),
-        )
+        ),
       ),
     );
   }
@@ -991,7 +991,7 @@ class AttachmentsRenderer extends BaseFieldRenderer {
       },
       dom.prop('value', this._value),
       dom.prop('multiple', true),
-      testId('attachment-input')
+      testId('attachment-input'),
     );
   }
 

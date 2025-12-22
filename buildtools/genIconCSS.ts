@@ -58,7 +58,7 @@ async function main() {
       `export const IconList = [\n` +
       `  ${baseNames.join(',\n  ')}\n` +
       `] as const;\n\n` +
-      `export type IconName = (typeof IconList)[number];\n`
+      `export type IconName = (typeof IconList)[number];\n`,
     );
   }
 }

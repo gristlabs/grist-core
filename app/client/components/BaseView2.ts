@@ -28,7 +28,7 @@ function isFileList(value: unknown): value is File[] {
  * `fields` are the target fields being pasted into.
  */
 export async function parsePasteForView(
-  data: PasteData, fields: ViewFieldRec[], gristDoc: GristDoc
+  data: PasteData, fields: ViewFieldRec[], gristDoc: GristDoc,
 ): Promise<BulkColValues> {
   const result: BulkColValues = {};
   const actions: UserAction[] = [];

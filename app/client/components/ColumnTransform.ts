@@ -63,7 +63,7 @@ export class ColumnTransform extends Disposable {
 
     this.autoDispose(commands.createGroup({
       undo: this.cancel,
-      redo: noop
+      redo: noop,
     }, this, true));
 
     this.onDispose(() => {
@@ -123,7 +123,7 @@ export class ColumnTransform extends Disposable {
       description: `Transformed column ${this.origColumn.colId()}.`,
       shouldIncludeInBundle: this._shouldIncludeInBundle.bind(this),
       prepare: this._doPrepare.bind(this, colType),
-      finalize: this._doFinalize.bind(this)
+      finalize: this._doFinalize.bind(this),
     });
 
     // triggerFinalize tells DocData to call the finalize callback we passed above; this way
@@ -187,7 +187,7 @@ export class ColumnTransform extends Disposable {
       // We are in bundle, it is safe to just send another action.
       // NOTE: We could add rules with AddColumn action, but there are some optimizations that converts array values.
       await this.gristDoc.docData.sendActions([
-        ['UpdateRecord', '_grist_Tables_column', newColInfo.colRef, {rules: this.rules}]
+        ['UpdateRecord', '_grist_Tables_column', newColInfo.colRef, {rules: this.rules}],
       ]);
     }
 
@@ -298,7 +298,7 @@ export class ColumnTransform extends Disposable {
     if (formula === oldFormula) { return []; }
     if (!formula && !oldFormula) { return []; }
     return [
-      ['UpdateRecord', '_grist_Tables_column', this.transformColumn.getRowId(), {formula}]
+      ['UpdateRecord', '_grist_Tables_column', this.transformColumn.getRowId(), {formula}],
     ];
   }
 }

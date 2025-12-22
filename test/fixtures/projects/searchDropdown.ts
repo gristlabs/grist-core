@@ -34,11 +34,11 @@ function setupTest() {
       dom(
         'button', 'Add column',
         addDropdown(),
-      )
+      ),
     ),
 
     dom('h3', 'Logs: '), resetBtn(),
-    logElem
+    logElem,
   );
 }
 

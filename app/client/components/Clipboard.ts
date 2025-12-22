@@ -340,7 +340,7 @@ async function getFilesFromClipboardItems(clipboardItems: ClipboardItem[]): Prom
       const mimeType = item.types.find(mtime => !mtime.startsWith("text/"));
       return mimeType ? item.getType(mimeType) : null;
     })
-    .filter(isNonNullish)
+    .filter(isNonNullish),
   );
   return blobs.map(blob => new File([blob], 'from-clipboard', {type: blob.type}));
 }
@@ -377,7 +377,7 @@ by using the keyboard shortcut {{shortcut}}.',
           {
             action,
             shortcut: ShortcutKey(ShortcutKeyContent(getHumanKey(keys, isMac))),
-          }
+          },
         ),
       ),
       hideCancel: true,

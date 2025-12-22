@@ -39,5 +39,5 @@ export const HighContrastLight: ThemeTokens = {
     formulaIcon: tokens.decoration,
     textButtonHoverBorder: 'currentColor',
     switchActiveSlider: tokens.primary,
-  }
+  },
 };

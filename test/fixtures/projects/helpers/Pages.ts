@@ -57,7 +57,7 @@ export async function addNewPage() {
     id: records.length,
     name: observable(`New Page${records.length}`),
     indentation: 0,
-    pagePos: records[records.length - 1].pagePos + 1
+    pagePos: records[records.length - 1].pagePos + 1,
   });
   updateModel();
 }
@@ -91,12 +91,12 @@ function buildDom(id: number) {
       isCollapsedByDefault,
       onCollapseByDefault,
       hasSubPages,
-      href: '#'
+      href: '#',
     },
     testId("page"),
     dom.onMatch('.test-docpage-link', 'click', () => {
       const item = find(pagesModel.get(), (i: any) => i.record.id === id);
       selected.set(item || null);
-    })
+    }),
   );
 }

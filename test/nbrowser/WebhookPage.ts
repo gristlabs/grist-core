@@ -37,7 +37,7 @@ describe('WebhookPage', function () {
         'anon@getgrist.com': 'editors',
         // check another owner's perspective.
         [gu.session().user('user2').email]: 'owners',
-      }
+      },
     });
   });
 

@@ -18,7 +18,7 @@ describe("DocWorkerLoadTracker", function () {
   const docWorkerInfoMap: DocWorkerInfo = {
     id: 'some-id',
     internalUrl: 'http://grist-internal/dw/10.0.0.2/some-path',
-    publicUrl: 'https://grist-public/some-path'
+    publicUrl: 'https://grist-public/some-path',
   };
 
   before(function () {
@@ -28,7 +28,7 @@ describe("DocWorkerLoadTracker", function () {
   beforeEach(function () {
     getTotalMemoryUsedStub = sandbox.stub();
     const docManagerMock: IMemoryLoadEstimator = {
-      getTotalMemoryUsedMB: getTotalMemoryUsedStub
+      getTotalMemoryUsedMB: getTotalMemoryUsedStub,
     };
 
     docWorkerLoadTracker = new DocWorkerLoadTracker(
@@ -78,7 +78,7 @@ describe("DocWorkerLoadTracker", function () {
       },
       maxFromFile: bytesToMb(512),
       usedFromFile: bytesToMb(128),
-      result: 128/1024
+      result: 128/1024,
     }, {
       itMsg: 'should otherwise retrieve max memory using GRIST_DOC_WORKER_MAX_MEMORY_BYTES_PATH',
       maxFromFile: bytesToMb(512),
@@ -100,13 +100,13 @@ describe("DocWorkerLoadTracker", function () {
           getTotalMemoryUsedStub.returns(128);
       },
       maxFromFile: bytesToMb(512),
-      result: 128/512
+      result: 128/512,
     }]) {
       it(ctx.itMsg, async function () {
         ctx.setup?.();
         await Promise.all([
           mockValueInFile('docWorkerUsedMemoryBytesPath', ctx.usedFromFile),
-          mockValueInFile('docWorkerMaxMemoryBytesPath', ctx.maxFromFile)
+          mockValueInFile('docWorkerMaxMemoryBytesPath', ctx.maxFromFile),
         ]);
 
         assert.equal(await docWorkerLoadTracker.getLoad(), ctx.result);
@@ -116,7 +116,7 @@ describe("DocWorkerLoadTracker", function () {
     it('should reject when the memory usage read from a file is not a number', async function () {
       await Promise.all([
         mockValueInFile('docWorkerUsedMemoryBytesPath', 'Yikes, not a number'),
-        mockValueInFile('docWorkerMaxMemoryBytesPath', bytesToMb(1024))
+        mockValueInFile('docWorkerMaxMemoryBytesPath', bytesToMb(1024)),
       ]);
       getTotalMemoryUsedStub.returns(512);
 

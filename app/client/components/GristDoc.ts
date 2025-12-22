@@ -99,7 +99,7 @@ import {
   Observable,
   styled,
   subscribe,
-  toKo
+  toKo,
 } from 'grainjs';
 import * as ko from 'knockout';
 import cloneDeepWith from 'lodash/cloneDeepWith';
@@ -342,7 +342,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     plugins: LocalPlugin[],
     options: {
       comparison?: DocStateComparison  // initial comparison with another document
-    } = {}
+    } = {},
   ) {
     super();
     console.log("RECEIVED DOC RESPONSE", openDocResponse);
@@ -517,7 +517,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
  else if (isPopupManagerDisabled) {
           this.behavioralPromptsManager.enable();
         }
-      }
+      },
     ));
 
     let isStartingTourOrTutorial = false;
@@ -609,8 +609,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       },
       ...importSourceElems.map(importSourceElem => ({
         label: importSourceElem.importSource.label,
-        action: () => selectAndImport(this, importSourceElems, importSourceElem, createPreview)
-      }))
+        action: () => selectAndImport(this, importSourceElems, importSourceElem, createPreview),
+      })),
     ];
 
     // Set the available import sources in the DocPageModel.
@@ -787,7 +787,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
       await urlState().pushUrl(
         {params: omit(params, "assistantState")},
-        {replace: true, avoidReload: true}
+        {replace: true, avoidReload: true},
       );
 
       const assistantState = await this.docComm.getAssistantState(params.assistantState);
@@ -983,7 +983,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     const viewName = this.viewModel.name.peek();
     await this.docData.bundleActions(
       t("Added new linked section to view {{viewName}}", {viewName}),
-      () => this._addWidgetToPage(widget, tableId ?? null)
+      () => this._addWidgetToPage(widget, tableId ?? null),
     );
     return;
   }
@@ -1009,7 +1009,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
     const {sectionRef, viewRef} = await this.docData.bundleActions(
       'Add new page',
-      () => this._addPage(val, tableId ?? null)
+      () => this._addPage(val, tableId ?? null),
     );
     await this._focus({sectionRef, viewRef});
     this._showNewWidgetPopups(type);
@@ -1044,7 +1044,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         // if grouped by column changes, let's use the specific user action.
         if (!isEqual(oldVal.columns, newVal.columns)) {
           await docData.sendAction(
-            ['UpdateSummaryViewSection', section.getRowId(), newVal.columns]
+            ['UpdateSummaryViewSection', section.getRowId(), newVal.columns],
           );
           // Charts needs to keep view fields consistent across update.
           if (newVal.type === 'chart' && oldVal.type === 'chart') {
@@ -1058,7 +1058,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         }
         return section;
       },
-      {nestInActiveBundle: true}
+      {nestInActiveBundle: true},
     ));
   }
 
@@ -1081,8 +1081,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       ['UpdateRecord', '_grist_Views_section', sectionId, {
         linkSrcSectionRef: link.srcSectionRef,
         linkSrcColRef: link.srcColRef,
-        linkTargetColRef: link.targetColRef
-      }]
+        linkTargetColRef: link.targetColRef,
+      }],
     );
   }
 
@@ -1340,7 +1340,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       const colInfo = {
         parentId: section.id(),
         colRef: mapColIdToColumn.get(colId).id(),
-        parentPos: i
+        parentPos: i,
       };
       const action = ['AddRecord', null, colInfo];
       return this.docModel.viewFields.sendTableAction(action) ?? Promise.resolve(undefined);
@@ -1369,7 +1369,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       if (message.data.webhooks.type == 'webhookOverflowError') {
         this.trigger('webhookOverflowError',
           t('New changes are temporarily suspended. Webhooks queue overflowed. \
-Please check webhooks settings, remove invalid webhooks, and clean the queue.'),);
+Please check webhooks settings, remove invalid webhooks, and clean the queue.'));
       }
  else {
         this.trigger('webhooks', message.data.webhooks);
@@ -1504,13 +1504,13 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
   private async _addWidgetToPage(
     widget: IPageWidget,
     tableId: string | null = null,
-    {focus = true, popups = true}: AddSectionOptions= {}
+    {focus = true, popups = true}: AddSectionOptions= {},
   ) {
     const {columns, link, summarize, table, type} = widget;
     const viewRef = this.activeViewId.get();
     const tableRef = table === 'New Table' ? 0 : table;
     const result: {viewRef: number, sectionRef: number} = await this.docData.sendAction(
-      ['CreateViewSection', tableRef, viewRef, type, summarize ? columns : null, tableId]
+      ['CreateViewSection', tableRef, viewRef, type, summarize ? columns : null, tableId],
     );
     if (type === 'chart') {
       await this._ensureOneNumericSeries(result.sectionRef);
@@ -1532,7 +1532,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
   private async _addPage(
     widget: IPageWidget,
     tableId: string | null = null,
-    {focus = true, popups = true}: AddSectionOptions = {}
+    {focus = true, popups = true}: AddSectionOptions = {},
   ) {
     const {columns, summarize, table, type} = widget;
     let viewRef: number;
@@ -1545,14 +1545,14 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
  else {
         // This will create a new table and page.
         const result = await this.docData.sendAction(
-          ['CreateViewSection', 0, 0, type, null, tableId]
+          ['CreateViewSection', 0, 0, type, null, tableId],
         );
         [viewRef, sectionRef] = [result.viewRef, result.sectionRef];
       }
     }
  else {
       const result = await this.docData.sendAction(
-        ['CreateViewSection', table, 0, type, summarize ? columns : null, null]
+        ['CreateViewSection', table, 0, type, summarize ? columns : null, null],
       );
       [viewRef, sectionRef] = [result.viewRef, result.sectionRef];
       if (type === 'chart') {
@@ -1652,7 +1652,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
         }
         // Clearing popup section data will close this popup.
         this._popupSectionOptions.set(null);
-      }
+      },
     });
     // If the anchor link is valid, set the cursor.
     if (hash.rowId || hash.colRef) {
@@ -1733,7 +1733,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
     async function singleWait(s: ViewSectionRec): Promise<BaseView> {
       const view = await waitObs(
         sectionToCheck.viewInstance,
-        vsi => Boolean(vsi && !vsi.isDisposed())
+        vsi => Boolean(vsi && !vsi.isDisposed()),
       );
       return view!;
     }
@@ -1799,7 +1799,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
     this.behavioralPromptsManager.showPopup(editLayoutButton, 'editCardLayout', {
       popupOptions: {
         placement: 'left-start',
-      }
+      },
     });
   }
 
@@ -1829,7 +1829,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
   private async _replaceViewSection(
     section: ViewSectionRec,
     oldVal: IPageWidget,
-    newVal: IPageWidget
+    newVal: IPageWidget,
   ) {
 
     const docModel = this.docModel;
@@ -1910,7 +1910,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
     const activeSection = this.viewModel.activeSection();
     const filters = activeSection.activeFilters.get().map(filterInfo => ({
       colRef: filterInfo.fieldOrColumn.origCol().origColRef(),
-      filter: filterInfo.filter()
+      filter: filterInfo.filter(),
     }));
     const linkingFilter: FilterColValues = activeSection.linkingFilter();
     const userOverride = this.docPageModel.userOverride.get();
@@ -2092,8 +2092,8 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
         actions: [{
           label: t('go to webhook settings'), action: async () => {
             await urlState().pushUrl({docPage: 'webhook'});
-          }
-        }]
+          },
+        }],
       });
     });
   }

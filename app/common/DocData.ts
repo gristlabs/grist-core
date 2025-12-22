@@ -13,7 +13,7 @@ import {TableFetchResult} from 'app/common/ActiveDocAPI';
 import {
   BulkColValues, ColInfo, ColInfoWithId, ColValues, DocAction,
   getColIdsFromDocAction,
-  RowRecord, TableDataAction
+  RowRecord, TableDataAction,
 } from 'app/common/DocActions';
 import {ColTypeMap, MetaRowRecord, MetaTableData, TableData} from 'app/common/TableData';
 

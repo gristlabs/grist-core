@@ -353,7 +353,7 @@ describe("AccessRules2", function() {
     assert.lengthOf(await ruleSet.findAll('.test-rule-add'), 2);
     assert.equal(
       await ruleSet.find('.test-rule-part-and-memo:nth-child(2) .test-rule-acl-formula').getText(),
-      "Everyone Else"
+      "Everyone Else",
     );
     assert.equal(await ruleSet.find('.test-rule-extra-add').isPresent(), false);
 
@@ -369,7 +369,7 @@ describe("AccessRules2", function() {
     assert.lengthOf(await ruleSet.findAll('.test-rule-add'), 2);
     assert.equal(
       await ruleSet.find('.test-rule-part-and-memo:nth-child(2) .test-rule-acl-formula').getText(),
-      "Everyone Else"
+      "Everyone Else",
     );
     assert.equal(await ruleSet.find('.test-rule-extra-add').isPresent(), false);
 
@@ -381,7 +381,7 @@ describe("AccessRules2", function() {
     assert.lengthOf(await ruleSet.findAll('.test-rule-add'), 3);
     assert.equal(
       await ruleSet.find('.test-rule-part-and-memo:nth-child(2) .test-rule-acl-formula').getText(),
-      "True"
+      "True",
     );
     assert.equal(await ruleSet.find('.test-rule-extra-add').isPresent(), true);
 
@@ -396,7 +396,7 @@ describe("AccessRules2", function() {
     assert.lengthOf(await ruleSet.findAll('.test-rule-add'), 3);
     assert.equal(
       await ruleSet.find('.test-rule-part-and-memo:nth-child(2) .test-rule-acl-formula').getText(),
-      "True"
+      "True",
     );
     assert.equal(await ruleSet.find('.test-rule-extra-add').isPresent(), true);
 
@@ -408,7 +408,7 @@ describe("AccessRules2", function() {
     assert.lengthOf(await ruleSet.findAll('.test-rule-add'), 2);
     assert.equal(
       await ruleSet.find('.test-rule-part-and-memo:nth-child(2) .test-rule-acl-formula').getText(),
-      "Everyone Else"
+      "Everyone Else",
     );
     assert.equal(await ruleSet.find('.test-rule-extra-add').isPresent(), false);
   });

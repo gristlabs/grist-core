@@ -22,7 +22,7 @@ export function alert(content: DomElementArg, ...args: DomElementArg[]) {
       ),
     ),
     dom('p', content),
-    ...args
+    ...args,
   );
 }
 

@@ -110,7 +110,7 @@ describe('SortFilterSectionOptions', function() {
     menu = await driver.findWait('.grist-floating-menu', 100);
     assert.deepEqual(
       await menu.findAll('.test-filter-config-filter', el => el.getText()),
-      ['Name']
+      ['Name'],
     );
     await assertPinnedFilters([{name: 'Name', hasUnsavedChanges: true}]);
 
@@ -385,7 +385,7 @@ describe('SortFilterSectionOptions', function() {
     // Verify that column is not filtered, not sorted
     assert.deepEqual(
       await gu.getVisibleGridCells('Name', [1, 2, 3, 4, 5, 6]),
-      ['Apples', 'Oranges', 'Bananas', 'Grapes', 'Grapefruit', 'Clementines']
+      ['Apples', 'Oranges', 'Bananas', 'Grapes', 'Grapefruit', 'Clementines'],
     );
     await assertFilterBarPinnedFilters([]);
 
@@ -404,7 +404,7 @@ describe('SortFilterSectionOptions', function() {
     // Verify that column is filtered and sorted
     assert.deepEqual(
       await gu.getVisibleGridCells('Name', [1, 2, 3, 4, 5]),
-      ['Bananas', 'Clementines', 'Grapefruit', 'Grapes', 'Oranges']
+      ['Bananas', 'Clementines', 'Grapefruit', 'Grapes', 'Oranges'],
     );
     await assertFilterBarPinnedFilters([{name: 'Name', hasUnsavedChanges: false}]);
 
@@ -414,7 +414,7 @@ describe('SortFilterSectionOptions', function() {
     // check there is no filter, no sort and no pinned filters
     assert.deepEqual(
       await gu.getVisibleGridCells('Name', [1, 2, 3, 4, 5, 6]),
-      ['Apples', 'Oranges', 'Bananas', 'Grapes', 'Grapefruit', 'Clementines']
+      ['Apples', 'Oranges', 'Bananas', 'Grapes', 'Grapefruit', 'Clementines'],
     );
     await assertFilterBarPinnedFilters([]);
   });
@@ -440,7 +440,7 @@ describe('SortFilterSectionOptions', function() {
     // check the grid is filtered correclty
     assert.deepEqual(
       await gu.getVisibleGridCells('Name', [1, 2, 3, 4]),
-      ['Oranges', 'Grapes', 'Grapefruit', 'Clementines']
+      ['Oranges', 'Grapes', 'Grapefruit', 'Clementines'],
     );
 
     // check there is no error
@@ -471,7 +471,7 @@ describe('SortFilterSectionOptions', function() {
     // check all columns are listed
     assert.deepEqual(
       await driver.findAll('.test-sd-searchable-list-item', e => e.getText()),
-      ['Name', 'Count', 'Date']
+      ['Name', 'Count', 'Date'],
     );
 
     // click Name
@@ -479,7 +479,7 @@ describe('SortFilterSectionOptions', function() {
 
     // check the filter menu is shown
     assert.isTrue(
-      await driver.find('.test-filter-menu-wrapper').isPresent()
+      await driver.find('.test-filter-menu-wrapper').isPresent(),
     );
 
     // check a filter was added and pinned
@@ -500,7 +500,7 @@ describe('SortFilterSectionOptions', function() {
     // check data is correctly filtered
     assert.deepEqual(
         await gu.getVisibleGridCells({cols: ['Name'], rowNums: [1, 2]}),
-        ['Oranges', 'Bananas']
+        ['Oranges', 'Bananas'],
     );
 
     // remove filter

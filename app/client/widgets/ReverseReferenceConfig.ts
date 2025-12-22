@@ -7,7 +7,7 @@ import {Tooltip} from 'app/client/ui/GristTooltips';
 import {
   cssLabelText,
   cssRow,
-  cssSeparator
+  cssSeparator,
 } from 'app/client/ui/RightPanelStyles';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {textButton} from 'app/client/ui2018/buttons';
@@ -77,8 +77,8 @@ export class ReverseReferenceConfig extends Disposable {
               testId('add-reverse-columm'),
               dom.prop('disabled', this._disabled),
             ),
-            this._tooltip
-          )
+            this._tooltip,
+          ),
         ),
       ]),
       dom.maybe(this._isConfigured, () => cssTwoWayConfig(
@@ -89,7 +89,7 @@ export class ReverseReferenceConfig extends Disposable {
             cssLabelText(
               t('Two-way Reference'),
             ),
-            'twoWayReferences'
+            'twoWayReferences',
           ),
           cssIconButton(
             icon('Remove'),
@@ -110,7 +110,7 @@ export class ReverseReferenceConfig extends Disposable {
               cssClipItem(
                 cssCapitalize(t('Column'), dom.style('margin-right', '8px')),
                 dom('span', dom.text(this._reverseColumn)),
-                cssGrayText('(', dom.text(this._reverseType), ')')
+                cssGrayText('(', dom.text(this._reverseType), ')'),
               ),
               cssIconButton(
                 cssShowOnHover.cls(''),
@@ -166,8 +166,8 @@ export class ReverseReferenceConfig extends Disposable {
       onConfirm,
       {
         explanation: cssHigherLine(explanation),
-        width: 'fixed-wide'
-      }
+        width: 'fixed-wide',
+      },
     );
   }
 

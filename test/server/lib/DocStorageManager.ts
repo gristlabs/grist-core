@@ -80,7 +80,7 @@ describe('DocStorageManager', function() {
       fse.writeFileSync(doc1, "this is a test");
       const doc2 = tmp.fileSync({
         prefix: 'DeleteTest2', postfix: '.grist',
-        discardDescriptor: true
+        discardDescriptor: true,
       }).name;
       // Check that items got created as we expect.
       assert(await docUtils.pathExists(doc1));

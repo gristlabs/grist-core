@@ -156,7 +156,7 @@ export class ActiveDocImport {
 
     // Destination columns with a blank formula (i.e. skipped columns).
     const skippedColumnIds = new Set(
-      stripPrefixes(destCols.filter(c => c.formula.trim() === '').map(c => c.colId!))
+      stripPrefixes(destCols.filter(c => c.formula.trim() === '').map(c => c.colId!)),
     );
 
     const numResultRows = comparisonResult[hiddenTableId + '.id'].length;
@@ -183,7 +183,7 @@ export class ActiveDocImport {
           updatedRecords[srcColId][srcRowId] = [
             [destVal],
             // For skipped columns, always use the destination value.
-            [shouldSkip ? destVal : merge(srcVal, destVal)]
+            [shouldSkip ? destVal : merge(srcVal, destVal)],
           ];
         }
       }
@@ -207,10 +207,10 @@ export class ActiveDocImport {
               addRows: [],  // Since deltas are relative to the source table, we can't (yet) use this.
               columnRenames: [],
               columnDeltas: updatedRecords,
-            }
-          }
-        }
-      }
+            },
+          },
+        },
+      },
     };
   }
 
@@ -234,7 +234,7 @@ export class ActiveDocImport {
    * It's exposed publicly for use by grist-static which doesn't use the plugin system.
    */
   public async importParsedFileAsNewTable(
-    docSession: OptDocSession, optionsAndData: ParseFileResult, importOptions: FileImportOptions
+    docSession: OptDocSession, optionsAndData: ParseFileResult, importOptions: FileImportOptions,
   ): Promise<ImportResult> {
     const {originalFilename, mergeOptionsMap, isHidden, uploadFileIndex, transformRuleMap} = importOptions;
     const options = optionsAndData.parseOptions;
@@ -311,7 +311,7 @@ export class ActiveDocImport {
         uploadFileIndex,
         origTableName,
         transformSectionRef, // TODO: this shouldn't always be needed, and we only get it if genimporttransform
-        destTableId
+        destTableId,
       });
     }
 
@@ -363,7 +363,7 @@ export class ActiveDocImport {
         isHidden,
         originalFilename: origName,
         uploadFileIndex: index,
-        transformRuleMap: transforms[index] || {}
+        transformRuleMap: transforms[index] || {},
       });
       if (index === 0) {
         // Returned parse options from the first file should be used for all files in one upload.
@@ -421,7 +421,7 @@ export class ActiveDocImport {
     docSession: OptDocSession,
     hiddenTableId: string, destTableId: string,
     intoNewTable: boolean, transformRule: TransformRule|null,
-    mergeOptions: MergeOptions|null
+    mergeOptions: MergeOptions|null,
   ): Promise<string> {
     log.info("ActiveDocImport._transformAndFinishImport(%s, %s, %s, %s, %s)",
       hiddenTableId, destTableId, intoNewTable, transformRule, mergeOptions);
@@ -517,7 +517,7 @@ export class ActiveDocImport {
 
     // Destination columns with a blank formula (i.e. skipped columns).
     const skippedColumnIds = new Set(
-      stripPrefixes(destCols.filter(c => c.formula.trim() === '').map(c => c.colId!))
+      stripPrefixes(destCols.filter(c => c.formula.trim() === '').map(c => c.colId!)),
     );
 
     // Remove all skipped columns from the map.
@@ -655,7 +655,7 @@ export class ActiveDocImport {
         'ModifyColumn',
         fixedTableId,
         fixedColumnIds[fixedTableId][ref.colIndex],
-        { type: `Ref:${tablesByOrigName[ref.refTableId].hiddenTableId}` }
+        { type: `Ref:${tablesByOrigName[ref.refTableId].hiddenTableId}` },
       ];
     });
 

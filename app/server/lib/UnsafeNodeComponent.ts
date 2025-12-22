@@ -96,7 +96,7 @@ export class UnsafeNodeComponent extends BaseComponent {
       // add the path to grist's public api
       getAppPathTo(this.appRoot, 'public-api'),
       // add the path to the node_modules packaged with grist, in electron form
-      getAppPathTo(this.appRoot, 'node_modules')
+      getAppPathTo(this.appRoot, 'node_modules'),
     ]);
     const env = Object.assign({}, process.env, {
       NODE_PATH: paths.join(path.delimiter),

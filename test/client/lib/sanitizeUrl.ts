@@ -26,11 +26,11 @@ describe("sanitizeUrl", function () {
     it("returns the provided URL if valid", function () {
       assert.equal(
         sanitizeHttpUrl("https://example.com"),
-        "https://example.com/"
+        "https://example.com/",
       );
       assert.equal(
         sanitizeHttpUrl("http://example.com"),
-        "http://example.com/"
+        "http://example.com/",
       );
     });
 
@@ -48,19 +48,19 @@ describe("sanitizeUrl", function () {
     it("returns the provided URL if valid", function () {
       assert.equal(
         sanitizeLinkUrl("https://example.com"),
-        "https://example.com"
+        "https://example.com",
       );
       assert.equal(sanitizeLinkUrl("http://example.com"), "http://example.com");
       assert.equal(sanitizeLinkUrl("www.example.com"), "www.example.com");
       assert.equal(sanitizeLinkUrl(""), "");
       assert.equal(
         sanitizeLinkUrl("mailto:support@getgrist.com"),
-        "mailto:support@getgrist.com"
+        "mailto:support@getgrist.com",
       );
       assert.equal(sanitizeLinkUrl("tel:0123456789"), "tel:0123456789");
       assert.equal(
         sanitizeLinkUrl("ftp://getgrist.com/path"),
-        "ftp://getgrist.com/path"
+        "ftp://getgrist.com/path",
       );
     });
 

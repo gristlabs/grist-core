@@ -27,7 +27,7 @@ import {
   Observable,
   onKeyDown,
   select,
-  styled
+  styled,
 } from "grainjs";
 import Popper from 'popper.js';
 import {IOpenController, popupOpen, setPopupToCreateDom} from 'popweasel';
@@ -73,7 +73,7 @@ export function toPageWidget(section: ViewSectionRec): IPageWidget {
   const link = linkId({
     srcSectionRef: section.linkSrcSectionRef.peek(),
     srcColRef: section.linkSrcColRef.peek(),
-    targetColRef: section.linkTargetColRef.peek()
+    targetColRef: section.linkTargetColRef.peek(),
   });
   return {
     type: section.parentKey.peek() as IWidgetType,
@@ -82,7 +82,7 @@ export function toPageWidget(section: ViewSectionRec): IPageWidget {
     columns: section.table.peek().columns.peek().peek()
       .filter(col => col.summarySourceCol.peek())
       .map(col => col.summarySourceCol.peek()),
-    link, section: section.id.peek()
+    link, section: section.id.peek(),
   };
 }
 
@@ -162,7 +162,7 @@ export function attachPageWidgetPicker(elem: HTMLElement, gristDoc: GristDoc, on
     placement: 'left',
     trigger: ['click'],
     attach: 'body',
-    boundaries: 'viewport'
+    boundaries: 'viewport',
   });
 }
 
@@ -170,7 +170,7 @@ export function attachPageWidgetPicker(elem: HTMLElement, gristDoc: GristDoc, on
 export function openPageWidgetPicker(elem: HTMLElement, gristDoc: GristDoc, onSave: ISaveFunc,
                                      options: IOptions = {}) {
   popupOpen(elem, ctl => buildPageWidgetPicker(
-    ctl, gristDoc, onSave, options
+    ctl, gristDoc, onSave, options,
   ), { placement: 'right' });
 }
 
@@ -183,7 +183,7 @@ export function buildPageWidgetPicker(
   ctl: IOpenController,
   gristDoc: GristDoc,
   onSave: ISaveFunc,
-  options: IOptions = {}
+  options: IOptions = {},
 ) {
   const {behavioralPromptsManager, docModel} = gristDoc;
   const tables = fromKo(docModel.visibleTables.getObservable());
@@ -207,7 +207,7 @@ export function buildPageWidgetPicker(
     summarize: Observable.create(ctl, initValue.summarize),
     columns: Observable.create(ctl, initValue.columns),
     link: Observable.create(ctl, initValue.link),
-    section: Observable.create(ctl, initValue.section)
+    section: Observable.create(ctl, initValue.section),
   };
 
   // calls onSave and closes the popup. Failure must be handled by the caller.
@@ -243,7 +243,7 @@ export function buildPageWidgetPicker(
       value.type.get(),
       {
         isNewPage: options.isNewPage,
-        summarize: value.summarize.get()
+        summarize: value.summarize.get(),
       });
   }
 
@@ -267,8 +267,8 @@ export function buildPageWidgetPicker(
     (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
     onKeyDown({
       Escape: () => ctl.close(),
-      Enter: () => isValid() && onSaveCB()
-    })
+      Enter: () => isValid() && onSaveCB(),
+    }),
 
   );
 }
@@ -300,7 +300,7 @@ const permittedCustomWidgets: IAttachedCustomWidget[] = PERMITTED_CUSTOM_WIDGETS
 const finalListOfCustomWidgetToShow =  permittedCustomWidgets.filter(a =>
   registeredCustomWidgets.includes(a));
 const sectionTypes: IWidgetType[] = [
-  'record', 'single', 'detail', 'form', 'chart', ...finalListOfCustomWidgetToShow, 'custom'
+  'record', 'single', 'detail', 'form', 'chart', ...finalListOfCustomWidgetToShow, 'custom',
 ];
 
 
@@ -339,7 +339,7 @@ export class PageWidgetSelect extends Disposable {
     private _columns: Observable<ColumnRec[]>,
     private _onSave: () => Promise<void>,
     private _behavioralPromptsManager: BehavioralPromptsManager,
-    private _options: ISelectOptions = {}
+    private _options: ISelectOptions = {},
   ) { super(); }
 
   public buildDom() {
@@ -351,7 +351,7 @@ export class PageWidgetSelect extends Disposable {
           sectionTypes.map((value) => {
             const widgetInfo = getWidgetTypes(value);
             const disabled = computed(this._value.table,
-              (use, tid) => this._isTypeDisabled(value, tid, use(this._value.summarize))
+              (use, tid) => this._isTypeDisabled(value, tid, use(this._value.summarize)),
             );
             return cssEntry(
               dom.autoDispose(disabled),
@@ -375,7 +375,7 @@ export class PageWidgetSelect extends Disposable {
               popupOptions: {
                 attach: null,
                 placement: 'right-start',
-              }
+              },
             }),
             cssEntry.cls('-selected', use => use(this._value.table) === 'New Table'),
             cssEntry.cls('-disabled', this._isNewTableDisabled),
@@ -387,12 +387,12 @@ export class PageWidgetSelect extends Disposable {
                        cssLabel(dom.text(table.tableNameDef), overflowTooltip()),
                        dom.on('click', () => this._selectTable(table.id())),
                        cssEntry.cls('-selected', use => use(this._value.table) === table.id()),
-                       testId('table-label')
+                       testId('table-label'),
               ),
                 cssPivot(
                   cssBigIcon('Pivot'),
                   cssEntry.cls('-selected', use => use(this._value.summarize) &&
-                                                     use(this._value.table) === table.id()
+                                                     use(this._value.table) === table.id(),
                   ),
                   cssEntry.cls('-disabled', this._isSummaryDisabled),
                   dom.on('click', (_ev, el) =>
@@ -400,7 +400,7 @@ export class PageWidgetSelect extends Disposable {
                   testId('pivot'),
               ),
               testId('table'),
-            )
+            ),
           )),
         ),
         cssPanel(
@@ -414,10 +414,10 @@ export class PageWidgetSelect extends Disposable {
                 cssEntry(cssIcon('FieldColumn'), cssFieldLabel(dom.text(col.label)),
                   dom.on('click', () => this._toggleColumnId(col.id())),
                   cssEntry.cls('-selected', use => use(this._value.columns).includes(col.id())),
-                  testId('column')
-                )
+                  testId('column'),
+                ),
               ) :
-              null
+              null,
           ),
         ),
       ),
@@ -429,7 +429,7 @@ export class PageWidgetSelect extends Disposable {
               cssSelectBy(
                 cssSmallLabel(t('SELECT BY')),
                 dom.update(cssSelect(this._value.link, this._selectByOptions!),
-                          testId('selectby'))
+                          testId('selectby')),
               ),
               'selectBy',
               {popupOptions: {attach: null}, domArgs: [
@@ -437,10 +437,10 @@ export class PageWidgetSelect extends Disposable {
                   popupOptions: {
                     attach: null,
                     placement: 'bottom-start',
-                  }
+                  },
                 }),
               ]},
-            )
+            ),
           ),
           dom('div', {style: 'flex-grow: 1'}),
           bigPrimaryButton(
@@ -452,8 +452,8 @@ export class PageWidgetSelect extends Disposable {
               use(this._value.type),
               {
                 isNewPage: this._options.isNewPage,
-                summarize: use(this._value.summarize)
-              })
+                summarize: use(this._value.summarize),
+              }),
             ),
             dom.on('click', () => this._onSave().catch(reportError)),
             testId('addBtn'),

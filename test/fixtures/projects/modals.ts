@@ -38,7 +38,7 @@ function setupTest() {
               // This allows us to ensure that disposers get run when the modal is closed.
               dom.onDispose(() => isOpen.set(false)),
               primaryButton('Greetings!', dom.on('click', () => ctl.close()),
-                testId('custom-modal-btn'))
+                testId('custom-modal-btn')),
             );
           }),
         ),
@@ -46,7 +46,7 @@ function setupTest() {
       ),
       dom('span', ' Modal is ', dom.text(use => use(isOpen) ? 'Open' : 'Closed'),
         testId('custom-modal-text'),
-      )
+      ),
     ),
 
     // For saveModal, we check a number of features:
@@ -113,7 +113,7 @@ function setupTest() {
           const promise = new Promise<void>(resolve => asyncTask.set({resolve}));
           await spinnerModal("Spinner Modal", promise);
           document.body.appendChild(
-            dom('div', 'After spinner', testId('after-spinner'))
+            dom('div', 'After spinner', testId('after-spinner')),
           );
         }),
         testId('spinner-modal-opener'),
@@ -122,10 +122,10 @@ function setupTest() {
         'Async Taks',
         dom('button', 'Resolve',
             dom.on('click', () => { resolve(); asyncTask.set(null); }),
-            testId('resolve-spinner-task')
-           )
-      ))
-    )
+            testId('resolve-spinner-task'),
+           ),
+      )),
+    ),
   );
 }
 

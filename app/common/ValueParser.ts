@@ -234,7 +234,7 @@ export const valueParserClasses: { [type: string]: typeof ValueParser } = {
  * but referencing columns need more than that, see ReferenceParsingOptions above.
  */
 export function createParserRaw(
-  type: string, widgetOpts: FormatOptions, docSettings: DocumentSettings
+  type: string, widgetOpts: FormatOptions, docSettings: DocumentSettings,
 ): ValueParser {
   const cls = valueParserClasses[gristTypes.extractTypeFromColType(type)] || IdentityParser;
   return new cls(type, widgetOpts, docSettings);
@@ -304,7 +304,7 @@ export function createParserOrFormatterArgumentsRaw(
  * `bulk` should be `true` if `colValues` is of type `BulkColValues`.
  */
 function parseColValues<T extends ColValues | BulkColValues>(
-  tableId: string, colValues: T, docData: DocData, bulk: boolean
+  tableId: string, colValues: T, docData: DocData, bulk: boolean,
 ): T {
   const columnsTable = docData.getMetaTable('_grist_Tables_column');
   const tablesTable = docData.getMetaTable('_grist_Tables');
@@ -371,7 +371,7 @@ export function parseUserAction(ua: UserAction, docData: DocData): UserAction {
 }
 
 // Returns a copy of the user action with one element parsed, by default the last one
-function _parseUserActionColValues(ua: UserAction, docData: DocData, parseBulk: boolean, index?: number
+function _parseUserActionColValues(ua: UserAction, docData: DocData, parseBulk: boolean, index?: number,
 ): UserAction {
   ua = ua.slice();
   const tableId = ua[1] as string;

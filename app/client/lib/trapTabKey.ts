@@ -66,7 +66,7 @@ function getFocusableEdges(el: HTMLElement) {
 
 function findFocusableEl(
   el: HTMLElement,
-  forward: boolean
+  forward: boolean,
 ): HTMLElement | null {
   // If we’re walking forward, check if this element is focusable, and return it
   // immediately if it is.
@@ -132,7 +132,7 @@ function findFocusableEl(
  * @see: https://www.abeautifulsite.net/posts/finding-the-active-element-in-a-shadow-root/
  */
 export function getActiveEl(
-  root: Document | ShadowRoot = document
+  root: Document | ShadowRoot = document,
 ): Element | null {
   const activeEl = root.activeElement;
 

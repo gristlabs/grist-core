@@ -55,7 +55,7 @@ import {
   MaybeObsArray,
   Observable,
   toKo,
-  UseCB
+  UseCB,
 } from 'grainjs';
 import * as ko from 'knockout';
 import difference from 'lodash/difference';
@@ -150,7 +150,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     // NOTE: this is not a stub or minimal implementation, it is the same thing that is used in the real GristDoc and
     // all discards are remembered by home db.
     this.behavioralPromptsManager = this.autoDispose(
-      new BehavioralPromptsManager(appModel)
+      new BehavioralPromptsManager(appModel),
     );
 
     // Since we are a read only document, the field editor won't be disposed (known bug in Grist, same things happen On
@@ -168,7 +168,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
       'AddRecord', '_grist_Views', 'main' as any as number, {
         name: 'main',
         type: 'raw_data',
-      }
+      },
     ]);
 
     this.activeViewId.set('main' as any);
@@ -278,7 +278,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
           }
         }
         return formatted;
-      }
+      },
     };
 
     // Some column might be hidden with is an observable value. We will listen to it and hide/show columns as needed.
@@ -363,7 +363,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     }
     // Hide using meta action.
     await this.docData.sendActions([
-      ['RemoveRecord', '_grist_Views_section_field', hasField.id.peek()]
+      ['RemoveRecord', '_grist_Views_section_field', hasField.id.peek()],
     ]);
   }
 
@@ -387,7 +387,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
         colRef: columnRec.id.peek(),
         parentId: sectionRec.id.peek(),
         parentPos: 0, // move first
-      }]
+      }],
     ]);
   }
 
@@ -526,7 +526,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     cursorPos: CursorPos,
     setAsActiveSection: boolean,
     silent?: boolean,
-    visitedSections?: number[]
+    visitedSections?: number[],
   ): Promise<boolean> {
     return Promise.resolve(false);
   }
@@ -653,10 +653,10 @@ export class VirtualSection extends Disposable {
         {parentId: sectionId as any as number});
 
       this._doc.docData.receiveAction([
-        'BulkRemoveRecord', '_grist_Views_section_field', fieldsIds
+        'BulkRemoveRecord', '_grist_Views_section_field', fieldsIds,
       ]);
       this._doc.docData.receiveAction([
-        'RemoveRecord', '_grist_Views_section', sectionId as any as number
+        'RemoveRecord', '_grist_Views_section', sectionId as any as number,
       ]);
     });
 
@@ -721,7 +721,7 @@ export class VirtualSection extends Disposable {
         }
         this._doc.app?.trigger('clipboard_focus', null);
         return true;
-      }
+      },
     }, this, viewSectionRec.hasFocus));
 
     if (props.selectedRow) {
@@ -783,10 +783,10 @@ export class VirtualSection extends Disposable {
             gristDoc: this._doc,
             sectionRowId: this._sectionId as number,
             viewModel: vs.view.peek(),
-            hideTitleControls: this.props.hideViewButtons
+            hideTitleControls: this.props.hideViewButtons,
           }),
-        )
-      )
+        ),
+      ),
     );
   }
 
@@ -802,7 +802,7 @@ export class VirtualSection extends Disposable {
         {parentId: sectionId as any as number});
 
       this._doc.docData.receiveAction([
-        'BulkRemoveRecord', '_grist_Views_section_field', fieldsIds
+        'BulkRemoveRecord', '_grist_Views_section_field', fieldsIds,
       ]);
       const newFieldIds = columns.map(VirtualId.bind(null, undefined)) as any as number[];
       this._doc.docData.receiveAction([
@@ -811,7 +811,7 @@ export class VirtualSection extends Disposable {
           parentId: columns.map(() => sectionId as any as number),
           parentPos: columns.map((_, i) => i + 1),
           width: columns.map(c => widths.get(c) ?? null),
-        }
+        },
       ]);
     });
   }
@@ -917,7 +917,7 @@ class InMemoryDocModel extends DocModel {
         const processed = await docDataCache.sendTableActions(actions);
         const retValues = processed.flatMap(action => action.retValues);
         return {retValues, actionHash: '', actionNum: 1, isModification: true};
-      }
+      },
     } as any;
 
     // docData needs at least one record in doc info.
@@ -926,7 +926,7 @@ class InMemoryDocModel extends DocModel {
       _grist_DocInfo: ['TableData', '_grist_DocInfo', [1], {
         docId: ['1'],
         documentSettings: ['{}'],
-      }]
+      }],
     };
     const docData = new DocData(docComm, metaWithData);
     const docDataCache = new DocDataCache();
@@ -986,7 +986,7 @@ function generateInitialActions(tabDef: TableSpec): DocAction[] {
         isFormula: false,
         formula: '',
         widgetOptions: col.widgetOptions ? JSON.stringify(col.widgetOptions) : '',
-      }))
+      })),
     ], [
       // Add an entry for the virtual table.
       'AddRecord', '_grist_Tables', tableRowId as any, {tableId, primaryViewId: viewId},
@@ -1023,7 +1023,7 @@ function generateInitialActions(tabDef: TableSpec): DocAction[] {
         showHeader: true,
         borderWidth: 1,
         defaultWidth: tabDef.defaultWidth ?? 100,
-      }
+      },
     ],
     [
       // List the fields shown in the view section.
@@ -1032,8 +1032,8 @@ function generateInitialActions(tabDef: TableSpec): DocAction[] {
         parentId: fields.map(() => sectionRowId),
         parentPos: fields.map((_, i) => i + 1),
         width: fields.map(colId => widths.get(colId) ?? null),
-      }
-    ]
+      },
+    ],
   ];
 }
 

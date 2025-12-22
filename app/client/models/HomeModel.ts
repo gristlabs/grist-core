@@ -109,7 +109,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
         return flatten(
           use(this.workspaces)
             .filter(w => !w.isSupportWorkspace)
-            .map(w => w.docs)
+            .map(w => w.docs),
         );
       }
  else if (ws) {
@@ -118,7 +118,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
  else {
         return [];
       }
-    }
+    },
   );
 
   public readonly featuredTemplates = Computed.create(this, this.templateWorkspaces, (_use, templates) => {
@@ -251,7 +251,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public async renameDoc(
     docId: string,
     name: string,
-    options?: RenameDocOptions
+    options?: RenameDocOptions,
   ): Promise<void> {
     await this._app.api.renameDoc(docId, name, options);
     await this.updateWorkspaces();
@@ -324,7 +324,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
         this.singleWorkspace.set(
           // The anon personal site always has 0 non-support workspaces.
           nonSupportWss?.length === 0 ||
-          nonSupportWss?.length === 1 && _isSingleWorkspaceMode(this._app)
+          nonSupportWss?.length === 1 && _isSingleWorkspaceMode(this._app),
         );
       });
     }

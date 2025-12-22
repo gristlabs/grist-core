@@ -75,7 +75,7 @@ export type IRowModel<TName extends keyof SchemaTypes> = MetaRowModel<TName> & {
  *    returned array will be sorted by rowId.
  */
 export function recordSet<TRow extends MetaRowModel>(
-  rowModel: MetaRowModel, tableModel: MetaTableModel<TRow>, groupByField: string, options?: {sortBy: string}
+  rowModel: MetaRowModel, tableModel: MetaTableModel<TRow>, groupByField: string, options?: {sortBy: string},
 ): ko.Computed<KoArray<TRow>> {
 
   const opts = {groupBy: groupByField, sortBy: 'id', ...options};
@@ -93,7 +93,7 @@ export function recordSet<TRow extends MetaRowModel>(
  * @param {ko.observable} rowIdObs: An observable for the row id to look up.
  */
 export function refRecord<TRow extends MetaRowModel>(
-  tableModel: MetaTableModel<TRow>, rowIdObs: ko.Observable<number>|ko.Computed<number>
+  tableModel: MetaTableModel<TRow>, rowIdObs: ko.Observable<number>|ko.Computed<number>,
 ): ko.Computed<TRow> {
   // Pass 'true' to getRowModel() to depend on the row version.
   return ko.pureComputed(() => tableModel.getRowModel(rowIdObs() || 0, true));
@@ -106,7 +106,7 @@ export function refRecord<TRow extends MetaRowModel>(
  * @param {ko.observable} rowsIdObs: An observable with a RefList value.
  */
 export function refListRecords<TRow extends MetaRowModel>(
-  tableModel: MetaTableModel<TRow>, rowsIdObs: ko.Observable<RefListValue>|ko.Computed<RefListValue>
+  tableModel: MetaTableModel<TRow>, rowsIdObs: ko.Observable<RefListValue>|ko.Computed<RefListValue>,
 ) {
   return ko.pureComputed(() => {
     const ids = decodeObject(rowsIdObs()) as number[]|null;
@@ -310,7 +310,7 @@ export class DocModel extends Disposable {
         // Set recalc settings to defaults when emptying a column.
         recalcWhen: colRefs.map(f => RecalcWhen.DEFAULT),
         recalcDeps: colRefs.map(f => null),
-      }]
+      }],
     );
   }
 
@@ -321,7 +321,7 @@ export class DocModel extends Disposable {
         isFormula: colRefs.map(f => opts.toFormula),
         recalcWhen: colRefs.map(f => opts.noRecalc ? RecalcWhen.NEVER : RecalcWhen.DEFAULT),
         recalcDeps: colRefs.map(f => null),
-      }]
+      }],
     );
   }
 
@@ -330,7 +330,7 @@ export class DocModel extends Disposable {
     return this.columns.sendTableAction(
       ['UpdateRecord', colRef, {
         formula,
-      }]
+      }],
     );
   }
 
@@ -342,7 +342,7 @@ export class DocModel extends Disposable {
         formula,
         recalcWhen: RecalcWhen.DEFAULT,
         recalcDeps: null,
-      }]
+      }],
     );
   }
 
@@ -357,7 +357,7 @@ export class DocModel extends Disposable {
         formula,
         recalcWhen: recalcWhen,
         recalcDeps: null,
-      }]
+      }],
     );
   }
 
@@ -409,7 +409,7 @@ export class DocModel extends Disposable {
     return createTablesArray(this.tables, r =>
       !isHiddenTable(this.tables.tableData, r) &&
       !isVirtualTable(this.tables.tableData, r) &&
-      (!isTutorialTable(this.tables.tableData, r) || this.showDocTutorialTable)
+      (!isTutorialTable(this.tables.tableData, r) || this.showDocTutorialTable),
     );
   }
 
@@ -420,7 +420,7 @@ export class DocModel extends Disposable {
   private _createRawDataTablesArray(): KoArray<TableRec> {
     return createTablesArray(this.tables, r =>
       !isSummaryTable(this.tables.tableData, r) &&
-      (!isTutorialTable(this.tables.tableData, r) || this.showDocTutorialTable)
+      (!isTutorialTable(this.tables.tableData, r) || this.showDocTutorialTable),
     );
   }
 
@@ -439,7 +439,7 @@ export class DocModel extends Disposable {
  */
 function createTablesArray(
   tablesModel: MetaTableModel<TableRec>,
-  filterFunc: RowFilterFunc<UIRowId> = _row => true
+  filterFunc: RowFilterFunc<UIRowId> = _row => true,
 ) {
   const rowSource = new rowset.FilteredRowSource(filterFunc);
   rowSource.subscribeTo(tablesModel);

@@ -265,7 +265,7 @@ export async function doExportTable(
     rowIds,
     access,
     columns,
-    docSettings
+    docSettings,
   };
   return exportData;
 }
@@ -389,7 +389,7 @@ export async function doExportSection(
     tableName: table.tableId,
     docName: await activeDocSource.getDocName(),
     access: viewColumns.map(col => getters.getColGetter(col.id)!),
-    columns: viewColumns
+    columns: viewColumns,
   };
   return exportData;
 }

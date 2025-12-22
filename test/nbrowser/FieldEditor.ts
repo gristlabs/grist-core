@@ -130,7 +130,7 @@ describe('FieldEditor', function() {
       const records = new Array(200).fill(['AddRecord', 'Table1', null, { A: 'Text', B: 'Text' }]);
       await api.applyUserActions(doc.id, [
         ['AddTable', 'Table1', [{id: 'A', type: 'Text'}, {id: 'B', type: 'Text'}]],
-        ...records
+        ...records,
       ]);
       await gu.waitForServer();
       await driver.findContent('.test-treeview-itemHeader', /Table1/).click();

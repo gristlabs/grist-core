@@ -10,7 +10,7 @@ describe('sandboxUtil', function() {
         const prefixer = sandboxUtil.makeLinePrefixer('My prefix: ', {foo: 'bar'});
         prefixer(Buffer.from(
           "Hello!\n" +
-          "My name is %s!\n"
+          "My name is %s!\n",
         ));
       });
       assert.deepEqual(messages, [
@@ -40,7 +40,7 @@ describe('sandboxUtil', function() {
           "  extra\n" +
           "lines\n" +
           "[WARNING] another message\n" +
-          "with two lines\n"
+          "with two lines\n",
         ));
       });
       assert.deepEqual(messages, [

@@ -43,14 +43,14 @@ function setupTest() {
       bigBasicButton('Big basic button', icon('Dropdown'), dom.on('click', () => actionText.set('Big basic button'))),
       primaryButton('Primary button', icon('Dropdown'), dom.on('click', () => actionText.set('Primary button'))),
       bigPrimaryButton('Big primary button', icon('Dropdown'),
-        dom.on('click', () => actionText.set('Big primary button')))
+        dom.on('click', () => actionText.set('Big primary button'))),
     ),
     dom('h4', 'Disabled state'),
     cssElemRow(
       basicButton('Basic disabled', icon('Dropdown'), dom.prop('disabled', true)),
       bigBasicButton('Big basic button', icon('Dropdown'), dom.prop('disabled', true)),
       primaryButton('Primary disabled', icon('Dropdown'), dom.prop('disabled', true)),
-      bigPrimaryButton('Big primary button', icon('Dropdown'), dom.prop('disabled', true))
+      bigPrimaryButton('Big primary button', icon('Dropdown'), dom.prop('disabled', true)),
     ),
     dom('h4', 'Button links'),
     cssElemRow(
@@ -79,8 +79,8 @@ function setupTest() {
     dom('div#noneditable-label',
       dom('div', styled('span', `font-size: ${vars.smallFontSize}`)(dom.text(observable("Small label")))),
       dom('div', styled('span', `font-size: ${vars.mediumFontSize}`)(dom.text(observable("Medium (default) label")))),
-      dom('div', styled('span', `font-size: ${vars.largeFontSize}`)(dom.text(observable("Large label"))))
-    )
+      dom('div', styled('span', `font-size: ${vars.largeFontSize}`)(dom.text(observable("Large label")))),
+    ),
   );
 
   const obsCheck1 = observable(false);
@@ -100,19 +100,19 @@ function setupTest() {
     dom('h4', 'Default'),
     dom('div',
       'obsCheck1: ', dom.text(use => String(use(obsCheck1))),
-      ', obsCheck2: ', dom.text(use => String(use(obsCheck2)))
+      ', obsCheck2: ', dom.text(use => String(use(obsCheck2))),
     ),
     cssElemRow(
       squareCheckbox(obsCheck1),
       labeledSquareCheckbox(obsCheck1, 'Include other values'),
       squareCheckbox(obsCheck2),
-      labeledSquareCheckbox(obsCheck2, 'Include other values')
+      labeledSquareCheckbox(obsCheck2, 'Include other values'),
     ),
     cssElemRow(
       circleCheckbox(obsCheck1),
       labeledCircleCheckbox(obsCheck1, 'Include other values'),
       circleCheckbox(obsCheck2),
-      labeledCircleCheckbox(obsCheck2, 'Include other values')
+      labeledCircleCheckbox(obsCheck2, 'Include other values'),
     ),
     dom('h4', 'Disabled'),
     cssElemRow(
@@ -129,7 +129,7 @@ function setupTest() {
     ),
     dom('h4', 'Indeterminate'),
     cssElemRow(
-      labeledTriStateSquareCheckbox(bothCheck, 'All checked', testId('both-check'))
+      labeledTriStateSquareCheckbox(bothCheck, 'All checked', testId('both-check')),
     ),
     cssElemRow(labeledSquareCheckbox(obsCheck1, 'Santa', testId('check-1')), {style: `margin-left: 16px`}),
     cssElemRow(labeledSquareCheckbox(obsCheck2, 'Babar'), {style: `margin-left: 16px`}),
@@ -166,15 +166,15 @@ function setupTest() {
         menu.menuItem(() => undefined, dom.cls('disabled', true), "Disabled"),
         // tslint:disable-next-line:no-console
         menu.menuItem(() => { console.log("Menu item: World"); }, "Log 'World'"),
-      ])
+      ]),
     ),
     dom('h4', 'Select menu'),
     dom('div', { style: `width: 200px;` },
-      menu.select(type, typeOptions, {defaultLabel: "Select column type"})
+      menu.select(type, typeOptions, {defaultLabel: "Select column type"}),
     ),
     dom('h4', 'Scrollable select menu'),
     dom('div', { style: `width: 100px;` },
-      menu.select(observable('0'), [...Array(100).keys()].map(n => n.toString()))
+      menu.select(observable('0'), [...Array(100).keys()].map(n => n.toString())),
     ),
     dom('h4', 'Form select menu'),
     dom('div', { style: 'width: 200px' },
@@ -184,9 +184,9 @@ function setupTest() {
     dom('div', { style: 'width: 200px' },
       menu.multiSelect(types, typeOptions, {
         placeholder: "Select column type",
-        error: multiSelectError
+        error: multiSelectError,
       }, testId('multi-select')),
-    )
+    ),
   );
 
   const cssSearchBarWrapper = styled('div#searchbar', `
@@ -212,8 +212,8 @@ function setupTest() {
   const search = dom('div#search',
     dom('h4', 'Search bar'),
     cssSearchBarWrapper(
-      searchBar(searchModel, makeTestId('test-search-'))
-    )
+      searchBar(searchModel, makeTestId('test-search-')),
+    ),
   );
 
   const ws = observable({ id: 0, name: 'Samples' });
@@ -233,7 +233,7 @@ function setupTest() {
       isRecoveryMode: observable(false),
       isTemplate: observable(false),
       isAnonymous: false,
-    })
+    }),
   );
 
   const alignmentObs = observable('left');
@@ -241,7 +241,7 @@ function setupTest() {
   const widgetObs = observable(1);
   const widgetBtns: Array<ISelectorOption<number>> = [
     {value: 0, label: 'Date',    icon: 'FieldDate'},
-    {value: 1, label: 'Spinner', icon: 'FieldSpinner'}
+    {value: 1, label: 'Spinner', icon: 'FieldSpinner'},
   ];
 
   const chartObs = observable(null);
@@ -250,7 +250,7 @@ function setupTest() {
     {value: 'pie',    icon: 'ChartPie'},
     {value: 'area',   icon: 'ChartArea'},
     {value: 'line',   icon: 'ChartLine'},
-    {value: 'kaplan', icon: 'ChartKaplan'}
+    {value: 'kaplan', icon: 'ChartKaplan'},
   ];
 
   const inline = styled('div', `
@@ -265,24 +265,24 @@ function setupTest() {
       inline(alignmentSelect(alignmentObs)),
       dom('span',
         dom.cls('alignment-value'),
-        dom.text(alignmentObs)
-      )
+        dom.text(alignmentObs),
+      ),
     ),
     dom('div',
       dom.cls('widget-select'),
       inline({style: 'width: 180px;'}, buttonSelect(widgetObs, widgetBtns)),
       dom('span',
         dom.cls('widget-value'),
-        dom.text(use => String(use(widgetObs)))
-      )
+        dom.text(use => String(use(widgetObs))),
+      ),
     ),
     dom('div',
       dom.cls('widget-select'),
       inline({style: 'width: 180px;'}, buttonSelect(widgetObs, widgetBtns, cssButtonSelect.cls('-light'))),
       dom('span',
         dom.cls('widget-value'),
-        dom.text(use => String(use(widgetObs)))
-      )
+        dom.text(use => String(use(widgetObs))),
+      ),
     ),
     dom('div',
       dom.cls('chart-select'),
@@ -290,9 +290,9 @@ function setupTest() {
         buttonToggleSelect(chartObs, chartBtns, {large: true, primary: true})),
       dom('span',
         dom.cls('chart-value'),
-        dom.text(use => String(use(chartObs)))
-      )
-    )
+        dom.text(use => String(use(chartObs))),
+      ),
+    ),
   );
 
   const colorObs = observable('#ff5555');
@@ -300,8 +300,8 @@ function setupTest() {
     dom('h4', 'Color Select'),
     dom('div', {style: 'display: flex; align-items: center;'},
       dom('span', {style: 'margin-right: 10px;'}, 'Pick a color:'),
-      colorSelect(colorObs, () => null as any)
-    )
+      colorSelect(colorObs, () => null as any),
+    ),
   );
 
   const btnGroup = dom(
@@ -316,7 +316,7 @@ function setupTest() {
           menu.menuItem(noop, "Do that"),
         ]),
       ),
-    )
+    ),
   );
 
   return cssTestBox(
@@ -329,7 +329,7 @@ function setupTest() {
     search,
     btnSel,
     colorSel,
-    btnGroup
+    btnGroup,
   );
 }
 

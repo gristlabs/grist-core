@@ -204,7 +204,7 @@ describe('ManyFetches', function() {
     const docId = await userApi.newDoc({name: 'testdoc'}, ws);
     await userApi.applyUserActions(docId, [['AddTable', 'TestTable', [
       {id: 'Num', type: 'Numeric'},
-      {id: 'Text', type: 'Text'}
+      {id: 'Text', type: 'Text'},
     ]]]);
     await addRows(docId, rows);
     return {docId};

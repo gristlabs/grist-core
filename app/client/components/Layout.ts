@@ -173,7 +173,7 @@ export class LayoutBox extends Disposable implements ContentBox {
       }),
       scope(wrap(this.leafContent), function(leafContent: any) {
         return leafContent;
-      })
+      }),
     );
   }
   /**
@@ -426,7 +426,7 @@ export class Layout extends Disposable {
       toggleClass('layout_box_maximized', this.maximizedLeaf),
       scope(this.rootBox, (rootBox: LayoutBox) => {
         return rootBox ? rootBox.getDom() : null;
-      })
+      }),
     );
   }
   /**

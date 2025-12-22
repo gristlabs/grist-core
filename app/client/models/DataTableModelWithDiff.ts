@@ -170,7 +170,7 @@ export class TableDataWithDiff {
     this._rightRemovals = new Set(rightTableDelta.removeRows);
     this._updates = new Set([
       ...leftTableDelta.updateRows.filter(r => !this._rightRemovals.has(r)),
-      ...rightTableDelta.updateRows.filter(r => !this._leftRemovals.has(r))
+      ...rightTableDelta.updateRows.filter(r => !this._leftRemovals.has(r)),
     ]);
   }
 
@@ -230,19 +230,19 @@ export class TableDataWithDiff {
         return [GristObjCode.Versions, {
           parent: oldValue(left),
           local: newValue(left),
-          remote: newValue(right)
+          remote: newValue(right),
         } as CellVersions];
       }
  else if (right !== undefined) {
         return [GristObjCode.Versions, {
           parent: oldValue(right),
-          remote: newValue(right)
+          remote: newValue(right),
         } as CellVersions];
       }
  else if (left !== undefined) {
         return [GristObjCode.Versions, {
           parent: oldValue(left),
-          local: newValue(left)
+          local: newValue(left),
         } as CellVersions];
       }
     }

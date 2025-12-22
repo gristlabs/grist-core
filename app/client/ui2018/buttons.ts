@@ -88,7 +88,7 @@ export function button(props: IButtonProps, ...domArgs: DomElementArg[]) {
   return dom.update(elem,
     cssButton.cls('-large', props.large ?? false),
     cssButton.cls('-primary', props.primary ?? false),
-    ...domArgs
+    ...domArgs,
   );
 }
 

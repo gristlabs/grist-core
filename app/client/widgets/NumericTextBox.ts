@@ -25,7 +25,7 @@ const modeOptions: Array<ISelectorOption<NumMode>> = [
   {value: 'currency', label: '$'},
   {value: 'decimal', label: ','},
   {value: 'percent', label: '%'},
-  {value: 'scientific', label: 'Exp'}
+  {value: 'scientific', label: 'Exp'},
 ];
 
 const signOptions: Array<ISelectorOption<NumSign>> = [
@@ -64,7 +64,7 @@ export class NumericTextBox extends NTextBox {
     const defaultMin = Computed.create(holder, resolved, (use, res) => res.minimumFractionDigits);
     const defaultMax = Computed.create(holder, resolved, (use, res) => res.maximumFractionDigits);
     const docCurrency = Computed.create(holder, docSettings, (use, settings) =>
-      settings.currency ?? LocaleCurrency.getCurrency(settings.locale ?? 'en-US')
+      settings.currency ?? LocaleCurrency.getCurrency(settings.locale ?? 'en-US'),
     );
 
     // Save a value as the given property in fieldOptions observable. Set it, save, and revert
@@ -102,10 +102,10 @@ export class NumericTextBox extends NTextBox {
         cssRow(
           dom.domComputed(docCurrency, defaultCurrency =>
             buildCurrencyPicker(holder, currency, setCurrency,
-              {defaultCurrencyLabel: t(`Default currency ({{defaultCurrency}})`, {defaultCurrency}), disabled})
+              {defaultCurrencyLabel: t(`Default currency ({{defaultCurrency}})`, {defaultCurrency}), disabled}),
           ),
-          testId("numeric-currency")
-        )
+          testId("numeric-currency"),
+        ),
       ]),
       cssLabel(t('Decimals')),
       cssRow(
@@ -141,7 +141,7 @@ export class NumericTextBox extends NTextBox {
   public buildFormConfigDom(): DomContents {
     const format = fieldWithDefault<FormNumberFormat>(
       this.field.widgetOptionsJson.prop('formNumberFormat'),
-      'text'
+      'text',
     );
 
     return [

@@ -42,7 +42,7 @@ export class DocStorageManager implements IDocStorageManager {
     // If we have a way to communicate with clients, watch the docsRoot for changes.
     this._shell = shell ?? {
       trashItem() { throw new Error('Unable to move document to trash'); },
-      showItemInFolder() { throw new Error('Unable to show item in folder'); }
+      showItemInFolder() { throw new Error('Unable to show item in folder'); },
     };
   }
 
@@ -181,7 +181,7 @@ export class DocStorageManager implements IDocStorageManager {
       ext = path.extname(bakPath); // persists to makeBackup closure
       const bakPathPrefix = bakPath.slice(0, -ext.length);
       return docUtils.createNumbered(bakPathPrefix, '-',
-        (pathPrefix: string) => docUtils.createExclusive(pathPrefix + ext)
+        (pathPrefix: string) => docUtils.createExclusive(pathPrefix + ext),
       );
     }).tap((numberedBakPathPrefix: string) => { // do the copying, but return bakPath anyway
       finalBakPath = numberedBakPathPrefix + ext;
@@ -222,7 +222,7 @@ export class DocStorageManager implements IDocStorageManager {
   public scheduleUsageUpdate(
     docName: string,
     docUsage: DocumentUsage,
-    minimizeDelay = false
+    minimizeDelay = false,
   ): void {
     // nothing to do
   }
@@ -283,7 +283,7 @@ export class DocStorageManager implements IDocStorageManager {
         const docPath = path.resolve(dirPath, e);
         return fse.stat(docPath)
         .then(stat => getDocListFileInfo(docPath, stat, tag));
-      })
+      }),
     ))
     // Sort case-insensitively.
     .then(entries => entries.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())))
@@ -359,6 +359,6 @@ function getDocListFileInfo(docPath: string, fsStat: any, tag: DocEntryTag): Doc
     name: getDocName(docPath),
     mtime: fsStat.mtime,
     size: fsStat.size,
-    tag
+    tag,
   };
 }

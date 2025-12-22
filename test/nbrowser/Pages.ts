@@ -30,13 +30,13 @@ describe('Pages', function() {
       {
         label: 'Interactions', children: [
           { label: 'Documents' },
-        ]
+        ],
       },
       {
         label: 'People', children: [
           { label: 'User & Leads' },
           { label: 'Overview' },
-        ]
+        ],
       },
     ]);
     await insertPage(/Overview/, /User & Leads/);
@@ -44,13 +44,13 @@ describe('Pages', function() {
       {
         label: 'Interactions', children: [
           {label: 'Documents' },
-        ]
+        ],
       },
       {
         label: 'People', children: [
           {label: 'User & Leads', children: [
             {label: 'Overview'}] },
-        ]
+        ],
       },
     ]);
     const revertAcl = await gu.beginAclTran(api, doc.id);
@@ -62,12 +62,12 @@ describe('Pages', function() {
       {
         label: 'Interactions', children: [
           {label: 'Documents'},
-        ]
+        ],
       },
       {
         label: 'People', children: [
           {label: 'User & Leads'},
-        ]
+        ],
       },
     ]);
 
@@ -79,10 +79,10 @@ describe('Pages', function() {
       {
         label: 'Interactions', children: [
           { label: 'Documents'},
-        ]
+        ],
       },
       {
-        label: 'People'
+        label: 'People',
       },
     ]);
 
@@ -93,8 +93,8 @@ describe('Pages', function() {
       {
         label: 'Interactions', children: [
           { label: 'Documents'},
-        ]
-      }
+        ],
+      },
     ]);
 
     // Now hide Documents, this is a leaf, so it should be hidden from the start
@@ -102,8 +102,8 @@ describe('Pages', function() {
     await gu.reloadDoc();
     assert.deepEqual(await gu.getPageTree(), [
       {
-        label: 'Interactions'
-      }
+        label: 'Interactions',
+      },
     ]);
 
     // Now hide Interactions, we should have a blank treeview
@@ -119,12 +119,12 @@ describe('Pages', function() {
       {
         label: 'Interactions', children: [
           { label: 'Documents' },
-        ]
+        ],
       },
       {
         label: 'People', children: [
           { label: 'User & Leads', children: [{ label: 'Overview' }] },
-        ]
+        ],
       },
     ]);
     await gu.undo();
@@ -202,7 +202,7 @@ describe('Pages', function() {
 
     assert.deepEqual(
       await gu.getPageNames(),
-      ['Interactions', 'Documents', 'PeopleRenamed', 'User & Leads', 'Overview']
+      ['Interactions', 'Documents', 'PeopleRenamed', 'User & Leads', 'Overview'],
     );
 
     // Test that we can delete after remove (there was a bug related to this).
@@ -224,7 +224,7 @@ describe('Pages', function() {
 
     assert.deepEqual(
       await gu.getPageNames(),
-      ['Interactions', 'Documents', 'PeopleRenamed', 'User & Leads', 'Overview']
+      ['Interactions', 'Documents', 'PeopleRenamed', 'User & Leads', 'Overview'],
     );
 
     // revert changes
@@ -701,7 +701,7 @@ async function movePage(page: RegExp, target: {before: RegExp}|{after: RegExp}|{
       .find('.test-treeview-handle')})
     .press()
     .move({origin: driver.findContent('.test-treeview-itemHeader', targetReg),
-      y: 'after' in target ? 1 : -1
+      y: 'after' in target ? 1 : -1,
     })
     .release());
 }
@@ -714,10 +714,10 @@ async function insertPage(page: RegExp, into: RegExp) {
       .find('.test-treeview-handle')})
     .press()
     .move({origin: driver.findContent('.test-treeview-itemHeader', into),
-      y: 5
+      y: 5,
     })
     .pause(1500) // wait for a target to be highlighted
-    .release()
+    .release(),
   );
   await gu.waitForServer();
 }

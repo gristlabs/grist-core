@@ -14,7 +14,7 @@ import {
   PermissionDelta,
   PREVIEWER_EMAIL,
   UserOptions,
-  UserProfile
+  UserProfile,
 } from 'app/common/UserAPI';
 import { AclRule } from 'app/gen-server/entity/AclRule';
 import { Document } from 'app/gen-server/entity/Document';
@@ -24,7 +24,7 @@ import { User } from 'app/gen-server/entity/User';
 import { appSettings } from 'app/server/lib/AppSettings';
 import { HomeDBManager, PermissionDeltaAnalysis, Scope, UserIdDelta } from 'app/gen-server/lib/homedb/HomeDBManager';
 import {
-  AvailableUsers, GetUserOptions, NonGuestGroup, QueryResult, Resource, RunInTransaction, UserProfileChange
+  AvailableUsers, GetUserOptions, NonGuestGroup, QueryResult, Resource, RunInTransaction, UserProfileChange,
 } from 'app/gen-server/lib/homedb/Interfaces';
 import { Permissions } from 'app/gen-server/lib/Permissions';
 import { Pref } from 'app/gen-server/entity/Pref';
@@ -96,7 +96,7 @@ export class UsersManager {
 
   public constructor(
     private readonly _homeDb: HomeDBManager,
-    private _runInTransaction: RunInTransaction
+    private _runInTransaction: RunInTransaction,
   ) {}
 
   /**
@@ -170,7 +170,7 @@ export class UsersManager {
 
   public async getUserByRef(
     ref: string,
-    options: {manager?: EntityManager; relations?: string[]} = {}
+    options: {manager?: EntityManager; relations?: string[]} = {},
   ): Promise<User|undefined> {
     const { manager, relations = ["logins"] } = options;
     const user = await this._runInTransaction(manager, m => m.findOne(User, {where: {ref}, relations}));
@@ -179,7 +179,7 @@ export class UsersManager {
 
   public async getUser(
     userId: number,
-    options: {includePrefs?: boolean} = {}
+    options: {includePrefs?: boolean} = {},
   ): Promise<User|undefined> {
     const {includePrefs} = options;
     const relations = ["logins"];
@@ -261,7 +261,7 @@ export class UsersManager {
       if (!existing) {
         const newUser = await this.getUserByLoginWithRetry(profile.email, {
           profile,
-          manager
+          manager,
         });
         // No need to survey this user.
         newUser.isFirstTimeUser = false;
@@ -383,7 +383,7 @@ export class UsersManager {
    */
   public async getExistingUserByLogin(
     email: string,
-    manager?: EntityManager
+    manager?: EntityManager,
   ): Promise<User|undefined> {
     return await this._buildExistingUsersByLoginRequest([email], manager)
       .getOne() || undefined;
@@ -394,7 +394,7 @@ export class UsersManager {
    */
   public async getExistingUsersByLogin(
     emails: string[],
-    manager?: EntityManager
+    manager?: EntityManager,
   ): Promise<User[]> {
     if (emails.length === 0){
       return [];
@@ -629,19 +629,19 @@ export class UsersManager {
   public async initializeSpecialIds(): Promise<void> {
     await this._maybeCreateSpecialUserId({
       email: ANONYMOUS_USER_EMAIL,
-      name: "Anonymous"
+      name: "Anonymous",
     });
     await this._maybeCreateSpecialUserId({
       email: PREVIEWER_EMAIL,
-      name: "Preview"
+      name: "Preview",
     });
     await this._maybeCreateSpecialUserId({
       email: EVERYONE_EMAIL,
-      name: "Everyone"
+      name: "Everyone",
     });
     await this._maybeCreateSpecialUserId({
       email: SUPPORT_EMAIL,
-      name: "Support"
+      name: "Support",
     });
   }
 
@@ -667,7 +667,7 @@ export class UsersManager {
         name: login.user.name,
         picture: login.user.picture,
         anonymous: login.user.id === this.getAnonymousUserId(),
-        locale: login.user.options?.locale
+        locale: login.user.options?.locale,
       };
     }
     return profiles.map(profile => completedProfiles[normalizeEmail(profile.email)])
@@ -716,7 +716,7 @@ export class UsersManager {
     userId: number,
     delta: PermissionDelta,
     isOrg: boolean = false,
-    transaction?: EntityManager
+    transaction?: EntityManager,
   ): Promise<PermissionDeltaAnalysis> {
     if (!delta) {
       throw new ApiError('Bad request: missing permission delta', 400);
@@ -779,7 +779,7 @@ export class UsersManager {
           ) {
             throw new ApiError(
               "This user cannot share with everyone at top level",
-              403
+              403,
             );
           }
           foundUserIdDelta[user.id] = role;
@@ -812,7 +812,7 @@ export class UsersManager {
 
   public async translateDeltaEmailsToUserIds(
     userDelta: { [email: string]: roles.NonGuestRole | null },
-    transaction?: EntityManager
+    transaction?: EntityManager,
   ): Promise<{ userDelta: UserIdDelta; users: User[] }> {
     const newDelta: UserIdDelta = {};
     const users: User[] = [];
@@ -852,7 +852,7 @@ export class UsersManager {
    */
   public async getUsersByIds(
     userIds: number[],
-    options: {manager?: EntityManager, withLogins?: boolean} = {}
+    options: {manager?: EntityManager, withLogins?: boolean} = {},
   ): Promise<User[]> {
     if (userIds.length === 0) {
       return [];
@@ -1018,7 +1018,7 @@ export class UsersManager {
 
   private _buildExistingUsersByLoginRequest(
     emails: string[],
-    manager?: EntityManager
+    manager?: EntityManager,
   ) {
     const normalizedEmails = emails.map(email => normalizeEmail(email));
     return (manager || this._connection).createQueryBuilder()

@@ -73,7 +73,7 @@ export default class DetailView extends BaseView {
           // TODO: Ideally the original position should be kept in scroll view.
           this.scrolly().scrollRowIntoView(this.cursor.rowIndex.peek());
         }
-      }
+      },
     }));
 
     this.scrolly = this.autoDispose(ko.computed(() => {
@@ -213,7 +213,7 @@ export default class DetailView extends BaseView {
 
   protected static selectionCommands: {[key: string]: Function} & ThisType<DetailView> = {
     clearCopySelection: function() { this._clearCopySelection(); },
-    cancel: function() { this._clearSelection(); }
+    cancel: function() { this._clearSelection(); },
   };
 
   //----------------------------------------------------------------------
@@ -330,7 +330,7 @@ export default class DetailView extends BaseView {
       dom('div.g_record_detail_label_container',
         dom('div.g_record_detail_label', dom.text(field.displayLabel)),
         dom.domComputed(use => use(field.description),
-          desc => desc ? descriptionInfoTooltip(desc, "column") : null)
+          desc => desc ? descriptionInfoTooltip(desc, "column") : null),
       ),
       dom('div.g_record_detail_value',
         dom.cls('scissors', isCopyActive),
@@ -338,8 +338,8 @@ export default class DetailView extends BaseView {
         dom.autoDispose(isCopyActive),
         // Optional icon. Currently only use to show formula icon.
         dom('div.field-icon'),
-        fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected)
-      )
+        fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected),
+      ),
     );
     return fieldDom;
   }
@@ -375,7 +375,7 @@ export default class DetailView extends BaseView {
 
             dom.maybe(this._isPrinting, () =>
               renderAllRows(this.tableModel, this.sortedRows.getKoArray().peek(), row =>
-                this.makeRecord(row))
+                this.makeRecord(row)),
             ),
           );
         }
@@ -390,7 +390,7 @@ export default class DetailView extends BaseView {
               return dom.update(
                 this.makeRecord(this.detailRecord!),
                 kd.domData('itemModel', this.detailRecord),
-                dom.hide(use2 => use2(this.cursor.rowIndex) === null)
+                dom.hide(use2 => use2(this.cursor.rowIndex) === null),
               );
             }
           });
@@ -428,7 +428,7 @@ export default class DetailView extends BaseView {
         dom('div.grist-single-record__menu__count.flexitem',
           // Total should not include the add record row
           kd.text(() => this._isAddRow() ? 'Add record' :
-            `${this.cursor.rowIndex()! + 1} of ${this.getLastDataRowIndex() + 1}`)
+            `${this.cursor.rowIndex()! + 1} of ${this.getLastDataRowIndex() + 1}`),
         ),
         dom('div.detail-buttons',
           dom('div.detail-button.detail-left',
@@ -450,7 +450,7 @@ export default class DetailView extends BaseView {
             dom.cls('disabled', use => this.viewData.getRowId(use(this.cursor.rowIndex)!) === 'new'),
           ),
         ),
-      ))
+      )),
     );
   }
 
@@ -487,7 +487,7 @@ export default class DetailView extends BaseView {
         (use(this.cursor.rowIndex) === use(record._index)  && !use(this.viewSection.hasFocus))),
       // 'detailview_record_single' or 'detailview_record_detail' doesn't need to be an observable,
       // since a change to parentKey would cause a separate call to makeRecord.
-      dom.cls('detailview_record_' + this.viewSection.parentKey.peek())
+      dom.cls('detailview_record_' + this.viewSection.parentKey.peek()),
     );
   }
 
@@ -567,7 +567,7 @@ export default class DetailView extends BaseView {
     return this.gristDoc.docModel.viewFields.sendTableActions(
       actions,
       `Hide fields ${actions.map(a => a[1]).join(', ')} ` +
-        `from ${this.tableModel.tableData.tableId}.`
+        `from ${this.tableModel.tableData.tableId}.`,
     );
   }
 
@@ -585,12 +585,12 @@ export default class DetailView extends BaseView {
       disableInsert: Boolean(
         this.gristDoc.isReadonly.get() ||
         this.viewSection.disableAddRemoveRows() ||
-        this.tableModel.tableMetaRow.onDemand()
+        this.tableModel.tableMetaRow.onDemand(),
       ),
       disableDelete: Boolean(
         this.gristDoc.isReadonly.get() ||
         this.viewSection.disableAddRemoveRows() ||
-        row._isAddRow()
+        row._isAddRow(),
       ),
       isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
       numRows: this.getSelection().rowIds.length,

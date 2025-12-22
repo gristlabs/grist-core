@@ -58,7 +58,7 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
   this.summarySource = refRecord(docModel.tables, this.summarySourceTable);
   this.isHidden = this.autoDispose(
     // This is repeated logic from isHiddenTable.
-    ko.pureComputed(() => !this.tableId() || !!this.summarySourceTable() || this.tableId().startsWith("GristHidden_"))
+    ko.pureComputed(() => !this.tableId() || !!this.summarySourceTable() || this.tableId().startsWith("GristHidden_")),
   );
 
   // A Set object of colRefs for all summarySourceCols of this table.
@@ -83,7 +83,7 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
   // TODO: We should save this value and let users change it.
   this.tableColor = randomcolor({
     luminosity: 'light',
-    seed: typeof this.id() === 'number' ? 5 * this.id() : this.id()
+    seed: typeof this.id() === 'number' ? 5 * this.id() : this.id(),
   });
 
   this.disableAddRemoveRows = ko.pureComputed(() => Boolean(this.summarySourceTable()));
@@ -113,7 +113,7 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
  else {
         setter(this.rawViewSection().title, val);
       }
-    }
+    },
   });
   this.tableNameDef = modelUtil.fieldWithDefault(
     this.tableName,
@@ -125,7 +125,7 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
       }
       const table = this.summarySourceTable() ? this.summarySource() : this;
       return table.tableId() || '';
-    })
+    }),
   );
   this.formattedTableName = ko.pureComputed(() => {
     return this.summarySourceTable()

@@ -23,7 +23,7 @@ export class ClientColumnGetters implements ColumnGetters {
 
   public getColGetter(colSpec: Sort.ColSpec): ColumnGetter | null {
     const rowModel = this._tableModel.docModel.columns.getRowModel(
-      Sort.getColRef(colSpec) as number /* HACK: for virtual tables */
+      Sort.getColRef(colSpec) as number, /* HACK: for virtual tables */
     );
     const colId = rowModel.colId();
     let getter: ColumnGetter|undefined = this._tableModel.tableData.getRowPropFunc(colId);

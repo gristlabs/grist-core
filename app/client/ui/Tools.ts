@@ -21,7 +21,7 @@ import {
   cssSectionHeaderText,
   cssSpacer,
   cssSplitPageEntry,
-  cssTools
+  cssTools,
 } from 'app/client/ui/LeftPanelCommon';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -83,7 +83,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
             icon('Dots'),
             aclUsers.menu({
               placement: 'bottom-start',
-              parentSelectorToMark: '.' + cssPageEntry.className
+              parentSelectorToMark: '.' + cssPageEntry.className,
             }),
             {'aria-label': t("context menu - Access Rules")},
             testId('access-rules-trigger'),
@@ -99,12 +99,12 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
         cssPageIcon('Database'),
         cssLinkText(t("Raw data")),
         testId('raw'),
-        urlState().setLinkUrl({docPage: 'data'})
-      )
+        urlState().setLinkUrl({docPage: 'data'}),
+      ),
     ),
     cssPageEntry(
       cssPageButton(cssPageIcon('Log'), cssLinkText(t("Document history")), testId('log'),
-        dom.on('click', () => gristDoc.showTool('docHistory')))
+        dom.on('click', () => gristDoc.showTool('docHistory'))),
     ),
     dom.maybe(
       trunkAcceptsProposals, () => {
@@ -119,15 +119,15 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
             return cssLinkText(changes ? [text, cssChangeCount(` (${changes})`)] : text);
           }),
           testId('proposals'),
-          urlState().setLinkUrl({docPage: 'suggestions'})
-        )
+          urlState().setLinkUrl({docPage: 'suggestions'}),
+        ),
       );
     }),
     cssPageEntry(
       cssPageEntry.cls('-selected', use => use(gristDoc.activeViewId) === 'code'),
       cssPageLink(cssPageIcon('Code'),
         cssLinkText(t("Code view")),
-        urlState().setLinkUrl({docPage: 'code'})
+        urlState().setLinkUrl({docPage: 'code'}),
       ),
       testId('code'),
     ),
@@ -135,7 +135,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       cssPageEntry.cls('-selected', use => use(gristDoc.activeViewId) === 'settings'),
       cssPageLink(cssPageIcon('Settings'),
         cssLinkText(t("Settings")),
-        urlState().setLinkUrl({docPage: 'settings'})
+        urlState().setLinkUrl({docPage: 'settings'}),
       ),
       testId('settings'),
     ),
@@ -159,7 +159,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
               info => showExampleCard(ex, info),
               gristDoc,
               "seenExamples",
-              ex.id
+              ex.id,
             ),
           ),
         ),
@@ -179,11 +179,11 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
           cssPageButton(cssPageIcon('Remove'),
             {'aria-label': t("Delete document tour")},
             dom.on('click', () => confirmModal(t("Delete document tour?"), t("Delete"), () =>
-              gristDoc.docData.sendAction(['RemoveTable', 'GristDocTour']))
+              gristDoc.docData.sendAction(['RemoveTable', 'GristDocTour'])),
             ),
-            testId('remove-doctour')
+            testId('remove-doctour'),
           ),
-        )
+        ),
       ),
     ),
     createHelpTools(docPageModel.appModel),
@@ -208,7 +208,7 @@ function automaticHelpTool(
   showFunc: (info: AutomaticHelpToolInfo) => void,
   gristDoc: GristDoc,
   prefKey: 'seenExamples' | 'seenDocTours',
-  itemId: number | string
+  itemId: number | string,
 ) {
   function show(elem: HTMLElement, reopen: boolean) {
     const prefObs: Observable<typeof itemId[] | undefined> = getUserOrgPrefObs(gristDoc.userOrgPrefs, prefKey);
@@ -230,7 +230,7 @@ function automaticHelpTool(
     (elem: HTMLElement) => {
       // Once the trigger element is attached to DOM, show the help
       setTimeout(() => show(elem, false), 0);
-    }
+    },
   ];
 }
 

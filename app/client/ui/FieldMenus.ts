@@ -17,6 +17,6 @@ export function FieldSettingsMenu(useColOptions: boolean, disableSeparate: boole
     useColOptions ? menuItem(actions.useSeparate, t("Use separate settings"), dom.cls('disabled', disableSeparate)) : [
       menuItem(actions.saveAsCommon, t("Save as common settings")),
       menuItem(actions.revertToCommon, t("Revert to common settings")),
-    ]
+    ],
   ];
 }

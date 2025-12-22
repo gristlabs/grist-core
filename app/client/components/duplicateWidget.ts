@@ -57,13 +57,13 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
           cssLabel("Page"),
           select(pageSelectObs, pageSelectOptions),
           testId("duplicate-widget-page-select"),
-        )
+        ),
       ]),
       async saveFunc() {
         await duplicateWidgets(
-          gristDoc, [viewSectionId], pageSelectObs.get()
+          gristDoc, [viewSectionId], pageSelectObs.get(),
         );
-      }
+      },
     };
   });
 }
@@ -84,7 +84,7 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
     full: {
       docIdDigest: gristDoc.docId(),
       destPage: isNewView ? 'NEW' : (destViewId === sourceView.getRowId() ? 'SAME' : 'OTHER'),
-    }
+    },
   });
 
   await gristDoc.docData.bundleActions(
@@ -95,7 +95,7 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
       const {
         duplicatedViewSections,
         viewRef,
-        viewSectionIdMap
+        viewSectionIdMap,
       } = await createNewViewSections(gristDoc, sourceViewSections, destViewId);
       resolvedDestViewId = viewRef;
 
@@ -114,13 +114,13 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
       if (isNewView) {
           const newLayoutSpec = patchLayoutSpec(sourceView.layoutSpecObj.peek(), viewSectionIdMap);
           layoutSpecUpdatePromise = gristDoc.docData.sendAction(
-            ['UpdateRecord', '_grist_Views', resolvedDestViewId, { layoutSpec: JSON.stringify(newLayoutSpec)}]
+            ['UpdateRecord', '_grist_Views', resolvedDestViewId, { layoutSpec: JSON.stringify(newLayoutSpec)}],
           );
       }
       await Promise.all([
         layoutSpecUpdatePromise,
         updateViewSections(gristDoc, duplicatedViewSections, viewFieldsIdMap, viewSectionIdMap),
-        copyFilters(gristDoc, sourceViewSections, viewSectionIdMap)
+        copyFilters(gristDoc, sourceViewSections, viewSectionIdMap),
       ]);
 
       // Remove the fields that were automatically created when the view sections were created,.
@@ -134,7 +134,7 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
 
     },
     // If called from duplicatePage (or similar), we don't want to start a new bundle.
-    {nestInActiveBundle: true}
+    {nestInActiveBundle: true},
   );
 
   // Give copy focus
@@ -161,7 +161,7 @@ async function copyFilters(
       .filterRecords({ viewSectionRef : srcViewSection.id.peek()})
       .map(filter => ({
         // Replace section ref with destination ref.
-        ...filter, viewSectionRef : viewSectionMap[srcViewSection.id.peek()]
+        ...filter, viewSectionRef : viewSectionMap[srcViewSection.id.peek()],
       }));
     filters.push(...sectionFilters);
   }
@@ -246,7 +246,7 @@ async function copyOriginalViewFields(gristDoc: GristDoc, viewSectionPairs: Dupl
 
 function listAllViewFields(viewSections: ViewSectionRec[]) {
   return flatten(viewSections.map(
-    viewSection => viewSection.viewFields.peek().peek().map(field => field.getRowId())
+    viewSection => viewSection.viewFields.peek().peek().map(field => field.getRowId()),
   ));
 }
 
@@ -263,7 +263,7 @@ async function createNewViewSections(gristDoc: GristDoc, viewSections: ViewSecti
 
   // Passing a viewId of 0 will create a new view.
   const createdViewSectionResults = [
-    await gristDoc.docData.sendAction(newViewSectionAction(first, viewId))
+    await gristDoc.docData.sendAction(newViewSectionAction(first, viewId)),
   ];
   const targetViewRef = createdViewSectionResults[0].viewRef;
 
@@ -280,7 +280,7 @@ async function createNewViewSections(gristDoc: GristDoc, viewSections: ViewSecti
   // backend. In practice, this typically won't occur, and a more correct solution would require major work.
   // Either moving duplicate to the backend, or not using viewSection models at all (only ids).
   const newViewSections = createdViewSectionResults.map(
-    result => gristDoc.docModel.viewSections.rowModels[result.sectionRef]
+    result => gristDoc.docModel.viewSections.rowModels[result.sectionRef],
   );
 
   const duplicatedViewSections: DuplicatedViewSection[] =
@@ -289,7 +289,7 @@ async function createNewViewSections(gristDoc: GristDoc, viewSections: ViewSecti
   return {
     duplicatedViewSections,
     viewSectionIdMap: fromPairs(duplicatedViewSections.map((
-      { srcViewSection, destViewSection }) => [srcViewSection.getRowId(), destViewSection.getRowId()]
+      { srcViewSection, destViewSection }) => [srcViewSection.getRowId(), destViewSection.getRowId()],
     )),
     viewRef: targetViewRef,
   };
@@ -319,7 +319,7 @@ function patchLayoutSpec(layoutSpec: BoxSpec, mapIds: {[id: number]: number}) {
   layoutSpec = purgeBoxSpec({
     spec: layoutSpec,
     validLeafIds: Object.keys(mapIds).map(Number),
-    restoreCollapsed: true
+    restoreCollapsed: true,
   });
   return cloneDeepWith(layoutSpec, (val, key) => {
     if (key === 'leaf' && mapIds[val]) {

@@ -30,7 +30,7 @@ export class ExternalAttachmentBanner extends Disposable {
         `u=${userId}:doc=${docId}:showExternalAttachmentBanner`,
         {
           dismissed: false,
-        }
+        },
       );
     }));
   }
@@ -51,7 +51,7 @@ export class ExternalAttachmentBanner extends Disposable {
         return dom.create(Banner, {
           content: buildBannerMessage(
             getExternalStorageRecommendation(),
-            testId('text')
+            testId('text'),
           ),
           style: 'warning',
           showCloseButton: true,
@@ -85,8 +85,8 @@ self-contained but may limit performance.`, {
         docPage: 'settings',
         hash: {
           anchor: PREFERRED_STORAGE_ANCHOR,
-        }
+        },
       }),
-    )
+    ),
   });
 }

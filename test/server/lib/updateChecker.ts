@@ -33,8 +33,8 @@ describe('updateChecker', function() {
           JSON.stringify(mockResponse),
           {
             status: 200,
-            headers: { 'Content-Type': 'application/json' }
-          }
+            headers: { 'Content-Type': 'application/json' },
+          },
         ))
         .callThrough();
 
@@ -68,7 +68,7 @@ describe('updateChecker', function() {
     });
     return {
       server: () => server,
-      homeUrl: () => homeUrl
+      homeUrl: () => homeUrl,
     };
   }
 
@@ -77,7 +77,7 @@ describe('updateChecker', function() {
       latestVersion: installedVersion,
       updatedAt: '2025-02-18T22:11:09.455904Z',
       isCritical: false,
-      updateURL: 'https://hub.docker.com/r/gristlabs/grist'
+      updateURL: 'https://hub.docker.com/r/gristlabs/grist',
     };
     const {homeUrl} = setupTestServer(mockVersionResponse);
 
@@ -97,7 +97,7 @@ describe('updateChecker', function() {
       latestVersion: newestVersion,
       updatedAt: '2025-02-18T22:11:09.455904Z',
       isCritical: false,
-      updateURL: 'https://hub.docker.com/r/gristlabs/grist'
+      updateURL: 'https://hub.docker.com/r/gristlabs/grist',
     };
     const {homeUrl} = setupTestServer(mockVersionResponse);
 

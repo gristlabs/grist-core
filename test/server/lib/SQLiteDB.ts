@@ -497,28 +497,28 @@ describe('SQLiteDB', function() {
     // Modification should happen immediately.
     assert.isFalse(await timeoutReached(
       delayMs,
-      sdb.exec("CREATE TABLE Foo1(id INTEGER)")
+      sdb.exec("CREATE TABLE Foo1(id INTEGER)"),
     ));
 
     // Modification should not happen immediately once paused.
     sdb.pause();
     assert.isTrue(await timeoutReached(
       delayMs,
-      sdb.exec("CREATE TABLE Foo2(id INTEGER)")
+      sdb.exec("CREATE TABLE Foo2(id INTEGER)"),
     ));
 
     // After unpausing we should be back to immediate.
     sdb.unpause();
     assert.isFalse(await timeoutReached(
       delayMs,
-      sdb.exec("CREATE TABLE Foo3(id INTEGER)")
+      sdb.exec("CREATE TABLE Foo3(id INTEGER)"),
     ));
 
     // And we should be able to pause again.
     sdb.pause();
     assert.isTrue(await timeoutReached(
       delayMs,
-      sdb.exec("CREATE TABLE Foo4(id INTEGER)")
+      sdb.exec("CREATE TABLE Foo4(id INTEGER)"),
     ));
 
     // Check that all tables were made eventually once we
@@ -536,7 +536,7 @@ describe('SQLiteDB', function() {
     sdb.pause();
     assert.isTrue(await timeoutReached(
       delayMs,
-      sdb.exec("CREATE TABLE Foo5(id INTEGER)")
+      sdb.exec("CREATE TABLE Foo5(id INTEGER)"),
     ));
 
     await sdb.close();
@@ -566,7 +566,7 @@ describe('SQLiteDB', function() {
     sdb.pause();
     assert.isFalse(await timeoutReached(
       1000,
-      Promise.all([t1, t2, t3])
+      Promise.all([t1, t2, t3]),
     ));
   });
 });
@@ -589,7 +589,7 @@ const schemaInfo: SchemaInfo = {
     async function(db: SQLiteDB) {
       await db.exec("ALTER TABLE Bar ADD COLUMN C TEXT");
     },
-  ]
+  ],
 };
 
 // Version 1 of the schema above. This illustratees how code gets updated when schema evolves.
@@ -602,7 +602,7 @@ const schemaInfoV1: SchemaInfo = {
     async function(db: SQLiteDB) {
       await db.exec("CREATE TABLE Foo (A TEXT)");
     },
-  ]
+  ],
 };
 
 // Version 2 of the schema above.
@@ -619,7 +619,7 @@ const schemaInfoV2: SchemaInfo = {
       await db.exec("CREATE TABLE Bar (D NUMERIC)");
       await db.exec("ALTER TABLE Foo ADD COLUMN B NUMERIC");
     },
-  ]
+  ],
 };
 
 // Inconsistent schema version.
@@ -633,7 +633,7 @@ const schemaInfoV2Inconsistent: SchemaInfo = {
       await db.exec("CREATE TABLE Bar (D NUMERIC)");
       await db.exec("ALTER TABLE Foo ADD COLUMN BadCol NUMERIC");
     },
-  ]
+  ],
 };
 
 // Broken schema version.
@@ -644,5 +644,5 @@ const schemaInfoV4Broken: SchemaInfo = {
     async function(db: SQLiteDB) {
       await db.exec("SOME_INVALID_SQL");
     },
-  ]
+  ],
 };

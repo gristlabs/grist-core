@@ -83,15 +83,15 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     3: { id: 3, domain: 'chase', name: 'Chase', workspaces: [6], access: 'owners' },
     4: { id: 4, domain: 'ms', name: 'Microsoft', workspaces: [7], access: 'owners' },
     [TEMPLATES_ORG_ID]: {
-      id: TEMPLATES_ORG_ID, domain: 'templates', name: 'Grist Templates', workspaces: [8, 9], access: 'viewers'
-    }
+      id: TEMPLATES_ORG_ID, domain: 'templates', name: 'Grist Templates', workspaces: [8, 9], access: 'viewers',
+    },
   };
 
   private _workspaces: WorkspaceStore = {
     1: { id: 1, name: 'Real estate', org: 1, docs: [1, 2, 3, 4, 5, 6, 7, 8, 9], access: 'viewers' },
     2: {
       id: 2, name: 'Personal', org: 1,
-      docs: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21], access: 'owners'
+      docs: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21], access: 'owners',
     },
     3: { id: 3, name: 'August', org: 1, docs: [22, 23], access: 'owners' },
     4: { id: 4, name: 'Hosted', org: 2, docs: [24, 25, 26], access: 'owners' },
@@ -99,7 +99,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     6: { id: 6, name: 'New project', org: 3, docs: [28, 29, 30], access: 'owners' },
     7: { id: 7, name: 'September', org: 4, docs: [31], access: 'owners' },
     8: { id: 8, name: 'Invoice', org: TEMPLATES_ORG_ID, docs: [], access: 'viewers' },
-    9: { id: 9, name: 'CRM', org: TEMPLATES_ORG_ID, docs: [], access: 'viewers' }
+    9: { id: 9, name: 'CRM', org: TEMPLATES_ORG_ID, docs: [], access: 'viewers' },
   };
 
   private _docs: DocStore = {
@@ -121,7 +121,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     16: { id: 16, name: 'Doc16', workspace: 2, access: 'owners', isPinned: false },
     17: {
       id: 17, name: 'One doc to rule them all with a long name and a strong fist',
-      workspace: 2, access: 'owners', isPinned: true
+      workspace: 2, access: 'owners', isPinned: true,
     },
     18: { id: 18, name: 'Doc18', workspace: 2, access: 'owners', isPinned: false },
     19: { id: 19, name: 'Doc19', workspace: 2, access: 'owners', isPinned: false },
@@ -139,7 +139,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     31: { id: 31, name: 'Payroll', workspace: 7, access: 'owners', isPinned: false },
     32: { id: 32, name: 'Timesheet', workspace: 8, access: 'viewers', isPinned: false },
     33: { id: 33, name: 'Expense Report', workspace: 8, access: 'viewers', isPinned: false },
-    34: { id: 34, name: 'Lightweight CRM', workspace: 9, access: 'viewers', isPinned: true }
+    34: { id: 34, name: 'Lightweight CRM', workspace: 9, access: 'viewers', isPinned: true },
   };
 
   private _users = new Map<string, FullUser | null>([
@@ -155,7 +155,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     const orgIndex = domain ? Object.keys(this._orgs).find(i => this._orgs[i].domain === domain) : 1;
     return {
       user: u, org: orgIndex ? orgEntryToOrg(this._orgs[orgIndex]) : null,
-      orgError: orgIndex ? undefined : { error: "inaccessible org", status: 403 }
+      orgError: orgIndex ? undefined : { error: "inaccessible org", status: 403 },
     };
   }
 
@@ -241,7 +241,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
       name,
       org: orgId,
       docs: [],
-      access: 'owners'
+      access: 'owners',
     };
     this._orgs[orgId].workspaces.push(id);
     this._nextWorkspaceId += 1;
@@ -352,7 +352,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
   public async getOrgAccess(orgId: number): Promise<PermissionData> {
     // TODO: Implement as mock
     return {
-      users: []
+      users: [],
     };
   }
 
@@ -360,7 +360,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     // TODO: Implement as mock
     return {
       maxInheritedRole: null,
-      users: []
+      users: [],
     };
   }
 
@@ -369,7 +369,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     // TODO: Implement as mock
     return {
       maxInheritedRole: null,
-      users: []
+      users: [],
     };
   }
 

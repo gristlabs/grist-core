@@ -44,17 +44,17 @@ export class Proposals1759256005608 implements MigrationInterface {
         {
           name: "created_at",
           type: datetime,
-          default: now
+          default: now,
         },
         {
           name: "updated_at",
           type: datetime,
-          default: now
+          default: now,
         },
         {
           name: "applied_at",
           type: datetime,
-          isNullable: true
+          isNullable: true,
         },
       ],
       foreignKeys: [
@@ -79,7 +79,7 @@ export class Proposals1759256005608 implements MigrationInterface {
       new TableUnique({
         name: 'proposals__dest_doc_id__src_doc_id',
         columnNames: ['dest_doc_id', 'src_doc_id'],
-      })
+      }),
     );
   }
 

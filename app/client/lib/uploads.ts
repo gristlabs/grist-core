@@ -102,7 +102,7 @@ function getElectronOptions(options: SelectFileOptions) /*: OpenDialogOptions */
  * Uploads a list of File objects to the server.
  */
 export async function uploadFiles(
-  fileList: File[], options: UploadOptions, onProgress: ProgressCB = noop
+  fileList: File[], options: UploadOptions, onProgress: ProgressCB = noop,
 ): Promise<UploadResult|null> {
   if (!fileList.length) { return null; }
 
@@ -144,7 +144,7 @@ export async function uploadFiles(
  * @returns {Promise<any>} - Parsed JSON from the endpoint. Uses `any` as no validation is performed.
  */
 async function uploadFormData(
-  url: string, formData: FormData, onProgress: ProgressCB = noop
+  url: string, formData: FormData, onProgress: ProgressCB = noop,
 ): Promise<any> {
   return new Promise<any>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -184,7 +184,7 @@ async function uploadFormData(
  * case, it guesses the name of the file based on the response's content-type and the url.
  */
 export async function fetchURL(
-  docComm: DocComm, url: string, options?: FetchUrlOptions, onProgress: ProgressCB = noop
+  docComm: DocComm, url: string, options?: FetchUrlOptions, onProgress: ProgressCB = noop,
   ): Promise<UploadResult> {
 
   if (isDriveUrl(url)) {
@@ -198,7 +198,7 @@ export async function fetchURL(
   }
  catch (err) {
     console.log( // tslint:disable-line:no-console
-      `Could not fetch ${url} on the Client, falling back to server fetch: ${err.message}`
+      `Could not fetch ${url} on the Client, falling back to server fetch: ${err.message}`,
     );
     return docComm.fetchURL(url, options);
   }

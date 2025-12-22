@@ -74,11 +74,11 @@ export function createDocMenu(home: HomeModel): DomElementArg[] {
                     return buildTrashPage(home);
                   }
                 }
-              }
+              },
             ),
-            testId("doclist")
-          )
-        )
+            testId("doclist"),
+          ),
+        ),
       );
     }),
   ];
@@ -116,7 +116,7 @@ function buildWorkspacePage(home: HomeModel, workspace: Workspace | undefined) {
           css.workspaceHeader(
             workspaceName(home.app, workspace),
           ),
-          testId("doc-header")
+          testId("doc-header"),
         ),
       ),
       dom.create(DocList, {
@@ -136,10 +136,10 @@ function buildTemplatesPage(home: HomeModel) {
         css.featuredTemplatesHeader(
           css.featuredTemplatesIcon("Idea"),
           t("Featured"),
-          testId("featured-templates-header")
+          testId("featured-templates-header"),
         ),
         createPinnedDocs(home, home.featuredTemplates, true),
-      ]
+      ],
     ),
     dom.maybe(home.available, () => [
       css.docListHeaderWrap(
@@ -149,15 +149,15 @@ function buildTemplatesPage(home: HomeModel) {
             hasFeaturedTemplates =>
               hasFeaturedTemplates
                 ? t("More Examples and Templates")
-                : t("Examples and Templates")
+                : t("Examples and Templates"),
           ),
-          testId("doc-header")
+          testId("doc-header"),
         ),
-        buildPrefs(viewSettings)
+        buildPrefs(viewSettings),
       ),
       dom(
         "div",
-        buildAllTemplates(home, home.templateWorkspaces, viewSettings)
+        buildAllTemplates(home, home.templateWorkspaces, viewSettings),
       ),
     ]),
   ];
@@ -168,20 +168,20 @@ function buildTrashPage(home: HomeModel) {
   return dom.maybe(home.available, () => [
     css.docListHeaderWrap(
       css.listHeader(t("Trash"), testId("doc-header")),
-      buildPrefs(viewSettings)
+      buildPrefs(viewSettings),
     ),
     dom(
       "div",
       css.docBlock(
         t(
-          "Documents stay in Trash for 30 days, after which they get deleted permanently."
-        )
+          "Documents stay in Trash for 30 days, after which they get deleted permanently.",
+        ),
       ),
       dom.maybe(
         use => use(home.trashWorkspaces).length === 0,
-        () => css.docBlock(t("Trash is empty."))
+        () => css.docBlock(t("Trash is empty.")),
       ),
-      buildAllDocsBlock(home, home.trashWorkspaces, viewSettings)
+      buildAllDocsBlock(home, home.trashWorkspaces, viewSettings),
     ),
   ]);
 }
@@ -189,7 +189,7 @@ function buildTrashPage(home: HomeModel) {
 function buildAllDocsBlock(
   home: HomeModel,
   workspaces: Observable<Workspace[]>,
-  viewSettings: ViewSettings
+  viewSettings: ViewSettings,
 ) {
   return dom.forEach(workspaces, (ws) => {
     // Don't show the support workspace -- examples/templates are now retrieved from a special org.
@@ -219,7 +219,7 @@ function buildAllDocsBlock(
         testId('ws-header'),
       ),
       buildWorkspaceDocBlock(home, ws, viewSettings),
-      testId('doc-block')
+      testId('doc-block'),
     );
   });
 }
@@ -272,16 +272,16 @@ function buildPrefs(viewSettings: ViewSettings, ...args: DomArg<HTMLElement>[]) 
         {value: 'list', icon: 'TypeCardList', tooltip: t("List view")},
       ],
       cssButtonSelect.cls("-light"),
-      testId('view-mode')
+      testId('view-mode'),
     ),
-    ...args
+    ...args,
   );
 }
 
 function buildWorkspaceDocBlock(
   home: HomeModel,
   workspace: Workspace,
-  viewSettings: ViewSettings
+  viewSettings: ViewSettings,
 ) {
   function renderDocs(sort: 'date'|'name', view: "list"|"icons") {
     // Docs are sorted by name in HomeModel, we only re-sort if we want a different order.
@@ -326,7 +326,7 @@ function buildWorkspaceDocBlock(
             )
           ),
         ),
-        testId('doc')
+        testId('doc'),
       );
     });
   }
@@ -347,23 +347,23 @@ export function makeRemovedDocOptionsMenu(home: HomeModel, doc: Document, worksp
   function hardDeleteDoc() {
     confirmModal(t("Permanently Delete \"{{name}}\"?", {name: doc.name}), t("Delete Forever"),
       () => home.deleteDoc(doc.id, true).catch(reportError),
-      {explanation: t("Document will be permanently deleted.")}
+      {explanation: t("Document will be permanently deleted.")},
     );
   }
 
   return [
     menuItem(() => home.restoreDoc(doc), t("Restore"),
       dom.cls('disabled', !roles.isOwner(doc) || !!workspace.removedAt),
-      testId('doc-restore')
+      testId('doc-restore'),
     ),
     menuItem(hardDeleteDoc, t("Delete Forever"),
       dom.cls('disabled', !roles.isOwner(doc)),
-      testId('doc-delete-forever')
+      testId('doc-delete-forever'),
     ),
     (workspace.removedAt ?
       menuText(t("To restore this document, restore the workspace first.")) :
       null
-    )
+    ),
   ];
 }
 
@@ -371,15 +371,15 @@ function makeRemovedWsOptionsMenu(home: HomeModel, ws: Workspace) {
   return [
     menuItem(() => home.restoreWorkspace(ws), t("Restore"),
       dom.cls('disabled', !roles.canDelete(ws.access)),
-      testId('ws-restore')
+      testId('ws-restore'),
     ),
     menuItem(() => home.deleteWorkspace(ws.id, true), t("Delete Forever"),
       dom.cls('disabled', !roles.canDelete(ws.access) || ws.docs.length > 0),
-      testId('ws-delete-forever')
+      testId('ws-delete-forever'),
     ),
     (ws.docs.length > 0 ?
       menuText(t("You may delete a workspace forever once it has no documents in it.")) :
       null
-    )
+    ),
   ];
 }

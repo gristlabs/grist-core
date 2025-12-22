@@ -38,7 +38,7 @@ export class ColumnACIndexes {
   public buildColACIndex(
     colId: string,
     formatter: BaseFormatter,
-    filter?: (item: ICellItem) => boolean
+    filter?: (item: ICellItem) => boolean,
   ): ACIndex<ICellItem> {
     const rowIds = this._tableData.getRowIds();
     const valColumn = this._tableData.getColValues(colId);

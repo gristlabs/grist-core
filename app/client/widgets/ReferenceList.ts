@@ -102,7 +102,7 @@ export class ReferenceList extends Reference {
               blank: isBlankReference,
             },
             dom.cls(cssToken.className),
-            testId('ref-list-cell-token')
+            testId('ref-list-cell-token'),
           );
         });
       }),

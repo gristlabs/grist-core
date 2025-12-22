@@ -48,8 +48,8 @@ export class NTextEditor extends NewBaseEditor {
           dom.prop('value', initialValue),
           dom.boolAttr('readonly', options.readonly),
           this.commandGroup.attach(),
-          dom.on('input', () => this.onInput())
-        )
+          dom.on('input', () => this.onInput()),
+        ),
       ),
       createMobileButtons(options.commands),
     );

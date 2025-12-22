@@ -156,7 +156,7 @@ export class KeyedOps {
       status = {
         key,
         failures: 0,
-        callbacks: []
+        callbacks: [],
       };
       this._operations.set(key, status);
     }

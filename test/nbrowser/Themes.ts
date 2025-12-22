@@ -29,11 +29,11 @@ const assertAppliedTheme = async (expectedTheme: 'GristLight' | 'GristDark' | 'H
   assert.equal(appliedTheme, expectedTheme);
   assert.equal(
     await driver.findElement(By.css('html[data-grist-theme]')).getAttribute('data-grist-theme'),
-    expectedTheme
+    expectedTheme,
   );
   assert.equal(
     await driver.findElement(By.css('[data-grist-appearance]')).getAttribute('data-grist-appearance'),
-    expectedTheme === 'GristDark' ? 'dark' : 'light'
+    expectedTheme === 'GristDark' ? 'dark' : 'light',
   );
 };
 
@@ -61,10 +61,10 @@ describe('Themes', function () {
 
       // then verify that the theme select is disabled
       const activeAppearanceSelect = await driver.findElements(
-        By.css(appearanceSelectCssSelector)
+        By.css(appearanceSelectCssSelector),
       );
       const disabledAppearanceSelect = await driver.findElements(
-        By.css(appearanceSelectDisabledCssSelector)
+        By.css(appearanceSelectDisabledCssSelector),
       );
       assert.isEmpty(activeAppearanceSelect, 'Appearance select should be disabled');
       assert.exists(disabledAppearanceSelect[0], 'Appearance select should be disabled');
@@ -84,14 +84,14 @@ describe('Themes', function () {
       // if using chromium web driver, fake the system color scheme to dark and wait for the theme to change
       if ((driver as ChromiumWebDriver).sendDevToolsCommand) {
         await (driver as ChromiumWebDriver).sendDevToolsCommand('Emulation.setEmulatedMedia', {features: [
-          {name: 'prefers-color-scheme', value: 'dark'}
+          {name: 'prefers-color-scheme', value: 'dark'},
         ]});
         await driver.sleep(500);
         await assertAppliedTheme('GristDark');
 
         // reset back to default light system appearance
         await (driver as ChromiumWebDriver).sendDevToolsCommand('Emulation.setEmulatedMedia', {features: [
-          {name: 'prefers-color-scheme', value: 'light'}
+          {name: 'prefers-color-scheme', value: 'light'},
         ]});
         await driver.sleep(500);
         await assertAppliedTheme('GristLight');
@@ -128,7 +128,7 @@ describe('Themes', function () {
 
     it('should have a link to the custom CSS file', async function() {
       const customCssTag = await driver.findElements(
-        By.css('link#grist-custom-css')
+        By.css('link#grist-custom-css'),
       );
       assert.exists(customCssTag[0], 'Custom CSS link html element should be present');
     });
@@ -202,7 +202,7 @@ async function shouldAllowThemeSelection() {
   await driver.findWait(appearanceSelectCssSelector, 500).click();
   assert.deepEqual(
     await gu.findOpenMenuAllItems('li', el => el.getText()),
-    ['Light', 'Dark', 'Light (High Contrast)']
+    ['Light', 'Dark', 'Light (High Contrast)'],
   );
   await driver.sendKeys(Key.ESCAPE);    // Close menu.
 }
@@ -220,10 +220,10 @@ async function shouldApplyThemes() {
 
 async function assertThemesAreDisabled() {
   const appearanceSelect = await driver.findElements(
-    By.css('.test-theme-config-appearance .test-select-open')
+    By.css('.test-theme-config-appearance .test-select-open'),
   );
   const syncWithOSCheckbox = await driver.findElements(
-    By.css('.test-theme-config-sync-with-os')
+    By.css('.test-theme-config-sync-with-os'),
   );
   assert.isEmpty(appearanceSelect, 'Appearance select should not be shown');
   assert.isEmpty(syncWithOSCheckbox, 'Sync with OS checkbox should not be shown');

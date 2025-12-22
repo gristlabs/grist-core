@@ -20,7 +20,7 @@ export class Group extends BaseEntity {
   @JoinTable({
     name: 'group_users',
     joinColumn: {name: 'group_id'},
-    inverseJoinColumn: {name: 'user_id'}
+    inverseJoinColumn: {name: 'user_id'},
   })
   public memberUsers: User[];
 

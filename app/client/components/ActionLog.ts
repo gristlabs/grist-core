@@ -16,7 +16,7 @@ import {ActionGroup} from 'app/common/ActionGroup';
 import {concatenateSummaryPair} from 'app/common/ActionSummarizer';
 import {
   ActionSummary, asTabularDiffs, createEmptyActionSummary, defunctTableName, getAffectedTables,
-  LabelDelta
+  LabelDelta,
 } from 'app/common/ActionSummary';
 import {CellDelta, TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
 import {timeFormat} from 'app/common/timeFormat';
@@ -55,7 +55,7 @@ const gristNotify = window.gristNotify!;
 const state = {
   UNDONE: 'undone',
   BURIED: 'buried',
-  DEFAULT: 'default'
+  DEFAULT: 'default',
 };
 
 const t = makeT('ActionLog');
@@ -172,11 +172,11 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     const part = new ActionLogPartInList(
       this._gristDoc,
       ag,
-      this
+      this,
     );
     return part.renderTabularDiffs(sum, {
       txt,
-      contextObs: ag?.context
+      contextObs: ag?.context,
     });
   }
 
@@ -258,12 +258,12 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
             dom('span.action_info_action_num', `#${ag.actionNum}`),
             ag.user ? dom('span.action_info_user',
               ag.user,
-              koDom.toggleClass('action_info_from_self', ag.fromSelf)
+              koDom.toggleClass('action_info_from_self', ag.fromSelf),
             ) : '',
             dom('span.action_info_timestamp', timestamp)),
-          dom('span.action_desc', desc)
+          dom('span.action_desc', desc),
         );
-      })
+      }),
     );
   }
 
@@ -722,13 +722,13 @@ function reportDeletedObject(obj: DeletedObject, actionNum: number) {
   if (obj.tableId) {
     gristNotify(t(
       "Table {{tableId}} was subsequently removed in action #{{actionNum}}",
-      {tableId: obj.tableId, actionNum}
+      {tableId: obj.tableId, actionNum},
     ));
   }
   if (obj.colId) {
       gristNotify(t(
         "Column {{colId}} was subsequently removed in action #{{actionNum}}",
-        {colId: obj.colId, actionNum}
+        {colId: obj.colId, actionNum},
       ));
   }
   if (obj.thisRow) {

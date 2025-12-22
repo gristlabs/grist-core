@@ -609,7 +609,7 @@ async function copy(cb: gu.IClipboard, fromCol: 'Text' | 'Parsed') {
 async function copyAndCheck(
   clipboard: gu.ILockableClipboard,
   expected: string[],
-  extraChecks: boolean = false
+  extraChecks: boolean = false,
 ) {
   await clipboard.lockAndPerform(async (cb) => {
     // Copy Text cells into the Parsed column

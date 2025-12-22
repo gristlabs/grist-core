@@ -39,7 +39,7 @@ import {
   MultiHolder,
   Observable,
   styled,
-  subscribe
+  subscribe,
 } from 'grainjs';
 import * as ko from 'knockout';
 import debounce from 'lodash/debounce';
@@ -210,17 +210,17 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     const whenMaximizedCommandGroup = {
       cancel: () => {
         this.maximized.set(null);
-      }
+      },
     };
     this.autoDispose(commands.createGroup(
       commandGroup,
       this,
-      ko.pureComputed(() => this.viewModel.focusedRegionState() === 'in')
+      ko.pureComputed(() => this.viewModel.focusedRegionState() === 'in'),
     ));
     this.autoDispose(commands.createGroup(
       whenMaximizedCommandGroup,
       this,
-      ko.pureComputed(() => this.viewModel.focusedRegionState() === 'in' && this.layout.maximizedLeaf() !== null)
+      ko.pureComputed(() => this.viewModel.focusedRegionState() === 'in' && this.layout.maximizedLeaf() !== null),
     ));
 
     this.maximized = fromKo(this.layout.maximizedLeaf) as any;
@@ -262,12 +262,12 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       dom.maybe(use => !!use(this.maximized), () =>
         cssCloseButton('CrossBig',
           testId('close-button'),
-          dom.on('click', () => close())
-        )
+          dom.on('click', () => close()),
+        ),
       ),
       // Close the lightbox when user clicks exactly on the overlay.
       dom.on('click', (ev, elem) => void (ev.target === elem && this.maximized.get() ? close() : null)),
-      dom.cls('test-viewLayout-save-pending', this._savePending)
+      dom.cls('test-viewLayout-save-pending', this._savePending),
     );
   }
 
@@ -399,7 +399,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
        gristDoc: this.gristDoc,
        sectionRowId,
        isResizing: this.isResizing,
-       viewModel: this.viewModel
+       viewModel: this.viewModel,
     });
   }
 
@@ -471,9 +471,9 @@ function widgetRemovalPrompt(tableName: string): Promise<PromptAction> {
                     t('Raw Data page'),
                     urlState().setHref({docPage: 'data'}),
                     {target: '_blank'},
-                  )
-                }
-              )
+                  ),
+                },
+              ),
             ),
           ),
         ),

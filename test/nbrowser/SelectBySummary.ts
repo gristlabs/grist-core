@@ -14,7 +14,7 @@ describe('SelectBySummary', function() {
     const session = await gu.session().teamSite.login();
     await session.tempDoc(cleanup, 'SelectBySummary.grist');
     headers = {
-      Authorization: `Bearer ${session.getApiKey()}`
+      Authorization: `Bearer ${session.getApiKey()}`,
     };
   });
 
@@ -175,7 +175,7 @@ describe('SelectBySummary', function() {
           '', '', '',  // new row
         ],
       );
-    })
+    }),
   );
 
   it('should filter a summary table selected by a less detailed summary table', async function() {
@@ -273,7 +273,7 @@ async function checkSelectingRecords(
     await gu.getVisibleGridCells({
       section: summarySection,
       cols: [...groubyColumns, 'rownum'],
-      rowNums: _.range(1, targetData.length + 1)
+      rowNums: _.range(1, targetData.length + 1),
     }),
     summaryData,
   );
@@ -289,7 +289,7 @@ async function checkSelectingRecords(
         cols: ['onetwo', 'choices', 'rownum'],
         rowNums: _.range(1, numTargetRows + 1),
       }),
-      targetGroup
+      targetGroup,
     );
     if (targetSection === 'TABLE1') {
       assert.equal(await countCell.getText(), numTargetRows.toString());

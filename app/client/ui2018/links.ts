@@ -54,7 +54,7 @@ export function gristLink(href: BindableValue<string>, ...args: IDomArgs<HTMLEle
     // https://developers.google.com/web/tools/lighthouse/audits/noopener
     dom.attr("rel", "noopener noreferrer"),
     hideInPrintView(),
-    args
+    args,
   );
 }
 

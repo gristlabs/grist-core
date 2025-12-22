@@ -55,7 +55,7 @@ export class TestServer {
     private _serverTypes: string,
     public readonly port: number,
     public readonly rootDir: string,
-    private _suiteName: string
+    private _suiteName: string,
   ) {
     this._defaultEnv = {
       GRIST_INST_DIR: this.rootDir,
@@ -67,7 +67,7 @@ export class TestServer {
       // this is calculated value, some tests expect 4 attempts and some will try 3 times
       GRIST_TRIGGER_MAX_ATTEMPTS: '4',
       GRIST_MAX_QUEUE_SIZE: '10',
-      ...process.env
+      ...process.env,
     };
   }
 
@@ -89,12 +89,12 @@ export class TestServer {
       GRIST_TESTING_SOCKET: this.testingSocket,
       GRIST_PORT: String(this.port),
       ...this._defaultEnv,
-      ...customEnv
+      ...customEnv,
     };
     const main = await testUtils.getBuildFile('app/server/MergedServer.js');
     this._server = spawn('node', [main, '--testingHooks'], {
       env,
-      stdio: ['inherit', serverLog, serverLog]
+      stdio: ['inherit', serverLog, serverLog],
     });
     if (options.output) {
       this._server.stdout!.pipe(options.output);

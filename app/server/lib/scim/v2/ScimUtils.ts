@@ -33,7 +33,7 @@ export function toSCIMMYUser(user: User): SCIMMY.Schemas.User {
     photos: user.picture ? [{
       value: user.picture,
       type: "photo",
-      primary: true
+      primary: true,
     }] : undefined,
     emails: [{
       value: user.logins[0].displayEmail,
@@ -92,7 +92,7 @@ export function toSCIMMYRole(role: Group): SCIMMYRoleSchema {
     docId: aclRule instanceof AclRuleDoc ? aclRule.docId : undefined,
     workspaceId: aclRule instanceof AclRuleWs ? aclRule.workspaceId : undefined,
     orgId: aclRule instanceof AclRuleOrg ? aclRule.orgId : undefined,
-    members: toSCIMMYMembers(role)
+    members: toSCIMMYMembers(role),
   });
 }
 
@@ -105,7 +105,7 @@ function parseId(id: string, type: typeof SCIMMY_USER_TYPE | typeof SCIMMY_GROUP
 }
 
 function membersDescriptors(
-  members: NonNullable<SCIMMY.Schemas.Group["members"]>
+  members: NonNullable<SCIMMY.Schemas.Group["members"]>,
 ): Pick<GroupWithMembersDescriptor, "memberUsers" | "memberGroups"> {
   return {
     memberUsers: members
@@ -113,7 +113,7 @@ function membersDescriptors(
       .map(member => parseId(member.value, SCIMMY_USER_TYPE)),
     memberGroups: members
       .filter(member => member.type === SCIMMY_GROUP_TYPE)
-      .map(member => parseId(member.value, SCIMMY_GROUP_TYPE))
+      .map(member => parseId(member.value, SCIMMY_GROUP_TYPE)),
   };
 }
 
@@ -122,7 +122,7 @@ export function toGroupDescriptor(scimGroup: SCIMMY.Schemas.Group): GroupWithMem
   return {
     name: scimGroup.displayName,
     type: Group.TEAM_TYPE,
-    ...membersDescriptors(members)
+    ...membersDescriptors(members),
   };
 }
 
@@ -131,6 +131,6 @@ export function toRoleDescriptor(scimRole: SCIMMYRoleSchema): GroupWithMembersDe
   return {
     name: scimRole.displayName,
     type: Group.ROLE_TYPE,
-    ...membersDescriptors(members)
+    ...membersDescriptors(members),
   };
 }

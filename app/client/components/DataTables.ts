@@ -29,7 +29,7 @@ export class DataTables extends Disposable {
   private readonly _rowCount = Computed.create(
     this, this._gristDoc.docPageModel.currentDocUsage, (_use, usage) => {
       return usage?.rowCount;
-    }
+    },
   );
 
   // TODO: Update this whenever the rest of the UI is internationalized.
@@ -60,7 +60,7 @@ export class DataTables extends Disposable {
               cssTableIcon(
                 dom.domComputed(use => cssTableTypeIcon(
                   use(tableRec.summarySourceTable) !== 0 ? 'PivotLight' : 'TypeTable',
-                  testId(`table-id-${use(tableRec.tableId)}`)
+                  testId(`table-id-${use(tableRec.tableId)}`),
                 )),
               ),
               cssTableNameAndId(
@@ -77,11 +77,11 @@ export class DataTables extends Disposable {
                       e.stopImmediatePropagation();
                       e.preventDefault();
                       showTransientTooltip(d, t("Table ID copied to clipboard"), {
-                        key: 'copy-table-id'
+                        key: 'copy-table-id',
                       });
                       await copyToClipboard(tableRec.tableId.peek());
                       setTestState({clipboard: tableRec.tableId.peek()});
-                    })
+                    }),
                   )),
                 ),
               ),
@@ -100,7 +100,7 @@ export class DataTables extends Disposable {
                     dom.domComputed(use => use(use(tableRec.recordCardViewSection).disabled)
                       ? t('Record Card Disabled')
                       : t('Edit record card')),
-                    {key: DATA_TABLES_TOOLTIP_KEY, closeOnClick: false}
+                    {key: DATA_TABLES_TOOLTIP_KEY, closeOnClick: false},
                   ),
                   dom.hide(this._gristDoc.isReadonly),
                   // Make the button invisible to maintain consistent alignment with non-summary tables.
@@ -114,7 +114,7 @@ export class DataTables extends Disposable {
                   icon('Dots'),
                   menu(() => this._menuItems(tableRec, isEditingName), {placement: 'bottom-start'}),
                   dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
-                )
+                ),
               ),
               dom.on('click', () => {
                 const sectionId = tableRec.rawViewSection.peek().getRowId();
@@ -125,7 +125,7 @@ export class DataTables extends Disposable {
               }),
               cssTable.cls('-readonly', this._gristDoc.isReadonly),
             );
-          })
+          }),
         ),
       ),
     );
@@ -140,14 +140,14 @@ export class DataTables extends Disposable {
         // Some very old documents might not have a rawViewSection, and raw summary
         // tables can't currently be renamed.
         const tableName = [
-          use(table.tableNameDef), isSummaryTable ? use(table.groupDesc) : ''
+          use(table.tableNameDef), isSummaryTable ? use(table.groupDesc) : '',
         ].filter(p => Boolean(p?.trim())).join(' ');
         return cssTableName(tableName);
       }
  else {
         return cssFlexRow(
           dom.domComputed(fromKo(table.rawViewSection), vs =>
-            buildTableName(vs, {isEditing}, cssRenamableTableName.cls(''), testId('widget-title'))
+            buildTableName(vs, {isEditing}, cssRenamableTableName.cls(''), testId('widget-title')),
           ),
           cssRenameTableButton(icon('Pencil'),
             dom.on('click', (ev) => {
@@ -177,7 +177,7 @@ export class DataTables extends Disposable {
         dom.cls('disabled', use =>
           use(isReadonly) ||
           use(table.isHidden) ||
-          use(table.summarySourceTable) !== 0
+          use(table.summarySourceTable) !== 0,
         ),
         testId('menu-duplicate-table'),
       ),
@@ -233,7 +233,7 @@ export class DataTables extends Disposable {
     }
     confirmModal(t(
       "Delete {{formattedTableName}} data, and remove it from all pages?",
-      {formattedTableName : r.formattedTableName()}
+      {formattedTableName : r.formattedTableName()},
     ), 'Delete', doRemove);
   }
 
@@ -266,7 +266,7 @@ export class DataTables extends Disposable {
             ? this._rowCountFormatter.format(rowCounts[table.getRowId()])
             : '',
           testId('table-rows'),
-        )
+        ),
       );
     });
   }

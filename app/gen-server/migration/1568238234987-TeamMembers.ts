@@ -29,7 +29,7 @@ export class TeamMembers1568238234987 implements MigrationInterface {
         .values([{
           permissions: Permissions.VIEW,
           organization: {id: org.id},
-          group: groupId
+          group: groupId,
         }])
         .execute();
     }

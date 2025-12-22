@@ -31,7 +31,7 @@ export class DocPref1746246433628 implements MigrationInterface {
     // can't use TypeORM, so use direct SQL (identical for Sqlite and Postgres).
     await queryRunner.query(
       'CREATE UNIQUE INDEX "doc_prefs__doc_id__user_id" ON "doc_prefs" ' +
-      '(doc_id, COALESCE(user_id, 0))'
+      '(doc_id, COALESCE(user_id, 0))',
     );
   }
 

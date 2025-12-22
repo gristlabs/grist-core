@@ -17,7 +17,7 @@ describe('AttachmentStoreProvider', () => {
   it('constructs stores using the installations UID and store type', async () => {
     const storesConfig = [
       await makeTestingFilesystemStoreConfig("filesystem1"),
-      await makeTestingFilesystemStoreConfig("filesystem2")
+      await makeTestingFilesystemStoreConfig("filesystem2"),
     ];
 
     const provider = new AttachmentStoreProvider(storesConfig, testInstallationUUID);
@@ -93,7 +93,7 @@ class FakeExternalStorage implements ExternalStorage {
     return null;
   }
   public async upload(
-    key: string, fname: string, metadata?: ObjMetadata
+    key: string, fname: string, metadata?: ObjMetadata,
   ): Promise<string | typeof Unchanged | null> {
     return null;
   }
@@ -117,13 +117,13 @@ class FakeExternalStorage implements ExternalStorage {
 
 class FakeAttachmentExternalStorage extends FakeExternalStorage implements ExternalStorageSupportingAttachments {
   public async uploadStream(
-    key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata
+    key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata,
   ): Promise<string | typeof Unchanged | null> {
     return null;
   }
   public async downloadStream(key: string, snapshotId?: string): Promise<StreamDownloadResult> {
     return {
-      metadata: { size: 0, snapshotId: "", },
+      metadata: { size: 0, snapshotId: "" },
       contentStream: stream.Readable.from(Buffer.from([])),
     };
   }

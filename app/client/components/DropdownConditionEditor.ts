@@ -146,7 +146,7 @@ class DropdownConditionEditor extends Disposable {
           if (val === '') {
             this._updateEditorPlaceholder();
           }
-        })
+        }),
       ),
     );
   }

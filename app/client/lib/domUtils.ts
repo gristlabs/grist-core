@@ -45,9 +45,9 @@ export const AsyncComputed = {
     owner?.autoDispose(computed.addListener(listener));
     listener(computed.get());
     return Object.assign(backend, {
-      dirty
+      dirty,
     });
-  }
+  },
 };
 export interface AsyncComputed<T> extends Observable<T|undefined> {
   /**
@@ -83,7 +83,7 @@ export function domOnCustom(name: string, handler: (args: any, event: Event, ele
 export function domDispatch(element: Element, name: string, args?: any) {
   element.dispatchEvent(new CustomEvent(name, {
     bubbles: true,
-    detail: args
+    detail: args,
   }));
 }
 

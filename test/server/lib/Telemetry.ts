@@ -124,7 +124,7 @@ describe('Telemetry', function() {
                   docIdDigest: 'dige:Vq9L3nCkeufQ8euzDkXtM2Fl1cnsALqakjEeM6QlbXQ=',
                   isPublic: false,
                   installationId,
-                }
+                },
               ]);
             }
 
@@ -147,7 +147,7 @@ describe('Telemetry', function() {
                   isPublic: false,
                   userId: 1,
                   installationId,
-                }
+                },
               ]);
             }
 
@@ -170,7 +170,7 @@ describe('Telemetry', function() {
                 {
                   docIdDigest: 'dige:Vq9L3nCkeufQ8euzDkXtM2Fl1cnsALqakjEeM6QlbXQ=',
                   isPublic: false,
-                }
+                },
               ]);
               assert.equal(forwardEventSpy.callCount, 1);
             }
@@ -192,7 +192,7 @@ describe('Telemetry', function() {
                   docIdDigest: 'dige:Vq9L3nCkeufQ8euzDkXtM2Fl1cnsALqakjEeM6QlbXQ=',
                   isPublic: false,
                   userId: 1,
-                }
+                },
               ]);
               // An earlier test triggered an apiUsage event.
               assert.equal(forwardEventSpy.callCount, 2);
@@ -219,14 +219,14 @@ describe('Telemetry', function() {
         it('throws an error when an event is invalid', async function() {
           await assert.isRejected(
             telemetry.logEventAsync(null, 'invalidEvent' as TelemetryEvent, {limited: {method: 'GET'}}),
-            /Unknown telemetry event: invalidEvent/
+            /Unknown telemetry event: invalidEvent/,
           );
         });
 
         it("throws an error when an event's metadata is invalid", async function() {
           await assert.isRejected(
             telemetry.logEventAsync(null, 'documentOpened', {limited: {invalidMetadata: 'GET'}}),
-            /Unknown metadata for telemetry event documentOpened: invalidMetadata/
+            /Unknown metadata for telemetry event documentOpened: invalidMetadata/,
           );
         });
 
@@ -235,7 +235,7 @@ describe('Telemetry', function() {
             await assert.isRejected(
               telemetry.logEventAsync(null, 'documentOpened', {limited: {userId: 1}}),
 
-              /Telemetry metadata userId of event documentOpened requires a minimum telemetry level of 2 but the current level is 1/
+              /Telemetry metadata userId of event documentOpened requires a minimum telemetry level of 2 but the current level is 1/,
             );
           });
         }

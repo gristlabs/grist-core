@@ -111,7 +111,7 @@ export class FieldModel extends BoxModel {
         if (!now && then) {
           setImmediate(() => !this.edit.isDisposed() && this.edit.set(false));
         }
-      })
+      }),
     );
   }
 
@@ -150,7 +150,7 @@ export class FieldModel extends BoxModel {
           return '';
         }
       }),
-      ...args
+      ...args,
     );
   }
 
@@ -189,7 +189,7 @@ export abstract class Question extends Disposable {
       this.renderLabel(props),
       this.renderInput(),
       css.cssQuestion.cls('-required', this.model.required),
-      ...args
+      ...args,
     );
   }
 
@@ -237,7 +237,7 @@ export abstract class Question extends Disposable {
             element?.select();
           }, 10);
         }
-      })
+      }),
     );
 
     return [
@@ -603,7 +603,7 @@ class RefListModel extends Question {
     owner: IDisposableOwner,
     docModel: DocModel,
     tableId: Observable<string>,
-    columnId: Observable<string>
+    columnId: Observable<string>,
   ) {
     const tableModel = Computed.create(owner, use => docModel.dataTables[use(tableId)]);
     const refreshed = Observable.create(owner, 0);

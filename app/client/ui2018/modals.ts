@@ -186,7 +186,7 @@ export type ModalWidth =
  */
 export function modal(
   createFn: (ctl: IModalControl, owner: MultiHolder) => DomElementArg,
-  options: IModalOptions = {}
+  options: IModalOptions = {},
 ): void {
   const {
     noEscapeKey,
@@ -266,7 +266,7 @@ export function modal(
         allowFocus: elem => (elem !== document.body),
         // Pause mousetrap keyboard shortcuts while the modal is shown. Without this, arrow keys
         // will navigate in a grid underneath the modal, and Enter may open a cell there.
-        pauseMousetrap: true
+        pauseMousetrap: true,
       });
       return dialogDom;
     }),
@@ -325,7 +325,7 @@ export interface ISaveModalOptions {
  */
 export function saveModal(
   createFunc: (ctl: IModalControl, owner: MultiHolder) => ISaveModalOptions,
-  modalOptions?: IModalOptions
+  modalOptions?: IModalOptions,
 ) {
   return modal((ctl, owner) => {
     const options = createFunc(ctl, owner);
@@ -389,7 +389,7 @@ export function confirmModal(
     extraButtons,
     modalOptions,
     saveDisabled,
-    width
+    width,
   } = options;
   return saveModal((_ctl, owner): ISaveModalOptions => {
     const dontShowAgain = Observable.create(owner, false);
@@ -458,7 +458,7 @@ export function promptModal(
         confirmed = true;
         return onConfirm(text.get() || '');
       },
-      width: 'normal'
+      width: 'normal',
     };
     owner.onDispose(() => {
       if (confirmed) { return; }
@@ -492,7 +492,7 @@ export function invokePrompt(
     initial?: string,
     placeholder?: string,
     body?: DomElementArg,
-  }
+  },
 ): Promise<string|undefined> {
   let onResolve: (text: string|undefined) => any;
   const prom = new Promise<string|undefined>((resolve) => {
@@ -556,11 +556,11 @@ export function cssModalWidth(style: ModalWidth) {
 export function modalTooltip(
   reference: Element,
   domCreator: (ctl: IOpenController) => DomElementArg,
-  options: IPopupOptions = {}
+  options: IPopupOptions = {},
 ): PopupControl {
   return popupOpen(reference, (ctl: IOpenController) => {
     const element = cssModalTooltip(
-      domCreator(ctl)
+      domCreator(ctl),
     );
     return element;
   }, options);

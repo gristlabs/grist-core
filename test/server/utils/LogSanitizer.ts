@@ -38,8 +38,8 @@ describe("LogSanitizer", () => {
             id: 355,
             manualSort: 355,
             Name: "Johny",
-            InsuranceNumber: "12345"
-          }
+            InsuranceNumber: "12345",
+          },
         }),
         // in thie redis those are json, but send as a strings, so we need to parse them
         JSON.stringify({
@@ -48,10 +48,10 @@ describe("LogSanitizer", () => {
             id: 355,
             manualSort: 355,
             Name: "Mark",
-            InsuranceNumber: "65844"
-          }
-        })
-      ]
+            InsuranceNumber: "65844",
+          },
+        }),
+      ],
     };
 
     const sanitizer = new LogSanitizer();

@@ -14,7 +14,7 @@ import {
   getColValues,
   isDataAction,
   TableDataAction,
-  UserAction
+  UserAction,
 } from 'app/common/DocActions';
 import {VirtualId} from 'app/common/SortSpec';
 import {WebhookSummary} from 'app/common/Triggers';
@@ -124,7 +124,7 @@ const WEBHOOK_VIEW_FIELDS: Array<(typeof WEBHOOK_COLUMNS)[number]['colId']> = [
   'watchedColIdsText', 'isReadyColumn',
   'url', 'authorization',
   'webhookId', 'enabled',
-  'status'
+  'status',
 ];
 
 /**
@@ -252,12 +252,12 @@ class WebhookExternalTable implements IExternalTable {
       if (rowId) {
         toRemove.delete(rowId);
         actions.push(
-          ['UpdateRecord', this.name, rowId, values]
+          ['UpdateRecord', this.name, rowId, values],
         );
       }
  else {
         actions.push(
-          ['AddRecord', this.name, null, values]
+          ['AddRecord', this.name, null, values],
         );
       }
     }
@@ -285,7 +285,7 @@ class WebhookExternalTable implements IExternalTable {
           widget: 'TextBox',
           alignment: 'left',
           choices,
-        })
+        }),
       }]);
   }
 
@@ -380,7 +380,7 @@ export class WebhookPage extends DisposableWithEvents {
         bigPrimaryButton(t("Clear queue"),
           dom.on('click', () => this.reset()),
           testId('webhook-reset'),
-        )
+        ),
       ),
       // active_section here is a bit of a hack, to allow tests to run
       // more easily.
@@ -443,8 +443,8 @@ function _prepareWebhookInitialActions(tableId: string): DocAction[] {
       isFormula: true,
       type: 'Any',
       formula: '',
-      id: col.colId
-    }))
+      id: col.colId,
+    })),
   ], [
     // Add an entry for the virtual table.
     'AddRecord', '_grist_Tables', 'vt_webhook_ft1' as any, {tableId, primaryViewId: 0},
@@ -461,14 +461,14 @@ function _prepareWebhookInitialActions(tableId: string): DocAction[] {
   ], [
     // Add a view section.
     'AddRecord', '_grist_Views_section', 'vt_webhook_fs1' as any,
-    {tableRef: 'vt_webhook_ft1', parentKey: 'detail', title: '', borderWidth: 1, defaultWidth: 100, theme: 'blocks'}
+    {tableRef: 'vt_webhook_ft1', parentKey: 'detail', title: '', borderWidth: 1, defaultWidth: 100, theme: 'blocks'},
   ], [
     // List the fields shown in the view section.
     'BulkAddRecord', '_grist_Views_section_field', WEBHOOK_VIEW_FIELDS.map((_, i) => `vt_webhook_ff${i + 1}`) as any, {
       colRef: WEBHOOK_VIEW_FIELDS.map(colId => WEBHOOK_COLUMNS.find(r => r.colId === colId)!.id),
       parentId: WEBHOOK_VIEW_FIELDS.map(() => 'vt_webhook_fs1'),
       parentPos: WEBHOOK_VIEW_FIELDS.map((_, i) => i),
-    }
+    },
   ]];
 }
 

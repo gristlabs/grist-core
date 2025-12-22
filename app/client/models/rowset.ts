@@ -173,7 +173,7 @@ export class ExtendedRowSource extends RowSource {
 
   constructor(
     public parentRowSource: RowSource,
-    public extras: readonly UIRowId[]
+    public extras: readonly UIRowId[],
   ) {
     super();
 

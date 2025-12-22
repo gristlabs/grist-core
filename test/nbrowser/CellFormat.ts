@@ -141,7 +141,7 @@ describe('CellFormat', function() {
       Key.chord(Key.SHIFT, Key.ENTER),
       Key.chord(Key.SHIFT, Key.ENTER),
       "![Images too](https://example.com)",
-      Key.ENTER
+      Key.ENTER,
     );
     await gu.waitForServer();
     assert.equal(
@@ -163,7 +163,7 @@ Link: \nhttps://example.com/#2
 HTML is <span style="color: red;">escaped</span>.
 
 ![Images too](
-)`
+)`,
     );
     assert.isFalse(await gu.getCell(0, 1).findContent('h1', 'Heading').isPresent());
     assert.isFalse(await gu.getCell(0, 1).findContent('h2', 'Subheading').isPresent());
@@ -189,7 +189,7 @@ Link with label
 Link:
 https://example.com/#2
 HTML is <span style="color: red;">escaped</span>.
-![Images too](https://example.com)`
+![Images too](https://example.com)`,
     );
     assert.isTrue(await gu.getCell(0, 1).findContent('h1', 'Heading').isDisplayed());
     assert.isTrue(await gu.getCell(0, 1).findContent('h2', 'Subheading').isDisplayed());
@@ -210,7 +210,7 @@ HTML is <span style="color: red;">escaped</span>.
     await gu.waitForServer();
     assert.equal(
       await gu.getCell(0, 2).getText(),
-      'Editing works the same way as TextBox and HyperLink'
+      'Editing works the same way as TextBox and HyperLink',
     );
 
     await gu.setFieldWidgetType('TextBox');
@@ -233,11 +233,11 @@ Link: \nhttps://example.com/#2
 HTML is <span style="color: red;">escaped</span>.
 
 ![Images too](
-)`
+)`,
     );
     assert.equal(
       await gu.getCell(0, 2).getText(),
-      '> Editing works the same way as TextBox and HyperLink'
+      '> Editing works the same way as TextBox and HyperLink',
     );
   });
 });

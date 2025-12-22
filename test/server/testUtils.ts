@@ -121,7 +121,7 @@ export function setTmpLogLevel(level: string, optCaptureTo?: CaptureFunc|string)
         stream,
         level: 'debug',
         timestamp: true,
-        json: false
+        json: false,
       });
     }
   });
@@ -144,7 +144,7 @@ export function nestLogLevel(level: string): NestedLogLevel {
   return {
     restore() {
       log.transports.file.level = prevLogLevel;
-    }
+    },
   };
 }
 
@@ -155,7 +155,7 @@ export function nestLogLevel(level: string): NestedLogLevel {
  */
 export async function captureLog(
   minLevel: string, callback: (messages: string[]) => void|Promise<void>,
-  options: {timestamp?: boolean, waitForFirstLog?: boolean} = {timestamp: false, waitForFirstLog: false}
+  options: {timestamp?: boolean, waitForFirstLog?: boolean} = {timestamp: false, waitForFirstLog: false},
 ): Promise<string[]> {
   const messages: string[] = [];
   const prevLogLevel = log.transports.file.level;

@@ -6,7 +6,7 @@ import {createFormatter, DateTimeFormatOptions} from "app/common/ValueFormatter"
 import {assert} from 'chai';
 
 const defaultDocSettings = {
-  locale: 'en-US'
+  locale: 'en-US',
 };
 
 const dateNumber = parseDateTime("2020-10-31 12:34:56", {});

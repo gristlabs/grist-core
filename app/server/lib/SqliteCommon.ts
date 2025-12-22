@@ -123,7 +123,7 @@ export const gristMarshal = {
     }
     marshaller.marshal(result);
     return marshaller.dumpAsBuffer();
-  }
+  },
 };
 
 /**

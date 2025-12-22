@@ -302,5 +302,5 @@ export const GristLight: ThemeTokens = {
 
     /* Card Button */
     cardButtonBorder: tokens.decoration,
-  }
+  },
 };

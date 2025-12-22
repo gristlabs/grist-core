@@ -3,14 +3,14 @@ import {assert} from 'chai';
 
 describe("NumberFormat", function() {
   const defaultDocSettings = {
-    locale: 'en-US'
+    locale: 'en-US',
   };
 
   // useGrouping became more nuanced in recent node.
   // Its old 'true' value may now be 'always' or 'auto'.
   const useGroupingAlways = buildNumberFormat(
     {numMode: 'decimal'},
-    defaultDocSettings
+    defaultDocSettings,
   ).resolvedOptions().useGrouping as boolean|string;
   const useGroupingAuto = (useGroupingAlways === 'always') ? 'auto' : true;
 

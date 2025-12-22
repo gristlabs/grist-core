@@ -105,7 +105,7 @@ export function docBreadcrumbs(
     isAnonymous?: boolean,
     isProposable?: Observable<boolean>,
     isReadonly?: Observable<boolean>,
-  }
+  },
   ): Element {
     const shouldShowWorkspace = !(options.isTemplate && options.isAnonymous);
     return cssBreadcrumbs(
@@ -121,18 +121,18 @@ export function docBreadcrumbs(
               urlState().setLinkUrl({ws: ws.id}),
               dom.text(ws.name),
               testId('bc-workspace'),
-              cssHideForNarrowScreen.cls('')
+              cssHideForNarrowScreen.cls(''),
             ),
             cssWorkspaceNarrowScreen(
               'Expand',
               urlState().setLinkUrl({ws: ws.id}),
-              testId('bc-workspace-ns')
+              testId('bc-workspace-ns'),
             ),
             separator(' / ',
                       testId('bc-separator'),
-                      cssHideForNarrowScreen.cls(''))
+                      cssHideForNarrowScreen.cls('')),
           ];
-        }
+        },
       ),
       editableLabel(docName, {
         save: options.docNameSave,
@@ -181,7 +181,7 @@ not affect the original document.`)}), testId('fiddle-tag'));
           }
  else {
             return cssTag(t("editing"), tooltip({
-              title: 'Editing directly. Work on a copy if you want to propose changes.'
+              title: 'Editing directly. Work on a copy if you want to propose changes.',
             }), testId('direct-tag'));
           }
         }

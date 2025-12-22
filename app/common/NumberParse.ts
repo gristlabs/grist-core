@@ -117,9 +117,9 @@ export default class NumberParse {
     this._digitGroupSeparatorRegex = new RegExp(
       `[${escapeRegExp(
         this.digitGroupSeparator +
-        this.digitGroupSeparatorCurrency
+        this.digitGroupSeparatorCurrency,
       )}](\\d\\d)`,
-      'g'
+      'g',
     );
 
     const digitsMap = this.digitsMap = getDigitsMap(locale);
@@ -218,7 +218,7 @@ export default class NumberParse {
     return {
       result,
       cleaned: value,
-      options: {isCurrency, isPercent, isParenthesised, hasDigitGroupSeparator, isScientific}
+      options: {isCurrency, isPercent, isParenthesised, hasDigitGroupSeparator, isScientific},
     };
   }
 
@@ -255,7 +255,7 @@ export default class NumberParse {
       const {
         result,
         cleaned,
-        options: {isCurrency, isPercent, isParenthesised, hasDigitGroupSeparator, isScientific}
+        options: {isCurrency, isPercent, isParenthesised, hasDigitGroupSeparator, isScientific},
       } = parsed;
 
       if (result < 0 && !isParenthesised) {

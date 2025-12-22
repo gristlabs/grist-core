@@ -64,14 +64,14 @@ export class UndoStack extends dispose.Disposable {
       this,
       fromKo(this.undoDisabledObs),
       options.isUndoBlocked || fromKo(ko.observable(false)),
-      (_, undoDisabled, blocked) => undoDisabled || blocked
+      (_, undoDisabled, blocked) => undoDisabled || blocked,
     );
 
     // Set the history nav interface in the DocPageModel to properly enable/disabled undo/redo.
     if (this._gristDoc.docPageModel) {
       this._gristDoc.docPageModel.undoState.set({
         isUndoDisabled: this._undoDisabledOrBlockedObs,
-        isRedoDisabled: fromKo(this.redoDisabledObs)
+        isRedoDisabled: fromKo(this.redoDisabledObs),
       });
     }
 

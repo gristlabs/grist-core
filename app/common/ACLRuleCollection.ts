@@ -107,7 +107,7 @@ const SPECIAL_RULE_SETS: Record<SpecialRuleName, RuleSet> = {
     tableId: SPECIAL_RULES_TABLE_ID,
     colIds: ['SeedRule'],
     body: [],
-  }
+  },
 };
 
 // If the user-created rules become dysfunctional, we can swap in this emergency set.
@@ -263,7 +263,7 @@ export class ACLRuleCollection {
           specialRuleSets.set(specialType, {
             tableId: SPECIAL_RULES_TABLE_ID,
             colIds: ['SchemaEdit'],
-            body: [...schemaParts, ...specialDefault.body]
+            body: [...schemaParts, ...specialDefault.body],
           });
         }
       }
@@ -565,7 +565,7 @@ function readAclRules(docData: DocData, {log, compile, enrichRulesForImplementat
           matchFunc: rule.aclFormula ? compile?.(aclFormulaParsed) : defaultMatchFunc,
           memo: rule.memo,
           permissions,
-          permissionsText: permissionSetToText(permissions)
+          permissionsText: permissionSetToText(permissions),
         });
       }
     }

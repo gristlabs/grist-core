@@ -62,7 +62,7 @@ export class ColumnFilterCalendarView extends Disposable {
           $el.on('changeDecade', () => setTimeout(() => this._cleanup(), 0));
           $el.on('changeCentury', () => setTimeout(() => this._cleanup(), 0));
         },
-      )
+      ),
     );
   }
 

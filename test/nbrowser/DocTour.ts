@@ -15,7 +15,7 @@ describe('DocTour', function () {
   before(async function() {
     api = gu.createHomeApi('chimpy', 'nasa');
     doc = await gu.importFixturesDoc(
-      'chimpy', 'nasa', 'Horizon', 'doctour.grist', false
+      'chimpy', 'nasa', 'Horizon', 'doctour.grist', false,
     );
     await server.simulateLogin("Chimpy", "chimpy@getgrist.com", 'nasa');
   });
@@ -52,7 +52,7 @@ describe('DocTour', function () {
         selector: '.active_cursor',
         showHasModal: false,
         title: 'Hello there!',
-        urlState: {colRef: 2, rowId: 2, sectionId: 1}
+        urlState: {colRef: 2, rowId: 2, sectionId: 1},
       },
       {
         body: 'no title',
@@ -76,7 +76,7 @@ describe('DocTour', function () {
         selector: '.active_cursor',
         showHasModal: false,
         title: 'no body',
-        urlState: {colRef: 4, rowId: 4, sectionId: 1}
+        urlState: {colRef: 4, rowId: 4, sectionId: 1},
       },
       {
         body: '<div>' +
@@ -92,7 +92,7 @@ describe('DocTour', function () {
         showHasModal: true,
         title: 'Bye',
         urlState: null,
-      }
+      },
     ]);
   });
 
@@ -178,7 +178,7 @@ describe('DocTour', function () {
     await ownerSession.login();
     const docId = (await ownerSession.tempDoc(cleanup, 'doctour.grist', {load: false})).id;
     await ownerSession.createHomeApi().updateDocPermissions(docId, {
-      users: {'everyone@getgrist.com': 'editors'}
+      users: {'everyone@getgrist.com': 'editors'},
     });
 
     // Doc tour normally triggers for a first visit from an anon user

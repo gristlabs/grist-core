@@ -24,7 +24,7 @@ import {
   cssPageLinkContainer,
   cssScrollPane,
   cssSectionHeader,
-  cssSectionHeaderText
+  cssSectionHeaderText,
 } from 'app/client/ui/LeftPanelCommon';
 import {newDocMethods} from 'app/client/ui/NewDocMethods';
 import {menu, menuIcon, menuItem, upgradableMenuItem, upgradeText} from 'app/client/ui2018/menus';
@@ -59,7 +59,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       canCreate ? menu(() => addMenu(home, creating), {
         placement: 'bottom-start',
         // "Add New" menu should have the same width as the "Add New" button that opens it.
-        stretchToSelector: `.${cssAddNewButton.className}`
+        stretchToSelector: `.${cssAddNewButton.className}`,
       }) : null,
       dom.cls('behavioral-prompt-add-new'),
       testId('dm-add-new'),
@@ -78,7 +78,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           cssSectionHeaderText(t("Workspaces")),
           // Give it a testId, because it's a good element to simulate "click-away" in tests.
           testId('dm-ws-label'),
-          {id: 'grist-workspaces-heading'}
+          {id: 'grist-workspaces-heading'},
         ),
       ),
       dom('nav',
@@ -124,8 +124,8 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
                   initialValue: ws.name || '',
                   save: async val => (val !== ws.name) ? home.renameWorkspace(ws.id, val) : undefined,
                   close: () => renaming.set(null),
-                }, testId('dm-ws-name-editor'))
-              )
+                }, testId('dm-ws-name-editor')),
+              ),
             ),
           );
         }),
@@ -136,14 +136,14 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
             initialValue: '',
             save: async val => (val !== '') ? home.createWorkspace(val) : undefined,
             close: () => creating.set(false),
-          }, testId('dm-ws-name-editor'))
-        )
+          }, testId('dm-ws-name-editor')),
+        ),
       )),
       cssHomeTools(
         {'aria-labelledby': 'grist-resources-heading'},
         cssSectionHeader(
           cssPageColorIcon('GristLogo', {title: appVersion, id: 'grist-resources-logo'}),
-          cssSectionHeaderText(t("Grist Resources"), {id: 'grist-resources-heading'})
+          cssSectionHeaderText(t("Grist Resources"), {id: 'grist-resources-heading'}),
         ),
         cssPageEntry(
           dom.show(isFeatureEnabled("templates") && Boolean(templateOrg)),
@@ -186,8 +186,8 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
             ),
           ) : null
         ),
-      )
-    )
+      ),
+    ),
   );
 }
 
@@ -199,11 +199,11 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
   return [
     menuItem(() => newDocMethods.createDocAndOpen(home), menuIcon('Page'), t("Create empty document"),
       dom.cls('disabled', !home.newDocWorkspace.get()),
-      testId("dm-new-doc")
+      testId("dm-new-doc"),
     ),
     menuItem(() => newDocMethods.importDocAndOpen(home), menuIcon('Import'), t("Import document"),
       dom.cls('disabled', !home.newDocWorkspace.get()),
-      testId("dm-import")
+      testId("dm-import"),
     ),
     domComputed(home.importSources, importSources => ([
       ...importSources.map((source, i) =>
@@ -211,14 +211,14 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
         menuIcon('Import'),
         source.importSource.label,
         dom.cls('disabled', !home.newDocWorkspace.get()),
-        testId(`dm-import-plugin`)
-      ))
+        testId(`dm-import-plugin`),
+      )),
     ])),
     // For workspaces: if ACL says we can create them, but product says we can't,
     // then offer an upgrade link.
     upgradableMenuItem(needUpgrade, () => creating.set(true), menuIcon('Folder'), t("Create workspace"),
              dom.cls('disabled', use => !roles.canEdit(orgAccess) || !use(home.available)),
-             testId("dm-new-workspace")
+             testId("dm-new-workspace"),
     ),
     upgradeText(needUpgrade, () => home.app.showUpgradeModal()),
   ];

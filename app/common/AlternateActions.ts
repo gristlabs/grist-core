@@ -3,7 +3,7 @@ import { BulkColValues, ColValues, DocAction, isSchemaAction,
 
 const ACTION_TYPES = new Set([
   'AddRecord', 'BulkAddRecord', 'UpdateRecord', 'BulkUpdateRecord',
-  'RemoveRecord', 'BulkRemoveRecord'
+  'RemoveRecord', 'BulkRemoveRecord',
 ]);
 
 /**
@@ -108,14 +108,14 @@ export class AlternateActions {
     return {
       stored: actions,
       undo,
-      retValues: null
+      retValues: null,
     };
   }
 
   private async _doAddRecord(
     tableId: string,
     rowId: number|null,
-    colValues: ColValues
+    colValues: ColValues,
   ): Promise<ProcessedAction> {
     if (rowId === null) {
       rowId = await this._storage.getNextRowId(tableId);
@@ -126,14 +126,14 @@ export class AlternateActions {
     return {
       stored: [['AddRecord', tableId, rowId, colValues]],
       undo: [['RemoveRecord', tableId, rowId]],
-      retValues: rowId
+      retValues: rowId,
     };
   }
 
   private async _doBulkAddRecord(
     tableId: string,
     rowIds: Array<number|null>,
-    colValues: BulkColValues
+    colValues: BulkColValues,
   ): Promise<ProcessedAction> {
 
     // When unset, we will set the rowId values to count up from the greatest
@@ -150,35 +150,35 @@ export class AlternateActions {
     return {
       stored: [['BulkAddRecord', tableId, rowIds as number[], colValues]],
       undo: [['BulkRemoveRecord', tableId, rowIds as number[]]],
-      retValues: rowIds
+      retValues: rowIds,
     };
   }
 
   private async _doUpdateRecord(
     tableId: string,
     rowId: number,
-    colValues: ColValues
+    colValues: ColValues,
   ): Promise<ProcessedAction> {
     const [, , oldRowIds, oldColValues] =
       await this._storage.fetchActionData(tableId, [rowId], Object.keys(colValues));
     return {
       stored: [['UpdateRecord', tableId, rowId, colValues]],
       undo: [['BulkUpdateRecord', tableId, oldRowIds, oldColValues]],
-      retValues: null
+      retValues: null,
     };
   }
 
   private async _doBulkUpdateRecord(
     tableId: string,
     rowIds: number[],
-    colValues: BulkColValues
+    colValues: BulkColValues,
   ): Promise<ProcessedAction> {
     const [, , oldRowIds, oldColValues] =
       await this._storage.fetchActionData(tableId, rowIds, Object.keys(colValues));
     return {
       stored: [['BulkUpdateRecord', tableId, rowIds, colValues]],
       undo: [['BulkUpdateRecord', tableId, oldRowIds, oldColValues]],
-      retValues: null
+      retValues: null,
     };
   }
 
@@ -187,7 +187,7 @@ export class AlternateActions {
     return {
       stored: [['RemoveRecord', tableId, rowId]],
       undo: [['BulkAddRecord', tableId, oldRowIds, oldColValues]],
-      retValues: null
+      retValues: null,
     };
   }
 
@@ -196,7 +196,7 @@ export class AlternateActions {
     return {
       stored: [['BulkRemoveRecord', tableId, rowIds]],
       undo: [['BulkAddRecord', tableId, oldRowIds, oldColValues]],
-      retValues: null
+      retValues: null,
     };
   }
 }

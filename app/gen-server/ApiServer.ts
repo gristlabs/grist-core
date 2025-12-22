@@ -110,7 +110,7 @@ export function addOrg(
   options?: {
     product?: string,
     billing?: BillingOptions,
-  }
+  },
 ): Promise<Organization> {
   return dbManager.connection.transaction(async (manager) => {
     const user = await manager.findOne(User, {where: {id: userId}});
@@ -118,7 +118,7 @@ export function addOrg(
     const query = await dbManager.addOrg(user, props, {
       ...options,
       setUserAsOwner: false,
-      useNewPlan: true
+      useNewPlan: true,
     }, manager);
     if (query.status !== 200) { throw new ApiError(query.errMessage!, query.status); }
     return query.data!;
@@ -140,7 +140,7 @@ export class ApiServer {
   constructor(
     private _gristServer: GristServer,
     private _app: express.Application,
-    private _dbManager: HomeDBManager
+    private _dbManager: HomeDBManager,
   ) {
     this._addEndpoints();
   }
@@ -235,7 +235,7 @@ export class ApiServer {
  else {
         throw new ApiError(
           "This endpoint is no longer supported. Use DELETE /api/orgs/:oid/:name instead.",
-          410
+          410,
         );
       }
     }));
@@ -342,7 +342,7 @@ export class ApiServer {
       const validDocTypes = [
         DOCTYPE_NORMAL,
         DOCTYPE_TEMPLATE,
-        DOCTYPE_TUTORIAL
+        DOCTYPE_TUTORIAL,
       ];
 
       if ('type' in req.body && ! validDocTypes.includes(req.body.type)){
@@ -429,7 +429,7 @@ export class ApiServer {
     this._app.get('/api/orgs/:oid/access', expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const query = await this._withPrivilegedViewForUser(
-        org, req, scope => this._dbManager.getOrgAccess(scope, org)
+        org, req, scope => this._dbManager.getOrgAccess(scope, org),
       );
       return sendReply(req, res, query);
     }));
@@ -519,7 +519,7 @@ export class ApiServer {
         throw new ApiError('Missing body param: targetUserId', 400);
       }
       await this._dbManager.updateUserOptions(targetUserId, {
-        isConsultant
+        isConsultant,
       });
       res.sendStatus(200);
     }));
@@ -577,7 +577,7 @@ export class ApiServer {
       const fullUser = await this._getFullUser(req, {includePrefs: true});
       const domain = getOrgFromRequest(req);
       const org = domain ? (await this._withPrivilegedViewForUser(
-        domain, req, scope => this._dbManager.getOrg(scope, domain)
+        domain, req, scope => this._dbManager.getOrg(scope, domain),
       )) : null;
       const orgError = (org && org.errMessage) ? {error: org.errMessage, status: org.status} : undefined;
       return sendOkReply(req, res, {
@@ -586,7 +586,7 @@ export class ApiServer {
           isInstallAdmin: await this._gristServer.getInstallAdmin().isAdminReq(req) || undefined,
         },
         org: (org && org.data) || null,
-        orgError
+        orgError,
       });
     }));
 
@@ -625,7 +625,7 @@ export class ApiServer {
       if (orgs.errMessage) { throw new ApiError(orgs.errMessage, orgs.status); }
       return sendOkReply(req, res, {
         users: await this._dbManager.completeProfiles(users),
-        orgs: orgs.data
+        orgs: orgs.data,
       });
     }));
 
@@ -653,10 +653,10 @@ export class ApiServer {
         const options = {
           label: body.label,
           description: body.description,
-          expiresAt: new Date(body.expiresAt)
+          expiresAt: new Date(body.expiresAt),
         };
         const serviceAccount = await this._dbManager.createServiceAccount(
-          ownerId, options
+          ownerId, options,
         );
         const resp: SATypes.ServiceAccountCreationResponse = {
           id: serviceAccount.id,
@@ -665,7 +665,7 @@ export class ApiServer {
           label: serviceAccount.label,
           description: serviceAccount.description,
           expiresAt: serviceAccount.expiresAt.toISOString(),
-          hasValidKey: true
+          hasValidKey: true,
         };
 
         return sendOkReply(req, res, resp);
@@ -684,7 +684,7 @@ export class ApiServer {
             label: serviceAccount.label,
             description: serviceAccount.description,
             expiresAt: serviceAccount.expiresAt.toISOString(),
-            hasValidKey
+            hasValidKey,
           };
         });
         return sendOkReply(req, res, resp);
@@ -704,7 +704,7 @@ export class ApiServer {
           label: serviceAccount.label,
           description: serviceAccount.description,
           expiresAt: serviceAccount.expiresAt.toISOString(),
-          hasValidKey
+          hasValidKey,
         };
         return sendOkReply(req, res, resp);
       }));
@@ -724,13 +724,13 @@ export class ApiServer {
           };
 
           const resp = await this._dbManager.updateServiceAccount(
-            serviceAccountId, updateProps, { expectedOwnerId: userId }
+            serviceAccountId, updateProps, { expectedOwnerId: userId },
           );
           if (!resp) {
             throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
           }
           return sendOkReply(req, res);
-        })
+        }),
       );
 
       // DELETE /service-accounts/:said
@@ -751,12 +751,12 @@ export class ApiServer {
         const userId = getAuthorizedUserId(req);
         const serviceAccountId = parseInt(req.params.said);
         const serviceAccount = await this._dbManager.createServiceAccountApiKey(
-          serviceAccountId, {expectedOwnerId: userId}
+          serviceAccountId, {expectedOwnerId: userId},
         );
         if (serviceAccount === null) {
           throw new ApiError(
             `Can't regenerate api key of non existing service account ${serviceAccountId}`,
-            404
+            404,
           );
         }
         const resp: SATypes.ServiceAccountCreationResponse = {
@@ -766,7 +766,7 @@ export class ApiServer {
           label: serviceAccount.label,
           description: serviceAccount.description,
           expiresAt: serviceAccount.expiresAt.toISOString(),
-          hasValidKey: true
+          hasValidKey: true,
         };
         return sendOkReply(req, res, resp);
       }));
@@ -777,12 +777,12 @@ export class ApiServer {
         const userId = getAuthorizedUserId(req);
         const serviceAccountId = parseInt(req.params.said);
         const serviceAccount = await this._dbManager.deleteServiceAccountApiKey(
-          serviceAccountId, {expectedOwnerId: userId}
+          serviceAccountId, {expectedOwnerId: userId},
         );
         if (serviceAccount == null) {
           throw new ApiError(
             `Can't delete api key of non existing service account ${serviceAccountId}`,
-            404
+            404,
           );
         }
         return sendOkReply(req, res);
@@ -841,7 +841,7 @@ export class ApiServer {
    */
   private async _withPrivilegedViewForUser<T>(
     org: string|number, req: express.Request,
-    op: (scope: Scope) => Promise<QueryResult<T>>
+    op: (scope: Scope) => Promise<QueryResult<T>>,
   ): Promise<QueryResult<T>> {
     const scope = getScope(req);
     const userId = getUserId(req);
@@ -931,7 +931,7 @@ export class ApiServer {
 
   private _logRenameDocumentEvents(
     req: Request,
-    { previous, current }: PreviousAndCurrent<Document>
+    { previous, current }: PreviousAndCurrent<Document>,
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "document.rename",
@@ -969,7 +969,7 @@ export class ApiServer {
     {
       document,
       accessChanges: { publicAccess, maxInheritedAccess, users },
-    }: DocumentAccessChanges
+    }: DocumentAccessChanges,
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "document.change_access",
@@ -1024,14 +1024,14 @@ export class ApiServer {
             ...(publicAccess ? {access: publicAccess} : {}),
             userId: mreq.userId,
           },
-        }
+        },
       );
     }
   }
 
   private _logMoveDocumentEvents(
     req: Request,
-    { previous, current }: PreviousAndCurrent<Document>
+    { previous, current }: PreviousAndCurrent<Document>,
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "document.move",
@@ -1100,7 +1100,7 @@ export class ApiServer {
 
   private _logRenameWorkspaceEvents(
     req: Request,
-    { previous, current }: PreviousAndCurrent<Workspace>
+    { previous, current }: PreviousAndCurrent<Workspace>,
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "workspace.rename",
@@ -1167,7 +1167,7 @@ export class ApiServer {
     {
       workspace,
       accessChanges: { maxInheritedAccess, users },
-    }: WorkspaceAccessChanges
+    }: WorkspaceAccessChanges,
   ) {
     this._gristServer.getAuditLogger().logEvent(req, {
       action: "workspace.change_access",
@@ -1195,7 +1195,7 @@ export class ApiServer {
 
   private _logRenameSiteEvents(
     req: Request,
-    { previous, current }: PreviousAndCurrent<Organization>
+    { previous, current }: PreviousAndCurrent<Organization>,
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "site.rename",
@@ -1226,7 +1226,7 @@ export class ApiServer {
 
   private _logChangeSiteAccessEvents(
     req: RequestWithLogin,
-    { org, accessChanges: { users } }: OrgAccessChanges
+    { org, accessChanges: { users } }: OrgAccessChanges,
   ) {
     this._gristServer.getAuditLogger().logEvent(req, {
       action: "site.change_access",
@@ -1244,7 +1244,7 @@ export class ApiServer {
 
   private _logChangeUserNameEvents(
     req: Request,
-    { previous, current }: PreviousAndCurrent<User>
+    { previous, current }: PreviousAndCurrent<User>,
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "user.change_name",

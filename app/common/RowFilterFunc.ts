@@ -21,7 +21,7 @@ export type RowValueFunc<T> = (rowId: T) => CellValue;
 
 // Filter rows for the purpose of linked widgets
 export function getLinkingFilterFunc(
-  columnGetters: ColumnGettersByColId, {filters, operations}: FilterColValues
+  columnGetters: ColumnGettersByColId, {filters, operations}: FilterColValues,
 ): RowFilterFunc<number> {
   const colFuncs = Object.keys(filters).sort().map(
     (colId) => {

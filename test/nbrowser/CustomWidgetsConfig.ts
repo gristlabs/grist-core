@@ -190,8 +190,8 @@ describe('CustomWidgetsConfig', function () {
           {
             name: INVALID_URL_WIDGET,
             url: 'ftp://getgrist.com/path',
-            widgetId: 'tester7'
-          }
+            widgetId: 'tester7',
+          },
         ]);
       });
       addStatic(app);
@@ -366,7 +366,7 @@ describe('CustomWidgetsConfig', function () {
       createConfigUrl({
         columns: [{name: 'M2', type: 'Date', optional: true}],
         requiredAccess: 'read table',
-      })
+      }),
     );
 
     await widget.waitForFrame();
@@ -441,7 +441,7 @@ describe('CustomWidgetsConfig', function () {
       createConfigUrl({
         columns: ['M1', {name: 'M2', optional: true}, {name: 'M3', title: 'T3'}, {name: 'M4', type: 'Text'}],
         requiredAccess: 'read table',
-      })
+      }),
     );
     await gu.acceptAccessRequest();
     await widget.waitForPlaceholder();
@@ -545,7 +545,7 @@ describe('CustomWidgetsConfig', function () {
           {name: 'M2', type: 'Text', allowMultiple: true, optional: true},
         ],
         requiredAccess: 'read table',
-      })
+      }),
     );
     await widget.waitForFrame();
     await gu.acceptAccessRequest();
@@ -590,7 +590,7 @@ describe('CustomWidgetsConfig', function () {
         .move({origin: dragItem('M1', 'A').find('.test-dragger')})
         .press()
         .move({origin: dragItem('M1', 'C'), y: 1})
-        .release()
+        .release(),
     );
     await gu.waitForServer();
     await widget.waitForPendingRequests();
@@ -627,7 +627,7 @@ describe('CustomWidgetsConfig', function () {
           {name: 'M2', type: 'Date, DateTime ', allowMultiple: true, optional: true},
         ],
         requiredAccess: 'read table',
-      })
+      }),
     );
     await widget.waitForFrame();
     await gu.acceptAccessRequest();
@@ -638,7 +638,7 @@ describe('CustomWidgetsConfig', function () {
       ['AddVisibleColumn', 'Table1', 'D', {type: 'DateTime'}],
       ['AddVisibleColumn', 'Table1', 'E', {type: 'Numeric'}],
       // Add sample record.
-      ['UpdateRecord', 'Table1', 1, {C: '2019-01-01', D: '2019-01-01 12:00', E: 1}]
+      ['UpdateRecord', 'Table1', 1, {C: '2019-01-01', D: '2019-01-01 12:00', E: 1}],
     ]);
 
     await gu.selectSectionByTitle('Widget');
@@ -688,7 +688,7 @@ describe('CustomWidgetsConfig', function () {
           {name: 'Date', type: 'Date', strictType: true, optional: true},
         ],
         requiredAccess: 'read table',
-      })
+      }),
     );
     await widget.waitForFrame();
     await gu.acceptAccessRequest();
@@ -731,7 +731,7 @@ describe('CustomWidgetsConfig', function () {
           {name: 'Choice', type: 'Choice', strictType: true, optional: true},
         ],
         requiredAccess: 'read table',
-      })
+      }),
     );
 
     await widget.waitForFrame();
@@ -739,10 +739,10 @@ describe('CustomWidgetsConfig', function () {
 
     const widgetOptions = {
       choices: ['A'],
-      choiceOptions: {A: {textColor: 'red'}}
+      choiceOptions: {A: {textColor: 'red'}},
     };
     await gu.sendActions([
-      ['AddVisibleColumn', 'Table1', 'Choice', {type: 'Choice', widgetOptions: JSON.stringify(widgetOptions)}]
+      ['AddVisibleColumn', 'Table1', 'Choice', {type: 'Choice', widgetOptions: JSON.stringify(widgetOptions)}],
     ]);
     await gu.selectSectionByTitle('Widget');
     await widget.waitForPendingRequests();
@@ -758,7 +758,7 @@ describe('CustomWidgetsConfig', function () {
     // Now update options in that one column;
     widgetOptions.choiceOptions.A.textColor = 'blue';
     await gu.sendActions([
-      ['ModifyColumn', 'Table1', 'Choice', {widgetOptions: JSON.stringify(widgetOptions)}]
+      ['ModifyColumn', 'Table1', 'Choice', {widgetOptions: JSON.stringify(widgetOptions)}],
     ]);
 
     await gu.waitToPass(async () => {
@@ -776,7 +776,7 @@ describe('CustomWidgetsConfig', function () {
       createConfigUrl({
         columns: [{name: 'M1', optional: true}, {name: 'M2', allowMultiple: true, optional: true}],
         requiredAccess: 'read table',
-      })
+      }),
     );
     await widget.waitForFrame();
     await gu.acceptAccessRequest();
@@ -863,10 +863,10 @@ describe('CustomWidgetsConfig', function () {
       createConfigUrl({
         columns: [
           {name: 'M1', type: 'Text', optional: true},
-          {name: 'M2', type: 'Text', allowMultiple: true, optional: true}
+          {name: 'M2', type: 'Text', allowMultiple: true, optional: true},
         ],
         requiredAccess: 'read table',
-      })
+      }),
     );
     await widget.waitForFrame();
     await gu.acceptAccessRequest();
@@ -1299,5 +1299,5 @@ const widget = {
    */
   async resetWidget() {
     await gu.setCustomWidget(CUSTOM_URL);
-  }
+  },
 };

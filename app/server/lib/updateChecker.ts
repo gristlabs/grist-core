@@ -21,7 +21,7 @@ export async function checkForUpdates(gristServer: GristServer): Promise<LatestV
         deploymentType,
         currentVersion,
       }),
-    }
+    },
   );
 
   if (!response.ok) {

@@ -64,14 +64,14 @@ export class ApiKey extends Disposable {
               // Hide the key when it is no longer selected.
               if (ev.target !== document.activeElement) { this._isHidden.set(true); }
             }),
-            this._inputArgs
+            this._inputArgs,
           ),
           cssTextBtn(
             textButton.cls('-hover-bg-padding-none'),
             cssTextBtnIcon('Remove'), t("Remove"),
             dom.on('click', () => this._showRemoveKeyModal()),
             testId('delete'),
-            dom.boolAttr('disabled', use => use(this._loading) || this._anonymous)
+            dom.boolAttr('disabled', use => use(this._loading) || this._anonymous),
           ),
         ),
         description(this._getDescription(), testId('description')),
@@ -109,7 +109,7 @@ make API calls for your own account."), testId('description')),
     return t(
       !this._anonymous ?
         'This API key can be used to access your account via the API. Don’t share your API key with anyone.' :
-        'This API key can be used to access this account anonymously via the API.'
+        'This API key can be used to access this account anonymously via the API.',
     );
   }
 
@@ -120,9 +120,9 @@ make API calls for your own account."), testId('description')),
       {
         explanation: t(
           "You're about to delete an API key. This will cause all future requests \
-using this API key to be rejected. Do you still want to delete?"
+using this API key to be rejected. Do you still want to delete?",
         ),
-      }
+      },
     );
   }
 }

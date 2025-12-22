@@ -67,7 +67,7 @@ describe('DocTutorial', function () {
       assert.isTrue(await driver.find('.test-intro-tutorial').isDisplayed());
       await gu.waitToPass(async () =>
         assert.equal(await driver.find('.test-intro-tutorial-percent-complete').getText(), '0%'),
-        2000
+        2000,
       );
     });
 
@@ -84,11 +84,11 @@ describe('DocTutorial', function () {
       assert.equal(await driver.find('.test-doc-tutorial-popup-header').getText(), 'Grist Basics');
       assert.equal(
         await driver.findWait('.test-doc-tutorial-popup h1', 2000).getText(),
-        'Intro'
+        'Intro',
       );
       assert.match(
         await driver.find('.test-doc-tutorial-popup').getText(),
-        /Welcome to the Grist Basics tutorial/
+        /Welcome to the Grist Basics tutorial/,
       );
     });
 
@@ -96,7 +96,7 @@ describe('DocTutorial', function () {
       .move({origin: driver.find('.test-doc-tutorial-popup-move-handle')})
       .press()
       .move({origin: driver.find('.test-doc-tutorial-popup-move-handle'), ...pos})
-      .release()
+      .release(),
     );
 
     const resize = async (handle: string, pos: {x?: number; y?: number}) =>
@@ -104,7 +104,7 @@ describe('DocTutorial', function () {
         actions
           .move({
             origin: driver.find(
-              `.test-doc-tutorial-popup .ui-resizable-${handle}`
+              `.test-doc-tutorial-popup .ui-resizable-${handle}`,
             ),
           })
           .press()
@@ -112,7 +112,7 @@ describe('DocTutorial', function () {
             origin: driver.find(`.test-doc-tutorial-popup .ui-resizable-${handle}`),
             ...pos,
           })
-          .release()
+          .release(),
       );
 
     it('can be moved around and minimized', async function() {
@@ -322,12 +322,12 @@ describe('DocTutorial', function () {
       await driver.find('.test-doc-tutorial-popup-next').click();
       assert.equal(
         await driver.find('.test-doc-tutorial-popup h1').getText(),
-        'Pages'
+        'Pages',
       );
       assert.equal(
         await driver.find('.test-doc-tutorial-popup h1 + p').getText(),
         'On the left-side panel is a list of pages, which are views of your data. ' +
-          'Right now, there are two pages: Page 1 and Page 2. You are looking at Page 1.'
+          'Right now, there are two pages: Page 1 and Page 2. You are looking at Page 1.',
       );
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-next').isDisplayed());
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-previous').isDisplayed());
@@ -335,11 +335,11 @@ describe('DocTutorial', function () {
       await driver.find('.test-doc-tutorial-popup-previous').click();
       assert.equal(
         await driver.find('.test-doc-tutorial-popup h1').getText(),
-        'Intro'
+        'Intro',
       );
       assert.match(
         await driver.find('.test-doc-tutorial-popup').getText(),
-        /Welcome to the Grist Basics tutorial/
+        /Welcome to the Grist Basics tutorial/,
       );
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-next').isDisplayed());
       assert.isFalse(await driver.find('.test-doc-tutorial-popup-previous').isDisplayed());
@@ -350,35 +350,35 @@ describe('DocTutorial', function () {
       await slide3.mouseMove();
       await gu.waitToPass(
         async () => assert.isTrue(await driver.find('.test-tooltip').isDisplayed()),
-        500
+        500,
       );
       assert.equal(await driver.find('.test-tooltip').getText(), 'Adding Columns and Rows');
       await slide3.click();
       await driver.find('.test-doc-tutorial-popup-slide-3').click();
       assert.equal(
         await driver.find('.test-doc-tutorial-popup h1').getText(),
-        'Adding Columns and Rows'
+        'Adding Columns and Rows',
       );
       assert.equal(
         await driver.find('.test-doc-tutorial-popup p').getText(),
-        "Let's start with the basics of working with spreadsheet data — columns and rows."
+        "Let's start with the basics of working with spreadsheet data — columns and rows.",
       );
 
       const slide1 = await driver.find('.test-doc-tutorial-popup-slide-1');
       await slide1.mouseMove();
       await gu.waitToPass(
         async () => assert.isTrue(await driver.find('.test-tooltip').isDisplayed()),
-        500
+        500,
       );
       assert.equal(await driver.find('.test-tooltip').getText(), 'Intro');
       await slide1.click();
       assert.equal(
         await driver.find('.test-doc-tutorial-popup h1').getText(),
-        'Intro'
+        'Intro',
       );
       assert.match(
         await driver.find('.test-doc-tutorial-popup').getText(),
-        /Welcome to the Grist Basics tutorial/
+        /Welcome to the Grist Basics tutorial/,
       );
     });
 
@@ -387,7 +387,7 @@ describe('DocTutorial', function () {
       assert.isTrue(await driver.find('.test-doc-tutorial-lightbox').isDisplayed());
       assert.equal(
         await driver.find('.test-doc-tutorial-lightbox-image').getAttribute('src'),
-        'https://www.getgrist.com/wp-content/uploads/2023/11/Row-1-Intro.png'
+        'https://www.getgrist.com/wp-content/uploads/2023/11/Row-1-Intro.png',
       );
       await driver.find('.test-doc-tutorial-lightbox-close').click();
       assert.isFalse(await driver.find('.test-doc-tutorial-lightbox').isPresent());
@@ -437,11 +437,11 @@ describe('DocTutorial', function () {
       await driver.findWait('.test-doc-tutorial-popup', 2000);
       assert.equal(
         await driver.findWait('.test-doc-tutorial-popup h1', 2000).getText(),
-        'Adding Columns and Rows'
+        'Adding Columns and Rows',
       );
       assert.equal(
         await driver.find('.test-doc-tutorial-popup p').getText(),
-        "Let's start with the basics of working with spreadsheet data — columns and rows."
+        "Let's start with the basics of working with spreadsheet data — columns and rows.",
       );
     });
 
@@ -466,7 +466,7 @@ describe('DocTutorial', function () {
       await gu.waitForDocMenuToLoad();
       await gu.waitToPass(async () =>
         assert.equal(await driver.find('.test-intro-tutorial-percent-complete').getText(), '15%'),
-        2000
+        2000,
       );
       await driver.find('.test-dm-basic-tutorial').click();
       await gu.waitForDocToLoad();
@@ -509,11 +509,11 @@ describe('DocTutorial', function () {
       // Check that progress was reset.
       assert.equal(
         await driver.findWait('.test-doc-tutorial-popup h1', 2000).getText(),
-        'Intro'
+        'Intro',
       );
       assert.match(
         await driver.find('.test-doc-tutorial-popup').getText(),
-        /Welcome to the Grist Basics tutorial/
+        /Welcome to the Grist Basics tutorial/,
       );
 
       // Check that edits were reset.
@@ -544,7 +544,7 @@ describe('DocTutorial', function () {
       // Check that the update is immediately reflected in the tutorial popup.
       assert.equal(
         await driver.findWait('.test-doc-tutorial-popup p', 2000).getText(),
-        'Welcome to the Grist Basics tutorial V2.'
+        'Welcome to the Grist Basics tutorial V2.',
       );
 
       // Replace the original via the Share menu.
@@ -564,7 +564,7 @@ describe('DocTutorial', function () {
       // Check that the changes we made earlier are included.
       assert.equal(
         await driver.findWait('.test-doc-tutorial-popup p', 2000).getText(),
-        'Welcome to the Grist Basics tutorial V2.'
+        'Welcome to the Grist Basics tutorial V2.',
       );
     });
 
@@ -578,12 +578,12 @@ describe('DocTutorial', function () {
       assert.match(await driver.getCurrentUrl(), /o\/docs\/$/);
       await gu.waitToPass(async () =>
         assert.equal(await driver.find('.test-intro-tutorial-percent-complete').getText(), '0%'),
-        2000
+        2000,
       );
       await ownerSession.loadDocMenu('/');
       await gu.waitToPass(async () =>
         assert.equal(await driver.find('.test-intro-tutorial-percent-complete').getText(), '100%'),
-        2000
+        2000,
       );
     });
   });
@@ -605,7 +605,7 @@ describe('DocTutorial', function () {
         await gu.getVisibleGridCells({cols: [1], rowNums: [1]}),
         [
           '# Intro\n\nWelcome to the Grist Basics tutorial V2.',
-        ]
+        ],
       );
       await driver.find('.test-tools-raw').click();
       await gu.waitForServer();

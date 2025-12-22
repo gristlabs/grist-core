@@ -22,7 +22,7 @@ export function checkMinIOExternalStorage() {
   const region = settings.flag('bucketRegion').requireString({
     envVar: ['GRIST_DOCS_MINIO_BUCKET_REGION'],
     preferredEnvVar: 'GRIST_DOCS_MINIO_BUCKET_REGION',
-    defaultValue: 'us-east-1'
+    defaultValue: 'us-east-1',
   });
   const prefix = settings.flag('prefix').requireString({
     envVar: ['GRIST_DOCS_MINIO_PREFIX'],
@@ -57,7 +57,7 @@ export function checkMinIOExternalStorage() {
     useSSL,
     accessKey,
     secretKey,
-    region
+    region,
   };
 }
 

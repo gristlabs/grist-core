@@ -146,7 +146,7 @@ describe('Importer2', function() {
     // All column names in the CSV file start with "fn_"
     const colFields = cols.map(
       ({fields: {colId, type, widgetOptions}}) =>
-        ({colId, type, widgetOptions: JSON.parse(widgetOptions as string || "{}")})
+        ({colId, type, widgetOptions: JSON.parse(widgetOptions as string || "{}")}),
     ).filter(f => (f.colId as string).startsWith("fn_"));
 
     // All the columns are numeric and have some kind of formatting
@@ -154,27 +154,27 @@ describe('Importer2', function() {
       {
         colId: 'fn_currency',
         type: 'Numeric',
-        widgetOptions: {decimals: 2, numMode: 'currency'}
+        widgetOptions: {decimals: 2, numMode: 'currency'},
       },
       {
         colId: 'fn_scientific',
         type: 'Numeric',
-        widgetOptions: {decimals: 2, numMode: 'scientific'}
+        widgetOptions: {decimals: 2, numMode: 'scientific'},
       },
       {
         colId: 'fn_decimal',
         type: 'Numeric',
-        widgetOptions: {numMode: 'decimal'}
+        widgetOptions: {numMode: 'decimal'},
       },
       {
         colId: 'fn_percent',
         type: 'Numeric',
-        widgetOptions: {numMode: 'percent'}
+        widgetOptions: {numMode: 'percent'},
       },
       {
         colId: 'fn_parens',
         type: 'Numeric',
-        widgetOptions: {numSign: 'parens'}
+        widgetOptions: {numSign: 'parens'},
       },
     ]);
 
@@ -260,7 +260,7 @@ describe('Importer2', function() {
     await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
     await driver.findContent(
       '.test-multi-select-menu .test-multi-select-menu-option',
-      /CourseId/
+      /CourseId/,
     ).click();
     await gu.sendKeys(Key.ESCAPE);
     await gu.waitForServer();
@@ -336,11 +336,11 @@ describe('Importer2', function() {
       assert.lengthOf(await driver.findAll('.test-importer-source'), 2);
       assert.equal(
         await driver.find('.test-importer-source[class*=-selected] .test-importer-from').getText(),
-        'names - names.json'
+        'names - names.json',
       );
       assert.deepEqual(
         await driver.findAll('.test-importer-source .test-importer-from', e => e.getText()),
-        ['names - names.json', 'names_name - names.json']
+        ['names - names.json', 'names_name - names.json'],
       );
 
       // Check that the first table looks ok.
@@ -363,7 +363,7 @@ describe('Importer2', function() {
       // Verify data was imported to Names correctly.
       assert.deepEqual(
         await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0] }),
-        ['Names_name[1]', 'Names_name[2]', '']
+        ['Names_name[1]', 'Names_name[2]', ''],
       );
 
       // Open the side panel and check that the column type for 'name' is Reference (pointing to 'first').
@@ -404,7 +404,7 @@ describe('Importer2', function() {
       // Verify data was imported to Names correctly.
       assert.deepEqual(
         await gu.getVisibleGridCells({ rowNums: [1, 2, 3, 4, 5], cols: [0] }),
-        ['Names_name[1]', 'Names_name[2]', 'Names_name[1]', 'Names_name[2]', '']
+        ['Names_name[1]', 'Names_name[2]', 'Names_name[1]', 'Names_name[2]', ''],
       );
 
       // Open the side panel and check that the column type for 'name' is Reference (pointing to 'first').
@@ -419,7 +419,7 @@ describe('Importer2', function() {
       await gu.waitForServer();
       assert.deepEqual(await gu.getVisibleGridCells(
         { rowNums: [1, 2, 3, 4, 5], cols: [0] }),
-        ['Bob', 'Alice', 'Bob', 'Alice', '']
+        ['Bob', 'Alice', 'Bob', 'Alice', ''],
       );
 
       // Undo the last 2 imports.
@@ -489,7 +489,7 @@ describe('Importer2', function() {
       const menu = gu.findOpenMenu();
       assert.deepEqual(
         await menu.findAll('.test-importer-column-match-menu-item', el => el.getText()),
-        ['Skip', 'Pop. \'000']
+        ['Skip', 'Pop. \'000'],
       );
 
       // Click 'Skip', and check that the column mapping section and preview both updated.
@@ -514,7 +514,7 @@ describe('Importer2', function() {
       // Check that a message is now shown about there being 1 unmapped field.
       assert.equal(
         await driver.find('.test-importer-unmatched-fields').getText(),
-        '1 unmatched field in import:\nPop. \'000'
+        '1 unmatched field in import:\nPop. \'000',
       );
 
       // Click Country in the column mapping section, and clear the formula.
@@ -541,7 +541,7 @@ describe('Importer2', function() {
       ]);
       assert.equal(
         await driver.find('.test-importer-unmatched-fields').getText(),
-        '2 unmatched fields in import:\nCountry, Pop. \'000'
+        '2 unmatched fields in import:\nCountry, Pop. \'000',
       );
     });
 
@@ -571,7 +571,7 @@ describe('Importer2', function() {
       ]);
       assert.equal(
         await driver.find('.test-importer-unmatched-fields').getText(),
-        '1 unmatched field in import:\nCountry'
+        '1 unmatched field in import:\nCountry',
       );
 
       // Click Country (with formula 'Skip') in the column mapping section, and start typing a formula.
@@ -585,7 +585,7 @@ describe('Importer2', function() {
 
       // Check that the autocomplete is suggesting column ids from the imported table.
       const completions = await driver.findAll(
-        'div.ace_autocomplete div.ace_line', async el => (await el.getText()).split(' ')[0]
+        'div.ace_autocomplete div.ace_line', async el => (await el.getText()).split(' ')[0],
       );
       await gu.waitToPass(async () => {
         assert.deepEqual(
@@ -597,7 +597,7 @@ describe('Importer2', function() {
             "$\nName",
             "$\nPop_000",
             "$\nPopulation",
-          ]
+          ],
         );
       }, 2000);
 
@@ -641,7 +641,7 @@ describe('Importer2', function() {
         'Country',
         'CountryLanguage',
         'Country',
-        'CountryLanguage'
+        'CountryLanguage',
       ]);
 
       // Check the contents of Table1; it should have duplicates of the original 2 rows.
@@ -652,7 +652,7 @@ describe('Importer2', function() {
           'hello', '', '', '', 'HELLO',
           '', 'world', '', '', '',
           '', '', '', '', '',
-        ]
+        ],
       );
 
       await gu.getPageItem('City').click();
@@ -668,7 +668,7 @@ describe('Importer2', function() {
           'Mazar-e-Sharif', 'Balkh', '127800', '2', '127.8',
           'Amsterdam', 'Noord-Holland', '731200', '159', '731.2',
           'Rotterdam', 'Zuid-Holland', '593321', '159', '593.321',
-        ]
+        ],
       );
 
       // The second half should be the newly imported rows with custom mappings.
@@ -682,7 +682,7 @@ describe('Importer2', function() {
           'Hebron', 'Hebron', '0', '123', '119401',
           'Jabaliya', 'North Gaza', '0', '123', '113901',
           'Nablus', 'Nablus', '0', '123', '100231',
-        ]
+        ],
       );
     });
 
@@ -711,7 +711,7 @@ describe('Importer2', function() {
 
       assert.equal(
         await driver.find('.test-importer-unmatched-fields').getText(),
-        '5 unmatched fields in import:\nName, District, Population, Country, Pop. \'000'
+        '5 unmatched fields in import:\nName, District, Population, Country, Pop. \'000',
       );
 
       // Set formula for 'Name' to 'city_name' by typing in the formula.
@@ -744,7 +744,7 @@ describe('Importer2', function() {
       ]);
       assert.equal(
         await driver.find('.test-importer-unmatched-fields').getText(),
-        '3 unmatched fields in import:\nPopulation, Country, Pop. \'000'
+        '3 unmatched fields in import:\nPopulation, Country, Pop. \'000',
       );
 
       // Now toggle 'Update existing records', and merge on 'Name' and 'District'.
@@ -753,11 +753,11 @@ describe('Importer2', function() {
       await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Name/
+        /Name/,
       ).click();
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /District/
+        /District/,
       ).click();
       await gu.sendKeys(Key.ESCAPE);
       await gu.waitForServer();
@@ -785,7 +785,7 @@ describe('Importer2', function() {
       ]);
       assert.equal(
         await driver.find('.test-importer-unmatched-fields').getText(),
-        '3 unmatched fields in import:\nPopulation, Country, Pop. \'000'
+        '3 unmatched fields in import:\nPopulation, Country, Pop. \'000',
       );
 
       // Map the remaining columns, except "Country"; we'll leave it skipped to check that
@@ -826,7 +826,7 @@ describe('Importer2', function() {
       ]);
       assert.equal(
         await driver.find('.test-importer-unmatched-fields').getText(),
-        '1 unmatched field in import:\nCountry'
+        '1 unmatched field in import:\nCountry',
       );
     });
 
@@ -852,7 +852,7 @@ describe('Importer2', function() {
           'Herat', 'Herat', '373600', '2', '373600',
           'Mazar-e-Sharif', 'Balkh', '255600', '2', '255600',
           'Amsterdam', 'Noord-Holland', '1462400', '159', '1462400',
-        ]
+        ],
       );
     });
   });

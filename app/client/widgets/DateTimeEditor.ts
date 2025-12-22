@@ -70,9 +70,9 @@ export class DateTimeEditor extends DateEditor {
             dom.attr('placeholder', placeholder),
             dom.prop('value', formatted),
             this.commandGroup.attach(),
-            dom.on('input', () => this._onChange())
-          )
-        )
+            dom.on('input', () => this._onChange()),
+          ),
+        ),
       );
     }
 
@@ -97,7 +97,7 @@ export class DateTimeEditor extends DateEditor {
       dateFormat: this.safeFormat,
       time: time,
       timeFormat: this._timeFormat,
-      timezone: this.timezone
+      timezone: this.timezone,
     });
     return timestamp !== null ? timestamp :
       (date && time ? `${date} ${time}` : date || time);
@@ -133,7 +133,7 @@ export class DateTimeEditor extends DateEditor {
     // since editorPlacement can't do a good job figuring it out with the flexbox arrangement.
     const size = this.editorPlacement.calcSize({
       width: dateRect.width + timeRect.width + 12,
-      height: Math.max(dateRect.height, timeRect.height) + 3
+      height: Math.max(dateRect.height, timeRect.height) + 3,
     });
     this.getDom().style.width = size.width + 'px';
     this._dateInput.parentElement!.style.flexBasis = (dateRect.width + 6) + 'px';

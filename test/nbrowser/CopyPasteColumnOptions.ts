@@ -92,8 +92,8 @@ describe('CopyPasteColumnOptions', function() {
            displayCol,
            rules,
            widgetOptions,
-           formula
-         }
+           formula,
+         },
        }) => ({
         id,
         parentId,
@@ -116,7 +116,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "",
-        "widgetOptions": ""
+        "widgetOptions": "",
       }, {
         "id": 2,
         "parentId": 1,
@@ -130,8 +130,8 @@ describe('CopyPasteColumnOptions', function() {
           "widget": "TextBox",
           "dateFormat": "MM/DD/YY",
           "isCustomDateFormat": false,
-          "alignment": "left"
-        }
+          "alignment": "left",
+        },
       }, {
         "id": 3,
         "parentId": 1,
@@ -145,8 +145,8 @@ describe('CopyPasteColumnOptions', function() {
           "widget": "TextBox",
           "dateFormat": "DD/MM/YY",
           "isCustomDateFormat": true,
-          "alignment": "center"
-        }
+          "alignment": "center",
+        },
       }, {
         "id": 4,
         "parentId": 1,
@@ -156,7 +156,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 5,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "Reference", "alignment": "left", "fillColor": "#FECC81"}
+        "widgetOptions": {"widget": "Reference", "alignment": "left", "fillColor": "#FECC81"},
       }, {
         "id": 5,
         "parentId": 1,
@@ -166,7 +166,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "$C.A",
-        "widgetOptions": ""
+        "widgetOptions": "",
       }, {
         "id": 6,
         "parentId": 1,
@@ -176,7 +176,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 7,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "Reference", "alignment": "left", "rulesOptions": [], "wrap": true}
+        "widgetOptions": {"widget": "Reference", "alignment": "left", "rulesOptions": [], "wrap": true},
       }, {
         "id": 7,
         "parentId": 1,
@@ -186,7 +186,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "$D.B",
-        "widgetOptions": ""
+        "widgetOptions": "",
       }, {
         "id": 8,
         "parentId": 1,
@@ -196,7 +196,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "TextBox", "alignment": "left", "choices": ["01/02/03"], "choiceOptions": {}}
+        "widgetOptions": {"widget": "TextBox", "alignment": "left", "choices": ["01/02/03"], "choiceOptions": {}},
       }, {
         "id": 9,
         "parentId": 1,
@@ -211,8 +211,8 @@ describe('CopyPasteColumnOptions', function() {
           "choices": ["01/02/03", "foo"],
           "choiceOptions": {},
           "alignment": "left",
-          "rulesOptions": [{"fillColor": "#BC77FC", "textColor": "#000000"}]  // Not copied into the new table
-        }
+          "rulesOptions": [{"fillColor": "#BC77FC", "textColor": "#000000"}],  // Not copied into the new table
+        },
       }, {
         "id": 10,
         "parentId": 1,
@@ -222,7 +222,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "TextBox", "alignment": "left", "rulesOptions": []}
+        "widgetOptions": {"widget": "TextBox", "alignment": "left", "rulesOptions": []},
       },
 
       /////////////////
@@ -237,7 +237,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "",
-        "widgetOptions": ""
+        "widgetOptions": "",
       }, {
         "id": 14,
         "parentId": 2,
@@ -251,8 +251,8 @@ describe('CopyPasteColumnOptions', function() {
           "widget": "TextBox",
           "dateFormat": "MM/DD/YY",
           "isCustomDateFormat": false,
-          "alignment": "left"
-        }
+          "alignment": "left",
+        },
       }, {
         "id": 15,
         "parentId": 2,
@@ -266,8 +266,8 @@ describe('CopyPasteColumnOptions', function() {
           "widget": "TextBox",
           "dateFormat": "DD/MM/YY",
           "isCustomDateFormat": true,
-          "alignment": "center"
-        }
+          "alignment": "center",
+        },
       }, {
         "id": 16,
         "parentId": 2,
@@ -277,7 +277,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 22,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "Reference", "alignment": "left", "fillColor": "#FECC81"}
+        "widgetOptions": {"widget": "Reference", "alignment": "left", "fillColor": "#FECC81"},
       }, {
         "id": 17,
         "parentId": 2,
@@ -287,7 +287,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 23,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "Reference", "alignment": "left", "wrap": true}
+        "widgetOptions": {"widget": "Reference", "alignment": "left", "wrap": true},
       }, {
         "id": 18,
         "parentId": 2,
@@ -297,7 +297,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "TextBox", "alignment": "left", "choices": ["01/02/03"], "choiceOptions": {}}
+        "widgetOptions": {"widget": "TextBox", "alignment": "left", "choices": ["01/02/03"], "choiceOptions": {}},
       }, {
         "id": 19,
         "parentId": 2,
@@ -307,7 +307,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "TextBox", "choices": ["01/02/03", "foo"], "choiceOptions": {}, "alignment": "left"}
+        "widgetOptions": {"widget": "TextBox", "choices": ["01/02/03", "foo"], "choiceOptions": {}, "alignment": "left"},
       }, {
         // Actual difference: the original 'G' is a Text column, so in the new column the type was guessed as Date
         "id": 20,
@@ -322,8 +322,8 @@ describe('CopyPasteColumnOptions', function() {
           "timeFormat": "",
           "isCustomTimeFormat": true,
           "isCustomDateFormat": true,
-          "dateFormat": "YY/MM/DD"
-        }
+          "dateFormat": "YY/MM/DD",
+        },
       }, {
         "id": 21,
         // This is in Table1, it's here because it was created in the fixture after Table2
@@ -335,7 +335,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "True",
-        "widgetOptions": ""
+        "widgetOptions": "",
       }, {
         "id": 22,
         "parentId": 2,
@@ -345,7 +345,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "$C2.A",  // Correctly 'renamed' from $C.A
-        "widgetOptions": ""
+        "widgetOptions": "",
       }, {
         "id": 23,
         "parentId": 2,
@@ -355,8 +355,8 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "$D2.B",  // Correctly 'renamed' from $D.A
-        "widgetOptions": ""
-      }]
+        "widgetOptions": "",
+      }],
     );
   });
 

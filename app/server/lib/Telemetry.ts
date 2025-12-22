@@ -132,7 +132,7 @@ export class Telemetry implements ITelemetry {
   public async logEventAsync(
     requestOrSession: RequestOrSession,
     event: TelemetryEvent,
-    metadata?: TelemetryMetadataByLevel
+    metadata?: TelemetryMetadataByLevel,
   ) {
     await this._checkAndLogEvent(requestOrSession, event, metadata);
   }
@@ -145,7 +145,7 @@ export class Telemetry implements ITelemetry {
   public logEvent(
     requestOrSession: RequestOrSession,
     event: TelemetryEvent,
-    metadata?: TelemetryMetadataByLevel
+    metadata?: TelemetryMetadataByLevel,
   ) {
     this.logEventAsync(requestOrSession, event, metadata).catch((e) => {
       this._logger.error(requestOrSession, `failed to log telemetry event ${event}`, e);
@@ -224,7 +224,7 @@ export class Telemetry implements ITelemetry {
   }
 
   private _prepareToLogEvent(
-    event: TelemetryEvent
+    event: TelemetryEvent,
   ): {checkTelemetryEvent: TelemetryEventChecker, telemetryLevel: TelemetryLevel}|undefined {
     if (!this._checkTelemetryEvent) {
       this._logger.error(null, 'telemetry event checker is undefined');
@@ -247,7 +247,7 @@ export class Telemetry implements ITelemetry {
   private async _checkAndLogEvent(
     requestOrSession: RequestOrSession,
     event: TelemetryEvent,
-    metadata?: TelemetryMetadataByLevel
+    metadata?: TelemetryMetadataByLevel,
   ) {
     const result = this._prepareToLogEvent(event);
     if (!result) {
@@ -268,7 +268,7 @@ export class Telemetry implements ITelemetry {
   private _logEvent(
     requestOrSession: RequestOrSession,
     event: TelemetryEvent,
-    metadata: TelemetryMetadata = {}
+    metadata: TelemetryMetadata = {},
   ) {
     const isAnonymousUser = metadata.userId === this._dbManager.getAnonymousUserId();
     let isInternalUser: boolean | undefined;
@@ -320,7 +320,7 @@ export class Telemetry implements ITelemetry {
   private async _forwardEvent(
     requestOrSession: RequestOrSession,
     event: TelemetryEvent,
-    metadata?: TelemetryMetadata
+    metadata?: TelemetryMetadata,
   ) {
     if (this._numPendingForwardEventRequests === MAX_PENDING_FORWARD_EVENT_REQUESTS) {
       this._logger.warn(requestOrSession, 'exceeded the maximum number of pending forwardEvent calls '
@@ -383,10 +383,10 @@ export class Telemetry implements ITelemetry {
 
 export async function getTelemetryPrefs(
   db: HomeDBManager,
-  activation?: Activation
+  activation?: Activation,
 ): Promise<TelemetryPrefsWithSources> {
   const GRIST_TELEMETRY_LEVEL = appSettings.section('telemetry').flag('level').readString({
-    envVar: 'GRIST_TELEMETRY_LEVEL'
+    envVar: 'GRIST_TELEMETRY_LEVEL',
   });
   if (GRIST_TELEMETRY_LEVEL !== undefined) {
     const value = TelemetryLevels.check(GRIST_TELEMETRY_LEVEL);
@@ -403,7 +403,7 @@ export async function getTelemetryPrefs(
     telemetryLevel: {
       value: prefs?.telemetry?.telemetryLevel ?? 'off',
       source: 'preferences',
-    }
+    },
   };
 }
 
@@ -419,7 +419,7 @@ export async function getTelemetryPrefs(
  */
 export function filterMetadata(
   metadata: TelemetryMetadataByLevel | undefined,
-  telemetryLevel: TelemetryLevel
+  telemetryLevel: TelemetryLevel,
 ): TelemetryMetadata | undefined {
   if (!metadata) { return; }
 

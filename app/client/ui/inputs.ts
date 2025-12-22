@@ -90,7 +90,7 @@ export function textarea(
     onInput,
     options?.autoGrow ? [
       autoGrow(value!),
-      dom.style('resize', 'none')
+      dom.style('resize', 'none'),
     ] : null,
     dom.on('change', (e, elem) => setValue(elem)),
   );

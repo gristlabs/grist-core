@@ -23,7 +23,7 @@ describe('FilteringBugs', function() {
     await gu.waitForServer();
     assert.deepEqual(
       await gu.getVisibleGridCells({section: 'TABLE2 Filtered', col: 'A', rowNums: [1, 2, 3]}),
-      ['bar', 'foo', '']
+      ['bar', 'foo', ''],
     );
 
     // With the same record selected, change column C in the linked card section.
@@ -36,7 +36,7 @@ describe('FilteringBugs', function() {
     // regression caused it to be filtered out.
     assert.deepEqual(
       await gu.getVisibleGridCells({section: 'TABLE2 Filtered', col: 'A', rowNums: [1, 2, 3]}),
-      ['bar', 'foo', '']
+      ['bar', 'foo', ''],
     );
   });
 });

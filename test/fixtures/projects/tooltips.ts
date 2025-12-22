@@ -27,10 +27,10 @@ function setupTest() {
         dom(
           'input',
           {type: 'checkbox'}, dom.prop('checked', showTriggerObs),
-          dom.on('change', (_ev, elem) => showTriggerObs.set(elem.checked))
+          dom.on('change', (_ev, elem) => showTriggerObs.set(elem.checked)),
         ),
-        'Show trigger'
-      )
+        'Show trigger',
+      ),
     ),
     cssRow(
       cssTrigger('Added to a key', hoverTooltip("Tooltip4", {key: 'key'}),

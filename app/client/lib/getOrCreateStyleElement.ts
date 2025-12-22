@@ -24,7 +24,7 @@ export function getOrCreateStyleElement(id: string, insertOptions: {
     insertOptions.element
       ? insertOptions.position
       : 'beforeend',
-    style
+    style,
   );
   return style;
 }

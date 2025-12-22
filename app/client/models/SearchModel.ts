@@ -536,7 +536,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
       value,
       this._openDocPage.bind(this),
       this.multiPage,
-      this._onPageChange
+      this._onPageChange,
     );
     const isValid = await impl.init();
     this._finder = isValid ? impl : null;

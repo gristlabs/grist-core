@@ -34,7 +34,7 @@ function buildDom(init: string) {
       {name: 'Bob', id: 2, ref: 'bob', email: '', access: 'editors'},
       {name: 'Charlie', id: 3, ref: 'charlie', email: '', access: 'editors'},
       {name: 'Dave', id: 4, ref: 'dave', email: '', access: 'editors'},
-    ]
+    ],
   };
 
   const access = observable<PermissionData|null>(data);
@@ -69,16 +69,16 @@ function buildDom(init: string) {
       dom('pre',
         dom.style('white-space', 'pre-wrap'),
         dom.text(use => use(text)?.text || ''),
-        testId('output')
-      )
+        testId('output'),
+      ),
     ),
     dom('div.box wide',
       dom('div', 'Raw HTML'),
       dom('pre',
         dom.style('white-space', 'pre-wrap'),
         dom.text(use => use(rawHtml)),
-        testId('output')
-      )
+        testId('output'),
+      ),
     ),
   ];
 }

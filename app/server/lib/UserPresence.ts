@@ -23,11 +23,11 @@ export class UserPresence {
     if (isUserPresenceDisabled()) { return []; }
     const viewingId = getIdFromDocSession(viewingDocSession);
     const otherPresenceSessions = Array.from(this._presenceSessionsById.values()).filter(
-      otherSession => otherSession.id !== viewingId
+      otherSession => otherSession.id !== viewingId,
     );
     const docUserRoles = await this._getDocUserRoles();
     const userProfiles = otherPresenceSessions.map(
-      s => getVisibleUserProfileFromDocSession(s, viewingDocSession, docUserRoles)
+      s => getVisibleUserProfileFromDocSession(s, viewingDocSession, docUserRoles),
     );
     return userProfiles.filter((s?: VisibleUserProfile): s is VisibleUserProfile => s !== undefined);
   }
@@ -75,9 +75,9 @@ export class UserPresence {
           if (!profile) { return; }
           return {
             id: presenceSession.publicId,
-            profile
+            profile,
           };
-        }
+        },
       ))
       .catch((err) => {
         this._log.error(null, "failed to broadcast user presence session update: %s", err);
@@ -95,7 +95,7 @@ export class UserPresence {
           id: presenceSession.publicId,
           profile: null,
         };
-      }
+      },
     ).catch((err) => {
       this._log.error(null, "failed to broadcast user presence session removal: %s", err);
     });

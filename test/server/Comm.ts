@@ -39,7 +39,7 @@ class FakeHosts {
     return Object.assign(req, {
       isCustomHost: this.isCustomHost,
       org: "example",
-      url: req.url!
+      url: req.url!,
     });
   }
 }
@@ -62,7 +62,7 @@ describe('Comm', function() {
     const sessionStore = new SQLiteStore({
       dir: path.dirname(sessionDB.name),
       db: path.basename(sessionDB.name),
-      table: 'sessions'
+      table: 'sessions',
     });
     // Random string to use for the test session secret.
     const sessionSecret = 'xkwriagasaqystubgkkbwhqtyyncwqjemyncnmetjpkiwtfzvllejpfneldmoyri';
@@ -100,7 +100,7 @@ describe('Comm', function() {
     methodSend: async function(client, docFD) {
       void(client.sendMessage({docFD, type: "fooType" as any, data: "foo"}));
       void(client.sendMessage({docFD, type: "barType" as any, data: "bar"}));
-    }
+    },
   };
 
   afterEach(async function() {
@@ -208,7 +208,7 @@ describe('Comm', function() {
         assert(resp.error.indexOf('Unknown method') >= 0);
       });
       testUtils.assertMatchArray(logMessages, [
-        /^warn: Client.* Unknown method.*someUnknownMethod/
+        /^warn: Client.* Unknown method.*someUnknownMethod/,
       ]);
     });
 
@@ -217,7 +217,7 @@ describe('Comm', function() {
         ws.send('foobar');
       }, {waitForFirstLog: true});
       testUtils.assertMatchArray(logMessages, [
-        /^warn: Client.* Unexpected token.*/
+        /^warn: Client.* Unexpected token.*/,
       ]);
     });
 
@@ -226,7 +226,7 @@ describe('Comm', function() {
         ws.send('null');
       }, {waitForFirstLog: true});
       testUtils.assertMatchArray(logMessages, [
-        /^warn: Client.*Cannot read properties of null*/
+        /^warn: Client.*Cannot read properties of null*/,
       ]);
     });
 
@@ -382,7 +382,7 @@ describe('Comm', function() {
     });
 
     async function testSendOrdering(
-      options: {noFailedSend?: boolean, closeHappensFirst?: boolean, useSmallMsgs?: boolean}
+      options: {noFailedSend?: boolean, closeHappensFirst?: boolean, useSmallMsgs?: boolean},
     ) {
       const eventsSeen: Array<'failedSend'|'close'> = [];
 

@@ -10,7 +10,7 @@ import {ActiveDoc, Deps} from 'app/server/lib/ActiveDoc';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {
   AttachmentStoreProvider,
-  IAttachmentStoreProvider
+  IAttachmentStoreProvider,
 } from 'app/server/lib/AttachmentStoreProvider';
 import {DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
 import {AuthSession} from 'app/server/lib/AuthSession';
@@ -51,7 +51,7 @@ describe('ActiveDoc', async function() {
 
   const createAttachmentStoreProvider = async () => new AttachmentStoreProvider(
     [await makeTestingFilesystemStoreConfig("filesystem")],
-    "TEST-INSTALLATION-UUID"
+    "TEST-INSTALLATION-UUID",
   );
 
   const docTools = createDocTools({ createAttachmentStoreProvider });
@@ -165,11 +165,11 @@ describe('ActiveDoc', async function() {
         ["BulkAddRecord", "Hello", [1, 4], {
           city: ['New York', 'Boston'],
           state: ['NY', 'MA'],
-        }]
+        }],
       ]);
 
       verifyTableData(activeDoc1.docData!.getTable('_grist_Tables'), ["id", "tableId"], [
-        [1, "Hello"]
+        [1, "Hello"],
       ]);
       verifyTableData(activeDoc1.docData!.getTable('_grist_Tables_column'), ["id", "parentId", "colId", "type"], [
         [1, 1, "manualSort", "ManualSortPos"],
@@ -190,7 +190,7 @@ describe('ActiveDoc', async function() {
       ]);
       verifyTableData(activeDoc1.docData!.getTable('_grist_Tables'), ["id", "tableId"], [
         [1, "Hello"],
-        [2, "Foo"]
+        [2, "Foo"],
       ]);
       verifyTableData(activeDoc1.docData!.getTable('_grist_Tables_column'), ["id", "parentId", "colId", "type"], [
         [1, 1, "manualSort", "ManualSortPos"],
@@ -225,7 +225,7 @@ describe('ActiveDoc', async function() {
 
       verifyTableData(activeDoc2.docData!.getTable('_grist_Tables'), ["id", "tableId"], [
         [1, "Hello"],
-        [2, "Foo"]
+        [2, "Foo"],
       ]);
       verifyTableData(activeDoc2.docData!.getTable('_grist_Tables_column'), ["id", "parentId", "colId", "type"], [
         [1, 1, "manualSort", "ManualSortPos"],
@@ -268,7 +268,7 @@ describe('ActiveDoc', async function() {
           { id: 'age2', type: 'Numeric', isFormula: true, formula: '$age * 2' },
         ]],
         ["AddRecord", "Bar", 1, { fname: 'Alice',  lname: 'Johnson', age: 28 }],
-        ["AddRecord", "Bar", 2, { fname: 'Bob', lname: 'Upton', age: 28 }]
+        ["AddRecord", "Bar", 2, { fname: 'Bob', lname: 'Upton', age: 28 }],
       ]);
       const tableRef = res.retValues[0].id;
 
@@ -523,7 +523,7 @@ describe('ActiveDoc', async function() {
       assert.deepEqual((await activeDoc.fetchQuery(fakeSession,
                         {tableId: 'Dupe', filters: {name: ['Me']}})).tableData,
         ['TableData', 'Dupe', [1], {
-          manualSort: [1], name: ['Me'], theme: [2], volume: [3]
+          manualSort: [1], name: ['Me'], theme: [2], volume: [3],
         }]);
 
       // Make Bar a regular table again, and check that its indexes go away.
@@ -540,19 +540,19 @@ describe('ActiveDoc', async function() {
       const activeDoc = await reloadOnDemand(await makeDoc(docName), 'Dupe');
       assert.sameMembers(await getIndexes(activeDoc), ['Dupe.theme']);
       await activeDoc.applyUserActions(fakeSession, [
-        ['RenameColumn', 'Dupe', 'theme', 'thematic']
+        ['RenameColumn', 'Dupe', 'theme', 'thematic'],
       ]);
       assert.sameMembers(await getIndexes(activeDoc), ['Dupe.thematic']);
       await activeDoc.applyUserActions(fakeSession, [
-        ['RemoveColumn', 'Dupe', 'thematic']
+        ['RemoveColumn', 'Dupe', 'thematic'],
       ]);
       assert.lengthOf(await getIndexes(activeDoc), 0);
       await activeDoc.applyUserActions(fakeSession, [
-        ['AddColumn', 'Dupe', 'retheme', {type: 'Ref:Theme', isFormula: false}]
+        ['AddColumn', 'Dupe', 'retheme', {type: 'Ref:Theme', isFormula: false}],
       ]);
       assert.sameMembers(await getIndexes(activeDoc), ['Dupe.retheme']);
       await activeDoc.applyUserActions(fakeSession, [
-        ['ModifyColumn', 'Dupe', 'retheme', {label: 'retheme!'}]
+        ['ModifyColumn', 'Dupe', 'retheme', {label: 'retheme!'}],
       ]);
       assert.sameMembers(await getIndexes(activeDoc), ['Dupe.retheme_']);
     });
@@ -621,7 +621,7 @@ describe('ActiveDoc', async function() {
             ' float($value) if isinstance($value, (int, bool)) else\n' +
             ' int($value) if isinstance($value, float) else\n' +
             ' unicode($value) if isinstance($value, str) else\n' +
-            ' $value)'
+            ' $value)',
           },
         ]],
         // Force lower-level DocActions to be applied rather than UserActions, to avoid all the
@@ -809,7 +809,7 @@ describe('ActiveDoc', async function() {
         ["BulkAddRecord", "Hello", [1, 4], {
           city: ['New York', 'Boston'],
           state: ['NY', 'MA'],
-        }]
+        }],
       ]);
       async function checkDoc(doc: ActiveDoc) {
         const {actions} = await doc.getRecentActions(fakeSession, true);
@@ -876,7 +876,7 @@ describe('ActiveDoc', async function() {
       const authSession = AuthSession.fromUser(
         {id: 567, ref: 'randomString', name: 'testUser', email: 'test@test'},
         '',
-        'u567'
+        'u567',
       );
       const client = new Client(null as any, null as any, null!);
       client.setConnection({websocket: {} as any, req: null as any, counter: null, browserSettings: {}, authSession});
@@ -889,13 +889,13 @@ describe('ActiveDoc', async function() {
       const activeDoc = await docTools.createDoc(docName);
       await activeDoc.applyUserActions(userSession, [
         ["AddTable", "Residences",
-          [{id: "email", type: "Text"}, {id: "city", type: "Text"}, {id: "state", type: "Text"}]
+          [{id: "email", type: "Text"}, {id: "city", type: "Text"}, {id: "state", type: "Text"}],
         ],
         ["BulkAddRecord", "Residences", [1, 4], {
           email: ['foo@getgrist.com', 'test@test'],
           city: ['New York', 'Boston'],
           state: ['NY', 'MA'],
-        }]
+        }],
       ]);
 
       // Check that the last call to sandbox included correct user info.
@@ -913,13 +913,13 @@ describe('ActiveDoc', async function() {
           UserID: 567,
           UserRef: 'randomString',
           Type: null,
-        }
+        },
       );
 
       // Add another table, and set up the tables to be user attribute tables.
       await activeDoc.applyUserActions(userSession, [
         ["AddTable", "Favorites",
-          [{id: "email", type: "Text"}, {id: "color", type: "Text"}, {id: "food", type: "Text"}]
+          [{id: "email", type: "Text"}, {id: "color", type: "Text"}, {id: "food", type: "Text"}],
         ],
         ["BulkAddRecord", "Favorites", [1, 2, 3], {
           email: ['foo@getgrist.com', 'bar@getgrist.com', ''],
@@ -935,7 +935,7 @@ describe('ActiveDoc', async function() {
             tableId: 'Residences',
             charId: 'Email',
             lookupColId: 'email',
-          })
+          }),
         }],
         ['AddRecord', '_grist_ACLRules', null, {
           resource: -1, userAttributes: JSON.stringify({
@@ -943,7 +943,7 @@ describe('ActiveDoc', async function() {
             tableId: 'Favorites',
             charId: 'Email',
             lookupColId: 'email',
-          })
+          }),
         }],
       ]);
 
@@ -953,7 +953,7 @@ describe('ActiveDoc', async function() {
           email: [''],
           city: ['Portland'],
           state: ['OR'],
-        }]
+        }],
       ]);
 
       // Check that the correct attributes are included in the user info sent to the sandbox.
@@ -973,7 +973,7 @@ describe('ActiveDoc', async function() {
           UserRef: `randomString`,
           Residences: ['Residences', 4],
           Favorites: null,
-        }
+        },
       );
 
       rawPyCall.restore();
@@ -1002,7 +1002,7 @@ describe('ActiveDoc', async function() {
       await activeDoc.applyUserActions(fakeSession, [
         ["AddTable", "Info", [
           {id: 'Version', formula: 'import sys\nsys.version'},
-          {id: 'UUID', formula: 'UUID()'}
+          {id: 'UUID', formula: 'UUID()'},
         ]],
         ["AddRecord", "Info", null, {}],
       ]);
@@ -1017,7 +1017,7 @@ describe('ActiveDoc', async function() {
       await activeDoc1.applyUserActions(fakeSession, [
         ["UpdateRecord", "_grist_DocInfo", 1, {
           documentSettings: JSON.stringify({ engine: 'python3' }),
-        }]
+        }],
       ]);
       await activeDoc1.shutdown();
       const activeDoc2 = await docTools.loadDoc(docName);
@@ -1075,7 +1075,7 @@ describe('ActiveDoc', async function() {
           id: 'Size', type: 'Int',
         }, {
           id: 'Test',
-          formula: 'len("x" * $Size)'
+          formula: 'len("x" * $Size)',
         }]],
         ["AddRecord", "TestTable", null, {Size: 1}],
       ]);
@@ -1083,18 +1083,18 @@ describe('ActiveDoc', async function() {
       // Push a bit.
       const MB = 1024 * 1024;
       await assert.isFulfilled(activeDoc.applyUserActions(fakeSession, [
-        ["UpdateRecord", "TestTable", 1, {Size: 10 * MB}]
+        ["UpdateRecord", "TestTable", 1, {Size: 10 * MB}],
       ]));
 
       // Push a bit more.
       await assert.isFulfilled(activeDoc.applyUserActions(fakeSession, [
-        ["UpdateRecord", "TestTable", 1, {Size: 100 * MB}]
+        ["UpdateRecord", "TestTable", 1, {Size: 100 * MB}],
       ]));
 
       // Push too much.
       const tooMuch = parseInt(process.env.GVISOR_LIMIT_MEMORY, 10);
       await assert.isRejected(activeDoc.applyUserActions(fakeSession, [
-        ["UpdateRecord", "TestTable", 1, {Size: tooMuch}]
+        ["UpdateRecord", "TestTable", 1, {Size: tooMuch}],
       ]), /MemoryError/);
     });
 
@@ -1148,7 +1148,7 @@ describe('ActiveDoc', async function() {
     // Try with a valid docUrl and one with some extra stuff thrown in.
     for (const docUrl of [
       'https://templates.getgrist.com/doc/lightweight-crm~8sJPiNkWZo68KFJkc5Ukbr~4',
-      'https://templates!.getgrist.com/doc/lightweight-crm 8sJPiNkWZo68KFJkc5Ukbr~4'
+      'https://templates!.getgrist.com/doc/lightweight-crm 8sJPiNkWZo68KFJkc5Ukbr~4',
     ] as const) {
       const activeDoc = new ActiveDoc(docTools.getDocManager(), 'docUrlTest' + docUrl.length,
                                       new AttachmentStoreProvider([], "TEST-INSTALL-ID"),
@@ -1235,7 +1235,7 @@ describe('ActiveDoc', async function() {
           absPath: filePath,
           origName: file.name,
           size: buffer.length,
-          ext: await guessExt(filePath, file.name, null)
+          ext: await guessExt(filePath, file.name, null),
         };
       });
 
@@ -1270,13 +1270,13 @@ describe('ActiveDoc', async function() {
       try {
         await assert.isRejected(
           uploadAttachments(activeDoc, testAttachments),
-          /Exceeded internal attachments limit/
+          /Exceeded internal attachments limit/,
         );
 
         // Ease off, make sure adding attachments succeeds.
         stub.restore();
         await assert.isFulfilled(
-          uploadAttachments(activeDoc, testAttachments)
+          uploadAttachments(activeDoc, testAttachments),
         );
 
         // Add limit again, make sure it works, then set the doc for external
@@ -1284,14 +1284,14 @@ describe('ActiveDoc', async function() {
         stub = sandbox.stub(Deps, 'MAX_INTERNAL_ATTACHMENTS_BYTES').value(10);
         await assert.isRejected(
           uploadAttachments(activeDoc, testAttachments),
-          /Exceeded internal attachments limit/
+          /Exceeded internal attachments limit/,
         );
         await activeDoc.setAttachmentStore(
           makeExceptionalDocSession('system'),
           docTools.getAttachmentStoreProvider().listAllStoreIds()[0],
         );
         await assert.isFulfilled(
-          uploadAttachments(activeDoc, testAttachments)
+          uploadAttachments(activeDoc, testAttachments),
         );
 
         await activeDoc.startTransferringAllAttachmentsToDefaultStore();
@@ -1303,7 +1303,7 @@ describe('ActiveDoc', async function() {
         // respected.
         await activeDoc.setAttachmentStore(
           makeExceptionalDocSession('system'),
-          undefined
+          undefined,
         );
         await activeDoc.startTransferringAllAttachmentsToDefaultStore();
         await activeDoc.allAttachmentTransfersCompleted();
@@ -1392,7 +1392,7 @@ describe('ActiveDoc', async function() {
         // Sets all file sizes in _grist_Attachments to zero.
         await activeDoc.applyUserActions(
           systemSession,
-          [['BulkUpdateRecord', '_grist_Attachments', rowIds, { fileSize: rowIds.map(() => 0) }]]
+          [['BulkUpdateRecord', '_grist_Attachments', rowIds, { fileSize: rowIds.map(() => 0) }]],
         );
 
         const zeroedFileSizes = await getFileSizes();

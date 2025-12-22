@@ -79,7 +79,7 @@ export class UpdateManager {
 
   public constructor(
     private _app: express.Application,
-    private _server: GristServer
+    private _server: GristServer,
   ) {
     this._latestVersion = new MapWithTTL<GristDeploymentType, Promise<ApiError|LatestVersion>>(Deps.GOOD_RESULT_TTL);
   }
@@ -92,7 +92,7 @@ export class UpdateManager {
       }
  catch (err) {
         throw new Error(
-          `Invalid value for GRIST_UPDATE_DOCKER_URL, expected URL: ${Deps.DOCKER_ENDPOINT}`
+          `Invalid value for GRIST_UPDATE_DOCKER_URL, expected URL: ${Deps.DOCKER_ENDPOINT}`,
         );
       }
     }
@@ -116,18 +116,18 @@ export class UpdateManager {
       // with the version of the client.
       const deploymentId = optStringParam(
         payload("installationId"),
-        "installationId"
+        "installationId",
       );
 
       // Deployment type of the client (we expect this to be 'core' for most of the cases).
       const deploymentType = optStringParam(
         payload("deploymentType"),
-        "deploymentType"
+        "deploymentType",
       ) as GristDeploymentType|undefined;
 
       const currentVersion = optStringParam(
         payload("currentVersion"),
-        "currentVersion"
+        "currentVersion",
       );
 
       this._server
@@ -168,7 +168,7 @@ export class UpdateManager {
  catch (e) {
           throw new ApiError(
             `/api/version got a bad version number ${currentVersion} (incomparable with ${oldestVersion})`,
-            400
+            400,
           );
         }
       }
@@ -224,7 +224,7 @@ export async function getLatestStableDockerVersion(signal: AbortSignal): Promise
       // Versions are not critical, upgrades are, so we'll set that
       // later when we know the version the user is currently at.
       isCritical: false,
-      updateURL: Deps.DOCKER_IMAGE_SITE
+      updateURL: Deps.DOCKER_IMAGE_SITE,
     };
   }
  catch (err) {

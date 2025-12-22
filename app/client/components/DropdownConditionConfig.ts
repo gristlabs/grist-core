@@ -88,7 +88,7 @@ export class DropdownConditionConfig extends Disposable {
   private _disabled = Computed.create(this, use =>
     use(this._field.disableModify) ||
     use(use(this._column).disableEditData) ||
-    use(this._field.config.multiselect)
+    use(this._field.config.multiselect),
   );
 
   private _isEditingCondition = Observable.create(this, false);

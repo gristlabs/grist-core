@@ -38,22 +38,22 @@ export class AssistantLimit1685343047786 implements MigrationInterface {
           {
             name: "created_at",
             type: datetime,
-            default: now
+            default: now,
           },
           {
             name: "changed_at", // When the limit was last changed
             type: datetime,
-            isNullable: true
+            isNullable: true,
           },
           {
             name: "used_at", // When the usage was last increased
             type: datetime,
-            isNullable: true
+            isNullable: true,
           },
           {
             name: "reset_at", // When the usage was last reset.
             type: datetime,
-            isNullable: true
+            isNullable: true,
           },
         ],
         foreignKeys: [
@@ -64,7 +64,7 @@ export class AssistantLimit1685343047786 implements MigrationInterface {
             onDelete: 'CASCADE',
           },
         ],
-      })
+      }),
     );
 
     await queryRunner.createIndex(
@@ -72,7 +72,7 @@ export class AssistantLimit1685343047786 implements MigrationInterface {
       new TableIndex({
         name: 'limits_billing_account_id',
         columnNames: ['billing_account_id'],
-      })
+      }),
     );
   }
 

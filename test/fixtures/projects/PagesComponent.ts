@@ -18,7 +18,7 @@ function setupTest() {
     ),
     dom('input', {type: 'button', value: 'create new page'},
       dom.on('click', addNewPage),
-      {style: 'float: right;'}
+      {style: 'float: right;'},
     ),
   ];
 }

@@ -26,7 +26,7 @@ describe("AttachmentsTransfer", function() {
 
     session = await gu.session().teamSite.login();
     reqHeaders = {
-      Authorization: `Bearer ${session.getApiKey()}`
+      Authorization: `Bearer ${session.getApiKey()}`,
     };
   });
 
@@ -54,8 +54,8 @@ describe("AttachmentsTransfer", function() {
       await homeApi.updateDocPermissions(docId, {
         users: {
           [gu.translateUser("user2").email]: 'viewers',
-          [gu.translateUser("user3").email]: 'editors'
-        }
+          [gu.translateUser("user3").email]: 'editors',
+        },
       });
 
       async function checkFor(user: TestUser) {
@@ -216,14 +216,14 @@ describe("AttachmentsTransfer", function() {
           assert.equal(downloadUrl.search, idealUrl.search, "wrong search parameters in url");
           const response = await axios.get(downloadUrl.toString(), {
             headers: reqHeaders,
-            responseType: "stream"
+            responseType: "stream",
           });
           // Download the file so we've got a copy available for uploading.
           const fileName = `attachments.${params.format}`;
           assert.notInclude(await fse.readdir(tmpDownloadsFolder), fileName, "attachments file shouldn't exist yet");
           await stream.promises.pipeline(
             response.data,
-            fs.createWriteStream(path.join(tmpDownloadsFolder, fileName))
+            fs.createWriteStream(path.join(tmpDownloadsFolder, fileName)),
           );
           assert.include(await fse.readdir(tmpDownloadsFolder), fileName, "attachments file wasn't downloaded");
         };
@@ -249,7 +249,7 @@ describe("AttachmentsTransfer", function() {
         await driver.findWait('.test-notifier-toast-message', 1000).getText(),
         // Only care that the request is made, and that the UI behaves as expected.
         // Don't care about checking attachments reconnect behaviour - API tests cover that.
-        /0 attachment files reconnected/
+        /0 attachment files reconnected/,
       );
       await driver.findWait('.test-notifier-toast-close', 2000).click();
     });
@@ -381,7 +381,7 @@ const copyWrapper = <T extends WebElementPromise>(el: T) => {
     },
     isStatic() {
       return el.matches('.test-settings-transfer-message-static');
-    }
+    },
   });
 };
 

@@ -69,13 +69,13 @@ export function getColumnTypes(gristDoc: GristDoc, tableId: string, pure = false
           colType: ct.type,
           testIdName: ct.obj.label.toLowerCase().replace(' ', '-'),
           icon: ct.obj.icon,
-          openCreatorPanel: isFullReferencingType(ct.type)
+          openCreatorPanel: isFullReferencingType(ct.type),
         })).map((ct) => {
     if (!pure) { return ct; }
     else {
       return {
         ...ct,
-        colType: ct.colType.split(':')[0]
+        colType: ct.colType.split(':')[0],
       };
     }
   });
@@ -113,7 +113,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
                     popupOptions: {
                       attach: `.${menuCssClass}`,
                       placement: 'left-start',
-                    }
+                    },
                   }):null,
             colType.displayName,
             testId(`new-columns-menu-add-${colType.testIdName}`)),
@@ -122,7 +122,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
       ],
       {allowNothingSelected: false},
       t('Add column with type'),
-      testId('new-columns-menu-add-with-type')
+      testId('new-columns-menu-add-with-type'),
     );
   }
 
@@ -137,7 +137,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
       withInfoTooltip(
         t('Add formula column'),
         'formulaColumn',
-        {variant: 'hover'}
+        {variant: 'hover'},
       ),
       testId('new-columns-menu-add-formula'),
     );
@@ -146,7 +146,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
   return [
     buildEmptyNewColumMenuItem(),
     BuildNewColumnWithTypeSubmenu(),
-    buildNewFunctionColumnMenuItem()
+    buildNewFunctionColumnMenuItem(),
   ];
 }
 
@@ -166,7 +166,7 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
           },
           col.label(),
           testId('new-columns-menu-hidden-column-inlined'),
-        )
+        ),
       ),
     ];
   }
@@ -182,14 +182,14 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
                 () => gridView.showColumn(col.id(), index),
                 col.label(),
                 testId('new-columns-menu-hidden-column-collapsed'),
-              )
+              ),
             })),
-            {searchInputPlaceholder: t('Search columns')}
+            {searchInputPlaceholder: t('Search columns')},
           );
         },
         {allowNothingSelected: true},
         t('Hidden Columns'),
-        testId('new-columns-menu-hidden-columns-menu')
+        testId('new-columns-menu-hidden-columns-menu'),
       ),
     ];
   }
@@ -247,7 +247,7 @@ function buildTimestampMenuItems(gridView: GridView, index?: number) {
     ),
   ], {},
     t("Timestamp"),
-    testId('new-columns-menu-shortcuts-timestamp')
+    testId('new-columns-menu-shortcuts-timestamp'),
   );
 }
 
@@ -269,7 +269,7 @@ function buildAuthorshipMenuItems(gridView: GridView, index?: number) {
         });
       },
       t("Apply to new records"),
-      testId('new-columns-menu-shortcuts-author-new')
+      testId('new-columns-menu-shortcuts-author-new'),
     ),
     menuItem(
       async () => {
@@ -287,7 +287,7 @@ function buildAuthorshipMenuItems(gridView: GridView, index?: number) {
         });
       },
       t("Apply on record changes"),
-      testId('new-columns-menu-shortcuts-author-change')
+      testId('new-columns-menu-shortcuts-author-change'),
     ),
   ], {}, t("Authorship"), testId('new-columns-menu-shortcuts-author'));
 }
@@ -333,7 +333,7 @@ function buildDetectDuplicatesMenuItems(gridView: GridView, index?: number) {
                   },
                   index,
                   skipPopup: true,
-                }
+                },
               );
 
               // TODO: do the steps below as part of the AddColumn action.
@@ -354,7 +354,7 @@ function buildDetectDuplicatesMenuItems(gridView: GridView, index?: number) {
           },
         };
       }),
-      {searchInputPlaceholder: t('Search columns')}
+      {searchInputPlaceholder: t('Search columns')},
     ),
     {allowNothingSelected: true},
     t('Detect duplicates in...'),
@@ -389,7 +389,7 @@ function buildUUIDMenuItem(gridView: GridView, index?: number) {
     withInfoTooltip(
       t('UUID'),
       'uuid',
-      {variant: 'hover'}
+      {variant: 'hover'},
     ),
     testId('new-columns-menu-shortcuts-uuid'),
   );
@@ -411,7 +411,7 @@ function buildLookupSection(gridView: GridView, index?: number){
     }
  else if (col.pureType() === 'Bool') {
       return [
-        'count', 'percent'
+        'count', 'percent',
       ];
     }
  else if (col.pureType() === 'Date' || col.pureType() === 'DateTime') {
@@ -421,7 +421,7 @@ function buildLookupSection(gridView: GridView, index?: number){
     }
  else {
       return [
-        'list'
+        'list',
       ];
     }
   }
@@ -498,7 +498,7 @@ function buildLookupSection(gridView: GridView, index?: number){
 
       return {
         cleanText,
-        builder: buildItem
+        builder: buildItem,
       };
 
       function buildItem() {
@@ -518,7 +518,7 @@ function buildLookupSection(gridView: GridView, index?: number){
             const action = () => insertAggLookup(functions[0]);
             return menuItem(action, label,
               testId(`new-columns-menu-lookup-column`),
-              testId(`new-columns-menu-lookup-column-${col.colId()}`)
+              testId(`new-columns-menu-lookup-column-${col.colId()}`),
             );
           }
  else {
@@ -563,7 +563,7 @@ function buildLookupSection(gridView: GridView, index?: number){
             formula: `$${ref.colId()}.${col.colId()}`,
             recalcDeps: null,
             type: col.type(),
-            widgetOptions: col.cleanWidgetOptionsJson()
+            widgetOptions: col.cleanWidgetOptionsJson(),
           },
           index,
           skipPopup: true,
@@ -580,8 +580,8 @@ function buildLookupSection(gridView: GridView, index?: number){
       () => searchableMenu(
         ref.refTable()?.visibleColumns().map(buildRefColMenu.bind(null, ref)) ?? [],
         {
-          searchInputPlaceholder: t('Search columns')
-        }
+          searchInputPlaceholder: t('Search columns'),
+        },
       ),
       {allowNothingSelected: true},
       `${ref.refTable()?.tableNameDef()} [${ref.label()}]`,
@@ -610,7 +610,7 @@ function buildLookupSection(gridView: GridView, index?: number){
           columns: tab.visibleColumns(),
           referenceFields:
             tab.visibleColumns.peek().filter(c => (c.pureType() === 'Ref' || c.pureType() == 'RefList') &&
-              c.refTable()?.tableId() === viewSection.tableId())
+              c.refTable()?.tableId() === viewSection.tableId()),
         };
       })
         .filter(tab => tab.referenceFields.length > 0);
@@ -624,10 +624,10 @@ function buildLookupSection(gridView: GridView, index?: number){
           label: `${tab.tableId}_${col.label()}`,
           ...buildColumnInfo(aggregate,
             formula,
-            col)
+            col),
         },
         index,
-        skipPopup: true
+        skipPopup: true,
       });
     };
 
@@ -666,7 +666,7 @@ function buildLookupSection(gridView: GridView, index?: number){
                 testId('new-columns-menu-revlookup-submenu'),
               );
             }
-          }
+          },
         };
       };
       const label = `${tab.tableName} [← ${refCol.label()}]`;
@@ -695,11 +695,11 @@ function buildLookupSection(gridView: GridView, index?: number){
       withInfoTooltip(
         t('Lookups'),
         'lookups',
-        {variant: 'hover'}
+        {variant: 'hover'},
       ),
       testId('new-columns-menu-lookups'),
     ),
-    ...menuContent
+    ...menuContent,
     ];
 }
 
@@ -787,7 +787,7 @@ export function buildColumnContextMenu(options: IColumnContextMenu) {
       allCommands.sortFilterTabOpen.run,
       t("More sort options ..."),
       testId('more-sort-options'),
-      disabledForVirtual
+      disabledForVirtual,
     ),
     menuDivider({style: 'margin-top: 0;'}),
     menuItemCmd(allCommands.renameField, t("Rename column"), disableForReadonlyColumn),
@@ -833,7 +833,7 @@ export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
 
     menuDivider(),
     menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"), disableForReadonlyView),
-    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"), disableForReadonlyView)
+    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"), disableForReadonlyView),
   ];
 }
 
@@ -894,7 +894,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
       }
       return {
         text,
-        numFrozen : firstColumnIndex + 1
+        numFrozen : firstColumnIndex + 1,
       };
     }
  else if (isFrozenColumn) {
@@ -912,7 +912,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
       }
       return {
         text,
-        numFrozen : indices[0]
+        numFrozen : indices[0],
       };
     }
  else {
@@ -924,14 +924,14 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
       text = t('Unfreeze {{count}} columns', {count: length});
       return {
         text,
-        numFrozen : numFrozen - length
+        numFrozen : numFrozen - length,
       };
     }
  else if (isFirstNormalSet) {
       text = t('Freeze {{count}} columns', {count: length});
       return {
         text,
-        numFrozen : numFrozen + length
+        numFrozen : numFrozen + length,
       };
     }
  else if (isSpanSet) {
@@ -939,7 +939,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
       text = t('Freeze {{count}} more columns', {count: toFreeze});
       return {
         text,
-        numFrozen : numFrozen + toFreeze
+        numFrozen : numFrozen + toFreeze,
       };
     }
   else {

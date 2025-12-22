@@ -19,7 +19,7 @@ const t = makeT('errorPages');
 
 function signInAgainButton() {
   return cssButtonWrap(bigPrimaryButtonLink(
-    t("Sign in again"), {href: getLoginUrl()}, testId('error-signin')
+    t("Sign in again"), {href: getLoginUrl()}, testId('error-signin'),
   ));
 }
 
@@ -65,7 +65,7 @@ account, or ask an administrator for access.", {email: dom('b', user.email)})),
         t("Add account"),
       {href: isExternal() ? getMainOrgUrl() : getLoginUrl()},
       testId('error-signin'),
-    ))
+    )),
   ]);
 }
 
@@ -90,15 +90,15 @@ export function createAccountDeletedPage(appModel: AppModel) {
   return pagePanelsError(appModel, t("Account deleted{{suffix}}", {suffix: ''}), [
     cssErrorText(t("Your account has been deleted.")),
     cssButtonWrap(bigPrimaryButtonLink(
-      t("Sign up"), {href: getSignupUrl()}, testId('error-signin')
-    ))
+      t("Sign up"), {href: getSignupUrl()}, testId('error-signin'),
+    )),
   ]);
 }
 
 export function createUnsubscribedPage(
   appModel: AppModel,
   errMessage: string|undefined,
-  errDetails: Record<string, string|undefined> | undefined
+  errDetails: Record<string, string|undefined> | undefined,
 ) {
   document.title = t("Unsubscribed{{suffix}}", {suffix: getPageTitleSuffix(getGristConfig())});
   const docUrl = errDetails?.docUrl;
@@ -107,19 +107,19 @@ export function createUnsubscribedPage(
     return pagePanelsError(appModel, t("We could not unsubscribe you"), [
       cssErrorText(
         cssErrorText.cls('-narrow'),
-        t('There was an error'), ': ', addPeriod(errMessage)
+        t('There was an error'), ': ', addPeriod(errMessage),
       ),
       docUrl && cssErrorText(
         cssErrorText.cls('-narrow'),
         addPeriod(
-          t('You can still unsubscribe from this document by updating your preferences in the document settings')
-        )
+          t('You can still unsubscribe from this document by updating your preferences in the document settings'),
+        ),
       ),
       docUrl && cssButtonWrap(bigBasicButtonLink(t("Manage settings"), {href: `${docUrl}/p/settings`})),
       cssContactSupportDiv(
         t('Need Help?'), ' ', cssLink(
-          t("Contact support"), {href: commonUrls.contactSupport}
-        )
+          t("Contact support"), {href: commonUrls.contactSupport},
+        ),
       ),
     ]);
   }
@@ -140,7 +140,7 @@ export function createUnsubscribedPage(
         changes: dom('b', t('changes')),
         docName: dom('b', docName),
         email: dom('b', email || t('your email')),
-      }
+      },
     );
 
     description = t(
@@ -148,7 +148,7 @@ export function createUnsubscribedPage(
       "your preferences anytime in the document settings.",
       {
         docName: dom('b', docName),
-      }
+      },
     );
   }
  else if (mode === 'full') {
@@ -158,7 +158,7 @@ export function createUnsubscribedPage(
         comments: dom('b', t('comments')),
         docName: dom('b', docName),
         email: dom('b', email || t('your email')),
-      }
+      },
     );
 
     description = t(
@@ -166,7 +166,7 @@ export function createUnsubscribedPage(
       "of you and replies to your comments. You can update your preferences anytime in the document settings.",
       {
         docName: dom('b', docName),
-      }
+      },
     );
   }
  else {
@@ -176,7 +176,7 @@ export function createUnsubscribedPage(
         comments: dom('b', t('comments')),
         docName: dom('b', docName),
         email: dom('b', email || t('your email')),
-      }
+      },
     );
 
     description = t(
@@ -185,7 +185,7 @@ export function createUnsubscribedPage(
       "preferences anytime in the document settings.",
       {
         docName: dom('b', docName),
-      }
+      },
     );
   }
 
@@ -198,8 +198,8 @@ export function createUnsubscribedPage(
     cssButtonWrap(bigBasicButtonLink(t("Manage settings"), {href: `${docUrl}/p/settings`})),
     cssContactSupportDiv(
       t('Need Help?'), ' ', cssLink(
-        t("Contact support"), {href: commonUrls.contactSupport}
-      )
+        t("Contact support"), {href: commonUrls.contactSupport},
+      ),
     ),
   ]);
 }
@@ -214,7 +214,7 @@ export function createNotFoundPage(appModel: AppModel, message?: string) {
   return pagePanelsError(appModel, t("Page not found{{suffix}}", {suffix: ''}), [
     cssErrorText(message ||
       t("The requested page could not be found.{{separator}}Please check the URL and try again.", {
-        separator: dom('br')
+        separator: dom('br'),
     })),
     cssButtonWrap(bigPrimaryButtonLink(t("Go to main page"), testId('error-primary-btn'),
       urlState().setLinkUrl({}))),
@@ -227,7 +227,7 @@ export function createSigninFailedPage(appModel: AppModel, message?: string) {
   return pagePanelsError(appModel, t("Sign-in failed{{suffix}}", {suffix: ''}), [
     cssErrorText(message ??
       t("Failed to log in.{{separator}}Please try again or contact support.", {
-        separator: dom('br')
+        separator: dom('br'),
     })),
     signInAgainButton(),
     cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: commonUrls.contactSupport})),

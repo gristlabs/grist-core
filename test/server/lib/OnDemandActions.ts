@@ -46,13 +46,13 @@ describe('OnDemandActions', function() {
         { id: 'lname',      type: 'Text', isFormula: false },
         { id: 'Birth_Date', type: 'Date', isFormula: false },
         { id: 'age',        type: 'Numeric', isFormula: false },
-      ]]
+      ]],
     ]);
     const tableRef = res.retValues[0].id;
 
     // Make the table "on-demand" right away.
     await activeDoc1.applyUserActions(fakeSession, [
-      ['UpdateRecord', '_grist_Tables', tableRef, {onDemand: true}]
+      ['UpdateRecord', '_grist_Tables', tableRef, {onDemand: true}],
     ]);
     await activeDoc1.applyUserActions(fakeSession, [
       ["BulkAddRecord", "Foo", initialData[2], initialData[3]]]);
@@ -95,7 +95,7 @@ describe('OnDemandActions', function() {
         Birth_Date: [null, null, 678,  909],
         age:        [50,   null, 45,   null],
         manualSort: [1,    3,    4,    9],
-      }]
+      }],
     );
     await docStorage.applyStoredActions(processed2.undo);
     await docStorage.applyStoredActions(processed1.undo);
@@ -121,7 +121,7 @@ describe('OnDemandActions', function() {
         Birth_Date: [123,  null, 456,  null, 234567, null, null],
         age:        [50,   null, 40,   null, 0,      0,    0],
         manualSort: [1,    3,    4,    9,    10,     11,   12],
-      }]
+      }],
     );
     await docStorage.applyStoredActions(processed2.undo);
     await docStorage.applyStoredActions(processed1.undo);
@@ -140,7 +140,7 @@ describe('OnDemandActions', function() {
         Birth_Date: [null],
         age:        [null],
         manualSort: [3],
-      }]
+      }],
     );
     await docStorage.applyStoredActions(processed2.undo);
     await docStorage.applyStoredActions(processed1.undo);
@@ -156,12 +156,12 @@ describe('OnDemandActions', function() {
       ['BulkUpdateRecord', 'Foo', times(N, i => 10 + i), {age: times(N, i => i * 10)}]);
 
     const intermediate: TableDataAction = [
-      'TableData', 'Foo', [1, 3, 4, 9,].concat(times(N, i => 10 + i)), {
-      fname:      ['Aa', 'Bb', 'Cc', 'Dd',].concat(times(N, i => '')),
-      lname:      ['Xx', 'Yy', 'Zz', 'Ww',].concat(times(N, i => '')),
-      Birth_Date: [123,  null, 456,  null,].concat(times(N, i => null)),
-      age:        [50,   null, 40,   null,].concat(times(N, i => i * 10)),
-      manualSort: [1,    3,    4,    9,].concat(times(N, i => 10 + i)),
+      'TableData', 'Foo', [1, 3, 4, 9].concat(times(N, i => 10 + i)), {
+      fname:      ['Aa', 'Bb', 'Cc', 'Dd'].concat(times(N, i => '')),
+      lname:      ['Xx', 'Yy', 'Zz', 'Ww'].concat(times(N, i => '')),
+      Birth_Date: [123,  null, 456,  null].concat(times(N, i => null)),
+      age:        [50,   null, 40,   null].concat(times(N, i => i * 10)),
+      manualSort: [1,    3,    4,    9].concat(times(N, i => 10 + i)),
     }];
 
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),

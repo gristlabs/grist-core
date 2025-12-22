@@ -125,7 +125,7 @@ function checkbox(
       { type: 'checkbox' },
       dom.prop('checked', obs),
       dom.on('change', (ev, el) => obs.set(el.checked)),
-      ...domArgs
+      ...domArgs,
     );
   const text = label ? cssLabelText(label) : null;
   if (right) {
@@ -166,7 +166,7 @@ function triStateCheckbox(
     checkboxObs, cssCheckbox, label, false,
     dom.prop('indeterminate', use => use(obs) === 'indeterminate'),
     dom.autoDispose(checkboxObs),
-    ...domArgs
+    ...domArgs,
   );
 }
 

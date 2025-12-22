@@ -44,7 +44,7 @@ export async function applyAndCheckActionsForCells(
   userIsOwner: boolean,
   haveRules: boolean,
   userRef: string,
-  hasAccess: (cell: SingleCellInfo, state: DocData) => Promise<boolean>
+  hasAccess: (cell: SingleCellInfo, state: DocData) => Promise<boolean>,
 ) {
   // First check if we even have actions that modify cell's data.
   const cellsActions = docActions.filter(isCellDataAction);
@@ -276,7 +276,7 @@ export class CellData {
           this.readCells(tableId, new Set([rowId]), colId).flatMap((c) => {
             const parsed = safeJsonParse(c.content, {}) as CommentContent; // Parse the cell content.
             return [c.userRef, ...parsed.mentions || []]; // Include the user reference and any mentions.
-          })
+          }),
         );
 
         // Cache the computed participants for the key.
@@ -394,7 +394,7 @@ export class CellData {
 
   public async censorCells(
     docActions: DocAction[],
-    hasAccess: (cell: SingleCellInfo) => Promise<boolean>
+    hasAccess: (cell: SingleCellInfo) => Promise<boolean>,
   ) {
     for (const action of docActions) {
       if (!isCellDataAction(action)) { continue; }
@@ -452,7 +452,7 @@ export class CellData {
       throw new Error(`Table ${tableId} not found`);
     }
     const colRef = this._docData.getMetaTable("_grist_Tables_column").findMatchingRowId(
-      {parentId, colId}
+      {parentId, colId},
     );
     if (!colRef) {
       throw new Error(`Column ${colId} not found in table ${tableId}`);
@@ -558,7 +558,7 @@ export class CellData {
         rowId: [],
         userRef: [],
         parentId: [],
-      }
+      },
     ];
     for(const cell of ids) {
       const dataCell = this.getCellRecord(cell);
@@ -581,7 +581,7 @@ export class CellData {
     const action: BulkRemoveRecord = [
       'BulkRemoveRecord',
       '_grist_Cells',
-      ids
+      ids,
     ];
     return action[2].length > 1 ? action :
           action[2].length == 1 ? [...getSingleAction(action)][0] : null;
@@ -595,7 +595,7 @@ export class CellData {
       {
         content: [],
         userRef: [],
-      }
+      },
     ];
     for(const cell of ids) {
       const dataCell = this.getCellRecord(cell);

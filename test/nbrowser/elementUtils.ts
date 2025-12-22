@@ -21,7 +21,7 @@ export const element = (testId: string) => ({
   },
   async present() {
     return await this.element().isPresent();
-  }
+  },
 });
 
 export const label = (testId: string) => ({
@@ -43,6 +43,6 @@ export const option = (testId: string) => ({
   ...button(testId),
   async checked() {
     return 'true' === await this.element().findClosest("label").find("input[type='checkbox']").getAttribute('checked');
-  }
+  },
 });
 

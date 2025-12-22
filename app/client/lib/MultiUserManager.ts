@@ -31,7 +31,7 @@ export function buildMultiUserManagerModal(
   const isValidObs = Observable.create(owner, true);
 
   const enableAdd: Computed<boolean> = computed(
-    use => Boolean(use(emailListObs) && use(rolesObs) && use(isValidObs))
+    use => Boolean(use(emailListObs) && use(rolesObs) && use(isValidObs)),
   );
 
   const save = (ctl: IModalControl) => {
@@ -59,8 +59,8 @@ export function buildMultiUserManagerModal(
         dom.maybe(use => !use(isValidObs), () => cssErrorMessage('At least one email is invalid')),
         cssInheritRoles(
           dom('span', 'Access: '),
-          buildRolesSelect(rolesObs, model)
-        )
+          buildRolesSelect(rolesObs, model),
+        ),
       ),
     ),
     cssModalButtons(
@@ -68,14 +68,14 @@ export function buildMultiUserManagerModal(
       bigPrimaryButton('Confirm',
         dom.boolAttr('disabled', use => !use(enableAdd)),
         dom.on('click', () => save(ctl)),
-        testId('um-confirm')
+        testId('um-confirm'),
       ),
       bigBasicButton(
         'Cancel',
         dom.on('click', () => ctl.close()),
-        testId('um-cancel')
+        testId('um-cancel'),
       ),
-    )
+    ),
   ]);
 }
 
@@ -89,9 +89,9 @@ function buildRolesSelect(
     menu(() => [
       dom.forEach(allRoles, _role =>
         menuItem(() => roleSelectedObs.set(_role.value), _role.label,
-          testId(`um-role-option`)
-        )
-      )
+          testId(`um-role-option`),
+        ),
+      ),
     ]),
     dom.text((use) => {
       // Get the label of the active role.
@@ -99,7 +99,7 @@ function buildRolesSelect(
       return activeRole ? activeRole.label : "";
     }),
     cssCollapseIcon('Collapse'),
-    testId('um-role-select')
+    testId('um-role-select'),
   );
 }
 

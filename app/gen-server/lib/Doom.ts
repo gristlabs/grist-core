@@ -42,8 +42,8 @@ export class Doom {
     const scope: Scope = {
       userId: this._dbManager.getPreviewerUserId(),
       specialPermit: {
-        org: orgKey
-      }
+        org: orgKey,
+      },
     };
     await this._dbManager.deleteOrg(scope, orgKey);
   }
@@ -61,8 +61,8 @@ export class Doom {
         const result = await fetch(docApiUrl, {
           method: 'DELETE',
           headers: {
-            Permit: permitKey
-          }
+            Permit: permitKey,
+          },
         });
         if (result.status !== 200) {
           const info = await result.json().catch(e => null);
@@ -81,8 +81,8 @@ export class Doom {
     const scope: Scope = {
       userId: this._dbManager.getPreviewerUserId(),
       specialPermit: {
-        workspaceId: workspace.id
-      }
+        workspaceId: workspace.id,
+      },
     };
     await this._dbManager.deleteWorkspace(scope, workspaceId);
   }
@@ -193,8 +193,8 @@ export class Doom {
       const result = await fetch(url, {
         method: 'POST',
         headers: {
-          Permit: permitKey
-        }
+          Permit: permitKey,
+        },
       });
       if (result.status !== 200) {
         // There should be a better way to just pass on the error?

@@ -8,7 +8,7 @@ export class FirstLogin1569593726320 implements MigrationInterface {
     await queryRunner.addColumn('users', new TableColumn({
       name: 'first_login_at',
       type: datetime,
-      isNullable: true
+      isNullable: true,
     }));
   }
 

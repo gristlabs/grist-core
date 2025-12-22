@@ -160,7 +160,7 @@ export class UrlStateImpl {
         welcomeReload ||
         linkKeysReload ||
         loginReload ||
-        adminPanelReload
+        adminPanelReload,
     );
   }
 

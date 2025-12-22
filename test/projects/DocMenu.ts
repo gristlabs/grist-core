@@ -25,8 +25,8 @@ describe('DocMenu', function() {
     if (workspace) {
       const results = await Promise.all(
         docs.map(
-          async d => (await d.find('.test-dm-doc-workspace').getText()) === "Workspace\n" + workspace
-        )
+          async d => (await d.find('.test-dm-doc-workspace').getText()) === "Workspace\n" + workspace,
+        ),
       );
       docs = docs.filter((_, index) => results[index]);
     }
@@ -36,7 +36,7 @@ describe('DocMenu', function() {
   const getDocNames = stackWrapFunc(async function(workspace?: string) {
     const docs = await getDocs(workspace);
     const result = await Promise.all(
-      docs.map(d => d.find('.test-dm-doc-name').getText())
+      docs.map(d => d.find('.test-dm-doc-name').getText()),
     );
     return result;
   });
@@ -44,18 +44,18 @@ describe('DocMenu', function() {
   const getDocTimes = stackWrapFunc(async function(workspace?: string) {
     const docs = await getDocs(workspace);
     return await Promise.all(
-      docs.map(d => d.find('.test-dm-doc-edited-at').getText())
+      docs.map(d => d.find('.test-dm-doc-edited-at').getText()),
     );
   });
 
   const getPinnedDocNames = stackWrapFunc(async function(workspace?: string) {
     let docs = await getDocs(workspace);
     const results = await Promise.all(
-      docs.map(async d => await d.find('.test-dm-doc-pinned').isPresent())
+      docs.map(async d => await d.find('.test-dm-doc-pinned').isPresent()),
     );
     docs = docs.filter((_, index) => results[index]);
     return await Promise.all(
-      docs.map(d => d.find('.test-dm-doc-name').getText())
+      docs.map(d => d.find('.test-dm-doc-name').getText()),
     );
   });
 
@@ -76,7 +76,7 @@ describe('DocMenu', function() {
     await gu.selectTab('Pinned');
     assert.deepEqual(
       await getDocNames(),
-      ['Doc22']
+      ['Doc22'],
     );
 
     await testName('A', 'A');
@@ -221,7 +221,7 @@ describe('DocMenu', function() {
         'Doc22',
         'Doc23',
         'One doc to rule them all with a long name and a strong fist',
-      ]
+      ],
     );
 
     // Assert that clicking a workspace in the sidepane filters the doclist and the filtered
@@ -258,7 +258,7 @@ describe('DocMenu', function() {
         'Doc22',
         'Doc23',
         'One doc to rule them all with a long name and a strong fist',
-      ]
+      ],
     );
   });
 
@@ -271,7 +271,7 @@ describe('DocMenu', function() {
     // Assert that the added doc modified time is as expected
     assert.deepEqual(
       await getDocTimes('August'),
-      ['Edited a few seconds ago', 'Edited a few seconds ago', 'Edited a few seconds ago']
+      ['Edited a few seconds ago', 'Edited a few seconds ago', 'Edited a few seconds ago'],
     );
 
     // Rename the doc.
@@ -426,7 +426,7 @@ describe('DocMenu', function() {
     // Initially 3 docs are pinned.
     assert.deepEqual(
       await getPinnedDocNames(),
-      ['One doc to rule them all with a long name and a strong fist', 'Doc22', 'Doc13']
+      ['One doc to rule them all with a long name and a strong fist', 'Doc22', 'Doc13'],
     );
 
     // Switch to each workspace and ensure that only that workspace's docs are shown pinned.
@@ -554,7 +554,7 @@ async function checkInitials(initials: string, name: string) {
     assert.equal(
       await driver.find('.test-dm-doc-icon-preview').getText(),
       initials,
-      `Expected "${initials}" for "${name}"`
+      `Expected "${initials}" for "${name}"`,
     );
   }, 100);
 }

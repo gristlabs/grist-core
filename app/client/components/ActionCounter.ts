@@ -54,7 +54,7 @@ export class ActionCounter extends dispose.Disposable {
     this.isUndoBlocked = Computed.create(
       this,
       this.countFromMark,
-      (_, count) => this._actionNumMark ? count <= 0 : false
+      (_, count) => this._actionNumMark ? count <= 0 : false,
     );
     this._counted = new Set();
     this._actionNumList = [];

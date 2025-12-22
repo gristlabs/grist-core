@@ -10,7 +10,7 @@ import {IncomingMessage} from 'http';
 export type RequestOrSession = RequestWithLogin | OptDocSession | null;
 
 export function isRequest(
-  requestOrSession: RequestOrSession
+  requestOrSession: RequestOrSession,
 ): requestOrSession is RequestWithLogin {
   return Boolean(requestOrSession && 'get' in requestOrSession);
 }

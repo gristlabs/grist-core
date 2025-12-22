@@ -28,7 +28,7 @@ export interface IAuditLogger {
 }
 
 export interface AuditEventProperties<
-  Action extends AuditEventAction = AuditEventAction
+  Action extends AuditEventAction = AuditEventAction,
 > {
   /**
    * The action that was performed.

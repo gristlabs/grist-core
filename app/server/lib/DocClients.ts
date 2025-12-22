@@ -37,7 +37,7 @@ export class DocClients extends EventEmitter {
   private _log = new LogMethods('DocClients ', (s: DocSession|null) => this.activeDoc.getLogMeta(s));
 
   constructor(
-    public readonly activeDoc: ActiveDoc
+    public readonly activeDoc: ActiveDoc,
   ) {
     super();
   }
@@ -120,7 +120,7 @@ export class DocClients extends EventEmitter {
         const fromSelf = (target.client === client);
         const isUnresponsive = await timeoutReached(
           Deps.BROADCAST_TIMEOUT_MS,
-          target.client.sendMessageOrInterrupt({...msg, docFD: target.fd, fromSelf} as CommMessage)
+          target.client.sendMessageOrInterrupt({...msg, docFD: target.fd, fromSelf} as CommMessage),
         );
         // If client isn't responsive in a reasonable length of time, then don't
         // keep waiting for it. BUT then the client state could get weird if it
@@ -153,7 +153,7 @@ export class DocClients extends EventEmitter {
    */
   private async _prepareMessage(
     target: DocSession, type: CommDocEventType, messageData: any,
-    filterMessage?: (docSession: DocSession, messageData: any) => Promise<any>
+    filterMessage?: (docSession: DocSession, messageData: any) => Promise<any>,
   ): Promise<{type: CommDocEventType, data: unknown}|undefined> {
     try {
       // Make sure user still has view access.

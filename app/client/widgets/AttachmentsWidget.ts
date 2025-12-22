@@ -63,7 +63,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
     const tableId = this.field.column().table().tableId();
 
     const isUploadingObs = Computed.create(null, this._uploadingStatesObs, (use, states) =>
-      states[row.getRowId()] || false
+      states[row.getRowId()] || false,
     );
 
     return cssAttachmentWidget(
@@ -92,8 +92,8 @@ export class AttachmentsWidget extends NewAbstractWidget {
         cssSpinner(
           cssSpinner.cls('-has-attachments', use => use(values).length > 0),
           testId('attachment-spinner'),
-          {title: t('Uploading, please wait…')}
-        )
+          {title: t('Uploading, please wait…')},
+        ),
       ),
       dom.on('drop', ev => this._uploadAndSave(row, cellValue, ev.dataTransfer!.files)),
       testId('attachment-widget'),
@@ -110,7 +110,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
         type: 'range',
         min: '16',
         max: '96',
-        value: '36'
+        value: '36',
       },
       testId('pw-thumbnail-size'),
       // When multiple columns are selected, we can only edit height when all
@@ -123,7 +123,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
     });
     return cssRow(
       cssSizeLabel('Size'),
-      inputRange
+      inputRange,
     );
   }
 
@@ -146,7 +146,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       dom.style('width', use => `${parseInt(use(this._height), 10) * ratio}px`),
       // TODO: Update to legitimately determine whether a file preview exists.
       hasPreview ? dom('img', {style: 'height: 100%; min-width: 100%; vertical-align: top;'},
-        dom.attr('src', this._getUrl(value, cell))
+        dom.attr('src', this._getUrl(value, cell)),
       ) : renderFileType(filename, fileIdent, this._height),
       // Open editor as if with input, using it to tell it which of the attachments to show. We
       // pass in a 1-based index. Hitting a key opens the cell, and this approach allows an
@@ -163,7 +163,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       ...docComm.getUrlParams(),
       ...cell,
       attId,
-      name: this._attachmentsTable.getValue(attId, 'fileName')
+      name: this._attachmentsTable.getValue(attId, 'fileName'),
     });
   }
 
@@ -233,7 +233,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
           if (progress === 0) {
             this._setUploadingState(rowId, true);
           }
-        }
+        },
       );
       this._setUploadingState(rowId, false);
       return this._save(rowId, value, uploadResult);
@@ -245,7 +245,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
   }
 
   private async _save(rowId: UIRowId, value: KoSaveableObservable<CellValue>,
-        uploadResult: UploadResult|null
+        uploadResult: UploadResult|null,
   ): Promise<void> {
     if (!uploadResult) { return; }
 

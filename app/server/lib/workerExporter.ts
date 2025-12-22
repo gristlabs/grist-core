@@ -13,7 +13,7 @@ import {MessagePort, threadId} from 'worker_threads';
 export const makeXLSXFromOptions = handleExport(doMakeXLSXFromOptions);
 
 function handleExport<T extends any[]>(
-  make: (a: ActiveDocSource, testDates: boolean, output: Stream, ...args: T) => Promise<void|ExcelBuffer>
+  make: (a: ActiveDocSource, testDates: boolean, output: Stream, ...args: T) => Promise<void|ExcelBuffer>,
 ) {
   return async function({port, testDates, args}: {port: MessagePort, testDates: boolean, args: T}) {
     try {
@@ -78,7 +78,7 @@ export async function doMakeXLSXFromOptions(
   activeDocSource: ActiveDocSource,
   testDates: boolean,
   stream: Stream,
-  options: ExportParameters
+  options: ExportParameters,
 ) {
   const {tableId, viewSectionId, filters, sortOrder, linkingFilter, header} = options;
   if (viewSectionId) {
@@ -108,7 +108,7 @@ export async function doMakeXLSXFromOptions(
  * @param {string} options.header (optional) - which field of the column to use as header
  */
 async function doMakeXLSXFromViewSection({
-  activeDocSource, testDates, stream, viewSectionId, sortOrder, filters, linkingFilter, header
+  activeDocSource, testDates, stream, viewSectionId, sortOrder, filters, linkingFilter, header,
 }: {
   activeDocSource: ActiveDocSource,
   testDates: boolean,
@@ -198,26 +198,26 @@ function convertToExcel(stream: Stream|undefined, testDates: boolean, options: {
   // not be visible
   const borderStyle: Border = {
     color: { argb: 'FFE2E2E3' }, // dark gray - default border color for gdrive
-    style: 'thin'
+    style: 'thin',
   };
   const borders = {
     left: borderStyle,
     right: borderStyle,
     top: borderStyle,
-    bottom: borderStyle
+    bottom: borderStyle,
   };
   const headerBackground: Fill = {
     type: 'pattern',
     pattern: 'solid',
-    fgColor: { argb: 'FFEEEEEE' } // gray
+    fgColor: { argb: 'FFEEEEEE' }, // gray
   };
   const headerFontColor = {
     color: {
-      argb: 'FF000000' // black
-    }
+      argb: 'FF000000', // black
+    },
   };
   const centerAlignment: Partial<Alignment> = {
-    horizontal: 'center'
+    horizontal: 'center',
   };
   function exportTable(table: ExportData) {
     const { columns, rowIds, access, tableName } = table;

@@ -90,7 +90,7 @@ const _admins: Probe = {
       const users = await server.getInstallAdmin().getAdminUsers(req);
       return {
         status: 'success',
-        details: {users}
+        details: {users},
       };
     }
  catch (e) {
@@ -99,7 +99,7 @@ const _admins: Probe = {
         details: {error: String(e)},
       };
     }
-  }
+  },
 };
 
 const _homeUrlReachableProbe: Probe = {
@@ -130,7 +130,7 @@ const _homeUrlReachableProbe: Probe = {
         status: 'fault',
       };
     }
-  }
+  },
 };
 
 const _webSocketsProbe: Probe = {
@@ -161,7 +161,7 @@ const _webSocketsProbe: Probe = {
         ws.close();
       });
     });
-  }
+  },
 };
 
 const _statusCheckProbe: Probe = {
@@ -337,7 +337,7 @@ const _sessionSecretProbe: Probe = {
       status: usingDefaultSessionSecret ? 'warning' : 'success',
       details: {
         "GRIST_SESSION_SECRET": process.env.GRIST_SESSION_SECRET ? "set" : "not set",
-      }
+      },
     };
   },
 };

@@ -100,19 +100,19 @@ describe('ACLRulesReader', function() {
         // Check output of valid resource ids.
         assert.deepEqual(
           new ACLRulesReader(docData, options).getResourceById(1),
-          {id: 1, tableId: '', colIds: ''}
+          {id: 1, tableId: '', colIds: ''},
         );
         assert.deepEqual(
           new ACLRulesReader(docData, options).getResourceById(2),
-          {id: 2, tableId: 'Private', colIds: '*'}
+          {id: 2, tableId: 'Private', colIds: '*'},
         );
         assert.deepEqual(
           new ACLRulesReader(docData, options).getResourceById(3),
-          {id: 3, tableId: '*', colIds: '*'}
+          {id: 3, tableId: '*', colIds: '*'},
         );
         assert.deepEqual(
           new ACLRulesReader(docData, options).getResourceById(4),
-          {id: 4, tableId: 'PartialPrivate', colIds: '*'}
+          {id: 4, tableId: 'PartialPrivate', colIds: '*'},
         );
 
         // Check output of non-existent resource ids.
@@ -132,7 +132,7 @@ describe('ACLRulesReader', function() {
             {tableId: 'Private', colIds: '*'},
           ],
         ]),
-        /Duplicate ACLResource 5: an ACLResource with the same tableId and colIds already exists/
+        /Duplicate ACLResource 5: an ACLResource with the same tableId and colIds already exists/,
       );
     });
   });
@@ -147,7 +147,7 @@ describe('ACLRulesReader', function() {
       await activeDoc.applyUserActions(fakeSession, [
         ['AddRecord', '_grist_Shares', null, {
           linkId: 'x',
-          options: '{"publish": true}'
+          options: '{"publish": true}',
         }],
       ]);
     });
@@ -365,19 +365,19 @@ describe('ACLRulesReader', function() {
       // Check output of valid resource ids.
       assert.deepEqual(
         new ACLRulesReader(docData).getResourceById(1),
-        {id: 1, tableId: '', colIds: ''}
+        {id: 1, tableId: '', colIds: ''},
       );
       assert.deepEqual(
         new ACLRulesReader(docData).getResourceById(2),
-        {id: 2, tableId: 'Films', colIds: 'Title,Poster,PosterDup'}
+        {id: 2, tableId: 'Films', colIds: 'Title,Poster,PosterDup'},
       );
       assert.deepEqual(
         new ACLRulesReader(docData).getResourceById(3),
-        {id: 3, tableId: 'Films', colIds: '*'}
+        {id: 3, tableId: 'Films', colIds: '*'},
       );
       assert.deepEqual(
         new ACLRulesReader(docData).getResourceById(4),
-        {id: 4, tableId: '*', colIds: '*'}
+        {id: 4, tableId: '*', colIds: '*'},
       );
 
       // Check output of non-existent resource ids.
@@ -388,36 +388,36 @@ describe('ACLRulesReader', function() {
       // Check output of valid resource ids (with share rules).
       assert.deepEqual(
         new ACLRulesReader(docData, {addShareRules: true}).getResourceById(1),
-        {id: 1, tableId: '', colIds: ''}
+        {id: 1, tableId: '', colIds: ''},
       );
       assert.isUndefined(new ACLRulesReader(docData, {addShareRules: true}).getResourceById(2));
       assert.deepEqual(
         new ACLRulesReader(docData, {addShareRules: true}).getResourceById(3),
-        {id: 3, tableId: 'Films', colIds: '*'}
+        {id: 3, tableId: 'Films', colIds: '*'},
       );
       assert.deepEqual(
         new ACLRulesReader(docData, {addShareRules: true}).getResourceById(4),
-        {id: 4, tableId: '*', colIds: '*'}
+        {id: 4, tableId: '*', colIds: '*'},
       );
       assert.deepEqual(
         new ACLRulesReader(docData, {addShareRules: true}).getResourceById(-1),
-        {id: -1, tableId: 'Friends', colIds: '*'}
+        {id: -1, tableId: 'Friends', colIds: '*'},
       );
       assert.deepEqual(
         new ACLRulesReader(docData, {addShareRules: true}).getResourceById(-2),
-        {id: -2, tableId: 'Films', colIds: 'Title'}
+        {id: -2, tableId: 'Films', colIds: 'Title'},
       );
       assert.deepEqual(
         new ACLRulesReader(docData, {addShareRules: true}).getResourceById(-3),
-        {id: -3, tableId: 'Films', colIds: 'Poster'}
+        {id: -3, tableId: 'Films', colIds: 'Poster'},
       );
       assert.deepEqual(
         new ACLRulesReader(docData, {addShareRules: true}).getResourceById(-4),
-        {id: -4, tableId: 'Films', colIds: 'PosterDup'}
+        {id: -4, tableId: 'Films', colIds: 'PosterDup'},
       );
       assert.deepEqual(
         new ACLRulesReader(docData, {addShareRules: true}).getResourceById(-5),
-        {id: -5, tableId: 'Performances', colIds: '*'}
+        {id: -5, tableId: 'Performances', colIds: '*'},
       );
 
       // Check output of non-existent resource ids (with share rules).
@@ -435,7 +435,7 @@ interface ACLResourceAndRules {
 
 function assertResourcesAndRules(
   aclRulesReader: ACLRulesReader,
-  expected: ACLResourceAndRules[]
+  expected: ACLResourceAndRules[],
 ) {
   const actual: ACLResourceAndRules[] = [...aclRulesReader.entries()].map(([resourceId, rules]) => {
     return {

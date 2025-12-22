@@ -36,7 +36,7 @@ const markedAsync = new AsyncCreate<Marked>(async () => {
     markedHighlight({
       highlight: code => highlight(code),
     }),
-    markedLinkifyIt()
+    markedLinkifyIt(),
   );
 });
 
@@ -50,7 +50,7 @@ interface RenderOptions {
 let markedResolved: Marked|undefined;
 function domAsyncOrDirect(
   render: (markedObj: Marked) => DomContents,
-  options: RenderOptions = {}
+  options: RenderOptions = {},
 ) {
   return markedResolved ?
     render(markedResolved) :
@@ -71,7 +71,7 @@ function domAsyncOrDirect(
  */
 export function renderCellMarkdown(
   markdownValue: string,
-  options: RenderOptions = {}
+  options: RenderOptions = {},
 ): DomContents {
   return domAsyncOrDirect((markedObj: Marked) => {
     const source = markedObj.parse(markdownValue, {

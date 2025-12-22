@@ -1,6 +1,6 @@
 import {
   ExternalStorageAttachmentStore,
-  ExternalStorageSupportingAttachments, loadAttachmentFileIntoMemory
+  ExternalStorageSupportingAttachments, loadAttachmentFileIntoMemory,
 } from 'app/server/lib/AttachmentStore';
 
 import {assert} from 'chai';
@@ -40,7 +40,7 @@ describe('ExternalStorageAttachmentStore', () => {
           metadata: { size: 0, snapshotId: "" },
           contentStream: stream.Readable.from(testFileBuffer),
         };
-      })
+      }),
     };
 
     // This line will error if downloadStream's return type changes in a way that breaks fakeStorage.

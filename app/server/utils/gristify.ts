@@ -55,7 +55,7 @@ export class Gristifier {
     // tables.
     const docManager = new DocManager(
       new TrivialDocStorageManager(), null, null,
-      new AttachmentStoreProvider([], ""), createDummyGristServer()
+      new AttachmentStoreProvider([], ""), createDummyGristServer(),
     );
     const activeDoc = new ActiveDoc(docManager, this._filename);
     const docSession = makeExceptionalDocSession('system');
@@ -101,7 +101,7 @@ export class Gristifier {
     const db = await SQLiteDB.openDBRaw(this._filename);
     const tables = await db.all(
       `SELECT name FROM sqlite_master WHERE type='table' ` +
-        `  AND name LIKE '_grist%'`
+        `  AND name LIKE '_grist%'`,
     );
     for (const table of tables) {
       console.log(`Removing ${table.name}`);
@@ -109,7 +109,7 @@ export class Gristifier {
     }
     const views = await db.all(
       `SELECT name FROM sqlite_master WHERE type='view' ` +
-        `  AND name LIKE 'GristView%'`
+        `  AND name LIKE 'GristView%'`,
     );
     for (const view of views) {
       console.log(`Removing ${view.name}`);
@@ -213,7 +213,7 @@ export class Gristifier {
         `UPDATE ${quoteIdent(tableId)} SET ` +
         `${quoteIdent(col)} = NEW.${quote(col)} ` +
         ` WHERE OLD.${quote(col)} <> NEW.${quote(col)} ` +
-        ` AND ${quoteIdent(tableId)}.ROWID = NEW.ROWID`
+        ` AND ${quoteIdent(tableId)}.ROWID = NEW.ROWID`,
               ).join('; ') +
       `; END`;
     await activeDoc.docStorage.exec(updateTrigger);

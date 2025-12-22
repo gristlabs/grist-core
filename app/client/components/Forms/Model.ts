@@ -403,7 +403,7 @@ export class LayoutModel extends BoxModel {
     box: FormLayoutNode,
     public parent: BoxModel | null,
     public _save: (clb?: Callback) => Promise<void>,
-    public view: FormView
+    public view: FormView,
   ) {
     super(box, parent, view);
     this.disableDeleteSection = Computed.create(this, (use) => {

@@ -112,7 +112,7 @@ export class FormulaAssistant extends Disposable {
       activateAssistant: () => {
         this._expandChatPanel();
         setTimeout(() => { this._chat.focus(); }, 0);
-      }
+      },
     }, this, this._assistantEnabled));
 
     // Unfortunately we need to observe the size of the formula editor dom and resize it accordingly.
@@ -142,7 +142,7 @@ export class FormulaAssistant extends Disposable {
  else {
           return false;
         }
-      }
+      },
     });
 
     this._triggerFinalize = bundleInfo.triggerFinalize;
@@ -336,7 +336,7 @@ export class FormulaAssistant extends Disposable {
     const formula = this._options.editor.getCellValue();
     const isFormula = true;
     await this._options.gristDoc.docData.sendAction(
-      ['ModifyColumn', tableId, this._transformColId, {formula, isFormula}
+      ['ModifyColumn', tableId, this._transformColId, {formula, isFormula},
     ]);
     if (!this.isDisposed()) {
       this._options.editor.focus();
@@ -413,7 +413,7 @@ export class FormulaAssistant extends Disposable {
         }
       }
       await docData.sendActions([
-        ['RemoveColumn', tableId, this._transformColId]
+        ['RemoveColumn', tableId, this._transformColId],
       ]);
     }
  finally {
@@ -473,7 +473,7 @@ export class FormulaAssistant extends Disposable {
     const start = this._domElement?.clientHeight;
     const total = this._options.editor.getDom().clientHeight;
     return {
-      start, total
+      start, total,
     };
   }
 
@@ -503,7 +503,7 @@ export class FormulaAssistant extends Disposable {
       this._expandChatPanel();
       const calculatedHeight = Math.max(
         MIN_CHAT_PANEL_BODY_HEIGHT_PX,
-        Math.min(total - MIN_FORMULA_EDITOR_HEIGHT_PX, newChatPanelBodyHeight)
+        Math.min(total - MIN_FORMULA_EDITOR_HEIGHT_PX, newChatPanelBodyHeight),
       );
       this._chatPanelBody.style.height = `${calculatedHeight}px`;
     }
@@ -558,21 +558,21 @@ function buildIntroMessage(...args: DomElementArg[]) {
     dom("div",
       cssAiMessageParagraph(t(`Hi, I'm the Grist Formula AI Assistant.`)),
       cssAiMessageParagraph(
-        t(`There are some things you should know when working with me:`)
+        t(`There are some things you should know when working with me:`),
       ),
       cssAiMessageParagraph(
         cssAiMessageBullet(
           cssTickIcon("Tick"),
           t(
-            "I can only help with formulas. I cannot build tables, columns, and views, or write access rules."
-          )
+            "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.",
+          ),
         ),
         cssAiMessageBullet(
           cssTickIcon("Tick"),
           t(
             'Talk to me like a person. No need to specify tables and column names. For example, you can ask \
-"Please calculate the total invoice amount."'
-          )
+"Please calculate the total invoice amount."',
+          ),
         ),
         getGristConfig().assistant?.provider === "OpenAI"
           ? cssAiMessageBullet(
@@ -584,17 +584,17 @@ are sent to OpenAI. {{learnMore}}.",
                   {
                     codeView: cssLink(
                       t("Code view"),
-                      urlState().setLinkUrl({ docPage: "code" })
+                      urlState().setLinkUrl({ docPage: "code" }),
                     ),
                     learnMore: cssLink(t("Learn more"), {
                       href: commonUrls.helpFormulaAssistantDataUse,
                       target: "_blank",
                     }),
-                  }
-                )
-              )
+                  },
+                ),
+              ),
             )
-          : null
+          : null,
       ),
       cssAiMessageParagraph(
         t(
@@ -613,9 +613,9 @@ or visit our {{community}} for more help.",
               href: commonUrls.community,
               target: "_blank",
             }),
-          }
-        )
-      )
+          },
+        ),
+      ),
     ),
     ...args,
   );

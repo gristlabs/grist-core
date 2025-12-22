@@ -205,7 +205,7 @@ export const SYSTEM_ACTIONS = new Set([
   // Part of the formula calculation process for formulas that use the `REQUEST` function.
   'RespondToRequests',
   // Performed at shutdown to clean up temporary helper columns and tables.
-  'RemoveStaleObjects'
+  'RemoveStaleObjects',
 ]);
 
 export function getNumRows(action: DocAction): number {
@@ -312,7 +312,7 @@ export function* getSingleAction(a: DataAction): Iterable<SingleDataAction|Repla
     const [actionName, tableId, rowIds, colValues] = a;
     for (let i = 0; i < rowIds.length; i++) {
       yield [actionName, tableId, [rowIds[i]],
-        Object.fromEntries(Object.entries(colValues).map(([colId, values]) => [colId, [values[i]]]))
+        Object.fromEntries(Object.entries(colValues).map(([colId, values]) => [colId, [values[i]]])),
       ];
     }
   }

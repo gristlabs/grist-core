@@ -7,7 +7,7 @@ import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {
   AttachmentStoreProvider,
-  IAttachmentStoreProvider
+  IAttachmentStoreProvider,
 } from 'app/server/lib/AttachmentStoreProvider';
 import {
   BackupEvent,
@@ -22,7 +22,7 @@ import {
   DELETED_TOKEN,
   ExternalStorage, ExternalStorageCreator,
   ExternalStorageSettings,
-  wrapWithKeyMappedStorage
+  wrapWithKeyMappedStorage,
 } from 'app/server/lib/ExternalStorage';
 import { createDummyGristServer, GristServer } from 'app/server/lib/GristServer';
 import {
@@ -191,7 +191,7 @@ class CachedExternalStorage implements ExternalStorage {
       return freezeError(
         this._ext.download(key, altFname, snapshotId).then(async (v) => {
           return [v, await fse.readFile(altFname)] as [string, Buffer];
-        })
+        }),
       );
     });
     try {
@@ -335,7 +335,7 @@ class TestStore {
       ...createDummyGristServer(),
       getDocManager() {
         return testStore.docManager;
-      }
+      },
     };
 
     const storageManager = new HostedStorageManager(gristServer,
@@ -650,7 +650,7 @@ describe('HostedStorageManager', function() {
             store.storageManager.prepareLocalDoc('Hello'),
             store.storageManager.prepareLocalDoc('Hello'),
             store.storageManager.prepareLocalDoc('Hello'),
-            store.storageManager.prepareLocalDoc('Hello')
+            store.storageManager.prepareLocalDoc('Hello'),
           ]);
           await assert.isRejected(preps, /in parallel/);
         });
@@ -885,7 +885,7 @@ describe('HostedStorageManager', function() {
           // Check that the snapshot was migrated to the latest schema version.
           assert.equal(
             SCHEMA_VERSION,
-            (await doc.docStorage.get("select schemaVersion from _grist_DocInfo where id = 1"))!.schemaVersion
+            (await doc.docStorage.get("select schemaVersion from _grist_DocInfo where id = 1"))!.schemaVersion,
           );
 
           // Check that the document is actually a snapshot.
@@ -1034,7 +1034,7 @@ describe('HostedStorageManager', function() {
 
       const gristServer: GristServer = {
         ...createDummyGristServer(),
-        getDocManager() { return docManager; }
+        getDocManager() { return docManager; },
       };
 
       defaultParams = [
@@ -1075,7 +1075,7 @@ describe('HostedStorageManager', function() {
         tmpDir,
         workerId,
         docWorkerMap,
-        externalStorageCreate
+        externalStorageCreate,
       );
 
       await testStore.run(async () => {
@@ -1121,7 +1121,7 @@ describe('HostedStorageManager', function() {
         tmpDir,
         workerId,
         docWorkerMap,
-        externalStorageCreate
+        externalStorageCreate,
       );
 
       await testStore.run(async () => {
@@ -1143,7 +1143,7 @@ describe('HostedStorageManager', function() {
         tmpDir,
         workerId,
         docWorkerMap,
-        externalStorageCreate
+        externalStorageCreate,
       );
 
       let docName: string = "";
@@ -1279,7 +1279,7 @@ describe('HostedStorageManager', function() {
         }
         let backupError: Error|undefined;
         const runBackup = (db: SQLiteDB|undefined) => retryOnClose(
-          db, err => backupError = err, () => backupSqliteDatabase(db, src, dest, progress)
+          db, err => backupError = err, () => backupSqliteDatabase(db, src, dest, progress),
         );
         const backup =
             (mode === 'with-doc' || mode === 'with-closing-doc') ?

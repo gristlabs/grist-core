@@ -68,7 +68,7 @@ export class TestServer {
   public async getCookieLogin(
     org: string,
     profile: UserProfile|null,
-    options: {clearCache?: boolean, sessionProps?: Partial<SessionUserObj>} = {}
+    options: {clearCache?: boolean, sessionProps?: Partial<SessionUserObj>} = {},
   ) {
     return this.defaultSession.getCookieLogin(org, profile, options);
   }
@@ -78,7 +78,7 @@ export class TestServer {
     const ents = this.dbManager.connection.createEntityManager();
     const org = await ents.findOne(Organization, {
       relations: ['billingAccount'],
-      where: {domain: orgDomain}
+      where: {domain: orgDomain},
     });
     const user = await ents.findOne(User, {where: {name: userName}});
     const manager = new BillingAccountManager();
@@ -93,7 +93,7 @@ export class TestServer {
     if (!user) { throw new Error(`Could not find user ${userName}`); }
     const org = await Organization.findOne({
       relations: ['billingAccount', 'owner'],
-      where: {owner: {id: user.id}}  // for some reason finding by name generates wrong SQL.
+      where: {owner: {id: user.id}},  // for some reason finding by name generates wrong SQL.
     });
     if (!org) { throw new Error(`Could not find personal org of ${userName}`); }
     await setPlan(this.dbManager, org, productName);
@@ -254,7 +254,7 @@ export class TestSession {
   public async getCookieLogin(
     org: string,
     profile: UserProfile|null,
-    {clearCache, sessionProps}: {clearCache?: boolean, sessionProps?: Partial<SessionUserObj>} = {}
+    {clearCache, sessionProps}: {clearCache?: boolean, sessionProps?: Partial<SessionUserObj>} = {},
   ) {
     const resp = await axios.get(`${this.home.getOwnUrl()}/test/session`,
                                  {validateStatus: (s => s < 400), headers: this.headers});
@@ -271,7 +271,7 @@ export class TestSession {
       headers: {
         'Cookie': cookie,
         'X-Requested-With': 'XMLHttpRequest',
-      }
+      },
     };
   }
 
@@ -287,7 +287,7 @@ export class TestSession {
  else {
         const cookie = await this.getCookieLogin(orgDomain, {
           email: `${userName.toLowerCase()}@getgrist.com`,
-          name: userName
+          name: userName,
         });
         headers.Cookie = cookie.headers.Cookie;
       }

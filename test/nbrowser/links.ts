@@ -37,7 +37,7 @@ describe("links", function () {
 
   async function assertNotSameDocumentLink(
     value: string,
-    expected: RegExp | null
+    expected: RegExp | null,
   ) {
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.ARROW_UP));
     await gu.enterCell(value);
@@ -102,7 +102,7 @@ describe("links", function () {
         if (type !== "TextBox") {
           assert.equal(
             await gu.getCell(0, 1).find("a").getAttribute("href"),
-            "https://google.com/"
+            "https://google.com/",
           );
         }
  else {
@@ -117,7 +117,7 @@ describe("links", function () {
         if (type !== "TextBox") {
           assert.equal(
             await gu.getCell(0, 1).find("a").getAttribute("href"),
-            type === "Markdown" ? null : "about:blank"
+            type === "Markdown" ? null : "about:blank",
           );
         }
  else {
@@ -128,38 +128,38 @@ describe("links", function () {
       it("open without reloading if the URL is in the same document", async function () {
         await assertSameDocumentLink(
           makeLink(server.getUrl(session.orgDomain, `/${urlId}/links/p/acl`)),
-          new RegExp(`\\/${urlId}\\/links\\/p\\/acl$`)
+          new RegExp(`\\/${urlId}\\/links\\/p\\/acl$`),
         );
         await assertSameDocumentLink(
           makeLink(await gu.getAnchor()),
-          /links#a1\.s1\.r1\.c2$/
+          /links#a1\.s1\.r1\.c2$/,
         );
         return;
         await assertNotSameDocumentLink(
           makeLink(externalSite.getUrl().href),
-          /localtest.datagrist.com/
+          /localtest.datagrist.com/,
         );
         await assertNotSameDocumentLink(
           makeLink("about:blank"),
-          type !== "HyperLink" ? null : /about:blank$/
+          type !== "HyperLink" ? null : /about:blank$/,
         );
         await assertNotSameDocumentLink(
           makeLink("somewhere"),
-          type === "TextBox" ? null : /somewhere\/$/
+          type === "TextBox" ? null : /somewhere\/$/,
         );
         await assertNotSameDocumentLink(
           makeLink(server.getUrl(session.orgDomain, "/docs/7pRKGiJGiuvZ")),
-          /\/docs\/7pRKGiJGiuvZ$/
+          /\/docs\/7pRKGiJGiuvZ$/,
         );
         await assertNotSameDocumentLink(
           makeLink(
-            server.getUrl(session.orgDomain, `/${urlId}/links?Foo_=123`)
+            server.getUrl(session.orgDomain, `/${urlId}/links?Foo_=123`),
           ),
-          new RegExp(`\\/${urlId}\\/links\\?Foo_=123$`)
+          new RegExp(`\\/${urlId}\\/links\\?Foo_=123$`),
         );
         await assertNotSameDocumentLink(
           makeLink(server.getUrl(session.orgDomain, `/docs/${docId}`)),
-          new RegExp(`\\/docs\\/${docId}$`)
+          new RegExp(`\\/docs\\/${docId}$`),
         );
       });
 
@@ -170,47 +170,47 @@ describe("links", function () {
         await assertSameDocumentLink(
           makeLink(server.getUrl(session.orgDomain, `/${urlId}/links/p/acl`)),
           new RegExp(
-            `\\/${urlId}\\/links\\/p\\/acl\\?aclAsUser_=editor1%40example\\.com$`
-          )
+            `\\/${urlId}\\/links\\/p\\/acl\\?aclAsUser_=editor1%40example\\.com$`,
+          ),
         );
         await assertSameDocumentLink(
           makeLink(await gu.getAnchor()),
-          /links\?aclAsUser_=editor1%40example.com#a1\.s1\.r1\.c2$/
+          /links\?aclAsUser_=editor1%40example.com#a1\.s1\.r1\.c2$/,
         );
         await assertNotSameDocumentLink(
           makeLink(externalSite.getUrl().href),
-          /localtest.datagrist.com/
+          /localtest.datagrist.com/,
         );
         await assertNotSameDocumentLink(
           makeLink("about:blank"),
-          type !== "HyperLink" ? null : /about:blank$/
+          type !== "HyperLink" ? null : /about:blank$/,
         );
         await assertNotSameDocumentLink(
           makeLink("somewhere"),
-          type === "TextBox" ? null : /somewhere\/$/
+          type === "TextBox" ? null : /somewhere\/$/,
         );
         await assertNotSameDocumentLink(
           makeLink(server.getUrl(session.orgDomain, "/docs/7pRKGiJGiuvZ")),
-          /\/docs\/7pRKGiJGiuvZ$/
+          /\/docs\/7pRKGiJGiuvZ$/,
         );
         await assertNotSameDocumentLink(
           makeLink(
-            server.getUrl(session.orgDomain, `/${urlId}/links?Foo_=123`)
+            server.getUrl(session.orgDomain, `/${urlId}/links?Foo_=123`),
           ),
-          new RegExp(`\\/${urlId}\\/links\\?Foo_=123$`)
+          new RegExp(`\\/${urlId}\\/links\\?Foo_=123$`),
         );
         await assertNotSameDocumentLink(
           makeLink(server.getUrl(session.orgDomain, `/docs/${docId}`)),
-          new RegExp(`\\/docs\\/${docId}$`)
+          new RegExp(`\\/docs\\/${docId}$`),
         );
         await assertNotSameDocumentLink(
           makeLink(
             server.getUrl(
               session.orgDomain,
-              `/docs/${docId}/links?aclAsUser_=editor2@example.com`
-            )
+              `/docs/${docId}/links?aclAsUser_=editor2@example.com`,
+            ),
           ),
-          /links\?aclAsUser_=editor2@example.com$/
+          /links\?aclAsUser_=editor2@example.com$/,
         );
 
         await driver.find(".test-revert").click();

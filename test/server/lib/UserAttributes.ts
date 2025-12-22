@@ -28,7 +28,7 @@ describe('UserAttributes', function() {
     wsId = await owner.newWorkspace({name: 'ws'}, 'current');
     // Give the test user some access.
     await owner.updateWorkspacePermissions(wsId, {
-      users: { [testLowerEmail]: 'editors' }
+      users: { [testLowerEmail]: 'editors' },
     });
   });
 
@@ -63,12 +63,12 @@ describe('UserAttributes', function() {
     const projectsData = toTableDataAction('Projects', tableToColValues([
       ['id', 'Person', 'Email',             'TagByRef', 'TagByEmail', 'TagByEmailLower'],
       [1,    1,        'alice@example.com', 'ok',       'ok',         'ok'],
-      [2,    2,        testLowerEmail,      'ok',       'ok',         'ok',],
+      [2,    2,        testLowerEmail,      'ok',       'ok',         'ok'],
       [3,    2,        testDisplayEmail,    'ok',       'ok',         'ok'],
     ]));
     await owner.applyUserActions(docId, [
       ['AddTable', 'People', [
-        {id: 'EmailAddress'}
+        {id: 'EmailAddress'},
       ]],
       ['AddTable', 'Projects', [
         {id: 'Person', type: 'Ref:People'},
@@ -89,7 +89,7 @@ describe('UserAttributes', function() {
           tableId: 'People',
           charId: 'Email',
           lookupColId: 'EmailAddress',
-        })
+        }),
       }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -2,   // TagByRef
@@ -111,15 +111,15 @@ describe('UserAttributes', function() {
     const Cens: CellValue = [GristObjCode.Censored];
     const expectedFixApi = tableToColValues([
       ['id', 'Person', 'Email',               'TagByRef', 'TagByEmail', 'TagByEmailLower'],
-      [1,    1,        'alice@example.com',   Cens,       Cens,         Cens,],
-      [2,    2,        'charon@getgrist.com', 'ok',       'ok',         'ok',],
-      [3,    2,        'Charon@gEtGrIsT.com', 'ok',       Cens,         Cens,],
+      [1,    1,        'alice@example.com',   Cens,       Cens,         Cens],
+      [2,    2,        'charon@getgrist.com', 'ok',       'ok',         'ok'],
+      [3,    2,        'Charon@gEtGrIsT.com', 'ok',       Cens,         Cens],
     ]);
     const expectedFixWs = tableToColValues([
       ['id', 'Person', 'Email',               'TagByRef', 'TagByEmail', 'TagByEmailLower'],
-      [1,    1,        'alice@example.com',   Cens,       Cens,         Cens,],
-      [2,    2,        'charon@getgrist.com', 'ok',       Cens,         'ok',],
-      [3,    2,        'Charon@gEtGrIsT.com', 'ok',       'ok',         Cens,],
+      [1,    1,        'alice@example.com',   Cens,       Cens,         Cens],
+      [2,    2,        'charon@getgrist.com', 'ok',       Cens,         'ok'],
+      [3,    2,        'Charon@gEtGrIsT.com', 'ok',       'ok',         Cens],
     ]);
 
     async function testExpected() {

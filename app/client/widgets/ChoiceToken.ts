@@ -121,7 +121,7 @@ function findBestShade(color: string, shades: string[]) {
 
 export function getReadableColorsCombo(
   token: IChoiceTokenOptions,
-  defaultColors: {bg: string, fg: string} = {bg: DEFAULT_BACKGROUND_COLOR, fg: DEFAULT_COLOR}
+  defaultColors: {bg: string, fg: string} = {bg: DEFAULT_BACKGROUND_COLOR, fg: DEFAULT_COLOR},
 ) {
   const {fillColor, textColor} = token;
   const hasCustomBg = fillColor !== undefined;

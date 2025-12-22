@@ -125,8 +125,8 @@ describe('ReferenceColumns', function() {
           '[Blank]',
           'The Dark Knight',
           'Forrest Gump',
-          '[Blank]'
-        ]
+          '[Blank]',
+        ],
       );
 
       // Check that '[Blank]' is not shown when the reference editor is open.
@@ -145,8 +145,8 @@ describe('ReferenceColumns', function() {
           'Avatar',
           'The Dark Knight',
           'Forrest Gump',
-          'Alien'
-        ]
+          'Alien',
+        ],
       );
     });
   });

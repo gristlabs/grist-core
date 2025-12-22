@@ -127,7 +127,7 @@ export const PRODUCTS: IProduct[] = [
   // This is a product for a team site (used in tests mostly, as the real team plan is managed by Stripe).
   {
     name: TEAM_PLAN,
-    features: teamFeatures
+    features: teamFeatures,
   },
   // This is a product for a team site that is no longer in good standing, but isn't yet
   // to be removed / deactivated entirely.
@@ -143,7 +143,7 @@ export const PRODUCTS: IProduct[] = [
   {
     name: STUB_PLAN,
     features: {},
-  }
+  },
 ];
 
 
@@ -209,7 +209,7 @@ export class Product extends BaseEntity {
  * the are left unchanged.  A summary of affected products is returned.
  */
 export async function synchronizeProducts(
-  connection: Connection, apply: boolean, products = PRODUCTS
+  connection: Connection, apply: boolean, products = PRODUCTS,
 ): Promise<string[]> {
   try {
     await connection.query('select name, features, stripe_product_id from products limit 1');

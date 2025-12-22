@@ -82,7 +82,7 @@ export interface LinkNodeOperations {
 
 export function buildLinkNodes(
   sections: LinkNodeSection[],
-  operations: LinkNodeOperations
+  operations: LinkNodeOperations,
 ): LinkNode[] {
   const { getTableById, getSectionById } = operations;
   const nodes: LinkNode[] = [];
@@ -109,7 +109,7 @@ export function buildLinkNodes(
         isAncestorSameTableCursorLink.push(
           sourceColumn === 0 &&
             targetColumn === 0 &&
-            !sourceTable.isSummaryTable
+            !sourceTable.isSummaryTable,
         );
       }
 
@@ -140,7 +140,7 @@ export function buildLinkNodes(
           "linkSrcColRef",
           "linkTargetColRef",
           "allowSelectBy",
-          "selectedRowsActive"
+          "selectedRowsActive",
         ),
         tableRef: table.id,
         tableId: table.tableId,
@@ -154,7 +154,7 @@ export function buildLinkNodes(
 
 export function buildRefColLinkNodes(
   columns: LinkNodeColumn[],
-  parent: LinkNode
+  parent: LinkNode,
 ): LinkNode[] {
   const nodes: LinkNode[] = [];
   for (const column of columns) {
@@ -169,7 +169,7 @@ export function buildRefColLinkNodes(
           "colId",
           "label",
           "type",
-          "summarySourceCol"
+          "summarySourceCol",
         ),
         isAttachments: column.type == "Attachments",
       });

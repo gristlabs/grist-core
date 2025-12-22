@@ -211,7 +211,7 @@ export class FilesystemAttachmentStore implements IAttachmentStore {
       metadata: {
         size: stat.size,
       },
-      contentStream: fse.createReadStream(filePath)
+      contentStream: fse.createReadStream(filePath),
     };
   }
 

@@ -60,7 +60,7 @@ export class BaseAPI {
     this._headers = {
       'Content-Type': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
-      ...options.headers
+      ...options.headers,
     };
     // If we are in the client, and have a boot key query parameter,
     // pass it on as a header to make it available for authentication.

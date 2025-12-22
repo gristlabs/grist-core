@@ -6,7 +6,7 @@ import {
   closeAddColumnMenu,
   hasShortcuts,
   isDisplayed,
-  revertEach
+  revertEach,
 } from 'test/nbrowser/GridViewNewColumnMenuUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
@@ -39,7 +39,7 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
       const id = (x: string) => x.replace(/[^0-9a-zA-Z_]/g, '_');
       await gu.sendActions([
         ...allColumns.filter(colLabel => !['A', 'B', 'C'].includes(colLabel))
-          .map(c => ['RemoveColumn', 'Table1', id(c)] as any)
+          .map(c => ['RemoveColumn', 'Table1', id(c)] as any),
       ]);
     });
 
@@ -201,32 +201,32 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
       {
         type: 'Date', menu: 'Intervals -> Relative -> Days since', column: 'Integer',
         columnName: 'EventDate Days since',
-        formula: 'DATEDIF($EventDate, TODAY(), "D") if $EventDate else None'
+        formula: 'DATEDIF($EventDate, TODAY(), "D") if $EventDate else None',
       },
       {
         type: 'Date', menu: 'Intervals -> Relative -> Days until', column: 'Integer',
         columnName: 'EventDate Days until',
-        formula: 'DATEDIF(TODAY(), $EventDate, "D") if $EventDate else None'
+        formula: 'DATEDIF(TODAY(), $EventDate, "D") if $EventDate else None',
       },
       {
         type: 'Date', menu: 'Intervals -> Relative -> Months since', column: 'Integer',
         columnName: 'EventDate Months since',
-        formula: 'DATEDIF($EventDate, TODAY(), "M") if $EventDate else None'
+        formula: 'DATEDIF($EventDate, TODAY(), "M") if $EventDate else None',
       },
       {
         type: 'Date', menu: 'Intervals -> Relative -> Months until', column: 'Integer',
         columnName: 'EventDate Months until',
-        formula: 'DATEDIF(TODAY(), $EventDate, "M") if $EventDate else None'
+        formula: 'DATEDIF(TODAY(), $EventDate, "M") if $EventDate else None',
       },
       {
         type: 'Date', menu: 'Intervals -> Relative -> Years since', column: 'Integer',
         columnName: 'EventDate Years since',
-        formula: 'DATEDIF($EventDate, TODAY(), "Y") if $EventDate else None'
+        formula: 'DATEDIF($EventDate, TODAY(), "Y") if $EventDate else None',
       },
       {
         type: 'Date', menu: 'Intervals -> Relative -> Years until', column: 'Integer',
         columnName: 'EventDate Years until',
-        formula: 'DATEDIF(TODAY(), $EventDate, "Y") if $EventDate else None'
+        formula: 'DATEDIF(TODAY(), $EventDate, "Y") if $EventDate else None',
       },
       // Time section (only for DateTime columns)
       {
@@ -273,7 +273,7 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
           }],
           ['ModifyColumn', 'Table1', 'EventDate', {
             isFormula: false,
-          }]
+          }],
         ]);
 
         // Click add column.

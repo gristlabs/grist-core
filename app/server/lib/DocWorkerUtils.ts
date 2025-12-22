@@ -82,7 +82,7 @@ export async function getWorker(
   docWorkerMap: IDocWorkerMap,
   assignmentId: string,
   urlPath: string,
-  config: RequestInit = {}
+  config: RequestInit = {},
 ) {
   if (!useWorkerPool()) {
     // This should never happen. We are careful to not use getWorker
@@ -157,7 +157,7 @@ export type DocWorkerInfoOrSelfPrefix = {
 export async function getDocWorkerInfoOrSelfPrefix(
   docId: string,
   docWorkerMap?: IDocWorkerMap | null,
-  tag?: string
+  tag?: string,
 ): Promise<DocWorkerInfoOrSelfPrefix> {
   if (!useWorkerPool()) {
     // Let the client know there is not a separate pool of workers,

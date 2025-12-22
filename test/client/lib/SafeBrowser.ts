@@ -173,10 +173,10 @@ describe('SafeBrowser', function() {
   const localPlugin: LocalPlugin = {
     manifest: {
       components: { safeBrowser: 'main' },
-      contributions: {}
+      contributions: {},
     },
     id: "testing-plugin",
-    path: ""
+    path: "",
   };
   function createSafeBrowser(mainPath: string): {safeBrowser: SafeBrowser, pluginRpc: Rpc} {
     const pluginInstance = new PluginInstance(localPlugin, {});
@@ -208,7 +208,7 @@ interface Foo {
 const FooDescription = createCheckers({
   Foo: tic.iface([], {
     foo: tic.func("string", tic.param("name", "string")),
-  })
+  }),
 }).Foo;
 
 interface TestProcesses {
@@ -244,13 +244,13 @@ const PROCESSES: TestProcesses = {
   },
   test_render_view(grist: GristModule) {
     grist.rpc.registerImpl<Foo>('grist', {
-      foo: (name: string) => `foo ${name} from test_render_view`
+      foo: (name: string) => `foo ${name} from test_render_view`,
     });
     grist.ready();
   },
   async test_forward(grist: GristModule) {
     grist.rpc.registerImpl<Foo>('grist', {
-      foo: (name: string) => viewFoo.foo(name)
+      foo: (name: string) => viewFoo.foo(name),
     });
     grist.api.render('test_forward_view', 'fullscreen'); // eslint-disable-line @typescript-eslint/no-floating-promises
     const viewFoo = grist.rpc.getStub<Foo>('foo@test_forward_view', FooDescription);
@@ -258,7 +258,7 @@ const PROCESSES: TestProcesses = {
   },
   test_forward_view: (grist: GristModule) => {
     grist.rpc.registerImpl<Foo>('foo', {
-      foo: async name => `foo ${name} from test_forward_view`
+      foo: async name => `foo ${name} from test_forward_view`,
     }, FooDescription);
     grist.ready();
   },
@@ -270,7 +270,7 @@ const PROCESSES: TestProcesses = {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           grist.api.render('test_messages_view', 'fullscreen');
         });
-      }
+      },
     }, FooDescription);
     grist.ready();
   },
@@ -316,7 +316,7 @@ const PROCESSES: TestProcesses = {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           grist.api.render('view_client_scope', 'fullscreen');
         });
-      }
+      },
     };
     grist.rpc.registerImpl<Foo>('grist', myFoo, FooDescription);
     grist.ready();
@@ -326,7 +326,7 @@ const PROCESSES: TestProcesses = {
       foo(name: string): Promise<string> {
         const stub = grist.rpc.getStub<any>('storage');
         return stub.setItem(1); // this should be an error
-      }
+      },
     };
     grist.rpc.registerImpl<Foo>('grist', myFoo, FooDescription);
     grist.ready();
@@ -335,7 +335,7 @@ const PROCESSES: TestProcesses = {
     const myFoo = {
       async foo(name: string): Promise<string> {
         return `foo ${name} from view1`;
-      }
+      },
     };
     grist.rpc.registerImpl<Foo>('foo', myFoo, FooDescription);
     grist.ready();

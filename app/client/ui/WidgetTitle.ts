@@ -45,7 +45,7 @@ export function buildTableName(vs: ViewSectionRec, options: TableNameOptions, ..
       ...options,
     },
     dom.autoDispose(title),
-    ...args
+    ...args,
   );
 }
 
@@ -120,9 +120,9 @@ function buildRenamableTitle(
       openOnClick ? dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }) : null,
     ),
     dom.maybe(description, () => [
-      descriptionInfoTooltip(description.get(), "widget")
+      descriptionInfoTooltip(description.get(), "widget"),
     ]),
-    ...args
+    ...args,
   );
 }
 
@@ -193,7 +193,7 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
   const save = () => Promise.all([
     saveTableName(),
     saveWidgetTitle(),
-    saveWidgetDesc()
+    saveWidgetDesc(),
   ]);
 
   function initialFocus() {
@@ -272,7 +272,7 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
  else {
         return true;
       }
-    }
+    },
   };
 
   // Create this group and attach it to the popup and all inputs.
@@ -322,7 +322,7 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
       ),
       basicButton(t("Cancel"),
         testId('cancel'),
-        dom.on('click', cancel)
+        dom.on('click', cancel),
       ),
     ),
     dom.onKeyDown({
@@ -331,7 +331,7 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
           close();
           return false;
         }
-      }
+      },
     }),
     (elem) => { setTimeout(initialFocus, 0); },
   );

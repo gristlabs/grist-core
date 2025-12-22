@@ -17,7 +17,7 @@ import {assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser,
         RequestWithLogin} from 'app/server/lib/Authorizer';
 import {DocStatus, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {
-  customizeDocWorkerUrl, getDocWorkerInfoOrSelfPrefix, getWorker, useWorkerPool
+  customizeDocWorkerUrl, getDocWorkerInfoOrSelfPrefix, getWorker, useWorkerPool,
 } from 'app/server/lib/DocWorkerUtils';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {DocTemplate, GristServer} from 'app/server/lib/GristServer';
@@ -55,14 +55,14 @@ export function attachAppEndpoint(options: AttachOptions): void {
     res.header("Access-Control-Allow-Credentials", "true");
 
     const {selfPrefix, docWorker} = await getDocWorkerInfoOrSelfPrefix(
-      req.params.docId, docWorkerMap, gristServer.getTag()
+      req.params.docId, docWorkerMap, gristServer.getTag(),
     );
     const info: PublicDocWorkerUrlInfo = selfPrefix ?
       { docWorkerUrl: null, docWorkerId: null, selfPrefix } :
       {
         docWorkerUrl: customizeDocWorkerUrl(docWorker!.publicUrl, req),
         docWorkerId: docWorker!.id,
-        selfPrefix: null
+        selfPrefix: null,
       };
     return res.json(info);
   }));
@@ -193,7 +193,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
       assignmentId: docId,
       getWorker: {[docId]: workerPublicUrl },
       getDoc: {[docId]: pruneAPIResult(doc as unknown as APIDocument)},
-      plugins
+      plugins,
     }});
   });
   // Handlers for form preview URLs: one with a slug and one without.

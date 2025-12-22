@@ -130,7 +130,7 @@ describe('DescriptionColumn', function() {
     // Wait for hover tooltip to show up.
     await gu.waitToPass(
       async () => assert.isTrue(await driver.find('.test-tooltip').isDisplayed()),
-      500
+      500,
     );
     assert.equal(await driver.find('.test-tooltip').getText(), 'Column options are limited in summary tables.');
 
@@ -585,7 +585,7 @@ describe('DescriptionColumn', function() {
     // Remove the description
     await api.applyUserActions(docId, [
       ['ModifyColumn', 'Table1', 'B', {
-        description: ''
+        description: '',
       }],
     ]);
 
@@ -610,7 +610,7 @@ describe('DescriptionColumn', function() {
       await detailUndescribedColumnFirstRow
         .findClosest(".g_record_detail_el")
         .find(".test-column-info-tooltip")
-        .isPresent()
+        .isPresent(),
     );
 
     await openCardColumnTooltip('B');
@@ -648,7 +648,7 @@ async function descriptionIsVisible(visible = true) {
 async function addColumnDescription(api: UserAPIImpl, docId: string, columnName: string) {
   await api.applyUserActions(docId, [
     ['ModifyColumn', 'Table1', columnName, {
-      description: 'This is the column description\nIt is in two lines'
+      description: 'This is the column description\nIt is in two lines',
     }],
   ]);
 }

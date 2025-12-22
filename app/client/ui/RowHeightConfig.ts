@@ -21,12 +21,12 @@ export function rowHeightConfigColumn(viewSection: ViewSectionRec): DomContents 
   return dom.maybe(use => use(viewSection.widgetType) === 'record', () => [
     cssRowHeightText(t('Max row height'), ':',
       dom('b', dom.text(use => String(use(optionsObs).rowHeight || 'auto')),
-        testId('row-height-label')
-      )
+        testId('row-height-label'),
+      ),
     ),
     textButton(t('Change'), dom.on('click', allCommands.viewTabOpen.run),
-      testId('row-height-change-link')
-    )
+      testId('row-height-change-link'),
+    ),
   ]);
 }
 

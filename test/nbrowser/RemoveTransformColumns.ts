@@ -19,7 +19,7 @@ describe('RemoveTransformColumns', function () {
     assert.deepEqual(await gu.getVisibleGridCells({col: 'B', rowNums: [1]}), [
       'manualSort, A, B, C, ' +
       'gristHelper_Converted, gristHelper_Transform, ' +
-      'gristHelper_Converted2, gristHelper_Transform2'
+      'gristHelper_Converted2, gristHelper_Transform2',
     ]);
 
     const userAPI = gu.createHomeApi('chimpy', 'nasa');
@@ -29,7 +29,7 @@ describe('RemoveTransformColumns', function () {
     await gu.waitForDocToLoad();
 
     assert.deepEqual(await gu.getVisibleGridCells({col: 'B', rowNums: [1]}), [
-      'manualSort, A, B, C'
+      'manualSort, A, B, C',
     ]);
 
     await gu.checkForErrors();
@@ -48,30 +48,30 @@ describe('RemoveTransformColumns', function () {
     await userAPI.applyUserActions(doc.id, [
       // Tables that should be removed.
       ["AddTable", "GristHidden_import1", [
-        {"id": "A", "type": "Text", "isFormula": false}
+        {"id": "A", "type": "Text", "isFormula": false},
       ]],
       ["AddTable", "GristHidden_import2", [
-        {"id": "B", "type": "Numeric", "isFormula": false}
+        {"id": "B", "type": "Numeric", "isFormula": false},
       ]],
       ["AddTable", "GristHidden_importSuffix", [
-        {"id": "D", "type": "Text", "isFormula": false}
+        {"id": "D", "type": "Text", "isFormula": false},
       ]],
       // Tables that look ok, and won't be removed.
       ["AddTable", "GristHidden_something", [
-        {"id": "E", "type": "Text", "isFormula": false}
+        {"id": "E", "type": "Text", "isFormula": false},
       ]],
       ["AddTable", "Hidden_import", [
-        {"id": "F", "type": "Numeric", "isFormula": false}
+        {"id": "F", "type": "Numeric", "isFormula": false},
       ]],
       ["AddTable", "RegularTable", [
-        {"id": "C", "type": "Text", "isFormula": false}
-      ]]
+        {"id": "C", "type": "Text", "isFormula": false},
+      ]],
     ]);
 
     // Verify all tables exist before doc restart
     const expectedTablesBeforeRestart = [
       'GristHidden_import1', 'GristHidden_import2', 'GristHidden_importSuffix',
-      'GristHidden_something', 'Hidden_import', 'RegularTable', 'Table1'
+      'GristHidden_something', 'Hidden_import', 'RegularTable', 'Table1',
     ];
     assert.deepEqual(await allTables(), expectedTablesBeforeRestart.sort());
 
@@ -81,7 +81,7 @@ describe('RemoveTransformColumns', function () {
 
     // Verify only temporary tables with GristHidden_import prefix were removed during shutdown
     const expectedTablesAfterRestart = [
-      'GristHidden_something', 'Hidden_import', 'RegularTable', 'Table1'
+      'GristHidden_something', 'Hidden_import', 'RegularTable', 'Table1',
     ];
     assert.deepEqual(await allTables(), expectedTablesAfterRestart.sort());
 
@@ -127,7 +127,7 @@ describe('RemoveTransformColumns', function () {
 
   async function tempTables() {
     return (await allTables()).filter(id =>
-      id && typeof id === 'string' && id.startsWith('GristHidden_import')
+      id && typeof id === 'string' && id.startsWith('GristHidden_import'),
     ).sort();
   }
 });

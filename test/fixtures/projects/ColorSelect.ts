@@ -110,23 +110,23 @@ class SaveableSetup extends Disposable {
           cssRow(
             cssHeader('fill: '),
             cssCellBox(dom.style('background-color', this.savedFillColor)),
-            cssCellBox(dom.text(this.savedFillColor))
+            cssCellBox(dom.text(this.savedFillColor)),
           ),
           cssRow(
             cssHeader('bold: '),
-            cssCellBox(dom.text(use => optionToString(use(this.savedFontBold))))
+            cssCellBox(dom.text(use => optionToString(use(this.savedFontBold)))),
           ),
           cssRow(
             cssHeader('underline: '),
-            cssCellBox(dom.text(use => optionToString(use(this.savedFontUnderline))))
+            cssCellBox(dom.text(use => optionToString(use(this.savedFontUnderline)))),
           ),
           cssRow(
             cssHeader('italic: '),
-            cssCellBox(dom.text(use => optionToString(use(this.savedFontItalic))))
+            cssCellBox(dom.text(use => optionToString(use(this.savedFontItalic)))),
           ),
           cssRow(
             cssHeader('strikethrough: '),
-            cssCellBox(dom.text(use => optionToString(use(this.savedFontStrikethrough))))
+            cssCellBox(dom.text(use => optionToString(use(this.savedFontStrikethrough)))),
           ),
         ),
         cssItem(
@@ -175,7 +175,7 @@ class SaveableSetup extends Disposable {
           ),
           dom('input', {type: 'button', value: 'Update'}, testId('server-update'),
               dom.on('click', () => this.onServerUpdate()),
-              testId('server-update'))
+              testId('server-update')),
         ),
         cssItem(
           dom('h3', dom.text('Client')),
@@ -190,7 +190,7 @@ class SaveableSetup extends Disposable {
               dom.cls('font-strikethrough', use => use(this.fontStrikethrough) ?? false),
               dom.text('foo'),
               testId('client-cell'),
-            )
+            ),
           ),
           colorSelect({
               textColor: new ColorOption({color:this.textColor}),
@@ -198,11 +198,11 @@ class SaveableSetup extends Disposable {
               fontBold: this.fontBold,
               fontItalic: this.fontItalic,
               fontUnderline: this.fontUnderline,
-              fontStrikethrough: this.fontStrikethrough
+              fontStrikethrough: this.fontStrikethrough,
             }, {
-              onSave: () => this.makeSaveCall()
-            })
-        )
+              onSave: () => this.makeSaveCall(),
+            }),
+        ),
       ),
       testBox(
         cssItem(
@@ -210,7 +210,7 @@ class SaveableSetup extends Disposable {
           dom('ul', testId('call-log'),
               dom.forEach(this.callLog, val => dom('li', val))),
         ),
-      )
+      ),
     ];
   }
 }

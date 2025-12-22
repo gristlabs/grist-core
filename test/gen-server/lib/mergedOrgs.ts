@@ -44,10 +44,10 @@ describe('mergedOrgs', function() {
     // Grant Chimpy access to Kiwi's personal org, and add a workspace to it.
     const kiwilandOrgId = await dbManager.testGetId('Kiwiland');
     resp = await axios.patch(`${homeUrl}/api/orgs/${kiwilandOrgId}/access`, {
-      delta: {users: {'chimpy@getgrist.com': 'editors'}}
+      delta: {users: {'chimpy@getgrist.com': 'editors'}},
     }, configForUser('kiwi'));
     resp = await axios.post(`${homeUrl}/api/orgs/${kiwilandOrgId}/workspaces`, {
-      name: 'Kiwidocs'
+      name: 'Kiwidocs',
     }, configForUser('kiwi'));
     resp = await axios.get(`${homeUrl}/api/orgs/0/workspaces`, configForUser('chimpy'));
     assert.sameMembers(resp.data.map((w: Workspace) => w.name), ['Private', 'Public', 'Kiwidocs']);
@@ -59,27 +59,27 @@ describe('mergedOrgs', function() {
     sharedOrgDomain = samHome.domain;
     // A private workspace/doc that Sam won't share.
     resp = await axios.post(`${homeUrl}/api/orgs/${samHome.id}/workspaces`, {
-      name: 'SamPrivateStuff'
+      name: 'SamPrivateStuff',
     }, configForUser('sam'));
     assert.equal(resp.status, 200);
     let wsId = resp.data;
     resp = await axios.post(`${homeUrl}/api/workspaces/${wsId}/docs`, {
-      name: 'SamPrivateDoc'
+      name: 'SamPrivateDoc',
     }, configForUser('sam'));
     assert.equal(resp.status, 200);
     // A workspace/doc that Sam will share with Chimpy.
     resp = await axios.post(`${homeUrl}/api/orgs/${samHome.id}/workspaces`, {
-      name: 'SamStuff'
+      name: 'SamStuff',
     }, configForUser('sam'));
     assert.equal(resp.status, 200);
     wsId = resp.data!;
     resp = await axios.post(`${homeUrl}/api/workspaces/${wsId}/docs`, {
-      name: 'SamDoc'
+      name: 'SamDoc',
     }, configForUser('sam'));
     assert.equal(resp.status, 200);
     sharedDocId = resp.data!;
     resp = await axios.patch(`${homeUrl}/api/docs/${sharedDocId}/access`, {
-      delta: {users: {'chimpy@getgrist.com': 'viewers'}}
+      delta: {users: {'chimpy@getgrist.com': 'viewers'}},
     }, configForUser('sam'));
     assert.equal(resp.status, 200);
     resp = await axios.get(`${homeUrl}/api/orgs/0/workspaces`, configForUser('chimpy'));

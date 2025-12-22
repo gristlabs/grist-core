@@ -123,7 +123,7 @@ export function showTransientTooltip(
  * See also ITipOptions.
  */
 export function showTooltip(
-  refElem: Element, tipContent: ITooltipContentFunc, options: ITipOptions = {}
+  refElem: Element, tipContent: ITooltipContentFunc, options: ITipOptions = {},
 ): ITooltipControl {
   const placement: Popper.Placement = options.placement ?? 'top';
   const key = options.key;
@@ -153,7 +153,7 @@ export function showTooltip(
   const popperOptions: Popper.PopperOptions = {
     modifiers: merge(
       { preventOverflow: {boundariesElement: 'viewport'} },
-      options.modifiers
+      options.modifiers,
     ),
     placement,
   };
@@ -202,7 +202,7 @@ export function overflowTooltip(options?: IHoverTipOptions): DomElementMethod {
 export function setHoverTooltip(
   refElem: Element,
   tipContent: ITooltipContent,
-  options: IHoverTipOptions = {}
+  options: IHoverTipOptions = {},
 ) {
   const {key, openDelay = 200, timeoutMs, closeDelay = 100, openOnClick, closeOnClick = true,
     overflowOnly = false} = options;
@@ -395,7 +395,7 @@ function buildClickableInfoTooltip(
       },
       testId('info-tooltip'),
       ...domArgs,
-    )
+    ),
   );
 }
 
@@ -454,7 +454,7 @@ export function withInfoTooltip(
   return cssInfoTooltip(
     domContents,
     infoTooltip(tooltip, {variant, popupOptions}, iconDomArgs),
-    ...(domArgs ?? [])
+    ...(domArgs ?? []),
   );
 }
 
@@ -476,7 +476,7 @@ export function descriptionInfoTooltip(
     // Used id test to find the origin of the tooltip regardless webdriver implementation (some of them start)
     cssTooltipCorner(testId('tooltip-origin')),
     testId(`${testPrefix}-info-tooltip-popup`),
-    {tabIndex: '-1'}
+    {tabIndex: '-1'},
   );
   return cssDescriptionInfoTooltipButton(
     icon('Info', dom.cls("info_toggle_icon")),

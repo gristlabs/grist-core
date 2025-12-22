@@ -37,6 +37,6 @@ export function createPausableObs<T>(
       if (_isPaused) { return; }
 
       this[set](val);
-    }
+    },
   });
 }

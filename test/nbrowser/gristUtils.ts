@@ -55,7 +55,7 @@ const driver: WebDriver = new Proxy({} as any, {
       return (driverOrig as any)[prop];
     }
     return (_driver as any)[prop];
-  }
+  },
 });
 
 export function currentDriver() { return driver; }
@@ -257,7 +257,7 @@ export async function detachFromLayout(section?: string) {
       const otherSectionElement = await getSection(otherSection).find('.viewsection_drag_indicator');
       await driver.withActions(actions => actions.move({
         origin: otherSectionElement,
-        ...offset
+        ...offset,
       }));
       return this;
     },
@@ -279,7 +279,7 @@ export async function detachFromLayout(section?: string) {
       });
       // And wait for the server to process.
       await waitForServer();
-    }
+    },
   };
 }
 
@@ -318,7 +318,7 @@ export async function assertGridData(section: string, data: any[][]) {
     const colValues = data.slice(1).map((row: string[]) => row[colIndex]);
     assert.deepEqual(
       await getVisibleGridCells(col, rowIndices, section),
-      colValues
+      colValues,
     );
   }
 }
@@ -376,7 +376,7 @@ export async function getVisibleGridCellsFast(colOrOptions: any, rowNums?: numbe
 export async function getVisibleDetailCells(col: number|string, rows: number[], section?: string): Promise<string[]>;
 export async function getVisibleDetailCells<T = string>(options: IColSelect<T>|IColsSelect<T>): Promise<T[]>;
 export async function getVisibleDetailCells<T>(
-  colOrOptions: number|string|IColSelect<T>|IColsSelect<T>, _rowNums?: number[], _section?: string
+  colOrOptions: number|string|IColSelect<T>|IColsSelect<T>, _rowNums?: number[], _section?: string,
 ): Promise<T[]> {
 
   if (typeof colOrOptions === 'object' && 'cols' in colOrOptions) {
@@ -403,7 +403,7 @@ export async function getVisibleDetailCells<T>(
   const selected = rowNums.map(n => records[visibleRowNums.indexOf(n)]);
   return Promise.all(selected.map(el => mapper(
     el.findContent('.g_record_detail_label', exactMatch(colName))
-    .findClosest('.g_record_detail_el').find('.g_record_detail_value')
+    .findClosest('.g_record_detail_el').find('.g_record_detail_value'),
   )));
 }
 
@@ -617,7 +617,7 @@ export async function getArrowPosition(section?: WebElement|string) {
   const hasArrow = await arrow.isPresent();
   return hasArrow ? Number(
       await arrow.findElement(By.xpath("./..")) //Get its parent
-                 .getText()
+                 .getText(),
     ) : null;
 }
 
@@ -638,7 +638,7 @@ export async function getCursorPosition(section?: WebElement|string) {
       catchNoSuchElem(() => cursor.findClosest('.gridview_row').index()),
       catchNoSuchElem(() => cursor.findClosest('.g_record_detail').find('.detail_row_num').getText()),
       catchNoSuchElem(() => cursor.findClosest('.g_record_detail_el')
-        .find('.g_record_detail_label').getText())
+        .find('.g_record_detail_label').getText()),
     ]);
     if (rowNum && colName) {
       // This must be a detail view, and we just got the info we need.
@@ -735,7 +735,7 @@ export async function getFormulaText(onlyVisible = true): Promise<string> {
   }
  else {
     return await driver.executeScript(
-      () => (document as any).querySelector(".code_editor_container").innerText
+      () => (document as any).querySelector(".code_editor_container").innerText,
     );
   }
 }
@@ -1192,7 +1192,7 @@ export async function assertBannerText(text: string | null | RegExp) {
  else {
     assert.match(
       await driver.findWait('.test-doc-usage-banner-text', 2000).getText(),
-      typeof text === 'string' ? exactMatch(text) : text
+      typeof text === 'string' ? exactMatch(text) : text,
     );
   }
 }
@@ -1818,7 +1818,7 @@ export async function showRawData(section?: string|WebElement) {
 
 // Mapping from column menu option name to dom element selector to wait for, or null if no need to wait.
 const ColumnMenuOption: { [id: string]: string; } = {
-  Filter: '.test-filter-menu-wrapper'
+  Filter: '.test-filter-menu-wrapper',
 };
 
 async function openColumnMenuHelper(col: IColHeader|string, option?: string): Promise<WebElement> {
@@ -1869,7 +1869,7 @@ export type ColumnType =
  */
 export async function setType(
   type: RegExp|ColumnType,
-  options: {skipWait?: boolean, apply?: boolean} = {}
+  options: {skipWait?: boolean, apply?: boolean} = {},
 ) {
   if (await driver.find('.test-type-transform-cancel').isPresent()) {
     await driver.find(".test-type-transform-cancel").click();
@@ -2384,7 +2384,7 @@ export class Session {
     options: {
       wait?: boolean,
       skipAlert?: boolean,
-    } = {}
+    } = {},
   ) {
     const {wait = true, skipAlert = false} = options;
     await this.loadRelPath(relPath);
@@ -2726,7 +2726,7 @@ export function hexToRgb(hex: string) {
   const [r, g, b] = [
     parseInt(aRgbHex[0], 16),
     parseInt(aRgbHex[1], 16),
-    parseInt(aRgbHex[2], 16)
+    parseInt(aRgbHex[2], 16),
   ];
   return `rgba(${r}, ${g}, ${b}, 1)`;
 }
@@ -2826,10 +2826,10 @@ async function addSamples(includeTutorial: boolean) {
       options: {
         description: 'CRM template and example for linking data, and creating productive layouts.',
         icon: 'https://grist-static.com/icons/lightweight-crm.png',
-        openMode: 'fork'
+        openMode: 'fork',
       },
-      urlId: 'lightweight-crm'
-    }
+      urlId: 'lightweight-crm',
+    },
   );
 
   // Add additional templates to the Other workspace.
@@ -2843,9 +2843,9 @@ async function addSamples(includeTutorial: boolean) {
       options: {
         description: 'Example for analyzing and visualizing with summary tables and linked charts.',
         icon: 'https://grist-static.com/icons/data-visualization.png',
-        openMode: 'fork'
+        openMode: 'fork',
       },
-      urlId: 'investment-research'
+      urlId: 'investment-research',
     },
   );
   const afterschoolDocId = (await importFixturesDoc('support', 'templates', 'Other',
@@ -2858,9 +2858,9 @@ async function addSamples(includeTutorial: boolean) {
       options: {
         description: 'Example for how to model business data, use formulas, and manage complexity.',
         icon: 'https://grist-static.com/icons/business-management.png',
-        openMode: 'fork'
+        openMode: 'fork',
       },
-      urlId: 'afterschool-program'
+      urlId: 'afterschool-program',
     },
   );
 
@@ -3187,7 +3187,7 @@ export async function myTab() {
   return {
     open() {
       return driver.switchTo().window(myTab);
-    }
+    },
   };
 }
 
@@ -3208,7 +3208,7 @@ export async function duplicateTab() {
     },
     open() {
       return driver.switchTo().window(myTab);
-    }
+    },
   };
 }
 
@@ -3257,7 +3257,7 @@ export async function openColumnFilter(col: IColHeader|string) {
   await openColumnMenu(col, 'Filter');
   return {
     ...filterController,
-    open: () => openColumnMenu(col, 'Filter')
+    open: () => openColumnMenu(col, 'Filter'),
   };
 }
 
@@ -3271,7 +3271,7 @@ export async function openPinnedFilter(col: string) {
   await driver.findWait('.test-filter-menu-wrapper', 500);
   return {
     ...filterController,
-    open: () => openPinnedFilter(col)
+    open: () => openPinnedFilter(col),
   };
 }
 
@@ -3310,7 +3310,7 @@ const filterController = {
   },
   async allShown() {
     await driver.findContent('.test-filter-menu-bulk-action', /All shown/).click();
-  }
+  },
 };
 
 /**
@@ -3368,9 +3368,9 @@ export async function sortAndFilter() {
         async togglePin() {
           await item.find('.test-filter-config-pin-filter').click();
           return this;
-        }
+        },
       }));
-    }
+    },
   };
   await ctrl.click();
   return ctrl;
@@ -3457,7 +3457,7 @@ export async function copyAnchor() {
 
   await waitToPass(async () => {
     assert.isTrue(
-      await driver.findContentWait('.test-notifier-toast-message', /Link copied to clipboard/, 100).isDisplayed()
+      await driver.findContentWait('.test-notifier-toast-message', /Link copied to clipboard/, 100).isDisplayed(),
     );
   });
 }
@@ -3628,7 +3628,7 @@ export function scrollPanel(top = false): WebElementPromise {
   return new WebElementPromise(driver,
     driver.executeScript((top: number) => {
       document.getElementsByClassName('test-config-container')[0].scrollTop = top ? 0 : 10000;
-    }, top)
+    }, top),
   );
 }
 
@@ -3647,7 +3647,7 @@ export async function beginAclTran(api: UserAPI, docId: string) {
     const restoreRules = {
       resource: oldRules.resource,
       aclFormula: oldRules.aclFormula,
-      permissionsText: oldRules.permissionsText
+      permissionsText: oldRules.permissionsText,
     };
     await api.applyUserActions(docId, [
       ['BulkRemoveRecord', '_grist_ACLRules', newRules.id],
@@ -3714,7 +3714,7 @@ export function produceUncaughtError(message: string) {
 }
 
 export async function downloadSectionCsv(
-  section: string, headers: any = {Authorization: 'Bearer api_key_for_chimpy'}
+  section: string, headers: any = {Authorization: 'Bearer api_key_for_chimpy'},
 ) {
   await openSectionMenu("viewLayout", section);
   const href = await driver.findWait('.test-download-section', 1000).getAttribute('href');
@@ -3724,7 +3724,7 @@ export async function downloadSectionCsv(
 }
 
 export async function downloadSectionCsvGridCells(
-  section: string, headers: any = {Authorization: 'Bearer api_key_for_chimpy'}
+  section: string, headers: any = {Authorization: 'Bearer api_key_for_chimpy'},
 ): Promise<string[]> {
   const csvString = await downloadSectionCsv(section, headers);
   const csvRows = csvString.split('\n').slice(1).map(csvDecodeRow);
@@ -4061,7 +4061,7 @@ export const choicesEditor = {
   },
   async cancel() {
     await driver.find(".test-choice-list-entry-cancel").click();
-  }
+  },
 };
 
 export async function switchUser(email: string) {
@@ -4192,7 +4192,7 @@ export function buildSelectComponent(selector: string) {
       await waitToPass(async () => {
         assert.isFalse(await this.element().isPresent());
       });
-    }
+    },
   };
 }
 
@@ -4207,7 +4207,7 @@ export function findOpenMenuItem(itemSelector: string, itemContentMatcher: strin
 export async function findOpenMenuAllItems<T>(
   itemSelector: string,
   mapper: (e: WebElement) => Promise<T>,
-  timeoutMsec = 100
+  timeoutMsec = 100,
 ): Promise<T[]>   {
   // Find at least one item to ensure the menu is open.
   await driver.findWait(`.grist-floating-menu ${itemSelector}`, timeoutMsec);

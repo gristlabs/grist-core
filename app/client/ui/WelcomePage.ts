@@ -31,7 +31,7 @@ function _redirectToSiblingPage(name: string) {
 function handleSubmitForm(
   pending: Observable<boolean>,
   onSuccess: (v: any) => void,
-  onError?: (e: unknown) => void
+  onError?: (e: unknown) => void,
 ): (elem: HTMLFormElement) => void {
   return handleSubmit({pending, onSuccess, onError});
 }
@@ -71,7 +71,7 @@ export class WelcomePage extends Disposable {
       page === 'signup' ? dom.create(this._buildSignupForm.bind(this)) :
       page === 'verify' ? dom.create(this._buildVerifyForm.bind(this)) :
       page === 'select-account' ? dom.create(this._buildAccountPicker.bind(this)) :
-      null
+      null,
     ));
   }
 
@@ -103,11 +103,11 @@ export class WelcomePage extends Disposable {
           dom('b', email.get()),
           ` you can just `,
           cssLink({href: getLoginUrl({nextUrl: null})}, 'log in'),
-          ` now. Otherwise, please pick a password.`
+          ` now. Otherwise, please pick a password.`,
          ),
       cssSeparatedLabel('The email address you activated Grist with:'),
       cssInput(
-        email, { onInput: true, },
+        email, { onInput: true },
         { name: "emailShow" },
         dom.boolAttr('disabled', true),
         dom.attr('type', 'email'),
@@ -115,25 +115,25 @@ export class WelcomePage extends Disposable {
       // Duplicate email as a hidden form since disabled input won't get submitted
       // for some reason.
       cssInput(
-        email, { onInput: true, },
+        email, { onInput: true },
         { name: "email", style: 'visibility: hidden;' },
         dom.boolAttr('hidden', true),
         dom.attr('type', 'email'),
       ),
       cssSeparatedLabel('A password to use with Grist:'),
       inputEl = cssInput(
-        password, { onInput: true, },
+        password, { onInput: true },
         { name: "password" },
         dom.attr('type', 'password'),
       ),
       cssButtonGroup(
         bigPrimaryButton(
           'Continue',
-          testId('continue-button')
+          testId('continue-button'),
         ),
         bigBasicButtonLink('Did this already', dom.on('click', () => {
           _redirectToSiblingPage('verify');
-        }))
+        })),
       ),
     );
   }
@@ -173,23 +173,23 @@ export class WelcomePage extends Disposable {
           dom('b', email.get())),
       cssSeparatedLabel('Confirmation code'),
       inputEl = cssInput(
-        code, { onInput: true, },
+        code, { onInput: true },
         { name: "code" },
         dom.attr('type', 'number'),
       ),
       cssInput(
-        email, { onInput: true, },
+        email, { onInput: true },
         { name: "email" },
         dom.boolAttr('hidden', true),
       ),
       cssButtonGroup(
          bigPrimaryButton(
            dom.domComputed(code, c => c ?
-                           'Apply verification code' : 'Resend verification email')
+                           'Apply verification code' : 'Resend verification email'),
         ),
         bigBasicButtonLink('More sign-up options',
-                           {href: getSignupUrl({nextUrl: null})})
-      )
+                           {href: getSignupUrl({nextUrl: null})}),
+      ),
     );
   }
 
@@ -210,11 +210,11 @@ export class WelcomePage extends Disposable {
           cssUserItem.cls(''),
           cssMemberListItem(
             cssMemberImage(
-              createUserImage(user, 'large')
+              createUserImage(user, 'large'),
             ),
             cssMemberText(
               cssMemberPrimary(user.name || dom('span', user.email, testId('select-email'))),
-              user.name ? cssMemberSecondary(user.email, testId('select-email')) : null
+              user.name ? cssMemberSecondary(user.email, testId('select-email')) : null,
             ),
           ),
           {href: addUserToLink(user.email)},

@@ -53,7 +53,7 @@ export class FloatingEditor extends Disposable {
 
   constructor(
     private _fieldEditor: IFloatingOwner,
-    private _options: FloatingEditorOptions
+    private _options: FloatingEditorOptions,
   ) {
     super();
     this.autoDispose(commands.createGroup({
@@ -165,7 +165,7 @@ export function createDetachedIcon(...args: IDomArgs<HTMLDivElement>) {
       e.stopPropagation();
     }),
     testId('detach-button'),
-    ...args
+    ...args,
   );
 }
 

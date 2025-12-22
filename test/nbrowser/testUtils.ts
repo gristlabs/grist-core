@@ -57,7 +57,7 @@ setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
               // Grant access to the system clipboard. This applies to regular (non-headless)
               // Chrome. On headless Chrome, this has no effect.
               setting: 1,
-            }
+            },
           },
         },
       },
@@ -80,7 +80,7 @@ setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
         origin: 'local',
         account: '',
       }],
-      version: 2
+      version: 2,
     }),
     "download.default_directory": server.testDir,
     "savefile.default_directory": server.testDir,
@@ -281,7 +281,7 @@ export function setupRequirement(options: TestSuiteOptions) {
           await api.updateOrgPermissions(orgName, {
             users: {
               'gristoid+chimpy@gmail.com': 'owners',
-            }
+            },
           });
           // Recreate the api for the correct org, then update billing.
           const api2 = gu.createHomeApi('support', orgName);
@@ -290,7 +290,7 @@ export function setupRequirement(options: TestSuiteOptions) {
             await billing.updateBillingManagers({
               users: {
                 'gristoid+chimpy@gmail.com': 'managers',
-              }
+              },
             });
           }
  catch (e) {

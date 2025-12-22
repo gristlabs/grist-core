@@ -11,7 +11,7 @@ import {
   getTermsOfServiceUrl,
   getWebinarsUrl,
   GristLoadConfig,
-  IFeature
+  IFeature,
 } from 'app/common/gristUrls';
 import {isAffirmative} from 'app/common/gutil';
 import {getTagManagerSnippet} from 'app/common/tagManager';
@@ -25,7 +25,7 @@ import {GristServer} from 'app/server/lib/GristServer';
 import {
   getOnboardingTutorialDocId,
   getTemplateOrg,
-  getUserPresenceMaxUsers
+  getUserPresenceMaxUsers,
 } from 'app/server/lib/gristSettings';
 import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
 import {readLoadedLngs, readLoadedNamespaces} from 'app/server/localization';
@@ -152,7 +152,7 @@ export function makeMessagePage(staticDir: string) {
     const fileContent = await fse.readFile(path.join(staticDir, "message.html"), 'utf8');
     const content = fileContent.replace(
       "<!-- INSERT MESSAGE -->",
-      `<script>window.message = ${jsesc(message, {isScriptContext: true, json: true})};</script>`
+      `<script>window.message = ${jsesc(message, {isScriptContext: true, json: true})};</script>`,
     );
     resp.status(200).type('html').send(content);
   };
@@ -203,8 +203,8 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
       .map(lng => lng.replace('-', '_'))
       .map(lng =>
         readLoadedNamespaces(req.i18n).map(ns =>
-       `<link rel="preload" href="locales/${lng}.${ns}.json" as="fetch" type="application/json" crossorigin>`
-      ).join("\n")
+       `<link rel="preload" href="locales/${lng}.${ns}.json" as="fetch" type="application/json" crossorigin>`,
+      ).join("\n"),
     ).join('\n');
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
@@ -217,7 +217,7 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
       .replace("<!-- INSERT CUSTOM SCRIPT -->", insertCustomScript)
       .replace(
         "<!-- INSERT CONFIG -->",
-        `<script>window.gristConfig = ${jsesc(config, {isScriptContext: true, json: true})};</script>`
+        `<script>window.gristConfig = ${jsesc(config, {isScriptContext: true, json: true})};</script>`,
       );
     logVisitedPageTelemetryEvent(req as RequestWithLogin, {
       server,

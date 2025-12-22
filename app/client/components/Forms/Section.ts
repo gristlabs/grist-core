@@ -59,9 +59,9 @@ export class SectionModel extends BoxModel {
                   t('Insert section below'),
                 ),
               ],
-            })
+            }),
           ),
-        )
+        ),
       )},
     );
   }

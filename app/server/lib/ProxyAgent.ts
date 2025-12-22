@@ -16,7 +16,7 @@ export class GristProxyAgent extends ProxyAgent {
   constructor(public readonly proxyUrl: string, opts?: Omit<ProxyAgentOptions, 'getProxyForUrl'>) {
     super({
       ...opts,
-      getProxyForUrl: () => this.proxyUrl
+      getProxyForUrl: () => this.proxyUrl,
     });
   }
 }
@@ -29,7 +29,7 @@ function getProxyAgentConfiguration() {
 
   const proxyForUntrustedRequestsUrl = appSettings.section('proxy').readString({
     envVar: ['GRIST_PROXY_FOR_UNTRUSTED_URLS', 'GRIST_HTTPS_PROXY'],
-    preferredEnvVar: 'GRIST_PROXY_FOR_UNTRUSTED_URLS'
+    preferredEnvVar: 'GRIST_PROXY_FOR_UNTRUSTED_URLS',
   });
 
   return {
@@ -49,7 +49,7 @@ function generateProxyAgents() {
   return {
     trusted: proxyForTrustedRequestsUrl ? new GristProxyAgent(proxyForTrustedRequestsUrl) : undefined,
     untrusted: (proxyForUntrustedRequestsUrl && proxyForUntrustedRequestsUrl !== "direct")
-      ? new GristProxyAgent(proxyForUntrustedRequestsUrl) : undefined
+      ? new GristProxyAgent(proxyForUntrustedRequestsUrl) : undefined,
   };
 }
 

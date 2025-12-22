@@ -45,22 +45,22 @@ export class DocTutorial extends Disposable {
   private _popupHolder = Holder.create<FloatingPopup>(this);
   private _width = this.autoDispose(sessionStorageJsonObs(
     `u:${this._userId};d:${this._docId};docTutorialWidth`,
-    436
+    436,
   ));
   private _height = this.autoDispose(sessionStorageJsonObs(
     `u:${this._userId};d:${this._docId};docTutorialHeight`,
-    711
+    711,
   ));
   private _position = this.autoDispose(sessionStorageJsonObs<PopupPosition | undefined>(
     `u:${this._userId};d:${this._docId};docTutorialPosition`,
-    undefined
+    undefined,
   ));
 
   private _saveProgressDebounced = debounce(this._saveProgress, 1000, {
     // Save progress immediately if at least 1 second has passed since the last change.
     leading: true,
     // Otherwise, wait 1 second before saving.
-    trailing: true
+    trailing: true,
   });
 
   constructor(private _gristDoc: GristDoc) {
@@ -71,7 +71,7 @@ export class DocTutorial extends Disposable {
       if (numSlides > 0) {
         this._percentComplete = Math.max(
           Math.floor((slideIndex / numSlides) * 100),
-          this._percentComplete ?? 0
+          this._percentComplete ?? 0,
         );
       }
  else {
@@ -268,13 +268,13 @@ export class DocTutorial extends Disposable {
         let slideContent = getValue('slide_content');
         if (!slideContent) { return null; }
         slideContent = sanitizeTutorialHTML(await marked.parse(slideContent, {
-          async: true, renderer, walkTokens
+          async: true, renderer, walkTokens,
         }));
 
         let boxContent = getValue('box_content');
         if (boxContent) {
           boxContent = sanitizeTutorialHTML(await marked.parse(boxContent, {
-            async: true, renderer, walkTokens
+            async: true, renderer, walkTokens,
           }));
         }
         return {
@@ -283,7 +283,7 @@ export class DocTutorial extends Disposable {
           slideTitle,
           imageUrls,
         };
-      })
+      }),
     )).filter(slide => slide !== null) as DocTutorialSlide[];
     if (this.isDisposed()) { return; }
 
@@ -311,8 +311,8 @@ export class DocTutorial extends Disposable {
         tutorial: {
           lastSlideIndex: this._currentSlideIndex.get(),
           percentComplete: this._percentComplete,
-        }
-      }
+        },
+      },
     });
     this._logTelemetryEvent('tutorialProgressChanged');
   }
@@ -362,7 +362,7 @@ export class DocTutorial extends Disposable {
             dom.style('z-index', vars.tutorialModalZIndex.toString()),
           ],
         },
-      }
+      },
     );
   }
 

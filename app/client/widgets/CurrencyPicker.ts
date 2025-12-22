@@ -17,7 +17,7 @@ export function buildCurrencyPicker(
   owner: IDisposableOwner,
   currency: Observable<string|undefined>,
   onSave: (value: string|undefined) => void,
-  {defaultCurrencyLabel, disabled}: CurrencyPickerOptions
+  {defaultCurrencyLabel, disabled}: CurrencyPickerOptions,
 ) {
   const currencyItems: ACSelectItem[] = currencies
     .map(item => ({
@@ -47,8 +47,8 @@ export function buildCurrencyPicker(
         }
         // For default value, return undefined to use default currency for document.
         onSave(item.value === defaultCurrencyLabel ? undefined : item.value);
-      }
+      },
     },
-    testId("currency-autocomplete")
+    testId("currency-autocomplete"),
   );
 }

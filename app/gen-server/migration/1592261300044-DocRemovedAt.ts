@@ -8,11 +8,11 @@ export class DocRemovedAt1592261300044 implements MigrationInterface {
       await queryRunner.addColumn(table, new TableColumn({
         name: 'removed_at',
         type: nativeValues.dateTimeType,
-        isNullable: true
+        isNullable: true,
       }));
       await queryRunner.createIndex(table, new TableIndex({
         name: `${table}__removed_at`,
-        columnNames: ['removed_at']
+        columnNames: ['removed_at'],
       }));
     }
   }

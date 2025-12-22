@@ -102,7 +102,7 @@ export function buildACSelect(
     ),
     dom.on('mousedown', onMouseDown),
     cssIcon('Dropdown'),
-    ...args
+    ...args,
   );
 }
 

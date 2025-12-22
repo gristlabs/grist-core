@@ -75,7 +75,7 @@ export class TableWithOverlay<T extends keyof SchemaTypes> {
     const rowId = (
       this._originalTable.findMatchingRowId(properties) ||
       this._extraRecords.find(rec => Object.keys(properties).every(p =>
-        isEqual((rec as any)[p], (properties as any)[p]))
+        isEqual((rec as any)[p], (properties as any)[p])),
       )?.id
     );
     return rowId && !this._excludedRecordIds.has(rowId) ? rowId : 0;
@@ -161,7 +161,7 @@ export class ACLRulesReader {
       const tableAndColIds = `${tableId}:${colIds}`;
       if (allTableAndColIds.has(tableAndColIds)) {
         throw new Error(
-          `Duplicate ACLResource ${resource.id}: an ACLResource with the same tableId and colIds already exists`
+          `Duplicate ACLResource ${resource.id}: an ACLResource with the same tableId and colIds already exists`,
         );
       }
 
@@ -226,25 +226,25 @@ export class ACLRulesReader {
         if (!parentViews.has(section.parentId)) { return false; }
         const options = JSON.parse(section.shareOptions || '{}');
         return Boolean(options.publish) && Boolean(options.form);
-      }
+      },
     );
 
     const sectionIds = new Set(sections.map(section => section.id));
     const fields = this.docData.getMetaTable('_grist_Views_section_field').getRecords().filter(
       (field) => {
         return sectionIds.has(field.parentId);
-      }
+      },
     );
     const columnIds = new Set(fields.map(field => field.colRef));
     const columns = this.docData.getMetaTable('_grist_Tables_column').getRecords().filter(
       (column) => {
         return columnIds.has(column.id);
-      }
+      },
     );
 
     const tableRefs = new Set(sections.map(section => section.tableRef));
     const tables = this.docData.getMetaTable('_grist_Tables').getRecords().filter(
-      table => tableRefs.has(table.id)
+      table => tableRefs.has(table.id),
     );
 
     // For tables associated with forms, allow creation of records,
@@ -500,7 +500,7 @@ function disableRuleInShare(rule: MetaRowRecord<'_grist_ACLRules'>) {
   const newAclFormulaParsed = [
     'And',
     ['Eq', ['Attr', ['Name', 'user'], 'ShareRef'], ['Const', null]],
-    aclFormulaParsed || ['Const', true]
+    aclFormulaParsed || ['Const', true],
   ];
   rule.aclFormula = 'user.ShareRef is None and (' + String(rule.aclFormula || 'True') + ')';
   rule.aclFormulaParsed = JSON.stringify(newAclFormulaParsed);

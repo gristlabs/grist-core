@@ -27,7 +27,7 @@ function setupTest() {
     updateColValues: async function({timezone: newTimezone, documentSettings}: ColValues): Promise<void> {
       await timezone.saveOnly(String(newTimezone));
       await documentSettingsJson.saveOnly(JSON.parse(String(documentSettings)));
-    }
+    },
   };
   const docPageModel = {
     currentDocId: Observable.create(null, 'docId'),
@@ -55,7 +55,7 @@ function setupTest() {
   return [
     testBox(
       dom('div', "Document Settings"),
-      dom.create(DocSettingsPage, gristDoc)
+      dom.create(DocSettingsPage, gristDoc),
     ),
     testBox(
       dom('div', "Timezone Value"),

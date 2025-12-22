@@ -9,24 +9,24 @@ describe('PluginApi', function () {
     // When there are not mappings, it should return original data.
     assert.deepEqual(
       record,
-      mapColumnNames(record)
+      mapColumnNames(record),
     );
     assert.deepEqual(
       record,
-      mapColumnNamesBack(record)
+      mapColumnNamesBack(record),
     );
     // Foo is not mapped, should be null.
     assert.isNull(
       mapColumnNames(record, {
         mappings,
         columns,
-      })
+      }),
     );
     assert.isNull(
       mapColumnNames([record], {
         mappings,
         columns,
-      })
+      }),
     );
     // Map Foo to A
     mappings = {...mappings, Foo: 'A'};
@@ -50,7 +50,7 @@ describe('PluginApi', function () {
         mappings,
         columns,
       }),
-      record
+      record,
     );
   });
 });

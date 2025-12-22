@@ -24,7 +24,7 @@ export interface SelectByOption {
 
 export function getSelectByOptions(
   doc: ActiveDoc,
-  widgetId: number
+  widgetId: number,
 ): SelectByOption[] {
   const targetWidget = getWidgetById(doc, widgetId);
   const sourceWidgets = getWidgetsByPageId(doc, targetWidget.parentId);
@@ -34,7 +34,7 @@ export function getSelectByOptions(
   const options: SelectByOption[] = [];
   for (const sourceNode of sourceNodes) {
     const validTargetNodes = targetNodes.filter(targetNode =>
-      isValidLink(sourceNode, targetNode)
+      isValidLink(sourceNode, targetNode),
     );
     for (const targetNode of validTargetNodes) {
       options.push({
@@ -49,7 +49,7 @@ export function getSelectByOptions(
 
 function createNodes(
   doc: ActiveDoc,
-  widgets: MetaRowRecord<"_grist_Views_section">[]
+  widgets: MetaRowRecord<"_grist_Views_section">[],
 ): LinkNode[] {
   const operations: LinkNodeOperations = {
     getTableById: id => getLinkNodeTableById(doc, id),
@@ -68,17 +68,17 @@ function getLinkNodeTableById(doc: ActiveDoc, id: number): LinkNodeTable {
     id: table.id,
     tableId: maybeSummaryTable?.tableId ?? table.tableId,
     isSummaryTable: Boolean(
-      maybeSummaryTable && maybeSummaryTable.tableId !== table.tableId
+      maybeSummaryTable && maybeSummaryTable.tableId !== table.tableId,
     ),
     columns: getTableColumnsByTableId(doc, id).map(c =>
-      pick(c, "id", "colId", "label", "type", "summarySourceCol")
+      pick(c, "id", "colId", "label", "type", "summarySourceCol"),
     ),
   };
 }
 
 function getLinkNodeSection(
   doc: ActiveDoc,
-  idOrWidget: number | MetaRowRecord<"_grist_Views_section">
+  idOrWidget: number | MetaRowRecord<"_grist_Views_section">,
 ): LinkNodeSection {
   const widget =
     typeof idOrWidget === "number"
@@ -98,7 +98,7 @@ function getLinkNodeSection(
       "title",
       "linkSrcSectionRef",
       "linkSrcColRef",
-      "linkTargetColRef"
+      "linkTargetColRef",
     ),
     tableId: maybeSummaryTable?.tableId ?? table.tableId,
   };

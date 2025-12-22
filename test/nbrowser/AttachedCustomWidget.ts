@@ -37,19 +37,19 @@ describe('AttachedCustomWidget', function () {
             "<script>grist.ready({requiredAccess: 'full', columns: [{name: 'Content', type: 'Text', optional: true}]," +
             " onEditOptions(){}})</script>" +
             '</html>\n')
-          .end()
+          .end(),
       );
       app.get(manifestEndpoint, (_, res) =>
         res
           .header('Content-Type', 'application/json')
           // prefix widget endpoint with server address
           .json(widgets.map(widget => ({...widget, url: `${widgetServerUrl}${widget.url}`})))
-          .end()
+          .end(),
       );
       app.get('/grist-plugin-api.js', (_, res) =>
         res.sendFile(
           'grist-plugin-api.js', {
-            root: path.resolve(getAppRoot(), "static")
+            root: path.resolve(getAppRoot(), "static"),
           }));
     });
 

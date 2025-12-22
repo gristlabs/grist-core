@@ -64,7 +64,7 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
       client.on('error',
         (err: unknown) => {
           log.error(`createSessionStoreFactory: redisClient error`, String(err));
-        }
+        },
       );
       const store = new RedisStore({client});
       return assignIn(store, {
@@ -152,7 +152,7 @@ export function initGristSessions(instanceRoot: string, server: GristServer) {
       // session associated with the cookie will receive an updated
       // time-to-live, so that it persists for COOKIE_MAX_AGE.
     },
-    store: sessionStore
+    store: sessionStore,
   });
 
   const sessions = new Sessions(sessionSecret, sessionStore);

@@ -2,7 +2,7 @@ import {assertMatchArray, captureLog, EnvironmentSnapshot} from "test/server/tes
 import {getAvailablePort} from "app/server/lib/serverUtils";
 import log from "app/server/lib/log";
 import {
-  agents, fetchUntrustedWithAgent, GristProxyAgent, test_generateProxyAgents
+  agents, fetchUntrustedWithAgent, GristProxyAgent, test_generateProxyAgents,
 } from "app/server/lib/ProxyAgent";
 import {serveSomething, Serving} from 'test/server/customUtil';
 import {TestProxyServer} from 'test/server/lib/helpers/TestProxyServer';

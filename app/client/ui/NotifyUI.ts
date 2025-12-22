@@ -101,21 +101,21 @@ function buildNotificationDom(item: Notification, options: IBeaconOpenOptions) {
         item.options.message,
       ),
       item.options.actions.length ? cssToastActions(
-        item.options.actions.map(action => buildAction(action, item, options))
+        item.options.actions.map(action => buildAction(action, item, options)),
       ) : null,
       item.options.memos.length ? cssToastMemos(
         item.options.memos.map(memo => cssToastMemo(
           cssToastMemoIcon('Memo'),
           dom('div', memo, testId('toast-memo')),
-        ))
+        )),
       ) : null,
     ),
     dom.maybe(item.options.canUserClose, () =>
       cssToastClose(testId('toast-close'),
         '✕',
-        dom.on('click', () => item.dispose())
-      )
-    )
+        dom.on('click', () => item.dispose()),
+      ),
+    ),
   );
 }
 
@@ -124,14 +124,14 @@ function buildProgressDom(item: Progress) {
     cssToastBody(
       cssToastText(testId('progress-message'),
         dom.text(item.options.name),
-        dom.maybe(item.options.size, size => cssProgressBarSize(` (${size})`))
+        dom.maybe(item.options.size, size => cssProgressBarSize(` (${size})`)),
       ),
       cssProgressBarWrapper(
         cssProgressBarStatus(
-          dom.style('width', use => `${use(item.progress)}%`)
-        )
-      )
-    )
+          dom.style('width', use => `${use(item.progress)}%`),
+        ),
+      ),
+    ),
   );
 }
 
@@ -170,18 +170,18 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
           t("Give feedback"),
           dom.on('click', () => beaconOpenMessage({appModel, onOpen: () => ctl.close(), route: '/ask/message/'})),
           testId('feedback'),
-        )
+        ),
       ),
       dom.maybe(disconnectMsg, msg =>
         cssDropdownStatus(
           buildConnectStateButton(connectState.get()),
           dom('div', cssDropdownStatusText(msg.message), testId('disconnect-msg')),
-        )
+        ),
       ),
       dom.maybe(use => use(dropdownItems).length === 0 && !use(disconnectMsg), () =>
         cssDropdownStatus(
           dom('div', cssDropdownStatusText(t("No notifications"))),
-        )
+        ),
       ),
       dom.forEach(dropdownItems, item =>
         buildNotificationDom(item, {appModel, onOpen: () => ctl.close()})),

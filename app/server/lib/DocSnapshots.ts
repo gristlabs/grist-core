@@ -32,7 +32,7 @@ export class DocSnapshotPruner {
     this._prunes = new KeyedOps(key => this.prune(key), {
       ..._options,
       retry: false,
-      logError: (key, failureCount, err) => log.error(`Pruning document ${key} gave error ${err}`)
+      logError: (key, failureCount, err) => log.error(`Pruning document ${key} gave error ${err}`),
     });
   }
 
@@ -373,7 +373,7 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
       {range: 'day', prev: start, usage: 0, cap: capDay},
       {range: 'isoWeek', prev: start, usage: 0, cap: capIsoWeek},
       {range: 'month', prev: start, usage: 0, cap: capMonth},
-      {range: 'year', prev: start, usage: 0, cap: capYear}
+      {range: 'year', prev: start, usage: 0, cap: capYear},
   ];
 
   // For each snapshot starting with newest, check if it is worth saving by comparing

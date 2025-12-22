@@ -206,7 +206,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
     cssTopBarBtn('Search',
       testId('icon'),
       hoverTooltip(t('Search'), {key: 'topBarBtnTooltip'}),
-    )
+    ),
   );
 
   const commandGroup = createGroup({
@@ -297,7 +297,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
                 t("Find Next "),
                 cssShortcut(`(${['Enter', allCommands.findNext.humanKeys].join(', ')})`),
               ],
-              {key: 'searchArrowBtnTooltip'}
+              {key: 'searchArrowBtnTooltip'},
             ),
           ),
           cssArrowBtn(
@@ -314,9 +314,9 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
                 t("Find Previous "),
                 cssShortcut(`(${['Shift + Enter', allCommands.findPrev.humanKeys].join(', ')})`),
               ],
-              {key: 'searchArrowBtnTooltip'}
+              {key: 'searchArrowBtnTooltip'},
             ),
-          )
+          ),
         ];
       }),
       cssCloseBtnContainer(
@@ -325,6 +325,6 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
         dom.on('click', () => toggleMenu(false)),
         cssCloseBtn('CrossSmall'),
       ),
-    )
+    ),
   );
 }

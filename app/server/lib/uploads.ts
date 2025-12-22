@@ -174,7 +174,7 @@ export async function parseMultipartFormRequest(
         name: (typeof filename == 'string') ? filename : "",
         contentType: (typeof contentType == 'string') ? contentType : "",
         stream: contentStream,
-      })
+      }),
     // No sensible way to handle errors from this promise - so do nothing here, and assume the callback
     // handles errors sensibly.
     ).catch(() => {}));
@@ -458,7 +458,7 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
       response = await Deps.fetch(url, {
         redirect: 'follow',
         follow: 10,
-        headers
+        headers,
       });
     }
     await _checkForError(response);
@@ -507,7 +507,7 @@ export async function fetchDoc(
   urlId: string,
   req: Request,
   accessId: string|null,
-  template: boolean
+  template: boolean,
 ): Promise<UploadResult> {
   // Prepare headers that preserve credentials of current user.
   const headers = getTransitiveHeaders(req, { includeOrigin: false });

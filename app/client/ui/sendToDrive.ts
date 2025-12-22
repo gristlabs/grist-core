@@ -26,7 +26,7 @@ export async function sendToDrive(doc: Document, pageModel: DocPageModel) {
     // Decorate it with a spinner
     spinnerModal(t("Sending file to Google Drive"),
       pageModel.appModel.api.getDocAPI(doc.id)
-        .sendToDrive(code, pageModel.currentDocTitle.get())
+        .sendToDrive(code, pageModel.currentDocTitle.get()),
     );
 
   try {

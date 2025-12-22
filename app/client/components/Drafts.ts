@@ -1,7 +1,7 @@
 import { CellPosition, toCursor } from "app/client/components/CellPosition";
 import {
   Disposable, dom, Emitter, Holder, IDisposable, IDisposableOwner,
-  IDomArgs, MultiHolder, styled, TagElem
+  IDomArgs, MultiHolder, styled, TagElem,
 } from "grainjs";
 import { GristDoc } from "app/client/components/GristDoc";
 import { makeT } from 'app/client/lib/localization';
@@ -26,7 +26,7 @@ const t = makeT('components.Drafts');
  */
 export class Drafts extends Disposable {
   constructor(
-    doc: GristDoc
+    doc: GristDoc,
   ) {
     super();
 
@@ -265,9 +265,9 @@ export function showUndoDiscardNotification(doc: GristDoc, onClick: () => void) 
     key: 'undo-discard',
     message: () =>
       discardNotification(
-        dom.on("click", onClick)
-      )
-    }
+        dom.on("click", onClick),
+      ),
+    },
   );
   return notification;
 }
@@ -379,7 +379,7 @@ class EditorAdapter extends Disposable implements Editor {
         this.cellModified.emit({
           position: e.position,
           state: e.currentState,
-          modified: e.wasModified
+          modified: e.wasModified,
         });
       }));
 
@@ -388,7 +388,7 @@ class EditorAdapter extends Disposable implements Editor {
         this.cellCancelled.emit({
           position: e.position,
           state: e.currentState,
-          modified: e.wasModified
+          modified: e.wasModified,
         });
       }));
 
@@ -397,7 +397,7 @@ class EditorAdapter extends Disposable implements Editor {
         this.cellSaved.emit({
           position: e.position,
           state: e.currentState,
-          modified: e.wasModified
+          modified: e.wasModified,
         });
       }));
     }));
@@ -452,7 +452,7 @@ function discardNotification(...args: IDomArgs<TagElem<"div">>) {
   return styledNotification(
     t("Undo discard"),
     testId("draft-notification"),
-    ...args
+    ...args,
   );
 }
 

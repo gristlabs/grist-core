@@ -47,7 +47,7 @@ export function permissionsWidget(
         // Cycle the bit's value on click, unless disabled.
         (options.disabled ? null :
           dom.on('click', () => setPermissions({...pset.get(), [bit]: next(pset.get()[bit])}))
-        )
+        ),
       );
     }),
     cssIconButton(icon('Dropdown'), testId('permissions-dropdown'), menu(() => {
@@ -59,20 +59,20 @@ export function permissionsWidget(
           cssMenuItem(() => null, dom.cls('disabled'), menuIcon('Tick'),
             cssMenuItemContent(
               'Custom',
-              cssMenuItemDetails(dom.text(use => psetDescription(use(pset))))
+              cssMenuItemDetails(dom.text(use => psetDescription(use(pset)))),
             ),
           ) :
           null
         ),
         // If the set matches any recognized pattern, mark that item with a tick (checkmark).
         cssMenuItem(() => setPermissions(allowAll), tick(isEqual(pset.get(), allowAll)), t("Allow all"),
-          dom.cls('disabled', options.disabled)
+          dom.cls('disabled', options.disabled),
         ),
         cssMenuItem(() => setPermissions(denyAll), tick(isEqual(pset.get(), denyAll)), t("Deny all"),
-          dom.cls('disabled', options.disabled)
+          dom.cls('disabled', options.disabled),
         ),
         cssMenuItem(() => setPermissions(readOnly), tick(isEqual(pset.get(), readOnly)), t("Read only"),
-          dom.cls('disabled', options.disabled)
+          dom.cls('disabled', options.disabled),
         ),
         cssMenuItem(() => setPermissions(empty),
           // For the empty permission set, it seems clearer to describe it as "No Effect", but to
@@ -82,7 +82,7 @@ export function permissionsWidget(
         ),
       ];
     })),
-    ...args
+    ...args,
   );
 }
 

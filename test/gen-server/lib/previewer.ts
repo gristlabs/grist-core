@@ -15,8 +15,8 @@ function permit(permitKey: string): AxiosRequestConfig {
     responseType: 'json',
     validateStatus: (status: number) => true,
     headers: {
-      Permit: permitKey
-    }
+      Permit: permitKey,
+    },
   };
 }
 

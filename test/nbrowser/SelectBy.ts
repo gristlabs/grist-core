@@ -72,7 +72,7 @@ describe("SelectBy", function() {
         formatOption('TABLE2'),
         formatOption('TABLE2', 'table3_ref', 'table3_ref'),
         formatOption('TABLE2', 'table3_ref', 'table3_ref_2'),
-      ]
+      ],
     );
 
     // select Table2 and check options of `SELECT BY` drop down
@@ -85,8 +85,8 @@ describe("SelectBy", function() {
         formatOption('TABLE1', 'table3_ref'),
         formatOption('TABLE1', 'table3_ref_2'),
         formatOption('TABLE2'),
-        formatOption('TABLE2', 'table3_ref')
-      ]
+        formatOption('TABLE2', 'table3_ref'),
+      ],
     );
 
     // Selecting "New Table" should show no options.

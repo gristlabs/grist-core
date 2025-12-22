@@ -105,7 +105,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   public readonly userSelectOptions: IMemberSelectOption[] = [
     { value: roles.OWNER,  label: t("Owner")  },
     { value: roles.EDITOR, label: t("Editor") },
-    { value: roles.VIEWER, label: t("Viewer") }
+    { value: roles.VIEWER, label: t("Viewer") },
   ];
   // Select options for each individual user's role dropdown in the org.
   public readonly orgUserSelectOptions: IOrgMemberSelectOption[] = [
@@ -119,7 +119,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     { value: roles.OWNER,  label: t("In full")     },
     { value: roles.EDITOR, label: t("View & edit") },
     { value: roles.VIEWER, label: t("View only")   },
-    { value: null,         label: t("None")        }
+    { value: null,         label: t("None")        },
   ];
   // Select options for the public member's role dropdown.
   public readonly publicUserSelectOptions: IMemberSelectOption[] = [
@@ -182,7 +182,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       docPageModel?: DocPageModel,
       appModel?: AppModel,
       resource?: Resource,
-    }
+    },
   ) {
     super();
     if (this._options.appModel) {
@@ -250,7 +250,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
         email,
         name: "",
         access: role,
-        parentAccess: null
+        parentAccess: null,
       });
       newMember.isNew = true;
       this.membersEdited.push(newMember);
@@ -329,7 +329,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
         access: m.access,
         parentAccess: m.parentAccess || null,
         isTeamMember: m.isMember,
-      })
+      }),
     );
   }
 

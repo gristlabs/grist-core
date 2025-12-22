@@ -8,7 +8,7 @@ export class UserLastConnection1713186031023 implements MigrationInterface {
     await queryRunner.addColumn('users', new TableColumn({
       name: 'last_connection_at',
       type: datetime,
-      isNullable: true
+      isNullable: true,
     }));
   }
 

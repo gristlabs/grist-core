@@ -273,7 +273,7 @@ export async function startMain() {
     }
 
     const server = await MergedServer.create(port, serverTypes, {
-      extraWorkers
+      extraWorkers,
     });
     await server.run();
 

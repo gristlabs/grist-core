@@ -1,7 +1,7 @@
 import {ColumnFilterFunc, makeFilterFunc} from "app/common/ColumnFilterFunc";
 import {CellValue} from 'app/common/DocActions';
 import {
-  FilterSpec, FilterState, IRelativeDateSpec, isRangeFilter, isRelativeBound, makeFilterState
+  FilterSpec, FilterState, IRelativeDateSpec, isRangeFilter, isRelativeBound, makeFilterState,
 } from "app/common/FilterState";
 import {relativeDateToUnixTimestamp} from "app/common/RelativeDates";
 import {nativeCompare} from 'app/common/gutil';

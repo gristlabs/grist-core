@@ -79,8 +79,8 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
           // Replace the current URL so that the back button works as expected (it navigates back from
           // the current page).
           urlState().pushUrl(anchorUrlState, { replace: true }).catch(reportError);
-        })
-      )
+        }),
+      ),
     ),
     menuItemCmd(allCommands.printSection, t("Print widget"), testId('print-section')),
     menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
@@ -135,8 +135,8 @@ export function makeCollapsedLayoutMenu(viewSection: ViewSectionRec, gristDoc: G
           // Replace the current URL so that the back button works as expected (it navigates back from
           // the current page).
           urlState().pushUrl(anchorUrlState, { replace: true }).catch(reportError);
-        })
-      )
+        }),
+      ),
     ),
     menuDivider(),
     menuItemCmd(allCommands.restoreSection, t("Add to page"),

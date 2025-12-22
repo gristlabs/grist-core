@@ -113,7 +113,7 @@ export class AccountWidget extends Disposable {
     const documentSettingsItem = this._docPageModel ? menuItemLink(
       urlState().setLinkUrl({docPage: 'settings'}),
       t("Document settings"),
-      testId('dm-doc-settings')
+      testId('dm-doc-settings'),
     ) : null;
 
     // The item to toggle mobile mode (presence of viewport meta tag).
@@ -140,8 +140,8 @@ export class AccountWidget extends Disposable {
       cssUserInfo(
         createUserImage(user, 'large'),
         cssUserName(dom('span', user.name, testId('usermenu-name')),
-          cssEmail(user.email, testId('usermenu-email'))
-        )
+          cssEmail(user.email, testId('usermenu-email')),
+        ),
       ),
       menuItemLink(urlState().setLinkUrl({account: 'account'}), t("Profile settings"), testId('dm-account-settings')),
 

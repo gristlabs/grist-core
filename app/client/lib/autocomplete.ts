@@ -243,9 +243,9 @@ const applyMaxSize: Modifier<any, any> = {
     // The `maxSize` modifier provides this data
     const {height} = state.modifiersData.maxSize;
     Object.assign(state.styles.popper, {
-      maxHeight: `${Math.max(160, height)}px`
+      maxHeight: `${Math.max(160, height)}px`,
     });
-  }
+  },
 };
 
 export const defaultPopperOptions: Partial<PopperOptions> = {

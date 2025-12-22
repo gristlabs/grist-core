@@ -33,7 +33,7 @@ export class UserCreatedAt1738912357827 implements MigrationInterface {
         ON u.id = o.owner_id
       ) AS orgs
       WHERE users.id = orgs.owner_id;`,
-      [activation?.created_at ?? null]
+      [activation?.created_at ?? null],
     );
 
     await queryRunner.createIndex("users", new TableIndex({

@@ -64,7 +64,7 @@ function addAuditLogsCommand(program: commander.Command, options: CommandOptions
     .addOption(
       new commander.Option("--type <type>")
         .choices(["installation", "site"])
-        .makeOptionMandatory()
+        .makeOptionMandatory(),
     )
     .action(showAuditLogEvents);
 }
@@ -89,7 +89,7 @@ export function addSettingsCommand(program: commander.Command,
   const sub = section(program, {
     sectionName: 'settings',
     sectionDescription: 'general configuration',
-    ...options
+    ...options,
   });
   sub('telemetry')
     .description('show telemetry settings')
@@ -176,7 +176,7 @@ export function addSiteCommand(program: commander.Command,
   const sub = section(program, {
     sectionName: 'site',
     sectionDescription: 'set up sites',
-    ...options
+    ...options,
   });
   sub('create <domain> <owner-email>')
     .description('create a site')
@@ -191,7 +191,7 @@ export function addSiteCommand(program: commander.Command,
       }, {
         setUserAsOwner: false,
         useNewPlan: true,
-        product: 'teamFree'
+        product: 'teamFree',
       }));
     });
 }

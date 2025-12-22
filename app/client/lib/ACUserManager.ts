@@ -120,19 +120,19 @@ export function buildACMemberEmail(
       cssMemberText(
         cssMemberPrimaryPlus(t("Invite new member")),
         getGristConfig().notifierEnabled ? cssMemberSecondaryPlus(
-          dom.text(use => t("We'll email an invite to {{email}}", {email: use(emailObs)}))
+          dom.text(use => t("We'll email an invite to {{email}}", {email: use(emailObs)})),
         ) : null,
       ),
-      testId("um-add-email")
-    )
+      testId("um-add-email"),
+    ),
   ) : cssSelectItem(
     cssMemberListItem(
       cssMemberImage(createUserImage(item, "large")),
       cssMemberText(
         cssMemberPrimaryPlus(item.name, testId("um-member-name")),
-        cssMemberSecondaryPlus(buildHighlightedDom(item.label, highlightFunc, cssMatchText))
-      )
-    )
+        cssMemberSecondaryPlus(buildHighlightedDom(item.label, highlightFunc, cssMatchText)),
+      ),
+    ),
   ));
 
   const enableAdd: Computed<boolean> = computed(use => Boolean(use(emailObs) && use(isValid)));
@@ -164,7 +164,7 @@ export function buildACMemberEmail(
       }),
     )),
     cssEmailInputContainer.cls('-green', enableAdd),
-    ...args
+    ...args,
   );
 
   // Reset custom validity that we sometimes set.

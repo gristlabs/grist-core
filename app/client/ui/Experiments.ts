@@ -68,20 +68,20 @@ export class Experiments extends Disposable {
         explanation: cssWrapper(
           dom('p', dom.cls(cssWrapper.className), alreadyEnabled
             ? t('You are about to disable this experimental feature: {{experiment}}', {
-              experiment: experimentLabel
+              experiment: experimentLabel,
             })
             : t('You are about to enable this experimental feature: {{experiment}}', {
-              experiment: experimentLabel
-            })
+              experiment: experimentLabel,
+            }),
           ),
-          !alreadyEnabled ? dom('p', t("Don't worry, you can disable it later if needed.")) : null
+          !alreadyEnabled ? dom('p', t("Don't worry, you can disable it later if needed.")) : null,
         ),
         modalOptions: {
           noEscapeKey: true,
           noClickAway: true,
           onCancel: this._cleanAndReloadUrl,
-        }
-      }
+        },
+      },
     );
   }
 
@@ -93,7 +93,7 @@ export class Experiments extends Disposable {
     experimentUrl.searchParams.set(EXPERIMENT_URL_PARAM, experiment);
     const urlBlock = cssLink(
       {href: experimentUrl.toString()},
-      experimentUrl.toString()
+      experimentUrl.toString(),
     );
     const experimentLabel = dom('strong', EXPERIMENTS[experiment as keyof typeof EXPERIMENTS]());
     confirmModal(
@@ -104,21 +104,21 @@ export class Experiments extends Disposable {
         explanation: cssWrapper(
           dom('p', nowEnabled
             ? t('{{experiment}} enabled.', {experiment: experimentLabel})
-            : t('{{experiment}} disabled.', {experiment: experimentLabel})
+            : t('{{experiment}} disabled.', {experiment: experimentLabel}),
           ),
           nowEnabled
             ? dom(
               'p',
               dom.cls(cssWrapper.className),
-              t('Visit this URL at any time to stop using this feature: {{url}}', {url: urlBlock})
+              t('Visit this URL at any time to stop using this feature: {{url}}', {url: urlBlock}),
             )
             : null,
         ),
         hideCancel: true,
         modalOptions: {
           onCancel: this._cleanAndReloadUrl,
-        }
-      }
+        },
+      },
     );
   }
 
@@ -129,14 +129,14 @@ export class Experiments extends Disposable {
   private _getExperimentState(experiment: string): {enabled: boolean, timestamp: number|null} {
     return safeJsonParse(
       getStorage().getItem(this._getStorageKey(experiment)) || '',
-      {enabled: false, timestamp: null}
+      {enabled: false, timestamp: null},
     );
   }
 
   private _setExperimentState(experiment: string, enabled: boolean) {
     getStorage().setItem(
       this._getStorageKey(experiment),
-      JSON.stringify({enabled, timestamp: Date.now()})
+      JSON.stringify({enabled, timestamp: Date.now()}),
     );
   }
 

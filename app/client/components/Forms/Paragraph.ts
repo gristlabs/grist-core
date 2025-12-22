@@ -56,10 +56,10 @@ export class ParagraphModel extends BoxModel {
                 text.set(draft.get());
                 this.save().catch(reportError);
               }
-            })
+            }),
           );
         }),
-      )
+      ),
     });
   }
 }

@@ -23,7 +23,7 @@ export function showAuditLogEvents({ type }: Options) {
 function showInstallationEvents() {
   console.log("---\ntitle: Audit log events\n---\n");
   console.log(
-    "# Audit log events for your self-managed instance {: .tag-ee }"
+    "# Audit log events for your self-managed instance {: .tag-ee }",
   );
   const events = Object.entries(AuditEvents).filter(([, { type }]) => {
     const types = Array.isArray(type) ? type : [type];
@@ -40,7 +40,7 @@ function showSiteEvents() {
     The events on this page appear in the audit log of a [team site]` +
       `(../teams.md). For events that appear in a [Self-Managed Grist instance]` +
       `(../self-managed.md), see ["Audit log events for your self-managed instance"]` +
-      `(../install/audit-log-events.md).\n`
+      `(../install/audit-log-events.md).\n`,
   );
   const events = Object.entries(AuditEvents).filter(([, { type }]) => {
     const types = Array.isArray(type) ? type : [type];
@@ -52,14 +52,14 @@ function showSiteEvents() {
 function showEvents(events: [string, AuditEvent<AuditEventAction>][]) {
   const eventsByCategory = groupBy(
     events,
-    ([name]) => name.split(".")?.[0] ?? "other"
+    ([name]) => name.split(".")?.[0] ?? "other",
   );
   for (const [category, categoryEvents] of Object.entries(
-    eventsByCategory
+    eventsByCategory,
   ).sort((a, b) => a[0].localeCompare(b[0]))) {
     console.log(`\n## ${category}`);
     for (const [action, event] of categoryEvents.sort((a, b) =>
-      a[0].localeCompare(b[0])
+      a[0].localeCompare(b[0]),
     )) {
       const { description, properties, sample } = event;
       console.log(`\n### ${action}\n`);
@@ -82,10 +82,10 @@ function showEvents(events: [string, AuditEvent<AuditEventAction>][]) {
 
 function showEventProperties(
   properties: AuditEventProperties<object>,
-  prefix = ""
+  prefix = "",
 ) {
   for (const [key, { type, description, optional, ...rest }] of Object.entries(
-    properties
+    properties,
   )) {
     const name = prefix + key + (optional ? " *(optional)*" : "");
     const types = (Array.isArray(type) ? type : [type]).map(t => `\`${t}\``);

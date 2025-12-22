@@ -59,7 +59,7 @@ describe('FormsUrlValues', function() {
         {id: 'Field_Ref', type: 'Ref:Table1', isFormula: false},
         {id: 'Field_Ref_Radio', type: 'Ref:Table1', isFormula: false, widgetOptions: JSON.stringify(radio)},
         {id: 'Field_RefList', type: 'RefList:Table1', isFormula: false},
-      ]]
+      ]],
     ]);
 
     // Load the document, and switch to the FormTest table.
@@ -138,7 +138,7 @@ describe('FormsUrlValues', function() {
       Field_ChoiceList: null,
       Field_Ref: 0,
       Field_Ref_Radio: 0,
-      Field_RefList: null
+      Field_RefList: null,
     });
 
     // Open the form with some URL parameters again.
@@ -172,14 +172,14 @@ describe('FormsUrlValues', function() {
       Field_ChoiceList: ['L', 'Baz Choice'] as any,
       Field_Ref: 0,
       Field_Ref_Radio: 3,
-      Field_RefList: null
+      Field_RefList: null,
     });
   });
 
   it('should accept url values that are enabled', async function() {
     // Enable half the fields to accept submissions.
     for (const field of [
-      'Field_Text', 'Field_Numeric', 'Field_Spinner', 'Field_Bool', 'Field_Date', 'Field_DateTime'
+      'Field_Text', 'Field_Numeric', 'Field_Spinner', 'Field_Bool', 'Field_Date', 'Field_DateTime',
     ]) {
       await toggleFieldConfigCheckbox(field, '.test-form-field-accept-from-url');
     }
@@ -225,7 +225,7 @@ describe('FormsUrlValues', function() {
       Field_ChoiceList: null,
       Field_Ref: 0,
       Field_Ref_Radio: 0,
-      Field_RefList: null
+      Field_RefList: null,
     });
 
     // Switch which fields accept submissions.

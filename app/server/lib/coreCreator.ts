@@ -1,7 +1,7 @@
 import {
   checkMinIOBucket,
   checkMinIOExternalStorage,
-  configureMinIOExternalStorage
+  configureMinIOExternalStorage,
 } from 'app/server/lib/configureMinIOExternalStorage';
 import {configureOpenAIAssistantV1} from 'app/server/lib/configureOpenAIAssistantV1';
 import {BaseCreate, ICreateStorageOptions} from 'app/server/lib/ICreate';

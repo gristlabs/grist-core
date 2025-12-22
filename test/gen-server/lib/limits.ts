@@ -59,14 +59,14 @@ describe('limits', function() {
     api = new UserAPIImpl(`${homeUrl}/o/docs`, {
       fetch: fetch as any,
       newFormData: () => new FormData() as any,
-      ...configForUser('sam') as IOptions
+      ...configForUser('sam') as IOptions,
     });
     // Give chimpy access to this org
     await api.updateOrgPermissions('current', {users: {'chimpy@getgrist.com': 'owners'}});
     // Set up an api object tied to nasa
     nasa = new UserAPIImpl(`${homeUrl}/o/nasa`, {
       fetch: fetch as any,
-      ...configForUser('chimpy') as IOptions
+      ...configForUser('chimpy') as IOptions,
     });
   });
 
@@ -115,49 +115,49 @@ describe('limits', function() {
         'user2@getgrist.com': 'viewers',
         'user3@getgrist.com': 'owners',
         'user4@getgrist.com': 'viewers',
-      }
+      },
     }), /No more external workspace shares/);
 
     // Adding 1 user is ok
     await assert.isFulfilled(api.updateWorkspacePermissions(wsId, {
-      users: {'user1@getgrist.com': 'owners'}
+      users: {'user1@getgrist.com': 'owners'},
     }));
 
     // Adding 2nd+3rd user is ok
     await assert.isFulfilled(api.updateWorkspacePermissions(wsId, {
       users: {
         'user2@getgrist.com': 'owners',
-        'user3@getgrist.com': 'owners'
-      }
+        'user3@getgrist.com': 'owners',
+      },
     }));
 
     // Adding 4th user fails
     await assert.isRejected(api.updateWorkspacePermissions(wsId, {
-      users: {'user4@getgrist.com': 'owners'}
+      users: {'user4@getgrist.com': 'owners'},
     }), /No more external workspace shares/);
 
     // Adding support user is ok
     await assert.isFulfilled(api.updateWorkspacePermissions(wsId, {
-      users: {'support@getgrist.com': 'owners'}
+      users: {'support@getgrist.com': 'owners'},
     }));
 
     // Replacing user is ok
     await assert.isFulfilled(api.updateWorkspacePermissions(wsId, {
       users: {
         'user2@getgrist.com': null,
-        'user2b@getgrist.com': 'owners'
-      }
+        'user2b@getgrist.com': 'owners',
+      },
     }));
 
     // Removing a user and adding another is ok
     await assert.isFulfilled(api.updateWorkspacePermissions(wsId, {
-      users: {'user1@getgrist.com': null}
+      users: {'user1@getgrist.com': null},
     }));
     await assert.isFulfilled(api.updateWorkspacePermissions(wsId, {
-      users: {'user1b@getgrist.com': 'owners'}
+      users: {'user1b@getgrist.com': 'owners'},
     }));
     await assert.isRejected(api.updateWorkspacePermissions(wsId, {
-      users: {'user5@getgrist.com': 'owners'}
+      users: {'user5@getgrist.com': 'owners'},
     }), /No more external workspace shares/);
 
     // Reduce to limit to allow just one share
@@ -167,24 +167,24 @@ describe('limits', function() {
     await assert.isRejected(api.updateWorkspacePermissions(wsId, {
       users: {
         'user3@getgrist.com': null,
-        'user3b@getgrist.com': 'owners'
-      }
+        'user3b@getgrist.com': 'owners',
+      },
     }), /No more external workspace shares/);
 
     // Can remove a user, while still being over limit
     await assert.isFulfilled(api.updateWorkspacePermissions(wsId, {
-      users: {'user1b@getgrist.com': null}
+      users: {'user1b@getgrist.com': null},
     }));
     await assert.isFulfilled(api.updateWorkspacePermissions(wsId, {
-      users: {'user2b@getgrist.com': null}
+      users: {'user2b@getgrist.com': null},
     }));
     await assert.isFulfilled(api.updateWorkspacePermissions(wsId, {
-      users: {'user3@getgrist.com': null}
+      users: {'user3@getgrist.com': null},
     }));
 
     // Finally ok to add a user again
     await assert.isFulfilled(api.updateWorkspacePermissions(wsId, {
-      users: {'user1@getgrist.com': 'owners'}
+      users: {'user1@getgrist.com': 'owners'},
     }));
   });
 
@@ -247,49 +247,49 @@ describe('limits', function() {
         'user2@getgrist.com': 'viewers',
         'user3@getgrist.com': 'owners',
         'user4@getgrist.com': 'viewers',
-      }
+      },
     }), /No more external document shares/);
 
     // Adding 1 user is ok
     await assert.isFulfilled(api.updateDocPermissions(docId, {
-      users: {'user1@getgrist.com': 'owners'}
+      users: {'user1@getgrist.com': 'owners'},
     }));
 
     // Adding 2nd+3rd user is ok
     await assert.isFulfilled(api.updateDocPermissions(docId, {
       users: {
         'user2@getgrist.com': 'owners',
-        'user3@getgrist.com': 'owners'
-      }
+        'user3@getgrist.com': 'owners',
+      },
     }));
 
     // Adding 4th user fails
     await assert.isRejected(api.updateDocPermissions(docId, {
-      users: {'user4@getgrist.com': 'owners'}
+      users: {'user4@getgrist.com': 'owners'},
     }), /No more external document shares/);
 
     // Adding support user is ok
     await assert.isFulfilled(api.updateDocPermissions(docId, {
-      users: {'support@getgrist.com': 'owners'}
+      users: {'support@getgrist.com': 'owners'},
     }));
 
     // Replacing user is ok
     await assert.isFulfilled(api.updateDocPermissions(docId, {
       users: {
         'user2@getgrist.com': null,
-        'user2b@getgrist.com': 'owners'
-      }
+        'user2b@getgrist.com': 'owners',
+      },
     }));
 
     // Removing a user and adding another is ok
     await assert.isFulfilled(api.updateDocPermissions(docId, {
-      users: {'user1@getgrist.com': null}
+      users: {'user1@getgrist.com': null},
     }));
     await assert.isFulfilled(api.updateDocPermissions(docId, {
-      users: {'user1b@getgrist.com': 'owners'}
+      users: {'user1b@getgrist.com': 'owners'},
     }));
     await assert.isRejected(api.updateDocPermissions(docId, {
-      users: {'user5@getgrist.com': 'owners'}
+      users: {'user5@getgrist.com': 'owners'},
     }), /No more external document shares/);
 
     // Reduce to limit to allow just one share
@@ -299,24 +299,24 @@ describe('limits', function() {
     await assert.isRejected(api.updateDocPermissions(docId, {
       users: {
         'user3@getgrist.com': null,
-        'user3b@getgrist.com': 'owners'
-      }
+        'user3b@getgrist.com': 'owners',
+      },
     }), /No more external document shares/);
 
     // Can remove a user, while still being over limit
     await assert.isFulfilled(api.updateDocPermissions(docId, {
-      users: {'user1b@getgrist.com': null}
+      users: {'user1b@getgrist.com': null},
     }));
     await assert.isFulfilled(api.updateDocPermissions(docId, {
-      users: {'user2b@getgrist.com': null}
+      users: {'user2b@getgrist.com': null},
     }));
     await assert.isFulfilled(api.updateDocPermissions(docId, {
-      users: {'user3@getgrist.com': null}
+      users: {'user3@getgrist.com': null},
     }));
 
     // Finally ok to add a user again
     await assert.isFulfilled(api.updateDocPermissions(docId, {
-      users: {'user1@getgrist.com': 'owners'}
+      users: {'user1@getgrist.com': 'owners'},
     }));
 
     // Try smuggling in a doc that breaks the rules
@@ -338,7 +338,7 @@ describe('limits', function() {
         'zig@getgrist.com': 'owners',
         'zag@getgrist.com': 'editors',
         'zog@getgrist.com': 'viewers',
-      }
+      },
     });
     await assert.isRejected(nasa.moveDoc(pluto, wsId), /Too many external document shares/);
 
@@ -353,7 +353,7 @@ describe('limits', function() {
     await setFeatures({maxSharesPerDoc: 10,
                        maxSharesPerDocPerRole: {
                          owners: 1,
-                         editors: 2
+                         editors: 2,
                        },
                        workspaces: true});
     const wsId = await api.newWorkspace({name: 'roleShares'}, 'docs');
@@ -365,16 +365,16 @@ describe('limits', function() {
         'viewer1@getgrist.com': 'viewers',
         'viewer2@getgrist.com': 'viewers',
         'viewer3@getgrist.com': 'viewers',
-        'viewer4@getgrist.com': 'viewers'
-      }
+        'viewer4@getgrist.com': 'viewers',
+      },
     }));
 
     // can add just one owner
     await assert.isFulfilled(api.updateDocPermissions(docId, {
-      users: {'owner1@getgrist.com': 'owners'}
+      users: {'owner1@getgrist.com': 'owners'},
     }));
     await assert.isRejected(api.updateDocPermissions(docId, {
-      users: {'owner2@getgrist.com': 'owners'}
+      users: {'owner2@getgrist.com': 'owners'},
     }), /No more external document owners/);
 
     // can add at most two editors
@@ -382,33 +382,33 @@ describe('limits', function() {
       users: {
         'editor1@getgrist.com': 'editors',
         'editor2@getgrist.com': 'editors',
-        'editor3@getgrist.com': 'editors'
-      }
+        'editor3@getgrist.com': 'editors',
+      },
     }), /No more external document editors/);
     await assert.isFulfilled(api.updateDocPermissions(docId, {
       users: {
         'editor1@getgrist.com': 'editors',
-        'editor2@getgrist.com': 'editors'
-      }
+        'editor2@getgrist.com': 'editors',
+      },
     }));
 
     // can convert an editor to a viewer and then add another editor
     await assert.isFulfilled(api.updateDocPermissions(docId, {
       users: {
         'editor1@getgrist.com': 'viewers',
-        'editor3@getgrist.com': 'editors'
-      }
+        'editor3@getgrist.com': 'editors',
+      },
     }));
 
     // we are at 8 shares, can make just two more
     await assert.isFulfilled(api.updateDocPermissions(docId, {
-      users: {'viewer5@getgrist.com': 'viewers'}
+      users: {'viewer5@getgrist.com': 'viewers'},
     }));
     await assert.isFulfilled(api.updateDocPermissions(docId, {
-      users: {'viewer6@getgrist.com': 'viewers'}
+      users: {'viewer6@getgrist.com': 'viewers'},
     }));
     await assert.isRejected(api.updateDocPermissions(docId, {
-      users: {'viewer7@getgrist.com': 'viewers'}
+      users: {'viewer7@getgrist.com': 'viewers'},
     }), /No more external document shares/);
 
 
@@ -417,8 +417,8 @@ describe('limits', function() {
     await nasa.updateDocPermissions(beyond, {
       users: {
         'zig@getgrist.com': 'owners',
-        'zag@getgrist.com': 'owners'
-      }
+        'zag@getgrist.com': 'owners',
+      },
     });
     await assert.isRejected(nasa.moveDoc(beyond, wsId), /Too many external document owners/);
 
@@ -426,7 +426,7 @@ describe('limits', function() {
     await setFeatures({maxSharesPerDoc: 10,
                        maxSharesPerDocPerRole: {
                          owners: 2,
-                         editors: 2
+                         editors: 2,
                        },
                        workspaces: true});
     await assert.isFulfilled(nasa.moveDoc(beyond, wsId));
@@ -441,12 +441,12 @@ describe('limits', function() {
       users: {
         'user1@getgrist.com': 'owners',
         'user2@getgrist.com': 'viewers',
-      }
+      },
     }));
     let err: ApiError = await api.updateDocPermissions(docId, {
       users: {
         'user3@getgrist.com': 'owners',
-      }
+      },
     }).catch(e => e);
     // Advice should be to add users as members.
     assert.sameMembers(err.details!.tips!.map(tip => tip.action), ['add-members']);
@@ -456,7 +456,7 @@ describe('limits', function() {
     err = await api.updateDocPermissions(docId, {
       users: {
         'user3@getgrist.com': 'owners',
-      }
+      },
     }).catch(e => e);
     // Advice should be to upgrade.
     assert.sameMembers(err.details!.tips!.map(tip => tip.action), ['upgrade']);
@@ -470,12 +470,12 @@ describe('limits', function() {
       users: {
         'user1@getgrist.com': 'owners',
         'user2@getgrist.com': 'viewers',
-      }
+      },
     }));
     let err: ApiError = await api.updateWorkspacePermissions(wsId, {
       users: {
         'user3@getgrist.com': 'owners',
-      }
+      },
     }).catch(e => e);
     // Advice should be to add users as members.
     assert.sameMembers(err.details!.tips!.map(tip => tip.action), ['add-members']);
@@ -486,7 +486,7 @@ describe('limits', function() {
     err = await api.updateWorkspacePermissions(wsId, {
       users: {
         'user3@getgrist.com': 'owners',
-      }
+      },
     }).catch(e => e);
     // Advice should be to upgrade.
     assert.sameMembers(err.details!.tips!.map(tip => tip.action), ['upgrade']);
@@ -585,11 +585,11 @@ describe('limits', function() {
         context: {
           tableId: '',
           colId: '',
-        }
+        },
       };
       const v2: AssistanceRequestV2 = {
         ...sharedPayload,
-        context: {}
+        context: {},
       };
       const response = docApi.getAssistance(version === 1 ? v1 : v2);
       if (fulfilled) {

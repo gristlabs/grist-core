@@ -59,6 +59,6 @@ export interface FilteredDocUsageSummary extends FilteredDocUsage {
      },
      attachments: {
        totalBytes: 0,
-     }
+     },
   };
 }

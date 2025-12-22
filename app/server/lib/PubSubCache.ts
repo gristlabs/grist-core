@@ -72,7 +72,7 @@ export class PubSubCache<Key, Value> {
     return this._options.pubSubManager.subscribe(this._options.getChannel(key),
       // When we receive a message, process the invalidation unless it matches our own unique
       // ID, which indicates this invalidation came from us and already got processed.
-      msg => (msg === this._selfId ? null : this._cache.delete(key))
+      msg => (msg === this._selfId ? null : this._cache.delete(key)),
     );
   }
 

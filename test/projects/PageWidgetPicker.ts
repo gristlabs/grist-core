@@ -141,7 +141,7 @@ describe('PageWidgetPicker', () => {
     assert.equal(
       await driver.find('.test-call-log:last-child .test-call-value').getText(),
       JSON.stringify(
-        {type: 'record', table: 0, summarize: false, columns: [], link: '[0,0,0]', section: 0})
+        {type: 'record', table: 0, summarize: false, columns: [], link: '[0,0,0]', section: 0}),
     );
 
     // resolve call and re-open picker
@@ -159,7 +159,7 @@ describe('PageWidgetPicker', () => {
     assert.equal(
       await driver.find('.test-call-log:last-child .test-call-value').getText(),
       JSON.stringify(
-        {type: 'single', table: 1, summarize: true, columns: [2, 3], link: '[0,0,0]', section: 0})
+        {type: 'single', table: 1, summarize: true, columns: [2, 3], link: '[0,0,0]', section: 0}),
     );
 
     // resolve call and re-open picker

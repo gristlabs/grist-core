@@ -155,6 +155,6 @@ export function rawTextInput(value: Observable<string>, save: SaveFunc, onChange
       Escape: revertToSaved,
       Enter: saveEdit,
     }),
-    ...args
+    ...args,
   );
 }

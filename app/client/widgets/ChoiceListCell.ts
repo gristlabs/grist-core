@@ -29,7 +29,7 @@ export class ChoiceListCell extends ChoiceTextBox {
         return use(row._isAddRow) ? null :
           [
             use(value), use(this.getChoiceValuesSet()),
-            use(this.getChoiceOptions())
+            use(this.getChoiceOptions()),
           ] as [CellValue, Set<string>, ChoiceOptionsByName];
       }, (input) => {
         if (!input) { return null; }
@@ -48,7 +48,7 @@ export class ChoiceListCell extends ChoiceTextBox {
               blank: String(token).trim() === '',
             },
             dom.cls(cssToken.className),
-            testId('choice-list-cell-token')
+            testId('choice-list-cell-token'),
           );
         });
       }),

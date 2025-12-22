@@ -153,7 +153,7 @@ export function readSamlConfigFromSettings(settings: AppSettings): SamlConfig {
     idpLogout,
     skipSlo,
     idpCerts,
-    allowUnencrypted
+    allowUnencrypted,
   };
 }
 
@@ -163,7 +163,7 @@ export class SamlBuilder {
    */
   public static async build(
     gristServer: GristServer,
-    config: SamlConfig
+    config: SamlConfig,
   ): Promise<SamlBuilder> {
     const builder = new SamlBuilder(gristServer, config);
     await builder.initSaml();
@@ -176,7 +176,7 @@ export class SamlBuilder {
 
   protected constructor(
     private _gristServer: GristServer,
-    config: SamlConfig
+    config: SamlConfig,
   ) {
     this._config = config;
   }
@@ -190,7 +190,7 @@ export class SamlBuilder {
       certificate: this._config.spCert,
       assert_endpoint: `${spHost}/saml/assert`,
       notbefore_skew: 5,      // allow 5 seconds of time skew
-      sign_get_request: true  // Auth0 requires this. If it is a problem for others, could make optional.
+      sign_get_request: true,  // Auth0 requires this. If it is a problem for others, could make optional.
     };
     this._serviceProvider = new saml2.ServiceProvider(spOptions);
 
@@ -235,7 +235,7 @@ export class SamlBuilder {
 
     const { permit: relay_state, samlNameId, samlSessionIndex } = await this._prepareAppState(req, redirectUrl, {
       action: 'logout',
-      waitMinutes: 1
+      waitMinutes: 1,
     });
 
     const options: saml2.CreateLogoutRequestUrlOptions = {
@@ -266,7 +266,7 @@ export class SamlBuilder {
     app.post("/saml/assert", express.urlencoded({extended: true}), expressWrap(async (req, res, next) => {
       const {redirectUrl, sessionId, unsolicited, action} = await this._processInitialRequest(req);
       const samlResponse: saml2.SAMLAssertResponse = await fromCallback(
-        cb => sp.post_assert(idp, { request_body: req.body }, cb)
+        cb => sp.post_assert(idp, { request_body: req.body }, cb),
       );
       if (action === 'login') {
         const samlUser = samlResponse.user;

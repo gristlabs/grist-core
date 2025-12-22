@@ -91,8 +91,8 @@ export function leftPanelBasic(appModel: AppModel, panelOpen: Observable<boolean
         cssSpacer(),
         createHelpTools(appModel),
         createAccessibilityTools(),
-      )
-    )
+      ),
+    ),
   );
 }
 

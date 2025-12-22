@@ -53,15 +53,15 @@ export function buildPinnedDoc(home: HomeModel, doc: Document, workspace: Worksp
           testId('pinned-doc-name'),
           // Mostly for the sake of tests, allow .test-dm-pinned-doc-name to find documents in
           // either 'list' or 'icons' views.
-          testId('doc-name')
+          testId('doc-name'),
         ),
         doc.options?.description ?
           cssPinnedDocDesc(doc.options.description, testId('pinned-doc-desc')) :
           cssPinnedDocTimestamp(
             capitalizeFirst(getTimeFromNow(doc.removedAt || doc.updatedAt)),
-            testId('pinned-doc-desc')
-          )
-      )
+            testId('pinned-doc-desc'),
+          ),
+      ),
     ),
     isExample ? null : (doc.removedAt ?
       [
@@ -79,7 +79,7 @@ export function buildPinnedDoc(home: HomeModel, doc: Document, workspace: Worksp
         testId('pinned-doc-options'),
       )
     ),
-    testId('pinned-doc')
+    testId('pinned-doc'),
   );
 }
 

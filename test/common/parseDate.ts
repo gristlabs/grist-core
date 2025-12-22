@@ -62,7 +62,7 @@ function testTimeParse(input: string, expectedUTCTimeStr: string | null, timezon
 }
 
 function testDateTimeParse(
-  date: string, time: string, expectedUTCTimeStr: string | null, timezone: string, dateFormat?: string
+  date: string, time: string, expectedUTCTimeStr: string | null, timezone: string, dateFormat?: string,
 ) {
   const parsed1 = parseDateTime(date + ' ' + time,
     {timeFormat: 'Z', timezone, dateFormat: dateFormat || 'YYYY-MM-DD'}) || null;
@@ -312,20 +312,20 @@ describe('parseDate', function() {
 
           let expected = '2020-03-04 12:34:56';
           testDateTimeStringParse(
-            ` 2020-03-04${separator}12:34:56${tz} `, expected, 'YYYY-MM-DD'
+            ` 2020-03-04${separator}12:34:56${tz} `, expected, 'YYYY-MM-DD',
           );
           testDateTimeStringParse(
-            ` 03-04-2020${separator}12:34:56${tz} `, expected, 'MM/DD/YYYY'
+            ` 03-04-2020${separator}12:34:56${tz} `, expected, 'MM/DD/YYYY',
           );
           testDateTimeStringParse(
-            ` 04-03-20${separator}12:34:56${tz} `, expected, 'DD-MM-YY'
+            ` 04-03-20${separator}12:34:56${tz} `, expected, 'DD-MM-YY',
           );
           testDateTimeStringParse(
             ` 2020-03-04${separator}12:34:56${tz} `, expected, '',
           );
           expected = '2020-03-04 12:34:00';
           testDateTimeStringParse(
-            ` 04-03-20${separator}12:34${tz} `, expected, 'DD-MM-YY'
+            ` 04-03-20${separator}12:34${tz} `, expected, 'DD-MM-YY',
           );
         }
       }

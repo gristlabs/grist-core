@@ -55,7 +55,7 @@ const testId = makeTestId('test-video-tour-');
     {
       refElement,
       variant: 'collapsing',
-    }
+    },
   );
 }
 

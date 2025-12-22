@@ -40,7 +40,7 @@ export function getAttachmentColumns(metaDocData: DocData): AttachmentColumns {
 export function gatherAttachmentIds(
   attachmentColumns: AttachmentColumns,
   action: AddRecord | BulkAddRecord | UpdateRecord | BulkUpdateRecord |
-    RemoveRecord | BulkRemoveRecord | ReplaceTableData | TableDataAction
+    RemoveRecord | BulkRemoveRecord | ReplaceTableData | TableDataAction,
 ): Set<number> {
   const tableId = getTableId(action);
   const attColumns = attachmentColumns.get(tableId);

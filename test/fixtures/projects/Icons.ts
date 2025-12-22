@@ -77,36 +77,36 @@ function setupTest() {
     dom('div#all_icons',
       allIcons(
         dom.forEach(IconList.slice().sort(), (name: IconName) =>
-          iconBlock(iconBox(icon(name)), dom('span', name))
+          iconBlock(iconBox(icon(name)), dom('span', name)),
         ),
-      )
+      ),
     ),
     dom('hr'),
     dom('div#search_icon',
-      icon('Search'), ` unstyled`
+      icon('Search'), ` unstyled`,
     ),
     dom('div#big_search_icon',
-      bigBlueIcon('Search'), ` styled with {${bigBlueIconCss.replace(/\s+/g, ' ')}}`
+      bigBlueIcon('Search'), ` styled with {${bigBlueIconCss.replace(/\s+/g, ' ')}}`,
     ),
     dom('section',
       searchBox(
         icon('Search', dom.cls(searchIcon.className)),
-        searchInput({type: 'search'})
+        searchInput({type: 'search'}),
       ),
-      ` styled with {${searchIconCss.replace(/\s+/g, ' ')}}`
+      ` styled with {${searchIconCss.replace(/\s+/g, ' ')}}`,
     ),
     dom('hr'),
     dom('div',
       times(100, () => icon('FieldDateTime')),
     ),
     dom('section',
-      checkbox({type: 'checkbox', checked: true})
+      checkbox({type: 'checkbox', checked: true}),
     ),
     dom('hr'),
     thumbPreview(),
     dom('hr'),
     dom('h2', 'Loaders'),
-    loadingSpinner()
+    loadingSpinner(),
   );
 }
 

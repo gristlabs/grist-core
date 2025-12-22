@@ -192,7 +192,7 @@ export class TreeViewComponent extends Disposable {
         drag.item.dragged.set(false);
         drag.item.handleElement.style.display = '';
         drag.item.deltaY.set(0);
-      }
+      },
     };
 
     this._drag.autoDispose(drag);
@@ -278,7 +278,7 @@ export class TreeViewComponent extends Disposable {
     let item = this._treeItemMap.get(treeItem);
     if (!item) {
       item = this._buildTreeItemDom(treeItem,
-        dom.onDispose(() => this._treeItemMap.delete(treeItem))
+        dom.onDispose(() => this._treeItemMap.delete(treeItem)),
       );
       this._treeItemMap.set(treeItem, item);
     }
@@ -323,7 +323,7 @@ export class TreeViewComponent extends Disposable {
           labelElement = css.itemLabel(
             testId('label'),
             treeItem.buildDom(),
-            dom.style('top', use => use(deltaY) + 'px')
+            dom.style('top', use => use(deltaY) + 'px'),
           ),
           arrowElement = css.arrow(
             dom.attr('aria-label', use => use(collapsed) ? t('Expand') : t('Collapse')),
@@ -342,10 +342,10 @@ export class TreeViewComponent extends Disposable {
             testId('handle'),
             dom.hide(this._options.isReadonly),
           ),
-          mouseDrag((startEvent, elem) => this._startDrag(startEvent))
+          mouseDrag((startEvent, elem) => this._startDrag(startEvent)),
         ),
       ),
-      ...args
+      ...args,
     );
 
     // Associates some of this item internals to the dom element. This is what makes possible to

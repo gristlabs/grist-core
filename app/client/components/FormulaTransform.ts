@@ -32,8 +32,8 @@ export class FormulaTransform extends ColumnTransform {
       dom('div.transform_menu',
         dom('div.transform_editor',
           this.buildEditorDom(this.getIdentityFormula()),
-          testId("formula-transform-top")
-        )
+          testId("formula-transform-top"),
+        ),
       ),
       cssButtonRow(
         basicButton(dom.on('click', () => this.cancel()),
@@ -44,7 +44,7 @@ export class FormulaTransform extends ColumnTransform {
           { title: 'Update formula (Shift+Enter)' },
           testId("formula-transform-update")),
         primaryButton(dom.on('click', () => this.execute()),
-          t('Apply'), testId("formula-transform-apply"))
+          t('Apply'), testId("formula-transform-apply")),
       ),
     ];
   }

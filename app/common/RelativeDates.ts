@@ -100,7 +100,7 @@ export function formatRelBounds(periods: IPeriod[]): string {
   }
 
   throw new Error(
-    `Relative date spec does not support more that 2 periods: ${periods.length}`
+    `Relative date spec does not support more that 2 periods: ${periods.length}`,
   );
 }
 

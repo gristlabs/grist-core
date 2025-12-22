@@ -9,7 +9,7 @@ import {
   fromTableDataAction,
   TableColValues,
   TableRecordValue,
-  UserAction
+  UserAction,
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {
@@ -37,7 +37,7 @@ import {
   ArchiveUploadResult,
   CreatableArchiveFormats,
   DocReplacementOptions,
-  NEW_DOCUMENT_CODE
+  NEW_DOCUMENT_CODE,
 } from 'app/common/UserAPI';
 import {Document} from "app/gen-server/entity/Document";
 import {Workspace} from "app/gen-server/entity/Workspace";
@@ -51,19 +51,19 @@ import {OpOptions} from "app/plugin/TableOperations";
 import {
   handleSandboxErrorOnPlatform,
   TableOperationsImpl,
-  TableOperationsPlatform
+  TableOperationsPlatform,
 } from 'app/plugin/TableOperationsImpl';
 import {
   ActiveDoc,
   colIdToRef as colIdToReference,
   getRealTableId,
-  tableIdToRef
+  tableIdToRef,
 } from "app/server/lib/ActiveDoc";
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {
   getConfiguredAttachmentStoreConfigs,
   getConfiguredStandardAttachmentStore,
-  IAttachmentStoreProvider
+  IAttachmentStoreProvider,
 } from 'app/server/lib/AttachmentStoreProvider';
 import {
   assertAccess,
@@ -72,7 +72,7 @@ import {
   getTransitiveHeaders,
   getUserId,
   isAnonymousUser,
-  RequestWithLogin
+  RequestWithLogin,
 } from 'app/server/lib/Authorizer';
 import {DocManager} from "app/server/lib/DocManager";
 import {
@@ -253,7 +253,7 @@ export class DocWorkerApi {
             log.rawError(`Webhook endpoint timed out, releasing mutex`,
               {method: req.method, path: req.path, docId: activeDoc.docName});
           }
-        })
+        }),
     );
 
     // Apply user actions to a document.
@@ -300,7 +300,7 @@ export class DocWorkerApi {
         optTableId?: string;
         includeHidden?: boolean;
         includeId?: boolean;
-      }
+      },
     ): TableRecordValue[] {
       const fieldNames = Object.keys(columnData).filter((k) => {
         if (!opts?.includeId && k === "id") {
@@ -329,7 +329,7 @@ export class DocWorkerApi {
     }
 
     async function getTableRecords(
-      activeDoc: ActiveDoc, req: RequestWithLogin, opts?: { optTableId?: string; includeHidden?: boolean }
+      activeDoc: ActiveDoc, req: RequestWithLogin, opts?: { optTableId?: string; includeHidden?: boolean },
     ): Promise<TableRecordValue[]> {
       const columnData = await getTableData(activeDoc, req, opts?.optTableId);
       return asRecords(columnData, opts);
@@ -339,17 +339,17 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/tables/:tableId/data', canView,
       withDoc(async (activeDoc, req, res) => {
         res.json(await getTableData(activeDoc, req));
-      })
+      }),
     );
 
     // Get the specified table in record-oriented format
     this._app.get('/api/docs/:docId/tables/:tableId/records', canView,
       withDoc(async (activeDoc, req, res) => {
         const records = await getTableRecords(activeDoc, req,
-          { includeHidden: isAffirmative(req.query.hidden) }
+          { includeHidden: isAffirmative(req.query.hidden) },
         );
         res.json({records});
-      })
+      }),
     );
 
     const registerWebhook = async (activeDoc: ActiveDoc, req: RequestWithLogin, webhook: WebhookFields) => {
@@ -381,7 +381,7 @@ export class DocWorkerApi {
           [['AddRecord', "_grist_Triggers", null, {
             enabled: true,
             ...fields,
-            actions: JSON.stringify([webhookAction])
+            actions: JSON.stringify([webhookAction]),
           }]]));
         return {
             unsubscribeKey,
@@ -456,7 +456,7 @@ export class DocWorkerApi {
             fields.watchedColRefList = [GristObjCode.List, ...watchedColIds
               .filter(colId => colId.trim() !== "")
               .map(
-                (colId) => { return colIdToReference(metaTables, tableId, colId.trim().replace(/^\$/, '')); }
+                (colId) => { return colIdToReference(metaTables, tableId, colId.trim().replace(/^\$/, '')); },
               )];
           }
         }
@@ -505,7 +505,7 @@ export class DocWorkerApi {
         const columns = await handleSandboxError('', [],
           activeDoc.getTableCols(docSessionFromRequest(req), tableId, includeHidden));
         res.json({columns});
-      })
+      }),
     );
 
     // Get the tables of the specified document in recordish format
@@ -517,10 +517,10 @@ export class DocWorkerApi {
           fields: {
             ..._.omit(record.fields, "tableId"),
             tableRef: record.id,
-          }
+          },
         })).filter(({id}) => id);
         res.json({tables});
-      })
+      }),
     );
 
     // The upload should be a multipart post with an 'upload' field containing one or more files.
@@ -566,7 +566,7 @@ export class DocWorkerApi {
         res.json({
           type: storeId ? 'external' : 'internal',
         });
-      })
+      }),
     );
 
     this._app.post('/api/docs/:docId/attachments/store', isOwner, validate(SetAttachmentStorePost),
@@ -586,9 +586,9 @@ export class DocWorkerApi {
         }
 
         res.json({
-          store: await activeDoc.getAttachmentStore()
+          store: await activeDoc.getAttachmentStore(),
         });
-      })
+      }),
     );
 
     this._app.get('/api/docs/:docId/attachments/stores', isOwner,
@@ -596,7 +596,7 @@ export class DocWorkerApi {
         const configs = await getConfiguredAttachmentStoreConfigs();
         const labels: Types.AttachmentStoreDesc[] = configs.map(c => ({label: c.label}));
         res.json({stores: labels});
-      })
+      }),
     );
 
     // Responds with an archive of all attachment contents, with suitable Content-Type and Content-Disposition.
@@ -653,7 +653,7 @@ export class DocWorkerApi {
           if (archivePromise || !file.name.endsWith('.tar') || file.contentType !== "application/x-tar") { return; }
           archivePromise = activeDoc.addMissingFilesFromArchive(docSessionFromRequest(req), file.stream);
           await archivePromise;
-        }
+        },
       );
 
       if (!archivePromise) {
@@ -739,7 +739,7 @@ export class DocWorkerApi {
         const op = await getTableOperations(req, activeDoc);
         const ids = await op.addRecords(count, colValues);
         res.json(ids);
-      })
+      }),
     );
 
     // Adds records given in a record oriented format,
@@ -771,7 +771,7 @@ export class DocWorkerApi {
           activeDoc.logTelemetryEvent(docSessionFromRequest(req), 'submittedForm');
         }
         res.json({records});
-      })
+      }),
     );
 
     // A GET /sql endpoint that takes a query like ?q=select+*+from+Table1
@@ -804,14 +804,14 @@ export class DocWorkerApi {
           // AddVisibleColumn adds the column to all widgets of the table.
           // This isn't necessarily what the user wants, but it seems like a good default.
           // Maybe there should be a query param to control this?
-          ["AddVisibleColumn", tableId, colId, fields || {}]
+          ["AddVisibleColumn", tableId, colId, fields || {}],
         );
         const {retValues} = await handleSandboxError(tableId, [],
-          activeDoc.applyUserActions(docSessionFromRequest(req), actions)
+          activeDoc.applyUserActions(docSessionFromRequest(req), actions),
         );
         const columns = retValues.map(({colId}) => ({id: colId}));
         res.json({columns});
-      })
+      }),
     );
 
     // Create new tables in a doc. Unlike POST /records or /columns, each 'record' (table) should have a `columns`
@@ -826,7 +826,7 @@ export class DocWorkerApi {
         const {retValues} = await activeDoc.applyUserActions(docSessionFromRequest(req), actions);
         const tables = retValues.map(({table_id}) => ({id: table_id}));
         res.json({tables});
-      })
+      }),
     );
 
     this._app.post('/api/docs/:docId/tables/:tableId/data/delete', canEdit, withDoc(async (activeDoc, req, res) => {
@@ -914,7 +914,7 @@ export class DocWorkerApi {
         const ops = await getTableOperations(req, activeDoc);
         await ops.updateRecords(columnValues, rowIds);
         res.json(null);
-      })
+      }),
     );
 
     // Update records given in records format
@@ -924,7 +924,7 @@ export class DocWorkerApi {
         const ops = await getTableOperations(req, activeDoc);
         await ops.update(body.records);
         res.json(null);
-      })
+      }),
     );
 
     // Delete records
@@ -934,7 +934,7 @@ export class DocWorkerApi {
         const op = await getTableOperations(req, activeDoc);
         await op.destroy(rowIds);
         res.json(null);
-      })
+      }),
     );
 
     // Update columns given in records format
@@ -958,7 +958,7 @@ export class DocWorkerApi {
         const ops = await getTableOperations(req, activeDoc, "_grist_Tables_column");
         await ops.update(columns);
         res.json(null);
-      })
+      }),
     );
 
     // Update tables given in records format
@@ -976,7 +976,7 @@ export class DocWorkerApi {
         const ops = await getTableOperations(req, activeDoc, "_grist_Tables");
         await ops.update(tables);
         res.json(null);
-      })
+      }),
     );
 
     // Add or update records given in records format
@@ -994,7 +994,7 @@ export class DocWorkerApi {
         };
         await ops.upsert(body.records, options);
         res.json(null);
-      })
+      }),
     );
 
     // Add or update records given in records format
@@ -1037,13 +1037,13 @@ export class DocWorkerApi {
         const actions = [
           ...(!isAffirmative(req.query.noupdate) ? updateActions : []),
           ...(!isAffirmative(req.query.noadd) ? addActions : []),
-          ...(isAffirmative(req.query.replaceall) ? [await getRemoveAction()] : [] )
+          ...(isAffirmative(req.query.replaceall) ? [await getRemoveAction()] : [] ),
         ];
         await handleSandboxError(tableId, [],
-          activeDoc.applyUserActions(docSessionFromRequest(req), actions)
+          activeDoc.applyUserActions(docSessionFromRequest(req), actions),
         );
         res.json(null);
-      })
+      }),
     );
 
     this._app.delete('/api/docs/:docId/tables/:tableId/columns/:colId', canEdit,
@@ -1052,10 +1052,10 @@ export class DocWorkerApi {
         const tableId = await getRealTableId(req.params.tableId, {activeDoc, req});
         const actions = [['RemoveColumn', tableId, colId]];
         await handleSandboxError(tableId, [colId],
-          activeDoc.applyUserActions(docSessionFromRequest(req), actions)
+          activeDoc.applyUserActions(docSessionFromRequest(req), actions),
         );
         res.json(null);
-      })
+      }),
     );
 
     // Add a new webhook and trigger
@@ -1069,7 +1069,7 @@ export class DocWorkerApi {
         res.json({webhooks:  registeredWebhooks.map((rw) => {
           return {id: rw.webhookId};
         })});
-      })
+      }),
     );
 
     /**
@@ -1080,7 +1080,7 @@ export class DocWorkerApi {
       withDocTriggersLock(async (activeDoc, req, res) => {
         const registeredWebhook = await registerWebhook(activeDoc, req, req.body);
         res.json(registeredWebhook);
-      })
+      }),
     );
 
     // Clears all outgoing webhooks in the queue for this document.
@@ -1090,12 +1090,12 @@ export class DocWorkerApi {
         await activeDoc.sendWebhookNotification();
         this._logClearAllWebhookQueueEvents(activeDoc, req);
         res.json({success: true});
-      })
+      }),
     );
 
     // Remove webhook and trigger created above
     this._app.delete('/api/docs/:docId/webhooks/:webhookId', isOwner,
-      withDocTriggersLock(removeWebhook)
+      withDocTriggersLock(removeWebhook),
     );
 
     /**
@@ -1103,7 +1103,7 @@ export class DocWorkerApi {
         compatibility
      */
     this._app.post('/api/docs/:docId/tables/:tableId/_unsubscribe', canEdit,
-      withDocTriggersLock(removeWebhook)
+      withDocTriggersLock(removeWebhook),
     );
 
     // Update a webhook
@@ -1136,7 +1136,7 @@ export class DocWorkerApi {
         await activeDoc.sendWebhookNotification();
 
         res.json({success: true});
-      })
+      }),
     );
 
     // Clears a single webhook in the queue for this document.
@@ -1147,14 +1147,14 @@ export class DocWorkerApi {
         await activeDoc.sendWebhookNotification();
         this._logClearWebhookQueueEvents(activeDoc, req, webhookId);
         res.json({success: true});
-      })
+      }),
     );
 
     // Lists all webhooks and their current status in the document.
     this._app.get('/api/docs/:docId/webhooks', isOwner,
       withDocTriggersLock(async (activeDoc, req, res) => {
         res.json(await activeDoc.webhooksSummary());
-      })
+      }),
     );
 
     // Reload a document forcibly (in fact this closes the doc, it will be automatically
@@ -1175,7 +1175,7 @@ export class DocWorkerApi {
       this._docManager.setRecovery(getDocId(req), recoveryMode ?? true);
       const activeDoc = await this._docManager.fetchDoc(docSessionFromRequest(req), getDocId(req), recoveryMode);
       res.json({
-        recoveryMode: activeDoc.recoveryMode
+        recoveryMode: activeDoc.recoveryMode,
       });
     }));
 
@@ -1318,7 +1318,7 @@ export class DocWorkerApi {
           headers: {
             ...getTransitiveHeaders(req, { includeOrigin: false }),
             'Content-Type': 'application/json',
-          }
+          },
         });
         if (result.status !== 200) {
           const jsonResult = await result.json();
@@ -1331,7 +1331,7 @@ export class DocWorkerApi {
           headers: {
             ...getTransitiveHeaders(req, { includeOrigin: false }),
             'Content-Type': 'application/json',
-          }
+          },
         });
         if (req.body.resetTutorialMetadata) {
           const scope = getDocScope(req);
@@ -1350,7 +1350,7 @@ export class DocWorkerApi {
                   },
                 },
               },
-              manager
+              manager,
             );
           });
           const {forkId} = parseUrlId(scope.urlId);
@@ -1423,7 +1423,7 @@ export class DocWorkerApi {
           leftHash,
           rightHash,
           maxRows,
-        })
+        }),
       );
     }));
 
@@ -1448,7 +1448,7 @@ export class DocWorkerApi {
         srcDocId: parts.forkId,
         destDocId: parts.trunkId,
         comparison: comp,
-        retracted
+        retracted,
       });
       res.json(proposal);
     }));
@@ -1485,7 +1485,7 @@ export class DocWorkerApi {
       }
       await sendReply(req, res, {
         data: { proposals: result },
-        status: 200
+        status: 200,
       });
     }));
 
@@ -1580,7 +1580,7 @@ export class DocWorkerApi {
         viewSectionId: undefined,
         filters: [],
         sortOrder: [],
-        header: 'label'
+        header: 'label',
       };
       await downloadXLSX(activeDoc, req, res, options);
     }));
@@ -1595,7 +1595,7 @@ export class DocWorkerApi {
         const docSession = docSessionFromRequest(req);
         const request = req.body;
         res.json(await activeDoc.getAssistance(docSession, request));
-      })
+      }),
     );
 
     /**
@@ -1654,7 +1654,7 @@ export class DocWorkerApi {
           uploadId,
           documentName: optStringParam(parameters.documentName, 'documentName'),
           workspaceId,
-          browserSettings
+          browserSettings,
         });
         docId = result.id;
         this._logImportDocumentEvents(mreq, result);
@@ -1830,7 +1830,7 @@ export class DocWorkerApi {
           formTableId,
           formTitle,
         });
-      })
+      }),
     );
 
     // GET /api/docs/:docId/timings
@@ -2018,7 +2018,7 @@ export class DocWorkerApi {
     const id = result.docId;
     await this._docManager.createNamedDoc(
       makeExceptionalDocSession('nascent', {req: mreq, browserSettings}),
-      id
+      id,
     );
     this._logCreateDocumentEvents(req as RequestWithLogin, { id, name: "Untitled" });
     return id;
@@ -2280,7 +2280,7 @@ export class DocWorkerApi {
         const attachmentStores = await this._attachmentStoreProvider.getAllStores();
         log.debug(`Deleting all attachments for ${docId} from ${attachmentStores.length} stores`);
         const poolDeletions = attachmentStores.map(
-          store => store.removePool(getDocPoolIdFromDocInfo({ id: docId, trunkId: null }))
+          store => store.removePool(getDocPoolIdFromDocInfo({ id: docId, trunkId: null })),
         );
         await Promise.all(poolDeletions);
       }
@@ -2331,7 +2331,7 @@ export class DocWorkerApi {
     activeDoc: ActiveDoc,
     req: RequestWithLogin,
     res: Response,
-    options: Types.SqlPost
+    options: Types.SqlPost,
   ) {
     try {
       const records = await runSQLQuery(req, activeDoc, options);
@@ -2341,7 +2341,7 @@ export class DocWorkerApi {
         records: records.map(
           rec => ({
             fields: rec,
-          })
+          }),
         ),
       });
     }
@@ -2364,7 +2364,7 @@ export class DocWorkerApi {
 
   private _logCreateDocumentEvents(
     req: Request,
-    document: { id: string; name: string; workspace?: Workspace }
+    document: { id: string; name: string; workspace?: Workspace },
   ) {
     const mreq = req as RequestWithLogin;
     const { id, name, workspace } = document;
@@ -2454,7 +2454,7 @@ export class DocWorkerApi {
 
   private _logImportDocumentEvents(
     req: RequestWithLogin,
-    {id}: {id: string}
+    {id}: {id: string},
   ) {
     this._grist.getTelemetry().logEvent(req, 'createdDoc-FileImport', {
       full: {
@@ -2468,7 +2468,7 @@ export class DocWorkerApi {
   private _logReplaceDocumentEvents(
     req: RequestWithLogin,
     document: { id: string; workspace?: Workspace },
-    { sourceDocId, snapshotId }: DocReplacementOptions
+    { sourceDocId, snapshotId }: DocReplacementOptions,
   ) {
     const org = document.workspace?.org;
     this._grist.getAuditLogger().logEvent(req, {
@@ -2533,7 +2533,7 @@ export class DocWorkerApi {
           userId: req.userId,
           altSessionId: req.altSessionId,
         },
-      }
+      },
     );
   }
 
@@ -2549,14 +2549,14 @@ export class DocWorkerApi {
       },
       details: {
         document: _.pick(document, "id"),
-      }
+      },
     });
   }
 
   private _logTruncateDocumentHistoryEvents(
     activeDoc: ActiveDoc,
     req: RequestWithLogin,
-    { keep }: { keep: number }
+    { keep }: { keep: number },
   ) {
     const document = activeDoc.doc || { id: activeDoc.docName };
     activeDoc.logAuditEvent(req, {
@@ -2573,7 +2573,7 @@ export class DocWorkerApi {
   private _logClearWebhookQueueEvents(
     activeDoc: ActiveDoc,
     req: RequestWithLogin,
-    webhookId: string
+    webhookId: string,
   ) {
     const document = activeDoc.doc || { id: activeDoc.docName };
     activeDoc.logAuditEvent(req, {
@@ -2589,7 +2589,7 @@ export class DocWorkerApi {
 
   private _logClearAllWebhookQueueEvents(
     activeDoc: ActiveDoc,
-    req: RequestWithLogin
+    req: RequestWithLogin,
   ) {
     const document = activeDoc.doc || { id: activeDoc.docName };
     activeDoc.logAuditEvent(req, {
@@ -2603,7 +2603,7 @@ export class DocWorkerApi {
   private _logRunSQLQueryEvents(
     activeDoc: ActiveDoc,
     req: RequestWithLogin,
-    { sql: statement, args, timeout: timeout_ms }: Types.SqlPost
+    { sql: statement, args, timeout: timeout_ms }: Types.SqlPost,
   ) {
     activeDoc.logAuditEvent(req, {
       action: "document.run_sql_query",
@@ -2617,7 +2617,7 @@ export class DocWorkerApi {
         },
         options: {
           timeout_ms,
-        }
+        },
       },
     });
   }
@@ -2635,7 +2635,7 @@ export class DocWorkerApi {
       headers: {
         ...getTransitiveHeaders(req, { includeOrigin: false }),
         'Content-Type': 'application/json',
-      }
+      },
     });
     if (!ref.ok) {
       throw new ApiError(await ref.text(), ref.status);
@@ -2654,7 +2654,7 @@ export class DocWorkerApi {
     const summary = leftChanged ? (rightChanged ? 'both' : 'left') :
         (rightChanged ? 'right' : (parent ? 'same' : 'unrelated'));
     const comparison: DocStateComparison = {
-      left, right, parent, summary
+      left, right, parent, summary,
     };
     if (showDetails && parent) {
       // Calculate changes from the parent to the current version of this document.
@@ -2676,7 +2676,7 @@ export class DocWorkerApi {
         headers: {
           ...getTransitiveHeaders(req, { includeOrigin: false }),
           'Content-Type': 'application/json',
-        }
+        },
       });
       const rightChanges = (await rightChangesReq.json()).details!.rightChanges;
 
@@ -2690,7 +2690,7 @@ export class DocWorkerApi {
 
 export function addDocApiRoutes(
   app: Application, docWorker: DocWorker, docWorkerMap: IDocWorkerMap, docManager: DocManager, dbManager: HomeDBManager,
-  attachmentStoreProvider: IAttachmentStoreProvider, grist: GristServer
+  attachmentStoreProvider: IAttachmentStoreProvider, grist: GristServer,
 ) {
   const api = new DocWorkerApi(app, docWorker, docWorkerMap, docManager, dbManager, attachmentStoreProvider, grist);
   api.addEndpoints();
@@ -2780,7 +2780,7 @@ function applySort(
   properColumns = _columns.map(c => ({
     ...c.fields,
     id : c.fields.colRef,
-    colId: c.id
+    colId: c.id,
   }));
 
   // We will sort row indices in the values object, not rows ids.
@@ -2831,7 +2831,7 @@ function getErrorPlatform(tableId: string): TableOperationsPlatform {
     },
     applyUserActions() {
       throw new Error('no document');
-    }
+    },
   };
 }
 
@@ -2845,7 +2845,7 @@ async function getTableOperations(
   activeDoc: ActiveDoc,
   tableId?: string): Promise<TableOperationsImpl> {
   const options: OpOptions = {
-    parseStrings: !isAffirmative(req.query.noparse)
+    parseStrings: !isAffirmative(req.query.noparse),
   };
   const realTableId = await getRealTableId(tableId ?? req.params.tableId, {activeDoc, req});
   const platform: TableOperationsPlatform = {
@@ -2855,9 +2855,9 @@ async function getTableOperations(
       return activeDoc.applyUserActions(
         docSessionFromRequest(req),
         actions,
-        opts
+        opts,
       );
-    }
+    },
   };
   return new TableOperationsImpl(platform, options);
 }
@@ -2927,7 +2927,7 @@ export function docPeriodicApiUsageKey(docId: string, current: boolean, period: 
  *   but would then be limited to steady usage the next day.
  */
 export function getDocApiUsageKeysToIncr(
-  docId: string, usage: LRUCache<string, number>, dailyMax: number, m: moment.Moment
+  docId: string, usage: LRUCache<string, number>, dailyMax: number, m: moment.Moment,
 ): string[] | undefined {
   // Start with keys for the current day, minute, and hour
   const keys = docApiUsagePeriods.map(p => docPeriodicApiUsageKey(docId, true, p, m));
@@ -2980,7 +2980,7 @@ export async function getChanges(
     leftHash: string;
     rightHash: string;
     maxRows?: number | null;
-  }
+  },
 ): Promise<DocStateComparison> {
   // The change calculation currently cannot factor in
   // granular access rules, so we need broad read rights
@@ -3013,8 +3013,8 @@ export async function getChanges(
     summary: (leftOffset === rightOffset) ? 'same' : 'right',
     details: {
       leftChanges: {tableRenames: [], tableDeltas: {}},
-      rightChanges: totalAction
-    }
+      rightChanges: totalAction,
+    },
   };
   return result;
 }

@@ -206,7 +206,7 @@ describe("AccessRulesSchemaEdit", function() {
     const rules = await mainDocApi.getRecords('_grist_ACLRules');
     assert.sameDeepMembers(rules.map(r => pick(r.fields, "resource", "aclFormula", "permissionsText")), [
       {resource: defaultResourceRef, aclFormula: customAclFormula, permissionsText: '-S'},
-      {resource: defaultResourceRef, aclFormula: customAclFormula, permissionsText: '-D'}
+      {resource: defaultResourceRef, aclFormula: customAclFormula, permissionsText: '-D'},
     ]);
   });
 });

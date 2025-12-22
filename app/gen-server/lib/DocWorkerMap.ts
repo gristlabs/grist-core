@@ -109,7 +109,7 @@ class DummyDocWorkerMap implements IDocWorkerMap {
       },
       getKeyPrefix() {
         return formatPermitKey('', prefix);
-      }
+      },
     };
     this._permitStores.set(prefix, store);
     return store;
@@ -319,7 +319,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       await this._client.zaddAsync(
         `workers-available-by-load-${group}`,
         0.0,
-        workerId
+        workerId,
       );
 
       // If we're not assigned exclusively to a group, add this worker also to the general
@@ -413,7 +413,7 @@ export class DocWorkerMap implements IDocWorkerMap {
         return {
           docMD5: null,
           docWorker,
-          isActive: false
+          isActive: false,
         };
       }
  finally {
@@ -479,7 +479,7 @@ export class DocWorkerMap implements IDocWorkerMap {
         .sadd(`worker-${workerId}-docs`, docId)
         .hmset(`doc-${docId}`, {
           docWorker: JSON.stringify(docWorker),  // redis can't store nested objects, strings only
-          isActive: JSON.stringify(true)         // redis can't store booleans, strings only
+          isActive: JSON.stringify(true),         // redis can't store booleans, strings only
         })
         .setex(`doc-${docId}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum || 'null')
         .execAsync();
@@ -541,7 +541,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       },
       getKeyPrefix() {
         return formatPermitKey('', prefix);
-      }
+      },
     };
   }
 

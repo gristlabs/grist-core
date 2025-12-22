@@ -5,7 +5,7 @@ import {
   getEnvContent,
   LocalActionBundle,
   SandboxActionBundle,
-  UserActionBundle
+  UserActionBundle,
 } from 'app/common/ActionBundle';
 import {ApplyUAExtendedOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {DocAction, getNumRows, SYSTEM_ACTIONS, UserAction} from 'app/common/DocActions';
@@ -147,7 +147,7 @@ export class Sharing {
           actionNum: localActionBundle.actionNum,
           actionHash: localActionBundle.actionHash,
           retValues: [],
-          isModification: false
+          isModification: false,
         };
       }
 
@@ -219,7 +219,7 @@ export class Sharing {
         actionNum: localActionBundle.actionNum,
         actionHash: localActionBundle.actionHash,
         retValues: sandboxActionBundle.retValues,
-        isModification: sandboxActionBundle.stored.length > 0
+        isModification: sandboxActionBundle.stored.length > 0,
       };
     }
  finally {
@@ -259,7 +259,7 @@ export class Sharing {
       try {
         // We can't apply those actions, so we need to revert them.
         const undoResult = await this._activeDoc.applyActionsToDataEngine(docSession, [
-          ['ApplyUndoActions', getEnvContent(applyResult.undo)]
+          ['ApplyUndoActions', getEnvContent(applyResult.undo)],
         ]);
 
         // We managed to reject and undo actions in the data-engine. Now we need to calculate if we have any extra
@@ -307,7 +307,7 @@ export class Sharing {
     docSession: OptDocSession|null,
     bundle: SandboxActionBundle,
     userActions: UserAction[],
-    options: ApplyUAExtendedOptions|null
+    options: ApplyUAExtendedOptions|null,
   ) {
     const undo = getEnvContent(bundle.undo);
     const docActions = getEnvContent(bundle.stored).concat(getEnvContent(bundle.calc));
@@ -318,7 +318,7 @@ export class Sharing {
       undo,
       userActions,
       isDirect,
-      options
+      options,
     );
   }
 
@@ -353,7 +353,7 @@ export class Sharing {
       calc: [], // Calc actions are also not used anymore.
       undo: [], // We won't allow to undo this one.
       retValues: undoResult.retValues.slice(undoSource.length),
-      rowCount: undoResult.rowCount
+      rowCount: undoResult.rowCount,
     };
   }
 }

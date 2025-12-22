@@ -118,7 +118,7 @@ describe('RowHeights', function() {
 
   async function checkHeights(expectedRowHeights: number[]) {
     const heights = await gu.getVisibleGridCells({col: 'Num', rowNums: [1, 2, 3, 4],
-      mapper: async el => (await el.getRect()).height
+      mapper: async el => (await el.getRect()).height,
     });
     // Each line is 18px, and we get rid of remainder by rounding down.
     const heightsInLines = heights.map(h => Math.floor(h / 18));

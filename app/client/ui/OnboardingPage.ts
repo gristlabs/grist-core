@@ -144,10 +144,10 @@ function buildStepper(steps: Step[], stepIndex: Observable<number>) {
           dom.domComputed(use => i < use(stepIndex), done => done ? icon('Tick') : String(i + 1)),
           cssStepCircle.cls('-current', use => (i === use(stepIndex))),
           dom.on('click', () => { stepIndex.set(i); }),
-          testId(`step-${i + 1}`)
-        )
-      )
-    )
+          testId(`step-${i + 1}`),
+        ),
+      ),
+    ),
   );
 }
 
@@ -165,7 +165,7 @@ function saveQuestions(state: QuestionsState) {
   submitUrl.pathname = '/welcome/info';
   BaseAPI.request(submitUrl.href, {
     method: 'POST',
-    body: JSON.stringify({org_name, org_role, use_cases, use_other})
+    body: JSON.stringify({org_name, org_role, use_cases, use_other}),
   }).catch(e => logError(e));
 }
 
@@ -216,7 +216,7 @@ function buildQuestions(owner: IDisposableOwner, incrementStep: IncrementStep, s
                   Enter: (ev, elem) => elem.blur(),
                   Escape: (ev, elem) => elem.blur(),
                 }),
-              )
+              ),
             ]
           ),
           testId('questions-use-case'),
@@ -342,7 +342,7 @@ function buildTutorial(_owner: IDisposableOwner, incrementStep: IncrementStep) {
       t('Go hands-on with the Grist Basics tutorial'),
       cssSubHeading(
         t("Grist may look like a spreadsheet, but it doesn't always \
-act like one. Discover what makes Grist different."
+act like one. Discover what makes Grist different.",
         ),
       ),
     ),

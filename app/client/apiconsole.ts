@@ -219,9 +219,9 @@ function gristPlugin(appModel: AppModel, system: any) {
           // Customize what happens when a parameter is changed, e.g. selected from a dropdown.
           changeParamByIdentity: (oriAction: any) => (...args: any[]) =>
             wrapChangeParamByIdentity(appModel, system, oriAction, ...args),
-        }
-      }
-    }
+        },
+      },
+    },
   };
 }
 
@@ -234,7 +234,7 @@ function initialize(appModel: AppModel) {
   // Fortunately we don't need a request for each workspace,
   // since listing workspaces in an org also lists the docs in each workspace.
   const workspacesPromise = orgsPromise.then(orgs => Promise.all(orgs.map(org =>
-    appModel.api.getOrgWorkspaces(org.id, false).then(workspaces => ({org, workspaces}))
+    appModel.api.getOrgWorkspaces(org.id, false).then(workspaces => ({org, workspaces})),
   )));
 
   // To be called after the spec is downloaded and parsed.
@@ -257,7 +257,7 @@ function initialize(appModel: AppModel) {
       // to actually use this for running requests, so clear those out.
       for (const paramName of [
         'filterQueryParam', 'sortQueryParam', 'sortHeaderParam',
-        'limitQueryParam', 'limitHeaderParam'
+        'limitQueryParam', 'limitHeaderParam',
       ]) {
         spec = spec.removeIn(["components", "parameters", paramName, "example"]);
       }
@@ -283,13 +283,13 @@ function initialize(appModel: AppModel) {
     workspacesPromise.then((orgs) => {
       const workSpaceExamples: Example[] = orgs.flatMap(({org, workspaces}) => workspaces.map(ws => ({
         value: ws.id,
-        summary: `${org.name} » ${ws.name}`
+        summary: `${org.name} » ${ws.name}`,
       })));
       setExamples(workSpaceExamples, "workspaceId");
 
       const docExamples = orgs.flatMap(({org, workspaces}) => workspaces.flatMap(ws => ws.docs.map(doc => ({
         value: doc.id,
-        summary: `${org.name} » ${ws.name} » ${doc.name}`
+        summary: `${org.name} » ${ws.name} » ${doc.name}`,
       }))));
       setExamples(docExamples, "docId");
     }).catch(reportError);
@@ -325,19 +325,19 @@ async function requestInterceptor(request: SwaggerUI.Request) {
           body: [
             dom(
               'p',
-              t('Are you sure you want to delete the following?')
+              t('Are you sure you want to delete the following?'),
             ),
             dom(
               'p',
-              dom('tt', url.pathname)
+              dom('tt', url.pathname),
             ),
             dom(
               'p',
               t(`Type DELETE if you are sure you do indeed wish to do this deletion.
 If you are not sure, or do not understand what this operation will do,
-it would be wise to cancel it.`)
-            )
-          ]
+it would be wise to cancel it.`),
+            ),
+          ],
         });
       if (text !== 'DELETE') {
         reportError(t('Deletion was not confirmed, skipping.'));

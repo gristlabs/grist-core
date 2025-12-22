@@ -12,12 +12,12 @@ describe('ThemePrefs', function() {
     const hardcodedCssVars = ['theme-bg', 'theme-bg-color'];
 
     const conflictingVars = [...tokensCssVars, ...componentsCssVars].filter(cssVar =>
-      hardcodedCssVars.includes(`theme-${cssVar}`)
+      hardcodedCssVars.includes(`theme-${cssVar}`),
     );
     if (conflictingVars.length) {
       assert.fail(
         'Found conflicting theme CSS variables.\n' +
-        `Change these in ThemePrefs: ${conflictingVars.join(', ')}`
+        `Change these in ThemePrefs: ${conflictingVars.join(', ')}`,
       );
     }
   });
@@ -30,12 +30,12 @@ describe('ThemePrefs', function() {
     const tokensCssVars = Object.values(tokensCssMapping);
     const componentsCssVars = Object.values(componentsCssMapping);
     const conflictingVars = tokensCssVars.filter(cssVar =>
-      componentsCssVars.includes(cssVar as typeof componentsCssVars[number])
+      componentsCssVars.includes(cssVar as typeof componentsCssVars[number]),
     );
     if (conflictingVars.length) {
       assert.fail(
         'Found duplicate CSS variables.\n' +
-        `Change these in ThemePrefs: ${conflictingVars.join(', ')}`
+        `Change these in ThemePrefs: ${conflictingVars.join(', ')}`,
       );
     }
   });
@@ -51,12 +51,12 @@ describe('ThemePrefs', function() {
       cssVar.startsWith('grist-')
       || cssVar.startsWith('theme-')
       || cssVar.startsWith('themes-')
-      || cssVar.startsWith('--')
+      || cssVar.startsWith('--'),
     );
     if (invalidVars.length) {
       assert.fail(
         'CSS variable names must not start with "grist-", "theme-", "themes-" or "--".\n' +
-        'Change these in ThemePrefs: ' + invalidVars.join(', ')
+        'Change these in ThemePrefs: ' + invalidVars.join(', '),
       );
     }
   });

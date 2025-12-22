@@ -184,17 +184,17 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             testId('presets-links'),
             cssLink(
               getDateRangeOptions()[0].label,
-              dom.on('click', () => action(getDateRangeOptions()[0]))
+              dom.on('click', () => action(getDateRangeOptions()[0])),
             ),
             cssLink(
               getDateRangeOptions()[1].label,
-              dom.on('click', () => action(getDateRangeOptions()[1]))
+              dom.on('click', () => action(getDateRangeOptions()[1])),
             ),
             cssLink(
               'More ', icon('Dropdown'),
               menu(() => getDateRangeOptions().map(
-                option => menuItem(() => action(option), option.label)
-              ), {attach: '.' + cssMenu.className})
+                option => menuItem(() => action(option), option.label),
+              ), {attach: '.' + cssMenu.className}),
             ),
           ),
         ];
@@ -238,8 +238,8 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
                 searchInput.focus();
                 ev.stopPropagation();
               }
-            }
-          })
+            },
+          }),
         ),
         dom.maybe(searchValueObs, () => cssCloseIcon(
           icon('CrossSmall'),
@@ -255,8 +255,8 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             Enter: () => {
               searchValueObs.set('');
               searchInput.focus();
-            }
-          })
+            },
+          }),
         )),
       ),
       cssMenuDivider(),
@@ -282,17 +282,17 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               dom.attr('aria-disabled', isEquivalentFilter(state, noneSpec) ? 'true' : 'false'),
               dom.on('click', () => !isEquivalentFilter(state, noneSpec) && columnFilter.setState(noneSpec)),
               testId('bulk-action'),
-            )
+            ),
           ];
         }),
         cssSortIconButton(
           cssSortIcon('Sort', cssSortIcon.cls('-active', isSortedByCount)),
           dom.attr('aria-label', use => use(isSortedByCount)
             ? t('Sort alphabetically (current: sorted by number of occurrences)')
-            : t('Sort by number of occurrences (current: sorted alphabetically)')
+            : t('Sort by number of occurrences (current: sorted alphabetically)'),
           ),
           dom.on('click', () => isSortedByCount.set(!isSortedByCount.get())),
-        )
+        ),
       ),
       cssItemList(
         testId('list'),
@@ -314,10 +314,10 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
                 dom.style('position', 'relative'),
               ),
               dom('span', renderValue(key, value), testId('value')),
-              cssItemCount(value.count.toLocaleString(), testId('count'))
+              cssItemCount(value.count.toLocaleString(), testId('count')),
             ),
           )
-        ))) // Include comma separator
+        ))), // Include comma separator
       ),
     ];
   }
@@ -347,9 +347,9 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           }
  else {
             return anyOtherValues ? [
-              buildSummary(t('Others'), otherValues, true, model)
+              buildSummary(t('Others'), otherValues, true, model),
             ] : [
-              buildSummary(t("Future values"), [], true, model)
+              buildSummary(t("Future values"), [], true, model),
             ];
           }
         }),
@@ -393,8 +393,8 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               testId('pin-btn'),
             ),
           ),
-        )
-      )
+        ),
+      ),
     ];
   }
   return filterMenu;
@@ -424,7 +424,7 @@ function rangeInput(obs: Observable<number|undefined|IRelativeDateSpec>, opts: I
     dom.maybe(opts.isDateFilter, () => [
       cssRangeInputIcon('FieldDate'),
       buildInput(),
-      icon('Dropdown')
+      icon('Dropdown'),
     ]),
 
     dom.maybe(!opts.isDateFilter, () => [
@@ -448,7 +448,7 @@ function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number|un
   const popupCtl = relativeDatesControl(elem, obs, {
     ...opts,
     placement: 'right-start',
-    attach: '.' + cssMenu.className
+    attach: '.' + cssMenu.className,
   });
 
   // makes sure the options are shown any time the value changes.
@@ -617,7 +617,7 @@ function buildSummary(label: string|Computed<string>, values: Array<[CellValue, 
     testId('summary'),
     labeledTriStateSquareCheckbox(
       checkboxState,
-      `${label} ${formatUniqueCount(values)}`.trim()
+      `${label} ${formatUniqueCount(values)}`.trim(),
     ),
     cssItemCount(formatCount(values), testId('count')),
   );
@@ -679,7 +679,7 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
     tableData,
     gristDoc,
     showAllFiltersButton,
-    onClose = noop
+    onClose = noop,
   } = params;
 
   // Go through all of our shown and hidden rows, and count them up by the values in this column.
@@ -739,7 +739,7 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
       const {viewSection} = sectionFilter;
       viewSection.setFilter(
         fieldOrColumn.origCol().origColRef(),
-        {filter: spec}
+        {filter: spec},
       );
 
       // Check if the save was for a new filter, and if that new filter was pinned. If it was, and
@@ -760,7 +760,7 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
         columnFilter.setState(initialFilter);
         viewSection.setFilter(
           fieldOrColumn.origCol().origColRef(),
-          {filter: initialFilter, pinned: model.initialPinned}
+          {filter: initialFilter, pinned: model.initialPinned},
         );
       }
     },
@@ -839,7 +839,7 @@ function getRenderFunc(columnType: string, fieldOrColumn: ViewFieldRec|ColumnRec
           invalid: !choiceSet.has(value.label),
         },
         dom.cls(cssToken.className),
-        testId('choice-token')
+        testId('choice-token'),
       );
     };
   }
@@ -942,7 +942,7 @@ type IAttachColumnFilterMenuOptions = IColumnFilterPopupOptions & IColumnFilterM
 // Helper to attach the column filter menu.
 export function attachColumnFilterMenu(
   filterInfo: FilterInfo,
-  options: IAttachColumnFilterMenuOptions = {}
+  options: IAttachColumnFilterMenuOptions = {},
 ): DomElementMethod {
   const {popupOptions, ...filterMenuOptions} = options;
   const popupOptionsWithDefaults = {...defaultPopupOptions, ...popupOptions};

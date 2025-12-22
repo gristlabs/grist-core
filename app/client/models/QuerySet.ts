@@ -201,7 +201,7 @@ export class DynamicQuerySet extends RowSource {
   private _getTicket() {
     const myTicket = ++this._lastTicket;
     return {
-      isValid: () => this._lastTicket === myTicket
+      isValid: () => this._lastTicket === myTicket,
     };
   }
 }

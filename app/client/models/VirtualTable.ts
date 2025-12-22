@@ -117,7 +117,7 @@ export class VirtualTableData extends TableData {
       patch: userActions => this._sendTableActionsCore(userActions, {
         hasTableIds: true,
         isUser: false,
-      })
+      }),
     };
   }
 

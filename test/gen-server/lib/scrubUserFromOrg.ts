@@ -17,7 +17,7 @@ describe('scrubUserFromOrg', function() {
     const user1 = (await server.dbManager.getUserByLogin('user1@getgrist.com'));
     await server.dbManager.addOrg(user1, {name: 'org1', domain: 'org1'}, {
       setUserAsOwner: false,
-      useNewPlan: true
+      useNewPlan: true,
     });
   });
 
@@ -84,7 +84,7 @@ describe('scrubUserFromOrg', function() {
         'user3@getgrist.com': 'owners',
         'user4@getgrist.com': 'editors',
         'user5@getgrist.com': 'owners',
-      }
+      },
     });
 
     // Check that the org now has the expected guests.  Even user1, who has
@@ -111,14 +111,14 @@ describe('scrubUserFromOrg', function() {
 
     // Lower user1's access to the doc.
     await user2.updateDocPermissions(docId, {
-      users: { 'user1@getgrist.com': 'viewers' }
+      users: { 'user1@getgrist.com': 'viewers' },
     });
     access = await user2.getDocAccess(docId);
     assert.equal(getRole(access, 'user1@getgrist.com'), 'viewers');
 
     // Have user1 change user3's access to the org.
     await user1.updateOrgPermissions('current', {
-      users: { 'user3@getgrist.com': 'viewers' }
+      users: { 'user3@getgrist.com': 'viewers' },
     });
     access = await user2.getDocAccess(docId);
     assert.equal(getRole(access, 'user1@getgrist.com'), 'viewers');
@@ -132,7 +132,7 @@ describe('scrubUserFromOrg', function() {
     assert.sameMembers(await listUser('user1@getgrist.com'),
                        ['owners:org1', 'guests:org1', 'owners:ws1', 'guests:ws1', 'owners:Personal', 'viewers:doc1']);
     await user1.updateOrgPermissions('current', {
-      users: { 'user3@getgrist.com': null }
+      users: { 'user3@getgrist.com': null },
     });
     let countAfter = await countGroupUsers();
     // The only resource user3 has access to now is their personal org.
@@ -157,7 +157,7 @@ describe('scrubUserFromOrg', function() {
 
     // Lower user1's access to the doc again.
     await user2.updateDocPermissions(docId, {
-      users: { 'user1@getgrist.com': 'viewers' }
+      users: { 'user1@getgrist.com': 'viewers' },
     });
     access = await user2.getDocAccess(docId);
     assert.equal(getRole(access, 'user1@getgrist.com'), 'viewers');
@@ -165,7 +165,7 @@ describe('scrubUserFromOrg', function() {
     // Now have user1 remove user4's access to the org.
     countBefore = await countGroupUsers();
     await user1.updateOrgPermissions('current', {
-      users: { 'user4@getgrist.com': null }
+      users: { 'user4@getgrist.com': null },
     });
     countAfter = await countGroupUsers();
 
@@ -185,12 +185,12 @@ describe('scrubUserFromOrg', function() {
     await user1.updateOrgPermissions('current', {
       users: {
         'user6@getgrist.com': 'owners',
-      }
+      },
     });
     const user6 = await getApi('user6', 'org1');
     countBefore = await countGroupUsers();
     await user6.updateOrgPermissions('current', {
-      users: { 'user5@getgrist.com': null }
+      users: { 'user5@getgrist.com': null },
     });
     countAfter = await countGroupUsers();
 
@@ -220,7 +220,7 @@ describe('scrubUserFromOrg', function() {
         'user3@getgrist.com': 'owners',
         'user4@getgrist.com': 'editors',
         'user5@getgrist.com': 'owners',
-      }
+      },
     });
 
     // Check that the org now has the expected guests.  Even user1, who has
@@ -245,14 +245,14 @@ describe('scrubUserFromOrg', function() {
 
     // Lower user1's access to the workspace.
     await user2.updateWorkspacePermissions(wsId, {
-      users: { 'user1@getgrist.com': 'viewers' }
+      users: { 'user1@getgrist.com': 'viewers' },
     });
     access = await user2.getWorkspaceAccess(wsId);
     assert.equal(getRole(access, 'user1@getgrist.com'), 'viewers');
 
     // Have user1 change user3's access to the org.
     await user1.updateOrgPermissions('current', {
-      users: { 'user3@getgrist.com': 'viewers' }
+      users: { 'user3@getgrist.com': 'viewers' },
     });
     access = await user2.getWorkspaceAccess(wsId);
     assert.equal(getRole(access, 'user1@getgrist.com'), 'viewers');
@@ -266,7 +266,7 @@ describe('scrubUserFromOrg', function() {
     assert.sameMembers(await listUser('user1@getgrist.com'),
                        ['owners:org1', 'guests:org1', 'owners:Personal', 'viewers:ws1']);
     await user1.updateOrgPermissions('current', {
-      users: { 'user3@getgrist.com': null }
+      users: { 'user3@getgrist.com': null },
     });
     let countAfter = await countGroupUsers();
     // The only resource user3 has access to now is their personal org.
@@ -289,7 +289,7 @@ describe('scrubUserFromOrg', function() {
 
     // Lower user1's access to the workspace again.
     await user2.updateWorkspacePermissions(wsId, {
-      users: { 'user1@getgrist.com': 'viewers' }
+      users: { 'user1@getgrist.com': 'viewers' },
     });
     access = await user2.getWorkspaceAccess(wsId);
     assert.equal(getRole(access, 'user1@getgrist.com'), 'viewers');
@@ -297,7 +297,7 @@ describe('scrubUserFromOrg', function() {
     // Now have user1 remove user4's access to the org.
     countBefore = await countGroupUsers();
     await user1.updateOrgPermissions('current', {
-      users: { 'user4@getgrist.com': null }
+      users: { 'user4@getgrist.com': null },
     });
     countAfter = await countGroupUsers();
 
@@ -317,12 +317,12 @@ describe('scrubUserFromOrg', function() {
     await user1.updateOrgPermissions('current', {
       users: {
         'user6@getgrist.com': 'owners',
-      }
+      },
     });
     const user6 = await getApi('user6', 'org1');
     countBefore = await countGroupUsers();
     await user6.updateOrgPermissions('current', {
-      users: { 'user5@getgrist.com': null }
+      users: { 'user5@getgrist.com': null },
     });
     countAfter = await countGroupUsers();
 
@@ -344,7 +344,7 @@ describe('scrubUserFromOrg', function() {
       users: {
         'user2@getgrist.com': 'owners',
         'user3@getgrist.com': 'owners',
-      }
+      },
     });
 
     // Add user2 and user3 as owners of ws1
@@ -352,7 +352,7 @@ describe('scrubUserFromOrg', function() {
       users: {
         'user2@getgrist.com': 'owners',
         'user3@getgrist.com': 'owners',
-      }
+      },
     });
 
     // Add user2 as member of org, add user3 as editor of org
@@ -360,19 +360,19 @@ describe('scrubUserFromOrg', function() {
       users: {
         'user2@getgrist.com': 'members',
         'user3@getgrist.com': 'editors',
-      }
+      },
     });
 
     // user3 should not have the right to remove user2 from org
     const user3 = await getApi('user3', 'org1');
     await assert.isRejected(user3.updateOrgPermissions('current', {
-      users: { 'user2@getgrist.com': null }
+      users: { 'user2@getgrist.com': null },
     }));
 
     // user2 should not have the right to remove user3 from org
     const user2 = await getApi('user2', 'org1');
     await assert.isRejected(user2.updateOrgPermissions('current', {
-      users: { 'user3@getgrist.com': null }
+      users: { 'user3@getgrist.com': null },
     }));
 
     // user2 and user3 should still have same access as before
@@ -395,7 +395,7 @@ describe('scrubUserFromOrg', function() {
       users: {
         'user2@getgrist.com': 'owners',
         'user3@getgrist.com': 'owners',
-      }
+      },
     });
 
     // Add user2 and user3 as owners of ws1
@@ -403,7 +403,7 @@ describe('scrubUserFromOrg', function() {
       users: {
         'user2@getgrist.com': 'owners',
         'user3@getgrist.com': 'owners',
-      }
+      },
     });
 
     // Add user2 as member of org, add user3 as editor of org
@@ -411,13 +411,13 @@ describe('scrubUserFromOrg', function() {
       users: {
         'user2@getgrist.com': 'members',
         'user3@getgrist.com': 'editors',
-      }
+      },
     });
 
     // user3 can removed user2 from workspace
     const user3 = await getApi('user3', 'org1');
     await user3.updateWorkspacePermissions(wsId, {
-      users: { 'user2@getgrist.com': null }
+      users: { 'user2@getgrist.com': null },
     });
 
     // user3's access should be unchanged
@@ -431,7 +431,7 @@ describe('scrubUserFromOrg', function() {
 
     // put user2 back in workspace
     await user3.updateWorkspacePermissions(wsId, {
-      users: { 'user2@getgrist.com': 'owners' }
+      users: { 'user2@getgrist.com': 'owners' },
     });
     assert.sameMembers(await listUser('user2@getgrist.com'),
                        ['owners:Personal', 'members:org1', 'owners:ws1', 'owners:doc1',
@@ -439,7 +439,7 @@ describe('scrubUserFromOrg', function() {
 
     // user3 can removed user2 from doc
     await user3.updateDocPermissions(docId, {
-      users: { 'user2@getgrist.com': null }
+      users: { 'user2@getgrist.com': null },
     });
 
     // user3's access should be unchanged

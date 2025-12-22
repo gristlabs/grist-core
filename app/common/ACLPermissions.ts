@@ -155,7 +155,7 @@ export function mergePartialPermissions(a: PartialPermissionSet, b: PartialPermi
  * Returns permissions trimmed to include only the available bits, and empty for any other bits.
  */
 export function trimPermissions(
-  permissions: PartialPermissionSet, availableBits: PermissionKey[]
+  permissions: PartialPermissionSet, availableBits: PermissionKey[],
 ): PartialPermissionSet {
   const trimmed = emptyPermissionSet();
   for (const bit of availableBits) {
@@ -168,7 +168,7 @@ export function trimPermissions(
 /**
  * Merge a list of PermissionSets by combining individual bits.
  */
-export function mergePermissions<T, U>(psets: Array<PermissionSet<T>>, combine: (bits: T[]) => U
+export function mergePermissions<T, U>(psets: Array<PermissionSet<T>>, combine: (bits: T[]) => U,
 ): PermissionSet<U> {
   const result: Partial<PermissionSet<U>> = {};
   for (const prop of ALL_PERMISSION_PROPS) {

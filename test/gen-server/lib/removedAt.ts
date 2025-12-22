@@ -250,13 +250,13 @@ describe('removedAt', function() {
       await api.updateDocPermissions(docIds[5], {
         users: {
           'test1@getgrist.com': 'viewers',
-        }
+        },
       });
       await api.updateDocPermissions(docIds[10], {
         users: {
           'test2@getgrist.com': 'owners',
           'test3@getgrist.com': 'editors',
-        }
+        },
       });
       const userRef = (email: string) => home.dbManager.getUserByLogin(email).then(user => user.ref);
       const idTest1 = (await home.dbManager.getUserByLogin("test1@getgrist.com")).id;
@@ -265,7 +265,7 @@ describe('removedAt', function() {
       // Create one extra document, with one extra user.
       const extraDocId = await api.newDoc({name: 'doc'}, ws);
       await api.updateDocPermissions(extraDocId, {
-        users: { 'kiwi@getgrist.com': 'viewers' }
+        users: { 'kiwi@getgrist.com': 'viewers' },
       });
       assert.deepEqual(await api.getWorkspaceAccess(ws), {
         "maxInheritedRole": "owners",
@@ -319,8 +319,8 @@ describe('removedAt', function() {
             "access": "guests",
             "parentAccess": null,
             "isMember": false,
-          }
-        ]
+          },
+        ],
       });
       // Delete the batch of documents, retaining the one extra.
       await Promise.all(docIds.map(docId => api.deleteDoc(docId)));
@@ -347,8 +347,8 @@ describe('removedAt', function() {
             "access": "guests",
             "parentAccess": null,
             "isMember": false,
-          }
-        ]
+          },
+        ],
       });
     });
 
@@ -415,7 +415,7 @@ describe('removedAt', function() {
       const shared = await api.newDoc({name: 'shared'}, ws);
       const unshared = await api.newDoc({name: 'unshared'}, ws);
       await api.updateDocPermissions(shared, {
-        users: { 'charon@getgrist.com': 'viewers' }
+        users: { 'charon@getgrist.com': 'viewers' },
       });
 
       // Check the friend sees nothing in their trash.

@@ -157,7 +157,7 @@ export const vars = {
  * to target the new `components` structure.
  */
 export const theme = {
-  ...components
+  ...components,
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');
@@ -300,7 +300,7 @@ export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolea
    * and apply all base grist rules and styles in the grist-base layer. */
   getOrCreateStyleElement('grist-root-css', {
     position: 'beforebegin',
-    element: document.head.querySelector('style, link[rel="stylesheet"]')
+    element: document.head.querySelector('style, link[rel="stylesheet"]'),
   }).textContent = `
 @layer grist-base, grist-theme, grist-custom;
 @layer grist-base {

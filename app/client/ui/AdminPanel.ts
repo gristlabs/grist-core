@@ -153,7 +153,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     return dom.maybe(use => use(this._checks.probes), probes => [
       (probes as any[]).length > 0
       ? this._buildMainContentForAdmin()
-      : this._buildMainContentForOthers()
+      : this._buildMainContentForOthers(),
     ]);
   }
 
@@ -199,7 +199,7 @@ Please log in as an administrator.`)),
         'p',
         t(`Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}`, {
           bootKey: dom('pre', `GRIST_BOOT_KEY=${exampleKey}`),
-          url: dom('pre', `/admin?boot-key=${exampleKey}`)
+          url: dom('pre', `/admin?boot-key=${exampleKey}`),
         }),
       ),
       testId('admin-panel-error'),
@@ -240,7 +240,7 @@ Please log in as an administrator.`)),
           value: dom.create(
             HidableToggle,
             this._supportGrist.getTelemetryOptInObservable(),
-            {labelId: 'admin-panel-item-description-telemetry'}
+            {labelId: 'admin-panel-item-description-telemetry'},
           ),
           expandedContent: this._supportGrist.buildTelemetrySection(),
         }),
@@ -280,7 +280,7 @@ Please log in as an administrator.`)),
           description: t('Key to sign sessions with'),
           value: this._buildSessionSecretDisplay(),
           expandedContent: this._buildSessionSecretNotice(),
-        })
+        }),
       ]),
       this._buildAuditLogsSection(),
       dom.create(AdminSection, t('Version'), [
@@ -321,7 +321,7 @@ Please log in as an administrator.`)),
     let makeToggle = () => dom.create(
       HidableToggle,
       this._toggleEnterprise.getEnterpriseToggleObservable(),
-      {labelId: 'admin-panel-item-description-enterprise'}
+      {labelId: 'admin-panel-item-description-enterprise'},
     );
 
     // If the enterprise edition is forced, we don't show the toggle.
@@ -358,7 +358,7 @@ Please log in as an administrator.`)),
               (success ? cssHappyText(t('OK') + `: ${flavor}`) :
                   cssErrorText(t('Error') + `: ${flavor}`)) :
               cssErrorText(t('unconfigured')));
-      }
+      },
     );
   }
 
@@ -370,14 +370,14 @@ Please log in as an administrator.`)),
       dom(
         'div',
         {style: 'margin-top: 8px'},
-        cssLink({href: commonUrls.helpSandboxing, target: '_blank'}, t('Learn more.'))
+        cssLink({href: commonUrls.helpSandboxing, target: '_blank'}, t('Learn more.')),
       ),
     ];
   }
 
   private _buildAdminUsersComputed(
     use: UseCBOwner,
-    renderSuccess: (users: InstallAdminInfo[]) => Element
+    renderSuccess: (users: InstallAdminInfo[]) => Element,
   ) {
     const req = this._checks.requestCheckById(use, 'admins');
     const result = req ? use(req.result) : undefined;
@@ -404,9 +404,9 @@ Please log in as an administrator.`)),
             return cssHappyText(t('{{count}} admin accounts', {count: actualUsers.length}));
           }
           return cssErrorText(t('no admin accounts'));
-        })
+        }),
       ),
-      testId('admin-panel-admin-accounts-display')
+      testId('admin-panel-admin-accounts-display'),
     );
   }
 
@@ -418,17 +418,17 @@ Please log in as an administrator.`)),
             const userDisplay = user ? cssUserInfo(
               createUserImage(user, 'medium'),
               cssUserName(dom('span', user.name, testId('admin-panel-admin-account-name')),
-                cssEmail(user.email, testId('admin-panel-admin-account-email'))
-              )
+                cssEmail(user.email, testId('admin-panel-admin-account-email')),
+              ),
             ) : cssErrorText(t('Admin account not found'));
             return cssAdminAccountListItem([
               cssAdminAccountItemPart(userDisplay),
-              cssAdminAccountItemPart(cssAdminAccountReason(markdown(reason, {inline: true})))
+              cssAdminAccountItemPart(cssAdminAccountReason(markdown(reason, {inline: true}))),
             ], testId(`admin-panel-admin-accounts-list-item`));
           }),
-          testId(`admin-panel-admin-accounts-list`)
+          testId(`admin-panel-admin-accounts-list`),
         );
-      })
+      }),
     );
   }
 
@@ -496,7 +496,7 @@ Please log in as an administrator.`)),
         }
 
         return cssValueLabel(cssHappyText(t('configured')));
-      }
+      },
     );
   }
 
@@ -565,7 +565,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
             if (controller.signal.aborted) { return; }
             backgroundTask = null;
             controller.abort();
-          }
+          },
         };
         owner.autoDispose(backgroundTask);
         try {
@@ -600,7 +600,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
  else {
           state.set(State.CURRENT);
         }
-      }
+      },
     };
 
     const description = Computed.create(owner, (use) => {
@@ -674,30 +674,30 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
             return basicButton(
               t('Check now'),
               dom.on('click', actions.checkForUpdates),
-              testId('admin-panel-updates-upper-check-now')
+              testId('admin-panel-updates-upper-check-now'),
             );
           }
 
           if (use(latestVersionAvailable)) {
             return cssValueLabel(
               `Version ${use(latestVersionAvailable)?.version}`,
-              testId('admin-panel-updates-version')
+              testId('admin-panel-updates-version'),
             );
           }
 
           throw new Error('Invalid state');
-        })
+        }),
       ),
       expandedContent: dom('div',
         cssExpandedContent(
           dom.domComputed(use => dom('div', t('Grist releases are at '),
-            makeLinks(use(latestVersionAvailable)?.releaseUrl || releaseURL)
+            makeLinks(use(latestVersionAvailable)?.releaseUrl || releaseURL),
           )),
         ),
         dom.maybe(latestVersionAvailable, latest => cssExpandedContent(
           dom('div',
             dom('span', t('Last checked {{time}}', {
-              time: getTimeFromNow(latest.dateChecked)
+              time: getTimeFromNow(latest.dateChecked),
             })),
             dom('span', ' '),
             // Format date in local format.
@@ -713,7 +713,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
               dom.on('click', actions.checkForUpdates),
               dom.prop('disabled', use => use(state) === State.CHECKING),
             ),
-          ])
+          ]),
         )),
         dom.domComputed(allowAutomaticVersionChecking, allowAutomaticChecks =>
           allowAutomaticChecks ? cssExpandedContent(
@@ -721,13 +721,13 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
             dom('div', toggleSwitch(enabledController, {
               args: [testId('admin-panel-updates-auto-check')],
               inputArgs: [{id: 'admin-panel-updates-auto-check-switch'}],
-            }))
+            })),
           ) :
           cssExpandedContent(
             dom('span', t('Automatic checks are disabled. \
 Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to enable them.'),
             testId('admin-panel-updates-auto-check-disabled')),
-          )
+          ),
         )),
     });
   }
@@ -747,14 +747,14 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
           const isRedundant = [
             'sandboxing',
             'authentication',
-            'session-secret'
+            'session-secret',
           ].includes(probe.id);
           const show = isRedundant ? options.showRedundant : options.showNovel;
           if (!show) { return null; }
           const req = this._checks.requestCheck(probe);
           return this._buildProbeItem(req.probe, use(req.result), req.details);
         }),
-      ]
+      ],
     );
   }
 
@@ -834,7 +834,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
         return dom.create(
           AdminSection,
           [t("Audit Logs"), cssSectionTag(t("New, Enterprise"))],
-          [this._buildLogStreamingSection(deploymentType)]
+          [this._buildLogStreamingSection(deploymentType)],
         );
       }
       default: {
@@ -844,7 +844,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
   }
 
   private _buildLogStreamingSection(
-    deploymentType: "core" | "enterprise" | "saas"
+    deploymentType: "core" | "enterprise" | "saas",
   ) {
     if (deploymentType === "core") {
       return dom.create(AdminSectionItem, {
@@ -858,9 +858,9 @@ learn more.",
           {
             contactUsLink: cssLink(
               { href: commonUrls.contact, target: "_blank" },
-              t("Contact us")
+              t("Contact us"),
             ),
-          }
+          },
         ),
       });
     }
@@ -897,7 +897,7 @@ learn more.",
             {
               firstDestinationName: getDestinationDisplayName(first.name),
               remainingDestinationsCount: rest.length,
-            }
+            },
           );
         }
  else {

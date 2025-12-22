@@ -12,7 +12,7 @@ import {
   ISandboxControl,
   NoProcessControl,
   ProcessInfo,
-  SubprocessControl
+  SubprocessControl,
 } from 'app/server/lib/SandboxControl';
 import * as sandboxUtil from 'app/server/lib/sandboxUtil';
 import * as shutdown from 'app/server/lib/shutdown';
@@ -161,7 +161,7 @@ export class NSandbox implements ISandbox {
     this._logMeta = {
       sandboxPid: this.childProc?.pid,
       flavor: spawner.name,
-      ...options.logMeta
+      ...options.logMeta,
     };
     if (spawner.name !== sandboxProcess.name) {
       this._logMeta.subflavor = sandboxProcess.name;
@@ -596,7 +596,7 @@ export class NSandboxCreator implements ISandboxCreator {
   public create(options: ISandboxCreationOptions): ISandbox {
     const sandboxArgs: string[] = [
       ...this._commandArgs,
-      ...(options.sandboxOptions?.testSandboxArgs ?? [])
+      ...(options.sandboxOptions?.testSandboxArgs ?? []),
     ];
     const appendArgs: string[] = [
       ...(this._commandAppendArgs ?? []),
@@ -671,7 +671,7 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
       IMPORTDIR: importDir,
       ...getInsertedEnv(options),
       ...getWrappingEnv(options),
-    }
+    },
   };
   if (!options.minimalPipeMode) {
     spawnOptions.stdio.push('pipe', 'pipe');
@@ -682,7 +682,7 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
   return {
     name: 'unsandboxed',
     child,
-    control: () => new DirectProcessControl(child, options.logMeta)
+    control: () => new DirectProcessControl(child, options.logMeta),
   };
 }
 
@@ -708,7 +708,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
       ELECTRON_RUN_AS_NODE: "1",
       ...getInsertedEnv(options),
       ...getWrappingEnv(options),
-    }
+    },
   };
   const base = getUnpackedAppRoot();
   const scriptPath = path.join(base, 'sandbox', 'pyodide', 'pipe.js');
@@ -723,20 +723,20 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
       '--',
       scriptPath,
       ...(options.comment ? [options.comment] : []),
-      ...(options.appendArgs ?? [])
+      ...(options.appendArgs ?? []),
     ];
     log.rawDebug("Launching Pyodide sandbox via spawn", { command: options.command, args, cwd, spawnOptions });
     child = spawn(
       options.command,
       args,
-      {cwd, ...spawnOptions}
+      {cwd, ...spawnOptions},
     );
   }
  else {
     log.rawDebug("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
     child = fork(
       scriptPath,
-      {cwd, ...spawnOptions}
+      {cwd, ...spawnOptions},
     );
   }
 
@@ -862,8 +862,8 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
         cpu: recognizeTracedProcess,        // measure cpu for the ptraced process
         traced: recognizeTracedProcess,     // the ptraced process
       },
-      logMeta: options.logMeta
-    })
+      logMeta: options.logMeta,
+    }),
   };
 }
 
@@ -902,7 +902,7 @@ function docker(options: ISandboxOptions): SandboxProcess {
 
   const appendArgs = [
     ...(options.comment ? [options.comment] : []),
-    ...(options.appendArgs ?? [])
+    ...(options.appendArgs ?? []),
   ];
 
   const dockerPath = which.sync('docker');
@@ -1007,7 +1007,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
 
   const appendArgs = [
     ...(options.comment ? [options.comment] : []),
-    ...(options.appendArgs ?? [])
+    ...(options.appendArgs ?? []),
   ];
 
   const profileString = profile.join('\n');
@@ -1017,7 +1017,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   return {
     name: 'macSandboxExec',
     child,
-    control: () => new DirectProcessControl(child, options.logMeta)
+    control: () => new DirectProcessControl(child, options.logMeta),
   };
 }
 

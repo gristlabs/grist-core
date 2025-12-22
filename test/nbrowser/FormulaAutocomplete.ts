@@ -52,12 +52,12 @@ describe('FormulaAutocomplete', function() {
       ['RemoveColumn', 'LongNames', 'C'],
       ['AddVisibleColumn', 'LongNames', 'Very long name for the first column', {
         type: 'RefList:LongNames',
-        isFormula: true, formula: 'LongNames.lookupRecords(Long_column=1, Long_column_2=2)'
+        isFormula: true, formula: 'LongNames.lookupRecords(Long_column=1, Long_column_2=2)',
       }],
       ['AddVisibleColumn', 'LongNames', 'Long_column', {}],
       ['AddVisibleColumn', 'LongNames', 'Long_column_2', {}],
       ['AddVisibleColumn', 'LongNames', 'C', {
-        isFormula: true, formula: '1'
+        isFormula: true, formula: '1',
       }],
       ['AddRecord', 'LongNames', null, {}],
     ]);
@@ -71,7 +71,7 @@ describe('FormulaAutocomplete', function() {
       // Need to repeat it as this might be stale, as ACE editor is doing some async work.
       assert.isAbove(
         await driver.findContent('.ace_', /ery_long_name/).getRect().then(s => s.width),
-        40
+        40,
       );
     }, 100);
     await gu.sendKeys(Key.ESCAPE);
@@ -91,7 +91,7 @@ describe('FormulaAutocomplete', function() {
           {id: 'formula', isFormula: true},
         ]],
         ['AddRecord', 'LongColumns', null, {aaa: 1, bbbbbb: 2, ccccccccc: 3, dddddddddddd: 4}],
-      ]
+      ],
     );
     await gu.waitForServer();
     await gu.getPageItem('LongColumns').click();
@@ -171,7 +171,7 @@ describe('FormulaAutocomplete', function() {
       '$formula                  None',
       '$id                       1',
       '$very_long_column_name        None',
-      '$very_very_long_column_name        None'
+      '$very_very_long_column_name        None',
     ]);
   });
 
@@ -187,7 +187,7 @@ describe('FormulaAutocomplete', function() {
       '$formula                  None',
       '$id                       1',
       '$very_long_column_name        None',
-      '$very_very_long_column_name        None'
+      '$very_very_long_column_name        None',
     ]);
   });
 
@@ -407,7 +407,7 @@ describe('FormulaAutocomplete', function() {
     await gu.sendKeys(40, Key.DOWN, Key.ENTER);
     assert.equal(
       await driver.findWait('.ace_editor', 1000).getText(),
-      'AVERAGE(1, 2) Films.lookupOne('
+      'AVERAGE(1, 2) Films.lookupOne(',
     );
 
     await gu.sendKeys(40,
@@ -420,7 +420,7 @@ describe('FormulaAutocomplete', function() {
     await driver.sendKeys(Key.DOWN, Key.DOWN, Key.ENTER);
     assert.equal(
       await driver.findWait('.ace_editor', 1000).getText(),
-      'AVERAGE(1, 2) Films.lookupRecords(A="foo")'
+      'AVERAGE(1, 2) Films.lookupRecords(A="foo")',
     );
   });
 });

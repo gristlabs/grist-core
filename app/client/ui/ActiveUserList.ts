@@ -18,7 +18,7 @@ import {
   DomElementArg, IDisposableOwner,
   makeTestId,
   Observable,
-  styled
+  styled,
 } from 'grainjs';
 
 const t = makeT('ActiveUserList');
@@ -73,8 +73,8 @@ export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: 
       createRemainingUsersIndicator(
         visibleUserProfilesObs,
         userMetadataObs,
-        isRemainingUsersMenuOpen
-      )
+        isRemainingUsersMenuOpen,
+      ),
     );
   });
 
@@ -83,27 +83,27 @@ export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: 
     remainingUsersIndicator,
     computedUserIcons,
     { "aria-label": t("active user list") },
-    testId('container')
+    testId('container'),
   );
 }
 
 function createUserIndicator(
   user: VisibleUserProfile,
-  isRemainingUsersMenuOpen: Observable<boolean>
+  isRemainingUsersMenuOpen: Observable<boolean>,
 ) {
   return createUserListImage(
     user,
     dom.hide(isRemainingUsersMenuOpen),
     hoverTooltip(createTooltipContent(user), { key: "topBarBtnTooltip" }),
     { 'aria-label': `${t('active user')}: ${user.name}`},
-    testId('user-icon')
+    testId('user-icon'),
   );
 }
 
 function createRemainingUsersIndicator(
   usersObs: Observable<VisibleUserProfile[]>,
   metadataObs: Observable<UsersMetadata>,
-  isRemainingUsersMenuOpen: Observable<boolean>
+  isRemainingUsersMenuOpen: Observable<boolean>,
 ) {
   return cssRemainingUsersButton(
     cssRemainingUsersImage(
@@ -126,17 +126,17 @@ function createRemainingUsersIndicator(
         return domComputed(usersObs, users => users.map(user => remainingUsersMenuItem(
           createUserImage(user, 'medium'),
           dom('div', createUsername(user.name), createEmail(user.email)),
-          testId('user-list-user')
+          testId('user-list-user'),
         )));
       },
       {
         // Avoids an issue where the menu code will infinitely loop trying to find the
         // next selectable option, when using keyboard navigation, due to having none.
         allowNothingSelected: true,
-      }
+      },
     ),
     { 'aria-label': t('open full active user list') },
-    testId('all-users-button')
+    testId('all-users-button'),
   );
 }
 
@@ -199,7 +199,7 @@ const createUserListImage = (user: Parameters<typeof createUserImage>[0], ...arg
     user,
     'medium',
     cssUserImage.cls('-reduced'),
-    ...args
+    ...args,
   );
 
 const cssRemainingUsersImage = styled(cssUserImage, `

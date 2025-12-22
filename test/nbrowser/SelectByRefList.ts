@@ -201,7 +201,7 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
         cols: ['rownum', 'ref', 'reflist'],
         rowNums: _.range(1, numSourceRows + 1),
       }),
-      sourceGroup
+      sourceGroup,
     );
     const csvCells = await gu.downloadSectionCsvGridCells('LINKTARGET');
     const expectedCsvCells = sourceGroup.slice(0, -3)  // remove 'add new' row of empty strings

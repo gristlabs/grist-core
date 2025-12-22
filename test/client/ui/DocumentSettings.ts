@@ -19,7 +19,7 @@ describe('DocumentSettings', function() {
         "Asia/Calcutta",
         "Asia/Colombo",
         "Africa/Accra",
-        "Antarctica/Casey"
+        "Antarctica/Casey",
       ], momentTimezone).map(({label}) => label), [
         "(GMT-09:30) Pacific/Marquesas",
         "(GMT-09:00) US/Aleutian",
@@ -29,7 +29,7 @@ describe('DocumentSettings', function() {
         "(GMT+05:00) Antarctica/Mawson",
         "(GMT+05:30) Asia/Calcutta",
         "(GMT+05:30) Asia/Colombo",
-        "(GMT+11:00) Antarctica/Casey"
+        "(GMT+11:00) Antarctica/Casey",
         ]);
     });
   });

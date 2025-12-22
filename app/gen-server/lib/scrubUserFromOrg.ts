@@ -24,7 +24,7 @@ export async function scrubUserFromOrg(
   orgId: number,
   removeUserId: number,
   callerUserId: number,
-  manager: EntityManager
+  manager: EntityManager,
 ): Promise<void> {
   await addMissingGuestMemberships(callerUserId, orgId, manager);
 

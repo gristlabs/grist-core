@@ -56,14 +56,14 @@ export class SupportGristPage extends Disposable {
             return [
               cssParagraph(t(
                 'This instance is opted in to telemetry. Only the site administrator has permission to change this.',
-              ))
+              )),
             ];
           }
  else {
             return [
               cssParagraph(t(
                 'This instance is opted out of telemetry. Only the site administrator has permission to change this.',
-              ))
+              )),
             ];
           }
         }
@@ -71,7 +71,7 @@ export class SupportGristPage extends Disposable {
           return [
             cssParagraph(t(
               'Support Grist by opting in to telemetry, which helps us understand how the product \
-is used, so that we can prioritize future improvements.'
+is used, so that we can prioritize future improvements.',
             )),
             cssParagraph(
               t('We only collect usage statistics, as detailed in our {{link}}, never document contents.', {
@@ -142,7 +142,7 @@ us on our {{link}}.',
       ),
       cssParagraph(t(
         'We are a small and determined team. Your support matters a lot to us. \
-It also shows to others that there is a determined community behind this product.'
+It also shows to others that there is a determined community behind this product.',
       )),
       cssSponsorButton(
         cssButtonIconAndText(icon('Heart'), cssButtonText(t('Manage Sponsorship'))),

@@ -47,7 +47,7 @@ export function buildTabs(
       testId('tab-selected', isSelected(tab)),
     )),
     testId('list'),
-    ...args
+    ...args,
   );
 }
 

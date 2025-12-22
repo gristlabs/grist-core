@@ -18,7 +18,7 @@ import * as express from "express";
 export async function createSavedDoc(
   server: GristServer,
   req: express.Request,
-  options: { srcDocId?: string } = {}
+  options: { srcDocId?: string } = {},
 ): Promise<string> {
   const { srcDocId } = options;
   const dbManager = server.getHomeDBManager();
@@ -32,7 +32,7 @@ export async function createSavedDoc(
 
   const workspacesQueryResult = await dbManager.getOrgWorkspaces(
     getScope(req),
-    0
+    0,
   );
   const workspaces = dbManager.unwrapQueryResult(workspacesQueryResult);
   const userWorkspaces = workspaces
@@ -41,7 +41,7 @@ export async function createSavedDoc(
   if (userWorkspaces.length === 0) {
     throw new ApiError(
       `User ${userId} has no workspaces in their personal site`,
-      500
+      500,
     );
   }
 
@@ -64,7 +64,7 @@ export async function createSavedDoc(
     throw new ApiError(
       `Unable to create document in workspace ${workspace.name}`,
       response.status,
-      body
+      body,
     );
   }
 

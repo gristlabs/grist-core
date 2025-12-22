@@ -354,7 +354,7 @@ export class ChartView extends BaseView {
         r: 50,
         b: 40,  // Space below chart which includes x-axis labels
         t: 30,  // Space above the chart (doesn't include any text)
-        pad: 4
+        pad: 4,
       } as Margin,
       yaxis,
       xaxis,
@@ -424,7 +424,7 @@ function groupSeries<T extends Datum>(groupColumn: T[], valueSeries: Series[], s
     nseries.set(group, valueSeries.map((s: Series) => ({
       label: s.label,
       group,
-      values: []
+      values: [],
     })));
   }
 
@@ -480,7 +480,7 @@ export class ChartConfig extends GrainJSDisposable {
     fromKo(this._optionsObj.prop('multiseries')),
     fromKo(this._optionsObj.prop('isXAxisUndefined')), (_use, multiseries, isUndefined) => (
       isUndefined ? -1 : (multiseries ? 1 : 0)
-    )
+    ),
   );
 
   // The colId of the grouping column, or "" if multiseries is disabled or there are no viewFields,
@@ -529,13 +529,13 @@ export class ChartConfig extends GrainJSDisposable {
         .map(col => ({
           value: col.colId(), label: col.label.peek(), icon: 'FieldColumn' as IconName,
         }));
-    }
+    },
   );
 
   // The list of available columns for the group data picker.
   private _groupDataOptions = Computed.create<Array<IOption<string>>>(this, use => [
     {value: "", label: 'Pick a column'},
-    ...use(this._columnsOptions)
+    ...use(this._columnsOptions),
   ]);
 
   // Force checking/unchecking of the group data checkbox option.
@@ -605,7 +605,7 @@ export class ChartConfig extends GrainJSDisposable {
           cssRowLabel(t('Orientation')),
           dom('div', linkSelect(fromKoSave(this._optionsObj.prop('orientation')), [
             {value: 'v', label: t('Vertical')},
-            {value: 'h', label: t('Horizontal')}
+            {value: 'h', label: t('Horizontal')},
           ], {defaultLabel: t('Vertical')})),
           testId('orientation'),
         ),
@@ -616,7 +616,7 @@ export class ChartConfig extends GrainJSDisposable {
           t('Hole size'),
           Computed.create(owner, use => use(this._optionsObj.prop('donutHoleSize')) ?? DONUT_DEFAULT_HOLE_SIZE),
           (val: number) => this._optionsObj.prop('donutHoleSize').saveOnly(val),
-          testId('option')
+          testId('option'),
         ),
         cssCheckboxRow(t('Show total'), this._optionsObj.prop('showTotal')),
         dom.maybe(this._optionsObj.prop('showTotal'), () => (
@@ -624,9 +624,9 @@ export class ChartConfig extends GrainJSDisposable {
             t('Text size'),
             Computed.create(owner, use => use(this._optionsObj.prop('textSize')) ??  DONUT_DEFAULT_TEXT_SIZE),
             (val: number) => this._optionsObj.prop('textSize').saveOnly(val),
-            testId('option')
+            testId('option'),
           )
-        ))
+        )),
       ]),
       dom.maybe(use => use(this._section.chartTypeDef) === 'line', () => [
         cssCheckboxRow(t('Connect gaps'), this._optionsObj.prop('lineConnectGaps')),
@@ -646,9 +646,9 @@ export class ChartConfig extends GrainJSDisposable {
         dom.domComputed(this._optionsObj.prop('errorBars'), (value: ChartOptions["errorBars"]) =>
           value === 'symmetric' ? cssRowHelp(t("Each Y series is followed by a series for the length of error bars.")) :
             value === 'separate' ? cssRowHelp(
-              t("Each Y series is followed by two series, for top and bottom error bars.")
+              t("Each Y series is followed by two series, for top and bottom error bars."),
             )
-          : null
+          : null,
         ),
       ]),
 
@@ -662,7 +662,7 @@ export class ChartConfig extends GrainJSDisposable {
             testId('group-by-column'),
           ),
           cssHintRow(t("Create separate series for each value of the selected column.")),
-        )
+        ),
       ),
 
       // TODO: user should select x axis before widget reach page
@@ -671,7 +671,7 @@ export class ChartConfig extends GrainJSDisposable {
         cssRow(
           select(
             this._xAxis, this._columnsOptions,
-            { defaultLabel: t("Pick a column") }
+            { defaultLabel: t("Pick a column") },
           ),
           testId('x-axis'),
         ),
@@ -706,7 +706,7 @@ export class ChartConfig extends GrainJSDisposable {
               ];
             }),
             testId('add-y-axis'),
-          )
+          ),
         ),
       ),
 
@@ -861,7 +861,7 @@ export class ChartConfig extends GrainJSDisposable {
         draggableOptions: {
           removeButton: false,
           drag_indicator: cssDragger,
-        }, skipFirst, freeze: this._freezeYAxis, filterFunc
+        }, skipFirst, freeze: this._freezeYAxis, filterFunc,
       });
     });
   }
@@ -999,7 +999,7 @@ function cssNumberWithSpinnerRow(label: string, value: Computed<number>, save: (
         dom.on('change', (_ev, el) => onChange(el.value)),
       ),
     ),
-    ...args
+    ...args,
   );
 }
 
@@ -1030,7 +1030,7 @@ function cssSlideRow(label: string, value: Computed<number>, save: (val: number)
     cssRangeInput(
       {type: 'range', min: "0", max: "1", step: "0.01"},
       dom.prop('value', value),
-      dom.on('change', (_ev, el) => save(Number(el.value)))
+      dom.on('change', (_ev, el) => save(Number(el.value))),
     ),
     cssNumberWithSpinner(
       input = cssNumberInput(
@@ -1049,9 +1049,9 @@ function cssSlideRow(label: string, value: Computed<number>, save: (val: number)
         {type: 'number', step: '0.01', min: '0', max: '0.99'},
         dom.prop('value', value),
         dom.on('change', (_ev, el) => save(Number(el.value))),
-      )
+      ),
     ),
-    ...args
+    ...args,
   );
 }
 
@@ -1177,7 +1177,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
         labels: replaceEmptyLabels(series[0].values),
         values: line.values,
         ...dataOptions,
-      }]
+      }],
     };
   },
 
@@ -1204,12 +1204,12 @@ export const chartTypes: {[name: string]: ChartFunc} = {
         showarrow: false,
         font: {
           size: options.textSize ?? DONUT_DEFAULT_TEXT_SIZE,
-        }
+        },
       } as any);
     }
     return defaultsDeep(
       plotData,
-      {layout: {annotations}}
+      {layout: {annotations}},
     );
 
   },
@@ -1230,7 +1230,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
           x: points.map(p => p.x),
           y: points.map(p => p.y),
         } as Data;
-      })
+      }),
     };
   },
 };

@@ -38,7 +38,7 @@ export function buildDocIcon(options: DocIconOptions, ...args: DomElementArg[]) 
         ? backgroundColor
         : defaultBackgroundColor;
     }),
-    ...args
+    ...args,
   );
 }
 

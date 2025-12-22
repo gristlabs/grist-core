@@ -96,7 +96,7 @@ export interface CommDocUserAction extends CommMessageBase {
 
 export enum WebhookMessageType {
   Update = 'webhookUpdate',
-  Overflow = 'webhookOverflowError'
+  Overflow = 'webhookOverflowError',
 }
 export interface CommDocChatter extends CommMessageBase {
   type: 'docChatter';

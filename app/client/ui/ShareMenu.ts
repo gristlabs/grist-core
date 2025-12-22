@@ -10,7 +10,7 @@ import {
   downloadAttachmentsModal,
   downloadDocModal,
   makeCopy,
-  replaceTrunkWithFork
+  replaceTrunkWithFork,
 } from 'app/client/ui/MakeCopyMenu';
 import {sendToDrive} from 'app/client/ui/sendToDrive';
 import {hoverTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
@@ -25,7 +25,7 @@ import {
   menuItem,
   menuItemLink,
   menuItemSubmenu,
-  menuText
+  menuText,
 } from 'app/client/ui2018/menus';
 import {buildUrlId, isFeatureEnabled, parseUrlId} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
@@ -91,7 +91,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
           menuExports(doc, pageModel),
         ], {buttonAction: async () => {
           await urlState().pushUrl({
-            docPage: 'suggestions'
+            docPage: 'suggestions',
           });
         }});
       }
@@ -165,7 +165,7 @@ function shareButton(buttonText: DomContents|null, menuCreateFunc: MenuCreateFun
       cssShareButton.cls('-combined'),
       cssShareAction(buttonText),
       cssShareCircle(
-        cssShareIcon('Share')
+        cssShareIcon('Share'),
       ),
       menu(menuCreateFunc, {placement: 'bottom-end'}),
       hoverTooltip(t('Share'), {key: 'topBarBtnTooltip'}),
@@ -196,7 +196,7 @@ function menuManageUsers(doc: DocInfo, pageModel: DocPageModel) {
     menuItem(() => manageUsers(doc, pageModel),
       roles.canEditAccess(doc.access) ? t("Manage users") : t("Access Details"),
       dom.cls('disabled', doc.isFork),
-      testId('tb-share-option')
+      testId('tb-share-option'),
     ),
     menuDivider(),
   ];
@@ -298,8 +298,8 @@ function menuWorkOnCopy(pageModel: DocPageModel, options?: {
       withInfoTooltip(
         t("Edit without affecting the original"),
         'workOnACopy',
-        {popupOptions: {attach: null}}
-      )
+        {popupOptions: {attach: null}},
+      ),
     ),
   ];
 }
@@ -349,7 +349,7 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
           onClick,
           hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
           t("Comma Separated Values (.csv)"),
-          testId('tb-share-option')
+          testId('tb-share-option'),
         ),
         menuItemLink(
           onClick,
@@ -363,7 +363,7 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
           onClick,
           hooks.maybeModifyLinkAttrs({
           href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadXlsxUrl(),
-          target: '_blank', download: ''
+          target: '_blank', download: '',
         }), t("Microsoft Excel (.xlsx)"), testId('tb-share-option')),
       ],
       {},

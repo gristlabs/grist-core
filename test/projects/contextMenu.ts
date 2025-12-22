@@ -41,7 +41,7 @@ describe('contextMenu', function() {
     // check action worked
     assert.deepEqual(
       await driver.findAll('.test-logs', e => e.getText()),
-      ['foo added']
+      ['foo added'],
     );
 
     // click Bar
@@ -51,7 +51,7 @@ describe('contextMenu', function() {
     await gu.findOpenMenuItem('li', 'Bar').click();
     assert.deepEqual(
       await driver.findAll('.test-logs', e => e.getText()),
-      ['foo added', 'bar added']
+      ['foo added', 'bar added'],
     );
 
     // click Reset
@@ -61,7 +61,7 @@ describe('contextMenu', function() {
     await driver.findContentWait('.grist-floating-menu li', 'Reset', 100).click();
     assert.deepEqual(
       await driver.findAll('.test-logs', e => e.getText()),
-      []
+      [],
     );
 
     // open context menu
@@ -81,7 +81,7 @@ describe('contextMenu', function() {
     // check logs is empty
     assert.deepEqual(
       await driver.findAll('.test-logs', e => e.getText()),
-      []
+      [],
     );
 
     // open context menu
@@ -93,7 +93,7 @@ describe('contextMenu', function() {
     // check foo was added
     assert.deepEqual(
       await driver.findAll('.test-logs', e => e.getText()),
-      ['foo added']
+      ['foo added'],
     );
   });
 

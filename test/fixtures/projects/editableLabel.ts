@@ -88,7 +88,7 @@ class SaveableSetup extends Disposable {
           serverInput = dom('input', {type: 'text'}, testId('server-value'),
             dom.prop('value', this.savedValue)),
           dom('input', {type: 'button', value: 'Update'}, testId('server-update'),
-            dom.on('click', ev => this.onServerUpdate(serverInput.value)))
+            dom.on('click', ev => this.onServerUpdate(serverInput.value))),
         ),
         dom.forEach(this.pendingCalls, (pendingCall: PendingCall) =>
           cssItem(dom('div', "Pending call:"), dom.text(pendingCall.callValue),

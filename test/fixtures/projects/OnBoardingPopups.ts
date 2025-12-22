@@ -39,8 +39,8 @@ const message: IOnBoardingMsg[] = [
     selector: '.tour-tools',
     title: 'Tools',
     body: 'Great tools to build great things ...',
-    placement: 'top-start'
-  }
+    placement: 'top-start',
+  },
 ];
 
 const logs = observable<string[]>([]);
@@ -52,7 +52,7 @@ function dummyButton(name: string, ...args: DomElementArg[]) {
   return dom(
     'button', `${name} [FAKE]`,
     dom.on('click', () => log(`CLICKED ${name}!`)),
-    ...args
+    ...args,
   );
 }
 
@@ -74,7 +74,7 @@ function setupTest() {
     ),
     dom.domComputed(logs, logsArray => (
       dom('div', {style: 'position: absolute; margin-top: 300px;'},
-          logsArray.map(msg => dom('div', msg, testId('logs')))
+          logsArray.map(msg => dom('div', msg, testId('logs'))),
          )
     )),
   ];

@@ -60,7 +60,7 @@ describe("ViewLayoutCollapse", function() {
 
     // Add new page with new table.
     await gu.addNewPage('Table', 'New Table', {
-      tableName: 'Broken'
+      tableName: 'Broken',
     });
 
     await gu.renameActiveSection('Collapsed');
@@ -101,7 +101,7 @@ describe("ViewLayoutCollapse", function() {
 
     // Break the spec.
     const specJson: string = await driver.executeScript(
-      'return gristDocPageModel.gristDoc.get().docModel.views.rowModels[3].layoutSpec()'
+      'return gristDocPageModel.gristDoc.get().docModel.views.rowModels[3].layoutSpec()',
     );
 
     // To break the spec, we will replace id of the collapsed section, then viewLayout will try to fix it,
@@ -111,7 +111,7 @@ describe("ViewLayoutCollapse", function() {
     spec.collapsed[0].leaf = -10;
 
     await driver.executeScript(
-      `gristDocPageModel.gristDoc.get().docModel.views.rowModels[3].layoutSpec.setAndSave('${JSON.stringify(spec)}')`
+      `gristDocPageModel.gristDoc.get().docModel.views.rowModels[3].layoutSpec.setAndSave('${JSON.stringify(spec)}')`,
     );
 
     await gu.waitForServer();
@@ -158,7 +158,7 @@ describe("ViewLayoutCollapse", function() {
       await gu.waitToPass(async () => {
         assert.equal(await driver.find('#output').getText(),
           `["Companies","Investments","Companies_summary_category_code","Investments_summary_funded_year",` +
-          `"Investments_summary_Company_category_code_funded_year","Investments_summary_Company_category_code"]`
+          `"Investments_summary_Company_category_code_funded_year","Investments_summary_Company_category_code"]`,
         );
       });
     });
@@ -809,7 +809,7 @@ describe("ViewLayoutCollapse", function() {
     await driver.find('.test-section-delete').click();
     assert.match(
       await driver.find('.test-modal-title').getText(),
-      /Table ToCollapse will no longer be visible/
+      /Table ToCollapse will no longer be visible/,
     );
 
     // Select first option, to delete both table and widget.

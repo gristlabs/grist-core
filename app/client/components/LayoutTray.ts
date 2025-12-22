@@ -109,7 +109,7 @@ export class LayoutTray extends DisposableWithEvents {
       dispose() {
         boxes.forEach(box => box.dispose());
         boxes.length = 0;
-      }
+      },
     };
   }
 
@@ -135,7 +135,7 @@ export class LayoutTray extends DisposableWithEvents {
           sectionRowId: id,
           draggable: false,
           focusable: false,
-        })
+        }),
       );
     });
   }
@@ -185,7 +185,7 @@ export class LayoutTray extends DisposableWithEvents {
         // remove the box from the dom. Charts are very sensitive for this.
         viewLayout.viewModel.activeSectionId(
           // We can't collapse last section, so the main layout will always have at least one section.
-          viewLayout.layoutEditor.layout.getAllLeafIds().filter(x => x !== leafId)[0]
+          viewLayout.layoutEditor.layout.getAllLeafIds().filter(x => x !== leafId)[0],
         );
 
         // Add the box to our collapsed editor (it will transfer the viewInstance).
@@ -203,7 +203,7 @@ export class LayoutTray extends DisposableWithEvents {
         if (!leafId) { return; }
         viewLayout.viewModel.activeCollapsedSectionId(0);
         viewLayout.viewModel.activeCollapsedSections(
-          viewLayout.viewModel.activeCollapsedSections.peek().filter(x => x !== leafId)
+          viewLayout.viewModel.activeCollapsedSections.peek().filter(x => x !== leafId),
         );
         viewLayout.viewModel.activeSectionId(leafId);
         viewLayout.saveLayoutSpec().catch(reportError);
@@ -228,7 +228,7 @@ export class LayoutTray extends DisposableWithEvents {
             ?.filter(x => typeof x.leaf === 'number' && validSections.has(x.leaf));
           await viewLayout.saveLayoutSpec(currentSpec);
         }).catch(reportError);
-      }
+      },
     };
     this.autoDispose(commands.createGroup(commandGroup, this, true));
   }
@@ -310,9 +310,9 @@ class CollapsedDropZone extends Disposable {
         return !show ? null : dom.domComputed(
           obsRects,
           rects => rects.filter(isNonNullish).map((rect: VRect) => cssVirtualPart(
-            {style: `left: ${rect.left}px; width: ${rect.width}px; top: ${rect.top}px; height: ${rect.height}px;`}
+            {style: `left: ${rect.left}px; width: ${rect.width}px; top: ${rect.top}px; height: ${rect.height}px;`},
         )));
-      })
+      }),
     ));
   }
 
@@ -508,7 +508,7 @@ class CollapsedLayout extends Disposable {
       testId('layout'),
       useDragging(),
       dom.hide(use => use(this._boxes).length === 0),
-      dom.forEach(this._boxes, line => line.buildDom())
+      dom.forEach(this._boxes, line => line.buildDom()),
     ));
   }
 }
@@ -563,7 +563,7 @@ class EmptyLeaf extends Leaf {
         const leafId = box.leafId();
         this.model.layout.addBox(leafId, myIndex);
         box.removeFromLayout();
-      })
+      }),
     );
   }
 
@@ -586,7 +586,7 @@ class TargetLeaf extends EmptyLeaf {
     dom.update(element,
       testId('target-box'),
       dom.cls(cssProbe.className),
-      { style: 'width: 2px;' }
+      { style: 'width: 2px;' },
     );
     return element;
   }
@@ -699,8 +699,8 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
         urlState().pushUrl({
           hash: {
             sectionId: this.id.get(),
-            popup: true
-          }
+            popup: true,
+          },
         }).catch(() => {});
         e.preventDefault();
         e.stopPropagation();
@@ -784,7 +784,7 @@ class MiniFloater extends Disposable {
     return cssMiniFloater(
       dom.show(use => Boolean(use(this.content))),
       // dom.cls('layout_editor_floater'),
-      dom.domComputed(this.content, c => c)
+      dom.domComputed(this.content, c => c),
     );
   }
 
@@ -903,7 +903,7 @@ class ExternalLeaf extends Disposable implements Dropped {
           this.model.viewLayout.viewModel.activeSectionId(leaf);
           this.model.drop.state.set(null);
         }
-      })
+      }),
     );
     this._replaceFloater();
   }
@@ -981,7 +981,7 @@ class ExternalLeaf extends Disposable implements Dropped {
           floater.mouseOffsetX = lastX!;
           floater.mouseOffsetY = lastY!;
         }
-      })
+      }),
     );
   }
 }
@@ -1055,7 +1055,7 @@ function findDraggable(ev: EventTarget|null) {
 function asDraggable(item: Draggable) {
   return [
     dom.cls('draggable'),
-    dom.data('draggable', item)
+    dom.data('draggable', item),
   ];
 }
 
@@ -1220,7 +1220,7 @@ const cssCollapsedTray = styled('div.collapsed_layout', `
       display: none;
     }
   }
-`
+`,
 );
 
 const cssRow = styled('div', `display: flex`);

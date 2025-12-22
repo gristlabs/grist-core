@@ -517,7 +517,7 @@ export function bindMarkdown(textObs: BindableValue<string>) {
     dom.update(shadow,
       dom.domComputed(textObs, text => sanitizeHTMLIntoDOM(marked(text || '', {
         async: false,
-      }))
+      })),
     ));
   };
 }
@@ -525,7 +525,7 @@ export function bindMarkdown(textObs: BindableValue<string>) {
 export function buildMarkdown(obs: BindableValue<string>, ...args: IDomArgs<HTMLDivElement>) {
   return cssMarkdownContainer(
     bindMarkdown(obs),
-    ...args
+    ...args,
   );
 }
 
@@ -809,7 +809,7 @@ export function saveControls(editMode: Observable<boolean>, save: (ok: boolean) 
         if (ev.target && 'blur' in ev.target) {
           (ev.target as any).blur();
         }
-      }
+      },
     }),
     dom.create((owner) => {
       // Whenever focus returns to the Clipboard component, close the editor by saving the value.

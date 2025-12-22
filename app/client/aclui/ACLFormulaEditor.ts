@@ -50,7 +50,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   // Implement placeholder text since the version of ACE we use doesn't support one.
   const showPlaceholder = Observable.create(null, !options.initialValue.length);
   editor.renderer.scroller.appendChild(
-    cssAcePlaceholder(dom.show(showPlaceholder), options.placeholder)
+    cssAcePlaceholder(dom.show(showPlaceholder), options.placeholder),
   );
   editor.on("change", () => showPlaceholder.set(!editor.getValue().length));
 
@@ -67,7 +67,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
     .concat(
       // Other completions that depend on doc schema or other rules.
       expandAndFilterSuggestions(prefix, options.getSuggestions())
-      .map<ISuggestionWithValue>(s => [s.value, s.example || null])
+      .map<ISuggestionWithValue>(s => [s.value, s.example || null]),
     );
   }
 

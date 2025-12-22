@@ -102,7 +102,7 @@ describe('Webhooks-Proxy', function () {
     additionaEnvConfiguration = {
       ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
       GRIST_DATA_DIR: dataDir,
-      ...additionaEnvConfiguration
+      ...additionaEnvConfiguration,
     };
 
     before(async function () {
@@ -184,7 +184,7 @@ describe('Webhooks-Proxy', function () {
       function unsubscribe(docId: string, data: any, tableId = 'Table1') {
         return axios.post(
           `${serverUrl}/api/docs/${docId}/tables/${tableId}/_unsubscribe`,
-          data, chimpy
+          data, chimpy,
         );
       }
 
@@ -199,8 +199,8 @@ describe('Webhooks-Proxy', function () {
           {
             eventTypes: options?.eventTypes ?? ['add', 'update'],
             url: `${serving.url}/${endpoint}`,
-            isReadyColumn: options?.isReadyColumn === undefined ? 'B' : options?.isReadyColumn
-          }, chimpy
+            isReadyColumn: options?.isReadyColumn === undefined ? 'B' : options?.isReadyColumn,
+          }, chimpy,
         );
         assert.equal(status, 200);
         return data as WebhookSubscription;
@@ -208,7 +208,7 @@ describe('Webhooks-Proxy', function () {
 
       async function clearQueue(docId: string) {
         const deleteResult = await axios.delete(
-          `${serverUrl}/api/docs/${docId}/webhooks/queue`, chimpy
+          `${serverUrl}/api/docs/${docId}/webhooks/queue`, chimpy,
         );
         assert.equal(deleteResult.status, 200);
       }

@@ -44,10 +44,10 @@ describe('Throttle', function() {
         const throttle = new Throttle({
           pid: child.pid,
           logMeta: {sandboxPid: child.pid, docId: `case${i}`},
-          timing: testTiming
+          timing: testTiming,
         });
         tests.push({
-          child, throttle, done, cpuHog
+          child, throttle, done, cpuHog,
         });
       }
       await delay(5000);

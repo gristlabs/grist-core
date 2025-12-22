@@ -93,7 +93,7 @@ export class DocRequests {
       const response = await fetchUntrustedWithAgent(urlObj, {
         headers: headers || {},
         method,
-        body
+        body,
       });
       const content = await response.buffer();
       const {status, statusText} = response;

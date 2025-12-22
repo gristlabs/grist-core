@@ -190,7 +190,7 @@ describe('DateRangeFilter', function() {
       action => action
         .move({origin: fu.findBound('min').find('.test-filter-menu-tokenfield-token')})
         .move({origin: driver.find('.test-filter-menu-tokenfield-delete')})
-        .click()
+        .click(),
     );
 
     // check min bound shows `Min`

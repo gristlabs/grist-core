@@ -17,7 +17,7 @@ import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
 import {getGristConfig} from 'app/common/urlUtils';
 import {
   AccessTokenOptions, CursorPos, CustomSectionAPI, FetchSelectedOptions, GristDocAPI, GristView,
-  InteractionOptionsRequest, WidgetAPI, WidgetColumnMap
+  InteractionOptionsRequest, WidgetAPI, WidgetColumnMap,
 } from 'app/plugin/grist-plugin-api';
 import {MsgType, Rpc} from 'grain-rpc';
 import {Computed, Disposable, dom, Observable} from 'grainjs';
@@ -145,7 +145,7 @@ export class WidgetFrame extends DisposableWithEvents {
     // Url to widget or empty page with access level and preferences.
     this._url = Computed.create(
       this,
-      use => this._urlWithAccess(use(maybeUrl)) || this._getEmptyWidgetPage()
+      use => this._urlWithAccess(use(maybeUrl)) || this._getEmptyWidgetPage(),
     );
 
     // Iframe is empty when url is not set.
@@ -489,7 +489,7 @@ export class GristViewImpl implements GristView {
       const colId: string = expandRefs ? column.displayColModel.peek().colId.peek() : column.colId.peek();
       data[column.colId.peek()] = reencodeAsAny(
         this._baseView.tableModel.tableData.getValue(rowId, colId)!,
-        typeInfo
+        typeInfo,
       );
     }
     return data;
@@ -693,7 +693,7 @@ export class ConfigNotifier extends BaseEventSource {
         if (isEqual(newConfig, oldConfig)) { return; }
 
         this._debounced();
-      })
+      }),
     );
   }
 
@@ -726,7 +726,7 @@ export class ThemeNotifier extends BaseEventSource {
         if (isEqual(newTheme, oldTheme)) { return; }
 
         this._update();
-      })
+      }),
     );
   }
 
@@ -762,7 +762,7 @@ export class TableNotifier extends BaseEventSource {
       .subscribe(() => {
         this._updateMapping = true;
         this._debounced();
-      })
+      }),
     );
   }
 
@@ -779,7 +779,7 @@ export class TableNotifier extends BaseEventSource {
       tableId: this._baseView.viewSection.table().tableId(),
       rowId: this._baseView.cursor.getCursorPos().rowId || undefined,
       dataChange: true,
-      mappingsChange: this._updateMapping
+      mappingsChange: this._updateMapping,
     };
     this._updateMapping = false;
     this._notify(state);
@@ -790,7 +790,7 @@ export class CustomSectionAPIImpl extends Disposable implements CustomSectionAPI
   constructor(
     private _section: ViewSectionRec,
     private _currentAccess: AccessLevel,
-    private _promptCallback: (access: AccessLevel) => void
+    private _promptCallback: (access: AccessLevel) => void,
   ) {
     super();
   }

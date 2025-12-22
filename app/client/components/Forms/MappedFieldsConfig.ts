@@ -86,7 +86,7 @@ export class MappedFieldsConfig extends Disposable {
           testId('visible-fields'),
           dom.forEach(mappedColumns, (field) => {
             return this._buildMappedField(field);
-          })
+          }),
         ),
         dom.maybe(anyMappedSelected, () =>
           cssRow(
@@ -98,9 +98,9 @@ export class MappedFieldsConfig extends Disposable {
             basicButton(
               t("Clear"),
               dom.on('click', () => mappedColumns.get().forEach(col => col.selected.set(false))),
-              testId('visible-clear')
+              testId('visible-clear'),
             ),
-            testId('visible-batch-buttons')
+            testId('visible-batch-buttons'),
           ),
         ),
       ),
@@ -122,7 +122,7 @@ export class MappedFieldsConfig extends Disposable {
           testId('hidden-fields'),
           dom.forEach(unmappedColumns, (field) => {
             return this._buildUnmappedField(field);
-          })
+          }),
         ),
         dom.maybe(anyUnmappedSelected, () =>
           cssRow(
@@ -134,9 +134,9 @@ export class MappedFieldsConfig extends Disposable {
             basicButton(
               t("Clear"),
               dom.on('click', () => unmappedColumns.get().forEach(col => col.selected.set(false))),
-              testId('hidden-clear')
+              testId('hidden-clear'),
             ),
-            testId('visible-batch-buttons')
+            testId('visible-batch-buttons'),
           ),
         ),
       ),
@@ -208,7 +208,7 @@ function selectAllLabel(...args: any[]) {
     testId('select-all'),
     icon('Tick'),
     dom('span', t("Select all")),
-    ...args
+    ...args,
   );
 }
 

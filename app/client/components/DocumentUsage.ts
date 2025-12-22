@@ -119,7 +119,7 @@ export class DocumentUsage extends Disposable {
         const hasNonPendingMetrics = [rowCount, dataSize, attachmentsSize]
           .some(metric => metric !== 'pending' && metric !== undefined);
         return !doc || !hasNonPendingMetrics;
-      }
+      },
     );
 
   private readonly _isAccessDenied: Computed<boolean | null> =
@@ -132,7 +132,7 @@ export class DocumentUsage extends Disposable {
         const isPublicUser = access === 'guests' || access === null;
         const hasHiddenMetrics = [rowCount, dataSize, attachmentsSize].some(metric => metric === 'hidden');
         return isPublicUser || hasHiddenMetrics;
-      }
+      },
     );
 
   constructor(private _docPageModel: DocPageModel) {
@@ -174,17 +174,17 @@ export class DocumentUsage extends Disposable {
         // If usage limits have kicked in, say so.
         usageInfo?.dataLimitInfo?.status ? buildMessage([
           buildLimitStatusMessage(planLabel, usageInfo, features, {
-            disableRawDataLink: true
+            disableRawDataLink: true,
           }),
           (product && isFreePlan(product.name)
             ? [' ', buildUpgradeMessage(
               canUpgradeOrg(org),
               'long',
-              () =>  this._docPageModel.appModel.showUpgradeModal()
+              () =>  this._docPageModel.appModel.showUpgradeModal(),
             )]
             : null
           ),
-        ]) : null
+        ]) : null,
       ];
     });
   }
@@ -213,7 +213,7 @@ export function buildLimitStatusMessage(
   features?: Features|null,
   options: {
     disableRawDataLink?: boolean;
-  } = {}
+  } = {},
 ) {
   const {disableRawDataLink = false} = options;
   const {status, daysRemaining} = usageInfo.dataLimitInfo;
@@ -222,7 +222,7 @@ export function buildLimitStatusMessage(
       return [
         'This document is ',
         disableRawDataLink ? 'approaching' : buildRawDataPageLink('approaching'),
-        ` ${planName} plan limits.`
+        ` ${planName} plan limits.`,
       ];
     }
     case 'gracePeriod': {
@@ -231,21 +231,21 @@ export function buildLimitStatusMessage(
         return [
           'Document limits ',
           disableRawDataLink ? 'exceeded' : buildRawDataPageLink('exceeded'),
-          '.'
+          '.',
         ];
       }
 
       return [
         'Document limits ',
         disableRawDataLink ? 'exceeded' : buildRawDataPageLink('exceeded'),
-        `. In ${daysRemaining} days, this document will be read-only.`
+        `. In ${daysRemaining} days, this document will be read-only.`,
       ];
     }
     case 'deleteOnly': {
       return [
         'This document ',
         disableRawDataLink ? 'exceeded' : buildRawDataPageLink('exceeded'),
-        ` ${planName} plan limits and is now read-only, but you can delete rows.`
+        ` ${planName} plan limits and is now read-only, but you can delete rows.`,
       ];
     }
   }
@@ -315,7 +315,7 @@ function buildUsageProgressBar(options: MetricOptions) {
     maximumValue,
     shouldHideLimits,
     unit,
-    formatValue = n => n.toString()
+    formatValue = n => n.toString(),
   } = options;
 
   let ratioUsed: number;

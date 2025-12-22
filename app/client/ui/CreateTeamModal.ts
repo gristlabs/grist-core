@@ -55,7 +55,7 @@ class NewSiteModalContent extends Disposable {
           team,
           domain,
           create: () => this._createTeam(),
-          ctrl
+          ctrl,
         });
         case 'teamSuccess': return buildConfirm({domain: domain.get()});
       }
@@ -104,8 +104,8 @@ export function buildConfirm({
     cssHeaderLine(t('Team site created'), testId("confirmation")),
     hspace('2em'),
     bigPrimaryButtonLink(
-      urlState().setLinkUrl({org: domain || undefined}), t('Go to your site'), testId("confirmation-link")
-    )
+      urlState().setLinkUrl({org: domain || undefined}), t('Go to your site'), testId("confirmation-link"),
+    ),
   );
 }
 
@@ -113,7 +113,7 @@ function buildTeamPage({
   team,
   domain,
   create,
-  ctrl
+  ctrl,
 }: {
   team: Observable<string>;
   domain: Observable<string>;
@@ -163,7 +163,7 @@ function buildTeamPage({
             {style: 'flex: 0 1 0; min-width: auto; margin-right: 5px'},
             dom.text(`${window.location.origin}/o/`)),
           cssField(cssInput(
-            domain, {onInput: true}, clickOnEnter, group.inputReset(), testId('domain')
+            domain, {onInput: true}, clickOnEnter, group.inputReset(), testId('domain'),
           )),
         ),
         dom.create(Validator, group, t("Domain name is required"), () => !!domain.get()),
@@ -176,11 +176,11 @@ function buildTeamPage({
           bigPrimaryButton(t("Create site"),
             dom.on('click', click),
             dom.prop('disabled', disabled),
-            testId('confirm')
+            testId('confirm'),
           ),
-        )
-      )
-    )
+        ),
+      ),
+    ),
   );
 }
 
@@ -204,7 +204,7 @@ function showModal(
     return [
       cssCreateTeamModal.cls(''),
       cssCloseButton(testId("close-modal"), cssBigIcon('CrossBig'), dom.on('click', () => ctrl.close())),
-      content(modalScope, ctrl)
+      content(modalScope, ctrl),
     ];
   }, {backerDomArgs: args});
   return control;

@@ -73,7 +73,7 @@ export class DocPluginManager {
     private _localPlugins: LocalPlugin[],
     private _appRoot: string,
     private _activeDoc: ActiveDoc,
-    private _server: GristServer
+    private _server: GristServer,
   ) {
     this.gristDocAPI = new GristDocAPIImpl(_activeDoc);
     this._pluginInstances = [];

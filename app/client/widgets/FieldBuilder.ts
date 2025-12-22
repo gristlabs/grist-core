@@ -47,7 +47,7 @@ import {
   MultiHolder,
   Observable,
   styled,
-  toKo
+  toKo,
 } from 'grainjs';
 import * as ko from 'knockout';
 import isEqual from 'lodash/isEqual';
@@ -153,7 +153,7 @@ export class FieldBuilder extends Disposable {
         const o: IOptionFull<string> = {
           value: key as string,
           label: def.label,
-          icon: def.icon
+          icon: def.icon,
         };
         if (key === 'Any') {
           // User is unable to select the Any type in non-formula columns.
@@ -186,7 +186,7 @@ export class FieldBuilder extends Disposable {
  else {
           this._setType(`RefList:${val}`);
         }
-      }
+      },
     }));
 
     this.widget = ko.pureComputed(() => this.field.widget());
@@ -237,7 +237,7 @@ export class FieldBuilder extends Disposable {
         if(args.popup==='referenceColumnsConfig'){
           this._showRefConfigPopup(true);
         }
-      }
+      },
     }, this, true));
   }
 
@@ -247,7 +247,7 @@ export class FieldBuilder extends Disposable {
       const widgetOptions = Object.keys(typeWidgets).map(label => ({
         label,
         value: label,
-        icon: typeWidgets[label].icon
+        icon: typeWidgets[label].icon,
       }));
       if (widgetOptions.length <= 1) { return null; }
       // Here we need to accommodate the fact that the widget can be null, which
@@ -278,10 +278,10 @@ export class FieldBuilder extends Disposable {
                 disabled,
                 defaultLabel: t('Mixed format'),
                 translateOptionLabels: true,
-              }
+              },
             ),
-          testId('widget-select')
-        )
+          testId('widget-select'),
+        ),
       ];
     });
   }
@@ -334,20 +334,20 @@ export class FieldBuilder extends Disposable {
                 popupOptions: {
                   attach: `.${cssTypeSelectMenu.className}`,
                   placement: 'left-start',
-                }
+                },
               });
             }
  else {
               return null;
             }
-          }
+          },
         }),
         testId('type-select'),
         grainjsDom.cls('tour-type-selector'),
         grainjsDom.cls(cssBlockedCursor.className, use =>
           use(this.origColumn.disableModifyBase) ||
           use(this._isTransformingFormula) ||
-          (use(this.field.config.multiselect) && !use(allFormulas))
+          (use(this.field.config.multiselect) && !use(allFormulas)),
         ),
       ),
       grainjsDom.maybe(use => use(this._isRef) && !use(this._isTransformingType), () => this._buildRefTableSelect()),
@@ -358,12 +358,12 @@ export class FieldBuilder extends Disposable {
                      dom('div',
                          grainjsDom.maybe(this._isRef, () => this._buildRefTableSelect()),
                          grainjsDom.maybe(use => use(this.field.column().isTransforming),
-                                          () => this.columnTransform!.buildDom())
-                     )
+                                          () => this.columnTransform!.buildDom()),
+                     ),
                    ),
-                   grainjsDom.onDispose(onDispose)
+                   grainjsDom.onDispose(onDispose),
         );
-      })
+      }),
     ];
   }
 
@@ -387,7 +387,7 @@ export class FieldBuilder extends Disposable {
       ) {
         this.gristDoc.docData.bundleActions(t("Changing multiple column types"), () =>
           Promise.all(this.field.viewSection.peek().selectedFields.peek().map(f =>
-            f.column.peek().type.setAndSave(calculatedType)
+            f.column.peek().type.setAndSave(calculatedType),
         ))).catch(reportError);
       }
  else if (column.pureType() === 'Any') {
@@ -408,7 +408,7 @@ export class FieldBuilder extends Disposable {
                 ? column.widgetOptions.setAndSave(widgetOptions)
                 : Promise.resolve(),
                 column.type.setAndSave(calculatedType),
-            ])
+            ]),
           ).catch(reportError);
         });
       }
@@ -433,8 +433,8 @@ export class FieldBuilder extends Disposable {
                                       use(this._docModel.visibleTables.getObservable()).map(tableRec => ({
                                         value: use(tableRec.tableId),
                                         label: use(tableRec.tableNameDef),
-                                        icon: 'FieldTable' as const
-                                      }))
+                                        icon: 'FieldTable' as const,
+                                      })),
                                      );
     const isDisabled = Computed.create(null, (use) => {
       return use(this.origColumn.disableModifyBase) || use(this.field.config.multiselect);
@@ -449,7 +449,7 @@ export class FieldBuilder extends Disposable {
                 popupOptions: {
                   placement: 'left-start',
                 },
-              }
+              },
             ));
           },
         ),
@@ -462,8 +462,8 @@ export class FieldBuilder extends Disposable {
           // (specifically when it's a group-by column of a summary table).
           disabled: isDisabled,
         }),
-        testId('ref-table-select')
-      )
+        testId('ref-table-select'),
+      ),
     ];
   }
 
@@ -481,7 +481,7 @@ export class FieldBuilder extends Disposable {
  else {
           return this.columnTransform && this.columnTransform.cancel();
         }
-      }
+      },
     });
     return dom('div',
                dom.autoDispose(transformButton),
@@ -505,7 +505,7 @@ export class FieldBuilder extends Disposable {
                )),
                kd.maybe(this._isTransformingFormula, () => {
                  return this.columnTransform!.buildDom();
-               })
+               }),
     );
   }
 
@@ -517,8 +517,8 @@ export class FieldBuilder extends Disposable {
     // the dom created by the widgetImpl to get out of sync.
     return dom('div',
       kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
-        dom('div', widget.buildConfigDom(this.gristDoc))
-      )
+        dom('div', widget.buildConfigDom(this.gristDoc)),
+      ),
     );
   }
 
@@ -527,16 +527,16 @@ export class FieldBuilder extends Disposable {
     // the dom created by the widgetImpl to get out of sync.
     return dom('div',
       kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
-        dom('div', widget.buildColorConfigDom(this.gristDoc))
-      )
+        dom('div', widget.buildColorConfigDom(this.gristDoc)),
+      ),
     );
   }
 
   public buildFormConfigDom() {
     return dom('div',
       kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
-        dom('div', widget.buildFormConfigDom())
-      )
+        dom('div', widget.buildFormConfigDom()),
+      ),
     );
   }
 
@@ -569,14 +569,14 @@ export class FieldBuilder extends Disposable {
                       )),
                     ),
                   t('Field in {{count}} views', {
-                    count: kd.text(() => this.origColumn.viewFields().all().length)
+                    count: kd.text(() => this.origColumn.viewFields().all().length),
                   }),
-                )
-              )
-            )
-          )
-        )
-      )
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -586,9 +586,9 @@ export class FieldBuilder extends Disposable {
         return Promise.all([
           setSaveValue(this.field.widgetOptions, this.field.column().widgetOptions() || "{}"),
           setSaveValue(this.field.visibleCol, this.field.column().visibleCol()),
-          this.field.saveDisplayFormula(this.field.column()._displayColModel().formula() || '')
+          this.field.saveDisplayFormula(this.field.column()._displayColModel().formula() || ''),
         ]);
-      }
+      },
     );
   }
 
@@ -601,9 +601,9 @@ export class FieldBuilder extends Disposable {
           this.field.column().saveDisplayFormula(this.field._displayColModel().formula() || ''),
           setSaveValue(this.field.widgetOptions, ''),
           setSaveValue(this.field.visibleCol, 0),
-          this.field.saveDisplayFormula('')
+          this.field.saveDisplayFormula(''),
         ]);
-      }
+      },
     );
   }
 
@@ -613,9 +613,9 @@ export class FieldBuilder extends Disposable {
         return Promise.all([
           setSaveValue(this.field.widgetOptions, ''),
           setSaveValue(this.field.visibleCol, 0),
-          this.field.saveDisplayFormula('')
+          this.field.saveDisplayFormula(''),
         ]);
-      }
+      },
     );
   }
 
@@ -737,7 +737,7 @@ export class FieldBuilder extends Disposable {
           )),
           kd.toggleClass("readonly", toKo(ko, this._readonly)),
           kd.maybe(isSelected, () => dom('div.selected_cursor',
-                                         kd.toggleClass('active_cursor', isActive)
+                                         kd.toggleClass('active_cursor', isActive),
                                         )),
           kd.scope(widgetObs, (widget: NewAbstractWidget) => {
             if (this.isDisposed()) { return null; }   // Work around JS errors during field removal.
@@ -749,7 +749,7 @@ export class FieldBuilder extends Disposable {
                        kd.toggleClass('font-underline', fontUnderline),
                        kd.toggleClass('font-italic', fontItalic),
                        kd.toggleClass('font-strikethrough', fontStrikethrough));
-          })
+          }),
          );
     };
   }
@@ -826,7 +826,7 @@ export class FieldBuilder extends Disposable {
   public buildDiscussionPopup(
     editRow: DataRowModel,
     mainRowModel: DataRowModel,
-    text: CommentWithMentions|null
+    text: CommentWithMentions|null,
   ) {
     const holder = this.gristDoc.fieldEditorHolder;
     const cellElem: Element = this._rowMap.get(mainRowModel)!;
@@ -910,13 +910,13 @@ export class FieldBuilder extends Disposable {
       },
       dispose() {
         formulaEditor.dispose();
-      }
+      },
     };
 
     // Create a custom cleanup method, that won't destroy us when we loose focus while being detached.
     function setupEditorCleanup(
       owner: MultiHolder, gristDoc: GristDoc,
-      editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>
+      editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>,
     ) {
       // Just override the behavior on focus lost.
       const saveOnFocus = () => floatingExtension.active.get() ? void 0 : _saveEdit().catch(reportError);
@@ -943,7 +943,7 @@ export class FieldBuilder extends Disposable {
       editValue,
       canDetach,
       onSave,
-      onCancel
+      onCancel,
     });
 
     // And now create the floating editor itself. It is just a floating wrapper that will grab the dom

@@ -69,34 +69,34 @@ export class TypeTransform extends ColumnTransform {
       }),
       dom.maybe(this._reviseTypeChange, () =>
         dom('div.transform_editor', this.buildEditorDom(),
-          testId("type-transform-formula")
-        )
+          testId("type-transform-formula"),
+        ),
       ),
       cssButtonRow(
         basicButton(dom.on('click', () => { this.cancel().catch(reportError); disableButtons.set(true); }),
           t('Cancel'), testId("type-transform-cancel"),
-          dom.cls('disabled', disableButtons)
+          dom.cls('disabled', disableButtons),
         ),
         dom.domComputed(this._reviseTypeChange, (revising) => {
           if (revising) {
             return basicButton(dom.on('click', () => this.preview()),
               t('Preview'), testId("type-transform-update"),
               dom.cls('disabled', use => use(disableButtons) || use(this.formulaUpToDate)),
-              { title: t('Update formula (Shift+Enter)') }
+              { title: t('Update formula (Shift+Enter)') },
             );
           }
  else {
             return basicButton(dom.on('click', () => { this._reviseTypeChange.set(true); }),
               t('Revise'), testId("type-transform-revise"),
-              dom.cls('disabled', disableButtons)
+              dom.cls('disabled', disableButtons),
             );
           }
         }),
         primaryButton(dom.on('click', () => { this.execute().catch(reportError); disableButtons.set(true); }),
           t('Apply'), testId("type-transform-apply"),
-          dom.cls('disabled', disableButtons)
-        )
-      )
+          dom.cls('disabled', disableButtons),
+        ),
+      ),
     );
   }
 
@@ -120,7 +120,7 @@ export class TypeTransform extends ColumnTransform {
       origCol: this.origColumn,
       origDisplayCol: this.origDisplayCol,
       toTypeMaybeFull: toType,
-      convertedRef: this._convertColumn.colId.peek()
+      convertedRef: this._convertColumn.colId.peek(),
     });
     // NOTE: We could add rules with AddColumn action, but there are some optimizations that converts array values.
     const rules = colInfo.rules;
@@ -131,7 +131,7 @@ export class TypeTransform extends ColumnTransform {
     ]);
     if (rules) {
       await this.gristDoc.docData.sendActions([
-        ['UpdateRecord', '_grist_Tables_column', gristHelper_TransformRef, { rules }]
+        ['UpdateRecord', '_grist_Tables_column', gristHelper_TransformRef, { rules }],
       ]);
     }
     await this.convertValues();
@@ -189,7 +189,7 @@ export class TypeTransform extends ColumnTransform {
       origCol: this.origColumn,
       origDisplayCol: this.origDisplayCol,
       toTypeMaybeFull: toType,
-      convertedRef: this._convertColumn.colId.peek()
+      convertedRef: this._convertColumn.colId.peek(),
     });
     const tcol = this.transformColumn;
     await tcol.updateColValues(colInfo as any);

@@ -31,7 +31,7 @@ import {
   AttachmentStoreProvider,
   checkAvailabilityAttachmentStoreOptions,
   getConfiguredAttachmentStoreConfigs,
-  IAttachmentStoreProvider
+  IAttachmentStoreProvider,
 } from 'app/server/lib/AttachmentStoreProvider';
 import {addRequestUser, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
@@ -291,7 +291,7 @@ export class FlexServer implements GristServer {
       },
       onBackupMade() {
         log.info('backup skipped');
-      }
+      },
     };
 
     this.app.use((req, res, next) => {
@@ -520,7 +520,7 @@ export class FlexServer implements GristServer {
                        req.gristInfo || req.originalUrl || req.url);
     morganLogger.token('host', (req: express.Request) => req.get('host'));
     morganLogger.token('body', (req: express.Request) =>
-      req.is('application/json') ? JSON.stringify(req.body) : undefined
+      req.is('application/json') ? JSON.stringify(req.body) : undefined,
     );
 
     // For debugging, be careful not to enable logging in production (may log sensitive data)
@@ -543,7 +543,7 @@ export class FlexServer implements GristServer {
       });
     }
     this.app.use(morganLogger(logAsJson ? outputJson : msg, {
-      skip: this._shouldSkipRequestLogging.bind(this)
+      skip: this._shouldSkipRequestLogging.bind(this),
     }));
   }
 
@@ -587,7 +587,7 @@ export class FlexServer implements GristServer {
             this._docWorkerMap.isWorkerRegistered(this.worker).then((isRegistered) => {
               if (!isRegistered) { throw new Error('doc worker not registered'); }
               return isRegistered;
-            })
+            }),
           ));
         }
       }
@@ -616,7 +616,7 @@ export class FlexServer implements GristServer {
           statuses,
           healthy: this._healthy,
           overallOk,
-          previousSuccessfulChecks: this._healthCheckCounter
+          previousSuccessfulChecks: this._healthCheckCounter,
         });
       }
 
@@ -668,7 +668,7 @@ export class FlexServer implements GristServer {
 
   public getBootKey(): string|undefined {
     return appSettings.section('boot').flag('key').readString({
-      envVar: 'GRIST_BOOT_KEY'
+      envVar: 'GRIST_BOOT_KEY',
     });
   }
 
@@ -840,8 +840,8 @@ export class FlexServer implements GristServer {
     for (const place of places) {
       this.app.use(
         '/widgets/' + place.pluginId, this.tagChecker.withTag(
-          limitToPlugins(this, express.static(place.dir, serveAnyOrigin))
-         )
+          limitToPlugins(this, express.static(place.dir, serveAnyOrigin)),
+         ),
        );
     }
   }
@@ -868,8 +868,8 @@ export class FlexServer implements GristServer {
       const result = await fetch(await this.getHomeUrlByDocId(docId, `/api/docs/${docId}`), {
         method: 'DELETE',
         headers: {
-          Permit: permitKey
-        }
+          Permit: permitKey,
+        },
       });
       if (result.status !== 200) {
         throw new ApiError((await result.json()).error, result.status);
@@ -921,7 +921,7 @@ export class FlexServer implements GristServer {
             // Set this to false to stop Grist using a cookie for authentication purposes.
           skipSession,
           gristServer: this,
-        }
+        },
       ));
       this._trustOriginsMiddleware = expressWrap(trustOriginHandler);
       // middleware to authorize doc access to the app. Note that this requires the userId
@@ -1217,7 +1217,7 @@ export class FlexServer implements GristServer {
           // Note that the updateOrg() method handles all levels of prefs (for user, user+org, or org).
           await this._dbManager.updateOrg(getScope(req), 0, {userPrefs: {
             showNewUserQuestions: true,
-            recordSignUpEvent: true
+            recordSignUpEvent: true,
           }});
 
           // Give a chance to the login system to react to the first visit after signup.
@@ -1287,7 +1287,7 @@ export class FlexServer implements GristServer {
         forcedLoginMiddleware,
         this._redirectToLoginWithExceptionsMiddleware,
         this._redirectToOrgMiddleware,
-        welcomeNewUser
+        welcomeNewUser,
       ],
       docMiddleware: [
         // Same as middleware, except without login redirect middleware.
@@ -1295,7 +1295,7 @@ export class FlexServer implements GristServer {
         this._userIdMiddleware,
         forcedLoginMiddleware,
         this._redirectToOrgMiddleware,
-        welcomeNewUser
+        welcomeNewUser,
       ],
       formMiddleware: [
         this._userIdMiddleware,
@@ -1506,7 +1506,7 @@ export class FlexServer implements GristServer {
 
       const storageManager = await this.create.createHostedDocStorageManager(
         this, this.docsRoot, docWorkerId, this._disableExternalStorage, workers, this._dbManager,
-        this.create.ExternalStorage.bind(this.create)
+        this.create.ExternalStorage.bind(this.create),
       );
       this._storageManager = storageManager;
     }
@@ -1543,7 +1543,7 @@ export class FlexServer implements GristServer {
       this._docWorkerLoadTracker = getDocWorkerLoadTracker(
         this.worker,
         this._docWorkerMap,
-        docManager
+        docManager,
       );
       if (this._docWorkerLoadTracker) {
         // Get the initial load value. If this call fails, the server will crash.
@@ -1571,7 +1571,7 @@ export class FlexServer implements GristServer {
     const docAccessMiddleware = [
       this._userIdMiddleware,
       this._docPermissionsMiddleware,
-      this.tagChecker.requireTag
+      this.tagChecker.requireTag,
     ];
 
     this._addSupportPaths(docAccessMiddleware);
@@ -1647,7 +1647,7 @@ export class FlexServer implements GristServer {
     const middleware = [
       this._redirectToHostMiddleware,
       this._userIdMiddleware,
-      this._redirectToLoginWithoutExceptionsMiddleware
+      this._redirectToLoginWithoutExceptionsMiddleware,
     ];
 
     this.app.get('/account', ...middleware, expressWrap(async (req, resp) => {
@@ -1720,7 +1720,7 @@ export class FlexServer implements GristServer {
     const middleware = [
       this._redirectToHostMiddleware,
       this._userIdMiddleware,
-      this._redirectToLoginWithoutExceptionsMiddleware
+      this._redirectToLoginWithoutExceptionsMiddleware,
     ];
 
     this.getBilling().addPages(this.app, middleware);
@@ -2022,7 +2022,7 @@ export class FlexServer implements GristServer {
     if (!this._dbManager) { throw new Error('database missing'); }
     const org = await this._dbManager.getOrg({
       userId: this._dbManager.getPreviewerUserId(),
-      showAll: true
+      showAll: true,
     }, orgKey);
     return this._dbManager.unwrapQueryResult(org);
   }
@@ -2140,7 +2140,7 @@ export class FlexServer implements GristServer {
                                               'app.html'), 'utf8');
     return {
       page,
-      tag: this.tag
+      tag: this.tag,
     };
   }
 
@@ -2207,7 +2207,7 @@ export class FlexServer implements GristServer {
       signUp?: boolean;
       nextUrl?: URL;
       params?: Record<string, string | undefined>;
-    }
+    },
   ) {
     let {nextUrl, signUp} = options;
     const {params = {}} = options;
@@ -2490,7 +2490,7 @@ export class FlexServer implements GristServer {
     // directly?
     const gristLabsModules = path.dirname(path.dirname(require.resolve('@gristlabs/express-session')));
     const bundledRoot = isAffirmative(process.env.GRIST_SKIP_BUNDLED_WIDGETS) ? undefined : path.join(
-      gristLabsModules, 'grist-widget', 'dist'
+      gristLabsModules, 'grist-widget', 'dist',
     );
     this.info.push(['bundledRoot', bundledRoot]);
     const pluginManager = new PluginManager(this.appRoot, userRoot, bundledRoot);
@@ -2624,7 +2624,7 @@ export class FlexServer implements GristServer {
   private async _redirectToHomeOrWelcomePage(
     mreq: RequestWithLogin,
     resp: express.Response,
-    options: {redirectToMergedOrg?: boolean} = {}
+    options: {redirectToMergedOrg?: boolean} = {},
   ) {
     const {redirectToMergedOrg} = options;
     const userId = getUserId(mreq);
@@ -2632,7 +2632,7 @@ export class FlexServer implements GristServer {
     const orgs = this._dbManager.unwrapQueryResult(
       await this._dbManager.getOrgs(userId, domain, {
         ignoreEveryoneShares: true,
-      })
+      }),
     );
     if (orgs.length > 1) {
       resp.redirect(getOrgUrl(mreq, '/welcome/teams'));
@@ -2650,7 +2650,7 @@ export class FlexServer implements GristServer {
    */
   private async _maybeCopyDocToHomeWorkspace(
     req: RequestWithLogin,
-    resp: express.Response
+    resp: express.Response,
   ): Promise<string|null> {
     const state = getAndClearSignupStateCookie(req, resp);
     if (!state) {
@@ -2869,7 +2869,7 @@ export interface ElectronServerMethods {
 const serveAnyOrigin: serveStatic.ServeStaticOptions = {
   setHeaders: (res, filepath, stat) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
-  }
+  },
 };
 
 type Part =

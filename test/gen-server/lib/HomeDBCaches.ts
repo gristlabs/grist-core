@@ -203,7 +203,7 @@ describe('HomeDBCaches', function() {
 
     // Bob should be able to move 'docManual' from 'wsHr' workspace to 'wsEng'.
     homeDb.unwrapQueryResult(
-      await homeDb.moveDoc({userId: bob.id, urlId: entities.docManual.id}, entities.wsEng.id)
+      await homeDb.moveDoc({userId: bob.id, urlId: entities.docManual.id}, entities.wsEng.id),
     );
     // Prepare an undo after this test case.
     cleanup.addAfterEach(async () => {

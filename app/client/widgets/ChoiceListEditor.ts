@@ -91,7 +91,7 @@ export class ChoiceListEditor extends NewBaseEditor {
     const startTokens = startLabels.map(label => new ChoiceItem(
       String(label),
       !this._choicesSet.has(String(label)),
-      String(label).trim() === ''
+      String(label).trim() === '',
     ));
 
     this._tokenField = TokenField.ctor<ChoiceItem>().create(this, {
@@ -137,7 +137,7 @@ export class ChoiceListEditor extends NewBaseEditor {
     );
 
     dom.update(this._dom,
-      dom.on('click', () => this._textInput.focus())
+      dom.on('click', () => this._textInput.focus()),
     );
 
     this._enableAddNew = !this._hasDropdownCondition;
@@ -226,7 +226,7 @@ export class ChoiceListEditor extends NewBaseEditor {
           // Remove the testId('tokenfield') from the cloned element, to simplify tests (so that
           // selecting .test-tokenfield only returns the actual visible tokenfield container).
           dom.cls('test-tokenfield', false),
-        )
+        ),
       );
     }
 
@@ -306,7 +306,7 @@ export class ChoiceListEditor extends NewBaseEditor {
         buildHighlightedDom(item.label, highlightFunc, cssMatchText),
         options || {},
         dom.style('max-width', '100%'),
-        testId('choice-list-editor-item-label')
+        testId('choice-list-editor-item-label'),
       ),
       testId('choice-list-editor-item'),
       item.isNew ? testId('choice-list-editor-new-item') : null,
@@ -322,7 +322,7 @@ export interface GetACFilterFuncParams {
 }
 
 export function buildDropdownConditionFilter(
-  params: GetACFilterFuncParams
+  params: GetACFilterFuncParams,
 ): (item: ChoiceItem) => boolean {
   const {dropdownConditionCompiled, gristDoc, tableId, rowId} = params;
   const table = gristDoc.docData.getTable(tableId);

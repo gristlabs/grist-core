@@ -125,7 +125,7 @@ export async function undoLastMigration(dataSource: DataSource) {
 // Also, we need to disable foreign key constraint checking outside of any
 // transaction, or it has no effect.
 export async function withSqliteForeignKeyConstraintDisabled<T>(
-  dataSource: DataSource, cb: () => Promise<T>
+  dataSource: DataSource, cb: () => Promise<T>,
 ): Promise<T> {
   const sqlite = getDatabaseType(dataSource) === 'sqlite';
   if (sqlite) { await dataSource.query("PRAGMA foreign_keys = OFF;"); }
@@ -155,9 +155,9 @@ export function getTypeORMSettings(overrideConf?: Partial<DataSourceOptions>): D
       type: "redis",
       options: {
         host: redisUrl.hostname,
-        port: parseInt(redisUrl.port || "6379", 10)
-      }
-    } as const
+        port: parseInt(redisUrl.port || "6379", 10),
+      },
+    } as const,
   } : undefined;
 
   return {
@@ -175,13 +175,13 @@ export function getTypeORMSettings(overrideConf?: Partial<DataSourceOptions>): D
     "migrationsRun": false,
     "logging": process.env.TYPEORM_LOGGING === "true",
     "entities": [
-      `${codeRoot}/app/gen-server/entity/*.js`
+      `${codeRoot}/app/gen-server/entity/*.js`,
     ],
     "migrations": [
-      `${codeRoot}/app/gen-server/migration/*.js`        // migration files don't actually get packaged.
+      `${codeRoot}/app/gen-server/migration/*.js`,        // migration files don't actually get packaged.
     ],
     "subscribers": [
-      `${codeRoot}/app/gen-server/subscriber/*.js`
+      `${codeRoot}/app/gen-server/subscriber/*.js`,
     ],
     ...cache,
     ...overrideConf,

@@ -26,7 +26,7 @@ export function shadowScroll(...args: IDomArgs<HTMLDivElement>) {
       const shadows = [use(scrollTop) ? null : SHADOW_TOP, use(scrollBtm) ? null : SHADOW_BTM];
       return shadows.filter(css => css).join(', ');
     }),
-    ...args
+    ...args,
   );
 }
 

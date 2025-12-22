@@ -56,7 +56,7 @@ const PARSER_FORMATS: string[] = [
   'D M YYYY',
   'D M YY',
   'D M',
-  'D'
+  'D',
 ];
 
 const UNAMBIGUOUS_FORMATS = [
@@ -151,7 +151,7 @@ export function parseDate(date: string, options: ParseOptions = {}): number | nu
  * and won't silently swap around day and month.
  */
 export function parseDateStrict(
-  date: string, dateFormat: string | null, results?: Set<number>, timezone: string = 'UTC'
+  date: string, dateFormat: string | null, results?: Set<number>, timezone: string = 'UTC',
 ): number | undefined {
   if (!date) {
     return;

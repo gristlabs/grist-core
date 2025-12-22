@@ -40,7 +40,7 @@ export function buildSiteSwitcher(appModel: AppModel) {
         getOrgName(org),
         cssOrgCheckmark('Tick', testId('org-tick')),
         testId('org'),
-      )
+      ),
     ),
     dom.maybe(() => isFeatureEnabled("createSite"), () => [
       menuItem(
@@ -48,7 +48,7 @@ export function buildSiteSwitcher(appModel: AppModel) {
         menuIcon('Plus'),
         t("Create new team site"),
         testId('create-new-site'),
-      )
+      ),
     ]),
   ];
 }

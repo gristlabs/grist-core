@@ -47,7 +47,7 @@ describe('DuplicatePage', async function() {
     assert.deepEqual(await gu.getPageNames(), ['City', 'Country', 'CountryLanguage']);
     assert.deepEqual(
       await driver.findAll('.test-treeview-itemHeader.selected .test-docpage-label', e => e.getText()),
-      ['City']
+      ['City'],
     );
 
     // duplicate 'Country'
@@ -63,17 +63,17 @@ describe('DuplicatePage', async function() {
     // check copy has focus
     assert.deepEqual(
       await driver.findAll('.test-treeview-itemHeader.selected .test-docpage-label', e => e.getText()),
-      ['Country (copy)']
+      ['Country (copy)'],
     );
 
     // check layout is correct
     assert.deepEqual(
       await driver.find('.layout_hbox').findAll('.test-viewsection-title', e => e.getText()),
-      ['COUNTRY']
+      ['COUNTRY'],
     );
     assert.deepEqual(
       await driver.find('.layout_hbox:nth-child(2)').findAll('.test-viewsection-title', e => e.getText()),
-      ['COUNTRY Card List', 'CITY', 'COUNTRYLANGUAGE']
+      ['COUNTRY Card List', 'CITY', 'COUNTRYLANGUAGE'],
     );
 
     // check country language view fields are correct
@@ -99,7 +99,7 @@ describe('DuplicatePage', async function() {
     assert.deepEqual(await gu.getPageNames(), ['City', 'Country', 'CountryLanguage']);
     assert.deepEqual(
       await driver.findAll('.test-treeview-itemHeader.selected .test-docpage-label', e => e.getText()),
-      ['City']
+      ['City'],
     );
 
     // sort CITY
@@ -125,7 +125,7 @@ describe('DuplicatePage', async function() {
       await driver.find('.g_record_detail')
         .findAll('.layout_hbox', hbox => hbox
                  .findAll('.g_record_detail_label', e => e.getText())),
-      [['Name', 'Country', 'Pop. \'000'], ['District', 'Population']]
+      [['Name', 'Country', 'Pop. \'000'], ['District', 'Population']],
     );
   });
 

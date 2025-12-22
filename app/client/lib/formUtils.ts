@@ -11,7 +11,7 @@ interface SubmitOptions<T> {
   onSubmit?: (
     fields: { [key: string]: string },
     form: HTMLFormElement,
-    event: SubmitEvent
+    event: SubmitEvent,
   ) => MaybePromise<T>;
   onSuccess?: (v: T) => void;
   onError?: (e: unknown) => void;
@@ -26,7 +26,7 @@ interface SubmitOptions<T> {
  * resolves.
  */
 export function handleSubmit<T>(
-  options: SubmitOptions<T>
+  options: SubmitOptions<T>,
 ): (elem: HTMLFormElement) => void {
   const {
     pending,

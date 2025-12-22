@@ -25,7 +25,7 @@ abstract class ToggleBase extends NewAbstractWidget {
   public buildFormConfigDom(): DomContents {
     const format = fieldWithDefault<FormToggleFormat>(
       this.field.widgetOptionsJson.prop('formToggleFormat'),
-      'switch'
+      'switch',
     );
 
     return [
@@ -76,7 +76,7 @@ export class ToggleCheckBox extends ToggleBase {
   public buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId.peek()] as KoSaveableObservable<boolean>;
     return dom('div.field_clip',
-      buildCheckbox(value, this._addClickEventHandlers(row))
+      buildCheckbox(value, this._addClickEventHandlers(row)),
     );
   }
 }
@@ -84,7 +84,7 @@ export class ToggleCheckBox extends ToggleBase {
 export class ToggleSwitch extends ToggleBase {
   constructor(field: ViewFieldRec, _options: Options = {}) {
     super(field, {
-      defaultTextColor: components.switchActiveSlider.getRawValue()
+      defaultTextColor: components.switchActiveSlider.getRawValue(),
     });
   }
 
@@ -98,8 +98,8 @@ export class ToggleSwitch extends ToggleBase {
         value,
         row._isRealChange,
         this._addClickEventHandlers(row),
-        dom.cls('print-force-hide')
-      )
+        dom.cls('print-force-hide'),
+      ),
     );
   }
 }
@@ -109,9 +109,9 @@ function buildCheckbox(value: KoSaveableObservable<boolean>, ...args: DomElement
     dom('div.widget_checkmark',
       dom.show(value),
       dom('div.checkmark_kick'),
-      dom('div.checkmark_stem')
+      dom('div.checkmark_stem'),
     ),
-    ...args
+    ...args,
   );
 }
 

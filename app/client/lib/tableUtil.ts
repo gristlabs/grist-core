@@ -19,7 +19,7 @@ const G = getBrowserGlobals('document', 'DOMParser');
  * @{param} {number} index - index in viewFields at which to insert the new fields
  * @{param} {number} numInserts - number of new fields to insert
  */
-export function fieldInsertPositions(viewFields: KoArray<ViewFieldRec>, index: number, numInserts: number = 1
+export function fieldInsertPositions(viewFields: KoArray<ViewFieldRec>, index: number, numInserts: number = 1,
 ): Array<number|null> {
   const rightPos = (index < viewFields.peekLength) ? viewFields.at(index)!.parentPos() : null;
   return Array(numInserts).fill(rightPos);
@@ -71,8 +71,8 @@ export function makePasteHtml(tableData: TableData, selection: CopySelection, in
       dom('col', {
         style: _styleAttr(colStyle[colId]),
         'data-grist-col-ref': String(selection.colRefs[idx]),
-        'data-grist-col-type': tableData.getColType(colId)
-      })
+        'data-grist-col-type': tableData.getColType(colId),
+      }),
     )),
     // Include column headers if requested.
     (includeColHeaders ?
@@ -89,9 +89,9 @@ export function makePasteHtml(tableData: TableData, selection: CopySelection, in
           const dataOptions = (rawValue === fmtValue) ? {} :
             {'data-grist-raw-value': JSON.stringify(rawValue)};
           return dom('td', dataOptions, fmtValue);
-        })
-      )
-    )
+        }),
+      ),
+    ),
   );
   return elem.outerHTML;
 }

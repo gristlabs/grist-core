@@ -38,7 +38,7 @@ describe('loadGristCoreConfig', () => {
 
     const newConfig: NewConfig = {
       ...coreConfig,
-      newThing: createConfigValue(3)
+      newThing: createConfigValue(3),
     };
 
     // Ensure that it's backwards compatible.

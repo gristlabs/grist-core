@@ -36,11 +36,11 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
           dom.text(use =>
             use(isNarrowScreenObs())
               ? homeModel.app.currentOrgName
-              : t("Welcome to {{- orgName}}", {orgName: homeModel.app.currentOrgName})
+              : t("Welcome to {{- orgName}}", {orgName: homeModel.app.currentOrgName}),
           ),
         ),
         cssPill(productPill(homeModel.app.currentOrg, {large: true})),
-        testId('welcome-title')
+        testId('welcome-title'),
       ),
       buildPreferencesMenu(homeModel),
     ),
@@ -58,7 +58,7 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
         dom.text(use =>
           use(isNarrowScreenObs())
             ? t("Welcome to Grist!")
-            : t("Welcome to Grist, {{- name}}!", {name: user.name})
+            : t("Welcome to Grist, {{- name}}!", {name: user.name}),
         ),
         testId('welcome-title'),
       ),
@@ -98,7 +98,7 @@ function buildPreferencesMenu(homeModel: HomeModel) {
         ...defaultMenuOptions,
         menuCssClass: `${menuCssClass} ${cssPreferencesMenu.className}`,
         placement: 'bottom-end',
-      }
+      },
     ),
     testId('welcome-menu'),
   );

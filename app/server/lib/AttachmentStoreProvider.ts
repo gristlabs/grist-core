@@ -63,7 +63,7 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
 
   constructor(
     storeConfigs: IAttachmentStoreConfig[],
-    private _installationUuid: string
+    private _installationUuid: string,
   ) {
     // It's convenient to have stores with a globally unique ID, so there aren't conflicts as
     // documents are moved between installations. This is achieved by prepending the store labels
@@ -91,8 +91,8 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
   public async getAllStores(): Promise<IAttachmentStore[]> {
     return await Promise.all(
       Array.from(this._storeDetailsById.entries()).map(
-        ([storeId, storeConfig]) => storeConfig.spec.create(storeId)
-      )
+        ([storeId, storeConfig]) => storeConfig.spec.create(storeId),
+      ),
     );
   }
 
@@ -116,13 +116,13 @@ async function isAttachmentStoreOptionAvailable(option: ICreateAttachmentStoreOp
 }
 
 function storeOptionIsNotUndefined(
-  option: ICreateAttachmentStoreOptions | undefined
+  option: ICreateAttachmentStoreOptions | undefined,
 ): option is ICreateAttachmentStoreOptions {
   return option !== undefined;
 }
 
 export async function checkAvailabilityAttachmentStoreOptions(
-  allOptions: (ICreateAttachmentStoreOptions | undefined)[]
+  allOptions: (ICreateAttachmentStoreOptions | undefined)[],
 ) {
   const options = allOptions.filter(storeOptionIsNotUndefined);
   const availability = await Promise.all(options.map(isAttachmentStoreOptionAvailable));
@@ -137,7 +137,7 @@ export async function checkAvailabilityAttachmentStoreOptions(
 // This is only used when external attachments are in 'test' mode, which is used for some unit tests.
 // TODO: Remove this when setting up a filesystem store is possible using normal configuration options
 export async function makeTempFilesystemStoreSpec(
-  name: string = "filesystem"
+  name: string = "filesystem",
 ) {
   const tempFolder = await tmp.dir();
   // Allow tests to override the temp directory used for attachments, otherwise Grist will
@@ -148,7 +148,7 @@ export async function makeTempFilesystemStoreSpec(
   return {
     rootDirectory: tempDir,
     name,
-    create: async (storeId: string) => (new FilesystemAttachmentStore(storeId, tempDir))
+    create: async (storeId: string) => (new FilesystemAttachmentStore(storeId, tempDir)),
   };
 }
 

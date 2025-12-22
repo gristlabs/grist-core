@@ -249,7 +249,7 @@ export class ActionHistoryImpl implements ActionHistory {
       envelopes: [],
       info: [0, {time: 0, user: "grist", inst: "", desc: "root", otherId: 0, linkId: 0}],
       stored: [],
-      calc: []
+      calc: [],
     };
     await this._db.execTransaction(async () => {
       const branches = await this._getBranches();
@@ -538,7 +538,7 @@ export class ActionHistoryImpl implements ActionHistory {
     return {
       shared: bits.shared || missing,
       local_sent: bits.local_sent || missing,
-      local_unsent: bits.local_unsent || missing
+      local_unsent: bits.local_unsent || missing,
     };
   }
 
@@ -551,7 +551,7 @@ export class ActionHistoryImpl implements ActionHistory {
       actionRef: row.actionRef,
       actionHash: row.actionHash,
       actionNum: row.actionNum,
-      branchName: row.name
+      branchName: row.name,
     };
   }
 

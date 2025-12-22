@@ -61,7 +61,7 @@ export class ViewFieldConfig {
       // Now get all widget list and calculate intersection of the Sets.
       // Widget types are just strings defined in UserType.
       const widgets = list.map(c =>
-        Object.keys(UserType.typeDefs[c.column().pureType()]?.widgets ?? {})
+        Object.keys(UserType.typeDefs[c.column().pureType()]?.widgets ?? {}),
       );
       return intersection(...widgets).length === widgets[0]?.length;
     }));
@@ -99,7 +99,7 @@ export class ViewFieldConfig {
             textColor: previous.textColor,
           }).catch(reportError);
         }
-      }
+      },
     }));
 
     // Calculate common options for all column types (and their widgets).
@@ -175,7 +175,7 @@ export class ViewFieldConfig {
             ...value,
           });
         }
-      }
+      },
     });
 
     // We need some additional information about each property.
@@ -192,7 +192,7 @@ export class ViewFieldConfig {
     // every field has wrapping implicitly set to true on a card view.
     this.wrap = modelUtil.fieldWithDefault(
       this.options.prop('wrap'),
-      () => this._field.viewSection().parentKey() !== 'record'
+      () => this._field.viewSection().parentKey() !== 'record',
     );
 
     this.alignment = this.options.prop('alignment');
@@ -249,7 +249,7 @@ export class ViewFieldConfig {
               ...value,
             });
           }
-        }
+        },
       });
       // Style picker needs to be able revert to previous value, if user cancels.
       const state = fields.map(f => f.style.peek());
@@ -311,7 +311,7 @@ export class ViewFieldConfig {
               ...value,
             });
           }
-        }
+        },
       });
       // Style picker needs to be able revert to previous value, if user cancels.
       const state = fields.map(f => f.headerStyle.peek());
@@ -338,8 +338,8 @@ export class ViewFieldConfig {
       return this._docModel.docData.bundleActions("Update choices configuration", () => Promise.all([
         this._field.config.options.save(),
         !hasRenames ? null : this._docModel.docData.sendActions(
-          colIds.map(colId => ["RenameChoices", tableId, colId, renames])
-        )
+          colIds.map(colId => ["RenameChoices", tableId, colId, renames]),
+        ),
       ]));
     }
  else {
@@ -351,7 +351,7 @@ export class ViewFieldConfig {
       return this._docModel.docData.bundleActions("Update choices configuration", () => Promise.all([
         this._field.widgetOptionsJson.save(),
         !hasRenames ? null
-        : this._docModel.docData.sendAction(["RenameChoices", tableId, column.colId.peek(), renames])
+        : this._docModel.docData.sendAction(["RenameChoices", tableId, column.colId.peek(), renames]),
       ]), actionOptions);
     }
 
@@ -402,7 +402,7 @@ type StyleOptions = modelUtil.SaveableObjObservable<any> & {
 // the same pattern as `prop` helper.
 function extendObservable(
   obs: modelUtil.SaveableObjObservable<any>,
-  options: { [key: string]: (prop: string) => ko.PureComputed<boolean> }
+  options: { [key: string]: (prop: string) => ko.PureComputed<boolean> },
 ) {
   const result = obs as any;
   for(const key of Object.keys(options)) {

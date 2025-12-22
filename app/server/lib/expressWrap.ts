@@ -5,7 +5,7 @@ import * as express from 'express';
 export type AsyncRequestHandler = (
   req: express.Request,
   res: express.Response,
-  next: express.NextFunction
+  next: express.NextFunction,
 ) => Promise<any>|any; // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
 
 /**

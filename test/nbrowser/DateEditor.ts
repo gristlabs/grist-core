@@ -51,7 +51,7 @@ describe('DateEditor', function() {
       await (window as any).loadScript('sinon.js');
       window.sinon.useFakeTimers({
         now: 1580568300000,  // Sat Feb 01 2020 14:45:00 UTC
-        shouldAdvanceTime: true
+        shouldAdvanceTime: true,
       });
       done();
     });

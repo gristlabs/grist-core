@@ -48,14 +48,14 @@ describe('DocPrefs', function() {
       users: {
         [users.viewer.email]: 'viewers',
         [users.editor.email]: 'editors',
-      }
+      },
     });
     await api.updateDocPermissions(docs.publicDoc, {
       users: {
         [users.viewer.email]: 'viewers',
         [users.editor.email]: 'editors',
         [everyoneEmail]: 'editors',
-      }
+      },
     });
   });
 

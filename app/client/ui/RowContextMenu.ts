@@ -22,7 +22,7 @@ export function RowContextMenu({
   disableShowRecordCard,
   disableAnchorLink,
   isViewSorted,
-  numRows
+  numRows,
 }: IRowContextMenu) {
   const result: Element[] = [];
   if (numRows === 1) {

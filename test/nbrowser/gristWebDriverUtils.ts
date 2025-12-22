@@ -37,7 +37,7 @@ export class GristWebDriverUtils {
   public async waitForServer(optTimeout: number = 5000) {
     await this.driver.wait(() => this.driver.executeScript(
       "return window.gristApp && (!window.gristApp.comm || !window.gristApp.comm.hasActiveRequests())"
-        + " && window.gristApp.testNumPendingApiRequests() === 0"
+        + " && window.gristApp.testNumPendingApiRequests() === 0",
       )
       // The catch is in case executeScript() fails. This is rare but happens occasionally when
       // browser is busy (e.g. sorting) and doesn't respond quickly enough. The timeout selenium
@@ -45,7 +45,7 @@ export class GristWebDriverUtils {
       // let the call fail until our intended timeout expires.
       .catch((e) => { console.log("Ignoring executeScript error", String(e)); }),
       optTimeout,
-      "Timed out waiting for server requests to complete"
+      "Timed out waiting for server requests to complete",
     );
   }
 
@@ -94,7 +94,7 @@ export class GristWebDriverUtils {
 
   // Add a new widget to the current page using the 'Add New' menu.
   public async addNewSection(
-    typeRe: RegExp|SectionTypes, tableRe: RegExp|string, options?: PageWidgetPickerOptions
+    typeRe: RegExp|SectionTypes, tableRe: RegExp|string, options?: PageWidgetPickerOptions,
   ) {
     // Click the 'Add widget to page' entry in the 'Add New' menu
     await this.driver.findWait('.test-dp-add-new', 2000).doClick();
@@ -109,7 +109,7 @@ export class GristWebDriverUtils {
   public async selectWidget(
     typeRe: RegExp|string,
     tableRe: RegExp|string = '',
-    options: PageWidgetPickerOptions = {}
+    options: PageWidgetPickerOptions = {},
   ) {
     const {customWidget, dismissTips, dontAdd, selectBy, summarize, tableName} = options;
     const driver = this.driver;
@@ -413,7 +413,7 @@ export class GristWebDriverUtils {
   public async getVisibleGridCells(col: number | string, rows: number[], section?: string): Promise<string[]>;
   public async getVisibleGridCells<T = string>(options: IColSelect<T> | IColsSelect<T>): Promise<T[]>;
   public async getVisibleGridCells<T>(
-    colOrOptions: number | string | IColSelect<T> | IColsSelect<T>, _rowNums?: number[], _section?: string
+    colOrOptions: number | string | IColSelect<T> | IColsSelect<T>, _rowNums?: number[], _section?: string,
   ): Promise<T[]> {
 
     if (typeof colOrOptions === 'object' && 'cols' in colOrOptions) {

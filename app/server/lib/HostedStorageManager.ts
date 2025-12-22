@@ -16,7 +16,7 @@ import {
   DELETED_TOKEN,
   ExternalStorage,
   ExternalStorageCreator, ExternalStorageSettings,
-  Unchanged
+  Unchanged,
 } from 'app/server/lib/ExternalStorage';
 import {GristServer} from 'app/server/lib/GristServer';
 import {HostedMetadataManager, SaveDocsMetadataFunc} from 'app/server/lib/HostedMetadataManager';
@@ -56,7 +56,7 @@ export interface HostedStorageOptions {
 const defaultOptions: HostedStorageOptions = {
   secondsBeforePush: GRIST_BACKUP_DELAY_SECS,
   secondsBeforeFirstRetry: 3.0,
-  pushDocUpdateTimes: true
+  pushDocUpdateTimes: true,
 };
 
 /**
@@ -131,7 +131,7 @@ export class HostedStorageManager implements IDocStorageManager {
     private _docWorkerMap: IDocWorkerMap,
     callbacks: HostedStorageCallbacks,
     createExternalStorage: ExternalStorageCreator,
-    options: HostedStorageOptions = defaultOptions
+    options: HostedStorageOptions = defaultOptions,
   ) {
     const creator = ((purpose: ExternalStorageSettings['purpose']) => createExternalStorage(purpose, ''));
     // We store documents either in a test store, or in an s3 store
@@ -536,7 +536,7 @@ export class HostedStorageManager implements IDocStorageManager {
   public scheduleUsageUpdate(
     docName: string,
     docUsage: DocumentUsage|null,
-    minimizeDelay = false
+    minimizeDelay = false,
   ): void {
     const {forkId, snapshotId} = parseUrlId(docName);
     if (!this._metadataManager || forkId || snapshotId) { return; }
@@ -544,7 +544,7 @@ export class HostedStorageManager implements IDocStorageManager {
     this._metadataManager.scheduleUpdate(
       docName,
       {usage: docUsage},
-      minimizeDelay
+      minimizeDelay,
     );
   }
 
@@ -567,7 +567,7 @@ export class HostedStorageManager implements IDocStorageManager {
           snapshotId: 'current',
           lastModified: new Date().toISOString(),
           docId: docName,
-        }]
+        }],
       };
     }
     const versions = skipMetadataCache ?
@@ -581,7 +581,7 @@ export class HostedStorageManager implements IDocStorageManager {
             ...v,
             docId: buildUrlId({...parts, snapshotId: v.snapshotId}),
           };
-        })
+        }),
     };
   }
 
@@ -691,7 +691,7 @@ export class HostedStorageManager implements IDocStorageManager {
       }
       return this._fetchFromS3(docName, {
         sourceDocId: srcDocName,
-        trunkId: forkId ? trunkId : undefined, snapshotId, canCreateFork
+        trunkId: forkId ? trunkId : undefined, snapshotId, canCreateFork,
       });
     });
   }
@@ -811,7 +811,7 @@ export class HostedStorageManager implements IDocStorageManager {
         const snapshot = {
           lastModified: t,
           snapshotId: newSnapshotId,
-          metadata
+          metadata,
         };
         changeMade = true;
         return { snapshot, prevSnapshotId };
@@ -883,7 +883,7 @@ export class HostedStorageManager implements IDocStorageManager {
         },
         load: async (key) => {
           return await this._docWorkerMap.getChecksum(family, key);
-        }
+        },
       },
       localHash: {
         save: async (key, checksum) => {
@@ -894,14 +894,14 @@ export class HostedStorageManager implements IDocStorageManager {
           const fname = this._getHashFile(this.getPath(key), family);
           if (!await fse.pathExists(fname)) { return null; }
           return await fse.readFile(fname, 'utf8');
-        }
+        },
       },
       latestVersion: {
         save: async (key, ver) => {
           versions.set(key, ver);
         },
-        load: async key => versions.get(key) || null
-      }
+        load: async key => versions.get(key) || null,
+      },
     });
   }
 }

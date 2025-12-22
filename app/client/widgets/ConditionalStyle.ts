@@ -41,7 +41,7 @@ export class ConditionalStyle extends Disposable {
     private _label: string,
     private _ruleOwner: RuleOwner,
     private _gristDoc: GristDoc,
-    private _disabled?: Observable<boolean>
+    private _disabled?: Observable<boolean>,
   ) {
     super();
     this._currentRecord = Computed.create(this, (use) => {
@@ -88,9 +88,9 @@ export class ConditionalStyle extends Disposable {
             dom.on('click', () => this._ruleOwner.addEmptyRule()),
             dom.prop('disabled', this._disabled),
           ),
-          this._label === t('Row Style') ? 'addRowConditionalStyle' : 'addColumnConditionalStyle'
+          this._label === t('Row Style') ? 'addRowConditionalStyle' : 'addColumnConditionalStyle',
         ),
-        dom.hide(use => use(this._ruleOwner.hasRules))
+        dom.hide(use => use(this._ruleOwner.hasRules)),
       ),
       dom.domComputedOwned(
         use => use(this._rulesColsWithIndex),
@@ -104,15 +104,15 @@ export class ConditionalStyle extends Disposable {
               itemClass: cssDragRow.className,
               handle: `.${cssDragger.className}`,
             }),
-          )
+          ),
       ),
       cssRow(
         textButton(t('Add another rule'),
           dom.on('click', () => this._ruleOwner.addEmptyRule()),
           testId('add-another-rule'),
-          dom.prop('disabled', use => this._disabled && use(this._disabled))
+          dom.prop('disabled', use => this._disabled && use(this._disabled)),
         ),
-        dom.show(use => use(this._ruleOwner.hasRules))
+        dom.show(use => use(this._ruleOwner.hasRules)),
       ),
     ];
   }
@@ -165,19 +165,19 @@ export class ConditionalStyle extends Disposable {
               fontBold,
               fontItalic,
               fontUnderline,
-              fontStrikethrough
+              fontStrikethrough,
             }, {
               onSave: save,
               placeholder: this._label || t('Conditional Style'),
-            }
-          )
+            },
+          ),
         ),
         cssRemoveButton(
           'Remove',
           testId(`remove-rule-${index}`),
-          dom.on('click', () => this._ruleOwner.removeRule(index))
-        )
-      )
+          dom.on('click', () => this._ruleOwner.removeRule(index)),
+        ),
+      ),
     );
   }
 
@@ -205,7 +205,7 @@ export class ConditionalStyle extends Disposable {
       Promise.all([
         this._ruleOwner.rulesList.setAndSave([GristObjCode.List, ...rulesList]),
         this._ruleOwner.rulesStyles.setAndSave(rulesStyles),
-      ])
+      ]),
     );
   }
 
@@ -226,7 +226,7 @@ export class ConditionalStyle extends Disposable {
   private _buildRuleFormula(
     formula: KoSaveableObservable<string>,
     column: ColumnRec,
-    hasError: Observable<boolean>
+    hasError: Observable<boolean>,
   ) {
     return dom.create(buildHighlightedCode,
       formula,
@@ -249,7 +249,7 @@ export class ConditionalStyle extends Disposable {
         });
         // Add editor to document holder - this will prevent multiple formula editor instances.
         this._gristDoc.fieldEditorHolder.autoDispose(editorHolder);
-      })
+      }),
     );
   }
 }

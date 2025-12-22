@@ -36,7 +36,7 @@ describe('SelectionSummary', function () {
     const {dimensions, count, sum} = summary;
     await gu.waitToPass(async () => assert.equal(
       await driver.find('.test-selection-summary-dimensions').getText(),
-      dimensions
+      dimensions,
     ), 500);
     if (count === null) {
       assert.isFalse(await driver.find('.test-selection-summary-count').isPresent());
@@ -44,7 +44,7 @@ describe('SelectionSummary', function () {
  else {
       await gu.waitToPass(async () => assert.equal(
         await driver.find('.test-selection-summary-count').getText(),
-        `COUNT ${count}`
+        `COUNT ${count}`,
       ), 500);
     }
     if (sum === null) {
@@ -53,7 +53,7 @@ describe('SelectionSummary', function () {
  else {
       await gu.waitToPass(async () => assert.equal(
         await driver.find('.test-selection-summary-sum').getText(),
-        `SUM ${sum}`
+        `SUM ${sum}`,
       ), 500);
     }
   }

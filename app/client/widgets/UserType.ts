@@ -22,7 +22,7 @@ export function getWidgetConfiguration(widgetName: string, type: string) {
   }
   return {
     name: widgetName,
-    config: oneTypeDef.widgets[widgetName]
+    config: oneTypeDef.widgets[widgetName],
   };
 }
 
@@ -48,10 +48,10 @@ export const typeDefs: any = {
         options: {
           alignment: 'left',
           wrap: undefined,
-        }
-      }
+        },
+      },
     },
-    default: 'TextBox'
+    default: 'TextBox',
   },
   Text: {
     label: 'Text',
@@ -64,7 +64,7 @@ export const typeDefs: any = {
         options: {
           alignment: 'left',
           wrap: undefined,
-        }
+        },
       },
       Markdown: {
         cons: 'MarkdownTextBox',
@@ -73,7 +73,7 @@ export const typeDefs: any = {
         options: {
           alignment: 'left',
           wrap: undefined,
-        }
+        },
       },
       HyperLink: {
         cons: 'HyperLinkTextBox',
@@ -82,10 +82,10 @@ export const typeDefs: any = {
         options: {
           alignment: 'left',
           wrap: undefined,
-        }
-      }
+        },
+      },
     },
-    default: 'TextBox'
+    default: 'TextBox',
   },
   Numeric: {
     label: 'Numeric',
@@ -103,7 +103,7 @@ export const typeDefs: any = {
           numMode: undefined,
           numSign: undefined,
           currency: undefined,
-        }
+        },
       },
       Spinner: {
         cons: 'Spinner',
@@ -117,10 +117,10 @@ export const typeDefs: any = {
           numMode: undefined,
           numSign: undefined,
           currency: undefined,
-        }
-      }
+        },
+      },
     },
-    default: 'TextBox'
+    default: 'TextBox',
   },
   Int: {
     label: 'Integer',
@@ -138,7 +138,7 @@ export const typeDefs: any = {
           numMode: undefined,
           numSign: undefined,
           currency: undefined,
-        }
+        },
       },
       Spinner: {
         cons: 'Spinner',
@@ -152,10 +152,10 @@ export const typeDefs: any = {
           numMode: undefined,
           numSign: undefined,
           currency: undefined,
-        }
-      }
+        },
+      },
     },
-    default: 'TextBox'
+    default: 'TextBox',
   },
   Bool: {
     label: 'Toggle',
@@ -169,22 +169,22 @@ export const typeDefs: any = {
         options: {
           alignment: 'center',
           wrap: undefined,
-        }
+        },
       },
       CheckBox: {
         cons: 'CheckBox',
         editCons: 'CheckBoxEditor',
         icon: 'FieldCheckbox',
-        options: {}
+        options: {},
       },
       Switch: {
         cons: 'Switch',
         editCons: 'CheckBoxEditor',
         icon: 'FieldSwitcher',
-        options: {}
-      }
+        options: {},
+      },
     },
-    default: 'CheckBox'
+    default: 'CheckBox',
   },
   Date: {
     label: 'Date',
@@ -197,11 +197,11 @@ export const typeDefs: any = {
         options: {
           dateFormat: 'YYYY-MM-DD',
           isCustomDateFormat: false,
-          alignment: 'left'
-        }
-      }
+          alignment: 'left',
+        },
+      },
     },
-    default: 'TextBox'
+    default: 'TextBox',
   },
   DateTime: {
     label: 'DateTime',
@@ -216,11 +216,11 @@ export const typeDefs: any = {
           timeFormat: 'h:mma',
           isCustomDateFormat: false,
           isCustomTimeFormat: false,
-          alignment: 'left'
-        }
-      }
+          alignment: 'left',
+        },
+      },
     },
-    default: 'TextBox'
+    default: 'TextBox',
   },
   Choice: {
     label: 'Choice',
@@ -234,11 +234,11 @@ export const typeDefs: any = {
           alignment: 'left',
           wrap: undefined,
           choices: undefined,
-          choiceOptions: undefined
-        }
-      }
+          choiceOptions: undefined,
+        },
+      },
     },
-    default: 'TextBox'
+    default: 'TextBox',
   },
   ChoiceList: {
     label: 'Choice List',
@@ -252,11 +252,11 @@ export const typeDefs: any = {
           alignment: 'left',
           wrap: undefined,
           choices: undefined,
-          choiceOptions: undefined
-        }
-      }
+          choiceOptions: undefined,
+        },
+      },
     },
-    default: 'TextBox'
+    default: 'TextBox',
   },
   Ref: {
     label: 'Reference',
@@ -269,10 +269,10 @@ export const typeDefs: any = {
         options: {
           alignment: 'left',
           wrap: undefined,
-        }
-      }
+        },
+      },
     },
-    default: 'Reference'
+    default: 'Reference',
   },
   RefList: {
     label: 'Reference List',
@@ -284,11 +284,11 @@ export const typeDefs: any = {
         icon: 'FieldReference',
         options: {
           alignment: 'left',
-          wrap: undefined
-        }
-      }
+          wrap: undefined,
+        },
+      },
     },
-    default: 'Reference'
+    default: 'Reference',
   },
   Attachments: {
     label: 'Attachment',
@@ -299,12 +299,12 @@ export const typeDefs: any = {
         editCons: 'AttachmentsEditor',
         icon: 'FieldAttachment',
         options: {
-          height: '36'
-        }
-      }
+          height: '36',
+        },
+      },
     },
-    default: 'Attachments'
-  }
+    default: 'Attachments',
+  },
 };
 
 // Extract widgets type to a type from the json above

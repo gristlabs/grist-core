@@ -102,7 +102,7 @@ describe('Formulas', function() {
     await driver.withActions(actions =>
       actions
         .move({origin: gu.getCell('$A', 7)})
-        .move({origin: gu.getCell('$A', 7), y : 22 + 1})
+        .move({origin: gu.getCell('$A', 7), y : 22 + 1}),
     );
     await noHoverAtAll();
     // - Moving right after last column
@@ -111,14 +111,14 @@ describe('Formulas', function() {
     // First move to the last cell,
     await driver.withActions(actions =>
       actions
-        .move({origin: gu.getCell("$C", 7)}) // move add row on last column
+        .move({origin: gu.getCell("$C", 7)}), // move add row on last column
     );
     await isHoverOn('$C');
     await noHoverOn('$A');
     // and then a little bit to the right (100px is width of the field)
     await driver.withActions(actions =>
       actions
-        .move({origin: gu.getCell("$C", 7), x : 100 + 1})
+        .move({origin: gu.getCell("$C", 7), x : 100 + 1}),
     );
     await noHoverAtAll();
 
@@ -195,7 +195,7 @@ return [
   datetime.date(2024, 9, 2), datetime.datetime(2024, 9, 2, 3, 8, 21),
   FussyFloat(17.0), [Float(6), '', MyEnum.ONE]
 ]
-`
+`,
     }]]);
 
     // Wait for the row we expect to become empty, to ensure the formula got processed.
@@ -262,7 +262,7 @@ return [
       assert.includeMembers(await driver.findAll('.ace_autocomplete .ace_line', el => el.getText()), [
         "ME\nDIAN\n(value, *more_values)\n ",
         "me\nmoryview(\n ",
-      ])
+      ]),
     );
 
     // Using a completion of a function with signature should only insert an appropriate snippet.

@@ -180,7 +180,7 @@ const optionTutorial = option('.test-settings-doctype-modal-option-tutorial');
 const optionByLabel = {
   'Tutorial': optionTutorial,
   'Template': optionTemplate,
-  'Regular': optionRegular
+  'Regular': optionRegular,
 };
 const modalConfirm = button('.test-settings-doctype-modal-confirm');
 const modalCancel = button('.test-settings-doctype-modal-cancel');

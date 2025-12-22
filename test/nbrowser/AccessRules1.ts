@@ -59,7 +59,7 @@ describe('AccessRules1', function() {
     await gu.waitForServer();
     assert.equal(await driver.findContent('.column_name', /RumorsColumn/).isPresent(), true);
     assert.deepEqual(await gu.getVisibleGridCells({cols: ['RumorsColumn'], rowNums: [1, 3, 9, 13]}), [
-      'Secrets', '', 'Dark rumors', 'Buzz'
+      'Secrets', '', 'Dark rumors', 'Buzz',
     ]);
 
     // Check that we can all rows of ClientsTable
@@ -135,7 +135,7 @@ describe('AccessRules1', function() {
         'Phone',
         'RumorsColumn',
         'Shared',
-      ]
+      ],
     );
     await gu.findOpenMenuItem('li', 'RumorsColumn').click();
     await enterRulePart(ruleSet, 1, null, 'Deny all');
@@ -163,7 +163,7 @@ describe('AccessRules1', function() {
 
     // Check that user2 only sees certain rows of ClientsTable.
     assert.deepEqual(await gu.getVisibleGridCells(
-      {cols: ['First Name', 'Agent Email', 'Shared'], rowNums: [1, 3, 6, 7, 8, 9, 10]}
+      {cols: ['First Name', 'Agent Email', 'Shared'], rowNums: [1, 3, 6, 7, 8, 9, 10]},
     ), [
       // Everyone assigned to charon is visible.
       'Deina', 'gristoid+charon@gmail.com', 'false',
@@ -173,7 +173,7 @@ describe('AccessRules1', function() {
       'Rachele', 'gristoid+chimpy@gmail.com', 'true',
       'Elianore', 'gristoid+kiwi@gmail.com', 'true',
       'Ellsworth', 'gristoid+kiwi@gmail.com', 'true',
-      '', '', ''
+      '', '', '',
     ]);
 
     // Check that user3 cannot see FinancialsTable or RumorsColumn.
@@ -181,7 +181,7 @@ describe('AccessRules1', function() {
 
     // Check that user3 only sees certain rows of ClientsTable.
     assert.deepEqual(await gu.getVisibleGridCells(
-      {cols: ['First Name', 'Agent Email', 'Shared'], rowNums: [1, 2, 3, 4, 9, 11, 12]}
+      {cols: ['First Name', 'Agent Email', 'Shared'], rowNums: [1, 2, 3, 4, 9, 11, 12]},
     ), [
       // And everyone with Shared = true is visible.
       'Siobhan', 'gristoid+charon@gmail.com', 'true',
@@ -211,8 +211,8 @@ describe('AccessRules1', function() {
       await gu.getVisibleGridCells({cols: ['Expenses', 'Income', 'Year'], rowNums: [1, 2]}),
       [
         '$540,000.00', '$123.40', '2010',
-        '',            '',        ''
-      ]
+        '',            '',        '',
+      ],
     );
     await gu.undo();
   });
@@ -294,7 +294,7 @@ describe('AccessRules1', function() {
     // Check that the rule has an effect: user3 has limited access, and cannot see Shared rows except their own.
     await checkLimitedView('user3');
     assert.deepEqual(await gu.getVisibleGridCells(
-      {cols: ['First Name', 'Agent Email', 'Shared'], rowNums: [1, 6, 8, 9]}
+      {cols: ['First Name', 'Agent Email', 'Shared'], rowNums: [1, 6, 8, 9]},
     ), [
       'Kettie', 'gristoid+kiwi@gmail.com', 'false',
       'Neely', 'gristoid+kiwi@gmail.com', 'false',
@@ -369,7 +369,7 @@ describe('AccessRules1', function() {
     await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems('li', el => el.getText()),
-      ['Expenses', 'Income', 'Year']
+      ['Expenses', 'Income', 'Year'],
     );
     await gu.findOpenMenuItem('li', 'Year').click();
     await enterRulePart(ruleSet, 1, 'rec.Year == "yore"', {U: 'deny'});
@@ -400,7 +400,7 @@ describe('AccessRules1', function() {
     await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems('li', el => el.getText()),
-      ['Expenses', 'Income', 'Year']
+      ['Expenses', 'Income', 'Year'],
     );
     await gu.findOpenMenuItem('li', 'Year').click();
     await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
@@ -414,7 +414,7 @@ describe('AccessRules1', function() {
     await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems('li', el => el.getText()),
-      ['Expenses', 'Income', 'Year']
+      ['Expenses', 'Income', 'Year'],
     );
     await gu.findOpenMenuItem('li', 'Year').click();
     await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
@@ -489,7 +489,7 @@ describe('AccessRules1', function() {
     // Test that this rule works.
     await gu.openPage("FinancialsTable");
     assert.deepEqual(await gu.getVisibleGridCells(
-      {cols: ['Year'], rowNums: [1, 2]}
+      {cols: ['Year'], rowNums: [1, 2]},
     ), [
       '2022',
       '',

@@ -174,7 +174,7 @@ describe("LinkingErrors", function() {
     // Set invalid linking. The column we are setting is for the wrong table. It used to happen
     // occasionally due to other bugs, here we check that we ignore such invalid settings.
     await api.applyUserActions(docId, [
-      ['UpdateRecord', '_grist_Views_section', planetSec.id, {linkTargetColRef: planetNameCol.id}]
+      ['UpdateRecord', '_grist_Views_section', planetSec.id, {linkTargetColRef: planetNameCol.id}],
     ]);
 
     // Reload the page.
@@ -189,7 +189,7 @@ describe("LinkingErrors", function() {
 
     // Reverting to correct settings should make the data linked again.
     await api.applyUserActions(docId, [
-      ['UpdateRecord', '_grist_Views_section', planetSec?.id, {linkTargetColRef: planetRefCol.id}]
+      ['UpdateRecord', '_grist_Views_section', planetSec?.id, {linkTargetColRef: planetRefCol.id}],
     ]);
     await gu.checkForErrors();
     await checkLinking();

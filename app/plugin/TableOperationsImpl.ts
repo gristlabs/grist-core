@@ -57,7 +57,7 @@ export class TableOperationsImpl implements TableOperations {
         add: upsertOptions?.add,
         update: upsertOptions?.update,
         on_many: upsertOptions?.onMany,
-        allow_empty_require: upsertOptions?.allowEmptyRequire
+        allow_empty_require: upsertOptions?.allowEmptyRequire,
       };
       const recordOptions: OpOptions = pick(upsertOptions, 'parseStrings');
 
@@ -105,7 +105,7 @@ export class TableOperationsImpl implements TableOperations {
    * @param count Number of records to add
    */
   public async addRecords(
-    count: number, columnValues: BulkColValues, options?: OpOptions
+    count: number, columnValues: BulkColValues, options?: OpOptions,
   ): Promise<number[]> {
     // user actions expect [null, ...] as row ids
     const rowIds = arrayRepeat(count, null);
@@ -115,14 +115,14 @@ export class TableOperationsImpl implements TableOperations {
   private async _addOrUpdateRecords(
     columnValues: BulkColValues, rowIds: (number | null)[],
     actionType: 'BulkUpdateRecord' | 'BulkAddRecord',
-    options?: OpOptions
+    options?: OpOptions,
   ) {
     const tableId = await this._platform.getTableId();
     const colNames = Object.keys(columnValues);
     const sandboxRes = await this._applyUserActions(
       tableId, colNames,
       [[actionType, tableId, rowIds, columnValues]],
-      options
+      options,
     );
     return sandboxRes.retValues[0];
   }
@@ -132,7 +132,7 @@ export class TableOperationsImpl implements TableOperations {
   private async _applyUserActions(tableId: string, colNames: string[], actions: any[][],
                                   options: OpOptions = {}): Promise<any> {
     return handleSandboxErrorOnPlatform(tableId, colNames, this._platform.applyUserActions(
-      actions, {...this._defaultOptions, ...options}
+      actions, {...this._defaultOptions, ...options},
     ), this._platform);
   }
 }
@@ -188,7 +188,7 @@ async function withRecords<T, T2>(recordsOrRecord: T[]|T, op: (records: T[]) => 
  * list of column names in that table, and a promise for the result of the sandbox call.
  */
 export async function handleSandboxErrorOnPlatform<T>(
-  tableId: string, colNames: string[], p: Promise<T>, platform: TableOperationsPlatform
+  tableId: string, colNames: string[], p: Promise<T>, platform: TableOperationsPlatform,
 ): Promise<T> {
   try {
     return await p;
@@ -201,7 +201,7 @@ export async function handleSandboxErrorOnPlatform<T>(
         platform.throwError('', `Invalid row id ${match[1]}`, 400);
       }
       match = message.match(
-        /\[Sandbox] (?:KeyError u?'(?:Table \w+ has no column )?|ValueError No such table: |ValueError No such column: )([\w.]+)/
+        /\[Sandbox] (?:KeyError u?'(?:Table \w+ has no column )?|ValueError No such table: |ValueError No such column: )([\w.]+)/,
       );
       if (match) {
         if (match[1] === tableId) {

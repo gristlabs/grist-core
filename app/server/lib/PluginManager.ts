@@ -131,7 +131,7 @@ export class PluginManager {
     if (invalidPlugins.length) {
       for (const plugin of invalidPlugins) {
         log.warn(`Error loading plugins: Failed to load extension from ${plugin.path}\n` +
-          (plugin.errors!).map(m => "  - " + m).join("\n  ")
+          (plugin.errors!).map(m => "  - " + m).join("\n  "),
           );
       }
     }
@@ -162,7 +162,7 @@ async function scanDirectory(dir: string, kind: "installed"|"builtIn"|"bundled")
     const folderPath = path.join(dir, id),
       plugin: DirectoryScanEntry = {
         path: folderPath,
-        id: `${kind}/${id}`
+        id: `${kind}/${id}`,
       };
     try {
       plugin.manifest = await readManifest(folderPath);

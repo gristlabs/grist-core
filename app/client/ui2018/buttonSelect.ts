@@ -71,7 +71,7 @@ export function alignmentSelect(obs: Observable<string>, ...domArgs: DomElementA
   const alignments: Array<ISelectorOption<string>> = [
     {value: 'left',   icon: 'LeftAlign'},
     {value: 'center', icon: 'CenterAlign'},
-    {value: 'right',  icon: 'RightAlign'}
+    {value: 'right',  icon: 'RightAlign'},
   ];
   return buttonSelect(obs, alignments, {}, testId('alignment-select'), ...domArgs);
 }
@@ -97,12 +97,12 @@ export function colorSelect(value: Observable<string>, save: (val: string) => Pr
       {type: 'color'},
       dom.attr('value', use => use(value).slice(0, 7)),
       dom.on('input', setValue),
-      dom.on('change', onSave)
+      dom.on('change', onSave),
     ),
     dom.style('background-color', use => use(value) || '#000000'),
     cssColorBtn.cls('-dark', use => isColorDark(use(value) || '#000000')),
     cssColorIcon('Dots'),
-    ...domArgs
+    ...domArgs,
   );
 }
 
@@ -125,10 +125,10 @@ export function makeButtonSelect<T>(
         dom.on('click', () => onClick(value)),
         isFullOption(option) && option.icon ? icon(option.icon) : null,
         label ? cssSelectorLabel(label) : null,
-        testId('select-button')
+        testId('select-button'),
       );
     }),
-    ...domArgs
+    ...domArgs,
   );
 }
 

@@ -16,7 +16,7 @@ import {
   MIN,
   PERCENT,
   revertEach,
-  revertThis
+  revertThis,
 } from 'test/nbrowser/GridViewNewColumnMenuUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
@@ -72,7 +72,7 @@ describe('GridViewNewColumnMenu', function () {
         ['AddTable', 'Reference', [
           {id: "Name"},
           {id: "Age"},
-          {id: "City"}
+          {id: "City"},
         ]],
         // Add some data to the table.
         ['AddRecord', 'Reference', null, {Name: "Bob", Age: 12, City: "New York"}],
@@ -169,7 +169,7 @@ describe('GridViewNewColumnMenu', function () {
     revertThis();
     const columnsThatShouldTriggerSideMenu = [
       "Reference",
-      "Reference List"
+      "Reference List",
     ];
 
     const optionsToBeDisplayed = [
@@ -313,8 +313,8 @@ describe('GridViewNewColumnMenu', function () {
             await driver.findContentWait(
               '.test-behavioral-prompt-title',
               'Reference Columns',
-               STANDARD_WAITING_TIME*2
-               ).isDisplayed()
+               STANDARD_WAITING_TIME*2,
+               ).isDisplayed(),
             ), 5000);
           await gu.dismissBehavioralPrompts();
           await gu.toggleSidePanel("right", "close");
@@ -447,7 +447,7 @@ describe('GridViewNewColumnMenu', function () {
           for (const column of columns) {
             assert.isTrue(
               await driver.findContent('.test-new-columns-menu-hidden-column-inlined', column).isPresent(),
-              `column ${column} is not present`
+              `column ${column} is not present`,
             );
           }
           await closeAddColumnMenu();
@@ -520,7 +520,7 @@ describe('GridViewNewColumnMenu', function () {
             await driver.findContentWait('.test-new-columns-menu-hidden-column-collapsed',
               column,
               STANDARD_WAITING_TIME).isDisplayed(),
-            `column ${column} is not present`
+            `column ${column} is not present`,
           );
         }
 
@@ -578,7 +578,7 @@ describe('GridViewNewColumnMenu', function () {
           await gu.waitToPass(async () => {
             assert.deepEqual(
               await collapsedHiddenColumns(),
-              cols
+              cols,
             );
           }, STANDARD_WAITING_TIME);
         }
@@ -587,7 +587,7 @@ describe('GridViewNewColumnMenu', function () {
   });
 
   const COLUMN_LABELS = [
-    "Name", "Age", "Hobby", "Employee", "Birthday date", "Member", "SeenAt", "Photo", "Fun", "Parent", "Children"
+    "Name", "Age", "Hobby", "Employee", "Birthday date", "Member", "SeenAt", "Photo", "Fun", "Parent", "Children",
   ];
 
   describe('lookups from Reference columns', function () {
@@ -752,7 +752,7 @@ describe('GridViewNewColumnMenu', function () {
         'Photo\nlist',
         'Fun\nlist',
         'Parent\nlist',
-        'Children\nlist'
+        'Children\nlist',
       ]);
 
       const menus = await driver.findAll('.test-new-columns-menu-lookup-submenu', el => el.getText());
@@ -760,7 +760,7 @@ describe('GridViewNewColumnMenu', function () {
         'Age\nsum',
         'Birthday date\nlist',
         'Member\ncount',
-        'SeenAt\nlist'
+        'SeenAt\nlist',
       ]);
 
       // Make sure that clicking on a column adds it with a default aggregation.
@@ -914,13 +914,13 @@ describe('GridViewNewColumnMenu', function () {
         'Parent\nlist',
         'Children\nlist',
         'Item\nlist',
-        'Items\nlist'
+        'Items\nlist',
       ]);
       assert.deepEqual(submenus, [
         'Age\nsum',
         'Birthday date\nlist',
         'Member\ncount',
-        'SeenAt\nlist'
+        'SeenAt\nlist',
       ]);
 
       // Make sure that clicking one of the columns adds it with a default aggregation.
@@ -943,13 +943,13 @@ describe('GridViewNewColumnMenu', function () {
           await clickAddColumn();
           await driver.findContentWait('.test-new-columns-menu-revlookup',
             'Person [← Item]',
-            STANDARD_WAITING_TIME
+            STANDARD_WAITING_TIME,
           ).mouseMove();
 
           // This is submenu so expand it.
           await driver.findContentWait('.test-new-columns-menu-revlookup-submenu',
             new RegExp("^" + column),
-            STANDARD_WAITING_TIME*3
+            STANDARD_WAITING_TIME*3,
           ).mouseMove();
 
           // Wait for any function to appear.
@@ -1033,17 +1033,17 @@ describe('GridViewNewColumnMenu', function () {
             await driver.findContentWait(
               '.test-new-columns-menu-revlookup',
               'Person [← Item]',
-              STANDARD_WAITING_TIME
+              STANDARD_WAITING_TIME,
             ).mouseMove();
             await driver.findContentWait(
               '.test-new-columns-menu-revlookup-submenu',
               new RegExp("^" + column),
-              STANDARD_WAITING_TIME
+              STANDARD_WAITING_TIME,
             ).mouseMove();
             await driver.findContentWait(
               '.test-new-columns-menu-revlookup-column-function',
               func,
-              STANDARD_WAITING_TIME
+              STANDARD_WAITING_TIME,
             ).click();
             await gu.waitForServer();
           }
@@ -1058,20 +1058,20 @@ describe('GridViewNewColumnMenu', function () {
           await driver.findContentWait(
             '.test-new-columns-menu-revlookup',
             'Person [← Items]',
-            STANDARD_WAITING_TIME
+            STANDARD_WAITING_TIME,
           ).mouseMove();
 
           // This is submenu so expand it.
           await driver.findContentWait(
             '.test-new-columns-menu-revlookup-submenu',
             new RegExp("^" + column),
-            STANDARD_WAITING_TIME
+            STANDARD_WAITING_TIME,
           ).mouseMove();
 
           // Wait for any function to appear.
           await driver.findWait(
             '.test-new-columns-menu-revlookup-column-function',
-            STANDARD_WAITING_TIME
+            STANDARD_WAITING_TIME,
           );
 
           // Make sure we see proper list.
@@ -1144,17 +1144,17 @@ describe('GridViewNewColumnMenu', function () {
             await driver.findContentWait(
               '.test-new-columns-menu-revlookup',
               'Person [← Items]',
-              STANDARD_WAITING_TIME
+              STANDARD_WAITING_TIME,
             ).mouseMove();
             await driver.findContentWait(
               '.test-new-columns-menu-revlookup-submenu',
               new RegExp("^" + column),
-              STANDARD_WAITING_TIME
+              STANDARD_WAITING_TIME,
             ).mouseMove();
             await driver.findContentWait(
               '.test-new-columns-menu-revlookup-column-function',
               func,
-              STANDARD_WAITING_TIME
+              STANDARD_WAITING_TIME,
             ).click();
             await gu.waitForServer();
           }
@@ -1293,7 +1293,7 @@ describe('GridViewNewColumnMenu', function () {
         await gu.waitToPass(async () => {
           assert.deepEqual(
             await driver.findAll('.test-searchable-menu li', el => el.getText()),
-            ['A', 'B', 'C']
+            ['A', 'B', 'C'],
           );
         }, 500);
         await driver.find('.test-searchable-menu-input').click();
@@ -1301,7 +1301,7 @@ describe('GridViewNewColumnMenu', function () {
         await gu.waitToPass(async () => {
           assert.deepEqual(
             await driver.findAll('.test-searchable-menu li', el => el.getText()),
-            ['A']
+            ['A'],
           );
         }, STANDARD_WAITING_TIME);
 
@@ -1309,7 +1309,7 @@ describe('GridViewNewColumnMenu', function () {
         await gu.waitToPass(async () => {
           assert.deepEqual(
             await driver.findAll('.test-searchable-menu li', el => el.getText()),
-            []
+            [],
           );
         }, STANDARD_WAITING_TIME);
 
@@ -1317,7 +1317,7 @@ describe('GridViewNewColumnMenu', function () {
         await gu.waitToPass(async () => {
           assert.deepEqual(
             await driver.findAll('.test-searchable-menu li', el => el.getText()),
-            ['A', 'B', 'C']
+            ['A', 'B', 'C'],
           );
         }, STANDARD_WAITING_TIME);
       });
@@ -1332,7 +1332,7 @@ describe('GridViewNewColumnMenu', function () {
         // Just checking the formula looks plausible - correctness is best left to a python test.
         assert.equal(
           await driver.find('.test-formula-editor').getText(),
-          '$A != "" and $A is not None and len(Table1.lookupRecords(A=$A)) > 1'
+          '$A != "" and $A is not None and len(Table1.lookupRecords(A=$A)) > 1',
         );
         await gu.sendKeys(Key.ESCAPE);
         let columns = await gu.getColumnNames();
@@ -1349,7 +1349,7 @@ describe('GridViewNewColumnMenu', function () {
           await gu.sendKeys(Key.ENTER);
           assert.equal(
             await driver.find('.test-formula-editor').getText(),
-            `any([len(Table1.lookupRecords(${label}=CONTAINS(x))) > 1 for x in $${label}])`
+            `any([len(Table1.lookupRecords(${label}=CONTAINS(x))) > 1 for x in $${label}])`,
           );
           await gu.sendKeys(Key.ESCAPE);
           columns = await gu.getColumnNames();
@@ -1403,7 +1403,7 @@ describe('GridViewNewColumnMenu', function () {
       let columns = await api.getTable(docId, 'Table1');
       assert.includeMembers(Object.keys(columns), [
         'gristHelper_Converted',
-        'gristHelper_Transform'
+        'gristHelper_Transform',
       ]);
 
       // Now on the main tab, make sure we don't see those references in lookup menu.
@@ -1419,7 +1419,7 @@ describe('GridViewNewColumnMenu', function () {
       columns = await api.getTable(docId, 'Table1');
       assert.notIncludeMembers(Object.keys(columns), [
         'gristHelper_Converted',
-        'gristHelper_Transform'
+        'gristHelper_Transform',
       ]);
       await gu.setType('Reference List', {apply: false});
       await gu.setRefTable('Person');
@@ -1427,7 +1427,7 @@ describe('GridViewNewColumnMenu', function () {
       columns = await api.getTable(docId, 'Table1');
       assert.includeMembers(Object.keys(columns), [
         'gristHelper_Converted',
-        'gristHelper_Transform'
+        'gristHelper_Transform',
       ]);
 
       // Now on the main make sure we still don't see those references in lookup menu.

@@ -43,7 +43,7 @@ import {Workspace} from "app/gen-server/entity/Workspace";
 import {EXAMPLE_WORKSPACE_NAME} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {
-  getOrCreateConnection, runMigrations, undoLastMigration, updateDb
+  getOrCreateConnection, runMigrations, undoLastMigration, updateDb,
 } from 'app/server/lib/dbUtils';
 import {FlexServer} from 'app/server/lib/FlexServer';
 import * as fse from 'fs-extra';
@@ -89,13 +89,13 @@ export const exampleOrgs = [
     workspaces: [
       {
         name: 'Horizon',
-        docs: ['Jupiter', 'Pluto', 'Beyond']
+        docs: ['Jupiter', 'Pluto', 'Beyond'],
       },
       {
         name: 'Rovers',
-        docs: ['Curiosity', 'Apathy']
-      }
-    ]
+        docs: ['Curiosity', 'Apathy'],
+      },
+    ],
   },
   {
     name: 'Primately',
@@ -103,13 +103,13 @@ export const exampleOrgs = [
     workspaces: [
       {
         name: 'Fruit',
-        docs: ['Bananas', 'Apples']
+        docs: ['Bananas', 'Apples'],
       },
       {
         name: 'Trees',
-        docs: ['Tall', 'Short']
-      }
-    ]
+        docs: ['Tall', 'Short'],
+      },
+    ],
   },
   {
     name: 'Flightless',
@@ -117,9 +117,9 @@ export const exampleOrgs = [
     workspaces: [
       {
         name: 'Media',
-        docs: ['Australia', 'Antartic']
-      }
-    ]
+        docs: ['Australia', 'Antartic'],
+      },
+    ],
   },
   {
     name: 'Abyss',
@@ -127,17 +127,17 @@ export const exampleOrgs = [
     workspaces: [
       {
         name: 'Deep',
-        docs: ['Unfathomable']
-      }
-    ]
+        docs: ['Unfathomable'],
+      },
+    ],
   },
   {
     name: 'Charonland',
     workspaces: [
       {
         name: 'Home',
-        docs: []
-      }
+        docs: [],
+      },
     ],
     // Some tests check behavior on new free personal plans.
     product: 'personalFree',
@@ -147,24 +147,24 @@ export const exampleOrgs = [
     workspaces: [
       {
         name: 'Private',
-        docs: ['Timesheets', 'Appointments']
+        docs: ['Timesheets', 'Appointments'],
       },
       {
         name: 'Public',
-        docs: []
-      }
-    ]
+        docs: [],
+      },
+    ],
   },
   {
     name: 'Kiwiland',
-    workspaces: []
+    workspaces: [],
   },
   {
     name: 'Hamland',
     workspaces: [
       {
         name: 'Home',
-        docs: []
+        docs: [],
       },
     ],
     // Some tests check behavior on legacy free personal plans.
@@ -176,14 +176,14 @@ export const exampleOrgs = [
     workspaces: [
       {
         name: 'Vacuum',
-        docs: []
-      }
-    ]
+        docs: [],
+      },
+    ],
   },
   {
     name: 'EmptyOrg',
     domain: 'blankiest',
-    workspaces: []
+    workspaces: [],
   },
   {
     name: 'Fish',
@@ -192,26 +192,26 @@ export const exampleOrgs = [
       {
         name: 'Big',
         docs: [
-          'Shark'
-        ]
+          'Shark',
+        ],
       },
       {
         name: 'Small',
         docs: [
           'Anchovy',
-          'Herring'
-        ]
-      }
-    ]
+          'Herring',
+        ],
+      },
+    ],
   },
   {
     name: 'Supportland',
     workspaces: [
       {
         name: EXAMPLE_WORKSPACE_NAME,
-        docs: ['Hello World', 'Sample Example']
+        docs: ['Hello World', 'Sample Example'],
       },
-    ]
+    ],
   },
   {
     name: 'Shiny',
@@ -220,9 +220,9 @@ export const exampleOrgs = [
     workspaces: [
       {
         name: 'Tailor Made',
-        docs: ['Suits', 'Shoes']
-      }
-    ]
+        docs: ['Suits', 'Shoes'],
+      },
+    ],
   },
   {
     name: 'FreeTeam',
@@ -232,8 +232,8 @@ export const exampleOrgs = [
       {
         name: 'FreeTeamWs',
         docs: [],
-      }
-    ]
+      },
+    ],
   },
   {
     name: 'TestDailyApiLimit',
@@ -243,8 +243,8 @@ export const exampleOrgs = [
       {
         name: 'TestDailyApiLimitWs',
         docs: [],
-      }
-    ]
+      },
+    ],
   },
   {
     name: 'TestMaxNewUserInvites',
@@ -257,8 +257,8 @@ export const exampleOrgs = [
           "TestMaxNewUserInvitesDoc1",
           "TestMaxNewUserInvitesDoc2",
         ],
-      }
-    ]
+      },
+    ],
   },
   {
     name: 'TestAuditLogs',
@@ -268,8 +268,8 @@ export const exampleOrgs = [
       {
         name: 'TestAuditLogsWs',
         docs: [],
-      }
-    ]
+      },
+    ],
   },
 ];
 
@@ -288,13 +288,13 @@ const exampleUsers: {[user: string]: {[org: string]: string}} = {
     Antartic: 'viewers',
     EmptyOrg: 'editors',
     EmptyWsOrg: 'editors',
-    Fish: 'owners'
+    Fish: 'owners',
   },
   Kiwi: {
     Kiwiland: 'owners',
     Flightless: 'editors',
     Primately: 'viewers',
-    Fish: 'editors'
+    Fish: 'editors',
   },
   Charon: {
     Charonland: 'owners',
@@ -358,7 +358,7 @@ class Seed {
         editors,
         viewers,
         guests,
-        members
+        members,
       };
     }
  else {
@@ -366,7 +366,7 @@ class Seed {
         owners,
         editors,
         viewers,
-        guests
+        guests,
       };
     }
   }
@@ -680,13 +680,13 @@ function _generateData(numOrgs: number, numWorkspaces: number, numDocs: number) 
       const workspaceIndex = (i * numWorkspaces) + j;
       workspaces.push({
         name: `ws-${workspaceIndex}`,
-        docs
+        docs,
       });
     }
     example.push({
       name: `org-${i}`,
       domain: `org-${i}`,
-      workspaces
+      workspaces,
     });
   }
   return example;

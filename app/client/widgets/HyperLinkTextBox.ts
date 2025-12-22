@@ -23,7 +23,7 @@ export class HyperLinkTextBox extends NTextBox {
     const value = row.cells[this.field.colId()];
     const url = Computed.create(
       null,
-      use => sanitizeLinkUrl(constructUrl(use(value))) ?? "about:blank"
+      use => sanitizeLinkUrl(constructUrl(use(value))) ?? "about:blank",
     );
     return cssFieldClip(
       dom.autoDispose(url),

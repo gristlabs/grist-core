@@ -30,7 +30,7 @@ export class Organization extends Resource {
 
   @Column({
     type: String,
-    nullable: true
+    nullable: true,
   })
   public domain: string;
 

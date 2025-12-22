@@ -177,7 +177,7 @@ export function guessColInfoWithDocData(values: Array<string | null>, docData: D
 }
 
 export function guessColInfo(
-  values: Array<string | null>, docSettings: DocumentSettings, timezone: string
+  values: Array<string | null>, docSettings: DocumentSettings, timezone: string,
 ): GuessResult {
   // Use short-circuiting of || to only do as much work as needed,
   // in particular not guessing date formats before trying other types.
@@ -186,7 +186,7 @@ export function guessColInfo(
       .guess(values, docSettings) ||
     new NumericGuesser(
       docSettings,
-      NumberParse.fromSettings(docSettings).guessOptions(values)
+      NumberParse.fromSettings(docSettings).guessOptions(values),
     )
       .guess(values, docSettings) ||
     new DateGuesser(guessDateFormat(values, timezone), timezone)

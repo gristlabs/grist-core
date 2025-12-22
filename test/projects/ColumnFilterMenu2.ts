@@ -60,7 +60,7 @@ describe('ColumnFilterMenu2', function() {
       // added to the 3 the number of values shown);
       assert.equal(
         14 + 3,
-        (await parseAllValues()).length
+        (await parseAllValues()).length,
       );
 
       // check `Other values` is checked
@@ -146,7 +146,7 @@ describe('ColumnFilterMenu2', function() {
         // check `Other Matching` is unchecked
         assert.equal(
           await driver.findContent('.test-filter-menu-summary', /Other Matching/).find('input').isSelected(),
-          false
+          false,
         );
 
         // check Dates, Knapples are NOT included
@@ -160,7 +160,7 @@ describe('ColumnFilterMenu2', function() {
         // check `Other Matching` is checked
         assert.equal(
           await driver.findContent('.test-filter-menu-summary', /Other Matching/).find('input').isSelected(),
-          true
+          true,
         );
 
         // Check Dates, Knapples are included
@@ -198,7 +198,7 @@ describe('ColumnFilterMenu2', function() {
         // check 'Other Non-Matching' is checked
         assert.equal(
           await driver.findContent('.test-filter-menu-summary label', /Other Non-Matching/).find('input').isSelected(),
-          true
+          true,
         );
 
         // check filter is an exclusion filter
@@ -210,7 +210,7 @@ describe('ColumnFilterMenu2', function() {
         // check 'Other Non-Matching' is un-checked
         assert.equal(
           await driver.findContent('.test-filter-menu-summary label', /Other Non-Matching/).find('input').isSelected(),
-          false
+          false,
         );
 
         // check filter is an inclusion filter

@@ -8,7 +8,7 @@ import {
   menuDivider,
   menuItem,
   menuItemSubmenu,
-  menuSubHeader
+  menuSubHeader,
 } from 'app/client/ui2018/menus';
 import {RecalcWhen} from 'app/common/gristTypes';
 import {removePrefix} from 'app/common/gutil';
@@ -123,8 +123,8 @@ const CONFIGURATION: Record<string, Section> = {
         columnLabel: (col: ColumnRec) => `${col.label()} ${t('Day of week')}`,
         formula: FORMULAS.DAY_OF_WEEK_FULL,
         type: 'Text',
-      }
-    ]
+      },
+    ],
   },
   calendar: {
     header: () => t('Calendar'),
@@ -153,8 +153,8 @@ const CONFIGURATION: Record<string, Section> = {
             columnLabel: (col: ColumnRec) => `${col.label()} ${t('Quarter')}`,
             formula: FORMULAS.QUARTER_SORTABLE,
             type: 'Text',
-          }
-        ]
+          },
+        ],
       } as SubmenuItem,
       {
         label: () => t('Month'),
@@ -194,8 +194,8 @@ const CONFIGURATION: Record<string, Section> = {
             columnLabel: (col: ColumnRec) => `${col.label()} ${t('Month')}`,
             formula: FORMULAS.MONTH_NUMBER_ONLY,
             type: 'Int',
-          }
-        ]
+          },
+        ],
       },
       {
         label: () => t('Week of year'),
@@ -214,8 +214,8 @@ const CONFIGURATION: Record<string, Section> = {
             columnLabel: (col: ColumnRec) => `${col.label()} ${t('Week')}`,
             formula: FORMULAS.WEEK_SORTABLE,
             type: 'Text',
-          }
-        ]
+          },
+        ],
       },
       {
         label: () => t('Day'),
@@ -262,10 +262,10 @@ const CONFIGURATION: Record<string, Section> = {
             columnLabel: (col: ColumnRec) => `${col.label()} Is weekend?`,
             formula: FORMULAS.IS_WEEKEND,
             type: 'Bool',
-          }
-        ]
-      }
-    ]
+          },
+        ],
+      },
+    ],
   },
   intervals: {
     header: () => t('Intervals'),
@@ -314,8 +314,8 @@ const CONFIGURATION: Record<string, Section> = {
             columnLabel: (col: ColumnRec) => `${col.label()} Start of Hour`,
             formula: FORMULAS.START_OF_HOUR,
             type: 'DateTime',
-          }
-        ]
+          },
+        ],
       },
       {
         label: () => t('End of'),
@@ -361,8 +361,8 @@ const CONFIGURATION: Record<string, Section> = {
             columnLabel: (col: ColumnRec) => `${col.label()} End of Hour`,
             formula: FORMULAS.END_OF_HOUR,
             type: 'DateTime',
-          }
-        ]
+          },
+        ],
       },
       {
         label: () => t('Relative'),
@@ -408,10 +408,10 @@ const CONFIGURATION: Record<string, Section> = {
             columnLabel: (col: ColumnRec) => `${col.label()} Years until`,
             formula: FORMULAS.YEARS_UNTIL,
             type: 'Int',
-          }
-        ]
-      }
-    ]
+          },
+        ],
+      },
+    ],
   },
   time: {
     header: () => t('Time'),
@@ -441,8 +441,8 @@ const CONFIGURATION: Record<string, Section> = {
             columnLabel: (col: ColumnRec) => `${col.label()} Hour`,
             formula: FORMULAS.TIME_BUCKET,
             type: 'Text',
-          }
-        ]
+          },
+        ],
       },
       {
         label: () => t('Minute'),
@@ -457,9 +457,9 @@ const CONFIGURATION: Record<string, Section> = {
         columnLabel: (col: ColumnRec) => `${col.label()} AM/PM`,
         formula: FORMULAS.AM_PM,
         type: 'Text',
-      }
-    ]
-  }
+      },
+    ],
+  },
 };
 
 // Helper function to get formula with actual column ID
@@ -509,7 +509,7 @@ export function buildDateHelpersMenuItems(gridView: GridView, index?: number) {
   // We will only show Date and DateTime columns (not fields, so hidden ones are out too).
   const dateColumns = viewSection.columns().filter((col: ColumnRec) =>
     // First filter is just for the types.
-    col.pureType() === 'Date' || col.pureType() === 'DateTime'
+    col.pureType() === 'Date' || col.pureType() === 'DateTime',
   );
 
   // If there are no available date columns, don't show the menu at all.
@@ -577,7 +577,7 @@ export function buildDateHelpersMenuItems(gridView: GridView, index?: number) {
   const renderLabel = (option: SectionItem) => {
     return dom('span',
       typeof option.label === 'function' ? option.label() : option.label,
-      testId('date-helpers-item-label')
+      testId('date-helpers-item-label'),
     );
   };
 
@@ -656,13 +656,13 @@ export function buildDateHelpersMenuItems(gridView: GridView, index?: number) {
             () => filteredItems.map(option =>
               dom.update(
                 createMenuItem(option, col, current),
-                itemTestId(section.header(), submenuLabel, option.label())
-              )
+                itemTestId(section.header(), submenuLabel, option.label()),
+              ),
             ),
             options,
             submenuLabel,
-            itemTestId(section.header(), submenuLabel)
-          )
+            itemTestId(section.header(), submenuLabel),
+          ),
         );
       }
  else {
@@ -701,11 +701,11 @@ export function buildDateHelpersMenuItems(gridView: GridView, index?: number) {
         {},
         col.label(),
         testId(`date-helpers-column-${col.colId()}`),
-      )
+      ),
     ),
     {},
     t('Date helpers…'),
-    testId('new-columns-menu-date-helpers')
+    testId('new-columns-menu-date-helpers'),
   );
 }
 

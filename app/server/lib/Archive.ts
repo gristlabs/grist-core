@@ -41,7 +41,7 @@ export interface Archive {
  * @returns {Archive}
  */
 export function create_zip_archive(
-  zipOptions: ZipStreamOptions, entries: AsyncIterable<ArchiveEntry>
+  zipOptions: ZipStreamOptions, entries: AsyncIterable<ArchiveEntry>,
 ): Archive {
   return {
     mimeType: "application/zip",
@@ -58,7 +58,7 @@ export function create_zip_archive(
 
       // This ensures any errors in the stream (e.g. from destroying it above) are propagated.
       await pipeline;
-    }
+    },
   };
 }
 
@@ -96,7 +96,7 @@ function addEntryToZipArchive(archive: ZipStream, file: ArchiveEntry): Promise<Z
  * @returns {Archive}
  */
 export function create_tar_archive(
-  entries: AsyncIterable<ArchiveEntry>
+  entries: AsyncIterable<ArchiveEntry>,
 ): Archive {
   return {
     mimeType: "application/x-tar",
@@ -119,7 +119,7 @@ export function create_tar_archive(
       // This ensures any errors in the stream (e.g. from destroying it above) are handled.
       // Without this, node will see the stream as having an uncaught error, and complain or crash.
       await pipeline;
-    }
+    },
   };
 }
 
@@ -139,7 +139,7 @@ export interface UnpackedFile {
 
 export async function unpackTarArchive(
   tarStream: stream.Readable,
-  onFile: (file: UnpackedFile) => Promise<void>
+  onFile: (file: UnpackedFile) => Promise<void>,
 ): Promise<void> {
   let resolveFinished = () => {};
   let rejectFinished = (err: any) => {};
@@ -159,7 +159,7 @@ export async function unpackTarArchive(
         data: contentStream,
         // Realistically this should never be undefined - it's mandatory for files in a .tar archive
         size: header.size ?? 0,
-      })
+      }),
       // No sensible behaviour when an error is thrown by onFile - it's onFile's responsibility
       // to handle it.
     ).catch(() => {})

@@ -12,7 +12,7 @@ import {cssModalBody,
   cssModalTitle,
   cssModalWidth,
   IModalControl,
-  modal
+  modal,
 } from 'app/client/ui2018/modals';
 import {bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
 import {cssLink, cssNestedLinks} from 'app/client/ui2018/links';
@@ -45,9 +45,9 @@ export function openAccessibilityModal(appObs: Observable<AppModel | null>) {
             dom.on('click', () => ctl.close()),
             testId('confirm'),
           ),
-        )
+        ),
       ];
-    }
+    },
   );
 }
 
@@ -101,8 +101,8 @@ const highContrastThemeSection = (appObs: Observable<AppModel | null>, ctl: IMod
         dom.on('click', () => ctl.close()),
         urlState().setLinkUrl({account: 'account'}),
         t("profile settings"),
-      )
-    }))
+      ),
+    })),
   );
 };
 
@@ -127,7 +127,7 @@ const keyboardSection = () => {
       dom('li', t("The top panel, or the document header.")),
       dom('li', inlineMarkdown(t(
         "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.",
-        {supportPageUrl: commonUrls.helpWidgets}
+        {supportPageUrl: commonUrls.helpWidgets},
       ))),
       dom('li', t("On non-document pages, the main content area is a region.")),
       dom('li', t("Finally, the right panel – or the creator panel – is only available \

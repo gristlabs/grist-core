@@ -102,7 +102,7 @@ describe('OpenAIAssistantV1', function () {
       "choices": [{
         "index": 0,
         "message": replyMessage,
-        "finish_reason": "stop"
+        "finish_reason": "stop",
       }],
       status: 200,
     });
@@ -123,8 +123,8 @@ describe('OpenAIAssistantV1', function () {
         {
           role: "user",
           content: userMessageContent,
-        }
-      ]
+        },
+      ],
     );
     const suggestedFormula = "a = int($A)\nb=int($B)\n\nstr(a + b)";
     const replyWithSuggestedFormula = "Here's a formula that adds columns A and B:\n\n"
@@ -132,14 +132,14 @@ describe('OpenAIAssistantV1', function () {
       + "\n\nLet me know if there's anything else I can help with.";
     assert.deepEqual(result, {
         suggestedActions: [
-          ["ModifyColumn", table1Id, colId, {formula: suggestedFormula}]
+          ["ModifyColumn", table1Id, colId, {formula: suggestedFormula}],
         ],
         suggestedFormula,
         reply: replyWithSuggestedFormula,
         state: {
-          messages: [...requestMessages, replyMessage]
-        }
-      }
+          messages: [...requestMessages, replyMessage],
+        },
+      },
     );
   });
 
@@ -181,7 +181,7 @@ describe('OpenAIAssistantV1', function () {
       "choices": [{
         "index": 0,
         "message": replyMessage,
-        "finish_reason": "stop"
+        "finish_reason": "stop",
       }],
       status: 200,
     });
@@ -197,7 +197,7 @@ describe('OpenAIAssistantV1', function () {
         state: {
           messages: [...requestMessages, replyMessage],
         },
-      }
+      },
     );
   });
 
@@ -249,7 +249,7 @@ describe('OpenAIAssistantV1', function () {
     });
     await assert.isRejected(
       checkGetAssistance(),
-      /You'll need to either shorten your message or delete some columns/
+      /You'll need to either shorten your message or delete some columns/,
     );
     checkModels([
       OpenAIAssistantV1.DEFAULT_MODEL,
@@ -267,7 +267,7 @@ describe('OpenAIAssistantV1', function () {
     });
     await assert.isRejected(
       checkGetAssistance(),
-      /You'll need to either shorten your message or delete some columns/
+      /You'll need to either shorten your message or delete some columns/,
     );
     fakeFetch.getCalls().map((callInfo, i) => {
       const [, request] = callInfo.args;
@@ -294,13 +294,13 @@ describe('OpenAIAssistantV1', function () {
       "choices": [{
         "index": 0,
         "message": {},
-        "finish_reason": "length"
+        "finish_reason": "length",
       }],
       status: 200,
     });
     await assert.isRejected(
       checkGetAssistance(),
-      /You'll need to either shorten your message or delete some columns/
+      /You'll need to either shorten your message or delete some columns/,
     );
     checkModels([
       OpenAIAssistantV1.DEFAULT_MODEL,
@@ -322,9 +322,9 @@ describe('OpenAIAssistantV1', function () {
           {role: "system", content: "Be good."},
           {role: "user", content: "Hi."},
           {role: "assistant", content: "Hi!"},
-        ]
+        ],
       }),
-      /You'll need to either shorten your message, restart the conversation, or delete some columns/
+      /You'll need to either shorten your message, restart the conversation, or delete some columns/,
     );
     checkModels([
       OpenAIAssistantV1.DEFAULT_MODEL,
@@ -353,7 +353,7 @@ describe('OpenAIAssistantV1', function () {
           "choices": [{
             "index": 0,
             "message": {role: "assistant", content: "123"},
-            "finish_reason": "stop"
+            "finish_reason": "stop",
           }],
           status: 200,
         };
@@ -366,7 +366,7 @@ describe('OpenAIAssistantV1', function () {
       LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);
     assert.deepEqual(result.suggestedActions, [
-      ["ModifyColumn", table1Id, colId, {formula: "123"}]
+      ["ModifyColumn", table1Id, colId, {formula: "123"}],
     ]);
   });
 });

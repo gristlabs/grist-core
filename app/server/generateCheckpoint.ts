@@ -17,7 +17,7 @@ export async function main() {
     throw new Error('GRIST_CHECKPOINT_MAKE must be defined');
   }
   create.NSandbox({
-    preferredPythonVersion: '3'
+    preferredPythonVersion: '3',
   });
 }
 

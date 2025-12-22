@@ -33,10 +33,10 @@ describe("AttachmentsWidget", function () {
   // Returns the 'title' attributes of all attachments in the given cell. These should be the
   // names of the attached files.
   const getCellThumbnailTitles = stackWrapFunc(async function (
-    cell: WebElement
+    cell: WebElement,
   ) {
     return await cell.findAll(".test-pw-thumbnail", el =>
-      el.getAttribute("title")
+      el.getAttribute("title"),
     );
   });
 
@@ -53,7 +53,7 @@ describe("AttachmentsWidget", function () {
     await gu.waitForServer();
     assert.equal(
       await gu.getCell(0, 2).find(".test-attachment-widget").isDisplayed(),
-      true
+      true,
     );
   });
 
@@ -71,7 +71,7 @@ describe("AttachmentsWidget", function () {
     await driver.sendKeys(Key.ENTER);
 
     await gu.fileDialogUpload("uploads/sample.pdf,uploads/grist.png", () =>
-      driver.find(".test-pw-add").click()
+      driver.find(".test-pw-add").click(),
     );
     await driver.findContentWait(".test-pw-counter", /of 2/, 3000);
 
@@ -94,13 +94,13 @@ describe("AttachmentsWidget", function () {
       await gu
         .getCell(0, 2)
         .findAll(".test-pw-thumbnail", el => el.getText()),
-      ["PDF", ""]
+      ["PDF", ""],
     );
 
     async function checkState(expectedCells: string[], isSoftDeleted: boolean) {
       assert.deepEqual(
         await gu.getVisibleGridCells({ cols: [0, 1], rowNums: [2] }),
-        expectedCells
+        expectedCells,
       );
 
       // Previously, undo would remove the uploaded attachment metadata completely,
@@ -113,7 +113,7 @@ describe("AttachmentsWidget", function () {
       const url = server.getUrl(session.orgDomain, `/api/docs/${docId}`);
       let resp = await fetch(
         url + "/attachments/removeUnused?verifyfiles=1&expiredonly=1",
-        { headers, method: "POST" }
+        { headers, method: "POST" },
       );
       assert.equal(resp.status, 200);
       resp = await fetch(url + "/tables/_grist_Attachments/records", {
@@ -129,7 +129,7 @@ describe("AttachmentsWidget", function () {
     // Check current state before testing undo/redo
     assert.deepEqual(
       await gu.getVisibleGridCells({ cols: [0, 1], rowNums: [2] }),
-      ["PDF", "foo2"]
+      ["PDF", "foo2"],
     );
     await checkState(["PDF", "foo2"], false);
 
@@ -154,21 +154,21 @@ describe("AttachmentsWidget", function () {
     assert.equal(
       (await driver.findWait(".test-pw-thumbnail:last-child", 1000).getRect())
         .height,
-      36
+      36,
     );
     for (let i = 0; i < 5; i++) {
       await slider.sendKeys(Key.RIGHT);
     }
     assert.equal(
       (await driver.find(".test-pw-thumbnail:last-child").getRect()).height,
-      41
+      41,
     );
     for (let i = 0; i < 3; i++) {
       await slider.sendKeys(Key.LEFT);
     }
     assert.equal(
       (await driver.find(".test-pw-thumbnail:last-child").getRect()).height,
-      38
+      38,
     );
     // Wait to ensure the new setting is saved.
     await driver.sleep(300);
@@ -179,7 +179,7 @@ describe("AttachmentsWidget", function () {
     assert.equal(
       (await driver.findWait(".test-pw-thumbnail:last-child", 1000).getRect())
         .height,
-      38
+      38,
     );
   });
 
@@ -197,11 +197,11 @@ describe("AttachmentsWidget", function () {
     const respDownload = await fetch(hrefDownload, fetchOptions);
     assert.equal(
       respDownload.headers.get("Content-Disposition"),
-      'attachment; filename="sample.pdf"'
+      'attachment; filename="sample.pdf"',
     );
     assert.equal(
       respDownload.headers.get("Content-Security-Policy"),
-      "sandbox; default-src: 'none'"
+      "sandbox; default-src: 'none'",
     );
 
     const hrefInline = await driver
@@ -210,12 +210,12 @@ describe("AttachmentsWidget", function () {
     const respInline = await fetch(hrefInline, fetchOptions);
     assert.equal(
       respInline.headers.get("Content-Disposition"),
-      'inline; filename="sample.pdf"'
+      'inline; filename="sample.pdf"',
     );
 
     // Attach an html file and ensure it doesn't get served inline.
     await gu.fileDialogUpload("uploads/htmlfile.html", () =>
-      driver.findWait(".test-pw-add", 500).click()
+      driver.findWait(".test-pw-add", 500).click(),
     );
     await driver.findContentWait(".test-pw-counter", /of 3/, 3000);
 
@@ -226,7 +226,7 @@ describe("AttachmentsWidget", function () {
     // Note that the disposition here is NOT "inline" (that would be bad).
     assert.equal(
       respLinkHtml.headers.get("Content-Disposition"),
-      'attachment; filename="htmlfile.html"'
+      'attachment; filename="htmlfile.html"',
     );
     await driver.find(".test-modal-dialog .test-pw-close").click();
   });
@@ -241,12 +241,12 @@ describe("AttachmentsWidget", function () {
 
     // Open an image preview.
     await driver.withActions(a =>
-      a.doubleClick(driver.find(".test-pw-thumbnail"))
+      a.doubleClick(driver.find(".test-pw-thumbnail")),
     );
 
     assert.equal(
       await driver.findWait(".test-pw-counter", 500).getText(),
-      "1 of 3"
+      "1 of 3",
     );
 
     // Assert that the attachment filename can be changed.
@@ -290,17 +290,17 @@ describe("AttachmentsWidget", function () {
 
     // First upload via the attachment icon.
     await gu.fileDialogUpload("uploads/grist.png", () =>
-      cell.find(".test-attachment-icon").click()
+      cell.find(".test-attachment-icon").click(),
     );
     await gu.waitToPass(async () =>
       assert.lengthOf(
         await gu.getCell({ col: 0, rowNum: 5 }).findAll(".test-pw-thumbnail"),
-        1
-      )
+        1,
+      ),
     );
     assert.deepEqual(
       await getCellThumbnailTitles(gu.getCell({ col: 0, rowNum: 5 })),
-      ["grist.png"]
+      ["grist.png"],
     );
     assert.equal(await gu.getCell({ col: 0, rowNum: 6 }).isPresent(), true);
 
@@ -313,21 +313,21 @@ describe("AttachmentsWidget", function () {
     });
     await gu.waitToPass(async () =>
       assert.isTrue(
-        await driver.find(".test-pw-attachment-content").isDisplayed()
-      )
+        await driver.find(".test-pw-attachment-content").isDisplayed(),
+      ),
     );
     assert.isFalse(
       await driver
         .findContent(".test-pw-attachment-content", /Preview not available/)
-        .isPresent()
+        .isPresent(),
     );
     await driver.find(".test-pw-close").click();
     await gu.waitForServer();
     await gu.waitToPass(async () =>
       assert.deepEqual(
         await getCellThumbnailTitles(gu.getCell({ col: 0, rowNum: 6 })),
-        ["grist.png"]
-      )
+        ["grist.png"],
+      ),
     );
     assert.equal(await gu.getCell({ col: 0, rowNum: 7 }).isPresent(), true);
   });
@@ -358,22 +358,22 @@ describe("AttachmentsWidget", function () {
 
     // Double-click the first attachment.
     await driver.withActions(a =>
-      a.doubleClick(cell.find(".test-pw-thumbnail[title*=pdf]"))
+      a.doubleClick(cell.find(".test-pw-thumbnail[title*=pdf]")),
     );
     assert.equal(
       await driver.findWait(".test-pw-counter", 500).getText(),
-      "1 of 2"
+      "1 of 2",
     );
     assert.equal(await driver.find(".test-pw-name").value(), "renamed.pdf");
     await driver.sendKeys(Key.ESCAPE);
 
     // Double-click the second attachment.
     await driver.withActions(a =>
-      a.doubleClick(cell.find(".test-pw-thumbnail[title*=png]"))
+      a.doubleClick(cell.find(".test-pw-thumbnail[title*=png]")),
     );
     assert.equal(
       await driver.findWait(".test-pw-counter", 500).getText(),
-      "2 of 2"
+      "2 of 2",
     );
     assert.equal(await driver.find(".test-pw-name").value(), "grist.png");
     await driver.sendKeys(Key.ESCAPE);
@@ -388,10 +388,10 @@ describe("AttachmentsWidget", function () {
     ]);
     await gu.fileDialogUpload(
       "uploads/file1.mov,uploads/file2.mp3,uploads/file3.zip,uploads/simple_array.json",
-      () => cell.find(".test-attachment-icon").click()
+      () => cell.find(".test-attachment-icon").click(),
     );
     await gu.waitToPass(async () =>
-      assert.lengthOf(await cell.findAll(".test-pw-thumbnail"), 6)
+      assert.lengthOf(await cell.findAll(".test-pw-thumbnail"), 6),
     );
     await gu.waitForServer();
     assert.deepEqual(await getCellThumbnailTitles(cell), [
@@ -405,55 +405,55 @@ describe("AttachmentsWidget", function () {
     await driver.sendKeys(Key.ENTER);
     assert.equal(
       await driver.findWait(".test-pw-counter", 500).getText(),
-      "1 of 6"
+      "1 of 6",
     );
 
     // For various recognized file types, see that a suitable element is created.
     assert.equal(await driver.find(".test-pw-name").value(), "renamed.pdf");
     assert.equal(
       await driver.find(".test-pw-attachment-content").getTagName(),
-      "object"
+      "object",
     );
     assert.match(
       await driver.find(".test-pw-attachment-content").getAttribute("data"),
-      /name=renamed.pdf&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=1&inline=1/
+      /name=renamed.pdf&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=1&inline=1/,
     );
     assert.equal(
       await driver.find(".test-pw-attachment-content").getAttribute("type"),
-      "application/pdf"
+      "application/pdf",
     );
 
     await driver.sendKeys(Key.RIGHT);
     assert.equal(await driver.find(".test-pw-name").value(), "grist.png");
     assert.equal(
       await driver.find(".test-pw-attachment-content").getTagName(),
-      "img"
+      "img",
     );
     assert.match(
       await driver.find(".test-pw-attachment-content").getAttribute("src"),
-      /name=grist.png&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=2/
+      /name=grist.png&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=2/,
     );
 
     await driver.sendKeys(Key.RIGHT);
     assert.equal(await driver.find(".test-pw-name").value(), "file1.mov");
     assert.equal(
       await driver.find(".test-pw-attachment-content").getTagName(),
-      "video"
+      "video",
     );
     assert.match(
       await driver.find(".test-pw-attachment-content").getAttribute("src"),
-      /name=file1.mov&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=6&inline=1/
+      /name=file1.mov&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=6&inline=1/,
     );
 
     await driver.sendKeys(Key.RIGHT);
     assert.equal(await driver.find(".test-pw-name").value(), "file2.mp3");
     assert.equal(
       await driver.find(".test-pw-attachment-content").getTagName(),
-      "audio"
+      "audio",
     );
     assert.match(
       await driver.find(".test-pw-attachment-content").getAttribute("src"),
-      /name=file2.mp3&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=7&inline=1/
+      /name=file2.mp3&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=7&inline=1/,
     );
 
     // Test that for an unsupported file, the extension is shown along with a message.
@@ -461,30 +461,30 @@ describe("AttachmentsWidget", function () {
     assert.equal(await driver.find(".test-pw-name").value(), "file3.zip");
     assert.equal(
       await driver.find(".test-pw-attachment-content").getTagName(),
-      "object"
+      "object",
     );
     assert.match(
       await driver.find(".test-pw-attachment-content").getAttribute("data"),
-      /name=file3.zip&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=8&inline=1/
+      /name=file3.zip&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=8&inline=1/,
     );
     assert.equal(
       await driver.find(".test-pw-attachment-content").getText(),
-      "ZIP\nPreview not available."
+      "ZIP\nPreview not available.",
     );
 
     // Test the same for a text/json file that we also don't currently render.
     await driver.sendKeys(Key.RIGHT);
     assert.equal(
       await driver.find(".test-pw-name").value(),
-      "simple_array.json"
+      "simple_array.json",
     );
     assert.equal(
       await driver.find(".test-pw-attachment-content").getTagName(),
-      "div"
+      "div",
     );
     assert.equal(
       await driver.find(".test-pw-attachment-content").getText(),
-      "JSON\nPreview not available."
+      "JSON\nPreview not available.",
     );
     await driver.sendKeys(Key.ESCAPE);
 
@@ -498,7 +498,7 @@ describe("AttachmentsWidget", function () {
 
   const checkClosing = async function (
     shouldSave: boolean,
-    trigger: () => Promise<void>
+    trigger: () => Promise<void>,
   ) {
     let cell = gu.getCell({ col: 1, rowNum: 2 });
     await cell.click(); // Click on the right column and move using keyboard, otherwise me might click on the thumbnail.
@@ -561,7 +561,7 @@ describe("AttachmentsWidget", function () {
 
   it("should save on close button", async function () {
     await checkClosing(true, () =>
-      driver.find(".test-modal-dialog .test-pw-close").click()
+      driver.find(".test-modal-dialog .test-pw-close").click(),
     );
   });
 
@@ -569,7 +569,7 @@ describe("AttachmentsWidget", function () {
     const cell = await gu.getCell({ col: 0, rowNum: 2 });
     await cell.click();
     await gu.fileDialogUpload("uploads/image_with_script.svg", () =>
-      cell.find(".test-attachment-icon").click()
+      cell.find(".test-attachment-icon").click(),
     );
     await driver.withActions(a => a.doubleClick(cell));
     await driver.findWait(".test-pw-attachment-content", 1000);
@@ -584,7 +584,7 @@ describe("AttachmentsWidget", function () {
 
     await cell.click();
     await gu.fileDialogUpload("uploads/image_with_script.svg", () =>
-      cell.find(".test-attachment-icon").click()
+      cell.find(".test-attachment-icon").click(),
     );
 
     // the spinner should show up after a small delay, wait for 1 second tops
@@ -631,13 +631,13 @@ describe("AttachmentsWidget", function () {
     const field = await gu.getCardCell("A");
     await field.click();
     await gu.fileDialogUpload("uploads/grist.png", () =>
-      field.mouseMove().find(".test-attachment-icon").click()
+      field.mouseMove().find(".test-attachment-icon").click(),
     );
     await gu.waitToPass(async () =>
       assert.lengthOf(
         await gu.getCardCell("A").findAll(".test-pw-thumbnail"),
-        4
-      )
+        4,
+      ),
     );
     assert.deepEqual(await getCellThumbnailTitles(gu.getCardCell("A")), [
       "renamed.pdf",
@@ -665,11 +665,11 @@ describe("AttachmentsWidget", function () {
     // Open the second attachment in preview in column B.
     const cell = gu.getCell({ col: 'B', rowNum: 2 });
     await driver.withActions(a =>
-      a.doubleClick(cell.find(".test-pw-thumbnail[title*=png]"))
+      a.doubleClick(cell.find(".test-pw-thumbnail[title*=png]")),
     );
     assert.equal(
       await driver.findWait(".test-pw-counter", 500).getText(),
-      "2 of 4"
+      "2 of 4",
     );
     assert.equal(await driver.find(".test-pw-name").value(), "grist.png");
 
@@ -715,7 +715,7 @@ async function ensureDialogIsClosed() {
   await gu.waitToPass(async () => {
     assert.equal(
       await driver.find(".test-pw-close").isPresent(),
-      false
+      false,
     );
   }, 10000);
 }

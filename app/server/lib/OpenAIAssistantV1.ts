@@ -68,7 +68,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
   public constructor(private _options: AssistantV1Options) {
     if (!this._apiKey && !_options.completionEndpoint) {
       throw new Error(
-        "Please set ASSISTANT_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT"
+        "Please set ASSISTANT_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT",
       );
     }
 
@@ -82,12 +82,12 @@ export class OpenAIAssistantV1 implements AssistantV1 {
   public async getAssistance(
     optSession: OptDocSession,
     doc: AssistanceDoc,
-    request: AssistanceRequestV1
+    request: AssistanceRequestV1,
   ): Promise<AssistanceResponseV1> {
     const generatePrompt = this._buildSchemaPromptGenerator(
       optSession,
       doc,
-      request
+      request,
     );
     const messages = request.state?.messages || [];
     const newMessages: AssistanceMessage[] = [];
@@ -146,14 +146,14 @@ export class OpenAIAssistantV1 implements AssistantV1 {
     const response = await completionToResponse(
       doc,
       request,
-      completion
+      completion,
     );
     if (response.suggestedFormula) {
       // Show the tweaked version of the suggested formula to the user (i.e. the one that's
       // copied when the Apply button is clicked).
       response.reply = replaceMarkdownCode(
         completion,
-        response.suggestedFormula
+        response.suggestedFormula,
       );
     }
  else {
@@ -185,7 +185,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
 
   private async _fetchCompletion(
     messages: AssistanceMessage[],
-    params: { user: string; model?: string }
+    params: { user: string; model?: string },
   ) {
     const { user, model } = params;
     const apiResponse = await DEPS.fetch(this._endpoint, {
@@ -210,7 +210,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
             }
           : undefined),
       }),
-      ...(DEPS.agents.trusted ? { agent: DEPS.agents.trusted } : {})
+      ...(DEPS.agents.trusted ? { agent: DEPS.agents.trusted } : {}),
     });
     const resultText = await apiResponse.text();
     const result = JSON.parse(resultText);
@@ -234,7 +234,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
     }
     if (apiResponse.status !== 200) {
       throw new Error(
-        `AI service provider API returned status ${apiResponse.status}: ${resultText}`
+        `AI service provider API returned status ${apiResponse.status}: ${resultText}`,
       );
     }
     return result.choices[0].message.content;
@@ -245,7 +245,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
     params: {
       user: string;
       model?: string;
-    }
+    },
   ): Promise<any> {
     let attempts = 0;
     const maxAttempts = 3;
@@ -274,7 +274,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
     params: {
       generatePrompt: AssistanceSchemaPromptGenerator;
       user: string;
-    }
+    },
   ): Promise<string> {
     const { generatePrompt, user } = params;
 
@@ -317,14 +317,14 @@ export class OpenAIAssistantV1 implements AssistantV1 {
       {
         user,
         model: this._longerContextModel || this._model,
-      }
+      },
     );
   }
 
   private _buildSchemaPromptGenerator(
     optSession: OptDocSession,
     doc: AssistanceDoc,
-    request: AssistanceRequestV1
+    request: AssistanceRequestV1,
   ): AssistanceSchemaPromptGenerator {
     return async options => ({
       role: "system",
@@ -358,7 +358,7 @@ export class EchoAssistantV1 implements AssistantV1 {
   public async getAssistance(
     _docSession: OptDocSession,
     doc: AssistanceDoc,
-    request: AssistanceRequestV1
+    request: AssistanceRequestV1,
   ): Promise<AssistanceResponseV1> {
     if (request.text === "ERROR") {
       throw new Error("ERROR");
@@ -388,7 +388,7 @@ export class EchoAssistantV1 implements AssistantV1 {
       doc,
       request,
       completion,
-      completion
+      completion,
     );
     response.state = history;
     return response;
@@ -410,7 +410,7 @@ export class EchoAssistantV1 implements AssistantV1 {
 function replaceMarkdownCode(markdown: string, replaceValue: string) {
   return markdown.replace(
     /```\w*\n(.*)```/s,
-    "```python\n" + replaceValue + "\n```"
+    "```python\n" + replaceValue + "\n```",
   );
 }
 
@@ -418,7 +418,7 @@ async function makeSchemaPromptV1(
   session: OptDocSession,
   doc: AssistanceDoc,
   request: AssistanceRequestV1,
-  options: AssistanceSchemaPromptV1Options = {}
+  options: AssistanceSchemaPromptV1Options = {},
 ) {
   return doc.assistanceSchemaPromptV1(session, {
     tableId: request.context.tableId,
@@ -431,7 +431,7 @@ async function completionToResponse(
   doc: AssistanceDoc,
   request: AssistanceRequestV1,
   completion: string,
-  reply?: string
+  reply?: string,
 ): Promise<AssistanceResponseV1> {
   const suggestedFormula = await doc.assistanceFormulaTweak(completion) || undefined;
   // Suggest an action only if the completion is non-empty (that is,
@@ -441,7 +441,7 @@ async function completionToResponse(
     request.context.tableId,
     request.context.colId, {
       formula: suggestedFormula,
-    }
+    },
   ]] : [];
   return {
     suggestedActions,

@@ -35,7 +35,7 @@ function setupTest(owner: MultiHolder) {
         numObs.set(safeJsonParse(inputs[2].value, "invalid"));
         fruitObs.set(inputs[3].value as typeof FruitType.type);
       }))),
-    )
+    ),
   ];
 }
 

@@ -16,7 +16,7 @@ import {
   IDisposableOwner,
   MutableObsArray,
   obsArray,
-  Observable
+  Observable,
 } from 'grainjs';
 import clamp from 'lodash/clamp';
 import defaults from 'lodash/defaults';
@@ -117,7 +117,7 @@ export class Notification extends Expirable implements INotification {
     actions: [],
     memos: [],
     key: null,
-    level: 'message'
+    level: 'message',
   };
 
   constructor(_opts: INotifyOptions) {
@@ -221,7 +221,7 @@ export class Notifier extends Disposable implements INotifier {
         title: msg.title,
         canUserClose: true,
         inToast: true,
-        level : 'message'
+        level : 'message',
       })) : null);
   }
 
@@ -385,9 +385,9 @@ export class Notifier extends Disposable implements INotifier {
             (where === 'toast' && appErr.seen ? null :
               dom('div', {tabIndex: "-1"}, timeFormat('T', new Date(appErr.timestamp)), ' ',
                   appErr.error.message, testId('notification-app-error'))
-            )
+            ),
           ),
-          testId('notification-app-errors')
+          testId('notification-app-errors'),
         );
       }),
       title: 'Unexpected error',

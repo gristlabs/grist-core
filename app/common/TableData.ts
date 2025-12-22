@@ -389,7 +389,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
       return 0;
     }
     return this._rowIdCol.find((id, i) =>
-      props.every(p => isEqual(p.col.values[i], p.value))
+      props.every(p => isEqual(p.col.values[i], p.value)),
     ) || 0;
   }
 
@@ -600,25 +600,25 @@ export class MetaTableData<TableId extends keyof SchemaTypes> extends TableData 
   }
 
   public getRowPropFunc<ColId extends MetaColId<TableId>>(
-    colId: ColId
+    colId: ColId,
   ): UIRowFunc<MetaRowRecord<TableId>[ColId]> {
     return super.getRowPropFunc(colId as any) as any;
   }
 
   public getColValues<ColId extends MetaColId<TableId>>(
-    colId: ColId
+    colId: ColId,
   ): ReadonlyArray<MetaRowRecord<TableId>[ColId]> {
     return super.getColValues(colId) as any;
   }
 
   public findRow<ColId extends MetaColId<TableId>>(
-    colId: ColId, colValue: MetaRowRecord<TableId>[ColId]
+    colId: ColId, colValue: MetaRowRecord<TableId>[ColId],
   ): number {
     return super.findRow(colId, colValue);
   }
 
   public findRecord<ColId extends MetaColId<TableId>>(
-    colId: ColId, colValue: MetaRowRecord<TableId>[ColId]
+    colId: ColId, colValue: MetaRowRecord<TableId>[ColId],
   ): MetaRowRecord<TableId>|undefined {
     return super.findRecord(colId, colValue) as any;
   }

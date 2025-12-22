@@ -62,15 +62,15 @@ describe('Proposals', function() {
           addRows: [],
           columnDeltas: { A: {2: [["y"], ["yy"]]} },
           columnRenames: [],
-        }
-      }
+        },
+      },
     });
     const query = 'select A from Table1 where id = 2';
     assert.deepEqual((await docApi.sql(query)).records, [
-      { fields: { A: 'y' } }
+      { fields: { A: 'y' } },
     ]);
     assert.deepEqual((await forkApi.sql(query)).records, [
-      { fields: { A: 'yy' } }
+      { fields: { A: 'yy' } },
     ]);
     await options.modifyAfterProposal?.(docApi, forkApi);
     await docApi.applyProposal(proposal.shortId);
@@ -83,7 +83,7 @@ describe('Proposals', function() {
       async testAfterApply(trunkApi) {
         const query = 'select A from Table1 where id = 2';
         assert.deepEqual((await trunkApi.sql(query)).records, [
-          { fields: { A: 'yy' } }
+          { fields: { A: 'yy' } },
         ]);
       },
     });
@@ -99,7 +99,7 @@ describe('Proposals', function() {
       async testAfterApply(trunkApi) {
         const query = 'select A from Table2 where id = 2';
         assert.deepEqual((await trunkApi.sql(query)).records, [
-          { fields: { A: 'yy' } }
+          { fields: { A: 'yy' } },
         ]);
       },
     });
@@ -115,7 +115,7 @@ describe('Proposals', function() {
       async testAfterApply(trunkApi) {
         const query = 'select AA from Table1 where id = 2';
         assert.deepEqual((await trunkApi.sql(query)).records, [
-          { fields: { AA: 'yy' } }
+          { fields: { AA: 'yy' } },
         ]);
       },
     });

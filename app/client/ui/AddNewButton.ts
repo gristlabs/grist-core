@@ -25,7 +25,7 @@ export function addNewButton(
     dom('div', {style: 'flex: 1 1 16px'}),
     cssPlusButton(
       cssPlusButton.cls('-disabled', isDisabled),
-      cssPlusIcon('Plus')
+      cssPlusIcon('Plus'),
     ),
     dom('div', {style: 'flex: 0 1 16px'}),
     ...args,

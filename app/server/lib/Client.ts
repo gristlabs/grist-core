@@ -305,7 +305,7 @@ export class Client {
    * See comments at the top of app/server/lib/Comm.ts for some relevant notes.
    */
   public async sendConnectMessage(
-    newClient: boolean, reuseClient: boolean, lastSeqId: number|null, parts: Partial<CommClientConnect>
+    newClient: boolean, reuseClient: boolean, lastSeqId: number|null, parts: Partial<CommClientConnect>,
   ): Promise<void> {
     if (this._destroyTimer) {
       clearTimeout(this._destroyTimer);

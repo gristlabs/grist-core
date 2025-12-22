@@ -57,7 +57,7 @@ export function aclColumnList(colIds: Observable<string[]>, validColIds: string[
           testId('acl-col-remove'),
         ),
         testId('acl-column'),
-      )
+      ),
     ),
     cssNewColItem(
       dom.update(
@@ -66,9 +66,9 @@ export function aclColumnList(colIds: Observable<string[]>, validColIds: string[
         dom.on('blur', onBlur),
         dom.onKeyDown({Escape: onBlur}),
         // If starting out in edit mode, focus the select box.
-        (editing.get() ? (elem) => { setTimeout(() => elem.focus(), 0); } : null)
+        (editing.get() ? (elem) => { setTimeout(() => elem.focus(), 0); } : null),
       ),
-    )
+    ),
   );
 }
 

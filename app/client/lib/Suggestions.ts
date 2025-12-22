@@ -19,7 +19,7 @@ export interface ISuggestionWithSubAttrs {
  * suggestions, then expanding "user.Email.u" would find and return "user.Email.upper()".
  */
 export function expandAndFilterSuggestions(
-  prefix: string, suggestions: ISuggestionWithSubAttrs[]
+  prefix: string, suggestions: ISuggestionWithSubAttrs[],
 ): ISuggestionWithSubAttrs[] {
   const result: ISuggestionWithSubAttrs[] = [];
 

@@ -9,7 +9,7 @@ import { dom, DomElementArg, IDisposableOwner, styled } from "grainjs";
 export function menuToggle(obs: IDisposableOwner|null, ...args: DomElementArg[]) {
   const contextMenu = cssMenuToggle(
     icon('Dropdown', dom.cls('menu_toggle_icon')),
-    ...args
+    ...args,
   );
   return contextMenu;
 }

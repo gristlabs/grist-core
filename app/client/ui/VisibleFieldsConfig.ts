@@ -149,7 +149,7 @@ export class VisibleFieldsConfig extends Disposable {
         remove: this.removeField.bind(this),
         receive: this.addField.bind(this),
         ...options.draggableOptions,
-      }
+      },
     );
   }
 
@@ -185,7 +185,7 @@ export class VisibleFieldsConfig extends Disposable {
         },
         removeButton: false,
         ...options.hiddenFields.draggableOptions,
-      }
+      },
     );
     kf.connectDraggableOneWay(hiddenFieldsDraggable, fieldsDraggable);
 
@@ -205,7 +205,7 @@ export class VisibleFieldsConfig extends Disposable {
         draggableOptions: {
           removeButton: false,
           drag_indicator: cssDragger,
-        }
+        },
       },
       hiddenFields: {
         itemCreateFunc: field => this._buildHiddenFieldItem(field as ColumnRec),
@@ -233,26 +233,26 @@ export class VisibleFieldsConfig extends Disposable {
                 dom.prop('disabled', this._disabled),
                 testId('visible-fields-select-all'),
               )
-            )
+            ),
           ),
         ),
         cssFieldsDraggable(
           cssFieldsDraggable.cls('-disabled', this._disabled),
-          dom.update(fieldsDraggable, testId('visible-fields'))
+          dom.update(fieldsDraggable, testId('visible-fields')),
         ),
         dom.maybe(this._showVisibleBatchButtons, () =>
           cssRow(
             primaryButton(
               dom.text(use => t("Hide {{label}}", {label: use(this._fieldLabel)})),
               dom.on('click', () => this._removeSelectedFields()),
-              testId('visible-hide')
+              testId('visible-hide'),
             ),
             basicButton(
               t("Clear"),
               dom.on('click', () => this._setVisibleCheckboxes(fieldsDraggable, false)),
-              testId('visible-clear')
+              testId('visible-clear'),
             ),
-            testId('visible-batch-buttons')
+            testId('visible-batch-buttons'),
           ),
         ),
       ),
@@ -285,7 +285,7 @@ export class VisibleFieldsConfig extends Disposable {
                 dom.prop('disabled', this._disabled),
                 testId('hidden-fields-select-all'),
               )
-            )
+            ),
           ),
         ),
         dom(
@@ -297,22 +297,22 @@ export class VisibleFieldsConfig extends Disposable {
             dom.update(
               hiddenFieldsDraggable,
               testId('hidden-fields'),
-            )
+            ),
           ),
           dom.maybe(this._showHiddenBatchButtons, () =>
             cssRow(
               primaryButton(
                 dom.text(use => t("Show {{label}}", {label: use(this._fieldLabel)})),
                 dom.on('click', () => this._addSelectedFields()),
-                testId('hidden-show')
+                testId('hidden-show'),
               ),
               basicButton(
                 t("Clear"),
                 dom.on('click', () => this._setHiddenCheckboxes(hiddenFieldsDraggable, false)),
-                testId('hidden-clear')
+                testId('hidden-clear'),
               ),
-              testId('hidden-batch-buttons')
-            )
+              testId('hidden-batch-buttons'),
+            ),
           ),
         ),
       ),
@@ -351,7 +351,7 @@ export class VisibleFieldsConfig extends Disposable {
       visibleFieldsDraggable,
       this._section.viewFields.peek().peek(),
       this._visibleFieldsSelection,
-      checked
+      checked,
     );
     this._showVisibleBatchButtons.set(checked);
 
@@ -363,7 +363,7 @@ export class VisibleFieldsConfig extends Disposable {
       hiddenFieldsDraggable,
       this._hiddenFields.peek(),
       this._hiddenFieldsSelection,
-      checked
+      checked,
     );
     this._showHiddenBatchButtons.set(checked);
   }
@@ -395,7 +395,7 @@ export class VisibleFieldsConfig extends Disposable {
         dom.on('click', () => this.addField(column)),
         testId('hide'),
         dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', use => t("Show {{label}}", {label: use(column.label)}))
+        dom.attr('aria-label', use => t("Show {{label}}", {label: use(column.label)})),
       ),
       buildCheckbox(
         dom.prop('checked', selection.has(id)),
@@ -409,8 +409,8 @@ export class VisibleFieldsConfig extends Disposable {
             selection.delete(id);
           }
           this._showHiddenBatchButtons.set(Boolean(selection.size));
-        })
-      )
+        }),
+      ),
     );
   }
 
@@ -426,7 +426,7 @@ export class VisibleFieldsConfig extends Disposable {
         dom.on('click', () => this.removeField(field)),
         testId('hide'),
         dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', use => t("Hide {{label}}", {label: use(field.label)}))
+        dom.attr('aria-label', use => t("Hide {{label}}", {label: use(field.label)})),
       ),
       buildCheckbox(
         dom.prop('checked', selection.has(id)),
@@ -440,8 +440,8 @@ export class VisibleFieldsConfig extends Disposable {
             selection.delete(id);
           }
           this._showVisibleBatchButtons.set(Boolean(selection.size));
-        })
-      )
+        }),
+      ),
     );
   }
 
@@ -482,8 +482,8 @@ function buildCheckbox(...args: IDomArgs<HTMLInputElement>) {
     {style: 'flex-shrink: 0;'},
     checkbox.cssCheckboxSquare(
       {type: 'checkbox'},
-      ...args
-    )
+      ...args,
+    ),
   );
 }
 

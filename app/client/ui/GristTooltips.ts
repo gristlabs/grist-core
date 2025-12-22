@@ -69,10 +69,10 @@ export const GristTooltips: Record<Tooltip, TooltipContentFunc> = {
   ),
   setTriggerFormula: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
-      t('Formulas that trigger in certain cases, and store the calculated value as data.')
+      t('Formulas that trigger in certain cases, and store the calculated value as data.'),
     ),
     dom('div',
-      t('Useful for storing the timestamp or author of a new record, data cleaning, and more.')
+      t('Useful for storing the timestamp or author of a new record, data cleaning, and more.'),
     ),
     dom('div',
       cssLink({href: commonUrls.helpTriggerFormulas, target: '_blank'}, t('Learn more.')),
@@ -88,7 +88,7 @@ export const GristTooltips: Record<Tooltip, TooltipContentFunc> = {
   ),
   workOnACopy: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
-      t('Try out changes in a copy, then decide whether to replace the original with your edits.')
+      t('Try out changes in a copy, then decide whether to replace the original with your edits.'),
     ),
     dom('div',
       cssLink({href: commonUrls.helpTryingOutChanges, target: '_blank'}, t('Learn more.')),
@@ -98,7 +98,7 @@ export const GristTooltips: Record<Tooltip, TooltipContentFunc> = {
   openAccessRules: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
       t('Access rules give you the power to create nuanced rules to determine who can \
-see or edit which parts of your document.')
+see or edit which parts of your document.'),
     ),
     dom('div',
       cssLink({href: commonUrls.helpAccessRules, target: '_blank'}, t('Learn more.')),
@@ -148,7 +148,7 @@ see or edit which parts of your document.')
   ),
   setChoiceDropdownCondition: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
-      t('Filter displayed dropdown values with a condition.')
+      t('Filter displayed dropdown values with a condition.'),
     ),
     dom('div', {style: 'margin-top: 8px;'}, t('Example: {{example}}', {
       example: dom.create(buildHighlightedCode, 'choice not in $Categories', {}, {style: 'margin-top: 8px;'}),
@@ -157,7 +157,7 @@ see or edit which parts of your document.')
   ),
   setRefDropdownCondition: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
-      t('Filter displayed dropdown values with a condition.')
+      t('Filter displayed dropdown values with a condition.'),
     ),
     dom('div', {style: 'margin-top: 8px;'}, t('Example: {{example}}', {
       example: dom.create(buildHighlightedCode, 'choice.Role == "Manager"', {}, {style: 'margin-top: 8px;'}),
@@ -169,7 +169,7 @@ see or edit which parts of your document.')
   ),
   communityWidgets: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
-      t('Community widgets are created and maintained by Grist community members.')
+      t('Community widgets are created and maintained by Grist community members.'),
     ),
     dom('div',
       cssLink({href: commonUrls.helpCustomWidgets, target: '_blank'}, t('Learn more.')),
@@ -179,22 +179,22 @@ see or edit which parts of your document.')
   twoWayReferences: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
       t('Creates a new Reference List column in the target table, with both this \
-and the target columns editable and synchronized.')
+and the target columns editable and synchronized.'),
     ),
     ...args,
   ),
   twoWayReferencesDisabled: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
-      t('Two-way references are not currently supported for Formula or Trigger Formula columns')
+      t('Two-way references are not currently supported for Formula or Trigger Formula columns'),
     ),
     ...args,
   ),
   reassignTwoWayReference: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
-      t('This limitation occurs when one column in a two-way reference has the Reference type.')
+      t('This limitation occurs when one column in a two-way reference has the Reference type.'),
     ),
     dom('div',
-      t(`To allow multiple assignments, change the referenced column's type to Reference List.`)
+      t(`To allow multiple assignments, change the referenced column's type to Reference List.`),
     ),
     ...args,
   ),
@@ -207,13 +207,13 @@ and the target columns editable and synchronized.')
       t(
         "Internal storage means all attachments are stored in the document SQLite file, \
 while external storage indicates all attachments are stored in the same \
-external storage."
+external storage.",
       ) +
       "\n\n" +
       t(
       "[Learn more.]({{link}})", {
-        link: commonUrls.attachmentStorage
-      }
+        link: commonUrls.attachmentStorage,
+      },
     )),
     ...args,
   ),
@@ -226,7 +226,7 @@ external storage."
     cssMarkdownSpan(
       t(
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. \
-Only .tar attachment archives downloaded from Grist can be uploaded here."
+Only .tar attachment archives downloaded from Grist can be uploaded here.",
       ),
     ),
     ...args,
@@ -237,8 +237,8 @@ Only .tar attachment archives downloaded from Grist can be uploaded here."
 "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. \
 or any party providing this service. For your security, do not submit passwords through this form, \
 and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).", {
-        mail: getGristConfig().supportEmail
-      }
+        mail: getGristConfig().supportEmail,
+      },
     )),
   ),
   formUrlValues: () => cssTooltipContent(
@@ -255,13 +255,13 @@ and be careful when clicking embedded links. Report malicious forms to [{{mail}}
       t(
         "With suggestions, users make changes in a personal copy without \
 modifying the original document, then submit these suggestions \
-to be reviewed by the document owner prior to integration."
+to be reviewed by the document owner prior to integration.",
       ) +
       "\n\n" +
       t(
       "[Learn more.]({{link}})", {
         link: commonUrls.helpSuggestions,
-      }
+      },
     )),
   ),
 };
@@ -276,8 +276,8 @@ export const ErrorTooltips: Record<ErrorTooltip, TooltipContentFunc> = {
         "div",
         cssLink(
           {href: commonUrls.helpSummaryFormulas, target: "_blank"},
-          t("Learn more.")
-        )
+          t("Learn more."),
+        ),
       ),
     ),
 };
@@ -305,7 +305,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
     title: () => t('Reference Columns'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Reference columns are the key to {{relational}} data in Grist.', {
-        relational: cssBoldText(t('relational'))
+        relational: cssBoldText(t('relational')),
       })),
       dom('div', t('They allow for one record to point (or refer) to another.')),
       dom('div',
@@ -322,7 +322,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       dom('div', t('Select the table to link to.')),
       dom('div', t('Cells in a reference column always identify an {{entire}} \
 record in that table, but you may select which column from that record to show.', {
-          entire: cssItalicizedText(t('entire'))
+          entire: cssItalicizedText(t('entire')),
         })),
       dom('div',
         cssLink({href: commonUrls.helpUnderstandingReferenceColumns, target: '_blank'}, t('Learn more.')),
@@ -390,7 +390,7 @@ including summary tables and tables not included in page layouts.')),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Rearrange the fields in your card by dragging and resizing cells.')),
       dom('div', t('Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.', {
-        EyeHideIcon: cssIcon('EyeHide')
+        EyeHideIcon: cssIcon('EyeHide'),
       })),
       ...args,
     ),
@@ -413,7 +413,7 @@ including summary tables and tables not included in page layouts.')),
         t('To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.',
           {
             shortcut: ShortcutKey(ShortcutKeyContent(commands.allCommands.copyLink.humanKeys[0])),
-          }
+          },
         ),
       ),
       ...args,

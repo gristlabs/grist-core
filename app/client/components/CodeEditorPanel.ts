@@ -38,14 +38,14 @@ export class CodeEditorPanel extends DisposableWithEvents {
         // hljs.highlightBlock(elem) replaces `elem` with a whole new dom tree.
         const elem = dom('code.g-code-viewer',
           dom.text(code),
-          dom.hide(true)
+          dom.hide(true),
         );
         setTimeout(() => {
           hljs.highlightBlock(elem);
           dom.showElem(elem, true);
         });
         return elem;
-      })
+      }),
     );
   }
 

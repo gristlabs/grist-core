@@ -40,7 +40,7 @@ import {
   SKIP_TABLE,
   TransformColumn,
   TransformRule,
-  TransformRuleMap
+  TransformRuleMap,
 } from 'app/common/ActiveDocAPI';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {byteString, not} from 'app/common/gutil';
@@ -59,7 +59,7 @@ import {
   obsArray,
   Observable,
   styled,
-  UseCBOwner
+  UseCBOwner,
 } from 'grainjs';
 import debounce from 'lodash/debounce';
 
@@ -162,7 +162,7 @@ export async function selectAndImport(
   gristDoc: GristDoc,
   imports: ImportSourceElement[],
   importSourceElem: ImportSourceElement,
-  createPreview: CreatePreviewFunc
+  createPreview: CreatePreviewFunc,
 ) {
   // HACK: The url plugin does not support importing from google drive, and we don't want to
   // ask a user for permission to access all his files (needed to download a single file from an URL).
@@ -561,9 +561,9 @@ export class Importer extends DisposableWithEvents {
         colId: destTableId ? field.colId() : null, // if inserting into new table, colId isn't defined
         type: field.column().type(),
         widgetOptions: field.column().widgetOptions(),
-        formula: field.column().formula()
+        formula: field.column().formula(),
       })),
-      sourceCols: sourceFields.map(field => field.colId())
+      sourceCols: sourceFields.map(field => field.colId()),
     };
   }
 
@@ -574,7 +574,7 @@ export class Importer extends DisposableWithEvents {
     const {updateExistingRecords, mergeCols, mergeStrategy} = mergeOptions;
     return {
       mergeCols: updateExistingRecords.get() ? mergeCols.get() : [],
-      mergeStrategy: mergeStrategy.get()
+      mergeStrategy: mergeStrategy.get(),
     };
   }
 
@@ -817,7 +817,7 @@ export class Importer extends DisposableWithEvents {
     const header = this._buildModalTitle();
     const options = schema ? cssActionLink(cssLinkIcon('Settings'), t('Import options'),
       testId('options-link'),
-      dom.on('click', () => this._renderParseOptions(schema, upload))
+      dom.on('click', () => this._renderParseOptions(schema, upload)),
     ) : null;
 
     const selectTab = async (info: SourceInfo) => {
@@ -876,7 +876,7 @@ export class Importer extends DisposableWithEvents {
           dom.maybe(unmatchedCount, count => cssError(
             'Exclamation',
             testId('error'),
-            hoverTooltip(t('{{count}} unmatched field', {count}))
+            hoverTooltip(t('{{count}} unmatched field', {count})),
           )),
         );
       }),
@@ -992,7 +992,7 @@ export class Importer extends DisposableWithEvents {
                   visibleIfDestIs(destTable.value),
                   hoverTooltip(t('Column mapping')),
                   testId('target-column-mapping'),
-                )
+                ),
               );
             }),
           ),
@@ -1003,17 +1003,17 @@ export class Importer extends DisposableWithEvents {
                   cssNavigationIcon('ArrowLeft'),
                   t('Destination table'),
                   onClickShowView(TABLE_MAPPING),
-                  testId('table-mapping')
+                  testId('table-mapping'),
                 ),
                 cssSlash(' / '),
                 cssColumnMappingNav(t('Column Mapping')),
-              )
+              ),
             ),
             cssMergeOptions(
               dom.maybe(isMergeTable, () => cssMergeOptionsToggle(labeledSquareCheckbox(
                 updateExistingRecords,
                 t("Update existing records"),
-                testId('update-existing-records')
+                testId('update-existing-records'),
               ))),
               dom.maybe(configSection, (section) => {
                 return dom.maybeOwned(updateExistingRecords, (owner2) => {
@@ -1027,17 +1027,17 @@ export class Importer extends DisposableWithEvents {
                   return [
                     cssMergeOptionsMessage(
                       t("Merge rows that match these fields:"),
-                      testId('merge-fields-message')
+                      testId('merge-fields-message'),
                     ),
                     multiSelect(
                       mergeCols,
                       section.viewFields().peek().map(f => ({label: f.label(), value: f.colId()})) ?? [],
                       {
                         placeholder: t("Select fields to match on"),
-                        error: hasInvalidMergeCols
+                        error: hasInvalidMergeCols,
                       },
-                      testId('merge-fields-select')
-                    )
+                      testId('merge-fields-select'),
+                    ),
                   ];
                 });
               }),
@@ -1099,7 +1099,7 @@ export class Importer extends DisposableWithEvents {
                 testId('column-match-options'),
               );
             }),
-          )
+          ),
         ),
         cssPreviewColumn(
           dom.maybe(showLoader, () => cssPreviewSpinner(loadingSpinner(), testId('preview-spinner'))),
@@ -1109,11 +1109,11 @@ export class Importer extends DisposableWithEvents {
                 destId === NEW_TABLE ? t("New Table") :
                 destId === SKIP_TABLE ? t("Skip Import") :
                 dom.domComputed(this._destTables, list =>
-                  list.find(dt => dt.value === destId)?.label ?? t("New Table")
-                )
+                  list.find(dt => dt.value === destId)?.label ?? t("New Table"),
+                ),
               )),
               options,
-            )
+            ),
           ]),
           cssWarningText(dom.text(use => use(this._parseOptions)?.WARNING || ""), testId('warning')),
           dom.domComputed((use) => {
@@ -1128,8 +1128,8 @@ export class Importer extends DisposableWithEvents {
               gridView.viewPane,
               testId('preview'),
             );
-          })
-        )
+          }),
+        ),
       );
     });
 
@@ -1183,7 +1183,7 @@ export class Importer extends DisposableWithEvents {
     this._addFocusLayer(body);
     this._screen.render(body, {
       fullscreen: true,
-      fullbody: true
+      fullbody: true,
     });
   }
 
@@ -1227,8 +1227,8 @@ export class Importer extends DisposableWithEvents {
       ...others.map(([formula, label]) =>
         menuItem(() => this._setColumnFormula(transformCol, formula, info),
           label,
-          testId('column-match-menu-item'))
-      )
+          testId('column-match-menu-item')),
+      ),
     ];
   }
 
@@ -1279,7 +1279,7 @@ export class Importer extends DisposableWithEvents {
         // display column to the same column. This won't break anything as this is a default value.
         await column.updateColValues({formula});
         await onSave(formula);
-      }
+      },
     });
     this._formulaEditorHolder.autoDispose(editorHolder);
   }
@@ -1291,7 +1291,7 @@ export class Importer extends DisposableWithEvents {
    * focus.
    */
   private _setupFormulaEditorCleanup(
-    owner: Disposable, _doc: GristDoc, editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>
+    owner: Disposable, _doc: GristDoc, editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>,
   ) {
     const saveEdit = () => _saveEdit().catch(reportError);
 
@@ -1417,7 +1417,7 @@ export class Importer extends DisposableWithEvents {
           anotherScreen.dispose();
           this._renderMain(upload);
         },
-      )
+      ),
     ]);
   }
 

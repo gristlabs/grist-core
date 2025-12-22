@@ -27,7 +27,7 @@ describe('UserManager', () => {
     const members = await driver.findAll('.test-um-member');
     return await Promise.all(members.map(m => Promise.all([
       getMemberEmail(m),
-      getMemberRole(m)
+      getMemberRole(m),
     ])));
   }
 
@@ -62,7 +62,7 @@ describe('UserManager', () => {
     // Save and check output.
     await driver.find('.test-save').click();
     assert.deepEqual(JSON.parse(await driver.find('.test-result').getText()), {
-      users: {"foo@example.com": "editors"}
+      users: {"foo@example.com": "editors"},
     });
     await driver.find('.test-reset').click();
   });
@@ -94,7 +94,7 @@ describe('UserManager', () => {
         "bob@bob.tail": "editors",
         "alice@a.com": "viewers",
         "eve@a.com": "editors",
-      }
+      },
     });
     await driver.find('.test-reset').click();
   });
@@ -128,7 +128,7 @@ describe('UserManager', () => {
     // Save and check output.
     await driver.find('.test-save').click();
     assert.deepEqual(JSON.parse(await driver.find('.test-result').getText()), {
-      users: {"bar@example.com": null}
+      users: {"bar@example.com": null},
     });
     await driver.find('.test-reset').click();
   });

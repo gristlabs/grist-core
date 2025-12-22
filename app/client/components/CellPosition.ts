@@ -60,7 +60,7 @@ export function toCursor(position: CellPosition, docModel: DocModel): CursorPos 
   const cursorPosition = {
     rowId: position.rowId as number, // this is hack, as cursor position can accept string
     fieldIndex,
-    sectionId: position.sectionId
+    sectionId: position.sectionId,
   };
 
   return cursorPosition;

@@ -145,7 +145,7 @@ We recommend setting the environment variable \
 GRIST_SANDBOX_FLAVOR to gvisor if your hardware \
 supports it (most will), to run formulas in each document \
 within a sandbox isolated from other documents and isolated \
-from the network.')
+from the network.'),
   },
 
   'system-user': {
@@ -153,14 +153,14 @@ from the network.')
   },
 
   'reachable': {
-    info: t('The main page of Grist should be available.')
+    info: t('The main page of Grist should be available.'),
   },
 
   'websockets': {
     // TODO: add a link to https://support.getgrist.com/self-managed/#how-do-i-run-grist-on-a-server
     info: t('Websocket connections need HTTP 1.1 and the ability to pass a few \
 extra headers in order to work. Sometimes a reverse proxy can \
-interfere with these requirements.')
+interfere with these requirements.'),
   },
 };
 

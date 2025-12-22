@@ -13,7 +13,7 @@ describe("MinIOExternalStorage", function () {
       bucket: string,
       key: string,
       recursive: boolean,
-      options?: {IncludeVersion?: boolean}
+      options?: {IncludeVersion?: boolean},
     ): minio.BucketStream<minio.BucketItem> {
       return new stream.Readable();
     }
@@ -44,7 +44,7 @@ describe("MinIOExternalStorage", function () {
         dummyBucket,
         dummyOptions,
         undefined,
-        s3 as any
+        s3 as any,
       );
     });
 
@@ -118,7 +118,7 @@ describe("MinIOExternalStorage", function () {
           name: key,
           lastModified,
           versionId,
-        }
+        },
       ]);
 
       s3.listObjects.returns(fakeStream);
@@ -129,7 +129,7 @@ describe("MinIOExternalStorage", function () {
       assert.equal(readSpy.callCount, 2);
       assert.deepEqual(result, [{
         lastModified: lastModified.toISOString(),
-        snapshotId: String(versionId)
+        snapshotId: String(versionId),
       }]);
     });
 
@@ -143,14 +143,14 @@ describe("MinIOExternalStorage", function () {
           name: key,
           lastModified,
           versionId: 'regular-version-uuid',
-          isDeleteMarker: false
+          isDeleteMarker: false,
         },
         {
           name: key,
           lastModified,
           versionId: 'delete-marker-version-uuid',
-          isDeleteMarker: true
-        }
+          isDeleteMarker: true,
+        },
       ];
       let {fakeStream} = makeFakeStream(objectsFromS3);
 
@@ -163,7 +163,7 @@ describe("MinIOExternalStorage", function () {
       // then
       assert.deepEqual(result, [{
         lastModified: lastModified.toISOString(),
-        snapshotId: objectsFromS3[0].versionId
+        snapshotId: objectsFromS3[0].versionId,
       }]);
 
       // given
@@ -176,10 +176,10 @@ describe("MinIOExternalStorage", function () {
       // then
       assert.deepEqual(resultWithDeleteMarkers, [{
         lastModified: lastModified.toISOString(),
-        snapshotId: objectsFromS3[0].versionId
+        snapshotId: objectsFromS3[0].versionId,
       }, {
         lastModified: lastModified.toISOString(),
-        snapshotId: objectsFromS3[1].versionId
+        snapshotId: objectsFromS3[1].versionId,
       }]);
     });
 

@@ -77,7 +77,7 @@ describe("Timing", function () {
 
     // Add new record through the API (to trigger formula calculations).
     await userApi.applyUserActions(docId, [
-      ['AddRecord', 'Table1', null, {}]
+      ['AddRecord', 'Table1', null, {}],
     ]);
   });
 

@@ -6,7 +6,7 @@ export class GracePeriod1732103776245 implements MigrationInterface {
     await queryRunner.addColumn("activations", new TableColumn({
       name: "grace_period_start",
       type: nativeValues.dateTimeType,
-      isNullable: true
+      isNullable: true,
     }));
   }
 

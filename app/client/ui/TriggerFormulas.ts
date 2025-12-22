@@ -65,7 +65,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
   async function setRecalc(when: RecalcWhen, deps: number[]|null) {
     if (when !== column.recalcWhen.peek() || deps !== column.recalcDeps.peek()) {
       return column._table.sendTableAction(
-        ["UpdateRecord", column.id.peek(), {recalcWhen: when, recalcDeps: encodeObject(deps)}]
+        ["UpdateRecord", column.id.peek(), {recalcWhen: when, recalcDeps: encodeObject(deps)}],
       );
     }
   }
@@ -84,13 +84,13 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
   const changesDisabled = Computed.create(owner, (use) => {
     return Boolean(
       (options.disabled && use(options.disabled)) ||
-      (options.notTrigger && use(options.notTrigger))
+      (options.notTrigger && use(options.notTrigger)),
     );
   });
 
   const newRowsDisabled = Computed.create(owner, (use) => {
     return Boolean(
-      use(applyOnChanges) || use(changesDisabled)
+      use(applyOnChanges) || use(changesDisabled),
     );
   });
 
@@ -108,7 +108,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
         applyOnChanges,
         dom.text(use => use(applyOnChanges) ?
           t("Apply on changes to:") :
-          t("Apply on record changes")
+          t("Apply on record changes"),
         ),
         dom.boolAttr('disabled', changesDisabled),
         testId('field-formula-apply-on-changes'),
@@ -124,15 +124,15 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
           (elem) => {
             setPopupToCreateDom(elem, ctl => buildTriggerSelectors(ctl, column.table.peek(), column, setRecalc),
               {...defaultMenuOptions, placement: 'bottom-end'});
-          }
-        )
-      )
-    )
+          },
+        ),
+      ),
+    ),
   ];
 }
 
 function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column: ColumnRec,
-  setRecalc: (when: RecalcWhen, deps: number[]|null) => Promise<void>
+  setRecalc: (when: RecalcWhen, deps: number[]|null) => Promise<void>,
 ) {
   // ctl may be used as an owner for disposable object. Just give is a clearer name for this.
   const owner: IDisposableOwner = ctl;
@@ -192,7 +192,7 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
     dom.onDispose(onClose),
     dom.onKeyDown({
       Enter: () => close(true),
-      Escape: () => close(false)
+      Escape: () => close(false),
     }),
     // Set focus on open, so that keyboard events work.
     (elem) => { setTimeout(() => elem.focus(), 0); },
@@ -207,7 +207,7 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
       menuDivider(),
       cssSelectorItem(
         labeledSquareCheckbox(allUpdates,
-          [`${t("Any field")} `, cssSelectorNote('(except formulas)')]
+          [`${t("Any field")} `, cssSelectorNote('(except formulas)')],
         ),
       ),
     ),
@@ -218,7 +218,7 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
             col.label.peek(),
             dom.boolAttr('disabled', allUpdates),
           ),
-        )
+        ),
       ),
     ),
     cssItemsFixed(
@@ -226,14 +226,14 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
         dom.maybe(isChanged, () =>
           primaryButton(t("OK"),
             dom.on('click', () => close(true)),
-            testId('trigger-deps-apply')
+            testId('trigger-deps-apply'),
           ),
         ),
         basicButton(dom.text(use => use(isChanged) ? t("Cancel") : t("Close")),
           dom.on('click', () => close(false)),
-          testId('trigger-deps-cancel')
+          testId('trigger-deps-cancel'),
         ),
-      )
+      ),
     ),
   );
 }

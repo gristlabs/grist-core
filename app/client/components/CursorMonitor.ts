@@ -145,7 +145,7 @@ class StorageWrapper {
     }
   }
 
-  public clear(docId: string,): void {
+  public clear(docId: string): void {
     const storage = this._storage;
     storage.removeItem(this._key(docId));
   }

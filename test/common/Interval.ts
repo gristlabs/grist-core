@@ -80,7 +80,7 @@ describe('Interval', function() {
   describe('with a randomized delay', function() {
     beforeEach(() => {
       interval = new Interval(spy, {delayMs, varianceMs}, {
-        onError: () => { /* do nothing */ }
+        onError: () => { /* do nothing */ },
       });
       interval.enable();
     });

@@ -73,7 +73,7 @@ export function buildParseOptionsForm(
     escapechar: t('Escape character'),
     start_with_row: t('Start with row'),
     NUM_ROWS: t('Number of rows'),
-    encoding: t('Character encoding. See [the supported codecs]({{link}})', {link: 'https://tinyurl.com/py3codecs'})
+    encoding: t('Character encoding. See [the supported codecs]({{link}})', {link: 'https://tinyurl.com/py3codecs'}),
   };
 
   return [
@@ -90,8 +90,8 @@ export function buildParseOptionsForm(
           bigBasicButton(t('Close'), dom.on('click', doCancel), testId('parseopts-back')) :
           bigPrimaryButton(t('Update preview'), dom.on('click', () => doUpdate(collectParseOptions())),
             testId('parseopts-update'))
-        )
-      )
+        ),
+      ),
     ),
   ];
 }

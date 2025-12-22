@@ -240,7 +240,7 @@ describe('UI2018', () => {
       // Check that the correct available options are shown.
       const availableOptions = await driver.findAll(
         '.test-multi-select-menu .test-multi-select-menu-option-text',
-        el => el.getText()
+        el => el.getText(),
       );
       assert.deepEqual(
         availableOptions,
@@ -255,14 +255,14 @@ describe('UI2018', () => {
           'Reference',
           'Attachment',
           'Any',
-          'A very very long fake label for a very fake type'
-        ]
+          'A very very long fake label for a very fake type',
+        ],
       );
 
       // Check that all checkboxes are unchecked.
       const checkboxValues = await driver.findAll(
         '.test-multi-select-menu .test-multi-select-menu-option-checkbox',
-        el => el.getAttribute('checked')
+        el => el.getAttribute('checked'),
       );
       assert.notInclude(checkboxValues, 'true');
     });
@@ -271,45 +271,45 @@ describe('UI2018', () => {
       // Click the first option and check that the button text updated.
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Text/
+        /Text/,
       ).click();
       assert.equal(await driver.find('#menus .test-multi-select').getText(), 'Text');
 
       // Click the last option's text and check that the button text updated.
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /A very very long/
+        /A very very long/,
       ).find('.test-multi-select-menu-option-text').click();
       assert.equal(
         await driver.find('#menus .test-multi-select').getText(),
-        'Text, A very very long fake label for a very fake type'
+        'Text, A very very long fake label for a very fake type',
       );
 
       // Click the second option's checkbox and check that the button text updated.
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Numeric/
+        /Numeric/,
       ).find('.test-multi-select-menu-option-checkbox').click();
       assert.equal(
         await driver.find('#menus .test-multi-select').getText(),
-        'Text, Numeric, A very very long fake label for a very fake type'
+        'Text, Numeric, A very very long fake label for a very fake type',
       );
 
       // Uncheck the first option ('Text') and check that the button text updated.
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Text/
+        /Text/,
       ).click();
       assert.equal(
         await driver.find('#menus .test-multi-select').getText(),
-        'Numeric, A very very long fake label for a very fake type'
+        'Numeric, A very very long fake label for a very fake type',
       );
 
       // Close the menu and check that the button text is still correct.
       await driver.find('#menus > h4').click();
       assert.equal(
         await driver.find('#menus .test-multi-select').getText(),
-        'Numeric, A very very long fake label for a very fake type'
+        'Numeric, A very very long fake label for a very fake type',
       );
     });
 
@@ -317,34 +317,34 @@ describe('UI2018', () => {
       // Check that the outline is currently not red.
       assert.equal(
         await driver.find('#menus .test-multi-select').getCssValue('border'),
-        '1px solid rgb(217, 217, 217)'
+        '1px solid rgb(217, 217, 217)',
       );
 
       // Open the menu and check 2 more option, triggering the error observable from the fixture to be true.
       await driver.find('#menus .test-multi-select').click();
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Text/
+        /Text/,
       ).click();
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Date/
+        /Date/,
       ).click();
 
       // Check that the outline is now red.
       assert.equal(
         await driver.find('#menus .test-multi-select').getCssValue('border'),
-        '1px solid rgb(208, 2, 27)'
+        '1px solid rgb(208, 2, 27)',
       );
 
       // Uncheck an option and check that the outline is no longer red.
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Text/
+        /Text/,
       ).click();
       assert.equal(
         await driver.find('#menus .test-multi-select').getCssValue('border'),
-        '1px solid rgb(217, 217, 217)'
+        '1px solid rgb(217, 217, 217)',
       );
     });
   });

@@ -3,12 +3,12 @@ import {
   AttachmentFileManager,
   AttachmentRetrievalError,
   StoreNotAvailableError,
-  UnknownDocumentPoolError
+  UnknownDocumentPoolError,
 } from "app/server/lib/AttachmentFileManager";
 import {
   AttachmentFile,
   getDocPoolIdFromDocInfo,
-  IAttachmentStore
+  IAttachmentStore,
 } from "app/server/lib/AttachmentStore";
 import {
   AttachmentStoreProvider,
@@ -57,7 +57,7 @@ class DocStorageFake implements IMinimalDocStorage {
 
   // Needs to match the semantics of DocStorage's implementation.
   public async attachFileIfNew(
-    fileIdent: string, fileData: Buffer | undefined, storageId?: string
+    fileIdent: string, fileData: Buffer | undefined, storageId?: string,
   ): Promise<boolean> {
     if (fileIdent in this._files) {
       return false;
@@ -67,7 +67,7 @@ class DocStorageFake implements IMinimalDocStorage {
   }
 
   public async attachOrUpdateFile(
-    fileIdent: string, fileData: Buffer | undefined, storageId?: string
+    fileIdent: string, fileData: Buffer | undefined, storageId?: string,
   ): Promise<boolean> {
     const exists = fileIdent in this._files;
     this._setFileRecord(fileIdent, fileData, storageId);
@@ -99,7 +99,7 @@ interface TestAttachmentStore extends IAttachmentStore {
 
 /** Creates a fake storage provider that doesn't finish the upload */
 export async function makeTestingControlledStore(
-  name: string = "unfinished"
+  name: string = "unfinished",
 ): Promise<IAttachmentStoreConfig> {
   let resolve: () => void;
   const createProm = () => new Promise<void>((_resolve) => { resolve = _resolve; });
@@ -133,7 +133,7 @@ export async function makeTestingControlledStore(
       name: "unfinished",
       create: async () => {
         return neverStore;
-      }
+      },
     },
   };
 }
@@ -147,7 +147,7 @@ async function createFakeAttachmentStoreProvider(): Promise<IAttachmentStoreProv
       await makeTestingFilesystemStoreConfig("filesystem-alt"),
       await makeTestingControlledStore("unfinished"),
     ],
-    "TEST-INSTALLATION-UUID"
+    "TEST-INSTALLATION-UUID",
   );
 }
 
@@ -348,7 +348,7 @@ describe("AttachmentFileManager", function() {
     async function getManagerWithDifferentStores() {
       const alternateProvider = new AttachmentStoreProvider(
         [await makeTestingFilesystemStoreConfig("new-store")],
-        'ANOTHER-INSTALLATION-UUID'
+        'ANOTHER-INSTALLATION-UUID',
       );
 
       // Uses the same fake database + doc info, but with different stores.
@@ -370,13 +370,13 @@ describe("AttachmentFileManager", function() {
 
       const isExternalFileDataAdded =
         await manager.addMissingFileData(
-          files.external.fileIdent, stream.Readable.from(defaultTestFileBuffer), undefined
+          files.external.fileIdent, stream.Readable.from(defaultTestFileBuffer), undefined,
         );
       assert.isFalse(isExternalFileDataAdded, "external file data should not have been added");
 
       const isInternalFileDataAdded =
         await manager.addMissingFileData(
-          files.internal.fileIdent, stream.Readable.from(defaultTestFileBuffer), undefined
+          files.internal.fileIdent, stream.Readable.from(defaultTestFileBuffer), undefined,
         );
       assert.isFalse(isInternalFileDataAdded, "internal file data should not have been added");
     });
@@ -402,7 +402,7 @@ describe("AttachmentFileManager", function() {
 
       const isExternalFileDataAdded =
         await manager.addMissingFileData(
-          files.external.fileIdent, stream.Readable.from(defaultTestFileBuffer), otherStoreId
+          files.external.fileIdent, stream.Readable.from(defaultTestFileBuffer), otherStoreId,
         );
       assert.isTrue(isExternalFileDataAdded, "external file data should have been added");
       assert.isTrue(await manager.isFileAvailable(files.external.fileIdent));
@@ -536,7 +536,7 @@ describe("AttachmentFileManager", function() {
         const store = (await originalGetStore(...args))!;
         sinon.replace(store, 'upload', () => { throw new Error("Upload should never be called"); });
         return store;
-      }
+      },
     ));
 
     const addFileResult2 = await addFile();
@@ -594,7 +594,7 @@ describe("AttachmentFileManager", function() {
 
     assert(
       await store.exists(getDocPoolIdFromDocInfo(docInfo), fileAddResult.fileIdent),
-      "file does not exist in new store"
+      "file does not exist in new store",
     );
   }
 

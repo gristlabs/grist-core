@@ -48,11 +48,11 @@ export function buildWelcomeSitePicker(owner: IDisposableOwner, appModel: AppMod
                 testId('org'),
               )
             )),
-          )
+          ),
         ),
         cssMessage(t("You can always switch sites using the account menu.")),
-      )
-    )
+      ),
+    ),
   );
 }
 

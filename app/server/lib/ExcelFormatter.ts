@@ -41,17 +41,17 @@ class BaseFormatter {
       style.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: argb(this.widgetOptions.fillColor) }
+        fgColor: { argb: argb(this.widgetOptions.fillColor) },
       };
     }
     if (this.widgetOptions.textColor) {
       style.font = {
-        color: { argb: argb(this.widgetOptions.textColor) }
+        color: { argb: argb(this.widgetOptions.textColor) },
       };
     }
     if (this.widgetOptions.alignment) {
       style.alignment = {
-        horizontal: this.widgetOptions.alignment
+        horizontal: this.widgetOptions.alignment,
       };
     }
     if (this.widgetOptions.dateFormat) {

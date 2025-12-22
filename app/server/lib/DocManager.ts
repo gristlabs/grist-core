@@ -20,7 +20,7 @@ import {isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {DocAuthorizer, DocAuthorizerImpl, DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
 import {
   getConfiguredStandardAttachmentStore,
-  IAttachmentStoreProvider
+  IAttachmentStoreProvider,
 } from 'app/server/lib/AttachmentStoreProvider';
 import {Client} from 'app/server/lib/Client';
 import {DocSessionPrecursor,
@@ -250,7 +250,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         {userId},
         workspaceId,
         {name: documentName ?? uploadBaseFilename},
-        docId
+        docId,
       );
       if (queryResult.status !== 200) {
         // TODO The ready-to-add document is not yet in storageManager, but is in the filesystem. It
@@ -771,7 +771,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     }
  catch (err) {
       throw new ApiError(err.message, err.status || 400, {
-        tips: [{action: 'ask-for-help', message: 'Ask for help'}]
+        tips: [{action: 'ask-for-help', message: 'Ask for help'}],
       });
     }
  finally {
@@ -818,7 +818,7 @@ async function updateDocumentAttachmentStoreSettingToValidValue(fname: string, p
 // Updates the document's settings (_grist_DocInfo.docSettings) without loading the document.
 async function updateDocumentSettingsInPlace(
   fname: string,
-  makeChanges: (oldSettings: DocumentSettings | undefined) => DocumentSettings | undefined
+  makeChanges: (oldSettings: DocumentSettings | undefined) => DocumentSettings | undefined,
 ) {
   const db = await SQLiteDB.openDBRaw(fname, OpenMode.OPEN_EXISTING);
   try {
@@ -854,7 +854,7 @@ async function updateDocumentSettingsInPlace(
 
     await db.run('UPDATE _grist_DocInfo SET documentSettings = ? WHERE id = ?',
       JSON.stringify(newSettings),
-      docInfoRow.id
+      docInfoRow.id,
     );
   }
  finally {

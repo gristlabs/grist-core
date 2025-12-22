@@ -51,7 +51,7 @@ export function enableExternalAttachmentsForTestSuite(options: {
     envVars,
     getAttachmentsDir() {
       return envVars.GRIST_TEST_ATTACHMENTS_DIR;
-    }
+    },
   };
 }
 

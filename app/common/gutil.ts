@@ -11,7 +11,7 @@ import {
   Observable,
   subscribeElem,
   UseCB,
-  UseCBOwner
+  UseCBOwner,
 } from 'grainjs';
 import {Observable as KoObservable} from 'knockout';
 import identity from 'lodash/identity';
@@ -478,7 +478,7 @@ export function map2<T, U, V>(array1: ArrayLike<T>, array2: ArrayLike<U>, mapFun
  */
 export function growMatrix<T>(dataMatrix: T[][], r: number, c: number): T[][] {
   const colArr = dataMatrix.map(colVals =>
-    Array.from({length: c}, (_v, k) => colVals[k % colVals.length])
+    Array.from({length: c}, (_v, k) => colVals[k % colVals.length]),
   );
   return Array.from({length: r}, (_v, k) => colArr[k % colArr.length]);
 }
@@ -920,7 +920,7 @@ export function isValidHex(val: unknown): val is string {
  * returns false, including when promise is rejected.
  */
 export async function timeoutReached(
-  msec: number, promise: Promise<unknown>, options: {rethrow: boolean} = {rethrow: false}
+  msec: number, promise: Promise<unknown>, options: {rethrow: boolean} = {rethrow: false},
 ): Promise<boolean> {
   // For test purposes, support negative timeout, by failing
   // immediately.
@@ -1076,7 +1076,7 @@ export function ifNotSet(value: any, def: any = null) {
  */
 export function computedOwned<T>(
   owner: IDisposableOwner,
-  func: (owner: IDisposableOwner, use: UseCBOwner) => T
+  func: (owner: IDisposableOwner, use: UseCBOwner) => T,
 ): Computed<T> {
   const holder = Holder.create(owner);
   return Computed.create(owner, (use) => {

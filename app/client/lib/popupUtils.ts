@@ -16,7 +16,7 @@ export function documentCursor(type: 'ns-resize' | 'grabbing'): IDisposable {
     },
     isDisposed() {
       return !cursorStyle.isConnected;
-    }
+    },
   };
   return cursorOwner;
 }

@@ -95,24 +95,24 @@ export class GroupsManager {
   private readonly _defaultGroups: RoleGroupDescriptor[] = [{
     name: roles.OWNER,
     permissions: Permissions.OWNER,
-    nestParent: true
+    nestParent: true,
   }, {
     name: roles.EDITOR,
     permissions: Permissions.EDITOR,
-    nestParent: true
+    nestParent: true,
   }, {
     name: roles.VIEWER,
     permissions: Permissions.VIEW,
-    nestParent: true
+    nestParent: true,
   }, {
     name: roles.GUEST,
     permissions: Permissions.VIEW,
-    nestParent: false
+    nestParent: false,
   }, {
     name: roles.MEMBER,
     permissions: Permissions.VIEW,
     nestParent: false,
-    orgOnly: true
+    orgOnly: true,
   }];
 
   public constructor (private _usersManager: UsersManager, private _runInTransaction: RunInTransaction) {}
@@ -137,7 +137,7 @@ export class GroupsManager {
    * Does not modify inheritedGroups.
    */
   public moveInheritedGroups(
-    groups: NonGuestGroup[], inheritedGroups: Group[], dest?: roles.BasicRole|null
+    groups: NonGuestGroup[], inheritedGroups: Group[], dest?: roles.BasicRole|null,
   ): void {
     // Limit scope to those inheritedGroups that have basic roles (viewers, editors, owners).
     inheritedGroups = inheritedGroups.filter(group => roles.isBasicRole(group.name));
@@ -308,7 +308,7 @@ export class GroupsManager {
    * @returns The overwritten Role Group
    */
   public async overwriteRoleGroup(
-    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager,
   ) {
     return await this._runInTransaction(optManager, async (manager) => {
       const existingGroup = await this.getGroupWithMembersById(id, {}, manager);
@@ -328,7 +328,7 @@ export class GroupsManager {
    * @returns The overwritten Team Group
    */
   public async overwriteTeamGroup(
-    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager,
   ) {
     return await this._runInTransaction(optManager, async (manager) => {
       const existingGroup = await this.getGroupWithMembersById(id, {}, manager);
@@ -386,7 +386,7 @@ export class GroupsManager {
    * @returns A Promise for an array of Group entities.
    */
   public getGroupsWithMembersByType(
-    type: GroupTypes, opts?: {aclRule?: boolean}, optManager?: EntityManager
+    type: GroupTypes, opts?: {aclRule?: boolean}, optManager?: EntityManager,
   ): Promise<Group[]> {
     return this._runInTransaction(optManager, async (manager: EntityManager) => {
       return this._getGroupsQueryBuilder(manager, opts)
@@ -406,7 +406,7 @@ export class GroupsManager {
    * @returns A Promise for the Group entity.
    */
   public async getGroupWithMembersById(
-    id: number, opts?: {aclRule?: boolean}, optManager?: EntityManager
+    id: number, opts?: {aclRule?: boolean}, optManager?: EntityManager,
   ): Promise<Group|null> {
     return await this._runInTransaction(optManager, async (manager) => {
       return await this._getGroupsQueryBuilder(manager, opts)
@@ -423,7 +423,7 @@ export class GroupsManager {
    * @returns The overwritten Group.
    */
   private async _overwriteGroup(
-    existing: Group, groupDescriptor: GroupWithMembersDescriptor, optManager: EntityManager
+    existing: Group, groupDescriptor: GroupWithMembersDescriptor, optManager: EntityManager,
   ) {
     if (existing.type !== groupDescriptor.type) {
       throw new ApiError("cannot change type of group", 400);

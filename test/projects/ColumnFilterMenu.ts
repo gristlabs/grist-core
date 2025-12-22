@@ -63,7 +63,7 @@ describe('ColumnFilterMenu', function() {
 
     // Check that there is no disabled
     assert.deepEqual(
-      await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', e => e.getText()), []
+      await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', e => e.getText()), [],
     );
 
     // Click 'Select all'
@@ -92,7 +92,7 @@ describe('ColumnFilterMenu', function() {
 
     // Check that there is no disabled
     assert.deepEqual(
-      await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', e => e.getText()), []
+      await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', e => e.getText()), [],
     );
 
     // Verify that it's the only value included
@@ -297,7 +297,7 @@ describe('ColumnFilterMenu', function() {
 
     // check only one matching value
     assert.deepEqual(
-      await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()), ['Oranges']
+      await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()), ['Oranges'],
     );
 
     // check 'Oranges' count is 14
@@ -320,7 +320,7 @@ describe('ColumnFilterMenu', function() {
 
     // check Apples and Knapples are visible
     assert.deepEqual(
-      await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()), ['Apples', 'Knapples']
+      await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()), ['Apples', 'Knapples'],
     );
 
     // check Others is checked
@@ -348,7 +348,7 @@ describe('ColumnFilterMenu', function() {
 
     // check Apples and Knapples are visible
     assert.deepEqual(
-      await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()), ['Apples', 'Knapples']
+      await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()), ['Apples', 'Knapples'],
     );
 
     // check others is checked
@@ -420,7 +420,7 @@ describe('ColumnFilterMenu', function() {
 
     // check values are filtered
     assert.deepEqual(
-      await menu.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()), ['Apples', 'Knapples']
+      await menu.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()), ['Apples', 'Knapples'],
     );
   });
 
@@ -465,7 +465,7 @@ describe('ColumnFilterMenu', function() {
     // check All shown and All Except are visible
     assert.deepEqual(
       await driver.findAll('.test-filter-menu-bulk-action', e => e.getText()),
-      ['All shown', 'All except']
+      ['All shown', 'All except'],
     );
 
     // click All shown
@@ -484,7 +484,7 @@ describe('ColumnFilterMenu', function() {
     // check App Shown is disabled
     assert.deepEqual(
       await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', e => e.getText()),
-      ['All shown']
+      ['All shown'],
     );
   });
 
@@ -509,7 +509,7 @@ describe('ColumnFilterMenu', function() {
     // check App Except is disabled
     assert.deepEqual(
       await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', e => e.getText()),
-      ['All except']
+      ['All except'],
     );
   });
 

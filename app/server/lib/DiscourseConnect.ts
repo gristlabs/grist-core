@@ -103,6 +103,6 @@ export function addDiscourseConnectEndpoints(app: Express, options: {
     expressWrap(checkParams),      // Check early, to fail early if Discourse is misconfigured.
     options.userIdMiddleware,
     options.redirectToLogin,
-    expressWrap(discourseConnect)
+    expressWrap(discourseConnect),
   );
 }

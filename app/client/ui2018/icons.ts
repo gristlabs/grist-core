@@ -89,21 +89,21 @@ const cssColorIcon = styled('div', iconColorStyles);
 export function icon(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
   return cssIconDiv(
     dom.style('-webkit-mask-image', `var(--icon-${name})`),
-    ...domArgs
+    ...domArgs,
   );
 }
 
 export function iconSpan(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
   return cssIconSpan(
     dom.style('-webkit-mask-image', `var(--icon-${name})`),
-    ...domArgs
+    ...domArgs,
   );
 }
 
 export function colorIcon(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
   return cssColorIcon(
     dom.style('background-image', `var(--icon-${name})`),
-    ...domArgs
+    ...domArgs,
   );
 }
 

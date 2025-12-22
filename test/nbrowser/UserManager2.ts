@@ -22,7 +22,7 @@ describe('UserManager2', function() {
     await session.resetSite();
     const api = session.createHomeApi();
     await api.updateOrgPermissions(session.settings.orgDomain, {
-      users: {'support@getgrist.com': 'owners'}
+      users: {'support@getgrist.com': 'owners'},
     });
     const org = await api.getOrg('current');
     // The teamSite may or may not have SaaS limits.
@@ -188,7 +188,7 @@ describe('UserManager2', function() {
  finally {
         // Remove users we added.
         await api.updateOrgPermissions('current', {
-          users: fromPairs(users.map(u => [`${u}@getgrist.com`, null]))
+          users: fromPairs(users.map(u => [`${u}@getgrist.com`, null])),
         });
       }
     });
@@ -415,7 +415,7 @@ describe('UserManager2', function() {
         [kiwi.email]: 'members',
         [charon.email]: 'members',
         [ham.email]: 'members',
-      }
+      },
     });
 
     // Update those users names, as they might be empty if database was cleared by other tests.
@@ -430,12 +430,12 @@ describe('UserManager2', function() {
       users: {
         [kiwi.email]: 'owners',
         [charon.email]: 'viewers',
-      }
+      },
     });
     await api.updateDocPermissions(docId, {
       users: {
         [kiwi.email]: 'editors',
-      }
+      },
     });
 
     // As Kiwi, we should be able to see ourselves and Chimpy as an owner. We also got some data about workspace
@@ -461,7 +461,7 @@ describe('UserManager2', function() {
     await api.updateDocPermissions(docId, {
       users: {
         [kiwi.email]: 'owners',
-      }
+      },
     });
 
     // Now Kiwi, as a workspace owner, will see Charon (a workspace member), but won't see Ham (a team member).

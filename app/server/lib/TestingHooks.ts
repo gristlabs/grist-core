@@ -65,7 +65,7 @@ export class TestingHooks implements ITestingHooks {
     private _port: number,
     private _comm: Comm,
     private _server: FlexServer,
-    private _workerServers: FlexServer[]
+    private _workerServers: FlexServer[],
   ) {}
 
   public async getPort(): Promise<number> {

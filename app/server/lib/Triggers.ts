@@ -13,7 +13,7 @@ import {
   WebhookStatus,
   WebhookSummary,
   WebhookSummaryCollection,
-  WebhookUsage
+  WebhookUsage,
 } from 'app/common/Triggers';
 import {decodeObject} from 'app/plugin/objtypes';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
@@ -502,7 +502,7 @@ export class DocTriggers {
     this._log(`Processing triggers`, meta);
 
     const makePayload = _.memoize((rowIndex: number) =>
-      _.mapValues(bulkColValues, col => col[rowIndex]) as RowRecord
+      _.mapValues(bulkColValues, col => col[rowIndex]) as RowRecord,
     );
 
     const result: WebHookEvent[] = [];
@@ -549,7 +549,7 @@ export class DocTriggers {
           return this._shouldTriggerActions(
             trigger, bulkColValues, rowIndex, rowId, recordDeltas.get(rowId)!, tableDelta,
           );
-        }
+        },
       );
 
       for (const action of webhookActions) {
@@ -792,7 +792,7 @@ export class DocTriggers {
 
     this._redisClient?.quitAsync().catch(e =>
       // Catch error to prevent sendLoop being restarted
-      this._log("Error quitting redis: " + e, {level: 'warn'})
+      this._log("Error quitting redis: " + e, {level: 'warn'}),
     );
   }
 
@@ -838,7 +838,7 @@ export class DocTriggers {
         });
         if (response.ok) {
           await this._stats.logBatch(id, 'success', {
-            size, httpStatus: response.status, error: null, attempts: attempt + 1
+            size, httpStatus: response.status, error: null, attempts: attempt + 1,
           });
           return true;
         }
@@ -917,7 +917,7 @@ export function isUrlAllowed(urlString: string) {
   }
 
   return (process.env.ALLOWED_WEBHOOK_DOMAINS || "").split(",").some(domain =>
-    domain && matchesBaseDomain(url.host, domain)
+    domain && matchesBaseDomain(url.host, domain),
   );
 }
 
@@ -933,7 +933,7 @@ class PersistedStore<Keys> {
   constructor(
     docId: string,
     private _activeDoc: ActiveDoc,
-    private _redisClientDep: () => RedisClient | null
+    private _redisClientDep: () => RedisClient | null,
     ) {
     this._redisKey = `webhooks:${docId}:statistics`;
   }
@@ -1063,7 +1063,7 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
   public async logInvalid(id: string, errorMessage: string) {
     await this.logStatus(id, 'invalid');
     await this.set(id, [
-      ['errorMessage', errorMessage]
+      ['errorMessage', errorMessage],
     ]);
     await this.markChange();
   }
@@ -1079,7 +1079,7 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
       error?: string|null,
       size?: number|null,
       attempts?: number|null,
-    }
+    },
   ) {
     const now = Date.now();
 

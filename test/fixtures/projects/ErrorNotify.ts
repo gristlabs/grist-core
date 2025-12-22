@@ -24,9 +24,9 @@ function radioGroup(clb: (value: string) => any) {
         type: 'radio',
         name : `radio_group_${group}`,
         value: value,
-        id : `radio${radioId}`
+        id : `radio${radioId}`,
       }, dom.on('change', () => clb(value))),
-      dom("label", { for : `radio${radioId}`}, dom.text(name))
+      dom("label", { for : `radio${radioId}`}, dom.text(name)),
     ];
   };
 }
@@ -79,14 +79,14 @@ function setupTest() {
         errHolder2 = new Holder();
         multiHolder.autoDispose(errHolder1);
         multiHolder.autoDispose(errHolder2);
-      })
+      }),
     ),
     dom('br'),
     dom('button.user-error-default',
       'User error example (default expire)',
       dom.on('click', () =>  {
         notify(`Workspace name is duplicated (default)`, {expireSec: 1});
-      })
+      }),
     ),
     dom('br'),
     dom('button.user-error-2sec',
@@ -94,7 +94,7 @@ function setupTest() {
       dom.on('click', () => {
         notify(`Workspace name is duplicated and the error is way too long for one line (custom)`,
           { expireSec: 2 });
-      })
+      }),
     ),
     dom('br'),
     dom('button',
@@ -106,7 +106,7 @@ function setupTest() {
  else {
           errHolder1.clear();
         }
-      })
+      }),
     ),
     dom('br'),
     dom('button',
@@ -119,21 +119,21 @@ function setupTest() {
  else {
           errHolder2.clear();
         }
-      })
+      }),
     ),
     dom('br'),
     dom('button',
       'User error with dismiss',
       dom.on('click', () => {
         notify(`Example error with dismiss`, { expireSec: 0, canUserClose: true });
-      })
+      }),
     ),
     dom('br'),
     dom('button',
       'User multi-line error with dismiss',
       dom.on('click', () => {
         notify(`Example error with dismiss and a long, long, long message`, { canUserClose: true });
-      })
+      }),
     ),
     dom('br'),
     dom('button',
@@ -144,9 +144,9 @@ function setupTest() {
           title : "Unexpected error",
           actions : ['report-problem'],
           expireSec: 0,
-          canUserClose: true
+          canUserClose: true,
         });
-      })
+      }),
     ),
     dom('hr'),
     dom('button',
@@ -161,7 +161,7 @@ function setupTest() {
           }
           progress.setProgress(25 * i);
         }
-      })
+      }),
     ),
     dom('button',
       'Import a file - failure',
@@ -179,7 +179,7 @@ function setupTest() {
         }
         holder.autoDispose(notifier.createUserMessage('Unable to upload Foo Sample.pdf',
           { expireSec: 0, canUserClose: true, level: 'error' }));
-      })
+      }),
     ),
     dom('hr'),
     dom('button',
@@ -193,7 +193,7 @@ function setupTest() {
           title : "Unexpected error",
           actions : ['report-problem'],
           level: 'error',
-          ...noExp
+          ...noExp,
         });
         multiHolder.autoDispose(n);
         n = notifier.createUserMessage("Blocked by table update access rules", noExp);
@@ -201,7 +201,7 @@ function setupTest() {
         n = notifier.createUserMessage("No more documents permitted", {
            title: "Reached plan limit",
            actions : ['upgrade'],
-           ...noExp
+           ...noExp,
         });
         multiHolder.autoDispose(n);
         n = notifier.createUserMessage("Still working ...", noExp);
@@ -211,20 +211,20 @@ function setupTest() {
         n = notifier.createUserMessage("Cannot change summary column 'count' between formula and data", {
           actions : ['ask-for-help'],
           level: 'error',
-          ...noExp
+          ...noExp,
         });
         multiHolder.autoDispose(n);
         n = notifier.createUserMessage("Cannot change summary column 'count' between formula and data", {
           actions : ['ask-for-help'],
           title : "Warning",
           level: 'error',
-          ...noExp
+          ...noExp,
         });
         multiHolder.autoDispose(n);
         const progress = notifier.createProgressIndicator('Foo Sample.pdf', '12mb');
         progress.setProgress(25);
         multiHolder.autoDispose(progress);
-      })
+      }),
     ),
     buildSnackbarDom(notifier, null),
   );

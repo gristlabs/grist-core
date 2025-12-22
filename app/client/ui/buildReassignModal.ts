@@ -123,7 +123,7 @@ export async function buildReassignModal(options: {
           {
             targetTable: cssCode(Pets),
             sourceTable: cssCode(Owners),
-          })
+          }),
       ]);
     }
 
@@ -295,7 +295,7 @@ export async function buildReassignModal(options: {
     const reassign = async () => {
       await docModel.docData.sendActions([
         ...problems.map(p => p.fixUserAction()).filter(Boolean),
-        ...properActions
+        ...properActions,
       ]);
       ctl.close();
     };
@@ -345,9 +345,9 @@ export async function buildReassignModal(options: {
           withInfoTooltip(
             textButton('Configure reference', dom.on('click', configureReference)),
             'reassignTwoWayReference',
-          )
-        )
-      )
+          ),
+        ),
+      ),
     ];
   });
 }

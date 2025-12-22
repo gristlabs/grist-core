@@ -24,7 +24,7 @@ describe('LinkingSelector', function() {
 
     // Add a new linked widget that shows classes by this date.
     await gu.addNewSection('Table', 'Classes', {
-      selectBy: 'CLASSES [by Start_Date]'
+      selectBy: 'CLASSES [by Start_Date]',
     });
 
     // Click on the first date.
@@ -68,7 +68,7 @@ describe('LinkingSelector', function() {
 
     // Now add a card view.
     await gu.addNewSection('Card', 'Classes', {
-      'selectBy': 'List'
+      'selectBy': 'List',
     });
     await gu.renameActiveSection('Card');
     await gu.selectAllVisibleColumns();

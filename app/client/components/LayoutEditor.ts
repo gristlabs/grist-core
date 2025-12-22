@@ -115,7 +115,7 @@ class Floater extends Disposable implements ContentBox {
       koDom.show(this.leafContent),
       koDom.scope(this.leafContent, (leafContent: Element) => {
         return leafContent;
-      })
+      }),
     ));
     G.document.body.appendChild(this.dom);
 
@@ -137,7 +137,7 @@ class Floater extends Disposable implements ContentBox {
     sourceBox.leafId('empty');
     sourceBox.leafContent(dom('div.layout_editor_empty_space',
       koDom.style('margin', (rect.height * 0.02) + 'px'),
-      koDom.style('min-height', (rect.height * 0.96) + 'px')
+      koDom.style('min-height', (rect.height * 0.96) + 'px'),
     ));
   }
   public onMouseUp() {
@@ -261,7 +261,7 @@ class DropTargeter extends Disposable {
     layoutBox: LayoutBox|null,
     affinity: number,
     overlay: DropOverlay,
-    prevTargetBox?: LayoutBox
+    prevTargetBox?: LayoutBox,
   ) {
     // Nothing to update.
     if (!layoutBox || (layoutBox === this.currentBox && affinity === this.currentAffinity)) {
@@ -331,7 +331,7 @@ class DropTargeter extends Disposable {
     this.targetsDom = dom('div.layout_editor_drop_targeter',
       koDom.style(pTop,
         (innerRect[pTop] - outerRect[pTop] +
-          (isAfter ? innerRect[pHeight] - totalHeight : 0)) + 'px'
+          (isAfter ? innerRect[pHeight] - totalHeight : 0)) + 'px',
       ),
       targetParts.map((part, index) => {
         const rect = part.box.dom!.getBoundingClientRect();
@@ -354,9 +354,9 @@ class DropTargeter extends Disposable {
             self.activeTarget = null;
             part.box.dom!.style.padding = '0';
           }),
-          dom.on('transitionend', this.triggerInsertion.bind(this, part))
+          dom.on('transitionend', this.triggerInsertion.bind(this, part)),
         );
-      })
+      }),
     );
     this.rootElem.appendChild(this.targetsDom!);
   }
@@ -648,7 +648,7 @@ export class LayoutEditor extends Disposable {
     const rect = box.dom!.getBoundingClientRect();
     box.leafId('empty');
     box.leafContent(dom('div.layout_editor_empty_space',
-      koDom.style('min-height', rect.height + 'px')
+      koDom.style('min-height', rect.height + 'px'),
     ));
     this.onInsertBox(noop).catch(noop);
   }

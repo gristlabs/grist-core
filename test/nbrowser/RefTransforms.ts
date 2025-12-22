@@ -18,7 +18,7 @@ describe('RefTransforms', function() {
       // pointing to Table2.
       ['AddTable', 'Table1', [{id: 'A', type: 'Text'}]],
       ['BulkAddRecord', 'Table1', [null, null], {
-        A: ['foo', 'bar']
+        A: ['foo', 'bar'],
       }],
       // Table2 contains bar,foo (for Table1 to point to when it gets converted), and also a
       // Reference back to Table1. This will be set to SHOW Table1.A. When Table1.A itself

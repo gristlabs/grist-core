@@ -14,7 +14,7 @@ import {
   refRecord,
   TableRec,
   ViewFieldRec,
-  ViewRec
+  ViewRec,
 } from 'app/client/models/DocModel';
 import {BEHAVIOR} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
@@ -464,14 +464,14 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     read: () => docModel.editingFormula(),
     write: (val) => {
       docModel.editingFormula(val);
-    }
+    },
   });
   const defaultOptions: ViewSectionOptions = {
     verticalGridlines: true,
     horizontalGridlines: true,
     zebraStripes: false,
     customView: '',
-    numFrozen: 0
+    numFrozen: 0,
   };
   this.optionsObj = modelUtil.jsonObservable(this.options,
     (obj: ViewSectionOptions) => defaults(obj || {}, defaultOptions));
@@ -550,7 +550,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     return [
       table.tableNameDef()?.toUpperCase(), // Due to ACL this can be null.
       table.groupDesc(),
-      widgetTypeDesc
+      widgetTypeDesc,
     ].filter(part => Boolean(part?.trim())).join(' ');
   }));
   // Widget title.
@@ -693,7 +693,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
             {
               filter: updatedFilters.map(([, {filter}]) => filter),
               pinned: updatedFilters.map(([, {pinned}]) => pinned),
-            }
+            },
           ]);
         }
 
@@ -706,7 +706,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
               colRef: newFilters.map(([colRef]) => colRef),
               filter: newFilters.map(([, {filter}]) => filter),
               pinned: newFilters.map(([, {pinned}]) => pinned),
-            }
+            },
           ]);
         }
 
@@ -716,7 +716,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
         // Reset client filter state.
         this.revertFilters();
-      }
+      },
     );
   };
 
@@ -799,7 +799,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.hasFocus = ko.pureComputed({
     // Read may occur for recently disposed sections, must check condition first.
     read: () => !this.isDisposed() && this.view().activeSectionId() === this.id(),
-    write: (val) => { this.view().activeSectionId(val ? this.id() : 0); }
+    write: (val) => { this.view().activeSectionId(val ? this.id() : 0); },
   });
   this.hasVisibleFocus = ko.pureComputed(() => {
     if (this.isDisposed()) {
@@ -849,14 +849,14 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // Describes the most recent cursor position in the section.
   this.lastCursorPos = {
     rowIndex:   0,
-    fieldIndex: 0
+    fieldIndex: 0,
   };
 
   // Describes the most recent scroll position.
   this.lastScrollPos = {
     rowIndex:   0, // Used for scrolly sections. Indicates the index of the first visible row.
     offset:     0, // Pixel distance past the top of row indicated by rowIndex.
-    scrollLeft: 0  // Used for grid sections. Indicates the scrollLeft value of the scroll pane.
+    scrollLeft: 0,  // Used for grid sections. Indicates the scrollLeft value of the scroll pane.
   };
 
   this.disableAddRemoveRows = ko.pureComputed(() =>
@@ -873,9 +873,9 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
       0,
       Math.min(
         this.rawNumFrozen() || 0,
-        this.viewFields().all().length - 1
-      )
-    )
+        this.viewFields().all().length - 1,
+      ),
+    ),
   );
 
   // Observables used for styling rows with limited heights.
@@ -945,13 +945,13 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   const rawSection = this.autoDispose(ko.pureComputed(() => this.table().rawViewSection()));
   this.rulesList = modelUtil.savingComputed({
     read: () => rawSection().rules(),
-    write: (setter, val) => setter(rawSection().rules, val)
+    write: (setter, val) => setter(rawSection().rules, val),
   });
   this.rulesCols = refListRecords(docModel.columns, ko.pureComputed(() => rawSection().rules()));
   this.rulesColsIds = ko.pureComputed(() => this.rulesCols().map(c => c.colId()));
   this.rulesStyles = modelUtil.savingComputed({
     read: () => rawSection().optionsObj.prop("rulesOptions")() ?? [],
-    write: (setter, val) => setter(rawSection().optionsObj.prop("rulesOptions"), val)
+    write: (setter, val) => setter(rawSection().optionsObj.prop("rulesOptions"), val),
   });
   this.hasRules = ko.pureComputed(() => this.rulesCols().length > 0);
   this.addEmptyRule = async () => {
@@ -959,7 +959,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
       'AddEmptyRule',
       this.tableId.peek(),
       null,
-      null
+      null,
     ];
     await docModel.docData.sendAction(action, `Update rules for ${this.table.peek().tableId.peek()}`);
   };

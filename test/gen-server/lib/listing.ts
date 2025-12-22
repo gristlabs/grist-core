@@ -42,48 +42,48 @@ describe('listing', function() {
       users: {
         'kiwi@getgrist.com': 'viewers',
         'support@getgrist.com': 'editors',
-      }
+      },
     });
     viewer = await home.createHomeApi('kiwi', org, true);
     editor = await home.createHomeApi('support', org, true);
 
     // add another user as an owner of two docs and two workspaces.
     await api.updateDocPermissions(doc12, {
-      users: {'charon@getgrist.com': 'owners'}
+      users: {'charon@getgrist.com': 'owners'},
     });
     await api.updateDocPermissions(doc13, {
-      users: {'charon@getgrist.com': 'owners'}
+      users: {'charon@getgrist.com': 'owners'},
     });
     await api.updateWorkspacePermissions(ws2, {
-      users: {'charon@getgrist.com': 'owners'}
+      users: {'charon@getgrist.com': 'owners'},
     });
     await api.updateWorkspacePermissions(ws3, {
-      users: {'charon@getgrist.com': 'owners'}
+      users: {'charon@getgrist.com': 'owners'},
     });
 
     // Have that user remove or limit everyone else's access to those docs and workspaces.
     const charon = await home.createHomeApi('charon', org, true);
     await charon.updateWorkspacePermissions(ws2, {
-      users: {'chimpy@getgrist.com': null} // remove chimpy from ws2
+      users: {'chimpy@getgrist.com': null}, // remove chimpy from ws2
     });
     await charon.updateDocPermissions(doc12, {
       maxInheritedRole: null,
-      users: {'chimpy@getgrist.com': null} // remove chimpy's direct access
+      users: {'chimpy@getgrist.com': null}, // remove chimpy's direct access
     });
     await charon.updateDocPermissions(doc13, {
       maxInheritedRole: 'viewers',
-      users: {'chimpy@getgrist.com': null} // remove chimpy's direct access
+      users: {'chimpy@getgrist.com': null}, // remove chimpy's direct access
     });
     await charon.updateDocPermissions(doc21, {
-      users: {'chimpy@getgrist.com': null} // remove chimpy's direct access
+      users: {'chimpy@getgrist.com': null}, // remove chimpy's direct access
     });
     await charon.updateWorkspacePermissions(ws2, {
       maxInheritedRole: null,
-      users: {'chimpy@getgrist.com': null} // remove chimpy's direct access
+      users: {'chimpy@getgrist.com': null}, // remove chimpy's direct access
     });
     await charon.updateWorkspacePermissions(ws3, {
       maxInheritedRole: 'viewers',
-      users: {'chimpy@getgrist.com': null} // remove chimpy's direct access
+      users: {'chimpy@getgrist.com': null}, // remove chimpy's direct access
     });
   });
 
@@ -166,22 +166,22 @@ describe('listing', function() {
     const docInaccessible = await api.newDoc({name: 'inaccessible'}, wsWithDoc);
     // Add another user as an owner of the doc.
     await api.updateDocPermissions(docInaccessible, {
-      users: {'charon@getgrist.com': 'owners'}
+      users: {'charon@getgrist.com': 'owners'},
     });
     // Now remove everyone else's access.
     await charon.updateDocPermissions(docInaccessible, {
-      maxInheritedRole: null
+      maxInheritedRole: null,
     });
 
     // Make an inaccessible workspace.
     const wsInaccessible = await api.newWorkspace({name: 'wsInaccessible'}, 'current');
     // Add another user as an owner of the workspace.
     await api.updateWorkspacePermissions(wsInaccessible, {
-      users: {'charon@getgrist.com': 'owners'}
+      users: {'charon@getgrist.com': 'owners'},
     });
     // Now remove everyone else's access.
     await charon.updateWorkspacePermissions(wsInaccessible, {
-      maxInheritedRole: null
+      maxInheritedRole: null,
     });
 
     for (const user of [api, editor, viewer]) {

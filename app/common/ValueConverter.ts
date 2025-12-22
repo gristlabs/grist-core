@@ -7,7 +7,7 @@ import {
   createParserRaw,
   ReferenceListParser,
   ReferenceParser,
-  ValueParser
+  ValueParser,
 } from 'app/common/ValueParser';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
 import { TableDataActionSet } from "app/common/DocActions";
@@ -212,7 +212,7 @@ export function convertFromColumn(
 
   const formatter = createFullFormatterFromDocData(docData, sourceColRef);
   const parser = createParserRaw(
-    ...createParserOrFormatterArgumentsRaw(docData, type, widgetOpts, visibleColRef)
+    ...createParserOrFormatterArgumentsRaw(docData, type, widgetOpts, visibleColRef),
   );
   const converter = createConverter(formatter, parser);
   return convertValues(converter, values, displayColValues || values);

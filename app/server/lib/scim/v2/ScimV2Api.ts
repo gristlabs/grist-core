@@ -46,11 +46,11 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
       const mreq = req as RequestWithLogin;
       const isAdmin = await installAdmin.isAdminReq(mreq);
       const isScimUser = Boolean(
-        process.env.GRIST_SCIM_EMAIL && mreq.user?.loginEmail === process.env.GRIST_SCIM_EMAIL
+        process.env.GRIST_SCIM_EMAIL && mreq.user?.loginEmail === process.env.GRIST_SCIM_EMAIL,
       );
       const path = mreq.path;
       return { isAdmin, isScimUser, path };
-    }
+    },
   });
 
   return v2.use('/', scimmyRouter);

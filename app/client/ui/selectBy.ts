@@ -37,7 +37,7 @@ export interface IPageWidgetLink {
 export const NoLink = linkId({
   srcSectionRef: 0,
   srcColRef: 0,
-  targetColRef: 0
+  targetColRef: 0,
 });
 
 
@@ -61,7 +61,7 @@ export function selectBy(docModel: DocModel, sources: ViewSectionRec[],
 
   const NoLinkOption: IOptionFull<string> = {
     label: t("Select widget"),
-    value: NoLink
+    value: NoLink,
   };
   const options = [NoLinkOption];
   for (const srcNode of sourceNodes) {
@@ -106,7 +106,7 @@ function isViewSectionRec(section: MaybeSection): section is ViewSectionRec {
 
 function createNodesFromViewSections(
   docModel: DocModel,
-  viewSections: ViewSectionRec[]
+  viewSections: ViewSectionRec[],
 ): LinkNode[] {
   const operations: LinkNodeOperations = {
     getTableById: id => getLinkNodeTableById(docModel, id),
@@ -139,7 +139,7 @@ function getLinkNodeTableById(docModel: DocModel, id: number): LinkNodeTable {
 
 function getLinkNodeSectionById(
   docModel: DocModel,
-  id: number
+  id: number,
 ): LinkNodeSection {
   const section = docModel.viewSections.getRowModel(id);
   return {

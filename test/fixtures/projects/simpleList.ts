@@ -21,7 +21,7 @@ function setupTest() {
             list.listenKeys(elem);
             return list.content;
           },
-          {placement: 'right-start'}
+          {placement: 'right-start'},
         );
       },
       dom.on('click', () => popup.toggle()),

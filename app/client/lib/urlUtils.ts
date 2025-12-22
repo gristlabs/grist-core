@@ -110,7 +110,7 @@ function _getCurrentUrl(): string {
 // Returns the URL for the given login page.
 function getLoginPageUrl(
   page: 'login'|'logout'|'signin'|'signup'|'account-deleted',
-  options: GetLoginOrSignupUrlOptions = {}
+  options: GetLoginOrSignupUrlOptions = {},
 ): string {
   const {srcDocId, nextUrl = _getCurrentUrl()} = options;
   const startUrl = buildURL(`/${page}`, {

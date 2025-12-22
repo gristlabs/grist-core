@@ -15,7 +15,7 @@ describe('transitions', function() {
   // Helper to check the state of the transitioning leftDiv and count of finished transitions.
   // When a pair of numbers is given, it's the expected range (a closed interval).
   const assertState = stackWrapFunc(async function(
-    expected: {width: number|[number, number], opacity: number|[number, number], finished: number}
+    expected: {width: number|[number, number], opacity: number|[number, number], finished: number},
   ) {
     const [widthStr, opacityStr, countStr] = await Promise.all([
       leftDiv.getCssValue('width'),

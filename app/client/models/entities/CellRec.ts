@@ -27,7 +27,7 @@ export function createCellRec(this: CellRec, docModel: DocModel): void {
   this.children = recordSet(this, docModel.cells, 'parentId');
   const properContent = modelUtil.savingComputed({
     read: () => this.hidden() ? '{}' : this.content(),
-    write: (setter, val) => setter(this.content, val)
+    write: (setter, val) => setter(this.content, val),
   });
   const optionJson = jsonObservable(properContent);
 

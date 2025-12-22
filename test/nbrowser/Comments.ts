@@ -61,7 +61,7 @@ describe('Comments', function() {
       // First just plain text.
       assert.equal(
         await comment.find('.test-discussion-comment-text').getText(),
-        'Heading\nbold italic\nGrist\nHello @Chimpy'
+        'Heading\nbold italic\nGrist\nHello @Chimpy',
       );
 
       // Second, the dom is actually rendered as html.
@@ -82,7 +82,7 @@ describe('Comments', function() {
     // And make sure we see markdown text, but the mention is actually a link rendered as before.
     assert.equal(
       await getEditorText('edit'),
-      '# Heading\n**bold**\n*italic*\n[Grist](https://gristlabs.com)\n\nHello @Chimpy'
+      '# Heading\n**bold**\n*italic*\n[Grist](https://gristlabs.com)\n\nHello @Chimpy',
     );
     assert.equal(await getEditor('edit').find('a.grist-mention').getText(), '@Chimpy');
     // Make sure we don't have h1, strong or em tags there.
@@ -193,7 +193,7 @@ describe('Comments', function() {
     await ownerApi.updateDocPermissions(docId, {
       users: {
         [kiwi.email]: 'viewers',
-      }
+      },
     });
 
     // Now login as viewer and check that we can see the comment.
@@ -379,7 +379,7 @@ describe('Comments', function() {
     await ownerApi.updateOrgPermissions('current', {
       users: {
         [kiwi.email]: 'owners',
-      }
+      },
     });
     docId = (await session.tempShortDoc(cleanup, 'Hello.grist')).id;
 
@@ -443,13 +443,13 @@ describe('Comments', function() {
     await ownerApi.updateOrgPermissions(session.teamSite.orgDomain, {
       users: {
         [charon.email]: 'editors',
-      }
+      },
     });
     await ownerApi.updateWorkspacePermissions(homeWs!, {
       maxInheritedRole: null,
       users: {
         [charon.email]: 'owners',
-      }
+      },
     });
 
     // Add Kiwi as a guest to the second document (he is now guest in the Home workspace, and doesn't have any
@@ -457,7 +457,7 @@ describe('Comments', function() {
     await ownerApi.updateDocPermissions(secondDoc, {
       users: {
         [kiwi.email]: 'editors',
-      }
+      },
     });
 
     // Break the inheritance for this document, and share it with Ham as a guest. Ham will see only collaborators, but
@@ -469,7 +469,7 @@ describe('Comments', function() {
       users: {
         [ham.email]: 'editors',
         [charon.email]: 'editors',
-      }
+      },
     });
 
     // Login as all users, to make sure names are stored.
@@ -550,7 +550,7 @@ describe('Comments', function() {
     await ownerApi.updateOrgPermissions('current', {
       users: {
         [gu.translateUser('support').email]: 'editors',
-      }
+      },
     });
 
     // It wasn't possible to delete columns or tables with comments owned by other users (as non owner).
@@ -590,7 +590,7 @@ describe('Comments', function() {
     await gu.waitForServer();
     assert.deepEqual(
       await driver.findAll('.test-raw-data-table-id', e => e.getText()),
-      ['Table1']
+      ['Table1'],
     );
 
     await asOwner();
@@ -1177,11 +1177,11 @@ describe('Comments', function() {
     // Make sure client don't see hidden comments.
     assert.deepEqual(await readClientComments(), [
       'CENSORED',
-      'B,2'
+      'B,2',
     ]);
     assert.deepEqual(await readApiComments(), [
       'CENSORED',
-      'B,2'
+      'B,2',
     ]);
     await asOwner();
     await revert();
@@ -1196,7 +1196,7 @@ describe('Comments', function() {
         resource: -1, aclFormula: 'user.Access != OWNER', permissionsText: 'none',
       }],
       ['AddEmptyTable', 'Public'],
-      ['BulkAddRecord', 'Public', arrayRepeat(3, null), {}]
+      ['BulkAddRecord', 'Public', arrayRepeat(3, null), {}],
     ]);
     await session.loadDoc(`/doc/${docId}`); // we are forced reload, so make sure it is over.
     await panelOptions({page: false, resolved: true});
@@ -1215,12 +1215,12 @@ describe('Comments', function() {
     assert.deepEqual(await readClientComments(), [
       'CENSORED',
       'CENSORED',
-      'C,2'
+      'C,2',
     ]);
     assert.deepEqual(await readApiComments(), [
       'CENSORED',
       'CENSORED',
-      'C,2'
+      'C,2',
     ]);
     await asOwner();
     await revert();
@@ -1253,7 +1253,7 @@ describe('Comments', function() {
     await assertClientComments([
       'CENSORED',
       'B,2',
-      'C,2'
+      'C,2',
     ]);
     // Hide B comment (it is on Table1)
     await gu.getCell('A', 1).click();
@@ -1264,11 +1264,11 @@ describe('Comments', function() {
     await assertClientComments([
       'CENSORED',
       'CENSORED',
-      'C,2'
+      'C,2',
     ]);
     // Undo last row, so we should see 2 comments again.
     await ownerApi.applyUserActions(docId, [[
-      'UpdateRecord', 'Table1', 2, {A: 2}
+      'UpdateRecord', 'Table1', 2, {A: 2},
     ]]);
     await gu.waitForServer();
     assert.equal(await commentCount('panel'), 2);
@@ -1277,7 +1277,7 @@ describe('Comments', function() {
     await assertClientComments([
       'CENSORED',
       'B,2',
-      'C,2'
+      'C,2',
     ]);
     await asOwner();
     await revert();
@@ -1308,7 +1308,7 @@ describe('Comments', function() {
     await assertClientComments([
       'First',
       'Second',
-      'Visible'
+      'Visible',
     ]);
     // Now censor column B in the first row.
     await gu.getCell('A', 1).click();
@@ -1319,7 +1319,7 @@ describe('Comments', function() {
     await assertClientComments([
       'CENSORED',
       'CENSORED',
-      'Visible'
+      'Visible',
     ]);
     // Make sure also that we don't see triangle.
     assert.isFalse(await hasComment('B', 1));
@@ -1340,7 +1340,7 @@ describe('Comments', function() {
     await assertClientComments([
       'First',
       'Second',
-      'Visible'
+      'Visible',
     ]);
     assert.isTrue(await hasComment('B', 1));
     assert.isTrue(await hasComment('B', 2));
@@ -1393,44 +1393,44 @@ describe('Comments', function() {
 
     // Now censor column B.
     await ownerApi.applyUserActions(docId, [[
-      'UpdateRecord', 'Table1', 1, {B: 'secret'}
+      'UpdateRecord', 'Table1', 1, {B: 'secret'},
     ]]);
     await gu.waitForServer();
     assert.equal(await commentCount('panel'), 0);
     await assertClientComments([
-      'CENSORED'
+      'CENSORED',
     ]);
 
     // Now hide row 1 for non owners
     await ownerApi.applyUserActions(docId, [[
-      'UpdateRecord', 'Table1', 1, {A: 0}
+      'UpdateRecord', 'Table1', 1, {A: 0},
     ]]);
     await gu.waitForServer();
     assert.equal(await commentCount('panel'), 0);
     await assertClientComments([
-      'CENSORED'
+      'CENSORED',
     ]);
     assert.equal(await gu.getGridRowCount(), 2 + 1);
 
     // Now reveal row 1
     await ownerApi.applyUserActions(docId, [[
-      'UpdateRecord', 'Table1', 1, {A: 1}
+      'UpdateRecord', 'Table1', 1, {A: 1},
     ]]);
     await gu.waitForServer();
     assert.equal(await commentCount('panel'), 0);
     await assertClientComments([
-      'CENSORED'
+      'CENSORED',
     ]);
     assert.equal(await gu.getGridRowCount(), 3 + 1);
     // And make cell in column B visible
 
     await ownerApi.applyUserActions(docId, [[
-      'UpdateRecord', 'Table1', 1, {B: 'visible'}
+      'UpdateRecord', 'Table1', 1, {B: 'visible'},
     ]]);
     await gu.waitForServer();
     assert.equal(await commentCount('panel'), 1);
     await assertClientComments([
-      'Secret'
+      'Secret',
     ]);
     await asOwner();
     await revertAcl();
@@ -1568,7 +1568,7 @@ describe('Comments', function() {
         content: [
           JSON.stringify({text: `Forth-updated`, userName: 'Owner'}),
           JSON.stringify({text: `Fifth-updated`, userName: 'Owner'}),
-        ]
+        ],
       }],
     ]);
     await gu.waitForServer();
@@ -1609,7 +1609,7 @@ describe('Comments', function() {
     ]);
     // Reveal it using owner API.
     await ownerApi.applyUserActions(docId, [[
-      'UpdateRecord', 'Public', 4, {A: 3}
+      'UpdateRecord', 'Public', 4, {A: 3},
     ]]);
     await gu.waitForServer();
     await assertClientComments([
@@ -1629,7 +1629,7 @@ describe('Comments', function() {
       'Third2',
       'Forth-updated',
       'Fifth-updated',
-      'HiddenC'
+      'HiddenC',
     ]);
     await asOwner();
     await revertAcl();
@@ -1707,7 +1707,7 @@ describe('Comments', function() {
     ]);
     // Can't remove comments (we are not owner)
     await assertThrows(() => currentApi.applyUserActions(docId, [
-      ['RemoveRecord', '_grist_Cells', 1]
+      ['RemoveRecord', '_grist_Cells', 1],
     ]));
   });
 
@@ -1916,7 +1916,7 @@ async function menuOptions() {
  */
 async function disabledMenuOptions() {
   const menuItems = await gu.findOpenMenuAllItems('li', async e =>
-    await e.matches(".disabled") ? await e.getText() : ''
+    await e.matches(".disabled") ? await e.getText() : '',
   );
   return menuItems.filter(Boolean);
 }

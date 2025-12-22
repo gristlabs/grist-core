@@ -31,7 +31,7 @@ function setupTest() {
   }
 
   return [
-    testBox(dom.create(ApiKey, {apiKey, onCreate, onDelete}))
+    testBox(dom.create(ApiKey, {apiKey, onCreate, onDelete})),
   ];
 }
 

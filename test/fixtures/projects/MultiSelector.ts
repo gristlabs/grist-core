@@ -11,7 +11,7 @@ class StateSelector extends MultiItemSelector<{ label: string, value: string }> 
   constructor(_myStates: MutableObsArray<BaseItem> = obsArray([])) {
     super(_myStates, obsArray(States), {
       addItemText: "Add new state",
-      addItemLabel: "Select state"
+      addItemLabel: "Select state",
     });
   }
 }
@@ -20,7 +20,7 @@ function setupTest() {
   const _myStates = obsArray([]);
   return cssTestBox(
     dom.create(StateSelector, _myStates),
-    dom('pre', dom.text(use => JSON.stringify(use(_myStates), null, 2)))
+    dom('pre', dom.text(use => JSON.stringify(use(_myStates), null, 2))),
   );
 }
 

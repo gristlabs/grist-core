@@ -230,7 +230,7 @@ class OnBoardingPopupsCtl extends Disposable {
         name: 'offset',
         options: {
           offset: [0, 12 - adjacentPadding],
-        }
+        },
       }],
     });
   }
@@ -238,7 +238,7 @@ class OnBoardingPopupsCtl extends Disposable {
   private _addFocusLayer(container: HTMLElement) {
     dom.autoDisposeElem(container, new FocusLayer({
       defaultFocusElem: container,
-      allowFocus: elem => (elem !== document.body)
+      allowFocus: elem => (elem !== document.body),
     }));
   }
 
@@ -323,7 +323,7 @@ class OnBoardingPopupsCtl extends Disposable {
           isLastStep ? t("Finish") : t("Next"), testId('next'),
           dom.on('click', () => this._move(+1, true)),
         ),
-      )
+      ),
     );
   }
 
@@ -339,7 +339,7 @@ class OnBoardingPopupsCtl extends Disposable {
 function buildArrow() {
   return ArrowContainer(
     svg('svg', { style: 'width: 13px; height: 34px;' },
-        svg('path', {'d': 'M 2 19 h 13 v 18 Z'}))
+        svg('path', {'d': 'M 2 19 h 13 v 18 Z'})),
   );
 }
 

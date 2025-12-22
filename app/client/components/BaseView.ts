@@ -261,7 +261,7 @@ export default class BaseView extends DisposableWithEvents {
     this.cursor = this.autoDispose(Cursor.create(null, this, this.viewSection.lastCursorPos));
 
     this.currentColumn = this.autoDispose(ko.pureComputed(() =>
-      this.viewSection.viewFields().at(this.cursor.fieldIndex())!.column()
+      this.viewSection.viewFields().at(this.cursor.fieldIndex())!.column(),
     ).extend({rateLimit: 0}));     // TODO Test this without the rateLimit
 
     this.currentEditingColumnIndex = ko.observable(-1);
@@ -270,12 +270,12 @@ export default class BaseView extends DisposableWithEvents {
     this.fieldBuilders = this.autoDispose(
       createAllFieldWidgets(this.gristDoc, this.viewSection.viewFields, this.cursor, {
         isPreview: this.isPreview,
-      })
+      }),
     );
 
     // An observable evaluating to the FieldBuilder for the field where the cursor is.
     this.activeFieldBuilder = this.autoDispose(ko.pureComputed(() =>
-      this.fieldBuilders.at(this.cursor.fieldIndex())!
+      this.fieldBuilders.at(this.cursor.fieldIndex())!,
     ));
 
     // By default, a view doesn't support selectedColumns, but it can be overridden.
@@ -385,7 +385,7 @@ export default class BaseView extends DisposableWithEvents {
       this.tableModel.tableData,
       [this.viewData.getRowId(this.cursor.rowIndex()!)],
       [this.viewSection.viewFields().at(this.cursor.fieldIndex())!],
-      {}
+      {},
     );
   }
 
@@ -764,7 +764,7 @@ export default class BaseView extends DisposableWithEvents {
 
     return {
       data: this.tableModel.tableData,
-      selection: selection
+      selection: selection,
     };
   }
 
@@ -783,7 +783,7 @@ export default class BaseView extends DisposableWithEvents {
     return {
       data: this.tableModel.tableData,
       selection: selection,
-      cutCallback: () => tableUtil.makeDeleteAction(selection)
+      cutCallback: () => tableUtil.makeDeleteAction(selection),
     };
   }
 
@@ -891,7 +891,7 @@ export default class BaseView extends DisposableWithEvents {
    * Creates and opens ColumnFilterMenu for a given field/column, and returns its PopupControl.
    */
   public createFilterMenu(
-    openCtl: IOpenController, filterInfo: FilterInfo, options: IColumnFilterMenuOptions
+    openCtl: IOpenController, filterInfo: FilterInfo, options: IColumnFilterMenuOptions,
   ): HTMLElement {
     const {showAllFiltersButton, onClose} = options;
     return createFilterMenu({

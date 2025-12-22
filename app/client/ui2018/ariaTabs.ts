@@ -56,7 +56,7 @@ export const ariaTab = (tabListId: string, tabId: string, state: Observable<stri
       // Only horizontal tabs are currently implemented.
       ArrowLeft: event => cycle(event.target, state, -1),
       ArrowRight: event => cycle(event.target, state, 1),
-    })
+    }),
   ];
 };
 

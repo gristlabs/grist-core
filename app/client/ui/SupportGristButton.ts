@@ -65,7 +65,7 @@ export class SupportGristButton extends Disposable {
             testId('support-grist-button-dismiss'),
           ),
           testId('support-grist-button'),
-        )
+        ),
       );
     });
   }
@@ -98,7 +98,7 @@ export class SupportGristButton extends Disposable {
       cssLeftAlignedHeader(t('Support Grist')),
       cssParagraph(t(
         'Opt in to telemetry to help us understand how the product \
-is used, so that we can prioritize future improvements.'
+is used, so that we can prioritize future improvements.',
       )),
       cssParagraph(
         t(

@@ -65,11 +65,11 @@ export class NTextBox extends NewAbstractWidget {
   public buildFormConfigDom(): DomContents {
     const format = fieldWithDefault<FormTextFormat>(
       this.field.widgetOptionsJson.prop('formTextFormat'),
-      'singleline'
+      'singleline',
     );
     const lineCount = fieldWithDefault<number|"">(
       this.field.widgetOptionsJson.prop('formTextLineCount'),
-      ''
+      '',
     );
 
     return [
@@ -109,7 +109,7 @@ export class NTextBox extends NewAbstractWidget {
       dom.cls('text_wrapping', this.wrapping),
       dom.domComputed(use => use(row._isAddRow) || this.isDisposed() ?
         null :
-        makeLinks(use(this.valueFormatter).formatAny(use(value), t)))
+        makeLinks(use(this.valueFormatter).formatAny(use(value), t))),
     );
   }
 

@@ -36,7 +36,7 @@ interface FrictionlessFormat {
 export async function collectTableSchemaInFrictionlessFormat(
   activeDoc: ActiveDoc,
   req: express.Request,
-  options: DownloadOptions
+  options: DownloadOptions,
 ): Promise<FrictionlessFormat> {
   const {tableId, header} = options;
   if (!activeDoc.docData) {
@@ -62,7 +62,7 @@ export async function collectTableSchemaInFrictionlessFormat(
         ...(col.description ? {description: col.description} : {}),
         ...buildTypeField(col, settings.locale),
       })),
-    }
+    },
   };
 }
 

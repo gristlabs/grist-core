@@ -57,7 +57,7 @@ describe('ActionLog', function() {
 
     // Remove rule.
     await api.applyUserActions(docId, [
-      ['RemoveRecord', '_grist_ACLRules', result.retValues[1]]
+      ['RemoveRecord', '_grist_ACLRules', result.retValues[1]],
     ]);
     await driver.navigate().refresh();
     await gu.waitForDocToLoad();

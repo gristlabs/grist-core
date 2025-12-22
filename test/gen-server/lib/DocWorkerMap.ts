@@ -233,8 +233,8 @@ describe('DocWorkerMap', function() {
             assert.equal(assignmentCountByWorkerId.size, workerCount);
             assert.isEmpty(
               [...assignmentCountByWorkerId.values()].filter(
-                v => v > docCount / 2
-              )
+                v => v > docCount / 2,
+              ),
             );
           });
         }
@@ -540,7 +540,7 @@ describe('DocWorkerMap', function() {
 
           // Check doc gets reassigned to correct worker.
           assert.equal(await (await api.testRequest(`${api.getBaseUrl()}/api/docs/${doc1}/assign`, {
-            method: 'POST'
+            method: 'POST',
           })).json(), true);
           await api.getDocAPI(doc1).getRows('Table1');
           assert.equal((await workers.getDocWorker(doc1))?.docWorker.id, 'worker2');
@@ -550,7 +550,7 @@ describe('DocWorkerMap', function() {
 
           // Check doc gets reassigned to one of the correct workers.
           assert.equal(await (await api.testRequest(`${api.getBaseUrl()}/api/docs/${doc1}/assign`, {
-            method: 'POST'
+            method: 'POST',
           })).json(), true);
           await api.getDocAPI(doc1).getRows('Table1');
           assert.oneOf((await workers.getDocWorker(doc1))?.docWorker.id, ['worker3', 'worker4']);
@@ -558,7 +558,7 @@ describe('DocWorkerMap', function() {
           // Remove doc from groups.
           await cli.delAsync(`doc-${doc1}-group`);
           assert.equal(await (await api.testRequest(`${api.getBaseUrl()}/api/docs/${doc1}/assign`, {
-            method: 'POST'
+            method: 'POST',
           })).json(), true);
           await api.getDocAPI(doc1).getRows('Table1');
 
@@ -567,14 +567,14 @@ describe('DocWorkerMap', function() {
 
           // Check that hitting /assign without a change of group is reported as no-op (false).
           assert.equal(await (await api.testRequest(`${api.getBaseUrl()}/api/docs/${doc1}/assign`, {
-            method: 'POST'
+            method: 'POST',
           })).json(), false);
 
           // Check that Chimpy can't use `group` param to update doc group prior to reassignment.
           const urlWithGroup = new URL(`${api.getBaseUrl()}/api/docs/${doc1}/assign`);
           urlWithGroup.searchParams.set('group', 'special');
           assert.equal(await (await api.testRequest(urlWithGroup.toString(), {
-            method: 'POST'
+            method: 'POST',
           })).json(), false);
 
           // Check that support user can use `group` param in housekeeping endpoint to update
@@ -582,20 +582,20 @@ describe('DocWorkerMap', function() {
           const housekeepingUrl = new URL(`${api.getBaseUrl()}/api/housekeeping/docs/${doc1}/assign`);
           housekeepingUrl.searchParams.set('group', 'special');
           assert.equal(await (await supportApi.testRequest(housekeepingUrl.toString(), {
-            method: 'POST'
+            method: 'POST',
           })).json(), true);
           await api.getDocAPI(doc1).getRows('Table1');
           assert.equal((await workers.getDocWorker(doc1))?.docWorker.id, 'worker2');
 
           // Check that hitting housekeeping endpoint with the same group is reported as no-op (false).
           assert.equal(await (await supportApi.testRequest(housekeepingUrl.toString(), {
-            method: 'POST'
+            method: 'POST',
           })).json(), false);
 
           // Check that specifying a blank group reverts back to the unspecialized worker.
           housekeepingUrl.searchParams.set('group', '');
           assert.equal(await (await supportApi.testRequest(housekeepingUrl.toString(), {
-            method: 'POST'
+            method: 'POST',
           })).json(), true);
           await api.getDocAPI(doc1).getRows('Table1');
           assert.equal((await workers.getDocWorker(doc1))?.docWorker.id, 'worker1');
@@ -607,7 +607,7 @@ describe('DocWorkerMap', function() {
           id: 'workerId',
           internalUrl: 'internalUrl',
           publicUrl: 'publicUrl',
-          group: undefined
+          group: undefined,
         };
 
         [
@@ -615,29 +615,29 @@ describe('DocWorkerMap', function() {
             itMsg: 'should check if worker is registered',
             sisMemberAsyncResolves: 1,
             expectedResult: true,
-            expectedKey: 'workers-available-default'
+            expectedKey: 'workers-available-default',
           },
           {
             itMsg: 'should check if worker is registered in a certain group',
             sisMemberAsyncResolves: 1,
             group: 'dummygroup',
             expectedResult: true,
-            expectedKey: 'workers-available-dummygroup'
+            expectedKey: 'workers-available-dummygroup',
           },
           {
             itMsg: 'should return false if worker is not registered',
             sisMemberAsyncResolves: 0,
             expectedResult: false,
-            expectedKey: 'workers-available-default'
-          }
+            expectedKey: 'workers-available-default',
+          },
         ].forEach((ctx) => {
           it(ctx.itMsg, async () => {
             const sismemberAsyncStub = sinon.stub().resolves(ctx.sisMemberAsyncResolves);
             const stubDocWorkerMap = {
-              _client: { sismemberAsync: sismemberAsyncStub }
+              _client: { sismemberAsync: sismemberAsyncStub },
             };
             const result = await DocWorkerMap.prototype.isWorkerRegistered.call(
-              stubDocWorkerMap, {...baseWorkerInfo, group: ctx.group }
+              stubDocWorkerMap, {...baseWorkerInfo, group: ctx.group },
             );
             expect(result).to.equal(ctx.expectedResult);
             expect(sismemberAsyncStub.calledOnceWith(ctx.expectedKey, baseWorkerInfo.id)).to.equal(true);
@@ -712,7 +712,7 @@ describe('DocWorkerMap', function() {
               'workers-available-by-load-default',
               0,
               -1,
-              'WITHSCORES'
+              'WITHSCORES',
             );
             assert.deepEqual(availableWorkersByLoad, [
               'worker1',
@@ -775,7 +775,7 @@ describe('DocWorkerMap', function() {
                 'workers-available-by-load-default',
                 0,
                 -1,
-                'WITHSCORES'
+                'WITHSCORES',
               );
               assert.deepEqual(availableWorkersByLoad, [
                 'worker1',

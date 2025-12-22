@@ -64,8 +64,8 @@ function setupTest() {
             dom(
               'button', 'omit',
               dom.on('click', () => valueOpt.set(null)),
-              testId('option-omit-value')
-            )
+              testId('option-omit-value'),
+            ),
           ),
         ),
       ]),
@@ -79,7 +79,7 @@ function setupTest() {
           call.resolve();
           el.toggleAttribute('disabled', true);
         }), testId('resolve')),
-        testId('call-log')
+        testId('call-log'),
       )),
       testId('call-logs'),
     ),

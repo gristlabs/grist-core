@@ -49,10 +49,10 @@ export class RawDataPage extends Disposable {
         dom('div', this._gristDoc.behavioralPromptsManager.attachPopup('rawDataPage', {hideArrow: true})),
         dom('div',
           dom.create(DataTables, this._gristDoc),
-          dom.create(DocumentUsage, this._gristDoc.docPageModel)
+          dom.create(DocumentUsage, this._gristDoc.docPageModel),
         ),
         // We are hiding it, because overlay doesn't have a z-index (it conflicts with a searchbar and list buttons)
-        dom.hide(this._lightboxVisible)
+        dom.hide(this._lightboxVisible),
       ),
       /***************  Lightbox section **********/
       dom.domComputed(fromKo(this._gristDoc.viewModel.activeSection), (viewSection) => {
@@ -106,14 +106,14 @@ export class RawDataPopup extends Disposable {
           // Expanded, non-raw widgets are also rendered in RawDataPopup.
           widgetNameHidden: this._viewSection.isRaw.peek(),
           renamable: !this._viewSection.isRecordCard.peek(),
-        })
+        }),
       ),
       cssCloseButton('CrossBig',
         testId('close-button'),
-        dom.on('click', () => this._onClose())
+        dom.on('click', () => this._onClose()),
       ),
       // Close the lightbox when user clicks exactly on the overlay.
-      dom.on('click', (ev, elem) => void (ev.target === elem ? this._onClose() : null))
+      dom.on('click', (ev, elem) => void (ev.target === elem ? this._onClose() : null)),
     );
   }
 }

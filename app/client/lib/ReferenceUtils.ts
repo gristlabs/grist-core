@@ -118,8 +118,8 @@ export class ReferenceUtils extends Disposable {
       () => this.tableData.columnACIndexes.buildColACIndex(
         this.visibleColId,
         this.visibleColFormatter,
-        this._buildDropdownConditionACFilter(rowId)
-      )
+        this._buildDropdownConditionACFilter(rowId),
+      ),
     );
   }
 

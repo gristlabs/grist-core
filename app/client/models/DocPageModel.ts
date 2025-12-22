@@ -37,7 +37,7 @@ import {
   PermissionData,
   Proposal,
   UserAPI,
-  Workspace
+  Workspace,
 } from 'app/common/UserAPI';
 import {Computed, Disposable, dom, DomArg, DomElementArg, Holder, Observable, subscribe} from 'grainjs';
 import isEqual from 'lodash/isEqual';
@@ -203,7 +203,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     this.isFork,
     this.isSnapshot,
     this.isTutorialFork,
-    (use, isFork, isSnapshot, isTutorialFork) => isFork && !isSnapshot && !isTutorialFork
+    (use, isFork, isSnapshot, isTutorialFork) => isFork && !isSnapshot && !isTutorialFork,
   );
 
   constructor(private _appObj: App, public readonly appModel: AppModel, private _api: UserAPI = appModel.api) {
@@ -247,7 +247,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
               openMode: urlOpenMode,
               linkParameters,
               originalUrlId: state.doc,
-            }, state.params?.compare))
+            }, state.params?.compare)),
           )
           .resultPromise.catch(err => this._onOpenError(err));
         }
@@ -274,7 +274,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
 
   public async refreshDocumentAccess() {
     const data = await mapGetOrSet(this._docUsersData, 'users', () =>
-      this.appModel.api.getDocAccess(this.currentDocId.get()!)
+      this.appModel.api.getDocAccess(this.currentDocId.get()!),
     );
     if (this.isDisposed()) { return; }
     const existing = this.docUsers.get();
@@ -289,7 +289,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     const urlId = gristDoc.docPageModel.currentDocId.get();
     if (!urlId) { return; }
     const proposals = await gristDoc.appModel.api.getDocAPI(urlId).getProposals({
-      outgoing: true
+      outgoing: true,
     });
     if (this.isDisposed()) { return; }
     const proposal = (proposals.proposals[0] ?? 'empty') as Proposal|'empty';
@@ -310,7 +310,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
           menu(() => addMenu(this.importSources, activeDoc, this.isReadonly.get()), {
             placement: 'bottom-start',
             // "Add New" menu should have the same width as the "Add New" button that opens it.
-            stretchToSelector: `.${cssAddNewButton.className}`
+            stretchToSelector: `.${cssAddNewButton.className}`,
           }),
           testId('dp-add-new'),
           dom.cls('tour-add-new'),
@@ -318,7 +318,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
         cssScrollPane(
           dom.create(buildPagesDom, activeDoc, leftPanelOpen),
           dom.create(tools, activeDoc, leftPanelOpen),
-        )
+        ),
       ]),
     );
   }
@@ -352,7 +352,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public updateUrlNoReload(
     urlId: string,
     urlOpenMode: OpenDocMode,
-    options: {removeSlug?: boolean, replaceUrl?: boolean} = {}
+    options: {removeSlug?: boolean, replaceUrl?: boolean} = {},
   ) {
     const {removeSlug = false, replaceUrl = true} = options;
     const state = urlState().state.get();
@@ -392,8 +392,8 @@ contact the document owners to attempt a document recovery. [{{error}}]", {error
             await this._api.getDocAPI(this.currentDocId.get()!).recover(true);
             window.location.reload(true);
           }),
-          testId('modal-recovery-mode')
-        )
+          testId('modal-recovery-mode'),
+        ),
       },
     );
   }
@@ -446,7 +446,7 @@ contact the document owners to attempt a document recovery. [{{error}}]", {error
         forkUrlId = buildUrlId({
           trunkId: doc.urlId || doc.id,
           forkId: fork.id,
-          forkUserId: this.appModel.currentValidUser!.id
+          forkUserId: this.appModel.currentValidUser!.id,
         });
       }
  else {
@@ -530,7 +530,7 @@ contact the document owners to attempt a document recovery. [{{error}}]", {error
         gristDoc.getActionCounter().countFromMark,
         (_, count) => {
           this.proposalNewChangesCount.set(count);
-        })
+        }),
     );
     this.proposalNewChangesCount.set(gristDoc.getActionCounter().countFromMark.get());
   }
@@ -552,7 +552,7 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
       elem => openPageWidgetPicker(elem, gristDoc, val => gristDoc.addNewPage(val).catch(reportError),
                                      {isNewPage: true, buttonLabel: t('Add page')}),
       menuIcon("Page"), t("Add page"), testId('dp-add-new-page'),
-      dom.cls('disabled', isReadonly)
+      dom.cls('disabled', isReadonly),
     ),
     menuItem(
       elem => openPageWidgetPicker(elem, gristDoc, val => gristDoc.addWidgetToPage(val).catch(reportError),
@@ -563,7 +563,7 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
     ),
     menuItem(() => gristDoc.addEmptyTable().catch(reportError),
       menuIcon("TypeTable"), t("Add empty table"), testId('dp-empty-table'),
-      dom.cls('disabled', isReadonly)
+      dom.cls('disabled', isReadonly),
     ),
     menuDivider(),
     ...importSources.map((importSource, i) =>
@@ -571,11 +571,11 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
         menuIcon('Import'),
         importSource.label,
         testId(`dp-import-option`),
-        dom.cls('disabled', isReadonly)
-      )
+        dom.cls('disabled', isReadonly),
+      ),
     ),
     isReadonly ? menuText(t("You do not have edit access to this document")) : null,
-    testId('dp-add-new-menu')
+    testId('dp-add-new-menu'),
   ];
 }
 

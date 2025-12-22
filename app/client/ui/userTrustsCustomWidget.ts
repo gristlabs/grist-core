@@ -33,7 +33,7 @@ export function userTrustsCustomWidget() {
         alert(t('Please review the following before adding a new custom widget.')),
         dom('p', inlineMarkdown(
           t('Custom widgets are **powerful**! \
-They may be able to read and write your document data, and send it elsewhere.')
+They may be able to read and write your document data, and send it elsewhere.'),
         )),
         dom('ul',
           cssListItem(inlineMarkdown(t('Are you sure you **trust the resource** at this URL?'))),
@@ -42,16 +42,16 @@ They may be able to read and write your document data, and send it elsewhere.')
         ),
         dom('p', inlineMarkdown(
           t('If in doubt, do not install this widget, or ask an administrator \
-of your organization to review it for safety.')
+of your organization to review it for safety.'),
         )),
         cssConfirmCheckbox(
           labeledSquareCheckbox(confirmIsChecked,
             dom('span',
-              inlineMarkdown(t('I confirm that I understand these warnings and accept the risks'))
+              inlineMarkdown(t('I confirm that I understand these warnings and accept the risks')),
             ),
-            testId('confirm-checkbox')
-          )
-        )
+            testId('confirm-checkbox'),
+          ),
+        ),
       ),
       saveLabel: getConfirmText(),
       saveFunc: () => Promise.resolve(setUserChoice(true)),
@@ -59,7 +59,7 @@ of your organization to review it for safety.')
       width: 'fixed-wide',
     };
   }, {
-    onCancel: () => setUserChoice(false)
+    onCancel: () => setUserChoice(false),
   });
 
   return waitForUserChoice;

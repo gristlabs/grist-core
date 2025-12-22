@@ -10,7 +10,7 @@ let prevCardClose: (() => void)|null = null;
 
 // Open a popup with a card introducing this example, if the user hasn't dismissed it in the past.
 export function showExampleCard(
-  example: IExampleInfo, toolInfo: AutomaticHelpToolInfo
+  example: IExampleInfo, toolInfo: AutomaticHelpToolInfo,
 ) {
   const {elem: btnElem, markAsSeen, reopen} = toolInfo;
 
@@ -35,7 +35,7 @@ export function showExampleCard(
         // TODO: Add a link to the overview video (as popup or to a support page that shows the
         // video). Also include a 'Video' icon.
         // cssLinkBtn(cssLinkIcon('Video'), 'Grist Video Tour'),
-      )
+      ),
     ),
     cssCloseButton(cssBigIcon('CrossBig'),
       dom.on('click', close),

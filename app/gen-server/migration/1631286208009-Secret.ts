@@ -9,7 +9,7 @@ export class Secret1631286208009 implements MigrationInterface {
         {
           name: "id",
           type: "varchar",
-          isPrimary: true
+          isPrimary: true,
         },
         {
           name: "value",
@@ -18,16 +18,16 @@ export class Secret1631286208009 implements MigrationInterface {
         {
           name: "doc_id",
           type: "varchar",
-        }
+        },
       ],
       foreignKeys: [
         {
           columnNames: ["doc_id"],
           referencedColumnNames: ["id"],
           referencedTableName: "docs",
-          onDelete: 'CASCADE'  // delete secret if linked to doc that is deleted
-        }
-      ]
+          onDelete: 'CASCADE',  // delete secret if linked to doc that is deleted
+        },
+      ],
     }));
   }
 

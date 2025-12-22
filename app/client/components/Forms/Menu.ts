@@ -123,7 +123,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
               )),
             {},
             menus.menuIcon('Dots'),
-            dom('span', t("More"), dom.style('margin-right', '8px'))
+            dom('span', t("More"), dom.style('margin-right', '8px')),
           ),
           dom.maybe(oneTo5, () => [
             menus.menuDivider(),
@@ -134,7 +134,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
                 menus.menuIcon(icon),
                 label,
                 testId('unmapped'),
-                testId('unmapped-' + colId)
+                testId('unmapped-' + colId),
               )),
             ),
           ]),
@@ -147,10 +147,10 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
                   menus.menuIcon(icon),
                   label,
                   testId('unmapped'),
-                  testId('unmapped-' + colId)
+                  testId('unmapped-' + colId),
                 )),
               {},
-              dom('span', "Unmapped fields", dom.style('margin-right', '8px'))
+              dom('span', "Unmapped fields", dom.style('margin-right', '8px')),
             ),
           ]),
           menus.menuDivider(),

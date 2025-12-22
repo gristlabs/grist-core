@@ -25,7 +25,7 @@ describe('RecordCards', function() {
       assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
       assert.equal(
         await driver.find('.test-record-card-popup-wrapper .test-widget-title-text').getText(),
-        'COUNTRY Card'
+        'COUNTRY Card',
       );
       assert.equal(await gu.getCardCell('Code').getText(), 'ALB');
       assert.isFalse(await driver.find('.grist-single-record__menu').isPresent());
@@ -37,7 +37,7 @@ describe('RecordCards', function() {
       assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
       assert.equal(
         await driver.find('.test-record-card-popup-wrapper .test-widget-title-text').getText(),
-        'COUNTRY Card'
+        'COUNTRY Card',
       );
       assert.equal(await gu.getCardCell('Code').getText(), 'AND');
       await gu.sendKeys(Key.ESCAPE);
@@ -45,7 +45,7 @@ describe('RecordCards', function() {
 
     it('closes popup when record is deleted', async function() {
       await api.applyUserActions(docId, [
-        ['RemoveRecord', 'Country', 1]
+        ['RemoveRecord', 'Country', 1],
       ]);
       await gu.waitToPass(async () => {
         assert.isFalse(await driver.find('.test-record-card-popup-overlay').isPresent());
@@ -84,7 +84,7 @@ describe('RecordCards', function() {
       assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
       assert.equal(
         await driver.find('.test-record-card-popup-wrapper .test-widget-title-text').getText(),
-        'COUNTRY Card'
+        'COUNTRY Card',
       );
       assert.equal(await gu.getCardCell('Code').getText(), 'AFG');
       assert.isFalse(await driver.find('.grist-single-record__menu').isPresent());
@@ -97,13 +97,13 @@ describe('RecordCards', function() {
       assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
       assert.equal(
         await driver.find('.test-record-card-popup-wrapper .test-widget-title-text').getText(),
-        'COUNTRYLANGUAGE Card'
+        'COUNTRYLANGUAGE Card',
       );
       assert.equal(await gu.getCardCell('Country').getText(), 'AFG');
       await gu.getCardCell('Country').find('.test-ref-link-icon').click();
       assert.equal(
         await driver.find('.test-record-card-popup-wrapper .test-widget-title-text').getText(),
-        'COUNTRY Card'
+        'COUNTRY Card',
       );
       assert.equal(await gu.getCardCell('Code').getText(), 'AFG');
       await gu.sendKeys(Key.ESCAPE);
@@ -141,7 +141,7 @@ describe('RecordCards', function() {
 
        assert.include(
          await driver.find('.test-record-card-popup-wrapper').getText(),
-         "This row is unavailable or does not exist"
+         "This row is unavailable or does not exist",
        );
 
       await gu.sendKeys(Key.ESCAPE);
@@ -159,7 +159,7 @@ describe('RecordCards', function() {
       assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
       assert.equal(
         await driver.find('.test-record-card-popup-wrapper .test-widget-title-text').getText(),
-        'COUNTRY Card'
+        'COUNTRY Card',
       );
       assert.equal(await gu.getCardCell('Code').getText(), 'AFG');
       assert.isFalse(await driver.find('.grist-single-record__menu').isPresent());
@@ -172,13 +172,13 @@ describe('RecordCards', function() {
       assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
       assert.equal(
         await driver.find('.test-record-card-popup-wrapper .test-widget-title-text').getText(),
-        'COUNTRYLANGUAGE Card'
+        'COUNTRYLANGUAGE Card',
       );
       assert.equal(await gu.getCardCell('Country').getText(), 'AFG');
       await gu.getCardCell('Country').find('.test-ref-list-link-icon').click();
       assert.equal(
         await driver.find('.test-record-card-popup-wrapper .test-widget-title-text').getText(),
-        'COUNTRY Card'
+        'COUNTRY Card',
       );
       assert.equal(await gu.getCardCell('Code').getText(), 'AFG');
       await gu.sendKeys(Key.ESCAPE);
@@ -198,7 +198,7 @@ describe('RecordCards', function() {
       await gu.getCell(1, 5).find('.test-ref-link-icon').click();
       assert.equal(
         await driver.find('.test-raw-data-overlay .test-widget-title-text').getText(),
-        'COUNTRY Card'
+        'COUNTRY Card',
       );
       assert.equal(await gu.getCardCell('Code').getText(), 'NLD');
     });

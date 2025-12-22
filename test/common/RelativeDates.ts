@@ -22,27 +22,27 @@ describe('RelativeDates', function() {
     it('should work correctly', function() {
       assert.deepEqual(
         getMatchingDoubleRelativeDate(getDateValue('10/1/2022'), {unit: 'month'}),
-        [{unit: 'month', quantity: 1}]
+        [{unit: 'month', quantity: 1}],
       );
 
       assert.deepEqual(
         getMatchingDoubleRelativeDate(getDateValue('9/19/2022'), {unit: 'week'}),
-        [{unit: 'week', quantity: -1}, {quantity: 1, unit: 'day'}]
+        [{unit: 'week', quantity: -1}, {quantity: 1, unit: 'day'}],
       );
 
       assert.deepEqual(
         getMatchingDoubleRelativeDate(getDateValue('9/21/2022'), {unit: 'week'}),
-        [{unit: 'week', quantity: -1}, {quantity: 3, unit: 'day'}]
+        [{unit: 'week', quantity: -1}, {quantity: 3, unit: 'day'}],
       );
 
       assert.deepEqual(
         getMatchingDoubleRelativeDate(getDateValue('9/30/2022'), {unit: 'month'}),
-        [{unit: 'month', quantity: 0}, {quantity: 29, unit: 'day'}]
+        [{unit: 'month', quantity: 0}, {quantity: 29, unit: 'day'}],
       );
 
       assert.deepEqual(
         getMatchingDoubleRelativeDate(getDateValue('10/1/2022'), {unit: 'month'}),
-        [{unit: 'month', quantity: 1}]
+        [{unit: 'month', quantity: 1}],
       );
     });
   });

@@ -16,11 +16,11 @@ function getLabel(item: TreeItem|null) {
 function callbacks(label: string) {
   return {
     insertBefore: (newChild: TreeItem, nextChild: TreeItem|null) => modelCalls.push(
-      `insert ${getLabel(newChild)} before ${getLabel(nextChild)} in ${label}`
+      `insert ${getLabel(newChild)} before ${getLabel(nextChild)} in ${label}`,
     ),
     removeChild: (child: TreeItem) => modelCalls.push(
-      `remove child ${getLabel(child)} from ${label}`
-    )
+      `remove child ${getLabel(child)} from ${label}`,
+    ),
   };
 }
 
@@ -31,10 +31,10 @@ function treeItem(label: string, children: TreeItem[]|null = null) {
     buildDom: () => dom('div',
       dom.text(label),
       dom.onDispose(() => disposed.push(label)),
-      dom.on('click', () => selected.set(item))
+      dom.on('click', () => selected.set(item)),
     ),
     children: constant(children ? obsArray(children) : null),
-    ...callbacks(label)
+    ...callbacks(label),
   };
 }
 
@@ -44,13 +44,13 @@ function buildTreeModel() {
       treeItem('Page1', [
         treeItem('Page2'),
         treeItem('Page3', [
-          treeItem('Page4')
-        ])
+          treeItem('Page4'),
+        ]),
       ]),
       treeItem('Page5', []),
-      treeItem('Page6')
+      treeItem('Page6'),
     ])),
-    ...callbacks('Root')
+    ...callbacks('Root'),
   };
 }
 
@@ -64,21 +64,21 @@ function setupTest() {
   return [
     testBox(
       dom.style('width', '224px'),
-      dom.create(TreeViewComponent, treeModel, {expanderDelay: 1100, isOpen, dragStartDelay: 500, selected, isReadonly})
+      dom.create(TreeViewComponent, treeModel, {expanderDelay: 1100, isOpen, dragStartDelay: 500, selected, isReadonly}),
     ),
     testBox(
       dom.style('float', 'right'),
       dom('input.insert', {type: 'button', value: 'top insert'},
-        dom.on('click', () => treeModel.get().children().push(treeItem('New Page')))
+        dom.on('click', () => treeModel.get().children().push(treeItem('New Page'))),
       ),
       dom('input.subInsert', {type: 'button', value: 'sub insert'},
-        dom.on('click', () => subFolderChildren().push(treeItem('New Page 5')))
+        dom.on('click', () => subFolderChildren().push(treeItem('New Page 5'))),
       ),
       dom('input.clearLogs', {type: 'button', value: 'clear calls'},
         dom.on('click', () => {
           modelCalls.set([]);
           disposed.set([]);
-        })
+        }),
       ),
       dom('input.reset', {type: 'button', value: 'reset'},
         dom.on('click', () => treeModel.set(buildTreeModel()))),
@@ -110,19 +110,19 @@ function setupTest() {
         'div',
         dom(
           'input.isOpen', {type: 'checkbox', value: 'isOpen', checked: true},
-          dom.on('click', () => isOpen.set(!isOpen.get()))
+          dom.on('click', () => isOpen.set(!isOpen.get())),
         ),
-        'isOpen option'
+        'isOpen option',
       ),
       dom(
         'div',
         dom(
           'input.isReadonly', {type: 'checkbox', value: 'isReadonly', checked: false},
-          dom.on('click', () => isReadonly.set(!isReadonly.get()))
+          dom.on('click', () => isReadonly.set(!isReadonly.get())),
         ),
-        'readonly mode'
+        'readonly mode',
       ),
-    )
+    ),
   ];
 }
 

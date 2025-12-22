@@ -25,7 +25,7 @@ const sqliteNativeValues: NativeValues = {
   booleanType: 'integer',
   dateTimeType: 'datetime',
   trueValue: 1,
-  falseValue: 0
+  falseValue: 0,
 };
 
 const postgresNativeValues: NativeValues = {
@@ -36,7 +36,7 @@ const postgresNativeValues: NativeValues = {
   booleanType: 'boolean',
   dateTimeType: 'timestamp with time zone',
   trueValue: true,
-  falseValue: false
+  falseValue: false,
 };
 
 export const nativeValues = (process.env.TYPEORM_TYPE === 'postgres') ? postgresNativeValues : sqliteNativeValues;

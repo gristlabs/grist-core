@@ -9,7 +9,7 @@ import { Workspace } from "app/gen-server/entity/Workspace";
 import { PreviousAndCurrent } from "app/gen-server/lib/homedb/Interfaces";
 
 export interface AuditEvent<
-  Action extends AuditEventAction = AuditEventAction
+  Action extends AuditEventAction = AuditEventAction,
 > {
   /**
    * The event ID.
@@ -77,7 +77,7 @@ export const AuditEventAction = StringUnion(
   "workspace.delete",
   "workspace.move_to_trash",
   "workspace.rename",
-  "workspace.restore_from_trash"
+  "workspace.restore_from_trash",
 );
 
 export type AuditEventAction = typeof AuditEventAction.type;

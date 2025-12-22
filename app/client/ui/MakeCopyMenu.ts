@@ -14,7 +14,7 @@ import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
 import {
   cssRadioCheckboxOptions,
   labeledSquareCheckbox,
-  radioCheckboxOption
+  radioCheckboxOption,
 } from 'app/client/ui2018/checkbox';
 import {testId} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
@@ -25,7 +25,7 @@ import {
   cssModalButtons,
   cssModalTitle,
   modal,
-  saveModal
+  saveModal,
 } from 'app/client/ui2018/modals';
 import * as roles from 'app/common/roles';
 import {components, tokens} from 'app/common/ThemePrefs';
@@ -35,7 +35,7 @@ import {
   Document,
   isTemplatesOrg,
   Organization,
-  Workspace
+  Workspace,
 } from 'app/common/UserAPI';
 import {
   Computed,
@@ -45,7 +45,7 @@ import {
   Observable,
   styled,
   subscribe,
-  subscribeElem
+  subscribeElem,
 } from 'grainjs';
 import {cssLink} from 'app/client/ui2018/links';
 import sortBy from 'lodash/sortBy';
@@ -60,7 +60,7 @@ export async function replaceTrunkWithFork(doc: Document, pageModel: DocPageMode
       cssModalBody(t("Replacing the original requires editing rights on the original document.")),
       cssModalButtons(
         bigBasicButton(t("Cancel"), dom.on('click', () => ctl.close())),
-      )
+      ),
     ]);
     return;
   }
@@ -230,12 +230,12 @@ class SaveCopyModal extends Disposable {
           // (see the TODO in app/client/ui2018/modals.ts about weasel.js and focus).
           (elem) => { setTimeout(() => { elem.focus(); }, 20); },
           dom.on('focus', (ev, elem) => { elem.select(); }),
-          testId('copy-dest-name'))
+          testId('copy-dest-name')),
       ),
       cssField(
         cssLabel(t("As template")),
         cssCheckbox(this._asTemplate, t("Include the structure without any of the data."),
-          testId('save-as-template'))
+          testId('save-as-template')),
       ),
       // Show the team picker only when saving to other teams is allowed and there are other teams
       // accessible.
@@ -269,10 +269,10 @@ class SaveCopyModal extends Disposable {
           wss ? dom.domComputed(this._destWS, destWs =>
             destWs && !roles.canEdit(destWs.access) ?
               cssWarningText(t("You do not have write access to the selected workspace"),
-                testId('copy-warning')
-              ) : null
-          ) : null
-        ]
+                testId('copy-warning'),
+              ) : null,
+          ) : null,
+        ],
       ),
     ];
   }
@@ -353,7 +353,7 @@ export function downloadDocModal(doc: Document, appModel: AppModel) {
       return cssRadioCheckboxOptions(
         radioCheckboxOption(selected, 'full', downloadText),
         radioCheckboxOption(selected, 'nohistory', t(
-          "Download document without history (can significantly reduce file size)"
+          "Download document without history (can significantly reduce file size)",
         )),
         radioCheckboxOption(selected, 'template', t("Download document structure only (no data, for template use)")),
       );
@@ -377,7 +377,7 @@ you will also need to {{downloadLink}} separately. ",
               }),
             },
           ),
-          testId('external-attachments-info')
+          testId('external-attachments-info'),
         )),
         cssCopyMenuModalButtons(
           dom.domComputed((modalButtonUse) => {
@@ -388,7 +388,7 @@ you will also need to {{downloadLink}} separately. ",
             return bigPrimaryButtonLink(t(`Download`), hooks.maybeModifyLinkAttrs({
                 href,
                 target: '_blank',
-                download: ''
+                download: '',
               }),
               dom.on('click', () => {
                 ctl.close();
@@ -398,8 +398,8 @@ you will also need to {{downloadLink}} separately. ",
           }),
           bigBasicButton(t('Cancel'), dom.on('click', () => {
             ctl.close();
-          }))
-        )
+          })),
+        ),
       ]),
     ];
   });
@@ -414,13 +414,13 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
       .then((status) => { attachmentStatusObs.set(status.locationSummary); })
       .catch((err) => { reportError(err); attachmentStatusObs.set('unknown'); });
     const isExternal = Computed.create(owner, attachmentStatusObs,
-      (use, status) => status !== 'none' && status !== 'internal'
+      (use, status) => status !== 'none' && status !== 'internal',
     );
 
     const formatObs = Observable.create<CreatableArchiveFormats>(owner, 'tar');
     const allFormats: IOptionFull<CreatableArchiveFormats>[] = [
       { value: 'tar', label: t('.tar (recommended)')},
-      { value: 'zip', label: t('.zip')}
+      { value: 'zip', label: t('.zip')},
     ];
     const attachmentArchiveDownloadHref: Computed<string> = Computed.create(owner, (use) => {
       const format = use(formatObs);
@@ -436,7 +436,7 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
         dom.maybe(isExternal, () => cssEagerWrap(dom('p',
           t(
             'If you\'re planning to upload this document to a Grist installation, \
-you will need the archive in the ".tar" format to restore attachments. '
+you will need the archive in the ".tar" format to restore attachments. ',
             /*'{{learnMore}}.',
             {
               learnMore: cssLink(t("Learn more"), {
@@ -445,7 +445,7 @@ you will need the archive in the ".tar" format to restore attachments. '
             },
             */
           ),
-          testId('attachments-external-message')
+          testId('attachments-external-message'),
         ))),
         cssAttachmentsDownloadRow(
           t('Format:'),
@@ -471,9 +471,9 @@ you will need the archive in the ".tar" format to restore attachments. '
           ),
           bigBasicButton(t('Cancel'), dom.on('click', () => {
             ctl.close();
-          }))
+          })),
         ),
-      ])
+      ]),
     ];
   });
 }

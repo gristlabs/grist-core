@@ -22,7 +22,7 @@ class OIDCConfigStubbed extends OIDCBuilder {
   public static async build(
     sendAppPage: SendAppPageFunction,
     config?: any,
-    clientStub?: Client
+    clientStub?: Client,
   ): Promise<OIDCConfigStubbed> {
     const result = new OIDCConfigStubbed(sendAppPage, config);
     if (clientStub) {
@@ -51,7 +51,7 @@ class ClientStub {
   } = {
     metadata: {
       end_session_endpoint: 'http://localhost:8484/logout',
-    }
+    },
   };
   public asClient() {
     return this as unknown as Client;
@@ -162,15 +162,15 @@ describe('OIDCConfig', () => {
             'and GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true',
           end_session_endpoint: undefined,
           env: {
-            GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT: 'true'
-          }
+            GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT: 'true',
+          },
         },
         {
           itMsg: 'should fulfill when the end_session_endpoint is provided with GRIST_OIDC_IDP_END_SESSION_ENDPOINT',
           end_session_endpoint: undefined,
           env: {
-            GRIST_OIDC_IDP_END_SESSION_ENDPOINT: 'http://localhost:8484/logout'
-          }
+            GRIST_OIDC_IDP_END_SESSION_ENDPOINT: 'http://localhost:8484/logout',
+          },
         },
         {
           itMsg: 'should fulfill when the end_session_endpoint is provided with the issuer',
@@ -180,7 +180,7 @@ describe('OIDCConfig', () => {
           itMsg: 'should reject when the end_session_endpoint is not known',
           errorMsg: /If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT/,
           end_session_endpoint: undefined,
-        }
+        },
       ].forEach((ctx) => {
         it(ctx.itMsg, async () => {
           setEnvVars();
@@ -204,7 +204,7 @@ describe('OIDCConfig', () => {
       [
         {
           itMsg: 'when omitted should not override openid-client default value',
-          expectedUserDefinedHttpOptions: { }
+          expectedUserDefinedHttpOptions: { },
         },
         {
           itMsg: 'should reject when the provided value is not a number',
@@ -220,8 +220,8 @@ describe('OIDCConfig', () => {
           },
           shouldSetTimeout: true,
           expectedUserDefinedHttpOptions: {
-            timeout: 10000
-          }
+            timeout: 10000,
+          },
         },
         {
           itMsg: 'should allow disabling the timeout by having its value set to 0',
@@ -229,9 +229,9 @@ describe('OIDCConfig', () => {
             GRIST_OIDC_SP_HTTP_TIMEOUT: '0',
           },
           expectedUserDefinedHttpOptions: {
-            timeout: 0
-          }
-        }
+            timeout: 0,
+          },
+        },
       ].forEach((ctx) => {
         it(ctx.itMsg, async () => {
           const setHttpOptionsDefaultsStub = sandbox.stub(custom, 'setHttpOptionsDefaults');
@@ -359,8 +359,8 @@ describe('OIDCConfig', () => {
             code_verifier: FAKE_CODE_VERIFIER,
             state: FAKE_STATE,
             targetUrl: TARGET_URL,
-          }
-        }
+          },
+        },
       },
       {
         itMsg: 'should forge the URL with passed GRIST_OIDC_IDP_SCOPES',
@@ -379,8 +379,8 @@ describe('OIDCConfig', () => {
             code_verifier: FAKE_CODE_VERIFIER,
             state: FAKE_STATE,
             targetUrl: TARGET_URL,
-          }
-        }
+          },
+        },
       },
       {
         itMsg: 'should pass the nonce when GRIST_OIDC_IDP_ENABLED_PROTECTIONS includes NONCE',
@@ -401,8 +401,8 @@ describe('OIDCConfig', () => {
             nonce: FAKE_NONCE,
             state: FAKE_STATE,
             targetUrl: TARGET_URL,
-          }
-        }
+          },
+        },
       },
       {
         itMsg: 'should not pass the code_challenge when PKCE is omitted in GRIST_OIDC_IDP_ENABLED_PROTECTIONS',
@@ -420,8 +420,8 @@ describe('OIDCConfig', () => {
             nonce: FAKE_NONCE,
             state: FAKE_STATE,
             targetUrl: TARGET_URL,
-          }
-        }
+          },
+        },
       },
     ].forEach((ctx) => {
       it(ctx.itMsg, async () => {
@@ -431,7 +431,7 @@ describe('OIDCConfig', () => {
         const config = await OIDCConfigStubbed.buildWithStub(clientStub.asClient());
         const session = {};
         const req = {
-          session
+          session,
         } as unknown as express.Request;
         const url = await config.getLoginRedirectUrl(req, new URL(TARGET_URL));
         assert.equal(url, ClientStub.FAKE_REDIRECT_URL);
@@ -454,8 +454,8 @@ describe('OIDCConfig', () => {
     const DEFAULT_SESSION = {
       oidc: {
         code_verifier: FAKE_CODE_VERIFIER,
-        state: FAKE_STATE
-      }
+        state: FAKE_STATE,
+      },
     } as SessionObj;
     const DEFAULT_EXPECTED_CALLBACK_CHECKS = {
       state: FAKE_STATE,
@@ -511,7 +511,7 @@ describe('OIDCConfig', () => {
             Sinon.match.any,
             Sinon.match.any,
             Sinon.match.hasNested('config.errTargetUrl', '/'));
-        }
+        },
       },
       {
         itMsg: 'should resolve when the state and the code challenge are found in the session',
@@ -520,7 +520,7 @@ describe('OIDCConfig', () => {
       {
         itMsg: 'should reject when the state is not found in the session',
         session: {
-          oidc: {}
+          oidc: {},
         },
         expectedErrorMsg: /Login or logout failed to complete/,
       },
@@ -537,8 +537,8 @@ describe('OIDCConfig', () => {
         session: {
           oidc: {
             state: FAKE_STATE,
-            GRIST_OIDC_IDP_ENABLED_PROTECTIONS: 'STATE,PKCE'
-          }
+            GRIST_OIDC_IDP_ENABLED_PROTECTIONS: 'STATE,PKCE',
+          },
         },
         expectedErrorMsg: /Login is stale/,
       },
@@ -548,7 +548,7 @@ describe('OIDCConfig', () => {
           oidc: {
             state: FAKE_STATE,
             nonce: FAKE_NONCE,
-          }
+          },
         },
         env: {
           GRIST_OIDC_IDP_ENABLED_PROTECTIONS: 'STATE,NONCE',
@@ -592,7 +592,7 @@ describe('OIDCConfig', () => {
         expectedErrorMsg: /email not verified for/,
         extraChecks: function ({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
           assert.equal(sendAppPageStub.firstCall.lastArg.config.errMessage, 'oidc.emailNotVerifiedError');
-        }
+        },
       },
       {
         itMsg: 'should resolve when the userinfo mail is not verified but its check disabled',
@@ -603,7 +603,7 @@ describe('OIDCConfig', () => {
         },
         env: {
           GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED: 'true',
-        }
+        },
       },
       {
         itMsg: 'should resolve when the userinfo mail is not verified but its check disabled',
@@ -624,7 +624,7 @@ describe('OIDCConfig', () => {
           email: FAKE_USER_INFO.email,
           name: FAKE_USER_INFO.name,
           extra: {},
-        })
+        }),
       },
       {
         itMsg: 'should fill user profile with name constructed using ' +
@@ -638,7 +638,7 @@ describe('OIDCConfig', () => {
         extrachecks: checkUserProfile({
           email: 'fake-email',
           name: 'given_name family_name',
-        })
+        }),
       },
       {
         itMsg: 'should fill user profile with email and name when ' +
@@ -676,7 +676,7 @@ describe('OIDCConfig', () => {
           extra: {
             extrafield: 'randomvalue',
             anotherfield: 12,
-          }
+          },
         }),
       },
       {
@@ -689,7 +689,7 @@ describe('OIDCConfig', () => {
         extraChecks: checkUserProfile({
           email: 'fake-email',
           name: 'fake-name',
-          extra: {}
+          extra: {},
         }),
       },
       {
@@ -705,7 +705,7 @@ describe('OIDCConfig', () => {
         extraChecks: checkUserProfile({
           email: 'fake-email',
           name: 'fake-name',
-          extra: {}
+          extra: {},
         }),
       },
       {
@@ -718,8 +718,8 @@ describe('OIDCConfig', () => {
         session: {
           oidc: {
             ...DEFAULT_SESSION.oidc,
-            targetUrl: 'http://localhost:8484/some/path'
-          }
+            targetUrl: 'http://localhost:8484/some/path',
+          },
         },
         extraChecks: checkRedirect('http://localhost:8484/some/path'),
       },
@@ -728,8 +728,8 @@ describe('OIDCConfig', () => {
         session: {
           oidc: {
             ...DEFAULT_SESSION.oidc,
-            targetUrl: '/some/path'
-          }
+            targetUrl: '/some/path',
+          },
         },
         userInfo: {
           ...FAKE_USER_INFO,
@@ -741,7 +741,7 @@ describe('OIDCConfig', () => {
             Sinon.match.any,
             Sinon.match.any,
             Sinon.match.hasNested('config.errTargetUrl', '/some/path'));
-        }
+        },
       },
       {
         itMsg: "should redact confidential information in the tokenSet in the logs",
@@ -766,9 +766,9 @@ describe('OIDCConfig', () => {
               expires_at: this.tokenSet.expires_at,
               expires_in: this.tokenSet.expires_in,
               scope: this.tokenSet.scope,
-            }
+            },
           ]);
-        }
+        },
       },
     ].forEach((ctx) => {
       it(ctx.itMsg, async () => {
@@ -780,12 +780,12 @@ describe('OIDCConfig', () => {
           state: FAKE_STATE,
         };
         const config = await OIDCConfigStubbed.build(
-          sendAppPageStub as SendAppPageFunction, undefined, clientStub.asClient()
+          sendAppPageStub as SendAppPageFunction, undefined, clientStub.asClient(),
         );
         const session = _.clone(ctx.session); // session is modified, so clone it
         const req = {
           session,
-          t: (key: string) => key
+          t: (key: string) => key,
         } as unknown as express.Request;
         clientStub.callbackParams.returns(fakeParams);
         const tokenSet = { id_token: 'id_token', ...ctx.tokenSet };
@@ -797,7 +797,7 @@ describe('OIDCConfig', () => {
         await config.handleCallback(
           fakeSessions as unknown as Sessions,
           req,
-          fakeRes as unknown as express.Response
+          fakeRes as unknown as express.Response,
         );
 
         if (ctx.expectedErrorMsg) {
@@ -816,12 +816,12 @@ describe('OIDCConfig', () => {
           assert.deepEqual(clientStub.callback.firstCall.args, [
             'http://localhost:8484/oauth2/callback',
             fakeParams,
-            ctx.expectedCbChecks ?? DEFAULT_EXPECTED_CALLBACK_CHECKS
+            ctx.expectedCbChecks ?? DEFAULT_EXPECTED_CALLBACK_CHECKS,
           ]);
           assert.deepEqual(session, {
             oidc: {
               idToken: tokenSet.id_token,
-            }
+            },
           }, 'oidc info should only keep state and id_token in the session and for the logout');
         }
         ctx.extraChecks?.({ fakeRes, user, sendAppPageStub });
@@ -834,7 +834,7 @@ describe('OIDCConfig', () => {
         const clientStub = new ClientStub();
         const sendAppPageStub = Sinon.stub().resolves();
         const config = await OIDCConfigStubbed.build(
-          sendAppPageStub as SendAppPageFunction, undefined, clientStub.asClient()
+          sendAppPageStub as SendAppPageFunction, undefined, clientStub.asClient(),
         );
       const req = {
         session: DEFAULT_SESSION,
@@ -843,7 +843,7 @@ describe('OIDCConfig', () => {
       const errorResponse = {
         body: { property: 'response here' },
         statusCode: 400,
-        statusMessage: 'statusMessage'
+        statusMessage: 'statusMessage',
       } as unknown as any;
 
       const err = new OIDCError.OPError({error: 'userinfo failed'}, errorResponse);
@@ -852,7 +852,7 @@ describe('OIDCConfig', () => {
       await config.handleCallback(
         fakeSessions as unknown as Sessions,
         req,
-        fakeRes as unknown as express.Response
+        fakeRes as unknown as express.Response,
       );
 
       assert.equal(logErrorStub.callCount, 2, 'logErrorStub show be called twice');
@@ -871,7 +871,7 @@ describe('OIDCConfig', () => {
     const FAKE_SESSION = {
       oidc: {
         idToken: 'id_token',
-      }
+      },
     } as SessionObj;
 
     [
@@ -884,16 +884,16 @@ describe('OIDCConfig', () => {
       }, {
         itMsg: 'should use the GRIST_OIDC_IDP_END_SESSION_ENDPOINT when it is set',
         env: {
-          GRIST_OIDC_IDP_END_SESSION_ENDPOINT: ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT
+          GRIST_OIDC_IDP_END_SESSION_ENDPOINT: ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT,
         },
-        expectedUrl: ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT
+        expectedUrl: ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT,
       }, {
         itMsg: 'should call the end session endpoint with the expected parameters',
         expectedUrl: URL_RETURNED_BY_CLIENT,
         expectedLogoutParams: {
           post_logout_redirect_uri: STABLE_LOGOUT_URL.href,
           id_token_hint: FAKE_SESSION.oidc!.idToken,
-        }
+        },
       }, {
         itMsg: 'should call the end session endpoint with no idToken if session is missing',
         expectedUrl: URL_RETURNED_BY_CLIENT,
@@ -901,8 +901,8 @@ describe('OIDCConfig', () => {
           post_logout_redirect_uri: STABLE_LOGOUT_URL.href,
           id_token_hint: undefined,
         },
-        session: null
-      }
+        session: null,
+      },
     ].forEach((ctx) => {
       it(ctx.itMsg, async () => {
         setEnvVars();
@@ -912,9 +912,9 @@ describe('OIDCConfig', () => {
         const config = await OIDCConfigStubbed.buildWithStub(clientStub.asClient());
         const req = {
           headers: {
-            host: STABLE_LOGOUT_URL.host
+            host: STABLE_LOGOUT_URL.host,
           },
-          session: 'session' in ctx ? ctx.session : FAKE_SESSION
+          session: 'session' in ctx ? ctx.session : FAKE_SESSION,
         } as unknown as RequestWithLogin;
         const url = await config.getLogoutRedirectUrl(req, REDIRECT_URL);
         assert.equal(url, ctx.expectedUrl);

@@ -85,7 +85,7 @@ import * as express from 'express';
 import pick from 'lodash/pick';
 
 import {
-  Client, ClientMetadata, custom, Issuer, errors as OIDCError, TokenSet, UserinfoResponse
+  Client, ClientMetadata, custom, Issuer, errors as OIDCError, TokenSet, UserinfoResponse,
 } from 'openid-client';
 
 
@@ -245,7 +245,7 @@ function buildEnabledProtections(section: AppSettings): Set<EnabledProtectionStr
  catch (e) {
     if (e instanceof StringUnionError) {
       throw new TypeError(`OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${e.actual}.`+
-        ` Expected at least one of these values: "${e.values.join(",")}"`
+        ` Expected at least one of these values: "${e.values.join(",")}"`,
       );
     }
     throw e;
@@ -258,7 +258,7 @@ export class OIDCBuilder {
    */
   public static async build(
     sendAppPage: SendAppPageFunction,
-    config?: OIDCConfig
+    config?: OIDCConfig,
   ): Promise<OIDCBuilder> {
     const builder = new OIDCBuilder(sendAppPage, config);
     await builder.initOIDC();
@@ -272,7 +272,7 @@ export class OIDCBuilder {
 
   constructor(
     private _sendAppPage: SendAppPageFunction,
-    config?: OIDCConfig
+    config?: OIDCConfig,
   ) {
     // Use provided config or read from global appSettings
     this._config = config ?? readOIDCConfigFromSettings(appSettings);
@@ -290,7 +290,7 @@ export class OIDCBuilder {
       issuerUrl: this._config.issuerUrl,
       clientId: this._config.clientId,
       clientSecret: this._config.clientSecret,
-      extraMetadata: this._config.extraMetadata
+      extraMetadata: this._config.extraMetadata,
     });
 
     if (this._client.issuer.metadata.end_session_endpoint === undefined &&
@@ -339,7 +339,7 @@ export class OIDCBuilder {
       if (!this._config.ignoreEmailVerified && userInfo.email_verified !== true) {
         throw new ErrorWithUserFriendlyMessage(
           `OIDCConfig: email not verified for ${userInfo.email}`,
-          req.t("oidc.emailNotVerifiedError")
+          req.t("oidc.emailNotVerifiedError"),
         );
       }
 
@@ -381,7 +381,7 @@ export class OIDCBuilder {
 
     mreq.session.oidc = {
       targetUrl: targetUrl.href,
-      ...this._protectionManager.generateSessionInfo()
+      ...this._protectionManager.generateSessionInfo(),
     };
 
     return this._client.authorizationUrl({
@@ -414,7 +414,7 @@ export class OIDCBuilder {
   }
 
   protected async _initClient({ issuerUrl, clientId, clientSecret, extraMetadata }:
-    { issuerUrl: string, clientId: string, clientSecret: string, extraMetadata: Partial<ClientMetadata> }
+    { issuerUrl: string, clientId: string, clientSecret: string, extraMetadata: Partial<ClientMetadata> },
   ): Promise<void> {
     try {
       const issuer = await Issuer.discover(issuerUrl);
@@ -437,7 +437,7 @@ export class OIDCBuilder {
     req: express.Request,
     res: express.Response,
     userFriendlyMessage?: string,
-    targetUrl?: string
+    targetUrl?: string,
   ) {
     return this._sendAppPage(req, res, {
       path: 'error.html',
@@ -463,7 +463,7 @@ export class OIDCBuilder {
       email: String(userInfo[this._config.emailPropertyKey]),
       name: this._extractName(userInfo),
       // extra fields could be returned by the IdP that we might want to store
-      extra: pick(userInfo, process.env.GRIST_IDP_EXTRA_PROPS?.split(',') || [])
+      extra: pick(userInfo, process.env.GRIST_IDP_EXTRA_PROPS?.split(',') || []),
     };
   }
 

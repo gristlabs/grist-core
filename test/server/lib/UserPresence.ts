@@ -75,12 +75,12 @@ describe('UserPresence', function() {
     await owner.updateWorkspacePermissions(wsId, {
       users: {
         [Users.editor.email]: 'editors',
-      }
+      },
     });
     await owner.updateDocPermissions(docId, {
       users: {
         [EVERYONE_EMAIL]: 'viewers',
-      }
+      },
     });
     editor = await home.createHomeApi(Users.editor.username, TEST_ORG, true);
   });
@@ -108,7 +108,7 @@ describe('UserPresence', function() {
         email: Users.owner.email,
         picture: null,
         isAnonymous: false,
-      }
+      },
     },
     {
       name: 'anonymous users show as anonymous',
@@ -117,7 +117,7 @@ describe('UserPresence', function() {
       expectedProfile: {
         name: Users.anon.name,
         isAnonymous: true,
-      }
+      },
     },
     {
       name: 'public users show as anonymous',
@@ -126,7 +126,7 @@ describe('UserPresence', function() {
       expectedProfile: {
         name: Users.anon.name,
         isAnonymous: true,
-      }
+      },
     },
   ];
 
@@ -137,7 +137,7 @@ describe('UserPresence', function() {
   publicEmails.forEach((currentPublicEmail) => {
     const _newPermissions = zipObject(
         publicEmails,
-        publicEmails.map(email => email === currentPublicEmail ? 'viewers' : null)
+        publicEmails.map(email => email === currentPublicEmail ? 'viewers' : null),
     );
 
     describe(`shows the correct profile details - public email ${currentPublicEmail}`, async function() {
@@ -162,7 +162,7 @@ describe('UserPresence', function() {
 
           const sessionEndMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
           assert.equal(sessionEndMessage.data.id, joinMessage.data.id, "id of session ended doesn't match start");
-        })
+        }),
       );
     });
   });
@@ -225,7 +225,7 @@ describe('UserPresence', function() {
           [ANONYMOUS_USER_EMAIL]: null,
           // Make all public users editors to show that no public users can see others.
           [EVERYONE_EMAIL]: 'editors',
-        }
+        },
       });
     });
 
@@ -234,7 +234,7 @@ describe('UserPresence', function() {
         users: {
           [Users.loggedInPublic.email]: null,
           [EVERYONE_EMAIL]: 'viewers',
-        }
+        },
       });
     });
 

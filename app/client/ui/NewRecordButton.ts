@@ -21,7 +21,7 @@ export function maybeShowNewRecordExperiment(view: BaseView) {
   const experimentIsEnabled = view.gristDoc.appModel.experiments?.isEnabled('newRecordButton');
   return dom.maybe(
     use => (experimentIsEnabled && use(view.viewSection.hasFocus) && use(view.enableAddRow)),
-    () => newRecordButton(view)
+    () => newRecordButton(view),
   );
 }
 
@@ -44,7 +44,7 @@ function newRecordButton(view: BaseView) {
     dom.on('click', () => {
       view.onNewRecordRequest?.()?.catch(reportError);
     }),
-    testId('new-record-button')
+    testId('new-record-button'),
   );
 }
 

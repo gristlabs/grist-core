@@ -17,8 +17,8 @@ function scimConfigForUser(user: string) {
     ...config,
     headers: {
       ...config.headers,
-      'Content-Type': 'application/scim+json'
-    }
+      'Content-Type': 'application/scim+json',
+    },
   };
 }
 
@@ -119,7 +119,7 @@ describe('Scim', () => {
         displayName: capitalize(user),
         preferredLanguage: 'en',
         locale: 'en',
-        emails: [{ value: user + '@getgrist.com', primary: true }]
+        emails: [{ value: user + '@getgrist.com', primary: true }],
       };
     }
 
@@ -151,7 +151,7 @@ describe('Scim', () => {
         assert.deepEqual(res.data, {
           schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
           status: '403',
-          detail: `System user ${opType} not permitted.`
+          detail: `System user ${opType} not permitted.`,
         });
       }
     }
@@ -171,7 +171,7 @@ describe('Scim', () => {
     function checkCommonErrors(
       method: 'get' | 'post' | 'put' | 'patch' | 'delete',
       path: string,
-      validBody: object = {}
+      validBody: object = {},
     ) {
       function makeCallWith(user: keyof UserConfigByName) {
         if (method === 'get' || method === 'delete') {
@@ -190,7 +190,7 @@ describe('Scim', () => {
         assert.deepEqual(res.data, {
           schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
           status: '403',
-          detail: 'You are not authorized to access this resource'
+          detail: 'You are not authorized to access this resource',
         });
         assert.equal(res.status, 403);
       });
@@ -218,7 +218,7 @@ describe('Scim', () => {
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '500',
-            detail: error.message
+            detail: error.message,
           });
           assert.equal(res.status, 500);
         }
@@ -260,7 +260,7 @@ describe('Scim', () => {
             schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
             id: '1',
             displayName: 'Chimpy',
-            userName: 'chimpy@getgrist.com'
+            userName: 'chimpy@getgrist.com',
           });
         });
 
@@ -270,7 +270,7 @@ describe('Scim', () => {
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
-            detail: 'User with ID 1000 not found'
+            detail: 'User with ID 1000 not found',
           });
         });
 
@@ -280,7 +280,7 @@ describe('Scim', () => {
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
-            detail: `User with ID ${serviceUserId} not found`
+            detail: `User with ID ${serviceUserId} not found`,
           });
           assert.equal(res.status, 404);
         });
@@ -361,7 +361,7 @@ describe('Scim', () => {
           assert.equal(res.data.totalResults, 1);
           assert.deepEqual(res.data.Resources[0], {
             id: String(userIdByName['chimpy']),
-            userName: 'chimpy@getgrist.com'
+            userName: 'chimpy@getgrist.com',
           },
             "should have retrieved only chimpy's username and not other attribute");
         });
@@ -417,14 +417,14 @@ describe('Scim', () => {
               preferredLanguage: 'en',
               locale: 'en',
               emails: [
-                { value: 'emails.value@getgrist.com', primary: true }
-              ]
+                { value: 'emails.value@getgrist.com', primary: true },
+              ],
             });
             assert.equal(res.status, 201);
             assert.equal(logWarnStub.callCount, 1, "A warning should have been raised");
             assert.match(
               logWarnStub.getCalls()[0].args[0],
-              new RegExp(`userName "${userName}" differ from passed primary email`)
+              new RegExp(`userName "${userName}" differ from passed primary email`),
             );
           });
         });
@@ -435,7 +435,7 @@ describe('Scim', () => {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '409',
             detail: 'An existing user with the passed email exist.',
-            scimType: 'uniqueness'
+            scimType: 'uniqueness',
           });
           assert.equal(res.status, 409);
         });
@@ -492,7 +492,7 @@ describe('Scim', () => {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '409',
             detail: 'An existing user with the passed email exist.',
-            scimType: 'uniqueness'
+            scimType: 'uniqueness',
           });
           assert.equal(res.status, 409);
         });
@@ -502,7 +502,7 @@ describe('Scim', () => {
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
-            detail: 'unable to find user to update'
+            detail: 'unable to find user to update',
           });
           assert.equal(res.status, 404);
         });
@@ -513,7 +513,7 @@ describe('Scim', () => {
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
-            detail: 'unable to find user to update'
+            detail: 'unable to find user to update',
           });
           assert.equal(res.status, 404);
         });
@@ -522,7 +522,7 @@ describe('Scim', () => {
           const data = toSCIMUserWithoutId('whoever');
           await checkOperationOnTechUserDisallowed({
             op: id => axios.put(scimUrl(`/Users/${id}`), data, chimpy),
-            opType: 'modification'
+            opType: 'modification',
           });
         });
 
@@ -546,7 +546,7 @@ describe('Scim', () => {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '400',
             detail: 'Invalid passed user ID',
-            scimType: 'invalidValue'
+            scimType: 'invalidValue',
           });
           assert.equal(res.status, 400);
         });
@@ -563,7 +563,7 @@ describe('Scim', () => {
             id: String(userToUpdateId),
             userName: newEmail.toLowerCase(),
             displayName: 'my-EMAIL',
-            emails: [{ value: newEmail, primary: true }]
+            emails: [{ value: newEmail, primary: true }],
           });
         });
 
@@ -589,7 +589,7 @@ describe('Scim', () => {
           }, {
               op: "replace",
               path: "locale",
-              value: 'fr'
+              value: 'fr',
             }],
         });
 
@@ -613,7 +613,7 @@ describe('Scim', () => {
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
-            detail: `User with ID ${serviceUserId} not found`
+            detail: `User with ID ${serviceUserId} not found`,
           });
           assert.equal(res.status, 404);
         });
@@ -643,7 +643,7 @@ describe('Scim', () => {
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
-            detail: 'user not found'
+            detail: 'user not found',
           });
           assert.equal(res.status, 404);
         });
@@ -654,7 +654,7 @@ describe('Scim', () => {
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
-            detail: 'user not found'
+            detail: 'user not found',
           });
           assert.equal(res.status, 404);
         });
@@ -662,7 +662,7 @@ describe('Scim', () => {
         it('should return 403 for system users', async function () {
           await checkOperationOnTechUserDisallowed({
             op: id => axios.delete(scimUrl(`/Users/${id}`), chimpy),
-            opType: 'deletion'
+            opType: 'deletion',
           });
         });
 
@@ -710,7 +710,7 @@ describe('Scim', () => {
           const group = await getDbManager().createGroup({
             name: groupName,
             type: Group.TEAM_TYPE,
-            memberUsers: [userIdByName['chimpy']!]
+            memberUsers: [userIdByName['chimpy']!],
           });
           return await cb(String(group.id), group);
         });
@@ -721,7 +721,7 @@ describe('Scim', () => {
           const role = await getDbManager().createGroup({
             name: groupName,
             type: Group.ROLE_TYPE,
-            memberUsers: [userIdByName['chimpy']!]
+            memberUsers: [userIdByName['chimpy']!],
           });
           return await cb(String(role.id), role);
         });
@@ -739,9 +739,9 @@ describe('Scim', () => {
                 id: groupId,
                 displayName: group.name,
                 members: [
-                  { value: '1', display: 'Chimpy', $ref: '/api/scim/v2/Users/1', type: 'User' }
+                  { value: '1', display: 'Chimpy', $ref: '/api/scim/v2/Users/1', type: 'User' },
                 ],
-                meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${groupId}` }
+                meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${groupId}` },
               });
             });
           });
@@ -753,7 +753,7 @@ describe('Scim', () => {
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
-              detail: `Group with ID ${nonExistingId} not found`
+              detail: `Group with ID ${nonExistingId} not found`,
             });
           });
 
@@ -764,7 +764,7 @@ describe('Scim', () => {
               assert.deepEqual(res.data, {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
                 status: '404',
-                detail: `Group with ID ${groupId} not found`
+                detail: `Group with ID ${groupId} not found`,
               });
             });
           });
@@ -775,7 +775,7 @@ describe('Scim', () => {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid passed group ID',
-              scimType: 'invalidValue'
+              scimType: 'invalidValue',
             });
             assert.equal(res.status, 400);
           });
@@ -791,24 +791,24 @@ describe('Scim', () => {
                 await getDbManager().createGroup({
                   name: roleGroupName,
                   type: Group.ROLE_TYPE,
-                  memberUsers: [userIdByName['chimpy']!]
+                  memberUsers: [userIdByName['chimpy']!],
                 });
                 const group1 = await getDbManager().createGroup({
                   name: group1Name,
                   type: Group.TEAM_TYPE,
-                  memberUsers: [userIdByName['chimpy']!]
+                  memberUsers: [userIdByName['chimpy']!],
                 });
                 const group2 = await getDbManager().createGroup({
                   name: group2Name,
                   type: Group.TEAM_TYPE,
-                  memberUsers: [userIdByName['kiwi']!]
+                  memberUsers: [userIdByName['kiwi']!],
                 });
 
                 const res = await axios.get(scimUrl('/Groups'), chimpy);
                 assert.equal(res.status, 200);
                 assert.isAbove(res.data.totalResults, 0, 'should have retrieved some groups');
                 assert.isFalse(res.data.Resources.some(
-                  ({displayName}: {displayName: string}) => displayName === roleGroupName
+                  ({displayName}: {displayName: string}) => displayName === roleGroupName,
                 ), 'The API endpoint should not return role Groups');
                 assert.deepEqual(res.data.Resources, [
                   {
@@ -816,16 +816,16 @@ describe('Scim', () => {
                     id: String(group1.id),
                     displayName: group1Name,
                     members: [getUserMemberWithRef('chimpy')],
-                    meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${group1.id}` }
+                    meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${group1.id}` },
                   }, {
                     schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
                     id: String(group2.id),
                     displayName: group2Name,
                     members: [getUserMemberWithRef('kiwi')],
-                    meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${group2.id}` }
-                  }
+                    meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${group2.id}` },
+                  },
                 ]);
-              }
+              },
             );
           });
 
@@ -841,7 +841,7 @@ describe('Scim', () => {
                 members: [
                   getUserMember('chimpy'),
                   getUserMember('kiwi'),
-                ]
+                ],
               }, chimpy);
               assert.equal(res.status, 201);
               const newGroupId = parseInt(res.data.id);
@@ -853,7 +853,7 @@ describe('Scim', () => {
                   getUserMemberWithRef('chimpy'),
                   getUserMemberWithRef('kiwi'),
                 ],
-                meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${newGroupId}` }
+                meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${newGroupId}` },
               });
             });
           });
@@ -870,7 +870,7 @@ describe('Scim', () => {
                 id: res.data.id,
                 displayName: groupName,
                 members: [],
-                meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${res.data.id}` }
+                meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${res.data.id}` },
               });
             });
           });
@@ -880,13 +880,13 @@ describe('Scim', () => {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
               members: [
                 { value: String(userIdByName['chimpy']), display: 'Chimpy', type: 'User' },
-              ]
+              ],
             }, chimpy);
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: "Required attribute 'displayName' is missing",
-              scimType: 'invalidValue'
+              scimType: 'invalidValue',
             });
             assert.equal(res.status, 400);
           });
@@ -907,7 +907,7 @@ describe('Scim', () => {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
                 status: '409',
                 detail: `Group with name "${groupName}" already exists`,
-                scimType: 'uniqueness'
+                scimType: 'uniqueness',
               });
             });
           });
@@ -918,13 +918,13 @@ describe('Scim', () => {
               displayName: 'test-group',
               members: [
                 { value: 'not-an-id', display: 'Non-Existing User', type: 'User' },
-              ]
+              ],
             }, chimpy);
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid User member ID: not-an-id',
-              scimType: 'invalidValue'
+              scimType: 'invalidValue',
             });
             assert.equal(res.status, 400);
           });
@@ -935,13 +935,13 @@ describe('Scim', () => {
               displayName: 'test-group',
               members: [
                 { value: 'not-an-id', display: 'Non-Existing Group', type: 'Group' },
-              ]
+              ],
             }, chimpy);
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid Group member ID: not-an-id',
-              scimType: 'invalidValue'
+              scimType: 'invalidValue',
             });
             assert.equal(res.status, 400);
           });
@@ -953,12 +953,12 @@ describe('Scim', () => {
               members: [
                 getUserMember('chimpy'),
                 { value: '1000', display: 'Non-Existing User', type: 'User' },
-              ]
+              ],
             }, chimpy);
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
-              detail: 'Users not found: 1000'
+              detail: 'Users not found: 1000',
             });
             assert.equal(res.status, 404);
           });
@@ -969,12 +969,12 @@ describe('Scim', () => {
               displayName: 'test-group',
               members: [
                 { value: '1000', display: 'Non-Existing Group', type: 'Group' },
-              ]
+              ],
             }, chimpy);
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
-              detail: 'Groups not found: 1000'
+              detail: 'Groups not found: 1000',
             });
             assert.equal(res.status, 404);
           });
@@ -988,12 +988,12 @@ describe('Scim', () => {
                   { value: '1', type: 'User' },
                   { value: '2', type: 'User' },
                   { value: groupId, type: 'Group' },
-                ]
+                ],
               }, chimpy);
               assert.deepEqual(res.data, {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
                 status: '400',
-                detail: `Groups of type "${Group.TEAM_TYPE}" cannot contain groups.`
+                detail: `Groups of type "${Group.TEAM_TYPE}" cannot contain groups.`,
               });
               assert.equal(res.status, 400);
             });
@@ -1008,7 +1008,7 @@ describe('Scim', () => {
                 getUserMember('chimpy'),
                 getUserMember('kiwi'),
               ];
-            }
+            },
           });
         });
 
@@ -1021,7 +1021,7 @@ describe('Scim', () => {
                 displayName: newGroupName,
                 members: [
                   getUserMember('kiwi'),
-                ]
+                ],
               }, chimpy);
               assert.equal(res.status, 200);
               assert.deepEqual(res.data, {
@@ -1031,7 +1031,7 @@ describe('Scim', () => {
                 members: [
                   getUserMemberWithRef('kiwi'),
                 ],
-                meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId }
+                meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId },
               });
             });
           });
@@ -1049,7 +1049,7 @@ describe('Scim', () => {
                 id: groupId,
                 displayName: newGroupName,
                 members: [],
-                meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId }
+                meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId },
               });
             });
           });
@@ -1070,12 +1070,12 @@ describe('Scim', () => {
               displayName: 'New Group Name',
               members: [
                 getUserMember('kiwi'),
-              ]
+              ],
             }, chimpy);
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
-              detail: 'Group with id 1000 not found'
+              detail: 'Group with id 1000 not found',
             });
             assert.equal(res.status, 404);
           });
@@ -1086,13 +1086,13 @@ describe('Scim', () => {
               displayName: 'New Group Name',
               members: [
                 getUserMember('kiwi'),
-              ]
+              ],
             }, chimpy);
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid passed group ID',
-              scimType: 'invalidValue'
+              scimType: 'invalidValue',
             });
             assert.equal(res.status, 400);
           });
@@ -1103,7 +1103,7 @@ describe('Scim', () => {
             // We need to differ the moment we call userIdByName['kiwi'] (set during a "before()" hook)
             get members() {
               return [getUserMember('kiwi')];
-            }
+            },
           });
         });
 
@@ -1114,8 +1114,8 @@ describe('Scim', () => {
               const res = await axios.patch(scimUrl('/Groups/' + groupId), {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
                 Operations: [{
-                  op: 'replace', path: 'displayName', value: newGroupName
-                }]
+                  op: 'replace', path: 'displayName', value: newGroupName,
+                }],
               }, chimpy);
               assert.equal(res.status, 200);
               assert.deepEqual(res.data, {
@@ -1125,7 +1125,7 @@ describe('Scim', () => {
                 members: [
                   getUserMemberWithRef('chimpy'),
                 ],
-                meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId }
+                meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId },
               });
             });
           });
@@ -1135,8 +1135,8 @@ describe('Scim', () => {
               const res = await axios.patch(scimUrl('/Groups/' + groupId), {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
                 Operations: [{
-                  op: 'add', path: 'members', value: [getUserMember('kiwi')]
-                }]
+                  op: 'add', path: 'members', value: [getUserMember('kiwi')],
+                }],
               }, chimpy);
               assert.equal(res.status, 200);
               assert.deepEqual(res.data.members, [
@@ -1151,8 +1151,8 @@ describe('Scim', () => {
               const res = await axios.patch(scimUrl('/Groups/' + groupId), {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
                 Operations: [{
-                  op: 'add', path: 'members', value: [getUserMember('kiwi')]
-                }]
+                  op: 'add', path: 'members', value: [getUserMember('kiwi')],
+                }],
               }, chimpy);
               assert.equal(res.status, 404);
             });
@@ -1161,8 +1161,8 @@ describe('Scim', () => {
           checkCommonErrors('patch', '/Groups/1', {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
             Operations: [{
-              op: 'replace', path: 'displayName', value: 'Updated Group Name'
-            }]
+              op: 'replace', path: 'displayName', value: 'Updated Group Name',
+            }],
           });
         });
 
@@ -1188,7 +1188,7 @@ describe('Scim', () => {
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
-              detail: 'Group with id 1000 not found'
+              detail: 'Group with id 1000 not found',
             });
             assert.equal(res.status, 404);
           });
@@ -1199,7 +1199,7 @@ describe('Scim', () => {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid passed group ID',
-              scimType: 'invalidValue'
+              scimType: 'invalidValue',
             });
             assert.equal(res.status, 400);
           });
@@ -1222,7 +1222,7 @@ describe('Scim', () => {
                 members: [
                   { value: '1', display: 'Chimpy', $ref: '/api/scim/v2/Users/1', type: 'User' },
                 ],
-                meta: { resourceType: 'Role', location: `/api/scim/v2/Roles/${roleId}` }
+                meta: { resourceType: 'Role', location: `/api/scim/v2/Roles/${roleId}` },
               });
             });
           });
@@ -1234,7 +1234,7 @@ describe('Scim', () => {
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
-              detail: `Role with ID ${nonExistingId} not found`
+              detail: `Role with ID ${nonExistingId} not found`,
             });
           });
 
@@ -1243,7 +1243,7 @@ describe('Scim', () => {
               const {id: roleId} = await getDbManager().createGroup({
                 name: groupName,
                 type: Group.TEAM_TYPE,
-                memberUsers: [userIdByName['chimpy']!]
+                memberUsers: [userIdByName['chimpy']!],
               });
 
               const res = await axios.get(scimUrl('/Roles/' + roleId), chimpy);
@@ -1251,7 +1251,7 @@ describe('Scim', () => {
               assert.deepEqual(res.data, {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
                 status: '404',
-                detail: `Role with ID ${roleId} not found`
+                detail: `Role with ID ${roleId} not found`,
               });
             });
           });
@@ -1262,7 +1262,7 @@ describe('Scim', () => {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid passed role ID',
-              scimType: 'invalidValue'
+              scimType: 'invalidValue',
             });
             assert.equal(res.status, 400);
           });
@@ -1280,17 +1280,17 @@ describe('Scim', () => {
                 await getDbManager().createGroup({
                   name: group1Name,
                   type: Group.TEAM_TYPE,
-                  memberUsers: [userIdByName['chimpy']!]
+                  memberUsers: [userIdByName['chimpy']!],
                 });
                 const role1 = await getDbManager().createGroup({
                   name: role1Name,
                   type: Group.ROLE_TYPE,
-                  memberUsers: [userIdByName['chimpy']!]
+                  memberUsers: [userIdByName['chimpy']!],
                 });
                 const role2 = await getDbManager().createGroup({
                   name: role2Name,
                   type: Group.ROLE_TYPE,
-                  memberUsers: [userIdByName['kiwi']!]
+                  memberUsers: [userIdByName['kiwi']!],
                 });
 
                 const res = await axios.get(scimUrl('/Roles?count=300'), chimpy);
@@ -1298,7 +1298,7 @@ describe('Scim', () => {
                 assert.equal(res.status, 200);
                 assert.lengthOf(newResources, 2, 'should have the newly created roles');
                 assert.isFalse(res.data.Resources.some(
-                  ({displayName}: {displayName: string}) => displayName === group1Name
+                  ({displayName}: {displayName: string}) => displayName === group1Name,
                 ), 'The API endpoint should not return resource Groups');
                 assert.deepEqual(newResources, [
                   {
@@ -1306,16 +1306,16 @@ describe('Scim', () => {
                     id: String(role1.id),
                     displayName: role1Name,
                     members: [getUserMemberWithRef('chimpy')],
-                    meta: { resourceType: 'Role', location: `/api/scim/v2/Roles/${role1.id}` }
+                    meta: { resourceType: 'Role', location: `/api/scim/v2/Roles/${role1.id}` },
                   }, {
                     schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
                     id: String(role2.id),
                     displayName: role2Name,
                     members: [getUserMemberWithRef('kiwi')],
-                    meta: { resourceType: 'Role', location: `/api/scim/v2/Roles/${role2.id}` }
-                  }
+                    meta: { resourceType: 'Role', location: `/api/scim/v2/Roles/${role2.id}` },
+                  },
                 ]);
-              }
+              },
             );
           });
 
@@ -1344,7 +1344,7 @@ describe('Scim', () => {
             const res = await axios.post(scimUrl('/Roles'), {
               schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
               displayName: 'test-role',
-              members: []
+              members: [],
             }, chimpy);
             assert.equal(res.status, 501);
           });
@@ -1357,7 +1357,7 @@ describe('Scim', () => {
                 schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
                 members: [
                   getUserMember('kiwi'),
-                ]
+                ],
               }, chimpy);
               assert.equal(res.status, 200);
               assert.deepEqual(res.data, {
@@ -1366,7 +1366,7 @@ describe('Scim', () => {
                 members: [
                   getUserMemberWithRef('kiwi'),
                 ],
-                meta: { resourceType: 'Role', location: '/api/scim/v2/Roles/' + roleId }
+                meta: { resourceType: 'Role', location: '/api/scim/v2/Roles/' + roleId },
               });
             });
           });
@@ -1381,7 +1381,7 @@ describe('Scim', () => {
                 displayName: newName,
                 members: [
                   getUserMember('kiwi'),
-                ]
+                ],
               }, chimpy);
               assert.equal(res.status, 200);
               const updatedRole = await axios.get(scimUrl('/Roles/' + roleId), chimpy);
@@ -1395,12 +1395,12 @@ describe('Scim', () => {
               displayName: 'test-role',
               members: [
                 getUserMember('kiwi'),
-              ]
+              ],
             }, chimpy);
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
-              detail: 'Role with id 1000 not found'
+              detail: 'Role with id 1000 not found',
             });
             assert.equal(res.status, 404);
           });
@@ -1411,13 +1411,13 @@ describe('Scim', () => {
               displayName: 'test-role',
               members: [
                 getUserMember('kiwi'),
-              ]
+              ],
             }, chimpy);
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid passed role ID',
-              scimType: 'invalidValue'
+              scimType: 'invalidValue',
             });
             assert.equal(res.status, 400);
           });
@@ -1432,7 +1432,7 @@ describe('Scim', () => {
                 displayName: 'test-role',
                 members: [
                   getUserMember('kiwi'),
-                ]
+                ],
               }, chimpy);
               assert.equal(res.status, 200);
               const updatedRole = await axios.get(scimUrl('/Roles/' + roleId), chimpy);
@@ -1448,7 +1448,7 @@ describe('Scim', () => {
             // We need to differ the moment we call userIdByName['kiwi'] (set during a "before()" hook)
             get members() {
               return [getUserMember('kiwi')];
-            }
+            },
           });
         });
 
@@ -1458,8 +1458,8 @@ describe('Scim', () => {
               const res = await axios.patch(scimUrl('/Roles/' + roleId), {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
                 Operations: [{
-                  op: 'replace', path: 'members', value: [getUserMember('kiwi')]
-                }]
+                  op: 'replace', path: 'members', value: [getUserMember('kiwi')],
+                }],
               }, chimpy);
               assert.equal(res.status, 200);
               assert.deepEqual(res.data, {
@@ -1468,7 +1468,7 @@ describe('Scim', () => {
                 members: [
                   getUserMemberWithRef('kiwi'),
                 ],
-                meta: { resourceType: 'Role', location: '/api/scim/v2/Roles/' + roleId }
+                meta: { resourceType: 'Role', location: '/api/scim/v2/Roles/' + roleId },
               });
             });
           });
@@ -1476,8 +1476,8 @@ describe('Scim', () => {
           checkCommonErrors('patch', '/Roles/1', {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
             Operations: [{
-              op: 'replace', path: 'displayName', value: 'Updated Role Name'
-            }]
+              op: 'replace', path: 'displayName', value: 'Updated Role Name',
+            }],
           });
         });
 
@@ -1512,11 +1512,11 @@ describe('Scim', () => {
         await withUserName('bulk-user3', async (bulkUserName) => {
           const putOnUnknownResource = { method: 'PUT', path: '/Users/1000', value: toSCIMUserWithoutId('chimpy') };
           const validCreateOperation = {
-            method: 'POST', path: '/Users/', data: toSCIMUserWithoutId(bulkUserName), bulkId: '1'
+            method: 'POST', path: '/Users/', data: toSCIMUserWithoutId(bulkUserName), bulkId: '1',
           };
           usersToCleanupEmails.push(bulkUserName);
           const createOperationWithUserNameConflict = {
-            method: 'POST', path: '/Users/', data: toSCIMUserWithoutId('chimpy'), bulkId: '2'
+            method: 'POST', path: '/Users/', data: toSCIMUserWithoutId('chimpy'), bulkId: '2',
           };
           const res = await axios.post(scimUrl('/Bulk'), {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:BulkRequest'],
@@ -1538,31 +1538,31 @@ describe('Scim', () => {
                 status: "400",
                 response: {
                   schemas: [
-                    "urn:ietf:params:scim:api:messages:2.0:Error"
+                    "urn:ietf:params:scim:api:messages:2.0:Error",
                   ],
                   status: "400",
                   scimType: "invalidSyntax",
-                  detail: "Expected 'data' to be a single complex value in BulkRequest operation #1"
-                }
+                  detail: "Expected 'data' to be a single complex value in BulkRequest operation #1",
+                },
               }, {
                 method: "POST",
                 bulkId: "1",
                 location: "/api/scim/v2/Users/" + newUserID,
-                status: "201"
+                status: "201",
               }, {
                 method: "POST",
                 bulkId: "2",
                 status: "409",
                 response: {
                   schemas: [
-                    "urn:ietf:params:scim:api:messages:2.0:Error"
+                    "urn:ietf:params:scim:api:messages:2.0:Error",
                   ],
                   status: "409",
                   scimType: "uniqueness",
-                  detail: "An existing user with the passed email exist."
-                }
-              }
-            ]
+                  detail: "An existing user with the passed email exist.",
+                },
+              },
+            ],
           });
         });
       });
@@ -1577,13 +1577,13 @@ describe('Scim', () => {
           schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
           status: '400',
           detail: "BulkRequest request body must contain 'Operations' attribute with at least one operation",
-          scimType: 'invalidValue'
+          scimType: 'invalidValue',
         });
       });
 
       it('should disallow accessing resources to kiwi', async function () {
         const creationOperation = {
-          method: 'POST', path: '/Users', data: toSCIMUserWithoutId('bulk-user4'), bulkId: '1'
+          method: 'POST', path: '/Users', data: toSCIMUserWithoutId('bulk-user4'), bulkId: '1',
         };
         usersToCleanupEmails.push('bulk-user4');
         const selfPutOperation = { method: 'PUT', path: '/Me', value: toSCIMUserWithoutId('kiwi') };
@@ -1605,8 +1605,8 @@ describe('Scim', () => {
               response: {
                 detail: "You are not authorized to access this resource",
                 schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
-                status: "403"
-              }
+                status: "403",
+              },
             }, {
               // When writing this test, the SCIMMY implementation does not yet support PUT operations on /Me.
               // This reflects the current behavior, but it may change in the future.
@@ -1617,20 +1617,20 @@ describe('Scim', () => {
               status: "400",
               response: {
                 schemas: [
-                  "urn:ietf:params:scim:api:messages:2.0:Error"
+                  "urn:ietf:params:scim:api:messages:2.0:Error",
                 ],
                 status: "400",
                 detail: "Invalid 'path' value '/Me' in BulkRequest operation #2",
-                scimType: "invalidValue"
-              }
-            }
-          ]
+                scimType: "invalidValue",
+              },
+            },
+          ],
         });
       });
 
       it('should disallow accessing resources to anonymous', async function () {
         const creationOperation = {
-          method: 'POST', path: '/Users', data: toSCIMUserWithoutId('bulk-user5'), bulkId: '1'
+          method: 'POST', path: '/Users', data: toSCIMUserWithoutId('bulk-user5'), bulkId: '1',
         };
         usersToCleanupEmails.push('bulk-user5');
         const res = await axios.post(scimUrl('/Bulk'), {

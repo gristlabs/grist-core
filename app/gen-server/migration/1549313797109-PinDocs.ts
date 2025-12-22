@@ -7,7 +7,7 @@ export class PinDocs1549313797109 implements MigrationInterface {
     await queryRunner.addColumn('docs', new TableColumn({
       name: 'is_pinned',
       type: 'boolean',
-      default: sqlite ? 0 : false
+      default: sqlite ? 0 : false,
     }));
   }
 

@@ -36,7 +36,7 @@ export class FormSuccessPage extends Disposable {
       cssFormSuccessMessageImageContainer(
         cssFormSuccessMessageHeading(
           cssFormSuccessMessageImage({src: 'img/form-success.svg', alt: t('Form Submitted')}),
-        )
+        ),
       ),
       cssFormMessageText(dom.text(this._successText), testId('success-page-text')),
       dom.maybe(this._showNewResponseButton, () =>
@@ -45,7 +45,7 @@ export class FormSuccessPage extends Disposable {
             t('Submit new response'),
             dom.on('click', () => this._handleClickNewResponseButton()),
           ),
-        )
+        ),
       ),
     ], testId('success-page'));
   }

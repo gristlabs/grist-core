@@ -39,7 +39,7 @@ export async function main(baseName: string) {
         getAuditLogger() { return createNullAuditLogger(); },
         getTelemetry() { return createDummyTelemetry(); },
         getDocNotificationManager() { return undefined; },
-      } as any
+      } as any,
     );
     const activeDoc = new ActiveDoc(docManager, baseName);
     const session = makeExceptionalDocSession('nascent');

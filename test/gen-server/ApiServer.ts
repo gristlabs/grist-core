@@ -1,5 +1,5 @@
 import {
-  configForApiKey, configForUser, configWithPermit, getRowCounts as getRowCountsForDb
+  configForApiKey, configForUser, configWithPermit, getRowCounts as getRowCountsForDb,
 } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
@@ -13,7 +13,7 @@ import {TestServer} from 'test/gen-server/apiUtils';
 import {testGetPreparedStatementCount, testResetPreparedStatements} from 'app/gen-server/lib/TypeORMPatches';
 import {TEAM_FREE_PLAN} from 'app/common/Features';
 import {
-  PostServiceAccount, ServiceAccountApiResponse, ServiceAccountCreationResponse
+  PostServiceAccount, ServiceAccountApiResponse, ServiceAccountCreationResponse,
 } from 'app/common/ServiceAccountTypes';
 
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
@@ -114,13 +114,13 @@ describe('ApiServer', function() {
       try {
         // Only support user has right currently to add/remove everyone@
         let resp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {
-          delta: { users: { 'support@getgrist.com': 'owners' }}
+          delta: { users: { 'support@getgrist.com': 'owners' }},
         }, charon);
         assert.equal(resp.status, 200);
 
         // Make anon@/everyone@ a viewer of Abyss org
         resp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {
-          delta: {users: addUsers}
+          delta: {users: addUsers},
         }, support);
         assert.equal(resp.status, 200);
 
@@ -176,11 +176,11 @@ describe('ApiServer', function() {
  finally {
         // Cleanup: remove anon from org
         let resp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {
-          delta: {users: removeUsers}
+          delta: {users: removeUsers},
         }, support);
         assert.equal(resp.status, 200);
         resp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {
-          delta: { users: { 'support@getgrist.com': null }}
+          delta: { users: { 'support@getgrist.com': null }},
         }, charon);
         assert.equal(resp.status, 200);
 
@@ -215,9 +215,9 @@ describe('ApiServer', function() {
           ref: await dbManager.testGetRef('Chimpy'),
           name: 'Chimpy',
           picture: null,
-          type: 'login'
-        }
-      }
+          type: 'login',
+        },
+      },
     );
     assert.isNotNull(resp.data[0].updatedAt);
     // regular orgs should have a domain and no owner
@@ -276,9 +276,9 @@ describe('ApiServer', function() {
           ref: await dbManager.testGetRef('Chimpy'),
           name: 'Chimpy',
           picture: null,
-          type: 'login'
-        }
-      }
+          type: 'login',
+        },
+      },
     );
     assert.isNotNull(resp.data.updatedAt);
   });
@@ -450,7 +450,7 @@ describe('ApiServer', function() {
     const oid = await dbManager.testGetId('NASA');
     const wid = await getNextId(dbManager, 'workspaces');
     const resp = await axios.post(`${homeUrl}/api/orgs/${oid}/workspaces`, {
-      name: 'Planets'
+      name: 'Planets',
     }, chimpy);
     // Assert that the response is successful and contains the next available workspace id.
     assert.equal(resp.status, 200);
@@ -470,15 +470,15 @@ describe('ApiServer', function() {
         name: 'NASA',
         domain: 'nasa',
         host: null,
-        owner: null
-      }
+        owner: null,
+      },
     });
   });
 
   it('POST /api/orgs/{oid}/workspaces returns 404 appropriately', async function() {
     // Attempt to add to an org that doesn't exist.
     const resp = await axios.post(`${homeUrl}/api/orgs/9999/workspaces`, {
-      name: 'Planets'
+      name: 'Planets',
     }, chimpy);
     assert.equal(resp.status, 404);
   });
@@ -487,7 +487,7 @@ describe('ApiServer', function() {
     // Attempt to add to an org that chimpy doesn't have write permission on.
     const oid = await dbManager.testGetId('Primately');
     const resp = await axios.post(`${homeUrl}/api/orgs/${oid}/workspaces`, {
-      name: 'Apes'
+      name: 'Apes',
     }, chimpy);
     assert.equal(resp.status, 403);
   });
@@ -503,7 +503,7 @@ describe('ApiServer', function() {
     // Rename the 'Horizons' workspace to 'Horizons2'.
     const wid = await dbManager.testGetId('Horizon');
     const resp = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
-      name: 'Horizon2'
+      name: 'Horizon2',
     }, chimpy);
     // Assert that the response is successful.
     assert.equal(resp.status, 200);
@@ -515,7 +515,7 @@ describe('ApiServer', function() {
     // Change the name back.
     const wid2 = await dbManager.testGetId('Horizon2');
     const resp2 = await axios.patch(`${homeUrl}/api/workspaces/${wid2}`, {
-      name: 'Horizon'
+      name: 'Horizon',
     }, chimpy);
     assert.equal(resp2.status, 200);
   });
@@ -523,7 +523,7 @@ describe('ApiServer', function() {
   it('PATCH /api/workspaces/{wid} returns 404 appropriately', async function() {
     // Attempt to rename a workspace that doesn't exist.
     const resp = await axios.patch(`${homeUrl}/api/workspaces/9999`, {
-      name: 'Rename'
+      name: 'Rename',
     }, chimpy);
     assert.equal(resp.status, 404);
   });
@@ -532,7 +532,7 @@ describe('ApiServer', function() {
     // Attempt to rename a workspace without UPDATE access.
     const wid = await dbManager.testGetId('Fruit');
     const resp = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
-      name: 'Fruit2'
+      name: 'Fruit2',
     }, chimpy);
     assert.equal(resp.status, 403);
   });
@@ -553,7 +553,7 @@ describe('ApiServer', function() {
     assert.deepEqual(userCountUpdates[oid as number], undefined);
 
     const delta = {
-      users: {[kiwiEmail]: 'viewers'}
+      users: {[kiwiEmail]: 'viewers'},
     };
     const accessResp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {delta}, chimpy);
     assert.equal(accessResp.status, 200);
@@ -586,7 +586,7 @@ describe('ApiServer', function() {
         picture: null,
         access: "viewers",
         isMember: true,
-      }]
+      }],
     });
 
     // Assert that the number of non-guest users in the org is unchanged.
@@ -622,7 +622,7 @@ describe('ApiServer', function() {
         picture: null,
         access: "viewers",
         isMember: true,
-      }]
+      }],
     });
 
     // Assert that the number of non-guest users in the org remains unchanged.
@@ -636,7 +636,7 @@ describe('ApiServer', function() {
 
     // Re-add 'Public'
     const addWsResp = await axios.post(`${homeUrl}/api/orgs/${oid}/workspaces`, {
-      name: 'Public'
+      name: 'Public',
     }, chimpy);
     // Assert that the response is successful
     assert.equal(addWsResp.status, 200);
@@ -644,12 +644,12 @@ describe('ApiServer', function() {
 
     // Add a doc to 'Public'
     const addDocResp1 = await axios.post(`${homeUrl}/api/workspaces/${wid}/docs`, {
-      name: 'PublicDoc1'
+      name: 'PublicDoc1',
     }, chimpy);
 
     // Add another workspace, 'Public2'
     const addWsResp2 = await axios.post(`${homeUrl}/api/orgs/${oid}/workspaces`, {
-      name: 'Public2'
+      name: 'Public2',
     }, chimpy);
     assert.equal(addWsResp2.status, 200);
 
@@ -658,7 +658,7 @@ describe('ApiServer', function() {
 
     // Add a doc to 'Public2'
     const addDocResp2 = await axios.post(`${homeUrl}/api/workspaces/${wid2}/docs`, {
-      name: 'PublicDoc2'
+      name: 'PublicDoc2',
     }, chimpy);
     assert.equal(addDocResp2.status, 200);
 
@@ -702,7 +702,7 @@ describe('ApiServer', function() {
         picture: null,
         access: "viewers",
         isMember: true,
-      }]
+      }],
     });
 
     // Assert that the number of non-guest users in the org remains unchanged.
@@ -753,7 +753,7 @@ describe('ApiServer', function() {
         picture: null,
         access: "viewers",
         isMember: true,
-      }]
+      }],
     });
 
     // Assert that the number of non-guest users in the org remains unchanged.
@@ -792,7 +792,7 @@ describe('ApiServer', function() {
         picture: null,
         access: "viewers",
         isMember: true,
-      }]
+      }],
     });
 
     // Assert that the number of non-guest users in the org remains unchanged.
@@ -800,7 +800,7 @@ describe('ApiServer', function() {
 
     // Re-add 'Public' finally
     const addWsResp3 = await axios.post(`${homeUrl}/api/orgs/${oid}/workspaces`, {
-      name: 'Public'
+      name: 'Public',
     }, chimpy);
     // Assert that the response is successful
     assert.equal(addWsResp3.status, 200);
@@ -823,7 +823,7 @@ describe('ApiServer', function() {
     // Add a 'Surprise' doc to the 'Rovers' workspace.
     const wid = await dbManager.testGetId('Rovers');
     const resp = await axios.post(`${homeUrl}/api/workspaces/${wid}/docs`, {
-      name: 'Surprise'
+      name: 'Surprise',
     }, chimpy);
     // Assert that the response is successful and contains the doc id.
     assert.equal(resp.status, 200);
@@ -841,7 +841,7 @@ describe('ApiServer', function() {
     const wid = await dbManager.testGetId('Rovers');
     let resp = await axios.post(`${homeUrl}/api/workspaces/${wid}/docs`, {
       name: 'Boredom',
-      urlId: 'Hohum'
+      urlId: 'Hohum',
     }, chimpy);
     // Assert that the response is successful
     assert.equal(resp.status, 200);
@@ -854,13 +854,13 @@ describe('ApiServer', function() {
     // Adding a new doc with the same urlId should fail.
     resp = await axios.post(`${homeUrl}/api/workspaces/${wid}/docs`, {
       name: 'NonEnthusiasm',
-      urlId: 'Hohum'
+      urlId: 'Hohum',
     }, chimpy);
     assert.equal(resp.status, 400);
     // Change Boredom doc to use a different urlId
     // Also, use the existing urlId in the endpoint just to check that works
     resp = await axios.patch(`${homeUrl}/api/docs/Hohum`, {
-      urlId: 'sigh'
+      urlId: 'sigh',
     }, chimpy);
     assert.equal(resp.status, 200);
     // Hohum still resolves to Boredom for the moment
@@ -869,7 +869,7 @@ describe('ApiServer', function() {
     // Adding a new doc with the Hohum urlId should now succeed.
     resp = await axios.post(`${homeUrl}/api/workspaces/${wid}/docs`, {
       name: 'NonEnthusiasm',
-      urlId: 'Hohum'
+      urlId: 'Hohum',
     }, chimpy);
     assert.equal(resp.status, 200);
     const docId2 = resp.data;
@@ -883,7 +883,7 @@ describe('ApiServer', function() {
   it('POST /api/workspaces/{wid}/docs returns 404 appropriately', async function() {
     // Attempt to add to an workspace that doesn't exist.
     const resp = await axios.post(`${homeUrl}/api/workspaces/9999/docs`, {
-      name: 'Mercury'
+      name: 'Mercury',
     }, chimpy);
     assert.equal(resp.status, 404);
   });
@@ -892,7 +892,7 @@ describe('ApiServer', function() {
     // Attempt to add to a workspace that chimpy doesn't have any access to.
     const wid = await dbManager.testGetId('Trees');
     const resp = await axios.post(`${homeUrl}/api/workspaces/${wid}/docs`, {
-      name: 'Bushy'
+      name: 'Bushy',
     }, chimpy);
     assert.equal(resp.status, 403);
   });
@@ -901,7 +901,7 @@ describe('ApiServer', function() {
     // Attempt to add to a workspace that chimpy has only view access to.
     const wid = await dbManager.testGetId('Fruit');
     const resp = await axios.post(`${homeUrl}/api/workspaces/${wid}/docs`, {
-      name: 'Oranges'
+      name: 'Oranges',
     }, chimpy);
     assert.equal(resp.status, 403);
   });
@@ -964,7 +964,7 @@ describe('ApiServer', function() {
   it('POST /api/orgs returns 400 appropriately', async function() {
     // Omit the new org name and check that the operation fails with status 400.
     const resp = await axios.post(`${homeUrl}/api/orgs`, {
-      domain: 'invalid-req'
+      domain: 'invalid-req',
     }, chimpy);
     assert.equal(resp.status, 400);
   });
@@ -974,7 +974,7 @@ describe('ApiServer', function() {
     const oid = await dbManager.testGetId('Magic');
     const resp = await axios.patch(`${homeUrl}/api/orgs/${oid}`, {
       name: 'Holiday',
-      domain: 'holiday'
+      domain: 'holiday',
     }, chimpy);
     // Assert that the response is successful.
     assert.equal(resp.status, 200);
@@ -985,7 +985,7 @@ describe('ApiServer', function() {
     assert.equal(org.domain, 'holiday');
     // Update the org domain to 'holiday2'.
     const resp2 = await axios.patch(`${homeUrl}/api/orgs/${oid}`, {
-      domain: 'holiday2'
+      domain: 'holiday2',
     }, chimpy);
     // Assert that the response is successful.
     assert.equal(resp2.status, 200);
@@ -998,7 +998,7 @@ describe('ApiServer', function() {
   it('PATCH /api/orgs/{oid} returns 404 appropriately', async function() {
     // Attempt to rename an org that doesn't exist.
     const resp = await axios.patch(`${homeUrl}/api/orgs/9999`, {
-      name: 'Rename'
+      name: 'Rename',
     }, chimpy);
     assert.equal(resp.status, 404);
   });
@@ -1007,7 +1007,7 @@ describe('ApiServer', function() {
     // Attempt to rename an org without UPDATE access.
     const oid = await dbManager.testGetId('Primately');
     const resp = await axios.patch(`${homeUrl}/api/orgs/${oid}`, {
-      name: 'Primately2'
+      name: 'Primately2',
     }, chimpy);
     assert.equal(resp.status, 403);
   });
@@ -1173,7 +1173,7 @@ describe('ApiServer', function() {
     // Rename the 'Surprise' doc to 'Surprise2'.
     const did = await dbManager.testGetId('Surprise');
     const resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      name: 'Surprise2'
+      name: 'Surprise2',
     }, chimpy);
     // Assert that the response is successful.
     assert.equal(resp.status, 200);
@@ -1193,7 +1193,7 @@ describe('ApiServer', function() {
     // Make 'curio' a urlId for document named 'Curiosity'
     const did = await dbManager.testGetId('Curiosity');
     resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      urlId: 'curio'
+      urlId: 'curio',
     }, chimpy);
     // Assert that the response is successful.
     assert.equal(resp.status, 200);
@@ -1209,7 +1209,7 @@ describe('ApiServer', function() {
     assert.equal(resp.data.urlId, 'curio');
     // Add another urlId for the same doc
     resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      urlId: 'hmm'
+      urlId: 'hmm',
     }, chimpy);
     // Check we can now access same doc via this new urlId.
     resp = await axios.get(`${homeUrl}/api/docs/hmm`, chimpy);
@@ -1233,11 +1233,11 @@ describe('ApiServer', function() {
     const did = await dbManager.testGetId('Curiosity');  // part of NASA org
     const did2 = await dbManager.testGetId('Herring');   // part of Fish org
     let resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      urlId: 'example'
+      urlId: 'example',
     }, chimpy);
     assert.equal(resp.status, 200);
     resp = await axios.patch(`${homeUrl}/api/docs/${did2}`, {
-      urlId: 'example'
+      urlId: 'example',
     }, chimpy);
     assert.equal(resp.status, 200);
     // Check that we get the right doc in the right org.
@@ -1316,7 +1316,7 @@ describe('ApiServer', function() {
     // Set some options on the 'Surprise2' doc.
     const did = await dbManager.testGetId('Surprise2');
     let resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      options: { description: 'boo', openMode: 'fork' }
+      options: { description: 'boo', openMode: 'fork' },
     }, chimpy);
     assert.equal(resp.status, 200);
 
@@ -1329,7 +1329,7 @@ describe('ApiServer', function() {
 
     // Check setting one option preserves others.
     resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      options: { description: 'boo!' }
+      options: { description: 'boo!' },
     }, chimpy);
     assert.equal(resp.status, 200);
     resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
@@ -1337,7 +1337,7 @@ describe('ApiServer', function() {
 
     // Check setting to null removes an option.
     resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      options: { openMode: null }
+      options: { openMode: null },
     }, chimpy);
     assert.equal(resp.status, 200);
     resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
@@ -1345,7 +1345,7 @@ describe('ApiServer', function() {
 
     // Check setting options object to null wipes it completely.
     resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      options: null
+      options: null,
     }, chimpy);
     assert.equal(resp.status, 200);
     resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
@@ -1353,7 +1353,7 @@ describe('ApiServer', function() {
 
     // Check setting icon works.
     resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      options: { icon: 'https://grist-static.com/icons/foo.png' }
+      options: { icon: 'https://grist-static.com/icons/foo.png' },
     }, chimpy);
     assert.equal(resp.status, 200);
     resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
@@ -1361,7 +1361,7 @@ describe('ApiServer', function() {
 
     // Check random urls are not supported.
     resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      options: { icon: 'https://not-grist-static.com/icons/evil.exe' }
+      options: { icon: 'https://not-grist-static.com/icons/evil.exe' },
     }, chimpy);
     assert.equal(resp.status, 400);
     resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
@@ -1397,7 +1397,7 @@ describe('ApiServer', function() {
   it('PATCH /api/docs/{did} returns 404 appropriately', async function() {
     // Attempt to rename a doc that doesn't exist.
     const resp = await axios.patch(`${homeUrl}/api/docs/9999`, {
-      name: 'Rename'
+      name: 'Rename',
     }, chimpy);
     assert.equal(resp.status, 404);
   });
@@ -1406,7 +1406,7 @@ describe('ApiServer', function() {
     // Attempt to rename a doc without UPDATE access.
     const did = await dbManager.testGetId('Bananas');
     const resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {
-      name: 'Bananas2'
+      name: 'Bananas2',
     }, chimpy);
     assert.equal(resp.status, 403);
   });
@@ -1438,7 +1438,7 @@ describe('ApiServer', function() {
 
     // Add Kiwi to the 'Surprise2' doc.
     const delta = {
-      users: {[kiwiEmail]: 'viewers'}
+      users: {[kiwiEmail]: 'viewers'},
     };
     const accessResp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta}, chimpy);
     assert.equal(accessResp.status, 200);
@@ -1476,7 +1476,7 @@ describe('ApiServer', function() {
         access: null,
         parentAccess: null,
         isMember: false,
-      }]
+      }],
     });
 
     // Assert that the number of non-guest users in the org is unchanged.
@@ -1510,7 +1510,7 @@ describe('ApiServer', function() {
         picture: null,
         access: "guests",
         isMember: false,
-      }]
+      }],
     });
 
     const beforeDelCount = await getRowCounts();
@@ -1550,7 +1550,7 @@ describe('ApiServer', function() {
         access: null,
         parentAccess: null,
         isMember: false,
-      }]
+      }],
     });
 
     // Assert that Kiwi is no longer a guest of the org.
@@ -1573,7 +1573,7 @@ describe('ApiServer', function() {
         picture: null,
         access: "guests",
         isMember: false,
-      }]
+      }],
     });
 
     // Assert that the number of non-guest users in the org is unchanged.
@@ -1626,7 +1626,7 @@ describe('ApiServer', function() {
     // Try a complex case - give a user special access to the doc then move it back
     // Make Kiwi a doc editor for Jupiter
     const delta1 = {
-      users: {[kiwiEmail]: 'editors'}
+      users: {[kiwiEmail]: 'editors'},
     };
     const accessResp1 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta: delta1}, chimpy);
     assert.equal(accessResp1.status, 200);
@@ -1659,7 +1659,7 @@ describe('ApiServer', function() {
     assert.equal(kiwiResp5.status, 200);
     // Finish by revoking Kiwi's access
     const delta2 = {
-      users: {[kiwiEmail]: null}
+      users: {[kiwiEmail]: null},
     };
     const accessResp2 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta: delta2}, chimpy);
     assert.equal(accessResp2.status, 200);
@@ -1670,7 +1670,7 @@ describe('ApiServer', function() {
     const fishOrg = await dbManager.testGetId('Fish');
     const bigWs = await dbManager.testGetId('Big');
     const resp = await axios.post(`${homeUrl}/api/workspaces/${bigWs}/docs`, {
-      name: 'Magic'
+      name: 'Magic',
     }, chimpy);
     // Assert that the response is successful and contains the doc id.
     assert.equal(resp.status, 200);
@@ -1678,21 +1678,21 @@ describe('ApiServer', function() {
     // Remove chimpy's direct owner permission on this document. Chimpy is added directly as an owner.
     // We need to do it as a different user.
     assert.equal((await axios.patch(`${homeUrl}/api/docs/${magicDocId}/access`, {delta: {
-      users: {[charonEmail]: 'owners'}
+      users: {[charonEmail]: 'owners'},
     }}, chimpy)).status, 200);
     assert.equal((await axios.patch(`${homeUrl}/api/docs/${magicDocId}/access`, {delta: {
-      users: {[chimpyEmail]: null}
+      users: {[chimpyEmail]: null},
     }}, charon)).status, 200);
     // Create a workspace and limit Chimpy's access to that workspace.
     const addMediumWsResp = await axios.post(`${homeUrl}/api/orgs/${fishOrg}/workspaces`, {
-      name: 'Medium'
+      name: 'Medium',
     }, chimpy);
     assert.equal(addMediumWsResp.status, 200);
     const mediumWs = addMediumWsResp.data;
     // Limit all access to it expect for Kiwi.
     const delta3 = {
       maxInheritedRole: null,
-      users: {[kiwiEmail]: 'owners'}
+      users: {[kiwiEmail]: 'owners'},
     };
     const accessResp3 = await axios.patch(`${homeUrl}/api/workspaces/${mediumWs}/access`,
       {delta: delta3}, chimpy);
@@ -1700,7 +1700,7 @@ describe('ApiServer', function() {
     // Chimpy's access must be removed by Kiwi, since Chimpy would have been granted access
     // by being unable to limit his own access.
     const delta4 = {
-      users: {[chimpyEmail]: 'editors'}
+      users: {[chimpyEmail]: 'editors'},
     };
     const accessResp4 = await axios.patch(`${homeUrl}/api/workspaces/${mediumWs}/access`,
       {delta: delta4}, kiwi);
@@ -1713,8 +1713,8 @@ describe('ApiServer', function() {
     // Check that doc access on magic can no longer be edited by chimpy
     const delta = {
       users: {
-        [kiwiEmail]: 'editors'
-      }
+        [kiwiEmail]: 'editors',
+      },
     };
     const accessResp = await axios.patch(`${homeUrl}/api/docs/${magicDocId}/access`,
       {delta}, chimpy);
@@ -1756,7 +1756,7 @@ describe('ApiServer', function() {
     // Try a complex case - give a user special access to the doc then move it back
     // Make Kiwi a doc editor for Jupiter
     const delta1 = {
-      users: {[kiwiEmail]: 'editors'}
+      users: {[kiwiEmail]: 'editors'},
     };
     const accessResp1 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta: delta1}, chimpy);
     assert.equal(accessResp1.status, 200);
@@ -1795,7 +1795,7 @@ describe('ApiServer', function() {
     assert.deepEqual(userCountUpdates[dstOrgId as number], undefined);
     // Finish by revoking Kiwi's access
     const delta2 = {
-      users: {[kiwiEmail]: null}
+      users: {[kiwiEmail]: null},
     };
     const accessResp2 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta: delta2}, chimpy);
     assert.equal(accessResp2.status, 200);
@@ -1806,7 +1806,7 @@ describe('ApiServer', function() {
     // Add a doc and move it to a workspace with less access
     const publicWs = await dbManager.testGetId('Public');
     const resp = await axios.post(`${homeUrl}/api/workspaces/${publicWs}/docs`, {
-      name: 'Magic'
+      name: 'Magic',
     }, chimpy);
     // Assert that the response is successful and contains the doc id.
     assert.equal(resp.status, 200);
@@ -1814,10 +1814,10 @@ describe('ApiServer', function() {
     // Remove chimpy's direct owner permission on this document. Chimpy is added directly as an owner.
     // We need to do it as a different user.
     assert.equal((await axios.patch(`${homeUrl}/api/docs/${magicDocId}/access`, {delta: {
-      users: {[charonEmail]: 'owners'}
+      users: {[charonEmail]: 'owners'},
     }}, chimpy)).status, 200);
     assert.equal((await axios.patch(`${homeUrl}/api/docs/${magicDocId}/access`, {delta: {
-      users: {[chimpyEmail]: null}
+      users: {[chimpyEmail]: null},
     }}, charon)).status, 200);
     // Move the doc to Vacuum
     const vacuum = await dbManager.testGetId('Vacuum');
@@ -1827,8 +1827,8 @@ describe('ApiServer', function() {
     // Check that doc access on magic can no longer be edited by chimpy
     const delta = {
       users: {
-        [kiwiEmail]: 'editors'
-      }
+        [kiwiEmail]: 'editors',
+      },
     };
     const accessResp = await axios.patch(`${homeUrl}/api/docs/${magicDocId}/access`,
       {delta}, chimpy);
@@ -1977,7 +1977,7 @@ describe('ApiServer', function() {
         access: null,
         parentAccess: "viewers",
         isMember: true,
-      }]
+      }],
     });
     // Perform the pin.
     const resp2 = await axios.patch(`${homeUrl}/api/docs/${sharkDocId}/pin`, {}, kiwi);
@@ -1990,8 +1990,8 @@ describe('ApiServer', function() {
     const delta2 = {
       maxInheritedRole: 'owners',
       users: {
-        [charonEmail]: 'editors'
-      }
+        [charonEmail]: 'editors',
+      },
     };
     const setupResp4 = await axios.patch(`${homeUrl}/api/docs/${sharkDocId}/access`, {delta: delta2}, chimpy);
     assert.equal(setupResp4.status, 200);
@@ -2027,7 +2027,7 @@ describe('ApiServer', function() {
         access: 'editors',
         parentAccess: 'viewers',
         isMember: true,
-      }]
+      }],
     });
     // Attempt the pin.
     const resp3 = await axios.patch(`${homeUrl}/api/docs/${sharkDocId}/pin`, {}, charon);
@@ -2035,8 +2035,8 @@ describe('ApiServer', function() {
     // Restore access to keep the state consistent.
     const delta4 = {
       users: {
-        [charonEmail]: null
-      }
+        [charonEmail]: null,
+      },
     };
     const setupResp6 = await axios.patch(`${homeUrl}/api/docs/${sharkDocId}/access`, {delta: delta4}, chimpy);
     assert.equal(setupResp6.status, 200);
@@ -2298,7 +2298,7 @@ describe('ApiServer', function() {
     }
 
     function checkCommonErrors(
-      makeRequest: (saId: number, user: AxiosRequestConfig<any>) => Promise<AxiosResponse>
+      makeRequest: (saId: number, user: AxiosRequestConfig<any>) => Promise<AxiosResponse>,
     ) {
       it('returns 404 on non-existing {saId}', async function() {
         const resp = await makeRequest(0, chimpy);
@@ -2402,7 +2402,7 @@ describe('ApiServer', function() {
           login,
           id: serviceId,
           expiresAt: `${SERVICE_ACCOUNT_BODY.expiresAt}T00:00:00.000Z`,
-          hasValidKey: true
+          hasValidKey: true,
         };
         const resp = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
         assert.equal(resp.status, 200);
@@ -2419,7 +2419,7 @@ describe('ApiServer', function() {
         const {id: serviceId, login} = await createServiceAccount();
 
         const patch = {
-          description: newDescription
+          description: newDescription,
         };
         const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
         assert.equal(resp2.status, 200);
@@ -2432,7 +2432,7 @@ describe('ApiServer', function() {
           login,
           description: newDescription,
           expiresAt: `${SERVICE_ACCOUNT_BODY.expiresAt}T00:00:00.000Z`,
-          hasValidKey: true
+          hasValidKey: true,
         };
         assert.deepEqual(resp3.data, expectedBody);
       });
@@ -2440,7 +2440,7 @@ describe('ApiServer', function() {
       it('returns 400 on invalid label', async function() {
         const {id: serviceId} = await createServiceAccount();
         const patch = {
-          label: null
+          label: null,
         };
         const resp = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
         assert.equal(resp.status, 400);
@@ -2449,7 +2449,7 @@ describe('ApiServer', function() {
       it('returns 400 on invalid expiresAt', async function() {
         const {id: serviceId} = await createServiceAccount();
         const patch = {
-          expiresAt: "something"
+          expiresAt: "something",
         };
         const resp = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
         assert.equal(resp.status, 400);
@@ -2470,7 +2470,7 @@ describe('ApiServer', function() {
       });
 
       checkCommonErrors((saId, user) =>
-        axios.patch(`${homeUrl}/api/service-accounts/${saId}`, {description: 'description'}, user)
+        axios.patch(`${homeUrl}/api/service-accounts/${saId}`, {description: 'description'}, user),
       );
     });
 
@@ -2503,7 +2503,7 @@ describe('ApiServer', function() {
       });
 
       checkCommonErrors((saId, user) =>
-        axios.delete(`${homeUrl}/api/service-accounts/${saId}`, user)
+        axios.delete(`${homeUrl}/api/service-accounts/${saId}`, user),
       );
     });
 
@@ -2526,7 +2526,7 @@ describe('ApiServer', function() {
       });
 
       checkCommonErrors((saId, user) =>
-        axios.post(`${homeUrl}/api/service-accounts/${saId}/apikey`, {}, user)
+        axios.post(`${homeUrl}/api/service-accounts/${saId}/apikey`, {}, user),
       );
     });
 
@@ -2543,7 +2543,7 @@ describe('ApiServer', function() {
           id: serviceId,
           login,
           expiresAt: `${body.expiresAt}T00:00:00.000Z`,
-          hasValidKey: false
+          hasValidKey: false,
         };
 
         const revokeAccess = await axios.delete(`${homeUrl}/api/service-accounts/${serviceId}/apikey`, chimpy);
@@ -2556,7 +2556,7 @@ describe('ApiServer', function() {
       });
 
       checkCommonErrors((saId, user) =>
-        axios.delete(`${homeUrl}/api/service-accounts/${saId}/apikey`, user)
+        axios.delete(`${homeUrl}/api/service-accounts/${saId}/apikey`, user),
       );
     });
 
@@ -2578,9 +2578,9 @@ describe('ApiServer', function() {
         const delta = {
           "delta": {
             "users": {
-              [serviceUserLogin]: "owners"
-            }
-          }
+              [serviceUserLogin]: "owners",
+            },
+          },
         };
 
         const grantAccess = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, delta, chimpy);
@@ -2659,7 +2659,7 @@ describe('ApiServer', function() {
     async function assertOrgUsage(
       orgId: string | number,
       user: AxiosRequestConfig,
-      expected: OrgUsageSummary | 'denied'
+      expected: OrgUsageSummary | 'denied',
     ) {
       const resp = await axios.get(`${homeUrl}/api/orgs/${orgId}/usage`, user);
       if (expected === 'denied') {
@@ -2685,11 +2685,11 @@ describe('ApiServer', function() {
         'best-friends-squad', false);
       await dbManager.connection.query(
         'update billing_accounts set product_id = (select id from products where name = $1) where id = $2',
-        [TEAM_FREE_PLAN, prevAccount.id]
+        [TEAM_FREE_PLAN, prevAccount.id],
       );
 
       const resp = await axios.post(`${homeUrl}/api/orgs/${freeTeamOrgId}/workspaces`, {
-        name: 'TestUsage'
+        name: 'TestUsage',
       }, chimpy);
       freeTeamWorkspaceId = resp.data;
     });
@@ -2767,7 +2767,7 @@ describe('ApiServer', function() {
     it('excludes soft-deleted documents from count', async function() {
       // Add another document that's exceeding limits.
       const docId: string = (await axios.post(`${homeUrl}/api/workspaces/${freeTeamWorkspaceId}/docs`, {
-        name: 'SoftDeleted'
+        name: 'SoftDeleted',
       }, chimpy)).data;
       await server.dbManager.setDocsMetadata({[docId]: {usage: {
         rowCount: {total: 9999},
@@ -2835,7 +2835,7 @@ describe('ApiServer', function() {
       // Make anon@/everyone@ a viewer of the public docs on Grist Templates.
       for (const id of [crmDocId, reportDocId, timesheetDocId]) {
         await axios.patch(`${homeUrl}/api/docs/${id}/access`, {
-          delta: {users: {'anon@getgrist.com': 'viewers', 'everyone@getgrist.com': 'viewers'}}
+          delta: {users: {'anon@getgrist.com': 'viewers', 'everyone@getgrist.com': 'viewers'}},
         }, support);
       }
 

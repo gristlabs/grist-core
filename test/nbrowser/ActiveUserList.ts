@@ -58,7 +58,7 @@ describe('ActiveUserList', async function() {
       users: {
         [gu.translateUser(User2).email]: "editors",
         [gu.translateUser(User3).email]: "viewers",
-      }
+      },
     });
 
     await openDocWindowWithUser(docId, User2);
@@ -113,7 +113,7 @@ describe('ActiveUserList', async function() {
   it('shows a list of all users when button is clicked', async function() {
     await driver.find('.test-aul-all-users-button').click();
     const menuItemTexts = await gu.findOpenMenuAllItems(
-      '.test-aul-user-name', async item => item.getText()
+      '.test-aul-user-name', async item => item.getText(),
     );
     assert.equal(menuItemTexts.length, 5, 'wrong number of users in user list');
     // There should be several copies of Kiwi here, but I don't think counting them improves anything
@@ -129,7 +129,7 @@ describe('ActiveUserList', async function() {
   it('keeps the user list open when a new user appears', async function() {
     await driver.find('.test-aul-all-users-button').click();
     const getMenuItems = async () =>  await gu.findOpenMenuAllItems(
-        '.test-aul-user-name', async item => item
+        '.test-aul-user-name', async item => item,
     );
     await driver.switchTo().window(mainWindow.handle);
     const currentMenuItemCount = (await getMenuItems()).length;

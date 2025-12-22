@@ -30,7 +30,7 @@ describe("ExportsAccessRules", function() {
       users: {
         'kiwi@getgrist.com': 'owners',
         'charon@getgrist.com': 'editors',
-      }
+      },
     });
     editor = await home.createHomeApi('charon', 'exports-access-rules', true);
   });
@@ -88,7 +88,7 @@ describe("ExportsAccessRules", function() {
     const colRef = (await owner.getDocAPI(docId).getRecords('_grist_Tables_column',
       {filters: {parentId: [summarizedTableRef], colId: ['SCol1']}}))[0].id;
     await owner.applyUserActions(docId, [
-      ['CreateViewSection', summarizedTableRef, 0, 'record', [colRef], null]
+      ['CreateViewSection', summarizedTableRef, 0, 'record', [colRef], null],
     ]);
   }
 
@@ -107,7 +107,7 @@ describe("ExportsAccessRules", function() {
       const params = {
         viewSection: tableIdToSection.get(tableId) as number,
         tableId,
-        ...(options ? {aclAsUser_: options.viewAs} : {})
+        ...(options ? {aclAsUser_: options.viewAs} : {}),
       };
       const url = user.getDocAPI(docId).getDownloadCsvUrl(params);
       // BaseAPI.request method is private, but so handy here, that we'll use it anyway.
@@ -128,19 +128,19 @@ describe("ExportsAccessRules", function() {
     assert.deepEqual(await getCSV(owner, 'Partial'),
       'ColPartialShow,ColPartialHide,ColPartialMaybe\n' +
       'show1,hide1,maybe1\n' +
-      'show2,hide2,maybe2'
+      'show2,hide2,maybe2',
     );
     assert.deepEqual(await getCSV(editor, 'Partial'),
       'ColPartialShow,ColPartialMaybe\n' +
       'show1,CENSORED\n' +
-      'show2,maybe2'
+      'show2,maybe2',
     );
 
     // Test also that "View As" simulation respects access rules.
     assert.deepEqual(await getCSV(owner, 'Partial', {viewAs: 'charon@getgrist.com'}),
       'ColPartialShow,ColPartialMaybe\n' +
       'show1,CENSORED\n' +
-      'show2,maybe2'
+      'show2,maybe2',
     );
 
     // The table ToSummarize is visible only to owner.

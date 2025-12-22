@@ -17,7 +17,7 @@ import {
   question,
   questionDrag,
   questionType,
-  selectedLabel
+  selectedLabel,
 } from 'test/nbrowser/formTools';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
@@ -58,7 +58,7 @@ describe('FormView1', function() {
     type: string,
     options: {
       redirectUrl?: string;
-    } = {}
+    } = {},
   ) {
     const {redirectUrl} = options;
 
@@ -86,7 +86,7 @@ describe('FormView1', function() {
         "Choice List",
         "Reference",
         "Reference List",
-        "Attachment"
+        "Attachment",
       ].includes(type)
     ) {
       await clickMenu("More");
@@ -133,7 +133,7 @@ describe('FormView1', function() {
     // Remove record.
     await gu.sendActions([
       ['RemoveRecord', 'Table1', 1],
-      ['RemoveColumn', 'Table1', 'D']
+      ['RemoveColumn', 'Table1', 'D'],
     ]);
   }
 
@@ -143,7 +143,7 @@ describe('FormView1', function() {
       assert.isTrue(await driver.findWait('.test-form-success-page', 2000).isDisplayed());
       assert.equal(
         await driver.find('.test-form-success-page-text').getText(),
-        'Thank you! Your response has been recorded.'
+        'Thank you! Your response has been recorded.',
       );
       assert.equal(await driver.getTitle(), 'Form Submitted - Grist');
     });
@@ -447,12 +447,12 @@ describe('FormView1', function() {
         await driver.findWait('label[for="D"]', 2000);
         // Make sure options are there.
         assert.deepEqual(
-          await driver.findAll('select[name="D"] option', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz']
+          await driver.findAll('select[name="D"] option', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz'],
         );
         await driver.find('.test-form-search-select').click();
         await gu.waitToPass(async () =>
           assert.deepEqual(
-            await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Foo', 'Bar', 'Baz']
+            await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Foo', 'Bar', 'Baz'],
           ),
           500);
         await gu.sendKeys('Baz', Key.ENTER);
@@ -466,7 +466,7 @@ describe('FormView1', function() {
         assert.equal(
           await driver.find('.test-form-search-select').getText(),
           'Select...',
-          'The "Clear" button should have cleared the selection'
+          'The "Clear" button should have cleared the selection',
         );
         await driver.find('.test-form-search-select').click();
         await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
@@ -510,7 +510,7 @@ describe('FormView1', function() {
         assert.equal(await container.getAttribute('role'), 'group');
 
         assert.deepEqual(
-          await driver.findAll('label:has(input[name="D"])', e => e.getText()), ['Foo', 'Bar', 'Baz']
+          await driver.findAll('label:has(input[name="D"])', e => e.getText()), ['Foo', 'Bar', 'Baz'],
         );
         await driver.find('input[name="D"][value="Baz"]').click();
         assert.equal(await driver.find('input[name="D"][value="Baz"]').getAttribute('checked'), 'true');
@@ -699,15 +699,15 @@ describe('FormView1', function() {
         await driver.findWait('label[for="D"]', 2000);
         assert.deepEqual(
           await driver.findAll('select[name="D"] option', e => e.getText()),
-          ['Select...', 'Foo', 'Bar', 'Baz']
+          ['Select...', 'Foo', 'Bar', 'Baz'],
         );
         assert.deepEqual(
           await driver.findAll('select[name="D"] option', e => e.value()),
-          ['', '1', '2', '3']
+          ['', '1', '2', '3'],
         );
         await driver.find('.test-form-search-select').click();
         assert.deepEqual(
-          await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Foo', 'Bar', 'Baz']
+          await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Foo', 'Bar', 'Baz'],
         );
         await gu.sendKeys('Baz', Key.ENTER);
         assert.equal(await driver.find('select[name="D"]').value(), '3');
@@ -720,7 +720,7 @@ describe('FormView1', function() {
         assert.equal(
           await driver.find('.test-form-search-select').getText(),
           'Select...',
-          'The "Clear" button should have cleared the selection'
+          'The "Clear" button should have cleared the selection',
         );
         await driver.find('.test-form-search-select').click();
         await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
@@ -751,10 +751,10 @@ describe('FormView1', function() {
       const alpha = Array.from({length: 26}, (_, i) => String.fromCharCode('a'.charCodeAt(0) + i));
       // Add records with values 'aa', 'ab', ..., 'zz' for the column A
       const twoLettersCombination = alpha.flatMap(firstLetter =>
-        alpha.map(secondLetter => firstLetter + secondLetter)
+        alpha.map(secondLetter => firstLetter + secondLetter),
       );
       await gu.sendActions(
-        twoLettersCombination.map(twoLetters => ['AddRecord', 'Table1', null, {A: twoLetters}])
+        twoLettersCombination.map(twoLetters => ['AddRecord', 'Table1', null, {A: twoLetters}]),
       );
       // We are in a new window.
       await gu.onNewTab(async () => {
@@ -765,29 +765,29 @@ describe('FormView1', function() {
         assert.deepEqual(
           await driver.findAll('.test-sd-searchable-list-item', e => e.getText()),
           twoLettersCombination.slice(0, 100),
-          'should show only the 100 first elements'
+          'should show only the 100 first elements',
         );
         assert.deepEqual(
           await driver.findAll('.test-sd-searchable-list-item', e => e.getText()),
           twoLettersCombination.slice(0, 100),
-          'should show only the 100 first elements'
+          'should show only the 100 first elements',
         );
         assert.match(
           await driver.find('.test-sd-truncated-message').getText(),
           new RegExp(`Showing 100 of ${twoLettersCombination.length}`, 'i'),
-          'should show only the 100 first elements'
+          'should show only the 100 first elements',
         );
         await driver.find('.test-sd-search').click();
         await driver.find('.test-sd-search input').sendKeys('zz');
         assert.deepEqual(
           (await driver.findAll('.test-sd-searchable-list-item', e => e.getText())).slice(0, 3),
           ['zz', 'za', 'zb'],
-          'should order the results given the search criteria'
+          'should order the results given the search criteria',
         );
       });
       // Remove all records.
       await gu.sendActions([
-        ['BulkRemoveRecord', 'Table1', twoLettersCombination.map((_, i) => i+1)]
+        ['BulkRemoveRecord', 'Table1', twoLettersCombination.map((_, i) => i+1)],
       ]);
       await removeForm();
     });
@@ -814,7 +814,7 @@ describe('FormView1', function() {
         assert.equal(await container.getAttribute('role'), 'group');
 
         assert.deepEqual(
-          await driver.findAll('label:has(input[name="D"])', e => e.getText()), ['Foo', 'Bar', 'Baz']
+          await driver.findAll('label:has(input[name="D"])', e => e.getText()), ['Foo', 'Bar', 'Baz'],
         );
         assert.equal(await driver.find('label:has(input[name="D"][value="3"])').getText(), 'Baz');
         await driver.find('input[name="D"][value="3"]').click();
@@ -886,7 +886,7 @@ describe('FormView1', function() {
 
     it('redirects to valid URLs on submission', async function() {
       const url = await createFormWith('Text', {
-        redirectUrl: externalSite.getUrl().href
+        redirectUrl: externalSite.getUrl().href,
       });
       await gu.onNewTab(async () => {
         await driver.get(url);
@@ -922,11 +922,11 @@ describe('FormView1', function() {
       await gu.openWidgetPanel('widget');
       assert.deepEqual(
         await driver.findAll('.test-vfc-visible-field', e => e.getText()),
-        ['B', 'C', 'D']
+        ['B', 'C', 'D'],
       );
       assert.deepEqual(
         await driver.findAll('.test-vfc-hidden-field', e => e.getText()),
-        []
+        [],
       );
 
       // Check that A is excluded from the published form.
@@ -952,11 +952,11 @@ describe('FormView1', function() {
       await gu.waitToPass(async () => assert.deepEqual(await labels(), ['A', 'B', 'C', 'D']));
       assert.deepEqual(
         await driver.findAll('.test-vfc-visible-field', e => e.getText()),
-        ['A', 'B', 'C', 'D']
+        ['A', 'B', 'C', 'D'],
       );
       assert.deepEqual(
         await driver.findAll('.test-vfc-hidden-field', e => e.getText()),
-        []
+        [],
       );
 
       await removeForm();
@@ -991,7 +991,7 @@ describe('FormView1', function() {
       const headers = {Authorization: `Bearer ${await api.fetchApiKey()}`};
       const response = await fetch(url, {
         headers,
-        method: "GET"
+        method: "GET",
       }).then(data => data.json());
 
       assert.lengthOf(response.records, 2);
@@ -1013,7 +1013,7 @@ describe('FormView1', function() {
         assert.isTrue(await driver.findWait('.test-form-error-page', 2000).isDisplayed());
         assert.equal(
           await driver.find('.test-form-error-page-text').getText(),
-          'Oops! This form is no longer published.'
+          'Oops! This form is no longer published.',
         );
       });
 
@@ -1051,7 +1051,7 @@ describe('FormView1', function() {
 
       // Add new page and select form.
       await gu.addNewPage('Form', 'New Table', {
-        tableName: 'Form'
+        tableName: 'Form',
       });
 
       // Make sure we see a form editor.
@@ -1074,7 +1074,7 @@ describe('FormView1', function() {
       assert.isTrue(await driver.find('.test-forms-editor').isDisplayed());
       await driver.sleep(100);
       assert.isFalse(
-        await driver.findContent('.test-forms-question-choice .test-forms-label', gu.exactMatch('Choice')).isPresent()
+        await driver.findContent('.test-forms-question-choice .test-forms-label', gu.exactMatch('Choice')).isPresent(),
       );
     });
 
@@ -1082,35 +1082,35 @@ describe('FormView1', function() {
 
       // Make sure the order is right.
       assert.deepEqual(
-        await labels(), ['A', 'B', 'C']
+        await labels(), ['A', 'B', 'C'],
       );
 
       await driver.withActions(a =>
         a.move({origin: questionDrag('B')})
           .press()
           .move({origin: questionDrag('A')})
-          .release()
+          .release(),
       );
 
       await gu.waitForServer();
 
       // Make sure the order is right.
       assert.deepEqual(
-        await labels(), ['B', 'A', 'C']
+        await labels(), ['B', 'A', 'C'],
       );
 
       await driver.withActions(a =>
         a.move({origin: questionDrag('C')})
           .press()
           .move({origin: questionDrag('B')})
-          .release()
+          .release(),
       );
 
       await gu.waitForServer();
 
       // Make sure the order is right.
       assert.deepEqual(
-        await labels(), ['C', 'B', 'A']
+        await labels(), ['C', 'B', 'A'],
       );
 
       // Now move A on A and make sure nothing changes.
@@ -1118,7 +1118,7 @@ describe('FormView1', function() {
         a.move({origin: questionDrag('A')})
           .press()
           .move({origin: questionDrag('A'), x: 50})
-          .release()
+          .release(),
       );
 
       await gu.waitForServer();
@@ -1142,7 +1142,7 @@ describe('FormView1', function() {
         a.move({origin: questionDrag('A')})
           .press()
           .move({origin: plusButton().drag()})
-          .release()
+          .release(),
       );
 
       await gu.waitForServer();
@@ -1182,7 +1182,7 @@ describe('FormView1', function() {
         a.move({origin: questionDrag('D')})
           .press()
           .move({origin: questionDrag('C')})
-          .release()
+          .release(),
       );
 
       await gu.waitForServer();
@@ -1245,7 +1245,7 @@ describe('FormView1', function() {
         a.move({origin: hiddenColumn('Choice')})
           .press()
           .move({origin: questionDrag('B')})
-          .release()
+          .release(),
       );
       await gu.waitForServer();
 
@@ -1488,7 +1488,7 @@ describe('FormView1', function() {
         a.move({origin: questionDrag('D')})
           .press()
           .move({origin: questionDrag('B')})
-          .release()
+          .release(),
       );
 
       await gu.waitForServer();
@@ -1571,7 +1571,7 @@ describe('FormView1', function() {
         a.move({origin: questionDrag('D')})
           .press()
           .move({origin: questionDrag('B')})
-          .release()
+          .release(),
       );
       await gu.waitForServer();
       assert.deepEqual(await labels(), ['A', 'D', 'B', 'C']);
@@ -1581,7 +1581,7 @@ describe('FormView1', function() {
         a.move({origin: questionDrag('D')})
           .press()
           .move({origin: element('Columns').element(`Placeholder`, 2).find(`.test-forms-drag`)})
-          .release()
+          .release(),
       );
       await gu.waitForServer();
       assert.deepEqual(await labels(), ['A', 'B', 'C', 'D']);
@@ -1667,7 +1667,7 @@ describe('FormView1', function() {
         a.move({origin: element('Columns').element(`Placeholder`, 1).find(`.test-forms-drag`)})
           .press()
           .move({origin: element('Columns').element(`Placeholder`, 2).find(`.test-forms-drag`)})
-          .release()
+          .release(),
       );
       await gu.waitForServer();
       await gu.checkForErrors();
@@ -1686,7 +1686,7 @@ describe('FormView1', function() {
           'Field',
           'Columns',
           'Placeholder',
-          'Placeholder'
+          'Placeholder',
         ]);
       };
 
@@ -1697,7 +1697,7 @@ describe('FormView1', function() {
         a.move({origin: element('Columns').element(`Placeholder`, 1).find(`.test-forms-drag`)})
           .press()
           .move({origin: driver.find('.test-forms-Columns .test-forms-add')})
-          .release()
+          .release(),
       );
       await gu.waitForServer();
       await gu.checkForErrors();
@@ -1708,7 +1708,7 @@ describe('FormView1', function() {
         a.move({origin: questionDrag('C')})
           .press()
           .move({origin: element('Columns').element(`Placeholder`, 1).find(`.test-forms-drag`)})
-          .release()
+          .release(),
       );
       await gu.waitForServer();
       await gu.checkForErrors();
@@ -1723,7 +1723,7 @@ describe('FormView1', function() {
         a.move({origin: questionDrag('B')})
           .press()
           .move({origin: questionDrag('C')})
-          .release()
+          .release(),
       );
       await gu.waitForServer();
       await gu.checkForErrors();
@@ -1740,7 +1740,7 @@ describe('FormView1', function() {
         a.move({origin: questionDrag('B')})
           .press()
           .move({origin: element('column', 2).drag()})
-          .release()
+          .release(),
       );
       await gu.waitForServer();
       await gu.checkForErrors();
@@ -1756,7 +1756,7 @@ describe('FormView1', function() {
         a.move({origin: questionDrag('C')})
           .press()
           .move({origin: questionDrag('B')})
-          .release()
+          .release(),
       );
       await gu.waitForServer();
       await gu.checkForErrors();
@@ -1768,7 +1768,7 @@ describe('FormView1', function() {
         a.move({origin: questionDrag('B')})
           .press()
           .move({origin: questionDrag('C')})
-          .release()
+          .release(),
       );
       await gu.waitForServer();
       await gu.checkForErrors();
@@ -1783,7 +1783,7 @@ describe('FormView1', function() {
         a.move({origin: questionDrag('B')})
           .press()
           .move({origin: driver.find('.test-forms-Columns .test-forms-add')})
-          .release()
+          .release(),
       );
       await gu.waitForServer();
       await gu.checkForErrors();
@@ -1798,7 +1798,7 @@ describe('FormView1', function() {
         a.move({origin: questionDrag('A')})
           .press()
           .move({origin: driver.find('.test-forms-Columns .test-forms-add')})
-          .release()
+          .release(),
       );
       await gu.waitForServer();
       await gu.checkForErrors();

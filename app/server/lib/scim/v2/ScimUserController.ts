@@ -11,7 +11,7 @@ type UserResource = SCIMMY.Resources.User;
 class ScimUserController extends BaseController {
   public constructor(
     dbManager: HomeDBManager,
-    checkAccess: (context: RequestContext) => void
+    checkAccess: (context: RequestContext) => void,
   ) {
     super(dbManager, checkAccess);
     this.invalidIdError = 'Invalid passed user ID';
@@ -60,7 +60,7 @@ class ScimUserController extends BaseController {
       await this._checkEmailCanBeUsed(data.userName);
       const userProfile = toUserProfile(data);
       const newUser = await this.dbManager.getUserByLoginWithRetry(userProfile.email, {
-        profile: userProfile
+        profile: userProfile,
       });
       return toSCIMMYUser(newUser);
     });
@@ -128,13 +128,13 @@ class ScimUserController extends BaseController {
 }
 
 export function getScimUserConfig(
-  dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void
+  dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void,
 ) {
   const controller = new ScimUserController(dbManager, checkAccess);
 
   return {
     egress: async (
-      resource: UserResource, context: RequestContext
+      resource: UserResource, context: RequestContext,
     ): Promise<UserSchema|UserSchema[]> => {
       if (resource.id) {
         return await controller.getSingleUser(resource, context);
@@ -142,7 +142,7 @@ export function getScimUserConfig(
       return await controller.getUsers(resource, context);
     },
     ingress: async (
-      resource: UserResource, data: UserSchema, context: RequestContext
+      resource: UserResource, data: UserSchema, context: RequestContext,
     ): Promise<UserSchema> => {
       if (resource.id) {
         return await controller.overwriteUser(resource, data, context);
@@ -151,6 +151,6 @@ export function getScimUserConfig(
     },
     degress: async (resource: UserResource, context: RequestContext): Promise<void> => {
       return await controller.deleteUser(resource, context);
-    }
+    },
   };
 }

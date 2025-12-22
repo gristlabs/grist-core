@@ -181,7 +181,7 @@ const versions: Array<{name: string,
   {
     name: "ToyActionHistory",
     createDoc: () => Promise.resolve(undefined),
-    createHistory: async doc => new ToyActionHistory()
+    createHistory: async doc => new ToyActionHistory(),
   },
   {
     name: "ActionHistoryImplOnDisk",
@@ -194,8 +194,8 @@ const versions: Array<{name: string,
       const hist = new ActionHistoryImpl(doc);
       await hist.wipe();
       return hist;
-    }
-  }
+    },
+  },
 ];
 
 
@@ -220,15 +220,15 @@ function makeBundle(actionNum: number, desc: string): LocalActionBundle {
         inst: "",
         desc,
         otherId: 0,
-        linkId: 0
-      }
+        linkId: 0,
+      },
     ],
     stored: [],
     calc: [],
     userActions: [],
     undo: [],
     parentActionHash: null,
-    actionHash: null
+    actionHash: null,
   } as LocalActionBundle;
 }
 

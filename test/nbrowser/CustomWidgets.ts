@@ -89,7 +89,7 @@ describe('CustomWidgets', function () {
 
   async function reloadWidgets() {
     await driver.executeAsyncScript(
-      (done: any) => (window as any).gristApp?.topAppModel.testReloadWidgets().then(done).catch(done) || done()
+      (done: any) => (window as any).gristApp?.topAppModel.testReloadWidgets().then(done).catch(done) || done(),
     );
   }
 
@@ -116,19 +116,19 @@ describe('CustomWidgets', function () {
             (req.query.name || req.query.access) + // send back widget name from query string or access level
             (req.query.name === 'WithTheme' ? '</span>' : '') +
             '</body></html>\n')
-          .end()
+          .end(),
       );
       app.get(manifestEndpoint, (_, res) =>
         res
           .header('Content-Type', 'application/json')
           // prefix widget endpoint with server address
           .json(widgets.map(widget => ({...widget, url: `${widgetServerUrl}${widget.url}`})))
-          .end()
+          .end(),
       );
       app.get('/grist-plugin-api.js', (_, res) =>
         res.sendFile(
           'grist-plugin-api.js', {
-            root: path.resolve(getAppRoot(), "static")
+            root: path.resolve(getAppRoot(), "static"),
           }));
     });
 
@@ -144,7 +144,7 @@ describe('CustomWidgets', function () {
 
     // Use a fresh profile, to avoid affecting profile of user used in other tests.
     const session = await gu.session().user("fresh").login({
-      freshAccount: true, isFirstLogin: false, showTips: false, showGristTour: false
+      freshAccount: true, isFirstLogin: false, showTips: false, showGristTour: false,
     });
     await session.tempDoc(cleanup, 'Hello.grist');
 
@@ -173,7 +173,7 @@ describe('CustomWidgets', function () {
 
   async function execute(
     op: (table: TableOperations) => Promise<any>,
-    tableSelector: (grist: any) => TableOperations = grist => grist.selectedTable
+    tableSelector: (grist: any) => TableOperations = grist => grist.selectedTable,
   ) {
     return gu.doInIframe(await getCustomWidgetFrame(), async () => {
       const harness = async (done: any) => {
@@ -215,7 +215,7 @@ describe('CustomWidgets', function () {
     const text = {
       [AccessLevel.none] : "No document access",
       [AccessLevel.read_table]: "Read selected table",
-      [AccessLevel.full]: "Full document access"
+      [AccessLevel.full]: "Full document access",
     };
     if (!level) {
       const currentAccess = await driver.find('.test-config-widget-access .test-select-open').getText();
@@ -566,7 +566,7 @@ describe('CustomWidgets', function () {
       await gu.openCustomWidgetGallery();
       assert.deepEqual(
         await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-        ['Custom URL', 'full', 'none', 'read table', 'W1', 'W2']
+        ['Custom URL', 'full', 'none', 'read table', 'W1', 'W2'],
       );
     });
 
@@ -574,17 +574,17 @@ describe('CustomWidgets', function () {
       assert.deepEqual(
         await driver.findAll('.test-custom-widget-gallery-widget', el =>
           el.matches('.test-custom-widget-gallery-widget-custom')),
-        [true, false, false, false, false, false]
+        [true, false, false, false, false, false],
       );
       assert.deepEqual(
         await driver.findAll('.test-custom-widget-gallery-widget', el =>
           el.matches('.test-custom-widget-gallery-widget-grist')),
-        [false, true, true, true, true, false]
+        [false, true, true, true, true, false],
       );
       assert.deepEqual(
         await driver.findAll('.test-custom-widget-gallery-widget', el =>
           el.matches('.test-custom-widget-gallery-widget-community')),
-        [false, false, false, false, false, true]
+        [false, false, false, false, false, true],
       );
       assert.deepEqual(
         await driver.findAll('.test-custom-widget-gallery-widget-description', el => el.getText()),
@@ -595,14 +595,14 @@ describe('CustomWidgets', function () {
           '(Missing info)',
           'Widget 1 description',
           '(Missing info)',
-        ]
+        ],
       );
       assert.deepEqual(
         await driver.findAll('.test-custom-widget-gallery-widget-developer', el => el.getText()),
         [
           '(Missing info)',
           '(Missing info)',
-        ]
+        ],
       );
       assert.deepEqual(
         await driver.findAll('.test-custom-widget-gallery-widget-last-updated', el => el.getText()),
@@ -612,7 +612,7 @@ describe('CustomWidgets', function () {
           '(Missing info)',
           'July 30, 2024',
           '(Missing info)',
-        ]
+        ],
       );
     });
 
@@ -622,42 +622,42 @@ describe('CustomWidgets', function () {
       await gu.waitToPass(async () => {
         assert.deepEqual(
           await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-          ['Custom URL']
+          ['Custom URL'],
         );
       }, 200);
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE);
       await gu.waitToPass(async () => {
         assert.deepEqual(
           await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-          ['Custom URL', 'full', 'none', 'read table', 'W1', 'W2']
+          ['Custom URL', 'full', 'none', 'read table', 'W1', 'W2'],
         );
       }, 200);
       await gu.sendKeys('W');
       await gu.waitToPass(async () => {
         assert.deepEqual(
           await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-          ['Custom URL', 'W1', 'W2']
+          ['Custom URL', 'W1', 'W2'],
         );
       }, 200);
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, 'tab');
       await gu.waitToPass(async () => {
         assert.deepEqual(
           await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-          ['read table']
+          ['read table'],
         );
       }, 200);
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, 'Markdown');
       await gu.waitToPass(async () => {
         assert.deepEqual(
           await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-          []
+          [],
         );
       }, 200);
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, 'Developer 1');
       await gu.waitToPass(async () => {
         assert.deepEqual(
           await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-          ['W1']
+          ['W1'],
         );
       }, 200);
     });
@@ -666,17 +666,17 @@ describe('CustomWidgets', function () {
       await gu.sendKeys(Key.ESCAPE);
       await driver.executeScript('window.gristConfig.enableWidgetRepository = false;');
       await driver.executeAsyncScript(
-        (done: any) => (window as any).gristApp?.topAppModel.testReloadWidgets().then(done).catch(done) || done()
+        (done: any) => (window as any).gristApp?.topAppModel.testReloadWidgets().then(done).catch(done) || done(),
       );
       await gu.openCustomWidgetGallery();
       assert.deepEqual(
         await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
-        ['Custom URL']
+        ['Custom URL'],
       );
       await gu.sendKeys(Key.ESCAPE);
       await driver.executeScript('window.gristConfig.enableWidgetRepository = true;');
       await driver.executeAsyncScript(
-        (done: any) => (window as any).gristApp?.topAppModel.testReloadWidgets().then(done).catch(done) || done()
+        (done: any) => (window as any).gristApp?.topAppModel.testReloadWidgets().then(done).catch(done) || done(),
       );
     });
 
@@ -734,7 +734,7 @@ describe('CustomWidgets', function () {
 
       assert.equal(await driver.findContent(
         '.test-modal-title',
-        /Be careful with unknown custom widgets/
+        /Be careful with unknown custom widgets/,
       ).isDisplayed(), true);
       assert.equal(await driver.find('.test-custom-widget-warning-modal-confirm-checkbox').isDisplayed(), true);
 
@@ -834,7 +834,7 @@ describe('CustomWidgets', function () {
       await execute(async (table) => {
         await table.upsert({
           require: {A: 'hello'},
-          fields: {A: 'goodbye'}
+          fields: {A: 'goodbye'},
         });
       });
       await gu.waitToPass(async () => {
@@ -845,7 +845,7 @@ describe('CustomWidgets', function () {
       await execute(async (table) => {
         return table.update({
           id: 2,
-          fields: {A: 'farewell'}
+          fields: {A: 'farewell'},
         });
       });
       await gu.waitToPass(async () => {
@@ -856,7 +856,7 @@ describe('CustomWidgets', function () {
       await execute(async (table) => {
         return table.upsert({
           require: {},
-          fields: {A: 'goodbyes'}
+          fields: {A: 'goodbyes'},
         }, {onMany: 'all', allowEmptyRequire: true});
       });
       await gu.waitToPass(async () => {
@@ -867,7 +867,7 @@ describe('CustomWidgets', function () {
       // Check a create works.
       const {id} = await execute(async (table) => {
         return table.create({
-          fields: {A: 'partA', B: 'partB'}
+          fields: {A: 'partA', B: 'partB'},
         });
       }) as {id: number};
       assert.equal(id, 5);
@@ -904,7 +904,7 @@ describe('CustomWidgets', function () {
       await execute(async (table) => {
         return table.update({
           id: 3,
-          fields: {A: 'back again'}
+          fields: {A: 'back again'},
         });
       }, grist => grist.getTable('Table1'));
       await gu.waitToPass(async () => {
@@ -915,7 +915,7 @@ describe('CustomWidgets', function () {
       assert.match(String(await execute(async (table) => {
         return table.update({
           id: 3,
-          fields: {A: 'back again'}
+          fields: {A: 'back again'},
         });
       }, grist => grist.getTable('Table2'))), /Table not found/);
     });
@@ -923,7 +923,7 @@ describe('CustomWidgets', function () {
     it("should support grist.getAccessTokens", async () => {
       return await gu.doInIframe(await getCustomWidgetFrame(), async () => {
         const tokenResult: AccessTokenResult = await driver.executeAsyncScript(
-          (done: any) => (window as any).grist.getAccessToken().then(done)
+          (done: any) => (window as any).grist.getAccessToken().then(done),
         );
         assert.sameMembers(Object.keys(tokenResult), ['ttlMsecs', 'token', 'baseUrl']);
         const result = await fetch(tokenResult.baseUrl + `/tables/Table1/records?auth=${tokenResult.token}`);
@@ -980,7 +980,7 @@ describe('CustomWidgets', function () {
           path.join(pluginDir, 'manifest.yml'),
           `name: My Widgets\n` +
           `components:\n` +
-          `  widgets: ${variant === 'nested' ? 'nested/' : ''}widgets.json\n`
+          `  widgets: ${variant === 'nested' ? 'nested/' : ''}widgets.json\n`,
         );
 
         // A list of a pair of custom widgets, with the widget
@@ -1031,7 +1031,7 @@ describe('CustomWidgets', function () {
           </script>
           </body>
           </html>
-          `
+          `,
         );
 
         // The third widget - just contains the text P3.
@@ -1067,7 +1067,7 @@ describe('CustomWidgets', function () {
         async function getWidgetText(): Promise<string> {
           return gu.doInIframe(await getCustomWidgetFrame(), () => {
             return driver.executeScript(
-              () => document.body.innerText
+              () => document.body.innerText,
             );
           });
         }

@@ -158,7 +158,7 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
     return {
       perms: this.getColumnAspect(tableId, colId),
       ruleType: 'column',
-      getMemos: () => new MemoInfo(this._acls, this._input).getColumnAspect(tableId, colId)
+      getMemos: () => new MemoInfo(this._acls, this._input).getColumnAspect(tableId, colId),
     };
   }
 
@@ -170,7 +170,7 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
     return {
       perms: this.getTableAspect(tableId),
       ruleType: this._input?.rec ? 'row' : 'table',
-      getMemos: () => new MemoInfo(this._acls, this._input).getTableAspect(tableId)
+      getMemos: () => new MemoInfo(this._acls, this._input).getTableAspect(tableId),
     };
   }
 
@@ -181,7 +181,7 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
     return {
       perms: this.getFullAspect(),
       ruleType: 'full',
-      getMemos: () => new MemoInfo(this._acls, this._input).getFullAspect()
+      getMemos: () => new MemoInfo(this._acls, this._input).getFullAspect(),
     };
   }
 

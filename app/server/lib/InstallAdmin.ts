@@ -91,7 +91,7 @@ export class SimpleInstallAdmin extends InstallAdmin {
     const installAdmin = await this._dbManager.getUserByLogin(this._installAdminEmail);
     return [{
       user: installAdmin.toUserProfile(),
-      reason: req.t('admin.accountByEmail', {defaultEmail: this._installAdminEmail})
+      reason: req.t('admin.accountByEmail', {defaultEmail: this._installAdminEmail}),
     }];
   }
 }

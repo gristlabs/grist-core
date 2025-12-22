@@ -29,7 +29,7 @@ export class CopySelection {
               options: {
                 rowStyle?: {[r: number]: object},
                 colStyle?: {[c: string]: object},
-              }
+              },
   ) {
     this.rowStyle = options.rowStyle;
     this.colStyle = options.colStyle;
@@ -41,7 +41,7 @@ export class CopySelection {
       return {
         colId: this.colIds[i],
         fmtGetter: rowId => formatter.formatAny(_fmtGetter(rowId)),
-        rawGetter: rowId => _rawGetter(rowId)
+        rawGetter: rowId => _rawGetter(rowId),
       };
     });
   }

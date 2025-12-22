@@ -66,7 +66,7 @@ export class SortConfig extends Disposable {
   private _changedColRefs = Computed.create(this, (use) => {
     const changedSpecs = difference(
       use(this._section.activeSortSpec),
-      Sort.parseSortColRefs(use(this._section.sortColRefs))
+      Sort.parseSortColRefs(use(this._section.sortColRefs)),
     );
     return new Set(changedSpecs.map(spec => Sort.getColRef(spec)));
   });
@@ -109,7 +109,7 @@ export class SortConfig extends Disposable {
   private _buildSortRow(
     colRef: number,
     sortSpec: ObjObservable<Sort.SortSpec>,
-    columns: Computed<SortableColumn[]>
+    columns: Computed<SortableColumn[]>,
   ) {
     const holder = new MultiHolder();
     const {menuOptions} = this._options;
@@ -139,7 +139,7 @@ export class SortConfig extends Disposable {
     const computedFlag = (
       flag: keyof Sort.ColSpecDetails,
       allowedTypes: string[] | null,
-      label: string
+      label: string,
     ) => {
       const computed = Computed.create(holder, details, (_, d) => d[flag] || false);
       computed.onWrite((value) => {
@@ -169,7 +169,7 @@ export class SortConfig extends Disposable {
             t('{{- columnName }} column', {columnName: column!.label}),
             ascending
               ? t('Sort in descending order (current: ascending)')
-              : t('Sort in ascending order (current: descending)')
+              : t('Sort in ascending order (current: descending)'),
           ].join(' - ');
         }),
         dom.domComputed(isAscending, ascending =>
@@ -179,7 +179,7 @@ export class SortConfig extends Disposable {
             dom.style("transform", ascending ? "scaleY(-1)" : "none"),
             testId('order'),
             testId(ascending ? "sort-order-asc" : "sort-order-desc"),
-          )
+          ),
         ),
         cssLabel(column!.label),
         dom.on("click", () => {
@@ -219,7 +219,7 @@ export class SortConfig extends Disposable {
             this._saveSort(Sort.removeCol(specs, colRef));
           }
         }),
-        testId('remove')
+        testId('remove'),
       ),
       testId('row'),
     );

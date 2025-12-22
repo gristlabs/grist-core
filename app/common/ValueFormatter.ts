@@ -345,8 +345,8 @@ export function createVisibleColFormatterRaw(
     type,
     visibleColType,
     visibleColWidgetOpts,
-    widgetOpts
-  }: FullFormatterArgs
+    widgetOpts,
+  }: FullFormatterArgs,
 ): BaseFormatter {
   let referencedTableId = gristTypes.getReferencedTableId(type);
   if (!referencedTableId) {

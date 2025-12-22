@@ -61,7 +61,7 @@ describe('ColumnFilterMenu3', function() {
       await driver.find('.test-filter-menu-search-input').click();
       assert.equal(
         await driver.switchTo().activeElement().getId(),
-        await driver.find('.test-filter-menu-search-input').getId()
+        await driver.find('.test-filter-menu-search-input').getId(),
       );
     };
 
@@ -155,13 +155,13 @@ describe('ColumnFilterMenu3', function() {
       // like)
       assert.notDeepEqual(
         await gu.getVisibleGridCells({cols: ['B'], rowNums: [1, 2, 3]}),
-        ['1', '', undefined]
+        ['1', '', undefined],
       );
 
       // check filter does behave correctly
       assert.deepEqual(
         await gu.getVisibleGridCells({cols: ['B'], rowNums: [1, 2, 3]}),
-        ['1', '1', '']
+        ['1', '1', ''],
       );
     });
   });
@@ -173,7 +173,7 @@ describe('ColumnFilterMenu3', function() {
     async function assertEmptyRowCount(count: number) {
       assert.deepEqual(
         await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()),
-        ['']
+        [''],
       );
       assert.deepEqual(
         await driver.findAll('.test-filter-menu-list .test-filter-menu-count', e => e.getText()),
@@ -182,7 +182,7 @@ describe('ColumnFilterMenu3', function() {
     }
 
     async function assertEmptyColumnIsFilterable(
-      columnType: 'Choice' | 'Choice List' | 'Reference List'
+      columnType: 'Choice' | 'Choice List' | 'Reference List',
     ) {
       const columnLabel = `Empty ${columnType}`;
       await gu.addColumn(columnLabel);

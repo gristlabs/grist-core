@@ -122,7 +122,7 @@ export const TelemetryContracts: TelemetryContracts = {
       developerPromptVersion: {
         description: 'The developer prompt version. May be either `"default"` or `"new-document"`.',
         dataType: 'string',
-      }
+      },
     },
   },
   assistantReceive: {
@@ -1843,7 +1843,7 @@ export const TelemetryContracts: TelemetryContracts = {
         dataType: 'string',
       },
     },
-  }
+  },
 };
 
 type TelemetryContracts = Record<TelemetryEvent, TelemetryEventContract>;
@@ -1916,7 +1916,7 @@ export const TelemetryEvents = StringUnion(
   'visitedForm',
   'submittedForm',
   'changedAccessRules',
-  'checkedUpdateAPI'
+  'checkedUpdateAPI',
 );
 export type TelemetryEvent = typeof TelemetryEvents.type;
 
@@ -1986,7 +1986,7 @@ export function buildTelemetryEventChecker(telemetryLevel: TelemetryLevel) {
     if (currentTelemetryLevel < eventMinimumTelemetryLevel) {
       throw new Error(
         `Telemetry event ${event} requires a minimum telemetry level of ${eventMinimumTelemetryLevel} ` +
-        `but the current level is ${currentTelemetryLevel}`
+        `but the current level is ${currentTelemetryLevel}`,
       );
     }
 
@@ -2000,7 +2000,7 @@ export function buildTelemetryEventChecker(telemetryLevel: TelemetryLevel) {
       if (metadataMinimumTelemetryLevel && currentTelemetryLevel < metadataMinimumTelemetryLevel) {
         throw new Error(
           `Telemetry metadata ${key} of event ${event} requires a minimum telemetry level of ` +
-          `${metadataMinimumTelemetryLevel} but the current level is ${currentTelemetryLevel}`
+          `${metadataMinimumTelemetryLevel} but the current level is ${currentTelemetryLevel}`,
         );
       }
 
@@ -2009,7 +2009,7 @@ export function buildTelemetryEventChecker(telemetryLevel: TelemetryLevel) {
         if (!Array.isArray(value)) {
           throw new Error(
             `Telemetry metadata ${key} of event ${event} expected a value of type array ` +
-            `but received a value of type ${typeof value}`
+            `but received a value of type ${typeof value}`,
           );
         }
 
@@ -2017,7 +2017,7 @@ export function buildTelemetryEventChecker(telemetryLevel: TelemetryLevel) {
         if (value.some(element => typeof element !== elementDataType)) {
           throw new Error(
             `Telemetry metadata ${key} of event ${event} expected a value of type ${elementDataType}[] ` +
-            `but received a value of type ${typeof value}[]`
+            `but received a value of type ${typeof value}[]`,
           );
         }
       }
@@ -2025,19 +2025,19 @@ export function buildTelemetryEventChecker(telemetryLevel: TelemetryLevel) {
         if (!(value instanceof Date) && typeof value !== 'string') {
           throw new Error(
             `Telemetry metadata ${key} of event ${event} expected a value of type Date or string ` +
-            `but received a value of type ${typeof value}`
+            `but received a value of type ${typeof value}`,
           );
         }
         if (typeof value === 'string' && !hasTimezone(value)) {
           throw new Error(
-            `Telemetry metadata ${key} of event ${event} has an ambiguous date string`
+            `Telemetry metadata ${key} of event ${event} has an ambiguous date string`,
           );
         }
       }
  else if (dataType !== typeof value) {
         throw new Error(
           `Telemetry metadata ${key} of event ${event} expected a value of type ${dataType} ` +
-          `but received a value of type ${typeof value}`
+          `but received a value of type ${typeof value}`,
         );
       }
     }

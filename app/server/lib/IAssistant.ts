@@ -99,7 +99,7 @@ export interface AssistanceDoc extends ActiveDoc {
 }
 
 export type AssistanceSchemaPromptGenerator = (
-  options?: AssistanceSchemaPromptV1Options
+  options?: AssistanceSchemaPromptV1Options,
 ) => Promise<AssistanceMessage>;
 
 export interface AssistanceSchemaPromptV1Options {

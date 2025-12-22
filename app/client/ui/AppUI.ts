@@ -42,7 +42,7 @@ export function createAppUI(topAppModel: TopAppModel, appObj: App): IDisposable 
   });
   dom.update(document.body, content, {
     // Cancel out bootstrap's overrides.
-    style: 'font-family: inherit; font-size: inherit; line-height: inherit;'
+    style: 'font-family: inherit; font-size: inherit; line-height: inherit;',
   });
 
   function dispose() {

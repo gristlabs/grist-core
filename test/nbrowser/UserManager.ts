@@ -84,7 +84,7 @@ describe('UserManager', function() {
     const session = await gu.session().teamSite.user('user1').login();
     await session.resetSite();
     await session.createHomeApi().updateOrgPermissions(session.settings.orgDomain, {
-      users: {'support@getgrist.com': 'owners'}
+      users: {'support@getgrist.com': 'owners'},
     });
   });
 
@@ -820,7 +820,7 @@ describe('UserManager', function() {
       // Make a document and add some users.
       const doc = await session.tempDoc(cleanup, 'Hello.grist', {load: false});
       await api.updateDocPermissions(doc.id, {
-        users: {'luigi@getgrist.com': 'viewers', 'mario@getgrist.com': 'owners'}
+        users: {'luigi@getgrist.com': 'viewers', 'mario@getgrist.com': 'owners'},
       });
 
       // Soft-delete the document.
@@ -839,7 +839,7 @@ describe('UserManager', function() {
  finally {
       // Remove users we added.
       await api.updateOrgPermissions('current', {
-        users: fromPairs(users.map(u => [`${u}@getgrist.com`, null]))
+        users: fromPairs(users.map(u => [`${u}@getgrist.com`, null])),
       });
     }
   });

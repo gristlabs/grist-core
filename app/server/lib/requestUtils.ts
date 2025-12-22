@@ -17,7 +17,7 @@ import {TLSSocket} from 'tls';
 const shouldLogApiDetails = appSettings.section("log").flag("apiDetails").readBool({
   envVar: ["GRIST_LOG_API_DETAILS", "GRIST_HOSTED_VERSION"],
   preferredEnvVar: "GRIST_LOG_API_DETAILS",
-  defaultValue: false
+  defaultValue: false,
 });
 
 // Offset to https ports in dev/testing environment.
@@ -28,7 +28,7 @@ export const TEST_HTTPS_OFFSET = process.env.GRIST_TEST_HTTPS_OFFSET ?
 const INTERNAL_FIELDS = new Set([
   'apiKey', 'billingAccountId', 'firstLoginAt', 'lastConnectionAt', 'filteredOut', 'ownerId', 'gracePeriodStart',
   'stripeCustomerId', 'stripeSubscriptionId', 'stripeProductId', 'userId', 'isFirstTimeUser', 'allowGoogleLogin',
-  'authSubject', 'usage', 'createdBy', 'unsubscribeKey'
+  'authSubject', 'usage', 'createdBy', 'unsubscribeKey',
 ]);
 
 /**
@@ -230,7 +230,7 @@ export async function sendOkReply<T>(
   req: Request|null,
   res: Response,
   result?: T,
-  options: SendReplyOptions = {}
+  options: SendReplyOptions = {},
 ) {
   return sendReply(req, res, {status: 200, data: result}, options);
 }
@@ -310,17 +310,17 @@ export function stringArrayParam(p: any, name: string): string[] {
 export function optIntegerParam(
   p: any,
   name: string,
-  options?: { nullable?: false; isValid?: (n: number) => boolean }
+  options?: { nullable?: false; isValid?: (n: number) => boolean },
 ): number | undefined;
 export function optIntegerParam(
   p: any,
   name: string,
-  options: { nullable: true; isValid?: (n: number) => boolean }
+  options: { nullable: true; isValid?: (n: number) => boolean },
 ): number | null | undefined;
 export function optIntegerParam(
   p: any,
   name: string,
-  options: { nullable?: boolean; isValid?: (n: number) => boolean } = {}
+  options: { nullable?: boolean; isValid?: (n: number) => boolean } = {},
 ): number | undefined {
   if (p === undefined) {
     return p;
@@ -335,7 +335,7 @@ export function optIntegerParam(
 export function integerParam(
   p: any,
   name: string,
-  options: { isValid?: (n: number) => boolean } = {}
+  options: { isValid?: (n: number) => boolean } = {},
 ): number {
   const { isValid } = options;
   let result: number | null = null;
@@ -348,7 +348,7 @@ export function integerParam(
   if (result === null || Number.isNaN(result)) {
     throw new ApiError(
       `${name} parameter cannot be understood as an integer: ${p}`,
-      400
+      400,
     );
   }
   if (isValid && !isValid(result)) {

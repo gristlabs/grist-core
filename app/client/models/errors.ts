@@ -57,7 +57,7 @@ export function getAppErrors(): string[] {
 export function reportMessage(msg: MessageType, options?: Partial<INotifyOptions>): INotification|undefined {
   if (_notifier && !_notifier.isDisposed()) {
     return _notifier.createUserMessage(msg, {
-      ...options
+      ...options,
     });
   }
 }
@@ -240,13 +240,13 @@ export function logError(error: Error|string) {
       event: (error instanceof Error) ? pick(error, Object.getOwnPropertyNames(error)) : error,
       docId,
       page: G.window.location.href,
-      browser: pick(G.window.navigator, ['language', 'platform', 'userAgent'])
+      browser: pick(G.window.navigator, ['language', 'platform', 'userAgent']),
     }),
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
-    }
+    },
   }).catch((e) => {
     // There ... isn't much we can do about this.
     // tslint:disable-next-line:no-console

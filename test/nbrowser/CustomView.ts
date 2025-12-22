@@ -625,7 +625,7 @@ describe('CustomView', function() {
     // Now leave the page and remove all access rules.
     await mainSession.loadDocMenu('/');
     await api.applyUserActions(doc.id, [
-      ['BulkRemoveRecord', '_grist_ACLRules', [2, 3, 4]]
+      ['BulkRemoveRecord', '_grist_ACLRules', [2, 3, 4]],
     ]);
 
     // Check that the expected cells got zapped.
@@ -678,7 +678,7 @@ describe('CustomView', function() {
         },
         "fetchSelectedRecord": {
           "id": 1,
-          "A": ["a", "b"]
+          "A": ["a", "b"],
         },
         // The viewApi methods don't decode data by default, hence the "L" prefixes.
         "viewApiFetchSelectedTable": {
@@ -687,16 +687,16 @@ describe('CustomView', function() {
         },
         "viewApiFetchSelectedRecord": {
           "id": 2,
-          "A": ["L", "c", "d"]
+          "A": ["L", "c", "d"],
         },
         // onRecords returns rows by default, not columns.
         "onRecords": [
           {"id": 1, "A": ["a", "b"]},
-          {"id": 2, "A": ["c", "d"]}
+          {"id": 2, "A": ["c", "d"]},
         ],
         "onRecord": {
           "id": 1,
-          "A": ["a", "b"]
+          "A": ["a", "b"],
         },
       },
       "options": {
@@ -712,16 +712,16 @@ describe('CustomView', function() {
         "fetchSelectedRecord": {
           "id": 1,
           "A": ["L", "a", "b"],
-          "B": 1
+          "B": 1,
         },
         "viewApiFetchSelectedTable": [
           {"id": 1, "manualSort": 1, "A": ["a", "b"], "B": 1},
-          {"id": 2, "manualSort": 2, "A": ["c", "d"], "B": 2}
+          {"id": 2, "manualSort": 2, "A": ["c", "d"], "B": 2},
         ],
         "viewApiFetchSelectedRecord": {
           "id": 2,
           "A": ["c", "d"],
-          "B": 2
+          "B": 2,
         },
         "onRecords": {
           "id": [1, 2],
@@ -732,9 +732,9 @@ describe('CustomView', function() {
         "onRecord": {
           "id": 1,
           "A": ["L", "a", "b"],
-          "B": 1
+          "B": 1,
         },
-      }
+      },
     };
 
     async function getData(shown: number) {
@@ -776,7 +776,7 @@ describe('CustomView', function() {
         "viewApiFetchSelectedTable":
           "Error: Setting includeColumns to all requires full access. Current access level is read table",
         "viewApiFetchSelectedRecord":
-          "Error: Setting includeColumns to normal requires full access. Current access level is read table"
+          "Error: Setting includeColumns to normal requires full access. Current access level is read table",
       });
     });
   });
@@ -805,13 +805,13 @@ const rowsWithoutExpandedRefs = [
       Numeric: 17.25,
       Reference: { tableId: 'Types', rowId: 2 },
       Text: 'Hello!',
-      id: 24
+      id: 24,
     },
     Bool: true,
     Date: '2020-07-01T00:00:00.000Z',
     DateTime: '2020-08-21T17:19:40.705Z',
     Numeric: 17.25,
-    Text: 'Hello!'
+    Text: 'Hello!',
   },
   {
     id: 1,
@@ -829,13 +829,13 @@ const rowsWithoutExpandedRefs = [
       Numeric: 0,
       Reference: { tableId: 'Types', rowId: 0 },
       Text: '',
-      id: 1
+      id: 1,
     },
     Bool: false,
     Date: null,
     DateTime: null,
     Numeric: 0,
-    Text: ''
+    Text: '',
   },
   {
     id: 2,
@@ -843,7 +843,7 @@ const rowsWithoutExpandedRefs = [
     AnyDateTime: {
       name: 'InvalidTypedValue',
       message: 'DateTime',
-      details: 'Not-a-DateTime'
+      details: 'Not-a-DateTime',
     },
     AnyRef: { name: 'AssertionError' },
     AnyDate: { name: 'InvalidTypedValue', message: 'Date', details: 'Not-a-Date' },
@@ -860,14 +860,14 @@ const rowsWithoutExpandedRefs = [
       _error_: {
         AnyDate: 'InvalidTypedValue: Invalid Date: Not-a-Date',
         AnyDateTime: 'InvalidTypedValue: Invalid DateTime: Not-a-DateTime',
-        AnyRef: 'AssertionError: '
+        AnyRef: 'AssertionError: ',
       },
-      id: 2
+      id: 2,
     },
     Bool: true,
     Date: 'Not-a-Date',
     DateTime: 'Not-a-DateTime',
     Numeric: 'Not-a-Number',
-    Text: 'Errors'
+    Text: 'Errors',
   },
 ];

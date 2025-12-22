@@ -34,7 +34,7 @@ export class MarkdownTextBox extends NTextBox {
             this.field.viewSection().events.trigger('rowHeightChange');
           },
         })),
-      )
+      ),
     );
   }
 }

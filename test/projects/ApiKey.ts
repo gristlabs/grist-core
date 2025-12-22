@@ -35,7 +35,7 @@ describe('ApiKeyWidget', function() {
     assert.deepEqual(await driver.findAll('.test-apikey-container button',
       e => e.getAttribute('disabled')), [null as any]);
     assert.deepEqual(await driver.findAll('.test-apikey-description', e => e.getText()), [
-`This API key can be used to access your account via the API. Don’t share your API key with anyone.`
+`This API key can be used to access your account via the API. Don’t share your API key with anyone.`,
 ]);
   });
 

@@ -135,7 +135,7 @@ describe('RightPanelSelectBy', function() {
         'Tom Hanks', 'Toy Story',
         'Tim Allen', 'Toy Story',
         'Don Rickles', 'Toy Story',
-        '', ''
+        '', '',
       ]);
 
     await gu.undo(2);

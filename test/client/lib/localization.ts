@@ -20,10 +20,10 @@ describe('localization', function() {
             'Parent': {
               'Child': 'Translated child {{arg}}',
               'Not.Valid:Characters': 'Works',
-            }
-          }
-        }
-      }
+            },
+          },
+        },
+      },
     });
   });
 
@@ -53,7 +53,7 @@ describe('localization', function() {
     const result = t('Argument', {
       arg1: dom('span', 'First'),
       arg2: dom.domComputed(obs, value => dom('span', value)),
-      end: dom.create(Component)
+      end: dom.create(Component),
     }, instance) as any;
     assert.isTrue(Array.isArray(result));
     assert.equal(result.length, 5);
@@ -86,7 +86,7 @@ describe('localization', function() {
       arg1: dom('span', 'First'),
       arg2: dom.domComputed(obs, value => dom('span', value)),
       end: dom.create(Component),
-      context: 'variant'
+      context: 'variant',
     }, instance));
     assert.equal(variantSpan.textContent, "Variant First Third.");
     obs.set("Fourth");

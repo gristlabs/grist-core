@@ -217,7 +217,7 @@ export class PlaceholderModel extends BoxModel {
       dom.maybe(boxModelAt, child => child.render()),
       // If not, render a placeholder.
       dom.maybe(not(boxModelAt), () =>
-        dom('span', `Column `, dom.text(use => String(use(liveIndex) + 1)))
+        dom('span', `Column `, dom.text(use => String(use(liveIndex) + 1))),
       ),
       ...args,
     );

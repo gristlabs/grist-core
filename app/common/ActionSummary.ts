@@ -119,7 +119,7 @@ export function createEmptyTableDelta(): TableDelta {
     removeRows: [],
     addRows: [],
     columnDeltas: {},
-    columnRenames: []
+    columnRenames: [],
   };
 }
 
@@ -168,7 +168,7 @@ export function asTabularDiffs(summary: ActionSummary, options: {
     // TODO: recover row numbers (as opposed to rowIds)
     const reorder = options.order ?? ((_, colIds) => colIds);
     const activeColsWithoutManualSort = [
-      ...reorder(tableId, [...activeCols])
+      ...reorder(tableId, [...activeCols]),
     ].filter(c => c !== 'manualSort');
     tableChanges.header = activeColsWithoutManualSort;
     const addedRows = new Set(td.addRows);
@@ -193,7 +193,7 @@ export function asTabularDiffs(summary: ActionSummary, options: {
           tableChanges.cells.push({
             type: '...',
             rowId: droppedRows[0],
-            cellDeltas: activeColsWithoutManualSort.map(x => [null, null] as [null, null])
+            cellDeltas: activeColsWithoutManualSort.map(x => [null, null] as [null, null]),
           });
           while (rowId > droppedRows[0]) {
             droppedRows.shift();
@@ -237,7 +237,7 @@ export function asTabularDiffs(summary: ActionSummary, options: {
         tableChanges.cells.push({
           type: code,
           rowId,
-          cellDeltas: acc
+          cellDeltas: acc,
         });
       }
     }
@@ -267,7 +267,7 @@ export function getAffectedTables(summary: ActionSummary): string[] {
     // Tables added, renamed, or removed in this action.
     ...summary.tableRenames.map(pair => pair[1] || defunctTableName(pair[0] || "")),
     // Tables modified in this action.
-    ...Object.keys(summary.tableDeltas)
+    ...Object.keys(summary.tableDeltas),
   ];
 }
 

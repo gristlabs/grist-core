@@ -16,7 +16,7 @@ export function CardContextMenu({
   disableInsert,
   disableDelete,
   isViewSorted,
-  numRows
+  numRows,
 }: ICardContextMenu) {
   const result: Element[] = [];
   if (isViewSorted) {
@@ -44,7 +44,7 @@ export function CardContextMenu({
   );
   result.push(
     menuDivider(),
-    menuItemCmd(allCommands.copyLink, t("Copy anchor link"))
+    menuItemCmd(allCommands.copyLink, t("Copy anchor link")),
   );
   return result;
 }

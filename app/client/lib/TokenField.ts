@@ -63,7 +63,7 @@ export type ITokenFieldVariant = 'horizontal' | 'vertical';
 
 const defaultKeyBindings: Required<ITokenFieldKeyBindings> = {
   previous: 'ArrowLeft',
-  next: 'ArrowRight'
+  next: 'ArrowRight',
 };
 
 // TokenWrap serves to distinguish multiple instances of the same token in the list.
@@ -136,12 +136,12 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
               // Ignore mousedown events, so that tokens aren't draggable by the delete button.
               dom.on('mousedown', ev => ev.stopPropagation()),
               cssDeleteIcon('CrossSmall'),
-              testId('tokenfield-delete')
+              testId('tokenfield-delete'),
             ),
             dom.on('click', ev =>  this._onTokenClick(ev, t)),
-            dom.on('mousedown', ev => this._onMouseDown(ev, t))
+            dom.on('mousedown', ev => this._onMouseDown(ev, t)),
           ],
-          testId('tokenfield-token')
+          testId('tokenfield-token'),
         ),
       ),
       cssInputWrapper(

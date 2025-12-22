@@ -105,7 +105,7 @@ export class DocWorker {
             }
           }
           await fse.unlink(tmpPath);
-        }
+        },
       );
   }
 
@@ -166,7 +166,7 @@ export class DocWorker {
   public async assertDocAccess(
     req: express.Request,
     res: express.Response,
-    next: express.NextFunction
+    next: express.NextFunction,
   ) {
     const mreq = req as RequestWithLogin;
     let urlId: string|undefined;

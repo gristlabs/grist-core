@@ -16,7 +16,7 @@ const t = makeT('FilterBar');
 export function filterBar(
   _owner: IDisposableOwner,
   gristDoc: GristDoc,
-  viewSection: ViewSectionRec
+  viewSection: ViewSectionRec,
 ) {
   const popupControls = new WeakMap<ColumnRec, PopupControl>();
   return cssFilterBar(
@@ -79,7 +79,7 @@ export interface AddFilterMenuOptions {
 export function addFilterMenu(
   filters: FilterInfo[],
   popupControls: WeakMap<ColumnRec, PopupControl>,
-  options: AddFilterMenuOptions = {}
+  options: AddFilterMenuOptions = {},
 ) {
   const {allowedColumns, menuOptions} = options;
   return (
@@ -90,7 +90,7 @@ export function addFilterMenu(
         value: filterInfo,
         disabled: allowedColumns === 'unpinned-or-unfiltered'
           ? filterInfo.isPinned.peek() && filterInfo.isFiltered.peek()
-          : filterInfo.isFiltered.peek()
+          : filterInfo.isFiltered.peek(),
       })),
       popupOptions: menuOptions,
       placeholder: t('Search Columns'),
@@ -118,7 +118,7 @@ function makePlusButton(viewSectionRec: ViewSectionRec, popupControls: WeakMap<C
       addFilterMenu(filters, popupControls, {
         allowedColumns: 'unpinned-or-unfiltered',
       }),
-      testId('add-filter-btn')
+      testId('add-filter-btn'),
     );
   });
 }

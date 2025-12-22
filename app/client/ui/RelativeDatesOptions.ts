@@ -5,7 +5,7 @@ import {
   IPeriod,
   IRelativeDateSpec,
   isEquivalentRelativeDate,
-  relativeDateToUnixTimestamp
+  relativeDateToUnixTimestamp,
 } from "app/common/RelativeDates";
 import { IRangeBoundType, isRelativeBound } from "app/common/FilterState";
 import getCurrentTime from "app/common/getCurrentTime";
@@ -47,7 +47,7 @@ const DEFAULT_OPTION_LIST: IRelativeDateSpec[] = [
   }]];
 
 
-export function relativeDatesOptions(value: IRangeBoundType, valueFormatter: (val: any) => string
+export function relativeDatesOptions(value: IRangeBoundType, valueFormatter: (val: any) => string,
                                    ): Array<{label: string, spec: IRangeBoundType}> {
   return relativeDateOptionsSpec(value)
     .map(spec => ({spec, label: formatBoundOption(spec, valueFormatter)}));
@@ -115,7 +115,7 @@ function now(): moment.Moment {
 // passed in option.
 export function getMatchingDoubleRelativeDate(
   dateValue: number,
-  option: {unit: 'day'|'week'|'month'|'year', endOf?: boolean}
+  option: {unit: 'day'|'week'|'month'|'year', endOf?: boolean},
 ): IPeriod[] {
   const {unit} = option;
   const date = moment.utc(dateValue * 1000);
@@ -154,6 +154,6 @@ export function updateRelativeDate(relativeDate: IRelativeDateSpec, date: number
   }
 
   throw new Error(
-    `Relative date spec does only support 1 or 2 periods, got ${periods.length}!`
+    `Relative date spec does only support 1 or 2 periods, got ${periods.length}!`,
   );
 }

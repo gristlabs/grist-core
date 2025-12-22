@@ -49,7 +49,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
     isCollapsedByDefault,
     onCollapseByDefault,
     hasSubPages,
-    href
+    href,
   } = options;
   const isRenaming = observable(false);
   const pageMenu = () => [
@@ -57,19 +57,19 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
       () => isRenaming.set(true),
       t("Rename"),
       dom.cls("disabled", isReadonly),
-      testId("rename")
+      testId("rename"),
     ),
     menuItem(
       onRemove,
       t("Remove"),
       dom.cls("disabled", use => use(isReadonly) || isRemoveDisabled()),
-      testId("remove")
+      testId("remove"),
     ),
     menuItem(
       onDuplicate,
       t("Duplicate page"),
       dom.cls("disabled", isReadonly),
-      testId("duplicate")
+      testId("duplicate"),
     ),
     dom.maybe(hasSubPages(), () => [
       menuDivider(),
@@ -78,11 +78,11 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
         t("Expand {{maybeDefault}}", {
           maybeDefault: dom.maybe(
             use => !use(isCollapsedByDefault),
-            () => t("(default)")
+            () => t("(default)"),
           ),
         }),
         dom.cls("disabled", use => !use(isCollapsed)),
-        testId("expand")
+        testId("expand"),
       ),
       menuItemAsync(
         () => onCollapse(true),
@@ -90,23 +90,23 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
           maybeDefault: dom.maybe(isCollapsedByDefault, () => t("(default)")),
         }),
         dom.cls("disabled", isCollapsed),
-        testId("collapse")
+        testId("collapse"),
       ),
       menuItemAsync(
         async () => { await onCollapseByDefault(true); },
         t("Set default: Collapse"),
         dom.show(use => !use(isCollapsedByDefault)),
-        testId("collapse-by-default")
+        testId("collapse-by-default"),
       ),
       menuItemAsync(
         async () => { await onCollapseByDefault(false); },
         t("Set default: Expand"),
         dom.show(isCollapsedByDefault),
-        testId("expand-by-default")
+        testId("expand-by-default"),
       ),
     ]),
     dom.maybe(options.isReadonly, () =>
-      menuText(t("You do not have edit access to this document"))
+      menuText(t("You do not have edit access to this document")),
     ),
   ];
   let pageElem: HTMLElement;
@@ -139,11 +139,11 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
               {
                 initialValue: name.get() || '',
                 save: async val => onRename(val),
-                close: () => isRenaming.set(false)
+                close: () => isRenaming.set(false),
               },
               testId('editor'),
               dom.on('mousedown', ev => ev.stopPropagation()),
-              dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); })
+              dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
             ),
             // Note that we don't pass extra args when renaming is on, because they usually includes
             // mouse event handlers interfering with input editor and yields wrong behavior on
@@ -178,7 +178,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
             // Prevents the default dragging behaviour that Firefox support for links which conflicts
             // with our own dragging pages.
             dom.on('dragstart', ev => ev.preventDefault()),
-            args
+            args,
           )
       )),
     ));

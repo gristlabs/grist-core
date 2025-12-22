@@ -10,7 +10,7 @@ import {isNarrowScreenObs} from 'app/client/ui2018/cssVars';
 import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {icon} from 'app/client/ui2018/icons';
 import {
-  dom, DomElementArg, DomElementMethod, MultiHolder, noTestId, Observable, styled, subscribe, TestId
+  dom, DomElementArg, DomElementMethod, MultiHolder, noTestId, Observable, styled, subscribe, TestId,
 } from "grainjs";
 import noop from 'lodash/noop';
 import once from 'lodash/once';
@@ -159,7 +159,7 @@ export function pagePanels(page: PageContents) {
           contentWrapper = cssLeftPanelContainer(
             cssLeftPaneHeader(
               left.header,
-              dom.style('margin-bottom', use => use(bannerHeight) + 'px')
+              dom.style('margin-bottom', use => use(bannerHeight) + 'px'),
             ),
             left.content,
           ),
@@ -304,7 +304,7 @@ export function pagePanels(page: PageContents) {
                 'PanelRight',
                 cssPanelOpener.cls('-open', left.panelOpen),
                 testId('left-opener'),
-                cssHideForNarrowScreen.cls('')
+                cssHideForNarrowScreen.cls(''),
               ),
             )
           ),
@@ -322,9 +322,9 @@ export function pagePanels(page: PageContents) {
                 dom.cls('tour-creator-panel'),
                 hoverTooltip(
                   () => (right.panelOpen.get() ? t('Close Creator Panel') : t('Open creator panel')),
-                  {key: 'topBarBtnTooltip'}
+                  {key: 'topBarBtnTooltip'},
                 ),
-                cssHideForNarrowScreen.cls('')
+                cssHideForNarrowScreen.cls(''),
               ),
             )
           ),
@@ -353,7 +353,7 @@ export function pagePanels(page: PageContents) {
           regionFocusSwitcher?.panelAttrs('right', t('Creator panel (right panel)')),
           cssRightPaneHeader(
             right.header,
-            dom.style('margin-bottom', use => use(bannerHeight) + 'px')
+            dom.style('margin-bottom', use => use(bannerHeight) + 'px'),
           ),
           right.content,
 
@@ -374,7 +374,7 @@ export function pagePanels(page: PageContents) {
           left.panelOpen.set(false);
           if (right) { right.panelOpen.set(false); }
         }),
-        testId('overlay')
+        testId('overlay'),
       ),
       dom.maybe(isNarrowScreenObs(), () =>
         cssBottomFooter(
@@ -386,9 +386,9 @@ export function pagePanels(page: PageContents) {
                 right?.panelOpen.set(false);
                 toggleObs(left.panelOpen);
               }),
-              testId('left-opener-ns')
+              testId('left-opener-ns'),
             ),
-            cssPanelOpenerNarrowScreenBtn.cls('-open', left.panelOpen)
+            cssPanelOpenerNarrowScreenBtn.cls('-open', left.panelOpen),
           ),
           page.contentBottom,
           (!right ? null :
@@ -399,12 +399,12 @@ export function pagePanels(page: PageContents) {
                   left.panelOpen.set(false);
                   toggleObs(right.panelOpen);
                 }),
-                testId('right-opener-ns')
+                testId('right-opener-ns'),
               ),
               cssPanelOpenerNarrowScreenBtn.cls('-open', right.panelOpen),
             )
           ),
-        )
+        ),
       ),
     ),
   );

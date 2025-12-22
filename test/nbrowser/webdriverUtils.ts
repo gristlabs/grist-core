@@ -17,7 +17,7 @@ export async function fetchScreenshotAndLogs(test: Mocha.Runnable|undefined) {
 
 export async function withDriverLogging(
   test: Mocha.Runnable|undefined, periodMs: number, timeoutMs: number,
-  callback: () => Promise<void>
+  callback: () => Promise<void>,
 ) {
   let running = false;
   async function repeat() {

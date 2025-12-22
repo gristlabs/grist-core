@@ -16,7 +16,7 @@ export class ServiceAccountsManager {
 
   public constructor(
     private readonly _homeDb: HomeDBManager,
-    private _runInTransaction: RunInTransaction
+    private _runInTransaction: RunInTransaction,
   ) {}
 
   // This method is implemented for test purpose only
@@ -63,7 +63,7 @@ export class ServiceAccountsManager {
         serviceUserId: serviceUser.id,
         label: props?.label,
         description: props?.description,
-        expiresAt: props?.expiresAt
+        expiresAt: props?.expiresAt,
       });
       const serviceAccount = await manager.save(newServiceAccount);
       return (await this.getServiceAccount(serviceAccount.id, manager))!;
@@ -79,7 +79,7 @@ export class ServiceAccountsManager {
    */
   public async getServiceAccount(
     serviceAccountId: number,
-    transaction?: EntityManager
+    transaction?: EntityManager,
   ): Promise<ServiceAccount|null> {
     return await this._runInTransaction(transaction, async (manager) => {
       return await this._buildServiceAccountQuery(manager)
@@ -93,7 +93,7 @@ export class ServiceAccountsManager {
    */
   public async getServiceAccountByLoginWithOwner(
     serviceAccountLogin: string,
-    transaction?: EntityManager
+    transaction?: EntityManager,
   ): Promise<ServiceAccount|null> {
     return await this._runInTransaction(transaction, async (manager) => {
       return await this._buildServiceAccountQuery(manager)
@@ -111,14 +111,14 @@ export class ServiceAccountsManager {
    */
   public assertServiceAccountExistingAndOwned(
     serviceAccount: ServiceAccount | null,
-    expectedOwnerId: number
+    expectedOwnerId: number,
   ): asserts serviceAccount is ServiceAccount {
     return this._assertExistingAndOwned(serviceAccount, expectedOwnerId);
   }
 
   public async getOwnedServiceAccounts(
     ownerId: number,
-    transaction?: EntityManager
+    transaction?: EntityManager,
   ): Promise<ServiceAccount[]> {
     return await this._runInTransaction(transaction, async (manager) => {
       return await this._buildServiceAccountQuery(manager)
@@ -222,7 +222,7 @@ export class ServiceAccountsManager {
    * its ownership.
    */
   private _assertExistingAndOwned(
-    serviceAccount: ServiceAccount|null, expectedOwnerId: number|undefined
+    serviceAccount: ServiceAccount|null, expectedOwnerId: number|undefined,
   ): asserts serviceAccount is ServiceAccount {
     this._assertExisting(serviceAccount);
     if (expectedOwnerId !== undefined && serviceAccount.ownerId !== expectedOwnerId) {

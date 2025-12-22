@@ -168,7 +168,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
 
   constructor(private _window: {gristConfig?: GristLoadConfig},
     public readonly api: UserAPI = newUserAPIImpl(),
-    public readonly options: TopAppModelOptions = {}
+    public readonly options: TopAppModelOptions = {},
   ) {
     super();
     setErrorNotifier(this.notifier);
@@ -264,7 +264,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
             org.billingAccount.product.name === 'suspended') {
           this.notifier.createUserMessage(
             t("This team site is suspended. Documents can be read, but not modified."),
-            {actions: ['renew', 'personal']}
+            {actions: ['renew', 'personal']},
           );
         }
       }
@@ -425,7 +425,7 @@ export class AppModelImpl extends Disposable implements AppModel {
         await buildUpgradeModal(this, {
           appModel: this,
           pickPlan: plan,
-          reason: 'upgrade'
+          reason: 'upgrade',
         });
       }
  else {
@@ -440,7 +440,7 @@ export class AppModelImpl extends Disposable implements AppModel {
       await buildNewSiteModal(this, {
         appModel: this,
         plan,
-        onCreate: () => this.topAppModel.fetchUsersAndOrgs().catch(reportError)
+        onCreate: () => this.topAppModel.fetchUsersAndOrgs().catch(reportError),
       });
     }
   }

@@ -107,7 +107,7 @@ export class UrlWidgetRepository implements IWidgetRepository {
       log.warn(
         'WidgetRepository: Widget repository is not configured.' + (!Deps.STATIC_URL
           ? ' Missing GRIST_WIDGET_LIST_URL environmental variable.'
-          : '')
+          : ''),
       );
       return [];
     }
@@ -120,7 +120,7 @@ export class UrlWidgetRepository implements IWidgetRepository {
  else {
           const body = await response.text().catch(() => '');
           throw new ApiError(
-            `WidgetRepository: Remote server returned an error: ${body || response.statusText}`, response.status
+            `WidgetRepository: Remote server returned an error: ${body || response.statusText}`, response.status,
           );
         }
       }
@@ -171,7 +171,7 @@ export class WidgetRepositoryImpl implements IWidgetRepository {
             place.urlBase,
             {
               pluginId: place.pluginId,
-              name: place.name
+              name: place.name,
             }));
         return new CombinedWidgetRepository(files);
       });
@@ -239,7 +239,7 @@ export function buildWidgetRepository(gristServer?: GristServer,
                                       }) {
   return new CachedWidgetRepository({
     gristServer,
-    ...(options?.localOnly ? { staticUrl: '' } : undefined)
+    ...(options?.localOnly ? { staticUrl: '' } : undefined),
   });
 }
 

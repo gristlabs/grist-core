@@ -20,7 +20,7 @@ describe('requestUtils', function() {
       it(`${origin} can${permitted ? '' : 'not'} access ${host} in browser`, function() {
         assert.equal(
           trustOrigin({headers: {origin, host}} as any, {header: (a: string, b: string) => true} as any),
-          permitted
+          permitted,
         );
       });
     }

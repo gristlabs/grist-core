@@ -1,6 +1,6 @@
 import {
   decodeUrl, commonUrls as defaultCommonUrls, getCommonUrls,
-  getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart
+  getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart,
 } from 'app/common/gristUrls';
 import {assert} from 'chai';
 import Sinon from 'sinon';
@@ -210,11 +210,11 @@ describe('gristUrls', function() {
             [numberValueKey]: 42,
             [objectValueKey]: {"key": "value"},
             [arrayValueKey]: ["foo"],
-          })
+          }),
         );
         const buildExpectedErrRegEx = (...keys: string[]) => new RegExp(
           keys.map(key => `value\\.${key}`).join('.*'),
-          'ms'
+          'ms',
         );
         assert.throws(() => getCommonUrls(), buildExpectedErrRegEx(numberValueKey, objectValueKey, arrayValueKey));
         sandbox.restore();
@@ -222,7 +222,7 @@ describe('gristUrls', function() {
           JSON.stringify({
             [regularValueKey]: "https://getgrist.com",
             [nullValueKey]: null,
-          })
+          }),
         );
         assert.throws(() => getCommonUrls(), buildExpectedErrRegEx(nullValueKey));
       });
@@ -241,12 +241,12 @@ describe('gristUrls', function() {
         sandbox.define(globalThis, 'window', {
           gristConfig: {
             adminDefinedUrls: JSON.stringify({
-              help: "https://getgrist.com"
-            })
+              help: "https://getgrist.com",
+            }),
           },
           // Fake location to make isClient() believe the code is executed client-side.
           location: {
-            hostname: 'getgrist.com'
+            hostname: 'getgrist.com',
           },
         });
         const commonUrls = getCommonUrls();

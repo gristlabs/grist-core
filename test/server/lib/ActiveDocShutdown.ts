@@ -31,7 +31,7 @@ function _makeFakeClient(): Client {
     getLogMeta,
     sendMessage,
     sendMessageOrInterrupt,
-    authSession: AuthSession.unauthenticated()
+    authSession: AuthSession.unauthenticated(),
   } as unknown as Client;
 }
 
@@ -211,7 +211,7 @@ return c
       waitForIt(async () => assert.equal(docTools.getDocManager().numOpenDocs(), 0),
         10_000, // how long to wait
         100,    // step between checks
-      )
+      ),
     );
     const totalMsec = Date.now() - start;
 
@@ -331,7 +331,7 @@ return c
       await adoc.applyUserActions(docSession, [
         ["RemoveTable", "City"],
         ["RemoveTable", "CountryLanguage"],
-        ["RemoveTable", "Country"]
+        ["RemoveTable", "Country"],
       ]);
 
       const hist = new ActionHistoryImpl(adoc.docStorage);

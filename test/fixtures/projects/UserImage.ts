@@ -38,12 +38,12 @@ function setupTest() {
     createAssorted('medium'),
     cssTestBox(
       dom.forEach(range(20).map(i => `A${i}`), name =>
-        createUserImage({name, email: ''}, 'medium')
+        createUserImage({name, email: ''}, 'medium'),
       ),
     ),
     cssTestBox(
       dom.forEach(range(20).map(i => `J M${i}`), name =>
-        createUserImage({name, email: ''}, 'medium')
+        createUserImage({name, email: ''}, 'medium'),
       ),
     ),
     dom('h3', 'Small (current users on the document)'),

@@ -58,7 +58,7 @@ export class MinIOExternalStorage implements ExternalStorage {
       region: string
     },
     private _batchSize?: number,
-    private _s3 = new minio.Client(options) as unknown as MinIOClient
+    private _s3 = new minio.Client(options) as unknown as MinIOClient,
   ) {
   }
 
@@ -95,7 +95,7 @@ export class MinIOExternalStorage implements ExternalStorage {
   public async uploadStream(key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata) {
     const result = await this._s3.putObject(
       this.bucket, key, inStream, size,
-      metadata ? {Metadata: toExternalMetadata(metadata)} : undefined
+      metadata ? {Metadata: toExternalMetadata(metadata)} : undefined,
     );
     // Empirically VersionId is available in result for buckets with versioning enabled.
     return result.versionId || null;
@@ -116,7 +116,7 @@ export class MinIOExternalStorage implements ExternalStorage {
   public async downloadStream(key: string, snapshotId?: string ): Promise<StreamDownloadResult> {
     const request = await this._s3.getObject(
       this.bucket, key,
-      snapshotId ? {versionId: snapshotId} : {}
+      snapshotId ? {versionId: snapshotId} : {},
     );
     const statusCode = request.statusCode || 500;
     if (statusCode >= 300) {
@@ -225,7 +225,7 @@ export class MinIOExternalStorage implements ExternalStorage {
       versions.filter(v => v).map(versionId => ({
         name: key,
         versionId,
-      }))
+      })),
     );
   }
 

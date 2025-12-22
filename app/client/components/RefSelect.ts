@@ -94,7 +94,7 @@ export class RefSelect extends Disposable {
             testId('ref-select-remove'),
           ),
           testId('ref-select-item'),
-        )
+        ),
       ),
       cssAddLink(cssAddIcon('Plus'), t("Add column"),
         menu(() => [
@@ -102,7 +102,7 @@ export class RefSelect extends Disposable {
             .filter(col => !this._addedSet.peek().has(col.colId.peek()))
             .map(col =>
               menuItem(() => this._addFormulaField({ label: col.label(), value: col.colId() }),
-                col.label.peek())
+                col.label.peek()),
             ),
           cssEmptyMenuText(t("No columns to add")),
           testId('ref-select-menu'),
@@ -144,7 +144,7 @@ export class RefSelect extends Disposable {
         type: 'Any',
         isFormula: true,
         formula: `$${this._colId()}.${item.value}`,
-        _position: pos
+        _position: pos,
       }])!;
     }
     const colInfo = await colAction;
@@ -154,7 +154,7 @@ export class RefSelect extends Disposable {
     const fieldInfo = {
       colRef: colInfo.colRef,
       parentId: field.viewSection().getRowId(),
-      parentPos: pos
+      parentPos: pos,
     };
     return this._docModel.viewFields.sendTableAction(['AddRecord', null, fieldInfo]);
   }

@@ -195,7 +195,7 @@ describe('TableData', function() {
     ]);
 
     t.dispatchAction(["BulkAddRecord", "Foo", [8, 9], {
-      city: ['X', 'Y'], state: ['XX', 'YY'], amount: [0.1, 0.2], bool: [null, true]
+      city: ['X', 'Y'], state: ['XX', 'YY'], amount: [0.1, 0.2], bool: [null, true],
     }]);
     verifyTableData(t, ["id", "city", "state", "amount", "bool"], [
       [1, 'New York', 'NY', 5, true],
@@ -224,7 +224,7 @@ describe('TableData', function() {
     ]);
 
     t.dispatchAction(["BulkUpdateRecord", "Foo", [1, 7], {
-      city: ['X', 'Y'], state: ['XX', 'YY'], amount: [0.1, 0.2], bool: [null, true]
+      city: ['X', 'Y'], state: ['XX', 'YY'], amount: [0.1, 0.2], bool: [null, true],
     }]);
     verifyTableData(t, ["id", "city", "state", "amount", "bool"], [
       [1, 'X',      'XX', 0.1, null],

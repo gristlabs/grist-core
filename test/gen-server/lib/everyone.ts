@@ -39,7 +39,7 @@ describe('everyone', function() {
     const docId = await api.newDoc({name: 'an example'}, wsId);
     await api.updateWorkspacePermissions(wsId, {
       users: {'everyone@getgrist.com': 'viewers',
-              'anon@getgrist.com': 'viewers'}
+              'anon@getgrist.com': 'viewers'},
     });
 
     // Check a fresh user can see that workspace
@@ -84,7 +84,7 @@ describe('everyone', function() {
     await assert.isRejected(chimpyApi.getDoc(docId), /access denied/);
     // Share doc with everyone
     await api.updateDocPermissions(docId, {
-      users: {'everyone@getgrist.com': 'viewers'}
+      users: {'everyone@getgrist.com': 'viewers'},
     });
     // Check other users can access the doc now
     assert.equal((await chimpyApi.getDoc(docId)).access, 'viewers');
@@ -96,10 +96,10 @@ describe('everyone', function() {
 
     // Share every way possible via api
     await api.updateWorkspacePermissions(wsId, {
-      users: {'everyone@getgrist.com': 'viewers'}
+      users: {'everyone@getgrist.com': 'viewers'},
     });
     await assert.isRejected(api.updateOrgPermissions(0, {
-      users: {'everyone@getgrist.com': 'viewers'}
+      users: {'everyone@getgrist.com': 'viewers'},
     }), /cannot share with everyone at top level/);
     // Check existing users still don't see doc listed
     wss = await chimpyApi.getOrgWorkspaces('current');
@@ -117,7 +117,7 @@ describe('everyone', function() {
 
     // Share doc with everyone
     await chimpyApi.updateDocPermissions(docId, {
-      users: {'everyone@getgrist.com': 'viewers'}
+      users: {'everyone@getgrist.com': 'viewers'},
     });
 
     // Check a fresh user can now see that doc
@@ -141,16 +141,16 @@ describe('everyone', function() {
 
     // Share one doc with everyone
     await chimpyApi.updateDocPermissions(docId, {
-      users: {'everyone@getgrist.com': 'viewers'}
+      users: {'everyone@getgrist.com': 'viewers'},
     });
 
     // Share one doc with everyone, the other with a specific test user at the doc level
     const altApi = await home.createHomeApi('testuser', 'nasa', false, false);
     await chimpyApi.updateDocPermissions(docId, {
-      users: {'everyone@getgrist.com': 'viewers'}
+      users: {'everyone@getgrist.com': 'viewers'},
     });
     await chimpyApi.updateDocPermissions(docId2, {
-      users: {'testuser@getgrist.com': 'viewers'}
+      users: {'testuser@getgrist.com': 'viewers'},
     });
 
     // Check test user can access both docs
@@ -177,7 +177,7 @@ describe('everyone', function() {
     // (there was a bug where a doc shared with everyone@ as viewer would get hidden
     // from top-level viewers)
     await chimpyApi.updateOrgPermissions('current', {
-      users: {'testuser2@getgrist.com': 'viewers'}
+      users: {'testuser2@getgrist.com': 'viewers'},
     });
     const altApi2 = await home.createHomeApi('testuser2', 'nasa', false, false);
     await assert.isFulfilled(altApi2.getDoc(docId));

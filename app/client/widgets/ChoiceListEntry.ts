@@ -37,7 +37,7 @@ class ChoiceItem implements IToken {
     // We will keep the previous label value for a token, to tell us which token
     // was renamed. For new tokens this should be null.
     public previousLabel: string | null,
-    public options?: IChoiceOptions
+    public options?: IChoiceOptions,
   ) {}
 
   public rename(label: string) {
@@ -144,7 +144,7 @@ export class ChoiceListEntry extends Disposable {
           styles: {cssTokenField, cssToken, cssTokenInput, cssInputWrapper, cssDeleteButton, cssDeleteIcon},
           keyBindings: {
             previous: 'ArrowUp',
-            next: 'ArrowDown'
+            next: 'ArrowDown',
           },
           variant: 'vertical',
         });
@@ -159,7 +159,7 @@ export class ChoiceListEntry extends Disposable {
             dom.on('focusout', (ev) => {
               const hasActiveElement = (
                 element: Element | null,
-                activeElement = document.activeElement
+                activeElement = document.activeElement,
               ) => {
                 return element?.contains(activeElement);
               };
@@ -183,17 +183,17 @@ export class ChoiceListEntry extends Disposable {
                 this._save();
               }, 0);
             }),
-            testId('choice-list-entry')
+            testId('choice-list-entry'),
           ),
           this._editorSaveButtons = cssButtonRow(
             primaryButton(t('Save'),
               dom.on('click', () => this._save() ),
-              testId('choice-list-entry-save')
+              testId('choice-list-entry-save'),
             ),
             basicButton(t('Cancel'),
               dom.on('click', () => this._cancel()),
-              testId('choice-list-entry-cancel')
-            )
+              testId('choice-list-entry-cancel'),
+            ),
           ),
           dom.onKeyDown({Escape: () => this._cancel()}),
           dom.onKeyDown({Enter: () => this._save()}),
@@ -211,8 +211,8 @@ export class ChoiceListEntry extends Disposable {
           dom.maybe(this._mixed, () => [
             cssListBoxInactive(
               dom.cls(cssBlockedCursor.className, this._disabled),
-              row('Mixed configuration')
-            )
+              row('Mixed configuration'),
+            ),
           ]),
           dom.maybe(use => !use(this._mixed), () => [
             cssListBoxInactive(
@@ -229,12 +229,12 @@ export class ChoiceListEntry extends Disposable {
                       dom.cls('font-italic', choiceOptions.get(val)?.fontItalic ?? false),
                       dom.cls('font-strikethrough', choiceOptions.get(val)?.fontStrikethrough ?? false),
                       'T',
-                      testId('choice-list-entry-color')
+                      testId('choice-list-entry-color'),
                     ),
                     cssTokenLabel(
                       val,
-                      testId('choice-list-entry-label')
-                    )
+                      testId('choice-list-entry-label'),
+                    ),
                   );
                 }),
               ),
@@ -243,13 +243,13 @@ export class ChoiceListEntry extends Disposable {
                 row(
                   dom('span',
                     testId('choice-list-entry-label'),
-                    dom.text(use => t('+{{count}} more', {count: use(this._values).length - (maxRows - 1)}))
-                  )
-                )
+                    dom.text(use => t('+{{count}} more', {count: use(this._values).length - (maxRows - 1)})),
+                  ),
+                ),
               ),
               dom.on('click', () => this._startEditing()),
               cssListBoxInactive.cls("-disabled", this._disabled),
-              testId('choice-list-entry')
+              testId('choice-list-entry'),
             ),
           ]),
           dom.maybe(use => !use(this._disabled), () => [
@@ -257,7 +257,7 @@ export class ChoiceListEntry extends Disposable {
               primaryButton(
                 dom.text(use => use(this._mixed) ? t('Reset') : t('Edit')),
                 dom.on('click', () => this._startEditing()),
-                testId('choice-list-entry-edit')
+                testId('choice-list-entry-edit'),
               ),
             ),
           ]),
@@ -286,7 +286,7 @@ export class ChoiceListEntry extends Disposable {
     const newValues = newTokens.map(tok => tok.label);
     const newOptions: ChoiceOptionsByName = new Map();
     const keys: Array<keyof IChoiceOptions> = [
-      'fillColor', 'textColor', 'fontBold', 'fontItalic', 'fontStrikethrough', 'fontUnderline'
+      'fillColor', 'textColor', 'fontBold', 'fontItalic', 'fontStrikethrough', 'fontUnderline',
     ];
     for (const tok of newTokens) {
       if (tok.options) {
@@ -363,7 +363,7 @@ export class ChoiceListEntry extends Disposable {
             fontBold: fontBoldObs,
             fontItalic: fontItalicObs,
             fontUnderline: fontUnderlineObs,
-            fontStrikethrough: fontStrikethroughObs
+            fontStrikethrough: fontStrikethroughObs,
           },
           onSave: async () => {
             const tokenField = this._tokenFieldHolder.get();
@@ -435,7 +435,7 @@ function focus(elem: HTMLInputElement) {
 function row(...domArgs: DomElementArg[]): Element {
   return cssListRow(
     ...domArgs,
-    testId('choice-list-entry-row')
+    testId('choice-list-entry-row'),
   );
 }
 

@@ -39,7 +39,7 @@ export async function removeRule(docModel: DocModel, owner: RuleOwner, index: nu
   await docModel.docData.bundleActions("Remove conditional rule", () =>
     Promise.all([
       owner.rulesStyles.setAndSave(newStyles),
-      docModel.docData.sendAction(['RemoveColumn', owner.tableId.peek(), col.colId.peek()])
-    ])
+      docModel.docData.sendAction(['RemoveColumn', owner.tableId.peek(), col.colId.peek()]),
+    ]),
   );
 }

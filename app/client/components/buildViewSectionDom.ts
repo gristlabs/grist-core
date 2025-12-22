@@ -26,8 +26,8 @@ export function buildCollapsedSectionDom(options: {
   if (typeof sectionRowId === 'string') {
     return cssMiniSection(
       dom('span.viewsection_title_font',
-        'Empty'
-      )
+        'Empty',
+      ),
     );
   }
   const vs: ViewSectionRec = gristDoc.docModel.viewSections.getRowModel(sectionRowId);
@@ -49,9 +49,9 @@ export function buildCollapsedSectionDom(options: {
       menu(_ctl => makeCollapsedLayoutMenu(vs, gristDoc), {
         ...defaultMenuOptions,
         placement: 'bottom-end',
-      })
+      }),
     ),
-    ...domArgs
+    ...domArgs,
   );
 }
 
@@ -105,7 +105,7 @@ export function buildViewSectionDom(options: {
         dom.cls("viewsection_drag_indicator"),
         // Makes element grabbable only if grist is not readonly.
         dom.cls('layout_grabbable', use => !use(gristDoc.isReadonlyKo)),
-        !draggable ? dom.style("visibility", "hidden") : null
+        !draggable ? dom.style("visibility", "hidden") : null,
       ),
       dom.maybe(use => use(use(viewInstance.viewSection.table).summarySourceTable), () =>
         cssSigmaIcon('Pivot', testId('sigma'))),
@@ -118,8 +118,8 @@ export function buildViewSectionDom(options: {
       viewInstance.buildTitleControls(),
       hideTitleControls === true ? null :
         dom('div.viewsection_buttons',
-          dom.create(viewSectionMenu, gristDoc, vs)
-        )
+          dom.create(viewSectionMenu, gristDoc, vs),
+        ),
     )),
     hideTitleControls === true ? null : dom.create(filterBar, gristDoc, vs),
     dom.maybe<BaseView|null>(vs.viewInstance, viewInstance => [
@@ -130,14 +130,14 @@ export function buildViewSectionDom(options: {
             dom.domComputed(selectedBySectionTitle, title => title
               ? t(`No row selected in {{title}}`, {title})
               : t('No data')),
-          )
+          ),
         ),
         dom.maybe(viewInstance.isTruncated, () =>
-          dom('div.viewsection_truncated', t('Not all data is shown'))
+          dom('div.viewsection_truncated', t('Not all data is shown')),
         ),
         dom.cls(use => 'viewsection_type_' + use(vs.parentKey)),
         viewInstance.viewPane,
-        maybeShowNewRecordExperiment(viewInstance)
+        maybeShowNewRecordExperiment(viewInstance),
       ),
       dom.maybe(use => !use(isNarrowScreenObs()), () => viewInstance.selectionSummary?.buildDom()),
     ]),

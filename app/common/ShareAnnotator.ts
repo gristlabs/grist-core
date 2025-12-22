@@ -58,7 +58,7 @@ export class ShareAnnotator {
   constructor(
     private _features: Features|null,
     private _state: PermissionData,
-    private _options: ShareAnnotatorOptions = {}
+    private _options: ShareAnnotatorOptions = {},
   ) {
   }
 
@@ -90,7 +90,7 @@ export class ShareAnnotator {
         at++;
         annotation.collaboratorLimit = {
           at,
-          top
+          top,
         };
       }
       return annotation;
@@ -98,12 +98,12 @@ export class ShareAnnotator {
     const users = Object.entries(
       omitBy(
         change?.users||{},
-        (_v, k) => EXCLUDED_EMAILS.has(k)
-      )
+        (_v, k) => EXCLUDED_EMAILS.has(k),
+      ),
     );
     const removed = new Set(
       users.filter(([, v]) => v === null)
-        .map(([k,]) => normalizeEmail(k)));
+        .map(([k]) => normalizeEmail(k)));
     for (const user of this._state.users) {
       if (EXCLUDED_EMAILS.has(user.email)) { continue; }
       if (removed.has(user.email)) { continue; }
@@ -112,7 +112,7 @@ export class ShareAnnotator {
     }
     const tweaks = new Set(
       users.filter(([, v]) => v !== null)
-        .map(([k,]) => normalizeEmail(k)));
+        .map(([k]) => normalizeEmail(k)));
     for (const email of tweaks) {
       const annotation = annotations.users.get(email) || makeAnnotation({
         email,

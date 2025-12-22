@@ -27,7 +27,7 @@ export function popupControl(reference: Element, domCreator: IPopupDomCreator, o
     attach: 'body',
     boundaries: 'viewport',
     ...options,
-    trigger: undefined
+    trigger: undefined,
   });
 
   return ctl;

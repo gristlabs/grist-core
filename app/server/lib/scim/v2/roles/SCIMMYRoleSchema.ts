@@ -24,7 +24,7 @@ export class SCIMMYRoleSchema extends SCIMMY.Types.Schema {
         new Attribute("integer", "workspaceId", {required: false, description: "The workspaceId for this role",
           mutable: false, direction: 'out'}),
         new Attribute("integer", "orgId", {required: false, description: "The orgId for this role",
-          mutable: false, direction: 'out'})
+          mutable: false, direction: 'out'}),
       ]);
   })();
 

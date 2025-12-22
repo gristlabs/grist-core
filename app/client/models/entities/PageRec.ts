@@ -46,10 +46,10 @@ export function createPageRec(this: PageRec, docModel: DocModel): void {
   this.share = refRecord(docModel.shares, this.shareRef);
   const options = modelUtil.jsonObservable(
     this.options,
-    (obj: any) => obj || {}
+    (obj: any) => obj || {},
   );
   this.isCollapsedByDefault = Computed.create(this, use =>
-    Boolean(use(options).collapsed)
+    Boolean(use(options).collapsed),
   );
   this.isCollapsed = Observable.create(this, this.isCollapsedByDefault.get());
   this.setAndSaveCollapsed = async (value: boolean) => {

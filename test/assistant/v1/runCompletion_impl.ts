@@ -88,7 +88,7 @@ export async function runCompletion() {
     console.log(
       `source url: ${TEMPLATE_URL}\n` +
         `destination: ${destPath}\n` +
-        `download...`
+        `download...`,
     );
     const response = await fetch(TEMPLATE_URL);
     if (!response.ok) { throw new Error(`unexpected response ${response.statusText}`); }
@@ -107,7 +107,7 @@ export async function runCompletion() {
       count++;
     }
     console.log(
-      `Successfully extracted ${count} template files to ${PATH_TO_DOC}`
+      `Successfully extracted ${count} template files to ${PATH_TO_DOC}`,
     );
   }
 
@@ -277,14 +277,14 @@ export async function runCompletion() {
     console.log(`Ai assistance requests stats: ${fetcher.callCount} calls`);
     DEPS.fetch = oldFetch;
     console.log(
-      `AI Assistance completed ${successCount} successful prompt on a total of ${records.length};`
+      `AI Assistance completed ${successCount} successful prompt on a total of ${records.length};`,
     );
     console.log(JSON.stringify(
       {
         hit: successCount,
         total: records.length,
         percentage: (100.0 * successCount) / Math.max(records.length, 1),
-      }
+      },
     ));
   }
 }

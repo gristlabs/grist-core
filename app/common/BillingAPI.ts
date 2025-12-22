@@ -235,7 +235,7 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
   public async isDomainAvailable(domain: string): Promise<boolean> {
     return this.requestJson(`${this._url}/api/billing/domain`, {
       method: 'POST',
-      body: JSON.stringify({ domain })
+      body: JSON.stringify({ domain }),
     });
   }
   public async getPlans(plan?: PlanSelection): Promise<IBillingPlan[]> {
@@ -243,7 +243,7 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     url.searchParams.set('product', plan?.product || '');
     url.searchParams.set('priceId', plan?.priceId || '');
     return this.requestJson(url.href, {
-      method: 'GET'
+      method: 'GET',
     });
   }
 
@@ -265,14 +265,14 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
   public async updateSettings(settings?: Partial<IBillingOrgSettings>): Promise<void> {
     await this.request(`${this._url}/api/billing/settings`, {
       method: 'POST',
-      body: JSON.stringify({ settings })
+      body: JSON.stringify({ settings }),
     });
   }
 
   public async updateBillingManagers(delta: ManagerDelta): Promise<void> {
     await this.request(`${this._url}/api/billing/managers`, {
       method: 'PATCH',
-      body: JSON.stringify({delta})
+      body: JSON.stringify({delta}),
     });
   }
 
@@ -288,8 +288,8 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
         domain,
         name,
         ...plan,
-        next
-      })
+        next,
+      }),
     });
     return data;
   }
@@ -303,14 +303,14 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
   public async changePlan(plan: PlanSelection): Promise<void> {
     await this.requestJson(`${this._url}/api/billing/change-plan`, {
       method: 'POST',
-      body: JSON.stringify(plan)
+      body: JSON.stringify(plan),
     });
   }
 
   public async confirmChange(plan: PlanSelection): Promise<ChangeSummary|{checkoutUrl: string}> {
     return this.requestJson(`${this._url}/api/billing/confirm-change`, {
       method: 'POST',
-      body: JSON.stringify(plan)
+      body: JSON.stringify(plan),
     });
   }
 
@@ -321,14 +321,14 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
   public renewPlan(plan: PlanSelection): Promise<{checkoutUrl: string}> {
     return this.requestJson(`${this._url}/api/billing/renew`, {
       method: 'POST',
-      body: JSON.stringify(plan)
+      body: JSON.stringify(plan),
     });
   }
 
   public async updateAssistantPlan(tier: number): Promise<void> {
     await this.request(`${this._url}/api/billing/upgrade-assistant`, {
       method: 'POST',
-      body: JSON.stringify({ tier })
+      body: JSON.stringify({ tier }),
     });
   }
 
@@ -338,7 +338,7 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
   public async subscriptionStatus(planId: string): Promise<boolean> {
     const data = await this.requestJson(`${this._url}/api/billing/status`, {
       method: 'POST',
-      body: JSON.stringify({planId})
+      body: JSON.stringify({planId}),
     });
     return data.active;
   }
@@ -346,21 +346,21 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
   public async changeProduct(product: string): Promise<void> {
     await this.request(`${this._url}/api/billing/change-product`, {
       method: 'POST',
-      body: JSON.stringify({ product })
+      body: JSON.stringify({ product }),
     });
   }
 
   public async attachSubscription(subscriptionId: string): Promise<void> {
     await this.request(`${this._url}/api/billing/attach-subscription`, {
       method: 'POST',
-      body: JSON.stringify({ subscriptionId })
+      body: JSON.stringify({ subscriptionId }),
     });
   }
 
   public async attachPayment(paymentLink: string): Promise<void> {
     await this.request(`${this._url}/api/billing/attach-payment`, {
       method: 'POST',
-      body: JSON.stringify({ paymentLink })
+      body: JSON.stringify({ paymentLink }),
     });
   }
 

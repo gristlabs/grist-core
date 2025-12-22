@@ -235,7 +235,7 @@ export default class GridView extends BaseView {
     // before the change and after).
     this.currentPosition = Computed.create(this, use => ({
       rowIndex : use(this.cursor.rowIndex),
-      fieldIndex : use(this.cursor.fieldIndex)
+      fieldIndex : use(this.cursor.fieldIndex),
     }));
     // Add listener, and check if the cursor is indeed changed, if so, update the row
     // and scroll it into view (using kd.scrollChildIntoView in buildDom function).
@@ -362,7 +362,7 @@ export default class GridView extends BaseView {
     });
     if (!this.isPreview) {
       dom.onMatchElem(this.scrollPane, '.field:not(.column_name)', 'contextmenu',
-        (ev, elem) => this.onCellContextMenu(ev, elem as Element), {useCapture: true}
+        (ev, elem) => this.onCellContextMenu(ev, elem as Element), {useCapture: true},
       );
     }
     this.autoDispose(dom.onElem(this.scrollPane, 'scroll', () => this.onScroll()));
@@ -389,7 +389,7 @@ export default class GridView extends BaseView {
   // the Grid popup).
   protected static selectionCommands: {[key: string]: Function} & ThisType<GridView> = {
     clearCopySelection: function() { this._clearCopySelection(); },
-    cancel: function() { this.clearSelection(); }
+    cancel: function() { this.clearSelection(); },
   };
 
   // TODO: move commands with modifications to gridEditCommands and use a single guard for
@@ -553,7 +553,7 @@ export default class GridView extends BaseView {
         updateWidth();
         dom.update(this.viewPane,
           dom.style('width', use => `${use(widthObs)}px`),
-          dom.style('height', `${targetHeight}px`)
+          dom.style('height', `${targetHeight}px`),
         );
         this.scrolly.updateSize();
         const paneElem = this.viewPane.querySelector('.gridview_data_header') as HTMLElement;
@@ -716,7 +716,7 @@ export default class GridView extends BaseView {
   }
 
   protected _selectionData(
-    {colStart, colEnd, rowStart, rowEnd}: {colStart: number, colEnd: number, rowStart: number, rowEnd: number}
+    {colStart, colEnd, rowStart, rowEnd}: {colStart: number, colEnd: number, rowStart: number, rowEnd: number},
   ): {fields: ViewFieldRec[], rowIndices: number[]} {
     const fields = [];
     for (let i = colStart; i <= colEnd; i++) {
@@ -770,7 +770,7 @@ export default class GridView extends BaseView {
     const outputWidth = Math.min(
       Math.max(gutil.roundDownToMultiple(this.cellSelector.colCount(), pasteWidth), pasteWidth),
       // We will add more rows, but not more columns.
-      this.viewSection.viewFields().peekLength
+      this.viewSection.viewFields().peekLength,
     );
     // get the row ids that cover the paste
     const topIndex = this.cellSelector.rowLower();
@@ -830,12 +830,12 @@ export default class GridView extends BaseView {
     const actions = [];
     if (addRows > 0) {
       actions.push(['BulkAddRecord', gutil.arrayRepeat(addRows, null),
-        _.mapObject(bulkUpdate, values => values.slice(-addRows))
+        _.mapObject(bulkUpdate, values => values.slice(-addRows)),
       ]);
     }
     if (updateRows > 0) {
       actions.push(['BulkUpdateRecord', rowIds.slice(0, updateRows),
-        _.mapObject(bulkUpdate, values => values.slice(0, updateRows))
+        _.mapObject(bulkUpdate, values => values.slice(0, updateRows)),
       ]);
     }
     return this.prepTableActions(actions);
@@ -887,7 +887,7 @@ export default class GridView extends BaseView {
     }
     return new CopySelection(this.tableModel.tableData, rowIds, fields, {
       rowStyle: rowStyle,
-      colStyle: colStyle
+      colStyle: colStyle,
     });
   }
 
@@ -1040,7 +1040,7 @@ export default class GridView extends BaseView {
     const {
       colInfo = {},
       index = this.viewSection.viewFields().peekLength,
-      skipPopup = false
+      skipPopup = false,
     } = options;
     const newColInfo = await this.viewSection.insertColumn(colId, {colInfo, index});
     this.selectColumn(index);
@@ -1119,7 +1119,7 @@ export default class GridView extends BaseView {
   }
 
   public async showColumn( colRef: number,
-    index: number = this.viewSection.viewFields().peekLength
+    index: number = this.viewSection.viewFields().peekLength,
   ): Promise<void> {
     await this.viewSection.showColumn(colRef, index);
     this.selectColumn(index);
@@ -1140,7 +1140,7 @@ export default class GridView extends BaseView {
       return this.gristDoc.docData.sendAction(
           ['BulkRemoveRecord', '_grist_Tables_column', colRefs],
           `Removed columns ${columns.map(col => col.colId.peek()).join(', ')} ` +
-          `from ${this.tableModel.tableData.tableId}.`
+          `from ${this.tableModel.tableData.tableId}.`,
       ).then(() => this.clearSelection());
     }
     return Promise.resolve(false);
@@ -1222,7 +1222,7 @@ export default class GridView extends BaseView {
   protected currentMouseRow(yCoord: number) {
     return Math.min(
       this.getMousePosRow(this.scrollTop() + yCoord),
-      Math.max(0, this.getLastDataRowIndex() + 1)
+      Math.max(0, this.getLastDataRowIndex() + 1),
     );
   }
 
@@ -1354,7 +1354,7 @@ export default class GridView extends BaseView {
       prevField: () => {
         editIndex(editIndex() - 1);
         this.selectColumn(editIndex.peek());
-      }
+      },
     };
 
     return dom(
@@ -1382,7 +1382,7 @@ export default class GridView extends BaseView {
       // the content of the scrolled columns will be visible to the user (as there is blank space there).
       // This line fills the gap. NOTE that we are using number here instead of a boolean.
       dom('div.gridview_left_border', dom.show(use => Boolean(use(this.numFrozen))),
-        dom.style("left", ROW_NUMBER_WIDTH + 'px')
+        dom.style("left", ROW_NUMBER_WIDTH + 'px'),
       ),
       // left shadow that will be visible on top of frozen columns
       dom('div.scroll_shadow_frozen', dom.show(this.frozenShadow)),
@@ -1394,22 +1394,22 @@ export default class GridView extends BaseView {
       this.colLine = dom(
         'div.col_indicator_line',
         kd.show(() => this.cellSelector.isCurrentDragType(selector.COL)),
-        dom.style('left', this.cellSelector.col.linePos)
+        dom.style('left', this.cellSelector.col.linePos),
       ),
       this.colShadow = dom(
         'div.column_shadow',
         kd.show(() => this.cellSelector.isCurrentDragType(selector.COL)),
-        dom.style('left', use => (use(this.dragX) - this.colShadowAdjust) + 'px')
+        dom.style('left', use => (use(this.dragX) - this.colShadowAdjust) + 'px'),
       ),
       this.rowLine = dom(
         'div.row_indicator_line',
         kd.show(() => this.cellSelector.isCurrentDragType(selector.ROW)),
-        dom.style('top', this.cellSelector.row.linePos)
+        dom.style('top', this.cellSelector.row.linePos),
       ),
       this.rowShadow = dom(
         'div.row_shadow',
         kd.show(() => this.cellSelector.isCurrentDragType(selector.ROW)),
-        dom.style('top', use => (use(this.dragY) - this.rowShadowAdjust) + 'px')
+        dom.style('top', use => (use(this.dragY) - this.rowShadowAdjust) + 'px'),
       ),
 
       applyRowHeightLimit(v),
@@ -1420,7 +1420,7 @@ export default class GridView extends BaseView {
         dom.onDispose(() => {
           // Save the previous scroll values to the section.
           this.viewSection.lastScrollPos = _.extend({
-            scrollLeft: this.scrollPane.scrollLeft
+            scrollLeft: this.scrollPane.scrollLeft,
           }, this.scrolly.getScrollPos());
         }),
 
@@ -1453,13 +1453,13 @@ export default class GridView extends BaseView {
                         editIndex(-1);
                       }
                     }
-                  }
+                  },
                 }).extend({ rateLimit: 0 })).onlyNotifyUnequal();
 
                 let filterTriggerCtl: PopupControl;
                 const isTooltip = ko.pureComputed(() =>
                   this.editingFormula() && !this.isReadonly &&
-                  ko.unwrap(this.hoverColumn) === field._index()
+                  ko.unwrap(this.hoverColumn) === field._index(),
                 );
 
 
@@ -1506,7 +1506,7 @@ export default class GridView extends BaseView {
                     columnHeaderWithInfo(
                       this.isPreview ? field.label : field.displayLabel,
                       field.description,
-                      "column"
+                      "column",
                     ),
                     dom.on('mousedown', ev => isEditingLabel() ? ev.stopPropagation() : true),
                     buildRenameColumn({
@@ -1534,7 +1534,7 @@ export default class GridView extends BaseView {
                           placement: 'bottom-start',
                           boundaries: 'viewport',
                           trigger: [],
-                        }
+                        },
                       );
                     },
                     menu(ctl => this.columnContextMenu(ctl, this.getSelection(), field, filterTriggerCtl)),
@@ -1550,20 +1550,20 @@ export default class GridView extends BaseView {
                   dom.style("width", PLUS_WIDTH + 'px'),
                   this._buildInsertColumnMenu(),
                 )
-              ))
-            )
-          ) //end hbox
+              )),
+            ),
+          ), //end hbox
         ), // END COL HEADER BOX
 
         koDomScrolly.scrolly(data, {
           ...(this._inline ? {} : {paddingBottom: 80, paddingRight: 20}),
-          cb: this._onRenderedVisibleRows.bind(this)
+          cb: this._onRenderedVisibleRows.bind(this),
         }, renderRow.bind(this)),
 
         dom.maybe(this._isPrinting, () =>
-          renderAllRows(this.tableModel, this.sortedRows.getKoArray().peek(), renderRow.bind(this))
+          renderAllRows(this.tableModel, this.sortedRows.getKoArray().peek(), renderRow.bind(this)),
         ),
-      ) // end scrollpane
+      ), // end scrollpane
     );// END MAIN VIEW BOX
 
     function renderRow(this: GridView, row: DataRowModel) {
@@ -1647,7 +1647,7 @@ export default class GridView extends BaseView {
                 dom.attr('title', (use) => {
                   return "Validation failed: " +
                     failures.map(val => use(val.name)).join(", ");
-                })
+                }),
               );
             }
           }),
@@ -1711,7 +1711,7 @@ export default class GridView extends BaseView {
             const isCellSelected = ko.computed(() =>
               isRowActive() &&
               field._index() === this.cursor.fieldIndex() &&
-              this._insertColumnIndex() === null
+              this._insertColumnIndex() === null,
             );
 
             // Whether the cell is active: has the cursor in the active section.
@@ -1731,7 +1731,7 @@ export default class GridView extends BaseView {
 
             const isTooltip = ko.pureComputed(() =>
               this.editingFormula() && !this.isReadonly &&
-              ko.unwrap(this.hoverColumn) === field._index()
+              ko.unwrap(this.hoverColumn) === field._index(),
             );
 
             return dom(
@@ -1757,8 +1757,8 @@ export default class GridView extends BaseView {
               fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected),
               dom('div.selection'),
             );
-          })
-        )
+          }),
+        ),
       );
     }
   }
@@ -2099,7 +2099,7 @@ export default class GridView extends BaseView {
   // CONTEXT MENUS
 
   protected columnContextMenu(
-    ctl: IOpenController, copySelection: CopySelection, field: ViewFieldRec, filterTriggerCtl: PopupControl
+    ctl: IOpenController, copySelection: CopySelection, field: ViewFieldRec, filterTriggerCtl: PopupControl,
   ) {
     const selectedColIds = copySelection.colIds;
     this.ctxMenuHolder.autoDispose(ctl);
@@ -2179,7 +2179,7 @@ export default class GridView extends BaseView {
         this.isReadonly ||
         this.getSelection().rowIds.length !== 1 ||
         this.getSelection().onlyAddRowSelected() ||
-        this.viewSection.table().summarySourceTable() !== 0
+        this.viewSection.table().summarySourceTable() !== 0,
       ),
     };
   }
@@ -2195,9 +2195,9 @@ export default class GridView extends BaseView {
     return this.customCellMenu(
       CellContextMenu(
         options,
-        this._getColumnMenuOptions(this.getSelection())
+        this._getColumnMenuOptions(this.getSelection()),
       ),
-      options
+      options,
     );
   }
 
@@ -2206,12 +2206,12 @@ export default class GridView extends BaseView {
       disableInsert: Boolean(
         this.isReadonly ||
         this.viewSection.disableAddRemoveRows() ||
-        this.tableModel.tableMetaRow.onDemand()
+        this.tableModel.tableMetaRow.onDemand(),
       ),
       disableDelete: Boolean(
         this.isReadonly ||
         this.viewSection.disableAddRemoveRows() ||
-        this.getSelection().onlyAddRowSelected()
+        this.getSelection().onlyAddRowSelected(),
       ),
       disableAnchorLink: this.viewSection.isVirtual(),
       isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
@@ -2346,7 +2346,7 @@ export default class GridView extends BaseView {
               }));
             },
           ],
-        }
+        },
       ),
     ];
   }
@@ -2444,7 +2444,7 @@ interface ComputedRule {
 }
 
 function buildStyleOption<Name extends keyof CombinedStyle, T>(
-  owner: Disposable, computedRule: ko.Computed<ComputedRule|null>, optionName: Name, defValue: T
+  owner: Disposable, computedRule: ko.Computed<ComputedRule|null>, optionName: Name, defValue: T,
 ): ko.Computed<Exclude<CombinedStyle[Name], undefined> | T> {
   return ko.computed(() => {
     if (owner.isDisposed()) { return defValue; }

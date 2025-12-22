@@ -20,7 +20,7 @@ describe('ProposedChangesPage', function() {
     // But it shouldn't be checked yet.
     assert.equal(
       await driver.find('input.test-settings-accept-proposals').getAttribute('checked'),
-      null
+      null,
     );
     // Now check it.
     await driver.find('input.test-settings-accept-proposals').click();
@@ -29,7 +29,7 @@ describe('ProposedChangesPage', function() {
     // The flag should be checked now.
     assert.equal(
       await driver.find('input.test-settings-accept-proposals').getAttribute('checked'),
-      'true'
+      'true',
     );
   });
 
@@ -43,9 +43,9 @@ describe('ProposedChangesPage', function() {
     await api.updateDoc(doc.id, {
       options: {
         proposedChanges: {
-          acceptProposals: true
-        }
-      }
+          acceptProposals: true,
+        },
+      },
     });
 
     // Put something known in the first cell.
@@ -113,7 +113,7 @@ describe('ProposedChangesPage', function() {
     // Changes versus Propose Changes)
     assert.match(
       await driver.findContentWait('.test-proposals-header', /#1/, 2000).getText(),
-      /Suggestion/
+      /Suggestion/,
     );
 
     // There should be exactly one proposal.
@@ -179,7 +179,7 @@ describe('ProposedChangesPage', function() {
     await driver.findWait('.diff-remote', 2000);
     assert.deepEqual(
       await driver.findAll('.diff-remote', e => e.getText()),
-      ['SpaceDuck', 'Mammal', 'Bird']
+      ['SpaceDuck', 'Mammal', 'Bird'],
     );
 
     // Apply the second one and check that it has an effect.
@@ -190,7 +190,7 @@ describe('ProposedChangesPage', function() {
     await gu.waitForServer();
     assert.match(
       await driver.findContent('.test-proposals-header', /#2/).getText(),
-      /Accepted/
+      /Accepted/,
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
                      ['Fish', 'Mammal']);
@@ -201,7 +201,7 @@ describe('ProposedChangesPage', function() {
     await gu.waitForServer();
     assert.match(
       await driver.findContent('.test-proposals-header', /#1/).getText(),
-      /Accepted/
+      /Accepted/,
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
                      ['Bird', 'Mammal']);
@@ -212,7 +212,7 @@ describe('ProposedChangesPage', function() {
     await gu.waitForServer();
     assert.match(
       await driver.findContent('.test-proposals-header', /#3/).getText(),
-      /Accepted/
+      /Accepted/,
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
                      ['Bird', 'Mammal', 'SpaceDuck']);
@@ -267,7 +267,7 @@ describe('ProposedChangesPage', function() {
     await gu.waitForServer();
     assert.match(
       await driver.findContent('.test-proposals-header', /#1/).getText(),
-      /Accepted/
+      /Accepted/,
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Vie')).BB,
                      ['Bird', 'Primate']);
@@ -365,9 +365,9 @@ describe('ProposedChangesPage', function() {
     await api.updateDoc(doc.id, {
       options: {
         proposedChanges: {
-          acceptProposals: true
-        }
-      }
+          acceptProposals: true,
+        },
+      },
     });
 
     await api.applyUserActions(doc.id, [

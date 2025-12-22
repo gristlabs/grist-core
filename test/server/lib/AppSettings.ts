@@ -39,7 +39,7 @@ describe('AppSettings', () => {
       it('should throw if the default value is not finite', () => {
         assert.throws(
           () => appSettings[method]({ envVar: 'TEST', defaultValue: Infinity }),
-          'Infinity does not look like a number'
+          'Infinity does not look like a number',
         );
       });
 
@@ -51,7 +51,7 @@ describe('AppSettings', () => {
             minValue: 7,
             maxValue: 9,
           }),
-          'value 6 is less than minimum 7'
+          'value 6 is less than minimum 7',
         );
       });
 
@@ -60,7 +60,7 @@ describe('AppSettings', () => {
           envVar: 'TEST',
           defaultValue: 5,
           minValue: 5,
-          maxValue: 12
+          maxValue: 12,
         });
         assert.strictEqual(result, 5);
       });

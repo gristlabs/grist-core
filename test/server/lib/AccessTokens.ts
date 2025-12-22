@@ -32,7 +32,7 @@ describe('AccessTokens', function() {
       users: {
         'kiwi@getgrist.com': 'owners',
         'charon@getgrist.com': 'editors',
-      }
+      },
     });
   });
 
@@ -86,7 +86,7 @@ describe('AccessTokens', function() {
     const postOptions: RequestInit = {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({records: [{}]}),
     };

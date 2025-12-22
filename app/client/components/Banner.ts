@@ -79,7 +79,7 @@ export class Banner extends Disposable {
       dom.style('background', this._options.background ?? ''),
       this._buildContent(),
       this._buildButtons(),
-      testId('element')
+      testId('element'),
     );
   }
 

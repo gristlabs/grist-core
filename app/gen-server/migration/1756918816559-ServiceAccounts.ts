@@ -83,7 +83,7 @@ export class ServiceAccounts1756918816559 implements MigrationInterface {
             columnNames: ['owner_id'],
           },
         ],
-      })
+      }),
     );
   }
 

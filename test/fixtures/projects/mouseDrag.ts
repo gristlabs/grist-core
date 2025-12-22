@@ -41,11 +41,11 @@ function setupTest() {
       {style: 'left: 350px; width: 400px'},
       result(
         testId('result'),
-        dom.text(use => JSON.stringify(use(status), null, 2))
+        dom.text(use => JSON.stringify(use(status), null, 2)),
       ),
     ),
     dom('button', 'Reset', dom.on('click', reset),
-      {style: 'position: absolute; left: 350px; top: 280px;'}
+      {style: 'position: absolute; left: 350px; top: 280px;'},
     ),
   ];
 }

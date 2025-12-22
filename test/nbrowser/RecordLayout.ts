@@ -294,7 +294,7 @@ describe('RecordLayout', function() {
   // Helper that drags `elem` to the layout box containing `destElem`, specifically to its `edge`
   // ("top", "right", "bottom" or "left") plus the `edgeOffset` (in pixels).
   async function dragInsertLayoutBox(
-    elem: WebElement, destElem: WebElement, edge: 'top'|'right'|'bottom'|'left', edgeOffset: number
+    elem: WebElement, destElem: WebElement, edge: 'top'|'right'|'bottom'|'left', edgeOffset: number,
   ) {
     const box = await destElem.findClosest(".layout_box");
     await driver.wait(async () => await elem.isDisplayed() && await box.isDisplayed(), 1000);

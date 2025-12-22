@@ -4,7 +4,7 @@ import {
   AttachmentStoreDocInfo,
   DocPoolId,
   getDocPoolIdFromDocInfo,
-  IAttachmentStore, loadAttachmentFileIntoMemory
+  IAttachmentStore, loadAttachmentFileIntoMemory,
 } from 'app/server/lib/AttachmentStore';
 import {AttachmentStoreId, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {checksumFileStream, HashPassthroughStream} from 'app/server/lib/checksumFile';
@@ -104,7 +104,7 @@ export class AttachmentFileManager extends EventEmitter {
   private readonly _docName: string;
   private _log = new LogMethods(
     "AttachmentFileManager ",
-    (logInfo: AttachmentFileManagerLogInfo) => this._getLogMeta(logInfo)
+    (logInfo: AttachmentFileManagerLogInfo) => this._getLogMeta(logInfo),
   );
 
   // Maps file identifiers to their desired store. This may be the same as their current store,
@@ -151,7 +151,7 @@ export class AttachmentFileManager extends EventEmitter {
   public async addFile(
     storeId: AttachmentStoreId | undefined,
     fileExtension: string,
-    fileData: Buffer
+    fileData: Buffer,
   ): Promise<AddFileResult> {
     const fileIdent = await this._getFileIdentifier(fileExtension, stream.Readable.from(fileData));
     return this._addFile(storeId, fileIdent, fileData);
@@ -318,7 +318,7 @@ export class AttachmentFileManager extends EventEmitter {
 
     if (!await validateFileChecksum(fileIdent, fileInMemory.contents)) {
       throw new AttachmentRetrievalError(
-        fileInfo.storageId, fileInfo.ident, "checksum verification failed for retrieved file"
+        fileInfo.storageId, fileInfo.ident, "checksum verification failed for retrieved file",
       );
     }
     if (!newStoreId) {
@@ -329,7 +329,7 @@ export class AttachmentFileManager extends EventEmitter {
     if (!newStore) {
       this._log.warn({
         fileIdent,
-        storeId: newStoreId
+        storeId: newStoreId,
       }, `unable to transfer file to unavailable store`);
       throw new StoreNotAvailableError(newStoreId);
     }
@@ -415,7 +415,7 @@ export class AttachmentFileManager extends EventEmitter {
   private async _notifyAboutStart() {
     this.emit(AttachmentFileManager.events.TRANSFER_STARTED, {
       locationSummary: await this.locationSummary(),
-      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: true}
+      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: true},
     } as AttachmentTransferStatus);
   }
 
@@ -427,7 +427,7 @@ export class AttachmentFileManager extends EventEmitter {
   private async _notifyAboutEnd() {
     this.emit(AttachmentFileManager.events.TRANSFER_COMPLETED, {
       locationSummary: await this.locationSummary(),
-      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: false}
+      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: false},
     } as AttachmentTransferStatus);
   }
 
@@ -442,7 +442,7 @@ export class AttachmentFileManager extends EventEmitter {
 
   private async _addFileToLocalStorage(
     fileIdent: string,
-    fileData: Buffer
+    fileData: Buffer,
   ): Promise<AddFileResult> {
       this._log.info({
         fileIdent,
@@ -484,7 +484,7 @@ export class AttachmentFileManager extends EventEmitter {
   ): Promise<AddFileResult> {
     this._log.info({
       fileIdent,
-      storeId: destStoreId
+      storeId: destStoreId,
     }, `adding file to external storage`);
 
     const destStore = await this._getStore(destStoreId);
@@ -536,7 +536,7 @@ export class AttachmentFileManager extends EventEmitter {
   private async _addFile(
     destStoreId: AttachmentStoreId | undefined,
     fileIdent: string,
-    fileData: Buffer
+    fileData: Buffer,
   ): Promise<AddFileResult> {
     if (destStoreId === undefined) {
       return this._addFileToLocalStorage(fileIdent, fileData);
@@ -552,7 +552,7 @@ export class AttachmentFileManager extends EventEmitter {
     }
     this._log.debug(
       { fileIdent, storeId: fileInfo.storageId },
-      `fetching attachment from ${fileInfo.storageId ? "external" : "document "} storage`
+      `fetching attachment from ${fileInfo.storageId ? "external" : "document "} storage`,
     );
     if (!fileInfo.storageId) {
       return {
@@ -564,7 +564,7 @@ export class AttachmentFileManager extends EventEmitter {
           },
           contentStream: stream.Readable.from(fileInfo.data),
           contents: fileInfo.data,
-        }
+        },
       };
     }
     const store = await this._getStore(fileInfo.storageId);

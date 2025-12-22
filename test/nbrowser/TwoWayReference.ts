@@ -139,7 +139,7 @@ describe('TwoWayReference', function() {
     // We are now in a modal dialog.
     assert.equal(
       await driver.findWait('.test-modal-dialog label', 100).getText(),
-      'Reassign to Owners record "Bob".'
+      'Reassign to Owners record "Bob".',
     );
 
     // Reassign it.
@@ -215,7 +215,7 @@ describe('TwoWayReference', function() {
     // Check data.
     assert.deepEqual(await columns(), [
       ['Name'],
-      ['Name', 'Owner']
+      ['Name', 'Owner'],
     ]);
     await gu.assertGridData("PETS", [
       [0, "Name", "Owner"],
@@ -385,7 +385,7 @@ describe('TwoWayReference', function() {
     await addReverseColumn();
     assert.deepEqual(await columns(), [
       ['Name', 'Owner'],
-      ['Name', 'Projects']
+      ['Name', 'Projects'],
     ]);
 
     await gu.selectSectionByTitle('People');
@@ -402,7 +402,7 @@ describe('TwoWayReference', function() {
     await gu.waitForServer();
     assert.deepEqual(await columns(), [
       ['Name', 'Owner'],
-      ['Name']
+      ['Name'],
     ]);
   });
 
@@ -440,7 +440,7 @@ describe('TwoWayReference', function() {
     await gu.waitForServer();
     assert.deepEqual(await columns(), [
       ['Name'],
-      ['Name', 'Projects']
+      ['Name', 'Projects'],
     ]);
   });
 
@@ -450,7 +450,7 @@ describe('TwoWayReference', function() {
     await gu.checkForErrors();
     assert.deepEqual(await columns(), [
       ['Name', 'Owner'],
-      ['Name']
+      ['Name'],
     ]);
 
     // Now redo all changes.
@@ -458,14 +458,14 @@ describe('TwoWayReference', function() {
     await gu.checkForErrors();
     assert.deepEqual(await columns(), [
       ['Name'],
-      ['Name', 'Projects']
+      ['Name', 'Projects'],
     ]);
 
     await revert();
     await gu.checkForErrors();
     assert.deepEqual(await columns(), [
       ['Name', 'Owner'],
-      ['Name']
+      ['Name'],
     ]);
 
     // And now check individual changes.
@@ -477,12 +477,12 @@ describe('TwoWayReference', function() {
     await addReverseColumn();
     assert.deepEqual(await columns(), [
       ['Name', 'Owner'],
-      ['Name', 'Projects']
+      ['Name', 'Projects'],
     ]);
     await gu.undo(1);
     assert.deepEqual(await columns(), [
       ['Name', 'Owner'],
-      ['Name']
+      ['Name'],
     ]);
   });
 
@@ -494,7 +494,7 @@ describe('TwoWayReference', function() {
     await gu.checkForErrors();
     assert.deepEqual(await columns(), [
       ['Name'],
-      ['Name', 'Projects']
+      ['Name', 'Projects'],
     ]);
     await gu.selectSectionByTitle('People');
     await gu.openColumnPanel('Projects');
@@ -504,7 +504,7 @@ describe('TwoWayReference', function() {
     await revert();
     assert.deepEqual(await columns(), [
       ['Name', 'Owner'],
-      ['Name']
+      ['Name'],
     ]);
   });
 
@@ -518,7 +518,7 @@ describe('TwoWayReference', function() {
     await gu.checkForErrors();
     assert.deepEqual(await columns(), [
       ['Name', 'Owner'],
-      ['Name']
+      ['Name'],
     ]);
     await gu.selectSectionByTitle('Projects');
     await gu.openColumnPanel('Owner');
@@ -604,7 +604,7 @@ describe('TwoWayReference', function() {
     // We should have an option there.
     assert.equal(
       await driver.findWait('.test-modal-dialog label', 100).getText(),
-      'Reassign to People record "Alice".'
+      'Reassign to People record "Alice".',
     );
 
     // Reassign it.
@@ -661,7 +661,7 @@ describe('TwoWayReference', function() {
     await gu.renameColumn('A', 'Name');
     await gu.renameColumn('B', 'Parent');
     await gu.sendActions([
-      ['RemoveColumn', 'Tasks', 'C']
+      ['RemoveColumn', 'Tasks', 'C'],
     ]);
     await gu.setType('Reference');
     await gu.setRefTable('Tasks');

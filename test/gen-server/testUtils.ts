@@ -15,8 +15,8 @@ export function configForApiKey(apiKey?: string): AxiosRequestConfig {
     validateStatus: (status: number) => true,
     headers: {
       'X-Requested-With': 'XMLHttpRequest',
-      ...(apiKey ? {Authorization: `Bearer ${apiKey}`} : {})
-    }
+      ...(apiKey ? {Authorization: `Bearer ${apiKey}`} : {}),
+    },
   };
 }
 /**
@@ -38,8 +38,8 @@ export function configWithPermit(config: AxiosRequestConfig, permitKey: string):
     ...config,
     headers: {
       ...config.headers,
-      Permit: permitKey
-    }
+      Permit: permitKey,
+    },
   };
 }
 
@@ -114,6 +114,6 @@ export async function getRowCounts(dbManager: HomeDBManager) {
     workspaces: await getRowCount(dbManager, 'workspaces'),
     billingAccounts: await getRowCount(dbManager, 'billing_accounts'),
     billingAccountManagers: await getRowCount(dbManager, 'billing_account_managers'),
-    products: await getRowCount(dbManager, 'products')
+    products: await getRowCount(dbManager, 'products'),
   };
 }

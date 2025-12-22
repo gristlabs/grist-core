@@ -1,202 +1,202 @@
 export const States = [
   {
       label: "Alabama",
-      value: "AL"
+      value: "AL",
   },
   {
       label: "Alaska",
-      value: "AK"
+      value: "AK",
   },
   {
       label: "Arizona",
-      value: "AZ"
+      value: "AZ",
   },
   {
       label: "Arkansas",
-      value: "AR"
+      value: "AR",
   },
   {
       label: "California",
-      value: "CA"
+      value: "CA",
   },
   {
       label: "Colorado",
-      value: "CO"
+      value: "CO",
   },
   {
       label: "Connecticut",
-      value: "CT"
+      value: "CT",
   },
   {
       label: "Delaware",
-      value: "DE"
+      value: "DE",
   },
   {
       label: "Florida",
-      value: "FL"
+      value: "FL",
   },
   {
       label: "Georgia",
-      value: "GA"
+      value: "GA",
   },
   {
       label: "Hawaii",
-      value: "HI"
+      value: "HI",
   },
   {
       label: "Idaho",
-      value: "ID"
+      value: "ID",
   },
   {
       label: "Illinois",
-      value: "IL"
+      value: "IL",
   },
   {
       label: "Indiana",
-      value: "IN"
+      value: "IN",
   },
   {
       label: "Iowa",
-      value: "IA"
+      value: "IA",
   },
   {
       label: "Kansas",
-      value: "KS"
+      value: "KS",
   },
   {
       label: "Kentucky",
-      value: "KY"
+      value: "KY",
   },
   {
       label: "Louisiana",
-      value: "LA"
+      value: "LA",
   },
   {
       label: "Maine",
-      value: "ME"
+      value: "ME",
   },
   {
       label: "Maryland",
-      value: "MD"
+      value: "MD",
   },
   {
       label: "Massachusetts",
-      value: "MA"
+      value: "MA",
   },
   {
       label: "Michigan",
-      value: "MI"
+      value: "MI",
   },
   {
       label: "Minnesota",
-      value: "MN"
+      value: "MN",
   },
   {
       label: "Mississippi",
-      value: "MS"
+      value: "MS",
   },
   {
       label: "Missouri",
-      value: "MO"
+      value: "MO",
   },
   {
       label: "Montana",
-      value: "MT"
+      value: "MT",
   },
   {
       label: "Nebraska",
-      value: "NE"
+      value: "NE",
   },
   {
       label: "Nevada",
-      value: "NV"
+      value: "NV",
   },
   {
       label: "New Hampshire",
-      value: "NH"
+      value: "NH",
   },
   {
       label: "New Jersey",
-      value: "NJ"
+      value: "NJ",
   },
   {
       label: "New Mexico",
-      value: "NM"
+      value: "NM",
   },
   {
       label: "New York",
-      value: "NY"
+      value: "NY",
   },
   {
       label: "North Carolina",
-      value: "NC"
+      value: "NC",
   },
   {
       label: "North Dakota",
-      value: "ND"
+      value: "ND",
   },
   {
       label: "Ohio",
-      value: "OH"
+      value: "OH",
   },
   {
       label: "Oklahoma",
-      value: "OK"
+      value: "OK",
   },
   {
       label: "Oregon",
-      value: "OR"
+      value: "OR",
   },
   {
       label: "Pennsylvania",
-      value: "PA"
+      value: "PA",
   },
   {
       label: "Rhode Island",
-      value: "RI"
+      value: "RI",
   },
   {
       label: "South Carolina",
-      value: "SC"
+      value: "SC",
   },
   {
       label: "South Dakota",
-      value: "SD"
+      value: "SD",
   },
   {
       label: "Tennessee",
-      value: "TN"
+      value: "TN",
   },
   {
       label: "Texas",
-      value: "TX"
+      value: "TX",
   },
   {
       label: "Utah",
-      value: "UT"
+      value: "UT",
   },
   {
       label: "Vermont",
-      value: "VT"
+      value: "VT",
   },
   {
       label: "Virginia",
-      value: "VA"
+      value: "VA",
   },
   {
       label: "Washington",
-      value: "WA"
+      value: "WA",
   },
   {
       label: "West Virginia",
-      value: "WV"
+      value: "WV",
   },
   {
       label: "Wisconsin",
-      value: "WI"
+      value: "WI",
   },
   {
       label: "Wyoming",
-      value: "WY"
-  }
+      value: "WY",
+  },
 ];

@@ -126,7 +126,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
   // Function save column name and description and close the popup.
   const save = () => Promise.all([
     saveColumnLabel(),
-    saveColumnDesc()
+    saveColumnDesc(),
   ]);
 
   // When the popup is closing we will save everything, unless the user has pressed the cancel button.
@@ -192,7 +192,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
  else {
         return true;
       }
-    }
+    },
   };
 
   // Create this group and attach it to the popup and both inputs.
@@ -234,7 +234,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
         rememberFocus,
         hoverTooltip(LIMITED_COLUMN_OPTIONS, {hidden: canRename}),
         dom.boolAttr('disabled', not(canRename)),
-        dom.style('pointer-events', 'all')
+        dom.style('pointer-events', 'all'),
       ),
       cssColId(
         t("COLUMN ID: "),
@@ -243,7 +243,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
           e.stopImmediatePropagation();
           e.preventDefault();
           showTransientTooltip(d, t("Column ID copied to clipboard"), {
-            key: 'copy-column-id'
+            key: 'copy-column-id',
           });
           await copyToClipboard(colId);
           setTestState({clipboard: colId});
@@ -278,7 +278,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
           close();
           return false;
         }
-      }
+      },
     }),
     cssButtons(
       primaryButton(
@@ -296,7 +296,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
       basicButton(t("Cancel"),
         testId('cancel'),
         dom.on('click', cancel),
-        dom.show(hasChange)
+        dom.show(hasChange),
       ),
     ),
     // After showing the popup, focus the label input and select it's content.
@@ -321,10 +321,10 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
  FocusLayer.create(ctrl, {
       defaultFocusElem: elem,
       pauseMousetrap: false,
-      allowFocus: Clipboard.allowFocus
+      allowFocus: Clipboard.allowFocus,
     }); 
 },
-    restoreFocus
+    restoreFocus,
   );
 }
 

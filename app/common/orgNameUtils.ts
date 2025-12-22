@@ -25,7 +25,7 @@ const BLACKLISTED_SUBDOMAINS = new Set([
   'current', 'staging', 'prod', 'login', 'login-dev', 'login-s',
 
   // some domains that look suspicious
-  '1ogin', '1ogin-dev', '1ogin-s'
+  '1ogin', '1ogin-dev', '1ogin-s',
 ]);
 
 /**

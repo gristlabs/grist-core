@@ -19,7 +19,7 @@ export function sanitizeHTMLIntoDOM(source: string | Node): DocumentFragment {
         TRUSTED_TYPES_POLICY: {
           createHTML: (html: string) => html,
           createScriptURL: (scriptUrl: string) => scriptUrl,
-        } as any    // We need a cast because it's an incomplete stub of TrustedTypePolicy,
+        } as any,    // We need a cast because it's an incomplete stub of TrustedTypePolicy,
                     // just the bits that dompurify actually calls.
       });
     }

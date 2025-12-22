@@ -59,7 +59,7 @@ describe('PubSubManager', function() {
 
       await manager.publishBatch([
         {channel: 'testChanA', message: 'foo2'},
-        {channel: 'testChanB', message: 'bar2'}]
+        {channel: 'testChanB', message: 'bar2'}],
       );
       await delay(200);   // Give subscriptions a chance to get called.
       assert.deepEqual(cbA1.args, []);
@@ -219,7 +219,7 @@ describe('PubSubManager', function() {
 
       await manager.publishBatch([
         {channel: 'testChanA', message: 'foo2'},
-        {channel: 'testChanB', message: 'bar2'}]
+        {channel: 'testChanB', message: 'bar2'}],
       );
       await delay(200);   // Give subscriptions a chance to get called.
       assert.deepEqual(cbA1.args, []);

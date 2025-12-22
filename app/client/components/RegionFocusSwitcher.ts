@@ -200,7 +200,7 @@ export class RegionFocusSwitcher extends Disposable {
 
   private _focusRegion(
     region: Region | undefined,
-    options: {initiator?: StateUpdateInitiator} = {}
+    options: {initiator?: StateUpdateInitiator} = {},
   ) {
     if (region?.type === 'panel' && !getPanelElement(region.id)) {
       return;
@@ -226,7 +226,7 @@ export class RegionFocusSwitcher extends Disposable {
       this._state.get().region,
       cycleRegions,
       direction,
-      gristDoc
+      gristDoc,
     ), {initiator: {type: 'cycle'}});
   }
 
@@ -369,7 +369,7 @@ export class RegionFocusSwitcher extends Disposable {
       focusPanel(
         current.region as PanelRegion,
         this._prevFocusedElements[current.region.id as Panel] as HTMLElement | null,
-        gristDoc
+        gristDoc,
       );
 
     // If clicking on a panel: only make sure view layout commands are disabled,
@@ -405,7 +405,7 @@ export class RegionFocusSwitcher extends Disposable {
     if (current?.type === 'panel' && current.id === 'right') {
       return this._focusRegion(
         gristDoc ? {type: 'section'} : {type: 'panel', id: 'main'},
-        {initiator: {type: 'cycle'}}
+        {initiator: {type: 'cycle'}},
       );
     }
     commands.allCommands.rightPanelOpen.run();
@@ -478,12 +478,12 @@ export class RegionFocusSwitcher extends Disposable {
       this._app?.topAppModel.notifier.createUserMessage(
         t(
           'Trying to access the creator panel? Use {{key}}.',
-          {key: commands.allCommands.creatorPanel.humanKeys}
+          {key: commands.allCommands.creatorPanel.humanKeys},
         ),
         {
           level: 'info',
           key: 'rfs-cp-warn',
-        }
+        },
       );
       this._warnedAboutCreatorPanel = true;
     }
@@ -628,7 +628,7 @@ const getSibling = (
   current: Region | undefined,
   regions: Region[],
   direction: 'next' | 'prev',
-  gristDoc: GristDoc | null
+  gristDoc: GristDoc | null,
 ): Region | undefined => {
   const isCreatorPanel = current?.type === 'panel' && current.id === 'right';
 

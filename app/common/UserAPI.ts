@@ -20,7 +20,7 @@ import {
   WebhookFields,
   WebhookSubscribe,
   WebhookSummaryCollection,
-  WebhookUpdate
+  WebhookUpdate,
 } from 'app/common/Triggers';
 import {addCurrentOrgToPath, getGristConfig} from 'app/common/urlUtils';
 import {StringUnion} from 'app/common/StringUnion';
@@ -494,7 +494,7 @@ interface SqlResult extends TableRecordValuesWithoutIds {
 }
 
 export const DocAttachmentsLocation = StringUnion(
-  "none", "internal", "mixed", "external"
+  "none", "internal", "mixed", "external",
 );
 export type DocAttachmentsLocation = typeof DocAttachmentsLocation.type;
 
@@ -687,21 +687,21 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public async newOrg(props: Partial<OrganizationProperties>): Promise<number> {
     return this.requestJson(`${this._url}/api/orgs`, {
       method: 'POST',
-      body: JSON.stringify(props)
+      body: JSON.stringify(props),
     });
   }
 
   public async newWorkspace(props: Partial<WorkspaceProperties>, orgId: number|string): Promise<number> {
     return this.requestJson(`${this._url}/api/orgs/${orgId}/workspaces`, {
       method: 'POST',
-      body: JSON.stringify(props)
+      body: JSON.stringify(props),
     });
   }
 
   public async newDoc(props: Partial<DocumentProperties>, workspaceId: number): Promise<string> {
     return this.requestJson(`${this._url}/api/workspaces/${workspaceId}/docs`, {
       method: 'POST',
-      body: JSON.stringify(props)
+      body: JSON.stringify(props),
     });
   }
 
@@ -715,7 +715,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public async copyDoc(
     sourceDocumentId: string,
     workspaceId: number,
-    options: CopyDocOptions
+    options: CopyDocOptions,
   ): Promise<string> {
     return this.requestJson(`${this._url}/api/docs`, {
       method: 'POST',
@@ -730,14 +730,14 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public async renameOrg(orgId: number|string, name: string): Promise<void> {
     await this.request(`${this._url}/api/orgs/${orgId}`, {
       method: 'PATCH',
-      body: JSON.stringify({ name })
+      body: JSON.stringify({ name }),
     });
   }
 
   public async renameWorkspace(workspaceId: number, name: string): Promise<void> {
     await this.request(`${this._url}/api/workspaces/${workspaceId}`, {
       method: 'PATCH',
-      body: JSON.stringify({ name })
+      body: JSON.stringify({ name }),
     });
   }
 
@@ -751,14 +751,14 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public async updateOrg(orgId: number|string, props: Partial<OrganizationProperties>): Promise<void> {
     await this.request(`${this._url}/api/orgs/${orgId}`, {
       method: 'PATCH',
-      body: JSON.stringify(props)
+      body: JSON.stringify(props),
     });
   }
 
   public async updateDoc(docId: string, props: Partial<DocumentProperties>): Promise<void> {
     await this.request(`${this._url}/api/docs/${docId}`, {
       method: 'PATCH',
-      body: JSON.stringify(props)
+      body: JSON.stringify(props),
     });
   }
 
@@ -801,21 +801,21 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public async updateOrgPermissions(orgId: number|string, delta: PermissionDelta): Promise<void> {
     await this.request(`${this._url}/api/orgs/${orgId}/access`, {
       method: 'PATCH',
-      body: JSON.stringify({ delta })
+      body: JSON.stringify({ delta }),
     });
   }
 
   public async updateWorkspacePermissions(workspaceId: number, delta: PermissionDelta): Promise<void> {
     await this.request(`${this._url}/api/workspaces/${workspaceId}/access`, {
       method: 'PATCH',
-      body: JSON.stringify({ delta })
+      body: JSON.stringify({ delta }),
     });
   }
 
   public async updateDocPermissions(docId: string, delta: PermissionDelta): Promise<void> {
     await this.request(`${this._url}/api/docs/${docId}/access`, {
       method: 'PATCH',
-      body: JSON.stringify({ delta })
+      body: JSON.stringify({ delta }),
     });
   }
 
@@ -833,20 +833,20 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async pinDoc(docId: string): Promise<void> {
     await this.request(`${this._url}/api/docs/${docId}/pin`, {
-      method: 'PATCH'
+      method: 'PATCH',
     });
   }
 
   public async unpinDoc(docId: string): Promise<void> {
     await this.request(`${this._url}/api/docs/${docId}/unpin`, {
-      method: 'PATCH'
+      method: 'PATCH',
     });
   }
 
   public async moveDoc(docId: string, workspaceId: number): Promise<void> {
     await this.request(`${this._url}/api/docs/${docId}/move`, {
       method: 'PATCH',
-      body: JSON.stringify({ workspace: workspaceId })
+      body: JSON.stringify({ workspace: workspaceId }),
     });
   }
 
@@ -857,28 +857,28 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public async updateUserName(name: string): Promise<void> {
     await this.request(`${this._url}/api/profile/user/name`, {
       method: 'POST',
-      body: JSON.stringify({name})
+      body: JSON.stringify({name}),
     });
   }
 
   public async updateUserLocale(locale: string|null): Promise<void> {
     await this.request(`${this._url}/api/profile/user/locale`, {
       method: 'POST',
-      body: JSON.stringify({locale})
+      body: JSON.stringify({locale}),
     });
   }
 
   public async updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void> {
     await this.request(`${this._url}/api/profile/allowGoogleLogin`, {
       method: 'POST',
-      body: JSON.stringify({allowGoogleLogin})
+      body: JSON.stringify({allowGoogleLogin}),
     });
   }
 
   public async updateIsConsultant(userId: number, isConsultant: boolean): Promise<void> {
     await this.request(`${this._url}/api/profile/isConsultant`, {
       method: 'POST',
-      body: JSON.stringify({userId, isConsultant})
+      body: JSON.stringify({userId, isConsultant}),
     });
   }
 
@@ -902,7 +902,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public async getWorkerFull(key: string): Promise<PublicDocWorkerUrlInfo> {
     const json = (await this.requestJson(`${this._url}/api/worker/${key}`, {
       method: 'GET',
-      credentials: 'include'
+      credentials: 'include',
     })) as PublicDocWorkerUrlInfo;
     return json;
   }
@@ -927,14 +927,14 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async createApiKey(): Promise<string> {
     const res = await this.request(`${this._url}/api/profile/apiKey`, {
-      method: 'POST'
+      method: 'POST',
     });
     return await res.text();
   }
 
   public async deleteApiKey(): Promise<void> {
     await this.request(`${this._url}/api/profile/apiKey`, {
-      method: 'DELETE'
+      method: 'DELETE',
     });
   }
 
@@ -947,7 +947,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public async applyUserActions(docId: string, actions: UserAction[]): Promise<ApplyUAResult> {
     return this.requestJson(`${this._url}/api/docs/${docId}/apply`, {
       method: 'POST',
-      body: JSON.stringify(actions)
+      body: JSON.stringify(actions),
     });
   }
 
@@ -1008,7 +1008,7 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
       Promise<DocCreationInfo> {
     return this.requestJson(`${this.url}/api/workspaces/${workspaceId}/import`, {
       method: 'POST',
-      body: JSON.stringify({ uploadId, browserSettings })
+      body: JSON.stringify({ uploadId, browserSettings }),
     });
   }
 
@@ -1021,7 +1021,7 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
       // to take care of this - https://github.github.io/fetch/#request-body
       headers: {...this.defaultHeadersWithoutContentType()},
       method: 'POST',
-      body: formData
+      body: formData,
     });
     return json.uploadId;
   }
@@ -1082,34 +1082,34 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   public async updateRows(tableId: string, changes: TableColValues): Promise<number[]> {
     return this.requestJson(`${this._url}/tables/${tableId}/data`, {
       body: JSON.stringify(changes),
-      method: 'PATCH'
+      method: 'PATCH',
     });
   }
 
   public async addRows(tableId: string, additions: BulkColValues): Promise<number[]> {
     return this.requestJson(`${this._url}/tables/${tableId}/data`, {
       body: JSON.stringify(additions),
-      method: 'POST'
+      method: 'POST',
     });
   }
 
   public async removeRows(tableId: string, removals: number[]): Promise<number[]> {
     return this.requestJson(`${this._url}/tables/${tableId}/records/delete`, {
       body: JSON.stringify(removals),
-      method: 'POST'
+      method: 'POST',
     });
   }
 
   public async fork(): Promise<ForkResult> {
     return this.requestJson(`${this._url}/fork`, {
-      method: 'POST'
+      method: 'POST',
     });
   }
 
   public async replace(source: DocReplacementOptions): Promise<void> {
     return this.requestJson(`${this._url}/replace`, {
       body: JSON.stringify(source),
-      method: 'POST'
+      method: 'POST',
     });
   }
 
@@ -1121,7 +1121,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     const body = typeof snapshotIds === 'string' ? { select: snapshotIds } : { snapshotIds };
     return await this.requestJson(`${this._url}/snapshots/remove`, {
       method: 'POST',
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
   }
 
@@ -1164,26 +1164,26 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async flushWebhooks(): Promise<void> {
     await this.request(`${this._url}/webhooks/queue`, {
-      method: 'DELETE'
+      method: 'DELETE',
     });
   }
 
   public async flushWebhook(id: string): Promise<void> {
     await this.request(`${this._url}/webhooks/queue/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     });
   }
 
   public async forceReload(): Promise<void> {
     await this.request(`${this._url}/force-reload`, {
-      method: 'POST'
+      method: 'POST',
     });
   }
 
   public async recover(recoveryMode: boolean): Promise<void> {
     await this.request(`${this._url}/recover`, {
       body: JSON.stringify({recoveryMode}),
-      method: 'POST'
+      method: 'POST',
     });
   }
 
@@ -1192,7 +1192,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     options: {
       detail?: boolean;
       maxRows?: number | null;
-    } = {}
+    } = {},
   ): Promise<DocStateComparison> {
     const { detail, maxRows } = options;
     const url = new URL(`${this._url}/compare/${remoteDocId}`);
@@ -1209,7 +1209,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     const {documentName, asTemplate} = options;
     return this.requestJson(`${this._url}/copy`, {
       body: JSON.stringify({workspaceId, documentName, asTemplate}),
-      method: 'POST'
+      method: 'POST',
      });
   }
 
@@ -1288,7 +1288,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public async getAssistance(
-    params: AssistanceRequest
+    params: AssistanceRequest,
   ): Promise<AssistanceResponse> {
     return await this.requestJson(`${this._url}/assistant`, {
       method: 'POST',
@@ -1349,7 +1349,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   public async applyUserActions(actions: UserAction[]): Promise<ApplyUAResult> {
     return this.requestJson(`${this._url}/apply`, {
       method: 'POST',
-      body: JSON.stringify(actions)
+      body: JSON.stringify(actions),
     });
   }
 

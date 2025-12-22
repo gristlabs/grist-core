@@ -3,7 +3,7 @@ import {guessColInfo, guessColInfoForImports, GuessResult} from 'app/common/Valu
 import {assert} from 'chai';
 
 const defaultDocSettings = {
-  locale: 'en-US'
+  locale: 'en-US',
 };
 
 function check(values: Array<string | null>, expectedResult: GuessResult) {
@@ -71,7 +71,7 @@ describe("ValueGuesser", function() {
       {
         values: [0, 1],
         colInfo: {type: "Numeric", widgetOptions: {decimals: 1}},
-      }
+      },
     );
 
     check(
@@ -79,7 +79,7 @@ describe("ValueGuesser", function() {
       {
         values: [1],
         colInfo: {type: "Numeric", widgetOptions: {numMode: "currency", decimals: 2}},
-      }
+      },
     );
 
     check(
@@ -87,7 +87,7 @@ describe("ValueGuesser", function() {
       {
         values: [1],
         colInfo: {type: "Numeric", widgetOptions: {numMode: "currency", decimals: 0}},
-      }
+      },
     );
 
     // Inconsistent number of decimal places
@@ -107,14 +107,14 @@ describe("ValueGuesser", function() {
       {
         values: [500, 6000],
         colInfo: {type: "Numeric"},
-      }
+      },
     );
     check(
       ["500", "6,000"],
       {
         values: [500, 6000],
         colInfo: {type: "Numeric", widgetOptions: {numMode: "decimal"}},
-      }
+      },
     );
     // Inconsistent use of thousands separators
     check(
@@ -217,24 +217,24 @@ describe("ValueGuesser", function() {
     it("should guess empty column when all cells are empty", function() {
       assert.deepEqual(guessColInfoForImports([null, "", "", null], docData), {
         values: [null, "", "", null],
-        colMetadata: {type: 'Any', isFormula: true, formula: ''}
+        colMetadata: {type: 'Any', isFormula: true, formula: ''},
       });
     });
     it("should do proper numeric format guessing for a mix of number/string types", function() {
       assert.deepEqual(guessColInfoForImports([-5.5, "1,234.6", null, 0], docData), {
         values: [-5.5, 1234.6, null, 0],
-        colMetadata: {type: 'Numeric', widgetOptions: '{"numMode":"decimal"}'}
+        colMetadata: {type: 'Numeric', widgetOptions: '{"numMode":"decimal"}'},
       });
     });
     it("should not guess empty column when values are not actually empty", function() {
       assert.deepEqual(guessColInfoForImports([null, 0, "", false], docData), {
         values: [null, 0, "", false],
-        colMetadata: {type: 'Text'}
+        colMetadata: {type: 'Text'},
       });
     });
     it("should do no guessing for object values", function() {
       assert.deepEqual(guessColInfoForImports(["test", ['L' as any, 1]], docData), {
-        values: ["test", ['L' as any, 1]]
+        values: ["test", ['L' as any, 1]],
       });
     });
   });

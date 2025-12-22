@@ -7,7 +7,7 @@ export class OrgHost1591755411755 implements MigrationInterface {
       name: 'host',
       type: 'varchar',
       isNullable: true,
-      isUnique: true
+      isUnique: true,
     }));
   }
 

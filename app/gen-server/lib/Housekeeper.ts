@@ -167,8 +167,8 @@ export class Housekeeper {
       const scope: Scope = {
         userId: this._dbManager.getPreviewerUserId(),
         specialPermit: {
-          workspaceId: workspace.id
-        }
+          workspaceId: workspace.id,
+        },
       };
       await this._dbManager.deleteWorkspace(scope, workspace.id);
     }
@@ -186,7 +186,7 @@ export class Housekeeper {
             headers: {
               Permit: permitKey,
             },
-          }
+          },
         );
         if (result.status !== 200) {
           log.error(`failed to delete fork ${docId}: error status ${result.status}`);

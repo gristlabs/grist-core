@@ -73,7 +73,7 @@ describe("GroupsManager", function () {
   }
 
   async function createDummyTeamGroup(
-    groupName: string, extraProps: Partial<GroupWithMembersDescriptor> = {}
+    groupName: string, extraProps: Partial<GroupWithMembersDescriptor> = {},
   ) {
     return await createDummyGroup(groupName, {...extraProps, type: Group.TEAM_TYPE});
   }
@@ -159,7 +159,7 @@ describe("GroupsManager", function () {
     it(`should refuse adding a member to a ${Group.TEAM_TYPE} group`, async function () {
       const groupName = 'test-create-nested-resource-users';
       const promise = createDummyGroupAndInnerGroup(groupName, {
-        upperGroupProps: { type: Group.TEAM_TYPE }
+        upperGroupProps: { type: Group.TEAM_TYPE },
       });
       await assert.isRejected(promise, /cannot contain groups/);
     });
@@ -268,7 +268,7 @@ describe("GroupsManager", function () {
       const groupName = 'test-overwrite';
       const newInnerGroupName = 'test-overwrite-inner-new';
       const { group } = await createDummyGroupAndInnerGroup(groupName, {
-        innerGroupProps: {type: Group.ROLE_TYPE}
+        innerGroupProps: {type: Group.ROLE_TYPE},
       });
       const { group: newInnerGroup, kiwi } = await createDummyGroupAndInnerGroup(newInnerGroupName);
       await db.overwriteRoleGroup(group.id, {

@@ -292,7 +292,7 @@ export function guessWidgetOptionsSync(options: {
 
 // Given the transformCol, calls (if needed) a user action to update its displayCol.
 export async function setDisplayFormula(
-  docModel: DocModel, transformCol: ColumnRec, visibleCol?: number
+  docModel: DocModel, transformCol: ColumnRec, visibleCol?: number,
 ): Promise<void> {
   const vcolRef = (visibleCol == null) ? transformCol.visibleCol() : visibleCol;
   if (isReferenceCol(transformCol)) {

@@ -17,23 +17,23 @@ export class Billing1556726945436 implements MigrationInterface {
           type: 'integer',
           isGenerated: true,
           generationStrategy: 'increment',
-          isPrimary: true
+          isPrimary: true,
         },
         {
           name: 'name',
-          type: 'varchar'
+          type: 'varchar',
         },
         {
           name: 'stripe_product_id',
           type: 'varchar',
           isUnique: true,
-          isNullable: true
+          isNullable: true,
         },
         {
           name: 'features',
-          type: nativeValues.jsonType
-        }
-      ]
+          type: nativeValues.jsonType,
+        },
+      ],
     }));
 
     // Create a basic free product that existing orgs can use.
@@ -51,51 +51,51 @@ export class Billing1556726945436 implements MigrationInterface {
           type: 'integer',
           isGenerated: true,
           generationStrategy: 'increment',
-          isPrimary: true
+          isPrimary: true,
         },
         {
           name: 'product_id',
-          type: 'integer'
+          type: 'integer',
         },
         {
           name: 'individual',
-          type: nativeValues.booleanType
+          type: nativeValues.booleanType,
         },
         {
           name: 'in_good_standing',
           type: nativeValues.booleanType,
-          default: nativeValues.trueValue
+          default: nativeValues.trueValue,
         },
         {
           name: 'status',
           type: nativeValues.jsonType,
-          isNullable: true
+          isNullable: true,
         },
         {
           name: 'stripe_customer_id',
           type: 'varchar',
           isUnique: true,
-          isNullable: true
+          isNullable: true,
         },
         {
           name: 'stripe_subscription_id',
           type: 'varchar',
           isUnique: true,
-          isNullable: true
+          isNullable: true,
         },
         {
           name: 'stripe_plan_id',
           type: 'varchar',
-          isNullable: true
-        }
+          isNullable: true,
+        },
       ],
       foreignKeys: [
         {
           columnNames: ['product_id'],
           referencedColumnNames: ['id'],
-          referencedTableName: 'products'
-        }
-      ]
+          referencedTableName: 'products',
+        },
+      ],
     }));
 
     await queryRunner.createTable(new Table({
@@ -106,43 +106,43 @@ export class Billing1556726945436 implements MigrationInterface {
           type: 'integer',
           isGenerated: true,
           generationStrategy: 'increment',
-          isPrimary: true
+          isPrimary: true,
         },
         {
           name: 'billing_account_id',
-          type: 'integer'
+          type: 'integer',
         },
         {
           name: 'user_id',
-          type: 'integer'
-        }
+          type: 'integer',
+        },
       ],
       foreignKeys: [
         {
           columnNames: ['billing_account_id'],
           referencedColumnNames: ['id'],
           referencedTableName: 'billing_accounts',
-          onDelete: 'CASCADE'  // delete manager if referenced billing_account goes away
+          onDelete: 'CASCADE',  // delete manager if referenced billing_account goes away
         },
         {
           columnNames: ['user_id'],
           referencedColumnNames: ['id'],
           referencedTableName: 'users',
-          onDelete: 'CASCADE'  // delete manager if referenced user goes away
-        }
-      ]
+          onDelete: 'CASCADE',  // delete manager if referenced user goes away
+        },
+      ],
     }));
 
     // Add a reference to billing accounts from orgs.
     await queryRunner.addColumn('orgs', new TableColumn({
         name: 'billing_account_id',
         type: 'integer',
-        isNullable: true
+        isNullable: true,
     }));
     await queryRunner.createForeignKey('orgs', new TableForeignKey({
       columnNames: ['billing_account_id'],
       referencedColumnNames: ['id'],
-      referencedTableName: 'billing_accounts'
+      referencedTableName: 'billing_accounts',
     }));
 
     // Let's add billing accounts to all existing orgs.

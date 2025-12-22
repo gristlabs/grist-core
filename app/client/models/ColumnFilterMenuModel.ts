@@ -56,7 +56,7 @@ export class ColumnFilterMenuModel extends Disposable {
     return new Set(
       this._params.valueCount
         .filter(([_, {label, count}]) => (showAllOptions ? true : count) && searchRegex.test(normalizeText(label)))
-        .map(([key]) => key)
+        .map(([key]) => key),
     );
   });
 
@@ -88,7 +88,7 @@ export class ColumnFilterMenuModel extends Disposable {
       return this._params.valueCount
         .filter(([key]) => filter.has(key))
         .sort((a, b) => comparator(a[1][prop], b[1][prop]));
-    }
+    },
   );
 
   // computes the array of all values that does NOT matches the search text

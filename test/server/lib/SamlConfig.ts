@@ -92,7 +92,7 @@ describe('SamlConfig', () => {
       // Let's get redirected to the SAML IdP
       const loginResp = await fetch(`${homeUrl()}/saml/login`, {
         redirect: 'manual',
-        headers
+        headers,
       });
       assert.equal(loginResp.status, 302, 'should redirect');
 
@@ -131,7 +131,7 @@ describe('SamlConfig', () => {
       // Finally, we log out
       const logoutResp = await fetch(`${homeUrl()}/o/docs/logout`, {
         redirect: 'manual',
-        headers
+        headers,
       });
       const idpLogoutUrl = new URL(logoutResp.headers.get('location') || '');
       assert.equal(idpLogoutUrl.origin + idpLogoutUrl.pathname, idpHost, 'should redirect to IdP host');
@@ -149,15 +149,15 @@ describe('SamlConfig', () => {
         method: "POST",
         body: new URLSearchParams({
           SAMLResponse: logoutSamlPayload.toString(),
-          RelayState: logoutRelayState
-        })
+          RelayState: logoutRelayState,
+        }),
       });
       assert.equal(samlLogoutResp.status, 302, 'should redirect');
       const spLogoutUrl = new URL(samlLogoutResp.headers.get('location') || '');
       assert.equal(
         spLogoutUrl.origin + spLogoutUrl.pathname,
         homeUrl() + '/o/docs/signed-out',
-        'should redirect to main'
+        'should redirect to main',
       );
 
       // Finish the logout redirect
@@ -207,7 +207,7 @@ describe('SamlConfig', () => {
         body: new URLSearchParams({
           SAMLResponse: loginSamlPayload.toString(),
           RelayState: `${homeUrl()}/admin`,
-        })
+        }),
       });
       assert.equal(samlResp.status, 302, 'should redirect');
       const spUrl = new URL(samlResp.headers.get('location') || '');
@@ -225,7 +225,7 @@ describe('SamlConfig', () => {
         body: new URLSearchParams({
           SAMLResponse: loginSamlPayload.toString(),
           RelayState: `https://evilcorp.com`,
-        })
+        }),
       });
       assert.equal(samlResp.status, 302, 'should redirect');
       const spUrl = new URL(samlResp.headers.get('location') || '');

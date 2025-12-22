@@ -224,7 +224,7 @@ export class FormulaEditor extends NewBaseEditor {
             // Show placeholder text if the formula is blank.
             this._updateEditorPlaceholder();
           }
-        })
+        }),
       ),
       dom.maybe(options.formulaError, () => [
         dom('div.error_msg', testId('formula-error-msg'),
@@ -238,8 +238,8 @@ export class FormulaEditor extends NewBaseEditor {
                   hideErrDetails.set(!hideErrDetails.get());
                   this._aceEditor.resize();
                 }
-              })
-            ))
+              }),
+            )),
           ),
           dom.text(errorText),
         ),
@@ -250,8 +250,8 @@ export class FormulaEditor extends NewBaseEditor {
               dom.text(errorDetails),
             ),
             testId('formula-error-details'),
-          )
-        )
+          ),
+        ),
       ]),
       dom.maybe(this.isDetached, () => {
         return dom.create(FormulaAssistant, {
@@ -369,7 +369,7 @@ export class FormulaEditor extends NewBaseEditor {
       // If we are detached, we will stop autosizing.
       return {
         height: 0,
-        width: 0
+        width: 0,
       };
     }
 
@@ -511,7 +511,7 @@ export function openFormulaEditor(options: {
     owner: Disposable,
     doc: GristDoc,
     editingFormula: ko.Computed<boolean>,
-    save: () => Promise<void>
+    save: () => Promise<void>,
   ) => void,
 }): FormulaEditor {
   const {gristDoc, editRow, refElem, setupCleanup} = options;
@@ -580,7 +580,7 @@ export function openFormulaEditor(options: {
     commands: editCommands,
     cssClass: 'formula_editor_sidepane',
     readonly : false,
-    canDetach: options.canDetach
+    canDetach: options.canDetach,
   };
   const editor = FormulaEditor.create(null, editorOptions);
   editor.autoDispose(attachedHolder);
@@ -710,7 +710,7 @@ export function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, or
         (numErrors === 0) ? '' :
         (numCells === 1) ? t(`Error in the cell`) :
         (numErrors === numCells) ? t(`Errors in all {{numErrors}} cells`, {numErrors}) :
-        t(`Errors in {{numErrors}} of {{numCells}} cells`, {numErrors, numCells})
+        t(`Errors in {{numErrors}} of {{numCells}} cells`, {numErrors, numCells}),
       );
     }
  else {

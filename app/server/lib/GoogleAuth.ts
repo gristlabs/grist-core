@@ -119,7 +119,7 @@ export async function googleAuthTokenMiddleware(
  */
 export function addGoogleAuthEndpoint(
   expressApp: express.Application,
-  messagePage: (req: express.Request, res: express.Response, message: any) => any
+  messagePage: (req: express.Request, res: express.Response, message: any) => any,
 ) {
   if (!process.env.GOOGLE_CLIENT_SECRET) {
     log.warn("Failed to create GoogleAuth endpoint: GOOGLE_CLIENT_SECRET is not defined");
@@ -160,12 +160,12 @@ export function addGoogleAuthEndpoint(
       const authUrl = oAuth2Client.generateAuthUrl({
         scope,
         prompt: 'select_account',
-        state: origin
+        state: origin,
       });
       log.debug(`GoogleAuth - redirecting to Google consent screen`, {
         authUrl,
         scope,
-        state: origin
+        state: origin,
       });
       res.redirect(authUrl);
     }

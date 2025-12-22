@@ -415,7 +415,7 @@ export class FormView extends BaseView {
     const userId = this.gristDoc.app.topAppModel.appObs.get()?.currentUser?.id || 0;
     this._showPublishedMessage = this.autoDispose(localStorageBoolObs(
       `u:${userId};d:${this.gristDoc.docId()};vs:${this.viewSection.id()};formShowPublishedMessage`,
-      true
+      true,
     ));
 
     this._isOwner = isOwner(this.gristDoc.docPageModel.currentDoc.get());
@@ -479,7 +479,7 @@ export class FormView extends BaseView {
         const result = await this.insertColumn(null, {
           colInfo: {
             type: action.add,
-          }
+          },
         });
         fieldRef = result.fieldRef;
       }
@@ -487,7 +487,7 @@ export class FormView extends BaseView {
       this.selectedBox.set(insert({
         id: uuidv4(),
         leaf: fieldRef,
-        type: 'Field'
+        type: 'Field',
       }));
       await this._root.save();
     }, {nestInActiveBundle: true});
@@ -526,14 +526,14 @@ export class FormView extends BaseView {
               style.cssParagraph(
                 t(
                   'Publishing your form will generate a share link. Anyone with the link can \
-see the empty form and submit a response.'
+see the empty form and submit a response.',
                 ),
               ),
               style.cssParagraph(
                 t(
                   'Users are limited to submitting \
 entries (records in your table) and reading pre-set values in designated \
-fields, such as reference and choice columns.'
+fields, such as reference and choice columns.',
                 ),
               ),
             )
@@ -583,7 +583,7 @@ fields, such as reference and choice columns.'
             options: JSON.stringify({
               publish: true,
             }),
-          }
+          },
         ]);
         await this.gristDoc.docModel.docData.sendAction(['UpdateRecord', '_grist_Pages', page.id(), {shareRef}]);
       }
@@ -621,7 +621,7 @@ fields, such as reference and choice columns.'
               style.cssParagraph(
                 t(
                   'Unpublishing the form will disable the share link so that users accessing \
-your form via that link will see an error.'
+your form via that link will see an error.',
                 ),
               ),
             )
@@ -674,7 +674,7 @@ your form via that link will see an error.'
               t('Reset'),
               () => this._resetForm(),
             );
-          })
+          }),
         ),
         dom.domComputed(this._published, (published) => {
           if (published) {
@@ -696,7 +696,7 @@ your form via that link will see an error.'
  finally {
                   this._openingForm.set(false);
                 }
-              })
+              }),
             );
           }
  else {
@@ -713,7 +713,7 @@ your form via that link will see an error.'
                   await this.save();
                   window.open(this._previewUrl.get());
                 }
-              })
+              }),
             );
           }
         }),
@@ -840,9 +840,9 @@ your form via that link will see an error.'
                       showTransientTooltip(
                         el,
                         t('Link copied to clipboard'),
-                        {key: 'share-form-menu'}
+                        {key: 'share-form-menu'},
                       );
-                    })
+                    }),
                   ),
                 ),
               ),
@@ -853,7 +853,7 @@ your form via that link will see an error.'
                   style.cssShareMenuEmbedFormButton(
                     t('Embed this form'),
                     dom.on('click', () => showEmbedCode.set(true)),
-                  )
+                  ),
                 );
               }
  else {
@@ -874,7 +874,7 @@ your form via that link will see an error.'
                           showTransientTooltip(
                             el,
                             t('Code copied to clipboard'),
-                            {key: 'share-form-menu'}
+                            {key: 'share-form-menu'},
                           );
                         }),
                       ),
@@ -916,7 +916,7 @@ your form via that link will see an error.'
         style.cssSwitcherMessageBody(
           t(
             'Your form is published. Every change is live and visible to users \
-with access to the form. If you want to make changes in draft, unpublish the form.'
+with access to the form. If you want to make changes in draft, unpublish the form.',
           ),
         ),
         style.cssSwitcherMessageDismissButton(
@@ -976,8 +976,8 @@ export function buildDefaultFormLayout(fields: ViewFieldRec[]): FormLayoutNode {
     id: uuidv4(),
     type: 'Layout',
     children: [
-      {id: uuidv4(), type: 'Paragraph', text: FORM_TITLE, alignment: 'center', },
-      {id: uuidv4(), type: 'Paragraph', text: FORM_DESC, alignment: 'center', },
+      {id: uuidv4(), type: 'Paragraph', text: FORM_TITLE, alignment: 'center' },
+      {id: uuidv4(), type: 'Paragraph', text: FORM_DESC, alignment: 'center' },
       section,
       {id: uuidv4(), type: 'Submit'},
     ],

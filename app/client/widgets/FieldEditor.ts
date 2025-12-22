@@ -28,7 +28,7 @@ export function saveWithoutEditor(
   editorCtor: IEditorConstructor,
   editRow: DataRowModel,
   field: ViewFieldRec,
-  options: {typedVal?: string, event?: Event}
+  options: {typedVal?: string, event?: Event},
 ): boolean {
   const {typedVal, event} = options;
   // Never skip the editor if editing a formula. Also, check that skipEditor static function
@@ -234,7 +234,7 @@ export class FieldEditor extends Disposable {
     const error = getFormulaError(errorHolder, {
       gristDoc: this._gristDoc,
       editRow: this._editRow,
-      field: this._field
+      field: this._field,
     });
 
     // For readonly mode use the default behavior of Formula Editor
@@ -263,7 +263,7 @@ export class FieldEditor extends Disposable {
       state,
       canDetach: true,
       commands: this._editCommands,
-      readonly : this._readonly
+      readonly : this._readonly,
     }));
 
     editor.autoDispose(errorHolder);
@@ -276,7 +276,7 @@ export class FieldEditor extends Disposable {
           position : this.cellPosition(),
           wasModified : this._editorHasChanged,
           currentState,
-          type: this._field.column.peek().pureType.peek()
+          type: this._field.column.peek().pureType.peek(),
         };
         this.changeEmitter.emit(event);
       }));
@@ -319,7 +319,7 @@ export class FieldEditor extends Disposable {
     const position = {
       rowId,
       colRef,
-      sectionId
+      sectionId,
     };
     return position;
   }
@@ -384,7 +384,7 @@ export class FieldEditor extends Disposable {
       position : this.cellPosition(),
       wasModified : this._editorHasChanged,
       currentState : this._editorHolder.get()?.editorState?.get(),
-      type : this._field.column.peek().pureType.peek()
+      type : this._field.column.peek().pureType.peek(),
     };
     this.cancelEmitter.emit(event);
     this.dispose();
@@ -443,7 +443,7 @@ export class FieldEditor extends Disposable {
         position : this.cellPosition(),
         wasModified : this._editorHasChanged,
         currentState : this._editorHolder.get()?.editorState?.get(),
-        type : this._field.column.peek().pureType.peek()
+        type : this._field.column.peek().pureType.peek(),
       };
       this.saveEmitter.emit(event);
 
@@ -462,7 +462,7 @@ export class FieldEditor extends Disposable {
  * - canceling on click-away (when focus returns to Grist "clipboard" element)
  */
 function setupReadonlyEditorCleanup(
-  owner: MultiHolder, gristDoc: GristDoc, field: ViewFieldRec, cancelEdit: () => any
+  owner: MultiHolder, gristDoc: GristDoc, field: ViewFieldRec, cancelEdit: () => any,
 ) {
   // Whenever focus returns to the Clipboard component, close the editor by saving the value.
   gristDoc.app.on('clipboard_focus', cancelEdit);
@@ -479,7 +479,7 @@ function setupReadonlyEditorCleanup(
  * - Arrange for UnsavedChange protection against leaving the page with unsaved changes.
  */
 export function setupEditorCleanup(
-  owner: MultiHolder, gristDoc: GristDoc, editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>
+  owner: MultiHolder, gristDoc: GristDoc, editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>,
 ) {
   const saveEdit = () => _saveEdit().catch(reportError);
 

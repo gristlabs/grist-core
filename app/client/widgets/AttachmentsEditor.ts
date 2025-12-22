@@ -91,7 +91,7 @@ export class AttachmentsEditor extends NewBaseEditor {
         filename,
         hasPreview: Boolean(this._attachmentsTable.getValue(val, 'imageHeight')),
         url: computed(use => this._getUrl(cell, val, use(filename))),
-        inlineUrl: computed(use => this._getUrl(cell, val, use(filename), true))
+        inlineUrl: computed(use => this._getUrl(cell, val, use(filename), true)),
       };
     });
     this._index = makeLiveIndex(this, this._attachments, initRowIndex);
@@ -118,7 +118,7 @@ export class AttachmentsEditor extends NewBaseEditor {
         // Close if clicking into the background. (The default modal's behavior for this isn't
         // triggered because our content covers the whole screen.)
         dom.on('click', (ev, elem) => { if (ev.target === elem) { ctl.close(); } }),
-        ...this._buildDom(ctl)
+        ...this._buildDom(ctl),
       ];
     }, {noEscapeKey: true});
   }
@@ -149,8 +149,8 @@ export class AttachmentsEditor extends NewBaseEditor {
             cssLoading(
               loadingSpinner(),
               t('Uploading…'),
-              testId('pw-spinner')
-            )
+              testId('pw-spinner'),
+            ),
           ),
         ),
         dom.maybe(this._selected, selected =>
@@ -159,7 +159,7 @@ export class AttachmentsEditor extends NewBaseEditor {
               save: val => this._renameAttachment(selected, val),
               inputArgs: [testId('pw-name')],
             }),
-          )
+          ),
         ),
         cssFlexExpand(
           cssFileButtons(
@@ -168,33 +168,33 @@ export class AttachmentsEditor extends NewBaseEditor {
                 dom.attr('href', selected.url),
                 dom.attr('target', '_blank'),
                 dom.attr('download', selected.filename),
-                testId('pw-download')
+                testId('pw-download'),
               ),
             ),
             this.options.readonly ? null : [
               cssButton(cssButtonIcon('FieldAttachment'), t('Add'),
                 dom.on('click', () => this._select()),
-                testId('pw-add')
+                testId('pw-add'),
               ),
               dom.maybe(this._selected, () =>
                 cssButton(cssButtonIcon('Remove'), t('Delete'),
                   dom.on('click', () => this._remove()),
-                  testId('pw-remove')
+                  testId('pw-remove'),
                 ),
-              )
-            ]
+              ),
+            ],
           ),
           cssCloseButton(cssBigIcon('CrossBig'), dom.on('click', () => ctl.close()),
             testId('pw-close')),
-        )
+        ),
       ),
       cssNextArrow(cssNextArrow.cls('-left'), cssBigIcon('Expand'), testId('pw-left'),
         dom.hide(use => !use(this._attachments).length || use(this._index) === 0),
-        dom.on('click', () => this._moveIndex(-1))
+        dom.on('click', () => this._moveIndex(-1)),
       ),
       cssNextArrow(cssNextArrow.cls('-right'), cssBigIcon('Expand'), testId('pw-right'),
         dom.hide(use => !use(this._attachments).length || use(this._index) === use(this._attachments).length - 1),
-        dom.on('click', () => this._moveIndex(1))
+        dom.on('click', () => this._moveIndex(1)),
       ),
       dom.domComputed(this._selected, selected => renderContent(selected, this.options.readonly)),
 
@@ -202,7 +202,7 @@ export class AttachmentsEditor extends NewBaseEditor {
       (elem: HTMLElement) => dragOverClass(elem, cssDropping.className),
       cssDragArea(this.options.readonly ? null : cssWarning(t('Drop files here to attach'))),
       this.options.readonly ? null : dom.on('drop', ev => this._upload(ev.dataTransfer!.files)),
-      testId('pw-modal')
+      testId('pw-modal'),
     ];
   }
 
@@ -216,7 +216,7 @@ export class AttachmentsEditor extends NewBaseEditor {
     cell: SingleCell | null,
     attId: number,
     filename: string,
-    inline?: boolean
+    inline?: boolean,
   ): string {
     return this._docComm.docUrl('attachment') + '?' + encodeQueryParams({
       ...this._docComm.getUrlParams(),
@@ -224,7 +224,7 @@ export class AttachmentsEditor extends NewBaseEditor {
       ...cell,
       maybeNew: 1,  // The attachment may be uploaded by the user but not stored in the cell yet.
       attId,
-      ...(inline ? {inline: 1} : {})
+      ...(inline ? {inline: 1} : {}),
     });
   }
 
@@ -243,12 +243,12 @@ export class AttachmentsEditor extends NewBaseEditor {
       const uploadResult = await selectFiles({
         docWorkerUrl: this._docComm.docWorkerUrl,
         multiple: true,
-        sizeLimit: 'attachment'
+        sizeLimit: 'attachment',
       }, (progress) => {
         if (progress === 0) {
           this._isUploading.set(true);
           }
-        }
+        },
       );
       this._isUploading.set(false);
       return this._add(uploadResult);
@@ -268,7 +268,7 @@ export class AttachmentsEditor extends NewBaseEditor {
           if (progress === 0) {
             this._isUploading.set(true);
           }
-        }
+        },
       );
       this._isUploading.set(false);
       return this._add(uploadResult);
@@ -300,7 +300,7 @@ function renderContent(att: Attachment|null, readonly: boolean): HTMLElement {
     return cssWarning(
       t('No attachments'),
       readonly ? null : cssDetails(t('Drop files here to attach.')),
-      ...commonArgs
+      ...commonArgs,
     );
   }
  else if (att.hasPreview) {
@@ -323,7 +323,7 @@ function renderContent(att: Attachment|null, readonly: boolean): HTMLElement {
     // Setting 'type' attribute is important to avoid a download prompt from Chrome.
     return dom('object', {type: att.fileType}, dom.attr('data', att.inlineUrl), ...commonArgs,
       cssWarning(cssContent.cls(''), renderFileType(att.filename.get(), att.fileIdent),
-        cssDetails(t('Preview not available.')))
+        cssDetails(t('Preview not available.'))),
     );
   }
 }
