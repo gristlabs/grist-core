@@ -3,6 +3,7 @@ import { ApiError } from 'app/common/ApiError';
 import { normalizeEmail } from 'app/common/emails';
 import { PERSONAL_FREE_PLAN } from 'app/common/Features';
 import { buildUrlId } from 'app/common/gristUrls';
+import { isEmail } from 'app/common/gutil';
 import { UserOrgPrefs } from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import { UserType } from 'app/common/User';
@@ -756,6 +757,12 @@ export class UsersManager {
         if (!user && role === null) {
           // Removing access from non-existant users is a no-op.
           continue;
+        }
+
+        // Validate email. We only skip this check for removing users, to allow correcting invalid
+        // emails if any were added in a version of Grist that predates this check.
+        if (!isEmail(email)) {
+          throw new ApiError("Invalid email address included", 400);
         }
 
         if (user) {

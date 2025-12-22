@@ -112,6 +112,11 @@ describe('ApiServerAccess', function() {
     return {payload, description};
   }
 
+  function assertResult(resp: AxiosResponse, status: number, errMessage: string) {
+    assert.equal(resp.status, status);
+    assert.equal(resp.data?.error, errMessage);
+  }
+
   async function checkAccessChange(
     resource:
       | { orgId: string | number }
@@ -2042,6 +2047,47 @@ describe('ApiServerAccess', function() {
     const invalidResp3 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`,
       {delta: invalidDelta}, chimpy);
     assert.equal(invalidResp3.status, 400);
+  });
+
+  it('should disallow setting empty or invalid emails', async function() {
+    const oid = await dbManager.testGetId('Chimpyland');
+    const wid = await dbManager.testGetId('Private');
+    const did = await dbManager.testGetId('Timesheets');
+
+    async function testInvalidEmail(email: string) {
+      // Try setting on org level.
+      const invalidRespOrg = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`,
+        {delta: {users: {[email]: "viewers"}}}, chimpy);
+      assertResult(invalidRespOrg, 400, 'Invalid email address included');
+
+      // Fetch org permissions and check that our attempt didn't get added.
+      const orgAccess = await axios.get(`${homeUrl}/api/orgs/${oid}/access`, chimpy);
+      assert.equal(orgAccess.status, 200);
+      assert.deepEqual(orgAccess.data.users.map((u: any) => u.email), [chimpyEmail, charonEmail]);
+
+      // Try updating access to remove an invalid email; this should succeed, so that we don't
+      // block people from correcting bad sharing from before validation got added.
+      const removeResult = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`,
+        {delta: {users: {[email]: null}}}, chimpy);
+      assert.equal(removeResult.status, 200);
+
+      // Try workspace level; combining with a valid email shouldn't help.
+      const invalidRespWs = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`,
+        {delta: {users: {[kiwiEmail]: "viewers", [email]: "editors"}}}, chimpy);
+      assertResult(invalidRespWs, 400, 'Invalid email address included');
+
+      // Try doc level.
+      const invalidRespDoc = await axios.patch(`${homeUrl}/api/docs/${did}/access`,
+        {delta: {users: {[email]: "owners"}}}, chimpy);
+      assertResult(invalidRespDoc, 400, 'Invalid email address included');
+    }
+
+    // Try setting permissions for an empty email and for a few other invalid emails.
+    await testInvalidEmail("");
+    await testInvalidEmail('\n');
+    await testInvalidEmail('hello');
+    await testInvalidEmail('foo@example.com\r\nBcc: bar@example.com');
+    await testInvalidEmail("' OR 1=1 --@example.com");
   });
 
   describe('team plan', function() {
