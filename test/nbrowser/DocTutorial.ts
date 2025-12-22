@@ -19,6 +19,7 @@ describe('DocTutorial', function () {
     'GRIST_UI_FEATURES': 'tutorials',
     'GRIST_TEMPLATE_ORG': 'templates',
     'GRIST_ONBOARDING_TUTORIAL_DOC_ID': 'grist-basics',
+    'GRIST_TEST_LOGIN': '1',
   });
 
   before(async () => {

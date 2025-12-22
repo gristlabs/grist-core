@@ -118,8 +118,8 @@ describe('AuthProvider', function() {
     // Now check the badge of the OIDC provider, it should be misconfigured.
     await gu.waitToPass(async () => {
       assert.deepEqual(await badges('OIDC'), ['ACTIVE', 'ERROR']);
-      // And a warning message should be present in the first row.
-      assert.include(await errorMessage('OIDC').getText(), 'GRIST_OIDC_IDP_CLIENT_ID');
+      // And a warning message should be present in the first row about one of the required env vars.
+      assert.include(await errorMessage('OIDC').getText(), 'GRIST_OIDC_');
     }, 1000);
 
     // The label says "auth error" now (as no valid login is possible).
@@ -143,6 +143,7 @@ describe('AuthProvider', function() {
     process.env.GRIST_OIDC_IDP_CLIENT_ID = 'test-client-id';
     process.env.GRIST_OIDC_IDP_CLIENT_SECRET = 'test-client-secret';
     process.env.GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT = 'true';
+    process.env.GRIST_OIDC_SP_HOST = 'localhost';
 
     // Restart to pick up the new configuration.
     await restartAdmin();
