@@ -176,7 +176,7 @@ export const groups: CommendGroupDef[] = [{
       desc: () => t('Undo last action')
     }, {
       name: 'redo',
-      keys: ['Mod+Shift+Z', 'Ctrl+y' ],
+      keys: ['Mod+Shift+Z', 'Ctrl+y'],
       desc: () => t('Redo last action')
     }, {
       name: 'accept',

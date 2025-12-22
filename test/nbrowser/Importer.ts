@@ -37,9 +37,9 @@ describe('Importer', function() {
     assert.lengthOf(await driver.findAll('.test-importer-source'), 1);
 
     assert.deepEqual(await gu.getPreviewContents([0, 1, 2], [1, 2, 3]),
-      [ 'Lily', 'Jones', 'director',
+      ['Lily', 'Jones', 'director',
         'Kathy', 'Mills', 'student',
-        'Karen', 'Gold', 'professor' ]);
+        'Karen', 'Gold', 'professor']);
 
     // Check that the preview table cannot be edited by double-clicking a cell or via keyboard.
     const cell = await (await gu.getPreviewCell(0, 1)).doClick();
@@ -87,10 +87,10 @@ describe('Importer', function() {
 
     // Ensure that column names become the first row in preview data.
     assert.deepEqual(await gu.getPreviewContents([0, 1, 2], [1, 2, 3, 4]),
-      [ 'Name', 'Phone', 'Title',
+      ['Name', 'Phone', 'Title',
         'Lily', 'Jones', 'director',
         'Kathy', 'Mills', 'student',
-        'Karen', 'Gold', 'professor' ]);
+        'Karen', 'Gold', 'professor']);
 
     // Check the option again and update the preview.
     await driver.find('.test-importer-options-link').click();
@@ -102,9 +102,9 @@ describe('Importer', function() {
 
     // Ensure that column names are used as headers again.
     assert.deepEqual(await gu.getPreviewContents([0, 1, 2], [1, 2, 3]),
-      [ 'Lily', 'Jones', 'director',
+      ['Lily', 'Jones', 'director',
         'Kathy', 'Mills', 'student',
-        'Karen', 'Gold', 'professor' ]);
+        'Karen', 'Gold', 'professor']);
 
     // Right-click a column header, to ensure we don't get a JS error in this case.
     const colHeader = await driver.findContent('.test-importer-preview .column_name', /Name/);
@@ -120,9 +120,9 @@ describe('Importer', function() {
     await gu.waitForServer();
 
     assert.deepEqual(await gu.getPreviewContents([0], [1, 2, 3]),
-      [ 'Lily,Jones,director',
+      ['Lily,Jones,director',
         'Kathy,Mills,student',
-        'Karen,Gold,professor' ]);
+        'Karen,Gold,professor']);
 
     // Close the dialog.
     await driver.find('.test-modal-cancel').click();
@@ -141,9 +141,9 @@ describe('Importer', function() {
       'UploadedData1.csv');
 
     assert.deepEqual(await gu.getPreviewContents([0, 1, 2], [1, 2, 3]),
-      [ 'Lily', 'Jones', 'director',
+      ['Lily', 'Jones', 'director',
         'Kathy', 'Mills', 'student',
-        'Karen', 'Gold', 'professor' ]);
+        'Karen', 'Gold', 'professor']);
 
     // Select another table
     await driver.findContent('.test-importer-from', /UploadedData2/).click();
@@ -151,12 +151,12 @@ describe('Importer', function() {
     assert.equal(await driver.find('.test-importer-source-selected .test-importer-from').getText(),
       'UploadedData2.csv');
     assert.deepEqual(await gu.getPreviewContents([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6]),
-      [ 'BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
+      ['BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
         'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
         'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
         'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',      '',
         'BUS500',      'Ethics and Law',      'Filip Andries',       '01/13/2021',      '',
-        'BUS540',      'Capstone',            '',                    '01/13/2021',      '' ]);
+        'BUS540',      'Capstone',            '',                    '01/13/2021',      '']);
 
     // Check that changing a parse option (Field Separator to "|") affects both tables.
     await driver.find('.test-importer-options-link').click();
@@ -165,19 +165,19 @@ describe('Importer', function() {
     await gu.waitForServer();
 
     assert.deepEqual(await gu.getPreviewContents([0], [1, 2, 3]),
-      [ 'Lily,Jones,director',
+      ['Lily,Jones,director',
         'Kathy,Mills,student',
-        'Karen,Gold,professor' ]);
+        'Karen,Gold,professor']);
 
     await driver.findContent('.test-importer-from', /UploadedData2/).click();
     await gu.waitForServer();
     assert.deepEqual(await gu.getPreviewContents([0], [1, 2, 3, 4, 5, 6]),
-      [ 'BUS100,Intro to Business,,01/13/2021,false',
+      ['BUS100,Intro to Business,,01/13/2021,false',
         'BUS102,Business Law,Nathalie Patricia,01/13/2021,false',
         'BUS300,Business Operations,Michael Rian,01/14/2021,false',
         'BUS301,History of Business,Mariyam Melania,01/14/2021,false',
         'BUS500,Ethics and Law,Filip Andries,01/13/2021,false',
-        'BUS540,Capstone,,01/13/2021,true' ]);
+        'BUS540,Capstone,,01/13/2021,true']);
 
     // Close the dialog.
     await driver.find('.test-modal-cancel').click();
@@ -205,19 +205,19 @@ describe('Importer', function() {
       ['UploadedData1.csv', 'UploadedData2.csv']);
 
     assert.deepEqual(await gu.getPreviewContents([0, 1, 2], [1, 2, 3]),
-      [ 'Lily', 'Jones', 'director',
+      ['Lily', 'Jones', 'director',
         'Kathy', 'Mills', 'student',
-        'Karen', 'Gold', 'professor' ]);
+        'Karen', 'Gold', 'professor']);
 
     await driver.findContent('.test-importer-from', /UploadedData2/).click();
     await gu.waitForServer();
     assert.deepEqual(await gu.getPreviewContents([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6]),
-      [ 'BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
+      ['BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
         'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
         'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
         'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',      '',
         'BUS500',      'Ethics and Law',      'Filip Andries',       '01/13/2021',      '',
-        'BUS540',      'Capstone',            '',                    '01/13/2021',      '' ]);
+        'BUS540',      'Capstone',            '',                    '01/13/2021',      '']);
 
     await driver.find('.test-modal-cancel').click();
     await gu.waitForServer();
@@ -231,7 +231,7 @@ describe('Importer', function() {
     await gu.waitForServer();
 
     assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3, 4], cols: [0, 1, 2] }),
-      [ 'Lily', 'Jones', 'director',
+      ['Lily', 'Jones', 'director',
         'Kathy', 'Mills', 'student',
         'Karen', 'Gold', 'professor',
         '', '', '']);
@@ -245,9 +245,9 @@ describe('Importer', function() {
 
     // The preview content should be the same, since all columns match.
     assert.deepEqual(await gu.getPreviewContents([0, 1, 2], [1, 2, 3]),
-      [ 'Lily', 'Jones', 'director',
+      ['Lily', 'Jones', 'director',
         'Kathy', 'Mills', 'student',
-        'Karen', 'Gold', 'professor' ]);
+        'Karen', 'Gold', 'professor']);
 
     await waitForColumnMapping();
     assert.deepEqual(await getColumnMatchingRows(), [
@@ -261,7 +261,7 @@ describe('Importer', function() {
     await gu.waitForServer();
 
     assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3, 4, 5, 6, 7], cols: [0, 1, 2] }),
-      [ 'Lily', 'Jones', 'director',
+      ['Lily', 'Jones', 'director',
         'Kathy', 'Mills', 'student',
         'Karen', 'Gold', 'professor',
         'Lily', 'Jones', 'director',
@@ -276,7 +276,7 @@ describe('Importer', function() {
     // Ensure that imported table is removed, and we are back to the original one.
     assert.deepEqual(await gu.getPageNames(), ['Table1']);
     assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1], cols: [0, 1, 2] }),
-      [ 'hello', '', '']);
+      ['hello', '', '']);
   });
 
   it('should finish import multiple files', async function() {
@@ -287,25 +287,25 @@ describe('Importer', function() {
 
     assert.deepEqual(await gu.getPageNames(), ['Table1', 'UploadedData1', 'UploadedData2']);
     assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2], rowNums: [1, 2, 3]}),
-      [ 'Lily', 'Jones', 'director',
+      ['Lily', 'Jones', 'director',
         'Kathy', 'Mills', 'student',
-        'Karen', 'Gold', 'professor' ]);
+        'Karen', 'Gold', 'professor']);
 
     await gu.getPageItem('UploadedData2').click();
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6]}),
-    [ 'BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
+    ['BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
       'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
       'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
       'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',      '',
       'BUS500',      'Ethics and Law',      'Filip Andries',       '01/13/2021',      '',
-      'BUS540',      'Capstone',            '',                    '01/13/2021',      '' ]);
+      'BUS540',      'Capstone',            '',                    '01/13/2021',      '']);
 
     // Undo and check that we are back to the original state.
     await gu.undo();
     assert.deepEqual(await gu.getPageNames(), ['Table1']);
     assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1], cols: [0, 1, 2] }),
-      [ 'hello', '', '']);
+      ['hello', '', '']);
   });
 
   it('should import empty dates', async function() {
@@ -318,9 +318,9 @@ describe('Importer', function() {
     assert.equal(await driver.find('.test-importer-dialog').isPresent(), false);
 
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: [0, 1]}),
-      [ "Bob", "2018-01-01",
+      ["Bob", "2018-01-01",
         "Alice", "",
-        "Carol", "2017-01-01" ]);
+        "Carol", "2017-01-01"]);
 
     assert.deepEqual(await gu.getPageNames(), ['Table1', 'EmptyDate']);
 
@@ -335,9 +335,9 @@ describe('Importer', function() {
     await gu.waitForServer();
     // Ensure that there is no ValueError in second row
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: [0, 1, 2]}),
-      [ "Bob",    "2018-01-01",   "date",
+      ["Bob",    "2018-01-01",   "date",
         "Alice",  "",             "NoneType",
-        "Carol",  "2017-01-01",   "date" ]);
+        "Carol",  "2017-01-01",   "date"]);
   });
 
   it('should finish import xlsx file', async function() {
@@ -348,7 +348,7 @@ describe('Importer', function() {
     assert.equal(await driver.find('.test-importer-dialog').isPresent(), false);
     // Look at a small subset of the imported table.
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: [0, 1, 2]}),
-                     [ 'Africa', 'Eastern Africa', 'Burundi',
+                     ['Africa', 'Eastern Africa', 'Burundi',
                        'Africa', 'Eastern Africa', 'Burundi',
                        'Africa', 'Eastern Africa', 'Comoros']);
   });
@@ -364,7 +364,7 @@ describe('Importer', function() {
     assert.equal(await driver.find('.test-importer-dialog').isPresent(), false);
     // Look at a small subset of the imported table.
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: [0, 1, 2]}),
-                     [ 'Africa', 'Eastern Africa', 'Burundi',
+                     ['Africa', 'Eastern Africa', 'Burundi',
                        'Africa', 'Eastern Africa', 'Burundi',
                        'Africa', 'Eastern Africa', 'Comoros']);
     await driver.get(`${docUrl}`);
@@ -398,9 +398,9 @@ describe('Importer', function() {
 
     // Check that the imported file contents were added to the end of EmptyDate.
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [4, 5, 6], cols: [0, 1]}),
-      [ "Bob", "2018-01-01",
+      ["Bob", "2018-01-01",
         "Alice", "",
-        "Carol", "2017-01-01" ]);
+        "Carol", "2017-01-01"]);
     assert.equal(await gu.getGridRowCount(), 7);
   });
 
@@ -499,7 +499,7 @@ describe('Importer', function() {
 
       // Check that the destination table is unchanged since we imported the same file.
       assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3, 4], cols: [0, 1, 2] }),
-        [ 'Lily', 'Jones', 'director',
+        ['Lily', 'Jones', 'director',
           'Kathy', 'Mills', 'student',
           'Karen', 'Gold', 'professor',
           '', '', ''
@@ -509,7 +509,7 @@ describe('Importer', function() {
       // Undo the import, and check that the destination table is still unchanged.
       await gu.undo();
       assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3, 4], cols: [0, 1, 2] }),
-        [ 'Lily', 'Jones', 'director',
+        ['Lily', 'Jones', 'director',
           'Kathy', 'Mills', 'student',
           'Karen', 'Gold', 'professor',
           '', '', ''
@@ -543,7 +543,7 @@ describe('Importer', function() {
       // Check the preview shows a diff of the changes importing will make.
       await waitForDiffPreviewToLoad();
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2], [1, 2, 3, 4, 5, 6]),
-        [ 'Lily', 'Jones', ['director', 'student', undefined],
+        ['Lily', 'Jones', ['director', 'student', undefined],
           'Kathy', 'Mills', ['student', 'professor', undefined],
           'Karen', 'Gold', ['professor', 'director', undefined],
           [undefined, 'Michael', undefined], [undefined, 'Smith', undefined], [undefined, 'student', undefined],
@@ -556,7 +556,7 @@ describe('Importer', function() {
       await driver.find('.test-modal-confirm').click();
       await gu.waitForServer();
       assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3, 4, 5, 6], cols: [0, 1, 2] }),
-        [ 'Lily', 'Jones', 'student',
+        ['Lily', 'Jones', 'student',
           'Kathy', 'Mills', 'professor',
           'Karen', 'Gold', 'director',
           'Michael', 'Smith', 'student',
@@ -568,7 +568,7 @@ describe('Importer', function() {
       // Undo the import, and check the table is back to how it was pre-import.
       await gu.undo();
       assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3, 4], cols: [0, 1, 2] }),
-        [ 'Lily', 'Jones', 'director',
+        ['Lily', 'Jones', 'director',
           'Kathy', 'Mills', 'student',
           'Karen', 'Gold', 'professor',
           '', '', ''
@@ -621,7 +621,7 @@ describe('Importer', function() {
 
       await waitForDiffPreviewToLoad();
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2], [1, 2, 3, 4, 5, 6]),
-        [ 'Lily', 'Jones', ['director', 'student', undefined],
+        ['Lily', 'Jones', ['director', 'student', undefined],
           'Kathy', 'Mills', ['student', 'professor', undefined],
           'Karen', 'Gold', ['professor', 'director', undefined],
           [undefined, 'Michael', undefined], [undefined, 'Smith', undefined], [undefined, 'student', undefined],
@@ -658,7 +658,7 @@ describe('Importer', function() {
       // Check that the preview diff looks correct for UploadedData2.
       await waitForDiffPreviewToLoad();
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7, 8, 9]),
-        [ 'BUS100',      'Intro to Business',   [undefined, 'Mariyam Melania', undefined], '01/13/2021', '',
+        ['BUS100',      'Intro to Business',   [undefined, 'Mariyam Melania', undefined], '01/13/2021', '',
           'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',       '',
           'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',       '',
           'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',       '',
@@ -686,7 +686,7 @@ describe('Importer', function() {
 
       // Check the contents of UploadedData1.
       assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3, 4, 5, 6], cols: [0, 1, 2] }),
-        [ 'Lily', 'Jones', 'student',
+        ['Lily', 'Jones', 'student',
           'Kathy', 'Mills', 'professor',
           'Karen', 'Gold', 'director',
           'Michael', 'Smith', 'student',
@@ -699,7 +699,7 @@ describe('Importer', function() {
       await gu.getPageItem('UploadedData2').click();
       await gu.waitForServer();
       assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6, 7, 8, 9]}),
-        [ 'BUS100',      'Intro to Business',   'Mariyam Melania',     '01/13/2021',      '',
+        ['BUS100',      'Intro to Business',   'Mariyam Melania',     '01/13/2021',      '',
           'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
           'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
           'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',      '',
@@ -707,7 +707,7 @@ describe('Importer', function() {
           'BUS540',      'Capstone',            '',                    '01/13/2021',      '',
           'BUS501',      'Marketing',           'Michael Rian',        '01/13/2021',      '',
           'BUS539',      'Independent Study',   '',                    '01/13/2021',      '',
-          '',            '',                    '',                    '',                '' ]);
+          '',            '',                    '',                    '',                '']);
     });
 
     it('should support merging multiple Excel sheets into multiple tables', async function() {
@@ -785,11 +785,11 @@ describe('Importer', function() {
 
       assert.deepEqual(
         await getPreviewDiffCellValues([0, 6], [1, 2, 3, 4, 5]),
-        [ 'ABW', ['103000', '206000', undefined],
+        ['ABW', ['103000', '206000', undefined],
           'AFG', ['22720000', '45440000', undefined],
           'AGO', ['12878000', '25756000', undefined],
           'AIA', ['8000', '16000', undefined],
-          'ALB', [ '3401200', '6802400', undefined]
+          'ALB', ['3401200', '6802400', undefined]
         ]
       );
 
@@ -816,7 +816,7 @@ describe('Importer', function() {
       // Check the preview diff of CountryLanguage. The first few percentages should be slightly different.
       await waitForDiffPreviewToLoad();
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3], [1, 2, 3, 4, 5]),
-        [ 'Dutch', ['5.3', '5.5', undefined], 'ABW', '',
+        ['Dutch', ['5.3', '5.5', undefined], 'ABW', '',
           'English', ['9.5', '9.3', undefined], 'ABW', '',
           'Papiamento', ['76.7', '76.3', undefined], 'ABW', '',
           'Spanish', ['7.4', '7.8', undefined], 'ABW', '',
@@ -875,7 +875,7 @@ describe('Importer', function() {
           cols: [0, 6],
           rowNums: [1, 2, 3, 4, 5]
         }),
-        [ 'ABW', '206000',
+        ['ABW', '206000',
           'AFG', '45440000',
           'AGO', '25756000',
           'AIA', '16000',
@@ -890,7 +890,7 @@ describe('Importer', function() {
       await gu.getPageItem('CountryLanguage').click();
       await gu.waitForServer();
       assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2, 3], rowNums: [1, 2, 3, 4, 5]}),
-        [ 'Dutch', '5.5', 'ABW', '',
+        ['Dutch', '5.5', 'ABW', '',
           'English', '9.3', 'ABW', '',
           'Papiamento', '76.3', 'ABW', '',
           'Spanish', '7.8', 'ABW', '',
@@ -913,13 +913,13 @@ describe('Importer', function() {
       await driver.find('.test-importer-update-existing-records').click();
       await gu.waitForServer();
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
-        [ 'BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
+        ['BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
           'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
           'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
           'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',      '',
           'BUS500',      'Ethics and Law',      'Filip Andries',       '01/13/2021',      '',
           'BUS540',      'Capstone',            '',                    '01/13/2021',      '',
-          '',            '',                    '',                    '',                '' ]);
+          '',            '',                    '',                    '',                '']);
 
       // Select 'CourseId' as the merge column, and check that the preview now contains a diff of old/new values.
       await driver.find('.test-importer-merge-fields-select').click();
@@ -932,26 +932,26 @@ describe('Importer', function() {
       await gu.waitForServer();
       await waitForDiffPreviewToLoad();
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
-        [ 'BUS100',      'Intro to Business',   [undefined, undefined, 'Mariyam Melania'], '01/13/2021', '',
+        ['BUS100',      'Intro to Business',   [undefined, undefined, 'Mariyam Melania'], '01/13/2021', '',
           'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
           'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
           'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',      '',
           'BUS500',      'Ethics and Law',      'Filip Andries',       '01/13/2021',      '',
           'BUS540',      'Capstone',            '',                    '01/13/2021',      ['false', 'true', undefined],
-          '',            '',                    '',                    '',                '' ]);
+          '',            '',                    '',                    '',                '']);
 
 
       // Uncheck 'Update existing records', and check that the preview no longer shows a diff.
       await driver.find('.test-importer-update-existing-records').click();
       await waitForDiffPreviewToLoad();
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
-        [ 'BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
+        ['BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
           'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
           'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
           'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',      '',
           'BUS500',      'Ethics and Law',      'Filip Andries',       '01/13/2021',      '',
           'BUS540',      'Capstone',            '',                    '01/13/2021',      '',
-          '',            '',                    '',                    '',                '' ]);
+          '',            '',                    '',                    '',                '']);
 
       // Check that the column matching section is correct.
       assert.deepEqual(await getColumnMatchingRows(), [
@@ -1016,13 +1016,13 @@ describe('Importer', function() {
       await driver.find('.test-importer-target-new-table').click();
       await gu.waitForServer();
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
-        [ 'BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
+        ['BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
           'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
           'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
           'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',      '',
           'BUS500',      'Ethics and Law',      'Filip Andries',       '01/13/2021',      '',
           'BUS540',      'Capstone',            '',                    '01/13/2021',      '',
-          '',            '',                    '',                    '',                '' ]);
+          '',            '',                    '',                    '',                '']);
 
       // Close the dialog.
       await driver.find('.test-modal-cancel').click();

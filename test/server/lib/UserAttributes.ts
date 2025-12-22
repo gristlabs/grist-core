@@ -61,10 +61,10 @@ describe('UserAttributes', function() {
       [2,    testLowerEmail],
     ]));
     const projectsData = toTableDataAction('Projects', tableToColValues([
-      ['id', 'Person', 'Email',             'TagByRef', 'TagByEmail', 'TagByEmailLower' ],
-      [1,    1,        'alice@example.com', 'ok',       'ok',         'ok'              ],
-      [2,    2,        testLowerEmail,      'ok',       'ok',         'ok',             ],
-      [3,    2,        testDisplayEmail,    'ok',       'ok',         'ok'              ],
+      ['id', 'Person', 'Email',             'TagByRef', 'TagByEmail', 'TagByEmailLower'],
+      [1,    1,        'alice@example.com', 'ok',       'ok',         'ok'],
+      [2,    2,        testLowerEmail,      'ok',       'ok',         'ok',],
+      [3,    2,        testDisplayEmail,    'ok',       'ok',         'ok'],
     ]));
     await owner.applyUserActions(docId, [
       ['AddTable', 'People', [
@@ -111,15 +111,15 @@ describe('UserAttributes', function() {
     const Cens: CellValue = [GristObjCode.Censored];
     const expectedFixApi = tableToColValues([
       ['id', 'Person', 'Email',               'TagByRef', 'TagByEmail', 'TagByEmailLower'],
-      [1,    1,        'alice@example.com',   Cens,       Cens,         Cens,            ],
-      [2,    2,        'charon@getgrist.com', 'ok',       'ok',         'ok',            ],
-      [3,    2,        'Charon@gEtGrIsT.com', 'ok',       Cens,         Cens,             ],
+      [1,    1,        'alice@example.com',   Cens,       Cens,         Cens,],
+      [2,    2,        'charon@getgrist.com', 'ok',       'ok',         'ok',],
+      [3,    2,        'Charon@gEtGrIsT.com', 'ok',       Cens,         Cens,],
     ]);
     const expectedFixWs = tableToColValues([
       ['id', 'Person', 'Email',               'TagByRef', 'TagByEmail', 'TagByEmailLower'],
-      [1,    1,        'alice@example.com',   Cens,       Cens,         Cens,            ],
-      [2,    2,        'charon@getgrist.com', 'ok',       Cens,         'ok',            ],
-      [3,    2,        'Charon@gEtGrIsT.com', 'ok',       'ok',         Cens,            ],
+      [1,    1,        'alice@example.com',   Cens,       Cens,         Cens,],
+      [2,    2,        'charon@getgrist.com', 'ok',       Cens,         'ok',],
+      [3,    2,        'Charon@gEtGrIsT.com', 'ok',       'ok',         Cens,],
     ]);
 
     async function testExpected() {

@@ -140,7 +140,7 @@ describe('UsersManager', function () {
         const resources: Resource[] = [someOrg, someWorkspace, someDoc];
         const allGroupNames = ['OrgGrp', 'WorkspaceGrp', 'DocGrp'];
         const membersByResource = populateResourcesWithMembers(resources, 5, i => allGroupNames[i]);
-        const filteredGroupNames = [ 'WorkspaceGrp', 'DocGrp' ];
+        const filteredGroupNames = ['WorkspaceGrp', 'DocGrp'];
 
         const result = UsersManager.getResourceUsers(resources, filteredGroupNames);
 
@@ -198,7 +198,7 @@ describe('UsersManager', function () {
 
         const result = UsersManager.getUsersWithRole(groups, excludedUsersId);
 
-        assert.deepEqual(result, new Map([ ['editors', expectedUsers] ]));
+        assert.deepEqual(result, new Map([['editors', expectedUsers]]));
       });
     });
   });

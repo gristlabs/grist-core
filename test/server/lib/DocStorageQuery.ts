@@ -103,22 +103,22 @@ describe('DocStorageQuery', function() {
     // It's a bit tricky to test, so we use a clever helper (defined below) that checks that
     // same-named matching groups all match.
     assertMatches(dbCalls, [
-      [ 'exec', 'BEGIN' ],
-      [ 'exec', /^CREATE TEMPORARY TABLE (?<table1>_grist_tmp\w+)\(data\)$/],
-      [ 'run', /^INSERT INTO (?<table1>_grist_tmp\w+)\(data\) VALUES \(\?\)(,\(\?\))*$/, [values.slice(0, 500)]],
-      [ 'run', /^INSERT INTO (?<table1>_grist_tmp\w+)\(data\) VALUES \(\?\)(,\(\?\))*$/, [values.slice(500, 1000)]],
-      [ 'run', /^INSERT INTO (?<table1>_grist_tmp\w+)\(data\) VALUES \(\?\)(,\(\?\))*$/, [values.slice(1000, 1200)]],
-      [ 'exec', /^CREATE TEMPORARY TABLE (?<table2>_grist_tmp\w+)\(data\)$/],
-      [ 'run', /^INSERT INTO (?<table2>_grist_tmp\w+)\(data\) VALUES \(\?\)(,\(\?\))*$/, [ [28] ]],
-      [ 'allMarshal', new RegExp(
+      ['exec', 'BEGIN'],
+      ['exec', /^CREATE TEMPORARY TABLE (?<table1>_grist_tmp\w+)\(data\)$/],
+      ['run', /^INSERT INTO (?<table1>_grist_tmp\w+)\(data\) VALUES \(\?\)(,\(\?\))*$/, [values.slice(0, 500)]],
+      ['run', /^INSERT INTO (?<table1>_grist_tmp\w+)\(data\) VALUES \(\?\)(,\(\?\))*$/, [values.slice(500, 1000)]],
+      ['run', /^INSERT INTO (?<table1>_grist_tmp\w+)\(data\) VALUES \(\?\)(,\(\?\))*$/, [values.slice(1000, 1200)]],
+      ['exec', /^CREATE TEMPORARY TABLE (?<table2>_grist_tmp\w+)\(data\)$/],
+      ['run', /^INSERT INTO (?<table2>_grist_tmp\w+)\(data\) VALUES \(\?\)(,\(\?\))*$/, [[28]]],
+      ['allMarshal', new RegExp(
         /^SELECT \* FROM "foo" WHERE /.source +
         /\("foo"\."values" IN \(SELECT data FROM (?<table1>_grist_tmp\w+)\)\) AND /.source +
         /\("foo"\."ages" IN \(SELECT data FROM (?<table2>_grist_tmp\w+)\)\)/.source),
         []
       ],
-      [ 'exec', /^DROP TABLE (?<table1>_grist_tmp\w+)$/ ],
-      [ 'exec', /^DROP TABLE (?<table2>_grist_tmp\w+)$/ ],
-      [ 'exec', 'COMMIT' ],
+      ['exec', /^DROP TABLE (?<table1>_grist_tmp\w+)$/],
+      ['exec', /^DROP TABLE (?<table2>_grist_tmp\w+)$/],
+      ['exec', 'COMMIT'],
     ]);
   });
 
@@ -131,17 +131,17 @@ describe('DocStorageQuery', function() {
     // It's a bit tricky to test, so we use a clever helper (defined below) that checks that
     // same-named matching groups all match.
     assertMatches(dbCalls, [
-      [ 'exec', 'BEGIN' ],
-      [ 'exec', /^CREATE TEMPORARY TABLE (?<table1>_grist_tmp\w+)\(data\)$/],
-      [ 'run', /^INSERT INTO (?<table1>_grist_tmp\w+)\(data\) VALUES \(\?\)(,\(\?\))*$/, [bars.slice(0, 500)]],
-      [ 'run', /^INSERT INTO (?<table1>_grist_tmp\w+)\(data\) VALUES \(\?\)(,\(\?\))*$/, [bars.slice(500, 600)]],
-      [ 'allMarshal', new RegExp(
+      ['exec', 'BEGIN'],
+      ['exec', /^CREATE TEMPORARY TABLE (?<table1>_grist_tmp\w+)\(data\)$/],
+      ['run', /^INSERT INTO (?<table1>_grist_tmp\w+)\(data\) VALUES \(\?\)(,\(\?\))*$/, [bars.slice(0, 500)]],
+      ['run', /^INSERT INTO (?<table1>_grist_tmp\w+)\(data\) VALUES \(\?\)(,\(\?\))*$/, [bars.slice(500, 600)]],
+      ['allMarshal', new RegExp(
         /^SELECT \* FROM "foo" WHERE \(name LIKE \? OR \? = \?\) AND /.source +
         /\("foo"\."bars" IN \(SELECT data FROM (?<table1>_grist_tmp\w+)\)\)/.source),
         ['J%', 4, 5],
       ],
-      [ 'exec', /^DROP TABLE (?<table1>_grist_tmp\w+)$/ ],
-      [ 'exec', 'COMMIT' ],
+      ['exec', /^DROP TABLE (?<table1>_grist_tmp\w+)$/],
+      ['exec', 'COMMIT'],
     ]);
   });
 });

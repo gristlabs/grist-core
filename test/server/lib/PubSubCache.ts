@@ -111,7 +111,7 @@ describe('PubSubCache', function() {
 
       // Trigger a condition where immediately after a fetch another server invalidates. We should
       // not miss that invalidation.
-      const [val, ] = await Promise.all([cache.getValue('race'), cache2.invalidateKeys(['race'])]);
+      const [val,] = await Promise.all([cache.getValue('race'), cache2.invalidateKeys(['race'])]);
       assert.equal(val, 'RACE@3');
       suffix = 4;
       await waitForIt(async () => {

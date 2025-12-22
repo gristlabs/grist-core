@@ -66,11 +66,11 @@ describe('OnDemandActions', function() {
   // after undo.
   const initialData: TableDataAction = [
     'TableData', 'Foo', [1, 3, 4, 9], {
-      fname:      [ 'Aa', 'Bb', 'Cc', 'Dd'],
-      lname:      [ 'Xx', 'Yy', 'Zz', 'Ww'],
-      Birth_Date: [ 123,  null, 456,  null],
-      age:        [ 50,   null, 40,   null],
-      manualSort: [ 1,    3,    4,    9],
+      fname:      ['Aa', 'Bb', 'Cc', 'Dd'],
+      lname:      ['Xx', 'Yy', 'Zz', 'Ww'],
+      Birth_Date: [123,  null, 456,  null],
+      age:        [50,   null, 40,   null],
+      manualSort: [1,    3,    4,    9],
     }];
 
   // Applies on-demand actions at a lower-level than ActiveDoc, so that we can get at their
@@ -90,11 +90,11 @@ describe('OnDemandActions', function() {
 
     assert.deepEqual((await activeDoc1.fetchTable(fakeSession, 'Foo')).tableData,
       ['TableData', 'Foo', [1, 3, 4, 9], {
-        fname:      [ 'Aa', 'Bb', 'Clyde', 'Dd'],
-        lname:      [ 'AX', 'Yy', 'CX', 'DX'],
-        Birth_Date: [ null, null, 678,  909],
-        age:        [ 50,   null, 45,   null],
-        manualSort: [ 1,    3,    4,    9],
+        fname:      ['Aa', 'Bb', 'Clyde', 'Dd'],
+        lname:      ['AX', 'Yy', 'CX', 'DX'],
+        Birth_Date: [null, null, 678,  909],
+        age:        [50,   null, 45,   null],
+        manualSort: [1,    3,    4,    9],
       }]
     );
     await docStorage.applyStoredActions(processed2.undo);
@@ -116,11 +116,11 @@ describe('OnDemandActions', function() {
 
     assert.deepEqual((await activeDoc1.fetchTable(fakeSession, 'Foo')).tableData,
       ['TableData', 'Foo', [1, 3, 4, 9,       10,     11,   12], {
-        fname:      [ 'Aa', 'Bb', 'Cc', 'Dd', '',    'Cou', 'Gar'],
-        lname:      [ 'Xx', 'Yy', 'Zz', 'Ww', '',     '',   ''],
-        Birth_Date: [ 123,  null, 456,  null, 234567, null, null],
-        age:        [ 50,   null, 40,   null, 0,      0,    0],
-        manualSort: [ 1,    3,    4,    9,    10,     11,   12],
+        fname:      ['Aa', 'Bb', 'Cc', 'Dd', '',    'Cou', 'Gar'],
+        lname:      ['Xx', 'Yy', 'Zz', 'Ww', '',     '',   ''],
+        Birth_Date: [123,  null, 456,  null, 234567, null, null],
+        age:        [50,   null, 40,   null, 0,      0,    0],
+        manualSort: [1,    3,    4,    9,    10,     11,   12],
       }]
     );
     await docStorage.applyStoredActions(processed2.undo);
@@ -135,11 +135,11 @@ describe('OnDemandActions', function() {
 
     assert.deepEqual((await activeDoc1.fetchTable(fakeSession, 'Foo')).tableData,
       ['TableData', 'Foo', [3], {
-        fname:      [ 'Bb' ],
-        lname:      [ 'Yy' ],
-        Birth_Date: [ null ],
-        age:        [ null ],
-        manualSort: [ 3    ],
+        fname:      ['Bb'],
+        lname:      ['Yy'],
+        Birth_Date: [null],
+        age:        [null],
+        manualSort: [3],
       }]
     );
     await docStorage.applyStoredActions(processed2.undo);
@@ -156,12 +156,12 @@ describe('OnDemandActions', function() {
       ['BulkUpdateRecord', 'Foo', times(N, (i) => 10 + i), {age: times(N, (i) => i * 10)}]);
 
     const intermediate: TableDataAction = [
-      'TableData', 'Foo', [1, 3, 4, 9,      ].concat(times(N, (i) => 10 + i)), {
-      fname:      [ 'Aa', 'Bb', 'Cc', 'Dd', ].concat(times(N, (i) => '')),
-      lname:      [ 'Xx', 'Yy', 'Zz', 'Ww', ].concat(times(N, (i) => '')),
-      Birth_Date: [ 123,  null, 456,  null, ].concat(times(N, (i) => null)),
-      age:        [ 50,   null, 40,   null, ].concat(times(N, (i) => i * 10)),
-      manualSort: [ 1,    3,    4,    9,    ].concat(times(N, (i) => 10 + i)),
+      'TableData', 'Foo', [1, 3, 4, 9,].concat(times(N, (i) => 10 + i)), {
+      fname:      ['Aa', 'Bb', 'Cc', 'Dd',].concat(times(N, (i) => '')),
+      lname:      ['Xx', 'Yy', 'Zz', 'Ww',].concat(times(N, (i) => '')),
+      Birth_Date: [123,  null, 456,  null,].concat(times(N, (i) => null)),
+      age:        [50,   null, 40,   null,].concat(times(N, (i) => i * 10)),
+      manualSort: [1,    3,    4,    9,].concat(times(N, (i) => 10 + i)),
     }];
 
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),

@@ -341,7 +341,7 @@ describe("GroupsManager", function () {
       assert.exists(group, 'group is not found');
       assert.deepEqual(omitGroupMembers(group), omitGroupMembers(createdGroup));
       // TODO: should the getGroupsWithMembers return members details?
-      assert.deepEqual(group.memberGroups.map(g => g.id), [ innerGroup.id ]);
+      assert.deepEqual(group.memberGroups.map(g => g.id), [innerGroup.id]);
     });
 
     it(`should return groups for ${Group.TEAM_TYPE}`, async function () {

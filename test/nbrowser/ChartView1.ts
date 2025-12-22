@@ -92,8 +92,8 @@ describe('ChartView1', function() {
 
     const data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].type, 'bar');
-    assert.deepEqual(data[0].x, [ 6, 5, 4, 3, 2, 1 ]);
-    assert.deepEqual(data[0].y, [ 1, 2, 3, 4, 5, 6 ]);
+    assert.deepEqual(data[0].x, [6, 5, 4, 3, 2, 1]);
+    assert.deepEqual(data[0].y, [1, 2, 3, 4, 5, 6]);
   });
 
   it('should allow viewing raw data underlying chart', async function() {
@@ -132,8 +132,8 @@ describe('ChartView1', function() {
     const chartDom = await driver.find('.test-chart-container');
     let data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].type, 'bar');
-    assert.deepEqual(data[0].x, [ 61, 5, 4, 3, 2, 1 ]);
-    assert.deepEqual(data[0].y, [ 1, 2, 3, 4, 5, 6 ]);
+    assert.deepEqual(data[0].x, [61, 5, 4, 3, 2, 1]);
+    assert.deepEqual(data[0].y, [1, 2, 3, 4, 5, 6]);
 
     await gu.getCell({section: 'ChartData', col: 1, rowNum: 1}).click();
     await driver.sendKeys(Key.ENTER, '6', Key.ENTER);              // Change from 1 to 16
@@ -141,15 +141,15 @@ describe('ChartView1', function() {
 
     data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].type, 'bar');
-    assert.deepEqual(data[0].x, [ 61, 5, 4, 3, 2, 1 ]);
-    assert.deepEqual(data[0].y, [ 16, 2, 3, 4, 5, 6 ]);
+    assert.deepEqual(data[0].x, [61, 5, 4, 3, 2, 1]);
+    assert.deepEqual(data[0].y, [16, 2, 3, 4, 5, 6]);
   });
 
   it('should skip empty points', async function() {
     const chartDom = await driver.find('.test-chart-container');
     let data = (await getChartData(chartDom)).data;
-    assert.deepEqual(data[0].x, [ 61, 5, 4, 3, 2, 1 ]);
-    assert.deepEqual(data[0].y, [ 16, 2, 3, 4, 5, 6 ]);
+    assert.deepEqual(data[0].x, [61, 5, 4, 3, 2, 1]);
+    assert.deepEqual(data[0].y, [16, 2, 3, 4, 5, 6]);
 
     // Enter some blank values and a zero. The zero should be included in the plot, but blanks
     // should not.
@@ -162,14 +162,14 @@ describe('ChartView1', function() {
     await gu.waitForServer();
 
     data = (await getChartData(chartDom)).data;
-    assert.deepEqual(data[0].x, [ 5, 4, 2, 1 ]);
-    assert.deepEqual(data[0].y, [ 2, 3, 5, 0 ]);
+    assert.deepEqual(data[0].x, [5, 4, 2, 1]);
+    assert.deepEqual(data[0].y, [2, 3, 5, 0]);
 
     // Undo and verify that the range is restored.
     await gu.undo(3);
     data = (await getChartData(chartDom)).data;
-    assert.deepEqual(data[0].x, [ 61, 5, 4, 3, 2, 1 ]);
-    assert.deepEqual(data[0].y, [ 16, 2, 3, 4, 5, 6 ]);
+    assert.deepEqual(data[0].x, [61, 5, 4, 3, 2, 1]);
+    assert.deepEqual(data[0].y, [16, 2, 3, 4, 5, 6]);
   });
 
   it('should update chart when new columns are included', async function() {
@@ -177,8 +177,8 @@ describe('ChartView1', function() {
     // Check to make sure initial values are correct.
     let data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].type, 'bar');
-    assert.deepEqual(data[0].x, [ 61, 5, 4, 3, 2, 1 ]);
-    assert.deepEqual(data[0].y, [ 16, 2, 3, 4, 5, 6 ]);
+    assert.deepEqual(data[0].x, [61, 5, 4, 3, 2, 1]);
+    assert.deepEqual(data[0].y, [16, 2, 3, 4, 5, 6]);
 
     // Check that the intial scales are correct for the dataset.
     checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 0, 16.5);
@@ -221,11 +221,11 @@ describe('ChartView1', function() {
     await driver.sleep(50);
     data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].type, 'bar');
-    assert.deepEqual(data[0].x, [ 61, 5, 4, 3, 2, 1 ]);
-    assert.deepEqual(data[0].y, [ 22, 33, 11, 44, 22, 55 ]);
+    assert.deepEqual(data[0].x, [61, 5, 4, 3, 2, 1]);
+    assert.deepEqual(data[0].y, [22, 33, 11, 44, 22, 55]);
     assert.deepEqual(data[1].type, 'bar');
-    assert.deepEqual(data[1].x, [ 61, 5, 4, 3, 2, 1 ]);
-    assert.deepEqual(data[1].y, [ 16, 2, 3, 4, 5, 6 ]);
+    assert.deepEqual(data[1].x, [61, 5, 4, 3, 2, 1]);
+    assert.deepEqual(data[1].y, [16, 2, 3, 4, 5, 6]);
 
     // Check that the scales are correct for the new y values.
     checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 0, 57);
@@ -252,11 +252,11 @@ describe('ChartView1', function() {
     await driver.sleep(50);
     data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].type, 'bar');
-    assert.deepEqual(data[0].x, [ 22, 33, 11, 44, 55 ]);
-    assert.deepEqual(data[0].y, [ 16, 2, 3, 4, 6 ]);
+    assert.deepEqual(data[0].x, [22, 33, 11, 44, 55]);
+    assert.deepEqual(data[0].y, [16, 2, 3, 4, 6]);
     assert.deepEqual(data[1].type, 'bar');
-    assert.deepEqual(data[1].x, [ 22, 33, 11, 44, 55 ]);
-    assert.deepEqual(data[1].y, [ 61, 5, 4, 3, 1 ]);
+    assert.deepEqual(data[1].x, [22, 33, 11, 44, 55]);
+    assert.deepEqual(data[1].y, [61, 5, 4, 3, 1]);
 
     // Check that the scales are correct for the new values.
     checkAxisRange(await getChartData(chartDom), 5.5, 60.5, 0, 61);
@@ -332,7 +332,7 @@ describe('ChartView1', function() {
     const chartDom = await driver.find('.test-chart-container');
     let data = (await getChartData(chartDom)).data;
     // Only the first series of values is included.
-    assert.deepEqual(data[0].values, [ 61, 4, 2, 5, 3, 1 ]);
+    assert.deepEqual(data[0].values, [61, 4, 2, 5, 3, 1]);
     assert.lengthOf(data, 1);
 
     // When no series is included, just counts are used.
@@ -665,7 +665,7 @@ describe('ChartView1', function() {
     let data = (await getChartData(chartDom)).data;
     assert.lengthOf(data, 1);
     assert.deepEqual(data[0].type, 'bar');
-    assert.deepEqual(data[0].y, [ 61, 5, 4, 3, 2, 1 ]);
+    assert.deepEqual(data[0].y, [61, 5, 4, 3, 2, 1]);
 
     // Reload the page and test that the chart loaded.
     await driver.navigate().refresh();
@@ -677,7 +677,7 @@ describe('ChartView1', function() {
     data = (await getChartData(chartDom)).data;
     assert.lengthOf(data, 1);
     assert.deepEqual(data[0].type, 'bar');
-    assert.deepEqual(data[0].y, [ 61, 5, 4, 3, 2, 1 ]);
+    assert.deepEqual(data[0].y, [61, 5, 4, 3, 2, 1]);
   });
 
   it('should resize chart when side panels open or close', async function() {
@@ -811,14 +811,14 @@ describe('ChartView1', function() {
     assert.deepInclude(data[1], {type: 'scatter', name: 'Bar • Y2'});
     assert.deepInclude(data[2], {type: 'scatter', name: 'Foo • Y1'});
     assert.deepInclude(data[3], {type: 'scatter', name: 'Foo • Y2'});
-    assert.deepEqual(data[0].x, [ 1.5, 2.5, 3.5, 4.5, 5.5 ]);
-    assert.deepEqual(data[0].y, [ 1.5, 1, 3.5, 2.5, 4 ]);
-    assert.deepEqual(data[1].x, [ 1.5, 2.5, 3.5, 4.5, 5.5 ]);
-    assert.deepEqual(data[1].y, [ 6.9, 6, 4.9, 5, 7 ]);
-    assert.deepEqual(data[2].x, [ 1, 2, 3, 4, 5 ]);
-    assert.deepEqual(data[2].y, [ 1.5, 1, 3.5, 2.5, 4 ]);
-    assert.deepEqual(data[3].x, [ 1, 2, 3, 4, 5 ]);
-    assert.deepEqual(data[3].y, [ 6.9, 6, 4.9, 5, 7 ]);
+    assert.deepEqual(data[0].x, [1.5, 2.5, 3.5, 4.5, 5.5]);
+    assert.deepEqual(data[0].y, [1.5, 1, 3.5, 2.5, 4]);
+    assert.deepEqual(data[1].x, [1.5, 2.5, 3.5, 4.5, 5.5]);
+    assert.deepEqual(data[1].y, [6.9, 6, 4.9, 5, 7]);
+    assert.deepEqual(data[2].x, [1, 2, 3, 4, 5]);
+    assert.deepEqual(data[2].y, [1.5, 1, 3.5, 2.5, 4]);
+    assert.deepEqual(data[3].x, [1, 2, 3, 4, 5]);
+    assert.deepEqual(data[3].y, [6.9, 6, 4.9, 5, 7]);
 
     // Now show series ungrouped.
     await setSplitSeries(false);
@@ -827,10 +827,10 @@ describe('ChartView1', function() {
     assert.lengthOf(data, 2);
     assert.deepInclude(data[0], {type: 'scatter', name: 'Y1'});
     assert.deepInclude(data[1], {type: 'scatter', name: 'Y2'});
-    assert.deepEqual(data[0].x, [ 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5 ]);
-    assert.deepEqual(data[0].y, [ 1.5, 1.5, 1, 1, 3.5, 3.5, 2.5, 2.5, 4, 4 ]);
-    assert.deepEqual(data[1].x, [ 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5 ]);
-    assert.deepEqual(data[1].y, [ 6.9, 6.9, 6, 6, 4.9, 4.9, 5, 5, 7, 7 ]);
+    assert.deepEqual(data[0].x, [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5]);
+    assert.deepEqual(data[0].y, [1.5, 1.5, 1, 1, 3.5, 3.5, 2.5, 2.5, 4, 4]);
+    assert.deepEqual(data[1].x, [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5]);
+    assert.deepEqual(data[1].y, [6.9, 6.9, 6, 6, 4.9, 4.9, 5, 5, 7, 7]);
   });
 
   it('should not throw when picking the grouping by column for the x-axis', async function() {

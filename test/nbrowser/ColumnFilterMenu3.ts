@@ -155,13 +155,13 @@ describe('ColumnFilterMenu3', function() {
       // like)
       assert.notDeepEqual(
         await gu.getVisibleGridCells({cols: ['B'], rowNums: [1, 2, 3]}),
-        [ '1', '', undefined]
+        ['1', '', undefined]
       );
 
       // check filter does behave correctly
       assert.deepEqual(
         await gu.getVisibleGridCells({cols: ['B'], rowNums: [1, 2, 3]}),
-        [ '1', '1', '']
+        ['1', '1', '']
       );
     });
   });

@@ -294,8 +294,8 @@ export class ACLRulesReader {
     let aclFormula = `user.ShareRef == ${shareRef}`;
     let aclFormulaParsed = JSON.stringify([
       'Eq',
-      [ 'Attr', [ "Name", "user" ], "ShareRef" ],
-      [ 'Const', shareRef ] ]);
+      ['Attr', ["Name", "user"], "ShareRef"],
+      ['Const', shareRef]]);
     this._rulesTable.addRecord(this._makeRule({
       resource, aclFormula, aclFormulaParsed, permissionsText: '+C',
     }));
@@ -306,11 +306,11 @@ export class ACLRulesReader {
     // submit records.
     aclFormula = `user.ShareRef == ${shareRef} and rec.id == 0`;
     aclFormulaParsed = JSON.stringify(
-      [ 'And',
-        [ 'Eq',
-          [ 'Attr', [ "Name", "user" ], "ShareRef" ],
-          ['Const', shareRef] ],
-        [ 'Eq', [ 'Attr', ['Name', 'rec'], 'id'], ['Const', 0]]]);
+      ['And',
+        ['Eq',
+          ['Attr', ["Name", "user"], "ShareRef"],
+          ['Const', shareRef]],
+        ['Eq', ['Attr', ['Name', 'rec'], 'id'], ['Const', 0]]]);
     this._rulesTable.addRecord(this._makeRule({
       resource, aclFormula, aclFormulaParsed, permissionsText: '+R',
     }));
@@ -361,9 +361,9 @@ export class ACLRulesReader {
       const resource = this._findOrAddResource({tableId, colIds: colId});
       const aclFormula = `user.ShareRef == ${shareRef}`;
       const aclFormulaParsed = JSON.stringify(
-        [ 'Eq',
-          [ 'Attr', [ "Name", "user" ], "ShareRef" ],
-          ['Const', shareRef] ]);
+        ['Eq',
+          ['Attr', ["Name", "user"], "ShareRef"],
+          ['Const', shareRef]]);
       this._rulesTable.addRecord(this._makeRule({
         resource, aclFormula, aclFormulaParsed, permissionsText: '+R',
       }));
@@ -454,9 +454,9 @@ export class ACLRulesReader {
     });
     const aclFormula = `user.ShareRef == ${shareRef}`;
     const aclFormulaParsed = JSON.stringify(
-      [ 'Eq',
-        [ 'Attr', [ "Name", "user" ], "ShareRef" ],
-        ['Const', shareRef] ]);
+      ['Eq',
+        ['Attr', ["Name", "user"], "ShareRef"],
+        ['Const', shareRef]]);
     this._rulesTable.addRecord(this._makeRule({
       resource, aclFormula, aclFormulaParsed, permissionsText: '-CRUDS',
     }));
@@ -497,8 +497,8 @@ function disableRuleInShare(rule: MetaRowRecord<'_grist_ACLRules'>) {
   const aclFormulaParsed = rule.aclFormula && JSON.parse(String(rule.aclFormulaParsed));
   const newAclFormulaParsed = [
     'And',
-    [ 'Eq', [ 'Attr', [ 'Name', 'user' ], 'ShareRef' ], ['Const', null] ],
-    aclFormulaParsed || [ 'Const', true ]
+    ['Eq', ['Attr', ['Name', 'user'], 'ShareRef'], ['Const', null]],
+    aclFormulaParsed || ['Const', true]
   ];
   rule.aclFormula = 'user.ShareRef is None and (' + String(rule.aclFormula || 'True') + ')';
   rule.aclFormulaParsed = JSON.stringify(newAclFormulaParsed);

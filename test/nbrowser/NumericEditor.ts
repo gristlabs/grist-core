@@ -113,7 +113,7 @@ describe('NumericEditor', function() {
         const cols = entriesByColumn.map((_, i) => i);
 
         await gu.enterGridRows({rowNum, col: 0},
-          [ entriesByColumn.map(() => options.valPlain) ]);
+          [entriesByColumn.map(() => options.valPlain)]);
 
         assert.deepEqual(await gu.getVisibleGridCells({rowNums: [rowNum], cols}),
           entriesByColumn.map((entry) => entry.expPlain));
@@ -124,7 +124,7 @@ describe('NumericEditor', function() {
         const cols = entriesByColumn.map((_, i) => i);
 
         await gu.enterGridRows({rowNum, col: 0},
-          [ entriesByColumn.map(() => options.valFmt) ]);
+          [entriesByColumn.map(() => options.valFmt)]);
 
         assert.deepEqual(await gu.getVisibleGridCells({rowNums: [rowNum], cols}),
           entriesByColumn.map((entry) => entry.expFmt));

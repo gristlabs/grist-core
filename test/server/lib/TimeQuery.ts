@@ -178,7 +178,7 @@ describe("TimeQuery", function() {
       "tableData": [
         "TableData",
         "Fish2",
-        [ 1, 2 ],
+        [1, 2],
         {
           "manualSort": [
             1,

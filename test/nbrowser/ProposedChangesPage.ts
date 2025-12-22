@@ -179,12 +179,12 @@ describe('ProposedChangesPage', function() {
     await driver.findWait('.diff-remote', 2000);
     assert.deepEqual(
       await driver.findAll('.diff-remote', e => e.getText()),
-      [ 'SpaceDuck', 'Mammal', 'Bird' ]
+      ['SpaceDuck', 'Mammal', 'Bird']
     );
 
     // Apply the second one and check that it has an effect.
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
-                     [ 'Fish', 'Primate' ]);
+                     ['Fish', 'Primate']);
     await driver.find('.test-proposals-patch:nth-child(2)')
       .find('.test-proposals-apply').click();
     await gu.waitForServer();
@@ -193,7 +193,7 @@ describe('ProposedChangesPage', function() {
       /Accepted/
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
-                     [ 'Fish', 'Mammal' ]);
+                     ['Fish', 'Mammal']);
 
     // Now the third one.
     await driver.find('.test-proposals-patch:nth-child(3)')
@@ -204,7 +204,7 @@ describe('ProposedChangesPage', function() {
       /Accepted/
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
-                     [ 'Bird', 'Mammal' ]);
+                     ['Bird', 'Mammal']);
 
     // Now the first one.
     await driver.find('.test-proposals-patch:nth-child(1)')
@@ -215,7 +215,7 @@ describe('ProposedChangesPage', function() {
       /Accepted/
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
-                     [ 'Bird', 'Mammal', 'SpaceDuck' ]);
+                     ['Bird', 'Mammal', 'SpaceDuck']);
   });
 
   it('can apply a proposed change after a trunk change', async function() {
@@ -261,7 +261,7 @@ describe('ProposedChangesPage', function() {
 
     // Apply and check that it has an effect.
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Vie')).BB,
-                     [ 'Fish', 'Primate' ]);
+                     ['Fish', 'Primate']);
     await driver.find('.test-proposals-patch')
       .find('.test-proposals-apply').click();
     await gu.waitForServer();
@@ -270,7 +270,7 @@ describe('ProposedChangesPage', function() {
       /Accepted/
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Vie')).BB,
-                     [ 'Bird', 'Primate' ]);
+                     ['Bird', 'Primate']);
   });
 
   it('can show a count of changes to add to suggestion', async function() {

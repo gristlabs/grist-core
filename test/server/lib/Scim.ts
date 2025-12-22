@@ -113,13 +113,13 @@ describe('Scim', () => {
 
     function toSCIMUserWithoutId(user: string) {
       return {
-        schemas: [ 'urn:ietf:params:scim:schemas:core:2.0:User' ],
+        schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
         userName: user + '@getgrist.com',
         name: { formatted: capitalize(user) },
         displayName: capitalize(user),
         preferredLanguage: 'en',
         locale: 'en',
-        emails: [ { value: user + '@getgrist.com', primary: true } ]
+        emails: [{ value: user + '@getgrist.com', primary: true }]
       };
     }
 
@@ -149,7 +149,7 @@ describe('Scim', () => {
         const res = await op(id);
         assert.equal(res.status, 403, `should forbid ${opType} of the special user ${label}`);
         assert.deepEqual(res.data, {
-          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+          schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
           status: '403',
           detail: `System user ${opType} not permitted.`
         });
@@ -187,7 +187,7 @@ describe('Scim', () => {
       it('should return 403 for kiwi', async function () {
         const res = await makeCallWith('kiwi');
         assert.deepEqual(res.data, {
-          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+          schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
           status: '403',
           detail: 'You are not authorized to access this resource'
         });
@@ -215,7 +215,7 @@ describe('Scim', () => {
 
           const res = await makeCallWith('chimpy');
           assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '500',
             detail: error.message
           });
@@ -266,7 +266,7 @@ describe('Scim', () => {
           const res = await axios.get(scimUrl('/Users/1000'), chimpy);
           assert.equal(res.status, 404);
           assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
             detail: 'User with ID 1000 not found'
           });
@@ -276,7 +276,7 @@ describe('Scim', () => {
           const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
           const res = await axios.get(scimUrl(`/Users/${serviceUserId}`), chimpy);
           assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
             detail: `User with ID ${serviceUserId} not found`
           });
@@ -406,7 +406,7 @@ describe('Scim', () => {
               emails: [{ value: userName + '@getgrist.com' }],
             }, chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:schemas:core:2.0:User' ],
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
               id: res.data.id,
               meta: { resourceType: 'User', location: `/api/scim/v2/Users/${res.data.id}` },
               userName: 'emails.value@getgrist.com',
@@ -430,7 +430,7 @@ describe('Scim', () => {
         it('should disallow creating a user with the same email', async function () {
           const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId('chimpy'), chimpy);
           assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '409',
             detail: 'An existing user with the passed email exist.',
             scimType: 'uniqueness'
@@ -467,7 +467,7 @@ describe('Scim', () => {
             ...userToUpdateProperties,
             id: String(userToUpdateId),
             meta: { resourceType: 'User', location: `/api/scim/v2/Users/${userToUpdateId}` },
-            emails: [ { value: userToUpdateProperties.userName, primary: true } ],
+            emails: [{ value: userToUpdateProperties.userName, primary: true }],
             name: { formatted: userToUpdateProperties.displayName },
             preferredLanguage: 'fr',
           });
@@ -487,7 +487,7 @@ describe('Scim', () => {
         it('should disallow updating a user with the same email as another user\'s', async function () {
           const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), toSCIMUserWithoutId('chimpy'), chimpy);
           assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '409',
             detail: 'An existing user with the passed email exist.',
             scimType: 'uniqueness'
@@ -498,7 +498,7 @@ describe('Scim', () => {
         it('should return 404 when the user is not found', async function () {
           const res = await axios.put(scimUrl('/Users/1000'), toSCIMUserWithoutId('whoever'), chimpy);
           assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
             detail: 'unable to find user to update'
           });
@@ -509,7 +509,7 @@ describe('Scim', () => {
           const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
           const res = await axios.put(scimUrl(`/Users/${serviceUserId}`), toSCIMUserWithoutId('chimpy'), chimpy);
           assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
             detail: 'unable to find user to update'
           });
@@ -541,7 +541,7 @@ describe('Scim', () => {
         it('should return 400 when the user id is malformed', async function () {
           const res = await axios.put(scimUrl('/Users/not-an-id'), toSCIMUserWithoutId('whoever'), chimpy);
           assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '400',
             detail: 'Invalid passed user ID',
             scimType: 'invalidValue'
@@ -609,7 +609,7 @@ describe('Scim', () => {
           const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
           const res = await axios.patch(scimUrl(`/Users/${serviceUserId}`), validPatchBody('whatever'), chimpy);
           assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
             detail: `User with ID ${serviceUserId} not found`
           });
@@ -639,7 +639,7 @@ describe('Scim', () => {
         it('should return 404 when the user is not found', async function () {
           const res = await axios.delete(scimUrl('/Users/1000'), chimpy);
           assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
             detail: 'user not found'
           });
@@ -650,7 +650,7 @@ describe('Scim', () => {
           const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
           const res = await axios.delete(scimUrl(`/Users/${serviceUserId}`), chimpy);
           assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
             status: '404',
             detail: 'user not found'
           });
@@ -748,7 +748,7 @@ describe('Scim', () => {
             const res = await axios.get(scimUrl(`/Groups/${nonExistingId}`), chimpy);
             assert.equal(res.status, 404);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
               detail: `Group with ID ${nonExistingId} not found`
             });
@@ -759,7 +759,7 @@ describe('Scim', () => {
               const res = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
               assert.equal(res.status, 404);
               assert.deepEqual(res.data, {
-                schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+                schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
                 status: '404',
                 detail: `Group with ID ${groupId} not found`
               });
@@ -769,7 +769,7 @@ describe('Scim', () => {
           it('should return 400 when the group id is malformed', async function () {
             const res = await axios.get(scimUrl('/Groups/not-an-id'), chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid passed group ID',
               scimType: 'invalidValue'
@@ -880,7 +880,7 @@ describe('Scim', () => {
               ]
             }, chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: "Required attribute 'displayName' is missing",
               scimType: 'invalidValue'
@@ -901,7 +901,7 @@ describe('Scim', () => {
               }, chimpy);
               assert.equal(res.status, 409);
               assert.deepEqual(res.data, {
-                schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+                schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
                 status: '409',
                 detail: `Group with name "${groupName}" already exists`,
                 scimType: 'uniqueness'
@@ -918,7 +918,7 @@ describe('Scim', () => {
               ]
             }, chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid User member ID: not-an-id',
               scimType: 'invalidValue'
@@ -935,7 +935,7 @@ describe('Scim', () => {
               ]
             }, chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid Group member ID: not-an-id',
               scimType: 'invalidValue'
@@ -953,7 +953,7 @@ describe('Scim', () => {
               ]
             }, chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
               detail: 'Users not found: 1000'
             });
@@ -969,7 +969,7 @@ describe('Scim', () => {
               ]
             }, chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
               detail: 'Groups not found: 1000'
             });
@@ -988,7 +988,7 @@ describe('Scim', () => {
                 ]
               }, chimpy);
               assert.deepEqual(res.data, {
-                schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+                schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
                 status: '400',
                 detail: `Groups of type "${Group.TEAM_TYPE}" cannot contain groups.`
               });
@@ -1070,7 +1070,7 @@ describe('Scim', () => {
               ]
             }, chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
               detail: 'Group with id 1000 not found'
             });
@@ -1086,7 +1086,7 @@ describe('Scim', () => {
               ]
             }, chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid passed group ID',
               scimType: 'invalidValue'
@@ -1099,7 +1099,7 @@ describe('Scim', () => {
             displayName: 'New Group Name',
             // We need to differ the moment we call userIdByName['kiwi'] (set during a "before()" hook)
             get members() {
-              return [ getUserMember('kiwi') ];
+              return [getUserMember('kiwi')];
             }
           });
         });
@@ -1132,7 +1132,7 @@ describe('Scim', () => {
               const res = await axios.patch(scimUrl('/Groups/' + groupId), {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
                 Operations: [{
-                  op: 'add', path: 'members', value: [ getUserMember('kiwi') ]
+                  op: 'add', path: 'members', value: [getUserMember('kiwi')]
                 }]
               }, chimpy);
               assert.equal(res.status, 200);
@@ -1148,7 +1148,7 @@ describe('Scim', () => {
               const res = await axios.patch(scimUrl('/Groups/' + groupId), {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
                 Operations: [{
-                  op: 'add', path: 'members', value: [ getUserMember('kiwi') ]
+                  op: 'add', path: 'members', value: [getUserMember('kiwi')]
                 }]
               }, chimpy);
               assert.equal(res.status, 404);
@@ -1183,7 +1183,7 @@ describe('Scim', () => {
           it('should return 404 when the group is not found', async function () {
             const res = await axios.delete(scimUrl('/Groups/1000'), chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
               detail: 'Group with id 1000 not found'
             });
@@ -1193,7 +1193,7 @@ describe('Scim', () => {
           it('should return 400 when the group id is malformed', async function () {
             const res = await axios.delete(scimUrl('/Groups/not-an-id'), chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid passed group ID',
               scimType: 'invalidValue'
@@ -1229,7 +1229,7 @@ describe('Scim', () => {
             const res = await axios.get(scimUrl(`/Roles/${nonExistingId}`), chimpy);
             assert.equal(res.status, 404);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
               detail: `Role with ID ${nonExistingId} not found`
             });
@@ -1246,7 +1246,7 @@ describe('Scim', () => {
               const res = await axios.get(scimUrl('/Roles/' + roleId), chimpy);
               assert.equal(res.status, 404);
               assert.deepEqual(res.data, {
-                schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+                schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
                 status: '404',
                 detail: `Role with ID ${roleId} not found`
               });
@@ -1256,7 +1256,7 @@ describe('Scim', () => {
           it('should return 400 when the role id is malformed', async function () {
             const res = await axios.get(scimUrl('/Roles/not-an-id'), chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid passed role ID',
               scimType: 'invalidValue'
@@ -1395,7 +1395,7 @@ describe('Scim', () => {
               ]
             }, chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '404',
               detail: 'Role with id 1000 not found'
             });
@@ -1411,7 +1411,7 @@ describe('Scim', () => {
               ]
             }, chimpy);
             assert.deepEqual(res.data, {
-              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
               status: '400',
               detail: 'Invalid passed role ID',
               scimType: 'invalidValue'
@@ -1444,7 +1444,7 @@ describe('Scim', () => {
             displayName: 'test-role',
             // We need to differ the moment we call userIdByName['kiwi'] (set during a "before()" hook)
             get members() {
-              return [ getUserMember('kiwi') ];
+              return [getUserMember('kiwi')];
             }
           });
         });
@@ -1455,7 +1455,7 @@ describe('Scim', () => {
               const res = await axios.patch(scimUrl('/Roles/' + roleId), {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
                 Operations: [{
-                  op: 'replace', path: 'members', value: [ getUserMember('kiwi') ]
+                  op: 'replace', path: 'members', value: [getUserMember('kiwi')]
                 }]
               }, chimpy);
               assert.equal(res.status, 200);
@@ -1527,7 +1527,7 @@ describe('Scim', () => {
 
           const newUserID = await getOrCreateUserId(bulkUserName);
           assert.deepEqual(res.data, {
-            schemas: [ "urn:ietf:params:scim:api:messages:2.0:BulkResponse" ],
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:BulkResponse"],
             Operations: [
               {
                 method: "PUT",
@@ -1571,7 +1571,7 @@ describe('Scim', () => {
         }, chimpy);
         assert.equal(res.status, 400);
         assert.deepEqual(res.data, {
-          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+          schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
           status: '400',
           detail: "BulkRequest request body must contain 'Operations' attribute with at least one operation",
           scimType: 'invalidValue'
@@ -1593,7 +1593,7 @@ describe('Scim', () => {
         }, kiwi);
         assert.equal(res.status, 200);
         assert.deepEqual(res.data, {
-          schemas: [ "urn:ietf:params:scim:api:messages:2.0:BulkResponse" ],
+          schemas: ["urn:ietf:params:scim:api:messages:2.0:BulkResponse"],
           Operations: [
             {
               method: "POST",
@@ -1601,7 +1601,7 @@ describe('Scim', () => {
               status: "403",
               response: {
                 detail: "You are not authorized to access this resource",
-                schemas: [ "urn:ietf:params:scim:api:messages:2.0:Error" ],
+                schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
                 status: "403"
               }
             }, {

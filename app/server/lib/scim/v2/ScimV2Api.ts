@@ -11,7 +11,7 @@ import * as express from 'express';
 import SCIMMY from "scimmy";
 import SCIMMYRouters from "scimmy-routers";
 
-const WHITELISTED_PATHS_FOR_NON_ADMINS = [ "/Me", "/Schemas", "/ResourceTypes", "/ServiceProviderConfig" ];
+const WHITELISTED_PATHS_FOR_NON_ADMINS = ["/Me", "/Schemas", "/ResourceTypes", "/ServiceProviderConfig"];
 
 const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin) => {
   const v2 = express.Router();

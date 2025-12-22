@@ -49,7 +49,7 @@ export class TagChecker {
         // Once the CDN is active, those asset requests won't reach the home
         // servers.  TODO: turn tag matching back on when tag mismatches
         // imply a bug.
-        return [taggedUrl[2], tag, true /* tag === this.tag */];
+        return [taggedUrl[2], tag, true];
       }
     }
     return [url, null, true];

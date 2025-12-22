@@ -655,7 +655,7 @@ export class ActiveDocImport {
 
     if (isHidden) {
       userActions = userActions.concat(userActions.map(([, tableId, columnId, colInfo]) => [
-        'ModifyColumn', tableId, IMPORT_TRANSFORM_COLUMN_PREFIX + columnId, colInfo ]));
+        'ModifyColumn', tableId, IMPORT_TRANSFORM_COLUMN_PREFIX + columnId, colInfo]));
     }
 
     // apply user actions

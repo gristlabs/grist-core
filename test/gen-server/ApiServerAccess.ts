@@ -1708,7 +1708,7 @@ describe('ApiServerAccess', function() {
       // He still can't see him.
       await check(hamApi, thisDoc, ['Chimpy', 'Ham', 'Kiwi']);
       // Check what Kiwi sees as a team member (editor on org). Charon should not be listed.
-      await check(kiwiApi, thisDoc, ['Chimpy', 'Ham', 'Kiwi' ]);
+      await check(kiwiApi, thisDoc, ['Chimpy', 'Ham', 'Kiwi']);
       // But Chimpy sees everyone.
       await check(chimpyApi, thisDoc, ['Charon', 'Chimpy', 'Ham', 'Kiwi']);
 

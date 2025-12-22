@@ -2698,7 +2698,7 @@ export function rgbToHex(color: string) {
 // instance `hexToRgb('#FFFFFF')` returns `'rgba( 255, 255, 255, 1)'`.
 export function hexToRgb(hex: string) {
   if (hex.length !== 7) { throw new Error('not an hex color #...'); }
-  const aRgbHex = [ hex[1] + hex[2], hex[3] + hex[4], hex[5] + hex[6]];
+  const aRgbHex = [hex[1] + hex[2], hex[3] + hex[4], hex[5] + hex[6]];
   const [r, g, b] = [
     parseInt(aRgbHex[0], 16),
     parseInt(aRgbHex[1], 16),

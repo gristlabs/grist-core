@@ -1607,7 +1607,7 @@ export class FlexServer implements GristServer {
       await sandbox.shutdown();
       info.lastSuccessfulStep = 'all';
       info.functional = true;
-      info.effective = ![ 'skip', 'unsandboxed' ].includes(info.flavor);
+      info.effective = !['skip', 'unsandboxed'].includes(info.flavor);
     } catch (e) {
       info.error = String(e);
     }

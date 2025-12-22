@@ -103,7 +103,7 @@ export class ShareAnnotator {
     );
     const removed = new Set(
       users.filter(([, v]) => v === null)
-        .map(([k, ]) => normalizeEmail(k)));
+        .map(([k,]) => normalizeEmail(k)));
     for (const user of this._state.users) {
       if (EXCLUDED_EMAILS.has(user.email)) { continue; }
       if (removed.has(user.email)) { continue; }
@@ -112,7 +112,7 @@ export class ShareAnnotator {
     }
     const tweaks = new Set(
       users.filter(([, v]) => v !== null)
-        .map(([k, ]) => normalizeEmail(k)));
+        .map(([k,]) => normalizeEmail(k)));
     for (const email of tweaks) {
       const annotation = annotations.users.get(email) || makeAnnotation({
         email,

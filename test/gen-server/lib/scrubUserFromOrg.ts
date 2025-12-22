@@ -210,7 +210,7 @@ describe('scrubUserFromOrg', function() {
     const wsId = await user1.newWorkspace({name: 'ws1'}, 'current');
 
     // Initially the org has 1 guest - the creator.
-    assert.sameMembers(await listOrg('org1', 'guests'), ['user1@getgrist.com' ]);
+    assert.sameMembers(await listOrg('org1', 'guests'), ['user1@getgrist.com']);
 
     // Add a set of users to ws1
     await user1.updateWorkspacePermissions(wsId, {

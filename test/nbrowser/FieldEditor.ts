@@ -129,7 +129,7 @@ describe('FieldEditor', function() {
     before(async () => {
       const records = new Array(200).fill(['AddRecord', 'Table1', null, { A: 'Text', B: 'Text' }]);
       await api.applyUserActions(doc.id, [
-        ['AddTable', 'Table1', [ {id: 'A', type: 'Text'}, {id: 'B', type: 'Text'}]],
+        ['AddTable', 'Table1', [{id: 'A', type: 'Text'}, {id: 'B', type: 'Text'}]],
         ...records
       ]);
       await gu.waitForServer();

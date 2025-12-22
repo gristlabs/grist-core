@@ -267,26 +267,26 @@ describe('TableData', function() {
 
     t.dispatchAction(["RenameColumn", "Foo", "city", "ciudad"]);
     verifyTableData(t, ["id", "ciudad", "state", "amount", "bool"], [
-      [1, 'New York', 'NY', 5, true   ],
-      [4, 'Boston', 'MA', 4, true     ],
-      [5, 'Boston', 'MA', "NA", false ],
-      [7, 'Seattle', 'WA', 2, false   ],
+      [1, 'New York', 'NY', 5, true],
+      [4, 'Boston', 'MA', 4, true],
+      [5, 'Boston', 'MA', "NA", false],
+      [7, 'Seattle', 'WA', 2, false],
     ]);
 
     t.dispatchAction(["UpdateRecord", "Foo", 4, {ciudad: 'BOSTON', state: "XX"}]);
     verifyTableData(t, ["id", "ciudad", "state", "amount", "bool"], [
-      [1, 'New York', 'NY', 5, true   ],
-      [4, 'BOSTON', 'XX', 4, true     ],
-      [5, 'Boston', 'MA', "NA", false ],
-      [7, 'Seattle', 'WA', 2, false   ],
+      [1, 'New York', 'NY', 5, true],
+      [4, 'BOSTON', 'XX', 4, true],
+      [5, 'Boston', 'MA', "NA", false],
+      [7, 'Seattle', 'WA', 2, false],
     ]);
     t.dispatchAction(["AddRecord", "Foo", 8, { ciudad: 'X', state: 'XX' }]);
     verifyTableData(t, ["id", "ciudad", "state", "amount", "bool"], [
-      [1, 'New York', 'NY', 5, true   ],
-      [4, 'BOSTON', 'XX', 4, true     ],
-      [5, 'Boston', 'MA', "NA", false ],
-      [7, 'Seattle', 'WA', 2, false   ],
-      [8, 'X',       'XX', 0, false   ],
+      [1, 'New York', 'NY', 5, true],
+      [4, 'BOSTON', 'XX', 4, true],
+      [5, 'Boston', 'MA', "NA", false],
+      [7, 'Seattle', 'WA', 2, false],
+      [8, 'X',       'XX', 0, false],
     ]);
   });
 });

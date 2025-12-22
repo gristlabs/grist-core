@@ -504,7 +504,7 @@ describe('ChoiceList', function() {
     await gu.getCell({rowNum: 3, col: 'A'}).click();
     await driver.sendKeys(Key.ENTER);
     assert.deepEqual(await getEditorTokens(), ['Foo', 'Bar;Baz!', 'Qux, quux corge', '80\'s']);
-    assert.deepEqual(await getEditorTokensIsInvalid(), [ false, false, false, false ]);
+    assert.deepEqual(await getEditorTokensIsInvalid(), [false, false, false, false]);
     assert.deepEqual(
       await getEditorTokenStyles(),
       [

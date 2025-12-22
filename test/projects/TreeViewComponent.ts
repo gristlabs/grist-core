@@ -18,7 +18,7 @@ describe('TreeViewComponent', () => {
     // check pages shown with right indentation
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-offset',
                                           (e) => e.getCssValue('width')),
-      [ '0px', '10px', '10px', '20px', '0px', '0px' ]);
+      ['0px', '10px', '10px', '20px', '0px', '0px']);
     // check pages shown with correct arrows
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-itemArrow',
         async (e) => await e.getCssValue('visibility') === 'visible'),
@@ -32,7 +32,7 @@ describe('TreeViewComponent', () => {
       ['Page1', 'Page2', 'Page3', 'Page4', 'Page5', 'Page6', 'New Page']);
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-offset',
                                           (e) => e.getCssValue('width')),
-      [ '0px', '10px', '10px', '20px', '0px', '0px', '0px' ]);
+      ['0px', '10px', '10px', '20px', '0px', '0px', '0px']);
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-itemArrow',
         async (e) => await e.getCssValue('visibility') === 'visible'),
       [true, false, true, false, false, false, false]);
@@ -43,7 +43,7 @@ describe('TreeViewComponent', () => {
       ['Page1', 'Page2', 'Page3', 'Page4', 'New Page 5', 'Page5', 'Page6', 'New Page']);
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-offset',
                                           (e) => e.getCssValue('width')),
-      [ '0px', '10px', '10px', '20px', '10px', '0px', '0px', '0px' ]);
+      ['0px', '10px', '10px', '20px', '10px', '0px', '0px', '0px']);
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-itemArrow',
         async (e) => await e.getCssValue('visibility') === 'visible'),
       [true, false, true, false, false, false, false, false]);

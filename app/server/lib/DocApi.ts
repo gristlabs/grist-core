@@ -1017,13 +1017,13 @@ export class DocWorkerApi {
             .map(col => col.fields.colRef as number)
             .filter(colRef => !updatedColumnsIds.has(colRef));
 
-          return [ 'BulkRemoveRecord', '_grist_Tables_column', columnsToRemove ];
+          return ['BulkRemoveRecord', '_grist_Tables_column', columnsToRemove];
         };
 
         const actions = [
           ...(!isAffirmative(req.query.noupdate) ? updateActions : []),
           ...(!isAffirmative(req.query.noadd) ? addActions : []),
-          ...(isAffirmative(req.query.replaceall) ? [ await getRemoveAction() ] : [] )
+          ...(isAffirmative(req.query.replaceall) ? [await getRemoveAction()] : [] )
         ];
         await handleSandboxError(tableId, [],
           activeDoc.applyUserActions(docSessionFromRequest(req), actions)
@@ -1036,7 +1036,7 @@ export class DocWorkerApi {
       withDoc(async (activeDoc, req, res) => {
         const {colId} = req.params;
         const tableId = await getRealTableId(req.params.tableId, {activeDoc, req});
-        const actions = [ [ 'RemoveColumn', tableId, colId ] ];
+        const actions = [['RemoveColumn', tableId, colId]];
         await handleSandboxError(tableId, [colId],
           activeDoc.applyUserActions(docSessionFromRequest(req), actions)
         );

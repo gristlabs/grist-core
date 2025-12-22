@@ -226,12 +226,12 @@ describe('Importer2', function() {
     await gu.getPageItem('UploadedData2').click();
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6]}),
-    [ 'BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
+    ['BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
       'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
       'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
       'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',      '',
       'BUS500',      'Ethics and Law',      'Filip Andries',       '01/13/2021',      '',
-      'BUS540',      'Capstone',            '',                    '01/13/2021',      '' ]);
+      'BUS540',      'Capstone',            '',                    '01/13/2021',      '']);
     await gu.undo();
   });
 
@@ -344,12 +344,12 @@ describe('Importer2', function() {
       );
 
       // Check that the first table looks ok.
-      assert.deepEqual(await gu.getPreviewContents([0], [1, 2, 3]), [ '[1]', '[2]', '']);
+      assert.deepEqual(await gu.getPreviewContents([0], [1, 2, 3]), ['[1]', '[2]', '']);
 
       // Check that the second table looks ok.
       await driver.findContent('.test-importer-source', /names_name/).click();
       await gu.waitForServer();
-      assert.deepEqual(await gu.getPreviewContents([0], [1, 2, 3]), [ 'Bob', 'Alice', '']);
+      assert.deepEqual(await gu.getPreviewContents([0], [1, 2, 3]), ['Bob', 'Alice', '']);
 
       // Finish import, and verify the import succeeded.
       await driver.find('.test-modal-confirm').click();

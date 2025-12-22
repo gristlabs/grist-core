@@ -1386,7 +1386,7 @@ function testDocApi(settings: {
         await userApi.updateDocPermissions(docId, {users: {'kiwi@getgrist.com': 'viewers'}});
 
         // when
-        const resp = await axios.put(url, { columns: [ COLUMN_TO_ADD ] }, kiwi);
+        const resp = await axios.put(url, { columns: [COLUMN_TO_ADD] }, kiwi);
 
         // then
         assert.equal(resp.status, 403);
@@ -1398,7 +1398,7 @@ function testDocApi(settings: {
         const notFoundUrl = url.replace("Table1", "NonExistingTable");
 
         // when
-        const resp = await axios.put(notFoundUrl, { columns: [ COLUMN_TO_ADD ] }, chimpy);
+        const resp = await axios.put(notFoundUrl, { columns: [COLUMN_TO_ADD] }, chimpy);
 
         // then
         assert.equal(resp.status, 404);
@@ -4736,7 +4736,7 @@ function testDocApi(settings: {
           const doc = userApi.getDocAPI(docId);
 
           await createWebhooks({
-            docId, tableId: 'Table1', isReadyColumn: "B", eventTypesSet: [ ["add"] ], enabled: ctx.enabled
+            docId, tableId: 'Table1', isReadyColumn: "B", eventTypesSet: [["add"]], enabled: ctx.enabled
           });
 
           await doc.addRows("Table1", {
@@ -5661,7 +5661,7 @@ function testDocApi(settings: {
   it ("POST /docs/{did}/sql is functional", async function () {
     let resp = await axios.post(
       `${homeUrl}/api/docs/${docIds.Timesheets}/sql`,
-      { sql: "select A from Table1 where id = ?", args: [ 1 ] },
+      { sql: "select A from Table1 where id = ?", args: [1] },
       chimpy);
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.data.records, [{
@@ -5672,7 +5672,7 @@ function testDocApi(settings: {
 
     resp = await axios.post(
       `${homeUrl}/api/docs/${docIds.Timesheets}/sql`,
-      { nosql: "select A from Table1 where id = ?", args: [ 1 ] },
+      { nosql: "select A from Table1 where id = ?", args: [1] },
       chimpy);
     assert.equal(resp.status, 400);
     assert.deepEqual(resp.data, {
@@ -5684,7 +5684,7 @@ function testDocApi(settings: {
   it ("POST /docs/{did}/sql has access control", async function () {
     // Check non-viewer doesn't have access.
     const url = `${homeUrl}/api/docs/${docIds.Timesheets}/sql`;
-    const query = { sql: "select A from Table1 where id = ?", args: [ 1 ] };
+    const query = { sql: "select A from Table1 where id = ?", args: [1] };
     let resp = await axios.post(url, query, kiwi);
     assert.equal(resp.status, 403);
     assert.deepEqual(resp.data, {

@@ -341,7 +341,7 @@ export class VisibleFieldsConfig extends Disposable {
 
   public changeFieldPosition(field: ViewFieldRec, nextField: ViewFieldRec|null) {
     const parentPos = getFieldNewPosition(this._section.viewFields.peek(), field, nextField);
-    const vsfAction = ['UpdateRecord', field.id.peek(), {parentPos} ];
+    const vsfAction = ['UpdateRecord', field.id.peek(), {parentPos}];
     return this._gristDoc.docModel.viewFields.sendTableAction(vsfAction);
   }
 

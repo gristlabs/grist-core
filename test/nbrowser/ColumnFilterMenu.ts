@@ -162,7 +162,7 @@ describe('ColumnFilterMenu', function() {
     // check table content
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Name', 'Count'], rowNums: [1, 2, 3, 4, 5, 6]}),
-      [ 'Apples', '1',
+      ['Apples', '1',
         'Oranges', '3',
         'Bananas', '2',
         'Grapes', '-1',
@@ -310,7 +310,7 @@ describe('ColumnFilterMenu', function() {
     await gu.waitForServer();
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Name', 'Count'], rowNums: [1, 2, 3, 4, 5, 6, 7]}),
-      [ 'Apples', '1',
+      ['Apples', '1',
         'Oranges', '3',
         'Bananas', '2',
         'Grapes', '-1',
@@ -358,7 +358,7 @@ describe('ColumnFilterMenu', function() {
     // check values
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Name', 'Count'], rowNums: [1, 2, 3, 4]}),
-      [ 'Oranges', '3',
+      ['Oranges', '3',
         'Bananas', '2',
         'Clementines', '5',
         '', ''
@@ -374,7 +374,7 @@ describe('ColumnFilterMenu', function() {
 
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Name', 'Count'], rowNums: [1, 2, 3, 4]}),
-      [ 'Oranges', '3',
+      ['Oranges', '3',
         'Bananas', '2',
         '', '',
         undefined, undefined
@@ -390,7 +390,7 @@ describe('ColumnFilterMenu', function() {
     // check all values are there
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Name', 'Count'], rowNums: [1, 2, 3, 4, 5, 6, 7]}),
-      [ 'Apples', '1',
+      ['Apples', '1',
         'Oranges', '3',
         'Bananas', '2',
         'Grapes', '-1',
@@ -436,7 +436,7 @@ describe('ColumnFilterMenu', function() {
     });
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Name', 'Count'], rowNums: [1, 2, 3, 4, 5, 6, 7]}),
-      [ 'Apples', '1',
+      ['Apples', '1',
         'Oranges', '3',
         'Bananas', '2',
         'Grapes', '-1',
@@ -474,7 +474,7 @@ describe('ColumnFilterMenu', function() {
     await driver.find('.test-filter-menu-cancel-btn').click();
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Name', 'Count'], rowNums: [1, 2, 3, 4, 5, 6, 7]}),
-      [ 'Apples', '1',
+      ['Apples', '1',
         'Oranges', '3',
         'Bananas', '2',
         'Grapes', '-1',
@@ -528,7 +528,7 @@ describe('ColumnFilterMenu', function() {
     // check values
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Name', colId], rowNums: [1, 2, 3, 4]}),
-      [ 'Apples', '2019-07-17' + timeChunk,
+      ['Apples', '2019-07-17' + timeChunk,
         'Oranges', '2019-07-16' + timeChunk,
         'Bananas', '2019-07-18' + timeChunk,
         '', ''
@@ -545,7 +545,7 @@ describe('ColumnFilterMenu', function() {
 
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Name', colId], rowNums: [1, 2, 3, 4]}),
-      [ 'Apples', '2019-07-17' + timeChunk,
+      ['Apples', '2019-07-17' + timeChunk,
         'Oranges', '2019-07-16' + timeChunk,
         '', '',
         undefined, undefined
@@ -562,7 +562,7 @@ describe('ColumnFilterMenu', function() {
     // check all values are there
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Name', colId], rowNums: [1, 2, 3, 4, 5, 6, 7]}),
-      [ 'Apples',      '2019-07-17' + timeChunk,
+      ['Apples',      '2019-07-17' + timeChunk,
         'Oranges',     '2019-07-16' + timeChunk,
         'Bananas',     '2019-07-18' + timeChunk,
         'Grapes',      '',

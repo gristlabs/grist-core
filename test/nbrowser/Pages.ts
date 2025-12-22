@@ -673,13 +673,13 @@ describe('Pages', function() {
     // Removing page Table C should also show prompt (it is last page for Table1,Table D and TableC)
     await gu.getPageItem('Table Last').click();
     await gu.getPageItem('Table C').click();
-    assert.deepEqual(await gu.getSectionTitles(), ['TABLE C', 'TABLE D', 'TABLE1' ]);
+    assert.deepEqual(await gu.getSectionTitles(), ['TABLE C', 'TABLE D', 'TABLE1']);
     await gu.removePage("Table C", { expectPrompt : true, tables: ['Table D', 'Table C', 'Table1'] });
     assert.deepEqual(await gu.getPageNames(), ['Table Last']);
     await revert();
 
     assert.deepEqual(await gu.getPageNames(), ['Table1', 'Table B', 'Table C', 'Table Last']);
-    assert.deepEqual(await gu.getSectionTitles(), ['TABLE C', 'TABLE D', 'TABLE1' ]);
+    assert.deepEqual(await gu.getSectionTitles(), ['TABLE C', 'TABLE D', 'TABLE1']);
   });
 
 

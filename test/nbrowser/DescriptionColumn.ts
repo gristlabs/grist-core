@@ -584,9 +584,9 @@ describe('DescriptionColumn', function() {
 
     // Remove the description
     await api.applyUserActions(docId, [
-      [ 'ModifyColumn', 'Table1', 'B', {
+      ['ModifyColumn', 'Table1', 'B', {
         description: ''
-      } ],
+      }],
     ]);
 
     await gu.getCell({ rowNum: 1, col: 'B' }).click();
@@ -645,9 +645,9 @@ async function descriptionIsVisible(visible = true) {
 
 async function addColumnDescription(api: UserAPIImpl, docId: string, columnName: string) {
   await api.applyUserActions(docId, [
-    [ 'ModifyColumn', 'Table1', columnName, {
+    ['ModifyColumn', 'Table1', columnName, {
       description: 'This is the column description\nIt is in two lines'
-    } ],
+    }],
   ]);
 }
 
