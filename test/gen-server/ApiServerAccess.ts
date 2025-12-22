@@ -2082,7 +2082,7 @@ describe('ApiServerAccess', function() {
       assertResult(invalidRespDoc, 400, 'Invalid email address included');
     }
 
-    // Try setting permissiong for an empty email and for a few other invalid emails.
+    // Try setting permissions for an empty email and for a few other invalid emails.
     await testInvalidEmail("");
     await testInvalidEmail('\n');
     await testInvalidEmail('hello');
