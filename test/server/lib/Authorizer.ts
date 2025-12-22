@@ -396,7 +396,7 @@ describe('Authorizer', function() {
     await activateServer(localServer, docTools.getDocManager());
 
     try {
-      const session = new TestSession(localServer)
+      const session = new TestSession(localServer);
       const strangerReqConfig = await session.getCookieLogin('testOrgName', {
         email: 'nonexistant-email@getgrist.com',
         name: 'Nonexistant User'
