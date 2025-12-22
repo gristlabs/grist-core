@@ -32,7 +32,7 @@ export interface FieldOptions extends Options {
 }
 
 // This represents any of the derived editor classes; the part after "&" restricts to non-abstract ones.
-export type IEditorConstructor = typeof NewBaseEditor & { new (...args: any[]): NewBaseEditor };
+export type IEditorConstructor = typeof NewBaseEditor & (new (...args: any[]) => NewBaseEditor);
 
 /**
  * Required parameters:
