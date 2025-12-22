@@ -132,8 +132,8 @@ function initCustomCompleter() {
       const wordRange = session.getWordRange(pos.row, pos.column);
       const token = session.getTokenAt(pos.row, wordRange.end.column) as Ace.Token;
       const nextToken = session.getTokenAt(pos.row, wordRange.end.column + 1);
-      const isRenamingFunc = ['function.support', 'identifier'].includes(token.type)
-        && nextToken?.type === 'paren.lparen';
+      const isRenamingFunc = ['function.support', 'identifier'].includes(token.type) &&
+        nextToken?.type === 'paren.lparen';
 
       const suggestions = await options.getSuggestions(prefix);
       // ACE autocompletions are very poorly documented. This is somewhat helpful:

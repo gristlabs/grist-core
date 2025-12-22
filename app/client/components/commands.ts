@@ -196,8 +196,8 @@ export class Command implements CommandDef {
    */
   public getKeysDom(separator?: ko.Observable<string>) {
     return dom('span.shortcut_keys',
-      separator ? this.humanKeys.map((key, i) => [i ? separator() : null, dom('span.shortcut_key_image', key)])
-        : this.humanKeys.map(key => dom('span.shortcut_key_image', key)),
+      separator ? this.humanKeys.map((key, i) => [i ? separator() : null, dom('span.shortcut_key_image', key)]) :
+        this.humanKeys.map(key => dom('span.shortcut_key_image', key)),
     );
   }
 

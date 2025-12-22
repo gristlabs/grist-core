@@ -93,9 +93,9 @@ Splunk. {{learnMoreLink}}.",
             ),
           ),
           bigPrimaryButton(
-            destinations.length === 0
-              ? t("Start streaming")
-              : t("Add destination"),
+            destinations.length === 0 ?
+              t("Start streaming") :
+              t("Add destination"),
             dom.on("click", () => this._handleAddDestinationClick()),
             testId("add-streaming-destination"),
           ),

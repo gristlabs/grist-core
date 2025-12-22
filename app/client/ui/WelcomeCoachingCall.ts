@@ -49,18 +49,18 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
           id: 'coachingCall',
           lastDismissedAt: Date.now(),
           timesDismissed: 1,
-          nextAppearanceAt: scheduleNextAppearance
-            ? new Date().setDate(new Date().getDate() + 7)
-            : null,
+          nextAppearanceAt: scheduleNextAppearance ?
+            new Date().setDate(new Date().getDate() + 7) :
+            null,
         });
       }
       else {
         Object.assign(coachingPopup, {
           lastDismissedAt: Date.now(),
           timesDismissed: coachingPopup.timesDismissed + 1,
-          nextAppearanceAt: scheduleNextAppearance && coachingPopup.timesDismissed + 1 <= 1
-            ? new Date().setDate(new Date().getDate() + 7)
-            : null,
+          nextAppearanceAt: scheduleNextAppearance && coachingPopup.timesDismissed + 1 <= 1 ?
+            new Date().setDate(new Date().getDate() + 7) :
+            null,
         });
       }
       dismissedWelcomePopups.set(newDismissedPopups);

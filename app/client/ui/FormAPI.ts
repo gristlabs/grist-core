@@ -173,9 +173,9 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
 
   private _docOrShareUrl(path: string, target: FormTarget): string {
     const base =
-      "docId" in target
-        ? `${this._baseUrl}/api/docs/${target.docId}`
-        : `${this._baseUrl}/api/s/${target.shareKey}`;
+      "docId" in target ?
+        `${this._baseUrl}/api/docs/${target.docId}` :
+        `${this._baseUrl}/api/s/${target.shareKey}`;
     const url = new URL(`${base}${path}`);
     if ("shareKey" in target) {
       url.searchParams.set("utm_source", "grist-forms");

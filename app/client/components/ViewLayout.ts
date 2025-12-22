@@ -365,9 +365,9 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
 
     const needPrompt = isUserTable() && notInAnyOtherSection();
 
-    const decision = needPrompt
-      ? widgetRemovalPrompt(tableName())
-      : Promise.resolve(DELETE_WIDGET as PromptAction);
+    const decision = needPrompt ?
+      widgetRemovalPrompt(tableName()) :
+      Promise.resolve(DELETE_WIDGET as PromptAction);
 
     return possibleActions[await decision]();
   }

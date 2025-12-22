@@ -151,9 +151,9 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     // Otherwise say it is unavailable, and describe a fallback
     // mechanism for access.
     return dom.maybe(use => use(this._checks.probes), probes => [
-      (probes as any[]).length > 0
-        ? this._buildMainContentForAdmin()
-        : this._buildMainContentForOthers(),
+      (probes as any[]).length > 0 ?
+        this._buildMainContentForAdmin() :
+        this._buildMainContentForOthers(),
     ]);
   }
 
@@ -613,8 +613,8 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
         case State.STALE: {
           const lastCheck = latestVersionAvailable.get()?.dateChecked;
           return lastCheck ?
-            t('Last checked {{time}}', { time: getTimeFromNow(lastCheck) })
-            : t('No record of last version check');
+            t('Last checked {{time}}', { time: getTimeFromNow(lastCheck) }) :
+            t('No record of last version check');
         }
       }
     });

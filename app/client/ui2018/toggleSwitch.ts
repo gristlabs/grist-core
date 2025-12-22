@@ -43,15 +43,15 @@ export function toggleSwitch(value?: Observable<boolean|null>, options: ToggleSw
 
   const useInput = useHiddenInput && value;
   return cssToggleSwitch(
-    useInput
-      ? cssInput(
+    useInput ?
+      cssInput(
         { type: 'checkbox' },
         dom.prop('checked', value),
         dom.prop('value', use => use(value) ? '1' : '0'),
         dom.on('change', (_e, elem) => value.set(elem.checked)),
         ...inputArgs,
-      )
-      : undefined,
+      ) :
+      undefined,
     value ? dom.cls(`${cssToggleSwitch.className}--checked`, use => !!use(value)) : undefined,
     cssSwitch(
       cssSwitchSlider(testId('toggle-switch-slider')),

@@ -23,9 +23,9 @@ export async function createSavedDoc(
   const { srcDocId } = options;
   const dbManager = server.getHomeDBManager();
   const userId = getUserId(req);
-  const doc = srcDocId
-    ? await dbManager.getDoc({ userId, urlId: srcDocId })
-    : undefined;
+  const doc = srcDocId ?
+    await dbManager.getDoc({ userId, urlId: srcDocId }) :
+    undefined;
   if (srcDocId && !doc) {
     throw new ApiError(`Doc ${srcDocId} not found`, 400);
   }

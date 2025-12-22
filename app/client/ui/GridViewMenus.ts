@@ -681,12 +681,12 @@ function buildLookupSection(gridView: GridView, index?: number){
   const lookupMenu  = buildLookupsMenuItems();
   const reverseLookupMenu = buildReverseLookupsMenuItems();
 
-  const menuContent = (lookupMenu.length === 0 && reverseLookupMenu.length === 0)
-    ? [menuText(
+  const menuContent = (lookupMenu.length === 0 && reverseLookupMenu.length === 0) ?
+    [menuText(
       t('No reference columns.'),
       testId('new-columns-menu-lookups-none'),
-    )]
-    : [lookupMenu, reverseLookupMenu];
+    )] :
+    [lookupMenu, reverseLookupMenu];
 
   return [
     menuDivider(),

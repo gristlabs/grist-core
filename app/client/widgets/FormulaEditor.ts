@@ -342,9 +342,9 @@ export class FormulaEditor extends NewBaseEditor {
         !this.isDetached.get() &&
         getGristConfig().assistant?.version === 1;
       editor.renderer.emptyMessageNode = cssFormulaPlaceholder(
-        !withAiButton
-          ? t('Enter formula.')
-          : t('Enter formula or {{button}}.', {
+        !withAiButton ?
+          t('Enter formula.') :
+          t('Enter formula or {{button}}.', {
             button: cssUseAssistantButton(
               t('use AI Assistant'),
               dom.on('click', ev => this._handleUseAssistantButtonClick(ev)),

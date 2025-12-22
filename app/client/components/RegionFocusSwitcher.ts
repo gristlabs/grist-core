@@ -106,18 +106,18 @@ export class RegionFocusSwitcher extends Disposable {
 
   public panelAttrs(id: Panel, ariaLabel: string) {
     return [
-      dom.attr('role', id === 'main'
-        ? 'main'
-        : id === 'top'
-          ? 'banner'
-          : 'region'),
+      dom.attr('role', id === 'main' ?
+        'main' :
+        id === 'top' ?
+          'banner' :
+          'region'),
       dom.attr('aria-label', ariaLabel),
       dom.attr(ATTRS.regionId, id),
       dom.cls(kbFocusHighlighterClass, (use) => {
         // highlight focused elements everywhere except in the grist doc views
-        return id !== 'main'
-          ? true
-          : this._canTabThroughMainRegion(use);
+        return id !== 'main' ?
+          true :
+          this._canTabThroughMainRegion(use);
       }),
       dom.cls('clipboard_group_focus', (use) => {
         const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
@@ -307,10 +307,10 @@ export class RegionFocusSwitcher extends Disposable {
 
     if (
       // Focus back the panel element itself if currently focused element is a child
-      activeElementIsInPanel
+      activeElementIsInPanel ||
       // Specific case: when we escape inputs from panels, this isn't called, and focus switches back to body.
       // If user presses escape again, we also want to focus the panel.
-      || (activeElement === document.body)
+      (activeElement === document.body)
     ) {
       if (comesFromKeyboard) {
         focusPanelElement(panelElement);
@@ -347,9 +347,9 @@ export class RegionFocusSwitcher extends Disposable {
     }
 
     const gristDoc = this._getGristDoc();
-    const mouseEvent = current.initiator?.type === 'mouse'
-      ? current.initiator.event
-      : undefined;
+    const mouseEvent = current.initiator?.type === 'mouse' ?
+      current.initiator.event :
+      undefined;
 
     clearCurrentFocusLock();
     removeFocusRings();
@@ -433,9 +433,9 @@ export class RegionFocusSwitcher extends Disposable {
    * we want to handle kb focus like non-docs pages.
    */
   private _getGristDoc() {
-    const doc = !!this._gristDocObs && !this._gristDocObs.isDisposed()
-      ? this._gristDocObs.get()
-      : null;
+    const doc = !!this._gristDocObs && !this._gristDocObs.isDisposed() ?
+      this._gristDocObs.get() :
+      null;
     if (!isSpecialPage(doc)) {
       return doc;
     }
@@ -472,10 +472,10 @@ export class RegionFocusSwitcher extends Disposable {
     const cycleRegions = getCycleRegions(gristDoc);
     // the logic is: if in the last 20 seconds, the user pressed the same cycle shortcut enough times
     // to do 2 full cycles through the regions, we assume he is trying to access the creator panel.
-    const warn = commandsInLast20Secs.length > ((cycleRegions.length * 2) - 1)
-      && (
-        commandsInLast20Secs.every(cmd => cmd.name === 'nextRegion')
-        || commandsInLast20Secs.every(cmd => cmd.name === 'prevRegion')
+    const warn = commandsInLast20Secs.length > ((cycleRegions.length * 2) - 1) &&
+      (
+        commandsInLast20Secs.every(cmd => cmd.name === 'nextRegion') ||
+        commandsInLast20Secs.every(cmd => cmd.name === 'prevRegion')
       );
     if (warn) {
       this._app?.topAppModel.notifier.createUserMessage(

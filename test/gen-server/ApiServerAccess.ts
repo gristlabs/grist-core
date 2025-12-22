@@ -119,9 +119,9 @@ describe('ApiServerAccess', function() {
 
   async function checkAccessChange(
     resource:
-      | { orgId: string | number }
-      | { wsId: string | number }
-      | { docId: string | number },
+      | { orgId: string | number } |
+      { wsId: string | number } |
+      { docId: string | number },
     accessByEmail: Record<string, Role | null>,
     expected: { status: number; data: any },
   ) {

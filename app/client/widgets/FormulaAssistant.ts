@@ -133,9 +133,9 @@ export class FormulaAssistant extends Disposable {
         const actionName = actions[0][0];
         if (actionName === 'ModifyColumn') {
           const tableId = this._options.column.table.peek().tableId.peek();
-          return actions[0][1] === tableId
-            && typeof actions[0][2] === 'string'
-            && [this._transformColId, this._options.column.id.peek()].includes(actions[0][2]);
+          return actions[0][1] === tableId &&
+            typeof actions[0][2] === 'string' &&
+            [this._transformColId, this._options.column.id.peek()].includes(actions[0][2]);
         }
         else if (actionName === 'UpdateRecord') {
           return actions[0][1] === '_grist_Tables_column' && actions[0][2] === this._transformColRef;
@@ -250,8 +250,8 @@ export class FormulaAssistant extends Disposable {
       ),
       cssChatPanelHeaderButtons(
         cssChatPanelHeaderButton(
-          dom.domComputed(this._assistantExpanded, isExpanded => isExpanded
-            ? icon('Dropdown') : icon('DropdownUp')),
+          dom.domComputed(this._assistantExpanded, isExpanded => isExpanded ?
+            icon('Dropdown') : icon('DropdownUp')),
           dom.on('click', () => {
             if (this._assistantExpanded.get()) {
               this._collapseChatPanel();
@@ -449,8 +449,8 @@ export class FormulaAssistant extends Disposable {
 
     this._assistantExpanded.set(true);
     const editor = this._options.editor.getDom();
-    let availableSpace = editor.clientHeight - MIN_FORMULA_EDITOR_HEIGHT_PX
-      - FORMULA_EDITOR_BUTTONS_HEIGHT_PX - CHAT_PANEL_HEADER_HEIGHT_PX;
+    let availableSpace = editor.clientHeight - MIN_FORMULA_EDITOR_HEIGHT_PX -
+      FORMULA_EDITOR_BUTTONS_HEIGHT_PX - CHAT_PANEL_HEADER_HEIGHT_PX;
     if (editor.querySelector('.error_msg')) {
       availableSpace -= editor.querySelector('.error_msg')!.clientHeight;
     }
@@ -575,8 +575,8 @@ function buildIntroMessage(...args: DomElementArg[]) {
 "Please calculate the total invoice amount."',
           ),
         ),
-        getGristConfig().assistant?.provider === "OpenAI"
-          ? cssAiMessageBullet(
+        getGristConfig().assistant?.provider === "OpenAI" ?
+          cssAiMessageBullet(
             cssTickIcon("Tick"),
             dom("div",
               t(
@@ -594,8 +594,8 @@ are sent to OpenAI. {{learnMore}}.",
                 },
               ),
             ),
-          )
-          : null,
+          ) :
+          null,
       ),
       cssAiMessageParagraph(
         t(

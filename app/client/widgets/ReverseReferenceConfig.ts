@@ -58,9 +58,9 @@ export class ReverseReferenceConfig extends Disposable {
       return Boolean(use(column.formula));
     });
     this._tooltip = Computed.create(this, (use) => {
-      return use(this._disabled)
-        ? 'twoWayReferencesDisabled'
-        : 'twoWayReferences';
+      return use(this._disabled) ?
+        'twoWayReferencesDisabled' :
+        'twoWayReferences';
     });
   }
 

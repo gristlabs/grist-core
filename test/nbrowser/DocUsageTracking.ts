@@ -60,9 +60,9 @@ describe('DocUsageTracking', function() {
       // Upload some files into the first row. (We're putting Grist docs in a Grist doc!)
       await driver.sendKeys(Key.ENTER);
       await gu.fileDialogUpload(
-        'docs/Covid-19.grist,docs/World-v0.grist,docs/World-v1.grist,docs/World-v3.grist,'
-        + 'docs/Landlord.grist,docs/ImportReferences.grist,docs/WorldUndo.grist,'
-        + 'docs/Ref-List-AC-Test.grist,docs/PasteParsing.grist',
+        'docs/Covid-19.grist,docs/World-v0.grist,docs/World-v1.grist,docs/World-v3.grist,' +
+        'docs/Landlord.grist,docs/ImportReferences.grist,docs/WorldUndo.grist,' +
+        'docs/Ref-List-AC-Test.grist,docs/PasteParsing.grist',
         () => driver.find('.test-pw-add').click(),
       );
       // Check all 9 attachments have uploaded.

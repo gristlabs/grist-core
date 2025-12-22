@@ -337,9 +337,9 @@ class WebhookExternalTable implements IExternalTable {
     if (fields.eventTypes) {
       fields.eventTypes = without(fields.eventTypes, 'L');
     }
-    fields.watchedColIds = fields.watchedColIdsText
-      ? fields.watchedColIdsText.split(";").filter((colId: string) => colId.trim() !== "")
-      : [];
+    fields.watchedColIds = fields.watchedColIdsText ?
+      fields.watchedColIdsText.split(";").filter((colId: string) => colId.trim() !== "") :
+      [];
     return fields;
   }
 }
@@ -478,9 +478,9 @@ function _prepareWebhookInitialActions(tableId: string): DocAction[] {
 function _mapWebhookValues(webhookSummary: UIWebhookSummary): Partial<WebhookSchemaType> {
   const fields = webhookSummary.fields;
   const { eventTypes, watchedColIdsText } = fields;
-  const watchedColIds = watchedColIdsText
-    ? watchedColIdsText.split(";").filter(colId => colId.trim() !== "")
-    : [];
+  const watchedColIds = watchedColIdsText ?
+    watchedColIdsText.split(";").filter(colId => colId.trim() !== "") :
+    [];
   return {
     ...fields,
     webhookId: webhookSummary.id,

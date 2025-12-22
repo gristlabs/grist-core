@@ -48,10 +48,10 @@ describe('ThemePrefs', function() {
     const tokensCssVars = Object.values(tokensCssMapping);
     const componentsCssVars = Object.values(componentsCssMapping);
     const invalidVars = [...tokensCssVars, ...componentsCssVars].filter(cssVar =>
-      cssVar.startsWith('grist-')
-      || cssVar.startsWith('theme-')
-      || cssVar.startsWith('themes-')
-      || cssVar.startsWith('--'),
+      cssVar.startsWith('grist-') ||
+      cssVar.startsWith('theme-') ||
+      cssVar.startsWith('themes-') ||
+      cssVar.startsWith('--'),
     );
     if (invalidVars.length) {
       assert.fail(

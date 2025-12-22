@@ -298,8 +298,8 @@ export class ChoiceListEntry extends Disposable {
     }
 
     // Call user save function if the values and/or options have changed.
-    if (!isEqual(this._values.get(), newValues)
-      || !isEqual(this._choiceOptionsByName.get(), newOptions)) {
+    if (!isEqual(this._values.get(), newValues) ||
+      !isEqual(this._choiceOptionsByName.get(), newOptions)) {
       // Because of the listener on this._values, editing will stop if values are updated.
       this._onSave(newValues, newOptions, new RenameMap(newTokens));
     }

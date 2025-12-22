@@ -83,10 +83,10 @@ export const AuditEventAction = StringUnion(
 export type AuditEventAction = typeof AuditEventAction.type;
 
 export type AuditEventActor =
-  | UserActor
-  | GuestActor
-  | SystemActor
-  | UnknownActor;
+  | UserActor |
+  GuestActor |
+  SystemActor |
+  UnknownActor;
 
 interface UserActor {
   type: "user";

@@ -32,31 +32,31 @@ const cssIcon = styled(icon, `
 `);
 
 export type Tooltip =
-  | 'dataSize'
-  | 'setTriggerFormula'
-  | 'selectBy'
-  | 'workOnACopy'
-  | 'openAccessRules'
-  | 'addRowConditionalStyle'
-  | 'addColumnConditionalStyle'
-  | 'uuid'
-  | 'lookups'
-  | 'formulaColumn'
-  | 'accessRulesTableWide'
-  | 'setChoiceDropdownCondition'
-  | 'setRefDropdownCondition'
-  | 'communityWidgets'
-  | 'twoWayReferences'
-  | 'twoWayReferencesDisabled'
-  | 'viewAsBanner'
-  | 'reassignTwoWayReference'
-  | 'attachmentStorage'
-  | 'uploadAttachments'
-  | 'adminControls'
-  | 'formFraming'
-  | 'formUrlValues'
-  | 'rowHeight'
-  | 'suggestions'
+  | 'dataSize' |
+  'setTriggerFormula' |
+  'selectBy' |
+  'workOnACopy' |
+  'openAccessRules' |
+  'addRowConditionalStyle' |
+  'addColumnConditionalStyle' |
+  'uuid' |
+  'lookups' |
+  'formulaColumn' |
+  'accessRulesTableWide' |
+  'setChoiceDropdownCondition' |
+  'setRefDropdownCondition' |
+  'communityWidgets' |
+  'twoWayReferences' |
+  'twoWayReferencesDisabled' |
+  'viewAsBanner' |
+  'reassignTwoWayReference' |
+  'attachmentStorage' |
+  'uploadAttachments' |
+  'adminControls' |
+  'formFraming' |
+  'formUrlValues' |
+  'rowHeight' |
+  'suggestions'
   ;
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;

@@ -105,9 +105,9 @@ export class UrlWidgetRepository implements IWidgetRepository {
   public async getWidgets(): Promise<ICustomWidget[]> {
     if (!this._staticUrl) {
       log.warn(
-        'WidgetRepository: Widget repository is not configured.' + (!Deps.STATIC_URL
-          ? ' Missing GRIST_WIDGET_LIST_URL environmental variable.'
-          : ''),
+        'WidgetRepository: Widget repository is not configured.' + (!Deps.STATIC_URL ?
+          ' Missing GRIST_WIDGET_LIST_URL environmental variable.' :
+          ''),
       );
       return [];
     }

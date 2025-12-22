@@ -14,9 +14,9 @@ const isNormalElementFocused = async (containerSelector?: string) => {
   const isException = await activeElement.matches(
     '.test-left-panel, .test-top-header, .test-right-panel, .test-main-content, body, textarea.copypaste.mousetrap',
   );
-  const isInContainer = containerSelector
-    ? await activeElement.matches(`${containerSelector} *`)
-    : true;
+  const isInContainer = containerSelector ?
+    await activeElement.matches(`${containerSelector} *`) :
+    true;
   return !isException && isInContainer;
 };
 
@@ -33,9 +33,9 @@ const assertTabToNavigate = async (containerSelector?: string) => {
 
 const cycle = async (dir: 'forward' | 'backward' = 'forward') => {
   const modKey = await gu.modKey();
-  const shortcut = dir === 'forward'
-    ? Key.chord(modKey, 'o')
-    : Key.chord(modKey, Key.SHIFT, 'O');
+  const shortcut = dir === 'forward' ?
+    Key.chord(modKey, 'o') :
+    Key.chord(modKey, Key.SHIFT, 'O');
 
   await gu.sendKeys(shortcut);
 };

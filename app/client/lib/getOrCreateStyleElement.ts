@@ -21,9 +21,9 @@ export function getOrCreateStyleElement(id: string, insertOptions: {
   style.setAttribute('id', id);
 
   (insertOptions.element || document.head).insertAdjacentElement(
-    insertOptions.element
-      ? insertOptions.position
-      : 'beforeend',
+    insertOptions.element ?
+      insertOptions.position :
+      'beforeend',
     style,
   );
   return style;

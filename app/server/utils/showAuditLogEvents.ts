@@ -97,9 +97,9 @@ function showEventProperties(
 }
 
 type AuditEvents = {
-  [Action in keyof AuditEventDetails]: Action extends AuditEventAction
-    ? AuditEvent<Action>
-    : never;
+  [Action in keyof AuditEventDetails]: Action extends AuditEventAction ?
+    AuditEvent<Action> :
+    never;
 };
 
 interface AuditEvent<Action extends AuditEventAction> {
@@ -110,9 +110,9 @@ interface AuditEvent<Action extends AuditEventAction> {
 }
 
 type AuditEventProperties<T> = {
-  [K in keyof T]: T[K] extends (object & { length?: never }) | undefined
-    ? AuditEventProperty & { properties: AuditEventProperties<T[K]> }
-    : AuditEventProperty & { properties?: AuditEventProperties<T[K]> };
+  [K in keyof T]: T[K] extends (object & { length?: never }) | undefined ?
+    AuditEventProperty & { properties: AuditEventProperties<T[K]> } :
+    AuditEventProperty & { properties?: AuditEventProperties<T[K]> };
 };
 
 interface AuditEventProperty {

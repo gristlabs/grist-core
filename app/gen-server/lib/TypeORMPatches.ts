@@ -101,13 +101,13 @@ export function applyPatch() {
     arg1: IsolationLevel | ((entityManager: EntityManager) => Promise<T>),
     arg2?: (entityManager: EntityManager) => Promise<T>): Promise<T> {
     const isolation =
-      typeof arg1 === "string"
-        ? arg1
-        : undefined;
+      typeof arg1 === "string" ?
+        arg1 :
+        undefined;
     const runInTransaction =
-      typeof arg1 === "function"
-        ? arg1
-        : arg2;
+      typeof arg1 === "function" ?
+        arg1 :
+        arg2;
 
     if (!runInTransaction) {
       throw new TypeORMError(

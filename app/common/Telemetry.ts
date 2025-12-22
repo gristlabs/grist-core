@@ -282,8 +282,8 @@ export const TelemetryContracts: TelemetryContracts = {
         dataType: 'number',
       },
       conversationHistoryLength: {
-        description: "The number of messages in the conversation's history. May be less than conversationLength "
-          + "if the conversation history was cleared in the same session.",
+        description: "The number of messages in the conversation's history. May be less than conversationLength " +
+          "if the conversation history was cleared in the same session.",
         dataType: 'number',
       },
       userId: {
@@ -355,8 +355,8 @@ export const TelemetryContracts: TelemetryContracts = {
         dataType: 'number',
       },
       conversationHistoryLength: {
-        description: "The number of messages in the conversation's history. May be less than conversationLength "
-          + "if the conversation history was cleared in the same session.",
+        description: "The number of messages in the conversation's history. May be less than conversationLength " +
+          "if the conversation history was cleared in the same session.",
         dataType: 'number',
       },
       userId: {
@@ -495,8 +495,8 @@ export const TelemetryContracts: TelemetryContracts = {
         dataType: 'string',
       },
       sourceDocIdDigest: {
-        description: 'A hash of the id of the source document, if the document was '
-          + 'duplicated from an existing document.',
+        description: 'A hash of the id of the source document, if the document was ' +
+          'duplicated from an existing document.',
         dataType: 'string',
       },
       isImport: {
@@ -508,8 +508,8 @@ export const TelemetryContracts: TelemetryContracts = {
         dataType: 'boolean',
       },
       fileType: {
-        description: 'If the document was created by import, the file extension '
-          + 'of the file that was imported.',
+        description: 'If the document was created by import, the file extension ' +
+          'of the file that was imported.',
         dataType: 'string',
       },
       userId: {
@@ -760,8 +760,8 @@ export const TelemetryContracts: TelemetryContracts = {
         dataType: 'number',
       },
       customWidgetIds: {
-        description: 'A list of plugin ids for every custom widget in the document. '
-          + 'The ids of widgets not created by Grist Labs are replaced with "externalId".',
+        description: 'A list of plugin ids for every custom widget in the document. ' +
+          'The ids of widgets not created by Grist Labs are replaced with "externalId".',
         dataType: 'string[]',
       },
     },
@@ -857,8 +857,8 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   signupVerified: {
-    description: 'Triggered after a user successfully verifies their account during sign-up. '
-      + 'Not triggered in grist-core.',
+    description: 'Triggered after a user successfully verifies their account during sign-up. ' +
+      'Not triggered in grist-core.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
     metadataContracts: {
@@ -1921,18 +1921,18 @@ export const TelemetryEvents = StringUnion(
 export type TelemetryEvent = typeof TelemetryEvents.type;
 
 type TelemetryEventCategory =
-  | 'AIAssistant'
-  | 'HelpCenter'
-  | 'TemplateUsage'
-  | 'Tutorial'
-  | 'Welcome'
-  | 'SubscriptionPlan'
-  | 'DocumentUsage'
-  | 'TeamSite'
-  | 'ProductVisits'
-  | 'AccessRules'
-  | 'WidgetUsage'
-  | 'SelfHosted';
+  | 'AIAssistant' |
+  'HelpCenter' |
+  'TemplateUsage' |
+  'Tutorial' |
+  'Welcome' |
+  'SubscriptionPlan' |
+  'DocumentUsage' |
+  'TeamSite' |
+  'ProductVisits' |
+  'AccessRules' |
+  'WidgetUsage' |
+  'SelfHosted';
 
 interface TelemetryEventContract {
   description: string;

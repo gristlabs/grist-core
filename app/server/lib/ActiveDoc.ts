@@ -349,8 +349,8 @@ export class ActiveDoc extends EventEmitter {
   private _lastPyCallResponseSize: number|undefined;
 
   private _reportDataEngineMemoryThrottled:
-    | ((() => Promise<void>) & Cancelable)
-    | null = throttle(
+    | ((() => Promise<void>) & Cancelable) |
+    null = throttle(
       this._reportDataEngineMemory.bind(this),
       MEMORY_MEASUREMENT_THROTTLE_WAIT_MS,
       {
@@ -447,14 +447,14 @@ export class ActiveDoc extends EventEmitter {
     this._triggers = new DocTriggers(this);
     this._requests = new DocRequests(this);
     this._actionHistory = new ActionHistoryImpl(this.docStorage);
-    this.docPluginManager = _docManager.pluginManager
-      ? new DocPluginManager(
+    this.docPluginManager = _docManager.pluginManager ?
+      new DocPluginManager(
         _docManager.pluginManager.getPlugins(),
         _docManager.pluginManager.appRoot!,
         this,
         this._server,
-      )
-      : null;
+      ) :
+      null;
     this._tableMetadataLoader = new TableMetadataLoader({
       decodeBuffer: this.docStorage.decodeMarshalledData.bind(this.docStorage),
       fetchTable: this.docStorage.fetchTable.bind(this.docStorage),
@@ -3641,9 +3641,9 @@ export async function getRealTableId(
   options:  MetaTables | ActiveDocAndReq,
 ): Promise<string> {
   if (parseInt(tableId)) {
-    const metaTables = "metaTables" in options
-      ? options.metaTables
-      : await getMetaTables(options.activeDoc, options.req);
+    const metaTables = "metaTables" in options ?
+      options.metaTables :
+      await getMetaTables(options.activeDoc, options.req);
     const [, , tableRefs, tableData] = metaTables._grist_Tables;
     if (tableRefs.indexOf(parseInt(tableId)) >= 0) {
       const tableRowIndex = tableRefs.indexOf(parseInt(tableId));

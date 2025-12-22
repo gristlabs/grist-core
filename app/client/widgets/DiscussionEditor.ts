@@ -616,9 +616,9 @@ class Comment extends Disposable {
     this._replies = createObsArray(this, props.comment.children());
     this._hasReplies = Computed.create(this, use => use(this._replies).length > 0);
     this._resolved = Computed.create(this, use =>
-      this._isReply && this.props.parent
-        ? Boolean(use(this.props.parent.resolved))
-        : Boolean(use(this.props.comment.resolved)),
+      this._isReply && this.props.parent ?
+        Boolean(use(this.props.parent.resolved)) :
+        Boolean(use(this.props.comment.resolved)),
     );
     this._showReplies = Computed.create(this, (use) => {
       // We don't show replies if we are reply.
@@ -818,12 +818,12 @@ class Comment extends Disposable {
     const comment = this.props.comment;
     const lastComment = comment.column.peek().cells.peek().peek().at(-1);
 
-    const resolveVisible = !this.props.comment.resolved()
-      && !this._isReply;
+    const resolveVisible = !this.props.comment.resolved() &&
+      !this._isReply;
     const openVisible =
-      this._resolved.get() // if this discussion is resolved
-      && !this._isReply // and this is not a reply
-      && lastComment === comment; // and this is the last comment
+      this._resolved.get() && // if this discussion is resolved
+      !this._isReply && // and this is not a reply
+      lastComment === comment; // and this is the last comment
     const editVisible = !this._resolved.get();
     return [
       // Show option for anchor link, except in the side-panel view where we don't have cursorPos.
@@ -1064,16 +1064,16 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
       const currentUser = use(this._grist.currentUser)?.ref ?? '';
       const userFilter = (d: CellRec) => {
         const replies = use(use(d.children).getObservable());
-        return use(d.userRef) === currentUser
-          || (use(d.mentions) ?? []).includes(currentUser)
-          || replies.some(c => use(c.userRef) === currentUser || (use(c.mentions) ?? []).includes(currentUser));
+        return use(d.userRef) === currentUser ||
+          (use(d.mentions) ?? []).includes(currentUser) ||
+          replies.some(c => use(c.userRef) === currentUser || (use(c.mentions) ?? []).includes(currentUser));
       };
       return (ds: CellRec) =>
-        !use(ds.hidden) // filter by ACL
-        && filterRow(use(ds.rowId))
-        && filterCol(ds)
-        && (showOnlyMine ? userFilter(ds) : true)
-        && (showAll || !use(ds.resolved))
+        !use(ds.hidden) && // filter by ACL
+        filterRow(use(ds.rowId)) &&
+        filterCol(ds) &&
+        (showOnlyMine ? userFilter(ds) : true) &&
+        (showAll || !use(ds.resolved))
       ;
     });
     const allDiscussions = Computed.create(owner, (use) => {

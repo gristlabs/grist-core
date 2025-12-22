@@ -176,13 +176,13 @@ export class DocumentUsage extends Disposable {
           buildLimitStatusMessage(planLabel, usageInfo, features, {
             disableRawDataLink: true,
           }),
-          (product && isFreePlan(product.name)
-            ? [' ', buildUpgradeMessage(
+          (product && isFreePlan(product.name) ?
+            [' ', buildUpgradeMessage(
               canUpgradeOrg(org),
               'long',
               () =>  this._docPageModel.appModel.showUpgradeModal(),
-            )]
-            : null
+            )] :
+            null
           ),
         ]) : null,
       ];
@@ -300,9 +300,9 @@ function buildUsageMetric(options: MetricOptions, ...domArgs: DomElementArg[]) {
   const { name, tooltip } = options;
   return cssUsageMetric(
     cssMetricName(
-      tooltip
-        ? withInfoTooltip(cssOverflowableText(name, testId('name')), tooltip)
-        : cssOverflowableText(name, testId('name')),
+      tooltip ?
+        withInfoTooltip(cssOverflowableText(name, testId('name')), tooltip) :
+        cssOverflowableText(name, testId('name')),
     ),
     buildUsageProgressBar(options),
     ...domArgs,
@@ -334,16 +334,16 @@ function buildUsageProgressBar(options: MetricOptions) {
       cssProgressBarFill(
         { style: `width: ${percentUsed}%` },
         // Change progress bar to red if close to limit, unless limits are hidden.
-        shouldHideLimits || ratioUsed <= APPROACHING_LIMIT_RATIO
-          ? null
-          : cssProgressBarFill.cls('-approaching-limit'),
+        shouldHideLimits || ratioUsed <= APPROACHING_LIMIT_RATIO ?
+          null :
+          cssProgressBarFill.cls('-approaching-limit'),
         testId('progress-fill'),
       ),
     ),
     dom('div',
-      currentValue === undefined ? ['Loading ', cssLoadingDots()] : formatValue(currentValue)
-        + (shouldHideLimits || !maximumValue ? '' : ' of ' + formatValue(maximumValue))
-        + (unit ? ` ${unit}` : ''),
+      currentValue === undefined ? ['Loading ', cssLoadingDots()] : formatValue(currentValue) +
+        (shouldHideLimits || !maximumValue ? '' : ' of ' + formatValue(maximumValue)) +
+        (unit ? ` ${unit}` : ''),
       testId('value'),
     ),
   ];

@@ -126,9 +126,9 @@ export function buildViewSectionDom(options: {
         cssResizing.cls('', isResizing),
         dom.maybe(viewInstance.disableEditing, () =>
           dom('div.disable_viewpane.flexvbox',
-            dom.domComputed(selectedBySectionTitle, title => title
-              ? t(`No row selected in {{title}}`, { title })
-              : t('No data')),
+            dom.domComputed(selectedBySectionTitle, title => title ?
+              t(`No row selected in {{title}}`, { title }) :
+              t('No data')),
           ),
         ),
         dom.maybe(viewInstance.isTruncated, () =>

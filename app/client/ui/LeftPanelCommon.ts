@@ -41,9 +41,9 @@ export function createHelpTools(appModel: AppModel): DomContents {
       cssPageLink(cssPageIcon('Help'),
         cssLinkText(t("Help Center")),
         dom.cls('tour-help-center'),
-        deploymentType === 'saas'
-          ? dom.on('click', () => beaconOpenMessage({ appModel }))
-          : { href: commonUrls.help, target: '_blank' },
+        deploymentType === 'saas' ?
+          dom.on('click', () => beaconOpenMessage({ appModel })) :
+          { href: commonUrls.help, target: '_blank' },
         testId('left-feedback'),
       ),
     ),

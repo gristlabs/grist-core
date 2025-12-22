@@ -134,9 +134,9 @@ export async function buildReassignModal(options: {
       const oldRowId = this.data.oldRowId;
       const oldRecord = getRow(tableId, oldRowId);
       const oldValue = decodeObject(oldRecord[colId]);
-      let newValue: any = Array.isArray(oldValue)
-        ? oldValue.filter(v => v !== this.data.pointer)
-        : 0;
+      let newValue: any = Array.isArray(oldValue) ?
+        oldValue.filter(v => v !== this.data.pointer) :
+        0;
       if (Array.isArray(newValue) && newValue.length === 0) {
         newValue = null;
       }
@@ -338,8 +338,8 @@ export async function buildReassignModal(options: {
         dom.style('justify-content', 'space-between'),
         dom.style('align-items', 'baseline'),
         dom.domComputed(checked, v => [
-          v ? bigPrimaryButton(t('Reassign'), dom.on('click', reassign))
-            : bigBasicButton(t('Cancel'), dom.on('click', () => ctl.close())),
+          v ? bigPrimaryButton(t('Reassign'), dom.on('click', reassign)) :
+            bigBasicButton(t('Cancel'), dom.on('click', () => ctl.close())),
         ]),
         dom('div',
           withInfoTooltip(

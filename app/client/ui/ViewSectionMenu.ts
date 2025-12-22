@@ -48,9 +48,9 @@ export function viewSectionMenu(
 
   // Should we show [Save] [Revert] buttons.
   const displaySaveObs: Computed<boolean> = Computed.create(owner, use => (
-    use(viewSection.filterSpecChanged)
-    || !use(viewSection.activeSortJson.isSaved)
-    || !use(viewSection.activeCustomOptions.isSaved)
+    use(viewSection.filterSpecChanged) ||
+    !use(viewSection.activeSortJson.isSaved) ||
+    !use(viewSection.activeCustomOptions.isSaved)
   ));
 
   const save = () => { doSave(docModel, viewSection).catch(reportError); };
@@ -66,13 +66,13 @@ export function viewSectionMenu(
 
   // Should we show expand icon.
   const showExpandIcon = Computed.create(owner, (use) => {
-    return !use(isNarrowScreenObs()) // not on narrow screens
-      && use(gristDoc.maximizedSectionId) !== use(viewSection.id) // not in when we are maximized
-      && use(gristDoc.externalSectionId) !== use(viewSection.id) // not in when we are external
-      && !use(viewSection.isRaw) // not in raw mode
-      && !use(viewSection.isRecordCard)
-      && !use(singleVisible) // not in single section
-      && use(viewSection.canExpand)
+    return !use(isNarrowScreenObs()) && // not on narrow screens
+      use(gristDoc.maximizedSectionId) !== use(viewSection.id) && // not in when we are maximized
+      use(gristDoc.externalSectionId) !== use(viewSection.id) && // not in when we are external
+      !use(viewSection.isRaw) && // not in raw mode
+      !use(viewSection.isRecordCard) &&
+      !use(singleVisible) && // not in single section
+      use(viewSection.canExpand)
     ;
   });
 

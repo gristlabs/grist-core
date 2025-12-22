@@ -88,9 +88,9 @@ export function addFilterMenu(
       options: () => filters.map(filterInfo => ({
         label: filterInfo.fieldOrColumn.origCol().label.peek(),
         value: filterInfo,
-        disabled: allowedColumns === 'unpinned-or-unfiltered'
-          ? filterInfo.isPinned.peek() && filterInfo.isFiltered.peek()
-          : filterInfo.isFiltered.peek(),
+        disabled: allowedColumns === 'unpinned-or-unfiltered' ?
+          filterInfo.isPinned.peek() && filterInfo.isFiltered.peek() :
+          filterInfo.isFiltered.peek(),
       })),
       popupOptions: menuOptions,
       placeholder: t('Search Columns'),

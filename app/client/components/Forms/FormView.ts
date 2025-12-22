@@ -731,15 +731,15 @@ your form via that link will see an error.',
         dom.domComputed((use) => {
           const isFork = use(this._isFork);
           const published = use(this._published);
-          return published
-            ? style.cssSmallButton(
+          return published ?
+            style.cssSmallButton(
               dom('div', t('Unpublish')),
               dom.show(this._isOwner),
               style.cssSmallButton.cls('-warning'),
               dom.on('click', () => this._handleClickUnpublish()),
               testId('unpublish'),
-            )
-            : style.cssSmallButton(
+            ) :
+            style.cssSmallButton(
               dom('div', t('Publish')),
               dom.boolAttr('disabled', isFork),
               !isFork ? null : hoverTooltip(t('Save your document to publish this form.'), {

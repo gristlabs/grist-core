@@ -403,9 +403,9 @@ export class FieldBuilder extends Disposable {
             Promise.all([
               // This order is better for any other UI modifications, as first we are updating options
               // and then saving type.
-              !isEqual(existingOptions, guessedOptions)
-                ? column.widgetOptions.setAndSave(widgetOptions)
-                : Promise.resolve(),
+              !isEqual(existingOptions, guessedOptions) ?
+                column.widgetOptions.setAndSave(widgetOptions) :
+                Promise.resolve(),
               column.type.setAndSave(calculatedType),
             ]),
           ).catch(reportError);
@@ -697,11 +697,11 @@ export class FieldBuilder extends Disposable {
       const rowId = row.id();
       const discussion = this.field.column().cells().all()
         .find(d =>
-          d.rowId() === rowId
-          && !d.resolved()
-          && d.type() === gristTypes.CellInfoType.COMMENT
-          && !d.hidden()
-          && d.root());
+          d.rowId() === rowId &&
+          !d.resolved() &&
+          d.type() === gristTypes.CellInfoType.COMMENT &&
+          !d.hidden() &&
+          d.root());
       return Boolean(discussion);
     }).extend({ deferred: true })).onlyNotifyUnequal();
 

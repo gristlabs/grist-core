@@ -42,16 +42,16 @@ export interface FormLayoutNode {
 }
 
 export type FormLayoutNodeType =
-  | 'Paragraph'
-  | 'Section'
-  | 'Columns'
-  | 'Submit'
-  | 'Placeholder'
-  | 'Layout'
-  | 'Field'
-  | 'Label'
-  | 'Separator'
-  | 'Header';
+  | 'Paragraph' |
+  'Section' |
+  'Columns' |
+  'Submit' |
+  'Placeholder' |
+  'Layout' |
+  'Field' |
+  'Label' |
+  'Separator' |
+  'Header';
 
 /**
  * Context used by FormRenderer to build each node.
@@ -197,9 +197,9 @@ class SubmitRenderer extends FormRenderer {
             dom.attr('aria-disabled', use => use(this.context.disabled) ? 'true' : 'false'),
             { type: 'submit' },
             dom.domComputed((use) => {
-              return use(this.context.disabled)
-                ? [css.buttonLoadingSpinner(), t('Submitting…')]
-                : this.context.rootLayoutNode.submitText || t('Submit');
+              return use(this.context.disabled) ?
+                [css.buttonLoadingSpinner(), t('Submitting…')] :
+                this.context.rootLayoutNode.submitText || t('Submit');
             }),
             dom.on('click', (event) => {
               if (this.context.disabled.get()) {

@@ -132,9 +132,9 @@ export class Assistant extends Disposable {
     return [
       this._buildBanner(),
       this._conversation.buildDom(),
-      this._appModel.currentValidUser
-        ? this._buildChatInput()
-        : this._buildSignupNudge(),
+      this._appModel.currentValidUser ?
+        this._buildChatInput() :
+        this._buildSignupNudge(),
     ];
   }
 
@@ -254,9 +254,9 @@ export class Assistant extends Disposable {
 
     return t("For higher limits, {{upgradeNudge}}.", {
       upgradeNudge: cssBannerLink(
-        canUpgradeSite
-          ? t("upgrade to the Pro Team plan")
-          : t("upgrade your plan"),
+        canUpgradeSite ?
+          t("upgrade to the Pro Team plan") :
+          t("upgrade your plan"),
         dom.on("click", async () => {
           if (canUpgradeSite) {
             this._gristDoc.appModel.showUpgradeModal().catch(reportError);
@@ -288,9 +288,9 @@ export class Assistant extends Disposable {
       dom.style("max-height", (use) => {
         // Set an upper bound on the height the input can grow to, so that when the parent container
         // is resized, the input is automatically resized to fit and doesn't overflow.
-        const panelHeight = this._parentHeightPx
-          ? use(this._parentHeightPx)
-          : 0;
+        const panelHeight = this._parentHeightPx ?
+          use(this._parentHeightPx) :
+          0;
         // The available input height is computed by taking the parent height, and subtracting
         // the heights of all the other elements (except for the input).
         const availableInputHeight =
@@ -408,9 +408,9 @@ export class Assistant extends Disposable {
     this._history.set({ ...this._history.get(), state });
     // If model has a conversational skills (and maintains a history), we might get actually
     // some markdown text back, so we need to parse it.
-    const prettyMessage = state
-      ? reply || suggestedFormula || ""
-      : suggestedFormula || reply || "";
+    const prettyMessage = state ?
+      reply || suggestedFormula || "" :
+      suggestedFormula || reply || "";
     // Add it to the chat.
     this._conversation.addResponse({
       message: prettyMessage,
@@ -656,9 +656,9 @@ class AssistantConversation extends Disposable {
                     testId("message"),
                   ),
                 ),
-                !this._options.onApplyFormula
-                  ? null
-                  : cssAiMessageButtonsRow(
+                !this._options.onApplyFormula ?
+                  null :
+                  cssAiMessageButtonsRow(
                     cssAiMessageButtons(
                       primaryButton(
                         t("Apply"),

@@ -72,8 +72,8 @@ export function splitValuesByIndex<T extends { values: Datum[] }>(series: Array<
 export function consolidateValues(series: Array<{ values: Datum[] }>, xvalues: Datum[]) {
   let i = 0;
   for (const xval of xvalues) {
-    if (i < series[0].values.length && xval !== series[0].values[i]
-      || i > series[0].values.length - 1) {
+    if (i < series[0].values.length && xval !== series[0].values[i] ||
+      i > series[0].values.length - 1) {
       series[0].values.splice(i, 0, xval);
       for (let j = 1; j < series.length; ++j) {
         series[j].values.splice(i, 0, 0);

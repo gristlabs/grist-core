@@ -168,9 +168,9 @@ export class SortConfig extends Disposable {
           const ascending = use(isAscending);
           return [
             t('{{- columnName }} column', { columnName: column!.label }),
-            ascending
-              ? t('Sort in descending order (current: ascending)')
-              : t('Sort in ascending order (current: descending)'),
+            ascending ?
+              t('Sort in descending order (current: ascending)') :
+              t('Sort in ascending order (current: descending)'),
           ].join(' - ');
         }),
         dom.domComputed(isAscending, ascending =>
@@ -261,8 +261,8 @@ export class SortConfig extends Disposable {
           dom.on('click', () => updatePositions(this._gristDoc, this._section)),
           testId('update'),
           dom.show(use => (
-            use(use(this._section.table).supportsManualSort)
-            && !use(this._gristDoc.isReadonly)
+            use(use(this._section.table).supportsManualSort) &&
+            !use(this._gristDoc.isReadonly)
           )),
         ),
       ),

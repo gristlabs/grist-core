@@ -152,9 +152,9 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
     const newWidgetDesc = use(inputWidgetDesc)?.trim() ?? '';
     // Can't save when table name is empty or there wasn't any change.
     return !newTableName || (
-      newTableName === tableName
-      && newWidgetTitle === use(vs.title)
-      && newWidgetDesc === use(vs.description)
+      newTableName === tableName &&
+      newWidgetTitle === use(vs.title) &&
+      newWidgetDesc === use(vs.description)
     );
   });
 

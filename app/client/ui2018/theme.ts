@@ -239,9 +239,9 @@ function getCssThemeScrollbarProperties(appearance: ThemeAppearance) {
  * is loading.
  */
 function getCssThemeBackgroundProperties(appearance: ThemeAppearance) {
-  const value = appearance === 'dark'
-    ? 'url("img/prismpattern.png")'
-    : 'url("img/gplaypattern.png")';
+  const value = appearance === 'dark' ?
+    'url("img/prismpattern.png")' :
+    'url("img/gplaypattern.png")';
   return [`--grist-theme-bg: ${value};`];
 }
 
@@ -292,9 +292,9 @@ function fixOldCustomCss() {
   const missingVars: any[] = [];
   legacyVarsMapping.forEach(({ old, new: newVariable }) => {
     const found = !!overridenVars[old];
-    if (found
-      && !overridenVars[old].startsWith('var(--grist-')
-      && !missingVars.find(v => v.name === newVariable)
+    if (found &&
+      !overridenVars[old].startsWith('var(--grist-') &&
+      !missingVars.find(v => v.name === newVariable)
     ) {
       missingVars.push({
         name: newVariable,
@@ -317,7 +317,7 @@ ${missingVars.map(({ name, value }) => `${name}: ${value};`).join('\n')}
   }
 }`;
   console.warn(
-    'The custom.css file uses deprecated variables that will be removed in the future. '
-    + '\nPlease follow the example custom.css file to update the variables: https://support.getgrist.com/self-managed/#how-do-i-customize-styling.',
+    'The custom.css file uses deprecated variables that will be removed in the future. ' +
+    '\nPlease follow the example custom.css file to update the variables: https://support.getgrist.com/self-managed/#how-do-i-customize-styling.',
   );
 }

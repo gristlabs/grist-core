@@ -6,8 +6,8 @@ export interface DropdownCondition {
 }
 
 export type DropdownConditionCompilationResult =
-  | DropdownConditionCompilationSuccess
-  | DropdownConditionCompilationFailure;
+  | DropdownConditionCompilationSuccess |
+  DropdownConditionCompilationFailure;
 
 interface DropdownConditionCompilationSuccess {
   kind: 'success';

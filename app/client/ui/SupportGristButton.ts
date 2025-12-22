@@ -82,12 +82,12 @@ export class SupportGristButton extends Disposable {
           testId('support-nudge-close'),
         ),
         dom.domComputed(currentStep, (step) => {
-          return step === 'opt-in'
-            ? this._buildOptInScreen(async () => {
+          return step === 'opt-in' ?
+            this._buildOptInScreen(async () => {
               await this._optInToTelemetry();
               currentStep.set('opted-in');
-            })
-            : this._buildOptedInScreen(() => ctl.close());
+            }) :
+            this._buildOptedInScreen(() => ctl.close());
         }),
       ];
     }, {});

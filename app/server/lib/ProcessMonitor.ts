@@ -52,8 +52,8 @@ function monitor(telemetry: ITelemetry) {
 
   const intervalMs = now - _lastTickTime;
   // Note that cpuUsage info is in microseconds, while intervalMs is milliseconds.
-  const cpuAverage = (cpuUsage.system + cpuUsage.user - _lastCpuUsage.system - _lastCpuUsage.user)
-    / 1000 / intervalMs;
+  const cpuAverage = (cpuUsage.system + cpuUsage.user - _lastCpuUsage.system - _lastCpuUsage.user) /
+    1000 / intervalMs;
   _lastCpuUsage = cpuUsage;
   _lastTickTime = now;
 

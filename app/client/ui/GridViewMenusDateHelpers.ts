@@ -637,9 +637,9 @@ export function buildDateHelpersMenuItems(gridView: GridView, index?: number) {
         // This is a submenu item
         const submenuLabel = item.label();
         // Filter out DateTime-only items if column is Date
-        const filteredItems = isDateTime
-          ? item.items
-          : item.items.filter(opt => !opt.type.startsWith('DateTime'));
+        const filteredItems = isDateTime ?
+          item.items :
+          item.items.filter(opt => !opt.type.startsWith('DateTime'));
 
         if (filteredItems.length === 0) {
           continue; // Skip empty submenus

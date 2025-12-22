@@ -39,8 +39,8 @@ export function buildConfirmDelete(
         Enter: () => { onSave(remember.get()); ctl.close(); },
       }),
       dom('div', single ?
-        t(`Are you sure you want to delete this record?`)
-        : t(`Are you sure you want to delete these records?`),
+        t(`Are you sure you want to delete this record?`) :
+        t(`Are you sure you want to delete these records?`),
       dom.style('margin-bottom', '10px'),
       ),
       dom('div',

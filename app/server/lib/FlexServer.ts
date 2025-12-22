@@ -2712,8 +2712,8 @@ export class FlexServer implements GristServer {
     if (process.env.GRIST_LOG_SKIP_HTTP !== undefined) {
       const expectedGristLogHttpVal = deprecatedOptionEnablesLog ? "true" : "false";
 
-      log.warn(`Setting env variable GRIST_LOG_SKIP_HTTP="${process.env.GRIST_LOG_SKIP_HTTP}" `
-        + `is deprecated in favor of GRIST_LOG_HTTP="${expectedGristLogHttpVal}"`);
+      log.warn(`Setting env variable GRIST_LOG_SKIP_HTTP="${process.env.GRIST_LOG_SKIP_HTTP}" ` +
+        `is deprecated in favor of GRIST_LOG_HTTP="${expectedGristLogHttpVal}"`);
     }
 
     return isGristLogHttpEnabled || deprecatedOptionEnablesLog;
@@ -2872,50 +2872,50 @@ const serveAnyOrigin: serveStatic.ServeStaticOptions = {
 };
 
 type Part =
-  'activation'
-  | 'api'
-  | 'api-error'
-  | 'api-mw'
-  | 'assistant'
-  | 'audit-logger'
-  | 'billing-api'
-  | 'boot'
-  | 'cleanup'
-  | 'clientSecret'
-  | 'comm'
-  | 'dir'
-  | 'doc'
-  | 'doc_api_forwarder'
-  | 'early-api'
-  | 'google-auth'
-  | 'health'
-  | 'homedb'
-  | 'hosts'
-  | 'housekeeper'
-  | 'json'
-  | 'landing'
-  | 'log-endpoint'
-  | 'logging'
-  | 'login'
-  | 'loginMiddleware'
-  | 'map'
-  | 'middleware'
-  | 'notifier'
-  | 'org'
-  | 'pluginUntaggedAssets'
-  | 'router'
-  | 'scim'
-  | 'sessions'
-  | 'start'
-  | 'static_and_bower'
-  | 'strip_dw'
-  | 'tag'
-  | 'telemetry'
-  | 'testAssets'
-  | 'testinghooks'
-  | 'update'
-  | 'usage'
-  | 'webhooks'
-  | 'widgets';
+  'activation' |
+  'api' |
+  'api-error' |
+  'api-mw' |
+  'assistant' |
+  'audit-logger' |
+  'billing-api' |
+  'boot' |
+  'cleanup' |
+  'clientSecret' |
+  'comm' |
+  'dir' |
+  'doc' |
+  'doc_api_forwarder' |
+  'early-api' |
+  'google-auth' |
+  'health' |
+  'homedb' |
+  'hosts' |
+  'housekeeper' |
+  'json' |
+  'landing' |
+  'log-endpoint' |
+  'logging' |
+  'login' |
+  'loginMiddleware' |
+  'map' |
+  'middleware' |
+  'notifier' |
+  'org' |
+  'pluginUntaggedAssets' |
+  'router' |
+  'scim' |
+  'sessions' |
+  'start' |
+  'static_and_bower' |
+  'strip_dw' |
+  'tag' |
+  'telemetry' |
+  'testAssets' |
+  'testinghooks' |
+  'update' |
+  'usage' |
+  'webhooks' |
+  'widgets';
 
 type CheckKey = Part | `!${Part}`;

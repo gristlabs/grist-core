@@ -93,9 +93,9 @@ describe('OpenAIAssistantV1', function () {
   }
 
   it('can suggest a formula', async function () {
-    const reply = "Here's a formula that adds columns A and B:\n\n"
-      + "```python\na = int(rec.A)\nb=int(rec.B)\n\nreturn str(a + b)\n```"
-      + "\n\nLet me know if there's anything else I can help with.";
+    const reply = "Here's a formula that adds columns A and B:\n\n" +
+      "```python\na = int(rec.A)\nb=int(rec.B)\n\nreturn str(a + b)\n```" +
+      "\n\nLet me know if there's anything else I can help with.";
     const replyMessage = { "role": "assistant", "content": reply };
 
     fakeResponse = () => ({
@@ -127,9 +127,9 @@ describe('OpenAIAssistantV1', function () {
     ],
     );
     const suggestedFormula = "a = int($A)\nb=int($B)\n\nstr(a + b)";
-    const replyWithSuggestedFormula = "Here's a formula that adds columns A and B:\n\n"
-      + "```python\na = int($A)\nb=int($B)\n\nstr(a + b)\n```"
-      + "\n\nLet me know if there's anything else I can help with.";
+    const replyWithSuggestedFormula = "Here's a formula that adds columns A and B:\n\n" +
+      "```python\na = int($A)\nb=int($B)\n\nstr(a + b)\n```" +
+      "\n\nLet me know if there's anything else I can help with.";
     assert.deepEqual(result, {
       suggestedActions: [
         ["ModifyColumn", table1Id, colId, { formula: suggestedFormula }],

@@ -119,14 +119,14 @@ export class ChoiceTextBox extends NTextBox {
 
   protected buildChoicesConfigDom() {
     const disabled = Computed.create(null,
-      use => use(this.field.disableModify)
-        || use(use(this.field.column).disableEditData)
-        || use(this.field.config.options.disabled('choices')),
+      use => use(this.field.disableModify) ||
+        use(use(this.field.column).disableEditData) ||
+        use(this.field.config.options.disabled('choices')),
     );
 
     const mixed = Computed.create(null,
-      use => !use(disabled)
-        && (use(this.field.config.options.mixed('choices')) || use(this.field.config.options.mixed('choiceOptions'))),
+      use => !use(disabled) &&
+        (use(this.field.config.options.mixed('choices')) || use(this.field.config.options.mixed('choiceOptions'))),
     );
 
     return [

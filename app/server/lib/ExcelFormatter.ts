@@ -68,9 +68,9 @@ class BaseFormatter {
         // If currency name is undefined or null, it should be cast to unknown currency, because
         // "getSymbolFromCurrency" expect argument to be string
         const currencyName = this.widgetOptions.currency??"";
-        const currencySymbol = getSymbolFromCurrency(currencyName)
-          ?? this.widgetOptions.currency
-          ?? "$";
+        const currencySymbol = getSymbolFromCurrency(currencyName) ??
+          this.widgetOptions.currency ??
+          "$";
         style.numFmt = `"${currencySymbol} "#,##0.000`;
       }
       else if (this.widgetOptions.numMode === 'percent') {

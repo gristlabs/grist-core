@@ -25,9 +25,9 @@ export async function checkForUpdates(gristServer: GristServer): Promise<LatestV
   );
 
   if (!response.ok) {
-    const errorData = response.headers.get("content-type")?.includes("application/json")
-      ? await response.json()
-      : await response.text();
+    const errorData = response.headers.get("content-type")?.includes("application/json") ?
+      await response.json() :
+      await response.text();
     throw new ApiError('Version update checking failed', response.status, errorData);
   }
 

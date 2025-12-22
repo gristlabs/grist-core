@@ -61,9 +61,9 @@ function createNodes(
 
 function getLinkNodeTableById(doc: ActiveDoc, id: number): LinkNodeTable {
   const table = getTableById(doc, id);
-  const maybeSummaryTable = table.summarySourceTable
-    ? getTableById(doc, table.summarySourceTable)
-    : undefined;
+  const maybeSummaryTable = table.summarySourceTable ?
+    getTableById(doc, table.summarySourceTable) :
+    undefined;
   return {
     id: table.id,
     tableId: maybeSummaryTable?.tableId ?? table.tableId,
@@ -81,13 +81,13 @@ function getLinkNodeSection(
   idOrWidget: number | MetaRowRecord<"_grist_Views_section">,
 ): LinkNodeSection {
   const widget =
-    typeof idOrWidget === "number"
-      ? getWidgetById(doc, idOrWidget)
-      : idOrWidget;
+    typeof idOrWidget === "number" ?
+      getWidgetById(doc, idOrWidget) :
+      idOrWidget;
   const table = getTableById(doc, widget.tableRef);
-  const maybeSummaryTable = table.summarySourceTable
-    ? getTableById(doc, table.summarySourceTable)
-    : undefined;
+  const maybeSummaryTable = table.summarySourceTable ?
+    getTableById(doc, table.summarySourceTable) :
+    undefined;
   return {
     ...pick(
       widget,

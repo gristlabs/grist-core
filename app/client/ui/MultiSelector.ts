@@ -128,14 +128,14 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
   private _buildAddItemDom(defLabel: string, defText: string): Element {
     const addNewItem: Observable<boolean> = observable(false);
     return dom('li', testId('add-item'),
-      dom.domComputed(addNewItem, isAdding => isAdding
-        ? dom.frag(
+      dom.domComputed(addNewItem, isAdding => isAdding ?
+        dom.frag(
           this.buildSelectBox('', async (newItem) => {
             await this.add(newItem);
             addNewItem.set(false);
           }, { defLabel }),
-          this.buildRemoveButton(() => addNewItem.set(false)))
-        : button1(defText, testId('add-btn'),
+          this.buildRemoveButton(() => addNewItem.set(false))) :
+        button1(defText, testId('add-btn'),
           dom.on('click', () => addNewItem.set(true))),
       ),
     );

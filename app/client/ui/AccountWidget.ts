@@ -213,9 +213,9 @@ export class AccountWidget extends Disposable {
     const canViewBillingPage = Boolean(
       currentOrg && // have accecc to org
       currentOrg.billingAccount && // have access to billing account
-      (currentOrg.billingAccount.isManager // is billing manager
-        || currentValidUser?.isSupport // or support
-        || this._appModel.isInstallAdmin())); // or install admin
+      (currentOrg.billingAccount.isManager || // is billing manager
+        currentValidUser?.isSupport || // or support
+        this._appModel.isInstallAdmin())); // or install admin
 
     return isTeamSite ?
       // For links, disabling with just a class is hard; easier to just not make it a link.

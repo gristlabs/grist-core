@@ -97,9 +97,9 @@ export class DataTables extends Disposable {
                     }
                   }),
                   hoverTooltip(
-                    dom.domComputed(use => use(use(tableRec.recordCardViewSection).disabled)
-                      ? t('Record Card Disabled')
-                      : t('Edit record card')),
+                    dom.domComputed(use => use(use(tableRec.recordCardViewSection).disabled) ?
+                      t('Record Card Disabled') :
+                      t('Edit record card')),
                     { key: DATA_TABLES_TOOLTIP_KEY, closeOnClick: false },
                   ),
                   dom.hide(this._gristDoc.isReadonly),
@@ -262,9 +262,9 @@ export class DataTables extends Disposable {
       return cssTableRowsWrapper(
         cssUpperCase("Rows: "),
         rowCounts === 'pending' ? cssLoadingDots() : cssTableRows(
-          rowCounts[table.getRowId()] !== undefined
-            ? this._rowCountFormatter.format(rowCounts[table.getRowId()])
-            : '',
+          rowCounts[table.getRowId()] !== undefined ?
+            this._rowCountFormatter.format(rowCounts[table.getRowId()]) :
+            '',
           testId('table-rows'),
         ),
       );

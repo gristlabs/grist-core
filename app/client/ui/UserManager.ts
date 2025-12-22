@@ -152,9 +152,9 @@ function buildUserManagerModal(
       return [
         cssTitle(
           renderTitle(options.resourceType, options.resource, model.isPersonal),
-          (options.resourceType === 'document' && (!model.isPersonal || model.isPublicMember)
-            ? makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header'))
-            : null
+          (options.resourceType === 'document' && (!model.isPersonal || model.isPublicMember) ?
+            makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header')) :
+            null
           ),
           testId('um-header'),
         ),
@@ -180,8 +180,8 @@ function buildUserManagerModal(
             dom.on('click', () => ctl.close()),
             testId('um-cancel'),
           ),
-          (model.resourceType === 'document' && model.gristDoc && !model.isPersonal
-            ? withInfoTooltip(
+          (model.resourceType === 'document' && model.gristDoc && !model.isPersonal ?
+            withInfoTooltip(
               cssLink({ href: urlState().makeUrl({ docPage: 'acl' }) },
                 dom.text(use => use(model.isAnythingChanged) ? t('Save & ') : ''),
                 t('Open Access Rules'),
@@ -193,8 +193,8 @@ function buildUserManagerModal(
               ),
               'openAccessRules',
               { domArgs: [cssAccessLink.cls('')] },
-            )
-            : null
+            ) :
+            null
           ),
           testId('um-buttons'),
         ),
@@ -362,9 +362,9 @@ export class UserManager extends Disposable {
             !member.name ? null : cssMemberSecondary(
               member.email, dom.cls('member-email'), testId('um-member-email'),
             ),
-            (this._model.isPersonal
-              ? this._buildSelfAnnotationDom(member)
-              : this._buildAnnotationDom(member)
+            (this._model.isPersonal ?
+              this._buildSelfAnnotationDom(member) :
+              this._buildAnnotationDom(member)
             ),
           ),
           member.isRemoved ? null : this._memberRoleSelector(member.effectiveAccess,
@@ -498,9 +498,9 @@ export class UserManager extends Disposable {
 
     return dom('div',
       cssMemberListItem(
-        (!activeUser
-          ? cssPublicMemberIcon('PublicFilled')
-          : cssMemberImage(createUserImage(activeUser, 'large'))
+        (!activeUser ?
+          cssPublicMemberIcon('PublicFilled') :
+          cssMemberImage(createUserImage(activeUser, 'large'))
         ),
         cssMemberText(
           cssMemberPrimary(name, testId('um-member-name')),
@@ -566,8 +566,8 @@ export class UserManager extends Disposable {
           // The active user should be prevented from changing their own role.
           menuItem(() => isActiveUser || role.set(_role.value), _role.label,
             // Indicate which option is inherited, if any.
-            dom.text(use => use(inherited) && (use(inherited) === _role.value)
-              && !isActiveUser ? ' (inherited)' : ''),
+            dom.text(use => use(inherited) && (use(inherited) === _role.value) &&
+              !isActiveUser ? ' (inherited)' : ''),
             // Disable everything providing less access than the inherited access
             dom.cls('disabled', use =>
               roles.getStrongestRole(_role.value, use(inherited)) !== _role.value),

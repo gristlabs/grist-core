@@ -282,9 +282,9 @@ namespace gristUtils {
   }
 
   export async function expandSection(title?: string) {
-    const select = title
-      ? driver.findContent(`.test-viewsection-title`, exactMatch(title)).findClosest(".viewsection_title")
-      : driver.find(".active_section");
+    const select = title ?
+      driver.findContent(`.test-viewsection-title`, exactMatch(title)).findClosest(".viewsection_title") :
+      driver.find(".active_section");
     await select.find(".test-section-menu-expandSection").click();
     await driver.findWait('.test-viewLayout-overlay .test-close-button', 500);
   }
@@ -2665,9 +2665,9 @@ namespace gristUtils {
  * Opens a cell color picker, either the default one or the one for a specific style rule.
  */
   export async function openCellColorPicker(nr?: number) {
-    const selector = nr !== undefined
-      ? `.test-widget-style-conditional-rule-${nr} .test-color-select`
-      : '.test-cell-color-select .test-color-select';
+    const selector = nr !== undefined ?
+      `.test-widget-style-conditional-rule-${nr} .test-color-select` :
+      '.test-cell-color-select .test-color-select';
     await driver.find(selector).click();
     await findOpenMenu();
   }
@@ -3737,9 +3737,9 @@ namespace gristUtils {
     if (!syncWithOS) {
       await scrollIntoView(driver.find('.test-theme-config-appearance .test-select-open'));
       await driver.find('.test-theme-config-appearance .test-select-open').click();
-      await findOpenMenuItem('li', themeName === 'GristLight'
-        ? 'Light' : themeName === 'GristDark'
-          ? 'Dark' : 'Light (High Contrast)')
+      await findOpenMenuItem('li', themeName === 'GristLight' ?
+        'Light' : themeName === 'GristDark' ?
+          'Dark' : 'Light (High Contrast)')
         .click();
       await waitForServer();
     }

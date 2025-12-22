@@ -183,9 +183,9 @@ async function updateViewSections(gristDoc: GristDoc, duplicatedViewSections: Du
   const records: RowRecord[] = [];
   for (const { srcViewSection, destViewSection } of duplicatedViewSections) {
     const viewSectionLayoutSpec =
-      srcViewSection.parentKey.peek() === 'form'
-        ? cleanFormLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap)
-        : patchLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap);
+      srcViewSection.parentKey.peek() === 'form' ?
+        cleanFormLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap) :
+        patchLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap);
     const record = gristDoc.docData.getMetaTable('_grist_Views_section').getRecord(srcViewSection.getRowId())!;
 
     const isNewView = srcViewSection.view.peek().id.peek() != destViewSection.view.peek().id.peek();

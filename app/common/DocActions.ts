@@ -208,9 +208,9 @@ export const SYSTEM_ACTIONS = new Set([
 ]);
 
 export function getNumRows(action: DocAction): number {
-  return !isDataAction(action) ? 0
-    : Array.isArray(action[2]) ? action[2].length
-      : 1;
+  return !isDataAction(action) ? 0 :
+    Array.isArray(action[2]) ? action[2].length :
+      1;
 }
 
 // Convert from TableColValues (used by DocStorage and external APIs) to TableDataAction (used

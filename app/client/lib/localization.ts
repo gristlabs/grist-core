@@ -67,10 +67,10 @@ export async function setupLocale() {
 
 export function detectCurrentLang() {
   const { userLocale, supportedLngs } = getGristConfig();
-  const detected = userLocale
-    || document.cookie.match(/grist_user_locale=([^;]+)/)?.[1]
-    || window.navigator.language
-    || 'en';
+  const detected = userLocale ||
+    document.cookie.match(/grist_user_locale=([^;]+)/)?.[1] ||
+    window.navigator.language ||
+    'en';
   const supportedList = supportedLngs ?? ['en'];
   // If we have this language in the list (or more general version) mark it as selected.
   // Compare languages in lower case, as navigator.language can return en-US, en-us (for older Safari).
@@ -80,8 +80,8 @@ export function detectCurrentLang() {
 }
 
 export function setAnonymousLocale(lng: string) {
-  document.cookie = lng ? `grist_user_locale=${lng}; path=/; max-age=31536000`
-    : 'grist_user_locale=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
+  document.cookie = lng ? `grist_user_locale=${lng}; path=/; max-age=31536000` :
+    'grist_user_locale=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
 }
 
 /**

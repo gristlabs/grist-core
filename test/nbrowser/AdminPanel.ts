@@ -433,8 +433,8 @@ describe('AdminPanel', function() {
     const names = await adminAccounts.findAll('.test-admin-panel-admin-accounts-list-item');
     assert.equal(names.length, 1);
 
-    assert.equal(await names[0].getText(), 'Admin account not found\n'
-    + 'Missing admin account because GRIST_DEFAULT_EMAIL is not set');
+    assert.equal(await names[0].getText(), 'Admin account not found\n' +
+    'Missing admin account because GRIST_DEFAULT_EMAIL is not set');
   });
 });
 

@@ -54,9 +54,9 @@ export async function setBound(minMax: 'min'|'max', value: string|{ relative: st
 
 export async function getBoundText(minMax: 'min'|'max') {
   const bound = findBound(minMax);
-  return (await bound.getText())
-    || (await bound.find('input').value())
-    || (await bound.find('input').getAttribute('placeholder')).trim();
+  return (await bound.getText()) ||
+    (await bound.find('input').value()) ||
+    (await bound.find('input').getAttribute('placeholder')).trim();
 }
 
 export function addFilterUtilsToRepl() {

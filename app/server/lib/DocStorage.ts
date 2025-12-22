@@ -1500,9 +1500,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    *                     ATTACHMENTS_EXPIRY_DAYS days ago.
    */
   public async getSoftDeletedAttachmentIds(expiredOnly: boolean): Promise<number[]> {
-    const condition = expiredOnly
-      ? `datetime(timeDeleted, 'unixepoch') < datetime('now', '-${ATTACHMENTS_EXPIRY_DAYS} days')`
-      : "timeDeleted IS NOT NULL";
+    const condition = expiredOnly ?
+      `datetime(timeDeleted, 'unixepoch') < datetime('now', '-${ATTACHMENTS_EXPIRY_DAYS} days')` :
+      "timeDeleted IS NOT NULL";
 
     const rows = await this.all(`
       SELECT id

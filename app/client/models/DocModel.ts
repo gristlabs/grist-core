@@ -256,9 +256,9 @@ export class DocModel extends Disposable {
     this.hasDocTour = this.autoDispose(ko.computed(() => this.visibleTableIds.all().includes('GristDocTour')));
 
     this.isTutorial = this.autoDispose(ko.computed(() =>
-      isNonNullish(this._docPageModel)
-      && toKo(ko, this._docPageModel.isTutorialFork)()
-      && this.allTableIds.all().includes('GristDocTutorial')));
+      isNonNullish(this._docPageModel) &&
+      toKo(ko, this._docPageModel.isTutorialFork)() &&
+      this.allTableIds.all().includes('GristDocTutorial')));
   }
 
   public getTableModel(tableId: string) {

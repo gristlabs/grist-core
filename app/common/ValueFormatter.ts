@@ -244,10 +244,10 @@ class ReferenceFormatter extends BaseFormatter {
     and this will suppress that too, but this is unlikely and seems worth it.
     */
     if (
-      Array.isArray(value)
-      && value[0] === GristObjCode.Exception
-      && value[1] === "InvalidTypedValue"
-      && value[2]?.startsWith?.("Ref")
+      Array.isArray(value) &&
+      value[0] === GristObjCode.Exception &&
+      value[1] === "InvalidTypedValue" &&
+      value[2]?.startsWith?.("Ref")
     ) {
       return value[3];
     }

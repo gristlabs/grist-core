@@ -346,8 +346,8 @@ export class ApiServer {
       ];
 
       if ('type' in req.body && ! validDocTypes.includes(req.body.type)){
-        const errMsg = "Bad Request. 'type' key authorized values : "
-          + `'${DOCTYPE_TEMPLATE}', '${DOCTYPE_TUTORIAL}' or ${DOCTYPE_NORMAL}`;
+        const errMsg = "Bad Request. 'type' key authorized values : " +
+          `'${DOCTYPE_TEMPLATE}', '${DOCTYPE_TUTORIAL}' or ${DOCTYPE_NORMAL}`;
         return res.status(400).send({ error: errMsg });
       }
 

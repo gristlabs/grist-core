@@ -94,8 +94,8 @@ describe("DocWorkerLoadTracker", function () {
       usedFromFile: bytesToMb(128),
       result: 0,
     }, {
-      itMsg: 'should let the DocManager compute an estimation of the memory used when '
-        + 'GRIST_DOC_WORKER_USED_MEMORY_BYTES_PATH is not provided',
+      itMsg: 'should let the DocManager compute an estimation of the memory used when ' +
+        'GRIST_DOC_WORKER_USED_MEMORY_BYTES_PATH is not provided',
       setup() {
         getTotalMemoryUsedStub.returns(128);
       },

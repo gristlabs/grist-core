@@ -48,8 +48,8 @@ function generateProxyAgents() {
 
   return {
     trusted: proxyForTrustedRequestsUrl ? new GristProxyAgent(proxyForTrustedRequestsUrl) : undefined,
-    untrusted: (proxyForUntrustedRequestsUrl && proxyForUntrustedRequestsUrl !== "direct")
-      ? new GristProxyAgent(proxyForUntrustedRequestsUrl) : undefined,
+    untrusted: (proxyForUntrustedRequestsUrl && proxyForUntrustedRequestsUrl !== "direct") ?
+      new GristProxyAgent(proxyForUntrustedRequestsUrl) : undefined,
   };
 }
 

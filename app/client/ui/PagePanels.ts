@@ -193,13 +193,13 @@ export function pagePanels(page: PageContents) {
         // opening left panel on hover
         dom.on('mouseenter', (evt1, elem) => {
 
-          if (left.panelOpen.get()
+          if (left.panelOpen.get() ||
 
             // when no opener should not auto-expand
-            || left.hideOpener
+            left.hideOpener ||
 
             // if user is resizing the window, don't expand.
-            || isScreenResizingObs.get()) { return; }
+            isScreenResizingObs.get()) { return; }
 
           let isMouseInsideLeftPane = true;
           let isFocusInsideLeftPane = false;
@@ -293,9 +293,9 @@ export function pagePanels(page: PageContents) {
           regionFocusSwitcher?.panelAttrs('top', t('Document header')),
           (left.hideOpener ? null :
             unstyledButton(
-              { 'aria-label': left.panelOpen.get()
-                ? t('Close navigation panel (left panel)')
-                : t('Open navigation panel (left panel)') },
+              { 'aria-label': left.panelOpen.get() ?
+                t('Close navigation panel (left panel)') :
+                t('Open navigation panel (left panel)') },
               dom.on('click', () => toggleObs(left.panelOpen)),
               cssPanelOpener(
                 'PanelRight',

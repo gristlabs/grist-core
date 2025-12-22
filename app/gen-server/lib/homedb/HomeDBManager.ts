@@ -3391,11 +3391,11 @@ export class HomeDBManager implements HomeDBAuth {
           ],
         })
         .chain(qb =>
-          createdSince
-            ? qb.andWhere("org_member_users.created_at >= :createdSince", {
+          createdSince ?
+            qb.andWhere("org_member_users.created_at >= :createdSince", {
               createdSince,
-            })
-            : qb,
+            }) :
+            qb,
         )
         .getRawOne();
       return count;
@@ -3770,10 +3770,10 @@ export class HomeDBManager implements HomeDBAuth {
         // wasn't reset yet. We store the last reset date in the limit itself.
 
         // We can only reset the limit if we know the billing period end date, and this is not a free plan.
-        if (existing.billingAccount.status?.currentPeriodEnd
-          && existing.billingAccount.status?.currentPeriodStart
-          && existing.billingAccount.inGoodStanding
-          && !isFreePlan(existing.billingAccount.product.name)
+        if (existing.billingAccount.status?.currentPeriodEnd &&
+          existing.billingAccount.status?.currentPeriodStart &&
+          existing.billingAccount.inGoodStanding &&
+          !isFreePlan(existing.billingAccount.product.name)
         ) {
           const startDate = new Date(existing.billingAccount.status.currentPeriodStart).getTime();
           const endDate = new Date(existing.billingAccount.status.currentPeriodEnd).getTime();
@@ -5398,9 +5398,9 @@ export class HomeDBManager implements HomeDBAuth {
     // If we have special access to the resource, don't filter user information.
     if (scope.specialPermit?.docId === docId && docId) { return; }
 
-    const thisUser = this._usersManager.getAnonymousUserId() === scope.userId
-      ? null
-      : users.find(user => user.id === scope.userId);
+    const thisUser = this._usersManager.getAnonymousUserId() === scope.userId ?
+      null :
+      users.find(user => user.id === scope.userId);
     const realAccess = thisUser ? getRealAccess(thisUser, { maxInheritedRole }) : null;
 
     // If we are an owner, don't filter user information.

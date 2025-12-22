@@ -202,8 +202,8 @@ export class SafeBrowser extends BaseComponent {
    */
   private _createViewProcess(path: string): [ViewProcess, number] {
     const rpc = this._createRpc(path);
-    const url = `${this._untrustedContentOrigin}/plugins/${this._plugin.definition.id}/${path}`
-      + `?host=${G.window.location.origin}`;
+    const url = `${this._untrustedContentOrigin}/plugins/${this._plugin.definition.id}/${path}` +
+      `?host=${G.window.location.origin}`;
     const viewId = this._viewCount++;
     const process = SafeBrowser.createView(this, rpc, url);
     this._viewProcesses.set(viewId, process);

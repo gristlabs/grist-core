@@ -385,9 +385,9 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
       weasel.setPopupToCreateDom(elem, ctl => buildMultiSelectMenu(ctl), weasel.defaultMenuOptions);
     },
     dom.style('border', (use) => {
-      return options.error && use(options.error)
-        ? `1px solid ${theme.selectButtonBorderInvalid}`
-        : `1px solid ${theme.selectButtonBorder}`;
+      return options.error && use(options.error) ?
+        `1px solid ${theme.selectButtonBorderInvalid}` :
+        `1px solid ${theme.selectButtonBorder}`;
     }),
     ...domArgs,
   );
@@ -608,9 +608,9 @@ export function menuItemCmd(
 ) {
   return menuItem(
     () => cmd.run(),
-    typeof label === 'string'
-      ? dom('span', label, testId('cmd-name'))
-      : dom('div', label(), testId('cmd-name')),
+    typeof label === 'string' ?
+      dom('span', label, testId('cmd-name')) :
+      dom('div', label(), testId('cmd-name')),
     cmd.humanKeys?.length ? cssCmdKey(cmd.humanKeys[0]) : null,
     cssMenuItemCmd.cls(''), // overrides some menu item styles
     ...args,

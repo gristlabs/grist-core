@@ -192,12 +192,12 @@ export class OpenAIAssistantV1 implements AssistantV1 {
     const apiResponse = await DEPS.fetch(this._endpoint, {
       method: "POST",
       headers: {
-        ...(this._apiKey
-          ? {
+        ...(this._apiKey ?
+          {
             Authorization: `Bearer ${this._apiKey}`,
             "api-key": this._apiKey,
-          }
-          : undefined),
+          } :
+          undefined),
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -205,11 +205,11 @@ export class OpenAIAssistantV1 implements AssistantV1 {
         temperature: 0,
         ...(model ? { model } : undefined),
         user,
-        ...(this._maxTokens
-          ? {
+        ...(this._maxTokens ?
+          {
             max_tokens: this._maxTokens,
-          }
-          : undefined),
+          } :
+          undefined),
       }),
       ...(DEPS.agents.trusted ? { agent: DEPS.agents.trusted } : {}),
     });

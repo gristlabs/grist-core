@@ -128,8 +128,8 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
     }),
   );
   this.formattedTableName = ko.pureComputed(() => {
-    return this.summarySourceTable()
-      ? `${this.tableNameDef()} ${this.groupDesc()}`
-      : this.tableNameDef();
+    return this.summarySourceTable() ?
+      `${this.tableNameDef()} ${this.groupDesc()}` :
+      this.tableNameDef();
   });
 }

@@ -1572,9 +1572,9 @@ export class DocWorkerApi {
     }));
 
     this._app.get('/api/docs/:docId/download/xlsx', canView, withDoc(async (activeDoc, req, res) => {
-      const options: DownloadOptions = (!_.isEmpty(req.query) && !_.isEqual(Object.keys(req.query), ["title"]))
-        ? await this._getDownloadOptions(req)
-        : {
+      const options: DownloadOptions = (!_.isEmpty(req.query) && !_.isEqual(Object.keys(req.query), ["title"])) ?
+        await this._getDownloadOptions(req) :
+        {
           filename: await this._getDownloadFilename(req),
           tableId: '',
           viewSectionId: undefined,
@@ -2478,11 +2478,11 @@ export class DocWorkerApi {
       },
       details: {
         document: _.pick(document, "id"),
-        ...(snapshotId
-          ? { snapshot: { id: snapshotId } }
-          : sourceDocId
-            ? { fork: { document_id: sourceDocId } }
-            : undefined),
+        ...(snapshotId ?
+          { snapshot: { id: snapshotId } } :
+          sourceDocId ?
+            { fork: { document_id: sourceDocId } } :
+            undefined),
       },
     });
   }

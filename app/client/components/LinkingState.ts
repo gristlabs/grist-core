@@ -332,8 +332,8 @@ export class LinkingState extends Disposable {
     // Make filterColValues, which is just the filtering-relevant parts of filterState
     // (it's used in places that don't need the user-facing labels, e.g. CSV export)
     this.filterColValues = (this.filterState) ?
-      ko.computed(() => FilterStateToColValues(this.filterState!()))
-      : undefined;
+      ko.computed(() => FilterStateToColValues(this.filterState!())) :
+      undefined;
 
     if (!this.getDefaultColValues) {
       this.getDefaultColValues = () => {

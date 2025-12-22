@@ -96,9 +96,9 @@ export class DropdownConditionConfig extends Disposable {
   private _isRefField = Computed.create(this, use =>
     ['Ref', 'RefList'].includes(use(use(this._column).pureType)));
 
-  private _tooltip = Computed.create(this, use => use(this._isRefField)
-    ? 'setRefDropdownCondition'
-    : 'setChoiceDropdownCondition');
+  private _tooltip = Computed.create(this, use => use(this._isRefField) ?
+    'setRefDropdownCondition' :
+    'setChoiceDropdownCondition');
 
   private _editorElement: HTMLElement;
 

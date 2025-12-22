@@ -21,9 +21,9 @@ export function userTrustsCustomWidget() {
   });
 
   saveModal((ctl, owner) => {
-    const src = Computed.create(owner, use => use(gristThemeObs()).appearance === 'light'
-      ? 'img/security-alert.png'
-      : 'img/security-alert-dark-theme.png');
+    const src = Computed.create(owner, use => use(gristThemeObs()).appearance === 'light' ?
+      'img/security-alert.png' :
+      'img/security-alert-dark-theme.png');
     const confirmIsChecked = Observable.create(owner, false);
     const saveDisabled = Computed.create(owner, use => !use(confirmIsChecked));
     return {

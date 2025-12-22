@@ -349,8 +349,8 @@ export class ViewFieldConfig {
       this._field.widgetOptionsJson.update(options);
       return this._docModel.docData.bundleActions("Update choices configuration", () => Promise.all([
         this._field.widgetOptionsJson.save(),
-        !hasRenames ? null
-          : this._docModel.docData.sendAction(["RenameChoices", tableId, column.colId.peek(), renames]),
+        !hasRenames ? null :
+          this._docModel.docData.sendAction(["RenameChoices", tableId, column.colId.peek(), renames]),
       ]), actionOptions);
     }
 

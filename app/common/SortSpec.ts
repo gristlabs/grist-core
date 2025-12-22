@@ -85,12 +85,12 @@ export namespace Sort {
    * Converts column expression to object representation.
    */
   export function specToDetails(colSpec: ColSpec): ColSpecDetails {
-    return typeof colSpec === "number"
-      ? {
+    return typeof colSpec === "number" ?
+      {
         colRef: Math.abs(colSpec),
         direction: colSpec >= 0 ? ASC: DESC,
-      }
-      : parseColSpec(colSpec);
+      } :
+      parseColSpec(colSpec);
   }
 
   function maybeNumber(colRef: string): ColRef {

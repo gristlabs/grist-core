@@ -1035,10 +1035,10 @@ export async function retryOnce<T>(fn: () => Promise<T>, recover: (e: unknown) =
  * Values like 0, true, false are not empty.
  */
 export function notSet(value: any) {
-  return value === undefined || value === null || value === ''
-    || (Array.isArray(value) && !value.length)
-    || (typeof value === 'object' && !Object.keys(value).length)
-    || (['[object Map]', '[object Set'].includes(value.toString()) && !value.size);
+  return value === undefined || value === null || value === '' ||
+    (Array.isArray(value) && !value.length) ||
+    (typeof value === 'object' && !Object.keys(value).length) ||
+    (['[object Map]', '[object Set'].includes(value.toString()) && !value.size);
 }
 
 /**

@@ -48,8 +48,8 @@ export class ViewAsBanner extends Disposable {
     return cssContent(
       cssMessageText(
         cssMessageIcon('EyeShow'),
-        sharedUser ? t('You are viewing this document as')
-          : t("You're seeing what this user would see if given access"),
+        sharedUser ? t('You are viewing this document as') :
+          t("You're seeing what this user would see if given access"),
       ),
       cssSelectBtn(
         { tabIndex: '0' },

@@ -142,9 +142,9 @@ export default class DetailView extends BaseView {
 
       const field = this.recordLayout.getContainingField(elem as Element, this.viewPane);
       if (
-        this._twoLastFieldIdsSelected[0] === this._twoLastFieldIdsSelected[1]
-        && !isNarrowScreen()
-        && this._canSingleClick(field)
+        this._twoLastFieldIdsSelected[0] === this._twoLastFieldIdsSelected[1] &&
+        !isNarrowScreen() &&
+        this._canSingleClick(field)
       ) {
         this.activateEditorAtCursor({
           event,

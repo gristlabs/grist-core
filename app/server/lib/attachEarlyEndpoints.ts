@@ -280,25 +280,25 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       gristServer.getAuditLogger().logEvent(mreq, {
         action: "config.update",
         context: {
-          site: current.org
-            ? pick(current.org, "id", "name", "domain")
-            : undefined,
+          site: current.org ?
+            pick(current.org, "id", "name", "domain") :
+            undefined,
         },
         details: {
           previous: {
             config: {
               ...pick(previous, "id", "key", "value"),
-              site: previous.org
-                ? pick(previous.org, "id", "name", "domain")
-                : undefined,
+              site: previous.org ?
+                pick(previous.org, "id", "name", "domain") :
+                undefined,
             },
           },
           current: {
             config: {
               ...pick(current, "id", "key", "value"),
-              site: current.org
-                ? pick(current.org, "id", "name", "domain")
-                : undefined,
+              site: current.org ?
+                pick(current.org, "id", "name", "domain") :
+                undefined,
             },
           },
         },
@@ -308,16 +308,16 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       gristServer.getAuditLogger().logEvent(mreq, {
         action: "config.create",
         context: {
-          site: config.org
-            ? pick(config.org, "id", "name", "domain")
-            : undefined,
+          site: config.org ?
+            pick(config.org, "id", "name", "domain") :
+            undefined,
         },
         details: {
           config: {
             ...pick(config, "id", "key", "value"),
-            site: config.org
-              ? pick(config.org, "id", "name", "domain")
-              : undefined,
+            site: config.org ?
+              pick(config.org, "id", "name", "domain") :
+              undefined,
           },
         },
       });
@@ -333,9 +333,9 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       details: {
         config: {
           ...pick(config, "id", "key", "value"),
-          site: config.org
-            ? pick(config.org, "id", "name", "domain")
-            : undefined,
+          site: config.org ?
+            pick(config.org, "id", "name", "domain") :
+            undefined,
         },
       },
     });
@@ -354,9 +354,9 @@ function pruneConfigAPIResult(
     ...result,
     data: {
       ...pick(config, "id", "key", "value", "createdAt", "updatedAt"),
-      ...(config.org
-        ? { org: pick(config.org, "id", "name", "domain") }
-        : undefined),
+      ...(config.org ?
+        { org: pick(config.org, "id", "name", "domain") } :
+        undefined),
     },
   };
 }

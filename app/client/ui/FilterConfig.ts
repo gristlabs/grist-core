@@ -69,9 +69,9 @@ export class FilterConfig extends Disposable {
           ),
           cssPinFilterButton(
             icon('PinTilted'),
-            dom.attr('aria-label', use => use(isPinned)
-              ? t('Unpin filter - {{- columnName}} column (current: pinned)', { columnName: use(fieldOrColumn.label) })
-              : t('Pin filter - {{- columnName}} column (current: unpinned)', { columnName: use(fieldOrColumn.label) }),
+            dom.attr('aria-label', use => use(isPinned) ?
+              t('Unpin filter - {{- columnName}} column (current: pinned)', { columnName: use(fieldOrColumn.label) }) :
+              t('Pin filter - {{- columnName}} column (current: unpinned)', { columnName: use(fieldOrColumn.label) }),
             ),
             dom.on('click', () => this._section.setFilter(fieldOrColumn.origCol().origColRef(), {
               pinned: !isPinned.peek(),

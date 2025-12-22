@@ -609,9 +609,9 @@ function testDocApi(settings: {
       formData.append('workspaceId', body.workspaceId);
       const config = defaultsDeep({ headers: formData.getHeaders() }, user);
       let resp = await axios.post(`${serverUrl}/api/docs`,
-        ...(content === 'with content'
-          ? [formData, config]
-          : [body, user]),
+        ...(content === 'with content' ?
+          [formData, config] :
+          [body, user]),
       );
       assert.equal(resp.status, 200);
       const urlId = resp.data;
@@ -658,9 +658,9 @@ function testDocApi(settings: {
         formData.append('workspaceId', body.workspaceId);
         const config = defaultsDeep({ headers: formData.getHeaders() }, user);
         const resp = await axios.post(`${serverUrl}/api/docs`,
-          ...(content === 'with content'
-            ? [formData, config]
-            : [body, user]),
+          ...(content === 'with content' ?
+            [formData, config] :
+            [body, user]),
         );
         assert.equal(resp.status, 403);
         assert.equal(resp.data.error, 'access denied');
@@ -678,9 +678,9 @@ function testDocApi(settings: {
       formData.append('workspaceId', body.workspaceId);
       const config = defaultsDeep({ headers: formData.getHeaders() }, user);
       let resp = await axios.post(`${serverUrl}/api/docs`,
-        ...(content === 'with content'
-          ? [formData, config]
-          : [body, user]),
+        ...(content === 'with content' ?
+          [formData, config] :
+          [body, user]),
       );
       assert.equal(resp.status, 200);
       const urlId = resp.data;
@@ -713,9 +713,9 @@ function testDocApi(settings: {
       formData.append('workspaceId', body.workspaceId);
       const config = defaultsDeep({ headers: formData.getHeaders() }, user);
       const resp = await axios.post(`${serverUrl}/api/docs`,
-        ...(content === 'with content'
-          ? [formData, config]
-          : [body, user]),
+        ...(content === 'with content' ?
+          [formData, config] :
+          [body, user]),
       );
       assert.equal(resp.status, 400);
       assert.equal(resp.data.error, 'Cannot add document to a deleted workspace');
@@ -737,9 +737,9 @@ function testDocApi(settings: {
       formData.append('workspaceId', body.workspaceId);
       const config = defaultsDeep({ headers: formData.getHeaders() }, user);
       const resp = await axios.post(`${serverUrl}/api/docs`,
-        ...(content === 'with content'
-          ? [formData, config]
-          : [body, user]),
+        ...(content === 'with content' ?
+          [formData, config] :
+          [body, user]),
       );
       assert.equal(resp.status, 404);
       assert.equal(resp.data.error, 'workspace not found');

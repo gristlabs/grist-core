@@ -48,8 +48,8 @@ export abstract class NewAbstractWidget extends Disposable {
   protected valueFormatter: Observable<BaseFormatter>;
   protected textColor: Observable<string>;
   protected fillColor: Observable<string>;
-  protected readonly defaultTextColor: string|undefined = this._opts.defaultTextColor
-    ?? theme.cellFg.toString();
+  protected readonly defaultTextColor: string|undefined = this._opts.defaultTextColor ??
+    theme.cellFg.toString();
 
   constructor(protected field: ViewFieldRec, private _opts: Options = {}) {
     super();

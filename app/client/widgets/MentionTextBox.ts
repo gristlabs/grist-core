@@ -207,9 +207,9 @@ export function buildMentionTextBox(
 
 function renderMarkdownForEditing(text: string) {
   return splitTextWithMentions(text).map(chunk =>
-    typeof chunk === 'string'
-      ? chunk
-      : cssLink({ 'data-userref': chunk.ref }, chunk.name, dom.cls('grist-mention')),
+    typeof chunk === 'string' ?
+      chunk :
+      cssLink({ 'data-userref': chunk.ref }, chunk.name, dom.cls('grist-mention')),
   );
 }
 

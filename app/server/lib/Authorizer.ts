@@ -419,8 +419,8 @@ export async function addRequestUser(
     // get an active user and thinks the user isn't logged in at all,
     // which can be more confusing than necessary.
     const isSessionGetRequest = (
-      ['/session/access/active', '/session/access/all'].includes(mreq.url)
-      && mreq.method === 'GET'
+      ['/session/access/active', '/session/access/all'].includes(mreq.url) &&
+      mreq.method === 'GET'
     );
 
     if (!isSessionGetRequest) {

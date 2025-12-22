@@ -36,8 +36,8 @@ export function maybeShowNewRecordExperiment(view: BaseView) {
 function newRecordButton(view: BaseView) {
   const viewType = view.viewSection.parentKey.peek();
 
-  const translationString = translationStrings[viewType as keyof typeof translationStrings]
-    || t('New record');
+  const translationString = translationStrings[viewType as keyof typeof translationStrings] ||
+    t('New record');
   return cssNewRecordButton(
     icon('Plus'),
     dom('span', translationString),

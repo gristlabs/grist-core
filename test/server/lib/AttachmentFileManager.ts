@@ -23,8 +23,8 @@ import * as sinon from "sinon";
 
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.
 type IMinimalDocStorage = Pick<DocStorage,
-  'docName' | 'getFileInfo' | 'getFileInfoNoData' | 'attachFileIfNew' | 'attachOrUpdateFile'
-  | 'listAllFiles' | 'requestVacuum'
+  'docName' | 'getFileInfo' | 'getFileInfoNoData' | 'attachFileIfNew' | 'attachOrUpdateFile' |
+  'listAllFiles' | 'requestVacuum'
 >;
 
 // Implements the minimal functionality needed for the AttachmentFileManager to work.

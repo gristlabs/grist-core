@@ -66,11 +66,11 @@ export class Experiments extends Disposable {
       },
       {
         explanation: cssWrapper(
-          dom('p', dom.cls(cssWrapper.className), alreadyEnabled
-            ? t('You are about to disable this experimental feature: {{experiment}}', {
+          dom('p', dom.cls(cssWrapper.className), alreadyEnabled ?
+            t('You are about to disable this experimental feature: {{experiment}}', {
               experiment: experimentLabel,
-            })
-            : t('You are about to enable this experimental feature: {{experiment}}', {
+            }) :
+            t('You are about to enable this experimental feature: {{experiment}}', {
               experiment: experimentLabel,
             }),
           ),
@@ -102,17 +102,17 @@ export class Experiments extends Disposable {
       this._cleanAndReloadUrl,
       {
         explanation: cssWrapper(
-          dom('p', nowEnabled
-            ? t('{{experiment}} enabled.', { experiment: experimentLabel })
-            : t('{{experiment}} disabled.', { experiment: experimentLabel }),
+          dom('p', nowEnabled ?
+            t('{{experiment}} enabled.', { experiment: experimentLabel }) :
+            t('{{experiment}} disabled.', { experiment: experimentLabel }),
           ),
-          nowEnabled
-            ? dom(
+          nowEnabled ?
+            dom(
               'p',
               dom.cls(cssWrapper.className),
               t('Visit this URL at any time to stop using this feature: {{url}}', { url: urlBlock }),
-            )
-            : null,
+            ) :
+            null,
         ),
         hideCancel: true,
         modalOptions: {

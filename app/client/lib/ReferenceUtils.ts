@@ -93,9 +93,9 @@ export class ReferenceUtils extends Disposable {
       const error = use(this._dropdownConditionError);
       if (error) { return t('Error in dropdown condition'); }
 
-      return this.hasDropdownCondition
-        ? t('No choices matching condition')
-        : t('No choices to select');
+      return this.hasDropdownCondition ?
+        t('No choices matching condition') :
+        t('No choices to select');
     });
   }
 

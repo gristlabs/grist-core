@@ -318,18 +318,18 @@ describe('CustomView', function() {
         await gu.undo();
       });
 
-      const undoTestTitle = access === 'full'
-        ? 'allows undo/redo via keyboard'
-        : 'does not allow undo/redo via keyboard';
+      const undoTestTitle = access === 'full' ?
+        'allows undo/redo via keyboard' :
+        'does not allow undo/redo via keyboard';
       it(undoTestTitle, async function() {
         const iframe = gu.getSection('Friends custom').find('iframe');
         await driver.switchTo().frame(iframe);
         await driver.findWait('body', 500).click();
 
         await gu.sendKeys(Key.chord(Key.CONTROL, 'y'));
-        const expected = access === 'full'
-          ? withAccess(['Rabbit', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined)
-          : withAccess(['Roger', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined);
+        const expected = access === 'full' ?
+          withAccess(['Rabbit', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined) :
+          withAccess(['Roger', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined);
         await gu.waitToPass(async () => {
           assert.deepEqual(readJson(await driver.find('#placeholder').getText())?.Name, expected);
         }, 1000);

@@ -1079,8 +1079,8 @@ export class Importer extends DisposableWithEvents {
                           toggleCustomized(info, field.colId(), false);
                           // Try to set the default label.
                           const transformCol = field.column.peek();
-                          const possibilities = this._transformColImportOptions.get().get(transformCol.getRowId())
-                            ?? new Map<string, string>();
+                          const possibilities = this._transformColImportOptions.get().get(transformCol.getRowId()) ??
+                            new Map<string, string>();
                           const matched = [...possibilities.entries()].find(([, v]) => v === transformCol.label.peek());
                           if (matched) {
                             await this._setColumnFormula(transformCol, matched[0], info);

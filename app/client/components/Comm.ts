@@ -341,8 +341,8 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
               err.code = 'UNIQUE_REFERENCE_VIOLATION';
             }
             err.shouldFork = message.shouldFork;
-            log.warn(`Comm response #${reqId} ${r.methodName} ERROR:${code} ${message.error}`
-              + (message.shouldFork ? ` (should fork)` : ''));
+            log.warn(`Comm response #${reqId} ${r.methodName} ERROR:${code} ${message.error}` +
+              (message.shouldFork ? ` (should fork)` : ''));
             this._reportError?.(err);
             r.reject(err);
           }

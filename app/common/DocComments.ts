@@ -90,8 +90,8 @@ export function makeDocComment(
 }
 
 type MentionChunk =
-  | string
-  | { name: string; ref: string };
+  | string |
+  { name: string; ref: string };
 
 const mentionRegex = /\[(@[^\]]+?)\]\(user:(\w+)\)/;
 

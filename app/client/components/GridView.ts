@@ -175,10 +175,10 @@ export default class GridView extends BaseView {
     this._inline = gridOptions?.inline ?? false;
     this._autoWidthHolder = this.autoDispose(new Holder());
 
-    this._rowIndexRenderer = gridOptions?.rowIndexRenderer
-      ?? (row => dom.text(use => String(use(row._index)! + 1)));
-    this._cornerRenderer = gridOptions?.cornerRenderer
-      ?? (() => dom.on('click', () => this.selectAll()));
+    this._rowIndexRenderer = gridOptions?.rowIndexRenderer ??
+      (row => dom.text(use => String(use(row._index)! + 1)));
+    this._cornerRenderer = gridOptions?.cornerRenderer ??
+      (() => dom.on('click', () => this.selectAll()));
     this.viewSection = viewSectionModel;
     this.isReadonly = this.gristDoc.isReadonly.get() ||
       this.viewSection.isVirtual() ||
@@ -619,9 +619,9 @@ export default class GridView extends BaseView {
     const cursorCol = this.cursor.fieldIndex();
     const cursorRow = this.cursor.rowIndex()!;
     const type = ['up', 'down'].includes(direction) ? selector.ROW : selector.COL;
-    const maxVal = type === selector.ROW
-      ? this.getLastDataRowIndex()
-      : this.viewSection.viewFields().peekLength - 1;
+    const maxVal = type === selector.ROW ?
+      this.getLastDataRowIndex() :
+      this.viewSection.viewFields().peekLength - 1;
 
     // Get table data for the current selection plus additional data in the specified `direction`.
     let selectionData;

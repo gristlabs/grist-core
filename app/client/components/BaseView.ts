@@ -518,14 +518,14 @@ export default class BaseView extends DisposableWithEvents {
 
   // Get an anchor link for the current cell and a given view section to the clipboard.
   public getAnchorLinkForSection(sectionId: number): IGristUrlState {
-    const rowId = this.viewData.getRowId(this.cursor.rowIndex()!)
+    const rowId = this.viewData.getRowId(this.cursor.rowIndex()!) ||
     // If there are no visible rows (happens in some widget linking situations),
     // pick an arbitrary row which will hopefully be close to the top of the table.
-      || this.tableModel.tableData.findMatchingRowId({})
+      this.tableModel.tableData.findMatchingRowId({}) ||
     // If there are no rows at all, return the 'new record' row ID.
     // Note that this case only happens in combination with the widget linking mentioned.
     // If the table is empty but the 'new record' row is selected, the `viewData.getRowId` line above works.
-      || 'new';
+      'new';
     // The `fieldIndex` will be null if there are no visible columns.
     const fieldIndex = this.cursor.fieldIndex.peek();
     const field = fieldIndex !== null ? this.viewSection.viewFields().peek()[fieldIndex] : null;

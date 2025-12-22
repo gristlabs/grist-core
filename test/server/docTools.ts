@@ -54,9 +54,9 @@ export function createDocTools(options: { persistAcrossCases?: boolean,
   async function doBefore() {
     tmpDir = await createTmpDir();
     const pluginManager = options.useFixturePlugins ? await createFixturePluginManager() : undefined;
-    attachmentStoreProvider = options.createAttachmentStoreProvider
-      ? (await options.createAttachmentStoreProvider())
-      : new AttachmentStoreProvider([], "TEST_INSTALL");
+    attachmentStoreProvider = options.createAttachmentStoreProvider ?
+      (await options.createAttachmentStoreProvider()) :
+      new AttachmentStoreProvider([], "TEST_INSTALL");
 
     docManager = await createDocManager({ tmpDir, pluginManager, storageManager: options.storageManager,
       server: options.server?.(), attachmentStoreProvider });

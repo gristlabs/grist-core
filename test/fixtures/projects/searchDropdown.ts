@@ -10,8 +10,8 @@ const options = [
   'Apple', 'Microsoft', 'Bill Gates', 'Elon Musk', 'Klimt', 'Goran', 'Vengo',
   'Bach', 'Otello', 'Romeo', 'Juliet', 'Grease', 'Stencil', 'Yahoo', 'AOL', 'Bing', 'Google',
   'Meta', 'Metaverse', 'Zoro', 'Atom', 'Tesla', 'Lenovo',
-  'A very very long even longer than that nameeeeeee '
-  + 'A very very long even longer than that nameeeeeee',
+  'A very very long even longer than that nameeeeeee ' +
+  'A very very long even longer than that nameeeeeee',
 ];
 
 function setupTest() {

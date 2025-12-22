@@ -395,9 +395,9 @@ const addRow = async () => {
 const startTransferButton = () => driver.find('.test-settings-transfer-start-button');
 
 const WAIT = true;
-const transferSpinner = (wait = false) => wait
-  ? driver.findWait('.test-settings-transfer-spinner', 500)
-  : driver.find('.test-settings-transfer-spinner');
+const transferSpinner = (wait = false) => wait ?
+  driver.findWait('.test-settings-transfer-spinner', 500) :
+  driver.find('.test-settings-transfer-spinner');
 
 async function waitForDisplay(fn: () => WebElementPromise) {
   await gu.waitToPass(async () => {

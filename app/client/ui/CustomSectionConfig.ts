@@ -102,9 +102,9 @@ class ColumnPicker extends Disposable {
       return use(canBeMapped).length === 0;
     });
 
-    const defaultLabel = this._column.typeDesc != "any"
-      ? t("Pick a {{columnType}} column", { "columnType": this._column.typeDesc })
-      : t("Pick a column");
+    const defaultLabel = this._column.typeDesc != "any" ?
+      t("Pick a {{columnType}} column", { "columnType": this._column.typeDesc }) :
+      t("Pick a column");
 
     return [
       cssGroupLabel(
@@ -363,9 +363,9 @@ class CustomSectionConfigurationConfig extends Disposable{
         }));
         return dom('div',
           this._attachColumnMappingTip(this._section.customDef.url()),
-          ...mappings.map(m => m.column.allowMultiple
-            ? dom.create(ColumnListPicker, m.value, m.column, this._section)
-            : dom.create(ColumnPicker, m.value, m.column, this._section)),
+          ...mappings.map(m => m.column.allowMultiple ?
+            dom.create(ColumnListPicker, m.value, m.column, this._section) :
+            dom.create(ColumnPicker, m.value, m.column, this._section)),
         );
       }),
     ]);
@@ -524,9 +524,9 @@ export class CustomSectionConfig extends Disposable {
         'Dropdown',
         cssShowWidgetDetailsIcon.cls('-collapsed', use => !use(this._widgetDetailsExpanded)),
         testId('toggle-custom-widget-details'),
-        testId(use => !use(this._widgetDetailsExpanded)
-          ? 'show-custom-widget-details'
-          : 'hide-custom-widget-details',
+        testId(use => !use(this._widgetDetailsExpanded) ?
+          'show-custom-widget-details' :
+          'hide-custom-widget-details',
         ),
       ),
       cssWidgetLabel(t('Widget')),
@@ -603,13 +603,13 @@ export class CustomSectionConfig extends Disposable {
             !widget?.authors?.[0] ? null : cssWidgetMetadataRow(
               cssWidgetMetadataName(t('Developer:')),
               cssWidgetMetadataValue(
-                widget.authors[0].url
-                  ? cssDeveloperLink(
+                widget.authors[0].url ?
+                  cssDeveloperLink(
                     widget.authors[0].name,
                     { href: widget.authors[0].url, target: '_blank' },
                     testId('custom-widget-developer'),
-                  )
-                  : dom('span',
+                  ) :
+                  dom('span',
                     widget.authors[0].name,
                     testId('custom-widget-developer'),
                   ),

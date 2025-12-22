@@ -564,8 +564,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
           }
           else if (shouldStartDocTour) {
             const onFinishCB = () => (
-              !this._seenDocTours.get()?.includes(this.docId())
-              && markAsSeen(this._seenDocTours, this.docId())
+              !this._seenDocTours.get()?.includes(this.docId()) &&
+              markAsSeen(this._seenDocTours, this.docId())
             );
             await startDocTour(this.docData, this.docComm, onFinishCB);
             if (this.docPageModel.isTemplate.get()) {
@@ -1679,12 +1679,12 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
 
     const setVolume = async (start: number, end: number, step: number) => {
       let volume: number;
-      const condition = start <= end
-        ? () => volume <= end
-        : () => volume >= end;
-      const afterthought = start <= end
-        ? () => volume += step
-        : () => volume -= step;
+      const condition = start <= end ?
+        () => volume <= end :
+        () => volume >= end;
+      const afterthought = start <= end ?
+        () => volume += step :
+        () => volume -= step;
       for (volume = start; condition(); afterthought()) {
         backgroundVideoPlayer.setVolume(volume);
         await delay(250);

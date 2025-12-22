@@ -354,8 +354,8 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
 
   // Get time of current version
   const start = moment.tz(current.lastModified, tz);
-  const capObjectString = process.env.GRIST_SNAPSHOT_TIME_CAP
-    || '{"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}';
+  const capObjectString = process.env.GRIST_SNAPSHOT_TIME_CAP ||
+    '{"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}';
 
   // Parse the stringified JSON object into an actual object
   const caps = JSON.parse(capObjectString);

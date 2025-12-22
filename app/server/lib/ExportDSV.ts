@@ -156,11 +156,11 @@ function getDSVFileExtension(delimiter: Delimiter): DSVFileExtension {
 }
 
 type DSVMimeType =
-  | 'text/csv'
+  | 'text/csv' |
   // Reference: https://www.iana.org/assignments/media-types/text/tab-separated-values
-  | 'text/tab-separated-values'
+  'text/tab-separated-values' |
   // Note: not a registered MIME type, hence the "x-" prefix.
-  | 'text/x-doo-separated-values';
+  'text/x-doo-separated-values';
 
 function getDSVMimeType(delimiter: Delimiter): DSVMimeType {
   switch (delimiter) {

@@ -52,9 +52,9 @@ type MaybeSection = ViewSectionRec|IPageWidget;
 export function selectBy(docModel: DocModel, sources: ViewSectionRec[],
   target: MaybeSection): Array<IOptionFull<string>> {
   const sourceNodes = createNodesFromViewSections(docModel, sources);
-  const targetNodes = isViewSectionRec(target)
-    ? createNodesFromViewSections(docModel, [target])
-    : createNodesFromPageWidget(docModel, target);
+  const targetNodes = isViewSectionRec(target) ?
+    createNodesFromViewSections(docModel, [target]) :
+    createNodesFromPageWidget(docModel, target);
 
   const NoLinkOption: IOptionFull<string> = {
     label: t("Select widget"),

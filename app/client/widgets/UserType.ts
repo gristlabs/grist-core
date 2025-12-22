@@ -308,5 +308,5 @@ export const typeDefs: any = {
 };
 
 // Extract widgets type to a type from the json above
-export type WidgetType = 'TextBox' | 'Markdown' | 'HyperLink' | 'Spinner'
-  | 'CheckBox' | 'Switch' | 'Reference' | 'Attachments';
+export type WidgetType = 'TextBox' | 'Markdown' | 'HyperLink' | 'Spinner' |
+  'CheckBox' | 'Switch' | 'Reference' | 'Attachments';

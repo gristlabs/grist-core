@@ -111,11 +111,11 @@ export class UrlStateImpl {
       newState.activation ||
       newState.auditLogs ||
       newState.welcome ||
-      newState.adminPanel
-        ? prevState.org
-          ? { org: prevState.org }
-          : {}
-        : prevState;
+      newState.adminPanel ?
+        prevState.org ?
+          { org: prevState.org } :
+          {} :
+        prevState;
     return { ...keepState, ...newState };
   }
 

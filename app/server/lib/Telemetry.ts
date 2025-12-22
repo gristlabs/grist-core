@@ -325,8 +325,8 @@ export class Telemetry implements ITelemetry {
     metadata?: TelemetryMetadata,
   ) {
     if (this._numPendingForwardEventRequests === MAX_PENDING_FORWARD_EVENT_REQUESTS) {
-      this._logger.warn(requestOrSession, 'exceeded the maximum number of pending forwardEvent calls '
-      + `(${MAX_PENDING_FORWARD_EVENT_REQUESTS}). Skipping forwarding of event ${event}.`);
+      this._logger.warn(requestOrSession, 'exceeded the maximum number of pending forwardEvent calls ' +
+      `(${MAX_PENDING_FORWARD_EVENT_REQUESTS}). Skipping forwarding of event ${event}.`);
       return;
     }
 

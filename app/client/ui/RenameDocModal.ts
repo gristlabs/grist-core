@@ -150,9 +150,9 @@ class RenameDocModal extends Disposable {
                               this._icon.emoji.set(emoji.native);
                               ctl.close();
                             },
-                            theme: gristThemePrefs.get()?.syncWithOS
-                              ? "auto"
-                              : gristThemeObs().get().appearance,
+                            theme: gristThemePrefs.get()?.syncWithOS ?
+                              "auto" :
+                              gristThemeObs().get().appearance,
                           });
                         }),
                       ),

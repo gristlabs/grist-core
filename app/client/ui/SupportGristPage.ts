@@ -115,9 +115,9 @@ is used, so that we can prioritize future improvements.',
     }
     else {
       return cssOptInOutMessage(
-        value !== 'off'
-          ? [t('You have opted in to telemetry. Thank you!'), ' 🙏']
-          : t('You have opted out of telemetry.'),
+        value !== 'off' ?
+          [t('You have opted in to telemetry. Thank you!'), ' 🙏'] :
+          t('You have opted out of telemetry.'),
         testId('telemetry-section-message'),
       );
     }

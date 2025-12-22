@@ -96,9 +96,9 @@ function attachWelcomePopups(home: HomeModel): (el: Element) => void {
 function buildAllDocumentsPage(home: HomeModel) {
   return [
     buildHomeIntro(home),
-    home.app.isPersonal && !home.app.currentValidUser
-      ? null
-      : dom.maybe(home.available, () => dom.create(DocList, { home })),
+    home.app.isPersonal && !home.app.currentValidUser ?
+      null :
+      dom.maybe(home.available, () => dom.create(DocList, { home })),
   ];
 }
 
@@ -147,9 +147,9 @@ function buildTemplatesPage(home: HomeModel) {
           dom.domComputed(
             use => use(home.featuredTemplates).length > 0,
             hasFeaturedTemplates =>
-              hasFeaturedTemplates
-                ? t("More Examples and Templates")
-                : t("Examples and Templates"),
+              hasFeaturedTemplates ?
+                t("More Examples and Templates") :
+                t("Examples and Templates"),
           ),
           testId("doc-header"),
         ),

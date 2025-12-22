@@ -177,9 +177,9 @@ export class DocTutorial extends Disposable {
                 testId('popup-previous'),
               ),
               primaryButton(isLastSlide ? t('Finish'): t('Next'),
-                isLastSlide
-                  ? dom.on('click', async () => await this._exitTutorial(true))
-                  : dom.on('click', async () => await this._nextSlide()),
+                isLastSlide ?
+                  dom.on('click', async () => await this._exitTutorial(true)) :
+                  dom.on('click', async () => await this._nextSlide()),
                 testId('popup-next'),
               ),
             ),

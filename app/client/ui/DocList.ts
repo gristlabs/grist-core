@@ -184,12 +184,12 @@ export class DocList extends Disposable {
                           testId("doc-name"),
                         ),
                         cssDocBadges(
-                          doc.isPinned
-                            ? cssPinIcon("Pin2", testId("doc-pinned"))
-                            : null,
-                          doc.public
-                            ? cssWorldIcon("World", testId("doc-public"))
-                            : null,
+                          doc.isPinned ?
+                            cssPinIcon("Pin2", testId("doc-pinned")) :
+                            null,
+                          doc.public ?
+                            cssWorldIcon("World", testId("doc-public")) :
+                            null,
                         ),
                       ),
                     ),
@@ -212,12 +212,12 @@ export class DocList extends Disposable {
                       ),
                       cssDocEditedAt(getUpdatedAt(doc)),
                       cssDocBadges(
-                        !doc.isPinned
-                          ? null
-                          : cssPinIcon("Pin2"),
-                        !doc.public
-                          ? null
-                          : cssWorldIcon("World"),
+                        !doc.isPinned ?
+                          null :
+                          cssPinIcon("Pin2"),
+                        !doc.public ?
+                          null :
+                          cssWorldIcon("World"),
                       ),
                     ),
                     cssDocOptions(
@@ -343,9 +343,9 @@ function showMoveDocModal(home: HomeModel, doc: Document) {
           return cssMoveDocListItem(
             cssMoveDocListText(workspaceName(home.app, ws)),
             isCurrent ? cssMoveDocListHintText(t("Current workspace")) : null,
-            !isEditable
-              ? cssMoveDocListHintText(t("Requires edit permissions"))
-              : null,
+            !isEditable ?
+              cssMoveDocListHintText(t("Requires edit permissions")) :
+              null,
             cssMoveDocListItem.cls("-disabled", disabled),
             cssMoveDocListItem.cls(
               "-selected",

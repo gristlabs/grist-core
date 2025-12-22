@@ -644,8 +644,8 @@ export class ChartConfig extends GrainJSDisposable {
           value === 'symmetric' ? cssRowHelp(t("Each Y series is followed by a series for the length of error bars.")) :
             value === 'separate' ? cssRowHelp(
               t("Each Y series is followed by two series, for top and bottom error bars."),
-            )
-              : null,
+            ) :
+              null,
         ),
       ]),
 

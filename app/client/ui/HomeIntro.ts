@@ -34,9 +34,9 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
       cssHeaderWithPill(
         cssHeader(
           dom.text(use =>
-            use(isNarrowScreenObs())
-              ? homeModel.app.currentOrgName
-              : t("Welcome to {{- orgName}}", { orgName: homeModel.app.currentOrgName }),
+            use(isNarrowScreenObs()) ?
+              homeModel.app.currentOrgName :
+              t("Welcome to {{- orgName}}", { orgName: homeModel.app.currentOrgName }),
           ),
         ),
         cssPill(productPill(homeModel.app.currentOrg, { large: true })),
@@ -56,9 +56,9 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
         // some common `styled` components in order to use a specific h1 here
         { role: 'heading', 'aria-level': '1' },
         dom.text(use =>
-          use(isNarrowScreenObs())
-            ? t("Welcome to Grist!")
-            : t("Welcome to Grist, {{- name}}!", { name: user.name }),
+          use(isNarrowScreenObs()) ?
+            t("Welcome to Grist!") :
+            t("Welcome to Grist, {{- name}}!", { name: user.name }),
         ),
         testId('welcome-title'),
       ),

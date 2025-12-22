@@ -35,14 +35,14 @@ const t = makeT('AppModel');
 export { reportError } from 'app/client/models/errors';
 
 export type PageType =
-  | "doc"
-  | "home"
-  | "billing"
-  | "welcome"
-  | "account"
-  | "admin"
-  | "activation"
-  | "audit-logs";
+  | "doc" |
+  "home" |
+  "billing" |
+  "welcome" |
+  "account" |
+  "admin" |
+  "activation" |
+  "audit-logs";
 
 const G = getBrowserGlobals('document', 'window');
 

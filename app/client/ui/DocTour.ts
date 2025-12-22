@@ -103,8 +103,8 @@ function exposeDocTour(docTour: IOnBoardingMsg[]) {
   (window as any)._gristDocTour = () =>
     docTour.map(msg => ({
       ...msg,
-      body: typeof msg.body === "string" ? msg.body
-        : (msg.body as HTMLElement)?.outerHTML
+      body: typeof msg.body === "string" ? msg.body :
+        (msg.body as HTMLElement)?.outerHTML
           .replace(/_grain\d+_/g, "_grainXXX_"),
       urlState: msg.urlState?.hash,
     }));

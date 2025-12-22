@@ -3460,9 +3460,9 @@ function actionHasRuleChange(a: DocAction): boolean {
     //  - It will typically be accompanied closely by unsetting the helper column on the metadata record.
     //  - `getHelperCols` can handle non-existent helper columns and other similarly invalid metadata.
     //  - Since the column is removed, ACL restrictions on it don't really matter.
-    isDataAction(a)
-    && ["_grist_Tables_column", "_grist_Views_section_field"].includes(getTableId(a))
-    && Boolean(
+    isDataAction(a) &&
+    ["_grist_Tables_column", "_grist_Views_section_field"].includes(getTableId(a)) &&
+    Boolean(
       a[3]?.hasOwnProperty('rules') ||
       a[3]?.hasOwnProperty('displayCol'),
     )

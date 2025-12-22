@@ -314,8 +314,8 @@ export function mapColumnNames(data: any, options?: {
   function isOptional(col: string) {
     return Boolean(
       // Columns passed as strings are required.
-      !options!.columns?.includes(col)
-      && options!.columns?.find(c => typeof c === 'object' && c?.name === col && c.optional),
+      !options!.columns?.includes(col) &&
+      options!.columns?.find(c => typeof c === 'object' && c?.name === col && c.optional),
     );
   }
   // For each widget column in mapping.

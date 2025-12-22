@@ -275,8 +275,8 @@ export class CustomView extends BaseView {
               widgetId: builtInSettings.widgetId || _widgetId,
               pluginId: _pluginId,
             }),
-          )
-          : null,
+          ) :
+          null,
       ),
       kd.maybe(showPluginNotification, () => buildNotification('Plugin ',
         dom('strong', kd.text(this.customDef.pluginId)), ' was not found',

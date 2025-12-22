@@ -797,9 +797,9 @@ export class UsersManager {
       userIdsAndEmails[0] === String(userId) &&
       delta.maxInheritedRole === undefined &&
       foundUserIdDelta[userId] === null;
-    const permissionThreshold = removingSelf
-      ? Permissions.VIEW
-      : Permissions.ACL_EDIT;
+    const permissionThreshold = removingSelf ?
+      Permissions.VIEW :
+      Permissions.ACL_EDIT;
     return {
       foundUserDelta: delta.users ? foundUserIdDelta : null,
       foundUsers,

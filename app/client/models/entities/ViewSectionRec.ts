@@ -542,9 +542,9 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // - Widget type description (if not grid)
   // All concatenated separated by space.
   this.defaultWidgetTitle = this.autoDispose(ko.pureComputed(() => {
-    const widgetTypeDesc = this.parentKey() !== 'record'
-      ? `${getWidgetTypes(this.parentKey.peek() as any).getLabel()}`
-      : '';
+    const widgetTypeDesc = this.parentKey() !== 'record' ?
+      `${getWidgetTypes(this.parentKey.peek() as any).getLabel()}` :
+      '';
     const table = this.table();
     return [
       table.tableNameDef()?.toUpperCase(), // Due to ACL this can be null.
@@ -995,9 +995,9 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this.showColumn = async (col: string|number, index = this.viewFields().peekLength) => {
     const parentPos = fieldInsertPositions(this.viewFields(), index, 1)[0];
-    const colRef = typeof col === 'string'
-      ? this.table().columns().all().find(c => c.colId() === col)?.getRowId()
-      : col;
+    const colRef = typeof col === 'string' ?
+      this.table().columns().all().find(c => c.colId() === col)?.getRowId() :
+      col;
     const colInfo = {
       colRef,
       parentId: this.id.peek(),

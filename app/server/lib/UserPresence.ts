@@ -168,9 +168,9 @@ function getIdFromDocSession(session: DocSession): string {
   }
   const authSession = session.client.authSession;
   return (
-    (authSession.userIsAuthorized && authSession.userId?.toString())
-    || authSession.altSessionId
-    || session.client.clientId
+    (authSession.userIsAuthorized && authSession.userId?.toString()) ||
+    authSession.altSessionId ||
+    session.client.clientId
   );
 }
 

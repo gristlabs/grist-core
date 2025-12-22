@@ -34,9 +34,9 @@ export function buildDocIcon(options: DocIconOptions, ...args: DomElementArg[]) 
     }),
     dom.style("background-color", (use) => {
       const backgroundColor = useBindable(use, icon?.backgroundColor);
-      return isValidHex(backgroundColor)
-        ? backgroundColor
-        : defaultBackgroundColor;
+      return isValidHex(backgroundColor) ?
+        backgroundColor :
+        defaultBackgroundColor;
     }),
     ...args,
   );

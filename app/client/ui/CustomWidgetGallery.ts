@@ -271,14 +271,14 @@ class CustomWidgetGallery extends Disposable {
           variant === 'grist' ? null : cssWidgetMetadataRow(
             cssWidgetMetadataName(t('Developer:')),
             cssWidgetMetadataValue(
-              developer?.url
-                ? cssDeveloperLink(
+              developer?.url ?
+                cssDeveloperLink(
                   developer.name,
                   { href: developer.url, target: '_blank' },
                   dom.on('click', ev => ev.stopPropagation()),
                   testId('widget-developer'),
-                )
-                : dom('span',
+                ) :
+                dom('span',
                   developer?.name ?? t('(Missing info)'),
                   testId('widget-developer'),
                 ),
@@ -294,8 +294,8 @@ class CustomWidgetGallery extends Disposable {
                   month: 'long',
                   day: 'numeric',
                   year: 'numeric',
-                })
-                : t('(Missing info)'),
+                }) :
+                t('(Missing info)'),
               cssWidgetMetadataValue.cls('-missing', !lastUpdated),
               testId('widget-last-updated'),
             ),

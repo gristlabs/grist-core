@@ -287,9 +287,9 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
         }),
         cssSortIconButton(
           cssSortIcon('Sort', cssSortIcon.cls('-active', isSortedByCount)),
-          dom.attr('aria-label', use => use(isSortedByCount)
-            ? t('Sort alphabetically (current: sorted by number of occurrences)')
-            : t('Sort by number of occurrences (current: sorted alphabetically)'),
+          dom.attr('aria-label', use => use(isSortedByCount) ?
+            t('Sort alphabetically (current: sorted by number of occurrences)') :
+            t('Sort by number of occurrences (current: sorted alphabetically)'),
           ),
           dom.on('click', () => isSortedByCount.set(!isSortedByCount.get())),
         ),
@@ -379,9 +379,9 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             cssPinButton(
               icon('PinTilted'),
               cssPinButton.cls('-pinned', model.filterInfo.isPinned),
-              dom.attr('aria-label', use => use(model.filterInfo.isPinned)
-                ? t('Unpin filter')
-                : t('Pin filter'),
+              dom.attr('aria-label', use => use(model.filterInfo.isPinned) ?
+                t('Unpin filter') :
+                t('Pin filter'),
               ),
               dom.on('click', () => filterInfo.pinned(!filterInfo.pinned())),
               gristDoc.behavioralPromptsManager.attachPopup('filterButtons', {
