@@ -700,7 +700,7 @@ export class RightPanel extends Disposable {
             ];
           case "Show-Referenced-Records": {
             // filterLabels might be {} if EmptyFilterState, so filterLabels["id"] might be undefined
-            const displayValues = lfilter.filterLabels["id"] ?? [];
+            const displayValues = lfilter.filterLabels.id ?? [];
             return [
               dom("div", `Link shows record${displayValues.length > 1 ? "s" : ""}:`),
               makeValuesBox(displayValues),

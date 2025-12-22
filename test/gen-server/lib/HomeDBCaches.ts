@@ -129,7 +129,7 @@ describe('HomeDBCaches', function() {
 
   it('should cache invalidate docAccess values on access changes', async function() {
     const rawCallSpy = sandbox.spy(HomeDBManager.prototype, 'getDocAccess');
-    const alice = entities.users['Alice'];
+    const alice = entities.users.Alice;
 
     assert.deepEqual(shortDocAccessResult(await caches.getDocAccess(entities.docDesignSpec.id)),
       { Alice: OWNER, Bob: OWNER, Carol: EDITOR });
@@ -183,8 +183,8 @@ describe('HomeDBCaches', function() {
 
   it('should invalidate docAccess values when doc is moved', async function() {
     const rawCallSpy = sandbox.spy(HomeDBManager.prototype, 'getDocAccess');
-    const alice = entities.users['Alice'];
-    const bob = entities.users['Bob'];
+    const alice = entities.users.Alice;
+    const bob = entities.users.Bob;
 
     // Check initial sharing for 'docManual'.
     assert.deepEqual(shortDocAccessResult(await caches.getDocAccess(entities.docManual.id)),
@@ -248,7 +248,7 @@ describe('HomeDBCaches', function() {
     // or remove if we change the behavior, it's mainly here to confirm that this missed
     // invalidation is known and considered acceptable (because name changes are very rare).
     const rawCallSpy = sandbox.spy(HomeDBManager.prototype, 'getDocAccess');
-    const bob = entities.users['Bob'];
+    const bob = entities.users.Bob;
 
     // Check initial sharing for 'docDesignSpec'.
     assert.deepEqual(shortDocAccessResult(await caches.getDocAccess(entities.docDesignSpec.id)),
@@ -278,7 +278,7 @@ describe('HomeDBCaches', function() {
 
   it('should cache docPrefs and refetch when invalidated or expired', async function() {
     const rawCallSpy = sandbox.spy(HomeDBManager.prototype, 'getDocPrefsForUsers');
-    const bob = entities.users['Bob'];
+    const bob = entities.users.Bob;
 
     assert.deepEqual(Array.from(await caches.getDocPrefs(entities.docDesignSpec.id)), []);
     assert.equal(rawCallSpy.callCount, 1);
@@ -335,7 +335,7 @@ describe('HomeDBCaches', function() {
       { Bob: OWNER, Carol: EDITOR });
 
     // Remove Carol from wsHr sharing using the OTHER server.
-    const bob = entities.users['Bob'];
+    const bob = entities.users.Bob;
     const changedAt = Date.now();
     const api = server.makeUserApi(entities.org.domain, 'bob');
     await api.updateWorkspacePermissions(entities.wsHr.id, { users: { 'carol@example.com': null } });
@@ -384,8 +384,8 @@ async function createTestFixture(homeDb: HomeDBManager) {
   type UserName = keyof typeof users;
 
   // Give Bob an API key like other test utils use, for use with API.
-  users['Bob'].apiKey = "api_key_for_bob";
-  await users['Bob'].save();
+  users.Bob.apiKey = "api_key_for_bob";
+  await users.Bob.save();
 
   // Helper: permission object (users) for delta
   const perms = (entries: [UserName, Role][]) =>
@@ -405,21 +405,21 @@ async function createTestFixture(homeDb: HomeDBManager) {
     return doc;
   };
 
-  const orgCreator = users['Alice'];
+  const orgCreator = users.Alice;
   const org = (await homeDb.addOrg(orgCreator, { name: 'ACME', domain: 'acme' },
     { setUserAsOwner: false, useNewPlan: true })).data!;
   await homeDb.updateOrgPermissions({ userId: orgCreator.id }, org.id, perms([['Bob', OWNER], ['Carol', EDITOR]]));
 
   // Workspaces
-  const wsEng = await addWs(users['Alice'], org.id, 'Engineering', { maxInheritedRole: OWNER });
-  const wsHr  = await addWs(users['Bob'], org.id, 'HR', { maxInheritedRole: null, ...perms([['Carol', EDITOR]]) });
+  const wsEng = await addWs(users.Alice, org.id, 'Engineering', { maxInheritedRole: OWNER });
+  const wsHr  = await addWs(users.Bob, org.id, 'HR', { maxInheritedRole: null, ...perms([['Carol', EDITOR]]) });
 
   // Docs
-  const docDesignSpec   = await addDoc(users['Alice'], wsEng.id, 'DesignSpec', { maxInheritedRole: OWNER });
-  const docBudget       = await addDoc(users['Bob'],   wsEng.id, 'Budget',
+  const docDesignSpec   = await addDoc(users.Alice, wsEng.id, 'DesignSpec', { maxInheritedRole: OWNER });
+  const docBudget       = await addDoc(users.Bob,   wsEng.id, 'Budget',
     { maxInheritedRole: null, ...perms([['Carol', EDITOR], ['Dave', VIEWER]]) });
-  const docManual       = await addDoc(users['Bob'], wsHr.id, 'Manual', { maxInheritedRole: OWNER });
-  const docPayroll      = await addDoc(users['Bob'], wsHr.id, 'Payroll',
+  const docManual       = await addDoc(users.Bob, wsHr.id, 'Manual', { maxInheritedRole: OWNER });
+  const docPayroll      = await addDoc(users.Bob, wsHr.id, 'Payroll',
     { maxInheritedRole: null, ...perms([['Alice', EDITOR]]) });
 
   return {

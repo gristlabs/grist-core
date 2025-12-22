@@ -1169,12 +1169,12 @@ function findPython(command: string | undefined): string {
 
 function getCommandFromEnv(pythonVersion?: string) {
   return process.env['GRIST_SANDBOX' + (pythonVersion || '')] ||
-    process.env['GRIST_SANDBOX'];
+    process.env.GRIST_SANDBOX;
 }
 
 function getCommandArgsFromEnv() {
-  const argsString = process.env['GRIST_TEST_SANDBOX_ARGS'];
-  const extraArgsString = process.env['GRIST_SANDBOX_APPEND_ARGS'];
+  const argsString = process.env.GRIST_TEST_SANDBOX_ARGS;
+  const extraArgsString = process.env.GRIST_SANDBOX_APPEND_ARGS;
   return {
     args: argsString ? argsString.split(" ") : [],
     extraArgs: extraArgsString ? extraArgsString.split(" ") : [],

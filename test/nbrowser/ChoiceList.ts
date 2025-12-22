@@ -88,16 +88,16 @@ function getEditModeFontOptions() {
       const classes = await el.getAttribute("class");
       const options: any = {};
       if (classes.includes("font-bold")) {
-        options['bold'] = true;
+        options.bold = true;
       }
       if (classes.includes("font-underline")) {
-        options['underline'] = true;
+        options.underline = true;
       }
       if (classes.includes("font-italic")) {
-        options['italic'] = true;
+        options.italic = true;
       }
       if (classes.includes("font-strikethrough")) {
-        options['strikethrough'] = true;
+        options.strikethrough = true;
       }
       return options;
     },

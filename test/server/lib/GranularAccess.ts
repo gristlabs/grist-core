@@ -789,7 +789,7 @@ describe('GranularAccess', function() {
     // Metadata to editor should be filtered.  Private metadata gets blanked out
     // rather than deleted, to keep ids consistent.
     const tables = await editor.getDocAPI(docId).getRows('_grist_Tables');
-    assert.deepEqual(tables['tableId'], ['Table1', '', 'PartialPrivate', 'Public']);
+    assert.deepEqual(tables.tableId, ['Table1', '', 'PartialPrivate', 'Public']);
 
     // Owner can download, editor can not.
     await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));

@@ -636,7 +636,7 @@ describe('CustomView', function() {
           // use match since zap may be embedded in an error, e.g. if inserted in ref column.
           assert.match(String(performances[key][i]), /zap/);
         }
-        assert.notMatch(String(performances['Actor'][i]), /zap/);
+        assert.notMatch(String(performances.Actor[i]), /zap/);
       }
     }
 
@@ -653,7 +653,7 @@ describe('CustomView', function() {
 
     // Opinions table should be untouched.
     const opinions = await api.getDocAPI(doc.id).getRows('Opinions');
-    assert.equal(opinions['A'][0], 'do not zap plz');
+    assert.equal(opinions.A[0], 'do not zap plz');
   });
 
   it('allows custom options for fetching data', async function() {

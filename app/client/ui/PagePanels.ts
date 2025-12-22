@@ -277,7 +277,7 @@ export function pagePanels(page: PageContents) {
       cssResizeFlexVHandle(
         { target: 'left', onSave: (val) => {
           left.panelWidth.set(val); onResize();
-          leftPaneDom.style['width'] = val + 'px';
+          leftPaneDom.style.width = val + 'px';
           setTimeout(() => dragResizer.set(false), 0);
         },
         onDrag: (val) => { dragResizer.set(true); } },

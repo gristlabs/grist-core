@@ -2346,14 +2346,14 @@ export class ActiveDoc extends EventEmitter {
     skipIfNoShares?: boolean,
   } = {}) {
     const metaTables = await this.fetchMetaTables(docSession);
-    const shares = metaTables['_grist_Shares'];
+    const shares = metaTables._grist_Shares;
     const ids = shares[2];
     const vals = shares[3];
     const goodShares = ids.map((id, idx) => {
       return {
         id,
-        linkId: String(vals['linkId'][idx]),
-        options: String(vals['options'][idx]),
+        linkId: String(vals.linkId[idx]),
+        options: String(vals.options[idx]),
       };
     });
     if (goodShares.length > 0 || !options.skipIfNoShares) {

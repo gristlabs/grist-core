@@ -2898,7 +2898,7 @@ describe('ApiServer', function() {
 async function getNextId(dbManager: HomeDBManager, table: 'orgs' | 'workspaces') {
   // Check current top org id.
   const row = await dbManager.connection.query(`select max(id) as id from ${table}`);
-  const id = row[0]['id'];
+  const id = row[0].id;
   return id + 1;
 }
 

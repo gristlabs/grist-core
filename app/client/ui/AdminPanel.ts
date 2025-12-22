@@ -365,7 +365,7 @@ Please log in as an administrator.`)),
     return [
       // Use AdminChecks text for sandboxing, in order not to
       // duplicate.
-      probeDetails['sandboxing'].info,
+      probeDetails.sandboxing.info,
       dom(
         'div',
         { style: 'margin-top: 8px' },

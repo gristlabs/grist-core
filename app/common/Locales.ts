@@ -47,8 +47,8 @@ export interface Currency {
 export let currencies: readonly Currency[];
 
 // locale-currency package doesn't have South Sudanese pound currency or a default value for Kosovo
-LocaleCurrencyMap["SS"] = "SSP";
-LocaleCurrencyMap["XK"] = "EUR";
+LocaleCurrencyMap.SS = "SSP";
+LocaleCurrencyMap.XK = "EUR";
 const currenciesCodes = Object.values(LocaleCurrencyMap);
 export function getCurrency(code: string) {
   const currency = LocaleCurrency.getCurrency(code ?? 'en-US');

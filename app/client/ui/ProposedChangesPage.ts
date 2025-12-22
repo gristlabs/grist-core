@@ -581,8 +581,8 @@ function convertTabularDiffToTableData(table: string, tdiff: TabularDiff): Table
     data[2].push(row.rowId);
 
     // Add special column to track row change type
-    data[3]['_gristChangeType'] ??= [];
-    data[3]['_gristChangeType'].push(row.type);
+    data[3]._gristChangeType ??= [];
+    data[3]._gristChangeType.push(row.type);
 
     for (const [idx, cell] of row.cellDeltas.entries()) {
       let item;

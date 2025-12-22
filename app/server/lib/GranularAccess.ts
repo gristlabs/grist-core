@@ -1180,7 +1180,7 @@ export class GranularAccess implements GranularAccessForBundle {
     tables = cloneDeep(tables);
 
     // Prepare cell censorship information.
-    const cells = new CellData(this._docData).convertToCells(tables['_grist_Cells']);
+    const cells = new CellData(this._docData).convertToCells(tables._grist_Cells);
     let cellCensor: CellAccessHelper | undefined;
     if (cells.length > 0) {
       cellCensor = this._createCellAccess(docSession);
@@ -1192,7 +1192,7 @@ export class GranularAccess implements GranularAccessForBundle {
       await this.hasAccessRulesPermission(docSession),
       cellCensor);
     if (cellCensor) {
-      censor.filter(tables["_grist_Cells"]);
+      censor.filter(tables._grist_Cells);
     }
 
     for (const tableId of STRUCTURAL_TABLES) {
@@ -1203,7 +1203,7 @@ export class GranularAccess implements GranularAccessForBundle {
       // Computing which attachments user has access to would require
       // looking at entire document, which we don't want to do. So instead
       // we'll be sending this info on a need-to-know basis later.
-      const attachments = tables['_grist_Attachments'];
+      const attachments = tables._grist_Attachments;
       attachments[2] = [];
       Object.values(attachments[3]).forEach((values) => {
         values.length = 0;

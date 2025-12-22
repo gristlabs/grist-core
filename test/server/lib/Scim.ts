@@ -359,7 +359,7 @@ describe('Scim', () => {
           assert.equal(res.status, 200);
           assert.equal(res.data.totalResults, 1);
           assert.deepEqual(res.data.Resources[0], {
-            id: String(userIdByName['chimpy']),
+            id: String(userIdByName.chimpy),
             userName: 'chimpy@getgrist.com',
           },
           "should have retrieved only chimpy's username and not other attribute");
@@ -709,7 +709,7 @@ describe('Scim', () => {
           const group = await getDbManager().createGroup({
             name: groupName,
             type: Group.TEAM_TYPE,
-            memberUsers: [userIdByName['chimpy']!],
+            memberUsers: [userIdByName.chimpy!],
           });
           return await cb(String(group.id), group);
         });
@@ -720,7 +720,7 @@ describe('Scim', () => {
           const role = await getDbManager().createGroup({
             name: groupName,
             type: Group.ROLE_TYPE,
-            memberUsers: [userIdByName['chimpy']!],
+            memberUsers: [userIdByName.chimpy!],
           });
           return await cb(String(role.id), role);
         });
@@ -790,17 +790,17 @@ describe('Scim', () => {
                 await getDbManager().createGroup({
                   name: roleGroupName,
                   type: Group.ROLE_TYPE,
-                  memberUsers: [userIdByName['chimpy']!],
+                  memberUsers: [userIdByName.chimpy!],
                 });
                 const group1 = await getDbManager().createGroup({
                   name: group1Name,
                   type: Group.TEAM_TYPE,
-                  memberUsers: [userIdByName['chimpy']!],
+                  memberUsers: [userIdByName.chimpy!],
                 });
                 const group2 = await getDbManager().createGroup({
                   name: group2Name,
                   type: Group.TEAM_TYPE,
-                  memberUsers: [userIdByName['kiwi']!],
+                  memberUsers: [userIdByName.kiwi!],
                 });
 
                 const res = await axios.get(scimUrl('/Groups'), chimpy);
@@ -878,7 +878,7 @@ describe('Scim', () => {
             const res = await axios.post(scimUrl('/Groups'), {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
               members: [
-                { value: String(userIdByName['chimpy']), display: 'Chimpy', type: 'User' },
+                { value: String(userIdByName.chimpy), display: 'Chimpy', type: 'User' },
               ],
             }, chimpy);
             assert.deepEqual(res.data, {
@@ -1242,7 +1242,7 @@ describe('Scim', () => {
               const { id: roleId } = await getDbManager().createGroup({
                 name: groupName,
                 type: Group.TEAM_TYPE,
-                memberUsers: [userIdByName['chimpy']!],
+                memberUsers: [userIdByName.chimpy!],
               });
 
               const res = await axios.get(scimUrl('/Roles/' + roleId), chimpy);
@@ -1279,17 +1279,17 @@ describe('Scim', () => {
                 await getDbManager().createGroup({
                   name: group1Name,
                   type: Group.TEAM_TYPE,
-                  memberUsers: [userIdByName['chimpy']!],
+                  memberUsers: [userIdByName.chimpy!],
                 });
                 const role1 = await getDbManager().createGroup({
                   name: role1Name,
                   type: Group.ROLE_TYPE,
-                  memberUsers: [userIdByName['chimpy']!],
+                  memberUsers: [userIdByName.chimpy!],
                 });
                 const role2 = await getDbManager().createGroup({
                   name: role2Name,
                   type: Group.ROLE_TYPE,
-                  memberUsers: [userIdByName['kiwi']!],
+                  memberUsers: [userIdByName.kiwi!],
                 });
 
                 const res = await axios.get(scimUrl('/Roles?count=300'), chimpy);
