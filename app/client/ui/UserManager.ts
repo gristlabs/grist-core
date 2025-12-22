@@ -5,44 +5,44 @@
  *
  * It can be instantiated by calling showUserManagerModal with the UserAPI and IUserManagerOptions.
  */
-import {makeT} from 'app/client/lib/localization';
-import {normalizeEmail} from 'app/common/emails';
-import {commonUrls, isOrgInPathOnly} from 'app/common/gristUrls';
-import {capitalizeFirstWord, isLongerThan} from 'app/common/gutil';
-import {getGristConfig} from 'app/common/urlUtils';
-import {FullUser} from 'app/common/LoginSessionAPI';
+import { makeT } from 'app/client/lib/localization';
+import { normalizeEmail } from 'app/common/emails';
+import { commonUrls, isOrgInPathOnly } from 'app/common/gristUrls';
+import { capitalizeFirstWord, isLongerThan } from 'app/common/gutil';
+import { getGristConfig } from 'app/common/urlUtils';
+import { FullUser } from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
-import {Organization, PermissionData, UserAPI} from 'app/common/UserAPI';
-import {Computed, Disposable, dom, DomElementArg, IDomArgs, Observable, observable, styled} from 'grainjs';
+import { Organization, PermissionData, UserAPI } from 'app/common/UserAPI';
+import { Computed, Disposable, dom, DomElementArg, IDomArgs, Observable, observable, styled } from 'grainjs';
 import pick from 'lodash/pick';
 
-import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
-import {copyToClipboard} from 'app/client/lib/clipboardUtils';
-import {setTestState} from 'app/client/lib/testState';
-import {buildMultiUserManagerModal} from 'app/client/lib/MultiUserManager';
-import {ACUserItem, buildACMemberEmail} from 'app/client/lib/ACUserManager';
-import {AppModel} from 'app/client/models/AppModel';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {reportError} from 'app/client/models/errors';
-import {urlState} from 'app/client/models/gristUrlState';
-import {IEditableMember, IMemberSelectOption, IOrgMemberSelectOption,
-  Resource} from 'app/client/models/UserManagerModel';
-import {UserManagerModel, UserManagerModelImpl} from 'app/client/models/UserManagerModel';
-import {getResourceParent, ResourceType} from 'app/client/models/UserManagerModel';
-import {shadowScroll} from 'app/client/ui/shadowScroll';
-import {hoverTooltip, ITooltipControl, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
-import {createUserImage} from 'app/client/ui/UserImage';
-import {cssMemberBtn, cssMemberImage, cssMemberListItem,
+import { ACIndexImpl, normalizeText } from 'app/client/lib/ACIndex';
+import { copyToClipboard } from 'app/client/lib/clipboardUtils';
+import { setTestState } from 'app/client/lib/testState';
+import { buildMultiUserManagerModal } from 'app/client/lib/MultiUserManager';
+import { ACUserItem, buildACMemberEmail } from 'app/client/lib/ACUserManager';
+import { AppModel } from 'app/client/models/AppModel';
+import { DocPageModel } from 'app/client/models/DocPageModel';
+import { reportError } from 'app/client/models/errors';
+import { urlState } from 'app/client/models/gristUrlState';
+import { IEditableMember, IMemberSelectOption, IOrgMemberSelectOption,
+  Resource } from 'app/client/models/UserManagerModel';
+import { UserManagerModel, UserManagerModelImpl } from 'app/client/models/UserManagerModel';
+import { getResourceParent, ResourceType } from 'app/client/models/UserManagerModel';
+import { shadowScroll } from 'app/client/ui/shadowScroll';
+import { hoverTooltip, ITooltipControl, showTransientTooltip, withInfoTooltip } from 'app/client/ui/tooltips';
+import { createUserImage } from 'app/client/ui/UserImage';
+import { cssMemberBtn, cssMemberImage, cssMemberListItem,
   cssMemberPrimary, cssMemberSecondary, cssMemberText, cssMemberType, cssMemberTypeProblem,
-  cssRemoveIcon} from 'app/client/ui/UserItem';
-import {basicButton, bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
-import {confirmModal, cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
-  IModalControl, modal} from 'app/client/ui2018/modals';
+  cssRemoveIcon } from 'app/client/ui/UserItem';
+import { basicButton, bigBasicButton, bigPrimaryButton } from 'app/client/ui2018/buttons';
+import { mediaXSmall, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { cssLink } from 'app/client/ui2018/links';
+import { loadingSpinner } from 'app/client/ui2018/loaders';
+import { menu, menuItem, menuText } from 'app/client/ui2018/menus';
+import { confirmModal, cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
+  IModalControl, modal } from 'app/client/ui2018/modals';
 
 const t = makeT('UserManager');
 
@@ -182,17 +182,17 @@ function buildUserManagerModal(
           ),
           (model.resourceType === 'document' && model.gristDoc && !model.isPersonal
             ? withInfoTooltip(
-              cssLink({href: urlState().makeUrl({docPage: 'acl'})},
+              cssLink({ href: urlState().makeUrl({ docPage: 'acl' }) },
                 dom.text(use => use(model.isAnythingChanged) ? t('Save & ') : ''),
                 t('Open Access Rules'),
                 dom.on('click', (ev) => {
                   ev.preventDefault();
-                  return onConfirm(ctl).then(() => urlState().pushUrl({docPage: 'acl'}));
+                  return onConfirm(ctl).then(() => urlState().pushUrl({ docPage: 'acl' }));
                 }),
                 testId('um-open-access-rules'),
               ),
               'openAccessRules',
-              {domArgs: [cssAccessLink.cls('')]},
+              { domArgs: [cssAccessLink.cls('')] },
             )
             : null
           ),
@@ -221,7 +221,7 @@ export class UserManager extends Disposable {
       linkToCopy?: string,
       docPageModel?: DocPageModel,
       appModel?: AppModel,
-      prompt?: {email: string},
+      prompt?: { email: string },
       resource?: Resource,
       isReadonly?: boolean,
     }) {
@@ -255,7 +255,7 @@ export class UserManager extends Disposable {
       this._dom = shadowScroll(
         testId('um-members'),
         this._buildPublicAccessMember(),
-        dom.forEach(this._model.membersEdited, member => this._buildMemberDom({member})),
+        dom.forEach(this._model.membersEdited, member => this._buildMemberDom({ member })),
       ),
     ];
   }
@@ -335,7 +335,7 @@ export class UserManager extends Disposable {
   }
 
   // Build a single member row.
-  private _buildMemberDom({member, readonly}: {member: IEditableMember; readonly?: boolean;}) {
+  private _buildMemberDom({ member, readonly}: { member: IEditableMember; readonly?: boolean; }) {
     const disableRemove = Computed.create(null, (use) => {
       if (this._options.isReadonly || readonly) {
         return true;
@@ -421,7 +421,7 @@ export class UserManager extends Disposable {
         // the change and continue seamlessly.
         // TODO: streamline for workspaces.
         elements.push(cssLink(
-          {href: urlState().makeUrl({manageUsers: true})},
+          { href: urlState().makeUrl({ manageUsers: true }) },
           dom.on('click', (e) => {
             if (this._options.appModel) {
               e.preventDefault();
@@ -433,7 +433,7 @@ export class UserManager extends Disposable {
           t(`Add {{member}} to your team`, { member: member.name || t('member') })));
       }
       else if (limit.at >= limit.top) {
-        elements.push(cssLink({href: commonUrls.plans, target: '_blank'},
+        elements.push(cssLink({ href: commonUrls.plans, target: '_blank' },
           t('Create a team to share with more people')));
       }
       return elements;
@@ -527,7 +527,7 @@ export class UserManager extends Disposable {
       use => use(this._model.membersEdited).find(m => m.id === this._model.activeUser?.id));
     return dom('div',
       dom.autoDispose(meComputed),
-      dom.domComputed(meComputed, me => me ? this._buildMemberDom({member: me}) : null),
+      dom.domComputed(meComputed, me => me ? this._buildMemberDom({ member: me }) : null),
       testId('um-members'),
       ...args,
     );
@@ -542,7 +542,7 @@ export class UserManager extends Disposable {
         !others.length ? null : [
           cssAccessOverview(t('Access overview')),
           cssAccessOverviewList(
-            dom.forEach(others, member => this._buildMemberDom({member, readonly: true})),
+            dom.forEach(others, member => this._buildMemberDom({ member, readonly: true })),
           ),
           testId('um-access-overview'),
         ],
@@ -644,7 +644,7 @@ export class ACMemberEmail extends Disposable {
   constructor(
     private _onAdd: (email: string, role: roles.NonGuestRole) => void,
     private _members: Array<IEditableMember>,
-    private _prompt?: {email: string},
+    private _prompt?: { email: string },
   ) {
     super();
     if (_prompt) {
@@ -699,14 +699,14 @@ function makeCopyBtn(linkToCopy: string|undefined, ...domArgs: DomElementArg[]) 
 // the given element.
 async function copyLink(elem: HTMLElement, link: string) {
   await copyToClipboard(link);
-  setTestState({clipboard: link});
+  setTestState({ clipboard: link });
   showTransientTooltip(elem, t('Link copied to clipboard'), { key: 'copy-doc-link' });
 }
 
 async function manageTeam(appModel: AppModel,
   onSave?: () => Promise<void>,
   prompt?: { email: string }) {
-  await urlState().pushUrl({manageUsers: false});
+  await urlState().pushUrl({ manageUsers: false });
   const user = appModel.currentValidUser;
   const currentOrg = appModel.currentOrg;
   if (currentOrg) {

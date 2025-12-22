@@ -17,7 +17,7 @@ export class DataRowModel extends BaseRowModel {
   // Instances of this class are indexable, but that is a little awkward to type.
   // The cells field gives typed access to that aspect of the instance.  This is a
   // bit hacky, and should be cleaned up when BaseRowModel is ported to typescript.
-  public readonly cells: {[key: string]: modelUtil.KoSaveableObservable<CellValue>} = this as any;
+  public readonly cells: { [key: string]: modelUtil.KoSaveableObservable<CellValue> } = this as any;
 
   public _validationFailures: ko.PureComputed<Array<IRowModel<'_grist_Validations'>>>;
   public _isAddRow: ko.Observable<boolean>;

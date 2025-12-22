@@ -90,13 +90,13 @@ const _admins: Probe = {
       const users = await server.getInstallAdmin().getAdminUsers(req);
       return {
         status: 'success',
-        details: {users},
+        details: { users },
       };
     }
     catch (e) {
       return {
         status: 'fault',
-        details: {error: String(e)},
+        details: { error: String(e) },
       };
     }
   },

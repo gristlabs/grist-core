@@ -1,7 +1,7 @@
-import {UserAPIImpl} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { UserAPIImpl } from 'app/common/UserAPI';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('DescriptionColumn', function() {
   this.timeout(20000);
@@ -88,9 +88,9 @@ describe('DescriptionColumn', function() {
     const revert = await gu.begin();
     await gu.toggleSidePanel('left', 'close');
     // Add summary table.
-    await gu.addNewSection('Table', 'Table1', {summarize: ['A']});
+    await gu.addNewSection('Table', 'Table1', { summarize: ['A'] });
     await gu.sendActions([
-      ['AddRecord', 'Table1', null, {A: 1}],
+      ['AddRecord', 'Table1', null, { A: 1 }],
     ]);
 
     // Set description on A column and count column.
@@ -235,9 +235,9 @@ describe('DescriptionColumn', function() {
     // Make sure popup is gone.
     assert.isFalse(await popupVisible());
     // Make sure column D exists.
-    assert.isTrue(await gu.getColumnHeader({col: 'D'}).isDisplayed());
+    assert.isTrue(await gu.getColumnHeader({ col: 'D' }).isDisplayed());
     await gu.undo();
-    assert.isFalse(await gu.getColumnHeader({col: 'D'}).isPresent());
+    assert.isFalse(await gu.getColumnHeader({ col: 'D' }).isPresent());
   });
 
   it('shows links in the column description', async () => {
@@ -253,7 +253,7 @@ describe('DescriptionColumn', function() {
     await gu.sendKeys('Third line');
     await pressSave();
 
-    const header = await gu.getColumnHeader({col: 'D'});
+    const header = await gu.getColumnHeader({ col: 'D' });
     // Make sure it has a tooltip.
     assert.isTrue(await header.find(".test-column-info-tooltip").isDisplayed());
     // Click the tooltip.
@@ -283,15 +283,15 @@ describe('DescriptionColumn', function() {
     await gu.sendKeys(Key.ESCAPE);
     assert.isFalse(await popupVisible());
     // Column D is still there.
-    assert.isTrue(await gu.getColumnHeader({col: 'D'}).isDisplayed());
+    assert.isTrue(await gu.getColumnHeader({ col: 'D' }).isDisplayed());
     await gu.undo();
-    assert.isFalse(await gu.getColumnHeader({col: 'D'}).isPresent());
+    assert.isFalse(await gu.getColumnHeader({ col: 'D' }).isPresent());
 
     await addColumn();
     await popupIsAt('D');
     await gu.sendKeys(Key.ENTER);
     assert.isFalse(await popupVisible());
-    assert.isTrue(await gu.getColumnHeader({col: 'D'}).isDisplayed());
+    assert.isTrue(await gu.getColumnHeader({ col: 'D' }).isDisplayed());
     await gu.undo();
   });
 
@@ -335,7 +335,7 @@ describe('DescriptionColumn', function() {
     await pressSave();
 
     // Make sure column is renamed.
-    let header = await gu.getColumnHeader({col: 'ColumnA'}, {waitMs: 100});
+    let header = await gu.getColumnHeader({ col: 'ColumnA' }, { waitMs: 100 });
 
     // Make sure it has a tooltip.
     assert.isTrue(await header.find(".test-column-info-tooltip").isDisplayed());
@@ -353,7 +353,7 @@ describe('DescriptionColumn', function() {
     await gu.undo();
 
     // Make sure column is renamed back.
-    header = await gu.getColumnHeader({col: 'A'});
+    header = await gu.getColumnHeader({ col: 'A' });
 
     // And there is no tooltip.
     assert.isFalse(await header.find(".test-column-info-tooltip").isPresent());
@@ -368,7 +368,7 @@ describe('DescriptionColumn', function() {
     await save();
     await gu.waitForServer();
     // Make sure it is renamed.
-    await gu.getColumnHeader({col: 'ColumnB'}, {waitMs: 100});
+    await gu.getColumnHeader({ col: 'ColumnB' }, { waitMs: 100 });
 
     // Change description by clicking save.
     await doubleClickHeader('ColumnB');
@@ -438,7 +438,7 @@ describe('DescriptionColumn', function() {
     await makeCancel();
     await gu.waitForServer();
     // Make sure we see column A.
-    await gu.getColumnHeader({col: 'A'});
+    await gu.getColumnHeader({ col: 'A' });
 
     // Check the same for description.
     await doubleClickHeader('A');
@@ -447,7 +447,7 @@ describe('DescriptionColumn', function() {
     await makeCancel();
     await gu.waitForServer();
     // Make sure that there is no tooltip.
-    assert.isFalse(await gu.getColumnHeader({col: 'A'}).find(".test-column-info-tooltip").isPresent());
+    assert.isFalse(await gu.getColumnHeader({ col: 'A' }).find(".test-column-info-tooltip").isPresent());
   };
 
   it('should support canceling by cancel', async () => {
@@ -498,7 +498,7 @@ describe('DescriptionColumn', function() {
     await gu.waitForServer();
 
     // Make sure it is renamed.
-    await gu.getColumnHeader({col: 'ColumnB'}, {waitMs: 100});
+    await gu.getColumnHeader({ col: 'ColumnB' }, { waitMs: 100 });
     // Make sure we are now at column C.
     await popupIsAt('C');
 
@@ -624,7 +624,7 @@ describe('DescriptionColumn', function() {
 });
 
 async function clickTooltip(col: string) {
-  await gu.getColumnHeader({col}, {waitMs: 100}).find(".test-column-info-tooltip").click();
+  await gu.getColumnHeader({ col }, { waitMs: 100 }).find(".test-column-info-tooltip").click();
 }
 
 async function addDescriptionIsVisible(visible = true) {
@@ -681,7 +681,7 @@ async function popupIsAt(col: string) {
   // Make sure we are now at column.
   assert.equal(await getLabelText(), col);
   // Make sure that popup is near the column.
-  const headerCRect = await gu.getColumnHeader({col}).getRect();
+  const headerCRect = await gu.getColumnHeader({ col }).getRect();
   const popup = await driver.find(".test-column-title-popup").getRect();
   assert.isAtLeast(popup.x, headerCRect.x - 2);
   assert.isBelow(popup.x, headerCRect.x + 2);
@@ -690,7 +690,7 @@ async function popupIsAt(col: string) {
 }
 
 async function doubleClickHeader(col: string, focus: 'label'|'description'|null = 'label') {
-  const header = await gu.getColumnHeader({col});
+  const header = await gu.getColumnHeader({ col });
   await header.click();
   await header.click();
   if (focus) {

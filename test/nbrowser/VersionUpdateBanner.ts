@@ -1,9 +1,9 @@
 import { version as installedVersion } from "app/common/version";
 import * as testUtils from 'test/server/testUtils';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {FakeUpdateServer, startFakeUpdateServer} from 'test/server/customUtil';
-import {assert, driver} from 'mocha-webdriver';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { FakeUpdateServer, startFakeUpdateServer } from 'test/server/customUtil';
+import { assert, driver } from 'mocha-webdriver';
 
 describe('VersionUpdateBanner', function() {
   this.timeout(300000);
@@ -43,7 +43,7 @@ describe('VersionUpdateBanner', function() {
   });
 
   it('should not be shown to non-managers', async () => {
-    session = await gu.session().user('user2').personalSite.login({freshAccount: true});
+    session = await gu.session().user('user2').personalSite.login({ freshAccount: true });
     await driver.executeScript('window.localStorage.clear();');
     await session.loadDocMenu('/');
 
@@ -52,7 +52,7 @@ describe('VersionUpdateBanner', function() {
   });
 
   it('should be shown to managers', async () => {
-    session = await gu.session().personalSite.login({freshAccount: true});
+    session = await gu.session().personalSite.login({ freshAccount: true });
     await driver.executeScript('window.localStorage.clear();');
     await session.loadDocMenu('/');
 
@@ -74,7 +74,7 @@ describe('VersionUpdateBanner', function() {
     // Update the version, the banner should come back
     fakeServer.bumpVersion();
     await server.restart(false);
-    session = await gu.session().personalSite.login({freshAccount: false});
+    session = await gu.session().personalSite.login({ freshAccount: false });
     await session.loadDocMenu('/');
     assert.equal(await driver.find('.test-version-update-banner-text').isDisplayed(), true);
   });
@@ -82,7 +82,7 @@ describe('VersionUpdateBanner', function() {
   it('should highlight critical version updates to managers', async () => {
     fakeServer.isCritical = true;
     await server.restart(true);
-    session = await gu.session().personalSite.login({freshAccount: true});
+    session = await gu.session().personalSite.login({ freshAccount: true });
     await driver.executeScript('window.localStorage.clear();');
     await session.loadDocMenu('/');
 
@@ -99,7 +99,7 @@ describe('VersionUpdateBanner', function() {
   it('should not be shown to managers when there is no newer version', async () => {
     fakeServer.latestVersion = installedVersion;
     await server.restart(true);
-    session = await gu.session().personalSite.login({freshAccount: true});
+    session = await gu.session().personalSite.login({ freshAccount: true });
     await driver.executeScript('window.localStorage.clear();');
     await session.loadDocMenu('/');
 

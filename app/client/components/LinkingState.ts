@@ -1,18 +1,18 @@
-import {SequenceNEVER, SequenceNum} from "app/client/components/Cursor";
-import {DataRowModel} from "app/client/models/DataRowModel";
+import { SequenceNEVER, SequenceNum } from "app/client/components/Cursor";
+import { DataRowModel } from "app/client/models/DataRowModel";
 import DataTableModel from "app/client/models/DataTableModel";
-import {DocModel} from 'app/client/models/DocModel';
-import {ColumnRec} from "app/client/models/entities/ColumnRec";
-import {TableRec} from "app/client/models/entities/TableRec";
-import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
-import {LinkConfig} from "app/client/ui/LinkConfig";
-import {FilterColValues, QueryOperation} from "app/common/ActiveDocAPI";
-import {isList, isListType, isRefListType} from "app/common/gristTypes";
+import { DocModel } from 'app/client/models/DocModel';
+import { ColumnRec } from "app/client/models/entities/ColumnRec";
+import { TableRec } from "app/client/models/entities/TableRec";
+import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
+import { LinkConfig } from "app/client/ui/LinkConfig";
+import { FilterColValues, QueryOperation } from "app/common/ActiveDocAPI";
+import { isList, isListType, isRefListType } from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
-import {UIRowId} from 'app/plugin/GristAPI';
-import {CellValue} from "app/plugin/GristData";
-import {encodeObject} from 'app/plugin/objtypes';
-import {Disposable, Holder, MultiHolder} from "grainjs";
+import { UIRowId } from 'app/plugin/GristAPI';
+import { CellValue } from "app/plugin/GristData";
+import { encodeObject } from 'app/plugin/objtypes';
+import { Disposable, Holder, MultiHolder } from "grainjs";
 import * as  ko from "knockout";
 import merge from 'lodash/merge';
 import mapValues from 'lodash/mapValues';
@@ -39,12 +39,12 @@ type LinkType = "Filter:Summary-Group" |
 // The filterState includes extra info to display filter state to the user
 type FilterState = FilterColValues & {
   filterLabels: {  [colId: string]: string[] }; //formatted and displayCol-ed values to show to user
-  colTypes: {[colId: string]: string;}
+  colTypes: { [colId: string]: string; }
 };
 function FilterStateToColValues(fs: FilterState) { return pick(fs, ['filters', 'operations']); }
 
 //Since we're not making full objects for these, need to define sensible "empty" values here
-export const EmptyFilterState: FilterState = {filters: {}, filterLabels: {}, operations: {}, colTypes: {}};
+export const EmptyFilterState: FilterState = { filters: {}, filterLabels: {}, operations: {}, colTypes: {} };
 export const EmptyFilterColValues: FilterColValues = FilterStateToColValues(EmptyFilterState);
 
 export class LinkingState extends Disposable {
@@ -80,7 +80,7 @@ export class LinkingState extends Disposable {
 
   constructor(docModel: DocModel, linkConfig: LinkConfig) {
     super();
-    const {srcSection, srcCol, srcColId, tgtSection, tgtCol, tgtColId} = linkConfig;
+    const { srcSection, srcCol, srcColId, tgtSection, tgtCol, tgtColId } = linkConfig;
     this._docModel = docModel;
     this._srcSection = srcSection;
     this._srcColId = srcColId;
@@ -340,7 +340,7 @@ export class LinkingState extends Disposable {
         if (!this.filterState) {
           return {};
         }
-        const {filters, operations} = this.filterState.peek();
+        const { filters, operations } = this.filterState.peek();
         return mapValues(
           pickBy(filters, (value: any[], key: string) => value.length > 0 && key !== "id"),
           (value, key) => operations[key] === "intersects" ? encodeObject(value) : value[0],
@@ -521,10 +521,10 @@ export class LinkingState extends Disposable {
       const filterLabelVals: string[] = displayValues.map(v => displayValFormatter.formatAny(v));
 
       return {
-        filters: {[tgtColId || "id"]: filterValues},
-        filterLabels: {[tgtColId || "id"]: filterLabelVals},
-        operations: {[tgtColId || "id"]: operation},
-        colTypes: {[tgtColId || "id"]: (tgtCol || srcCol)!.type()},
+        filters: { [tgtColId || "id"]: filterValues },
+        filterLabels: { [tgtColId || "id"]: filterLabelVals },
+        operations: { [tgtColId || "id"]: operation },
+        colTypes: { [tgtColId || "id"]: (tgtCol || srcCol)!.type() },
         //at least one of tgt/srcCol is guaranteed to be non-null, and they will have the same type
       } as FilterState;
     }));
@@ -539,10 +539,10 @@ export class LinkingState extends Disposable {
     return this.autoDispose(ko.computed(() => {
       const values = this._srcSection.selectedRows();
       return {
-        filters: {[colId]: values},
-        filterLabels: {[colId]: values?.map(v => String(v))}, //selectedRows should never be null if customFiltered
-        operations: {[colId]: operation},
-        colTypes: {[colId]: column?.type() || `Ref:${column?.table().tableId}`},
+        filters: { [colId]: values },
+        filterLabels: { [colId]: values?.map(v => String(v)) }, //selectedRows should never be null if customFiltered
+        operations: { [colId]: operation },
+        colTypes: { [colId]: column?.type() || `Ref:${column?.table().tableId}` },
       } as FilterState; //TODO: fix this once we have cases of customwidget linking to test with
     }));
   }

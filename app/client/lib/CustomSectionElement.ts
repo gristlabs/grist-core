@@ -22,7 +22,7 @@ export class CustomSectionElement {
       const pluginId = plugin.definition.id;
       if (customSections) {
         // collect identifiers
-        const sectionIds = customSections.map(section => ({sectionId: section.name, pluginId}));
+        const sectionIds = customSections.map(section => ({ sectionId: section.name, pluginId }));
         // concat to the accumulator
         return acc.concat(sectionIds);
       }

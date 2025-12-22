@@ -1,7 +1,7 @@
-import {reportError} from 'app/client/models/errors';
-import {DomContents, onDisposeElem, replaceContent} from 'grainjs';
+import { reportError } from 'app/client/models/errors';
+import { DomContents, onDisposeElem, replaceContent } from 'grainjs';
 // grainjs annoyingly doesn't export browserGlobals tools, useful for testing in a simulated environment.
-import {G} from 'grainjs/dist/cjs/lib/browserGlobals';
+import { G } from 'grainjs/dist/cjs/lib/browserGlobals';
 
 /**
  * Insert DOM contents produced by a Promise. Until the Promise is fulfilled, nothing shows up.

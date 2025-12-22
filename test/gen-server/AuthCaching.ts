@@ -1,19 +1,19 @@
-import {delay} from 'app/common/delay';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {Deps} from 'app/server/lib/DocClients';
-import {FlexServer} from 'app/server/lib/FlexServer';
+import { delay } from 'app/common/delay';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { Deps } from 'app/server/lib/DocClients';
+import { FlexServer } from 'app/server/lib/FlexServer';
 import log from 'app/server/lib/log';
-import {MergedServer} from 'app/server/MergedServer';
+import { MergedServer } from 'app/server/MergedServer';
 import axios from 'axios';
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as fse from 'fs-extra';
-import {tmpdir} from 'os';
+import { tmpdir } from 'os';
 import * as path from 'path';
 import * as sinon from 'sinon';
-import {TestSession} from 'test/gen-server/apiUtils';
-import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
-import {configForUser, getGristConfig} from 'test/gen-server/testUtils';
-import {openClient} from 'test/server/gristClient';
+import { TestSession } from 'test/gen-server/apiUtils';
+import { createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed';
+import { configForUser, getGristConfig } from 'test/gen-server/testUtils';
+import { openClient } from 'test/server/gristClient';
 import * as testUtils from 'test/server/testUtils';
 
 async function createTestDir(ident: string): Promise<string> {
@@ -52,12 +52,12 @@ describe('AuthCaching', function() {
     process.env.GRIST_DATA_DIR = testDocDir;
 
     const homeMS = await MergedServer.create(0, ['home'],
-      {logToConsole: false, externalStorage: false});
+      { logToConsole: false, externalStorage: false });
     await homeMS.run();
     homeServer = homeMS.flexServer;
     homeUrl = homeServer.getOwnUrl();
     const docsMS = await MergedServer.create(0, ['docs'],
-      {logToConsole: false, externalStorage: false});
+      { logToConsole: false, externalStorage: false });
     await docsMS.run();
     docsServer = docsMS.flexServer;
 
@@ -72,7 +72,7 @@ describe('AuthCaching', function() {
 
     // Add Kiwi to 'viewers' for this doc.
     const resp = await axios.patch(`${homeUrl}/api/docs/${helloDocId}/access`,
-      {delta: {users: {[kiwiEmail]: 'viewers'}}},
+      { delta: { users: { [kiwiEmail]: 'viewers' } } },
       chimpy);
     assert.equal(resp.status, 200);
   });
@@ -116,7 +116,7 @@ describe('AuthCaching', function() {
       reset();
       return res;
     }
-    return {getCallCounts, reset, getAndReset};
+    return { getCallCounts, reset, getAndReset };
   }
 
   function flushCache() {
@@ -139,35 +139,35 @@ describe('AuthCaching', function() {
     assert.equal(resp.data.name, 'Jupiter');
 
     // This is a metadata-only call, so only home server is involved.
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 1, misses: 0, hits: 0});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 0});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 1, misses: 0, hits: 0 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 0 });
 
     const resp2 = await axios.get(`${homeUrl}/api/docs/${helloDocId}`, chimpy);
     assert.deepEqual(resp2.data, resp.data);
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 1, misses: 0, hits: 0});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 0});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 1, misses: 0, hits: 0 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 0 });
   });
 
   it('should cache DocApi + DocApiForwarder calls', async function() {
     flushCache();
     const getDocCalls = getDocCallTracker();
     const resp = await axios.get(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, chimpy);
-    assert.deepInclude(resp.data, {E: ["HELLO", "", "", ""]});
+    assert.deepInclude(resp.data, { E: ["HELLO", "", "", ""] });
 
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 1, hits: 0});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 1, hits: 0});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 1, hits: 0 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 1, hits: 0 });
 
     // Try an endpoint requiring editing permissions.
-    const resp2 = await axios.post(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, {A: ['Foo']}, chimpy);
+    const resp2 = await axios.post(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, { A: ['Foo'] }, chimpy);
     assert.equal(resp2.status, 200);
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 0, hits: 1});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 1});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 0, hits: 1 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 1 });
 
     const resp3 = await axios.get(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, chimpy);
-    assert.deepInclude(resp3.data, {E: ["HELLO", "", "", "", "FOO"]});
+    assert.deepInclude(resp3.data, { E: ["HELLO", "", "", "", "FOO"] });
 
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 0, hits: 1});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 1});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 0, hits: 1 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 1 });
   });
 
   it('should cache DocAPI + DocApiForwarder no-access calls', async function() {
@@ -175,63 +175,63 @@ describe('AuthCaching', function() {
     const getDocCalls = getDocCallTracker();
 
     // Kiwi has view-only access. Check that it's checked, and is cached too.
-    let resp = await axios.post(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, {A: ['Bar']}, kiwi);
+    let resp = await axios.post(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, { A: ['Bar'] }, kiwi);
     assert.equal(resp.status, 403);
     assert.match(resp.data.error, /No write access/);
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 1, hits: 0});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 1, hits: 0});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 1, hits: 0 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 1, hits: 0 });
 
     // Second call is cached, but otherwise identical.
-    resp = await axios.post(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, {A: ['Bar']}, kiwi);
+    resp = await axios.post(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, { A: ['Bar'] }, kiwi);
     assert.equal(resp.status, 403);
     assert.match(resp.data.error, /No write access/);
     // The read/write distinction isn't checked by DocApiForwarder, so docsServer sees the request.
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 0, hits: 1});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 1});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 0, hits: 1 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 1 });
 
     // View access works.
     resp = await axios.get(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, kiwi);
-    assert.deepInclude(resp.data, {E: ["HELLO", "", "", "", "FOO"]});
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 0, hits: 1});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 1});
+    assert.deepInclude(resp.data, { E: ["HELLO", "", "", "", "FOO"] });
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 0, hits: 1 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 1 });
 
     // Charon has no access.
     resp = await axios.get(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, charon);
     assert.equal(resp.status, 403);
     assert.match(resp.data.error, /No view access/);
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 1, hits: 0});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 0});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 1, hits: 0 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 0 });
 
     // ...or write access (but the check is cached).
-    resp = await axios.post(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, {A: ['Bar']}, charon);
+    resp = await axios.post(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, { A: ['Bar'] }, charon);
     assert.equal(resp.status, 403);
     assert.match(resp.data.error, /No view access/);
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 0, hits: 1});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 0, hits: 1 });
     // docsServer never sees the request.
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 0});
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 0 });
   });
 
   it('should not cache app.html endpoint', async function() {
     flushCache();
     const getDocCalls = getDocCallTracker();
-    const cookie = await session.getCookieLogin('nasa', {email: chimpyEmail, name: 'Chimpy'});
+    const cookie = await session.getCookieLogin('nasa', { email: chimpyEmail, name: 'Chimpy' });
 
     const resp1 = await axios.get(`${homeUrl}/o/nasa/doc/${helloDocId}`, cookie);
 
     // gristConfig should include results of the getDoc call.
     const gristConfig = getGristConfig(resp1.data);
     assert.hasAnyKeys(gristConfig.getDoc, [helloDocId]);
-    assert.deepInclude(gristConfig.getDoc![helloDocId], {name: 'Jupiter', id: helloDocId});
+    assert.deepInclude(gristConfig.getDoc![helloDocId], { name: 'Jupiter', id: helloDocId });
 
     // All authentication and getDoc() call are made by homeServer, docsServer not yet in play
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 1, misses: 0, hits: 1});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 0});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 1, misses: 0, hits: 1 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 0 });
 
     // No caching on subsequent call because we force a fresh fetch for this endpoint.
     const resp2 = await axios.get(`${homeUrl}/o/nasa/doc/${helloDocId}`, cookie);
     assert.deepEqual(getGristConfig(resp2.data).getDoc, gristConfig.getDoc);
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 1, misses: 0, hits: 1});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 0});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 1, misses: 0, hits: 1 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 0 });
   });
 
   it('should cache openDoc and websocket methods', async function() {
@@ -244,19 +244,19 @@ describe('AuthCaching', function() {
     assert.equal(openDoc.error, undefined);
     assert.match(JSON.stringify(openDoc.data), /Table1/);
 
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 1, hits: 0});
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 1, hits: 0 });
 
     // Read access
     const table = await cli.send("fetchTable", 0, "Table1");
     assert.includeMembers(table.data.tableData, ['TableData', 'Table1']);
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 1});
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 1 });
 
     // Write access
     const auaResult = await cli.send("applyUserActions", 0,
-      [["UpdateRecord", "Table1", 1, {A: "auth-caching1"}]]);
+      [["UpdateRecord", "Table1", 1, { A: "auth-caching1" }]]);
     await delay(200); // give a little time for change broadcast.
     assert.isNumber(auaResult.data.actionNum);
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 2});
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 2 });
 
     await cli.close();
   });
@@ -272,18 +272,18 @@ describe('AuthCaching', function() {
     assert.equal(openDoc.error, undefined);
     assert.match(JSON.stringify(openDoc.data), /Table1/);
 
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 1, hits: 0});
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 1, hits: 0 });
 
     // Kiwi has read access
     const table = await cli.send("fetchTable", 0, "Table1");
     assert.includeMembers(table.data.tableData, ['TableData', 'Table1']);
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 1});
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 1 });
 
     // Kiwi has NO write access.
     const auaResult = await cli.send("applyUserActions", 0,
-      [["UpdateRecord", "Table1", 1, {A: "auth-caching2"}]]);
+      [["UpdateRecord", "Table1", 1, { A: "auth-caching2" }]]);
     assert.deepEqual(auaResult.error, 'No write access');
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 1});
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 1 });
 
     // Charon has no access at all
     cli = await openClient(docsServer, charonEmail, 'nasa');
@@ -291,28 +291,28 @@ describe('AuthCaching', function() {
     openDoc = await cli.send("openDoc", helloDocId);
     assert.equal(openDoc.error, 'No view access');
 
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 1, hits: 0});
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 1, hits: 0 });
     await cli.send("openDoc", helloDocId);
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 1});
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 1 });
 
     // Home server wasn't involved in this test case at all.
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 0, hits: 0});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 0, hits: 0 });
   });
 
   it('should cache across different kinds of calls', async function() {
     // Fetch the document endpoint and follow with openDoc. Caching should apply.
     flushCache();
     const getDocCalls = getDocCallTracker();
-    const cookie = await session.getCookieLogin('nasa', {email: chimpyEmail, name: 'Chimpy'});
+    const cookie = await session.getCookieLogin('nasa', { email: chimpyEmail, name: 'Chimpy' });
 
     // app.html endpoint warms the cache for the home server.
     const resp1 = await axios.get(`${homeUrl}/o/nasa/doc/${helloDocId}`, cookie);
     const gristConfig = getGristConfig(resp1.data);
     assert.hasAnyKeys(gristConfig.getDoc, [helloDocId]);
-    assert.deepInclude(gristConfig.getDoc![helloDocId], {name: 'Jupiter', id: helloDocId});
+    assert.deepInclude(gristConfig.getDoc![helloDocId], { name: 'Jupiter', id: helloDocId });
 
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 1, misses: 0, hits: 1});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 0});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 1, misses: 0, hits: 1 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 0 });
 
     // openDoc call warms the cache for the doc-worker.
     const cli = await openClient(docsServer, chimpyEmail, 'nasa');
@@ -321,14 +321,14 @@ describe('AuthCaching', function() {
     assert.equal(openDoc.error, undefined);
     assert.match(JSON.stringify(openDoc.data), /Table1/);
 
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 0, hits: 0});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 1, hits: 0});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 0, hits: 0 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 1, hits: 0 });
 
     // the caching applies to API calls for the same doc/user/org combination.
     const resp = await axios.get(`${homeUrl}/o/nasa/api/docs/${helloDocId}/tables/Table1/data`, chimpy);
     assert.equal(resp.status, 200);
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 0, hits: 1});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 1});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 0, hits: 1 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 1 });
   });
 
   it('should expire the cache after a timeout', async function() {
@@ -351,24 +351,24 @@ describe('AuthCaching', function() {
     assert.equal(resp2.status, 403);
 
     // home server sees both calls, but only forwards one to the doc-worker.
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 2, hits: 0});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 1, hits: 0});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 2, hits: 0 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 1, hits: 0 });
 
     assert.equal((await kiwiCli.send("openDoc", helloDocId)).error, undefined);
     assert.equal((await charonCli.send("openDoc", helloDocId)).error, 'No view access');
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 0, hits: 0});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 1, hits: 1});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 0, hits: 0 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 1, hits: 1 });
 
     // Use Chimpy's access to change access for both.
     const resp = await axios.patch(`${homeUrl}/o/nasa/api/docs/${helloDocId}/access`,
-      {delta: {users: {[kiwiEmail]: null, [charonEmail]: 'viewers'}}},
+      { delta: { users: { [kiwiEmail]: null, [charonEmail]: 'viewers' } } },
       chimpy);
     assert.equal(resp.status, 200);
 
     // Home's UserAPI methods don't call to getDoc() to check doc-level access, so access checks
     // for Chimpy's patch-access call do not affect our counts.
-    assert.deepEqual(getDocCalls.home.getAndReset(), {forced: 0, misses: 0, hits: 0});
-    assert.deepEqual(getDocCalls.docs.getAndReset(), {forced: 0, misses: 0, hits: 0});
+    assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 0, hits: 0 });
+    assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 0 });
 
     // The change isn't visible immediately.
     resp1 = await axios.get(`${homeUrl}/o/nasa/api/docs/${helloDocId}/tables/Table1/data`, kiwi);
@@ -400,8 +400,8 @@ describe('AuthCaching', function() {
     const homeCalls = getDocCalls.home.getAndReset();
     const docsCalls = getDocCalls.docs.getAndReset();
     // There are many cache hits, but one set of misses that discovers the access changes.
-    assert.deepInclude(homeCalls, {forced: 0, misses: 2});
-    assert.deepInclude(docsCalls, {forced: 0, misses: 2});
+    assert.deepInclude(homeCalls, { forced: 0, misses: 2 });
+    assert.deepInclude(docsCalls, { forced: 0, misses: 2 });
     assert.isAbove(homeCalls.hits, 10);
     assert.isAbove(docsCalls.hits, 10);
   });

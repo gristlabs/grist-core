@@ -1,6 +1,6 @@
-import ace, {Ace} from 'ace-builds';
-import {ISuggestionWithValue} from 'app/common/ActiveDocAPI';
-import {commonUrls} from 'app/common/gristUrls';
+import ace, { Ace } from 'ace-builds';
+import { ISuggestionWithValue } from 'app/common/ActiveDocAPI';
+import { commonUrls } from 'app/common/gristUrls';
 
 export interface ICompletionOptions {
   getSuggestions(prefix: string): Promise<ISuggestionWithValue[]>;
@@ -17,7 +17,7 @@ export function setupAceEditorCompletions(editor: Ace.Editor, options: ICompleti
   // It is important for autoSelect to be off so that hitting enter doesn't automatically
   // use a suggestion, a change of behavior that doesn't seem particularly desirable and
   // which also breaks several existing tests.
-  const {Autocomplete} = ace.require('ace/autocomplete');
+  const { Autocomplete } = ace.require('ace/autocomplete');
 
   const completer = new Autocomplete();
   // Here is the source code:
@@ -35,7 +35,7 @@ export function setupAceEditorCompletions(editor: Ace.Editor, options: ICompleti
   completer._gristShouldRefreshCompletions = function(this: any, start: any) {
     // These two lines are based on updateCompletions() in the ace autocomplete source code.
     const end = this.editor.getCursorPosition();
-    const prefix: string = this.editor.session.getTextRange({start, end}).toLowerCase();
+    const prefix: string = this.editor.session.getTextRange({ start, end }).toLowerCase();
 
     return (
       prefix.endsWith(".") ||  // to get fresh attributes of references
@@ -274,7 +274,7 @@ function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: Ace.Token[]):
   // click, we find it to know what URL to open.
   const href = `${commonUrls.functions}/#` +
     rowData.funcname.slice(linkStart, linkEnd).toLowerCase();
-  newTokens.push({value: href, type: 'grist_link_hidden'});
+  newTokens.push({ value: href, type: 'grist_link_hidden' });
 
   // Find where the example value (if any) starts, so that it can be shown in grey.
   let exampleStart: number | undefined;
@@ -297,11 +297,11 @@ function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: Ace.Token[]):
       // and it's best to just override that.
       const end = exampleStart - position;
       if (end > 0) {
-        newTokens.push({value: t.value.slice(0, end), type: t.type});
-        newTokens.push({value: t.value.slice(end), type: 'grist_example'});
+        newTokens.push({ value: t.value.slice(0, end), type: t.type });
+        newTokens.push({ value: t.value.slice(end), type: 'grist_example' });
       }
       else {
-        newTokens.push({value: t.value, type: 'grist_example'});
+        newTokens.push({ value: t.value, type: 'grist_example' });
       }
     }
     else {
@@ -310,15 +310,15 @@ function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: Ace.Token[]):
       const lStart = linkStart - position, lEnd = linkEnd - position;
       if (lStart > 0) {
         const beforeLink = t.value.slice(0, lStart);
-        newTokens.push({value: beforeLink, type: t.type});
+        newTokens.push({ value: beforeLink, type: t.type });
       }
       if (lEnd > 0) {
         const inLink = t.value.slice(Math.max(0, lStart), lEnd);
         const newType = t.type + (t.type ? '.' : '') + 'grist_link';
-        newTokens.push({value: inLink, type: newType});
+        newTokens.push({ value: inLink, type: newType });
         if (lEnd < t.value.length) {
           const afterLink = t.value.slice(lEnd);
-          newTokens.push({value: afterLink, type: t.type});
+          newTokens.push({ value: afterLink, type: t.type });
         }
       }
       else {

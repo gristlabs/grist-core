@@ -5,7 +5,7 @@ import { server, setupTestSuite } from 'test/projects/testUtils';
 describe('PageWidgetPicker', () => {
   setupTestSuite();
 
-  async function setOption(options: {value?: string, isNewPage?: boolean}) {
+  async function setOption(options: { value?: string, isNewPage?: boolean }) {
     // set value
     const value = await driver.find('.test-option-value');
     await value.sendKeys(Key.HOME, Key.chord(Key.SHIFT, Key.END), Key.DELETE, options.value || '', Key.ENTER);
@@ -21,7 +21,7 @@ describe('PageWidgetPicker', () => {
     await driver.sendKeys(Key.ESCAPE);
   }
 
-  async function openPicker(options: {value?: string, isNewPage?: boolean} = {}) {
+  async function openPicker(options: { value?: string, isNewPage?: boolean } = {}) {
     await driver.find('.test-trigger').click();
     await driver.findWait('.test-wselect-container', 100);
   }
@@ -141,7 +141,7 @@ describe('PageWidgetPicker', () => {
     assert.equal(
       await driver.find('.test-call-log:last-child .test-call-value').getText(),
       JSON.stringify(
-        {type: 'record', table: 0, summarize: false, columns: [], link: '[0,0,0]', section: 0}),
+        { type: 'record', table: 0, summarize: false, columns: [], link: '[0,0,0]', section: 0 }),
     );
 
     // resolve call and re-open picker
@@ -159,7 +159,7 @@ describe('PageWidgetPicker', () => {
     assert.equal(
       await driver.find('.test-call-log:last-child .test-call-value').getText(),
       JSON.stringify(
-        {type: 'single', table: 1, summarize: true, columns: [2, 3], link: '[0,0,0]', section: 0}),
+        { type: 'single', table: 1, summarize: true, columns: [2, 3], link: '[0,0,0]', section: 0 }),
     );
 
     // resolve call and re-open picker
@@ -228,7 +228,7 @@ describe('PageWidgetPicker', () => {
 
     // set option IsNewPage to true and reopen picker
     await closePicker();
-    await setOption({isNewPage: true});
+    await setOption({ isNewPage: true });
     await openPicker();
 
     // select `Table` type

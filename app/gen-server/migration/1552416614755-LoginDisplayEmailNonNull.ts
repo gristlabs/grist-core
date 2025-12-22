@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class LoginDisplayEmailNonNull1552416614755 implements MigrationInterface {
 

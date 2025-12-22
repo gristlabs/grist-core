@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
+import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 export class LoginDisplayEmail1551805156919 implements MigrationInterface {
 

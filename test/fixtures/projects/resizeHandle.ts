@@ -1,6 +1,6 @@
-import {resizeFlexVHandle} from 'app/client/ui/resizeHandle';
-import {dom, observable, styled} from "grainjs";
-import {withLocale} from 'test/fixtures/projects/helpers/withLocale';
+import { resizeFlexVHandle } from 'app/client/ui/resizeHandle';
+import { dom, observable, styled } from "grainjs";
+import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
 
 function setupTest() {
   const width1 = observable<number|null>(null);
@@ -11,15 +11,15 @@ function setupTest() {
         dom.style('width', use => use(width1) ? use(width1) + 'px' : ''),
         dom.text(use => `width ${use(width1)}`),
       ),
-      myResizeFlexVHandle({target: 'left', onSave: v => width1.set(v)}),
-      dom('div', {style: 'flex: auto'}),
-      myResizeFlexVHandle({target: 'right', onSave: v => width2.set(v)}),
+      myResizeFlexVHandle({ target: 'left', onSave: v => width1.set(v) }),
+      dom('div', { style: 'flex: auto' }),
+      myResizeFlexVHandle({ target: 'right', onSave: v => width2.set(v) }),
       dom('div.test-right',
         dom.style('width', use => use(width2) ? use(width2) + 'px' : ''),
         dom.text(use => `width ${use(width2)}`),
       ),
     ),
-    dom('button.test-reset', {style: 'margin-left: 100px; margin-top: 25px'},
+    dom('button.test-reset', { style: 'margin-left: 100px; margin-top: 25px' },
       'Reset', dom.on('click', () => { width1.set(null); width2.set(null); })),
   ];
 }

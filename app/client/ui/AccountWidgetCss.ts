@@ -1,5 +1,5 @@
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {styled} from 'grainjs';
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { styled } from 'grainjs';
 
 export const cssUserInfo = styled('div', `
   padding: 12px 24px 12px 16px;

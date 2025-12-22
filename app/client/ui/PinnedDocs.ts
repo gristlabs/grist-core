@@ -1,14 +1,14 @@
-import {getTimeFromNow} from 'app/client/lib/timeUtils';
-import {docUrl, urlState} from 'app/client/models/gristUrlState';
-import {HomeModel} from 'app/client/models/HomeModel';
-import {makeDocOptionsMenu} from 'app/client/ui/DocList';
-import {makeRemovedDocOptionsMenu} from 'app/client/ui/DocMenu';
-import {colors, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menu} from 'app/client/ui2018/menus';
+import { getTimeFromNow } from 'app/client/lib/timeUtils';
+import { docUrl, urlState } from 'app/client/models/gristUrlState';
+import { HomeModel } from 'app/client/models/HomeModel';
+import { makeDocOptionsMenu } from 'app/client/ui/DocList';
+import { makeRemovedDocOptionsMenu } from 'app/client/ui/DocMenu';
+import { colors, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { menu } from 'app/client/ui2018/menus';
 import * as roles from 'app/common/roles';
-import {Document, Workspace} from 'app/common/UserAPI';
-import {dom, makeTestId, Observable, styled} from 'grainjs';
+import { Document, Workspace } from 'app/common/UserAPI';
+import { dom, makeTestId, Observable, styled } from 'grainjs';
 
 const testId = makeTestId('test-dm-');
 
@@ -37,11 +37,11 @@ export function buildPinnedDoc(home: HomeModel, doc: Document, workspace: Worksp
     pinnedDoc(
       doc.removedAt ?
         null :
-        urlState().setLinkUrl({...docUrl(doc), ...(isExample ? {org: workspace.orgDomain} : {})}),
+        urlState().setLinkUrl({ ...docUrl(doc), ...(isExample ? { org: workspace.orgDomain } : {}) }),
       pinnedDoc.cls('-no-access', !roles.canView(doc.access)),
       pinnedDocPreview(
         (doc.options?.icon ?
-          cssImage({src: doc.options.icon}) :
+          cssImage({ src: doc.options.icon }) :
           [docInitials(doc.name), pinnedDocThumbnail()]
         ),
         (doc.public && !isExample ? cssPublicIcon('PublicFilled', testId('public')) : null),
@@ -68,12 +68,12 @@ export function buildPinnedDoc(home: HomeModel, doc: Document, workspace: Worksp
         // For deleted documents, attach the menu to the entire doc icon, and include the
         // "Dots" icon just to clarify that there are options.
         menu(() => makeRemovedDocOptionsMenu(home, doc, workspace),
-          {placement: 'right-start'}),
+          { placement: 'right-start' }),
         pinnedDocOptions(icon('Dots'), testId('pinned-doc-options')),
       ] :
       pinnedDocOptions(icon('Dots'),
         menu(() => makeDocOptionsMenu(home, doc),
-          {placement: 'bottom-start'}),
+          { placement: 'bottom-start' }),
         // Clicks on the menu trigger shouldn't follow the link that it's contained in.
         dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
         testId('pinned-doc-options'),

@@ -1,6 +1,6 @@
 /* global describe, it */
-import {guessDateFormat, guessDateFormats, parseDate, parseDateStrict, parseDateTime} from 'app/common/parseDate';
-import {assert} from 'chai';
+import { guessDateFormat, guessDateFormats, parseDate, parseDateStrict, parseDateTime } from 'app/common/parseDate';
+import { assert } from 'chai';
 import * as moment from 'moment-timezone';
 
 const today = new Date();
@@ -20,7 +20,7 @@ const month = String(today.getUTCMonth() + 1).padStart(2, '0');
  * unless no dateFormat is given in which case it may or may not.
  */
 function testParse(dateFormat: string|null, input: string, expectedDateStr: string|null, fallback: boolean = false) {
-  assertDateEqual(parseDate(input, dateFormat ? {dateFormat} : {}), expectedDateStr);
+  assertDateEqual(parseDate(input, dateFormat ? { dateFormat } : {}), expectedDateStr);
 
   const strict = new Set<number>();
   parseDateStrict(input, dateFormat, strict);
@@ -38,7 +38,7 @@ function testParse(dateFormat: string|null, input: string, expectedDateStr: stri
   if (strict.size) {
     const strictParsed = [...strict][0];
     assertDateEqual(strictParsed, expectedDateStr);
-    assertDateEqual(parseDateTime(input, dateFormat ? {dateFormat} : {})!, expectedDateStr);
+    assertDateEqual(parseDateTime(input, dateFormat ? { dateFormat } : {})!, expectedDateStr);
   }
 }
 
@@ -49,8 +49,8 @@ function assertDateEqual(parsed: number|null, expectedDateStr: string|null) {
 
 function testTimeParse(input: string, expectedUTCTimeStr: string | null, timezone?: string) {
   const parsed1 = parseDateTime('1993-04-02T' + input,
-    {timeFormat: 'Z', timezone, dateFormat: 'YYYY-MM-DD'}) || null;
-  const parsed2 = parseDate('1993-04-02', {time: input, timeFormat: 'UNUSED', timezone});
+    { timeFormat: 'Z', timezone, dateFormat: 'YYYY-MM-DD' }) || null;
+  const parsed2 = parseDate('1993-04-02', { time: input, timeFormat: 'UNUSED', timezone });
   for (const parsed of [parsed1, parsed2]) {
     if (expectedUTCTimeStr === null) {
       assert.isNull(parsed);
@@ -65,10 +65,10 @@ function testDateTimeParse(
   date: string, time: string, expectedUTCTimeStr: string | null, timezone: string, dateFormat?: string,
 ) {
   const parsed1 = parseDateTime(date + ' ' + time,
-    {timeFormat: 'Z', timezone, dateFormat: dateFormat || 'YYYY-MM-DD'}) || null;
+    { timeFormat: 'Z', timezone, dateFormat: dateFormat || 'YYYY-MM-DD' }) || null;
 
   // This is for testing the combination of date and time which is important when daylight savings is involved
-  const parsed2 = parseDate(date, {time, timeFormat: 'UNUSED', timezone, dateFormat});
+  const parsed2 = parseDate(date, { time, timeFormat: 'UNUSED', timezone, dateFormat });
 
   for (const parsed of [parsed1, parsed2]) {
     if (expectedUTCTimeStr === null) {
@@ -83,7 +83,7 @@ function testDateTimeParse(
 function testDateTimeStringParse(
   dateTime: string, expectedUTCTimeStr: string | null, dateFormat: string, timezone?: string,
 ) {
-  const parsed = parseDateTime(dateTime, {timezone, dateFormat});
+  const parsed = parseDateTime(dateTime, { timezone, dateFormat });
 
   if (expectedUTCTimeStr === null) {
     assert.isUndefined(parsed);

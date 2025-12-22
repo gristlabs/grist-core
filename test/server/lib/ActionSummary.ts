@@ -1,10 +1,10 @@
-import { ActionSummaryOptions, concatenateSummaries, rebaseSummary, summarizeAction} from 'app/common/ActionSummarizer';
-import { ActionSummary, asTabularDiffs, createEmptyTableDelta, LabelDelta, TableDelta} from 'app/common/ActionSummary';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import { cloneDeep, keyBy} from 'lodash';
-import {createDocTools} from 'test/server/docTools';
+import { ActionSummaryOptions, concatenateSummaries, rebaseSummary, summarizeAction } from 'app/common/ActionSummarizer';
+import { ActionSummary, asTabularDiffs, createEmptyTableDelta, LabelDelta, TableDelta } from 'app/common/ActionSummary';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { cloneDeep, keyBy } from 'lodash';
+import { createDocTools } from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
-import {assert} from 'test/server/testUtils';
+import { assert } from 'test/server/testUtils';
 
 /** get a summary of the last LocalActionBundle applied to a given document */
 async function summarizeLastAction(doc: ActiveDoc, options?: ActionSummaryOptions) {
@@ -34,13 +34,13 @@ describe("ActionSummary", function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
-      ["AddTable", "Ducks", [{id: "species"}, {id: "color"}, {id: "place"}]],
-      ["AddTable", "Bricks", [{id: "texture"}, {id: "length"}]],
+      ["AddTable", "Ducks", [{ id: "species" }, { id: "color" }, { id: "place" }]],
+      ["AddTable", "Bricks", [{ id: "texture" }, { id: "length" }]],
     ]);
     // add two tables, remove a table, rename a table
     await doc.applyUserActions(session, [
-      ["AddTable", "Frogs", [{id: "species"}, {id: "color"}, {id: "place"}]],
-      ["AddTable", "Moons", [{id: "planet"}, {id: "radius"}]],
+      ["AddTable", "Frogs", [{ id: "species" }, { id: "color" }, { id: "place" }]],
+      ["AddTable", "Moons", [{ id: "planet" }, { id: "radius" }]],
       ["RemoveTable", "Ducks"],
       ["RenameTable", "Bricks", "Blocks"],
     ]);
@@ -60,7 +60,7 @@ describe("ActionSummary", function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
-      ["AddTable", "Ducks", [{id: "species"}, {id: "color"}, {id: "place"}]],
+      ["AddTable", "Ducks", [{ id: "species" }, { id: "color" }, { id: "place" }]],
     ]);
     // add a column, remove a column, rename a column
     await doc.applyUserActions(session, [
@@ -79,14 +79,14 @@ describe("ActionSummary", function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
-      ["AddTable", "Frogs", [{id: "species"}, {id: "color"}, {id: "place"}]],
-      ["AddRecord", "Frogs", null, {species: "yellers", color: "yellow", place: "Alaskers"}],
-      ["AddRecord", "Frogs", null, {species: "parrots", color: "green", place: "Jungletown"}],
+      ["AddTable", "Frogs", [{ id: "species" }, { id: "color" }, { id: "place" }]],
+      ["AddRecord", "Frogs", null, { species: "yellers", color: "yellow", place: "Alaskers" }],
+      ["AddRecord", "Frogs", null, { species: "parrots", color: "green", place: "Jungletown" }],
     ]);
     // add a row, remove a row, update a row
     await doc.applyUserActions(session, [
-      ["UpdateRecord", "Frogs", 1, {place: "Alaska"}],
-      ["AddRecord", "Frogs", null, {species: "gretons", color: "green", place: "Northern France"}],
+      ["UpdateRecord", "Frogs", 1, { place: "Alaska" }],
+      ["AddRecord", "Frogs", null, { species: "gretons", color: "green", place: "Northern France" }],
       ["RemoveRecord", "Frogs", 2],
     ]);
     const sum = await summarizeLastAction(doc);
@@ -127,14 +127,14 @@ describe("ActionSummary", function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
-      ["AddTable", "Frogs", [{id: "species"}, {id: "color"}, {id: "place"}]],
-      ["AddRecord", "Frogs", null, {species: "yellers", color: "yellow", place: "Alaskers"}],
-      ["AddRecord", "Frogs", null, {species: "parrots", color: "green", place: "Jungletown"}],
+      ["AddTable", "Frogs", [{ id: "species" }, { id: "color" }, { id: "place" }]],
+      ["AddRecord", "Frogs", null, { species: "yellers", color: "yellow", place: "Alaskers" }],
+      ["AddRecord", "Frogs", null, { species: "parrots", color: "green", place: "Jungletown" }],
     ]);
     // add a row, remove a row, update a row
     await doc.applyUserActions(session, [
-      ["UpdateRecord", "Frogs", 1, {place: "Alaska"}],
-      ["AddRecord", "Frogs", null, {species: "gretons", color: "green", place: "Northern France"}],
+      ["UpdateRecord", "Frogs", 1, { place: "Alaska" }],
+      ["AddRecord", "Frogs", null, { species: "gretons", color: "green", place: "Northern France" }],
       ["RemoveRecord", "Frogs", 2],
     ]);
     const sum = await summarizeLastAction(doc);
@@ -156,9 +156,9 @@ describe("ActionSummary", function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
-      ["AddTable", "Frogs", [{id: "species"}, {id: "color"}, {id: "place"}]],
-      ["AddRecord", "Frogs", null, {species: "yellers", color: "yellow", place: "Alaskers"}],
-      ["AddRecord", "Frogs", null, {species: "parrots", color: "green", place: "Jungletown"}],
+      ["AddTable", "Frogs", [{ id: "species" }, { id: "color" }, { id: "place" }]],
+      ["AddRecord", "Frogs", null, { species: "yellers", color: "yellow", place: "Alaskers" }],
+      ["AddRecord", "Frogs", null, { species: "parrots", color: "green", place: "Jungletown" }],
     ]);
     const ids = Array.from(Array(100).keys()).map(x => x + 3);
     // add many rows
@@ -200,21 +200,21 @@ describe("ActionSummary", function() {
     const tabularDiffs = asTabularDiffs(sum, {});
     assert.lengthOf(tabularDiffs.Duck.cells, 2);
     assert.sameDeepMembers(tabularDiffs.Duck.cells,
-      [{type: "-", rowId: 1, cellDeltas: [[["yellow"], null]]},
-        {type: "+", rowId: 1, cellDeltas: [[null, ["red"]]]}]);
+      [{ type: "-", rowId: 1, cellDeltas: [[["yellow"], null]] },
+        { type: "+", rowId: 1, cellDeltas: [[null, ["red"]]] }]);
   });
 
   it('summarizes ReplaceTableData actions', async function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
-      ["AddTable", "Frogs", [{id: "species"}, {id: "color"}, {id: "place"}]],
-      ["AddRecord", "Frogs", null, {species: "yellers", color: "yellow", place: "Alaskers"}],
-      ["AddRecord", "Frogs", null, {species: "parrots", color: "green", place: "Jungletown"}],
+      ["AddTable", "Frogs", [{ id: "species" }, { id: "color" }, { id: "place" }]],
+      ["AddRecord", "Frogs", null, { species: "yellers", color: "yellow", place: "Alaskers" }],
+      ["AddRecord", "Frogs", null, { species: "parrots", color: "green", place: "Jungletown" }],
     ]);
     await doc.applyUserActions(session, [
       ["ReplaceTableData", "Frogs", [1],
-        {species: ["bouncers"], color: ["blue"], place: ["Bouncy Castle"]}],
+        { species: ["bouncers"], color: ["blue"], place: ["Bouncy Castle"] }],
     ]);
     const sum = await summarizeLastAction(doc);
     assert.deepEqual(sum, {
@@ -253,7 +253,7 @@ describe("ActionSummary", function() {
     // so we check that diffs are generated for it.
     const doc = await docTools.loadFixtureDoc('Favorite_Films.grist');
     const session = docTools.createFakeSession();
-    const {actions} = await doc.getRecentActions(session, true);
+    const { actions } = await doc.getRecentActions(session, true);
     assert(Object.keys(actions[0].actionSummary.tableDeltas).length > 0, "some diff present");
 
     // Pick out a change where Captain America is replaced with Steve Rogers.
@@ -269,9 +269,9 @@ describe("ActionSummary", function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc(':memory:');
     await doc.applyUserActions(session, [
-      ["AddTable", "Frogs", [{id: "species"}, {id: "color"}, {id: "place"}]],
-      ["AddRecord", "Frogs", null, {species: "yellers", color: "yellow", place: "Alaskers"}],
-      ["AddRecord", "Frogs", null, {species: "parrots", color: "green", place: "Jungletown"}],
+      ["AddTable", "Frogs", [{ id: "species" }, { id: "color" }, { id: "place" }]],
+      ["AddRecord", "Frogs", null, { species: "yellers", color: "yellow", place: "Alaskers" }],
+      ["AddRecord", "Frogs", null, { species: "parrots", color: "green", place: "Jungletown" }],
     ]);
     // add a row, remove a row, update a row
     await doc.applyUserActions(session, [
@@ -595,9 +595,9 @@ describe("ActionSummary", function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
-      ["AddTable", "Frogs", [{id: "species"}, {id: "color"}, {id: "place"}]],
-      ["AddRecord", "Frogs", null, {species: "yellers", color: "yellow", place: "Alaskers"}],
-      ["AddRecord", "Frogs", null, {species: "parrots", color: "green", place: "Jungletown"}],
+      ["AddTable", "Frogs", [{ id: "species" }, { id: "color" }, { id: "place" }]],
+      ["AddRecord", "Frogs", null, { species: "yellers", color: "yellow", place: "Alaskers" }],
+      ["AddRecord", "Frogs", null, { species: "parrots", color: "green", place: "Jungletown" }],
     ]);
     await doc.applyUserActions(session, [
       ["BulkRemoveRecord", "Frogs", [1, 2]],
@@ -615,9 +615,9 @@ describe("ActionSummary", function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
-      ["AddTable", "Frogs", [{id: "species"}, {id: "color"}, {id: "place"}]],
-      ["AddRecord", "Frogs", null, {species: "yellers", color: "yellow", place: "Alaskers"}],
-      ["AddRecord", "Frogs", null, {species: "parrots", color: "green", place: "Jungletown"}],
+      ["AddTable", "Frogs", [{ id: "species" }, { id: "color" }, { id: "place" }]],
+      ["AddRecord", "Frogs", null, { species: "yellers", color: "yellow", place: "Alaskers" }],
+      ["AddRecord", "Frogs", null, { species: "parrots", color: "green", place: "Jungletown" }],
     ]);
     const ids = [3, 4, 5, 6, 7, 8];
     await doc.applyUserActions(session, [
@@ -630,7 +630,7 @@ describe("ActionSummary", function() {
     ]);
 
     // Request a summarization with no row limit.
-    const sum = await summarizeLastAction(doc, {maximumInlineRows: Infinity});
+    const sum = await summarizeLastAction(doc, { maximumInlineRows: Infinity });
 
     // Check result is as expected, with no rows omitted.
     assert.deepEqual(sum, {
@@ -680,8 +680,8 @@ describe("ActionSummary", function() {
     });
 
     // Request a summarization with a row limit but full preservation of some columns.
-    const sum2 = await summarizeLastAction(doc, {alwaysPreserveColIds: ['color', 'species'],
-      maximumInlineRows: 4});
+    const sum2 = await summarizeLastAction(doc, { alwaysPreserveColIds: ['color', 'species'],
+      maximumInlineRows: 4 });
 
     // Check result is as expected, with full color and species, but other columns curtailed.
     sum.tableDeltas.Frogs.columnDeltas.manualSort = {
@@ -700,7 +700,7 @@ describe("ActionSummary", function() {
   });
 
   describe('rebasing', async function() {
-    function expand(deltas?: {[key: string]: Partial<TableDelta>}) {
+    function expand(deltas?: { [key: string]: Partial<TableDelta> }) {
       const result: { [key: string]: TableDelta } = {};
       if (!deltas) { return result; }
       for (const [key, delta] of Object.entries(deltas)) {
@@ -711,15 +711,15 @@ describe("ActionSummary", function() {
     function assertRebase(options: {
       trunk?: {
         renames?: LabelDelta[],
-        deltas?: {[key: string]: Partial<TableDelta>},
+        deltas?: { [key: string]: Partial<TableDelta> },
       },
       fork?: {
         renames?: LabelDelta[],
-        deltas?: {[key: string]: Partial<TableDelta>},
+        deltas?: { [key: string]: Partial<TableDelta> },
       },
       result?: {
         renames?: LabelDelta[],
-        deltas?: {[key: string]: Partial<TableDelta>},
+        deltas?: { [key: string]: Partial<TableDelta> },
       }
     }) {
       const ref: ActionSummary = {
@@ -832,21 +832,21 @@ describe("ActionSummary", function() {
       });
       assertRebase({
         trunk: { deltas: { table1: { columnRenames: [['col1', 'col2']] } } },
-        fork: { deltas: { table1: { columnDeltas: { col1: {1: [null, null]} } } } },
-        result: { deltas: { table1: { columnDeltas: { col2: {1: [null, null]} } } } },
+        fork: { deltas: { table1: { columnDeltas: { col1: { 1: [null, null] } } } } },
+        result: { deltas: { table1: { columnDeltas: { col2: { 1: [null, null] } } } } },
       });
       assertRebase({
         trunk: { deltas: { table1: {
           columnRenames: [['col1', 'col2'], ['col2', 'col1'], ['col3', null]],
         } } },
         fork: { deltas: { table1: { columnDeltas: {
-          col1: {1: [null, null]},
-          col2: {2: [null, null]},
-          col3: {3: [null, null]},
+          col1: { 1: [null, null] },
+          col2: { 2: [null, null] },
+          col3: { 3: [null, null] },
         } } } },
         result: { deltas: { table1: { columnDeltas: {
-          col1: {2: [null, null]},
-          col2: {1: [null, null]},
+          col1: { 2: [null, null] },
+          col2: { 1: [null, null] },
         } } } },
       });
       assertRebase({
@@ -856,15 +856,15 @@ describe("ActionSummary", function() {
         fork: { deltas: { table1: {
           columnRenames: [['col1', 'col9']],
           columnDeltas: {
-            col9: {1: [null, null]},
-            col2: {2: [null, null]},
-            col3: {3: [null, null]},
+            col9: { 1: [null, null] },
+            col2: { 2: [null, null] },
+            col3: { 3: [null, null] },
           } } } },
         result: { deltas: { table1: {
           columnRenames: [['col2', 'col9']],
           columnDeltas: {
-            col1: {2: [null, null]},
-            col9: {1: [null, null]},
+            col1: { 2: [null, null] },
+            col9: { 1: [null, null] },
           } } } },
       });
     });

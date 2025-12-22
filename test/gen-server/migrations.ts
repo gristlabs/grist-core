@@ -1,71 +1,71 @@
-import {QueryRunner} from "typeorm";
+import { QueryRunner } from "typeorm";
 import * as roles from "app/common/roles";
-import {Organization} from 'app/gen-server/entity/Organization';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {Permissions} from 'app/gen-server/lib/Permissions';
-import {assert} from 'chai';
-import {addSeedData, createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
-import {EnvironmentSnapshot} from 'test/server/testUtils';
-import {withSqliteForeignKeyConstraintDisabled} from "app/server/lib/dbUtils";
+import { Organization } from 'app/gen-server/entity/Organization';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { Permissions } from 'app/gen-server/lib/Permissions';
+import { assert } from 'chai';
+import { addSeedData, createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed';
+import { EnvironmentSnapshot } from 'test/server/testUtils';
+import { withSqliteForeignKeyConstraintDisabled } from "app/server/lib/dbUtils";
 
-import {Initial1536634251710 as Initial} from 'app/gen-server/migration/1536634251710-Initial';
-import {Login1539031763952 as Login} from 'app/gen-server/migration/1539031763952-Login';
-import {PinDocs1549313797109 as PinDocs} from 'app/gen-server/migration/1549313797109-PinDocs';
-import {UserPicture1549381727494 as UserPicture} from 'app/gen-server/migration/1549381727494-UserPicture';
-import {LoginDisplayEmail1551805156919 as DisplayEmail} from 'app/gen-server/migration/1551805156919-LoginDisplayEmail';
-import {LoginDisplayEmailNonNull1552416614755
-as DisplayEmailNonNull} from 'app/gen-server/migration/1552416614755-LoginDisplayEmailNonNull';
-import {Indexes1553016106336 as Indexes} from 'app/gen-server/migration/1553016106336-Indexes';
-import {Billing1556726945436 as Billing} from 'app/gen-server/migration/1556726945436-Billing';
-import {Aliases1561589211752 as Aliases} from 'app/gen-server/migration/1561589211752-Aliases';
-import {TeamMembers1568238234987 as TeamMembers} from 'app/gen-server/migration/1568238234987-TeamMembers';
-import {FirstLogin1569593726320 as FirstLogin} from 'app/gen-server/migration/1569593726320-FirstLogin';
-import {FirstTimeUser1569946508569 as FirstTimeUser} from 'app/gen-server/migration/1569946508569-FirstTimeUser';
-import {CustomerIndex1573569442552 as CustomerIndex} from 'app/gen-server/migration/1573569442552-CustomerIndex';
-import {ExtraIndexes1579559983067 as ExtraIndexes} from 'app/gen-server/migration/1579559983067-ExtraIndexes';
-import {OrgHost1591755411755 as OrgHost} from 'app/gen-server/migration/1591755411755-OrgHost';
-import {DocRemovedAt1592261300044 as DocRemovedAt} from 'app/gen-server/migration/1592261300044-DocRemovedAt';
-import {Prefs1596456522124 as Prefs} from 'app/gen-server/migration/1596456522124-Prefs';
-import {ExternalBilling1623871765992 as ExternalBilling} from 'app/gen-server/migration/1623871765992-ExternalBilling';
-import {DocOptions1626369037484 as DocOptions} from 'app/gen-server/migration/1626369037484-DocOptions';
-import {Secret1631286208009 as Secret} from 'app/gen-server/migration/1631286208009-Secret';
-import {UserOptions1644363380225 as UserOptions} from 'app/gen-server/migration/1644363380225-UserOptions';
-import {GracePeriodStart1647883793388
-as GracePeriodStart} from 'app/gen-server/migration/1647883793388-GracePeriodStart';
-import {DocumentUsage1651469582887 as DocumentUsage} from 'app/gen-server/migration/1651469582887-DocumentUsage';
-import {Activations1652273656610 as Activations} from 'app/gen-server/migration/1652273656610-Activations';
-import {UserConnectId1652277549983 as UserConnectId} from 'app/gen-server/migration/1652277549983-UserConnectId';
-import {UserUUID1663851423064 as UserUUID} from 'app/gen-server/migration/1663851423064-UserUUID';
-import {UserRefUnique1664528376930 as UserUniqueRefUUID} from 'app/gen-server/migration/1664528376930-UserRefUnique';
-import {Forks1673051005072 as Forks} from 'app/gen-server/migration/1673051005072-Forks';
-import {ForkIndexes1678737195050 as ForkIndexes} from 'app/gen-server/migration/1678737195050-ForkIndexes';
-import {ActivationPrefs1682636695021 as ActivationPrefs} from 'app/gen-server/migration/1682636695021-ActivationPrefs';
-import {AssistantLimit1685343047786 as AssistantLimit} from 'app/gen-server/migration/1685343047786-AssistantLimit';
-import {Shares1701557445716 as Shares} from 'app/gen-server/migration/1701557445716-Shares';
-import {Billing1711557445716 as BillingFeatures} from 'app/gen-server/migration/1711557445716-Billing';
-import {UserLastConnection1713186031023
-as UserLastConnection} from 'app/gen-server/migration/1713186031023-UserLastConnection';
-import {ActivationEnabled1722529827161
-as ActivationEnabled} from 'app/gen-server/migration/1722529827161-Activation-Enabled';
-import {Configs1727747249153 as Configs} from 'app/gen-server/migration/1727747249153-Configs';
-import {LoginsEmailsIndex1729754662550
-as LoginsEmailsIndex} from 'app/gen-server/migration/1729754662550-LoginsEmailIndex';
-import {GracePeriod1732103776245 as GracePeriod} from 'app/gen-server/migration/1732103776245-GracePeriod';
-import {UserCreatedAt1738912357827 as UserCreatedAt} from 'app/gen-server/migration/1738912357827-UserCreatedAt';
-import {DocPref1746246433628 as DocPref} from 'app/gen-server/migration/1746246433628-DocPref';
-import {GroupUsersCreatedAt1749454162428
-as GroupUsersCreatedAt} from 'app/gen-server/migration/1749454162428-GroupUsersCreatedAt';
-import {GroupTypes1753088213255
-as GroupTypes} from 'app/gen-server/migration/1753088213255-GroupTypes';
-import {UserUnsubscribeKey1756799894986
-as UserUnsubscribeKey} from 'app/gen-server/migration/1756799894986-UserUnsubscribeKey';
-import {UserDisabledAt1754077317821
+import { Initial1536634251710 as Initial } from 'app/gen-server/migration/1536634251710-Initial';
+import { Login1539031763952 as Login } from 'app/gen-server/migration/1539031763952-Login';
+import { PinDocs1549313797109 as PinDocs } from 'app/gen-server/migration/1549313797109-PinDocs';
+import { UserPicture1549381727494 as UserPicture } from 'app/gen-server/migration/1549381727494-UserPicture';
+import { LoginDisplayEmail1551805156919 as DisplayEmail } from 'app/gen-server/migration/1551805156919-LoginDisplayEmail';
+import { LoginDisplayEmailNonNull1552416614755
+as DisplayEmailNonNull } from 'app/gen-server/migration/1552416614755-LoginDisplayEmailNonNull';
+import { Indexes1553016106336 as Indexes } from 'app/gen-server/migration/1553016106336-Indexes';
+import { Billing1556726945436 as Billing } from 'app/gen-server/migration/1556726945436-Billing';
+import { Aliases1561589211752 as Aliases } from 'app/gen-server/migration/1561589211752-Aliases';
+import { TeamMembers1568238234987 as TeamMembers } from 'app/gen-server/migration/1568238234987-TeamMembers';
+import { FirstLogin1569593726320 as FirstLogin } from 'app/gen-server/migration/1569593726320-FirstLogin';
+import { FirstTimeUser1569946508569 as FirstTimeUser } from 'app/gen-server/migration/1569946508569-FirstTimeUser';
+import { CustomerIndex1573569442552 as CustomerIndex } from 'app/gen-server/migration/1573569442552-CustomerIndex';
+import { ExtraIndexes1579559983067 as ExtraIndexes } from 'app/gen-server/migration/1579559983067-ExtraIndexes';
+import { OrgHost1591755411755 as OrgHost } from 'app/gen-server/migration/1591755411755-OrgHost';
+import { DocRemovedAt1592261300044 as DocRemovedAt } from 'app/gen-server/migration/1592261300044-DocRemovedAt';
+import { Prefs1596456522124 as Prefs } from 'app/gen-server/migration/1596456522124-Prefs';
+import { ExternalBilling1623871765992 as ExternalBilling } from 'app/gen-server/migration/1623871765992-ExternalBilling';
+import { DocOptions1626369037484 as DocOptions } from 'app/gen-server/migration/1626369037484-DocOptions';
+import { Secret1631286208009 as Secret } from 'app/gen-server/migration/1631286208009-Secret';
+import { UserOptions1644363380225 as UserOptions } from 'app/gen-server/migration/1644363380225-UserOptions';
+import { GracePeriodStart1647883793388
+as GracePeriodStart } from 'app/gen-server/migration/1647883793388-GracePeriodStart';
+import { DocumentUsage1651469582887 as DocumentUsage } from 'app/gen-server/migration/1651469582887-DocumentUsage';
+import { Activations1652273656610 as Activations } from 'app/gen-server/migration/1652273656610-Activations';
+import { UserConnectId1652277549983 as UserConnectId } from 'app/gen-server/migration/1652277549983-UserConnectId';
+import { UserUUID1663851423064 as UserUUID } from 'app/gen-server/migration/1663851423064-UserUUID';
+import { UserRefUnique1664528376930 as UserUniqueRefUUID } from 'app/gen-server/migration/1664528376930-UserRefUnique';
+import { Forks1673051005072 as Forks } from 'app/gen-server/migration/1673051005072-Forks';
+import { ForkIndexes1678737195050 as ForkIndexes } from 'app/gen-server/migration/1678737195050-ForkIndexes';
+import { ActivationPrefs1682636695021 as ActivationPrefs } from 'app/gen-server/migration/1682636695021-ActivationPrefs';
+import { AssistantLimit1685343047786 as AssistantLimit } from 'app/gen-server/migration/1685343047786-AssistantLimit';
+import { Shares1701557445716 as Shares } from 'app/gen-server/migration/1701557445716-Shares';
+import { Billing1711557445716 as BillingFeatures } from 'app/gen-server/migration/1711557445716-Billing';
+import { UserLastConnection1713186031023
+as UserLastConnection } from 'app/gen-server/migration/1713186031023-UserLastConnection';
+import { ActivationEnabled1722529827161
+as ActivationEnabled } from 'app/gen-server/migration/1722529827161-Activation-Enabled';
+import { Configs1727747249153 as Configs } from 'app/gen-server/migration/1727747249153-Configs';
+import { LoginsEmailsIndex1729754662550
+as LoginsEmailsIndex } from 'app/gen-server/migration/1729754662550-LoginsEmailIndex';
+import { GracePeriod1732103776245 as GracePeriod } from 'app/gen-server/migration/1732103776245-GracePeriod';
+import { UserCreatedAt1738912357827 as UserCreatedAt } from 'app/gen-server/migration/1738912357827-UserCreatedAt';
+import { DocPref1746246433628 as DocPref } from 'app/gen-server/migration/1746246433628-DocPref';
+import { GroupUsersCreatedAt1749454162428
+as GroupUsersCreatedAt } from 'app/gen-server/migration/1749454162428-GroupUsersCreatedAt';
+import { GroupTypes1753088213255
+as GroupTypes } from 'app/gen-server/migration/1753088213255-GroupTypes';
+import { UserUnsubscribeKey1756799894986
+as UserUnsubscribeKey } from 'app/gen-server/migration/1756799894986-UserUnsubscribeKey';
+import { UserDisabledAt1754077317821
 as UserDisabledAt } from 'app/gen-server/migration/1754077317821-UserDisabledAt';
-import {ServiceAccounts1756918816559 as ServiceAccounts} from 'app/gen-server/migration/1756918816559-ServiceAccounts';
-import {DocDisabledAt1759434763338
-as DocDisabledAt} from 'app/gen-server/migration/1759434763338-DocDisabledAt';
-import {OAuthClientsAndGrants1764872085347
-as OAuthClientsAndGrants} from 'app/gen-server/migration/1764872085347-OAuthClientsAndGrants';
+import { ServiceAccounts1756918816559 as ServiceAccounts } from 'app/gen-server/migration/1756918816559-ServiceAccounts';
+import { DocDisabledAt1759434763338
+as DocDisabledAt } from 'app/gen-server/migration/1759434763338-DocDisabledAt';
+import { OAuthClientsAndGrants1764872085347
+as OAuthClientsAndGrants } from 'app/gen-server/migration/1764872085347-OAuthClientsAndGrants';
 
 const home: HomeDBManager = new HomeDBManager();
 

@@ -77,7 +77,7 @@ export async function runCompletion() {
 
   // if template directory not exists, make it
   if (!fs.existsSync(path.join(PATH_TO_DOC))) {
-    fs.mkdirSync(path.join(PATH_TO_DOC), {recursive: true});
+    fs.mkdirSync(path.join(PATH_TO_DOC), { recursive: true });
 
     // create tempdir
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grist-templates-'));
@@ -110,8 +110,8 @@ export async function runCompletion() {
     );
   }
 
-  const content = fs.readFileSync(PATH_TO_CSV, {encoding: 'utf8'});
-  const records = parse(content, {columns: true}) as FormulaRec[];
+  const content = fs.readFileSync(PATH_TO_CSV, { encoding: 'utf8' });
+  const records = parse(content, { columns: true }) as FormulaRec[];
 
   // let's group by doc id to save on document loading time
   records.sort((a, b) => a.doc_id.localeCompare(b.doc_id));
@@ -124,7 +124,7 @@ export async function runCompletion() {
   await docTools.before();
   let successCount = 0;
   let caseCount = 0;
-  fs.mkdirSync(path.join(PATH_TO_RESULTS), {recursive: true});
+  fs.mkdirSync(path.join(PATH_TO_RESULTS), { recursive: true });
 
   const fetcher = new CachedFetcher(PATH_TO_CACHE);
 
@@ -141,7 +141,7 @@ export async function runCompletion() {
       let suggestedActions: AssistanceResponseV1['suggestedActions'] | undefined;
       let newValues: CellValue[] | undefined;
       let formula: string | undefined;
-      let history: AssistanceState = {messages: []};
+      let history: AssistanceState = { messages: [] };
       let lastFollowUp: string | undefined;
 
       // load new document
@@ -198,7 +198,7 @@ export async function runCompletion() {
         }
 
         // apply modification
-        const {actionNum} = await activeDoc.applyUserActions(session, suggestedActions);
+        const { actionNum } = await activeDoc.applyUserActions(session, suggestedActions);
 
         // get new values
         newValues = activeDoc.docData!.getTable(rec.table_id)!.getColValues(rec.col_id)!.slice();
@@ -258,7 +258,7 @@ export async function runCompletion() {
         path.join(
           PATH_TO_RESULTS,
           `${rec.table_id}_${rec.col_id}_` +
-          caseCount.toLocaleString('en', {minimumIntegerDigits: 8, useGrouping: false}) + '.json'),
+          caseCount.toLocaleString('en', { minimumIntegerDigits: 8, useGrouping: false }) + '.json'),
         JSON.stringify({
           formula,
           suggestedFormula, success,

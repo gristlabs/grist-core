@@ -1,8 +1,8 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import {reportError} from 'app/client/models/errors';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {dom, Observable} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { reportError } from 'app/client/models/errors';
+import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
+import { dom, Observable } from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
 
 // Rather than require the whole of highlight.js, require just the core with the one language we
 // need, to keep our bundle smaller and the build faster.
@@ -28,7 +28,7 @@ export class CodeEditorPanel extends DisposableWithEvents {
     // interferes with text selection. TODO it should be possible for the Clipboard to never
     // interfere with text selection even for un-focusable elements.
     return dom('div.g-code-panel.clipboard',
-      {tabIndex: "-1"},
+      { tabIndex: "-1" },
       dom.maybe(this._denied, () => dom('div.g-code-panel-denied',
         dom('h2', dom.text(t("Access denied"))),
         dom('div', dom.text(t("Code View is available only when you have full document access."))),

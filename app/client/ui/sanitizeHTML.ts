@@ -6,7 +6,7 @@ export function sanitizeHTML(source: string | Node): string {
 
 export function sanitizeHTMLIntoDOM(source: string | Node): DocumentFragment {
   try {
-    return defaultPurifier.sanitize(source, {RETURN_DOM_FRAGMENT: true});
+    return defaultPurifier.sanitize(source, { RETURN_DOM_FRAGMENT: true });
   }
   catch (err) {
     // There seems to be a regression in Chrome during printing related to TrustedTypes (see

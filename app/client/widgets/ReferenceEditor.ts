@@ -87,7 +87,7 @@ export class ReferenceEditor extends NTextEditor {
     if (selectedItem &&
       selectedItem.rowId === 'new' &&
       selectedItem.text === this.textInput.value) {
-      const colInfo = {[this._utils.visibleColId]: this.textInput.value};
+      const colInfo = { [this._utils.visibleColId]: this.textInput.value };
       selectedItem.rowId = await this._utils.tableData.sendTableAction(["AddRecord", null, colInfo]);
     }
   }
@@ -127,7 +127,7 @@ export class ReferenceEditor extends NTextEditor {
       return result;
     }
 
-    result.extraItems.push({rowId: 'new', text, cleanText});
+    result.extraItems.push({ rowId: 'new', text, cleanText });
     this._showAddNew = true;
 
     return result;

@@ -17,13 +17,13 @@ describe('ColumnFilterMenu', function() {
 
   it('should update json and filter in response to stored filter updates', async () => {
     // Verify that everything is selected by default
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
     assert.isTrue((await driver.find('.fixture-all-values').getText()).includes('Apples, Bananas'));
     assert.isTrue((await driver.find('.fixture-displayed-values').getText()).includes('Apples, Bananas'));
 
     // Click on Apples, check that they get added to filter
     await driver.findContent('.fixture-stored-menu label', /Apples/).click();
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: ['Apples']}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: ['Apples'] }));
 
     // Check that array of values got filtered
     assert.isTrue((await driver.find('.fixture-all-values').getText()).includes('Apples'));
@@ -31,7 +31,7 @@ describe('ColumnFilterMenu', function() {
 
     // Click on Bananas, check that they get added to filterj
     await driver.findContent('.fixture-stored-menu label', /Bananas/).click();
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: ['Apples', 'Bananas']}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: ['Apples', 'Bananas'] }));
 
     // Check that array of values got filtered
     assert.isTrue((await driver.find('.fixture-all-values').getText()).includes('Bananas'));
@@ -40,14 +40,14 @@ describe('ColumnFilterMenu', function() {
     // Click both again, check that array of values includes them
     await driver.findContent('.fixture-stored-menu label', /Apples/).click();
     await driver.findContent('.fixture-stored-menu label', /Bananas/).click();
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
     assert.isTrue((await driver.find('.fixture-displayed-values').getText()).includes('Apples, Bananas'));
   });
 
   it('should have a working select all / none', async () => {
 
     // Check that everything is selected
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
     assert.equal(await driver.find('.fixture-all-values').getText(),
       await driver.find('.fixture-displayed-values').getText());
 
@@ -70,7 +70,7 @@ describe('ColumnFilterMenu', function() {
     await driver.findContent('.test-filter-menu-bulk-action', /All/).click();
 
     // Check that everything is back to being selected
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
 
     // Check that 'All' is disabled
     assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', e => e.getText()),
@@ -78,7 +78,7 @@ describe('ColumnFilterMenu', function() {
 
     // Click 'Select none', check that filter gets switched to inclusion
     await driver.findContent('.test-filter-menu-bulk-action', /None/).click();
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({included: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ included: [] }));
 
     // Check that only 'None' is disabled
     assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', e => e.getText()),
@@ -96,14 +96,14 @@ describe('ColumnFilterMenu', function() {
     );
 
     // Verify that it's the only value included
-    assert.deepEqual(await driver.find('.fixture-json').getText(), JSON.stringify({included: ['Apples']}));
+    assert.deepEqual(await driver.find('.fixture-json').getText(), JSON.stringify({ included: ['Apples'] }));
     assert.equal(await driver.find('.fixture-displayed-values').getText(), '[Apples]');
 
     // Select all, check values
     await driver.findContent('.test-filter-menu-bulk-action', /All/).click();
     assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', e => e.getText()),
       ['All']);
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
     assert.equal(await driver.find('.fixture-all-values').getText(),
       await driver.find('.fixture-displayed-values').getText());
   });
@@ -114,7 +114,7 @@ describe('ColumnFilterMenu', function() {
       true, 'Future Values not present');
 
     // Check all values are selected
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
 
     // Check `Future Values` is selected
     assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
@@ -125,7 +125,7 @@ describe('ColumnFilterMenu', function() {
 
     // Check the filter spec
     assert.equal(await driver.find('.fixture-json').getText(),
-      JSON.stringify({excluded: ['Apples']}), 'Spec not correct');
+      JSON.stringify({ excluded: ['Apples'] }), 'Spec not correct');
 
     // Uncheck the `Future Values` checkbox
     await driver.findContent('.test-filter-menu-summary', /Future values/).find('label').click();
@@ -143,7 +143,7 @@ describe('ColumnFilterMenu', function() {
     await driver.findContent('.test-filter-menu-summary', /Future values/).find('label').click();
 
     // Check the filter spec is now an inclusion filter with only 'Apple' in it
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: ['Apples']}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: ['Apples'] }));
 
     // Check `Future Values` is selected
     assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
@@ -152,7 +152,7 @@ describe('ColumnFilterMenu', function() {
 
   it('should update filter in response to filter menu', async () => {
     // Check that nothing is excluded
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
     const applesCheck = await driver.findContent('.fixture-stored-menu label', /Apples/).find('input');
     const bananasCheck = await driver.findContent('.fixture-stored-menu label', /Bananas/).find('input');
 
@@ -170,18 +170,18 @@ describe('ColumnFilterMenu', function() {
     // Check that Apples got deselected in the stored menu
     assert.isFalse(await driver.findContent('.grist-floating-menu label', /Apples/).find('input').isSelected());
     assert.isFalse(await applesCheck.isSelected());
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: ['Apples']}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: ['Apples'] }));
 
     // Close the menu
     await driver.find('.fixture-filter-menu-btn').click();
 
     // Check that the stored filter stayed unchanges
     assert.isFalse(await applesCheck.isSelected());
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: ['Apples']}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: ['Apples'] }));
 
     // Deselect Bananas in the stored menu
     await driver.findContent('.fixture-stored-menu label', /Bananas/).click();
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: ['Apples', 'Bananas']}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: ['Apples', 'Bananas'] }));
 
     // Open the menu and check that it matches the values
     await driver.find('.fixture-filter-menu-btn').click();
@@ -197,7 +197,7 @@ describe('ColumnFilterMenu', function() {
     assert.isTrue(await driver.findContent('.grist-floating-menu label', /Bananas/).find('input').isSelected());
     assert.isTrue(await applesCheck.isSelected());
     assert.isTrue(await bananasCheck.isSelected());
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
 
     // Click apply in the open menu
     await driver.find('.grist-floating-menu .test-filter-menu-apply-btn').click();
@@ -207,13 +207,13 @@ describe('ColumnFilterMenu', function() {
     // Verify that the stored filter is saved
     assert.isTrue(await applesCheck.isSelected());
     assert.isTrue(await bananasCheck.isSelected());
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
   });
 
   it('should reset filter to open state on cancel', async () => {
     // Check that nothing is excluded
     let applesCheck = await driver.findContent('.fixture-stored-menu label', /Apples/).find('input');
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
     assert.isTrue(await applesCheck.isSelected());
 
     // Open the filter menu
@@ -222,7 +222,7 @@ describe('ColumnFilterMenu', function() {
 
     // Deselect Apples, check that stored menu is updated
     await driver.findContent('.grist-floating-menu label', /Apples/).click();
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: ['Apples']}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: ['Apples'] }));
     assert.isFalse(await applesCheck.isSelected());
 
     // Click cancel, check that the menu closed
@@ -230,7 +230,7 @@ describe('ColumnFilterMenu', function() {
     await driver.wait(until.stalenessOf(openMenu));
 
     // Check that stored menu is back to initial state
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
     // Filter has been rebuilt, so need new reference to checkbox
     applesCheck = await driver.findContent('.fixture-stored-menu label', /Apples/).find('input');
     assert.isTrue(await applesCheck.isSelected());
@@ -242,12 +242,12 @@ describe('ColumnFilterMenu', function() {
 
     // Deselect Apples again
     await openMenu.findContent('label', /Apples/).click();
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: ['Apples']}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: ['Apples'] }));
 
     // Hit Escape, check that stored menu is back to initial state
     await driver.sendKeys(Key.ESCAPE);
     await driver.wait(until.stalenessOf(openMenu));
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
 
     // Select all
     await driver.find('.test-filter-menu-bulk-action').click();
@@ -255,7 +255,7 @@ describe('ColumnFilterMenu', function() {
 
   it('should filter items by search value', async () => {
     // Check that all items are displayed in the list
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
     assert.lengthOf(await driver.findAll('.test-filter-menu-list .test-filter-menu-value'), 17);
 
     // Enter 'App'
@@ -272,7 +272,7 @@ describe('ColumnFilterMenu', function() {
 
     // Deselect Apples, check that filter is updated
     await driver.findContent('.test-filter-menu-list label', /Apples/).click();
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: ['Apples']}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: ['Apples'] }));
   });
 
   it('should show the total count of all values that don\'t match the search term', async () => {
@@ -336,7 +336,7 @@ describe('ColumnFilterMenu', function() {
     await driver.sendKeys(Key.ESCAPE);
 
     // check only Apples and Knapples are selected
-    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({included: ['Apples', 'Knapples']}));
+    assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ included: ['Apples', 'Knapples'] }));
   });
 
   it('should select all others when checking `others`', async () => {

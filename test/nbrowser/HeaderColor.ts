@@ -18,9 +18,9 @@ describe('HeaderColor', function () {
     const revert = await gu.begin();
     await gu.toggleSidePanel('left', 'close');
     // Add summary table.
-    await gu.addNewSection('Table', 'Table1', {summarize: ['A']});
+    await gu.addNewSection('Table', 'Table1', { summarize: ['A'] });
     await gu.sendActions([
-      ['AddRecord', 'Table1', null, {A: 1}],
+      ['AddRecord', 'Table1', null, { A: 1 }],
     ]);
     await gu.toggleSidePanel('right', 'open');
     const testStyle = async () => {

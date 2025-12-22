@@ -2,9 +2,9 @@
  * createSessionObs() creates an observable tied to window.sessionStorage, i.e. preserved for the
  * lifetime of a browser tab for the current origin.
  */
-import {safeJsonParse} from 'app/common/gutil';
-import {IDisposableOwner, Observable} from 'grainjs';
-import {getSessionStorage} from 'app/client/lib/storage';
+import { safeJsonParse } from 'app/common/gutil';
+import { IDisposableOwner, Observable } from 'grainjs';
+import { getSessionStorage } from 'app/client/lib/storage';
 
 export interface SessionObs<T> extends Observable<T> {
   pauseSaving(yesNo: boolean): void;
@@ -58,7 +58,7 @@ export function createSessionObs<T>(
       storage.setItem(key, stored);
     }
   });
-  return Object.assign(obs, {pauseSaving(yesNo: boolean) { _pauseSaving = yesNo; }});
+  return Object.assign(obs, { pauseSaving(yesNo: boolean) { _pauseSaving = yesNo; } });
 }
 
 /** Helper functions to check simple types, useful for the `isValid` argument to createSessionObs. */

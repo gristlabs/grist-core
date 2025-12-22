@@ -2,7 +2,7 @@ import {UserAPI} from 'app/common/UserAPI';
 import {assert, driver, Key} from 'mocha-webdriver';
 import {startEditingAccessRules} from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('DropdownConditionEditor', function () {
   this.timeout(20000);
@@ -14,9 +14,9 @@ describe('DropdownConditionEditor', function () {
     const session = await gu.session().user('user1').login();
     api = session.createHomeApi();
     docId = (await session.tempDoc(cleanup, 'DropdownCondition.grist')).id;
-    await api.updateDocPermissions(docId, {users: {
+    await api.updateDocPermissions(docId, { users: {
       [gu.translateUser('user2').email]: 'editors',
-    }});
+    } });
     await addUserAttributes();
     await gu.openPage('Employees');
     await gu.openColumnPanel();
@@ -26,9 +26,9 @@ describe('DropdownConditionEditor', function () {
 
   async function addUserAttributes() {
     await api.applyUserActions(docId, [
-      ['AddTable', 'Roles', [{id: 'Email'}, {id: 'Admin', type: 'Bool'}]],
-      ['AddRecord', 'Roles', null, {Email: gu.translateUser('user1').email, Admin: true}],
-      ['AddRecord', 'Roles', null, {Email: gu.translateUser('user2').email, Admin: false}],
+      ['AddTable', 'Roles', [{ id: 'Email' }, { id: 'Admin', type: 'Bool' }]],
+      ['AddRecord', 'Roles', null, { Email: gu.translateUser('user1').email, Admin: true }],
+      ['AddRecord', 'Roles', null, { Email: gu.translateUser('user2').email, Admin: false }],
     ]);
     await startEditingAccessRules();
     await driver.findContentWait('button', /Add user attributes/, 2000).click();
@@ -108,7 +108,7 @@ describe('DropdownConditionEditor', function () {
       await gu.sendKeys(Key.ESCAPE);
 
       // Change the column type to Choice List and check values are still filtered.
-      await gu.setType('Choice List', {apply: true});
+      await gu.setType('Choice List', { apply: true });
       assert.equal(
         await driver.find('.test-field-dropdown-condition').getText(),
         'choice not in $Role',
@@ -135,7 +135,7 @@ describe('DropdownConditionEditor', function () {
       await gu.sendKeys(Key.ESCAPE);
 
       // Change the column type back to Choice and check values are still no longer filtered.
-      await gu.setType('Choice', {apply: true});
+      await gu.setType('Choice', { apply: true });
       assert.isFalse(await driver.find('.test-field-dropdown-condition').isPresent());
       await gu.sendKeys(Key.ENTER);
       assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
@@ -247,7 +247,7 @@ describe('DropdownConditionEditor', function () {
       await gu.sendKeys(Key.ESCAPE);
 
       // Change the column type to Reference List and check values are still filtered.
-      await gu.setType('Reference List', {apply: true});
+      await gu.setType('Reference List', { apply: true });
       assert.equal(
         await driver.find('.test-field-dropdown-condition .ace_line').getAttribute('textContent'),
         'choice.Role == "Supervisor" and $Role != "Supervisor" and $id != 2\n',
@@ -275,7 +275,7 @@ describe('DropdownConditionEditor', function () {
       await gu.sendKeys(Key.ESCAPE);
 
       // Change the column type back to Reference and check values are still no longer filtered.
-      await gu.setType('Reference', {apply: true});
+      await gu.setType('Reference', { apply: true });
       assert.isFalse(await driver.find('.test-field-dropdown-condition').isPresent());
       await gu.sendKeys(Key.ENTER);
       assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [

@@ -1,9 +1,9 @@
-import {OpenDocMode} from 'app/common/DocListAPI';
+import { OpenDocMode } from 'app/common/DocListAPI';
 // import {Document} from 'app/gen-server/entity/Document';
-import {DocAuthKey, DocAuthResult, HomeDBDocAuth} from 'app/gen-server/lib/homedb/Interfaces';
-import {assertAccess} from 'app/server/lib/Authorizer';
-import {AuthSession} from 'app/server/lib/AuthSession';
-import {Role} from 'app/common/roles';
+import { DocAuthKey, DocAuthResult, HomeDBDocAuth } from 'app/gen-server/lib/homedb/Interfaces';
+import { assertAccess } from 'app/server/lib/Authorizer';
+import { AuthSession } from 'app/server/lib/AuthSession';
+import { Role } from 'app/common/roles';
 
 /**
  *
@@ -42,9 +42,9 @@ export class DocAuthorizerImpl implements DocAuthorizer {
     private _options: DocAuthorizerOptions,
   ) {
     this.openMode = _options.openMode;
-    const {dbManager, authSession} = _options;
+    const { dbManager, authSession } = _options;
     const userId = authSession.userId || dbManager.getAnonymousUserId();
-    this._key = {urlId: _options.urlId, userId, org: authSession.org || ""};
+    this._key = { urlId: _options.urlId, userId, org: authSession.org || "" };
   }
 
   public getAuthKey(): DocAuthKey {
@@ -54,7 +54,7 @@ export class DocAuthorizerImpl implements DocAuthorizer {
   public async assertAccess(role: 'viewers'|'editors'|'owners'): Promise<void> {
     const docAuth = await this._options.dbManager.getDocAuthCached(this._key);
     this._docAuth = docAuth;
-    assertAccess(role, docAuth, {openMode: this.openMode});
+    assertAccess(role, docAuth, { openMode: this.openMode });
   }
 
   public getCachedAuth(): DocAuthResult {

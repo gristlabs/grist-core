@@ -1,7 +1,7 @@
-import {DocAction, getTableId} from 'app/common/DocActions';
-import {DocData} from 'app/common/DocData';
-import {isMetadataTable} from 'app/common/isHiddenTable';
-import {SchemaTypes} from 'app/common/schema';
+import { DocAction, getTableId } from 'app/common/DocActions';
+import { DocData } from 'app/common/DocData';
+import { isMetadataTable } from 'app/common/isHiddenTable';
+import { SchemaTypes } from 'app/common/schema';
 
 export interface DocActionsDescription {
   userTableNames: string[];
@@ -48,7 +48,7 @@ export function describeDocActions(docActions: DocAction[], docData: DocData): D
     }
   }
   if (userTableNameSet.size === 0 && categorySet.size === 0) { return null; }
-  return {userTableNames: [...userTableNameSet], categories: [...categorySet]};
+  return { userTableNames: [...userTableNameSet], categories: [...categorySet] };
 }
 
 /**
@@ -61,7 +61,7 @@ export function sortDocActionCategories(categories: Set<DocActionCategory>): Doc
 // A sentinel value for tables that shouldn't get reported.
 const IGNORE = Symbol("ignore");
 
-const categoryMap: {[tableId in keyof SchemaTypes]: DocActionCategory|typeof IGNORE|null} = {
+const categoryMap: { [tableId in keyof SchemaTypes]: DocActionCategory|typeof IGNORE|null } = {
   _grist_DocInfo: "settings",
   _grist_Tables: "structure",
   _grist_Tables_column: "structure",

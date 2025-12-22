@@ -171,7 +171,7 @@ describe(`GristSockets`, function () {
         // Restart servers with a failing verifyClient method.
         await stopProxyServer();
         await stopSocketServer();
-        await startSocketServer({verifyClient: () => { throw new Error("Test error from verifyClient"); }});
+        await startSocketServer({ verifyClient: () => { throw new Error("Test error from verifyClient"); } });
         await startProxyServer();
 
         // Check whether we are getting an unhandledRejection.

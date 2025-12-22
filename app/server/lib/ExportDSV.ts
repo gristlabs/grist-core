@@ -1,12 +1,12 @@
-import {ApiError} from 'app/common/ApiError';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {FilterColValues} from "app/common/ActiveDocAPI";
-import {DownloadOptions, ExportData, ExportHeader, exportSection, exportTable, Filter} from 'app/server/lib/Export';
+import { ApiError } from 'app/common/ApiError';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { FilterColValues } from "app/common/ActiveDocAPI";
+import { DownloadOptions, ExportData, ExportHeader, exportSection, exportTable, Filter } from 'app/server/lib/Export';
 import log from 'app/server/lib/log';
 import contentDisposition from 'content-disposition';
-import {stringify} from 'csv';
+import { stringify } from 'csv';
 import * as express from 'express';
-import {promisify} from 'util';
+import { promisify } from 'util';
 
 const stringifyAsync = promisify(stringify);
 
@@ -26,7 +26,7 @@ export async function downloadDSV(
   res: express.Response,
   options: DownloadDsvOptions,
 ) {
-  const {filename, tableId, viewSectionId, filters, sortOrder, linkingFilter, delimiter, header} = options;
+  const { filename, tableId, viewSectionId, filters, sortOrder, linkingFilter, delimiter, header } = options;
   const extension = getDSVFileExtension(delimiter);
   log.info(`Generating ${extension} file...`);
   const data = viewSectionId ?
@@ -34,7 +34,7 @@ export async function downloadDSV(
       activeDoc, viewSectionId, sortOrder: sortOrder || null, filters: filters || null,
       linkingFilter: linkingFilter || null, header, delimiter, req,
     }) :
-    await makeDSVFromTable({activeDoc, tableId, header, delimiter, req});
+    await makeDSVFromTable({ activeDoc, tableId, header, delimiter, req });
   res.set('Content-Type', getDSVMimeType(delimiter));
   res.setHeader('Content-Disposition', contentDisposition(filename + extension));
   res.send(data);
@@ -125,8 +125,8 @@ interface ConvertToDsvOptions {
 }
 
 function convertToDsv(data: ExportData, options: ConvertToDsvOptions) {
-  const {rowIds, access, columns: viewColumns} = data;
-  const {delimiter, header} = options;
+  const { rowIds, access, columns: viewColumns } = data;
+  const { delimiter, header } = options;
   // create formatters for columns
   const formatters = viewColumns.map(col => col.formatter);
   // Arrange the data into a row-indexed matrix, starting with column headers.
@@ -136,7 +136,7 @@ function convertToDsv(data: ExportData, options: ConvertToDsvOptions) {
   rowIds.forEach((row) => {
     csvMatrix.push(access.map((getter, c) => formatters[c].formatAny(getter(row))));
   });
-  return stringifyAsync(csvMatrix, {delimiter});
+  return stringifyAsync(csvMatrix, { delimiter });
 }
 
 type DSVFileExtension = '.csv' | '.tsv' | '.dsv';

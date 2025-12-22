@@ -4,43 +4,43 @@
  * but on Cancel the model is reset to its initial state prior to menu closing.
  */
 import * as commands from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {kbFocusHighlighterClass} from 'app/client/components/KeyboardFocusHighlighter';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {stripLinks} from 'app/client/lib/markdown';
-import {ColumnFilter, NEW_FILTER_JSON} from 'app/client/models/ColumnFilter';
-import {ColumnFilterMenuModel, IFilterCount} from 'app/client/models/ColumnFilterMenuModel';
-import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
-import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
-import {RowSource} from 'app/client/models/rowset';
-import {ColumnFilterFunc, SectionFilter} from 'app/client/models/SectionFilter';
-import {TableData} from 'app/client/models/TableData';
-import {ColumnFilterCalendarView} from 'app/client/ui/ColumnFilterCalendarView';
-import {relativeDatesControl} from 'app/client/ui/ColumnFilterMenuUtils';
-import {cssInput} from 'app/client/ui/cssInput';
-import {getDateRangeOptions, IDateRangeOption} from 'app/client/ui/DateRangeOptions';
-import {cssPinButton} from 'app/client/ui/RightPanelStyles';
-import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
-import {cssLabel as cssCheckboxLabel, cssCheckboxSquare,
-  cssLabelText, Indeterminate, labeledTriStateSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {cssOptionRowIcon, menu, menuCssClass, menuDivider, menuItem} from 'app/client/ui2018/menus';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {cssDeleteButton, cssDeleteIcon, cssToken as cssTokenTokenBase} from 'app/client/widgets/ChoiceListEditor';
-import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
-import {choiceToken} from 'app/client/widgets/ChoiceToken';
-import {CellValue} from 'app/common/DocActions';
-import {IRelativeDateSpec, isEquivalentFilter, isRelativeBound} from 'app/common/FilterState';
-import {extractTypeFromColType, isDateLikeType, isList, isNumberType, isRefListType} from 'app/common/gristTypes';
-import {formatRelBounds} from 'app/common/RelativeDates';
-import {createFormatter} from 'app/common/ValueFormatter';
-import {UIRowId} from 'app/plugin/GristAPI';
-import {decodeObject} from 'app/plugin/objtypes';
-import {Computed, dom, DomArg, DomElementArg, DomElementMethod, IDisposableOwner,
-  input, makeTestId, Observable, styled} from 'grainjs';
-import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { kbFocusHighlighterClass } from 'app/client/components/KeyboardFocusHighlighter';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { makeT } from 'app/client/lib/localization';
+import { stripLinks } from 'app/client/lib/markdown';
+import { ColumnFilter, NEW_FILTER_JSON } from 'app/client/models/ColumnFilter';
+import { ColumnFilterMenuModel, IFilterCount } from 'app/client/models/ColumnFilterMenuModel';
+import { ColumnRec, ViewFieldRec } from 'app/client/models/DocModel';
+import { FilterInfo } from 'app/client/models/entities/ViewSectionRec';
+import { RowSource } from 'app/client/models/rowset';
+import { ColumnFilterFunc, SectionFilter } from 'app/client/models/SectionFilter';
+import { TableData } from 'app/client/models/TableData';
+import { ColumnFilterCalendarView } from 'app/client/ui/ColumnFilterCalendarView';
+import { relativeDatesControl } from 'app/client/ui/ColumnFilterMenuUtils';
+import { cssInput } from 'app/client/ui/cssInput';
+import { getDateRangeOptions, IDateRangeOption } from 'app/client/ui/DateRangeOptions';
+import { cssPinButton } from 'app/client/ui/RightPanelStyles';
+import { basicButton, primaryButton, textButton } from 'app/client/ui2018/buttons';
+import { cssLabel as cssCheckboxLabel, cssCheckboxSquare,
+  cssLabelText, Indeterminate, labeledTriStateSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { cssOptionRowIcon, menu, menuCssClass, menuDivider, menuItem } from 'app/client/ui2018/menus';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
+import { cssDeleteButton, cssDeleteIcon, cssToken as cssTokenTokenBase } from 'app/client/widgets/ChoiceListEditor';
+import { ChoiceOptions } from 'app/client/widgets/ChoiceTextBox';
+import { choiceToken } from 'app/client/widgets/ChoiceToken';
+import { CellValue } from 'app/common/DocActions';
+import { IRelativeDateSpec, isEquivalentFilter, isRelativeBound } from 'app/common/FilterState';
+import { extractTypeFromColType, isDateLikeType, isList, isNumberType, isRefListType } from 'app/common/gristTypes';
+import { formatRelBounds } from 'app/common/RelativeDates';
+import { createFormatter } from 'app/common/ValueFormatter';
+import { UIRowId } from 'app/plugin/GristAPI';
+import { decodeObject } from 'app/plugin/objtypes';
+import { Computed, dom, DomArg, DomElementArg, DomElementMethod, IDisposableOwner,
+  input, makeTestId, Observable, styled } from 'grainjs';
+import { IOpenController, IPopupOptions, setPopupToCreateDom } from 'popweasel';
 import concat from 'lodash/concat';
 import identity from 'lodash/identity';
 import noop from 'lodash/noop';
@@ -90,7 +90,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
     }
   }));
 
-  const {searchValue: searchValueObs, filteredValues, filteredKeys, isSortedByCount} = model;
+  const { searchValue: searchValueObs, filteredValues, filteredKeys, isSortedByCount } = model;
 
   const isAboveLimitObs = Computed.create(owner, use => use(model.valuesBeyondLimit).length > 0);
   const isSearchingObs = Computed.create(owner, use => Boolean(use(searchValueObs)));
@@ -114,7 +114,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
 
     // Makes sure focus goes back to menu container and disable grist keyboard shortcut while open.
     (elem) => {
-      FocusLayer.create(owner, {defaultFocusElem: elem, pauseMousetrap: true});
+      FocusLayer.create(owner, { defaultFocusElem: elem, pauseMousetrap: true });
 
       // Gives focus to the searchInput on open (or to the min input if the range filter is
       // present). Note that this must happen after the instanciation of FocusLayer in order to
@@ -154,7 +154,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             nextSelected: () => selectedBoundObs.set('max'),
           },
           testId('min'),
-          dom.onKeyDown({Tab: e => e.shiftKey || selectedBoundObs.set('max')}),
+          dom.onKeyDown({ Tab: e => e.shiftKey || selectedBoundObs.set('max') }),
         ),
         rangeInput(
           columnFilter.max, {
@@ -166,14 +166,14 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             viewTypeObs,
           },
           testId('max'),
-          dom.onKeyDown({Tab: e => e.shiftKey ? selectedBoundObs.set('min') : selectedBoundObs.set('max')}),
+          dom.onKeyDown({ Tab: e => e.shiftKey ? selectedBoundObs.set('min') : selectedBoundObs.set('max') }),
         ),
       ),
 
       // presets links
       dom.maybe(isDateFilter, () => {
         function action(option: IDateRangeOption) {
-          const {min, max} = option;
+          const { min, max } = option;
           columnFilter.min.set(min);
           columnFilter.max.set(max);
           // open the calendar view
@@ -194,7 +194,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               'More ', icon('Dropdown'),
               menu(() => getDateRangeOptions().map(
                 option => menuItem(() => action(option), option.label),
-              ), {attach: '.' + cssMenu.className}),
+              ), { attach: '.' + cssMenu.className }),
             ),
           ),
         ];
@@ -229,7 +229,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           dom.onKeyDown({
             Enter: () => {
               if (searchValueObs.get()) {
-                columnFilter.setState({included: filteredKeys.get()});
+                columnFilter.setState({ included: filteredKeys.get() });
               }
             },
             Escape$: (ev) => {
@@ -243,7 +243,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
         ),
         dom.maybe(searchValueObs, () => cssCloseIcon(
           icon('CrossSmall'),
-          {'aria-label': t('Clear search')},
+          { 'aria-label': t('Clear search') },
           testId('search-close'),
           dom.on('click', () => {
             searchValueObs.set('');
@@ -266,8 +266,8 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           // This is necessary to avoid a known bug in grainjs where filteredKeys does not get
           // recalculated.
           use(filteredKeys);
-          const allSpec = searchValue ? {included: use(filteredKeys)} : {excluded: []};
-          const noneSpec = searchValue ? {excluded: use(filteredKeys)} : {included: []};
+          const allSpec = searchValue ? { included: use(filteredKeys) } : { excluded: [] };
+          const noneSpec = searchValue ? { excluded: use(filteredKeys) } : { included: [] };
           const state = use(columnFilter.state);
           return [
             cssSelectAll(
@@ -301,7 +301,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           cssMenuItem(
             cssLabel(
               cssCheckboxSquare(
-                {type: 'checkbox'},
+                { type: 'checkbox' },
                 dom.on('change', (_ev, elem) => {
                   if (elem.checked) {
                     columnFilter.add(key);
@@ -517,7 +517,7 @@ function numericInput(obs: Observable<number|undefined|IRelativeDateSpec>,
   }, 100);
   // TODO: could be nice to have the cursor positioned at the end of the input
   return inputEl = cssRangeInput(
-    {inputmode: 'numeric', placeholder, value: formatValue(obs.get())},
+    { inputmode: 'numeric', placeholder, value: formatValue(obs.get()) },
     dom.on('input', onInput),
     dom.on('blur', onBlur),
     // keep input content in sync only when no edit are going on.
@@ -571,9 +571,9 @@ function buildSummary(label: string|Computed<string>, values: Array<[CellValue, 
     (_use, isInclusionFilter) => {
 
       // let's gather all sub options.
-      const subOptions = values.map(val => ({getState: () => columnFilter.includes(val[0])}));
+      const subOptions = values.map(val => ({ getState: () => columnFilter.includes(val[0]) }));
       if (switchFilterType) {
-        subOptions.push({getState: () => !isInclusionFilter});
+        subOptions.push({ getState: () => !isInclusionFilter });
       }
 
       // At this point if sub options is still empty let's just return false (unchecked).
@@ -594,8 +594,8 @@ function buildSummary(label: string|Computed<string>, values: Array<[CellValue, 
       // between exclusive and inclusive. Doing this will automatically excludes/includes all
       // other values, so no need for extra steps.
       const state = val ?
-        {excluded: model.filteredKeys.get().filter(key => !columnFilter.includes(key))} :
-        {included: model.filteredKeys.get().filter(key => columnFilter.includes(key))};
+        { excluded: model.filteredKeys.get().filter(key => !columnFilter.includes(key)) } :
+        { included: model.filteredKeys.get().filter(key => columnFilter.includes(key)) };
       columnFilter.setState(state);
 
     }
@@ -647,7 +647,7 @@ function getEmptyCountMap(fieldOrColumn: ViewFieldRec|ColumnRec): Map<CellValue,
     const options = fieldOrColumn.origCol().widgetOptionsJson;
     values = options.prop('choices')() ?? [];
   }
-  return new Map(values.map(v => [v, {label: String(v), count: 0, displayValue: v}]));
+  return new Map(values.map(v => [v, { label: String(v), count: 0, displayValue: v }]));
 }
 
 export interface IColumnFilterMenuOptions {
@@ -682,10 +682,10 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
   } = params;
 
   // Go through all of our shown and hidden rows, and count them up by the values in this column.
-  const {fieldOrColumn, filter, isPinned} = filterInfo;
+  const { fieldOrColumn, filter, isPinned } = filterInfo;
   const columnType = fieldOrColumn.origCol.peek().type.peek();
   const visibleColumnType = fieldOrColumn.visibleColModel.peek()?.type.peek() || columnType;
-  const {keyMapFunc, labelMapFunc, valueMapFunc} = getMapFuncs(columnType, tableData, fieldOrColumn);
+  const { keyMapFunc, labelMapFunc, valueMapFunc } = getMapFuncs(columnType, tableData, fieldOrColumn);
 
   // range input options
   const valueParser = (fieldOrColumn as any).createValueParser?.();
@@ -693,7 +693,7 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
 
   // Show only the date part of the datetime format in range picker.
   if (extractTypeFromColType(colFormatter.type) === 'DateTime') {
-    const {docSettings} = colFormatter;
+    const { docSettings } = colFormatter;
     const widgetOpts = fieldOrColumn.origCol.peek().widgetOptionsJson();
     colFormatter = createFormatter('Date', widgetOpts, docSettings);
   }
@@ -713,10 +713,10 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
 
   const [allRows, hiddenRows] = partition(Array.from(rowSource.getAllRows()), filterFunc.get());
   const valueCounts = getEmptyCountMap(fieldOrColumn);
-  addCountsToMap(valueCounts, allRows, {keyMapFunc, labelMapFunc, columnType,
-    valueMapFunc});
-  addCountsToMap(valueCounts, hiddenRows, {keyMapFunc, labelMapFunc, columnType,
-    areHiddenRows: true, valueMapFunc});
+  addCountsToMap(valueCounts, allRows, { keyMapFunc, labelMapFunc, columnType,
+    valueMapFunc });
+  addCountsToMap(valueCounts, hiddenRows, { keyMapFunc, labelMapFunc, columnType,
+    areHiddenRows: true, valueMapFunc });
 
   const valueCountsArr = Array.from(valueCounts);
   const columnFilter = ColumnFilter.create(openCtl, filter.peek(), columnType, visibleColumnType,
@@ -735,10 +735,10 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
     onClose: () => { openCtl.close(); onClose(); },
     doSave: () => {
       const spec = columnFilter.makeFilterJson();
-      const {viewSection} = sectionFilter;
+      const { viewSection } = sectionFilter;
       viewSection.setFilter(
         fieldOrColumn.origCol().origColRef(),
-        {filter: spec},
+        { filter: spec },
       );
 
       // Check if the save was for a new filter, and if that new filter was pinned. If it was, and
@@ -750,7 +750,7 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
       }
     },
     doCancel: () => {
-      const {viewSection} = sectionFilter;
+      const { viewSection } = sectionFilter;
       if (columnFilter.initialFilterJson === NEW_FILTER_JSON) {
         viewSection.revertFilter(fieldOrColumn.origCol().origColRef());
       }
@@ -759,7 +759,7 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
         columnFilter.setState(initialFilter);
         viewSection.setFilter(
           fieldOrColumn.origCol().origColRef(),
-          {filter: initialFilter, pinned: model.initialPinned},
+          { filter: initialFilter, pinned: model.initialPinned },
         );
       }
     },
@@ -805,7 +805,7 @@ function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: Vi
     const cleaned = isMarkdown ? stripLinks : identity<string>;
     labelMapFunc = (rowId: number) => cleaned(formatter.formatAny(labelGetter(rowId)));
   }
-  return {keyMapFunc, labelMapFunc, valueMapFunc};
+  return { keyMapFunc, labelMapFunc, valueMapFunc };
 }
 
 /**
@@ -943,8 +943,8 @@ export function attachColumnFilterMenu(
   filterInfo: FilterInfo,
   options: IAttachColumnFilterMenuOptions = {},
 ): DomElementMethod {
-  const {popupOptions, ...filterMenuOptions} = options;
-  const popupOptionsWithDefaults = {...defaultPopupOptions, ...popupOptions};
+  const { popupOptions, ...filterMenuOptions } = options;
+  const popupOptionsWithDefaults = { ...defaultPopupOptions, ...popupOptions };
   return (elem) => {
     const instance = filterInfo.viewSection.viewInstance();
     if (instance && instance.createFilterMenu) { // Should be set if using BaseView

@@ -5,20 +5,20 @@
  * to be pre-entered for certain transforms (to Reference / Date) which the user can modify via dropdown menus.
  */
 
-import {ColumnTransform} from 'app/client/components/ColumnTransform';
-import {GristDoc} from 'app/client/components/GristDoc';
+import { ColumnTransform } from 'app/client/components/ColumnTransform';
+import { GristDoc } from 'app/client/components/GristDoc';
 import * as TypeConversion from 'app/client/components/TypeConversion';
-import {reportError} from 'app/client/models/errors';
-import {cssButtonRow} from 'app/client/ui/RightPanelStyles';
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {testId} from 'app/client/ui2018/cssVars';
-import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
-import {ColumnRec} from 'app/client/models/DocModel';
-import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
-import {UserAction} from 'app/common/DocActions';
-import {Computed, dom, fromKo, Observable} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
-import {WidgetType} from 'app/common/widgetTypes';
+import { reportError } from 'app/client/models/errors';
+import { cssButtonRow } from 'app/client/ui/RightPanelStyles';
+import { basicButton, primaryButton } from 'app/client/ui2018/buttons';
+import { testId } from 'app/client/ui2018/cssVars';
+import { FieldBuilder } from 'app/client/widgets/FieldBuilder';
+import { ColumnRec } from 'app/client/models/DocModel';
+import { NewAbstractWidget } from 'app/client/widgets/NewAbstractWidget';
+import { UserAction } from 'app/common/DocActions';
+import { Computed, dom, fromKo, Observable } from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { WidgetType } from 'app/common/widgetTypes';
 
 const t = makeT('TypeTransform');
 
@@ -108,8 +108,8 @@ export class TypeTransform extends ColumnTransform {
   protected async addTransformColumn(toType: string) {
     const docModel = this.gristDoc.docModel;
     const newColInfos = await this._tableData.sendTableActions([
-      ['AddColumn', 'gristHelper_Converted', {type: 'Any'}],
-      ['AddColumn', 'gristHelper_Transform', {type: 'Any'}],
+      ['AddColumn', 'gristHelper_Converted', { type: 'Any' }],
+      ['AddColumn', 'gristHelper_Transform', { type: 'Any' }],
     ]);
     const gristHelper_ConvertedRef = newColInfos[0].colRef;
     const gristHelper_TransformRef = newColInfos[1].colRef;
@@ -126,7 +126,7 @@ export class TypeTransform extends ColumnTransform {
     const rules = colInfo.rules;
     delete (colInfo as any).rules;
     await this._tableData.sendTableActions([
-      ['ModifyColumn', this._convertColumn.colId.peek(), {...colInfo, isFormula: false, formula: ''}],
+      ['ModifyColumn', this._convertColumn.colId.peek(), { ...colInfo, isFormula: false, formula: '' }],
       ['ModifyColumn', this.transformColumn.colId.peek(), colInfo],
     ]);
     if (rules) {

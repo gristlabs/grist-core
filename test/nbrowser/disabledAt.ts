@@ -1,14 +1,14 @@
-import {UserAPI} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { UserAPI } from 'app/common/UserAPI';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {EnvironmentSnapshot} from 'test/server/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { EnvironmentSnapshot } from 'test/server/testUtils';
 
 describe('disabledAt', function() {
   this.timeout(60000);
 
   let oldEnv: EnvironmentSnapshot;
-  const cleanup = setupTestSuite({team: true});
+  const cleanup = setupTestSuite({ team: true });
 
   let ownerSession: gu.Session;
   let adminSession: gu.Session;

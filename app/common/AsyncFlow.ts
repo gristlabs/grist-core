@@ -30,7 +30,7 @@
  *
  * To replace one FlowRunner with another, put it in a grainjs Holder.
  */
-import {Disposable, IDisposable} from 'grainjs';
+import { Disposable, IDisposable } from 'grainjs';
 
 type DisposeListener = ReturnType<Disposable["onDispose"]>;
 

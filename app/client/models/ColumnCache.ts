@@ -1,10 +1,10 @@
 /**
  * Implements a cache of values computed from the data in a Grist column.
  */
-import {TableData} from 'app/client/models/TableData';
-import {DocAction} from 'app/common/DocActions';
-import {isBulkUpdateRecord, isUpdateRecord} from 'app/common/DocActions';
-import {getSetMapValue} from 'app/common/gutil';
+import { TableData } from 'app/client/models/TableData';
+import { DocAction } from 'app/common/DocActions';
+import { isBulkUpdateRecord, isUpdateRecord } from 'app/common/DocActions';
+import { getSetMapValue } from 'app/common/gutil';
 
 export class ColumnCache<T> {
   private _cachedColIndexes = new Map<string, T>();

@@ -1,11 +1,11 @@
-import {prepareDatabase} from 'test/server/lib/helpers/PrepareDatabase';
-import {TestServer} from 'test/server/lib/helpers/TestServer';
-import {createTestDir, setTmpLogLevel} from 'test/server/testUtils';
+import { prepareDatabase } from 'test/server/lib/helpers/PrepareDatabase';
+import { TestServer } from 'test/server/lib/helpers/TestServer';
+import { createTestDir, setTmpLogLevel } from 'test/server/testUtils';
 import * as testUtils from 'test/server/testUtils';
-import {waitForIt} from 'test/server/wait';
-import {assert} from 'chai';
+import { waitForIt } from 'test/server/wait';
+import { assert } from 'chai';
 import fetch from 'node-fetch';
-import {PassThrough} from 'stream';
+import { PassThrough } from 'stream';
 
 /**
  * Grist sticks to the Node 18 default and recommendation to give up and exit on uncaught
@@ -37,7 +37,7 @@ describe('UnhandledErrors', function() {
       const serverLogLines: string[] = [];
       output.on('data', data => serverLogLines.push(data.toString()));
 
-      const server = await TestServer.startServer('home', testDir, errType, undefined, undefined, {output});
+      const server = await TestServer.startServer('home', testDir, errType, undefined, undefined, { output });
 
       try {
         assert.equal((await fetch(`${server.serverUrl}/status`)).status, 200);

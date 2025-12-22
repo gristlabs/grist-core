@@ -1,31 +1,31 @@
 import BaseView from 'app/client/components/BaseView';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {consolidateValues, formatPercent, sortByXValues, splitValuesByIndex,
-  uniqXValues} from 'app/client/lib/chartUtil';
-import {Delay} from 'app/client/lib/Delay';
-import {fromKoSave} from 'app/client/lib/fromKoSave';
-import {loadPlotly, PlotlyType} from 'app/client/lib/imports';
-import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {reportError} from 'app/client/models/errors';
-import {KoSaveableObservable, ObjObservable, setSaveValue} from 'app/client/models/modelUtil';
-import {ChartOptions, ViewSectionOptions} from 'app/client/models/entities/ViewSectionRec';
-import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {cssGroupLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
-import {cssFieldEntry, cssFieldLabel, IField, VisibleFieldsConfig } from 'app/client/ui/VisibleFieldsConfig';
-import {IconName} from 'app/client/ui2018/IconList';
-import {squareCheckbox} from 'app/client/ui2018/checkbox';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {gristThemeObs} from 'app/client/ui2018/theme';
-import {cssDragger} from 'app/client/ui2018/draggableList';
-import {icon} from 'app/client/ui2018/icons';
-import {IOptionFull, linkSelect, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {nativeCompare, unwrap} from 'app/common/gutil';
-import {Sort} from 'app/common/SortSpec';
-import {BaseFormatter} from 'app/common/ValueFormatter';
-import {decodeObject} from 'app/plugin/objtypes';
-import {Computed, dom, DomContents, DomElementArg, fromKo, Disposable as GrainJSDisposable,
-  IDisposable, IOption, makeTestId, Observable, styled, UseCB} from 'grainjs';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { consolidateValues, formatPercent, sortByXValues, splitValuesByIndex,
+  uniqXValues } from 'app/client/lib/chartUtil';
+import { Delay } from 'app/client/lib/Delay';
+import { fromKoSave } from 'app/client/lib/fromKoSave';
+import { loadPlotly, PlotlyType } from 'app/client/lib/imports';
+import { ColumnRec, ViewFieldRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { reportError } from 'app/client/models/errors';
+import { KoSaveableObservable, ObjObservable, setSaveValue } from 'app/client/models/modelUtil';
+import { ChartOptions, ViewSectionOptions } from 'app/client/models/entities/ViewSectionRec';
+import { IPageWidget, toPageWidget } from 'app/client/ui/PageWidgetPicker';
+import { cssGroupLabel, cssRow, cssSeparator } from 'app/client/ui/RightPanelStyles';
+import { cssFieldEntry, cssFieldLabel, IField, VisibleFieldsConfig } from 'app/client/ui/VisibleFieldsConfig';
+import { IconName } from 'app/client/ui2018/IconList';
+import { squareCheckbox } from 'app/client/ui2018/checkbox';
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { gristThemeObs } from 'app/client/ui2018/theme';
+import { cssDragger } from 'app/client/ui2018/draggableList';
+import { icon } from 'app/client/ui2018/icons';
+import { IOptionFull, linkSelect, menu, menuItem, menuText, select } from 'app/client/ui2018/menus';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
+import { nativeCompare, unwrap } from 'app/common/gutil';
+import { Sort } from 'app/common/SortSpec';
+import { BaseFormatter } from 'app/common/ValueFormatter';
+import { decodeObject } from 'app/plugin/objtypes';
+import { Computed, dom, DomContents, DomElementArg, fromKo, Disposable as GrainJSDisposable,
+  IDisposable, IOption, makeTestId, Observable, styled, UseCB } from 'grainjs';
 import * as ko from 'knockout';
 import clamp from 'lodash/clamp';
 import debounce from 'lodash/debounce';
@@ -34,9 +34,9 @@ import isNumber from 'lodash/isNumber';
 import merge from 'lodash/merge';
 import sum from 'lodash/sum';
 import union from 'lodash/union';
-import type {Annotations, Config, Datum, ErrorBar, Layout, LayoutAxis, Margin,
-  PlotData as PlotlyPlotData} from 'plotly.js';
-import {makeT} from 'app/client/lib/localization';
+import type { Annotations, Config, Datum, ErrorBar, Layout, LayoutAxis, Margin,
+  PlotData as PlotlyPlotData } from 'plotly.js';
+import { makeT } from 'app/client/lib/localization';
 
 let Plotly: PlotlyType;
 
@@ -266,7 +266,7 @@ export class ChartView extends BaseView {
 
     const dataOptions: DataOptions = {};
     const options: ChartOptions = this._options.peek() || {};
-    let plotData: PlotData = {data: []};
+    let plotData: PlotData = { data: [] };
 
     if (isPieLike(this._chartType.peek())) {
 
@@ -317,7 +317,7 @@ export class ChartView extends BaseView {
     if (this.isDisposed()) { return; }
 
     const layout: Partial<Layout> = defaultsDeep(plotData.layout, this._getPlotlyLayout(options));
-    const config: Partial<Config> = {...plotData.config, displayModeBar: false};
+    const config: Partial<Config> = { ...plotData.config, displayModeBar: false };
     // react() can be used in place of newPlot(), and is faster when updating an existing plot.
     await Plotly.react(this._chartDom, plotData.data, layout, config);
     this._resizeChart();
@@ -340,8 +340,8 @@ export class ChartView extends BaseView {
   private _getPlotlyLayout(options: ChartOptions): Partial<Layout> {
     // Note that each call to getPlotlyLayout() creates a new layout object. We are intentionally
     // avoiding reuse because Plotly caches too many layout calculations when the object is reused.
-    const yaxis: Partial<LayoutAxis> = {automargin: true, title: {standoff: 0}};
-    const xaxis: Partial<LayoutAxis> = {automargin: true, title: {standoff: 0}};
+    const yaxis: Partial<LayoutAxis> = { automargin: true, title: { standoff: 0 } };
+    const xaxis: Partial<LayoutAxis> = { automargin: true, title: { standoff: 0 } };
     if (options.logYAxis) { yaxis.type = 'log'; }
     if (options.invertYAxis) { yaxis.autorange = 'reversed'; }
     const layout = {
@@ -355,14 +355,14 @@ export class ChartView extends BaseView {
       } as Margin,
       yaxis,
       xaxis,
-      ...(options.stacked ? {barmode: 'relative'} : {}),
+      ...(options.stacked ? { barmode: 'relative' } : {}),
     };
     return merge(layout, this._getPlotlyTheme());
   }
 
   private _getPlotlyTheme(): Partial<Layout> {
-    const {colors} = gristThemeObs().get();
-    const {chartBg, chartLegendBg, chartFg, chartXAxis, chartYAxis} = colors.components;
+    const { colors } = gristThemeObs().get();
+    const { chartBg, chartLegendBg, chartFg, chartXAxis, chartYAxis } = colors.components;
     return {
       colorway: [
         '#2b78ae',
@@ -531,7 +531,7 @@ export class ChartConfig extends GrainJSDisposable {
 
   // The list of available columns for the group data picker.
   private _groupDataOptions = Computed.create<Array<IOption<string>>>(this, use => [
-    {value: "", label: 'Pick a column'},
+    { value: "", label: 'Pick a column' },
     ...use(this._columnsOptions),
   ]);
 
@@ -584,13 +584,13 @@ export class ChartConfig extends GrainJSDisposable {
     return [
       cssRow(
         select(this._chartType, [
-          {value: 'bar',          label: t('Bar chart'),         icon: 'ChartBar'   },
-          {value: 'pie',          label: t('Pie chart'),         icon: 'ChartPie'   },
-          {value: 'donut',        label: t('Donut chart'),       icon: 'ChartDonut' },
-          {value: 'area',         label: t('Area chart'),        icon: 'ChartArea'  },
-          {value: 'line',         label: t('Line chart'),        icon: 'ChartLine'  },
-          {value: 'scatter',      label: t('Scatter plot'),      icon: 'ChartLine'  },
-          {value: 'kaplan_meier', label: t('Kaplan-Meier plot'), icon: 'ChartKaplan'},
+          { value: 'bar',          label: t('Bar chart'),         icon: 'ChartBar'   },
+          { value: 'pie',          label: t('Pie chart'),         icon: 'ChartPie'   },
+          { value: 'donut',        label: t('Donut chart'),       icon: 'ChartDonut' },
+          { value: 'area',         label: t('Area chart'),        icon: 'ChartArea'  },
+          { value: 'line',         label: t('Line chart'),        icon: 'ChartLine'  },
+          { value: 'scatter',      label: t('Scatter plot'),      icon: 'ChartLine'  },
+          { value: 'kaplan_meier', label: t('Kaplan-Meier plot'), icon: 'ChartKaplan' },
         ]),
         testId("type"),
       ),
@@ -601,9 +601,9 @@ export class ChartConfig extends GrainJSDisposable {
         cssRow(
           cssRowLabel(t('Orientation')),
           dom('div', linkSelect(fromKoSave(this._optionsObj.prop('orientation')), [
-            {value: 'v', label: t('Vertical')},
-            {value: 'h', label: t('Horizontal')},
-          ], {defaultLabel: t('Vertical')})),
+            { value: 'v', label: t('Vertical') },
+            { value: 'h', label: t('Horizontal') },
+          ], { defaultLabel: t('Vertical') })),
           testId('orientation'),
         ),
         cssCheckboxRow(t('Log scale Y-axis'), this._optionsObj.prop('logYAxis')),
@@ -634,10 +634,10 @@ export class ChartConfig extends GrainJSDisposable {
         cssRow(
           cssRowLabel(t('Error bars')),
           dom('div', linkSelect(fromKoSave(this._optionsObj.prop('errorBars')), [
-            {value: '', label: t('None')},
-            {value: 'symmetric', label: t('Symmetric')},
-            {value: 'separate', label: t('Above+Below')},
-          ], {defaultLabel: t('None')})),
+            { value: '', label: t('None') },
+            { value: 'symmetric', label: t('Symmetric') },
+            { value: 'separate', label: t('Above+Below') },
+          ], { defaultLabel: t('None') })),
           testId('error-bars'),
         ),
         dom.domComputed(this._optionsObj.prop('errorBars'), (value: ChartOptions["errorBars"]) =>
@@ -652,8 +652,8 @@ export class ChartConfig extends GrainJSDisposable {
       cssSeparator(),
 
       dom.maybe(this._groupData, () =>
-        dom('div', {role: 'group', 'aria-labelledby': 'chart-split-series-label'},
-          cssGroupLabel(t('Split Series'), {id: 'chart-split-series-label'}),
+        dom('div', { role: 'group', 'aria-labelledby': 'chart-split-series-label' },
+          cssGroupLabel(t('Split Series'), { id: 'chart-split-series-label' }),
           cssRow(
             select(this._groupDataColId, this._groupDataOptions),
             testId('group-by-column'),
@@ -663,8 +663,8 @@ export class ChartConfig extends GrainJSDisposable {
       ),
 
       // TODO: user should select x axis before widget reach page
-      dom('div', {role: 'group', 'aria-labelledby': 'chart-first-field-label'},
-        cssGroupLabel(dom.text(this._firstFieldLabel), testId('first-field-label'), {id: 'chart-first-field-label'}),
+      dom('div', { role: 'group', 'aria-labelledby': 'chart-first-field-label' },
+        cssGroupLabel(dom.text(this._firstFieldLabel), testId('first-field-label'), { id: 'chart-first-field-label' }),
         cssRow(
           select(
             this._xAxis, this._columnsOptions,
@@ -675,8 +675,8 @@ export class ChartConfig extends GrainJSDisposable {
         cssCheckboxRowObs(t('Aggregate values'), this._isValueAggregated),
       ),
 
-      dom('div', {role: 'group', 'aria-labelledby': 'chart-series-label'},
-        cssGroupLabel(t('SERIES'), {id: 'chart-series-label'}),
+      dom('div', { role: 'group', 'aria-labelledby': 'chart-series-label' },
+        cssGroupLabel(t('SERIES'), { id: 'chart-series-label' }),
         this._buildYAxis(),
         cssRow(
           cssAddYAxis(
@@ -814,7 +814,7 @@ export class ChartConfig extends GrainJSDisposable {
         this._freezeXAxis.set(false);
         this._freezeYAxis.set(false);
       }
-    }, {nestInActiveBundle: true});
+    }, { nestInActiveBundle: true });
   }
 
   private _getColumns(use: UseCB = unwrap) {
@@ -978,7 +978,7 @@ function cssNumberWithSpinnerRow(label: string, value: Computed<number>, save: (
     cssRowLabel(label),
     cssNumberWithSpinner(
       input = cssNumberInput(
-        {type: 'text'},
+        { type: 'text' },
         dom.prop('value', use => use(value) + "px"),
         dom.on('change', (_ev, el) => onChange(el.value)),
         dom.onKeyDown({
@@ -990,7 +990,7 @@ function cssNumberWithSpinnerRow(label: string, value: Computed<number>, save: (
       // We add spinners as overlay in order to support showing the unit 'px' next to the value.
       cssSpinners(
         'input',
-        {type: 'number', step: '1', min: String(minValue)},
+        { type: 'number', step: '1', min: String(minValue) },
         dom.prop('value', value),
         dom.on('change', (_ev, el) => onChange(el.value)),
       ),
@@ -1024,13 +1024,13 @@ function cssSlideRow(label: string, value: Computed<number>, save: (val: number)
   return cssRow(
     cssRowLabel(label),
     cssRangeInput(
-      {type: 'range', min: "0", max: "1", step: "0.01"},
+      { type: 'range', min: "0", max: "1", step: "0.01" },
       dom.prop('value', value),
       dom.on('change', (_ev, el) => save(Number(el.value))),
     ),
     cssNumberWithSpinner(
       input = cssNumberInput(
-        {type: 'text'},
+        { type: 'text' },
         dom.prop('value', use => formatPercent(use(value))),
         dom.on('change', (_ev, el) => onChange(el.value)),
         dom.onKeyDown({
@@ -1042,7 +1042,7 @@ function cssSlideRow(label: string, value: Computed<number>, save: (val: number)
       // We add spinners as overlay in order to support showing the unit '%' next to the value.
       cssSpinners(
         'input',
-        {type: 'number', step: '0.01', min: '0', max: '0.99'},
+        { type: 'number', step: '0.01', min: '0', max: '0.99' },
         dom.prop('value', value),
         dom.on('change', (_ev, el) => save(Number(el.value))),
       ),
@@ -1099,12 +1099,12 @@ function basicPlot(series: Series[], options: ChartOptions, dataOptions: Data): 
   return {
     data: dataSeries,
     layout: {
-      [`${axis1}axis`]: {title: series.length > 0 ? {text: series[0].label}: {}},
+      [`${axis1}axis`]: { title: series.length > 0 ? { text: series[0].label }: {} },
       // Include yaxis title for a single y-value series only (2 series total);
       // If there are fewer than 2 total series, there is no y-series to display.
       // If there are multiple y-series, a legend will be included instead, and the yaxis title
       // is less meaningful, so omit it.
-      [`${axis2}axis`]: {title: series.length === 2 ? {text: series[1].label} : {}},
+      [`${axis2}axis`]: { title: series.length === 2 ? { text: series[1].label } : {} },
     },
   };
 }
@@ -1112,11 +1112,11 @@ function basicPlot(series: Series[], options: ChartOptions, dataOptions: Data): 
 // Most chart types take a list of series and then use the first series for the X-axis, and each
 // subsequent series for their Y-axis values, allowing for multiple lines on the same plot.
 // Each series should have the form {label, values}.
-export const chartTypes: {[name: string]: ChartFunc} = {
+export const chartTypes: { [name: string]: ChartFunc } = {
   // TODO There is a lot of code duplication across chart types. Some refactoring is in order.
   bar(series: Series[], options: ChartOptions): PlotData {
     // If the X axis is not from numerical column, treat it as category.
-    const data = basicPlot(series, options, {type: 'bar'});
+    const data = basicPlot(series, options, { type: 'bar' });
     const useCategory = series[0]?.pureType && isCategoryType(series[0].pureType);
     const xaxisName = options.orientation === 'h' ? 'yaxis' : 'xaxis';
     if (useCategory && data.layout && data.layout[xaxisName]) {
@@ -1139,7 +1139,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
     return basicPlot(series, options, {
       type: 'scatter',
       fill: 'tozeroy',
-      line: {shape: 'spline'},
+      line: { shape: 'spline' },
     });
   },
   scatter(series: Series[], options: ChartOptions): PlotData {
@@ -1154,7 +1154,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
   pie(series: Series[], _options: ChartOptions, dataOptions: DataOptions = {}): PlotData {
     let line: Series;
     if (series.length === 0) {
-      return {data: []};
+      return { data: [] };
     }
     if (series.length > 1) {
       trimNonNumericData(series);
@@ -1162,7 +1162,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
     }
     else {
       // When there is only one series of labels, simply count their occurrences.
-      line = {label: 'Count', values: series[0].values.map(() => 1)};
+      line = { label: 'Count', values: series[0].values.map(() => 1) };
     }
     return {
       data: [{
@@ -1180,7 +1180,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
   donut(series: Series[], options: ChartOptions, dataOptions: DataOptions = {}): PlotData {
     const hole = isNumber(options.donutHoleSize) ? options.donutHoleSize : DONUT_DEFAULT_HOLE_SIZE;
     const annotations: Array<Partial<Annotations>> = [];
-    const plotData: PlotData = chartTypes.pie(series, options, {...dataOptions, hole});
+    const plotData: PlotData = chartTypes.pie(series, options, { ...dataOptions, hole });
 
     function format(val: number) {
       if (dataOptions.totalFormatter) {
@@ -1204,7 +1204,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
     }
     return defaultsDeep(
       plotData,
-      {layout: {annotations}},
+      { layout: { annotations } },
     );
 
   },
@@ -1212,7 +1212,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
   kaplan_meier(series: Series[]): PlotData {
     // For this plot, the first series names the category of each point, and the second the
     // survival time for that point. We turn that into as many series as there are categories.
-    if (series.length < 2) { return {data: []}; }
+    if (series.length < 2) { return { data: [] }; }
     const newSeries = groupIntoSeries(series[0].values, series[1].values);
     return {
       data: newSeries.map((line: Series): Data => {
@@ -1220,7 +1220,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
         return {
           type: 'scatter',
           mode: 'lines',
-          line: {shape: 'hv'},
+          line: { shape: 'hv' },
           name: getSeriesName(line, false),
           x: points.map(p => p.x),
           y: points.map(p => p.y),
@@ -1261,11 +1261,11 @@ function groupIntoSeries(categoryList: Datum[], valueList: Datum[]): Series[] {
     if (!groups.has(cat)) { groups.set(cat, []); }
     groups.get(cat).push(valueList[i]);
   }
-  return Array.from(groups, ([label, values]) => ({label, values}));
+  return Array.from(groups, ([label, values]) => ({ label, values }));
 }
 
 // Given a list of survivalValues, returns a list of {x, y} pairs for the kaplanMeier plot.
-function kaplanMeierPlot(survivalValues: number[]): Array<{x: number, y: number}> {
+function kaplanMeierPlot(survivalValues: number[]): Array<{ x: number, y: number }> {
   // First get a distribution of survivalValue -> count.
   const dist = new Map<number, number>();
   for (const v of survivalValues) {
@@ -1278,10 +1278,10 @@ function kaplanMeierPlot(survivalValues: number[]): Array<{x: number, y: number}
 
   // Now generate plot values, with 'x' for survivalValue and 'y' the number of surviving points.
   let y = survivalValues.length;
-  const points = [{x: 0, y}];
+  const points = [{ x: 0, y }];
   for (const x of distinctValues) {
     y -= dist.get(x)!;
-    points.push({x, y});
+    points.push({ x, y });
   }
   return points;
 }

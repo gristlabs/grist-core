@@ -1,13 +1,13 @@
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as sandboxUtil from 'app/server/lib/sandboxUtil';
-import {captureLog} from 'test/server/testUtils';
+import { captureLog } from 'test/server/testUtils';
 
 describe('sandboxUtil', function() {
 
   describe('makeLinePrefixer', function() {
     it('should not interpret placeholders', async function() {
       const messages = await captureLog('debug', () => {
-        const prefixer = sandboxUtil.makeLinePrefixer('My prefix: ', {foo: 'bar'});
+        const prefixer = sandboxUtil.makeLinePrefixer('My prefix: ', { foo: 'bar' });
         prefixer(Buffer.from(
           "Hello!\n" +
           "My name is %s!\n",
@@ -23,7 +23,7 @@ describe('sandboxUtil', function() {
   describe('makeLogLinePrefixer', function() {
     it('should escape non-printable characters', async function() {
       const messages = await captureLog('debug', () => {
-        const prefixer = sandboxUtil.makeLogLinePrefixer('My prefix: ', {foo: 'bar'});
+        const prefixer = sandboxUtil.makeLogLinePrefixer('My prefix: ', { foo: 'bar' });
         prefixer(Buffer.from("Some chars: \n \t \0 \b π Ї 🙂\n"));
       });
       assert.deepEqual(messages, [
@@ -33,7 +33,7 @@ describe('sandboxUtil', function() {
 
     it('should break up log messages but not other lines', async function() {
       const messages = await captureLog('debug', () => {
-        const prefixer = sandboxUtil.makeLogLinePrefixer('My prefix: ', {foo: 'bar'});
+        const prefixer = sandboxUtil.makeLogLinePrefixer('My prefix: ', { foo: 'bar' });
         prefixer(Buffer.from(
           "[INFO] [engine] Hello!\n" +
           "[WARNING] [engine] World, with\n" +

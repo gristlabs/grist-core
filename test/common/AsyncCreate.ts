@@ -1,5 +1,5 @@
-import {AsyncCreate, asyncOnce, mapGetOrSet} from 'app/common/AsyncCreate';
-import {assert} from 'chai';
+import { AsyncCreate, asyncOnce, mapGetOrSet } from 'app/common/AsyncCreate';
+import { assert } from 'chai';
 import * as sinon from 'sinon';
 
 describe('AsyncCreate', function() {
@@ -8,7 +8,7 @@ describe('AsyncCreate', function() {
     const cp = new AsyncCreate(createFunc);
     sinon.assert.notCalled(createFunc);
 
-    const value = {hello: 'world'};
+    const value = { hello: 'world' };
     createFunc.returns(Promise.resolve(value));
 
     // Check that .get() calls the createFunc and returns the expected value.
@@ -48,7 +48,7 @@ describe('AsyncCreate', function() {
     let onceFunc = asyncOnce(createFunc);
     sinon.assert.notCalled(createFunc);
 
-    const value = {hello: 'world'};
+    const value = { hello: 'world' };
     createFunc.returns(Promise.resolve(value));
 
     // Check that .get() calls the createFunc and returns the expected value.
@@ -88,22 +88,22 @@ describe('AsyncCreate', function() {
       const createFunc = sinon.stub();
       const amap = new Map<string, any>();
 
-      createFunc.callsFake(async (key: string) => ({myKey: key.toUpperCase()}));
+      createFunc.callsFake(async (key: string) => ({ myKey: key.toUpperCase() }));
 
       // Check that mapGetOrSet() calls the createFunc and returns the expected value.
-      assert.deepEqual(await mapGetOrSet(amap, "foo", createFunc), {myKey: "FOO"});
-      assert.deepEqual(await mapGetOrSet(amap, "bar", createFunc), {myKey: "BAR"});
+      assert.deepEqual(await mapGetOrSet(amap, "foo", createFunc), { myKey: "FOO" });
+      assert.deepEqual(await mapGetOrSet(amap, "bar", createFunc), { myKey: "BAR" });
       sinon.assert.calledTwice(createFunc);
       createFunc.resetHistory();
 
       // Subsequent calls return the cached value.
-      assert.deepEqual(await mapGetOrSet(amap, "foo", createFunc), {myKey: "FOO"});
-      assert.deepEqual(await mapGetOrSet(amap, "bar", createFunc), {myKey: "BAR"});
+      assert.deepEqual(await mapGetOrSet(amap, "foo", createFunc), { myKey: "FOO" });
+      assert.deepEqual(await mapGetOrSet(amap, "bar", createFunc), { myKey: "BAR" });
       sinon.assert.notCalled(createFunc);
 
       // Calls to plain .get() also return the cached value.
-      assert.deepEqual(await amap.get("foo"), {myKey: "FOO"});
-      assert.deepEqual(await amap.get("bar"), {myKey: "BAR"});
+      assert.deepEqual(await amap.get("foo"), { myKey: "FOO" });
+      assert.deepEqual(await amap.get("bar"), { myKey: "BAR" });
       sinon.assert.notCalled(createFunc);
 
       // After clearing, .get() returns undefined. (The usual Map behavior.)
@@ -118,8 +118,8 @@ describe('AsyncCreate', function() {
       createFunc.resetHistory();
 
       // Other keys should be unaffected.
-      assert.deepEqual(await mapGetOrSet(amap, "bar", createFunc), {myKey: "BAR"});
-      assert.deepEqual(await amap.get("bar"), {myKey: "BAR"});
+      assert.deepEqual(await mapGetOrSet(amap, "bar", createFunc), { myKey: "BAR" });
+      assert.deepEqual(await amap.get("bar"), { myKey: "BAR" });
       sinon.assert.notCalled(createFunc);
 
       // After failure, subsequent calls try again.

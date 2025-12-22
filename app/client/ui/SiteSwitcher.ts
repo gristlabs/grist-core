@@ -1,12 +1,12 @@
-import {dom, makeTestId, styled} from 'grainjs';
-import {getSingleOrg, isFeatureEnabled} from 'app/common/gristUrls';
-import {getOrgName} from 'app/common/UserAPI';
-import {makeT} from 'app/client/lib/localization';
-import {AppModel} from 'app/client/models/AppModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {theme} from 'app/client/ui2018/cssVars';
-import {menuDivider, menuIcon, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
-import {icon} from 'app/client/ui2018/icons';
+import { dom, makeTestId, styled } from 'grainjs';
+import { getSingleOrg, isFeatureEnabled } from 'app/common/gristUrls';
+import { getOrgName } from 'app/common/UserAPI';
+import { makeT } from 'app/client/lib/localization';
+import { AppModel } from 'app/client/models/AppModel';
+import { urlState } from 'app/client/models/gristUrlState';
+import { theme } from 'app/client/ui2018/cssVars';
+import { menuDivider, menuIcon, menuItem, menuItemLink, menuSubHeader } from 'app/client/ui2018/menus';
+import { icon } from 'app/client/ui2018/icons';
 
 const t = makeT('SiteSwitcher');
 

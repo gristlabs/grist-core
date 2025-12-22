@@ -1,22 +1,22 @@
 import * as commands from 'app/client/components/commands';
-import {Cursor} from 'app/client/components/Cursor';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {UnsavedChange} from 'app/client/components/UnsavedChanges';
-import {makeT} from 'app/client/lib/localization';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {reportError} from 'app/client/models/errors';
-import {showTooltipToCreateFormula} from 'app/client/widgets/EditorTooltip';
-import {FormulaEditor, getFormulaError} from 'app/client/widgets/FormulaEditor';
-import {IEditorCommandGroup, IEditorConstructor, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
-import {asyncOnce} from "app/common/AsyncCreate";
-import {CellValue} from "app/common/DocActions";
+import { Cursor } from 'app/client/components/Cursor';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { UnsavedChange } from 'app/client/components/UnsavedChanges';
+import { makeT } from 'app/client/lib/localization';
+import { DataRowModel } from 'app/client/models/DataRowModel';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { reportError } from 'app/client/models/errors';
+import { showTooltipToCreateFormula } from 'app/client/widgets/EditorTooltip';
+import { FormulaEditor, getFormulaError } from 'app/client/widgets/FormulaEditor';
+import { IEditorCommandGroup, IEditorConstructor, NewBaseEditor } from 'app/client/widgets/NewBaseEditor';
+import { asyncOnce } from "app/common/AsyncCreate";
+import { CellValue } from "app/common/DocActions";
 import * as gutil from 'app/common/gutil';
-import {CellPosition} from "app/client/components/CellPosition";
-import {FloatingEditor} from 'app/client/widgets/FloatingEditor';
-import {CursorPos} from 'app/plugin/GristAPI';
+import { CellPosition } from "app/client/components/CellPosition";
+import { FloatingEditor } from 'app/client/widgets/FloatingEditor';
+import { CursorPos } from 'app/plugin/GristAPI';
 import isEqual from 'lodash/isEqual';
-import {Disposable, dom, Emitter, Holder, MultiHolder, Observable} from 'grainjs';
+import { Disposable, dom, Emitter, Holder, MultiHolder, Observable } from 'grainjs';
 
 const t = makeT('FieldEditor');
 
@@ -28,14 +28,14 @@ export function saveWithoutEditor(
   editorCtor: IEditorConstructor,
   editRow: DataRowModel,
   field: ViewFieldRec,
-  options: {typedVal?: string, event?: Event},
+  options: { typedVal?: string, event?: Event },
 ): boolean {
-  const {typedVal, event} = options;
+  const { typedVal, event } = options;
   // Never skip the editor if editing a formula. Also, check that skipEditor static function
   // exists (we don't bother adding it on old-style JS editors that don't need it).
   if (!field.column.peek().isRealFormula.peek() && editorCtor.skipEditor) {
     const origVal = editRow.cells[field.colId()].peek();
-    const skipEditorValue = editorCtor.skipEditor(typedVal, origVal, {event});
+    const skipEditorValue = editorCtor.skipEditor(typedVal, origVal, { event });
     if (skipEditorValue !== undefined) {
       setAndSave(editRow, field, skipEditorValue).catch(reportError);
       return true;
@@ -418,7 +418,7 @@ export class FieldEditor extends Disposable {
         // Bundle multiple changes so that we can undo them in one step.
         if (isFormula !== col.isFormula.peek() || formula !== col.formula.peek()) {
           waitPromise = Promise.all([
-            col.updateColValues({isFormula, formula}),
+            col.updateColValues({ isFormula, formula }),
             // If we're saving a non-empty formula, then also add an empty record to the table
             // so that the formula calculation is visible to the user.
             (!this._detached.get() && this._editRow._isAddRow.peek() && formula !== "" ?

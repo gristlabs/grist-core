@@ -1,7 +1,7 @@
-import {DocData} from 'app/common/DocData';
+import { DocData } from 'app/common/DocData';
 import * as gristTypes from 'app/common/gristTypes';
-import {isList} from 'app/common/gristTypes';
-import {BaseFormatter, createFullFormatterFromDocData} from 'app/common/ValueFormatter';
+import { isList } from 'app/common/gristTypes';
+import { BaseFormatter, createFullFormatterFromDocData } from 'app/common/ValueFormatter';
 import {
   createParserOrFormatterArgumentsRaw,
   createParserRaw,
@@ -9,7 +9,7 @@ import {
   ReferenceParser,
   ValueParser,
 } from 'app/common/ValueParser';
-import {CellValue, GristObjCode} from 'app/plugin/GristData';
+import { CellValue, GristObjCode } from 'app/plugin/GristData';
 import { TableDataActionSet } from "app/common/DocActions";
 
 /**
@@ -118,7 +118,7 @@ class ReferenceListConverter extends ListConverter {
         lookupColumn = value[2].column;
       }
     }
-    return ['l', result, {column: lookupColumn, raw}];
+    return ['l', result, { column: lookupColumn, raw }];
   }
 
   /**

@@ -1,4 +1,4 @@
-import {IDisposableOwner, Observable} from 'grainjs';
+import { IDisposableOwner, Observable } from 'grainjs';
 
 export interface PausableObservable<T> extends Observable<T> {
   pause(shouldPause?: boolean): void;

@@ -1,7 +1,7 @@
-import {assert, driver, Key} from 'mocha-webdriver';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {DocCreationInfo} from "app/common/DocListAPI";
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { DocCreationInfo } from "app/common/DocListAPI";
 
 describe('CellFormat', function() {
   this.timeout(20000);
@@ -57,8 +57,8 @@ describe('CellFormat', function() {
     // Create and open a new table in the same document containing the above URLs
     await api.applyUserActions(doc.id, [
       ['AddTable', 'Links',
-        [{id: 'Link', type: 'Text'}]],
-      ...urls.map(url => ['AddRecord', 'Links', null, {Link: url}]),
+        [{ id: 'Link', type: 'Text' }]],
+      ...urls.map(url => ['AddRecord', 'Links', null, { Link: url }]),
     ]);
     await gu.getPageItem(/Links/).click();
 
@@ -69,14 +69,14 @@ describe('CellFormat', function() {
     assert.isFalse(currentUrl.endsWith('/p/2'));
 
     // Convert the column to hyperlink format
-    await gu.getCell({rowNum: 1, col: 0}).click();
+    await gu.getCell({ rowNum: 1, col: 0 }).click();
     await gu.setFieldWidgetType('HyperLink');
 
     // There should only be one tab open for the following checks to make sense
     assert.equal((await driver.getAllWindowHandles()).length, 1);
 
     async function checkExternalLink(rowNum: number) {
-      const cell = gu.getCell({rowNum, col: 0});
+      const cell = gu.getCell({ rowNum, col: 0 });
       const url = await cell.getText();
       await cell.find('.test-tb-link').click();
 
@@ -98,7 +98,7 @@ describe('CellFormat', function() {
     await checkExternalLink(2);
     await checkExternalLink(3);
 
-    const cell = gu.getCell({rowNum: 4, col: 0});
+    const cell = gu.getCell({ rowNum: 4, col: 0 });
     const url = await cell.getText();
     await cell.find('.test-tb-link').click();
     const handles = await driver.getAllWindowHandles();

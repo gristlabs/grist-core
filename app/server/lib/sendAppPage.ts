@@ -1,4 +1,4 @@
-import {AssistantConfig} from 'app/common/Assistant';
+import { AssistantConfig } from 'app/common/Assistant';
 import {
   commonUrls,
   Features,
@@ -13,22 +13,22 @@ import {
   GristLoadConfig,
   IFeature,
 } from 'app/common/gristUrls';
-import {isAffirmative} from 'app/common/gutil';
-import {getTagManagerSnippet} from 'app/common/tagManager';
-import {Document} from 'app/common/UserAPI';
-import {AttachedCustomWidgets, IAttachedCustomWidget} from "app/common/widgetTypes";
-import {appSettings} from "app/server/lib/AppSettings";
-import {SUPPORT_EMAIL} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {isAnonymousUser, isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
-import {RequestWithOrg} from 'app/server/lib/extractOrg';
-import {GristServer} from 'app/server/lib/GristServer';
+import { isAffirmative } from 'app/common/gutil';
+import { getTagManagerSnippet } from 'app/common/tagManager';
+import { Document } from 'app/common/UserAPI';
+import { AttachedCustomWidgets, IAttachedCustomWidget } from "app/common/widgetTypes";
+import { appSettings } from "app/server/lib/AppSettings";
+import { SUPPORT_EMAIL } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { isAnonymousUser, isSingleUserMode, RequestWithLogin } from 'app/server/lib/Authorizer';
+import { RequestWithOrg } from 'app/server/lib/extractOrg';
+import { GristServer } from 'app/server/lib/GristServer';
 import {
   getOnboardingTutorialDocId,
   getTemplateOrg,
   getUserPresenceMaxUsers,
 } from 'app/server/lib/gristSettings';
-import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
-import {readLoadedLngs, readLoadedNamespaces} from 'app/server/localization';
+import { getSupportedEngineChoices } from 'app/server/lib/serverUtils';
+import { readLoadedLngs, readLoadedNamespaces } from 'app/server/localization';
 import * as express from 'express';
 import * as fse from 'fs-extra';
 import * as handlebars from 'handlebars';
@@ -77,7 +77,7 @@ export interface MakeGristConfigOptions {
 }
 
 export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfig {
-  const {homeUrl, extra, baseDomain, req, server} = options;
+  const { homeUrl, extra, baseDomain, req, server } = options;
   // .invalid is a TLD the IETF promises will never exist.
   const pluginUrl = process.env.APP_UNTRUSTED_URL || 'http://plugins.invalid';
   const pathOnly = (process.env.GRIST_ORG_IN_PATH === "true") ||
@@ -152,7 +152,7 @@ export function makeMessagePage(staticDir: string) {
     const fileContent = await fse.readFile(path.join(staticDir, "message.html"), 'utf8');
     const content = fileContent.replace(
       "<!-- INSERT MESSAGE -->",
-      `<script>window.message = ${jsesc(message, {isScriptContext: true, json: true})};</script>`,
+      `<script>window.message = ${jsesc(message, { isScriptContext: true, json: true })};</script>`,
     );
     resp.status(200).type('html').send(content);
   };
@@ -217,7 +217,7 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
       .replace("<!-- INSERT CUSTOM SCRIPT -->", insertCustomScript)
       .replace(
         "<!-- INSERT CONFIG -->",
-        `<script>window.gristConfig = ${jsesc(config, {isScriptContext: true, json: true})};</script>`,
+        `<script>window.gristConfig = ${jsesc(config, { isScriptContext: true, json: true })};</script>`,
       );
     logVisitedPageTelemetryEvent(req as RequestWithLogin, {
       server,
@@ -235,7 +235,7 @@ interface LogVisitedPageEventOptions {
 }
 
 function logVisitedPageTelemetryEvent(req: RequestWithLogin, options: LogVisitedPageEventOptions) {
-  const {server, pagePath, docId} = options;
+  const { server, pagePath, docId } = options;
 
   // Construct a fake URL and append the utm_* parameters from the original URL.
   // We avoid using the original URL here because it may contain sensitive identifiers,
@@ -276,8 +276,8 @@ function getAssistantConfig(gristServer?: GristServer|null): AssistantConfig|und
     return undefined;
   }
 
-  const {provider, version} = assistant;
-  return {provider, version};
+  const { provider, version } = assistant;
+  return { provider, version };
 }
 
 function getPermittedCustomWidgets(gristServer?: GristServer|null): IAttachedCustomWidget[] {

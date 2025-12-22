@@ -1,5 +1,5 @@
 import * as csvFormat from 'app/common/csvFormat';
-import {assert} from 'chai';
+import { assert } from 'chai';
 
 describe('csvFormat', function() {
   it('should encode/decode csv values correctly', function() {
@@ -22,7 +22,7 @@ describe('csvFormat', function() {
 
   it('should encode/decode csv rows correctly', function() {
     function verify(plain: string[], encoded: string, prettier: boolean) {
-      assert.equal(csvFormat.csvEncodeRow(plain, {prettier}), encoded);
+      assert.equal(csvFormat.csvEncodeRow(plain, { prettier }), encoded);
       assert.deepEqual(csvFormat.csvDecodeRow(encoded), plain);
     }
     verify(["hello", "world"], "hello,world", false);

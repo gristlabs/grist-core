@@ -1,10 +1,10 @@
-import {UserAPI} from 'app/common/UserAPI';
+import { UserAPI } from 'app/common/UserAPI';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {EnvironmentSnapshot} from 'test/server/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { EnvironmentSnapshot } from 'test/server/testUtils';
 
-import {assert} from 'chai';
-import {driver, Key} from 'mocha-webdriver';
+import { assert } from 'chai';
+import { driver, Key } from 'mocha-webdriver';
 
 interface Window {
   user: gu.TestUser,

@@ -81,8 +81,8 @@ export class GristWebDriverUtils {
    * Gets browser window dimensions.
    */
   public async getWindowDimensions(): Promise<WindowDimensions> {
-    const {width, height} = await this.driver.manage().window().getRect();
-    return {width, height};
+    const { width, height } = await this.driver.manage().window().getRect();
+    return { width, height };
   }
 
   /**
@@ -111,7 +111,7 @@ export class GristWebDriverUtils {
     tableRe: RegExp|string = '',
     options: PageWidgetPickerOptions = {},
   ) {
-    const {customWidget, dismissTips, dontAdd, selectBy, summarize, tableName} = options;
+    const { customWidget, dismissTips, dontAdd, selectBy, summarize, tableName } = options;
     const driver = this.driver;
     if (dismissTips) { await this.dismissBehavioralPrompts(); }
 
@@ -239,16 +239,16 @@ export class GristWebDriverUtils {
   /**
    * Refresh browser and dismiss alert that is shown (for refreshing during edits).
    */
-  public async refreshDismiss({ignore} = {ignore: false}) {
+  public async refreshDismiss({ ignore } = { ignore: false }) {
     await this.driver.navigate().refresh();
-    await this.acceptAlert({ignore});
+    await this.acceptAlert({ ignore });
     await this.waitForDocToLoad();
   }
 
   /**
    * Accepts an alert.
    */
-  public async acceptAlert({ignore} = {ignore: false}) {
+  public async acceptAlert({ ignore } = { ignore: false }) {
     try {
       await (await this.driver.switchTo().alert()).accept();
     }

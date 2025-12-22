@@ -54,7 +54,7 @@ export class ServiceAccountsManager {
       // and then be able to connect via link in email
       const login = `${uuid}@${Login.SERVICE_ACCOUNTS_TLD}`;
       // Using getUserByLogin will create the user... Yeah, please don't blame us.
-      const serviceUser = await this._homeDb.getUserByLogin(login, {manager}, 'service');
+      const serviceUser = await this._homeDb.getUserByLogin(login, { manager }, 'service');
 
       await this._homeDb.createApiKey(serviceUser.id, false, manager);
 
@@ -83,7 +83,7 @@ export class ServiceAccountsManager {
   ): Promise<ServiceAccount|null> {
     return await this._runInTransaction(transaction, async (manager) => {
       return await this._buildServiceAccountQuery(manager)
-        .where("serviceAccount.id = :id", {id: serviceAccountId})
+        .where("serviceAccount.id = :id", { id: serviceAccountId })
         .getOne();
     });
   }
@@ -98,7 +98,7 @@ export class ServiceAccountsManager {
     return await this._runInTransaction(transaction, async (manager) => {
       return await this._buildServiceAccountQuery(manager)
         .innerJoinAndSelect("serviceAccount.owner", "owner")
-        .where("logins.email = :email", {email: normalizeEmail(serviceAccountLogin)})
+        .where("logins.email = :email", { email: normalizeEmail(serviceAccountLogin) })
         .getOne();
     });
   }
@@ -123,7 +123,7 @@ export class ServiceAccountsManager {
     return await this._runInTransaction(transaction, async (manager) => {
       return await this._buildServiceAccountQuery(manager)
         .innerJoinAndSelect("serviceAccount.owner", "owner")
-        .where("owner.id = :id", {id: ownerId})
+        .where("owner.id = :id", { id: ownerId })
         .getMany();
     });
   }
@@ -140,7 +140,7 @@ export class ServiceAccountsManager {
   public async updateServiceAccount(
     serviceAccountId: number,
     props: ServiceAccountProperties,
-    options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
+    options: { expectedOwnerId?: number, transaction?: EntityManager } = {},
   ): Promise<ServiceAccount> {
     const { expectedOwnerId } = options;
     return await this._runInTransaction(options.transaction, async (manager) => {
@@ -161,7 +161,7 @@ export class ServiceAccountsManager {
    */
   public async deleteServiceAccount(
     serviceAccountId: number,
-    options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
+    options: { expectedOwnerId?: number, transaction?: EntityManager } = {},
   ): Promise<ServiceAccount> {
     return await this._runInTransaction(options.transaction, async (manager) => {
       const serviceAccount = await this.getServiceAccount(serviceAccountId, manager);
@@ -184,7 +184,7 @@ export class ServiceAccountsManager {
    */
   public async createServiceAccountApiKey(
     serviceAccountId: number,
-    options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
+    options: { expectedOwnerId?: number, transaction?: EntityManager } = {},
   ): Promise<ServiceAccount> {
     return await this._runInTransaction(options.transaction, async (manager) => {
       const serviceAccount = await this.getServiceAccount(serviceAccountId, manager);
@@ -207,7 +207,7 @@ export class ServiceAccountsManager {
    */
   public async deleteServiceAccountApiKey(
     serviceAccountId: number,
-    options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
+    options: { expectedOwnerId?: number, transaction?: EntityManager } = {},
   ): Promise<ServiceAccount> {
     return await this._runInTransaction(options.transaction, async (manager) => {
       const serviceAccount = await this.getServiceAccount(serviceAccountId, manager);

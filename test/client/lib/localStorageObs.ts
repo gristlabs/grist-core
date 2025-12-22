@@ -1,6 +1,6 @@
-import {localStorageBoolObs, localStorageObs} from 'app/client/lib/localStorageObs';
-import {assert} from 'chai';
-import {setTmpMochaGlobals} from 'test/client/clientUtil';
+import { localStorageBoolObs, localStorageObs } from 'app/client/lib/localStorageObs';
+import { assert } from 'chai';
+import { setTmpMochaGlobals } from 'test/client/clientUtil';
 
 describe('localStorageObs', function() {
   setTmpMochaGlobals();

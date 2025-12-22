@@ -1,15 +1,15 @@
-import {buildDropdownConditionEditor} from 'app/client/components/DropdownConditionEditor';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {makeT} from 'app/client/lib/localization';
-import {ViewFieldRec} from 'app/client/models/DocModel';
-import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
-import {textButton } from 'app/client/ui2018/buttons';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {ISuggestionWithValue} from 'app/common/ActiveDocAPI';
-import {getPredicateFormulaProperties} from 'app/common/PredicateFormula';
-import {UserInfo} from 'app/common/User';
-import {Computed, Disposable, dom, Observable, styled} from 'grainjs';
+import { buildDropdownConditionEditor } from 'app/client/components/DropdownConditionEditor';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { makeT } from 'app/client/lib/localization';
+import { ViewFieldRec } from 'app/client/models/DocModel';
+import { cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
+import { withInfoTooltip } from 'app/client/ui/tooltips';
+import { textButton } from 'app/client/ui2018/buttons';
+import { testId, theme } from 'app/client/ui2018/cssVars';
+import { ISuggestionWithValue } from 'app/common/ActiveDocAPI';
+import { getPredicateFormulaProperties } from 'app/common/PredicateFormula';
+import { UserInfo } from 'app/common/User';
+import { Computed, Disposable, dom, Observable, styled } from 'grainjs';
 import isPlainObject from 'lodash/isPlainObject';
 
 const t = makeT('DropdownConditionConfig');
@@ -52,20 +52,20 @@ export class DropdownConditionConfig extends Disposable {
     const properties = use(this._properties);
     if (!properties) { return null; }
 
-    const {recColIds = [], choiceColIds = []} = properties;
+    const { recColIds = [], choiceColIds = [] } = properties;
     const columns = use(this._columns);
-    const validRecColIds = new Set(['id', ...columns.map(({colId}) => use(colId))]);
+    const validRecColIds = new Set(['id', ...columns.map(({ colId }) => use(colId))]);
     const invalidRecColIds = recColIds.filter(colId => !validRecColIds.has(colId));
     if (invalidRecColIds.length > 0) {
-      return t('Invalid columns: {{colIds}}', {colIds: invalidRecColIds.join(', ')});
+      return t('Invalid columns: {{colIds}}', { colIds: invalidRecColIds.join(', ') });
     }
 
     const refColumns = use(this._refColumns);
     if (refColumns) {
-      const validChoiceColIds = new Set(['id', ...refColumns.map(({colId}) => use(colId))]);
+      const validChoiceColIds = new Set(['id', ...refColumns.map(({ colId }) => use(colId))]);
       const invalidChoiceColIds = choiceColIds.filter(colId => !validChoiceColIds.has(colId));
       if (invalidChoiceColIds.length > 0) {
-        return t('Invalid columns: {{colIds}}', {colIds: invalidChoiceColIds.join(', ')});
+        return t('Invalid columns: {{colIds}}', { colIds: invalidChoiceColIds.join(', ') });
       }
     }
 
@@ -143,7 +143,7 @@ export class DropdownConditionConfig extends Disposable {
                     delete widgetOptions.dropdownCondition;
                   }
                   else {
-                    widgetOptions.dropdownCondition = {text: value};
+                    widgetOptions.dropdownCondition = { text: value };
                   }
                   await this._field.widgetOptionsJson.setAndSave(widgetOptions);
                 }
@@ -179,12 +179,12 @@ export class DropdownConditionConfig extends Disposable {
     }
     const refColumns = this._refColumns.get();
     if (refColumns) {
-      variables.push('choice.id', ...refColumns.map(({colId}) => `choice.${colId.peek()}`));
+      variables.push('choice.id', ...refColumns.map(({ colId }) => `choice.${colId.peek()}`));
     }
     const columns = this._columns.get();
     variables.push(
-      ...columns.map(({colId}) => `$${colId.peek()}`),
-      ...columns.map(({colId}) => `rec.${colId.peek()}`),
+      ...columns.map(({ colId }) => `$${colId.peek()}`),
+      ...columns.map(({ colId }) => `rec.${colId.peek()}`),
     );
     const suggestions = [
       'and', 'or', 'not', 'in', 'is', 'True', 'False', 'None',
@@ -201,7 +201,7 @@ function getUserCompletions(user: UserInfo) {
       return 'user.LinkKey.';
     }
     else if (isPlainObject(value)) {
-      return Object.keys(value as {[key: string]: any})
+      return Object.keys(value as { [key: string]: any })
         .filter(valueKey => valueKey !== 'manualSort')
         .map(valueKey => `user.${key}.${valueKey}`);
     }

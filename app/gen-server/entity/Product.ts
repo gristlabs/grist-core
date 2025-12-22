@@ -1,4 +1,4 @@
-import {Features, FREE_PLAN,
+import { Features, FREE_PLAN,
   Product as IProduct,
   isManagedPlan,
   PERSONAL_FREE_PLAN,
@@ -6,11 +6,11 @@ import {Features, FREE_PLAN,
   STUB_PLAN,
   SUSPENDED_PLAN,
   TEAM_FREE_PLAN,
-  TEAM_PLAN} from 'app/common/Features';
-import {nativeValues} from 'app/gen-server/lib/values';
+  TEAM_PLAN } from 'app/common/Features';
+import { nativeValues } from 'app/gen-server/lib/values';
 import * as assert from 'assert';
-import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
-import {BaseEntity, Column, Connection, Entity, OneToMany, PrimaryGeneratedColumn} from 'typeorm';
+import { BillingAccount } from 'app/gen-server/entity/BillingAccount';
+import { BaseEntity, Column, Connection, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 /**
  * A summary of features available in legacy personal sites.
@@ -184,15 +184,15 @@ export function getAnonymousFeatures(): Features {
 /**
  * A Grist product.  Corresponds to a set of enabled features and a choice of limits.
  */
-@Entity({name: 'products'})
+@Entity({ name: 'products' })
 export class Product extends BaseEntity {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column({type: String})
+  @Column({ type: String })
   public name: string;
 
-  @Column({type: nativeValues.jsonEntityType})
+  @Column({ type: nativeValues.jsonEntityType })
   public features: Features;
 
   @OneToMany(type => BillingAccount, account => account.product)

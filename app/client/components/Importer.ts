@@ -4,30 +4,30 @@
  */
 // tslint:disable:no-console
 
-import {GristDoc} from 'app/client/components/GristDoc';
-import {buildParseOptionsForm, ParseOptionValues} from 'app/client/components/ParseOptions';
-import {PluginScreen} from 'app/client/components/PluginScreen';
-import {makeTestId} from 'app/client/lib/domUtils';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
-import {makeT} from 'app/client/lib/localization';
-import {EXTENSIONS_IMPORTABLE_WITHIN_DOC, fetchURL, isDriveUrl, selectFiles, uploadFiles} from 'app/client/lib/uploads';
-import {reportError} from 'app/client/models/AppModel';
-import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {SortedRowSet} from 'app/client/models/rowset';
-import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
-import {openFilePicker} from 'app/client/ui/FileDialog';
-import {ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading} from 'app/client/ui/googleAuth';
-import {cssPageIcon} from 'app/client/ui/LeftPanelCommon';
-import {hoverTooltip, overflowTooltip} from 'app/client/ui/tooltips';
-import {bigBasicButton, bigPrimaryButton, textButton} from 'app/client/ui2018/buttons';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {testId as baseTestId, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {IOptionFull, menuDivider, menuItem, multiSelect, selectMenu, selectOption} from 'app/client/ui2018/menus';
-import {cssModalTitle} from 'app/client/ui2018/modals';
-import {openFormulaEditor} from 'app/client/widgets/FormulaEditor';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { buildParseOptionsForm, ParseOptionValues } from 'app/client/components/ParseOptions';
+import { PluginScreen } from 'app/client/components/PluginScreen';
+import { makeTestId } from 'app/client/lib/domUtils';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { ImportSourceElement } from 'app/client/lib/ImportSourceElement';
+import { makeT } from 'app/client/lib/localization';
+import { EXTENSIONS_IMPORTABLE_WITHIN_DOC, fetchURL, isDriveUrl, selectFiles, uploadFiles } from 'app/client/lib/uploads';
+import { reportError } from 'app/client/models/AppModel';
+import { ColumnRec, ViewFieldRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { SortedRowSet } from 'app/client/models/rowset';
+import { buildHighlightedCode } from 'app/client/ui/CodeHighlight';
+import { openFilePicker } from 'app/client/ui/FileDialog';
+import { ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading } from 'app/client/ui/googleAuth';
+import { cssPageIcon } from 'app/client/ui/LeftPanelCommon';
+import { hoverTooltip, overflowTooltip } from 'app/client/ui/tooltips';
+import { bigBasicButton, bigPrimaryButton, textButton } from 'app/client/ui2018/buttons';
+import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { testId as baseTestId, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { loadingSpinner } from 'app/client/ui2018/loaders';
+import { IOptionFull, menuDivider, menuItem, multiSelect, selectMenu, selectOption } from 'app/client/ui2018/menus';
+import { cssModalTitle } from 'app/client/ui2018/modals';
+import { openFormulaEditor } from 'app/client/widgets/FormulaEditor';
 import {
   DataSourceTransformed,
   DestId,
@@ -42,10 +42,10 @@ import {
   TransformRule,
   TransformRuleMap,
 } from 'app/common/ActiveDocAPI';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {byteString, not} from 'app/common/gutil';
-import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {ParseOptions, ParseOptionSchema} from 'app/plugin/FileParserAPI';
+import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
+import { byteString, not } from 'app/common/gutil';
+import { FetchUrlOptions, UploadResult } from 'app/common/uploads';
+import { ParseOptions, ParseOptionSchema } from 'app/plugin/FileParserAPI';
 import {
   Computed,
   Disposable,
@@ -70,7 +70,7 @@ const testId = makeTestId('test-importer-');
 // We expect a function for creating the preview GridView, to avoid the need to require the
 // GridView module here. That brings many dependencies, making a simple test fixture difficult.
 type CreatePreviewFunc = (vs: ViewSectionRec) => GridView;
-type GridView = IDisposable & {viewPane: HTMLElement, sortedRows: SortedRowSet};
+type GridView = IDisposable & { viewPane: HTMLElement, sortedRows: SortedRowSet };
 const TABLE_MAPPING = 1;
 const COLUMN_MAPPING = 2;
 type ViewType = typeof TABLE_MAPPING | typeof COLUMN_MAPPING;
@@ -219,8 +219,8 @@ export async function importFromFile(gristDoc: GristDoc, createPreview: CreatePr
   const onProgress = (percent: number) => progress && progress.setProgress(percent);
   try {
     onProgress(0);
-    uploadResult = await uploadFiles(files, {docWorkerUrl: gristDoc.docComm.docWorkerUrl,
-      sizeLimit: 'import'}, onProgress);
+    uploadResult = await uploadFiles(files, { docWorkerUrl: gristDoc.docComm.docWorkerUrl,
+      sizeLimit: 'import' }, onProgress);
     onProgress(100);
   }
   finally {
@@ -289,7 +289,7 @@ export class Importer extends DisposableWithEvents {
   // Promise for the most recent generateImportDiff action.
   private _lastGenImportDiffPromise: Promise<any>|null = null;
 
-  private _debouncedUpdateDiff = debounce(this._updateDiff, 1000, {leading: true, trailing: true});
+  private _debouncedUpdateDiff = debounce(this._updateDiff, 1000, { leading: true, trailing: true });
 
   /**
    * Flag that is set when _updateImportDiff is called, and unset when _debouncedUpdateDiff begins executing.
@@ -304,7 +304,7 @@ export class Importer extends DisposableWithEvents {
    * destTables is a list of tables user can choose to import data into, in the format suitable for the UI to consume.
    */
   private _destTables = Computed.create<Array<IOptionFull<DestId>>>(this, use => [
-    ...use(this._gristDoc.docModel.visibleTableIds.getObservable()).map(id => ({value: id, label: id})),
+    ...use(this._gristDoc.docModel.visibleTableIds.getObservable()).map(id => ({ value: id, label: id })),
   ]);
 
   /**
@@ -407,8 +407,8 @@ export class Importer extends DisposableWithEvents {
         // Use upload result if it was passed in or the built-in file picker.
         // On electron, it uses the native file selector (without actually uploading anything),
         // which is why this requires a slightly different flow.
-        uploadResult = uploadResult || await selectFiles({docWorkerUrl: this._docComm.docWorkerUrl,
-          multiple: true, sizeLimit: 'import'});
+        uploadResult = uploadResult || await selectFiles({ docWorkerUrl: this._docComm.docWorkerUrl,
+          multiple: true, sizeLimit: 'import' });
       }
       else {
         // Need to use plugin to get the data, and manually upload it.
@@ -422,9 +422,9 @@ export class Importer extends DisposableWithEvents {
           // If data has been picked, upload it.
           const item = importSource.item;
           if (item.kind === "fileList") {
-            const files = item.files.map(({content, name}) => new File([content], name));
-            uploadResult = await uploadFiles(files, {docWorkerUrl: this._docComm.docWorkerUrl,
-              sizeLimit: 'import'});
+            const files = item.files.map(({ content, name }) => new File([content], name));
+            uploadResult = await uploadFiles(files, { docWorkerUrl: this._docComm.docWorkerUrl,
+              sizeLimit: 'import' });
           }
           else if (item.kind ===  "url") {
             if (isDriveUrl(item.url)) {
@@ -514,7 +514,7 @@ export class Importer extends DisposableWithEvents {
    */
   private _getTransformedDataSource(upload: UploadResult): DataSourceTransformed {
     const transforms: TransformRuleMap[] = upload.files.map((file, i) => this._createTransformRuleMap(i));
-    return {uploadId: upload.uploadId, transforms};
+    return { uploadId: upload.uploadId, transforms };
   }
 
   private _getMergeOptionMaps(upload: UploadResult): MergeOptionsMap[] {
@@ -568,7 +568,7 @@ export class Importer extends DisposableWithEvents {
     const mergeOptions = this._mergeOptions[sourceInfo.hiddenTableId];
     if (!mergeOptions) { return undefined; }
 
-    const {updateExistingRecords, mergeCols, mergeStrategy} = mergeOptions;
+    const { updateExistingRecords, mergeCols, mergeStrategy } = mergeOptions;
     return {
       mergeCols: updateExistingRecords.get() ? mergeCols.get() : [],
       mergeStrategy: mergeStrategy.get(),
@@ -584,7 +584,7 @@ export class Importer extends DisposableWithEvents {
     this._resetImportDiffState();
     try {
       // Initialize parsing options with NUM_ROWS=0 (a whole file).
-      const parseOptions = {...this._parseOptions.get(), NUM_ROWS: 0};
+      const parseOptions = { ...this._parseOptions.get(), NUM_ROWS: 0 };
 
       // Create the temporary tables and import the files into it.
       const importResult: ImportResult = await this._docComm.importFiles(
@@ -653,7 +653,7 @@ export class Importer extends DisposableWithEvents {
         // Empty, user will select it for existing table.
         mergeCols: obsArray(),
         // Strategy for the backend (from UI we don't care about it).
-        mergeStrategy: Observable.create(null, {type: 'replace-with-nonblank-source'}),
+        mergeStrategy: Observable.create(null, { type: 'replace-with-nonblank-source' }),
         // Helper to show the validation that something is wrong with the columns selected to merge.
         hasInvalidMergeCols: Observable.create(null, false),
       };
@@ -667,11 +667,11 @@ export class Importer extends DisposableWithEvents {
     this._screen.renderSpinner();
     this._resetImportDiffState();
 
-    const parseOptions = {...this._parseOptions.get(), NUM_ROWS: 0};
+    const parseOptions = { ...this._parseOptions.get(), NUM_ROWS: 0 };
     const mergeOptionMaps = this._getMergeOptionMaps(upload);
 
     const importResult: ImportResult = await this._docComm.finishImportFiles(
-      this._getTransformedDataSource(upload), this._getHiddenTableIds(), {mergeOptionMaps, parseOptions});
+      this._getTransformedDataSource(upload), this._getHiddenTableIds(), { mergeOptionMaps, parseOptions });
 
     // This is not hidden table anymore, it was renamed to the name of the final table.
     if (importResult.tables[0]?.hiddenTableId) {
@@ -711,7 +711,7 @@ export class Importer extends DisposableWithEvents {
     if (!mergeOptions) { return isValid; } // No configuration to validate.
 
     const destTableId = selectedSourceInfo.destTableId.get();
-    const {updateExistingRecords, mergeCols, hasInvalidMergeCols} = mergeOptions;
+    const { updateExistingRecords, mergeCols, hasInvalidMergeCols } = mergeOptions;
 
     // Check that at least one merge column was selected (if merging into an existing table).
     if (destTableId !== null && updateExistingRecords.get() && mergeCols.get().length === 0) {
@@ -738,7 +738,7 @@ export class Importer extends DisposableWithEvents {
    * @param {SourceInfo} info The source to update the diff for.
    */
   private async _updateImportDiff(info: SourceInfo) {
-    const {updateExistingRecords, mergeCols} = this._mergeOptions[info.hiddenTableId]!;
+    const { updateExistingRecords, mergeCols } = this._mergeOptions[info.hiddenTableId]!;
     const isMerging = info.destTableId && updateExistingRecords.get() && mergeCols.get().length > 0;
     if (!isMerging && this._gristDoc.comparison) {
       // If we're not merging but diffing is enabled, disable it; since `comparison` isn't
@@ -873,13 +873,13 @@ export class Importer extends DisposableWithEvents {
           dom.maybe(unmatchedCount, count => cssError(
             'Exclamation',
             testId('error'),
-            hoverTooltip(t('{{count}} unmatched field', {count})),
+            hoverTooltip(t('{{count}} unmatched field', { count })),
           )),
         );
       }),
     );
     const previewAndConfig = dom.maybeOwned(this._sourceInfoSelected, (owner, info) => {
-      const {mergeCols, updateExistingRecords, hasInvalidMergeCols} = this._mergeOptions[info.hiddenTableId]!;
+      const { mergeCols, updateExistingRecords, hasInvalidMergeCols } = this._mergeOptions[info.hiddenTableId]!;
 
       // Computed for transform section if we have destination table selected.
       const configSection = Computed.create(owner,
@@ -1028,7 +1028,7 @@ export class Importer extends DisposableWithEvents {
                     ),
                     multiSelect(
                       mergeCols,
-                      section.viewFields().peek().map(f => ({label: f.label(), value: f.colId()})) ?? [],
+                      section.viewFields().peek().map(f => ({ label: f.label(), value: f.colId() })) ?? [],
                       {
                         placeholder: t("Select fields to match on"),
                         error: hasInvalidMergeCols,
@@ -1159,7 +1159,7 @@ export class Importer extends DisposableWithEvents {
         return cssUnmatchedFields(
           cssUnmatchedFieldsIntro(
             cssUnmatchedIcon('Exclamation'),
-            t('{{count}} unmatched field in import', {count}), ': ',
+            t('{{count}} unmatched field in import', { count }), ': ',
           ),
           ...piles,
           testId('unmatched-fields'),
@@ -1167,7 +1167,7 @@ export class Importer extends DisposableWithEvents {
       }),
     ));
     const body = cssContainer(
-      {tabIndex: '-1'},
+      { tabIndex: '-1' },
       header,
       cssPreviewWrapper(
         cssTabsWrapper(
@@ -1246,7 +1246,7 @@ export class Importer extends DisposableWithEvents {
     customized.delete(transformCol.colId());
     info.customizedColumns.set(customized);
     if (formula === null) {
-      await this._gristDoc.docModel.clearColumns([transformColRef], {keepType: true});
+      await this._gristDoc.docModel.clearColumns([transformColRef], { keepType: true });
     }
     else {
       await this._gristDoc.docModel.columns.sendTableAction(
@@ -1274,7 +1274,7 @@ export class Importer extends DisposableWithEvents {
         // Sorry for this hack. We need to store somewhere an info that the formula was edited
         // unfortunately, we don't have a better place to store it. So we will save this by setting
         // display column to the same column. This won't break anything as this is a default value.
-        await column.updateColValues({formula});
+        await column.updateColValues({ formula });
         await onSave(formula);
       },
     });
@@ -1377,12 +1377,12 @@ export class Importer extends DisposableWithEvents {
       const column = use(field.column);
       return use(column.formula);
     });
-    const codeOptions = {placeholder: 'Skip', maxLines: 1};
+    const codeOptions = { placeholder: 'Skip', maxLines: 1 };
     return dom.create(buildHighlightedCode, formula, codeOptions,
       dom.cls(cssFieldFormula.className),
       dom.cls('disabled'),
       dom.cls('formula_field_sidepane'),
-      {tabIndex: '-1'},
+      { tabIndex: '-1' },
       dom.on('focus', (_ev, elem) => this._activateFormulaEditor(elem, field, async (newFormula) => {
         toggleCustomized(info, field.colId.peek(), !!newFormula);
         await this._updateImportDiff(info);

@@ -1,4 +1,4 @@
-import {StringUnion} from 'app/common/StringUnion';
+import { StringUnion } from 'app/common/StringUnion';
 
 /**
  * Telemetry levels, in increasing order of data collected.
@@ -2004,7 +2004,7 @@ export function buildTelemetryEventChecker(telemetryLevel: TelemetryLevel) {
         );
       }
 
-      const {dataType} = metadataContract;
+      const { dataType } = metadataContract;
       if (dataType.endsWith('[]')) {
         if (!Array.isArray(value)) {
           throw new Error(

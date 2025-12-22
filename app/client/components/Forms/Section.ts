@@ -1,17 +1,17 @@
-import {allCommands} from 'app/client/components/commands';
-import {FormLayoutNode} from 'app/client/components/FormRenderer';
-import {buildEditor} from 'app/client/components/Forms/Editor';
-import {FieldModel} from 'app/client/components/Forms/Field';
-import {FormView} from 'app/client/components/Forms/FormView';
-import {buildMenu} from 'app/client/components/Forms/Menu';
-import {BoxModel, LayoutModel} from 'app/client/components/Forms/Model';
-import {Paragraph} from 'app/client/components/Forms/Paragraph';
+import { allCommands } from 'app/client/components/commands';
+import { FormLayoutNode } from 'app/client/components/FormRenderer';
+import { buildEditor } from 'app/client/components/Forms/Editor';
+import { FieldModel } from 'app/client/components/Forms/Field';
+import { FormView } from 'app/client/components/Forms/FormView';
+import { buildMenu } from 'app/client/components/Forms/Menu';
+import { BoxModel, LayoutModel } from 'app/client/components/Forms/Model';
+import { Paragraph } from 'app/client/components/Forms/Paragraph';
 import * as style from 'app/client/components/Forms/styles';
-import {makeTestId} from 'app/client/lib/domUtils';
-import {makeT} from 'app/client/lib/localization';
+import { makeTestId } from 'app/client/lib/domUtils';
+import { makeT } from 'app/client/lib/localization';
 import * as menus from 'app/client/ui2018/menus';
-import {dom, styled} from 'grainjs';
-import {v4 as uuidv4} from 'uuid';
+import { dom, styled } from 'grainjs';
+import { v4 as uuidv4 } from 'uuid';
 
 const t = makeT('Section');
 
@@ -49,12 +49,12 @@ export class SectionModel extends BoxModel {
               box: this,
               customItems: [
                 menus.menuItem(
-                  () => allCommands.insertFieldBefore.run({structure: 'Section'}),
+                  () => allCommands.insertFieldBefore.run({ structure: 'Section' }),
                   menus.menuIcon('Section'),
                   t('Insert section above'),
                 ),
                 menus.menuItem(
-                  () => allCommands.insertFieldAfter.run({structure: 'Section'}),
+                  () => allCommands.insertFieldAfter.run({ structure: 'Section' }),
                   menus.menuIcon('Section'),
                   t('Insert section below'),
                 ),
@@ -62,7 +62,7 @@ export class SectionModel extends BoxModel {
             }),
           ),
         ),
-      )},
+      ) },
     );
   }
 

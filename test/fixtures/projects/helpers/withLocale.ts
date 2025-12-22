@@ -1,4 +1,4 @@
-import {setupLocale} from 'app/client/lib/localization';
+import { setupLocale } from 'app/client/lib/localization';
 
 /**
  * Sets up locales needed for translating text in a fixture.

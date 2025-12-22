@@ -23,7 +23,7 @@ describe('tooltips', function() {
     await driver.find(".test-tooltip-origin").mouseMove();
     await driver.withActions((actions) => {
       // Move way beyond the tooltip.
-      actions.press().move({origin: Origin.POINTER, x: 200, y: 50}).release();
+      actions.press().move({ origin: Origin.POINTER, x: 200, y: 50 }).release();
     });
     assert.equal(
       await driver.executeScript(`return window.getSelection().toString()`),
@@ -37,7 +37,7 @@ describe('tooltips', function() {
     await driver.find('.test-plain').mouseMove();
     await waitEqual(() => driver.find('.test-tooltip').isDisplayed(), true, 500);
     assert.equal(await driver.find('.test-tooltip').getText(), 'Tooltip1');
-    await driver.mouseMoveBy({x: 200});
+    await driver.mouseMoveBy({ x: 200 });
     await waitEqual(() => driver.find('.test-tooltip').isPresent(), false, 1000);
 
     // If we move into the tooltip, it shouldn't close.
@@ -46,7 +46,7 @@ describe('tooltips', function() {
     await driver.find('.test-tooltip').mouseMove();
     await driver.sleep(600);
     assert.equal(await driver.find('.test-tooltip').isDisplayed(), true);
-    await driver.mouseMoveBy({x: 200});
+    await driver.mouseMoveBy({ x: 200 });
     await waitEqual(() => driver.find('.test-tooltip').isPresent(), false, 1000);
   });
 
@@ -76,7 +76,7 @@ describe('tooltips', function() {
     await driver.find('.test-closable').mouseMove();
     await waitEqual(() => driver.find('.test-tooltip').isDisplayed(), true, 500);
     assert.equal(await driver.find('.test-tooltip').getText(), 'Tooltip3');
-    await driver.mouseMoveBy({x: 200});
+    await driver.mouseMoveBy({ x: 200 });
     await waitEqual(() => driver.find('.test-tooltip').isPresent(), false, 1000);
   });
 

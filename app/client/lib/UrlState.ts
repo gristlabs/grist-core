@@ -17,7 +17,7 @@
  * intercept clicks and update history (using pushUrl()) without reloading the page.
  */
 import * as log from 'app/client/lib/log';
-import {BaseObservable, Disposable, dom, DomElementMethod, observable} from 'grainjs';
+import { BaseObservable, Disposable, dom, DomElementMethod, observable } from 'grainjs';
 
 export interface UrlStateSpec<IUrlState> {
   encodeUrl(state: IUrlState, baseLocation: Location | URL): string;
@@ -59,7 +59,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
    * in the URL. This is similar to navigating to a new URL, but does not reload the page.
    */
   public async pushUrl(urlState: IUrlState|UpdateFunc<IUrlState>,
-    options: {replace?: boolean, avoidReload?: boolean} = {}) {
+    options: { replace?: boolean, avoidReload?: boolean } = {}) {
     const prevState = this.state.get();
     const newState = this._mergeState(prevState, urlState);
 

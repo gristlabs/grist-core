@@ -1,21 +1,21 @@
-import {cleanFormLayoutSpec} from 'app/client/components/FormRenderer';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {BoxSpec, purgeBoxSpec} from 'app/client/lib/BoxSpec';
-import {makeT} from 'app/client/lib/localization';
-import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {cssField, cssLabel} from 'app/client/ui/MakeCopyMenu';
-import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {IOption, select} from 'app/client/ui2018/menus';
-import {saveModal} from 'app/client/ui2018/modals';
-import {BulkColValues, getColValues, RowRecord, UserAction} from 'app/common/DocActions';
-import {arrayRepeat} from 'app/common/gutil';
-import {schema} from 'app/common/schema';
-import {dom, fromKo, Observable} from 'grainjs';
+import { cleanFormLayoutSpec } from 'app/client/components/FormRenderer';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { BoxSpec, purgeBoxSpec } from 'app/client/lib/BoxSpec';
+import { makeT } from 'app/client/lib/localization';
+import { ViewFieldRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { cssField, cssLabel } from 'app/client/ui/MakeCopyMenu';
+import { IPageWidget, toPageWidget } from 'app/client/ui/PageWidgetPicker';
+import { IOption, select } from 'app/client/ui2018/menus';
+import { saveModal } from 'app/client/ui2018/modals';
+import { BulkColValues, getColValues, RowRecord, UserAction } from 'app/common/DocActions';
+import { arrayRepeat } from 'app/common/gutil';
+import { schema } from 'app/common/schema';
+import { dom, fromKo, Observable } from 'grainjs';
 import cloneDeepWith from 'lodash/cloneDeepWith';
 import flatten from 'lodash/flatten';
 import forEach from 'lodash/forEach';
-import {testId} from 'app/client/ui2018/cssVars';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
+import { testId } from 'app/client/ui2018/cssVars';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
 import sortBy from 'lodash/sortBy';
 import fromPairs from 'lodash/fromPairs';
 import ko from 'knockout';
@@ -114,7 +114,7 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
       if (isNewView) {
         const newLayoutSpec = patchLayoutSpec(sourceView.layoutSpecObj.peek(), viewSectionIdMap);
         layoutSpecUpdatePromise = gristDoc.docData.sendAction(
-          ['UpdateRecord', '_grist_Views', resolvedDestViewId, { layoutSpec: JSON.stringify(newLayoutSpec)}],
+          ['UpdateRecord', '_grist_Views', resolvedDestViewId, { layoutSpec: JSON.stringify(newLayoutSpec) }],
         );
       }
       await Promise.all([
@@ -134,7 +134,7 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
 
     },
     // If called from duplicatePage (or similar), we don't want to start a new bundle.
-    {nestInActiveBundle: true},
+    { nestInActiveBundle: true },
   );
 
   // Give copy focus
@@ -151,14 +151,14 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
 async function copyFilters(
   gristDoc: GristDoc,
   srcViewSections: ViewSectionRec[],
-  viewSectionMap: {[id: number]: number}) {
+  viewSectionMap: { [id: number]: number }) {
 
   // Get all filters for selected sections.
   const filters: RowRecord[] = [];
   const table = gristDoc.docData.getMetaTable('_grist_Filters');
   for (const srcViewSection of srcViewSections) {
     const sectionFilters = table
-      .filterRecords({ viewSectionRef: srcViewSection.id.peek()})
+      .filterRecords({ viewSectionRef: srcViewSection.id.peek() })
       .map(filter => ({
         // Replace section ref with destination ref.
         ...filter, viewSectionRef: viewSectionMap[srcViewSection.id.peek()],
@@ -177,7 +177,7 @@ async function copyFilters(
  * (for detail/cardlist sections), use viewSectionMap to patch the sections ids for linking.
  */
 async function updateViewSections(gristDoc: GristDoc, duplicatedViewSections: DuplicatedViewSection[],
-  fieldsMap: {[id: number]: number}, viewSectionMap: {[id: number]: number}) {
+  fieldsMap: { [id: number]: number }, viewSectionMap: { [id: number]: number }) {
 
   const destRowIds: number[] = [];
   const records: RowRecord[] = [];
@@ -220,7 +220,7 @@ async function copyOriginalViewFields(gristDoc: GristDoc, viewSectionPairs: Dupl
     const parentId = destViewSection.getRowId();
     for (const field of srcViewFields) {
       const record = docData.getMetaTable('_grist_Views_section_field').getRecord(field.getRowId())!;
-      fieldsToAdd.push({...record, parentId});
+      fieldsToAdd.push({ ...record, parentId });
       srcViewFieldIds.push(field.getRowId());
     }
   }
@@ -313,7 +313,7 @@ function newViewSectionAction(widget: IPageWidget, viewId: number) {
 *      collapsed: [{leaf: 2}]
  *   }, {1: 10, 2: 20})
  */
-function patchLayoutSpec(layoutSpec: BoxSpec, mapIds: {[id: number]: number}) {
+function patchLayoutSpec(layoutSpec: BoxSpec, mapIds: { [id: number]: number }) {
   // First remove any invalid ids from the layoutSpec. We are doing the same thing what
   // `ViewLayout` does when it load itself.
   layoutSpec = purgeBoxSpec({

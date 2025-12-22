@@ -1,9 +1,9 @@
-import {CellValue} from "app/common/DocActions";
-import {FilterState, IRangeBoundType, isRangeFilter, makeFilterState} from "app/common/FilterState";
-import {decodeObject} from "app/plugin/objtypes";
+import { CellValue } from "app/common/DocActions";
+import { FilterState, IRangeBoundType, isRangeFilter, makeFilterState } from "app/common/FilterState";
+import { decodeObject } from "app/plugin/objtypes";
 import moment, { Moment } from "moment-timezone";
-import {extractInfoFromColType, isDateLikeType, isList, isListType, isNumberType} from "app/common/gristTypes";
-import {isRelativeBound, relativeDateToUnixTimestamp} from "app/common/RelativeDates";
+import { extractInfoFromColType, isDateLikeType, isList, isListType, isNumberType } from "app/common/gristTypes";
+import { isRelativeBound, relativeDateToUnixTimestamp } from "app/common/RelativeDates";
 import noop from "lodash/noop";
 
 export type ColumnFilterFunc = (value: CellValue) => boolean;
@@ -14,7 +14,7 @@ export function makeFilterFunc(state: FilterState,
   columnType: string = ''): ColumnFilterFunc {
 
   if (isRangeFilter(state)) {
-    let {min, max} = state;
+    let { min, max } = state;
     if (isNumberType(columnType) || isDateLikeType(columnType)) {
 
       if (isDateLikeType(columnType)) {
@@ -39,7 +39,7 @@ export function makeFilterFunc(state: FilterState,
     }
   }
 
-  const {include, values} = state;
+  const { include, values } = state;
 
   // NOTE: This logic results in complex values and their stringified JSON representations as equivalent.
   // For example, a TypeError in the formula column and the string '["E","TypeError"]' would be seen as the same.

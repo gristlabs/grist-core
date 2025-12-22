@@ -24,7 +24,7 @@ describe('DuplicatePage', async function() {
 
     // Now move this card section somewhere else (it will trigger layout save).
     const handle = await gu.detachFromLayout();
-    await handle.moveTo('Tab1', {x: 200, y: 40});
+    await handle.moveTo('Tab1', { x: 200, y: 40 });
     await driver.findWait(".layout_editor_drop_targeter", 100);
     await handle.release();
     await handle.waitForSave();
@@ -103,7 +103,7 @@ describe('DuplicatePage', async function() {
     );
 
     // sort CITY
-    await gu.openColumnMenu({col: 'Country', section: 'CITY'});
+    await gu.openColumnMenu({ col: 'Country', section: 'CITY' });
     await driver.find('.grist-floating-menu').find('.test-sort-asc').click();
     await gu.openSectionMenu('sortAndFilter');
     await driver.find('.grist-floating-menu .test-section-menu-btn-save').click();

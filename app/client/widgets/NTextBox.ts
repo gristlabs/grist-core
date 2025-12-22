@@ -48,10 +48,10 @@ export class NTextBox extends NewAbstractWidget {
           fromKoSave(this.field.config.alignment),
           cssButtonSelect.cls('-disabled', alignmentDisabled),
         ),
-        dom('div', {style: 'margin-left: 8px;'},
+        dom('div', { style: 'margin-left: 8px;' },
           makeButtonSelect(
             fromKo(this.field.config.wrap),
-            [{value: true, icon: 'Wrap'}],
+            [{ value: true, icon: 'Wrap' }],
             toggle,
             cssButtonSelect.cls('-disabled', wrapDisabled),
           ),
@@ -78,8 +78,8 @@ export class NTextBox extends NewAbstractWidget {
         buttonSelect(
           fromKoSave(format),
           [
-            {value: 'singleline', label: t('Single line')},
-            {value: 'multiline', label: t('Multi line')},
+            { value: 'singleline', label: t('Single line') },
+            { value: 'multiline', label: t('Multi line') },
           ],
           testId('tb-form-field-format'),
         ),

@@ -15,14 +15,14 @@
 
 // tslint:disable:unified-signatures
 
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {AppModel} from 'app/client/models/AppModel';
-import {reportWarning} from 'app/client/models/errors';
-import {IAppError} from 'app/client/models/NotifyModel';
-import {GristLoadConfig} from 'app/common/gristUrls';
-import {timeFormat} from 'app/common/timeFormat';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
+import { AppModel } from 'app/client/models/AppModel';
+import { reportWarning } from 'app/client/models/errors';
+import { IAppError } from 'app/client/models/NotifyModel';
+import { GristLoadConfig } from 'app/common/gristUrls';
+import { timeFormat } from 'app/common/timeFormat';
 import * as version from 'app/common/version';
-import {dom} from 'grainjs';
+import { dom } from 'grainjs';
 import identity from 'lodash/identity';
 import pickBy from 'lodash/pickBy';
 
@@ -47,7 +47,7 @@ interface IFormObj {
   email?: string;
   subject?: string;
   text?: string;
-  fields?: Array<{id: number, value: string|number|boolean}>;
+  fields?: Array<{ id: number, value: string|number|boolean }>;
 }
 
 interface ISessionData {
@@ -83,7 +83,7 @@ export function Beacon(method: BeaconCmd, options?: unknown, data?: unknown) {
 // This is essentially what's done by the code snippet that HelpScout suggests to install in every
 // page. In Grist app pages, we only load HelpScout code when the beacon is opened.
 function _beacon(method: BeaconCmd, options?: unknown, data?: unknown) {
-  _beacon.readyQueue.push({method, options, data});
+  _beacon.readyQueue.push({ method, options, data });
 }
 _beacon.readyQueue = [] as unknown[];
 
@@ -107,7 +107,7 @@ function initBeacon(): void {
         }),
       ));
       _beacon('init', beaconId);
-      _beacon('config', {display: {style: "manual"}});
+      _beacon('config', { display: { style: "manual" } });
     }
     else {
       (window as any).Beacon = () => null;
@@ -126,7 +126,7 @@ let lastRoute: BeaconRoute|null = null;
  * into the session-data.
  */
 function _beaconOpen(userObj: IUserObj|null, options: IBeaconOpenOptions) {
-  const {onOpen, errors} = options;
+  const { onOpen, errors } = options;
 
   // The beacon remembers its content, so reset it when switching between reporting errors and
   // sending a message.
@@ -166,7 +166,7 @@ function _beaconOpen(userObj: IUserObj|null, options: IBeaconOpenOptions) {
   if (errors?.length) {
     // If sending errors, prefill part of the message (the user sees this and can add to it), and
     // include more detailed errors with stack traces into session-data.
-    const messages = errors.map(({error, timestamp}) =>
+    const messages = errors.map(({ error, timestamp }) =>
       (timeFormat('T', new Date(timestamp)) + ' ' + error.message));
     const lastMessage = errors.length > 0 ? errors[errors.length - 1].error.message : '';
     const prefill: IFormObj = {
@@ -174,9 +174,9 @@ function _beaconOpen(userObj: IUserObj|null, options: IBeaconOpenOptions) {
       text: `\n-- Include your description above --\nErrors encountered:\n${messages.join('\n')}\n`,
     };
     Beacon('prefill', prefill);
-    Beacon('config', {messaging: {contactForm: {showSubject: false}}});
+    Beacon('config', { messaging: { contactForm: { showSubject: false } } });
 
-    errors.forEach(({error, timestamp}, i) => {
+    errors.forEach(({ error, timestamp }, i) => {
       attrs[`error-${i}`] =  timeFormat('D T', new Date(timestamp)) + ' ' + error.message;
       if (error.stack) {
         attrs[`error-${i}-stack`] = JSON.stringify(error.stack.trim().split('\n'));
@@ -184,7 +184,7 @@ function _beaconOpen(userObj: IUserObj|null, options: IBeaconOpenOptions) {
     });
   }
   else {
-    Beacon('config', {messaging: {contactForm: {showSubject: true}}});
+    Beacon('config', { messaging: { contactForm: { showSubject: true } } });
   }
 
   Beacon('session-data', {
@@ -198,11 +198,11 @@ function _beaconOpen(userObj: IUserObj|null, options: IBeaconOpenOptions) {
 
   Beacon('once', 'open', () => logTelemetryEvent('beaconOpen'));
   Beacon('on', 'article-viewed', article => logTelemetryEvent('beaconArticleViewed', {
-    full: {articleId: article!.id},
+    full: { articleId: article!.id },
   }));
   Beacon('on', 'email-sent', () => logTelemetryEvent('beaconEmailSent'));
   Beacon('on', 'search', search => logTelemetryEvent('beaconSearch', {
-    full: {searchQuery: search!.query},
+    full: { searchQuery: search!.query },
   }));
 }
 
@@ -216,7 +216,7 @@ function fixBeaconBaseHref() {
   const iframe = document.querySelector('#beacon-container iframe') as HTMLIFrameElement;
   const iframeDoc = iframe?.contentDocument;
   if (iframeDoc && !iframeDoc.querySelector('head > base')) {
-    iframeDoc.head.appendChild(dom('base', {href: ''}));
+    iframeDoc.head.appendChild(dom('base', { href: '' }));
   }
 }
 
@@ -242,7 +242,7 @@ export function beaconOpenMessage(options: IBeaconOpenOptions) {
   if (options.includeAppErrors && app) {
     errors.push(...app.notifier.getFullAppErrors());
   }
-  _beaconOpen(getBeaconUserObj(app), {...options, errors});
+  _beaconOpen(getBeaconUserObj(app), { ...options, errors });
 }
 
 function getBeaconUserObj(appModel: AppModel|null): IUserObj|null {

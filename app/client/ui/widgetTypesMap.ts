@@ -1,20 +1,20 @@
 // the list of widget types with their labels and icons
-import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
-import {IPageWidget} from "app/client/ui/PageWidgetPicker";
-import {IconName} from "app/client/ui2018/IconList";
-import {IWidgetType} from "app/common/widgetTypes";
-import {makeT} from 'app/client/lib/localization';
+import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
+import { IPageWidget } from "app/client/ui/PageWidgetPicker";
+import { IconName } from "app/client/ui2018/IconList";
+import { IWidgetType } from "app/common/widgetTypes";
+import { makeT } from 'app/client/lib/localization';
 
 const t = makeT('widgetTypesMap');
 
 export const widgetTypesMap = new Map<IWidgetType, IWidgetTypeInfo>([
-  ['record', {name: 'Table', icon: 'TypeTable', getLabel: () => t('Table')}],
-  ['single', {name: 'Card', icon: 'TypeCard', getLabel: () => t('Card')}],
-  ['detail', {name: 'Card List', icon: 'TypeCardList', getLabel: () => t('Card List')}],
-  ['chart', {name: 'Chart', icon: 'TypeChart', getLabel: () => t('Chart')}],
-  ['form', {name: 'Form', icon: 'Board', getLabel: () => t('Form')}],
-  ['custom', {name: 'Custom', icon: 'TypeCustom', getLabel: () => t('Custom')}],
-  ['custom.calendar', {name: 'Calendar', icon: 'TypeCalendar', getLabel: () => t('Calendar')}],
+  ['record', { name: 'Table', icon: 'TypeTable', getLabel: () => t('Table') }],
+  ['single', { name: 'Card', icon: 'TypeCard', getLabel: () => t('Card') }],
+  ['detail', { name: 'Card List', icon: 'TypeCardList', getLabel: () => t('Card List') }],
+  ['chart', { name: 'Chart', icon: 'TypeChart', getLabel: () => t('Chart') }],
+  ['form', { name: 'Form', icon: 'Board', getLabel: () => t('Form') }],
+  ['custom', { name: 'Custom', icon: 'TypeCustom', getLabel: () => t('Custom') }],
+  ['custom.calendar', { name: 'Calendar', icon: 'TypeCalendar', getLabel: () => t('Calendar') }],
 ]);
 
 // Widget type info.

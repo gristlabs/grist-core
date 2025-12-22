@@ -29,7 +29,7 @@ describe('Housekeeper', function() {
     home = new TestServer(this);
     await home.start(['home', 'docs']);
     const api = await home.createHomeApi('chimpy', 'docs');
-    await api.newOrg({name: org, domain: org});
+    await api.newOrg({ name: org, domain: org });
     keeper = home.server.housekeeper;
     await keeper.stop();
   });
@@ -42,12 +42,12 @@ describe('Housekeeper', function() {
 
   async function getDoc(docId: string) {
     const manager = home.dbManager.connection.manager;
-    return manager.findOneOrFail(Document, {where: {id: docId}});
+    return manager.findOneOrFail(Document, { where: { id: docId } });
   }
 
   async function getWorkspace(wsId: number) {
     const manager = home.dbManager.connection.manager;
-    return manager.findOneOrFail(Workspace, {where: {id: wsId}});
+    return manager.findOneOrFail(Workspace, { where: { id: wsId } });
   }
 
   function daysAgo(days: number): Date {
@@ -82,15 +82,15 @@ describe('Housekeeper', function() {
     // Make four docs in one workspace, two in another.
     const api = await home.createHomeApi('chimpy', org);
     const adminApi = await home.createHomeApi('ham', 'docs', true);
-    const ws1 = await api.newWorkspace({name: 'ws1'}, 'current');
-    const ws2 = await api.newWorkspace({name: 'ws2'}, 'current');
-    const doc11 = await api.newDoc({name: 'doc11'}, ws1);
-    const doc12 = await api.newDoc({name: 'doc12'}, ws1);
-    const doc13 = await api.newDoc({name: 'doc13'}, ws1);
-    const doc14 = await api.newDoc({name: 'doc14'}, ws1);
-    const doc15 = await api.newDoc({name: 'doc15'}, ws1);
-    const doc21 = await api.newDoc({name: 'doc21'}, ws2);
-    const doc22 = await api.newDoc({name: 'doc22'}, ws2);
+    const ws1 = await api.newWorkspace({ name: 'ws1' }, 'current');
+    const ws2 = await api.newWorkspace({ name: 'ws2' }, 'current');
+    const doc11 = await api.newDoc({ name: 'doc11' }, ws1);
+    const doc12 = await api.newDoc({ name: 'doc12' }, ws1);
+    const doc13 = await api.newDoc({ name: 'doc13' }, ws1);
+    const doc14 = await api.newDoc({ name: 'doc14' }, ws1);
+    const doc15 = await api.newDoc({ name: 'doc15' }, ws1);
+    const doc21 = await api.newDoc({ name: 'doc21' }, ws2);
+    const doc22 = await api.newDoc({ name: 'doc22' }, ws2);
 
     // Soft-delete some of the docs, and one workspace.
     await api.softDeleteDoc(doc11);
@@ -159,8 +159,8 @@ describe('Housekeeper', function() {
   it('can delete old forks', async function() {
     // Make a document with some forks.
     const api = await home.createHomeApi('chimpy', org);
-    const ws3 = await api.newWorkspace({name: 'ws3'}, 'current');
-    const trunk = await api.newDoc({name: 'trunk'}, ws3);
+    const ws3 = await api.newWorkspace({ name: 'ws3' }, 'current');
+    const trunk = await api.newDoc({ name: 'trunk' }, ws3);
     const session = await api.getSessionActive();
     const client = await openClient(home.server, session.user.email, session.org?.domain || 'docs');
     await client.openDocOnConnect(trunk);

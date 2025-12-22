@@ -1,16 +1,16 @@
-import {FormLayoutNode} from 'app/client/components/FormRenderer';
-import {buildEditor} from 'app/client/components/Forms/Editor';
-import {FieldModel} from 'app/client/components/Forms/Field';
-import {buildMenu} from 'app/client/components/Forms/Menu';
-import {BoxModel} from 'app/client/components/Forms/Model';
+import { FormLayoutNode } from 'app/client/components/FormRenderer';
+import { buildEditor } from 'app/client/components/Forms/Editor';
+import { FieldModel } from 'app/client/components/Forms/Field';
+import { buildMenu } from 'app/client/components/Forms/Menu';
+import { BoxModel } from 'app/client/components/Forms/Model';
 import * as style from 'app/client/components/Forms/styles';
-import {makeTestId} from 'app/client/lib/domUtils';
-import {makeT} from 'app/client/lib/localization';
-import {icon} from 'app/client/ui2018/icons';
+import { makeTestId } from 'app/client/lib/domUtils';
+import { makeT } from 'app/client/lib/localization';
+import { icon } from 'app/client/ui2018/icons';
 import * as menus from 'app/client/ui2018/menus';
-import {inlineStyle, not} from 'app/common/gutil';
-import {bundleChanges, Computed, dom, IDomArgs, MultiHolder, Observable, styled} from 'grainjs';
-import {v4 as uuidv4} from 'uuid';
+import { inlineStyle, not } from 'app/common/gutil';
+import { bundleChanges, Computed, dom, IDomArgs, MultiHolder, Observable, styled } from 'grainjs';
+import { v4 as uuidv4 } from 'uuid';
 
 const testId = makeTestId('test-forms-');
 
@@ -235,11 +235,11 @@ export class PlaceholderModel extends BoxModel {
 }
 
 export function Placeholder(): FormLayoutNode {
-  return {id: uuidv4(), type: 'Placeholder'};
+  return { id: uuidv4(), type: 'Placeholder' };
 }
 
 export function Columns(): FormLayoutNode {
-  return {id: uuidv4(), type: 'Columns', children: [Placeholder(), Placeholder()]};
+  return { id: uuidv4(), type: 'Columns', children: [Placeholder(), Placeholder()] };
 }
 
 const cssPlaceholder = styled('div', `

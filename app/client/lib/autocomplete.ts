@@ -1,17 +1,17 @@
 /**
  * Implements an autocomplete dropdown.
  */
-import {createPopper, Modifier, Instance as Popper, Options as PopperOptions} from '@popperjs/core';
-import {ACItem, ACResults, HighlightFunc} from 'app/client/lib/ACIndex';
-import {attachMouseOverOnMove, findAncestorChild} from 'app/client/lib/domUtils';
-import {reportError} from 'app/client/models/errors';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {MaybePromise} from 'app/plugin/gutil';
-import {Disposable, dom, DomContents} from 'grainjs';
-import {obsArray, onKeyElem, styled} from 'grainjs';
+import { createPopper, Modifier, Instance as Popper, Options as PopperOptions } from '@popperjs/core';
+import { ACItem, ACResults, HighlightFunc } from 'app/client/lib/ACIndex';
+import { attachMouseOverOnMove, findAncestorChild } from 'app/client/lib/domUtils';
+import { reportError } from 'app/client/models/errors';
+import { testId, theme } from 'app/client/ui2018/cssVars';
+import { MaybePromise } from 'app/plugin/gutil';
+import { Disposable, dom, DomContents } from 'grainjs';
+import { obsArray, onKeyElem, styled } from 'grainjs';
 import merge from 'lodash/merge';
 import maxSize from 'popper-max-size-modifier';
-import {cssMenu} from 'popweasel';
+import { cssMenu } from 'popweasel';
 
 export interface IAutocompleteOptions<Item extends ACItem> {
   // If provided, applies the css class to the menu container. Could be multiple, space-separated.
@@ -61,7 +61,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   protected _selected: HTMLElement|null = null;
 
   private _popper: Popper;
-  private _mouseOver: {reset(): void};
+  private _mouseOver: { reset(): void };
   private _lastAsTyped: string;
   private _items = this.autoDispose(obsArray<Item>([]));
   private _extraItems = this.autoDispose(obsArray<Item>([]));
@@ -76,7 +76,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
 
     const content = cssMenuWrap(
       cssMenu(
-        {class: _options.menuCssClass || ''},
+        { class: _options.menuCssClass || '' },
         dom.style('min-width', _triggerElem.getBoundingClientRect().width + 'px'),
         this._maybeShowNoItemsMessage(),
         this._menuContent = dom('div',
@@ -158,7 +158,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
       if (prev) { prev.classList.remove(clsName); }
       if (elem) {
         elem.classList.add(clsName);
-        elem.scrollIntoView({block: 'nearest'});
+        elem.scrollIntoView({ block: 'nearest' });
       }
     }
     this._selected = elem;
@@ -218,7 +218,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   }
 
   private _maybeShowNoItemsMessage() {
-    const {buildNoItemsMessage} = this._options;
+    const { buildNoItemsMessage } = this._options;
     if (!buildNoItemsMessage) { return null; }
 
     return dom.maybe(use => use(this._items).length === 0, () =>
@@ -229,7 +229,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
 // The maxSize modifiers follow recommendations at https://www.npmjs.com/package/popper-max-size-modifier
 const calcMaxSize = {
   ...maxSize,
-  options: {padding: 4},
+  options: { padding: 4 },
 };
 
 const applyMaxSize: Modifier<any, any> = {
@@ -237,9 +237,9 @@ const applyMaxSize: Modifier<any, any> = {
   enabled: true,
   phase: 'beforeWrite',
   requires: ['maxSize'],
-  fn({state}: any) {
+  fn({ state }: any) {
     // The `maxSize` modifier provides this data
-    const {height} = state.modifiersData.maxSize;
+    const { height } = state.modifiersData.maxSize;
     Object.assign(state.styles.popper, {
       maxHeight: `${Math.max(160, height)}px`,
     });
@@ -251,7 +251,7 @@ export const defaultPopperOptions: Partial<PopperOptions> = {
   modifiers: [
     calcMaxSize,
     applyMaxSize,
-    {name: "computeStyles", options: {gpuAcceleration: false}},
+    { name: "computeStyles", options: { gpuAcceleration: false } },
   ],
 };
 

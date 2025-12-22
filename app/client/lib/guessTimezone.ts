@@ -1,4 +1,4 @@
-import {loadMomentTimezone} from 'app/client/lib/imports';
+import { loadMomentTimezone } from 'app/client/lib/imports';
 
 /**
  * Returns the browser timezone, using moment.tz.guess(), allowing overriding it via a "timezone"

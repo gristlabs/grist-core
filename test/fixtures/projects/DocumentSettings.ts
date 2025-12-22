@@ -1,12 +1,12 @@
-import {addSaveInterface, KoSaveableObservable, objObservable} from 'app/client/models/modelUtil';
-import {DocSettingsPage} from 'app/client/ui/DocumentSettings';
-import {testId} from 'app/client/ui2018/cssVars';
-import {ColValues} from 'app/common/DocActions';
-import {DocumentSettings} from 'app/common/DocumentSettings';
-import {Computed, dom, fromKo, input, observable, Observable, styled} from "grainjs";
+import { addSaveInterface, KoSaveableObservable, objObservable } from 'app/client/models/modelUtil';
+import { DocSettingsPage } from 'app/client/ui/DocumentSettings';
+import { testId } from 'app/client/ui2018/cssVars';
+import { ColValues } from 'app/common/DocActions';
+import { DocumentSettings } from 'app/common/DocumentSettings';
+import { Computed, dom, fromKo, input, observable, Observable, styled } from "grainjs";
 import * as ko from "knockout";
-import {withLocale} from 'test/fixtures/projects/helpers/withLocale';
-import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
+import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 function savable<T>(initial: T) {
   async function save(value: T) {
@@ -24,14 +24,14 @@ function setupTest() {
   const docInfo = {
     timezone,
     documentSettingsJson,
-    updateColValues: async function({timezone: newTimezone, documentSettings}: ColValues): Promise<void> {
+    updateColValues: async function({ timezone: newTimezone, documentSettings }: ColValues): Promise<void> {
       await timezone.saveOnly(String(newTimezone));
       await documentSettingsJson.saveOnly(JSON.parse(String(documentSettings)));
     },
   };
   const docPageModel = {
     currentDocId: Observable.create(null, 'docId'),
-    currentDoc: Observable.create(null, {access: 'owners'}),
+    currentDoc: Observable.create(null, { access: 'owners' }),
     type: Observable.create(null, null),
     isFork: Observable.create(null, false),
   };

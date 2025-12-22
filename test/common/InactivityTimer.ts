@@ -1,6 +1,6 @@
-import {InactivityTimer} from 'app/common/InactivityTimer';
-import {delay} from 'bluebird';
-import {assert} from 'chai';
+import { InactivityTimer } from 'app/common/InactivityTimer';
+import { delay } from 'bluebird';
+import { assert } from 'chai';
 import * as sinon from 'sinon';
 
 describe("InactivityTimer", function() {

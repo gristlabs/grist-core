@@ -13,21 +13,21 @@
 // changed during construction of a query.
 
 import * as sqlite3 from '@gristlabs/sqlite3';
-import {ApiError} from 'app/common/ApiError';
-import {delay} from 'app/common/delay';
+import { ApiError } from 'app/common/ApiError';
+import { delay } from 'app/common/delay';
 import log from 'app/server/lib/log';
-import {Mutex, MutexInterface} from 'async-mutex';
+import { Mutex, MutexInterface } from 'async-mutex';
 import isEqual from 'lodash/isEqual';
-import {EntityManager, ObjectLiteral, QueryRunner, TypeORMError} from 'typeorm';
-import {PostgresDriver} from 'typeorm/driver/postgres/PostgresDriver';
-import {PostgresQueryRunner} from 'typeorm/driver/postgres/PostgresQueryRunner';
-import {SqliteDriver} from 'typeorm/driver/sqlite/SqliteDriver';
-import {SqliteQueryRunner} from 'typeorm/driver/sqlite/SqliteQueryRunner';
-import {IsolationLevel} from 'typeorm/driver/types/IsolationLevel';
+import { EntityManager, ObjectLiteral, QueryRunner, TypeORMError } from 'typeorm';
+import { PostgresDriver } from 'typeorm/driver/postgres/PostgresDriver';
+import { PostgresQueryRunner } from 'typeorm/driver/postgres/PostgresQueryRunner';
+import { SqliteDriver } from 'typeorm/driver/sqlite/SqliteDriver';
+import { SqliteQueryRunner } from 'typeorm/driver/sqlite/SqliteQueryRunner';
+import { IsolationLevel } from 'typeorm/driver/types/IsolationLevel';
 import {
   QueryRunnerProviderAlreadyReleasedError,
 } from 'typeorm/error/QueryRunnerProviderAlreadyReleasedError';
-import {QueryBuilder} from 'typeorm/query-builder/QueryBuilder';
+import { QueryBuilder } from 'typeorm/query-builder/QueryBuilder';
 
 // Print a warning for transactions that take longer than this.
 const SLOW_TRANSACTION_MS = 5000;
@@ -129,7 +129,7 @@ export function applyPatch() {
 
           const timer = setInterval(() => {
             const timeMs = Date.now() - start;
-            log.warn(`TypeORM transaction slow: [${arg1} ${arg2}]`, {timeMs});
+            log.warn(`TypeORM transaction slow: [${arg1} ${arg2}]`, { timeMs });
           }, SLOW_TRANSACTION_MS);
 
           try {

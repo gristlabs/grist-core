@@ -1,40 +1,40 @@
-import {getEnvContent} from 'app/common/ActionBundle';
-import {ServerQuery} from 'app/common/ActiveDocAPI';
-import {delay} from 'app/common/delay';
-import {BulkColValues, CellValue, fromTableDataAction} from 'app/common/DocActions';
+import { getEnvContent } from 'app/common/ActionBundle';
+import { ServerQuery } from 'app/common/ActiveDocAPI';
+import { delay } from 'app/common/delay';
+import { BulkColValues, CellValue, fromTableDataAction } from 'app/common/DocActions';
 import * as gristTypes from 'app/common/gristTypes';
-import {CreatableArchiveFormats} from 'app/common/UserAPI';
-import {TableData} from 'app/common/TableData';
-import {GristObjCode} from 'app/plugin/GristData';
-import {ActiveDoc, Deps} from 'app/server/lib/ActiveDoc';
-import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
+import { CreatableArchiveFormats } from 'app/common/UserAPI';
+import { TableData } from 'app/common/TableData';
+import { GristObjCode } from 'app/plugin/GristData';
+import { ActiveDoc, Deps } from 'app/server/lib/ActiveDoc';
+import { getDocPoolIdFromDocInfo } from 'app/server/lib/AttachmentStore';
 import {
   AttachmentStoreProvider,
   IAttachmentStoreProvider,
 } from 'app/server/lib/AttachmentStoreProvider';
-import {DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
-import {AuthSession} from 'app/server/lib/AuthSession';
-import {Client} from 'app/server/lib/Client';
-import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
-import {guessExt} from 'app/server/lib/guessExt';
+import { DummyAuthorizer } from 'app/server/lib/DocAuthorizer';
+import { AuthSession } from 'app/server/lib/AuthSession';
+import { Client } from 'app/server/lib/Client';
+import { makeExceptionalDocSession, makeOptDocSession, OptDocSession } from 'app/server/lib/DocSession';
+import { guessExt } from 'app/server/lib/guessExt';
 import log from 'app/server/lib/log';
-import {timeoutReached} from 'app/server/lib/serverUtils';
-import {Throttle} from 'app/server/lib/Throttle';
-import {createTmpDir as createTmpUploadDir, globalUploadSet} from 'app/server/lib/uploads';
-import {MemoryWritableStream} from 'app/server/utils/streams';
-import {promisify} from 'bluebird';
-import {assert} from 'chai';
+import { timeoutReached } from 'app/server/lib/serverUtils';
+import { Throttle } from 'app/server/lib/Throttle';
+import { createTmpDir as createTmpUploadDir, globalUploadSet } from 'app/server/lib/uploads';
+import { MemoryWritableStream } from 'app/server/utils/streams';
+import { promisify } from 'bluebird';
+import { assert } from 'chai';
 import decompress from 'decompress';
 import * as child_process from 'child_process';
 import * as fse from 'fs-extra';
 import * as _ from 'lodash';
 import * as stream from 'node:stream';
-import path, {resolve} from 'path';
+import path, { resolve } from 'path';
 import * as sinon from 'sinon';
-import {createDocTools} from 'test/server/docTools';
-import {makeTestingFilesystemStoreConfig} from 'test/server/lib/FilesystemAttachmentStore';
+import { createDocTools } from 'test/server/docTools';
+import { makeTestingFilesystemStoreConfig } from 'test/server/lib/FilesystemAttachmentStore';
 import * as testUtils from 'test/server/testUtils';
-import {EnvironmentSnapshot} from 'test/server/testUtils';
+import { EnvironmentSnapshot } from 'test/server/testUtils';
 import * as tmp from 'tmp';
 
 const execFileAsync = promisify(child_process.execFile);
@@ -61,7 +61,7 @@ describe('ActiveDoc', async function() {
   const sandbox = sinon.createSandbox();
 
   async function fetchValues(activeDoc: ActiveDoc, tableId: any): Promise<BulkColValues> {
-    const {tableData} = await activeDoc.fetchTable(fakeSession, tableId, true);
+    const { tableData } = await activeDoc.fetchTable(fakeSession, tableId, true);
     return _.omit(tableData[3], 'manualSort');
   }
 
@@ -110,7 +110,7 @@ describe('ActiveDoc', async function() {
     "-1e4",                   // Text that looks like float
     "true",                   // Text that looks like bool
     "",                       // Text that's empty.
-    ['L', ['O', {A: 1.0}], ['L', 5, 's']],  // other complex types
+    ['L', ['O', { A: 1.0 }], ['L', 5, 's']],  // other complex types
     ['L', "Foo", "Bar"],      // ChoiceList
     // TODO We are unable YET to support binary data in the sandbox properly because we don't
     // distinguish in the sandbox between unicode text and binary. Once that's fixed, this should
@@ -125,17 +125,17 @@ describe('ActiveDoc', async function() {
     onDemand: boolean = true): Promise<ActiveDoc> {
     // We can use fetchQuery() to look up a tableRef from a tableId.
     const data = fromTableDataAction(await activeDoc.fetchQuery(fakeSession,
-      {tableId: '_grist_Tables', filters: {tableId: [tableId]}}));
+      { tableId: '_grist_Tables', filters: { tableId: [tableId] } }));
     assert.deepEqual(data.onDemand, [!onDemand]);
     const tableRef = data.id[0];
 
-    await activeDoc.applyUserActions(fakeSession, [['UpdateRecord', '_grist_Tables', tableRef, {onDemand}]]);
+    await activeDoc.applyUserActions(fakeSession, [['UpdateRecord', '_grist_Tables', tableRef, { onDemand }]]);
     await activeDoc.shutdown();
     const activeDoc2 = await docTools.loadDoc(activeDoc.docName);
 
     // Check that the table is known to be onDemand.
     const data2 = fromTableDataAction(await activeDoc2.fetchQuery(fakeSession,
-      {tableId: '_grist_Tables', filters: {tableId: [tableId]}}));
+      { tableId: '_grist_Tables', filters: { tableId: [tableId] } }));
     assert.deepEqual(data2.id, [tableRef]);
     assert.deepEqual(data2.onDemand, [onDemand]);
 
@@ -161,7 +161,7 @@ describe('ActiveDoc', async function() {
 
       // ----------------------------------------
       await activeDoc1.applyUserActions(fakeSession, [
-        ["AddTable", "Hello", [{id: "city", type: "Text"}, {id: "state", type: "Text"}]],
+        ["AddTable", "Hello", [{ id: "city", type: "Text" }, { id: "state", type: "Text" }]],
         ["BulkAddRecord", "Hello", [1, 4], {
           city: ['New York', 'Boston'],
           state: ['NY', 'MA'],
@@ -185,8 +185,8 @@ describe('ActiveDoc', async function() {
       // ----------------------------------------
       await activeDoc1.applyUserActions(fakeSession, [
         ["RenameColumn", "Hello", "city", "ciudad"],
-        ["ModifyColumn", "Hello", "ciudad", {type: "Choice"}],
-        ["AddTable", "Foo", [{id: "A"}]],
+        ["ModifyColumn", "Hello", "ciudad", { type: "Choice" }],
+        ["AddTable", "Foo", [{ id: "A" }]],
       ]);
       verifyTableData(activeDoc1.docData!.getTable('_grist_Tables'), ["id", "tableId"], [
         [1, "Hello"],
@@ -280,7 +280,7 @@ describe('ActiveDoc', async function() {
       await testUseQuery(activeDoc1, false);
 
       // Now change the table to be onDemand, and reload the data engine.
-      await activeDoc1.applyUserActions(fakeSession, [['UpdateRecord', '_grist_Tables', tableRef, {onDemand: true}]]);
+      await activeDoc1.applyUserActions(fakeSession, [['UpdateRecord', '_grist_Tables', tableRef, { onDemand: true }]]);
       await activeDoc1.shutdown();
       const activeDoc2 = await docTools.loadDoc(docName);
 
@@ -298,7 +298,7 @@ describe('ActiveDoc', async function() {
       const ifSupported = (...args: any[]) => args.map(v => onDemand ? UNSUPPORTED_FORMULA : v);
 
       // Simple query matching one record.
-      const res1 = await activeDoc.useQuerySet(fakeSession, {tableId: "Bar", filters: {lname: ['Johnson']}});
+      const res1 = await activeDoc.useQuerySet(fakeSession, { tableId: "Bar", filters: { lname: ['Johnson'] } });
       assert.deepEqual(res1.tableData,
         ["TableData", "Bar", [1], {
           fname: ['Alice'],  lname: ['Johnson'], age: [28], manualSort: [1],
@@ -306,7 +306,7 @@ describe('ActiveDoc', async function() {
         }]);
 
       // Simple query matching multiple records.
-      const res2 = await activeDoc.useQuerySet(fakeSession, {tableId: "Bar", filters: {age: [28]}});
+      const res2 = await activeDoc.useQuerySet(fakeSession, { tableId: "Bar", filters: { age: [28] } });
       assert.deepEqual(res2.tableData,
         ["TableData", "Bar", [1, 2], {
           fname: ['Alice', 'Bob'],  lname: ['Johnson', 'Upton'], age: [28, 28], manualSort: [1, 2],
@@ -315,14 +315,14 @@ describe('ActiveDoc', async function() {
 
       // Combination query matching no records.
       const res3 = await activeDoc.useQuerySet(fakeSession,
-        {tableId: "Bar", filters: {age: [200], lname: ['Johnson']}});
+        { tableId: "Bar", filters: { age: [200], lname: ['Johnson'] } });
       assert.deepEqual(res3.tableData, ["TableData", "Bar", [], {
         fname: [],  lname: [], age: [], manualSort: [],
         age2: [],
       }]);
 
       // Query with no filters should match all records.
-      const res4 = await activeDoc.useQuerySet(fakeSession, {tableId: "Bar", filters: {}});
+      const res4 = await activeDoc.useQuerySet(fakeSession, { tableId: "Bar", filters: {} });
       assert.deepEqual(res4.tableData,
         ["TableData", "Bar", [1, 2], {
           fname: ['Alice', 'Bob'],  lname: ['Johnson', 'Upton'], age: [28, 28], manualSort: [1, 2],
@@ -331,7 +331,7 @@ describe('ActiveDoc', async function() {
 
       // Query with multiple values in the filter.
       const res5 = await activeDoc.useQuerySet(fakeSession,
-        {tableId: "Bar", filters: {lname: ['Johnson', 'Upton', 'Hacker";\';Bob'], age: [28]}});
+        { tableId: "Bar", filters: { lname: ['Johnson', 'Upton', 'Hacker";\';Bob'], age: [28] } });
       assert.deepEqual(res5.tableData,
         ["TableData", "Bar", [1, 2], {
           fname: ['Alice', 'Bob'],  lname: ['Johnson', 'Upton'], age: [28, 28], manualSort: [1, 2],
@@ -345,7 +345,7 @@ describe('ActiveDoc', async function() {
       lnames.push(...[...Array(100000).keys()].map(i => `chaff-${i}`));
       ages.push(...[...Array(100000).keys()].map(i => 1000 + i));
       const res6 = await activeDoc.useQuerySet(fakeSession,
-        {tableId: "Bar", filters: {lname: lnames, age: ages}});
+        { tableId: "Bar", filters: { lname: lnames, age: ages } });
       assert.deepEqual(res6.tableData,
         ["TableData", "Bar", [1, 2], {
           fname: ['Alice', 'Bob'],  lname: ['Johnson', 'Upton'], age: [28, 28], manualSort: [1, 2],
@@ -354,7 +354,7 @@ describe('ActiveDoc', async function() {
 
       // Query with an empty filter.
       const res7 = await activeDoc.useQuerySet(fakeSession,
-        {tableId: "Bar", filters: {lname: [], age: [28]}});
+        { tableId: "Bar", filters: { lname: [], age: [28] } });
       assert.deepEqual(res7.tableData, ["TableData", "Bar", [], {
         fname: [],  lname: [], age: [], manualSort: [],
         age2: [],
@@ -415,11 +415,11 @@ describe('ActiveDoc', async function() {
       const noNumeric = onDemand ? null : 0;
       const noText = onDemand ? null : "";
       // on-demand table can not yet be filtered by the output of a formula.
-      const ageFilter: {[key: string]: any[]} = onDemand ? {age: [28]} : {age2: [56]};
+      const ageFilter: { [key: string]: any[] } = onDemand ? { age: [28] } : { age2: [56] };
 
       const query = async (s: OptDocSession, q: ServerQuery) => (await activeDoc.fetchQuery(s, q)).tableData;
       assert.deepEqual(await query(fakeSession,
-        {tableId: 'Bar', filters: {fname: ['Bob'], lname: ['Upton']}}),
+        { tableId: 'Bar', filters: { fname: ['Bob'], lname: ['Upton'] } }),
       ['TableData', 'Bar', [2], {
         fname: ['Bob'], lname: ['Upton'], age: [28], age2: ifSupported(56), manualSort: [2],
         theme: [1], gristHelper_Display: ['Space'],
@@ -431,7 +431,7 @@ describe('ActiveDoc', async function() {
       }]);
 
       assert.deepEqual(await query(fakeSession,
-        {tableId: 'Bar', filters: ageFilter}),
+        { tableId: 'Bar', filters: ageFilter }),
       ['TableData', 'Bar', [1, 2], {
         fname: ['Alice', 'Bob'], lname: ['Johnson', 'Upton'], age: [28, 28],
         age2: ifSupported(56, 56),
@@ -445,7 +445,7 @@ describe('ActiveDoc', async function() {
       }]);
 
       assert.deepEqual(await query(fakeSession,
-        {tableId: 'Bar', filters: {fname: ['Bob'], ...ageFilter}}),
+        { tableId: 'Bar', filters: { fname: ['Bob'], ...ageFilter } }),
       ['TableData', 'Bar', [2], {
         fname: ['Bob'], lname: ['Upton'], age: [28], age2: ifSupported(56),
         manualSort: [2],
@@ -458,7 +458,7 @@ describe('ActiveDoc', async function() {
       }]);
 
       assert.deepEqual(await query(fakeSession,
-        {tableId: 'Bar', filters: {fname: ['Bob']}}),
+        { tableId: 'Bar', filters: { fname: ['Bob'] } }),
       ['TableData', 'Bar', [2, 3], {
         fname: ['Bob', 'Bob'], lname: ['Upton', 'C'], age: [28, 0],
         age2: ifSupported(56, 0),
@@ -472,7 +472,7 @@ describe('ActiveDoc', async function() {
       }]);
 
       assert.deepEqual(await query(fakeSession,
-        {tableId: 'Bar', filters: {fname: ['Bob'], age: [0]}}),
+        { tableId: 'Bar', filters: { fname: ['Bob'], age: [0] } }),
       ['TableData', 'Bar', [3], {
         fname: ['Bob'], lname: ['C'], age: [0], age2: ifSupported(0), manualSort: [3],
         theme: [2], gristHelper_Display: ['Underwater'],
@@ -483,7 +483,7 @@ describe('ActiveDoc', async function() {
         animal: [0], habitat: [noText],
       }]);
 
-      await assert.isRejected(query(fakeSession, {tableId: 'Foo', filters: {}}),
+      await assert.isRejected(query(fakeSession, { tableId: 'Foo', filters: {} }),
         /Sandbox.*Foo/);
     }
 
@@ -521,7 +521,7 @@ describe('ActiveDoc', async function() {
       assert.sameMembers(await getIndexes(activeDoc), ['Bar.animal', 'Bar.nightTheme', 'Bar.theme', 'Dupe.theme']);
 
       assert.deepEqual((await activeDoc.fetchQuery(fakeSession,
-        {tableId: 'Dupe', filters: {name: ['Me']}})).tableData,
+        { tableId: 'Dupe', filters: { name: ['Me'] } })).tableData,
       ['TableData', 'Dupe', [1], {
         manualSort: [1], name: ['Me'], theme: [2], volume: [3],
       }]);
@@ -548,11 +548,11 @@ describe('ActiveDoc', async function() {
       ]);
       assert.lengthOf(await getIndexes(activeDoc), 0);
       await activeDoc.applyUserActions(fakeSession, [
-        ['AddColumn', 'Dupe', 'retheme', {type: 'Ref:Theme', isFormula: false}],
+        ['AddColumn', 'Dupe', 'retheme', { type: 'Ref:Theme', isFormula: false }],
       ]);
       assert.sameMembers(await getIndexes(activeDoc), ['Dupe.retheme']);
       await activeDoc.applyUserActions(fakeSession, [
-        ['ModifyColumn', 'Dupe', 'retheme', {label: 'retheme!'}],
+        ['ModifyColumn', 'Dupe', 'retheme', { label: 'retheme!' }],
       ]);
       assert.sameMembers(await getIndexes(activeDoc), ['Dupe.retheme_']);
     });
@@ -570,7 +570,7 @@ describe('ActiveDoc', async function() {
       const data = _.fromPairs(_.map(allTypes, (type, colId) => [colId, _.clone(allValues)])) as BulkColValues;
 
       await activeDoc1.applyUserActions(fakeSession, [
-        ['AddTable', 'Types', _.map(allTypes, (type, id) => ({id, type, isFormula: false}))],
+        ['AddTable', 'Types', _.map(allTypes, (type, id) => ({ id, type, isFormula: false }))],
         // Force lower-level DocActions to be applied rather than UserActions, to avoid all the
         // smartness that sandbox might have (e.g. setting manualSort values).
         ['ApplyDocActions', [['BulkAddRecord', 'Types', rowIds, data]]],
@@ -602,11 +602,11 @@ describe('ActiveDoc', async function() {
       const rowIds = _.range(1, allValues.length + 1);
       await activeDoc1.applyUserActions(fakeSession, [
         ['AddTable', 'Types', [
-          {id: 'value', type: 'Any', isFormula: false},
-          {id: 'valueRepr', type: 'Any', isFormula: true, formula: 'type($value)'},
+          { id: 'value', type: 'Any', isFormula: false },
+          { id: 'valueRepr', type: 'Any', isFormula: true, formula: 'type($value)' },
           // Here we'll create a formula column of each type, each of which returns the various
           // possible values in different rows.
-          ..._.map(allTypes, (type, id) => ({id, type, isFormula: true, formula: '$value'})),
+          ..._.map(allTypes, (type, id) => ({ id, type, isFormula: true, formula: '$value' })),
 
           // Some values end up with identical representation after encoding to JSON and DB and
           // loading from it. E.g. 5 and 5.0, or "A" and u"A". Typed columns make them uniform
@@ -616,7 +616,7 @@ describe('ActiveDoc', async function() {
           // action, since there is no change as seen from outside the sandbox. This isn't covered
           // by the columns above because both the formula column and its source are loaded in the
           // same way. So test using another column that produces different value types.
-          {id: 'typeConv', type: 'Any', isFormula: true, formula:
+          { id: 'typeConv', type: 'Any', isFormula: true, formula:
             '(bool($value) if $value == 1 else\n' +
             ' float($value) if isinstance($value, (int, bool)) else\n' +
             ' int($value) if isinstance($value, float) else\n' +
@@ -626,7 +626,7 @@ describe('ActiveDoc', async function() {
         ]],
         // Force lower-level DocActions to be applied rather than UserActions, to avoid all the
         // smartness that sandbox might have (e.g. setting manualSort values).
-        ['ApplyDocActions', [['BulkAddRecord', 'Types', rowIds, {value: allValues}]]],
+        ['ApplyDocActions', [['BulkAddRecord', 'Types', rowIds, { value: allValues }]]],
       ]);
 
       // Get the data from the sandbox. Formulas convert their results to the column's type, so we
@@ -666,7 +666,7 @@ describe('ActiveDoc', async function() {
       const docName = 'type-defaults';
       const activeDoc1 = await docTools.createDoc(docName);
       await activeDoc1.applyUserActions(fakeSession, [
-        ['AddTable', 'Defaults', _.map(allTypes, (type, id) => ({id, type, isFormula: false}))],
+        ['AddTable', 'Defaults', _.map(allTypes, (type, id) => ({ id, type, isFormula: false }))],
         // Force lower-level DocActions to be applied rather than UserActions, to avoid all the
         // smartness that sandbox might have (e.g. setting manualSort values).
         ['ApplyDocActions', [['AddRecord', 'Defaults', 1, {}]]],
@@ -691,17 +691,17 @@ describe('ActiveDoc', async function() {
       const docName = 'defaults-conversions';
       const activeDoc1 = await docTools.createDoc(docName);
       await activeDoc1.applyUserActions(fakeSession, [
-        ['AddTable', 'Defaults', _.map(allTypes, (type, id) => ({id, type, isFormula: false}))],
+        ['AddTable', 'Defaults', _.map(allTypes, (type, id) => ({ id, type, isFormula: false }))],
 
         // This isn't a normal conversion, but just the ModifyColumn docaction part.
-        ['ModifyColumn', 'Defaults', 'Any',           {type: 'Blob'}],
-        ['ModifyColumn', 'Defaults', 'Blob',          {type: 'Text'}],
-        ['ModifyColumn', 'Defaults', 'Bool',          {type: 'Int'}],
-        ['ModifyColumn', 'Defaults', 'Int',           {type: 'Numeric'}],
-        ['ModifyColumn', 'Defaults', 'ManualSortPos', {type: 'Ref:Defaults'}],
-        ['ModifyColumn', 'Defaults', 'Numeric',       {type: 'Bool'}],
-        ['ModifyColumn', 'Defaults', 'Ref',           {type: 'Attachments'}],
-        ['ModifyColumn', 'Defaults', 'Text',          {type: 'Numeric'}],
+        ['ModifyColumn', 'Defaults', 'Any',           { type: 'Blob' }],
+        ['ModifyColumn', 'Defaults', 'Blob',          { type: 'Text' }],
+        ['ModifyColumn', 'Defaults', 'Bool',          { type: 'Int' }],
+        ['ModifyColumn', 'Defaults', 'Int',           { type: 'Numeric' }],
+        ['ModifyColumn', 'Defaults', 'ManualSortPos', { type: 'Ref:Defaults' }],
+        ['ModifyColumn', 'Defaults', 'Numeric',       { type: 'Bool' }],
+        ['ModifyColumn', 'Defaults', 'Ref',           { type: 'Attachments' }],
+        ['ModifyColumn', 'Defaults', 'Text',          { type: 'Numeric' }],
 
         // Add a new record with all defaults. We'll check that we get correct defaults.
         ['ApplyDocActions', [['AddRecord', 'Defaults', 1, {}]]],
@@ -760,11 +760,11 @@ describe('ActiveDoc', async function() {
       const rowIds = _.range(1, allValues.length + 1);
       const data = _.fromPairs(_.map(allTypes, (type, colId) => [colId, _.clone(allValues)]));
       await activeDoc1.applyUserActions(fakeSession, [
-        ['AddTable', 'Types', _.map(allTypes, (type, id) => ({id, type, isFormula: false}))],
+        ['AddTable', 'Types', _.map(allTypes, (type, id) => ({ id, type, isFormula: false }))],
         // Force lower-level DocActions to be applied rather than UserActions, to avoid all the
         // smartness that sandbox might have (e.g. setting manualSort values).
         ['ApplyDocActions', [['BulkAddRecord', 'Types', rowIds, data]]],
-        ['AddTable', 'Defaults', _.map(allTypes, (type, id) => ({id, type, isFormula: false}))],
+        ['AddTable', 'Defaults', _.map(allTypes, (type, id) => ({ id, type, isFormula: false }))],
         // Force lower-level DocActions to be applied rather than UserActions, to avoid all the
         // smartness that sandbox might have (e.g. setting manualSort values).
         ['ApplyDocActions', [['AddRecord', 'Defaults', 1, {}]]],
@@ -783,14 +783,14 @@ describe('ActiveDoc', async function() {
       const docName = 'tmp';
       const activeDoc1 = await docTools.createDoc(docName);
       await activeDoc1.addInitialTable(fakeSession);
-      const {actions: actions1} = await activeDoc1.getRecentActions(fakeSession, true);
+      const { actions: actions1 } = await activeDoc1.getRecentActions(fakeSession, true);
       assert.lengthOf(actions1, 2);
       assert.equal(actions1[1].primaryAction, 'AddEmptyTable');
       assert.equal(actions1[1].actionNum, 2);
       await activeDoc1.shutdown();
 
       const activeDoc2 = await docTools.loadDoc(docName);
-      const {actions: actions2} = await activeDoc2.getRecentActions(fakeSession, true);
+      const { actions: actions2 } = await activeDoc2.getRecentActions(fakeSession, true);
       assert.lengthOf(actions2, 2);
       assert.equal(actions2[1].primaryAction, 'AddEmptyTable');
       assert.equal(actions2[1].actionNum, 2);
@@ -805,14 +805,14 @@ describe('ActiveDoc', async function() {
       const activeDoc1 = await docTools.createDoc(docName);
       await activeDoc1.addInitialTable(fakeSession);
       await activeDoc1.applyUserActions(fakeSession, [
-        ["AddTable", "Hello", [{id: "city", type: "Text"}, {id: "state", type: "Text"}]],
+        ["AddTable", "Hello", [{ id: "city", type: "Text" }, { id: "state", type: "Text" }]],
         ["BulkAddRecord", "Hello", [1, 4], {
           city: ['New York', 'Boston'],
           state: ['NY', 'MA'],
         }],
       ]);
       async function checkDoc(doc: ActiveDoc) {
-        const {actions} = await doc.getRecentActions(fakeSession, true);
+        const { actions } = await doc.getRecentActions(fakeSession, true);
         assert.lengthOf(actions, 3);
         assert.equal(actions[1].primaryAction, 'AddEmptyTable');
         assert.equal(actions[1].actionNum, 2);
@@ -831,9 +831,9 @@ describe('ActiveDoc', async function() {
     const docName = 'calculate-attribution';
 
     // Make a fake client with a particular fake user.
-    const authSession = AuthSession.fromUser({id: 17, name: 'Test McTester', email: 'test@test'}, 'docs');
+    const authSession = AuthSession.fromUser({ id: 17, name: 'Test McTester', email: 'test@test' }, 'docs');
     const client = new Client(null as any, null as any, null!);
-    client.setConnection({websocket: {} as any, req: null as any, counter: null, browserSettings: {}, authSession});
+    client.setConnection({ websocket: {} as any, req: null as any, counter: null, browserSettings: {}, authSession });
     const userSession = makeOptDocSession(client);
     userSession.authorizer = new DummyAuthorizer('owners', docName);
 
@@ -841,7 +841,7 @@ describe('ActiveDoc', async function() {
     const activeDoc1 = await docTools.createDoc(docName);
     await activeDoc1.applyUserActions(userSession, [
       ['AddTable', 'Calc', [
-        {id: 'tick', type: 'Any', isFormula: true, formula: 'NOW()'},
+        { id: 'tick', type: 'Any', isFormula: true, formula: 'NOW()' },
       ]],
       ['AddRecord', 'Calc', null, {}],
     ]);
@@ -874,13 +874,13 @@ describe('ActiveDoc', async function() {
       // Set up a fake user session.
       const docName = 'user-info';
       const authSession = AuthSession.fromUser(
-        {id: 567, ref: 'randomString', name: 'testUser', email: 'test@test'},
+        { id: 567, ref: 'randomString', name: 'testUser', email: 'test@test' },
         '',
         'u567',
       );
       const client = new Client(null as any, null as any, null!);
-      client.setConnection({websocket: {} as any, req: null as any, counter: null, browserSettings: {}, authSession});
-      const userSession = makeExceptionalDocSession('system', {client});
+      client.setConnection({ websocket: {} as any, req: null as any, counter: null, browserSettings: {}, authSession });
+      const userSession = makeExceptionalDocSession('system', { client });
 
       // Spy on calls to the sandbox.
       const rawPyCall = sandbox.spy(ActiveDoc.prototype, "_rawPyCall" as any);
@@ -889,7 +889,7 @@ describe('ActiveDoc', async function() {
       const activeDoc = await docTools.createDoc(docName);
       await activeDoc.applyUserActions(userSession, [
         ["AddTable", "Residences",
-          [{id: "email", type: "Text"}, {id: "city", type: "Text"}, {id: "state", type: "Text"}],
+          [{ id: "email", type: "Text" }, { id: "city", type: "Text" }, { id: "state", type: "Text" }],
         ],
         ["BulkAddRecord", "Residences", [1, 4], {
           email: ['foo@getgrist.com', 'test@test'],
@@ -919,16 +919,16 @@ describe('ActiveDoc', async function() {
       // Add another table, and set up the tables to be user attribute tables.
       await activeDoc.applyUserActions(userSession, [
         ["AddTable", "Favorites",
-          [{id: "email", type: "Text"}, {id: "color", type: "Text"}, {id: "food", type: "Text"}],
+          [{ id: "email", type: "Text" }, { id: "color", type: "Text" }, { id: "food", type: "Text" }],
         ],
         ["BulkAddRecord", "Favorites", [1, 2, 3], {
           email: ['foo@getgrist.com', 'bar@getgrist.com', ''],
           color: ['Red', 'Green', 'Blue'],
           food: ['Pizza', 'Pasta', 'Soup'],
         }],
-        ['AddRecord', '_grist_ACLResources', -1, {tableId: '*', colIds: '*'}],
-        ['AddRecord', '_grist_ACLResources', -2, {tableId: 'Residences', colIds: '*'}],
-        ['AddRecord', '_grist_ACLResources', -3, {tableId: 'Favorites', colIds: '*'}],
+        ['AddRecord', '_grist_ACLResources', -1, { tableId: '*', colIds: '*' }],
+        ['AddRecord', '_grist_ACLResources', -2, { tableId: 'Residences', colIds: '*' }],
+        ['AddRecord', '_grist_ACLResources', -3, { tableId: 'Favorites', colIds: '*' }],
         ['AddRecord', '_grist_ACLRules', null, {
           resource: -1, userAttributes: JSON.stringify({
             name: 'Residences',
@@ -1001,8 +1001,8 @@ describe('ActiveDoc', async function() {
     async function checkPythonIs3(activeDoc: ActiveDoc) {
       await activeDoc.applyUserActions(fakeSession, [
         ["AddTable", "Info", [
-          {id: 'Version', formula: 'import sys\nsys.version'},
-          {id: 'UUID', formula: 'UUID()'},
+          { id: 'Version', formula: 'import sys\nsys.version' },
+          { id: 'UUID', formula: 'UUID()' },
         ]],
         ["AddRecord", "Info", null, {}],
       ]);
@@ -1055,7 +1055,7 @@ describe('ActiveDoc', async function() {
       activeDoc.applyUserActions(fakeSession, [
         ["AddTable", "SlowTable", [{
           id: 'Delay',
-          formula: 'total = 0\nfor x in range(0, 1000000000):\n  total += x\nreturn total'}]],
+          formula: 'total = 0\nfor x in range(0, 1000000000):\n  total += x\nreturn total' }]],
         ["AddRecord", "SlowTable", null, {}],
       ]).catch(e => null);
       // Make sure we can throttle down - broken throttling would leave throttledRate up
@@ -1077,24 +1077,24 @@ describe('ActiveDoc', async function() {
           id: 'Test',
           formula: 'len("x" * $Size)',
         }]],
-        ["AddRecord", "TestTable", null, {Size: 1}],
+        ["AddRecord", "TestTable", null, { Size: 1 }],
       ]);
 
       // Push a bit.
       const MB = 1024 * 1024;
       await assert.isFulfilled(activeDoc.applyUserActions(fakeSession, [
-        ["UpdateRecord", "TestTable", 1, {Size: 10 * MB}],
+        ["UpdateRecord", "TestTable", 1, { Size: 10 * MB }],
       ]));
 
       // Push a bit more.
       await assert.isFulfilled(activeDoc.applyUserActions(fakeSession, [
-        ["UpdateRecord", "TestTable", 1, {Size: 100 * MB}],
+        ["UpdateRecord", "TestTable", 1, { Size: 100 * MB }],
       ]));
 
       // Push too much.
       const tooMuch = parseInt(process.env.GVISOR_LIMIT_MEMORY, 10);
       await assert.isRejected(activeDoc.applyUserActions(fakeSession, [
-        ["UpdateRecord", "TestTable", 1, {Size: tooMuch}],
+        ["UpdateRecord", "TestTable", 1, { Size: tooMuch }],
       ]), /MemoryError/);
     });
 
@@ -1111,8 +1111,8 @@ describe('ActiveDoc', async function() {
     const activeDoc1 = await docTools.createDoc(docName);
     await activeDoc1.addInitialTable(fakeSession);
     await activeDoc1.applyUserActions(fakeSession, [
-      ["AddTable", "Info", [{id: 'Version', type: 'Int'}]],
-      ["AddRecord", "Info", null, {Version: 10}],
+      ["AddTable", "Info", [{ id: 'Version', type: 'Int' }]],
+      ["AddRecord", "Info", null, { Version: 10 }],
     ]);
 
     // Shut down document, then delay future engine creation by a second.
@@ -1130,7 +1130,7 @@ describe('ActiveDoc', async function() {
 
     // Start making a change - this will be blocked on engine availability.
     const change = activeDoc2.applyUserActions(fakeSession, [
-      ["UpdateRecord", "Info", 1, {Version: 20}],
+      ["UpdateRecord", "Info", 1, { Version: 20 }],
     ]).catch(e => console.error(e));
 
     // Check a fetch after a half-second doesn't see a change.
@@ -1155,7 +1155,7 @@ describe('ActiveDoc', async function() {
         { docUrl });
       await activeDoc.createEmptyDoc(fakeSession);
       await activeDoc.applyUserActions(fakeSession, [
-        ["AddTable", "Info", [{id: 'Url', formula: 'SELF_HYPERLINK()'}]],
+        ["AddTable", "Info", [{ id: 'Url', formula: 'SELF_HYPERLINK()' }]],
         ["AddRecord", "Info", null, {}],
       ]);
       const url = String((await activeDoc.fetchTable(fakeSession, 'Info', true)).tableData[3].Url[0]);
@@ -1174,9 +1174,9 @@ describe('ActiveDoc', async function() {
       const activeDoc = new ActiveDoc(docTools.getDocManager(), 'truthyTest');
       await activeDoc.createEmptyDoc(fakeSession);
       await activeDoc.applyUserActions(fakeSession, [
-        ["AddTable", "Info", [{id: 'Flag', type: 'Bool'}]],
-        ["AddRecord", "Info", null, {Flag: 'meep'}],
-        ["AddRecord", "Info", null, {Flag: 'moop'}],
+        ["AddTable", "Info", [{ id: 'Flag', type: 'Bool' }]],
+        ["AddRecord", "Info", null, { Flag: 'meep' }],
+        ["AddRecord", "Info", null, { Flag: 'moop' }],
       ]);
       const data = (await activeDoc.fetchTable(fakeSession, 'Info', true)).tableData[3];
       assert.deepEqual(data.Flag, [true, 'moop'], "Expected 'meep' to be truthy");
@@ -1195,9 +1195,9 @@ describe('ActiveDoc', async function() {
       const activeDoc = new ActiveDoc(docTools.getDocManager(), 'falsyTest');
       await activeDoc.createEmptyDoc(fakeSession);
       await activeDoc.applyUserActions(fakeSession, [
-        ["AddTable", "Info", [{id: 'Flag', type: 'Bool'}]],
-        ["AddRecord", "Info", null, {Flag: 'meep'}],
-        ["AddRecord", "Info", null, {Flag: 'moop'}],
+        ["AddTable", "Info", [{ id: 'Flag', type: 'Bool' }]],
+        ["AddRecord", "Info", null, { Flag: 'meep' }],
+        ["AddRecord", "Info", null, { Flag: 'moop' }],
       ]);
       const data = (await activeDoc.fetchTable(fakeSession, 'Info', true)).tableData[3];
       assert.deepEqual(data.Flag, ['meep', false], "Expected 'moop' to be falsy");
@@ -1224,7 +1224,7 @@ describe('ActiveDoc', async function() {
       },
     ];
 
-    async function uploadAttachments(doc: ActiveDoc, files: {name: string, contents: string}[]) {
+    async function uploadAttachments(doc: ActiveDoc, files: { name: string, contents: string }[]) {
       const { tmpDir, cleanupCallback } = await createTmpUploadDir({});
 
       const uploadPromises = files.map(async (file) => {

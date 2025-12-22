@@ -6,25 +6,25 @@
 import * as express from 'express';
 import pick from 'lodash/pick';
 
-import {ApiError} from 'app/common/ApiError';
-import {getSlugIfNeeded, parseUrlId, SHARE_KEY_PREFIX} from 'app/common/gristUrls';
-import {LocalPlugin} from "app/common/plugin";
-import {TELEMETRY_TEMPLATE_SIGNUP_COOKIE_NAME} from 'app/common/Telemetry';
-import {Document as APIDocument, PublicDocWorkerUrlInfo} from 'app/common/UserAPI';
-import {Document} from "app/gen-server/entity/Document";
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser,
-  RequestWithLogin} from 'app/server/lib/Authorizer';
-import {DocStatus, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
+import { ApiError } from 'app/common/ApiError';
+import { getSlugIfNeeded, parseUrlId, SHARE_KEY_PREFIX } from 'app/common/gristUrls';
+import { LocalPlugin } from "app/common/plugin";
+import { TELEMETRY_TEMPLATE_SIGNUP_COOKIE_NAME } from 'app/common/Telemetry';
+import { Document as APIDocument, PublicDocWorkerUrlInfo } from 'app/common/UserAPI';
+import { Document } from "app/gen-server/entity/Document";
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser,
+  RequestWithLogin } from 'app/server/lib/Authorizer';
+import { DocStatus, IDocWorkerMap } from 'app/server/lib/DocWorkerMap';
 import {
   customizeDocWorkerUrl, getDocWorkerInfoOrSelfPrefix, getWorker, useWorkerPool,
 } from 'app/server/lib/DocWorkerUtils';
-import {expressWrap} from 'app/server/lib/expressWrap';
-import {DocTemplate, GristServer} from 'app/server/lib/GristServer';
-import {getCookieDomain} from 'app/server/lib/gristSessions';
+import { expressWrap } from 'app/server/lib/expressWrap';
+import { DocTemplate, GristServer } from 'app/server/lib/GristServer';
+import { getCookieDomain } from 'app/server/lib/gristSessions';
 import log from 'app/server/lib/log';
-import {addOrgToPathIfNeeded, pruneAPIResult, trustOrigin} from 'app/server/lib/requestUtils';
-import {ISendAppPageOptions} from 'app/server/lib/sendAppPage';
+import { addOrgToPathIfNeeded, pruneAPIResult, trustOrigin } from 'app/server/lib/requestUtils';
+import { ISendAppPageOptions } from 'app/server/lib/sendAppPage';
 
 export interface AttachOptions {
   app: express.Application;                 // Express app to which to add endpoints
@@ -40,21 +40,21 @@ export interface AttachOptions {
 }
 
 export function attachAppEndpoint(options: AttachOptions): void {
-  const {app, middleware, docMiddleware, formMiddleware, docWorkerMap,
-    forceLogin, sendAppPage, dbManager, plugins, gristServer} = options;
+  const { app, middleware, docMiddleware, formMiddleware, docWorkerMap,
+    forceLogin, sendAppPage, dbManager, plugins, gristServer } = options;
   // Per-workspace URLs open the same old Home page, and it's up to the client to notice and
   // render the right workspace.
   app.get(['/', '/ws/:wsId', '/p/:page'], ...middleware, expressWrap(async (req, res) =>
-    sendAppPage(req, res, {path: 'app.html', status: 200, config: {plugins}, googleTagManager: 'anon'})));
+    sendAppPage(req, res, { path: 'app.html', status: 200, config: { plugins }, googleTagManager: 'anon' })));
 
   app.get('/apiconsole', expressWrap(async (req, res) =>
-    sendAppPage(req, res, {path: 'apiconsole.html', status: 200, config: {}})));
+    sendAppPage(req, res, { path: 'apiconsole.html', status: 200, config: {} })));
 
   app.get('/api/worker/:docId([^/]+)/?*', expressWrap(async (req, res) => {
     if (!trustOrigin(req, res)) { throw new Error('Unrecognized origin'); }
     res.header("Access-Control-Allow-Credentials", "true");
 
-    const {selfPrefix, docWorker} = await getDocWorkerInfoOrSelfPrefix(
+    const { selfPrefix, docWorker } = await getDocWorkerInfoOrSelfPrefix(
       req.params.docId, docWorkerMap, gristServer.getTag(),
     );
     const info: PublicDocWorkerUrlInfo = selfPrefix ?
@@ -77,8 +77,8 @@ export function attachAppEndpoint(options: AttachOptions): void {
       return next();
     }
     if (!docWorkerMap) {
-      return await sendAppPage(req, res, {path: 'app.html', status: 200, config: {plugins},
-        googleTagManager: 'anon'});
+      return await sendAppPage(req, res, { path: 'app.html', status: 200, config: { plugins },
+        googleTagManager: 'anon' });
     }
     const mreq = req as RequestWithLogin;
     const urlId = req.params.urlId;
@@ -88,7 +88,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
 
       // Query DB for the doc metadata, to include in the page (as a pre-fetch of getDoc() call),
       // and to get fresh (uncached) access info.
-      doc = await dbManager.getDoc({userId, org: mreq.org, urlId});
+      doc = await dbManager.getDoc({ userId, org: mreq.org, urlId });
       if (isAnonymousUser(mreq) && doc.type === 'tutorial') {
         // Tutorials require users to be signed in.
         throw new ApiError('You must be signed in to access a tutorial.', 403);
@@ -111,7 +111,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
       }
 
       // The docAuth value will be cached from the getDoc() above (or could be derived from doc).
-      const docAuth = await dbManager.getDocAuthCached({userId, org: mreq.org, urlId});
+      const docAuth = await dbManager.getDocAuthCached({ userId, org: mreq.org, urlId });
       assertAccess('viewers', docAuth);
 
     }
@@ -127,7 +127,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
         if (isAnonymousUser(mreq) && forceLogin) {
           // First check if anonymous user has access to this org.  If so, we don't propose
           // that they log in.  This is the same check made in redirectToLogin() middleware.
-          const result = await dbManager.getOrg({userId: getUserId(mreq)}, mreq.org || null);
+          const result = await dbManager.getOrg({ userId: getUserId(mreq) }, mreq.org || null);
           if (result.status !== 200 || doc?.type === 'tutorial') {
             // Anonymous user does not have any access to this org, doc, or tutorial.
             // Redirect to log in.
@@ -160,11 +160,11 @@ export function attachAppEndpoint(options: AttachOptions): void {
         Accept: 'application/json',
         ...getTransitiveHeaders(req, { includeOrigin: true }),
       };
-      const workerInfo = await getWorker(docWorkerMap, docId, `/${docId}/app.html`, {headers});
+      const workerInfo = await getWorker(docWorkerMap, docId, `/${docId}/app.html`, { headers });
       docStatus = workerInfo.docStatus;
       body = await workerInfo.resp.json();
     }
-    logOpenDocumentEvents(mreq, {server: gristServer, doc, urlId});
+    logOpenDocumentEvents(mreq, { server: gristServer, doc, urlId });
     if (doc.type === 'template') {
       // Keep track of the last template a user visited in the last hour.
       // If a sign-up occurs within that time period, we'll know which
@@ -188,24 +188,24 @@ export function attachAppEndpoint(options: AttachOptions): void {
     const publicUrl = docStatus?.docWorker?.publicUrl;
     const workerPublicUrl = publicUrl !== undefined ? customizeDocWorkerUrl(publicUrl, req) : null;
 
-    await sendAppPage(req, res, {path: "", content: body.page, tag: body.tag, status: 200,
+    await sendAppPage(req, res, { path: "", content: body.page, tag: body.tag, status: 200,
       googleTagManager: 'anon', config: {
         assignmentId: docId,
-        getWorker: {[docId]: workerPublicUrl },
-        getDoc: {[docId]: pruneAPIResult(doc as unknown as APIDocument)},
+        getWorker: { [docId]: workerPublicUrl },
+        getDoc: { [docId]: pruneAPIResult(doc as unknown as APIDocument) },
         plugins,
-      }});
+      } });
   });
   // Handlers for form preview URLs: one with a slug and one without.
   app.get('/doc/:urlId([^/]+)/f/:vsId', ...docMiddleware, expressWrap(async (req, res) => {
-    return sendAppPage(req, res, {path: 'form.html', status: 200, config: {}, googleTagManager: 'anon'});
+    return sendAppPage(req, res, { path: 'form.html', status: 200, config: {}, googleTagManager: 'anon' });
   }));
   app.get('/:urlId([^-/]{12,})/:slug([^/]+)/f/:vsId', ...docMiddleware, expressWrap(async (req, res) => {
-    return sendAppPage(req, res, {path: 'form.html', status: 200, config: {}, googleTagManager: 'anon'});
+    return sendAppPage(req, res, { path: 'form.html', status: 200, config: {}, googleTagManager: 'anon' });
   }));
   // Handler for form URLs that include a share key.
   app.get('/forms/:shareKey([^/]+)/:vsId', ...formMiddleware, expressWrap(async (req, res) => {
-    return sendAppPage(req, res, {path: 'form.html', status: 200, config: {}, googleTagManager: 'anon'});
+    return sendAppPage(req, res, { path: 'form.html', status: 200, config: {}, googleTagManager: 'anon' });
   }));
   // The * is a wildcard in express 4, rather than a regex symbol.
   // See https://expressjs.com/en/guide/routing.html
@@ -227,8 +227,8 @@ function logOpenDocumentEvents(req: RequestWithLogin, options: {
   doc: Document;
   urlId: string;
 }) {
-  const {server, doc, urlId} = options;
-  const {forkId, snapshotId} = parseUrlId(urlId);
+  const { server, doc, urlId } = options;
+  const { forkId, snapshotId } = parseUrlId(urlId);
   server.getAuditLogger().logEvent(req, {
     action: "document.open",
     context: {

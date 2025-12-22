@@ -14,8 +14,8 @@
  *     ),
  *   );
  */
-import {cssCheckboxSquare, cssLabel} from 'app/client/ui2018/checkbox';
-import {dom, DomArg, DomElementArg, Observable, styled} from 'grainjs';
+import { cssCheckboxSquare, cssLabel } from 'app/client/ui2018/checkbox';
+import { dom, DomArg, DomElementArg, Observable, styled } from 'grainjs';
 
 export {
   form,
@@ -33,7 +33,7 @@ export function checkboxItem(
   checkboxArgs: Array<DomArg<HTMLInputElement>>, ...labelArgs: DomElementArg[]
 ): HTMLElement {
   return cssCheckboxLabel(
-    cssCheckbox({type: 'checkbox'}, ...checkboxArgs),
+    cssCheckbox({ type: 'checkbox' }, ...checkboxArgs),
     ...labelArgs);
 }
 
@@ -45,7 +45,7 @@ export function checkboxItem(
 export function checkboxOther(checkboxArgs: DomElementArg[], ...textboxArgs: DomElementArg[]): HTMLElement {
   let checkbox: HTMLInputElement;
   return cssCheckboxLabel(
-    checkbox = cssCheckbox({type: 'checkbox'}, ...checkboxArgs),
+    checkbox = cssCheckbox({ type: 'checkbox' }, ...checkboxArgs),
     cssTextBox(...textboxArgs,
       dom.on('input', (e, elem) => { checkbox.checked = Boolean(elem.value); }),
     ),
@@ -162,5 +162,5 @@ const cssTextBox = styled('input', `
   }
 `);
 
-const form = cssForm.bind(null, {tabIndex: '-1'});
-const textBox = cssTextBox.bind(null, {type: 'text'});
+const form = cssForm.bind(null, { tabIndex: '-1' });
+const textBox = cssTextBox.bind(null, { type: 'text' });

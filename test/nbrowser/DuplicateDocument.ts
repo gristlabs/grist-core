@@ -5,7 +5,7 @@ import { assert, driver, Key } from 'mocha-webdriver';
 
 describe("DuplicateDocument", function() {
   this.timeout(20000);
-  const cleanup = setupTestSuite({team: true});
+  const cleanup = setupTestSuite({ team: true });
 
   it("should duplicate a document with the Duplicate-Document option", async function() {
     const session = await gu.session().teamSite.login();
@@ -28,11 +28,11 @@ describe("DuplicateDocument", function() {
     await driver.findWait('.test-modal-confirm:not(:disabled)', 5000);
 
     // Save a copy with a proper name.
-    await gu.completeCopy({destName: 'DuplicateTest1', destWorkspace: 'Test Workspace'});
+    await gu.completeCopy({ destName: 'DuplicateTest1', destWorkspace: 'Test Workspace' });
 
     // check the breadcrumbs reflect new document name, and the doc is not empty.
     assert.equal(await driver.find('.test-bc-doc').value(), 'DuplicateTest1');
-    assert.equal(await gu.getCell({col: 'A', rowNum: 1}).getText(), 'hello');
+    assert.equal(await gu.getCell({ col: 'A', rowNum: 1 }).getText(), 'hello');
   });
 
   it("should create a fork with Work-on-a-Copy option", async function() {
@@ -57,17 +57,17 @@ describe("DuplicateDocument", function() {
 
   it("should allow saving the fork as a new copy", async function() {
     // Make a change to the fork to ensure it's saved.
-    await gu.getCell({col: 'A', rowNum: 1}).click();
+    await gu.getCell({ col: 'A', rowNum: 1 }).click();
     await driver.sendKeys('hello to duplicates', Key.ENTER);
 
     await driver.find('.test-tb-share').click();
     await driver.find('.test-save-copy').click();
-    await gu.completeCopy({destName: 'DuplicateTest2', destWorkspace: 'Test Workspace'});
+    await gu.completeCopy({ destName: 'DuplicateTest2', destWorkspace: 'Test Workspace' });
     urlId = (await gu.getCurrentUrlId())!;
 
     // check the breadcrumbs reflect new document name, and the doc contains our change.
     assert.equal(await driver.find('.test-bc-doc').value(), 'DuplicateTest2');
-    assert.equal(await gu.getCell({col: 'A', rowNum: 1}).getText(), 'hello to duplicates');
+    assert.equal(await gu.getCell({ col: 'A', rowNum: 1 }).getText(), 'hello to duplicates');
   });
 
   it("should offer a choice of orgs when user is owner", async function() {
@@ -103,9 +103,9 @@ describe("DuplicateDocument", function() {
   it("should not offer a choice of org when user is not owner", async function() {
     const api = gu.session().teamSite.createHomeApi();
     const session2 = gu.session().teamSite.user('user2');
-    await api.updateDocPermissions(urlId, {users: {
+    await api.updateDocPermissions(urlId, { users: {
       [session2.email]: 'viewers',
-    }});
+    } });
 
     await session2.login();
     await session2.loadDoc(`/doc/${urlId}`);
@@ -132,13 +132,13 @@ describe("DuplicateDocument", function() {
     const session = await gu.session().teamSite.login();
     const api = session.createHomeApi();
     // But if the doc is public, then users can copy it out.
-    await api.updateDocPermissions(urlId, {users: {
+    await api.updateDocPermissions(urlId, { users: {
       'everyone@getgrist.com': 'viewers',
-    }});
+    } });
     const session2 = gu.session().teamSite.user('user2');
-    await gu.session().teamSite2.createHomeApi().updateOrgPermissions('current', {users: {
+    await gu.session().teamSite2.createHomeApi().updateOrgPermissions('current', { users: {
       [session2.email]: 'owners',
-    }});
+    } });
 
     // Reset tracking of the last visited site. We seem to need this now to get consistent
     // behavior across Jenkins and local test runs. (May have something to do with newer
@@ -181,7 +181,7 @@ describe("DuplicateDocument", function() {
     assert.equal(await driver.find('.test-dm-org').getText(), 'Test2 Grist');
     assert.equal(await driver.find('.test-bc-doc').value(), 'DuplicateTest2 (copy)');
     assert.equal(await driver.find('.test-bc-workspace').getText(), 'Home');
-    assert.equal(await gu.getCell({col: 'A', rowNum: 1}).getText(), 'hello to duplicates');
+    assert.equal(await gu.getCell({ col: 'A', rowNum: 1 }).getText(), 'hello to duplicates');
   });
 
   it("should allow saving a public doc to the personal org", async function() {
@@ -207,11 +207,11 @@ describe("DuplicateDocument", function() {
 
     // Save; it should succeed and open a same-looking document in alternate user's personal org.
     const name = session2.name;
-    await gu.completeCopy({destName: `DuplicateTest2 ${name} Copy`});
+    await gu.completeCopy({ destName: `DuplicateTest2 ${name} Copy` });
     assert.equal(await driver.find('.test-dm-org').getText(), `@${name}`);
     assert.equal(await driver.find('.test-bc-doc').value(), `DuplicateTest2 ${name} Copy`);
     assert.equal(await driver.find('.test-bc-workspace').getText(), 'Home');
-    assert.equal(await gu.getCell({col: 'A', rowNum: 1}).getText(), 'hello to duplicates');
+    assert.equal(await gu.getCell({ col: 'A', rowNum: 1 }).getText(), 'hello to duplicates');
     assert.notEqual(await gu.getCurrentUrlId(), urlId);
 
     // Remove document
@@ -231,7 +231,7 @@ describe("DuplicateDocument", function() {
     await driver.find('.test-save-copy').click();
     await driver.findWait('.test-modal-dialog', 1000);
     await driver.find('.test-save-as-template').click();
-    await gu.completeCopy({destName: 'DuplicateTest3', destWorkspace: 'Test Workspace'});
+    await gu.completeCopy({ destName: 'DuplicateTest3', destWorkspace: 'Test Workspace' });
 
     // Give it a second, just to be sure the tour doesn't appear.
     await driver.sleep(1000);

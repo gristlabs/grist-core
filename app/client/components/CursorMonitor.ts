@@ -1,9 +1,9 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import {getStorage} from 'app/client/lib/storage';
-import {IDocPage, isViewDocPage, ViewDocPage} from 'app/common/gristUrls';
-import {Disposable, Listener, Observable} from 'grainjs';
-import {reportError} from 'app/client/models/errors';
-import {CursorPos} from 'app/plugin/GristAPI';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { getStorage } from 'app/client/lib/storage';
+import { IDocPage, isViewDocPage, ViewDocPage } from 'app/common/gristUrls';
+import { Disposable, Listener, Observable } from 'grainjs';
+import { reportError } from 'app/client/models/errors';
+import { CursorPos } from 'app/plugin/GristAPI';
 
 /**
  * Enriched cursor position with a view id
@@ -61,7 +61,7 @@ export class CursorMonitor extends Disposable {
       // for some views (like CustomView) cursor position might not reflect actual row
       if (pos && pos.rowId !== undefined) {
         if (pos.sectionId) {
-          pos = {...pos, linkingRowIds: doc.docModel.getLinkingRowIds(pos.sectionId)};
+          pos = { ...pos, linkingRowIds: doc.docModel.getLinkingRowIds(pos.sectionId) };
         }
         this._storePosition(pos);
       }

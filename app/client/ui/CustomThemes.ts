@@ -1,7 +1,7 @@
 // TODO: document this all, no tests are exercising this code.
 
-import {getGristConfig} from 'app/common/urlUtils';
-import {styled} from 'grainjs';
+import { getGristConfig } from 'app/common/urlUtils';
+import { styled } from 'grainjs';
 
 /**
  * Is this grist installation or someone's modified installation. We allow modifying logo

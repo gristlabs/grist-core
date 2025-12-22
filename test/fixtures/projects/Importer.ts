@@ -1,15 +1,15 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import {Importer, SourceInfo} from 'app/client/components/Importer';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { Importer, SourceInfo } from 'app/client/components/Importer';
 import koArray from 'app/client/lib/koArray';
-import {ViewSectionRec} from 'app/client/models/DocModel';
-import {SortedRowSet} from 'app/client/models/rowset';
-import {bigBasicButton, cssButton} from 'app/client/ui2018/buttons';
-import {UploadResult} from 'app/common/uploads';
-import {dom, Holder, Observable, styled} from 'grainjs';
+import { ViewSectionRec } from 'app/client/models/DocModel';
+import { SortedRowSet } from 'app/client/models/rowset';
+import { bigBasicButton, cssButton } from 'app/client/ui2018/buttons';
+import { UploadResult } from 'app/common/uploads';
+import { dom, Holder, Observable, styled } from 'grainjs';
 import * as ko from 'knockout';
-import {initSchema, initValues} from 'test/fixtures/projects/helpers/ParseOptionsData';
-import {withLocale} from 'test/fixtures/projects/helpers/withLocale';
-import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
+import { initSchema, initValues } from 'test/fixtures/projects/helpers/ParseOptionsData';
+import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 // tslint:disable:no-console
 
@@ -162,7 +162,7 @@ function setupTest() {
 
   function render(modeValue: string) {
     mode.set(modeValue);
-    const parseOptions = {...initValues, SCHEMA: initSchema};
+    const parseOptions = { ...initValues, SCHEMA: initSchema };
     const importer = Importer.create(holder, gristDoc, null, createPreview);
     (importer as any)._parseOptions.set(parseOptions);
     (importer as any)._sourceInfoArray.set(sampleSourceInfoArray);
@@ -173,7 +173,7 @@ function setupTest() {
       case 'spinner': return (importer as any)._renderSpinner();
       case 'error': return (importer as any)._renderError("This is a test error message");
       case 'plugin': return (importer as any)._renderPlugin(
-        dom('div', 'Hello, ', dom('input', {type: 'text'}), ' world', dom('button', 'Go!')),
+        dom('div', 'Hello, ', dom('input', { type: 'text' }), ' world', dom('button', 'Go!')),
       );
       case 'preview': return (importer as any)._renderMain(sampleUploadResult);
       case 'parseopts': return (importer as any)._renderParseOptions(initSchema, null);
@@ -184,7 +184,7 @@ function setupTest() {
 
   return [
     testBox(
-      dom('div', {style: 'display: flex; padding: 8px;'},
+      dom('div', { style: 'display: flex; padding: 8px;' },
         myButton('Spinner',
           cssButton.cls('-primary', use => use(mode) === 'spinner'),
           dom.on('click', () => render('spinner')),

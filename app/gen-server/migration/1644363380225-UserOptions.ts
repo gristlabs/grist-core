@@ -1,5 +1,5 @@
-import {nativeValues} from "app/gen-server/lib/values";
-import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
+import { nativeValues } from "app/gen-server/lib/values";
+import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 export class UserOptions1644363380225 implements MigrationInterface {
 

@@ -1,11 +1,11 @@
-import {ICustomWidget} from 'app/common/CustomWidget';
+import { ICustomWidget } from 'app/common/CustomWidget';
 import log from 'app/server/lib/log';
 import * as fse from 'fs-extra';
 import fetch from 'node-fetch';
 import * as path from 'path';
-import {ApiError} from 'app/common/ApiError';
-import {isAffirmative, removeTrailingSlash} from 'app/common/gutil';
-import {GristServer} from 'app/server/lib/GristServer';
+import { ApiError } from 'app/common/ApiError';
+import { isAffirmative, removeTrailingSlash } from 'app/common/gutil';
+import { GristServer } from 'app/server/lib/GristServer';
 import LRUCache from 'lru-cache';
 import * as url from 'url';
 import { AsyncCreate } from 'app/common/AsyncCreate';
@@ -112,7 +112,7 @@ export class UrlWidgetRepository implements IWidgetRepository {
       return [];
     }
     try {
-      const response = await fetch(this._staticUrl, {agent: agents.trusted});
+      const response = await fetch(this._staticUrl, { agent: agents.trusted });
       if (!response.ok) {
         if (response.status === 404) {
           throw new ApiError('WidgetRepository: Remote widget list not found', 404);
@@ -161,7 +161,7 @@ export class WidgetRepositoryImpl implements IWidgetRepository {
     staticUrl?: string,
     gristServer?: GristServer,
   }) {
-    const {staticUrl, gristServer} = _options;
+    const { staticUrl, gristServer } = _options;
     if (gristServer) {
       this._diskWidgets = new DelayedWidgetRepository(async () => {
         const places = getWidgetsInPlugins(gristServer);
@@ -208,7 +208,7 @@ export class WidgetRepositoryImpl implements IWidgetRepository {
  * Version of WidgetRepository that caches successful result for 2 minutes.
  */
 class CachedWidgetRepository extends WidgetRepositoryImpl {
-  private _cache = new LRUCache<1, ICustomWidget[]>({maxAge: 1000 * 60 /* minute */ * 2});
+  private _cache = new LRUCache<1, ICustomWidget[]>({ maxAge: 1000 * 60 /* minute */ * 2 });
   public async getWidgets() {
     // Don't cache for localhost
     if (this._staticUrl && this._staticUrl.startsWith("http://localhost")) {

@@ -1,10 +1,10 @@
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {HostedMetadataManager} from 'app/server/lib/HostedMetadataManager';
-import {delay} from 'bluebird';
-import {assert} from 'chai';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { HostedMetadataManager } from 'app/server/lib/HostedMetadataManager';
+import { delay } from 'bluebird';
+import { assert } from 'chai';
 import * as sinon from 'sinon';
-import {removeConnection} from 'test/gen-server/seed';
-import {setTmpLogLevel} from 'test/server/testUtils';
+import { removeConnection } from 'test/gen-server/seed';
+import { setTmpLogLevel } from 'test/server/testUtils';
 
 // Note that this is a stubbed test of the HostedMetadataManager and does not test interaction
 // with the live DB. We may want to revisit this with the DB running for a complete test.
@@ -38,7 +38,7 @@ describe('HostedMetadataManager', function() {
   async function scheduleUpdate(docId: string, minimizeDelay?: boolean) {
     manager.scheduleUpdate(docId, {
       updatedAt: new Date().toISOString(),
-      usage: {rowCount: {total: 123}, dataSizeBytes: 456, attachmentsSizeBytes: 789},
+      usage: { rowCount: { total: 123 }, dataSizeBytes: 456, attachmentsSizeBytes: 789 },
     }, minimizeDelay);
     await delay(10);
   }

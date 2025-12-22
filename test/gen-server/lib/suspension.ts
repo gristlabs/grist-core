@@ -1,8 +1,8 @@
-import {Organization} from 'app/common/UserAPI';
-import {assert} from 'chai';
-import {TestServer} from 'test/gen-server/apiUtils';
-import {setPlan} from 'test/gen-server/testUtils';
-import {createTmpDir} from 'test/server/docTools';
+import { Organization } from 'app/common/UserAPI';
+import { assert } from 'chai';
+import { TestServer } from 'test/gen-server/apiUtils';
+import { setPlan } from 'test/gen-server/testUtils';
+import { createTmpDir } from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 
 describe('suspension', function() {
@@ -13,7 +13,7 @@ describe('suspension', function() {
   before(async function() {
     const tmpDir = await createTmpDir();
     home = new TestServer(this);
-    await home.start(["home", "docs"], {dataDir: tmpDir});
+    await home.start(["home", "docs"], { dataDir: tmpDir });
     const nasaApi = await home.createHomeApi('Chimpy', 'nasa');
     nasa = await nasaApi.getOrg('current');
   });

@@ -205,7 +205,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
     dom.on('click', () => toggleMenu(true)),
     cssTopBarBtn('Search',
       testId('icon'),
-      hoverTooltip(t('Search'), {key: 'topBarBtnTooltip'}),
+      hoverTooltip(t('Search'), { key: 'topBarBtnTooltip' }),
     ),
   );
 
@@ -217,7 +217,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
     findPrev: () => { model.findPrev().catch(reportError); return false; },
   }, null, true);
 
-  const inputElem: HTMLInputElement = searchInput(model.value, {onInput: true},
+  const inputElem: HTMLInputElement = searchInput(model.value, { onInput: true },
     {
       type: 'text',
       placeholder: t("Search in document"),
@@ -297,7 +297,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
                 t("Find Next "),
                 cssShortcut(`(${['Enter', allCommands.findNext.humanKeys].join(', ')})`),
               ],
-              {key: 'searchArrowBtnTooltip'},
+              { key: 'searchArrowBtnTooltip' },
             ),
           ),
           cssArrowBtn(
@@ -314,14 +314,14 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
                 t("Find Previous "),
                 cssShortcut(`(${['Shift + Enter', allCommands.findPrev.humanKeys].join(', ')})`),
               ],
-              {key: 'searchArrowBtnTooltip'},
+              { key: 'searchArrowBtnTooltip' },
             ),
           ),
         ];
       }),
       cssCloseBtnContainer(
         testId('close'),
-        {'aria-label': t("Close search bar")},
+        { 'aria-label': t("Close search bar") },
         dom.on('click', () => toggleMenu(false)),
         cssCloseBtn('CrossSmall'),
       ),

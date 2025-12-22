@@ -1,8 +1,8 @@
-import {hooks} from 'app/client/Hooks';
-import {getGristConfig} from 'app/common/urlUtils';
-import {DomContents} from 'grainjs';
+import { hooks } from 'app/client/Hooks';
+import { getGristConfig } from 'app/common/urlUtils';
+import { DomContents } from 'grainjs';
 import i18next from 'i18next';
-import {G} from 'grainjs/dist/cjs/lib/browserGlobals';
+import { G } from 'grainjs/dist/cjs/lib/browserGlobals';
 
 export async function setupLocale() {
   const now = Date.now();
@@ -116,12 +116,12 @@ function domT(key: string, args: any, tImpl: typeof i18next.t) {
   else {
     // Make a copy of the arguments, and remove any dom elements from it. It will instruct
     // i18next library to use `missingInterpolationHandler` handler.
-    const copy = {...args};
+    const copy = { ...args };
     domElements.forEach(([prop]) => delete copy[prop]);
 
     // Passing `missingInterpolationHandler` will allow as to resolve all missing keys
     // and replace them with a marker.
-    const result: string = tImpl(key, {...copy, missingInterpolationHandler});
+    const result: string = tImpl(key, { ...copy, missingInterpolationHandler });
 
     // Now replace all markers with dom elements passed as arguments.
     const parts = result.split(/(\[\[\[[^\]]+?\]\]\])/);
@@ -180,7 +180,7 @@ export function makeT(scope: string, instance?: typeof i18next) {
 
       // Override the resolver with a custom one, that will use the argument as a default.
       // This will remove all the overloads from the function, but we don't need them.
-      scopedResolver = (_key: string, _args?: any) => fixedResolver(_key, {defaultValue: _key, ..._args});
+      scopedResolver = (_key: string, _args?: any) => fixedResolver(_key, { defaultValue: _key, ..._args });
     }
     return domT(key, args, scopedResolver!);
   };

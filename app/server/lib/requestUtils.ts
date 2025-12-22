@@ -1,18 +1,18 @@
-import {ApiError} from 'app/common/ApiError';
-import {DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
+import { ApiError } from 'app/common/ApiError';
+import { DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail } from 'app/common/gristUrls';
 import * as gutil from 'app/common/gutil';
-import {DocScope, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {QueryResult} from 'app/gen-server/lib/homedb/Interfaces';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
-import {RequestWithOrg} from 'app/server/lib/extractOrg';
-import {RequestWithGrist} from 'app/server/lib/GristServer';
+import { DocScope, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { QueryResult } from 'app/gen-server/lib/homedb/Interfaces';
+import { appSettings } from 'app/server/lib/AppSettings';
+import { getUserId, RequestWithLogin } from 'app/server/lib/Authorizer';
+import { RequestWithOrg } from 'app/server/lib/extractOrg';
+import { RequestWithGrist } from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
-import {Permit} from 'app/server/lib/Permit';
-import {Request, Response} from 'express';
-import {IncomingMessage} from 'http';
-import {Writable} from 'stream';
-import {TLSSocket} from 'tls';
+import { Permit } from 'app/server/lib/Permit';
+import { Request, Response } from 'express';
+import { IncomingMessage } from 'http';
+import { Writable } from 'stream';
+import { TLSSocket } from 'tls';
 
 const shouldLogApiDetails = appSettings.section("log").flag("apiDetails").readBool({
   envVar: ["GRIST_LOG_API_DETAILS", "GRIST_HOSTED_VERSION"],
@@ -174,20 +174,20 @@ export function getDocScope(req: Request): DocScope {
  *     is limited to docs/workspaces that have been removed.
  */
 export function getScope(req: Request): Scope {
-  const {specialPermit, docAuth} = req as RequestWithLogin;
+  const { specialPermit, docAuth } = req as RequestWithLogin;
   const urlId = req.params.did || req.params.docId || docAuth?.docId || undefined;
   const userId = getUserId(req);
   const org = (req as RequestWithOrg).org;
   const includeSupport = isParameterOn(req.query.includeSupport);
   const showRemoved = isParameterOn(req.query.showRemoved);
-  return {urlId, userId, org, includeSupport, showRemoved, specialPermit};
+  return { urlId, userId, org, includeSupport, showRemoved, specialPermit };
 }
 
 /**
  * If scope is for the given userId, return a new Scope with the special permit added.
  */
 export function addPermit(scope: Scope, userId: number, specialPermit: Permit): Scope {
-  return {...scope, ...(scope.userId === userId ? {specialPermit} : {})};
+  return { ...scope, ...(scope.userId === userId ? { specialPermit } : {}) };
 }
 
 export interface SendReplyOptions {
@@ -222,7 +222,7 @@ export async function sendReply<T>(
     return res.json(data ?? null); // can't handle undefined
   }
   else {
-    return res.json({error: result.errMessage});
+    return res.json({ error: result.errMessage });
   }
 }
 
@@ -232,7 +232,7 @@ export async function sendOkReply<T>(
   result?: T,
   options: SendReplyOptions = {},
 ) {
-  return sendReply(req, res, {status: 200, data: result}, options);
+  return sendReply(req, res, { status: 200, data: result }, options);
 }
 
 export function pruneAPIResult<T>(data: T, allowedFields?: Set<string>): T {
@@ -280,7 +280,7 @@ export function optStringParam(p: any, name: string, options: StringParamOptions
 }
 
 export function stringParam(p: any, name: string, options: StringParamOptions = {}): string {
-  const {allowed, allowEmpty = true} = options;
+  const { allowed, allowEmpty = true } = options;
   if (p === null || p === undefined) {
     throw new ApiError(`${name} parameter is required`, 400);
   }
@@ -419,7 +419,7 @@ export function getOriginIpAddress(req: IncomingMessage) {
  *
  * If the header is absent from the request, a new header will be returned.
  */
-export function buildXForwardedForHeader(req: Request): {'X-Forwarded-For': string}|undefined {
+export function buildXForwardedForHeader(req: Request): { 'X-Forwarded-For': string }|undefined {
   const values = req.get('X-Forwarded-For')?.split(',').map(value => value.trim()) ?? [];
   if (req.socket.remoteAddress) { values.push(req.socket.remoteAddress); }
   return values.length > 0 ? { 'X-Forwarded-For': values.join(', ') } : undefined;

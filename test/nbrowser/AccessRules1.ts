@@ -16,7 +16,7 @@ describe('AccessRules1', function() {
   before(async function() {
     // Import a test document we've set up for this.
     const mainSession = await gu.session().teamSite.user('user1').login();
-    docId = (await mainSession.tempDoc(cleanup, 'ACL-Test.grist', {load: false})).id;
+    docId = (await mainSession.tempDoc(cleanup, 'ACL-Test.grist', { load: false })).id;
 
     // Share it with a few users.
     const api = mainSession.createHomeApi();
@@ -48,7 +48,7 @@ describe('AccessRules1', function() {
     assert.deepEqual(await getTableNamesToAddWidget(), ['ClientsTable', 'FinancialsTable']);
     await gu.openPage('FinancialsTable');
     await gu.waitForServer();
-    assert.deepEqual(await gu.getVisibleGridCells({cols: ['Year', 'Income', 'Expenses'], rowNums: [1, 2, 3]}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: ['Year', 'Income', 'Expenses'], rowNums: [1, 2, 3] }), [
       '2010', '$123.40', '$540,000.00',
       '2011', '$1,234.50', '$640,000.00',
       '2022', '$1,234,567.00', '$0.55',
@@ -58,12 +58,12 @@ describe('AccessRules1', function() {
     await gu.openPage('ClientsTable');
     await gu.waitForServer();
     assert.equal(await driver.findContent('.column_name', /RumorsColumn/).isPresent(), true);
-    assert.deepEqual(await gu.getVisibleGridCells({cols: ['RumorsColumn'], rowNums: [1, 3, 9, 13]}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: ['RumorsColumn'], rowNums: [1, 3, 9, 13] }), [
       'Secrets', '', 'Dark rumors', 'Buzz',
     ]);
 
     // Check that we can all rows of ClientsTable
-    assert.deepEqual(await gu.getVisibleGridCells({cols: ['First Name', 'Shared'], rowNums: [1, 3, 9, 13]}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: ['First Name', 'Shared'], rowNums: [1, 3, 9, 13] }), [
       'Deina', 'false',
       'Terrence', 'true',
       'Rachele', 'true',
@@ -148,8 +148,8 @@ describe('AccessRules1', function() {
     await ruleSet.find('.test-rule-part .test-rule-add').click();
     await ruleSet.find('.test-rule-part .test-rule-add').click();
     await enterRulePart(ruleSet, 1, `user.Email == '${gu.translateUser('user1').email}'`, 'Allow all');
-    await enterRulePart(ruleSet, 2, `rec.Shared`, {R: 'allow'});
-    await enterRulePart(ruleSet, 3, `user.Email == rec.Agent_Email`, {R: 'allow'});
+    await enterRulePart(ruleSet, 2, `rec.Shared`, { R: 'allow' });
+    await enterRulePart(ruleSet, 3, `user.Email == rec.Agent_Email`, { R: 'allow' });
     await enterRulePart(ruleSet, 4, null, 'Deny all');
 
     await driver.find('.test-rules-save').click();
@@ -163,7 +163,7 @@ describe('AccessRules1', function() {
 
     // Check that user2 only sees certain rows of ClientsTable.
     assert.deepEqual(await gu.getVisibleGridCells(
-      {cols: ['First Name', 'Agent Email', 'Shared'], rowNums: [1, 3, 6, 7, 8, 9, 10]},
+      { cols: ['First Name', 'Agent Email', 'Shared'], rowNums: [1, 3, 6, 7, 8, 9, 10] },
     ), [
       // Everyone assigned to charon is visible.
       'Deina', 'gristoid+charon@gmail.com', 'false',
@@ -181,7 +181,7 @@ describe('AccessRules1', function() {
 
     // Check that user3 only sees certain rows of ClientsTable.
     assert.deepEqual(await gu.getVisibleGridCells(
-      {cols: ['First Name', 'Agent Email', 'Shared'], rowNums: [1, 2, 3, 4, 9, 11, 12]},
+      { cols: ['First Name', 'Agent Email', 'Shared'], rowNums: [1, 2, 3, 4, 9, 11, 12] },
     ), [
       // And everyone with Shared = true is visible.
       'Siobhan', 'gristoid+charon@gmail.com', 'true',
@@ -208,7 +208,7 @@ describe('AccessRules1', function() {
     await gu.openPage('FinancialsTable');
     await gu.waitForServer();
     assert.deepEqual(
-      await gu.getVisibleGridCells({cols: ['Expenses', 'Income', 'Year'], rowNums: [1, 2]}),
+      await gu.getVisibleGridCells({ cols: ['Expenses', 'Income', 'Year'], rowNums: [1, 2] }),
       [
         '$540,000.00', '$123.40', '2010',
         '',            '',        '',
@@ -269,7 +269,7 @@ describe('AccessRules1', function() {
     ruleSet = findDefaultRuleSet(/ClientsTable/);
     await ruleSet.find('.test-rule-part:nth-child(1) .test-rule-add').click();
     // Add a rule giving user2 (charon) access.
-    await enterRulePart(ruleSet, 1, `user.Email == '${gu.translateUser('user2').email}'`, {R: 'allow'});
+    await enterRulePart(ruleSet, 1, `user.Email == '${gu.translateUser('user2').email}'`, { R: 'allow' });
     // Remove the rule giving everyone access to Shared rows.
     await ruleSet.find('.test-rule-part-and-memo:nth-child(3) .test-rule-remove').click();
 
@@ -294,7 +294,7 @@ describe('AccessRules1', function() {
     // Check that the rule has an effect: user3 has limited access, and cannot see Shared rows except their own.
     await checkLimitedView('user3');
     assert.deepEqual(await gu.getVisibleGridCells(
-      {cols: ['First Name', 'Agent Email', 'Shared'], rowNums: [1, 6, 8, 9]},
+      { cols: ['First Name', 'Agent Email', 'Shared'], rowNums: [1, 6, 8, 9] },
     ), [
       'Kettie', 'gristoid+kiwi@gmail.com', 'false',
       'Neely', 'gristoid+kiwi@gmail.com', 'false',
@@ -309,7 +309,7 @@ describe('AccessRules1', function() {
     await startEditingAccessRules();
     const ruleSet = findDefaultRuleSet(/ClientsTable/);
     await ruleSet.find('.test-rule-part:nth-child(1) .test-rule-add').click();
-    await enterRulePart(ruleSet, 1, `user.Access === 'owners'`, {R: 'allow'});
+    await enterRulePart(ruleSet, 1, `user.Access === 'owners'`, { R: 'allow' });
     await gu.waitForServer();
 
     // Check that an error is shown, and save button is disabled.
@@ -320,7 +320,7 @@ describe('AccessRules1', function() {
     assert.equal(await driver.find('.test-rules-non-save').getText(), 'Invalid');
 
     // Check that invalid names are also detected.
-    await enterRulePart(ruleSet, 1, `fuser.Access == 'owners'`, {R: 'allow'});
+    await enterRulePart(ruleSet, 1, `fuser.Access == 'owners'`, { R: 'allow' });
     await gu.waitForServer();
     assert.match(await ruleSet.find('.test-rule-part:nth-child(1) .test-rule-error').getText(),
       /Unknown variable 'fuser'/);
@@ -329,7 +329,7 @@ describe('AccessRules1', function() {
     assert.equal(await driver.find('.test-rules-non-save').getText(), 'Invalid');
 
     // Check that invalid colIds are detected.
-    await enterRulePart(ruleSet, 1, `rec.Shared == True or rec.Sharedd == True`, {R: 'allow'});
+    await enterRulePart(ruleSet, 1, `rec.Shared == True or rec.Sharedd == True`, { R: 'allow' });
     await gu.waitForServer();
     assert.match(await ruleSet.find('.test-rule-part:nth-child(1) .test-rule-error').getText(),
       /Invalid columns: Sharedd/);
@@ -339,7 +339,7 @@ describe('AccessRules1', function() {
 
     // Check that saving is also disabled while checking rules.
     await server.pauseUntil(async () => {
-      await enterRulePart(ruleSet, 1, `user.Access == 'owners'`, {R: 'allow'});
+      await enterRulePart(ruleSet, 1, `user.Access == 'owners'`, { R: 'allow' });
       assert.equal(await ruleSet.find('.test-rule-part:nth-child(1) .test-rule-error').isPresent(), false);
       assert.equal(await driver.find('.test-rules-save').isDisplayed(), false);
       assert.equal(await driver.find('.test-rules-non-save').isDisplayed(), true);
@@ -372,7 +372,7 @@ describe('AccessRules1', function() {
       ['Expenses', 'Income', 'Year'],
     );
     await gu.findOpenMenuItem('li', 'Year').click();
-    await enterRulePart(ruleSet, 1, 'rec.Year == "yore"', {U: 'deny'});
+    await enterRulePart(ruleSet, 1, 'rec.Year == "yore"', { U: 'deny' });
     await gu.waitForServer();
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
@@ -380,7 +380,7 @@ describe('AccessRules1', function() {
     // Attempting to set read bit should no longer result in a notification.
     await driver.findWait('.test-rule-set', 2000);
     ruleSet = findRuleSet(/FinancialsTable/, 1);
-    await assert.isFulfilled(enterRulePart(ruleSet, 1, null, {R: 'deny'}));
+    await assert.isFulfilled(enterRulePart(ruleSet, 1, null, { R: 'deny' }));
     await gu.checkForErrors();
 
     // Remove rule.
@@ -392,7 +392,7 @@ describe('AccessRules1', function() {
   it('should report possible order-dependencies', async function() {
     // Make a rule for FinancialsTable.Year and FinancialsTable.Income that denies something.
     const mainSession = await gu.session().teamSite.user('user1').login();
-    await mainSession.loadDoc(`/doc/${docId}/p/acl`, {wait: false});
+    await mainSession.loadDoc(`/doc/${docId}/p/acl`, { wait: false });
     await driver.findWait('.test-rule-set', 2000);
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
     await gu.findOpenMenuItem('li', /Add column rule/).click();
@@ -405,7 +405,7 @@ describe('AccessRules1', function() {
     await gu.findOpenMenuItem('li', 'Year').click();
     await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     await gu.findOpenMenuItem('li', 'Income').click();
-    await enterRulePart(ruleSet, 1, 'user.Email == "noone1"', {R: 'deny'});
+    await enterRulePart(ruleSet, 1, 'user.Email == "noone1"', { R: 'deny' });
 
     // Make a rule for FinancialsTable.Year and FinancialsTable.Expenses that allows something.
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
@@ -419,7 +419,7 @@ describe('AccessRules1', function() {
     await gu.findOpenMenuItem('li', 'Year').click();
     await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     await gu.findOpenMenuItem('li', 'Expenses').click();
-    await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', {R: 'allow'});
+    await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', { R: 'allow' });
 
     // Check that trying to save throws an error.
     await driver.find('.test-rules-save').click();
@@ -429,14 +429,14 @@ describe('AccessRules1', function() {
     await gu.wipeToasts();
 
     // Tweak one rule to be compatible (no order dependency) with the other, and recheck.
-    await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', {R: 'deny'});
+    await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', { R: 'deny' });
     await gu.waitForServer();
     assert.lengthOf(await gu.getToasts(), 0);
   });
 
   it("'Add Widget to Page' should be disabled", async() => {
     const mainSession = await gu.session().teamSite.user('user1').login();
-    await mainSession.loadDoc(`/doc/${docId}/p/acl`, {wait: false});
+    await mainSession.loadDoc(`/doc/${docId}/p/acl`, { wait: false });
     await driver.findWait('.test-rule-set', 2000);
     await driver.find('.test-dp-add-new').doClick();
     await gu.findOpenMenu();
@@ -449,7 +449,7 @@ describe('AccessRules1', function() {
 
   it('should support dollar syntax in the editor', async function() {
     const mainSession = await gu.session().teamSite.user('user1').login();
-    await mainSession.loadDoc(`/doc/${docId}/p/acl`, {wait: false});
+    await mainSession.loadDoc(`/doc/${docId}/p/acl`, { wait: false });
     // Wait for ACL page to load.
     await driver.findWait('.test-rule-set', 2000);
     // Add rules for FinancialsTable.
@@ -470,7 +470,7 @@ describe('AccessRules1', function() {
     await driver.sendKeys(Key.ESCAPE);
 
     // Next test that column is understood.
-    await enterRulePart(ruleSet, 1, '1 == 1 and (rec.Year != "2" and $Year2 == "2010")', {R: 'deny'});
+    await enterRulePart(ruleSet, 1, '1 == 1 and (rec.Year != "2" and $Year2 == "2010")', { R: 'deny' });
     await gu.waitForServer();
     assert.match(await ruleSet.find('.test-rule-part:nth-child(1) .test-rule-error').getText(),
       /Invalid columns: Year2/);
@@ -479,7 +479,7 @@ describe('AccessRules1', function() {
     assert.equal(await driver.find('.test-rules-non-save').getText(), 'Invalid');
 
     // Now apply the rule.
-    await enterRulePart(ruleSet, 1, '($Year == "2010" or rec.Year == "2011")', {R: 'deny'});
+    await enterRulePart(ruleSet, 1, '($Year == "2010" or rec.Year == "2011")', { R: 'deny' });
     await gu.waitForServer();
     // Remove second rule that hides table for everyone.
     await ruleSet.find('.test-rule-part-and-memo:nth-child(2) .test-rule-remove').click();
@@ -489,7 +489,7 @@ describe('AccessRules1', function() {
     // Test that this rule works.
     await gu.openPage("FinancialsTable");
     assert.deepEqual(await gu.getVisibleGridCells(
-      {cols: ['Year'], rowNums: [1, 2]},
+      { cols: ['Year'], rowNums: [1, 2] },
     ), [
       '2022',
       '',

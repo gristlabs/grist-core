@@ -1,6 +1,6 @@
-import {assert, driver} from 'mocha-webdriver';
+import { assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('LeftPanel', function() {
   this.timeout(20000);
@@ -10,7 +10,7 @@ describe('LeftPanel', function() {
 
   before(async function() {
     mainSession = await gu.session().teamSite.user('user1').login();
-    docId = await mainSession.tempNewDoc(cleanup, 'LeftPanel.grist', {load: false});
+    docId = await mainSession.tempNewDoc(cleanup, 'LeftPanel.grist', { load: false });
   });
 
   afterEach(() => gu.checkForErrors());

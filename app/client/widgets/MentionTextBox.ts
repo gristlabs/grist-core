@@ -1,18 +1,18 @@
-import {ACIndexImpl, ACItem, ACResults, buildHighlightedDom, HighlightFunc} from 'app/client/lib/ACIndex';
-import {Autocomplete} from 'app/client/lib/autocomplete';
-import {makeTestId, onClickOutsideElem} from 'app/client/lib/domUtils';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {autoGrow} from 'app/client/ui/forms';
-import {createUserImage} from 'app/client/ui/UserImage';
-import {theme} from 'app/client/ui2018/cssVars';
-import {cssLink} from 'app/client/ui2018/links';
-import {gristFloatingMenuClass, menuCssClass} from 'app/client/ui2018/menus';
-import {splitTextWithMentions} from 'app/common/DocComments';
-import {canView} from 'app/common/roles';
-import {orderBy} from 'app/common/SortFunc';
-import {tokens} from 'app/common/ThemePrefs';
-import {getRealAccess, PermissionData, UserAccessData, UserProfile} from 'app/common/UserAPI';
+import { ACIndexImpl, ACItem, ACResults, buildHighlightedDom, HighlightFunc } from 'app/client/lib/ACIndex';
+import { Autocomplete } from 'app/client/lib/autocomplete';
+import { makeTestId, onClickOutsideElem } from 'app/client/lib/domUtils';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { makeT } from 'app/client/lib/localization';
+import { autoGrow } from 'app/client/ui/forms';
+import { createUserImage } from 'app/client/ui/UserImage';
+import { theme } from 'app/client/ui2018/cssVars';
+import { cssLink } from 'app/client/ui2018/links';
+import { gristFloatingMenuClass, menuCssClass } from 'app/client/ui2018/menus';
+import { splitTextWithMentions } from 'app/common/DocComments';
+import { canView } from 'app/common/roles';
+import { orderBy } from 'app/common/SortFunc';
+import { tokens } from 'app/common/ThemePrefs';
+import { getRealAccess, PermissionData, UserAccessData, UserProfile } from 'app/common/UserAPI';
 import {
   Computed,
   Disposable,
@@ -268,7 +268,7 @@ class MentionPicker extends Disposable {
     });
 
     // Focus layer.
-    FocusLayer.create(this, {defaultFocusElem: this._mentionEl, pauseMousetrap: true});
+    FocusLayer.create(this, { defaultFocusElem: this._mentionEl, pauseMousetrap: true });
 
     // Outside click handler.
     this.autoDispose(onClickOutsideElem(this._mentionEl, () => this._convertToPlainText()));

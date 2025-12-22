@@ -61,13 +61,13 @@ export class GroupsManager {
 
   // Returns a map of userIds to the user's strongest default role on the given resource.
   // The resource's aclRules, groups, and memberUsers must be populated.
-  public static getMemberUserRoles<T extends roles.Role>(res: Resource, allowRoles: T[]): {[userId: string]: T} {
+  public static getMemberUserRoles<T extends roles.Role>(res: Resource, allowRoles: T[]): { [userId: string]: T } {
     // Map of userId to the strongest role for that user among res.aclRules, filtered by allowRoles.
-    const userMap: {[userId: string]: T} = {};
+    const userMap: { [userId: string]: T } = {};
     for (const aclRule of res.aclRules) {
       const role = aclRule.group.name as T;
       if (allowRoles.includes(role)) {
-        for (const {id} of aclRule.group.memberUsers) {
+        for (const { id } of aclRule.group.memberUsers) {
           // If the user is already present in another group, use the more powerful role name.
           userMap[id] = userMap[id] ? roles.getStrongestRole(userMap[id], role) : role;
         }
@@ -151,7 +151,7 @@ export class GroupsManager {
     }
 
     // Mapping from group names to top-level groups
-    const topGroups: {[groupName: string]: NonGuestGroup} = {};
+    const topGroups: { [groupName: string]: NonGuestGroup } = {};
     groups.forEach((grp) => {
       // Note that this has a side effect of initializing the memberGroups arrays.
       grp.memberGroups = [];
@@ -190,7 +190,7 @@ export class GroupsManager {
       await manager.createQueryBuilder()
         .delete()
         .from('group_users')
-        .whereInIds(toDelete.map(id => ({user_id: id, group_id: groupId})))
+        .whereInIds(toDelete.map(id => ({ user_id: id, group_id: groupId })))
         .execute();
     }
     if (toAdd.length > 0) {
@@ -200,7 +200,7 @@ export class GroupsManager {
         // are added at the same time (even in transaction, since we are not blocking the whole table).
         .orIgnore()
         .into('group_users')
-        .values(toAdd.map(id => ({user_id: id, group_id: groupId})))
+        .values(toAdd.map(id => ({ user_id: id, group_id: groupId })))
         .execute();
     }
   }
@@ -209,8 +209,8 @@ export class GroupsManager {
    * Returns a name to group mapping for the standard groups. Useful when adding a new child
    * entity. Finds and includes the correct parent groups as member groups.
    */
-  public createGroups(inherit?: Organization|Workspace, ownerId?: number): {[name: string]: Group} {
-    const groupMap: {[name: string]: Group} = {};
+  public createGroups(inherit?: Organization|Workspace, ownerId?: number): { [name: string]: Group } {
+    const groupMap: { [name: string]: Group } = {};
     this.defaultGroups.forEach((groupProps) => {
       if (!groupProps.orgOnly || !inherit) {
         // Skip this group if it's an org only group and the resource inherits from a parent.
@@ -386,11 +386,11 @@ export class GroupsManager {
    * @returns A Promise for an array of Group entities.
    */
   public getGroupsWithMembersByType(
-    type: GroupTypes, opts?: {aclRule?: boolean}, optManager?: EntityManager,
+    type: GroupTypes, opts?: { aclRule?: boolean }, optManager?: EntityManager,
   ): Promise<Group[]> {
     return this._runInTransaction(optManager, async (manager: EntityManager) => {
       return this._getGroupsQueryBuilder(manager, opts)
-        .where('groups.type = :type', {type})
+        .where('groups.type = :type', { type })
         .getMany();
     });
   }
@@ -406,11 +406,11 @@ export class GroupsManager {
    * @returns A Promise for the Group entity.
    */
   public async getGroupWithMembersById(
-    id: number, opts?: {aclRule?: boolean}, optManager?: EntityManager,
+    id: number, opts?: { aclRule?: boolean }, optManager?: EntityManager,
   ): Promise<Group|null> {
     return await this._runInTransaction(optManager, async (manager) => {
       return await this._getGroupsQueryBuilder(manager, opts)
-        .andWhere('groups.id = :groupId', {groupId: id})
+        .andWhere('groups.id = :groupId', { groupId: id })
         .getOne();
     });
   }
@@ -451,7 +451,7 @@ export class GroupsManager {
     }
     return await this._runInTransaction(optManager, async (manager) => {
       const queryBuilder = this._getGroupsQueryBuilder(manager)
-        .where('groups.id IN (:...groupIds)', {groupIds});
+        .where('groups.id IN (:...groupIds)', { groupIds });
       return await queryBuilder.getMany();
     });
   }
@@ -480,7 +480,7 @@ export class GroupsManager {
    * @param opts.aclRule - Whether to include the aclRule in the query.
    * @returns The QueryBuilder for fetching groups with their members.
    */
-  private _getGroupsQueryBuilder(optManager: EntityManager, opts: {aclRule?: boolean} = {}) {
+  private _getGroupsQueryBuilder(optManager: EntityManager, opts: { aclRule?: boolean } = {}) {
     let queryBuilder = optManager.createQueryBuilder()
       .select('groups')
       .addSelect('groups.type')
@@ -497,10 +497,10 @@ export class GroupsManager {
 
   private async _throwIfTeamNameCollision(name: string, manager: EntityManager, existingId?: number) {
     const query = this._getGroupsQueryBuilder(manager)
-      .where('groups.name = :name', {name})
-      .andWhere('groups.type = :type', {type: Group.TEAM_TYPE});
+      .where('groups.name = :name', { name })
+      .andWhere('groups.type = :type', { type: Group.TEAM_TYPE });
     if (existingId !== undefined) {
-      query.andWhere('groups.id != :id', {id: existingId});
+      query.andWhere('groups.id != :id', { id: existingId });
     }
     const group = await query.getOne();
     if (group) {

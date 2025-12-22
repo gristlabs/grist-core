@@ -1,5 +1,5 @@
-import {StringUnion} from 'app/common/StringUnion';
-import {assert} from 'chai';
+import { StringUnion } from 'app/common/StringUnion';
+import { assert } from 'chai';
 
 describe('StringUnion', function() {
   // Create Dog type

@@ -1,11 +1,11 @@
-import {ColumnFilterFunc, makeFilterFunc} from "app/common/ColumnFilterFunc";
-import {CellValue} from 'app/common/DocActions';
+import { ColumnFilterFunc, makeFilterFunc } from "app/common/ColumnFilterFunc";
+import { CellValue } from 'app/common/DocActions';
 import {
   FilterSpec, FilterState, IRelativeDateSpec, isRangeFilter, isRelativeBound, makeFilterState,
 } from "app/common/FilterState";
-import {relativeDateToUnixTimestamp} from "app/common/RelativeDates";
-import {nativeCompare} from 'app/common/gutil';
-import {Computed, Disposable, Observable} from 'grainjs';
+import { relativeDateToUnixTimestamp } from "app/common/RelativeDates";
+import { nativeCompare } from 'app/common/gutil';
+import { Computed, Disposable, Observable } from 'grainjs';
 
 /**
  * ColumnFilter implements a custom filter on a column, i.e. a filter that's diverged from what's
@@ -123,11 +123,11 @@ export class ColumnFilter extends Disposable {
   public makeFilterJson(): string {
     let filter: any;
     if (this.min.get() !== undefined || this.max.get() !== undefined) {
-      filter = {min: this.min.get(), max: this.max.get()};
+      filter = { min: this.min.get(), max: this.max.get() };
     }
     else {
       const values = Array.from(this._values).sort(nativeCompare);
-      filter = {[this._include ? 'included' : 'excluded']: values};
+      filter = { [this._include ? 'included' : 'excluded']: values };
     }
     return JSON.stringify(filter);
   }
@@ -148,7 +148,7 @@ export class ColumnFilter extends Disposable {
   }
 
   private _getState(): FilterState {
-    return {include: this._include, values: this._values, min: this.min.get(), max: this.max.get()};
+    return { include: this._include, values: this._values, min: this.min.get(), max: this.max.get() };
   }
 
   private _isRange() {

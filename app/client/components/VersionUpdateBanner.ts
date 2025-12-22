@@ -1,9 +1,9 @@
-import {Banner, buildBannerMessage} from 'app/client/components/Banner';
-import {makeT} from 'app/client/lib/localization';
-import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Disposable, dom, makeTestId, Observable} from 'grainjs';
-import {AppModel} from 'app/client/models/AppModel';
+import { Banner, buildBannerMessage } from 'app/client/components/Banner';
+import { makeT } from 'app/client/lib/localization';
+import { localStorageJsonObs } from 'app/client/lib/localStorageObs';
+import { getGristConfig } from 'app/common/urlUtils';
+import { Disposable, dom, makeTestId, Observable } from 'grainjs';
+import { AppModel } from 'app/client/models/AppModel';
 
 const t = makeT("VersionUpdateBanner");
 const testId = makeTestId('test-version-update-banner-');
@@ -20,7 +20,7 @@ export class VersionUpdateBanner extends Disposable {
   constructor(private _appModel: AppModel) {
     super();
     const userId = this._appModel.currentUser?.id ?? 0;
-    const {latestVersionAvailable} = getGristConfig();
+    const { latestVersionAvailable } = getGristConfig();
 
     this._showVersionUpdateBannerPref = localStorageJsonObs(
       `u=${userId}:showVersionUpdateBanner`,
@@ -34,7 +34,7 @@ export class VersionUpdateBanner extends Disposable {
   public buildDom() {
     return dom.maybe(this._appModel.isInstallAdmin(), () => {
       return dom.domComputed((use) => {
-        const {latestVersionAvailable} = getGristConfig();
+        const { latestVersionAvailable } = getGristConfig();
         if (!latestVersionAvailable?.isNewer) {
           return null;
         }
@@ -50,7 +50,7 @@ export class VersionUpdateBanner extends Disposable {
           return null;
         }
 
-        const versionParam = {version: latestVersionAvailable.version};
+        const versionParam = { version: latestVersionAvailable.version };
         const msg = latestVersionAvailable.isCritical ?
           t(
             `There is a critical Grist update available.

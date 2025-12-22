@@ -27,7 +27,7 @@ describe('SafeBrowser', function() {
 
   let clientScope: any;
   const sandbox = sinon.createSandbox();
-  let browserProcesses: Array<{path: string, proc: ClientProcess}> = [];
+  let browserProcesses: Array<{ path: string, proc: ClientProcess }> = [];
 
   let disposeSpy: sinon.SinonSpy;
   const cleanup: Array<() => void> = [];
@@ -56,35 +56,35 @@ describe('SafeBrowser', function() {
   });
 
   it('should support rpc', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser('test_rpc');
+    const { safeBrowser, pluginRpc } = createSafeBrowser('test_rpc');
     const foo = pluginRpc.getStub<Foo>('grist@test_rpc', FooDescription);
     await safeBrowser.activate();
     assert.equal(await foo.foo('rpc test'), 'foo rpc test');
   });
 
   it("can stub view processes", async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser('test_render');
+    const { safeBrowser, pluginRpc } = createSafeBrowser('test_render');
     const foo = pluginRpc.getStub<Foo>('grist@test_render_view', FooDescription);
     await safeBrowser.activate();
     assert.equal(await foo.foo('rpc test'), 'foo rpc test from test_render_view');
   });
 
   it('can forward rpc to a view process', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_forward");
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_forward");
     const foo = pluginRpc.getStub<Foo>('grist@test_forward', FooDescription);
     await safeBrowser.activate();
     assert.equal(await foo.foo("safeBrowser"), "foo safeBrowser from test_forward_view");
   });
 
   it('should forward messages', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_messages");
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_messages");
     const foo = pluginRpc.getStub<Foo>('foo@test_messages', FooDescription);
     await safeBrowser.activate();
     assert.equal(await foo.foo("safeBrowser"), "from message view");
   });
 
   it('should support disposing a rendered view', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_dispose");
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_dispose");
     const foo = pluginRpc.getStub<Foo>('grist@test_dispose', FooDescription);
     await safeBrowser.activate();
     await foo.foo("safeBrowser");
@@ -95,13 +95,13 @@ describe('SafeBrowser', function() {
   });
 
   it('should dispose each process on deactivation', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_dispose");
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_dispose");
     const foo = pluginRpc.getStub<Foo>('grist@test_dispose', FooDescription);
     await safeBrowser.activate();
     await foo.foo("safeBrowser");
     await safeBrowser.deactivate();
     assert.deepEqual(browserProcesses.map(p => p.path), ["test_dispose", "test_dispose_view1", "test_dispose_view2"]);
-    for (const {proc} of browserProcesses) {
+    for (const { proc } of browserProcesses) {
       assert.equal(disposeSpy.calledOn(proc), true);
     }
   });
@@ -116,28 +116,28 @@ describe('SafeBrowser', function() {
   // });
 
   it('should allow access to client scope interfaces', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_client_scope");
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_client_scope");
     const foo = pluginRpc.getStub<Foo>('grist@test_client_scope', FooDescription);
     await safeBrowser.activate();
     assert.equal(await foo.foo('green'), '#0f0');
   });
 
   it('should allow access to client scope interfaces from view', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_client_scope_from_view");
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_client_scope_from_view");
     const foo = pluginRpc.getStub<Foo>('grist@test_client_scope_from_view', FooDescription);
     await safeBrowser.activate();
     assert.equal(await foo.foo('red'), 'red#f00');
   });
 
   it('should have type-safe access to client scope interfaces', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_client_scope_typed");
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_client_scope_typed");
     const foo = pluginRpc.getStub<Foo>('grist@test_client_scope_typed', FooDescription);
     await safeBrowser.activate();
     await assert.isRejected(foo.foo('test'), /is not a string/);
   });
 
   it('should allow creating a view process from grist', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_view_process");
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_view_process");
     // let's call buildDom on test_rpc
     const proc = safeBrowser.createViewProcess("test_rpc");
 
@@ -151,11 +151,11 @@ describe('SafeBrowser', function() {
 
   function createProcess(safeBrowser: SafeBrowser, _rpc: Rpc, src: string) {
     const path: string = basename(url.parse(src).pathname!);
-    const rpc = new Rpc({logger: LOG_RPC ? {
+    const rpc = new Rpc({ logger: LOG_RPC ? {
       // let's prepend path to the console 'info' and 'warn' channels
       info: console.info.bind(console, path),   // tslint:disable-line:no-console
       warn: console.warn.bind(console, path),   // tslint:disable-line:no-console
-    } : {}, sendMessage: _rpc.receiveMessage.bind(_rpc)});
+    } : {}, sendMessage: _rpc.receiveMessage.bind(_rpc) });
     _rpc.setSendMessage(msg => rpc.receiveMessage(msg));
     const api = rpc.getStub<GristAPI>(RPC_GRISTAPI_INTERFACE, checkers.GristAPI);
     function ready() {
@@ -164,8 +164,8 @@ describe('SafeBrowser', function() {
     }
     // Start up the mock process for the plugin.
     const proc = new ClientProcess(safeBrowser, _rpc);
-    PROCESSES[path]({rpc, api, ready });
-    browserProcesses.push({path, proc});
+    PROCESSES[path]({ rpc, api, ready });
+    browserProcesses.push({ path, proc });
     return proc;
   }
 
@@ -178,7 +178,7 @@ describe('SafeBrowser', function() {
     id: "testing-plugin",
     path: "",
   };
-  function createSafeBrowser(mainPath: string): {safeBrowser: SafeBrowser, pluginRpc: Rpc} {
+  function createSafeBrowser(mainPath: string): { safeBrowser: SafeBrowser, pluginRpc: Rpc } {
     const pluginInstance = new PluginInstance(localPlugin, {});
     const safeBrowser = new SafeBrowser({
       pluginInstance,
@@ -189,7 +189,7 @@ describe('SafeBrowser', function() {
     });
     cleanup.push(() => safeBrowser.deactivate());
     pluginInstance.rpc.registerForwarder(mainPath, safeBrowser);
-    return {safeBrowser, pluginRpc: pluginInstance.rpc};
+    return { safeBrowser, pluginRpc: pluginInstance.rpc };
   }
 
   function processByName(name: string): ClientProcess|undefined {

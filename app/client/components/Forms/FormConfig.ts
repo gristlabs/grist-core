@@ -1,19 +1,19 @@
-import {fromKoSave} from 'app/client/lib/fromKoSave';
-import {makeT} from 'app/client/lib/localization';
-import {ViewFieldRec} from 'app/client/models/DocModel';
-import {fieldWithDefault, SaveableObjObservable} from 'app/client/models/modelUtil';
-import {FormFieldOptions, FormOptionsAlignment, FormOptionsSortOrder, FormSelectFormat} from 'app/client/ui/FormAPI';
+import { fromKoSave } from 'app/client/lib/fromKoSave';
+import { makeT } from 'app/client/lib/localization';
+import { ViewFieldRec } from 'app/client/models/DocModel';
+import { fieldWithDefault, SaveableObjObservable } from 'app/client/models/modelUtil';
+import { FormFieldOptions, FormOptionsAlignment, FormOptionsSortOrder, FormSelectFormat } from 'app/client/ui/FormAPI';
 import {
   cssLabel,
   cssRow,
   cssSeparator,
 } from 'app/client/ui/RightPanelStyles';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
-import {buttonSelect} from 'app/client/ui2018/buttonSelect';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {select} from 'app/client/ui2018/menus';
-import {theme} from 'app/client/ui2018/cssVars';
-import {Computed, Disposable, dom, IDisposableOwner, makeTestId, styled} from 'grainjs';
+import { withInfoTooltip } from 'app/client/ui/tooltips';
+import { buttonSelect } from 'app/client/ui2018/buttonSelect';
+import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { select } from 'app/client/ui2018/menus';
+import { theme } from 'app/client/ui2018/cssVars';
+import { Computed, Disposable, dom, IDisposableOwner, makeTestId, styled } from 'grainjs';
 
 const t = makeT('FormConfig');
 
@@ -36,8 +36,8 @@ export class FormSelectConfig extends Disposable {
         buttonSelect(
           fromKoSave(format),
           [
-            {value: 'select', label: t('Select')},
-            {value: 'radio', label: t('Radio')},
+            { value: 'select', label: t('Select') },
+            { value: 'radio', label: t('Radio') },
           ],
           testId('field-format'),
         ),
@@ -64,10 +64,10 @@ export class FormOptionsAlignmentConfig extends Disposable {
         select(
           fromKoSave(alignment),
           [
-            {value: 'vertical', label: t('Vertical')},
-            {value: 'horizontal', label: t('Horizontal')},
+            { value: 'vertical', label: t('Vertical') },
+            { value: 'horizontal', label: t('Horizontal') },
           ],
-          {defaultLabel: t('Vertical')},
+          { defaultLabel: t('Vertical') },
         ),
       ),
     ];
@@ -91,11 +91,11 @@ export class FormOptionsSortConfig extends Disposable {
         select(
           fromKoSave(optionsSortOrder),
           [
-            {value: 'default', label: t('Default')},
-            {value: 'ascending', label: t('Ascending')},
-            {value: 'descending', label: t('Descending')},
+            { value: 'default', label: t('Default') },
+            { value: 'ascending', label: t('Ascending') },
+            { value: 'descending', label: t('Descending') },
           ],
-          {defaultLabel: t('Default')},
+          { defaultLabel: t('Default') },
         ),
       ),
     ];
@@ -119,7 +119,7 @@ function obsPropWithSaveOnWrite<Props extends object, Key extends keyof Props, V
 ): Computed<NonNullable<Props[Key]>|Val> {
   return Computed.create(owner, use => use(obs)[prop] ?? fallback)
     .onWrite((value) => {
-      obs.setAndSaveOrRevert({...obs.peek(), [prop]: value}).catch(reportError);
+      obs.setAndSaveOrRevert({ ...obs.peek(), [prop]: value }).catch(reportError);
     });
 }
 
@@ -157,8 +157,8 @@ export class FormFieldRulesConfig extends Disposable {
       )),
       dom.maybe(acceptFromUrl, () => [
         // We set tabIndex to let the user select the text to copy-paste the column ID (parameter name).
-        cssHintRow({tabIndex: '-1'},
-          t('URL parameter:\n{{colId}}=VALUE', {colId: dom('b', dom.text(this._field.colId))}),
+        cssHintRow({ tabIndex: '-1' },
+          t('URL parameter:\n{{colId}}=VALUE', { colId: dom('b', dom.text(this._field.colId)) }),
           testId('field-url-hint'),
         ),
       ]),

@@ -18,7 +18,7 @@
  *
  */
 
-import {Interval} from 'app/common/Interval';
+import { Interval } from 'app/common/Interval';
 import log from 'app/server/lib/log';
 import pidusage from 'pidusage';
 
@@ -89,8 +89,8 @@ export class Throttle {
   // Interval for CPU measurements.
   private _meteringInterval: Interval = new Interval(
     () => this._update(),
-    {delayMs: this._timing.samplePeriodMs},
-    {onError: e => this._log(`Throttle error: ${e}`, this._options.logMeta)},
+    { delayMs: this._timing.samplePeriodMs },
+    { onError: e => this._log(`Throttle error: ${e}`, this._options.logMeta) },
   );
 
   /**
@@ -234,10 +234,10 @@ export class Throttle {
 
     if (!this._lastLogTime || now - this._lastLogTime > this._timing.minimumLogPeriodMs) {
       this._lastLogTime = now;
-      this._log('throttle', {...this._options.logMeta,
+      this._log('throttle', { ...this._options.logMeta,
         throttle: Math.round(this._throttleFactor),
         throttledRate: Math.round(rate * 100),
-        rate: Math.round(rateWithoutThrottling * 100)});
+        rate: Math.round(rateWithoutThrottling * 100) });
     }
   }
 

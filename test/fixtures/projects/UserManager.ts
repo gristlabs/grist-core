@@ -1,8 +1,8 @@
-import {UserManagerModelImpl} from "app/client/models/UserManagerModel";
-import {UserManager} from "app/client/ui/UserManager";
-import {PermissionData, PermissionDelta} from "app/common/UserAPI";
-import {dom, observable, styled} from "grainjs";
-import {withLocale} from "test/fixtures/projects/helpers/withLocale";
+import { UserManagerModelImpl } from "app/client/models/UserManagerModel";
+import { UserManager } from "app/client/ui/UserManager";
+import { PermissionData, PermissionDelta } from "app/common/UserAPI";
+import { dom, observable, styled } from "grainjs";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 
 function getInitialData(): PermissionData {
   return {
@@ -40,7 +40,7 @@ function getInitialData(): PermissionData {
 
 function setupTest() {
   const lastDelta = observable<PermissionDelta>({});
-  const activeUser = {id: 5, email: 'test-usermanager@getgrist.com', name: 'Test'};
+  const activeUser = { id: 5, email: 'test-usermanager@getgrist.com', name: 'Test' };
   const model = new UserManagerModelImpl(getInitialData(), 'document', { activeUser });
   const um = observable(new UserManager(model, {}));
   return [

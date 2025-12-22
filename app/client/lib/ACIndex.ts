@@ -7,8 +7,8 @@
  * "lush" would only match the "L" in "Lavender".
  */
 
-import {localeCompare, nativeCompare, sortedIndex} from 'app/common/gutil';
-import {DomContents} from 'grainjs';
+import { localeCompare, nativeCompare, sortedIndex } from 'app/common/gutil';
+import { DomContents } from 'grainjs';
 import escapeRegExp from "lodash/escapeRegExp";
 import deburr from "lodash/deburr";
 import split from "lodash/split";
@@ -108,7 +108,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
       const item = this._allItems[index];
       const words = item.cleanText.split(wordSepRegexp).filter(w => w);
       for (let pos = 0; pos < words.length; pos++) {
-        allWords.push({word: words[pos], index, pos});
+        allWords.push({ word: words[pos], index, pos });
       }
     }
 
@@ -165,7 +165,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
 
     if (!cleanedSearchText) {
       // In this case we are just returning the first few items.
-      return {items, extraItems: [], highlightFunc: highlightNone, selectIndex: -1};
+      return { items, extraItems: [], highlightFunc: highlightNone, selectIndex: -1 };
     }
 
     const highlightFunc = highlightMatches.bind(null, searchWords);
@@ -176,7 +176,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
     if (selectIndex >= 0 && !startsWithText(items[selectIndex], cleanedSearchText, searchWords)) {
       selectIndex = -1;
     }
-    return {items, extraItems: [], highlightFunc, selectIndex};
+    return { items, extraItems: [], highlightFunc, selectIndex };
   }
 
   /**
@@ -192,7 +192,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
    * whose words occur in the same order as in the search text.
    */
   private _findOverlaps(searchWord: string, searchWordPos: number): Map<number, number> {
-    const insertIndex = sortedIndex<{word: string}>(this._words, {word: searchWord},
+    const insertIndex = sortedIndex<{ word: string }>(this._words, { word: searchWord },
       (a, b) => localeCompare(a.word, b.word));
 
     // Maps index of item to its score.

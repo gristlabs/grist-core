@@ -1,23 +1,23 @@
-import {makeT} from 'app/client/lib/localization';
+import { makeT } from 'app/client/lib/localization';
 import * as commands from 'app/client/components/commands';
-import {watchElementForBlur} from 'app/client/lib/FocusLayer';
-import {urlState} from "app/client/models/gristUrlState";
-import {resizeFlexVHandle} from 'app/client/ui/resizeHandle';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {transition, TransitionWatcher} from 'app/client/ui/transitions';
-import {cssHideForNarrowScreen, isScreenResizing, mediaNotSmall, mediaSmall, theme} from 'app/client/ui2018/cssVars';
-import {isNarrowScreenObs} from 'app/client/ui2018/cssVars';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {icon} from 'app/client/ui2018/icons';
+import { watchElementForBlur } from 'app/client/lib/FocusLayer';
+import { urlState } from "app/client/models/gristUrlState";
+import { resizeFlexVHandle } from 'app/client/ui/resizeHandle';
+import { hoverTooltip } from 'app/client/ui/tooltips';
+import { transition, TransitionWatcher } from 'app/client/ui/transitions';
+import { cssHideForNarrowScreen, isScreenResizing, mediaNotSmall, mediaSmall, theme } from 'app/client/ui2018/cssVars';
+import { isNarrowScreenObs } from 'app/client/ui2018/cssVars';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
+import { icon } from 'app/client/ui2018/icons';
 import {
   dom, DomElementArg, DomElementMethod, MultiHolder, noTestId, Observable, styled, subscribe, TestId,
 } from "grainjs";
 import noop from 'lodash/noop';
 import once from 'lodash/once';
-import {SessionObs} from 'app/client/lib/sessionObs';
+import { SessionObs } from 'app/client/lib/sessionObs';
 import debounce from 'lodash/debounce';
-import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
-import {App} from 'app/client/ui/App';
+import { RegionFocusSwitcher } from 'app/client/components/RegionFocusSwitcher';
+import { App } from 'app/client/ui/App';
 
 const t = makeT('PagePanels');
 
@@ -277,12 +277,12 @@ export function pagePanels(page: PageContents) {
       // Resizer for the left pane.
       // TODO: resizing to small size should collapse. possibly should allow expanding too
       cssResizeFlexVHandle(
-        {target: 'left', onSave: (val) => {
+        { target: 'left', onSave: (val) => {
           left.panelWidth.set(val); onResize();
           leftPaneDom.style['width'] = val + 'px';
           setTimeout(() => dragResizer.set(false), 0);
         },
-        onDrag: (val) => { dragResizer.set(true); }},
+        onDrag: (val) => { dragResizer.set(true); } },
         testId('left-resizer'),
         dom.show(use => use(left.panelOpen) && !use(leftOverlap)),
         cssHideForNarrowScreen.cls('')),
@@ -293,9 +293,9 @@ export function pagePanels(page: PageContents) {
           regionFocusSwitcher?.panelAttrs('top', t('Document header')),
           (left.hideOpener ? null :
             unstyledButton(
-              {'aria-label': left.panelOpen.get()
+              { 'aria-label': left.panelOpen.get()
                 ? t('Close navigation panel (left panel)')
-                : t('Open navigation panel (left panel)')},
+                : t('Open navigation panel (left panel)') },
               dom.on('click', () => toggleObs(left.panelOpen)),
               cssPanelOpener(
                 'PanelRight',
@@ -310,7 +310,7 @@ export function pagePanels(page: PageContents) {
 
           (!right || right.hideOpener ? null :
             unstyledButton(
-              {'aria-label': right.panelOpen.get() ? t('Close Creator Panel') : t('Open creator panel')},
+              { 'aria-label': right.panelOpen.get() ? t('Close Creator Panel') : t('Open creator panel') },
               dom.on('click', () => toggleObs(right.panelOpen)),
               cssPanelOpener(
                 'PanelLeft',
@@ -319,7 +319,7 @@ export function pagePanels(page: PageContents) {
                 dom.cls('tour-creator-panel'),
                 hoverTooltip(
                   () => (right.panelOpen.get() ? t('Close Creator Panel') : t('Open creator panel')),
-                  {key: 'topBarBtnTooltip'},
+                  { key: 'topBarBtnTooltip' },
                 ),
                 cssHideForNarrowScreen.cls(''),
               ),
@@ -340,7 +340,7 @@ export function pagePanels(page: PageContents) {
       (right ? [
         // Resizer for the right pane.
         cssResizeFlexVHandle(
-          {target: 'right', onSave: (val) => { right.panelWidth.set(val); onResize(); }},
+          { target: 'right', onSave: (val) => { right.panelWidth.set(val); onResize(); } },
           testId('right-resizer'),
           dom.show(right.panelOpen),
           cssHideForNarrowScreen.cls('')),
@@ -718,7 +718,7 @@ function watchHeight(callback: (height: number) => void): DomElementMethod {
 function watchHeightElem(elem: HTMLElement, callback: (height: number) => void) {
   const onChange = () => callback(elem.getBoundingClientRect().height);
   const observer = new MutationObserver(onChange);
-  observer.observe(elem, {childList: true, subtree: true, attributes: true});
+  observer.observe(elem, { childList: true, subtree: true, attributes: true });
   dom.onDisposeElem(elem, () => observer.disconnect());
   onChange();
 }

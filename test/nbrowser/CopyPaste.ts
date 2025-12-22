@@ -4,13 +4,13 @@
  * TODO Most of the testing for copy-pasting lives in test/nbrowser/CopyPaste.ntest.js.
  * This file just has some more recent additions to these test.
  */
-import {arrayRepeat} from 'app/common/gutil';
+import { arrayRepeat } from 'app/common/gutil';
 import * as _ from 'lodash';
-import {assert, driver, Key, WebElement} from 'mocha-webdriver';
+import { assert, driver, Key, WebElement } from 'mocha-webdriver';
 import * as path from 'path';
-import {serveStatic} from 'test/nbrowser/customUtil';
+import { serveStatic } from 'test/nbrowser/customUtil';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('CopyPaste', function() {
   this.timeout(90000);
@@ -39,7 +39,7 @@ describe('CopyPaste', function() {
       await copyTestData(cb);
       await driver.get(docUrl);
       await gu.waitForDocToLoad();
-      await gu.getCell({col: 'A', rowNum: 1}).click();
+      await gu.getCell({ col: 'A', rowNum: 1 }).click();
       await gu.waitAppFocus();
       await cb.paste();
     });
@@ -47,7 +47,7 @@ describe('CopyPaste', function() {
     // Make sure we have the expected data.
     await gu.waitForServer();
     await gu.checkForErrors();
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3, 4], cols: ['A']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3, 4], cols: ['A'] }), [
       'a',
       'c',
       'd',
@@ -69,14 +69,14 @@ describe('CopyPaste', function() {
       const session = await gu.session().login();
       await session.tempNewDoc(cleanup, 'CopyPaste');
 
-      await gu.getCell({col: 'A', rowNum: 1}).click();
+      await gu.getCell({ col: 'A', rowNum: 1 }).click();
       await gu.waitAppFocus();
       await cb.paste();
     });
     await gu.waitForServer();
 
     await gu.checkForErrors();
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3, 4], cols: ['A', 'B']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3, 4], cols: ['A', 'B'] }), [
       'a', 'b',
       'c', '',
       'd', 'e',
@@ -252,7 +252,7 @@ describe('CopyPaste', function() {
       '10/20/03',   '10/20/03 INVALID',
     ]);
 
-    await gu.getCell({col: 'Parsed', rowNum: 1}).click();
+    await gu.getCell({ col: 'Parsed', rowNum: 1 }).click();
     assert.equal(await gu.getDateFormat(), "DD-MM-YYYY");
     await gu.setDateFormat("MM-DD-YYYY");
 
@@ -302,7 +302,7 @@ describe('CopyPaste', function() {
   // assume that the previous tests have run.
   it('should parse pasted references', async function() {
     await gu.getPageItem("References").click();
-    await gu.getCell({col: 'Parsed', rowNum: 1}).click();
+    await gu.getCell({ col: 'Parsed', rowNum: 1 }).click();
     assert.equal(await gu.getRefTable(), "Dates");
     assert.equal(await gu.getRefShowColumn(), "Text");
 
@@ -459,11 +459,11 @@ describe('CopyPaste', function() {
 
     // Now test that pasting the same values into a Reference List column
     // produces the same result (reflists containing a single reference)
-    await gu.setType(/Reference List/, {apply: true});
+    await gu.setType(/Reference List/, { apply: true });
 
     // Clear the Parsed column. Make sure we don't edit the column header.
-    await gu.getCell({col: "Parsed", rowNum: 1}).click();
-    await gu.getColumnHeader({col: "Parsed"}).click();
+    await gu.getCell({ col: "Parsed", rowNum: 1 }).click();
+    await gu.getColumnHeader({ col: "Parsed" }).click();
     await gu.sendKeys(Key.BACK_SPACE);
     await gu.waitForServer();
 
@@ -514,7 +514,7 @@ describe('CopyPaste', function() {
 
     await gu.getPageItem("Multi-References").click();
     await gu.waitForServer();
-    await gu.getCell({col: 'Parsed', rowNum: 1}).click();
+    await gu.getCell({ col: 'Parsed', rowNum: 1 }).click();
 
     await checkMultiRefs();
 
@@ -585,14 +585,14 @@ async function mapper(el: WebElement) {
 // Checks that the full grid is equal to the given argument
 // The first column never changes, it's only included for readability of the test
 async function checkGridCells(expected: string[]) {
-  const actual = await gu.getVisibleGridCells({rowNums: _.range(1, 9), cols: ['Text', 'Parsed'], mapper});
+  const actual = await gu.getVisibleGridCells({ rowNums: _.range(1, 9), cols: ['Text', 'Parsed'], mapper });
   assert.deepEqual(actual, expected);
 }
 
 // Paste whatever's in the clipboard into the Parsed column
 async function paste(cb: gu.IClipboard) {
   // Click the first cell rather than the column header so that it doesn't try renaming the column
-  await gu.getCell({col: 'Parsed', rowNum: 1}).click();
+  await gu.getCell({ col: 'Parsed', rowNum: 1 }).click();
   await cb.paste();
   await gu.waitForServer();
   await gu.checkForErrors();
@@ -600,7 +600,7 @@ async function paste(cb: gu.IClipboard) {
 
 // Copy the contents of fromCol into the Parsed column
 async function copy(cb: gu.IClipboard, fromCol: 'Text' | 'Parsed') {
-  await gu.getColumnHeader({col: fromCol}).click();
+  await gu.getColumnHeader({ col: fromCol }).click();
   await cb.copy();
   await paste(cb);
 }
@@ -624,7 +624,7 @@ async function copyAndCheck(
       await gu.sendKeys(Key.BACK_SPACE);
       await gu.waitForServer();
       assert.deepEqual(
-        await gu.getVisibleGridCells({rowNums: _.range(1, 9), cols: ['Parsed']}),
+        await gu.getVisibleGridCells({ rowNums: _.range(1, 9), cols: ['Parsed'] }),
         arrayRepeat(8, ''),
       );
 
@@ -642,7 +642,7 @@ async function copyAndCheck(
       await gu.sendKeys(Key.BACK_SPACE);
 
       // Paste the now plain text and confirm that the resulting data is still the same.
-      await gu.getCell({col: 'Text', rowNum: 1}).click();
+      await gu.getCell({ col: 'Text', rowNum: 1 }).click();
       await gu.waitAppFocus();
       await paste(cb);
     });

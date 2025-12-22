@@ -1,8 +1,8 @@
 import ko from 'knockout';
 import type BaseView from 'app/client/components/BaseView';
-import type {DataRowModel} from 'app/client/models/DataRowModel';
-import {between} from 'app/common/gutil';
-import {Disposable} from 'grainjs';
+import type { DataRowModel } from 'app/client/models/DataRowModel';
+import { between } from 'app/common/gutil';
+import { Disposable } from 'grainjs';
 
 export const ROW = 'row';
 export const COL = 'col';

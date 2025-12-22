@@ -1,10 +1,10 @@
-import {ACLUsersPopup} from 'app/client/aclui/ACLUsers';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {makeT} from 'app/client/lib/localization';
-import {urlState} from 'app/client/models/gristUrlState';
-import {getUserOrgPrefObs, markAsSeen} from 'app/client/models/UserPrefs';
-import {showExampleCard} from 'app/client/ui/ExampleCard';
-import {buildExamples} from 'app/client/ui/ExampleInfo';
+import { ACLUsersPopup } from 'app/client/aclui/ACLUsers';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { makeT } from 'app/client/lib/localization';
+import { urlState } from 'app/client/models/gristUrlState';
+import { getUserOrgPrefObs, markAsSeen } from 'app/client/models/UserPrefs';
+import { showExampleCard } from 'app/client/ui/ExampleCard';
+import { buildExamples } from 'app/client/ui/ExampleInfo';
 import {
   createAccessibilityTools,
   createHelpTools,
@@ -23,15 +23,15 @@ import {
   cssSplitPageEntry,
   cssTools,
 } from 'app/client/ui/LeftPanelCommon';
-import {theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {confirmModal} from 'app/client/ui2018/modals';
-import {stretchedLink} from 'app/client/ui2018/stretchedLink';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {buildOpenAssistantButton} from 'app/client/widgets/AssistantPopup';
-import {isOwner} from 'app/common/roles';
-import {Computed, computed, Disposable, dom, makeTestId,
-  Observable, observable, styled} from 'grainjs';
+import { theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { confirmModal } from 'app/client/ui2018/modals';
+import { stretchedLink } from 'app/client/ui2018/stretchedLink';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
+import { buildOpenAssistantButton } from 'app/client/widgets/AssistantPopup';
+import { isOwner } from 'app/common/roles';
+import { Computed, computed, Disposable, dom, makeTestId,
+  Observable, observable, styled } from 'grainjs';
 import noop from 'lodash/noop';
 
 const testId = makeTestId('test-tools-');
@@ -57,9 +57,9 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   owner.autoDispose(gristDoc.docModel.rules.tableData.tableActionEmitter.addListener(updateCanViewAccessRules));
   updateCanViewAccessRules();
   return cssTools(
-    {'aria-labelledby': 'grist-tools-heading'},
+    { 'aria-labelledby': 'grist-tools-heading' },
     cssTools.cls('-collapsed', use => !use(leftPanelOpen)),
-    cssSectionHeader(cssSectionHeaderText(t("TOOLS"), {id: 'grist-tools-heading'})),
+    cssSectionHeader(cssSectionHeaderText(t("TOOLS"), { id: 'grist-tools-heading' })),
     buildOpenAssistantButton(gristDoc, testId('assistant')),
     cssPageEntry(
       cssPageEntry.cls('-selected', use => use(gristDoc.activeViewId) === 'acl'),
@@ -77,7 +77,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
           cssPageIcon('EyeShow'),
           stretchedLink(
             cssLinkText(t("Access Rules")),
-            _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
+            _canViewAccessRules ? urlState().setLinkUrl({ docPage: 'acl' }) : null,
           ),
           cssMenuTrigger(
             icon('Dots'),
@@ -85,7 +85,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
               placement: 'bottom-start',
               parentSelectorToMark: '.' + cssPageEntry.className,
             }),
-            {'aria-label': t("context menu - Access Rules")},
+            { 'aria-label': t("context menu - Access Rules") },
             testId('access-rules-trigger'),
             dom.show(use => use(aclUsers.isInitialized) && _canViewAccessRules),
           ),
@@ -99,7 +99,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
         cssPageIcon('Database'),
         cssLinkText(t("Raw data")),
         testId('raw'),
-        urlState().setLinkUrl({docPage: 'data'}),
+        urlState().setLinkUrl({ docPage: 'data' }),
       ),
     ),
     cssPageEntry(
@@ -119,7 +119,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
               return cssLinkText(changes ? [text, cssChangeCount(` (${changes})`)] : text);
             }),
             testId('proposals'),
-            urlState().setLinkUrl({docPage: 'suggestions'}),
+            urlState().setLinkUrl({ docPage: 'suggestions' }),
           ),
         );
       }),
@@ -127,7 +127,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       cssPageEntry.cls('-selected', use => use(gristDoc.activeViewId) === 'code'),
       cssPageLink(cssPageIcon('Code'),
         cssLinkText(t("Code view")),
-        urlState().setLinkUrl({docPage: 'code'}),
+        urlState().setLinkUrl({ docPage: 'code' }),
       ),
       testId('code'),
     ),
@@ -135,7 +135,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       cssPageEntry.cls('-selected', use => use(gristDoc.activeViewId) === 'settings'),
       cssPageLink(cssPageIcon('Settings'),
         cssLinkText(t("Settings")),
-        urlState().setLinkUrl({docPage: 'settings'}),
+        urlState().setLinkUrl({ docPage: 'settings' }),
       ),
       testId('settings'),
     ),
@@ -149,10 +149,10 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
           dom('a',
             cssLinkText(t("How-to Tutorial")),
             testId('tutorial'),
-            {href: ex.tutorialUrl, target: '_blank'},
+            { href: ex.tutorialUrl, target: '_blank' },
           ),
           cssExampleCardOpener(
-            {'aria-label': t("Preview the tutorial")},
+            { 'aria-label': t("Preview the tutorial") },
             icon('TypeDetails'),
             testId('welcome-opener'),
             automaticHelpTool(
@@ -171,13 +171,13 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
         cssPageEntryMain(
           cssPageLink(cssPageIcon('Page'),
             cssLinkText(t("Tour of this Document")),
-            urlState().setLinkUrl({docTour: true}),
+            urlState().setLinkUrl({ docTour: true }),
             testId('doctour'),
           ),
         ),
         !isDocOwner ? null : cssPageEntrySmall(
           cssPageButton(cssPageIcon('Remove'),
-            {'aria-label': t("Delete document tour")},
+            { 'aria-label': t("Delete document tour") },
             dom.on('click', () => confirmModal(t("Delete document tour?"), t("Delete"), () =>
               gristDoc.docData.sendAction(['RemoveTable', 'GristDocTour'])),
             ),
@@ -219,7 +219,7 @@ function automaticHelpTool(
       return;
     }
 
-    showFunc({elem, reopen, markAsSeen: () => markAsSeen(prefObs, itemId)});
+    showFunc({ elem, reopen, markAsSeen: () => markAsSeen(prefObs, itemId) });
   }
 
   return [

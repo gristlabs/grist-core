@@ -1,5 +1,5 @@
 import * as sqlUtils from "app/gen-server/sqlUtils";
-import {MigrationInterface, QueryRunner, Table} from 'typeorm';
+import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class Activations1652273656610 implements MigrationInterface {
 
@@ -31,7 +31,7 @@ export class Activations1652273656610 implements MigrationInterface {
           type: datetime,
           default: now,
         },
-      ]}));
+      ] }));
   }
 
   public async down(queryRunner: QueryRunner): Promise<any> {

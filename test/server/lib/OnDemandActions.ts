@@ -2,15 +2,15 @@
  * Unittest for OnDemandActions, which translates basic UserActions into DocActions along with
  * corresponding undo actions.
  */
-import {TableDataAction, UserAction} from 'app/common/DocActions';
-import {ActiveDoc, Deps} from 'app/server/lib/ActiveDoc';
-import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
-import {DocStorage} from 'app/server/lib/DocStorage';
-import {OnDemandActions, ProcessedAction} from 'app/server/lib/OnDemandActions';
-import {assert} from 'chai';
+import { TableDataAction, UserAction } from 'app/common/DocActions';
+import { ActiveDoc, Deps } from 'app/server/lib/ActiveDoc';
+import { makeExceptionalDocSession } from 'app/server/lib/DocSession';
+import { DocStorage } from 'app/server/lib/DocStorage';
+import { OnDemandActions, ProcessedAction } from 'app/server/lib/OnDemandActions';
+import { assert } from 'chai';
 import times from 'lodash/times';
 import * as sinon from 'sinon';
-import {createDocTools} from 'test/server/docTools';
+import { createDocTools } from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 
 describe('OnDemandActions', function() {
@@ -22,7 +22,7 @@ describe('OnDemandActions', function() {
   // Turn off logging for this test, and restore afterwards.
   testUtils.setTmpLogLevel('warn');
 
-  const docTools = createDocTools({persistAcrossCases: true});
+  const docTools = createDocTools({ persistAcrossCases: true });
   const fakeSession = makeExceptionalDocSession('system');
   let activeDoc1: ActiveDoc;
   let onDemandActions: OnDemandActions;
@@ -52,7 +52,7 @@ describe('OnDemandActions', function() {
 
     // Make the table "on-demand" right away.
     await activeDoc1.applyUserActions(fakeSession, [
-      ['UpdateRecord', '_grist_Tables', tableRef, {onDemand: true}],
+      ['UpdateRecord', '_grist_Tables', tableRef, { onDemand: true }],
     ]);
     await activeDoc1.applyUserActions(fakeSession, [
       ["BulkAddRecord", "Foo", initialData[2], initialData[3]]]);
@@ -83,10 +83,10 @@ describe('OnDemandActions', function() {
 
   it('should create correct (Bulk)UpdateRecord', async () => {
     const processed1 = await applyOnDemand(
-      ['UpdateRecord', 'Foo', 4, {fname: 'Clyde', age: 45}]);
+      ['UpdateRecord', 'Foo', 4, { fname: 'Clyde', age: 45 }]);
     const processed2 = await applyOnDemand(
       ['BulkUpdateRecord', 'Foo', [4, 9, 1],
-        {lname: ['CX', 'DX', 'AX'], Birth_Date: [678, 909, null]}]);
+        { lname: ['CX', 'DX', 'AX'], Birth_Date: [678, 909, null] }]);
 
     assert.deepEqual((await activeDoc1.fetchTable(fakeSession, 'Foo')).tableData,
       ['TableData', 'Foo', [1, 3, 4, 9], {
@@ -110,9 +110,9 @@ describe('OnDemandActions', function() {
 
   it('should create correct (Bulk)AddRecord', async () => {
     const processed1 = await applyOnDemand(
-      ['AddRecord', 'Foo', null, {Birth_Date: 234567}]);
+      ['AddRecord', 'Foo', null, { Birth_Date: 234567 }]);
     const processed2 = await applyOnDemand(
-      ['BulkAddRecord', 'Foo', [null, null], {fname: ['Cou', 'Gar']}]);
+      ['BulkAddRecord', 'Foo', [null, null], { fname: ['Cou', 'Gar'] }]);
 
     assert.deepEqual((await activeDoc1.fetchTable(fakeSession, 'Foo')).tableData,
       ['TableData', 'Foo', [1, 3, 4, 9,       10,     11,   12], {
@@ -126,7 +126,7 @@ describe('OnDemandActions', function() {
     await docStorage.applyStoredActions(processed2.undo);
     await docStorage.applyStoredActions(processed1.undo);
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
-      {tableData: initialData});
+      { tableData: initialData });
   });
 
   it('should create correct (Bulk)RemoveRecord', async () => {
@@ -145,7 +145,7 @@ describe('OnDemandActions', function() {
     await docStorage.applyStoredActions(processed2.undo);
     await docStorage.applyStoredActions(processed1.undo);
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
-      {tableData: initialData});
+      { tableData: initialData });
   });
 
   it('should handle actions bigger than maxSQLiteVariables', async function() {
@@ -153,7 +153,7 @@ describe('OnDemandActions', function() {
     const processed1 = await applyOnDemand(
       ['BulkAddRecord', 'Foo', times(N, i => null), {}]);
     const processed2 = await applyOnDemand(
-      ['BulkUpdateRecord', 'Foo', times(N, i => 10 + i), {age: times(N, i => i * 10)}]);
+      ['BulkUpdateRecord', 'Foo', times(N, i => 10 + i), { age: times(N, i => i * 10) }]);
 
     const intermediate: TableDataAction = [
       'TableData', 'Foo', [1, 3, 4, 9].concat(times(N, i => 10 + i)), {
@@ -165,22 +165,22 @@ describe('OnDemandActions', function() {
       }];
 
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
-      {tableData: intermediate});
+      { tableData: intermediate });
 
     const processed3 = await applyOnDemand(
       ['BulkRemoveRecord', 'Foo', times(N, i => 10 + i)]);
 
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
-      {tableData: initialData});
+      { tableData: initialData });
 
     await docStorage.applyStoredActions(processed3.undo);
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
-      {tableData: intermediate});
+      { tableData: intermediate });
 
     await docStorage.applyStoredActions(processed2.undo);
     await docStorage.applyStoredActions(processed1.undo);
 
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
-      {tableData: initialData});
+      { tableData: initialData });
   });
 });

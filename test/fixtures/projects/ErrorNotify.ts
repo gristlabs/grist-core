@@ -26,19 +26,19 @@ function radioGroup(clb: (value: string) => any) {
         value: value,
         id: `radio${radioId}`,
       }, dom.on('change', () => clb(value))),
-      dom("label", { for: `radio${radioId}`}, dom.text(name)),
+      dom("label", { for: `radio${radioId}` }, dom.text(name)),
     ];
   };
 }
 
 let notify = (message: string, options?: Partial<INotifyOptions>) =>  {
-  return multiHolder.autoDispose(notifier.createUserMessage(message, {...options, inDropdown: true}) as any);
+  return multiHolder.autoDispose(notifier.createUserMessage(message, { ...options, inDropdown: true }) as any);
 };
 
 function setLevels(level: string) {
   function show(l: string) {
     return (msg: string, options?: Partial<INotifyOptions>) =>
-      multiHolder.autoDispose(notifier.createUserMessage(msg, {...options, level: l as any, inDropdown: true}));
+      multiHolder.autoDispose(notifier.createUserMessage(msg, { ...options, level: l as any, inDropdown: true }));
   }
   if (level === "all") {
     notify = (...args: any[]) => {
@@ -85,7 +85,7 @@ function setupTest() {
     dom('button.user-error-default',
       'User error example (default expire)',
       dom.on('click', () =>  {
-        notify(`Workspace name is duplicated (default)`, {expireSec: 1});
+        notify(`Workspace name is duplicated (default)`, { expireSec: 1 });
       }),
     ),
     dom('br'),

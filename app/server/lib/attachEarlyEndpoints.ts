@@ -68,7 +68,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       return gristServer.sendAppPage(req, res, {
         path: "app.html",
         status: 200,
-        config: {adminControls: gristServer.create.areAdminControlsAvailable()},
+        config: { adminControls: gristServer.create.areAdminControlsAvailable() },
       });
     }),
   );

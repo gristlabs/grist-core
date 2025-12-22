@@ -1,20 +1,20 @@
-import {cssSmallLinkButton} from 'app/client/components/Forms/styles';
-import {copyToClipboard} from 'app/client/lib/clipboardUtils';
-import {makeTestId} from 'app/client/lib/domUtils';
-import {dateFmtFull} from 'app/client/lib/formatUtils';
-import {makeT} from 'app/client/lib/localization';
-import {markdown} from 'app/client/lib/markdown';
-import {Notifier} from 'app/client/models/NotifyModel';
-import {ToggleEnterpriseModel} from 'app/client/models/ToggleEnterpriseModel';
-import {cssOptInButton, cssParagraph, cssSection} from 'app/client/ui/AdminTogglesCss';
-import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
-import {bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {colors, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {ActivationState, commonUrls} from 'app/common/gristUrls';
-import {not} from 'app/common/gutil';
-import {getGristConfig} from 'app/common/urlUtils';
-import {BindableValue, Computed, Disposable, dom, input, MultiHolder, Observable, styled} from 'grainjs';
+import { cssSmallLinkButton } from 'app/client/components/Forms/styles';
+import { copyToClipboard } from 'app/client/lib/clipboardUtils';
+import { makeTestId } from 'app/client/lib/domUtils';
+import { dateFmtFull } from 'app/client/lib/formatUtils';
+import { makeT } from 'app/client/lib/localization';
+import { markdown } from 'app/client/lib/markdown';
+import { Notifier } from 'app/client/models/NotifyModel';
+import { ToggleEnterpriseModel } from 'app/client/models/ToggleEnterpriseModel';
+import { cssOptInButton, cssParagraph, cssSection } from 'app/client/ui/AdminTogglesCss';
+import { hoverTooltip, showTransientTooltip } from 'app/client/ui/tooltips';
+import { bigPrimaryButton } from 'app/client/ui2018/buttons';
+import { colors, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { ActivationState, commonUrls } from 'app/common/gristUrls';
+import { not } from 'app/common/gutil';
+import { getGristConfig } from 'app/common/urlUtils';
+import { BindableValue, Computed, Disposable, dom, input, MultiHolder, Observable, styled } from 'grainjs';
 
 const t = makeT('ToggleEnterpriseWidget');
 const testId = makeTestId('test-toggle-enterprise-');
@@ -56,7 +56,7 @@ export class ToggleEnterpriseWidget extends Disposable {
   constructor(private _notifier: Notifier) {
     super();
     this._model.fetchEnterpriseToggle().catch(reportError);
-    const {activation} = getGristConfig();
+    const { activation } = getGristConfig();
     this._activation.set(activation ?? null);
   }
 
@@ -108,8 +108,8 @@ export class ToggleEnterpriseWidget extends Disposable {
         ),
       ),
       cssInput(
-        this._activationKey, {onInput: true}, {placeholder: t('Paste your activation key')},
-        dom.onKeyPress({Enter: this._activateButtonClicked.bind(this)}),
+        this._activationKey, { onInput: true }, { placeholder: t('Paste your activation key') },
+        dom.onKeyPress({ Enter: this._activateButtonClicked.bind(this) }),
         testId('key-input'),
         dom.boolAttr('disabled', this._model.busy),
       ),
@@ -175,7 +175,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
 
     const graceText = Computed.create(owner, (use) => {
       if (use(grace)) {
-        return t('Your instance will be in **read-only** mode in **{{days}}** day(s).', {days: use(graceDays)});
+        return t('Your instance will be in **read-only** mode in **{{days}}** day(s).', { days: use(graceDays) });
       }
       return '';
     });
@@ -251,7 +251,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
           cssParagraph(
             dom('b',
               use(exceeded) ? t('Your activation key has expired due to exceeding limits.') :
-                t('Your subscription expired on {{date}}.', {date: use(expireAt)}),
+                t('Your subscription expired on {{date}}.', { date: use(expireAt) }),
             ),
             testId('expired-reason'),
           ),
@@ -316,7 +316,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
               expireAt,
             })),
         ),
-        dom('span', dom.text(trialExpiredIso), {style: 'display: none;'}, testId('trial-expiration-date')),
+        dom('span', dom.text(trialExpiredIso), { style: 'display: none;' }, testId('trial-expiration-date')),
       ]),
       dom.maybe(not(trialExpired), () => [
         cssParagraph(
@@ -350,7 +350,7 @@ function enterpriseNotEnabledCopy() {
       markdown(t(`An activation key is used to run Grist Enterprise after a trial period
         of 30 days has expired. Get an activation key by [signing up for Grist
         Enterprise]({{signupLink}}). You do not need an activation key to run
-        Grist Core.`, {signupLink: commonUrls.plans})),
+        Grist Core.`, { signupLink: commonUrls.plans })),
     ),
     learnMoreLink(),
   ];

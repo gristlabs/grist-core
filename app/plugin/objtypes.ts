@@ -31,7 +31,7 @@ export class GristDate extends Date {
  */
 export class GristDateTime extends Date {
   public static fromGristValue(epochSec: number, timezone: string): GristDateTime {
-    return Object.assign(new GristDateTime(epochSec * 1000), {timezone});
+    return Object.assign(new GristDateTime(epochSec * 1000), { timezone });
   }
 
   public timezone: string;
@@ -192,7 +192,7 @@ export function encodeObject(value: unknown): CellValue {
       return [GristObjCode.List, ...value.map(encodeObject)];
     }
     else if (isPlainObject(value)) {
-      return [GristObjCode.Dict, mapValues(value as any, encodeObject, {sort: true})];
+      return [GristObjCode.Dict, mapValues(value as any, encodeObject, { sort: true })];
     }
   }
   catch (e) {
@@ -220,7 +220,7 @@ export function decodeObject(value: CellValue): unknown {
       case 'd': return GristDate.fromGristValue(args[0]);
       case 'E': return new RaisedException(args);
       case 'L': return (args as CellValue[]).map(decodeObject);
-      case 'O': return mapValues(args[0] as {[key: string]: CellValue}, decodeObject, {sort: true});
+      case 'O': return mapValues(args[0] as { [key: string]: CellValue }, decodeObject, { sort: true });
       case 'P': return new PendingValue();
       case 'r': return new ReferenceList(String(args[0]), args[1]);
       case 'R': return new Reference(String(args[0]), args[1]);
@@ -240,9 +240,9 @@ export function decodeObject(value: CellValue): unknown {
 
 // Like lodash's mapValues, with support for sorting keys, for friendlier output.
 export function mapValues<A, B>(
-  sourceObj: {[key: string]: A}, mapper: (value: A) => B, options: {sort?: boolean} = {},
-): {[key: string]: B} {
-  const result: {[key: string]: B} = {};
+  sourceObj: { [key: string]: A }, mapper: (value: A) => B, options: { sort?: boolean } = {},
+): { [key: string]: B } {
+  const result: { [key: string]: B } = {};
   const keys = Object.keys(sourceObj);
   if (options.sort) {
     keys.sort();

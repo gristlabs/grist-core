@@ -1,12 +1,12 @@
 import { makeT } from 'app/client/lib/localization';
-import {allCommands} from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {textButton} from 'app/client/ui2018/buttons';
-import {ColorOption, colorSelect} from 'app/client/ui2018/ColorSelect';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {ConditionalStyle} from 'app/client/widgets/ConditionalStyle';
-import {Computed, Disposable, dom, DomContents, fromKo, styled} from 'grainjs';
+import { allCommands } from 'app/client/components/commands';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { textButton } from 'app/client/ui2018/buttons';
+import { ColorOption, colorSelect } from 'app/client/ui2018/ColorSelect';
+import { testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { ConditionalStyle } from 'app/client/widgets/ConditionalStyle';
+import { Computed, Disposable, dom, DomContents, fromKo, styled } from 'grainjs';
 
 const t = makeT('CellStyle');
 

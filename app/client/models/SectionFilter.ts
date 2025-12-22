@@ -1,12 +1,12 @@
-import {ColumnFilter} from 'app/client/models/ColumnFilter';
-import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {TableData} from 'app/client/models/TableData';
-import {buildColFilter, ColumnFilterFunc} from 'app/common/ColumnFilterFunc';
-import {buildRowFilter, RowFilterFunc, RowValueFunc } from 'app/common/RowFilterFunc';
-import {UIRowId} from 'app/plugin/GristAPI';
-import {Computed, Disposable, Observable, UseCB} from 'grainjs';
+import { ColumnFilter } from 'app/client/models/ColumnFilter';
+import { ColumnRec, ViewFieldRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { TableData } from 'app/client/models/TableData';
+import { buildColFilter, ColumnFilterFunc } from 'app/common/ColumnFilterFunc';
+import { buildRowFilter, RowFilterFunc, RowValueFunc } from 'app/common/RowFilterFunc';
+import { UIRowId } from 'app/plugin/GristAPI';
+import { Computed, Disposable, Observable, UseCB } from 'grainjs';
 
-export type {ColumnFilterFunc};
+export type { ColumnFilterFunc };
 
 interface OpenColumnFilter {
   colRef: number;
@@ -48,7 +48,7 @@ export class SectionFilter extends Disposable {
    * previously set values.
    */
   public setFilterOverride(colRef: number, colFilter: ColumnFilter) {
-    this._openFilterOverride.set(({colRef, colFilter}));
+    this._openFilterOverride.set(({ colRef, colFilter }));
     colFilter.onDispose(() => {
       const override = this._openFilterOverride.get();
       if (override && override.colFilter === colFilter) {
@@ -64,7 +64,7 @@ export class SectionFilter extends Disposable {
    */
   public buildFilterFunc(getFilterFunc: ColFilterCB, use: UseCB) {
     const filters = use(this.viewSection.filters);
-    const funcs: Array<RowFilterFunc<UIRowId> | null> = filters.map(({filter, fieldOrColumn}) => {
+    const funcs: Array<RowFilterFunc<UIRowId> | null> = filters.map(({ filter, fieldOrColumn }) => {
       const colFilter = buildColFilter(use(filter), use(use(fieldOrColumn.origCol).type));
       const filterFunc = getFilterFunc(fieldOrColumn, colFilter);
 

@@ -9,7 +9,7 @@ let _timer: NodeJS.Timeout|undefined;
 let _lastTickTime: number = Date.now();
 let _lastReportTime: number = 0;
 let _lastReportedHeapUsed: number = 0;
-let _lastCpuUsage: NodeJS.CpuUsage = {system: 0, user: 0};
+let _lastCpuUsage: NodeJS.CpuUsage = { system: 0, user: 0 };
 let _lastReportedCpuAverage: number = 0;
 
 /**

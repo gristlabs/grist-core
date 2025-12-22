@@ -5,12 +5,12 @@ import { assert } from 'chai';
 describe('RowAccess', function() {
   describe('getRelatedRows', function() {
     it('accumulates individual updates and removes', function() {
-      assert.deepEqual(getRelatedRows([['UpdateRecord', 'Table1', 1, {X: 1}]]),
+      assert.deepEqual(getRelatedRows([['UpdateRecord', 'Table1', 1, { X: 1 }]]),
         [['Table1', new Set([1])]]);
       // check sets are compared correctly
-      assert.notDeepEqual(getRelatedRows([['UpdateRecord', 'Table1', 1, {X: 1}]]),
+      assert.notDeepEqual(getRelatedRows([['UpdateRecord', 'Table1', 1, { X: 1 }]]),
         [['Table1', new Set([])]]);
-      assert.deepEqual(getRelatedRows([['UpdateRecord', 'Table1', 1, {X: 1}],
+      assert.deepEqual(getRelatedRows([['UpdateRecord', 'Table1', 1, { X: 1 }],
         ['AddRecord', 'Table2', 2, {}],
         ['RemoveRecord', 'Table3', 3]]),
       [['Table1', new Set([1])],

@@ -1,12 +1,12 @@
-import {dom, makeTestId, Observable, styled} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
-import {urlState} from 'app/client/models/gristUrlState';
-import {tokens} from 'app/common/ThemePrefs';
-import {allCommands} from 'app/client/components/commands';
-import {inlineMarkdown, markdown} from 'app/client/lib/markdown';
-import {AppModel} from 'app/client/models/AppModel';
-import {cssModalBody,
+import { dom, makeTestId, Observable, styled } from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { commonUrls, isFeatureEnabled } from 'app/common/gristUrls';
+import { urlState } from 'app/client/models/gristUrlState';
+import { tokens } from 'app/common/ThemePrefs';
+import { allCommands } from 'app/client/components/commands';
+import { inlineMarkdown, markdown } from 'app/client/lib/markdown';
+import { AppModel } from 'app/client/models/AppModel';
+import { cssModalBody,
   cssModalButtons,
   cssModalSubheading,
   cssModalTitle,
@@ -14,8 +14,8 @@ import {cssModalBody,
   IModalControl,
   modal,
 } from 'app/client/ui2018/modals';
-import {bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
-import {cssLink, cssNestedLinks} from 'app/client/ui2018/links';
+import { bigPrimaryButton, cssButton } from 'app/client/ui2018/buttons';
+import { cssLink, cssNestedLinks } from 'app/client/ui2018/links';
 
 const t = makeT('OpenAccessibilityModal');
 
@@ -33,7 +33,7 @@ export function openAccessibilityModal(appObs: Observable<AppModel | null>) {
         cssModalWidth('fixed-wide'),
         cssModalTitle(
           t(`Accessibility`),
-          {role: "heading", "aria-level": 1},
+          { role: "heading", "aria-level": 1 },
           testId('title'),
         ),
         cssModalBody(
@@ -54,14 +54,14 @@ export function openAccessibilityModal(appObs: Observable<AppModel | null>) {
 const highContrastThemeSection = (appObs: Observable<AppModel | null>, ctl: IModalControl) => {
   const themePrefs = appObs.get()?.themePrefs;
   return cssSection(
-    cssModalSubheading(t("High contrast theme"), {role: "heading", "aria-level": 2}),
+    cssModalSubheading(t("High contrast theme"), { role: "heading", "aria-level": 2 }),
     dom.domComputed((use) => {
       const currentTheme = themePrefs ? use(themePrefs).colors.light : undefined;
       const isHighContrast = currentTheme === 'HighContrastLight';
       if (isHighContrast) {
         return dom('p',
           t("You are currently using the high contrast theme."),
-          {id: 'a11y-modal-high-contrast-theme-enabled', tabindex: -1},
+          { id: 'a11y-modal-high-contrast-theme-enabled', tabindex: -1 },
         );
       }
       return dom('div',
@@ -79,7 +79,7 @@ const highContrastThemeSection = (appObs: Observable<AppModel | null>, ctl: IMod
           dom.on('click', () => {
             themePrefs?.set({
               ...themePrefs.get(),
-              colors: {light: 'HighContrastLight', dark: 'HighContrastLight'},
+              colors: { light: 'HighContrastLight', dark: 'HighContrastLight' },
               appearance: 'light',
               syncWithOS: false,
             });
@@ -99,7 +99,7 @@ const highContrastThemeSection = (appObs: Observable<AppModel | null>, ctl: IMod
       profileSettingsLink: cssLink(
         // close the modal when clicking the profile settings link, in case we already are on the profile settings page.
         dom.on('click', () => ctl.close()),
-        urlState().setLinkUrl({account: 'account'}),
+        urlState().setLinkUrl({ account: 'account' }),
         t("profile settings"),
       ),
     })),
@@ -113,13 +113,13 @@ const keyboardSection = () => {
   const shortcutsModal = dom('span', getCssKeys(allCommands.shortcuts.humanKeys));
   const accessibilityModal = dom('span', getCssKeys(allCommands.accessibility.humanKeys));
   return cssSection(
-    cssModalSubheading(t("Keyboard navigation"), {role: "heading", "aria-level": 2}),
+    cssModalSubheading(t("Keyboard navigation"), { role: "heading", "aria-level": 2 }),
     dom('p', t("On a document page, keyboard navigation is first locked on the current widget.")),
     dom('p', t("Focus on other parts of the user interface using the following shortcuts:")),
     dom('ul',
-      cssShortcutRow(t("{{nextRegionShortcut}} Focus on the next region", {nextRegionShortcut})),
-      cssShortcutRow(t("{{prevRegionShortcut}} Focus on the previous region", {prevRegionShortcut})),
-      cssShortcutRow(t("{{creatorPanelShortcut}} Focus to and from the creator panel", {creatorPanelShortcut})),
+      cssShortcutRow(t("{{nextRegionShortcut}} Focus on the next region", { nextRegionShortcut })),
+      cssShortcutRow(t("{{prevRegionShortcut}} Focus on the previous region", { prevRegionShortcut })),
+      cssShortcutRow(t("{{creatorPanelShortcut}} Focus to and from the creator panel", { creatorPanelShortcut })),
     ),
     dom('p', t("\"Regions\" are what we call the different parts of the user interface:")),
     dom('ul',
@@ -127,16 +127,16 @@ const keyboardSection = () => {
       dom('li', t("The top panel, or the document header.")),
       dom('li', inlineMarkdown(t(
         "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.",
-        {supportPageUrl: commonUrls.helpWidgets},
+        { supportPageUrl: commonUrls.helpWidgets },
       ))),
       dom('li', t("On non-document pages, the main content area is a region.")),
       dom('li', t("Finally, the right panel – or the creator panel – is only available \
 through its own shortcut and is not included in the next and previous region cycle.")),
     ),
-    cssModalSubheading(t("Other important keyboard shortcuts"), {role: "heading", "aria-level": 2}),
+    cssModalSubheading(t("Other important keyboard shortcuts"), { role: "heading", "aria-level": 2 }),
     dom('ul',
-      cssShortcutRow(t("{{shortcutsModal}} Show the complete list of keyboard shortcuts", {shortcutsModal})),
-      cssShortcutRow(t("{{accessibilityModal}} Show the accessibility options (this modal)", {accessibilityModal})),
+      cssShortcutRow(t("{{shortcutsModal}} Show the complete list of keyboard shortcuts", { shortcutsModal })),
+      cssShortcutRow(t("{{accessibilityModal}} Show the accessibility options (this modal)", { accessibilityModal })),
     ),
   );
 };

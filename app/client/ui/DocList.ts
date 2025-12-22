@@ -157,9 +157,9 @@ export class DocList extends Disposable {
             // as they are not relevant in that case
             cssDocHeaderRow(
               dom.hide(isNarrowScreenObs()),
-              cssNameColumn(t("Name"), {'aria-hidden': 'true'}),
-              cssWorkspaceColumn(t("Workspace"), dom.show(this._showWorkspace), {'aria-hidden': 'true'}),
-              cssEditedAtColumn(t("Last edited"), {'aria-hidden': 'true'}),
+              cssNameColumn(t("Name"), { 'aria-hidden': 'true' }),
+              cssWorkspaceColumn(t("Workspace"), dom.show(this._showWorkspace), { 'aria-hidden': 'true' }),
+              cssEditedAtColumn(t("Last edited"), { 'aria-hidden': 'true' }),
               cssOptionsColumn(),
             ),
             unstyledUl(
@@ -175,7 +175,7 @@ export class DocList extends Disposable {
                           icon: doc.options?.appearance?.icon,
                         },
                         testId("doc-icon"),
-                        {'aria-hidden': 'true'},
+                        { 'aria-hidden': 'true' },
                       ),
                       cssDocNameAndBadges(
                         cssDocName(
@@ -228,7 +228,7 @@ export class DocList extends Disposable {
                         parentSelectorToMark: "." + cssDocRow.className,
                       }),
                       dom.on("click", ev => stopEvent(ev)),
-                      {'aria-label': t("context menu - {{- documentName }}", {documentName: `"${doc.name}"`})},
+                      { 'aria-label': t("context menu - {{- documentName }}", { documentName: `"${doc.name}"` }) },
                       testId("doc-options"),
                     ),
                     contextMenu(() => makeDocOptionsMenu(this._home, doc), {

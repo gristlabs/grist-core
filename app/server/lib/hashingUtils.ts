@@ -1,4 +1,4 @@
-import {createHash} from 'crypto';
+import { createHash } from 'crypto';
 
 /**
  * Returns a hash of `id` prefixed with the first 4 characters of `id`. The first 4

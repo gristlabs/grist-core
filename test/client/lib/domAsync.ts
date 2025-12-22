@@ -1,8 +1,8 @@
-import {domAsync} from 'app/client/lib/domAsync';
-import {assert} from 'chai';
-import {dom} from 'grainjs';
-import {G, popGlobals, pushGlobals} from 'grainjs/dist/cjs/lib/browserGlobals';
-import {JSDOM} from 'jsdom';
+import { domAsync } from 'app/client/lib/domAsync';
+import { assert } from 'chai';
+import { dom } from 'grainjs';
+import { G, popGlobals, pushGlobals } from 'grainjs/dist/cjs/lib/browserGlobals';
+import { JSDOM } from 'jsdom';
 import * as sinon from 'sinon';
 
 describe('domAsync', function() {
@@ -59,7 +59,7 @@ describe('domAsync', function() {
     await promise3.catch(() => null);
     assert.deepEqual([...c.children], []);
     sinon.assert.calledOnce(onError);
-    sinon.assert.calledWithMatch(onError, {message: 'p3'});
+    sinon.assert.calledWithMatch(onError, { message: 'p3' });
 
     assert.lengthOf(a.children, 1);
     assert.lengthOf(b.children, 2);

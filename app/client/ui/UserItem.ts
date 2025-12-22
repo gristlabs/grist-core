@@ -1,7 +1,7 @@
-import {colors, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {input, styled} from 'grainjs';
-import {cssMenuItem} from 'popweasel';
+import { colors, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { input, styled } from 'grainjs';
+import { cssMenuItem } from 'popweasel';
 
 // Styled elements used for rendering a user, e.g. in the UserManager, Billing, etc.
 // There is a general structure, but enough small variation that there is no helper at this point.

@@ -1,16 +1,16 @@
-import {connectTestingHooks, TestingHooksClient} from "app/server/lib/TestingHooks";
-import {ChildProcess, execFileSync, spawn} from "child_process";
+import { connectTestingHooks, TestingHooksClient } from "app/server/lib/TestingHooks";
+import { ChildProcess, execFileSync, spawn } from "child_process";
 import * as http from "http";
 import FormData from 'form-data';
 import path from "path";
 import * as fse from "fs-extra";
 import * as testUtils from "test/server/testUtils";
-import {UserAPIImpl} from "app/common/UserAPI";
-import {exitPromise, getAvailablePort} from "app/server/lib/serverUtils";
+import { UserAPIImpl } from "app/common/UserAPI";
+import { exitPromise, getAvailablePort } from "app/server/lib/serverUtils";
 import log from "app/server/lib/log";
-import {delay} from "bluebird";
+import { delay } from "bluebird";
 import fetch from "node-fetch";
-import {Writable} from "stream";
+import { Writable } from "stream";
 import express from "express";
 import { isAffirmative } from "app/common/gutil";
 import httpProxy from 'http-proxy';
@@ -25,7 +25,7 @@ export class TestServer {
     suitename: string,
     customEnv?: NodeJS.ProcessEnv,
     _homeUrl?: string,
-    options: {output?: Writable} = {},      // Pipe server output to the given stream
+    options: { output?: Writable } = {},      // Pipe server output to the given stream
   ): Promise<TestServer> {
     const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || '8080', 10));
     const server = new this(serverTypes, port, tempDirectory, suitename);
@@ -72,7 +72,7 @@ export class TestServer {
     };
   }
 
-  public async start(homeUrl?: string, customEnv?: NodeJS.ProcessEnv, options: {output?: Writable} = {}) {
+  public async start(homeUrl?: string, customEnv?: NodeJS.ProcessEnv, options: { output?: Writable } = {}) {
     // put node logs into files with meaningful name that relate to the suite name and server type
     const fixedName = this._serverTypes.replace(/,/, '_');
     const nodeLogPath = path.join(this.rootDir, `${this._suiteName}-${fixedName}-node.log`);
@@ -145,7 +145,7 @@ export class TestServer {
       this.testingHooks = await connectTestingHooks(this.testingSocket);
 
       // wait for check
-      return (await fetch(`${this.serverUrl}/status/hooks`, {timeout: 1000})).ok;
+      return (await fetch(`${this.serverUrl}/status/hooks`, { timeout: 1000 })).ok;
     }
     catch (err) {
       log.warn("Failed to initialize server", err);
@@ -161,7 +161,7 @@ export class TestServer {
 
   public makeUserApi(org: string, user: string = 'chimpy'): UserAPIImpl {
     return new UserAPIImpl(`${this.serverUrl}/o/${org}`, {
-      headers: {Authorization: `Bearer api_key_for_${user}`},
+      headers: { Authorization: `Bearer api_key_for_${user}` },
       fetch: fetch as unknown as typeof globalThis.fetch,
       newFormData: () => new FormData() as any,
     });
@@ -221,7 +221,7 @@ export class TestServerReverseProxy {
   // https://github.com/gristlabs/grist-core/blob/24b39c651b9590cc360cc91b587d3e1b301a9c63/app/server/lib/requestUtils.ts#L85-L98
   public static readonly HOSTNAME: string = 'grist-test-proxy.127.0.0.1.nip.io';
 
-  public static FROM_OUTSIDE_HEADER = {[FROM_OUTSIDE_HEADER_KEY]: true};
+  public static FROM_OUTSIDE_HEADER = { [FROM_OUTSIDE_HEADER_KEY]: true };
 
   public static async build() {
     const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || '8080', 10));
@@ -283,7 +283,7 @@ export class TestServerReverseProxy {
       // See the requireFromOutsideHeader() method for the explanation
       if (this._requireFromOutsideHeader && !isAffirmative(oreq.get(FROM_OUTSIDE_HEADER_KEY))) {
         log.error('TestServerReverseProxy: called public URL from internal');
-        return ores.status(403).json({error: "TestServerReverseProxy: called public URL from internal "});
+        return ores.status(403).json({ error: "TestServerReverseProxy: called public URL from internal " });
       }
 
       this._proxy.web(oreq, ores, { target: serverUrl });

@@ -1,15 +1,15 @@
-import {addNewButton, cssAddNewButton} from 'app/client/ui/AddNewButton';
-import {AppHeader} from 'app/client/ui/AppHeader';
-import {PageContents, pagePanels} from 'app/client/ui/PagePanels';
-import {attachPageWidgetPicker, openPageWidgetPicker} from 'app/client/ui/PageWidgetPicker';
-import {primaryButton} from 'app/client/ui2018/buttons';
-import {menu, menuIcon, menuItem} from 'app/client/ui2018/menus';
-import {AppModel, TopAppModelImpl} from 'app/client/models/AppModel';
-import {dom, DomContents, makeTestId, observable, styled} from "grainjs";
-import {addNewPage, addPages, selected} from 'test/fixtures/projects/helpers/Pages';
-import {gristDocMock} from 'test/fixtures/projects/helpers/widgetPicker';
-import {withLocale} from 'test/fixtures/projects/helpers/withLocale';
-import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
+import { addNewButton, cssAddNewButton } from 'app/client/ui/AddNewButton';
+import { AppHeader } from 'app/client/ui/AppHeader';
+import { PageContents, pagePanels } from 'app/client/ui/PagePanels';
+import { attachPageWidgetPicker, openPageWidgetPicker } from 'app/client/ui/PageWidgetPicker';
+import { primaryButton } from 'app/client/ui2018/buttons';
+import { menu, menuIcon, menuItem } from 'app/client/ui2018/menus';
+import { AppModel, TopAppModelImpl } from 'app/client/models/AppModel';
+import { dom, DomContents, makeTestId, observable, styled } from "grainjs";
+import { addNewPage, addPages, selected } from 'test/fixtures/projects/helpers/Pages';
+import { gristDocMock } from 'test/fixtures/projects/helpers/widgetPicker';
+import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 const testId = makeTestId('test-pp-');
 
@@ -26,7 +26,7 @@ function renderPage(appModel: AppModel, showRightPane: boolean, showLeftOpener: 
         appModel,
       ),
       content: dom('div',
-        addNewButton({isOpen: leftPanelOpen},
+        addNewButton({ isOpen: leftPanelOpen },
           menu(() => addMenu(), {
             placement: 'bottom-start',
             stretchToSelector: `.${cssAddNewButton.className}`,
@@ -76,21 +76,21 @@ function setupTest() {
       return renderPage(appModel, use(showRightPane), use(showLeftOpener), use(optimizeNarrowScreen));
     })),
     controls(
-      dom('input', {type: 'checkbox'},
+      dom('input', { type: 'checkbox' },
         testId('show-right'),
         dom.prop('checked', showRightPane),
         dom.on('change', (ev, elem: any) => showRightPane.set(elem.checked)),
       ),
       'Show right pane',
       dom('br'),
-      dom('input', {type: 'checkbox'},
+      dom('input', { type: 'checkbox' },
         testId('show-left-opener'),
         dom.prop('checked', showLeftOpener),
         dom.on('change', (ev, elem: any) => showLeftOpener.set(elem.checked)),
       ),
       'Show left opener',
       dom('br'),
-      dom('input', {type: 'checkbox'},
+      dom('input', { type: 'checkbox' },
         testId('optimize-narrow-screen'),
         dom.prop('checked', optimizeNarrowScreen),
         dom.on('change', (ev, elem: any) => optimizeNarrowScreen.set(elem.checked)),

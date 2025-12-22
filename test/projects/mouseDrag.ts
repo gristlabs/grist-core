@@ -1,5 +1,5 @@
-import {assert, driver} from 'mocha-webdriver';
-import {server, setupTestSuite} from 'test/projects/testUtils';
+import { assert, driver } from 'mocha-webdriver';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 
 describe('mouseDrag', () => {
   setupTestSuite();
@@ -23,7 +23,7 @@ describe('mouseDrag', () => {
         start: { pageX: 175, pageY: 150 },
       });
 
-      await driver.mouseMoveBy({x: 100, y: 20});
+      await driver.mouseMoveBy({ x: 100, y: 20 });
       assert.deepEqual(JSON.parse(await driver.find('.test-result').getText()), {
         status: "moved",
         events: 'sm',

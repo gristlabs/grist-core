@@ -1,27 +1,27 @@
-import {cssBannerLink} from 'app/client/components/Banner';
-import {getExternalStorageRecommendation} from 'app/client/components/ExternalAttachmentBanner';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {docListHeader} from 'app/client/ui/DocMenuCss';
-import {Tooltip} from 'app/client/ui/GristTooltips';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
-import {mediaXSmall, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {loadingDots, loadingSpinner} from 'app/client/ui2018/loaders';
-import {FilteredDocUsageSummary} from 'app/common/DocUsage';
-import {displayPlanName, Features, isFreePlan} from 'app/common/Features';
-import {capitalizeFirstWord} from 'app/common/gutil';
-import {APPROACHING_LIMIT_RATIO} from 'app/common/Limits';
-import {canUpgradeOrg} from 'app/common/roles';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
+import { cssBannerLink } from 'app/client/components/Banner';
+import { getExternalStorageRecommendation } from 'app/client/components/ExternalAttachmentBanner';
+import { DocPageModel } from 'app/client/models/DocPageModel';
+import { urlState } from 'app/client/models/gristUrlState';
+import { docListHeader } from 'app/client/ui/DocMenuCss';
+import { Tooltip } from 'app/client/ui/GristTooltips';
+import { withInfoTooltip } from 'app/client/ui/tooltips';
+import { mediaXSmall, theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { loadingDots, loadingSpinner } from 'app/client/ui2018/loaders';
+import { FilteredDocUsageSummary } from 'app/common/DocUsage';
+import { displayPlanName, Features, isFreePlan } from 'app/common/Features';
+import { capitalizeFirstWord } from 'app/common/gutil';
+import { APPROACHING_LIMIT_RATIO } from 'app/common/Limits';
+import { canUpgradeOrg } from 'app/common/roles';
+import { getGristConfig } from 'app/common/urlUtils';
+import { Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled } from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
 
 const t = makeT('DocumentUsage');
 
 const testId = makeTestId('test-doc-usage-');
 
-const {deploymentType} = getGristConfig();
+const { deploymentType } = getGristConfig();
 
 // Default used by the progress bar to visually indicate row usage.
 // For self-hosters, the 20,000 rows limit is not actually the limit
@@ -128,7 +128,7 @@ export class DocumentUsage extends Disposable {
       (_use, isLoading, doc, rowCount, dataSize, attachmentsSize) => {
         if (isLoading) { return null; }
 
-        const {access} = doc!.workspace.org;
+        const { access } = doc!.workspace.org;
         const isPublicUser = access === 'guests' || access === null;
         const hasHiddenMetrics = [rowCount, dataSize, attachmentsSize].some(metric => metric === 'hidden');
         return isPublicUser || hasHiddenMetrics;
@@ -215,8 +215,8 @@ export function buildLimitStatusMessage(
     disableRawDataLink?: boolean;
   } = {},
 ) {
-  const {disableRawDataLink = false} = options;
-  const {status, daysRemaining} = usageInfo.dataLimitInfo;
+  const { disableRawDataLink = false } = options;
+  const { status, daysRemaining } = usageInfo.dataLimitInfo;
   switch (status) {
     case 'approachingLimit': {
       return [
@@ -274,7 +274,7 @@ function buildUpgradeLink(linkText: string, onClick: () => void) {
 }
 
 function buildRawDataPageLink(linkText: string) {
-  return cssBannerLink(linkText, urlState().setLinkUrl({docPage: 'data'}));
+  return cssBannerLink(linkText, urlState().setLinkUrl({ docPage: 'data' }));
 }
 
 interface MetricOptions {
@@ -297,7 +297,7 @@ interface MetricOptions {
  * close `currentValue` is to hitting `maximumValue`.
  */
 function buildUsageMetric(options: MetricOptions, ...domArgs: DomElementArg[]) {
-  const {name, tooltip} = options;
+  const { name, tooltip } = options;
   return cssUsageMetric(
     cssMetricName(
       tooltip
@@ -332,7 +332,7 @@ function buildUsageProgressBar(options: MetricOptions) {
   return [
     cssProgressBarContainer(
       cssProgressBarFill(
-        {style: `width: ${percentUsed}%`},
+        { style: `width: ${percentUsed}%` },
         // Change progress bar to red if close to limit, unless limits are hidden.
         shouldHideLimits || ratioUsed <= APPROACHING_LIMIT_RATIO
           ? null

@@ -1,13 +1,13 @@
-import {allCommands} from 'app/client/components/commands';
-import {BoxModel, parseBox} from 'app/client/components/Forms/Model';
-import {buildMenu} from 'app/client/components/Forms/Menu';
+import { allCommands } from 'app/client/components/commands';
+import { BoxModel, parseBox } from 'app/client/components/Forms/Model';
+import { buildMenu } from 'app/client/components/Forms/Menu';
 import * as style from 'app/client/components/Forms/styles';
-import {makeTestId, stopEvent} from 'app/client/lib/domUtils';
-import {makeT} from 'app/client/lib/localization';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {IconName} from 'app/client/ui2018/IconList';
-import {icon} from 'app/client/ui2018/icons';
-import {BindableValue, dom, DomContents, IDomArgs, MultiHolder, Observable} from 'grainjs';
+import { makeTestId, stopEvent } from 'app/client/lib/domUtils';
+import { makeT } from 'app/client/lib/localization';
+import { hoverTooltip } from 'app/client/ui/tooltips';
+import { IconName } from 'app/client/ui2018/IconList';
+import { icon } from 'app/client/ui2018/icons';
+import { BindableValue, dom, DomContents, IDomArgs, MultiHolder, Observable } from 'grainjs';
 
 const testId = makeTestId('test-forms-');
 const t = makeT('Editor');
@@ -47,7 +47,7 @@ interface Props {
 
 export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
   const owner: MultiHolder = new MultiHolder();
-  const {box, overlay} = props;
+  const { box, overlay } = props;
   const view = box.view;
   const dragHover = Observable.create(owner, false);
   let element: HTMLElement;
@@ -55,7 +55,7 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
   // When element is selected, scroll it into view.
   owner.autoDispose(view.selectedBox.addListener((selectedBox) => {
     if (selectedBox === box) {
-      element?.scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'nearest'});
+      element?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }
   }));
 
@@ -103,7 +103,7 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
     }),
 
     // And now drag and drop support.
-    {draggable: "true"},
+    { draggable: "true" },
 
     // In Firefox, 'draggable' interferes with mouse selection in child input elements. Workaround
     // is to turn off 'draggable' temporarily (see https://stackoverflow.com/q/21680363/328565).

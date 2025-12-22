@@ -1,11 +1,11 @@
-import {EntityManager} from "typeorm";
+import { EntityManager } from "typeorm";
 import * as roles from 'app/common/roles';
-import {BillingAccount} from "app/gen-server/entity/BillingAccount";
-import {BillingAccountManager} from "app/gen-server/entity/BillingAccountManager";
-import {Document} from "app/gen-server/entity/Document";
-import {Group} from "app/gen-server/entity/Group";
-import {Organization} from "app/gen-server/entity/Organization";
-import {Workspace} from "app/gen-server/entity/Workspace";
+import { BillingAccount } from "app/gen-server/entity/BillingAccount";
+import { BillingAccountManager } from "app/gen-server/entity/BillingAccountManager";
+import { Document } from "app/gen-server/entity/Document";
+import { Group } from "app/gen-server/entity/Group";
+import { Organization } from "app/gen-server/entity/Organization";
+import { Workspace } from "app/gen-server/entity/Workspace";
 import pick from 'lodash/pick';
 
 /**
@@ -40,8 +40,8 @@ export async function scrubUserFromOrg(
     .addSelect('groups.name as name')
     .leftJoin('groups.aclRule', 'acl_rules')
     .where('(group_users.user_id = :removeUserId or group_users.user_id = :callerUserId)',
-      {removeUserId, callerUserId})
-    .andWhere('orgs.id = :orgId', {orgId});
+      { removeUserId, callerUserId })
+    .andWhere('orgs.id = :orgId', { orgId });
 
   // Pick out group_users related specifically to the org resource, in 'mentions' format
   // (including resource id, a tag for the kind of resource, the group name, the user
@@ -104,7 +104,7 @@ export async function scrubUserFromOrg(
     const callerUserMention = callerUserMentions.get(key);
     if (callerUserMention && callerUserMention.name === roles.OWNER) { continue; }
     if (callerUserMention) { toDelete.push(callerUserMention); }
-    toAdd.push({...removeUserMention, user_id: callerUserId});
+    toAdd.push({ ...removeUserMention, user_id: callerUserId });
   }
   if (toDelete.length > 0) {
     await manager.createQueryBuilder()
@@ -147,7 +147,7 @@ export async function scrubUserFromBillingAccounts(removeUserId: number, newUser
   for (const ba of billingAccounts) {
     // Prepare to remove removeUserId as manager.
     const goneBAManager = await manager.findOne(BillingAccountManager,
-      {where: {userId: removeUserId, billingAccountId: ba.id}});
+      { where: { userId: removeUserId, billingAccountId: ba.id } });
     if (!goneBAManager) { continue; }
 
     // Add newUserId as manager, if they aren't already one.
@@ -173,18 +173,18 @@ export async function addMissingGuestMemberships(userId: number, orgId: number,
     .select('workspace_groups.id as group_id, cast(:userId as int) as user_id')
     .setParameter('userId', userId)
     .from(Workspace, 'workspaces')
-    .where('workspaces.org_id = :orgId', {orgId})
+    .where('workspaces.org_id = :orgId', { orgId })
     .innerJoin('workspaces.docs', 'docs')
     .innerJoin('docs.aclRules', 'doc_acl_rules')
     .innerJoin('doc_acl_rules.group', 'doc_groups')
     .innerJoin('doc_groups.memberUsers', 'doc_group_users')
-    .andWhere('doc_group_users.id = :userId', {userId})
+    .andWhere('doc_group_users.id = :userId', { userId })
     .leftJoin('workspaces.aclRules', 'workspace_acl_rules')
     .leftJoin('workspace_acl_rules.group', 'workspace_groups')
     .leftJoin('group_users', 'workspace_group_users',
       'workspace_group_users.group_id = workspace_groups.id and ' +
       'workspace_group_users.user_id = :userId')
-    .andWhere('workspace_groups.name = :guestName', {guestName: roles.GUEST})
+    .andWhere('workspace_groups.name = :guestName', { guestName: roles.GUEST })
     .groupBy('workspaces.id, workspace_groups.id, workspace_group_users.user_id')
     .having('workspace_group_users.user_id is null')
     .getRawMany();
@@ -202,18 +202,18 @@ export async function addMissingGuestMemberships(userId: number, orgId: number,
     .select('org_groups.id as group_id, cast(:userId as int) as user_id')
     .setParameter('userId', userId)
     .from(Organization, 'orgs')
-    .where('orgs.id = :orgId', {orgId})
+    .where('orgs.id = :orgId', { orgId })
     .innerJoin('orgs.workspaces', 'workspaces')
     .innerJoin('workspaces.aclRules', 'workspaces_acl_rules')
     .innerJoin('workspaces_acl_rules.group', 'workspace_groups')
     .innerJoin('workspace_groups.memberUsers', 'workspace_group_users')
-    .andWhere('workspace_group_users.id = :userId', {userId})
+    .andWhere('workspace_group_users.id = :userId', { userId })
     .leftJoin('orgs.aclRules', 'org_acl_rules')
     .leftJoin('org_acl_rules.group', 'org_groups')
     .leftJoin('group_users', 'org_group_users',
       'org_group_users.group_id = org_groups.id and ' +
       'org_group_users.user_id = :userId')
-    .andWhere('org_groups.name = :guestName', {guestName: roles.GUEST})
+    .andWhere('org_groups.name = :guestName', { guestName: roles.GUEST })
     .groupBy('org_groups.id, org_group_users.user_id')
     .having('org_group_users.user_id is null')
     .getRawMany();

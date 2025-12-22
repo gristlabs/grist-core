@@ -1,9 +1,9 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
+import { MigrationInterface, QueryRunner } from "typeorm";
 import * as roles from "app/common/roles";
-import {AclRuleOrg} from "app/gen-server/entity/AclRule";
-import {Group} from "app/gen-server/entity/Group";
-import {Organization} from "app/gen-server/entity/Organization";
-import {Permissions} from "app/gen-server/lib/Permissions";
+import { AclRuleOrg } from "app/gen-server/entity/AclRule";
+import { Group } from "app/gen-server/entity/Group";
+import { Organization } from "app/gen-server/entity/Organization";
+import { Permissions } from "app/gen-server/lib/Permissions";
 import { getDatabaseType } from "app/server/lib/dbUtils";
 
 export class TeamMembers1568238234987 implements MigrationInterface {
@@ -28,7 +28,7 @@ export class TeamMembers1568238234987 implements MigrationInterface {
         .into(AclRuleOrg)
         .values([{
           permissions: Permissions.VIEW,
-          organization: {id: org.id},
+          organization: { id: org.id },
           group: groupId,
         }])
         .execute();
@@ -40,19 +40,19 @@ export class TeamMembers1568238234987 implements MigrationInterface {
     const groups = await queryRunner.manager.createQueryBuilder()
       .select("groups")
       .from(Group, "groups")
-      .where('name = :name', {name: roles.MEMBER})
+      .where('name = :name', { name: roles.MEMBER })
       .getMany();
     for (const group of groups) {
       await queryRunner.manager.createQueryBuilder()
         .delete()
         .from(AclRuleOrg)
-        .where("group_id = :id", {id: group.id})
+        .where("group_id = :id", { id: group.id })
         .execute();
     }
     await queryRunner.manager.createQueryBuilder()
       .delete()
       .from(Group)
-      .where("name = :name", {name: roles.MEMBER})
+      .where("name = :name", { name: roles.MEMBER })
       .execute();
   }
 

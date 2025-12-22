@@ -1,5 +1,5 @@
-import {normalizeEmail} from 'app/common/emails';
-import {UserPrefs} from 'app/common/Prefs';
+import { normalizeEmail } from 'app/common/emails';
+import { UserPrefs } from 'app/common/Prefs';
 
 // User profile info for the user. When using Cognito, it is fetched during login.
 export interface UserProfile {

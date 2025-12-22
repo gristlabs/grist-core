@@ -2,14 +2,14 @@
  * This modules contains helpers to generate toy data for the widget picker.
  */
 
-import {syncedKoArray} from 'app/client/lib/koArray';
-import {ColumnRec, TableRec} from 'app/client/models/DocModel';
-import {observable, toKo} from 'grainjs';
+import { syncedKoArray } from 'app/client/lib/koArray';
+import { ColumnRec, TableRec } from 'app/client/models/DocModel';
+import { observable, toKo } from 'grainjs';
 import * as ko from 'knockout';
 import range from 'lodash/range';
 
 function table(id: number, name: string) {
-  return {id: ko.observable(id), tableId: ko.observable(name), tableNameDef: ko.observable(name)} as any as TableRec;
+  return { id: ko.observable(id), tableId: ko.observable(name), tableNameDef: ko.observable(name) } as any as TableRec;
 }
 
 let colCounter = 0;

@@ -1,14 +1,14 @@
-import type {CopySelection} from 'app/client/components/CopySelection';
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import type {KoArray} from 'app/client/lib/koArray';
-import {simpleStringHash} from 'app/client/lib/textUtils';
-import type {ViewFieldRec} from 'app/client/models/DocModel';
+import type { CopySelection } from 'app/client/components/CopySelection';
+import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import type { KoArray } from 'app/client/lib/koArray';
+import { simpleStringHash } from 'app/client/lib/textUtils';
+import type { ViewFieldRec } from 'app/client/models/DocModel';
 import TableModel from 'app/client/models/TableModel';
-import type {BulkColValues, BulkUpdateRecord} from 'app/common/DocActions';
-import {safeJsonParse} from 'app/common/gutil';
-import type {TableData} from 'app/common/TableData';
-import {tsvEncode} from 'app/common/tsvFormat';
-import {dom} from 'grainjs';
+import type { BulkColValues, BulkUpdateRecord } from 'app/common/DocActions';
+import { safeJsonParse } from 'app/common/gutil';
+import type { TableData } from 'app/common/TableData';
+import { tsvEncode } from 'app/common/tsvFormat';
+import { dom } from 'grainjs';
 import zipObject from 'lodash/zipObject';
 
 const G = getBrowserGlobals('document', 'DOMParser');
@@ -66,7 +66,7 @@ export function makePasteHtml(tableData: TableData, selection: CopySelection, in
   const colStyle = selection.colStyle || {};    // Maps colId to style object.
 
   const elem = dom('table',
-    {border: '1', cellspacing: '0', style: 'white-space: pre', 'data-grist-doc-id-hash': getDocIdHash() || ''},
+    { border: '1', cellspacing: '0', style: 'white-space: pre', 'data-grist-doc-id-hash': getDocIdHash() || '' },
     dom('colgroup', selection.colIds.map((colId, idx) =>
       dom('col', {
         style: _styleAttr(colStyle[colId]),
@@ -82,12 +82,12 @@ export function makePasteHtml(tableData: TableData, selection: CopySelection, in
     // Fill with table cells.
     selection.rowIds.map(rowId =>
       dom('tr',
-        {style: _styleAttr(rowStyle[rowId as number])},
+        { style: _styleAttr(rowStyle[rowId as number]) },
         selection.columns.map((col) => {
           const rawValue = col.rawGetter(rowId);
           const fmtValue = col.fmtGetter(rowId);
           const dataOptions = (rawValue === fmtValue) ? {} :
-            {'data-grist-raw-value': JSON.stringify(rawValue)};
+            { 'data-grist-raw-value': JSON.stringify(rawValue) };
           return dom('td', dataOptions, fmtValue);
         }),
       ),
@@ -124,7 +124,7 @@ export function parsePasteHtml(data: string): RichPasteObject[][] {
       const col = cols[colIdx];
       const colType = col?.getAttribute('data-grist-col-type');
       const colRef = col && Number(col.getAttribute('data-grist-col-ref'));
-      const o: RichPasteObject = {displayValue: cell.textContent!, docIdHash, colType, colRef};
+      const o: RichPasteObject = { displayValue: cell.textContent!, docIdHash, colType, colRef };
 
       if (cell.hasAttribute('data-grist-raw-value')) {
         o.rawValue = safeJsonParse(cell.getAttribute('data-grist-raw-value')!,

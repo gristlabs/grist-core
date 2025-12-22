@@ -22,30 +22,30 @@
  *
  */
 
-import {addPath} from 'app-module-path';
-import {Context} from 'mocha';
+import { addPath } from 'app-module-path';
+import { Context } from 'mocha';
 import * as path from 'path';
-import {Connection, Repository} from 'typeorm';
+import { Connection, Repository } from 'typeorm';
 
 if (require.main === module) {
   addPath(path.dirname(path.dirname(__dirname)));
 }
 
-import {AclRuleDoc, AclRuleOrg, AclRuleWs} from "app/gen-server/entity/AclRule";
-import {BillingAccount} from "app/gen-server/entity/BillingAccount";
-import {Document} from "app/gen-server/entity/Document";
-import {Group} from "app/gen-server/entity/Group";
-import {Login} from "app/gen-server/entity/Login";
-import {Organization} from "app/gen-server/entity/Organization";
-import {Product, PRODUCTS, synchronizeProducts, teamFeatures, teamFreeFeatures} from "app/gen-server/entity/Product";
-import {User} from "app/gen-server/entity/User";
-import {Workspace} from "app/gen-server/entity/Workspace";
-import {EXAMPLE_WORKSPACE_NAME} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {Permissions} from 'app/gen-server/lib/Permissions';
+import { AclRuleDoc, AclRuleOrg, AclRuleWs } from "app/gen-server/entity/AclRule";
+import { BillingAccount } from "app/gen-server/entity/BillingAccount";
+import { Document } from "app/gen-server/entity/Document";
+import { Group } from "app/gen-server/entity/Group";
+import { Login } from "app/gen-server/entity/Login";
+import { Organization } from "app/gen-server/entity/Organization";
+import { Product, PRODUCTS, synchronizeProducts, teamFeatures, teamFreeFeatures } from "app/gen-server/entity/Product";
+import { User } from "app/gen-server/entity/User";
+import { Workspace } from "app/gen-server/entity/Workspace";
+import { EXAMPLE_WORKSPACE_NAME } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { Permissions } from 'app/gen-server/lib/Permissions';
 import {
   getOrCreateConnection, runMigrations, undoLastMigration, updateDb,
 } from 'app/server/lib/dbUtils';
-import {FlexServer} from 'app/server/lib/FlexServer';
+import { FlexServer } from 'app/server/lib/FlexServer';
 import * as fse from 'fs-extra';
 
 const ACCESS_GROUPS = ['owners', 'editors', 'viewers', 'guests', 'members'];
@@ -272,7 +272,7 @@ export const exampleOrgs = [
   },
 ];
 
-const exampleUsers: {[user: string]: {[org: string]: string}} = {
+const exampleUsers: { [user: string]: { [org: string]: string } } = {
   Chimpy: {
     TestDailyApiLimit: 'owners',
     TestMaxNewUserInvites: 'owners',
@@ -324,7 +324,7 @@ interface Groups {
 class Seed {
   public userRepository: Repository<User>;
   public groupRepository: Repository<Group>;
-  public groups: {[key: string]: Groups};
+  public groups: { [key: string]: Groups };
 
   constructor(public connection: Connection) {
     this.userRepository = connection.getRepository(User);
@@ -333,10 +333,10 @@ class Seed {
   }
 
   public async createGroups(parent?: Organization|Workspace): Promise<Groups> {
-    const owners = Group.create({name: 'owners', type: Group.ROLE_TYPE});
-    const editors = Group.create({name: 'editors', type: Group.ROLE_TYPE});
-    const viewers = Group.create({name: 'viewers', type: Group.ROLE_TYPE});
-    const guests = Group.create({name: 'guests', type: Group.ROLE_TYPE});
+    const owners = Group.create({ name: 'owners', type: Group.ROLE_TYPE });
+    const editors = Group.create({ name: 'editors', type: Group.ROLE_TYPE });
+    const viewers = Group.create({ name: 'viewers', type: Group.ROLE_TYPE });
+    const guests = Group.create({ name: 'guests', type: Group.ROLE_TYPE });
 
     if (parent) {
       // Nest the parent groups inside the new groups
@@ -350,7 +350,7 @@ class Seed {
 
     if (!parent) {
       // Add the members group for orgs.
-      const members = Group.create({name: 'members', type: Group.ROLE_TYPE});
+      const members = Group.create({ name: 'members', type: Group.ROLE_TYPE });
       await this.groupRepository.save(members);
       return {
         owners,
@@ -466,8 +466,8 @@ class Seed {
       .add(user);
   }
 
-  public async addDocs(orgs: Array<{name: string, domain?: string, host?: string, product?: string,
-    workspaces: Array<{name: string, docs: string[]}>}>) {
+  public async addDocs(orgs: Array<{ name: string, domain?: string, host?: string, product?: string,
+    workspaces: Array<{ name: string, docs: string[] }> }>) {
     let docId = 1;
     for (const org of orgs) {
       const o = new Organization();
@@ -475,7 +475,7 @@ class Seed {
       const ba = new BillingAccount();
       ba.individual = false;
       const productName = org.product || 'Free';
-      const product = await Product.findOne({where: {name: productName}});
+      const product = await Product.findOne({ where: { name: productName } });
       if (!product) {
         throw new Error(`Product not found: ${productName}`);
       }
@@ -512,7 +512,7 @@ class Seed {
   }
 
   public async run() {
-    if (await this.userRepository.findOne({where: {}})) {
+    if (await this.userRepository.findOne({ where: {} })) {
       // we already have a user - skip seeding database
       return;
     }
@@ -523,7 +523,7 @@ class Seed {
 
   // Creates benchmark data with 10 orgs, 50 workspaces per org and 20 docs per workspace.
   public async runBenchmark() {
-    if (await this.userRepository.findOne({where: {}})) {
+    if (await this.userRepository.findOne({ where: {} })) {
       // we already have a user - skip seeding database
       return;
     }
@@ -532,7 +532,7 @@ class Seed {
 
     const benchmarkOrgs = _generateData(100, 50, 20);
     // Create an access object giving Chimpy random access to the orgs.
-    const chimpyAccess: {[name: string]: string} = {};
+    const chimpyAccess: { [name: string]: string } = {};
     benchmarkOrgs.forEach((_org: any) => {
       const zeroToThree = Math.floor(Math.random() * 4);
       chimpyAccess[_org.name] = ACCESS_GROUPS[zeroToThree];
@@ -542,7 +542,7 @@ class Seed {
     await this._buildUsers({ Chimpy: chimpyAccess });
   }
 
-  private async _buildUsers(userAccessMap: {[user: string]: {[org: string]: string}}) {
+  private async _buildUsers(userAccessMap: { [user: string]: { [org: string]: string } }) {
     for (const name of Object.keys(userAccessMap)) {
       const user = new User();
       user.name = name;
@@ -553,7 +553,7 @@ class Seed {
       login.displayEmail = login.email = name.toLowerCase() + "@getgrist.com";
       login.user = user;
       await login.save();
-      const personal = await Organization.findOne({where: {name: name + "land"}});
+      const personal = await Organization.findOne({ where: { name: name + "land" } });
       if (personal) {
         personal.owner = user;
         await personal.save();

@@ -4,10 +4,10 @@
  * not tied to documents or anything.
  */
 
-import {DocumentSettings} from 'app/common/DocumentSettings';
-import {getDistinctValues} from 'app/common/gutil';
-import {getCurrency, NumberFormatOptions, NumMode, parseNumMode} from 'app/common/NumberFormat';
-import {buildNumberFormat} from 'app/common/NumberFormat';
+import { DocumentSettings } from 'app/common/DocumentSettings';
+import { getDistinctValues } from 'app/common/gutil';
+import { getCurrency, NumberFormatOptions, NumMode, parseNumMode } from 'app/common/NumberFormat';
+import { buildNumberFormat } from 'app/common/NumberFormat';
 import escapeRegExp from 'lodash/escapeRegExp';
 import last from 'lodash/last';
 
@@ -218,7 +218,7 @@ export default class NumberParse {
     return {
       result,
       cleaned: value,
-      options: {isCurrency, isPercent, isParenthesised, hasDigitGroupSeparator, isScientific},
+      options: { isCurrency, isPercent, isParenthesised, hasDigitGroupSeparator, isScientific },
     };
   }
 
@@ -255,7 +255,7 @@ export default class NumberParse {
       const {
         result,
         cleaned,
-        options: {isCurrency, isPercent, isParenthesised, hasDigitGroupSeparator, isScientific},
+        options: { isCurrency, isPercent, isParenthesised, hasDigitGroupSeparator, isScientific },
       } = parsed;
 
       if (result < 0 && !isParenthesised) {
@@ -322,7 +322,7 @@ export default class NumberParse {
     }
 
     // We should only set maxDecimals if the default maxDecimals is too low.
-    const tmpNF = buildNumberFormat(result, {locale: this.locale, currency: this.currency}).resolvedOptions();
+    const tmpNF = buildNumberFormat(result, { locale: this.locale, currency: this.currency }).resolvedOptions();
     if (maxDecimals > tmpNF.maximumFractionDigits) {
       result.maxDecimals = maxDecimals;
     }

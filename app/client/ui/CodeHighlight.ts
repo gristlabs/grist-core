@@ -1,6 +1,6 @@
-import {Ace, loadAce} from 'app/client/lib/imports';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {gristThemeObs} from 'app/client/ui2018/theme';
+import { Ace, loadAce } from 'app/client/lib/imports';
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { gristThemeObs } from 'app/client/ui2018/theme';
 import {
   BindableValue,
   Disposable,
@@ -43,8 +43,8 @@ async function fetchAceModules() {
  * blocks in a Markdown string.
  */
 export async function buildCodeHighlighter(options: BuildCodeHighlighterOptions = {}) {
-  const {maxLines} = options;
-  const {highlighter, aceDom, chrome, dracula, mode} = await fetchAceModules();
+  const { maxLines } = options;
+  const { highlighter, aceDom, chrome, dracula, mode } = await fetchAceModules();
 
   return (code: string) => {
     if (maxLines) {
@@ -71,7 +71,7 @@ export async function buildCodeHighlighter(options: BuildCodeHighlighterOptions 
     // as the CSS styles needed to apply the theme. The latter typically isn't included in
     // the document until an Ace editor is opened, so we explicitly import it here to avoid
     // leaving highlighted code blocks without a theme applied.
-    const {html, css} = highlighter.render(code, mode, aceTheme, 1, true);
+    const { html, css } = highlighter.render(code, mode, aceTheme, 1, true);
     aceDom.importCssString(css, `${aceThemeName}-highlighted-code`);
     return html;
   };
@@ -94,7 +94,7 @@ export function buildHighlightedCode(
   options: BuildHighlightedCodeOptions,
   ...args: DomElementArg[]
 ): HTMLElement {
-  const {placeholder, maxLines} = options;
+  const { placeholder, maxLines } = options;
   const codeText = Observable.create(owner, '');
   const codeTheme = Observable.create(owner, gristThemeObs().get());
 
@@ -105,7 +105,7 @@ export function buildHighlightedCode(
       return;
     }
 
-    const {highlighter, aceDom, chrome, dracula, mode} = await fetchAceModules();
+    const { highlighter, aceDom, chrome, dracula, mode } = await fetchAceModules();
     if (owner.isDisposed()) { return; }
 
     if (maxLines) {
@@ -132,7 +132,7 @@ export function buildHighlightedCode(
     // as the CSS styles needed to apply the theme. The latter typically isn't included in
     // the document until an Ace editor is opened, so we explicitly import it here to avoid
     // leaving highlighted code blocks without a theme applied.
-    const {html, css} = highlighter.render(text, mode, aceTheme, 1, true);
+    const { html, css } = highlighter.render(text, mode, aceTheme, 1, true);
     elem.innerHTML = html;
     aceDom.importCssString(css, `${aceThemeName}-highlighted-code`);
   }

@@ -1,18 +1,18 @@
-import {beaconOpenMessage, IBeaconOpenOptions} from 'app/client/lib/helpScout';
-import {makeT} from 'app/client/lib/localization';
-import {AppModel} from 'app/client/models/AppModel';
-import {ConnectState} from 'app/client/models/ConnectState';
-import {urlState} from 'app/client/models/gristUrlState';
-import {Expirable, IAppError, Notification, Notifier, NotifyAction, Progress} from 'app/client/models/NotifyModel';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {IconName} from "app/client/ui2018/IconList";
-import {menuCssClass} from 'app/client/ui2018/menus';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
-import {dom, makeTestId, styled} from 'grainjs';
-import {cssMenu, defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
+import { beaconOpenMessage, IBeaconOpenOptions } from 'app/client/lib/helpScout';
+import { makeT } from 'app/client/lib/localization';
+import { AppModel } from 'app/client/models/AppModel';
+import { ConnectState } from 'app/client/models/ConnectState';
+import { urlState } from 'app/client/models/gristUrlState';
+import { Expirable, IAppError, Notification, Notifier, NotifyAction, Progress } from 'app/client/models/NotifyModel';
+import { hoverTooltip } from 'app/client/ui/tooltips';
+import { cssHoverCircle, cssTopBarBtn } from 'app/client/ui/TopBarCss';
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { IconName } from "app/client/ui2018/IconList";
+import { menuCssClass } from 'app/client/ui2018/menus';
+import { commonUrls, isFeatureEnabled } from 'app/common/gristUrls';
+import { dom, makeTestId, styled } from 'grainjs';
+import { cssMenu, defaultMenuOptions, IOpenController, setPopupToCreateDom } from 'popweasel';
 
 const t = makeT('NotifyUI');
 
@@ -27,13 +27,13 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
           appModel.showUpgradeModal()));
       }
       else {
-        return dom('a', cssToastAction.cls(''), t("Upgrade Plan"), {target: '_blank'},
-          {href: commonUrls.plans});
+        return dom('a', cssToastAction.cls(''), t("Upgrade Plan"), { target: '_blank' },
+          { href: commonUrls.plans });
       }
     case 'manage':
       if (urlState().state.get().billing === 'billing') { return null; }
-      return dom('a', cssToastAction.cls(''), t("Manage billing"), {target: '_blank'},
-        {href: urlState().makeUrl({billing: 'billing'})});
+      return dom('a', cssToastAction.cls(''), t("Manage billing"), { target: '_blank' },
+        { href: urlState().makeUrl({ billing: 'billing' }) });
     case 'renew':
       // If already on the billing page, nothing to return.
       if (urlState().state.get().billing === 'billing') { return null; }
@@ -41,8 +41,8 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
       if (appModel && appModel.currentOrg && appModel.currentOrg.billingAccount &&
         !appModel.currentOrg.billingAccount.isManager) { return null; }
       // Otherwise return a link to the billing page.
-      return dom('a', cssToastAction.cls(''), t("Renew"), {target: '_blank'},
-        {href: urlState().makeUrl({billing: 'billing'})});
+      return dom('a', cssToastAction.cls(''), t("Renew"), { target: '_blank' },
+        { href: urlState().makeUrl({ billing: 'billing' }) });
 
     case 'personal':
       if (!appModel) { return null; }
@@ -52,12 +52,12 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
         if (orgs.length !== 1) {
           throw new Error(t("Cannot find personal site, sorry!"));
         }
-        window.location.assign(urlState().makeUrl({org: orgs[0].domain || undefined}));
+        window.location.assign(urlState().makeUrl({ org: orgs[0].domain || undefined }));
       }));
 
     case 'report-problem':
       return cssToastAction(t("Report a problem"), testId('toast-report-problem'),
-        dom.on('click', () => beaconOpenMessage({...options, includeAppErrors: true})));
+        dom.on('click', () => beaconOpenMessage({ ...options, includeAppErrors: true })));
 
     case 'ask-for-help': {
       const errors: IAppError[] = [{
@@ -65,7 +65,7 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
         timestamp: item.options.timestamp,
       }];
       return cssToastAction(t("Ask for help"),
-        dom.on('click', () => beaconOpenMessage({...options, includeAppErrors: true, errors})));
+        dom.on('click', () => beaconOpenMessage({ ...options, includeAppErrors: true, errors })));
     }
 
     default:
@@ -135,20 +135,20 @@ function buildProgressDom(item: Progress) {
 }
 
 export function buildNotifyMenuButton(notifier: Notifier, appModel: AppModel|null) {
-  const {connectState} = notifier.getStateForUI();
-  return cssHoverCircle({style: `margin: 5px;`},
+  const { connectState } = notifier.getStateForUI();
+  return cssHoverCircle({ style: `margin: 5px;` },
     dom.domComputed(connectState, state => buildConnectStateButton(state)),
     (elem) => {
       setPopupToCreateDom(elem, ctl => buildNotifyDropdown(ctl, notifier, appModel),
-        {...defaultMenuOptions, placement: 'bottom-end'});
+        { ...defaultMenuOptions, placement: 'bottom-end' });
     },
-    hoverTooltip('Notifications', {key: 'topBarBtnTooltip'}),
+    hoverTooltip('Notifications', { key: 'topBarBtnTooltip' }),
     testId('menu-btn'),
   );
 }
 
 function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel: AppModel|null): Element {
-  const {connectState, disconnectMsg, dropdownItems} = notifier.getStateForUI();
+  const { connectState, disconnectMsg, dropdownItems } = notifier.getStateForUI();
 
   return cssDropdownWrapper(
     // Reuse css classes for menus (combination of popweasel classes and those from Grist menus)
@@ -156,7 +156,7 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
     dom.cls(menuCssClass),
 
     // Close on Escape.
-    dom.onKeyDown({Escape: () => ctl.close()}),
+    dom.onKeyDown({ Escape: () => ctl.close() }),
     // Once attached, focus this element, so that it accepts keyboard events.
     (elem) => { setTimeout(() => elem.focus(), 0); },
 
@@ -167,7 +167,7 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
           cssDropdownFeedbackLink(
             cssDropdownFeedbackIcon('Feedback'),
             t("Give feedback"),
-            dom.on('click', () => beaconOpenMessage({appModel, onOpen: () => ctl.close(), route: '/ask/message/'})),
+            dom.on('click', () => beaconOpenMessage({ appModel, onOpen: () => ctl.close(), route: '/ask/message/' })),
             testId('feedback'),
           ),
       ),
@@ -183,17 +183,17 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
         ),
       ),
       dom.forEach(dropdownItems, item =>
-        buildNotificationDom(item, {appModel, onOpen: () => ctl.close()})),
+        buildNotificationDom(item, { appModel, onOpen: () => ctl.close() })),
     ),
     testId('dropdown'),
   );
 }
 
 export function buildSnackbarDom(notifier: Notifier, appModel: AppModel|null): Element {
-  const {progressItems, toasts} = notifier.getStateForUI();
+  const { progressItems, toasts } = notifier.getStateForUI();
   return cssSnackbarWrapper(testId('snackbar-wrapper'),
     dom.forEach(progressItems, item => buildProgressDom(item)),
-    dom.forEach(toasts, toast => buildNotificationDom(toast, {appModel})),
+    dom.forEach(toasts, toast => buildNotificationDom(toast, { appModel })),
   );
 }
 

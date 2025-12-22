@@ -1,20 +1,20 @@
 import * as commands from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {copyToClipboard} from 'app/client/lib/clipboardUtils';
-import {setTestState} from 'app/client/lib/testState';
-import {TableRec} from 'app/client/models/DocModel';
-import {docListHeader, docMenuTrigger} from 'app/client/ui/DocMenuCss';
-import {duplicateTable, DuplicateTableResponse} from 'app/client/ui/DuplicateTable';
-import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
-import {buildTableName} from 'app/client/ui/WidgetTitle';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { copyToClipboard } from 'app/client/lib/clipboardUtils';
+import { setTestState } from 'app/client/lib/testState';
+import { TableRec } from 'app/client/models/DocModel';
+import { docListHeader, docMenuTrigger } from 'app/client/ui/DocMenuCss';
+import { duplicateTable, DuplicateTableResponse } from 'app/client/ui/DuplicateTable';
+import { hoverTooltip, showTransientTooltip } from 'app/client/ui/tooltips';
+import { buildTableName } from 'app/client/ui/WidgetTitle';
 import * as css from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {loadingDots} from 'app/client/ui2018/loaders';
-import {menu, menuDivider, menuIcon, menuItem, menuItemAsync, menuText} from 'app/client/ui2018/menus';
-import {confirmModal} from 'app/client/ui2018/modals';
-import {Computed, Disposable, dom, fromKo, observable, Observable, styled} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
-import {makeTestId} from 'app/client/lib/domUtils';
+import { icon } from 'app/client/ui2018/icons';
+import { loadingDots } from 'app/client/ui2018/loaders';
+import { menu, menuDivider, menuIcon, menuItem, menuItemAsync, menuText } from 'app/client/ui2018/menus';
+import { confirmModal } from 'app/client/ui2018/modals';
+import { Computed, Disposable, dom, fromKo, observable, Observable, styled } from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { makeTestId } from 'app/client/lib/domUtils';
 import * as weasel from 'popweasel';
 
 const testId = makeTestId('test-raw-data-');
@@ -80,7 +80,7 @@ export class DataTables extends Disposable {
                         key: 'copy-table-id',
                       });
                       await copyToClipboard(tableRec.tableId.peek());
-                      setTestState({clipboard: tableRec.tableId.peek()});
+                      setTestState({ clipboard: tableRec.tableId.peek() });
                     }),
                   )),
                 ),
@@ -100,7 +100,7 @@ export class DataTables extends Disposable {
                     dom.domComputed(use => use(use(tableRec.recordCardViewSection).disabled)
                       ? t('Record Card Disabled')
                       : t('Edit record card')),
-                    {key: DATA_TABLES_TOOLTIP_KEY, closeOnClick: false},
+                    { key: DATA_TABLES_TOOLTIP_KEY, closeOnClick: false },
                   ),
                   dom.hide(this._gristDoc.isReadonly),
                   // Make the button invisible to maintain consistent alignment with non-summary tables.
@@ -112,7 +112,7 @@ export class DataTables extends Disposable {
                   testId('table-menu'),
                   testId(use => `table-menu-${use(tableRec.tableId)}`),
                   icon('Dots'),
-                  menu(() => this._menuItems(tableRec, isEditingName), {placement: 'bottom-start'}),
+                  menu(() => this._menuItems(tableRec, isEditingName), { placement: 'bottom-start' }),
                   dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
                 ),
               ),
@@ -147,7 +147,7 @@ export class DataTables extends Disposable {
       else {
         return cssFlexRow(
           dom.domComputed(fromKo(table.rawViewSection), vs =>
-            buildTableName(vs, {isEditing}, cssRenamableTableName.cls(''), testId('widget-title')),
+            buildTableName(vs, { isEditing }, cssRenamableTableName.cls(''), testId('widget-title')),
           ),
           cssRenameTableButton(icon('Pencil'),
             dom.on('click', (ev) => {
@@ -163,7 +163,7 @@ export class DataTables extends Disposable {
   }
 
   private _menuItems(table: TableRec, isEditingName: Observable<boolean>) {
-    const {isReadonly, docModel} = this._gristDoc;
+    const { isReadonly, docModel } = this._gristDoc;
     return [
       menuItem(
         () => { isEditingName.set(true); },
@@ -209,7 +209,7 @@ export class DataTables extends Disposable {
                 await this._disableRecordCard(table);
               }
             },
-            t('{{action}} Record Card', {action: isDisabled ? 'Enable' : 'Disable'}),
+            t('{{action}} Record Card', { action: isDisabled ? 'Enable' : 'Disable' }),
             dom.cls('disabled', use => use(isReadonly)),
             testId(`menu-${isDisabled ? 'enable' : 'disable'}-record-card`),
           );
@@ -221,19 +221,19 @@ export class DataTables extends Disposable {
 
   private _duplicateTable(r: TableRec) {
     duplicateTable(this._gristDoc, r.tableId(), {
-      onSuccess: ({raw_section_id}: DuplicateTableResponse) =>
+      onSuccess: ({ raw_section_id }: DuplicateTableResponse) =>
         this._gristDoc.viewModel.activeSectionId(raw_section_id),
     });
   }
 
   private _removeTable(r: TableRec) {
-    const {docModel} = this._gristDoc;
+    const { docModel } = this._gristDoc;
     function doRemove() {
       return docModel.docData.sendAction(['RemoveTable', r.tableId()]);
     }
     confirmModal(t(
       "Delete {{formattedTableName}} data, and remove it from all pages?",
-      {formattedTableName: r.formattedTableName()},
+      { formattedTableName: r.formattedTableName() },
     ), 'Delete', doRemove);
   }
 

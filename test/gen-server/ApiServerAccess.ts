@@ -1,19 +1,19 @@
-import {Role} from 'app/common/roles';
-import {getRealAccess, PermissionData, PermissionDelta, UserAPI} from 'app/common/UserAPI';
-import {Organization} from 'app/gen-server/entity/Organization';
-import {Product} from 'app/gen-server/entity/Product';
-import {User} from 'app/gen-server/entity/User';
-import {HomeDBManager, Deps as HomeDBManagerDeps, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {SendGridConfig, SendGridMailWithTemplateId} from 'app/gen-server/lib/NotifierTypes';
-import {create} from 'app/server/lib/create';
-import axios, {AxiosResponse} from 'axios';
+import { Role } from 'app/common/roles';
+import { getRealAccess, PermissionData, PermissionDelta, UserAPI } from 'app/common/UserAPI';
+import { Organization } from 'app/gen-server/entity/Organization';
+import { Product } from 'app/gen-server/entity/Product';
+import { User } from 'app/gen-server/entity/User';
+import { HomeDBManager, Deps as HomeDBManagerDeps, UserChange } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { SendGridConfig, SendGridMailWithTemplateId } from 'app/gen-server/lib/NotifierTypes';
+import { create } from 'app/server/lib/create';
+import axios, { AxiosResponse } from 'axios';
 import * as chai from 'chai';
 import fromPairs from 'lodash/fromPairs';
 import pick from 'lodash/pick';
 import moment from 'moment';
 import * as sinon from 'sinon';
-import {TestServer} from 'test/gen-server/apiUtils';
-import {configForUser, waitForAllNotifications} from 'test/gen-server/testUtils';
+import { TestServer } from 'test/gen-server/apiUtils';
+import { configForUser, waitForAllNotifications } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 import * as roles from 'app/common/roles';
 
@@ -22,7 +22,7 @@ const assert = chai.assert;
 let server: TestServer;
 let dbManager: HomeDBManager;
 let homeUrl: string;
-let userCountUpdates: {[orgId: number]: number[]} = {};
+let userCountUpdates: { [orgId: number]: number[] } = {};
 let lastMail: SendGridMailWithTemplateId|null = null;
 let lastMailDesc: string|null = null;
 const sandbox = sinon.createSandbox();
@@ -79,7 +79,7 @@ describe('ApiServerAccess', function() {
     kiwiRef = await dbManager.getUserByLogin(kiwiEmail).then(user => user.ref);
     charonRef = await dbManager.getUserByLogin(charonEmail).then(user => user.ref);
     // Listen to user count updates and add them to an array.
-    server.server.onUserChange(async ({org, countBefore, countAfter}: UserChange) => {
+    server.server.onUserChange(async ({ org, countBefore, countAfter }: UserChange) => {
       if (countBefore === countAfter) { return; }
       userCountUpdates[org.id] = userCountUpdates[org.id] || [];
       userCountUpdates[org.id].push(countAfter);
@@ -98,18 +98,18 @@ describe('ApiServerAccess', function() {
 
   async function getLastMail(maxWait: number = 1000) {
     await waitForAllNotifications(server.server, maxWait);
-    const result = {payload: lastMail, description: lastMailDesc};
+    const result = { payload: lastMail, description: lastMailDesc };
     lastMailDesc = null;
     lastMail = null;
     return result;
   }
 
   async function assertLastMail(maxWait: number = 1000) {
-    const {payload, description} = await getLastMail(maxWait);
+    const { payload, description } = await getLastMail(maxWait);
     if (payload === null || description === null) {
       throw new Error('no mail available');
     }
-    return {payload, description};
+    return { payload, description };
   }
 
   function assertResult(resp: AxiosResponse, status: number, errMessage: string) {
@@ -165,7 +165,7 @@ describe('ApiServerAccess', function() {
         [charonEmail]: 'editors',
       },
     };
-    const resp1 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: delta1}, chimpy);
+    const resp1 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: delta1 }, chimpy);
     assert.equal(resp1.status, 200);
     if (notificationsConfig) {
       // Assert that no mail would be sent (Charon already had access).
@@ -185,7 +185,7 @@ describe('ApiServerAccess', function() {
         [kiwiEmail]: 'editors',
       },
     };
-    const resp2 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: delta2}, chimpy);
+    const resp2 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: delta2 }, chimpy);
     assert.equal(resp2.status, 200);
     // We should send mail about this one, since Kiwi had no access previously.
     if (notificationsConfig) {
@@ -201,14 +201,14 @@ describe('ApiServerAccess', function() {
           name: 'Chimpyland', kind: 'team site', kindUpperFirst: 'Team site',
           isTeamSite: true, isWorkspace: false, isDocument: false,
         },
-        host: {name: 'Chimpy', email: 'chimpy@getgrist.com'},
-        user: {name: 'Kiwi', email: 'kiwi@getgrist.com'},
-        access: {role: 'editors', canEdit: true, canView: true},
+        host: { name: 'Chimpy', email: 'chimpy@getgrist.com' },
+        user: { name: 'Kiwi', email: 'kiwi@getgrist.com' },
+        access: { role: 'editors', canEdit: true, canView: true },
       } as any);
       assert.match(env.resource.url, /^http.*\/o\/docs\/\?utm_id=invite-org$/);
-      assert.deepEqual(mail.payload.personalizations[0].to[0], {email: 'kiwi@getgrist.com', name: 'Kiwi'});
-      assert.deepEqual(mail.payload.from, {email: 'support@getgrist.com', name: 'Chimpy (via Grist)'});
-      assert.deepEqual(mail.payload.reply_to, {email: 'chimpy@getgrist.com', name: 'Chimpy'});
+      assert.deepEqual(mail.payload.personalizations[0].to[0], { email: 'kiwi@getgrist.com', name: 'Kiwi' });
+      assert.deepEqual(mail.payload.from, { email: 'support@getgrist.com', name: 'Chimpy (via Grist)' });
+      assert.deepEqual(mail.payload.reply_to, { email: 'chimpy@getgrist.com', name: 'Chimpy' });
       assert.deepEqual(mail.payload.template_id, notificationsConfig.template.invite);
     }
     // Assert that the number of users in the org has updated (Kiwi was added).
@@ -229,7 +229,7 @@ describe('ApiServerAccess', function() {
         [kiwiEmail]: null,
       },
     };
-    const resp3 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: delta3}, chimpy);
+    const resp3 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: delta3 }, chimpy);
     assert.equal(resp3.status, 200);
     if (notificationsConfig) {
       assert.equal((await getLastMail()).description, null);
@@ -250,7 +250,7 @@ describe('ApiServerAccess', function() {
         [kiwiEmail]: 'editors',
       },
     };
-    const resp4 = await axios.patch(`${homeUrl}/api/orgs/${nasaOrgId}/access`, {delta: delta4}, chimpy);
+    const resp4 = await axios.patch(`${homeUrl}/api/orgs/${nasaOrgId}/access`, { delta: delta4 }, chimpy);
     assert.equal(resp4.status, 200);
     if (notificationsConfig) {
       assert.match(
@@ -296,7 +296,7 @@ describe('ApiServerAccess', function() {
         [kiwiEmail]: null,
       },
     };
-    const resp6 = await axios.patch(`${homeUrl}/api/orgs/${nasaOrgId}/access`, {delta: delta6}, chimpy);
+    const resp6 = await axios.patch(`${homeUrl}/api/orgs/${nasaOrgId}/access`, { delta: delta6 }, chimpy);
     assert.equal(resp6.status, 200);
     if (notificationsConfig) {
       assert.equal((await getLastMail()).description, null);
@@ -339,7 +339,7 @@ describe('ApiServerAccess', function() {
         [charonEmail]: null,
       },
     };
-    const resp = await axios.patch(`${homeUrl}/api/orgs/9999/access`, {delta}, chimpy);
+    const resp = await axios.patch(`${homeUrl}/api/orgs/9999/access`, { delta }, chimpy);
     assert.equal(resp.status, 404);
   });
 
@@ -351,7 +351,7 @@ describe('ApiServerAccess', function() {
         [kiwiEmail]: 'viewers',
       },
     };
-    const resp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta}, charon);
+    const resp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta }, charon);
     assert.equal(resp.status, 403);
   });
 
@@ -361,11 +361,11 @@ describe('ApiServerAccess', function() {
     const resp1 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {}, chimpy);
     assert.equal(resp1.status, 400);
     // Omit the users object and check that the operation fails with 400.
-    const resp2 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: {}}, chimpy);
+    const resp2 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: {} }, chimpy);
     assert.equal(resp2.status, 400);
     // Include a maxInheritedRole value and check that the operation fails with 400.
-    const delta1 = {maxInheritedRole: null};
-    const resp3 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: delta1}, chimpy);
+    const delta1 = { maxInheritedRole: null };
+    const resp3 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: delta1 }, chimpy);
     assert.equal(resp3.status, 400);
     // Attempt to update own permissions check that the operation fails with 400.
     const delta2 = {
@@ -373,7 +373,7 @@ describe('ApiServerAccess', function() {
         [chimpyEmail]: 'viewers',
       },
     };
-    const resp4 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: delta2}, chimpy);
+    const resp4 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: delta2 }, chimpy);
     assert.equal(resp4.status, 400);
   });
 
@@ -551,15 +551,15 @@ describe('ApiServerAccess', function() {
     const kiwiResp1 = await axios.get(`${homeUrl}/api/orgs/${oid}`, kiwi);
     assert.equal(kiwiResp1.status, 403);
     const delta0 = {
-      users: {[kiwiEmail]: 'members'},
+      users: { [kiwiEmail]: 'members' },
     };
-    const resp0 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: delta0}, chimpy);
+    const resp0 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: delta0 }, chimpy);
     assert.equal(resp0.status, 200);
     // Make Kiwi an editor of the workspace
     const delta1 = {
-      users: {[kiwiEmail]: 'editors'},
+      users: { [kiwiEmail]: 'editors' },
     };
-    const resp2 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {delta: delta1}, chimpy);
+    const resp2 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta: delta1 }, chimpy);
     assert.equal(resp2.status, 200);
     // Check we would sent an email to Kiwi about this
     if (notificationsConfig) {
@@ -590,7 +590,7 @@ describe('ApiServerAccess', function() {
     const delta2 = {
       maxInheritedRole: 'viewers',
     };
-    const resp3 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {delta: delta2}, chimpy);
+    const resp3 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta: delta2 }, chimpy);
     assert.equal(resp3.status, 200);
     if (notificationsConfig) {
       assert.equal((await getLastMail()).description, null);
@@ -616,7 +616,7 @@ describe('ApiServerAccess', function() {
         [kiwiEmail]: 'viewers',
       },
     };
-    const resp5 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {delta: delta3}, chimpy);
+    const resp5 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta: delta3 }, chimpy);
     assert.equal(resp5.status, 200);
     if (notificationsConfig) {
       assert.equal((await getLastMail()).description, null);
@@ -641,7 +641,7 @@ describe('ApiServerAccess', function() {
         [charonEmail]: 'editors',
       },
     };
-    const resp7 = await axios.patch(`${homeUrl}/api/workspaces/${wid2}/access`, {delta: delta4}, chimpy);
+    const resp7 = await axios.patch(`${homeUrl}/api/workspaces/${wid2}/access`, { delta: delta4 }, chimpy);
     assert.equal(resp7.status, 200);
     if (notificationsConfig) {
       assert.match((await assertLastMail()).description, /^invite charon@getgrist.com /);
@@ -657,7 +657,7 @@ describe('ApiServerAccess', function() {
         [charonEmail]: null,
       },
     };
-    const resp8 = await axios.patch(`${homeUrl}/api/workspaces/${wid2}/access`, {delta: delta5}, chimpy);
+    const resp8 = await axios.patch(`${homeUrl}/api/workspaces/${wid2}/access`, { delta: delta5 }, chimpy);
     assert.equal(resp8.status, 200);
     if (notificationsConfig) {
       assert.equal((await getLastMail()).description, null);
@@ -667,21 +667,21 @@ describe('ApiServerAccess', function() {
     const delta6 = {
       maxInheritedRole: 'owners',
     };
-    const resp9 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {delta: delta6}, chimpy);
+    const resp9 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta: delta6 }, chimpy);
     assert.equal(resp9.status, 200);
     if (notificationsConfig) {
       assert.equal((await getLastMail()).description, null);
     }
 
     const removeKiwiDelta = {
-      users: {[kiwiEmail]: null},
+      users: { [kiwiEmail]: null },
     };
     const removeKiwiResp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`,
-      {delta: removeKiwiDelta}, chimpy);
+      { delta: removeKiwiDelta }, chimpy);
     assert.equal(removeKiwiResp.status, 200);
     // TODO: Unnecessary once removing from org removes from all.
     const removeKiwiResp2 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`,
-      {delta: removeKiwiDelta}, chimpy);
+      { delta: removeKiwiDelta }, chimpy);
     assert.equal(removeKiwiResp2.status, 200);
 
     // Assert that the number of users in the org has updated (Kiwi was removed).
@@ -716,7 +716,7 @@ describe('ApiServerAccess', function() {
         [charonEmail]: null,
       },
     };
-    const resp = await axios.patch(`${homeUrl}/api/workspaces/9999/access`, {delta}, chimpy);
+    const resp = await axios.patch(`${homeUrl}/api/workspaces/9999/access`, { delta }, chimpy);
     assert.equal(resp.status, 404);
   });
 
@@ -728,7 +728,7 @@ describe('ApiServerAccess', function() {
         [kiwiEmail]: 'viewers',
       },
     };
-    const resp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {delta}, charon);
+    const resp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta }, charon);
     assert.equal(resp.status, 403);
   });
 
@@ -738,7 +738,7 @@ describe('ApiServerAccess', function() {
     const resp1 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {}, chimpy);
     assert.equal(resp1.status, 400);
     // Omit the content and check that the operation fails with 400.
-    const resp2 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {delta: {}}, chimpy);
+    const resp2 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta: {} }, chimpy);
     assert.equal(resp2.status, 400);
     // Attempt to update own permissions check that the operation fails with 400.
     const delta = {
@@ -746,7 +746,7 @@ describe('ApiServerAccess', function() {
         [chimpyEmail]: 'viewers',
       },
     };
-    const resp3 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {delta}, chimpy);
+    const resp3 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta }, chimpy);
     assert.equal(resp3.status, 400);
   });
 
@@ -836,16 +836,16 @@ describe('ApiServerAccess', function() {
     assert.equal(kiwiResp1.status, 403);
     // Make Kiwi a member of the org.
     const delta0 = {
-      users: {[kiwiEmail]: 'members'},
+      users: { [kiwiEmail]: 'members' },
     };
-    const resp1 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: delta0}, chimpy);
+    const resp1 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: delta0 }, chimpy);
     assert.equal(resp1.status, 200);
 
     // Make Kiwi a doc editor for Timesheets
     const delta1 = {
-      users: {[kiwiEmail]: 'editors'},
+      users: { [kiwiEmail]: 'editors' },
     };
-    const resp2 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta: delta1}, chimpy);
+    const resp2 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta: delta1 }, chimpy);
     assert.equal(resp2.status, 200);
     // Check we would sent an email to Kiwi about this
     if (notificationsConfig) {
@@ -877,8 +877,8 @@ describe('ApiServerAccess', function() {
     assert.equal(kiwiResp4.status, 200);
 
     // Set the maxInheritedRole to null
-    const delta2 = {maxInheritedRole: null};
-    const resp3 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta: delta2}, chimpy);
+    const delta2 = { maxInheritedRole: null };
+    const resp3 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta: delta2 }, chimpy);
     assert.equal(resp3.status, 200);
     if (notificationsConfig) {
       assert.equal((await getLastMail()).description, null);
@@ -905,7 +905,7 @@ describe('ApiServerAccess', function() {
         [kiwiEmail]: 'viewers',
       },
     };
-    const resp5 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta: delta3}, chimpy);
+    const resp5 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta: delta3 }, chimpy);
     assert.equal(resp5.status, 200);
     if (notificationsConfig) {
       assert.equal((await getLastMail()).description, null);
@@ -939,7 +939,7 @@ describe('ApiServerAccess', function() {
         [charonEmail]: 'editors',
       },
     };
-    const resp7 = await axios.patch(`${homeUrl}/api/docs/${did2}/access`, {delta: delta4}, chimpy);
+    const resp7 = await axios.patch(`${homeUrl}/api/docs/${did2}/access`, { delta: delta4 }, chimpy);
     assert.equal(resp7.status, 200);
     if (notificationsConfig) {
       assert.match((await assertLastMail()).description, /^invite charon@getgrist.com /);
@@ -959,14 +959,14 @@ describe('ApiServerAccess', function() {
         [charonEmail]: null,
       },
     };
-    const resp8 = await axios.patch(`${homeUrl}/api/docs/${did2}/access`, {delta: delta5}, chimpy);
+    const resp8 = await axios.patch(`${homeUrl}/api/docs/${did2}/access`, { delta: delta5 }, chimpy);
     assert.equal(resp8.status, 200);
 
     // Reset doc inheritance setting
     const delta6 = {
       maxInheritedRole: 'owners',
     };
-    const resp9 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta: delta6}, chimpy);
+    const resp9 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta: delta6 }, chimpy);
     assert.equal(resp9.status, 200);
     if (notificationsConfig) {
       assert.equal((await getLastMail()).description, null);
@@ -974,14 +974,14 @@ describe('ApiServerAccess', function() {
 
     // Remove Kiwi from the org.
     const removeKiwiDelta = {
-      users: {[kiwiEmail]: null},
+      users: { [kiwiEmail]: null },
     };
     const resp10 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`,
-      {delta: removeKiwiDelta}, chimpy);
+      { delta: removeKiwiDelta }, chimpy);
     assert.equal(resp10.status, 200);
     // TODO: Unnecessary once removing from org removes from all.
     const resp11 = await axios.patch(`${homeUrl}/api/docs/${did}/access`,
-      {delta: removeKiwiDelta}, chimpy);
+      { delta: removeKiwiDelta }, chimpy);
     assert.equal(resp11.status, 200);
 
     // Assert that the number of users in Chimpyland has updated (Kiwi was removed).
@@ -1012,7 +1012,7 @@ describe('ApiServerAccess', function() {
         'user3@getgrist.com': 'viewers',
       },
     };
-    let resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta}, chimpy);
+    let resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta }, chimpy);
     assert.equal(resp.status, 200);
     if (notificationsConfig) {
       const mail = await assertLastMail();
@@ -1020,9 +1020,9 @@ describe('ApiServerAccess', function() {
       assert.sameMembers(mail.payload.personalizations.map(p => p.to[0].email),
         ['user1@getgrist.com', 'user2@getgrist.com', 'user3@getgrist.com']);
       assert.deepEqual(mail.payload.personalizations.map(p => p.dynamic_template_data.access),
-        [{role: 'editors', canEdit: true, canView: true, canEditAccess: false},
-          {role: 'viewers', canEdit: false, canView: true, canEditAccess: false},
-          {role: 'viewers', canEdit: false, canView: true, canEditAccess: false}]);
+        [{ role: 'editors', canEdit: true, canView: true, canEditAccess: false },
+          { role: 'viewers', canEdit: false, canView: true, canEditAccess: false },
+          { role: 'viewers', canEdit: false, canView: true, canEditAccess: false }]);
     }
     delta = {
       users: {
@@ -1031,7 +1031,7 @@ describe('ApiServerAccess', function() {
         'user4@getgrist.com': 'viewers',
       },
     };
-    resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta}, chimpy);
+    resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta }, chimpy);
     assert.equal(resp.status, 200);
     if (notificationsConfig) {
       const mail = await assertLastMail();
@@ -1048,7 +1048,7 @@ describe('ApiServerAccess', function() {
         'user4@getgrist.com': null,
       },
     };
-    resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta}, chimpy);
+    resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta }, chimpy);
     assert.equal(resp.status, 200);
     if (notificationsConfig) {
       assert.equal((await getLastMail()).payload, null);
@@ -1061,7 +1061,7 @@ describe('ApiServerAccess', function() {
         [charonEmail]: null,
       },
     };
-    const resp = await axios.patch(`${homeUrl}/api/docs/9999/access`, {delta}, chimpy);
+    const resp = await axios.patch(`${homeUrl}/api/docs/9999/access`, { delta }, chimpy);
     assert.equal(resp.status, 404);
   });
 
@@ -1073,7 +1073,7 @@ describe('ApiServerAccess', function() {
         [kiwiEmail]: 'viewers',
       },
     };
-    const resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta}, charon);
+    const resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta }, charon);
     assert.equal(resp.status, 403);
   });
 
@@ -1164,7 +1164,7 @@ describe('ApiServerAccess', function() {
     const resp1 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {}, chimpy);
     assert.equal(resp1.status, 400);
     // Omit the content and check that the operation fails with 400.
-    const resp2 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta: {}}, chimpy);
+    const resp2 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta: {} }, chimpy);
     assert.equal(resp2.status, 400);
     // Attempt to update own permissions check that the operation fails with 400.
     const delta = {
@@ -1172,7 +1172,7 @@ describe('ApiServerAccess', function() {
         [chimpyEmail]: 'viewers',
       },
     };
-    const resp3 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta}, chimpy);
+    const resp3 = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta }, chimpy);
     assert.equal(resp3.status, 400);
   });
 
@@ -1244,10 +1244,10 @@ describe('ApiServerAccess', function() {
     // then querying for access
     // Set the maxInheritedRole to null
     const kiwiMemberDelta = {
-      users: {[kiwiEmail]: "members"},
+      users: { [kiwiEmail]: "members" },
     };
     const orgPatchResp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`,
-      {delta: kiwiMemberDelta}, chimpy);
+      { delta: kiwiMemberDelta }, chimpy);
     assert.equal(orgPatchResp.status, 200);
 
     const delta = {
@@ -1256,7 +1256,7 @@ describe('ApiServerAccess', function() {
         [kiwiEmail]: "editors",
       },
     };
-    const patchResp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {delta}, chimpy);
+    const patchResp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta }, chimpy);
     assert.equal(patchResp.status, 200);
     const resp2 = await axios.get(`${homeUrl}/api/workspaces/${wid}/access`, chimpy);
     assert.equal(resp2.status, 200);
@@ -1298,7 +1298,7 @@ describe('ApiServerAccess', function() {
         [kiwiEmail]: "owners",
       },
     };
-    const respDeltaOrg = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: deltaOrg}, chimpy);
+    const respDeltaOrg = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: deltaOrg }, chimpy);
     assert.equal(respDeltaOrg.status, 200);
 
     const resp3 = await axios.get(`${homeUrl}/api/workspaces/${wid}/access`, chimpy);
@@ -1314,14 +1314,14 @@ describe('ApiServerAccess', function() {
         [kiwiEmail]: null,
       },
     };
-    const resetResp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {delta: resetDelta}, chimpy);
+    const resetResp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, { delta: resetDelta }, chimpy);
     assert.equal(resetResp.status, 200);
     const resetOrgDelta = {
       users: {
         [kiwiEmail]: "members",
       },
     };
-    const resetOrgResp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: resetOrgDelta}, chimpy);
+    const resetOrgResp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, { delta: resetOrgDelta }, chimpy);
     assert.equal(resetOrgResp.status, 200);
 
     // Assert that ws guests are properly displayed.
@@ -1336,7 +1336,7 @@ describe('ApiServerAccess', function() {
     const did = addDocResp.data;
 
     // Add Kiwi to the doc
-    const docAccessResp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta}, chimpy);
+    const docAccessResp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta }, chimpy);
     assert.equal(docAccessResp.status, 200);
 
     // Assert that Kiwi is now a guest of public.
@@ -1415,10 +1415,10 @@ describe('ApiServerAccess', function() {
 
     // Remove Kiwi from the org to reset initial settings
     const kiwiResetDelta = {
-      users: {[kiwiEmail]: null},
+      users: { [kiwiEmail]: null },
     };
     const orgPatchResp2 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`,
-      {delta: kiwiResetDelta}, chimpy);
+      { delta: kiwiResetDelta }, chimpy);
     assert.equal(orgPatchResp2.status, 200);
   });
 
@@ -1465,19 +1465,19 @@ describe('ApiServerAccess', function() {
 
     // Add kiwi as a member of Chimpyland
     const kiwiMemberDelta = {
-      users: {[kiwiEmail]: "members"},
+      users: { [kiwiEmail]: "members" },
     };
     const kiwiMemberResp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`,
-      {delta: kiwiMemberDelta}, chimpy);
+      { delta: kiwiMemberDelta }, chimpy);
     assert.equal(kiwiMemberResp.status, 200);
     // Run a complex case by modifying maxInheritedRole and individual roles on a doc then querying
     // for access
     // Set the maxInheritedRole to null
     const delta = {
       maxInheritedRole: null,
-      users: {[kiwiEmail]: "editors"},
+      users: { [kiwiEmail]: "editors" },
     };
-    const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta}, chimpy);
+    const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta }, chimpy);
     assert.equal(patchResp.status, 200);
     const resp2 = await axios.get(`${homeUrl}/api/docs/${did}/access`, chimpy);
     assert.equal(resp2.status, 200);
@@ -1514,10 +1514,10 @@ describe('ApiServerAccess', function() {
     });
     // Reset the access settings
     const kiwiResetDelta = {
-      users: {[kiwiEmail]: null},
+      users: { [kiwiEmail]: null },
     };
     const kiwiResetResp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`,
-      {delta: kiwiResetDelta}, chimpy);
+      { delta: kiwiResetDelta }, chimpy);
     assert.equal(kiwiResetResp.status, 200);
     // TODO: Unnecessary once removing from org removes from all.
     const resetDelta = {
@@ -1526,7 +1526,7 @@ describe('ApiServerAccess', function() {
         [kiwiEmail]: null,
       },
     };
-    const resetResp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta: resetDelta}, chimpy);
+    const resetResp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, { delta: resetDelta }, chimpy);
     assert.equal(resetResp.status, 200);
 
     // Run another complex case by modifying maxInheritedRole and individual roles of the workspace
@@ -1536,7 +1536,7 @@ describe('ApiServerAccess', function() {
     const wsDelta = {
       maxInheritedRole: "viewers",
     };
-    const patchResp2 = await axios.patch(`${homeUrl}/api/workspaces/${sharkWs}/access`, {delta: wsDelta}, chimpy);
+    const patchResp2 = await axios.patch(`${homeUrl}/api/workspaces/${sharkWs}/access`, { delta: wsDelta }, chimpy);
     assert.equal(patchResp2.status, 200);
     const resp3 = await axios.get(`${homeUrl}/api/docs/${shark}/access`, chimpy);
     assert.equal(resp3.status, 200);
@@ -1578,7 +1578,7 @@ describe('ApiServerAccess', function() {
     const resetDelta2 = {
       maxInheritedRole: "owners",
     };
-    const resetResp2 = await axios.patch(`${homeUrl}/api/workspaces/${sharkWs}/access`, {delta: resetDelta2}, chimpy);
+    const resetResp2 = await axios.patch(`${homeUrl}/api/workspaces/${sharkWs}/access`, { delta: resetDelta2 }, chimpy);
     assert.equal(resetResp2.status, 200);
   });
 
@@ -1883,12 +1883,12 @@ describe('ApiServerAccess', function() {
 
     // Turns users from PermissionData into a mapping from email address to [access, parentAccess],
     // for more concise comparisons below.
-    function compactAccess(data: PermissionData): {[email: string]: [Role|null, Role|null]} {
+    function compactAccess(data: PermissionData): { [email: string]: [Role|null, Role|null] } {
       return fromPairs(data.users.map(u => [u.email, [u.access, u.parentAccess || null]]));
     }
 
     let resp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`,
-      {delta: {users: {[everyoneEmail]: 'viewers'}}}, chimpy);
+      { delta: { users: { [everyoneEmail]: 'viewers' } } }, chimpy);
     assert.equal(resp.status, 200);
 
     // The special user should be visible when we get the access list.
@@ -1909,7 +1909,7 @@ describe('ApiServerAccess', function() {
 
     // Remove the special user; it should no longer be visible on either.
     resp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`,
-      {delta: {users: {[everyoneEmail]: null}}}, chimpy);
+      { delta: { users: { [everyoneEmail]: null } } }, chimpy);
     resp = await axios.get(`${homeUrl}/api/workspaces/${wid}/access`, chimpy);
     assert.deepEqual(compactAccess(resp.data), {
       [chimpyEmail]: ['owners', 'owners'],
@@ -1923,7 +1923,7 @@ describe('ApiServerAccess', function() {
 
     // Add special user to the doc.
     resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`,
-      {delta: {users: {[everyoneEmail]: 'editors'}}}, chimpy);
+      { delta: { users: { [everyoneEmail]: 'editors' } } }, chimpy);
     assert.equal(resp.status, 200);
     resp = await axios.get(`${homeUrl}/api/docs/${did}/access`, chimpy);
     assert.deepEqual(compactAccess(resp.data), {
@@ -1941,7 +1941,7 @@ describe('ApiServerAccess', function() {
 
     // Remove the special user.
     resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`,
-      {delta: {users: {[everyoneEmail]: null}}}, chimpy);
+      { delta: { users: { [everyoneEmail]: null } } }, chimpy);
     resp = await axios.get(`${homeUrl}/api/docs/${did}/access`, chimpy);
     assert.deepEqual(compactAccess(resp.data), {
       [chimpyEmail]: ['owners', 'owners'],
@@ -1962,7 +1962,7 @@ describe('ApiServerAccess', function() {
 
     // Set Kiwi as a member of org 'Chimpyland'.
     const addKiwiToOrg = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`,
-      {delta: addDelta}, chimpy);
+      { delta: addDelta }, chimpy);
     assert.equal(addKiwiToOrg.status, 200);
 
     // Fetch workspace permissions and check that Kiwi has and inherits no access.
@@ -2034,23 +2034,23 @@ describe('ApiServerAccess', function() {
 
     // Unset Kiwi as a member of org 'Chimpyland'.
     const removeKiwiFromOrg = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`,
-      {delta: removeDelta}, chimpy);
+      { delta: removeDelta }, chimpy);
     assert.equal(removeKiwiFromOrg.status, 200);
 
     // Assert that updating a workspace user to "members" throws with status 400.
     const invalidResp1 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`,
-      {delta: addDelta}, chimpy);
+      { delta: addDelta }, chimpy);
     assert.equal(invalidResp1.status, 400);
 
     // Assert that updating a doc user to "members" throws with status 400.
     const invalidResp2 = await axios.patch(`${homeUrl}/api/docs/${did}/access`,
-      {delta: addDelta}, chimpy);
+      { delta: addDelta }, chimpy);
     assert.equal(invalidResp2.status, 400);
 
     // Assert that updating the maxInheritedRole to "members" throws with status 400.
     const invalidDelta = { maxInheritedRole: "members" };
     const invalidResp3 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`,
-      {delta: invalidDelta}, chimpy);
+      { delta: invalidDelta }, chimpy);
     assert.equal(invalidResp3.status, 400);
   });
 
@@ -2102,11 +2102,11 @@ describe('ApiServerAccess', function() {
     before(async function() {
       // Set NASA to be specifically on a team plan, with team plan restrictions.
       const db = dbManager.connection.manager;
-      nasaOrg = (await db.findOne(Organization, {where: {domain: 'nasa'},
+      nasaOrg = (await db.findOne(Organization, { where: { domain: 'nasa' },
         relations: ['billingAccount',
-          'billingAccount.product']}))!;
+          'billingAccount.product'] }))!;
       oldProduct = nasaOrg.billingAccount.product;
-      nasaOrg.billingAccount.product = (await db.findOne(Product, {where: {name: 'team'}}))!;
+      nasaOrg.billingAccount.product = (await db.findOne(Product, { where: { name: 'team' } }))!;
       await nasaOrg.billingAccount.save();
     });
 
@@ -2119,10 +2119,10 @@ describe('ApiServerAccess', function() {
       // Add Kiwi to Horizon
       const horizonWs = await dbManager.testGetId('Horizon');
       const addDelta = {
-        users: {[kiwiEmail]: 'viewers'},
+        users: { [kiwiEmail]: 'viewers' },
       };
       const errorResp = await axios.patch(`${homeUrl}/api/workspaces/${horizonWs}/access`,
-        {delta: addDelta}, chimpy);
+        { delta: addDelta }, chimpy);
       assert.equal(errorResp.status, 403);
       assert.equal(errorResp.data.error, 'No external workspace shares permitted');
     });
@@ -2131,22 +2131,22 @@ describe('ApiServerAccess', function() {
       // Add Kiwi to Apathy
       const apathyDoc = await dbManager.testGetId('Apathy');
       let resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-        {delta: {users: {[kiwiEmail]: 'viewers'}}}, chimpy);
+        { delta: { users: { [kiwiEmail]: 'viewers' } } }, chimpy);
       assert.equal(resp.status, 200);
 
       // Add Support to Apathy, should not count
       resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-        {delta: {users: {[supportEmail]: 'viewers'}}}, chimpy);
+        { delta: { users: { [supportEmail]: 'viewers' } } }, chimpy);
       assert.equal(resp.status, 200);
 
       // Add Ella to Apathy
       resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-        {delta: {users: {'ella@getgrist.com': 'editors'}}}, chimpy);
+        { delta: { users: { 'ella@getgrist.com': 'editors' } } }, chimpy);
       assert.equal(resp.status, 200);
 
       // Add Charon to Apathy
       resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-        {delta: {users: {[charonEmail]: 'viewers'}}}, chimpy);
+        { delta: { users: { [charonEmail]: 'viewers' } } }, chimpy);
       assert.equal(resp.status, 403);
       assert.equal(resp.data.error, 'No more external document shares permitted');
 
@@ -2158,7 +2158,7 @@ describe('ApiServerAccess', function() {
         },
       };
       resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-        {delta: removeDelta}, chimpy);
+        { delta: removeDelta }, chimpy);
       assert.equal(resp.status, 200);
     });
   });
@@ -2172,7 +2172,7 @@ describe('ApiServerAccess', function() {
       users: { [charonEmail]: null, [kiwiEmail]: null },
     };
     const fishResp1 = await axios.patch(`${homeUrl}/api/orgs/${fishOrgId}/access`,
-      {delta: removeCharonKiwi}, chimpy);
+      { delta: removeCharonKiwi }, chimpy);
     assert.equal(fishResp1.status, 200);
     assert.deepEqual(userCountUpdates[fishOrgId as number], [1]);
 
@@ -2181,7 +2181,7 @@ describe('ApiServerAccess', function() {
       users: { [charonEmail]: 'viewers' },
     };
     const fishResp2 = await axios.patch(`${homeUrl}/api/orgs/${fishOrgId}/access`,
-      {delta: addCharon}, chimpy);
+      { delta: addCharon }, chimpy);
     assert.equal(fishResp2.status, 200);
     assert.deepEqual(userCountUpdates[fishOrgId as number], [1, 2]);
 
@@ -2190,7 +2190,7 @@ describe('ApiServerAccess', function() {
       users: { [kiwiEmail]: 'editors' },
     };
     const fishResp3 = await axios.patch(`${homeUrl}/api/orgs/${fishOrgId}/access`,
-      {delta: addKiwi}, chimpy);
+      { delta: addKiwi }, chimpy);
     assert.equal(fishResp3.status, 200);
     assert.deepEqual(userCountUpdates[fishOrgId as number], [1, 2, 3]);
 
@@ -2200,15 +2200,15 @@ describe('ApiServerAccess', function() {
 
     // Add charon to ws
     const publicResp1 = await axios.patch(`${homeUrl}/api/workspaces/${publicWsId}/access`,
-      {delta: addCharon}, chimpy);
+      { delta: addCharon }, chimpy);
     assert.equal(publicResp1.status, 200);
 
     // Remove charon
     const removeCharon = {
-      users: {[charonEmail]: null},
+      users: { [charonEmail]: null },
     };
     const publicResp2 = await axios.patch(`${homeUrl}/api/workspaces/${publicWsId}/access`,
-      {delta: removeCharon}, chimpy);
+      { delta: removeCharon }, chimpy);
     assert.equal(publicResp2.status, 200);
     // Assert that workspace user changes have no effect on userCount.
     assert.deepEqual(userCountUpdates[clOrgId as number], undefined);
@@ -2223,13 +2223,13 @@ describe('ApiServerAccess', function() {
   it('POST /api/profile/apiKey fails for anonymous', async function() {
     const resp = await axios.post(`${homeUrl}/api/profile/apikey`, null, nobody);
     assert.equal(resp.status, 401);
-    assert.deepEqual(resp.data, {error: "user not authorized"});
+    assert.deepEqual(resp.data, { error: "user not authorized" });
   });
 
   it('DELETE /api/profile/apiKey fails for anonymous', async function() {
     const resp = await axios.delete(`${homeUrl}/api/profile/apikey`, nobody);
     assert.equal(resp.status, 401);
-    assert.deepEqual(resp.data, {error: "user not authorized"});
+    assert.deepEqual(resp.data, { error: "user not authorized" });
   });
 
   it('DELETE /api/profile/apikey delete api key', async function() {
@@ -2246,13 +2246,13 @@ describe('ApiServerAccess', function() {
     resp = await axios.get(`${homeUrl}/api/orgs`, {
       responseType: 'json',
       validateStatus: () => true,
-      headers: {Authorization: "Bearer "},
+      headers: { Authorization: "Bearer " },
     });
     assert.equal(resp.status, 401);
     assert.deepEqual(resp.data, "Bad request: invalid API key");
 
     // check that db encoded null for the apikey
-    const chimpyUser = (await User.findOne({where: {name: 'Chimpy'}}))!;
+    const chimpyUser = (await User.findOne({ where: { name: 'Chimpy' } }))!;
     assert.deepEqual(chimpyUser.apiKey, null);
 
     // restore api key for chimpy
@@ -2269,7 +2269,7 @@ describe('ApiServerAccess', function() {
     });
 
     it('succeed if apiKey already set but force flag is used', async function() {
-      resp = await axios.post(`${homeUrl}/api/profile/apikey`, {force: true}, kiwi);
+      resp = await axios.post(`${homeUrl}/api/profile/apikey`, { force: true }, kiwi);
       assert.equal(resp.status, 200);
       const apiKey = resp.data;
 
@@ -2279,7 +2279,7 @@ describe('ApiServerAccess', function() {
       assert.deepEqual(resp.data, "Bad request: invalid API key");
 
       // check that the new api key works
-      kiwi.headers = {Authorization: 'Bearer ' + apiKey};
+      kiwi.headers = { Authorization: 'Bearer ' + apiKey };
       resp = await axios.get(`${homeUrl}/api/orgs`, kiwi);
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.data.map((org: any) => org.name),
@@ -2302,8 +2302,8 @@ describe('ApiServerAccess', function() {
         resp = await axios.get(`${homeUrl}/api/orgs`, chimpy);
         assert.equal(resp.status, 401);
 
-        const cookie = await server.getCookieLogin('nasa', {email: 'chimpy@getgrist.com',
-          name: 'Chimpy'});
+        const cookie = await server.getCookieLogin('nasa', { email: 'chimpy@getgrist.com',
+          name: 'Chimpy' });
 
         // let's create an apikey
         resp = await axios.post(`${homeUrl}/o/nasa/api/profile/apikey`, {}, cookie);
@@ -2311,7 +2311,7 @@ describe('ApiServerAccess', function() {
         assert.equal(resp.status, 200);
 
         // check that new api key works
-        chimpy.headers = {Authorization: 'Bearer ' + resp.data};
+        chimpy.headers = { Authorization: 'Bearer ' + resp.data };
         resp = await axios.get(`${homeUrl}/api/orgs`, chimpy);
         assert.equal(resp.status, 200);
         assert.deepEqual(resp.data.map((org: any) => org.name),

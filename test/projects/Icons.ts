@@ -1,5 +1,5 @@
-import {assert, driver} from 'mocha-webdriver';
-import {server, setupTestSuite} from 'test/projects/testUtils';
+import { assert, driver } from 'mocha-webdriver';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 
 describe('Icons', () => {
   setupTestSuite();

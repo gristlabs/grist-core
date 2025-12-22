@@ -133,46 +133,46 @@ class SaveableSetup extends Disposable {
           cssRow(
             cssHeader('text: '),
             cssCellBox(
-              this.textColorInput = dom('input', {value: '#000000'}),
+              this.textColorInput = dom('input', { value: '#000000' }),
             ),
             testId('text-server-value'),
           ),
           cssRow(
             cssHeader('fill: '),
             cssCellBox(
-              this.fillColorInput = dom('input', {value: '#FFFFFF'}),
+              this.fillColorInput = dom('input', { value: '#FFFFFF' }),
             ),
             testId('fill-server-value'),
           ),
           cssRow(
             cssHeader('bold: '),
             cssCellBox(
-              this.fontBoldInput = dom('input', {value: ''}),
+              this.fontBoldInput = dom('input', { value: '' }),
             ),
             testId('bold-server-value'),
           ),
           cssRow(
             cssHeader('underline: '),
             cssCellBox(
-              this.fontUnderlineInput = dom('input', {value: ''}),
+              this.fontUnderlineInput = dom('input', { value: '' }),
             ),
             testId('underline-server-value'),
           ),
           cssRow(
             cssHeader('italic: '),
             cssCellBox(
-              this.fontItalicInput = dom('input', { value: ''}),
+              this.fontItalicInput = dom('input', { value: '' }),
             ),
             testId('italic-server-value'),
           ),
           cssRow(
             cssHeader('strikethrough: '),
             cssCellBox(
-              this.fontStrikethroughInput = dom('input', {value: ''}),
+              this.fontStrikethroughInput = dom('input', { value: '' }),
             ),
             testId('strikethrough-server-value'),
           ),
-          dom('input', {type: 'button', value: 'Update'}, testId('server-update'),
+          dom('input', { type: 'button', value: 'Update' }, testId('server-update'),
             dom.on('click', () => this.onServerUpdate()),
             testId('server-update')),
         ),
@@ -192,8 +192,8 @@ class SaveableSetup extends Disposable {
             ),
           ),
           colorSelect({
-            textColor: new ColorOption({color: this.textColor}),
-            fillColor: new ColorOption({color: this.fillColor}),
+            textColor: new ColorOption({ color: this.textColor }),
+            fillColor: new ColorOption({ color: this.fillColor }),
             fontBold: this.fontBold,
             fontItalic: this.fontItalic,
             fontUnderline: this.fontUnderline,
@@ -217,7 +217,7 @@ class SaveableSetup extends Disposable {
 function setupTest(owner: IDisposableOwner) {
   const value = Observable.create(owner, dom.create(SaveableSetup));
   return [
-    dom('div', dom('input', {type: 'button', value: 'Reset All'},
+    dom('div', dom('input', { type: 'button', value: 'Reset All' },
       testId('reset'),
       dom.on('click', () => value.set(dom.create(SaveableSetup))))),
     dom('div', dom.domComputed(value)),

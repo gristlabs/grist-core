@@ -92,7 +92,7 @@ export class Experiments extends Disposable {
     const experimentUrl = new URL(getGristConfig().homeUrl || window.location.href);
     experimentUrl.searchParams.set(EXPERIMENT_URL_PARAM, experiment);
     const urlBlock = cssLink(
-      {href: experimentUrl.toString()},
+      { href: experimentUrl.toString() },
       experimentUrl.toString(),
     );
     const experimentLabel = dom('strong', EXPERIMENTS[experiment as keyof typeof EXPERIMENTS]());
@@ -103,14 +103,14 @@ export class Experiments extends Disposable {
       {
         explanation: cssWrapper(
           dom('p', nowEnabled
-            ? t('{{experiment}} enabled.', {experiment: experimentLabel})
-            : t('{{experiment}} disabled.', {experiment: experimentLabel}),
+            ? t('{{experiment}} enabled.', { experiment: experimentLabel })
+            : t('{{experiment}} disabled.', { experiment: experimentLabel }),
           ),
           nowEnabled
             ? dom(
               'p',
               dom.cls(cssWrapper.className),
-              t('Visit this URL at any time to stop using this feature: {{url}}', {url: urlBlock}),
+              t('Visit this URL at any time to stop using this feature: {{url}}', { url: urlBlock }),
             )
             : null,
         ),
@@ -126,17 +126,17 @@ export class Experiments extends Disposable {
     return EXPERIMENTS.hasOwnProperty(experiment);
   }
 
-  private _getExperimentState(experiment: string): {enabled: boolean, timestamp: number|null} {
+  private _getExperimentState(experiment: string): { enabled: boolean, timestamp: number|null } {
     return safeJsonParse(
       getStorage().getItem(this._getStorageKey(experiment)) || '',
-      {enabled: false, timestamp: null},
+      { enabled: false, timestamp: null },
     );
   }
 
   private _setExperimentState(experiment: string, enabled: boolean) {
     getStorage().setItem(
       this._getStorageKey(experiment),
-      JSON.stringify({enabled, timestamp: Date.now()}),
+      JSON.stringify({ enabled, timestamp: Date.now() }),
     );
   }
 

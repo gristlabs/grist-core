@@ -1,21 +1,21 @@
-import {makeT} from 'app/client/lib/localization';
-import type {ColumnRec} from 'app/client/models/entities/ColumnRec';
-import type {TableRec} from 'app/client/models/entities/TableRec';
-import {reportError} from 'app/client/models/errors';
-import {cssRow} from 'app/client/ui/RightPanelStyles';
-import {shadowScroll} from 'app/client/ui/shadowScroll';
-import {basicButton, primaryButton} from "app/client/ui2018/buttons";
-import {labeledSquareCheckbox} from "app/client/ui2018/checkbox";
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from "app/client/ui2018/icons";
-import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
-import {cssSelectBtn} from 'app/client/ui2018/select';
-import {CellValue} from 'app/common/DocActions';
-import {isEmptyList, RecalcWhen} from 'app/common/gristTypes';
-import {nativeCompare} from 'app/common/gutil';
-import {decodeObject, encodeObject} from 'app/plugin/objtypes';
-import {Computed, dom, IDisposableOwner, MultiHolder, Observable, styled} from 'grainjs';
-import {cssMenu, cssMenuItem, defaultMenuOptions, IOpenController, setPopupToCreateDom} from "popweasel";
+import { makeT } from 'app/client/lib/localization';
+import type { ColumnRec } from 'app/client/models/entities/ColumnRec';
+import type { TableRec } from 'app/client/models/entities/TableRec';
+import { reportError } from 'app/client/models/errors';
+import { cssRow } from 'app/client/ui/RightPanelStyles';
+import { shadowScroll } from 'app/client/ui/shadowScroll';
+import { basicButton, primaryButton } from "app/client/ui2018/buttons";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { testId, theme } from 'app/client/ui2018/cssVars';
+import { icon } from "app/client/ui2018/icons";
+import { menuCssClass, menuDivider } from 'app/client/ui2018/menus';
+import { cssSelectBtn } from 'app/client/ui2018/select';
+import { CellValue } from 'app/common/DocActions';
+import { isEmptyList, RecalcWhen } from 'app/common/gristTypes';
+import { nativeCompare } from 'app/common/gutil';
+import { decodeObject, encodeObject } from 'app/plugin/objtypes';
+import { Computed, dom, IDisposableOwner, MultiHolder, Observable, styled } from 'grainjs';
+import { cssMenu, cssMenuItem, defaultMenuOptions, IOpenController, setPopupToCreateDom } from "popweasel";
 import isEqual from 'lodash/isEqual';
 
 const t = makeT('TriggerFormulas');
@@ -65,7 +65,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
   async function setRecalc(when: RecalcWhen, deps: number[]|null) {
     if (when !== column.recalcWhen.peek() || deps !== column.recalcDeps.peek()) {
       return column._table.sendTableAction(
-        ["UpdateRecord", column.id.peek(), {recalcWhen: when, recalcDeps: encodeObject(deps)}],
+        ["UpdateRecord", column.id.peek(), { recalcWhen: when, recalcDeps: encodeObject(deps) }],
       );
     }
   }
@@ -122,7 +122,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
           dom.cls('disabled', use => !!options.disabled && use(options.disabled)),
           (elem) => {
             setPopupToCreateDom(elem, ctl => buildTriggerSelectors(ctl, column.table.peek(), column, setRecalc),
-              {...defaultMenuOptions, placement: 'bottom-end'});
+              { ...defaultMenuOptions, placement: 'bottom-end' });
           },
         ),
       ),

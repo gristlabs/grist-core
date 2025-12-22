@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner, TableIndex} from "typeorm";
+import { MigrationInterface, QueryRunner, TableIndex } from "typeorm";
 
 export class ForkIndexes1678737195050 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {

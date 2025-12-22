@@ -1,20 +1,20 @@
-import {BaseEntity, Column} from "typeorm";
-import {ApiError} from 'app/common/ApiError';
-import {CommonProperties} from "app/common/UserAPI";
+import { BaseEntity, Column } from "typeorm";
+import { ApiError } from 'app/common/ApiError';
+import { CommonProperties } from "app/common/UserAPI";
 
 export class Resource extends BaseEntity {
-  @Column({type: String})
+  @Column({ type: String })
   public name: string;
 
-  @Column({name: 'created_at', type: Date, default: () => "CURRENT_TIMESTAMP"})
+  @Column({ name: 'created_at', type: Date, default: () => "CURRENT_TIMESTAMP" })
   public createdAt: Date;
 
-  @Column({name: 'updated_at', type: Date, default: () => "CURRENT_TIMESTAMP"})
+  @Column({ name: 'updated_at', type: Date, default: () => "CURRENT_TIMESTAMP" })
   public updatedAt: Date;
 
   // a computed column which, when present, means the entity should be filtered out
   // of results.
-  @Column({name: 'filtered_out', type: 'boolean', select: false, insert: false})
+  @Column({ name: 'filtered_out', type: 'boolean', select: false, insert: false })
   public filteredOut?: boolean;
 
   public updateFromProperties(props: Partial<CommonProperties>) {

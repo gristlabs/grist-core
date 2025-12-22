@@ -1,42 +1,42 @@
-import {ColumnTransform} from 'app/client/components/ColumnTransform';
+import { ColumnTransform } from 'app/client/components/ColumnTransform';
 import * as commands from 'app/client/components/commands';
-import {Cursor} from 'app/client/components/Cursor';
-import {FormulaTransform} from 'app/client/components/FormulaTransform';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {addColTypeSuffix, guessWidgetOptionsSync, inferColTypeSuffix} from 'app/client/components/TypeConversion';
-import {TypeTransform} from 'app/client/components/TypeTransform';
-import {UnsavedChange} from 'app/client/components/UnsavedChanges';
+import { Cursor } from 'app/client/components/Cursor';
+import { FormulaTransform } from 'app/client/components/FormulaTransform';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { addColTypeSuffix, guessWidgetOptionsSync, inferColTypeSuffix } from 'app/client/components/TypeConversion';
+import { TypeTransform } from 'app/client/components/TypeTransform';
+import { UnsavedChange } from 'app/client/components/UnsavedChanges';
 import dom from 'app/client/lib/dom';
-import {KoArray} from 'app/client/lib/koArray';
+import { KoArray } from 'app/client/lib/koArray';
 import * as kd from 'app/client/lib/koDom';
 import * as kf from 'app/client/lib/koForm';
 import * as koUtil from 'app/client/lib/koUtil';
-import {makeT} from 'app/client/lib/localization';
-import {reportError} from 'app/client/models/AppModel';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {ColumnRec, DocModel, ViewFieldRec} from 'app/client/models/DocModel';
-import {SaveableObjObservable, setSaveValue} from 'app/client/models/modelUtil';
-import {CombinedStyle, Style} from 'app/client/models/Styles';
-import {FieldSettingsMenu} from 'app/client/ui/FieldMenus';
-import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {textButton} from 'app/client/ui2018/buttons';
-import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
-import {IOptionFull, menu, select} from 'app/client/ui2018/menus';
-import {DiffBox} from 'app/client/widgets/DiffBox';
-import {CommentPopup, DiscussionModelImpl} from 'app/client/widgets/DiscussionEditor';
-import {buildErrorDom} from 'app/client/widgets/ErrorDom';
-import {FieldEditor, saveWithoutEditor} from 'app/client/widgets/FieldEditor';
-import {FloatingEditor} from 'app/client/widgets/FloatingEditor';
-import {openFormulaEditor} from 'app/client/widgets/FormulaEditor';
-import {CommentWithMentions} from 'app/client/widgets/MentionTextBox';
-import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
-import {IEditorConstructor} from 'app/client/widgets/NewBaseEditor';
+import { makeT } from 'app/client/lib/localization';
+import { reportError } from 'app/client/models/AppModel';
+import { DataRowModel } from 'app/client/models/DataRowModel';
+import { ColumnRec, DocModel, ViewFieldRec } from 'app/client/models/DocModel';
+import { SaveableObjObservable, setSaveValue } from 'app/client/models/modelUtil';
+import { CombinedStyle, Style } from 'app/client/models/Styles';
+import { FieldSettingsMenu } from 'app/client/ui/FieldMenus';
+import { cssBlockedCursor, cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
+import { textButton } from 'app/client/ui2018/buttons';
+import { buttonSelect, cssButtonSelect } from 'app/client/ui2018/buttonSelect';
+import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
+import { DiffBox } from 'app/client/widgets/DiffBox';
+import { CommentPopup, DiscussionModelImpl } from 'app/client/widgets/DiscussionEditor';
+import { buildErrorDom } from 'app/client/widgets/ErrorDom';
+import { FieldEditor, saveWithoutEditor } from 'app/client/widgets/FieldEditor';
+import { FloatingEditor } from 'app/client/widgets/FloatingEditor';
+import { openFormulaEditor } from 'app/client/widgets/FormulaEditor';
+import { CommentWithMentions } from 'app/client/widgets/MentionTextBox';
+import { NewAbstractWidget } from 'app/client/widgets/NewAbstractWidget';
+import { IEditorConstructor } from 'app/client/widgets/NewBaseEditor';
 import * as UserType from 'app/client/widgets/UserType';
 import * as UserTypeImpl from 'app/client/widgets/UserTypeImpl';
-import {getReferencedTableId, isFullReferencingType} from 'app/common/gristTypes';
+import { getReferencedTableId, isFullReferencingType } from 'app/common/gristTypes';
 import * as gristTypes from 'app/common/gristTypes';
-import {WidgetType} from 'app/common/widgetTypes';
-import {CellValue} from 'app/plugin/GristData';
+import { WidgetType } from 'app/common/widgetTypes';
+import { CellValue } from 'app/plugin/GristData';
 import {
   bundleChanges,
   Computed,
@@ -73,7 +73,7 @@ function getTypeDefinition(type: string | false) {
   return UserType.typeDefs[type] || UserType.typeDefs.Text;
 }
 
-type ComputedStyle = {style?: Style; error?: true} | null | undefined;
+type ComputedStyle = { style?: Style; error?: true } | null | undefined;
 
 /**
  * Builds a font option computed property.
@@ -120,7 +120,7 @@ export class FieldBuilder extends Disposable {
   private readonly _rowMap: Map<DataRowModel, Element>;
   private readonly _isTransformingFormula: ko.Computed<boolean>;
   private readonly _isTransformingType: ko.Computed<boolean>;
-  private readonly _widgetCons: ko.Computed<{create: (...args: any[]) => NewAbstractWidget}>;
+  private readonly _widgetCons: ko.Computed<{ create: (...args: any[]) => NewAbstractWidget }>;
   private readonly _docModel: DocModel;
   private readonly _readonly: Computed<boolean>;
   private readonly _isForm: ko.Computed<boolean>;
@@ -397,7 +397,7 @@ export class FieldBuilder extends Disposable {
           toTypeMaybeFull: newType,
         });
         const existingOptions = column.widgetOptionsJson.peek();
-        const widgetOptions = JSON.stringify({...existingOptions, ...guessedOptions});
+        const widgetOptions = JSON.stringify({ ...existingOptions, ...guessedOptions });
         bundleChanges(() => {
           this.gristDoc.docData.bundleActions(t("Changing column type"), () =>
             Promise.all([
@@ -880,7 +880,7 @@ export class FieldBuilder extends Disposable {
     onSave?: (column: ColumnRec, formula: string) => Promise<void>,
     onCancel?: () => void
   }) {
-    const {editRow, refElem, canDetach, editValue, onSave, onCancel} = options;
+    const { editRow, refElem, canDetach, editValue, onSave, onCancel } = options;
 
     // Remember position when the popup was opened.
     const position = this.gristDoc.cursorPosition.get();

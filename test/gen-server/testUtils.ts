@@ -1,13 +1,13 @@
-import {GristLoadConfig} from 'app/common/gristUrls';
-import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
-import {Organization} from 'app/gen-server/entity/Organization';
-import {Product} from 'app/gen-server/entity/Product';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {GristServer} from 'app/server/lib/GristServer';
-import {EmitNotifier} from 'app/server/lib/INotifier';
+import { GristLoadConfig } from 'app/common/gristUrls';
+import { BillingAccount } from 'app/gen-server/entity/BillingAccount';
+import { Organization } from 'app/gen-server/entity/Organization';
+import { Product } from 'app/gen-server/entity/Product';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { GristServer } from 'app/server/lib/GristServer';
+import { EmitNotifier } from 'app/server/lib/INotifier';
 
-import {AxiosRequestConfig} from 'axios';
-import {delay} from 'bluebird';
+import { AxiosRequestConfig } from 'axios';
+import { delay } from 'bluebird';
 
 export function configForApiKey(apiKey?: string): AxiosRequestConfig {
   return {
@@ -15,7 +15,7 @@ export function configForApiKey(apiKey?: string): AxiosRequestConfig {
     validateStatus: (status: number) => true,
     headers: {
       'X-Requested-With': 'XMLHttpRequest',
-      ...(apiKey ? {Authorization: `Bearer ${apiKey}`} : {}),
+      ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
     },
   };
 }
@@ -49,10 +49,10 @@ export function configWithPermit(config: AxiosRequestConfig, permitKey: string):
 export async function createUser(dbManager: HomeDBManager, name: string): Promise<Organization> {
   const username = name.toLowerCase();
   const email = `${username}@getgrist.com`;
-  const user = await dbManager.getUserByLogin(email, {profile: {email, name}});
+  const user = await dbManager.getUserByLogin(email, { profile: { email, name } });
   user.apiKey = `api_key_for_${username}`;
   await user.save();
-  const userHome = (await dbManager.getOrg({userId: user.id}, null)).data;
+  const userHome = (await dbManager.getOrg({ userId: user.id }, null)).data;
   if (!userHome) { throw new Error('failed to create personal org'); }
   return userHome;
 }
@@ -60,15 +60,15 @@ export async function createUser(dbManager: HomeDBManager, name: string): Promis
 /**
  * Associate a given org with a given product.
  */
-export async function setPlan(dbManager: HomeDBManager, org: {billingAccount?: {id: number}},
+export async function setPlan(dbManager: HomeDBManager, org: { billingAccount?: { id: number } },
   productName: string) {
-  const product = await dbManager.connection.manager.findOne(Product, {where: {name: productName}});
+  const product = await dbManager.connection.manager.findOne(Product, { where: { name: productName } });
   if (!product) { throw new Error(`cannot find product ${productName}`); }
   if (!org.billingAccount) { throw new Error('must join billingAccount'); }
   await dbManager.connection.createQueryBuilder()
     .update(BillingAccount)
-    .set({product})
-    .where('id = :bid', {bid: org.billingAccount.id})
+    .set({ product })
+    .where('id = :bid', { bid: org.billingAccount.id })
     .execute();
 }
 

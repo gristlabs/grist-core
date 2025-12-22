@@ -1,6 +1,6 @@
 import { makeT } from 'app/client/lib/localization';
 import { AppModel } from "app/client/models/AppModel";
-import { urlState} from "app/client/models/gristUrlState";
+import { urlState } from "app/client/models/gristUrlState";
 import { createUserImage } from 'app/client/ui/UserImage';
 import { bigBasicButtonLink } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
@@ -33,7 +33,7 @@ export function buildWelcomeSitePicker(owner: IDisposableOwner, appModel: AppMod
                   createUserImage(user, 'small'),
                   dom('div', user.email, testId('personal-org-email')),
                 ),
-                dom.attr('href', use => urlState().makeUrl({org: use(personalOrg)})),
+                dom.attr('href', use => urlState().makeUrl({ org: use(personalOrg) })),
                 dom.on('click', (ev) => { void(switchToPersonalUrl(ev, appModel, personalOrg.get(), user)); }),
                 testId('personal-org'),
               )
@@ -44,7 +44,7 @@ export function buildWelcomeSitePicker(owner: IDisposableOwner, appModel: AppMod
             dom.forEach(appModel.topAppModel.orgs, org => (
               org.owner || !org.domain ? null : cssOrgButton(
                 getOrgName(org),
-                urlState().setLinkUrl({org: org.domain}),
+                urlState().setLinkUrl({ org: org.domain }),
                 testId('org'),
               )
             )),
@@ -64,7 +64,7 @@ async function switchToPersonalUrl(ev: MouseEvent, appModel: AppModel, org: stri
   ev.preventDefault();
   // Set the active session for the given org, then load its home page.
   await appModel.switchUser(user, org);
-  window.location.assign(urlState().makeUrl({org}));
+  window.location.assign(urlState().makeUrl({ org }));
 }
 
 const cssPageContainer = styled(css.pageContainer, `

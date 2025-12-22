@@ -156,10 +156,10 @@ export class UnsafeNodeComponent extends BaseComponent {
   }
 
   protected doForwardCall(c: IMsgRpcCall): Promise<any> {
-    return this._rpc.forwardCall({...c, mdest: ''});
+    return this._rpc.forwardCall({ ...c, mdest: '' });
   }
 
   protected async doForwardMessage(c: IMsgCustom): Promise<any> {
-    return this._rpc.forwardMessage({...c, mdest: ''});
+    return this._rpc.forwardMessage({ ...c, mdest: '' });
   }
 }

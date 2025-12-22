@@ -1,9 +1,9 @@
-import {MigrationInterface, QueryRunner, Table, TableColumn, TableForeignKey} from 'typeorm';
-import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
-import {BillingAccountManager} from 'app/gen-server/entity/BillingAccountManager';
-import {Organization} from 'app/gen-server/entity/Organization';
-import {Product} from 'app/gen-server/entity/Product';
-import {nativeValues} from 'app/gen-server/lib/values';
+import { MigrationInterface, QueryRunner, Table, TableColumn, TableForeignKey } from 'typeorm';
+import { BillingAccount } from 'app/gen-server/entity/BillingAccount';
+import { BillingAccountManager } from 'app/gen-server/entity/BillingAccountManager';
+import { Organization } from 'app/gen-server/entity/Organization';
+import { Product } from 'app/gen-server/entity/Product';
+import { nativeValues } from 'app/gen-server/lib/values';
 
 export class Billing1556726945436 implements MigrationInterface {
 
@@ -167,14 +167,14 @@ export class Billing1556726945436 implements MigrationInterface {
       const billingAccountInsert = await queryRunner.manager.createQueryBuilder()
         .insert()
         .into(BillingAccount)
-        .values([{product, individual}])
+        .values([{ product, individual }])
         .execute();
       const billingAccountId = billingAccountInsert.identifiers[0].id;
       if (individual) {
         await queryRunner.manager.createQueryBuilder()
           .insert()
           .into(BillingAccountManager)
-          .values([{billingAccountId, userId: org.owner.id}])
+          .values([{ billingAccountId, userId: org.owner.id }])
           .execute();
       }
       else {
@@ -183,15 +183,15 @@ export class Billing1556726945436 implements MigrationInterface {
             await queryRunner.manager.createQueryBuilder()
               .insert()
               .into(BillingAccountManager)
-              .values([{billingAccountId, userId: user.id}])
+              .values([{ billingAccountId, userId: user.id }])
               .execute();
           }
         }
       }
       await queryRunner.manager.createQueryBuilder()
         .update(Organization)
-        .set({billingAccountId})
-        .where('id = :id', {id: org.id})
+        .set({ billingAccountId })
+        .where('id = :id', { id: org.id })
         .execute();
     }
 

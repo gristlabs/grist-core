@@ -1,14 +1,14 @@
 /**
  * Test of the Importer dialog (part 2), for imports inside an open doc.
  */
-import {DocAPI} from 'app/common/UserAPI';
-import {DocCreationInfo} from 'app/common/DocListAPI';
+import { DocAPI } from 'app/common/UserAPI';
+import { DocCreationInfo } from 'app/common/DocListAPI';
 import * as _ from 'lodash';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {getColumnMatchingRows, getPreviewDiffCellValues, openSource as openSourceFor,
-  openTableMapping, waitForColumnMapping, waitForDiffPreviewToLoad} from 'test/nbrowser/importerTestUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { getColumnMatchingRows, getPreviewDiffCellValues, openSource as openSourceFor,
+  openTableMapping, waitForColumnMapping, waitForDiffPreviewToLoad } from 'test/nbrowser/importerTestUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('Importer2', function() {
   this.timeout(60000);
@@ -75,7 +75,7 @@ describe('Importer2', function() {
     await gu.waitAppFocus();
 
     assert.deepEqual(
-      await gu.getVisibleGridCells({cols: [0], rowNums: _.range(1, 21)}),
+      await gu.getVisibleGridCells({ cols: [0], rowNums: _.range(1, 21) }),
       [
         // mixed_dates.csv contains 10 dates. The first 9 are YYYY-MM-DD so that's the guessed date format.
         // The last date '01/02/03' doesn't fit this format.
@@ -123,7 +123,7 @@ describe('Importer2', function() {
 
     // Numbers appear formatted as in the CSV file
     assert.deepEqual(
-      await gu.getVisibleGridCells({cols: [0, 1, 2, 3, 4], rowNums: [1]}),
+      await gu.getVisibleGridCells({ cols: [0, 1, 2, 3, 4], rowNums: [1] }),
       ["$1.00", "1.20E3", "2,000,000", "43%", "(56)"],
     );
 
@@ -145,8 +145,8 @@ describe('Importer2', function() {
     // Get the fields we care about describing the columns to allow comparison.
     // All column names in the CSV file start with "fn_"
     const colFields = cols.map(
-      ({fields: {colId, type, widgetOptions}}) =>
-        ({colId, type, widgetOptions: JSON.parse(widgetOptions as string || "{}")}),
+      ({ fields: { colId, type, widgetOptions } }) =>
+        ({ colId, type, widgetOptions: JSON.parse(widgetOptions as string || "{}") }),
     ).filter(f => (f.colId as string).startsWith("fn_"));
 
     // All the columns are numeric and have some kind of formatting
@@ -154,27 +154,27 @@ describe('Importer2', function() {
       {
         colId: 'fn_currency',
         type: 'Numeric',
-        widgetOptions: {decimals: 2, numMode: 'currency'},
+        widgetOptions: { decimals: 2, numMode: 'currency' },
       },
       {
         colId: 'fn_scientific',
         type: 'Numeric',
-        widgetOptions: {decimals: 2, numMode: 'scientific'},
+        widgetOptions: { decimals: 2, numMode: 'scientific' },
       },
       {
         colId: 'fn_decimal',
         type: 'Numeric',
-        widgetOptions: {numMode: 'decimal'},
+        widgetOptions: { numMode: 'decimal' },
       },
       {
         colId: 'fn_percent',
         type: 'Numeric',
-        widgetOptions: {numMode: 'percent'},
+        widgetOptions: { numMode: 'percent' },
       },
       {
         colId: 'fn_parens',
         type: 'Numeric',
-        widgetOptions: {numSign: 'parens'},
+        widgetOptions: { numSign: 'parens' },
       },
     ]);
 
@@ -225,7 +225,7 @@ describe('Importer2', function() {
     // And data is valid.
     await gu.getPageItem('UploadedData2').click();
     await gu.waitForServer();
-    assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6]}),
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6] }),
       ['BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
         'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
         'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
@@ -660,7 +660,7 @@ describe('Importer2', function() {
 
       // The first half should be the original imported rows.
       assert.deepEqual(await gu.getVisibleGridCells(
-        {cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6]}),
+        { cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6] }),
       [
         'Kabul', 'Kabol', '1780000', '2', '1780',
         'Qandahar', 'Qandahar', '237500', '2', '237.5',
@@ -674,7 +674,7 @@ describe('Importer2', function() {
       // The second half should be the newly imported rows with custom mappings.
       assert.equal(await gu.getGridRowCount(), 8159);
       assert.deepEqual(await gu.getVisibleGridCells(
-        {cols: [0, 1, 2, 3, 4], rowNums: [8152, 8153, 8154, 8155, 8156, 8157]}),
+        { cols: [0, 1, 2, 3, 4], rowNums: [8152, 8153, 8154, 8155, 8156, 8157] }),
       [
         'Gweru', 'Midlands', '0', '123', '128037',
         'Gaza', 'Gaza', '0', '123', '353632',
@@ -844,7 +844,7 @@ describe('Importer2', function() {
         'CountryLanguage',
       ]);
 
-      assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5]}),
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5] }),
         [
           // Kabul's Country column should still be blank, since we skipped it earlier.
           'Kabul', 'Kabol', '3560000', '', '3560000',

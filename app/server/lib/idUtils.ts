@@ -1,7 +1,7 @@
-import {ForkResult} from 'app/common/ActiveDocAPI';
-import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
-import {padStart} from 'app/common/gutil';
-import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
+import { ForkResult } from 'app/common/ActiveDocAPI';
+import { buildUrlId, parseUrlId } from 'app/common/gristUrls';
+import { padStart } from 'app/common/gutil';
+import { IDocWorkerMap } from 'app/server/lib/DocWorkerMap';
 import * as shortUUID from 'short-uuid';
 
 // make an id that is a standard UUID compressed into fewer characters.
@@ -31,8 +31,8 @@ export function makeForkIds(options: { userId: number|null, isAnonymous: boolean
   const urlId = parseUrlId(options.trunkUrlId).trunkId;
   return {
     forkId,
-    docId: buildUrlId({trunkId: docId, forkId, forkUserId}),
-    urlId: buildUrlId({trunkId: urlId, forkId, forkUserId}),
+    docId: buildUrlId({ trunkId: docId, forkId, forkUserId }),
+    urlId: buildUrlId({ trunkId: urlId, forkId, forkUserId }),
   };
 }
 

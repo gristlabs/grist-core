@@ -22,16 +22,16 @@
  * communication libraries, and code outside of them should not rely on these details.
  */
 
-import {GristWSConnection} from 'app/client/components/GristWSConnection';
+import { GristWSConnection } from 'app/client/components/GristWSConnection';
 import * as dispose from 'app/client/lib/dispose';
 import * as log from 'app/client/lib/log';
-import {ApiError} from 'app/common/ApiError';
-import {CommRequest, CommResponse, CommResponseBase, CommResponseError, ValidEvent} from 'app/common/CommTypes';
-import {UserAction} from 'app/common/DocActions';
-import {DocListAPI, OpenDocOptions, OpenLocalDocResult} from 'app/common/DocListAPI';
-import {GristServerAPI} from 'app/common/GristServerAPI';
-import {getInitialDocAssignment} from 'app/common/urlUtils';
-import {Events as BackboneEvents} from 'backbone';
+import { ApiError } from 'app/common/ApiError';
+import { CommRequest, CommResponse, CommResponseBase, CommResponseError, ValidEvent } from 'app/common/CommTypes';
+import { UserAction } from 'app/common/DocActions';
+import { DocListAPI, OpenDocOptions, OpenLocalDocResult } from 'app/common/DocListAPI';
+import { GristServerAPI } from 'app/common/GristServerAPI';
+import { getInitialDocAssignment } from 'app/common/urlUtils';
+import { Events as BackboneEvents } from 'backbone';
 
 /**
  * A request that is currently being processed.

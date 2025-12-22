@@ -1,6 +1,6 @@
-import {assert, driver, WebElement, WebElementPromise} from 'mocha-webdriver';
+import { assert, driver, WebElement, WebElementPromise } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('ActionLog', function() {
   this.timeout(20000);
@@ -40,7 +40,7 @@ describe('ActionLog', function() {
   it('should block history if access is not full', async function() {
     const api = session.createHomeApi();
     const result = await api.applyUserActions(docId, [
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: '*'}],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: 'Table1', colIds: '*' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: 'True', permissionsText: '-R',
       }],
@@ -69,7 +69,7 @@ describe('ActionLog', function() {
       driver.findContentWait('.test-doc-history-tabs .test-select-button', 'Activity', 500).click());
 
     // Perform an actions normally, i.e. it gets sent via the websocket.
-    await gu.enterGridRows({rowNum: 1, col: 0}, [['foo1']]);
+    await gu.enterGridRows({ rowNum: 1, col: 0 }, [['foo1']]);
 
     // Check that we see the correct user email, and the correct action.
     const item = await driver.find('.action_log .action_log_item');
@@ -81,7 +81,7 @@ describe('ActionLog', function() {
   it('should attribute api actions to user', async function() {
     // Perform an action via the API.
     const api = session.createHomeApi().getDocAPI(docId);
-    await api.updateRows('Table1', {id: [1], 'A': ['bar2']});
+    await api.updateRows('Table1', { id: [1], 'A': ['bar2'] });
 
     // Check that we see the correct user email, and the correct action.
     const item = await driver.find('.action_log .action_log_item');
@@ -91,7 +91,7 @@ describe('ActionLog', function() {
 
   it("should cross out undone actions", async function() {
     // Perform some actions and check that they all appear as default.
-    await gu.enterGridRows({rowNum: 1, col: 0}, [['a'], ['b'], ['c'], ['d']]);
+    await gu.enterGridRows({ rowNum: 1, col: 0 }, [['a'], ['b'], ['c'], ['d']]);
 
     assert.deepEqual(await getActionUndoState(4), ['default', 'default', 'default', 'default']);
 
@@ -107,7 +107,7 @@ describe('ActionLog', function() {
 
   it("should indicate that actions that cannot be redone are buried", async function() {
     // Add an item after the undo actions and check that they get buried.
-    await gu.getCell({rowNum: 1, col: 0}).click();
+    await gu.getCell({ rowNum: 1, col: 0 }).click();
     await gu.enterCell('e');
     assert.deepEqual(await getActionUndoState(4), ['default', 'buried', 'default', 'default']);
 
@@ -169,7 +169,7 @@ describe('ActionLog', function() {
     // Rename our old table.
     await gu.renameTable('Table1', 'Table1Renamed');
     await gu.getPageItem('Table1Renamed').click();
-    await gu.renameColumn({col: 'A'}, 'ARenamed');
+    await gu.renameColumn({ col: 'A' }, 'ARenamed');
 
     // Check that it's still usable. (It doesn't reflect the new names in the content of prior
     // actions though -- e.g. the action below still mentions 'A' for column name -- and it's
@@ -177,13 +177,13 @@ describe('ActionLog', function() {
     const item2 = await getActionLogItem(2);
     assert.equal(await item2.find('table caption').getText(), 'Table1 >');
     assert.equal(await item2.find('table td:nth-child(2)').getText(), 'f');
-    await gu.getCell({rowNum: 1, col: 0}).click();
+    await gu.getCell({ rowNum: 1, col: 0 }).click();
     assert.notEqual(await gu.getActiveCell().getText(), 'f');
     await item2.find('table td:nth-child(2)').click();
     assert.equal(await gu.getActiveCell().getText(), 'f');
 
     // Delete Table1Renamed.
-    await gu.removeTable('Table1Renamed', {dismissTips: true});
+    await gu.removeTable('Table1Renamed', { dismissTips: true });
     await driver.findContent('.action_log label', /All tables/).find('input').click();
 
     const item4 = await getActionLogItem(4);
@@ -200,11 +200,11 @@ describe('ActionLog', function() {
     // We are at Raw Data view now (since we deleted a table).
     assert.match(await driver.getCurrentUrl(), /p\/data$/);
     await gu.getPageItem('Table2').click();
-    await gu.enterGridRows({rowNum: 1, col: 0}, [['2']]);
+    await gu.enterGridRows({ rowNum: 1, col: 0 }, [['2']]);
     await gu.addNewTable();  // Table1
-    await gu.enterGridRows({rowNum: 1, col: 0}, [['1']]);
+    await gu.enterGridRows({ rowNum: 1, col: 0 }, [['1']]);
     await gu.addNewTable();  // Table3
-    await gu.enterGridRows({rowNum: 1, col: 0}, [['3']]);
+    await gu.enterGridRows({ rowNum: 1, col: 0 }, [['3']]);
     await gu.getPageItem('Table1').click();
 
     assert.lengthOf(await getActionLogItems(), 2);
@@ -215,7 +215,7 @@ describe('ActionLog', function() {
     assert.equal(await getActionLogItem(0).find('.action_log_rename').getText(),
       'Rename Table1 to Table1Renamed');
 
-    await gu.renameColumn({col: 'A'}, 'ARenamed');
+    await gu.renameColumn({ col: 'A' }, 'ARenamed');
     assert.equal(await getActionLogItem(0).find('.action_log_rename').getText(),
       'Rename Table1Renamed.A to ARenamed');
     await gu.getPageItem('Table2').click();

@@ -2,7 +2,7 @@ import { UserAPI } from "app/common/UserAPI";
 import { assert, driver, until } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
-import { Button, button, element, label, option} from "test/nbrowser/elementUtils";
+import { Button, button, element, label, option } from "test/nbrowser/elementUtils";
 
 type TypeLabels = "Regular" | "Template" | "Tutorial";
 
@@ -139,9 +139,9 @@ describe("DocTypeConversion", function () {
   });
 
   it('should be disabled for non-owners', async function() {
-    await userApi.updateDocPermissions(docId, {users: {
+    await userApi.updateDocPermissions(docId, { users: {
       [gu.translateUser('user2').email]: 'editors',
-    }});
+    } });
 
     const session = await gu.session().teamSite.user('user2').login();
     await session.loadDoc(`/doc/${docId}`);

@@ -1,16 +1,16 @@
 import * as commands from 'app/client/components/commands';
-import {makeT} from 'app/client/lib/localization';
-import {ColumnRec, DocModel} from 'app/client/models/DocModel';
-import {cssCode} from 'app/client/ui/DocTutorial';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
-import {bigBasicButton, bigPrimaryButton, textButton} from 'app/client/ui2018/buttons';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {theme} from 'app/client/ui2018/cssVars';
-import {cssModalBody, cssModalButtons, cssModalTitle, cssModalWidth, modal} from 'app/client/ui2018/modals';
-import {DocAction} from 'app/common/DocActions';
-import {cached} from 'app/common/gutil';
-import {decodeObject, encodeObject} from 'app/plugin/objtypes';
-import {dom, Observable, styled} from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { ColumnRec, DocModel } from 'app/client/models/DocModel';
+import { cssCode } from 'app/client/ui/DocTutorial';
+import { withInfoTooltip } from 'app/client/ui/tooltips';
+import { bigBasicButton, bigPrimaryButton, textButton } from 'app/client/ui2018/buttons';
+import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { theme } from 'app/client/ui2018/cssVars';
+import { cssModalBody, cssModalButtons, cssModalTitle, cssModalWidth, modal } from 'app/client/ui2018/modals';
+import { DocAction } from 'app/common/DocActions';
+import { cached } from 'app/common/gutil';
+import { decodeObject, encodeObject } from 'app/plugin/objtypes';
+import { dom, Observable, styled } from 'grainjs';
 import mapValues from 'lodash/mapValues';
 
 const t = makeT('ReassignModal');
@@ -40,7 +40,7 @@ export async function buildReassignModal(options: {
   docModel: DocModel,
   actions: DocAction[],
 }) {
-  const {docModel, actions} = options;
+  const { docModel, actions } = options;
 
   const tableRec = cached((tableId: string) => {
     return docModel.getTableModel(tableId).tableMetaRow;
@@ -93,7 +93,7 @@ export async function buildReassignModal(options: {
 
     public buildReason() {
       // Pets record Azor is already assigned to Owners record Bob.
-      const {colRec, revRec, pointer, oldRowId} = this.data;
+      const { colRec, revRec, pointer, oldRowId } = this.data;
       const Pets = revRec.table().tableNameDef();
       const Owners = colRec.table().tableNameDef();
       const Azor = rowDisplay(revRec.table().tableId(), pointer, revRec.colId()) as string;
@@ -114,7 +114,7 @@ export async function buildReassignModal(options: {
     public buildHeader() {
       // Generally we try to show a text like this:
       // Each Pets record may only be assigned to a single Owners record.
-      const {colRec, revRec} = this.data;
+      const { colRec, revRec } = this.data;
       // Task is the name of the revRec table
       const Pets = revRec.table().tableNameDef();
       const Owners = colRec.table().tableNameDef();
@@ -141,14 +141,14 @@ export async function buildReassignModal(options: {
         newValue = null;
       }
       oldRecord[colId] = encodeObject(newValue);
-      return ['UpdateRecord', tableId, oldRowId, {[colId]: oldRecord[colId]}];
+      return ['UpdateRecord', tableId, oldRowId, { [colId]: oldRecord[colId] }];
     }
 
     public buildAction(checked: Observable<boolean>, multiple: boolean = false) {
       // Shows a checkbox and explanation what can be done, checkbox has a text
       // Reassing to People record Ann
       // Reasing to new Poeple records.
-      const {colRec, newRowId} = this.data;
+      const { colRec, newRowId } = this.data;
       const Ann = rowDisplay(colRec.table().tableId(), newRowId, colRec.colId()) as string;
       const singleText = () => t(`Reassign to {{sourceTable}} record {{sourceName}}.`,
         {
@@ -317,7 +317,7 @@ export async function buildReassignModal(options: {
     };
     return [
       cssModalWidth('normal'),
-      cssModalTitle(t('Record already assigned', {count: problems.length})),
+      cssModalTitle(t('Record already assigned', { count: problems.length })),
       cssModalBody(() => {
         // Show single problem in a simple way.
         return dom('div',

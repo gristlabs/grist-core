@@ -19,7 +19,7 @@ function setupTest() {
 
   const onSelect: ISaveFunc = async (val) => {
     const promise = new Promise<void>((resolve) => {
-      saveCalls.push({resolve, value: val});
+      saveCalls.push({ resolve, value: val });
     });
     await promise;
   };
@@ -35,7 +35,7 @@ function setupTest() {
     domComputed( (use) => {
       const isNewPage = use(isNewPageObs);
       const value = use(valueOpt) ? () => valueOpt.get()! : undefined;
-      return {isNewPage, value};
+      return { isNewPage, value };
     }, option => [
       basicButton(
         'Page widget picker',
@@ -48,7 +48,7 @@ function setupTest() {
         dom(
           'div', 'isNewPage: ',
           dom(
-            'input', {type: 'checkbox'},
+            'input', { type: 'checkbox' },
             dom.prop('checked', isNewPageObs),
             dom.on('change', (ev, elem) => isNewPageObs.set(elem.checked)),
             testId('option-isNewPage'),

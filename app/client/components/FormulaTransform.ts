@@ -5,14 +5,14 @@
  */
 
 // Client libraries
-import {makeT} from 'app/client/lib/localization';
-import {ColumnTransform} from 'app/client/components/ColumnTransform';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {cssButtonRow} from 'app/client/ui/RightPanelStyles';
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {testId} from 'app/client/ui2018/cssVars';
-import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
-import {dom} from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { ColumnTransform } from 'app/client/components/ColumnTransform';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { cssButtonRow } from 'app/client/ui/RightPanelStyles';
+import { basicButton, primaryButton } from 'app/client/ui2018/buttons';
+import { testId } from 'app/client/ui2018/cssVars';
+import { FieldBuilder } from 'app/client/widgets/FieldBuilder';
+import { dom } from 'grainjs';
 
 const t = makeT('FormulaTransform');
 

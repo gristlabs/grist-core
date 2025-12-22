@@ -1,16 +1,16 @@
-import {RequestWithLogin} from "app/server/lib/Authorizer";
-import {SessionObj} from "app/server/lib/BrowserSession";
+import { RequestWithLogin } from "app/server/lib/Authorizer";
+import { SessionObj } from "app/server/lib/BrowserSession";
 import log from "app/server/lib/log";
-import {OIDCBuilder} from "app/server/lib/OIDCConfig";
-import {agents, GristProxyAgent} from "app/server/lib/ProxyAgent";
-import {SendAppPageFunction} from "app/server/lib/sendAppPage";
-import {Sessions} from "app/server/lib/Sessions";
-import {EnvironmentSnapshot} from "test/server/testUtils";
+import { OIDCBuilder } from "app/server/lib/OIDCConfig";
+import { agents, GristProxyAgent } from "app/server/lib/ProxyAgent";
+import { SendAppPageFunction } from "app/server/lib/sendAppPage";
+import { Sessions } from "app/server/lib/Sessions";
+import { EnvironmentSnapshot } from "test/server/testUtils";
 
-import {assert} from "chai";
+import { assert } from "chai";
 import express from "express";
 import _ from "lodash";
-import {Client, custom, generators, errors as OIDCError} from "openid-client";
+import { Client, custom, generators, errors as OIDCError } from "openid-client";
 import Sinon from "sinon";
 
 const NOOPED_SEND_APP_PAGE: SendAppPageFunction = () => Promise.resolve();
@@ -271,7 +271,7 @@ describe('OIDCConfig', () => {
         sandbox.stub(agents, 'trusted').value(trustedAgent);
         setEnvVars();
         await OIDCConfigStubbed.buildWithStub();
-        Sinon.assert.calledOnceWithExactly(setHttpOptionsDefaultsStub, {agent: trustedAgent});
+        Sinon.assert.calledOnceWithExactly(setHttpOptionsDefaultsStub, { agent: trustedAgent });
       });
     });
   });
@@ -491,14 +491,14 @@ describe('OIDCConfig', () => {
     });
 
     function checkUserProfile(expectedUserProfile: object) {
-      return function ({user}: {user: any}) {
+      return function ({ user}: { user: any }) {
         assert.deepEqual(user.profile, expectedUserProfile,
           `user profile should have been populated with ${JSON.stringify(expectedUserProfile)}`);
       };
     }
 
     function checkRedirect(expectedRedirection: string) {
-      return function ({fakeRes}: {fakeRes: any}) {
+      return function ({ fakeRes}: { fakeRes: any }) {
         assert.deepEqual(fakeRes.redirect.firstCall.args, [expectedRedirection],
           `should have redirected to ${expectedRedirection}`);
       };
@@ -842,14 +842,14 @@ describe('OIDCConfig', () => {
       const req = {
         session: DEFAULT_SESSION,
       } as unknown as express.Request;
-      clientStub.callbackParams.returns({state: FAKE_STATE});
+      clientStub.callbackParams.returns({ state: FAKE_STATE });
       const errorResponse = {
         body: { property: 'response here' },
         statusCode: 400,
         statusMessage: 'statusMessage',
       } as unknown as any;
 
-      const err = new OIDCError.OPError({error: 'userinfo failed'}, errorResponse);
+      const err = new OIDCError.OPError({ error: 'userinfo failed' }, errorResponse);
       clientStub.userinfo.rejects(err);
 
       await config.handleCallback(

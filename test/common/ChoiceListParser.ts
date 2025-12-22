@@ -1,6 +1,6 @@
-import {DocumentSettings} from 'app/common/DocumentSettings';
-import {createParserRaw} from 'app/common/ValueParser';
-import {assert} from 'chai';
+import { DocumentSettings } from 'app/common/DocumentSettings';
+import { createParserRaw } from 'app/common/ValueParser';
+import { assert } from 'chai';
 
 const parser = createParserRaw("ChoiceList", {}, {} as DocumentSettings);
 

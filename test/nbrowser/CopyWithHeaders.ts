@@ -2,10 +2,10 @@
  * Test for copying Grist data with headers.
  */
 
-import {assert, driver, Key} from 'mocha-webdriver';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
-import {createDummyTextArea, removeDummyTextArea} from 'test/nbrowser/CopyPaste';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { createDummyTextArea, removeDummyTextArea } from 'test/nbrowser/CopyPaste';
 
 describe("CopyWithHeaders", function() {
   this.timeout(90000);
@@ -26,7 +26,7 @@ describe("CopyWithHeaders", function() {
     await clipboard.lockAndPerform(async (cb) => {
       // Select all
       await gu.sendKeys(Key.chord(Key.CONTROL, 'a'));
-      await gu.rightClick(gu.getCell({rowNum: 1, col: 'A'}));
+      await gu.rightClick(gu.getCell({ rowNum: 1, col: 'A' }));
       await gu.findOpenMenuItem('li', 'Copy with headers').click();
 
       await pasteAndCheck(cb, ["A", "B", "C", "D", "E"], 5);
@@ -34,8 +34,8 @@ describe("CopyWithHeaders", function() {
 
     await clipboard.lockAndPerform(async (cb) => {
       // Select a single cell.
-      await gu.getCell({rowNum: 2, col: 'D'}).click();
-      await gu.rightClick(gu.getCell({rowNum: 2, col: 'D'}));
+      await gu.getCell({ rowNum: 2, col: 'D' }).click();
+      await gu.rightClick(gu.getCell({ rowNum: 2, col: 'D' }));
       await gu.findOpenMenuItem('li', 'Copy with headers').click();
 
       await pasteAndCheck(cb, ["D"], 2);

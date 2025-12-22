@@ -26,21 +26,21 @@
  * TODO: client-side should show "..." or "50000 more rows not shown" in that case.
  * TODO: Reference columns don't work properly because always use a displayCol which relies on formulas
  */
-import {ClientColumnGettersByColId} from 'app/client/models/ClientColumnGetters';
+import { ClientColumnGettersByColId } from 'app/client/models/ClientColumnGetters';
 import DataTableModel from 'app/client/models/DataTableModel';
-import {DocModel} from 'app/client/models/DocModel';
-import {BaseFilteredRowSource, RowList, RowSource} from 'app/client/models/rowset';
-import {TableData} from 'app/client/models/TableData';
-import {ActiveDocAPI, ClientQuery, QueryOperation} from 'app/common/ActiveDocAPI';
-import {TableDataAction} from 'app/common/DocActions';
-import {DocData} from 'app/common/DocData';
-import {nativeCompare} from 'app/common/gutil';
-import {IRefCountSub, RefCountMap} from 'app/common/RefCountMap';
-import {getLinkingFilterFunc, RowFilterFunc} from 'app/common/RowFilterFunc';
-import {TableData as BaseTableData} from 'app/common/TableData';
-import {tbind} from 'app/common/tbind';
-import {UIRowId} from 'app/plugin/GristAPI';
-import {Disposable, Holder, IDisposableOwnerT} from 'grainjs';
+import { DocModel } from 'app/client/models/DocModel';
+import { BaseFilteredRowSource, RowList, RowSource } from 'app/client/models/rowset';
+import { TableData } from 'app/client/models/TableData';
+import { ActiveDocAPI, ClientQuery, QueryOperation } from 'app/common/ActiveDocAPI';
+import { TableDataAction } from 'app/common/DocActions';
+import { DocData } from 'app/common/DocData';
+import { nativeCompare } from 'app/common/gutil';
+import { IRefCountSub, RefCountMap } from 'app/common/RefCountMap';
+import { getLinkingFilterFunc, RowFilterFunc } from 'app/common/RowFilterFunc';
+import { TableData as BaseTableData } from 'app/common/TableData';
+import { tbind } from 'app/common/tbind';
+import { UIRowId } from 'app/plugin/GristAPI';
+import { Disposable, Holder, IDisposableOwnerT } from 'grainjs';
 import * as ko from 'knockout';
 import debounce from 'lodash/debounce';
 
@@ -159,10 +159,10 @@ export class DynamicQuerySet extends RowSource {
    * argument to cb() is true if any data was changed, and false if not. Note that for a series of
    * makeQuery() calls, cb() is always called at least once, and always asynchronously.
    */
-  public makeQuery(filters: {[colId: string]: any[]},
-    operations: {[colId: string]: QueryOperation},
+  public makeQuery(filters: { [colId: string]: any[] },
+    operations: { [colId: string]: QueryOperation },
     cb: (err: Error|null, changed: boolean) => void): void {
-    const query: ClientQuery = {tableId: this._tableModel.tableData.tableId, filters, operations};
+    const query: ClientQuery = { tableId: this._tableModel.tableData.tableId, filters, operations };
     const newQuerySet = this._querySetManager.useQuerySet(this._holder, query);
     const ticket = this._getTicket();
 
@@ -258,7 +258,7 @@ export class QuerySet extends BaseFilteredRowSource {
     let fetchPromise: Promise<void>;
     if (tableModel.tableMetaRow.onDemand()) {
       const tableQS = tableModel.tableQuerySets;
-      fetchPromise = docComm.useQuerySet({limit: ON_DEMAND_ROW_LIMIT, ...query}).then((data) => {
+      fetchPromise = docComm.useQuerySet({ limit: ON_DEMAND_ROW_LIMIT, ...query }).then((data) => {
         // We assume that if we fetched the max number of rows, that there are likely more and the
         // result should be reported as truncated.
         // TODO: Better to fetch ON_DEMAND_ROW_LIMIT + 1 and omit one of them, so that isTruncated
@@ -338,7 +338,7 @@ function convertQueryToRefs(docModel: DocModel, query: ClientQuery): QueryRefs {
     throw new Error(`Table ${query.tableId} not found`);
   }
 
-  const colRefsByColId: {[colId: string]: ColRef} = {id: 'id'};
+  const colRefsByColId: { [colId: string]: ColRef } = { id: 'id' };
   for (const col of tableRec.columns.peek().peek()) {
     colRefsByColId[col.colId.peek()] = col.getRowId();
   }
@@ -352,7 +352,7 @@ function convertQueryToRefs(docModel: DocModel, query: ClientQuery): QueryRefs {
   // Keep filters sorted by colRef, for consistency.
   filterTuples.sort((a, b) =>
     nativeCompare(a[0], b[0]) || nativeCompare(a[1], b[1]));
-  return {tableRef: tableRec.getRowId(), filterTuples};
+  return { tableRef: tableRec.getRowId(), filterTuples };
 }
 
 /**
@@ -361,14 +361,14 @@ function convertQueryToRefs(docModel: DocModel, query: ClientQuery): QueryRefs {
  */
 function convertQueryFromRefs(docModel: DocModel, queryRefs: QueryRefs): ClientQuery {
   const tableRec = docModel.dataTablesByRef.get(queryRefs.tableRef)!.tableMetaRow;
-  const filters: {[colId: string]: any[]} = {};
-  const operations: {[colId: string]: QueryOperation} = {};
+  const filters: { [colId: string]: any[] } = {};
+  const operations: { [colId: string]: QueryOperation } = {};
   for (const [colRef, operation, values] of queryRefs.filterTuples) {
     const colId = colRef === 'id' ? 'id' : docModel.columns.getRowModel(colRef).colId.peek();
     filters[colId] = values;
     operations[colId] = operation;
   }
-  return {tableId: tableRec.tableId.peek(), filters, operations};
+  return { tableId: tableRec.tableId.peek(), filters, operations };
 }
 
 /**
@@ -385,7 +385,7 @@ function encodeQuery(queryRefs: QueryRefs): string {
 // Decode an encoded QueryRefs.
 function decodeQuery(queryKey: string): QueryRefs {
   const [tableRef, filterTuples] = JSON.parse(queryKey);
-  return {tableRef, filterTuples};
+  return { tableRef, filterTuples };
 }
 
 /**

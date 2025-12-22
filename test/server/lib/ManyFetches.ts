@@ -1,18 +1,18 @@
-import {GristWSConnection} from 'app/client/components/GristWSConnection';
-import {TableFetchResult} from 'app/common/ActiveDocAPI';
-import {UserAPIImpl} from 'app/common/UserAPI';
-import {delay} from 'app/common/delay';
-import {cookieName} from 'app/server/lib/gristSessions';
+import { GristWSConnection } from 'app/client/components/GristWSConnection';
+import { TableFetchResult } from 'app/common/ActiveDocAPI';
+import { UserAPIImpl } from 'app/common/UserAPI';
+import { delay } from 'app/common/delay';
+import { cookieName } from 'app/server/lib/gristSessions';
 import log from 'app/server/lib/log';
-import {getGristConfig} from 'test/gen-server/testUtils';
-import {prepareDatabase} from 'test/server/lib/helpers/PrepareDatabase';
-import {TestServer} from 'test/server/lib/helpers/TestServer';
-import {waitForIt} from 'test/server/wait';
-import {createTestDir, EnvironmentSnapshot, setTmpLogLevel} from 'test/server/testUtils';
-import {assert} from 'chai';
+import { getGristConfig } from 'test/gen-server/testUtils';
+import { prepareDatabase } from 'test/server/lib/helpers/PrepareDatabase';
+import { TestServer } from 'test/server/lib/helpers/TestServer';
+import { waitForIt } from 'test/server/wait';
+import { createTestDir, EnvironmentSnapshot, setTmpLogLevel } from 'test/server/testUtils';
+import { assert } from 'chai';
 import * as cookie from 'cookie';
 import fetch from 'node-fetch';
-import {GristClientSocket} from 'app/client/components/GristClientSocket';
+import { GristClientSocket } from 'app/client/components/GristClientSocket';
 
 describe('ManyFetches', function() {
   this.timeout(30000);
@@ -73,11 +73,11 @@ describe('ManyFetches', function() {
     // memory use limited in Client.ts by jsonMemoryPool.
 
     // Reduce the limit controlling memory for JSON responses from the default of 500MB to 50MB.
-    await docs.testingHooks.commSetClientJsonMemoryLimits({totalSize: 50 * 1024 * 1024});
+    await docs.testingHooks.commSetClientJsonMemoryLimits({ totalSize: 50 * 1024 * 1024 });
 
     // Create a large document where fetches would have a noticeable memory footprint.
     // 40k rows should produce ~2MB fetch response.
-    const {docId} = await createLargeDoc({rows: 40_000});
+    const { docId } = await createLargeDoc({ rows: 40_000 });
 
     // When we get results, here's a checker that it looks reasonable.
     function checkResults(results: TableFetchResult[]) {
@@ -147,7 +147,7 @@ describe('ManyFetches', function() {
     // for exceeding V8 JSON limits). This test case fakes errors to make sure they get handled.
 
     // Create a document, initially empty. We'll add lots of rows later.
-    const {docId} = await createLargeDoc({rows: 0});
+    const { docId } = await createLargeDoc({ rows: 0 });
 
     // If the server dies, testingHooks calls may hang. This wrapper prevents that.
     const serverErrorPromise = docs.getExitPromise().then(() => { throw new Error("server exited"); });
@@ -198,16 +198,16 @@ describe('ManyFetches', function() {
   });
 
   // Creates a document with the given number of rows, and about 50 bytes per row.
-  async function createLargeDoc({rows}: {rows: number}): Promise<{docId: string}> {
+  async function createLargeDoc({ rows}: { rows: number }): Promise<{ docId: string }> {
     log.info("Preparing a doc of %s rows", rows);
     const ws = (await userApi.getOrgWorkspaces('current'))[0].id;
-    const docId = await userApi.newDoc({name: 'testdoc'}, ws);
+    const docId = await userApi.newDoc({ name: 'testdoc' }, ws);
     await userApi.applyUserActions(docId, [['AddTable', 'TestTable', [
-      {id: 'Num', type: 'Numeric'},
-      {id: 'Text', type: 'Text'},
+      { id: 'Num', type: 'Numeric' },
+      { id: 'Text', type: 'Text' },
     ]]]);
     await addRows(docId, rows);
-    return {docId};
+    return { docId };
   }
 
   async function addRows(docId: string, rows: number, chunk = 10_000): Promise<void> {
@@ -229,17 +229,17 @@ describe('ManyFetches', function() {
     const resp = await fetch(`${home.serverUrl}/test/session`);
     const sid = cookie.parse(resp.headers.get('set-cookie'))[cookieName];
     if (!sid) { throw new Error('no session available'); }
-    await home.testingHooks.setLoginSessionProfile(sid, {name: userName, email}, org);
+    await home.testingHooks.setLoginSessionProfile(sid, { name: userName, email }, org);
 
     // Load the document html.
     const pageUrl = `${home.serverUrl}/o/docs/doc/${docId}`;
-    const headers = {Cookie: `${cookieName}=${sid}`};
-    const doc = await fetch(pageUrl, {headers});
+    const headers = { Cookie: `${cookieName}=${sid}` };
+    const doc = await fetch(pageUrl, { headers });
     const pageBody = await doc.text();
 
     // Pull out the configuration object embedded in the html.
     const gristConfig = getGristConfig(pageBody);
-    const {assignmentId, getWorker, homeUrl} = gristConfig;
+    const { assignmentId, getWorker, homeUrl } = gristConfig;
     if (!homeUrl) { throw new Error('no homeUrl'); }
     if (!assignmentId) { throw new Error('no assignmentId'); }
     const docWorkerUrl = getWorker && getWorker[assignmentId];
@@ -284,16 +284,16 @@ describe('ManyFetches', function() {
     connection.initialize(null);
     await connectionPromise;  // Wait for connection to succeed.
 
-    const openPromise = getMessage('serverMessage', ({reqId}: {reqId?: number}) => (reqId === 0));
-    connection.send(JSON.stringify({reqId: 0, method: 'openDoc', args: [docId]}));
+    const openPromise = getMessage('serverMessage', ({ reqId}: { reqId?: number }) => (reqId === 0));
+    connection.send(JSON.stringify({ reqId: 0, method: 'openDoc', args: [docId] }));
     await openPromise;
 
     let fetchPromise: Promise<TableFetchResult>;
     return {
       startPausedFetch: () => {
-        fetchPromise = getMessage<any>('serverMessage', ({reqId}: {reqId?: number}) => (reqId === 1));
+        fetchPromise = getMessage<any>('serverMessage', ({ reqId}: { reqId?: number }) => (reqId === 1));
         (connection as any)._ws.pause();
-        connection.send(JSON.stringify({reqId: 1, method: 'fetchTable', args: [0, 'TestTable']}));
+        connection.send(JSON.stringify({ reqId: 1, method: 'fetchTable', args: [0, 'TestTable'] }));
       },
 
       completeFetch: async (): Promise<TableFetchResult> => {

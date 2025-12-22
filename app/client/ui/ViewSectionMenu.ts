@@ -1,20 +1,20 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import {allCommands} from 'app/client/components/commands';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {reportError} from 'app/client/models/AppModel';
-import {DocModel, ViewSectionRec} from 'app/client/models/DocModel';
-import {FilterConfig} from 'app/client/ui/FilterConfig';
-import {cssLabel, cssSaveButtonsRow} from 'app/client/ui/RightPanelStyles';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {SortConfig} from 'app/client/ui/SortConfig';
-import {makeViewLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {isNarrowScreenObs, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menu} from 'app/client/ui2018/menus';
-import {Computed, dom, IDisposableOwner, makeTestId, styled} from 'grainjs';
-import {defaultMenuOptions} from 'popweasel';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { allCommands } from 'app/client/components/commands';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { makeT } from 'app/client/lib/localization';
+import { reportError } from 'app/client/models/AppModel';
+import { DocModel, ViewSectionRec } from 'app/client/models/DocModel';
+import { FilterConfig } from 'app/client/ui/FilterConfig';
+import { cssLabel, cssSaveButtonsRow } from 'app/client/ui/RightPanelStyles';
+import { hoverTooltip } from 'app/client/ui/tooltips';
+import { SortConfig } from 'app/client/ui/SortConfig';
+import { makeViewLayoutMenu } from 'app/client/ui/ViewLayoutMenu';
+import { basicButton, primaryButton } from 'app/client/ui2018/buttons';
+import { isNarrowScreenObs, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { menu } from 'app/client/ui2018/menus';
+import { Computed, dom, IDisposableOwner, makeTestId, styled } from 'grainjs';
+import { defaultMenuOptions } from 'popweasel';
 
 const testId = makeTestId('test-section-menu-');
 const t = makeT('ViewSectionMenu');
@@ -41,7 +41,7 @@ export function viewSectionMenu(
   gristDoc: GristDoc,
   viewSection: ViewSectionRec,
 ) {
-  const {docModel, isReadonly} = gristDoc;
+  const { docModel, isReadonly } = gristDoc;
 
   // If there is any filter (should [Filter Icon] background be filled).
   const anyFilter = Computed.create(owner, use =>  Boolean(use(viewSection.activeFilters).length));
@@ -88,7 +88,7 @@ export function viewSectionMenu(
           // Fill background when there are some filters. Ignore sort options.
           cssFilterIconWrapper.cls('-any', anyFilter),
           cssFilterIcon('Filter'),
-          hoverTooltip(t('Sort and filter'), {key: 'sortFilterBtnTooltip'}),
+          hoverTooltip(t('Sort and filter'), { key: 'sortFilterBtnTooltip' }),
         ),
       ),
       // [Save] [Revert] buttons when there are unsaved options.
@@ -97,14 +97,14 @@ export function viewSectionMenu(
           t("Save"),
           cssSaveTextButton.cls('-accent'),
           dom.on('click', save),
-          hoverTooltip('Save sort & filter settings', {key: 'sortFilterBtnTooltip'}),
+          hoverTooltip('Save sort & filter settings', { key: 'sortFilterBtnTooltip' }),
           testId('small-btn-save'),
           dom.hide(isReadonly),
         ),
         cssRevertIconButton(
           cssRevertIcon('Revert', cssRevertIcon.cls('-normal')),
           dom.on('click', revert),
-          hoverTooltip('Revert sort & filter settings', {key: 'sortFilterBtnTooltip'}),
+          hoverTooltip('Revert sort & filter settings', { key: 'sortFilterBtnTooltip' }),
           testId('small-btn-revert'),
         ),
       )),
@@ -135,8 +135,8 @@ export function viewSectionMenu(
         // visible.
         dom.autoDispose(viewSection.activeFilters.addListener(() => ctl.update())),
         dom.autoDispose(viewSection.activeSortJson.subscribe(() => ctl.update())),
-        (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
-      ], {...defaultMenuOptions, placement: 'bottom-end', trigger: [
+        (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
+      ], { ...defaultMenuOptions, placement: 'bottom-end', trigger: [
         // Toggle the menu whenever the filter icon button is clicked.
         (el, ctl) => dom.onMatchElem(el, '.test-section-menu-sortAndFilter', 'click', () => {
           ctl.toggle();
@@ -148,7 +148,7 @@ export function viewSectionMenu(
         (el, ctl) => dom.onMatchElem(el, '.test-section-menu-small-btn-revert', 'click', () => {
           ctl.close();
         }),
-      ]}),
+      ] }),
       dom.hide(viewSection.isRecordCard),
     ),
     cssMenu(
@@ -165,7 +165,7 @@ export function viewSectionMenu(
         cssSmallIcon('Grow'),
         testId('expandSection'),
         dom.on('click', () =>  allCommands.expandSection.run()),
-        hoverTooltip('Expand section', {key: 'expandSection'}),
+        hoverTooltip('Expand section', { key: 'expandSection' }),
       ),
     ),
   ];
@@ -177,7 +177,7 @@ function makeSortPanel(section: ViewSectionRec, gristDoc: GristDoc) {
     dom.create(SortConfig, section, gristDoc, {
       // Attach content to triggerElem's parent, which is needed to prevent view
       // section menu to close when clicking an item in the advanced sort menu.
-      menuOptions: {attach: null},
+      menuOptions: { attach: null },
     }),
   ];
 }
@@ -188,7 +188,7 @@ function makeFilterPanel(section: ViewSectionRec) {
     dom.create(FilterConfig, section, {
       // Attach content to triggerElem's parent, which is needed to prevent view
       // section menu to close when clicking an item of the add filter menu.
-      menuOptions: {attach: null},
+      menuOptions: { attach: null },
     }),
   ];
 }

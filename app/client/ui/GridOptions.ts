@@ -20,8 +20,8 @@ export class GridOptions extends Disposable {
   public buildDom() {
     const section = this._section;
     return dom('div',
-      {role: 'group', 'aria-labelledby': 'grid-options-label'},
-      cssGroupLabel(t("Grid Options"), {id: 'grid-options-label'}),
+      { role: 'group', 'aria-labelledby': 'grid-options-label' },
+      cssGroupLabel(t("Grid Options"), { id: 'grid-options-label' }),
       dom('div', [
         cssRow(
           labeledSquareCheckbox(

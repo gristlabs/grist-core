@@ -1,5 +1,5 @@
-import {theme} from 'app/client/ui2018/cssVars';
-import {DomArg, keyframes, Observable, observable, styled} from 'grainjs';
+import { theme } from 'app/client/ui2018/cssVars';
+import { DomArg, keyframes, Observable, observable, styled } from 'grainjs';
 
 const rotate360 = keyframes(`
   from { transform: rotate(45deg); }
@@ -51,7 +51,7 @@ export function loadingDots(...args: DomArg<HTMLDivElement>[]) {
   );
 }
 
-export function watchPromise<T extends (...args: any[]) => any>(fun: T): T & {busy: Observable<boolean>} {
+export function watchPromise<T extends (...args: any[]) => any>(fun: T): T & { busy: Observable<boolean> } {
   const loading = observable(false);
   const result = async (...args: any) => {
     loading.set(true);
@@ -64,7 +64,7 @@ export function watchPromise<T extends (...args: any[]) => any>(fun: T): T & {bu
       }
     }
   };
-  return Object.assign(result, {busy: loading}) as any;
+  return Object.assign(result, { busy: loading }) as any;
 }
 
 const cssLoadingDotsContainer = styled('div', `

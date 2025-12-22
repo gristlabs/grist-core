@@ -14,49 +14,49 @@
  * tab from the outside (e.g. when GristDoc is disposed).
  */
 import * as commands from 'app/client/components/commands';
-import {FieldModel} from 'app/client/components/Forms/Field';
-import {FormView} from 'app/client/components/Forms/FormView';
-import {MappedFieldsConfig} from 'app/client/components/Forms/MappedFieldsConfig';
-import {GristDoc, IExtraTool, TabContent} from 'app/client/components/GristDoc';
-import {EmptyFilterState} from "app/client/components/LinkingState";
-import {RefSelect} from 'app/client/components/RefSelect';
+import { FieldModel } from 'app/client/components/Forms/Field';
+import { FormView } from 'app/client/components/Forms/FormView';
+import { MappedFieldsConfig } from 'app/client/components/Forms/MappedFieldsConfig';
+import { GristDoc, IExtraTool, TabContent } from 'app/client/components/GristDoc';
+import { EmptyFilterState } from "app/client/components/LinkingState";
+import { RefSelect } from 'app/client/components/RefSelect';
 import ViewConfigTab from 'app/client/components/ViewConfigTab';
-import {domAsync} from 'app/client/lib/domAsync';
+import { domAsync } from 'app/client/lib/domAsync';
 import * as imports from 'app/client/lib/imports';
-import {makeT} from 'app/client/lib/localization';
-import {createSessionObs, isBoolean, SessionObs} from 'app/client/lib/sessionObs';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {reportError} from 'app/client/models/AppModel';
-import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
-import {showCustomWidgetGallery} from 'app/client/ui/CustomWidgetGallery';
-import {buildDescriptionConfig} from 'app/client/ui/DescriptionConfig';
-import {BuildEditorOptions} from 'app/client/ui/FieldConfig';
-import {GridOptions} from 'app/client/ui/GridOptions';
-import {textarea} from 'app/client/ui/inputs';
-import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {PredefinedCustomSectionConfig} from "app/client/ui/PredefinedCustomSectionConfig";
-import {cssConfigContainer, cssGroupLabel, cssLabel, cssSeparator} from 'app/client/ui/RightPanelStyles';
-import {buildConfigContainer, getFieldType} from 'app/client/ui/RightPanelUtils';
-import {rowHeightConfigTable} from 'app/client/ui/RowHeightConfig';
-import {linkId, NoLink, selectBy} from 'app/client/ui/selectBy';
-import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
-import {getTelemetryWidgetTypeFromVS, getWidgetTypes} from "app/client/ui/widgetTypesMap";
-import {ariaTabs} from 'app/client/ui2018/ariaTabs';
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {buttonSelect} from 'app/client/ui2018/buttonSelect';
-import {cssLabel as cssCheckboxLabel, labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {textInput} from 'app/client/ui2018/editableLabel';
-import {icon} from 'app/client/ui2018/icons';
-import {select} from 'app/client/ui2018/menus';
-import {unstyledButton, unstyledUl} from 'app/client/ui2018/unstyled';
-import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
-import {components} from 'app/common/ThemePrefs';
-import {isFullReferencingType} from "app/common/gristTypes";
-import {not} from 'app/common/gutil';
-import {StringUnion} from 'app/common/StringUnion';
-import {IWidgetType} from 'app/common/widgetTypes';
+import { makeT } from 'app/client/lib/localization';
+import { createSessionObs, isBoolean, SessionObs } from 'app/client/lib/sessionObs';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
+import { reportError } from 'app/client/models/AppModel';
+import { ColumnRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { CustomSectionConfig } from 'app/client/ui/CustomSectionConfig';
+import { showCustomWidgetGallery } from 'app/client/ui/CustomWidgetGallery';
+import { buildDescriptionConfig } from 'app/client/ui/DescriptionConfig';
+import { BuildEditorOptions } from 'app/client/ui/FieldConfig';
+import { GridOptions } from 'app/client/ui/GridOptions';
+import { textarea } from 'app/client/ui/inputs';
+import { attachPageWidgetPicker, IPageWidget, toPageWidget } from 'app/client/ui/PageWidgetPicker';
+import { PredefinedCustomSectionConfig } from "app/client/ui/PredefinedCustomSectionConfig";
+import { cssConfigContainer, cssGroupLabel, cssLabel, cssSeparator } from 'app/client/ui/RightPanelStyles';
+import { buildConfigContainer, getFieldType } from 'app/client/ui/RightPanelUtils';
+import { rowHeightConfigTable } from 'app/client/ui/RowHeightConfig';
+import { linkId, NoLink, selectBy } from 'app/client/ui/selectBy';
+import { VisibleFieldsConfig } from 'app/client/ui/VisibleFieldsConfig';
+import { getTelemetryWidgetTypeFromVS, getWidgetTypes } from "app/client/ui/widgetTypesMap";
+import { ariaTabs } from 'app/client/ui2018/ariaTabs';
+import { basicButton, primaryButton } from 'app/client/ui2018/buttons';
+import { buttonSelect } from 'app/client/ui2018/buttonSelect';
+import { cssLabel as cssCheckboxLabel, labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { textInput } from 'app/client/ui2018/editableLabel';
+import { icon } from 'app/client/ui2018/icons';
+import { select } from 'app/client/ui2018/menus';
+import { unstyledButton, unstyledUl } from 'app/client/ui2018/unstyled';
+import { FieldBuilder } from 'app/client/widgets/FieldBuilder';
+import { components } from 'app/common/ThemePrefs';
+import { isFullReferencingType } from "app/common/gristTypes";
+import { not } from 'app/common/gutil';
+import { StringUnion } from 'app/common/StringUnion';
+import { IWidgetType } from 'app/common/widgetTypes';
 import {
   bundleChanges,
   Computed,
@@ -308,7 +308,7 @@ export class RightPanel extends Disposable {
     const isColumnValid = owner.autoDispose(ko.computed(() => Boolean(origColRef())));
 
     // Builder for the reference display column multiselect.
-    const refSelect = RefSelect.create(owner, {docModel, origColumn, fieldBuilder});
+    const refSelect = RefSelect.create(owner, { docModel, origColumn, fieldBuilder });
 
     // build cursor position observable
     const cursor = owner.autoDispose(ko.computed(() => {
@@ -317,7 +317,7 @@ export class RightPanel extends Disposable {
     }));
 
     return domAsync(imports.loadViewPane().then((ViewPane) => {
-      const {buildNameConfig, buildFormulaConfig} = ViewPane.FieldConfig;
+      const { buildNameConfig, buildFormulaConfig } = ViewPane.FieldConfig;
       return dom.maybe(isColumnValid, () =>
         buildConfigContainer(
           cssSection(
@@ -371,7 +371,7 @@ export class RightPanel extends Disposable {
     const vsi = this._gristDoc.viewModel.activeSection().viewInstance();
     if (!vsi) { return; }
 
-    const {refElem, editValue, canDetach, onSave, onCancel} = options;
+    const { refElem, editValue, canDetach, onSave, onCancel } = options;
     const editRow = vsi.moveEditRowToCursor();
     return vsi.activeFieldBuilder.peek().openSideFormulaEditor({
       editRow,
@@ -468,7 +468,7 @@ export class RightPanel extends Disposable {
       .then((ViewPane) => {
         if (owner.isDisposed()) { return; }
         viewConfigTab.set(owner.autoDispose(
-          ViewPane.ViewConfigTab.create({gristDoc, viewModel: gristDoc.viewModel})));
+          ViewPane.ViewConfigTab.create({ gristDoc, viewModel: gristDoc.viewModel })));
       })
       .catch(reportError);
     return viewConfigTab;
@@ -497,7 +497,7 @@ export class RightPanel extends Disposable {
       this._disableIfReadonly(),
       dom.maybe(use => !use(activeSection.isRecordCard), () => [
         cssLabel(dom.text(use => use(activeSection.isRaw) ? t("DATA TABLE NAME") : t("WIDGET TITLE")),
-          {for: "right-widget-title-input"},
+          { for: "right-widget-title-input" },
         ),
         cssRow(cssTextInput(
           Computed.create(owner, use => use(activeSection.titleDef)),
@@ -507,7 +507,7 @@ export class RightPanel extends Disposable {
             const isSummaryTable = use(use(activeSection.table).summarySourceTable) !== 0;
             return isRawTable && isSummaryTable;
           }),
-          {id: "right-widget-title-input"},
+          { id: "right-widget-title-input" },
           testId('right-widget-title'),
         )),
 
@@ -538,9 +538,9 @@ export class RightPanel extends Disposable {
 
       domComputed((use) => {
         if (use(this._pageWidgetType) !== 'record') { return null; }
-        return dom('div', {role: 'group', 'aria-labelledby': 'row-style-label'},
+        return dom('div', { role: 'group', 'aria-labelledby': 'row-style-label' },
           cssSeparator(),
-          cssGroupLabel(t("Row style"), {id: 'row-style-label'}),
+          cssGroupLabel(t("Row style"), { id: 'row-style-label' }),
           dom.create(rowHeightConfigTable, activeSection.optionsObj),
           domAsync(imports.loadViewPane().then(ViewPane =>
             dom.create(ViewPane.ConditionalStyle, t("Row style"), activeSection, this._gristDoc),
@@ -549,7 +549,7 @@ export class RightPanel extends Disposable {
       }),
 
       dom.maybe(use => use(this._pageWidgetType) === 'chart', () =>
-        dom('div', {role: 'group', 'aria-label': t('Chart options')},
+        dom('div', { role: 'group', 'aria-label': t('Chart options') },
           cssGroupLabel(t("CHART TYPE")),
           vct._buildChartConfigDom(),
         ),
@@ -832,18 +832,18 @@ export class RightPanel extends Disposable {
     link.onWrite(async (val) => {
       const widgetType = getTelemetryWidgetTypeFromVS(activeSection);
       if (val !== NoLink) {
-        logTelemetryEvent('linkedWidget', {full: {docIdDigest: this._gristDoc.docId(), widgetType}});
+        logTelemetryEvent('linkedWidget', { full: { docIdDigest: this._gristDoc.docId(), widgetType } });
       }
       else {
-        logTelemetryEvent('unlinkedWidget', {full: {docIdDigest: this._gristDoc.docId(), widgetType}});
+        logTelemetryEvent('unlinkedWidget', { full: { docIdDigest: this._gristDoc.docId(), widgetType } });
       }
 
       await this._gristDoc.saveLink(val);
     });
     return [
       this._disableIfReadonly(),
-      dom('div', {role: 'group', 'aria-labelledby': 'data-table-label'},
-        cssGroupLabel(t("DATA TABLE"), {id: 'data-table-label'}),
+      dom('div', { role: 'group', 'aria-labelledby': 'data-table-label' },
+        cssGroupLabel(t("DATA TABLE"), { id: 'data-table-label' }),
         cssRow(
           cssIcon('TypeTable'), cssDataLabel(t("SOURCE DATA")),
           cssContent(dom.text(use => use(use(table).primaryTableId)),
@@ -851,10 +851,10 @@ export class RightPanel extends Disposable {
         ),
         dom(
           'div',
-          cssRow(cssIcon('Pivot'), cssDataLabel(t("GROUPED BY"), {id: 'data-grouped-by-label'})),
+          cssRow(cssIcon('Pivot'), cssDataLabel(t("GROUPED BY"), { id: 'data-grouped-by-label' })),
           cssRow(domComputed(groupedBy, cols => cssList(
             cols.map(c => cssListItem(dom.text(c.label), testId('pwc-groupedBy-col'))),
-            {'aria-labelledby': 'data-grouped-by-label'},
+            { 'aria-labelledby': 'data-grouped-by-label' },
           ))),
 
           testId('pwc-groupedBy'),
@@ -888,7 +888,7 @@ export class RightPanel extends Disposable {
         cssLabel(t("SELECT BY")),
         cssRow(
           dom.update(
-            select(link, linkOptions, {defaultLabel: t("Select widget")}),
+            select(link, linkOptions, { defaultLabel: t("Select widget") }),
             dom.on('click', () => {
               refreshTrigger.set(!refreshTrigger.get());
             }),
@@ -904,9 +904,9 @@ export class RightPanel extends Disposable {
         // TODO: sections should be listed following the order of appearance in the view layout (ie:
         // left/right - top/bottom);
         return selectorFor.length ? [
-          cssGroupLabel(t("SELECTOR FOR"), {id: 'data-selector-for-label'}, testId('selector-for')),
+          cssGroupLabel(t("SELECTOR FOR"), { id: 'data-selector-for-label' }, testId('selector-for')),
           cssRow(cssList(
-            {'aria-labelledby': 'data-selector-for-label'},
+            { 'aria-labelledby': 'data-selector-for-label' },
             selectorFor.map(sec => this._buildSectionItem(sec)),
           )),
         ] : null;
@@ -919,11 +919,11 @@ export class RightPanel extends Disposable {
 
   private _createPageWidgetPicker(): DomElementMethod {
     const gristDoc = this._gristDoc;
-    const {activeSection} = gristDoc.viewModel;
+    const { activeSection } = gristDoc.viewModel;
     const onSave = async (val: IPageWidget) => {
-      const {id} = await gristDoc.saveViewSection(activeSection.peek(), val);
+      const { id } = await gristDoc.saveViewSection(activeSection.peek(), val);
       if (val.type === 'custom') {
-        showCustomWidgetGallery(gristDoc, {sectionRef: id()});
+        showCustomWidgetGallery(gristDoc, { sectionRef: id() });
       }
     };
     return (elem) => {
@@ -983,14 +983,14 @@ export class RightPanel extends Disposable {
     return [
       cssLabel(t("Submit button label")),
       cssRow(
-        cssTextInput(submitButton, val => submitButton.set(val), {placeholder: t('Submit')}),
+        cssTextInput(submitButton, val => submitButton.set(val), { placeholder: t('Submit') }),
       ),
       cssLabel(t("Success text")),
       cssRow(
         cssTextArea(
           successText,
-          {autoGrow: true, save: val => successText.set(val)},
-          {placeholder: t('Thank you! Your response has been recorded.')},
+          { autoGrow: true, save: val => successText.set(val) },
+          { placeholder: t('Thank you! Your response has been recorded.') },
         ),
       ),
       cssLabel(t("Submit another response")),
@@ -1102,16 +1102,16 @@ export class RightPanel extends Disposable {
         cssRow(
           cssTextArea(
             box.prop('text'),
-            {onInput: true, autoGrow: true},
+            { onInput: true, autoGrow: true },
             dom.on('blur', () => box.save().catch(reportError)),
-            {placeholder: t('Enter text')},
+            { placeholder: t('Enter text') },
           ),
         ),
         cssRow(
           buttonSelect(box.prop('alignment'), [
-            {value: 'left',   icon: 'LeftAlign'},
-            {value: 'center', icon: 'CenterAlign'},
-            {value: 'right',  icon: 'RightAlign'},
+            { value: 'left',   icon: 'LeftAlign' },
+            { value: 'center', icon: 'CenterAlign' },
+            { value: 'right',  icon: 'RightAlign' },
           ]),
           dom.autoDispose(box.prop('alignment').addListener(() => box.save().catch(reportError))),
         ),

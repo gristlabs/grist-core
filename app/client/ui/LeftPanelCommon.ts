@@ -13,17 +13,17 @@
  *      )
  *    )
  */
-import {beaconOpenMessage} from 'app/client/lib/helpScout';
-import {makeT} from 'app/client/lib/localization';
-import {AppModel} from 'app/client/models/AppModel';
-import {allCommands} from 'app/client/components/commands';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {colorIcon, icon} from 'app/client/ui2018/icons';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {visuallyHidden} from 'app/client/ui2018/visuallyHidden';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
-import {getGristConfig} from 'app/common/urlUtils';
-import {dom, DomContents, Observable, styled} from 'grainjs';
+import { beaconOpenMessage } from 'app/client/lib/helpScout';
+import { makeT } from 'app/client/lib/localization';
+import { AppModel } from 'app/client/models/AppModel';
+import { allCommands } from 'app/client/components/commands';
+import { testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { colorIcon, icon } from 'app/client/ui2018/icons';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
+import { visuallyHidden } from 'app/client/ui2018/visuallyHidden';
+import { commonUrls, isFeatureEnabled } from 'app/common/gristUrls';
+import { getGristConfig } from 'app/common/urlUtils';
+import { dom, DomContents, Observable, styled } from 'grainjs';
 
 const t = makeT('LeftPanelCommon');
 
@@ -35,21 +35,21 @@ export function createHelpTools(appModel: AppModel): DomContents {
   if (!isFeatureEnabled("helpCenter")) {
     return [];
   }
-  const {deploymentType} = getGristConfig();
+  const { deploymentType } = getGristConfig();
   return cssSplitPageEntry(
     cssPageEntryMain(
       cssPageLink(cssPageIcon('Help'),
         cssLinkText(t("Help Center")),
         dom.cls('tour-help-center'),
         deploymentType === 'saas'
-          ? dom.on('click', () => beaconOpenMessage({appModel}))
-          : {href: commonUrls.help, target: '_blank'},
+          ? dom.on('click', () => beaconOpenMessage({ appModel }))
+          : { href: commonUrls.help, target: '_blank' },
         testId('left-feedback'),
       ),
     ),
     cssPageEntrySmall(
       cssPageLink(cssPageIcon('FieldLink'),
-        {href: commonUrls.help, 'aria-label': t("Help Center"), target: '_blank'},
+        { href: commonUrls.help, 'aria-label': t("Help Center"), target: '_blank' },
       ),
     ),
   );
@@ -67,7 +67,7 @@ export function createAccessibilityTools(): DomContents {
       // always have an accessible label in case we hide the text (collapsed panel)
       visuallyHidden(t("Accessibility")),
       // hide the visible text from screen readers to prevent duplicate labels with the visually hidden one
-      cssLinkText(t("Accessibility"), {"aria-hidden": "true"}),
+      cssLinkText(t("Accessibility"), { "aria-hidden": "true" }),
       cssKeyboardShortcut(
         'F4',
         testId('accessibility-shortcut-keys'),

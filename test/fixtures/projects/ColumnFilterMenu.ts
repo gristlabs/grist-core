@@ -1,70 +1,70 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ColumnFilter} from 'app/client/models/ColumnFilter';
-import {ColumnFilterMenuModel, IFilterCount} from 'app/client/models/ColumnFilterMenuModel';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { ColumnFilter } from 'app/client/models/ColumnFilter';
+import { ColumnFilterMenuModel, IFilterCount } from 'app/client/models/ColumnFilterMenuModel';
 import * as modelUtil from 'app/client/models/modelUtil';
-import {columnFilterMenu, cssItemValue, IFilterMenuOptions} from 'app/client/ui/ColumnFilterMenu';
-import {createFormatter} from 'app/common/ValueFormatter';
-import {createParserRaw} from 'app/common/ValueParser';
-import {CellValue} from 'app/plugin/GristData';
-import {dom, DomArg, IDisposableOwner, makeTestId, Observable, styled} from 'grainjs';
+import { columnFilterMenu, cssItemValue, IFilterMenuOptions } from 'app/client/ui/ColumnFilterMenu';
+import { createFormatter } from 'app/common/ValueFormatter';
+import { createParserRaw } from 'app/common/ValueParser';
+import { CellValue } from 'app/plugin/GristData';
+import { dom, DomArg, IDisposableOwner, makeTestId, Observable, styled } from 'grainjs';
 import ko from 'knockout';
-import {noop} from 'lodash';
-import {IOpenController, setPopupToCreateDom} from 'popweasel';
-import {withLocale} from 'test/fixtures/projects/helpers/withLocale';
-import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
+import { noop } from 'lodash';
+import { IOpenController, setPopupToCreateDom } from 'popweasel';
+import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 const testId = makeTestId('fixture-');
-const dateFormatter = createFormatter('Date', {dateFormat: 'YYYY-MM-DD'}, {locale: 'en-US'});
-const dateParser = createParserRaw('Date', {dateFormat: 'YYYY-MM-DD'}, {locale: 'en-US'});
+const dateFormatter = createFormatter('Date', { dateFormat: 'YYYY-MM-DD' }, { locale: 'en-US' });
+const dateParser = createParserRaw('Date', { dateFormat: 'YYYY-MM-DD' }, { locale: 'en-US' });
 
-const DATA_BY_TYPES: {[k: string]: Partial<IFilterMenuOptions>} = {
+const DATA_BY_TYPES: { [k: string]: Partial<IFilterMenuOptions> } = {
   'Numeric': {
     valueCounts: new Map(patchFilterCount([
-      [1, {label: '1', count: 12}],
-      [2, {label: '2', count: 24}],
-      [3, {label: '3', count: 1}],
-      [7, {label: '7', count: 1}],
-      [9, {label: '9', count: 1}],
-      [31, {label: '311', count: 1}],
-      [541, {label: '541', count: 1}],
-      [44, {label: '44', count: 1}],
-      [81, {label: '81', count: 43}],
+      [1, { label: '1', count: 12 }],
+      [2, { label: '2', count: 24 }],
+      [3, { label: '3', count: 1 }],
+      [7, { label: '7', count: 1 }],
+      [9, { label: '9', count: 1 }],
+      [31, { label: '311', count: 1 }],
+      [541, { label: '541', count: 1 }],
+      [44, { label: '44', count: 1 }],
+      [81, { label: '81', count: 43 }],
     ])),
   },
   'Date': {
     valueCounts: new Map(([['2022-05-05', 3], ['2022-04-05', 1], ['2022-01-05', 5]] as const)
       .map(([d, count]) => {
         const num = dateParser.cleanParse(d);
-        return [num, {label: d, count, displayValue: num}];
+        return [num, { label: d, count, displayValue: num }];
       })),
     valueParser: dateParser.cleanParse.bind(dateParser),
     valueFormatter: dateFormatter.formatAny.bind(dateFormatter),
   },
   'Text': {
     valueCounts: new Map(patchFilterCount([
-      ['Apples',       {label: 'Apples', count: 12}],
-      ['Bananas',      {label: 'Bananas', count: 17}],
+      ['Apples',       { label: 'Apples', count: 12 }],
+      ['Bananas',      { label: 'Bananas', count: 17 }],
       ['Cranberries; a very very very long-named fruit',
-        {label: 'Cranberries; a very very very long-named fruit', count: 8000}],
-      ['Dates',        {label: 'Dates', count: 1}],
-      ['Figs',         {label: 'Figs', count: 1}],
-      ['Goji berries', {label: 'Goji berries', count: 1}],
-      ['Honeydew',     {label: 'Honeydew', count: 1}],
-      ['Icicles',      {label: 'Icicles', count: 1}],
-      ['Joojoo',       {label: 'Joojoo', count: 1}],
-      ['Knapples',     {label: 'Knapples', count: 2}],
-      ['Lemons',       {label: 'Lemons', count: 9}],
-      ['Mandarins',    {label: 'Mandarins', count: 3}],
-      ['Nectarines',   {label: 'Nectarines', count: 5}],
-      ['Oranges',      {label: 'Oranges', count: 14}],
-      ['Plums',        {label: 'Plums', count: 32}],
-      ['Quince',       {label: 'Quince', count: 15}],
-      ['Rhubarb',      {label: 'Rhubarb', count: 42}],
+        { label: 'Cranberries; a very very very long-named fruit', count: 8000 }],
+      ['Dates',        { label: 'Dates', count: 1 }],
+      ['Figs',         { label: 'Figs', count: 1 }],
+      ['Goji berries', { label: 'Goji berries', count: 1 }],
+      ['Honeydew',     { label: 'Honeydew', count: 1 }],
+      ['Icicles',      { label: 'Icicles', count: 1 }],
+      ['Joojoo',       { label: 'Joojoo', count: 1 }],
+      ['Knapples',     { label: 'Knapples', count: 2 }],
+      ['Lemons',       { label: 'Lemons', count: 9 }],
+      ['Mandarins',    { label: 'Mandarins', count: 3 }],
+      ['Nectarines',   { label: 'Nectarines', count: 5 }],
+      ['Oranges',      { label: 'Oranges', count: 14 }],
+      ['Plums',        { label: 'Plums', count: 32 }],
+      ['Quince',       { label: 'Quince', count: 15 }],
+      ['Rhubarb',      { label: 'Rhubarb', count: 42 }],
     ])),
   },
 };
 
-function setupTest(owner: IDisposableOwner, opts: {limitShown?: number, filterType?: string|null} = {},
+function setupTest(owner: IDisposableOwner, opts: { limitShown?: number, filterType?: string|null } = {},
   resetBtn: DomArg) {
   const limitShown = opts.limitShown;
   const filterType = opts.filterType || 'Text';
@@ -73,8 +73,8 @@ function setupTest(owner: IDisposableOwner, opts: {limitShown?: number, filterTy
   const columnFilter = ColumnFilter.create(null, '', filterType, filterType,
     Array.from(valueCounts).map(arr => arr[0]));
 
-  const filter = modelUtil.customComputed({read: () => ''});
-  const pinned = modelUtil.customComputed({read: () => false});
+  const filter = modelUtil.customComputed({ read: () => '' });
+  const pinned = modelUtil.customComputed({ read: () => false });
   const filterInfo = {
     filter,
     pinned,
@@ -149,8 +149,8 @@ function setupTest(owner: IDisposableOwner, opts: {limitShown?: number, filterTy
   ];
 }
 
-function patchFilterCount(arr: Array<[any, {label: string, count: number}]>): Array<[any, IFilterCount]> {
-  return arr.map(([val, filterCount]) => [val, {...filterCount, displayValue: filterCount.label}]);
+function patchFilterCount(arr: Array<[any, { label: string, count: number }]>): Array<[any, IFilterCount]> {
+  return arr.map(([val, filterCount]) => [val, { ...filterCount, displayValue: filterCount.label }]);
 }
 
 function getFilterTypeFromUrl() {
@@ -177,19 +177,19 @@ function setup(owner: IDisposableOwner) {
       'div',
       'limitShown: ',
       limitShownInput = dom(
-        'input', {type: 'text', value: ''},
+        'input', { type: 'text', value: '' },
         testId('limit-shown'),
       ),
     ),
     dom(
-      'input', {type: 'button', value: 'Reset All'},
+      'input', { type: 'button', value: 'Reset All' },
       testId('reset'),
       dom.on('click', () => { value.set(dom.create(setupTest, getOpt(), resetBtn)); }),
     ),
     dom(
       'select',
       ['Numeric', 'Date', 'Text'].map(value => (
-        dom('option', {value, selected: filterType === value}, value)
+        dom('option', { value, selected: filterType === value }, value)
       )),
       dom.on('input', (ev, el) => setFilterType(el.value)),
     ),

@@ -1,11 +1,11 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import {makeT} from 'app/client/lib/localization';
-import {ViewSectionRec} from 'app/client/models/DocModel';
-import {FilterConfig} from 'app/client/ui/FilterConfig';
-import {cssLabel, cssSaveButtonsRow} from 'app/client/ui/RightPanelStyles';
-import {SortConfig} from 'app/client/ui/SortConfig';
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {Computed, Disposable, dom, makeTestId, styled} from 'grainjs';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { makeT } from 'app/client/lib/localization';
+import { ViewSectionRec } from 'app/client/models/DocModel';
+import { FilterConfig } from 'app/client/ui/FilterConfig';
+import { cssLabel, cssSaveButtonsRow } from 'app/client/ui/RightPanelStyles';
+import { SortConfig } from 'app/client/ui/SortConfig';
+import { basicButton, primaryButton } from 'app/client/ui2018/buttons';
+import { Computed, Disposable, dom, makeTestId, styled } from 'grainjs';
 
 const testId = makeTestId('test-sort-filter-config-');
 
@@ -25,16 +25,16 @@ export class SortFilterConfig extends Disposable {
 
   public buildDom() {
     return [
-      dom('div', {role: 'group', 'aria-labelledby': 'sortfilterconfig-sort-label'},
-        cssLabel(t('Sort'), {id: 'sortfilterconfig-sort-label'}),
+      dom('div', { role: 'group', 'aria-labelledby': 'sortfilterconfig-sort-label' },
+        cssLabel(t('Sort'), { id: 'sortfilterconfig-sort-label' }),
         dom.create(SortConfig, this._section, this._gristDoc, {
-          menuOptions: {attach: 'body', allowNothingSelected: true},
+          menuOptions: { attach: 'body', allowNothingSelected: true },
         }),
       ),
-      dom('div', {role: 'group', 'aria-labelledby': 'sortfilterconfig-filter-label'},
-        cssLabel(t('Filter'), {id: 'sortfilterconfig-filter-label'}),
+      dom('div', { role: 'group', 'aria-labelledby': 'sortfilterconfig-filter-label' },
+        cssLabel(t('Filter'), { id: 'sortfilterconfig-filter-label' }),
         dom.create(FilterConfig, this._section, {
-          menuOptions: {attach: 'body'},
+          menuOptions: { attach: 'body' },
         }),
       ),
       dom.maybe(this._hasChanges, () => [

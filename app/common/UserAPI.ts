@@ -1,20 +1,20 @@
-import {ApplyUAResult, ForkResult, FormulaTimingInfo,
-  PermissionDataWithExtraUsers, QueryFilters, TimingStatus} from 'app/common/ActiveDocAPI';
-import {AssistanceRequest, AssistanceResponse} from 'app/common/Assistance';
-import {BaseAPI, IOptions} from 'app/common/BaseAPI';
-import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
-import {BrowserSettings} from 'app/common/BrowserSettings';
-import {ICustomWidget} from 'app/common/CustomWidget';
-import {BulkColValues, TableColValues, TableRecordValue, TableRecordValues,
-  TableRecordValuesWithoutIds, UserAction} from 'app/common/DocActions';
-import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
-import {DocStateComparison, DocStates} from 'app/common/DocState';
-import {OrgUsageSummary} from 'app/common/DocUsage';
-import {Features, Product} from 'app/common/Features';
-import {isClient} from 'app/common/gristUrls';
-import {encodeQueryParams} from 'app/common/gutil';
-import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
-import {OrgPrefs, UserOrgPrefs, UserPrefs} from 'app/common/Prefs';
+import { ApplyUAResult, ForkResult, FormulaTimingInfo,
+  PermissionDataWithExtraUsers, QueryFilters, TimingStatus } from 'app/common/ActiveDocAPI';
+import { AssistanceRequest, AssistanceResponse } from 'app/common/Assistance';
+import { BaseAPI, IOptions } from 'app/common/BaseAPI';
+import { BillingAPI, BillingAPIImpl } from 'app/common/BillingAPI';
+import { BrowserSettings } from 'app/common/BrowserSettings';
+import { ICustomWidget } from 'app/common/CustomWidget';
+import { BulkColValues, TableColValues, TableRecordValue, TableRecordValues,
+  TableRecordValuesWithoutIds, UserAction } from 'app/common/DocActions';
+import { DocCreationInfo, OpenDocMode } from 'app/common/DocListAPI';
+import { DocStateComparison, DocStates } from 'app/common/DocState';
+import { OrgUsageSummary } from 'app/common/DocUsage';
+import { Features, Product } from 'app/common/Features';
+import { isClient } from 'app/common/gristUrls';
+import { encodeQueryParams } from 'app/common/gutil';
+import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
+import { OrgPrefs, UserOrgPrefs, UserPrefs } from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {
   WebhookFields,
@@ -22,13 +22,13 @@ import {
   WebhookSummaryCollection,
   WebhookUpdate,
 } from 'app/common/Triggers';
-import {addCurrentOrgToPath, getGristConfig} from 'app/common/urlUtils';
-import {StringUnion} from 'app/common/StringUnion';
-import {AttachmentStore, AttachmentStoreDesc} from 'app/plugin/DocApiTypes';
-import {AxiosProgressEvent} from 'axios';
+import { addCurrentOrgToPath, getGristConfig } from 'app/common/urlUtils';
+import { StringUnion } from 'app/common/StringUnion';
+import { AttachmentStore, AttachmentStoreDesc } from 'app/plugin/DocApiTypes';
+import { AxiosProgressEvent } from 'axios';
 import omitBy from 'lodash/omitBy';
 
-export type {FullUser, UserProfile};
+export type { FullUser, UserProfile };
 
 // Nominal email address of the anonymous user.
 export const ANONYMOUS_USER_EMAIL = 'anon@getgrist.com';
@@ -105,10 +105,10 @@ export function getOrgName(org: Organization): string {
  * Returns whether the given org is the templates org, which contains the public
  * templates and tutorials.
  */
-export function isTemplatesOrg(org: {domain: Organization['domain']}|null): boolean {
+export function isTemplatesOrg(org: { domain: Organization['domain'] }|null): boolean {
   if (!org) { return false; }
 
-  const {templateOrg} = getGristConfig();
+  const { templateOrg } = getGristConfig();
   return org.domain === templateOrg;
 }
 
@@ -299,12 +299,12 @@ export interface UserAccessData extends UserAccess {
 /**
  * Combines access, parentAccess, and maxInheritedRole info into the resulting access role.
  */
-export function getRealAccess(user: UserAccess, inherited: {maxInheritedRole?: roles.BasicRole|null}): roles.Role|null {
+export function getRealAccess(user: UserAccess, inherited: { maxInheritedRole?: roles.BasicRole|null }): roles.Role|null {
   const inheritedAccess = roles.getWeakestRole(user.parentAccess || null, inherited.maxInheritedRole || null);
   return roles.getStrongestRole(user.access, inheritedAccess);
 }
 
-const roleNames: {[role: string]: string} = {
+const roleNames: { [role: string]: string } = {
   [roles.OWNER]: 'Owner',
   [roles.EDITOR]: 'Editor',
   [roles.VIEWER]: 'Viewer',
@@ -381,7 +381,7 @@ export interface RenameDocOptions {
 export interface UserAPI {
   getSessionActive(): Promise<ActiveSessionInfo>;
   setSessionActive(email: string, org?: string): Promise<void>;
-  getSessionAll(): Promise<{users: FullUser[], orgs: Organization[]}>;
+  getSessionAll(): Promise<{ users: FullUser[], orgs: Organization[] }>;
   getOrgs(merged?: boolean): Promise<Organization[]>;
   getWorkspace(workspaceId: number): Promise<Workspace>;
   getOrg(orgId: number|string): Promise<Organization>;
@@ -393,7 +393,7 @@ export interface UserAPI {
   newOrg(props: Partial<OrganizationProperties>): Promise<number>;
   newWorkspace(props: Partial<WorkspaceProperties>, orgId: number|string): Promise<number>;
   newDoc(props: Partial<DocumentProperties>, workspaceId: number): Promise<string>;
-  newUnsavedDoc(options?: {timezone?: string}): Promise<string>;
+  newUnsavedDoc(options?: { timezone?: string }): Promise<string>;
   copyDoc(sourceDocumentId: string, workspaceId: number, options: CopyDocOptions): Promise<string>;
   renameOrg(orgId: number|string, name: string): Promise<void>;
   renameWorkspace(workspaceId: number, name: string): Promise<void>;
@@ -521,7 +521,7 @@ export interface DocAPI {
   getSnapshots(raw?: boolean): Promise<DocSnapshots>;
   // remove selected snapshots, or all snapshots that have "leaked" from inventory (should
   // be empty), or all but the current snapshot.
-  removeSnapshots(snapshotIds: string[] | 'unlisted' | 'past'): Promise<{snapshotIds: string[]}>;
+  removeSnapshots(snapshotIds: string[] | 'unlisted' | 'past'): Promise<{ snapshotIds: string[] }>;
   getStates(): Promise<DocStates>;
   forceReload(): Promise<void>;
   recover(recoveryMode: boolean): Promise<void>;
@@ -535,7 +535,7 @@ export interface DocAPI {
   // Currently, leftHash is expected to be an ancestor of rightHash.  If rightHash
   // is HEAD, the result will contain a copy of any rows added or updated.
   compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison>;
-  getDownloadUrl(options: {template: boolean, removeHistory: boolean}): string;
+  getDownloadUrl(options: { template: boolean, removeHistory: boolean }): string;
   getDownloadXlsxUrl(params?: DownloadDocParams): string;
   getDownloadCsvUrl(params: DownloadDocParams): string;
   getDownloadTsvUrl(params: DownloadDocParams): string;
@@ -549,7 +549,7 @@ export interface DocAPI {
    * @param code Authorization code returned from Google (requested via Grist's Google Auth Endpoint)
    * @param title Name of the spreadsheet that will be created (should use a Grist document's title)
    */
-  sendToDrive(code: string, title: string): Promise<{url: string}>;
+  sendToDrive(code: string, title: string): Promise<{ url: string }>;
   // Upload a single attachment and return the resulting metadata row ID.
   // The arguments are passed to FormData.append.
   uploadAttachment(value: string | Blob, filename?: string): Promise<number>;
@@ -559,7 +559,7 @@ export interface DocAPI {
   getUsersForViewAs(): Promise<PermissionDataWithExtraUsers>;
 
   getWebhooks(): Promise<WebhookSummaryCollection>;
-  addWebhook(webhook: WebhookFields): Promise<{webhookId: string}>;
+  addWebhook(webhook: WebhookFields): Promise<{ webhookId: string }>;
   removeWebhook(webhookId: string, tableId: string): Promise<void>;
   // Update webhook
   updateWebhook(webhook: WebhookUpdate): Promise<void>;
@@ -592,7 +592,7 @@ export interface DocAPI {
   /**
    * Retries type of attachment storage used by the document.
    */
-  getAttachmentStore(): Promise<{type: AttachmentStore}>;
+  getAttachmentStore(): Promise<{ type: AttachmentStore }>;
   /**
    * Sets the attachment storage used by the document.
    */
@@ -601,14 +601,14 @@ export interface DocAPI {
    * Lists available external attachment stores. For now it contains at most one store.
    * If there is one store available it means that external storage is configured and can be used by this document.
    */
-  getAttachmentStores(): Promise<{stores: AttachmentStoreDesc[]}>;
+  getAttachmentStores(): Promise<{ stores: AttachmentStoreDesc[] }>;
 
   makeProposal(options?: {
     retracted?: boolean,
   }): Promise<Proposal>;
   getProposals(options?: {
     outgoing?: boolean
-  }): Promise<{proposals: Proposal[]}>;
+  }): Promise<{ proposals: Proposal[] }>;
   applyProposal(proposalId: number): Promise<Proposal>;
 
   applyUserActions(actions: UserAction[]): Promise<ApplyUAResult>;
@@ -630,20 +630,20 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public forRemoved(): UserAPI {
     const extraParameters = new Map<string, string>([['showRemoved', '1']]);
-    return new UserAPIImpl(this._homeUrl, {...this._options, extraParameters});
+    return new UserAPIImpl(this._homeUrl, { ...this._options, extraParameters });
   }
 
   public async getSessionActive(): Promise<ActiveSessionInfo> {
-    return this.requestJson(`${this._url}/api/session/access/active`, {method: 'GET'});
+    return this.requestJson(`${this._url}/api/session/access/active`, { method: 'GET' });
   }
 
   public async setSessionActive(email: string, org?: string): Promise<void> {
     const body = JSON.stringify({ email, org });
-    return this.requestJson(`${this._url}/api/session/access/active`, {method: 'POST', body});
+    return this.requestJson(`${this._url}/api/session/access/active`, { method: 'POST', body });
   }
 
-  public async getSessionAll(): Promise<{users: FullUser[], orgs: Organization[]}> {
-    return this.requestJson(`${this._url}/api/session/access/all`, {method: 'GET'});
+  public async getSessionAll(): Promise<{ users: FullUser[], orgs: Organization[] }> {
+    return this.requestJson(`${this._url}/api/session/access/all`, { method: 'GET' });
   }
 
   public async getOrgs(merged: boolean = false): Promise<Organization[]> {
@@ -704,7 +704,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
-  public async newUnsavedDoc(options: {timezone?: string} = {}): Promise<string> {
+  public async newUnsavedDoc(options: { timezone?: string } = {}): Promise<string> {
     return this.requestJson(`${this._url}/api/docs`, {
       method: 'POST',
       body: JSON.stringify(options),
@@ -856,28 +856,28 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public async updateUserName(name: string): Promise<void> {
     await this.request(`${this._url}/api/profile/user/name`, {
       method: 'POST',
-      body: JSON.stringify({name}),
+      body: JSON.stringify({ name }),
     });
   }
 
   public async updateUserLocale(locale: string|null): Promise<void> {
     await this.request(`${this._url}/api/profile/user/locale`, {
       method: 'POST',
-      body: JSON.stringify({locale}),
+      body: JSON.stringify({ locale }),
     });
   }
 
   public async updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void> {
     await this.request(`${this._url}/api/profile/allowGoogleLogin`, {
       method: 'POST',
-      body: JSON.stringify({allowGoogleLogin}),
+      body: JSON.stringify({ allowGoogleLogin }),
     });
   }
 
   public async updateIsConsultant(userId: number, isConsultant: boolean): Promise<void> {
     await this.request(`${this._url}/api/profile/isConsultant`, {
       method: 'POST',
-      body: JSON.stringify({userId, isConsultant}),
+      body: JSON.stringify({ userId, isConsultant }),
     });
   }
 
@@ -966,23 +966,23 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
       // On browser, it is important not to set Content-Type so that the browser takes care
       // of setting HTTP headers appropriately.  Outside browser, requestAxios has logic
       // for setting the HTTP headers.
-      headers: {...this.defaultHeadersWithoutContentType()},
+      headers: { ...this.defaultHeadersWithoutContentType() },
     });
     return resp.data;
   }
 
   public async deleteUser(userId: number, name: string) {
     await this.request(`${this._url}/api/users/${userId}`,
-      {method: 'DELETE',
-        body: JSON.stringify({name})});
+      { method: 'DELETE',
+        body: JSON.stringify({ name }) });
   }
 
   public async closeAccount(userId: number): Promise<boolean> {
-    return await this.requestJson(`${this._url}/api/doom/account?userid=` + userId, {method: 'DELETE'});
+    return await this.requestJson(`${this._url}/api/doom/account?userid=` + userId, { method: 'DELETE' });
   }
 
   public async closeOrg() {
-    await this.request(`${this._url}/api/doom/org`, {method: 'DELETE'});
+    await this.request(`${this._url}/api/doom/org`, { method: 'DELETE' });
   }
 
   public getBaseUrl(): string { return this._url; }
@@ -1018,7 +1018,7 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
       // On browser, it is important not to set Content-Type so that the browser takes care
       // of setting HTTP headers appropriately.  Outside of browser, node-fetch also appears
       // to take care of this - https://github.github.io/fetch/#request-body
-      headers: {...this.defaultHeadersWithoutContentType()},
+      headers: { ...this.defaultHeadersWithoutContentType() },
       method: 'POST',
       body: formData,
     });
@@ -1136,8 +1136,8 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this.requestJson(`${this._url}/webhooks`);
   }
 
-  public async addWebhook(webhook: WebhookSubscribe & {tableId: string}): Promise<{webhookId: string}> {
-    const {tableId} = webhook;
+  public async addWebhook(webhook: WebhookSubscribe & { tableId: string }): Promise<{ webhookId: string }> {
+    const { tableId } = webhook;
     return this.requestJson(`${this._url}/tables/${tableId}/_subscribe`, {
       method: 'POST',
       body: JSON.stringify(
@@ -1157,7 +1157,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     const unsubscribeKey = '';
     return this.requestJson(`${this._url}/tables/${tableId}/_unsubscribe`, {
       method: 'POST',
-      body: JSON.stringify({webhookId, unsubscribeKey}),
+      body: JSON.stringify({ webhookId, unsubscribeKey }),
     });
   }
 
@@ -1181,7 +1181,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async recover(recoveryMode: boolean): Promise<void> {
     await this.request(`${this._url}/recover`, {
-      body: JSON.stringify({recoveryMode}),
+      body: JSON.stringify({ recoveryMode }),
       method: 'POST',
     });
   }
@@ -1205,9 +1205,9 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public async copyDoc(workspaceId: number, options: CopyDocOptions): Promise<string> {
-    const {documentName, asTemplate} = options;
+    const { documentName, asTemplate } = options;
     return this.requestJson(`${this._url}/copy`, {
-      body: JSON.stringify({workspaceId, documentName, asTemplate}),
+      body: JSON.stringify({ workspaceId, documentName, asTemplate }),
       method: 'POST',
     });
   }
@@ -1219,37 +1219,37 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this.requestJson(url.href);
   }
 
-  public getDownloadUrl({template, removeHistory}: {template: boolean, removeHistory: boolean}): string {
+  public getDownloadUrl({ template, removeHistory}: { template: boolean, removeHistory: boolean }): string {
     return this._url + `/download?template=${template}&nohistory=${removeHistory}`;
   }
 
   public getDownloadXlsxUrl(params: DownloadDocParams) {
-    return this._url + '/download/xlsx?' + encodeQueryParams({...params});
+    return this._url + '/download/xlsx?' + encodeQueryParams({ ...params });
   }
 
   public getDownloadCsvUrl(params: DownloadDocParams) {
     // We spread `params` to work around TypeScript being overly cautious.
-    return this._url + '/download/csv?' + encodeQueryParams({...params});
+    return this._url + '/download/csv?' + encodeQueryParams({ ...params });
   }
 
   public getDownloadTsvUrl(params: DownloadDocParams) {
-    return this._url + '/download/tsv?' + encodeQueryParams({...params});
+    return this._url + '/download/tsv?' + encodeQueryParams({ ...params });
   }
 
   public getDownloadDsvUrl(params: DownloadDocParams) {
-    return this._url + '/download/dsv?' + encodeQueryParams({...params});
+    return this._url + '/download/dsv?' + encodeQueryParams({ ...params });
   }
 
   public getDownloadTableSchemaUrl(params: DownloadDocParams) {
     // We spread `params` to work around TypeScript being overly cautious.
-    return this._url + '/download/table-schema?' + encodeQueryParams({...params});
+    return this._url + '/download/table-schema?' + encodeQueryParams({ ...params });
   }
 
   public getDownloadAttachmentsArchiveUrl(params: AttachmentsArchiveParams): string {
-    return this._url + '/attachments/archive?' + encodeQueryParams({...params});
+    return this._url + '/attachments/archive?' + encodeQueryParams({ ...params });
   }
 
-  public async sendToDrive(code: string, title: string): Promise<{url: string}> {
+  public async sendToDrive(code: string, title: string): Promise<{ url: string }> {
     const url = new URL(`${this._url}/send-to-drive`);
     url.searchParams.append('title', title);
     url.searchParams.append('code', code);
@@ -1265,7 +1265,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
       // On browser, it is important not to set Content-Type so that the browser takes care
       // of setting HTTP headers appropriately.  Outside browser, requestAxios has logic
       // for setting the HTTP headers.
-      headers: {...this.defaultHeadersWithoutContentType()},
+      headers: { ...this.defaultHeadersWithoutContentType() },
     });
     return response.data[0];
   }
@@ -1281,7 +1281,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
       // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects#sending_files_using_a_formdata_object
       // Therefore we omit Content-Type, and allow Axios to handle it as it sees fit - which works
       // correctly in the browser and in Node.
-      headers: {...this.defaultHeadersWithoutContentType()},
+      headers: { ...this.defaultHeadersWithoutContentType() },
     });
     return response.data;
   }
@@ -1300,33 +1300,33 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public async startTiming(): Promise<void> {
-    await this.request(`${this._url}/timing/start`, {method: 'POST'});
+    await this.request(`${this._url}/timing/start`, { method: 'POST' });
   }
 
   public async stopTiming(): Promise<FormulaTimingInfo[]> {
-    return await this.requestJson(`${this._url}/timing/stop`, {method: 'POST'});
+    return await this.requestJson(`${this._url}/timing/stop`, { method: 'POST' });
   }
 
   public async transferAllAttachments(): Promise<void> {
-    await this.request(`${this._url}/attachments/transferAll`, {method: 'POST'});
+    await this.request(`${this._url}/attachments/transferAll`, { method: 'POST' });
   }
 
   public async getAttachmentTransferStatus(): Promise<AttachmentTransferStatus> {
     return this.requestJson(`${this._url}/attachments/transferStatus`);
   }
 
-  public async getAttachmentStore(): Promise<{type: AttachmentStore}> {
+  public async getAttachmentStore(): Promise<{ type: AttachmentStore }> {
     return this.requestJson(`${this._url}/attachments/store`);
   }
 
-  public async getAttachmentStores(): Promise<{stores: AttachmentStoreDesc[]}> {
+  public async getAttachmentStores(): Promise<{ stores: AttachmentStoreDesc[] }> {
     return this.requestJson(`${this._url}/attachments/stores`);
   }
 
   public async setAttachmentStore(type: AttachmentStore): Promise<void> {
     await this.request(`${this._url}/attachments/store`, {
       method: 'POST',
-      body: JSON.stringify({type}),
+      body: JSON.stringify({ type }),
     });
   }
 

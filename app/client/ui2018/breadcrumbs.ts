@@ -5,7 +5,7 @@
  *
  * Workspace is a clickable link and document and page names are editable labels.
  */
-import {makeT} from 'app/client/lib/localization';
+import { makeT } from 'app/client/lib/localization';
 import { urlState } from 'app/client/models/gristUrlState';
 import { cssHideForNarrowScreen, mediaNotSmall, testId, theme } from 'app/client/ui2018/cssVars';
 import { editableLabel } from 'app/client/ui2018/editableLabel';
@@ -118,14 +118,14 @@ export function docBreadcrumbs(
             testId('bc-home'),
             cssHideForNarrowScreen.cls('')),
           cssWorkspaceName(
-            urlState().setLinkUrl({ws: ws.id}),
+            urlState().setLinkUrl({ ws: ws.id }),
             dom.text(ws.name),
             testId('bc-workspace'),
             cssHideForNarrowScreen.cls(''),
           ),
           cssWorkspaceNarrowScreen(
             'Expand',
-            urlState().setLinkUrl({ws: ws.id}),
+            urlState().setLinkUrl({ ws: ws.id }),
             testId('bc-workspace-ns'),
           ),
           separator(' / ',
@@ -163,13 +163,13 @@ export function docBreadcrumbs(
       }
       if (use(options.isFiddle)) {
         if (options.isProposable && use(options.isProposable)) {
-          return cssTag(t("suggesting"), tooltip({title: t(`You may make edits,
+          return cssTag(t("suggesting"), tooltip({ title: t(`You may make edits,
 but they will not affect the original document.
-You can propose them as suggestions.`)}), testId('fiddle-tag'));
+You can propose them as suggestions.`) }), testId('fiddle-tag'));
         }
         else {
-          return cssTag(t("fiddle"), tooltip({title: t(`You may make edits, but they will create a new copy and will
-not affect the original document.`)}), testId('fiddle-tag'));
+          return cssTag(t("fiddle"), tooltip({ title: t(`You may make edits, but they will create a new copy and will
+not affect the original document.`) }), testId('fiddle-tag'));
         }
       }
       if (options.isProposable && use(options.isProposable)) {

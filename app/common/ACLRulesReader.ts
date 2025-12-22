@@ -30,8 +30,8 @@ export class TableWithOverlay<T extends keyof SchemaTypes> {
   public addRecord(rec: MetaRowRecord<T>): number {
     if (rec.id !== 0) { throw new Error('Expected a zero ID'); }
     const id = this._nextFreeVirtualId;
-    const recWithCorrectId: MetaRowRecord<T> = {...rec, id};
-    this._extraRecords.push({...rec, id});
+    const recWithCorrectId: MetaRowRecord<T> = { ...rec, id };
+    this._extraRecords.push({ ...rec, id });
     this._extraRecordsById.set(id, recWithCorrectId);
     this._nextFreeVirtualId--;
     return id;
@@ -82,7 +82,7 @@ export class TableWithOverlay<T extends keyof SchemaTypes> {
   }
 
   private _filterExcludedRecords(records: MetaRowRecord<T>[]) {
-    return records.filter(({id}) => !this._excludedRecordIds.has(id));
+    return records.filter(({ id }) => !this._excludedRecordIds.has(id));
   }
 }
 
@@ -157,7 +157,7 @@ export class ACLRulesReader {
   private _checkResources() {
     const allTableAndColIds: Set<string> = new Set();
     for (const resource of this._resourcesTable.getRecords()) {
-      const {tableId, colIds} = resource;
+      const { tableId, colIds } = resource;
       const tableAndColIds = `${tableId}:${colIds}`;
       if (allTableAndColIds.has(tableAndColIds)) {
         throw new Error(
@@ -205,7 +205,7 @@ export class ACLRulesReader {
   private _addRulesForShare(share: MetaRowRecord<'_grist_Shares'>) {
     // TODO: Unpublished shares could and should be blocked earlier,
     // by home server
-    const {publish}: ShareOptions = JSON.parse(share.options || '{}');
+    const { publish }: ShareOptions = JSON.parse(share.options || '{}');
     if (!publish) {
       this._blockShare(share.id);
       return;
@@ -274,11 +274,11 @@ export class ACLRulesReader {
       .filter(tableId => !tableId.startsWith('_grist_'))
       .sort();
     for (const tableId of tableIds) {
-      this._addShareRule(this._findOrAddResource({tableId, colIds: '*'}), '-CRUDS');
+      this._addShareRule(this._findOrAddResource({ tableId, colIds: '*' }), '-CRUDS');
     }
 
     // Block schema access at the default level.
-    this._addShareRule(this._findOrAddResource({tableId: '*', colIds: '*'}), '-S');
+    this._addShareRule(this._findOrAddResource({ tableId: '*', colIds: '*' }), '-S');
   }
 
   /**
@@ -356,11 +356,11 @@ export class ACLRulesReader {
       }
 
       const resourceColIds = this._resourceColIdsByTableAndColId.get(`${tableId}:${colId}`) ?? colId;
-      const maybeResourceId = this._resourcesTable.findMatchingRowId({tableId, colIds: resourceColIds});
+      const maybeResourceId = this._resourcesTable.findMatchingRowId({ tableId, colIds: resourceColIds });
       if (maybeResourceId !== 0) {
         this._maybeSplitResourceForShares(maybeResourceId);
       }
-      const resource = this._findOrAddResource({tableId, colIds: colId});
+      const resource = this._findOrAddResource({ tableId, colIds: colId });
       const aclFormula = `user.ShareRef == ${shareRef}`;
       const aclFormulaParsed = JSON.stringify(
         ['Eq',
@@ -402,17 +402,17 @@ export class ACLRulesReader {
       throw new Error(`Unable to find ACLResource with ID ${resourceId}`);
     }
 
-    const {tableId} = resource;
+    const { tableId } = resource;
     const colIds = resource.colIds.split(',');
     if (colIds.length === 1) { return; }
 
-    const rules = sortBy(this._rulesTable.filterRecords({resource: resourceId}), 'rulePos')
+    const rules = sortBy(this._rulesTable.filterRecords({ resource: resourceId }), 'rulePos')
       .map(r => disableRuleInShare(r));
     // Prepare a new resource for each column, with copies of the original resource's rules.
     for (const colId of colIds) {
-      const newResourceId = this._resourcesTable.addRecord({id: 0, tableId, colIds: colId});
+      const newResourceId = this._resourcesTable.addRecord({ id: 0, tableId, colIds: colId });
       for (const rule of rules) {
-        this._rulesTable.addRecord({...rule, id: 0, resource: newResourceId});
+        this._rulesTable.addRecord({ ...rule, id: 0, resource: newResourceId });
       }
     }
     // Exclude the original resource and rules.
@@ -470,7 +470,7 @@ export class ACLRulesReader {
     aclFormulaParsed: string,
     permissionsText: string,
   }): MetaRowRecord<'_grist_ACLRules'> {
-    const {resource, aclFormula, aclFormulaParsed, permissionsText} = options;
+    const { resource, aclFormula, aclFormulaParsed, permissionsText } = options;
     return {
       id: 0,
       resource,

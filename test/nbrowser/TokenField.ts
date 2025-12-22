@@ -1,6 +1,6 @@
-import {assert, Key} from 'mocha-webdriver';
+import { assert, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('TokenField', function() {
   this.timeout(20000);
@@ -36,7 +36,7 @@ describe('TokenField', function() {
 
     // Convert A column to Choice List.
     await gu.openColumnPanel();
-    await gu.setType('Choice List', {apply: true});
+    await gu.setType('Choice List', { apply: true });
 
     // Add a second value to the first row.
     await gu.getCell('A', 1).click();
@@ -83,7 +83,7 @@ describe('TokenField', function() {
     await gu.getCell(0, 1).click();
     await gu.changeBehavior('Clear and reset');
     // This is an empty column, so no transformation is needed.
-    await gu.setType('Reference List', {apply: false});
+    await gu.setType('Reference List', { apply: false });
     await gu.waitForServer();
     await gu.setRefTable('Films');
     await gu.waitForServer();

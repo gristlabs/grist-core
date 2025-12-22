@@ -1,5 +1,5 @@
-import {Server, Socket} from 'net';
-import {connect as connectSock, getAvailablePort, listenPromise} from 'app/server/lib/serverUtils';
+import { Server, Socket } from 'net';
+import { connect as connectSock, getAvailablePort, listenPromise } from 'app/server/lib/serverUtils';
 
 // We'll test reconnects by making a connection through this TcpForwarder, which we'll use to
 // simulate disconnects.

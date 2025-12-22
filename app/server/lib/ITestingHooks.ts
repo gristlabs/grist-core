@@ -1,4 +1,4 @@
-import {UserProfile} from 'app/common/LoginSessionAPI';
+import { UserProfile } from 'app/common/LoginSessionAPI';
 
 export interface ClientJsonMemoryLimits {
   totalSize?: number;

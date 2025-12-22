@@ -3,25 +3,25 @@
 import * as path from 'path';
 import * as _ from 'underscore';
 
-import {ColumnDelta, createEmptyActionSummary} from 'app/common/ActionSummary';
-import {ApplyUAResult, DataSourceTransformed, ImportOptions, ImportResult, ImportTableResult,
+import { ColumnDelta, createEmptyActionSummary } from 'app/common/ActionSummary';
+import { ApplyUAResult, DataSourceTransformed, ImportOptions, ImportResult, ImportTableResult,
   MergeOptions, MergeOptionsMap, MergeStrategy, SKIP_TABLE,
   TransformRule,
-  TransformRuleMap} from 'app/common/ActiveDocAPI';
-import {ApiError} from 'app/common/ApiError';
-import {BulkColValues, CellValue, fromTableDataAction, UserAction} from 'app/common/DocActions';
-import {DocStateComparison} from 'app/common/DocState';
-import {isBlankValue} from 'app/common/gristTypes';
+  TransformRuleMap } from 'app/common/ActiveDocAPI';
+import { ApiError } from 'app/common/ApiError';
+import { BulkColValues, CellValue, fromTableDataAction, UserAction } from 'app/common/DocActions';
+import { DocStateComparison } from 'app/common/DocState';
+import { isBlankValue } from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
-import {localTimestampToUTC} from 'app/common/RelativeDates';
-import {guessColInfoForImports} from 'app/common/ValueGuesser';
-import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
-import {GristColumn, GristTable} from 'app/plugin/GristTable';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {DocSession, OptDocSession} from 'app/server/lib/DocSession';
+import { localTimestampToUTC } from 'app/common/RelativeDates';
+import { guessColInfoForImports } from 'app/common/ValueGuesser';
+import { ParseFileResult, ParseOptions } from 'app/plugin/FileParserAPI';
+import { GristColumn, GristTable } from 'app/plugin/GristTable';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { DocSession, OptDocSession } from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
-import {globalUploadSet, moveUpload, UploadInfo} from 'app/server/lib/uploads';
-import {buildComparisonQuery} from 'app/server/lib/ExpandedQuery';
+import { globalUploadSet, moveUpload, UploadInfo } from 'app/server/lib/uploads';
+import { buildComparisonQuery } from 'app/server/lib/ExpandedQuery';
 import flatten from 'lodash/flatten';
 
 const IMPORT_TRANSFORM_COLUMN_PREFIX = 'gristHelper_Import_';
@@ -71,7 +71,7 @@ export class ActiveDocImport {
     await this._removeHiddenTables(docSession, prevTableIds);
     const accessId = this._activeDoc.makeAccessId(docSession.userId);
     const uploadInfo: UploadInfo = globalUploadSet.getUploadInfo(dataSource.uploadId, accessId);
-    return this._importFiles(docSession, uploadInfo, dataSource.transforms, {parseOptions}, true);
+    return this._importFiles(docSession, uploadInfo, dataSource.transforms, { parseOptions }, true);
   }
 
   /**
@@ -133,8 +133,8 @@ export class ActiveDocImport {
    * @returns {Promise<DocStateComparison>} Comparison data for the changes that will occur if
    * `hiddenTableId` is merged into the destination table from `transformRule`.
    */
-  public async generateImportDiff(hiddenTableId: string, {destCols, destTableId}: TransformRule,
-    {mergeCols, mergeStrategy}: MergeOptions): Promise<DocStateComparison> {
+  public async generateImportDiff(hiddenTableId: string, { destCols, destTableId }: TransformRule,
+    { mergeCols, mergeStrategy }: MergeOptions): Promise<DocStateComparison> {
     // Merge column ids from client have prefixes that need to be stripped.
     mergeCols = stripPrefixes(mergeCols);
 
@@ -144,7 +144,7 @@ export class ActiveDocImport {
     const comparisonResult = await this._getTableComparison(hiddenTableId, destTableId!, srcToDestColIds, mergeCols);
 
     // Initialize container for updated column values in the expected format (ColumnDelta).
-    const updatedRecords: {[colId: string]: ColumnDelta} = {};
+    const updatedRecords: { [colId: string]: ColumnDelta } = {};
     const updatedRecordIds: number[] = [];
     const srcColIds = srcAndDestColIds.map(([srcColId, _destColId]) => srcColId);
     for (const id of srcColIds) {
@@ -192,8 +192,8 @@ export class ActiveDocImport {
     }
 
     return {
-      left: {n: 0, h: ''},  // NOTE: left, right, parent, and summary are not used by Importer.
-      right: {n: 0, h: ''},
+      left: { n: 0, h: '' },  // NOTE: left, right, parent, and summary are not used by Importer.
+      right: { n: 0, h: '' },
       parent: null,
       summary: 'right',
       details: {
@@ -236,7 +236,7 @@ export class ActiveDocImport {
   public async importParsedFileAsNewTable(
     docSession: OptDocSession, optionsAndData: ParseFileResult, importOptions: FileImportOptions,
   ): Promise<ImportResult> {
-    const {originalFilename, mergeOptionsMap, isHidden, uploadFileIndex, transformRuleMap} = importOptions;
+    const { originalFilename, mergeOptionsMap, isHidden, uploadFileIndex, transformRuleMap } = importOptions;
     const options = optionsAndData.parseOptions;
 
     const parsedTables = optionsAndData.tables;
@@ -317,7 +317,7 @@ export class ActiveDocImport {
 
     await this._fixReferences(docSession, tables, fixedColumnIdsByTable, references, isHidden);
 
-    return ({options, tables});
+    return ({ options, tables });
   }
 
   /**
@@ -325,7 +325,7 @@ export class ActiveDocImport {
    * The isHidden flag indicates whether to create temporary hidden tables, or final ones.
    */
   private async _importFiles(docSession: OptDocSession, upload: UploadInfo, transforms: TransformRuleMap[],
-    {parseOptions = {}, mergeOptionMaps = []}: ImportOptions,
+    { parseOptions = {}, mergeOptionMaps = [] }: ImportOptions,
     isHidden: boolean): Promise<ImportResult> {
 
     // Check that upload size is within the configured limits.
@@ -340,7 +340,7 @@ export class ActiveDocImport {
     if (!this._activeDoc.docPluginManager) { throw new Error('no plugin manager available'); }
     await moveUpload(upload, this._activeDoc.docPluginManager.tmpDir());
 
-    const importResult: ImportResult = {options: parseOptions, tables: []};
+    const importResult: ImportResult = { options: parseOptions, tables: [] };
     for (const [index, file] of upload.files.entries()) {
       // If we have a better guess for the file's extension, replace it in origName, to ensure
       // that DocPluginManager has access to it to guess the best parser type.
@@ -348,7 +348,7 @@ export class ActiveDocImport {
       if (file.ext) {
         origName = path.basename(origName, path.extname(origName)) + file.ext;
       }
-      const fileParseOptions = {...parseOptions};
+      const fileParseOptions = { ...parseOptions };
       if (file.ext === '.dsv') {
         if (!fileParseOptions.delimiter) {
           fileParseOptions.delimiter = '💩';
@@ -389,7 +389,7 @@ export class ActiveDocImport {
    */
   private async _importFileAsNewTable(docSession: OptDocSession, tmpPath: string,
     importOptions: FileImportOptions): Promise<ImportResult> {
-    const {originalFilename, parseOptions} = importOptions;
+    const { originalFilename, parseOptions } = importOptions;
     log.info("ActiveDoc._importFileAsNewTable(%s, %s)", tmpPath, originalFilename);
     if (!this._activeDoc.docPluginManager) {
       throw new Error('no plugin manager available');
@@ -429,7 +429,7 @@ export class ActiveDocImport {
     const transformDestTableId = intoNewTable ? null : destTableId;
     const result = await this._activeDoc.applyUserActions(docSession, [[
       'GenImporterView', hiddenTableId, transformDestTableId, transformRule,
-      {createViewSection: false, genAll: false, refsAsInts: true},
+      { createViewSection: false, genAll: false, refsAsInts: true },
     ]]);
     transformRule = result.retValues[0].transformRule as TransformRule;
 
@@ -462,7 +462,7 @@ export class ActiveDocImport {
 
     // If destination is a new table, we need to create it.
     if (intoNewTable) {
-      const colSpecs = destCols.map(({type, colId: id, label, widgetOptions}) => ({type, id, label, widgetOptions}));
+      const colSpecs = destCols.map(({ type, colId: id, label, widgetOptions }) => ({ type, id, label, widgetOptions }));
       const newTable = await this._activeDoc.applyUserActions(docSession, [['AddTable', destTableId, colSpecs]]);
       destTableId = newTable.retValues[0].table_id;
     }
@@ -470,7 +470,7 @@ export class ActiveDocImport {
     await this._activeDoc.applyUserActions(docSession,
       [['BulkAddRecord', destTableId, gutil.arrayRepeat(hiddenTableData.id.length, null), columnData]],
       // Don't use parseStrings for new tables to make the import lossless.
-      {parseStrings: !intoNewTable});
+      { parseStrings: !intoNewTable });
 
     return destTableId;
   }
@@ -486,8 +486,8 @@ export class ActiveDocImport {
    * the source and destination table.
    */
   private async _mergeAndFinishImport(docSession: OptDocSession, hiddenTableId: string, destTableId: string,
-    {destCols, sourceCols}: TransformRule,
-    {mergeCols, mergeStrategy}: MergeOptions): Promise<void> {
+    { destCols, sourceCols }: TransformRule,
+    { mergeCols, mergeStrategy }: MergeOptions): Promise<void> {
     // Merge column ids from client have prefixes that need to be stripped.
     mergeCols = stripPrefixes(mergeCols);
 
@@ -572,7 +572,7 @@ export class ActiveDocImport {
       actions.push(['BulkAddRecord', destTableId, gutil.arrayRepeat(numNewRecords, null), newRecords]);
     }
 
-    await this._activeDoc.applyUserActions(docSession, actions, {parseStrings: true});
+    await this._activeDoc.applyUserActions(docSession, actions, { parseStrings: true });
   }
 
   /**
@@ -628,7 +628,7 @@ export class ActiveDocImport {
       for (const [colIndex, col] of parsedTable.column_metadata.entries()) {
         const refTableId = gutil.removePrefix(col.type, "Ref:");
         if (refTableId) {
-          references.push({refTableId, colIndex, tableIndex});
+          references.push({ refTableId, colIndex, tableIndex });
           col.type = 'Int';
         }
       }
@@ -687,7 +687,7 @@ type MergeFunction = (srcVal: CellValue, destVal: CellValue) => CellValue;
  * should be reconciled when merging.
  * @returns {MergeFunction} Function that maps column value pairs to a single output value.
  */
-function getMergeFunction({type}: MergeStrategy): MergeFunction {
+function getMergeFunction({ type }: MergeStrategy): MergeFunction {
   switch (type) {
     case 'replace-with-nonblank-source': {
       return (srcVal, destVal) => isBlankValue(srcVal) ? destVal : srcVal;
@@ -716,7 +716,7 @@ function getMergeFunction({type}: MergeStrategy): MergeFunction {
  */
 function cleanColumnMetadata(columns: GristColumn[], tableData: unknown[][], activeDoc: ActiveDoc) {
   return columns.map((c, index) => {
-    const newCol: any = {...c};
+    const newCol: any = { ...c };
     if (c.id) {
       newCol.label = c.id;
     }
@@ -724,7 +724,7 @@ function cleanColumnMetadata(columns: GristColumn[], tableData: unknown[][], act
       // If import logic left it to us to decide on column type, then use our guessing logic to
       // pick a suitable type and widgetOptions, and to convert values to it.
       const origValues = tableData[index] as CellValue[];
-      const {values, colMetadata} = guessColInfoForImports(origValues, activeDoc.docData!);
+      const { values, colMetadata } = guessColInfoForImports(origValues, activeDoc.docData!);
       tableData[index] = values;
       if (colMetadata) {
         Object.assign(newCol, colMetadata);

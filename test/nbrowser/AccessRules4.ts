@@ -1,8 +1,8 @@
 /**
  * Test of the UI for Granular Access Control, part 3.
  */
-import {ITestingHooks} from 'app/server/lib/ITestingHooks';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { ITestingHooks } from 'app/server/lib/ITestingHooks';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {assertChanged, assertSaved, startEditingAccessRules} from 'test/nbrowser/aclTestUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
@@ -20,24 +20,24 @@ describe("AccessRules4", function() {
 
   it('allows editor to toggle a column', async function() {
     const ownerSession = await gu.session().teamSite.user('user1').login();
-    const docId = await ownerSession.tempNewDoc(cleanup, undefined, {load: false});
+    const docId = await ownerSession.tempNewDoc(cleanup, undefined, { load: false });
 
     // Create editor for this document.
     const api = ownerSession.createHomeApi();
     await api.updateDocPermissions(docId, { users: {
       [gu.translateUser("user2").email]: 'editors',
-    }});
+    } });
 
     await api.applyUserActions(docId, [
       // Now create a structure.
       ['RemoveTable', 'Table1'],
       ['AddTable', 'Table1', [
-        {id: 'Toggle', type: 'Bool'},
-        {id: 'Another', type: 'Text'},
-        {id: 'User_Access', type: 'Text', formula: 'user.Email', isFormula: false},
+        { id: 'Toggle', type: 'Bool' },
+        { id: 'Another', type: 'Text' },
+        { id: 'User_Access', type: 'Text', formula: 'user.Email', isFormula: false },
       ]],
       // Now add access rules for Table2
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: '*'}],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: 'Table1', colIds: '*' }],
       // Owner can do anything
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: 'user.Access == OWNER', permissionsText: 'all',
@@ -104,9 +104,9 @@ describe("AccessRules4", function() {
     // Add user table with this user.
     await gu.sendActions([
       ['AddTable', 'Users', [
-        {id: 'Email', type: 'Text'},
+        { id: 'Email', type: 'Text' },
       ]],
-      ['AddRecord', 'Users', -1, {Email: email}],
+      ['AddRecord', 'Users', -1, { Email: email }],
     ]);
 
     await gu.openPage('Users');
@@ -141,7 +141,7 @@ describe("AccessRules4", function() {
     assert.deepEqual(await gu.getSectionTitles(), ['USERS']);
 
     // Remove this user.
-    await db.deleteUser({userId: john.id}, john.id);
+    await db.deleteUser({ userId: john.id }, john.id);
   });
 
   it('unknown access defaults to public', async function() {
@@ -192,7 +192,7 @@ describe("AccessRules4", function() {
 
     // And try to add a new record.
     await gu.openPage('Table1');
-    await gu.sendActions([['AddRecord', 'Table1', -1, {A: 'New record'}]]);
+    await gu.sendActions([['AddRecord', 'Table1', -1, { A: 'New record' }]]);
     assert.equal(await gu.getCell('A', 1).getText(), 'New record');
   });
 });

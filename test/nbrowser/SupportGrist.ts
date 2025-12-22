@@ -1,8 +1,8 @@
-import {GristLoadConfig} from 'app/common/gristUrls';
-import {TelemetryLevel} from 'app/common/Telemetry';
-import {assert, driver} from 'mocha-webdriver';
+import { GristLoadConfig } from 'app/common/gristUrls';
+import { TelemetryLevel } from 'app/common/Telemetry';
+import { assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
 const sponsorshipUrl = 'https://github.com/sponsors/gristlabs';
@@ -39,7 +39,7 @@ describe('SupportGrist', function() {
       });
 
       it('shows a button in the top bar', async function() {
-        await assertSupportButtonShown(true, {isSponsorLink: true});
+        await assertSupportButtonShown(true, { isSponsorLink: true });
       });
 
       it('shows a link to the Support Grist page in the user menu', async function() {
@@ -56,7 +56,7 @@ describe('SupportGrist', function() {
       });
 
       it('shows a button in the top bar', async function() {
-        await assertSupportButtonShown(true, {isSponsorLink: false});
+        await assertSupportButtonShown(true, { isSponsorLink: false });
 
         // Dismiss the button and check that it's now gone, even after reloading.
         await driver.find('.test-support-grist-button').mouseMove();
@@ -96,7 +96,7 @@ describe('SupportGrist', function() {
 
         // Reload the doc menu and check that We show the "Support Grist" button linking to sponsorship page.
         await session.loadDocMenu('/');
-        await assertSupportButtonShown(true, {isSponsorLink: true});
+        await assertSupportButtonShown(true, { isSponsorLink: true });
 
         // Disable telemetry from the Support Grist page.
         await gu.openAccountMenu();
@@ -110,7 +110,7 @@ describe('SupportGrist', function() {
 
         // Reload the doc menu and check that the button is now shown.
         await gu.loadDocMenu('/');
-        await assertSupportButtonShown(true, {isSponsorLink: false});
+        await assertSupportButtonShown(true, { isSponsorLink: false });
       });
 
       it('shows sponsorship link when no telemetry nudge, and allows dismissing it', async function() {
@@ -122,14 +122,14 @@ describe('SupportGrist', function() {
         const api = session.createHomeApi();
         await api.testRequest(`${api.getBaseUrl()}/api/install/prefs`, {
           method: 'patch',
-          body: JSON.stringify({telemetry: {telemetryLevel: 'limited'}}),
+          body: JSON.stringify({ telemetry: { telemetryLevel: 'limited' } }),
         });
 
         await session.loadDocMenu('/');
         await assertTelemetryLevel('limited');
 
         // We still show the "Support Grist" button linking to sponsorship page.
-        await assertSupportButtonShown(true, {isSponsorLink: true});
+        await assertSupportButtonShown(true, { isSponsorLink: true });
 
         // We can dismiss it.
         await driver.find('.test-support-grist-button').mouseMove();
@@ -203,8 +203,8 @@ describe('SupportGrist', function() {
 });
 
 async function assertSupportButtonShown(isShown: false): Promise<void>;
-async function assertSupportButtonShown(isShown: true, opts: {isSponsorLink: boolean}): Promise<void>;
-async function assertSupportButtonShown(isShown: boolean, opts?: {isSponsorLink: boolean}) {
+async function assertSupportButtonShown(isShown: true, opts: { isSponsorLink: boolean }): Promise<void>;
+async function assertSupportButtonShown(isShown: boolean, opts?: { isSponsorLink: boolean }) {
   const button = driver.find('.test-support-grist-button');
   assert.equal(await button.isPresent() && await button.isDisplayed(), isShown);
   if (isShown) {
@@ -229,6 +229,6 @@ async function assertMenuHasSupportGrist(isShown: boolean) {
 }
 
 async function assertTelemetryLevel(level: TelemetryLevel) {
-  const {telemetry}: GristLoadConfig = await driver.executeScript('return window.gristConfig');
+  const { telemetry }: GristLoadConfig = await driver.executeScript('return window.gristConfig');
   assert.equal(telemetry?.telemetryLevel, level);
 }

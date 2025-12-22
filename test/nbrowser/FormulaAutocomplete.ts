@@ -1,9 +1,9 @@
-import {arrayRepeat} from 'app/common/gutil';
-import {UserAPI} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { arrayRepeat } from 'app/common/gutil';
+import { UserAPI } from 'app/common/UserAPI';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
-import {withoutSandboxing} from 'test/server/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { withoutSandboxing } from 'test/server/testUtils';
 
 describe('FormulaAutocomplete', function() {
   withoutSandboxing();
@@ -61,7 +61,7 @@ describe('FormulaAutocomplete', function() {
       }],
       ['AddRecord', 'LongNames', null, {}],
     ]);
-    await gu.getCell({rowNum: 1, col: 'C'}).click();
+    await gu.getCell({ rowNum: 1, col: 'C' }).click();
     await driver.sendKeys('=');
     await gu.waitAppFocus(false);
     await driver.sendKeys(`$V`);
@@ -84,13 +84,13 @@ describe('FormulaAutocomplete', function() {
 
     await api.applyUserActions(docId, [
       ['AddTable', 'LongColumns', [
-        {id: 'aaa', type: 'Ref:LongColumns'},
-        {id: 'bbbbbb', type: 'Numeric'},
-        {id: 'ccccccccc', type: 'Numeric'},
-        {id: 'dddddddddddd', type: 'Numeric'},
-        {id: 'formula', isFormula: true},
+        { id: 'aaa', type: 'Ref:LongColumns' },
+        { id: 'bbbbbb', type: 'Numeric' },
+        { id: 'ccccccccc', type: 'Numeric' },
+        { id: 'dddddddddddd', type: 'Numeric' },
+        { id: 'formula', isFormula: true },
       ]],
-      ['AddRecord', 'LongColumns', null, {aaa: 1, bbbbbb: 2, ccccccccc: 3, dddddddddddd: 4}],
+      ['AddRecord', 'LongColumns', null, { aaa: 1, bbbbbb: 2, ccccccccc: 3, dddddddddddd: 4 }],
     ],
     );
     await gu.waitForServer();
@@ -196,13 +196,13 @@ describe('FormulaAutocomplete', function() {
 
     // Add a new column 'T' of type Text
     await gu.addColumn('T');
-    await gu.getCell({rowNum: 1, col: 'T'}).click();
+    await gu.getCell({ rowNum: 1, col: 'T' }).click();
     await driver.sendKeys('abc');
     await driver.sendKeys(Key.ENTER);
 
     // Write a new formula starting with `$Title.` and check that the autocomplete options are correct
     await gu.addColumn('A');
-    await gu.getCell({rowNum: 1, col: 'A'}).click();
+    await gu.getCell({ rowNum: 1, col: 'A' }).click();
     await startFormulaAutocomplete('$Title.');
     await gu.waitToPass(async () => {
       const completions = await getCompletionLines();
@@ -229,7 +229,7 @@ describe('FormulaAutocomplete', function() {
     // Make 'A' a Reference column to use in a new formula in 'B'
     await gu.setType(/Reference/);
     await gu.addColumn('B');
-    await gu.getCell({rowNum: 1, col: 'B'}).click();
+    await gu.getCell({ rowNum: 1, col: 'B' }).click();
     await startFormulaAutocomplete('$A');
     await gu.waitToPass(async () => {
       const completions = await getCompletionLines();
@@ -253,9 +253,9 @@ describe('FormulaAutocomplete', function() {
     });
     await driver.sendKeys(Key.ENTER);  // don't ESCAPE because then an 'undo discard' toast gets in the way
     // Now give 'A' a visible column and check how the options change
-    await gu.getCell({rowNum: 1, col: 'A'}).click();
+    await gu.getCell({ rowNum: 1, col: 'A' }).click();
     await gu.setRefShowColumn('Title');
-    await gu.getCell({rowNum: 1, col: 'B'}).click();
+    await gu.getCell({ rowNum: 1, col: 'B' }).click();
     await startFormulaAutocomplete('$A');
     await gu.waitToPass(async () => {
       const completions = await getCompletionLines();

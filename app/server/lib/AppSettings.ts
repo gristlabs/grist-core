@@ -10,7 +10,7 @@ type EnvFile = Record<string, string>;
  */
 export class AppSettings {
   private _value?: JSONValue;
-  private _children?: {[key: string]: AppSettings};
+  private _children?: { [key: string]: AppSettings };
   private _info?: AppSettingQueryResult;
   private _envFile?: EnvFile;
   private get _root(): AppSettings {
@@ -232,7 +232,7 @@ export class AppSettings {
   }
 
   /* access any nested settings */
-  public get nested(): {[key: string]: AppSettings} {
+  public get nested(): { [key: string]: AppSettings } {
     return this._children || {};
   }
 
@@ -290,7 +290,7 @@ export class AppSettings {
     if (this._children) {
       for (const child of Object.values(this._children)) {
         for (const item of child.describeAll()) {
-          inv.push({...item, name: this.name + '.' + item.name});
+          inv.push({ ...item, name: this.name + '.' + item.name });
         }
       }
     }

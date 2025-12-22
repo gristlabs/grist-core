@@ -1,9 +1,9 @@
-import {ACIndex, ACItem, buildHighlightedDom} from 'app/client/lib/ACIndex';
-import {Autocomplete, IAutocompleteOptions} from 'app/client/lib/autocomplete';
-import {theme} from "app/client/ui2018/cssVars";
-import {icon} from "app/client/ui2018/icons";
-import {menuCssClass} from 'app/client/ui2018/menus';
-import {dom, DomElementArg, Holder, IDisposableOwner, Observable, styled} from 'grainjs';
+import { ACIndex, ACItem, buildHighlightedDom } from 'app/client/lib/ACIndex';
+import { Autocomplete, IAutocompleteOptions } from 'app/client/lib/autocomplete';
+import { theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menuCssClass } from 'app/client/ui2018/menus';
+import { dom, DomElementArg, Holder, IDisposableOwner, Observable, styled } from 'grainjs';
 
 export interface ACSelectItem extends ACItem {
   value: string;
@@ -25,7 +25,7 @@ export function buildACSelect(
   },
   ...args: DomElementArg[]
 ) {
-  const {acIndex, valueObs, save} = options;
+  const { acIndex, valueObs, save } = options;
   const acHolder = Holder.create<Autocomplete<ACSelectItem>>(owner);
   let textInput: HTMLInputElement;
 
@@ -87,7 +87,7 @@ export function buildACSelect(
   };
 
   return cssSelectBtn(
-    textInput = cssInput({type: 'text'},
+    textInput = cssInput({ type: 'text' },
       dom.prop('value', valueObs),
       dom.on('focus', (ev, elem) => elem.select()),
       dom.on('blur', commitOrRevert),

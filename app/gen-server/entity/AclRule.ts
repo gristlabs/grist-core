@@ -1,10 +1,10 @@
-import {BaseEntity, ChildEntity, Column, Entity, JoinColumn, ManyToOne, OneToOne,
-  PrimaryGeneratedColumn, RelationId, TableInheritance} from "typeorm";
+import { BaseEntity, ChildEntity, Column, Entity, JoinColumn, ManyToOne, OneToOne,
+  PrimaryGeneratedColumn, RelationId, TableInheritance } from "typeorm";
 
-import {Document} from "app/gen-server/entity/Document";
-import {Group} from "app/gen-server/entity/Group";
-import {Organization} from "app/gen-server/entity/Organization";
-import {Workspace} from "app/gen-server/entity/Workspace";
+import { Document } from "app/gen-server/entity/Document";
+import { Group } from "app/gen-server/entity/Group";
+import { Organization } from "app/gen-server/entity/Organization";
+import { Workspace } from "app/gen-server/entity/Workspace";
 
 @Entity('acl_rules')
 @TableInheritance({ column: { type: "int", name: "type" } })
@@ -13,11 +13,11 @@ export class AclRule extends BaseEntity {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column({type: Number})
+  @Column({ type: Number })
   public permissions: number;
 
   @OneToOne(type => Group, group => group.aclRule)
-  @JoinColumn({name: "group_id"})
+  @JoinColumn({ name: "group_id" })
   public group: Group;
 }
 
@@ -25,7 +25,7 @@ export class AclRule extends BaseEntity {
 export class AclRuleWs extends AclRule {
 
   @ManyToOne(type => Workspace, workspace => workspace.aclRules)
-  @JoinColumn({name: "workspace_id"})
+  @JoinColumn({ name: "workspace_id" })
   public workspace: Workspace;
 
   @RelationId((aclRule: AclRuleWs) => aclRule.workspace)
@@ -36,7 +36,7 @@ export class AclRuleWs extends AclRule {
 export class AclRuleOrg extends AclRule {
 
   @ManyToOne(type => Organization, organization => organization.aclRules)
-  @JoinColumn({name: "org_id"})
+  @JoinColumn({ name: "org_id" })
   public organization: Organization;
 
   @RelationId((aclRule: AclRuleOrg) => aclRule.organization)
@@ -47,7 +47,7 @@ export class AclRuleOrg extends AclRule {
 export class AclRuleDoc extends AclRule {
 
   @ManyToOne(type => Document, document => document.aclRules)
-  @JoinColumn({name: "doc_id"})
+  @JoinColumn({ name: "doc_id" })
   public document: Document;
 
   @RelationId((aclRule: AclRuleDoc) => aclRule.document)

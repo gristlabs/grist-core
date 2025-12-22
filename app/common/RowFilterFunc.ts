@@ -1,9 +1,9 @@
-import {CellValue} from "app/common/DocActions";
-import {ColumnFilterFunc} from "app/common/ColumnFilterFunc";
-import {FilterColValues} from 'app/common/ActiveDocAPI';
-import {isList} from 'app/common/gristTypes';
-import {decodeObject} from 'app/plugin/objtypes';
-import {ColumnGettersByColId} from 'app/common/ColumnGetters';
+import { CellValue } from "app/common/DocActions";
+import { ColumnFilterFunc } from "app/common/ColumnFilterFunc";
+import { FilterColValues } from 'app/common/ActiveDocAPI';
+import { isList } from 'app/common/gristTypes';
+import { decodeObject } from 'app/plugin/objtypes';
+import { ColumnGettersByColId } from 'app/common/ColumnGetters';
 
 export type RowFilterFunc<T> = (row: T) => boolean;
 
@@ -21,7 +21,7 @@ export type RowValueFunc<T> = (rowId: T) => CellValue;
 
 // Filter rows for the purpose of linked widgets
 export function getLinkingFilterFunc(
-  columnGetters: ColumnGettersByColId, {filters, operations}: FilterColValues,
+  columnGetters: ColumnGettersByColId, { filters, operations }: FilterColValues,
 ): RowFilterFunc<number> {
   const colFuncs = Object.keys(filters).sort().map(
     (colId) => {

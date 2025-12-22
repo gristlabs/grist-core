@@ -83,16 +83,16 @@ describe('Themes', function () {
 
       // if using chromium web driver, fake the system color scheme to dark and wait for the theme to change
       if ((driver as ChromiumWebDriver).sendDevToolsCommand) {
-        await (driver as ChromiumWebDriver).sendDevToolsCommand('Emulation.setEmulatedMedia', {features: [
-          {name: 'prefers-color-scheme', value: 'dark'},
-        ]});
+        await (driver as ChromiumWebDriver).sendDevToolsCommand('Emulation.setEmulatedMedia', { features: [
+          { name: 'prefers-color-scheme', value: 'dark' },
+        ] });
         await driver.sleep(500);
         await assertAppliedTheme('GristDark');
 
         // reset back to default light system appearance
-        await (driver as ChromiumWebDriver).sendDevToolsCommand('Emulation.setEmulatedMedia', {features: [
-          {name: 'prefers-color-scheme', value: 'light'},
-        ]});
+        await (driver as ChromiumWebDriver).sendDevToolsCommand('Emulation.setEmulatedMedia', { features: [
+          { name: 'prefers-color-scheme', value: 'light' },
+        ] });
         await driver.sleep(500);
         await assertAppliedTheme('GristLight');
       }
@@ -208,13 +208,13 @@ async function shouldAllowThemeSelection() {
 }
 
 async function shouldApplyThemes() {
-  await gu.setGristTheme({themeName: 'GristLight', syncWithOS: false});
+  await gu.setGristTheme({ themeName: 'GristLight', syncWithOS: false });
   await assertAppliedTheme('GristLight');
 
-  await gu.setGristTheme({themeName: 'GristDark', syncWithOS: false});
+  await gu.setGristTheme({ themeName: 'GristDark', syncWithOS: false });
   await assertAppliedTheme('GristDark');
 
-  await gu.setGristTheme({themeName: 'HighContrastLight', syncWithOS: false});
+  await gu.setGristTheme({ themeName: 'HighContrastLight', syncWithOS: false });
   await assertAppliedTheme('HighContrastLight');
 }
 

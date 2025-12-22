@@ -1,6 +1,6 @@
-import {SUPPORT_EMAIL} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
-import {Request} from 'express';
+import { SUPPORT_EMAIL } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { GristLoginSystem, GristServer } from 'app/server/lib/GristServer';
+import { Request } from 'express';
 
 /**
  * Return a login system for testing. Just enough to use the test/login endpoint

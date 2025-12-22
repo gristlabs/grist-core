@@ -3,13 +3,13 @@
  * page, both for anonymous and logged-in users.
  */
 
-import {assert, driver, stackWrapFunc, WebElement} from 'mocha-webdriver';
+import { assert, driver, stackWrapFunc, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('HomeIntro', function() {
   this.timeout(40000);
-  setupTestSuite({samples: true, tutorial: true});
+  setupTestSuite({ samples: true, tutorial: true });
   gu.withEnvironmentSnapshot({
     'GRIST_UI_FEATURES': 'templates,tutorials',
     'GRIST_TEMPLATE_ORG': 'templates',
@@ -28,7 +28,7 @@ describe('HomeIntro', function() {
       assert.equal(await driver.find('.test-welcome-title').getText(), 'Welcome to Grist!');
     });
 
-    it('should show intro screen for anon', () => testIntroScreen({anon: true, team: false}));
+    it('should show intro screen for anon', () => testIntroScreen({ anon: true, team: false }));
     it('should set correct meta tags', testMetaTags);
     it('should not show Other Sites section', testOtherSitesSection);
     it('should allow create/import from intro screen', testCreateImport.bind(null, false));
@@ -57,7 +57,7 @@ describe('HomeIntro', function() {
     });
 
     it('should not show Other Sites section', testOtherSitesSection);
-    it('should show intro screen for empty org', () => testIntroScreen({anon: false, team: false}));
+    it('should show intro screen for empty org', () => testIntroScreen({ anon: false, team: false }));
     it('should allow create/import from intro screen', testCreateImport.bind(null, true));
     it('should link to examples page from the intro', testExamplesPage);
     it('should allow copying examples', testCopyingExamples.bind(null, undefined));
@@ -80,7 +80,7 @@ describe('HomeIntro', function() {
     });
 
     it('should not show Other Sites section', testOtherSitesSection);
-    it('should show intro screen for empty org', () => testIntroScreen({anon: false, team: true}));
+    it('should show intro screen for empty org', () => testIntroScreen({ anon: false, team: true }));
     it('should allow create/import from intro screen', testCreateImport.bind(null, true));
     it('should link to examples page from the intro', testExamplesPage);
     it('should allow copying examples', testCopyingExamples.bind(null, gu.session().teamSite.orgName));
@@ -93,7 +93,7 @@ describe('HomeIntro', function() {
     assert.isFalse(await driver.find('.test-dm-other-sites-header').isPresent());
   }
 
-  async function testIntroScreen(options: {anon: boolean; team: boolean}) {
+  async function testIntroScreen(options: { anon: boolean; team: boolean }) {
     // TODO There is no longer a thumbnail + video link on an empty site, but it's a good place to
     // check for the presence and functionality of the planned links that open an intro video.
 
@@ -225,7 +225,7 @@ describe('HomeIntro', function() {
     await driver.findContent('.test-dm-pinned-doc-name', /Lightweight CRM/).click();
     await gu.waitForDocToLoad();
     await driver.findWait('.test-tb-share-action', 500).click();
-    await gu.completeCopy({destName: 'LCRM Copy', destOrg: destination ?? 'Personal'});
+    await gu.completeCopy({ destName: 'LCRM Copy', destOrg: destination ?? 'Personal' });
     await checkDocAndRestore(true, async () => {
       assert.match(await gu.getCell('Company', 1).getText(), /Sporer/);
       assert.match(await driver.find('.test-bc-doc').value(), /LCRM Copy/);
@@ -238,7 +238,7 @@ describe('HomeIntro', function() {
     await gu.waitForDocToLoad();
     await driver.findWait('.test-tb-share-action', 500).click();
     await driver.findWait('.test-save-as-template', 1000).click();
-    await gu.completeCopy({destName: 'LCRM Template Copy', destOrg: destination ?? 'Personal'});
+    await gu.completeCopy({ destName: 'LCRM Template Copy', destOrg: destination ?? 'Personal' });
     await checkDocAndRestore(true, async () => {
       // No data, because the file was copied as a template.
       assert.equal(await gu.getCell(0, 1).getText(), '');

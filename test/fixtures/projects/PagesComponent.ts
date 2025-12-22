@@ -16,9 +16,9 @@ function setupTest() {
     container(
       addPages(observable(true)),
     ),
-    dom('input', {type: 'button', value: 'create new page'},
+    dom('input', { type: 'button', value: 'create new page' },
       dom.on('click', addNewPage),
-      {style: 'float: right;'},
+      { style: 'float: right;' },
     ),
   ];
 }

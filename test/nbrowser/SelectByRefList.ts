@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
-import {addToRepl, assert, driver} from 'mocha-webdriver';
+import { addToRepl, assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('SelectByRefList', function() {
   this.timeout(90000);
@@ -182,7 +182,7 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
   await gu.waitForServer();
 
   const selectByTable = selectBy.split(' ')[0];
-  const cell = await gu.getCell({section: selectByTable, col: 0, rowNum: 3});
+  const cell = await gu.getCell({ section: selectByTable, col: 0, rowNum: 3 });
   if (selectByTable === 'REFLISTS') {
     await gu.clickReferenceListCell(cell);
   }
@@ -212,7 +212,7 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
   }
 
   for (let i = 0; i < sourceData.length; i++) {
-    const cell = await gu.getCell({section: selectByTable, col: 0, rowNum: i + 1});
+    const cell = await gu.getCell({ section: selectByTable, col: 0, rowNum: i + 1 });
     if (selectByTable === 'REFLISTS') {
       await gu.clickReferenceListCell(cell);
     }
@@ -223,7 +223,7 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
   }
 
   // Create a new record with rownum=99
-  await gu.getCell({section: 'LINKTARGET', col: 'rownum', rowNum: numSourceRows}).click();
+  await gu.getCell({ section: 'LINKTARGET', col: 'rownum', rowNum: numSourceRows }).click();
   await gu.enterCell('99');
 
   assert.deepEqual(
@@ -242,7 +242,7 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
   //   to move the cursor to and we don't have a solution for that case yet
   for (let rowNum = 1; rowNum <= 3; rowNum++) {
     // Click an anchor link
-    const anchorCell = gu.getCell({section: "Anchors", rowNum, col: 1});
+    const anchorCell = gu.getCell({ section: "Anchors", rowNum, col: 1 });
     await driver.withActions(a => a.click(anchorCell.find('.test-tb-link')));
 
     // Check that navigation to the link target worked

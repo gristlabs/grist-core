@@ -1,7 +1,7 @@
-import {ColumnRec, DocModel} from 'app/client/models/DocModel';
-import {Style} from 'app/client/models/Styles';
+import { ColumnRec, DocModel } from 'app/client/models/DocModel';
+import { Style } from 'app/client/models/Styles';
 import * as modelUtil from 'app/client/models/modelUtil';
-import {GristObjCode} from 'app/plugin/GristData';
+import { GristObjCode } from 'app/plugin/GristData';
 
 export interface RuleOwner {
   // Field or Section can have a list of conditional styling rules. Each style is a combination of a formula and options

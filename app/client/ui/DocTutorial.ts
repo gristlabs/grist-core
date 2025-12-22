@@ -1,21 +1,21 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import {makeT} from 'app/client/lib/localization';
-import {sessionStorageJsonObs} from 'app/client/lib/localStorageObs';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {getWelcomeHomeUrl} from 'app/client/lib/urlUtils';
-import {urlState} from 'app/client/models/gristUrlState';
-import {renderer} from 'app/client/ui/DocTutorialRenderer';
-import {cssPopupBody, FLOATING_POPUP_TOOLTIP_KEY, FloatingPopup, PopupPosition} from 'app/client/ui/FloatingPopup';
-import {sanitizeTutorialHTML} from 'app/client/ui/sanitizeHTML';
-import {hoverTooltip, setHoverTooltip} from 'app/client/ui/tooltips';
-import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
-import {mediaXSmall, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {confirmModal, modal} from 'app/client/ui2018/modals';
-import {parseUrlId} from 'app/common/gristUrls';
-import {Disposable, dom, Holder, makeTestId, Observable, styled} from 'grainjs';
-import {marked, Token} from 'marked';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { makeT } from 'app/client/lib/localization';
+import { sessionStorageJsonObs } from 'app/client/lib/localStorageObs';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
+import { getWelcomeHomeUrl } from 'app/client/lib/urlUtils';
+import { urlState } from 'app/client/models/gristUrlState';
+import { renderer } from 'app/client/ui/DocTutorialRenderer';
+import { cssPopupBody, FLOATING_POPUP_TOOLTIP_KEY, FloatingPopup, PopupPosition } from 'app/client/ui/FloatingPopup';
+import { sanitizeTutorialHTML } from 'app/client/ui/sanitizeHTML';
+import { hoverTooltip, setHoverTooltip } from 'app/client/ui/tooltips';
+import { basicButton, primaryButton, textButton } from 'app/client/ui2018/buttons';
+import { mediaXSmall, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { loadingSpinner } from 'app/client/ui2018/loaders';
+import { confirmModal, modal } from 'app/client/ui2018/modals';
+import { parseUrlId } from 'app/common/gristUrls';
+import { Disposable, dom, Holder, makeTestId, Observable, styled } from 'grainjs';
+import { marked, Token } from 'marked';
 import debounce from 'lodash/debounce';
 import range from 'lodash/range';
 import sortBy from 'lodash/sortBy';
@@ -99,7 +99,7 @@ export class DocTutorial extends Disposable {
       title: this._buildPopupTitle.bind(this),
       content: this._buildPopupContent.bind(this),
       onMoveEnd: position => this._position.set(position),
-      onResizeEnd: ({width, height, ...position}) => {
+      onResizeEnd: ({ width, height, ...position }) => {
         this._width.set(width);
         this._height.set(height);
         this._position.set(position);
@@ -173,7 +173,7 @@ export class DocTutorial extends Disposable {
                 dom.on('click', async () => {
                   await this._previousSlide();
                 }),
-                {style: `visibility: ${isFirstSlide ? 'hidden' : 'visible'}`},
+                { style: `visibility: ${isFirstSlide ? 'hidden' : 'visible'}` },
                 testId('popup-previous'),
               ),
               primaryButton(isLastSlide ? t('Finish'): t('Next'),
@@ -211,10 +211,10 @@ export class DocTutorial extends Disposable {
       // Pre-fetch images from all slides and store them in a hidden div.
       dom.maybe(this._slides, slides =>
         dom('div',
-          {style: 'display: none;'},
+          { style: 'display: none;' },
           dom.forEach(slides, (slide) => {
             if (slide.imageUrls.length === 0) { return null; }
-            return dom('div', slide.imageUrls.map(src => dom('img', {src})));
+            return dom('div', slide.imageUrls.map(src => dom('img', { src })));
           }),
         ),
       ),
@@ -338,7 +338,7 @@ export class DocTutorial extends Disposable {
     await this._saveProgressDebounced();
     const lastVisitedOrg = this._appModel.lastVisitedOrgDomain.get();
     if (lastVisitedOrg) {
-      await urlState().pushUrl({org: lastVisitedOrg});
+      await urlState().pushUrl({ org: lastVisitedOrg });
     }
     else {
       window.location.assign(getWelcomeHomeUrl());
@@ -348,9 +348,9 @@ export class DocTutorial extends Disposable {
   private async _restartTutorial() {
     const doRestart = async () => {
       const urlId = this._currentDoc!.id;
-      const {trunkId} = parseUrlId(urlId);
+      const { trunkId } = parseUrlId(urlId);
       const docApi = this._appModel.api.getDocAPI(urlId);
-      await docApi.replace({sourceDocId: trunkId, resetTutorialMetadata: true});
+      await docApi.replace({ sourceDocId: trunkId, resetTutorialMetadata: true });
     };
 
     confirmModal(
@@ -400,7 +400,7 @@ export class DocTutorial extends Disposable {
           dom.on('click', () => ctl.close()),
           testId('lightbox-close'),
         ),
-        cssModalContent(cssModalImage({src}, testId('lightbox-image'))),
+        cssModalContent(cssModalImage({ src }, testId('lightbox-image'))),
         dom.on('click', (ev, elem) => void (ev.target === elem ? ctl.close() : null)),
         testId('lightbox'),
       ];

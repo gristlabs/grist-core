@@ -11,12 +11,12 @@
 
 import * as _ from 'underscore';
 import { assert } from 'chai';
-import {tmpdir} from 'os';
+import { tmpdir } from 'os';
 import * as path from 'path';
 import * as fse from 'fs-extra';
 import clone from 'lodash/clone';
 import * as tmp from 'tmp-promise';
-import {FileOptions as TmpOptions} from 'tmp';
+import { FileOptions as TmpOptions } from 'tmp';
 import * as winston from 'winston';
 import { serialize } from 'winston/lib/winston/common';
 
@@ -35,7 +35,7 @@ export async function writeTmpFile(content: any, options: TmpOptions = {}) {
   // discardDescriptor ensures tmp module closes it. It can lead to horrible bugs to close this
   // descriptor yourself, since tmp also closes it on exit, and if it's a different descriptor by
   // that time, it can lead to a crash. See https://github.com/raszi/node-tmp/issues/168
-  const obj = await tmp.file({discardDescriptor: true, ...options});
+  const obj = await tmp.file({ discardDescriptor: true, ...options });
   await fse.writeFile(obj.path, content);
   return obj.path;
 }
@@ -112,7 +112,7 @@ export function setTmpLogLevel(level: string, optCaptureTo?: CaptureFunc|string)
       const suiteName = this.test?.parent?.title || 'unknown-suite';
       const testDir = await createTestDir(suiteName);
       const logPath = path.join(testDir, optCaptureTo);
-      const stream = fse.createWriteStream(logPath, {flags: 'a'});
+      const stream = fse.createWriteStream(logPath, { flags: 'a' });
       log.add(winston.transports.File, {
         name,
         stream,
@@ -152,7 +152,7 @@ export function nestLogLevel(level: string): NestedLogLevel {
  */
 export async function captureLog(
   minLevel: string, callback: (messages: string[]) => void|Promise<void>,
-  options: {timestamp?: boolean, waitForFirstLog?: boolean} = {timestamp: false, waitForFirstLog: false},
+  options: { timestamp?: boolean, waitForFirstLog?: boolean } = { timestamp: false, waitForFirstLog: false },
 ): Promise<string[]> {
   const messages: string[] = [];
   const prevLogLevel = log.transports.file.level;
@@ -170,7 +170,7 @@ export async function captureLog(
     if (!process.env.VERBOSE) {
       log.transports.file.level = -1 as any;   // Suppress all log output.
     }
-    log.add(CaptureTransport as any, { captureFunc: capture, name, level: minLevel});  // types are off.
+    log.add(CaptureTransport as any, { captureFunc: capture, name, level: minLevel });  // types are off.
   });
 
   try {
@@ -234,7 +234,7 @@ export function expectRejection(promise: Promise<any>, errCode: number|string, e
  * @returns {Promise:Object} - Parsed test script object
  */
 export async function readTestScript(file: string) {
-  const fullText = await fse.readFile(file, {encoding: 'utf8'});
+  const fullText = await fse.readFile(file, { encoding: 'utf8' });
   const allLines: string[] = [];
   fullText.split("\n").forEach(function(line, i) {
     if (line.match(/^\s*\/\//)) {

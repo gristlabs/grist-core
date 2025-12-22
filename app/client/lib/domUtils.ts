@@ -1,5 +1,5 @@
-import {useBindable} from 'app/common/gutil';
-import {BindableValue, Computed, dom, EventCB, IDisposable, IDisposableOwner, Observable, UseCB} from 'grainjs';
+import { useBindable } from 'app/common/gutil';
+import { BindableValue, Computed, dom, EventCB, IDisposable, IDisposableOwner, Observable, UseCB } from 'grainjs';
 
 /**
  * Version of makeTestId that can be appended conditionally.
@@ -120,7 +120,7 @@ export function onClickOutsideElem(elem: Node, click: () => void) {
       click();
     }
   };
-  return dom.onElem(document, 'click', onClick, {useCapture: true});
+  return dom.onElem(document, 'click', onClick, { useCapture: true });
 }
 
 /**
@@ -153,5 +153,5 @@ export function attachMouseOverOnMove<T extends EventTarget>(elem: T, callback: 
     });
   }
   reset();
-  return {reset};
+  return { reset };
 }

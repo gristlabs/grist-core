@@ -1,6 +1,6 @@
-import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
+import { addToRepl, assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('SelectBySummaryRef', function() {
   this.timeout(20000);
@@ -94,18 +94,18 @@ describe('SelectBySummaryRef', function() {
     await gu.openAddWidgetToPage();
 
     // Sanity check for the select by options of the plain table
-    await gu.selectWidget('Table', 'Other', {dontAdd: true});
+    await gu.selectWidget('Table', 'Other', { dontAdd: true });
     await checkAddWidgetSelectByOptions([
       'Other',
       'Other • Source ref',
     ]);
 
     // Select by options for summary tables of Other only exist when grouping by Source ref
-    await gu.selectWidget('Table', 'Other', {dontAdd: true, summarize: []});
+    await gu.selectWidget('Table', 'Other', { dontAdd: true, summarize: [] });
     await checkAddWidgetSelectByOptions(null);
-    await gu.selectWidget('Table', 'Other', {dontAdd: true, summarize: ['Text']});
+    await gu.selectWidget('Table', 'Other', { dontAdd: true, summarize: ['Text'] });
     await checkAddWidgetSelectByOptions(null);
-    await gu.selectWidget('Table', 'Other', {dontAdd: true, summarize: ['Source ref']});
+    await gu.selectWidget('Table', 'Other', { dontAdd: true, summarize: ['Source ref'] });
     // Note that in this case we are inferring options for a table that doesn't exist anywhere yet
     await checkAddWidgetSelectByOptions([
       'Other • Source ref',
@@ -113,7 +113,7 @@ describe('SelectBySummaryRef', function() {
 
     // Actually add the summary table in the last case above, selected by the only option
     await gu.selectWidget('Table', 'Other',
-      {selectBy: 'Other • Source ref', summarize: ['Source ref']});
+      { selectBy: 'Other • Source ref', summarize: ['Source ref'] });
 
     // Check that the link is actually there in the right panel and that the options are the same as when adding.
     await checkCurrentSelectBy('Other • Source ref');
@@ -132,20 +132,20 @@ describe('SelectBySummaryRef', function() {
     await gu.openAddWidgetToPage();
 
     // Sanity check for the select by options of the plain table
-    await gu.selectWidget('Table', 'Source', {dontAdd: true});
+    await gu.selectWidget('Table', 'Source', { dontAdd: true });
     await checkAddWidgetSelectByOptions([
       'Other',
       'Other • Source ref',
     ]);
 
     // No select by options for summary table without groupby columns
-    await gu.selectWidget('Table', 'Source', {dontAdd: true, summarize: []});
+    await gu.selectWidget('Table', 'Source', { dontAdd: true, summarize: [] });
     await checkAddWidgetSelectByOptions(null);
 
     // This summary table already exists on the first page.
     // '→ Source ref' and '→ Source reflist' refer to formula columns in the summary table that
     // don't exist by default.
-    await gu.selectWidget('Table', 'Source', {dontAdd: true, summarize: ['Other ref']});
+    await gu.selectWidget('Table', 'Source', { dontAdd: true, summarize: ['Other ref'] });
     await checkAddWidgetSelectByOptions([
       'Other',
       'Other • Source ref → Source ref',
@@ -154,7 +154,7 @@ describe('SelectBySummaryRef', function() {
 
     // Actually add the summary table in the last case above, selected by the second option
     await gu.selectWidget('Table', 'Source',
-      {selectBy: 'Other • Source ref → Source ref', summarize: ['Other ref']});
+      { selectBy: 'Other • Source ref → Source ref', summarize: ['Other ref'] });
 
     // Check that the link is actually there in the right panel and that the options are the same as when adding.
     await checkCurrentSelectBy('Other • Source ref → Source ref');

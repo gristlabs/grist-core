@@ -13,11 +13,11 @@ import {
   UseCB,
   UseCBOwner,
 } from 'grainjs';
-import {Observable as KoObservable} from 'knockout';
+import { Observable as KoObservable } from 'knockout';
 import identity from 'lodash/identity';
 
 // Some definitions have moved to be used by plugin API.
-export {arrayRepeat} from 'app/plugin/gutil';
+export { arrayRepeat } from 'app/plugin/gutil';
 
 export const UP_TRIANGLE = '\u25B2';
 export const DOWN_TRIANGLE = '\u25BC';
@@ -203,7 +203,7 @@ export function encodeQueryParam(str: string|number|undefined): string {
  * Encode an object into a querystring ("key=value&key2=value2").
  * This is similar to JQuery's $.param, but only works on shallow objects.
  */
-export function encodeQueryParams(obj: {[key: string]: string|number|undefined}): string {
+export function encodeQueryParams(obj: { [key: string]: string|number|undefined }): string {
   return Object.keys(obj).map((k: string) => encodeQueryParam(k) + '=' + encodeQueryParam(obj[k])).join('&');
 }
 
@@ -466,9 +466,9 @@ export function map2<T, U, V>(array1: ArrayLike<T>, array2: ArrayLike<U>, mapFun
  */
 export function growMatrix<T>(dataMatrix: T[][], r: number, c: number): T[][] {
   const colArr = dataMatrix.map(colVals =>
-    Array.from({length: c}, (_v, k) => colVals[k % colVals.length]),
+    Array.from({ length: c }, (_v, k) => colVals[k % colVals.length]),
   );
-  return Array.from({length: r}, (_v, k) => colArr[k % colArr.length]);
+  return Array.from({ length: r }, (_v, k) => colArr[k % colArr.length]);
 }
 
 /**
@@ -638,9 +638,9 @@ export function byteString(bytes: number): string {
  * @returns {Object} - object mapping keys from `keysArray` to values returned by `callback`.
  */
 export function mapToObject<T>(keysArray: string[], callback: (key: string) => T,
-  optThisArg: any): {[key: string]: T} {
+  optThisArg: any): { [key: string]: T } {
   const values: T[] = keysArray.map(callback, optThisArg);
-  const map: {[key: string]: T} = {};
+  const map: { [key: string]: T } = {};
   for (let i = 0; i < keysArray.length; i++) {
     map[keysArray[i]] = values[i];
   }
@@ -898,7 +898,7 @@ export function isValidHex(val: unknown): val is string {
  * returns false, including when promise is rejected.
  */
 export async function timeoutReached(
-  msec: number, promise: Promise<unknown>, options: {rethrow: boolean} = {rethrow: false},
+  msec: number, promise: Promise<unknown>, options: { rethrow: boolean } = { rethrow: false },
 ): Promise<boolean> {
   // For test purposes, support negative timeout, by failing
   // immediately.

@@ -24,9 +24,9 @@
  * 'stringToBuffer' option. Similarly, Python strings become JS Uint8Arrays, but can be
  * unmarshalled to JS strings if 'bufferToString' option is set.
  */
-import {BigInt} from 'app/common/BigInt';
+import { BigInt } from 'app/common/BigInt';
 import MemBuffer from 'app/common/MemBuffer';
-import {EventEmitter} from 'events';
+import { EventEmitter } from 'events';
 import * as util from 'util';
 
 export interface MarshalOptions {
@@ -269,7 +269,7 @@ export class Marshaller {
     }
   }
 
-  private _writeDict(obj: {[key: string]: any}) {
+  private _writeDict(obj: { [key: string]: any }) {
     const keys = Object.keys(obj);
     keys.sort();
     for (const key of keys) {
@@ -458,7 +458,7 @@ export class Unmarshaller extends EventEmitter {
   }
 
   private _parseDict() {
-    const dict: {[key: string]: any} = {};
+    const dict: { [key: string]: any } = {};
     while (true) {
       let key = this._parse() as string|Uint8Array;
       if (key === null && this._lastCode === marshalCodes.NULL) {
@@ -505,7 +505,7 @@ export function loads(byteArray: Uint8Array|Buffer, options?: UnmarshalOptions):
  * Serializes arbitrary data by first marshalling then converting to a base64 string.
  */
 export function dumpBase64(data: any, options?: MarshalOptions) {
-  const marshaller = new Marshaller(options || {version: 2});
+  const marshaller = new Marshaller(options || { version: 2 });
   marshaller.marshal(data);
   return marshaller.dumpAsBuffer().toString('base64');
 }

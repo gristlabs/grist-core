@@ -1,10 +1,10 @@
-import {UserAPI} from 'app/common/UserAPI';
-import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
-import {element, FormElement, formSchema, labels, question, questionType} from 'test/nbrowser/formTools';
+import { UserAPI } from 'app/common/UserAPI';
+import { addToRepl, assert, driver, Key } from 'mocha-webdriver';
+import { element, FormElement, formSchema, labels, question, questionType } from 'test/nbrowser/formTools';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {EnvironmentSnapshot} from 'test/server/testUtils';
-import {getSection, waitToPass} from 'test/nbrowser/gristUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { EnvironmentSnapshot } from 'test/server/testUtils';
+import { getSection, waitToPass } from 'test/nbrowser/gristUtils';
 
 describe('FormView2', function() {
   this.timeout('4m');

@@ -34,8 +34,8 @@ abstract class ToggleBase extends NewAbstractWidget {
         buttonSelect(
           fromKoSave(format),
           [
-            {value: 'switch', label: t('Switch')},
-            {value: 'checkbox', label: t('Checkbox')},
+            { value: 'switch', label: t('Switch') },
+            { value: 'checkbox', label: t('Checkbox') },
           ],
           testId('form-field-format'),
         ),
@@ -70,7 +70,7 @@ abstract class ToggleBase extends NewAbstractWidget {
 
 export class ToggleCheckBox extends ToggleBase {
   constructor(field: ViewFieldRec, _options: Options = {}) {
-    super(field, {defaultTextColor: theme.toggleCheckboxFg.toString()});
+    super(field, { defaultTextColor: theme.toggleCheckboxFg.toString() });
   }
 
   public buildDom(row: DataRowModel) {

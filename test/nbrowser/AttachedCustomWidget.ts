@@ -1,11 +1,11 @@
-import {ICustomWidget} from "app/common/CustomWidget";
-import {getAppRoot} from "app/server/lib/places";
-import {assert, By, driver} from "mocha-webdriver";
+import { ICustomWidget } from "app/common/CustomWidget";
+import { getAppRoot } from "app/server/lib/places";
+import { assert, By, driver } from "mocha-webdriver";
 import path from "path";
 import * as gu from "test/nbrowser/gristUtils";
-import {server, setupTestSuite} from "test/nbrowser/testUtils";
-import {serveSomething} from "test/server/customUtil";
-import {EnvironmentSnapshot} from "test/server/testUtils";
+import { server, setupTestSuite } from "test/nbrowser/testUtils";
+import { serveSomething } from "test/server/customUtil";
+import { EnvironmentSnapshot } from "test/server/testUtils";
 
 describe('AttachedCustomWidget', function () {
   this.timeout(20000);
@@ -43,7 +43,7 @@ describe('AttachedCustomWidget', function () {
         res
           .header('Content-Type', 'application/json')
           // prefix widget endpoint with server address
-          .json(widgets.map(widget => ({...widget, url: `${widgetServerUrl}${widget.url}`})))
+          .json(widgets.map(widget => ({ ...widget, url: `${widgetServerUrl}${widget.url}` })))
           .end(),
       );
       app.get('/grist-plugin-api.js', (_, res) =>
@@ -81,7 +81,7 @@ describe('AttachedCustomWidget', function () {
   });
 
   it('should not ask for permission', async () => {
-    await gu.addNewSection(/Calendar/, /Table1/, {selectBy: /TABLE1/});
+    await gu.addNewSection(/Calendar/, /Table1/, { selectBy: /TABLE1/ });
     await gu.getSection('TABLE1 Calendar').click();
     await gu.toggleSidePanel('right', 'open');
     await driver.find('.test-right-tab-pagewidget').click();

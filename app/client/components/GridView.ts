@@ -1,37 +1,37 @@
-import BaseView, {ViewOptions} from 'app/client/components/BaseView';
-import {parsePasteForView} from 'app/client/components/BaseView2';
+import BaseView, { ViewOptions } from 'app/client/components/BaseView';
+import { parsePasteForView } from 'app/client/components/BaseView2';
 import * as selector from 'app/client/components/CellSelector';
-import {ElemType} from 'app/client/components/CellSelector';
-import {CutCallback} from 'app/client/components/Clipboard';
-import {CopySelection} from 'app/client/components/CopySelection';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {renderAllRows} from 'app/client/components/Printing';
-import {viewCommands} from 'app/client/components/RegionFocusSwitcher';
-import {SelectionSummary} from 'app/client/components/SelectionSummary';
+import { ElemType } from 'app/client/components/CellSelector';
+import { CutCallback } from 'app/client/components/Clipboard';
+import { CopySelection } from 'app/client/components/CopySelection';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { renderAllRows } from 'app/client/components/Printing';
+import { viewCommands } from 'app/client/components/RegionFocusSwitcher';
+import { SelectionSummary } from 'app/client/components/SelectionSummary';
 import * as commands from 'app/client/components/commands';
-import {reportUndo} from 'app/client/components/modals';
+import { reportUndo } from 'app/client/components/modals';
 import viewCommon from 'app/client/components/viewCommon';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {onDblClickMatchElem} from 'app/client/lib/dblclick';
-import {testId as oldTestId} from 'app/client/lib/dom';
-import {KoArray} from 'app/client/lib/koArray';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { onDblClickMatchElem } from 'app/client/lib/dblclick';
+import { testId as oldTestId } from 'app/client/lib/dom';
+import { KoArray } from 'app/client/lib/koArray';
 import * as kd from 'app/client/lib/koDom';
 import koDomScrolly from 'app/client/lib/koDomScrolly';
 import koUtil from 'app/client/lib/koUtil';
-import {makeT} from 'app/client/lib/localization';
-import {addToSort, sortBy} from 'app/client/lib/sortUtil';
-import {PasteData} from 'app/client/lib/tableUtil';
+import { makeT } from 'app/client/lib/localization';
+import { addToSort, sortBy } from 'app/client/lib/sortUtil';
+import { PasteData } from 'app/client/lib/tableUtil';
 import * as tableUtil from 'app/client/lib/tableUtil';
 import BaseRowModel from 'app/client/models/BaseRowModel';
-import {NEW_FILTER_JSON} from 'app/client/models/ColumnFilter';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {CombinedStyle} from 'app/client/models/Styles';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {ColInfo, NewColInfo, ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
-import {reportWarning} from 'app/client/models/errors';
-import {CellContextMenu, ICellContextMenu} from 'app/client/ui/CellContextMenu';
-import {IColumnFilterMenuOptions} from 'app/client/ui/ColumnFilterMenu';
-import {buildRenameColumn, columnHeaderWithInfo} from 'app/client/ui/ColumnTitle';
+import { NEW_FILTER_JSON } from 'app/client/models/ColumnFilter';
+import { DataRowModel } from 'app/client/models/DataRowModel';
+import { CombinedStyle } from 'app/client/models/Styles';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { ColInfo, NewColInfo, ViewSectionRec } from 'app/client/models/entities/ViewSectionRec';
+import { reportWarning } from 'app/client/models/errors';
+import { CellContextMenu, ICellContextMenu } from 'app/client/ui/CellContextMenu';
+import { IColumnFilterMenuOptions } from 'app/client/ui/ColumnFilterMenu';
+import { buildRenameColumn, columnHeaderWithInfo } from 'app/client/ui/ColumnTitle';
 import {
   buildAddColumnMenu,
   buildColumnContextMenu,
@@ -40,28 +40,28 @@ import {
   freezeAction,
   IMultiColumnContextMenu,
 } from 'app/client/ui/GridViewMenus';
-import {menuToggle} from 'app/client/ui/MenuToggle';
-import {IRowContextMenu, RowContextMenu} from 'app/client/ui/RowContextMenu';
-import {applyRowHeightLimit} from 'app/client/ui/RowHeightConfig';
-import {contextMenu} from 'app/client/ui/contextMenu';
-import {mouseDragMatchElem} from 'app/client/ui/mouseDrag';
-import {ITooltipControl, showTooltip} from 'app/client/ui/tooltips';
-import {isNarrowScreen, testId} from 'app/client/ui2018/cssVars';
-import {closeRegisteredMenu, menu} from 'app/client/ui2018/menus';
+import { menuToggle } from 'app/client/ui/MenuToggle';
+import { IRowContextMenu, RowContextMenu } from 'app/client/ui/RowContextMenu';
+import { applyRowHeightLimit } from 'app/client/ui/RowHeightConfig';
+import { contextMenu } from 'app/client/ui/contextMenu';
+import { mouseDragMatchElem } from 'app/client/ui/mouseDrag';
+import { ITooltipControl, showTooltip } from 'app/client/ui/tooltips';
+import { isNarrowScreen, testId } from 'app/client/ui2018/cssVars';
+import { closeRegisteredMenu, menu } from 'app/client/ui2018/menus';
 import BinaryIndexedTree from 'app/common/BinaryIndexedTree';
-import {BulkColValues, CellValue, UserAction} from 'app/common/DocActions';
-import {Sort} from 'app/common/SortSpec';
-import {isList} from 'app/common/gristTypes';
+import { BulkColValues, CellValue, UserAction } from 'app/common/DocActions';
+import { Sort } from 'app/common/SortSpec';
+import { isList } from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
-import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
+import { CursorPos, UIRowId } from 'app/plugin/GristAPI';
 
 import convert from 'color-convert';
-import {BindableValue, bundleChanges, Computed, Disposable, Holder, MultiHolder, Observable} from 'grainjs';
-import {dom, DomElementArg, DomElementMethod, subscribeElem} from 'grainjs';
+import { BindableValue, bundleChanges, Computed, Disposable, Holder, MultiHolder, Observable } from 'grainjs';
+import { dom, DomElementArg, DomElementMethod, subscribeElem } from 'grainjs';
 import ko from 'knockout';
 import debounce from 'lodash/debounce';
 import identity from 'lodash/identity';
-import {IOpenController, PopupControl, setPopupToCreateDom} from 'popweasel';
+import { IOpenController, PopupControl, setPopupToCreateDom } from 'popweasel';
 import _ from 'underscore';
 
 // Disable member-ordering linting temporarily, so that it's easier to review the conversion to
@@ -134,8 +134,8 @@ export default class GridView extends BaseView {
   protected customRowMenu: (menu: DomElementArg[], options: IRowContextMenu) => Element[];
   protected colRightOffsets: ko.Computed<BinaryIndexedTree>;
   protected visibleRowIndex: ko.Observable<number|null>;
-  protected currentPosition: Computed<{rowIndex: number|null, fieldIndex: number}>;
-  protected scrollShadow: {left: ko.Computed<boolean>, top: ko.Computed<boolean>};
+  protected currentPosition: Computed<{ rowIndex: number|null, fieldIndex: number }>;
+  protected scrollShadow: { left: ko.Computed<boolean>, top: ko.Computed<boolean> };
   protected ctxMenuHolder: Holder<IOpenController>;
   protected width: ko.Observable<number>;
   protected numFrozen: ko.Computed<number>;
@@ -169,7 +169,7 @@ export default class GridView extends BaseView {
   private _autoWidthHolder: Holder<Disposable>;
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec, protected gridOptions?: GridViewOptions) {
-    super(gristDoc, viewSectionModel, {...gridOptions, addNewRow: gridOptions?.addNewRow ?? true});
+    super(gristDoc, viewSectionModel, { ...gridOptions, addNewRow: gridOptions?.addNewRow ?? true });
 
     this.isPreview = gridOptions?.isPreview || false;
     this._inline = gridOptions?.inline ?? false;
@@ -230,7 +230,7 @@ export default class GridView extends BaseView {
     // Create observable holding current rowIndex that the view should be scrolled to.
     // We will always notify, because we want to scroll to the row even when only the
     // column is changed (in situation when the row is not visible).
-    this.visibleRowIndex = ko.observable(this.cursor.rowIndex()).extend({notify: 'always'});
+    this.visibleRowIndex = ko.observable(this.cursor.rowIndex()).extend({ notify: 'always' });
     // Create grain's Computed with current cursor position (we need it to examine position
     // before the change and after).
     this.currentPosition = Computed.create(this, use => ({
@@ -356,12 +356,12 @@ export default class GridView extends BaseView {
         this.gridOptions.onCellDblClick(this.cursor.getCursorPos());
       }
       else {
-        this.activateEditorAtCursor({event});
+        this.activateEditorAtCursor({ event });
       }
     });
     if (!this.isPreview) {
       dom.onMatchElem(this.scrollPane, '.field:not(.column_name)', 'contextmenu',
-        (ev, elem) => this.onCellContextMenu(ev, elem as Element), {useCapture: true},
+        (ev, elem) => this.onCellContextMenu(ev, elem as Element), { useCapture: true },
       );
     }
     this.autoDispose(dom.onElem(this.scrollPane, 'scroll', () => this.onScroll()));
@@ -386,7 +386,7 @@ export default class GridView extends BaseView {
 
   // Moved out of all commands to support Raw Data Views (which use this command to close
   // the Grid popup).
-  protected static selectionCommands: {[key: string]: Function} & ThisType<GridView> = {
+  protected static selectionCommands: { [key: string]: Function } & ThisType<GridView> = {
     clearCopySelection: function() { this._clearCopySelection(); },
     cancel: function() { this.clearSelection(); },
   };
@@ -395,7 +395,7 @@ export default class GridView extends BaseView {
   // readonly state.
   // GridView commands, enabled when the view is the active one.
   // See BaseView.commonCommands for more details.
-  protected static gridCommands: {[key: string]: Function} & ThisType<GridView> = {
+  protected static gridCommands: { [key: string]: Function } & ThisType<GridView> = {
     fillSelectionDown: function() {
       tableUtil.fillSelectionDown(this.getSelection(), this.tableModel)?.catch(reportError);
     },
@@ -454,7 +454,7 @@ export default class GridView extends BaseView {
 
   // These commands are enabled only when the grid is the user-focused region.
   // See BaseView.commonCommands and BaseView.commonFocusedCommands for more details.
-  protected static gridFocusedCommands: {[key: string]: Function} & ThisType<GridView> = {
+  protected static gridFocusedCommands: { [key: string]: Function } & ThisType<GridView> = {
     cursorDown: function() {
       if (this.cursor.rowIndex() === this.viewData.peekLength - 1) {
         // When the cursor is in the bottom row, the view may not be scrolled all the way to
@@ -487,20 +487,20 @@ export default class GridView extends BaseView {
       }
       this.cursor.fieldIndex(this.cursor.fieldIndex() - 1);
     },
-    shiftDown: function() { this._shiftSelect({step: 1, direction: 'down'}); },
-    shiftUp: function() { this._shiftSelect({step: 1, direction: 'up'}); },
-    shiftRight: function() { this._shiftSelect({step: 1, direction: 'right'}); },
-    shiftLeft: function() { this._shiftSelect({step: 1, direction: 'left'}); },
-    ctrlShiftDown: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'down'}); },
-    ctrlShiftUp: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'up'}); },
-    ctrlShiftRight: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'right'}); },
-    ctrlShiftLeft: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'left'}); },
+    shiftDown: function() { this._shiftSelect({ step: 1, direction: 'down' }); },
+    shiftUp: function() { this._shiftSelect({ step: 1, direction: 'up' }); },
+    shiftRight: function() { this._shiftSelect({ step: 1, direction: 'right' }); },
+    shiftLeft: function() { this._shiftSelect({ step: 1, direction: 'left' }); },
+    ctrlShiftDown: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: 'down' }); },
+    ctrlShiftUp: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: 'up' }); },
+    ctrlShiftRight: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: 'right' }); },
+    ctrlShiftLeft: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: 'left' }); },
     fieldEditSave: function() { this.cursor.rowIndex(this.cursor.rowIndex()! + 1); },
     // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
     editField: function(event?: KeyboardEvent) {
       closeRegisteredMenu();
       this.scrollToCursor(true).catch(reportError);
-      this.activateEditorAtCursor({event});
+      this.activateEditorAtCursor({ event });
     },
     clearValues: function() { this.clearValues(this.getSelection())?.catch(reportError); },
     viewAsCard() {
@@ -567,7 +567,7 @@ export default class GridView extends BaseView {
   /**
    * Update the bounds of the cell selector's selected range for Shift+Direction keyboard shortcuts.
    */
-  protected _shiftSelect({step, direction}: {step: number, direction: Direction}) {
+  protected _shiftSelect({ step, direction}: { step: number, direction: Direction }) {
     const type = ['up', 'down'].includes(direction) ? selector.ROW : selector.COL;
     const exemptType = type === selector.ROW ? selector.COL : selector.ROW;
     if (this.cellSelector.isCurrentSelectType(exemptType)) { return; }
@@ -604,16 +604,16 @@ export default class GridView extends BaseView {
    * the first non-empty cell in the specified direction. Otherwise, the selection
    * will be shifted to the last non-empty cell.
    */
-  protected _shiftSelectUntilFirstOrLastNonEmptyCell({direction}: {direction: Direction}) {
-    const steps = this._stepsToContent({direction});
-    if (steps > 0) { this._shiftSelect({step: steps, direction}); }
+  protected _shiftSelectUntilFirstOrLastNonEmptyCell({ direction}: { direction: Direction }) {
+    const steps = this._stepsToContent({ direction });
+    if (steps > 0) { this._shiftSelect({ step: steps, direction }); }
   }
 
   /**
    * Gets the number of rows/columns until the first or last non-empty cell in the specified
    * `direction`.
    */
-  protected _stepsToContent ({direction}: {direction: Direction}) {
+  protected _stepsToContent ({ direction}: { direction: Direction }) {
     const colEnd = this.cellSelector.col.end();
     const rowEnd = this.cellSelector.row.end();
     const cursorCol = this.cursor.fieldIndex();
@@ -629,30 +629,30 @@ export default class GridView extends BaseView {
       case 'right': {
         if (colEnd + 1 > maxVal) { return 0; }
 
-        selectionData = this._selectionData({colStart: colEnd, colEnd: maxVal, rowStart: cursorRow, rowEnd: cursorRow});
+        selectionData = this._selectionData({ colStart: colEnd, colEnd: maxVal, rowStart: cursorRow, rowEnd: cursorRow });
         break;
       }
       case 'left': {
         if (colEnd - 1 < 0) { return 0; }
 
-        selectionData = this._selectionData({colStart: 0, colEnd, rowStart: cursorRow, rowEnd: cursorRow});
+        selectionData = this._selectionData({ colStart: 0, colEnd, rowStart: cursorRow, rowEnd: cursorRow });
         break;
       }
       case 'up': {
         if (rowEnd - 1 > maxVal) { return 0; }
 
-        selectionData = this._selectionData({colStart: cursorCol, colEnd: cursorCol, rowStart: 0, rowEnd});
+        selectionData = this._selectionData({ colStart: cursorCol, colEnd: cursorCol, rowStart: 0, rowEnd });
         break;
       }
       case 'down': {
         if (rowEnd + 1 > maxVal) { return 0; }
 
-        selectionData = this._selectionData({colStart: cursorCol, colEnd: cursorCol, rowStart: rowEnd, rowEnd: maxVal});
+        selectionData = this._selectionData({ colStart: cursorCol, colEnd: cursorCol, rowStart: rowEnd, rowEnd: maxVal });
         break;
       }
     }
 
-    const {fields, rowIndices} = selectionData;
+    const { fields, rowIndices } = selectionData;
     if (direction === 'left') {
       // When moving selection left, we step through fields in reverse order.
       fields.reverse();
@@ -665,7 +665,7 @@ export default class GridView extends BaseView {
     // Prepare a map of field indexes to their respective column values. We'll consult these
     // values below when looking for the first (or last) non-empty cell value in the direction
     // of the new selection.
-    const colValuesByIndex: {[key: number]: readonly CellValue[]} = {};
+    const colValuesByIndex: { [key: number]: readonly CellValue[] } = {};
     for (const field of fields) {
       const displayColId = field.displayColModel.peek().colId.peek();
       colValuesByIndex[field._index()!] = this.tableModel.tableData.getColValues(displayColId)!;
@@ -715,8 +715,8 @@ export default class GridView extends BaseView {
   }
 
   protected _selectionData(
-    {colStart, colEnd, rowStart, rowEnd}: {colStart: number, colEnd: number, rowStart: number, rowEnd: number},
-  ): {fields: ViewFieldRec[], rowIndices: number[]} {
+    { colStart, colEnd, rowStart, rowEnd}: { colStart: number, colEnd: number, rowStart: number, rowEnd: number },
+  ): { fields: ViewFieldRec[], rowIndices: number[] } {
     const fields = [];
     for (let i = colStart; i <= colEnd; i++) {
       const field = this.viewSection.viewFields().at(i);
@@ -733,7 +733,7 @@ export default class GridView extends BaseView {
       rowIndices.push(this.tableModel.tableData.getRowIdIndex(rowId)!);
     }
 
-    return {fields, rowIndices};
+    return { fields, rowIndices };
   }
 
   protected _isCellValueEmpty(value: CellValue|undefined) {
@@ -798,7 +798,7 @@ export default class GridView extends BaseView {
         .concat(addRowIds);
 
       // Restore the cursor to the right rowId, even if it jumped.
-      this.cursor.setCursorPos({rowId: cursorPos.rowId === 'new' ? addRowIds[0] : cursorPos.rowId});
+      this.cursor.setCursorPos({ rowId: cursorPos.rowId === 'new' ? addRowIds[0] : cursorPos.rowId });
 
       // Restore the selection if it would select the correct rows.
       const topRowIndex = this.viewData.getRowIndex(newRowIds[0]);
@@ -846,8 +846,8 @@ export default class GridView extends BaseView {
    */
   protected getSelection() {
     const rowIds = [], fields = [];
-    const rowStyle: {[r: number]: object} = {};
-    const colStyle: {[c: string]: object} = {};
+    const rowStyle: { [r: number]: object } = {};
+    const colStyle: { [c: string]: object } = {};
     let colStart = this.cellSelector.colLower();
     let colEnd = this.cellSelector.colUpper();
     let rowStart = this.cellSelector.rowLower();
@@ -910,7 +910,7 @@ export default class GridView extends BaseView {
 
     const options = this._getColumnMenuOptions(selection);
     if (options.isFormula === true) {
-      this.activateEditorAtCursor({ init: ''});
+      this.activateEditorAtCursor({ init: '' });
     }
     else {
       const clearAction = tableUtil.makeDeleteAction(selection);
@@ -934,7 +934,7 @@ export default class GridView extends BaseView {
     // prevented by ACL rules).
     const fields = selection.fields.filter(f => f.column.peek().isFormula.peek());
     if (!fields.length) { return null; }
-    return this.gristDoc.docModel.convertIsFormula(fields.map(f => f.colRef.peek()), {toFormula: false});
+    return this.gristDoc.docModel.convertIsFormula(fields.map(f => f.colRef.peek()), { toFormula: false });
   }
 
   protected selectAll() {
@@ -966,7 +966,7 @@ export default class GridView extends BaseView {
       // Trigger custom dom event that will bubble up. View components might not be rendered
       // inside a virtual table which don't register this global handler (as there might be
       // multiple instances of the virtual table component).
-      const event = new CustomEvent('setCursor', {detail: [row, col], bubbles: true});
+      const event = new CustomEvent('setCursor', { detail: [row, col], bubbles: true });
       this.scrollPane.dispatchEvent(event);
 
     }
@@ -1037,7 +1037,7 @@ export default class GridView extends BaseView {
       index = this.viewSection.viewFields().peekLength,
       skipPopup = false,
     } = options;
-    const newColInfo = await this.viewSection.insertColumn(colId, {colInfo, index});
+    const newColInfo = await this.viewSection.insertColumn(colId, { colInfo, index });
     this.selectColumn(index);
     if (!skipPopup) { this.currentEditingColumnIndex(index); }
     // we want to show creator panel in some cases, but only when "rename panel" is dismissed
@@ -1076,7 +1076,7 @@ export default class GridView extends BaseView {
       }
       // Check value is not empty but accept 0 and false as valid values
       if (newColLabel !== null && newColLabel !== undefined && newColLabel !== "") {
-        return [...acc, ['ModifyColumn', colId, {"label": formatter.formatAny(newColLabel)}]];
+        return [...acc, ['ModifyColumn', colId, { "label": formatter.formatAny(newColLabel) }]];
       }
       return acc;
     }, []);
@@ -1485,7 +1485,7 @@ export default class GridView extends BaseView {
                     },
                     dom.style('width', field.widthPx),
                     dom.style('borderRightWidth', v.borderWidthPx),
-                    viewCommon.makeResizable(field.width, {shouldSave: !this.isReadonly}),
+                    viewCommon.makeResizable(field.width, { shouldSave: !this.isReadonly }),
                     kd.toggleClass('selected', () => ko.unwrap(this.isColSelected.at(field._index()!)!)),
                     dom.on('contextmenu', (ev) => {
                     // This is a little hack to position the menu the same way as with a click
@@ -1520,7 +1520,7 @@ export default class GridView extends BaseView {
                       (elem: Element) => {
                         filterTriggerCtl = setPopupToCreateDom(
                           elem,
-                          ctl => this._columnFilterMenu(ctl, field, {showAllFiltersButton: true}),
+                          ctl => this._columnFilterMenu(ctl, field, { showAllFiltersButton: true }),
                           {
                             attach: 'body',
                             placement: 'bottom-start',
@@ -1533,7 +1533,7 @@ export default class GridView extends BaseView {
                       testId('column-menu-trigger'),
                     ),
                     dom('div.selection'),
-                    this._buildInsertColumnMenu({field}),
+                    this._buildInsertColumnMenu({ field }),
                   );
                 }),
                 this.isPreview ? null : (this.isReadonly ? null : () => (
@@ -1548,7 +1548,7 @@ export default class GridView extends BaseView {
           ), // END COL HEADER BOX
 
           koDomScrolly.scrolly(data, {
-            ...(this._inline ? {} : {paddingBottom: 80, paddingRight: 20}),
+            ...(this._inline ? {} : { paddingBottom: 80, paddingRight: 20 }),
             cb: this._onRenderedVisibleRows.bind(this),
           }, renderRow.bind(this)),
 
@@ -1593,7 +1593,7 @@ export default class GridView extends BaseView {
         if (flags.length === 0) { return null; }
         const styles = this.viewSection.rulesStyles() || [];
         return { style: new CombinedStyle(styles, flags) };
-      }).extend({deferred: true}));
+      }).extend({ deferred: true }));
 
       const fillColor = buildStyleOption(this, computedRule, 'fillColor', '');
       const zebraColor = ko.pureComputed(() => calcZebra(fillColor()));
@@ -2126,7 +2126,7 @@ export default class GridView extends BaseView {
   protected _columnFilterMenu(ctl: IOpenController, field: ViewFieldRec, options: IColumnFilterMenuOptions) {
     this.ctxMenuHolder.autoDispose(ctl);
     const filterInfo = this.viewSection.filters()
-      .find(({fieldOrColumn}) => fieldOrColumn.origCol().origColRef() === field.column().origColRef())!;
+      .find(({ fieldOrColumn }) => fieldOrColumn.origCol().origColRef() === field.column().origColRef())!;
     if (!filterInfo.isFiltered.peek()) {
       // This is a new filter - initialize its spec and pin it.
       this.viewSection.setFilter(filterInfo.fieldOrColumn.origCol().origColRef(), {
@@ -2226,7 +2226,7 @@ export default class GridView extends BaseView {
     // Highlight duplicated rows if the grid is not sorted (or the sort doesn't affect rowIndex).
     const topRowIndex = this.viewData.getRowIndex(addRowIds[0]);
     // Set row on the first record added.
-    this.setCursorPos({rowId: addRowIds[0]});
+    this.setCursorPos({ rowId: addRowIds[0] });
     // Highlight inserted area (if we inserted rows in correct order)
     if (addRowIds.every((r, i) => r === this.viewData.getRowId(topRowIndex + i))) {
       this.cellSelector.selectArea(topRowIndex, 0,
@@ -2294,8 +2294,8 @@ export default class GridView extends BaseView {
    * only be one element attached this way: the "+" field, which appears at the end of
    * the GridView.
    */
-  protected _buildInsertColumnMenu(options: {field?: ViewFieldRec} = {}) {
-    const {field} = options;
+  protected _buildInsertColumnMenu(options: { field?: ViewFieldRec } = {}) {
+    const { field } = options;
     const triggers: Array<'click'> = [];
     if (!field) { triggers.push('click'); }
 
@@ -2313,7 +2313,7 @@ export default class GridView extends BaseView {
 
           return [
             buildAddColumnMenu(this, index),
-            (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+            (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
             testId('new-columns-menu'),
           ];
         },
@@ -2362,7 +2362,7 @@ export default class GridView extends BaseView {
       this._openInsertColumnMenu(index);
     }
     else {
-      return this.insertColumn(null, {index});
+      return this.insertColumn(null, { index });
     }
   }
 

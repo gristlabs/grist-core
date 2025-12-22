@@ -1,29 +1,29 @@
-import {GristDeploymentType} from 'app/common/gristUrls';
+import { GristDeploymentType } from 'app/common/gristUrls';
 import {
   AttachmentStoreCreationError,
   ExternalStorageAttachmentStore, storageSupportsAttachments,
 } from 'app/server/lib/AttachmentStore';
-import {getCoreLoginSystem} from 'app/server/lib/coreLogins';
-import {getThemeBackgroundSnippet} from 'app/common/Themes';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {IAttachmentStore} from 'app/server/lib/AttachmentStore';
-import {DocStorageManager} from 'app/server/lib/DocStorageManager';
-import {ExternalStorage, ExternalStorageCreator, UnsupportedPurposeError} from 'app/server/lib/ExternalStorage';
-import {createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
-import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
-import {IAssistant} from 'app/server/lib/IAssistant';
-import {createNullAuditLogger, IAuditLogger} from 'app/server/lib/IAuditLogger';
-import {EmptyBilling, IBilling} from 'app/server/lib/IBilling';
-import {IDocNotificationManager} from 'app/server/lib/IDocNotificationManager';
-import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {INotifier} from 'app/server/lib/INotifier';
-import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
-import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
-import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
-import {SqliteVariant} from 'app/server/lib/SqliteCommon';
+import { getCoreLoginSystem } from 'app/server/lib/coreLogins';
+import { getThemeBackgroundSnippet } from 'app/common/Themes';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { IAttachmentStore } from 'app/server/lib/AttachmentStore';
+import { DocStorageManager } from 'app/server/lib/DocStorageManager';
+import { ExternalStorage, ExternalStorageCreator, UnsupportedPurposeError } from 'app/server/lib/ExternalStorage';
+import { createDummyTelemetry, GristLoginSystem, GristServer } from 'app/server/lib/GristServer';
+import { HostedStorageManager } from 'app/server/lib/HostedStorageManager';
+import { IAssistant } from 'app/server/lib/IAssistant';
+import { createNullAuditLogger, IAuditLogger } from 'app/server/lib/IAuditLogger';
+import { EmptyBilling, IBilling } from 'app/server/lib/IBilling';
+import { IDocNotificationManager } from 'app/server/lib/IDocNotificationManager';
+import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
+import { INotifier } from 'app/server/lib/INotifier';
+import { InstallAdmin, SimpleInstallAdmin } from 'app/server/lib/InstallAdmin';
+import { ISandbox, ISandboxCreationOptions } from 'app/server/lib/ISandbox';
+import { createSandbox, SpawnFn } from 'app/server/lib/NSandbox';
+import { SqliteVariant } from 'app/server/lib/SqliteCommon';
 import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
-import {ITelemetry} from 'app/server/lib/Telemetry';
-import {Express} from 'express';
+import { ITelemetry } from 'app/server/lib/Telemetry';
+import { Express } from 'express';
 
 // In the past, the session secret was used as an additional
 // protection passed on to expressjs-session for security when
@@ -87,7 +87,7 @@ export interface ICreate {
   // static page.
   getExtraHeadHtml?(): string;
   getStorageOptions?(name: string): ICreateStorageOptions|undefined;
-  getAttachmentStoreOptions(): {[key: string]: ICreateAttachmentStoreOptions | undefined};
+  getAttachmentStoreOptions(): { [key: string]: ICreateAttachmentStoreOptions | undefined };
   getSqliteVariant?(): SqliteVariant;
   getSandboxVariants?(): Record<string, SpawnFn>;
 

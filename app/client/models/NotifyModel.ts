@@ -1,10 +1,10 @@
 import * as log from 'app/client/lib/log';
-import {ConnectState, ConnectStateManager} from 'app/client/models/ConnectState';
-import {isNarrowScreenObs, testId} from 'app/client/ui2018/cssVars';
-import {delay} from 'app/common/delay';
-import {isLongerThan} from 'app/common/gutil';
-import {InactivityTimer} from 'app/common/InactivityTimer';
-import {timeFormat} from 'app/common/timeFormat';
+import { ConnectState, ConnectStateManager } from 'app/client/models/ConnectState';
+import { isNarrowScreenObs, testId } from 'app/client/ui2018/cssVars';
+import { delay } from 'app/common/delay';
+import { isLongerThan } from 'app/common/gutil';
+import { InactivityTimer } from 'app/common/InactivityTimer';
+import { timeFormat } from 'app/common/timeFormat';
 import {
   bundleChanges,
   Computed,
@@ -286,7 +286,7 @@ export class Notifier extends Disposable implements INotifier {
       if (this._appErrorList.get().length >= maxAppErrors) {
         this._appErrorList.splice(0, this._appErrorList.get().length - maxAppErrors + 1);
       }
-      this._appErrorList.push({error, timestamp: Date.now()});
+      this._appErrorList.push({ error, timestamp: Date.now() });
     });
 
     // Create a dropdown item for errors if we don't have one yet.
@@ -310,7 +310,7 @@ export class Notifier extends Disposable implements INotifier {
 
   public createProgressIndicator(name: string, size: string, expireOnComplete = false): IProgress {
     // Progress objects normally dispose themselves; constructor disposes any leftover items.
-    const p = Progress.create(this._itemsHolder, {name, size, expireOnComplete});
+    const p = Progress.create(this._itemsHolder, { name, size, expireOnComplete });
     this._progressItems.push(p);
     p.onDispose(() => this.isDisposed() || arrayRemove(this._progressItems, p));
     return p;
@@ -383,7 +383,7 @@ export class Notifier extends Disposable implements INotifier {
         return dom('div',
           dom.forEach(appErrors, (appErr: IAppError) =>
             (where === 'toast' && appErr.seen ? null :
-              dom('div', {tabIndex: "-1"}, timeFormat('T', new Date(appErr.timestamp)), ' ',
+              dom('div', { tabIndex: "-1" }, timeFormat('T', new Date(appErr.timestamp)), ' ',
                 appErr.error.message, testId('notification-app-error'))
             ),
           ),
@@ -408,11 +408,11 @@ function arrayRemove<T>(arr: MutableObsArray<T>, elem: T) {
   }
 }
 
-function getDisconnectMessage(state: ConnectState): {title: string, message: string}|undefined {
+function getDisconnectMessage(state: ConnectState): { title: string, message: string }|undefined {
   switch (state) {
     case ConnectState.RecentlyDisconnected:
-      return {title: 'Connection is lost', message: 'Attempting to reconnect...'};
+      return { title: 'Connection is lost', message: 'Attempting to reconnect...' };
     case ConnectState.ReallyDisconnected:
-      return {title: 'Not connected', message: 'The document is in read-only mode until you are back online.'};
+      return { title: 'Not connected', message: 'The document is in read-only mode until you are back online.' };
   }
 }

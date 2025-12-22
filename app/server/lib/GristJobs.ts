@@ -265,7 +265,7 @@ export class GristBullMQQueueScope extends GristQueueScopeBase<Worker, BullMQJob
   }
 
   protected override async obliterate() {
-    await this._getQueue().obliterate({force: true});
+    await this._getQueue().obliterate({ force: true });
   }
 
   protected createWorker(queueName: string, callback: JobHandler<BullMQJob>): Worker {
@@ -307,18 +307,18 @@ class GristWorker {
       }
       const jobId = options.jobId || makeId();
       this._clearJob(jobId);
-      this._jobs.set(jobId, setTimeout(() => this._callback({name, data}),
+      this._jobs.set(jobId, setTimeout(() => this._callback({ name, data }),
         options.delay));
       return;
     }
     if (options?.repeat) {
       const jobId = options.jobId || makeId();
       this._clearJob(jobId);
-      this._jobs.set(jobId, setInterval(() => this._callback({name, data}),
+      this._jobs.set(jobId, setInterval(() => this._callback({ name, data }),
         options.repeat.every));
       return;
     }
-    await this._callback({name, data});
+    await this._callback({ name, data });
   }
 
   public async obliterate() {

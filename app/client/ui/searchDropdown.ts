@@ -125,7 +125,7 @@ class DropdownWithSearch<T> extends Disposable {
       cssMenuHeader(
         cssSearchIcon('Search'),
         this._inputElem = cssSearch(
-          {placeholder: this._options.placeholder || t('Search')},
+          { placeholder: this._options.placeholder || t('Search') },
           dom.on('input', () => { this._update(); }),
           dom.on('blur', () => setTimeout(() => this._inputElem.focus(), 0)),
         ),

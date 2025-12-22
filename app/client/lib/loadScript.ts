@@ -1,4 +1,4 @@
-import {dom} from 'grainjs';
+import { dom } from 'grainjs';
 
 /**
  * Load dynamically an external JS script from the given URL. Returns a promise that is
@@ -6,8 +6,8 @@ import {dom} from 'grainjs';
  */
 export function loadScript(url: string) {
   return new Promise((resolve, reject) => {
-    const script = dom("script", {type: "text/javascript", src: url, crossorigin: "anonymous"});
-    document.head.appendChild(Object.assign(script, {onload: resolve, onerror: reject}));
+    const script = dom("script", { type: "text/javascript", src: url, crossorigin: "anonymous" });
+    document.head.appendChild(Object.assign(script, { onload: resolve, onerror: reject }));
   });
 }
 
@@ -17,7 +17,7 @@ export function loadScript(url: string) {
  */
 export function loadCssFile(url: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    const link = dom("link", {rel: "stylesheet", href: url});
-    document.head.appendChild(Object.assign(link, {onload: resolve, onerror: reject}));
+    const link = dom("link", { rel: "stylesheet", href: url });
+    document.head.appendChild(Object.assign(link, { onload: resolve, onerror: reject }));
   });
 }

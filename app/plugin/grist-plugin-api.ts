@@ -44,10 +44,10 @@ export * from 'app/plugin/RenderOptions';
 export * from 'app/plugin/WidgetAPI';
 export * from 'app/plugin/CustomSectionAPI';
 
-import {IRpcLogger, Rpc} from 'grain-rpc';
+import { IRpcLogger, Rpc } from 'grain-rpc';
 import isEqual from 'lodash/isEqual';
 
-export const rpc: Rpc = new Rpc({logger: createRpcLogger()});
+export const rpc: Rpc = new Rpc({ logger: createRpcLogger() });
 
 export const api = rpc.getStub<GristAPI>(RPC_GRISTAPI_INTERFACE, checkers.GristAPI);
 export const coreDocApi = rpc.getStub<GristDocAPI>('GristDocAPI@grist', checkers.GristDocAPI);
@@ -68,7 +68,7 @@ export const viewApi: GristView = {
     if (options.format === 'rows') {
       const rows: RowRecord[] = [];
       for (let i = 0; i < data.id.length; i++) {
-        const row: RowRecord = {id: data.id[i]};
+        const row: RowRecord = { id: data.id[i] };
         for (const key of Object.keys(data)) {
           row[key] = data[key][i];
         }
@@ -118,7 +118,7 @@ export const setCursorPos = viewApi.setCursorPos;
  * but the option `keepEncoded` is `false` by default.
  */
 export async function fetchSelectedTable(options: FetchSelectedOptions = {}) {
-  options = {...options, keepEncoded: options.keepEncoded || false};
+  options = { ...options, keepEncoded: options.keepEncoded || false };
   return await viewApi.fetchSelectedTable(options);
 }
 
@@ -127,7 +127,7 @@ export async function fetchSelectedTable(options: FetchSelectedOptions = {}) {
  * but the option `keepEncoded` is `false` by default.
  */
 export async function fetchSelectedRecord(rowId: number, options: FetchSelectedOptions = {}) {
-  options = {...options, keepEncoded: options.keepEncoded || false};
+  options = { ...options, keepEncoded: options.keepEncoded || false };
   return await viewApi.fetchSelectedRecord(rowId, options);
 }
 
@@ -289,7 +289,7 @@ export function mapColumnNames(data: any, options?: {
   mappings?: WidgetColumnMap|null,
   reverse?: boolean,
 }) {
-  options = {columns: _columnsToMap, mappings: _mappingsCache, reverse: false, ...options};
+  options = { columns: _columnsToMap, mappings: _mappingsCache, reverse: false, ...options };
   // If no column configuration was requested or
   // table has no rows, return original data.
   if (!options.columns) {
@@ -368,7 +368,7 @@ export function mapColumnNamesBack(data: any, options?: {
   columns?: ColumnsToMap
   mappings?: WidgetColumnMap|null,
 }) {
-  return mapColumnNames(data, {...options, reverse: true});
+  return mapColumnNames(data, { ...options, reverse: true });
 }
 
 /**
@@ -412,7 +412,7 @@ export function onRecords(
   callback: (data: RowRecord[], mappings: WidgetColumnMap | null) => unknown,
   options: FetchSelectedOptions = {},
 ) {
-  options = {...options, format: options.format || 'rows'};
+  options = { ...options, format: options.format || 'rows' };
   on('message', async function(msg) {
     if (!msg.tableId || !msg.dataChange) { return; }
     const data = await docApi.fetchSelectedTable(options);
@@ -445,7 +445,7 @@ function onThemeChange(callback: (theme: any) => unknown) {
 
       if (msg.fromReady) {
         void (async function() {
-          await rpc.postMessage({message: 'themeInitialized'});
+          await rpc.postMessage({ message: 'themeInitialized' });
         })();
       }
     }
@@ -606,7 +606,7 @@ onThemeChange((newTheme) => {
   attachCssThemeVars(_theme);
 });
 
-function attachCssThemeVars({appearance, name, colors: cssVars}: any) {
+function attachCssThemeVars({ appearance, name, colors: cssVars }: any) {
   // Prepare the custom properties needed for applying the theme.
   const properties = Object.entries(cssVars)
     .map(([propName, value]) => `--grist-theme-${propName}: ${value};`);

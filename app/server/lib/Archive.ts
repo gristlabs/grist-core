@@ -1,8 +1,8 @@
-import {drainWhenSettled} from 'app/server/utils/streams';
-import {ZipArchiveEntry} from 'compress-commons';
+import { drainWhenSettled } from 'app/server/utils/streams';
+import { ZipArchiveEntry } from 'compress-commons';
 import stream from 'node:stream';
 import * as tar from 'tar-stream';
-import ZipStream, {ZipStreamOptions} from 'zip-stream';
+import ZipStream, { ZipStreamOptions } from 'zip-stream';
 
 export interface ArchiveEntry {
   name: string;

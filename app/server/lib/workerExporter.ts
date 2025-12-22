@@ -1,21 +1,21 @@
-import {PassThrough} from 'stream';
-import {FilterColValues} from "app/common/ActiveDocAPI";
-import {ActiveDocSource, doExportDoc, doExportSection, doExportTable,
-  ExportData, ExportHeader, ExportParameters, Filter} from 'app/server/lib/Export';
-import {createExcelFormatter} from 'app/server/lib/ExcelFormatter';
+import { PassThrough } from 'stream';
+import { FilterColValues } from "app/common/ActiveDocAPI";
+import { ActiveDocSource, doExportDoc, doExportSection, doExportTable,
+  ExportData, ExportHeader, ExportParameters, Filter } from 'app/server/lib/Export';
+import { createExcelFormatter } from 'app/server/lib/ExcelFormatter';
 import log from 'app/server/lib/log';
-import {Alignment, Border, Buffer as ExcelBuffer, stream as ExcelWriteStream,
-  Fill, Workbook} from 'exceljs';
-import {Rpc} from 'grain-rpc';
-import {Stream} from 'stream';
-import {MessagePort, threadId} from 'worker_threads';
+import { Alignment, Border, Buffer as ExcelBuffer, stream as ExcelWriteStream,
+  Fill, Workbook } from 'exceljs';
+import { Rpc } from 'grain-rpc';
+import { Stream } from 'stream';
+import { MessagePort, threadId } from 'worker_threads';
 
 export const makeXLSXFromOptions = handleExport(doMakeXLSXFromOptions);
 
 function handleExport<T extends any[]>(
   make: (a: ActiveDocSource, testDates: boolean, output: Stream, ...args: T) => Promise<void|ExcelBuffer>,
 ) {
-  return async function({port, testDates, args}: {port: MessagePort, testDates: boolean, args: T}) {
+  return async function({ port, testDates, args}: { port: MessagePort, testDates: boolean, args: T }) {
     try {
       const start = Date.now();
       log.debug("workerExporter %s %s: started", threadId, make.name);
@@ -36,7 +36,7 @@ function handleExport<T extends any[]>(
       // When Error objects move across threads, they keep only the 'message' property. We can
       // keep other properties (like 'status') if we throw a plain object instead. (Didn't find a
       // good reference on this, https://github.com/nodejs/node/issues/35506 is vaguely related.)
-      throw {message: e.message, ...e};
+      throw { message: e.message, ...e };
     }
   };
 }
@@ -80,16 +80,16 @@ export async function doMakeXLSXFromOptions(
   stream: Stream,
   options: ExportParameters,
 ) {
-  const {tableId, viewSectionId, filters, sortOrder, linkingFilter, header} = options;
+  const { tableId, viewSectionId, filters, sortOrder, linkingFilter, header } = options;
   if (viewSectionId) {
-    return doMakeXLSXFromViewSection({activeDocSource, testDates, stream, viewSectionId, header,
-      sortOrder: sortOrder || null, filters: filters || null, linkingFilter: linkingFilter || null});
+    return doMakeXLSXFromViewSection({ activeDocSource, testDates, stream, viewSectionId, header,
+      sortOrder: sortOrder || null, filters: filters || null, linkingFilter: linkingFilter || null });
   }
   else if (tableId) {
-    return doMakeXLSXFromTable({activeDocSource, testDates, stream, tableId, header});
+    return doMakeXLSXFromTable({ activeDocSource, testDates, stream, tableId, header });
   }
   else {
-    return doMakeXLSX({activeDocSource, testDates, stream, header});
+    return doMakeXLSX({ activeDocSource, testDates, stream, header });
   }
 }
 
@@ -120,7 +120,7 @@ async function doMakeXLSXFromViewSection({
   header?: ExportHeader,
 }) {
   const data = await doExportSection(activeDocSource, viewSectionId, sortOrder, filters, linkingFilter);
-  const {exportTable, end} = convertToExcel(stream, testDates, {header});
+  const { exportTable, end } = convertToExcel(stream, testDates, { header });
   exportTable(data);
   return end();
 }
@@ -137,15 +137,15 @@ async function doMakeXLSXFromViewSection({
  * @param {string} options.header (optional) - which field of the column to use as header
  *
  */
-async function doMakeXLSXFromTable({activeDocSource, testDates, stream, tableId, header}: {
+async function doMakeXLSXFromTable({ activeDocSource, testDates, stream, tableId, header}: {
   activeDocSource: ActiveDocSource,
   testDates: boolean,
   stream: Stream,
   tableId: string,
   header?: ExportHeader,
 }) {
-  const data = await doExportTable(activeDocSource, {tableId});
-  const {exportTable, end} = convertToExcel(stream, testDates, {header});
+  const data = await doExportTable(activeDocSource, { tableId });
+  const { exportTable, end } = convertToExcel(stream, testDates, { header });
   exportTable(data);
   return end();
 }
@@ -153,13 +153,13 @@ async function doMakeXLSXFromTable({activeDocSource, testDates, stream, tableId,
 /**
  * Creates excel document with all tables from an active Grist document.
  */
-async function doMakeXLSX({activeDocSource, testDates, stream, header}: {
+async function doMakeXLSX({ activeDocSource, testDates, stream, header}: {
   activeDocSource: ActiveDocSource,
   testDates: boolean,
   stream: Stream,
   header?: ExportHeader,
 }): Promise<void|ExcelBuffer> {
-  const {exportTable, end} = convertToExcel(stream, testDates, {header});
+  const { exportTable, end } = convertToExcel(stream, testDates, { header });
   await doExportDoc(activeDocSource, async (table: ExportData) => exportTable(table));
   return end();
 }
@@ -258,7 +258,7 @@ function convertToExcel(stream: Stream|undefined, testDates: boolean, options: {
     }
     return maybeCommit(wb);
   }
-  return {exportTable, end};
+  return { exportTable, end };
 }
 
 /**

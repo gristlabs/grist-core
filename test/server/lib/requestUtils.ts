@@ -1,5 +1,5 @@
-import {trustOrigin} from 'app/server/lib/requestUtils';
-import {assert} from 'chai';
+import { trustOrigin } from 'app/server/lib/requestUtils';
+import { assert } from 'chai';
 
 describe('requestUtils', function() {
   describe('trustOrigin', function() {
@@ -19,7 +19,7 @@ describe('requestUtils', function() {
     for (const [origin, host, permitted] of combinations) {
       it(`${origin} can${permitted ? '' : 'not'} access ${host} in browser`, function() {
         assert.equal(
-          trustOrigin({headers: {origin, host}} as any, {header: (a: string, b: string) => true} as any),
+          trustOrigin({ headers: { origin, host } } as any, { header: (a: string, b: string) => true } as any),
           permitted,
         );
       });

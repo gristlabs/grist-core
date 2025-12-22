@@ -1,11 +1,11 @@
-import {UserAPI} from 'app/common/UserAPI';
+import { UserAPI } from 'app/common/UserAPI';
 import axios from 'axios';
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as fse from 'fs-extra';
-import {TestServer} from 'test/gen-server/apiUtils';
-import {configForUser} from 'test/gen-server/testUtils';
-import {createTmpDir} from 'test/server/docTools';
-import {openClient} from 'test/server/gristClient';
+import { TestServer } from 'test/gen-server/apiUtils';
+import { configForUser } from 'test/gen-server/testUtils';
+import { createTmpDir } from 'test/server/docTools';
+import { openClient } from 'test/server/gristClient';
 import * as testUtils from 'test/server/testUtils';
 
 const chimpy = configForUser('Chimpy');
@@ -33,9 +33,9 @@ describe('DocApi2', function() {
     server = new TestServer(this);
     homeUrl = await server.start(['home', 'docs']);
     const api = await server.createHomeApi('chimpy', 'docs', true);
-    await api.newOrg({name: 'testy', domain: 'testy'});
+    await api.newOrg({ name: 'testy', domain: 'testy' });
     owner = await server.createHomeApi('chimpy', 'testy', true);
-    wsId = await owner.newWorkspace({name: 'ws'}, 'current');
+    wsId = await owner.newWorkspace({ name: 'ws' }, 'current');
   });
 
   after(async function() {
@@ -50,17 +50,17 @@ describe('DocApi2', function() {
       this.timeout(120000); // Increase timeout for creating many users
 
       const testScenarios = [
-        {userCount: 5, label: 'small document'},
-        {userCount: 5, label: 'small document'}, // Use results from second run to avoid cold start issues
-        {userCount: 100, label: 'large document'},
-        {userCount: 100, label: 'large document'},
+        { userCount: 5, label: 'small document' },
+        { userCount: 5, label: 'small document' }, // Use results from second run to avoid cold start issues
+        { userCount: 100, label: 'large document' },
+        { userCount: 100, label: 'large document' },
       ];
 
       const results = new Map<number, number>();
 
       for (const scenario of testScenarios) {
         // Create a test document
-        const docId = await owner.newDoc({name: `test-move-doc-${scenario.userCount}`}, wsId);
+        const docId = await owner.newDoc({ name: `test-move-doc-${scenario.userCount}` }, wsId);
 
         // Create users and share the document with them
         const userEmails: string[] = [];
@@ -74,11 +74,11 @@ describe('DocApi2', function() {
           users: userEmails.reduce((acc, email) => {
             acc[email] = 'viewers';
             return acc;
-          }, {} as {[email: string]: 'viewers'}),
+          }, {} as { [email: string]: 'viewers' }),
         });
 
         // Create a new workspace called "TO"
-        const toWsId = await owner.newWorkspace({name: `TO_${scenario.userCount}`}, 'current');
+        const toWsId = await owner.newWorkspace({ name: `TO_${scenario.userCount}` }, 'current');
 
         try {
           // Measure the time it takes to move the document
@@ -112,24 +112,24 @@ describe('DocApi2', function() {
       this.timeout(120000); // Increase timeout for creating many users
 
       const testScenarios = [
-        {userCount: 5, label: 'small document'},
-        {userCount: 5, label: 'small document'}, // Use results from second run to avoid cold start issues
-        {userCount: 100, label: 'large document'},
-        {userCount: 100, label: 'large document'},
+        { userCount: 5, label: 'small document' },
+        { userCount: 5, label: 'small document' }, // Use results from second run to avoid cold start issues
+        { userCount: 100, label: 'large document' },
+        { userCount: 100, label: 'large document' },
       ];
 
       const results = new Map<number, number>();
 
       // Create a destination org
       const destApi = await server.createHomeApi('chimpy', 'docs', true);
-      await destApi.newOrg({name: 'dest-org', domain: 'dest-org'});
+      await destApi.newOrg({ name: 'dest-org', domain: 'dest-org' });
       const destOwner = await server.createHomeApi('chimpy', 'dest-org', true);
-      const destWsId = await destOwner.newWorkspace({name: 'dest-ws'}, 'current');
+      const destWsId = await destOwner.newWorkspace({ name: 'dest-ws' }, 'current');
 
       try {
         for (const scenario of testScenarios) {
           // Create a test document in the original org
-          const docId = await owner.newDoc({name: `test-move-doc-${scenario.userCount}`}, wsId);
+          const docId = await owner.newDoc({ name: `test-move-doc-${scenario.userCount}` }, wsId);
 
           // Create users and share the document with them
           const userEmails: string[] = [];
@@ -143,7 +143,7 @@ describe('DocApi2', function() {
             users: userEmails.reduce((acc, email) => {
               acc[email] = 'viewers';
               return acc;
-            }, {} as {[email: string]: 'viewers'}),
+            }, {} as { [email: string]: 'viewers' }),
           });
 
           try {
@@ -183,7 +183,7 @@ describe('DocApi2', function() {
   describe('DELETE /docs/{did}', async () => {
     it('permanently deletes a document and all of its forks', async function() {
       // Create a new document and fork it twice.
-      const docId = await owner.newDoc({name: 'doc'}, wsId);
+      const docId = await owner.newDoc({ name: 'doc' }, wsId);
       const session = await owner.getSessionActive();
       const client = await openClient(server.server, session.user.email, session.org?.domain || 'docs');
       await client.openDocOnConnect(docId);
@@ -212,7 +212,7 @@ describe('DocApi2', function() {
   describe('/docs/{did}/timing', async () => {
     let docId: string;
     before(async function() {
-      docId = await owner.newDoc({name: 'doc2'}, wsId);
+      docId = await owner.newDoc({ name: 'doc2' }, wsId);
     });
 
     after(async function() {
@@ -228,7 +228,7 @@ describe('DocApi2', function() {
       // We are disabled.
       let resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
       assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, {status: 'disabled'});
+      assert.deepEqual(resp.data, { status: 'disabled' });
 
       // Start it.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
@@ -252,7 +252,7 @@ describe('DocApi2', function() {
       // Check as owner.
       resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
       assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, {status: 'disabled'});
+      assert.deepEqual(resp.data, { status: 'disabled' });
 
       // Start timing as owner.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
@@ -261,7 +261,7 @@ describe('DocApi2', function() {
       // Check we are started.
       resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
       assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, {status: 'active', timing: []});
+      assert.deepEqual(resp.data, { status: 'active', timing: [] });
 
       // Starting timing again works as expected, returns 400 as this is already.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
@@ -299,7 +299,7 @@ describe('DocApi2', function() {
       // Now create a table with a formula column and make sure we see it in the results.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/apply`, [
         ['AddTable', 'Timings', [
-          {id: 'A', formula: '$id'},
+          { id: 'A', formula: '$id' },
         ]],
       ], chimpy);
       assert.equal(resp.status, 200);
@@ -311,7 +311,7 @@ describe('DocApi2', function() {
       // Make sure we see that it is active and we have some intermediate results
       resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
       assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, {status: 'active', timing: []});
+      assert.deepEqual(resp.data, { status: 'active', timing: [] });
 
       // And trigger some formula calculations.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/apply`, [
@@ -354,7 +354,7 @@ describe('DocApi2', function() {
       // Make sure we are off.
       let resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
       assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, {status: 'disabled'});
+      assert.deepEqual(resp.data, { status: 'disabled' });
 
       // Now start it.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);

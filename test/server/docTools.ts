@@ -1,21 +1,21 @@
-import {Role} from 'app/common/roles';
-import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {AttachmentStoreProvider, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
-import {DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
-import {create} from 'app/server/lib/create';
-import {DocManager} from 'app/server/lib/DocManager';
-import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
-import {createDummyGristServer, GristServer} from 'app/server/lib/GristServer';
-import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {getAppRoot} from 'app/server/lib/places';
-import {PluginManager} from 'app/server/lib/PluginManager';
-import {createTmpDir as createTmpUploadDir, FileUploadInfo, globalUploadSet} from 'app/server/lib/uploads';
+import { Role } from 'app/common/roles';
+import { getDocWorkerMap } from 'app/gen-server/lib/DocWorkerMap';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { AttachmentStoreProvider, IAttachmentStoreProvider } from 'app/server/lib/AttachmentStoreProvider';
+import { DummyAuthorizer } from 'app/server/lib/DocAuthorizer';
+import { create } from 'app/server/lib/create';
+import { DocManager } from 'app/server/lib/DocManager';
+import { makeExceptionalDocSession, makeOptDocSession, OptDocSession } from 'app/server/lib/DocSession';
+import { createDummyGristServer, GristServer } from 'app/server/lib/GristServer';
+import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
+import { getAppRoot } from 'app/server/lib/places';
+import { PluginManager } from 'app/server/lib/PluginManager';
+import { createTmpDir as createTmpUploadDir, FileUploadInfo, globalUploadSet } from 'app/server/lib/uploads';
 import * as testUtils from 'test/server/testUtils';
 
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as fse from 'fs-extra';
-import {tmpdir} from 'os';
+import { tmpdir } from 'os';
 import * as path from 'path';
 import * as tmp from 'tmp-promise';
 
@@ -41,7 +41,7 @@ const noCleanup = Boolean(process.env.NO_CLEANUP);
  * @param persistAcrossCases Don't shut down created ActiveDocs between test cases.
  * @param useFixturePlugins Use the plugins in `test/fixtures/plugins`
  */
-export function createDocTools(options: {persistAcrossCases?: boolean,
+export function createDocTools(options: { persistAcrossCases?: boolean,
   useFixturePlugins?: boolean,
   storageManager?: IDocStorageManager,
   server?: () => GristServer,
@@ -58,8 +58,8 @@ export function createDocTools(options: {persistAcrossCases?: boolean,
       ? (await options.createAttachmentStoreProvider())
       : new AttachmentStoreProvider([], "TEST_INSTALL");
 
-    docManager = await createDocManager({tmpDir, pluginManager, storageManager: options.storageManager,
-      server: options.server?.(), attachmentStoreProvider});
+    docManager = await createDocManager({ tmpDir, pluginManager, storageManager: options.storageManager,
+      server: options.server?.(), attachmentStoreProvider });
   }
 
   async function doAfter() {
@@ -144,7 +144,7 @@ export function createDocTools(options: {persistAcrossCases?: boolean,
  *    that loads built-in modules.
  */
 export async function createDocManager(
-  options: {tmpDir?: string, pluginManager?: PluginManager,
+  options: { tmpDir?: string, pluginManager?: PluginManager,
     storageManager?: IDocStorageManager,
     server?: GristServer,
     attachmentStoreProvider?: IAttachmentStoreProvider,
@@ -197,7 +197,7 @@ export async function createFile(dirPath: string, name: string): Promise<FileUpl
  * (userId), and the same id must be used to retrieve it.
  */
 export async function createUpload(fileNames: string[], accessId: string|null): Promise<number> {
-  const {tmpDir, cleanupCallback} = await createTmpUploadDir({});
+  const { tmpDir, cleanupCallback } = await createTmpUploadDir({});
   const files = await Promise.all(fileNames.map(name => createFile(tmpDir, name)));
   return globalUploadSet.registerUpload(files, tmpDir, cleanupCallback, accessId);
 }

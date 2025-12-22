@@ -2,7 +2,7 @@
  * Replicates some of grainjs's fromKo, except that the returned observables have a set() method
  * which calls koObs.saveOnly(val) rather than koObs(val).
  */
-import {IKnockoutObservable, KoWrapObs, Observable} from 'grainjs';
+import { IKnockoutObservable, KoWrapObs, Observable } from 'grainjs';
 
 const wrappers: WeakMap<IKnockoutObservable<any>, Observable<any>> = new WeakMap();
 

@@ -1,12 +1,12 @@
-import {makeT} from 'app/client/lib/localization';
-import {getHomeUrl} from 'app/client/models/AppModel';
-import {Disposable, Observable} from "grainjs";
-import {ConfigAPI} from 'app/common/ConfigAPI';
-import {ActivationAPIImpl, ActivationStatus} from 'app/common/ActivationAPI';
-import {delay} from 'app/common/delay';
-import {getGristConfig} from 'app/common/urlUtils';
-import {GristDeploymentType} from 'app/common/gristUrls';
-import {Notifier} from 'app/client/models/NotifyModel';
+import { makeT } from 'app/client/lib/localization';
+import { getHomeUrl } from 'app/client/models/AppModel';
+import { Disposable, Observable } from "grainjs";
+import { ConfigAPI } from 'app/common/ConfigAPI';
+import { ActivationAPIImpl, ActivationStatus } from 'app/common/ActivationAPI';
+import { delay } from 'app/common/delay';
+import { getGristConfig } from 'app/common/urlUtils';
+import { GristDeploymentType } from 'app/common/gristUrls';
+import { Notifier } from 'app/client/models/NotifyModel';
 
 const t = makeT('ToggleEnterprise');
 
@@ -23,7 +23,7 @@ export class ToggleEnterpriseModel extends Disposable {
   }
 
   public async fetchEnterpriseToggle() {
-    const {deploymentType} = getGristConfig();
+    const { deploymentType } = getGristConfig();
     this.edition.set(deploymentType || null);
     if (deploymentType === 'enterprise') {
       const status = await this._activationAPI.getActivationStatus();
@@ -39,7 +39,7 @@ export class ToggleEnterpriseModel extends Disposable {
     // We may be restarting the server, so these requests may well
     // fail if done in quick succession.
     const task = async () => {
-      await retryOnNetworkError(() => this._configAPI.setValue({edition}));
+      await retryOnNetworkError(() => this._configAPI.setValue({ edition }));
       this.edition.set(edition);
       await retryOnNetworkError(() => this._configAPI.restartServer());
     };

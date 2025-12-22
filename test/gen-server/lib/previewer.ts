@@ -1,10 +1,10 @@
-import {Organization} from 'app/gen-server/entity/Organization';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import { Organization } from 'app/gen-server/entity/Organization';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import axios from 'axios';
-import {AxiosRequestConfig} from 'axios';
-import {assert} from 'chai';
-import {TestServer} from 'test/gen-server/apiUtils';
-import {configForUser} from 'test/gen-server/testUtils';
+import { AxiosRequestConfig } from 'axios';
+import { assert } from 'chai';
+import { TestServer } from 'test/gen-server/apiUtils';
+import { configForUser } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
 const previewer = configForUser('thumbnail');
@@ -73,14 +73,14 @@ describe('previewer', function() {
     assert.equal(resp.status, 200);
     resp = await axios.delete(`${homeUrl}/api/docs/${docId}`, previewer);
     assert.equal(resp.status, 403);
-    resp = await axios.patch(`${homeUrl}/api/docs/${docId}`, {name: 'diff'}, previewer);
+    resp = await axios.patch(`${homeUrl}/api/docs/${docId}`, { name: 'diff' }, previewer);
     assert.equal(resp.status, 403);
 
     resp = await axios.get(`${homeUrl}/api/workspaces/${wsId}`, previewer);
     assert.equal(resp.status, 200);
     resp = await axios.delete(`${homeUrl}/api/workspaces/${wsId}`, previewer);
     assert.equal(resp.status, 403);
-    resp = await axios.patch(`${homeUrl}/api/workspaces/${wsId}`, {name: 'diff'}, previewer);
+    resp = await axios.patch(`${homeUrl}/api/workspaces/${wsId}`, { name: 'diff' }, previewer);
     assert.equal(resp.status, 403);
   });
 
@@ -93,14 +93,14 @@ describe('previewer', function() {
     const docId = resp.data[0].docs[0].id;
 
     const store = home.getWorkStore().getPermitStore('internal');
-    const goodDocPermit = await store.setPermit({docId});
-    const badDocPermit = await store.setPermit({docId: 'dud'});
-    const goodWsPermit = await store.setPermit({workspaceId: wsId});
-    const badWsPermit = await store.setPermit({workspaceId: wsId + 1});
+    const goodDocPermit = await store.setPermit({ docId });
+    const badDocPermit = await store.setPermit({ docId: 'dud' });
+    const goodWsPermit = await store.setPermit({ workspaceId: wsId });
+    const badWsPermit = await store.setPermit({ workspaceId: wsId + 1 });
 
     // Check that external store is no good for internal use.
     const externalStore = home.getWorkStore().getPermitStore('external');
-    const externalDocPermit = await externalStore.setPermit({docId});
+    const externalDocPermit = await externalStore.setPermit({ docId });
     resp = await axios.get(`${homeUrl}/api/docs/${docId}`, permit(externalDocPermit));
     //assert.equal(resp.status, 401);
 
@@ -112,7 +112,7 @@ describe('previewer', function() {
     assert.equal(resp.status, 403);
     resp = await axios.get(`${homeUrl}/api/docs/${docId}`, permit(goodDocPermit));
     assert.equal(resp.status, 403);
-    resp = await axios.patch(`${homeUrl}/api/docs/${docId}`, {name: 'diff'}, permit(goodDocPermit));
+    resp = await axios.patch(`${homeUrl}/api/docs/${docId}`, { name: 'diff' }, permit(goodDocPermit));
     assert.equal(resp.status, 403);
     resp = await axios.delete(`${homeUrl}/api/docs/${docId}`, permit(goodDocPermit));
     assert.equal(resp.status, 200);
@@ -125,7 +125,7 @@ describe('previewer', function() {
     assert.equal(resp.status, 403);
     resp = await axios.get(`${homeUrl}/api/workspaces/${wsId}`, permit(goodWsPermit));
     assert.equal(resp.status, 200);  // workspace read respects permit
-    resp = await axios.patch(`${homeUrl}/api/workspaces/${wsId}`, {name: 'diff'}, permit(goodWsPermit));
+    resp = await axios.patch(`${homeUrl}/api/workspaces/${wsId}`, { name: 'diff' }, permit(goodWsPermit));
     assert.equal(resp.status, 403);
     resp = await axios.delete(`${homeUrl}/api/workspaces/${wsId}`, permit(goodWsPermit));
     assert.equal(resp.status, 200);  // workspace delete respects permit

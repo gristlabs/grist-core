@@ -1,6 +1,6 @@
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {components} from 'app/common/ThemePrefs';
-import {dom, DomElementArg, Observable, styled} from 'grainjs';
+import { testId, theme } from 'app/client/ui2018/cssVars';
+import { components } from 'app/common/ThemePrefs';
+import { dom, DomElementArg, Observable, styled } from 'grainjs';
 
 interface ToggleSwitchOptions {
   label?: string;
@@ -39,13 +39,13 @@ interface ToggleSwitchOptions {
  * @param options - see ToggleSwitchOptions
  */
 export function toggleSwitch(value?: Observable<boolean|null>, options: ToggleSwitchOptions = {}) {
-  const {label, useHiddenInput = true, args = [], inputArgs = [], labelArgs = []} = options;
+  const { label, useHiddenInput = true, args = [], inputArgs = [], labelArgs = [] } = options;
 
   const useInput = useHiddenInput && value;
   return cssToggleSwitch(
     useInput
       ? cssInput(
-        {type: 'checkbox'},
+        { type: 'checkbox' },
         dom.prop('checked', value),
         dom.prop('value', use => use(value) ? '1' : '0'),
         dom.on('change', (_e, elem) => value.set(elem.checked)),

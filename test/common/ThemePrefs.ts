@@ -1,5 +1,5 @@
-import {componentsCssMapping, tokensCssMapping} from 'app/common/ThemePrefs';
-import {assert} from 'chai';
+import { componentsCssMapping, tokensCssMapping } from 'app/common/ThemePrefs';
+import { assert } from 'chai';
 
 describe('ThemePrefs', function() {
   /**

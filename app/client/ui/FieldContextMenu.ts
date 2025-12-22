@@ -1,8 +1,8 @@
-import {allCommands} from 'app/client/components/commands';
-import {makeT} from 'app/client/lib/localization';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {menuDivider, menuItemCmd} from 'app/client/ui2018/menus';
-import {dom} from 'grainjs';
+import { allCommands } from 'app/client/components/commands';
+import { makeT } from 'app/client/lib/localization';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { menuDivider, menuItemCmd } from 'app/client/ui2018/menus';
+import { dom } from 'grainjs';
 
 const t = makeT('FieldContextMenu');
 
@@ -14,7 +14,7 @@ export interface IFieldContextMenu {
 }
 
 export function FieldContextMenu(fieldOptions: IFieldContextMenu) {
-  const {disableModify, isReadonly, field, isAddRow} = fieldOptions;
+  const { disableModify, isReadonly, field, isAddRow } = fieldOptions;
   const disableForReadonlyColumn = dom.cls('disabled', disableModify || isReadonly);
 
   const isVirtual = typeof field.colRef.peek() === 'string';

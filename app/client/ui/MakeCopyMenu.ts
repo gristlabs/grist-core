@@ -3,22 +3,22 @@
  * the sample documents (those in the Support user's Examples & Templates workspace).
  */
 
-import {hooks} from 'app/client/Hooks';
-import {makeT} from 'app/client/lib/localization';
-import {AppModel, reportError} from 'app/client/models/AppModel';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {getWorkspaceInfo, ownerName, workspaceName} from 'app/client/models/WorkspaceInfo';
-import {cssInput} from 'app/client/ui/cssInput';
-import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
+import { hooks } from 'app/client/Hooks';
+import { makeT } from 'app/client/lib/localization';
+import { AppModel, reportError } from 'app/client/models/AppModel';
+import { DocPageModel } from 'app/client/models/DocPageModel';
+import { urlState } from 'app/client/models/gristUrlState';
+import { getWorkspaceInfo, ownerName, workspaceName } from 'app/client/models/WorkspaceInfo';
+import { cssInput } from 'app/client/ui/cssInput';
+import { bigBasicButton, bigPrimaryButtonLink } from 'app/client/ui2018/buttons';
 import {
   cssRadioCheckboxOptions,
   labeledSquareCheckbox,
   radioCheckboxOption,
 } from 'app/client/ui2018/checkbox';
-import {testId} from 'app/client/ui2018/cssVars';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {IOptionFull, select} from 'app/client/ui2018/menus';
+import { testId } from 'app/client/ui2018/cssVars';
+import { loadingSpinner } from 'app/client/ui2018/loaders';
+import { IOptionFull, select } from 'app/client/ui2018/menus';
 import {
   confirmModal,
   cssModalBody,
@@ -28,7 +28,7 @@ import {
   saveModal,
 } from 'app/client/ui2018/modals';
 import * as roles from 'app/common/roles';
-import {components, tokens} from 'app/common/ThemePrefs';
+import { components, tokens } from 'app/common/ThemePrefs';
 import {
   CreatableArchiveFormats,
   DocAttachmentsLocation,
@@ -47,13 +47,13 @@ import {
   subscribe,
   subscribeElem,
 } from 'grainjs';
-import {cssLink} from 'app/client/ui2018/links';
+import { cssLink } from 'app/client/ui2018/links';
 import sortBy from 'lodash/sortBy';
 
 const t = makeT('MakeCopyMenu');
 
 export async function replaceTrunkWithFork(doc: Document, pageModel: DocPageModel, origUrlId: string) {
-  const {appModel} = pageModel;
+  const { appModel } = pageModel;
   const trunkAccess = (await appModel.api.getDoc(origUrlId)).access;
   if (!roles.canEdit(trunkAccess)) {
     modal(ctl => [
@@ -87,14 +87,14 @@ not in this document. Those changes will be overwritten.")}`;
   confirmModal(titleText, buttonText,
     async () => {
       try {
-        await docApi.replace({sourceDocId: doc.id});
+        await docApi.replace({ sourceDocId: doc.id });
         pageModel.clearUnsavedChanges();
-        await urlState().pushUrl({doc: origUrlId});
+        await urlState().pushUrl({ doc: origUrlId });
       }
       catch (e) {
         reportError(e);  // For example: no write access on trunk.
       }
-    }, {explanation: warningText});
+    }, { explanation: warningText });
 }
 
 /**
@@ -122,8 +122,8 @@ export async function makeCopy(options: {
   doc: Document,
   modalTitle: string,
 }): Promise<void> {
-  const {pageModel, doc, modalTitle} = options;
-  const {appModel} = pageModel;
+  const { pageModel, doc, modalTitle } = options;
+  const { appModel } = pageModel;
   let orgs = allowOtherOrgs(doc, appModel) ? await appModel.api.getOrgs(true) : null;
   if (orgs) {
     // Don't show the templates org since it's selected by default, and
@@ -133,7 +133,7 @@ export async function makeCopy(options: {
 
   // Show a dialog with a form to select destination.
   saveModal((ctl, owner) => {
-    const saveCopyModal = SaveCopyModal.create(owner, {pageModel, doc, orgs});
+    const saveCopyModal = SaveCopyModal.create(owner, { pageModel, doc, orgs });
     return {
       title: modalTitle,
       body: saveCopyModal.buildDom(),
@@ -208,7 +208,7 @@ class SaveCopyModal extends Disposable {
         asTemplate: this._asTemplate.get(),
       });
       this._pageModel.clearUnsavedChanges();
-      await urlState().pushUrl({org: org?.domain || undefined, doc, docPage: urlState().state.get().docPage});
+      await urlState().pushUrl({ org: org?.domain || undefined, doc, docPage: urlState().state.get().docPage });
     }
     catch(err) {
       // Convert access denied errors to normal Error to make it consistent with other endpoints.
@@ -224,7 +224,7 @@ class SaveCopyModal extends Disposable {
     return [
       cssField(
         cssLabel(t("Name")),
-        input(this._destName, {onInput: true}, {placeholder: t("Enter document name")},  dom.cls(cssInput.className),
+        input(this._destName, { onInput: true }, { placeholder: t("Enter document name") },  dom.cls(cssInput.className),
           // modal dialog grabs focus after 10ms delay; so to focus this input, wait a bit longer
           // (see the TODO in app/client/ui2018/modals.ts about weasel.js and focus).
           (elem) => { setTimeout(() => { elem.focus(); }, 20); },
@@ -241,7 +241,7 @@ class SaveCopyModal extends Disposable {
       (this._orgs ?
         cssField(
           cssLabel(t("Organization")),
-          select(this._destOrg, this._orgs.map(value => ({value, label: value.name}))),
+          select(this._destOrg, this._orgs.map(value => ({ value, label: value.name }))),
           testId('copy-dest-org'),
         ) : null
       ),
@@ -418,8 +418,8 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
 
     const formatObs = Observable.create<CreatableArchiveFormats>(owner, 'tar');
     const allFormats: IOptionFull<CreatableArchiveFormats>[] = [
-      { value: 'tar', label: t('.tar (recommended)')},
-      { value: 'zip', label: t('.zip')},
+      { value: 'tar', label: t('.tar (recommended)') },
+      { value: 'zip', label: t('.zip') },
     ];
     const attachmentArchiveDownloadHref: Computed<string> = Computed.create(owner, (use) => {
       const format = use(formatObs);

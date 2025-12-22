@@ -1,7 +1,7 @@
 /**
  * Module to help deal with unsaved changes when closing a page.
  */
-import {Disposable} from 'grainjs';
+import { Disposable } from 'grainjs';
 
 /**
  * Create an UnsavedChanges object to indicate there are UnsavedChanges. Dispose it when this is

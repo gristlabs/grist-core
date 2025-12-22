@@ -131,7 +131,7 @@ describe("saveViewSection", function() {
 
     // Create a Places table with a single Place column.
     await gu.addNewTable('Places');
-    await gu.renameColumn({col: 0}, 'Place');
+    await gu.renameColumn({ col: 0 }, 'Place');
     await gu.sendKeys(Key.ARROW_RIGHT);
     await gu.sendKeys(Key.chord(Key.ALT, '-'));
     await gu.waitForServer();
@@ -140,7 +140,7 @@ describe("saveViewSection", function() {
 
     // Create an Orders table, and rename the last column to Test.
     await gu.addNewTable('Orders');
-    await gu.renameColumn({col: 2}, 'Test');
+    await gu.renameColumn({ col: 2 }, 'Test');
 
     // Duplicate the Places page.
     await gu.openPageMenu('Places');

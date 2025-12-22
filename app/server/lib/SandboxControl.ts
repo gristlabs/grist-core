@@ -40,7 +40,7 @@ export class DirectProcessControl implements ISandboxControl {
     if (process.env.GRIST_THROTTLE_CPU) {
       this._throttle = new Throttle({
         pid: this._pid,
-        logMeta: {...logMeta, pid: _process.pid},
+        logMeta: { ...logMeta, pid: _process.pid },
       });
     }
   }
@@ -222,11 +222,11 @@ export class SubprocessControl implements ISandboxControl {
         pid: processes.sandbox.pid,
         readPid: processes.cpu?.pid,
         tracedPid: processes.traced?.pid,
-        logMeta: {...this._options.logMeta,
+        logMeta: { ...this._options.logMeta,
           pid: processes.sandbox.pid,
           otherPids: [processes.cpu?.pid,
             processes.memory?.pid,
-            processes.traced?.pid]},
+            processes.traced?.pid] },
       });
     }
   }
@@ -235,7 +235,7 @@ export class SubprocessControl implements ISandboxControl {
    * Return the root process and all its (nested) children.
    */
   private _getAllProcesses(): Promise<ProcessInfo[]> {
-    const rootProcess = {pid: this._options.pid, label: 'root', parentLabel: ''};
+    const rootProcess = { pid: this._options.pid, label: 'root', parentLabel: '' };
     return this._addChildren([rootProcess]);
   }
 

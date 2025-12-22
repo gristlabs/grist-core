@@ -1,19 +1,19 @@
 import ICommonUrlsTI from 'app/common/ICommonUrls-ti';
-import {AssistantConfig} from 'app/common/Assistant';
-import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
-import {Document} from 'app/common/UserAPI';
-import {encodeQueryParams, isAffirmative, removePrefix} from 'app/common/gutil';
-import {EngineCode} from 'app/common/DocumentSettings';
-import {Features as PlanFeatures} from 'app/common/Features';
-import {getGristConfig} from 'app/common/urlUtils';
-import {IAttachedCustomWidget} from "app/common/widgetTypes";
-import {ICommonUrls} from 'app/common/ICommonUrls';
-import {LocalPlugin} from 'app/common/plugin';
-import {OpenDocMode} from 'app/common/DocListAPI';
-import {StringUnion} from 'app/common/StringUnion';
-import {TelemetryLevel} from 'app/common/Telemetry';
-import {ThemeAppearance, themeAppearances, ThemeName, themeNames} from 'app/common/ThemePrefs';
-import {UIRowId} from 'app/plugin/GristAPI';
+import { AssistantConfig } from 'app/common/Assistant';
+import { BillingPage, BillingSubPage, BillingTask } from 'app/common/BillingAPI';
+import { Document } from 'app/common/UserAPI';
+import { encodeQueryParams, isAffirmative, removePrefix } from 'app/common/gutil';
+import { EngineCode } from 'app/common/DocumentSettings';
+import { Features as PlanFeatures } from 'app/common/Features';
+import { getGristConfig } from 'app/common/urlUtils';
+import { IAttachedCustomWidget } from "app/common/widgetTypes";
+import { ICommonUrls } from 'app/common/ICommonUrls';
+import { LocalPlugin } from 'app/common/plugin';
+import { OpenDocMode } from 'app/common/DocListAPI';
+import { StringUnion } from 'app/common/StringUnion';
+import { TelemetryLevel } from 'app/common/Telemetry';
+import { ThemeAppearance, themeAppearances, ThemeName, themeNames } from 'app/common/ThemePrefs';
+import { UIRowId } from 'app/plugin/GristAPI';
 
 import clone from 'lodash/clone';
 import pickBy from 'lodash/pickBy';
@@ -299,19 +299,19 @@ export function getOrgUrlInfo(newOrg: string, currentHost: string, options: OrgU
     return {};
   }
   if (options.pathOnly) {
-    return {orgInPath: newOrg};
+    return { orgInPath: newOrg };
   }
   const hostType = getHostType(currentHost, options);
   if (hostType !== 'plugin') {
     const hostname = currentHost.split(":")[0];
     if (!options.baseDomain || hostname === 'localhost') {
-      return {orgInPath: newOrg};
+      return { orgInPath: newOrg };
     }
   }
   if (newOrg === options.org && hostType !== 'native') {
     return {};
   }
-  return {hostname: newOrg + options.baseDomain};
+  return { hostname: newOrg + options.baseDomain };
 }
 
 /**
@@ -334,7 +334,7 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
 
   if (state.org) {
     // We figure out where to stick the org using the gristConfig and the current host.
-    const {hostname, orgInPath} = getOrgUrlInfo(state.org, baseLocation.host, gristConfig);
+    const { hostname, orgInPath } = getOrgUrlInfo(state.org, baseLocation.host, gristConfig);
     if (hostname) {
       url.hostname = hostname;
     }
@@ -404,7 +404,7 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     parts.push(state.adminPanel === 'admin' ? 'admin' : `admin/${state.adminPanel}`);
   }
 
-  const queryParams = pickBy(state.params, (v, k) => k !== 'linkParameters') as {[key: string]: string};
+  const queryParams = pickBy(state.params, (v, k) => k !== 'linkParameters') as { [key: string]: string };
   for (const [k, v] of Object.entries(state.params?.linkParameters || {})) {
     queryParams[`${k}_`] = v;
   }
@@ -534,7 +534,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     if (fork.forkId) { state.fork = fork; }
     if (map.has('slug')) { state.slug = map.get('slug'); }
     if (map.has('p')) { state.docPage = parseDocPage(map.get('p')!); }
-    if (map.has('f')) { state.form = {vsId: parseInt(map.get('f')!, 10)}; }
+    if (map.has('f')) { state.form = { vsId: parseInt(map.get('f')!, 10) }; }
   }
   else {
     if (map.has('p')) {
@@ -719,7 +719,7 @@ export function decodeLinkParameters(sp: URLSearchParams) {
 // allows setting other properties (e.g. 'docPage') at the same time.
 export function userOverrideParams(email: string|null, extraState?: IGristUrlState) {
   return function(prevState: IGristUrlState): IGristUrlState {
-    const combined = {...prevState, ...extraState};
+    const combined = { ...prevState, ...extraState };
     const linkParameters = clone(combined.params?.linkParameters) || {};
     if (email) {
       linkParameters.aclAsUser = email;
@@ -728,7 +728,7 @@ export function userOverrideParams(email: string|null, extraState?: IGristUrlSta
       delete linkParameters.aclAsUser;
     }
     delete linkParameters.aclAsUserId;
-    return {...combined, params: {...combined.params, linkParameters}};
+    return { ...combined, params: { ...combined.params, linkParameters } };
   };
 }
 
@@ -751,14 +751,14 @@ function parseDocPage(p: string): IDocPage {
  *
  * If there's no way to parse the URL into such a pair, then an empty object is returned.
  */
-export function parseSubdomain(host: string|undefined): {org?: string, base?: string} {
+export function parseSubdomain(host: string|undefined): { org?: string, base?: string } {
   if (!host) { return {}; }
   const match = /^([^.]+)(\..+\..+)$/.exec(host.toLowerCase());
   if (match) {
     const org = match[1];
     const base = match[2];
     if (subdomainRegex.exec(org)) {
-      return {org, base};
+      return { org, base };
     }
   }
   // Host has nowhere to put a subdomain.
@@ -774,7 +774,7 @@ const localhostRegex = /^localhost(?::(\d+))?$/i;
  *   - host is localhost:NNNN
  * An empty object is only returned when host is localhost:NNNN.
  */
-export function parseSubdomainStrictly(host: string|undefined): {org?: string, base?: string} {
+export function parseSubdomainStrictly(host: string|undefined): { org?: string, base?: string } {
   if (!host) { throw new Error('host not known'); }
   const result = parseSubdomain(host);
   if (result.org) { return result; }
@@ -906,10 +906,10 @@ export interface GristLoadConfig {
   maxUploadSizeAttachment?: number;
 
   // Pre-fetched call to getDoc for the doc being loaded.
-  getDoc?: {[id: string]: Document};
+  getDoc?: { [id: string]: Document };
 
   // Pre-fetched call to getWorker for the doc being loaded.
-  getWorker?: {[id: string]: string|null};
+  getWorker?: { [id: string]: string|null };
 
   // The timestamp when this gristConfig was generated.
   timestampMs: number;
@@ -1151,9 +1151,9 @@ export function extractOrgParts(reqHost: string|undefined, reqPath: string): Org
     const orgFromPath = part.value.toLowerCase();
     const mismatch = Boolean(orgFromHost && orgFromPath && (orgFromHost !== orgFromPath));
     const subdomain = mismatch ? null : orgFromPath;
-    return {orgFromHost, orgFromPath, pathRemainder: part.path, mismatch, subdomain};
+    return { orgFromHost, orgFromPath, pathRemainder: part.path, mismatch, subdomain };
   }
-  return {orgFromHost, orgFromPath: null, pathRemainder: reqPath, mismatch: false, subdomain: orgFromHost};
+  return { orgFromHost, orgFromPath: null, pathRemainder: reqPath, mismatch: false, subdomain: orgFromHost };
 }
 
 /**
@@ -1170,13 +1170,13 @@ export function sanitizePathTail(path: string|undefined) {
  * Otherwise, returns value of undefined and the path unchanged.
  * E.g. parseFirstUrlPart('o', '/o/foo/bar') returns {value: 'foo', path: '/bar'}.
  */
-export function parseFirstUrlPart(tag: string, path: string): {value?: string, path: string} {
+export function parseFirstUrlPart(tag: string, path: string): { value?: string, path: string } {
   const match = path.match(/^\/([^/?#]+)\/([^/?#]+)(.*)$/);
   if (match && match[1] === tag) {
-    return {value: match[2], path: sanitizePathTail(match[3])};
+    return { value: match[2], path: sanitizePathTail(match[3]) };
   }
   else {
-    return {path};
+    return { path };
   }
 }
 
@@ -1297,7 +1297,7 @@ export function makeAnchorLinkValue(hash: HashLink): string {
 
 // Check whether a urlId is a prefix of the docId, and adequately long to be
 // a candidate for use in prettier urls.
-function shouldIncludeSlug(doc: {id: string, urlId: string|null}): boolean {
+function shouldIncludeSlug(doc: { id: string, urlId: string|null }): boolean {
   if (!doc.urlId || doc.urlId.length < MIN_URLID_PREFIX_LENGTH) { return false; }
   return doc.id.startsWith(doc.urlId) || doc.urlId.startsWith(SHARE_KEY_PREFIX);
 }
@@ -1306,12 +1306,12 @@ function shouldIncludeSlug(doc: {id: string, urlId: string|null}): boolean {
 // replaces those with a reasonable ascii representation. Only alphanumerics are retained, and
 // spaces are replaced with hyphens.
 function nameToSlug(name: string): string {
-  return slugify(name, {strict: true});
+  return slugify(name, { strict: true });
 }
 
 // Returns a slug for the given docId/urlId/name, or undefined if a slug should
 // not be used.
-export function getSlugIfNeeded(doc: {id: string, urlId: string|null, name: string}): string|undefined {
+export function getSlugIfNeeded(doc: { id: string, urlId: string|null, name: string }): string|undefined {
   if (!shouldIncludeSlug(doc)) { return; }
   return nameToSlug(doc.name);
 }

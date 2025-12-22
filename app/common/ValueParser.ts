@@ -1,17 +1,17 @@
-import {csvDecodeRow} from 'app/common/csvFormat';
-import {BulkColValues, CellValue, ColValues, UserAction} from 'app/common/DocActions';
-import {DocData} from 'app/common/DocData';
-import {DocumentSettings} from 'app/common/DocumentSettings';
+import { csvDecodeRow } from 'app/common/csvFormat';
+import { BulkColValues, CellValue, ColValues, UserAction } from 'app/common/DocActions';
+import { DocData } from 'app/common/DocData';
+import { DocumentSettings } from 'app/common/DocumentSettings';
 import * as gristTypes from 'app/common/gristTypes';
-import {getReferencedTableId, isFullReferencingType} from 'app/common/gristTypes';
+import { getReferencedTableId, isFullReferencingType } from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
-import {safeJsonParse} from 'app/common/gutil';
-import {NumberFormatOptions} from 'app/common/NumberFormat';
+import { safeJsonParse } from 'app/common/gutil';
+import { NumberFormatOptions } from 'app/common/NumberFormat';
 import NumberParse from 'app/common/NumberParse';
-import {parseDateStrict, parseDateTime} from 'app/common/parseDate';
-import {MetaRowRecord, TableData} from 'app/common/TableData';
-import {DateFormatOptions, DateTimeFormatOptions, formatDecoded, FormatOptions} from 'app/common/ValueFormatter';
-import {encodeObject} from 'app/plugin/objtypes';
+import { parseDateStrict, parseDateTime } from 'app/common/parseDate';
+import { MetaRowRecord, TableData } from 'app/common/TableData';
+import { DateFormatOptions, DateTimeFormatOptions, formatDecoded, FormatOptions } from 'app/common/ValueFormatter';
+import { encodeObject } from 'app/plugin/objtypes';
 import flatMap from 'lodash/flatMap';
 import mapValues from 'lodash/mapValues';
 
@@ -58,7 +58,7 @@ class DateTimeParser extends ValueParser {
   constructor(type: string, widgetOpts: DateTimeFormatOptions, docSettings: DocumentSettings) {
     super(type, widgetOpts, docSettings);
     const timezone = gutil.removePrefix(type, "DateTime:") || '';
-    this.widgetOpts = {...widgetOpts, timezone};
+    this.widgetOpts = { ...widgetOpts, timezone };
   }
 
   public parse(value: string): any {
@@ -149,14 +149,14 @@ export class ReferenceParser extends ValueParser {
     }
 
     if (!this.tableData?.isLoaded) {
-      const options: { column: string, raw?: string } = {column: this._visibleColId};
+      const options: { column: string, raw?: string } = { column: this._visibleColId };
       if (value !== raw) {
         options.raw = raw;
       }
       return ['l', value, options];
     }
 
-    return this.tableData.findMatchingRowId({[this._visibleColId]: value}) || raw;
+    return this.tableData.findMatchingRowId({ [this._visibleColId]: value }) || raw;
   }
 }
 
@@ -191,7 +191,7 @@ export class ReferenceListParser extends ReferenceParser {
     }
 
     if (!this.tableData?.isLoaded) {
-      const options: { column: string, raw?: string } = {column: this._visibleColId};
+      const options: { column: string, raw?: string } = { column: this._visibleColId };
       if (!(values.length === 1 && values[0] === raw)) {
         options.raw = raw;
       }
@@ -200,7 +200,7 @@ export class ReferenceListParser extends ReferenceParser {
 
     const rowIds: number[] = [];
     for (const value of values) {
-      const rowId = this.tableData.findMatchingRowId({[this._visibleColId]: value});
+      const rowId = this.tableData.findMatchingRowId({ [this._visibleColId]: value });
       if (rowId) {
         rowIds.push(rowId);
       }
@@ -312,7 +312,7 @@ function parseColValues<T extends ColValues | BulkColValues>(
   }
 
   return mapValues(colValues, (values, colId) => {
-    const colRef = columnsTable.findMatchingRowId({colId, parentId: tableRef});
+    const colRef = columnsTable.findMatchingRowId({ colId, parentId: tableRef });
     if (!colRef) {
       // Column not found - let something else deal with that
       return values;

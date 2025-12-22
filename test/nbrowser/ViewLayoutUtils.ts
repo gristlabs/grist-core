@@ -1,4 +1,4 @@
-import {assert, driver} from 'mocha-webdriver';
+import { assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 
 export async function closeExpandedSection() {

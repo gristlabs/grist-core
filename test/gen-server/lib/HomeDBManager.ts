@@ -1,19 +1,19 @@
-import {FREE_PLAN, STUB_PLAN, TEAM_PLAN} from 'app/common/Features';
-import {SHARE_KEY_PREFIX} from 'app/common/gristUrls';
-import {UserProfile} from 'app/common/LoginSessionAPI';
-import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
-import {getAnonymousFeatures, Product} from 'app/gen-server/entity/Product';
-import {Share} from 'app/gen-server/entity/Share';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {assert} from 'chai';
-import {TestServer} from 'test/gen-server/apiUtils';
+import { FREE_PLAN, STUB_PLAN, TEAM_PLAN } from 'app/common/Features';
+import { SHARE_KEY_PREFIX } from 'app/common/gristUrls';
+import { UserProfile } from 'app/common/LoginSessionAPI';
+import { NEW_DOCUMENT_CODE } from 'app/common/UserAPI';
+import { getAnonymousFeatures, Product } from 'app/gen-server/entity/Product';
+import { Share } from 'app/gen-server/entity/Share';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { assert } from 'chai';
+import { TestServer } from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import omit from 'lodash/omit';
 
-const charonProfile = {email: 'charon@getgrist.com', name: 'Charon'};
-const chimpyProfile = {email: 'chimpy@getgrist.com', name: 'Chimpy'};
-const kiwiProfile = {email: 'kiwi@getgrist.com', name: 'Kiwi'};
+const charonProfile = { email: 'charon@getgrist.com', name: 'Charon' };
+const chimpyProfile = { email: 'chimpy@getgrist.com', name: 'Chimpy' };
+const kiwiProfile = { email: 'kiwi@getgrist.com', name: 'Kiwi' };
 
 const teamOptions = {
   setUserAsOwner: false, useNewPlan: true, product: TEAM_PLAN,
@@ -40,8 +40,8 @@ describe('HomeDBManager', function() {
   });
 
   it('can create new user by email, with personal org', async function() {
-    const profile = {email: 'unseen@getgrist.com', name: 'Unseen'};
-    const user = await home.getUserByLogin('unseen@getgrist.com', {profile});
+    const profile = { email: 'unseen@getgrist.com', name: 'Unseen' };
+    const user = await home.getUserByLogin('unseen@getgrist.com', { profile });
     assert.equal(user.name, 'Unseen');
     const orgs = await home.getOrgs(user.id, null);
     assert.isAtLeast(orgs.data!.length, 1);
@@ -56,7 +56,7 @@ describe('HomeDBManager', function() {
     };
     const queries = [];
     for (let i = 0; i < 100; i++) {
-      queries.push(home.getUserByLoginWithRetry(profile.email, {profile}));
+      queries.push(home.getUserByLoginWithRetry(profile.email, { profile }));
     }
     const result = await Promise.all(queries);
     const refUser = result[0];
@@ -70,8 +70,8 @@ describe('HomeDBManager', function() {
     // name is blank
     assert.equal(user.name, '');
     // log in with a name
-    const profile: UserProfile = {email: 'unseen2@getgrist.com', name: 'Unseen2'};
-    user = await home.getUserByLogin('unseen2@getgrist.com', {profile});
+    const profile: UserProfile = { email: 'unseen2@getgrist.com', name: 'Unseen2' };
+    user = await home.getUserByLogin('unseen2@getgrist.com', { profile });
     // name is now set
     assert.equal(user.name, 'Unseen2');
     // log in without a name
@@ -82,7 +82,7 @@ describe('HomeDBManager', function() {
     assert.equal(user.picture, null);
     // log in with picture link
     profile.picture = 'http://picture.pic';
-    user = await home.getUserByLogin('unseen2@getgrist.com', {profile});
+    user = await home.getUserByLogin('unseen2@getgrist.com', { profile });
     // now should have a picture link
     assert.equal(user.picture, 'http://picture.pic');
     // log in without picture
@@ -93,12 +93,12 @@ describe('HomeDBManager', function() {
 
   it('can add an org', async function() {
     const user = await home.getUserByLogin('chimpy@getgrist.com');
-    const orgId = (await home.addOrg(user, {name: 'NewOrg', domain: 'novel-org'}, teamOptions)).data!.id;
-    const org = await home.getOrg({userId: user.id}, orgId);
+    const orgId = (await home.addOrg(user, { name: 'NewOrg', domain: 'novel-org' }, teamOptions)).data!.id;
+    const org = await home.getOrg({ userId: user.id }, orgId);
     assert.equal(org.data!.name, 'NewOrg');
     assert.equal(org.data!.domain, 'novel-org');
     assert.equal(org.data!.billingAccount.product.name, TEAM_PLAN);
-    await home.deleteOrg({userId: user.id}, orgId);
+    await home.deleteOrg({ userId: user.id }, orgId);
   });
 
   it('creates default plan if defined', async function() {
@@ -107,28 +107,28 @@ describe('HomeDBManager', function() {
     try {
       // Set the default product to be the free plan.
       process.env.GRIST_DEFAULT_PRODUCT = FREE_PLAN;
-      let orgId = (await home.addOrg(user, {name: 'NewOrg', domain: 'novel-org'}, {
+      let orgId = (await home.addOrg(user, { name: 'NewOrg', domain: 'novel-org' }, {
         setUserAsOwner: false,
         useNewPlan: true,
         // omit plan, to use a default one (teamInitial)
         // it will either be 'stub' or anything set in GRIST_DEFAULT_PRODUCT
       })).data!.id;
-      let org = await home.getOrg({userId: user.id}, orgId);
+      let org = await home.getOrg({ userId: user.id }, orgId);
       assert.equal(org.data!.name, 'NewOrg');
       assert.equal(org.data!.domain, 'novel-org');
       assert.equal(org.data!.billingAccount.product.name, FREE_PLAN);
-      await home.deleteOrg({userId: user.id}, orgId);
+      await home.deleteOrg({ userId: user.id }, orgId);
 
       // Now remove the default product, and check that the default plan is used.
       delete process.env.GRIST_DEFAULT_PRODUCT;
-      orgId = (await home.addOrg(user, {name: 'NewOrg', domain: 'novel-org'}, {
+      orgId = (await home.addOrg(user, { name: 'NewOrg', domain: 'novel-org' }, {
         setUserAsOwner: false,
         useNewPlan: true,
       })).data!.id;
 
-      org = await home.getOrg({userId: user.id}, orgId);
+      org = await home.getOrg({ userId: user.id }, orgId);
       assert.equal(org.data!.billingAccount.product.name, STUB_PLAN);
-      await home.deleteOrg({userId: user.id}, orgId);
+      await home.deleteOrg({ userId: user.id }, orgId);
     }
     finally {
       oldEnv.restore();
@@ -138,12 +138,12 @@ describe('HomeDBManager', function() {
   it('cannot duplicate a domain', async function() {
     const user = await home.getUserByLogin('chimpy@getgrist.com');
     const domain = 'repeated-domain';
-    const result = await home.addOrg(user, {name: `${domain}!`, domain}, teamOptions);
+    const result = await home.addOrg(user, { name: `${domain}!`, domain }, teamOptions);
     const orgId = result.data!.id;
     assert.equal(result.status, 200);
-    await assert.isRejected(home.addOrg(user, {name: `${domain}!`, domain}, teamOptions),
+    await assert.isRejected(home.addOrg(user, { name: `${domain}!`, domain }, teamOptions),
       /Domain already in use/);
-    await home.deleteOrg({userId: user.id}, orgId);
+    await home.deleteOrg({ userId: user.id }, orgId);
   });
 
   it('cannot add an org with a (blacklisted) dodgy domain', async function() {
@@ -158,17 +158,17 @@ describe('HomeDBManager', function() {
       'thing', 'jpl', 'xyz', 'appel', '123', '1google',
     ];
     for (const domain of misses) {
-      const result = await home.addOrg(user, {name: `${domain}!`, domain}, teamOptions);
+      const result = await home.addOrg(user, { name: `${domain}!`, domain }, teamOptions);
       assert.equal(result.status, 400);
-      const org = await home.getOrg({userId}, domain);
+      const org = await home.getOrg({ userId }, domain);
       assert.equal(org.status, 404);
     }
     for (const domain of hits) {
-      const result = await home.addOrg(user, {name: `${domain}!`, domain}, teamOptions);
+      const result = await home.addOrg(user, { name: `${domain}!`, domain }, teamOptions);
       assert.equal(result.status, 200);
-      const org = await home.getOrg({userId}, domain);
+      const org = await home.getOrg({ userId }, domain);
       assert.equal(org.status, 200);
-      await home.deleteOrg({userId}, org.data!.id);
+      await home.deleteOrg({ userId }, org.data!.id);
     }
   });
 
@@ -176,8 +176,8 @@ describe('HomeDBManager', function() {
     const beforeRun = new Date();
     const setDateISO1 = new Date(Date.UTC(1993, 3, 2)).toISOString();
     const setDateISO2 = new Date(Date.UTC(2004, 6, 18)).toISOString();
-    const setUsage1 = {rowCount: {total: 123}, dataSizeBytes: 456, attachmentsSizeBytes: 789};
-    const setUsage2 = {rowCount: {total: 0}, attachmentsSizeBytes: 0};
+    const setUsage1 = { rowCount: { total: 123 }, dataSizeBytes: 456, attachmentsSizeBytes: 789 };
+    const setUsage2 = { rowCount: { total: 0 }, attachmentsSizeBytes: 0 };
 
     // Set the doc updatedAt time on Bananas.
     const primatelyOrgId = await home.testGetId('Primately') as number;
@@ -186,14 +186,14 @@ describe('HomeDBManager', function() {
     const bananasDocId = await home.testGetId('Bananas') as string;
     const sharkDocId = await home.testGetId('Shark') as string;
     await home.setDocsMetadata({
-      [applesDocId]: {usage: setUsage1},
-      [bananasDocId]: {updatedAt: setDateISO1},
-      [sharkDocId]: {updatedAt: setDateISO2, usage: setUsage2},
+      [applesDocId]: { usage: setUsage1 },
+      [bananasDocId]: { updatedAt: setDateISO1 },
+      [sharkDocId]: { updatedAt: setDateISO2, usage: setUsage2 },
     });
 
     // Fetch the doc and check that the updatedAt value is as expected.
     const kiwi = await home.getUserByLogin('kiwi@getgrist.com');
-    const resp1 = await home.getOrgWorkspaces({userId: kiwi.id}, primatelyOrgId);
+    const resp1 = await home.getOrgWorkspaces({ userId: kiwi.id }, primatelyOrgId);
     assert.equal(resp1.status, 200);
 
     // Check that the apples metadata is as expected. updatedAt should have been set
@@ -213,7 +213,7 @@ describe('HomeDBManager', function() {
 
     // Check that the shark metadata is as expected. updatedAt should have been set
     // to 2004. usage should be set.
-    const resp2 = await home.getOrgWorkspaces({userId: kiwi.id}, fishOrgId);
+    const resp2 = await home.getOrgWorkspaces({ userId: kiwi.id }, fishOrgId);
     assert.equal(resp2.status, 200);
     const shark = resp2.data![0].docs.find((doc: any) => doc.name === 'Shark');
     assert.equal(shark!.updatedAt.toISOString(), setDateISO2);
@@ -264,8 +264,8 @@ describe('HomeDBManager', function() {
   it("can pool orgs for multiple users with non-normalized emails", async function() {
     const refOrgs = (await home.getOrgs([charonProfile, kiwiProfile], null)).data!;
     // Profiles in sessions can have email addresses with arbitrary capitalization.
-    const oddCharonProfile = {email: 'CharON@getgrist.COM', name: 'charON'};
-    const oddKiwiProfile = {email: 'KIWI@getgrist.COM', name: 'KIwi'};
+    const oddCharonProfile = { email: 'CharON@getgrist.COM', name: 'charON' };
+    const oddKiwiProfile = { email: 'KIWI@getgrist.COM', name: 'KIwi' };
     const orgs = (await home.getOrgs([oddCharonProfile, kiwiProfile, oddKiwiProfile], null)).data!;
     assert.deepEqual(refOrgs, orgs);
   });
@@ -296,8 +296,8 @@ describe('HomeDBManager', function() {
 
   it('can access billingAccount for org', async function() {
     await server.addBillingManager('Chimpy', 'nasa');
-    const chimpyScope = {userId: await home.testGetId('Chimpy') as number};
-    const charonScope = {userId: await home.testGetId('Charon') as number};
+    const chimpyScope = { userId: await home.testGetId('Chimpy') as number };
+    const charonScope = { userId: await home.testGetId('Charon') as number };
 
     // billing account without orgs+managers
     let billingAccount = await home.getBillingAccount(chimpyScope, 'nasa', false);
@@ -322,21 +322,21 @@ describe('HomeDBManager', function() {
     // Check collision in a simple query.
     // Note: it is query construction that fails, not query execution.
     assert.throws(() => home.connection.createQueryBuilder().from('orgs', 'orgs')
-      .where('id = :id', {id: 1}).andWhere('id = :id', {id: 2}),
+      .where('id = :id', { id: 1 }).andWhere('id = :id', { id: 2 }),
     /parameter collision/);
 
     // Check collision between subqueries.
     assert.throws(
       () => home.connection.createQueryBuilder().from('orgs', 'orgs')
-        .select(q => q.subQuery().from('orgs', 'orgs').where('x IN :x', {x: ['five']}))
-        .addSelect(q => q.subQuery().from('orgs', 'orgs').where('x IN :x', {x: ['six']})),
+        .select(q => q.subQuery().from('orgs', 'orgs').where('x IN :x', { x: ['five'] }))
+        .addSelect(q => q.subQuery().from('orgs', 'orgs').where('x IN :x', { x: ['six'] })),
       /parameter collision/);
   });
 
   it('can get the product associated with a docId', async function() {
     const urlId = 'sampledocid_6';
     const userId = await home.testGetId('Chimpy') as number;
-    const scope = {userId, urlId};
+    const scope = { userId, urlId };
     const doc = await home.getDoc(scope);
     const product = (await home.getDocProduct(urlId))!;
     assert.equal(doc.workspace.org.billingAccount.product.id, product.id);
@@ -357,40 +357,40 @@ describe('HomeDBManager', function() {
     // Add new org for chimpy with that product.
     const user = await home.getUserByLogin('chimpy@getgrist.com');
     const userId = user.id;
-    const orgId = (await home.addOrg(user, {name: 'features', domain: 'features'}, {
+    const orgId = (await home.addOrg(user, { name: 'features', domain: 'features' }, {
       ...teamOptions, product: product.name,
     })).data!.id;
 
     const ws = home.unwrapQueryResult(
-      await home.getOrgWorkspaces({userId}, 'features'),
+      await home.getOrgWorkspaces({ userId }, 'features'),
     )[0];
 
     // Add a doc to that org.
-    const addedDoc = (await home.addDocument({userId}, ws.id, {name: 'MyDoc1'})).data!;
-    const readDoc = await home.getDoc({userId, urlId: addedDoc.urlId!});
+    const addedDoc = (await home.addDocument({ userId }, ws.id, { name: 'MyDoc1' })).data!;
+    const readDoc = await home.getDoc({ userId, urlId: addedDoc.urlId! });
 
     // Check that the doc has the expected features.
     assert.equal(readDoc.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 2);
 
     // Add an override on the billing account level.
-    await home.updateBillingAccount({userId}, orgId, async (ba, tx) => {
+    await home.updateBillingAccount({ userId }, orgId, async (ba, tx) => {
       ba.features = { maxDocsPerOrg: 3 };
     });
 
     // Reread the doc and check that it has the updated features.
-    const updatedDoc = await home.getDoc({userId, urlId: addedDoc.urlId!});
+    const updatedDoc = await home.getDoc({ userId, urlId: addedDoc.urlId! });
     assert.equal(updatedDoc.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 3);
 
     // Now open this document as fork.
     const forkId = `${addedDoc.id}~${uuidv4()}~${userId}`;
-    const forkedRead = await home.getDoc({userId, urlId: forkId});
+    const forkedRead = await home.getDoc({ userId, urlId: forkId });
 
     // Check that the forked document has the same features as the original.
     assert.equal(forkedRead.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 3);
 
     // Create a new document using the NEW_DOCUMENT_CODE
     const newId = `${NEW_DOCUMENT_CODE}~${uuidv4()}~${userId}`;
-    const newRead = await home.getDoc({userId, urlId: newId});
+    const newRead = await home.getDoc({ userId, urlId: newId });
     // Check that the new document has the same features as the original.
     assert.deepEqual(newRead.workspace.org.billingAccount.getFeatures(), getAnonymousFeatures());
 
@@ -402,17 +402,17 @@ describe('HomeDBManager', function() {
     share.options = {};
     await home.connection.manager.save(share);
 
-    const shareRead = await home.getDoc({userId, urlId: `${SHARE_KEY_PREFIX}${share.key}`});
+    const shareRead = await home.getDoc({ userId, urlId: `${SHARE_KEY_PREFIX}${share.key}` });
     // Check that the share document has the same features as the original.
     assert.equal(shareRead.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 3);
 
     // Remove the override.
-    await home.updateBillingAccount({userId}, orgId, async (ba, tx) => {
+    await home.updateBillingAccount({ userId }, orgId, async (ba, tx) => {
       ba.features = null;
     });
 
     // Reread the doc and check that it has the original features.
-    const finalDoc = await home.getDoc({userId, urlId: addedDoc.urlId!});
+    const finalDoc = await home.getDoc({ userId, urlId: addedDoc.urlId! });
     assert.equal(finalDoc.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 2);
   });
 
@@ -421,18 +421,18 @@ describe('HomeDBManager', function() {
     const user1Id = user1.id;
     const orgId = await home.testGetId('Fish') as number;
     const doc1Id = await home.testGetId('Shark') as string;
-    const scope = {userId: user1Id, urlId: doc1Id};
+    const scope = { userId: user1Id, urlId: doc1Id };
     const doc1 = await home.getDoc(scope);
 
     // Document "Shark" should initially have no forks.
-    const resp1 = await home.getOrgWorkspaces({userId: user1Id}, orgId);
+    const resp1 = await home.getOrgWorkspaces({ userId: user1Id }, orgId);
     const resp1Doc = resp1.data![0].docs.find((d: any) => d.name === 'Shark');
     assert.deepEqual(resp1Doc!.forks, []);
 
     // Fork "Shark" as Kiwi and check that their fork is listed.
     const fork1Id = `${doc1Id}_fork_1`;
     await home.forkDoc(user1Id, doc1, fork1Id);
-    const resp2 = await home.getOrgWorkspaces({userId: user1Id}, orgId);
+    const resp2 = await home.getOrgWorkspaces({ userId: user1Id }, orgId);
     const resp2Doc = resp2.data![0].docs.find((d: any) => d.name === 'Shark');
     assert.deepEqual(
       resp2Doc!.forks.map((fork: any) => omit(fork, 'updatedAt')),
@@ -449,7 +449,7 @@ describe('HomeDBManager', function() {
     // Fork "Shark" again and check that Kiwi can see both forks.
     const fork2Id = `${doc1Id}_fork_2`;
     await home.forkDoc(user1Id, doc1, fork2Id);
-    const resp3 = await home.getOrgWorkspaces({userId: user1Id}, orgId);
+    const resp3 = await home.getOrgWorkspaces({ userId: user1Id }, orgId);
     const resp3Doc = resp3.data![0].docs.find((d: any) => d.name === 'Shark');
     assert.sameDeepMembers(
       resp3Doc!.forks.map((fork: any) => omit(fork, 'updatedAt')),
@@ -472,13 +472,13 @@ describe('HomeDBManager', function() {
     // Now fork "Shark" as Chimpy, and check that Kiwi's forks aren't listed.
     const user2 = await home.getUserByLogin('chimpy@getgrist.com');
     const user2Id = user2.id;
-    const resp4 = await home.getOrgWorkspaces({userId: user2Id}, orgId);
+    const resp4 = await home.getOrgWorkspaces({ userId: user2Id }, orgId);
     const resp4Doc = resp4.data![0].docs.find((d: any) => d.name === 'Shark');
     assert.deepEqual(resp4Doc!.forks, []);
 
     const fork3Id = `${doc1Id}_fork_3`;
     await home.forkDoc(user2Id, doc1, fork3Id);
-    const resp5 = await home.getOrgWorkspaces({userId: user2Id}, orgId);
+    const resp5 = await home.getOrgWorkspaces({ userId: user2Id }, orgId);
     const resp5Doc = resp5.data![0].docs.find((d: any) => d.name === 'Shark');
     assert.deepEqual(
       resp5Doc!.forks.map((fork: any) => omit(fork, 'updatedAt')),

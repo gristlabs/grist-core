@@ -1,5 +1,5 @@
-import {CellDelta, TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
-import {ResultRow} from 'app/common/TimeQuery';
+import { CellDelta, TabularDiff, TabularDiffs } from 'app/common/TabularDiff';
+import { ResultRow } from 'app/common/TimeQuery';
 import toPairs from 'lodash/toPairs';
 
 /**
@@ -78,7 +78,7 @@ import toPairs from 'lodash/toPairs';
  */
 export interface ActionSummary {
   tableRenames: LabelDelta[];  /** a list of table renames/additions/removals */
-  tableDeltas: {[tableId: string]: TableDelta};  /** changes within an individual table */
+  tableDeltas: { [tableId: string]: TableDelta };  /** changes within an individual table */
 }
 
 /**
@@ -89,7 +89,7 @@ export interface TableDelta {
   removeRows: number[];  /** rowIds of rows that existed before but were removed during */
   addRows: number[];     /** rowIds of rows that were added during, and exist after */
   /** Partial record of cell-level changes - large bulk changes not included. */
-  columnDeltas: {[colId: string]: ColumnDelta};
+  columnDeltas: { [colId: string]: ColumnDelta };
   columnRenames: LabelDelta[];  /** a list of column renames/additions/removals */
 }
 
@@ -140,7 +140,7 @@ export function asTabularDiffs(summary: ActionSummary, options: {
       cells: [],
     };
     // need order to be row-dominant for visualization purposes.
-    const perRow: {[row: number]: {[name: string]: any}} = {};
+    const perRow: { [row: number]: { [name: string]: any } } = {};
     const activeCols = new Set<string>();
     // First add any background context we have been handed.
     for (const row of singleTableContext || []) {

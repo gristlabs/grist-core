@@ -1,6 +1,6 @@
-import {makeT} from 'app/client/lib/localization';
-import {FieldOptions} from 'app/client/widgets/NewBaseEditor';
-import {NTextEditor} from 'app/client/widgets/NTextEditor';
+import { makeT } from 'app/client/lib/localization';
+import { FieldOptions } from 'app/client/widgets/NewBaseEditor';
+import { NTextEditor } from 'app/client/widgets/NTextEditor';
 
 const t = makeT('HyperLinkEditor');
 

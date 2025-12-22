@@ -38,19 +38,19 @@
  * turn, starting from the bottommost part, and make sure it gets inserted in the right level.
  */
 
-import {extend, noop, pick} from 'underscore';
-import {observable, removeNode, utils} from 'knockout';
+import { extend, noop, pick } from 'underscore';
+import { observable, removeNode, utils } from 'knockout';
 import assert from 'assert';
 import Promise from 'bluebird';
-import {Events as BackboneEvents} from 'backbone';
+import { Events as BackboneEvents } from 'backbone';
 
-import {Disposable, emptyNode} from 'app/client/lib/dispose';
-import {Delay} from 'app/client/lib/Delay';
+import { Disposable, emptyNode } from 'app/client/lib/dispose';
+import { Delay } from 'app/client/lib/Delay';
 import dom from 'app/client/lib/dom';
 import koDom from 'app/client/lib/koDom';
-import {ContentBox, Layout, LayoutBox} from 'app/client/components/Layout';
+import { ContentBox, Layout, LayoutBox } from 'app/client/components/Layout';
 import * as ko from 'knockout';
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
 
 /**
  * Use the browser globals in a way that allows replacing them with mocks in tests.
@@ -285,7 +285,7 @@ class DropTargeter extends Disposable {
     // Allow dragging a leaf into another leaf as a child, splitting the latter into two.
     // But don't allow dragging a leaf box into itself, that makes no sense.
     if (upDown === layoutBox.isVBox() && layoutBox !== prevTargetBox) {
-      targetParts.push({box: layoutBox, isChild: true, isAfter: isAfter});
+      targetParts.push({ box: layoutBox, isChild: true, isAfter: isAfter });
     }
     while (layoutBox) {
       if (upDown === layoutBox.isHBox()) {
@@ -294,13 +294,13 @@ class DropTargeter extends Disposable {
         // will be redundant once prevTargetBox is removed.
         if (children.length === 2 && prevTargetBox?.parentBox() === layoutBox) {
           targetParts.splice(targetParts.length - 1, 1,
-            {box: layoutBox, isChild: false, isAfter: isAfter});
+            { box: layoutBox, isChild: false, isAfter: isAfter });
         }
         // If there is only one child (which may happen for the root box), the target hint
         // is redundant.
         else if (prevTargetBox !== layoutBox && prevTargetBox !== layoutBox.getSiblingBox(isAfter) &&
           children.length !== 1) {
-          targetParts.push({box: layoutBox, isChild: false, isAfter: isAfter});
+          targetParts.push({ box: layoutBox, isChild: false, isAfter: isAfter });
         }
         if (isAfter && !layoutBox.isLastChild()) { break; }
         if (!isAfter && !layoutBox.isFirstChild()) { break; }
@@ -507,7 +507,7 @@ export class LayoutEditor extends Disposable {
       box.isLastChild()) {
       return;
     }
-    const helperObj = new HelperBox({box});
+    const helperObj = new HelperBox({ box });
     const isWidth = box.isVBox();
     G.$(box.dom!).resizable({
       handles: isWidth ? 'e' : 's',
@@ -584,7 +584,7 @@ export class LayoutEditor extends Disposable {
 
   // Exposed for tests
   public dragInNewBox(event: JQMouseEvent, leafId: number) {
-    const box = this.layout.buildLayoutBox({leaf: leafId});
+    const box = this.layout.buildLayoutBox({ leaf: leafId });
 
     // Place this box into a measuring div.
     this.measuringBox.appendChild(box.getDom());

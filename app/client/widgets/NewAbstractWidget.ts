@@ -2,14 +2,14 @@
  * NewAbstractWidget is equivalent to AbstractWidget for outside code, but is in typescript, and
  * so is friendlier and clearer to derive TypeScript classes from.
  */
-import {DocComm} from 'app/client/components/DocComm';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {DocData} from 'app/client/models/DocData';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {SaveableObjObservable} from 'app/client/models/modelUtil';
-import {theme} from 'app/client/ui2018/cssVars';
-import {CellStyle} from 'app/client/widgets/CellStyle';
-import {BaseFormatter} from 'app/common/ValueFormatter';
+import { DocComm } from 'app/client/components/DocComm';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { DocData } from 'app/client/models/DocData';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { SaveableObjObservable } from 'app/client/models/modelUtil';
+import { theme } from 'app/client/ui2018/cssVars';
+import { CellStyle } from 'app/client/widgets/CellStyle';
+import { BaseFormatter } from 'app/common/ValueFormatter';
 import {
   Disposable,
   dom,

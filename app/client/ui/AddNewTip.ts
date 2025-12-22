@@ -1,4 +1,4 @@
-import {HomeModel} from 'app/client/models/HomeModel';
+import { HomeModel } from 'app/client/models/HomeModel';
 
 export function attachAddNewTip(home: HomeModel): (el: Element) => void {
   return () => {

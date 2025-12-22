@@ -101,7 +101,7 @@ export class ReferenceListEditor extends NewBaseEditor {
       openAutocompleteOnFocus: true,
       readonly: options.readonly,
       trimLabels: true,
-      styles: {cssTokenField, cssToken, cssDeleteButton, cssDeleteIcon},
+      styles: { cssTokenField, cssToken, cssDeleteButton, cssDeleteIcon },
     });
 
     this._dom = dom('div.default_editor',
@@ -152,7 +152,7 @@ export class ReferenceListEditor extends NewBaseEditor {
 
   public attach(cellElem: Element): void {
     // Attach the editor dom to page DOM.
-    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, {margins: getButtonMargins()});
+    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, { margins: getButtonMargins() });
 
     // Reposition the editor if needed for external reasons (in practice, window resize).
     this.autoDispose(this._editorPlacement.onReposition.addListener(() => this.resizeInput()));
@@ -184,7 +184,7 @@ export class ReferenceListEditor extends NewBaseEditor {
   public getTextValue(): string {
     const rowIds = this._tokenField.tokensObs.get()
       .map(token => typeof token.rowId === 'number' ? String(token.rowId) : token.text);
-    return csvEncodeRow(rowIds, {prettier: true});
+    return csvEncodeRow(rowIds, { prettier: true });
   }
 
   public getCursorPos(): number {
@@ -196,11 +196,11 @@ export class ReferenceListEditor extends NewBaseEditor {
    */
   public async prepForSave() {
     const tokens = this._tokenField.tokensObs.get();
-    const newValues = tokens.filter(({rowId}) => rowId === 'new');
+    const newValues = tokens.filter(({ rowId }) => rowId === 'new');
     if (newValues.length === 0) { return; }
 
     // Add the new items to the referenced table.
-    const colInfo = {[this._utils.visibleColId]: newValues.map(({text}) => text)};
+    const colInfo = { [this._utils.visibleColId]: newValues.map(({ text }) => text) };
     const rowIds = await this._utils.tableData.sendTableAction(
       ["BulkAddRecord", new Array(newValues.length).fill(null), colInfo],
     );
@@ -218,7 +218,7 @@ export class ReferenceListEditor extends NewBaseEditor {
     // once we reach it.
     const rootElem = this._tokenField.getRootElem();
     const maxSize = this._editorPlacement.calcSizeWithPadding(rootElem,
-      {width: Infinity, height: Infinity}, {calcOnly: true});
+      { width: Infinity, height: Infinity }, { calcOnly: true });
     this._contentSizer.style.maxWidth = Math.ceil(maxSize.width) + 'px';
   }
 
@@ -266,7 +266,7 @@ export class ReferenceListEditor extends NewBaseEditor {
    * Also see: prepForSave.
    */
   private async _doSearch(text: string): Promise<ACResults<ReferenceItem>> {
-    const {items, selectIndex, highlightFunc} = this._utils.autocompleteSearch(text, this.options.rowId);
+    const { items, selectIndex, highlightFunc } = this._utils.autocompleteSearch(text, this.options.rowId);
     const result: ACResults<ReferenceItem> = {
       selectIndex,
       highlightFunc,

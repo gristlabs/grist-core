@@ -55,7 +55,7 @@ export class ApiKey extends Disposable {
             },
             dom.attr('type', use => use(this._isHidden) ? 'password' : 'text'),
             testId('key'),
-            {title: t("Click to show")},
+            { title: t("Click to show") },
             dom.on('click', (_ev, el) => {
               this._isHidden.set(false);
               setTimeout(() => el.select(), 0);

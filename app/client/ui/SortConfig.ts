@@ -1,23 +1,23 @@
-import {GristDoc} from 'app/client/components/GristDoc';
+import { GristDoc } from 'app/client/components/GristDoc';
 import koArray from 'app/client/lib/koArray';
 import * as kf from 'app/client/lib/koForm';
-import {makeT} from 'app/client/lib/localization';
-import {addToSort, updatePositions} from 'app/client/lib/sortUtil';
-import {ViewSectionRec} from 'app/client/models/DocModel';
-import {ObjObservable} from 'app/client/models/modelUtil';
-import {dropdownWithSearch} from 'app/client/ui/searchDropdown';
-import {cssIcon, cssRow, cssSortFilterColumn} from 'app/client/ui/RightPanelStyles';
-import {labeledLeftSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {textButton} from 'app/client/ui2018/buttons';
-import {theme} from 'app/client/ui2018/cssVars';
-import {cssDragger} from 'app/client/ui2018/draggableList';
-import {menu} from 'app/client/ui2018/menus';
-import {Sort} from 'app/common/SortSpec';
-import {Computed, Disposable, dom, makeTestId, MultiHolder, styled} from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { addToSort, updatePositions } from 'app/client/lib/sortUtil';
+import { ViewSectionRec } from 'app/client/models/DocModel';
+import { ObjObservable } from 'app/client/models/modelUtil';
+import { dropdownWithSearch } from 'app/client/ui/searchDropdown';
+import { cssIcon, cssRow, cssSortFilterColumn } from 'app/client/ui/RightPanelStyles';
+import { labeledLeftSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
+import { textButton } from 'app/client/ui2018/buttons';
+import { theme } from 'app/client/ui2018/cssVars';
+import { cssDragger } from 'app/client/ui2018/draggableList';
+import { menu } from 'app/client/ui2018/menus';
+import { Sort } from 'app/common/SortSpec';
+import { Computed, Disposable, dom, makeTestId, MultiHolder, styled } from 'grainjs';
 import difference from 'lodash/difference';
 import isEqual from 'lodash/isEqual';
-import {cssMenuItem, IMenuOptions} from 'popweasel';
+import { cssMenuItem, IMenuOptions } from 'popweasel';
 
 interface SortableColumn {
   label: string;
@@ -113,7 +113,7 @@ export class SortConfig extends Disposable {
     columns: Computed<SortableColumn[]>,
   ) {
     const holder = new MultiHolder();
-    const {menuOptions} = this._options;
+    const { menuOptions } = this._options;
 
     const col           = Computed.create(holder, () => colRef);
     const details       = Computed.create(holder, use => Sort.specToDetails(Sort.findCol(use(sortSpec), colRef)!));
@@ -152,7 +152,7 @@ export class SortConfig extends Disposable {
         // Replace the colSpec at the index
         this._saveSort(Sort.replace(specs, Sort.getColRef(colRef), specDetails));
       });
-      return {computed, allowedTypes, flag, label};
+      return { computed, allowedTypes, flag, label };
     };
     const orderByChoice = computedFlag('orderByChoice', ['Choice'], t("Use choice position"));
     const naturalSort   = computedFlag('naturalSort', ['Text'], t("Natural sort"));
@@ -167,7 +167,7 @@ export class SortConfig extends Disposable {
         dom.attr('aria-label', (use) => {
           const ascending = use(isAscending);
           return [
-            t('{{- columnName }} column', {columnName: column!.label}),
+            t('{{- columnName }} column', { columnName: column!.label }),
             ascending
               ? t('Sort in descending order (current: ascending)')
               : t('Sort in ascending order (current: descending)'),
@@ -189,12 +189,12 @@ export class SortConfig extends Disposable {
         testId('column'),
       ),
       cssMenu(
-        {'aria-label': t('Sort options - {{- columnName }} column', {columnName: column!.label})},
+        { 'aria-label': t('Sort options - {{- columnName }} column', { columnName: column!.label }) },
         cssBigIconWrapper(
           cssIcon('Dots', dom.cls(cssBgAccent.className, hasSpecs)),
           testId('options-icon'),
         ),
-        menu(_ctl => flags.map(({computed, allowedTypes, flag, label}) => {
+        menu(_ctl => flags.map(({ computed, allowedTypes, flag, label }) => {
           // when allowedTypes is null, flag can be used for every column
           const enabled = !allowedTypes || allowedTypes.includes(column!.type);
           return cssMenuItem(
@@ -212,7 +212,7 @@ export class SortConfig extends Disposable {
         ), menuOptions),
       ),
       cssSortIconBtn(
-        {'aria-label': t('Remove sort setting - {{- columnName }} column', {columnName: column!.label})},
+        { 'aria-label': t('Remove sort setting - {{- columnName }} column', { columnName: column!.label }) },
         cssIcon('Remove'),
         dom.on('click', () => {
           const specs = sortSpec.peek();
@@ -233,7 +233,7 @@ export class SortConfig extends Disposable {
       const specRowIds = new Set(currentSortSpec.map(_sortRef => Sort.getColRef(_sortRef)));
       return use(columns).filter(_col => !specRowIds.has(_col.value));
     });
-    const {menuOptions} = this._options;
+    const { menuOptions } = this._options;
     return cssButtonRow(
       dom.autoDispose(available),
       dom.domComputed((use) => {
@@ -242,7 +242,7 @@ export class SortConfig extends Disposable {
           t("Add column"),
           dropdownWithSearch({
             popupOptions: menuOptions,
-            options: () => cols.map(col => ({label: col.label, value: col})),
+            options: () => cols.map(col => ({ label: col.label, value: col })),
             action: col => addToSort(this._section.activeSortSpec, col.value, 1),
             placeholder: t('Search Columns'),
           }),

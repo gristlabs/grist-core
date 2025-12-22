@@ -1,13 +1,13 @@
-import type {App} from 'app/client/ui/App';
-import {textarea} from 'app/client/ui/inputs';
-import {sanitizeHTMLIntoDOM} from 'app/client/ui/sanitizeHTML';
-import {basicButton, basicButtonLink, primaryButtonLink, textButton} from 'app/client/ui2018/buttons';
-import {cssLabel} from 'app/client/ui2018/checkbox';
-import {colors, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {numericSpinner} from 'app/client/widgets/NumericSpinner';
-import {BindableValue, dom, DomElementArg, IDomArgs, Observable, styled} from 'grainjs';
-import {marked} from 'marked';
+import type { App } from 'app/client/ui/App';
+import { textarea } from 'app/client/ui/inputs';
+import { sanitizeHTMLIntoDOM } from 'app/client/ui/sanitizeHTML';
+import { basicButton, basicButtonLink, primaryButtonLink, textButton } from 'app/client/ui2018/buttons';
+import { cssLabel } from 'app/client/ui2018/checkbox';
+import { colors, theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { numericSpinner } from 'app/client/widgets/NumericSpinner';
+import { BindableValue, dom, DomElementArg, IDomArgs, Observable, styled } from 'grainjs';
+import { marked } from 'marked';
 
 export const cssFormView = styled('div.flexauto.flexvbox', `
   color: ${theme.text};
@@ -510,7 +510,7 @@ export function bindMarkdown(textObs: BindableValue<string>) {
     (shadowStyle as any).replaceSync(SHADOW_STYLE);
   }
   return function(container: HTMLElement) {
-    const shadow = container.attachShadow({mode: 'open'});
+    const shadow = container.attachShadow({ mode: 'open' });
     (shadow as any).adoptedStyleSheets = [shadowStyle!];
     dom.update(shadow,
       dom.domComputed(textObs, text => sanitizeHTMLIntoDOM(marked(text || '', {

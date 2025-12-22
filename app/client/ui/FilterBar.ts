@@ -35,7 +35,7 @@ export function filterBar(
 }
 
 function makeFilterField(filterInfo: FilterInfo, popupControls: WeakMap<ColumnRec, PopupControl>) {
-  const {fieldOrColumn, filter, pinned, isPinned} = filterInfo;
+  const { fieldOrColumn, filter, pinned, isPinned } = filterInfo;
   return cssFilterBarItem(
     testId('filter-field'),
     cssFilterBarItemButton(
@@ -81,7 +81,7 @@ export function addFilterMenu(
   popupControls: WeakMap<ColumnRec, PopupControl>,
   options: AddFilterMenuOptions = {},
 ) {
-  const {allowedColumns, menuOptions} = options;
+  const { allowedColumns, menuOptions } = options;
   return (
     dropdownWithSearch<FilterInfo>({
       action: filterInfo => openFilter(filterInfo, popupControls),
@@ -99,7 +99,7 @@ export function addFilterMenu(
 }
 
 function openFilter(
-  {fieldOrColumn, isFiltered, viewSection}: FilterInfo,
+  { fieldOrColumn, isFiltered, viewSection }: FilterInfo,
   popupControls: WeakMap<ColumnRec, PopupControl>,
 ) {
   viewSection.setFilter(fieldOrColumn.origCol().origColRef(), {

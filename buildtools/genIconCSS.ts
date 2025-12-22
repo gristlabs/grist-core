@@ -1,5 +1,5 @@
 import { fromCallback } from 'bluebird';
-import {program} from 'commander';
+import { program } from 'commander';
 import * as fse from 'fs-extra';
 import glob from 'glob';
 import { union } from 'lodash';

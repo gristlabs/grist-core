@@ -3,7 +3,7 @@ import { TestServer } from 'test/gen-server/apiUtils';
 import { assert } from 'chai';
 import * as cookie from 'cookie';
 import * as fse from 'fs-extra';
-import {cookieName} from 'app/server/lib/gristSessions';
+import { cookieName } from 'app/server/lib/gristSessions';
 import * as testUtils from 'test/server/testUtils';
 import * as path from 'path';
 import zlib from 'zlib';
@@ -86,7 +86,7 @@ describe('SamlConfig', () => {
       // Get a session started
       const sessionResp = await fetch(sessionUrl());
       const sid = cookie.parse(sessionResp.headers.get('set-cookie'))[cookieName];
-      const headers = {Cookie: `${cookieName}=${sid}`};
+      const headers = { Cookie: `${cookieName}=${sid}` };
 
       // Let's get redirected to the SAML IdP
       const loginResp = await fetch(`${homeUrl()}/saml/login`, {
@@ -120,7 +120,7 @@ describe('SamlConfig', () => {
       assert.equal(spUrl.origin + spUrl.pathname, homeUrl() + '/', 'should redirect to main');
 
       // Finish following the redirect
-      await fetch(spUrl.href, {headers});
+      await fetch(spUrl.href, { headers });
 
       // Let's check the user was created via SAML
       jordi = await getDbManager().getExistingUserByLogin('jordi@getgrist.com');
@@ -160,7 +160,7 @@ describe('SamlConfig', () => {
       );
 
       // Finish the logout redirect
-      await fetch(`${homeUrl()}/o/docs/signed-out`, {headers});
+      await fetch(`${homeUrl()}/o/docs/signed-out`, { headers });
     });
 
     it('should allow IdP-initiated logins', async () => {
@@ -180,14 +180,14 @@ describe('SamlConfig', () => {
         }),
       });
       const sid = cookie.parse(samlResp.headers.get('set-cookie')).SameSite.split("=")[1];
-      const headers = {Cookie: `${cookieName}=${sid}`};
+      const headers = { Cookie: `${cookieName}=${sid}` };
 
       assert.equal(samlResp.status, 302, 'should redirect');
       const spUrl = new URL(samlResp.headers.get('location') || '');
       assert.equal(spUrl.origin + spUrl.pathname, homeUrl() + '/', 'should redirect to main');
 
       // Finish following the redirect
-      await fetch(spUrl.href, {headers});
+      await fetch(spUrl.href, { headers });
 
       // Let's check the user was created via SAML
       jordi = await getDbManager().getExistingUserByLogin('jordi@getgrist.com');

@@ -283,8 +283,8 @@ export class OIDCBuilder {
 
     this._redirectUrl = new URL(OIDC_CALLBACK_ENDPOINT, this._config.spHost).href;
     custom.setHttpOptionsDefaults({
-      ...(agents.trusted !== undefined ? {agent: agents.trusted} : {}),
-      ...(this._config.httpTimeout !== undefined ? {timeout: this._config.httpTimeout} : {}),
+      ...(agents.trusted !== undefined ? { agent: agents.trusted } : {}),
+      ...(this._config.httpTimeout !== undefined ? { timeout: this._config.httpTimeout } : {}),
     });
     await this._initClient({
       issuerUrl: this._config.issuerUrl,

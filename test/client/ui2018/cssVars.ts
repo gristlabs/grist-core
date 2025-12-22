@@ -1,5 +1,5 @@
-import {assert} from "chai";
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import { assert } from "chai";
+import { colors, vars } from 'app/client/ui2018/cssVars';
 import { legacyVarsMapping } from "app/common/ThemePrefs";
 import { CssCustomProp } from "app/common/CssCustomProp";
 
@@ -13,10 +13,10 @@ describe('cssVars', function() {
         }, {});
       };
 
-      const allVars = {...toCssVarsMappingFormat(colors), ...toCssVarsMappingFormat(vars)};
+      const allVars = { ...toCssVarsMappingFormat(colors), ...toCssVarsMappingFormat(vars) };
 
       const errors: string[] = [];
-      legacyVarsMapping.forEach(({old, new: newVar}) => {
+      legacyVarsMapping.forEach(({ old, new: newVar }) => {
         if (!allVars[old]) {
           errors.push(`${old} is missing, it should be mapped to ${newVar} theme token.`);
         }

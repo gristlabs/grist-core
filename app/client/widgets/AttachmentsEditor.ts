@@ -1,26 +1,26 @@
 // External dependencies
-import {computed, Computed, computedArray} from 'grainjs';
-import {MutableObsArray, obsArray, ObsArray, observable, Observable} from 'grainjs';
-import {dom, LiveIndex, makeLiveIndex, styled} from 'grainjs';
+import { computed, Computed, computedArray } from 'grainjs';
+import { MutableObsArray, obsArray, ObsArray, observable, Observable } from 'grainjs';
+import { dom, LiveIndex, makeLiveIndex, styled } from 'grainjs';
 
 // Grist client libs
-import {DocComm} from 'app/client/components/DocComm';
-import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
-import {DocData} from 'app/client/models/DocData';
-import {MetaTableData} from 'app/client/models/TableData';
-import {basicButton, basicButtonLink, cssButtonGroup} from 'app/client/ui2018/buttons';
-import {makeT} from 'app/client/lib/localization';
-import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {editableLabel} from 'app/client/ui2018/editableLabel';
-import {icon} from 'app/client/ui2018/icons';
-import {IModalControl, modal} from 'app/client/ui2018/modals';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {renderFileType} from 'app/client/widgets/AttachmentsWidget';
-import {FieldOptions, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
-import {CellValue} from 'app/common/DocActions';
-import {SingleCell} from 'app/common/TableData';
-import {clamp, encodeQueryParams} from 'app/common/gutil';
-import {UploadResult} from 'app/common/uploads';
+import { DocComm } from 'app/client/components/DocComm';
+import { selectFiles, uploadFiles } from 'app/client/lib/uploads';
+import { DocData } from 'app/client/models/DocData';
+import { MetaTableData } from 'app/client/models/TableData';
+import { basicButton, basicButtonLink, cssButtonGroup } from 'app/client/ui2018/buttons';
+import { makeT } from 'app/client/lib/localization';
+import { mediaSmall, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { editableLabel } from 'app/client/ui2018/editableLabel';
+import { icon } from 'app/client/ui2018/icons';
+import { IModalControl, modal } from 'app/client/ui2018/modals';
+import { loadingSpinner } from 'app/client/ui2018/loaders';
+import { renderFileType } from 'app/client/widgets/AttachmentsWidget';
+import { FieldOptions, NewBaseEditor } from 'app/client/widgets/NewBaseEditor';
+import { CellValue } from 'app/common/DocActions';
+import { SingleCell } from 'app/common/TableData';
+import { clamp, encodeQueryParams } from 'app/common/gutil';
+import { UploadResult } from 'app/common/uploads';
 import * as mimeTypes from 'mime-types';
 
 const t = makeT('AttachmentsEditor');
@@ -120,7 +120,7 @@ export class AttachmentsEditor extends NewBaseEditor {
         dom.on('click', (ev, elem) => { if (ev.target === elem) { ctl.close(); } }),
         ...this._buildDom(ctl),
       ];
-    }, {noEscapeKey: true});
+    }, { noEscapeKey: true });
   }
 
   public getCellValue() {
@@ -142,7 +142,7 @@ export class AttachmentsEditor extends NewBaseEditor {
         cssFlexExpand(
           dom.text((use) => {
             const len = use(this._attachments).length;
-            return len ? t('{{index}} of {{total}}', {index: (use(this._index) || 0) + 1, total: len}) : '';
+            return len ? t('{{index}} of {{total}}', { index: (use(this._index) || 0) + 1, total: len }) : '';
           }),
           testId('pw-counter'),
           dom.maybe(this._isUploading, () =>
@@ -207,7 +207,7 @@ export class AttachmentsEditor extends NewBaseEditor {
   }
 
   private async _renameAttachment(att: Attachment, fileName: string): Promise<void> {
-    await this._attachmentsTable.sendTableAction(['UpdateRecord', att.rowId, {fileName}]);
+    await this._attachmentsTable.sendTableAction(['UpdateRecord', att.rowId, { fileName }]);
     // Update the observable, since it's not on its own observing changes.
     att.filename.set(this._attachmentsTable.getValue(att.rowId, 'fileName')!);
   }
@@ -224,7 +224,7 @@ export class AttachmentsEditor extends NewBaseEditor {
       ...cell,
       maybeNew: 1,  // The attachment may be uploaded by the user but not stored in the cell yet.
       attId,
-      ...(inline ? {inline: 1} : {}),
+      ...(inline ? { inline: 1 } : {}),
     });
   }
 
@@ -263,7 +263,7 @@ export class AttachmentsEditor extends NewBaseEditor {
     try {
       const uploadResult = await uploadFiles(
         Array.from(files),
-        {docWorkerUrl: this._docComm.docWorkerUrl, sizeLimit: 'attachment'},
+        { docWorkerUrl: this._docComm.docWorkerUrl, sizeLimit: 'attachment' },
         (progress) => {
           if (progress === 0) {
             this._isUploading.set(true);
@@ -307,10 +307,10 @@ function renderContent(att: Attachment|null, readonly: boolean): HTMLElement {
     return dom('img', dom.attr('src', att.url), ...commonArgs);
   }
   else if (att.fileType.startsWith('video/')) {
-    return dom('video', dom.attr('src', att.inlineUrl), {autoplay: false, controls: true}, ...commonArgs);
+    return dom('video', dom.attr('src', att.inlineUrl), { autoplay: false, controls: true }, ...commonArgs);
   }
   else if (att.fileType.startsWith('audio/')) {
-    return dom('audio', dom.attr('src', att.inlineUrl), {autoplay: false, controls: true}, ...commonArgs);
+    return dom('audio', dom.attr('src', att.inlineUrl), { autoplay: false, controls: true }, ...commonArgs);
   }
   else if (att.fileType.startsWith('text/') || att.fileType === 'application/json') {
     // Rendering text/html is risky. Things like text/plain and text/csv we could render though,
@@ -321,7 +321,7 @@ function renderContent(att: Attachment|null, readonly: boolean): HTMLElement {
   }
   else {
     // Setting 'type' attribute is important to avoid a download prompt from Chrome.
-    return dom('object', {type: att.fileType}, dom.attr('data', att.inlineUrl), ...commonArgs,
+    return dom('object', { type: att.fileType }, dom.attr('data', att.inlineUrl), ...commonArgs,
       cssWarning(cssContent.cls(''), renderFileType(att.filename.get(), att.fileIdent),
         cssDetails(t('Preview not available.'))),
     );

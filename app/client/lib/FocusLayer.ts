@@ -8,9 +8,9 @@
  * restore focus to the default element.
  */
 import * as Mousetrap from 'app/client/lib/Mousetrap';
-import {arrayRemove} from 'app/common/gutil';
-import {RefCountMap} from 'app/common/RefCountMap';
-import {Disposable, dom, DomMethod} from 'grainjs';
+import { arrayRemove } from 'app/common/gutil';
+import { RefCountMap } from 'app/common/RefCountMap';
+import { Disposable, dom, DomMethod } from 'grainjs';
 
 /**
  * The default focus is organized into layers. A layer determines when focus should move to the
@@ -82,7 +82,7 @@ class FocusLayerManager extends Disposable {
     this._focusLayers.push(layer);
     // Move the focus to the new layer. Not just grabFocus, because if the focus is on the previous
     // layer's defaultFocusElem, the new layer might consider it "allowed" and never get the focus.
-    setTimeout(() => layer.defaultFocusElem.focus({preventScroll: true}), 0);
+    setTimeout(() => layer.defaultFocusElem.focus({ preventScroll: true }), 0);
   }
 
   public removeLayer(layer: FocusLayer) {
@@ -122,7 +122,7 @@ class FocusLayerManager extends Disposable {
       layer.onDefaultBlur();
     }
     else {
-      layer.defaultFocusElem.focus({preventScroll: true});
+      layer.defaultFocusElem.focus({ preventScroll: true });
       layer.onDefaultFocus();
     }
   }
@@ -143,7 +143,7 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
    */
   public static attach(options: Partial<FocusLayerOptions>): DomMethod<HTMLElement> {
     return (element: HTMLElement) => {
-      const layer = FocusLayer.create(null, {defaultFocusElem: element, ...options});
+      const layer = FocusLayer.create(null, { defaultFocusElem: element, ...options });
       dom.autoDisposeElem(element, layer);
     };
   }
@@ -213,7 +213,7 @@ export function watchElementForBlur(elem: Element, callback: () => void) {
   const observer = new MutationObserver(maybeDone);
   let parent = elem.parentNode;
   while (parent) {
-    observer.observe(parent, {childList: true});
+    observer.observe(parent, { childList: true });
     parent = parent.parentNode;
   }
 }

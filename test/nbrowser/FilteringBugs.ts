@@ -1,6 +1,6 @@
-import {assert, Key} from 'mocha-webdriver';
+import { assert, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('FilteringBugs', function() {
   this.timeout(20000);
@@ -18,16 +18,16 @@ describe('FilteringBugs', function() {
 
     // Change column A of the first record from foo to bar; bar should still be
     // visible, even though it's excluded by a filter.
-    await gu.getCell({section: 'TABLE2 Filtered', rowNum: 1, col: 'A'}).click();
+    await gu.getCell({ section: 'TABLE2 Filtered', rowNum: 1, col: 'A' }).click();
     await gu.sendKeys(Key.ENTER, Key.ARROW_DOWN, Key.ENTER);
     await gu.waitForServer();
     assert.deepEqual(
-      await gu.getVisibleGridCells({section: 'TABLE2 Filtered', col: 'A', rowNums: [1, 2, 3]}),
+      await gu.getVisibleGridCells({ section: 'TABLE2 Filtered', col: 'A', rowNums: [1, 2, 3] }),
       ['bar', 'foo', ''],
     );
 
     // With the same record selected, change column C in the linked card section.
-    await gu.getCell({section: 'TABLE2 Filtered', rowNum: 1, col: 'A'}).click();
+    await gu.getCell({ section: 'TABLE2 Filtered', rowNum: 1, col: 'A' }).click();
     await gu.getCardCell('C', 'TABLE2 Card').click();
     await gu.sendKeys('2', Key.ENTER);
     await gu.waitForServer();
@@ -35,7 +35,7 @@ describe('FilteringBugs', function() {
     // Check that the record is still visible in the first section. Previously, a
     // regression caused it to be filtered out.
     assert.deepEqual(
-      await gu.getVisibleGridCells({section: 'TABLE2 Filtered', col: 'A', rowNums: [1, 2, 3]}),
+      await gu.getVisibleGridCells({ section: 'TABLE2 Filtered', col: 'A', rowNums: [1, 2, 3] }),
       ['bar', 'foo', ''],
     );
   });

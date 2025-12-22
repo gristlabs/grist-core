@@ -1,9 +1,9 @@
-import {BaseAPI, IOptions} from 'app/common/BaseAPI';
-import {TEAM_FREE_PLAN} from 'app/common/Features';
-import {FullUser} from 'app/common/LoginSessionAPI';
-import {StringUnion} from 'app/common/StringUnion';
-import {addCurrentOrgToPath} from 'app/common/urlUtils';
-import {BillingAccount, ManagerDelta, OrganizationWithoutAccessInfo} from 'app/common/UserAPI';
+import { BaseAPI, IOptions } from 'app/common/BaseAPI';
+import { TEAM_FREE_PLAN } from 'app/common/Features';
+import { FullUser } from 'app/common/LoginSessionAPI';
+import { StringUnion } from 'app/common/StringUnion';
+import { addCurrentOrgToPath } from 'app/common/urlUtils';
+import { BillingAccount, ManagerDelta, OrganizationWithoutAccessInfo } from 'app/common/UserAPI';
 
 export const BillingSubPage = StringUnion('payment', 'scheduled');
 export type BillingSubPage = typeof BillingSubPage.type;
@@ -189,7 +189,7 @@ export interface ChangeSummary {
   }
 }
 
-export type UpgradeConfirmation = ChangeSummary|{checkoutUrl: string};
+export type UpgradeConfirmation = ChangeSummary|{ checkoutUrl: string };
 
 export interface PlanSelection {
   product?: string; // grist product name
@@ -213,7 +213,7 @@ export interface BillingAPI {
   }>;
   confirmChange(plan: PlanSelection): Promise<UpgradeConfirmation>;
   changePlan(plan: PlanSelection): Promise<void>;
-  renewPlan(plan: PlanSelection): Promise<{checkoutUrl: string}>;
+  renewPlan(plan: PlanSelection): Promise<{ checkoutUrl: string }>;
   cancelCurrentPlan(): Promise<void>;
   customerPortal(): string;
   updateAssistantPlan(tier: number): Promise<void>;
@@ -249,11 +249,11 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
 
   // Returns an IBillingSubscription
   public async getSubscription(): Promise<IBillingSubscription> {
-    return this.requestJson(`${this._url}/api/billing/subscription`, {method: 'GET'});
+    return this.requestJson(`${this._url}/api/billing/subscription`, { method: 'GET' });
   }
 
   public async getBillingAccount(): Promise<FullBillingAccount> {
-    return this.requestJson(`${this._url}/api/billing`, {method: 'GET'});
+    return this.requestJson(`${this._url}/api/billing`, { method: 'GET' });
   }
 
   public async cancelCurrentPlan() {
@@ -272,7 +272,7 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
   public async updateBillingManagers(delta: ManagerDelta): Promise<void> {
     await this.request(`${this._url}/api/billing/managers`, {
       method: 'PATCH',
-      body: JSON.stringify({delta}),
+      body: JSON.stringify({ delta }),
     });
   }
 
@@ -307,7 +307,7 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     });
   }
 
-  public async confirmChange(plan: PlanSelection): Promise<ChangeSummary|{checkoutUrl: string}> {
+  public async confirmChange(plan: PlanSelection): Promise<ChangeSummary|{ checkoutUrl: string }> {
     return this.requestJson(`${this._url}/api/billing/confirm-change`, {
       method: 'POST',
       body: JSON.stringify(plan),
@@ -318,7 +318,7 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     return `${this._url}/api/billing/customer-portal`;
   }
 
-  public renewPlan(plan: PlanSelection): Promise<{checkoutUrl: string}> {
+  public renewPlan(plan: PlanSelection): Promise<{ checkoutUrl: string }> {
     return this.requestJson(`${this._url}/api/billing/renew`, {
       method: 'POST',
       body: JSON.stringify(plan),
@@ -338,7 +338,7 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
   public async subscriptionStatus(planId: string): Promise<boolean> {
     const data = await this.requestJson(`${this._url}/api/billing/status`, {
       method: 'POST',
-      body: JSON.stringify({planId}),
+      body: JSON.stringify({ planId }),
     });
     return data.active;
   }
@@ -364,16 +364,16 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     });
   }
 
-  public async getPaymentLink(): Promise<{checkoutUrl: string}> {
-    return await this.requestJson(`${this._url}/api/billing/payment-link`, {method: 'GET'});
+  public async getPaymentLink(): Promise<{ checkoutUrl: string }> {
+    return await this.requestJson(`${this._url}/api/billing/payment-link`, { method: 'GET' });
   }
 
   public async cancelPlanChange(): Promise<void> {
-    await this.request(`${this._url}/api/billing/cancel-plan-change`, {method: 'POST'});
+    await this.request(`${this._url}/api/billing/cancel-plan-change`, { method: 'POST' });
   }
 
   public async dontCancelPlan(): Promise<void> {
-    await this.request(`${this._url}/api/billing/dont-cancel-plan`, {method: 'POST'});
+    await this.request(`${this._url}/api/billing/dont-cancel-plan`, { method: 'POST' });
   }
 
   private get _url(): string {

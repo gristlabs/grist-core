@@ -1,5 +1,5 @@
-import {StringUnion} from 'app/common/StringUnion';
-import {ThemePrefs} from 'app/common/ThemePrefs';
+import { StringUnion } from 'app/common/StringUnion';
+import { ThemePrefs } from 'app/common/ThemePrefs';
 
 export const SortPref = StringUnion("name", "date");
 export type SortPref = typeof SortPref.type;

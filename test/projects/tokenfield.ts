@@ -1,5 +1,5 @@
-import {addToRepl, assert, driver, Key, stackWrapFunc, useServer, WebElement} from 'mocha-webdriver';
-import {server} from 'test/fixtures/projects/webpack-test-server';
+import { addToRepl, assert, driver, Key, stackWrapFunc, useServer, WebElement } from 'mocha-webdriver';
+import { server } from 'test/fixtures/projects/webpack-test-server';
 import * as gu from 'test/nbrowser/gristUtils';
 
 describe('tokenfield', function() {

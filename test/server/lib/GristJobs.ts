@@ -1,8 +1,8 @@
-import {delay} from 'app/common/delay';
-import {createGristJobs, GristJobs} from 'app/server/lib/GristJobs';
-import {assert} from 'chai';
-import {EnvironmentSnapshot} from 'test/server/testUtils';
-import {waitForIt} from 'test/server/wait';
+import { delay } from 'app/common/delay';
+import { createGristJobs, GristJobs } from 'app/server/lib/GristJobs';
+import { assert } from 'chai';
+import { EnvironmentSnapshot } from 'test/server/testUtils';
+import { waitForIt } from 'test/server/wait';
 
 describe('GristJobs', function() {
   this.timeout(20000);
@@ -12,7 +12,7 @@ describe('GristJobs', function() {
   beforeEach(async function() {
     const jobs = createGristJobs();
     const q = jobs.queue();
-    await q.stop({obliterate: true});
+    await q.stop({ obliterate: true });
     await jobs.stop();
   });
 
@@ -49,24 +49,24 @@ describe('GristJobs', function() {
         q.handleDefault(async (job) => {
           defaultCt++;
         });
-        await q.add('add', {delta: 2});
+        await q.add('add', { delta: 2 });
         await waitForIt(async () => {
           assert.equal(ct, 2);
           assert.equal(defaultCt, 0);
         }, 2000, 10);
-        await q.add('add', {delta: 3});
+        await q.add('add', { delta: 3 });
         await waitForIt(async () => {
           assert.equal(ct, 5);
           assert.equal(defaultCt, 0);
         }, 2000, 10);
-        await q.add('badd', {delta: 4});
+        await q.add('badd', { delta: 4 });
         await waitForIt(async () => {
           assert.equal(ct, 5);
           assert.equal(defaultCt, 1);
         }, 2000, 10);
       }
       finally {
-        await jobs.stop({obliterate: true});
+        await jobs.stop({ obliterate: true });
       }
     });
 
@@ -82,7 +82,7 @@ describe('GristJobs', function() {
         q.handleDefault(async () => {
           defaultCt++;
         });
-        await q.add('add', {delta: 2}, {delay: 500});
+        await q.add('add', { delta: 2 }, { delay: 500 });
         assert.equal(ct, 0);
         assert.equal(defaultCt, 0);
         // We need to wait long enough to see the effect.
@@ -94,7 +94,7 @@ describe('GristJobs', function() {
         assert.equal(defaultCt, 0);
       }
       finally {
-        await jobs.stop({obliterate: true});
+        await jobs.stop({ obliterate: true });
       }
     });
 
@@ -110,8 +110,8 @@ describe('GristJobs', function() {
         q.handleDefault(async () => {
           defaultCt++;
         });
-        await q.add('add', {delta: 2}, {repeat: {every: 250}});
-        await q.add('badd', {delta: 2}, {repeat: {every: 100}});
+        await q.add('add', { delta: 2 }, { repeat: { every: 250 } });
+        await q.add('badd', { delta: 2 }, { repeat: { every: 100 } });
         assert.equal(ct, 0);
         assert.equal(defaultCt, 0);
         await delay(1000);
@@ -122,7 +122,7 @@ describe('GristJobs', function() {
         assert.isAtMost(defaultCt, 10 + 3);
       }
       finally {
-        await jobs.stop({obliterate: true});
+        await jobs.stop({ obliterate: true });
       }
     });
 
@@ -138,8 +138,8 @@ describe('GristJobs', function() {
           ct += job.data.delta;
         });
         q.handleDefault(async () => {});
-        await q.add('add', {delta: 1}, {delay: 250});
-        await q.add('add', {delta: 1}, {delay: 1000});
+        await q.add('add', { delta: 1 }, { delay: 250 });
+        await q.add('add', { delta: 1 }, { delay: 1000 });
         await delay(500);
         assert.equal(ct, 1);
         await jobs1.stop();
@@ -154,11 +154,11 @@ describe('GristJobs', function() {
           assert.equal(ct, 3);
         }
         finally {
-          await jobs2.stop({obliterate: true});
+          await jobs2.stop({ obliterate: true });
         }
       }
       finally {
-        await jobs1.stop({obliterate: true});
+        await jobs1.stop({ obliterate: true });
       }
     });
   }

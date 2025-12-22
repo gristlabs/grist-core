@@ -44,6 +44,6 @@ export class ActionRouter {
         this._subscribedTables.add(action[2]);
         break;
     }
-    return this._rpc.postMessage({type: "docAction", action});
+    return this._rpc.postMessage({ type: "docAction", action });
   }
 }

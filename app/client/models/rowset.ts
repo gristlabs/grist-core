@@ -21,13 +21,13 @@
  */
 // tslint:disable:max-classes-per-file
 
-import koArray, {KoArray} from 'app/client/lib/koArray';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {CompareFunc, sortedIndex} from 'app/common/gutil';
-import {SkippableRows} from 'app/common/TableData';
-import {RowFilterFunc} from "app/common/RowFilterFunc";
-import {UIRowId} from 'app/plugin/GristAPI';
-import {Observable} from 'grainjs';
+import koArray, { KoArray } from 'app/client/lib/koArray';
+import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
+import { CompareFunc, sortedIndex } from 'app/common/gutil';
+import { SkippableRows } from 'app/common/TableData';
+import { RowFilterFunc } from "app/common/RowFilterFunc";
+import { UIRowId } from 'app/plugin/GristAPI';
+import { Observable } from 'grainjs';
 
 /**
  * Special constant value that can be used for the `rows` array for the 'rowNotify'
@@ -66,7 +66,7 @@ export abstract class RowSource extends DisposableWithEvents {
 // RowListener
 // ----------------------------------------------------------------------
 
-const _changeTypes: {[key: string]: ChangeMethod} = {
+const _changeTypes: { [key: string]: ChangeMethod } = {
   add: 'onAddRows',
   remove: 'onRemoveRows',
   update: 'onUpdateRows',

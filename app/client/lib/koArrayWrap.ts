@@ -1,5 +1,5 @@
-import {KoArray} from 'app/client/lib/koArray';
-import {IDisposableOwnerT, MutableObsArray, ObsArray, setDisposeOwner} from 'grainjs';
+import { KoArray } from 'app/client/lib/koArray';
+import { IDisposableOwnerT, MutableObsArray, ObsArray, setDisposeOwner } from 'grainjs';
 
 /**
  * Returns a grainjs ObsArray that reflects the given koArray, mapping small changes using

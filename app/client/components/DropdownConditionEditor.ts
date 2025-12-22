@@ -1,13 +1,13 @@
 import * as AceEditor from 'app/client/components/AceEditor';
-import {createGroup} from 'app/client/components/commands';
-import {makeT} from 'app/client/lib/localization';
-import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
-import {theme} from 'app/client/ui2018/cssVars';
-import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
-import {EditorPlacement, ISize} from 'app/client/widgets/EditorPlacement';
-import {initializeAceOptions} from 'app/client/widgets/FormulaEditor';
-import {IEditorCommandGroup} from 'app/client/widgets/NewBaseEditor';
-import {ISuggestionWithValue} from 'app/common/ActiveDocAPI';
+import { createGroup } from 'app/client/components/commands';
+import { makeT } from 'app/client/lib/localization';
+import { buildHighlightedCode } from 'app/client/ui/CodeHighlight';
+import { theme } from 'app/client/ui2018/cssVars';
+import { createMobileButtons, getButtonMargins } from 'app/client/widgets/EditorButtons';
+import { EditorPlacement, ISize } from 'app/client/widgets/EditorPlacement';
+import { initializeAceOptions } from 'app/client/widgets/FormulaEditor';
+import { IEditorCommandGroup } from 'app/client/widgets/NewBaseEditor';
+import { ISuggestionWithValue } from 'app/common/ActiveDocAPI';
 import {
   Computed,
   Disposable,
@@ -47,14 +47,14 @@ export function buildDropdownConditionEditor(
   options: BuildDropdownConditionEditorOptions,
   ...args: DomElementArg[]
 ) {
-  const {value, disabled, onSave, onDispose, getAutocompleteSuggestions} = options;
+  const { value, disabled, onSave, onDispose, getAutocompleteSuggestions } = options;
   return dom.create(buildHighlightedCode,
     value,
-    {maxLines: 1},
+    { maxLines: 1 },
     dom.cls(cssDropdownConditionField.className),
     dom.cls('disabled'),
     cssDropdownConditionField.cls('-disabled', disabled),
-    {tabIndex: '-1'},
+    { tabIndex: '-1' },
     dom.on('focus', (_, refElem) => openDropdownConditionEditor(owner, {
       refElem,
       value,
@@ -73,7 +73,7 @@ function openDropdownConditionEditor(owner: IDisposableOwner, options: {
   onDispose: () => void;
   getAutocompleteSuggestions(prefix: string): ISuggestionWithValue[];
 }) {
-  const {refElem, value, onSave, onDispose, getAutocompleteSuggestions} = options;
+  const { refElem, value, onSave, onDispose, getAutocompleteSuggestions } = options;
 
   const saveAndDispose = async () => {
     const editorValue = editor.getValue();

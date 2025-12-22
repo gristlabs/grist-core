@@ -1,20 +1,20 @@
-import {allCommands} from 'app/client/components/commands';
-import {FormLayoutNodeType} from 'app/client/components/FormRenderer';
+import { allCommands } from 'app/client/components/commands';
+import { FormLayoutNodeType } from 'app/client/components/FormRenderer';
 import * as components from 'app/client/components/Forms/elements';
-import {FormView} from 'app/client/components/Forms/FormView';
-import {BoxModel, Place} from 'app/client/components/Forms/Model';
-import {makeTestId, stopEvent} from 'app/client/lib/domUtils';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {getColumnTypes as getNewColumnTypes} from 'app/client/ui/GridViewMenus';
+import { FormView } from 'app/client/components/Forms/FormView';
+import { BoxModel, Place } from 'app/client/components/Forms/Model';
+import { makeTestId, stopEvent } from 'app/client/lib/domUtils';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { makeT } from 'app/client/lib/localization';
+import { getColumnTypes as getNewColumnTypes } from 'app/client/ui/GridViewMenus';
 import * as menus from 'app/client/ui2018/menus';
-import {Computed, dom, IDomArgs, MultiHolder} from 'grainjs';
+import { Computed, dom, IDomArgs, MultiHolder } from 'grainjs';
 
 const t = makeT('Menu');
 const testId = makeTestId('test-forms-menu-');
 
 // New box to add, either a new column of type, an existing column (by column id), or a structure.
-export type NewBox = {add: string} | {show: string} | {structure: FormLayoutNodeType};
+export type NewBox = { add: string } | { show: string } | { structure: FormLayoutNodeType };
 
 interface Props {
   /**
@@ -40,7 +40,7 @@ interface Props {
 }
 
 export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArgs<HTMLElement> {
-  const {box, context, customItems} = props;
+  const { box, context, customItems } = props;
   const view = box?.view ?? props.view;
   if (!view) { throw new Error("No view provided"); }
   const gristDoc = view.gristDoc;
@@ -72,7 +72,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
       box?.view.selectedBox.set(box);
 
       // Same for structure.
-      const struct = (structure: FormLayoutNodeType) => ({structure});
+      const struct = (structure: FormLayoutNodeType) => ({ structure });
 
       // Actions:
 
@@ -100,9 +100,9 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
       const quick = ['Text', 'Numeric', 'Choice', 'Date'];
       const disabled: string[] = [];
       const commonTypes = () => getNewColumnTypes(gristDoc, viewSection.tableId());
-      const isQuick = ({colType}: {colType: string}) => quick.includes(colType);
-      const notQuick = ({colType}: {colType: string}) => !quick.includes(colType);
-      const isEnabled = ({colType}: {colType: string}) => !disabled.includes(colType);
+      const isQuick = ({ colType}: { colType: string }) => quick.includes(colType);
+      const notQuick = ({ colType}: { colType: string }) => !quick.includes(colType);
+      const isEnabled = ({ colType}: { colType: string }) => !disabled.includes(colType);
 
       const insertMenu = (where: typeof above) => () => {
         return [
@@ -110,13 +110,13 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
           ...commonTypes()
             .filter(isQuick)
             .filter(isEnabled)
-            .map(ct => menus.menuItem(where({add: ct.colType}), menus.menuIcon(ct.icon!), ct.displayName)),
+            .map(ct => menus.menuItem(where({ add: ct.colType }), menus.menuIcon(ct.icon!), ct.displayName)),
           menus.menuItemSubmenu(
             () => commonTypes()
               .filter(notQuick)
               .filter(isEnabled)
               .map(ct => menus.menuItem(
-                where({add: ct.colType}),
+                where({ add: ct.colType }),
                 menus.menuIcon(ct.icon!),
                 ct.displayName,
               )),
@@ -128,8 +128,8 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
             menus.menuDivider(),
             menus.menuSubHeader(t('Unmapped fields')),
             dom.domComputed(unmapped, uf =>
-              uf.map(({label, icon, colId}) => menus.menuItem(
-                where({show: colId}),
+              uf.map(({ label, icon, colId }) => menus.menuItem(
+                where({ show: colId }),
                 menus.menuIcon(icon),
                 label,
                 testId('unmapped'),
@@ -141,8 +141,8 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
             menus.menuDivider(),
             menus.menuSubHeaderMenu(
               () => unmapped.get().map(
-                ({label, icon, colId}) => menus.menuItem(
-                  where({show: colId}),
+                ({ label, icon, colId }) => menus.menuItem(
+                  where({ show: colId }),
                   menus.menuIcon(icon),
                   label,
                   testId('unmapped'),
@@ -170,8 +170,8 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
 
       return [
         disableInsert ? null : [
-          menus.menuItemSubmenu(insertMenu(above), {action: above({add: 'Text'})}, t("Insert question above")),
-          menus.menuItemSubmenu(insertMenu(below), {action: below({add: 'Text'})}, t("Insert question below")),
+          menus.menuItemSubmenu(insertMenu(above), { action: above({ add: 'Text' }) }, t("Insert question above")),
+          menus.menuItemSubmenu(insertMenu(below), { action: below({ add: 'Text' }) }, t("Insert question below")),
           menus.menuDivider(),
         ],
         menus.menuItemCmd(allCommands.contextMenuCopy, t("Copy")),
@@ -179,12 +179,12 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
         menus.menuItemCmd(allCommands.contextMenuPaste, t("Paste")),
         menus.menuDivider(),
         menus.menuItemCmd(allCommands.deleteFields, "Hide"),
-        elem => void FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}),
+        elem => void FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }),
         customItems?.length ? menus.menuDivider(dom.style('min-width', '200px')) : null,
         ...(customItems ?? []),
         ...args,
       ];
-    }, {trigger: [context ? 'contextmenu' : 'click']}),
+    }, { trigger: [context ? 'contextmenu' : 'click'] }),
     context ? dom.on('contextmenu', stopEvent) : null,
   ];
 }

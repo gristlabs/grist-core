@@ -1,9 +1,9 @@
-import {makeT, t} from 'app/client/lib/localization';
-import {assert} from 'chai';
-import i18next, {i18n} from 'i18next';
-import {Disposable, dom, DomContents, observable} from "grainjs";
-import {G, popGlobals, pushGlobals} from 'grainjs/dist/cjs/lib/browserGlobals';
-import {JSDOM} from 'jsdom';
+import { makeT, t } from 'app/client/lib/localization';
+import { assert } from 'chai';
+import i18next, { i18n } from 'i18next';
+import { Disposable, dom, DomContents, observable } from "grainjs";
+import { G, popGlobals, pushGlobals } from 'grainjs/dist/cjs/lib/browserGlobals';
+import { JSDOM } from 'jsdom';
 
 describe('localization', function() {
   let instance: i18n;
@@ -38,8 +38,8 @@ describe('localization', function() {
   });
 
   it('supports basic operation for strings', function() {
-    assert.equal(t('Argument', {arg1: '1', arg2: '2', end: '.'}, instance), 'Translated 1 2.');
-    assert.equal(t('Argument', {arg1: '1', arg2: '2', end: '.', context: 'variant'}, instance), 'Variant 1 2.');
+    assert.equal(t('Argument', { arg1: '1', arg2: '2', end: '.' }, instance), 'Translated 1 2.');
+    assert.equal(t('Argument', { arg1: '1', arg2: '2', end: '.', context: 'variant' }, instance), 'Variant 1 2.');
     assert.equal(t('Text', null, instance), 'TranslatedText');
   });
 
@@ -95,7 +95,7 @@ describe('localization', function() {
 
   it('supports scoping through makeT', function() {
     const scoped = makeT('Parent', instance);
-    assert.equal(scoped('Child', { arg: 'Arg'}), 'Translated child Arg');
+    assert.equal(scoped('Child', { arg: 'Arg' }), 'Translated child Arg');
   });
 
   it('infers result from parameters', function() {
@@ -106,21 +106,21 @@ describe('localization', function() {
     }
     // Here we only test that this "compiles" without errors and types are correct.
     let typeString: string = ''; void typeString;
-    typeString = t('Argument', {arg1: 'argument 1', arg2: 'argument 2'}, instance);
-    typeString = t('Argument', {arg1: 1, arg2: true}, instance);
+    typeString = t('Argument', { arg1: 'argument 1', arg2: 'argument 2' }, instance);
+    typeString = t('Argument', { arg1: 1, arg2: true }, instance);
     typeString = t('Argument', undefined,  instance);
     const scoped = makeT('Parent', instance);
-    typeString = scoped('Child', {arg: 'argument 1'});
-    typeString = scoped('Child', {arg: 1});
+    typeString = scoped('Child', { arg: 'argument 1' });
+    typeString = scoped('Child', { arg: 1 });
     typeString = scoped('Child', undefined);
 
     let domContent: DomContents = null; void domContent;
 
-    domContent = t('Argument', {arg1: 'argument 1', arg2: dom('span')}, instance);
-    domContent = t('Argument', {arg1: 1, arg2: dom.domComputed(observable('test'))}, instance);
+    domContent = t('Argument', { arg1: 'argument 1', arg2: dom('span') }, instance);
+    domContent = t('Argument', { arg1: 1, arg2: dom.domComputed(observable('test')) }, instance);
     domContent = t('Argument', undefined, instance);
-    domContent = scoped('Child', {arg: dom.create(Component)});
-    domContent = scoped('Child', {arg: dom.maybe(observable(true), () => dom('span'))});
+    domContent = scoped('Child', { arg: dom.create(Component) });
+    domContent = scoped('Child', { arg: dom.maybe(observable(true), () => dom('span')) });
   });
 
   it('supports : and . characters in scoped function', function() {

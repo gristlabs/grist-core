@@ -1,21 +1,21 @@
-import {Clipboard} from 'app/client/components/Clipboard';
+import { Clipboard } from 'app/client/components/Clipboard';
 import * as commands from 'app/client/components/commands';
-import {copyToClipboard} from 'app/client/lib/clipboardUtils';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {setTestState} from 'app/client/lib/testState';
-import {ViewFieldRec} from 'app/client/models/DocModel';
-import {LIMITED_COLUMN_OPTIONS} from 'app/client/ui/FieldConfig';
-import {autoGrow} from 'app/client/ui/forms';
-import {cssInput, cssLabel, cssRenamePopup, cssTextArea} from 'app/client/ui/RenamePopupStyles';
-import {descriptionInfoTooltip, hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
-import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menuCssClass} from 'app/client/ui2018/menus';
-import {Computed, dom, IKnockoutReadObservable, makeTestId, Observable, styled} from 'grainjs';
+import { copyToClipboard } from 'app/client/lib/clipboardUtils';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { makeT } from 'app/client/lib/localization';
+import { setTestState } from 'app/client/lib/testState';
+import { ViewFieldRec } from 'app/client/models/DocModel';
+import { LIMITED_COLUMN_OPTIONS } from 'app/client/ui/FieldConfig';
+import { autoGrow } from 'app/client/ui/forms';
+import { cssInput, cssLabel, cssRenamePopup, cssTextArea } from 'app/client/ui/RenamePopupStyles';
+import { descriptionInfoTooltip, hoverTooltip, showTransientTooltip } from 'app/client/ui/tooltips';
+import { basicButton, primaryButton, textButton } from 'app/client/ui2018/buttons';
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { menuCssClass } from 'app/client/ui2018/menus';
+import { Computed, dom, IKnockoutReadObservable, makeTestId, Observable, styled } from 'grainjs';
 import * as ko from 'knockout';
-import {IOpenController, PopupControl, setPopupToCreateDom} from 'popweasel';
+import { IOpenController, PopupControl, setPopupToCreateDom } from 'popweasel';
 
 const testId = makeTestId('test-column-title-');
 const t = makeT('ColumnTitle');
@@ -86,7 +86,7 @@ export function columnHeaderWithInfo(
 }
 
 function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOptions) {
-  const {field, isEditing, optCommands} = options;
+  const { field, isEditing, optCommands } = options;
   // Store temporary values for the label and description.
   const editedLabel = Observable.create(ctrl, field.displayLabel.peek());
   const editedDesc = Observable.create(ctrl, field.description.peek());
@@ -195,7 +195,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
   };
 
   // Create this group and attach it to the popup and both inputs.
-  const commandGroup = commands.createGroup({...optCommands, ...myCommands}, ctrl, true);
+  const commandGroup = commands.createGroup({ ...optCommands, ...myCommands }, ctrl, true);
   ctrl.autoDispose(commandGroup);
 
   // We will still focus from other elements and restore it on either the label or description input.
@@ -231,7 +231,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
         testId('label'),
         commandGroup.attach(),
         rememberFocus,
-        hoverTooltip(LIMITED_COLUMN_OPTIONS, {hidden: canRename}),
+        hoverTooltip(LIMITED_COLUMN_OPTIONS, { hidden: canRename }),
         dom.boolAttr('disabled', not(canRename)),
         dom.style('pointer-events', 'all'),
       ),
@@ -245,7 +245,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
             key: 'copy-column-id',
           });
           await copyToClipboard(colId);
-          setTestState({clipboard: colId});
+          setTestState({ clipboard: colId });
         }),
         testId('colid'),
       ),

@@ -1,10 +1,10 @@
-import {assert, driver, Key} from 'mocha-webdriver';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('BehavioralPrompts', function() {
   this.timeout(20000);
-  const cleanup = setupTestSuite({tutorial: true});
+  const cleanup = setupTestSuite({ tutorial: true });
 
   let session: gu.Session;
   let docId: string;
@@ -12,7 +12,7 @@ describe('BehavioralPrompts', function() {
   gu.bigScreen();
 
   before(async () => {
-    session = await gu.session().user('user1').login({showTips: true});
+    session = await gu.session().user('user1').login({ showTips: true });
     await gu.dismissCoachingCall();
     docId = await session.tempNewDoc(cleanup, 'BehavioralPrompts');
   });
@@ -20,7 +20,7 @@ describe('BehavioralPrompts', function() {
   afterEach(() => gu.checkForErrors());
 
   describe('when helpCenter is hidden', function() {
-    gu.withEnvironmentSnapshot({'GRIST_HIDE_UI_ELEMENTS': 'helpCenter'});
+    gu.withEnvironmentSnapshot({ 'GRIST_HIDE_UI_ELEMENTS': 'helpCenter' });
 
     before(async () => {
       const sessionNoHelpCenter = await gu.session().user('user3').login({
@@ -65,7 +65,7 @@ describe('BehavioralPrompts', function() {
   });
 
   it('should be temporarily dismissed on click-away', async function() {
-    await gu.getCell({col: 'A', rowNum: 1}).click();
+    await gu.getCell({ col: 'A', rowNum: 1 }).click();
     await assertPromptTitle(null);
   });
 
@@ -147,7 +147,7 @@ describe('BehavioralPrompts', function() {
 
   describe('for the Add New button', function() {
     it('should not be shown if site is empty', async function() {
-      session = await gu.session().user('user4').login({showTips: true});
+      session = await gu.session().user('user4').login({ showTips: true });
       await session.loadDocMenu('/');
       await assertPromptTitle(null);
     });
@@ -195,7 +195,7 @@ describe('BehavioralPrompts', function() {
 
   it(`should stop showing tips if "Don't show tips" is checked`, async function() {
     // Log in as a new user who hasn't seen any tips yet.
-    session = await gu.session().user('user2').login({showTips: true});
+    session = await gu.session().user('user2').login({ showTips: true });
     docId = await session.tempNewDoc(cleanup, 'BehavioralPromptsDontShowTips');
     await gu.loadDoc(`/doc/${docId}`);
 
@@ -256,7 +256,7 @@ describe('BehavioralPrompts', function() {
   });
 
   it('remembers that tips are dismissed after a reload', async function() {
-    session = await gu.session().user('user1').login({showTips: true});
+    session = await gu.session().user('user1').login({ showTips: true });
     await gu.dismissCoachingCall();
     docId = await session.tempNewDoc(cleanup, 'BehavioralPrompts');
 

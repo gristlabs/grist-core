@@ -1,4 +1,4 @@
-import {Disposable, dom, Emitter} from 'grainjs';
+import { Disposable, dom, Emitter } from 'grainjs';
 
 export interface ISize {
   width: number;
@@ -46,7 +46,7 @@ export class EditorPlacement extends Disposable {
   // - cellElem is the cell being mirrored by the editor; the editor generally expands to match
   //   the size of the cell.
   // - margins may be given to add to the default edgeMargin, to increase distance to edges of the window.
-  constructor(editorDom: HTMLElement, private _cellElem: Element, options: {margins?: IMargins} = {}) {
+  constructor(editorDom: HTMLElement, private _cellElem: Element, options: { margins?: IMargins } = {}) {
     super();
 
     this._margins = {
@@ -117,7 +117,7 @@ export class EditorPlacement extends Disposable {
       });
     }
 
-    return {width, height};
+    return { width, height };
   }
 
   /**
@@ -130,7 +130,7 @@ export class EditorPlacement extends Disposable {
     const elemRect = elem.getBoundingClientRect();
     const heightDelta = rootRect.height - elemRect.height;
     const widthDelta = rootRect.width - elemRect.width;
-    const {width, height} = this.calcSize({
+    const { width, height } = this.calcSize({
       width: desiredElemSize.width + widthDelta,
       height: desiredElemSize.height + heightDelta,
     }, options);

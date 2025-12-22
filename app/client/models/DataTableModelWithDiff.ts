@@ -249,7 +249,7 @@ export class TableDataWithDiff {
     else {
       // keep row.id consistent with rowId for convenience.
       if (colId === 'id') { return rowId; }
-      const {type, id} = ExtraRows.interpretRowId(rowId);
+      const { type, id } = ExtraRows.interpretRowId(rowId);
       if (type === 'remote-add') {
         const cell = this.rightTableDelta.columnDeltas[colId]?.[id];
         const value = (cell !== undefined) ? newValue(cell) : undefined;

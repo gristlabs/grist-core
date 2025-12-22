@@ -1,7 +1,7 @@
-import {DocAPI, UserAPI} from 'app/common/UserAPI';
-import {assert} from 'chai';
-import {TestServer} from 'test/gen-server/apiUtils';
-import {createTmpDir} from 'test/server/docTools';
+import { DocAPI, UserAPI } from 'app/common/UserAPI';
+import { assert } from 'chai';
+import { TestServer } from 'test/gen-server/apiUtils';
+import { createTmpDir } from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 
 describe('Proposals', function() {
@@ -20,9 +20,9 @@ describe('Proposals', function() {
     server = new TestServer(this);
     await server.start(['home', 'docs']);
     const api = await server.createHomeApi('chimpy', 'docs', true);
-    await api.newOrg({name: 'testy', domain: 'testy'});
+    await api.newOrg({ name: 'testy', domain: 'testy' });
     owner = await server.createHomeApi('chimpy', 'testy', true);
-    wsId = await owner.newWorkspace({name: 'ws'}, 'current');
+    wsId = await owner.newWorkspace({ name: 'ws' }, 'current');
   });
 
   after(async function() {
@@ -37,7 +37,7 @@ describe('Proposals', function() {
     modifyAfterProposal?: (trunkApi: DocAPI, forkApi: DocAPI) => Promise<void>,
     testAfterApply?: (trunkApi: DocAPI, forkApi: DocAPI) => Promise<void>,
   }) {
-    const docId = await owner.newDoc({name: 'doc'}, wsId);
+    const docId = await owner.newDoc({ name: 'doc' }, wsId);
     const docApi = owner.getDocAPI(docId);
     await docApi.addRows('Table1', {
       A: ['x', 'y'],
@@ -60,7 +60,7 @@ describe('Proposals', function() {
           updateRows: [2],
           removeRows: [],
           addRows: [],
-          columnDeltas: { A: {2: [["y"], ["yy"]]} },
+          columnDeltas: { A: { 2: [["y"], ["yy"]] } },
           columnRenames: [],
         },
       },
@@ -122,7 +122,7 @@ describe('Proposals', function() {
   });
 
   it('can apply a proposal that includes a formula column', async function() {
-    const docId = await owner.newDoc({name: 'doc'}, wsId);
+    const docId = await owner.newDoc({ name: 'doc' }, wsId);
     const docApi = owner.getDocAPI(docId);
     await docApi.addRows('Table1', {
       A: ['x', 'y'],

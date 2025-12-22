@@ -78,7 +78,7 @@ describe('HealthCheck', function() {
         }
         this.timeout(5000);
 
-        const {blockerPromise, resolve} = blockPostgres(server.dbManager.connection.driver as any);
+        const { blockerPromise, resolve } = blockPostgres(server.dbManager.connection.driver as any);
         try {
           const result = await fetch(server.server.getOwnUrl() + '/status?db=1&redis=1&timeout=500');
           assert.match(await result.text(), /Grist server.*unhealthy.*db not ok, redis ok/);

@@ -1,16 +1,16 @@
-import {ApiError} from 'app/common/ApiError';
-import {mapGetOrSet} from 'app/common/AsyncCreate';
-import {delay} from 'app/common/delay';
-import {DocEntry} from 'app/common/DocListAPI';
-import {DocSnapshots} from 'app/common/DocSnapshot';
-import {DocumentUsage} from 'app/common/DocUsage';
-import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
-import {KeyedOps} from 'app/common/KeyedOps';
-import {DocReplacementOptions, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
-import {backupUsingBestConnection} from 'app/server/lib/backupSqliteDatabase';
-import {checksumFile} from 'app/server/lib/checksumFile';
-import {DocSnapshotInventory, DocSnapshotPruner} from 'app/server/lib/DocSnapshots';
-import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
+import { ApiError } from 'app/common/ApiError';
+import { mapGetOrSet } from 'app/common/AsyncCreate';
+import { delay } from 'app/common/delay';
+import { DocEntry } from 'app/common/DocListAPI';
+import { DocSnapshots } from 'app/common/DocSnapshot';
+import { DocumentUsage } from 'app/common/DocUsage';
+import { buildUrlId, parseUrlId } from 'app/common/gristUrls';
+import { KeyedOps } from 'app/common/KeyedOps';
+import { DocReplacementOptions, NEW_DOCUMENT_CODE } from 'app/common/UserAPI';
+import { backupUsingBestConnection } from 'app/server/lib/backupSqliteDatabase';
+import { checksumFile } from 'app/server/lib/checksumFile';
+import { DocSnapshotInventory, DocSnapshotPruner } from 'app/server/lib/DocSnapshots';
+import { IDocWorkerMap } from 'app/server/lib/DocWorkerMap';
 import {
   ChecksummedExternalStorage,
   DELETED_TOKEN,
@@ -18,15 +18,15 @@ import {
   ExternalStorageCreator, ExternalStorageSettings,
   Unchanged,
 } from 'app/server/lib/ExternalStorage';
-import {GristServer} from 'app/server/lib/GristServer';
-import {HostedMetadataManager, SaveDocsMetadataFunc} from 'app/server/lib/HostedMetadataManager';
-import {EmptySnapshotProgress, IDocStorageManager, SnapshotProgress} from 'app/server/lib/IDocStorageManager';
-import {LogMethods} from "app/server/lib/LogMethods";
+import { GristServer } from 'app/server/lib/GristServer';
+import { HostedMetadataManager, SaveDocsMetadataFunc } from 'app/server/lib/HostedMetadataManager';
+import { EmptySnapshotProgress, IDocStorageManager, SnapshotProgress } from 'app/server/lib/IDocStorageManager';
+import { LogMethods } from "app/server/lib/LogMethods";
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import {v4 as uuidv4} from 'uuid';
-import {OpenMode, SQLiteDB} from 'app/server/lib/SQLiteDB';
-import {Features} from "app/common/Features";
+import { v4 as uuidv4 } from 'uuid';
+import { OpenMode, SQLiteDB } from 'app/server/lib/SQLiteDB';
+import { Features } from "app/common/Features";
 
 // Check for a valid document id.
 const docIdRegex = /^[-=_\w~%]+$/;
@@ -117,7 +117,7 @@ export class HostedStorageManager implements IDocStorageManager {
   private _latestVersions = new Map<string, string>();
   private _latestMetaVersions = new Map<string, string>();
 
-  private _log = new LogMethods('HostedStorageManager ', (docId: string|null) => ({docId}));
+  private _log = new LogMethods('HostedStorageManager ', (docId: string|null) => ({ docId }));
 
   /**
    * Initialize with the given root directory, which should be a fully-resolved path.
@@ -306,7 +306,7 @@ export class HostedStorageManager implements IDocStorageManager {
     // remove any snapshotId embedded in the document id.
     const rawSourceDocId = options.sourceDocId || docId;
     const parts = parseUrlId(rawSourceDocId);
-    const sourceDocId = buildUrlId({...parts, snapshotId: undefined});
+    const sourceDocId = buildUrlId({ ...parts, snapshotId: undefined });
     const snapshotId = options.snapshotId || parts.snapshotId;
 
     if (sourceDocId === docId && !snapshotId) { return; }
@@ -340,7 +340,7 @@ export class HostedStorageManager implements IDocStorageManager {
     }
     try {
       // Fetch new content from S3.
-      if (!await this._fetchFromS3(docId, {sourceDocId, snapshotId})) {
+      if (!await this._fetchFromS3(docId, { sourceDocId, snapshotId })) {
         throw new Error('Cannot fetch document');
       }
       // Make sure the new content is considered new.
@@ -352,7 +352,7 @@ export class HostedStorageManager implements IDocStorageManager {
     }
     catch (err) {
       this._log.error(docId, "problem replacing doc: %s", err);
-      await fse.move(tmpPath, docPath, {overwrite: true});
+      await fse.move(tmpPath, docPath, { overwrite: true });
       throw err;
     }
     finally {
@@ -538,12 +538,12 @@ export class HostedStorageManager implements IDocStorageManager {
     docUsage: DocumentUsage|null,
     minimizeDelay = false,
   ): void {
-    const {forkId, snapshotId} = parseUrlId(docName);
+    const { forkId, snapshotId } = parseUrlId(docName);
     if (!this._metadataManager || forkId || snapshotId) { return; }
 
     this._metadataManager.scheduleUpdate(
       docName,
-      {usage: docUsage},
+      { usage: docUsage },
       minimizeDelay,
     );
   }
@@ -579,7 +579,7 @@ export class HostedStorageManager implements IDocStorageManager {
         .map((v) => {
           return {
             ...v,
-            docId: buildUrlId({...parts, snapshotId: v.snapshotId}),
+            docId: buildUrlId({ ...parts, snapshotId: v.snapshotId }),
           };
         }),
     };
@@ -595,12 +595,12 @@ export class HostedStorageManager implements IDocStorageManager {
   private _markAsEdited(docName: string, timestamp: string): void {
     if (!this._metadataManager) { return; }
 
-    const {forkId, snapshotId} = parseUrlId(docName);
+    const { forkId, snapshotId } = parseUrlId(docName);
     if (snapshotId) { return; }
 
     // Schedule a metadata update for the modified doc.
     const docId = forkId || docName;
-    this._metadataManager.scheduleUpdate(docId, {updatedAt: timestamp});
+    this._metadataManager.scheduleUpdate(docId, { updatedAt: timestamp });
   }
 
   /**
@@ -623,7 +623,7 @@ export class HostedStorageManager implements IDocStorageManager {
       if (this._closed) { throw new Error("HostedStorageManager._ensureDocumentIsPresent called after closing"); }
       checkValidDocId(docName);
 
-      const {trunkId, forkId, snapshotId} = parseUrlId(docName);
+      const { trunkId, forkId, snapshotId } = parseUrlId(docName);
 
       const canCreateFork = Boolean(srcDocName);
 
@@ -720,11 +720,11 @@ export class HostedStorageManager implements IDocStorageManager {
    * Forks of fork will not spark joy at this time.  An attempt to
    * fork a fork will result in a new fork of the original trunk.
    */
-  private async _fetchFromS3(destId: string, options: {sourceDocId?: string,
+  private async _fetchFromS3(destId: string, options: { sourceDocId?: string,
     trunkId?: string,
     snapshotId?: string,
-    canCreateFork?: boolean}): Promise<boolean> {
-    const destIdWithoutSnapshot = buildUrlId({...parseUrlId(destId), snapshotId: undefined});
+    canCreateFork?: boolean }): Promise<boolean> {
+    const destIdWithoutSnapshot = buildUrlId({ ...parseUrlId(destId), snapshotId: undefined });
     let sourceDocId = options.sourceDocId || destIdWithoutSnapshot;
     if (!await this._ext.exists(destIdWithoutSnapshot)) {
       if (!options.trunkId) { return false; }   // Document not found in S3
@@ -788,7 +788,7 @@ export class HostedStorageManager implements IDocStorageManager {
       // Keep metadata keys simple, short, and lowercase.
       const metadata = {
         ...docMetadata,
-        ...label && {label},
+        ...label && { label },
         t,
       };
       let changeMade: boolean = false;
@@ -840,7 +840,7 @@ export class HostedStorageManager implements IDocStorageManager {
   }
 
   // Extract actionHash, actionNum, and timezone from a document backup.
-  private async _getDocMetadata(fname: string): Promise<{[key: string]: string}> {
+  private async _getDocMetadata(fname: string): Promise<{ [key: string]: string }> {
     const result: Record<string, string> = {};
     const db = await SQLiteDB.openDBRaw(fname, OpenMode.OPEN_READONLY);
     try {

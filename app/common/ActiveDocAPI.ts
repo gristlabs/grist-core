@@ -1,13 +1,13 @@
-import {ActionGroup} from 'app/common/ActionGroup';
-import {AssistanceRequest, AssistanceResponse} from 'app/common/Assistance';
-import {BulkAddRecord, CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
-import {DocStateComparison} from 'app/common/DocState';
-import {PredicateFormulaProperties} from 'app/common/PredicateFormula';
-import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {PermissionData, Proposal, UserAccessData} from 'app/common/UserAPI';
-import {ParseOptions} from 'app/plugin/FileParserAPI';
-import {AccessTokenOptions, AccessTokenResult, UIRowId} from 'app/plugin/GristAPI';
-import {IMessage} from 'grain-rpc';
+import { ActionGroup } from 'app/common/ActionGroup';
+import { AssistanceRequest, AssistanceResponse } from 'app/common/Assistance';
+import { BulkAddRecord, CellValue, TableDataAction, UserAction } from 'app/common/DocActions';
+import { DocStateComparison } from 'app/common/DocState';
+import { PredicateFormulaProperties } from 'app/common/PredicateFormula';
+import { FetchUrlOptions, UploadResult } from 'app/common/uploads';
+import { PermissionData, Proposal, UserAccessData } from 'app/common/UserAPI';
+import { ParseOptions } from 'app/plugin/FileParserAPI';
+import { AccessTokenOptions, AccessTokenResult, UIRowId } from 'app/plugin/GristAPI';
+import { IMessage } from 'grain-rpc';
 
 export interface ApplyUAOptions {
   desc?: string;      // Overrides the description of the action.
@@ -243,7 +243,7 @@ export interface AclTableDescription {
 }
 
 export interface AclResources {
-  tables: {[tableId: string]: AclTableDescription};
+  tables: { [tableId: string]: AclTableDescription };
   problems: AclRuleProblem[];
 }
 
@@ -263,7 +263,7 @@ export interface AclRuleProblem {
 }
 
 export function getTableTitle(table: AclTableDescription): string {
-  let {title} = table;
+  let { title } = table;
   if (table.groupByColLabels) {
     title += ' ' + summaryGroupByDescription(table.groupByColLabels);
   }
@@ -325,7 +325,7 @@ export interface TimingInfo {
 export interface FormulaTimingInfo extends TimingInfo {
   tableId: string;
   colId: string;
-  marks?: Array<TimingInfo & {name: string}>;
+  marks?: Array<TimingInfo & { name: string }>;
 }
 
 /*

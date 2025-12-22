@@ -1,19 +1,19 @@
-import {kbFocusHighlighterClass} from 'app/client/components/KeyboardFocusHighlighter';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {reportError} from 'app/client/models/errors';
-import {cssInput} from 'app/client/ui/cssInput';
-import {prepareForTransition, TransitionWatcher} from 'app/client/ui/transitions';
-import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {cssMenuElem} from 'app/client/ui2018/menus';
-import {waitGrainObs} from 'app/common/gutil';
-import {MaybePromise} from 'app/plugin/gutil';
-import {Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
-  MultiHolder, Observable, styled} from 'grainjs';
-import {IOpenController, IPopupOptions, PopupControl, popupOpen} from 'popweasel';
+import { kbFocusHighlighterClass } from 'app/client/components/KeyboardFocusHighlighter';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { makeT } from 'app/client/lib/localization';
+import { reportError } from 'app/client/models/errors';
+import { cssInput } from 'app/client/ui/cssInput';
+import { prepareForTransition, TransitionWatcher } from 'app/client/ui/transitions';
+import { bigBasicButton, bigPrimaryButton, cssButton } from 'app/client/ui2018/buttons';
+import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { mediaSmall, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { loadingSpinner } from 'app/client/ui2018/loaders';
+import { cssMenuElem } from 'app/client/ui2018/menus';
+import { waitGrainObs } from 'app/common/gutil';
+import { MaybePromise } from 'app/plugin/gutil';
+import { Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
+  MultiHolder, Observable, styled } from 'grainjs';
+import { IOpenController, IPopupOptions, PopupControl, popupOpen } from 'popweasel';
 
 const t = makeT('modals');
 
@@ -44,7 +44,7 @@ export interface IModalControl {
   // Otherwise, only StayOpen exception prevents closing; other errors will be propagated.
   doWork<Args extends any[]>(
     func: (...args: Args) => Promise<unknown>,
-    options?: {close?: boolean, catchErrors?: boolean},
+    options?: { close?: boolean, catchErrors?: boolean },
   ): (...args: Args) => Promise<void>;
 }
 
@@ -83,7 +83,7 @@ export class ModalControl extends Disposable implements IModalControl {
 
   public doWork<Args extends any[]>(
     func: (...args: Args) => Promise<unknown>,
-    options: {close?: boolean, catchErrors?: boolean} = {},
+    options: { close?: boolean, catchErrors?: boolean } = {},
   ): (...args: Args) => Promise<void> {
     return async (...args) => {
       this._inProgress.set(this._inProgress.get() + 1);
@@ -333,7 +333,7 @@ export function saveModal(
     const isSaveDisabled = Computed.create(owner, use =>
       use(ctl.workInProgress) || (options.saveDisabled ? use(options.saveDisabled) : false));
 
-    const save = ctl.doWork(options.saveFunc, {close: true, catchErrors: true});
+    const save = ctl.doWork(options.saveFunc, { close: true, catchErrors: true });
 
     return [
       cssModalTitle(options.title, testId('modal-title')),

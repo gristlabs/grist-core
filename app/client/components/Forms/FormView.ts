@@ -1,36 +1,36 @@
 import BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
-import {cleanFormLayoutSpec, FormLayoutNode, FormLayoutNodeType} from 'app/client/components/FormRenderer';
+import { cleanFormLayoutSpec, FormLayoutNode, FormLayoutNodeType } from 'app/client/components/FormRenderer';
 import * as components from 'app/client/components/Forms/elements';
-import {NewBox} from 'app/client/components/Forms/Menu';
-import {BoxModel, LayoutModel, parseBox, Place} from 'app/client/components/Forms/Model';
+import { NewBox } from 'app/client/components/Forms/Menu';
+import { BoxModel, LayoutModel, parseBox, Place } from 'app/client/components/Forms/Model';
 import * as style from 'app/client/components/Forms/styles';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {copyToClipboard} from 'app/client/lib/clipboardUtils';
-import {AsyncComputed, makeTestId, stopEvent} from 'app/client/lib/domUtils';
-import {makeT} from 'app/client/lib/localization';
-import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {ShareRec} from 'app/client/models/entities/ShareRec';
-import {InsertColOptions} from 'app/client/models/entities/ViewSectionRec';
-import {reportError} from 'app/client/models/errors';
-import {docUrl, urlState} from 'app/client/models/gristUrlState';
-import {jsonObservable, SaveableObjObservable} from 'app/client/models/modelUtil';
-import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
-import {cssButton} from 'app/client/ui2018/buttons';
-import {icon} from 'app/client/ui2018/icons';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {menuCssClass} from 'app/client/ui2018/menus';
-import {confirmModal} from 'app/client/ui2018/modals';
-import {INITIAL_FIELDS_COUNT} from 'app/common/Forms';
-import {isOwner} from 'app/common/roles';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, dom, Holder, IDomArgs, MultiHolder, Observable} from 'grainjs';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { copyToClipboard } from 'app/client/lib/clipboardUtils';
+import { AsyncComputed, makeTestId, stopEvent } from 'app/client/lib/domUtils';
+import { makeT } from 'app/client/lib/localization';
+import { localStorageBoolObs } from 'app/client/lib/localStorageObs';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
+import { ViewFieldRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { ShareRec } from 'app/client/models/entities/ShareRec';
+import { InsertColOptions } from 'app/client/models/entities/ViewSectionRec';
+import { reportError } from 'app/client/models/errors';
+import { docUrl, urlState } from 'app/client/models/gristUrlState';
+import { jsonObservable, SaveableObjObservable } from 'app/client/models/modelUtil';
+import { hoverTooltip, showTransientTooltip } from 'app/client/ui/tooltips';
+import { cssButton } from 'app/client/ui2018/buttons';
+import { icon } from 'app/client/ui2018/icons';
+import { loadingSpinner } from 'app/client/ui2018/loaders';
+import { menuCssClass } from 'app/client/ui2018/menus';
+import { confirmModal } from 'app/client/ui2018/modals';
+import { INITIAL_FIELDS_COUNT } from 'app/common/Forms';
+import { isOwner } from 'app/common/roles';
+import { getGristConfig } from 'app/common/urlUtils';
+import { Computed, dom, Holder, IDomArgs, MultiHolder, Observable } from 'grainjs';
 import * as ko from 'knockout';
 import isEqual from 'lodash/isEqual';
-import {defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
-import {v4 as uuidv4} from 'uuid';
+import { defaultMenuOptions, IOpenController, setPopupToCreateDom } from 'popweasel';
+import { v4 as uuidv4 } from 'uuid';
 
 const t = makeT('FormView');
 
@@ -52,7 +52,7 @@ export class FormView extends BaseView {
   private _saving: boolean = false;
   private _previewUrl: Computed<string>;
   private _pageShare: Computed<ShareRec | null>;
-  private _remoteShare: AsyncComputed<{key: string}|null>;
+  private _remoteShare: AsyncComputed<{ key: string }|null>;
   private _isFork: Computed<boolean>;
   private _published: Computed<boolean>;
   private _showPublishedMessage: Observable<boolean>;
@@ -61,7 +61,7 @@ export class FormView extends BaseView {
   private _formEditorBodyElement: HTMLElement;
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
-    super(gristDoc, viewSectionModel, {'addNewRow': false});
+    super(gristDoc, viewSectionModel, { 'addNewRow': false });
     this.menuHolder = Holder.create(this);
 
     // We will store selected box here.
@@ -95,7 +95,7 @@ export class FormView extends BaseView {
       }));
     });
 
-    this.bundle = clb => this.gristDoc.docData.bundleActions('Saving form layout', clb, {nestInActiveBundle: true});
+    this.bundle = clb => this.gristDoc.docData.bundleActions('Saving form layout', clb, { nestInActiveBundle: true });
 
     this.selectedBox.addListener((v) => {
       if (!v) { return; }
@@ -103,7 +103,7 @@ export class FormView extends BaseView {
       if (!colRef || typeof colRef !== 'number') { return; }
       const fieldIndex = this.viewSection.viewFields().all().findIndex(f => f.getRowId() === colRef);
       if (fieldIndex === -1) { return; }
-      this.cursor.setCursorPos({fieldIndex});
+      this.cursor.setCursorPos({ fieldIndex });
     });
 
     this.selectedColumns = this.autoDispose(ko.pureComputed(() => {
@@ -394,7 +394,7 @@ export class FormView extends BaseView {
     });
 
     this._isFork = Computed.create(this, (use) => {
-      const {docPageModel} = this.gristDoc;
+      const { docPageModel } = this.gristDoc;
       return use(docPageModel.isFork) || use(docPageModel.isPrefork);
     });
 
@@ -427,7 +427,7 @@ export class FormView extends BaseView {
   }
 
   public insertColumn(colId?: string | null, options?: InsertColOptions) {
-    return this.viewSection.insertColumn(colId, {...options, nestInActiveBundle: true});
+    return this.viewSection.insertColumn(colId, { ...options, nestInActiveBundle: true });
   }
 
   public showColumn(colRef: number|string, index?: number) {
@@ -464,7 +464,7 @@ export class FormView extends BaseView {
     );
   }
 
-  public async addNewQuestion(insert: Place, action: {add: string}|{show: string}) {
+  public async addNewQuestion(insert: Place, action: { add: string }|{ show: string }) {
     await this.gristDoc.docData.bundleActions(`Saving form layout`, async () => {
       // First save the layout, so that we don't have autogenerated layout.
       await this.save();
@@ -489,13 +489,13 @@ export class FormView extends BaseView {
         type: 'Field',
       }));
       await this._root.save();
-    }, {nestInActiveBundle: true});
+    }, { nestInActiveBundle: true });
   }
 
   public async save() {
     try {
       this._saving = true;
-      const newVersion = {...this._root.toJSON()};
+      const newVersion = { ...this._root.toJSON() };
       // If nothing has changed, don't bother.
       if (isEqual(newVersion, this._savedLayout)) { return; }
       this._savedLayout = newVersion;
@@ -584,11 +584,11 @@ fields, such as reference and choice columns.',
             }),
           },
         ]);
-        await this.gristDoc.docModel.docData.sendAction(['UpdateRecord', '_grist_Pages', page.id(), {shareRef}]);
+        await this.gristDoc.docModel.docData.sendAction(['UpdateRecord', '_grist_Pages', page.id(), { shareRef }]);
       }
       else {
         const share = page.share();
-        share.optionsObj.update({publish: true});
+        share.optionsObj.update({ publish: true });
         await share.optionsObj.save();
       }
 
@@ -828,7 +828,7 @@ your form via that link will see an error.',
                 style.cssShareMenuUrlBlock(
                   style.cssShareMenuUrl(
                     testId('link'),
-                    {readonly: true, value: url},
+                    { readonly: true, value: url },
                     dom.on('click', (_ev, el) => { setTimeout(() => el.select(), 0); }),
                   ),
                   style.cssShareMenuCopyButton(
@@ -839,7 +839,7 @@ your form via that link will see an error.',
                       showTransientTooltip(
                         el,
                         t('Link copied to clipboard'),
-                        {key: 'share-form-menu'},
+                        { key: 'share-form-menu' },
                       );
                     }),
                   ),
@@ -861,7 +861,7 @@ your form via that link will see an error.',
                   dom.maybe(showEmbedCode, () => style.cssShareMenuCodeBlock(
                     style.cssShareMenuCode(
                       code,
-                      {readonly: true, rows: '3'},
+                      { readonly: true, rows: '3' },
                       dom.on('click', (_ev, el) => { setTimeout(() => el.select(), 0); }),
                     ),
                     style.cssShareMenuCodeBlockButtons(
@@ -873,7 +873,7 @@ your form via that link will see an error.',
                           showTransientTooltip(
                             el,
                             t('Code copied to clipboard'),
-                            {key: 'share-form-menu'},
+                            { key: 'share-form-menu' },
                           );
                         }),
                       ),
@@ -975,10 +975,10 @@ export function buildDefaultFormLayout(fields: ViewFieldRec[]): FormLayoutNode {
     id: uuidv4(),
     type: 'Layout',
     children: [
-      {id: uuidv4(), type: 'Paragraph', text: FORM_TITLE, alignment: 'center' },
-      {id: uuidv4(), type: 'Paragraph', text: FORM_DESC, alignment: 'center' },
+      { id: uuidv4(), type: 'Paragraph', text: FORM_TITLE, alignment: 'center' },
+      { id: uuidv4(), type: 'Paragraph', text: FORM_DESC, alignment: 'center' },
       section,
-      {id: uuidv4(), type: 'Submit'},
+      { id: uuidv4(), type: 'Submit' },
     ],
   };
 }

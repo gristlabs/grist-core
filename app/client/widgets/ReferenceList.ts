@@ -3,15 +3,15 @@ import {
   FormOptionsAlignmentConfig,
   FormOptionsSortConfig,
 } from 'app/client/components/Forms/FormConfig';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {isList} from 'app/common/gristTypes';
-import {Computed, dom, styled} from 'grainjs';
-import {cssChoiceList, cssToken} from "app/client/widgets/ChoiceListCell";
-import {Reference} from "app/client/widgets/Reference";
-import {choiceToken} from "app/client/widgets/ChoiceToken";
+import { DataRowModel } from 'app/client/models/DataRowModel';
+import { urlState } from 'app/client/models/gristUrlState';
+import { testId, theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { isList } from 'app/common/gristTypes';
+import { Computed, dom, styled } from 'grainjs';
+import { cssChoiceList, cssToken } from "app/client/widgets/ChoiceListCell";
+import { Reference } from "app/client/widgets/Reference";
+import { choiceToken } from "app/client/widgets/ChoiceToken";
 
 /**
  * ReferenceList - The widget for displaying lists of references to another table's records.
@@ -68,7 +68,7 @@ export class ReferenceList extends Reference {
         if (!values) {
           return null;
         }
-        return values.map(({referenceId, formattedValue}) => {
+        return values.map(({ referenceId, formattedValue }) => {
           const isBlankReference = formattedValue.trim() === '';
           return choiceToken(
             [
@@ -84,8 +84,8 @@ export class ReferenceList extends Reference {
                     throw new Error('Unable to open Record Card: undefined section id');
                   }
 
-                  const anchorUrlState = {hash: {rowId, sectionId, recordCard: true}};
-                  await urlState().pushUrl(anchorUrlState, {replace: true});
+                  const anchorUrlState = { hash: { rowId, sectionId, recordCard: true } };
+                  await urlState().pushUrl(anchorUrlState, { replace: true });
                 }),
                 dom.on('mousedown', (ev) => {
                   ev.stopPropagation();

@@ -1,13 +1,13 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ViewSectionHelper} from 'app/client/components/ViewLayout';
-import {makeT} from 'app/client/lib/localization';
-import {reportMessage, reportSuccess} from 'app/client/models/errors';
-import {IEdit, IExternalTable, VirtualTableRegistration} from 'app/client/models/VirtualTable';
-import {docListHeader} from 'app/client/ui/DocMenuCss';
-import {bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {mediaSmall, testId} from 'app/client/ui2018/cssVars';
-import {ApiError} from 'app/common/ApiError';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { ViewSectionHelper } from 'app/client/components/ViewLayout';
+import { makeT } from 'app/client/lib/localization';
+import { reportMessage, reportSuccess } from 'app/client/models/errors';
+import { IEdit, IExternalTable, VirtualTableRegistration } from 'app/client/models/VirtualTable';
+import { docListHeader } from 'app/client/ui/DocMenuCss';
+import { bigPrimaryButton } from 'app/client/ui2018/buttons';
+import { mediaSmall, testId } from 'app/client/ui2018/cssVars';
+import { ApiError } from 'app/common/ApiError';
+import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
 import {
   DocAction,
   getColIdsFromDocAction,
@@ -16,12 +16,12 @@ import {
   TableDataAction,
   UserAction,
 } from 'app/common/DocActions';
-import {VirtualId} from 'app/common/SortSpec';
-import {WebhookSummary} from 'app/common/Triggers';
-import {DocAPI} from 'app/common/UserAPI';
-import {GristObjCode, RowRecord} from 'app/plugin/GristData';
-import {dom, styled} from 'grainjs';
-import {observableArray, ObservableArray} from "knockout";
+import { VirtualId } from 'app/common/SortSpec';
+import { WebhookSummary } from 'app/common/Triggers';
+import { DocAPI } from 'app/common/UserAPI';
+import { GristObjCode, RowRecord } from 'app/plugin/GristData';
+import { dom, styled } from 'grainjs';
+import { observableArray, ObservableArray } from "knockout";
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import range from 'lodash/range';
@@ -195,7 +195,7 @@ class WebhookExternalTable implements IExternalTable {
   }
 
   public async afterEdit(editor: IEdit) {
-    const {delta} = editor;
+    const { delta } = editor;
     const updates = new Set(delta.updateRows);
     const addsAndUpdates = new Set([...delta.addRows, ...delta.updateRows]);
     for (const recId of addsAndUpdates) {
@@ -295,7 +295,7 @@ class WebhookExternalTable implements IExternalTable {
     this.webhooks.removeAll();
     this.webhooks.push(
       ...webhooks.map((webhook) => {
-        const uiWebhook: UIWebhookSummary = {...webhook};
+        const uiWebhook: UIWebhookSummary = { ...webhook };
         uiWebhook.fields.watchedColIdsText = webhook.fields.watchedColIds ? webhook.fields.watchedColIds.join(";") : "";
         return uiWebhook;
       }));
@@ -310,14 +310,14 @@ class WebhookExternalTable implements IExternalTable {
     // Leave enabled at default, meaning it will enable on successful
     // creation. It seems likely we'd get support requests asking why
     // webhooks are not working otherwise.
-    const {webhookId} = await this._docApi.addWebhook(omit(fields, 'enabled'));
+    const { webhookId } = await this._docApi.addWebhook(omit(fields, 'enabled'));
     return webhookId;
   }
 
   private async _updateWebhook(id: string, rec: RowRecord) {
     const fields = this._prepareFields(rec);
     if (Object.keys(fields).length) {
-      await this._docApi.updateWebhook({id, fields});
+      await this._docApi.updateWebhook({ id, fields });
     }
   }
 
@@ -444,7 +444,7 @@ function _prepareWebhookInitialActions(tableId: string): DocAction[] {
     })),
   ], [
     // Add an entry for the virtual table.
-    'AddRecord', '_grist_Tables', 'vt_webhook_ft1' as any, {tableId, primaryViewId: 0},
+    'AddRecord', '_grist_Tables', 'vt_webhook_ft1' as any, { tableId, primaryViewId: 0 },
   ], [
     // Add entries for the columns of the virtual table.
     'BulkAddRecord', '_grist_Tables_column',
@@ -458,7 +458,7 @@ function _prepareWebhookInitialActions(tableId: string): DocAction[] {
   ], [
     // Add a view section.
     'AddRecord', '_grist_Views_section', 'vt_webhook_fs1' as any,
-    {tableRef: 'vt_webhook_ft1', parentKey: 'detail', title: '', borderWidth: 1, defaultWidth: 100, theme: 'blocks'},
+    { tableRef: 'vt_webhook_ft1', parentKey: 'detail', title: '', borderWidth: 1, defaultWidth: 100, theme: 'blocks' },
   ], [
     // List the fields shown in the view section.
     'BulkAddRecord', '_grist_Views_section_field', WEBHOOK_VIEW_FIELDS.map((_, i) => `vt_webhook_ff${i + 1}`) as any, {
@@ -477,7 +477,7 @@ function _prepareWebhookInitialActions(tableId: string): DocAction[] {
  */
 function _mapWebhookValues(webhookSummary: UIWebhookSummary): Partial<WebhookSchemaType> {
   const fields = webhookSummary.fields;
-  const {eventTypes, watchedColIdsText} = fields;
+  const { eventTypes, watchedColIdsText } = fields;
   const watchedColIds = watchedColIdsText
     ? watchedColIdsText.split(";").filter(colId => colId.trim() !== "")
     : [];
@@ -500,5 +500,5 @@ type WebhookSchemaType = {
 };
 
 type UIWebhookSummary = WebhookSummary & {
-  fields: {watchedColIdsText?: string;}
+  fields: { watchedColIdsText?: string; }
 };

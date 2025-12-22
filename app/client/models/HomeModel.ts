@@ -1,20 +1,20 @@
-import {ClientScope} from 'app/client/components/ClientScope';
-import {guessTimezone} from 'app/client/lib/guessTimezone';
-import {HomePluginManager} from 'app/client/lib/HomePluginManager';
-import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
-import {localStorageObs} from 'app/client/lib/localStorageObs';
-import {AppModel, reportError} from 'app/client/models/AppModel';
-import {reportMessage, UserError} from 'app/client/models/errors';
-import {urlState} from 'app/client/models/gristUrlState';
-import {getUserPrefObs} from 'app/client/models/UserPrefs';
-import {ownerName} from 'app/client/models/WorkspaceInfo';
-import {IHomePage, isFeatureEnabled} from 'app/common/gristUrls';
-import {isLongerThan} from 'app/common/gutil';
-import {SortPref, UserOrgPrefs, ViewPref} from 'app/common/Prefs';
+import { ClientScope } from 'app/client/components/ClientScope';
+import { guessTimezone } from 'app/client/lib/guessTimezone';
+import { HomePluginManager } from 'app/client/lib/HomePluginManager';
+import { ImportSourceElement } from 'app/client/lib/ImportSourceElement';
+import { localStorageObs } from 'app/client/lib/localStorageObs';
+import { AppModel, reportError } from 'app/client/models/AppModel';
+import { reportMessage, UserError } from 'app/client/models/errors';
+import { urlState } from 'app/client/models/gristUrlState';
+import { getUserPrefObs } from 'app/client/models/UserPrefs';
+import { ownerName } from 'app/client/models/WorkspaceInfo';
+import { IHomePage, isFeatureEnabled } from 'app/common/gristUrls';
+import { isLongerThan } from 'app/common/gutil';
+import { SortPref, UserOrgPrefs, ViewPref } from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Document, Organization, RenameDocOptions, Workspace} from 'app/common/UserAPI';
-import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
+import { getGristConfig } from 'app/common/urlUtils';
+import { Document, Organization, RenameDocOptions, Workspace } from 'app/common/UserAPI';
+import { bundleChanges, Computed, Disposable, Observable, subscribe } from 'grainjs';
 import flatten from 'lodash/flatten';
 import sortBy from 'lodash/sortBy';
 
@@ -216,7 +216,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     const org = this._app.currentOrg;
     if (!org) { return; }
     this._checkForDuplicates(name);
-    await this._app.api.newWorkspace({name}, org.id);
+    await this._app.api.newWorkspace({ name }, org.id);
     await this.updateWorkspaces();
   }
 
@@ -242,9 +242,9 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public async createDoc(name: string, workspaceId: number|"unsaved"): Promise<string> {
     if (workspaceId === "unsaved") {
       const timezone = await guessTimezone();
-      return await this._app.api.newUnsavedDoc({timezone});
+      return await this._app.api.newUnsavedDoc({ timezone });
     }
-    const id = await this._app.api.newDoc({name}, workspaceId);
+    const id = await this._app.api.newDoc({ name }, workspaceId);
     await this.updateWorkspaces();
     return id;
   }
@@ -401,7 +401,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   }
 
   private async _loadWelcomeTutorial() {
-    const {templateOrg, onboardingTutorialDocId} = getGristConfig();
+    const { templateOrg, onboardingTutorialDocId } = getGristConfig();
     if (
       !isFeatureEnabled('tutorials') ||
       !templateOrg ||
@@ -425,9 +425,9 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   private async _saveUserOrgPref<K extends keyof UserOrgPrefs>(key: K, value: UserOrgPrefs[K]) {
     const org = this._app.currentOrg;
     if (org) {
-      org.userOrgPrefs = {...org.userOrgPrefs, [key]: value};
+      org.userOrgPrefs = { ...org.userOrgPrefs, [key]: value };
       this._userOrgPrefs.set(org.userOrgPrefs);
-      await this._app.api.updateOrg('current', {userOrgPrefs: org.userOrgPrefs});
+      await this._app.api.updateOrg('current', { userOrgPrefs: org.userOrgPrefs });
     }
   }
 }

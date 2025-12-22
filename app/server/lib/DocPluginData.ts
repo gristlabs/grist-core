@@ -1,6 +1,6 @@
-import {Promisified} from 'app/common/tpromisified';
-import {Storage} from 'app/plugin/StorageAPI';
-import {DocStorage} from 'app/server/lib/DocStorage';
+import { Promisified } from 'app/common/tpromisified';
+import { Storage } from 'app/plugin/StorageAPI';
+import { DocStorage } from 'app/server/lib/DocStorage';
 
 /**
  * DocPluginData implements a document's `Storage` for plugin.

@@ -5,10 +5,10 @@
 
 import BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {LazyArrayModel} from 'app/client/models/DataTableModel';
-import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
-import {Disposable} from 'grainjs';
+import { DataRowModel } from 'app/client/models/DataRowModel';
+import { LazyArrayModel } from 'app/client/models/DataTableModel';
+import { CursorPos, UIRowId } from 'app/plugin/GristAPI';
+import { Disposable } from 'grainjs';
 import * as ko from 'knockout';
 
 function nullAsUndefined<T>(value: T|null|undefined): T|undefined {

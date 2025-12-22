@@ -1,15 +1,15 @@
-import {makeT} from 'app/client/lib/localization';
-import {FormModel} from 'app/client/models/FormModel';
+import { makeT } from 'app/client/lib/localization';
+import { FormModel } from 'app/client/models/FormModel';
 import {
   buildFormMessagePage,
   cssFormMessageImage,
   cssFormMessageImageContainer,
   cssFormMessageText,
 } from 'app/client/ui/FormContainer';
-import {vars} from 'app/client/ui2018/cssVars';
-import {getPageTitleSuffix} from 'app/common/gristUrls';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, Disposable, dom, makeTestId, styled} from 'grainjs';
+import { vars } from 'app/client/ui2018/cssVars';
+import { getPageTitleSuffix } from 'app/common/gristUrls';
+import { getGristConfig } from 'app/common/urlUtils';
+import { Computed, Disposable, dom, makeTestId, styled } from 'grainjs';
 
 const testId = makeTestId('test-form-');
 
@@ -35,7 +35,7 @@ export class FormSuccessPage extends Disposable {
     return buildFormMessagePage(() => [
       cssFormSuccessMessageImageContainer(
         cssFormSuccessMessageHeading(
-          cssFormSuccessMessageImage({src: 'img/form-success.svg', alt: t('Form Submitted')}),
+          cssFormSuccessMessageImage({ src: 'img/form-success.svg', alt: t('Form Submitted') }),
         ),
       ),
       cssFormMessageText(dom.text(this._successText), testId('success-page-text')),

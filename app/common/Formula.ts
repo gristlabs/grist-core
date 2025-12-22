@@ -50,23 +50,23 @@ export function parseFormula(txt: string): Formula {
   // Formula of form: $x.y
   let m = txt.match(/^\$([a-z]\w*)\.([a-z]\w*)$/i);
   if (m) {
-    return {kind: 'foreignColumn', refColId: m[1], colId: m[2]};
+    return { kind: 'foreignColumn', refColId: m[1], colId: m[2] };
   }
 
   // Formula of form: $x
   m = txt.match(/^\$([a-z][a-z_0-9]*)$/i);
   if (m) {
-    return {kind: 'column', colId: m[1]};
+    return { kind: 'column', colId: m[1] };
   }
 
   // Formula of form: NNN
   m = txt.match(/^[0-9]+$/);
   if (m) {
     const value = parseInt(txt, 10);
-    if (isNaN(value)) { return {kind: 'error', msg: 'Cannot parse integer'}; }
-    return {kind: 'literalNumber', value};
+    if (isNaN(value)) { return { kind: 'error', msg: 'Cannot parse integer' }; }
+    return { kind: 'literalNumber', value };
   }
 
   // Everything else is an error.
-  return {kind: 'error', msg: 'Formula not supported'};
+  return { kind: 'error', msg: 'Formula not supported' };
 }

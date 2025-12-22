@@ -1,13 +1,13 @@
-import {CommandGroup, createGroup} from 'app/client/components/commands';
-import {loadScript} from 'app/client/lib/loadScript';
-import {detectCurrentLang} from 'app/client/lib/localization';
-import {FieldOptions} from 'app/client/widgets/NewBaseEditor';
-import {NTextEditor} from 'app/client/widgets/NTextEditor';
-import {CellValue} from "app/common/DocActions";
-import {parseDate, TWO_DIGIT_YEAR_THRESHOLD} from 'app/common/parseDate';
+import { CommandGroup, createGroup } from 'app/client/components/commands';
+import { loadScript } from 'app/client/lib/loadScript';
+import { detectCurrentLang } from 'app/client/lib/localization';
+import { FieldOptions } from 'app/client/widgets/NewBaseEditor';
+import { NTextEditor } from 'app/client/widgets/NTextEditor';
+import { CellValue } from "app/common/DocActions";
+import { parseDate, TWO_DIGIT_YEAR_THRESHOLD } from 'app/common/parseDate';
 
 import moment from 'moment-timezone';
-import {dom} from 'grainjs';
+import { dom } from 'grainjs';
 
 // These are all the locales available for the datepicker. Having a prepared list lets us find a
 // suitable one without trying combinations that don't exist. This list can be rebuilt using:

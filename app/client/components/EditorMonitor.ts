@@ -1,11 +1,11 @@
-import {CellPosition, toCursor} from 'app/client/components/CellPosition';
-import {oneTimeListener} from 'app/client/components/CursorMonitor';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {getStorage} from 'app/client/lib/storage';
-import {UserError} from 'app/client/models/errors';
-import {FieldEditor, FieldEditorStateEvent} from 'app/client/widgets/FieldEditor';
-import {isViewDocPage} from 'app/common/gristUrls';
-import {Disposable, Emitter, IDisposableOwner} from 'grainjs';
+import { CellPosition, toCursor } from 'app/client/components/CellPosition';
+import { oneTimeListener } from 'app/client/components/CursorMonitor';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { getStorage } from 'app/client/lib/storage';
+import { UserError } from 'app/client/models/errors';
+import { FieldEditor, FieldEditorStateEvent } from 'app/client/widgets/FieldEditor';
+import { isViewDocPage } from 'app/common/gristUrls';
+import { Disposable, Emitter, IDisposableOwner } from 'grainjs';
 
 /**
  * Feature for GristDoc that allows it to keep track of current editor's state.

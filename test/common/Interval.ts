@@ -1,6 +1,6 @@
-import {Interval} from 'app/common/Interval';
-import {delay} from 'bluebird';
-import {assert} from 'chai';
+import { Interval } from 'app/common/Interval';
+import { delay } from 'bluebird';
+import { assert } from 'chai';
 import * as sinon from 'sinon';
 
 describe('Interval', function() {
@@ -23,14 +23,14 @@ describe('Interval', function() {
   });
 
   it('is not enabled by default', async function() {
-    interval = new Interval(spy, {delayMs}, {onError: () => { /* do nothing */ }});
+    interval = new Interval(spy, { delayMs }, { onError: () => { /* do nothing */ } });
     assert.equal(spy.callCount, 0);
     await delay(delayMs + delayBufferMs);
     assert.equal(spy.callCount, 0);
   });
 
   it('can be disabled', async function() {
-    interval = new Interval(spy, {delayMs}, {onError: () => { /* do nothing */ }});
+    interval = new Interval(spy, { delayMs }, { onError: () => { /* do nothing */ } });
     interval.enable();
     await delay(delayMs + delayBufferMs);
     assert.equal(spy.callCount, 1);
@@ -50,7 +50,7 @@ describe('Interval', function() {
   it('calls onError if callback throws an error', async function() {
     const callback = () => { throw new Error('Something bad happened.'); };
     const onErrorSpy = sinon.spy();
-    interval = new Interval(callback, {delayMs}, {onError: onErrorSpy});
+    interval = new Interval(callback, { delayMs }, { onError: onErrorSpy });
     interval.enable();
 
     // Check that onError is called when the callback throws.
@@ -65,7 +65,7 @@ describe('Interval', function() {
 
   describe('with a fixed delay', function() {
     beforeEach(() => {
-      interval = new Interval(spy, {delayMs}, {onError: () => { /* do nothing */ }});
+      interval = new Interval(spy, { delayMs }, { onError: () => { /* do nothing */ } });
       interval.enable();
     });
 
@@ -79,7 +79,7 @@ describe('Interval', function() {
 
   describe('with a randomized delay', function() {
     beforeEach(() => {
-      interval = new Interval(spy, {delayMs, varianceMs}, {
+      interval = new Interval(spy, { delayMs, varianceMs }, {
         onError: () => { /* do nothing */ },
       });
       interval.enable();
@@ -111,7 +111,7 @@ describe('Interval', function() {
     beforeEach(() => {
       const promise = () => delay(promiseDelayMs);
       promiseSpy = sinon.spy(promise);
-      interval = new Interval(promiseSpy, {delayMs}, {onError: () => { /* do nothing */ }});
+      interval = new Interval(promiseSpy, { delayMs }, { onError: () => { /* do nothing */ } });
       interval.enable();
     });
 

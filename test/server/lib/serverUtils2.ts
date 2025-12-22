@@ -1,6 +1,6 @@
-import {exitPromise, expectedResetDate} from 'app/server/lib/serverUtils';
-import {spawn} from 'child_process';
-import {assert} from 'test/server/testUtils';
+import { exitPromise, expectedResetDate } from 'app/server/lib/serverUtils';
+import { spawn } from 'child_process';
+import { assert } from 'test/server/testUtils';
 
 describe("serverUtils2", function() {
   describe("exitPromise", function() {
@@ -8,7 +8,7 @@ describe("serverUtils2", function() {
       const child = spawn('echo', ['hello', 'world']);
       assert.strictEqual(await exitPromise(child), 0);
 
-      const child2 = spawn('exit 4', [], {shell: true});
+      const child2 = spawn('exit 4', [], { shell: true });
       assert.strictEqual(await exitPromise(child2), 4);
     });
 

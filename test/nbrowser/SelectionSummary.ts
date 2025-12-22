@@ -1,6 +1,6 @@
-import {assert, driver, Key, WebElement} from 'mocha-webdriver';
+import { assert, driver, Key, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 interface CellPosition {
   /** 0-based column index. */
@@ -33,7 +33,7 @@ describe('SelectionSummary', function () {
       return;
     }
 
-    const {dimensions, count, sum} = summary;
+    const { dimensions, count, sum } = summary;
     await gu.waitToPass(async () => assert.equal(
       await driver.find('.test-selection-summary-dimensions').getText(),
       dimensions,
@@ -63,9 +63,9 @@ describe('SelectionSummary', function () {
   }
 
   async function selectAndAssert(start: CellPosition, end: CellPosition, summary: SelectionSummary | null) {
-    const {col: startCol, row: startRow} = start;
+    const { col: startCol, row: startRow } = start;
     await gu.getCell(startCol, startRow + 1).click();
-    const {col: endCol, row: endRow} = end;
+    const { col: endCol, row: endRow } = end;
     await shiftClick(await gu.getCell(endCol, endRow + 1));
     await assertSelectionSummary(summary);
   }
@@ -78,23 +78,23 @@ describe('SelectionSummary', function () {
   });
 
   it('displays sum if the selection contains numbers', async function () {
-    await selectAndAssert({col: 0, row: 0}, {col: 0, row: 6}, {
+    await selectAndAssert({ col: 0, row: 0 }, { col: 0, row: 6 }, {
       dimensions: '7⨯1',
       count: null,
       sum: '$135,692,590',
     });
-    await selectAndAssert({col: 0, row: 3}, {col: 0, row: 6}, {
+    await selectAndAssert({ col: 0, row: 3 }, { col: 0, row: 6 }, {
       dimensions: '4⨯1',
       count: null,
       sum: '$135,679,011',
     });
 
-    await selectAndAssert({col: 4, row: 0}, {col: 4, row: 6}, {
+    await selectAndAssert({ col: 4, row: 0 }, { col: 4, row: 6 }, {
       dimensions: '7⨯1',
       count: null,
       sum: '135692590',
     });
-    await selectAndAssert({col: 0, row: 0}, {col: 4, row: 6}, {
+    await selectAndAssert({ col: 0, row: 0 }, { col: 4, row: 6 }, {
       dimensions: '7⨯5',
       count: null,
       sum: '$271,385,168.02',
@@ -103,18 +103,18 @@ describe('SelectionSummary', function () {
 
   it('uses formatter of the first (leftmost) numeric column', async function () {
     // Column 0 is U.S. currency, while column 1 is just a plain decimal number.
-    await selectAndAssert({col: 0, row: 0}, {col: 1, row: 6}, {
+    await selectAndAssert({ col: 0, row: 0 }, { col: 1, row: 6 }, {
       dimensions: '7⨯2',
       count: null,
       sum: '$135,692,578.02',
     });
-    await selectAndAssert({col: 1, row: 0}, {col: 1, row: 6}, {
+    await selectAndAssert({ col: 1, row: 0 }, { col: 1, row: 6 }, {
       dimensions: '7⨯1',
       count: null,
       sum: '-11.98',
     });
     // The entire selection (spanning 6 columns) uses the formatter of column 0.
-    await selectAndAssert({col: 0, row: 0}, {col: 5, row: 6}, {
+    await selectAndAssert({ col: 0, row: 0 }, { col: 5, row: 6 }, {
       dimensions: '7⨯6',
       count: null,
       sum: '$271,385,156.04',
@@ -122,12 +122,12 @@ describe('SelectionSummary', function () {
   });
 
   it("displays count if the selection doesn't contain numbers", async function () {
-    await selectAndAssert({col: 2, row: 0}, {col: 2, row: 6}, {
+    await selectAndAssert({ col: 2, row: 0 }, { col: 2, row: 6 }, {
       dimensions: '7⨯1',
       count: 5,
       sum: null,
     });
-    await selectAndAssert({col: 2, row: 3}, {col: 2, row: 6}, {
+    await selectAndAssert({ col: 2, row: 3 }, { col: 2, row: 6 }, {
       dimensions: '4⨯1',
       count: 2,
       sum: null,
@@ -136,12 +136,12 @@ describe('SelectionSummary', function () {
     // Scroll horizontally to the end of the table.
     await gu.sendKeys(Key.END);
 
-    await selectAndAssert({col: 7, row: 0}, {col: 10, row: 4}, {
+    await selectAndAssert({ col: 7, row: 0 }, { col: 10, row: 4 }, {
       dimensions: '5⨯4',
       count: 7,
       sum: null,
     });
-    await selectAndAssert({col: 10, row: 0}, {col: 12, row: 6}, {
+    await selectAndAssert({ col: 10, row: 0 }, { col: 12, row: 6 }, {
       dimensions: '7⨯3',
       count: 5,
       sum: null,
@@ -150,7 +150,7 @@ describe('SelectionSummary', function () {
 
   it('does not count false values', async function () {
     // False values in boolean columns should not be included in count
-    await selectAndAssert({col: 2, row: 0}, {col: 3, row: 5}, {
+    await selectAndAssert({ col: 2, row: 0 }, { col: 3, row: 5 }, {
       dimensions: '6⨯2',
       count: 9,
       sum: null,
@@ -160,7 +160,7 @@ describe('SelectionSummary', function () {
   it('uses the show column of reference columns for computations', async function () {
     // Column 6 is a Reference column pointing to column 0.
     await gu.sendKeys(Key.HOME);
-    await selectAndAssert({col: 6, row: 0}, {col: 6, row: 6}, {
+    await selectAndAssert({ col: 6, row: 0 }, { col: 6, row: 6 }, {
       dimensions: '7⨯1',
       count: null,
       sum: '-$123,456',
@@ -169,7 +169,7 @@ describe('SelectionSummary', function () {
     // Column 7 is a Reference List column pointing to column 0. At this time, it
     // only displays counts (but flattening sums also seems like intuitive behavior).
     await gu.sendKeys(Key.END);
-    await selectAndAssert({col: 7, row: 0}, {col: 7, row: 6}, {
+    await selectAndAssert({ col: 7, row: 0 }, { col: 7, row: 6 }, {
       dimensions: '7⨯1',
       count: 2,
       sum: null,
@@ -181,7 +181,7 @@ describe('SelectionSummary', function () {
     await gu.sendKeys(Key.HOME);
 
     // Select a region of the table.
-    await selectAndAssert({col: 0, row: 2}, {col: 0, row: 6}, {
+    await selectAndAssert({ col: 0, row: 2 }, { col: 0, row: 6 }, {
       dimensions: '5⨯1',
       count: null,
       sum: '$135,691,356',
@@ -212,7 +212,7 @@ describe('SelectionSummary', function () {
 
     it('is not visible', async function() {
       await assertSelectionSummary(null);
-      await selectAndAssert({col: 0, row: 0}, {col: 0, row: 6}, null);
+      await selectAndAssert({ col: 0, row: 0 }, { col: 0, row: 6 }, null);
     });
   });
 });

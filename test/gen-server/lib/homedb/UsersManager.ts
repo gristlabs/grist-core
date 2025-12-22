@@ -150,7 +150,7 @@ describe('UsersManager', function () {
     });
 
     describe('getUsersWithRole()', function () {
-      function makeGroups(groupDefinition: {[k in NonGuestGroup['name']]?: User[] | undefined}){
+      function makeGroups(groupDefinition: { [k in NonGuestGroup['name']]?: User[] | undefined }){
         const entries = Object.entries(groupDefinition) as [NonGuestGroup['name'], User[] | undefined][];
 
         return entries.map(([groupName, users], index) => {
@@ -234,7 +234,7 @@ describe('UsersManager', function () {
     }
 
     async function getPersonalOrg(user: User) {
-      return db.getOrg({userId: user.id}, user.personalOrg.id);
+      return db.getOrg({ userId: user.id }, user.personalOrg.id);
     }
 
     function disableLoggingLevel<T extends keyof winston.LoggerInstance>(method: T) {
@@ -354,7 +354,7 @@ describe('UsersManager', function () {
 
       it('should retrieve a user along with their prefs with `includePrefs` set to true', async function () {
         const expectedUser = await createUniqueUser('getuser-userwithprefs');
-        const user = await db.getUser(expectedUser.id, {includePrefs: true});
+        const user = await db.getUser(expectedUser.id, { includePrefs: true });
         assertExists(user, "Should have retrieved the user");
         assertExists(user.loginEmail);
         assert.strictEqual(user.loginEmail, expectedUser.loginEmail);
@@ -413,13 +413,13 @@ describe('UsersManager', function () {
       const someUserLocale = 'en-US';
       const SOME_USER_ID = 42;
       const prefWithOrg: Pref = {
-        prefs: {placeholder: 'pref-with-org'},
+        prefs: { placeholder: 'pref-with-org' },
         orgId: 43,
         user: new User(),
         userId: SOME_USER_ID,
       };
       const prefWithoutOrg: Pref = {
-        prefs: {placeholder: 'pref-without-org'},
+        prefs: { placeholder: 'pref-without-org' },
         orgId: null,
         user: new User(),
         userId: SOME_USER_ID,
@@ -595,7 +595,7 @@ describe('UsersManager', function () {
       it('should reject when user is not found', async function () {
         disableLoggingLevel('debug');
 
-        const promise = db.updateUser(NON_EXISTING_USER_ID, {name: 'foobar'});
+        const promise = db.updateUser(NON_EXISTING_USER_ID, { name: 'foobar' });
 
         await assert.isRejected(promise, 'unable to find user');
         checkNoEventEmitted();
@@ -607,7 +607,7 @@ describe('UsersManager', function () {
         assert.equal(createdUser.name, '');
         const userName = 'user name';
 
-        await db.updateUser(createdUser.id, {name: userName});
+        await db.updateUser(createdUser.id, { name: userName });
 
         checkNoEventEmitted();
         const updatedUser = await getOrCreateUser(emailLocalPart);
@@ -619,7 +619,7 @@ describe('UsersManager', function () {
         const createdUser = await createUniqueUser(localPart);
         assert.equal(createdUser.isFirstTimeUser, true);
 
-        await db.updateUser(createdUser.id, {isFirstTimeUser: true});
+        await db.updateUser(createdUser.id, { isFirstTimeUser: true });
 
         checkNoEventEmitted();
       });
@@ -630,7 +630,7 @@ describe('UsersManager', function () {
         const newUser = await createUniqueUser(localPart);
         assert.equal(newUser.isFirstTimeUser, true);
 
-        await db.updateUser(newUser.id, {isFirstTimeUser: false, name: userName});
+        await db.updateUser(newUser.id, { isFirstTimeUser: false, name: userName });
         assert.equal(emitSpy.callCount, 1, '"firstLogin" event should have been emitted');
 
         const fullUserFromEvent = emitSpy.firstCall.args[0];
@@ -658,7 +658,7 @@ describe('UsersManager', function () {
 
         assert.notExists(createdUser.options);
 
-        const options: UserOptions = {locale: 'fr', authSubject: 'subject', isConsultant: true, allowGoogleLogin: true};
+        const options: UserOptions = { locale: 'fr', authSubject: 'subject', isConsultant: true, allowGoogleLogin: true };
         await db.updateUserOptions(createdUser.id, options);
 
         const updatedUser = await getOrCreateUser(localPart);
@@ -803,7 +803,7 @@ describe('UsersManager', function () {
           const timers = sandbox.useFakeTimers(42_000);
           const localPart = ensureUnique('getuserbylogin-with-profile-populates-first_time_login-and-name');
           const user = await db.getUserByLogin(makeEmail(localPart), {
-            profile: {name: '', email: makeEmail(localPart)},
+            profile: { name: '', email: makeEmail(localPart) },
           });
           assert.equal(user.name, localPart);
           assert.equal(user.firstLoginAt?.getTime(), 42_000);
@@ -818,7 +818,7 @@ describe('UsersManager', function () {
           const originalNormalizedLoginEmail = makeEmail(localPart.toLowerCase());
 
           const profile = makeProfile(makeEmail('getuserbylogin-with-profile-populates-user-with-passed-info_NEW'));
-          const userOptions: UserOptions = {authSubject: 'my-auth-subject'};
+          const userOptions: UserOptions = { authSubject: 'my-auth-subject' };
 
           const updatedUser = await db.getUserByLogin(makeEmail(localPart), { profile, userOptions });
           assert.deepInclude(updatedUser, {
@@ -893,11 +893,11 @@ describe('UsersManager', function () {
 
     describe('deleteUser()', function () {
       function userHasPrefs(userId: number, manager: EntityManager) {
-        return manager.exists(Pref, { where: { userId: userId }});
+        return manager.exists(Pref, { where: { userId: userId } });
       }
 
       function userHasGroupUsers(userId: number, manager: EntityManager) {
-        return manager.exists('group_users', { where: {user_id: userId} });
+        return manager.exists('group_users', { where: { user_id: userId } });
       }
 
       async function assertUserStillExistsInDb(userId: number) {
@@ -907,7 +907,7 @@ describe('UsersManager', function () {
       it('should refuse to delete the account of someone else', async function () {
         const userToDelete = await createUniqueUser('deleteuser-refuses-for-someone-else');
 
-        const promise = db.deleteUser({userId: 2}, userToDelete.id);
+        const promise = db.deleteUser({ userId: 2 }, userToDelete.id);
 
         await assert.isRejected(promise, 'not permitted to delete this user');
         await assertUserStillExistsInDb(userToDelete.id);
@@ -916,7 +916,7 @@ describe('UsersManager', function () {
       it('should refuse to delete a non existing account', async function () {
         disableLoggingLevel('debug');
 
-        const promise = db.deleteUser({userId: NON_EXISTING_USER_ID}, NON_EXISTING_USER_ID);
+        const promise = db.deleteUser({ userId: NON_EXISTING_USER_ID }, NON_EXISTING_USER_ID);
 
         await assert.isRejected(promise, 'user not found');
       });
@@ -932,7 +932,7 @@ describe('UsersManager', function () {
           },
         });
 
-        const promise = db.deleteUser({userId: userToDelete.id}, userToDelete.id, 'wrong name');
+        const promise = db.deleteUser({ userId: userToDelete.id }, userToDelete.id, 'wrong name');
 
         await assert.isRejected(promise);
         await promise.catch(e => assert.match(e.message, /user name did not match/));
@@ -955,7 +955,7 @@ describe('UsersManager', function () {
           assert.isTrue(await userHasPrefs(userToDelete.id, manager));
         });
 
-        await db.deleteUser({userId: userToDelete.id}, userToDelete.id);
+        await db.deleteUser({ userId: userToDelete.id }, userToDelete.id);
 
         assert.notExists(await db.getUser(userToDelete.id));
         assert.deepEqual(await getPersonalOrg(userToDelete), { errMessage: 'organization not found', status: 404 });
@@ -986,7 +986,7 @@ describe('UsersManager', function () {
           useNewPlan: true,
         });
         // Grant everyone access to org.
-        await db.updateOrgPermissions({userId: support.id},
+        await db.updateOrgPermissions({ userId: support.id },
           'deleteuser-org', {
             users: {
               'everyone@getgrist.com': 'owners',
@@ -994,29 +994,29 @@ describe('UsersManager', function () {
           });
         // Get the default workspace.
         const ws = db.unwrapQueryResult(
-          await db.getOrgWorkspaces({userId: support.id},
+          await db.getOrgWorkspaces({ userId: support.id },
             'deleteuser-org'),
         )[0];
         // Add a document to the workspace.
         const doc = db.unwrapQueryResult(
-          await db.addDocument({userId: support.id}, ws.id,
-            {name: 'doc-name'}),
+          await db.addDocument({ userId: support.id }, ws.id,
+            { name: 'doc-name' }),
         );
         // Have our user-to-delete fork the document.
         const forkId = db.unwrapQueryResult(
           await db.forkDoc(userToDelete.id, doc, 'xyz'),
         );
-        const urlId = buildUrlId({trunkId: doc.id, forkId, forkUserId: userToDelete.id});
+        const urlId = buildUrlId({ trunkId: doc.id, forkId, forkUserId: userToDelete.id });
 
         // Check the fork is listed in the home db.
         assert.deepEqual(
           await db.connection.query("select name from docs where id = 'xyz'"),
-          [{name: 'doc-name'}],
+          [{ name: 'doc-name' }],
         );
 
         // Delete the user, and make sure the fork is deleted.
         docDeletes.length = 0;
-        await db.deleteUser({userId: userToDelete.id}, userToDelete.id);
+        await db.deleteUser({ userId: userToDelete.id }, userToDelete.id);
         assert.lengthOf(docDeletes, 1);
         assert.deepEqual(docDeletes, [urlId]);
 
@@ -1040,7 +1040,7 @@ describe('UsersManager', function () {
           },
         });
 
-        const promise = db.deleteUser({userId: userToDelete.id}, userToDelete.id, userName);
+        const promise = db.deleteUser({ userId: userToDelete.id }, userToDelete.id, userName);
 
         await assert.isFulfilled(promise);
       });
@@ -1063,9 +1063,9 @@ describe('UsersManager', function () {
         };
         const someLocale = 'fr-FR';
         const userCreated = await getOrCreateUser(localPart, { profile });
-        await db.updateUserOptions(userCreated.id, {locale: someLocale});
+        await db.updateUserOptions(userCreated.id, { locale: someLocale });
 
-        const res = await db.completeProfiles([{name: 'whatever', email: emailUpperCase}]);
+        const res = await db.completeProfiles([{ name: 'whatever', email: emailUpperCase }]);
 
         assert.deepEqual(res, [{
           ...profile,
@@ -1085,7 +1085,7 @@ describe('UsersManager', function () {
 
         const res = await db.completeProfiles(
           localParts.map(
-            localPart => ({name: 'whatever', email: makeEmail(localPart)}),
+            localPart => ({ name: 'whatever', email: makeEmail(localPart) }),
           ),
         );
         assert.lengthOf(res, localParts.length);
@@ -1128,7 +1128,7 @@ describe('UsersManager', function () {
           id: user.id,
           name: newInfo.name,
           picture: newInfo.picture,
-          options: {locale: newInfo.locale},
+          options: { locale: newInfo.locale },
         });
         assert.deepInclude(updatedUser.logins[0], {
           email: newInfo.email.toLowerCase(),
@@ -1183,12 +1183,12 @@ describe('UsersManager', function () {
 
       it('should initialize special ids', async function () {
         const specialAccounts = [
-          {name: "Support", email: SUPPORT_EMAIL},
-          {name: "Anonymous", email: ANONYMOUS_USER_EMAIL},
-          {name: "Preview", email: PREVIEWER_EMAIL},
-          {name: "Everyone", email: EVERYONE_EMAIL},
+          { name: "Support", email: SUPPORT_EMAIL },
+          { name: "Anonymous", email: ANONYMOUS_USER_EMAIL },
+          { name: "Preview", email: PREVIEWER_EMAIL },
+          { name: "Everyone", email: EVERYONE_EMAIL },
         ];
-        for (const {email} of specialAccounts) {
+        for (const { email } of specialAccounts) {
           assert.notExists(await db.getExistingUserByLogin(email));
         }
 
@@ -1199,7 +1199,7 @@ describe('UsersManager', function () {
 
         await db.initializeSpecialIds();
 
-        for (const {name, email} of specialAccounts) {
+        for (const { name, email } of specialAccounts) {
           const res = await db.getExistingUserByLogin(email);
           assertExists(res);
           assert.equal(res.name, name);
@@ -1269,7 +1269,7 @@ describe('UsersManager', function () {
           useNewPlan: true,
         });
         // Grant everyone access to org.
-        await db.updateOrgPermissions({userId: support.id},
+        await db.updateOrgPermissions({ userId: support.id },
           'deleteuser-org-multi', {
             users: {
               'everyone@getgrist.com': 'owners',
@@ -1277,7 +1277,7 @@ describe('UsersManager', function () {
           });
         // Get the default workspace.
         const ws = db.unwrapQueryResult(
-          await db.getOrgWorkspaces({userId: support.id},
+          await db.getOrgWorkspaces({ userId: support.id },
             'deleteuser-org-multi'),
         )[0];
         // Add a document to the workspace.
@@ -1307,11 +1307,11 @@ describe('UsersManager', function () {
         // Check the fork is listed in the home db.
         assert.deepEqual(
           await db.connection.query("select name from docs where id = $1", [fork.forkId]),
-          [{name: 'doc-name'}],
+          [{ name: 'doc-name' }],
         );
 
         // Delete the user.
-        await db.deleteUser({userId: userToDelete.id}, userToDelete.id);
+        await db.deleteUser({ userId: userToDelete.id }, userToDelete.id);
 
         // Confirm the fork is no longer listed in the home db.
         assert.deepEqual(

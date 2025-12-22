@@ -1,4 +1,4 @@
-import {AttachmentTransferStatus, DocAttachmentsLocation} from 'app/common/UserAPI';
+import { AttachmentTransferStatus, DocAttachmentsLocation } from 'app/common/UserAPI';
 import {
   AttachmentFile,
   AttachmentStoreDocInfo,
@@ -6,15 +6,15 @@ import {
   getDocPoolIdFromDocInfo,
   IAttachmentStore, loadAttachmentFileIntoMemory,
 } from 'app/server/lib/AttachmentStore';
-import {AttachmentStoreId, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
-import {checksumFileStream, HashPassthroughStream} from 'app/server/lib/checksumFile';
-import {DocStorage, FileInfo} from 'app/server/lib/DocStorage';
+import { AttachmentStoreId, IAttachmentStoreProvider } from 'app/server/lib/AttachmentStoreProvider';
+import { checksumFileStream, HashPassthroughStream } from 'app/server/lib/checksumFile';
+import { DocStorage, FileInfo } from 'app/server/lib/DocStorage';
 import log from 'app/server/lib/log';
-import {LogMethods} from 'app/server/lib/LogMethods';
-import {MemoryWritableStream} from 'app/server/utils/streams';
-import {EventEmitter} from 'events';
+import { LogMethods } from 'app/server/lib/LogMethods';
+import { MemoryWritableStream } from 'app/server/utils/streams';
+import { EventEmitter } from 'events';
 import * as stream from 'node:stream';
-import {AbortController} from 'node-abort-controller';
+import { AbortController } from 'node-abort-controller';
 
 export interface AddFileResult {
   fileIdent: string;
@@ -299,7 +299,7 @@ export class AttachmentFileManager extends EventEmitter {
   // transfer job. If a file with a matching identifier already exists in the new store, no
   // transfer will happen, as the default _addFileToX behaviour is to avoid re-uploading files.
   public async transferFileToOtherStore(fileIdent: string, newStoreId: AttachmentStoreId | undefined): Promise<void> {
-    this._log.info({fileIdent, storeId: newStoreId}, `transferring file to new store`);
+    this._log.info({ fileIdent, storeId: newStoreId }, `transferring file to new store`);
     const fileMetadata = await this._docStorage.getFileInfoNoData(fileIdent);
     // This check runs before the file is retrieved as an optimisation to avoid loading files into
     // memory unnecessarily.
@@ -387,7 +387,7 @@ export class AttachmentFileManager extends EventEmitter {
           }
           catch (e) {
             this._failures++;
-            this._log.warn({fileIdent, storeId: targetStoreId}, `transfer failed: ${e.message}`);
+            this._log.warn({ fileIdent, storeId: targetStoreId }, `transfer failed: ${e.message}`);
           }
           finally {
             // If a transfer request comes in mid-transfer, it will need re-running.
@@ -414,7 +414,7 @@ export class AttachmentFileManager extends EventEmitter {
   private async _notifyAboutStart() {
     this.emit(AttachmentFileManager.events.TRANSFER_STARTED, {
       locationSummary: await this.locationSummary(),
-      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: true},
+      status: { pendingTransferCount: this._pendingFileTransfers.size, isRunning: true },
     } as AttachmentTransferStatus);
   }
 
@@ -426,7 +426,7 @@ export class AttachmentFileManager extends EventEmitter {
   private async _notifyAboutEnd() {
     this.emit(AttachmentFileManager.events.TRANSFER_COMPLETED, {
       locationSummary: await this.locationSummary(),
-      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: false},
+      status: { pendingTransferCount: this._pendingFileTransfers.size, isRunning: false },
     } as AttachmentTransferStatus);
   }
 

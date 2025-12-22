@@ -1,5 +1,5 @@
-import {nativeValues} from "app/gen-server/lib/values";
-import {MigrationInterface, QueryRunner, TableColumn, TableIndex} from "typeorm";
+import { nativeValues } from "app/gen-server/lib/values";
+import { MigrationInterface, QueryRunner, TableColumn, TableIndex } from "typeorm";
 
 export class DocRemovedAt1592261300044 implements MigrationInterface {
 

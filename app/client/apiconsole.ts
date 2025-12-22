@@ -1,13 +1,13 @@
-import {loadCssFile, loadScript} from 'app/client/lib/loadScript';
-import {makeT} from 'app/client/lib/localization';
-import type {AppModel} from 'app/client/models/AppModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {reportError} from 'app/client/models/errors';
-import {createAppPage} from 'app/client/ui/createAppPage';
-import {invokePrompt} from 'app/client/ui2018/modals';
-import {DocAPIImpl} from 'app/common/UserAPI';
-import type {RecordWithStringId} from 'app/plugin/DocApiTypes';
-import {dom, styled} from 'grainjs';
+import { loadCssFile, loadScript } from 'app/client/lib/loadScript';
+import { makeT } from 'app/client/lib/localization';
+import type { AppModel } from 'app/client/models/AppModel';
+import { urlState } from 'app/client/models/gristUrlState';
+import { reportError } from 'app/client/models/errors';
+import { createAppPage } from 'app/client/ui/createAppPage';
+import { invokePrompt } from 'app/client/ui2018/modals';
+import { DocAPIImpl } from 'app/common/UserAPI';
+import type { RecordWithStringId } from 'app/plugin/DocApiTypes';
+import { dom, styled } from 'grainjs';
 import type SwaggerUI from 'swagger-ui';
 
 const t = makeT('apiconsole');
@@ -92,7 +92,7 @@ function setExamples(examplesArr: Example[], paramName: string) {
     // So the dropdown has to start with an empty value in those cases.
     // You'd think this would run into the check for `!value` in `changeParamByIdentity`,
     // but apparently swagger has its own special handing for empty values before then.
-    examplesArr.unshift({value: "", summary: "Select..."});
+    examplesArr.unshift({ value: "", summary: "Select..." });
   }
 
   // Swagger expects `examples` to be an object, not an array.
@@ -139,11 +139,11 @@ function setParamValue(resolvedParam: any, value: ParamValue) {
 }
 
 class ExtendedDocAPIImpl extends DocAPIImpl {
-  public listTables(): Promise<{tables: RecordWithStringId[]}> {
+  public listTables(): Promise<{ tables: RecordWithStringId[] }> {
     return this.requestJson(`${this.getBaseUrl()}/tables`);
   }
 
-  public listColumns(tableId: string, includeHidden = false): Promise<{columns: RecordWithStringId[]}> {
+  public listColumns(tableId: string, includeHidden = false): Promise<{ columns: RecordWithStringId[] }> {
     return this.requestJson(`${this.getBaseUrl()}/tables/${tableId}/columns?hidden=${includeHidden ? 1 : 0}`);
   }
 }
@@ -179,8 +179,8 @@ function wrapChangeParamByIdentity(appModel: AppModel, system: any, oriAction: a
   const baseUrl = appModel.api.getBaseUrl();
   if (paramName === "docId") {
     const docAPI = new ExtendedDocAPIImpl(baseUrl, value);
-    docAPI.listTables().then(({tables}: {tables: RecordWithStringId[]}) => {
-      const examples: Example[] = tables.map(table => ({value: table.id, summary: table.id}));
+    docAPI.listTables().then(({ tables}: { tables: RecordWithStringId[] }) => {
+      const examples: Example[] = tables.map(table => ({ value: table.id, summary: table.id }));
       setExamples(examples, "tableId");
     })
       .catch(reportError);
@@ -201,8 +201,8 @@ function wrapChangeParamByIdentity(appModel: AppModel, system: any, oriAction: a
       const docAPI = new ExtendedDocAPIImpl(baseUrl, docId);
       // Second argument of `true` includes hidden columns like gristHelper_Display and manualSort.
       docAPI.listColumns(value, true)
-        .then(({columns}: {columns: RecordWithStringId[]}) => {
-          const examples = columns.map(col => ({value: col.id, summary: col.fields.label as string}));
+        .then(({ columns}: { columns: RecordWithStringId[] }) => {
+          const examples = columns.map(col => ({ value: col.id, summary: col.fields.label as string }));
           setExamples(examples, "colId");
         })
         .catch(reportError);
@@ -234,7 +234,7 @@ function initialize(appModel: AppModel) {
   // Fortunately we don't need a request for each workspace,
   // since listing workspaces in an org also lists the docs in each workspace.
   const workspacesPromise = orgsPromise.then(orgs => Promise.all(orgs.map(org =>
-    appModel.api.getOrgWorkspaces(org.id, false).then(workspaces => ({org, workspaces})),
+    appModel.api.getOrgWorkspaces(org.id, false).then(workspaces => ({ org, workspaces })),
   )));
 
   // To be called after the spec is downloaded and parsed.
@@ -242,8 +242,8 @@ function initialize(appModel: AppModel) {
     // Add an instruction for where to get API key.
     const description = document.querySelector('.information-container .info');
     if (description) {
-      const href = urlState().makeUrl({account: 'account'});
-      dom.update(description, dom('div', 'Find or create your API key at ', dom('a', {href}, href), '.'));
+      const href = urlState().makeUrl({ account: 'account' });
+      dom.update(description, dom('div', 'Find or create your API key at ', dom('a', { href }, href), '.'));
     }
 
     updateSpec((spec) => {
@@ -251,7 +251,7 @@ function initialize(appModel: AppModel) {
       // where {subdomain} is a variable that defaults to `docs`.
       // We want to use the same server as the page is loaded from.
       // This simplifies the UI and makes it work e.g. on localhost.
-      spec = spec.set("servers", [{url: window.origin + "/api"}]);
+      spec = spec.set("servers", [{ url: window.origin + "/api" }]);
 
       // Some table-specific parameters have examples with fake data in grist.yml. We don't want
       // to actually use this for running requests, so clear those out.
@@ -281,13 +281,13 @@ function initialize(appModel: AppModel) {
     }).catch(reportError);
 
     workspacesPromise.then((orgs) => {
-      const workSpaceExamples: Example[] = orgs.flatMap(({org, workspaces}) => workspaces.map(ws => ({
+      const workSpaceExamples: Example[] = orgs.flatMap(({ org, workspaces }) => workspaces.map(ws => ({
         value: ws.id,
         summary: `${org.name} » ${ws.name}`,
       })));
       setExamples(workSpaceExamples, "workspaceId");
 
-      const docExamples = orgs.flatMap(({org, workspaces}) => workspaces.flatMap(ws => ws.docs.map(doc => ({
+      const docExamples = orgs.flatMap(({ org, workspaces }) => workspaces.flatMap(ws => ws.docs.map(doc => ({
         value: doc.id,
         summary: `${org.name} » ${ws.name} » ${doc.name}`,
       }))));

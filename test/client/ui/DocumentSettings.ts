@@ -20,7 +20,7 @@ describe('DocumentSettings', function() {
         "Asia/Colombo",
         "Africa/Accra",
         "Antarctica/Casey",
-      ], momentTimezone).map(({label}) => label), [
+      ], momentTimezone).map(({ label }) => label), [
         "(GMT-09:30) Pacific/Marquesas",
         "(GMT-09:00) US/Aleutian",
         "(GMT-08:00) America/Anchorage",

@@ -1,12 +1,12 @@
 /**
  * JS controller for the pypy sandbox.
  */
-import {arrayToString} from 'app/common/arrayToString';
+import { arrayToString } from 'app/common/arrayToString';
 import * as marshal from 'app/common/marshal';
-import {create} from 'app/server/lib/create';
-import {ISandbox, ISandboxCreationOptions, ISandboxCreator} from 'app/server/lib/ISandbox';
+import { create } from 'app/server/lib/create';
+import { ISandbox, ISandboxCreationOptions, ISandboxCreator } from 'app/server/lib/ISandbox';
 import log from 'app/server/lib/log';
-import {getAppRoot, getAppRootFor, getUnpackedAppRoot} from 'app/server/lib/places';
+import { getAppRoot, getAppRootFor, getUnpackedAppRoot } from 'app/server/lib/places';
 import {
   DirectProcessControl,
   ISandboxControl,
@@ -16,11 +16,11 @@ import {
 } from 'app/server/lib/SandboxControl';
 import * as sandboxUtil from 'app/server/lib/sandboxUtil';
 import * as shutdown from 'app/server/lib/shutdown';
-import {ChildProcess, fork, spawn, SpawnOptionsWithoutStdio} from 'child_process';
+import { ChildProcess, fork, spawn, SpawnOptionsWithoutStdio } from 'child_process';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as path from 'path';
-import {Stream, Writable} from 'stream';
+import { Stream, Writable } from 'stream';
 import * as which from 'which';
 
 type SandboxMethod = (...args: any[]) => any;
@@ -69,7 +69,7 @@ export interface ISandboxOptions {
   deterministicMode?: boolean;
 
   // Functions made available to the sandboxed process.
-  exports?: {[name: string]: SandboxMethod};
+  exports?: { [name: string]: SandboxMethod };
   // (Not implemented) Whether to log all system calls from the python sandbox.
   logCalls?: boolean;
   // Whether to log time taken by calls to python sandbox.
@@ -120,8 +120,8 @@ export class NSandbox implements ISandbox {
   public readonly childProc?: ChildProcess;
   private _control: ISandboxControl;
   private _logTimes: boolean;
-  private _exportedFunctions: {[name: string]: SandboxMethod};
-  private _marshaller = new marshal.Marshaller({stringToBuffer: false, version: 2});
+  private _exportedFunctions: { [name: string]: SandboxMethod };
+  private _marshaller = new marshal.Marshaller({ stringToBuffer: false, version: 2 });
   private _unmarshaller = new marshal.Unmarshaller({ bufferToString: false });
 
   // Members used for reading from the sandbox process.
@@ -203,7 +203,7 @@ export class NSandbox implements ISandbox {
 
     if (this._recordBuffersDir) {
       log.rawDebug(`Recording sandbox buffers in ${this._recordBuffersDir}`, this._logMeta);
-      fs.mkdirSync(this._recordBuffersDir, {recursive: true});
+      fs.mkdirSync(this._recordBuffersDir, { recursive: true });
     }
   }
 
@@ -249,10 +249,10 @@ export class NSandbox implements ISandbox {
     const slowCallCheck = setTimeout(() => {
       // Log calls that take some time, can be a useful symptom of misconfiguration
       // (or just benign if the doc is big).
-      log.rawWarn('Slow pyCall', {...this._logMeta, funcName});
+      log.rawWarn('Slow pyCall', { ...this._logMeta, funcName });
     }, 10000);
     try {
-      const {data, numBytes} = await this._pyCallWait(funcName, startTime);
+      const { data, numBytes } = await this._pyCallWait(funcName, startTime);
       this._lastResponseNumBytes = numBytes;
       return data;
     }
@@ -269,8 +269,8 @@ export class NSandbox implements ISandbox {
    * Returns the RSS (resident set size) of the sandbox process, in bytes.
    */
   public async reportMemoryUsage() {
-    const {memory} = await this._control.getUsage();
-    log.rawDebug('Sandbox memory', {memory, ...this._logMeta});
+    const { memory } = await this._control.getUsage();
+    log.rawDebug('Sandbox memory', { memory, ...this._logMeta });
     return memory;
   }
 
@@ -503,7 +503,7 @@ export class NSandbox implements ISandbox {
           resolvePair[1](new Error(data));
         }
         else if (msgCode === sandboxUtil.DATA) {
-          resolvePair[0]({data, numBytes});
+          resolvePair[0]({ data, numBytes });
         }
         else {
           log.rawWarn("Sandbox invalid message from sandbox", this._logMeta);
@@ -603,9 +603,9 @@ export class NSandboxCreator implements ISandboxCreator {
       minimalPipeMode: true,
       deterministicMode: Boolean(process.env.LIBFAKETIME_PATH),
       logCalls: options.logCalls,
-      logMeta: {flavor: this._flavor, command: this._command,
+      logMeta: { flavor: this._flavor, command: this._command,
         entryPoint: options.entryPoint || '(default)',
-        ...options.logMeta},
+        ...options.logMeta },
       logTimes: options.logTimes,
       command: this._command,
       preferredPythonVersion: this._preferredPythonVersion || options.preferredPythonVersion || '3',
@@ -648,7 +648,7 @@ function sandboxed(options: ISandboxOptions): SandboxProcess {
  * been installed globally.
  */
 function unsandboxed(options: ISandboxOptions): SandboxProcess {
-  const {testSandboxArgs, testPythonArgs, appendArgs, importDir} = options;
+  const { testSandboxArgs, testPythonArgs, appendArgs, importDir } = options;
   const paths = getAbsolutePaths(options);
 
   const commandArgs = [
@@ -674,7 +674,7 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
   }
   const command = findPython(options.command);
   const child = adjustedSpawn(command, commandArgs,
-    {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
+    { cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions });
   return {
     name: 'unsandboxed',
     child,
@@ -725,14 +725,14 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
     child = spawn(
       options.command,
       args,
-      {cwd, ...spawnOptions},
+      { cwd, ...spawnOptions },
     );
   }
   else {
     log.rawDebug("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
     child = fork(
       scriptPath,
-      {cwd, ...spawnOptions},
+      { cwd, ...spawnOptions },
     );
   }
 
@@ -781,7 +781,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
     throw new Error("gvisor only supports 3-pipe operation");
   }
   const paths = getAbsolutePaths(options);
-  const wrapperArgs = new FlagBag({env: '-E', mount: '-m'});
+  const wrapperArgs = new FlagBag({ env: '-E', mount: '-m' });
   wrapperArgs.push(...options.testSandboxArgs);
   wrapperArgs.addEnv('PYTHONPATH', paths.engine);
   wrapperArgs.addAllEnv(getInsertedEnv(options));
@@ -826,7 +826,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
         adjustedSpawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT,
           `python3`, '--', ...pythonArgs, ...appendArgs]);
       // We don't want process control for this.
-      return {name: 'gvisor', child, control: () => new NoProcessControl(child)};
+      return { name: 'gvisor', child, control: () => new NoProcessControl(child) };
     }
     wrapperArgs.push('--restore');
     wrapperArgs.push(process.env.GRIST_CHECKPOINT);
@@ -870,12 +870,12 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
  * `sandbox/docker` for more.
  */
 function docker(options: ISandboxOptions): SandboxProcess {
-  const {command} = options;
+  const { command } = options;
   if (options.minimalPipeMode === false) {
     throw new Error("docker only supports 3-pipe operation (although runc has --preserve-file-descriptors)");
   }
   const paths = getAbsolutePaths(options);
-  const wrapperArgs = new FlagBag({env: '--env', mount: '-v'});
+  const wrapperArgs = new FlagBag({ env: '--env', mount: '-v' });
   wrapperArgs.push(...options.testSandboxArgs);
   if (paths.importDir) {
     wrapperArgs.addMount(`${paths.importDir}:/importdir:ro`);
@@ -910,8 +910,8 @@ function docker(options: ISandboxOptions): SandboxProcess {
     ...pythonArgs,
     ...appendArgs,
   ]);
-  log.rawDebug("cannot do process control via docker yet", {...options.logMeta});
-  return {name: 'docker', child, control: () => new NoProcessControl(child)};
+  log.rawDebug("cannot do process control via docker yet", { ...options.logMeta });
+  return { name: 'docker', child, control: () => new NoProcessControl(child) };
 }
 
 /**
@@ -936,7 +936,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   };
   const command = findPython(options.command);
   const realPath = realpathSync(command);
-  log.rawDebug("macSandboxExec found a python", {...options.logMeta, command: realPath});
+  log.rawDebug("macSandboxExec found a python", { ...options.logMeta, command: realPath });
 
   // Prepare sandbox profile
   const profile: string[] = [];
@@ -1009,7 +1009,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   const profileString = profile.join('\n');
   const child = spawn('/usr/bin/sandbox-exec',
     [...options.testSandboxArgs, '-p', profileString, command, ...pythonArgs, ...appendArgs],
-    {cwd, env});
+    { cwd, env });
   return {
     name: 'macSandboxExec',
     child,
@@ -1100,7 +1100,7 @@ function getAbsolutePaths(options: ISandboxOptions) {
 class FlagBag {
   private _args: string[] = [];
 
-  constructor(private _options: {env: '--env'|'-E', mount: '-m'|'-v'}) {
+  constructor(private _options: { env: '--env'|'-E', mount: '-m'|'-v' }) {
   }
 
   // channel env variables for sandbox via -E / --env
@@ -1160,7 +1160,7 @@ function findPython(command: string|undefined): string {
   // Fall back on system python.
   const systemPrefs = ['3.11', '3.10', '3.9', '3', ''];
   for (const version of systemPrefs) {
-    const pythonPath = which.sync(`python${version}`, {nothrow: true});
+    const pythonPath = which.sync(`python${version}`, { nothrow: true });
     if (pythonPath) {
       return pythonPath;
     }

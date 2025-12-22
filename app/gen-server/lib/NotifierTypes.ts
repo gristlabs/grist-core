@@ -9,9 +9,9 @@
  *
  */
 
-import {FullUser} from 'app/common/LoginSessionAPI';
-import {StringUnion} from 'app/common/StringUnion';
-import {INotifier} from 'app/server/lib/INotifier';
+import { FullUser } from 'app/common/LoginSessionAPI';
+import { StringUnion } from 'app/common/StringUnion';
+import { INotifier } from 'app/server/lib/INotifier';
 
 /**
  * Structure of email requests. Each request contains a list of
@@ -83,7 +83,7 @@ export interface SendGridInviteAccess {
 // Common parameters included in emails to active billing managers.
 export interface SendGridBillingTemplate {
   type: 'billing'|'memberChange',
-  org: {id: number, name: string};
+  org: { id: number, name: string };
   orgUrl: string;
   billingUrl: string;
 }
@@ -93,7 +93,7 @@ export interface SendGridMemberChangeTemplate extends SendGridBillingTemplate {
   initiatingUser: FullUser;
   added: FullUser[];
   removed: FullUser[];
-  org: {id: number, name: string};
+  org: { id: number, name: string };
   countBefore: number;
   countAfter: number;
   orgUrl: string;
@@ -107,7 +107,7 @@ export interface SendGridConfig {
     docNotificationsFrom: SendGridAddress;
     docNotificationsReplyTo: SendGridAddress;
   };
-  template: {[templateName in TemplateName]?: string},
+  template: { [templateName in TemplateName]?: string },
   list: {
     singleUserOnboarding?: string;
     appSumoSignUps?: string;

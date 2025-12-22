@@ -5,7 +5,7 @@ import { EnvironmentSnapshot } from 'test/server/testUtils';
 
 describe('Features', function () {
   this.timeout(20000);
-  setupTestSuite({samples: true});
+  setupTestSuite({ samples: true });
 
   let session: gu.Session;
   let oldEnv: EnvironmentSnapshot;

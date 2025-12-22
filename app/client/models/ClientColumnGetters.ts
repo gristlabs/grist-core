@@ -1,9 +1,9 @@
 import DataTableModel from 'app/client/models/DataTableModel';
-import {ColumnGetter, ColumnGetters, ColumnGettersByColId} from 'app/common/ColumnGetters';
+import { ColumnGetter, ColumnGetters, ColumnGettersByColId } from 'app/common/ColumnGetters';
 import * as gristTypes from 'app/common/gristTypes';
-import {choiceGetter} from 'app/common/SortFunc';
-import {Sort} from 'app/common/SortSpec';
-import {TableData} from 'app/common/TableData';
+import { choiceGetter } from 'app/common/SortFunc';
+import { Sort } from 'app/common/SortSpec';
+import { TableData } from 'app/common/TableData';
 
 /**
  *
@@ -18,7 +18,7 @@ export class ClientColumnGetters implements ColumnGetters {
   // available of parent, local, or remote.  This can make sense for
   // sorting, so cells appear in a reasonably sensible place.
   constructor(private _tableModel: DataTableModel, private _options: {
-    unversioned?: boolean} = {}) {
+    unversioned?: boolean } = {}) {
   }
 
   public getColGetter(colSpec: Sort.ColSpec): ColumnGetter | null {

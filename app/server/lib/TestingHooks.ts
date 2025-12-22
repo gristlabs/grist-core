@@ -1,23 +1,23 @@
 import * as net from 'net';
 
-import {UserProfile} from 'app/common/LoginSessionAPI';
-import {Deps as ActiveDocDeps} from 'app/server/lib/ActiveDoc';
-import {Deps as DiscourseConnectDeps} from 'app/server/lib/DiscourseConnect';
-import {Deps as CommClientDeps} from 'app/server/lib/Client';
+import { UserProfile } from 'app/common/LoginSessionAPI';
+import { Deps as ActiveDocDeps } from 'app/server/lib/ActiveDoc';
+import { Deps as DiscourseConnectDeps } from 'app/server/lib/DiscourseConnect';
+import { Deps as CommClientDeps } from 'app/server/lib/Client';
 import * as Client from 'app/server/lib/Client';
-import {Comm} from 'app/server/lib/Comm';
+import { Comm } from 'app/server/lib/Comm';
 import log from 'app/server/lib/log';
-import {IMessage, Rpc} from 'grain-rpc';
-import {EventEmitter} from 'events';
-import {Request} from 'express';
+import { IMessage, Rpc } from 'grain-rpc';
+import { EventEmitter } from 'events';
+import { Request } from 'express';
 import * as t from 'ts-interface-checker';
-import {FlexServer} from 'app/server/lib/FlexServer';
-import {ClientJsonMemoryLimits, ITestingHooks} from 'app/server/lib/ITestingHooks';
+import { FlexServer } from 'app/server/lib/FlexServer';
+import { ClientJsonMemoryLimits, ITestingHooks } from 'app/server/lib/ITestingHooks';
 import ITestingHooksTI from 'app/server/lib/ITestingHooks-ti';
-import {connect, fromCallback} from 'app/server/lib/serverUtils';
-import {WidgetRepositoryImpl} from 'app/server/lib/WidgetRepository';
+import { connect, fromCallback } from 'app/server/lib/serverUtils';
+import { WidgetRepositoryImpl } from 'app/server/lib/WidgetRepository';
 
-const tiCheckers = t.createCheckers(ITestingHooksTI, {UserProfile: t.name("object")});
+const tiCheckers = t.createCheckers(ITestingHooksTI, { UserProfile: t.name("object") });
 
 export function startTestingHooks(socketPath: string, port: number,
   comm: Comm, flexServer: FlexServer,
@@ -29,7 +29,7 @@ export function startTestingHooks(socketPath: string, port: number,
     server.on('listening', () => resolve(server));
     server.on('connection', (socket) => {
       // On connection, create an Rpc object communicating over that socket.
-      const rpc = connectToSocket(new Rpc({logger: {}}), socket);
+      const rpc = connectToSocket(new Rpc({ logger: {} }), socket);
       // Register the testing implementation.
       rpc.registerImpl('testing',
         new TestingHooks(port, comm, flexServer, workerServers),
@@ -54,7 +54,7 @@ export interface TestingHooksClient extends ITestingHooks {
 
 export async function connectTestingHooks(socketPath: string): Promise<TestingHooksClient> {
   const socket = await connect(socketPath);
-  const rpc = connectToSocket(new Rpc({logger: {}}), socket);
+  const rpc = connectToSocket(new Rpc({ logger: {} }), socket);
   return Object.assign(rpc.getStub<TestingHooks>('testing', tiCheckers.ITestingHooks), {
     close: () => socket.end(),
   });
@@ -80,7 +80,7 @@ export class TestingHooks implements ITestingHooks {
     const scopedSession = sessions.getOrCreateSession(sessionId as string, org);
     const req = {} as Request;
     await scopedSession.updateUserProfile(req, profile);
-    this._server.getSessions().clearCacheIfNeeded({email: profile?.email, org});
+    this._server.getSessions().clearCacheIfNeeded({ email: profile?.email, org });
   }
 
   public async setServerVersion(version: string|null): Promise<void> {

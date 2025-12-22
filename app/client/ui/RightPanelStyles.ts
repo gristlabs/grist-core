@@ -1,8 +1,8 @@
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {numericSpinner} from 'app/client/widgets/NumericSpinner';
-import {styled} from 'grainjs';
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
+import { numericSpinner } from 'app/client/widgets/NumericSpinner';
+import { styled } from 'grainjs';
 
 export const cssIcon = styled(icon, `
   flex: 0 0 auto;

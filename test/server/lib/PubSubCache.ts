@@ -33,13 +33,13 @@ describe('PubSubCache', function() {
     const fetch = sandbox.stub<[key: string], Promise<string>>();
     const getChannel = sandbox.stub<[key: string], string>();
 
-    function createPubSubCache(options: {ttlMs: number}) {
+    function createPubSubCache(options: { ttlMs: number }) {
       fetch.callsFake(async (key: string) => key.toUpperCase());
       getChannel.callsFake((key: string) => `foo:${key}`);
       cleanup.addAfterEach(() => { fetch.reset(); getChannel.reset(); });
 
       const manager = createPubSubManager();
-      const cache = new PubSubCache({pubSubManager: manager, fetch, getChannel, ...options});
+      const cache = new PubSubCache({ pubSubManager: manager, fetch, getChannel, ...options });
       cleanup.addAfterEach(async () => {
         cache.clear();
         await manager.close();
@@ -48,7 +48,7 @@ describe('PubSubCache', function() {
     }
 
     it('should refetch after invalidateKeys', async function() {
-      const cache = createPubSubCache({ttlMs: 1000});
+      const cache = createPubSubCache({ ttlMs: 1000 });
       let suffix = 1;
       fetch.callsFake(async (key: string) => key.toUpperCase() + "@" + suffix);
       assert.equal(await cache.getValue('foo'), 'FOO@1');
@@ -77,8 +77,8 @@ describe('PubSubCache', function() {
 
     it('should refetch after invalidateKeys on another server', async function() {
       if (!useRedis) { this.skip(); }
-      const cache = createPubSubCache({ttlMs: 1000});
-      const cache2 = createPubSubCache({ttlMs: 1000});
+      const cache = createPubSubCache({ ttlMs: 1000 });
+      const cache2 = createPubSubCache({ ttlMs: 1000 });
 
       let suffix = 1;
       fetch.callsFake(async (key: string) => key.toUpperCase() + "@" + suffix);
@@ -120,7 +120,7 @@ describe('PubSubCache', function() {
     });
 
     it('should not cache on fetch errors', async function() {
-      const cache = createPubSubCache({ttlMs: 1000});
+      const cache = createPubSubCache({ ttlMs: 1000 });
       fetch.callsFake(async (key: string) => { throw new Error('dummy'); });
       await assert.isRejected(cache.getValue('foo'), /dummy/);
       await assert.isRejected(cache.getValue('foo'), /dummy/);
@@ -131,14 +131,14 @@ describe('PubSubCache', function() {
       const subSpy = sandbox.spy(IORedis.prototype, 'subscribe');
       const unsubSpy = sandbox.spy(IORedis.prototype, 'unsubscribe');
 
-      function assertSubscriptions(expected: {sub: number, unsub: number}) {
+      function assertSubscriptions(expected: { sub: number, unsub: number }) {
         if (useRedis) {
           assert.equal(subSpy.callCount, expected.sub);
           assert.equal(unsubSpy.callCount, expected.unsub);
         }
       }
 
-      const cache = createPubSubCache({ttlMs: 100});
+      const cache = createPubSubCache({ ttlMs: 100 });
       let suffix = 1;
       fetch.callsFake(async (key: string) => key.toUpperCase() + "@" + suffix);
       assert.equal(await cache.getValue('foo'), 'FOO@1');
@@ -146,16 +146,16 @@ describe('PubSubCache', function() {
       assert.equal(await cache.getValue('foo'), 'FOO@1');
       assert.equal(fetch.callCount, 1);
 
-      assertSubscriptions({sub: 1, unsub: 0});
+      assertSubscriptions({ sub: 1, unsub: 0 });
 
       // Wait for expiration.
       await delay(100);
-      assertSubscriptions({sub: 1, unsub: 1});
+      assertSubscriptions({ sub: 1, unsub: 1 });
 
       suffix = 3;
       assert.equal(await cache.getValue('foo'), 'FOO@3');
       assert.equal(fetch.callCount, 2);
-      assertSubscriptions({sub: 2, unsub: 1});
+      assertSubscriptions({ sub: 2, unsub: 1 });
 
       suffix = 4;
       assert.equal(await cache.getValue('foo'), 'FOO@3');
@@ -165,16 +165,16 @@ describe('PubSubCache', function() {
       await cache.invalidateKeys(['foo']);
       assert.equal(await cache.getValue('foo'), 'FOO@4');
       assert.equal(fetch.callCount, 3);
-      assertSubscriptions({sub: 2, unsub: 1});
+      assertSubscriptions({ sub: 2, unsub: 1 });
 
       await delay(100);
-      assertSubscriptions({sub: 2, unsub: 2});
+      assertSubscriptions({ sub: 2, unsub: 2 });
       suffix = 5;
       assert.equal(await cache.getValue('foo'), 'FOO@5');
       assert.equal(fetch.callCount, 4);
-      assertSubscriptions({sub: 3, unsub: 2});
+      assertSubscriptions({ sub: 3, unsub: 2 });
       await waitForIt(async () => {
-        assertSubscriptions({sub: 3, unsub: 3});
+        assertSubscriptions({ sub: 3, unsub: 3 });
       }, 200, 50);
     });
 
@@ -185,7 +185,7 @@ describe('PubSubCache', function() {
         () => Promise.reject(new Error("Fake subscribe error")));
       const unsubSpy = sandbox.spy(IORedis.prototype, 'unsubscribe');
 
-      const cache = createPubSubCache({ttlMs: 100});
+      const cache = createPubSubCache({ ttlMs: 100 });
       await assert.isRejected(cache.getValue('key1'), /Fake subscribe error/);
       assert.equal(subStub.callCount, 1);
 

@@ -7,17 +7,17 @@
  * upload, and if that fails due to CORS, would fetch the file on the server side instead.
  */
 
-import {DocComm} from 'app/client/components/DocComm';
-import {UserError} from 'app/client/models/errors';
-import {FileDialogOptions, openFilePicker} from 'app/client/ui/FileDialog';
-import {getTestState} from 'app/client/lib/testState';
-import {GristLoadConfig} from 'app/common/gristUrls';
-import {byteString, safeJsonParse} from 'app/common/gutil';
-import {FetchUrlOptions, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
-import {docUrl} from 'app/common/urlUtils';
+import { DocComm } from 'app/client/components/DocComm';
+import { UserError } from 'app/client/models/errors';
+import { FileDialogOptions, openFilePicker } from 'app/client/ui/FileDialog';
+import { getTestState } from 'app/client/lib/testState';
+import { GristLoadConfig } from 'app/common/gristUrls';
+import { byteString, safeJsonParse } from 'app/common/gutil';
+import { FetchUrlOptions, UPLOAD_URL_PATH, UploadResult } from 'app/common/uploads';
+import { docUrl } from 'app/common/urlUtils';
 import noop from 'lodash/noop';
 import trimStart from 'lodash/trimStart';
-import {basename} from 'path';      // made available by webpack using path-browserify module.
+import { basename } from 'path';      // made available by webpack using path-browserify module.
 
 type ProgressCB = (percent: number) => void;
 
@@ -83,13 +83,13 @@ function getFileDialogOptions(options: SelectFileOptions): FileDialogOptions {
 // Helper to convert SelectFileOptions to electron's OpenDialogOptions.
 function getElectronOptions(options: SelectFileOptions) /*: OpenDialogOptions */ {
   const resOptions /*: OpenDialogOptions*/ = {
-    filters: [] as Array<{name: string, extensions: any}>,
+    filters: [] as Array<{ name: string, extensions: any }>,
     properties: ['openFile'],
   };
   if (options.extensions) {
     // Electron does not expect leading period.
     const extensions = options.extensions.map(e => trimStart(e, '.'));
-    resOptions.filters.push({name: 'Select files', extensions});
+    resOptions.filters.push({ name: 'Select files', extensions });
   }
   if (options.multiple) {
     resOptions.properties.push('multiSelections');
@@ -114,7 +114,7 @@ export async function uploadFiles(
 
   // Check for upload limits.
   const gristConfig: Partial<GristLoadConfig> = window.gristConfig || {};
-  const {maxUploadSizeImport, maxUploadSizeAttachment} = gristConfig;
+  const { maxUploadSizeImport, maxUploadSizeAttachment } = gristConfig;
   if (options.sizeLimit === 'import' && maxUploadSizeImport) {
     // For imports, we limit the total upload size, but exempt .grist files from the upload limit.
     // Grist docs can be uploaded to make copies or restore from backup, and may legitimately be
@@ -207,7 +207,7 @@ export async function fetchURL(
   const mimeType = response.headers.get('content-type');
   const fileOptions = mimeType ? { type: mimeType } : {};
   const fileObj = new File([await response.blob()], fileName, fileOptions);
-  const res = await uploadFiles([fileObj], {docWorkerUrl: docComm.docWorkerUrl}, onProgress);
+  const res = await uploadFiles([fileObj], { docWorkerUrl: docComm.docWorkerUrl }, onProgress);
   return res!;
 }
 

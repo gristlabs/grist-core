@@ -1,10 +1,10 @@
-import {getEnvContent, LocalActionBundle} from 'app/common/ActionBundle';
-import {ActionSummary, ColumnDelta, createEmptyActionSummary,
-  createEmptyTableDelta, defunctTableName, LabelDelta, TableDelta} from 'app/common/ActionSummary';
-import {DocAction} from 'app/common/DocActions';
+import { getEnvContent, LocalActionBundle } from 'app/common/ActionBundle';
+import { ActionSummary, ColumnDelta, createEmptyActionSummary,
+  createEmptyTableDelta, defunctTableName, LabelDelta, TableDelta } from 'app/common/ActionSummary';
+import { DocAction } from 'app/common/DocActions';
 import * as Action from 'app/common/DocActions';
-import {arrayExtend} from 'app/common/gutil';
-import {CellDelta} from 'app/common/TabularDiff';
+import { arrayExtend } from 'app/common/gutil';
+import { CellDelta } from 'app/common/TabularDiff';
 import clone from 'lodash/clone';
 import fromPairs from 'lodash/fromPairs';
 import keyBy from 'lodash/keyBy';
@@ -273,8 +273,8 @@ function planNameMerge(names1: LabelDelta[], names2: LabelDelta[]): NameMerge {
     rename2: new Map<string, string>(),
     merge: new Array<LabelDelta>(),
   };
-  const names1ByFinalName: {[name: string]: LabelDelta} = keyBy(names1, p => p[1]!);
-  const names2ByInitialName: {[name: string]: LabelDelta} = keyBy(names2, p => p[0]!);
+  const names1ByFinalName: { [name: string]: LabelDelta } = keyBy(names1, p => p[1]!);
+  const names2ByInitialName: { [name: string]: LabelDelta } = keyBy(names2, p => p[0]!);
   for (const [before1, after1] of names1) {
     if (!after1) {
       if (!before1) { throw new Error("invalid name change found"); }
@@ -337,7 +337,7 @@ function planNameMerge(names1: LabelDelta[], names2: LabelDelta[]): NameMerge {
  *
  * entries may be modified, and if so will be shallow-copied.
  */
-function renameAndDelete<T>(entries: CopyOnWrite<{[name: string]: T}>, dead: Set<string>,
+function renameAndDelete<T>(entries: CopyOnWrite<{ [name: string]: T }>, dead: Set<string>,
   rename: Map<string, string>) {
   if (!(dead.size || rename.size)) {
     return;
@@ -347,7 +347,7 @@ function renameAndDelete<T>(entries: CopyOnWrite<{[name: string]: T}>, dead: Set
   // Remove all entries marked as dead.
   for (const key of dead) { delete entriesCopy[key]; }
   // Move all entries that are going to be renamed out to a cache temporarily.
-  const cache: {[name: string]: any} = {};
+  const cache: { [name: string]: any } = {};
   for (const key of rename.keys()) {
     if (entriesCopy[key]) {
       cache[key] = entriesCopy[key];
@@ -372,9 +372,9 @@ function renameAndDelete<T>(entries: CopyOnWrite<{[name: string]: T}>, dead: Set
  * entries2 may be modified, and if so it will be copied.
  */
 function mergeNames<T>(names: NameMerge,
-  entries1: {[name: string]: T},
-  entries2: CopyOnWrite<{[name: string]: T}>,
-  mergeEntry: (e1: T, e2: CopyOnWrite<T>) => T): {[name: string]: T} {
+  entries1: { [name: string]: T },
+  entries2: CopyOnWrite<{ [name: string]: T }>,
+  mergeEntry: (e1: T, e2: CopyOnWrite<T>) => T): { [name: string]: T } {
   const entries1Wrapper = copyOnWrite(entries1);
   // Update the keys of the entries1 and entries2 dictionaries to be consistent.
   renameAndDelete(entries1Wrapper, names.dead1, names.rename1);
@@ -465,9 +465,9 @@ function getRowChanges(e: TableDelta): RowChanges {
   const removed = new Set(e.removeRows);
   const updated = new Set(e.updateRows);
   return fromPairs([...all].map((x) => {
-    return [x, {added: added.has(x),
+    return [x, { added: added.has(x),
       removed: removed.has(x),
-      updated: updated.has(x)}] as [number, RowChange];
+      updated: updated.has(x) }] as [number, RowChange];
   }));
 }
 

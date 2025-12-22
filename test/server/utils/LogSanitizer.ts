@@ -1,5 +1,5 @@
-import {LogSanitizer} from "app/server/utils/LogSanitizer";
-import {assert} from "chai";
+import { LogSanitizer } from "app/server/utils/LogSanitizer";
+import { assert } from "chai";
 
 describe("LogSanitizer", () => {
 

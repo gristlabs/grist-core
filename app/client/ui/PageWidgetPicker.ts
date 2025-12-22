@@ -1,19 +1,19 @@
-import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {reportError} from 'app/client/models/AppModel';
-import {ColumnRec, TableRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {PERMITTED_CUSTOM_WIDGETS} from "app/client/models/features";
-import {linkId, NoLink} from 'app/client/ui/selectBy';
-import {overflowTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
-import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
-import {bigPrimaryButton} from "app/client/ui2018/buttons";
-import {theme, vars} from "app/client/ui2018/cssVars";
-import {icon} from "app/client/ui2018/icons";
-import {spinnerModal} from 'app/client/ui2018/modals';
-import {isLongerThan, nativeCompare} from "app/common/gutil";
-import {IAttachedCustomWidget, IWidgetType} from 'app/common/widgetTypes';
+import { BehavioralPromptsManager } from 'app/client/components/BehavioralPromptsManager';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { makeT } from 'app/client/lib/localization';
+import { reportError } from 'app/client/models/AppModel';
+import { ColumnRec, TableRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { PERMITTED_CUSTOM_WIDGETS } from "app/client/models/features";
+import { linkId, NoLink } from 'app/client/ui/selectBy';
+import { overflowTooltip, withInfoTooltip } from 'app/client/ui/tooltips';
+import { getWidgetTypes } from "app/client/ui/widgetTypesMap";
+import { bigPrimaryButton } from "app/client/ui2018/buttons";
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { spinnerModal } from 'app/client/ui2018/modals';
+import { isLongerThan, nativeCompare } from "app/common/gutil";
+import { IAttachedCustomWidget, IWidgetType } from 'app/common/widgetTypes';
 import {
   computed,
   Computed,
@@ -30,7 +30,7 @@ import {
   styled,
 } from "grainjs";
 import Popper from 'popper.js';
-import {IOpenController, popupOpen, setPopupToCreateDom} from 'popweasel';
+import { IOpenController, popupOpen, setPopupToCreateDom } from 'popweasel';
 import without from 'lodash/without';
 
 const t = makeT('PageWidgetPicker');
@@ -109,7 +109,7 @@ const testId = makeTestId('test-wselect-');
 // The picker disables some choices that do not make much sense. This function return the list of
 // compatible types given the tableId and whether user is creating a new page or not.
 function getCompatibleTypes(tableId: TableRef,
-  {isNewPage, summarize}: ICompatibleTypes): IWidgetType[] {
+  { isNewPage, summarize }: ICompatibleTypes): IWidgetType[] {
   let compatibleTypes: Array<IWidgetType> = [];
   if (tableId !== 'New Table') {
     compatibleTypes = ['record', 'single', 'detail', 'chart', 'custom', 'custom.calendar', 'form'];
@@ -135,8 +135,8 @@ function isSummaryCompatible(widgetType: IWidgetType): boolean {
 // Whether table and type make for a valid selection whether the user is creating a new page or not.
 function isValidSelection(table: TableRef,
   type: IWidgetType,
-  {isNewPage, summarize}: ICompatibleTypes) {
-  return table !== null && getCompatibleTypes(table, {isNewPage, summarize}).includes(type);
+  { isNewPage, summarize }: ICompatibleTypes) {
+  return table !== null && getCompatibleTypes(table, { isNewPage, summarize }).includes(type);
 }
 
 export type ISaveFunc = (val: IPageWidget) => Promise<any>;
@@ -184,7 +184,7 @@ export function buildPageWidgetPicker(
   onSave: ISaveFunc,
   options: IOptions = {},
 ) {
-  const {behavioralPromptsManager, docModel} = gristDoc;
+  const { behavioralPromptsManager, docModel } = gristDoc;
   const tables = fromKo(docModel.visibleTables.getObservable());
   const columns = fromKo(docModel.columns.createAllRowsModel('parentPos').getObservable());
 
@@ -263,7 +263,7 @@ export function buildPageWidgetPicker(
     dom.create(PageWidgetSelect,
       value, tables, columns, onSaveCB, behavioralPromptsManager, options),
 
-    (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+    (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
     onKeyDown({
       Escape: () => ctl.close(),
       Enter: () => isValid() && onSaveCB(),
@@ -326,7 +326,7 @@ export class PageWidgetSelect extends Disposable {
     null;
 
   private _isNewTableDisabled = Computed.create(this, this._value.type, (use, type) => !isValidSelection(
-    'New Table', type, {isNewPage: this._options.isNewPage, summarize: use(this._value.summarize)}));
+    'New Table', type, { isNewPage: this._options.isNewPage, summarize: use(this._value.summarize) }));
 
   private _isSummaryDisabled = Computed.create(this, this._value.type, (_use, type) => !isSummaryCompatible(type));
 
@@ -429,17 +429,17 @@ export class PageWidgetSelect extends Disposable {
                   testId('selectby')),
               ),
               'selectBy',
-              {popupOptions: {attach: null}, domArgs: [
+              { popupOptions: { attach: null }, domArgs: [
                 this._behavioralPromptsManager.attachPopup('pageWidgetPickerSelectBy', {
                   popupOptions: {
                     attach: null,
                     placement: 'bottom-start',
                   },
                 }),
-              ]},
+              ] },
             ),
           ),
-          dom('div', {style: 'flex-grow: 1'}),
+          dom('div', { style: 'flex-grow: 1' }),
           bigPrimaryButton(
             // TODO: The button's label of the page widget picker should read 'Close' instead when
             // there are no changes.
@@ -509,7 +509,7 @@ export class PageWidgetSelect extends Disposable {
     if (table === null) {
       return false;
     }
-    return !getCompatibleTypes(table, {isNewPage: this._options.isNewPage, summarize: isSummaryOn}).includes(type);
+    return !getCompatibleTypes(table, { isNewPage: this._options.isNewPage, summarize: isSummaryOn }).includes(type);
   }
 
 }
@@ -659,7 +659,7 @@ const cssSelectBy = styled('div', `
 
 // Returns a copy of array with its items sorted in the same order as they appear in other.
 function sortedAs(array: number[], other: number[]) {
-  const order: {[id: number]: number} = {};
+  const order: { [id: number]: number } = {};
   for (const [index, item] of other.entries()) {
     order[item] = index;
   }

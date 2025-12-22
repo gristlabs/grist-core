@@ -1,4 +1,4 @@
-import {DocumentMetadata} from 'app/gen-server/lib/homedb/HomeDBManager';
+import { DocumentMetadata } from 'app/gen-server/lib/homedb/HomeDBManager';
 import log from 'app/server/lib/log';
 
 // Callback that persists the updated metadata to storage for each document.
@@ -11,7 +11,7 @@ export type SaveDocsMetadataFunc = (metadata: { [docId: string]: DocumentMetadat
 export class HostedMetadataManager {
 
   // Document metadata mapped by docId.
-  private _metadata: {[docId: string]: DocumentMetadata} = {};
+  private _metadata: { [docId: string]: DocumentMetadata } = {};
 
   // Set if the class holder is closing and no further pushes should be scheduled.
   private _closing: boolean = false;
@@ -70,7 +70,7 @@ export class HostedMetadataManager {
     this._schedulePush(minimizeDelay ? 0 : undefined);
   }
 
-  public setDocsMetadata(docUpdateMap: {[docId: string]: DocumentMetadata}): Promise<any> {
+  public setDocsMetadata(docUpdateMap: { [docId: string]: DocumentMetadata }): Promise<any> {
     return this._saveDocsMetadata(docUpdateMap);
   }
 
@@ -137,7 +137,7 @@ export class HostedMetadataManager {
       this._metadata[docId] = metadata;
     }
     else {
-      const {updatedAt, usage} = metadata;
+      const { updatedAt, usage } = metadata;
       if (updatedAt) { this._metadata[docId].updatedAt = updatedAt; }
       if (usage !== undefined) { this._metadata[docId].usage = usage; }
     }

@@ -1,5 +1,5 @@
-import {nativeValues} from 'app/gen-server/lib/values';
-import {MigrationInterface, QueryRunner, TableColumn} from 'typeorm';
+import { nativeValues } from 'app/gen-server/lib/values';
+import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
 export class GracePeriod1732103776245 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {

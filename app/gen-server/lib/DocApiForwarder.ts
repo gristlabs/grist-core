@@ -1,6 +1,6 @@
 import * as express from "express";
 import fetch, { RequestInit } from 'node-fetch';
-import {AbortController} from 'node-abort-controller';
+import { AbortController } from 'node-abort-controller';
 
 import { ApiError } from 'app/common/ApiError';
 import { SHARE_KEY_PREFIX } from 'app/common/gristUrls';
@@ -98,7 +98,7 @@ export class DocApiForwarder {
       const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager,
         this._gristServer, req.params.docId);
       if (role) {
-        assertAccess(role, docAuth, {allowRemoved: true, allowDisabled: true});
+        assertAccess(role, docAuth, { allowRemoved: true, allowDisabled: true });
       }
       docId = docAuth.docId;
     }
@@ -116,7 +116,7 @@ export class DocApiForwarder {
     const url = new URL(req.originalUrl, docWorkerUrl.origin);
     url.pathname = removeTrailingSlash(docWorkerUrl.pathname) + url.pathname;
 
-    const headers: {[key: string]: string} = {
+    const headers: { [key: string]: string } = {
       // At this point, we have already checked and trusted the origin of the request.
       // See FlexServer#addApiMiddleware(). So don't include the "Origin" header.
       // Including this header also would break features like form submissions,

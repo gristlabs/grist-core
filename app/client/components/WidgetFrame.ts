@@ -1,26 +1,26 @@
 import BaseView from 'app/client/components/BaseView';
-import {CommandName} from 'app/client/components/commandList';
+import { CommandName } from 'app/client/components/commandList';
 import * as commands from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {hooks} from 'app/client/Hooks';
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {makeTestId} from 'app/client/lib/domUtils';
-import {sanitizeHttpUrl} from 'app/client/lib/sanitizeUrl';
-import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {reportError} from 'app/client/models/errors';
-import {gristThemeObs} from 'app/client/ui2018/theme';
-import {convertThemeKeysToCssVars} from 'app/common/ThemePrefs';
-import {AccessLevel, ICustomWidget, isSatisfied, matchWidget} from 'app/common/CustomWidget';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
-import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
-import {getGristConfig} from 'app/common/urlUtils';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { hooks } from 'app/client/Hooks';
+import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import { makeTestId } from 'app/client/lib/domUtils';
+import { sanitizeHttpUrl } from 'app/client/lib/sanitizeUrl';
+import { ColumnRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { reportError } from 'app/client/models/errors';
+import { gristThemeObs } from 'app/client/ui2018/theme';
+import { convertThemeKeysToCssVars } from 'app/common/ThemePrefs';
+import { AccessLevel, ICustomWidget, isSatisfied, matchWidget } from 'app/common/CustomWidget';
+import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
+import { BulkColValues, fromTableDataAction, RowRecord } from 'app/common/DocActions';
+import { extractInfoFromColType, reencodeAsAny } from 'app/common/gristTypes';
+import { getGristConfig } from 'app/common/urlUtils';
 import {
   AccessTokenOptions, CursorPos, CustomSectionAPI, FetchSelectedOptions, GristDocAPI, GristView,
   InteractionOptionsRequest, WidgetAPI, WidgetColumnMap,
 } from 'app/plugin/grist-plugin-api';
-import {MsgType, Rpc} from 'grain-rpc';
-import {Computed, Disposable, dom, Observable} from 'grainjs';
+import { MsgType, Rpc } from 'grain-rpc';
+import { Computed, Disposable, dom, Observable } from 'grainjs';
 import noop from 'lodash/noop';
 import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
@@ -83,7 +83,7 @@ export interface WidgetFrameOptions {
   /**
    * Optional language to use for the widget.
    */
-  preferences: {language?: string, timeZone?: any, currency?: string, culture?: string};
+  preferences: { language?: string, timeZone?: any, currency?: string, culture?: string };
   /**
    * The containing document.
    */
@@ -219,7 +219,7 @@ export class WidgetFrame extends DisposableWithEvents {
       dom.cls('custom_view'),
       dom.attr('src', this._url),
       // Allow widgets to write to the clipboard via the Clipboard API.
-      {allow: "clipboard-write"},
+      { allow: "clipboard-write" },
       hooks.iframeAttributes,
       testId('ready', use => use(this._readyCalled) && !use(this._isEmpty)),
       (elem) => { this._options.onElem(elem); },
@@ -282,11 +282,11 @@ export class WidgetFrame extends DisposableWithEvents {
    * get the best URL we can for it.
    */
   private async _checkWidgetRepository() {
-    const {widgetId, pluginId} = this._options;
+    const { widgetId, pluginId } = this._options;
     if (this.isDisposed() || !widgetId) { return; }
     const widgets = await this._options.gristDoc.app.topAppModel.getWidgets();
     if (this.isDisposed()) { return; }
-    const widget = matchWidget(widgets, {widgetId, pluginId});
+    const widget = matchWidget(widgets, { widgetId, pluginId });
     this._widget.set(widget || null);
   }
 }
@@ -419,7 +419,7 @@ export class GristDocAPIImpl implements GristDocAPI {
 
   public async listTables(): Promise<string[]> {
     // Could perhaps read tableIds from this.gristDoc.docModel.visibleTableIds.all()?
-    const {tableData} = await this._doc.docComm.fetchTable('_grist_Tables');
+    const { tableData } = await this._doc.docComm.fetchTable('_grist_Tables');
     // Tables the user doesn't have access to are just blanked out.
     return tableData[3].tableId.filter(tableId => tableId !== '') as string[];
   }
@@ -429,7 +429,7 @@ export class GristDocAPIImpl implements GristDocAPI {
   }
 
   public async applyUserActions(actions: any[][], options?: any) {
-    return this._doc.docComm.applyUserActions(actions, {desc: undefined, ...options});
+    return this._doc.docComm.applyUserActions(actions, { desc: undefined, ...options });
   }
 
   // Get a token for out-of-band access to the document.
@@ -482,7 +482,7 @@ export class GristViewImpl implements GristView {
     // the custom view depends on, so we shouldn't volunteer any untracked
     // information here.
     const columns: ColumnRec[] = this._visibleColumns(options);
-    const data: RowRecord = {id: rowId};
+    const data: RowRecord = { id: rowId };
     const expandRefs = options.expandRefs !== false;
     for (const column of columns) {
       const typeInfo = extractInfoFromColType(column.type.peek());
@@ -576,7 +576,7 @@ export class WidgetAPIImpl implements WidgetAPI {
   }
 
   public async setOption(key: string, value: any): Promise<void> {
-    const options = {...this._section.activeCustomOptions.peek()};
+    const options = { ...this._section.activeCustomOptions.peek() };
     options[key] = value;
     this._section.activeCustomOptions(options);
   }
@@ -686,7 +686,7 @@ export class ConfigNotifier extends BaseEventSource {
   });
 
   // Debounced call to let the view know linked cursor changed.
-  private _debounced = debounce((options?: {fromReady?: boolean}) => this._update(options), 0);
+  private _debounced = debounce((options?: { fromReady?: boolean }) => this._update(options), 0);
 
   constructor(private _section: ViewSectionRec, private _options: ConfigNotifierOptions) {
     super();
@@ -701,10 +701,10 @@ export class ConfigNotifier extends BaseEventSource {
 
   protected _ready() {
     // On ready, send initial configuration.
-    this._debounced({fromReady: true});
+    this._debounced({ fromReady: true });
   }
 
-  private _update({fromReady}: {fromReady?: boolean} = {}) {
+  private _update({ fromReady}: { fromReady?: boolean } = {}) {
     if (this.isDisposed()) { return; }
 
     this._notify({
@@ -733,10 +733,10 @@ export class ThemeNotifier extends BaseEventSource {
   }
 
   protected _ready() {
-    this._update({fromReady: true});
+    this._update({ fromReady: true });
   }
 
-  private _update({fromReady}: {fromReady?: boolean} = {}) {
+  private _update({ fromReady}: { fromReady?: boolean } = {}) {
     if (this.isDisposed()) { return; }
 
     this._notify({

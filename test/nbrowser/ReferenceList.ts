@@ -1,7 +1,7 @@
-import {assert, driver, Key, stackWrapFunc} from 'mocha-webdriver';
+import { assert, driver, Key, stackWrapFunc } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {Session} from 'test/nbrowser/gristUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { Session } from 'test/nbrowser/gristUtils';
 import * as testUtils from 'test/server/testUtils';
 
 describe('ReferenceList', function() {
@@ -11,7 +11,7 @@ describe('ReferenceList', function() {
   testUtils.withoutSandboxing();
 
   let session: Session;
-  const cleanup = setupTestSuite({team: true});
+  const cleanup = setupTestSuite({ team: true });
 
   before(async function() {
     session = await gu.session().teamSite.login();
@@ -23,8 +23,8 @@ describe('ReferenceList', function() {
       // actions. One for adding the new row, and another for updating the RefList column.
       await session.tempNewDoc(cleanup);
       await gu.sendActions([
-        ['ModifyColumn', 'Table1', 'B', {type: 'RefList:Table1'}],
-        ['AddRecord', 'Table1', null, {A: 'a'}],
+        ['ModifyColumn', 'Table1', 'B', { type: 'RefList:Table1' }],
+        ['AddRecord', 'Table1', null, { A: 'a' }],
       ]);
       await gu.openColumnPanel();
       await gu.getCell('B', 1).doClick();
@@ -64,17 +64,17 @@ describe('ReferenceList', function() {
       // Create a table with a Ref column that targets itself.
       await session.tempNewDoc(cleanup);
       await gu.sendActions([
-        ['ModifyColumn', 'Table1', 'B', {type: 'Ref:Table1'}],
-        ['AddRecord', 'Table1', null, {A: 'a', B: 1}],
-        ['AddRecord', 'Table1', null, {A: 'b', B: 2}],
-        ['AddRecord', 'Table1', null, {A: 'c', B: 3}],
+        ['ModifyColumn', 'Table1', 'B', { type: 'Ref:Table1' }],
+        ['AddRecord', 'Table1', null, { A: 'a', B: 1 }],
+        ['AddRecord', 'Table1', null, { A: 'b', B: 2 }],
+        ['AddRecord', 'Table1', null, { A: 'c', B: 3 }],
       ]);
       await gu.openColumnPanel();
       await gu.getCell('B', 1).doClick();
       await gu.setRefShowColumn('A');
 
       // Now convert it to RefList.
-      await gu.setType('Reference List', {apply: true});
+      await gu.setType('Reference List', { apply: true });
 
       // Make sure we see the values.
       assert.deepEqual(await gu.getVisibleGridCells('B', [1, 2, 3]), ['a', 'b', 'c']);
@@ -90,10 +90,10 @@ describe('ReferenceList', function() {
       const docId = await session.tempNewDoc(cleanup);
       await gu.sendActions([
         ['AddEmptyTable', 'Table2'],
-        ['ModifyColumn', 'Table1', 'B', {type: 'RefList:Table1'}],
-        ['AddRecord', 'Table1', null, {A: 'a'}],
-        ['AddRecord', 'Table1', null, {A: 'b', B: ["L", 1]}],
-        ['AddRecord', 'Table1', null, {A: 'c', B: ["L", 2]}],
+        ['ModifyColumn', 'Table1', 'B', { type: 'RefList:Table1' }],
+        ['AddRecord', 'Table1', null, { A: 'a' }],
+        ['AddRecord', 'Table1', null, { A: 'b', B: ["L", 1] }],
+        ['AddRecord', 'Table1', null, { A: 'c', B: ["L", 2] }],
       ]);
 
       // Now try to delete the table.
@@ -125,7 +125,7 @@ describe('ReferenceList', function() {
       await gu.waitForDocToLoad();
 
       // Change the column type of Favorite Film to Reference List.
-      await gu.getCell({col: 'Favorite Film', rowNum: 1}).doClick();
+      await gu.getCell({ col: 'Favorite Film', rowNum: 1 }).doClick();
       await gu.setType(/Reference List/);
 
       // Check that the column preview shows valid reference lists.
@@ -177,7 +177,7 @@ describe('ReferenceList', function() {
       await gu.sendKeys(Key.ARROW_DOWN, Key.ENTER, 'The Avengers', Key.ENTER, Key.ENTER);
 
       // Check that the cells are rendered correctly.
-      await gu.resizeColumn({col: 'Favorite Film'}, 100);
+      await gu.resizeColumn({ col: 'Favorite Film' }, 100);
       assert.deepEqual(await gu.getVisibleGridCells('Favorite Film', [1, 2, 3, 4, 5, 6]),
         [
           'Forrest Gump\nAlien',
@@ -273,7 +273,7 @@ describe('ReferenceList', function() {
 
     it('should still work after renaming visible column', async function() {
       // Check that we have a Ref:Films column displaying Title.
-      await gu.getCell({section: 'Friends record', col: 'Favorite Film', rowNum: 2}).doClick();
+      await gu.getCell({ section: 'Friends record', col: 'Favorite Film', rowNum: 2 }).doClick();
       assert.equal(await driver.find('.test-fbuilder-ref-table-select .test-select-row').getText(), 'Films');
       assert.equal(await driver.find('.test-fbuilder-ref-col-select .test-select-row').getText(), 'Title');
 
@@ -281,13 +281,13 @@ describe('ReferenceList', function() {
       // In browser tests, first record is hidden, we need to scroll first.
       await gu.selectSectionByTitle('Films record');
       await gu.scrollActiveView(0, -100);
-      await gu.getCell({section: 'Films record', col: 'Title', rowNum: 1}).doClick();
+      await gu.getCell({ section: 'Films record', col: 'Title', rowNum: 1 }).doClick();
       await driver.find('.test-field-label').click();
       await gu.sendKeys(await gu.selectAllKey(), 'TitleX', Key.ENTER);
       await gu.waitForServer();
 
       // Check that the Ref:Films column shows TitleX and is still correct.
-      await gu.getCell({section: 'Friends record', col: 'Favorite Film', rowNum: 2}).doClick();
+      await gu.getCell({ section: 'Friends record', col: 'Favorite Film', rowNum: 2 }).doClick();
       await driver.find('.test-fbuilder-ref-table-select').click();
       assert.equal(await driver.find('.test-fbuilder-ref-table-select .test-select-row').getText(), 'Films');
       assert.equal(await driver.find('.test-fbuilder-ref-col-select .test-select-row').getText(), 'TitleX');
@@ -305,7 +305,7 @@ describe('ReferenceList', function() {
 
       // Undo and verify again.
       await gu.undo();
-      await gu.getCell({section: 'Friends record', col: 'Favorite Film', rowNum: 2}).doClick();
+      await gu.getCell({ section: 'Friends record', col: 'Favorite Film', rowNum: 2 }).doClick();
       assert.equal(await driver.find('.test-fbuilder-ref-col-select .test-select-row').getText(), 'Title');
       assert.deepEqual(
         await gu.getVisibleGridCells('Favorite Film', [1, 2, 3, 4, 5, 6]),
@@ -322,12 +322,12 @@ describe('ReferenceList', function() {
 
     it('should switch to rowId if the selected visible column is deleted', async function() {
       // Delete the Title column from Films.
-      await gu.getCell({section: 'Films record', col: 'Title', rowNum: 1}).doClick();
+      await gu.getCell({ section: 'Films record', col: 'Title', rowNum: 1 }).doClick();
       await gu.sendKeys(Key.chord(Key.ALT, '-'));
       await gu.waitForServer();
 
       // Check that Favorite Film switched to showing RowID.
-      await gu.getCell({section: 'Friends record', col: 'Favorite Film', rowNum: 2}).doClick();
+      await gu.getCell({ section: 'Friends record', col: 'Favorite Film', rowNum: 2 }).doClick();
       assert.equal(await driver.find('.test-fbuilder-ref-table-select .test-select-row').getText(), 'Films');
       assert.equal(await driver.find('.test-fbuilder-ref-col-select .test-select-row').getText(), 'Row ID');
       assert.deepEqual(
@@ -359,7 +359,7 @@ describe('ReferenceList', function() {
       await gu.waitForServer();
 
       // Populate the first few rows of the new column with some references.
-      await gu.getCell({rowNum: 1, col: 'A'}).click();
+      await gu.getCell({ rowNum: 1, col: 'A' }).click();
       await driver.sendKeys('1', Key.ENTER, '2', Key.ENTER, Key.ENTER);
       await driver.sendKeys('2', Key.ENTER, Key.ENTER);
       await driver.sendKeys('3', Key.ENTER, '4', Key.ENTER, '5', Key.ENTER, Key.ENTER);
@@ -372,7 +372,7 @@ describe('ReferenceList', function() {
       await driver.find('.test-fbuilder-ref-col-select').click();
       await gu.findOpenMenuItem('.test-select-row', /Name/).click();
       await gu.waitForServer();
-      await gu.resizeColumn({col: 'A'}, 100);
+      await gu.resizeColumn({ col: 'A' }, 100);
       assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6]),
         ['Roger\nTom', 'Tom', 'Sydney\nBill\nEvan', '', '', '']);
 
@@ -408,7 +408,7 @@ describe('ReferenceList', function() {
       await gu.waitForDocToLoad();
 
       // Now pause the server.
-      const cell = gu.getCell({col: 'A', rowNum: 1});
+      const cell = gu.getCell({ col: 'A', rowNum: 1 });
       await server.pauseUntil(async () => {
         assert.equal(await cell.getText(), 'Friends[1]\nFriends[2]');
         await gu.clickReferenceListCell(cell);
@@ -559,7 +559,7 @@ describe('ReferenceList', function() {
     it('should render first items when opening empty cell', async function() {
       await driver.sendKeys(Key.HOME);
 
-      let cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 4}).doClick();
+      let cell = await gu.getCell({ section: 'References', col: 'Colors', rowNum: 4 }).doClick();
       assert.equal(await cell.getText(), '');
       await driver.sendKeys(Key.ENTER);
       // Check the first few items.
@@ -568,7 +568,7 @@ describe('ReferenceList', function() {
       assert.equal(await driver.find('.test-ref-editor-item.selected').isPresent(), false);
       await driver.sendKeys(Key.ESCAPE);
 
-      cell = await gu.getCell({section: 'References', col: 'Schools', rowNum: 6}).doClick();
+      cell = await gu.getCell({ section: 'References', col: 'Schools', rowNum: 6 }).doClick();
       assert.equal(await cell.getText(), '');
       await driver.sendKeys(Key.ENTER);
       // Check the first few items; should be sorted alphabetically.
@@ -583,7 +583,7 @@ describe('ReferenceList', function() {
       await driver.sendKeys(Key.HOME);
 
       // Edit a cell by double-clicking.
-      let cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 2}).doClick();
+      let cell = await gu.getCell({ section: 'References', col: 'Colors', rowNum: 2 }).doClick();
       await driver.withActions(a => a.doubleClick(cell));
 
       // Scroll to another item and click it.
@@ -606,7 +606,7 @@ describe('ReferenceList', function() {
       assert.equal(await cell.getText(), 'Red');
 
       // Edit another cell by starting to type.
-      cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 4}).doClick();
+      cell = await gu.getCell({ section: 'References', col: 'Colors', rowNum: 4 }).doClick();
       await driver.sendKeys("gr");
       await driver.findWait('.test-ref-editor-item', 1000);
       item = driver.findContent('.test-ref-editor-item', 'Medium Sea Green');
@@ -625,7 +625,7 @@ describe('ReferenceList', function() {
       // Same as the previous test, but instead of clicking items, select item using arrow keys.
 
       // Edit a cell by double-clicking.
-      let cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 2}).doClick();
+      let cell = await gu.getCell({ section: 'References', col: 'Colors', rowNum: 2 }).doClick();
       await driver.withActions(a => a.doubleClick(cell));
 
       // Move to another item and hit Enter
@@ -648,7 +648,7 @@ describe('ReferenceList', function() {
       assert.equal(await cell.getText(), 'Red');
 
       // Edit another cell by starting to type.
-      cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 4}).doClick();
+      cell = await gu.getCell({ section: 'References', col: 'Colors', rowNum: 4 }).doClick();
       await driver.sendKeys("gr");
       await driver.findWait('.test-ref-editor-item', 1000);
       await driver.sendKeys(Key.UP, Key.UP, Key.UP, Key.UP, Key.UP);
@@ -663,7 +663,7 @@ describe('ReferenceList', function() {
     });
 
     it('should return to text-as-typed when nothing is selected', async function() {
-      const cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 2}).doClick();
+      const cell = await gu.getCell({ section: 'References', col: 'Colors', rowNum: 2 }).doClick();
       await driver.sendKeys("da");
       assert.deepEqual(await getACOptions(2), ["Dark Blue", "Dark Cyan"]);
 
@@ -698,7 +698,7 @@ describe('ReferenceList', function() {
       // Re-enter the typed-in text and click away. Check the cell is now empty since
       // no reference items were added.
       await driver.sendKeys('da', Key.UP);
-      await gu.getCell({section: 'References', col: 'Colors', rowNum: 1}).doClick();
+      await gu.getCell({ section: 'References', col: 'Colors', rowNum: 1 }).doClick();
       await gu.waitForServer();
       assert.equal(await cell.getText(), "");
       assert.equal(await cell.find('.field_clip').matches('.invalid'), false);
@@ -709,7 +709,7 @@ describe('ReferenceList', function() {
     });
 
     it('should save text as typed when nothing is selected', async function() {
-      const cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 1}).doClick();
+      const cell = await gu.getCell({ section: 'References', col: 'Colors', rowNum: 1 }).doClick();
       await driver.sendKeys("lavender ", Key.ENTER, Key.ENTER);
       await gu.waitForServer();
       assert.equal(await cell.getText(), "Lavender");
@@ -718,7 +718,7 @@ describe('ReferenceList', function() {
     });
 
     it('should offer an add-new option when no good match', async function() {
-      const cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 2}).doClick();
+      const cell = await gu.getCell({ section: 'References', col: 'Colors', rowNum: 2 }).doClick();
       await driver.sendKeys("pinkish");
       // There are inexact matches.
       assert.deepEqual(await getACOptions(3),
@@ -776,12 +776,12 @@ describe('ReferenceList', function() {
       // Requires 2 undos, because adding the "pinkish" and "almost pink" records is a separate action. TODO these
       // actions should be bundled.
       await gu.undo(2);
-      assert.equal(await gu.getCell({section: 'References', col: 'Colors', rowNum: 2}).getText(), 'Red');
+      assert.equal(await gu.getCell({ section: 'References', col: 'Colors', rowNum: 2 }).getText(), 'Red');
     });
 
     it('should not offer an add-new option when target is a formula', async function() {
       // Click on an alt-text cell.
-      const cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 3}).doClick();
+      const cell = await gu.getCell({ section: 'References', col: 'Colors', rowNum: 3 }).doClick();
       assert.equal(await cell.getText(), "hello");
       assert.equal(await cell.find('.field_clip').matches('.invalid'), true);
 
@@ -809,7 +809,7 @@ describe('ReferenceList', function() {
     });
 
     it('should offer items ordered by best match', async function() {
-      let cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 1}).doClick();
+      let cell = await gu.getCell({ section: 'References', col: 'Colors', rowNum: 1 }).doClick();
       assert.equal(await cell.getText(), 'Dark Slate Blue');
       await driver.sendKeys(Key.ENTER, 'Dark Slate Blue');
       assert.deepEqual(await getACOptions(4),
@@ -833,21 +833,21 @@ describe('ReferenceList', function() {
         ['Black', 'Blanched Almond', 'Blue', 'Blue Violet', 'Alice Blue', 'Cadet Blue']);
       await driver.sendKeys(Key.ESCAPE);
 
-      cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 3}).doClick();
+      cell = await gu.getCell({ section: 'References', col: 'Colors', rowNum: 3 }).doClick();
       assert.equal(await cell.getText(), 'hello');    // Alt-text
       await driver.sendKeys('hello');
       assert.deepEqual(await getACOptions(2),
         ['Honeydew', 'Hot Pink']);
       await driver.sendKeys(Key.ESCAPE);
 
-      cell = await gu.getCell({section: 'References', col: 'ColorCodes', rowNum: 2}).doClick();
+      cell = await gu.getCell({ section: 'References', col: 'ColorCodes', rowNum: 2 }).doClick();
       assert.equal(await cell.getText(), '#808080');
       await driver.sendKeys('#808080');
       assert.deepEqual(await getACOptions(5),
         ['#808080', '#808000', '#800000', '#800080', '#87CEEB']);
       await driver.sendKeys(Key.ESCAPE);
 
-      cell = await gu.getCell({section: 'References', col: 'XNums', rowNum: 2}).doClick();
+      cell = await gu.getCell({ section: 'References', col: 'XNums', rowNum: 2 }).doClick();
       assert.equal(await cell.getText(), '2019-04-29');
       await driver.sendKeys('2019-04-29');
       assert.deepEqual(await getACOptions(4),
@@ -856,7 +856,7 @@ describe('ReferenceList', function() {
     });
 
     it('should update choices as user types into textbox', async function() {
-      let cell = await gu.getCell({section: 'References', col: 'Schools', rowNum: 1});
+      let cell = await gu.getCell({ section: 'References', col: 'Schools', rowNum: 1 });
       await gu.clickReferenceListCell(cell);
       assert.equal(await cell.getText(), 'TECHNOLOGY, ARTS AND SCIENCES STUDIO');
       await driver.sendKeys('TECHNOLOGY, ARTS AND SCIENCES STUDIO');
@@ -866,7 +866,7 @@ describe('ReferenceList', function() {
         'SCHOOL OF SCIENCE AND TECHNOLOGY',
       ]);
       await driver.sendKeys(Key.ESCAPE);
-      cell = await gu.getCell({section: 'References', col: 'Schools', rowNum: 2});
+      cell = await gu.getCell({ section: 'References', col: 'Schools', rowNum: 2 });
       await gu.clickReferenceListCell(cell);
       await driver.sendKeys('stuy');
       assert.deepEqual(await getACOptions(3), [
@@ -898,7 +898,7 @@ describe('ReferenceList', function() {
     it('should highlight matching parts of items', async function() {
       await driver.sendKeys(Key.HOME);
 
-      let cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 2});
+      let cell = await gu.getCell({ section: 'References', col: 'Colors', rowNum: 2 });
       await gu.clickReferenceListCell(cell);
       assert.equal(await cell.getText(), 'Red');
       await driver.sendKeys(Key.ENTER, 'Red');
@@ -911,7 +911,7 @@ describe('ReferenceList', function() {
         ['Re']);
       await driver.sendKeys(Key.ESCAPE);
 
-      cell = await gu.getCell({section: 'References', col: 'Schools', rowNum: 1});
+      cell = await gu.getCell({ section: 'References', col: 'Schools', rowNum: 1 });
       await gu.clickReferenceListCell(cell);
       await driver.sendKeys('br tech');
       assert.deepEqual(
@@ -929,7 +929,7 @@ describe('ReferenceList', function() {
     it('should reflect changes to the target column', async function() {
       await driver.sendKeys(Key.HOME);
 
-      const cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 4});
+      const cell = await gu.getCell({ section: 'References', col: 'Colors', rowNum: 4 });
       await gu.clickReferenceListCell(cell);
       assert.equal(await cell.getText(), '');
       await driver.sendKeys(Key.ENTER);
@@ -937,7 +937,7 @@ describe('ReferenceList', function() {
       await driver.sendKeys(Key.ESCAPE);
 
       // Change a color
-      await gu.clickReferenceListCell(await gu.getCell({section: 'Colors', col: 'Color Name', rowNum: 1}));
+      await gu.clickReferenceListCell(await gu.getCell({ section: 'Colors', col: 'Color Name', rowNum: 1 }));
       await driver.sendKeys('HAZELNUT', Key.ENTER, Key.ENTER);
       await gu.waitForServer();
 
@@ -950,7 +950,7 @@ describe('ReferenceList', function() {
       await driver.sendKeys(Key.ESCAPE);
 
       // Delete a row.
-      await gu.clickReferenceListCell(await gu.getCell({section: 'Colors', col: 'Color Name', rowNum: 1}));
+      await gu.clickReferenceListCell(await gu.getCell({ section: 'Colors', col: 'Color Name', rowNum: 1 }));
       await gu.removeRow(1);
 
       // See that the value is gone from the autocomplete.
@@ -960,7 +960,7 @@ describe('ReferenceList', function() {
       await driver.sendKeys(Key.ESCAPE);
 
       // Add a row.
-      await gu.getCell({section: 'Colors', col: 'Color Name', rowNum: 1}).doClick();
+      await gu.getCell({ section: 'Colors', col: 'Color Name', rowNum: 1 }).doClick();
       await driver.find('body').sendKeys(Key.chord(await gu.modKey(), Key.ENTER));
       await gu.waitForServer();
       await driver.sendKeys('HELIOTROPE', Key.ENTER);

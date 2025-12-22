@@ -55,7 +55,7 @@ export class Doom {
   public async deleteWorkspace(workspaceId: number) {
     const workspace = await this._getWorkspace(workspaceId);
     for (const doc of workspace.docs) {
-      const permitKey = await this._permitStore.setPermit({docId: doc.id});
+      const permitKey = await this._permitStore.setPermit({ docId: doc.id });
       try {
         const docApiUrl = this._homeApiUrl + `/api/docs/${doc.id}`;
         const result = await fetch(docApiUrl, {
@@ -133,7 +133,7 @@ export class Doom {
    */
   public async deleteUserFromOrg(userId: number, org: Organization) {
     const orgId = org.id;
-    const scope = {userId: this._dbManager.getPreviewerUserId()};
+    const scope = { userId: this._dbManager.getPreviewerUserId() };
     const members = this._dbManager.unwrapQueryResult(await this._dbManager.getOrgAccess(scope, orgId));
     const owners: FullUser[] = members.users
       .filter(u => u.access === 'owners' && u.id !== userId);
@@ -159,36 +159,36 @@ export class Doom {
   // List the sites a user has access to.
   private async _getOrgs(userId: number) {
     const orgs = this._dbManager.unwrapQueryResult(await this._dbManager.getOrgs(userId, null,
-      {ignoreEveryoneShares: true}));
+      { ignoreEveryoneShares: true }));
     return orgs;
   }
 
   // Get information about a workspace, including the docs in it.
   private async _getWorkspace(workspaceId: number) {
     const workspace = this._dbManager.unwrapQueryResult(
-      await this._dbManager.getWorkspace({userId: this._dbManager.getPreviewerUserId(),
-        showAll: true}, workspaceId));
+      await this._dbManager.getWorkspace({ userId: this._dbManager.getPreviewerUserId(),
+        showAll: true }, workspaceId));
     return workspace;
   }
 
   // List the workspaces in a site.
   private async _getWorkspaces(orgKey: number) {
     const org = this._dbManager.unwrapQueryResult(
-      await this._dbManager.getOrgWorkspaces({userId: this._dbManager.getPreviewerUserId(),
-        includeSupport: false, showAll: true}, orgKey));
+      await this._dbManager.getOrgWorkspaces({ userId: this._dbManager.getPreviewerUserId(),
+        includeSupport: false, showAll: true }, orgKey));
     return org;
   }
 
   // Do whatever it takes to clean up billing information linked with site.
   private async _removeBillingFromOrg(orgKey: number): Promise<void> {
     const account = await this._dbManager.getBillingAccount(
-      {userId: this._dbManager.getPreviewerUserId()}, orgKey, false);
+      { userId: this._dbManager.getPreviewerUserId() }, orgKey, false);
     if (account.stripeCustomerId === null) {
       // Nothing to do.
       return;
     }
     const url = this._homeApiUrl + `/api/billing/detach?orgId=${orgKey}`;
-    const permitKey = await this._permitStore.setPermit({org: orgKey});
+    const permitKey = await this._permitStore.setPermit({ org: orgKey });
     try {
       const result = await fetch(url, {
         method: 'POST',

@@ -1,5 +1,5 @@
-import {driver, Key} from "mocha-webdriver";
-import {assert} from "chai";
+import { driver, Key } from "mocha-webdriver";
+import { assert } from "chai";
 import * as gu from "test/nbrowser/gristUtils";
 
 export const STANDARD_WAITING_TIME = 1000;

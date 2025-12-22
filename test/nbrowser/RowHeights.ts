@@ -1,6 +1,6 @@
-import {assert, driver, Key} from 'mocha-webdriver';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('RowHeights', function() {
   this.timeout(20000);
@@ -10,17 +10,17 @@ describe('RowHeights', function() {
 
   it('should allow configuring row heights in grid views', async function() {
     const session = await gu.session().teamSite.user('user1').login();
-    const docId = (await session.tempNewDoc(cleanup, 'RowHeights1', {load: false}));
+    const docId = (await session.tempNewDoc(cleanup, 'RowHeights1', { load: false }));
     const api = session.createHomeApi();
 
     // Create a fixture with a bunch of long cells.
     await api.applyUserActions(docId, [
       ['AddTable', 'TestTable', [
-        {id: 'Num', type: 'Numeric'},
-        {id: 'State', type: 'Choice'},
-        {id: 'SignupDate', type: 'Date'},
-        {id: 'Address', type: 'Text'},
-        {id: 'Notes', type: 'Text'},
+        { id: 'Num', type: 'Numeric' },
+        { id: 'State', type: 'Choice' },
+        { id: 'SignupDate', type: 'Date' },
+        { id: 'Address', type: 'Text' },
+        { id: 'Notes', type: 'Text' },
       ]],
       ['BulkAddRecord', 'TestTable', [null, null, null, null], {
         Num: [10, 20, 30, 40],
@@ -52,7 +52,7 @@ describe('RowHeights', function() {
     assert.equal(await driver.find('.test-row-height-label').getText(), "auto");
 
     // A different column should show the same thing.
-    await gu.getCell({col: 'State', rowNum: 1}).click();
+    await gu.getCell({ col: 'State', rowNum: 1 }).click();
     assert.equal(await driver.find('.test-row-height-label').getText(), "auto");
 
     // Click the "change" link. This should take us to the table config.
@@ -111,13 +111,13 @@ describe('RowHeights', function() {
     await gu.openWidgetPanel();
     await driver.find('.test-row-height-max input').click();
     await gu.sendKeys(Key.DELETE);
-    await gu.getCell({col: 'State', rowNum: 1}).click();    // Click away.
+    await gu.getCell({ col: 'State', rowNum: 1 }).click();    // Click away.
     assert.equal(await driver.find('.test-row-height-max input').value(), '');
     await checkHeights([5, 3, 1, 9]);
   });
 
   async function checkHeights(expectedRowHeights: number[]) {
-    const heights = await gu.getVisibleGridCells({col: 'Num', rowNums: [1, 2, 3, 4],
+    const heights = await gu.getVisibleGridCells({ col: 'Num', rowNums: [1, 2, 3, 4],
       mapper: async el => (await el.getRect()).height,
     });
     // Each line is 18px, and we get rid of remainder by rounding down.
@@ -131,7 +131,7 @@ describe('RowHeights', function() {
 
     // Add card widget.
     await gu.addNewSection('Card', 'TestTable');
-    await gu.getDetailCell({col: 'Notes', rowNum: 1}).click();
+    await gu.getDetailCell({ col: 'Notes', rowNum: 1 }).click();
 
     // Check that there are no row-height options in column or table levels.
     await gu.openColumnPanel();

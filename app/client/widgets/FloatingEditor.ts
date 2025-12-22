@@ -1,13 +1,13 @@
 import * as commands from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {detachNode} from 'app/client/lib/dom';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {FloatingPopup, PopupPosition} from 'app/client/ui/FloatingPopup';
-import {theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {Disposable, dom, Holder, IDisposableOwner, IDomArgs,
-  makeTestId, MultiHolder, Observable, styled} from 'grainjs';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { detachNode } from 'app/client/lib/dom';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { makeT } from 'app/client/lib/localization';
+import { FloatingPopup, PopupPosition } from 'app/client/ui/FloatingPopup';
+import { theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { Disposable, dom, Holder, IDisposableOwner, IDomArgs,
+  makeTestId, MultiHolder, Observable, styled } from 'grainjs';
 
 const t = makeT('FloatingEditor');
 
@@ -70,7 +70,7 @@ export class FloatingEditor extends Disposable {
       // Create a layer to grab the focus, when we will move the editor to the popup. Otherwise the focus
       // will be moved to the clipboard which can destroy us (as it will be treated as a clickaway). So here
       // we are kind of simulating always focused editor (even if it is not in the dom for a brief moment).
-      FocusLayer.create(tempOwner, { defaultFocusElem: document.activeElement as any});
+      FocusLayer.create(tempOwner, { defaultFocusElem: document.activeElement as any });
 
       // Take some data from gristDoc to create a title.
       const cursor = this._gristDoc.cursorPosition.get()!;
@@ -92,7 +92,7 @@ export class FloatingEditor extends Disposable {
         closeButtonIcon: 'Minimize',
         closeButtonHover: () => t('Collapse Editor'),
         onClose: async () => {
-          const layer = FocusLayer.create(null, { defaultFocusElem: document.activeElement as any});
+          const layer = FocusLayer.create(null, { defaultFocusElem: document.activeElement as any });
           try {
             detachNode(content);
             popupOwner.dispose();
@@ -129,7 +129,7 @@ export class FloatingEditor extends Disposable {
 
     const refElem = this._refElem as HTMLElement;
     const rect = refElem.getBoundingClientRect();
-    const {right, top} = rect;
+    const { right, top } = rect;
     let left: number;
     if (this._placement === 'overlapping') {
       // Anchor the floating editor to the top-left corner of the refElement.

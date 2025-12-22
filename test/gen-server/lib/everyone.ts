@@ -1,6 +1,6 @@
-import {Workspace} from 'app/common/UserAPI';
-import {assert} from 'chai';
-import {TestServer} from 'test/gen-server/apiUtils';
+import { Workspace } from 'app/common/UserAPI';
+import { assert } from 'chai';
+import { TestServer } from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
 
 describe('everyone', function() {
@@ -35,11 +35,11 @@ describe('everyone', function() {
     // Share a workspace in support's personal org with everyone
     let api = await home.createHomeApi('Support', 'docs');
     await home.upgradePersonalOrg('Support');
-    const wsId = await api.newWorkspace({name: 'Samples'}, 'current');
-    const docId = await api.newDoc({name: 'an example'}, wsId);
+    const wsId = await api.newWorkspace({ name: 'Samples' }, 'current');
+    const docId = await api.newDoc({ name: 'an example' }, wsId);
     await api.updateWorkspacePermissions(wsId, {
-      users: {'everyone@getgrist.com': 'viewers',
-        'anon@getgrist.com': 'viewers'},
+      users: { 'everyone@getgrist.com': 'viewers',
+        'anon@getgrist.com': 'viewers' },
     });
 
     // Check a fresh user can see that workspace
@@ -77,14 +77,14 @@ describe('everyone', function() {
   it('can share unlisted docs in personal org with all users', async function() {
     const api = await home.createHomeApi('Supportish', 'docs');
     await home.upgradePersonalOrg('Supportish');
-    const wsId = await api.newWorkspace({name: 'Samples2'}, 'current');
-    const docId = await api.newDoc({name: 'an example'}, wsId);
+    const wsId = await api.newWorkspace({ name: 'Samples2' }, 'current');
+    const docId = await api.newDoc({ name: 'an example' }, wsId);
     // Check other users cannot access the doc yet
     const chimpyApi = await home.createHomeApi('Chimpy', 'docs', true);
     await assert.isRejected(chimpyApi.getDoc(docId), /access denied/);
     // Share doc with everyone
     await api.updateDocPermissions(docId, {
-      users: {'everyone@getgrist.com': 'viewers'},
+      users: { 'everyone@getgrist.com': 'viewers' },
     });
     // Check other users can access the doc now
     assert.equal((await chimpyApi.getDoc(docId)).access, 'viewers');
@@ -96,10 +96,10 @@ describe('everyone', function() {
 
     // Share every way possible via api
     await api.updateWorkspacePermissions(wsId, {
-      users: {'everyone@getgrist.com': 'viewers'},
+      users: { 'everyone@getgrist.com': 'viewers' },
     });
     await assert.isRejected(api.updateOrgPermissions(0, {
-      users: {'everyone@getgrist.com': 'viewers'},
+      users: { 'everyone@getgrist.com': 'viewers' },
     }), /cannot share with everyone at top level/);
     // Check existing users still don't see doc listed
     wss = await chimpyApi.getOrgWorkspaces('current');
@@ -108,8 +108,8 @@ describe('everyone', function() {
 
   it('can share unlisted docs in team sites with all users', async function() {
     const chimpyApi = await home.createHomeApi('Chimpy', 'nasa', true);
-    const wsId = await chimpyApi.newWorkspace({name: 'Samples'}, 'current');
-    const docId = await chimpyApi.newDoc({name: 'an example'}, wsId);
+    const wsId = await chimpyApi.newWorkspace({ name: 'Samples' }, 'current');
+    const docId = await chimpyApi.newDoc({ name: 'an example' }, wsId);
 
     // Check a fresh user cannot see that doc
     const altApi = await home.createHomeApi('testuser', 'nasa', false, false);
@@ -117,7 +117,7 @@ describe('everyone', function() {
 
     // Share doc with everyone
     await chimpyApi.updateDocPermissions(docId, {
-      users: {'everyone@getgrist.com': 'viewers'},
+      users: { 'everyone@getgrist.com': 'viewers' },
     });
 
     // Check a fresh user can now see that doc
@@ -135,22 +135,22 @@ describe('everyone', function() {
 
   it('can share public docs without them being listed indirectly', async function() {
     const chimpyApi = await home.createHomeApi('Chimpy', 'nasa', true);
-    const wsId = await chimpyApi.newWorkspace({name: 'Samples'}, 'current');
-    const docId = await chimpyApi.newDoc({name: 'an example'}, wsId);
-    const docId2 = await chimpyApi.newDoc({name: 'another example'}, wsId);
+    const wsId = await chimpyApi.newWorkspace({ name: 'Samples' }, 'current');
+    const docId = await chimpyApi.newDoc({ name: 'an example' }, wsId);
+    const docId2 = await chimpyApi.newDoc({ name: 'another example' }, wsId);
 
     // Share one doc with everyone
     await chimpyApi.updateDocPermissions(docId, {
-      users: {'everyone@getgrist.com': 'viewers'},
+      users: { 'everyone@getgrist.com': 'viewers' },
     });
 
     // Share one doc with everyone, the other with a specific test user at the doc level
     const altApi = await home.createHomeApi('testuser', 'nasa', false, false);
     await chimpyApi.updateDocPermissions(docId, {
-      users: {'everyone@getgrist.com': 'viewers'},
+      users: { 'everyone@getgrist.com': 'viewers' },
     });
     await chimpyApi.updateDocPermissions(docId2, {
-      users: {'testuser@getgrist.com': 'viewers'},
+      users: { 'testuser@getgrist.com': 'viewers' },
     });
 
     // Check test user can access both docs
@@ -168,16 +168,16 @@ describe('everyone', function() {
     // route other than public sharing. No API endpoint here, so use DB method directly.
     const dbManager = home.dbManager;
     const userId = (await dbManager.getExistingUserByLogin('testuser@getgrist.com'))!.id;
-    await assert.isRejected(home.dbManager.getDocPrefs({userId, org: 'nasa', urlId: docId}),
+    await assert.isRejected(home.dbManager.getDocPrefs({ userId, org: 'nasa', urlId: docId }),
       /access denied/);
-    assert.deepEqual((await home.dbManager.getDocPrefs({userId, org: 'nasa', urlId: docId2})),
+    assert.deepEqual((await home.dbManager.getDocPrefs({ userId, org: 'nasa', urlId: docId2 })),
       { docDefaults: {}, currentUser: {} });
 
     // Check that a viewer at org level can see all docs listed, and access them
     // (there was a bug where a doc shared with everyone@ as viewer would get hidden
     // from top-level viewers)
     await chimpyApi.updateOrgPermissions('current', {
-      users: {'testuser2@getgrist.com': 'viewers'},
+      users: { 'testuser2@getgrist.com': 'viewers' },
     });
     const altApi2 = await home.createHomeApi('testuser2', 'nasa', false, false);
     await assert.isFulfilled(altApi2.getDoc(docId));

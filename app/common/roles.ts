@@ -1,4 +1,4 @@
-import {Organization} from 'app/common/UserAPI';
+import { Organization } from 'app/common/UserAPI';
 
 export const OWNER  = 'owners';
 export const EDITOR = 'editors';
@@ -42,11 +42,11 @@ export function canView(role: string|null): boolean {
   return role !== null;
 }
 
-export function isOwner(resource: {access: Role|null}|null): resource is {access: Role} {
+export function isOwner(resource: { access: Role|null }|null): resource is { access: Role } {
   return resource?.access === OWNER;
 }
 
-export function isOwnerOrEditor(resource: {access: Role|null}|null): resource is {access: Role} {
+export function isOwnerOrEditor(resource: { access: Role|null }|null): resource is { access: Role } {
   return canEdit(resource?.access ?? null);
 }
 

@@ -2,8 +2,8 @@ import {TelemetryLevel} from 'app/common/Telemetry';
 import {assert, driver, Key} from 'mocha-webdriver';
 import {currentVersion, isEnabled, toggleItem, withExpandedItem} from 'test/nbrowser/AdminPanelTools';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {FakeUpdateServer, startFakeUpdateServer} from 'test/server/customUtil';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { FakeUpdateServer, startFakeUpdateServer } from 'test/server/customUtil';
 import * as testUtils from 'test/server/testUtils';
 
 describe('AdminPanel', function() {
@@ -361,7 +361,7 @@ describe('AdminPanel', function() {
   });
 
   it('should send telemetry data', async function() {
-    assert.deepEqual({...fakeServer.payload, installationId: 'test'}, {
+    assert.deepEqual({ ...fakeServer.payload, installationId: 'test' }, {
       installationId: 'test',
       deploymentType: 'core',
       currentVersion: await currentVersion(),

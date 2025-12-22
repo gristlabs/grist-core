@@ -54,8 +54,8 @@ class ContextMenuController extends Disposable implements IOpenController {
         this.close();
       }
     };
-    this.autoDispose(dom.onElem(document, 'contextmenu', onClick, {useCapture: true}));
-    this.autoDispose(dom.onElem(document, 'click', onClick, {useCapture: true}));
+    this.autoDispose(dom.onElem(document, 'contextmenu', onClick, { useCapture: true }));
+    this.autoDispose(dom.onElem(document, 'click', onClick, { useCapture: true }));
 
     // Cleanup involves removing the element.
     this.onDispose(() => {

@@ -3,5 +3,5 @@
 
 import ViewConfigTab from 'app/client/components/ViewConfigTab';
 import * as FieldConfig from 'app/client/ui/FieldConfig';
-export {ViewConfigTab, FieldConfig};
-export {ConditionalStyle} from 'app/client/widgets/ConditionalStyle';
+export { ViewConfigTab, FieldConfig };
+export { ConditionalStyle } from 'app/client/widgets/ConditionalStyle';

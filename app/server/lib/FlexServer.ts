@@ -1,83 +1,83 @@
-import {ApiError} from 'app/common/ApiError';
-import {ICustomWidget} from 'app/common/CustomWidget';
-import {delay} from 'app/common/delay';
-import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
+import { ApiError } from 'app/common/ApiError';
+import { ICustomWidget } from 'app/common/CustomWidget';
+import { delay } from 'app/common/delay';
+import { encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
   GristLoadConfig, IGristUrlState, isOrgInPathOnly, LatestVersionAvailable, parseSubdomain,
-  sanitizePathTail} from 'app/common/gristUrls';
-import {getOrgUrlInfo} from 'app/common/gristUrls';
-import {isAffirmative} from 'app/common/gutil';
-import {UserProfile} from 'app/common/LoginSessionAPI';
-import {SandboxInfo} from 'app/common/SandboxInfo';
-import {tbind} from 'app/common/tbind';
+  sanitizePathTail } from 'app/common/gristUrls';
+import { getOrgUrlInfo } from 'app/common/gristUrls';
+import { isAffirmative } from 'app/common/gutil';
+import { UserProfile } from 'app/common/LoginSessionAPI';
+import { SandboxInfo } from 'app/common/SandboxInfo';
+import { tbind } from 'app/common/tbind';
 import * as version from 'app/common/version';
-import {ApiServer, getOrgFromRequest} from 'app/gen-server/ApiServer';
-import {Document} from 'app/gen-server/entity/Document';
-import {Organization} from 'app/gen-server/entity/Organization';
-import {User} from 'app/gen-server/entity/User';
-import {Workspace} from 'app/gen-server/entity/Workspace';
-import {ActivationsManager} from 'app/gen-server/lib/ActivationsManager';
-import {DocApiForwarder} from 'app/gen-server/lib/DocApiForwarder';
-import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
-import {Doom} from 'app/gen-server/lib/Doom';
-import {HomeDBManager, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {Housekeeper} from 'app/gen-server/lib/Housekeeper';
-import {Usage} from 'app/gen-server/lib/Usage';
-import {AccessTokens, IAccessTokens} from 'app/server/lib/AccessTokens';
-import {createSandbox} from 'app/server/lib/ActiveDoc';
-import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {attachEarlyEndpoints} from 'app/server/lib/attachEarlyEndpoints';
+import { ApiServer, getOrgFromRequest } from 'app/gen-server/ApiServer';
+import { Document } from 'app/gen-server/entity/Document';
+import { Organization } from 'app/gen-server/entity/Organization';
+import { User } from 'app/gen-server/entity/User';
+import { Workspace } from 'app/gen-server/entity/Workspace';
+import { ActivationsManager } from 'app/gen-server/lib/ActivationsManager';
+import { DocApiForwarder } from 'app/gen-server/lib/DocApiForwarder';
+import { getDocWorkerMap } from 'app/gen-server/lib/DocWorkerMap';
+import { Doom } from 'app/gen-server/lib/Doom';
+import { HomeDBManager, UserChange } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { Housekeeper } from 'app/gen-server/lib/Housekeeper';
+import { Usage } from 'app/gen-server/lib/Usage';
+import { AccessTokens, IAccessTokens } from 'app/server/lib/AccessTokens';
+import { createSandbox } from 'app/server/lib/ActiveDoc';
+import { attachAppEndpoint } from 'app/server/lib/AppEndpoint';
+import { appSettings } from 'app/server/lib/AppSettings';
+import { attachEarlyEndpoints } from 'app/server/lib/attachEarlyEndpoints';
 import {
   AttachmentStoreProvider,
   checkAvailabilityAttachmentStoreOptions,
   getConfiguredAttachmentStoreConfigs,
   IAttachmentStoreProvider,
 } from 'app/server/lib/AttachmentStoreProvider';
-import {addRequestUser, getUser, getUserId, isAnonymousUser,
-  isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
-import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
-import {forceSessionChange} from 'app/server/lib/BrowserSession';
-import {Comm} from 'app/server/lib/Comm';
-import {ConfigBackendAPI} from 'app/server/lib/ConfigBackendAPI';
-import {IGristCoreConfig} from 'app/server/lib/configCore';
-import {getAndClearSignupStateCookie} from 'app/server/lib/cookieUtils';
-import {create} from 'app/server/lib/create';
-import {createSavedDoc} from 'app/server/lib/createSavedDoc';
-import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
-import {addDocApiRoutes} from 'app/server/lib/DocApi';
-import {DocManager} from 'app/server/lib/DocManager';
-import {getSqliteMode} from 'app/server/lib/DocStorage';
-import {DocWorker} from 'app/server/lib/DocWorker';
-import {DocWorkerLoadTracker, getDocWorkerLoadTracker} from 'app/server/lib/DocWorkerLoadTracker';
-import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
-import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
-import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
-import {addGoogleAuthEndpoint} from 'app/server/lib/GoogleAuth';
-import {createGristJobs, GristJobs} from 'app/server/lib/GristJobs';
-import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
-  RequestWithGrist} from 'app/server/lib/GristServer';
-import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
-import {IAssistant} from 'app/server/lib/IAssistant';
-import {IAuditLogger} from 'app/server/lib/IAuditLogger';
-import {IBilling} from 'app/server/lib/IBilling';
-import {IDocNotificationManager} from 'app/server/lib/IDocNotificationManager';
-import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {EmitNotifier, INotifier} from 'app/server/lib/INotifier';
-import {InstallAdmin} from 'app/server/lib/InstallAdmin';
-import log, {logAsJson} from 'app/server/lib/log';
-import {disableCache, noop} from 'app/server/lib/middleware';
-import {IPermitStore} from 'app/server/lib/Permit';
-import {getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot} from 'app/server/lib/places';
-import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
-import {PluginManager} from 'app/server/lib/PluginManager';
+import { addRequestUser, getUser, getUserId, isAnonymousUser,
+  isSingleUserMode, redirectToLoginUnconditionally } from 'app/server/lib/Authorizer';
+import { redirectToLogin, RequestWithLogin, signInStatusMiddleware } from 'app/server/lib/Authorizer';
+import { forceSessionChange } from 'app/server/lib/BrowserSession';
+import { Comm } from 'app/server/lib/Comm';
+import { ConfigBackendAPI } from 'app/server/lib/ConfigBackendAPI';
+import { IGristCoreConfig } from 'app/server/lib/configCore';
+import { getAndClearSignupStateCookie } from 'app/server/lib/cookieUtils';
+import { create } from 'app/server/lib/create';
+import { createSavedDoc } from 'app/server/lib/createSavedDoc';
+import { addDiscourseConnectEndpoints } from 'app/server/lib/DiscourseConnect';
+import { addDocApiRoutes } from 'app/server/lib/DocApi';
+import { DocManager } from 'app/server/lib/DocManager';
+import { getSqliteMode } from 'app/server/lib/DocStorage';
+import { DocWorker } from 'app/server/lib/DocWorker';
+import { DocWorkerLoadTracker, getDocWorkerLoadTracker } from 'app/server/lib/DocWorkerLoadTracker';
+import { DocWorkerInfo, IDocWorkerMap } from 'app/server/lib/DocWorkerMap';
+import { expressWrap, jsonErrorHandler, secureJsonErrorHandler } from 'app/server/lib/expressWrap';
+import { Hosts, RequestWithOrg } from 'app/server/lib/extractOrg';
+import { addGoogleAuthEndpoint } from 'app/server/lib/GoogleAuth';
+import { createGristJobs, GristJobs } from 'app/server/lib/GristJobs';
+import { DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
+  RequestWithGrist } from 'app/server/lib/GristServer';
+import { initGristSessions, SessionStore } from 'app/server/lib/gristSessions';
+import { IAssistant } from 'app/server/lib/IAssistant';
+import { IAuditLogger } from 'app/server/lib/IAuditLogger';
+import { IBilling } from 'app/server/lib/IBilling';
+import { IDocNotificationManager } from 'app/server/lib/IDocNotificationManager';
+import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
+import { EmitNotifier, INotifier } from 'app/server/lib/INotifier';
+import { InstallAdmin } from 'app/server/lib/InstallAdmin';
+import log, { logAsJson } from 'app/server/lib/log';
+import { disableCache, noop } from 'app/server/lib/middleware';
+import { IPermitStore } from 'app/server/lib/Permit';
+import { getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot } from 'app/server/lib/places';
+import { addPluginEndpoints, limitToPlugins } from 'app/server/lib/PluginEndpoint';
+import { PluginManager } from 'app/server/lib/PluginManager';
 import { createPubSubManager, IPubSubManager } from 'app/server/lib/PubSubManager';
-import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
+import { adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
   optStringParam, RequestWithGristInfo, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
-  trustOrigin} from 'app/server/lib/requestUtils';
-import {buildScimRouter} from 'app/server/lib/scim';
-import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
-import {getDatabaseUrl, listenPromise, timeoutReached} from 'app/server/lib/serverUtils';
-import {Sessions} from 'app/server/lib/Sessions';
+  trustOrigin } from 'app/server/lib/requestUtils';
+import { buildScimRouter } from 'app/server/lib/scim';
+import { ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage } from 'app/server/lib/sendAppPage';
+import { getDatabaseUrl, listenPromise, timeoutReached } from 'app/server/lib/serverUtils';
+import { Sessions } from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
 import {TagChecker} from 'app/server/lib/TagChecker';
 import {ITelemetry} from 'app/server/lib/Telemetry';
@@ -93,12 +93,12 @@ import express from 'express';
 import * as fse from 'fs-extra';
 import * as http from 'http';
 import * as https from 'https';
-import {i18n} from 'i18next';
+import { i18n } from 'i18next';
 import i18Middleware from 'i18next-http-middleware';
 import mapValues from 'lodash/mapValues';
 import pick from 'lodash/pick';
 import morganLogger from 'morgan';
-import {AddressInfo} from 'net';
+import { AddressInfo } from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from 'serve-static';
@@ -678,7 +678,7 @@ export class FlexServer implements GristServer {
         // If ready() hasn't been called yet, don't continue, and
         // give a clear error. This is to avoid exposing the service
         // in a partially configured form.
-        return res.status(503).json({error: 'Service unavailable during start up'});
+        return res.status(503).json({ error: 'Service unavailable during start up' });
       }
       next();
     });
@@ -698,7 +698,7 @@ export class FlexServer implements GristServer {
           message: 'ok',
         });
       }
-      return res.status(500).json({error: 'unrecognized action'});
+      return res.status(500).json({ error: 'unrecognized action' });
     });
   }
 
@@ -802,7 +802,7 @@ export class FlexServer implements GristServer {
     if (this._check('testAssets', 'dir')) { return; }
     // Serve test[a-z]*.html for test purposes.
     this.app.use(/^\/(test[a-z]*.html)$/i, expressWrap(async (req, res) =>
-      res.sendFile(req.params[0], {root: getAppPathTo(this.appRoot, 'static')})));
+      res.sendFile(req.params[0], { root: getAppPathTo(this.appRoot, 'static') })));
   }
 
   // Plugin operation relies currently on grist-plugin-api.js being available,
@@ -812,7 +812,7 @@ export class FlexServer implements GristServer {
   public async addAssetsForPlugins() {
     if (this._check('pluginUntaggedAssets', 'dir')) { return; }
     this.app.use(/^\/(grist-plugin-api.js)$/, expressWrap(async (req, res) =>
-      res.sendFile(req.params[0], {root: getAppPathTo(this.appRoot, 'static')})));
+      res.sendFile(req.params[0], { root: getAppPathTo(this.appRoot, 'static') })));
     // Plugins get access to static resources without a tag
     this.app.use(
       '/plugins/assets',
@@ -822,7 +822,7 @@ export class FlexServer implements GristServer {
       limitToPlugins(this, express.static(getAppPathTo(this.appRoot, 'bower_components'))));
     // Serve custom-widget.html message for anyone.
     this.app.use(/^\/(custom-widget.html)$/, expressWrap(async (req, res) =>
-      res.sendFile(req.params[0], {root: getAppPathTo(this.appRoot, 'static')})));
+      res.sendFile(req.params[0], { root: getAppPathTo(this.appRoot, 'static') })));
     this.addOrg();
     addPluginEndpoints(this, await this._addPluginManager());
 
@@ -835,7 +835,7 @@ export class FlexServer implements GristServer {
       // of either using inconsistent bundled versions, or
       // requiring network access.
       this.app.use(/^\/widgets\/.*\/(grist-plugin-api.js)$/, expressWrap(async (req, res) =>
-        res.sendFile(req.params[0], {root: getAppPathTo(this.appRoot, 'static')})));
+        res.sendFile(req.params[0], { root: getAppPathTo(this.appRoot, 'static') })));
     }
     for (const place of places) {
       this.app.use(
@@ -863,7 +863,7 @@ export class FlexServer implements GristServer {
     }
     // In general, documents can only be manipulated with the coordination of the
     // document worker to which they are assigned.
-    const permitKey = await this._internalPermitStore.setPermit({docId});
+    const permitKey = await this._internalPermitStore.setPermit({ docId });
     try {
       const result = await fetch(await this.getHomeUrlByDocId(docId, `/api/docs/${docId}`), {
         method: 'DELETE',
@@ -975,7 +975,7 @@ export class FlexServer implements GristServer {
 
     // add a final not-found handler for api
     this.app.use("/api", (req, res) => {
-      res.status(404).send({error: `not found: ${req.originalUrl}`});
+      res.status(404).send({ error: `not found: ${req.originalUrl}` });
     });
 
     // Add a final error handler for /api endpoints that reports errors as JSON.
@@ -1091,7 +1091,7 @@ export class FlexServer implements GristServer {
 
   public addJsonSupport() {
     if (this._check('json')) { return; }
-    this.app.use(express.json({limit: '1mb'}));  // Increase from the default 100kb
+    this.app.use(express.json({ limit: '1mb' }));  // Increase from the default 100kb
   }
 
   public addSessions() {
@@ -1100,7 +1100,7 @@ export class FlexServer implements GristServer {
     this.addOrg();
 
     // Create the sessionStore and related objects.
-    const {sessions, sessionMiddleware, sessionStore} = initGristSessions(getUnpackedAppRoot(this.instanceRoot), this);
+    const { sessions, sessionMiddleware, sessionStore } = initGristSessions(getUnpackedAppRoot(this.instanceRoot), this);
     this.app.use(sessionMiddleware);
     this.app.use(signInStatusMiddleware);
 
@@ -1135,12 +1135,12 @@ export class FlexServer implements GristServer {
     }
   }
 
-  public async createWorkerUrl(): Promise<{url: string, host: string}> {
+  public async createWorkerUrl(): Promise<{ url: string, host: string }> {
     if (!process.env.GRIST_ROUTER_URL) {
       throw new Error('No service available to create worker url');
     }
     const w = await axios.get(process.env.GRIST_ROUTER_URL,
-      {params: {act: 'add', port: this.getOwnPort()}});
+      { params: { act: 'add', port: this.getOwnPort() } });
     log.info(`DocWorker registered itself via ${process.env.GRIST_ROUTER_URL} as ${w.data.url}`);
     const statusUrl = `${w.data.url}/status`;
     // We now wait for the worker to be available from the url that clients will
@@ -1208,16 +1208,16 @@ export class FlexServer implements GristServer {
         if (user && user.isFirstTimeUser) {
           log.debug(`welcoming user: ${user.name}`);
           // Reset isFirstTimeUser flag.
-          await this._dbManager.updateUser(user.id, {isFirstTimeUser: false});
+          await this._dbManager.updateUser(user.id, { isFirstTimeUser: false });
 
           // This is a good time to set some other flags, for showing a page with welcome question(s)
           // to this new user and recording their sign-up with Google Tag Manager. These flags are also
           // scoped to the user, but isFirstTimeUser has a dedicated DB field because it predates userPrefs.
           // Note that the updateOrg() method handles all levels of prefs (for user, user+org, or org).
-          await this._dbManager.updateOrg(getScope(req), 0, {userPrefs: {
+          await this._dbManager.updateOrg(getScope(req), 0, { userPrefs: {
             showNewUserQuestions: true,
             recordSignUpEvent: true,
-          }});
+          } });
 
           // Give a chance to the login system to react to the first visit after signup.
           this._loginMiddleware.onFirstVisit?.(req);
@@ -1258,7 +1258,7 @@ export class FlexServer implements GristServer {
         }
         if (mreq.org && mreq.org.startsWith('o-')) {
           // We are on a team site without a custom subdomain.
-          const orgInfo = this._dbManager.unwrapQueryResult(await this._dbManager.getOrg({userId: user.id}, mreq.org));
+          const orgInfo = this._dbManager.unwrapQueryResult(await this._dbManager.getOrg({ userId: user.id }, mreq.org));
 
           // If the user is a billing manager for the org, and the org
           // is supposed to have a custom subdomain, forward the user
@@ -1410,10 +1410,10 @@ export class FlexServer implements GristServer {
           };
           const url = new URL(redirect || getOrgUrl(req));
           // Make sure we update session for org we'll be redirecting to.
-          const {org} = await this._hosts.getOrgInfoFromParts(url.hostname, url.pathname);
+          const { org } = await this._hosts.getOrgInfoFromParts(url.hostname, url.pathname);
           const scopedSession = this._sessions.getOrCreateSessionFromRequest(req, { org });
           await scopedSession.updateUserProfile(req, profile);
-          this._sessions.clearCacheIfNeeded({email, org});
+          this._sessions.clearCacheIfNeeded({ email, org });
           if (redirect) { return res.redirect(redirect); }
         }
         res.send(`<!doctype html>
@@ -1446,7 +1446,7 @@ export class FlexServer implements GristServer {
     // Add a static "signed-out" page. This is where logout typically lands (e.g. after redirecting
     // through SAML).
     this.app.get('/signed-out', expressWrap((req, resp) =>
-      this._sendAppPage(req, resp, {path: 'error.html', status: 200, config: {errPage: 'signed-out'}})));
+      this._sendAppPage(req, resp, { path: 'error.html', status: 200, config: { errPage: 'signed-out' } })));
 
     const comment = await this._loginMiddleware.addEndpoints(this.app);
     this.info.push(['loginMiddlewareComment', comment]);
@@ -1560,7 +1560,7 @@ export class FlexServer implements GristServer {
     }
 
     // Attach docWorker endpoints and Comm methods.
-    const docWorker = new DocWorker(this._dbManager, {comm: this._comm, gristServer: this});
+    const docWorker = new DocWorker(this._dbManager, { comm: this._comm, gristServer: this });
     this._docWorker = docWorker;
 
     // Register the websocket comm functions associated with the docworker.
@@ -1651,7 +1651,7 @@ export class FlexServer implements GristServer {
     ];
 
     this.app.get('/account', ...middleware, expressWrap(async (req, resp) => {
-      return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
+      return this._sendAppPage(req, resp, { path: 'app.html', status: 200, config: {} });
     }));
 
     if (isAffirmative(process.env.GRIST_ACCOUNT_CLOSE)) {
@@ -1675,13 +1675,13 @@ export class FlexServer implements GristServer {
         // Reuse Doom cli tool for account deletion. It won't allow to delete account if it has access
         // to other (not public) team sites.
         const doom = await this.getDoomTool();
-        const {data} = await doom.deleteUser(userId);
+        const { data } = await doom.deleteUser(userId);
         if (data) { this._logDeleteUserEvents(req as RequestWithLogin, data); }
         return resp.status(200).json(true);
       }));
 
       this.app.get('/account-deleted', ...this._logoutMiddleware(), expressWrap((req, resp) => {
-        return this._sendAppPage(req, resp, {path: 'error.html', status: 200, config: {errPage: 'account-deleted'}});
+        return this._sendAppPage(req, resp, { path: 'error.html', status: 200, config: { errPage: 'account-deleted' } });
       }));
 
       this.app.delete('/api/doom/org', expressWrap(async (req, resp) => {
@@ -1744,7 +1744,7 @@ export class FlexServer implements GristServer {
 
     // These are some special-purpose welcome pages, with no middleware.
     this.app.get(/\/welcome\/(signup|verify|teams|select-account)/, expressWrap(async (req, resp, next) => {
-      return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}, googleTagManager: 'anon'});
+      return this._sendAppPage(req, resp, { path: 'app.html', status: 200, config: {}, googleTagManager: 'anon' });
     }));
 
     /**
@@ -1787,7 +1787,7 @@ export class FlexServer implements GristServer {
         return resp.redirect(this.getMergedOrgUrl(mreq));
       }
 
-      await this._redirectToHomeOrWelcomePage(mreq, resp, {redirectToMergedOrg: true});
+      await this._redirectToHomeOrWelcomePage(mreq, resp, { redirectToMergedOrg: true });
     }));
 
     this.app.post('/welcome/info', ...middleware, expressWrap(async (req, resp, next) => {
@@ -1811,7 +1811,7 @@ export class FlexServer implements GristServer {
       }
       catch (e) {
         // If we failed to record, at least log the data, so we could potentially recover it.
-        log.rawWarn(`Failed to record new user info: ${e.message}`, {newUserQuestions: row});
+        log.rawWarn(`Failed to record new user info: ${e.message}`, { newUserQuestions: row });
       }
       const nonOtherUseCases = useCases.filter(useCase => useCase !== 'Other');
       for (const useCase of [...nonOtherUseCases, ...(useOther ? [`Other - ${useOther}`] : [])]) {
@@ -1833,10 +1833,10 @@ export class FlexServer implements GristServer {
     // add a final non-found handler for other content.
     this.app.use("/", expressWrap((req, resp) => {
       if (this._sendAppPage) {
-        return this._sendAppPage(req, resp, {path: 'error.html', status: 404, config: {errPage: 'not-found'}});
+        return this._sendAppPage(req, resp, { path: 'error.html', status: 404, config: { errPage: 'not-found' } });
       }
       else {
-        return resp.status(404).json({error: 'not found'});
+        return resp.status(404).json({ error: 'not found' });
       }
     }));
 
@@ -1852,8 +1852,8 @@ export class FlexServer implements GristServer {
             err.status === 404 ? 'not-found' :
               'other-error'
         );
-        const config = {errPage, errMessage: err.message || err};
-        await this._sendAppPage(req, resp, {path: 'error.html', status: err.status || 400, config});
+        const config = { errPage, errMessage: err.message || err };
+        await this._sendAppPage(req, resp, { path: 'error.html', status: err.status || 400, config });
       }
       catch (error) {
         return next(error);
@@ -2130,7 +2130,7 @@ export class FlexServer implements GristServer {
       await this.getPubSubManager().publish(latestVersionChannel, JSON.stringify(latestVersionAvailable));
     }
     catch(error) {
-      log.error(`Error publishing latest version`, {error, latestVersionAvailable});
+      log.error(`Error publishing latest version`, { error, latestVersionAvailable });
     }
   }
 
@@ -2209,8 +2209,8 @@ export class FlexServer implements GristServer {
       params?: Record<string, string | undefined>;
     },
   ) {
-    let {nextUrl, signUp} = options;
-    const {params = {}} = options;
+    let { nextUrl, signUp } = options;
+    const { params = {} } = options;
 
     const mreq = req as RequestWithLogin;
 
@@ -2344,7 +2344,7 @@ export class FlexServer implements GristServer {
     await workers.removeWorker(docWorkerId);
     if (process.env.GRIST_ROUTER_URL) {
       await axios.get(process.env.GRIST_ROUTER_URL,
-        {params: {act: 'remove', port: this.getOwnPort()}});
+        { params: { act: 'remove', port: this.getOwnPort() } });
       log.info(`DocWorker unregistered itself via ${process.env.GRIST_ROUTER_URL}`);
     }
   }
@@ -2463,7 +2463,7 @@ export class FlexServer implements GristServer {
    */
   private _getOrgRedirectUrl(req: RequestWithLogin, subdomain: string, pathname: string = req.originalUrl): string {
     const config = this.getGristConfig();
-    const {hostname, orgInPath} = getOrgUrlInfo(subdomain, req.get('host')!, config);
+    const { hostname, orgInPath } = getOrgUrlInfo(subdomain, req.get('host')!, config);
     const redirectUrl = new URL(pathname, getOriginUrl(req));
     if (hostname) {
       redirectUrl.hostname = hostname;
@@ -2514,7 +2514,7 @@ export class FlexServer implements GristServer {
 
   // Check whether logger should skip a line.  Careful, req and res are morgan-specific
   // types, not Express.
-  private _shouldSkipRequestLogging(req: {url: string}, res: {statusCode: number}) {
+  private _shouldSkipRequestLogging(req: { url: string }, res: { statusCode: number }) {
     if (req.url === '/status' && [200, 304].includes(res.statusCode) &&
       this._healthCheckCounter > HEALTH_CHECK_LOG_SHOW_FIRST_N &&
       this._healthCheckCounter % HEALTH_CHECK_LOG_SHOW_EVERY_N !== 1) {
@@ -2540,7 +2540,7 @@ export class FlexServer implements GristServer {
         cert: fse.readFileSync(certFile, 'utf8'),
       }, this.app));
     }
-    return {server, httpsServer};
+    return { server, httpsServer };
   }
 
   private async _startServers(server: http.Server, httpsServer: https.Server|undefined,
@@ -2577,16 +2577,16 @@ export class FlexServer implements GristServer {
       // TODO With proper forms support, we could give an origin-based permission to submit a
       // form to this doc, and do it from the client directly.
       const previewerUserId = this._dbManager.getPreviewerUserId();
-      const docAuth = await this._dbManager.getDocAuthCached({urlId, userId: previewerUserId});
+      const docAuth = await this._dbManager.getDocAuthCached({ urlId, userId: previewerUserId });
       const docId = docAuth.docId;
       if (!docId) {
         throw new Error(`Can't resolve ${urlId}: ${docAuth.error}`);
       }
 
-      permitKey = await this._internalPermitStore.setPermit({docId});
+      permitKey = await this._internalPermitStore.setPermit({ docId });
       const res = await fetch(await this.getHomeUrlByDocId(docId, `/api/docs/${docId}/tables/Responses/data`), {
         method: 'POST',
-        headers: {'Permit': permitKey, 'Content-Type': 'application/json'},
+        headers: { 'Permit': permitKey, 'Content-Type': 'application/json' },
         body,
       });
       if (res.status !== 200) {
@@ -2623,9 +2623,9 @@ export class FlexServer implements GristServer {
   private async _redirectToHomeOrWelcomePage(
     mreq: RequestWithLogin,
     resp: express.Response,
-    options: {redirectToMergedOrg?: boolean} = {},
+    options: { redirectToMergedOrg?: boolean } = {},
   ) {
-    const {redirectToMergedOrg} = options;
+    const { redirectToMergedOrg } = options;
     const userId = getUserId(mreq);
     const domain = getOrgFromRequest(mreq);
     const orgs = this._dbManager.unwrapQueryResult(
@@ -2656,12 +2656,12 @@ export class FlexServer implements GristServer {
       return null;
     }
 
-    const {srcDocId} = state;
+    const { srcDocId } = state;
     if (!srcDocId) { return null; }
 
     let newDocId: string | null = null;
     try {
-      newDocId = await createSavedDoc(this, req, {srcDocId});
+      newDocId = await createSavedDoc(this, req, { srcDocId });
     }
     catch (e) {
       log.error(`FlexServer failed to copy doc ${srcDocId} to Home workspace`, e);

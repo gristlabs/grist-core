@@ -1,8 +1,8 @@
-import {PermissionData, PermissionDelta} from 'app/common/UserAPI';
+import { PermissionData, PermissionDelta } from 'app/common/UserAPI';
 import axios from 'axios';
-import {assert} from 'chai';
-import {TestServer} from 'test/gen-server/apiUtils';
-import {configForUser} from 'test/gen-server/testUtils';
+import { assert } from 'chai';
+import { TestServer } from 'test/gen-server/apiUtils';
+import { configForUser } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
 describe('emails', function() {
@@ -28,7 +28,7 @@ describe('emails', function() {
   });
 
   it('email capitalization from provider is sticky', async function() {
-    let cookie = await server.getCookieLogin('nasa', {email: regular, name: 'Chimpy'});
+    let cookie = await server.getCookieLogin('nasa', { email: regular, name: 'Chimpy' });
     const userRef = await ref(regular);
     // profile starts off with chimpy@ email
     let resp = await axios.get(`${serverUrl}/o/nasa/api/profile/user`, cookie);
@@ -38,7 +38,7 @@ describe('emails', function() {
     });
 
     // now we log in with simulated provider giving a Chimpy@ capitalization.
-    cookie = await server.getCookieLogin('nasa', {email: variant, name: 'Chimpy'});
+    cookie = await server.getCookieLogin('nasa', { email: variant, name: 'Chimpy' });
     resp = await axios.get(`${serverUrl}/o/nasa/api/profile/user`, cookie);
     assert.equal(resp.status, 200);
     // Chimpy@ is now what we see in our profile, but our id is still the same.
@@ -73,7 +73,7 @@ describe('emails', function() {
       assert.include(delta.users.map(u => u.email), regular);
     }
 
-    const cookie = await server.getCookieLogin('nasa', {email: variant, name: 'Chimpy'});
+    const cookie = await server.getCookieLogin('nasa', { email: variant, name: 'Chimpy' });
     await axios.get(`${serverUrl}/o/nasa/api/orgs`, cookie);
 
     for (const res of resources) {
@@ -85,7 +85,7 @@ describe('emails', function() {
       assert.notInclude(delta.users.map(u => u.email), regular);
 
       // and make sure arbitrary capitalization is accepted and effective.
-      const delta2: {delta: PermissionDelta} = {
+      const delta2: { delta: PermissionDelta } = {
         delta: {
           users: {
             'chImPy@getGRIst.com': 'viewers',
@@ -121,9 +121,9 @@ describe('emails', function() {
         access: 'guests',
         isMember: false,
       },
-    ]});
+    ] });
 
-    const delta: {delta: PermissionDelta} = {
+    const delta: { delta: PermissionDelta } = {
       delta: {
         users: {
           'kiWI@getGRIst.com': 'viewers',
@@ -155,6 +155,6 @@ describe('emails', function() {
         access: 'editors',
         isMember: true,
       },
-    ]});
+    ] });
   });
 });

@@ -38,12 +38,12 @@ export const urlRegex = /(https?:\/\/[A-Za-z\d][A-Za-z\d-.]*(?!\.)(?::\d+)?(?:\/
 /**
  * Detects URLs in a text and returns list of tokens { value, isLink }
  */
-export function findLinks(text: string): Array<{value: string, isLink: boolean}> {
+export function findLinks(text: string): Array<{ value: string, isLink: boolean }> {
   if (!text) {
     return [{ value: text, isLink: false }];
   }
   // urls will be at odd-number indices
-  return text.split(urlRegex).map((value, i) => ({ value, isLink: (i % 2) === 1}));
+  return text.split(urlRegex).map((value, i) => ({ value, isLink: (i % 2) === 1 }));
 }
 
 /**

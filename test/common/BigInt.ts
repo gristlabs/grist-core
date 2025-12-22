@@ -1,6 +1,6 @@
-import {BigInt} from 'app/common/BigInt';
-import {assert} from 'chai';
-import {times} from 'lodash';
+import { BigInt } from 'app/common/BigInt';
+import { assert } from 'chai';
+import { times } from 'lodash';
 
 describe('BigInt', function() {
   it('should represent and convert various numbers correctly', function() {

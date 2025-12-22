@@ -1,8 +1,8 @@
-import {reportError} from 'app/client/models/errors';
-import {ApiError} from 'app/common/ApiError';
-import {BaseAPI} from 'app/common/BaseAPI';
-import {MaybePromise} from 'app/plugin/gutil';
-import {dom, Observable} from 'grainjs';
+import { reportError } from 'app/client/models/errors';
+import { ApiError } from 'app/common/ApiError';
+import { BaseAPI } from 'app/common/BaseAPI';
+import { MaybePromise } from 'app/plugin/gutil';
+import { dom, Observable } from 'grainjs';
 import noop from 'lodash/noop';
 
 interface SubmitOptions<T> {
@@ -77,7 +77,7 @@ export function formDataToObj(formElem: HTMLFormElement): { [key: string]: strin
  * Submit a form using BaseAPI. Send inputs as JSON, and interpret any reply as JSON.
  */
 async function submitForm(fields: { [key: string]: string }, form: HTMLFormElement): Promise<any> {
-  return BaseAPI.requestJson(form.action, {method: 'POST', body: JSON.stringify(fields)});
+  return BaseAPI.requestJson(form.action, { method: 'POST', body: JSON.stringify(fields) });
 }
 
 /**

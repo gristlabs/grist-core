@@ -1,11 +1,11 @@
-import {ShareInfo} from 'app/common/ActiveDocAPI';
-import {ApiError, LimitType} from 'app/common/ApiError';
-import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
-import {ConfigKey, ConfigValue} from 'app/common/Config';
-import {getDataLimitInfo} from 'app/common/DocLimits';
-import {DocStateComparison} from 'app/common/DocState';
-import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
-import {normalizeEmail} from 'app/common/emails';
+import { ShareInfo } from 'app/common/ActiveDocAPI';
+import { ApiError, LimitType } from 'app/common/ApiError';
+import { mapGetOrSet, mapSetOrClear, MapWithTTL } from 'app/common/AsyncCreate';
+import { ConfigKey, ConfigValue } from 'app/common/Config';
+import { getDataLimitInfo } from 'app/common/DocLimits';
+import { DocStateComparison } from 'app/common/DocState';
+import { createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary } from 'app/common/DocUsage';
+import { normalizeEmail } from 'app/common/emails';
 import {
   ANONYMOUS_PLAN,
   canAddOrgMembers,
@@ -14,12 +14,12 @@ import {
   mergedFeatures,
   PERSONAL_FREE_PLAN,
 } from 'app/common/Features';
-import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
-import {UserProfile} from 'app/common/LoginSessionAPI';
-import {checkSubdomainValidity} from 'app/common/orgNameUtils';
-import {DocPrefs, FullDocPrefs} from 'app/common/Prefs';
+import { buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId } from 'app/common/gristUrls';
+import { UserProfile } from 'app/common/LoginSessionAPI';
+import { checkSubdomainValidity } from 'app/common/orgNameUtils';
+import { DocPrefs, FullDocPrefs } from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
-import {UserType} from 'app/common/User';
+import { UserType } from 'app/common/User';
 import {
   ANONYMOUS_USER_EMAIL,
   Proposal as ApiProposal,
@@ -38,31 +38,31 @@ import {
   UserOptions,
   WorkspaceProperties,
 } from 'app/common/UserAPI';
-import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from 'app/gen-server/entity/AclRule';
-import {Alias} from 'app/gen-server/entity/Alias';
-import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
-import {BillingAccountManager} from 'app/gen-server/entity/BillingAccountManager';
-import {Config} from 'app/gen-server/entity/Config';
-import {DocPref} from 'app/gen-server/entity/DocPref';
-import {Document, FilteredDocument} from 'app/gen-server/entity/Document';
-import {Group} from 'app/gen-server/entity/Group';
-import {Limit} from 'app/gen-server/entity/Limit';
-import {AccessOption, AccessOptionWithRole, Organization} from 'app/gen-server/entity/Organization';
-import {Pref} from 'app/gen-server/entity/Pref';
+import { AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs } from 'app/gen-server/entity/AclRule';
+import { Alias } from 'app/gen-server/entity/Alias';
+import { BillingAccount } from 'app/gen-server/entity/BillingAccount';
+import { BillingAccountManager } from 'app/gen-server/entity/BillingAccountManager';
+import { Config } from 'app/gen-server/entity/Config';
+import { DocPref } from 'app/gen-server/entity/DocPref';
+import { Document, FilteredDocument } from 'app/gen-server/entity/Document';
+import { Group } from 'app/gen-server/entity/Group';
+import { Limit } from 'app/gen-server/entity/Limit';
+import { AccessOption, AccessOptionWithRole, Organization } from 'app/gen-server/entity/Organization';
+import { Pref } from 'app/gen-server/entity/Pref';
 import {
   getAnonymousFeatures,
   getDefaultProductNames,
   personalFreeFeatures,
   Product,
 } from 'app/gen-server/entity/Product';
-import {Proposal} from 'app/gen-server/entity/Proposal';
-import {Secret} from 'app/gen-server/entity/Secret';
-import {ServiceAccount} from 'app/gen-server/entity/ServiceAccount';
-import {Share} from 'app/gen-server/entity/Share';
-import {User} from 'app/gen-server/entity/User';
-import {Workspace} from 'app/gen-server/entity/Workspace';
-import {HomeDBCaches} from 'app/gen-server/lib/homedb/Caches';
-import {GroupsManager, GroupTypes} from 'app/gen-server/lib/homedb/GroupsManager';
+import { Proposal } from 'app/gen-server/entity/Proposal';
+import { Secret } from 'app/gen-server/entity/Secret';
+import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
+import { Share } from 'app/gen-server/entity/Share';
+import { User } from 'app/gen-server/entity/User';
+import { Workspace } from 'app/gen-server/entity/Workspace';
+import { HomeDBCaches } from 'app/gen-server/lib/homedb/Caches';
+import { GroupsManager, GroupTypes } from 'app/gen-server/lib/homedb/GroupsManager';
 import {
   AvailableUsers,
   DocAuthKey,
@@ -81,11 +81,11 @@ import {
   UserProfileChange,
   WorkspaceAccessChanges,
 } from 'app/gen-server/lib/homedb/Interfaces';
-import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
-import {ServiceAccountsManager} from 'app/gen-server/lib/homedb/ServiceAccountsManager';
-import {Permissions} from 'app/gen-server/lib/Permissions';
-import {scrubUserFromOrg} from 'app/gen-server/lib/scrubUserFromOrg';
-import {applyPatch, maybePrepareStatement} from 'app/gen-server/lib/TypeORMPatches';
+import { SUPPORT_EMAIL, UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
+import { ServiceAccountsManager } from 'app/gen-server/lib/homedb/ServiceAccountsManager';
+import { Permissions } from 'app/gen-server/lib/Permissions';
+import { scrubUserFromOrg } from 'app/gen-server/lib/scrubUserFromOrg';
+import { applyPatch, maybePrepareStatement } from 'app/gen-server/lib/TypeORMPatches';
 import {
   bitOr,
   getRawAndEntities,
@@ -95,19 +95,19 @@ import {
   now,
   readJson,
 } from 'app/gen-server/sqlUtils';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {getOrCreateConnection} from 'app/server/lib/dbUtils';
-import {StorageCoordinator} from 'app/server/lib/GristServer';
-import {makeId} from 'app/server/lib/idUtils';
-import {EmitNotifier, INotifier} from 'app/server/lib/INotifier';
+import { appSettings } from 'app/server/lib/AppSettings';
+import { getOrCreateConnection } from 'app/server/lib/dbUtils';
+import { StorageCoordinator } from 'app/server/lib/GristServer';
+import { makeId } from 'app/server/lib/idUtils';
+import { EmitNotifier, INotifier } from 'app/server/lib/INotifier';
 import log from 'app/server/lib/log';
-import {Permit} from 'app/server/lib/Permit';
-import {IPubSubManager} from 'app/server/lib/PubSubManager';
-import {getScope} from 'app/server/lib/requestUtils';
-import {expectedResetDate} from 'app/server/lib/serverUtils';
-import {WebHookSecret} from 'app/server/lib/Triggers';
-import {Request} from 'express';
-import {flatten, pick, size} from 'lodash';
+import { Permit } from 'app/server/lib/Permit';
+import { IPubSubManager } from 'app/server/lib/PubSubManager';
+import { getScope } from 'app/server/lib/requestUtils';
+import { expectedResetDate } from 'app/server/lib/serverUtils';
+import { WebHookSecret } from 'app/server/lib/Triggers';
+import { Request } from 'express';
+import { flatten, pick, size } from 'lodash';
 import moment from 'moment';
 import {
   Brackets,
@@ -118,7 +118,7 @@ import {
   SelectQueryBuilder,
   WhereExpressionBuilder,
 } from 'typeorm';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -412,15 +412,15 @@ export class HomeDBManager implements HomeDBAuth {
    * force, and returns the id of this first match it finds.
    */
   public async testGetId(name: string): Promise<number|string> {
-    const org = await Organization.findOne({where: {name}});
+    const org = await Organization.findOne({ where: { name } });
     if (org) { return org.id; }
-    const ws = await Workspace.findOne({where: {name}});
+    const ws = await Workspace.findOne({ where: { name } });
     if (ws) { return ws.id; }
-    const doc = await Document.findOne({where: {name}});
+    const doc = await Document.findOne({ where: { name } });
     if (doc) { return doc.id; }
-    const user = await User.findOne({where: {name}});
+    const user = await User.findOne({ where: { name } });
     if (user) { return user.id; }
-    const product = await Product.findOne({where: {name}});
+    const product = await Product.findOne({ where: { name } });
     if (product) { return product.id; }
     throw new Error(`Cannot testGetId(${name})`);
   }
@@ -429,7 +429,7 @@ export class HomeDBManager implements HomeDBAuth {
    * For tests only. Get user's unique reference by name.
    */
   public async testGetRef(name: string): Promise<string> {
-    const user = await User.findOne({where: {name}});
+    const user = await User.findOne({ where: { name } });
     if (user) { return user.ref; }
     throw new Error(`Cannot testGetRef(${name})`);
   }
@@ -448,12 +448,12 @@ export class HomeDBManager implements HomeDBAuth {
 
   public async getUserByRef(
     ref: string,
-    options: {manager?: EntityManager; relations?: string[]} = {},
+    options: { manager?: EntityManager; relations?: string[] } = {},
   ): Promise<User|undefined> {
     return this._usersManager.getUserByRef(ref, options);
   }
 
-  public async getUser(userId: number, options: {includePrefs?: boolean} = {}) {
+  public async getUser(userId: number, options: { includePrefs?: boolean } = {}) {
     return this._usersManager.getUser(userId, options);
   }
 
@@ -490,11 +490,11 @@ export class HomeDBManager implements HomeDBAuth {
     userId: number,
     props: UserProfileChange,
   ): Promise<PreviousAndCurrent<User>> {
-    const {previous, current, isWelcomed} = await this._usersManager.updateUser(userId, props);
+    const { previous, current, isWelcomed } = await this._usersManager.updateUser(userId, props);
     if (current && isWelcomed) {
       await this._notifier.firstLogin(this.makeFullUser(current));
     }
-    return {previous, current};
+    return { previous, current };
   }
 
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
@@ -556,11 +556,11 @@ export class HomeDBManager implements HomeDBAuth {
   }
 
   public getGroupsWithMembersByType(
-    type: GroupTypes, opts?: {aclRule?: boolean}, manager?: EntityManager): Promise<Group[]> {
+    type: GroupTypes, opts?: { aclRule?: boolean }, manager?: EntityManager): Promise<Group[]> {
     return this._groupsManager.getGroupsWithMembersByType(type, opts, manager);
   }
 
-  public getGroupWithMembersById(id: number, opts?: {aclRule: boolean}, manager?: EntityManager): Promise<Group|null> {
+  public getGroupWithMembersById(id: number, opts?: { aclRule: boolean }, manager?: EntityManager): Promise<Group|null> {
     return this._groupsManager.getGroupWithMembersById(id, opts, manager);
   }
 
@@ -618,7 +618,7 @@ export class HomeDBManager implements HomeDBAuth {
     transaction?: EntityManager, options?: {
       requirePermissions: Permissions,
     }): Promise<QueryResult<Organization>> {
-    const {userId} = scope;
+    const { userId } = scope;
     // Anonymous access to the merged org is a special case.  We return an
     // empty organization, not backed by the database, and which can contain
     // nothing but the example documents always added to the merged org.
@@ -667,7 +667,7 @@ export class HomeDBManager implements HomeDBAuth {
     qb = qb.leftJoinAndMapMany('orgs.prefs', Pref, 'prefs',
       '(prefs.org_id = orgs.id or prefs.org_id IS NULL) AND ' +
       '(prefs.user_id = :userId or prefs.user_id IS NULL)',
-      {userId});
+      { userId });
     // Apply a particular order (user+org first if present, then org, then user).
     // Slightly round-about syntax because Sqlite and Postgres disagree about NULL
     // ordering (Sqlite does support NULL LAST syntax now, but not on our fork yet).
@@ -735,7 +735,7 @@ export class HomeDBManager implements HomeDBAuth {
         .leftJoinAndSelect('billing_accounts.orgs', 'orgs')
         .leftJoinAndSelect('orgs.owner', 'org_users')
         .leftJoinAndSelect('org_users.logins', 'org_logins')
-        .where('billing_accounts.id = :billingAccountId', {billingAccountId});
+        .where('billing_accounts.id = :billingAccountId', { billingAccountId });
       qb = this._addBillingAccountCalculatedFields(qb);
       // TODO: should reconcile with isManager field that stripped down results have.
       const results = await qb.getRawAndEntities();
@@ -755,7 +755,7 @@ export class HomeDBManager implements HomeDBAuth {
     const query = this._orgs()
       .leftJoinAndSelect('orgs.billingAccount', 'billing_accounts')
       .leftJoinAndSelect('billing_accounts.product', 'products')
-      .where('external_id = :externalId', {externalId});
+      .where('external_id = :externalId', { externalId });
     return await query.getOne() || undefined;
   }
 
@@ -798,10 +798,10 @@ export class HomeDBManager implements HomeDBAuth {
       requirePermissions: Permissions,
     },
   ): Promise<QueryResult<Workspace>> {
-    const {userId} = scope;
+    const { userId } = scope;
     if (scope.specialPermit && scope.specialPermit.workspaceId === wsId) {
       const effectiveUserId = this._usersManager.getPreviewerUserId();
-      scope = {...scope};
+      scope = { ...scope };
       scope.userId = effectiveUserId;
       delete scope.users;
       options = {
@@ -826,7 +826,7 @@ export class HomeDBManager implements HomeDBAuth {
     queryBuilder = this._addIsSupportWorkspace(userId, queryBuilder, 'orgs', 'workspaces');
     // Add access information and query limits
     // TODO: allow generic org limit once sample/support workspace is done differently
-    queryBuilder = this._applyLimit(queryBuilder, {...scope, org: undefined}, ['workspaces', 'docs'], 'list');
+    queryBuilder = this._applyLimit(queryBuilder, { ...scope, org: undefined }, ['workspaces', 'docs'], 'list');
     const result: QueryResult<any> = await this._verifyAclPermissions(queryBuilder, {
       scope,
       markedPermissions: options?.requirePermissions !== undefined,
@@ -862,7 +862,7 @@ export class HomeDBManager implements HomeDBAuth {
       .andWhere('workspaces.removed_at IS NULL AND docs.removed_at IS NULL');
     docsQuery = this._whereOrg(docsQuery, orgKey);
     if (this.isMergedOrg(orgKey)) {
-      docsQuery = docsQuery.andWhere('orgs.owner_id = :userId', {userId: scope.userId});
+      docsQuery = docsQuery.andWhere('orgs.owner_id = :userId', { userId: scope.userId });
     }
     const docsQueryResult = await this._verifyAclPermissions(docsQuery, { scope, emptyAllowed: true });
     const docs: Document[] = this.unwrapQueryResult(docsQueryResult);
@@ -870,8 +870,8 @@ export class HomeDBManager implements HomeDBAuth {
     // Return an aggregate count of documents, grouped by data limit status.
     const summary = createEmptyOrgUsageSummary();
     let totalAttachmentsSizeBytes = 0;
-    for (const {usage: docUsage, gracePeriodStart} of docs) {
-      const dataLimitStatus = getDataLimitInfo({docUsage, gracePeriodStart, productFeatures}).status;
+    for (const { usage: docUsage, gracePeriodStart } of docs) {
+      const dataLimitStatus = getDataLimitInfo({ docUsage, gracePeriodStart, productFeatures }).status;
       totalAttachmentsSizeBytes += docUsage?.attachmentsSizeBytes ?? 0;
       if (dataLimitStatus) { summary.countsByDataLimitStatus[dataLimitStatus] += 1; }
     }
@@ -909,7 +909,7 @@ export class HomeDBManager implements HomeDBAuth {
     let qb = this._orgs();
     qb = this._whereOrg(qb, org);
     qb = this._withAccess(qb, users, 'orgs');
-    const result = await this._verifyAclPermissions(qb, {emptyAllowed: true});
+    const result = await this._verifyAclPermissions(qb, { emptyAllowed: true });
     if (!result.data) {
       throw new ApiError(result.errMessage || 'failed to select user', result.status);
     }
@@ -929,7 +929,7 @@ export class HomeDBManager implements HomeDBAuth {
    * with anonymous access.
    */
   public async getOrgs(users: AvailableUsers, domain: string|null,
-    options?: {ignoreEveryoneShares?: boolean}): Promise<QueryResult<Organization[]>> {
+    options?: { ignoreEveryoneShares?: boolean }): Promise<QueryResult<Organization[]>> {
     let queryBuilder = this._orgs()
       .leftJoinAndSelect('orgs.owner', 'users', 'orgs.owner_id = users.id');
     if (UsersManager.isSingleUser(users)) {
@@ -957,10 +957,10 @@ export class HomeDBManager implements HomeDBAuth {
         queryBuilder = this._whereOrg(queryBuilder, domain);
       }
       else {
-        return {status: 200, data: []};
+        return { status: 200, data: [] };
       }
     }
-    return this._verifyAclPermissions(queryBuilder, {emptyAllowed: true});
+    return this._verifyAclPermissions(queryBuilder, { emptyAllowed: true });
   }
 
   // As for getOrgs, but all personal orgs are merged into a single entry.
@@ -968,7 +968,7 @@ export class HomeDBManager implements HomeDBAuth {
     domain: string|null): Promise<QueryResult<Organization[]>> {
     const result = await this.getOrgs(users, domain);
     if (result.status === 200) {
-      return {status: 200, data: this._mergePersonalOrgs(userId, result.data!)};
+      return { status: 200, data: this._mergePersonalOrgs(userId, result.data!) };
     }
     return result;
   }
@@ -978,12 +978,12 @@ export class HomeDBManager implements HomeDBAuth {
   // properties set, as documented in app/common/UserAPI. The return type of this function
   // should reflect that.
   public async getDocImpl(key: DocAuthKey, transaction?: EntityManager): Promise<Document> {
-    const {userId} = key;
+    const { userId } = key;
     // Doc permissions of forks are based on the "trunk" document, so make sure
     // we look up permissions of trunk if we are on a fork (we'll fix the permissions
     // up for the fork immediately afterwards).
-    const {trunkId, forkId, forkUserId, snapshotId,
-      shareKey} = parseUrlId(key.urlId);
+    const { trunkId, forkId, forkUserId, snapshotId,
+      shareKey } = parseUrlId(key.urlId);
     let doc: Document;
     if (shareKey) {
       const res = await (transaction || this._connection).createQueryBuilder()
@@ -994,7 +994,7 @@ export class HomeDBManager implements HomeDBAuth {
         .leftJoinAndSelect('workspace.org', 'org')
         .leftJoinAndSelect('org.billingAccount', 'billing_account')
         .leftJoinAndSelect('billing_account.product', 'product')
-        .where('key = :key', {key: shareKey})
+        .where('key = :key', { key: shareKey })
         .andWhere('doc.removed_at IS NULL')
         .getOne();
       if (!res) {
@@ -1019,7 +1019,7 @@ export class HomeDBManager implements HomeDBAuth {
       return doc;
     }
     const urlId = trunkId;
-    if (forkId || snapshotId) { key = {...key, urlId}; }
+    if (forkId || snapshotId) { key = { ...key, urlId }; }
     if (urlId === NEW_DOCUMENT_CODE) {
       if (!forkId) { throw new ApiError('invalid document identifier', 400); }
       // We imagine current user owning trunk if there is no embedded userId, or
@@ -1035,7 +1035,7 @@ export class HomeDBManager implements HomeDBAuth {
         isPinned: false,
         urlId: null,
         workspace: this.unwrapQueryResult<Workspace>(
-          await this.getWorkspace({userId: this._usersManager.getSupportUserId()},
+          await this.getWorkspace({ userId: this._usersManager.getSupportUserId() },
             this._exampleWorkspaceId, transaction)),
         aliases: [],
         access,
@@ -1044,7 +1044,7 @@ export class HomeDBManager implements HomeDBAuth {
       // Use free personal account features for documents opened this way.
       doc.workspace.org.billingAccount = patch(new BillingAccount(), {
         features: getAnonymousFeatures(),
-        product: patch(new Product(), {name: PERSONAL_FREE_PLAN}),
+        product: patch(new Product(), { name: PERSONAL_FREE_PLAN }),
       });
     }
     else {
@@ -1053,7 +1053,7 @@ export class HomeDBManager implements HomeDBAuth {
       // it is very simple at the single-document level.  So we direct the db to include
       // everything with showAll flag, and let the getDoc() wrapper deal with the remaining
       // work.
-      let qb = this._doc({...key, showAll: true}, {manager: transaction})
+      let qb = this._doc({ ...key, showAll: true }, { manager: transaction })
         .leftJoinAndSelect('orgs.owner', 'org_users');
       if (userId !== this._usersManager.getAnonymousUserId()) {
         qb = this._addForks(userId, qb);
@@ -1070,10 +1070,10 @@ export class HomeDBManager implements HomeDBAuth {
       // in other HomeDB methods of leaking access to disabled users,
       // so we keep this unusual join localised here, in order to
       // minimise the cost of the DB query.
-      qb = qb.leftJoin(User, 'users', 'users.id = :userId', {userId});
+      qb = qb.leftJoin(User, 'users', 'users.id = :userId', { userId });
       qb = qb.addSelect('users.disabled_at', 'users_disabled_at');
 
-      const docs = this.unwrapQueryResult<Document[]>(await this._verifyAclPermissions(qb, {checkDisabledUser: true}));
+      const docs = this.unwrapQueryResult<Document[]>(await this._verifyAclPermissions(qb, { checkDisabledUser: true }));
       if (docs.length === 0) { throw new ApiError('document not found', 404); }
       if (docs.length > 1) { throw new ApiError('ambiguous document request', 400); }
       doc = docs[0];
@@ -1090,16 +1090,16 @@ export class HomeDBManager implements HomeDBAuth {
 
       // Fix up our reply to be correct for the fork, rather than the trunk.
       // The "id" and "urlId" fields need updating.
-      doc.id = buildUrlId({trunkId: doc.id, forkId, forkUserId, snapshotId});
+      doc.id = buildUrlId({ trunkId: doc.id, forkId, forkUserId, snapshotId });
       if (doc.urlId) {
-        doc.urlId = buildUrlId({trunkId: doc.urlId, forkId, forkUserId, snapshotId});
+        doc.urlId = buildUrlId({ trunkId: doc.urlId, forkId, forkUserId, snapshotId });
       }
 
       // Set trunkAccess field.
       doc.trunkAccess = doc.access;
 
       // Update access for fork.
-      if (forkId) { this._setForkAccess(doc, {userId, forkUserId}, doc); }
+      if (forkId) { this._setForkAccess(doc, { userId, forkUserId }, doc); }
       if (!doc.access) {
         throw new ApiError('access denied', 403);
       }
@@ -1160,7 +1160,7 @@ export class HomeDBManager implements HomeDBAuth {
   // TODO: make a more efficient implementation if needed.
   public async flushSingleDocAuthCache(scope: DocScope, docId: string) {
     // Get all aliases of this document.
-    const aliases = await this._connection.manager.find(Alias, {where: {docId}});
+    const aliases = await this._connection.manager.find(Alias, { where: { docId } });
     // Construct a set of possible prefixes for cache keys.
     const names = new Set(aliases.map(a => stringifyUrlIdOrg(a.urlId, scope.org)));
     names.add(stringifyUrlIdOrg(docId, scope.org));
@@ -1180,8 +1180,8 @@ export class HomeDBManager implements HomeDBAuth {
     let qb = this._docs()
       .innerJoin('docs.workspace', 'workspace')
       .innerJoin('workspace.org', 'org')
-      .where('docs.name = :docName', {docName})
-      .andWhere('org.id = :orgId', {orgId});
+      .where('docs.name = :docName', { docName })
+      .andWhere('org.id = :orgId', { orgId });
     qb = this._withAccess(qb, userId, 'docs');
     return this._single(await this._verifyAclPermissions(qb));
   }
@@ -1196,7 +1196,7 @@ export class HomeDBManager implements HomeDBAuth {
     return this._connection.createQueryBuilder()
       .select('forks')
       .from(Document, 'forks')
-      .where('forks.trunk_id = :docId', {docId})
+      .where('forks.trunk_id = :docId', { docId })
       .getMany();
   }
 
@@ -1269,7 +1269,7 @@ export class HomeDBManager implements HomeDBAuth {
 
         billingAccount = new BillingAccount();
         billingAccount.individual = options.setUserAsOwner;
-        const dbProduct = await manager.findOne(Product, {where: {name: product}});
+        const dbProduct = await manager.findOne(Product, { where: { name: product } });
         if (!dbProduct) {
           throw new Error('Cannot find product for new organization');
         }
@@ -1313,7 +1313,7 @@ export class HomeDBManager implements HomeDBAuth {
           .select('billing_accounts')
           .from(BillingAccount, 'billing_accounts')
           .leftJoinAndSelect('billing_accounts.orgs', 'orgs')
-          .where('orgs.owner_id = :userId', {userId: user.id})
+          .where('orgs.owner_id = :userId', { userId: user.id })
           .getOne();
         if (options.billing?.externalId && billingAccount?.externalId !== options.billing?.externalId) {
           throw new ApiError('Conflicting external identifier', 400);
@@ -1365,14 +1365,14 @@ export class HomeDBManager implements HomeDBAuth {
       }
       // Add a starter workspace to the org.  Any limits on org workspace
       // count are not checked, this will succeed unconditionally.
-      await this._doAddWorkspace({org: savedOrg, props: {name: 'Home'}}, manager);
+      await this._doAddWorkspace({ org: savedOrg, props: { name: 'Home' } }, manager);
 
       if (!options.setUserAsOwner) {
         // This user just made a team site (once this transaction is applied).
         // Emit a notification.
         notifications.push(this._teamCreatorNotification(user.id));
       }
-      return {status: 200, data: savedOrg};
+      return { status: 200, data: savedOrg };
     });
     for (const notification of notifications) { await notification(); }
     return orgResult;
@@ -1466,13 +1466,13 @@ export class HomeDBManager implements HomeDBAuth {
           // if pref flavor has been set before, update it
             .onConflict('(COALESCE(org_id,0), COALESCE(user_id,0)) DO UPDATE SET prefs = :prefs')
           // TypeORM muddles JSON handling a bit here
-            .setParameters({prefs: JSON.stringify(prefs)})
+            .setParameters({ prefs: JSON.stringify(prefs) })
             .into(Pref)
-            .values({orgId, userId, prefs})
+            .values({ orgId, userId, prefs })
             .execute();
         }
       }
-      return {status: 200, data: {previous, current: org}};
+      return { status: 200, data: { previous, current: org } };
     });
   }
 
@@ -1526,13 +1526,13 @@ export class HomeDBManager implements HomeDBAuth {
 
       // Delete billing account if this was the last org using it.
       const billingAccount = await manager.findOne(BillingAccount, {
-        where: {id: org.billingAccountId},
+        where: { id: org.billingAccountId },
         relations: ['orgs'],
       });
       if (billingAccount && billingAccount.orgs.length === 0) {
         await manager.remove([billingAccount]);
       }
-      return {status: 200, data: deletedOrg};
+      return { status: 200, data: deletedOrg };
     });
   }
 
@@ -1585,8 +1585,8 @@ export class HomeDBManager implements HomeDBAuth {
           });
         }
       }
-      const workspace = await this._doAddWorkspace({org, props, ownerId: scope.userId}, manager);
-      return {status: 200, data: workspace};
+      const workspace = await this._doAddWorkspace({ org, props, ownerId: scope.userId }, manager);
+      return { status: 200, data: workspace };
     });
   }
 
@@ -1620,7 +1620,7 @@ export class HomeDBManager implements HomeDBAuth {
       workspace.checkProperties(props);
       workspace.updateFromProperties(props);
       await manager.save(workspace);
-      return {status: 200, data: {previous, current: workspace}};
+      return { status: 200, data: { previous, current: workspace } };
     });
   }
 
@@ -1659,7 +1659,7 @@ export class HomeDBManager implements HomeDBAuth {
         ...workspace.aclRules, ...docGroups]);
       // Update the guests in the org after removing this workspace.
       await this._repairOrgGuests(scope, workspace.org.id, manager);
-      return {status: 200, data: deletedWorkspace};
+      return { status: 200, data: deletedWorkspace };
     });
   }
 
@@ -1728,7 +1728,7 @@ export class HomeDBManager implements HomeDBAuth {
       if (!doc.urlId) {
         for (let i = MIN_URLID_PREFIX_LENGTH; i <= doc.id.length; i++) {
           const candidate = doc.id.substr(0, i);
-          if (!await manager.findOne(Alias, {where: {urlId: candidate}})) {
+          if (!await manager.findOne(Alias, { where: { urlId: candidate } })) {
             doc.urlId = candidate;
             break;
           }
@@ -1779,7 +1779,7 @@ export class HomeDBManager implements HomeDBAuth {
       // time), but they are ignoring any unique constraints errors.
       await this._repairWorkspaceGuests(scope, workspace.id, manager);
       await this._repairOrgGuests(scope, workspace.org.id, manager);
-      return {status: 200, data};
+      return { status: 200, data };
     });
   }
 
@@ -1788,7 +1788,7 @@ export class HomeDBManager implements HomeDBAuth {
       const secret = new Secret();
       secret.id = uuidv4();
       secret.value = value;
-      secret.doc = {id: docId} as any;
+      secret.doc = { id: docId } as any;
       await manager.save([secret]);
       return secret;
     });
@@ -1798,8 +1798,8 @@ export class HomeDBManager implements HomeDBAuth {
   public async updateSecret(id: string, docId: string, value: string, manager?: EntityManager): Promise<void> {
     const res = await (manager || this._connection).createQueryBuilder()
       .update(Secret)
-      .set({value})
-      .where("id = :id AND doc_id = :docId", {id, docId})
+      .set({ value })
+      .where("id = :id AND doc_id = :docId", { id, docId })
       .execute();
     if (res.affected !== 1) {
       throw new ApiError('secret with given id not found or nothing was updated', 404);
@@ -1810,7 +1810,7 @@ export class HomeDBManager implements HomeDBAuth {
     const secret = await (manager || this._connection).createQueryBuilder()
       .select('secrets')
       .from(Secret, 'secrets')
-      .where('id = :id AND doc_id = :docId', {id, docId})
+      .where('id = :id AND doc_id = :docId', { id, docId })
       .getOne();
     return secret?.value;
   }
@@ -1823,9 +1823,9 @@ export class HomeDBManager implements HomeDBAuth {
       docId: string,
       url: string | undefined,
       auth: string | undefined,
-      outerManager?: EntityManager},
+      outerManager?: EntityManager },
   ) {
-    const {id, docId, url, auth, outerManager} = props;
+    const { id, docId, url, auth, outerManager } = props;
     return await this.runInTransaction(outerManager, async (manager) => {
       if (url === undefined && auth === undefined) {
         throw new ApiError('None of the Webhook url and auth are defined', 404);
@@ -1868,7 +1868,7 @@ export class HomeDBManager implements HomeDBAuth {
       await manager.createQueryBuilder()
         .delete()
         .from(Secret)
-        .where('id = :id AND doc_id = :docId', {id, docId})
+        .where('id = :id AND doc_id = :docId', { id, docId })
         .execute();
     });
   }
@@ -1894,7 +1894,7 @@ export class HomeDBManager implements HomeDBAuth {
     const notifications: Array<() => Promise<void>> = [];
     const markPermissions = Permissions.SCHEMA_EDIT;
     const result = await this.runInTransaction(transaction, async (manager) => {
-      const {forkId} = parseUrlId(scope.urlId);
+      const { forkId } = parseUrlId(scope.urlId);
       let query: SelectQueryBuilder<Document>;
       if (forkId) {
         query = this._fork(scope, {
@@ -1918,14 +1918,14 @@ export class HomeDBManager implements HomeDBAuth {
       const doc = getDocResult(queryResult);
       // Disabled docs can't be modified.
       if (doc.disabledAt) {
-        return {status: 403, errMessage: 'Document is disabled'};
+        return { status: 403, errMessage: 'Document is disabled' };
       }
       const previous = structuredClone(doc);
       doc.checkProperties(props);
       doc.updateFromProperties(props);
       if (forkId) {
         await manager.save(doc);
-        return {status: 200};
+        return { status: 200 };
       }
 
       // Forcibly remove the aliases relation from the document object, so that TypeORM
@@ -1948,7 +1948,7 @@ export class HomeDBManager implements HomeDBAuth {
           .onConflict(`(org_id, url_id) DO UPDATE SET doc_id = :docId, created_at = ${now(this._dbType)}`)
           .setParameter('docId', doc.id)
           .into(Alias)
-          .values({orgId: doc.workspace.org.id, urlId: props.urlId, doc})
+          .values({ orgId: doc.workspace.org.id, urlId: props.urlId, doc })
           .execute();
         // TODO: we could limit the max number of aliases stored per document.
       }
@@ -1956,7 +1956,7 @@ export class HomeDBManager implements HomeDBAuth {
       // 'tutorial' adjust returned access differently from other docs (which may not be ideal).
       // The callback approach is to publish the invalidation after the transaction commits.
       this.caches?.addInvalidationDocAccess(notifications, [doc.id]);
-      return {status: 200, data: {previous, current: doc}};
+      return { status: 200, data: { previous, current: doc } };
     });
     for (const notification of notifications) { await notification(); }
     return result;
@@ -1967,7 +1967,7 @@ export class HomeDBManager implements HomeDBAuth {
   // and the deleted document on success.
   public async deleteDocument(scope: DocScope): Promise<QueryResult<Document>> {
     return await this._connection.transaction(async (manager) => {
-      const {forkId} = parseUrlId(scope.urlId);
+      const { forkId } = parseUrlId(scope.urlId);
       if (forkId) {
         const forkQuery = this._fork(scope, {
           manager,
@@ -1981,7 +1981,7 @@ export class HomeDBManager implements HomeDBAuth {
         const fork = getDocResult(queryResult);
         const data = structuredClone(fork);
         await manager.remove(fork);
-        return {status: 200, data};
+        return { status: 200, data };
       }
       else {
         const docQuery = this._doc(scope, {
@@ -2006,7 +2006,7 @@ export class HomeDBManager implements HomeDBAuth {
         // Update guests of the workspace and org after removing this doc.
         await this._repairWorkspaceGuests(scope, doc.workspace.id, manager);
         await this._repairOrgGuests(scope, doc.workspace.org.id, manager);
-        return {status: 200, data};
+        return { status: 200, data };
       }
     });
   }
@@ -2037,7 +2037,7 @@ export class HomeDBManager implements HomeDBAuth {
     callback: (billingAccount: BillingAccount, transaction: EntityManager) => void|Promise<void>,
   ): Promise<QueryResult<void>>  {
     return await this._connection.transaction(async (transaction) => {
-      const scope = typeof scopeOrUser === 'number' ? {userId: scopeOrUser} : scopeOrUser;
+      const scope = typeof scopeOrUser === 'number' ? { userId: scopeOrUser } : scopeOrUser;
       const billingAccount = await this.getBillingAccount(scope, orgKey, false, transaction);
       const billingAccountCopy = Object.assign({}, billingAccount);
       await callback(billingAccountCopy, transaction);
@@ -2061,7 +2061,7 @@ export class HomeDBManager implements HomeDBAuth {
     const notifications: Array<() => Promise<void>> = [];
     // Translate our ManagerDelta to a PermissionDelta so that we can reuse existing
     // methods for normalizing/merging emails and finding the user ids.
-    const permissionDelta: PermissionDelta = {users: {}};
+    const permissionDelta: PermissionDelta = { users: {} };
     for (const key of Object.keys(delta.users)) {
       const target = delta.users[key];
       if (target !== null && target !== 'managers') {
@@ -2071,7 +2071,7 @@ export class HomeDBManager implements HomeDBAuth {
     }
 
     return await this._connection.transaction(async (transaction) => {
-      const billingAccount = await this.getBillingAccount({userId}, orgKey, true, transaction);
+      const billingAccount = await this.getBillingAccount({ userId }, orgKey, true, transaction);
       // At this point, we'll have thrown an error if userId is not a billing account manager.
       // Now check if the billing account has mutable managers (individual account does not).
       if (billingAccount.individual) {
@@ -2085,7 +2085,7 @@ export class HomeDBManager implements HomeDBAuth {
         analysis,
         billingAccount,
       });
-      const {userIdDelta} = await this._createNotFoundUsers({
+      const { userIdDelta } = await this._createNotFoundUsers({
         analysis,
         transaction,
       });
@@ -2095,8 +2095,8 @@ export class HomeDBManager implements HomeDBAuth {
       for (const memberUserIdStr of Object.keys(userIdDelta)) {
         const memberUserId = parseInt(memberUserIdStr, 10);
         const add = Boolean(userIdDelta[memberUserIdStr]);
-        const manager = await transaction.findOne(BillingAccountManager, {where: {userId: memberUserId,
-          billingAccountId}});
+        const manager = await transaction.findOne(BillingAccountManager, { where: { userId: memberUserId,
+          billingAccountId } });
         if (add) {
           // Skip adding user if they are already a manager.
           if (!manager) {
@@ -2130,7 +2130,7 @@ export class HomeDBManager implements HomeDBAuth {
     orgKey: string|number,
     delta: PermissionDelta,
   ): Promise<QueryResult<OrgAccessChanges>> {
-    const {userId} = scope;
+    const { userId } = scope;
     const notifications: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async (manager) => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, true, manager);
@@ -2158,7 +2158,7 @@ export class HomeDBManager implements HomeDBAuth {
         billingAccount: org.billingAccount,
         manager,
       });
-      const {userIdDelta, users} = await this._createNotFoundUsers({
+      const { userIdDelta, users } = await this._createNotFoundUsers({
         analysis,
         transaction: manager,
       });
@@ -2179,7 +2179,7 @@ export class HomeDBManager implements HomeDBAuth {
 
         // Get docIds to invalidate, but publish the invalidation once the transaction commits.
         this.caches?.addInvalidationDocAccess(notifications,
-          await this._getDocsInheritingFrom(manager, {orgId: org.id}));
+          await this._getDocsInheritingFrom(manager, { orgId: org.id }));
 
         // Emit an event if the number of org users is changing.
         const membersAfter = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
@@ -2194,7 +2194,7 @@ export class HomeDBManager implements HomeDBAuth {
         data: {
           org,
           accessChanges: {
-            users: getUserAccessChanges({users, userIdDelta}),
+            users: getUserAccessChanges({ users, userIdDelta }),
           },
         },
       };
@@ -2209,7 +2209,7 @@ export class HomeDBManager implements HomeDBAuth {
     wsId: number,
     delta: PermissionDelta,
   ): Promise<QueryResult<WorkspaceAccessChanges>> {
-    const {userId} = scope;
+    const { userId } = scope;
     const notifications: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async (manager) => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
@@ -2242,8 +2242,8 @@ export class HomeDBManager implements HomeDBAuth {
         analysis,
         transaction: manager,
       });
-      let {userIdDelta} = deltaAndUsers;
-      const {users} = deltaAndUsers;
+      let { userIdDelta } = deltaAndUsers;
+      const { users } = deltaAndUsers;
       // Get all the non-guest groups on the org.
       const orgGroups = getNonGuestGroups(org);
       // Get all the non-guest groups to be updated by the delta.
@@ -2281,7 +2281,7 @@ export class HomeDBManager implements HomeDBAuth {
         await this._repairOrgGuests(scope, orgId, manager);
         // Get docIds to invalidate, but publish the invalidation once the transaction commits.
         this.caches?.addInvalidationDocAccess(notifications,
-          await this._getDocsInheritingFrom(manager, {wsId: ws.id}));
+          await this._getDocsInheritingFrom(manager, { wsId: ws.id }));
         notifications.push(this._inviteNotification(userId, ws, userIdDelta, membersBefore));
       }
       return {
@@ -2290,7 +2290,7 @@ export class HomeDBManager implements HomeDBAuth {
           workspace: ws,
           accessChanges: {
             maxInheritedAccess: delta.maxInheritedRole,
-            users: getUserAccessChanges({users, userIdDelta}),
+            users: getUserAccessChanges({ users, userIdDelta }),
           },
         },
       };
@@ -2306,10 +2306,10 @@ export class HomeDBManager implements HomeDBAuth {
   ): Promise<QueryResult<DocumentAccessChanges>> {
     const notifications: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async (manager) => {
-      const {userId} = scope;
+      const { userId } = scope;
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
       const doc = await this._loadDocAccess(scope, analysis.permissionThreshold, manager);
-      this._failIfPowerfulAndChangingSelf(analysis, {data: doc, status: 200});
+      this._failIfPowerfulAndChangingSelf(analysis, { data: doc, status: 200 });
       await this._failIfTooManyNewUserInvites({
         orgKey: doc.workspace.org.id,
         analysis,
@@ -2320,8 +2320,8 @@ export class HomeDBManager implements HomeDBAuth {
         analysis,
         transaction: manager,
       });
-      let {userIdDelta} = deltaAndUsers;
-      const {users} = deltaAndUsers;
+      let { userIdDelta } = deltaAndUsers;
+      const { users } = deltaAndUsers;
       // Get all the non-guest doc groups to be updated by the delta.
       const groups = getNonGuestGroups(doc);
       if ('maxInheritedRole' in delta) {
@@ -2364,7 +2364,7 @@ export class HomeDBManager implements HomeDBAuth {
           accessChanges: {
             publicAccess: userIdDelta?.[this.getEveryoneUserId()],
             maxInheritedAccess: delta.maxInheritedRole,
-            users: getUserAccessChanges({users, userIdDelta}),
+            users: getUserAccessChanges({ users, userIdDelta }),
           },
         },
       };
@@ -2485,7 +2485,7 @@ export class HomeDBManager implements HomeDBAuth {
     // Doc permissions of forks are based on the "trunk" document, so make sure
     // we look up permissions of trunk if we are on a fork (we'll fix the permissions
     // up for the fork immediately afterwards).
-    const {trunkId, forkId, forkUserId, snapshotId} = parseUrlId(scope.urlId);
+    const { trunkId, forkId, forkUserId, snapshotId } = parseUrlId(scope.urlId);
 
     // Unsaved documents don't live in the database and don't
     // have access control. Anyone with the URL can access them.
@@ -2504,7 +2504,7 @@ export class HomeDBManager implements HomeDBAuth {
       };
     }
 
-    const doc = await this._loadDocAccess({...scope, urlId: trunkId}, Permissions.VIEW);
+    const doc = await this._loadDocAccess({ ...scope, urlId: trunkId }, Permissions.VIEW);
     // The docMap gives the doc access of the user. It maps user to owners/editors/viewers/guests (member is org only),
     // but since, doc is a leaf resource, in practice we won't have the guests group here.
     const docMap = GroupsManager.getMemberUserRoles(doc, this.defaultCommonGroupNames);
@@ -2539,8 +2539,8 @@ export class HomeDBManager implements HomeDBAuth {
     let maxInheritedRole = this._groupsManager.getMaxInheritedRole(doc);
 
     const thisUser = users.find(user => user.id === scope.userId);
-    const docRealAccess = thisUser ? getRealAccess(thisUser, {maxInheritedRole}) : null;
-    const canViewDoc = (user: UserAccessData) => roles.canView(getRealAccess(user, {maxInheritedRole}));
+    const docRealAccess = thisUser ? getRealAccess(thisUser, { maxInheritedRole }) : null;
+    const canViewDoc = (user: UserAccessData) => roles.canView(getRealAccess(user, { maxInheritedRole }));
     const personalMetadata: Pick<PermissionData, 'public'|'personal'> = {};
 
     // Unlike other resources, documents rule for seeing other users are a little bit different.
@@ -2565,7 +2565,7 @@ export class HomeDBManager implements HomeDBAuth {
             // Figure out the access level on workspace (including inherited access from org).
             access: wsMapWithMembership[user.id] || null,
             parentAccess: orgMap[user.id] || null,
-          }, {maxInheritedRole: wsMaxInheritedRole}));
+          }, { maxInheritedRole: wsMaxInheritedRole }));
           // If user is owner of the workspace, return all users on the workspace and on the document.
           users = users.filter(user => canViewDoc(user) || canViewWorkspace(user));
         }
@@ -2575,7 +2575,7 @@ export class HomeDBManager implements HomeDBAuth {
         }
 
         // If user can't change access on the document, instruct UI to just show user's role.
-        if (!roles.canEditAccess(getRealAccess(thisUser, {maxInheritedRole}) ?? null)) {
+        if (!roles.canEditAccess(getRealAccess(thisUser, { maxInheritedRole }) ?? null)) {
           personalMetadata.public = false;
           personalMetadata.personal = true;
         }
@@ -2593,7 +2593,7 @@ export class HomeDBManager implements HomeDBAuth {
 
     if (forkId || snapshotId || options?.flatten) {
       for (const user of users) {
-        const access = getRealAccess(user, {maxInheritedRole});
+        const access = getRealAccess(user, { maxInheritedRole });
         user.access = access;
         user.parentAccess = undefined;
       }
@@ -2604,7 +2604,7 @@ export class HomeDBManager implements HomeDBAuth {
     // have been flattened.
     if (forkId) {
       for (const user of users) {
-        this._setForkAccess(doc, {userId: user.id, forkUserId}, user);
+        this._setForkAccess(doc, { userId: user.id, forkUserId }, user);
       }
     }
 
@@ -2726,7 +2726,7 @@ export class HomeDBManager implements HomeDBAuth {
       }
       // The callback approach is to publish the invalidation after the transaction commits.
       this.caches?.addInvalidationDocAccess(notifications, [doc.id]);
-      return {status: 200, data: {previous, current}};
+      return { status: 200, data: { previous, current } };
     });
     for (const notification of notifications) { await notification(); }
     return result;
@@ -2760,7 +2760,7 @@ export class HomeDBManager implements HomeDBAuth {
         // Save and return success status.
         await manager.save(doc);
       }
-      return {status: 200, data: doc};
+      return { status: 200, data: doc };
     });
   }
 
@@ -2796,7 +2796,7 @@ export class HomeDBManager implements HomeDBAuth {
    * doc.
    */
   public async setDocsMetadata(
-    docUpdateMap: {[docId: string]: DocumentMetadata},
+    docUpdateMap: { [docId: string]: DocumentMetadata },
   ): Promise<QueryResult<void>> {
     if (!docUpdateMap || Object.keys(docUpdateMap).length === 0) {
       return {
@@ -2810,7 +2810,7 @@ export class HomeDBManager implements HomeDBAuth {
         return manager.createQueryBuilder()
           .update(Document)
           .set(docUpdateMap[docId])
-          .where("id = :docId", {docId})
+          .where("id = :docId", { docId })
           .execute();
       });
       await Promise.all(updateTasks);
@@ -2821,8 +2821,8 @@ export class HomeDBManager implements HomeDBAuth {
   public async setDocGracePeriodStart(docId: string, gracePeriodStart: Date | null) {
     return await this._connection.createQueryBuilder()
       .update(Document)
-      .set({gracePeriodStart})
-      .where({id: docId})
+      .set({ gracePeriodStart })
+      .where({ id: docId })
       .execute();
   }
 
@@ -2830,7 +2830,7 @@ export class HomeDBManager implements HomeDBAuth {
     return await this._connection.createQueryBuilder()
       .select('product')
       .from(Product, 'product')
-      .where('name = :name', {name})
+      .where('name = :name', { name })
       .getOne() || undefined;
   }
 
@@ -2842,7 +2842,7 @@ export class HomeDBManager implements HomeDBAuth {
       .leftJoinAndSelect('account.orgs', 'org')
       .leftJoinAndSelect('org.workspaces', 'workspace')
       .leftJoinAndSelect('workspace.docs', 'doc')
-      .where('doc.id = :docId', {docId})
+      .where('doc.id = :docId', { docId })
       .getOne() || undefined;
 
     if (!billingAccount) {
@@ -2860,7 +2860,7 @@ export class HomeDBManager implements HomeDBAuth {
       .leftJoinAndSelect('account.orgs', 'org')
       .leftJoinAndSelect('org.workspaces', 'workspace')
       .leftJoinAndSelect('workspace.docs', 'doc')
-      .where('doc.id = :docId', {docId})
+      .where('doc.id = :docId', { docId })
       .getOne() || undefined;
   }
 
@@ -2984,7 +2984,7 @@ export class HomeDBManager implements HomeDBAuth {
         .select('limit')
         .from(Limit, 'limit')
         .innerJoin('limit.billingAccount', 'account')
-        .where('account.id = :accountId', {accountId})
+        .where('account.id = :accountId', { accountId })
         .getMany();
     });
     return result;
@@ -3000,10 +3000,10 @@ export class HomeDBManager implements HomeDBAuth {
 
   public async removeLimit(scope: Scope, limitType: LimitType): Promise<void> {
     await this._connection.transaction(async (manager) => {
-      const org = await this._org(scope, false, scope.org ?? null, {manager, needRealOrg: true})
+      const org = await this._org(scope, false, scope.org ?? null, { manager, needRealOrg: true })
         .innerJoinAndSelect('orgs.billingAccount', 'billing_account')
         .innerJoinAndSelect('billing_account.product', 'product')
-        .leftJoinAndSelect('billing_account.limits', 'limit', 'limit.type = :limitType', {limitType})
+        .leftJoinAndSelect('billing_account.limits', 'limit', 'limit.type = :limitType', { limitType })
         .getOne();
       const existing = org?.billingAccount?.limits?.[0];
       if (existing) {
@@ -3026,7 +3026,7 @@ export class HomeDBManager implements HomeDBAuth {
     dryRun?: boolean,
   }, transaction?: EntityManager): Promise<Limit|null> {
     const limitOrError: Limit|ApiError|null = await this.runInTransaction(transaction, async (manager) => {
-      const org = await this._org(scope, false, scope.org ?? null, {manager, needRealOrg: true})
+      const org = await this._org(scope, false, scope.org ?? null, { manager, needRealOrg: true })
         .innerJoinAndSelect('orgs.billingAccount', 'billing_account')
         .innerJoinAndSelect('billing_account.product', 'product')
         .getOne();
@@ -3107,7 +3107,7 @@ export class HomeDBManager implements HomeDBAuth {
       const dbShares = await manager.createQueryBuilder()
         .select('shares')
         .from(Share, 'shares')
-        .where('doc_id = :docId', {docId})
+        .where('doc_id = :docId', { docId })
         .getMany();
       const activeLinkIds = new Set(shares.map(share => share.linkId));
       const oldShares = dbShares.filter(share => !activeLinkIds.has(share.linkId));
@@ -3125,7 +3125,7 @@ export class HomeDBManager implements HomeDBAuth {
     return this._connection.createQueryBuilder()
       .select('shares')
       .from(Share, 'shares')
-      .where('shares.key = :key', {key})
+      .where('shares.key = :key', { key })
       .getOne();
   }
 
@@ -3133,7 +3133,7 @@ export class HomeDBManager implements HomeDBAuth {
     return this._connection.createQueryBuilder()
       .select('shares')
       .from(Share, 'shares')
-      .where('shares.doc_id = :docId and shares.link_id = :linkId', {docId, linkId})
+      .where('shares.doc_id = :docId and shares.link_id = :linkId', { docId, linkId })
       .getOne();
   }
 
@@ -3410,7 +3410,7 @@ export class HomeDBManager implements HomeDBAuth {
   }
 
   public async setDocPrefs(scope: DocScope, newPrefs: Partial<FullDocPrefs>): Promise<void> {
-    const {urlId: docId, userId} = scope;
+    const { urlId: docId, userId } = scope;
     const notifications: Array<() => Promise<void>> = [];
     await this.runInTransaction(undefined, async (manager) => {
       const [doc, origPrefs] = await this._doGetDocPrefs(scope, manager);
@@ -3419,12 +3419,12 @@ export class HomeDBManager implements HomeDBAuth {
         if (doc.access !== roles.OWNER) {
           throw new ApiError('Only document owners may update document prefs', 403);
         }
-        const prefs = {...origPrefs.docDefaults, ...newPrefs.docDefaults};
-        updates.push({docId, userId: null, prefs});
+        const prefs = { ...origPrefs.docDefaults, ...newPrefs.docDefaults };
+        updates.push({ docId, userId: null, prefs });
       }
       if (newPrefs.currentUser) {
-        const prefs = {...origPrefs.currentUser, ...newPrefs.currentUser};
-        updates.push({docId, userId, prefs});
+        const prefs = { ...origPrefs.currentUser, ...newPrefs.currentUser };
+        updates.push({ docId, userId, prefs });
       }
       await manager.createQueryBuilder()
         .insert().into(DocPref)
@@ -3444,10 +3444,10 @@ export class HomeDBManager implements HomeDBAuth {
     const records = await this._connection.createQueryBuilder()
       .select('doc_pref')
       .from(DocPref, 'doc_pref')
-      .where('doc_id = :docId', {docId})
+      .where('doc_id = :docId', { docId })
       .chain(qb => (
         userIds === 'any' ? qb :
-          qb.andWhere('(user_id IS NULL OR user_id IN (:...userIds))', {userIds})
+          qb.andWhere('(user_id IS NULL OR user_id IN (:...userIds))', { userIds })
       ))
       .getMany();
     return new Map<number|null, DocPrefs>(records.map(r => [r.userId, r.prefs]));
@@ -3473,7 +3473,7 @@ export class HomeDBManager implements HomeDBAuth {
         .values({
           srcDocId: options.srcDocId,
           destDocId: options.destDocId,
-          comparison: {comparison: options.comparison},
+          comparison: { comparison: options.comparison },
           status,
           appliedAt: null,
           shortId,
@@ -3517,8 +3517,8 @@ export class HomeDBManager implements HomeDBAuth {
           appliedAt: timestamp,
         } : {},
       })
-      .where('shortId = :shortId', {shortId})
-      .andWhere('destDocId = :destDocId', {destDocId})
+      .where('shortId = :shortId', { shortId })
+      .andWhere('destDocId = :destDocId', { destDocId })
       .execute();
     return result;
   }
@@ -3551,8 +3551,8 @@ export class HomeDBManager implements HomeDBAuth {
       .leftJoinAndSelect('proposals.srcDoc', 'src_doc')
       .leftJoinAndSelect('src_doc.creator', 'src_creator')
       .leftJoinAndSelect('src_creator.logins', 'src_logins')
-      .where('proposals.shortId = :shortId', {shortId})
-      .andWhere('proposals.destDocId = :destDocId', {destDocId})
+      .where('proposals.shortId = :shortId', { shortId })
+      .andWhere('proposals.destDocId = :destDocId', { destDocId })
       .getOne();
     return this._normalizeQueryResults(result);
   }
@@ -3618,11 +3618,11 @@ export class HomeDBManager implements HomeDBAuth {
     return this._serviceAccountsManager.deleteServiceAccount(serviceId, options);
   }
 
-  public async createServiceAccountApiKey(serviceId: number, options: {expectedOwnerId?: number} = {}) {
+  public async createServiceAccountApiKey(serviceId: number, options: { expectedOwnerId?: number } = {}) {
     return this._serviceAccountsManager.createServiceAccountApiKey(serviceId, options);
   }
 
-  public async deleteServiceAccountApiKey(serviceId: number, options: {expectedOwnerId?: number} = {}) {
+  public async deleteServiceAccountApiKey(serviceId: number, options: { expectedOwnerId?: number } = {}) {
     return this._serviceAccountsManager.deleteServiceAccountApiKey(serviceId, options);
   }
 
@@ -3639,15 +3639,15 @@ export class HomeDBManager implements HomeDBAuth {
   }
 
   private async _doGetDocPrefs(scope: DocScope, manager: EntityManager): Promise<[Document, FullDocPrefs]> {
-    const {urlId: docId, userId} = scope;
-    const docQb = this._doc(scope, {accessStyle: 'openNoPublic', manager});
+    const { urlId: docId, userId } = scope;
+    const docQb = this._doc(scope, { accessStyle: 'openNoPublic', manager });
     // The following combination throws ApiError for insufficient access.
     const doc = this.unwrapQueryResult(await this._verifyAclPermissions(docQb))[0];
 
     const records = await manager.createQueryBuilder()
       .select('doc_pref')
       .from(DocPref, 'doc_pref')
-      .where('doc_id = :docId AND (user_id IS NULL OR user_id = :userId)', {docId, userId})
+      .where('doc_id = :docId AND (user_id IS NULL OR user_id = :userId)', { docId, userId })
       .getMany();
 
     return [doc, {
@@ -3757,8 +3757,8 @@ export class HomeDBManager implements HomeDBAuth {
         .from(Limit, 'limit')
         .innerJoinAndSelect('limit.billingAccount', 'account')
         .innerJoinAndSelect('account.product', 'product')
-        .where('account.id = :accountId', {accountId})
-        .andWhere('limit.type = :limitType', {limitType})
+        .where('account.id = :accountId', { accountId })
+        .andWhere('limit.type = :limitType', { limitType })
         .getOne();
 
       // If we don't have a limit, and we can't create one, return null.
@@ -3803,7 +3803,7 @@ export class HomeDBManager implements HomeDBAuth {
         .select('billing_accounts')
         .from(BillingAccount, 'billing_accounts')
         .leftJoinAndSelect('billing_accounts.product', 'products')
-        .where('billing_accounts.id = :accountId', {accountId})
+        .where('billing_accounts.id = :accountId', { accountId })
         .getOne();
       if (!ba) {
         throw new Error(`getLimit: no product for account ${accountId}`);
@@ -3825,7 +3825,7 @@ export class HomeDBManager implements HomeDBAuth {
     // merged pseudo-org must become personal org.
     if (org === null || (options.needRealOrg && this.isMergedOrg(org))) {
       if (!scope || !scope.userId) { throw new Error('_org: requires userId'); }
-      query = query.where('orgs.owner_id = :userId', {userId: scope.userId});
+      query = query.where('orgs.owner_id = :userId', { userId: scope.userId });
     }
     else {
       query = this._whereOrg(query, org, includeSupport);
@@ -3858,7 +3858,7 @@ export class HomeDBManager implements HomeDBAuth {
    */
   private _orgWorkspaces(scope: Scope, org: string|number|null,
     options: QueryOptions = {}): SelectQueryBuilder<Organization> {
-    const {userId} = scope;
+    const { userId } = scope;
     const supportId = this._usersManager.getSpecialUserId(SUPPORT_EMAIL);
     let query = this.org(scope, org, options)
       .leftJoinAndSelect('orgs.workspaces', 'workspaces')
@@ -3896,7 +3896,7 @@ export class HomeDBManager implements HomeDBAuth {
     query = this._addIsSupportWorkspace(userId, query, 'orgs', 'workspaces');
     // Add access information and query limits
     // TODO: allow generic org limit once sample/support workspace is done differently
-    query = this._applyLimit(query, {...scope, org: undefined}, ['orgs', 'workspaces', 'docs'], 'list');
+    query = this._applyLimit(query, { ...scope, org: undefined }, ['orgs', 'workspaces', 'docs'], 'list');
     return query;
   }
 
@@ -3910,7 +3910,7 @@ export class HomeDBManager implements HomeDBAuth {
     let aliasQuery = this._docs(manager)
       .leftJoinAndSelect('docs.aliases', 'aliases')
       .leftJoinAndSelect('aliases.org', 'orgs')
-      .where('docs.urlId = :urlId', {urlId});  // Place restriction on active urlIds only.
+      .where('docs.urlId = :urlId', { urlId });  // Place restriction on active urlIds only.
     // Older urlIds are best-effort, and subject to
     // reuse (currently).
     if (org.ownerId === this._usersManager.getSupportUserId()) {
@@ -3930,17 +3930,17 @@ export class HomeDBManager implements HomeDBAuth {
       // We also need to check within the support@ org for conflict with examples, which
       // currently have an existence within team sites.
       aliasQuery = aliasQuery.andWhere('(aliases.orgId = :orgId OR aliases.orgId = :exampleOrgId)',
-        {orgId: org.id, exampleOrgId: this._exampleOrgId});
+        { orgId: org.id, exampleOrgId: this._exampleOrgId });
     }
     if (docId) {
-      aliasQuery = aliasQuery.andWhere('docs.id <> :docId', {docId});
+      aliasQuery = aliasQuery.andWhere('docs.id <> :docId', { docId });
     }
     if (await aliasQuery.getOne()) {
       throw new ApiError('urlId already in use', 400);
     }
     // Also forbid any urlId that would match an existing docId, that is a recipe for confusion
     // and mischief.
-    if (await this._docs(manager).where('docs.id = :urlId', {urlId}).getOne()) {
+    if (await this._docs(manager).where('docs.id = :urlId', { urlId }).getOne()) {
       throw new ApiError('urlId already in use as document id', 400);
     }
   }
@@ -3951,7 +3951,7 @@ export class HomeDBManager implements HomeDBAuth {
   private async _repairWorkspaceGuests(scope: Scope, wsId: number, transaction?: EntityManager): Promise<void> {
     return await this.runInTransaction(transaction, async (manager) => {
       // Get guest group for workspace.
-      const wsQuery = this._workspace(scope, wsId, {manager})
+      const wsQuery = this._workspace(scope, wsId, { manager })
         .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
         .leftJoinAndSelect('acl_rules.group', 'groups')
         .leftJoinAndSelect('groups.memberUsers', 'users');
@@ -3964,7 +3964,7 @@ export class HomeDBManager implements HomeDBAuth {
 
       // Get explicitly added users of docs inside the workspace, as a separate query
       // to avoid multiplying rows and to allow filtering the result in sql.
-      const wsWithDocsQuery = this._workspace(scope, wsId, {manager})
+      const wsWithDocsQuery = this._workspace(scope, wsId, { manager })
         .leftJoinAndSelect('workspaces.docs', 'docs')
         .leftJoinAndSelect('docs.aclRules', 'doc_acl_rules')
         .leftJoinAndSelect('doc_acl_rules.group', 'doc_groups')
@@ -3987,15 +3987,15 @@ export class HomeDBManager implements HomeDBAuth {
    */
   private async _repairOrgGuests(scope: Scope, orgKey: string|number, transaction?: EntityManager): Promise<void> {
     return await this.runInTransaction(transaction, async (manager) => {
-      const orgQuery = this.org(scope, orgKey, {manager})
+      const orgQuery = this.org(scope, orgKey, { manager })
         .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
         .leftJoinAndSelect('acl_rules.group', 'groups')
         .leftJoinAndSelect('groups.memberUsers', 'users')
-        .andWhere('groups.name = :role', {role: roles.GUEST});
+        .andWhere('groups.name = :role', { role: roles.GUEST });
       const org = await orgQuery.getOne();
       if (!org) { throw new Error('cannot find org'); }
       const workspaceQuery = this._workspaces(manager)
-        .where('workspaces.org_id = :orgId', {orgId: org.id})
+        .where('workspaces.org_id = :orgId', { orgId: org.id })
         .andWhere('workspaces.removed_at IS NULL')  // Don't grant guest access for soft-deleted workspaces.
         .leftJoinAndSelect('workspaces.aclRules', 'workspace_acl_rules')
         .leftJoinAndSelect('workspace_acl_rules.group', 'workspace_group')
@@ -4017,7 +4017,7 @@ export class HomeDBManager implements HomeDBAuth {
    * Product limits on number of workspaces allowed in org are not checked.
    */
   private async _doAddWorkspace(
-    {org, props, ownerId}: CreateWorkspaceOptions,
+    { org, props, ownerId }: CreateWorkspaceOptions,
     transaction?: EntityManager,
   ): Promise<Workspace> {
     if (!props.name) { throw new ApiError('Bad request: name required', 400); }
@@ -4046,7 +4046,7 @@ export class HomeDBManager implements HomeDBAuth {
       if (ownerId) {
         // If we modified direct access to the workspace, we need to update the
         // guest group to include the owner.
-        await this._repairOrgGuests({userId: ownerId}, org.id, manager);
+        await this._repairOrgGuests({ userId: ownerId }, org.id, manager);
       }
       return result[0] as Workspace;
     });
@@ -4136,8 +4136,8 @@ export class HomeDBManager implements HomeDBAuth {
    *     - If there is a ~USERID in fork id, that user is owner, all others are at most viewers.
    */
   private _setForkAccess(doc: Document,
-    ids: {userId: number, forkUserId?: number},
-    res: {access: roles.Role|null}) {
+    ids: { userId: number, forkUserId?: number },
+    res: { access: roles.Role|null }) {
     if (doc.type === 'tutorial') {
       if (ids.userId === this._usersManager.getPreviewerUserId()) {
         res.access = 'viewers';
@@ -4259,7 +4259,7 @@ export class HomeDBManager implements HomeDBAuth {
     // Get the user objects which map to non-null values in the userDelta.
     const userIds = Object.keys(userDelta).filter(userId => userDelta[userId])
       .map(userIdStr => parseInt(userIdStr, 10));
-    const users = await this._usersManager.getUsersByIds(userIds, {manager});
+    const users = await this._usersManager.getUsersByIds(userIds, { manager });
 
     // Add unaffected users to the delta so that we have a record of where they are.
     groups.forEach((grp) => {
@@ -4272,7 +4272,7 @@ export class HomeDBManager implements HomeDBAuth {
     });
 
     // Create mapping from group names to top-level groups (contain the inherited groups)
-    const topGroups: {[groupName: string]: NonGuestGroup} = {};
+    const topGroups: { [groupName: string]: NonGuestGroup } = {};
     groups.forEach((grp) => {
       // Note that this has a side effect of resetting the memberUsers arrays.
       grp.memberUsers = [];
@@ -4296,7 +4296,7 @@ export class HomeDBManager implements HomeDBAuth {
    * alphanumeric strings, and the values should be the names of sql columns -
    * this method is not set up to quote concrete values.
    */
-  private _aggJsonObject(content: {[key: string]: string}): string {
+  private _aggJsonObject(content: { [key: string]: string }): string {
     const args = [...Object.keys(content).map(key => [`'${key}'`, content[key]])];
     if (this._dbType === 'postgres') {
       return `json_agg(json_build_object(${args.join(',')}))`;
@@ -4325,7 +4325,7 @@ export class HomeDBManager implements HomeDBAuth {
    * In order to accept urlIds, the aliases, workspaces, and orgs tables are joined.
    */
   private _doc(scope: DocScope, options: DocQueryOptions = {}): SelectQueryBuilder<Document> {
-    const {urlId, userId} = scope;
+    const { urlId, userId } = scope;
     // Check if doc is being accessed with a merged org url.  If so,
     // we will only filter urlId matches, and will allow docId matches
     // for team site documents.  This is for backwards compatibility,
@@ -4356,10 +4356,10 @@ export class HomeDBManager implements HomeDBAuth {
       .leftJoinAndSelect('docs.aliases', 'aliases')
       .where(new Brackets((cond) => {
         return cond
-          .where('docs.id = :urlId', {urlId})
+          .where('docs.id = :urlId', { urlId })
           .orWhere(new Brackets((urlIdCond) => {
             let urlIdQuery = urlIdCond
-              .where('aliases.url_id = :urlId', {urlId})
+              .where('aliases.url_id = :urlId', { urlId })
               .andWhere('aliases.org_id = orgs.id');
             if (mergedOrg) {
               // Filter specifically for merged org documents.
@@ -4373,12 +4373,12 @@ export class HomeDBManager implements HomeDBAuth {
     // (For this, example doc URLs should be under docs.getgrist.com rather than team domains.)
     // Add access information and query limits
     const accessStyle = options.accessStyle || 'open';
-    query = this._applyLimit(query, {...scope, includeSupport: true}, ['docs', 'workspaces', 'orgs'], accessStyle);
+    query = this._applyLimit(query, { ...scope, includeSupport: true }, ['docs', 'workspaces', 'orgs'], accessStyle);
     if (options.markPermissions) {
       let effectiveUserId = userId;
       let threshold = options.markPermissions;
       if (options.allowSpecialPermit && scope.specialPermit && scope.specialPermit.docId) {
-        query = query.andWhere('docs.id = :docId', {docId: scope.specialPermit.docId});
+        query = query.andWhere('docs.id = :docId', { docId: scope.specialPermit.docId });
         effectiveUserId = this._usersManager.getPreviewerUserId();
         threshold = Permissions.VIEW;
       }
@@ -4397,16 +4397,16 @@ export class HomeDBManager implements HomeDBAuth {
    */
   private _fork(scope: DocScope, options: QueryOptions = {}): SelectQueryBuilder<Document> {
     // Extract the forkId from the urlId and use it to find the fork in the db.
-    const {forkId} = parseUrlId(scope.urlId);
+    const { forkId } = parseUrlId(scope.urlId);
     let query = this._docs(options.manager)
       .leftJoinAndSelect('docs.trunk', 'trunk')
       .leftJoinAndSelect('trunk.workspace', 'trunk_workspace')
       .leftJoinAndSelect('trunk_workspace.org', 'trunk_org')
-      .where('docs.id = :forkId', {forkId});
+      .where('docs.id = :forkId', { forkId });
 
     // Compute whether we have access to the fork.
     if (options.allowSpecialPermit && scope.specialPermit?.docId) {
-      const {forkId: permitForkId} = parseUrlId(scope.specialPermit.docId);
+      const { forkId: permitForkId } = parseUrlId(scope.specialPermit.docId);
       query = query
         .setParameter('permitForkId', permitForkId)
         .addSelect(
@@ -4464,7 +4464,7 @@ export class HomeDBManager implements HomeDBAuth {
    */
   private _workspace(scope: Scope, wsId: number, options: QueryOptions = {}): SelectQueryBuilder<Workspace> {
     let query = this._workspaces(options.manager)
-      .where('workspaces.id = :wsId', {wsId});
+      .where('workspaces.id = :wsId', { wsId });
     if (options.markPermissions) {
       let effectiveUserId = scope.userId;
       let threshold = options.markPermissions;
@@ -4505,7 +4505,7 @@ export class HomeDBManager implements HomeDBAuth {
     if (includeSupport) {
       const supportId = this._usersManager.getSpecialUserId(SUPPORT_EMAIL);
       return qb.andWhere(new Brackets(q =>
-        this._wherePlainOrg(q, org).orWhere('orgs.owner_id = :supportId', {supportId})));
+        this._wherePlainOrg(q, org).orWhere('orgs.owner_id = :supportId', { supportId })));
     }
     else {
       return this._wherePlainOrg(qb, org);
@@ -4514,21 +4514,21 @@ export class HomeDBManager implements HomeDBAuth {
 
   private _wherePlainOrg<T extends WhereExpressionBuilder>(qb: T, org: string|number): T {
     if (typeof org === 'number') {
-      return qb.andWhere('orgs.id = :org', {org});
+      return qb.andWhere('orgs.id = :org', { org });
     }
     if (org.startsWith(`docs-${this._idPrefix}`)) {
       // this is someone's personal org
       const ownerId = org.split(`docs-${this._idPrefix}`)[1];
-      qb = qb.andWhere('orgs.owner_id = :ownerId', {ownerId});
+      qb = qb.andWhere('orgs.owner_id = :ownerId', { ownerId });
     }
     else if (org.startsWith(`o-${this._idPrefix}`)) {
       // this is an org identified by org id
       const orgId = org.split(`o-${this._idPrefix}`)[1];
-      qb = qb.andWhere('orgs.id = :orgId', {orgId});
+      qb = qb.andWhere('orgs.id = :orgId', { orgId });
     }
     else {
       // this is a regular domain
-      qb = qb.andWhere('orgs.domain = :org', {org});
+      qb = qb.andWhere('orgs.domain = :org', { org });
     }
     return qb;
   }
@@ -4556,7 +4556,7 @@ export class HomeDBManager implements HomeDBAuth {
    */
   private _filterByOrgGroups(qb: SelectQueryBuilder<Organization>, users: AvailableUsers,
     orgKey: string|number|null,
-    options?: {ignoreEveryoneShares?: boolean}) {
+    options?: { ignoreEveryoneShares?: boolean }) {
     qb = qb
       .leftJoin('orgs.aclRules', 'acl_rules')
       .leftJoin('acl_rules.group', 'groups')
@@ -4567,14 +4567,14 @@ export class HomeDBManager implements HomeDBAuth {
       if (users === previewerId) { return qb; }
       const everyoneId = this._usersManager.getSpecialUserId(EVERYONE_EMAIL);
       if (options?.ignoreEveryoneShares) {
-        return qb.where('members.id = :userId', {userId: users});
+        return qb.where('members.id = :userId', { userId: users });
       }
       return qb.andWhere(new Brackets((cond) => {
         // Accept direct membership, or via a share with "everyone@".
         return cond
-          .where('members.id = :userId', {userId: users})
+          .where('members.id = :userId', { userId: users })
           .orWhere(new Brackets((everyoneCond) => {
-            const everyoneQuery = everyoneCond.where('members.id = :everyoneId', {everyoneId});
+            const everyoneQuery = everyoneCond.where('members.id = :everyoneId', { everyoneId });
             return (orgKey !== null) ? this._whereOrg(everyoneQuery, orgKey) : everyoneQuery;
           }));
       }));
@@ -4587,7 +4587,7 @@ export class HomeDBManager implements HomeDBAuth {
     if (emails.size === 0) { return qb.andWhere('1 = 0'); }
     return qb
       .leftJoin('members.logins', 'memberLogins')
-      .andWhere('memberLogins.email in (:...emails)', {emails: [...emails]});
+      .andWhere('memberLogins.email in (:...emails)', { emails: [...emails] });
   }
 
   private _single(result: QueryResult<any>) {
@@ -4632,7 +4632,7 @@ export class HomeDBManager implements HomeDBAuth {
     }
 
     // Mapping from group names to top-level groups
-    const topGroups: {[groupName: string]: NonGuestGroup} = {};
+    const topGroups: { [groupName: string]: NonGuestGroup } = {};
     groups.forEach((grp) => {
       // Note that this has a side effect of initializing the memberGroups arrays.
       grp.memberGroups = [];
@@ -4714,14 +4714,14 @@ export class HomeDBManager implements HomeDBAuth {
     }
     if (results.entities.length === 0 ||
       (results.entities.length === 1 && results.entities[0].filteredOut)) {
-      if (options.emptyAllowed) { return {status: 200, data: []}; }
-      return {errMessage: `${getFrom(queryBuilder)} not found`, status: 404};
+      if (options.emptyAllowed) { return { status: 200, data: [] }; }
+      return { errMessage: `${getFrom(queryBuilder)} not found`, status: 404 };
     }
     const resources = this._normalizeQueryResults(results.entities, {
       scope: options.scope,
     });
     if (resources.length === 0 && !options.emptyAllowed) {
-      return {errMessage: "access denied", status: 403};
+      return { errMessage: "access denied", status: 403 };
     }
     else {
       return {
@@ -4780,7 +4780,7 @@ export class HomeDBManager implements HomeDBAuth {
       const features = org.billingAccount.getFeatures();
       if (!features.vanityDomain) {
         // Vanity domain not allowed for this org.
-        options = {...options, suppressDomain: true};
+        options = { ...options, suppressDomain: true };
       }
     }
     const permissions = (typeof value.permissions === 'number') ? value.permissions : undefined;
@@ -4954,7 +4954,7 @@ export class HomeDBManager implements HomeDBAuth {
         q = this._getUsersAcls(q, users, accessStyle, variableNamePrefix);
         q = q.andWhere(`acl_rules.${idColumn} = ${resType}.id`);
         if (permissions !== null) {
-          q = q.andWhere(`(acl_rules.permissions & :permissions) = :permissions`, {permissions}).limit(1);
+          q = q.andWhere(`(acl_rules.permissions & :permissions) = :permissions`, { permissions }).limit(1);
         }
         else if (!UsersManager.isSingleUser(users)) {
           q = q.addSelect('profiles.id');
@@ -4974,10 +4974,10 @@ export class HomeDBManager implements HomeDBAuth {
       else {
         return qb.subQuery()
           .from(subQb => getBasicPermissions(subQb.subQuery()), 'options')
-          .select(this._aggJsonObject({id: 'options.id',
+          .select(this._aggJsonObject({ id: 'options.id',
             email: 'options.display_email',
             perms: 'options.permissions',
-            name: 'options.name'}));
+            name: 'options.name' }));
       }
     };
   }
@@ -5007,7 +5007,7 @@ export class HomeDBManager implements HomeDBAuth {
           // we may include this code with different user ids in the
           // same query
           cond = cond.where(`:${userIdVariable} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`,
-            {[userIdVariable]: users});
+            { [userIdVariable]: users });
           // Support public access via the special "everyone" user, except for 'openStrict' mode.
           if (accessStyle !== 'openNoPublic') {
             const everyoneId = this._usersManager.getEveryoneUserId();
@@ -5025,7 +5025,7 @@ export class HomeDBManager implements HomeDBAuth {
           if (users === previewerId) {
             // All acl_rules granting view access are available to previewer user.
             cond = cond.orWhere(`acl_rules.permissions = :${permissionsVariable}`,
-              {[permissionsVariable]: Permissions.VIEW});
+              { [permissionsVariable]: Permissions.VIEW });
           }
         }
         else {
@@ -5057,7 +5057,7 @@ export class HomeDBManager implements HomeDBAuth {
     return this._joinToAllGroupUsers(qb);
   }
 
-  private async _getDocsInheritingFrom(manager: EntityManager, options: {orgId: number} | {wsId: number}) {
+  private async _getDocsInheritingFrom(manager: EntityManager, options: { orgId: number } | { wsId: number }) {
     const queryBuilder = manager.createQueryBuilder()
       .from(Document, 'docs')
       .leftJoinAndSelect('docs.aclRules', 'acl_rules')
@@ -5066,8 +5066,8 @@ export class HomeDBManager implements HomeDBAuth {
       .leftJoin('group_groups', 'gg3', 'gg3.group_id = gg2.subgroup_id')
       .innerJoin('acl_rules', 'rules', 'rules.group_id in (gg1.subgroup_id, gg2.subgroup_id, gg3.subgroup_id)')
       .chain(qb => (
-        'orgId' in options ? qb.where('rules.org_id = :orgId', {orgId: options.orgId}) :
-          'wsId' in options ? qb.where('rules.workspace_id = :wsId', {wsId: options.wsId}) :
+        'orgId' in options ? qb.where('rules.org_id = :orgId', { orgId: options.orgId }) :
+          'wsId' in options ? qb.where('rules.workspace_id = :wsId', { wsId: options.wsId }) :
             qb
       ))
       .select('docs.id', 'docId')
@@ -5208,9 +5208,9 @@ export class HomeDBManager implements HomeDBAuth {
     if (features.maxDocsPerOrg !== undefined) {
       // we need to count how many docs are in the current org, and if we
       // are already at or above the limit, then fail.
-      const wss = this.unwrapQueryResult(await this.getOrgWorkspaces({userId: this._usersManager.getPreviewerUserId()},
+      const wss = this.unwrapQueryResult(await this.getOrgWorkspaces({ userId: this._usersManager.getPreviewerUserId() },
         workspace.org.id,
-        {manager}));
+        { manager }));
       const count = wss.map(ws => ws.docs.length).reduce((a, b) => a + b, 0);
       if (count >= features.maxDocsPerOrg) {
         throw new ApiError('No more documents permitted', 403, {
@@ -5238,7 +5238,7 @@ export class HomeDBManager implements HomeDBAuth {
     transaction?: EntityManager): Promise<Document> {
     return await this.runInTransaction(transaction, async (manager) => {
 
-      const docQuery = this._doc(scope, {manager, markPermissions});
+      const docQuery = this._doc(scope, { manager, markPermissions });
       const queryResult = await verifyEntity(docQuery);
       this.checkQueryResult(queryResult);
       const doc = getDocResult(queryResult);
@@ -5259,7 +5259,7 @@ export class HomeDBManager implements HomeDBAuth {
       doc.aclRules = aclDoc.aclRules;
 
       // Load the workspace's member groups/users.
-      const workspaceQuery = this._workspace(scope, doc.workspace.id, {manager})
+      const workspaceQuery = this._workspace(scope, doc.workspace.id, { manager })
         .leftJoinAndSelect('workspaces.aclRules', 'workspace_acl_rules')
         .leftJoinAndSelect('workspace_acl_rules.group', 'workspace_groups')
         .leftJoinAndSelect('workspace_groups.memberUsers', 'workspace_group_users')
@@ -5272,7 +5272,7 @@ export class HomeDBManager implements HomeDBAuth {
       doc.workspace = (await workspaceQuery.getOne())!;
 
       // Load the org's member groups/users.
-      let orgQuery = this.org(scope, doc.workspace.org.id, {manager})
+      let orgQuery = this.org(scope, doc.workspace.org.id, { manager })
         .leftJoinAndSelect('orgs.aclRules', 'org_acl_rules')
         .leftJoinAndSelect('org_acl_rules.group', 'org_groups')
         .leftJoinAndSelect('org_groups.memberUsers', 'org_group_users')
@@ -5296,9 +5296,9 @@ export class HomeDBManager implements HomeDBAuth {
   ) {
     return async () => {
       const customerId = org.billingAccount.stripeCustomerId;
-      const change: UserChange = {userId, org, customerId,
+      const change: UserChange = { userId, org, customerId,
         countBefore, countAfter,
-        membersBefore, membersAfter};
+        membersBefore, membersAfter };
       await this._notifier.userChange(change);
     };
   }
@@ -5333,7 +5333,7 @@ export class HomeDBManager implements HomeDBAuth {
   // Set Workspace.removedAt to null (undeletion) or to a datetime (soft deletion)
   private _setWorkspaceRemovedAt(scope: Scope, wsId: number, removedAt: Date|null) {
     return this._connection.transaction(async (manager) => {
-      const wsQuery = this._workspace({...scope, showAll: true}, wsId, {
+      const wsQuery = this._workspace({ ...scope, showAll: true }, wsId, {
         manager,
         markPermissions: Permissions.REMOVE | Permissions.SCHEMA_EDIT,
       })
@@ -5341,13 +5341,13 @@ export class HomeDBManager implements HomeDBAuth {
       const workspace: Workspace = this.unwrapQueryResult(await verifyEntity(wsQuery));
       workspace.removedAt = removedAt;
       await manager.createQueryBuilder()
-        .update(Workspace).set({removedAt}).where({id: workspace.id})
+        .update(Workspace).set({ removedAt }).where({ id: workspace.id })
         .execute();
 
       // Update the guests in the org after soft-deleting/undeleting this workspace.
       await this._repairOrgGuests(scope, workspace.org.id, manager);
 
-      return {status: 200, data: workspace};
+      return { status: 200, data: workspace };
     });
   }
 
@@ -5362,7 +5362,7 @@ export class HomeDBManager implements HomeDBAuth {
 
   private _setDocumentDeletionProperty(scope: DocScope, property: 'removedAt'|'disabledAt', value: Date|null) {
     return this._connection.transaction(async (manager) => {
-      let docQuery = this._doc({...scope, showAll: true}, {
+      let docQuery = this._doc({ ...scope, showAll: true }, {
         manager,
         markPermissions: Permissions.SCHEMA_EDIT | Permissions.REMOVE,
         allowSpecialPermit: true,
@@ -5376,14 +5376,14 @@ export class HomeDBManager implements HomeDBAuth {
       }
       doc[property] = value;
       await manager.createQueryBuilder()
-        .update(Document).set({[property]: value}).where({id: doc.id})
+        .update(Document).set({ [property]: value }).where({ id: doc.id })
         .execute();
 
       // Update guests of the workspace and org after soft-deleting/undeleting this doc.
       await this._repairWorkspaceGuests(scope, doc.workspace.id, manager);
       await this._repairOrgGuests(scope, doc.workspace.org.id, manager);
 
-      return {status: 200, data: doc};
+      return { status: 200, data: doc };
     });
   }
 
@@ -5392,7 +5392,7 @@ export class HomeDBManager implements HomeDBAuth {
     users: UserAccessData[],
     maxInheritedRole: roles.BasicRole|null,
     docId?: string,
-  ): {personal: true, public: boolean}|undefined {
+  ): { personal: true, public: boolean }|undefined {
     if (scope.userId === this._usersManager.getPreviewerUserId()) { return; }
 
     // If we have special access to the resource, don't filter user information.
@@ -5401,7 +5401,7 @@ export class HomeDBManager implements HomeDBAuth {
     const thisUser = this._usersManager.getAnonymousUserId() === scope.userId
       ? null
       : users.find(user => user.id === scope.userId);
-    const realAccess = thisUser ? getRealAccess(thisUser, {maxInheritedRole}) : null;
+    const realAccess = thisUser ? getRealAccess(thisUser, { maxInheritedRole }) : null;
 
     // If we are an owner, don't filter user information.
     if (thisUser && realAccess === 'owners') { return; }
@@ -5517,10 +5517,10 @@ export async function makeDocAuthResult(docPromise: Promise<Document>): Promise<
     const doc = await docPromise;
     const removed = Boolean(doc.removedAt || doc.workspace.removedAt);
     const disabled = Boolean(doc.disabledAt);
-    return {docId: doc.id, access: doc.access, removed, disabled, cachedDoc: doc};
+    return { docId: doc.id, access: doc.access, removed, disabled, cachedDoc: doc };
   }
   catch (error) {
-    return {docId: null, access: null, removed: null, disabled: null, error};
+    return { docId: null, access: null, removed: null, disabled: null, error };
   }
 }
 
@@ -5529,9 +5529,9 @@ export async function makeDocAuthResult(docPromise: Promise<Document>): Promise<
  * identify the document to access.  Throws if information is not present.
  */
 export function getDocAuthKeyFromScope(scope: Scope): DocAuthKey {
-  const {urlId, userId, org} = scope;
+  const { urlId, userId, org } = scope;
   if (!urlId) { throw new Error('document required'); }
-  return {urlId, userId, org};
+  return { urlId, userId, org };
 }
 
 // Returns whether the given group is a valid non-guest group.

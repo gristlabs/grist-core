@@ -1,8 +1,8 @@
-import {marked} from 'marked';
+import { marked } from 'marked';
 
 export const renderer = new marked.Renderer();
 
-renderer.image = ({href, title}) => {
+renderer.image = ({ href, title }) => {
   let classes = 'doc-tutorial-popup-thumbnail';
   const hash = href?.split('#')?.[1];
   if (hash) {
@@ -17,6 +17,6 @@ renderer.image = ({href, title}) => {
 </div>`;
 };
 
-renderer.link = ({href, text}) => {
+renderer.link = ({ href, text }) => {
   return `<a href="${href}" target="_blank">${text}</a>`;
 };

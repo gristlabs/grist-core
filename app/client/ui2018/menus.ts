@@ -47,7 +47,7 @@ export function menu(createFunc: weasel.MenuCreateFunc, options?: weasel.IMenuOp
     registerMenuOpen(ctl);
     return createFunc(ctl);
   };
-  return weasel.menu(wrappedCreateFunc, {...defaults, ...options});
+  return weasel.menu(wrappedCreateFunc, { ...defaults, ...options });
 }
 
 export interface SearchableMenuOptions {
@@ -67,7 +67,7 @@ export function searchableMenu(
   menuItems: MaybeObsArray<SearchableMenuItem>,
   options: SearchableMenuOptions = {},
 ): DomElementArg[] {
-  const {searchInputPlaceholder} = options;
+  const { searchInputPlaceholder } = options;
 
   const searchValue = Observable.create(null, '');
   const setSearchValue = debounce((value) => { searchValue.set(value); }, 100);
@@ -79,7 +79,7 @@ export function searchableMenu(
         cssMenuSearchInput(
           dom.autoDispose(searchValue),
           dom.on('input', (_ev, elem) => { setSearchValue(elem.value); }),
-          {placeholder: searchInputPlaceholder},
+          { placeholder: searchInputPlaceholder },
           testId('searchable-menu-input'),
         ),
       ),
@@ -108,7 +108,7 @@ export function searchableMenu(
 export type ISubMenuOptions =
   weasel.ISubMenuOptions &
   weasel.IPopupOptions &
-  {allowNothingSelected?: boolean};
+  { allowNothingSelected?: boolean };
 
 /**
  * Menu item with submenu
@@ -265,11 +265,11 @@ export interface SelectOptions<T> extends weasel.ISelectUserOptions {
  */
 export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption<T>>,
   options: SelectOptions<T> = {}) {
-  const {renderOptionArgs, ...weaselOptions} = options;
+  const { renderOptionArgs, ...weaselOptions } = options;
   const _menu = cssSelectMenuElem(testId('select-menu'));
   const _btn = cssSelectBtn(testId('select-open'));
 
-  const {menuCssClass: menuClass, ...otherOptions} = weaselOptions;
+  const { menuCssClass: menuClass, ...otherOptions } = weaselOptions;
   const selectOptions = {
     buttonArrow: cssInlineCollapseIcon('Collapse'),
     menuCssClass: [_menu.className,  (menuClass || ''), gristFloatingMenuClass].join(' '),
@@ -294,7 +294,7 @@ export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption
 export function linkSelect<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption<T>>,
   options: weasel.ISelectUserOptions = {}) {
   const _btn = cssSelectBtnLink(testId('select-open'));
-  return select(obs, optionArray, {buttonCssClass: _btn.className, ...options});
+  return select(obs, optionArray, { buttonCssClass: _btn.className, ...options });
 }
 
 export interface IMultiSelectUserOptions {
@@ -331,7 +331,7 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
     return cssMultiSelectMenu(
       { tabindex: '-1' }, // Allow menu to be focused.
       dom.cls(menuCssClass),
-      FocusLayer.attach({pauseMousetrap: true}),
+      FocusLayer.attach({ pauseMousetrap: true }),
       dom.onKeyDown({
         Enter: () => ctl.close(),
         Escape: () => ctl.close(),
@@ -350,7 +350,7 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
           const fullOption = weasel.getOptionFull(option);
           return cssCheckboxLabel(
             cssCheckboxSquare(
-              {type: 'checkbox'},
+              { type: 'checkbox' },
               dom.prop('checked', selectedOpts.has(fullOption.value)),
               dom.on('change', (_ev, elem) => {
                 if (elem.checked) {
@@ -410,16 +410,16 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
  *    formSelect(fruit, ["apple", "banana", "mango"], {defLabel: "Select fruit:"});
  */
 export function formSelect(obs: Observable<string>, optionArray: MaybeObsArray<IOption<string>>,
-  options: {defaultLabel?: string} = {}) {
-  const {defaultLabel = ""} = options;
+  options: { defaultLabel?: string } = {}) {
+  const { defaultLabel = "" } = options;
   const container: Element = cssSelectBtnContainer(
-    dom('select', {class: cssSelectBtn.className, style: 'height: 42px; padding: 12px 30px 12px 12px;'},
+    dom('select', { class: cssSelectBtn.className, style: 'height: 42px; padding: 12px 30px 12px 12px;' },
       dom.prop('value', obs),
       dom.on('change', (_, elem) => { obs.set(elem.value); }),
-      dom('option', {value: '', hidden: 'hidden'}, defaultLabel),
+      dom('option', { value: '', hidden: 'hidden' }, defaultLabel),
       dom.forEach(optionArray, (option) => {
         const obj: weasel.IOptionFull<string> = weasel.getOptionFull(option);
-        return dom('option', {value: obj.value}, obj.label);
+        return dom('option', { value: obj.value }, obj.label);
       }),
     ),
     cssCollapseIcon('Collapse'),

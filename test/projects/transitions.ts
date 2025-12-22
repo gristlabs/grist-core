@@ -1,5 +1,5 @@
-import {assert, driver, Key, stackWrapFunc, WebElement} from 'mocha-webdriver';
-import {server, setupTestSuite} from 'test/projects/testUtils';
+import { assert, driver, Key, stackWrapFunc, WebElement } from 'mocha-webdriver';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 
 describe('transitions', function() {
   setupTestSuite();
@@ -15,7 +15,7 @@ describe('transitions', function() {
   // Helper to check the state of the transitioning leftDiv and count of finished transitions.
   // When a pair of numbers is given, it's the expected range (a closed interval).
   const assertState = stackWrapFunc(async function(
-    expected: {width: number|[number, number], opacity: number|[number, number], finished: number},
+    expected: { width: number|[number, number], opacity: number|[number, number], finished: number },
   ) {
     const [widthStr, opacityStr, countStr] = await Promise.all([
       leftDiv.getCssValue('width'),
@@ -44,7 +44,7 @@ describe('transitions', function() {
     await driver.find('.test-duration').doClear().doSendKeys(`${kDelayMs * 2}ms`, Key.ENTER);
     leftDiv = driver.find('.test-left');
     countFinishedDiv = driver.find('.test-finished');
-    await assertState({width: 30, opacity: 1, finished: 0});
+    await assertState({ width: 30, opacity: 1, finished: 0 });
 
     // Start the transition and wait for its middle. Note that on click, width increases 30px to
     // 470px, while opacity goes from 0 to 1.
@@ -52,18 +52,18 @@ describe('transitions', function() {
     await driver.sleep(kDelayMs);
 
     // Assert that the transitioning properties are above the min and below the max
-    await assertState({width: [35, 465], opacity: [0.05, 0.95], finished: 0});
+    await assertState({ width: [35, 465], opacity: [0.05, 0.95], finished: 0 });
 
     // Wait for it to end.
     await driver.sleep(kDelayMs * 1.5);
-    await assertState({width: 470, opacity: 1, finished: 1});
+    await assertState({ width: 470, opacity: 1, finished: 1 });
 
     // Toggle again, and watch the reverse transition.
     await driver.find('.test-toggle').doClick();
     await driver.sleep(kDelayMs);
-    await assertState({width: [35, 465], opacity: [0.05, 1.95], finished: 1});
+    await assertState({ width: [35, 465], opacity: [0.05, 1.95], finished: 1 });
     await driver.sleep(kDelayMs * 1.5);
-    await assertState({width: 30, opacity: 1, finished: 2});
+    await assertState({ width: 30, opacity: 1, finished: 2 });
   });
 
   it('should handle interrupted transitions well', async function() {
@@ -73,7 +73,7 @@ describe('transitions', function() {
 
     leftDiv = driver.find('.test-left');
     countFinishedDiv = driver.find('.test-finished');
-    await assertState({width: 30, opacity: 1, finished: 0});
+    await assertState({ width: 30, opacity: 1, finished: 0 });
 
     // What the test does is this.
     // Initial
@@ -91,19 +91,19 @@ describe('transitions', function() {
     await driver.sleep(kDelayMs * 3);
 
     // Check that the styles are transitioning but the transition hasn't ended.
-    await assertState({width: [35, 465], opacity: [0.05, 1.95], finished: 0});
+    await assertState({ width: [35, 465], opacity: [0.05, 1.95], finished: 0 });
     await driver.find('.test-toggle').doClick();
 
     // After 2X time more, check here that the transition still hasn't ended, despite duration of
     // 4X and 5X time has now passed. Opacity value should have finished transitioning though.
     await driver.sleep(kDelayMs * 2);
-    await assertState({width: [35, 465], opacity: 1, finished: 0});
+    await assertState({ width: [35, 465], opacity: 1, finished: 0 });
 
     // Toggle again, and wait 3X+ time more to finish the transition.
     await driver.find('.test-toggle').doClick();
     await driver.sleep(kDelayMs * 3.5);
 
     // Assert that all properties transitioned and the count has updated.
-    await assertState({width: 470, opacity: 1, finished: 1});
+    await assertState({ width: 470, opacity: 1, finished: 1 });
   });
 });

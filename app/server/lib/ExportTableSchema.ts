@@ -1,7 +1,7 @@
 import * as express from 'express';
-import {ApiError} from 'app/common/ApiError';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {DownloadOptions, ExportColumn, exportTable} from 'app/server/lib/Export';
+import { ApiError } from 'app/common/ApiError';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { DownloadOptions, ExportColumn, exportTable } from 'app/server/lib/Export';
 
 interface FrictionlessFields {
   name: string;
@@ -12,7 +12,7 @@ interface FrictionlessFields {
   groupChar?: string;
   decimalChar?: string;
   gristFormat?: string;
-  constraints?: {enum: any};
+  constraints?: { enum: any };
   trueValue?: string[];
   falseValue?: string[];
 }
@@ -38,7 +38,7 @@ export async function collectTableSchemaInFrictionlessFormat(
   req: express.Request,
   options: DownloadOptions,
 ): Promise<FrictionlessFormat> {
-  const {tableId, header} = options;
+  const { tableId, header } = options;
   if (!activeDoc.docData) {
     throw new Error('No docData in active document');
   }
@@ -52,21 +52,21 @@ export async function collectTableSchemaInFrictionlessFormat(
     throw new ApiError(`Table ${tableId} not found.`, 404);
   }
 
-  const {tableName, columns} = await exportTable(activeDoc, tableRef, req);
+  const { tableName, columns } = await exportTable(activeDoc, tableRef, req);
   return {
     name: tableId.toLowerCase().replace(/_/g, '-'),
     title: tableName,
     schema: {
       fields: columns.map(col => ({
         name: col[header || "label"],
-        ...(col.description ? {description: col.description} : {}),
+        ...(col.description ? { description: col.description } : {}),
         ...buildTypeField(col, settings.locale),
       })),
     },
   };
 }
 
-function buildTypeField(col: ExportColumn, locale: string): {type: string} & Partial<FrictionlessFields> {
+function buildTypeField(col: ExportColumn, locale: string): { type: string } & Partial<FrictionlessFields> {
   const type = col.type.split(':', 1)[0];
   const widgetOptions = col.formatter.widgetOpts;
   switch (type) {
@@ -108,19 +108,19 @@ function buildTypeField(col: ExportColumn, locale: string): {type: string} & Par
     case 'Choice':
       return {
         type: 'string',
-        constraints: {enum: widgetOptions?.choices},
+        constraints: { enum: widgetOptions?.choices },
       };
     case 'ChoiceList':
       return {
         type: 'array',
-        constraints: {enum: widgetOptions?.choices},
+        constraints: { enum: widgetOptions?.choices },
       };
     case 'Reference':
-      return {type: 'string'};
+      return { type: 'string' };
     case 'ReferenceList':
-      return {type: 'array'};
+      return { type: 'array' };
     default:
-      return {type: 'string'};
+      return { type: 'string' };
   }
 }
 

@@ -1,8 +1,8 @@
-import {DocEntry} from 'app/common/DocListAPI';
-import {DocSnapshots} from 'app/common/DocSnapshot';
-import {DocumentUsage} from 'app/common/DocUsage';
-import {DocReplacementOptions} from 'app/common/UserAPI';
-import {SQLiteDB} from 'app/server/lib/SQLiteDB';
+import { DocEntry } from 'app/common/DocListAPI';
+import { DocSnapshots } from 'app/common/DocSnapshot';
+import { DocumentUsage } from 'app/common/DocUsage';
+import { DocReplacementOptions } from 'app/common/UserAPI';
+import { SQLiteDB } from 'app/server/lib/SQLiteDB';
 
 export interface IDocStorageManager {
   getPath(docName: string): string;

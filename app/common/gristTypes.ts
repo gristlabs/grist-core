@@ -6,10 +6,10 @@ import { removePrefix } from "app/common/gutil";
 // tslint:disable:object-literal-key-quotes
 
 export type GristTypeInfo =
-  {type: 'DateTime', timezone: string} |
-  {type: 'Ref', tableId: string} |
-  {type: 'RefList', tableId: string} |
-  {type: Exclude<GristType, 'DateTime'|'Ref'|'RefList'>};
+  { type: 'DateTime', timezone: string } |
+  { type: 'Ref', tableId: string } |
+  { type: 'RefList', tableId: string } |
+  { type: Exclude<GristType, 'DateTime'|'Ref'|'RefList'> };
 
 export const MANUALSORT = 'manualSort';
 
@@ -19,7 +19,7 @@ export function isHiddenCol(colId: string): boolean {
 }
 
 // This mapping includes both the default value, and its representation for SQLite.
-const _defaultValues: {[key in GristType]: [CellValue, string]} = {
+const _defaultValues: { [key in GristType]: [CellValue, string] } = {
   'Any': [null,  "NULL"],
   'Attachments': [null,  "NULL"],
   'Blob': [null,  "NULL"],
@@ -45,7 +45,7 @@ const _defaultValues: {[key in GristType]: [CellValue, string]} = {
  * Given a grist column type (e.g Text, Numeric, ...) returns the default value for that type.
  * If options.sqlFormatted is true, returns the representation of the value for SQLite.
  */
-export function getDefaultForType(colType: string, options: {sqlFormatted?: boolean} = {}) {
+export function getDefaultForType(colType: string, options: { sqlFormatted?: boolean } = {}) {
   const type = extractTypeFromColType(colType);
   return (_defaultValues[type as GristType] || _defaultValues.Any)[options.sqlFormatted ? 1 : 0];
 }
@@ -56,14 +56,14 @@ export function getDefaultForType(colType: string, options: {sqlFormatted?: bool
  */
 export function extractInfoFromColType(colType: string): GristTypeInfo {
   if (colType === "Attachments") {
-    return {type: "RefList", tableId: "_grist_Attachments"};
+    return { type: "RefList", tableId: "_grist_Attachments" };
   }
   const colon = colType.indexOf(':');
   const [type, arg] = (colon === -1) ? [colType] : [colType.slice(0, colon), colType.slice(colon + 1)];
-  return (type === 'Ref') ? {type, tableId: String(arg)} :
-    (type === 'RefList')  ? {type, tableId: String(arg)} :
-      (type === 'DateTime') ? {type, timezone: String(arg)} :
-        {type} as GristTypeInfo;
+  return (type === 'Ref') ? { type, tableId: String(arg) } :
+    (type === 'RefList')  ? { type, tableId: String(arg) } :
+      (type === 'DateTime') ? { type, timezone: String(arg) } :
+        { type } as GristTypeInfo;
 }
 
 /**
@@ -190,7 +190,7 @@ function isNormalValue(value: CellValue) {
  * Map of Grist type to an "isRightType" checker function, which determines if a given values type
  * matches the declared type of the column.
  */
-const rightType: {[key in GristType]: (value: CellValue) => boolean} = {
+const rightType: { [key in GristType]: (value: CellValue) => boolean } = {
   Any: isNormalValue,
   Attachments: isListOrNull,
   Text: isString,

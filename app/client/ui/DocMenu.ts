@@ -3,28 +3,28 @@
  * of workspaces, and a doc list. The organization and workspace selectors filter the doc list.
  * Orgs, workspaces and docs are fetched asynchronously on build via the passed in API.
  */
-import {makeT} from 'app/client/lib/localization';
-import {getTimeFromNow} from 'app/client/lib/timeUtils';
-import {reportError} from 'app/client/models/AppModel';
-import {docUrl, urlState} from 'app/client/models/gristUrlState';
-import {HomeModel, makeLocalViewSettings, ViewSettings} from 'app/client/models/HomeModel';
-import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
-import {attachAddNewTip} from 'app/client/ui/AddNewTip';
-import {DocList, getUpdatedAt, makeDocOptionsMenu} from 'app/client/ui/DocList';
+import { makeT } from 'app/client/lib/localization';
+import { getTimeFromNow } from 'app/client/lib/timeUtils';
+import { reportError } from 'app/client/models/AppModel';
+import { docUrl, urlState } from 'app/client/models/gristUrlState';
+import { HomeModel, makeLocalViewSettings, ViewSettings } from 'app/client/models/HomeModel';
+import { getWorkspaceInfo, workspaceName } from 'app/client/models/WorkspaceInfo';
+import { attachAddNewTip } from 'app/client/ui/AddNewTip';
+import { DocList, getUpdatedAt, makeDocOptionsMenu } from 'app/client/ui/DocList';
 import * as css from 'app/client/ui/DocMenuCss';
-import {buildHomeIntro} from 'app/client/ui/HomeIntro';
-import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
-import {buildTemplateDocs} from 'app/client/ui/TemplateDocs';
-import {shouldShowWelcomeCoachingCall, showWelcomeCoachingCall} from 'app/client/ui/WelcomeCoachingCall';
-import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
-import {icon} from 'app/client/ui2018/icons';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
-import {confirmModal} from 'app/client/ui2018/modals';
-import {IHomePage} from 'app/common/gristUrls';
-import {SortPref, ViewPref} from 'app/common/Prefs';
+import { buildHomeIntro } from 'app/client/ui/HomeIntro';
+import { buildPinnedDoc, createPinnedDocs } from 'app/client/ui/PinnedDocs';
+import { buildTemplateDocs } from 'app/client/ui/TemplateDocs';
+import { shouldShowWelcomeCoachingCall, showWelcomeCoachingCall } from 'app/client/ui/WelcomeCoachingCall';
+import { buttonSelect, cssButtonSelect } from 'app/client/ui2018/buttonSelect';
+import { icon } from 'app/client/ui2018/icons';
+import { loadingSpinner } from 'app/client/ui2018/loaders';
+import { menu, menuItem, menuText, select } from 'app/client/ui2018/menus';
+import { confirmModal } from 'app/client/ui2018/modals';
+import { IHomePage } from 'app/common/gristUrls';
+import { SortPref, ViewPref } from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
-import {Document, Workspace} from 'app/common/UserAPI';
+import { Document, Workspace } from 'app/common/UserAPI';
 import {
   dom,
   DomArg,
@@ -86,7 +86,7 @@ export function createDocMenu(home: HomeModel): DomElementArg[] {
 
 function attachWelcomePopups(home: HomeModel): (el: Element) => void {
   return (element: Element) => {
-    const {app} = home;
+    const { app } = home;
     if (shouldShowWelcomeCoachingCall(app)) {
       showWelcomeCoachingCall(element, app);
     }
@@ -205,12 +205,12 @@ function buildAllDocsBlock(
 
         (ws.removedAt ?
           [
-            css.docRowUpdatedAt(t("Deleted {{at}}", {at: getTimeFromNow(ws.removedAt)})),
+            css.docRowUpdatedAt(t("Deleted {{at}}", { at: getTimeFromNow(ws.removedAt) })),
             css.docMenuTrigger(icon('Dots')),
             menu(() => makeRemovedWsOptionsMenu(home, ws),
-              {placement: 'bottom-end', parentSelectorToMark: '.' + css.docRowWrapper.className}),
+              { placement: 'bottom-end', parentSelectorToMark: '.' + css.docRowWrapper.className }),
           ] :
-          urlState().setLinkUrl({ws: ws.id})
+          urlState().setLinkUrl({ ws: ws.id })
         ),
 
         dom.hide(use => Boolean(getWorkspaceInfo(home.app, ws).isDefault &&
@@ -258,8 +258,8 @@ function buildPrefs(viewSettings: ViewSettings, ...args: DomArg<HTMLElement>[]) 
     // The Sort selector.
     dom.update(
       select<SortPref>(viewSettings.currentSort, [
-        {value: 'name', label: t("By Name")},
-        {value: 'date', label: t("By Date Modified")},
+        { value: 'name', label: t("By Name") },
+        { value: 'date', label: t("By Date Modified") },
       ],
       { buttonCssClass: css.sortSelector.className },
       ),
@@ -268,8 +268,8 @@ function buildPrefs(viewSettings: ViewSettings, ...args: DomArg<HTMLElement>[]) 
 
     // The View selector.
     buttonSelect<ViewPref>(viewSettings.currentView, [
-      {value: 'icons', icon: 'TypeTable', tooltip: t("Grid view")},
-      {value: 'list', icon: 'TypeCardList', tooltip: t("List view")},
+      { value: 'icons', icon: 'TypeTable', tooltip: t("Grid view") },
+      { value: 'list', icon: 'TypeCardList', tooltip: t("List view") },
     ],
     cssButtonSelect.cls("-light"),
     testId('view-mode'),
@@ -314,12 +314,12 @@ function buildWorkspaceDocBlock(
               // For deleted documents, attach the menu to the entire doc row, and include the
               // "Dots" icon just to clarify that there are options.
               menu(() => makeRemovedDocOptionsMenu(home, doc, workspace),
-                {placement: 'bottom-end', parentSelectorToMark: '.' + css.docRowWrapper.className}),
+                { placement: 'bottom-end', parentSelectorToMark: '.' + css.docRowWrapper.className }),
               css.docMenuTrigger(icon('Dots'), testId('doc-options')),
             ] :
             css.docMenuTrigger(icon('Dots'),
               menu(() => makeDocOptionsMenu(home, doc),
-                {placement: 'bottom-start', parentSelectorToMark: '.' + css.docRowWrapper.className}),
+                { placement: 'bottom-start', parentSelectorToMark: '.' + css.docRowWrapper.className }),
               // Clicks on the menu trigger shouldn't follow the link that it's contained in.
               dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
               testId('doc-options'),
@@ -331,10 +331,10 @@ function buildWorkspaceDocBlock(
     });
   }
 
-  const {currentSort, currentView} = viewSettings;
+  const { currentSort, currentView } = viewSettings;
   return [
     dom.domComputed(
-      use => ({sort: use(currentSort), view: use(currentView)}),
+      use => ({ sort: use(currentSort), view: use(currentView) }),
       opts => renderDocs(opts.sort, opts.view)),
     css.docBlock.cls(use => '-' + use(currentView)),
   ];
@@ -345,9 +345,9 @@ function buildWorkspaceDocBlock(
 
 export function makeRemovedDocOptionsMenu(home: HomeModel, doc: Document, workspace: Workspace) {
   function hardDeleteDoc() {
-    confirmModal(t("Permanently Delete \"{{name}}\"?", {name: doc.name}), t("Delete Forever"),
+    confirmModal(t("Permanently Delete \"{{name}}\"?", { name: doc.name }), t("Delete Forever"),
       () => home.deleteDoc(doc.id, true).catch(reportError),
-      {explanation: t("Document will be permanently deleted.")},
+      { explanation: t("Document will be permanently deleted.") },
     );
   }
 

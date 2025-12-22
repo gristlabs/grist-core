@@ -1,6 +1,6 @@
-import {transition} from 'app/client/ui/transitions';
-import {dom, input, Observable, styled} from "grainjs";
-import {withLocale} from 'test/fixtures/projects/helpers/withLocale';
+import { transition } from 'app/client/ui/transitions';
+import { dom, input, Observable, styled } from "grainjs";
+import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
 
 function setupTest() {
   const toggle = Observable.create(null, false);
@@ -19,13 +19,13 @@ function setupTest() {
       ),
       dom('div.test-right'),
     ),
-    dom('div', {style: 'margin-left: 100px; margin-top: 25px'},
+    dom('div', { style: 'margin-left: 100px; margin-top: 25px' },
       dom('button.test-toggle', 'Toggle', dom.on('click', () => { toggle.set(!toggle.get()); })),
       'Transition time (ms): ',
       input(duration, {}, dom.cls('test-duration')),
       dom.text(duration),
     ),
-    dom('div', {style: 'margin-left: 100px; margin-top: 25px'},
+    dom('div', { style: 'margin-left: 100px; margin-top: 25px' },
       ' Number of finished transitions: ',
       dom('span.test-finished', dom.text(use => '' + use(finishCount))),
     ),

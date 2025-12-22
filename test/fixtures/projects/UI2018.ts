@@ -53,15 +53,15 @@ function setupTest() {
     ),
     dom('h4', 'Button links'),
     cssElemRow(
-      basicButtonLink('Basic Button Link', {href: '#'}),
-      bigBasicButtonLink('Big Basic Button Link', {href: '#'}),
-      primaryButtonLink('Primary Button Link', {href: '#'}),
-      bigPrimaryButtonLink('Big Primary Button Link', {href: '#'}),
+      basicButtonLink('Basic Button Link', { href: '#' }),
+      bigBasicButtonLink('Big Basic Button Link', { href: '#' }),
+      primaryButtonLink('Primary Button Link', { href: '#' }),
+      bigPrimaryButtonLink('Big Primary Button Link', { href: '#' }),
     ),
   );
 
   function myEditableLabel(obs: Observable<string>) {
-    return editableLabel(obs, {save: async val => obs.set(val)});
+    return editableLabel(obs, { save: async val => obs.set(val) });
   }
 
   const labels = dom('div#labels',
@@ -69,11 +69,11 @@ function setupTest() {
     dom('div#editable-label',
       dom('div', myEditableLabel(observable('Hello'))),
       dom('div', myEditableLabel(observable("Small editable label")),
-        {style: `font-size: ${vars.smallFontSize}`}),
+        { style: `font-size: ${vars.smallFontSize}` }),
       dom('div', myEditableLabel(observable("Medium (default) editable label")),
-        {style: `font-size: ${vars.mediumFontSize}`}),
+        { style: `font-size: ${vars.mediumFontSize}` }),
       dom('div', myEditableLabel(observable("Large editable label")),
-        {style: `font-size: ${vars.largeFontSize}`}),
+        { style: `font-size: ${vars.largeFontSize}` }),
     ),
     dom('div#noneditable-label',
       dom('div', styled('span', `font-size: ${vars.smallFontSize}`)(dom.text(observable("Small label")))),
@@ -130,8 +130,8 @@ function setupTest() {
     cssElemRow(
       labeledTriStateSquareCheckbox(bothCheck, 'All checked', testId('both-check')),
     ),
-    cssElemRow(labeledSquareCheckbox(obsCheck1, 'Santa', testId('check-1')), {style: `margin-left: 16px`}),
-    cssElemRow(labeledSquareCheckbox(obsCheck2, 'Babar'), {style: `margin-left: 16px`}),
+    cssElemRow(labeledSquareCheckbox(obsCheck1, 'Santa', testId('check-1')), { style: `margin-left: 16px` }),
+    cssElemRow(labeledSquareCheckbox(obsCheck2, 'Babar'), { style: `margin-left: 16px` }),
   );
 
   const type = observable("");
@@ -148,7 +148,7 @@ function setupTest() {
     { value: "attachment", label: "Attachment", icon: "FieldAttachment"                },
     { value: "any",        label: "Any",        icon: "FieldAny",       disabled: true },
     { value: "fakeType",   label: "A very very long fake label for a very fake type",
-      icon: "FieldText"},
+      icon: "FieldText" },
   ];
   // If 4 or more items are selected in the multiSelect, turn on the error flag for testing purposes.
   const multiSelectError = Computed.create(null, types, (_use, ts) => ts.length >= 4);
@@ -169,7 +169,7 @@ function setupTest() {
     ),
     dom('h4', 'Select menu'),
     dom('div', { style: `width: 200px;` },
-      menu.select(type, typeOptions, {defaultLabel: "Select column type"}),
+      menu.select(type, typeOptions, { defaultLabel: "Select column type" }),
     ),
     dom('h4', 'Scrollable select menu'),
     dom('div', { style: `width: 100px;` },
@@ -177,7 +177,7 @@ function setupTest() {
     ),
     dom('h4', 'Form select menu'),
     dom('div', { style: 'width: 200px' },
-      menu.formSelect(type, typeOptions, {defaultLabel: "Select column type"}),
+      menu.formSelect(type, typeOptions, { defaultLabel: "Select column type" }),
     ),
     dom('h4', 'Multi select menu'),
     dom('div', { style: 'width: 200px' },
@@ -239,17 +239,17 @@ function setupTest() {
 
   const widgetObs = observable(1);
   const widgetBtns: Array<ISelectorOption<number>> = [
-    {value: 0, label: 'Date',    icon: 'FieldDate'},
-    {value: 1, label: 'Spinner', icon: 'FieldSpinner'},
+    { value: 0, label: 'Date',    icon: 'FieldDate' },
+    { value: 1, label: 'Spinner', icon: 'FieldSpinner' },
   ];
 
   const chartObs = observable(null);
   const chartBtns: Array<ISelectorOption<string>> = [
-    {value: 'bar',    icon: 'ChartBar'},
-    {value: 'pie',    icon: 'ChartPie'},
-    {value: 'area',   icon: 'ChartArea'},
-    {value: 'line',   icon: 'ChartLine'},
-    {value: 'kaplan', icon: 'ChartKaplan'},
+    { value: 'bar',    icon: 'ChartBar' },
+    { value: 'pie',    icon: 'ChartPie' },
+    { value: 'area',   icon: 'ChartArea' },
+    { value: 'line',   icon: 'ChartLine' },
+    { value: 'kaplan', icon: 'ChartKaplan' },
   ];
 
   const inline = styled('div', `
@@ -269,7 +269,7 @@ function setupTest() {
     ),
     dom('div',
       dom.cls('widget-select'),
-      inline({style: 'width: 180px;'}, buttonSelect(widgetObs, widgetBtns)),
+      inline({ style: 'width: 180px;' }, buttonSelect(widgetObs, widgetBtns)),
       dom('span',
         dom.cls('widget-value'),
         dom.text(use => String(use(widgetObs))),
@@ -277,7 +277,7 @@ function setupTest() {
     ),
     dom('div',
       dom.cls('widget-select'),
-      inline({style: 'width: 180px;'}, buttonSelect(widgetObs, widgetBtns, cssButtonSelect.cls('-light'))),
+      inline({ style: 'width: 180px;' }, buttonSelect(widgetObs, widgetBtns, cssButtonSelect.cls('-light'))),
       dom('span',
         dom.cls('widget-value'),
         dom.text(use => String(use(widgetObs))),
@@ -285,8 +285,8 @@ function setupTest() {
     ),
     dom('div',
       dom.cls('chart-select'),
-      inline({style: 'width: 200px;'},
-        buttonToggleSelect(chartObs, chartBtns, {large: true, primary: true})),
+      inline({ style: 'width: 200px;' },
+        buttonToggleSelect(chartObs, chartBtns, { large: true, primary: true })),
       dom('span',
         dom.cls('chart-value'),
         dom.text(use => String(use(chartObs))),
@@ -297,8 +297,8 @@ function setupTest() {
   const colorObs = observable('#ff5555');
   const colorSel = dom('div#colorselect',
     dom('h4', 'Color Select'),
-    dom('div', {style: 'display: flex; align-items: center;'},
-      dom('span', {style: 'margin-right: 10px;'}, 'Pick a color:'),
+    dom('div', { style: 'display: flex; align-items: center;' },
+      dom('span', { style: 'margin-right: 10px;' }, 'Pick a color:'),
       colorSelect(colorObs, () => null as any),
     ),
   );

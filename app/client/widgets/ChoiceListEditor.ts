@@ -1,24 +1,24 @@
-import {createGroup} from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ACIndexImpl, ACItem, ACResults,
-  buildHighlightedDom, HighlightFunc, normalizeText} from 'app/client/lib/ACIndex';
-import {IAutocompleteOptions} from 'app/client/lib/autocomplete';
-import {makeT} from 'app/client/lib/localization';
-import {IToken, TokenField, tokenFieldStyles} from 'app/client/lib/TokenField';
-import {colors, testId, theme} from 'app/client/ui2018/cssVars';
-import {menuCssClass} from 'app/client/ui2018/menus';
-import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
-import {EditorPlacement} from 'app/client/widgets/EditorPlacement';
-import {FieldOptions, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
-import {csvEncodeRow} from 'app/common/csvFormat';
-import {CellValue} from "app/common/DocActions";
-import {CompiledPredicateFormula} from 'app/common/PredicateFormula';
-import {EmptyRecordView} from 'app/common/RecordView';
-import {decodeObject, encodeObject} from 'app/plugin/objtypes';
-import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
-import {choiceToken, choiceTokenDomArgs, cssChoiceACItem} from 'app/client/widgets/ChoiceToken';
-import {icon} from 'app/client/ui2018/icons';
-import {dom, styled} from 'grainjs';
+import { createGroup } from 'app/client/components/commands';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { ACIndexImpl, ACItem, ACResults,
+  buildHighlightedDom, HighlightFunc, normalizeText } from 'app/client/lib/ACIndex';
+import { IAutocompleteOptions } from 'app/client/lib/autocomplete';
+import { makeT } from 'app/client/lib/localization';
+import { IToken, TokenField, tokenFieldStyles } from 'app/client/lib/TokenField';
+import { colors, testId, theme } from 'app/client/ui2018/cssVars';
+import { menuCssClass } from 'app/client/ui2018/menus';
+import { createMobileButtons, getButtonMargins } from 'app/client/widgets/EditorButtons';
+import { EditorPlacement } from 'app/client/widgets/EditorPlacement';
+import { FieldOptions, NewBaseEditor } from 'app/client/widgets/NewBaseEditor';
+import { csvEncodeRow } from 'app/common/csvFormat';
+import { CellValue } from "app/common/DocActions";
+import { CompiledPredicateFormula } from 'app/common/PredicateFormula';
+import { EmptyRecordView } from 'app/common/RecordView';
+import { decodeObject, encodeObject } from 'app/plugin/objtypes';
+import { ChoiceOptions } from 'app/client/widgets/ChoiceTextBox';
+import { choiceToken, choiceTokenDomArgs, cssChoiceACItem } from 'app/client/widgets/ChoiceToken';
+import { icon } from 'app/client/ui2018/icons';
+import { dom, styled } from 'grainjs';
 
 const t = makeT('ChoiceListEditor');
 
@@ -108,7 +108,7 @@ export class ChoiceListEditor extends NewBaseEditor {
       openAutocompleteOnFocus: true,
       readonly: options.readonly,
       trimLabels: true,
-      styles: {cssTokenField, cssToken, cssDeleteButton, cssDeleteIcon},
+      styles: { cssTokenField, cssToken, cssDeleteButton, cssDeleteIcon },
     });
 
     this._dom = dom('div.default_editor',
@@ -144,7 +144,7 @@ export class ChoiceListEditor extends NewBaseEditor {
 
   public attach(cellElem: Element): void {
     // Attach the editor dom to page DOM.
-    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, {margins: getButtonMargins()});
+    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, { margins: getButtonMargins() });
 
     // Reposition the editor if needed for external reasons (in practice, window resize).
     this.autoDispose(this._editorPlacement.onReposition.addListener(() => this.resizeInput()));
@@ -173,7 +173,7 @@ export class ChoiceListEditor extends NewBaseEditor {
 
   public getTextValue() {
     const values = this._tokenField.tokensObs.get().map(token => token.label);
-    return csvEncodeRow(values, {prettier: true});
+    return csvEncodeRow(values, { prettier: true });
   }
 
   public getCursorPos(): number {
@@ -186,7 +186,7 @@ export class ChoiceListEditor extends NewBaseEditor {
    */
   public async prepForSave() {
     const tokens = this._tokenField.tokensObs.get();
-    const newChoices = tokens.filter(({isNew}) => isNew).map(({label}) => label);
+    const newChoices = tokens.filter(({ isNew }) => isNew).map(({ label }) => label);
     if (newChoices.length > 0) {
       const choices = this.options.field.widgetOptionsJson.prop('choices');
       await choices.saveOnly([...(choices.peek() || []), ...new Set(newChoices)]);
@@ -198,7 +198,7 @@ export class ChoiceListEditor extends NewBaseEditor {
     // once we reach it.
     const rootElem = this._tokenField.getRootElem();
     const maxSize = this._editorPlacement.calcSizeWithPadding(rootElem,
-      {width: Infinity, height: Infinity}, {calcOnly: true});
+      { width: Infinity, height: Infinity }, { calcOnly: true });
     this._contentSizer.style.maxWidth = Math.ceil(maxSize.width) + 'px';
   }
 
@@ -323,13 +323,13 @@ export interface GetACFilterFuncParams {
 export function buildDropdownConditionFilter(
   params: GetACFilterFuncParams,
 ): (item: ChoiceItem) => boolean {
-  const {dropdownConditionCompiled, gristDoc, tableId, rowId} = params;
+  const { dropdownConditionCompiled, gristDoc, tableId, rowId } = params;
   const table = gristDoc.docData.getTable(tableId);
   if (!table) { throw new Error(`Table ${tableId} not found`); }
 
   const user = gristDoc.docPageModel.user.get() ?? undefined;
   const rec = table.getRecord(rowId) || new EmptyRecordView();
-  return (item: ChoiceItem) => dropdownConditionCompiled({user, rec, choice: item.label});
+  return (item: ChoiceItem) => dropdownConditionCompiled({ user, rec, choice: item.label });
 }
 
 const cssCellEditor = styled('div', `

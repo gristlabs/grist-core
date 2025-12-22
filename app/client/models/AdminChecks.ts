@@ -1,4 +1,4 @@
-import {makeT} from 'app/client/lib/localization';
+import { makeT } from 'app/client/lib/localization';
 import { reportError } from 'app/client/models/errors';
 import { BootProbeIds, BootProbeInfo, BootProbeResult } from 'app/common/BootProbe';
 import { InstallAPI } from 'app/common/InstallAPI';
@@ -52,10 +52,10 @@ export class AdminChecks {
    * about the check and a way to observe the result when it arrives.
    */
   public requestCheck(probe: BootProbeInfo): AdminCheckRequest {
-    const {id} = probe;
+    const { id } = probe;
     let result = this._results.get(id);
     if (!result) {
-      result = Observable.create(this._parent, {status: 'none'});
+      result = Observable.create(this._parent, { status: 'none' });
       this._results.set(id, result);
     }
     let request = this._requests.get(id);
@@ -110,7 +110,7 @@ export class AdminCheckRunner {
   public start() {
     let result = this.results.get(this.id);
     if (!result) {
-      result = Observable.create(this.parent, {status: 'none'});
+      result = Observable.create(this.parent, { status: 'none' });
       this.results.set(this.id, result);
     }
   }

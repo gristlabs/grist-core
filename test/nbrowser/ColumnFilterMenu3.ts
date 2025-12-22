@@ -16,28 +16,28 @@ describe('ColumnFilterMenu3', function() {
   let docId: string;
   before(async () => {
     mainSession = await gu.session().teamSite.user('user1').login();
-    docId = await mainSession.tempNewDoc(cleanup, 'Search3.grist', {load: false});
+    docId = await mainSession.tempNewDoc(cleanup, 'Search3.grist', { load: false });
     const api = mainSession.createHomeApi();
     // Prepare a table with some interestingly-formatted columns, and some data.
-    const {retValues} = await api.applyUserActions(docId, [
+    const { retValues } = await api.applyUserActions(docId, [
       ['AddTable', 'Test', []],
-      ['AddVisibleColumn', 'Test', 'Date', {type: 'Date', widgetOptions: '{"dateFormat":"DD-MM-YYYY"}'}],
-      ['AddVisibleColumn', 'Test', 'Numeric', {type: 'Numeric'}],
-      ['AddVisibleColumn', 'Test', 'Int', {type: 'Int'}],
-      ['AddVisibleColumn', 'Test', 'Ref', {type: 'Ref:Test'}],
-      ['AddVisibleColumn', 'Test', 'RefList', {type: 'RefList:Test'}],
+      ['AddVisibleColumn', 'Test', 'Date', { type: 'Date', widgetOptions: '{"dateFormat":"DD-MM-YYYY"}' }],
+      ['AddVisibleColumn', 'Test', 'Numeric', { type: 'Numeric' }],
+      ['AddVisibleColumn', 'Test', 'Int', { type: 'Int' }],
+      ['AddVisibleColumn', 'Test', 'Ref', { type: 'Ref:Test' }],
+      ['AddVisibleColumn', 'Test', 'RefList', { type: 'RefList:Test' }],
     ]);
     await api.applyUserActions(docId, [
-      ['UpdateRecord', '_grist_Tables_column', retValues[4].colRef, {visibleCol: retValues[1].colRef}],
-      ['UpdateRecord', '_grist_Tables_column', retValues[5].colRef, {visibleCol: retValues[1].colRef}],
+      ['UpdateRecord', '_grist_Tables_column', retValues[4].colRef, { visibleCol: retValues[1].colRef }],
+      ['UpdateRecord', '_grist_Tables_column', retValues[5].colRef, { visibleCol: retValues[1].colRef }],
       ['SetDisplayFormula', 'Test', null, retValues[4].colRef, '$Ref.Date'],
       ['SetDisplayFormula', 'Test', null, retValues[5].colRef, '$RefList.Date'],
-      ['AddRecord', 'Test', null, {Date: '22-12-2011', Numeric: 2,  Int: 2,  Ref: 1,
-        RefList: ['L', 1, 2]}],
-      ['AddRecord', 'Test', null, {Date: '20-12-2021', Numeric: 22, Int: 22, Ref: 2,
-        RefList: ['L', 1]}],
-      ['AddRecord', 'Test', null, {Date: '20-12-2011', Numeric: 3,  Int: 3,  Ref: 3,
-        RefList: ['L', 1, 2, 3]}],
+      ['AddRecord', 'Test', null, { Date: '22-12-2011', Numeric: 2,  Int: 2,  Ref: 1,
+        RefList: ['L', 1, 2] }],
+      ['AddRecord', 'Test', null, { Date: '20-12-2021', Numeric: 22, Int: 22, Ref: 2,
+        RefList: ['L', 1] }],
+      ['AddRecord', 'Test', null, { Date: '20-12-2011', Numeric: 3,  Int: 3,  Ref: 3,
+        RefList: ['L', 1, 2, 3] }],
     ]);
     await mainSession.loadDoc(`/doc/${docId}/p/2`);
   });
@@ -136,10 +136,10 @@ describe('ColumnFilterMenu3', function() {
 
     let docId2: string;
     before(async () => {
-      docId2 = await mainSession.tempNewDoc(cleanup, 'ColumnFilterMenu3IdMismatch.grist', {load: false});
+      docId2 = await mainSession.tempNewDoc(cleanup, 'ColumnFilterMenu3IdMismatch.grist', { load: false });
       const api = mainSession.createHomeApi();
       await api.applyUserActions(docId2, [
-        ['BulkAddRecord', 'Table1', [null, null, null], {A: [1, 3, 3], B: [1, 1, 3]}],
+        ['BulkAddRecord', 'Table1', [null, null, null], { A: [1, 3, 3], B: [1, 1, 3] }],
         ['RemoveRecord', "_grist_Views_section_field", 1], // Hide 'A' column
       ]);
     });
@@ -154,13 +154,13 @@ describe('ColumnFilterMenu3', function() {
       // check filter does not behaves in-correctly (here mostly to show what the problem looked
       // like)
       assert.notDeepEqual(
-        await gu.getVisibleGridCells({cols: ['B'], rowNums: [1, 2, 3]}),
+        await gu.getVisibleGridCells({ cols: ['B'], rowNums: [1, 2, 3] }),
         ['1', '', undefined],
       );
 
       // check filter does behave correctly
       assert.deepEqual(
-        await gu.getVisibleGridCells({cols: ['B'], rowNums: [1, 2, 3]}),
+        await gu.getVisibleGridCells({ cols: ['B'], rowNums: [1, 2, 3] }),
         ['1', '1', ''],
       );
     });

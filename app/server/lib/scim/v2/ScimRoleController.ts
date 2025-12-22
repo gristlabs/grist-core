@@ -26,7 +26,7 @@ class ScimRoleController extends BaseController {
   public async getSingleRole(resource: SCIMMYRoleResource, context: RequestContext): Promise<SCIMMYRoleSchema> {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
-      const role = await this.dbManager.getGroupWithMembersById(id, {aclRule: true});
+      const role = await this.dbManager.getGroupWithMembersById(id, { aclRule: true });
       if (!role || role.type !== Group.ROLE_TYPE) {
         throw new SCIMMY.Types.Error(404, null!, `Role with ID ${id} not found`);
       }
@@ -42,7 +42,7 @@ class ScimRoleController extends BaseController {
    */
   public async getRoles(resource: SCIMMYRoleResource, context: RequestContext): Promise<SCIMMYRoleSchema[]> {
     return this.runAndHandleErrors(context, async () => {
-      const scimmyGroup = (await this.dbManager.getGroupsWithMembersByType(Group.ROLE_TYPE, {aclRule: true}))
+      const scimmyGroup = (await this.dbManager.getGroupsWithMembersByType(Group.ROLE_TYPE, { aclRule: true }))
         .map(role => toSCIMMYRole(role));
       return this.maybeApplyFilter(scimmyGroup, resource.filter);
     });

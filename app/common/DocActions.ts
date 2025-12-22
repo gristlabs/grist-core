@@ -216,7 +216,7 @@ export function getNumRows(action: DocAction): number {
 // Convert from TableColValues (used by DocStorage and external APIs) to TableDataAction (used
 // mainly by the sandbox).
 export function toTableDataAction(tableId: string, colValues: TableColValues): TableDataAction {
-  const colData = {...colValues};   // Make a copy to avoid changing passed-in arguments.
+  const colData = { ...colValues };   // Make a copy to avoid changing passed-in arguments.
   const rowIds: number[] = colData.id;
   delete (colData as BulkColValues).id;
   return ['TableData', tableId, rowIds, colData];
@@ -226,11 +226,11 @@ export function toTableDataAction(tableId: string, colValues: TableColValues): T
 // and external APIs).
 // Also accepts a TableDataAction nested as a tableData member of a larger structure,
 // for convenience in dealing with the result of fetches.
-export function fromTableDataAction(tableData: TableDataAction|{tableData: TableDataAction}): TableColValues {
+export function fromTableDataAction(tableData: TableDataAction|{ tableData: TableDataAction }): TableColValues {
   const data = ('tableData' in tableData) ? tableData.tableData : tableData;
   const rowIds: number[] = data[2];
   const colValues: BulkColValues = data[3];
-  return {id: rowIds, ...colValues};
+  return { id: rowIds, ...colValues };
 }
 
 /**

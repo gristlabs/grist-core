@@ -1,23 +1,23 @@
-import {hooks} from 'app/client/Hooks';
-import {loadUserManager} from 'app/client/lib/imports';
-import {makeT} from 'app/client/lib/localization';
-import {getLoginOrSignupUrl} from 'app/client/lib/urlUtils';
-import {AppModel, reportError} from 'app/client/models/AppModel';
-import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
-import {reportWarning} from 'app/client/models/errors';
-import {docUrl, urlState} from 'app/client/models/gristUrlState';
+import { hooks } from 'app/client/Hooks';
+import { loadUserManager } from 'app/client/lib/imports';
+import { makeT } from 'app/client/lib/localization';
+import { getLoginOrSignupUrl } from 'app/client/lib/urlUtils';
+import { AppModel, reportError } from 'app/client/models/AppModel';
+import { DocInfo, DocPageModel } from 'app/client/models/DocPageModel';
+import { reportWarning } from 'app/client/models/errors';
+import { docUrl, urlState } from 'app/client/models/gristUrlState';
 import {
   downloadAttachmentsModal,
   downloadDocModal,
   makeCopy,
   replaceTrunkWithFork,
 } from 'app/client/ui/MakeCopyMenu';
-import {sendToDrive} from 'app/client/ui/sendToDrive';
-import {hoverTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
-import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
-import {primaryButton} from 'app/client/ui2018/buttons';
-import {mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
+import { sendToDrive } from 'app/client/ui/sendToDrive';
+import { hoverTooltip, withInfoTooltip } from 'app/client/ui/tooltips';
+import { cssHoverCircle, cssTopBarBtn } from 'app/client/ui/TopBarCss';
+import { primaryButton } from 'app/client/ui2018/buttons';
+import { mediaXSmall, testId, theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
 import {
   menu,
   menuDivider,
@@ -27,17 +27,17 @@ import {
   menuItemSubmenu,
   menuText,
 } from 'app/client/ui2018/menus';
-import {buildUrlId, isFeatureEnabled, parseUrlId} from 'app/common/gristUrls';
+import { buildUrlId, isFeatureEnabled, parseUrlId } from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
-import {Document} from 'app/common/UserAPI';
-import {dom, DomContents, styled} from 'grainjs';
-import {cssMenuItem, MenuCreateFunc} from 'popweasel';
+import { Document } from 'app/common/UserAPI';
+import { dom, DomContents, styled } from 'grainjs';
+import { cssMenuItem, MenuCreateFunc } from 'popweasel';
 
 const t = makeT('ShareMenu');
 
 export function buildOriginalUrlId(urlId: string, isSnapshot: boolean): string {
   const parts = parseUrlId(urlId);
-  return isSnapshot ? buildUrlId({...parts, snapshotId: undefined}) : parts.trunkId;
+  return isSnapshot ? buildUrlId({ ...parts, snapshotId: undefined }) : parts.trunkId;
 }
 
 /**
@@ -50,22 +50,22 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
   // available (a user quick enough to open the menu in this state would have to re-open it).
   return dom.maybe(pageModel.currentDoc, (doc) => {
     const isProposable = Boolean(doc.options?.proposedChanges?.acceptProposals);
-    const saveCopy = () => handleSaveCopy({pageModel, doc, modalTitle: t("Save Document")});
+    const saveCopy = () => handleSaveCopy({ pageModel, doc, modalTitle: t("Save Document") });
     if (doc.isSnapshot) {
-      const backToCurrent = () => urlState().pushUrl({doc: buildOriginalUrlId(doc.id, true)});
+      const backToCurrent = () => urlState().pushUrl({ doc: buildOriginalUrlId(doc.id, true) });
       return shareButton(t("Back to current"), () => [
         menuManageUsers(doc, pageModel),
-        menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
-        menuOriginal(doc, pageModel, {isSnapshot: true}),
+        menuSaveCopy({ pageModel, doc, saveActionTitle: t("Save copy") }),
+        menuOriginal(doc, pageModel, { isSnapshot: true }),
         menuExports(doc, pageModel),
-      ], {buttonAction: backToCurrent});
+      ], { buttonAction: backToCurrent });
     }
     else if (doc.isTutorialFork) {
       return shareButton(t("Save copy"), () => [
-        menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
-        menuOriginal(doc, pageModel, {isTutorialFork: true}),
+        menuSaveCopy({ pageModel, doc, saveActionTitle: t("Save copy") }),
+        menuOriginal(doc, pageModel, { isTutorialFork: true }),
         menuExports(doc, pageModel),
-      ], {buttonAction: saveCopy});
+      ], { buttonAction: saveCopy });
     }
     else if ((doc.isPreFork || doc.isBareFork) && !isProposable) {
       // A new unsaved document, or a fiddle, or a public example.
@@ -74,9 +74,9 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
           isProposable ? t("Suggest Changes") : t("Save copy");
       return shareButton(saveActionTitle, () => [
         menuManageUsers(doc, pageModel),
-        menuSaveCopy({pageModel, doc, saveActionTitle}),
+        menuSaveCopy({ pageModel, doc, saveActionTitle }),
         menuExports(doc, pageModel),
-      ], {buttonAction: saveCopy});
+      ], { buttonAction: saveCopy });
     }
     else if (doc.isFork) {
       if (isProposable) {
@@ -86,14 +86,14 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
             changes => cssChangeCount(` (${changes})`)),
         ], () => [
           menuManageUsers(doc, pageModel),
-          menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
+          menuSaveCopy({ pageModel, doc, saveActionTitle: t("Save copy") }),
           menuOriginal(doc, pageModel),
           menuExports(doc, pageModel),
-        ], {buttonAction: async () => {
+        ], { buttonAction: async () => {
           await urlState().pushUrl({
             docPage: 'suggestions',
           });
-        }});
+        } });
       }
       // For forks, the main actions are "Replace Original" and "Save copy". When "Replace
       // Original" is unavailable (for samples, forks of public docs, etc), we'll consider "Save
@@ -102,15 +102,15 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
       if (!roles.canEdit(doc.trunkAccess || null)) {
         return shareButton(t("Save copy"), () => [
           menuManageUsers(doc, pageModel),
-          menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
+          menuSaveCopy({ pageModel, doc, saveActionTitle: t("Save copy") }),
           menuOriginal(doc, pageModel),
           menuExports(doc, pageModel),
-        ], {buttonAction: saveCopy});
+        ], { buttonAction: saveCopy });
       }
       else {
         return shareButton(t("Unsaved"), () => [
           menuManageUsers(doc, pageModel),
-          menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
+          menuSaveCopy({ pageModel, doc, saveActionTitle: t("Save copy") }),
           menuOriginal(doc, pageModel),
           menuExports(doc, pageModel),
         ]);
@@ -119,8 +119,8 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
     else {
       return shareButton(null, () => [
         menuManageUsers(doc, pageModel),
-        menuSaveCopy({pageModel, doc, saveActionTitle: t("Duplicate document")}),
-        menuWorkOnCopy(pageModel, {suggestChanges: isProposable}),
+        menuSaveCopy({ pageModel, doc, saveActionTitle: t("Duplicate document") }),
+        menuWorkOnCopy(pageModel, { suggestChanges: isProposable }),
         menuExports(doc, pageModel),
       ]);
     }
@@ -133,14 +133,14 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
  * visible extension of the icon that opens the menu.
  */
 function shareButton(buttonText: DomContents|null, menuCreateFunc: MenuCreateFunc,
-  options: {buttonAction?: () => void} = {},
+  options: { buttonAction?: () => void } = {},
 ) {
   if (!buttonText) {
     // Regular circular button that opens a menu.
     return cssHoverCircle({ style: `margin: 5px;` },
       cssTopBarBtn('Share', dom.cls('tour-share-icon')),
-      menu(menuCreateFunc, {placement: 'bottom-end'}),
-      hoverTooltip(t('Share'), {key: 'topBarBtnTooltip'}),
+      menu(menuCreateFunc, { placement: 'bottom-end' }),
+      hoverTooltip(t('Share'), { key: 'topBarBtnTooltip' }),
       testId('tb-share'),
     );
   }
@@ -153,8 +153,8 @@ function shareButton(buttonText: DomContents|null, menuCreateFunc: MenuCreateFun
       ),
       cssShareCircle(
         cssShareIcon('Share'),
-        menu(menuCreateFunc, {placement: 'bottom-end'}),
-        hoverTooltip(t('Share'), {key: 'topBarBtnTooltip'}),
+        menu(menuCreateFunc, { placement: 'bottom-end' }),
+        hoverTooltip(t('Share'), { key: 'topBarBtnTooltip' }),
         testId('tb-share'),
       ),
     );
@@ -167,8 +167,8 @@ function shareButton(buttonText: DomContents|null, menuCreateFunc: MenuCreateFun
       cssShareCircle(
         cssShareIcon('Share'),
       ),
-      menu(menuCreateFunc, {placement: 'bottom-end'}),
-      hoverTooltip(t('Share'), {key: 'topBarBtnTooltip'}),
+      menu(menuCreateFunc, { placement: 'bottom-end' }),
+      hoverTooltip(t('Share'), { key: 'topBarBtnTooltip' }),
       testId('tb-share'),
     );
   }
@@ -179,11 +179,11 @@ async function handleSaveCopy(options: {
   doc: Document,
   modalTitle: string,
 }) {
-  const {pageModel} = options;
-  const {appModel} = pageModel;
+  const { pageModel } = options;
+  const { appModel } = pageModel;
   if (!appModel.currentValidUser) {
     pageModel.clearUnsavedChanges();
-    window.location.href = getLoginOrSignupUrl({srcDocId: urlState().state.get().doc});
+    window.location.href = getLoginOrSignupUrl({ srcDocId: urlState().state.get().doc });
     return;
   }
 
@@ -220,10 +220,10 @@ interface MenuOriginalOptions {
  * again, it should likely be a shortcut to setting the open mode back to default.
  */
 function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOriginalOptions = {}) {
-  const {isSnapshot = false, isTutorialFork = false} = options;
+  const { isSnapshot = false, isTutorialFork = false } = options;
   const termToUse = isSnapshot ? t("current version") : t("original");
   const origUrlId = buildOriginalUrlId(doc.id, isSnapshot);
-  const originalUrl = urlState().makeUrl({doc: origUrlId});
+  const originalUrl = urlState().makeUrl({ doc: origUrlId });
 
   // When comparing forks, show changes from the original to the fork. When comparing a snapshot,
   // show changes from the snapshot to the original, which seems more natural. The per-snapshot
@@ -233,7 +233,7 @@ function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOrigi
   // Preserve the current state in order to stay on the selected page. TODO: Should auto-switch to
   // first page when the requested page is not in the document.
   const compareHref = dom.attr('href', use => urlState().makeUrl({
-    ...use(urlState().state), doc: leftDocId, params: {compare: rightDocId}}));
+    ...use(urlState().state), doc: leftDocId, params: { compare: rightDocId } }));
 
   const compareUrlId = urlState().state.get().params?.compare;
   const comparingSnapshots: boolean = isSnapshot && Boolean(compareUrlId && parseUrlId(compareUrlId).snapshotId);
@@ -242,22 +242,22 @@ function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOrigi
     replaceTrunkWithFork(doc, pageModel, origUrlId).catch(reportError);
   }
   return [
-    isTutorialFork ? null : cssMenuSplitLink({href: originalUrl},
-      cssMenuSplitLinkText(t("Return to {{termToUse}}", {termToUse})),
-      cssMenuIconLink({href: originalUrl, target: '_blank'},
+    isTutorialFork ? null : cssMenuSplitLink({ href: originalUrl },
+      cssMenuSplitLinkText(t("Return to {{termToUse}}", { termToUse })),
+      cssMenuIconLink({ href: originalUrl, target: '_blank' },
         cssMenuIcon('FieldLink'),
         testId('open-original'),
       ),
       dom.on('click', () => { pageModel.clearUnsavedChanges(); }),
       testId('return-to-original'),
     ),
-    menuItem(replaceOriginal, t("Replace {{termToUse}}...", {termToUse}),
+    menuItem(replaceOriginal, t("Replace {{termToUse}}...", { termToUse }),
       // Disable if original is not writable, and also when comparing snapshots (since it's
       // unclear which of the versions to use).
       dom.cls('disabled', !roles.canEdit(doc.trunkAccess || null) || comparingSnapshots),
       testId('replace-original'),
     ),
-    isTutorialFork ? null : menuItemLink(compareHref, {target: '_blank'}, t("Compare to {{termToUse}}", {termToUse}),
+    isTutorialFork ? null : menuItemLink(compareHref, { target: '_blank' }, t("Compare to {{termToUse}}", { termToUse }),
       dom.on('click', () => { pageModel.clearUnsavedChanges(); }),
       testId('compare-original'),
     ),
@@ -271,8 +271,8 @@ function menuSaveCopy(options: {
   doc: Document,
   saveActionTitle: string,
 }) {
-  const {pageModel, doc, saveActionTitle} = options;
-  const saveCopy = () => handleSaveCopy({pageModel, doc, modalTitle: saveActionTitle});
+  const { pageModel, doc, saveActionTitle } = options;
+  const saveCopy = () => handleSaveCopy({ pageModel, doc, modalTitle: saveActionTitle });
   return [
     // TODO Disable these when user has no accessible destinations.
     menuItem(saveCopy, `${saveActionTitle}...`, testId('save-copy')),
@@ -287,8 +287,8 @@ function menuWorkOnCopy(pageModel: DocPageModel, options?: {
   if (!gristDoc) { return null; }
 
   const makeUnsavedCopy = async function() {
-    const {urlId} = await gristDoc.docComm.fork();
-    await urlState().pushUrl({doc: urlId});
+    const { urlId } = await gristDoc.docComm.fork();
+    await urlState().pushUrl({ doc: urlId });
   };
 
   const label = options?.suggestChanges ? t("Suggest Changes") : t("Work on a copy");
@@ -298,7 +298,7 @@ function menuWorkOnCopy(pageModel: DocPageModel, options?: {
       withInfoTooltip(
         t("Edit without affecting the original"),
         'workOnACopy',
-        {popupOptions: {attach: null}},
+        { popupOptions: { attach: null } },
       ),
     ),
   ];
@@ -347,17 +347,17 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
       () => [
         menuItemLink(
           onClick,
-          hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
+          hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: '' }),
           t("Comma Separated Values (.csv)"),
           testId('tb-share-option'),
         ),
         menuItemLink(
           onClick,
-          hooks.maybeModifyLinkAttrs({ href: gristDoc.getTsvLink(), target: '_blank', download: ''}),
+          hooks.maybeModifyLinkAttrs({ href: gristDoc.getTsvLink(), target: '_blank', download: '' }),
           t("Tab Separated Values (.tsv)"), testId('tb-share-option')),
         menuItemLink(
           onClick,
-          hooks.maybeModifyLinkAttrs({ href: gristDoc.getDsvLink(), target: '_blank', download: ''}),
+          hooks.maybeModifyLinkAttrs({ href: gristDoc.getDsvLink(), target: '_blank', download: '' }),
           t("DOO Separated Values (.dsv)"), testId('tb-share-option')),
         menuItemLink(
           onClick,

@@ -1,14 +1,14 @@
-import {LocalActionBundle} from 'app/common/ActionBundle';
-import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
-import {DocState} from 'app/common/DocState';
-import {ActionGroupOptions, ActionHistory, ActionHistoryUndoInfo, asActionGroup,
-  asMinimalActionGroup} from 'app/server/lib/ActionHistory';
-import {ActionHistoryImpl, computeActionHash} from 'app/server/lib/ActionHistoryImpl';
-import {DocStorage} from 'app/server/lib/DocStorage';
-import {DocStorageManager} from 'app/server/lib/DocStorageManager';
+import { LocalActionBundle } from 'app/common/ActionBundle';
+import { ActionGroup, MinimalActionGroup } from 'app/common/ActionGroup';
+import { DocState } from 'app/common/DocState';
+import { ActionGroupOptions, ActionHistory, ActionHistoryUndoInfo, asActionGroup,
+  asMinimalActionGroup } from 'app/server/lib/ActionHistory';
+import { ActionHistoryImpl, computeActionHash } from 'app/server/lib/ActionHistoryImpl';
+import { DocStorage } from 'app/server/lib/DocStorage';
+import { DocStorageManager } from 'app/server/lib/DocStorageManager';
 import * as path from 'path';
-import {createDocTools} from 'test/server/docTools';
-import {assert} from 'test/server/testUtils';
+import { createDocTools } from 'test/server/docTools';
+import { assert } from 'test/server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 import * as tmp from 'tmp';
 
@@ -132,13 +132,13 @@ class ToyActionHistory implements ActionHistory {
   public async getRecentMinimalActionGroups(maxActions: number, clientId?: string): Promise<MinimalActionGroup[]> {
     const actions = await this.getRecentActions(maxActions);
     return actions.map(a => asMinimalActionGroup(this,
-      {actionHash: a.actionHash!, actionNum: a.actionNum},
+      { actionHash: a.actionHash!, actionNum: a.actionNum },
       clientId));
   }
 
   public async getRecentStates(maxStates?: number): Promise<DocState[]> {
     const actions = await this.getRecentActions(maxStates);
-    return actions.reverse().map(action => ({n: action.actionNum, h: action.actionHash!}));
+    return actions.reverse().map(action => ({ n: action.actionNum, h: action.actionHash! }));
   }
 
   public setActionUndoInfo(actionHash: string, undoInfo: ActionHistoryUndoInfo): void {
@@ -175,9 +175,9 @@ async function getDoc(fname: string) {
   return storage;
 }
 
-const versions: Array<{name: string,
+const versions: Array<{ name: string,
   createDoc: () => Promise<DocStorage|undefined>,
-  createHistory: (doc: DocStorage) => Promise<ActionHistory>}> = [
+  createHistory: (doc: DocStorage) => Promise<ActionHistory> }> = [
   {
     name: "ToyActionHistory",
     createDoc: () => Promise.resolve(undefined),
@@ -367,9 +367,9 @@ for (const version of versions) {
     it('tracks ownership', async function() {
       await history.recordNextLocalUnsent(b1);
       await history.recordNextLocalUnsent(b2);
-      const defaultUndoInfo = {linkId: 0, otherId: 0, isUndo: false, rowIdHint: 0};
-      history.setActionUndoInfo(b1.actionHash!, {...defaultUndoInfo, clientId: "me"});
-      history.setActionUndoInfo(b2.actionHash!, {...defaultUndoInfo, clientId: "you"});
+      const defaultUndoInfo = { linkId: 0, otherId: 0, isUndo: false, rowIdHint: 0 };
+      history.setActionUndoInfo(b1.actionHash!, { ...defaultUndoInfo, clientId: "me" });
+      history.setActionUndoInfo(b2.actionHash!, { ...defaultUndoInfo, clientId: "you" });
       assert.equal(history.getActionUndoInfo(b1.actionHash!)?.clientId, "me");
       assert.equal(history.getActionUndoInfo(b2.actionHash!)?.clientId, "you");
     });
@@ -450,8 +450,8 @@ describe("ActionHistoryImpl only", function() {
   it('can automatically prune long history', async function() {
     const doc = await docTools.createDoc("test.grist");
     const history = new ActionHistoryImpl(doc.docStorage,
-      {maxRows: 2, maxBytes: 40000, graceFactor: 2,
-        checkPeriod: 1});
+      { maxRows: 2, maxBytes: 40000, graceFactor: 2,
+        checkPeriod: 1 });
     await history.initialize();
     await history.recordNextShared(makeBundle(2, "action"));
     assert.lengthOf(await history.getRecentActions(), 2);
@@ -477,8 +477,8 @@ describe("ActionHistoryImpl only", function() {
   it('can automatically prune bulky history', async function() {
     const doc = await docTools.createDoc("test.grist");
     // Set byte limit sufficiently low to dominate.
-    const history = new ActionHistoryImpl(doc.docStorage, {maxRows: 4, maxBytes: 1000,
-      graceFactor: 1.1, checkPeriod: 1});
+    const history = new ActionHistoryImpl(doc.docStorage, { maxRows: 4, maxBytes: 1000,
+      graceFactor: 1.1, checkPeriod: 1 });
     await history.initialize();
     for (let i = 1; i <= 10; i++) {
       await history.recordNextShared(makeBundle(i, "action"));

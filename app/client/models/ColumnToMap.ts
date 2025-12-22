@@ -1,5 +1,5 @@
 import * as UserType from 'app/client/widgets/UserType';
-import {ColumnToMap} from 'app/plugin/CustomSectionAPI';
+import { ColumnToMap } from 'app/plugin/CustomSectionAPI';
 
 /**
  * Helper that wraps custom widget's column definition and expands all the defaults.

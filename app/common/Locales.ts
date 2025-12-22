@@ -1,7 +1,7 @@
 import * as LocaleCurrencyMap from 'locale-currency/map';
 import * as LocaleCurrency from 'locale-currency';
-import {nativeCompare} from 'app/common/gutil';
-import {localeCodes} from "app/common/LocaleCodes";
+import { nativeCompare } from 'app/common/gutil';
+import { localeCodes } from "app/common/LocaleCodes";
 
 const DEFAULT_CURRENCY = "USD";
 
@@ -14,8 +14,8 @@ export let locales: Readonly<Locale[]>;
 
 // Intl.DisplayNames is only supported on recent browsers, so proceed with caution.
 try {
-  const regionDisplay = new Intl.DisplayNames('en', {type: 'region'});
-  const languageDisplay = new Intl.DisplayNames('en', {type: 'language'});
+  const regionDisplay = new Intl.DisplayNames('en', { type: 'region' });
+  const languageDisplay = new Intl.DisplayNames('en', { type: 'language' });
   const display = (code: string) => {
     try {
       const locale = new Intl.Locale(code);
@@ -31,12 +31,12 @@ try {
   // Though, this file is in common, it is safe to filter by current system
   // as the list should be already filtered by codes that are supported by the backend.
   locales = Intl.DisplayNames.supportedLocalesOf(localeCodes).map((code) => {
-    return {name: display(code), code};
+    return { name: display(code), code };
   });
 }
 catch {
   // Fall back to using the locale code as the display name.
-  locales = localeCodes.map(code => ({name: code, code}));
+  locales = localeCodes.map(code => ({ name: code, code }));
 }
 
 export interface Currency {
@@ -58,15 +58,15 @@ export function getCurrency(code: string) {
 
 // Intl.DisplayNames is only supported on recent browsers, so proceed with caution.
 try {
-  const currencyDisplay = new Intl.DisplayNames('en', {type: 'currency'});
+  const currencyDisplay = new Intl.DisplayNames('en', { type: 'currency' });
   currencies = [...new Set(currenciesCodes)].map((code) => {
-    return {name: currencyDisplay.of(code)!, code};
+    return { name: currencyDisplay.of(code)!, code };
   });
 }
 catch {
   // Fall back to using the currency code as the display name.
   currencies = [...new Set(currenciesCodes)].map((code) => {
-    return {name: code, code};
+    return { name: code, code };
   });
 }
 

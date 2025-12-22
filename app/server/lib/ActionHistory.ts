@@ -13,11 +13,11 @@
  * blobs, which can simplify the database storage.
  */
 
-import {LocalActionBundle} from 'app/common/ActionBundle';
-import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
-import {createEmptyActionSummary} from 'app/common/ActionSummary';
-import {summarizeAction} from 'app/common/ActionSummarizer';
-import {DocState} from 'app/common/DocState';
+import { LocalActionBundle } from 'app/common/ActionBundle';
+import { ActionGroup, MinimalActionGroup } from 'app/common/ActionGroup';
+import { createEmptyActionSummary } from 'app/common/ActionSummary';
+import { summarizeAction } from 'app/common/ActionSummarizer';
+import { DocState } from 'app/common/DocState';
 
 export interface ActionGroupOptions {
   // If set, inspect the action in detail in order to include a summary of
@@ -170,13 +170,13 @@ export abstract class ActionHistory {
 export function asActionGroup(history: ActionHistory,
   act: LocalActionBundle,
   options: ActionGroupOptions): ActionGroup {
-  const {summarize, clientId} = options;
+  const { summarize, clientId } = options;
   const info = act.info[1];
 
   const fromSelf = (act.actionHash && clientId) ?
     (history.getActionUndoInfo(act.actionHash)?.clientId === clientId) : false;
 
-  const {extra: {primaryAction}, minimal: {rowIdHint, isUndo}} =
+  const { extra: { primaryAction }, minimal: { rowIdHint, isUndo } } =
     getActionUndoInfoWithoutClient(act, options.retValues);
 
   return {
@@ -199,7 +199,7 @@ export function asActionGroup(history: ActionHistory,
 }
 
 export function asMinimalActionGroup(history: ActionHistory,
-  act: {actionHash: string, actionNum: number},
+  act: { actionHash: string, actionNum: number },
   clientId?: string): MinimalActionGroup {
   const undoInfo = act.actionHash ? history.getActionUndoInfo(act.actionHash) : undefined;
   const fromSelf = clientId ? (undoInfo?.clientId === clientId) : false;

@@ -1,9 +1,9 @@
-import {UserAPI} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { UserAPI } from 'app/common/UserAPI';
+import { assert, driver, Key } from 'mocha-webdriver';
 import fetch from 'node-fetch';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server} from 'test/nbrowser/testServer';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { server } from 'test/nbrowser/testServer';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 import {
   enableExternalAttachmentsForTestSuite,
 } from 'test/nbrowser/externalAttachmentsHelpers';
@@ -46,7 +46,7 @@ describe('DocUsageTracking', function() {
     await gu.assertBannerText(null);
   });
 
-  function testAttachmentsUsage(getDocId: () => string, options: {external: boolean}) {
+  function testAttachmentsUsage(getDocId: () => string, options: { external: boolean }) {
     it('updates attachments size usage when uploading attachments', async function () {
       const docId = getDocId();
       // Add a new 'Attachments' column of type Attachment to Table1.
@@ -113,7 +113,7 @@ describe('DocUsageTracking', function() {
       docId = await session.tempNewDoc(cleanup, `AttachmentUsageTestDoc - internal`);
     });
 
-    testAttachmentsUsage(() => docId, {external: false});
+    testAttachmentsUsage(() => docId, { external: false });
   });
 
   describe('attachment usage with external attachments', function() {
@@ -126,7 +126,7 @@ describe('DocUsageTracking', function() {
       assert.equal((await docApi.getAttachmentStore()).type, "external");
     });
 
-    testAttachmentsUsage(() => docId, {external: true});
+    testAttachmentsUsage(() => docId, { external: true });
   });
 });
 
@@ -187,7 +187,7 @@ async function waitForDocUsage() {
 }
 
 async function removeUnusedAttachments(api: UserAPI, docId: string) {
-  const headers = {Authorization: `Bearer ${await api.fetchApiKey()}`};
+  const headers = { Authorization: `Bearer ${await api.fetchApiKey()}` };
   const url = server.getUrl('docs', `/api/docs/${docId}`);
   await fetch(url + "/attachments/removeUnused?verifyfiles=0&expiredonly=0", {
     headers,

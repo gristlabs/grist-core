@@ -1,10 +1,10 @@
-import {commonUrls, LatestVersionAvailable} from "app/common/gristUrls";
-import {isAffirmative} from "app/common/gutil";
-import {version as installedVersion} from "app/common/version";
-import {naturalCompare} from 'app/common/SortFunc';
-import {GristServer} from "app/server/lib/GristServer";
-import {ApiError} from "app/common/ApiError";
-import {LatestVersion} from "app/server/lib/UpdateManager";
+import { commonUrls, LatestVersionAvailable } from "app/common/gristUrls";
+import { isAffirmative } from "app/common/gutil";
+import { version as installedVersion } from "app/common/version";
+import { naturalCompare } from 'app/common/SortFunc';
+import { GristServer } from "app/server/lib/GristServer";
+import { ApiError } from "app/common/ApiError";
+import { LatestVersion } from "app/server/lib/UpdateManager";
 
 export async function checkForUpdates(gristServer: GristServer): Promise<LatestVersion> {
   // Prepare data for the telemetry that endpoint might expect.

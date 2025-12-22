@@ -1,5 +1,5 @@
-import {nativeValues} from "app/gen-server/lib/values";
-import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
+import { nativeValues } from "app/gen-server/lib/values";
+import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 export class GracePeriodStart1647883793388 implements MigrationInterface {
 

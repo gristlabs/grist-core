@@ -1,11 +1,11 @@
-import {drive} from '@googleapis/drive';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {RequestWithLogin} from 'app/server/lib/Authorizer';
-import {streamXLSX} from 'app/server/lib/ExportXLSX';
+import { drive } from '@googleapis/drive';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { RequestWithLogin } from 'app/server/lib/Authorizer';
+import { streamXLSX } from 'app/server/lib/ExportXLSX';
 import log from 'app/server/lib/log';
-import {optStringParam} from 'app/server/lib/requestUtils';
-import {Request, Response} from 'express';
-import {PassThrough, Stream} from 'stream';
+import { optStringParam } from 'app/server/lib/requestUtils';
+import { Request, Response } from 'express';
+import { PassThrough, Stream } from 'stream';
 
 /**
  * Endpoint logic for sending grist document to Google Drive. Grist document is first exported as an
@@ -36,7 +36,7 @@ export async function exportToDrive(
   try {
     // Send file to GDrive and get the url for a preview.
     const [, url] = await Promise.all([
-      streamXLSX(activeDoc, req, stream, {tableId: ''}),
+      streamXLSX(activeDoc, req, stream, { tableId: '' }),
       sendFileToDrive(name, stream, access_token),
     ]);
     activeDoc.logAuditEvent(mreq, {

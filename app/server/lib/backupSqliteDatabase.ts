@@ -1,10 +1,10 @@
 import * as sqlite3 from '@gristlabs/sqlite3';
-import {delay} from 'app/common/delay';
-import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {LogMethods} from "app/server/lib/LogMethods";
-import {fromCallback} from 'app/server/lib/serverUtils';
-import {Backup} from 'app/server/lib/SqliteCommon';
-import {SQLiteDB} from 'app/server/lib/SQLiteDB';
+import { delay } from 'app/common/delay';
+import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
+import { LogMethods } from "app/server/lib/LogMethods";
+import { fromCallback } from 'app/server/lib/serverUtils';
+import { Backup } from 'app/server/lib/SqliteCommon';
+import { SQLiteDB } from 'app/server/lib/SQLiteDB';
 import * as fse from 'fs-extra';
 
 // This constant controls how many pages of the database we back up in a single step.
@@ -72,11 +72,11 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
       // shell program: https://www.sqlite.org/src/info/7b6a605b1883dfcb
       await fromCallback(cb => db!.exec("PRAGMA synchronous=OFF; PRAGMA journal_mode=OFF;", cb));
     }
-    if (testProgress) { testProgress({action: 'open', phase: 'before'}); }
+    if (testProgress) { testProgress({ action: 'open', phase: 'before' }); }
     // If using mainDb, it could close any time we yield and come back.
     if (mainDb?.isClosed()) { throw new Error('source closed'); }
     backup = mainDb ? mainDb.backup(dest) : db!.backup(src, 'main', 'main', false);
-    if (testProgress) { testProgress({action: 'open', phase: 'after'}); }
+    if (testProgress) { testProgress({ action: 'open', phase: 'after' }); }
     let remaining: number = -1;
     let prevError: Error|null = null;
     let errorMsgTime: number = 0;
@@ -97,17 +97,17 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
       if (remaining >= 0 && backup.remaining > remaining && stepStart - restartMsgTime > 1000) {
         _log.info(null, `copy of ${src} (${label}) restarted`);
         restartMsgTime = stepStart;
-        testProgress?.({action: 'restart'});
+        testProgress?.({ action: 'restart' });
       }
       remaining = backup.remaining;
-      testProgress?.({action: 'step', phase: 'before'});
+      testProgress?.({ action: 'step', phase: 'before' });
       let isCompleted: boolean = false;
       if (mainDb?.isClosed()) { throw new Error('source closed'); }
       try {
         isCompleted = Boolean(await fromCallback(cb => backup!.step(PAGES_TO_BACKUP_PER_STEP, cb)));
       }
       catch (err) {
-        testProgress?.({action: 'error', error: String(err)});
+        testProgress?.({ action: 'error', error: String(err) });
         if (String(err).match(/SQLITE_BUSY/)) {
           busyCount++;
           if (busyCount === 10 && mainDb) {
@@ -140,7 +140,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
           maxNonFinalStepTimeMs = stepTimeMs;
         }
       }
-      testProgress?.({action: 'step', phase: 'after'});
+      testProgress?.({ action: 'step', phase: 'after' });
       if (isCompleted) {
         _log.info(null, `copy of ${src} (${label}) completed successfully`);
         success = true;
@@ -152,7 +152,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
   finally {
     mainDb?.unpause();
     if (backup) { await fromCallback(cb => backup!.finish(cb)); }
-    testProgress?.({action: 'close', phase: 'before'});
+    testProgress?.({ action: 'close', phase: 'before' });
     try {
       if (db) { await fromCallback(cb => db!.close(cb)); }
     }
@@ -169,7 +169,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
         _log.debug(null, `problem removing copy of ${src} (${label}): ${err}`);
       }
     }
-    testProgress?.({action: 'close', phase: 'after'});
+    testProgress?.({ action: 'close', phase: 'after' });
     _log.rawLog('debug', null, `stopped copy of ${src} (${label})`, {
       finalStepTimeMs,
       maxStepTimeMs,
@@ -239,6 +239,6 @@ export async function backupUsingBestConnection(
   return retryOnClose(
     db,
     options.log,
-    () => backupSqliteDatabase(db, docPath, outPath, undefined, postfix, {docId}),
+    () => backupSqliteDatabase(db, docPath, outPath, undefined, postfix, { docId }),
   );
 }

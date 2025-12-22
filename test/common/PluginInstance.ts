@@ -1,17 +1,17 @@
-import {LocalPlugin} from 'app/common/plugin';
+import { LocalPlugin } from 'app/common/plugin';
 import * as clientUtil from 'test/client/clientUtil';
 import * as sinon from 'sinon';
-import {assert} from 'chai';
+import { assert } from 'chai';
 
 import * as browserGlobals from 'app/client/lib/browserGlobals';
 const G: any = browserGlobals.get('$');
 
-import {PluginInstance} from 'app/common/PluginInstance';
+import { PluginInstance } from 'app/common/PluginInstance';
 
 describe("PluginInstance", function() {
   clientUtil.setTmpMochaGlobals();
   it("can manages render target", function() {
-    const plugin = new PluginInstance({manifest: {contributions: {}}} as LocalPlugin, {});
+    const plugin = new PluginInstance({ manifest: { contributions: {} } } as LocalPlugin, {});
     assert.throws(() => plugin.getRenderTarget(2), /Unknown render target.*/);
     assert.doesNotThrow(() => plugin.getRenderTarget("fullscreen"));
     const renderTarget1 = sinon.spy();

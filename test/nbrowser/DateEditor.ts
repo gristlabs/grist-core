@@ -1,6 +1,6 @@
-import {assert, driver, Key, WebElement} from 'mocha-webdriver';
+import { assert, driver, Key, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 import escapeRegExp from 'lodash/escapeRegExp';
 
 async function setCustomDateFormat(format: string) {
@@ -11,7 +11,7 @@ async function setCustomDateFormat(format: string) {
 }
 
 async function testDateFormat(initialDateStr: string, newDay: string, finalDateStr: string) {
-  const cell = await gu.getCell({col: 'A', rowNum: 1});
+  const cell = await gu.getCell({ col: 'A', rowNum: 1 });
   await cell.click();
   assert.equal(await cell.getText(), initialDateStr);
 
@@ -24,10 +24,10 @@ async function testDateFormat(initialDateStr: string, newDay: string, finalDateS
   await gu.checkTextEditor(new RegExp(escapeRegExp(finalDateStr)));
   await driver.sendKeys(Key.ENTER);
   await gu.waitForServer();
-  assert.equal(await gu.getCell({col: 'A', rowNum: 1}).getText(), finalDateStr);
+  assert.equal(await gu.getCell({ col: 'A', rowNum: 1 }).getText(), finalDateStr);
 
   // Reopen the editor, check that our previously-selected date is still selected.
-  await gu.getCell({col: 'A', rowNum: 1}).click();
+  await gu.getCell({ col: 'A', rowNum: 1 }).click();
   await driver.sendKeys(Key.ENTER);
   await gu.checkTextEditor(new RegExp(escapeRegExp(finalDateStr)));
   assert.isTrue(await driver.findContent('td.day', newDay).matches('.active'));
@@ -58,15 +58,15 @@ describe('DateEditor', function() {
   });
 
   it('should allow editing dates in standard format', async function() {
-    await gu.getCell({col: 'A', rowNum: 1}).click();
+    await gu.getCell({ col: 'A', rowNum: 1 }).click();
     await gu.setType(/Date/);
     assert.equal(await gu.getDateFormat(), "YYYY-MM-DD");
 
     // Use shortcut to populate today's date, mainly to ensure that our date-mocking is working.
-    await gu.getCell({col: 'A', rowNum: 1}).click();
+    await gu.getCell({ col: 'A', rowNum: 1 }).click();
     await gu.sendKeys(Key.chord(await gu.modKey(), ';'));
     await gu.waitForServer();
-    assert.equal(await gu.getCell({col: 'A', rowNum: 1}).getText(), '2020-02-01');
+    assert.equal(await gu.getCell({ col: 'A', rowNum: 1 }).getText(), '2020-02-01');
 
     // Change the format and check that date gets updated.
     await gu.setDateFormat("MMMM Do, YYYY");
@@ -82,7 +82,7 @@ describe('DateEditor', function() {
   });
 
   it('should allow editing invalid alt-text', async function() {
-    let cell = await gu.getCell({col: 'A', rowNum: 2});
+    let cell = await gu.getCell({ col: 'A', rowNum: 2 });
     await cell.click();
     await driver.sendKeys(Key.ENTER);
     await gu.waitAppFocus(false);
@@ -92,7 +92,7 @@ describe('DateEditor', function() {
     await gu.waitForServer();
 
     // Check that it's saved, and shows up as invalid.
-    cell = await gu.getCell({col: 'A', rowNum: 2});
+    cell = await gu.getCell({ col: 'A', rowNum: 2 });
     assert.equal(await cell.getText(), '2020-03-14pi');
     assert.isTrue(await cell.find('.field_clip').matches('.invalid'));
 
@@ -105,7 +105,7 @@ describe('DateEditor', function() {
     // Edit it down to something valid, save, and check.
     await driver.sendKeys(Key.BACK_SPACE, Key.BACK_SPACE, Key.ENTER);
     await gu.waitForServer();
-    cell = await gu.getCell({col: 'A', rowNum: 2});
+    cell = await gu.getCell({ col: 'A', rowNum: 2 });
     assert.equal(await cell.getText(), '2020-03-14 Sa');
     assert.isFalse(await cell.find('.field_clip').matches('.invalid'));
   });
@@ -117,7 +117,7 @@ describe('DateEditor', function() {
   }
 
   it('should respect locale for datepicker', async function() {
-    let cell = await gu.getCell({col: 'A', rowNum: 1});
+    let cell = await gu.getCell({ col: 'A', rowNum: 1 });
     await cell.click();
     await gu.setDateFormat("YYYY-MM-DD");
 
@@ -148,7 +148,7 @@ describe('DateEditor', function() {
     await gu.reloadDoc();
 
     // Check that the datepicker now opens to show the new language.
-    cell = await gu.getCell({col: 'A', rowNum: 1});
+    cell = await gu.getCell({ col: 'A', rowNum: 1 });
     await openCellEditor(cell);
     await driver.findWait('.datepicker', 200);
     assert.equal(await driver.find('.datepicker .datepicker-days .datepicker-switch').getText(),

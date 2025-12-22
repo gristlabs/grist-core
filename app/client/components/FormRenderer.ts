@@ -1,17 +1,17 @@
 import * as css from 'app/client/components/FormRendererCss';
-import {bindMarkdown} from 'app/client/components/Forms/styles';
-import {getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {makeT} from 'app/client/lib/localization';
-import {FormField} from 'app/client/ui/FormAPI';
-import {dropdownWithSearch} from 'app/client/ui/searchDropdown';
-import {isXSmallScreenObs} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {confirmModal} from 'app/client/ui2018/modals';
-import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
-import {isAffirmative, isNumber} from 'app/common/gutil';
-import {CellValue} from 'app/plugin/GristData';
-import {Disposable, dom, DomContents, IAttrObj, makeTestId, MutableObsArray, obsArray, Observable} from 'grainjs';
-import {IPopupOptions, PopupControl} from 'popweasel';
+import { bindMarkdown } from 'app/client/components/Forms/styles';
+import { getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import { makeT } from 'app/client/lib/localization';
+import { FormField } from 'app/client/ui/FormAPI';
+import { dropdownWithSearch } from 'app/client/ui/searchDropdown';
+import { isXSmallScreenObs } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { confirmModal } from 'app/client/ui2018/modals';
+import { toggleSwitch } from 'app/client/ui2018/toggleSwitch';
+import { isAffirmative, isNumber } from 'app/common/gutil';
+import { CellValue } from 'app/plugin/GristData';
+import { Disposable, dom, DomContents, IAttrObj, makeTestId, MutableObsArray, obsArray, Observable } from 'grainjs';
+import { IPopupOptions, PopupControl } from 'popweasel';
 
 const testId = makeTestId('test-form-');
 
@@ -78,9 +78,9 @@ export function cleanFormLayoutSpec(
 ): FormLayoutNode | null {
   if (layoutSpec.leaf) {
     if (fieldIds instanceof Set) {
-      return fieldIds.has(layoutSpec.leaf) ? {...layoutSpec} : null;
+      return fieldIds.has(layoutSpec.leaf) ? { ...layoutSpec } : null;
     }
-    return fieldIds[layoutSpec.leaf] ? {...layoutSpec, leaf: fieldIds[layoutSpec.leaf]} : null;
+    return fieldIds[layoutSpec.leaf] ? { ...layoutSpec, leaf: fieldIds[layoutSpec.leaf] } : null;
   }
 
   return {
@@ -161,7 +161,7 @@ class SectionRenderer extends FormRenderer {
 class ColumnsRenderer extends FormRenderer {
   public render() {
     return css.columns(
-      {style: `--grist-columns-count: ${this._getColumnsCount()}`},
+      { style: `--grist-columns-count: ${this._getColumnsCount()}` },
       this.children.map(child => child.render()),
     );
   }
@@ -179,7 +179,7 @@ class SubmitRenderer extends FormRenderer {
         css.resetButton(
           t('Reset'),
           dom.attr('aria-disabled', use => use(this.context.disabled) ? 'true' : 'false'),
-          {type: 'button'},
+          { type: 'button' },
           dom.on('click', (event) => {
             if (this.context.disabled.get()) {
               return event.preventDefault();
@@ -195,7 +195,7 @@ class SubmitRenderer extends FormRenderer {
         css.submitButton(
           dom('button',
             dom.attr('aria-disabled', use => use(this.context.disabled) ? 'true' : 'false'),
-            {type: 'submit'},
+            { type: 'submit' },
             dom.domComputed((use) => {
               return use(this.context.disabled)
                 ? [css.buttonLoadingSpinner(), t('Submitting…')]
@@ -273,7 +273,7 @@ abstract class BaseFieldRenderer extends Disposable {
     return dom('label',
       css.label.cls(''),
       css.label.cls('-required', Boolean(this.field.options.formRequired)),
-      {for: this.name(), id: `${this.id()}-label`},
+      { for: this.name(), id: `${this.id()}-label` },
       this.field.question,
     );
   }
@@ -497,11 +497,11 @@ class ChoiceRenderer extends BaseFieldRenderer  {
   private _renderSelectInput() {
     return css.hybridSelect(
       this._selectElement = css.select(
-        {name: this.name(), id: this.id(), required: this.field.options.formRequired},
+        { name: this.name(), id: this.id(), required: this.field.options.formRequired },
         dom.on('input', (_e, elem) => this.value.set(elem.value)),
-        dom('option', {value: ''}, selectPlaceholder()),
+        dom('option', { value: '' }, selectPlaceholder()),
         this._choices.map(choice => dom('option',
-          {value: choice},
+          { value: choice },
           dom.prop('selected', use => use(this.value) === choice),
           choice,
         )),
@@ -525,7 +525,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
             })),
             onClose: () => { setTimeout(() => this._selectElement.focus()); },
             placeholder: t('Search'),
-            acOptions: {maxResults: 100, keepOrder: false, showEmptyItems: true},
+            acOptions: { maxResults: 100, keepOrder: false, showEmptyItems: true },
             popupOptions: {
               trigger: [
                 'click',
@@ -536,7 +536,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
           }),
           css.resetSelectButton(
             icon('CrossSmall'),
-            dom.attr('aria-label', t('Clear selection for: {{-inputLabel}}', {inputLabel: this.field.question})),
+            dom.attr('aria-label', t('Clear selection for: {{-inputLabel}}', { inputLabel: this.field.question })),
             dom.hide(use => !use(this.value)),
             dom.on('click', (ev) => {
               this.value.set('');
@@ -559,7 +559,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
       css.radioList.cls('-horizontal', this._alignment === 'horizontal'),
       dom.cls('grist-radio-list'),
       dom.cls('required', Boolean(required)),
-      {name: this.name(), required},
+      { name: this.name(), required },
       dom.forEach(this._radioButtons, radioButton =>
         css.radio(
           dom('input',
@@ -618,7 +618,7 @@ class BoolRenderer extends BaseFieldRenderer {
     return toggleSwitch(this.checked, {
       label: this.field.question,
       inputArgs: [
-        {name: this.name(), required: this.field.options.formRequired},
+        { name: this.name(), required: this.field.options.formRequired },
         preventSubmitOnEnter(),
       ],
       labelArgs: [
@@ -695,7 +695,7 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
       css.checkboxList.cls('-horizontal', this._alignment === 'horizontal'),
       dom.cls('grist-checkbox-list'),
       dom.cls('required', Boolean(required)),
-      {name: this.name(), required},
+      { name: this.name(), required },
       dom.forEach(this.checkboxes, checkbox =>
         css.checkbox(
           css.checkboxInput(
@@ -766,7 +766,7 @@ class RefListRenderer extends BaseFieldRenderer {
       css.checkboxList.cls('-horizontal', this._alignment === 'horizontal'),
       dom.cls('grist-checkbox-list'),
       dom.cls('required', Boolean(required)),
-      {name: this.name(), required},
+      { name: this.name(), required },
       dom.forEach(this.checkboxes, checkbox =>
         css.checkbox(
           css.checkboxInput(
@@ -877,12 +877,12 @@ class RefRenderer extends BaseFieldRenderer {
         },
         dom.on('input', (_e, elem) => this.value.set(elem.value)),
         dom('option',
-          {value: ''},
+          { value: '' },
           selectPlaceholder(),
           dom.prop('selected', use => use(this.value) === ''),
         ),
         this._choices.map(choice => dom('option',
-          {value: String(choice[0])},
+          { value: String(choice[0]) },
           String(choice[1]),
           dom.prop('selected', use => use(this.value) === String(choice[0])),
         )),
@@ -908,7 +908,7 @@ class RefRenderer extends BaseFieldRenderer {
               value: String(choice[0]),
             })),
             onClose: () => { setTimeout(() => this._selectElement.focus()); },
-            acOptions: {maxResults: 100, keepOrder: false, showEmptyItems: true},
+            acOptions: { maxResults: 100, keepOrder: false, showEmptyItems: true },
             placeholder: 'Search',
             popupOptions: {
               trigger: [
@@ -920,7 +920,7 @@ class RefRenderer extends BaseFieldRenderer {
           }),
           css.resetSelectButton(
             icon('CrossSmall'),
-            dom.attr('aria-label', t('Clear selection for: {{-inputLabel}}', {inputLabel: this.field.question})),
+            dom.attr('aria-label', t('Clear selection for: {{-inputLabel}}', { inputLabel: this.field.question })),
             dom.hide(use => !use(this.value)),
             dom.on('click', (ev) => {
               this.value.set('');
@@ -943,7 +943,7 @@ class RefRenderer extends BaseFieldRenderer {
       css.radioList.cls('-horizontal', this._alignment === 'horizontal'),
       dom.cls('grist-radio-list'),
       dom.cls('required', Boolean(required)),
-      {name: this.name(), required, 'data-grist-type': this.field.type},
+      { name: this.name(), required, 'data-grist-type': this.field.type },
       dom.forEach(this._radioButtons, radioButton =>
         css.radio(
           dom('input',
@@ -1028,7 +1028,7 @@ const FormRenderers = {
 };
 
 function preventSubmitOnEnter() {
-  return dom.onKeyDown({Enter$: ev => ev.preventDefault()});
+  return dom.onKeyDown({ Enter$: ev => ev.preventDefault() });
 }
 
 /**

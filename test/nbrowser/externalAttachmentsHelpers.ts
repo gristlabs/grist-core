@@ -1,6 +1,6 @@
-import {server} from 'test/nbrowser/testServer';
-import {createTmpDir} from 'test/server/docTools';
-import {mkdtemp} from 'fs-extra';
+import { server } from 'test/nbrowser/testServer';
+import { createTmpDir } from 'test/server/docTools';
+import { mkdtemp } from 'fs-extra';
 import path from 'path';
 import * as process from 'node:process';
 
@@ -16,7 +16,7 @@ export function enableExternalAttachmentsForTestSuite(options: {
   transferDelay?: number,
 }):
 { envVars: Record<string, string>; getAttachmentsDir(): string; } {
-  const {thresholdMb, transferDelay} = options;
+  const { thresholdMb, transferDelay } = options;
   const envVars: Record<string, string> = {
     GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
     GRIST_TEST_ATTACHMENTS_DIR: "",

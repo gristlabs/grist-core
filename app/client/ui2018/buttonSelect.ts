@@ -1,11 +1,11 @@
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {IconName} from 'app/client/ui2018/IconList';
-import {icon} from 'app/client/ui2018/icons';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {isColorDark} from 'app/common/gutil';
-import {components} from 'app/common/ThemePrefs';
-import {dom, DomElementArg, Observable, styled} from 'grainjs';
+import { hoverTooltip } from 'app/client/ui/tooltips';
+import { colors, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { IconName } from 'app/client/ui2018/IconList';
+import { icon } from 'app/client/ui2018/icons';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
+import { isColorDark } from 'app/common/gutil';
+import { components } from 'app/common/ThemePrefs';
+import { dom, DomElementArg, Observable, styled } from 'grainjs';
 import debounce from 'lodash/debounce';
 
 export interface ISelectorOptionFull<T> {
@@ -69,9 +69,9 @@ export function buttonToggleSelect<T>(
  */
 export function alignmentSelect(obs: Observable<string>, ...domArgs: DomElementArg[]) {
   const alignments: Array<ISelectorOption<string>> = [
-    {value: 'left',   icon: 'LeftAlign'},
-    {value: 'center', icon: 'CenterAlign'},
-    {value: 'right',  icon: 'RightAlign'},
+    { value: 'left',   icon: 'LeftAlign' },
+    { value: 'center', icon: 'CenterAlign' },
+    { value: 'right',  icon: 'RightAlign' },
   ];
   return buttonSelect(obs, alignments, {}, testId('alignment-select'), ...domArgs);
 }
@@ -94,7 +94,7 @@ export function colorSelect(value: Observable<string>, save: (val: string) => Pr
     // latest saved value we should rebind the <input .../> element each time the value is changed
     // by the server.
     cssColorPicker(
-      {type: 'color'},
+      { type: 'color' },
       dom.attr('value', use => use(value).slice(0, 7)),
       dom.on('input', setValue),
       dom.on('change', onSave),
@@ -120,7 +120,7 @@ export function makeButtonSelect<T>(
       const screenReaderLabel = !label && tooltip;
       return cssSelectorBtn(
         tooltip ? hoverTooltip(tooltip) : null,
-        screenReaderLabel ? {"aria-label": screenReaderLabel} : null,
+        screenReaderLabel ? { "aria-label": screenReaderLabel } : null,
         cssSelectorBtn.cls('-selected', use => use(obs) === value),
         dom.on('click', () => onClick(value)),
         isFullOption(option) && option.icon ? icon(option.icon) : null,

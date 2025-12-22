@@ -1,4 +1,4 @@
-import {getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import { getBrowserGlobals } from 'app/client/lib/browserGlobals';
 
 const G = getBrowserGlobals('document', 'window');
 

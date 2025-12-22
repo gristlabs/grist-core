@@ -1,6 +1,6 @@
-import {assert, driver, Key, WebElement} from 'mocha-webdriver';
+import { assert, driver, Key, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 async function checkHasLinkStyle(elem: WebElement, yesNo: boolean) {
   assert.equal(await elem.getCssValue('text-decoration-line'), yesNo ? 'underline' : 'none');
@@ -30,7 +30,7 @@ describe('Formulas', function() {
     await gu.addColumn('B');
     await gu.addColumn('C');
     // Make sure we are not in edit mode, finding column C is enough.
-    await gu.getColumnHeader({ col: 'C'});
+    await gu.getColumnHeader({ col: 'C' });
     await driver.sendKeys('=');
     await gu.waitAppFocus(false);
     if (await driver.find('.test-editor-tooltip-convert').isPresent()) {
@@ -38,13 +38,13 @@ describe('Formulas', function() {
     }
     await driver.sendKeys(" ");
     // Make sure we are now in edit mode.
-    await gu.getColumnHeader({ col: '$C'});
+    await gu.getColumnHeader({ col: '$C' });
     // Move mouse over other column, and make sure it is highlighted
     const hoverOver = async (col: string) =>
       await driver.withActions(actions => (
         actions
-          .move({origin: gu.getCell(col, 1)})
-          .move({origin: gu.getCell(col, 2)})
+          .move({ origin: gu.getCell(col, 1) })
+          .move({ origin: gu.getCell(col, 2) })
       ));
     const tooltipId = '.test-column-formula-tooltip';
     // Helper to test if hover is on right column.
@@ -88,20 +88,20 @@ describe('Formulas', function() {
     // - First moving on the row number
     await hoverOver('$A');
     await isHoverOn('$A');
-    await driver.withActions(actions => actions.move({origin: driver.find('.gridview_data_row_num')}));
+    await driver.withActions(actions => actions.move({ origin: driver.find('.gridview_data_row_num') }));
     await noHoverAtAll();
     // - Moving over add button
     await hoverOver('$A');
     await isHoverOn('$A');
-    await driver.withActions(actions => actions.move({origin: driver.find('.mod-add-column')}));
+    await driver.withActions(actions => actions.move({ origin: driver.find('.mod-add-column') }));
     await noHoverAtAll();
     // - Moving below last row
     await hoverOver('$A');
     await isHoverOn('$A');
     await driver.withActions(actions =>
       actions
-        .move({origin: gu.getCell('$A', 7)})
-        .move({origin: gu.getCell('$A', 7), y: 22 + 1}),
+        .move({ origin: gu.getCell('$A', 7) })
+        .move({ origin: gu.getCell('$A', 7), y: 22 + 1 }),
     );
     await noHoverAtAll();
     // - Moving right after last column
@@ -110,14 +110,14 @@ describe('Formulas', function() {
     // First move to the last cell,
     await driver.withActions(actions =>
       actions
-        .move({origin: gu.getCell("$C", 7)}), // move add row on last column
+        .move({ origin: gu.getCell("$C", 7) }), // move add row on last column
     );
     await isHoverOn('$C');
     await noHoverOn('$A');
     // and then a little bit to the right (100px is width of the field)
     await driver.withActions(actions =>
       actions
-        .move({origin: gu.getCell("$C", 7), x: 100 + 1}),
+        .move({ origin: gu.getCell("$C", 7), x: 100 + 1 }),
     );
     await noHoverAtAll();
 
@@ -125,11 +125,11 @@ describe('Formulas', function() {
     await hoverOver('$A');
     await isHoverOn('$A');
     // move on the A header,
-    await driver.withActions(actions => actions.move({origin: gu.getColumnHeader({ col: '$A' })}));
+    await driver.withActions(actions => actions.move({ origin: gu.getColumnHeader({ col: '$A' }) }));
     // still hover should be on A column,
     await isHoverOn('$A');
     // and now jump out of the grid (22 is height of the row)
-    await driver.withActions(actions => actions.move({origin: gu.getColumnHeader({ col: '$A' }), y: -22 - 3}));
+    await driver.withActions(actions => actions.move({ origin: gu.getColumnHeader({ col: '$A' }), y: -22 - 3 }));
     await noHoverAtAll();
     // undo adding 3 columns
     await driver.sendKeys(Key.ESCAPE);
@@ -138,7 +138,7 @@ describe('Formulas', function() {
   });
 
   it('should evaluate formulas requiring lazy-evaluation', async function() {
-    await gu.renameColumn({col: 'Budget (millions)'}, 'Budget');
+    await gu.renameColumn({ col: 'Budget (millions)' }, 'Budget');
 
     await gu.addColumn('A');
     await gu.enterFormula('IFERROR($Invalid if $Budget > 50 else $Budget, "X")');
@@ -165,7 +165,7 @@ describe('Formulas', function() {
     // Formulas can return strange values, and Grist should do a reasonable job displaying them.
     // In particular, this verifies a fix to a bug where some values could cause an error that
     // looked like a crash of the data engine.
-    await gu.getCell({rowNum: 1, col: 'A'}).click();
+    await gu.getCell({ rowNum: 1, col: 'A' }).click();
 
     // Our goal is to test output of formulas, so skip the slow and flaky typing in of a long
     // multi-line formula, use API to set it instead.
@@ -198,7 +198,7 @@ return [
     }]]);
 
     // Wait for the row we expect to become empty, to ensure the formula got processed.
-    await gu.waitToPass(async () => assert.equal(await gu.getCell({rowNum: 2, col: 'A'}).getText(), ""));
+    await gu.waitToPass(async () => assert.equal(await gu.getCell({ rowNum: 2, col: 'A' }).getText(), ""));
     // Check the result of the formula: normal return, values correspond to what we asked.
     const expected = `\
 [-17, 0, 12345678901234567890, 1e-20, true, \
@@ -209,7 +209,7 @@ return [
   });
 
   it('should strip out leading equal-sign users might think is needed', async function() {
-    await gu.getCell({rowNum: 1, col: 'A'}).click();
+    await gu.getCell({ rowNum: 1, col: 'A' }).click();
     await gu.enterFormula('$Budget*10');
     assert.deepEqual(await gu.getVisibleGridCells('A', [1, 2, 3]), ['300', '550', '100']);
     await gu.enterFormula('= $Budget*100');
@@ -222,7 +222,7 @@ return [
   });
 
   it('should not fail when formulas have valid indent or leading whitespace', async function() {
-    await gu.getCell({rowNum: 1, col: 'A'}).click();
+    await gu.getCell({ rowNum: 1, col: 'A' }).click();
 
     await gu.enterFormula("  $Budget * 10");
     assert.deepEqual(await gu.getVisibleGridCells('A', [1, 2, 3]), ['300', '550', '100']);
@@ -251,7 +251,7 @@ return [
 
   it('should support autocompletion from lowercase values', async function() {
     await gu.toggleSidePanel('right', 'close');
-    await gu.getCell({rowNum: 1, col: 'A'}).click();
+    await gu.getCell({ rowNum: 1, col: 'A' }).click();
     await driver.sendKeys('=');
     await gu.waitAppFocus(false);
 
@@ -318,7 +318,7 @@ return [
   });
 
   it('should link some suggested functions to their documentation', async function() {
-    await gu.getCell({rowNum: 1, col: 'A'}).click();
+    await gu.getCell({ rowNum: 1, col: 'A' }).click();
     await driver.sendKeys('=');
     await gu.waitAppFocus(false);
     await driver.sendKeys('me');

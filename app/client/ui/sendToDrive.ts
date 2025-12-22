@@ -1,11 +1,11 @@
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {reportError} from 'app/client/models/errors';
-import {spinnerModal} from 'app/client/ui2018/modals';
-import type {DocPageModel} from 'app/client/models/DocPageModel';
-import type {Document} from 'app/common/UserAPI';
+import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import { reportError } from 'app/client/models/errors';
+import { spinnerModal } from 'app/client/ui2018/modals';
+import type { DocPageModel } from 'app/client/models/DocPageModel';
+import type { Document } from 'app/common/UserAPI';
 import { getGoogleCodeForSending } from "app/client/ui/googleAuth";
 const G = getBrowserGlobals('window');
-import {makeT} from 'app/client/lib/localization';
+import { makeT } from 'app/client/lib/localization';
 
 const t = makeT('sendToDrive');
 
@@ -31,7 +31,7 @@ export async function sendToDrive(doc: Document, pageModel: DocPageModel) {
 
   try {
     const token = await getGoogleCodeForSending(gristDoc);
-    const {url} = await send(token);
+    const { url } = await send(token);
     G.window.location.assign(url);
   }
   catch (err) {

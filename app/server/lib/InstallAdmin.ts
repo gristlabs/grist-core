@@ -1,9 +1,9 @@
-import {ApiError} from 'app/common/ApiError';
-import {HomeDBManager, SUPPORT_EMAIL} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {InstallAdminInfo} from 'app/common/LoginSessionAPI';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {getUser, RequestWithLogin} from 'app/server/lib/Authorizer';
-import {User} from 'app/gen-server/entity/User';
+import { ApiError } from 'app/common/ApiError';
+import { HomeDBManager, SUPPORT_EMAIL } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { InstallAdminInfo } from 'app/common/LoginSessionAPI';
+import { appSettings } from 'app/server/lib/AppSettings';
+import { getUser, RequestWithLogin } from 'app/server/lib/Authorizer';
+import { User } from 'app/gen-server/entity/User';
 import express from 'express';
 
 /**
@@ -91,7 +91,7 @@ export class SimpleInstallAdmin extends InstallAdmin {
     const installAdmin = await this._dbManager.getUserByLogin(this._installAdminEmail);
     return [{
       user: installAdmin.toUserProfile(),
-      reason: req.t('admin.accountByEmail', {defaultEmail: this._installAdminEmail}),
+      reason: req.t('admin.accountByEmail', { defaultEmail: this._installAdminEmail }),
     }];
   }
 }

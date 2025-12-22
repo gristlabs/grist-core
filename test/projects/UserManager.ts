@@ -1,5 +1,5 @@
-import {assert, driver, Key, WebElement} from 'mocha-webdriver';
-import {server, setupTestSuite} from 'test/projects/testUtils';
+import { assert, driver, Key, WebElement } from 'mocha-webdriver';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 
 describe('UserManager', () => {
@@ -61,7 +61,7 @@ describe('UserManager', () => {
     // Save and check output.
     await driver.find('.test-save').click();
     assert.deepEqual(JSON.parse(await driver.find('.test-result').getText()), {
-      users: {"foo@example.com": "editors"},
+      users: { "foo@example.com": "editors" },
     });
     await driver.find('.test-reset').click();
   });
@@ -127,7 +127,7 @@ describe('UserManager', () => {
     // Save and check output.
     await driver.find('.test-save').click();
     assert.deepEqual(JSON.parse(await driver.find('.test-result').getText()), {
-      users: {"bar@example.com": null},
+      users: { "bar@example.com": null },
     });
     await driver.find('.test-reset').click();
   });

@@ -1,7 +1,7 @@
-import {colors, isNarrowScreen, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {IEditorCommandGroup} from 'app/client/widgets/NewBaseEditor';
-import {dom, styled} from 'grainjs';
+import { colors, isNarrowScreen, theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { IEditorCommandGroup } from 'app/client/widgets/NewBaseEditor';
+import { dom, styled } from 'grainjs';
 
 /**
  * Detects if the device likely needs mobile editor buttons.
@@ -33,7 +33,7 @@ export function createMobileButtons(commands: IEditorCommandGroup) {
 }
 
 export function getButtonMargins() {
-  return needsMobileButtons() ? {left: 20, right: 20, top: 0, bottom: 0} : undefined;
+  return needsMobileButtons() ? { left: 20, right: 20, top: 0, bottom: 0 } : undefined;
 }
 
 const cssFinishBtn = styled('div', `

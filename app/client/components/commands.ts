@@ -8,12 +8,12 @@
  */
 
 import * as Mousetrap from 'app/client/lib/Mousetrap';
-import {arrayRemove, unwrap} from 'app/common/gutil';
+import { arrayRemove, unwrap } from 'app/common/gutil';
 import dom from 'app/client/lib/dom';
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {CommandDef, CommandName, CommendGroupDef, groups} from 'app/client/components/commandList';
+import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import { CommandDef, CommandName, CommendGroupDef, groups } from 'app/client/components/commandList';
 
-import {Disposable, Observable} from 'grainjs';
+import { Disposable, Observable } from 'grainjs';
 import * as _ from 'underscore';
 import * as ko from 'knockout';
 
@@ -89,7 +89,7 @@ export function init(optCommandGroups?: CommendGroupDef[]) {
   // Define the browser console interface.
   G.window.cmd = {};
   _.each(allCommands, function(cmd, name) {
-    Object.defineProperty(G.window.cmd, name, {get: cmd.run});
+    Object.defineProperty(G.window.cmd, name, { get: cmd.run });
   });
 }
 

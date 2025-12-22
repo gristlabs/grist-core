@@ -94,15 +94,15 @@ export function button(props: IButtonProps, ...domArgs: DomElementArg[]) {
 
 // Button-creating functions, each taking ...DomElementArg arguments.
 export const basicButton = tbind(button, null, {});
-export const bigBasicButton = tbind(button, null, {large: true});
-export const primaryButton = tbind(button, null, {primary: true});
-export const bigPrimaryButton = tbind(button, null, {large: true, primary: true});
+export const bigBasicButton = tbind(button, null, { large: true });
+export const primaryButton = tbind(button, null, { primary: true });
+export const bigPrimaryButton = tbind(button, null, { large: true, primary: true });
 
 // Functions that create button-like <a> links, each taking ...DomElementArg arguments.
-export const basicButtonLink = tbind(button, null, {link: true});
-export const bigBasicButtonLink = tbind(button, null, {link: true, large: true});
-export const primaryButtonLink = tbind(button, null, {link: true, primary: true});
-export const bigPrimaryButtonLink = tbind(button, null, {link: true, large: true, primary: true});
+export const basicButtonLink = tbind(button, null, { link: true });
+export const bigBasicButtonLink = tbind(button, null, { link: true, large: true });
+export const primaryButtonLink = tbind(button, null, { link: true, primary: true });
+export const bigPrimaryButtonLink = tbind(button, null, { link: true, large: true, primary: true });
 
 // Button that looks like a link (have no background and no border).
 // On text button hover, allow theme to show a background and/or border.

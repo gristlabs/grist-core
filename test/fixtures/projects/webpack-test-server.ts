@@ -17,9 +17,9 @@
  * It will start up webpack-dev-server before this suite is run, so that MyPage is available to
  * fetch using webdriver.
  */
-import {exitPromise} from 'app/server/lib/serverUtils';
-import {ChildProcess, spawn} from 'child_process';
-import {driver, IMochaContext, IMochaServer} from 'mocha-webdriver';
+import { exitPromise } from 'app/server/lib/serverUtils';
+import { ChildProcess, spawn } from 'child_process';
+import { driver, IMochaContext, IMochaServer } from 'mocha-webdriver';
 import fetch from 'node-fetch';
 import stripAnsi from "strip-ansi";
 import * as path from 'path';
@@ -81,7 +81,7 @@ export class WebpackServer implements IMochaServer {
    */
   public async isServerReady(): Promise<boolean> {
     try {
-      return (await fetch(this._serverUrl, {timeout: 1000})).ok;
+      return (await fetch(this._serverUrl, { timeout: 1000 })).ok;
     }
     catch (err) {
       return false;

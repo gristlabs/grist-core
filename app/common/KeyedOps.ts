@@ -139,7 +139,7 @@ export class KeyedOps {
       delete status.timeout;
     }
     let ticks = this._options.delayBeforeOperationMs || 0;
-    const {lastStart} = this._getOperationHistory(key);
+    const { lastStart } = this._getOperationHistory(key);
     if (lastStart && this._options.minDelayBetweenOperationsMs && !immediate) {
       ticks = Math.max(ticks, lastStart + this._options.minDelayBetweenOperationsMs - Date.now());
     }

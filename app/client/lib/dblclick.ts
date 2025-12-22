@@ -1,4 +1,4 @@
-import {dom, EventCB} from 'grainjs';
+import { dom, EventCB } from 'grainjs';
 
 const DOUBLE_TAP_INTERVAL_MS = 500;
 

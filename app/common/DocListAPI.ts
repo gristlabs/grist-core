@@ -1,10 +1,10 @@
-import {MinimalActionGroup} from 'app/common/ActionGroup';
-import {TableDataAction} from 'app/common/DocActions';
-import {FilteredDocUsageSummary} from 'app/common/DocUsage';
-import {Role} from 'app/common/roles';
-import {StringUnion} from 'app/common/StringUnion';
-import {UserInfo} from 'app/common/User';
-import {FullUser} from 'app/common/UserAPI';
+import { MinimalActionGroup } from 'app/common/ActionGroup';
+import { TableDataAction } from 'app/common/DocActions';
+import { FilteredDocUsageSummary } from 'app/common/DocUsage';
+import { Role } from 'app/common/roles';
+import { StringUnion } from 'app/common/StringUnion';
+import { UserInfo } from 'app/common/User';
+import { FullUser } from 'app/common/UserAPI';
 
 // Possible flavors of items in a list of documents.
 export type DocEntryTag = ''|'sample'|'invite'|'shared';
@@ -73,7 +73,7 @@ export interface DocCreationInfo {
 export interface OpenLocalDocResult {
   docFD: number;
   clientId: string;  // the docFD is meaningful only in the context of this session
-  doc: {[tableId: string]: TableDataAction};
+  doc: { [tableId: string]: TableDataAction };
   log: MinimalActionGroup[];
   isTimingOn: boolean;
   user: UserInfo;
@@ -91,7 +91,7 @@ export interface DocListAPI {
   /**
    * Returns a all known Grist documents and document invites to show in the doc list.
    */
-  getDocList(): Promise<{docs: DocEntry[], docInvites: DocEntry[]}>;
+  getDocList(): Promise<{ docs: DocEntry[], docInvites: DocEntry[] }>;
 
   /**
    * Creates a new document, fetches it, and adds a table to it. Returns its name.

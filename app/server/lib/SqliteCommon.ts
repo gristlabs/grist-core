@@ -114,7 +114,7 @@ export const gristMarshal = {
     return accum;
   },
   finalize(accum: GristMarshalIntermediateValue) {
-    const marshaller = new Marshaller({version: 2, keysAreBuffers: true});
+    const marshaller = new Marshaller({ version: 2, keysAreBuffers: true });
     const result: Record<string, Array<any>> = {};
     if (accum.names && accum.values) {
       for (const [i, name] of accum.names.entries()) {

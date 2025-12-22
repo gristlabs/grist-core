@@ -1,7 +1,7 @@
-import {synchronizeProducts} from 'app/gen-server/entity/Product';
-import {codeRoot} from 'app/server/lib/places';
-import {Mutex} from 'async-mutex';
-import {DatabaseType, DataSource, DataSourceOptions} from 'typeorm';
+import { synchronizeProducts } from 'app/gen-server/entity/Product';
+import { codeRoot } from 'app/server/lib/places';
+import { Mutex } from 'async-mutex';
+import { DatabaseType, DataSource, DataSourceOptions } from 'typeorm';
 
 // Summary of migrations found in database and in code.
 interface MigrationSummary {

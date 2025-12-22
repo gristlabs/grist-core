@@ -23,7 +23,7 @@ export const ariaTabs = (tabListId: string, state: Observable<string>) => {
  *
  * A "tab list" is a dom element containing multiple "tabs" (see `ariaTab`).
  */
-export const ariaTabList = () => ({role: "tablist"});
+export const ariaTabList = () => ({ role: "tablist" });
 
 /**
  * Returns a list of DOM args to attach to an element we want to expose as a "tab",

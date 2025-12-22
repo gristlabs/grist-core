@@ -1,5 +1,5 @@
-import {addToRepl, driver, enableDebugCapture, Key, useServer} from 'mocha-webdriver';
-import {server} from 'test/fixtures/projects/webpack-test-server';
+import { addToRepl, driver, enableDebugCapture, Key, useServer } from 'mocha-webdriver';
+import { server } from 'test/fixtures/projects/webpack-test-server';
 
 // tslint:disable:no-console
 
@@ -8,7 +8,7 @@ import {server} from 'test/fixtures/projects/webpack-test-server';
 //
 //    await driver.get(`${server.getHost()}/MY-PAGE`);
 //
-export {server};
+export { server };
 
 // Sets up the test suite to use the webpack-dev-server to serve test/fixtures/projects files, and
 // to record logs and screenshots after failed tests (if MOCHA_WEBDRIVER_LOGDIR var is set).

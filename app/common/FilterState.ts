@@ -33,7 +33,7 @@ export function makeFilterState(spec: string | FilterSpec): FilterState {
     return makeFilterState((spec && JSON.parse(spec)) || {});
   }
   if (spec.min !== undefined || spec.max !== undefined) {
-    return {min: spec.min, max: spec.max};
+    return { min: spec.min, max: spec.max };
   }
   return {
     include: Boolean(spec.included),
@@ -63,7 +63,7 @@ export function isEquivalentFilter(state: FilterState, spec: FilterSpec): boolea
 }
 
 export function isRangeFilter(state: FilterState): state is RangeFilterState {
-  const {min, max} = state as any;
+  const { min, max } = state as any;
   return min !== undefined || max !== undefined;
 }
 

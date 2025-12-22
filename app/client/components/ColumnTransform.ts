@@ -5,14 +5,14 @@
  */
 import * as commands from 'app/client/components/commands';
 import * as AceEditor from 'app/client/components/AceEditor';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ColumnRec} from 'app/client/models/entities/ColumnRec';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {TableData} from 'app/client/models/TableData';
-import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
-import {UserAction} from 'app/common/DocActions';
-import {GristObjCode} from 'app/plugin/GristData';
-import {Disposable, Observable} from 'grainjs';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { ColumnRec } from 'app/client/models/entities/ColumnRec';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { TableData } from 'app/client/models/TableData';
+import { FieldBuilder } from 'app/client/widgets/FieldBuilder';
+import { UserAction } from 'app/common/DocActions';
+import { GristObjCode } from 'app/plugin/GristData';
+import { Disposable, Observable } from 'grainjs';
 import isPlainObject from 'lodash/isPlainObject';
 import * as ko from 'knockout';
 import noop from 'lodash/noop';
@@ -97,7 +97,7 @@ export class ColumnTransform extends Disposable {
       }));
     }
     return this.editor.buildDom((aceObj: any) => {
-      aceObj.setOptions({placeholder: 'Enter formula.'});
+      aceObj.setOptions({ placeholder: 'Enter formula.' });
       aceObj.setHighlightActiveLine(false);
       this.editor.adjustContentToWidth();
       this.editor.attachSaveCommand();
@@ -181,13 +181,13 @@ export class ColumnTransform extends Disposable {
       type: colType,
       isFormula: true,
       formula: this.getIdentityFormula(),
-      ...(this.origWidgetOptions ? {widgetOptions: JSON.stringify(this.origWidgetOptions)} : {}),
+      ...(this.origWidgetOptions ? { widgetOptions: JSON.stringify(this.origWidgetOptions) } : {}),
     }]);
     if (this.rules) {
       // We are in bundle, it is safe to just send another action.
       // NOTE: We could add rules with AddColumn action, but there are some optimizations that converts array values.
       await this.gristDoc.docData.sendActions([
-        ['UpdateRecord', '_grist_Tables_column', newColInfo.colRef, {rules: this.rules}],
+        ['UpdateRecord', '_grist_Tables_column', newColInfo.colRef, { rules: this.rules }],
       ]);
     }
 
@@ -248,7 +248,7 @@ export class ColumnTransform extends Disposable {
    */
   protected executeActions(): UserAction[] {
     const newWidgetOptions = isPlainObject(this.origWidgetOptions) ?
-      {...this.origWidgetOptions as object, ...this._fieldBuilder.options.peek()} :
+      { ...this.origWidgetOptions as object, ...this._fieldBuilder.options.peek() } :
       this._fieldBuilder.options.peek();
     return [
       ...this.previewActions(),
@@ -298,7 +298,7 @@ export class ColumnTransform extends Disposable {
     if (formula === oldFormula) { return []; }
     if (!formula && !oldFormula) { return []; }
     return [
-      ['UpdateRecord', '_grist_Tables_column', this.transformColumn.getRowId(), {formula}],
+      ['UpdateRecord', '_grist_Tables_column', this.transformColumn.getRowId(), { formula }],
     ];
   }
 }

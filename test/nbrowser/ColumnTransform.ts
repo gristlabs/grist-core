@@ -1,6 +1,6 @@
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { assert, driver, Key } from 'mocha-webdriver';
 
 describe('ColumnTransform', function() {
   this.timeout(20000);
@@ -13,7 +13,7 @@ describe('ColumnTransform', function() {
 
   it('should disable changing name of a column during transformation', async function() {
     await gu.sendActions([
-      ['AddRecord', 'Table1', null, {A: 'Test'}],
+      ['AddRecord', 'Table1', null, { A: 'Test' }],
     ]);
     await gu.selectColumn('A');
     await gu.openColumnPanel();

@@ -2,7 +2,7 @@ import {fromPairs} from 'lodash';
 import { assert, driver, Key, WebElement} from 'mocha-webdriver';
 import { startEditingAccessRules } from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('UserManager2', function() {
   this.timeout('4m');
@@ -21,7 +21,7 @@ describe('UserManager2', function() {
     await session.resetSite();
     const api = session.createHomeApi();
     await api.updateOrgPermissions(session.settings.orgDomain, {
-      users: {'support@getgrist.com': 'owners'},
+      users: { 'support@getgrist.com': 'owners' },
     });
     const org = await api.getOrg('current');
     // The teamSite may or may not have SaaS limits.
@@ -42,12 +42,12 @@ describe('UserManager2', function() {
       try {
         // Add a user to team.
         await api.updateOrgPermissions('current', {
-          users: {'friend@getgrist.com': 'members'},
+          users: { 'friend@getgrist.com': 'members' },
         });
 
         // Make a document, and start editing shares.
-        await session.tempDoc(cleanup, 'Hello.grist', {load: landingPage === 'doc',
-          newName: landingPage + '.grist'});
+        await session.tempDoc(cleanup, 'Hello.grist', { load: landingPage === 'doc',
+          newName: landingPage + '.grist' });
         const openUserManager = async () => {
           if (landingPage === 'docmenu') {
             await driver.findContent('.test-dm-workspace', /Home/).click();
@@ -200,7 +200,7 @@ describe('UserManager2', function() {
     await session.loadDocMenu('/');
 
     // Make a document, and start editing shares.
-    await session.tempDoc(cleanup, 'Hello.grist', {load: true});
+    await session.tempDoc(cleanup, 'Hello.grist', { load: true });
     await driver.findWait('.test-tb-share', 2000).click();
     await driver.findContent('.test-tb-share-option', /Manage users/).click();
 
@@ -250,7 +250,7 @@ describe('UserManager2', function() {
     await session.loadDocMenu('/');
 
     // Make a document, and start editing shares.
-    await session.tempDoc(cleanup, 'Hello.grist', {load: true});
+    await session.tempDoc(cleanup, 'Hello.grist', { load: true });
     await driver.findWait('.test-tb-share', 2000).click();
     await driver.findContent('.test-tb-share-option', /Manage users/).click();
 
@@ -267,7 +267,7 @@ describe('UserManager2', function() {
     await driver.findWait('.test-um-confirm', 3000).click();
 
     // Make a new document, and start editing shares.
-    await session.tempDoc(cleanup, 'Hello.grist', {load: true});
+    await session.tempDoc(cleanup, 'Hello.grist', { load: true });
     await driver.findWait('.test-tb-share', 2000).click();
     await driver.findContent('.test-tb-share-option', /Manage users/).click();
 
@@ -323,7 +323,7 @@ describe('UserManager2', function() {
 
     // Make a document
     const session = await gu.session().personalSite.login();
-    await session.tempDoc(cleanup, 'Hello.grist', {load: true});
+    await session.tempDoc(cleanup, 'Hello.grist', { load: true });
 
     // start view-as mode
     await gu.openAccessRulesDropdown();
@@ -400,7 +400,7 @@ describe('UserManager2', function() {
     const api = session.createHomeApi();
     // This tests if an team/workspace owner see members and guests who don't have access to
     // the document.
-    const {id: docId} = await session.tempShortDoc(cleanup, 'Hello.grist', {load: false});
+    const { id: docId } = await session.tempShortDoc(cleanup, 'Hello.grist', { load: false });
     const homeId = await api.getOrgWorkspaces('current').then(l => l[0].id);
 
     // Break the inheritance of the document.

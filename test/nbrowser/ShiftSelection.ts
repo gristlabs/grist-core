@@ -1,6 +1,6 @@
-import {assert, driver, Key, WebElement} from 'mocha-webdriver';
+import { assert, driver, Key, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 interface CellSelection {
   /** 0-based column index. */
@@ -100,39 +100,39 @@ describe('ShiftSelection', function () {
   it('Shift+Up extends the selection up', async function () {
     await gu.getCell(1, 2).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.UP));
-    await assertCellSelection({colStart: 1, colEnd: 1, rowStart: 0, rowEnd: 1});
+    await assertCellSelection({ colStart: 1, colEnd: 1, rowStart: 0, rowEnd: 1 });
   });
 
   it('Shift+Down extends the selection down', async function () {
     await gu.getCell(1, 2).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.DOWN));
-    await assertCellSelection({colStart: 1, colEnd: 1, rowStart: 1, rowEnd: 2});
+    await assertCellSelection({ colStart: 1, colEnd: 1, rowStart: 1, rowEnd: 2 });
   });
 
   it('Shift+Left extends the selection left', async function () {
     await gu.getCell(1, 2).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.LEFT));
-    await assertCellSelection({colStart: 0, colEnd: 1, rowStart: 1, rowEnd: 1});
+    await assertCellSelection({ colStart: 0, colEnd: 1, rowStart: 1, rowEnd: 1 });
   });
 
   it('Shift+Right extends the selection right', async function () {
     await gu.getCell(1, 2).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.RIGHT));
-    await assertCellSelection({colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 1});
+    await assertCellSelection({ colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 1 });
   });
 
   it('Shift+Right + Shift+Left leads to the initial selection', async function () {
     await gu.getCell(1, 2).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.RIGHT));
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.LEFT));
-    await assertCellSelection({colStart: 1, colEnd: 1, rowStart: 1, rowEnd: 1});
+    await assertCellSelection({ colStart: 1, colEnd: 1, rowStart: 1, rowEnd: 1 });
   });
 
   it('Shift+Up + Shift+Down leads to the initial selection', async function () {
     await gu.getCell(1, 2).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.UP));
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.DOWN));
-    await assertCellSelection({colStart: 1, colEnd: 1, rowStart: 1, rowEnd: 1});
+    await assertCellSelection({ colStart: 1, colEnd: 1, rowStart: 1, rowEnd: 1 });
   });
 
   it('Ctrl+Shift+Up extends the selection blockwise up', async function () {
@@ -141,13 +141,13 @@ describe('ShiftSelection', function () {
     const ctrlKey = await gu.modKey();
 
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.UP));
-    await assertCellSelection({colStart: 5, colEnd: 5, rowStart: 4, rowEnd: 6});
+    await assertCellSelection({ colStart: 5, colEnd: 5, rowStart: 4, rowEnd: 6 });
 
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.UP));
-    await assertCellSelection({colStart: 5, colEnd: 5, rowStart: 2, rowEnd: 6});
+    await assertCellSelection({ colStart: 5, colEnd: 5, rowStart: 2, rowEnd: 6 });
 
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.UP));
-    await assertCellSelection({colStart: 5, colEnd: 5, rowStart: 0, rowEnd: 6});
+    await assertCellSelection({ colStart: 5, colEnd: 5, rowStart: 0, rowEnd: 6 });
   });
 
   it('Ctrl+Shift+Down extends the selection blockwise down', async function () {
@@ -156,13 +156,13 @@ describe('ShiftSelection', function () {
     const ctrlKey = await gu.modKey();
 
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.DOWN));
-    await assertCellSelection({colStart: 5, colEnd: 5, rowStart: 4, rowEnd: 6});
+    await assertCellSelection({ colStart: 5, colEnd: 5, rowStart: 4, rowEnd: 6 });
 
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.DOWN));
-    await assertCellSelection({colStart: 5, colEnd: 5, rowStart: 4, rowEnd: 8});
+    await assertCellSelection({ colStart: 5, colEnd: 5, rowStart: 4, rowEnd: 8 });
 
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.DOWN));
-    await assertCellSelection({colStart: 5, colEnd: 5, rowStart: 4, rowEnd: 10});
+    await assertCellSelection({ colStart: 5, colEnd: 5, rowStart: 4, rowEnd: 10 });
   });
 
   it('Ctrl+Shift+Left extends the selection blockwise left', async function () {
@@ -171,13 +171,13 @@ describe('ShiftSelection', function () {
     const ctrlKey = await gu.modKey();
 
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.LEFT));
-    await assertCellSelection({colStart: 4, colEnd: 6, rowStart: 4, rowEnd: 4});
+    await assertCellSelection({ colStart: 4, colEnd: 6, rowStart: 4, rowEnd: 4 });
 
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.LEFT));
-    await assertCellSelection({colStart: 2, colEnd: 6, rowStart: 4, rowEnd: 4});
+    await assertCellSelection({ colStart: 2, colEnd: 6, rowStart: 4, rowEnd: 4 });
 
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.LEFT));
-    await assertCellSelection({colStart: 0, colEnd: 6, rowStart: 4, rowEnd: 4});
+    await assertCellSelection({ colStart: 0, colEnd: 6, rowStart: 4, rowEnd: 4 });
   });
 
   it('Ctrl+Shift+Right extends the selection blockwise right', async function () {
@@ -186,13 +186,13 @@ describe('ShiftSelection', function () {
     const ctrlKey = await gu.modKey();
 
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.RIGHT));
-    await assertCellSelection({colStart: 4, colEnd: 6, rowStart: 4, rowEnd: 4});
+    await assertCellSelection({ colStart: 4, colEnd: 6, rowStart: 4, rowEnd: 4 });
 
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.RIGHT));
-    await assertCellSelection({colStart: 4, colEnd: 8, rowStart: 4, rowEnd: 4});
+    await assertCellSelection({ colStart: 4, colEnd: 8, rowStart: 4, rowEnd: 4 });
 
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.RIGHT));
-    await assertCellSelection({colStart: 4, colEnd: 10, rowStart: 4, rowEnd: 4});
+    await assertCellSelection({ colStart: 4, colEnd: 10, rowStart: 4, rowEnd: 4 });
   });
 
   it('Ctrl+Shift+* extends the selection until all the next cells are empty', async function () {
@@ -202,11 +202,11 @@ describe('ShiftSelection', function () {
 
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.RIGHT));
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.UP));
-    await assertCellSelection({colStart: 3, colEnd: 4, rowStart: 2, rowEnd: 6});
+    await assertCellSelection({ colStart: 3, colEnd: 4, rowStart: 2, rowEnd: 6 });
 
     await gu.getCell(4, 7).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.LEFT));
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.UP));
-    await assertCellSelection({colStart: 3, colEnd: 4, rowStart: 4, rowEnd: 6});
+    await assertCellSelection({ colStart: 3, colEnd: 4, rowStart: 4, rowEnd: 6 });
   });
 });

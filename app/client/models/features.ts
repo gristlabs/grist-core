@@ -1,6 +1,6 @@
-import {getGristConfig} from 'app/common/urlUtils';
-import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
-import {Observable} from 'grainjs';
+import { getGristConfig } from 'app/common/urlUtils';
+import { localStorageJsonObs } from 'app/client/lib/localStorageObs';
+import { Observable } from 'grainjs';
 
 let _PERMITTED_CUSTOM_WIDGETS: Observable<string[]>|undefined;
 

@@ -33,7 +33,7 @@ function handleSubmitForm(
   onSuccess: (v: any) => void,
   onError?: (e: unknown) => void,
 ): (elem: HTMLFormElement) => void {
-  return handleSubmit({pending, onSuccess, onError});
+  return handleSubmit({ pending, onSuccess, onError });
 }
 
 export class WelcomePage extends Disposable {
@@ -102,7 +102,7 @@ export class WelcomePage extends Disposable {
         `If you already have a Grist account as `,
         dom('b', email.get()),
         ` you can just `,
-        cssLink({href: getLoginUrl({nextUrl: null})}, 'log in'),
+        cssLink({ href: getLoginUrl({ nextUrl: null }) }, 'log in'),
         ` now. Otherwise, please pick a password.`,
       ),
       cssSeparatedLabel('The email address you activated Grist with:'),
@@ -188,7 +188,7 @@ export class WelcomePage extends Disposable {
             'Apply verification code' : 'Resend verification email'),
         ),
         bigBasicButtonLink('More sign-up options',
-          {href: getSignupUrl({nextUrl: null})}),
+          { href: getSignupUrl({ nextUrl: null }) }),
       ),
     );
   }
@@ -217,7 +217,7 @@ export class WelcomePage extends Disposable {
               user.name ? cssMemberSecondary(user.email, testId('select-email')) : null,
             ),
           ),
-          {href: addUserToLink(user.email)},
+          { href: addUserToLink(user.email) },
           testId('select-user'),
         )),
       ),

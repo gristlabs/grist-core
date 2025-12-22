@@ -1,7 +1,7 @@
-import {CellValue, TableDataAction} from 'app/common/DocActions';
-import {MetaTableData, TableData} from 'app/common/TableData';
-import {assert} from 'chai';
-import {unzip, zipObject} from 'lodash';
+import { CellValue, TableDataAction } from 'app/common/DocActions';
+import { MetaTableData, TableData } from 'app/common/TableData';
+import { assert } from 'chai';
+import { unzip, zipObject } from 'lodash';
 
 describe('TableData', function() {
   const sampleData: TableDataAction = ["TableData", "Foo", [1, 4, 5, 7], {
@@ -47,7 +47,7 @@ describe('TableData', function() {
   }
 
   it('should start out empty and support loadData', function() {
-    const t = new TableData('Foo', null, {city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool'});
+    const t = new TableData('Foo', null, { city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool' });
     assert.equal(t.tableId, 'Foo');
     assert.isFalse(t.isLoaded);
     verifyTableData(t, ["id", "city", "state", "amount", "bool"], []);
@@ -63,7 +63,7 @@ describe('TableData', function() {
   });
 
   it('should start out with data from constructor', function() {
-    const t = new TableData('Foo', sampleData, {city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool'});
+    const t = new TableData('Foo', sampleData, { city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool' });
     assert.equal(t.tableId, 'Foo');
     assert.isTrue(t.isLoaded);
     verifyTableData(t, ["id", "city", "state", "amount", "bool"], [
@@ -75,54 +75,54 @@ describe('TableData', function() {
   });
 
   it('should support filterRecords and filterRowIds', function() {
-    const t = new TableData('Foo', sampleData, {city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool'});
-    assert.deepEqual(t.filterRecords({state: 'MA'}), [
-      {id: 4, city: 'Boston', state: 'MA', amount: 4, bool: true},
-      {id: 5, city: 'Boston', state: 'MA', amount: 'NA', bool: false}]);
-    assert.deepEqual(t.filterRowIds({state: 'MA'}), [4, 5]);
+    const t = new TableData('Foo', sampleData, { city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool' });
+    assert.deepEqual(t.filterRecords({ state: 'MA' }), [
+      { id: 4, city: 'Boston', state: 'MA', amount: 4, bool: true },
+      { id: 5, city: 'Boston', state: 'MA', amount: 'NA', bool: false }]);
+    assert.deepEqual(t.filterRowIds({ state: 'MA' }), [4, 5]);
 
     // After removing and re-adding a record, indices change, but filter behavior should not.
     // Notice sameDeepMembers() below, rather than deepEqual(), since order is not guaranteed.
     t.dispatchAction(["RemoveRecord", "Foo", 4]);
-    t.dispatchAction(["AddRecord", "Foo", 4, {city: 'BOSTON', state: 'MA'}]);
+    t.dispatchAction(["AddRecord", "Foo", 4, { city: 'BOSTON', state: 'MA' }]);
     verifyTableData(t, ["id", "city", "state", "amount", "bool"], [
       [1, 'New York', 'NY', 5, true],
       [4, 'BOSTON', 'MA', 0, false],
       [5, 'Boston', 'MA', "NA", false],
       [7, 'Seattle', 'WA', 2, false],
     ]);
-    assert.deepEqual(t.filterRecords({city: 'BOSTON', amount: 0.0}), [
-      {id: 4, city: 'BOSTON', state: 'MA', amount: 0, bool: false}]);
-    assert.deepEqual(t.filterRowIds({city: 'BOSTON', amount: 0.0}), [4]);
-    assert.sameDeepMembers(t.filterRecords({state: 'MA'}), [
-      {id: 4, city: 'BOSTON', state: 'MA', amount: 0, bool: false},
-      {id: 5, city: 'Boston', state: 'MA', amount: 'NA', bool: false}]);
-    assert.sameDeepMembers(t.filterRowIds({state: 'MA'}), [4, 5]);
-    assert.deepEqual(t.filterRecords({city: 'BOSTON', state: 'NY'}), []);
-    assert.deepEqual(t.filterRowIds({city: 'BOSTON', state: 'NY'}), []);
+    assert.deepEqual(t.filterRecords({ city: 'BOSTON', amount: 0.0 }), [
+      { id: 4, city: 'BOSTON', state: 'MA', amount: 0, bool: false }]);
+    assert.deepEqual(t.filterRowIds({ city: 'BOSTON', amount: 0.0 }), [4]);
+    assert.sameDeepMembers(t.filterRecords({ state: 'MA' }), [
+      { id: 4, city: 'BOSTON', state: 'MA', amount: 0, bool: false },
+      { id: 5, city: 'Boston', state: 'MA', amount: 'NA', bool: false }]);
+    assert.sameDeepMembers(t.filterRowIds({ state: 'MA' }), [4, 5]);
+    assert.deepEqual(t.filterRecords({ city: 'BOSTON', state: 'NY' }), []);
+    assert.deepEqual(t.filterRowIds({ city: 'BOSTON', state: 'NY' }), []);
     assert.sameDeepMembers(t.filterRecords({}), [
-      {id: 1, city: 'New York', state: 'NY', amount: 5, bool: true},
-      {id: 4, city: 'BOSTON', state: 'MA', amount: 0, bool: false},
-      {id: 5, city: 'Boston', state: 'MA', amount: 'NA', bool: false},
-      {id: 7, city: 'Seattle', state: 'WA', amount: 2, bool: false},
+      { id: 1, city: 'New York', state: 'NY', amount: 5, bool: true },
+      { id: 4, city: 'BOSTON', state: 'MA', amount: 0, bool: false },
+      { id: 5, city: 'Boston', state: 'MA', amount: 'NA', bool: false },
+      { id: 7, city: 'Seattle', state: 'WA', amount: 2, bool: false },
     ]);
     assert.sameDeepMembers(t.filterRowIds({}), [1, 4, 5, 7]);
   });
 
   it('should support findMatchingRow', function() {
-    const t = new TableData('Foo', sampleData, {city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool'});
-    assert.equal(t.findMatchingRowId({state: 'MA'}), 4);
-    assert.equal(t.findMatchingRowId({state: 'MA', bool: false}), 5);
-    assert.equal(t.findMatchingRowId({city: 'Boston', state: 'MA', bool: true}), 4);
-    assert.equal(t.findMatchingRowId({city: 'BOSTON', state: 'NY'}), 0);
-    assert.equal(t.findMatchingRowId({statex: 'MA'}), 0);
-    assert.equal(t.findMatchingRowId({id: 7}), 7);
+    const t = new TableData('Foo', sampleData, { city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool' });
+    assert.equal(t.findMatchingRowId({ state: 'MA' }), 4);
+    assert.equal(t.findMatchingRowId({ state: 'MA', bool: false }), 5);
+    assert.equal(t.findMatchingRowId({ city: 'Boston', state: 'MA', bool: true }), 4);
+    assert.equal(t.findMatchingRowId({ city: 'BOSTON', state: 'NY' }), 0);
+    assert.equal(t.findMatchingRowId({ statex: 'MA' }), 0);
+    assert.equal(t.findMatchingRowId({ id: 7 }), 7);
     assert.equal(t.findMatchingRowId({}), 1);
   });
 
   it('should support findRow and findRecord', function() {
-    const t = new TableData('Foo', sampleData, {city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool'});
-    t.dispatchAction(["UpdateRecord", "Foo", 4, {city: 'BOSTON'}]);
+    const t = new TableData('Foo', sampleData, { city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool' });
+    t.dispatchAction(["UpdateRecord", "Foo", 4, { city: 'BOSTON' }]);
     verifyTableData(t, ["id", "city", "state", "amount", "bool"], [
       [1, 'New York', 'NY', 5, true],
       [4, 'BOSTON', 'MA', 4, true],
@@ -135,27 +135,27 @@ describe('TableData', function() {
     assert.equal(t.findRow('id', 44), 0);
     assert.include([4, 5], t.findRow('state', 'MA'));
 
-    assert.deepEqual(t.findRecord('city', 'Boston'), {id: 5, city: 'Boston', state: 'MA', amount: "NA", bool: false});
+    assert.deepEqual(t.findRecord('city', 'Boston'), { id: 5, city: 'Boston', state: 'MA', amount: "NA", bool: false });
     assert.deepEqual(t.findRecord('city', 'Nowhere'), undefined);
-    assert.deepEqual(t.findRecord('id', 4), {id: 4, city: 'BOSTON', state: 'MA', amount: 4, bool: true});
+    assert.deepEqual(t.findRecord('id', 4), { id: 4, city: 'BOSTON', state: 'MA', amount: 4, bool: true });
     assert.deepEqual(t.findRecord('id', 44), undefined);
     assert.deepEqual(t.findRecord('state', 'MA')?.state, 'MA');
     assert.include([4, 5], t.findRecord('state', 'MA')?.id);
 
     // Test also these methods for the MetaTableData class.
-    const sampleTableData: TableDataAction = ["TableData", "_grist_Tables", [2, 1], {tableId: ['Foo', 'Bar']}];
-    const meta = new MetaTableData('_grist_Tables', sampleTableData, {tableId: 'Text'});
+    const sampleTableData: TableDataAction = ["TableData", "_grist_Tables", [2, 1], { tableId: ['Foo', 'Bar'] }];
+    const meta = new MetaTableData('_grist_Tables', sampleTableData, { tableId: 'Text' });
     assert.equal(meta.findRow('tableId', 'Bar'), 1);
     assert.equal(meta.findRow('id', 2), 2);
     assert.equal(meta.findRow('tableId', 'Baz'), 0);
-    assert.deepEqual(meta.findRecord('tableId', 'Bar'), {id: 1, tableId: 'Bar'} as any);
-    assert.deepEqual(meta.findRecord('id', 2), {id: 2, tableId: 'Foo'} as any);
+    assert.deepEqual(meta.findRecord('tableId', 'Bar'), { id: 1, tableId: 'Bar' } as any);
+    assert.deepEqual(meta.findRecord('id', 2), { id: 2, tableId: 'Foo' } as any);
     assert.deepEqual(meta.findRecord('tableId', 'Baz'), undefined);
   });
 
   it('should allow getRowPropFunc to be used before loadData', function() {
     // This tests a potential bug when getRowPropFunc is saved from before loadData() is called.
-    const t = new TableData('Foo', null, {city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool'});
+    const t = new TableData('Foo', null, { city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool' });
     verifyTableData(t, ["id", "city", "state", "amount", "bool"], []);
     assert.isFalse(t.isLoaded);
 
@@ -171,7 +171,7 @@ describe('TableData', function() {
   });
 
   it('should handle Add/RemoveRecord', function() {
-    const t = new TableData('Foo', sampleData, {city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool'});
+    const t = new TableData('Foo', sampleData, { city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool' });
 
     t.dispatchAction(["RemoveRecord", "Foo", 4]);
     verifyTableData(t, ["id", "city", "state", "amount", "bool"], [
@@ -186,7 +186,7 @@ describe('TableData', function() {
       [5, 'Boston', 'MA', "NA", false],
     ]);
 
-    t.dispatchAction(["AddRecord", "Foo", 4, {city: 'BOSTON', state: 'MA', amount: 4, bool: true}]);
+    t.dispatchAction(["AddRecord", "Foo", 4, { city: 'BOSTON', state: 'MA', amount: 4, bool: true }]);
     verifyTableData(t, ["id", "city", "state", "amount", "bool"], [
       [1, 'New York', 'NY', 5, true],
       [4, 'BOSTON', 'MA', 4, true],
@@ -212,9 +212,9 @@ describe('TableData', function() {
   });
 
   it('should handle UpdateRecord', function() {
-    const t = new TableData('Foo', sampleData, {city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool'});
+    const t = new TableData('Foo', sampleData, { city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool' });
 
-    t.dispatchAction(["UpdateRecord", "Foo", 4, {city: 'BOSTON', amount: 0.1}]);
+    t.dispatchAction(["UpdateRecord", "Foo", 4, { city: 'BOSTON', amount: 0.1 }]);
     verifyTableData(t, ["id", "city", "state", "amount", "bool"], [
       [1, 'New York', 'NY', 5, true],
       [4, 'BOSTON', 'MA', 0.1, true],
@@ -234,9 +234,9 @@ describe('TableData', function() {
   });
 
   it('should work correctly after AddColumn', function() {
-    const t = new TableData('Foo', sampleData, {city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool'});
+    const t = new TableData('Foo', sampleData, { city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool' });
 
-    t.dispatchAction(["AddColumn", "Foo", "foo", {type: "Text", isFormula: false, formula: ""}]);
+    t.dispatchAction(["AddColumn", "Foo", "foo", { type: "Text", isFormula: false, formula: "" }]);
     verifyTableData(t, ["id", "city", "state", "amount", "bool", "foo"], [
       [1, 'New York', 'NY', 5, true,   ""],
       [4, 'Boston', 'MA', 4, true,     ""],
@@ -244,7 +244,7 @@ describe('TableData', function() {
       [7, 'Seattle', 'WA', 2, false,   ""],
     ]);
 
-    t.dispatchAction(["UpdateRecord", "Foo", 4, {city: 'BOSTON', foo: "hello"}]);
+    t.dispatchAction(["UpdateRecord", "Foo", 4, { city: 'BOSTON', foo: "hello" }]);
     verifyTableData(t, ["id", "city", "state", "amount", "bool", "foo"], [
       [1, 'New York', 'NY', 5, true,   ""],
       [4, 'BOSTON', 'MA', 4, true,     "hello"],
@@ -262,7 +262,7 @@ describe('TableData', function() {
   });
 
   it('should work correctly after RenameColumn', function() {
-    const t = new TableData('Foo', sampleData, {city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool'});
+    const t = new TableData('Foo', sampleData, { city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool' });
 
     t.dispatchAction(["RenameColumn", "Foo", "city", "ciudad"]);
     verifyTableData(t, ["id", "ciudad", "state", "amount", "bool"], [
@@ -272,7 +272,7 @@ describe('TableData', function() {
       [7, 'Seattle', 'WA', 2, false],
     ]);
 
-    t.dispatchAction(["UpdateRecord", "Foo", 4, {ciudad: 'BOSTON', state: "XX"}]);
+    t.dispatchAction(["UpdateRecord", "Foo", 4, { ciudad: 'BOSTON', state: "XX" }]);
     verifyTableData(t, ["id", "ciudad", "state", "amount", "bool"], [
       [1, 'New York', 'NY', 5, true],
       [4, 'BOSTON', 'XX', 4, true],

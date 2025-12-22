@@ -1,15 +1,15 @@
-import {getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, getSignupUrl} from 'app/client/lib/urlUtils';
-import {AppModel} from 'app/client/models/AppModel';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
-import {manageTeamUsers} from 'app/client/ui/OpenUserManager';
-import {createUserImage} from 'app/client/ui/UserImage';
+import { getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, getSignupUrl } from 'app/client/lib/urlUtils';
+import { AppModel } from 'app/client/models/AppModel';
+import { DocPageModel } from 'app/client/models/DocPageModel';
+import { urlState } from 'app/client/models/gristUrlState';
+import { getAdminPanelName } from 'app/client/ui/AdminPanelName';
+import { manageTeamUsers } from 'app/client/ui/OpenUserManager';
+import { createUserImage } from 'app/client/ui/UserImage';
 import * as viewport from 'app/client/ui/viewport';
-import {bigPrimaryButtonLink, primaryButtonLink} from 'app/client/ui2018/buttons';
-import {mediaDeviceNotSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {icon} from 'app/client/ui2018/icons';
+import { bigPrimaryButtonLink, primaryButtonLink } from 'app/client/ui2018/buttons';
+import { mediaDeviceNotSmall, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
+import { icon } from 'app/client/ui2018/icons';
 import {
   menu,
   menuDivider,
@@ -17,14 +17,14 @@ import {
   menuItemLink,
   menuSubHeader,
 } from 'app/client/ui2018/menus';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
-import {FullUser} from 'app/common/LoginSessionAPI';
+import { commonUrls, isFeatureEnabled } from 'app/common/gristUrls';
+import { FullUser } from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
-import {Disposable, dom, DomElementArg, styled} from 'grainjs';
-import {cssMenuItem} from 'popweasel';
-import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
-import {makeT} from 'app/client/lib/localization';
-import {getGristConfig} from 'app/common/urlUtils';
+import { Disposable, dom, DomElementArg, styled } from 'grainjs';
+import { cssMenuItem } from 'popweasel';
+import { maybeAddSiteSwitcherSection } from 'app/client/ui/SiteSwitcher';
+import { makeT } from 'app/client/lib/localization';
+import { getGristConfig } from 'app/common/urlUtils';
 
 const t = makeT('AccountWidget');
 
@@ -63,7 +63,7 @@ export class AccountWidget extends Disposable {
   private _buildAccountMenuButton(user: FullUser|null) {
     return cssUserIcon(
       createUserImage(user, 'medium', testId('user-icon')),
-      menu(() => this._makeAccountMenu(user), {placement: 'bottom-end'}),
+      menu(() => this._makeAccountMenu(user), { placement: 'bottom-end' }),
     );
   }
 
@@ -94,8 +94,8 @@ export class AccountWidget extends Disposable {
   private _buildUseThisTemplateButton() {
     return cssUseThisTemplateButton(t('Use This Template'),
       dom.attr('href', (use) => {
-        const {doc: srcDocId} = use(urlState().state);
-        return getLoginOrSignupUrl({srcDocId});
+        const { doc: srcDocId } = use(urlState().state);
+        return getLoginOrSignupUrl({ srcDocId });
       }),
       dom.on('click', () => { this._docPageModel?.clearUnsavedChanges(); }),
       testId('dm-account-use-this-template'),
@@ -111,7 +111,7 @@ export class AccountWidget extends Disposable {
 
     // The 'Document settings' item, when there is an open document.
     const documentSettingsItem = this._docPageModel ? menuItemLink(
-      urlState().setLinkUrl({docPage: 'settings'}),
+      urlState().setLinkUrl({ docPage: 'settings' }),
       t("Document settings"),
       testId('dm-doc-settings'),
     ) : null;
@@ -126,10 +126,10 @@ export class AccountWidget extends Disposable {
 
     if (!user) {
       return [
-        menuItemLink({href: getLoginOrSignupUrl()}, t("Sign in")),
+        menuItemLink({ href: getLoginOrSignupUrl() }, t("Sign in")),
         menuDivider(),
         documentSettingsItem,
-        menuItemLink({href: commonUrls.plans}, t("Pricing")),
+        menuItemLink({ href: commonUrls.plans }, t("Pricing")),
         mobileModeToggle,
       ];
     }
@@ -143,13 +143,13 @@ export class AccountWidget extends Disposable {
           cssEmail(user.email, testId('usermenu-email')),
         ),
       ),
-      menuItemLink(urlState().setLinkUrl({account: 'account'}), t("Profile settings"), testId('dm-account-settings')),
+      menuItemLink(urlState().setLinkUrl({ account: 'account' }), t("Profile settings"), testId('dm-account-settings')),
 
       documentSettingsItem,
 
       // Show 'Organization Settings' when on a home page of a valid org.
       (!this._docPageModel && currentOrg && this._appModel.isTeamSite ?
-        menuItem(() => manageTeamUsers({org: currentOrg, user, api: this._appModel.api}),
+        menuItem(() => manageTeamUsers({ org: currentOrg, user, api: this._appModel.api }),
           roles.canEditAccess(currentOrg.access) ? t("Manage team") : t("Access Details"),
           testId('dm-org-access')) :
         // Don't show on doc pages, or for personal orgs.
@@ -180,10 +180,10 @@ export class AccountWidget extends Disposable {
             cssOtherEmail(_user.email, testId('usermenu-other-email')),
           );
         }),
-        isExternal ? null : menuItemLink({href: getLoginUrl()}, t("Add account"), testId('dm-add-account')),
+        isExternal ? null : menuItemLink({ href: getLoginUrl() }, t("Add account"), testId('dm-add-account')),
       ],
 
-      menuItemLink({href: getLogoutUrl()}, t("Sign out"), testId('dm-log-out')),
+      menuItemLink({ href: getLogoutUrl() }, t("Sign out"), testId('dm-log-out')),
 
       maybeAddSiteSwitcherSection(this._appModel),
     ];
@@ -206,10 +206,10 @@ export class AccountWidget extends Disposable {
   }
 
   private _maybeBuildBillingPageMenuItem() {
-    const {deploymentType} = getGristConfig();
+    const { deploymentType } = getGristConfig();
     if (deploymentType !== 'saas') { return null; }
 
-    const {currentValidUser, currentOrg, isTeamSite} = this._appModel;
+    const { currentValidUser, currentOrg, isTeamSite } = this._appModel;
     const canViewBillingPage = Boolean(
       currentOrg && // have accecc to org
       currentOrg.billingAccount && // have access to billing account
@@ -221,19 +221,19 @@ export class AccountWidget extends Disposable {
       // For links, disabling with just a class is hard; easier to just not make it a link.
       // TODO weasel menus should support disabling menuItemLink.
       (canViewBillingPage ?
-        menuItemLink(urlState().setLinkUrl({billing: 'billing'}), t('Billing account')) :
+        menuItemLink(urlState().setLinkUrl({ billing: 'billing' }), t('Billing account')) :
         menuItem(() => null, t('Billing account'), dom.cls('disabled', true))
       ) :
       menuItem(() => this._appModel.showUpgradeModal(), t('Upgrade Plan'));
   }
 
   private _maybeBuildActivationPageMenuItem() {
-    const {deploymentType} = getGristConfig();
+    const { deploymentType } = getGristConfig();
     if (deploymentType !== 'enterprise' || !this._appModel.isInstallAdmin()) {
       return null;
     }
 
-    return menuItemLink(t('Activation'), urlState().setLinkUrl({activation: 'activation'}));
+    return menuItemLink(t('Activation'), urlState().setLinkUrl({ activation: 'activation' }));
   }
 
   private _maybeBuildAdminPanelMenuItem() {
@@ -241,18 +241,18 @@ export class AccountWidget extends Disposable {
     if (this._appModel.currentUser?.isInstallAdmin) {
       return menuItemLink(
         getAdminPanelName(),
-        urlState().setLinkUrl({adminPanel: 'admin'}),
+        urlState().setLinkUrl({ adminPanel: 'admin' }),
         testId('usermenu-admin-panel'),
       );
     }
   }
 
   private _maybeBuildSupportGristButton() {
-    const {deploymentType} = getGristConfig();
+    const { deploymentType } = getGristConfig();
     const isEnabled = (deploymentType === 'core') && isFeatureEnabled("supportGrist");
     if (isEnabled) {
       return menuItemLink(t('Support Grist'), ' 💛',
-        {href: commonUrls.githubSponsorGristLabs, target: '_blank'},
+        { href: commonUrls.githubSponsorGristLabs, target: '_blank' },
         testId('usermenu-support-grist'),
       );
     }

@@ -1,14 +1,14 @@
-import {makeT} from 'app/client/lib/localization';
-import {ViewSectionRec} from 'app/client/models/DocModel';
-import {attachColumnFilterMenu} from 'app/client/ui/ColumnFilterMenu';
-import {addFilterMenu} from 'app/client/ui/FilterBar';
-import {cssIcon, cssPinButton, cssRow, cssSortFilterColumn} from 'app/client/ui/RightPanelStyles';
-import {theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {textButton} from 'app/client/ui2018/buttons';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {Computed, Disposable, dom, makeTestId, styled} from 'grainjs';
-import {IMenuOptions} from 'popweasel';
+import { makeT } from 'app/client/lib/localization';
+import { ViewSectionRec } from 'app/client/models/DocModel';
+import { attachColumnFilterMenu } from 'app/client/ui/ColumnFilterMenu';
+import { addFilterMenu } from 'app/client/ui/FilterBar';
+import { cssIcon, cssPinButton, cssRow, cssSortFilterColumn } from 'app/client/ui/RightPanelStyles';
+import { theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { textButton } from 'app/client/ui2018/buttons';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
+import { Computed, Disposable, dom, makeTestId, styled } from 'grainjs';
+import { IMenuOptions } from 'popweasel';
 
 const testId = makeTestId('test-filter-config-');
 
@@ -39,10 +39,10 @@ export class FilterConfig extends Disposable {
   }
 
   public buildDom() {
-    const {menuOptions} = this._options;
+    const { menuOptions } = this._options;
     return dom('div',
       dom.forEach(this._section.activeFilters, (filterInfo) => {
-        const {fieldOrColumn, filter, pinned, isPinned} = filterInfo;
+        const { fieldOrColumn, filter, pinned, isPinned } = filterInfo;
         return cssRow(
           cssSortFilterColumn(
             cssIconWrapper(
@@ -53,7 +53,7 @@ export class FilterConfig extends Disposable {
             ),
             cssLabel(dom.text(fieldOrColumn.label)),
             dom.attr('aria-label', use =>
-              t('{{- columnName }} column filters', {columnName: use(fieldOrColumn.label)}),
+              t('{{- columnName }} column filters', { columnName: use(fieldOrColumn.label) }),
             ),
             attachColumnFilterMenu(filterInfo, {
               popupOptions: {
@@ -70,8 +70,8 @@ export class FilterConfig extends Disposable {
           cssPinFilterButton(
             icon('PinTilted'),
             dom.attr('aria-label', use => use(isPinned)
-              ? t('Unpin filter - {{- columnName}} column (current: pinned)', {columnName: use(fieldOrColumn.label)})
-              : t('Pin filter - {{- columnName}} column (current: unpinned)', {columnName: use(fieldOrColumn.label)}),
+              ? t('Unpin filter - {{- columnName}} column (current: pinned)', { columnName: use(fieldOrColumn.label) })
+              : t('Pin filter - {{- columnName}} column (current: unpinned)', { columnName: use(fieldOrColumn.label) }),
             ),
             dom.on('click', () => this._section.setFilter(fieldOrColumn.origCol().origColRef(), {
               pinned: !isPinned.peek(),
@@ -83,7 +83,7 @@ export class FilterConfig extends Disposable {
             cssRemoveFilterButton(
               cssIcon('Remove'),
               dom.attr('aria-label', use =>
-                t('remove filter - {{- columnName}} column', {columnName: use(fieldOrColumn.label)}),
+                t('remove filter - {{- columnName}} column', { columnName: use(fieldOrColumn.label) }),
               ),
               dom.on('click',
                 () => this._section.setFilter(fieldOrColumn.origCol().origColRef(), {

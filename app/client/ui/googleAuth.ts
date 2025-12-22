@@ -1,5 +1,5 @@
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import type {Disposable} from 'grainjs';
+import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import type { Disposable } from 'grainjs';
 import { GristLoadConfig } from "app/common/gristUrls";
 
 /**
@@ -73,7 +73,7 @@ function getGoogleAuthCode(owner: Disposable, scope: string) {
         return;
       }
       // Check response from the popup
-      const response = (event.data || {}) as {code?: string, error?: string};
+      const response = (event.data || {}) as { code?: string, error?: string };
       // - when user declined, report back, caller should stop current flow,
       if (response.error === "access_denied") {
         reject(new Error(ACCESS_DENIED));

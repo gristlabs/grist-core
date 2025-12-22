@@ -1,5 +1,5 @@
-import {isOwner} from 'app/common/roles';
-import {ManagerDelta, PermissionDelta, UserAPI} from 'app/common/UserAPI';
+import { isOwner } from 'app/common/roles';
+import { ManagerDelta, PermissionDelta, UserAPI } from 'app/common/UserAPI';
 
 /**
  * A utility to reset an organization into the state it would have when first
@@ -23,7 +23,7 @@ export async function resetOrg(api: UserAPI, org: string|number) {
       await api.deleteWorkspace(ws.id);
     }
   }
-  await api.newWorkspace({name: 'Home'}, org);
+  await api.newWorkspace({ name: 'Home' }, org);
   const permissions: PermissionDelta = { users: {} };
   for (const user of (await api.getOrgAccess(org)).users) {
     if (user.id !== session.user.id) {

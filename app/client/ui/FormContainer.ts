@@ -1,8 +1,8 @@
-import {makeT} from 'app/client/lib/localization';
-import {colors, mediaSmall} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {commonUrls} from 'app/common/gristUrls';
-import {DomContents, DomElementArg, styled} from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { colors, mediaSmall } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { commonUrls } from 'app/common/gristUrls';
+import { DomContents, DomElementArg, styled } from 'grainjs';
 
 const t = makeT('FormContainer');
 
@@ -35,7 +35,7 @@ export function buildFormFooter() {
     ),
     cssBuildForm(
       cssBuildFormLink(
-        {href: commonUrls.forms, target: '_blank'},
+        { href: commonUrls.forms, target: '_blank' },
         t('Build your own form'),
         icon('Expand'),
       ),

@@ -1,7 +1,7 @@
-import {ClientScope} from 'app/client/components/ClientScope';
-import {SafeBrowser} from 'app/client/lib/SafeBrowser';
-import {LocalPlugin} from 'app/common/plugin';
-import {createRpcLogger, PluginInstance} from 'app/common/PluginInstance';
+import { ClientScope } from 'app/client/components/ClientScope';
+import { SafeBrowser } from 'app/client/lib/SafeBrowser';
+import { LocalPlugin } from 'app/common/plugin';
+import { createRpcLogger, PluginInstance } from 'app/common/PluginInstance';
 
 /**
  * Home plugins are all plugins that contributes to a general Grist management tasks.
@@ -18,7 +18,7 @@ export class HomePluginManager {
     untrustedContentOrigin: string,
     clientScope: ClientScope,
   }) {
-    const {localPlugins, untrustedContentOrigin, clientScope} = options;
+    const { localPlugins, untrustedContentOrigin, clientScope } = options;
     this.pluginsList = [];
     for (const plugin of localPlugins) {
       try {

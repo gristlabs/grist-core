@@ -1,14 +1,14 @@
-import {MapWithTTL} from 'app/common/AsyncCreate';
-import {isAffirmative} from 'app/common/gutil';
+import { MapWithTTL } from 'app/common/AsyncCreate';
+import { isAffirmative } from 'app/common/gutil';
 import * as version from 'app/common/version';
-import {DocStatus, DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
+import { DocStatus, DocWorkerInfo, IDocWorkerMap } from 'app/server/lib/DocWorkerMap';
 import log from 'app/server/lib/log';
-import {checkPermitKey, formatPermitKey, IPermitStore, Permit} from 'app/server/lib/Permit';
-import {promisifyAll} from 'bluebird';
+import { checkPermitKey, formatPermitKey, IPermitStore, Permit } from 'app/server/lib/Permit';
+import { promisifyAll } from 'bluebird';
 import mapValues from 'lodash/mapValues';
-import {createClient, Multi, RedisClient} from 'redis';
+import { createClient, Multi, RedisClient } from 'redis';
 import Redlock from 'redlock';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 promisifyAll(RedisClient.prototype);
 promisifyAll(Multi.prototype);
@@ -36,18 +36,18 @@ class DummyDocWorkerMap implements IDocWorkerMap {
 
   public async getDocWorker(docId: string) {
     if (!this._worker) { throw new Error('no workers'); }
-    return {docMD5: 'unknown', docWorker: this._worker, isActive: true};
+    return { docMD5: 'unknown', docWorker: this._worker, isActive: true };
   }
 
   public async assignDocWorker(docId: string) {
     if (!this._worker || !this._available) { throw new Error('no workers'); }
-    return {docMD5: 'unknown', docWorker: this._worker, isActive: true};
+    return { docMD5: 'unknown', docWorker: this._worker, isActive: true };
   }
 
   public async getDocWorkerOrAssign(docId: string, workerId: string): Promise<DocStatus> {
     if (!this._worker || !this._available) { throw new Error('no workers'); }
     if (this._worker.id !== workerId) { throw new Error('worker not known'); }
-    return {docMD5: 'unknown', docWorker: this._worker, isActive: true};
+    return { docMD5: 'unknown', docWorker: this._worker, isActive: true };
   }
 
   public async updateDocStatus(docId: string, checksum: string) {
@@ -378,7 +378,7 @@ export class DocWorkerMap implements IDocWorkerMap {
    * refused and need to retry.
    */
   public async getDocWorker(docId: string): Promise<DocStatus|null> {
-    const {doc} = await this._getDocAndChecksum(docId);
+    const { doc } = await this._getDocAndChecksum(docId);
     return doc;
   }
 
@@ -472,7 +472,7 @@ export class DocWorkerMap implements IDocWorkerMap {
 
       // We can now construct a DocStatus, preserving any existing checksum.
       const checksum = docAndChecksum.checksum;
-      const newDocStatus = {docMD5: checksum, docWorker, isActive: true};
+      const newDocStatus = { docMD5: checksum, docWorker, isActive: true };
 
       // We add the assignment to worker-{workerId}-docs and save doc-{docId}.
       const result = await this._client.multi()
@@ -618,14 +618,14 @@ export class DocWorkerMap implements IDocWorkerMap {
     const props = await this._client.multi()
       .hgetall(`doc-${docId}`)
       .get(`doc-${docId}-checksum`)
-      .execAsync() as [{[key: string]: any}|null, string|null]|null;
+      .execAsync() as [{ [key: string]: any }|null, string|null]|null;
     // Fields are JSON encoded since redis cannot store them directly.
     const doc = props?.[0] ? mapValues(props[0], val => JSON.parse(val)) as DocStatus : null;
     // Redis cannot store a null value, so we encode it as 'null', which does
     // not match any possible MD5.
     const checksum = (props?.[1] === 'null' ? null : props?.[1]) || null;
     if (doc) { doc.docMD5 = checksum; }  // the checksum goes in the DocStatus too.
-    return {doc, checksum};
+    return { doc, checksum };
   }
 
   /**

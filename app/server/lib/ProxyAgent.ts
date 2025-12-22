@@ -1,8 +1,8 @@
-import {appSettings} from "app/server/lib/AppSettings";
+import { appSettings } from "app/server/lib/AppSettings";
 import log from 'app/server/lib/log';
 
 import fetch, { RequestInit } from 'node-fetch';
-import {ProxyAgent, ProxyAgentOptions} from "proxy-agent";
+import { ProxyAgent, ProxyAgentOptions } from "proxy-agent";
 
 /**
  * GristProxyAgent derives from ProxyAgent which is a class that is responsible for proxying the request using either
@@ -39,7 +39,7 @@ function getProxyAgentConfiguration() {
 }
 
 function generateProxyAgents() {
-  const {proxyForTrustedRequestsUrl, proxyForUntrustedRequestsUrl} = getProxyAgentConfiguration();
+  const { proxyForTrustedRequestsUrl, proxyForUntrustedRequestsUrl } = getProxyAgentConfiguration();
 
   if (process.env.GRIST_HTTPS_PROXY) {
     log.warn('GRIST_HTTPS_PROXY is deprecated in favor of GRIST_PROXY_FOR_UNTRUSTED_URLS. ' +
@@ -91,12 +91,12 @@ export async function fetchUntrustedWithAgent(requestUrl: URL|string, options?: 
   requestUrl = new URL(requestUrl);
 
   try {
-    return await fetch(requestUrl, {...options, agent});
+    return await fetch(requestUrl, { ...options, agent });
   }
   catch(e) {
     // Include info helpful for diagnosing issues (but not the potentially sensitive full requestUrl).
     log.rawWarn(`ProxyAgent error ${e}`,
-      {proxy: agent.proxyUrl, reqProtocol: requestUrl.protocol, requestHost: requestUrl.origin});
+      { proxy: agent.proxyUrl, reqProtocol: requestUrl.protocol, requestHost: requestUrl.origin });
     throw e;
   }
 }

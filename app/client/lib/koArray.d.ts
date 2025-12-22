@@ -22,7 +22,7 @@ declare class KoArray<T> {
   }): ko.Subscription;
 
   public clampIndex(index: number): number|null;
-  public makeLiveIndex(index?: number): ko.Observable<number> & {setLive(live: boolean): void};
+  public makeLiveIndex(index?: number): ko.Observable<number> & { setLive(live: boolean): void };
   public setAutoDisposeValues(): this;
   public arraySplice(start: number, deleteCount: number, items: T[]): T[];
 }

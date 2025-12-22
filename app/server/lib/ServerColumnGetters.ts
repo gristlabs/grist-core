@@ -1,9 +1,9 @@
-import {ColumnGetter, ColumnGetters, ColumnGettersByColId} from 'app/common/ColumnGetters';
+import { ColumnGetter, ColumnGetters, ColumnGettersByColId } from 'app/common/ColumnGetters';
 import * as gristTypes from 'app/common/gristTypes';
-import {safeJsonParse} from 'app/common/gutil';
-import {choiceGetter} from 'app/common/SortFunc';
-import {Sort} from 'app/common/SortSpec';
-import {BulkColValues} from 'app/plugin/GristData';
+import { safeJsonParse } from 'app/common/gutil';
+import { choiceGetter } from 'app/common/SortFunc';
+import { Sort } from 'app/common/SortSpec';
+import { BulkColValues } from 'app/plugin/GristData';
 
 /**
  *

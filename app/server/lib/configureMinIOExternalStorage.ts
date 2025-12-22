@@ -1,6 +1,6 @@
-import {wrapWithKeyMappedStorage} from 'app/server/lib/ExternalStorage';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {MinIOExternalStorage} from 'app/server/lib/MinIOExternalStorage';
+import { wrapWithKeyMappedStorage } from 'app/server/lib/ExternalStorage';
+import { appSettings } from 'app/server/lib/AppSettings';
+import { MinIOExternalStorage } from 'app/server/lib/MinIOExternalStorage';
 
 export function configureMinIOExternalStorage(purpose: 'doc'|'meta'|'attachments', extraPrefix: string) {
   const options = checkMinIOExternalStorage();

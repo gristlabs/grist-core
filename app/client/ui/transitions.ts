@@ -32,7 +32,7 @@
  * prepare()); those triggered AFTER are subject to transitions (like run()).
  */
 
-import {BindableValue, Disposable, dom, DomElementMethod, subscribeElem} from 'grainjs';
+import { BindableValue, Disposable, dom, DomElementMethod, subscribeElem } from 'grainjs';
 
 export interface ITransitionLogic<T = void> {
   prepare(elem: HTMLElement, value: T): void;
@@ -41,7 +41,7 @@ export interface ITransitionLogic<T = void> {
 }
 
 export function transition<T>(obs: BindableValue<T>, trans: ITransitionLogic<T>): DomElementMethod {
-  const {prepare, run, finish} = trans;
+  const { prepare, run, finish } = trans;
   let watcher: TransitionWatcher|null = null;
   let firstCall = true;
   return elem => subscribeElem<T>(elem, obs, (val) => {

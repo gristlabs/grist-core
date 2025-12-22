@@ -1,13 +1,13 @@
-import {computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled} from "grainjs";
-import {cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
-  IModalControl, modal} from 'app/client/ui2018/modals';
-import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {IOrgMemberSelectOption, UserManagerModel} from 'app/client/models/UserManagerModel';
-import {icon} from 'app/client/ui2018/icons';
-import {textarea} from "app/client/ui/inputs";
-import {BasicRole, isBasicRole, NonGuestRole, VIEWER} from "app/common/roles";
-import {menu, menuItem} from 'app/client/ui2018/menus';
+import { computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
+import { cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
+  IModalControl, modal } from 'app/client/ui2018/modals';
+import { bigBasicButton, bigPrimaryButton } from 'app/client/ui2018/buttons';
+import { mediaXSmall, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { IOrgMemberSelectOption, UserManagerModel } from 'app/client/models/UserManagerModel';
+import { icon } from 'app/client/ui2018/icons';
+import { textarea } from "app/client/ui/inputs";
+import { BasicRole, isBasicRole, NonGuestRole, VIEWER } from "app/common/roles";
+import { menu, menuItem } from 'app/client/ui2018/menus';
 
 function parseEmailList(emailListRaw: string): Array<string> {
   return emailListRaw
@@ -84,7 +84,7 @@ function buildRolesSelect(
   model: UserManagerModel,
 ) {
   const allRoles = (model.isOrg ? model.orgUserSelectOptions : model.userSelectOptions)
-    .filter((x): x is {value: BasicRole, label: string} => isBasicRole(x.value));
+    .filter((x): x is { value: BasicRole, label: string } => isBasicRole(x.value));
   return cssOptionBtn(
     menu(() => [
       dom.forEach(allRoles, _role =>
@@ -109,8 +109,8 @@ function buildEmailsTextarea(
   ...args: DomElementArg[]
 ) {
   return cssTextarea(emailListObs,
-    {onInput: true, isValid: isValidObs},
-    {placeholder: "Enter one email address per line"},
+    { onInput: true, isValid: isValidObs },
+    { placeholder: "Enter one email address per line" },
     dom.on('change', _ev => isValidObs.set(true)),
     ...args,
   );

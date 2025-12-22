@@ -1,7 +1,7 @@
-import {Style} from 'app/client/models/Styles';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {dom, DomContents, DomElementArg, styled} from 'grainjs';
-import {colord, extend} from 'colord';
+import { Style } from 'app/client/models/Styles';
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { dom, DomContents, DomElementArg, styled } from 'grainjs';
+import { colord, extend } from 'colord';
 import a11yPlugin from 'colord/plugins/a11y';
 
 extend([a11yPlugin]);
@@ -44,9 +44,9 @@ export function choiceTokenDomArgs(
   label: DomElementArg,
   options: IChoiceTokenOptions,
 ): DomElementArg {
-  const {fillColor, textColor, fontBold, fontItalic, fontUnderline,
-    fontStrikethrough, invalid, blank} = options;
-  const {bg, fg} = getReadableColorsCombo({fillColor, textColor});
+  const { fillColor, textColor, fontBold, fontItalic, fontUnderline,
+    fontStrikethrough, invalid, blank } = options;
+  const { bg, fg } = getReadableColorsCombo({ fillColor, textColor });
   return [
     label,
     dom.style('background-color', bg),
@@ -106,7 +106,7 @@ function findBestShade(color: string, shades: string[]) {
     }
     const currentContrast = c.contrast(current);
     if (currentContrast > 7 || currentContrast > prev.contrast) {
-      return {shade: current, contrast: currentContrast, foundBest: currentContrast > 7};
+      return { shade: current, contrast: currentContrast, foundBest: currentContrast > 7 };
     }
     return prev;
   }, {
@@ -120,9 +120,9 @@ function findBestShade(color: string, shades: string[]) {
 
 export function getReadableColorsCombo(
   token: IChoiceTokenOptions,
-  defaultColors: {bg: string, fg: string} = {bg: DEFAULT_BACKGROUND_COLOR, fg: DEFAULT_COLOR},
+  defaultColors: { bg: string, fg: string } = { bg: DEFAULT_BACKGROUND_COLOR, fg: DEFAULT_COLOR },
 ) {
-  const {fillColor, textColor} = token;
+  const { fillColor, textColor } = token;
   const hasCustomBg = fillColor !== undefined;
   const hasCustomText = textColor !== undefined;
   const bg = fillColor || defaultColors.bg;
@@ -130,7 +130,7 @@ export function getReadableColorsCombo(
   if (hasCustomBg && !hasCustomText) {
     fg = findBestShade(fillColor, grayShades);
   }
-  return {bg, fg};
+  return { bg, fg };
 }
 
 const ADD_NEW_HEIGHT = '37px';

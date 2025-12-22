@@ -32,33 +32,33 @@
  * In other words, there is an opportunity for untangling and simplifying.
  */
 
-import {EventEmitter} from 'events';
+import { EventEmitter } from 'events';
 import * as http from 'http';
 import * as https from 'https';
-import {GristSocketServer} from 'app/server/lib/GristSocketServer';
-import {GristServerSocket} from 'app/server/lib/GristServerSocket';
+import { GristSocketServer } from 'app/server/lib/GristSocketServer';
+import { GristServerSocket } from 'app/server/lib/GristServerSocket';
 
-import {parseFirstUrlPart} from 'app/common/gristUrls';
-import {safeJsonParse} from 'app/common/gutil';
-import {UserProfile} from 'app/common/LoginSessionAPI';
+import { parseFirstUrlPart } from 'app/common/gristUrls';
+import { safeJsonParse } from 'app/common/gutil';
+import { UserProfile } from 'app/common/LoginSessionAPI';
 import * as version from 'app/common/version';
-import {HomeDBAuth} from "app/gen-server/lib/homedb/Interfaces";
-import {AuthSession} from "app/server/lib/AuthSession";
-import {ScopedSession} from "app/server/lib/BrowserSession";
-import {Client, ClientMethod} from "app/server/lib/Client";
-import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
-import {GristLoginMiddleware} from 'app/server/lib/GristServer';
+import { HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
+import { AuthSession } from "app/server/lib/AuthSession";
+import { ScopedSession } from "app/server/lib/BrowserSession";
+import { Client, ClientMethod } from "app/server/lib/Client";
+import { Hosts, RequestWithOrg } from 'app/server/lib/extractOrg';
+import { GristLoginMiddleware } from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
-import {localeFromRequest} from 'app/server/lib/ServerLocale';
-import {fromCallback} from 'app/server/lib/serverUtils';
-import {Sessions} from 'app/server/lib/Sessions';
-import {i18n} from 'i18next';
+import { localeFromRequest } from 'app/server/lib/ServerLocale';
+import { fromCallback } from 'app/server/lib/serverUtils';
+import { Sessions } from 'app/server/lib/Sessions';
+import { i18n } from 'i18next';
 import { trustOrigin } from 'app/server/lib/requestUtils';
 
 export interface CommOptions {
   sessions: Sessions;                   // A collection of all sessions for this instance of Grist
   dbManager?: HomeDBAuth;                // HomeDBManager, just the part needed for auth.
-  settings?: {[key: string]: unknown};  // The config object containing instance settings including features.
+  settings?: { [key: string]: unknown };  // The config object containing instance settings including features.
   hosts?: Hosts;  // If set, we use hosts.getOrgInfo(req) to extract an organization from a (possibly versioned) url.
   loginMiddleware?: GristLoginMiddleware; // If set, use custom getProfile method if available
   httpsServer?: https.Server;   // An optional HTTPS server to listen on too.
@@ -101,7 +101,7 @@ export class Comm extends EventEmitter {
    * @param {Object[String:Function]} Mapping of method name to their implementations. All methods
    *      receive the client as the first argument, and the arguments from the request.
    */
-  public registerMethods(serverMethods: {[name: string]: ClientMethod}): void {
+  public registerMethods(serverMethods: { [name: string]: ClientMethod }): void {
     // Wrap methods to translate return values and exceptions to promises.
     for (const methodName in serverMethods) {
       this._methods.set(methodName, serverMethods[methodName]);
@@ -122,7 +122,7 @@ export class Comm extends EventEmitter {
    */
   public broadcastMessage(type: 'docListAction', data: unknown) {
     for (const client of this._clients.values()) {
-      client.sendMessage({type, data}).catch(() => {});
+      client.sendMessage({ type, data }).catch(() => {});
     }
   }
 
@@ -206,7 +206,7 @@ export class Comm extends EventEmitter {
       this._clients.set(client.clientId, client);
     }
 
-    log.rawInfo('Comm: Got Websocket connection', {...client.getLogMeta(), urlPath: req.url, reuseClient});
+    log.rawInfo('Comm: Got Websocket connection', { ...client.getLogMeta(), urlPath: req.url, reuseClient });
 
     // Parse the cookie in the request to get the sessionId.
     const sessionId = this.sessions.getSessionIdFromRequest(req);
@@ -214,7 +214,7 @@ export class Comm extends EventEmitter {
     const profile = await this._getSessionProfile(scopedSession, req);
     const authSession = await getAuthSession(this._options.dbManager, scopedSession, profile);
 
-    client.setConnection({websocket, req, counter, browserSettings, authSession});
+    client.setConnection({ websocket, req, counter, browserSettings, authSession });
 
     await client.sendConnectMessage(newClient, reuseClient, lastSeqId, {
       serverVersion: this._serverVersion || version.gitcommit,

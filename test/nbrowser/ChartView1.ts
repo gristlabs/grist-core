@@ -1,10 +1,10 @@
-import {UserAPI} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
-import {addYAxis, checkAxisConfig, checkAxisRange, findYAxis, getAxisTitle, getChartData,
+import { UserAPI } from 'app/common/UserAPI';
+import { assert, driver, Key } from 'mocha-webdriver';
+import { addYAxis, checkAxisConfig, checkAxisRange, findYAxis, getAxisTitle, getChartData,
   removeYAxis, selectChartType, selectXAxis,
-  setSplitSeries} from 'test/nbrowser/chartViewTestUtils';
+  setSplitSeries } from 'test/nbrowser/chartViewTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('ChartView1', function() {
   this.timeout(20000);
@@ -25,13 +25,13 @@ describe('ChartView1', function() {
     const revert = await gu.begin();
     await gu.sendActions([
       ['AddTable', 'Text', [
-        {id: 'X', type: 'Int'},
-        {id: 'Y', type: 'Int'},
+        { id: 'X', type: 'Int' },
+        { id: 'Y', type: 'Int' },
       ]],
-      ['AddRecord', 'Text', null, {X: 1, Y: 1}],
-      ['AddRecord', 'Text', null, {X: 100, Y: 2}],
-      ['AddRecord', 'Text', null, {X: 101, Y: 3}],
-      ['AddRecord', 'Text', null, {X: 102, Y: 4}],
+      ['AddRecord', 'Text', null, { X: 1, Y: 1 }],
+      ['AddRecord', 'Text', null, { X: 100, Y: 2 }],
+      ['AddRecord', 'Text', null, { X: 101, Y: 3 }],
+      ['AddRecord', 'Text', null, { X: 102, Y: 4 }],
     ]);
     await gu.openPage('Text');
     await gu.addNewSection('Chart', 'Text');
@@ -45,7 +45,7 @@ describe('ChartView1', function() {
 
     // Now convert X to text.
     await gu.sendActions([
-      ['ModifyColumn', 'Text', 'X', {type: 'Text'}],
+      ['ModifyColumn', 'Text', 'X', { type: 'Text' }],
     ]);
     assert.deepEqual((await layout()).xaxis.type, 'category');
 
@@ -125,7 +125,7 @@ describe('ChartView1', function() {
   });
 
   it('should update as the underlying data changes', async function() {
-    await gu.getCell({section: 'ChartData', col: 0, rowNum: 1}).click();
+    await gu.getCell({ section: 'ChartData', col: 0, rowNum: 1 }).click();
     await driver.sendKeys(Key.ENTER, '1', Key.ENTER);   // Change from 6 to 61
     await gu.waitForServer();
 
@@ -135,7 +135,7 @@ describe('ChartView1', function() {
     assert.deepEqual(data[0].x, [61, 5, 4, 3, 2, 1]);
     assert.deepEqual(data[0].y, [1, 2, 3, 4, 5, 6]);
 
-    await gu.getCell({section: 'ChartData', col: 1, rowNum: 1}).click();
+    await gu.getCell({ section: 'ChartData', col: 1, rowNum: 1 }).click();
     await driver.sendKeys(Key.ENTER, '6', Key.ENTER);              // Change from 1 to 16
     await gu.waitForServer();
 
@@ -153,11 +153,11 @@ describe('ChartView1', function() {
 
     // Enter some blank values and a zero. The zero should be included in the plot, but blanks
     // should not.
-    await gu.getCell({col: 1, rowNum: 1}).click();
+    await gu.getCell({ col: 1, rowNum: 1 }).click();
     await driver.sendKeys(Key.DELETE);
-    await gu.getCell({col: 1, rowNum: 4}).click();
+    await gu.getCell({ col: 1, rowNum: 4 }).click();
     await driver.sendKeys(Key.DELETE);
-    await gu.getCell({col: 1, rowNum: 6}).click();
+    await gu.getCell({ col: 1, rowNum: 6 }).click();
     await driver.sendKeys('0', Key.ENTER);
     await gu.waitForServer();
 
@@ -391,7 +391,7 @@ describe('ChartView1', function() {
     // set 'label' as the groupby column
     await setSplitSeries('label');
 
-    let {data, layout} = await getChartData(chartDom);
+    let { data, layout } = await getChartData(chartDom);
     assert.deepEqual(data[0].type, 'scatter');
     assert.deepEqual(data.map(d => d.name), ['1', '2', '3', '4', '5', '61']);
     assert.equal(getAxisTitle(layout.xaxis), 'largeValue');
@@ -406,7 +406,7 @@ describe('ChartView1', function() {
       yaxis: ['value'],
     });
 
-    ({data, layout} = await getChartData(chartDom));
+    ({ data, layout } = await getChartData(chartDom));
     assert.deepEqual(data[0].type, 'scatter');
     assert.deepEqual(data.map(d => d.name), ['Alice', 'Bob']);
     assert.equal(getAxisTitle(layout.xaxis), 'largeValue');
@@ -422,7 +422,7 @@ describe('ChartView1', function() {
       yaxis: ['value', 'label'],
     });
 
-    ({data, layout} = await getChartData(chartDom));
+    ({ data, layout } = await getChartData(chartDom));
     assert.deepEqual(data[0].type, 'scatter');
     assert.deepEqual(data.map(d => d.name), ['Alice • value', 'Alice • label', 'Bob • value', 'Bob • label']);
     assert.equal(getAxisTitle(layout.xaxis), 'largeValue');
@@ -486,8 +486,8 @@ describe('ChartView1', function() {
     await removeYAxis('value');
 
     // add a row with person left as blank
-    const {retValues} = await api.applyUserActions(doc.id, [
-      ['AddRecord', 'ChartData', 7, {largeValue: 44}],
+    const { retValues } = await api.applyUserActions(doc.id, [
+      ['AddRecord', 'ChartData', 7, { largeValue: 44 }],
     ]);
     await setSplitSeries('person');
 
@@ -556,7 +556,7 @@ describe('ChartView1', function() {
     await gu.getSection('ChartData').find('.viewsection_title').click();
 
     // Add a new first column.
-    await gu.getCell({col: 0, rowNum: 1}).click();
+    await gu.getCell({ col: 0, rowNum: 1 }).click();
     // driver.sendKeys() doesn't support key combinations, but elem.sendKeys() does.
     await driver.find('body').sendKeys(Key.chord(Key.ALT, Key.SHIFT, '='));
     await gu.waitForServer();
@@ -570,7 +570,7 @@ describe('ChartView1', function() {
     await gu.waitForServer();
 
     // Enter some values.
-    await gu.enterGridRows({col: 0, rowNum: 1}, [
+    await gu.enterGridRows({ col: 0, rowNum: 1 }, [
       ["2018-01-15"], ["2018-01-31"], ["2018-02-14"], ["2018-03-04"], ["2018-03-14"], ["2018-03-26"],
     ]);
 
@@ -582,7 +582,7 @@ describe('ChartView1', function() {
     await selectXAxis('MyDate');
 
     const chartDom = await driver.find('.test-chart-container');
-    const {data, layout} = await getChartData(chartDom);
+    const { data, layout } = await getChartData(chartDom);
     // This check helps understand Plotly's actual interpretation of the dates. E.g. if the range
     // endpoints are like '2018-03-25 20:00', plotly is misinterpreting the timezone.
     assert.deepEqual(layout.xaxis.range, ['2018-01-15', '2018-03-26']);
@@ -605,7 +605,7 @@ describe('ChartView1', function() {
   it('should support error bars', async function() {
     // We start with a line chart with MyDate on X-axis, and two series: largeValue and value.
     await selectChartType('Line chart');
-    await checkAxisConfig({xaxis: 'MyDate', yaxis: ['largeValue', 'value']});
+    await checkAxisConfig({ xaxis: 'MyDate', yaxis: ['largeValue', 'value'] });
 
     // Symmetric error bars should leave only the largeValue series, with 'value' for error bars.
     await driver.find('.test-chart-error-bars .test-select-open').click();
@@ -804,12 +804,12 @@ describe('ChartView1', function() {
     await addYAxis('Y2');
 
     const chartDom = await driver.findWait('.test-chart-container', 1000);
-    let {data} = await getChartData(chartDom);
+    let { data } = await getChartData(chartDom);
     assert.lengthOf(data, 4);
-    assert.deepInclude(data[0], {type: 'scatter', name: 'Bar • Y1'});
-    assert.deepInclude(data[1], {type: 'scatter', name: 'Bar • Y2'});
-    assert.deepInclude(data[2], {type: 'scatter', name: 'Foo • Y1'});
-    assert.deepInclude(data[3], {type: 'scatter', name: 'Foo • Y2'});
+    assert.deepInclude(data[0], { type: 'scatter', name: 'Bar • Y1' });
+    assert.deepInclude(data[1], { type: 'scatter', name: 'Bar • Y2' });
+    assert.deepInclude(data[2], { type: 'scatter', name: 'Foo • Y1' });
+    assert.deepInclude(data[3], { type: 'scatter', name: 'Foo • Y2' });
     assert.deepEqual(data[0].x, [1.5, 2.5, 3.5, 4.5, 5.5]);
     assert.deepEqual(data[0].y, [1.5, 1, 3.5, 2.5, 4]);
     assert.deepEqual(data[1].x, [1.5, 2.5, 3.5, 4.5, 5.5]);
@@ -822,10 +822,10 @@ describe('ChartView1', function() {
     // Now show series ungrouped.
     await setSplitSeries(false);
 
-    ({data} = await getChartData(chartDom));
+    ({ data } = await getChartData(chartDom));
     assert.lengthOf(data, 2);
-    assert.deepInclude(data[0], {type: 'scatter', name: 'Y1'});
-    assert.deepInclude(data[1], {type: 'scatter', name: 'Y2'});
+    assert.deepInclude(data[0], { type: 'scatter', name: 'Y1' });
+    assert.deepInclude(data[1], { type: 'scatter', name: 'Y2' });
     assert.deepEqual(data[0].x, [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5]);
     assert.deepEqual(data[0].y, [1.5, 1.5, 1, 1, 3.5, 3.5, 2.5, 2.5, 4, 4]);
     assert.deepEqual(data[1].x, [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5]);
@@ -833,11 +833,11 @@ describe('ChartView1', function() {
   });
 
   it('should not throw when picking the grouping by column for the x-axis', async function() {
-    await checkAxisConfig({xaxis: 'X', yaxis: ['Y1', 'Y2']});
+    await checkAxisConfig({ xaxis: 'X', yaxis: ['Y1', 'Y2'] });
     await setSplitSeries('Group');
-    await checkAxisConfig({xaxis: 'X', yaxis: ['Y1', 'Y2'], groupingByColumn: 'Group'});
+    await checkAxisConfig({ xaxis: 'X', yaxis: ['Y1', 'Y2'], groupingByColumn: 'Group' });
     await selectXAxis('Group');
-    await checkAxisConfig({xaxis: 'Group', yaxis: ['Y1', 'Y2']});
+    await checkAxisConfig({ xaxis: 'Group', yaxis: ['Y1', 'Y2'] });
     await gu.checkForErrors();
     await gu.undo(2);
   });

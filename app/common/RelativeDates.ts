@@ -26,7 +26,7 @@ export interface IPeriod {
   endOf?: boolean;
 }
 
-export const CURRENT_DATE: IRelativeDateSpec = [{quantity: 0, unit: 'day'}];
+export const CURRENT_DATE: IRelativeDateSpec = [{ quantity: 0, unit: 'day' }];
 
 export function isRelativeBound(bound?: number|IRelativeDateSpec): bound is IRelativeDateSpec {
   return !isUndefined(bound) && !isNumber(bound);
@@ -40,7 +40,7 @@ export function relativeDateToUnixTimestamp(bound: IRelativeDateSpec): number {
   const periods = Array.isArray(bound) ? bound : [bound];
 
   for (const period of periods) {
-    const {quantity, unit, endOf} = period;
+    const { quantity, unit, endOf } = period;
 
     date.add(quantity, unit);
     if (endOf) {
@@ -63,7 +63,7 @@ export function formatRelBounds(periods: IPeriod[]): string {
   periods = periods[1]?.quantity ? periods : [periods[0]];
 
   if (periods.length === 1) {
-    const {quantity, unit, endOf} = periods[0];
+    const { quantity, unit, endOf } = periods[0];
     if (unit === 'day') {
       if (quantity === 0) { return 'Today'; }
       if (quantity === -1) { return 'Yesterday'; }
@@ -131,7 +131,7 @@ function formatDay(quantity: number, refUnit: IPeriod['unit']): string {
 }
 
 function formatReference(period: IPeriod): string {
-  const {quantity, unit} = period;
+  const { quantity, unit } = period;
   if (quantity === 0) {
     return `this ${unit}`;
   }

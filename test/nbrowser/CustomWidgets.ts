@@ -1,16 +1,16 @@
-import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
-import {AccessTokenResult} from 'app/plugin/GristAPI';
-import {TableOperations} from 'app/plugin/TableOperations';
-import {getAppRoot} from 'app/server/lib/places';
+import { AccessLevel, ICustomWidget } from 'app/common/CustomWidget';
+import { AccessTokenResult } from 'app/plugin/GristAPI';
+import { TableOperations } from 'app/plugin/TableOperations';
+import { getAppRoot } from 'app/server/lib/places';
 import * as fse from 'fs-extra';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { assert, driver, Key } from 'mocha-webdriver';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {serveSomething} from 'test/server/customUtil';
-import {createTmpDir} from 'test/server/docTools';
-import {EnvironmentSnapshot} from 'test/server/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { serveSomething } from 'test/server/customUtil';
+import { createTmpDir } from 'test/server/docTools';
+import { EnvironmentSnapshot } from 'test/server/testUtils';
 
 // Valid manifest url.
 const manifestEndpoint = '/manifest.json';
@@ -122,7 +122,7 @@ describe('CustomWidgets', function () {
         res
           .header('Content-Type', 'application/json')
           // prefix widget endpoint with server address
-          .json(widgets.map(widget => ({...widget, url: `${widgetServerUrl}${widget.url}`})))
+          .json(widgets.map(widget => ({ ...widget, url: `${widgetServerUrl}${widget.url}` })))
           .end(),
       );
       app.get('/grist-plugin-api.js', (_, res) =>
@@ -149,7 +149,7 @@ describe('CustomWidgets', function () {
     await session.tempDoc(cleanup, 'Hello.grist');
 
     // Add custom section.
-    await gu.addNewSection(/Custom/, /Table1/, {customWidget: /Custom URL/, selectBy: /TABLE1/});
+    await gu.addNewSection(/Custom/, /Table1/, { customWidget: /Custom URL/, selectBy: /TABLE1/ });
   });
 
   after(async function() {
@@ -318,7 +318,7 @@ describe('CustomWidgets', function () {
       assert.equal(await getWidgetColor(), 'rgba(38, 38, 51, 1)');
 
       // Switch the theme to GristDark.
-      await gu.setGristTheme({themeName: 'GristDark', syncWithOS: false});
+      await gu.setGristTheme({ themeName: 'GristDark', syncWithOS: false });
       await driver.navigate().back();
       await gu.waitForDocToLoad();
 
@@ -326,7 +326,7 @@ describe('CustomWidgets', function () {
       assert.equal(await getWidgetColor(), 'rgba(239, 239, 239, 1)');
 
       // Switch back to GristLight.
-      await gu.setGristTheme({themeName: 'GristLight', syncWithOS: false});
+      await gu.setGristTheme({ themeName: 'GristLight', syncWithOS: false });
       await driver.navigate().back();
       await gu.waitForDocToLoad();
 
@@ -833,47 +833,47 @@ describe('CustomWidgets', function () {
       // Check an upsert works.
       await execute(async (table) => {
         await table.upsert({
-          require: {A: 'hello'},
-          fields: {A: 'goodbye'},
+          require: { A: 'hello' },
+          fields: { A: 'goodbye' },
         });
       });
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 1, col: 0}).getText(), 'goodbye');
+        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: 1, col: 0 }).getText(), 'goodbye');
       });
 
       // Check an update works.
       await execute(async (table) => {
         return table.update({
           id: 2,
-          fields: {A: 'farewell'},
+          fields: { A: 'farewell' },
         });
       });
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 2, col: 0}).getText(), 'farewell');
+        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: 2, col: 0 }).getText(), 'farewell');
       });
 
       // Check options are passed along.
       await execute(async (table) => {
         return table.upsert({
           require: {},
-          fields: {A: 'goodbyes'},
-        }, {onMany: 'all', allowEmptyRequire: true});
+          fields: { A: 'goodbyes' },
+        }, { onMany: 'all', allowEmptyRequire: true });
       });
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 1, col: 0}).getText(), 'goodbyes');
-        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 2, col: 0}).getText(), 'goodbyes');
+        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: 1, col: 0 }).getText(), 'goodbyes');
+        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: 2, col: 0 }).getText(), 'goodbyes');
       });
 
       // Check a create works.
-      const {id} = await execute(async (table) => {
+      const { id } = await execute(async (table) => {
         return table.create({
-          fields: {A: 'partA', B: 'partB'},
+          fields: { A: 'partA', B: 'partB' },
         });
-      }) as {id: number};
+      }) as { id: number };
       assert.equal(id, 5);
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: id, col: 0}).getText(), 'partA');
-        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: id, col: 1}).getText(), 'partB');
+        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: id, col: 0 }).getText(), 'partA');
+        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: id, col: 1 }).getText(), 'partB');
       });
 
       // Check a destroy works.
@@ -882,19 +882,19 @@ describe('CustomWidgets', function () {
       });
       assert.isUndefined(result);
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: id - 1, col: 0}).getText(), 'partA');
+        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: id - 1, col: 0 }).getText(), 'partA');
       });
       result = await execute(async (table) => {
         await table.destroy([2]);
       });
       assert.isUndefined(result);
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: id - 2, col: 0}).getText(), 'partA');
+        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: id - 2, col: 0 }).getText(), 'partA');
       });
 
       // Check errors are friendly.
       const errMessage = await execute(async (table) => {
-        await table.create({fields: {ziggy: 1}});
+        await table.create({ fields: { ziggy: 1 } });
       });
       assert.equal(errMessage, 'Invalid column "ziggy"');
     });
@@ -904,18 +904,18 @@ describe('CustomWidgets', function () {
       await execute(async (table) => {
         return table.update({
           id: 3,
-          fields: {A: 'back again'},
+          fields: { A: 'back again' },
         });
       }, grist => grist.getTable('Table1'));
       await gu.waitToPass(async () => {
-        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 1, col: 0}).getText(), 'back again');
+        assert.equal(await gu.getCell({ section: 'TABLE1', rowNum: 1, col: 0 }).getText(), 'back again');
       });
 
       // Check an update on a nonexistent table fails.
       assert.match(String(await execute(async (table) => {
         return table.update({
           id: 3,
-          fields: {A: 'back again'},
+          fields: { A: 'back again' },
         });
       }, grist => grist.getTable('Table2'))), /Table not found/);
     });
@@ -1073,7 +1073,7 @@ describe('CustomWidgets', function () {
         }
 
         // Check built-in P1 works as expected.
-        await gu.setCustomWidget(/P1/, {openGallery: false});
+        await gu.setCustomWidget(/P1/, { openGallery: false });
         assert.equal(await gu.getCustomWidgetName(), 'P1 (My Widgets)');
         await gu.waitToPass(async () => {
           assert.equal(await getWidgetText(), 'P1');

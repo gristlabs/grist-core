@@ -1,4 +1,4 @@
-import {NumberFormatOptions} from 'app/common/NumberFormat';
+import { NumberFormatOptions } from 'app/common/NumberFormat';
 
 export interface WidgetOptions extends NumberFormatOptions {
   textColor?: 'string';

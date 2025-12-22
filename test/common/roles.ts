@@ -1,5 +1,5 @@
 import * as roles from 'app/common/roles';
-import {assert} from 'chai';
+import { assert } from 'chai';
 
 describe('roles', function() {
   describe('getStrongestRole', function() {

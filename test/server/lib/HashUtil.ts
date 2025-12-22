@@ -3,7 +3,7 @@ import { HashUtil } from 'app/server/lib/HashUtil';
 import { assert } from 'chai';
 
 describe('HashUtil', function() {
-  const states: DocState[] = [{n: 4, h: '4123'}, {n: 3, h: '3123'}, {n: 2, h: '2123'}, {n: 1, h: '1123'}];
+  const states: DocState[] = [{ n: 4, h: '4123' }, { n: 3, h: '3123' }, { n: 2, h: '2123' }, { n: 1, h: '1123' }];
   const finder = new HashUtil(states);
 
   it('understands HEAD', function() {

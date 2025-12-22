@@ -76,7 +76,7 @@ export interface EditableLabelOptions {
  * the save function, to reject a value simply throw an error, this will revert to the saved one .
  */
 export function editableLabel(label: Observable<string>, options: EditableLabelOptions) {
-  const {save, args, inputArgs} = options;
+  const { save, args, inputArgs } = options;
 
   let input: HTMLInputElement;
   let sizer: HTMLSpanElement;
@@ -145,7 +145,7 @@ export function rawTextInput(value: Observable<string>, save: SaveFunc, onChange
 
   return inputEl = dom('input',
     dom.autoDispose(lis),
-    {type: 'text'},
+    { type: 'text' },
     dom.on('input', () => { status = Status.EDITING; onChange(); }),
     dom.on('blur', saveEdit),
     // we set the attribute to the initial value and keep it updated for the convenience of usage

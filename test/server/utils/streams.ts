@@ -1,5 +1,5 @@
-import {drainWhenSettled} from 'app/server/utils/streams';
-import {assert} from "chai";
+import { drainWhenSettled } from 'app/server/utils/streams';
+import { assert } from "chai";
 import stream from 'node:stream';
 
 describe('streams', function() {

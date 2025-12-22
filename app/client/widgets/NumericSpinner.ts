@@ -1,8 +1,8 @@
-import {theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {clamp, numberOrDefault} from 'app/common/gutil';
-import {MaybePromise} from 'app/plugin/gutil';
-import {BindableValue, dom, DomElementArg, IDomArgs, makeTestId, Observable, styled} from 'grainjs';
+import { theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { clamp, numberOrDefault } from 'app/common/gutil';
+import { MaybePromise } from 'app/plugin/gutil';
+import { BindableValue, dom, DomElementArg, IDomArgs, makeTestId, Observable, styled } from 'grainjs';
 
 const testId = makeTestId('test-numeric-spinner-');
 
@@ -51,22 +51,22 @@ export function numericSpinner(
 
   let inputElement: HTMLInputElement;
 
-  const shiftValue = async (delta: 1 | -1, opts: {saveValue?: boolean} = {}) => {
-    const {saveValue} = opts;
+  const shiftValue = async (delta: 1 | -1, opts: { saveValue?: boolean } = {}) => {
+    const { saveValue } = opts;
     const currentValue = numberOrDefault(inputElement.value, getDefaultValue());
     const newValue = clamp(Math.floor(currentValue + delta), minValue, maxValue);
     if (setValueOnInput) { value.set(newValue); }
     if (saveValue) { await save?.(newValue); }
     return newValue;
   };
-  const incrementValue = (opts: {saveValue?: boolean} = {}) => shiftValue(1, opts);
-  const decrementValue = (opts: {saveValue?: boolean} = {}) => shiftValue(-1, opts);
+  const incrementValue = (opts: { saveValue?: boolean } = {}) => shiftValue(1, opts);
+  const decrementValue = (opts: { saveValue?: boolean } = {}) => shiftValue(-1, opts);
 
   return cssNumericSpinner(
     disabled ? cssNumericSpinner.cls('-disabled', disabled) : null,
     label ? cssNumLabel(label) : null,
     inputElement = cssNumInput(
-      {type: 'number'},
+      { type: 'number' },
       dom.prop('value', value),
       defaultValue !== undefined ? dom.prop('placeholder', defaultValue) : null,
       dom.onKeyDown({
@@ -88,12 +88,12 @@ export function numericSpinner(
     cssSpinner(
       cssSpinnerBtn(
         cssSpinnerTop('DropdownUp'),
-        dom.on('click', async () => incrementValue({saveValue: true})),
+        dom.on('click', async () => incrementValue({ saveValue: true })),
         testId('increment'),
       ),
       cssSpinnerBtn(
         cssSpinnerBottom('Dropdown'),
-        dom.on('click', async () => decrementValue({saveValue: true})),
+        dom.on('click', async () => decrementValue({ saveValue: true })),
         testId('decrement'),
       ),
     ),

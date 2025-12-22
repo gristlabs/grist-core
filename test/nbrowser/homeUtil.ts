@@ -4,19 +4,19 @@
 import FormData from 'form-data';
 import * as fse from 'fs-extra';
 import defaults from 'lodash/defaults';
-import {Key, WebDriver, WebElement} from 'mocha-webdriver';
+import { Key, WebDriver, WebElement } from 'mocha-webdriver';
 import fetch from 'node-fetch';
-import {authenticator} from 'otplib';
+import { authenticator } from 'otplib';
 import * as path from 'path';
 
-import {normalizeEmail} from 'app/common/emails';
-import {UserProfile} from 'app/common/LoginSessionAPI';
-import {BehavioralPrompt, UserPrefs, WelcomePopup} from 'app/common/Prefs';
-import {DocWorkerAPI, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {TestingHooksClient} from 'app/server/lib/TestingHooks';
+import { normalizeEmail } from 'app/common/emails';
+import { UserProfile } from 'app/common/LoginSessionAPI';
+import { BehavioralPrompt, UserPrefs, WelcomePopup } from 'app/common/Prefs';
+import { DocWorkerAPI, UserAPI, UserAPIImpl } from 'app/common/UserAPI';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { TestingHooksClient } from 'app/server/lib/TestingHooks';
 import EventEmitter from 'events';
-import {BaseAPI, IOptions} from 'app/common/BaseAPI';
+import { BaseAPI, IOptions } from 'app/common/BaseAPI';
 
 export interface Server extends EventEmitter {
   driver: WebDriver;
@@ -86,7 +86,7 @@ export class HomeUtil {
     showTips?: boolean,
     cacheCredentials?: boolean,
   } = {}) {
-    const {loginMethod, isFirstLogin, showTips} = defaults(options, {
+    const { loginMethod, isFirstLogin, showTips } = defaults(options, {
       loginMethod: 'Email + Password',
       showTips: false,
     });
@@ -110,7 +110,7 @@ export class HomeUtil {
       if (!sid) { throw new Error('no session available'); }
       await testingHooks.setLoginSessionProfile(
         sid,
-        {name, email, loginEmail: normalizeEmail(email), loginMethod},
+        { name, email, loginEmail: normalizeEmail(email), loginMethod },
         org,
       );
     }
@@ -273,17 +273,17 @@ export class HomeUtil {
    * Create a new document.
    */
   public async createNewDoc(username: string, org: string, workspace: string, docName: string,
-    options: {email?: string} = {}) {
+    options: { email?: string } = {}) {
     const homeApi = this.createHomeApi(username, org, options.email);
     const workspaceId = await this.getWorkspaceId(homeApi, workspace);
-    return await homeApi.newDoc({name: docName}, workspaceId);
+    return await homeApi.newDoc({ name: docName }, workspaceId);
   }
 
   /**
    * Import a fixture doc into a workspace.
    */
   public async importFixturesDoc(username: string, org: string, workspace: string,
-    filename: string, options: {newName?: string, email?: string} = {}) {
+    filename: string, options: { newName?: string, email?: string } = {}) {
     const homeApi = this.createHomeApi(username, org, options.email);
     const docWorker = await homeApi.getWorkerAPI('import');
     const workspaceId = await this.getWorkspaceId(homeApi, workspace);
@@ -295,7 +295,7 @@ export class HomeUtil {
    * Create a copy of a doc. Similar to importFixturesDoc, but starts with an existing docId.
    */
   public async copyDoc(username: string, org: string, workspace: string,
-    docId: string, options: {newName?: string} = {}) {
+    docId: string, options: { newName?: string } = {}) {
     const homeApi = this.createHomeApi(username, org);
     const docWorker = await homeApi.getWorkerAPI('import');
     const workspaceId = await this.getWorkspaceId(homeApi, workspace);
@@ -435,7 +435,7 @@ export class HomeUtil {
     if (this.server.isExternalServer()) { throw new Error('not supported'); }
     const dbManager = await this.server.getDatabase();
     const user = await dbManager.getUserByLogin(email);
-    await dbManager.deleteUser({userId: user.id}, user.id, user.name);
+    await dbManager.deleteUser({ userId: user.id }, user.id, user.name);
   }
 
   // Set whether this is the user's first time logging in.  Requires access to the database.
@@ -452,8 +452,8 @@ export class HomeUtil {
     const dbManager = await this.server.getDatabase();
     const user = await dbManager.getUserByLogin(email);
     if (user && user.personalOrg) {
-      const userOrgPrefs = {showGristTour};
-      await dbManager.updateOrg({userId: user.id}, user.personalOrg.id, {userOrgPrefs});
+      const userOrgPrefs = { showGristTour };
+      await dbManager.updateOrg({ userId: user.id }, user.personalOrg.id, { userOrgPrefs });
     }
   }
 
@@ -463,7 +463,7 @@ export class HomeUtil {
     creator: APIConstructor<T>,
     apiKey: string|null,
     org?: string): T {
-    const headers = apiKey ? {Authorization: `Bearer ${apiKey}`} : undefined;
+    const headers = apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined;
     return new creator(org ? this.server.getUrl(org, '') : this.server.getHost(), {
       headers,
       fetch: fetch as any,
@@ -487,13 +487,13 @@ export class HomeUtil {
     const user = await dbManager.getUserByLogin(email);
 
     if (user.personalOrg) {
-      const org = await dbManager.getOrg({userId: user.id}, user.personalOrg.id);
+      const org = await dbManager.getOrg({ userId: user.id }, user.personalOrg.id);
       const userPrefs = (org.data as any)?.userPrefs ?? {};
       const newUserPrefs: UserPrefs = {
         ...userPrefs,
         ...(enabled ? ALL_TIPS_ENABLED : ALL_TIPS_DISABLED),
       };
-      await dbManager.updateOrg({userId: user.id}, user.personalOrg.id, {userPrefs: newUserPrefs});
+      await dbManager.updateOrg({ userId: user.id }, user.personalOrg.id, { userPrefs: newUserPrefs });
     }
     else {
       await this.driver.executeScript(`

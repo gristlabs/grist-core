@@ -47,7 +47,7 @@ function createImportSourcePlugin(importSource: any): PluginInstance {
       },
     },
   }, createRpcLogger(logger, "plugin instance"));
-  const rpc = new Rpc({logger: createRpcLogger(logger, 'rpc')});
+  const rpc = new Rpc({ logger: createRpcLogger(logger, 'rpc') });
   rpc.setSendMessage((mssg: any) => rpc.receiveMessage(mssg));
   rpc.registerImpl("importer", importSource);
   plugin.rpc.registerForwarder("index.html", rpc);

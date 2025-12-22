@@ -1,6 +1,6 @@
-import {bigBasicButton, bigBasicButtonLink, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {theme} from 'app/client/ui2018/cssVars';
-import {styled} from 'grainjs';
+import { bigBasicButton, bigBasicButtonLink, bigPrimaryButton } from 'app/client/ui2018/buttons';
+import { theme } from 'app/client/ui2018/cssVars';
+import { styled } from 'grainjs';
 
 export const cssSection = styled('div', ``);
 

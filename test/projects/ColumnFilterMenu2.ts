@@ -138,7 +138,7 @@ describe('ColumnFilterMenu2', function() {
           ['Apples', 'Bananas']);
 
         // check Dates, Knapples are not excluded
-        assert.deepEqual(await parseFilterState(), {excluded: []});
+        assert.deepEqual(await parseFilterState(), { excluded: [] });
 
         // click `Other Matching`
         await driver.findContent('.test-filter-menu-summary', /Other Matching/).find('label').click();
@@ -202,7 +202,7 @@ describe('ColumnFilterMenu2', function() {
         );
 
         // check filter is an exclusion filter
-        assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
+        assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
 
         // click 'Other Non-Matching'
         await driver.findContent('.test-filter-menu-summary label', /Other Non-Matching/).click();

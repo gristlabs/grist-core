@@ -1,7 +1,7 @@
-import {FlexServer} from 'app/server/lib/FlexServer';
-import {GristServer} from 'app/server/lib/GristServer';
+import { FlexServer } from 'app/server/lib/FlexServer';
+import { GristServer } from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
-import {PluginManager} from 'app/server/lib/PluginManager';
+import { PluginManager } from 'app/server/lib/PluginManager';
 import * as express from 'express';
 import * as mimeTypes from 'mime-types';
 import * as path from 'path';
@@ -51,7 +51,7 @@ function servePluginContent(req: express.Request, res: express.Response,
     // Note that pluginPath may not be safe, but `sendFile` with the "root" option restricts
     // relative paths to be within the root folder (see the 3rd party library unit-test:
     // https://github.com/pillarjs/send/blob/3daa901cf731b86187e4449fa2c52f971e0b3dbc/test/send.js#L1363)
-    return res.sendFile(`${pluginId}/${pluginPath}`, {root: contentRoot});
+    return res.sendFile(`${pluginId}/${pluginPath}`, { root: contentRoot });
   }
 
   log.warn(`Refusing to serve untrusted plugin content on ${req.get('host')}`);

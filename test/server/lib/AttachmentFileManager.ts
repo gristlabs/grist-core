@@ -16,7 +16,7 @@ import {
   IAttachmentStoreProvider,
 } from "app/server/lib/AttachmentStoreProvider";
 import { makeTestingFilesystemStoreConfig } from "test/server/lib/FilesystemAttachmentStore";
-import {waitForIt} from 'test/server/wait';
+import { waitForIt } from 'test/server/wait';
 import { assert } from "chai";
 import * as stream from "node:stream";
 import * as sinon from "sinon";

@@ -1,20 +1,20 @@
-import {CellSelector, COL, ROW} from 'app/client/components/CellSelector';
-import {copyToClipboard} from 'app/client/lib/clipboardUtils';
-import {Delay} from "app/client/lib/Delay";
-import {KoArray} from 'app/client/lib/koArray';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {UserError} from 'app/client/models/errors';
-import {ALL, RowsChanged, SortedRowSet} from "app/client/models/rowset";
-import {showTransientTooltip} from 'app/client/ui/tooltips';
-import {isNarrowScreen, isNarrowScreenObs, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {CellValue} from 'app/common/DocActions';
-import {isEmptyList, isListType, isRefListType} from "app/common/gristTypes";
-import {TableData} from "app/common/TableData";
-import {BaseFormatter} from 'app/common/ValueFormatter';
+import { CellSelector, COL, ROW } from 'app/client/components/CellSelector';
+import { copyToClipboard } from 'app/client/lib/clipboardUtils';
+import { Delay } from "app/client/lib/Delay";
+import { KoArray } from 'app/client/lib/koArray';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { UserError } from 'app/client/models/errors';
+import { ALL, RowsChanged, SortedRowSet } from "app/client/models/rowset";
+import { showTransientTooltip } from 'app/client/ui/tooltips';
+import { isNarrowScreen, isNarrowScreenObs, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { CellValue } from 'app/common/DocActions';
+import { isEmptyList, isListType, isRefListType } from "app/common/gristTypes";
+import { TableData } from "app/common/TableData";
+import { BaseFormatter } from 'app/common/ValueFormatter';
 import ko from 'knockout';
-import {Computed, Disposable, dom, makeTestId, Observable, styled, subscribe} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
+import { Computed, Disposable, dom, makeTestId, Observable, styled, subscribe } from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
 
 const t = makeT('SelectionSummary');
 
@@ -62,7 +62,7 @@ export class SelectionSummary extends Disposable {
   private _rowRange = Computed.create<Range>(this, (use) => {
     const type = use(this._cellSelector.currentSelectType);
     if (type === COL) {
-      return {begin: 0, end: use(this._rowTotalCount)};
+      return { begin: 0, end: use(this._rowTotalCount) };
     }
     else {
       const start = use(this._cellSelector.row.start);
@@ -77,7 +77,7 @@ export class SelectionSummary extends Disposable {
   private _colRange = Computed.create<Range>(this, (use) => {
     const type = use(this._cellSelector.currentSelectType);
     if (type === ROW) {
-      return {begin: 0, end: use(this._colTotalCount)};
+      return { begin: 0, end: use(this._colTotalCount) };
     }
     else {
       const start = use(this._cellSelector.col.start);
@@ -115,7 +115,7 @@ export class SelectionSummary extends Disposable {
 
   public buildDom() {
     return cssSummary(
-      dom.forEach(this._summary, ({id, label, value, clickToCopy}) =>
+      dom.forEach(this._summary, ({ id, label, value, clickToCopy }) =>
         cssSummaryPart(
           label ? dom('span', cssLabelText(label), cssCopyIcon('Copy')) : null,
           value,
@@ -127,7 +127,7 @@ export class SelectionSummary extends Disposable {
     );
   }
 
-  private _onSpliceChange(splice: {start: number}) {
+  private _onSpliceChange(splice: { start: number }) {
     const rowRange = this._rowRange.get();
     const rowCount = rowRange.end - rowRange.begin;
     if (rowCount === 1) { return; }
@@ -258,13 +258,13 @@ export class SelectionSummary extends Disposable {
 
         if (countNumeric > 0) {
           const sumValue = sumFormatter ? sumFormatter.formatAny(sum) : String(sum);
-          summary.push({id: 'sum', label: 'Sum ', value: sumValue, clickToCopy: true});
+          summary.push({ id: 'sum', label: 'Sum ', value: sumValue, clickToCopy: true });
         }
         else {
-          summary.push({id: 'count', label: 'Count ', value: String(countNonEmpty), clickToCopy: true});
+          summary.push({ id: 'count', label: 'Count ', value: String(countNonEmpty), clickToCopy: true });
         }
       }
-      summary.push({id: 'dimensions', label: '', value: `${rowCount}⨯${colCount}`});
+      summary.push({ id: 'dimensions', label: '', value: `${rowCount}⨯${colCount}` });
     }
     this._summary.set(summary);
   }
@@ -272,7 +272,7 @@ export class SelectionSummary extends Disposable {
 
 async function doCopy(value: string, elem: Element) {
   await copyToClipboard(value);
-  showTransientTooltip(elem, t("Copied to clipboard"), {key: 'copy-selection-summary'});
+  showTransientTooltip(elem, t("Copied to clipboard"), { key: 'copy-selection-summary' });
 }
 
 const cssSummary = styled('div', `

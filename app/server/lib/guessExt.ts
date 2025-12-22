@@ -1,5 +1,5 @@
-import {fromFile} from 'file-type';
-import {extension, lookup} from 'mime-types';
+import { fromFile } from 'file-type';
+import { extension, lookup } from 'mime-types';
 import * as path from 'path';
 
 /**

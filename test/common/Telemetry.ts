@@ -1,5 +1,5 @@
-import {buildTelemetryEventChecker, TelemetryEvent} from 'app/common/Telemetry';
-import {assert} from 'chai';
+import { buildTelemetryEventChecker, TelemetryEvent } from 'app/common/Telemetry';
+import { assert } from 'chai';
 
 describe('Telemetry', function() {
   describe('buildTelemetryEventChecker', function() {
@@ -73,7 +73,7 @@ describe('Telemetry', function() {
     it('throws if metadata is invalid', function() {
       const checker = buildTelemetryEventChecker('full');
       assert.throws(
-        () => checker('apiUsage', {invalidMetadata: '123'}),
+        () => checker('apiUsage', { invalidMetadata: '123' }),
         /Unknown metadata for telemetry event apiUsage: invalidMetadata/,
       );
     });
@@ -81,27 +81,27 @@ describe('Telemetry', function() {
     it('throws if metadata types do not match expected types', function() {
       const checker = buildTelemetryEventChecker('full');
       assert.throws(
-        () => checker('siteUsage', {siteId: '1'}),
+        () => checker('siteUsage', { siteId: '1' }),
         /Telemetry metadata siteId of event siteUsage expected a value of type number but received a value of type string/,
       );
       assert.throws(
-        () => checker('siteUsage', {lastActivity: 1234567890}),
+        () => checker('siteUsage', { lastActivity: 1234567890 }),
         /Telemetry metadata lastActivity of event siteUsage expected a value of type Date or string but received a value of type number/,
       );
       assert.throws(
-        () => checker('siteUsage', {inGoodStanding: 'true'}),
+        () => checker('siteUsage', { inGoodStanding: 'true' }),
         /Telemetry metadata inGoodStanding of event siteUsage expected a value of type boolean but received a value of type string/,
       );
       assert.throws(
-        () => checker('siteUsage', {numDocs: '1'}),
+        () => checker('siteUsage', { numDocs: '1' }),
         /Telemetry metadata numDocs of event siteUsage expected a value of type number but received a value of type string/,
       );
       assert.throws(
-        () => checker('documentUsage', {attachmentTypes: '1,2,3'}),
+        () => checker('documentUsage', { attachmentTypes: '1,2,3' }),
         /Telemetry metadata attachmentTypes of event documentUsage expected a value of type array but received a value of type string/,
       );
       assert.throws(
-        () => checker('documentUsage', {attachmentTypes: ['.txt', 1, true]}),
+        () => checker('documentUsage', { attachmentTypes: ['.txt', 1, true] }),
         /Telemetry metadata attachmentTypes of event documentUsage expected a value of type string\[\] but received a value of type object\[\]/,
       );
     });

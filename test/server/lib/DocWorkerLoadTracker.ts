@@ -14,7 +14,7 @@ describe("DocWorkerLoadTracker", function () {
   let docWorkerMap: IDocWorkerMap;
   let getTotalMemoryUsedStub: sinon.SinonStub;
   const sandbox = sinon.createSandbox();
-  const originalDeps = {...Deps};
+  const originalDeps = { ...Deps };
   const docWorkerInfoMap: DocWorkerInfo = {
     id: 'some-id',
     internalUrl: 'http://grist-internal/dw/10.0.0.2/some-path',
@@ -59,7 +59,7 @@ describe("DocWorkerLoadTracker", function () {
       depsProperty: 'docWorkerUsedMemoryBytesPath'|'docWorkerMaxMemoryBytesPath',
       value: number|string|undefined): Promise<void> {
       if (value !== undefined) {
-        const {path, cleanup} = await tmp.file();
+        const { path, cleanup } = await tmp.file();
         registerCleanup(cleanup);
         Deps[depsProperty] = path;
         await fs.writeFile(path, value.toString(), 'utf-8');

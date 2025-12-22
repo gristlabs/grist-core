@@ -2,8 +2,8 @@
  * Types for encrypted ActionBundles that get sent between instances and hub.
  */
 
-import {ActionInfo, Envelope} from 'app/common/ActionBundle';
-import {DocAction} from 'app/common/DocActions';
+import { ActionInfo, Envelope } from 'app/common/ActionBundle';
+import { DocAction } from 'app/common/DocActions';
 
 // Type representing a point in time as milliseconds since Epoch.
 export type Timestamp = number;

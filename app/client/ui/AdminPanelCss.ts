@@ -16,11 +16,11 @@ export interface AdminPanelControls {
 export function HidableToggle(
   owner: IDisposableOwner,
   value: Observable<boolean|null>,
-  options: {labelId?: string} = {},
+  options: { labelId?: string } = {},
 ) {
   return toggleSwitch(value, {
     args: [dom.hide(use => use(value) === null)],
-    inputArgs: [options.labelId ? {"aria-labelledby": options.labelId} : undefined],
+    inputArgs: [options.labelId ? { "aria-labelledby": options.labelId } : undefined],
   });
 }
 
@@ -66,7 +66,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
         }, 0);
       },
     ),
-    cssItemDescription(options.description, {id: `admin-panel-item-description-${options.id}`}),
+    cssItemDescription(options.description, { id: `admin-panel-item-description-${options.id}` }),
     cssItemValue(options.value,
       testId(`admin-panel-item-value-${options.id}`),
       dom.on('click', ev => ev.stopPropagation())),
@@ -98,7 +98,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
         cssItemShort.cls('-disabled', Boolean(options.disabled)),
         options.disabled ? hoverTooltip(options.disabled, {
           placement: 'bottom-end',
-          modifiers: {offset: {offset: '0, -10'}},
+          modifiers: { offset: { offset: '0, -10' } },
         }) : null,
       ),
       testId(`admin-panel-item-${options.id}`),

@@ -1,14 +1,14 @@
-import {assertMatchArray, captureLog, EnvironmentSnapshot} from "test/server/testUtils";
-import {getAvailablePort} from "app/server/lib/serverUtils";
+import { assertMatchArray, captureLog, EnvironmentSnapshot } from "test/server/testUtils";
+import { getAvailablePort } from "app/server/lib/serverUtils";
 import log from "app/server/lib/log";
 import {
   agents, fetchUntrustedWithAgent, GristProxyAgent, test_generateProxyAgents,
 } from "app/server/lib/ProxyAgent";
-import {serveSomething, Serving} from 'test/server/customUtil';
-import {TestProxyServer} from 'test/server/lib/helpers/TestProxyServer';
+import { serveSomething, Serving } from 'test/server/customUtil';
+import { TestProxyServer } from 'test/server/lib/helpers/TestProxyServer';
 
 import sinon from "sinon";
-import {assert} from "chai";
+import { assert } from "chai";
 
 describe("ProxyAgent", function () {
   let oldEnv: EnvironmentSnapshot;

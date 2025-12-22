@@ -1,8 +1,8 @@
-import {buildParseOptionsForm, ParseOptionValues} from 'app/client/components/ParseOptions';
-import {testId} from 'app/client/ui2018/cssVars';
-import {dom, Observable, styled} from "grainjs";
-import {initSchema, initValues} from 'test/fixtures/projects/helpers/ParseOptionsData';
-import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
+import { buildParseOptionsForm, ParseOptionValues } from 'app/client/components/ParseOptions';
+import { testId } from 'app/client/ui2018/cssVars';
+import { dom, Observable, styled } from "grainjs";
+import { initSchema, initValues } from 'test/fixtures/projects/helpers/ParseOptionsData';
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 function setupTest() {
   const schemaObs = Observable.create(null, initSchema);
@@ -11,10 +11,10 @@ function setupTest() {
   function doCancel() { /* no-op */ }
 
   return [
-    dom('div', {style: 'display: flex; width: 100%; height: 400px'},
+    dom('div', { style: 'display: flex; width: 100%; height: 400px' },
       testBox(
         dom('textarea', dom.text(use => JSON.stringify(use(schemaObs), null, 2)),
-          {style: 'width: 100%; height: 100%; min-width: 400px; border: none;'},
+          { style: 'width: 100%; height: 100%; min-width: 400px; border: none;' },
           dom.on('change', (ev, elem) => schemaObs.set(JSON.parse(elem.value)))),
         testId('schema'),
       ),

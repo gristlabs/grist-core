@@ -1,7 +1,7 @@
-import {DatabaseType, ObjectLiteral, QueryRunner, SelectQueryBuilder} from 'typeorm';
-import {RelationCountLoader} from 'typeorm/query-builder/relation-count/RelationCountLoader';
-import {RelationIdLoader} from 'typeorm/query-builder/relation-id/RelationIdLoader';
-import {RawSqlResultsToEntityTransformer} from "typeorm/query-builder/transformer/RawSqlResultsToEntityTransformer";
+import { DatabaseType, ObjectLiteral, QueryRunner, SelectQueryBuilder } from 'typeorm';
+import { RelationCountLoader } from 'typeorm/query-builder/relation-count/RelationCountLoader';
+import { RelationIdLoader } from 'typeorm/query-builder/relation-id/RelationIdLoader';
+import { RawSqlResultsToEntityTransformer } from "typeorm/query-builder/transformer/RawSqlResultsToEntityTransformer";
 
 /**
  *

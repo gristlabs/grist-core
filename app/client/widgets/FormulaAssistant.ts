@@ -1,24 +1,24 @@
 import * as commands from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ChatHistory} from 'app/client/models/ChatHistory';
-import {makeT} from 'app/client/lib/localization';
-import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
-import {movable} from 'app/client/lib/popupUtils';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
-import {menu, menuItem} from 'app/client/ui2018/menus';
-import {Assistant, cssAiImage, cssAiMessage, cssAvatar} from 'app/client/widgets/Assistant';
-import {FormulaEditor} from 'app/client/widgets/FormulaEditor';
-import {AssistanceState} from 'app/common/Assistance';
-import {commonUrls} from 'app/common/gristUrls';
-import {TelemetryEvent, TelemetryMetadata} from 'app/common/Telemetry';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Disposable, dom, DomElementArg, makeTestId, Observable, styled} from 'grainjs';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { ChatHistory } from 'app/client/models/ChatHistory';
+import { makeT } from 'app/client/lib/localization';
+import { localStorageBoolObs } from 'app/client/lib/localStorageObs';
+import { movable } from 'app/client/lib/popupUtils';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
+import { ColumnRec, ViewFieldRec } from 'app/client/models/DocModel';
+import { urlState } from 'app/client/models/gristUrlState';
+import { basicButton, primaryButton } from 'app/client/ui2018/buttons';
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { cssLink } from 'app/client/ui2018/links';
+import { menu, menuItem } from 'app/client/ui2018/menus';
+import { Assistant, cssAiImage, cssAiMessage, cssAvatar } from 'app/client/widgets/Assistant';
+import { FormulaEditor } from 'app/client/widgets/FormulaEditor';
+import { AssistanceState } from 'app/common/Assistance';
+import { commonUrls } from 'app/common/gristUrls';
+import { TelemetryEvent, TelemetryMetadata } from 'app/common/Telemetry';
+import { getGristConfig } from 'app/common/urlUtils';
+import { Disposable, dom, DomElementArg, makeTestId, Observable, styled } from 'grainjs';
 import debounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 
@@ -233,10 +233,10 @@ export class FormulaAssistant extends Disposable {
         version: 1,
         docIdDigest: this._gristDoc.docId(),
         conversationId: this._chat.conversationId,
-        ...(!includeContext ? {} : {context: {
+        ...(!includeContext ? {} : { context: {
           tableId: this._options.column.table.peek().tableId.peek(),
           colId: this._options.column.colId.peek(),
-        }}),
+        } }),
         ...metadata,
       },
     });
@@ -270,7 +270,7 @@ export class FormulaAssistant extends Disposable {
               t('Clear conversation'),
               testId('ai-assistant-options-clear-conversation'),
             ),
-          ], {menuWrapCssClass: cssChatOptionsMenu.className}),
+          ], { menuWrapCssClass: cssChatOptionsMenu.className }),
           testId('ai-assistant-options'),
         ),
       ),
@@ -337,7 +337,7 @@ export class FormulaAssistant extends Disposable {
     const formula = this._options.editor.getCellValue();
     const isFormula = true;
     await this._options.gristDoc.docData.sendAction(
-      ['ModifyColumn', tableId, this._transformColId, {formula, isFormula},
+      ['ModifyColumn', tableId, this._transformColId, { formula, isFormula },
       ]);
     if (!this.isDisposed()) {
       this._options.editor.focus();
@@ -349,7 +349,7 @@ export class FormulaAssistant extends Disposable {
     const tableId = this._options.column.table.peek().tableId.peek();
 
     // Add a new column to the table, and set it as the transform column.
-    const {colRef, colId} = await docData.sendAction(['AddColumn', tableId, 'gristHelper_Transform', {
+    const { colRef, colId } = await docData.sendAction(['AddColumn', tableId, 'gristHelper_Transform', {
       type: this._options.column.type.peek(),
       label: this._options.column.colId.peek(),
       isFormula: true,
@@ -390,7 +390,7 @@ export class FormulaAssistant extends Disposable {
         // Modify column right away, so that it looks smoother on the ui, when we
         // switch the column for the field.
         await docData.sendActions([
-          ['ModifyColumn', tableId, column.colId.peek(), { formula, isFormula: true}],
+          ['ModifyColumn', tableId, column.colId.peek(), { formula, isFormula: true }],
         ]);
       }
       // Switch the column for the field, this isn't sending any actions, we are just restoring it to what it is
@@ -481,7 +481,7 @@ export class FormulaAssistant extends Disposable {
   /**
    * Resize handler for the chat window.
    */
-  private _onResizeMove(x: number, y: number, {start, total}: {start: number, total: number}): void {
+  private _onResizeMove(x: number, y: number, { start, total}: { start: number, total: number }): void {
     // The y axis includes the panel header and formula editor buttons; excluded them from the
     // new height of the panel body.
     const newChatPanelBodyHeight = start - y - CHAT_PANEL_HEADER_HEIGHT_PX - FORMULA_EDITOR_BUTTONS_HEIGHT_PX;
@@ -542,12 +542,12 @@ async function askAI(grist: GristDoc, options: {
   conversationId: string,
   state?: AssistanceState
 }) {
-  const {column, description, conversationId, state} = options;
+  const { column, description, conversationId, state } = options;
   const tableId = column.table.peek().tableId.peek();
   const colId = column.colId.peek();
   return await grist.docComm.getAssistance({
     conversationId,
-    context: {tableId, colId},
+    context: { tableId, colId },
     text: description,
     state,
   });

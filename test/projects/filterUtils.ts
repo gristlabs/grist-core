@@ -48,7 +48,7 @@ export function findBound(minMax: 'min'|'max') {
   return new WebElementPromise(driver, driver.find(`.test-filter-menu-${minMax}`));
 }
 
-export async function setBound(minMax: 'min'|'max', value: string|{relative: string}|null) {
+export async function setBound(minMax: 'min'|'max', value: string|{ relative: string }|null) {
   await gu.setRangeFilterBound(minMax, value);
 }
 

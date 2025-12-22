@@ -1,13 +1,13 @@
-import {parsePermissions, permissionSetToText, splitSchemaEditPermissionSet} from 'app/common/ACLPermissions';
-import {AVAILABLE_BITS_COLUMNS, AVAILABLE_BITS_TABLES, trimPermissions} from 'app/common/ACLPermissions';
-import {ACLRulesReader} from 'app/common/ACLRulesReader';
-import {AclRuleProblem} from 'app/common/ActiveDocAPI';
-import {DocData} from 'app/common/DocData';
-import {RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
-import {getSetMapValue, isNonNullish} from 'app/common/gutil';
-import {CompiledPredicateFormula, ParsedPredicateFormula} from 'app/common/PredicateFormula';
-import {MetaRowRecord} from 'app/common/TableData';
-import {decodeObject} from 'app/plugin/objtypes';
+import { parsePermissions, permissionSetToText, splitSchemaEditPermissionSet } from 'app/common/ACLPermissions';
+import { AVAILABLE_BITS_COLUMNS, AVAILABLE_BITS_TABLES, trimPermissions } from 'app/common/ACLPermissions';
+import { ACLRulesReader } from 'app/common/ACLRulesReader';
+import { AclRuleProblem } from 'app/common/ActiveDocAPI';
+import { DocData } from 'app/common/DocData';
+import { RulePart, RuleSet, UserAttributeRule } from 'app/common/GranularAccessClause';
+import { getSetMapValue, isNonNullish } from 'app/common/gutil';
+import { CompiledPredicateFormula, ParsedPredicateFormula } from 'app/common/PredicateFormula';
+import { MetaRowRecord } from 'app/common/TableData';
+import { decodeObject } from 'app/plugin/objtypes';
 
 export type ILogger = Pick<Console, 'log'|'debug'|'info'|'warn'|'error'>;
 
@@ -39,7 +39,7 @@ const DEFAULT_RULE_SET: RuleSet = {
 
 // Check if the given resource is the special "SchemaEdit" resource, which only exists as a
 // frontend representation.
-export function isSchemaEditResource(resource: {tableId: string, colIds: string}): boolean {
+export function isSchemaEditResource(resource: { tableId: string, colIds: string }): boolean {
   return resource.tableId === SPECIAL_RULES_TABLE_ID && resource.colIds === 'SchemaEdit';
 }
 
@@ -220,7 +220,7 @@ export class ACLRuleCollection {
    * some failures.
    */
   public async updateWithExceptions(docData: DocData, options: ReadAclOptions) {
-    const {ruleSets, userAttributes} = this._readAclRules(docData, options);
+    const { ruleSets, userAttributes } = this._readAclRules(docData, options);
 
     // Build a map of user characteristics rules.
     const userAttributeMap = new Map<string, UserAttributeRule>();
@@ -248,7 +248,7 @@ export class ACLRuleCollection {
           options.log.error(`Invalid rule for ${ruleSet.tableId}:${ruleSet.colIds}`);
         }
         else {
-          specialRuleSets.set(specialType, {...ruleSet, body: [...ruleSet.body, ...specialDefault.body]});
+          specialRuleSets.set(specialType, { ...ruleSet, body: [...ruleSet.body, ...specialDefault.body] });
         }
       }
       else if (options.pullOutSchemaEdit && ruleSet.tableId === '*' && ruleSet.colIds === '*') {
@@ -460,7 +460,7 @@ function getHelperCols(docData: DocData, tableId: string, colIds: string[], log:
 
   const result: string[] = [];
   for (const colId of colIds) {
-    const [column] = columnsTable.filterRecords({parentId: tableRef, colId});
+    const [column] = columnsTable.filterRecords({ parentId: tableRef, colId });
     if (!column) {
       continue;
     }
@@ -492,7 +492,7 @@ function getHelperCols(docData: DocData, tableId: string, colIds: string[], log:
     }
 
     addColsFromMetaRecord(column);
-    for (const field of fieldsTable.filterRecords({colRef: column.id})) {
+    for (const field of fieldsTable.filterRecords({ colRef: column.id })) {
       addColsFromMetaRecord(field);
     }
   }
@@ -503,7 +503,7 @@ function getHelperCols(docData: DocData, tableId: string, colIds: string[], log:
  * Parse all ACL rules in the document from DocData into a list of RuleSets and of
  * UserAttributeRules. This is used by both client-side code and server-side.
  */
-function readAclRules(docData: DocData, {log, compile, enrichRulesForImplementation}: ReadAclOptions): ReadAclResults {
+function readAclRules(docData: DocData, { log, compile, enrichRulesForImplementation }: ReadAclOptions): ReadAclResults {
   const ruleSets: RuleSet[] = [];
   const userAttributes: UserAttributeRule[] = [];
 
@@ -568,10 +568,10 @@ function readAclRules(docData: DocData, {log, compile, enrichRulesForImplementat
         });
       }
     }
-    const ruleSet: RuleSet = {tableId, colIds, body};
+    const ruleSet: RuleSet = { tableId, colIds, body };
     ruleSets.push(ruleSet);
   }
-  return {ruleSets, userAttributes};
+  return { ruleSets, userAttributes };
 }
 
 /**
@@ -585,24 +585,24 @@ function readAclRules(docData: DocData, {log, compile, enrichRulesForImplementat
  * which case the schemaEdit one will have a fake origRecord, to cause it to be saved as a new
  * record when saving.
  */
-function splitSchemaEditRulePart(rulePart: RulePart): {schemaEdit?: RulePart, nonSchemaEdit?: RulePart} {
+function splitSchemaEditRulePart(rulePart: RulePart): { schemaEdit?: RulePart, nonSchemaEdit?: RulePart } {
   const p = splitSchemaEditPermissionSet(rulePart.permissions);
   let schemaEdit: RulePart|undefined;
   let nonSchemaEdit: RulePart|undefined;
   if (p.schemaEdit) {
-    schemaEdit = {...rulePart,
+    schemaEdit = { ...rulePart,
       permissions: p.schemaEdit,
       permissionsText: permissionSetToText(p.schemaEdit),
     };
   }
   if (p.nonSchemaEdit) {
-    nonSchemaEdit = {...rulePart,
+    nonSchemaEdit = { ...rulePart,
       permissions: p.nonSchemaEdit,
       permissionsText: permissionSetToText(p.nonSchemaEdit),
     };
   }
   if (schemaEdit && nonSchemaEdit) {
-    schemaEdit.origRecord = {id: -1} as MetaRowRecord<'_grist_ACLRules'>;
+    schemaEdit.origRecord = { id: -1 } as MetaRowRecord<'_grist_ACLRules'>;
   }
-  return {schemaEdit, nonSchemaEdit};
+  return { schemaEdit, nonSchemaEdit };
 }

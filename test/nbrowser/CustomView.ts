@@ -1,9 +1,9 @@
-import {safeJsonParse} from 'app/common/gutil';
+import { safeJsonParse } from 'app/common/gutil';
 import * as chai from 'chai';
-import {assert, driver, Key} from 'mocha-webdriver';
-import {serveCustomViews, Serving, setAccess} from 'test/nbrowser/customUtil';
+import { assert, driver, Key } from 'mocha-webdriver';
+import { serveCustomViews, Serving, setAccess } from 'test/nbrowser/customUtil';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 chai.config.truncateThreshold = 5000;
 
@@ -34,17 +34,17 @@ describe('CustomView', function() {
 
     // Add some data to the table so we can test navigation.
     await gu.sendActions([
-      ['AddRecord', 'Table1', null, {A: 'row1'}],
-      ['AddRecord', 'Table1', null, {A: 'row2'}],
-      ['AddRecord', 'Table1', null, {A: 'row3'}],
+      ['AddRecord', 'Table1', null, { A: 'row1' }],
+      ['AddRecord', 'Table1', null, { A: 'row2' }],
+      ['AddRecord', 'Table1', null, { A: 'row3' }],
     ]);
 
     // Go to the first row.
-    await gu.getCell({section: 'TABLE1', col: 0, rowNum: 1}).click();
+    await gu.getCell({ section: 'TABLE1', col: 0, rowNum: 1 }).click();
 
     // Add a custom widget.
     await gu.addNewSection('Custom', 'Table1');
-    await gu.setCustomWidgetUrl(`${serving.url}/readout`, {openGallery: false});
+    await gu.setCustomWidgetUrl(`${serving.url}/readout`, { openGallery: false });
     await gu.toggleSidePanel('right', 'open');
     await gu.openWidgetPanel();
     await setAccess("read table");
@@ -131,7 +131,7 @@ describe('CustomView', function() {
     await gu.addNewSection('Custom', 'Table1');
 
     // Point to a widget that doesn't immediately call ready.
-    await gu.setCustomWidgetUrl(`${serving.url}/deferred-ready`, {openGallery: false});
+    await gu.setCustomWidgetUrl(`${serving.url}/deferred-ready`, { openGallery: false });
     await gu.toggleSidePanel('right', 'open');
 
     // We should have a single iframe.
@@ -190,7 +190,7 @@ describe('CustomView', function() {
 
         // Replace the widget with a custom widget that just reads out the data
         // as JSON.
-        await gu.setCustomWidgetUrl(`${serving.url}/readout`, {openGallery: false});
+        await gu.setCustomWidgetUrl(`${serving.url}/readout`, { openGallery: false });
         await gu.openWidgetPanel();
         await setAccess(access);
         await gu.waitForServer();
@@ -213,7 +213,7 @@ describe('CustomView', function() {
         await driver.switchTo().defaultContent();
 
         // Switch row in source section, and see if data updates correctly.
-        await gu.getCell({section: 'Performances record', col: 0, rowNum: 5}).click();
+        await gu.getCell({ section: 'Performances record', col: 0, rowNum: 5 }).click();
         await driver.switchTo().frame(iframe);
         assert.deepEqual(readJson(await driver.find('#placeholder').getText()),
           withAccess({ Name: ["Roger", "Evan"],
@@ -246,7 +246,7 @@ describe('CustomView', function() {
         await gu.waitForServer();
 
         // Choose the custom view that just reads out data as json
-        await gu.setCustomWidgetUrl(`${serving.url}/readout`, {openGallery: false});
+        await gu.setCustomWidgetUrl(`${serving.url}/readout`, { openGallery: false });
         await gu.openWidgetPanel();
         await setAccess(access);
         await gu.waitForServer();
@@ -265,7 +265,7 @@ describe('CustomView', function() {
 
         // Change row in Friends
         await driver.switchTo().defaultContent();
-        await gu.getCell({section: 'FRIENDS', col: 0, rowNum: 2}).click();
+        await gu.getCell({ section: 'FRIENDS', col: 0, rowNum: 2 }).click();
 
         // Check that rowId is updated
         await driver.switchTo().frame(iframe);
@@ -280,11 +280,11 @@ describe('CustomView', function() {
         await driver.switchTo().defaultContent();
 
         // Change a cell in Friends
-        await gu.getCell({section: 'FRIENDS', col: 0, rowNum: 1}).click();
+        await gu.getCell({ section: 'FRIENDS', col: 0, rowNum: 1 }).click();
         await gu.enterCell('Rabbit');
         await gu.waitForServer();
         // Return to the cell after automatically going to next row.
-        await gu.getCell({section: 'FRIENDS', col: 0, rowNum: 1}).click();
+        await gu.getCell({ section: 'FRIENDS', col: 0, rowNum: 1 }).click();
 
         // Check the data in view updates
         await driver.switchTo().frame(iframe);
@@ -299,14 +299,14 @@ describe('CustomView', function() {
         await driver.switchTo().defaultContent();
 
         // Select new row and test if custom view has noticed it.
-        await gu.getCell({section: 'FRIENDS', col: 0, rowNum: 7}).click();
+        await gu.getCell({ section: 'FRIENDS', col: 0, rowNum: 7 }).click();
         await driver.switchTo().frame(iframe);
         await gu.waitToPass(async () => {
           assert.equal(await driver.find('#rowId').getText(), withAccess('new', ''));
           assert.equal(await driver.find('#record').getText(), withAccess('new', ''));
         });
         await driver.switchTo().defaultContent();
-        await gu.getCell({section: 'FRIENDS', col: 0, rowNum: 1}).click();
+        await gu.getCell({ section: 'FRIENDS', col: 0, rowNum: 1 }).click();
         await driver.switchTo().frame(iframe);
         await gu.waitToPass(async () => {
           assert.equal(await driver.find('#rowId').getText(), withAccess('1', ''));
@@ -344,7 +344,7 @@ describe('CustomView', function() {
       });
 
       it('allows switching to custom section by clicking inside it', async function() {
-        await gu.getCell({section: 'FRIENDS', col: 0, rowNum: 1}).click();
+        await gu.getCell({ section: 'FRIENDS', col: 0, rowNum: 1 }).click();
         assert.equal(await gu.getActiveSectionTitle(), 'FRIENDS');
         assert.equal(await driver.find('.test-config-widget-open-custom-widget-gallery').isPresent(), false);
 
@@ -359,7 +359,7 @@ describe('CustomView', function() {
         assert.equal(await driver.find('.test-config-widget-open-custom-widget-gallery').isPresent(), true);
 
         // Switch back.
-        await gu.getCell({section: 'FRIENDS', col: 0, rowNum: 1}).click();
+        await gu.getCell({ section: 'FRIENDS', col: 0, rowNum: 1 }).click();
         assert.equal(await gu.getActiveSectionTitle(), 'FRIENDS');
         assert.equal(await driver.find('.test-config-widget-open-custom-widget-gallery').isPresent(), false);
       });
@@ -381,7 +381,7 @@ describe('CustomView', function() {
         const outcome = await driver.find('#placeholder').getText();
         await driver.switchTo().defaultContent();
 
-        const cell = await gu.getCell({section: 'FRIENDS', col: 0, rowNum: 1}).getText();
+        const cell = await gu.getCell({ section: 'FRIENDS', col: 0, rowNum: 1 }).getText();
         if (access === 'full') {
           assert.equal(cell, 'zap');
           assert.match(outcome, /zap succeeded/);
@@ -447,7 +447,7 @@ describe('CustomView', function() {
 
     // Switch to the next row, which has blank values.
     await driver.switchTo().defaultContent();
-    await gu.getCell({section: 'TYPES', col: 0, rowNum: 2}).click();
+    await gu.getCell({ section: 'TYPES', col: 0, rowNum: 2 }).click();
     await driver.switchTo().frame(iframe);
     await driver.findContentWait('#record', /AnyDate: null/, 1000);
     lines = (await driver.find('#record').getText()).split('\n');
@@ -480,7 +480,7 @@ describe('CustomView', function() {
 
     // Switch to the next row, which has various error values.
     await driver.switchTo().defaultContent();
-    await gu.getCell({section: 'TYPES', col: 0, rowNum: 3}).click();
+    await gu.getCell({ section: 'TYPES', col: 0, rowNum: 3 }).click();
     await driver.switchTo().frame(iframe);
     await driver.findContentWait('#record', /AnyDate: null/, 1000);
     lines = (await driver.find('#record').getText()).split('\n');
@@ -546,7 +546,7 @@ describe('CustomView', function() {
 
     // Switch to the next row, which has blank values.
     await driver.switchTo().defaultContent();
-    await gu.getCell({section: 'TYPES', col: 0, rowNum: 2}).click();
+    await gu.getCell({ section: 'TYPES', col: 0, rowNum: 2 }).click();
     await driver.switchTo().frame(iframe);
     await driver.findContentWait('#record', /"AnyDate":null/, 1000);
     record = await driver.find('#record').getText();
@@ -557,7 +557,7 @@ describe('CustomView', function() {
 
     // Switch to the next row, which has various error values.
     await driver.switchTo().defaultContent();
-    await gu.getCell({section: 'TYPES', col: 0, rowNum: 3}).click();
+    await gu.getCell({ section: 'TYPES', col: 0, rowNum: 3 }).click();
     await driver.switchTo().frame(iframe);
     await driver.findContentWait('#record', /"AnyDate":null/, 1000);
     record = await driver.find('#record').getText();
@@ -572,13 +572,13 @@ describe('CustomView', function() {
     // Create a Favorite Films copy, with access rules on columns, rows, and tables.
     const mainSession = await gu.session().teamSite.login();
     const api = mainSession.createHomeApi();
-    const doc = await mainSession.tempDoc(cleanup, 'Favorite_Films.grist', {load: false});
+    const doc = await mainSession.tempDoc(cleanup, 'Favorite_Films.grist', { load: false });
     await api.applyUserActions(doc.id, [
-      ['AddTable', 'Opinions', [{id: 'A'}]],
-      ['AddRecord', 'Opinions', null, {A: 'do not zap plz'}],
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Performances', colIds: 'Actor'}],
-      ['AddRecord', '_grist_ACLResources', -2, {tableId: 'Films', colIds: '*'}],
-      ['AddRecord', '_grist_ACLResources', -3, {tableId: 'Opinions', colIds: '*'}],
+      ['AddTable', 'Opinions', [{ id: 'A' }]],
+      ['AddRecord', 'Opinions', null, { A: 'do not zap plz' }],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: 'Performances', colIds: 'Actor' }],
+      ['AddRecord', '_grist_ACLResources', -2, { tableId: 'Films', colIds: '*' }],
+      ['AddRecord', '_grist_ACLResources', -3, { tableId: 'Opinions', colIds: '*' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: 'user.Access == OWNER', permissionsText: 'none',
       }],
@@ -608,7 +608,7 @@ describe('CustomView', function() {
     await gu.waitForServer();
 
     // Select a custom widget that tries to replace all cells in all user tables with 'zap'.
-    await gu.setCustomWidgetUrl(`${serving.url}/zap`, {openGallery: false});
+    await gu.setCustomWidgetUrl(`${serving.url}/zap`, { openGallery: false });
     await gu.openWidgetPanel();
     await setAccess("full");
     await gu.waitForServer();
@@ -660,7 +660,7 @@ describe('CustomView', function() {
 
   it('allows custom options for fetching data', async function () {
     const mainSession = await gu.session().teamSite.login();
-    const doc = await mainSession.tempDoc(cleanup, 'FetchSelectedOptions.grist', {load: false});
+    const doc = await mainSession.tempDoc(cleanup, 'FetchSelectedOptions.grist', { load: false });
     await mainSession.loadDoc(`/doc/${doc.id}`);
 
     await gu.getSection('TABLE1 Custom').click();
@@ -690,8 +690,8 @@ describe('CustomView', function() {
         },
         // onRecords returns rows by default, not columns.
         "onRecords": [
-          {"id": 1, "A": ["a", "b"]},
-          {"id": 2, "A": ["c", "d"]},
+          { "id": 1, "A": ["a", "b"] },
+          { "id": 2, "A": ["c", "d"] },
         ],
         "onRecord": {
           "id": 1,
@@ -705,8 +705,8 @@ describe('CustomView', function() {
         // which means that the 'B' column is included in all the results,
         // and the 'manualSort' columns is included in half of them.
         "fetchSelectedTable": [
-          {"id": 1, "manualSort": 1, "A": ["L", "a", "b"], "B": 1},
-          {"id": 2, "manualSort": 2, "A": ["L", "c", "d"], "B": 2},
+          { "id": 1, "manualSort": 1, "A": ["L", "a", "b"], "B": 1 },
+          { "id": 2, "manualSort": 2, "A": ["L", "c", "d"], "B": 2 },
         ],
         "fetchSelectedRecord": {
           "id": 1,
@@ -714,8 +714,8 @@ describe('CustomView', function() {
           "B": 1,
         },
         "viewApiFetchSelectedTable": [
-          {"id": 1, "manualSort": 1, "A": ["a", "b"], "B": 1},
-          {"id": 2, "manualSort": 2, "A": ["c", "d"], "B": 2},
+          { "id": 1, "manualSort": 1, "A": ["a", "b"], "B": 1 },
+          { "id": 2, "manualSort": 2, "A": ["c", "d"], "B": 2 },
         ],
         "viewApiFetchSelectedRecord": {
           "id": 2,

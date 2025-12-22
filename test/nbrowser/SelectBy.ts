@@ -100,7 +100,7 @@ describe("SelectBy", function() {
 
     // Create a page with with charts and custom widget and then check that no linking is offered
     await gu.addNewPage(/Chart/, /Table1/);
-    await gu.addNewSection(/Custom/, /Table2/, {customWidget: /Custom URL/});
+    await gu.addNewSection(/Custom/, /Table2/, { customWidget: /Custom URL/ });
 
     // open add widget to page
     await driver.findWait('.test-dp-add-new', 2000).doClick();
@@ -147,12 +147,12 @@ describe("SelectBy", function() {
 
   it('should show nav buttons for card view linked to its summary', async function() {
     // Still on the page with summary of Table3, add a new Card widget linked to the summary
-    await gu.addNewSection(/Card$/, /Table3/, {selectBy: /TABLE3.*by A/});
+    await gu.addNewSection(/Card$/, /Table3/, { selectBy: /TABLE3.*by A/ });
 
     // Check that we have a card view.
-    await gu.getCell({section: 'TABLE3 [by A]', rowNum: 1, col: 'A'}).click();
+    await gu.getCell({ section: 'TABLE3 [by A]', rowNum: 1, col: 'A' }).click();
     const section = await gu.getSection('TABLE3 Card');
-    assert.equal(await gu.getDetailCell({section, rowNum: 1, col: 'A'}).getText(), '1');
+    assert.equal(await gu.getDetailCell({ section, rowNum: 1, col: 'A' }).getText(), '1');
 
     // Check there are nav buttons in the card view.
     assert.equal(await section.find('.detail-button.detail-left').isPresent(), true);
@@ -161,8 +161,8 @@ describe("SelectBy", function() {
 
     // Now add a record to the source table using the card view.
     await section.find('.detail-button.detail-add-btn').click();
-    assert.equal(await gu.getDetailCell({section, rowNum: 1, col: 'A'}).getText(), '');
-    await gu.getDetailCell({section, rowNum: 1, col: 'A'}).click();
+    assert.equal(await gu.getDetailCell({ section, rowNum: 1, col: 'A' }).getText(), '');
+    await gu.getDetailCell({ section, rowNum: 1, col: 'A' }).click();
     await gu.sendKeys('1', Key.ENTER);
     await gu.waitForServer();
 
@@ -170,7 +170,7 @@ describe("SelectBy", function() {
     assert.equal(await section.find('.grist-single-record__menu__count').getText(), '2 OF 2');
 
     // There is another group that still has one record.
-    await gu.getCell({section: 'TABLE3 [by A]', rowNum: 2, col: 'A'}).click();
+    await gu.getCell({ section: 'TABLE3 [by A]', rowNum: 2, col: 'A' }).click();
     assert.equal(await section.find('.grist-single-record__menu__count').getText(), '1 OF 1');
   });
 
@@ -197,7 +197,7 @@ describe("SelectBy", function() {
 
     // select other row in selector section
     await gu.getSection('Table2').doClick();
-    await gu.getCell({col: 0, rowNum: 2}).doClick();
+    await gu.getCell({ col: 0, rowNum: 2 }).doClick();
 
     // check that linked section was filterd
     await gu.getSection('Table1').doClick();

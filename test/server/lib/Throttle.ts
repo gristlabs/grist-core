@@ -1,8 +1,8 @@
-import {exitPromise} from 'app/server/lib/serverUtils';
-import {Throttle, ThrottleTiming} from 'app/server/lib/Throttle';
-import {delay} from 'bluebird';
-import {assert} from 'chai';
-import {ChildProcess, spawn} from 'child_process';
+import { exitPromise } from 'app/server/lib/serverUtils';
+import { Throttle, ThrottleTiming } from 'app/server/lib/Throttle';
+import { delay } from 'bluebird';
+import { assert } from 'chai';
+import { ChildProcess, spawn } from 'child_process';
 import pidusage from 'pidusage';
 import * as testUtils from 'test/server/testUtils';
 
@@ -43,7 +43,7 @@ describe('Throttle', function() {
         const done = exitPromise(child);
         const throttle = new Throttle({
           pid: child.pid,
-          logMeta: {sandboxPid: child.pid, docId: `case${i}`},
+          logMeta: { sandboxPid: child.pid, docId: `case${i}` },
           timing: testTiming,
         });
         tests.push({

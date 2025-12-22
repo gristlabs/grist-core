@@ -1,6 +1,6 @@
-import {assert} from 'chai';
+import { assert } from 'chai';
 
-import {tsvDecode, tsvEncode} from 'app/common/tsvFormat';
+import { tsvDecode, tsvEncode } from 'app/common/tsvFormat';
 
 const sampleData = [
   ['plain value', 'plain value'],

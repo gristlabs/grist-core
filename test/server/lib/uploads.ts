@@ -1,17 +1,17 @@
-import {setTmpLogLevel} from 'test/server/testUtils';
+import { setTmpLogLevel } from 'test/server/testUtils';
 
-import {createTmpDir, Deps, fetchURL, moveUpload, UploadSet} from 'app/server/lib/uploads';
-import {globalUploadSet} from 'app/server/lib/uploads';
-import {delay} from 'bluebird';
-import {assert} from 'chai';
+import { createTmpDir, Deps, fetchURL, moveUpload, UploadSet } from 'app/server/lib/uploads';
+import { globalUploadSet } from 'app/server/lib/uploads';
+import { delay } from 'bluebird';
+import { assert } from 'chai';
 import * as fse from 'fs-extra';
 import noop from 'lodash/noop';
 import pick from 'lodash/pick';
-import {Response} from 'node-fetch';
+import { Response } from 'node-fetch';
 import * as path from 'path';
 import * as sinon from 'sinon';
-import {Readable} from 'stream';
-import {createFile} from 'test/server/docTools';
+import { Readable } from 'stream';
+import { createFile } from 'test/server/docTools';
 
 describe("uploads", function() {
 
@@ -20,7 +20,7 @@ describe("uploads", function() {
   describe("createTmpDir", function() {
     it("should create and clean up tmp dirs", async function() {
       // Create tmp dir.
-      const {tmpDir, cleanupCallback} = await createTmpDir({prefix: "test-uploads-", postfix: "-foo"});
+      const { tmpDir, cleanupCallback } = await createTmpDir({ prefix: "test-uploads-", postfix: "-foo" });
       assert.isTrue(path.basename(tmpDir).startsWith("test-uploads-"));
       assert.isTrue(tmpDir.endsWith("-foo"));
 
@@ -46,12 +46,12 @@ describe("uploads", function() {
       const uploadSet = new UploadSet();
 
       // Register upload, get id 0.
-      const {tmpDir: tmpDir0, cleanupCallback: cleanupCallback0} = await createTmpDir({});
+      const { tmpDir: tmpDir0, cleanupCallback: cleanupCallback0 } = await createTmpDir({});
       const files0 = [await createFile(tmpDir0, "aa"), await createFile(tmpDir0, "bb")];
       assert.strictEqual(uploadSet.registerUpload(files0, tmpDir0, cleanupCallback0, null), 0);
 
       // Register another upload, get uploadId 1.
-      const {tmpDir: tmpDir1, cleanupCallback: cleanupCallback1} = await createTmpDir({});
+      const { tmpDir: tmpDir1, cleanupCallback: cleanupCallback1 } = await createTmpDir({});
       const files1 = [await createFile(tmpDir1, "cc"), await createFile(tmpDir1, "dd")];
       assert.strictEqual(uploadSet.registerUpload(files1, tmpDir1, cleanupCallback1, null), 1);
 
@@ -67,7 +67,7 @@ describe("uploads", function() {
 
       // Create and register another upload, get uploadId 2 (ids are not reused); this one does
       // NOT clean up tmpDir.
-      const {tmpDir: tmpDir2, cleanupCallback: cleanupCallback2} = await createTmpDir({});
+      const { tmpDir: tmpDir2, cleanupCallback: cleanupCallback2 } = await createTmpDir({});
       const fakeCleanupCallback2 = sinon.spy();
       const files2 = [await createFile(tmpDir2, "ee"), await createFile(tmpDir2, "ff")];
       assert.strictEqual(uploadSet.registerUpload(files2, null, fakeCleanupCallback2, null), 2);
@@ -94,18 +94,18 @@ describe("uploads", function() {
       const uploadSet = new UploadSet();
 
       // Register upload, get id 0.
-      const {tmpDir: tmpDir0, cleanupCallback: cleanupCallback0} = await createTmpDir({});
+      const { tmpDir: tmpDir0, cleanupCallback: cleanupCallback0 } = await createTmpDir({});
       const files0 = [await createFile(tmpDir0, "xx"), await createFile(tmpDir0, "yy")];
       assert.strictEqual(uploadSet.registerUpload(files0, tmpDir0, cleanupCallback0, null), 0);
 
       // Register another upload without cleanup, get id 1.
-      const {tmpDir: tmpDir1, cleanupCallback: cleanupCallback1} = await createTmpDir({});
+      const { tmpDir: tmpDir1, cleanupCallback: cleanupCallback1 } = await createTmpDir({});
       const fakeCleanupCallback1 = sinon.spy();
       const files1 = [await createFile(tmpDir1, "zz"), await createFile(tmpDir1, "ww")];
       assert.strictEqual(uploadSet.registerUpload(files1, null, fakeCleanupCallback1, null), 1);
 
       // Move upload 0: old directory should be gone, new one should exist.
-      const {tmpDir: tmpDir2, cleanupCallback: cleanupCallback2} = await createTmpDir({});
+      const { tmpDir: tmpDir2, cleanupCallback: cleanupCallback2 } = await createTmpDir({});
       await moveUpload(uploadSet.getUploadInfo(0, null), tmpDir2);
       assert.isFalse(await fse.pathExists(tmpDir0));
 
@@ -155,12 +155,12 @@ describe("uploads", function() {
         const uploadSet = new UploadSet();
 
         // Register upload, get id 0.
-        const {tmpDir: tmpDir0, cleanupCallback: cleanupCallback0} = await createTmpDir({});
+        const { tmpDir: tmpDir0, cleanupCallback: cleanupCallback0 } = await createTmpDir({});
         const files0 = [await createFile(tmpDir0, "aa"), await createFile(tmpDir0, "bb")];
         assert.strictEqual(uploadSet.registerUpload(files0, tmpDir0, cleanupCallback0, null), 0);
 
         // Register another upload, get uploadId 1.
-        const {tmpDir: tmpDir1, cleanupCallback: cleanupCallback1} = await createTmpDir({});
+        const { tmpDir: tmpDir1, cleanupCallback: cleanupCallback1 } = await createTmpDir({});
         const files1 = [await createFile(tmpDir1, "cc"), await createFile(tmpDir1, "dd")];
         assert.strictEqual(uploadSet.registerUpload(files1, tmpDir1, cleanupCallback1, null), 1);
 
@@ -176,7 +176,7 @@ describe("uploads", function() {
         assert.sameMembers(await fse.readdir(tmpDir1), ["cc", "dd"]);
 
         // Touch one of the uploads.
-        assert.deepInclude(uploadSet.getUploadInfo(0, null), {uploadId: 0, tmpDir: tmpDir0});
+        assert.deepInclude(uploadSet.getUploadInfo(0, null), { uploadId: 0, tmpDir: tmpDir0 });
 
         // Wait a bit longer.
         await delay(250);
@@ -217,7 +217,7 @@ describe("uploads", function() {
         response.headers.set("content-type", "text/csv; charset=utf-8");
         const result = await fetchURL(url, null);
         assert.equal(result.files.length, 1);
-        assert.deepEqual(pick(result.files[0], ["origName", "ext"]), {origName: "url", ext: ".csv"});
+        assert.deepEqual(pick(result.files[0], ["origName", "ext"]), { origName: "url", ext: ".csv" });
       });
 
       it("should guess name from url if content-type is missing or text/plain", async function() {
@@ -227,14 +227,14 @@ describe("uploads", function() {
         url = "fake/url/file.csv";
         const result = await fetchURL(url, null);
         assert.equal(result.files.length, 1);
-        assert.deepEqual(pick(result.files[0], ["origName", "ext"]), {origName: "file.csv", ext: ".csv"});
+        assert.deepEqual(pick(result.files[0], ["origName", "ext"]), { origName: "file.csv", ext: ".csv" });
 
         // Just URL extension should be used if no content type.
         response = new Response(streamify("a, b\n0, 1\n"));
         url = "fake/url/file2.csv";
         const result2 = await fetchURL(url, null);
         assert.equal(result2.files.length, 1);
-        assert.deepEqual(pick(result2.files[0], ["origName", "ext"]), {origName: "file2.csv", ext: ".csv"});
+        assert.deepEqual(pick(result2.files[0], ["origName", "ext"]), { origName: "file2.csv", ext: ".csv" });
 
         // Content-type should be used in other cases.
         response = new Response(streamify("a, b\n0, 1\n"));
@@ -242,7 +242,7 @@ describe("uploads", function() {
         url = "fake/url/file3.csv";
         const result3 = await fetchURL(url, null);
         assert.equal(result3.files.length, 1);
-        assert.deepEqual(pick(result3.files[0], ["origName", "ext"]), {origName: "file3.csv", ext: ".json"});
+        assert.deepEqual(pick(result3.files[0], ["origName", "ext"]), { origName: "file3.csv", ext: ".json" });
       });
     });
 
@@ -250,12 +250,12 @@ describe("uploads", function() {
       const uploadSet = new UploadSet();
 
       // Register upload for accessId x42, get uploadId 0.
-      const {tmpDir: tmpDir0, cleanupCallback: cleanupCallback0} = await createTmpDir({});
+      const { tmpDir: tmpDir0, cleanupCallback: cleanupCallback0 } = await createTmpDir({});
       const files0 = [await createFile(tmpDir0, "aa"), await createFile(tmpDir0, "bb")];
       assert.strictEqual(uploadSet.registerUpload(files0, tmpDir0, cleanupCallback0, "x42"), 0);
 
       // Register upload for accessId x43, get uploadId 1.
-      const {tmpDir: tmpDir1, cleanupCallback: cleanupCallback1} = await createTmpDir({});
+      const { tmpDir: tmpDir1, cleanupCallback: cleanupCallback1 } = await createTmpDir({});
       const files1 = [await createFile(tmpDir1, "cc"), await createFile(tmpDir1, "dd")];
       assert.strictEqual(uploadSet.registerUpload(files1, tmpDir1, cleanupCallback1, "x43"), 1);
 

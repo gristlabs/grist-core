@@ -1,7 +1,7 @@
-import {ApiError} from 'app/common/ApiError';
-import {ObjMetadata, ObjSnapshotWithMetadata, toExternalMetadata, toGristMetadata} from 'app/common/DocSnapshot';
-import {ExternalStorage, StreamDownloadResult} from 'app/server/lib/ExternalStorage';
-import {IncomingMessage} from 'http';
+import { ApiError } from 'app/common/ApiError';
+import { ObjMetadata, ObjSnapshotWithMetadata, toExternalMetadata, toGristMetadata } from 'app/common/DocSnapshot';
+import { ExternalStorage, StreamDownloadResult } from 'app/server/lib/ExternalStorage';
+import { IncomingMessage } from 'http';
 import * as fse from 'fs-extra';
 import * as minio from 'minio';
 import * as stream from 'node:stream';
@@ -12,10 +12,10 @@ interface MinIOClient extends
   Omit<minio.Client, "listObjects" | "getBucketVersioning" | "removeObjects">
 {
   // The official typing returns `Promise<Readable>`, dropping some useful metadata.
-  getObject(bucket: string, key: string, options: {versionId?: string}): Promise<IncomingMessage>;
+  getObject(bucket: string, key: string, options: { versionId?: string }): Promise<IncomingMessage>;
   // The official typing dropped "options" in their .d.ts file, but it is present in the underlying impl.
   listObjects(bucket: string, key: string, recursive: boolean,
-    options: {IncludeVersion?: boolean}): minio.BucketStream<minio.BucketItem>;
+    options: { IncludeVersion?: boolean }): minio.BucketStream<minio.BucketItem>;
   // The released v8.0.0 wrongly returns `Promise<void>`; borrowed from PR #1297
   getBucketVersioning(bucketName: string): Promise<MinIOVersioningStatus>;
   // The released v8.0.0 typing is outdated; copied over from commit 8633968.
@@ -26,7 +26,7 @@ type MinIOVersioningStatus = "" | {
   Status: "Enabled" | "Suspended",
   MFADelete?: string,
   ExcludeFolders?: boolean,
-  ExcludedPrefixes?: {Prefix: string}[]
+  ExcludedPrefixes?: { Prefix: string }[]
 };
 
 type RemoveObjectsParam = string[] | { name: string, versionId?: string }[];
@@ -70,7 +70,7 @@ export class MinIOExternalStorage implements ExternalStorage {
     try {
       const head = await this._s3.statObject(
         this.bucket, key,
-        snapshotId ? {versionId: snapshotId} : {},
+        snapshotId ? { versionId: snapshotId } : {},
       );
       if (!head.lastModified || !head.versionId) {
         // AWS documentation says these fields will be present.
@@ -95,7 +95,7 @@ export class MinIOExternalStorage implements ExternalStorage {
   public async uploadStream(key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata) {
     const result = await this._s3.putObject(
       this.bucket, key, inStream, size,
-      metadata ? {Metadata: toExternalMetadata(metadata)} : undefined,
+      metadata ? { Metadata: toExternalMetadata(metadata) } : undefined,
     );
     // Empirically VersionId is available in result for buckets with versioning enabled.
     return result.versionId || null;
@@ -116,7 +116,7 @@ export class MinIOExternalStorage implements ExternalStorage {
   public async downloadStream(key: string, snapshotId?: string ): Promise<StreamDownloadResult> {
     const request = await this._s3.getObject(
       this.bucket, key,
-      snapshotId ? {versionId: snapshotId} : {},
+      snapshotId ? { versionId: snapshotId } : {},
     );
     const statusCode = request.statusCode || 500;
     if (statusCode >= 300) {
@@ -173,7 +173,7 @@ export class MinIOExternalStorage implements ExternalStorage {
   }
 
   public async versions(key: string, options?: { includeDeleteMarkers?: boolean }) {
-    const results = await this._listObjects(this.bucket, key, false, {IncludeVersion: true});
+    const results = await this._listObjects(this.bucket, key, false, { IncludeVersion: true });
     return results
       .filter(v => v.name === key &&
         v.lastModified && (v as any).versionId &&
@@ -215,7 +215,7 @@ export class MinIOExternalStorage implements ExternalStorage {
 
   // Delete all versions of an object.
   public async _deleteAllVersions(key: string) {
-    const vs = await this.versions(key, {includeDeleteMarkers: true});
+    const vs = await this.versions(key, { includeDeleteMarkers: true });
     await this._deleteVersions(key, vs.map(v => v.snapshotId));
   }
 

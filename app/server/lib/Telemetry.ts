@@ -1,6 +1,6 @@
-import {ApiError} from 'app/common/ApiError';
-import {TelemetryConfig} from 'app/common/gristUrls';
-import {assertIsDefined} from 'app/common/gutil';
+import { ApiError } from 'app/common/ApiError';
+import { TelemetryConfig } from 'app/common/gristUrls';
+import { assertIsDefined } from 'app/common/gutil';
 import {
   buildTelemetryEventChecker,
   Level,
@@ -14,18 +14,18 @@ import {
   TelemetryMetadataByLevel,
   TelemetryRetentionPeriod,
 } from 'app/common/Telemetry';
-import {TelemetryPrefsWithSources} from 'app/common/InstallAPI';
-import {Activation} from 'app/gen-server/entity/Activation';
-import {ActivationsManager} from 'app/gen-server/lib/ActivationsManager';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {RequestWithLogin} from 'app/server/lib/Authorizer';
-import {expressWrap} from 'app/server/lib/expressWrap';
-import {GristServer} from 'app/server/lib/GristServer';
-import {hashId} from 'app/server/lib/hashingUtils';
-import {LogMethods} from 'app/server/lib/LogMethods';
-import {stringParam} from 'app/server/lib/requestUtils';
-import {getAuthSession, getLogMeta, isRequest, RequestOrSession} from 'app/server/lib/sessionUtils';
+import { TelemetryPrefsWithSources } from 'app/common/InstallAPI';
+import { Activation } from 'app/gen-server/entity/Activation';
+import { ActivationsManager } from 'app/gen-server/lib/ActivationsManager';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { appSettings } from 'app/server/lib/AppSettings';
+import { RequestWithLogin } from 'app/server/lib/Authorizer';
+import { expressWrap } from 'app/server/lib/expressWrap';
+import { GristServer } from 'app/server/lib/GristServer';
+import { hashId } from 'app/server/lib/hashingUtils';
+import { LogMethods } from 'app/server/lib/LogMethods';
+import { stringParam } from 'app/server/lib/requestUtils';
+import { getAuthSession, getLogMeta, isRequest, RequestOrSession } from 'app/server/lib/sessionUtils';
 
 import * as cookie from 'cookie';
 import * as express from 'express';
@@ -169,7 +169,7 @@ export class Telemetry implements ITelemetry {
      */
     app.post('/api/telemetry', expressWrap(async (req, resp) => {
       const mreq = req as RequestWithLogin;
-      const event = stringParam(req.body.event, 'event', {allowed: TelemetryEvents.values}) as TelemetryEvent;
+      const event = stringParam(req.body.event, 'event', { allowed: TelemetryEvents.values }) as TelemetryEvent;
       if ('eventSource' in (req.body.metadata ?? {})) {
         this._telemetryLogger.rawLog('info', getEventType(event), event, {
           ...(removeNullishKeys(req.body.metadata)),
@@ -227,7 +227,7 @@ export class Telemetry implements ITelemetry {
 
   private _prepareToLogEvent(
     event: TelemetryEvent,
-  ): {checkTelemetryEvent: TelemetryEventChecker, telemetryLevel: TelemetryLevel}|undefined {
+  ): { checkTelemetryEvent: TelemetryEventChecker, telemetryLevel: TelemetryLevel }|undefined {
     if (!this._checkTelemetryEvent) {
       this._logger.error(null, 'telemetry event checker is undefined');
       return;
@@ -243,7 +243,7 @@ export class Telemetry implements ITelemetry {
     if (TelemetryContracts[event] && TelemetryContracts[event].minimumTelemetryLevel > Level[telemetryLevel]) {
       return;
     }
-    return {checkTelemetryEvent: this._checkTelemetryEvent, telemetryLevel};
+    return { checkTelemetryEvent: this._checkTelemetryEvent, telemetryLevel };
   }
 
   private async _checkAndLogEvent(
@@ -290,17 +290,17 @@ export class Telemetry implements ITelemetry {
         isTeamSite = !this._dbManager.isMergedOrg(org);
       }
     }
-    const {category: eventCategory} = TelemetryContracts[event];
+    const { category: eventCategory } = TelemetryContracts[event];
     this._telemetryLogger.rawLog('info', getEventType(event), event, {
       ...metadata,
       eventName: event,
-      ...(eventCategory !== undefined ? {eventCategory} : undefined),
+      ...(eventCategory !== undefined ? { eventCategory } : undefined),
       eventSource: `grist-${this._deploymentType}`,
       installationId: this._activation!.id,
-      ...(isInternalUser !== undefined ? {isInternalUser} : undefined),
-      ...(isTeamSite !== undefined ? {isTeamSite} : undefined),
-      ...(visitorId ? {visitorId} : undefined),
-      ...(isAnonymousUser ? {userId: undefined} : undefined),
+      ...(isInternalUser !== undefined ? { isInternalUser } : undefined),
+      ...(isTeamSite !== undefined ? { isTeamSite } : undefined),
+      ...(visitorId ? { visitorId } : undefined),
+      ...(isAnonymousUser ? { userId: undefined } : undefined),
     });
   }
 
@@ -332,7 +332,7 @@ export class Telemetry implements ITelemetry {
 
     try {
       this._numPendingForwardEventRequests += 1;
-      const {category: eventCategory} = TelemetryContracts[event];
+      const { category: eventCategory } = TelemetryContracts[event];
 
       if (metadata) {
         if ('installationId' in metadata ||
@@ -348,7 +348,7 @@ export class Telemetry implements ITelemetry {
         metadata: {
           ...metadata,
           eventName: event,
-          ...(eventCategory !== undefined ? {eventCategory} : undefined),
+          ...(eventCategory !== undefined ? { eventCategory } : undefined),
           eventSource: `grist-${this._deploymentType}`,
           installationId: this._activation!.id,
         },
@@ -400,7 +400,7 @@ export async function getTelemetryPrefs(
     };
   }
 
-  const {prefs} = activation ?? await new ActivationsManager(db).current();
+  const { prefs } = activation ?? await new ActivationsManager(db).current();
   return {
     telemetryLevel: {
       value: prefs?.telemetry?.telemetryLevel ?? 'off',
@@ -429,7 +429,7 @@ export function filterMetadata(
   for (const level of ['limited', 'full'] as const) {
     if (Level[telemetryLevel] < Level[level]) { break; }
 
-    filteredMetadata = {...filteredMetadata, ...metadata[level]};
+    filteredMetadata = { ...filteredMetadata, ...metadata[level] };
   }
 
   filteredMetadata = removeNullishKeys(filteredMetadata);
@@ -471,6 +471,6 @@ const EventTypeByRetentionPeriod: Record<TelemetryRetentionPeriod, TelemetryEven
 };
 
 function getEventType(event: TelemetryEvent) {
-  const {retentionPeriod} = TelemetryContracts[event];
+  const { retentionPeriod } = TelemetryContracts[event];
   return EventTypeByRetentionPeriod[retentionPeriod];
 }

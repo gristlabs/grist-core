@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
+import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 export class FirstLogin1569593726320 implements MigrationInterface {
 

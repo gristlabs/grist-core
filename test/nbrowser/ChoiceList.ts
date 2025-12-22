@@ -1,8 +1,8 @@
-import {assert, driver, Key, stackWrapFunc, WebElement} from 'mocha-webdriver';
+import { assert, driver, Key, stackWrapFunc, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
-const normalFont = { bold: false, underline: false, italic: false, strikethrough: false};
+const normalFont = { bold: false, underline: false, italic: false, strikethrough: false };
 const bold = true;
 const underline = true;
 const italic = true;
@@ -168,7 +168,7 @@ describe('ChoiceList', function() {
   it('should support basic editing', async () => {
     const mainSession = await gu.session().teamSite.login();
     const api = mainSession.createHomeApi();
-    const docId = await mainSession.tempNewDoc(cleanup, 'FormulaCounts', {load: true});
+    const docId = await mainSession.tempNewDoc(cleanup, 'FormulaCounts', { load: true });
 
     // Make a ChoiceList column and add some data.
     await api.applyUserActions(docId, [
@@ -197,7 +197,7 @@ describe('ChoiceList', function() {
     ]);
 
     // Enter by typing into an empty cell: valid value, invalue value, then check the editor.
-    await gu.getCell({rowNum: 1, col: 'B'}).click();
+    await gu.getCell({ rowNum: 1, col: 'B' }).click();
     await driver.sendKeys('Gre', Key.ENTER);
     await driver.sendKeys('fake', Key.ENTER);
     assert.deepEqual(await getEditorTokens(), ['Green', 'fake']);
@@ -205,7 +205,7 @@ describe('ChoiceList', function() {
     assert.deepEqual(
       await getEditorTokenStyles(),
       [
-        {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold},
+        { fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold },
         INVALID_CHOICE,
       ],
     );
@@ -214,10 +214,10 @@ describe('ChoiceList', function() {
     await driver.sendKeys(Key.ESCAPE);
     await gu.waitForServer();
     assert.equal(await driver.find('.cell_editor').isPresent(), false);
-    assert.equal(await gu.getCell({rowNum: 1, col: 'B'}).getText(), '');
+    assert.equal(await gu.getCell({ rowNum: 1, col: 'B' }).getText(), '');
 
     // Type invalid value, then select from dropdown valid
-    await gu.getCell({rowNum: 1, col: 'B'}).click();
+    await gu.getCell({ rowNum: 1, col: 'B' }).click();
     await driver.sendKeys('fake', Key.ENTER);
     await getEditorInput().click();
     const blueChoice = await driver.findContent('.test-autocomplete li', /Blue/);
@@ -239,8 +239,8 @@ describe('ChoiceList', function() {
       await getEditorTokenStyles(),
       [
         INVALID_CHOICE,
-        {fillColor: BLUE_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE},
-        {fillColor: BLACK_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE},
+        { fillColor: BLUE_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE },
+        { fillColor: BLACK_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE },
       ],
     );
 
@@ -248,18 +248,18 @@ describe('ChoiceList', function() {
     await driver.sendKeys(Key.ENTER);
     await gu.waitForServer();
     assert.equal(await driver.find('.cell_editor').isPresent(), false);
-    assert.equal(await getCellTokens(await gu.getCell({rowNum: 1, col: 'B'})), 'fake\nBlue\nBlack');
+    assert.equal(await getCellTokens(await gu.getCell({ rowNum: 1, col: 'B' })), 'fake\nBlue\nBlack');
     assert.deepEqual(
-      await getCellTokenStyles(await gu.getCell({rowNum: 1, col: 'B'})),
+      await getCellTokenStyles(await gu.getCell({ rowNum: 1, col: 'B' })),
       [
         INVALID_CHOICE,
-        {fillColor: BLUE_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE},
-        {fillColor: BLACK_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE},
+        { fillColor: BLUE_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE },
+        { fillColor: BLACK_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE },
       ],
     );
 
     // Enter to edit. Enter token, remove two tokens, with a key and with an x-click.
-    await gu.getCell({rowNum: 1, col: 'B'}).click();
+    await gu.getCell({ rowNum: 1, col: 'B' }).click();
     await driver.sendKeys(Key.ENTER);
     assert.deepEqual(await getEditorTokens(), ['fake', 'Blue', 'Black']);
     await driver.sendKeys('Gre', Key.TAB);
@@ -275,10 +275,10 @@ describe('ChoiceList', function() {
     await driver.sendKeys(Key.ENTER);
     await gu.waitForServer();
     assert.equal(await driver.find('.cell_editor').isPresent(), false);
-    assert.equal(await getCellTokens(gu.getCell({rowNum: 1, col: 'B'})), 'Blue\nGreen');
+    assert.equal(await getCellTokens(gu.getCell({ rowNum: 1, col: 'B' })), 'Blue\nGreen');
 
     // Start typing to replace content with a token; check values.
-    await gu.getCell({rowNum: 1, col: 'B'}).click();
+    await gu.getCell({ rowNum: 1, col: 'B' }).click();
     await driver.sendKeys('foo');
     assert.deepEqual(await getEditorTokens(), []);
     assert.equal(await getEditorInput().value(), 'foo');
@@ -289,18 +289,18 @@ describe('ChoiceList', function() {
     await driver.sendKeys(Key.ESCAPE);
     await gu.waitForServer();
     assert.equal(await driver.find('.cell_editor').isPresent(), false);
-    assert.equal(await gu.getCell({rowNum: 1, col: 'B'}).getText(), 'Blue\nGreen');
+    assert.equal(await gu.getCell({ rowNum: 1, col: 'B' }).getText(), 'Blue\nGreen');
 
     // Double-click to open dropdown and select a token.
-    await driver.withActions(a => a.doubleClick(gu.getCell({rowNum: 1, col: 'B'})));
+    await driver.withActions(a => a.doubleClick(gu.getCell({ rowNum: 1, col: 'B' })));
     await driver.findContent('.test-autocomplete li', /Black/).click();
     assert.deepEqual(await getEditorTokens(), ['Blue', 'Green', 'Black']);
 
     // Click away to save: new token should be added.
-    await gu.getCell({rowNum: 2, col: 'B'}).click();
+    await gu.getCell({ rowNum: 2, col: 'B' }).click();
     await gu.waitForServer();
     assert.equal(await driver.find('.cell_editor').isPresent(), false);
-    assert.equal(await gu.getCell({rowNum: 1, col: 'B'}).getText(), 'Blue\nGreen\nBlack');
+    assert.equal(await gu.getCell({ rowNum: 1, col: 'B' }).getText(), 'Blue\nGreen\nBlack');
 
     // Starting to type names without accents should match the actual choices
     await gu.addColumn("Accents");
@@ -312,7 +312,7 @@ describe('ChoiceList', function() {
         }),
       }],
     ]);
-    await gu.getCell({rowNum: 1, col: 'Accents'}).click();
+    await gu.getCell({ rowNum: 1, col: 'Accents' }).click();
     await driver.sendKeys('Ade', Key.ENTER);
     await driver.sendKeys('Agne', Key.ENTER);
     await driver.sendKeys('Ame', Key.ENTER);
@@ -321,45 +321,45 @@ describe('ChoiceList', function() {
 
   it('should be visible in formulas', async () => {
     // Add a formula that returns tokens reversed
-    await gu.getCell({rowNum: 1, col: 'C'}).click();
+    await gu.getCell({ rowNum: 1, col: 'C' }).click();
     await gu.enterFormula('":".join($B)');
 
     // Check value
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['B', 'C']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['B', 'C'] }), [
       'Blue\nGreen\nBlack', 'Blue:Green:Black',
       '', '',
       '', '',
     ]);
 
     // Hit enter, click to delete a token, save.
-    await gu.getCell({rowNum: 1, col: 'B'}).click();
+    await gu.getCell({ rowNum: 1, col: 'B' }).click();
     await driver.sendKeys(Key.ENTER);
     await driver.sendKeys(Key.BACK_SPACE);
     await driver.sendKeys(Key.ENTER);
     await gu.waitForServer();
 
     // Check formula got updated
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1], cols: ['B', 'C']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1], cols: ['B', 'C'] }), [
       'Blue\nGreen', 'Blue:Green',
     ]);
 
     // Type a couple new tokens.
-    await gu.getCell({rowNum: 1, col: 'B'}).click();
+    await gu.getCell({ rowNum: 1, col: 'B' }).click();
     await driver.sendKeys(Key.ENTER);
     await driver.sendKeys('fake', Key.TAB, 'Bla', Key.TAB);
 
     // Enter to save; check formula got updated
     await driver.sendKeys(Key.ENTER);
     await gu.waitForServer();
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1], cols: ['B', 'C']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1], cols: ['B', 'C'] }), [
       'Blue\nGreen\nfake\nBlack', 'Blue:Green:fake:Black',
     ]);
 
     // Hit delete. ChoiceList cell and formula should clear.
-    await gu.getCell({rowNum: 1, col: 'B'}).click();
+    await gu.getCell({ rowNum: 1, col: 'B' }).click();
     await driver.sendKeys(Key.DELETE);
     await gu.waitForServer();
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['B', 'C']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['B', 'C'] }), [
       '', '',
       '', '',
       '', '',
@@ -377,7 +377,7 @@ describe('ChoiceList', function() {
     );
 
     // Select a token from autocomplete
-    const cell = gu.getCell({rowNum: 1, col: 'B'});
+    const cell = gu.getCell({ rowNum: 1, col: 'B' });
     assert.equal(await cell.getText(), '');
     await cell.click();
     await driver.sendKeys(Key.ENTER);
@@ -410,22 +410,22 @@ describe('ChoiceList', function() {
     assert.deepEqual(
       await getEditorTokenStyles(),
       [
-        {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold},
+        { fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold },
         INVALID_CHOICE,
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
+        { fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE },
       ],
     );
 
     // Save: check tokens
     await driver.sendKeys(Key.ENTER);
     await gu.waitForServer();
-    assert.equal(await getCellTokens(gu.getCell({rowNum: 1, col: 'B'})), 'Green\nOrange\nApricot');
+    assert.equal(await getCellTokens(gu.getCell({ rowNum: 1, col: 'B' })), 'Green\nOrange\nApricot');
     assert.deepEqual(
-      await getCellTokenStyles(gu.getCell({rowNum: 1, col: 'B'})),
+      await getCellTokenStyles(gu.getCell({ rowNum: 1, col: 'B' })),
       [
-        {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold},
+        { fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold },
         INVALID_CHOICE,
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
+        { fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE },
       ],
     );
 
@@ -445,20 +445,20 @@ describe('ChoiceList', function() {
   });
 
   it('should allow reasonable conversions between ChoiceList and other types', async function() {
-    await gu.enterGridRows({rowNum: 1, col: 'A'},
+    await gu.enterGridRows({ rowNum: 1, col: 'A' },
       [['Hello'], ['World'], ['Foo,Bar;Baz!,"Qux, quux corge", "80\'s",']]);
     await testTextChoiceListConversions();
   });
 
   it('should allow ChoiceList conversions for column used in summary', async function() {
     // Add a widget with a summary on column A.
-    await gu.addNewSection(/Table/, /Table1/, {dismissTips: true, summarize: [/^A$/]});
+    await gu.addNewSection(/Table/, /Table1/, { dismissTips: true, summarize: [/^A$/] });
     await testTextChoiceListConversions();
     await gu.undo();
   });
 
   async function testTextChoiceListConversions() {
-    await gu.getCell({section: 'TABLE1', rowNum: 3, col: 'A'}).click();
+    await gu.getCell({ section: 'TABLE1', rowNum: 3, col: 'A' }).click();
 
     // Convert this text column to ChoiceList.
     await gu.toggleSidePanel('right', 'open');
@@ -474,7 +474,7 @@ describe('ChoiceList', function() {
     );
 
     // Check that the result contains the right tags.
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['A']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['A'] }), [
       'Hello',
       'World',
       'Foo\nBar;Baz!\nQux, quux corge\n80\'s',
@@ -484,32 +484,32 @@ describe('ChoiceList', function() {
     // Check that the result contains the right colors.
     for (const rowNum of [1, 2]) {
       assert.deepEqual(
-        await getCellTokenStyles(await gu.getCell({rowNum, col: 'A'})),
-        [{fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE}],
+        await getCellTokenStyles(await gu.getCell({ rowNum, col: 'A' })),
+        [{ fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE }],
       );
     }
     assert.deepEqual(
-      await getCellTokenStyles(await gu.getCell({rowNum: 3, col: 'A'})),
+      await getCellTokenStyles(await gu.getCell({ rowNum: 3, col: 'A' })),
       [
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
+        { fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE },
+        { fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE },
+        { fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE },
+        { fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE },
       ],
     );
 
     // Open a cell to see the actual tags.
-    await gu.getCell({rowNum: 3, col: 'A'}).click();
+    await gu.getCell({ rowNum: 3, col: 'A' }).click();
     await driver.sendKeys(Key.ENTER);
     assert.deepEqual(await getEditorTokens(), ['Foo', 'Bar;Baz!', 'Qux, quux corge', '80\'s']);
     assert.deepEqual(await getEditorTokensIsInvalid(), [false, false, false, false]);
     assert.deepEqual(
       await getEditorTokenStyles(),
       [
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
+        { fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE },
+        { fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE },
+        { fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE },
+        { fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE },
       ],
     );
     await driver.sendKeys("hooray", Key.TAB, Key.ENTER);
@@ -520,7 +520,7 @@ describe('ChoiceList', function() {
     await convertColumn(/Text/);
 
     // Check that values turn into comma-separated values.
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['A']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['A'] }), [
       'Hello',
       'World',
       'Foo, Bar;Baz!, "Qux, quux corge", 80\'s, hooray',
@@ -529,7 +529,7 @@ describe('ChoiceList', function() {
     // Undo the cell change and both conversions (back to ChoiceList, back to Text), and check
     // that UNDO also works correctly and without errors.
     await gu.undo(3);
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['A']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['A'] }), [
       'Hello',
       'World',
       'Foo,Bar;Baz!,"Qux, quux corge", "80\'s",',   // That's the text originally entered into this Text cell.
@@ -538,17 +538,17 @@ describe('ChoiceList', function() {
 
   it('should keep choices when converting between Choice and ChoiceList', async function() {
     // Column B starts off as ChoiceList with the following choices.
-    await gu.getCell({rowNum: 1, col: 'B'}).click();
+    await gu.getCell({ rowNum: 1, col: 'B' }).click();
     await driver.find('.test-right-tab-field').click();
     assert.deepEqual(await getChoiceLabels(), ['Green', 'Blue', 'Black', 'Apricot']);
 
     // Add some more values to this columm.
-    await gu.getCell({rowNum: 2, col: 'B'}).click();
+    await gu.getCell({ rowNum: 2, col: 'B' }).click();
     await driver.sendKeys('Black', Key.ENTER, Key.ENTER);
     await gu.waitForServer();
     await driver.sendKeys('Green', Key.ENTER, Key.ENTER);
     await gu.waitForServer();
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['B']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['B'] }), [
       "Green\nOrange\nApricot",
       "Black",
       "Green",
@@ -560,7 +560,7 @@ describe('ChoiceList', function() {
     assert.deepEqual(await getChoiceColors(), [GREEN_FILL, BLUE_FILL, BLACK_FILL, UNSET_FILL]);
 
     // Cells which contain multiple choices become CSVs.
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['B']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['B'] }), [
       "Green, Orange, Apricot",
       "Black",
       "Green",
@@ -580,29 +580,29 @@ describe('ChoiceList', function() {
     assert.deepEqual(await getChoiceColors(), [GREEN_FILL, BLUE_FILL, BLACK_FILL, UNSET_FILL]);
 
     // Cell and editor data should be restored too.
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['B']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['B'] }), [
       "Green\nOrange\nApricot",
       "Black",
       "Green",
     ]);
     assert.deepEqual(
-      await getCellTokenStyles(await gu.getCell({rowNum: 1, col: 'B'})),
+      await getCellTokenStyles(await gu.getCell({ rowNum: 1, col: 'B' })),
       [
-        {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold},
+        { fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold },
         INVALID_CHOICE,
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
+        { fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE },
       ],
     );
-    await gu.getCell({rowNum: 1, col: 'B'}).click();
+    await gu.getCell({ rowNum: 1, col: 'B' }).click();
     await driver.sendKeys(Key.ENTER);
     assert.deepEqual(await getEditorTokens(), ['Green', 'Orange', 'Apricot']);
     assert.deepEqual(await getEditorTokensIsInvalid(), [false, true, false]);
     assert.deepEqual(
       await getEditorTokenStyles(),
       [
-        {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE,  bold},
+        { fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE,  bold },
         INVALID_CHOICE,
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
+        { fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE },
       ],
     );
     await driver.sendKeys(Key.ESCAPE);
@@ -633,17 +633,17 @@ describe('ChoiceList', function() {
 
     // Check that the old colors are still being used in the grid
     assert.deepEqual(
-      await getCellTokenStyles(await gu.getCell({rowNum: 1, col: 'B'})),
+      await getCellTokenStyles(await gu.getCell({ rowNum: 1, col: 'B' })),
       [
-        {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold},
+        { fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold },
         INVALID_CHOICE,
-        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
+        { fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE },
       ],
     );
     assert.deepEqual(
-      await getCellTokenStyles(await gu.getCell({rowNum: 3, col: 'B'})),
+      await getCellTokenStyles(await gu.getCell({ rowNum: 3, col: 'B' })),
       [
-        {fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold},
+        { fillColor: GREEN_FILL, textColor: BLACK_TEXT, ...VALID_CHOICE, bold },
       ],
     );
 
@@ -651,18 +651,18 @@ describe('ChoiceList', function() {
     await driver.find('.test-choice-list-entry-save').click();
     await gu.waitForServer();
     assert.deepEqual(
-      await getCellTokenStyles(await gu.getCell({rowNum: 1, col: 'B'})),
+      await getCellTokenStyles(await gu.getCell({ rowNum: 1, col: 'B' })),
       [
-        {fillColor: DARK_GREEN_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE, strikethrough, underline, bold},
+        { fillColor: DARK_GREEN_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE, strikethrough, underline, bold },
         INVALID_CHOICE,
-        {fillColor: APRICOT_FILL, textColor: APRICOT_TEXT, ...VALID_CHOICE, bold, italic},
+        { fillColor: APRICOT_FILL, textColor: APRICOT_TEXT, ...VALID_CHOICE, bold, italic },
       ],
     );
     assert.deepEqual(
-      await getCellTokenStyles(await gu.getCell({rowNum: 3, col: 'B'})),
+      await getCellTokenStyles(await gu.getCell({ rowNum: 3, col: 'B' })),
       [
-        {fillColor: DARK_GREEN_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE,
-          strikethrough, underline, bold},
+        { fillColor: DARK_GREEN_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE,
+          strikethrough, underline, bold },
       ],
     );
   });
@@ -725,18 +725,18 @@ describe('ChoiceList', function() {
     await driver.sendKeys(Key.ENTER);
     assert.deepEqual(await getEditModeFillColors(), [DARK_GREEN_FILL, BLUE_FILL,  BLACK_FILL, WHITE_FILL]);
     assert.deepEqual(await getEditModeTextColors(), [WHITE_TEXT,      BLACK_TEXT, WHITE_TEXT, BLACK_TEXT]);
-    assert.deepEqual(await getEditModeFontOptions(), [{bold, underline, strikethrough}, {}, {}, {underline}]);
+    assert.deepEqual(await getEditModeFontOptions(), [{ bold, underline, strikethrough }, {}, {}, { underline }]);
 
     // Undo, then re-do, verifying after each invocation
     await driver.find('.test-choice-list-entry .test-tokenfield .test-tokenfield-input').click();
     await gu.sendKeys(Key.chord(modKey, 'z'));
     assert.deepEqual(await getEditModeFillColors(), [DARK_GREEN_FILL, BLUE_FILL, BLACK_FILL, APRICOT_FILL]);
     assert.deepEqual(await getEditModeTextColors(), [WHITE_TEXT, BLACK_TEXT, WHITE_TEXT, APRICOT_TEXT]);
-    assert.deepEqual(await getEditModeFontOptions(), [{bold, underline, strikethrough}, {}, {}, {bold, italic}]);
+    assert.deepEqual(await getEditModeFontOptions(), [{ bold, underline, strikethrough }, {}, {}, { bold, italic }]);
     await gu.sendKeys(Key.chord(Key.CONTROL, 'y'));
     assert.deepEqual(await getEditModeFillColors(), [DARK_GREEN_FILL, BLUE_FILL, BLACK_FILL, WHITE_FILL]);
     assert.deepEqual(await getEditModeTextColors(), [WHITE_TEXT, BLACK_TEXT, WHITE_TEXT, BLACK_TEXT]);
-    assert.deepEqual(await getEditModeFontOptions(), [{bold, underline, strikethrough}, {}, {}, {underline}]);
+    assert.deepEqual(await getEditModeFontOptions(), [{ bold, underline, strikethrough }, {}, {}, { underline }]);
   });
 
   it('should support rich copy/paste in the choice config editor', async function() {
@@ -907,7 +907,7 @@ describe('ChoiceList', function() {
 
     },
     // Test if the column is reverted to state before the test
-    () => gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: [columnName]})));
+    () => gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [columnName] })));
   }
 
   it('should allow renaming multiple tokens on ChoiceList', gu.revertChanges(async function() {
@@ -930,14 +930,14 @@ describe('ChoiceList', function() {
     await renameEntry("one", "three");
     await renameEntry("foo", "four");
     await saveChoiceEntries();
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['ChoiceList']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['ChoiceList'] }), [
       'four',
       'three',
       'three\nfour',
     ]);
   },
   // Test if the column is reverted to state before the test
-  () => gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['ChoiceList']})));
+  () => gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['ChoiceList'] })));
 
   it('should rename saved filters', gu.revertChanges(async function() {
     // Make sure right panel is open and has focus.
@@ -953,7 +953,7 @@ describe('ChoiceList', function() {
     await gu.sendKeys("one", Key.ENTER, "foo", Key.ENTER, Key.ENTER);
     await gu.waitForServer();
     // Make sure column looks like this:
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3, 4], cols: ['ChoiceList']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3, 4], cols: ['ChoiceList'] }), [
       'foo',
       'one',
       'one\nfoo',
@@ -973,7 +973,7 @@ describe('ChoiceList', function() {
     // Go back to Table1
     await gu.getPageItem('Table1').click();
     // Make sure grid is filtered
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['ChoiceList']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['ChoiceList'] }), [
       'one',
       'one\nfoo',
       '', // new row
@@ -984,26 +984,26 @@ describe('ChoiceList', function() {
     await renameEntry("foo", "bar");
     await saveChoiceEntries();
     // Make sure that there are still two records - filter should be changed to new values.
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['ChoiceList']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['ChoiceList'] }), [
       'five',
       'five\nbar',
       '', // new row
     ]);
     // Make sure that it also renamed filters in diffrent section.
     await gu.getPageItem('Table1 (copy)').click();
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['ChoiceList']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['ChoiceList'] }), [
       'five',
       'five\nbar',
       '', // new row
     ]);
     // Go back to previous names, filter still should work.
     await gu.undo();
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['ChoiceList']}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['ChoiceList'] }), [
       'one',
       'one\nfoo',
       '', // new row
     ]);
   },
   // Test if the column is reverted to state before the test
-  () => gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['ChoiceList']})));
+  () => gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ['ChoiceList'] })));
 });

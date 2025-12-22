@@ -9,10 +9,10 @@
  * 4. It automatically prefixes channels to scope them to the current Redis database using
  *    getPubSubPrefix(), so that calling code doesn't have to worry about it.
  */
-import {mapGetOrSet} from 'app/common/AsyncCreate';
-import {getPubSubPrefix} from 'app/server/lib/serverUtils';
+import { mapGetOrSet } from 'app/common/AsyncCreate';
+import { getPubSubPrefix } from 'app/server/lib/serverUtils';
 import log from 'app/server/lib/log';
-import {arrayRemove, removePrefix, setDefault} from 'app/common/gutil';
+import { arrayRemove, removePrefix, setDefault } from 'app/common/gutil';
 import IORedis from "ioredis";
 
 /**
@@ -30,7 +30,7 @@ export interface IPubSubManager {
   close(): Promise<void>;
   subscribe(channel: string, callback: Callback): UnsubscribeCallbackPromise;
   publish(channel: string, message: string): Promise<void>;
-  publishBatch(batch: Array<{channel: string, message: string}>): Promise<void>;
+  publishBatch(batch: Array<{ channel: string, message: string }>): Promise<void>;
 }
 
 export type Callback = (message: string) => void;
@@ -104,7 +104,7 @@ abstract class PubSubManagerBase implements IPubSubManager {
   /**
    * Just like multiple publish calls, but in a single batch.
    */
-  public abstract publishBatch(batch: Array<{channel: string, message: string}>): Promise<void>;
+  public abstract publishBatch(batch: Array<{ channel: string, message: string }>): Promise<void>;
 
   protected abstract _redisSubscribe(channel: string): Promise<void>;
   protected abstract _redisUnsubscribe(channel: string): Promise<void>;
@@ -130,8 +130,8 @@ abstract class PubSubManagerBase implements IPubSubManager {
 
 class PubSubManagerNoRedis extends PubSubManagerBase {
   public async publish(channel: string, message: string) { this._deliverMessage(channel, message); }
-  public async publishBatch(batch: Array<{channel: string, message: string}>) {
-    batch.forEach(({channel, message}) => this._deliverMessage(channel, message));
+  public async publishBatch(batch: Array<{ channel: string, message: string }>) {
+    batch.forEach(({ channel, message }) => this._deliverMessage(channel, message));
   }
 
   protected async _redisSubscribe(channel: string): Promise<void> {}
@@ -149,8 +149,8 @@ class PubSubManagerRedis extends PubSubManagerBase {
     const retryStrategy = (times: number) => Math.min((times ** 2) * 50, 10000);
 
     // Redis acting as a subscriber can't run other commands. Need a separate one for publishing.
-    this._redisSub = new IORedis(redisUrl, {retryStrategy});
-    this._redisPub = new IORedis(redisUrl, {retryStrategy});
+    this._redisSub = new IORedis(redisUrl, { retryStrategy });
+    this._redisPub = new IORedis(redisUrl, { retryStrategy });
 
     this._redisSub.on('error', err => log.error('PubSubManagerRedis: redisSub connection error:', String(err)));
     this._redisPub.on('error', err => log.error('PubSubManagerRedis: redisPub connection error:', String(err)));
@@ -173,9 +173,9 @@ class PubSubManagerRedis extends PubSubManagerBase {
     await this._redisPub.publish(this._prefixChannel(channel), message);
   }
 
-  public async publishBatch(batch: Array<{channel: string, message: string}>): Promise<void> {
+  public async publishBatch(batch: Array<{ channel: string, message: string }>): Promise<void> {
     let pipeline = this._redisPub.pipeline();
-    for (const {channel, message} of batch) {
+    for (const { channel, message } of batch) {
       pipeline = pipeline.publish(this._prefixChannel(channel), message);
     }
     await pipeline.exec();

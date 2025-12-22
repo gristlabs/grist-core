@@ -1,24 +1,24 @@
 import * as kf from 'app/client/lib/koForm';
-import {makeT} from 'app/client/lib/localization';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ColumnRec} from 'app/client/models/DocModel';
-import {KoSaveableObservable} from 'app/client/models/modelUtil';
-import {RuleOwner} from 'app/client/models/RuleOwner';
-import {Style} from 'app/client/models/Styles';
-import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
-import {cssFieldFormula} from 'app/client/ui/RightPanelStyles';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
-import {textButton} from 'app/client/ui2018/buttons';
-import {ColorOption, colorSelect} from 'app/client/ui2018/ColorSelect';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {cssDragger} from 'app/client/ui2018/draggableList';
-import {icon} from 'app/client/ui2018/icons';
-import {setupEditorCleanup} from 'app/client/widgets/FieldEditor';
-import {cssError, openFormulaEditor} from 'app/client/widgets/FormulaEditor';
-import {isRaisedException, isValidRuleValue} from 'app/common/gristTypes';
-import {GristObjCode, RowRecord} from 'app/plugin/GristData';
-import {decodeObject} from 'app/plugin/objtypes';
-import {Computed, Disposable, dom, DomContents, makeTestId, Observable, styled} from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { ColumnRec } from 'app/client/models/DocModel';
+import { KoSaveableObservable } from 'app/client/models/modelUtil';
+import { RuleOwner } from 'app/client/models/RuleOwner';
+import { Style } from 'app/client/models/Styles';
+import { buildHighlightedCode } from 'app/client/ui/CodeHighlight';
+import { cssFieldFormula } from 'app/client/ui/RightPanelStyles';
+import { withInfoTooltip } from 'app/client/ui/tooltips';
+import { textButton } from 'app/client/ui2018/buttons';
+import { ColorOption, colorSelect } from 'app/client/ui2018/ColorSelect';
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { cssDragger } from 'app/client/ui2018/draggableList';
+import { icon } from 'app/client/ui2018/icons';
+import { setupEditorCleanup } from 'app/client/widgets/FieldEditor';
+import { cssError, openFormulaEditor } from 'app/client/widgets/FormulaEditor';
+import { isRaisedException, isValidRuleValue } from 'app/common/gristTypes';
+import { GristObjCode, RowRecord } from 'app/plugin/GristData';
+import { decodeObject } from 'app/plugin/objtypes';
+import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled } from 'grainjs';
 import debounce from 'lodash/debounce';
 
 const testId = makeTestId('test-widget-style-');
@@ -160,8 +160,8 @@ export class ConditionalStyle extends Disposable {
           ),
           colorSelect(
             {
-              textColor: new ColorOption({color: textColor, allowsNone: true, noneText: 'default'}),
-              fillColor: new ColorOption({color: fillColor, allowsNone: true, noneText: 'none'}),
+              textColor: new ColorOption({ color: textColor, allowsNone: true, noneText: 'default' }),
+              fillColor: new ColorOption({ color: fillColor, allowsNone: true, noneText: 'none' }),
               fontBold,
               fontItalic,
               fontUnderline,

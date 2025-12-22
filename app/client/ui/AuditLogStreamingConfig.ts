@@ -204,7 +204,7 @@ function showDestinationForm(options: DestinationFormOptions) {
                 dom.on("change", handleDestinationChange),
               ),
               cssCardContent(
-                cssCardImage({src: "img/audit-logs-splunk.svg"}),
+                cssCardImage({ src: "img/audit-logs-splunk.svg" }),
               ),
             ),
             cssCard(
@@ -221,7 +221,7 @@ function showDestinationForm(options: DestinationFormOptions) {
                 dom.on("change", handleDestinationChange),
               ),
               cssCardContent(
-                cssCardImage({src: "img/audit-logs-other.svg"}),
+                cssCardImage({ src: "img/audit-logs-other.svg" }),
               ),
             ),
           ),

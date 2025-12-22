@@ -1,6 +1,6 @@
-import {assert, driver} from 'mocha-webdriver';
+import { assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('FieldSettings2', function() {
   this.timeout(20000);
@@ -10,11 +10,11 @@ describe('FieldSettings2', function() {
 
   it('should allow separate field settings for a new field', async function() {
     const session = await gu.session().teamSite.user('user1').login();
-    const docId = (await session.tempNewDoc(cleanup, 'FieldSettings2A', {load: false}));
+    const docId = (await session.tempNewDoc(cleanup, 'FieldSettings2A', { load: false }));
     const api = session.createHomeApi();
     await api.applyUserActions(docId, [
-      ['AddTable', 'TestTable', [{id: 'Num', type: 'Numeric'}]],
-      ['BulkAddRecord', 'TestTable', [null, null, null], {Num: ['5', '10', '15']}],
+      ['AddTable', 'TestTable', [{ id: 'Num', type: 'Numeric' }]],
+      ['BulkAddRecord', 'TestTable', [null, null, null], { Num: ['5', '10', '15'] }],
     ]);
 
     await session.loadDoc(`/doc/${docId}/p/2`);
@@ -26,7 +26,7 @@ describe('FieldSettings2', function() {
     await gu.renameSection('TESTTABLE', 'T2');
 
     // Change Num field to "Separate"
-    await gu.getCell({section: 'T1', rowNum: 1, col: 'Num'}).click();
+    await gu.getCell({ section: 'T1', rowNum: 1, col: 'Num' }).click();
     await gu.toggleSidePanel('right', 'open');
     await driver.find('.test-right-tab-field').click();
     await fieldSettingsUseSeparate();
@@ -38,8 +38,8 @@ describe('FieldSettings2', function() {
     await gu.waitForServer();
 
     // Check that only one of the two views changed.
-    const cell1 = await gu.getCell({section: 'T1', rowNum: 1, col: 'Num'});
-    const cell2 = await gu.getCell({section: 'T2', rowNum: 1, col: 'Num'});
+    const cell1 = await gu.getCell({ section: 'T1', rowNum: 1, col: 'Num' });
+    const cell2 = await gu.getCell({ section: 'T2', rowNum: 1, col: 'Num' });
     await gu.assertFillColor(cell1, 'blue');
     await gu.assertFillColor(cell2, 'transparent');
 

@@ -1,5 +1,5 @@
 import { delay } from 'bluebird';
-import { addToRepl, assert, driver} from 'mocha-webdriver';
+import { addToRepl, assert, driver } from 'mocha-webdriver';
 import { server, setupTestSuite } from 'test/projects/testUtils';
 
 describe('TreeViewComponent', () => {
@@ -74,14 +74,14 @@ describe('TreeViewComponent', () => {
     // moving cursor few pixels up should moves handle same amount up
     const oldTop = (await handle.rect()).top;
     // 1px
-    await driver.mouseMoveBy({y: 1});
+    await driver.mouseMoveBy({ y: 1 });
     assert.closeTo((await handle.rect()).top - oldTop, 1, 1);
     // 4px
-    await driver.mouseMoveBy({y: 4});
+    await driver.mouseMoveBy({ y: 4 });
     assert.closeTo((await handle.rect()).top - oldTop, 4, 1);
 
     // moving cursor out should hide handle
-    await driver.mouseMoveBy({x: 100});
+    await driver.mouseMoveBy({ x: 100 });
     assert.equal(await handle.isDisplayed(), false);
     await findItem(/Page2/).mouseMove();
     assert.equal(await handle.isDisplayed(), true);
@@ -103,19 +103,19 @@ describe('TreeViewComponent', () => {
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper.dragged', e => e.getText()), ['Page6']);
 
     // target below Page5
-    await moveTo(/Page5/, {y: 1});
+    await moveTo(/Page5/, { y: 1 });
     assert.equal(await driver.find('.test-treeview-target').isDisplayed(), true);
     assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.highlight`, e => e.getText()), []);
     await assertTargetPos(await target.rect(), 'below', await findItemRectangles(/Page5/));
 
     // target above Page5
-    await moveTo(/Page5/, {y: -1});
+    await moveTo(/Page5/, { y: -1 });
     assert.equal(await driver.find('.test-treeview-target').isDisplayed(), true);
     assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.highlight`, e => e.getText()), []);
     await assertTargetPos(await target.rect(), 'above', await findItemRectangles(/Page5/));
 
     // target first child Page1
-    await moveTo(/Page1/, {y: 1});
+    await moveTo(/Page1/, { y: 1 });
     assert.equal(await driver.find('.test-treeview-target').isDisplayed(), true);
     assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.highlight`, e => e.getText()), ['Page1']);
     await assertTargetPos(await target.rect(), 'above', await findItemRectangles(/Page2/));
@@ -127,7 +127,7 @@ describe('TreeViewComponent', () => {
     await assertTargetPos(await target.rect(), 'above', await findItemRectangles(/Page4/));
 
     // leaving component hide targets
-    await driver.mouseMoveBy({x: 300});
+    await driver.mouseMoveBy({ x: 300 });
     assert.equal(await driver.find('.test-treeview-target').isDisplayed(), false);
     assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.highlight`, e => e.getText()), []);
 
@@ -145,7 +145,7 @@ describe('TreeViewComponent', () => {
 
   it('should prevent dropping on it\'s own children', async function() {
     await startDrag(/Page1/);
-    await moveTo(/Page1/, {y: 1});
+    await moveTo(/Page1/, { y: 1 });
     assert.equal(await driver.find('.test-treeview-target').isDisplayed(), false);
     assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.highlight`, e => e.getText()), []);
 
@@ -158,11 +158,11 @@ describe('TreeViewComponent', () => {
 
   it('should not be possible to drop above or below dragged item', async function() {
     await startDrag(/Page5/);
-    await moveTo(/Page5/, {y: 1});
+    await moveTo(/Page5/, { y: 1 });
     assert.equal(await driver.find('.test-treeview-target').isDisplayed(), false);
     assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.highlight`, e => e.getText()), []);
 
-    await moveTo(/Page5/, {y: -1});
+    await moveTo(/Page5/, { y: -1 });
     assert.equal(await driver.find('.test-treeview-target').isDisplayed(), false);
     assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.highlight`, e => e.getText()), []);
 
@@ -173,7 +173,7 @@ describe('TreeViewComponent', () => {
     this.timeout(6000);
     await driver.find('input.clearLogs').doClick();
     await startDrag(/Page5/);
-    await moveTo(/Page2/, {y: 1});
+    await moveTo(/Page2/, { y: 1 });
     await driver.actions().release().perform();
     assert.deepEqual(await driver.findAll('.model-calls', e => e.getText()), [
       'insert Page5 before Page3 in Page1']);
@@ -181,19 +181,19 @@ describe('TreeViewComponent', () => {
     // check that dropping below the above item does nothing
     await driver.find('input.clearLogs').doClick();
     await startDrag(/Page6/);
-    await moveTo(/Page5/, {y: 1});
+    await moveTo(/Page5/, { y: 1 });
     await stopDrag();
     assert.deepEqual(await driver.findAll('.model-calls', e => e.getText()), []);
 
     // check that dropping above the below item does nothing
     await startDrag(/Page5/);
-    await moveTo(/Page6/, {y: -1});
+    await moveTo(/Page6/, { y: -1 });
     await stopDrag();
     assert.deepEqual(await driver.findAll('.model-calls', e => e.getText()), []);
 
     // check that do not call when dropping on dragged item
     await startDrag(/Page5/);
-    await driver.mouseMoveBy({x: -1});
+    await driver.mouseMoveBy({ x: -1 });
     await stopDrag();
     assert.deepEqual(await driver.findAll('.model-calls', e => e.getText()), []);
   });
@@ -252,7 +252,7 @@ describe('TreeViewComponent', () => {
     assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.highlight`, e => e.getText()), []);
     await assertTargetPos(await target.rect(), 'above', await findItemRectangles(/Page1/));
     // moving cursor over Page1 should not delay expansion
-    await driver.mouseMoveBy({x: 2});
+    await driver.mouseMoveBy({ x: 2 });
     await delay(400);
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper', e => e.getText()),
       ['Page1', 'Page2', 'Page3', 'Page4', 'Page5', 'Page6']);
@@ -264,7 +264,7 @@ describe('TreeViewComponent', () => {
     assert.isBelow((await findItem(/Page6/).find('.test-treeview-handle').rect()).top, 50);
 
     // moving cursor hover same item after expansion should not change the target
-    await driver.mouseMoveBy({x: -2});
+    await driver.mouseMoveBy({ x: -2 });
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper', e => e.getText()),
       ['Page1', 'Page2', 'Page3', 'Page4', 'Page5', 'Page6']);
     assert.equal(await driver.find('.test-treeview-target').isDisplayed(), true);
@@ -359,7 +359,7 @@ describe('TreeViewComponent', () => {
 
     // let's press mouse
     await driver.withActions(actions => actions
-      .move({origin: findItem(/Page1/)})
+      .move({ origin: findItem(/Page1/) })
       .press());
 
     // should not start dragging just yet
@@ -372,7 +372,7 @@ describe('TreeViewComponent', () => {
     // holding mouse down on the arrow should not start dragging
     await driver.withActions(actions => actions
       .release()
-      .move({origin: findItem(/Page1/).find('.test-treeview-itemArrow')})
+      .move({ origin: findItem(/Page1/).find('.test-treeview-itemArrow') })
       .press());
     await delay(510);
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper.dragged', e => e.getText()), []);
@@ -449,7 +449,7 @@ describe('TreeViewComponent', () => {
       // let's press mouse
       await driver.withActions(actions => (
         actions
-          .move({origin: findItem(/Page1/)})
+          .move({ origin: findItem(/Page1/) })
           .press()
       ));
 
@@ -470,8 +470,8 @@ describe('TreeViewComponent', () => {
 
 function startDrag(item: RegExp) {
   return driver.withActions(actions => actions
-    .move({origin: findItem(item)})
-    .move({origin: findItem(item).find('.test-treeview-handle')})
+    .move({ origin: findItem(item) })
+    .move({ origin: findItem(item).find('.test-treeview-handle') })
     .press());
 }
 
@@ -479,13 +479,13 @@ function stopDrag() {
   return driver.withActions(actions => actions.release());
 }
 
-async function moveTo(item: RegExp, opt: {y: number} = {y: 0}) {
+async function moveTo(item: RegExp, opt: { y: number } = { y: 0 }) {
   const el = await driver.findContent('.test-treeview-itemHeaderWrapper', item);
   await el.mouseMove(opt);
 }
 
 async function assertTargetPos(targetRect: ClientRect, zone: 'above'|'below',
-  item: {header: ClientRect, label: ClientRect}) {
+  item: { header: ClientRect, label: ClientRect }) {
   // on the left, the target should starts where the label starts
   assert.closeTo(targetRect.left, item.label.left, 1, 'wrong left offset');
   // on the right, the target should end at the end of the header
@@ -499,8 +499,8 @@ function findItem(pattern: RegExp) {
 
 async function findItemRectangles(pattern: RegExp) {
   const item = findItem(pattern);
-  return {header: await item.find('.test-treeview-itemHeader').rect(),
-    label: await item.find('.test-treeview-label').rect()};
+  return { header: await item.find('.test-treeview-itemHeader').rect(),
+    label: await item.find('.test-treeview-label').rect() };
 }
 
 function findTarget() {

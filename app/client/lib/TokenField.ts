@@ -107,19 +107,19 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     super();
     const addSelectedItem = this._addSelectedItem.bind(this);
     const openAutocomplete = this._openAutocomplete.bind(this);
-    this._acOptions = _options.acOptions && {..._options.acOptions, onClick: addSelectedItem};
+    this._acOptions = _options.acOptions && { ..._options.acOptions, onClick: addSelectedItem };
 
     this.setTokens(_options.initialValue);
     this.tokensObs = this.autoDispose(computedArray(this._tokens, t => t.token));
-    this._keyBindings = {...defaultKeyBindings, ..._options.keyBindings};
+    this._keyBindings = { ...defaultKeyBindings, ..._options.keyBindings };
 
     // We can capture undo info in a consistent way as long as we change _tokens using its
     // obsArray interface, by listening to the splice events.
     this.autoDispose(this._tokens.addListener(this._recordUndo.bind(this)));
 
     // Use overridden styles if any were provided.
-    this._styles = {...tokenFieldStyles, ..._options.styles};
-    const {cssTokenField, cssToken, cssInputWrapper, cssTokenInput, cssDeleteButton, cssDeleteIcon} = this._styles;
+    this._styles = { ...tokenFieldStyles, ..._options.styles };
+    const { cssTokenField, cssToken, cssInputWrapper, cssTokenInput, cssDeleteButton, cssDeleteIcon } = this._styles;
 
     function stop(ev: Event) {
       ev.stopPropagation();
@@ -127,7 +127,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     }
 
     this._rootElem = cssTokenField(
-      {tabIndex: '-1'},
+      { tabIndex: '-1' },
       dom.forEach(this._tokens, t =>
         cssToken(this._options.renderToken(t.token),
           dom.cls('selected', use => use(this._selection).has(t)),
@@ -183,7 +183,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
         },
         y$: (ev) => { if (ev.ctrlKey && !ev.shiftKey) { this._redo(ev); } },
       }),
-      this._hiddenInput = cssHiddenInput({type: 'text', tabIndex: '-1'},
+      this._hiddenInput = cssHiddenInput({ type: 'text', tabIndex: '-1' },
         dom.on('blur', (ev) => {
           if (ev.relatedTarget && ev.relatedTarget !== this._rootElem) {
             this._selectionAnchor = null;
@@ -191,7 +191,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
           }
         }),
       ),
-      dom.on('focus', () => this._hiddenInput.focus({preventScroll: true})),
+      dom.on('focus', () => this._hiddenInput.focus({ preventScroll: true })),
       dom.on('copy', this._onCopyEvent.bind(this)),
       dom.on('cut', this._onCutEvent.bind(this)),
       dom.on('paste', this._onPasteEvent.bind(this)),
@@ -458,7 +458,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     }
     else {
       const values = tokens.map(t => t.token.label);
-      ev.clipboardData.setData('text/plain', csvEncodeRow(values, {prettier: true}));
+      ev.clipboardData.setData('text/plain', csvEncodeRow(values, { prettier: true }));
     }
     return true;
   }
@@ -583,13 +583,13 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
       });
     };
 
-    const moveLis = dom.onElem(document, 'mousemove', onMove, {useCapture: true});
-    const stopLis = dom.onElem(document, 'mouseup', onStop, {useCapture: true});
+    const moveLis = dom.onElem(document, 'mousemove', onMove, { useCapture: true });
+    const stopLis = dom.onElem(document, 'mouseup', onStop, { useCapture: true });
   }
 
   private _recordUndo(val: TokenWrap<Token>[], prev: TokenWrap<Token>[], change?: IObsArraySplice<TokenWrap<Token>>) {
     if (this._inUndoRedo) { return; }
-    const splice = change || {start: 0, numAdded: val.length, deleted: [...prev]};
+    const splice = change || { start: 0, numAdded: val.length, deleted: [...prev] };
     const newTokens = val.slice(splice.start, splice.start + splice.numAdded);
     const redo = () => this._tokens.splice(splice.start, splice.deleted.length, ...newTokens);
     const undo = () => this._tokens.splice(splice.start, splice.numAdded, ...splice.deleted);
@@ -649,7 +649,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
    */
   private _maybeTrimTokens(tokens: Token[]): Token[] {
     if (!this._options.trimLabels) { return tokens; }
-    return tokens.map(t => ({...t, label: t.label.trim()}));
+    return tokens.map(t => ({ ...t, label: t.label.trim() }));
   }
 
   /**

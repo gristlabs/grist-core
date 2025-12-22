@@ -1,7 +1,7 @@
-import {Role} from 'app/common/roles';
-import {PermissionData} from 'app/common/UserAPI';
-import {assert} from 'chai';
-import {TestServer} from 'test/gen-server/apiUtils';
+import { Role } from 'app/common/roles';
+import { PermissionData } from 'app/common/UserAPI';
+import { assert } from 'chai';
+import { TestServer } from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
 
 describe('scrubUserFromOrg', function() {
@@ -15,7 +15,7 @@ describe('scrubUserFromOrg', function() {
     await server.start();
     // Use an empty org called "org1" created by "user1" for these tests.
     const user1 = (await server.dbManager.getUserByLogin('user1@getgrist.com'));
-    await server.dbManager.addOrg(user1, {name: 'org1', domain: 'org1'}, {
+    await server.dbManager.addOrg(user1, { name: 'org1', domain: 'org1' }, {
       setUserAsOwner: false,
       useNewPlan: true,
     });
@@ -70,8 +70,8 @@ describe('scrubUserFromOrg', function() {
     // avoid occasional slow runs on jenkins.
     // In test org "org1", create a test workspace "ws1" and a test document "doc1"
     const user1 = await getApi('user1', 'org1');
-    const wsId = await user1.newWorkspace({name: 'ws1'}, 'current');
-    const docId = await user1.newDoc({name: 'doc1'}, wsId);
+    const wsId = await user1.newWorkspace({ name: 'ws1' }, 'current');
+    const docId = await user1.newDoc({ name: 'doc1' }, wsId);
 
     // Initially the org has only 1 guest - the creator.
     assert.sameMembers(await listOrg('org1', 'guests'), ['user1@getgrist.com']);
@@ -207,7 +207,7 @@ describe('scrubUserFromOrg', function() {
     // avoid occasional slow runs on jenkins.
     // In test org "org1", create a test workspace "ws1"
     const user1 = await getApi('user1', 'org1');
-    const wsId = await user1.newWorkspace({name: 'ws1'}, 'current');
+    const wsId = await user1.newWorkspace({ name: 'ws1' }, 'current');
 
     // Initially the org has 1 guest - the creator.
     assert.sameMembers(await listOrg('org1', 'guests'), ['user1@getgrist.com']);
@@ -336,8 +336,8 @@ describe('scrubUserFromOrg', function() {
   it('cannot remove users from orgs without permission', async function() {
     // In test org "org1", create a test workspace "ws1" and a test document "doc1".
     const user1 = await getApi('user1', 'org1');
-    const wsId = await user1.newWorkspace({name: 'ws1'}, 'current');
-    const docId = await user1.newDoc({name: 'doc1'}, wsId);
+    const wsId = await user1.newWorkspace({ name: 'ws1' }, 'current');
+    const docId = await user1.newDoc({ name: 'doc1' }, wsId);
 
     // Add user2 and user3 as owners of doc1
     await user1.updateDocPermissions(docId, {
@@ -387,8 +387,8 @@ describe('scrubUserFromOrg', function() {
   it('does not scrub user for removal from workspace or doc', async function() {
     // In test org "org1", create a test workspace "ws1" and a test document "doc1".
     const user1 = await getApi('user1', 'org1');
-    const wsId = await user1.newWorkspace({name: 'ws1'}, 'current');
-    const docId = await user1.newDoc({name: 'doc1'}, wsId);
+    const wsId = await user1.newWorkspace({ name: 'ws1' }, 'current');
+    const docId = await user1.newDoc({ name: 'doc1' }, wsId);
 
     // Add user2 and user3 as owners of doc1
     await user1.updateDocPermissions(docId, {

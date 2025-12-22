@@ -1,7 +1,7 @@
-import {TestServer} from 'test/gen-server/apiUtils';
+import { TestServer } from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
-import {UserAPIImpl} from 'app/common/UserAPI';
-import chai, {assert} from 'chai';
+import { UserAPIImpl } from 'app/common/UserAPI';
+import chai, { assert } from 'chai';
 import Excel from 'exceljs';
 import * as sinon from 'sinon';
 
@@ -23,9 +23,9 @@ describe("ExportsAccessRules", function() {
     home = new TestServer(this);
     await home.start(['home', 'docs']);
     const api = await home.createHomeApi('chimpy', 'docs', true);
-    await api.newOrg({name: 'ExportsAccessRules', domain: 'exports-access-rules'});
+    await api.newOrg({ name: 'ExportsAccessRules', domain: 'exports-access-rules' });
     owner = await home.createHomeApi('chimpy', 'exports-access-rules', true);
-    wsId = await owner.newWorkspace({name: 'ws'}, 'current');
+    wsId = await owner.newWorkspace({ name: 'ws' }, 'current');
     await owner.updateWorkspacePermissions(wsId, {
       users: {
         'kiwi@getgrist.com': 'owners',
@@ -47,17 +47,17 @@ describe("ExportsAccessRules", function() {
   async function createSampleTables(docId: string) {
     // Add tables that are fully or partially hidden from Editors.
     await owner.applyUserActions(docId, [
-      ['AddTable', 'Public', [{id: 'ColPublic1'}]],
-      ['AddTable', 'Private', [{id: 'ColPrivate1'}]],
-      ['AddTable', 'Partial', [{id: 'ColPartialShow'}, {id: 'ColPartialHide'}, {id: 'ColPartialMaybe'}]],
+      ['AddTable', 'Public', [{ id: 'ColPublic1' }]],
+      ['AddTable', 'Private', [{ id: 'ColPrivate1' }]],
+      ['AddTable', 'Partial', [{ id: 'ColPartialShow' }, { id: 'ColPartialHide' }, { id: 'ColPartialMaybe' }]],
       ['RemoveTable', 'Table1'],
-      ['AddRecord', 'Public', null, {ColPublic1: 10}],
-      ['AddRecord', 'Private', null, {ColPrivate1: 20}],
-      ['AddRecord', 'Partial', null, {ColPartialShow: 'show1', ColPartialHide: 'hide1', ColPartialMaybe: 'maybe1'}],
-      ['AddRecord', 'Partial', null, {ColPartialShow: 'show2', ColPartialHide: 'hide2', ColPartialMaybe: 'maybe2'}],
-      ['AddRecord', '_grist_ACLResources', -2, {tableId: 'Private', colIds: '*'}],
-      ['AddRecord', '_grist_ACLResources', -3, {tableId: 'Partial', colIds: 'ColPartialHide'}],
-      ['AddRecord', '_grist_ACLResources', -4, {tableId: 'Partial', colIds: 'ColPartialMaybe'}],
+      ['AddRecord', 'Public', null, { ColPublic1: 10 }],
+      ['AddRecord', 'Private', null, { ColPrivate1: 20 }],
+      ['AddRecord', 'Partial', null, { ColPartialShow: 'show1', ColPartialHide: 'hide1', ColPartialMaybe: 'maybe1' }],
+      ['AddRecord', 'Partial', null, { ColPartialShow: 'show2', ColPartialHide: 'hide2', ColPartialMaybe: 'maybe2' }],
+      ['AddRecord', '_grist_ACLResources', -2, { tableId: 'Private', colIds: '*' }],
+      ['AddRecord', '_grist_ACLResources', -3, { tableId: 'Partial', colIds: 'ColPartialHide' }],
+      ['AddRecord', '_grist_ACLResources', -4, { tableId: 'Partial', colIds: 'ColPartialMaybe' }],
       // Negative IDs refer to rowIds used in the same action bundle.
       ['AddRecord', '_grist_ACLRules', null, {
         // Deny non-owners access to table Private.
@@ -75,10 +75,10 @@ describe("ExportsAccessRules", function() {
 
     // Add a table to be summarized, and deny access to it.
     const summarizedTableRef = (await owner.applyUserActions(docId, [
-      ['AddTable', 'ToSummarize', [{id: 'SCol1'}, {id: 'SCol2', type: 'Numeric'}]],
-      ['AddRecord', 'ToSummarize', null, {SCol1: 'a', SCol2: 100}],
-      ['AddRecord', 'ToSummarize', null, {SCol1: 'a', SCol2: 200}],
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'ToSummarize', colIds: '*'}],
+      ['AddTable', 'ToSummarize', [{ id: 'SCol1' }, { id: 'SCol2', type: 'Numeric' }]],
+      ['AddRecord', 'ToSummarize', null, { SCol1: 'a', SCol2: 100 }],
+      ['AddRecord', 'ToSummarize', null, { SCol1: 'a', SCol2: 200 }],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: 'ToSummarize', colIds: '*' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: 'user.Access != "owners"', permissionsText: 'none',
       }],
@@ -86,14 +86,14 @@ describe("ExportsAccessRules", function() {
 
     // Add a summary of table 'ToSummarize', grouped by 'SCol1'. This table is not denied.
     const colRef = (await owner.getDocAPI(docId).getRecords('_grist_Tables_column',
-      {filters: {parentId: [summarizedTableRef], colId: ['SCol1']}}))[0].id;
+      { filters: { parentId: [summarizedTableRef], colId: ['SCol1'] } }))[0].id;
     await owner.applyUserActions(docId, [
       ['CreateViewSection', summarizedTableRef, 0, 'record', [colRef], null],
     ]);
   }
 
   it('respects access rules for CSV exports', async function() {
-    const docId = await owner.newDoc({name: 'doc'}, wsId);
+    const docId = await owner.newDoc({ name: 'doc' }, wsId);
     await createSampleTables(docId);
 
     // Some sections get created automatically. Find their IDs.
@@ -103,15 +103,15 @@ describe("ExportsAccessRules", function() {
     const tableIdToSection = new Map(viewSections.map(vs =>
       [tableRefToTableId.get(vs.fields.tableRef as number), vs.id]));
 
-    async function getCSV(user: UserAPIImpl, tableId: string, options?: {viewAs: string}): Promise<string> {
+    async function getCSV(user: UserAPIImpl, tableId: string, options?: { viewAs: string }): Promise<string> {
       const params = {
         viewSection: tableIdToSection.get(tableId) as number,
         tableId,
-        ...(options ? {aclAsUser_: options.viewAs} : {}),
+        ...(options ? { aclAsUser_: options.viewAs } : {}),
       };
       const url = user.getDocAPI(docId).getDownloadCsvUrl(params);
       // BaseAPI.request method is private, but so handy here, that we'll use it anyway.
-      const resp = await (user as any).request(url, {timeout: 1000});
+      const resp = await (user as any).request(url, { timeout: 1000 });
       return (await resp.text()).trim();
     }
 
@@ -137,7 +137,7 @@ describe("ExportsAccessRules", function() {
     );
 
     // Test also that "View As" simulation respects access rules.
-    assert.deepEqual(await getCSV(owner, 'Partial', {viewAs: 'charon@getgrist.com'}),
+    assert.deepEqual(await getCSV(owner, 'Partial', { viewAs: 'charon@getgrist.com' }),
       'ColPartialShow,ColPartialMaybe\n' +
       'show1,CENSORED\n' +
       'show2,maybe2',
@@ -148,7 +148,7 @@ describe("ExportsAccessRules", function() {
     await assert.isRejected(getCSV(editor, 'ToSummarize'),
       /Request.*failed with status 404.*Cannot find or access table/);
 
-    await assert.isRejected(getCSV(owner, 'ToSummarize', {viewAs: 'charon@getgrist.com'}),
+    await assert.isRejected(getCSV(owner, 'ToSummarize', { viewAs: 'charon@getgrist.com' }),
       /Request.*failed with status 404.*Cannot find or access table/);
 
     // It's summary table is visible only to both owner and editor.
@@ -157,18 +157,18 @@ describe("ExportsAccessRules", function() {
   });
 
   it('respects access rules for XLSX exports', async function() {
-    const docId = await owner.newDoc({name: 'doc'}, wsId);
+    const docId = await owner.newDoc({ name: 'doc' }, wsId);
     await createSampleTables(docId);
 
     async function getXlsx(user: UserAPIImpl): Promise<any> {
       const url = user.getDocAPI(docId).getDownloadXlsxUrl();
       // BaseAPI.request method is private, but so handy here, that we'll use it anyway.
-      const resp = await (user as any).request(url, {timeout: 5000});
+      const resp = await (user as any).request(url, { timeout: 5000 });
       const workbook = new Excel.Workbook();
       await workbook.xlsx.read(resp.body);
-      const output: {[name: string]: string} = {};
+      const output: { [name: string]: string } = {};
       for (const ws of workbook.worksheets) {
-        output[ws.name] = (await workbook.csv.writeBuffer({sheetName: ws.name})).toString();
+        output[ws.name] = (await workbook.csv.writeBuffer({ sheetName: ws.name })).toString();
       }
       return output;
     }

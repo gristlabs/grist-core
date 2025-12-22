@@ -1,11 +1,11 @@
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as fse from 'fs-extra';
-import {map, noop} from 'lodash';
-import {join as pathJoin} from 'path';
+import { map, noop } from 'lodash';
+import { join as pathJoin } from 'path';
 import * as tmp from 'tmp-promise';
 
-import {delay} from 'app/common/delay';
-import {OpenMode, SchemaInfo, SQLiteDB} from 'app/server/lib/SQLiteDB';
+import { delay } from 'app/common/delay';
+import { OpenMode, SchemaInfo, SQLiteDB } from 'app/server/lib/SQLiteDB';
 import * as testUtils from 'test/server/testUtils';
 import { timeoutReached } from 'app/common/gutil';
 
@@ -20,7 +20,7 @@ describe('SQLiteDB', function() {
 
   before(async function() {
     // Create a temporary directory, and wipe it out on exit.
-    ({path: tmpDir, cleanup} = await tmp.dir({ prefix: 'grist_test_SQLiteDB_', unsafeCleanup: true }));
+    ({ path: tmpDir, cleanup } = await tmp.dir({ prefix: 'grist_test_SQLiteDB_', unsafeCleanup: true }));
   });
 
   after(function() {
@@ -43,8 +43,8 @@ describe('SQLiteDB', function() {
 
     assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
     assert.deepEqual(await sdb.collectMetadata(), {
-      Foo: {A: 'TEXT', B: 'NUMERIC'},
-      Bar: {C: 'TEXT', D: 'NUMERIC'},
+      Foo: { A: 'TEXT', B: 'NUMERIC' },
+      Bar: { C: 'TEXT', D: 'NUMERIC' },
     });
     await sdb.close();
   });
@@ -152,7 +152,7 @@ describe('SQLiteDB', function() {
     assert.deepEqual(msgs, []);                         // No warnings.
     assert.strictEqual(sdb.migrationBackupPath, null);  // No migration backup.
     assert.sameDeepMembers(await getTableNames(sdb), ['Foo']);
-    assert.deepEqual(await sdb.collectMetadata(), { Foo: {A: 'TEXT'} });
+    assert.deepEqual(await sdb.collectMetadata(), { Foo: { A: 'TEXT' } });
     await sdb.close();
 
     // On reopen using V2 schema.
@@ -167,15 +167,15 @@ describe('SQLiteDB', function() {
     assert.isTrue(await fse.pathExists(sdb.migrationBackupPath!));
     assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
     assert.deepEqual(await sdb.collectMetadata(), {
-      Foo: {A: 'TEXT', B: 'NUMERIC'},
-      Bar: {D: 'NUMERIC'},
+      Foo: { A: 'TEXT', B: 'NUMERIC' },
+      Bar: { D: 'NUMERIC' },
     });
     await sdb.close();
 
     // Check that the backup makes sense.
     const migrationSDB = await SQLiteDB.openDB(
       sdb.migrationBackupPath!, schemaInfoV1, OpenMode.OPEN_READONLY);
-    assert.deepEqual(await migrationSDB.collectMetadata(), { Foo: {A: 'TEXT'} });
+    assert.deepEqual(await migrationSDB.collectMetadata(), { Foo: { A: 'TEXT' } });
     await migrationSDB.close();
 
     // On reopen using V3 schema.
@@ -189,8 +189,8 @@ describe('SQLiteDB', function() {
     assert.match(sdb.migrationBackupPath!, /test3A\.\d{4}-\d{2}-\d{2}\.V2\.bak$/);
     assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
     assert.deepEqual(await sdb.collectMetadata(), {
-      Foo: {A: 'TEXT', B: 'NUMERIC'},
-      Bar: {C: 'TEXT', D: 'NUMERIC'},
+      Foo: { A: 'TEXT', B: 'NUMERIC' },
+      Bar: { C: 'TEXT', D: 'NUMERIC' },
     });
     await sdb.close();
 
@@ -202,8 +202,8 @@ describe('SQLiteDB', function() {
     assert.strictEqual(sdb.migrationBackupPath, null);  // No migration backup.
     assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
     assert.deepEqual(await sdb.collectMetadata(), {
-      Foo: {A: 'TEXT', B: 'NUMERIC'},
-      Bar: {C: 'TEXT', D: 'NUMERIC'},
+      Foo: { A: 'TEXT', B: 'NUMERIC' },
+      Bar: { C: 'TEXT', D: 'NUMERIC' },
     });
     await sdb.close();
   });
@@ -235,8 +235,8 @@ describe('SQLiteDB', function() {
     assert.match(sdb.migrationBackupPath!, /test3B\.\d{4}-\d{2}-\d{2}\.V1\.bak$/);
     assert.sameDeepMembers(await getTableNames(sdb), ['Foo', 'Bar']);
     assert.deepEqual(await sdb.collectMetadata(), {
-      Foo: {A: 'TEXT', B: 'NUMERIC'},
-      Bar: {C: 'TEXT', D: 'NUMERIC'},
+      Foo: { A: 'TEXT', B: 'NUMERIC' },
+      Bar: { C: 'TEXT', D: 'NUMERIC' },
     });
     await sdb.close();
   });
@@ -270,7 +270,7 @@ describe('SQLiteDB', function() {
       await db.exec('CREATE TABLE IF NOT EXISTS _grist_Bar (B TEXT)');
     }
 
-    sdb = await SQLiteDB.openDB(dbPath('testPRE'), {create, migrations: [migrateV0]}, OpenMode.OPEN_CREATE);
+    sdb = await SQLiteDB.openDB(dbPath('testPRE'), { create, migrations: [migrateV0] }, OpenMode.OPEN_CREATE);
     assert.strictEqual(await sdb.getMigrationVersion(), 1);
     assert.sameDeepMembers(await getTableNames(sdb), ['_grist_Foo', '_grist_Bar']);
     assert.match(sdb.migrationBackupPath!, /testPRE\..*\.V0\.bak$/);
@@ -289,7 +289,7 @@ describe('SQLiteDB', function() {
     await create2(sdb);
     void sdb.close();
     sdb = await SQLiteDB.openDB(dbPath('testPRE2'),
-      {create: create2, migrations: [migrateV0, migrateV1]}, OpenMode.OPEN_CREATE);
+      { create: create2, migrations: [migrateV0, migrateV1] }, OpenMode.OPEN_CREATE);
     assert.strictEqual(await sdb.getMigrationVersion(), 2);
     assert.sameDeepMembers(await getTableNames(sdb), ['_grist_Foo', '_grist_Bar']);
     assert.match(sdb.migrationBackupPath!, /testPRE2\..*\.V0\.bak$/);
@@ -322,7 +322,7 @@ describe('SQLiteDB', function() {
     assert.strictEqual(sdb.migrationBackupPath, null);
 
     assert.sameDeepMembers(await getTableNames(sdb), ['Foo']);
-    assert.deepEqual(await sdb.collectMetadata(), { Foo: {A: 'TEXT'} });
+    assert.deepEqual(await sdb.collectMetadata(), { Foo: { A: 'TEXT' } });
     await sdb.close();
 
     // Check that the only file with test4A is our file, i.e. no extra files got created.
@@ -387,7 +387,7 @@ describe('SQLiteDB', function() {
 
       // Simple case: just run a statement and it should succeed.
       await sdb.execTransaction(() => sdb.exec('INSERT INTO Foo (A) VALUES ("hello")'));
-      assert.deepEqual(await sdb.all("SELECT A FROM Foo"), [{A: "hello"}]);
+      assert.deepEqual(await sdb.all("SELECT A FROM Foo"), [{ A: "hello" }]);
 
       // Now try running one statement that should succeed, and then failing inside the
       // transaction; it should be rolled back along with the first statement.
@@ -396,7 +396,7 @@ describe('SQLiteDB', function() {
         throw new Error("Fake error");
       }), /Fake error/);
       // Ensure that the new value did NOT get added.
-      assert.deepEqual(await sdb.all("SELECT A FROM Foo"), [{A: "hello"}]);
+      assert.deepEqual(await sdb.all("SELECT A FROM Foo"), [{ A: "hello" }]);
       void sdb.close();
     });
 
@@ -422,13 +422,13 @@ describe('SQLiteDB', function() {
       ]);
       assert.deepEqual(results, [
         undefined,
-        [{A: 'trans1'}],
+        [{ A: 'trans1' }],
         undefined,
         undefined,
         undefined,
-        [{A: 'trans1'}, {A: 'trans2'}],
+        [{ A: 'trans1' }, { A: 'trans2' }],
         undefined,
-        [{A: 'trans1'}, {A: 'trans2'}, {A: 'trans3'}],
+        [{ A: 'trans1' }, { A: 'trans2' }, { A: 'trans3' }],
       ]);
       void sdb.close();
     });

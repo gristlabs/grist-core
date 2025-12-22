@@ -3,20 +3,20 @@ import {
   FormOptionsSortConfig,
   FormSelectConfig,
 } from 'app/client/components/Forms/FormConfig';
-import {DropdownConditionConfig} from 'app/client/components/DropdownConditionConfig';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {makeT} from 'app/client/lib/localization';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {KoSaveableObservable} from 'app/client/models/modelUtil';
-import {Style} from 'app/client/models/Styles';
-import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {ChoiceListEntry} from 'app/client/widgets/ChoiceListEntry';
-import {choiceToken} from 'app/client/widgets/ChoiceToken';
-import {NTextBox} from 'app/client/widgets/NTextBox';
-import {Computed, dom, styled} from 'grainjs';
+import { DropdownConditionConfig } from 'app/client/components/DropdownConditionConfig';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { makeT } from 'app/client/lib/localization';
+import { DataRowModel } from 'app/client/models/DataRowModel';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { KoSaveableObservable } from 'app/client/models/modelUtil';
+import { Style } from 'app/client/models/Styles';
+import { cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
+import { testId, theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { ChoiceListEntry } from 'app/client/widgets/ChoiceListEntry';
+import { choiceToken } from 'app/client/widgets/ChoiceToken';
+import { NTextBox } from 'app/client/widgets/NTextBox';
+import { Computed, dom, styled } from 'grainjs';
 
 export type IChoiceOptions = Style;
 export type ChoiceOptions = Record<string, IChoiceOptions | undefined>;

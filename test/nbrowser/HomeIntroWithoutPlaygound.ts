@@ -1,11 +1,11 @@
-import {assert, driver} from 'mocha-webdriver';
+import { assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('HomeIntroWithoutPlayground', function() {
   this.timeout(20000);
-  setupTestSuite({samples: true});
-  gu.withEnvironmentSnapshot({'GRIST_ANON_PLAYGROUND': false});
+  setupTestSuite({ samples: true });
+  gu.withEnvironmentSnapshot({ 'GRIST_ANON_PLAYGROUND': false });
 
   describe("Anonymous on merged-org", function() {
     it('should show welcome page', async function () {

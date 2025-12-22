@@ -78,7 +78,7 @@ describe('Scim', () => {
       GRIST_DEFAULT_EMAIL: 'chimpy@getgrist.com',
       GRIST_SCIM_EMAIL: 'charon@getgrist.com',
     });
-    const userIdByName: {[name in keyof UserConfigByName]?: number} = {};
+    const userIdByName: { [name in keyof UserConfigByName]?: number } = {};
     let logWarnStub: Sinon.SinonStub;
     let logErrorStub: Sinon.SinonStub;
 
@@ -123,7 +123,7 @@ describe('Scim', () => {
       };
     }
 
-    async function getOrCreateUserId(user: string, {type}: {type?: UserType} = {}) {
+    async function getOrCreateUserId(user: string, { type}: { type?: UserType } = {}) {
       const domain = type === "service" ? "serviceaccounts.invalid" : "getgrist.com";
       return (await getDbManager().getUserByLogin(`${user}@${domain}`, {}, type)).id;
     }
@@ -134,7 +134,7 @@ describe('Scim', () => {
       }
     }
 
-    async function checkOperationOnTechUserDisallowed({op, opType}: {
+    async function checkOperationOnTechUserDisallowed({ op, opType}: {
       op: (id: number) => Promise<AxiosResponse>,
       opType: string
     }) {
@@ -275,7 +275,7 @@ describe('Scim', () => {
         });
 
         it('should return 404 when the user is not of type login', async function () {
-          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const serviceUserId = await getOrCreateUserId('alfred', { type: 'service' });
           const res = await axios.get(scimUrl(`/Users/${serviceUserId}`), chimpy);
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -317,7 +317,7 @@ describe('Scim', () => {
         });
 
         it('should skip users of type other than "login"', async function () {
-          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const serviceUserId = await getOrCreateUserId('alfred', { type: 'service' });
           const res = await axios.get(scimUrl('/Users'), chimpy);
           assert.isEmpty(res.data.Resources.filter((user: any) => user.id === serviceUserId));
         });
@@ -508,7 +508,7 @@ describe('Scim', () => {
         });
 
         it('should return 404 when the user is not of type login', async function () {
-          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const serviceUserId = await getOrCreateUserId('alfred', { type: 'service' });
           const res = await axios.put(scimUrl(`/Users/${serviceUserId}`), toSCIMUserWithoutId('chimpy'), chimpy);
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -608,7 +608,7 @@ describe('Scim', () => {
         });
 
         it('should return 404 when the user is not of type login', async function () {
-          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const serviceUserId = await getOrCreateUserId('alfred', { type: 'service' });
           const res = await axios.patch(scimUrl(`/Users/${serviceUserId}`), validPatchBody('whatever'), chimpy);
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -649,7 +649,7 @@ describe('Scim', () => {
         });
 
         it('should return 404 when the user is not of type login', async function () {
-          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const serviceUserId = await getOrCreateUserId('alfred', { type: 'service' });
           const res = await axios.delete(scimUrl(`/Users/${serviceUserId}`), chimpy);
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -677,7 +677,7 @@ describe('Scim', () => {
           .from(Group, "groups")
           .where("groups.name like 'test-%'")
           .getMany();
-        for (const {id} of groupsToDelete) {
+        for (const { id } of groupsToDelete) {
           await getDbManager().deleteGroup(id);
         }
       }
@@ -808,7 +808,7 @@ describe('Scim', () => {
                 assert.equal(res.status, 200);
                 assert.isAbove(res.data.totalResults, 0, 'should have retrieved some groups');
                 assert.isFalse(res.data.Resources.some(
-                  ({displayName}: {displayName: string}) => displayName === roleGroupName,
+                  ({ displayName}: { displayName: string }) => displayName === roleGroupName,
                 ), 'The API endpoint should not return role Groups');
                 assert.deepEqual(res.data.Resources, [
                   {
@@ -1240,7 +1240,7 @@ describe('Scim', () => {
 
           it(`should return 404 when the role is of type ${Group.TEAM_TYPE}`, async function () {
             await withGroupName('test-group', async (groupName) => {
-              const {id: roleId} = await getDbManager().createGroup({
+              const { id: roleId } = await getDbManager().createGroup({
                 name: groupName,
                 type: Group.TEAM_TYPE,
                 memberUsers: [userIdByName['chimpy']!],
@@ -1276,7 +1276,7 @@ describe('Scim', () => {
               ['test-role1', 'test-role2', 'test-group'],
               async ([role1Name, role2Name, group1Name]) => {
                 const beforeAdditions = await axios.get(scimUrl('/Roles?count=300'), chimpy);
-                const beforeAdditionsIds = new Set(beforeAdditions.data.Resources.map(({id}: {id: number}) => id));
+                const beforeAdditionsIds = new Set(beforeAdditions.data.Resources.map(({ id}: { id: number }) => id));
                 await getDbManager().createGroup({
                   name: group1Name,
                   type: Group.TEAM_TYPE,
@@ -1294,11 +1294,11 @@ describe('Scim', () => {
                 });
 
                 const res = await axios.get(scimUrl('/Roles?count=300'), chimpy);
-                const newResources = res.data.Resources.filter(({id}: {id: number}) => !beforeAdditionsIds.has(id));
+                const newResources = res.data.Resources.filter(({ id}: { id: number }) => !beforeAdditionsIds.has(id));
                 assert.equal(res.status, 200);
                 assert.lengthOf(newResources, 2, 'should have the newly created roles');
                 assert.isFalse(res.data.Resources.some(
-                  ({displayName}: {displayName: string}) => displayName === group1Name,
+                  ({ displayName}: { displayName: string }) => displayName === group1Name,
                 ), 'The API endpoint should not return resource Groups');
                 assert.deepEqual(newResources, [
                   {
@@ -1321,9 +1321,9 @@ describe('Scim', () => {
 
           it('should return describe the docId, workspaceId and orgId associated to the Role', async function () {
             const api = await getServer().createHomeApi('chimpy', 'docs', true);
-            const newOrgId = await api.newOrg({name: 'someOrg', domain: 'testy'});
-            const newWsId = await api.newWorkspace({name: 'someWs'}, newOrgId);
-            const newDocId = await api.newDoc({name: 'someDoc'}, newWsId);
+            const newOrgId = await api.newOrg({ name: 'someOrg', domain: 'testy' });
+            const newWsId = await api.newWorkspace({ name: 'someWs' }, newOrgId);
+            const newDocId = await api.newDoc({ name: 'someDoc' }, newWsId);
 
             const res = await axios.get(scimUrl('/Roles?count=300'), chimpy);
 

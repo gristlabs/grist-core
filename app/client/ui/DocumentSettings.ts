@@ -2,37 +2,37 @@
  * This module export a component for editing some document settings consisting of the timezone,
  * (new settings to be added here ...).
  */
-import {cssPrimarySmallLink, cssSmallButton, cssSmallLinkButton} from 'app/client/components/Forms/styles';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ACIndexImpl} from 'app/client/lib/ACIndex';
-import {ACSelectItem, buildACSelect} from 'app/client/lib/ACSelect';
-import {copyToClipboard} from 'app/client/lib/clipboardUtils';
-import {makeT} from 'app/client/lib/localization';
-import {cssMarkdownSpan} from 'app/client/lib/markdown';
-import {reportError} from 'app/client/models/AppModel';
-import type {DocPageModel} from 'app/client/models/DocPageModel';
-import {reportWarning} from 'app/client/models/errors';
-import {urlState} from 'app/client/models/gristUrlState';
-import {KoSaveableObservable} from 'app/client/models/modelUtil';
-import {AdminSection, AdminSectionItem} from 'app/client/ui/AdminPanelCss';
-import {openFilePicker} from 'app/client/ui/FileDialog';
-import {buildNotificationsConfig} from 'app/client/ui/Notifications';
-import {hoverTooltip, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
-import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption} from 'app/client/ui2018/checkbox';
-import {colors, mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {select} from 'app/client/ui2018/menus';
-import {confirmModal, cssModalButtons, cssModalTitle, cssSpinner, modal} from 'app/client/ui2018/modals';
-import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
-import {buildTZAutocomplete} from 'app/client/widgets/TZAutocomplete';
-import {EngineCode} from 'app/common/DocumentSettings';
-import {commonUrls, GristLoadConfig, PREFERRED_STORAGE_ANCHOR} from 'app/common/gristUrls';
-import {not, propertyCompare} from 'app/common/gutil';
-import {getCurrency, locales} from 'app/common/Locales';
-import {isOwner, isOwnerOrEditor} from 'app/common/roles';
+import { cssPrimarySmallLink, cssSmallButton, cssSmallLinkButton } from 'app/client/components/Forms/styles';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { ACIndexImpl } from 'app/client/lib/ACIndex';
+import { ACSelectItem, buildACSelect } from 'app/client/lib/ACSelect';
+import { copyToClipboard } from 'app/client/lib/clipboardUtils';
+import { makeT } from 'app/client/lib/localization';
+import { cssMarkdownSpan } from 'app/client/lib/markdown';
+import { reportError } from 'app/client/models/AppModel';
+import type { DocPageModel } from 'app/client/models/DocPageModel';
+import { reportWarning } from 'app/client/models/errors';
+import { urlState } from 'app/client/models/gristUrlState';
+import { KoSaveableObservable } from 'app/client/models/modelUtil';
+import { AdminSection, AdminSectionItem } from 'app/client/ui/AdminPanelCss';
+import { openFilePicker } from 'app/client/ui/FileDialog';
+import { buildNotificationsConfig } from 'app/client/ui/Notifications';
+import { hoverTooltip, showTransientTooltip, withInfoTooltip } from 'app/client/ui/tooltips';
+import { bigBasicButton, bigPrimaryButton } from 'app/client/ui2018/buttons';
+import { cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption } from 'app/client/ui2018/checkbox';
+import { colors, mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { cssLink } from 'app/client/ui2018/links';
+import { loadingSpinner } from 'app/client/ui2018/loaders';
+import { select } from 'app/client/ui2018/menus';
+import { confirmModal, cssModalButtons, cssModalTitle, cssSpinner, modal } from 'app/client/ui2018/modals';
+import { buildCurrencyPicker } from 'app/client/widgets/CurrencyPicker';
+import { buildTZAutocomplete } from 'app/client/widgets/TZAutocomplete';
+import { EngineCode } from 'app/common/DocumentSettings';
+import { commonUrls, GristLoadConfig, PREFERRED_STORAGE_ANCHOR } from 'app/common/gristUrls';
+import { not, propertyCompare } from 'app/common/gutil';
+import { getCurrency, locales } from 'app/common/Locales';
+import { isOwner, isOwnerOrEditor } from 'app/common/roles';
 import {
   DOCTYPE_NORMAL,
   DOCTYPE_TEMPLATE,
@@ -80,7 +80,7 @@ export class DocSettingsPage extends Disposable {
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
     const isFork = docPageModel.currentDoc.get()?.isFork;
 
-    return cssContainer({tabIndex: '-1'},
+    return cssContainer({ tabIndex: '-1' },
       dom.create(AdminSection, t('Document settings'), [
         dom.create(AdminSectionItem, {
           id: 'timezone',
@@ -100,7 +100,7 @@ export class DocSettingsPage extends Disposable {
           description: t('For currency columns'),
           value: dom.domComputed(fromKo(this._locale), l =>
             dom.create(cssCurrencyPicker, fromKo(this._currency), val => this._currency.saveOnly(val),
-              {defaultCurrencyLabel: t("Local currency ({{currency}})", {currency: getCurrency(l)})}),
+              { defaultCurrencyLabel: t("Local currency ({{currency}})", { currency: getCurrency(l) }) }),
           ),
         }),
         dom.create(AdminSectionItem, {
@@ -139,7 +139,7 @@ export class DocSettingsPage extends Disposable {
                   return;
                 }
                 const acceptProposals = !this._acceptProposals.get();
-                await docPageModel.appModel.api.updateDoc(docId, {options: {proposedChanges: {acceptProposals}}});
+                await docPageModel.appModel.api.updateDoc(docId, { options: { proposedChanges: { acceptProposals } } });
                 window.location.reload();
               }
               catch(e) {
@@ -172,8 +172,8 @@ export class DocSettingsPage extends Disposable {
               return dom('div',
                 cssPrimarySmallLinkSettings(
                   t('Stop timing...'),
-                  urlState().setHref({docPage: 'timing'}),
-                  {target: '_blank'},
+                  urlState().setHref({ docPage: 'timing' }),
+                  { target: '_blank' },
                   testId('timing-stop'),
                 ),
               );
@@ -207,7 +207,7 @@ document is first opened, or when a document responds to changes.',
           name: t('Document ID'),
           description: t('ID for API use'),
           value: cssHoverWrapper(
-            cssInput(docPageModel.currentDocId.get(), {tabIndex: "-1"}, clickToSelect(), readonly()),
+            cssInput(docPageModel.currentDocId.get(), { tabIndex: "-1" }, clickToSelect(), readonly()),
             cssCopyButton(
               cssIcon('Copy'),
               hoverTooltip(t('Copy to clipboard'), {
@@ -219,7 +219,7 @@ document is first opened, or when a document responds to changes.',
           expandedContent: dom('div',
             cssWrap(
               t('Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}', {
-                apiURL: cssLink({href: commonUrls.helpAPI, target: '_blank'}, t('API documentation.')),
+                apiURL: cssLink({ href: commonUrls.helpAPI, target: '_blank' }, t('API documentation.')),
                 docId: dom('code', 'docId'),
               }),
             ),
@@ -230,7 +230,7 @@ document is first opened, or when a document responds to changes.',
             }), url => [
               cssWrap(t('Base doc URL: {{docApiUrl}}', {
                 docApiUrl: cssCopyLink(
-                  {href: url},
+                  { href: url },
                   dom('span', url),
                   copyHandler(() => url, t("API URL copied to clipboard")),
                   hoverTooltip(t('Copy to clipboard'), {
@@ -254,7 +254,7 @@ document is first opened, or when a document responds to changes.',
           id: 'webhooks',
           name: t('Webhooks'),
           description: t('Notify other services on doc changes'),
-          value: cssSmallLinkButtonSettings(t('Manage webhooks'), urlState().setLinkUrl({docPage: 'webhook'})),
+          value: cssSmallLinkButtonSettings(t('Manage webhooks'), urlState().setLinkUrl({ docPage: 'webhook' })),
           disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
       ]),
@@ -275,7 +275,7 @@ document is first opened, or when a document responds to changes.',
       // active doc has a chance to send us updates about the transfer.
       await this._gristDoc.docApi.setAttachmentStore(type);
     });
-    const storageOptions = [{value: INTERNAL, label: t('Internal')}, {value: EXTERNAL, label: t('External')}];
+    const storageOptions = [{ value: INTERNAL, label: t('Internal') }, { value: EXTERNAL, label: t('External') }];
 
     const transfer = this._gristDoc.attachmentTransfer;
     const locationSummary = Computed.create(this, use => use(transfer)?.locationSummary);
@@ -486,7 +486,7 @@ No data will be lost, except possibly currently pending actions.',
           await this._gristDoc.docApi.startTiming();
           await this._gristDoc.docApi.forceReload();
           ctl.close();
-          urlState().pushUrl({docPage: 'timing'}).catch(reportError);
+          urlState().pushUrl({ docPage: 'timing' }).catch(reportError);
         }
         else {
           await this._gristDoc.docApi.startTiming();
@@ -574,8 +574,8 @@ No data will be lost, except possibly currently pending actions.',
           docType = DOCTYPE_TUTORIAL;
         }
 
-        const {trunkId} = docPageModel.currentDoc.get()!.idParts;
-        await docPageModel.appModel.api.updateDoc(trunkId, {type: docType});
+        const { trunkId } = docPageModel.currentDoc.get()!.idParts;
+        await docPageModel.appModel.api.updateDoc(trunkId, { type: docType });
         window.location.replace(urlState().makeUrl({
           docPage: "settings",
           fork: undefined, // will be automatically set once the page is reloaded
@@ -622,7 +622,7 @@ No data will be lost, except possibly currently pending actions.',
             description: t('Document automatically opens in {{fiddleModeDocUrl}}. \
 Anyone may edit, which will create a new unsaved copy.',
             {
-              fiddleModeDocUrl: cssLink({href: commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode')),
+              fiddleModeDocUrl: cssLink({ href: commonUrls.helpFiddleMode, target: '_blank' }, t('fiddle mode')),
             },
             ),
             itemTestId: testId('doctype-modal-option-template'),
@@ -661,7 +661,7 @@ function getApiConsoleLink(docPageModel: DocPageModel) {
   return url.href;
 }
 
-type LocaleItem = ACSelectItem & {locale?: string};
+type LocaleItem = ACSelectItem & { locale?: string };
 
 function buildLocaleSelect(
   owner: IDisposableOwner,
@@ -673,7 +673,7 @@ function buildLocaleSelect(
     locale: l.code,
     cleanText: l.name.trim().toLowerCase(),
   })).sort(propertyCompare("label"));
-  const acIndex = new ACIndexImpl<LocaleItem>(localeList, {maxResults: 200, keepOrder: true});
+  const acIndex = new ACIndexImpl<LocaleItem>(localeList, { maxResults: 200, keepOrder: true });
   // AC select will show the value (in this case locale) not a label when something is selected.
   // To show the label - create another observable that will be in sync with the value, but
   // will contain text.
@@ -694,7 +694,7 @@ function buildLocaleSelect(
   );
 }
 
-type DocumentTypeItem = ACSelectItem & {type?: string};
+type DocumentTypeItem = ACSelectItem & { type?: string };
 
 function displayCurrentType(
   owner: IDisposableOwner,
@@ -728,13 +728,13 @@ function displayCurrentType(
 
 const learnMore = () => t(
   '[Learn more.]({{learnLink}})',
-  {learnLink: commonUrls.attachmentStorage},
+  { learnLink: commonUrls.attachmentStorage },
 );
 
 function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HTMLSpanElement>) {
   const someExternal = () => t(
     '**Some existing attachments are still [external]({{externalLink}})**.',
-    {externalLink: commonUrls.attachmentStorage},
+    { externalLink: commonUrls.attachmentStorage },
   );
 
   const startToInternal = () => t(
@@ -762,7 +762,7 @@ function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
 function stillInternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HTMLSpanElement>) {
   const someInternal = () => t(
     '**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).',
-    {internalLink: commonUrls.attachmentStorage},
+    { internalLink: commonUrls.attachmentStorage },
   );
 
   const startToExternal = () => t(

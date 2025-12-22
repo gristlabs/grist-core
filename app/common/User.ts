@@ -1,6 +1,6 @@
-import {getTableId} from 'app/common/DocActions';
-import {EmptyRecordView, RecordView} from 'app/common/RecordView';
-import {Role} from 'app/common/roles';
+import { getTableId } from 'app/common/DocActions';
+import { EmptyRecordView, RecordView } from 'app/common/RecordView';
+import { Role } from 'app/common/roles';
 
 /**
  * User type to distinguish between Users and service accounts
@@ -91,7 +91,7 @@ export class User implements UserInfo {
   }
 
   private _toObject(mapValue: (value: unknown) => unknown) {
-    const results: {[key: string]: any} = {};
+    const results: { [key: string]: any } = {};
     for (const [key, value] of Object.entries(this)) {
       results[key] = mapValue(value);
     }

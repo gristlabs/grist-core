@@ -41,7 +41,7 @@ export function expandAndFilterSuggestions(
     for (const s of attrSuggestions) {
       if (s.value.startsWith(attr)) {
         // Prepend back the expr that precedes the attribute.
-        result.push({...s, value: expr + "." + s.value});
+        result.push({ ...s, value: expr + "." + s.value });
       }
     }
   }

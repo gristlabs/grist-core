@@ -1,11 +1,11 @@
-import {Workspace} from 'app/common/UserAPI';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {FlexServer} from 'app/server/lib/FlexServer';
-import {MergedServer} from 'app/server/MergedServer';
+import { Workspace } from 'app/common/UserAPI';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { FlexServer } from 'app/server/lib/FlexServer';
+import { MergedServer } from 'app/server/MergedServer';
 import axios from 'axios';
-import {assert} from 'chai';
-import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
-import {configForUser, createUser, setPlan} from 'test/gen-server/testUtils';
+import { assert } from 'chai';
+import { createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed';
+import { configForUser, createUser, setPlan } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
 describe('mergedOrgs', function() {
@@ -22,7 +22,7 @@ describe('mergedOrgs', function() {
     setUpDB(this);
     await createInitialDb();
     mergedServer = await MergedServer.create(0, ["home", "docs"],
-      {logToConsole: false, externalStorage: false});
+      { logToConsole: false, externalStorage: false });
     home = mergedServer.flexServer;
     await mergedServer.run();
     dbManager = home.getHomeDBManager();
@@ -44,7 +44,7 @@ describe('mergedOrgs', function() {
     // Grant Chimpy access to Kiwi's personal org, and add a workspace to it.
     const kiwilandOrgId = await dbManager.testGetId('Kiwiland');
     resp = await axios.patch(`${homeUrl}/api/orgs/${kiwilandOrgId}/access`, {
-      delta: {users: {'chimpy@getgrist.com': 'editors'}},
+      delta: { users: { 'chimpy@getgrist.com': 'editors' } },
     }, configForUser('kiwi'));
     resp = await axios.post(`${homeUrl}/api/orgs/${kiwilandOrgId}/workspaces`, {
       name: 'Kiwidocs',
@@ -79,7 +79,7 @@ describe('mergedOrgs', function() {
     assert.equal(resp.status, 200);
     sharedDocId = resp.data!;
     resp = await axios.patch(`${homeUrl}/api/docs/${sharedDocId}/access`, {
-      delta: {users: {'chimpy@getgrist.com': 'viewers'}},
+      delta: { users: { 'chimpy@getgrist.com': 'viewers' } },
     }, configForUser('sam'));
     assert.equal(resp.status, 200);
     resp = await axios.get(`${homeUrl}/api/orgs/0/workspaces`, configForUser('chimpy'));

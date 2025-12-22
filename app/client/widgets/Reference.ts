@@ -1,25 +1,25 @@
-import {DropdownConditionConfig} from 'app/client/components/DropdownConditionConfig';
+import { DropdownConditionConfig } from 'app/client/components/DropdownConditionConfig';
 import {
   FormFieldRulesConfig,
   FormOptionsSortConfig,
   FormSelectConfig,
 } from 'app/client/components/Forms/FormConfig';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {stopEvent} from 'app/client/lib/domUtils';
-import {makeT} from 'app/client/lib/localization';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {TableRec} from 'app/client/models/DocModel';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {urlState} from 'app/client/models/gristUrlState';
-import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {hideInPrintView, testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {IOptionFull, select} from 'app/client/ui2018/menus';
-import {NTextBox} from 'app/client/widgets/NTextBox';
-import {ReverseReferenceConfig} from 'app/client/widgets/ReverseReferenceConfig';
-import {isFullReferencingType, isVersions} from 'app/common/gristTypes';
-import {UIRowId} from 'app/plugin/GristAPI';
-import {Computed, dom, styled} from 'grainjs';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { stopEvent } from 'app/client/lib/domUtils';
+import { makeT } from 'app/client/lib/localization';
+import { DataRowModel } from 'app/client/models/DataRowModel';
+import { TableRec } from 'app/client/models/DocModel';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { urlState } from 'app/client/models/gristUrlState';
+import { cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
+import { hideInPrintView, testId, theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { IOptionFull, select } from 'app/client/ui2018/menus';
+import { NTextBox } from 'app/client/widgets/NTextBox';
+import { ReverseReferenceConfig } from 'app/client/widgets/ReverseReferenceConfig';
+import { isFullReferencingType, isVersions } from 'app/common/gristTypes';
+import { UIRowId } from 'app/plugin/GristAPI';
+import { Computed, dom, styled } from 'grainjs';
 
 const t = makeT('Reference');
 
@@ -51,7 +51,7 @@ export class Reference extends NTextBox {
           icon: 'FieldColumn',
           disabled: isFullReferencingType(use(col.type)) || use(col.isTransforming),
         }))
-        .concat([{label: t('Row ID'), value: 0, icon: 'FieldColumn'}]);
+        .concat([{ label: t('Row ID'), value: 0, icon: 'FieldColumn' }]);
     });
   }
 
@@ -108,12 +108,12 @@ export class Reference extends NTextBox {
       if (use(row._isAddRow) || this.isDisposed() || use(this.field.displayColModel).isDisposed()) {
         // Work around JS errors during certain changes (noticed when visibleCol field gets removed
         // for a column using per-field settings).
-        return {value, hasBlankReference, hasRecordCard};
+        return { value, hasBlankReference, hasRecordCard };
       }
 
       const displayValueObs = row.cells[use(use(this.field.displayColModel).colId)];
       if (!displayValueObs) {
-        return {value, hasBlankReference, hasRecordCard};
+        return { value, hasBlankReference, hasRecordCard };
       }
 
       const displayValue = use(displayValueObs);
@@ -131,7 +131,7 @@ export class Reference extends NTextBox {
         hasRecordCard = !use(use(refTable.recordCardViewSection).disabled);
       }
 
-      return {value, hasBlankReference, hasRecordCard};
+      return { value, hasBlankReference, hasRecordCard };
     });
 
     return cssRef(
@@ -155,8 +155,8 @@ export class Reference extends NTextBox {
             throw new Error('Unable to open Record Card: undefined section id');
           }
 
-          const anchorUrlState = {hash: {rowId, sectionId, recordCard: true}};
-          await urlState().pushUrl(anchorUrlState, {replace: true});
+          const anchorUrlState = { hash: { rowId, sectionId, recordCard: true } };
+          await urlState().pushUrl(anchorUrlState, { replace: true });
         }),
         dom.on('mousedown', ev => stopEvent(ev)),
         hideInPrintView(),

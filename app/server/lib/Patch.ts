@@ -74,7 +74,7 @@ export class Patch {
       });
     }
     const applied = changes.some(change => !change.fail);
-    return {changes, applied};
+    return { changes, applied };
   }
 
   private async _updateRows(tableId: string, delta: TableDelta): Promise<PatchItem[]> {

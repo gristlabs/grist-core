@@ -1,5 +1,5 @@
-import {getTimeFromNow} from 'app/client/lib/timeUtils';
-import {assert} from 'chai';
+import { getTimeFromNow } from 'app/client/lib/timeUtils';
+import { assert } from 'chai';
 import moment from 'moment';
 
 describe("timeUtils", function() {

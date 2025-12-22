@@ -1,22 +1,22 @@
-import {KoArray} from 'app/client/lib/koArray';
-import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
-import {ChatHistory} from 'app/client/models/ChatHistory';
-import {CellRec, DocModel, IRowModel, recordSet,
-  refRecord, TableRec, ViewFieldRec} from 'app/client/models/DocModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {jsonObservable, ObjObservable} from 'app/client/models/modelUtil';
+import { KoArray } from 'app/client/lib/koArray';
+import { localStorageJsonObs } from 'app/client/lib/localStorageObs';
+import { ChatHistory } from 'app/client/models/ChatHistory';
+import { CellRec, DocModel, IRowModel, recordSet,
+  refRecord, TableRec, ViewFieldRec } from 'app/client/models/DocModel';
+import { urlState } from 'app/client/models/gristUrlState';
+import { jsonObservable, ObjObservable } from 'app/client/models/modelUtil';
 import * as gristTypes from 'app/common/gristTypes';
-import {getReferencedTableId} from 'app/common/gristTypes';
+import { getReferencedTableId } from 'app/common/gristTypes';
 import {
   BaseFormatter,
   createFullFormatterRaw,
   createVisibleColFormatterRaw,
   FullFormatterArgs,
 } from 'app/common/ValueFormatter';
-import {createParser} from 'app/common/ValueParser';
-import {Observable} from 'grainjs';
+import { createParser } from 'app/common/ValueParser';
+import { Observable } from 'grainjs';
 import * as ko from 'knockout';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 // Column behavior type, used primarily in the UI.
 export type BEHAVIOR = "empty"|"formula"|"data";
@@ -188,7 +188,7 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
     const docId = urlState().state.get().doc ?? '';
     // Changed key name from history to history-v2 when ChatHistory changed in incompatible way.
     const key = `formula-assistant-history-v2-${docId}-${this.table().tableId()}-${this.colId()}`;
-    return localStorageJsonObs(key, {messages: [], conversationId: uuidv4()} as ChatHistory);
+    return localStorageJsonObs(key, { messages: [], conversationId: uuidv4() } as ChatHistory);
   }));
 
   this.cleanWidgetOptionsJson = ko.pureComputed(() => {

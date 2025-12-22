@@ -1,13 +1,13 @@
-import {makeT} from 'app/client/lib/localization';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {getMainOrgUrl} from 'app/client/models/gristUrlState';
-import {cssLinkText, cssPageButton, cssPageEntry, cssPageIcon} from 'app/client/ui/LeftPanelCommon';
-import {YouTubePlayer} from 'app/client/ui/YouTubePlayer';
-import {theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {cssModalCloseButton, modal} from 'app/client/ui2018/modals';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
-import {dom, keyframes, makeTestId, styled} from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
+import { getMainOrgUrl } from 'app/client/models/gristUrlState';
+import { cssLinkText, cssPageButton, cssPageEntry, cssPageIcon } from 'app/client/ui/LeftPanelCommon';
+import { YouTubePlayer } from 'app/client/ui/YouTubePlayer';
+import { theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { cssModalCloseButton, modal } from 'app/client/ui2018/modals';
+import { commonUrls, isFeatureEnabled } from 'app/common/gristUrls';
+import { dom, keyframes, makeTestId, styled } from 'grainjs';
 
 const t = makeT('OpenVideoTour');
 
@@ -37,7 +37,7 @@ export function openVideoTour(refElement: HTMLElement) {
         if (youtubePlayer.isLoading()) { return; }
 
         logTelemetryEvent('watchedVideoTour', {
-          limited: {watchTimeSeconds: Math.floor(youtubePlayer.getCurrentTime())},
+          limited: { watchTimeSeconds: Math.floor(youtubePlayer.getCurrentTime()) },
         });
       });
 

@@ -1,7 +1,7 @@
-import {UserAPI} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { UserAPI } from 'app/common/UserAPI';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('RecordCards', function() {
   this.timeout(30000);
@@ -126,7 +126,7 @@ describe('RecordCards', function() {
 
     it('shows an unavailable message if the row is blocked by ACL rules', async function() {
       await api.applyUserActions(docId, [
-        ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Country', colIds: '*'}],
+        ['AddRecord', '_grist_ACLResources', -1, { tableId: 'Country', colIds: '*' }],
         ['AddRecord', '_grist_ACLRules', null, {
           resource: -1,
           aclFormula: 'rec.Code == "ZWE"',
@@ -151,7 +151,7 @@ describe('RecordCards', function() {
   describe('ReferenceList', function() {
     before(async function() {
       await gu.sendKeys(Key.chord(await gu.modKey(), Key.UP));
-      await gu.setType('Reference List', {apply: true});
+      await gu.setType('Reference List', { apply: true });
     });
 
     it('opens popup when reference icon is clicked', async function() {

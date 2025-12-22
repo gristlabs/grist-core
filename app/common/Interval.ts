@@ -81,7 +81,7 @@ export class Interval {
   }
 
   private _computeDelayMs() {
-    const {delayMs, varianceMs} = this._delay;
+    const { delayMs, varianceMs } = this._delay;
     if (varianceMs !== undefined) {
       // Randomize the delay by the specified amount of variance.
       const [min, max] = [delayMs - varianceMs, delayMs + varianceMs];

@@ -38,7 +38,7 @@ function findItem(model: TreeNodeRecord, name: string) {
   return find(model, (item: TreeItemRecord) => item.storage.records[item.index].name === name)!;
 }
 
-function testActions(records: TreeRecord[], actions: {update?: TreeRecord[], remove?: TreeRecord[]}) {
+function testActions(records: TreeRecord[], actions: { update?: TreeRecord[], remove?: TreeRecord[] }) {
   const update = actions.update || [];
   const remove = actions.remove || [];
   if (remove.length) {
@@ -51,10 +51,10 @@ function testActions(records: TreeRecord[], actions: {update?: TreeRecord[], rem
     // very simple way. The important property is that new pagePos values equal to existing ones
     // are inserted immediately before the existing ones.
     const map = new Map(update.map(rec => [rec.id, rec]));
-    const newRecords = update.map(rec => ({...rec, pagePos: rec.pagePos ?? Infinity}));
+    const newRecords = update.map(rec => ({ ...rec, pagePos: rec.pagePos ?? Infinity }));
     newRecords.push(...records.filter(rec => !map.has(rec.id)));
     newRecords.sort((a, b) => nativeCompare(a.pagePos, b.pagePos));
-    records = newRecords.map((rec, i) => ({...rec, pagePos: i}));
+    records = newRecords.map((rec, i) => ({ ...rec, pagePos: i }));
   }
   return toSimpleArray(records);
 }
@@ -82,7 +82,7 @@ describe('TreeModel', function() {
   it('fixIndent should work correctly', function() {
 
     function fix(items: string[]) {
-      const recs = items.map((item, id) => ({id, indentation: Number(item[1]), name: item[0], pagePos: id}));
+      const recs = items.map((item, id) => ({ id, indentation: Number(item[1]), name: item[0], pagePos: id }));
       return fixIndents(recs).map(rec => rec.name + rec.indentation);
     }
 
@@ -150,7 +150,7 @@ describe('TreeModel', function() {
 
       const [C, D, E] = [2, 3, 4].map(i => records[i]);
       const actions = sendActionsSpy.getCall(0).args[0];
-      assert.deepEqual(actions, {remove: [C, D, E]});
+      assert.deepEqual(actions, { remove: [C, D, E] });
       assert.deepEqual(testActions(records, actions), ['A0', 'B1', 'F0']);
     });
 
@@ -166,7 +166,7 @@ describe('TreeModel', function() {
         await model.insertBefore(F, C);
 
         const actions = sendActionsSpy.getCall(0).args[0];
-        assert.deepEqual(actions, {update: [{...records[5], pagePos: 2}]});
+        assert.deepEqual(actions, { update: [{ ...records[5], pagePos: 2 }] });
         assert.deepEqual(testActions(records, actions), ['A0', 'B1', 'F0', 'C0', 'D1', 'E2']);
       });
 
@@ -179,7 +179,7 @@ describe('TreeModel', function() {
         await model.insertBefore(B, null);
 
         let actions = sendActionsSpy.getCall(0).args[0];
-        assert.deepEqual(actions, {update: [{...records[1], indentation: 0, pagePos: null}]});
+        assert.deepEqual(actions, { update: [{ ...records[1], indentation: 0, pagePos: null }] });
         assert.deepEqual(testActions(records, actions), ['A0', 'C0', 'D1', 'E2', 'F0', 'B0']);
 
         // handle case when the last child has chidlren
@@ -187,7 +187,7 @@ describe('TreeModel', function() {
         await C.insertBefore(B, null);
 
         actions = sendActionsSpy.getCall(1).args[0];
-        assert.deepEqual(actions, {update: [{...records[1], indentation: 1, pagePos: 5}]});
+        assert.deepEqual(actions, { update: [{ ...records[1], indentation: 1, pagePos: 5 }] });
         assert.deepEqual(testActions(records, actions), ['A0', 'C0', 'D1', 'E2', 'B1', 'F0']);
       });
 
@@ -202,7 +202,7 @@ describe('TreeModel', function() {
         await A.insertBefore(F, null);
 
         const actions = sendActionsSpy.getCall(0).args[0];
-        assert.deepEqual(actions, {update: [{...records[5], indentation: 1, pagePos: 2}]});
+        assert.deepEqual(actions, { update: [{ ...records[5], indentation: 1, pagePos: 2 }] });
         assert.deepEqual(testActions(records, actions), ['A0', 'B1', 'F1', 'C0', 'D1', 'E2']);
       });
 
@@ -216,8 +216,8 @@ describe('TreeModel', function() {
         await model.insertBefore(D, null);
 
         const actions = sendActionsSpy.getCall(0).args[0];
-        assert.deepEqual(actions, {update: [{...records[3], indentation: 0, pagePos: null},
-          {...records[4], indentation: 1, pagePos: null}]});
+        assert.deepEqual(actions, { update: [{ ...records[3], indentation: 0, pagePos: null },
+          { ...records[4], indentation: 1, pagePos: null }] });
         assert.deepEqual(testActions(records, actions), ['A0', 'B1', 'C0', 'F0', 'D0', 'E1']);
       });
 

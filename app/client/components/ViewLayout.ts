@@ -1,33 +1,33 @@
 import BaseView from 'app/client/components/BaseView';
-import {buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
-import {ChartView} from 'app/client/components/ChartView';
+import { buildViewSectionDom } from 'app/client/components/buildViewSectionDom';
+import { ChartView } from 'app/client/components/ChartView';
 import * as commands from 'app/client/components/commands';
-import {CustomCalendarView} from "app/client/components/CustomCalendarView";
-import {CustomView} from 'app/client/components/CustomView';
+import { CustomCalendarView } from "app/client/components/CustomCalendarView";
+import { CustomView } from 'app/client/components/CustomView';
 import DetailView from 'app/client/components/DetailView';
-import {buildDuplicateWidgetModal} from 'app/client/components/duplicateWidget';
-import {FormView} from 'app/client/components/Forms/FormView';
+import { buildDuplicateWidgetModal } from 'app/client/components/duplicateWidget';
+import { FormView } from 'app/client/components/Forms/FormView';
 import GridView from 'app/client/components/GridView';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {Layout} from 'app/client/components/Layout';
-import {LayoutEditor} from 'app/client/components/LayoutEditor';
-import {LayoutTray} from 'app/client/components/LayoutTray';
-import {printViewSection} from 'app/client/components/Printing';
-import {BoxSpec, purgeBoxSpec} from 'app/client/lib/BoxSpec';
-import {Delay} from 'app/client/lib/Delay';
-import {createObsArray} from 'app/client/lib/koArrayWrap';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {reportError} from 'app/client/models/errors';
-import {getTelemetryWidgetTypeFromVS} from 'app/client/ui/widgetTypesMap';
-import {isNarrowScreen, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {ISaveModalOptions, saveModal} from 'app/client/ui2018/modals';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {makeT} from 'app/client/lib/localization';
-import {urlState} from 'app/client/models/gristUrlState';
-import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
-import {cssLink} from 'app/client/ui2018/links';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { Layout } from 'app/client/components/Layout';
+import { LayoutEditor } from 'app/client/components/LayoutEditor';
+import { LayoutTray } from 'app/client/components/LayoutTray';
+import { printViewSection } from 'app/client/components/Printing';
+import { BoxSpec, purgeBoxSpec } from 'app/client/lib/BoxSpec';
+import { Delay } from 'app/client/lib/Delay';
+import { createObsArray } from 'app/client/lib/koArrayWrap';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
+import { ViewRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { reportError } from 'app/client/models/errors';
+import { getTelemetryWidgetTypeFromVS } from 'app/client/ui/widgetTypesMap';
+import { isNarrowScreen, mediaSmall, testId, theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { ISaveModalOptions, saveModal } from 'app/client/ui2018/modals';
+import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
+import { makeT } from 'app/client/lib/localization';
+import { urlState } from 'app/client/models/gristUrlState';
+import { cssRadioCheckboxOptions, radioCheckboxOption } from 'app/client/ui2018/checkbox';
+import { cssLink } from 'app/client/ui2018/links';
 import {
   Computed,
   computedArray,
@@ -48,7 +48,7 @@ const t = makeT('ViewLayout');
 
 // tslint:disable:no-console
 
-const viewSectionTypes: {[key: string]: any} = {
+const viewSectionTypes: { [key: string]: any } = {
   record: GridView,
   detail: DetailView,
   chart: ChartView,
@@ -120,7 +120,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     // Update the stored layoutSpecObj with any missing fields that are present in viewFields.
     this.layoutSpec = this.autoDispose(ko.computed(
       () => this._updateLayoutSpecWithSections(this.viewModel.layoutSpecObj()))
-      .extend({rateLimit: 0}));
+      .extend({ rateLimit: 0 }));
 
     this.layout = this.autoDispose(Layout.create(this.layoutSpec(),
       this._buildLeafContent.bind(this), true));
@@ -288,7 +288,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
    */
   public getFullLayoutSpec() {
     const specs = this.layout.getLayoutSpec();
-    specs.collapsed = this.viewModel.activeCollapsedSections.peek().map(leaf => ({leaf}));
+    specs.collapsed = this.viewModel.activeCollapsedSections.peek().map(leaf => ({ leaf }));
     return specs;
   }
 
@@ -326,7 +326,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
 
     const logTelemetry = () => {
       const widgetType = getTelemetryWidgetTypeFromVS(viewSection);
-      logTelemetryEvent('deletedWidget', {full: {docIdDigest: this.gristDoc.docId(), widgetType}});
+      logTelemetryEvent('deletedWidget', { full: { docIdDigest: this.gristDoc.docId(), widgetType } });
     };
 
     const isUserTable = () => viewSection.table.peek().isSummary.peek() === false;
@@ -407,7 +407,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
    */
   private _updateLayoutSpecWithSections(spec: BoxSpec) {
     const viewSectionIds = this.viewModel.viewSections().all().map(function(f) { return f.getRowId(); });
-    return purgeBoxSpec({spec, validLeafIds: viewSectionIds});
+    return purgeBoxSpec({ spec, validLeafIds: viewSectionIds });
   }
 
   // Resizes the scrolly windows of all viewSection classes with a 'scrolly' property.
@@ -467,8 +467,8 @@ function widgetRemovalPrompt(tableName: string): Promise<PromptAction> {
                 {
                   rawDataLink: cssLink(
                     t('Raw Data page'),
-                    urlState().setHref({docPage: 'data'}),
-                    {target: '_blank'},
+                    urlState().setHref({ docPage: 'data' }),
+                    { target: '_blank' },
                   ),
                 },
               ),

@@ -1,9 +1,9 @@
-import {CellValue, TableDataAction} from 'app/common/DocActions';
+import { CellValue, TableDataAction } from 'app/common/DocActions';
 
 /** Light wrapper for reading records or user attributes. */
 export interface InfoView {
   get(key: string): CellValue;
-  toJSON(): {[key: string]: any};
+  toJSON(): { [key: string]: any };
 }
 
 /**
@@ -29,7 +29,7 @@ export class RecordView implements InfoView {
 
   public toJSON() {
     if (this.index === undefined) { return {}; }
-    const results: {[key: string]: any} = {id: this.index};
+    const results: { [key: string]: any } = { id: this.index };
     for (const key of Object.keys(this.data[3])) {
       results[key] = this.data[3][key]?.[this.index];
     }

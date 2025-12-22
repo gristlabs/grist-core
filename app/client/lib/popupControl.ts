@@ -18,7 +18,7 @@ export function popupControl(reference: Element, domCreator: IPopupDomCreator, o
   function openFunc(openCtl: IOpenController) {
     const content = domCreator(openCtl);
     function dispose() { domDispose(content); }
-    return {content, dispose};
+    return { content, dispose };
   }
 
   const ctl = PopupControl.create(null);

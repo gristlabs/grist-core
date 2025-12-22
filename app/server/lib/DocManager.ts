@@ -1,47 +1,47 @@
-import {Document} from 'app/gen-server/entity/Document';
-import {getScope} from 'app/server/lib/requestUtils';
-import {EventEmitter} from 'events';
+import { Document } from 'app/gen-server/entity/Document';
+import { getScope } from 'app/server/lib/requestUtils';
+import { EventEmitter } from 'events';
 import * as path from 'path';
 import pidusage from 'pidusage';
 
-import {ApiError} from 'app/common/ApiError';
-import {mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
-import {BrowserSettings} from 'app/common/BrowserSettings';
-import {delay} from 'app/common/delay';
-import {DocCreationInfo, DocEntry, DocListAPI,
-  OpenDocMode, OpenDocOptions, OpenLocalDocResult} from 'app/common/DocListAPI';
-import {FilteredDocUsageSummary} from 'app/common/DocUsage';
-import {parseUrlId} from 'app/common/gristUrls';
-import {tbind} from 'app/common/tbind';
-import {TelemetryMetadataByLevel} from 'app/common/Telemetry';
-import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
-import {DocAuthorizer, DocAuthorizerImpl, DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
+import { ApiError } from 'app/common/ApiError';
+import { mapSetOrClear, MapWithTTL } from 'app/common/AsyncCreate';
+import { BrowserSettings } from 'app/common/BrowserSettings';
+import { delay } from 'app/common/delay';
+import { DocCreationInfo, DocEntry, DocListAPI,
+  OpenDocMode, OpenDocOptions, OpenLocalDocResult } from 'app/common/DocListAPI';
+import { FilteredDocUsageSummary } from 'app/common/DocUsage';
+import { parseUrlId } from 'app/common/gristUrls';
+import { tbind } from 'app/common/tbind';
+import { TelemetryMetadataByLevel } from 'app/common/Telemetry';
+import { NEW_DOCUMENT_CODE } from 'app/common/UserAPI';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { isSingleUserMode, RequestWithLogin } from 'app/server/lib/Authorizer';
+import { DocAuthorizer, DocAuthorizerImpl, DummyAuthorizer } from 'app/server/lib/DocAuthorizer';
 import {
   getConfiguredStandardAttachmentStore,
   IAttachmentStoreProvider,
 } from 'app/server/lib/AttachmentStoreProvider';
-import {Client} from 'app/server/lib/Client';
-import {DocSessionPrecursor,
-  makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
+import { Client } from 'app/server/lib/Client';
+import { DocSessionPrecursor,
+  makeExceptionalDocSession, makeOptDocSession, OptDocSession } from 'app/server/lib/DocSession';
 import * as docUtils from 'app/server/lib/docUtils';
-import {GristServer} from 'app/server/lib/GristServer';
-import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {makeForkIds, makeId} from 'app/server/lib/idUtils';
-import {insightLogDecorate, insightLogEntry} from 'app/server/lib/InsightLog';
-import {checkAllegedGristDoc} from 'app/server/lib/serverUtils';
-import {getDocSessionCachedDoc} from 'app/server/lib/sessionUtils';
-import {OpenMode, SQLiteDB} from 'app/server/lib/SQLiteDB';
+import { GristServer } from 'app/server/lib/GristServer';
+import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
+import { makeForkIds, makeId } from 'app/server/lib/idUtils';
+import { insightLogDecorate, insightLogEntry } from 'app/server/lib/InsightLog';
+import { checkAllegedGristDoc } from 'app/server/lib/serverUtils';
+import { getDocSessionCachedDoc } from 'app/server/lib/sessionUtils';
+import { OpenMode, SQLiteDB } from 'app/server/lib/SQLiteDB';
 import log from 'app/server/lib/log';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {PluginManager} from 'app/server/lib/PluginManager';
-import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from 'app/server/lib/uploads';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { PluginManager } from 'app/server/lib/PluginManager';
+import { getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo } from 'app/server/lib/uploads';
 import isDeepEqual from 'lodash/isEqual';
 import merge from 'lodash/merge';
 import noop from 'lodash/noop';
-import {DocumentSettings, DocumentSettingsChecker} from 'app/common/DocumentSettings';
-import {safeJsonParse} from 'app/common/gutil';
+import { DocumentSettings, DocumentSettingsChecker } from 'app/common/DocumentSettings';
+import { safeJsonParse } from 'app/common/gutil';
 
 // A TTL in milliseconds to use for material that can easily be recomputed / refetched
 // but is a bit of a burden under heavy traffic.
@@ -153,9 +153,9 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   /**
    * Returns a promise for all known Grist documents and document invites to show in the doc list.
    */
-  public async listDocs(client: Client): Promise<{docs: DocEntry[], docInvites: DocEntry[]}> {
+  public async listDocs(client: Client): Promise<{ docs: DocEntry[], docInvites: DocEntry[] }> {
     const docs = await this.storageManager.listDocs();
-    return {docs, docInvites: []};
+    return { docs, docInvites: [] };
   }
 
   /**
@@ -164,7 +164,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    */
   public async createNewDoc(client: Client): Promise<string> {
     log.debug('DocManager.createNewDoc');
-    const docSession = makeExceptionalDocSession('nascent', {client});
+    const docSession = makeExceptionalDocSession('nascent', { client });
     return this.createNamedDoc(docSession, 'Untitled');
   }
 
@@ -210,7 +210,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   public async importDoc(client: Client, uploadId: number): Promise<string> {
     const userId = this._homeDbManager ? client.authSession.requiredUserId() : null;
     const result = await this._doImportDoc(makeOptDocSession(client),
-      globalUploadSet.getUploadInfo(uploadId, this.makeAccessId(userId)), {naming: 'classic'});
+      globalUploadSet.getUploadInfo(uploadId, this.makeAccessId(userId)), { naming: 'classic' });
     return result.id;
   }
 
@@ -218,7 +218,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   public importDocWithFreshId(docSession: OptDocSession, userId: number, uploadId: number): Promise<DocCreationInfo> {
     const accessId = this.makeAccessId(userId);
     return this._doImportDoc(docSession, globalUploadSet.getUploadInfo(uploadId, accessId),
-      {naming: 'saved'});
+      { naming: 'saved' });
   }
 
   /**
@@ -241,15 +241,15 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   }): Promise<DocCreationInfo> {
     if (!this._homeDbManager) { throw new Error("HomeDbManager not available"); }
 
-    const {userId, uploadId, documentName, workspaceId, browserSettings, telemetryMetadata} = options;
+    const { userId, uploadId, documentName, workspaceId, browserSettings, telemetryMetadata } = options;
     const accessId = this.makeAccessId(userId);
-    const docSession = makeExceptionalDocSession('nascent', {browserSettings});
+    const docSession = makeExceptionalDocSession('nascent', { browserSettings });
     const register = async (docId: string, uploadBaseFilename: string) => {
       if (workspaceId === undefined || !this._homeDbManager) { return; }
       const queryResult = await this._homeDbManager.addDocument(
-        {userId},
+        { userId },
         workspaceId,
-        {name: documentName ?? uploadBaseFilename},
+        { name: documentName ?? uploadBaseFilename },
         docId,
       );
       if (queryResult.status !== 200) {
@@ -286,7 +286,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   public async importNewDoc(filepath: string): Promise<DocCreationInfo> {
     const uploadId = globalUploadSet.registerUpload([await getFileUploadInfo(filepath)], null, noop, null);
     return await this._doImportDoc(makeOptDocSession(null), globalUploadSet.getUploadInfo(uploadId, null),
-      {naming: 'classic'});
+      { naming: 'classic' });
   }
 
   /**
@@ -336,7 +336,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
 
     const insightLog = insightLogEntry();
     insightLog?.addMeta(client.getLogMeta());
-    insightLog?.addMeta({docId});
+    insightLog?.addMeta({ docId });
 
     const openMode: OpenDocMode = options?.openMode || 'default';
     const linkParameters = options?.linkParameters || {};
@@ -353,7 +353,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       // right doc when we re-query the DB over the life of the websocket.
       const useShareUrlId = Boolean(originalUrlId && parseUrlId(originalUrlId).shareKey);
       const urlId = useShareUrlId ? originalUrlId! : docId;
-      auth = new DocAuthorizerImpl({dbManager, urlId, openMode, authSession: client.authSession});
+      auth = new DocAuthorizerImpl({ dbManager, urlId, openMode, authSession: client.authSession });
       await auth.assertAccess('viewers');
       const docAuth = auth.getCachedAuth();
       if (docAuth.docId !== docId) {
@@ -367,7 +367,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       auth = new DummyAuthorizer('owners', docId);
     }
 
-    const docSessionPrecursor: DocSessionPrecursor = new DocSessionPrecursor(client, auth, {linkParameters});
+    const docSessionPrecursor: DocSessionPrecursor = new DocSessionPrecursor(client, auth, { linkParameters });
     insightLog?.mark("openDocAuth");
 
     // Fetch the document, and continue when we have the ActiveDoc (which may be immediately).
@@ -444,7 +444,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         },
       });
 
-      return {activeDoc, result};
+      return { activeDoc, result };
     });
   }
 
@@ -571,7 +571,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     log.debug('DocManager.fetchDoc', docName);
     return this._withUnmutedDoc(docSession, docName, async () => {
       const activeDoc = await this._fetchPossiblyMutedDoc(docSession, docName, wantRecoveryMode);
-      return {activeDoc, result: activeDoc};
+      return { activeDoc, result: activeDoc };
     });
   }
 
@@ -696,7 +696,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     const doc = await this._getDoc(docSession, docName);
     // Get URL for document for use with SELF_HYPERLINK().
     const docUrls = doc && await this._getDocUrls(doc);
-    const activeDoc = new ActiveDoc(this, docName, this._attachmentStoreProvider, {...docUrls, safeMode, doc});
+    const activeDoc = new ActiveDoc(this, docName, this._attachmentStoreProvider, { ...docUrls, safeMode, doc });
     // Restore the timing mode of the document.
     activeDoc.isTimingOn = this._inTimingOn.get(docName) || false;
     return activeDoc;
@@ -728,12 +728,12 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
           id = makeId();
           break;
         case 'unsaved': {
-          const {userId} = options;
+          const { userId } = options;
           if (!userId) { throw new Error('unsaved import requires userId'); }
           if (!this._homeDbManager) { throw new Error("HomeDbManager not available"); }
           const isAnonymous = userId === this._homeDbManager.getAnonymousUserId();
-          id = makeForkIds({userId, isAnonymous, trunkDocId: NEW_DOCUMENT_CODE,
-            trunkUrlId: NEW_DOCUMENT_CODE}).docId;
+          id = makeForkIds({ userId, isAnonymous, trunkDocId: NEW_DOCUMENT_CODE,
+            trunkUrlId: NEW_DOCUMENT_CODE }).docId;
           break;
         }
         case 'classic':
@@ -761,17 +761,17 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         // 'import' assignmentId.
         await this.storageManager.prepareLocalDoc(docName);
         this.storageManager.markAsChanged(docName, 'edit');
-        return {title: basename, id: docName};
+        return { title: basename, id: docName };
       }
       else {
         const doc = await this.createNewEmptyDoc(docSession, id);
         await doc.oneStepImport(docSession, uploadInfo);
-        return {title: basename, id: doc.docName};
+        return { title: basename, id: doc.docName };
       }
     }
     catch (err) {
       throw new ApiError(err.message, err.status || 400, {
-        tips: [{action: 'ask-for-help', message: 'Ask for help'}],
+        tips: [{ action: 'ask-for-help', message: 'Ask for help' }],
       });
     }
     finally {

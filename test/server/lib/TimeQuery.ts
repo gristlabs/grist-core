@@ -1,11 +1,11 @@
-import {summarizeAction} from 'app/common/ActionSummarizer';
-import {ActionSummary} from 'app/common/ActionSummary';
-import {TimeCursor, TimeLayout, TimeQuery} from 'app/common/TimeQuery';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {SQLiteTimeData} from 'app/server/lib/TimeQuery';
-import {createDocTools} from 'test/server/docTools';
+import { summarizeAction } from 'app/common/ActionSummarizer';
+import { ActionSummary } from 'app/common/ActionSummary';
+import { TimeCursor, TimeLayout, TimeQuery } from 'app/common/TimeQuery';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { SQLiteTimeData } from 'app/server/lib/TimeQuery';
+import { createDocTools } from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
-import {assert} from 'test/server/testUtils';
+import { assert } from 'test/server/testUtils';
 
 /** get a summary of the last LocalActionBundle applied to a given document */
 async function summarizeLastAction(doc: ActiveDoc): Promise<ActionSummary> {
@@ -32,15 +32,15 @@ describe("TimeQuery", function() {
 
     // Stick some data in the Fish table.
     await doc.applyUserActions(session, [
-      ["AddTable", "Fish", [{id: "age"}, {id: "species"}, {id: "color"}]],
-      ["AddRecord", "Fish", null, {age: "11", species: "flounder", color: "blue"}],
-      ["AddRecord", "Fish", null, {age: "22", species: "bounder", color: "red"}],
+      ["AddTable", "Fish", [{ id: "age" }, { id: "species" }, { id: "color" }]],
+      ["AddRecord", "Fish", null, { age: "11", species: "flounder", color: "blue" }],
+      ["AddRecord", "Fish", null, { age: "22", species: "bounder", color: "red" }],
     ]);
     const summary1 = await summarizeLastAction(doc);
 
     // Change some data, remove some data.
     await doc.applyUserActions(session, [
-      ["UpdateRecord", "Fish", 1, {age: "111"}],
+      ["UpdateRecord", "Fish", 1, { age: "111" }],
       ["RemoveRecord", "Fish", 2],
     ]);
     const summary2 = await summarizeLastAction(doc);
@@ -48,14 +48,14 @@ describe("TimeQuery", function() {
     // Now read out the current state.
     await fish.update();
     assert.sameDeepMembers(fish.all(),
-      [{id: 1, age: '111'}]);
+      [{ id: 1, age: '111' }]);
 
     // Go back one step in time.
     cursor.prepend(summary2);
     await fish.update();
     assert.sameDeepMembers(fish.all(),
-      [{id: 1, age: '11'},
-        {id: 2, age: '22'}]);
+      [{ id: 1, age: '11' },
+        { id: 2, age: '22' }]);
 
     // and one more step
     cursor.prepend(summary1);
@@ -72,28 +72,28 @@ describe("TimeQuery", function() {
 
     // Create a table with three columns.
     await doc.applyUserActions(session, [
-      ["AddTable", "Fish!", [{id: "age"}, {id: "species"}, {id: "color"}]],
+      ["AddTable", "Fish!", [{ id: "age" }, { id: "species" }, { id: "color" }]],
       // AddTable doesn't actually set the requested name, so patch it up.
-      ["UpdateRecord", "_grist_Views", 1, {name: "Fish!"}],
-      ["UpdateRecord", "_grist_Views_section", 2, {title: "Fish!"}],  // Change section (and table) name
-      ["AddRecord", "Fish_", null, {age: "11", species: "flounder", color: "blue"}],
-      ["AddRecord", "Fish_", null, {age: "22", species: "bounder", color: "red"}],
+      ["UpdateRecord", "_grist_Views", 1, { name: "Fish!" }],
+      ["UpdateRecord", "_grist_Views_section", 2, { title: "Fish!" }],  // Change section (and table) name
+      ["AddRecord", "Fish_", null, { age: "11", species: "flounder", color: "blue" }],
+      ["AddRecord", "Fish_", null, { age: "22", species: "bounder", color: "red" }],
     ]);
     const summary1 = await summarizeLastAction(doc);
 
     // Now move the species column. We need its field id to do so.
     // Just for practice, we read its field id from the db.
     await layout.update();
-    const table = layout.tables.one({tableId: 'Fish_'});
-    const column = layout.columns.one({parentId: table.id, colId: 'species'});
-    const field = layout.fields.one({parentId: table.primaryViewId, colRef: column.id});
-    const section = layout.sections.one({id: table.rawViewSectionRef});
+    const table = layout.tables.one({ tableId: 'Fish_' });
+    const column = layout.columns.one({ parentId: table.id, colId: 'species' });
+    const field = layout.fields.one({ parentId: table.primaryViewId, colRef: column.id });
+    const section = layout.sections.one({ id: table.rawViewSectionRef });
     await doc.applyUserActions(session, [
-      ["UpdateRecord", "_grist_Views_section_field", field.id, {parentPos: 999}],
-      ["UpdateRecord", "Fish_", 1, {age: "111"}],  // Change some data as well for the heck of it.
+      ["UpdateRecord", "_grist_Views_section_field", field.id, { parentPos: 999 }],
+      ["UpdateRecord", "Fish_", 1, { age: "111" }],  // Change some data as well for the heck of it.
       ["RemoveRecord", "Fish_", 2],                // Remove some data as well for the heck of it.
-      ["UpdateRecord", "_grist_Views", 1, {name: "Poissons!"}],  // Change view name
-      ["UpdateRecord", "_grist_Views_section", section.id, {title: "Poissons!"}],  // Change section (and table) name
+      ["UpdateRecord", "_grist_Views", 1, { name: "Poissons!" }],  // Change view name
+      ["UpdateRecord", "_grist_Views_section", section.id, { title: "Poissons!" }],  // Change section (and table) name
     ]);
     const summary2 = await summarizeLastAction(doc);
 
@@ -127,9 +127,9 @@ describe("TimeQuery", function() {
     // the table and a column and make sure the renames don't affect
     // querying information prior to those changes.
     await doc.applyUserActions(session, [
-      ["AddTable", "Fish", [{id: "age"}, {id: "species"}, {id: "color"}]],
-      ["AddRecord", "Fish", null, {age: "11", species: "flounder", color: "blue"}],
-      ["AddRecord", "Fish", null, {age: "22", species: "bounder", color: "red"}],
+      ["AddTable", "Fish", [{ id: "age" }, { id: "species" }, { id: "color" }]],
+      ["AddRecord", "Fish", null, { age: "11", species: "flounder", color: "blue" }],
+      ["AddRecord", "Fish", null, { age: "22", species: "bounder", color: "red" }],
     ]);
     await doc.applyUserActions(session, [
       ["RenameTable", "Fish", "Fish2"],
@@ -159,22 +159,22 @@ describe("TimeQuery", function() {
     assert.deepEqual(result, expectedResult);
 
     await doc.applyUserActions(session, [
-      ["AddTable", "Fish", [{id: "species"}]],
-      ["AddRecord", "Fish", null, {species: "tadpole"}],
+      ["AddTable", "Fish", [{ id: "species" }]],
+      ["AddRecord", "Fish", null, { species: "tadpole" }],
     ]);
     cursor.append(await summarizeLastAction(doc));
     result = await query.update();
     assert.deepEqual(result, expectedResult);
 
     await doc.applyUserActions(session, [
-      ["UpdateRecord", "Fish2", 1, {color: "whale"}],
+      ["UpdateRecord", "Fish2", 1, { color: "whale" }],
     ]);
     cursor.append(await summarizeLastAction(doc));
     result = await query.update();
     assert.deepEqual(result, expectedResult);
 
     // Double check that we've actually made all the changes we think we have.
-    assert.deepEqual(await doc.fetchQuery(session, {tableId: 'Fish2', filters: {}}), {
+    assert.deepEqual(await doc.fetchQuery(session, { tableId: 'Fish2', filters: {} }), {
       "tableData": [
         "TableData",
         "Fish2",

@@ -9,7 +9,7 @@
  * Otherwise, it should return a handler for mousemove/mouseup: we will then subscribe to these
  * events, and clean up on mouseup.
  */
-import {dom, DomElementMethod, IDisposable} from "grainjs";
+import { dom, DomElementMethod, IDisposable } from "grainjs";
 
 export interface MouseDragHandler {
   onMove(moveEv: MouseEvent): void;
@@ -39,9 +39,9 @@ function _startDragging(startEv: MouseEvent, elem: HTMLElement, onStart: MouseDr
   const dragHandler = onStart(startEv, elem);
   if (dragHandler) {
 
-    const {onMove, onStop} = dragHandler;
-    const upLis = dom.onElem(document, 'mouseup', stop, {useCapture: true});
-    const moveLis = dom.onElem(document, 'mousemove', onMove, {useCapture: true});
+    const { onMove, onStop } = dragHandler;
+    const upLis = dom.onElem(document, 'mouseup', stop, { useCapture: true });
+    const moveLis = dom.onElem(document, 'mousemove', onMove, { useCapture: true });
 
     function stop(stopEv: MouseEvent) {
       moveLis.dispose();

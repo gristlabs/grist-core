@@ -1,7 +1,7 @@
-import {DocModel, IRowModel, refRecord, ViewRec} from 'app/client/models/DocModel';
-import {ShareRec} from 'app/client/models/entities/ShareRec';
+import { DocModel, IRowModel, refRecord, ViewRec } from 'app/client/models/DocModel';
+import { ShareRec } from 'app/client/models/entities/ShareRec';
 import * as modelUtil from 'app/client/models/modelUtil';
-import {Computed, Observable} from 'grainjs';
+import { Computed, Observable } from 'grainjs';
 import * as ko from 'knockout';
 
 // Represents a page entry in the tree of pages.

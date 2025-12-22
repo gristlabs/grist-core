@@ -6,9 +6,9 @@
  * Escape, it calls close(), which should destroy the <input>.
  */
 
-import {reportError} from 'app/client/models/AppModel';
-import {theme} from 'app/client/ui2018/cssVars';
-import {dom, DomArg, styled} from 'grainjs';
+import { reportError } from 'app/client/models/AppModel';
+import { theme } from 'app/client/ui2018/cssVars';
+import { dom, DomArg, styled } from 'grainjs';
 
 export interface ITransientInputOptions {
   initialValue: string;
@@ -16,7 +16,7 @@ export interface ITransientInputOptions {
   close(): void;
 }
 
-export function transientInput({initialValue, save, close}: ITransientInputOptions,
+export function transientInput({ initialValue, save, close }: ITransientInputOptions,
   ...args: Array<DomArg<HTMLInputElement>>) {
   let lastSave: string = initialValue;
 
@@ -38,7 +38,7 @@ export function transientInput({initialValue, save, close}: ITransientInputOptio
     setTimeout(() => { input.focus(); input.select(); }, 10);
   }
 
-  const input = cssInput({type: 'text', placeholder: 'Enter name'},
+  const input = cssInput({ type: 'text', placeholder: 'Enter name' },
     dom.prop('value', initialValue),
     dom.on('blur', () => onSave(false)),
     dom.onKeyDown({

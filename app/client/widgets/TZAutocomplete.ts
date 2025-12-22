@@ -1,9 +1,9 @@
-import {MomentTimezone} from 'app/client/lib/imports';
-import {ACIndexImpl} from 'app/client/lib/ACIndex';
-import {ACSelectItem, buildACSelect} from 'app/client/lib/ACSelect';
-import {testId} from "app/client/ui2018/cssVars";
-import {nativeCompare} from 'app/common/gutil';
-import {IDisposableOwner, Observable} from 'grainjs';
+import { MomentTimezone } from 'app/client/lib/imports';
+import { ACIndexImpl } from 'app/client/lib/ACIndex';
+import { ACSelectItem, buildACSelect } from 'app/client/lib/ACSelect';
+import { testId } from "app/client/ui2018/cssVars";
+import { nativeCompare } from 'app/common/gutil';
+import { IDisposableOwner, Observable } from 'grainjs';
 
 /**
  * Returns the ordered list of offsets for names at time timestamp. See timezoneOptions for details
@@ -73,7 +73,7 @@ export function buildTZAutocomplete(
     }
   };
   return buildACSelect(owner,
-    {...options, acIndex, valueObs, save: saveTZ},
+    { ...options, acIndex, valueObs, save: saveTZ },
     testId("tz-autocomplete"),
   );
 }

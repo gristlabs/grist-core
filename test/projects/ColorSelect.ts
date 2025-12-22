@@ -140,12 +140,12 @@ describe("ColorSelect", function() {
     await checkSelectedOption(underline | strike);
 
     // close picker and check a call was made
-    await driver.find('.test-color-select').mouseMove({x: 300});
+    await driver.find('.test-color-select').mouseMove({ x: 300 });
     await driver.withActions(a => a.click());
     assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
       [`Called: ${JSON.stringify(
         { fill: swatches[4], text: swatches[3],
-          underline: true, strikethrough: true}) }`]);
+          underline: true, strikethrough: true }) }`]);
   });
 
   it('should allow to choose custom color', async function() {
@@ -182,7 +182,7 @@ describe("ColorSelect", function() {
     // check logs
     await gu.waitToPass(async () => {
       assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
-        [`Called: ${JSON.stringify({fill: "#FFFFFF", text: swatches[7], italic: true})}`]);
+        [`Called: ${JSON.stringify({ fill: "#FFFFFF", text: swatches[7], italic: true })}`]);
     });
 
     await driver.find('.test-reset').click();
@@ -194,7 +194,7 @@ describe("ColorSelect", function() {
     await clickApply();
     await gu.waitToPass(async () => {
       assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
-        [`Called: ${JSON.stringify({fill: "#FFFFFF", text: swatches[7], italic: true})}`]);
+        [`Called: ${JSON.stringify({ fill: "#FFFFFF", text: swatches[7], italic: true })}`]);
     });
   });
 

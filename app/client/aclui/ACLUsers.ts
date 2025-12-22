@@ -1,20 +1,20 @@
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {createUserImage} from 'app/client/ui/UserImage';
-import {cssMemberImage, cssMemberListItem, cssMemberPrimary,
-  cssMemberSecondary, cssMemberText} from 'app/client/ui/UserItem';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {PermissionDataWithExtraUsers} from 'app/common/ActiveDocAPI';
-import {gristFloatingMenuClass, menu, menuCssClass, menuItemLink} from 'app/client/ui2018/menus';
-import {IGristUrlState, userOverrideParams} from 'app/common/gristUrls';
-import {FullUser} from 'app/common/LoginSessionAPI';
-import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL} from 'app/common/UserAPI';
-import {getRealAccess, UserAccessData} from 'app/common/UserAPI';
-import {Disposable, dom, Observable, styled} from 'grainjs';
-import {cssMenu, cssMenuWrap, defaultMenuOptions, IMenuOptions, IPopupOptions, setPopupToCreateDom} from 'popweasel';
-import {getUserRoleText} from 'app/common/UserAPI';
-import {makeT} from 'app/client/lib/localization';
-import {waitGrainObs} from 'app/common/gutil';
+import { DocPageModel } from 'app/client/models/DocPageModel';
+import { urlState } from 'app/client/models/gristUrlState';
+import { createUserImage } from 'app/client/ui/UserImage';
+import { cssMemberImage, cssMemberListItem, cssMemberPrimary,
+  cssMemberSecondary, cssMemberText } from 'app/client/ui/UserItem';
+import { testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { PermissionDataWithExtraUsers } from 'app/common/ActiveDocAPI';
+import { gristFloatingMenuClass, menu, menuCssClass, menuItemLink } from 'app/client/ui2018/menus';
+import { IGristUrlState, userOverrideParams } from 'app/common/gristUrls';
+import { FullUser } from 'app/common/LoginSessionAPI';
+import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL } from 'app/common/UserAPI';
+import { getRealAccess, UserAccessData } from 'app/common/UserAPI';
+import { Disposable, dom, Observable, styled } from 'grainjs';
+import { cssMenu, cssMenuWrap, defaultMenuOptions, IMenuOptions, IPopupOptions, setPopupToCreateDom } from 'popweasel';
+import { getUserRoleText } from 'app/common/UserAPI';
+import { makeT } from 'app/client/lib/localization';
+import { waitGrainObs } from 'app/common/gutil';
 import noop from 'lodash/noop';
 
 const t = makeT("ViewAsDropdown");
@@ -69,12 +69,12 @@ export class ACLUsersPopup extends Disposable {
 
   // Optionally have document page reverts to the default page upon activation of the view as mode
   // by setting `options.resetDocPage` to true.
-  public attachPopup(elem: Element, options: IPopupOptions & {resetDocPage?: boolean}) {
+  public attachPopup(elem: Element, options: IPopupOptions & { resetDocPage?: boolean }) {
     setPopupToCreateDom(elem, (ctl) => {
       const buildRow =
         (user: UserAccessData) => this._buildUserRow(user, options);
       const buildExampleUserRow =
-        (user: UserAccessData) => this._buildUserRow(user, {isExampleUser: true, ...options});
+        (user: UserAccessData) => this._buildUserRow(user, { isExampleUser: true, ...options });
       return cssMenuWrap(cssMenu(
         dom.cls(menuCssClass),
         dom.cls(gristFloatingMenuClass),
@@ -91,9 +91,9 @@ export class ACLUsersPopup extends Disposable {
           dom.forEach(this._exampleUsers, buildExampleUserRow),
         ] : null,
         (el) => { setTimeout(() => el.focus(), 0); },
-        dom.onKeyDown({Escape: () => ctl.close()}),
+        dom.onKeyDown({ Escape: () => ctl.close() }),
       ));
-    }, {...defaultMenuOptions, ...options});
+    }, { ...defaultMenuOptions, ...options });
   }
 
   // See 'attachPopup' for more info on the 'resetDocPage' option.
@@ -121,9 +121,9 @@ export class ACLUsersPopup extends Disposable {
     return this._shareUsers.length + this._attributeTableUsers.length < 5;
   }
 
-  private _buildUserRow(user: UserAccessData, opt: {isExampleUser?: boolean, resetDocPage?: boolean} = {}) {
+  private _buildUserRow(user: UserAccessData, opt: { isExampleUser?: boolean, resetDocPage?: boolean } = {}) {
     return dom('a',
-      {class: cssMemberListItem.className + ' ' + cssUserItem.className},
+      { class: cssMemberListItem.className + ' ' + cssUserItem.className },
       cssMemberImage(
         createUserImage(opt.isExampleUser ? 'exampleUser' : user, 'large'),
       ),
@@ -152,7 +152,7 @@ export class ACLUsersPopup extends Disposable {
         const forkResult = await this.pageModel?.gristDoc.get()?.docComm.fork();
         if (!forkResult) { throw new Error('Failed to create fork'); }
         window.location.assign(urlState().makeUrl(userOverrideParams(user.email,
-          {...extraState, doc: forkResult.urlId})));
+          { ...extraState, doc: forkResult.urlId })));
       });
     }
     else {

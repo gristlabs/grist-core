@@ -1,5 +1,5 @@
 import { createSandbox } from 'app/server/lib/NSandbox';
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as moment from 'moment-timezone';
 import { setupCleanup } from 'test/server/testCleanup';
 import * as testUtils from 'test/server/testUtils';

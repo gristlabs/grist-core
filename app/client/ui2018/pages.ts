@@ -166,9 +166,9 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
               ),
             ),
             cssPageMenuTrigger(
-              dom.attr('aria-label', use => t("context menu - {{- pageName }}", {pageName: use(name)})),
+              dom.attr('aria-label', use => t("context menu - {{- pageName }}", { pageName: use(name) })),
               cssPageMenuIcon('Dots'),
-              menu(pageMenu, {placement: 'bottom-start', parentSelectorToMark: '.' + itemHeader.className}),
+              menu(pageMenu, { placement: 'bottom-start', parentSelectorToMark: '.' + itemHeader.className }),
               dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
 
               // Let's prevent dragging to start when un-intentionally holding the mouse down on '...' menu.
@@ -207,15 +207,15 @@ const pageInitialRegex = new RegExp(`^${emojiPart.source}(?:\\u{200D}${emojiPart
 
 // Divide up the page name into an "initial" and "displayName", where an emoji initial, if
 // present, is omitted from the displayName, but a regular character used as the initial is kept.
-export function splitPageInitial(name: string): {initial: string, displayName: string, hasEmoji: boolean} {
+export function splitPageInitial(name: string): { initial: string, displayName: string, hasEmoji: boolean } {
   const m = name.match(pageInitialRegex);
   // A common false positive is digits; those match \p{Emoji} but should not be considered emojis.
   // (Other matching non-emojis include characters like '*', but those are nicer to show as emojis.)
   if (m && !/^\d$/.test(m[0])) {
-    return {initial: m[0], displayName: name.slice(m[0].length).trim(), hasEmoji: true};
+    return { initial: m[0], displayName: name.slice(m[0].length).trim(), hasEmoji: true };
   }
   else {
-    return {initial: Array.from(name)[0], displayName: name.trim(), hasEmoji: false};
+    return { initial: Array.from(name)[0], displayName: name.trim(), hasEmoji: false };
   }
 }
 

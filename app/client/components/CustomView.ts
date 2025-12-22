@@ -1,6 +1,6 @@
 import BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
+import { GristDoc } from 'app/client/components/GristDoc';
 import {
   CommandAPI,
   ConfigNotifier,
@@ -14,19 +14,19 @@ import {
   WidgetAPIImpl,
   WidgetFrame,
 } from 'app/client/components/WidgetFrame';
-import {CustomSectionElement, ViewProcess} from 'app/client/lib/CustomSectionElement';
-import {makeT} from 'app/client/lib/localization';
+import { CustomSectionElement, ViewProcess } from 'app/client/lib/CustomSectionElement';
+import { makeT } from 'app/client/lib/localization';
 import dom from 'app/client/lib/dom';
-import {makeTestId} from 'app/client/lib/domUtils';
+import { makeTestId } from 'app/client/lib/domUtils';
 import * as kd from 'app/client/lib/koDom';
-import {ViewSectionRec} from 'app/client/models/DocModel';
-import {CustomViewSectionDef} from 'app/client/models/entities/ViewSectionRec';
-import {UserError} from 'app/client/models/errors';
-import {closeRegisteredMenu} from 'app/client/ui2018/menus';
-import {AccessLevel} from 'app/common/CustomWidget';
-import {defaultLocale} from 'app/common/gutil';
-import {PluginInstance} from 'app/common/PluginInstance';
-import {dom as grains} from 'grainjs';
+import { ViewSectionRec } from 'app/client/models/DocModel';
+import { CustomViewSectionDef } from 'app/client/models/entities/ViewSectionRec';
+import { UserError } from 'app/client/models/errors';
+import { closeRegisteredMenu } from 'app/client/ui2018/menus';
+import { AccessLevel } from 'app/common/CustomWidget';
+import { defaultLocale } from 'app/common/gutil';
+import { PluginInstance } from 'app/common/PluginInstance';
+import { dom as grains } from 'grainjs';
 import * as ko from 'knockout';
 
 const t = makeT('CustomView');
@@ -70,7 +70,7 @@ export class CustomView extends BaseView {
   };
 
   // Commands enabled when the view is the active section, even when user focuses another region.
-  private static _commands: {[key: string]: Function} & ThisType<CustomView> = {
+  private static _commands: { [key: string]: Function } & ThisType<CustomView> = {
     async openWidgetConfiguration(this: CustomView) {
       if (!this.isDisposed() && !this._frame?.isDisposed()) {
         try {
@@ -126,7 +126,7 @@ export class CustomView extends BaseView {
     this._foundPlugin = ko.observable(false);
     this._foundSection = ko.observable(false);
     // Ensure that selecting another section in same plugin update the view.
-    this._foundSection.extend({notify: 'always'});
+    this._foundSection.extend({ notify: 'always' });
 
     this.autoDispose(this.customDef.pluginId.subscribe(this._updatePluginInstance, this));
     this.autoDispose(this.customDef.sectionId.subscribe(this._updateCustomSection, this));
@@ -216,7 +216,7 @@ export class CustomView extends BaseView {
   }
 
   private _buildDom(): HTMLElement {
-    const {mode, url, access, renderAfterReady, widgetDef, widgetId, pluginId} = this.customDef;
+    const { mode, url, access, renderAfterReady, widgetDef, widgetId, pluginId } = this.customDef;
     const showPlugin = ko.pureComputed(() => this.customDef.mode() === "plugin");
     const showAfterReady = () => {
       // The empty widget page calls `grist.ready()`.
@@ -231,7 +231,7 @@ export class CustomView extends BaseView {
     const showPluginContent = ko.pureComputed(() => showPlugin() && this._foundSection())
     // For the view to update when switching from one section to another one, the computed
     // observable must always notify.
-      .extend({notify: 'always'});
+      .extend({ notify: 'always' });
     // Some widgets have built-in settings that should override anything
     // that is in the rest of the view options. Ideally, everything would
     // be consistent. We could fix inconsistencies if we find them, but
@@ -245,7 +245,7 @@ export class CustomView extends BaseView {
 
       kd.maybe(this._hasUnmappedColumns, () => dom('div.custom_view_no_mapping',
         testId('not-mapped'),
-        dom('img', {src: 'img/empty-widget.svg'}),
+        dom('img', { src: 'img/empty-widget.svg' }),
 
         kd.maybe(this._hasAclHiddenColumns, () => [
           dom('h1', kd.text(t("Some required columns are hidden by access rules"))),
@@ -307,7 +307,7 @@ export class CustomView extends BaseView {
     widgetId?: string|null,
     pluginId?: string
   }) {
-    const {baseUrl, access, showAfterReady, widgetId, pluginId} = options;
+    const { baseUrl, access, showAfterReady, widgetId, pluginId } = options;
     const documentSettings = this.gristDoc.docData.docSettings();
     const readonly = this.gristDoc.isReadonly.get();
     const widgetFrame = WidgetFrame.create(null,  {

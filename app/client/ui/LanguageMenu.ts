@@ -1,13 +1,13 @@
-import {detectCurrentLang, makeT, setAnonymousLocale} from 'app/client/lib/localization';
-import {AppModel} from 'app/client/models/AppModel';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {cssHoverCircle} from 'app/client/ui/TopBarCss';
-import {theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menu, menuItem} from 'app/client/ui2018/menus';
-import {getCountryCode} from 'app/common/Locales';
-import {getGristConfig} from 'app/common/urlUtils';
-import {dom, makeTestId, styled} from 'grainjs';
+import { detectCurrentLang, makeT, setAnonymousLocale } from 'app/client/lib/localization';
+import { AppModel } from 'app/client/models/AppModel';
+import { hoverTooltip } from 'app/client/ui/tooltips';
+import { cssHoverCircle } from 'app/client/ui/TopBarCss';
+import { theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { menu, menuItem } from 'app/client/ui2018/menus';
+import { getCountryCode } from 'app/common/Locales';
+import { getGristConfig } from 'app/common/urlUtils';
+import { dom, makeTestId, styled } from 'grainjs';
 
 const testId = makeTestId('test-language-');
 const t = makeT('LanguageMenu');
@@ -21,7 +21,7 @@ export function buildLanguageMenu(appModel: AppModel) {
   if (appModel.currentValidUser) {
     // For logged in users, we don't need to show the menu (they have a preference in their profile).
     // But for tests we will show a hidden indicator.
-    return dom('input', {type: 'hidden'}, (testId(`current-` + userLanguage)));
+    return dom('input', { type: 'hidden' }, (testId(`current-` + userLanguage)));
   }
 
   // When we switch language, we need to reload the page to get the new translations.
@@ -49,7 +49,7 @@ export function buildLanguageMenu(appModel: AppModel) {
         placement: 'bottom-end',
       },
     ),
-    hoverTooltip(t('Language'), {key: 'topBarBtnTooltip'}),
+    hoverTooltip(t('Language'), { key: 'topBarBtnTooltip' }),
     testId('button'),
   );
 }
@@ -71,7 +71,7 @@ export function translateLocale(locale: string) {
   try {
     locale = locale.replace("_", "-");
     // This API might not be available in all browsers.
-    const languageNames = new Intl.DisplayNames([locale], {type: 'language'});
+    const languageNames = new Intl.DisplayNames([locale], { type: 'language' });
     return languageNames.of(locale) || null;
   }
   catch (err) {

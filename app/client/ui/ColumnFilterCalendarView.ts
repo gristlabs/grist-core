@@ -93,7 +93,7 @@ export class ColumnFilterCalendarView extends Disposable {
 
   private _onChangeDate() {
     const d = this._$el.datepicker('getUTCDate').valueOf() / 1000;
-    const {min, max} = this.columnFilter;
+    const { min, max } = this.columnFilter;
     // Check the the min bounds is before max bounds. If not update the other bounds to the same
     // value.
     // TODO: also perform this check when users pick relative dates from popup
@@ -123,10 +123,10 @@ export class ColumnFilterCalendarView extends Disposable {
       return [];
     }
     if (!isFinite(min)) {
-      return [{valueOf: () => -Infinity}, toDate(max)];
+      return [{ valueOf: () => -Infinity }, toDate(max)];
     }
     if (!isFinite(max)) {
-      return [toDate(min), {valueOf: () => +Infinity}];
+      return [toDate(min), { valueOf: () => +Infinity }];
     }
     return [toDate(min), toDate(max)];
   }

@@ -1,7 +1,7 @@
-import {DocModel, IRowModel} from 'app/client/models/DocModel';
+import { DocModel, IRowModel } from 'app/client/models/DocModel';
 import * as modelUtil from 'app/client/models/modelUtil';
-import {jsonObservable} from 'app/client/models/modelUtil';
-import {DocumentSettings} from 'app/common/DocumentSettings';
+import { jsonObservable } from 'app/client/models/modelUtil';
+import { DocumentSettings } from 'app/common/DocumentSettings';
 import * as ko from 'knockout';
 
 // The document-wide metadata. It's all contained in a single record with id=1.

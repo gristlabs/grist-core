@@ -1,6 +1,6 @@
-import {assert, createDriver, driver, WebDriver} from 'mocha-webdriver';
+import { assert, createDriver, driver, WebDriver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe("LanguageSettings", function() {
   this.timeout('50s');
@@ -107,7 +107,7 @@ describe("LanguageSettings", function() {
 
       // Now login to the account. Make sure it's a fresh one, in case previous test suites
       // changed any preferences.
-      const user = await gu.session().personalSite.user('fresh').login({freshAccount: true});
+      const user = await gu.session().personalSite.user('fresh').login({ freshAccount: true });
       await user.loadRelPath("/");
       await gu.waitForDocMenuToLoad();
       // Language should still be english.
@@ -221,10 +221,10 @@ async function languageInCookie(): Promise<string | null> {
   return cookie2.match(/grist_user_locale=([^;]+)/)?.[1] ?? null;
 }
 
-function withLang(locale: string): {skipped: boolean} {
+function withLang(locale: string): { skipped: boolean } {
   let customDriver: WebDriver;
   let oldLanguage: string | undefined;
-  const skipStatus = {skipped: false};
+  const skipStatus = { skipped: false };
   before(async function() {
     // On Mac we can't change the language (except for English), so skip the test.
     if (await gu.isMac() && locale !== 'en') { skipStatus.skipped = true; return this.skip(); }

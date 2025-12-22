@@ -1,9 +1,9 @@
-import {hashCode} from 'app/client/lib/hashUtils';
-import {colors} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {UserProfile} from 'app/common/LoginSessionAPI';
-import {components} from 'app/common/ThemePrefs';
-import {dom, DomElementArg, styled} from 'grainjs';
+import { hashCode } from 'app/client/lib/hashUtils';
+import { colors } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { UserProfile } from 'app/common/LoginSessionAPI';
+import { components } from 'app/common/ThemePrefs';
+import { dom, DomElementArg, styled } from 'grainjs';
 
 export type User = Partial<UserProfile> | "exampleUser" | "addUser" | null;
 
@@ -28,7 +28,7 @@ export function createUserImage(user: User, size: Size, ...args: DomElementArg[]
       }
       else {
         if (user.picture) {
-          yield cssUserPicture({src: user.picture}, dom.on('error', (ev, el) => dom.hideElem(el, true)));
+          yield cssUserPicture({ src: user.picture }, dom.on('error', (ev, el) => dom.hideElem(el, true)));
         }
         yield dom.style('background-color', pickColor(user));
         const initials = getInitials(user);

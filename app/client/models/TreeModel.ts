@@ -81,7 +81,7 @@ export function fixIndents(records: TreeRecord[]) {
   return records.map((rec, index) => {
     const indentation = Math.min(maxNextIndent, rec.indentation);
     maxNextIndent = indentation + 1;
-    return {...rec, indentation};
+    return { ...rec, indentation };
   }) as TreeRecord[];
 }
 
@@ -89,13 +89,13 @@ export function fixIndents(records: TreeRecord[]) {
 export function fromTableData(table: TreeTableData, buildDom: DomBuilder, oldModel?: TreeModelRecord) {
 
   const records = getRecords(table);
-  const storage = {table, records};
+  const storage = { table, records };
 
   // an object to collect items at all level of indentations
-  const indentations = {} as {[ind: number]: TreeItemRecord[]};
+  const indentations = {} as { [ind: number]: TreeItemRecord[] };
 
   // a object that map record ids to old items
-  const oldItems = {} as {[id: number]: TreeItemRecord};
+  const oldItems = {} as { [id: number]: TreeItemRecord };
   if (oldModel) {
     walkTree(oldModel, (item: TreeItemRecord) => oldItems[item.record.id] = item);
   }
@@ -164,7 +164,7 @@ export class TreeNodeRecord implements TreeNode {
       else {
         const lastIndex = this.findLastIndex();
         if (lastIndex !== "root") {
-          upperPos = (this._records[lastIndex + 1] || {pagePos: null}).pagePos;
+          upperPos = (this._records[lastIndex + 1] || { pagePos: null }).pagePos;
         }
         else {
           upperPos = null;
@@ -172,14 +172,14 @@ export class TreeNodeRecord implements TreeNode {
       }
 
       // do update
-      const update = records.map((rec, i) => ({...rec, indentation: indentations[i], pagePos: upperPos!}));
-      await this.sendActions({update});
+      const update = records.map((rec, i) => ({ ...rec, indentation: indentations[i], pagePos: upperPos! }));
+      await this.sendActions({ update });
     }
   }
 
   // Sends user actions to update [A, B, ...] and remove [C, D, ...] when called with
   // `{update: [A, B ...], remove: [C, D, ...]}`.
-  public async sendActions(actions: {update?: TreeRecord[], remove?: TreeRecord[]}) {
+  public async sendActions(actions: { update?: TreeRecord[], remove?: TreeRecord[] }) {
 
     const update = actions.update || [];
     const remove = actions.remove || [];
@@ -208,7 +208,7 @@ export class TreeNodeRecord implements TreeNode {
 
   // Removes child.
   public async removeChild(child: TreeItemRecord) {
-    await this.sendActions({remove: child.getRecords()});
+    await this.sendActions({ remove: child.getRecords() });
   }
 
   // Get all the records included in this item.

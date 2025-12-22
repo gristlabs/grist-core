@@ -1,4 +1,4 @@
-import {dom, Holder, IDisposable, MultiHolder} from 'grainjs';
+import { dom, Holder, IDisposable, MultiHolder } from 'grainjs';
 
 /**
  * Overrides the cursor style for the entire document.

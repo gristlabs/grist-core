@@ -1,7 +1,7 @@
 import difference from 'lodash/difference';
-import {assert, driver, WebElementPromise} from 'mocha-webdriver';
+import { assert, driver, WebElementPromise } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('ApiConsole', function () {
   this.timeout(20000);

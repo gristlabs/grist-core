@@ -1,6 +1,6 @@
-import {makeId} from 'app/server/lib/idUtils';
-import {chunk} from 'lodash';
-import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
+import { makeId } from 'app/server/lib/idUtils';
+import { chunk } from 'lodash';
+import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 export class UserUUID1663851423064 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {

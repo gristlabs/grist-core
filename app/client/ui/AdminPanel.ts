@@ -79,7 +79,7 @@ export class AdminPanel extends Disposable {
   private _buildMainHeader(pageObs: Computed<AdminPanelPage>) {
     const pageNames = getPageNames();
     return [
-      cssBreadcrumbs({style: 'margin-left: 16px;'},
+      cssBreadcrumbs({ style: 'margin-left: 16px;' },
         cssLink(
           urlState().setLinkUrl({}),
           t('Grist Instance'),
@@ -240,7 +240,7 @@ Please log in as an administrator.`)),
           value: dom.create(
             HidableToggle,
             this._supportGrist.getTelemetryOptInObservable(),
-            {labelId: 'admin-panel-item-description-telemetry'},
+            { labelId: 'admin-panel-item-description-telemetry' },
           ),
           expandedContent: this._supportGrist.buildTelemetrySection(),
         }),
@@ -288,7 +288,7 @@ Please log in as an administrator.`)),
           id: 'version',
           name: t('Current'),
           description: t('Current version of Grist'),
-          value: cssValueLabel(t('Version {{versionNumber}}', {versionNumber: version.version})),
+          value: cssValueLabel(t('Version {{versionNumber}}', { versionNumber: version.version })),
         }),
         this._maybeAddEnterpriseToggle(),
         dom.create(this._buildUpdates.bind(this)),
@@ -321,7 +321,7 @@ Please log in as an administrator.`)),
     let makeToggle = () => dom.create(
       HidableToggle,
       this._toggleEnterprise.getEnterpriseToggleObservable(),
-      {labelId: 'admin-panel-item-description-enterprise'},
+      { labelId: 'admin-panel-item-description-enterprise' },
     );
 
     // If the enterprise edition is forced, we don't show the toggle.
@@ -369,8 +369,8 @@ Please log in as an administrator.`)),
       probeDetails['sandboxing'].info,
       dom(
         'div',
-        {style: 'margin-top: 8px'},
-        cssLink({href: commonUrls.helpSandboxing, target: '_blank'}, t('Learn more.')),
+        { style: 'margin-top: 8px' },
+        cssLink({ href: commonUrls.helpSandboxing, target: '_blank' }, t('Learn more.')),
       ),
     ];
   }
@@ -401,7 +401,7 @@ Please log in as an administrator.`)),
         use => this._buildAdminUsersComputed(use, (users) => {
           const actualUsers = users.filter(detail => detail.user !== null);
           if (actualUsers.length > 0) {
-            return cssHappyText(t('{{count}} admin accounts', {count: actualUsers.length}));
+            return cssHappyText(t('{{count}} admin accounts', { count: actualUsers.length }));
           }
           return cssErrorText(t('no admin accounts'));
         }),
@@ -414,7 +414,7 @@ Please log in as an administrator.`)),
     return dom.domComputed(
       use => this._buildAdminUsersComputed(use, (users) => {
         return cssAdminAccountList(
-          users.map(({user, reason}) => {
+          users.map(({ user, reason }) => {
             const userDisplay = user ? cssUserInfo(
               createUserImage(user, 'medium'),
               cssUserName(dom('span', user.name, testId('admin-panel-admin-account-name')),
@@ -423,7 +423,7 @@ Please log in as an administrator.`)),
             ) : cssErrorText(t('Admin account not found'));
             return cssAdminAccountListItem([
               cssAdminAccountItemPart(userDisplay),
-              cssAdminAccountItemPart(cssAdminAccountReason(markdown(reason, {inline: true}))),
+              cssAdminAccountItemPart(cssAdminAccountReason(markdown(reason, { inline: true }))),
             ], testId(`admin-panel-admin-accounts-list-item`));
           }),
           testId(`admin-panel-admin-accounts-list`),
@@ -582,13 +582,13 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
       disableAutoCheck: () => {
         backgroundTask?.dispose();
         backgroundTask = null;
-        this._installAPI.updateInstallPrefs({checkForLatestVersion: false}).catch(reportError);
+        this._installAPI.updateInstallPrefs({ checkForLatestVersion: false }).catch(reportError);
         checkForLatestVersion.set(false);
       },
       enableAutoCheck: () => {
         if (state.get() !== State.CHECKING) {
           actions.checkForUpdates().catch(reportError);
-          this._installAPI.updateInstallPrefs({checkForLatestVersion: true}).catch(reportError);
+          this._installAPI.updateInstallPrefs({ checkForLatestVersion: true }).catch(reportError);
           checkForLatestVersion.set(true);
         }
       },
@@ -613,7 +613,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
         case State.STALE: {
           const lastCheck = latestVersionAvailable.get()?.dateChecked;
           return lastCheck ?
-            t('Last checked {{time}}', {time: getTimeFromNow(lastCheck)})
+            t('Last checked {{time}}', { time: getTimeFromNow(lastCheck) })
             : t('No record of last version check');
         }
       }
@@ -717,10 +717,10 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
         )),
         dom.domComputed(allowAutomaticVersionChecking, allowAutomaticChecks =>
           allowAutomaticChecks ? cssExpandedContent(
-            dom('label', t('Auto-check weekly'), {for: 'admin-panel-updates-auto-check-switch'}),
+            dom('label', t('Auto-check weekly'), { for: 'admin-panel-updates-auto-check-switch' }),
             dom('div', toggleSwitch(enabledController, {
               args: [testId('admin-panel-updates-auto-check')],
-              inputArgs: [{id: 'admin-panel-updates-auto-check-switch'}],
+              inputArgs: [{ id: 'admin-panel-updates-auto-check-switch' }],
             })),
           ) :
             cssExpandedContent(

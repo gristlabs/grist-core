@@ -1,7 +1,7 @@
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {testId} from 'app/client/ui2018/cssVars';
-import {tokens} from 'app/common/ThemePrefs';
-import {dom, MultiHolder, Observable, styled} from 'grainjs';
+import { DocPageModel } from 'app/client/models/DocPageModel';
+import { testId } from 'app/client/ui2018/cssVars';
+import { tokens } from 'app/common/ThemePrefs';
+import { dom, MultiHolder, Observable, styled } from 'grainjs';
 
 export function createBottomBarDoc(owner: MultiHolder, pageModel: DocPageModel, leftPanelOpen: Observable<boolean>,
   rightPanelOpen: Observable<boolean>) {

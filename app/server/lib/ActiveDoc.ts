@@ -4,7 +4,7 @@
  * change events.
  */
 
-import {ACLRuleCollection} from 'app/common/ACLRuleCollection';
+import { ACLRuleCollection } from 'app/common/ACLRuleCollection';
 import {
   getEnvContent,
   LocalActionBundle,
@@ -12,9 +12,9 @@ import {
   SandboxRequest,
   UserActionBundle,
 } from 'app/common/ActionBundle';
-import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
-import {rebaseSummary} from 'app/common/ActionSummarizer';
-import {ActionSummary} from 'app/common/ActionSummary';
+import { ActionGroup, MinimalActionGroup } from 'app/common/ActionGroup';
+import { rebaseSummary } from 'app/common/ActionSummarizer';
+import { ActionSummary } from 'app/common/ActionSummary';
 import {
   AclResources,
   AclTableDescription,
@@ -39,10 +39,10 @@ import {
   TransformRule,
   VisibleUserProfile,
 } from 'app/common/ActiveDocAPI';
-import {ApiError} from 'app/common/ApiError';
-import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
-import {AttachmentColumns, gatherAttachmentIds, getAttachmentColumns} from 'app/common/AttachmentColumns';
-import {WebhookMessageType} from 'app/common/CommTypes';
+import { ApiError } from 'app/common/ApiError';
+import { mapGetOrSet, MapWithTTL } from 'app/common/AsyncCreate';
+import { AttachmentColumns, gatherAttachmentIds, getAttachmentColumns } from 'app/common/AttachmentColumns';
+import { WebhookMessageType } from 'app/common/CommTypes';
 import {
   BulkAddRecord,
   BulkRemoveRecord,
@@ -55,15 +55,15 @@ import {
   toTableDataAction,
   UserAction,
 } from 'app/common/DocActions';
-import {DocData} from 'app/common/DocData';
-import {getDataLimitInfo, getDataLimitRatio, getSeverity} from 'app/common/DocLimits';
-import {DocSnapshots} from 'app/common/DocSnapshot';
+import { DocData } from 'app/common/DocData';
+import { getDataLimitInfo, getDataLimitRatio, getSeverity } from 'app/common/DocLimits';
+import { DocSnapshots } from 'app/common/DocSnapshot';
 import {
   DocState,
   DocStateComparison,
   removeMetadataChangesFromDetails,
 } from 'app/common/DocState';
-import {DocumentSettings} from 'app/common/DocumentSettings';
+import { DocumentSettings } from 'app/common/DocumentSettings';
 import {
   DataLimitInfo,
   DocumentUsage,
@@ -71,25 +71,25 @@ import {
   FilteredDocUsageSummary,
   RowCounts,
 } from 'app/common/DocUsage';
-import {normalizeEmail} from 'app/common/emails';
-import {Features, Product} from 'app/common/Features';
-import {isHiddenCol} from 'app/common/gristTypes';
-import {commonUrls, parseUrlId} from 'app/common/gristUrls';
-import {byteString, countIf, retryOnce, safeJsonParse, timeoutReached} from 'app/common/gutil';
-import {InactivityTimer} from 'app/common/InactivityTimer';
-import {Interval} from 'app/common/Interval';
-import {APPROACHING_LIMIT_RATIO, getUsageRatio, LimitExceededError} from 'app/common/Limits';
-import {normalizedDateTimeString} from 'app/common/normalizedDateTimeString';
+import { normalizeEmail } from 'app/common/emails';
+import { Features, Product } from 'app/common/Features';
+import { isHiddenCol } from 'app/common/gristTypes';
+import { commonUrls, parseUrlId } from 'app/common/gristUrls';
+import { byteString, countIf, retryOnce, safeJsonParse, timeoutReached } from 'app/common/gutil';
+import { InactivityTimer } from 'app/common/InactivityTimer';
+import { Interval } from 'app/common/Interval';
+import { APPROACHING_LIMIT_RATIO, getUsageRatio, LimitExceededError } from 'app/common/Limits';
+import { normalizedDateTimeString } from 'app/common/normalizedDateTimeString';
 import {
   compilePredicateFormula,
   getPredicateFormulaProperties,
   PredicateFormulaProperties,
 } from 'app/common/PredicateFormula';
 import * as roles from 'app/common/roles';
-import {schema, SCHEMA_VERSION} from 'app/common/schema';
-import {MetaRowRecord, SingleCell} from 'app/common/TableData';
-import {TelemetryEvent, TelemetryMetadataByLevel} from 'app/common/Telemetry';
-import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
+import { schema, SCHEMA_VERSION } from 'app/common/schema';
+import { MetaRowRecord, SingleCell } from 'app/common/TableData';
+import { TelemetryEvent, TelemetryMetadataByLevel } from 'app/common/Telemetry';
+import { FetchUrlOptions, UploadResult } from 'app/common/uploads';
 import {
   ANONYMOUS_USER_EMAIL,
   Document as APIDocument,
@@ -99,22 +99,22 @@ import {
   DocReplacementOptions,
   NEW_DOCUMENT_CODE,
 } from 'app/common/UserAPI';
-import {convertFromColumn} from 'app/common/ValueConverter';
-import {guessColInfo} from 'app/common/ValueGuesser';
-import {parseUserAction} from 'app/common/ValueParser';
-import {Document} from 'app/gen-server/entity/Document';
-import {Share} from 'app/gen-server/entity/Share';
-import {Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {RecordWithStringId} from 'app/plugin/DocApiTypes';
-import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
-import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
+import { convertFromColumn } from 'app/common/ValueConverter';
+import { guessColInfo } from 'app/common/ValueGuesser';
+import { parseUserAction } from 'app/common/ValueParser';
+import { Document } from 'app/gen-server/entity/Document';
+import { Share } from 'app/gen-server/entity/Share';
+import { Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { RecordWithStringId } from 'app/plugin/DocApiTypes';
+import { ParseFileResult, ParseOptions } from 'app/plugin/FileParserAPI';
+import { AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId } from 'app/plugin/GristAPI';
 import {
   Archive,
   ArchiveEntry,
   create_tar_archive,
   create_zip_archive, unpackTarArchive,
 } from 'app/server/lib/Archive';
-import {getAndRemoveAssistantStatePermit} from 'app/server/lib/AssistantStatePermit';
+import { getAndRemoveAssistantStatePermit } from 'app/server/lib/AssistantStatePermit';
 import {
   AssistanceFormulaEvaluationResult,
   AssistanceSchemaPromptV1Context,
@@ -123,23 +123,23 @@ import {
 import {
   AssistanceContextV1, AssistanceRequest, AssistanceResponse, isAssistanceRequestV2,
 } from 'app/common/Assistance';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {AuditEventAction} from 'app/server/lib/AuditEvent';
-import {RequestWithLogin} from 'app/server/lib/Authorizer';
-import {Client} from 'app/server/lib/Client';
-import {getChanges, getMetaTables} from 'app/server/lib/DocApi';
-import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
-import {GristServer} from 'app/server/lib/GristServer';
-import {AuditEventProperties} from 'app/server/lib/IAuditLogger';
-import {makeForkIds} from 'app/server/lib/idUtils';
-import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDocSql';
-import {ISandbox} from 'app/server/lib/ISandbox';
+import { appSettings } from 'app/server/lib/AppSettings';
+import { AuditEventAction } from 'app/server/lib/AuditEvent';
+import { RequestWithLogin } from 'app/server/lib/Authorizer';
+import { Client } from 'app/server/lib/Client';
+import { getChanges, getMetaTables } from 'app/server/lib/DocApi';
+import { DEFAULT_CACHE_TTL, DocManager } from 'app/server/lib/DocManager';
+import { GristServer } from 'app/server/lib/GristServer';
+import { AuditEventProperties } from 'app/server/lib/IAuditLogger';
+import { makeForkIds } from 'app/server/lib/idUtils';
+import { GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL } from 'app/server/lib/initialDocSql';
+import { ISandbox } from 'app/server/lib/ISandbox';
 import log from 'app/server/lib/log';
-import {LogMethods} from 'app/server/lib/LogMethods';
-import {ISandboxOptions} from 'app/server/lib/NSandbox';
-import {NullSandbox, UnavailableSandboxMethodError} from 'app/server/lib/NullSandbox';
-import {DocRequests} from 'app/server/lib/Requests';
-import {SandboxError} from 'app/server/lib/sandboxUtil';
+import { LogMethods } from 'app/server/lib/LogMethods';
+import { ISandboxOptions } from 'app/server/lib/NSandbox';
+import { NullSandbox, UnavailableSandboxMethodError } from 'app/server/lib/NullSandbox';
+import { DocRequests } from 'app/server/lib/Requests';
+import { SandboxError } from 'app/server/lib/sandboxUtil';
 import {
   getDocSessionAccess,
   getDocSessionAccessOrNull,
@@ -148,40 +148,40 @@ import {
   getLogMeta,
   RequestOrSession,
 } from 'app/server/lib/sessionUtils';
-import {shortDesc} from 'app/server/lib/shortDesc';
-import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
-import {DocTriggers} from 'app/server/lib/Triggers';
-import {fetchURL, FileUploadInfo, globalUploadSet, UploadInfo} from 'app/server/lib/uploads';
-import {UserPresence} from 'app/server/lib/UserPresence';
+import { shortDesc } from 'app/server/lib/shortDesc';
+import { TableMetadataLoader } from 'app/server/lib/TableMetadataLoader';
+import { DocTriggers } from 'app/server/lib/Triggers';
+import { fetchURL, FileUploadInfo, globalUploadSet, UploadInfo } from 'app/server/lib/uploads';
+import { UserPresence } from 'app/server/lib/UserPresence';
 import assert from 'assert';
-import {Mutex} from 'async-mutex';
+import { Mutex } from 'async-mutex';
 import * as bluebird from 'bluebird';
-import {EventEmitter} from 'events';
-import {readFile} from 'fs-extra';
-import {IMessage, MsgType} from 'grain-rpc';
+import { EventEmitter } from 'events';
+import { readFile } from 'fs-extra';
+import { IMessage, MsgType } from 'grain-rpc';
 import imageSize from 'image-size';
 import * as moment from 'moment-timezone';
 import fetch from 'node-fetch';
 import stream from 'node:stream';
 import path from 'path';
 
-import {ActionHistory} from 'app/server/lib/ActionHistory';
-import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
-import {ActiveDocImport, FileImportOptions} from 'app/server/lib/ActiveDocImport';
-import {AttachmentFileManager, MismatchedFileHashError} from 'app/server/lib/AttachmentFileManager';
-import {IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
-import {DocClients} from 'app/server/lib/DocClients';
-import {DocPluginManager} from 'app/server/lib/DocPluginManager';
-import {DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';
-import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from 'app/server/lib/DocStorage';
-import {expandQuery, getFormulaErrorForExpandQuery} from 'app/server/lib/ExpandedQuery';
-import {GranularAccess, GranularAccessForBundle} from 'app/server/lib/GranularAccess';
-import {insightLogDecorate, insightLogEntry, insightLogWrap} from 'app/server/lib/InsightLog';
-import {OnDemandActions} from 'app/server/lib/OnDemandActions';
-import {Patch} from 'app/server/lib/Patch';
-import {isUntrustedRequestBehaviorSet} from 'app/server/lib/ProxyAgent';
-import {findOrAddAllEnvelope, Sharing} from 'app/server/lib/Sharing';
-import {Cancelable} from 'lodash';
+import { ActionHistory } from 'app/server/lib/ActionHistory';
+import { ActionHistoryImpl } from 'app/server/lib/ActionHistoryImpl';
+import { ActiveDocImport, FileImportOptions } from 'app/server/lib/ActiveDocImport';
+import { AttachmentFileManager, MismatchedFileHashError } from 'app/server/lib/AttachmentFileManager';
+import { IAttachmentStoreProvider } from 'app/server/lib/AttachmentStoreProvider';
+import { DocClients } from 'app/server/lib/DocClients';
+import { DocPluginManager } from 'app/server/lib/DocPluginManager';
+import { DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSession } from 'app/server/lib/DocSession';
+import { createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY } from 'app/server/lib/DocStorage';
+import { expandQuery, getFormulaErrorForExpandQuery } from 'app/server/lib/ExpandedQuery';
+import { GranularAccess, GranularAccessForBundle } from 'app/server/lib/GranularAccess';
+import { insightLogDecorate, insightLogEntry, insightLogWrap } from 'app/server/lib/InsightLog';
+import { OnDemandActions } from 'app/server/lib/OnDemandActions';
+import { Patch } from 'app/server/lib/Patch';
+import { isUntrustedRequestBehaviorSet } from 'app/server/lib/ProxyAgent';
+import { findOrAddAllEnvelope, Sharing } from 'app/server/lib/Sharing';
+import { Cancelable } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import flatten from 'lodash/flatten';
 import merge from 'lodash/merge';
@@ -204,13 +204,13 @@ const ACTIVEDOC_TIMEOUT = (process.env.NODE_ENV === 'production') ? 30 : 5;
 const MEMORY_MEASUREMENT_THROTTLE_WAIT_MS = 60 * 1000;
 
 // Apply the UpdateCurrentTime user action every hour
-const UPDATE_CURRENT_TIME_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
+const UPDATE_CURRENT_TIME_DELAY = { delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000 };
 
 // Measure and broadcast data size every 5 minutes
-const UPDATE_DATA_SIZE_DELAY = {delayMs: 5 * 60 * 1000, varianceMs: 30 * 1000};
+const UPDATE_DATA_SIZE_DELAY = { delayMs: 5 * 60 * 1000, varianceMs: 30 * 1000 };
 
 // Log document metrics every hour
-const LOG_DOCUMENT_METRICS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
+const LOG_DOCUMENT_METRICS_DELAY = { delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000 };
 
 // For items of work that need to happen at shutdown, timeout before aborting the wait for them.
 const SHUTDOWN_ITEM_TIMEOUT_MS = 5000;
@@ -384,25 +384,25 @@ export class ActiveDoc extends EventEmitter {
         new Interval(
           () => this.removeUnusedAttachments(true),
           REMOVE_UNUSED_ATTACHMENTS_DELAY,
-          {onError: e => this._log.error(null, 'failed to remove expired attachments', e)},
+          { onError: e => this._log.error(null, 'failed to remove expired attachments', e) },
         ),
         // Update the time in formulas every hour.
         new Interval(
           () => this._updateCurrentTime(),
           Deps.UPDATE_CURRENT_TIME_DELAY,
-          {onError: e => this._log.error(null, 'failed to update current time', e)},
+          { onError: e => this._log.error(null, 'failed to update current time', e) },
         ),
         // Measure and broadcast data size every 5 minutes.
         new Interval(
           () => this._checkDataSizeLimitRatio(makeExceptionalDocSession('system')),
           UPDATE_DATA_SIZE_DELAY,
-          {onError: e => this._log.error(null, 'failed to update data size', e)},
+          { onError: e => this._log.error(null, 'failed to update data size', e) },
         ),
         // Log document metrics every hour.
         new Interval(
           async () => { this._logDocMetrics(makeExceptionalDocSession('system'), 'interval'); },
           LOG_DOCUMENT_METRICS_DELAY,
-          {onError: e => this._log.error(null, 'failed to log document metrics', e)},
+          { onError: e => this._log.error(null, 'failed to log document metrics', e) },
         ),
       );
     }
@@ -568,7 +568,7 @@ export class ActiveDoc extends EventEmitter {
     return {
       ...getLogMeta(docSession),
       docId: this._docName,
-      ...(docMethod ? {docMethod} : {}),
+      ...(docMethod ? { docMethod } : {}),
     };
   }
 
@@ -614,7 +614,7 @@ export class ActiveDoc extends EventEmitter {
     docSession: OptDocSession, summarize: boolean,
   ): Promise<GetActionSummariesResult> {
     const groups = await this._actionHistory.getRecentActionGroups(MAX_RECENT_ACTIONS,
-      {clientId: docSession.client?.clientId, summarize});
+      { clientId: docSession.client?.clientId, summarize });
     const permittedGroups: ActionGroup[] = [];
     let censored: boolean = false;
     // Process groups serially since the work is synchronous except for some
@@ -627,7 +627,7 @@ export class ActiveDoc extends EventEmitter {
         censored = true;
       }
     }
-    return {actions: permittedGroups, censored};
+    return { actions: permittedGroups, censored };
   }
 
   public async getRecentMinimalActions(docSession: OptDocSession): Promise<MinimalActionGroup[]> {
@@ -675,7 +675,7 @@ export class ActiveDoc extends EventEmitter {
       userId,
       org: docSession.org,
     };
-    await dbManager.increaseUsage(scope, 'assistant', {delta: 1, dryRun: true});
+    await dbManager.increaseUsage(scope, 'assistant', { delta: 1, dryRun: true });
 
     const assistant = this._server.getAssistant();
     if (!assistant) {
@@ -693,7 +693,7 @@ export class ActiveDoc extends EventEmitter {
     else {
       throw new ApiError('Wrong type of assistance request', 400);
     }
-    const limit = await dbManager.increaseUsage(scope, 'assistant', {delta: 1});
+    const limit = await dbManager.increaseUsage(scope, 'assistant', { delta: 1 });
     return {
       ...result,
       limit: !limit ? undefined : {
@@ -730,7 +730,7 @@ export class ActiveDoc extends EventEmitter {
     if (options.afterShutdown) {
       this._afterShutdownCallback = options.afterShutdown;
     }
-    this._doShutdown ||= this._doShutdownImpl({beforeShutdown: options.beforeShutdown});
+    this._doShutdown ||= this._doShutdownImpl({ beforeShutdown: options.beforeShutdown });
     await this._doShutdown;
   }
 
@@ -775,9 +775,9 @@ export class ActiveDoc extends EventEmitter {
   @ActiveDoc.keepDocOpen
   public async createEmptyDoc(docSession: OptDocSession,
     options?: { useExisting?: boolean }): Promise<ActiveDoc> {
-    await this.loadDoc(docSession, {forceNew: true,
+    await this.loadDoc(docSession, { forceNew: true,
       skipInitialTable: true,
-      ...options});
+      ...options });
     // Makes sure docPluginManager is ready in case new doc is used to import new data
     await this.docPluginManager?.ready;
     this._fullyLoaded = true;
@@ -1005,10 +1005,10 @@ export class ActiveDoc extends EventEmitter {
       }
     }
 
-    let result: PatchLog = {changes: [], applied: false};
+    let result: PatchLog = { changes: [], applied: false };
     if (options?.dismiss === undefined) {
       const patch = new Patch(this, docSession);
-      const {details} = removeMetadataChangesFromDetails(origDetails);
+      const { details } = removeMetadataChangesFromDetails(origDetails);
       result = await patch.applyChanges(details);
       if (result.applied) {
         await this._getHomeDbManagerOrFail().updateProposalStatus(urlId, proposalId, {
@@ -1081,7 +1081,7 @@ export class ActiveDoc extends EventEmitter {
           // is potentially expensive, so this optimises for the common case of not exceeding the limit.
           const hadChanges = await this.updateUsedAttachmentsIfNeeded();
           if (hadChanges) {
-            await this._updateAttachmentsSize({syncUsageToDatabase: false});
+            await this._updateAttachmentsSize({ syncUsageToDatabase: false });
           }
           else {
             // No point in retrying if nothing changed.
@@ -1328,7 +1328,7 @@ export class ActiveDoc extends EventEmitter {
     if (!this.docData) { throw new Error("No doc data"); }
     // Get metadata from local cache rather than data engine, so that we can
     // still get it even if data engine is busy calculating.
-    const tables: {[key: string]: TableDataAction} = {};
+    const tables: { [key: string]: TableDataAction } = {};
     for (const [tableId, tableData] of this.docData.getTables().entries()) {
       if (!tableId.startsWith('_grist_')) { continue; }
       tables[tableId] = tableData.getTableDataAction();
@@ -1379,7 +1379,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async fetchTable(docSession: OptDocSession, tableId: string,
     waitForFormulas: boolean = false): Promise<TableFetchResult> {
-    return this.fetchQuery(docSession, {tableId, filters: {}}, waitForFormulas);
+    return this.fetchQuery(docSession, { tableId, filters: {} }, waitForFormulas);
   }
 
   /**
@@ -1412,7 +1412,7 @@ export class ActiveDoc extends EventEmitter {
       // filtering).
       const tables = await this.fetchMetaTables(docSession);
       const tableData = tables[query.tableId];
-      if (tableData) { return {tableData}; }
+      if (tableData) { return { tableData }; }
       // If table not found, continue, to give a consistent error for a table not found.
     }
 
@@ -1466,7 +1466,7 @@ export class ActiveDoc extends EventEmitter {
 
     this._log.info(docSession, "fetchQuery -> %d rows, cols: %s",
       data![2].length, Object.keys(data![3]).join(", "));
-    return {tableData: data!, ...(attachments && {attachments})};
+    return { tableData: data!, ...(attachments && { attachments }) };
   }
 
   /**
@@ -1499,7 +1499,7 @@ export class ActiveDoc extends EventEmitter {
     // - Table/column deletion should make subscription inactive, and unsubscribing an inactive
     //   subscription should not produce an error.
     const tableFetchResult = await this.fetchQuery(docSession, query);
-    return {querySubId: 0, ...tableFetchResult};
+    return { querySubId: 0, ...tableFetchResult };
   }
 
   /**
@@ -1578,7 +1578,7 @@ export class ActiveDoc extends EventEmitter {
   public async getFormulaError(docSession: OptDocSession, tableId: string, colId: string,
     rowId: number): Promise<CellValue> {
     // Throw an error if the user doesn't have access to read this cell.
-    await this._granularAccess.getCellValue(docSession, {tableId, colId, rowId});
+    await this._granularAccess.getCellValue(docSession, { tableId, colId, rowId });
 
     this._log.info(docSession, "getFormulaError(%s, %s, %s, %s)",
       docSession, tableId, colId, rowId);
@@ -1659,9 +1659,9 @@ export class ActiveDoc extends EventEmitter {
     // point.
     // Undos are best effort now by default.
     return this._applyUserActionsWithExtendedOptions(
-      docSession, actions, {bestEffort: undo,
+      docSession, actions, { bestEffort: undo,
         oldestSource,
-        fromOwnHistory, ...(options||{})});
+        fromOwnHistory, ...(options||{}) });
   }
 
   /**
@@ -1852,14 +1852,14 @@ export class ActiveDoc extends EventEmitter {
     const trunkDocId = doc.id;
     const trunkUrlId = doc.urlId || doc.id;
     await this.flushDoc();  // Make sure fork won't be too out of date.
-    const forkIds = makeForkIds({userId, isAnonymous, trunkDocId, trunkUrlId});
+    const forkIds = makeForkIds({ userId, isAnonymous, trunkDocId, trunkUrlId });
 
     // To actually create the fork, we call an endpoint.  This is so the fork
     // can be associated with an arbitrary doc worker, rather than tied to the
     // same worker as the trunk.  We use a Permit for authorization.
     const permitStore = this._server.getPermitStore();
-    const permitKey = await permitStore.setPermit({docId: forkIds.docId,
-      otherDocId: this.docName});
+    const permitKey = await permitStore.setPermit({ docId: forkIds.docId,
+      otherDocId: this.docName });
     try {
       const url = await this._server.getHomeUrlByDocId(
         forkIds.docId,
@@ -1947,7 +1947,7 @@ export class ActiveDoc extends EventEmitter {
     if (!this.docData || !await this._granularAccess.hasAccessRulesPermission(docSession)) {
       throw new Error('Cannot list ACL resources');
     }
-    const result: {[tableId: string]: AclTableDescription} = {};
+    const result: { [tableId: string]: AclTableDescription } = {};
     const tables = this.docData.getMetaTable('_grist_Tables');
     const sections = this.docData.getMetaTable('_grist_Views_section');
     const columns = this.docData.getMetaTable('_grist_Tables_column');
@@ -1969,9 +1969,9 @@ export class ActiveDoc extends EventEmitter {
       }
     }
     const ruleCollection = new ACLRuleCollection();
-    await ruleCollection.update(this.docData, {log});
+    await ruleCollection.update(this.docData, { log });
     const problems = ruleCollection.findRuleProblems(this.docData);
-    return {tables: result, problems};
+    return { tables: result, problems };
   }
 
   /**
@@ -2016,7 +2016,7 @@ export class ActiveDoc extends EventEmitter {
       // Collect users the document is shared with.
       if (db) {
         const access = db.unwrapQueryResult(
-          await db.getDocAccess({userId, urlId: this.docName}, {
+          await db.getDocAccess({ userId, urlId: this.docName }, {
             flatten: true, excludeUsersWithoutAccess: true,
           }));
         result.users = access.users;
@@ -2031,8 +2031,8 @@ export class ActiveDoc extends EventEmitter {
       if (!user.email) { continue; }
       const email = normalizeEmail(user.email);
       if (!isShared.has(email)) {
-        result.attributeTableUsers.push({email: user.email, name: user.name || '',
-          id: 0, access: user.access === undefined ? 'editors' : user.access});
+        result.attributeTableUsers.push({ email: user.email, name: user.name || '',
+          id: 0, access: user.access === undefined ? 'editors' : user.access });
       }
     }
 
@@ -2082,7 +2082,7 @@ export class ActiveDoc extends EventEmitter {
       const user = docSession ? await this._granularAccess.getCachedUser(docSession) : undefined;
       sandboxActionBundle = await this._rawPyCall('apply_user_actions', normalActions, user?.toJSON());
       sandboxActionBundle.numBytes = this._lastPyCallResponseSize;
-      const {requests} = sandboxActionBundle;
+      const { requests } = sandboxActionBundle;
       if (requests) {
         this._requests.handleRequestsBatchFromUserActions(requests).catch(e => console.error(e));
       }
@@ -2097,7 +2097,7 @@ export class ActiveDoc extends EventEmitter {
       const allIndex = findOrAddAllEnvelope(sandboxActionBundle.envelopes);
       await this.docStorage.execTransaction(async () => {
         for (const action of onDemandActions) {
-          const {stored, undo, retValues} = await this._onDemandActions.processUserAction(action);
+          const { stored, undo, retValues } = await this._onDemandActions.processUserAction(action);
           // Note: onDemand stored/undo actions are arbitrarily processed/added after normal actions
           // and do not support access control.
           sandboxActionBundle.stored.push(...stored.map(a => [allIndex, a] as [number, DocAction]));
@@ -2128,7 +2128,7 @@ export class ActiveDoc extends EventEmitter {
     const rowIds = changes.map(r => r.id);
     const now = Date.now() / 1000;
     const timeDeleted = changes.map(r => r.used ? null : now);
-    const action: BulkUpdateRecord = ["BulkUpdateRecord", "_grist_Attachments", rowIds, {timeDeleted}];
+    const action: BulkUpdateRecord = ["BulkUpdateRecord", "_grist_Attachments", rowIds, { timeDeleted }];
     // Don't use applyUserActions which may block the update action in delete-only mode
     await this._applyUserActionsAsSystem([action]);
     return true;
@@ -2248,7 +2248,7 @@ export class ActiveDoc extends EventEmitter {
 
   public async updateRowCount(rowCount: RowCounts, docSession: OptDocSession | null) {
     // Up-to-date row counts are included in every DocUserAction, so we can skip broadcasting here.
-    await this._updateDocUsage({rowCount}, {broadcastUsageToClients: false});
+    await this._updateDocUsage({ rowCount }, { broadcastUsageToClients: false });
     await this._checkDataLimitRatio();
 
     // Calculating data size is potentially expensive, so skip calculating it unless the
@@ -2290,7 +2290,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async sendWebhookNotification(type: WebhookMessageType = WebhookMessageType.Update) {
     await this.docClients.broadcastDocMessage(null, 'docChatter', {
-      webhooks: {type},
+      webhooks: { type },
     });
   }
 
@@ -2508,7 +2508,7 @@ export class ActiveDoc extends EventEmitter {
   ): Promise<ApplyUAResult> {
 
     const insightLog = insightLogEntry();
-    insightLog?.addMeta({actionDesc: shortDesc(actions)});
+    insightLog?.addMeta({ actionDesc: shortDesc(actions) });
 
     if (options.parseStrings) {
       actions = actions.map(ua => parseUserAction(ua, this.docData!));
@@ -2528,7 +2528,7 @@ export class ActiveDoc extends EventEmitter {
     };
 
     const result: ApplyUAResult = await this._sharing.addUserAction(docSession, action);
-    insightLog?.addMeta({resultDesc: shortDesc(result)});
+    insightLog?.addMeta({ resultDesc: shortDesc(result) });
 
     if (result.isModification) {
       this._fetchCache.clear();  // This could be more nuanced.
@@ -2549,7 +2549,7 @@ export class ActiveDoc extends EventEmitter {
     return result;
   }
 
-  private async _doShutdownImpl(options: {beforeShutdown?: () => Promise<void>}): Promise<void> {
+  private async _doShutdownImpl(options: { beforeShutdown?: () => Promise<void> }): Promise<void> {
     const docSession = makeExceptionalDocSession('system');
     this._log.debug(docSession, "shutdown starting");
 
@@ -2598,7 +2598,7 @@ export class ActiveDoc extends EventEmitter {
       this._reportDataEngineMemoryThrottled = null;
 
       // We'll defer syncing usage until everything is calculated.
-      const usageOptions = {syncUsageToDatabase: false, broadcastUsageToClients: false};
+      const usageOptions = { syncUsageToDatabase: false, broadcastUsageToClients: false };
 
       // This cleanup requires docStorage, which may have failed to start up.
       // We don't want to log pointless errors in that case.
@@ -2742,9 +2742,9 @@ export class ActiveDoc extends EventEmitter {
    * the home database and/or broadcast to clients.
    */
   private async _updateDocUsage(usage: Partial<DocumentUsage>, options: UpdateUsageOptions = {}) {
-    const {syncUsageToDatabase = true, broadcastUsageToClients = true} = options;
+    const { syncUsageToDatabase = true, broadcastUsageToClients = true } = options;
     const oldStatus = this.dataLimitInfo.status;
-    this._docUsage = {...(this._docUsage || {}), ...usage};
+    this._docUsage = { ...(this._docUsage || {}), ...usage };
     if (syncUsageToDatabase) {
       /* If status decreased, we'll update usage in the database with minimal delay, so site usage
        * banners show up-to-date statistics. If status increased or stayed the same, we'll schedule
@@ -2767,9 +2767,9 @@ export class ActiveDoc extends EventEmitter {
     await this.docClients.broadcastDocMessage(
       null,
       'docUsage',
-      {docUsage: this.getDocUsageSummary(), product: this._product},
+      { docUsage: this.getDocUsageSummary(), product: this._product },
       async (session, data) => {
-        return {...data, docUsage: await this.getFilteredDocUsageSummary(session)};
+        return { ...data, docUsage: await this.getFilteredDocUsageSummary(session) };
       },
     );
   }
@@ -2814,7 +2814,7 @@ export class ActiveDoc extends EventEmitter {
    */
   private async _updateDataSize(options?: UpdateUsageOptions): Promise<number> {
     const dataSizeBytes = await this.docStorage.getDataSize();
-    await this._updateDocUsage({dataSizeBytes}, options);
+    await this._updateDocUsage({ dataSizeBytes }, options);
     return dataSizeBytes;
   }
 
@@ -2828,7 +2828,7 @@ export class ActiveDoc extends EventEmitter {
       throw new ApiError(`Attachments must not exceed ${byteString(limit)}`, 413);
     }
 
-    let dimensions: {width?: number, height?: number} = {};
+    let dimensions: { width?: number, height?: number } = {};
     // imageSize returns an object with a width, height and type property if the file is an image.
     // The width and height properties are integers representing width and height in pixels.
     try {
@@ -2885,7 +2885,7 @@ export class ActiveDoc extends EventEmitter {
       await this._applyUserActionsWithExtendedOptions(
         docSession,
         [action],
-        {attachment: true},
+        { attachment: true },
       );
     }
     catch (e) {
@@ -2911,7 +2911,7 @@ export class ActiveDoc extends EventEmitter {
     const tableNames = await this.docStorage.getAllTableNames();
 
     // Fetch only metadata tables first, and try to migrate with only those.
-    const tableData: {[key: string]: Buffer|null} = {};
+    const tableData: { [key: string]: Buffer|null } = {};
     for (const tableName of tableNames) {
       if (tableName.startsWith('_grist_')) {
         tableData[tableName] = await this.docStorage.fetchTable(tableName);
@@ -2993,7 +2993,7 @@ export class ActiveDoc extends EventEmitter {
 
       const tables = docData.getMetaTable('_grist_Tables');
       const skipLoadingUserTables = this._recoveryMode;
-      const onDemandCount = skipLoadingUserTables ? tables.numRecords() : tables.filterRowIds({onDemand: true}).length;
+      const onDemandCount = skipLoadingUserTables ? tables.numRecords() : tables.filterRowIds({ onDemand: true }).length;
 
       if (this._isSnapshot) {
         log.rawInfo("Loading complete", {
@@ -3003,7 +3003,7 @@ export class ActiveDoc extends EventEmitter {
       }
       else {
         if (!skipLoadingUserTables) {
-          const pendingTableNames = tables.filterRecords({onDemand: false}).map(r => r.tableId);
+          const pendingTableNames = tables.filterRecords({ onDemand: false }).map(r => r.tableId);
           pendingTableNames.sort();   // Sort for a consistent order (affects DocRegressionTest)
           await this._loadTables(docSession, pendingTableNames);
         }
@@ -3038,7 +3038,7 @@ export class ActiveDoc extends EventEmitter {
       const closeTimeout = Math.max(loadMs, 1000) * Deps.ACTIVEDOC_TIMEOUT;
       this._inactivityTimer.setDelay(closeTimeout);
 
-      insightLog?.addMeta({loadMs, closeTimeout});
+      insightLog?.addMeta({ loadMs, closeTimeout });
 
       const docUsage = getDocSessionUsage(docSession);
       if (!docUsage) {
@@ -3212,10 +3212,10 @@ export class ActiveDoc extends EventEmitter {
     const viewSectionRecords = viewSections?.getRecords() ?? [];
     const customWidgetIds: string[] = [];
     for (const r of viewSectionRecords) {
-      const {customView} = safeJsonParse(r.options, {});
+      const { customView } = safeJsonParse(r.options, {});
       if (!customView) { continue; }
 
-      const {pluginId, url} = safeJsonParse(customView, {});
+      const { pluginId, url } = safeJsonParse(customView, {});
       if (!url) { continue; }
 
       const isGristLabsWidget = url.startsWith(commonUrls.gristLabsCustomWidgets);
@@ -3263,7 +3263,7 @@ export class ActiveDoc extends EventEmitter {
   private async _initializeDocUsage(docSession: OptDocSession) {
     const promises: Promise<unknown>[] = [];
     // We'll defer syncing/broadcasting usage until everything is calculated.
-    const options = {syncUsageToDatabase: false, broadcastUsageToClients: false};
+    const options = { syncUsageToDatabase: false, broadcastUsageToClients: false };
     if (this._docUsage?.dataSizeBytes === undefined) {
       promises.push(this._updateDataSize(options));
     }
@@ -3432,7 +3432,7 @@ export class ActiveDoc extends EventEmitter {
     checkInternal: boolean,
   }) {
     let currentSize = this._docUsage?.attachmentsSizeBytes;
-    currentSize = currentSize ?? await this._updateAttachmentsSize({syncUsageToDatabase: false});
+    currentSize = currentSize ?? await this._updateAttachmentsSize({ syncUsageToDatabase: false });
     const futureSize = currentSize + uploadSizeBytes;
 
     const productMaxSize = this._product?.features?.baseMaxAttachmentsBytesPerDocument;
@@ -3462,7 +3462,7 @@ export class ActiveDoc extends EventEmitter {
    */
   private async _updateAttachmentsSize(options?: UpdateUsageOptions): Promise<number> {
     const attachmentsSizeBytes = await this.docStorage.getTotalAttachmentFileSizes();
-    await this._updateDocUsage({attachmentsSizeBytes}, options);
+    await this._updateDocUsage({ attachmentsSizeBytes }, options);
     return attachmentsSizeBytes;
   }
 
@@ -3486,9 +3486,9 @@ export class ActiveDoc extends EventEmitter {
    */
   private async _withDataEngine(
     cb: () => Promise<void>,
-    options: {shutdownAfter?: boolean} = {},
+    options: { shutdownAfter?: boolean } = {},
   ) {
-    const {shutdownAfter} = options;
+    const { shutdownAfter } = options;
     this._dataEngine = this._dataEngine || this._makeEngine();
     let engine = await this._dataEngine;
     if (engine instanceof NullSandbox) {
@@ -3600,7 +3600,7 @@ function createEmptySandboxActionBundle(): SandboxActionBundle {
     calc: [],
     undo: [],
     retValues: [],
-    rowCount: {total: 0},
+    rowCount: { total: 0 },
   };
 }
 
@@ -3615,7 +3615,7 @@ export function tableIdToRef(metaTables: { [p: string]: TableDataAction }, table
 }
 
 // Helper that converts a Grist column colId to a ref given the corresponding table.
-export function colIdToRef(metaTables: {[p: string]: TableDataAction}, tableId: string, colId: string) {
+export function colIdToRef(metaTables: { [p: string]: TableDataAction }, tableId: string, colId: string) {
   const tableRef = tableIdToRef(metaTables, tableId);
 
   const [, , colRefs, columnData] = metaTables._grist_Tables_column;
@@ -3666,12 +3666,12 @@ export function createSandbox(options: {
   preferredPythonVersion: '3',
   sandboxOptions?: Partial<ISandboxOptions>,
 }) {
-  const {docId, preferredPythonVersion, sandboxOptions, server} = options;
+  const { docId, preferredPythonVersion, sandboxOptions, server } = options;
   return server.create.NSandbox({
     comment: docId,
     logCalls: false,
     logTimes: true,
-    logMeta: {docId},
+    logMeta: { docId },
     preferredPythonVersion,
     sandboxOptions,
   });

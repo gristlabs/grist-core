@@ -1,20 +1,20 @@
-import {UserAPI} from 'app/common/UserAPI';
-import {DocWorkerMap, getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
-import {Deps} from 'app/server/lib/DocWorkerLoadTracker';
-import {DocStatus, DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
-import {FlexServer} from 'app/server/lib/FlexServer';
-import {NSandbox} from 'app/server/lib/NSandbox';
-import {Permit} from 'app/server/lib/Permit';
-import {MergedServer} from "app/server/MergedServer";
-import {delay, promisifyAll} from 'bluebird';
-import {assert, expect} from 'chai';
-import {countBy, values} from 'lodash';
-import {createClient, RedisClient} from 'redis';
-import {TestSession} from 'test/gen-server/apiUtils';
-import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
+import { UserAPI } from 'app/common/UserAPI';
+import { DocWorkerMap, getDocWorkerMap } from 'app/gen-server/lib/DocWorkerMap';
+import { Deps } from 'app/server/lib/DocWorkerLoadTracker';
+import { DocStatus, DocWorkerInfo, IDocWorkerMap } from 'app/server/lib/DocWorkerMap';
+import { FlexServer } from 'app/server/lib/FlexServer';
+import { NSandbox } from 'app/server/lib/NSandbox';
+import { Permit } from 'app/server/lib/Permit';
+import { MergedServer } from "app/server/MergedServer";
+import { delay, promisifyAll } from 'bluebird';
+import { assert, expect } from 'chai';
+import { countBy, values } from 'lodash';
+import { createClient, RedisClient } from 'redis';
+import { TestSession } from 'test/gen-server/apiUtils';
+import { createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed';
 import sinon from 'sinon';
 import * as testUtils from 'test/server/testUtils';
-import {waitForIt} from 'test/server/wait';
+import { waitForIt } from 'test/server/wait';
 
 promisifyAll(RedisClient.prototype);
 
@@ -63,7 +63,7 @@ describe('DocWorkerMap', function() {
           await assert.isRejected(workers.assignDocWorker('a-doc'), /no doc workers/);
 
           // Add a worker
-          await workers.addWorker({id: 'worker1', internalUrl: 'internal', publicUrl: 'public'});
+          await workers.addWorker({ id: 'worker1', internalUrl: 'internal', publicUrl: 'public' });
 
           // Still no assignment
           await assert.isRejected(workers.assignDocWorker('a-doc'), /no doc workers/);
@@ -97,8 +97,8 @@ describe('DocWorkerMap', function() {
         it('can release assignments', async function() {
           const workers = new DocWorkerMap([cli]);
 
-          await workers.addWorker({id: 'worker1', internalUrl: 'internal', publicUrl: 'public'});
-          await workers.addWorker({id: 'worker2', internalUrl: 'internal', publicUrl: 'public'});
+          await workers.addWorker({ id: 'worker1', internalUrl: 'internal', publicUrl: 'public' });
+          await workers.addWorker({ id: 'worker2', internalUrl: 'internal', publicUrl: 'public' });
 
           await workers.setWorkerAvailability('worker1', true);
 
@@ -128,7 +128,7 @@ describe('DocWorkerMap', function() {
           // Make some workers available
           const W = 4;
           for (let i = 0; i < W; i++) {
-            await workers.addWorker({id: `worker${i}`, internalUrl: 'internal', publicUrl: 'public'});
+            await workers.addWorker({ id: `worker${i}`, internalUrl: 'internal', publicUrl: 'public' });
             await workers.setWorkerAvailability(`worker${i}`, true);
           }
 
@@ -203,7 +203,7 @@ describe('DocWorkerMap', function() {
               assignmentCountByWorkerId.clear();
               for (let i = 1; i <= docCount; i++) {
                 const docId = `doc${i}`;
-                const {docWorker} = await workerMap.assignDocWorker(docId);
+                const { docWorker } = await workerMap.assignDocWorker(docId);
                 const count = assignmentCountByWorkerId.get(docWorker.id) ?? 0;
                 assignmentCountByWorkerId.set(docWorker.id, count + 1);
                 // We call this function multiple times, so we need to release
@@ -253,7 +253,7 @@ describe('DocWorkerMap', function() {
           }
           let workers = new DocWorkerMap([cli], 'ver1');
           for (let i = 0; i < 5; i++) {
-            await workers.addWorker({id: `worker${i}`, internalUrl: 'internal', publicUrl: 'public'});
+            await workers.addWorker({ id: `worker${i}`, internalUrl: 'internal', publicUrl: 'public' });
             await workers.setWorkerAvailability(`worker${i}`, true);
           }
           let elections = await cli.hgetallAsync('elections-ver1');
@@ -278,7 +278,7 @@ describe('DocWorkerMap', function() {
 
           // suppose worker0 dies, and worker5 is added to replace it
           await workers.removeWorker('worker0');
-          await workers.addWorker({id: `worker5`, internalUrl: 'internal', publicUrl: 'public'});
+          await workers.addWorker({ id: `worker5`, internalUrl: 'internal', publicUrl: 'public' });
           await workers.setWorkerAvailability('worker5', true);
           for (let i = 0; i < 20; i++) {
             const assignment = await workers.assignDocWorker(`blizzard${i}`);
@@ -287,7 +287,7 @@ describe('DocWorkerMap', function() {
 
           // suppose worker1 dies, and worker6 is added to replace it
           await workers.removeWorker('worker1');
-          await workers.addWorker({id: `worker6`, internalUrl: 'internal', publicUrl: 'public'});
+          await workers.addWorker({ id: `worker6`, internalUrl: 'internal', publicUrl: 'public' });
           await workers.setWorkerAvailability('worker6', true);
           for (let i = 0; i < 20; i++) {
             const assignment = await workers.assignDocWorker(`funkytown${i}`);
@@ -297,7 +297,7 @@ describe('DocWorkerMap', function() {
           // suppose we add a new deployment...
           workers = new DocWorkerMap([cli], 'ver2');
           for (let i = 0; i < 5; i++) {
-            await workers.addWorker({id: `worker${i}_v2`, internalUrl: 'internal', publicUrl: 'public'});
+            await workers.addWorker({ id: `worker${i}_v2`, internalUrl: 'internal', publicUrl: 'public' });
             await workers.setWorkerAvailability(`worker${i}_v2`, true);
           }
           assert.sameMembers(await cli.smembersAsync('workers-available-blizzard'),
@@ -349,13 +349,13 @@ describe('DocWorkerMap', function() {
 
           // Register a few regular workers.
           for (let i = 0; i < 3; i++) {
-            await workers.addWorker({id: `worker${i}`, internalUrl: 'internal', publicUrl: 'public'});
+            await workers.addWorker({ id: `worker${i}`, internalUrl: 'internal', publicUrl: 'public' });
             await workers.setWorkerAvailability(`worker${i}`, true);
           }
 
           // Register a worker in a special group.
-          await workers.addWorker({id: 'worker_secondary', internalUrl: 'internal', publicUrl: 'public',
-            group: 'secondary'});
+          await workers.addWorker({ id: 'worker_secondary', internalUrl: 'internal', publicUrl: 'public',
+            group: 'secondary' });
           await workers.setWorkerAvailability('worker_secondary', true);
 
           // Check that worker lists look sane.
@@ -418,13 +418,13 @@ describe('DocWorkerMap', function() {
         });
 
         it('can manage permits', async function() {
-          const store = new DocWorkerMap([cli], undefined, {permitMsec: 1000}).getPermitStore('1');
+          const store = new DocWorkerMap([cli], undefined, { permitMsec: 1000 }).getPermitStore('1');
 
           // Make a doc permit and a workspace permit
-          const permit1: Permit = {docId: 'docId1'};
+          const permit1: Permit = { docId: 'docId1' };
           const key1 = await store.setPermit(permit1);
           assert(key1.startsWith('permit-1-'));
-          const permit2: Permit = {workspaceId: 99};
+          const permit2: Permit = { workspaceId: 99 };
           const key2 = await store.setPermit(permit2);
           assert(key2.startsWith('permit-1-'));
           assert.notEqual(key1, key2);
@@ -447,7 +447,7 @@ describe('DocWorkerMap', function() {
           assert.equal(await store.getPermit(key2), null);
 
           // make sure permit stores are distinct
-          const store2 = new DocWorkerMap([cli], undefined, {permitMsec: 1000}).getPermitStore('2');
+          const store2 = new DocWorkerMap([cli], undefined, { permitMsec: 1000 }).getPermitStore('2');
           const key3 = await store2.setPermit(permit1);
           assert(key3.startsWith('permit-2-'));
           const fakeKey3 = key3.replace('permit-2-', 'permit-1-');
@@ -460,13 +460,13 @@ describe('DocWorkerMap', function() {
       });
 
       describe('group assignment', function() {
-        let servers: {[key: string]: FlexServer};
+        let servers: { [key: string]: FlexServer };
         let workers: IDocWorkerMap;
         before(async function() {
           // Create a home server and some workers.
           setUpDB(this);
           await createInitialDb();
-          const opts = {logToConsole: false, externalStorage: false};
+          const opts = { logToConsole: false, externalStorage: false };
           // We need to reset some environment variables - we do so
           // naively, so throw if they are already set.
           assert.equal(process.env.REDIS_URL, undefined);
@@ -504,7 +504,7 @@ describe('DocWorkerMap', function() {
           const docs4 = docs4MergedServer.flexServer;
           await docs4MergedServer.run();
 
-          servers = {home, docs1, docs2, docs3, docs4};
+          servers = { home, docs1, docs2, docs3, docs4 };
           workers = getDocWorkerMap();
         });
 
@@ -526,8 +526,8 @@ describe('DocWorkerMap', function() {
           const session = new TestSession(servers.home);
           const api = await session.createHomeApi('chimpy', 'nasa');
           const supportApi = await session.createHomeApi('support', 'docs', true);
-          const ws1 = await api.newWorkspace({name: 'ws1'}, 'current');
-          const doc1 = await api.newDoc({name: 'doc1'}, ws1);
+          const ws1 = await api.newWorkspace({ name: 'ws1' }, 'current');
+          const doc1 = await api.newDoc({ name: 'doc1' }, ws1);
 
           // Exercise it.
           await api.getDocAPI(doc1).getRows('Table1');
@@ -637,7 +637,7 @@ describe('DocWorkerMap', function() {
               _client: { sismemberAsync: sismemberAsyncStub },
             };
             const result = await DocWorkerMap.prototype.isWorkerRegistered.call(
-              stubDocWorkerMap, {...baseWorkerInfo, group: ctx.group },
+              stubDocWorkerMap, { ...baseWorkerInfo, group: ctx.group },
             );
             expect(result).to.equal(ctx.expectedResult);
             expect(sismemberAsyncStub.calledOnceWith(ctx.expectedKey, baseWorkerInfo.id)).to.equal(true);
@@ -650,7 +650,7 @@ describe('DocWorkerMap', function() {
           const MEMORY_PER_DOC_MB = 50;
           const MAX_MEMORY_MB = 1024;
 
-          let servers: {[key: string]: FlexServer};
+          let servers: { [key: string]: FlexServer };
           let workers: IDocWorkerMap;
           let oldEnv: testUtils.EnvironmentSnapshot;
           let sandbox: sinon.SinonSandbox;
@@ -675,11 +675,11 @@ describe('DocWorkerMap', function() {
             process.env.REDIS_URL = process.env.TEST_REDIS_URL;
             process.env.GRIST_WORKER_GROUP = 'default';
 
-            const opts = {logToConsole: false, externalStorage: false};
+            const opts = { logToConsole: false, externalStorage: false };
             const homeMergedServer = await MergedServer.create(0, ['home'], opts);
             const home = homeMergedServer.flexServer;
             await homeMergedServer.run();
-            servers = {home};
+            servers = { home };
             for (let i = 1; i <= 3; i++) {
               const workerId = `worker${i}`;
               process.env.GRIST_DOC_WORKER_ID = workerId;
@@ -692,8 +692,8 @@ describe('DocWorkerMap', function() {
 
             session = new TestSession(servers.home);
             api = await session.createHomeApi('chimpy', 'nasa', true);
-            wsId = await api.newWorkspace({name: 'ws'}, 'current');
-            docId = await api.newDoc({name: 'doc'}, wsId);
+            wsId = await api.newWorkspace({ name: 'ws' }, 'current');
+            docId = await api.newDoc({ name: 'doc' }, wsId);
           });
 
           after(async function() {
@@ -748,7 +748,7 @@ describe('DocWorkerMap', function() {
             const docCount = 10;
             const createDocPromises = [];
             for (let i = 1; i <= docCount; i++) {
-              createDocPromises.push(api.newDoc({name: 'doc'}, wsId));
+              createDocPromises.push(api.newDoc({ name: 'doc' }, wsId));
             }
             const docIds = await Promise.all(createDocPromises);
             await Promise.all(docIds.map(docId => api.getDocAPI(docId).getRows('Table1')));

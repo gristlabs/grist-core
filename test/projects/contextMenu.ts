@@ -11,7 +11,7 @@ async function contextMenu(x?: number, y?: number) {
       // adjust x, y to position relative to body
       x = Math.ceil(x - rect.width * 0.5);
       y = Math.ceil(y - rect.height * 0.5);
-      actions.move({x, y, origin: driver.find('body')});
+      actions.move({ x, y, origin: driver.find('body') });
     }
     actions.contextClick();
   });
@@ -130,7 +130,7 @@ describe('contextMenu', function() {
     assert.equal(await driver.find('.grist-floating-menu').isPresent(), true);
 
     // click anywhere outside
-    await driver.mouseMoveBy({x: -5, y: -5});
+    await driver.mouseMoveBy({ x: -5, y: -5 });
     await driver.withActions(actions => actions.click());
 
     // check menu is closed

@@ -1,7 +1,7 @@
-import {UserAPI} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { UserAPI } from 'app/common/UserAPI';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('RawData', function () {
   this.timeout(30000);
@@ -91,7 +91,7 @@ describe('RawData', function () {
     await driver.findContent('.test-raw-data-table-title', 'Country').click();
     assert.isTrue(await driver.find('.test-raw-data-overlay').isDisplayed());
     await driver.find('.test-raw-data-close-button').mouseMove();
-    await driver.mouseMoveBy({y: 100}); // move 100px below (not negative value)
+    await driver.mouseMoveBy({ y: 100 }); // move 100px below (not negative value)
     await driver.withActions(a => a.click());
     assert.isFalse(await driver.find('.test-raw-data-overlay').isPresent());
   });
@@ -197,7 +197,7 @@ describe('RawData', function () {
     await driver.navigate().refresh();
     await gu.waitForDocToLoad();
     assert.isTrue(await driver.findWait('.test-raw-data-overlay', 100).isDisplayed());
-    assert.deepEqual(await gu.getCursorPosition(), {col: 3, rowNum: 2});
+    assert.deepEqual(await gu.getCursorPosition(), { col: 3, rowNum: 2 });
     // Close overlay.
     await driver.sendKeys(Key.ESCAPE);
   });
@@ -213,7 +213,7 @@ describe('RawData', function () {
     await gu.checkTextEditor(gu.exactMatch('123456789'));
     // Close editor.
     await driver.sendKeys(Key.ESCAPE);
-    assert.deepEqual(await gu.getCursorPosition(), {col: 2, rowNum: 9});
+    assert.deepEqual(await gu.getCursorPosition(), { col: 2, rowNum: 9 });
     // Close overlay.
     await driver.sendKeys(Key.ESCAPE);
   });
@@ -230,7 +230,7 @@ describe('RawData', function () {
       await driver.get(anchor);
       await gu.waitForAnchor();
       assert.isTrue(await driver.findWait('.test-raw-data-overlay', 100).isDisplayed());
-      assert.deepEqual(await gu.getCursorPosition(), {col: 0, rowNum: 10});
+      assert.deepEqual(await gu.getCursorPosition(), { col: 0, rowNum: 10 });
     });
     // Close overlay.
     await driver.sendKeys(Key.ESCAPE);
@@ -384,7 +384,7 @@ describe('RawData', function () {
     // This was old buggy behavior that is now fixed.
 
     assert.equal(url, await driver.getCurrentUrl());
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 1, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: 0 });
 
     // Switching pages was producing error after undoing summary table.
     await gu.openPage('Empire');
@@ -509,20 +509,20 @@ describe('RawData', function () {
     // Send some keys, to make sure we have focus on active section.
     // RawData popup is manipulating what section has focus, so we need to make sure that
     // focus is properly restored.
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 1, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: 0 });
     await gu.getCell(0, 2).click();
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
     await gu.sendKeys(Key.ESCAPE);
     await gu.showRawData();
     assert.equal(await gu.getActiveSectionTitle(), 'City');
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 20, col: 0}); // raw popup is not sorted
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 20, col: 0 }); // raw popup is not sorted
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
     await gu.sendKeys(Key.ESCAPE);
     // Click on another cell, check page hasn't changed (there was a bug about that)
-    await gu.getCell({rowNum: 21, col: 1}).click();
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 21, col: 1});
+    await gu.getCell({ rowNum: 21, col: 1 }).click();
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 21, col: 1 });
     assert.equal(await gu.getCurrentPageName(), 'City');
 
     // Close by hitting escape.
@@ -530,7 +530,7 @@ describe('RawData', function () {
     await assertNoPopup();
     // Make sure we see CITY, and everything is where it should be.
     assert.equal(await gu.getActiveSectionTitle(), 'CITY');
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 2, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: 0 });
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
     await gu.sendKeys(Key.ESCAPE);
@@ -540,7 +540,7 @@ describe('RawData', function () {
     await gu.closeRawTable();
     await assertNoPopup();
     assert.equal(await gu.getActiveSectionTitle(), 'CITY');
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 2, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: 0 });
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
     await gu.sendKeys(Key.ESCAPE);
@@ -550,7 +550,7 @@ describe('RawData', function () {
     await gu.getPageItem('Country').click();
     await assertNoPopup();
     assert.equal(await gu.getActiveSectionTitle(), 'COUNTRY');
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 1, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: 0 });
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
     await gu.sendKeys(Key.ESCAPE);
@@ -560,7 +560,7 @@ describe('RawData', function () {
     assert.equal(await gu.getActiveSectionTitle(), 'COUNTRY Card List');
     await gu.showRawData();
     assert.equal(await gu.getActiveSectionTitle(), 'Country');
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 1, col: 1});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: 1 });
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
     await gu.sendKeys(Key.ESCAPE);
@@ -578,7 +578,7 @@ describe('RawData', function () {
     const testResult = async () => {
       await waitForAnchorPopup(anchorLink);
       assert.equal(await gu.getActiveSectionTitle(), 'COUNTRY Card List');
-      assert.deepEqual(await gu.getCursorPosition(), {rowNum: 1, col: 'Code'});
+      assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: 'Code' });
       await gu.sendKeys("abc");
       await gu.checkTextEditor("abc");
       await gu.sendKeys(Key.ESCAPE);
@@ -600,7 +600,7 @@ describe('RawData', function () {
     await gu.getDetailCell('Code', 1).click();
     await gu.addNewSection(/Chart/, /CountryLanguage/);
     // s22 is the new section id, we also strip row/column.
-    let chartLink = replaceAnchor(await gu.getAnchor(), {s: '22', a: '2'});
+    let chartLink = replaceAnchor(await gu.getAnchor(), { s: '22', a: '2' });
     await gu.getPageItem('City').click();
     chartLink = (await driver.getCurrentUrl()) + '#' + chartLink.split('#')[1];
     await waitForAnchorPopup(chartLink);
@@ -735,7 +735,7 @@ describe('RawData', function () {
     await gu.getCell(0, 1).find('.test-ref-link-icon').click();
     assert.isFalse(await driver.find('.test-record-card-popup-overlay').isPresent());
     await gu.wipeToasts();  // notification build-up can cover setType button.
-    await gu.setType('Reference List', {apply: true});
+    await gu.setType('Reference List', { apply: true });
     await gu.getCell(0, 1).find('.test-ref-list-link-icon').click();
     assert.isFalse(await driver.find('.test-record-card-popup-overlay').isPresent());
   });
@@ -768,7 +768,7 @@ describe('RawData', function () {
     assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
     await gu.sendKeys(Key.ESCAPE);
     assert.isFalse(await driver.find('.test-record-card-popup-overlay').isPresent());
-    await gu.setType('Reference', {apply: true});
+    await gu.setType('Reference', { apply: true });
     await gu.getCell(0, 1).find('.test-ref-link-icon').click();
     assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
   });

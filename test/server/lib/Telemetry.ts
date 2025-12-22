@@ -1,13 +1,13 @@
-import {GristDeploymentType} from 'app/common/gristUrls';
-import {PrefSource} from 'app/common/InstallAPI';
-import {TelemetryEvent, TelemetryLevel} from 'app/common/Telemetry';
-import {ILogMeta, LogMethods} from 'app/server/lib/LogMethods';
-import {filterMetadata, ITelemetry, Telemetry} from 'app/server/lib/Telemetry';
+import { GristDeploymentType } from 'app/common/gristUrls';
+import { PrefSource } from 'app/common/InstallAPI';
+import { TelemetryEvent, TelemetryLevel } from 'app/common/Telemetry';
+import { ILogMeta, LogMethods } from 'app/server/lib/LogMethods';
+import { filterMetadata, ITelemetry, Telemetry } from 'app/server/lib/Telemetry';
 import axios from 'axios';
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as sinon from 'sinon';
-import {TestServer} from 'test/gen-server/apiUtils';
-import {configForUser} from 'test/gen-server/testUtils';
+import { TestServer } from 'test/gen-server/apiUtils';
+import { configForUser } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
 const chimpy = configForUser('Chimpy');
@@ -60,7 +60,7 @@ describe('Telemetry', function() {
         homeUrl = await server.start();
         if (settingSource ==='preferences') {
           await axios.patch(`${homeUrl}/api/install/prefs`, {
-            telemetry: {telemetryLevel},
+            telemetry: { telemetryLevel },
           }, chimpy);
         }
         installationId = (await server.server.getActivations().current()).id;
@@ -218,14 +218,14 @@ describe('Telemetry', function() {
       if (telemetryLevel !== 'off') {
         it('throws an error when an event is invalid', async function() {
           await assert.isRejected(
-            telemetry.logEventAsync(null, 'invalidEvent' as TelemetryEvent, {limited: {method: 'GET'}}),
+            telemetry.logEventAsync(null, 'invalidEvent' as TelemetryEvent, { limited: { method: 'GET' } }),
             /Unknown telemetry event: invalidEvent/,
           );
         });
 
         it("throws an error when an event's metadata is invalid", async function() {
           await assert.isRejected(
-            telemetry.logEventAsync(null, 'documentOpened', {limited: {invalidMetadata: 'GET'}}),
+            telemetry.logEventAsync(null, 'documentOpened', { limited: { invalidMetadata: 'GET' } }),
             /Unknown metadata for telemetry event documentOpened: invalidMetadata/,
           );
         });
@@ -233,7 +233,7 @@ describe('Telemetry', function() {
         if (telemetryLevel === 'limited') {
           it("throws an error when an event's metadata requires an elevated telemetry level", async function() {
             await assert.isRejected(
-              telemetry.logEventAsync(null, 'documentOpened', {limited: {userId: 1}}),
+              telemetry.logEventAsync(null, 'documentOpened', { limited: { userId: 1 } }),
 
               /Telemetry metadata userId of event documentOpened requires a minimum telemetry level of 2 but the current level is 1/,
             );
@@ -247,7 +247,7 @@ describe('Telemetry', function() {
             await axios.post(`${homeUrl}/api/telemetry`, {
               event: 'watchedVideoTour',
               metadata: {
-                limited: {watchTimeSeconds: 30},
+                limited: { watchTimeSeconds: 30 },
               },
             }, chimpy);
             const [event, metadata] = loggedEvents[loggedEvents.length - 1];
@@ -315,7 +315,7 @@ describe('Telemetry', function() {
             await axios.post(`${homeUrl}/api/telemetry`, {
               event: 'watchedVideoTour',
               metadata: {
-                limited: {watchTimeSeconds: 30},
+                limited: { watchTimeSeconds: 30 },
               },
             }, chimpy);
             const [, event, metadata] = forwardEventSpy.lastCall.args;
@@ -372,7 +372,7 @@ describe('Telemetry', function() {
       }
       else {
         it('does not log telemetry events sent to /api/telemetry', async function() {
-          telemetry.logEvent(null, 'apiUsage', {limited: {method: 'GET'}});
+          telemetry.logEvent(null, 'apiUsage', { limited: { method: 'GET' } });
           assert.isEmpty(loggedEvents);
           assert.equal(forwardEventSpy.callCount, 0);
         });
@@ -421,14 +421,14 @@ describe('Telemetry', function() {
 
     it('PATCH /install/prefs returns 403 for non-default users', async function() {
       const resp = await axios.patch(`${homeUrl}/api/install/prefs`, {
-        telemetry: {telemetryLevel: 'limited'},
+        telemetry: { telemetryLevel: 'limited' },
       }, kiwi);
       assert.equal(resp.status, 403);
     });
 
     it('PATCH /install/prefs returns 200 for the default user', async function() {
       let resp = await axios.patch(`${homeUrl}/api/install/prefs`, {
-        telemetry: {telemetryLevel: 'limited'},
+        telemetry: { telemetryLevel: 'limited' },
       }, chimpy);
       assert.equal(resp.status, 200);
 
@@ -461,7 +461,7 @@ describe('Telemetry', function() {
       assert.equal(resp.status, 200);
 
       resp = await axios.patch(`${homeUrl}/api/install/prefs`, {
-        telemetry: {telemetryLevel: 'off'},
+        telemetry: { telemetryLevel: 'off' },
       }, chimpy);
       assert.equal(resp.status, 200);
 

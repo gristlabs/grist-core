@@ -1,20 +1,20 @@
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as sinon from 'sinon';
 import * as sqlite3 from '@gristlabs/sqlite3';
 
-import {delay} from 'app/common/delay';
-import {Role} from 'app/common/roles';
-import {ParseFileResult} from 'app/plugin/FileParserAPI';
-import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
-import {ActiveDoc, Deps} from 'app/server/lib/ActiveDoc';
-import {Client} from 'app/server/lib/Client';
-import {DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
-import {DocPluginManager} from 'app/server/lib/DocPluginManager';
-import {DocSession, DocSessionPrecursor, makeExceptionalDocSession} from 'app/server/lib/DocSession';
-import {createDocTools, createUpload} from 'test/server/docTools';
+import { delay } from 'app/common/delay';
+import { Role } from 'app/common/roles';
+import { ParseFileResult } from 'app/plugin/FileParserAPI';
+import { ActionHistoryImpl } from 'app/server/lib/ActionHistoryImpl';
+import { ActiveDoc, Deps } from 'app/server/lib/ActiveDoc';
+import { Client } from 'app/server/lib/Client';
+import { DummyAuthorizer } from 'app/server/lib/DocAuthorizer';
+import { DocPluginManager } from 'app/server/lib/DocPluginManager';
+import { DocSession, DocSessionPrecursor, makeExceptionalDocSession } from 'app/server/lib/DocSession';
+import { createDocTools, createUpload } from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
-import {waitForIt} from 'test/server/wait';
-import {AuthSession} from 'app/server/lib/AuthSession';
+import { waitForIt } from 'test/server/wait';
+import { AuthSession } from 'app/server/lib/AuthSession';
 
 // This makes just enough of a Client to use with ActiveDoc.addClient() and ActiveDoc.closeDoc().
 function _makeFakeClient(): Client {
@@ -117,7 +117,7 @@ describe('ActiveDocShutdown', function() {
       // meanwhile.
       _sandbox.stub(DocPluginManager.prototype, "parseFile").callsFake(async function(): Promise<ParseFileResult> {
         await delay(timeout * 2);
-        return {parseOptions: {}, tables: []};
+        return { parseOptions: {}, tables: [] };
       });
 
       // The accessId only matters in having to be the same to create and retrieve the upload.
@@ -147,7 +147,7 @@ describe('ActiveDocShutdown', function() {
     sandbox.stub(Deps, 'ACTIVEDOC_TIMEOUT').value(0.001);
     const adoc = await docTools.loadFixtureDoc('World.grist');
     const session = docTools.createFakeSession();
-    const {tableData} = await adoc.fetchTable(session, 'Country', true);
+    const { tableData } = await adoc.fetchTable(session, 'Country', true);
     assert.equal(tableData[0], "TableData");
     assert.lengthOf(tableData[2], 239);   // There are 239 countries in this doc
   });
@@ -167,7 +167,7 @@ describe('ActiveDocShutdown', function() {
     // Same with another method.
     for (let i = 0; i < 4; i++) {
       await delay(timeout / 2);
-      await adoc.applyUserActions(session, [['UpdateRecord', 'Country', 1, {Name: 'Hello'}]]);
+      await adoc.applyUserActions(session, [['UpdateRecord', 'Country', 1, { Name: 'Hello' }]]);
     }
     assert.equal(docTools.getDocManager().numOpenDocs(), 1);
 
@@ -191,7 +191,7 @@ return c
     const adoc = await docTools.createDoc('ActiveDocShutdown-Loop-Shutdown');
     const session = docTools.createFakeSession();
     await adoc.applyUserActions(session, [
-      ["AddTable", 'Table1', [{id: "A"}, {id: "B"}, {id: "C"}]],
+      ["AddTable", 'Table1', [{ id: "A" }, { id: "B" }, { id: "C" }]],
       ["AddRecord", 'Table1', 1, {}],
     ]);
 
@@ -199,7 +199,7 @@ return c
 
     // Start a infinite-loop action that will never finish on its own.
     const actionResult = adoc.applyUserActions(session,
-      [['AddColumn', 'Table1', 'Loop', {isFormula: true, formula: infiniteLoopFormula}]])
+      [['AddColumn', 'Table1', 'Loop', { isFormula: true, formula: infiniteLoopFormula }]])
       .catch(err => err);
 
     // Check that the doc is open.
@@ -233,7 +233,7 @@ return c
     sandbox.stub(Deps, 'ACTIVEDOC_TIMEOUT').value(inactivityTimerMsec / 1000);
     sandbox.stub(Deps, 'KEEP_DOC_OPEN_TIMEOUT_MS').value(1000);
     sandbox.stub(Deps, 'SHUTDOWN_ITEM_TIMEOUT_MS').value(1000);
-    sandbox.stub(Deps, 'UPDATE_CURRENT_TIME_DELAY').value({delayMs: updateTimeMsec, varianceMs: 0});
+    sandbox.stub(Deps, 'UPDATE_CURRENT_TIME_DELAY').value({ delayMs: updateTimeMsec, varianceMs: 0 });
 
     // Create a doc, see that it's open.
     const adoc = await docTools.createDoc('ActiveDocShutdown-UpdateCurrentTime');
@@ -243,7 +243,7 @@ return c
     // Add a NOW() formula.
     const timeBeforeAction = Date.now();
     await adoc.applyUserActions(session, [
-      ["AddTable", 'Table1', [{id: "Time", type: 'DateTime', isFormula: true, formula: 'NOW()'}]],
+      ["AddTable", 'Table1', [{ id: "Time", type: 'DateTime', isFormula: true, formula: 'NOW()' }]],
       ["AddRecord", 'Table1', 1, {}],
     ]);
     const timeAfterAction = Date.now();
@@ -277,18 +277,18 @@ return c
     const inactivityTimerMsec = 10_000;
     sandbox.stub(Deps, 'ACTIVEDOC_TIMEOUT').value(inactivityTimerMsec / 1000);
     sandbox.stub(Deps, 'SHUTDOWN_ITEM_TIMEOUT_MS').value(1000);
-    sandbox.stub(Deps, 'UPDATE_CURRENT_TIME_DELAY').value({delayMs: 1000, varianceMs: 0});
+    sandbox.stub(Deps, 'UPDATE_CURRENT_TIME_DELAY').value({ delayMs: 1000, varianceMs: 0 });
 
     const adoc = await docTools.createDoc('ActiveDocShutdown-Loop-Reload');
     const session = docTools.createFakeSession();
     await adoc.applyUserActions(session, [
-      ["AddTable", 'Table1', [{id: "A"}, {id: "B"}, {id: "C"}]],
+      ["AddTable", 'Table1', [{ id: "A" }, { id: "B" }, { id: "C" }]],
       ["AddRecord", 'Table1', 1, {}],
     ]);
 
     // Start a infinite-loop action that will never finish on its own.
     const actionResult = adoc.applyUserActions(session,
-      [['AddColumn', 'Table1', 'Loop', {isFormula: true, formula: infiniteLoopFormula}]])
+      [['AddColumn', 'Table1', 'Loop', { isFormula: true, formula: infiniteLoopFormula }]])
       .catch(err => err);
 
     // Wait enough to get a time update to trigger, since that used to cause hangs.

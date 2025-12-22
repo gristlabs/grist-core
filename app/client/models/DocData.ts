@@ -4,15 +4,15 @@
  * It also provides the interface to apply actions to data.
  */
 
-import {DocComm} from 'app/client/components/DocComm';
-import {MetaTableData, TableData} from 'app/client/models/TableData';
-import {ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
-import {CellValue, getTableId, isDataAction, TableDataAction, UserAction} from 'app/common/DocActions';
-import {DocData as BaseDocData} from 'app/common/DocData';
-import {SchemaTypes} from 'app/common/schema';
-import {ColTypeMap} from 'app/common/TableData';
+import { DocComm } from 'app/client/components/DocComm';
+import { MetaTableData, TableData } from 'app/client/models/TableData';
+import { ApplyUAOptions, ApplyUAResult } from 'app/common/ActiveDocAPI';
+import { CellValue, getTableId, isDataAction, TableDataAction, UserAction } from 'app/common/DocActions';
+import { DocData as BaseDocData } from 'app/common/DocData';
+import { SchemaTypes } from 'app/common/schema';
+import { ColTypeMap } from 'app/common/TableData';
 import * as bluebird from 'bluebird';
-import {Emitter} from 'grainjs';
+import { Emitter } from 'grainjs';
 import defaults from 'lodash/defaults';
 
 const gristNotify = window.gristNotify!;
@@ -40,7 +40,7 @@ export class DocData extends BaseDocData {
    * @param {Object} metaTableData: A map from tableId to table data, presented as an action,
    *      equivalent to BulkAddRecord, i.e. ["TableData", tableId, rowIds, columnValues].
    */
-  constructor(public readonly docComm: DocComm, metaTableData: {[tableId: string]: TableDataAction}) {
+  constructor(public readonly docComm: DocComm, metaTableData: { [tableId: string]: TableDataAction }) {
     super(tableId => docComm.fetchTable(tableId), metaTableData);
     this._bundleSender = new BundleSender(this.docComm);
     this._virtualTablesFunc = new Map();
@@ -137,7 +137,7 @@ export class DocData extends BaseDocData {
     };
 
     const completionPromise = this._lastBundlePromise = doBundleActions();
-    return {preparePromise, triggerFinalize, completionPromise};
+    return { preparePromise, triggerFinalize, completionPromise };
   }
 
   // Execute a callback that may send multiple actions, and bundle those actions together. The
@@ -145,7 +145,7 @@ export class DocData extends BaseDocData {
   // If nestInActiveBundle is true, and there is an active bundle, then simply calls callback()
   // without starting a new bundle.
   public async bundleActions<T>(desc: string|null, callback: () => T|Promise<T>,
-    options: {nestInActiveBundle?: boolean} = {}): Promise<T> {
+    options: { nestInActiveBundle?: boolean } = {}): Promise<T> {
     if (options.nestInActiveBundle && this._bundlesPending) {
       return await callback();
     }
@@ -216,7 +216,7 @@ export class DocData extends BaseDocData {
       // thing the method does is splice back in the table names...
       return this.getTable(tableName)!.sendTableActions(tableActions, optDesc);
     }
-    const eventData = {actions};
+    const eventData = { actions };
     this.sendActionsEmitter.emit(eventData);
     const options = { desc: optDesc };
     if (this._shouldIncludeInBundle && !this._shouldIncludeInBundle(actions)) {

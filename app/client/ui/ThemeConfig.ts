@@ -1,11 +1,11 @@
-import {makeT} from 'app/client/lib/localization';
-import {AppModel} from 'app/client/models/AppModel';
+import { makeT } from 'app/client/lib/localization';
+import { AppModel } from 'app/client/models/AppModel';
 import * as css from 'app/client/ui/AccountPageCss';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {prefersColorSchemeDarkObs} from 'app/client/ui2018/theme';
-import {select} from 'app/client/ui2018/menus';
-import {ThemeName, themeNameAppearances} from 'app/common/ThemePrefs';
-import {Computed, Disposable, dom, makeTestId, styled} from 'grainjs';
+import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { prefersColorSchemeDarkObs } from 'app/client/ui2018/theme';
+import { select } from 'app/client/ui2018/menus';
+import { ThemeName, themeNameAppearances } from 'app/common/ThemePrefs';
+import { Computed, Disposable, dom, makeTestId, styled } from 'grainjs';
 
 const testId = makeTestId('test-theme-config-');
 const t = makeT('ThemeConfig');
@@ -47,9 +47,9 @@ export class ThemeConfig extends Disposable {
           select(
             this._themeName,
             [
-              {value: 'GristLight', label: 'Light'},
-              {value: 'GristDark', label: 'Dark'},
-              {value: 'HighContrastLight', label: 'Light (High Contrast)'},
+              { value: 'GristLight', label: 'Light' },
+              { value: 'GristDark', label: 'Dark' },
+              { value: 'HighContrastLight', label: 'Light (High Contrast)' },
             ],
             {
               disabled: this._syncWithOS,
@@ -77,12 +77,12 @@ export class ThemeConfig extends Disposable {
       // Important note: the `colors` property is not actually used for its original purpose.
       // It's currently our way to store the theme name in user prefs (without having to change the user prefs schema).
       // This is why we just repeat the name in both `light` and `dark` properties.
-      colors: {light: themeName, dark: themeName},
+      colors: { light: themeName, dark: themeName },
     });
   }
 
   private _updateSyncWithOS(syncWithOS: boolean) {
-    this._themePrefs.set({...this._themePrefs.get(), syncWithOS});
+    this._themePrefs.set({ ...this._themePrefs.get(), syncWithOS });
   }
 }
 

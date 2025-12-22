@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import {assert, driver} from 'mocha-webdriver';
 import {enterRulePart, findDefaultRuleSetWait, startEditingAccessRules} from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('SelectBySummary', function() {
   this.timeout(50000);
@@ -116,10 +116,10 @@ describe('SelectBySummary', function() {
     gu.revertChanges(async function() {
       // Select the record with ['2', 'a'] in the summary table
       // so those values will be used as defaults in the source table
-      await gu.getCell({section: 'TABLE1 [by onetwo, choices]', col: 'rownum', rowNum: 2}).click();
+      await gu.getCell({ section: 'TABLE1 [by onetwo, choices]', col: 'rownum', rowNum: 2 }).click();
 
       // Create new records with rownum = 99 and 100
-      await gu.getCell({section: 'TABLE1', col: 'rownum', rowNum: 3}).click();
+      await gu.getCell({ section: 'TABLE1', col: 'rownum', rowNum: 3 }).click();
       await gu.waitAppFocus();
       await gu.enterCell('99');
       await gu.enterCell('100');
@@ -145,7 +145,7 @@ describe('SelectBySummary', function() {
       );
 
       // Select a different record in the summary table, sanity check the linked table.
-      await gu.getCell({section: 'TABLE1 [by onetwo, choices]', col: 'rownum', rowNum: 3}).click();
+      await gu.getCell({ section: 'TABLE1 [by onetwo, choices]', col: 'rownum', rowNum: 3 }).click();
       assert.deepEqual(
         await gu.getVisibleGridCells({
           section: 'TABLE1',
@@ -160,7 +160,7 @@ describe('SelectBySummary', function() {
       );
 
       // Now go back to the previously selected summary table row.
-      await gu.getCell({section: 'TABLE1 [by onetwo, choices]', col: 'rownum', rowNum: 2}).click();
+      await gu.getCell({ section: 'TABLE1 [by onetwo, choices]', col: 'rownum', rowNum: 2 }).click();
       assert.deepEqual(
         await gu.getVisibleGridCells({
           section: 'TABLE1',
@@ -280,7 +280,7 @@ async function checkSelectingRecords(
 
   async function checkTargetGroup(targetGroupIndex: number) {
     const targetGroup = targetData[targetGroupIndex];
-    const countCell = await gu.getCell({section: summarySection, col: 'count', rowNum: targetGroupIndex + 1});
+    const countCell = await gu.getCell({ section: summarySection, col: 'count', rowNum: targetGroupIndex + 1 });
     const numTargetRows = targetGroup.length / 3;
     await countCell.click();
     assert.deepEqual(
@@ -308,7 +308,7 @@ async function checkSelectingRecords(
     // Check recursiveMoveToCursorPos
     for (let rowNum = 1; rowNum <= 8; rowNum++) {
       // Click an anchor link
-      const anchorCell = gu.getCell({section: "Anchors", rowNum, col: 1});
+      const anchorCell = gu.getCell({ section: "Anchors", rowNum, col: 1 });
       await driver.withActions(a => a.click(anchorCell.find('.test-tb-link')));
 
       // Check that navigation to the link target worked

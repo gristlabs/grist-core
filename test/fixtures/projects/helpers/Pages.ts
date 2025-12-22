@@ -23,16 +23,16 @@ let records = sampleData
     pagePos: index,
   }));
 
-TreeNodeRecord.prototype.sendActions = async (actions: {update?: TreeRecord[]}) => {
+TreeNodeRecord.prototype.sendActions = async (actions: { update?: TreeRecord[] }) => {
   if (actions.update && actions.update.length) {
-    const map = actions.update.reduce((acc, rec) => (acc[rec.id] = rec, acc), {} as {[id: number]: TreeRecord});
+    const map = actions.update.reduce((acc, rec) => (acc[rec.id] = rec, acc), {} as { [id: number]: TreeRecord });
     records = records.map(rec => map[rec.id] || rec).sort((a, b) => nativeCompare(a.pagePos, b.pagePos));
     updateModel();
   }
 };
 
 function buildModel() {
-  const table = {getRecords: () => records};
+  const table = { getRecords: () => records };
   return fromTableData(table as any, buildDom);
 }
 
@@ -63,7 +63,7 @@ export async function addNewPage() {
 }
 
 export function addPages(isOpen: Observable<boolean>) {
-  return addTreeView(pagesModel, {isOpen, selected});
+  return addTreeView(pagesModel, { isOpen, selected });
 }
 
 function buildDom(id: number) {

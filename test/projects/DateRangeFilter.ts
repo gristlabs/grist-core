@@ -138,7 +138,7 @@ describe('DateRangeFilter', function() {
     await fu.setBound('min', '2022-09-18');
 
     // click '2 days ago' from menu
-    await fu.setBound('min', {relative: '2 days ago'});
+    await fu.setBound('min', { relative: '2 days ago' });
 
     // check bound shows 2 days ago
     assert.equal(await fu.getBoundText('min'), '2 days ago');
@@ -159,7 +159,7 @@ describe('DateRangeFilter', function() {
     await fu.setBound('min', '2022-09-24');
 
     // click '4 days from now' from menu
-    await fu.setBound('min', {relative: '4 days from now'});
+    await fu.setBound('min', { relative: '4 days from now' });
 
     // check bound shows 4 days from now
     assert.equal(await fu.getBoundText('min'), '4 days from now');
@@ -177,7 +177,7 @@ describe('DateRangeFilter', function() {
 
   it('should allow deleting of relative date', async function() {
     // set min bound to '3 days ago`
-    await fu.setBound('min', {relative: '3 days ago'});
+    await fu.setBound('min', { relative: '3 days ago' });
 
     // check min bound shows `3 days ago`
     assert.equal(await fu.getBoundText('min'), '3 days ago');
@@ -185,8 +185,8 @@ describe('DateRangeFilter', function() {
     // hover token and click the x button
     await driver.withActions(
       action => action
-        .move({origin: fu.findBound('min').find('.test-filter-menu-tokenfield-token')})
-        .move({origin: driver.find('.test-filter-menu-tokenfield-delete')})
+        .move({ origin: fu.findBound('min').find('.test-filter-menu-tokenfield-token') })
+        .move({ origin: driver.find('.test-filter-menu-tokenfield-delete') })
         .click(),
     );
 
@@ -196,7 +196,7 @@ describe('DateRangeFilter', function() {
 
   it('should delete relative date on keyboard Delete', async function() {
     // set min bound to '3 days ago`
-    await fu.setBound('min', {relative: '3 days ago'});
+    await fu.setBound('min', { relative: '3 days ago' });
 
     // check min bound shows `3 days ago`
     assert.equal(await fu.getBoundText('min'), '3 days ago');
@@ -214,11 +214,11 @@ describe('DateRangeFilter', function() {
     assert.equal(await fu.getBoundText('min'), '2022-09-18');
 
     // click '2 days ago' from menu
-    await fu.setBound('min', {relative: '2 days ago'});
+    await fu.setBound('min', { relative: '2 days ago' });
     assert.equal(await fu.getBoundText('min'), '2 days ago');
 
     // click  2022-09-18 from menu
-    await fu.setBound('min', {relative: '2022-09-18'});
+    await fu.setBound('min', { relative: '2022-09-18' });
 
     // check min bound shows 2022-09-18
     assert.equal(await fu.getBoundText('min'), '2022-09-18');
@@ -234,7 +234,7 @@ describe('DateRangeFilter', function() {
     await fu.setBound('min', '2022-09-18');
 
     // click '2 days ago' from menu
-    await fu.setBound('min', {relative: '2 days ago'});
+    await fu.setBound('min', { relative: '2 days ago' });
 
     // pick 2022-09-17 from calendar
     await driver.findContent('.datepicker-inline td.day', '17').click();
@@ -248,10 +248,10 @@ describe('DateRangeFilter', function() {
     await fu.setBound('min', '2022-09-18');
 
     // click '2 days ago' from menu
-    await fu.setBound('min', {relative: '2 days ago'});
+    await fu.setBound('min', { relative: '2 days ago' });
 
     // set min bound to 2022-09-18
-    await fu.setBound('min', {relative: '2022-09-18'});
+    await fu.setBound('min', { relative: '2022-09-18' });
 
     // pick 2022-09-17 from calendar
     await driver.findContent('.datepicker-inline td.day', '17').click();
@@ -394,7 +394,7 @@ describe('DateRangeFilter', function() {
     // keypresses aren't visible (as expected), but once you hit Delete, you see an [object Object]
     // string.
 
-    await fu.setBound('max', {relative: '3 days ago'});
+    await fu.setBound('max', { relative: '3 days ago' });
     await gu.sendKeys('random keys', Key.BACK_SPACE);
     assert.equal(await fu.getBoundText('max'), 'End');
   });

@@ -72,10 +72,10 @@ describe('VisibleFieldsConfig', function() {
     // Drag 'B' below 'C'
     await driver.withActions(actions => (
       actions
-        .move({origin: findField('visible', /B/)})
-        .move({origin: findField('visible', /B/).find('.test-dragger')})
+        .move({ origin: findField('visible', /B/) })
+        .move({ origin: findField('visible', /B/).find('.test-dragger') })
         .press()
-        .move({origin: findField('visible', /C/), y: 1})
+        .move({ origin: findField('visible', /C/), y: 1 })
         .release()
     ));
     await gu.waitForServer();

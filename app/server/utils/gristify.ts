@@ -1,12 +1,12 @@
-import {ColInfoWithId} from 'app/common/DocActions';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
-import {DocManager} from 'app/server/lib/DocManager';
-import {makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';
-import {DocStorage} from 'app/server/lib/DocStorage';
-import {createDummyGristServer} from 'app/server/lib/GristServer';
-import {TrivialDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {DBMetadata, OpenMode, quoteIdent, SQLiteDB} from 'app/server/lib/SQLiteDB';
+import { ColInfoWithId } from 'app/common/DocActions';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { AttachmentStoreProvider } from 'app/server/lib/AttachmentStoreProvider';
+import { DocManager } from 'app/server/lib/DocManager';
+import { makeExceptionalDocSession, OptDocSession } from 'app/server/lib/DocSession';
+import { DocStorage } from 'app/server/lib/DocStorage';
+import { createDummyGristServer } from 'app/server/lib/GristServer';
+import { TrivialDocStorageManager } from 'app/server/lib/IDocStorageManager';
+import { DBMetadata, OpenMode, quoteIdent, SQLiteDB } from 'app/server/lib/SQLiteDB';
 
 /**
  * A utility class for modifying a SQLite file to be viewed/edited with Grist.
@@ -38,7 +38,7 @@ export class Gristifier {
    * SQLite file as a Grist document, but in particular cases it can
    * work and be very useful.
    */
-  public async gristify(options: {addSort?: boolean}) {
+  public async gristify(options: { addSort?: boolean }) {
     // Remove any existing Grist material from the file.
     await this.degristify();
 
@@ -59,7 +59,7 @@ export class Gristifier {
     );
     const activeDoc = new ActiveDoc(docManager, this._filename);
     const docSession = makeExceptionalDocSession('system');
-    await activeDoc.createEmptyDoc(docSession, {useExisting: true});
+    await activeDoc.createEmptyDoc(docSession, { useExisting: true });
     await activeDoc.waitForInitialization();
 
     // Now "create" user tables and columns with Grist. The creation
@@ -72,16 +72,16 @@ export class Gristifier {
         // Can't handle this table in Grist directly at the moment, but
         // we can do something via a view.
         await this._createView(docSession, activeDoc, tableId, Object.keys(table), columnDefs);
-        outcomes.push({tableId, viewed: true, reason: 'id complications'});
+        outcomes.push({ tableId, viewed: true, reason: 'id complications' });
       }
       else {
         await this._registerTable(docSession, activeDoc, tableId, columnDefs);
         if (options.addSort) {
           await this._addManualSort(activeDoc, tableId);
-          outcomes.push({tableId, addManualSort: true});
+          outcomes.push({ tableId, addManualSort: true });
         }
         else {
-          outcomes.push({tableId});
+          outcomes.push({ tableId });
         }
       }
     }

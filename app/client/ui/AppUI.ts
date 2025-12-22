@@ -1,6 +1,6 @@
-import {buildDocumentBanners, buildHomeBanners} from 'app/client/components/Banners';
-import {ViewAsBanner} from 'app/client/components/ViewAsBanner';
-import {domAsync} from 'app/client/lib/domAsync';
+import { buildDocumentBanners, buildHomeBanners } from 'app/client/components/Banners';
+import { ViewAsBanner } from 'app/client/components/ViewAsBanner';
+import { domAsync } from 'app/client/lib/domAsync';
 import {
   loadAccountPage,
   loadActivationPage,
@@ -8,26 +8,26 @@ import {
   loadAuditLogsPage,
   loadBillingPage,
 } from 'app/client/lib/imports';
-import {createSessionObs, isBoolean, isNumber} from 'app/client/lib/sessionObs';
-import {AppModel, TopAppModel} from 'app/client/models/AppModel';
-import {DocPageModelImpl} from 'app/client/models/DocPageModel';
-import {HomeModelImpl} from 'app/client/models/HomeModel';
-import {App} from 'app/client/ui/App';
-import {AppHeader} from 'app/client/ui/AppHeader';
-import {createBottomBarDoc} from 'app/client/ui/BottomBar';
-import {createDocMenu} from 'app/client/ui/DocMenu';
-import {createForbiddenPage, createNotFoundPage, createOtherErrorPage} from 'app/client/ui/errorPages';
-import {createHomeLeftPane} from 'app/client/ui/HomeLeftPane';
-import {buildSnackbarDom} from 'app/client/ui/NotifyUI';
-import {OnboardingPage, shouldShowOnboardingPage} from 'app/client/ui/OnboardingPage';
-import {pagePanels} from 'app/client/ui/PagePanels';
-import {RightPanel} from 'app/client/ui/RightPanel';
-import {createTopBarDoc, createTopBarHome} from 'app/client/ui/TopBar';
-import {WelcomePage} from 'app/client/ui/WelcomePage';
-import {testId} from 'app/client/ui2018/cssVars';
-import {getPageTitleSuffix} from 'app/common/gristUrls';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, dom, IDisposable, IDisposableOwner, Observable, replaceContent, subscribe} from 'grainjs';
+import { createSessionObs, isBoolean, isNumber } from 'app/client/lib/sessionObs';
+import { AppModel, TopAppModel } from 'app/client/models/AppModel';
+import { DocPageModelImpl } from 'app/client/models/DocPageModel';
+import { HomeModelImpl } from 'app/client/models/HomeModel';
+import { App } from 'app/client/ui/App';
+import { AppHeader } from 'app/client/ui/AppHeader';
+import { createBottomBarDoc } from 'app/client/ui/BottomBar';
+import { createDocMenu } from 'app/client/ui/DocMenu';
+import { createForbiddenPage, createNotFoundPage, createOtherErrorPage } from 'app/client/ui/errorPages';
+import { createHomeLeftPane } from 'app/client/ui/HomeLeftPane';
+import { buildSnackbarDom } from 'app/client/ui/NotifyUI';
+import { OnboardingPage, shouldShowOnboardingPage } from 'app/client/ui/OnboardingPage';
+import { pagePanels } from 'app/client/ui/PagePanels';
+import { RightPanel } from 'app/client/ui/RightPanel';
+import { createTopBarDoc, createTopBarHome } from 'app/client/ui/TopBar';
+import { WelcomePage } from 'app/client/ui/WelcomePage';
+import { testId } from 'app/client/ui2018/cssVars';
+import { getPageTitleSuffix } from 'app/common/gristUrls';
+import { getGristConfig } from 'app/common/urlUtils';
+import { Computed, dom, IDisposable, IDisposableOwner, Observable, replaceContent, subscribe } from 'grainjs';
 
 // When integrating into the old app, we might in theory switch between new-style and old-style
 // content. This function allows disposing the created content by old-style code.
@@ -58,7 +58,7 @@ export function createAppUI(topAppModel: TopAppModel, appObj: App): IDisposable 
     document.body.removeChild(beginMarker);
     document.body.removeChild(endMarker);
   }
-  return {dispose};
+  return { dispose };
 }
 
 function createMainPage(appModel: AppModel, appObj: App) {

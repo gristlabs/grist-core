@@ -1,8 +1,8 @@
-import {assert, driver} from 'mocha-webdriver';
+import { assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
-import {DocCreationInfo} from "app/common/DocListAPI";
-import {UserAPI} from 'app/common/UserAPI';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { DocCreationInfo } from "app/common/DocListAPI";
+import { UserAPI } from 'app/common/UserAPI';
 
 describe('GridViewBugs', function() {
   this.timeout('20s');

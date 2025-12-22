@@ -1,8 +1,8 @@
-import {descriptionInfoTooltip, hoverTooltip, tooltipCloseButton, withInfoTooltip} from 'app/client/ui/tooltips';
-import {testId} from 'app/client/ui2018/cssVars';
-import {dom, observable, styled} from 'grainjs';
-import {withLocale} from 'test/fixtures/projects/helpers/withLocale';
-import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
+import { descriptionInfoTooltip, hoverTooltip, tooltipCloseButton, withInfoTooltip } from 'app/client/ui/tooltips';
+import { testId } from 'app/client/ui2018/cssVars';
+import { dom, observable, styled } from 'grainjs';
+import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 function setupTest() {
   const showTriggerObs = observable(true);
@@ -10,7 +10,7 @@ function setupTest() {
     cssTrigger('Plain hover', hoverTooltip("Tooltip1"),
       testId('plain'),
     ),
-    cssTrigger('Click and Expire', hoverTooltip(() => "Tooltip2", {openOnClick: true, timeoutMs: 1000}),
+    cssTrigger('Click and Expire', hoverTooltip(() => "Tooltip2", { openOnClick: true, timeoutMs: 1000 }),
       testId('fancy'),
     ),
     cssTrigger('Closable', hoverTooltip(ctl => cssTip("Tooltip3", tooltipCloseButton(ctl))),
@@ -18,31 +18,31 @@ function setupTest() {
     ),
     cssRow(
       dom.maybe(showTriggerObs, () => (
-        cssTrigger('Close on disposed', hoverTooltip("Tooltip6", {closeDelay: 2000, openDelay: 500}),
+        cssTrigger('Close on disposed', hoverTooltip("Tooltip6", { closeDelay: 2000, openDelay: 500 }),
           dom('button', dom.on('click', () => showTriggerObs.set(false)), 'Hide'),
           testId('dispose'))
       )),
       cssLabel(
         dom(
           'input',
-          {type: 'checkbox'}, dom.prop('checked', showTriggerObs),
+          { type: 'checkbox' }, dom.prop('checked', showTriggerObs),
           dom.on('change', (_ev, elem) => showTriggerObs.set(elem.checked)),
         ),
         'Show trigger',
       ),
     ),
     cssRow(
-      cssTrigger('Added to a key', hoverTooltip("Tooltip4", {key: 'key'}),
+      cssTrigger('Added to a key', hoverTooltip("Tooltip4", { key: 'key' }),
         testId('with-key')),
-      cssTrigger('Added to same key', hoverTooltip("Tooltip5", {key: 'key'}),
+      cssTrigger('Added to same key', hoverTooltip("Tooltip5", { key: 'key' }),
         testId('with-same-key')),
     ),
-    withInfoTooltip(cssTrigger('Info (Click)'), 'selectBy', {domArgs: [testId('info-click')]}),
+    withInfoTooltip(cssTrigger('Info (Click)'), 'selectBy', { domArgs: [testId('info-click')] }),
     withInfoTooltip(cssTrigger('Info (Hover)'), 'uuid', {
       variant: 'hover',
       domArgs: [testId('info-hover')],
     }),
-    cssTrigger('Close on Click', hoverTooltip("Tooltip9", {closeOnClick: true}),
+    cssTrigger('Close on Click', hoverTooltip("Tooltip9", { closeOnClick: true }),
       testId('close-on-click'),
     ),
     cssTrigger('Info tooltip',

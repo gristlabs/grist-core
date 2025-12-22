@@ -1,7 +1,7 @@
-import {SandboxRequest} from 'app/common/ActionBundle';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
-import {httpEncoding} from 'app/server/lib/httpEncoding';
+import { SandboxRequest } from 'app/common/ActionBundle';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { makeExceptionalDocSession } from 'app/server/lib/DocSession';
+import { httpEncoding } from 'app/server/lib/httpEncoding';
 import * as path from 'path';
 import * as tmp from 'tmp';
 import * as fse from 'fs-extra';
@@ -58,7 +58,7 @@ export class DocRequests {
       // Use the sync API because otherwise multiple requests being handled at the same time
       // all reach this point, `await`, and create different dirs.
       // `unsafeCleanup: true` means the directory can be deleted even if it's not empty, which is what we expect.
-      this._cacheDir = tmp.dirSync({unsafeCleanup: true});
+      this._cacheDir = tmp.dirSync({ unsafeCleanup: true });
       log.debug(`Created DocRequests._cacheDir: ${this._cacheDir.name}`);
     }
 
@@ -70,7 +70,7 @@ export class DocRequests {
     }
     catch {
       const result = await this._handleSingleRequestRaw(request);
-      const resultForJson = {...result} as any;
+      const resultForJson = { ...result } as any;
       if ('content' in result) {
         resultForJson.content = result.content.toString("base64");
       }
@@ -84,9 +84,9 @@ export class DocRequests {
       if (process.env.GRIST_ENABLE_REQUEST_FUNCTION != '1') {
         throw new Error("REQUEST is not enabled");
       }
-      const {url, method, body, params, headers} = request;
+      const { url, method, body, params, headers } = request;
       const urlObj = new URL(url);
-      log.rawInfo("Handling sandbox request", {host: urlObj.host, docId: this._activeDoc.docName});
+      log.rawInfo("Handling sandbox request", { host: urlObj.host, docId: this._activeDoc.docName });
       for (const [param, value] of Object.entries(params || {})) {
         urlObj.searchParams.append(param, value);
       }
@@ -96,7 +96,7 @@ export class DocRequests {
         body,
       });
       const content = await response.buffer();
-      const {status, statusText} = response;
+      const { status, statusText } = response;
       const encoding = httpEncoding(response.headers.get('content-type'), content);
       return {
         content, status, statusText, encoding,
@@ -104,7 +104,7 @@ export class DocRequests {
       };
     }
     catch (e) {
-      return {error: String(e)};
+      return { error: String(e) };
     }
   }
 }

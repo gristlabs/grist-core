@@ -1,11 +1,11 @@
-import {UserAPI, UserAPIImpl} from 'app/common/UserAPI';
-import {CellValue, fromTableDataAction, TableColValues, toTableDataAction} from 'app/common/DocActions';
-import {GristObjCode} from 'app/plugin/GristData';
+import { UserAPI, UserAPIImpl } from 'app/common/UserAPI';
+import { CellValue, fromTableDataAction, TableColValues, toTableDataAction } from 'app/common/DocActions';
+import { GristObjCode } from 'app/plugin/GristData';
 import axios from 'axios';
 import fetch from 'node-fetch';
-import {assert} from 'chai';
-import {TestServer} from 'test/gen-server/apiUtils';
-import {GristClient, openClient} from 'test/server/gristClient';
+import { assert } from 'chai';
+import { TestServer } from 'test/gen-server/apiUtils';
+import { GristClient, openClient } from 'test/server/gristClient';
 import * as testUtils from 'test/server/testUtils';
 
 describe('UserAttributes', function() {
@@ -25,7 +25,7 @@ describe('UserAttributes', function() {
     server = new TestServer(this);
     serverUrl = await server.start(['home', 'docs']);
     owner = await server.createHomeApi('Chimpy', 'nasa', true);
-    wsId = await owner.newWorkspace({name: 'ws'}, 'current');
+    wsId = await owner.newWorkspace({ name: 'ws' }, 'current');
     // Give the test user some access.
     await owner.updateWorkspacePermissions(wsId, {
       users: { [testLowerEmail]: 'editors' },
@@ -42,13 +42,13 @@ describe('UserAttributes', function() {
 
   it('access rules matches email to user-attributes case-insensitively', async function() {
     // Log in with a simulated provider giving a non-lowercase capitalization.
-    const cookie = await server.getCookieLogin('nasa', {email: testDisplayEmail, name: 'Chimpy'});
+    const cookie = await server.getCookieLogin('nasa', { email: testDisplayEmail, name: 'Chimpy' });
     const resp = await axios.get(`${serverUrl}/o/nasa/api/profile/user`, cookie);
     assert.equal(resp.status, 200);
     assert.equal(resp.data.email, testDisplayEmail);
     assert.equal(resp.data.loginEmail, testLowerEmail);
 
-    const docId = await owner.newDoc({name: 'UserAttributes1'}, wsId);
+    const docId = await owner.newDoc({ name: 'UserAttributes1' }, wsId);
 
     // The document we set up has two tables and a bunch of rules:
     // 'People' table, with EmailAddress column, is the user-attribute table.
@@ -68,21 +68,21 @@ describe('UserAttributes', function() {
     ]));
     await owner.applyUserActions(docId, [
       ['AddTable', 'People', [
-        {id: 'EmailAddress'},
+        { id: 'EmailAddress' },
       ]],
       ['AddTable', 'Projects', [
-        {id: 'Person', type: 'Ref:People'},
-        {id: 'Email'},
-        {id: 'TagByRef'},
-        {id: 'TagByEmail'},
-        {id: 'TagByEmailLower'},
+        { id: 'Person', type: 'Ref:People' },
+        { id: 'Email' },
+        { id: 'TagByRef' },
+        { id: 'TagByEmail' },
+        { id: 'TagByEmailLower' },
       ]],
       ['BulkAddRecord', 'People', peopleData[2], peopleData[3]],
       ['BulkAddRecord', 'Projects', projectsData[2], projectsData[3]],
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: '*', colIds: '*'}],
-      ['AddRecord', '_grist_ACLResources', -2, {tableId: 'Projects', colIds: 'TagByRef'}],
-      ['AddRecord', '_grist_ACLResources', -3, {tableId: 'Projects', colIds: 'TagByEmail'}],
-      ['AddRecord', '_grist_ACLResources', -4, {tableId: 'Projects', colIds: 'TagByEmailLower'}],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: '*', colIds: '*' }],
+      ['AddRecord', '_grist_ACLResources', -2, { tableId: 'Projects', colIds: 'TagByRef' }],
+      ['AddRecord', '_grist_ACLResources', -3, { tableId: 'Projects', colIds: 'TagByEmail' }],
+      ['AddRecord', '_grist_ACLResources', -4, { tableId: 'Projects', colIds: 'TagByEmailLower' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, userAttributes: JSON.stringify({
           name: 'Person',
@@ -125,7 +125,7 @@ describe('UserAttributes', function() {
     async function testExpected() {
       const userApi = new UserAPIImpl(`${serverUrl}/o/nasa`, {
         fetch: fetch as any,
-        headers: {Cookie: cookie.headers.Cookie},
+        headers: { Cookie: cookie.headers.Cookie },
         newFormData: () => new FormData() as any,
       });
       const actualDataApi = await userApi.getDocAPI(docId).getRows('Projects');
@@ -145,7 +145,7 @@ describe('UserAttributes', function() {
     // Now change the user-attribute table to use the non-lowercase email version. It shouldn't
     // affect the matching in the user-attribute table, so we expect unchanged results.
     await owner.applyUserActions(docId, [
-      ['UpdateRecord', 'People', 2, {EmailAddress: testDisplayEmail}],
+      ['UpdateRecord', 'People', 2, { EmailAddress: testDisplayEmail }],
     ]);
     await testExpected();
   });

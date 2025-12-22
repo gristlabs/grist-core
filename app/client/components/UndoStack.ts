@@ -1,9 +1,9 @@
-import {GristDoc} from 'app/client/components/GristDoc';
+import { GristDoc } from 'app/client/components/GristDoc';
 import * as dispose from 'app/client/lib/dispose';
-import {MinimalActionGroup} from 'app/common/ActionGroup';
-import {PromiseChain, setDefault} from 'app/common/gutil';
-import {CursorPos} from 'app/plugin/GristAPI';
-import {Computed, fromKo, Observable} from 'grainjs';
+import { MinimalActionGroup } from 'app/common/ActionGroup';
+import { PromiseChain, setDefault } from 'app/common/gutil';
+import { CursorPos } from 'app/plugin/GristAPI';
+import { Computed, fromKo, Observable } from 'grainjs';
 import * as ko from 'knockout';
 import sortBy from 'lodash/sortBy';
 

@@ -1,6 +1,6 @@
-import {cssButton} from 'app/client/ui2018/buttons';
-import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {Disposable, dom, DomElementArg, styled} from 'grainjs';
+import { cssButton } from 'app/client/ui2018/buttons';
+import { mediaSmall, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { Disposable, dom, DomElementArg, styled } from 'grainjs';
 
 interface IPopupController extends Disposable {
   /** Close the popup. */

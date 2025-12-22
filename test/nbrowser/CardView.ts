@@ -1,6 +1,6 @@
-import {assert, driver} from 'mocha-webdriver';
+import { assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('CardView', function() {
   this.timeout(20000);
@@ -95,10 +95,10 @@ describe('CardView', function() {
     // Add a few more fields of different types.
     const api = session.createHomeApi();
     await api.applyUserActions(docId, [
-      ['AddColumn', 'Performances', 'Files', {type: 'Attachments'}],
-      ['AddColumn', 'Performances', 'Choice', {type: 'Choice'}],
-      ['AddColumn', 'Performances', 'ChoiceList', {type: 'ChoiceList'}],
-      ['AddColumn', 'Performances', 'Bool', {type: 'Bool'}],
+      ['AddColumn', 'Performances', 'Files', { type: 'Attachments' }],
+      ['AddColumn', 'Performances', 'Choice', { type: 'Choice' }],
+      ['AddColumn', 'Performances', 'ChoiceList', { type: 'ChoiceList' }],
+      ['AddColumn', 'Performances', 'Bool', { type: 'Bool' }],
     ]);
     await gu.getSection('Performances detail').click();
     await gu.toggleSidePanel('right', 'open');
@@ -126,7 +126,7 @@ describe('CardView', function() {
     await driver.find('.test-tb-wrap-text').click();
     const cols = ['Actor', 'Film', 'Character', 'Files', 'Choice', 'ChoiceList', 'Bool'];
     const fields = await Promise.all(cols.map(col =>
-      gu.getVisibleDetailCells({col, rowNums: [1], mapper: e => e.getRect()})));
+      gu.getVisibleDetailCells({ col, rowNums: [1], mapper: e => e.getRect() })));
 
     // Make sure the heights are close to each other.
     const heights = fields.map(f => f[0].height);

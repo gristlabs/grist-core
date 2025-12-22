@@ -19,7 +19,7 @@ export function getAttachmentColumns(metaDocData: DocData): AttachmentColumns {
   const tablesTable = metaDocData.getMetaTable('_grist_Tables');
   const columnsTable = metaDocData.getMetaTable('_grist_Tables_column');
   const attachmentColumns: Map<string, Set<string>> = new Map();
-  for (const column of columnsTable.filterRecords({type: 'Attachments'})) {
+  for (const column of columnsTable.filterRecords({ type: 'Attachments' })) {
     const table = tablesTable.getRecord(column.parentId);
     const tableId = table?.tableId;
     if (!tableId) {

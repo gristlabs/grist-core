@@ -1,9 +1,9 @@
-import {BaseAPI} from 'app/common/BaseAPI';
-import {UserAPI, Workspace} from 'app/common/UserAPI';
-import {assert} from 'chai';
+import { BaseAPI } from 'app/common/BaseAPI';
+import { UserAPI, Workspace } from 'app/common/UserAPI';
+import { assert } from 'chai';
 import flatten from 'lodash/flatten';
 import sortBy from 'lodash/sortBy';
-import {TestServer} from 'test/gen-server/apiUtils';
+import { TestServer } from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
 
 describe('removedAt', function() {
@@ -14,7 +14,7 @@ describe('removedAt', function() {
     home = new TestServer(this);
     await home.start(['home', 'docs']);
     const api = await home.createHomeApi('chimpy', 'docs');
-    await api.newOrg({name: 'testy', domain: 'testy'});
+    await api.newOrg({ name: 'testy', domain: 'testy' });
   });
 
   after(async function() {
@@ -61,15 +61,15 @@ describe('removedAt', function() {
       }
       // Make two workspaces with two docs apiece, one workspace with one doc,
       // and one empty workspace
-      ws1 = await api.newWorkspace({name: 'ws1'}, 'current');
-      ws2 = await api.newWorkspace({name: 'ws2'}, 'current');
-      ws3 = await api.newWorkspace({name: 'ws3'}, 'current');
-      ws4 = await api.newWorkspace({name: 'ws4'}, 'current');
-      doc11 = await api.newDoc({name: 'doc11'}, ws1);
-      doc12 = await api.newDoc({name: 'doc12'}, ws1);
-      doc21 = await api.newDoc({name: 'doc21'}, ws2);
-      await api.newDoc({name: 'doc22'}, ws2);
-      doc31 = await api.newDoc({name: 'doc31'}, ws3);
+      ws1 = await api.newWorkspace({ name: 'ws1' }, 'current');
+      ws2 = await api.newWorkspace({ name: 'ws2' }, 'current');
+      ws3 = await api.newWorkspace({ name: 'ws3' }, 'current');
+      ws4 = await api.newWorkspace({ name: 'ws4' }, 'current');
+      doc11 = await api.newDoc({ name: 'doc11' }, ws1);
+      doc12 = await api.newDoc({ name: 'doc12' }, ws1);
+      doc21 = await api.newDoc({ name: 'doc21' }, ws2);
+      await api.newDoc({ name: 'doc22' }, ws2);
+      doc31 = await api.newDoc({ name: 'doc31' }, ws3);
     });
 
     it('hides soft-deleted docs from regular api', async function() {
@@ -242,9 +242,9 @@ describe('removedAt', function() {
     //   deletion used to take an unreasonable length of time.
     it('deletes documents reasonably quickly', async function() {
       this.timeout(15000);
-      const ws = await api.newWorkspace({name: 'speedTest'}, 'testy');
+      const ws = await api.newWorkspace({ name: 'speedTest' }, 'testy');
       // Create a batch of many documents.
-      const docIds = await Promise.all(new Array(50).fill(0).map(() => api.newDoc({name: 'doc'}, ws)));
+      const docIds = await Promise.all(new Array(50).fill(0).map(() => api.newDoc({ name: 'doc' }, ws)));
       // Explicitly set users on some of the documents.
       await api.updateDocPermissions(docIds[5], {
         users: {
@@ -262,7 +262,7 @@ describe('removedAt', function() {
       const idTest2 = (await home.dbManager.getUserByLogin("test2@getgrist.com")).id;
       const idTest3 = (await home.dbManager.getUserByLogin("test3@getgrist.com")).id;
       // Create one extra document, with one extra user.
-      const extraDocId = await api.newDoc({name: 'doc'}, ws);
+      const extraDocId = await api.newDoc({ name: 'doc' }, ws);
       await api.updateDocPermissions(extraDocId, {
         users: { 'kiwi@getgrist.com': 'viewers' },
       });
@@ -359,48 +359,48 @@ describe('removedAt', function() {
       await assert.isRejected(xapi.getDoc(doc11), /not found/);
 
       // Check that cached authentication is correct.
-      const auth = await home.dbManager.getDocAuthCached({urlId: doc11, userId: info.user.id, org});
+      const auth = await home.dbManager.getDocAuthCached({ urlId: doc11, userId: info.user.id, org });
       assert.equal(auth.access, 'owners');
     });
 
     it('respects permanent flag on /api/docs/:did/remove', async function() {
       await bapi.testRequest(`${api.getBaseUrl()}/api/docs/${doc11}/remove`,
-        {method: 'POST'});
+        { method: 'POST' });
       await bapi.testRequest(`${api.getBaseUrl()}/api/docs/${doc12}/remove?permanent=1`,
-        {method: 'POST'});
+        { method: 'POST' });
       await api.undeleteDoc(doc11);
       await assert.isRejected(api.undeleteDoc(doc12), /not found/);
     });
 
     it('respects permanent flag on /api/workspaces/:wid/remove', async function() {
       await bapi.testRequest(`${api.getBaseUrl()}/api/workspaces/${ws1}/remove`,
-        {method: 'POST'});
+        { method: 'POST' });
       await bapi.testRequest(`${api.getBaseUrl()}/api/workspaces/${ws2}/remove?permanent=1`,
-        {method: 'POST'});
+        { method: 'POST' });
       await api.undeleteWorkspace(ws1);
       await assert.isRejected(api.undeleteWorkspace(ws2), /not found/);
     });
 
     it('can hard-delete a soft-deleted document', async function() {
-      const tmp1 = await api.newDoc({name: 'tmp1'}, ws1);
-      const tmp2 = await api.newDoc({name: 'tmp2'}, ws1);
+      const tmp1 = await api.newDoc({ name: 'tmp1' }, ws1);
+      const tmp2 = await api.newDoc({ name: 'tmp2' }, ws1);
       await api.softDeleteDoc(tmp1);
       await api.deleteDoc(tmp1);
       await api.softDeleteDoc(tmp2);
       await bapi.testRequest(`${api.getBaseUrl()}/api/docs/${tmp2}/remove?permanent=1`,
-        {method: 'POST'});
+        { method: 'POST' });
       await assert.isRejected(api.undeleteDoc(tmp1));
       await assert.isRejected(api.undeleteDoc(tmp2));
     });
 
     it('can hard-delete a soft-deleted workspace', async function() {
-      const tmp1 = await api.newWorkspace({name: 'tmp1'}, 'current');
-      const tmp2 = await api.newWorkspace({name: 'tmp2'}, 'current');
+      const tmp1 = await api.newWorkspace({ name: 'tmp1' }, 'current');
+      const tmp2 = await api.newWorkspace({ name: 'tmp2' }, 'current');
       await api.softDeleteWorkspace(tmp1);
       await api.deleteWorkspace(tmp1);
       await api.softDeleteWorkspace(tmp2);
       await bapi.testRequest(`${api.getBaseUrl()}/api/workspaces/${tmp2}/remove?permanent=1`,
-        {method: 'POST'});
+        { method: 'POST' });
       await assert.isRejected(api.undeleteWorkspace(tmp1));
       await assert.isRejected(api.undeleteWorkspace(tmp2));
     });
@@ -410,9 +410,9 @@ describe('removedAt', function() {
     //   that friend used to see the workspace in their trash (empty, but there).
     it('does not show workspaces for docs user does not have access to', async function() {
       // Make two docs in a workspace, and share one with a friend.
-      const ws = await api.newWorkspace({name: 'wsWithSharing'}, 'testy');
-      const shared = await api.newDoc({name: 'shared'}, ws);
-      const unshared = await api.newDoc({name: 'unshared'}, ws);
+      const ws = await api.newWorkspace({ name: 'wsWithSharing' }, 'testy');
+      const shared = await api.newDoc({ name: 'shared' }, ws);
+      const unshared = await api.newDoc({ name: 'unshared' }, ws);
       await api.updateDocPermissions(shared, {
         users: { 'charon@getgrist.com': 'viewers' },
       });

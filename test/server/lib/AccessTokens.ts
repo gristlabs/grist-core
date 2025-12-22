@@ -1,13 +1,13 @@
-import {delay} from 'app/common/delay';
-import {UserAPI} from 'app/common/UserAPI';
-import {AccessTokenResult} from 'app/plugin/GristAPI';
-import {Deps as AccessTokensDeps} from 'app/server/lib/AccessTokens';
-import {assert} from 'chai';
+import { delay } from 'app/common/delay';
+import { UserAPI } from 'app/common/UserAPI';
+import { AccessTokenResult } from 'app/plugin/GristAPI';
+import { Deps as AccessTokensDeps } from 'app/server/lib/AccessTokens';
+import { assert } from 'chai';
 import fetch from 'node-fetch';
-import {RequestInit} from 'node-fetch';
+import { RequestInit } from 'node-fetch';
 import * as sinon from 'sinon';
-import {TestServer} from 'test/gen-server/apiUtils';
-import {GristClient, openClient} from 'test/server/gristClient';
+import { TestServer } from 'test/gen-server/apiUtils';
+import { GristClient, openClient } from 'test/server/gristClient';
 import * as testUtils from 'test/server/testUtils';
 
 describe('AccessTokens', function() {
@@ -25,9 +25,9 @@ describe('AccessTokens', function() {
     home = new TestServer(this);
     await home.start(['home', 'docs']);
     const api = await home.createHomeApi('chimpy', 'docs', true);
-    await api.newOrg({name: 'testy', domain: 'testy'});
+    await api.newOrg({ name: 'testy', domain: 'testy' });
     owner = await home.createHomeApi('chimpy', 'testy', true);
-    wsId = await owner.newWorkspace({name: 'ws'}, 'current');
+    wsId = await owner.newWorkspace({ name: 'ws' }, 'current');
     await owner.updateWorkspacePermissions(wsId, {
       users: {
         'kiwi@getgrist.com': 'owners',
@@ -62,7 +62,7 @@ describe('AccessTokens', function() {
   });
 
   async function freshDoc() {
-    docId = await owner.newDoc({name: 'doc'}, wsId);
+    docId = await owner.newDoc({ name: 'doc' }, wsId);
     const who = await owner.getSessionActive();
     cliOwner = await openClient(home.server, who.user.email, who.org?.domain || 'docs');
     await cliOwner.openDocOnConnect(docId);
@@ -76,7 +76,7 @@ describe('AccessTokens', function() {
 
     // Check we can make a read only token for a document, and use it to read
     // but not write, and that it expires.
-    let tokenResult: AccessTokenResult = (await cliOwner.send('getAccessToken', 0, {readOnly: true})).data;
+    let tokenResult: AccessTokenResult = (await cliOwner.send('getAccessToken', 0, { readOnly: true })).data;
     assert.equal(tokenResult.ttlMsecs, 2000);
     let token = tokenResult.token;
     const baseUrl: string = tokenResult.baseUrl;
@@ -88,7 +88,7 @@ describe('AccessTokens', function() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({records: [{}]}),
+      body: JSON.stringify({ records: [{}] }),
     };
     result = await fetch(baseUrl + `/tables/Table1/records?auth=${token}`, postOptions);
     // POST not allowed since read-only.
@@ -110,7 +110,7 @@ describe('AccessTokens', function() {
     assert.sameMembers(Object.keys(await result.json()), ['records']);
 
     // Check that tokens for one document do not work on another.
-    const docId2 = await owner.newDoc({name: 'doc2'}, wsId);
+    const docId2 = await owner.newDoc({ name: 'doc2' }, wsId);
     tokenResult = (await cliOwner.send('getAccessToken', 0, {})).data;
     token = tokenResult.token;
     result = await fetch(home.serverUrl + `/api/docs/${docId2}/tables/Table1/records?auth=${token}`);

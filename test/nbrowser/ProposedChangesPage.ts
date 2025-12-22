@@ -1,6 +1,6 @@
-import {assert, driver} from 'mocha-webdriver';
+import { assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('ProposedChangesPage', function() {
   this.timeout(60000);
@@ -125,7 +125,7 @@ describe('ProposedChangesPage', function() {
 
     // It should bring us to a cell that is currently at "test1".
     await driver.findContentWait('.test-widget-title-text', /TABLE1/, 2000);
-    assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), 'test1');
+    assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), 'test1');
 
     // Go back to the changes page, and click "Accept".
     assert.equal(await driver.find('.test-tools-proposals').getText(),
@@ -137,14 +137,14 @@ describe('ProposedChangesPage', function() {
     // Now go back and see the cell is now filled with "test2".
     await gu.dbClick(driver.findContent('.diff-remote', /test2/));
     await driver.findContentWait('.test-widget-title-text', /TABLE1/, 2000);
-    assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), 'test2');
+    assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), 'test2');
 
     // Note that a formula column error is tickled by this test. This
     // needs to be dealt with.
   });
 
   it('can make and apply multiple proposed changes', async function() {
-    const {doc, api} = await makeLifeDoc();
+    const { doc, api } = await makeLifeDoc();
     const url = await driver.getCurrentUrl();
 
     await workOnCopy(url);
@@ -219,7 +219,7 @@ describe('ProposedChangesPage', function() {
   });
 
   it('can apply a proposed change after a trunk change', async function() {
-    const {api, doc} = await makeLifeDoc();
+    const { api, doc } = await makeLifeDoc();
     const url = await driver.getCurrentUrl();
 
     await workOnCopy(url);
@@ -304,7 +304,7 @@ describe('ProposedChangesPage', function() {
     assert.equal(await driver.find('.test-tools-proposals').getText(),
       'Suggest Changes (2)');
 
-    await gu.refreshDismiss({ignore: true});
+    await gu.refreshDismiss({ ignore: true });
     assert.equal(await driver.find('.test-tools-proposals').getText(),
       'Suggest Changes (2)');
 
@@ -371,13 +371,13 @@ describe('ProposedChangesPage', function() {
     });
 
     await api.applyUserActions(doc.id, [
-      ['AddTable', 'Life', [{id: 'A', type: 'Int'}, {id: 'B', type: 'Text'}]],
-      ['AddRecord', 'Life', 1, {A: 10, B: 'Fish'}],
-      ['AddRecord', 'Life', 2, {A: 20, B: 'Primate'}],
+      ['AddTable', 'Life', [{ id: 'A', type: 'Int' }, { id: 'B', type: 'Text' }]],
+      ['AddRecord', 'Life', 1, { A: 10, B: 'Fish' }],
+      ['AddRecord', 'Life', 2, { A: 20, B: 'Primate' }],
     ]);
 
     await gu.openPage('Life');
-    return {session, doc, api};
+    return { session, doc, api };
   }
 
   // Work on a copy.

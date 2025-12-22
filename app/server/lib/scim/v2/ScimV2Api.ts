@@ -17,7 +17,7 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
   const v2 = express.Router();
 
   function checkAccess(context: RequestContext) {
-    const {isAdmin, isScimUser, path } = context;
+    const { isAdmin, isScimUser, path } = context;
     if (!isAdmin && !isScimUser && !WHITELISTED_PATHS_FOR_NON_ADMINS.includes(path)) {
       throw new SCIMMY.Types.Error(403, null!, 'You are not authorized to access this resource');
     }

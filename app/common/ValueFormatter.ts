@@ -1,21 +1,21 @@
 // tslint:disable:max-classes-per-file
 
-import {csvEncodeRow} from 'app/common/csvFormat';
-import {CellValue} from 'app/common/DocActions';
-import {DocData} from 'app/common/DocData';
-import {DocumentSettings} from 'app/common/DocumentSettings';
+import { csvEncodeRow } from 'app/common/csvFormat';
+import { CellValue } from 'app/common/DocActions';
+import { DocData } from 'app/common/DocData';
+import { DocumentSettings } from 'app/common/DocumentSettings';
 import * as gristTypes from 'app/common/gristTypes';
-import {getReferencedTableId, isList} from 'app/common/gristTypes';
+import { getReferencedTableId, isList } from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
-import {isHiddenTable} from 'app/common/isHiddenTable';
-import {buildNumberFormat, NumberFormatOptions} from 'app/common/NumberFormat';
-import {createParserOrFormatterArguments, ReferenceParsingOptions} from 'app/common/ValueParser';
-import {GristObjCode} from 'app/plugin/GristData';
-import {decodeObject, GristDateTime} from 'app/plugin/objtypes';
+import { isHiddenTable } from 'app/common/isHiddenTable';
+import { buildNumberFormat, NumberFormatOptions } from 'app/common/NumberFormat';
+import { createParserOrFormatterArguments, ReferenceParsingOptions } from 'app/common/ValueParser';
+import { GristObjCode } from 'app/plugin/GristData';
+import { decodeObject, GristDateTime } from 'app/plugin/objtypes';
 import moment from 'moment-timezone';
 import isPlainObject from 'lodash/isPlainObject';
 
-export {PENDING_DATA_PLACEHOLDER} from 'app/plugin/objtypes';
+export { PENDING_DATA_PLACEHOLDER } from 'app/plugin/objtypes';
 
 export interface FormatOptions {
   [option: string]: any;
@@ -49,7 +49,7 @@ export function formatDecoded(value: unknown, isTopLevel: boolean = true): strin
         return '[' + value.map(v => formatDecoded(v, false)).join(', ') + ']';
       }
       else {
-        return csvEncodeRow(value.map(v => formatDecoded(v, true)), {prettier: true});
+        return csvEncodeRow(value.map(v => formatDecoded(v, true)), { prettier: true });
       }
     }
     else if (isPlainObject(value)) {
@@ -138,7 +138,7 @@ export class NumericFormatter extends BaseFormatter {
 
 class IntFormatter extends NumericFormatter {
   constructor(type: string, opts: FormatOptions, docSettings: DocumentSettings) {
-    super(type, {decimals: 0, ...opts}, docSettings);
+    super(type, { decimals: 0, ...opts }, docSettings);
   }
 }
 
@@ -226,7 +226,7 @@ class ReferenceFormatter extends BaseFormatter {
     // widgetOpts.visibleColFormatter shouldn't be undefined, but it can be if a referencing column
     // is displaying another referencing column, which is partially prohibited in the UI but still possible.
     this.visibleColFormatter = widgetOpts.visibleColFormatter ||
-      createFormatter('Id', {tableId: getReferencedTableId(type)}, docSettings);
+      createFormatter('Id', { tableId: getReferencedTableId(type) }, docSettings);
   }
 
   public formatAny(value: any): string {
@@ -272,7 +272,7 @@ class ReferenceListFormatter extends ReferenceFormatter {
     // This is similar to formatUnknown except the inner values are
     // formatted according to the visible column options.
     const formattedValues = value.slice(1).map(v => super.formatNotInvalidRef(v));
-    return csvEncodeRow(formattedValues, {prettier: true});
+    return csvEncodeRow(formattedValues, { prettier: true });
   }
 }
 
@@ -321,7 +321,7 @@ export function createFullFormatterFromDocData(
   fieldRef?: number,
 ): BaseFormatter {
   const [type, widgetOpts, docSettings] = createParserOrFormatterArguments(docData, colRef, fieldRef);
-  const {visibleColType, visibleColWidgetOpts} = widgetOpts as ReferenceParsingOptions;
+  const { visibleColType, visibleColWidgetOpts } = widgetOpts as ReferenceParsingOptions;
   return createFullFormatterRaw({
     docData,
     type,
@@ -333,9 +333,9 @@ export function createFullFormatterFromDocData(
 }
 
 export function createFullFormatterRaw(args: FullFormatterArgs) {
-  const {type, widgetOpts, docSettings} = args;
+  const { type, widgetOpts, docSettings } = args;
   const visibleColFormatter = createVisibleColFormatterRaw(args);
-  return createFormatter(type, {...widgetOpts, visibleColFormatter}, docSettings);
+  return createFormatter(type, { ...widgetOpts, visibleColFormatter }, docSettings);
 }
 
 export function createVisibleColFormatterRaw(
@@ -363,6 +363,6 @@ export function createVisibleColFormatterRaw(
     if (isHiddenTable(tablesData, tableRef)) {
       referencedTableId = "";
     }
-    return createFormatter('Id', {tableId: referencedTableId}, docSettings);
+    return createFormatter('Id', { tableId: referencedTableId }, docSettings);
   }
 }

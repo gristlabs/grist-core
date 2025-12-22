@@ -223,7 +223,7 @@ export class SafeBrowser extends BaseComponent {
    * Returns the rpc instance.
    */
   private _createRpc(path: string): Rpc {
-    const rpc = new Rpc({logger: createRpcLogger(this._baseLogger, `PLUGIN ${this._pluginId}/${path} SafeBrowser:`) });
+    const rpc = new Rpc({ logger: createRpcLogger(this._baseLogger, `PLUGIN ${this._pluginId}/${path} SafeBrowser:`) });
     rpc.queueOutgoingUntilReadyMessage();
     warnIfNotReady(rpc, 3000, "Plugin isn't ready; be sure to call grist.ready() from plugin");
     rpc.registerForwarder('*', this._pluginRpc);
@@ -302,14 +302,14 @@ class IframeProcess extends ViewProcess {
     this._themeInitialized = Observable.create(this, false);
     const iframe = this.element = this.autoDispose(
       grainjsDom(`iframe.safe_browser_process.clipboard_allow_focus`,
-        {src},
+        { src },
         grainjsDom.style('visibility', use => use(this._themeInitialized) ? 'visible' : 'hidden'),
       ) as HTMLIFrameElement,
     );
     const listener = async (event: MessageEvent) => {
       if (event.source === iframe.contentWindow) {
         if (event.data.mtype === MsgType.Ready) {
-          await this._sendTheme({theme: gristThemeObs().get(), fromReady: true});
+          await this._sendTheme({ theme: gristThemeObs().get(), fromReady: true });
         }
 
         if (event.data.data?.message === 'themeInitialized') {
@@ -328,12 +328,12 @@ class IframeProcess extends ViewProcess {
     this.autoDispose(gristThemeObs().addListener(async (newTheme, oldTheme) => {
       if (isEqual(newTheme, oldTheme)) { return; }
 
-      await this._sendTheme({theme: newTheme});
+      await this._sendTheme({ theme: newTheme });
     }));
   }
 
-  private async _sendTheme({theme, fromReady = false}: {theme: Theme, fromReady?: boolean}) {
-    await this.rpc.postMessage({theme: convertThemeKeysToCssVars(theme), fromReady});
+  private async _sendTheme({ theme, fromReady = false}: { theme: Theme, fromReady?: boolean }) {
+    await this.rpc.postMessage({ theme: convertThemeKeysToCssVars(theme), fromReady });
   }
 }
 

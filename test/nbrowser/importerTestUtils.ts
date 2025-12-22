@@ -2,7 +2,7 @@
  * Testing utilities used in Importer test suites.
  */
 
-import {driver, Key, stackWrapFunc, WebElementPromise} from 'mocha-webdriver';
+import { driver, Key, stackWrapFunc, WebElementPromise } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 
 // Helper to get the input of a matching parse option in the ParseOptions dialog.
@@ -73,11 +73,11 @@ export const waitForDiffPreviewToLoad = async (): Promise<void> => {
 };
 
 // Helper that gets the list of visible column matching rows to the left of the preview.
-export const getColumnMatchingRows = stackWrapFunc(async (): Promise<{source: string, destination: string}[]> => {
+export const getColumnMatchingRows = stackWrapFunc(async (): Promise<{ source: string, destination: string }[]> => {
   return await driver.findAll('.test-importer-column-match-source-destination', async (el) => {
     const source = await el.find('.test-importer-column-match-formula').getAttribute('textContent');
     const destination = await el.find('.test-importer-column-match-destination').getText();
-    return {source, destination};
+    return { source, destination };
   });
 });
 

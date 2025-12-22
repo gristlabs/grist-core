@@ -1,9 +1,9 @@
-import {LocalPlugin} from 'app/common/plugin';
-import {BaseComponent, createRpcLogger} from 'app/common/PluginInstance';
-import {GristServer} from 'app/server/lib/GristServer';
-import {ISandbox} from 'app/server/lib/ISandbox';
+import { LocalPlugin } from 'app/common/plugin';
+import { BaseComponent, createRpcLogger } from 'app/common/PluginInstance';
+import { GristServer } from 'app/server/lib/GristServer';
+import { ISandbox } from 'app/server/lib/ISandbox';
 import log from 'app/server/lib/log';
-import {IMsgCustom, IMsgRpcCall} from 'grain-rpc';
+import { IMsgCustom, IMsgRpcCall } from 'grain-rpc';
 
 // TODO safePython component should be able to call other components function
 // TODO calling a function on safePython component with a name that was not register chould fail
@@ -26,7 +26,7 @@ export class SafePythonComponent extends BaseComponent {
     docName: string, private _server: GristServer,
     rpcLogger = createRpcLogger(log, `PLUGIN ${_localPlugin.id} SafePython:`)) {
     super(_localPlugin.manifest, rpcLogger);
-    this._logMeta = {plugin: _localPlugin.id, docId: docName};
+    this._logMeta = { plugin: _localPlugin.id, docId: docName };
   }
 
   /**
@@ -59,7 +59,7 @@ export class SafePythonComponent extends BaseComponent {
 
   protected doForwardCall(c: IMsgRpcCall): Promise<any> {
     if (!this._sandbox) { throw new Error("Component should have be activated"); }
-    const {meth, iface, args} = c;
+    const { meth, iface, args } = c;
     const funcName = meth === "invoke" ? iface : iface + "." + meth;
     return this._sandbox.pyCall(funcName, ...args);
   }

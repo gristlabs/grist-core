@@ -1,28 +1,28 @@
-import {detectCurrentLang, makeT} from 'app/client/lib/localization';
-import {checkName} from 'app/client/lib/nameUtils';
-import {AppModel, reportError} from 'app/client/models/AppModel';
-import {App} from 'app/client/ui/App';
-import {urlState} from 'app/client/models/gristUrlState';
+import { detectCurrentLang, makeT } from 'app/client/lib/localization';
+import { checkName } from 'app/client/lib/nameUtils';
+import { AppModel, reportError } from 'app/client/models/AppModel';
+import { App } from 'app/client/ui/App';
+import { urlState } from 'app/client/models/gristUrlState';
 import * as css from 'app/client/ui/AccountPageCss';
-import {ApiKey} from 'app/client/ui/ApiKey';
-import {AppHeader} from 'app/client/ui/AppHeader';
-import {buildChangePasswordDialog} from 'app/client/ui/ChangePasswordDialog';
-import {DeleteAccountDialog} from 'app/client/ui/DeleteAccountDialog';
-import {translateLocale} from 'app/client/ui/LanguageMenu';
-import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
-import {MFAConfig} from 'app/client/ui/MFAConfig';
-import {pagePanels} from 'app/client/ui/PagePanels';
-import {ThemeConfig} from 'app/client/ui/ThemeConfig';
-import {createTopBarHome} from 'app/client/ui/TopBar';
-import {transientInput} from 'app/client/ui/transientInput';
-import {cssBreadcrumbs, separator} from 'app/client/ui2018/breadcrumbs';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {cssLink} from 'app/client/ui2018/links';
-import {select} from 'app/client/ui2018/menus';
-import {getPageTitleSuffix, isFeatureEnabled} from 'app/common/gristUrls';
-import {getGristConfig} from 'app/common/urlUtils';
-import {FullUser} from 'app/common/UserAPI';
-import {Computed, Disposable, dom, domComputed, makeTestId, Observable, styled, subscribe} from 'grainjs';
+import { ApiKey } from 'app/client/ui/ApiKey';
+import { AppHeader } from 'app/client/ui/AppHeader';
+import { buildChangePasswordDialog } from 'app/client/ui/ChangePasswordDialog';
+import { DeleteAccountDialog } from 'app/client/ui/DeleteAccountDialog';
+import { translateLocale } from 'app/client/ui/LanguageMenu';
+import { leftPanelBasic } from 'app/client/ui/LeftPanelCommon';
+import { MFAConfig } from 'app/client/ui/MFAConfig';
+import { pagePanels } from 'app/client/ui/PagePanels';
+import { ThemeConfig } from 'app/client/ui/ThemeConfig';
+import { createTopBarHome } from 'app/client/ui/TopBar';
+import { transientInput } from 'app/client/ui/transientInput';
+import { cssBreadcrumbs, separator } from 'app/client/ui2018/breadcrumbs';
+import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { cssLink } from 'app/client/ui2018/links';
+import { select } from 'app/client/ui2018/menus';
+import { getPageTitleSuffix, isFeatureEnabled } from 'app/common/gristUrls';
+import { getGristConfig } from 'app/common/urlUtils';
+import { FullUser } from 'app/common/UserAPI';
+import { Computed, Disposable, dom, domComputed, makeTestId, Observable, styled, subscribe } from 'grainjs';
 
 const testId = makeTestId('test-account-page-');
 const t = makeT('AccountPage');
@@ -66,7 +66,7 @@ export class AccountPage extends Disposable {
   private _buildContentMain() {
     const supportedLngs = getGristConfig().supportedLngs ?? ['en'];
     const languageOptions = supportedLngs
-      .map(lng => ({value: lng, label: translateLocale(lng)!}))
+      .map(lng => ({ value: lng, label: translateLocale(lng)! }))
       .sort((a, b) => a.value.localeCompare(b.value));
 
     const userLocale = Computed.create(this, (use) => {
@@ -101,7 +101,7 @@ export class AccountPage extends Disposable {
                   },
                   close: () => { this._isEditingName.set(false); this._nameEdit.set(''); },
                 },
-                {size: '5'}, // Lower size so that input can shrink below ~152px.
+                { size: '5' }, // Lower size so that input can shrink below ~152px.
                 dom.on('input', (_ev, el) => this._nameEdit.set(el.value)),
                 css.flexGrow.cls(''),
               ),
@@ -149,7 +149,7 @@ designed to ensure that you're the only person who can access your account, even
         css.header(t("Theme")),
         isFeatureEnabled('themes') ? dom.create(ThemeConfig, this._appModel) : null,
         css.subHeader(t("Language")),
-        css.dataRow({ style: 'width: 300px'},
+        css.dataRow({ style: 'width: 300px' },
           select(userLocale, languageOptions, {
             renderOptionArgs: () => {
               return dom.cls(cssFirstUpper.className);
@@ -164,7 +164,7 @@ designed to ensure that you're the only person who can access your account, even
             onCreate: () => this._createApiKey(),
             onDelete: () => this._deleteApiKey(),
             anonymous: false,
-            inputArgs: [{size: '5'}], // Lower size so that input can shrink below ~152px.
+            inputArgs: [{ size: '5' }], // Lower size so that input can shrink below ~152px.
           }),
         )),
         !getGristConfig().canCloseAccount ? null : [
@@ -177,7 +177,7 @@ designed to ensure that you're the only person who can access your account, even
 
   private _buildHeaderMain() {
     return dom.frag(
-      cssBreadcrumbs({style: 'margin-left: 16px;'},
+      cssBreadcrumbs({ style: 'margin-left: 16px;' },
         cssLink(
           urlState().setLinkUrl({}),
           'Home',

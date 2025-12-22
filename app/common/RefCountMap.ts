@@ -7,7 +7,7 @@
  * reference is gone, and an optional gracePeriodMs elapsed, the value is cleaned up using
  * options.dispose(key, value) callback.
  */
-import {IDisposable} from 'grainjs';
+import { IDisposable } from 'grainjs';
 
 export interface IRefCountSub<Value> extends IDisposable {
   get(): Value;

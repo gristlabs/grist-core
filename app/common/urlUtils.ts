@@ -1,4 +1,4 @@
-import {extractOrgParts, GristLoadConfig} from 'app/common/gristUrls';
+import { extractOrgParts, GristLoadConfig } from 'app/common/gristUrls';
 
 export function getGristConfig(): GristLoadConfig {
   return (window as any).gristConfig || {};

@@ -58,8 +58,8 @@ describe('PubSubManager', function() {
       assert.isFalse(unsubSpy.called, 'unsubscribe should not be called after removing first listener');
 
       await manager.publishBatch([
-        {channel: 'testChanA', message: 'foo2'},
-        {channel: 'testChanB', message: 'bar2'}],
+        { channel: 'testChanA', message: 'foo2' },
+        { channel: 'testChanB', message: 'bar2' }],
       );
       await delay(200);   // Give subscriptions a chance to get called.
       assert.deepEqual(cbA1.args, []);
@@ -218,8 +218,8 @@ describe('PubSubManager', function() {
       unsubscribe1();
 
       await manager.publishBatch([
-        {channel: 'testChanA', message: 'foo2'},
-        {channel: 'testChanB', message: 'bar2'}],
+        { channel: 'testChanA', message: 'foo2' },
+        { channel: 'testChanB', message: 'bar2' }],
       );
       await delay(200);   // Give subscriptions a chance to get called.
       assert.deepEqual(cbA1.args, []);

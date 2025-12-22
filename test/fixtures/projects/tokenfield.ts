@@ -87,8 +87,8 @@ function setupTest() {
   };
 
   const renderToken = (item: IToken) => item.label;
-  const tokenFieldPlain = TokenField.create(null, {initialValue, createToken, renderToken});
-  const tokenFieldAC = TokenField.create(null, {initialValue, createToken: create2, acOptions, renderToken});
+  const tokenFieldPlain = TokenField.create(null, { initialValue, createToken, renderToken });
+  const tokenFieldAC = TokenField.create(null, { initialValue, createToken: create2, acOptions, renderToken });
 
   return cssTestBox(
     cssExample(
@@ -115,7 +115,7 @@ function setupTest() {
       ),
       testId('tokenfield-ac'),
     ),
-    cssTextArea({placeholder: 'Copy-paste testing area', rows: '3'},
+    cssTextArea({ placeholder: 'Copy-paste testing area', rows: '3' },
       testId('copypaste'),
     ),
   );

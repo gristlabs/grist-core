@@ -1,9 +1,9 @@
-import {arrayRepeat} from 'app/plugin/gutil';
+import { arrayRepeat } from 'app/plugin/gutil';
 import * as gu from 'test/nbrowser/gristUtils';
-import {ColumnType} from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
-import {UserAPIImpl} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { ColumnType } from 'test/nbrowser/gristUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { UserAPIImpl } from 'app/common/UserAPI';
+import { assert, driver, Key } from 'mocha-webdriver';
 let api: UserAPIImpl;
 let doc: string;
 
@@ -20,7 +20,7 @@ describe('MultiColumn', function() {
   const cleanup = setupTestSuite();
   before(async function() {
     const session = await gu.session().login();
-    doc = await session.tempNewDoc(cleanup, "MultiColumn", {load: false});
+    doc = await session.tempNewDoc(cleanup, "MultiColumn", { load: false });
     api = session.createHomeApi();
     await api.applyUserActions(doc, [
       ['BulkAddRecord', 'Table1', arrayRepeat(2, null), {}],
@@ -73,7 +73,7 @@ describe('MultiColumn', function() {
       // Should be able to change type.
       await gu.getDetailCell('Test1', 1);
       await gu.enterCell("aa");
-      await gu.setType("Integer", {apply: true});
+      await gu.setType("Integer", { apply: true });
       assert.equal(await gu.getType(), "Integer");
     });
 
@@ -149,9 +149,9 @@ describe('MultiColumn', function() {
       assert.equal(await gu.columnBehavior(), 'Data columns');
       // Now make them all formulas
       await gu.sendActions([
-        ['ModifyColumn', 'Table1', 'Test1', {formula: '1', isFormula: true}],
-        ['ModifyColumn', 'Table1', 'Test2', {formula: '1', isFormula: true}],
-        ['ModifyColumn', 'Table1', 'Test3', {formula: '1', isFormula: true}],
+        ['ModifyColumn', 'Table1', 'Test1', { formula: '1', isFormula: true }],
+        ['ModifyColumn', 'Table1', 'Test2', { formula: '1', isFormula: true }],
+        ['ModifyColumn', 'Table1', 'Test3', { formula: '1', isFormula: true }],
       ]);
       await selectColumns('Test1', 'Test3');
       assert.equal(await gu.columnBehavior(), 'Formula columns');
@@ -166,9 +166,9 @@ describe('MultiColumn', function() {
     it('should reset multiple columns', async () => {
       // Now make them all formulas
       await gu.sendActions([
-        ['ModifyColumn', 'Table1', 'Test1', {formula: '1', isFormula: true}],
-        ['ModifyColumn', 'Table1', 'Test2', {formula: '1', isFormula: true}],
-        ['ModifyColumn', 'Table1', 'Test3', {formula: '1', isFormula: true}],
+        ['ModifyColumn', 'Table1', 'Test1', { formula: '1', isFormula: true }],
+        ['ModifyColumn', 'Table1', 'Test2', { formula: '1', isFormula: true }],
+        ['ModifyColumn', 'Table1', 'Test3', { formula: '1', isFormula: true }],
       ]);
       await selectColumns('Test1', 'Test3');
       assert.equal(await gu.columnBehavior(), 'Formula columns');
@@ -213,9 +213,9 @@ describe('MultiColumn', function() {
 
       // Now make them all formula columns
       await gu.sendActions([
-        ['ModifyColumn', 'Table1', 'Test1', {formula: '1', isFormula: true}],
-        ['ModifyColumn', 'Table1', 'Test2', {formula: '2', isFormula: true}],
-        ['ModifyColumn', 'Table1', 'Test3', {formula: '3', isFormula: true}],
+        ['ModifyColumn', 'Table1', 'Test1', { formula: '1', isFormula: true }],
+        ['ModifyColumn', 'Table1', 'Test2', { formula: '2', isFormula: true }],
+        ['ModifyColumn', 'Table1', 'Test3', { formula: '3', isFormula: true }],
       ]);
       await selectColumns('Test1', 'Test3');
       assert.equal(await gu.columnBehavior(), 'Formula columns');
@@ -234,7 +234,7 @@ describe('MultiColumn', function() {
 
     it('should disable formula editor for multiple columns', async () => {
       await gu.sendActions([
-        ['ModifyColumn', 'Table1', 'Test1', {formula: '1', isFormula: true}],
+        ['ModifyColumn', 'Table1', 'Test1', { formula: '1', isFormula: true }],
       ]);
       await selectColumns('Test1');
       assert.isFalse(await formulaEditorDisabled());
@@ -300,7 +300,7 @@ describe('MultiColumn', function() {
       }
       // For mix of empty and formulas
       await gu.sendActions([
-        ['ModifyColumn', 'Table1', 'Test2', {formula: '2', isFormula: true}],
+        ['ModifyColumn', 'Table1', 'Test2', { formula: '2', isFormula: true }],
       ]);
       await selectColumns('Test1', 'Test3');
       assert.isFalse(await columnTypeDisabled());
@@ -316,7 +316,7 @@ describe('MultiColumn', function() {
       // For mix of empty and formulas and data
       await gu.sendActions([
         // We are changing first column, so the selection will start from data column.
-        ['ModifyColumn', 'Table1', 'Test1', {type: 'Choice'}],
+        ['ModifyColumn', 'Table1', 'Test1', { type: 'Choice' }],
       ]);
       await selectColumns('Test1', 'Test3');
       assert.isFalse(await columnTypeDisabled());

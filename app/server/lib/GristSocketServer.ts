@@ -1,7 +1,7 @@
 import * as http from 'http';
 import * as WS from 'ws';
 import * as EIO from 'engine.io';
-import {GristServerSocket, GristServerSocketEIO, GristServerSocketWS} from 'app/server/lib/GristServerSocket';
+import { GristServerSocket, GristServerSocketEIO, GristServerSocketWS } from 'app/server/lib/GristServerSocket';
 import * as net from 'net';
 import * as stream from 'stream';
 import { EngineRequest } from 'engine.io/build/transport';

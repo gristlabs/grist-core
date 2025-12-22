@@ -1,24 +1,24 @@
 import * as commands from 'app/client/components/commands';
-import type {DocComm, GristDoc} from 'app/client/components/GristDoc';
-import {ViewLayout, ViewSectionHelper} from 'app/client/components/ViewLayout';
+import type { DocComm, GristDoc } from 'app/client/components/GristDoc';
+import { ViewLayout, ViewSectionHelper } from 'app/client/components/ViewLayout';
 import type BaseRowModel from 'app/client/models/BaseRowModel';
-import {DocData} from 'app/client/models/DocData';
-import {DocModel, ViewFieldRec, ViewRec} from 'app/client/models/DocModel';
-import {QuerySetManager} from 'app/client/models/QuerySet';
-import {IEdit, IExternalTable, VirtualTableRegistration} from 'app/client/models/VirtualTable';
-import {META_TABLES} from 'app/client/models/VirtualTableMeta';
-import type {App} from 'app/client/ui/App';
-import type {FieldEditor} from 'app/client/widgets/FieldEditor';
-import {WidgetType} from 'app/client/widgets/UserType';
-import type {ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {DocAction, getColValues, TableDataAction, UserAction} from 'app/common/DocActions';
-import {DocDataCache} from 'app/common/DocDataCache';
-import {VirtualId} from 'app/common/SortSpec';
-import type {UIRowId} from 'app/plugin/GristAPI';
-import {GristType} from 'app/plugin/GristData';
+import { DocData } from 'app/client/models/DocData';
+import { DocModel, ViewFieldRec, ViewRec } from 'app/client/models/DocModel';
+import { QuerySetManager } from 'app/client/models/QuerySet';
+import { IEdit, IExternalTable, VirtualTableRegistration } from 'app/client/models/VirtualTable';
+import { META_TABLES } from 'app/client/models/VirtualTableMeta';
+import type { App } from 'app/client/ui/App';
+import type { FieldEditor } from 'app/client/widgets/FieldEditor';
+import { WidgetType } from 'app/client/widgets/UserType';
+import type { ApplyUAOptions, ApplyUAResult } from 'app/common/ActiveDocAPI';
+import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
+import { DocAction, getColValues, TableDataAction, UserAction } from 'app/common/DocActions';
+import { DocDataCache } from 'app/common/DocDataCache';
+import { VirtualId } from 'app/common/SortSpec';
+import type { UIRowId } from 'app/plugin/GristAPI';
+import { GristType } from 'app/plugin/GristData';
 import camelCase from 'camelcase';
-import {Disposable, dom, Emitter, Holder, Observable, toKo} from 'grainjs';
+import { Disposable, dom, Emitter, Holder, Observable, toKo } from 'grainjs';
 import * as ko from 'knockout';
 import omit from 'lodash/omit';
 import range from 'lodash/range';
@@ -67,7 +67,7 @@ export class VirtualTable extends Disposable {
 
   constructor(options: {
     name: string;
-    columns?: Array<Partial<ColDef> & {label: string}>;
+    columns?: Array<Partial<ColDef> & { label: string }>;
     data?: Record<string, any>[];
     getData?: () => Promise<any>;
   }) {
@@ -90,9 +90,9 @@ export class VirtualTable extends Disposable {
   /**
    * Adds a column to the virtual table. Only the label is required, other properties are optional.
    */
-  public addColumn(...cols: Array<Partial<ColDef> & {label: string}>) {
+  public addColumn(...cols: Array<Partial<ColDef> & { label: string }>) {
     this._columns ??= [];
-    cols.forEach(col => this._columns.push({type: col.type || 'Any', colId: toId(col.label), ...col}));
+    cols.forEach(col => this._columns.push({ type: col.type || 'Any', colId: toId(col.label), ...col }));
   }
 
   /**
@@ -206,7 +206,7 @@ export class VirtualTable extends Disposable {
           })),
         ], [
           // Add an entry for the virtual table.
-          'AddRecord', '_grist_Tables', this._tableId as any, {tableId, primaryViewId: 0},
+          'AddRecord', '_grist_Tables', this._tableId as any, { tableId, primaryViewId: 0 },
         ], [
           // Add entries for the columns of the virtual table.
           'BulkAddRecord', '_grist_Tables_column',
@@ -273,7 +273,7 @@ export class VirtualTable extends Disposable {
       return rows;
     }
     return rows.map((row) => {
-      const ret: Record<string, any> = {...row};
+      const ret: Record<string, any> = { ...row };
       this._transformColumns.forEach((col) => {
         ret[col.colId] = col.transform!(row[col.colId]);
       });
@@ -329,7 +329,7 @@ class InMemoryGristDoc extends Disposable {
   public readonly activeEditor: Observable<FieldEditor | null> = Observable.create(this, null);
   public comparison = false;
   public docData: DocData = {} as any; // Don't need anything from it here.
-  public docInfo = {timezone: Observable.create(null, 'UTC')};
+  public docInfo = { timezone: Observable.create(null, 'UTC') };
   public querySetManager = new QuerySetManager(this.docModel, {} as any);
   public docPageModel = {
     appModel: {

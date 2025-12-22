@@ -1,12 +1,12 @@
-import {FormLayoutNode} from 'app/client/components/FormRenderer';
-import {buildEditor} from 'app/client/components/Forms/Editor';
-import {BoxModel} from 'app/client/components/Forms/Model';
+import { FormLayoutNode } from 'app/client/components/FormRenderer';
+import { buildEditor } from 'app/client/components/Forms/Editor';
+import { BoxModel } from 'app/client/components/Forms/Model';
 import * as css from 'app/client/components/Forms/styles';
-import {textarea} from 'app/client/ui/inputs';
-import {theme} from 'app/client/ui2018/cssVars';
-import {not} from 'app/common/gutil';
-import {Computed, dom, Observable, styled} from 'grainjs';
-import {v4 as uuidv4} from 'uuid';
+import { textarea } from 'app/client/ui/inputs';
+import { theme } from 'app/client/ui2018/cssVars';
+import { not } from 'app/common/gutil';
+import { Computed, dom, Observable, styled } from 'grainjs';
+import { v4 as uuidv4 } from 'uuid';
 
 export class ParagraphModel extends BoxModel {
   public edit = Observable.create(this, false);
@@ -43,7 +43,7 @@ export class ParagraphModel extends BoxModel {
         this.cssClass ? dom.cls(this.cssClass, not(editMode)) : null,
         dom.maybe(editMode, () => {
           const draft = Observable.create(null, text.get() || '');
-          return cssTextArea(draft, {autoGrow: true, onInput: true},
+          return cssTextArea(draft, { autoGrow: true, onInput: true },
             cssTextArea.cls('-edit', editMode),
             (elem) => {
               setTimeout(() => {
@@ -65,7 +65,7 @@ export class ParagraphModel extends BoxModel {
 }
 
 export function Paragraph(text: string, alignment?: 'left'|'right'|'center'): FormLayoutNode {
-  return {id: uuidv4(), type: 'Paragraph', text, alignment};
+  return { id: uuidv4(), type: 'Paragraph', text, alignment };
 }
 
 const cssTextArea = styled(textarea, `

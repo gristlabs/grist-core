@@ -2,17 +2,17 @@
  * DocWorker collects the methods and endpoints that relate to a single Grist document.
  * In hosted environment, this comprises the functionality of the DocWorker instance type.
  */
-import {isAffirmative} from 'app/common/gutil';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {assertAccess, getOrSetDocAuth, RequestWithLogin} from 'app/server/lib/Authorizer';
-import {Client} from 'app/server/lib/Client';
-import {Comm} from 'app/server/lib/Comm';
-import {DocSession, docSessionFromRequest} from 'app/server/lib/DocSession';
-import {filterDocumentInPlace} from 'app/server/lib/filterUtils';
-import {GristServer} from 'app/server/lib/GristServer';
-import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
+import { isAffirmative } from 'app/common/gutil';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { assertAccess, getOrSetDocAuth, RequestWithLogin } from 'app/server/lib/Authorizer';
+import { Client } from 'app/server/lib/Client';
+import { Comm } from 'app/server/lib/Comm';
+import { DocSession, docSessionFromRequest } from 'app/server/lib/DocSession';
+import { filterDocumentInPlace } from 'app/server/lib/filterUtils';
+import { GristServer } from 'app/server/lib/GristServer';
+import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
 import log from 'app/server/lib/log';
-import {getDocId, integerParam, optIntegerParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
+import { getDocId, integerParam, optIntegerParam, optStringParam, stringParam } from 'app/server/lib/requestUtils';
 import contentDisposition from 'content-disposition';
 import * as express from 'express';
 import * as fse from 'fs-extra';
@@ -54,8 +54,8 @@ export class DocWorker {
 
       // Construct a content-disposition header of the form 'inline|attachment; filename="NAME"'
       const contentDispType = inline ? "inline" : "attachment";
-      const contentDispHeader = contentDisposition(stringParam(req.query.name, 'name'), {type: contentDispType});
-      const data = await activeDoc.getAttachmentData(docSession, attRecord, {cell, maybeNew});
+      const contentDispHeader = contentDisposition(stringParam(req.query.name, 'name'), { type: contentDispType });
+      const data = await activeDoc.getAttachmentData(docSession, attRecord, { cell, maybeNew });
       res.status(200)
         .type(ext)
         .set('Content-Disposition', contentDispHeader)
@@ -64,7 +64,7 @@ export class DocWorker {
         .send(data);
     }
     catch (err) {
-      res.status(404).send({error: err.toString()});
+      res.status(404).send({ error: err.toString() });
     }
   }
 
@@ -184,7 +184,7 @@ export class DocWorker {
         // be the docId.
         urlId = stringParam(req.query.doc, 'doc');
       }
-      if (!urlId) { return res.status(403).send({error: 'missing document id'}); }
+      if (!urlId) { return res.status(403).send({ error: 'missing document id' }); }
 
       const docAuth = await getOrSetDocAuth(mreq, this._dbManager, this._gristServer, urlId);
       assertAccess('viewers', docAuth);
@@ -192,7 +192,7 @@ export class DocWorker {
     }
     catch (err) {
       log.info(`DocWorker can't access document ${urlId} with userId ${mreq.userId}: ${err}`);
-      res.status(err.status || 404).send({error: err.toString()});
+      res.status(err.status || 404).send({ error: err.toString() });
     }
   }
 

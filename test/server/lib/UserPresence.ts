@@ -1,8 +1,8 @@
-import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, UserAPI} from 'app/common/UserAPI';
-import {GristClient, openClient} from 'test/server/gristClient';
-import {TestServer} from 'test/gen-server/apiUtils';
-import {assert} from 'chai';
-import {zipObject} from 'lodash';
+import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, UserAPI } from 'app/common/UserAPI';
+import { GristClient, openClient } from 'test/server/gristClient';
+import { TestServer } from 'test/gen-server/apiUtils';
+import { assert } from 'chai';
+import { zipObject } from 'lodash';
 import * as sinon from 'sinon';
 
 const TEST_ORG = "userpresence";
@@ -67,10 +67,10 @@ describe('UserPresence', function() {
     home = new TestServer(this);
     await home.start(['home', 'docs']);
     const api = await home.createHomeApi('chimpy', 'docs', true);
-    await api.newOrg({name: TEST_ORG, domain: TEST_ORG});
+    await api.newOrg({ name: TEST_ORG, domain: TEST_ORG });
     owner = await home.createHomeApi(Users.owner.username, TEST_ORG, true);
-    wsId = await owner.newWorkspace({name: 'userpresence'}, 'current');
-    docId = await owner.newDoc({name: 'doc'}, wsId);
+    wsId = await owner.newWorkspace({ name: 'userpresence' }, 'current');
+    docId = await owner.newDoc({ name: 'doc' }, wsId);
 
     await owner.updateWorkspacePermissions(wsId, {
       users: {
@@ -155,7 +155,7 @@ describe('UserPresence', function() {
           await joiningClient.openDocOnConnect(docId);
 
           const joinMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
-          const expectedProfile = {...testCase.expectedProfile, id: joinMessage.data.profile.id};
+          const expectedProfile = { ...testCase.expectedProfile, id: joinMessage.data.profile.id };
           assert.deepStrictEqual(joinMessage.data.profile, expectedProfile);
 
           await closeClient(joiningClient);

@@ -1,17 +1,17 @@
-import {Disposable, dom, Holder, Observable, styled, UseCBOwner} from 'grainjs';
-import {mod} from 'app/common/gutil';
-import {SpecialDocPage} from 'app/common/gristUrls';
+import { Disposable, dom, Holder, Observable, styled, UseCBOwner } from 'grainjs';
+import { mod } from 'app/common/gutil';
+import { SpecialDocPage } from 'app/common/gristUrls';
 import isEqual from 'lodash/isEqual';
-import {makeT} from 'app/client/lib/localization';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {trapTabKey} from 'app/client/lib/trapTabKey';
-import {isFocusable} from 'app/client/lib/isFocusable';
+import { makeT } from 'app/client/lib/localization';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { trapTabKey } from 'app/client/lib/trapTabKey';
+import { isFocusable } from 'app/client/lib/isFocusable';
 import * as commands from 'app/client/components/commands';
-import {App} from 'app/client/ui/App';
-import {GristDoc} from 'app/client/components/GristDoc';
+import { App } from 'app/client/ui/App';
+import { GristDoc } from 'app/client/components/GristDoc';
 import BaseView from 'app/client/components/BaseView';
-import {kbFocusHighlighterClass} from 'app/client/components/KeyboardFocusHighlighter';
-import {components} from 'app/common/ThemePrefs';
+import { kbFocusHighlighterClass } from 'app/client/components/KeyboardFocusHighlighter';
+import { components } from 'app/common/ThemePrefs';
 
 const t = makeT('RegionFocusSwitcher');
 
@@ -25,7 +25,7 @@ interface SectionRegion {
   id?: number // this matches a grist document view section id. If none is provided, it means "view layout" is focused.
 }
 type Region = PanelRegion | SectionRegion;
-type StateUpdateInitiator = {type: 'cycle'} | {type: 'mouse', event?: MouseEvent};
+type StateUpdateInitiator = { type: 'cycle' } | { type: 'mouse', event?: MouseEvent };
 interface State {
   region?: Region;
   initiator?: StateUpdateInitiator;
@@ -167,7 +167,7 @@ export class RegionFocusSwitcher extends Disposable {
       this.focusActiveSection();
       return;
     }
-    this._focusRegion({type: 'panel', id});
+    this._focusRegion({ type: 'panel', id });
   }
 
   /**
@@ -178,7 +178,7 @@ export class RegionFocusSwitcher extends Disposable {
   public focusActiveSection() {
     const gristDoc = this._getGristDoc();
     if (gristDoc) {
-      this._focusRegion({type: 'section', id: gristDoc.viewModel.activeSectionId()});
+      this._focusRegion({ type: 'section', id: gristDoc.viewModel.activeSectionId() });
     }
   }
 
@@ -203,7 +203,7 @@ export class RegionFocusSwitcher extends Disposable {
 
   private _focusRegion(
     region: Region | undefined,
-    options: {initiator?: StateUpdateInitiator} = {},
+    options: { initiator?: StateUpdateInitiator } = {},
   ) {
     if (region?.type === 'panel' && !getPanelElement(region.id)) {
       return;
@@ -219,7 +219,7 @@ export class RegionFocusSwitcher extends Disposable {
       return;
     }
 
-    this._state.set({region, initiator: options.initiator});
+    this._state.set({ region, initiator: options.initiator });
   }
 
   private _cycle(direction: 'next' | 'prev') {
@@ -230,7 +230,7 @@ export class RegionFocusSwitcher extends Disposable {
       cycleRegions,
       direction,
       gristDoc,
-    ), {initiator: {type: 'cycle'}});
+    ), { initiator: { type: 'cycle' } });
   }
 
   /**
@@ -270,10 +270,10 @@ export class RegionFocusSwitcher extends Disposable {
     if (targetsMain || !isFocusableElement) {
       // don't specify a section id here: we just want to focus back the view layout,
       // we don't specifically know which section, the view layout will take care of that.
-      this._focusRegion({type: 'section'}, {initiator: {type: 'mouse', event}});
+      this._focusRegion({ type: 'section' }, { initiator: { type: 'mouse', event } });
     }
     else {
-      this._focusRegion({type: 'panel', id: targetRegionId as Panel}, {initiator: {type: 'mouse', event}});
+      this._focusRegion({ type: 'panel', id: targetRegionId as Panel }, { initiator: { type: 'mouse', event } });
     }
   }
 
@@ -285,7 +285,7 @@ export class RegionFocusSwitcher extends Disposable {
    * So, this doesn't get called when in a modal, a popup menu, etc., as those have their own cancel callback.
    */
   private _onEscapeKeypress() {
-    const {region: current, initiator} = this._state.get();
+    const { region: current, initiator } = this._state.get();
     // Do nothing if we are not focused on a panel
     if (current?.type !== 'panel') {
       return;
@@ -407,12 +407,12 @@ export class RegionFocusSwitcher extends Disposable {
     const gristDoc = this._getGristDoc();
     if (current?.type === 'panel' && current.id === 'right') {
       return this._focusRegion(
-        gristDoc ? {type: 'section'} : {type: 'panel', id: 'main'},
-        {initiator: {type: 'cycle'}},
+        gristDoc ? { type: 'section' } : { type: 'panel', id: 'main' },
+        { initiator: { type: 'cycle' } },
       );
     }
     commands.allCommands.rightPanelOpen.run();
-    return this._focusRegion({type: 'panel', id: 'right'}, {initiator: {type: 'cycle'}});
+    return this._focusRegion({ type: 'panel', id: 'right' }, { initiator: { type: 'cycle' } });
   }
 
   private _canTabThroughMainRegion(use: UseCBOwner) {
@@ -446,7 +446,7 @@ export class RegionFocusSwitcher extends Disposable {
     if (this._commandsHistory.length > 20) {
       this._commandsHistory.shift();
     }
-    this._commandsHistory.push({name, timestamp: Date.now()});
+    this._commandsHistory.push({ name, timestamp: Date.now() });
   }
 
   /**
@@ -481,7 +481,7 @@ export class RegionFocusSwitcher extends Disposable {
       this._app?.topAppModel.notifier.createUserMessage(
         t(
           'Trying to access the creator panel? Use {{key}}.',
-          {key: commands.allCommands.creatorPanel.humanKeys},
+          { key: commands.allCommands.creatorPanel.humanKeys },
         ),
         {
           level: 'info',
@@ -533,7 +533,7 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
     child.setAttribute(ATTRS.focusedElement, 'true');
     child.addEventListener('blur', () => {
       child.removeAttribute(ATTRS.focusedElement);
-    }, {once: true});
+    }, { once: true });
     child.focus?.();
   }
   else {
@@ -601,21 +601,21 @@ const focusSection = (section: SectionRegion, gristDoc: GristDoc) => {
  */
 const getCycleRegions = (gristDoc: GristDoc | null): Region[] => {
   const commonPanels = [
-    getPanelElement('left') ? {type: 'panel', id: 'left'} as PanelRegion : null,
-    getPanelElement('top') ? {type: 'panel', id: 'top'} as PanelRegion : null,
+    getPanelElement('left') ? { type: 'panel', id: 'left' } as PanelRegion : null,
+    getPanelElement('top') ? { type: 'panel', id: 'top' } as PanelRegion : null,
   ].filter((x): x is PanelRegion => Boolean(x));
 
   // If there is no doc with layout, just cycle through panels
   if (!gristDoc) {
     return [
       ...commonPanels,
-      getPanelElement('main') ? {type: 'panel', id: 'main'} as PanelRegion : null,
+      getPanelElement('main') ? { type: 'panel', id: 'main' } as PanelRegion : null,
     ].filter((x): x is PanelRegion => Boolean(x));
   }
 
   // If there is a doc, also cycle through section ids
   return [
-    ...gristDoc.viewLayout?.layout.getAllLeafIds().map(id => ({type: 'section', id} as SectionRegion)) ?? [],
+    ...gristDoc.viewLayout?.layout.getAllLeafIds().map(id => ({ type: 'section', id } as SectionRegion)) ?? [],
     ...commonPanels,
   ];
 };
@@ -641,7 +641,7 @@ const getSibling = (
   // If it's not found, it certainly means there is no current region set yet.
   // In case of a grist doc, we can use the active section id as the "current index"
   if ((currentIndexInCycle === -1 || isCreatorPanel) && gristDoc) {
-    currentIndexInCycle = findRegionIndex(regions, {type: 'section', id: gristDoc.viewModel.activeSectionId()});
+    currentIndexInCycle = findRegionIndex(regions, { type: 'section', id: gristDoc.viewModel.activeSectionId() });
   }
   // If we still don't find anything, it means we never set the current region before on a non-doc page,
   // or we didn't find any current doc section. Return the first region as default.

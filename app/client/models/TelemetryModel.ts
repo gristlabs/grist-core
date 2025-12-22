@@ -1,7 +1,7 @@
-import {AppModel, getHomeUrl} from 'app/client/models/AppModel';
-import {TelemetryPrefs} from 'app/common/Install';
-import {InstallAPI, InstallAPIImpl, TelemetryPrefsWithSources} from 'app/common/InstallAPI';
-import {bundleChanges, Disposable, Observable} from 'grainjs';
+import { AppModel, getHomeUrl } from 'app/client/models/AppModel';
+import { TelemetryPrefs } from 'app/common/Install';
+import { InstallAPI, InstallAPIImpl, TelemetryPrefsWithSources } from 'app/common/InstallAPI';
+import { bundleChanges, Disposable, Observable } from 'grainjs';
 
 export interface TelemetryModel {
   /** Telemetry preferences (e.g. the current telemetry level). */
@@ -26,7 +26,7 @@ export class TelemetryModelImpl extends Disposable implements TelemetryModel {
   }
 
   public async updateTelemetryPrefs(prefs: Partial<TelemetryPrefs>): Promise<void> {
-    await this._installAPI.updateInstallPrefs({telemetry: prefs});
+    await this._installAPI.updateInstallPrefs({ telemetry: prefs });
     await this.fetchTelemetryPrefs();
   }
 }

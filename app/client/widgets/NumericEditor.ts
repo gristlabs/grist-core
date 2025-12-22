@@ -1,5 +1,5 @@
-import {FieldOptions} from 'app/client/widgets/NewBaseEditor';
-import {NTextEditor} from 'app/client/widgets/NTextEditor';
+import { FieldOptions } from 'app/client/widgets/NewBaseEditor';
+import { NTextEditor } from 'app/client/widgets/NTextEditor';
 
 export class NumericEditor extends NTextEditor {
   constructor(protected options: FieldOptions) {
@@ -8,9 +8,9 @@ export class NumericEditor extends NTextEditor {
       // no currency symbols or groupings), but it's important to use the right locale so that the
       // number can be parsed back (e.g. correct decimal separator).
       const locale = options.field.documentSettings.peek().locale;
-      const fmt = new Intl.NumberFormat(locale, {useGrouping: false, maximumFractionDigits: 20});
+      const fmt = new Intl.NumberFormat(locale, { useGrouping: false, maximumFractionDigits: 20 });
       const editValue = fmt.format(options.cellValue);
-      options = {...options, editValue};
+      options = { ...options, editValue };
     }
     super(options);
   }

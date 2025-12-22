@@ -1,5 +1,5 @@
-import {nativeValues} from 'app/gen-server/lib/values';
-import {MigrationInterface, QueryRunner, Table} from 'typeorm';
+import { nativeValues } from 'app/gen-server/lib/values';
+import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class Prefs1596456522124 implements MigrationInterface {
 

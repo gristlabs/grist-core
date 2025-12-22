@@ -3,87 +3,87 @@
  */
 // tslint:disable:no-console
 
-import {AccessRules} from 'app/client/aclui/AccessRules';
-import {ActionCounter} from 'app/client/components/ActionCounter';
-import {ActionLog} from 'app/client/components/ActionLog';
+import { AccessRules } from 'app/client/aclui/AccessRules';
+import { ActionCounter } from 'app/client/components/ActionCounter';
+import { ActionLog } from 'app/client/components/ActionLog';
 import BaseView from 'app/client/components/BaseView';
-import type {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
-import {isNumericLike, isNumericOnly} from 'app/client/components/ChartView';
-import {CodeEditorPanel} from 'app/client/components/CodeEditorPanel';
+import type { BehavioralPromptsManager } from 'app/client/components/BehavioralPromptsManager';
+import { isNumericLike, isNumericOnly } from 'app/client/components/ChartView';
+import { CodeEditorPanel } from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
-import {CursorMonitor, ViewCursorPos} from "app/client/components/CursorMonitor";
-import {DocComm} from 'app/client/components/DocComm';
-import {Drafts} from "app/client/components/Drafts";
-import {EditorMonitor} from "app/client/components/EditorMonitor";
-import {buildDefaultFormLayout} from 'app/client/components/Forms/FormView';
+import { CursorMonitor, ViewCursorPos } from "app/client/components/CursorMonitor";
+import { DocComm } from 'app/client/components/DocComm';
+import { Drafts } from "app/client/components/Drafts";
+import { EditorMonitor } from "app/client/components/EditorMonitor";
+import { buildDefaultFormLayout } from 'app/client/components/Forms/FormView';
 import GridView from 'app/client/components/GridView';
-import {importFromFile, selectAndImport} from 'app/client/components/Importer';
-import {RawDataPage, RawDataPopup} from 'app/client/components/RawDataPage';
-import {RecordCardPopup} from 'app/client/components/RecordCardPopup';
-import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
-import {ViewLayout} from 'app/client/components/ViewLayout';
-import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {copyToClipboard} from 'app/client/lib/clipboardUtils';
-import {DocPluginManager} from 'app/client/lib/DocPluginManager';
-import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
-import {makeT} from 'app/client/lib/localization';
-import {createSessionObs} from 'app/client/lib/sessionObs';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {setTestState} from 'app/client/lib/testState';
-import {AppModel} from 'app/client/models/AppModel';
+import { importFromFile, selectAndImport } from 'app/client/components/Importer';
+import { RawDataPage, RawDataPopup } from 'app/client/components/RawDataPage';
+import { RecordCardPopup } from 'app/client/components/RecordCardPopup';
+import { ActionGroupWithCursorPos, UndoStack } from 'app/client/components/UndoStack';
+import { ViewLayout } from 'app/client/components/ViewLayout';
+import { RegionFocusSwitcher } from 'app/client/components/RegionFocusSwitcher';
+import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import { copyToClipboard } from 'app/client/lib/clipboardUtils';
+import { DocPluginManager } from 'app/client/lib/DocPluginManager';
+import { ImportSourceElement } from 'app/client/lib/ImportSourceElement';
+import { makeT } from 'app/client/lib/localization';
+import { createSessionObs } from 'app/client/lib/sessionObs';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
+import { setTestState } from 'app/client/lib/testState';
+import { AppModel } from 'app/client/models/AppModel';
 import BaseRowModel from 'app/client/models/BaseRowModel';
 import DataTableModel from 'app/client/models/DataTableModel';
-import {DataTableModelWithDiff} from 'app/client/models/DataTableModelWithDiff';
-import {DocData} from 'app/client/models/DocData';
-import {DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {reportError, reportSuccess, UserError} from 'app/client/models/errors';
-import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
-import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
-import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
-import {UserPresenceModel, UserPresenceModelImpl} from 'app/client/models/UserPresenceModel';
-import {App} from 'app/client/ui/App';
-import {showCustomWidgetGallery} from 'app/client/ui/CustomWidgetGallery';
-import {DocHistory} from 'app/client/ui/DocHistory';
-import {startDocTour} from "app/client/ui/DocTour";
-import {DocTutorial} from 'app/client/ui/DocTutorial';
-import {DocSettingsPage} from 'app/client/ui/DocumentSettings';
-import {isTourActive, isTourActiveObs} from "app/client/ui/OnBoardingPopups";
-import {DefaultPageWidget, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {linkFromId, NoLink, selectBy} from 'app/client/ui/selectBy';
-import {ProposedChangesPage} from 'app/client/ui/ProposedChangesPage';
-import {TimingPage} from 'app/client/ui/TimingPage';
-import {WebhookPage} from 'app/client/ui/WebhookPage';
-import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
-import {getTelemetryWidgetTypeFromPageWidget} from 'app/client/ui/widgetTypesMap';
-import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
-import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
-import {IconName} from 'app/client/ui2018/IconList';
-import {icon} from 'app/client/ui2018/icons';
-import {invokePrompt} from 'app/client/ui2018/modals';
-import {buildAssistantPopup} from 'app/client/widgets/AssistantPopup';
-import {CommentMonitor, DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
-import {FieldEditor} from "app/client/widgets/FieldEditor";
-import {MinimalActionGroup} from 'app/common/ActionGroup';
-import {ClientQuery, FilterColValues} from "app/common/ActiveDocAPI";
-import {CommDocChatter, CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
-import {delay} from 'app/common/delay';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {isSchemaAction, UserAction} from 'app/common/DocActions';
-import {OpenLocalDocResult} from 'app/common/DocListAPI';
-import {DocState, DocStateComparison} from 'app/common/DocState';
-import {isList, isListType, isRefListType} from 'app/common/gristTypes';
-import {HashLink, IDocPage, isViewDocPage, parseUrlId, SpecialDocPage, ViewDocPage} from 'app/common/gristUrls';
-import {undef, waitObs} from 'app/common/gutil';
-import {LocalPlugin} from "app/common/plugin";
-import type {UserOrgPrefs} from 'app/common/Prefs';
-import {StringUnion} from 'app/common/StringUnion';
-import {TableData} from 'app/common/TableData';
-import {getGristConfig} from 'app/common/urlUtils';
-import {AttachmentTransferStatus, DocAPI, ExtendedUser} from 'app/common/UserAPI';
-import {AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType, WidgetType} from 'app/common/widgetTypes';
-import {CursorPos} from 'app/plugin/GristAPI';
+import { DataTableModelWithDiff } from 'app/client/models/DataTableModelWithDiff';
+import { DocData } from 'app/client/models/DocData';
+import { DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { DocPageModel } from 'app/client/models/DocPageModel';
+import { reportError, reportSuccess, UserError } from 'app/client/models/errors';
+import { getMainOrgUrl, urlState } from 'app/client/models/gristUrlState';
+import { getFilterFunc, QuerySetManager } from 'app/client/models/QuerySet';
+import { getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen } from 'app/client/models/UserPrefs';
+import { UserPresenceModel, UserPresenceModelImpl } from 'app/client/models/UserPresenceModel';
+import { App } from 'app/client/ui/App';
+import { showCustomWidgetGallery } from 'app/client/ui/CustomWidgetGallery';
+import { DocHistory } from 'app/client/ui/DocHistory';
+import { startDocTour } from "app/client/ui/DocTour";
+import { DocTutorial } from 'app/client/ui/DocTutorial';
+import { DocSettingsPage } from 'app/client/ui/DocumentSettings';
+import { isTourActive, isTourActiveObs } from "app/client/ui/OnBoardingPopups";
+import { DefaultPageWidget, IPageWidget, toPageWidget } from 'app/client/ui/PageWidgetPicker';
+import { linkFromId, NoLink, selectBy } from 'app/client/ui/selectBy';
+import { ProposedChangesPage } from 'app/client/ui/ProposedChangesPage';
+import { TimingPage } from 'app/client/ui/TimingPage';
+import { WebhookPage } from 'app/client/ui/WebhookPage';
+import { startWelcomeTour } from 'app/client/ui/WelcomeTour';
+import { getTelemetryWidgetTypeFromPageWidget } from 'app/client/ui/widgetTypesMap';
+import { PlayerState, YouTubePlayer } from 'app/client/ui/YouTubePlayer';
+import { isNarrowScreen, mediaSmall, mediaXSmall, testId, theme } from 'app/client/ui2018/cssVars';
+import { IconName } from 'app/client/ui2018/IconList';
+import { icon } from 'app/client/ui2018/icons';
+import { invokePrompt } from 'app/client/ui2018/modals';
+import { buildAssistantPopup } from 'app/client/widgets/AssistantPopup';
+import { CommentMonitor, DiscussionPanel } from 'app/client/widgets/DiscussionEditor';
+import { FieldEditor } from "app/client/widgets/FieldEditor";
+import { MinimalActionGroup } from 'app/common/ActionGroup';
+import { ClientQuery, FilterColValues } from "app/common/ActiveDocAPI";
+import { CommDocChatter, CommDocUsage, CommDocUserAction } from 'app/common/CommTypes';
+import { delay } from 'app/common/delay';
+import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
+import { isSchemaAction, UserAction } from 'app/common/DocActions';
+import { OpenLocalDocResult } from 'app/common/DocListAPI';
+import { DocState, DocStateComparison } from 'app/common/DocState';
+import { isList, isListType, isRefListType } from 'app/common/gristTypes';
+import { HashLink, IDocPage, isViewDocPage, parseUrlId, SpecialDocPage, ViewDocPage } from 'app/common/gristUrls';
+import { undef, waitObs } from 'app/common/gutil';
+import { LocalPlugin } from "app/common/plugin";
+import type { UserOrgPrefs } from 'app/common/Prefs';
+import { StringUnion } from 'app/common/StringUnion';
+import { TableData } from 'app/common/TableData';
+import { getGristConfig } from 'app/common/urlUtils';
+import { AttachmentTransferStatus, DocAPI, ExtendedUser } from 'app/common/UserAPI';
+import { AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType, WidgetType } from 'app/common/widgetTypes';
+import { CursorPos } from 'app/plugin/GristAPI';
 import {
   bundleChanges,
   Computed,
@@ -114,7 +114,7 @@ const t = makeT('GristDoc');
 const G = getBrowserGlobals('document', 'window');
 
 // Re-export some tools to move them from main webpack bundle to the one with GristDoc.
-export {DocComm, startDocTour};
+export { DocComm, startDocTour };
 
 export interface TabContent {
   showObs?: any;
@@ -371,7 +371,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
     // Grainjs observable for current view id, which may be a string such as 'code'.
     this.activeViewId = Computed.create(this, (use) => {
-      const {docPage} = use(urlState().state);
+      const { docPage } = use(urlState().state);
 
       // Return most special pages like 'code' and 'acl' as is
       if (typeof docPage === 'string' && docPage !== 'GristDocTour' && SpecialDocPage.guard(docPage)) {
@@ -419,7 +419,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       if (isDeleted) {
         // This should not be done synchronously, as that affects the same viewModel that triggered
         // this callback, and causes some obscure effects on knockout subscriptions.
-        Promise.resolve().then(() => urlState().pushUrl({docPage: undefined})).catch(() => null);
+        Promise.resolve().then(() => urlState().pushUrl({ docPage: undefined })).catch(() => null);
       }
     }));
 
@@ -556,8 +556,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
           // Remove any tour-related hash-tags from the URL. So #repeat-welcome-tour and
           // #repeat-doc-tour are used as triggers, but will immediately disappear.
-          await urlState().pushUrl({welcomeTour: false, docTour: false},
-            {replace: true, avoidReload: true});
+          await urlState().pushUrl({ welcomeTour: false, docTour: false },
+            { replace: true, avoidReload: true });
 
           if (shouldStartTutorial) {
             await DocTutorial.create(this._docTutorialHolder, this).start();
@@ -591,7 +591,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
     // Importer takes a function for creating previews.
     const createPreview = (vs: ViewSectionRec) => {
-      const preview = GridView.create(this, this, vs, {isPreview: true});
+      const preview = GridView.create(this, this, vs, { isPreview: true });
       // We need to set the instance to the newly created section. This is important, as
       // GristDoc is responsible for changing the cursor position not the cursor itself. Final
       // cursor position is determined by finding active (or visible) section and passing this
@@ -616,7 +616,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     // Set the available import sources in the DocPageModel.
     this.docPageModel.importSources = importMenuItems;
 
-    this._actionLog = this.autoDispose(ActionLog.create({gristDoc: this}));
+    this._actionLog = this.autoDispose(ActionLog.create({ gristDoc: this }));
     this._actionCounter = this.autoDispose(ActionCounter.create(openDocResponse.log, this.docData));
     this._undoStack = this.autoDispose(UndoStack.create(openDocResponse.log, {
       gristDoc: this,
@@ -738,7 +738,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       // read latest position
       const currentPosition = use(view.cursor.currentPosition);
       if (currentPosition) {
-        return {...currentPosition, viewId};
+        return { ...currentPosition, viewId };
       }
       return undefined;
     });
@@ -780,14 +780,14 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     });
 
     this.autoDispose(subscribe(urlState().state, async (_use, state) => {
-      const {params} = state;
+      const { params } = state;
       if (!params?.assistantState) {
         return;
       }
 
       await urlState().pushUrl(
-        {params: omit(params, "assistantState")},
-        {replace: true, avoidReload: true},
+        { params: omit(params, "assistantState") },
+        { replace: true, avoidReload: true },
       );
 
       const assistantState = await this.docComm.getAssistantState(params.assistantState);
@@ -852,9 +852,9 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
                                 owner.autoDispose(this.activeViewId.addListener(popupOptions.close));
 
                                 // In case the section is removed, close the popup.
-                                popupOptions.viewSection.autoDispose({dispose: popupOptions.close});
+                                popupOptions.viewSection.autoDispose({ dispose: popupOptions.close });
 
-                                const {recordCard, rowId} = popupOptions.hash;
+                                const { recordCard, rowId } = popupOptions.hash;
                                 if (recordCard) {
                                   if (!rowId || rowId === 'new') {
                                     // Should be unreachable, but just to be sure (and to satisfy type checking)...
@@ -888,7 +888,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
   // Open the given page. Note that links to pages should use <a> elements together with setLinkUrl().
   public openDocPage(viewId: IDocPage) {
-    return urlState().pushUrl({docPage: viewId});
+    return urlState().pushUrl({ docPage: viewId });
   }
 
   public showTool(tool: typeof RightPanelTool.type): void {
@@ -965,7 +965,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
    * Adds a view section described by val to the current page.
    */
   public async addWidgetToPage(widget: IPageWidget): Promise<void> {
-    const {table, type} = widget;
+    const { table, type } = widget;
     let tableId: string | null | undefined;
     if (table === 'New Table') {
       tableId = await this._promptForName();
@@ -981,7 +981,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
     const viewName = this.viewModel.name.peek();
     await this.docData.bundleActions(
-      t("Added new linked section to view {{viewName}}", {viewName}),
+      t("Added new linked section to view {{viewName}}", { viewName }),
       () => this._addWidgetToPage(widget, tableId ?? null),
     );
     return;
@@ -991,7 +991,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
    * Adds a new page (aka: view) with a single view section (aka: page widget) described by `val`.
    */
   public async addNewPage(val: IPageWidget): Promise<void> {
-    const {table, type} = val;
+    const { table, type } = val;
     let tableId: string | null | undefined;
     if (table === 'New Table') {
       tableId = await this._promptForName();
@@ -1006,11 +1006,11 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       });
     }
 
-    const {sectionRef, viewRef} = await this.docData.bundleActions(
+    const { sectionRef, viewRef } = await this.docData.bundleActions(
       'Add new page',
       () => this._addPage(val, tableId ?? null),
     );
-    await this._focus({sectionRef, viewRef});
+    await this._focus({ sectionRef, viewRef });
     this._showNewWidgetPopups(type);
   }
 
@@ -1026,7 +1026,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     }
 
     return await this.viewLayout!.freezeUntil(docData.bundleActions(
-      t("Saved linked section {{title}} in view {{name}}", {title: section.title(), name: viewModel.name()}),
+      t("Saved linked section {{title}} in view {{name}}", { title: section.title(), name: viewModel.name() }),
       async () => {
 
         // if table changes or a table is made a summary table, let's replace the view section by a
@@ -1057,7 +1057,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         }
         return section;
       },
-      {nestInActiveBundle: true},
+      { nestInActiveBundle: true },
     ));
   }
 
@@ -1190,7 +1190,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         }
         else {
           const srcTable = await this._getTableData(srcSection);
-          const query: ClientQuery = {tableId: srcTable.tableId, filters: {}, operations: {}};
+          const query: ClientQuery = { tableId: srcTable.tableId, filters: {}, operations: {} };
           if (colId) {
             query.operations[colId] = isRefListType(section.linkSrcCol.peek().type.peek()) ? 'intersects' : 'in';
             query.filters[colId] = isList(controller) ? controller.slice(1) : [controller];
@@ -1235,7 +1235,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       }
       // Give any synchronous initial cursor setting a chance to happen.
       await delay(0);
-      viewInstance.setCursorPos({...cursorPos, fieldIndex});
+      viewInstance.setCursorPos({ ...cursorPos, fieldIndex });
       // TODO: column selection not working on card/detail view, or getting overridden -
       // look into it (not a high priority for now since feature not easily discoverable
       // in this view).
@@ -1274,10 +1274,10 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       hash.colRef = column.id.peek();
     }
     try {
-      const link = urlState().makeUrl({hash});
+      const link = urlState().makeUrl({ hash });
       await copyToClipboard(link);
-      setTestState({clipboard: link});
-      reportSuccess('Link copied to clipboard', {key: 'clipboard'});
+      setTestState({ clipboard: link });
+      reportSuccess('Link copied to clipboard', { key: 'clipboard' });
     }
     catch (e) {
       throw new Error('cannot copy to clipboard');
@@ -1493,7 +1493,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
    * fields { sectionId, rowId, fieldIndex }. Fields may be missing if no section is active.
    */
   private _getCursorPos(): CursorPos {
-    const pos = {sectionId: this.viewModel.activeSectionId()};
+    const pos = { sectionId: this.viewModel.activeSectionId() };
     const viewInstance = this.viewModel.activeSection.peek().viewInstance.peek();
     return Object.assign(pos, viewInstance ? viewInstance.cursor.getCursorPos() : {});
   }
@@ -1501,12 +1501,12 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
   private async _addWidgetToPage(
     widget: IPageWidget,
     tableId: string | null = null,
-    {focus = true, popups = true}: AddSectionOptions= {},
+    { focus = true, popups = true }: AddSectionOptions= {},
   ) {
-    const {columns, link, summarize, table, type} = widget;
+    const { columns, link, summarize, table, type } = widget;
     const viewRef = this.activeViewId.get();
     const tableRef = table === 'New Table' ? 0 : table;
-    const result: {viewRef: number, sectionRef: number} = await this.docData.sendAction(
+    const result: { viewRef: number, sectionRef: number } = await this.docData.sendAction(
       ['CreateViewSection', tableRef, viewRef, type, summarize ? columns : null, tableId],
     );
     if (type === 'chart') {
@@ -1517,11 +1517,11 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
     }
     await this.saveLink(link, result.sectionRef);
     const widgetType = getTelemetryWidgetTypeFromPageWidget(widget);
-    logTelemetryEvent('addedWidget', {full: {docIdDigest: this.docId(), widgetType}});
+    logTelemetryEvent('addedWidget', { full: { docIdDigest: this.docId(), widgetType } });
     if (link !== NoLink) {
-      logTelemetryEvent('linkedWidget', {full: {docIdDigest: this.docId(), widgetType}});
+      logTelemetryEvent('linkedWidget', { full: { docIdDigest: this.docId(), widgetType } });
     }
-    if (focus) { await this._focus({sectionRef: result.sectionRef}); }
+    if (focus) { await this._focus({ sectionRef: result.sectionRef }); }
     if (popups) { this._showNewWidgetPopups(type); }
     return result;
   }
@@ -1529,9 +1529,9 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
   private async _addPage(
     widget: IPageWidget,
     tableId: string | null = null,
-    {focus = true, popups = true}: AddSectionOptions = {},
+    { focus = true, popups = true }: AddSectionOptions = {},
   ) {
-    const {columns, summarize, table, type} = widget;
+    const { columns, summarize, table, type } = widget;
     let viewRef: number;
     let sectionRef: number | undefined;
     if (table === 'New Table') {
@@ -1559,19 +1559,19 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
     if (type === 'form') {
       await this._setDefaultFormLayoutSpec(sectionRef!);
     }
-    logTelemetryEvent('addedPage', {full: {docIdDigest: this.docId()}});
+    logTelemetryEvent('addedPage', { full: { docIdDigest: this.docId() } });
     logTelemetryEvent('addedWidget', {
       full: {
         docIdDigest: this.docId(),
         widgetType: getTelemetryWidgetTypeFromPageWidget(widget),
       },
     });
-    if (focus) { await this._focus({viewRef, sectionRef}); }
+    if (focus) { await this._focus({ viewRef, sectionRef }); }
     if (popups) { this._showNewWidgetPopups(type); }
-    return {viewRef, sectionRef};
+    return { viewRef, sectionRef };
   }
 
-  private async _focus({viewRef, sectionRef}: {viewRef?: number, sectionRef?: number}) {
+  private async _focus({ viewRef, sectionRef}: { viewRef?: number, sectionRef?: number }) {
     if (viewRef) { await this.openDocPage(viewRef); }
     if (sectionRef) { this.viewModel.activeSectionId(sectionRef); }
   }
@@ -1601,7 +1601,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
       // If the anchor link is valid, set the cursor.
       if (hash.colRef || hash.rowId) {
         const activeSection = this.viewModel.activeSection.peek();
-        const {rowId} = hash;
+        const { rowId } = hash;
         let fieldIndex = undefined;
         if (hash.colRef) {
           const maybeFieldIndex = activeSection.viewFields.peek().all()
@@ -1609,7 +1609,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
           if (maybeFieldIndex !== -1) { fieldIndex = maybeFieldIndex; }
         }
         const view = await this._waitForView(activeSection);
-        view?.setCursorPos({rowId, fieldIndex});
+        view?.setCursorPos({ rowId, fieldIndex });
       }
       this.viewLayout?.maximized.set(hash.sectionId);
       return;
@@ -1653,7 +1653,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
     });
     // If the anchor link is valid, set the cursor.
     if (hash.rowId || hash.colRef) {
-      const {rowId} = hash;
+      const { rowId } = hash;
       let fieldIndex;
       if (hash.colRef) {
         const maybeFieldIndex = popupSection.viewFields.peek().all()
@@ -1661,7 +1661,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
         if (maybeFieldIndex !== -1) { fieldIndex = maybeFieldIndex; }
       }
       const view = await this._waitForView(popupSection);
-      view?.setCursorPos({rowId, fieldIndex});
+      view?.setCursorPos({ rowId, fieldIndex });
     }
   }
 
@@ -1756,14 +1756,14 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
   private _getToolContent(tool: typeof RightPanelTool.type): IExtraTool | null {
     switch (tool) {
       case 'docHistory': {
-        return {icon: 'Log', label: 'Document History', content: this._docHistory};
+        return { icon: 'Log', label: 'Document History', content: this._docHistory };
       }
       case 'validations': {
         const content = this._rightPanelTabs.get("Validate Data");
-        return content ? {icon: 'Validation', label: 'Validation Rules', content} : null;
+        return content ? { icon: 'Validation', label: 'Validation Rules', content } : null;
       }
       case 'discussion': {
-        return {icon: 'Chat', label: this._discussionPanel.buildMenu(), content: this._discussionPanel};
+        return { icon: 'Chat', label: this._discussionPanel.buildMenu(), content: this._discussionPanel };
       }
       case 'none':
       default: {
@@ -1846,7 +1846,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
     const sectionId = section.id();
 
     // create a new section
-    const sectionCreationResult = await this._addWidgetToPage(newVal, null, {focus: false, popups: false});
+    const sectionCreationResult = await this._addWidgetToPage(newVal, null, { focus: false, popups: false });
 
     // update section name
     const newSection: ViewSectionRec = docModel.viewSections.getRowModel(sectionCreationResult.sectionRef);
@@ -1855,7 +1855,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
     // replace old section id with new section id in the layout spec and save
     const newLayoutSpec = cloneDeepWith(layoutSpec, (val) => {
       if (typeof val === 'object' && val.leaf === sectionId) {
-        return {...val, leaf: newSection.id()};
+        return { ...val, leaf: newSection.id() };
       }
     });
     await viewModel.layoutSpec.saveOnly(JSON.stringify(newLayoutSpec));
@@ -1918,7 +1918,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
       activeSortSpec: JSON.stringify(activeSection.activeSortSpec()),
       filters: JSON.stringify(filters),
       linkingFilter: JSON.stringify(linkingFilter),
-      ...(userOverride ? {aclAsUser_: userOverride.user?.email} : {}),
+      ...(userOverride ? { aclAsUser_: userOverride.user?.email } : {}),
     };
   }
 
@@ -1930,13 +1930,13 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
     const section: ViewSectionRec = this.docModel.viewSections.getRowModel(sectionId);
     if (section.isRaw.peek() || section.isRecordCard.peek()) {
       // This is a raw data or record card view.
-      await urlState().pushUrl({docPage: 'data'});
+      await urlState().pushUrl({ docPage: 'data' });
       this.viewModel.activeSectionId(sectionId);
     }
     else if (section.isVirtual.peek()) {
       // this is a virtual table, and therefore a webhook page (that is the only
       // place virtual tables are used so far)
-      await urlState().pushUrl({docPage: 'webhook'});
+      await urlState().pushUrl({ docPage: 'webhook' });
       this.viewModel.activeSectionId(sectionId);
     }
     else {
@@ -1966,7 +1966,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
    * Convert a url hash to a cursor position.
    */
   private _getCursorPosFromHash(hash: HashLink): CursorPos {
-    const cursorPos: CursorPos = {rowId: hash.rowId, sectionId: hash.sectionId};
+    const cursorPos: CursorPos = { rowId: hash.rowId, sectionId: hash.sectionId };
     if (cursorPos.sectionId != undefined && hash.colRef !== undefined) {
       // translate colRef to a fieldIndex
       const section = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
@@ -2011,7 +2011,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
     // For non-SaaS flavors of Grist, don't show the tour if the Help Center is explicitly
     // disabled. A separate opt-out feature could be added down the road for more granularity,
     // but will require communication in advance to avoid disrupting users.
-    const {features} = getGristConfig();
+    const { features } = getGristConfig();
     if (!features?.includes('helpCenter')) {
       return false;
     }
@@ -2088,7 +2088,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
         key: 'webhookOverflowError',
         actions: [{
           label: t('go to webhook settings'), action: async () => {
-            await urlState().pushUrl({docPage: 'webhook'});
+            await urlState().pushUrl({ docPage: 'webhook' });
           },
         }],
       });
@@ -2097,8 +2097,8 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
 }
 
 async function finalizeAnchor() {
-  await urlState().pushUrl({hash: {}}, {replace: true});
-  setTestState({anchorApplied: true});
+  await urlState().pushUrl({ hash: {} }, { replace: true });
+  setTestState({ anchorApplied: true });
 }
 
 const cssViewContentPane = styled('div', `

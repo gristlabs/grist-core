@@ -176,8 +176,8 @@ export class Housekeeper {
     // Delete old forks
     const forks = await this._getForksToDelete();
     for (const fork of forks) {
-      const docId = buildUrlId({trunkId: fork.trunkId!, forkId: fork.id, forkUserId: fork.createdBy!});
-      const permitKey = await this._permitStore.setPermit({docId});
+      const docId = buildUrlId({ trunkId: fork.trunkId!, forkId: fork.id, forkUserId: fork.createdBy! });
+      const permitKey = await this._permitStore.setPermit({ docId });
       try {
         const result = await fetch(
           await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}`),
@@ -490,7 +490,7 @@ export class Housekeeper {
         throw new ApiError('access denied', 403);
       }
       const docId = stringParam(req.params.docId, 'docId');
-      const permitKey = await this._permitStore.setPermit({docId, action: permitAction});
+      const permitKey = await this._permitStore.setPermit({ docId, action: permitAction });
       try {
         const result = await callback(req, docId, {
           Permit: permitKey,
@@ -522,10 +522,10 @@ async function forEachWithBreaks<T>(logText: string, items: T[], callback: (item
     callback(item);
     itemsProcesssed++;
     if (Date.now() >= syncWorkStart + Timings.SYNC_WORK_LIMIT_MS) {
-      log.rawInfo(logText, {itemsProcesssed, itemsTotal, delayMs});
+      log.rawInfo(logText, { itemsProcesssed, itemsTotal, delayMs });
       await delay(delayMs);
       syncWorkStart = Date.now();
     }
   }
-  log.rawInfo(logText, {itemsProcesssed, itemsTotal, timeMs: Date.now() - start});
+  log.rawInfo(logText, { itemsProcesssed, itemsTotal, timeMs: Date.now() - start });
 }

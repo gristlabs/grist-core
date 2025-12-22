@@ -1,6 +1,6 @@
-import { addToRepl, assert, driver} from 'mocha-webdriver';
+import { addToRepl, assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('RightPanelSelectBy', function() {
   this.timeout(20000);
@@ -111,13 +111,13 @@ describe('RightPanelSelectBy', function() {
     await gu.waitForServer();
 
     // Select a row in FRIENDS.
-    const cell = await gu.getCell({section: 'Friends', col: 'Favorite Film', rowNum: 6});
+    const cell = await gu.getCell({ section: 'Friends', col: 'Favorite Film', rowNum: 6 });
     assert.equal(await cell.getText(), 'Alien');
     await cell.click();
 
     // Check that the linked table reflects the selected row.
     assert.deepEqual(await gu.getVisibleGridCells(
-      {section: 'Performances', cols: ['Actor', 'Film'], rowNums: [1, 2]}), [
+      { section: 'Performances', cols: ['Actor', 'Film'], rowNums: [1, 2] }), [
       'Sigourney Weaver', 'Alien',
       '', '',
     ]);
@@ -129,7 +129,7 @@ describe('RightPanelSelectBy', function() {
 
     // Check that the linked table of Performances got updated.
     assert.deepEqual(await gu.getVisibleGridCells(
-      {section: 'Performances', cols: ['Actor', 'Film'], rowNums: [1, 2, 3, 4]}), [
+      { section: 'Performances', cols: ['Actor', 'Film'], rowNums: [1, 2, 3, 4] }), [
       'Tom Hanks', 'Toy Story',
       'Tim Allen', 'Toy Story',
       'Don Rickles', 'Toy Story',
@@ -150,7 +150,7 @@ describe('RightPanelSelectBy', function() {
     await gu.waitForServer();
 
     // Select a row in FRIENDS.
-    const cell = await gu.getCell({section: 'Friends', col: 'Favorite Film', rowNum: 6});
+    const cell = await gu.getCell({ section: 'Friends', col: 'Favorite Film', rowNum: 6 });
     assert.equal(await cell.getText(), 'Alien');
     await cell.click();
 
@@ -168,7 +168,7 @@ describe('RightPanelSelectBy', function() {
     assert.equal(await driver.findContent('.g_record_detail_value', /19/).getText(), 'November 22nd, 1995');
 
     // Select the 'new' row in FRIENDS.
-    const newCell = await gu.getCell({section: 'Friends', col: 'Favorite Film', rowNum: 7});
+    const newCell = await gu.getCell({ section: 'Friends', col: 'Favorite Film', rowNum: 7 });
     assert.equal(await newCell.getText(), '');
     await newCell.click();
 

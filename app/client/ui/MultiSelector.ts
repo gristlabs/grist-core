@@ -80,7 +80,7 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
 
   protected buildSelectBox(selectedValue: string,
     selectCb: (newItem: Item) => void,
-    selectOptions?: {defLabel?: string}): Element {
+    selectOptions?: { defLabel?: string }): Element {
     const obs = computed(use => selectedValue).onWrite(async (value) => {
       const newItem = this._findItemByValue(value);
       if (newItem) {

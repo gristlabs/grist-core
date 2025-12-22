@@ -6,7 +6,7 @@
  *
  */
 
-import { assert, driver, Key} from 'mocha-webdriver';
+import { assert, driver, Key } from 'mocha-webdriver';
 import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 

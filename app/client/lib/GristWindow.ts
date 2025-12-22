@@ -5,10 +5,10 @@
  *
  * This file collects most of the properties we use, for typings and visibility.
  */
-import type {TopAppModel} from 'app/client/models/AppModel';
-import type {DocPageModel} from 'app/client/models/DocPageModel';
-import type {GristLoadConfig} from 'app/common/gristUrls';
-import type {TestState} from 'app/common/TestState';
+import type { TopAppModel } from 'app/client/models/AppModel';
+import type { DocPageModel } from 'app/client/models/DocPageModel';
+import type { GristLoadConfig } from 'app/common/gristUrls';
+import type { TestState } from 'app/common/TestState';
 
 declare global {
   export interface Window {
@@ -21,7 +21,7 @@ declare global {
       topAppModel?: TopAppModel;
       testNumPendingApiRequests?: () => number;
     };
-    cmd?: {[name: string]: () => void};
+    cmd?: { [name: string]: () => void };
     isRunningUnderElectron?: boolean;
     resetDismissedPopups?: (seen?: boolean) => void;
     resetOnboarding?: () => void;

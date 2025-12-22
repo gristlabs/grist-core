@@ -1,8 +1,8 @@
 /**
  * Includes a fake schema and values for ParseOptions, to Importer fixture.
  */
-import {ParseOptionValues} from 'app/client/components/ParseOptions';
-import {ParseOptionSchema} from 'app/plugin/FileParserAPI';
+import { ParseOptionValues } from 'app/client/components/ParseOptions';
+import { ParseOptionSchema } from 'app/plugin/FileParserAPI';
 
 export const initValues: ParseOptionValues = {
   delimiter: ",",

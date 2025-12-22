@@ -1,14 +1,14 @@
-import {makeT} from 'app/client/lib/localization';
-import {IToken, TokenField} from 'app/client/lib/TokenField';
-import {cssBlockedCursor} from 'app/client/ui/RightPanelStyles';
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {colorButton, ColorOption} from 'app/client/ui2018/ColorSelect';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {editableLabel} from 'app/client/ui2018/editableLabel';
-import {icon} from 'app/client/ui2018/icons';
-import {ChoiceOptionsByName, IChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
-import {Computed, Disposable, dom, DomContents, DomElementArg, Holder, MultiHolder, Observable, styled} from 'grainjs';
-import {createCheckers, iface, ITypeSuite, opt, union} from 'ts-interface-checker';
+import { makeT } from 'app/client/lib/localization';
+import { IToken, TokenField } from 'app/client/lib/TokenField';
+import { cssBlockedCursor } from 'app/client/ui/RightPanelStyles';
+import { basicButton, primaryButton } from 'app/client/ui2018/buttons';
+import { colorButton, ColorOption } from 'app/client/ui2018/ColorSelect';
+import { testId, theme } from 'app/client/ui2018/cssVars';
+import { editableLabel } from 'app/client/ui2018/editableLabel';
+import { icon } from 'app/client/ui2018/icons';
+import { ChoiceOptionsByName, IChoiceOptions } from 'app/client/widgets/ChoiceTextBox';
+import { Computed, Disposable, dom, DomContents, DomElementArg, Holder, MultiHolder, Observable, styled } from 'grainjs';
+import { createCheckers, iface, ITypeSuite, opt, union } from 'ts-interface-checker';
 
 import isEqual from 'lodash/isEqual';
 import uniqBy from 'lodash/uniqBy';
@@ -17,7 +17,7 @@ const t = makeT('ChoiceListEntry');
 
 class RenameMap implements Record<string, string> {
   constructor(tokens: ChoiceItem[]) {
-    for (const {label, previousLabel: id} of tokens.filter(x => x.previousLabel)) {
+    for (const { label, previousLabel: id } of tokens.filter(x => x.previousLabel)) {
       if (label === id) {
         continue;
       }
@@ -46,7 +46,7 @@ class ChoiceItem implements IToken {
   }
 
   public changeStyle(options: IChoiceOptions) {
-    return new ChoiceItem(this.label, this.previousLabel, {...this.options, ...options});
+    return new ChoiceItem(this.label, this.previousLabel, { ...this.options, ...options });
   }
 }
 
@@ -70,7 +70,7 @@ const choiceTypes: ITypeSuite = {
   ChoiceOptionsType,
 };
 
-const {ChoiceItemType: ChoiceItemChecker} = createCheckers(choiceTypes);
+const { ChoiceItemType: ChoiceItemChecker } = createCheckers(choiceTypes);
 
 /**
  * ChoiceListEntry - Editor for choices and choice colors.
@@ -142,7 +142,7 @@ export class ChoiceListEntry extends Disposable {
           },
           openAutocompleteOnFocus: false,
           trimLabels: true,
-          styles: {cssTokenField, cssToken, cssTokenInput, cssInputWrapper, cssDeleteButton, cssDeleteIcon},
+          styles: { cssTokenField, cssToken, cssTokenInput, cssInputWrapper, cssDeleteButton, cssDeleteIcon },
           keyBindings: {
             previous: 'ArrowUp',
             next: 'ArrowDown',
@@ -152,7 +152,7 @@ export class ChoiceListEntry extends Disposable {
 
         return cssVerticalFlex(
           this._editorContainer = cssListBox(
-            {tabIndex: '-1'},
+            { tabIndex: '-1' },
             (elem) => {
               tokenField.attach(elem);
               this._focusOnOpen(tokenField.getTextInput());
@@ -196,8 +196,8 @@ export class ChoiceListEntry extends Disposable {
               testId('choice-list-entry-cancel'),
             ),
           ),
-          dom.onKeyDown({Escape: () => this._cancel()}),
-          dom.onKeyDown({Enter: () => this._save()}),
+          dom.onKeyDown({ Escape: () => this._cancel() }),
+          dom.onKeyDown({ Enter: () => this._save() }),
         );
       }
       else {
@@ -243,7 +243,7 @@ export class ChoiceListEntry extends Disposable {
                 row(
                   dom('span',
                     testId('choice-list-entry-label'),
-                    dom.text(use => t('+{{count}} more', {count: use(this._values).length - (maxRows - 1)})),
+                    dom.text(use => t('+{{count}} more', { count: use(this._values).length - (maxRows - 1) })),
                   ),
                 ),
               ),
@@ -357,9 +357,9 @@ export class ChoiceListEntry extends Disposable {
       colorButton(
         {
           styleOptions: {
-            textColor: new ColorOption({color: textColorObs, defaultColor: '#000000'}),
+            textColor: new ColorOption({ color: textColorObs, defaultColor: '#000000' }),
             fillColor: new ColorOption(
-              {color: fillColorObs, allowsNone: true, noneText: 'none', defaultColor: '#FFFFFF'}),
+              { color: fillColorObs, allowsNone: true, noneText: 'none', defaultColor: '#FFFFFF' }),
             fontBold: fontBoldObs,
             fontItalic: fontItalicObs,
             fontUnderline: fontUnderlineObs,
@@ -418,7 +418,7 @@ export class ChoiceListEntry extends Disposable {
 
     return [
       tokenColorAndLabel,
-      dom.onKeyDown({Escape$: () => this._cancel()}),
+      dom.onKeyDown({ Escape$: () => this._cancel() }),
     ];
   }
 }

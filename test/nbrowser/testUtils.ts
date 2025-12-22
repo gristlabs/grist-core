@@ -16,17 +16,17 @@
  * first-failure for debugging and quick reruns.
  */
 import log from 'app/server/lib/log';
-import {addToRepl, assert, Capability, driver, enableDebugCapture, ITimeouts,
-  Key, setOptionsModifyFunc, useServer} from 'mocha-webdriver';
+import { addToRepl, assert, Capability, driver, enableDebugCapture, ITimeouts,
+  Key, setOptionsModifyFunc, useServer } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server} from 'test/nbrowser/testServer';
-import {setupCleanup} from 'test/server/testCleanup';
+import { server } from 'test/nbrowser/testServer';
+import { setupCleanup } from 'test/server/testCleanup';
 
 // Exports the server object with useful methods such as getHost(), waitServerReady(),
 // simulateLogin(), etc.
-export {server, setupCleanup};
+export { server, setupCleanup };
 
-setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
+setOptionsModifyFunc(({ chromeOpts, firefoxOpts }) => {
   if (process.env.TEST_CHROME_BINARY_PATH) {
     chromeOpts.setChromeBinaryPath(process.env.TEST_CHROME_BINARY_PATH);
   }
@@ -147,10 +147,10 @@ export function setupTestSuite(options?: TestSuiteOptions) {
   after(async () => server.closeDatabase());
 
   if (options?.pageLoadTimeout) {
-    setDriverTimeoutsForSuite({pageLoad: options.pageLoadTimeout});
+    setDriverTimeoutsForSuite({ pageLoad: options.pageLoadTimeout });
   }
 
-  return setupRequirement({team: true, ...options});
+  return setupRequirement({ team: true, ...options });
 }
 
 // Check for alerts after the test suite.
@@ -244,7 +244,7 @@ export function setDriverTimeoutsForSuite(newTimeouts: ITimeouts) {
  */
 export function setupRequirement(options: TestSuiteOptions) {
   const cleanup = setupCleanup();
-  const {samples, tutorial} = options;
+  const { samples, tutorial } = options;
   if (samples || tutorial) {
     if (process.env.TEST_ADD_SAMPLES || !server.isExternalServer()) {
       gu.shareSupportWorkspaceForSuite(); // TODO: Remove after the support workspace is removed from the backend.
@@ -270,7 +270,7 @@ export function setupRequirement(options: TestSuiteOptions) {
         if (deployment) { orgName = `${orgName}-${deployment}`; }
         let isNew: boolean = false;
         try {
-          await api.newOrg({name: `Test${suffix} Grist`, domain: orgName});
+          await api.newOrg({ name: `Test${suffix} Grist`, domain: orgName });
           isNew = true;
         }
         catch (e) {

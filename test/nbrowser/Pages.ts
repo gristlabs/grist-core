@@ -1,9 +1,9 @@
-import {DocCreationInfo} from 'app/common/DocListAPI';
-import {UserAPI} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
-import {Session} from 'test/nbrowser/gristUtils';
+import { DocCreationInfo } from 'app/common/DocListAPI';
+import { UserAPI } from 'app/common/UserAPI';
+import { assert, driver, Key } from 'mocha-webdriver';
+import { Session } from 'test/nbrowser/gristUtils';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 import values from 'lodash/values';
 
 describe('Pages', function() {
@@ -11,7 +11,7 @@ describe('Pages', function() {
   let doc: DocCreationInfo;
   let api: UserAPI;
   let session: Session;
-  const cleanup = setupTestSuite({team: true});
+  const cleanup = setupTestSuite({ team: true });
 
   before(async () => {
     session = await gu.session().teamSite.login();
@@ -43,13 +43,13 @@ describe('Pages', function() {
     assert.deepEqual(await gu.getPageTree(), [
       {
         label: 'Interactions', children: [
-          {label: 'Documents' },
+          { label: 'Documents' },
         ],
       },
       {
         label: 'People', children: [
-          {label: 'User & Leads', children: [
-            {label: 'Overview'}] },
+          { label: 'User & Leads', children: [
+            { label: 'Overview' }] },
         ],
       },
     ]);
@@ -61,12 +61,12 @@ describe('Pages', function() {
     assert.deepEqual(await gu.getPageTree(), [
       {
         label: 'Interactions', children: [
-          {label: 'Documents'},
+          { label: 'Documents' },
         ],
       },
       {
         label: 'People', children: [
-          {label: 'User & Leads'},
+          { label: 'User & Leads' },
         ],
       },
     ]);
@@ -77,7 +77,7 @@ describe('Pages', function() {
     assert.deepEqual(await gu.getPageTree(), [
       {
         label: 'Interactions', children: [
-          { label: 'Documents'},
+          { label: 'Documents' },
         ],
       },
       {
@@ -91,7 +91,7 @@ describe('Pages', function() {
     assert.deepEqual(await gu.getPageTree(), [
       {
         label: 'Interactions', children: [
-          { label: 'Documents'},
+          { label: 'Documents' },
         ],
       },
     ]);
@@ -329,7 +329,7 @@ describe('Pages', function() {
     assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
 
     // move page
-    await movePage(/User & Leads/, {after: /Overview/});
+    await movePage(/User & Leads/, { after: /Overview/ });
     await gu.waitForServer();
 
     assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'Overview', 'User & Leads']);
@@ -352,7 +352,7 @@ describe('Pages', function() {
     assert.deepEqual(await gu.getPageNames(), ['Interactions', '', 'People', 'User & Leads', 'Overview']);
 
     // let's move
-    await movePage(/User & Leads/, {after: /Overview/});
+    await movePage(/User & Leads/, { after: /Overview/ });
     await gu.waitForServer();
 
     // check that pages has moved and Interactions remained collapsed
@@ -529,7 +529,7 @@ describe('Pages', function() {
     assert.deepEqual(await gu.getPageNames(), ['Table1']);
 
     // create table Foo and 1 new page using Foo
-    await api.applyUserActions(docId, [['AddTable', 'Foo', [{id: null, isFormula: true}]]]);
+    await api.applyUserActions(docId, [['AddTable', 'Foo', [{ id: null, isFormula: true }]]]);
     await driver.findContentWait('.test-treeview-itemHeader', /Foo/, 2000);
     await gu.addNewPage(/Table/, /Foo/);
     assert.deepInclude(await api.getTable(docId, '_grist_Tables'), {
@@ -651,7 +651,7 @@ describe('Pages', function() {
     await gu.getPageItem('Table C').click();
 
     // In Table C add Table D (a new one) and Table1 widget (existing);
-    await gu.addNewSection(/Table/, /New Table/, { tableName: "Table D"});
+    await gu.addNewSection(/Table/, /New Table/, { tableName: "Table D" });
     await gu.addNewSection(/Table/, "Table1");
     // New table should not be added as a page
     assert.deepEqual(await gu.getPageNames(), ['Table1', 'Table B', 'Table C', 'Table Last']);
@@ -681,7 +681,7 @@ describe('Pages', function() {
 
   async function hideTable(tableId: string) {
     await api.applyUserActions(doc.id, [
-      ['AddRecord', '_grist_ACLResources', -1, {tableId, colIds: '*'}],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId, colIds: '*' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: '', permissionsText: '-R',
       }],
@@ -689,14 +689,14 @@ describe('Pages', function() {
   }
 });
 
-async function movePage(page: RegExp, target: {before: RegExp}|{after: RegExp}|{into: RegExp}) {
+async function movePage(page: RegExp, target: { before: RegExp }|{ after: RegExp }|{ into: RegExp }) {
   const targetReg = values(target)[0];
   await driver.withActions(actions => actions
-    .move({origin: driver.findContent('.test-treeview-itemHeader', page)})
-    .move({origin: driver.findContent('.test-treeview-itemHeaderWrapper', page)
-      .find('.test-treeview-handle')})
+    .move({ origin: driver.findContent('.test-treeview-itemHeader', page) })
+    .move({ origin: driver.findContent('.test-treeview-itemHeaderWrapper', page)
+      .find('.test-treeview-handle') })
     .press()
-    .move({origin: driver.findContent('.test-treeview-itemHeader', targetReg),
+    .move({ origin: driver.findContent('.test-treeview-itemHeader', targetReg),
       y: 'after' in target ? 1 : -1,
     })
     .release());
@@ -704,11 +704,11 @@ async function movePage(page: RegExp, target: {before: RegExp}|{after: RegExp}|{
 
 async function insertPage(page: RegExp, into: RegExp) {
   await driver.withActions(actions => actions
-    .move({origin: driver.findContent('.test-treeview-itemHeader', page)})
-    .move({origin: driver.findContent('.test-treeview-itemHeaderWrapper', page)
-      .find('.test-treeview-handle')})
+    .move({ origin: driver.findContent('.test-treeview-itemHeader', page) })
+    .move({ origin: driver.findContent('.test-treeview-itemHeaderWrapper', page)
+      .find('.test-treeview-handle') })
     .press()
-    .move({origin: driver.findContent('.test-treeview-itemHeader', into),
+    .move({ origin: driver.findContent('.test-treeview-itemHeader', into),
       y: 5,
     })
     .pause(1500) // wait for a target to be highlighted

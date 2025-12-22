@@ -2,11 +2,11 @@
  * Test of the Importer dialog (part 1), for imports inside an open doc.
  * (See Import.ts for tests from the DocMenu page.)
  */
-import {assert, driver, Key} from 'mocha-webdriver';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {getColumnMatchingRows, getParseOptionInput, getPreviewDiffCellValues,
-  openTableMapping, waitForColumnMapping, waitForDiffPreviewToLoad} from 'test/nbrowser/importerTestUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { getColumnMatchingRows, getParseOptionInput, getPreviewDiffCellValues,
+  openTableMapping, waitForColumnMapping, waitForDiffPreviewToLoad } from 'test/nbrowser/importerTestUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('Importer', function() {
   this.timeout(70000); // Imports can take some time, especially in tests that import larger files.
@@ -286,14 +286,14 @@ describe('Importer', function() {
     await gu.waitForServer();
 
     assert.deepEqual(await gu.getPageNames(), ['Table1', 'UploadedData1', 'UploadedData2']);
-    assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2], rowNums: [1, 2, 3]}),
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3] }),
       ['Lily', 'Jones', 'director',
         'Kathy', 'Mills', 'student',
         'Karen', 'Gold', 'professor']);
 
     await gu.getPageItem('UploadedData2').click();
     await gu.waitForServer();
-    assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6]}),
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6] }),
       ['BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
         'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
         'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
@@ -317,7 +317,7 @@ describe('Importer', function() {
     await gu.waitForServer();
     assert.equal(await driver.find('.test-importer-dialog').isPresent(), false);
 
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: [0, 1]}),
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1] }),
       ["Bob", "2018-01-01",
         "Alice", "",
         "Carol", "2017-01-01"]);
@@ -329,12 +329,12 @@ describe('Importer', function() {
     await driver.findWait('.test-new-columns-menu-add-new', 100).click();
     await gu.waitForServer();
     await driver.sendKeys(Key.ESCAPE);
-    await gu.getCell({col: 2, rowNum: 1}).click();
+    await gu.getCell({ col: 2, rowNum: 1 }).click();
     await gu.waitAppFocus();
     await driver.sendKeys('=type($Birthday).__name__', Key.ENTER);
     await gu.waitForServer();
     // Ensure that there is no ValueError in second row
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: [0, 1, 2]}),
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2] }),
       ["Bob",    "2018-01-01",   "date",
         "Alice",  "",             "NoneType",
         "Carol",  "2017-01-01",   "date"]);
@@ -347,7 +347,7 @@ describe('Importer', function() {
     await gu.waitForServer(5000);
     assert.equal(await driver.find('.test-importer-dialog').isPresent(), false);
     // Look at a small subset of the imported table.
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: [0, 1, 2]}),
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2] }),
       ['Africa', 'Eastern Africa', 'Burundi',
         'Africa', 'Eastern Africa', 'Burundi',
         'Africa', 'Eastern Africa', 'Comoros']);
@@ -363,7 +363,7 @@ describe('Importer', function() {
     await gu.waitForServer(5000);
     assert.equal(await driver.find('.test-importer-dialog').isPresent(), false);
     // Look at a small subset of the imported table.
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: [0, 1, 2]}),
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2] }),
       ['Africa', 'Eastern Africa', 'Burundi',
         'Africa', 'Eastern Africa', 'Burundi',
         'Africa', 'Eastern Africa', 'Comoros']);
@@ -379,10 +379,10 @@ describe('Importer', function() {
     await gu.toggleSidePanel('right', 'open');
     const api = session.createHomeApi().getDocAPI(await gu.getDocId());
     const [table] = await api.getRecords('_grist_Tables', {
-      filters: {tableId: ['EmptyDate']},
+      filters: { tableId: ['EmptyDate'] },
     });
     await gu.sendActions([
-      ['UpdateRecord', '_grist_Tables', table.id, {onDemand: true}],
+      ['UpdateRecord', '_grist_Tables', table.id, { onDemand: true }],
     ]);
     await api.forceReload();
     await gu.reloadDoc();
@@ -397,7 +397,7 @@ describe('Importer', function() {
     assert.equal(await driver.find('.test-importer-dialog').isPresent(), false);
 
     // Check that the imported file contents were added to the end of EmptyDate.
-    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [4, 5, 6], cols: [0, 1]}),
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [4, 5, 6], cols: [0, 1] }),
       ["Bob", "2018-01-01",
         "Alice", "",
         "Carol", "2017-01-01"]);
@@ -697,7 +697,7 @@ describe('Importer', function() {
       // Check the contents of UploadedData2.
       await gu.getPageItem('UploadedData2').click();
       await gu.waitForServer();
-      assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6, 7, 8, 9]}),
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6, 7, 8, 9] }),
         ['BUS100',      'Intro to Business',   'Mariyam Melania',     '01/13/2021',      '',
           'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
           'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
@@ -853,7 +853,7 @@ describe('Importer', function() {
       // Check the contents of City. The population should have doubled in every row.
       await gu.getPageItem('City').click();
       await gu.waitForServer();
-      assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5]}),
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5] }),
         [
           'Kabul', 'Kabol', '3560000', '2', '3560',
           'Qandahar', 'Qandahar', '475000', '2', '475',
@@ -888,7 +888,7 @@ describe('Importer', function() {
       // Check the contents of CountryLanguage. The first few percentages should be slightly different.
       await gu.getPageItem('CountryLanguage').click();
       await gu.waitForServer();
-      assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2, 3], rowNums: [1, 2, 3, 4, 5]}),
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2, 3], rowNums: [1, 2, 3, 4, 5] }),
         ['Dutch', '5.5', 'ABW', '',
           'English', '9.3', 'ABW', '',
           'Papiamento', '76.3', 'ABW', '',

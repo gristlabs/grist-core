@@ -1,5 +1,5 @@
-import {RowList, RowListener, RowSource} from 'app/client/models/rowset';
-import {UIRowId} from "app/plugin/GristAPI";
+import { RowList, RowListener, RowSource } from 'app/client/models/rowset';
+import { UIRowId } from "app/plugin/GristAPI";
 
 export class UnionRowSource extends RowListener implements RowSource {
   protected _allRows = new Map<UIRowId, Set<RowSource>>();

@@ -1,20 +1,20 @@
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {AppModel} from 'app/client/models/AppModel';
-import {logError} from 'app/client/models/errors';
-import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
-import {getUserPrefObs} from 'app/client/models/UserPrefs';
-import {textInput} from 'app/client/ui/inputs';
-import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
-import {bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
-import {colors, mediaMedium, mediaXSmall, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {IconName} from 'app/client/ui2018/IconList';
-import {modal} from 'app/client/ui2018/modals';
-import {BaseAPI} from 'app/common/BaseAPI';
-import {commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
-import {UserPrefs} from 'app/common/Prefs';
-import {getGristConfig} from 'app/common/urlUtils';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { makeT } from 'app/client/lib/localization';
+import { AppModel } from 'app/client/models/AppModel';
+import { logError } from 'app/client/models/errors';
+import { getMainOrgUrl, urlState } from 'app/client/models/gristUrlState';
+import { getUserPrefObs } from 'app/client/models/UserPrefs';
+import { textInput } from 'app/client/ui/inputs';
+import { PlayerState, YouTubePlayer } from 'app/client/ui/YouTubePlayer';
+import { bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink } from 'app/client/ui2018/buttons';
+import { colors, mediaMedium, mediaXSmall, theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { IconName } from 'app/client/ui2018/IconList';
+import { modal } from 'app/client/ui2018/modals';
+import { BaseAPI } from 'app/common/BaseAPI';
+import { commonUrls, getPageTitleSuffix } from 'app/common/gristUrls';
+import { UserPrefs } from 'app/common/Prefs';
+import { getGristConfig } from 'app/common/urlUtils';
 import {
   Computed,
   Disposable,
@@ -32,17 +32,17 @@ const t = makeT('OnboardingPage');
 
 const testId = makeTestId('test-onboarding-');
 
-const choices: Array<{icon: IconName, color: string, textKey: string}> = [
-  {icon: 'UseProduct', color: `${colors.lightGreen}`, textKey: 'Product Development' },
-  {icon: 'UseFinance', color: '#0075A2',              textKey: 'Finance & Accounting'},
-  {icon: 'UseMedia',   color: '#F7B32B',              textKey: 'Media Production'    },
-  {icon: 'UseMonitor', color: '#F2545B',              textKey: 'IT & Technology'     },
-  {icon: 'UseChart',   color: '#7141F9',              textKey: 'Marketing'           },
-  {icon: 'UseScience', color: '#231942',              textKey: 'Research'            },
-  {icon: 'UseSales',   color: '#885A5A',              textKey: 'Sales'               },
-  {icon: 'UseEducate', color: '#4A5899',              textKey: 'Education'           },
-  {icon: 'UseHr',      color: '#688047',              textKey: 'HR & Management'     },
-  {icon: 'UseOther',   color: '#929299',              textKey: 'Other'               },
+const choices: Array<{ icon: IconName, color: string, textKey: string }> = [
+  { icon: 'UseProduct', color: `${colors.lightGreen}`, textKey: 'Product Development' },
+  { icon: 'UseFinance', color: '#0075A2',              textKey: 'Finance & Accounting' },
+  { icon: 'UseMedia',   color: '#F7B32B',              textKey: 'Media Production'    },
+  { icon: 'UseMonitor', color: '#F2545B',              textKey: 'IT & Technology'     },
+  { icon: 'UseChart',   color: '#7141F9',              textKey: 'Marketing'           },
+  { icon: 'UseScience', color: '#231942',              textKey: 'Research'            },
+  { icon: 'UseSales',   color: '#885A5A',              textKey: 'Sales'               },
+  { icon: 'UseEducate', color: '#4A5899',              textKey: 'Education'           },
+  { icon: 'UseHr',      color: '#688047',              textKey: 'HR & Management'     },
+  { icon: 'UseOther',   color: '#929299',              textKey: 'Other'               },
 ];
 
 export function shouldShowOnboardingPage(userPrefsObs: Observable<UserPrefs>): boolean {
@@ -120,7 +120,7 @@ export class OnboardingPage extends Disposable {
             testId('sidebar'),
           ),
           cssGetStarted(
-            cssGetStartedImg({src: 'img/get-started.png'}),
+            cssGetStartedImg({ src: 'img/get-started.png' }),
           ),
         ),
         cssMainPanel(
@@ -152,7 +152,7 @@ function buildStepper(steps: Step[], stepIndex: Observable<number>) {
 }
 
 function saveQuestions(state: QuestionsState) {
-  const {organization, role, useCases, useOther} = state;
+  const { organization, role, useCases, useOther } = state;
   if (!organization.get() && !role.get() && !useCases.map(useCase => useCase.get()).includes(true)) {
     return;
   }
@@ -165,12 +165,12 @@ function saveQuestions(state: QuestionsState) {
   submitUrl.pathname = '/welcome/info';
   BaseAPI.request(submitUrl.href, {
     method: 'POST',
-    body: JSON.stringify({org_name, org_role, use_cases, use_other}),
+    body: JSON.stringify({ org_name, org_role, use_cases, use_other }),
   }).catch(e => logError(e));
 }
 
 function buildQuestions(owner: IDisposableOwner, incrementStep: IncrementStep, state: QuestionsState) {
-  const {organization, role, useCases, useOther} = state;
+  const { organization, role, useCases, useOther } = state;
   const isFilled = Computed.create(owner, (use) => {
     return Boolean(use(organization) || use(role) || useCases.map(useCase => use(useCase)).includes(true));
   });
@@ -181,7 +181,7 @@ function buildQuestions(owner: IDisposableOwner, incrementStep: IncrementStep, s
       cssFieldHeading(t('What organization are you with?')),
       cssInput(
         organization,
-        {type: 'text', placeholder: t('Your organization')},
+        { type: 'text', placeholder: t('Your organization') },
         testId('questions-organization'),
       ),
     ),
@@ -189,7 +189,7 @@ function buildQuestions(owner: IDisposableOwner, incrementStep: IncrementStep, s
       cssFieldHeading(t('What is your role?')),
       cssInput(
         role,
-        {type: 'text', placeholder: t('Your role')},
+        { type: 'text', placeholder: t('Your role') },
         testId('questions-role'),
       ),
     ),
@@ -204,7 +204,7 @@ function buildQuestions(owner: IDisposableOwner, incrementStep: IncrementStep, s
             t(item.textKey) :
             [
               cssOtherLabel(t(item.textKey)),
-              cssOtherInput(useOther, {}, {type: 'text', placeholder: t("Type here")},
+              cssOtherInput(useOther, {}, { type: 'text', placeholder: t("Type here") },
                 // The following subscribes to changes to selection observable, and focuses the input when
                 // this item is selected.
                 elem => subscribeElem(elem, useCases[i], val => val && setTimeout(() => elem.focus(), 0)),
@@ -242,7 +242,7 @@ function buildQuestions(owner: IDisposableOwner, incrementStep: IncrementStep, s
 }
 
 function buildVideo(_owner: IDisposableOwner, incrementStep: IncrementStep, state: VideoState) {
-  const {watched} = state;
+  const { watched } = state;
 
   function onPlay() {
     watched.set(true);
@@ -252,7 +252,7 @@ function buildVideo(_owner: IDisposableOwner, incrementStep: IncrementStep, stat
         commonUrls.onboardingTutorialVideoId,
         {
           onPlayerReady: player => player.playVideo(),
-          onPlayerStateChange(_player, {data}) {
+          onPlayerStateChange(_player, { data }) {
             if (data !== PlayerState.Ended) { return; }
 
             ctl.close();
@@ -266,7 +266,7 @@ function buildVideo(_owner: IDisposableOwner, incrementStep: IncrementStep, stat
 
       return [
         dom.on('click', () => ctl.close()),
-        (elem) => { FocusLayer.create(modalOwner, {defaultFocusElem: elem, pauseMousetrap: true}); },
+        (elem) => { FocusLayer.create(modalOwner, { defaultFocusElem: elem, pauseMousetrap: true }); },
         dom.onKeyDown({
           Escape: () => ctl.close(),
           ' ': () => youtubePlayer.playPause(),
@@ -303,7 +303,7 @@ function buildVideo(_owner: IDisposableOwner, incrementStep: IncrementStep, stat
     cssScreenshot(
       dom.on('click', onPlay),
       dom('div',
-        cssScreenshotImg({src: 'img/youtube-screenshot.png'}),
+        cssScreenshotImg({ src: 'img/youtube-screenshot.png' }),
         cssActionOverlay(
           cssAction(
             cssRoundButton(cssVideoPlayIcon('VideoPlay')),
@@ -336,7 +336,7 @@ function buildVideo(_owner: IDisposableOwner, incrementStep: IncrementStep, stat
 }
 
 function buildTutorial(_owner: IDisposableOwner, incrementStep: IncrementStep) {
-  const {templateOrg, onboardingTutorialDocId} = getGristConfig();
+  const { templateOrg, onboardingTutorialDocId } = getGristConfig();
   return dom('div',
     cssHeading(
       t('Go hands-on with the Grist Basics tutorial'),
@@ -348,8 +348,8 @@ act like one. Discover what makes Grist different.",
     ),
     cssTutorial(
       cssScreenshot(
-        dom.on('click', () => urlState().pushUrl({org: templateOrg!, doc: onboardingTutorialDocId})),
-        cssTutorialScreenshotImg({src: 'img/tutorial-screenshot.png'}),
+        dom.on('click', () => urlState().pushUrl({ org: templateOrg!, doc: onboardingTutorialDocId })),
+        cssTutorialScreenshotImg({ src: 'img/tutorial-screenshot.png' }),
         cssTutorialOverlay(
           cssAction(
             cssTutorialButton(t('Go to the tutorial!')),

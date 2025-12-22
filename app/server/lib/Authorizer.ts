@@ -1,28 +1,28 @@
-import {ApiError} from 'app/common/ApiError';
-import {OpenDocMode} from 'app/common/DocListAPI';
-import {ErrorWithCode} from 'app/common/ErrorWithCode';
-import {ActivationState} from 'app/common/gristUrls';
-import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
-import {canEdit, canView, getWeakestRole} from 'app/common/roles';
-import {UserOptions} from 'app/common/UserAPI';
-import {User} from 'app/gen-server/entity/User';
-import {DocAuthResult, HomeDBAuth} from 'app/gen-server/lib/homedb/Interfaces';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
-  SessionUserObj, SignInStatus} from 'app/server/lib/BrowserSession';
-import {expressWrap} from 'app/server/lib/expressWrap';
-import {RequestWithOrg} from 'app/server/lib/extractOrg';
-import {GristServer} from 'app/server/lib/GristServer';
-import {COOKIE_MAX_AGE, getAllowedOrgForSessionID, getCookieDomain,
-  cookieName as sessionCookieName} from 'app/server/lib/gristSessions';
-import {makeId} from 'app/server/lib/idUtils';
+import { ApiError } from 'app/common/ApiError';
+import { OpenDocMode } from 'app/common/DocListAPI';
+import { ErrorWithCode } from 'app/common/ErrorWithCode';
+import { ActivationState } from 'app/common/gristUrls';
+import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
+import { canEdit, canView, getWeakestRole } from 'app/common/roles';
+import { UserOptions } from 'app/common/UserAPI';
+import { User } from 'app/gen-server/entity/User';
+import { DocAuthResult, HomeDBAuth } from 'app/gen-server/lib/homedb/Interfaces';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
+  SessionUserObj, SignInStatus } from 'app/server/lib/BrowserSession';
+import { expressWrap } from 'app/server/lib/expressWrap';
+import { RequestWithOrg } from 'app/server/lib/extractOrg';
+import { GristServer } from 'app/server/lib/GristServer';
+import { COOKIE_MAX_AGE, getAllowedOrgForSessionID, getCookieDomain,
+  cookieName as sessionCookieName } from 'app/server/lib/gristSessions';
+import { makeId } from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
-import {IPermitStore, Permit} from 'app/server/lib/Permit';
-import {AccessTokenInfo} from 'app/server/lib/AccessTokens';
-import {allowHost, buildXForwardedForHeader, getOriginUrl, optStringParam} from 'app/server/lib/requestUtils';
+import { IPermitStore, Permit } from 'app/server/lib/Permit';
+import { AccessTokenInfo } from 'app/server/lib/AccessTokens';
+import { allowHost, buildXForwardedForHeader, getOriginUrl, optStringParam } from 'app/server/lib/requestUtils';
 import * as cookie from 'cookie';
-import {NextFunction, Request, RequestHandler, Response} from 'express';
-import {IncomingMessage} from 'http';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
+import { IncomingMessage } from 'http';
 import onHeaders from 'on-headers';
 
 export interface RequestWithLogin extends Request {
@@ -287,7 +287,7 @@ export async function addRequestUser(
       skipSession = true;
       if (candidateProfile) {
         profile = candidateProfile;
-        const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile});
+        const user = await dbManager.getUserByLoginWithRetry(profile.email, { profile });
         if (user) {
           setRequestUser(mreq, dbManager, user);
         }
@@ -370,7 +370,7 @@ export async function addRequestUser(
             userOptions.authSubject = sessionUser.authSubject;
           }
           // In this special case of initially linking a profile, we need to look up the user's info.
-          const user = await dbManager.getUserByLogin(option.email, {userOptions});
+          const user = await dbManager.getUserByLogin(option.email, { userOptions });
           setRequestUser(mreq, dbManager, user);
         }
         else {
@@ -400,7 +400,7 @@ export async function addRequestUser(
           // if the user already has an authSubject set in the db.
           userOptions.authSubject = sessionUser.authSubject;
         }
-        const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile, userOptions});
+        const user = await dbManager.getUserByLoginWithRetry(profile.email, { profile, userOptions });
         if (user) {
           setRequestUser(mreq, dbManager, user);
         }
@@ -523,7 +523,7 @@ export function redirectToLogin(
         // If we immediately require a login, it could fail if no cookie exists yet.
         // Also, '/o/docs' allows anonymous access.
         if (!mreq.org || dbManager.isMergedOrg(mreq.org)) { return next(); }
-        const result = await dbManager.getOrg({userId: mreq.userId}, mreq.org);
+        const result = await dbManager.getOrg({ userId: mreq.userId }, mreq.org);
         if (result.status === 200) { return next(); }
       }
 
@@ -557,7 +557,7 @@ export async function getOrSetDocAuth(
       effectiveUserId = tokenObj.userId;
     }
 
-    mreq.docAuth = await dbManager.getDocAuthCached({urlId, userId: effectiveUserId, org: mreq.org});
+    mreq.docAuth = await dbManager.getDocAuthCached({ urlId, userId: effectiveUserId, org: mreq.org });
 
     if (tokenObj) {
       // Sanity check: does the current document match the document the token is
@@ -567,7 +567,7 @@ export async function getOrSetDocAuth(
       }
       // Limit access to read-only if specified.
       if (tokenObj.readOnly) {
-        mreq.docAuth = {...mreq.docAuth, access: getWeakestRole('viewers', mreq.docAuth.access)};
+        mreq.docAuth = { ...mreq.docAuth, access: getWeakestRole('viewers', mreq.docAuth.access) };
       }
     }
 
@@ -575,7 +575,7 @@ export async function getOrSetDocAuth(
     // gets updated to full access.
     if (mreq.specialPermit && mreq.userId === dbManager.getAnonymousUserId() &&
       mreq.specialPermit.docId === mreq.docAuth.docId) {
-      mreq.docAuth = {...mreq.docAuth, access: 'owners'};
+      mreq.docAuth = { ...mreq.docAuth, access: 'owners' };
     }
   }
   return mreq.docAuth;
@@ -600,7 +600,7 @@ interface AssertAccessOptions {
 export function assertAccess(
   role: 'viewers'|'editors'|'owners', docAuth: DocAuthResult, options: AssertAccessOptions = {}) {
   const openMode = options.openMode || 'default';
-  const details = {status: 403, accessMode: openMode};
+  const details = { status: 403, accessMode: openMode };
   if (docAuth.error) {
     if ([400, 401, 403].includes(docAuth.error.status)) {
       // For these error codes, we know our access level - forbidden. Make errors more uniform.
@@ -610,12 +610,12 @@ export function assertAccess(
   }
 
   if (docAuth.removed && !options.allowRemoved) {
-    throw new ErrorWithCode("AUTH_NO_VIEW", "Document is deleted", {status: 404});
+    throw new ErrorWithCode("AUTH_NO_VIEW", "Document is deleted", { status: 404 });
   }
 
   // Disabled docs have no permissions, except you can delete or undelete them
   if (docAuth.disabled && !options.allowDisabled) {
-    throw new ErrorWithCode("AUTH_DOC_DISABLED", "Document is disabled", {status: 403});
+    throw new ErrorWithCode("AUTH_DOC_DISABLED", "Document is disabled", { status: 403 });
   }
 
   // If docAuth has no error, the doc is accessible, but we should still check the level (in case
@@ -645,7 +645,7 @@ export function assertAccess(
 export function getTransitiveHeaders(
   req: Request,
   { includeOrigin }: { includeOrigin: boolean },
-): {[key: string]: string} {
+): { [key: string]: string } {
   const Authorization = req.get('Authorization');
   const Cookie = req.get('Cookie');
   const PermitHeader = req.get('Permit');

@@ -2,10 +2,10 @@
  * Implements a widget for showing and editing a list of colIds. It offers a select dropdown to
  * add a new column, and allows removing already-added columns.
  */
-import {aclSelect, cssSelect} from 'app/client/aclui/ACLSelect';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {Computed, dom, Observable, styled} from 'grainjs';
+import { aclSelect, cssSelect } from 'app/client/aclui/ACLSelect';
+import { testId, theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { Computed, dom, Observable, styled } from 'grainjs';
 
 export function aclColumnList(colIds: Observable<string[]>, validColIds: string[]) {
   // Define some helpers functions.
@@ -45,7 +45,7 @@ export function aclColumnList(colIds: Observable<string[]>, validColIds: string[
   const editing = Observable.create(null, !colIds.get().length);
 
   let selectBox: HTMLElement;
-  return cssColListWidget({tabIndex: '0'},
+  return cssColListWidget({ tabIndex: '0' },
     dom.autoDispose(unusedColIds),
     cssColListWidget.cls('-editing', editing),
     dom.on('focus', onFocus),
@@ -61,10 +61,10 @@ export function aclColumnList(colIds: Observable<string[]>, validColIds: string[
     ),
     cssNewColItem(
       dom.update(
-        selectBox = aclSelect(newColId, unusedColIds, {defaultLabel: '[Add Column]'}),
+        selectBox = aclSelect(newColId, unusedColIds, { defaultLabel: '[Add Column]' }),
         cssSelect.cls('-active'),
         dom.on('blur', onBlur),
-        dom.onKeyDown({Escape: onBlur}),
+        dom.onKeyDown({ Escape: onBlur }),
         // If starting out in edit mode, focus the select box.
         (editing.get() ? (elem) => { setTimeout(() => elem.focus(), 0); } : null),
       ),

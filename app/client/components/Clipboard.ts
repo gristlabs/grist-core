@@ -19,21 +19,21 @@
  *      visible character (useful if component wants to interpret typing into a cell, for example).
  */
 
-import {getHumanKey, isMac} from 'app/client/components/commands';
-import type {CopySelection} from 'app/client/components/CopySelection';
+import { getHumanKey, isMac } from 'app/client/components/commands';
+import type { CopySelection } from 'app/client/components/CopySelection';
 import * as commands from 'app/client/components/commands';
-import {copyToClipboard, readDataFromClipboard} from 'app/client/lib/clipboardUtils';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {makePasteHtml, makePasteText, parsePasteHtml, PasteData} from 'app/client/lib/tableUtil';
-import type {App} from 'app/client/ui/App';
-import {ShortcutKey, ShortcutKeyContent} from 'app/client/ui/ShortcutKey';
-import {confirmModal} from 'app/client/ui2018/modals';
-import type {DocAction} from 'app/common/DocActions';
-import {isNonNullish} from 'app/common/gutil';
-import type {TableData} from 'app/common/TableData';
-import {tsvDecode} from 'app/common/tsvFormat';
-import {Disposable, dom, styled} from 'grainjs';
+import { copyToClipboard, readDataFromClipboard } from 'app/client/lib/clipboardUtils';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { makeT } from 'app/client/lib/localization';
+import { makePasteHtml, makePasteText, parsePasteHtml, PasteData } from 'app/client/lib/tableUtil';
+import type { App } from 'app/client/ui/App';
+import { ShortcutKey, ShortcutKeyContent } from 'app/client/ui/ShortcutKey';
+import { confirmModal } from 'app/client/ui2018/modals';
+import type { DocAction } from 'app/common/DocActions';
+import { isNonNullish } from 'app/common/gutil';
+import type { TableData } from 'app/common/TableData';
+import { tsvDecode } from 'app/common/tsvFormat';
+import { Disposable, dom, styled } from 'grainjs';
 
 const t = makeT('Clipboard');
 
@@ -192,8 +192,8 @@ export class Clipboard extends Disposable {
     if (typeof ClipboardItem === 'function') {
       const htmlText = makePasteHtml(pasteObj.data, pasteObj.selection, includeColHeaders);
       data = new ClipboardItem({
-        'text/plain': new Blob([plainText], {type: 'text/plain'}),
-        'text/html': new Blob([htmlText], {type: 'text/html'}),
+        'text/plain': new Blob([plainText], { type: 'text/plain' }),
+        'text/html': new Blob([htmlText], { type: 'text/html' }),
       });
     }
     else {
@@ -342,7 +342,7 @@ async function getFilesFromClipboardItems(clipboardItems: ClipboardItem[]): Prom
     })
       .filter(isNonNullish),
   );
-  return blobs.map(blob => new File([blob], 'from-clipboard', {type: blob.type}));
+  return blobs.map(blob => new File([blob], 'from-clipboard', { type: blob.type }));
 }
 
 function showUnavailableMenuCommandModal(action: 'cut'|'copy'|'paste') {

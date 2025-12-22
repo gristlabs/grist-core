@@ -7,20 +7,20 @@ import {
   SandboxActionBundle,
   UserActionBundle,
 } from 'app/common/ActionBundle';
-import {ApplyUAExtendedOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
-import {DocAction, getNumRows, SYSTEM_ACTIONS, UserAction} from 'app/common/DocActions';
-import {GranularAccessForBundle} from 'app/server/lib/GranularAccess';
-import {insightLogEntry} from 'app/server/lib/InsightLog';
+import { ApplyUAExtendedOptions, ApplyUAResult } from 'app/common/ActiveDocAPI';
+import { DocAction, getNumRows, SYSTEM_ACTIONS, UserAction } from 'app/common/DocActions';
+import { GranularAccessForBundle } from 'app/server/lib/GranularAccess';
+import { insightLogEntry } from 'app/server/lib/InsightLog';
 import log from 'app/server/lib/log';
-import {LogMethods} from "app/server/lib/LogMethods";
-import {shortDesc} from 'app/server/lib/shortDesc';
+import { LogMethods } from "app/server/lib/LogMethods";
+import { shortDesc } from 'app/server/lib/shortDesc';
 import assert from 'assert';
-import {Mutex} from 'async-mutex';
+import { Mutex } from 'async-mutex';
 import isEqual from 'lodash/isEqual';
-import {ActionHistory, asActionGroup, getActionUndoInfo} from 'app/server/lib/ActionHistory';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';
-import {summarizeAction} from 'app/common/ActionSummarizer';
+import { ActionHistory, asActionGroup, getActionUndoInfo } from 'app/server/lib/ActionHistory';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { makeExceptionalDocSession, OptDocSession } from 'app/server/lib/DocSession';
+import { summarizeAction } from 'app/common/ActionSummarizer';
 
 // Don't log details of action bundles in production.
 const LOG_ACTION_BUNDLE = (process.env.NODE_ENV !== 'production');
@@ -78,7 +78,7 @@ export class Sharing {
     }
 
     const insightLog = insightLogEntry();
-    const {result, failure} =
+    const { result, failure } =
       await this._modificationLock.runExclusive(() => this._applyActionsToDataEngine(docSession, userActions, options));
 
     // ACL check failed, and we don't have anything to save. Just rethrow the error.
@@ -133,7 +133,7 @@ export class Sharing {
         otherId: info.otherId,
         numDocActions: localActionBundle.stored.length,
         numRows: localActionBundle.stored.reduce((n, env) => n + getNumRows(env[1]), 0),
-        ...(sandboxActionBundle.numBytes ? {numBytes: sandboxActionBundle.numBytes} : {}),
+        ...(sandboxActionBundle.numBytes ? { numBytes: sandboxActionBundle.numBytes } : {}),
       };
       insightLog?.addMeta(logMeta);
       if (LOG_ACTION_BUNDLE) {
@@ -190,7 +190,7 @@ export class Sharing {
         insightLog?.mark("syncShares");
       }
 
-      insightLog?.addMeta({docRowCount: sandboxActionBundle.rowCount.total});
+      insightLog?.addMeta({ docRowCount: sandboxActionBundle.rowCount.total });
       await this._activeDoc.updateRowCount(sandboxActionBundle.rowCount, docSession);
       insightLog?.mark("updateRowCount");
 
@@ -252,7 +252,7 @@ export class Sharing {
       // of tests.
       await accessControl.canApplyBundle();
       insightLog?.mark("accessRulesCheck");
-      return { result: {bundle: applyResult, accessControl}};
+      return { result: { bundle: applyResult, accessControl } };
     }
     catch (applyExc) {
       insightLog?.mark("dataEngineReverting");
@@ -291,7 +291,7 @@ export class Sharing {
         // Check if the extra bundle is allowed.
         await accessControl.canApplyBundle();
         // We are ok, we can store extra actions and report back the exception.
-        return {result: {bundle: extraBundle, accessControl}, failure: applyExc};
+        return { result: { bundle: extraBundle, accessControl }, failure: applyExc };
       }
       catch(rollbackExc) {
         this._log.error(docSession, "Failed to apply undo of rejected action", rollbackExc.message);
@@ -367,6 +367,6 @@ const allToken: string = '#ALL';
 export function findOrAddAllEnvelope(envelopes: Envelope[]): number {
   const i = envelopes.findIndex(e => e.recipients.includes(allToken));
   if (i >= 0) { return i; }
-  envelopes.push({recipients: [allToken]});
+  envelopes.push({ recipients: [allToken] });
   return envelopes.length - 1;
 }

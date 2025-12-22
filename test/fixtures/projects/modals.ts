@@ -11,7 +11,7 @@ function setupTest() {
   const isOpen = observable(false);
   const isSaveModalOpen = observable(false);
   const testId = makeTestId('testui-');
-  const asyncTask = observable<{resolve: () => void}|null>(null);
+  const asyncTask = observable<{ resolve: () => void }|null>(null);
   return cssTestBox(
     dom('h1', 'Modals'),
     dom('div',
@@ -20,7 +20,7 @@ function setupTest() {
           confirmed.set(false);
           confirmModal('Default modal header', 'OK',
             async () => confirmed.set(true),
-            {explanation: 'Default modal body'});
+            { explanation: 'Default modal body' });
         }),
         testId('confirm-modal-opener'),
       ),
@@ -87,7 +87,7 @@ function setupTest() {
             title: dom.text(use => `Title [${use(value)}] (saving=${use(saving)})`),
             body: [
               dom('span', "Some value: "),
-              input(value, {onInput: true}, testId('save-modal-input')),
+              input(value, { onInput: true }, testId('save-modal-input')),
             ],
             saveLabel: dom.text(use => `Save [${use(value)}]`),
             // To test saveDisabled, disable the button if the value is empty.
@@ -109,7 +109,7 @@ function setupTest() {
         'Spinner modal',
         testId('spinner-modal-opener'),
         dom.on('click', async () => {
-          const promise = new Promise<void>(resolve => asyncTask.set({resolve}));
+          const promise = new Promise<void>(resolve => asyncTask.set({ resolve }));
           await spinnerModal("Spinner Modal", promise);
           document.body.appendChild(
             dom('div', 'After spinner', testId('after-spinner')),
@@ -117,7 +117,7 @@ function setupTest() {
         }),
         testId('spinner-modal-opener'),
       ),
-      dom.maybe(asyncTask, ({resolve}) => cssResolve(
+      dom.maybe(asyncTask, ({ resolve }) => cssResolve(
         'Async Taks',
         dom('button', 'Resolve',
           dom.on('click', () => { resolve(); asyncTask.set(null); }),

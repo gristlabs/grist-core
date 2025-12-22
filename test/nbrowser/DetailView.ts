@@ -1,6 +1,6 @@
-import {assert, driver} from 'mocha-webdriver';
+import { assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {cleanupExtraWindows, server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { cleanupExtraWindows, server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('DetailView', function() {
   this.timeout(20000);
@@ -13,7 +13,7 @@ describe('DetailView', function() {
     await session.tempNewDoc(cleanup);
 
     await gu.sendActions([
-      ['AddRecord', 'Table1', null, {A: 'some text', B: server.getHost()}],
+      ['AddRecord', 'Table1', null, { A: 'some text', B: server.getHost() }],
     ]);
     await gu.addNewSection('Card', 'Table1');
   });

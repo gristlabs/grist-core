@@ -1,6 +1,6 @@
-import {assert, driver, Key} from 'mocha-webdriver';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('RightPanel', function() {
   this.timeout(60000);
@@ -23,7 +23,7 @@ describe('RightPanel', function() {
     await gu.toggleSidePanel('right', 'close');
 
     // Add a chart section.
-    await gu.addNewSection('Chart', 'Table1', { dismissTips: true});
+    await gu.addNewSection('Chart', 'Table1', { dismissTips: true });
     assert.isFalse(await gu.isSidePanelOpen('right'));
     await gu.undo();
 
@@ -161,7 +161,7 @@ describe('RightPanel', function() {
 
   it('should show tools when requested', async function() {
     // Select specific view/section/field. Close side-pane.
-    await gu.getCell({col: "Name", rowNum: 3}).click();
+    await gu.getCell({ col: "Name", rowNum: 3 }).click();
     assert.equal(await driver.find('.test-field-label').value(), "Name");
     await gu.toggleSidePanel('right');
     assert.equal(await gu.isSidePanelOpen('right'), false);
@@ -210,7 +210,7 @@ describe('RightPanel', function() {
     await driver.navigate().refresh();
     assert.equal(await gu.getActiveSectionTitle(3000), 'COUNTRY');
     await gu.waitForServer();
-    await gu.getCell({col: "Name", rowNum: 3}).click();
+    await gu.getCell({ col: "Name", rowNum: 3 }).click();
 
     // Check the panel is still open and showing the same Field options.
     assert.equal(await gu.isSidePanelOpen('right'), true);
@@ -327,7 +327,7 @@ describe('RightPanel', function() {
     // regression.
 
     // Create a summary table of City groupbed by country
-    await gu.addNewPage(/Table/, /City/, {summarize: [/Country/]});
+    await gu.addNewPage(/Table/, /City/, { summarize: [/Country/] });
 
     // open right panel Widget
     await gu.toggleSidePanel('right', 'open');
@@ -338,7 +338,7 @@ describe('RightPanel', function() {
     await driver.findContent('.test-right-panel button', /Change widget/).click();
 
     // remove column `Country` and save
-    await gu.selectWidget(/Table/, /City/, {summarize: []});
+    await gu.selectWidget(/Table/, /City/, { summarize: [] });
 
     // check there were no error
     await gu.checkForErrors();
@@ -411,7 +411,7 @@ describe('RightPanel', function() {
     assert.isTrue(await gu.hasFocus('.test-sort-config-add'));
 
     // click on the first cell on the grid: make sure keyboard nav is reset
-    await gu.getCell({col: 0, rowNum: 1}).click();
+    await gu.getCell({ col: 0, rowNum: 1 }).click();
     await gu.sendKeys(Key.TAB);
     await gu.waitAppFocus();
   });

@@ -1,10 +1,10 @@
-import {DocCreationInfo} from 'app/common/DocListAPI';
-import {DocAPI} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { DocCreationInfo } from 'app/common/DocListAPI';
+import { DocAPI } from 'app/common/UserAPI';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {EnvironmentSnapshot} from 'test/server/testUtils';
-import {WebhookFields} from "app/common/Triggers";
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { EnvironmentSnapshot } from 'test/server/testUtils';
+import { WebhookFields } from "app/common/Triggers";
 
 describe('WebhookOverflow', function () {
   this.timeout(30000);
@@ -25,7 +25,7 @@ describe('WebhookOverflow', function () {
     doc = await session.tempDoc(cleanup, 'Hello.grist');
     docApi = api.getDocAPI(doc.id);
     await api.applyUserActions(doc.id, [
-      ['AddTable', 'Table2', [{id: 'A'}, {id: 'B'}, {id: 'C'}, {id: 'D'}, {id: 'E'}]],
+      ['AddTable', 'Table2', [{ id: 'A' }, { id: 'B' }, { id: 'C' }, { id: 'D' }, { id: 'E' }]],
       ['AddRecord', 'Table2', null, {}],
     ]);
     const webhookDetails: WebhookFields = {
@@ -54,7 +54,7 @@ describe('WebhookOverflow', function () {
   }
 
   async function getNumWaiting() {
-    const cells = await gu.getVisibleDetailCells({col: 'Status', rowNums: [1, 2]});
+    const cells = await gu.getVisibleDetailCells({ col: 'Status', rowNums: [1, 2] });
     return cells.map((cell) => {
       const status = JSON.parse(cell.replace(/\n/g, ''));
       return status.numWaiting;
@@ -101,7 +101,7 @@ describe('WebhookOverflow', function () {
     await gu.waitToPass(async () => {
       assert.deepEqual(await getNumWaiting(), [2, 2]);
     }, 4000);
-    await gu.getDetailCell({col: 'Enabled', rowNum: 1}).click();
+    await gu.getDetailCell({ col: 'Enabled', rowNum: 1 }).click();
     await overflowResolved();
     assert.deepEqual(await getNumWaiting(), [0, 2]);
   });
@@ -118,7 +118,7 @@ async function waitForWebhookPage() {
   await driver.findContentWait('button', /Clear queue/, 3000);
   // No section, so no easy utility for setting focus. Click on a random cell.
   await gu.waitToPass(async () => {
-    await gu.getDetailCell({col: 'Webhook Id', rowNum: 1}).click();
+    await gu.getDetailCell({ col: 'Webhook Id', rowNum: 1 }).click();
   });
 }
 

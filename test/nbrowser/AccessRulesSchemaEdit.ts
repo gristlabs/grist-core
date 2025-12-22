@@ -24,7 +24,7 @@ describe("AccessRulesSchemaEdit", function() {
 
     // Import a test document we've set up for this.
     mainSession = await gu.session().teamSite.user('user1').login();
-    docId = await mainSession.tempNewDoc(cleanup, 'ACL-SchemaEdit', {load: false});
+    docId = await mainSession.tempNewDoc(cleanup, 'ACL-SchemaEdit', { load: false });
 
     // Share it with a few users.
     api = mainSession.createHomeApi();
@@ -51,7 +51,7 @@ describe("AccessRulesSchemaEdit", function() {
 
     // Check that default rules don't show the schemaEdit bit.
     assert.deepEqual((await getRules(findTable('*')))[0],
-      {res: 'All', formula: 'user.Access in [EDITOR, OWNER]', perm: '+R+U+C+D'});
+      { res: 'All', formula: 'user.Access in [EDITOR, OWNER]', perm: '+R+U+C+D' });
 
     // Check that an editor CAN make structure changes: behavior is unchanged FOR NOW because we
     // haven't saved yet.
@@ -74,7 +74,7 @@ describe("AccessRulesSchemaEdit", function() {
     const rules = await mainDocApi.getRecords('_grist_ACLRules');
     const defaultResourceRef = (await getDefaultResourceRec(api, docId))!.id;
     assert.deepEqual(rules.map(r => pick(r.fields, "resource", "aclFormula", "permissionsText")),
-      [{resource: defaultResourceRef, aclFormula: 'user.Access != OWNER', permissionsText: '-S'}]);
+      [{ resource: defaultResourceRef, aclFormula: 'user.Access != OWNER', permissionsText: '-S' }]);
 
     // Check the box.
     await getSchemaEditCheckbox().click();
@@ -130,7 +130,7 @@ describe("AccessRulesSchemaEdit", function() {
     const rules = await mainDocApi.getRecords('_grist_ACLRules');
     const defaultResourceRef = (await getDefaultResourceRec(api, docId))!.id;
     assert.deepEqual(rules.map(r => pick(r.fields, "resource", "aclFormula", "permissionsText")),
-      [{resource: defaultResourceRef, aclFormula: 'user.Access == EDITOR', permissionsText: '+S'}]);
+      [{ resource: defaultResourceRef, aclFormula: 'user.Access == EDITOR', permissionsText: '+S' }]);
 
     // Revert the rule change; wait for page to reload.
     await gu.undo();
@@ -167,11 +167,11 @@ describe("AccessRulesSchemaEdit", function() {
     // The new rule should be visible in both the default section, and in SchemaEdit section
     // (which should be expanded).
     assert.deepEqual((await getRules(findTable('*')))[0],
-      {formula: customAclFormula, perm: '-D', memo: 'Memo MIXED', res: 'All'});
+      { formula: customAclFormula, perm: '-D', memo: 'Memo MIXED', res: 'All' });
 
     assert.equal(await getSchemaEditRuleSet().isDisplayed(), true);
     assert.deepEqual((await getRules(driver.find('.test-rule-special-SchemaEdit')))[0],
-      {formula: customAclFormula, perm: '-S', memo: 'Memo MIXED'});
+      { formula: customAclFormula, perm: '-S', memo: 'Memo MIXED' });
 
     // Check that the checkbox is disabled (since non-standard state).
     assert.equal(await getSchemaEditCheckbox().getAttribute('disabled'), 'true');
@@ -180,7 +180,7 @@ describe("AccessRulesSchemaEdit", function() {
     let error = await editorApi.applyUserActions(docId, [["RenameTable", 'Table1', 'Renamed3']])
       .then(() => null).catch(err => err);
     assert.match(error?.message, /Blocked by table structure access rules/);
-    assert.deepInclude(error?.details, {memos: ['Memo MIXED']});
+    assert.deepInclude(error?.details, { memos: ['Memo MIXED'] });
 
     // Change the memos on both copies of the rule.
     await enterRulePart(findDefaultRuleSet('*'), 1, null, {}, 'Memo DDD');
@@ -191,22 +191,22 @@ describe("AccessRulesSchemaEdit", function() {
 
     // The rules should look as before, only the memo is different.
     assert.deepEqual((await getRules(findTable('*')))[0],
-      {formula: customAclFormula, perm: '-D', memo: 'Memo DDD', res: 'All'});
+      { formula: customAclFormula, perm: '-D', memo: 'Memo DDD', res: 'All' });
     assert.deepEqual((await getRules(driver.find('.test-rule-special-SchemaEdit')))[0],
-      {formula: customAclFormula, perm: '-S', memo: 'Memo SSS'});
+      { formula: customAclFormula, perm: '-S', memo: 'Memo SSS' });
 
     // Check that the changed rule works.
     error = await editorApi.applyUserActions(docId, [["RenameTable", 'Table1', 'Renamed3']])
       .then(() => null).catch(err => err);
     assert.match(error?.message, /Blocked by table structure access rules/);
-    assert.deepInclude(error?.details, {memos: ['Memo SSS']});
+    assert.deepInclude(error?.details, { memos: ['Memo SSS'] });
 
     // Check what the rules are on the default resource.
     const mainDocApi = api.getDocAPI(docId);
     const rules = await mainDocApi.getRecords('_grist_ACLRules');
     assert.sameDeepMembers(rules.map(r => pick(r.fields, "resource", "aclFormula", "permissionsText")), [
-      {resource: defaultResourceRef, aclFormula: customAclFormula, permissionsText: '-S'},
-      {resource: defaultResourceRef, aclFormula: customAclFormula, permissionsText: '-D'},
+      { resource: defaultResourceRef, aclFormula: customAclFormula, permissionsText: '-S' },
+      { resource: defaultResourceRef, aclFormula: customAclFormula, permissionsText: '-D' },
     ]);
   });
 });
@@ -234,6 +234,6 @@ async function reloadAccessRulesPage() {
   await driver.findWait('.test-rule-set', 5000);
 }
 async function getDefaultResourceRec(api: UserAPI, docId: string): Promise<TableRecordValue|undefined> {
-  const records = await api.getDocAPI(docId).getRecords('_grist_ACLResources', {filters: {tableId: ['*']}});
+  const records = await api.getDocAPI(docId).getRecords('_grist_ACLResources', { filters: { tableId: ['*'] } });
   return records[0];
 }

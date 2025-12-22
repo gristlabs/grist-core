@@ -1,13 +1,13 @@
 import * as commands from 'app/client/components/commands';
-import {makeT} from 'app/client/lib/localization';
+import { makeT } from 'app/client/lib/localization';
 import { FocusLayer } from 'app/client/lib/FocusLayer';
-import {ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
-import {basicButton, cssButton, primaryButton} from 'app/client/ui2018/buttons';
+import { ViewSectionRec } from 'app/client/models/entities/ViewSectionRec';
+import { basicButton, cssButton, primaryButton } from 'app/client/ui2018/buttons';
 import { theme } from 'app/client/ui2018/cssVars';
-import {menuCssClass} from 'app/client/ui2018/menus';
-import {ModalControl} from 'app/client/ui2018/modals';
+import { menuCssClass } from 'app/client/ui2018/menus';
+import { ModalControl } from 'app/client/ui2018/modals';
 import { Computed, dom, DomElementArg, makeTestId, Observable, styled } from 'grainjs';
-import {IOpenController, IPopupOptions, PopupControl, setPopupToCreateDom} from 'popweasel';
+import { IOpenController, IPopupOptions, PopupControl, setPopupToCreateDom } from 'popweasel';
 import { descriptionInfoTooltip } from 'app/client/ui/tooltips';
 import { autoGrow } from 'app/client/ui/forms';
 import { cssInput, cssLabel, cssRenamePopup, cssTextArea } from 'app/client/ui/RenamePopupStyles';
@@ -65,7 +65,7 @@ function buildRenamableTitle(
   options: RenamableTitleOptions,
   ...args: DomElementArg[]
 ) {
-  const {openOnClick = true, disabled = false, isEditing, ...renameTitleOptions} = options;
+  const { openOnClick = true, disabled = false, isEditing, ...renameTitleOptions } = options;
   let popupControl: PopupControl | undefined;
   return cssTitleContainer(
     cssTitle(
@@ -296,14 +296,14 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
       tableInput = cssInput(
         inputTableName,
         updateOnKey,
-        {disabled: isSummary, placeholder: t("Provide a table name")},
+        { disabled: isSummary, placeholder: t("Provide a table name") },
         testId('table-name-input'),
         commandGroup.attach(),
       ),
     ]),
     dom.maybe(!options.widgetNameHidden, () => [
       cssLabel(t("WIDGET TITLE")),
-      widgetInput = cssInput(inputWidgetTitle, updateOnKey, {placeholder: inputWidgetPlaceholder},
+      widgetInput = cssInput(inputWidgetTitle, updateOnKey, { placeholder: inputWidgetPlaceholder },
         testId('section-name-input'),
         commandGroup.attach(),
       ),
@@ -337,7 +337,7 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
   );
 }
 
-const updateOnKey = {onInput: true};
+const updateOnKey = { onInput: true };
 
 // Leave class for tests.
 const cssTitleContainer = styled('div', `

@@ -4,9 +4,9 @@
  * In particular, when multiple rows are selected in GridView, on switching to a different linked
  * record, the selection should be cleared, or else paste will misbehave.
  */
-import {assert, Key, WebElement} from 'mocha-webdriver';
+import { assert, Key, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('CopyPasteLinked', function() {
   this.timeout(30000);
@@ -22,7 +22,7 @@ describe('CopyPasteLinked', function() {
     let cell: WebElement;
 
     // Select a cell.
-    cell = await gu.getCell({section: 'Tenants', col: 'Tenant', rowNum: 1});
+    cell = await gu.getCell({ section: 'Tenants', col: 'Tenant', rowNum: 1 });
     await cell.click();
     assert.equal(await cell.getText(), 'John Malik');
 
@@ -34,13 +34,13 @@ describe('CopyPasteLinked', function() {
       await gu.sendKeys(Key.chord(Key.SHIFT, Key.DOWN), Key.chord(Key.SHIFT, Key.DOWN));
 
       // Check that 3 cells are indeed selected.
-      assert.deepEqual(await gu.getVisibleGridCells({col: 'Tenant', rowNums: [1, 2, 3, 4],
-        mapper: el => el.matches('.selected')}),
+      assert.deepEqual(await gu.getVisibleGridCells({ col: 'Tenant', rowNums: [1, 2, 3, 4],
+        mapper: el => el.matches('.selected') }),
       [true, true, true, false]);
 
       // Switch to a different Apartments row that drives the filtering in the Tenants section.
-      await gu.getCell({section: 'Apartments', col: 0, rowNum: 2}).click();
-      cell = await gu.getCell({section: 'Tenants', col: 'Tenant', rowNum: 1});
+      await gu.getCell({ section: 'Apartments', col: 0, rowNum: 2 }).click();
+      cell = await gu.getCell({ section: 'Tenants', col: 'Tenant', rowNum: 1 });
       await cell.click();
       assert.equal(await cell.getText(), 'Fred Brown');
 
@@ -52,10 +52,10 @@ describe('CopyPasteLinked', function() {
     await gu.waitForServer();
 
     // Check that only one value was copied, and that there are not multiple cells selected.
-    assert.deepEqual(await gu.getVisibleGridCells({col: 'Tenant', rowNums: [1, 2, 3, 4]}),
+    assert.deepEqual(await gu.getVisibleGridCells({ col: 'Tenant', rowNums: [1, 2, 3, 4] }),
       ['John Malik', 'Fred Brown', 'Susan Sharp', 'Owen Sharp']);
-    assert.deepEqual(await gu.getVisibleGridCells({col: 'Tenant', rowNums: [1, 2, 3, 4],
-      mapper: el => el.matches('.selected')}),
+    assert.deepEqual(await gu.getVisibleGridCells({ col: 'Tenant', rowNums: [1, 2, 3, 4],
+      mapper: el => el.matches('.selected') }),
     [false, false, false, false]);
 
     await gu.checkForErrors();

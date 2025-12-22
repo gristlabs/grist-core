@@ -1,9 +1,9 @@
-import {integerParam} from 'app/server/lib/requestUtils';
-import {ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
-import {SnapshotWindow} from 'app/common/Features';
-import {KeyedMutex} from 'app/common/KeyedMutex';
-import {KeyedOps} from 'app/common/KeyedOps';
-import {ExternalStorage} from 'app/server/lib/ExternalStorage';
+import { integerParam } from 'app/server/lib/requestUtils';
+import { ObjSnapshotWithMetadata } from 'app/common/DocSnapshot';
+import { SnapshotWindow } from 'app/common/Features';
+import { KeyedMutex } from 'app/common/KeyedMutex';
+import { KeyedOps } from 'app/common/KeyedOps';
+import { ExternalStorage } from 'app/server/lib/ExternalStorage';
 import log from 'app/server/lib/log';
 import * as fse from 'fs-extra';
 import * as moment from 'moment-timezone';
@@ -61,10 +61,10 @@ export class DocSnapshotPruner {
   }
 
   // Get all snapshots for a document, and whether they should be kept or pruned.
-  public async classify(key: string): Promise<Array<{snapshot: ObjSnapshotWithMetadata, keep: boolean}>> {
+  public async classify(key: string): Promise<Array<{ snapshot: ObjSnapshotWithMetadata, keep: boolean }>> {
     const snapshotWindow = await this._ext.getSnapshotWindow?.(key);
     const versions = await this._ext.versions(key);
-    return shouldKeepSnapshots(versions, snapshotWindow).map((keep, index) => ({keep, snapshot: versions[index]}));
+    return shouldKeepSnapshots(versions, snapshotWindow).map((keep, index) => ({ keep, snapshot: versions[index] }));
   }
 
   // Prune the specified document immediately.  If no snapshotIds are provided, they
@@ -165,10 +165,10 @@ export class DocSnapshotInventory implements IInventory {
    * of the version list.
    */
   public async uploadAndAdd(key: string,
-    upload: () => Promise<{snapshot?: ObjSnapshotWithMetadata,
-      prevSnapshotId: string|null}>) {
+    upload: () => Promise<{ snapshot?: ObjSnapshotWithMetadata,
+      prevSnapshotId: string|null }>) {
     await this._mutex.runExclusive(key, async() => {
-      const {snapshot, prevSnapshotId} = await upload();
+      const { snapshot, prevSnapshotId } = await upload();
       if (!snapshot) {
         // the upload generated no snapshot, so there is nothing to do.
         return;
@@ -369,11 +369,11 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
   // Track saved version per hour, day, week, month, year, and number of times a version
   // has been saved based on a corresponding rule.
   const buckets: TimeBucket[] = [
-    {range: 'hour', prev: start, usage: 0, cap: capHour},
-    {range: 'day', prev: start, usage: 0, cap: capDay},
-    {range: 'isoWeek', prev: start, usage: 0, cap: capIsoWeek},
-    {range: 'month', prev: start, usage: 0, cap: capMonth},
-    {range: 'year', prev: start, usage: 0, cap: capYear},
+    { range: 'hour', prev: start, usage: 0, cap: capHour },
+    { range: 'day', prev: start, usage: 0, cap: capDay },
+    { range: 'isoWeek', prev: start, usage: 0, cap: capIsoWeek },
+    { range: 'month', prev: start, usage: 0, cap: capMonth },
+    { range: 'year', prev: start, usage: 0, cap: capYear },
   ];
 
   // For each snapshot starting with newest, check if it is worth saving by comparing

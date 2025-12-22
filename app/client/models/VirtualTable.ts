@@ -1,16 +1,16 @@
-import {DocModel} from 'app/client/models/DocModel';
-import {reportError} from 'app/client/models/errors';
-import {TableData} from 'app/client/models/TableData';
-import {concatenateSummaries, summarizeStoredAndUndo} from 'app/common/ActionSummarizer';
-import {TableDelta} from 'app/common/ActionSummary';
-import {ProcessedAction} from 'app/common/AlternateActions';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {DocAction, TableDataAction, UserAction} from 'app/common/DocActions';
-import {DocDataCache} from 'app/common/DocDataCache';
-import {RowRecord} from 'app/plugin/GristData';
+import { DocModel } from 'app/client/models/DocModel';
+import { reportError } from 'app/client/models/errors';
+import { TableData } from 'app/client/models/TableData';
+import { concatenateSummaries, summarizeStoredAndUndo } from 'app/common/ActionSummarizer';
+import { TableDelta } from 'app/common/ActionSummary';
+import { ProcessedAction } from 'app/common/AlternateActions';
+import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
+import { DocAction, TableDataAction, UserAction } from 'app/common/DocActions';
+import { DocDataCache } from 'app/common/DocDataCache';
+import { RowRecord } from 'app/plugin/GristData';
 import * as commands from 'app/client/components/commands';
 import debounce from 'lodash/debounce';
-import {bundleChanges} from 'grainjs';
+import { bundleChanges } from 'grainjs';
 
 /**
  * An interface for use while editing a virtual table.
@@ -74,7 +74,7 @@ export class VirtualTableData extends TableData {
 
   public override async sendTableActions(userActions: UserAction[]): Promise<any[]> {
     const actions = await this._sendTableActionsCore(userActions,
-      {isUser: true});
+      { isUser: true });
     await this.ext.afterEdit?.(this._editor(actions));
     return actions.map(action => action.retValues);
   }
@@ -126,7 +126,7 @@ export class VirtualTableData extends TableData {
     hasTableIds?: boolean,
     actionNum?: any,
   }): Promise<ProcessedAction[]> {
-    const {isUndo, isUser, hasTableIds} = options;
+    const { isUndo, isUser, hasTableIds } = options;
     if (!hasTableIds) {
       userActions.forEach(action => action.splice(1, 0, this.tableId));
     }

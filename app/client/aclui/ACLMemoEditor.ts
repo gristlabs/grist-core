@@ -1,5 +1,5 @@
-import {theme} from 'app/client/ui2018/cssVars';
-import {dom, DomElementArg, Observable, styled} from 'grainjs';
+import { theme } from 'app/client/ui2018/cssVars';
+import { dom, DomElementArg, Observable, styled } from 'grainjs';
 
 export function aclMemoEditor(obs: Observable<string>, ...args: DomElementArg[]): HTMLInputElement {
   return cssMemoInput(

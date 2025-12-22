@@ -1,7 +1,7 @@
-import {mouseDrag} from 'app/client/ui/mouseDrag';
-import {dom, makeTestId, observable, styled} from "grainjs";
+import { mouseDrag } from 'app/client/ui/mouseDrag';
+import { dom, makeTestId, observable, styled } from "grainjs";
 import pick from 'lodash/pick';
-import {withLocale} from 'test/fixtures/projects/helpers/withLocale';
+import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
 
 const testId = makeTestId('test-');
 
@@ -10,27 +10,27 @@ function desc(ev: MouseEvent) {
 }
 
 function setupTest() {
-  const status = observable<any>({status: "not-dragging"});
+  const status = observable<any>({ status: "not-dragging" });
   let events = '';
 
   function onStart(startEv: MouseEvent, el: Element) {
     events = 's';
-    status.set({status: "started", start: desc(startEv), events});
+    status.set({ status: "started", start: desc(startEv), events });
     return {
       onMove(moveEv: MouseEvent) {
         events += 'm';
-        status.set({status: "moved", start: desc(startEv), move: desc(moveEv), events});
+        status.set({ status: "moved", start: desc(startEv), move: desc(moveEv), events });
       },
       onStop(stopEv: MouseEvent) {
         events += 'S';
-        status.set({status: "stopped", start: desc(startEv), stop: desc(stopEv), events});
+        status.set({ status: "stopped", start: desc(startEv), stop: desc(stopEv), events });
       },
     };
   }
 
   function reset() {
     events = '';
-    status.set({status: "not-dragging"});
+    status.set({ status: "not-dragging" });
   }
 
   return [
@@ -38,14 +38,14 @@ function setupTest() {
       testId('box'),
       dom.style('background-color', '#A0A0FF')),
     testBox(
-      {style: 'left: 350px; width: 400px'},
+      { style: 'left: 350px; width: 400px' },
       result(
         testId('result'),
         dom.text(use => JSON.stringify(use(status), null, 2)),
       ),
     ),
     dom('button', 'Reset', dom.on('click', reset),
-      {style: 'position: absolute; left: 350px; top: 280px;'},
+      { style: 'position: absolute; left: 350px; top: 280px;' },
     ),
   ];
 }

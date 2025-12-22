@@ -20,8 +20,8 @@
  * At the moment, flexbox width resizing is the only need, but the same approach is intended to be
  * easily extended to non-flexbox situation, and to height-resizing.
  */
-import {mouseDrag} from 'app/client/ui/mouseDrag';
-import {DomElementArg, styled} from "grainjs";
+import { mouseDrag } from 'app/client/ui/mouseDrag';
+import { DomElementArg, styled } from "grainjs";
 
 export type ChangeFunc = (value: number) => void;
 export type Edge = 'left' | 'right';
@@ -64,7 +64,7 @@ function onResizeStart(startEv: MouseEvent, handle: Element, options: IResizeOpt
   const target = options.getTarget(handle) as HTMLElement|null;
   if (!target) { return null; }
 
-  const {sign, prop, onDrag, onSave} = options;
+  const { sign, prop, onDrag, onSave } = options;
   const startSize = getComputedSize(target, prop);
 
   // Set the body cursor to that on the handle, so that it doesn't jump to different shapes as

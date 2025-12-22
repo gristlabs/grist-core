@@ -1,9 +1,9 @@
-import {normalizeEmail} from 'app/common/emails';
-import {UserProfile} from 'app/common/LoginSessionAPI';
-import {SessionStore} from 'app/server/lib/gristSessions';
+import { normalizeEmail } from 'app/common/emails';
+import { UserProfile } from 'app/common/LoginSessionAPI';
+import { SessionStore } from 'app/server/lib/gristSessions';
 import log from 'app/server/lib/log';
-import {fromCallback} from 'app/server/lib/serverUtils';
-import {Request} from 'express';
+import { fromCallback } from 'app/server/lib/serverUtils';
+import { Request } from 'express';
 
 // Part of a session related to a single user.
 export interface SessionUserObj {
@@ -57,7 +57,7 @@ export interface SessionObj {
 
   // map from org to an index into users[]
   // This is optional since the session may already exist.
-  orgToUser?: {[org: string]: number};
+  orgToUser?: { [org: string]: number };
 
   // This gets set to encourage express-session to set a cookie. Was a boolean in the past.
   alive?: number;
@@ -207,7 +207,7 @@ export class ScopedSession {
   // picture URL come from the database instead.
   public async updateUserProfile(req: Request, profile: UserProfile|null): Promise<void> {
     if (profile) {
-      await this.updateUser(req, {profile});
+      await this.updateUser(req, { profile });
     }
     else {
       await this.clearScopedSession(req);
@@ -220,7 +220,7 @@ export class ScopedSession {
    * @param {Partial<SessionUserObj>} newProps New property values to set.
    */
   public async updateUser(req: Request, newProps: Partial<SessionUserObj>): Promise<void> {
-    await this.operateOnScopedSession(req, async user => ({...user, ...newProps}));
+    await this.operateOnScopedSession(req, async user => ({ ...user, ...newProps }));
   }
 
   /**

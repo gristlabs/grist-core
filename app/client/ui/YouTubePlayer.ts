@@ -1,6 +1,6 @@
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {waitObs} from 'app/common/gutil';
-import {Disposable, dom, DomElementArg} from 'grainjs';
+import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import { waitObs } from 'app/common/gutil';
+import { Disposable, dom, DomElementArg } from 'grainjs';
 import ko from 'knockout';
 
 export interface Player {
@@ -118,11 +118,11 @@ export class YouTubePlayer extends Disposable {
   }
 
   public buildDom() {
-    return dom('div', {id: this._playerId}, ...this._domArgs);
+    return dom('div', { id: this._playerId }, ...this._domArgs);
   }
 
   private _handleYouTubeIframeAPIReady() {
-    const {onPlayerReady, onPlayerStateChange, playerVars, ...otherOptions} = this._options;
+    const { onPlayerReady, onPlayerStateChange, playerVars, ...otherOptions } = this._options;
     this._player = new (G.window as any).YT.Player(this._playerId, {
       videoId: this._videoId,
       playerVars,

@@ -1,27 +1,27 @@
-import {allCommands} from 'app/client/components/commands';
-import {showUndoDiscardNotification} from 'app/client/components/Drafts';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {domDispatch, domOnCustom, makeTestId} from 'app/client/lib/domUtils';
-import {createObsArray} from 'app/client/lib/koArrayWrap';
-import {makeT} from 'app/client/lib/localization';
-import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
-import {CellRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {reportError} from 'app/client/models/errors';
-import {INotification} from 'app/client/models/NotifyModel';
-import {RowSource, RowWatcher} from 'app/client/models/rowset';
-import {renderCellMarkdown} from 'app/client/ui/MarkdownCellRenderer';
-import {createUserImage} from 'app/client/ui/UserImage';
-import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menu, menuItem} from 'app/client/ui2018/menus';
-import {cssMarkdown} from 'app/client/widgets/MarkdownTextBox';
-import {buildMentionTextBox, CommentWithMentions} from 'app/client/widgets/MentionTextBox';
-import {CommentContent} from 'app/common/DocComments';
-import {CellInfoType} from 'app/common/gristTypes';
-import {FullUser, PermissionData} from 'app/common/UserAPI';
-import {CursorPos} from 'app/plugin/GristAPI';
+import { allCommands } from 'app/client/components/commands';
+import { showUndoDiscardNotification } from 'app/client/components/Drafts';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { domDispatch, domOnCustom, makeTestId } from 'app/client/lib/domUtils';
+import { createObsArray } from 'app/client/lib/koArrayWrap';
+import { makeT } from 'app/client/lib/localization';
+import { localStorageBoolObs } from 'app/client/lib/localStorageObs';
+import { CellRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { reportError } from 'app/client/models/errors';
+import { INotification } from 'app/client/models/NotifyModel';
+import { RowSource, RowWatcher } from 'app/client/models/rowset';
+import { renderCellMarkdown } from 'app/client/ui/MarkdownCellRenderer';
+import { createUserImage } from 'app/client/ui/UserImage';
+import { basicButton, primaryButton, textButton } from 'app/client/ui2018/buttons';
+import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { menu, menuItem } from 'app/client/ui2018/menus';
+import { cssMarkdown } from 'app/client/widgets/MarkdownTextBox';
+import { buildMentionTextBox, CommentWithMentions } from 'app/client/widgets/MentionTextBox';
+import { CommentContent } from 'app/common/DocComments';
+import { CellInfoType } from 'app/common/gristTypes';
+import { FullUser, PermissionData } from 'app/common/UserAPI';
+import { CursorPos } from 'app/plugin/GristAPI';
 import {
   bundleChanges,
   Computed,
@@ -40,7 +40,7 @@ import {
 import * as ko from 'knockout';
 import flatMap from 'lodash/flatMap';
 import moment from 'moment';
-import {PopupControl, popupOpen} from 'popweasel';
+import { PopupControl, popupOpen } from 'popweasel';
 
 const testId = makeTestId('test-discussion-');
 const t = makeT('DiscussionEditor');
@@ -327,7 +327,7 @@ class EmptyThread extends Disposable {
       access: this.props.access,
       mode: 'start',
       text: this.props.text,
-      editorArgs: [{placeholder: t('Write a comment')}],
+      editorArgs: [{ placeholder: t('Write a comment') }],
       mainButton: t('Comment'),
       buttons: [t('Cancel')],
       args: [testId('editor-start')],
@@ -418,7 +418,7 @@ class SingleThread extends Disposable implements IDomComponent {
       text: this._newText,
       currentUserId: this.props.gristDoc.currentUser.get()?.id ?? 0,
       mainButton: 'Reply',
-      editorArgs: [{placeholder: t('Reply')}],
+      editorArgs: [{ placeholder: t('Reply') }],
       args: [testId('editor-add')],
       onSave: () => this._save(),
       onCancel: () => this.props.closeClicked?.(),
@@ -427,7 +427,7 @@ class SingleThread extends Disposable implements IDomComponent {
 
   public buildDom() {
     return cssTopic(
-      dom.maybe(this._truncated, () => cssTruncate(t("Showing last {{nb}} comments", {nb: COMMENTS_LIMIT}))),
+      dom.maybe(this._truncated, () => cssTruncate(t("Showing last {{nb}} comments", { nb: COMMENTS_LIMIT }))),
       domOnCustom(Comment.EDIT, (s: Comment) => this._onEditComment(s)),
       domOnCustom(Comment.CANCEL, () => this._onCancelEdit()),
       dom.hide(this._closing),
@@ -530,7 +530,7 @@ class MultiThreads extends Disposable implements IDomComponent {
 
   public buildDom() {
     return cssTopic(
-      dom.maybe(this._truncated, () => cssTruncate(t("Showing last {{nb}} comments", {nb: COMMENTS_LIMIT}))),
+      dom.maybe(this._truncated, () => cssTruncate(t("Showing last {{nb}} comments", { nb: COMMENTS_LIMIT }))),
       cssTopic.cls('-panel'),
       domOnCustom(Comment.EDIT, (s: Comment) => this._onEditComment(s)),
       domOnCustom(Comment.CANCEL, () => this._onCancelEdit()),
@@ -830,7 +830,7 @@ class Comment extends Disposable {
       // Without it, we don't know the section, and anchor links can't work without it.
       (this.props.cursorPos ?
         menuItem(
-          () => this.props.gristDoc.copyAnchorLink({comments: true, ...this.props.cursorPos}).catch(reportError),
+          () => this.props.gristDoc.copyAnchorLink({ comments: true, ...this.props.cursorPos }).catch(reportError),
           t("Copy link"),
         ) :
         null
@@ -1113,7 +1113,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
 
   public buildMenu(): DomContents {
     return cssPanelHeader(
-      dom('span', dom.text(use => t("{{count}} comments", {count: use(this._length)})), testId('comment-count')),
+      dom('span', dom.text(use => t("{{count}} comments", { count: use(this._length) })), testId('comment-count')),
       cssIconButtonMenu(
         icon('Dots'),
         testId('panel-menu'),
@@ -1123,7 +1123,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
             labeledSquareCheckbox(this._currentPage, t("Only current page"), testId('only-page')),
             labeledSquareCheckbox(this._resolved, t("Show resolved comments"), testId('show-resolved')),
           )];
-        }, {placement: 'bottom-start'}),
+        }, { placement: 'bottom-start' }),
         dom.on('click', stopPropagation),
       ),
     );
@@ -1143,7 +1143,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
       const fieldIndex = section?.viewFields.peek().all()
         .findIndex(f => f.colRef.peek() === discussion.colRef.peek()) ?? -1;
       if (fieldIndex !== -1) {
-        return {sectionId, fieldIndex};
+        return { sectionId, fieldIndex };
       }
       return null;
     }
@@ -1196,7 +1196,7 @@ function buildAvatar(user: FullUser | null, ...args: DomElementArg[]) {
   return cssAvatar(user, 'small', ...args);
 }
 
-function buildNick(user: {name: string} | null, ...args: DomArg<HTMLElement>[]) {
+function buildNick(user: { name: string } | null, ...args: DomArg<HTMLElement>[]) {
   return cssNick(user?.name ?? 'Anonymous', ...args);
 }
 

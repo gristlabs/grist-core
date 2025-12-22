@@ -1,19 +1,19 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import {makeT} from 'app/client/lib/localization';
-import {ViewSectionRec} from 'app/client/models/DocModel';
-import {textInput} from 'app/client/ui/inputs';
-import {shadowScroll} from 'app/client/ui/shadowScroll';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
-import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {IModalControl, modal} from 'app/client/ui2018/modals';
-import {AccessLevel, ICustomWidget, matchWidget, WidgetAuthor} from 'app/common/CustomWidget';
-import {userTrustsCustomWidget} from 'app/client/ui/userTrustsCustomWidget';
-import {commonUrls} from 'app/common/gristUrls';
-import {bundleChanges, Computed, Disposable, dom, makeTestId, Observable, styled} from 'grainjs';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { makeT } from 'app/client/lib/localization';
+import { ViewSectionRec } from 'app/client/models/DocModel';
+import { textInput } from 'app/client/ui/inputs';
+import { shadowScroll } from 'app/client/ui/shadowScroll';
+import { withInfoTooltip } from 'app/client/ui/tooltips';
+import { bigBasicButton, bigPrimaryButton } from 'app/client/ui2018/buttons';
+import { theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { cssLink } from 'app/client/ui2018/links';
+import { loadingSpinner } from 'app/client/ui2018/loaders';
+import { IModalControl, modal } from 'app/client/ui2018/modals';
+import { AccessLevel, ICustomWidget, matchWidget, WidgetAuthor } from 'app/common/CustomWidget';
+import { userTrustsCustomWidget } from 'app/client/ui/userTrustsCustomWidget';
+import { commonUrls } from 'app/common/gristUrls';
+import { bundleChanges, Computed, Disposable, dom, makeTestId, Observable, styled } from 'grainjs';
 import escapeRegExp from 'lodash/escapeRegExp';
 
 const testId = makeTestId('test-custom-widget-gallery-');
@@ -24,7 +24,7 @@ export const CUSTOM_URL_WIDGET_ID = 'custom';
 
 interface Options {
   sectionRef?: number;
-  addWidget?(): Promise<{viewRef: number, sectionRef: number}>;
+  addWidget?(): Promise<{ viewRef: number, sectionRef: number }>;
 }
 
 export function showCustomWidgetGallery(gristDoc: GristDoc, options: Options = {}) {
@@ -67,7 +67,7 @@ class CustomWidgetGallery extends Disposable {
   ) {
     super();
 
-    const {sectionRef} = _options;
+    const { sectionRef } = _options;
     if (sectionRef) {
       const section = this._gristDoc.docModel.viewSections.getRowModel(sectionRef);
       if (!section.id.peek()) {
@@ -89,7 +89,7 @@ class CustomWidgetGallery extends Disposable {
     this._savedWidgetId = Computed.create(this, (use) => {
       if (!this._section) { return null; }
 
-      const {customDef} = this._section;
+      const { customDef } = this._section;
       // May be stored in one of two places, depending on age of document.
       const widgetId = use(customDef.widgetId) || use(customDef.widgetDef)?.widgetId;
       if (widgetId) {
@@ -126,7 +126,7 @@ class CustomWidgetGallery extends Disposable {
           cssSearchIcon('Search'),
           cssSearchInput(
             this._searchText,
-            {placeholder: t('Search')},
+            { placeholder: t('Search') },
             (el) => { setTimeout(() => el.focus(), 10); },
             testId('search'),
           ),
@@ -139,7 +139,7 @@ class CustomWidgetGallery extends Disposable {
       cssFooter(
         dom('div',
           cssHelpLink(
-            {href: commonUrls.helpCustomWidgets, target: '_blank'},
+            { href: commonUrls.helpCustomWidgets, target: '_blank' },
             cssHelpIcon('Question'),
             t('Learn more about custom widgets'),
           ),
@@ -181,14 +181,14 @@ class CustomWidgetGallery extends Disposable {
       if (this.isDisposed()) { return; }
 
       widgets.push(...remoteWidgets
-        .filter(({published}) => published !== false)
+        .filter(({ published }) => published !== false)
         .sort((a, b) => a.name.localeCompare(b.name)));
     }
     catch (e) {
       reportError(e);
     }
 
-    this._widgets.set(widgets.map(w => ({...w, cleanText: getWidgetCleanText(w)})));
+    this._widgets.set(widgets.map(w => ({ ...w, cleanText: getWidgetCleanText(w) })));
     this._selectedWidgetId.set(this._savedWidgetId.get());
     this._filterWidgets();
   }
@@ -205,7 +205,7 @@ class CustomWidgetGallery extends Disposable {
       const searchTerms = searchText.trim().split(/\s+/);
       const searchPatterns = searchTerms.map(term =>
         new RegExp(`\\b${escapeRegExp(term)}`, 'i'));
-      const filteredWidgets = widgets.filter(({cleanText}) =>
+      const filteredWidgets = widgets.filter(({ cleanText }) =>
         searchPatterns.some(pattern => pattern.test(cleanText)),
       );
       this._filteredWidgets.set(filteredWidgets);
@@ -223,7 +223,7 @@ class CustomWidgetGallery extends Disposable {
       else {
         return cssWidgets(
           widgets.map((widget) => {
-            const {description, authors = [], lastUpdatedAt} = widget;
+            const { description, authors = [], lastUpdatedAt } = widget;
 
             return this._buildWidget({
               variant: getWidgetVariant(widget),
@@ -240,7 +240,7 @@ class CustomWidgetGallery extends Disposable {
   }
 
   private _buildWidget(info: WidgetInfo) {
-    const {variant, id, name, description, developer, lastUpdated} = info;
+    const { variant, id, name, description, developer, lastUpdated } = info;
 
     return cssWidget(
       dom.cls('custom-widget'),
@@ -274,7 +274,7 @@ class CustomWidgetGallery extends Disposable {
               developer?.url
                 ? cssDeveloperLink(
                   developer.name,
-                  {href: developer.url, target: '_blank'},
+                  { href: developer.url, target: '_blank' },
                   dom.on('click', ev => ev.stopPropagation()),
                   testId('widget-developer'),
                 )
@@ -307,7 +307,7 @@ class CustomWidgetGallery extends Disposable {
           (el) => {
             this._customUrlInput = el as HTMLInputElement;
           },
-          {placeholder: t('Widget URL'), type: 'url'},
+          { placeholder: t('Widget URL'), type: 'url' },
           testId('custom-url'),
         ),
       ),
@@ -358,12 +358,12 @@ class CustomWidgetGallery extends Disposable {
       async () => {
         let section = this._section;
         if (!section) {
-          const {addWidget} = this._options;
+          const { addWidget } = this._options;
           if (!addWidget) {
             throw new Error('Cannot add custom widget: missing `addWidget` implementation');
           }
 
-          const {sectionRef} = await addWidget();
+          const { sectionRef } = await addWidget();
           const newSection = this._gristDoc.docModel.viewSections.getRowModel(sectionRef);
           if (!newSection.id.peek()) {
             throw new Error(`Section ${sectionRef} does not exist`);
@@ -400,12 +400,12 @@ class CustomWidgetGallery extends Disposable {
 
   private async _saveRemoteWidget(section: ViewSectionRec) {
     const [pluginId, widgetId] = this._selectedWidgetId.get()!.split(':');
-    const {customDef} = section;
+    const { customDef } = section;
     if (customDef.pluginId.peek() === pluginId && customDef.widgetId.peek() === widgetId) {
       return;
     }
 
-    const selectedWidget = matchWidget(this._widgets.get() ?? [], {widgetId, pluginId});
+    const selectedWidget = matchWidget(this._widgets.get() ?? [], { widgetId, pluginId });
     if (!selectedWidget) {
       throw new Error(`Widget ${this._selectedWidgetId.get()} not found`);
     }
@@ -443,11 +443,11 @@ class CustomWidgetGallery extends Disposable {
   }
 }
 
-export function getWidgetName({name, source}: ICustomWidget) {
+export function getWidgetName({ name, source }: ICustomWidget) {
   return source?.name ? `${name} (${source.name})` : name;
 }
 
-function getWidgetVariant({isGristLabsMaintained = false, widgetId}: ICustomWidget): WidgetVariant {
+function getWidgetVariant({ isGristLabsMaintained = false, widgetId }: ICustomWidget): WidgetVariant {
   if (widgetId === CUSTOM_URL_WIDGET_ID) {
     return 'custom';
   }
@@ -459,7 +459,7 @@ function getWidgetVariant({isGristLabsMaintained = false, widgetId}: ICustomWidg
   }
 }
 
-function getWidgetId({source, widgetId}: ICustomWidget) {
+function getWidgetId({ source, widgetId }: ICustomWidget) {
   if (widgetId === CUSTOM_URL_WIDGET_ID) {
     return CUSTOM_URL_WIDGET_ID;
   }
@@ -468,7 +468,7 @@ function getWidgetId({source, widgetId}: ICustomWidget) {
   }
 }
 
-function getWidgetCleanText({name, description, authors = []}: ICustomWidget) {
+function getWidgetCleanText({ name, description, authors = [] }: ICustomWidget) {
   let cleanText = name;
   if (description) { cleanText += ` ${description}`; }
   if (authors[0]) { cleanText += ` ${authors[0].name}`; }

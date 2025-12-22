@@ -17,7 +17,7 @@ export interface ICellContextMenu {
 
 export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMultiColumnContextMenu) {
 
-  const { disableInsert, disableDelete, isViewSorted, numRows, onlyAddRowSelected} = cellOptions;
+  const { disableInsert, disableDelete, isViewSorted, numRows, onlyAddRowSelected } = cellOptions;
   const { numColumns, disableModify, isReadonly, isFiltered } = colOptions;
 
   // disableModify is true if the column is a summary column or is being transformed.
@@ -26,11 +26,11 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
   const disableForReadonlyView = dom.cls('disabled', isReadonly);
 
   const nameClearColumns = isFiltered ?
-    t("Reset {{count}} entire columns", {count: numColumns}) :
-    t("Reset {{count}} columns", {count: numColumns});
-  const nameDeleteColumns = t("Delete {{count}} columns", {count: numColumns});
+    t("Reset {{count}} entire columns", { count: numColumns }) :
+    t("Reset {{count}} columns", { count: numColumns });
+  const nameDeleteColumns = t("Delete {{count}} columns", { count: numColumns });
 
-  const nameDeleteRows = t("Delete {{count}} rows", {count: numRows});
+  const nameDeleteRows = t("Delete {{count}} rows", { count: numRows });
 
   const nameClearCells = (numRows > 1 || numColumns > 1) ? t("Clear values") : t("Clear cell");
 
@@ -78,7 +78,7 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
         menuItemCmd(allCommands.insertRecordAfter, t("Insert row below"),
           dom.cls('disabled', disableInsert))]
     ),
-    menuItemCmd(allCommands.duplicateRows, t("Duplicate rows", {count: numRows}),
+    menuItemCmd(allCommands.duplicateRows, t("Duplicate rows", { count: numRows }),
       dom.cls('disabled', disableInsert || numRows === 0)),
     menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"),
       disableForReadonlyView),

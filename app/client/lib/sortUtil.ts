@@ -54,12 +54,12 @@ export async function updatePositions(gristDoc: GristDoc, section: ViewSectionRe
   sortedRows.dispose();
 
   // The action just assigns consecutive positions to the sorted rows.
-  const colInfo = {[MANUALSORT]: range(0, sortedRowIds.length)};
+  const colInfo = { [MANUALSORT]: range(0, sortedRowIds.length) };
   await gristDoc.docData.sendActions(
     [
       // Update row positions and clear the saved sort spec as a single action bundle.
       ['BulkUpdateRecord', tableId, sortedRowIds, colInfo],
-      ['UpdateRecord', '_grist_Views_section', section.getRowId(), {sortColRefs: '[]'}],
+      ['UpdateRecord', '_grist_Views_section', section.getRowId(), { sortColRefs: '[]' }],
     ],
     `Updated table ${tableId} row positions.`,
   );

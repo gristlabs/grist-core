@@ -1,10 +1,10 @@
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
-import {getCollapsedSection, openCollapsedSectionMenu} from 'test/nbrowser/ViewLayoutUtils';
-import {assert, driver, Key, WebElement, WebElementPromise} from 'mocha-webdriver';
-import {arrayRepeat} from 'app/plugin/gutil';
-import {addStatic, serveSomething} from 'test/server/customUtil';
-import {AccessLevel} from 'app/common/CustomWidget';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { getCollapsedSection, openCollapsedSectionMenu } from 'test/nbrowser/ViewLayoutUtils';
+import { assert, driver, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
+import { arrayRepeat } from 'app/plugin/gutil';
+import { addStatic, serveSomething } from 'test/server/customUtil';
+import { AccessLevel } from 'app/common/CustomWidget';
 
 const GAP = 16;     // Distance between buttons representing collapsed widgets.
 
@@ -72,7 +72,7 @@ describe("ViewLayoutCollapse", function() {
     await gu.renameActiveSection('NotCollapsed');
 
     // Now store the layout, by amending it (so move the collapsed widget below).
-    const {height} = await gu.getSection('NotCollapsed').getRect();
+    const { height } = await gu.getSection('NotCollapsed').getRect();
     await dragMain('Collapsed');
     await move(gu.getSection('NotCollapsed'), { x: 50, y: height / 2 });
     await driver.sleep(300);
@@ -135,14 +135,14 @@ describe("ViewLayoutCollapse", function() {
 
     // Add custom section.
     await gu.addNewPage('Table', 'Companies');
-    await gu.addNewSection('Custom', 'Companies', {selectBy: 'COMPANIES'});
+    await gu.addNewSection('Custom', 'Companies', { selectBy: 'COMPANIES' });
 
     // Serve custom widget.
     const widgetServer = await serveSomething((app) => {
       addStatic(app);
     });
     cleanup.addAfterAll(widgetServer.shutdown);
-    await gu.setCustomWidgetUrl(widgetServer.url + '/probe/index.html', {openGallery: false});
+    await gu.setCustomWidgetUrl(widgetServer.url + '/probe/index.html', { openGallery: false });
     await gu.openWidgetPanel();
     await gu.widgetAccess(AccessLevel.full);
 
@@ -173,14 +173,14 @@ describe("ViewLayoutCollapse", function() {
 
     // Add custom section.
     await gu.addNewPage('Table', 'Companies');
-    await gu.addNewSection('Custom', 'Companies', {selectBy: 'COMPANIES'});
+    await gu.addNewSection('Custom', 'Companies', { selectBy: 'COMPANIES' });
 
     // Serve custom widget.
     const widgetServer = await serveSomething((app) => {
       addStatic(app);
     });
     cleanup.addAfterAll(widgetServer.shutdown);
-    await gu.setCustomWidgetUrl(widgetServer.url + '/probe/index.html', {openGallery: false});
+    await gu.setCustomWidgetUrl(widgetServer.url + '/probe/index.html', { openGallery: false });
     await gu.openWidgetPanel();
     await gu.widgetAccess(AccessLevel.full);
 
@@ -285,7 +285,7 @@ describe("ViewLayoutCollapse", function() {
     await gu.checkForErrors();
 
     assert.equal(await gu.getActiveSectionTitle(), INVESTMENTS);
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 8, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 8, col: 0 });
 
     // Hide companies chart, and search for mobile (should show no results).
     await collapseByMenu(COMPANIES_CHART);
@@ -301,7 +301,7 @@ describe("ViewLayoutCollapse", function() {
     // Now search for web.
     await gu.closeSearch();
     await gu.search('web');
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 2, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: 0 });
 
     // Recreate document (can't undo).
     await session.tempDoc(cleanup, 'Investment Research (smaller).grist');
@@ -316,8 +316,8 @@ describe("ViewLayoutCollapse", function() {
     // Drag it and then cancel.
     await dragCollapsed(INVESTMENTS);
     const logo = driver.find('.test-dm-logo');
-    await move(logo, {y: 0});
-    await move(logo, {y: -1});
+    await move(logo, { y: 0 });
+    await move(logo, { y: -1 });
     // Drop it here.
     await driver.withActions(actions => actions.release());
 
@@ -326,16 +326,16 @@ describe("ViewLayoutCollapse", function() {
 
     // And make sure we can move cursor.
     await gu.getCell(1, 1).click();
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 1, col: 1});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: 1 });
     await gu.getCell(1, 2).click();
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 2, col: 1});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: 1 });
 
     // Change its type, and check that it works.
     await gu.changeWidget('Card List');
     // Undo it.
     await gu.undo();
     await gu.getCell(1, 3).click();
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 3, col: 1});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 3, col: 1 });
 
     await gu.sendKeys(Key.ESCAPE);
 
@@ -344,11 +344,11 @@ describe("ViewLayoutCollapse", function() {
 
     // Move back and drop.
     await gu.getSection(COMPANIES_CHART).getRect();
-    await move(getDragElement(COMPANIES_CHART), {x: 50});
+    await move(getDragElement(COMPANIES_CHART), { x: 50 });
     await driver.sleep(100);
-    await move(getDragElement(COMPANIES_CHART), {x: 100});
+    await move(getDragElement(COMPANIES_CHART), { x: 100 });
     await driver.sleep(100);
-    await move(getDragElement(COMPANIES_CHART), {x: 200});
+    await move(getDragElement(COMPANIES_CHART), { x: 200 });
     await gu.waitToPass(async () => {
       assert.lengthOf(await driver.findAll(".layout_editor_drop_target.layout_hover"), 1);
     }, 1000);
@@ -358,9 +358,9 @@ describe("ViewLayoutCollapse", function() {
 
     // And make sure we can move cursor.
     await gu.getCell(1, 1).click();
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 1, col: 1});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: 1 });
     await gu.getCell(1, 2).click();
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 2, col: 1});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: 1 });
 
     await waitForSave();
     await revert();
@@ -440,8 +440,8 @@ describe("ViewLayoutCollapse", function() {
 
     // Move it over the logo, so that the tray thinks that it should expand.
     const logo = driver.find('.test-dm-logo');
-    await move(logo, {y: 0});
-    await move(logo, {y: -1});
+    await move(logo, { y: 0 });
+    await move(logo, { y: -1 });
     await driver.sleep(100);
 
     // Make sure the tray was not tricked into expanding itself.
@@ -463,7 +463,7 @@ describe("ViewLayoutCollapse", function() {
 
     const logo = driver.find('.test-dm-logo');
     // Now move it to the top, so that tray should be expanded.
-    await move(logo, {y: 0});
+    await move(logo, { y: 0 });
     await driver.sleep(100);
 
     // Now the tray is visible
@@ -490,7 +490,7 @@ describe("ViewLayoutCollapse", function() {
     const chartCords = await gu.getSection(COMPANIES_CHART).getRect();
     await move(getDragElement(COMPANIES_CHART));
     await driver.sleep(100);
-    await move(getDragElement(COMPANIES_CHART), {x: 10});
+    await move(getDragElement(COMPANIES_CHART), { x: 10 });
     await driver.sleep(300);
 
     // We should have a drop target.
@@ -512,7 +512,7 @@ describe("ViewLayoutCollapse", function() {
     await move(getDragElement(COMPANIES_CHART));
     await driver.sleep(100);
     // Split the movement into two parts, to make sure layout sees the mouse move.
-    await move(getDragElement(COMPANIES_CHART), {x: 10});
+    await move(getDragElement(COMPANIES_CHART), { x: 10 });
     await driver.sleep(200);
     assert.lengthOf(await driver.findAll(".layout_editor_drop_target.layout_hover"), 1);
     await driver.withActions(actions => actions.release());
@@ -628,7 +628,7 @@ describe("ViewLayoutCollapse", function() {
 
     // Move to the first leaf, and wait for the target to show up.
     const first = await firstLeaf().getRect();
-    await move(firstLeaf(), {x: -first.width / 2});
+    await move(firstLeaf(), { x: -first.width / 2 });
     await driver.sleep(300);
     assert.lengthOf(await layoutTray().findAll(".test-layoutTray-target-box"), 1);
     // Make sure that the target is in right place.
@@ -643,7 +643,7 @@ describe("ViewLayoutCollapse", function() {
     assert.lengthOf(await layoutTray().findAll(".test-layoutTray-target-box"), 0);
 
     // Move between first and second leaf.
-    await move(firstLeaf(), {x: first.width / 2 + GAP});
+    await move(firstLeaf(), { x: first.width / 2 + GAP });
     await driver.sleep(300);
     assert.lengthOf(await layoutTray().findAll(".test-layoutTray-target-box"), 1);
     target = await layoutTray().find(".test-layoutTray-target-box").getRect();
@@ -797,7 +797,7 @@ describe("ViewLayoutCollapse", function() {
     const revert = await gu.begin();
 
     // Add brand new table and collapse it.
-    await gu.addNewSection('Table', 'New Table', {tableName: 'ToCollapse'});
+    await gu.addNewSection('Table', 'New Table', { tableName: 'ToCollapse' });
     await collapseByMenu('ToCollapse');
 
     // Now try to remove it, we should see prompt.
@@ -967,15 +967,15 @@ describe("ViewLayoutCollapse", function() {
     await dragMain(COMPANIES_CHART);
     // Move it over the logo to show the tray.
     const logo = driver.find('.test-dm-logo');
-    await move(logo, {y: 0});
-    await move(logo, {y: -20});
+    await move(logo, { y: 0 });
+    await move(logo, { y: -20 });
     await driver.sleep(100);
     // Now the tray is visible
     assert.isTrue(await layoutTray().isDisplayed());
     // Move it on the empty space just after the empty box
     const emptyBox = await layoutTray().find(".test-layoutTray-empty-box");
     const emptyBoxCords = await emptyBox.getRect();
-    await move(emptyBox, {x: emptyBoxCords.width + 100 });
+    await move(emptyBox, { x: emptyBoxCords.width + 100 });
     // Make sure that the empty box is not active.
     assert.isFalse(await emptyBox.matches('[class*=-is-active]'));
     // Drop it here
@@ -1026,20 +1026,20 @@ async function addToMainByMenu(section: string) {
 async function dragCollapsed(section: string) {
   const handle = getCollapsedSection(section).find('.draggable-handle');
   await driver.withActions(actions => actions
-    .move({origin: handle})
+    .move({ origin: handle })
     .press());
-  await move(handle, {x: 10, y: 10});
+  await move(handle, { x: 10, y: 10 });
   return handle;
 }
 
 async function dragMain(section: string) {
   const handle = gu.getSection(section).find('.viewsection_drag_indicator');
   await driver.withActions(actions => actions
-    .move({origin: handle}));
+    .move({ origin: handle }));
   await driver.withActions(actions => actions
-    .move({origin: handle, x: 1}) // This is needed to show the drag element.
+    .move({ origin: handle, x: 1 }) // This is needed to show the drag element.
     .press());
-  await move(handle, {x: 10, y: 10});
+  await move(handle, { x: 10, y: 10 });
   return handle;
 }
 
@@ -1071,11 +1071,11 @@ async function mainSectionTitles() {
   return await driver.findAll('.layout_root .test-viewsection-title', e => e.getText());
 }
 
-async function move(element: WebElementPromise|WebElement, offset: {x?: number, y?: number} = {x: 0, y: 0}) {
+async function move(element: WebElementPromise|WebElement, offset: { x?: number, y?: number } = { x: 0, y: 0 }) {
   // With current version of webdriver, a fractional values will get ignored, so round to nearest.
   if (offset.x) { offset.x = Math.round(offset.x); }
   if (offset.y) { offset.y = Math.round(offset.y); }
-  await driver.withActions(actions => actions.move({origin: element, ...offset}));
+  await driver.withActions(actions => actions.move({ origin: element, ...offset }));
 }
 
 function getDragElement(section: string) {

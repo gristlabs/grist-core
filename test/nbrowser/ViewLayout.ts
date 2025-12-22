@@ -25,22 +25,22 @@ describe("ViewLayout", function() {
     await gu.checkForErrors();
 
     // using api changes parentKey to 'single' and check  view udpated
-    await api.applyUserActions(docId, [['UpdateRecord', '_grist_Views_section', 1, {parentKey: 'detail'}]]);
+    await api.applyUserActions(docId, [['UpdateRecord', '_grist_Views_section', 1, { parentKey: 'detail' }]]);
     assert.equal(await gu.getActiveSectionTitle(), 'TABLE1 Card List');
     await gu.checkForErrors();
 
     // change parentKey to 'detail' and check view udpated
-    await api.applyUserActions(docId, [['UpdateRecord', '_grist_Views_section', 1, {parentKey: 'single'}]]);
+    await api.applyUserActions(docId, [['UpdateRecord', '_grist_Views_section', 1, { parentKey: 'single' }]]);
     assert.equal(await gu.getActiveSectionTitle(), 'TABLE1 Card');
     await gu.checkForErrors();
 
     // change parentKey to chart and check view updated
-    await api.applyUserActions(docId, [['UpdateRecord', '_grist_Views_section', 1, {parentKey: 'chart'}]]);
+    await api.applyUserActions(docId, [['UpdateRecord', '_grist_Views_section', 1, { parentKey: 'chart' }]]);
     assert.equal(await gu.getActiveSectionTitle(), 'TABLE1 Chart');
     await gu.checkForErrors();
 
     // change parent key back to grid and check
-    await api.applyUserActions(docId, [['UpdateRecord', '_grist_Views_section', 1, {parentKey: 'record'}]]);
+    await api.applyUserActions(docId, [['UpdateRecord', '_grist_Views_section', 1, { parentKey: 'record' }]]);
     assert.equal(await gu.getActiveSectionTitle(), 'TABLE1');
     await gu.checkForErrors();
   });
@@ -112,7 +112,7 @@ describe("ViewLayout", function() {
     let oldDimensions: gu.WindowDimensions;
     before(async () => { oldDimensions = await gu.getWindowDimensions(); });
     after(async () => {
-      const {width, height} = oldDimensions;
+      const { width, height } = oldDimensions;
       await gu.setWindowDimensions(width, height);
     });
 
@@ -140,9 +140,9 @@ describe("ViewLayout", function() {
 
       // Check that the inactive section are small.
       await gu.waitToPass(async () => {
-        assert.deepInclude(await gu.getSection('Performances detail').getRect(), {width: 32});
-        assert.deepInclude(await gu.getSection('Films record').getRect(), {height: 32});
-        assert.deepInclude(await gu.getSection('Friends record').getRect(), {height: 32});
+        assert.deepInclude(await gu.getSection('Performances detail').getRect(), { width: 32 });
+        assert.deepInclude(await gu.getSection('Films record').getRect(), { height: 32 });
+        assert.deepInclude(await gu.getSection('Friends record').getRect(), { height: 32 });
 
         assert.isAbove((await gu.getSection('Performances record').getRect()).height, 100);
       });
@@ -156,9 +156,9 @@ describe("ViewLayout", function() {
 
       // Check that the other sections are small.
       await gu.waitToPass(async () => {
-        assert.deepInclude(await gu.getSection('Performances record').getRect(), {height: 32});
-        assert.deepInclude(await gu.getSection('Performances detail').getRect(), {height: 32});
-        assert.deepInclude(await gu.getSection('Films record').getRect(), {width: 32});
+        assert.deepInclude(await gu.getSection('Performances record').getRect(), { height: 32 });
+        assert.deepInclude(await gu.getSection('Performances detail').getRect(), { height: 32 });
+        assert.deepInclude(await gu.getSection('Films record').getRect(), { width: 32 });
 
         assert.isAbove((await gu.getSection('Friends record').getRect()).height, 100);
       });

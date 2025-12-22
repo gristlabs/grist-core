@@ -1,16 +1,16 @@
-import {ColumnRec, DocModel, IRowModel, refListRecords, refRecord, ViewSectionRec} from 'app/client/models/DocModel';
-import {formatterForRec} from 'app/client/models/entities/ColumnRec';
+import { ColumnRec, DocModel, IRowModel, refListRecords, refRecord, ViewSectionRec } from 'app/client/models/DocModel';
+import { formatterForRec } from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
-import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
-import {HeaderStyle, Style} from 'app/client/models/Styles';
-import {ViewFieldConfig} from 'app/client/models/ViewFieldConfig';
+import { removeRule, RuleOwner } from 'app/client/models/RuleOwner';
+import { HeaderStyle, Style } from 'app/client/models/Styles';
+import { ViewFieldConfig } from 'app/client/models/ViewFieldConfig';
 import * as UserType from 'app/client/widgets/UserType';
-import {DocumentSettings} from 'app/common/DocumentSettings';
-import {DropdownCondition, DropdownConditionCompilationResult} from 'app/common/DropdownCondition';
-import {compilePredicateFormula} from 'app/common/PredicateFormula';
-import {BaseFormatter} from 'app/common/ValueFormatter';
-import {createParser} from 'app/common/ValueParser';
-import {Computed} from 'grainjs';
+import { DocumentSettings } from 'app/common/DocumentSettings';
+import { DropdownCondition, DropdownConditionCompilationResult } from 'app/common/DropdownCondition';
+import { compilePredicateFormula } from 'app/common/PredicateFormula';
+import { BaseFormatter } from 'app/common/ValueFormatter';
+import { createParser } from 'app/common/ValueParser';
+import { Computed } from 'grainjs';
 import * as ko from 'knockout';
 
 // Represents a page entry in the tree of pages.
@@ -211,7 +211,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
       this._fieldOrColumn().visibleCol.saveOnly(colRef),
       this._fieldOrColumn().saveDisplayFormula(colRef ? `$${this.colId()}.${col.colId()}` : ''),
     ]);
-  }, {nestInActiveBundle: this.column.peek().isTransforming.peek()}),
+  }, { nestInActiveBundle: this.column.peek().isTransforming.peek() }),
   );
 
   // The display column to use for the field, or the column itself when no displayCol is set.
@@ -344,7 +344,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
       };
     }
     catch (e) {
-      return {kind: 'failure', error: e.message};
+      return { kind: 'failure', error: e.message };
     }
   });
 }

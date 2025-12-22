@@ -3,7 +3,7 @@ import {
   ExternalStorageSupportingAttachments, loadAttachmentFileIntoMemory,
 } from 'app/server/lib/AttachmentStore';
 
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as stream from 'node:stream';
 import sinon from 'sinon';
 

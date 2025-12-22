@@ -1,11 +1,11 @@
-import {FormLayoutNode, selectPlaceholder} from 'app/client/components/FormRenderer';
-import {buildEditor} from 'app/client/components/Forms/Editor';
-import {FormView} from 'app/client/components/Forms/FormView';
-import {BoxModel, ignoreClick} from 'app/client/components/Forms/Model';
+import { FormLayoutNode, selectPlaceholder } from 'app/client/components/FormRenderer';
+import { buildEditor } from 'app/client/components/Forms/Editor';
+import { FormView } from 'app/client/components/Forms/FormView';
+import { BoxModel, ignoreClick } from 'app/client/components/Forms/Model';
 import * as css from 'app/client/components/Forms/styles';
-import {stopEvent} from 'app/client/lib/domUtils';
-import {makeT} from 'app/client/lib/localization';
-import {DocModel, refRecord} from 'app/client/models/DocModel';
+import { stopEvent } from 'app/client/lib/domUtils';
+import { makeT } from 'app/client/lib/localization';
+import { DocModel, refRecord } from 'app/client/models/DocModel';
 import TableModel from 'app/client/models/TableModel';
 import {
   FormFieldOptions,
@@ -16,12 +16,12 @@ import {
   FormTextFormat,
   FormToggleFormat,
 } from 'app/client/ui/FormAPI';
-import {autoGrow} from 'app/client/ui/forms';
-import {cssCheckboxSquare, cssLabel, squareCheckbox} from 'app/client/ui2018/checkbox';
-import {cssRadioInput} from 'app/client/ui2018/radio';
-import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
-import {isBlankValue} from 'app/common/gristTypes';
-import {Constructor, not} from 'app/common/gutil';
+import { autoGrow } from 'app/client/ui/forms';
+import { cssCheckboxSquare, cssLabel, squareCheckbox } from 'app/client/ui2018/checkbox';
+import { cssRadioInput } from 'app/client/ui2018/radio';
+import { toggleSwitch } from 'app/client/ui2018/toggleSwitch';
+import { isBlankValue } from 'app/common/gristTypes';
+import { Constructor, not } from 'app/common/gutil';
 import {
   BindableValue,
   Computed,
@@ -199,7 +199,7 @@ export abstract class Question extends Disposable {
     edit: Observable<boolean>,
     onSave: (value: string) => void,
   }, ...args: DomElementArg[]) {
-    const {edit, onSave} = props;
+    const { edit, onSave } = props;
 
     const scope = new MultiHolder();
 
@@ -249,7 +249,7 @@ export abstract class Question extends Disposable {
         dom.maybe(props.edit, () => [
           element = css.cssEditableLabel(
             controller,
-            {onInput: true},
+            { onInput: true },
             // Attach common Enter,Escape, blur handlers.
             css.saveControls(edit, saveDraft),
             // Autoselect whole text when mounted.
@@ -311,7 +311,7 @@ class TextModel extends Question {
   private _renderSingleLineInput() {
     return css.cssInput(
       dom.prop('name', u => u(u(this.field).colId)),
-      {type: 'text', tabIndex: "-1"},
+      { type: 'text', tabIndex: "-1" },
     );
   }
 
@@ -319,7 +319,7 @@ class TextModel extends Question {
     return css.cssTextArea(
       dom.prop('name', u => u(u(this.field).colId)),
       dom.prop('rows', this._rowCount),
-      {tabIndex: "-1"},
+      { tabIndex: "-1" },
     );
   }
 }
@@ -346,7 +346,7 @@ class NumericModel extends Question {
   private _renderTextInput() {
     return css.cssInput(
       dom.prop('name', u => u(u(this.field).colId)),
-      {type: 'text', tabIndex: "-1"},
+      { type: 'text', tabIndex: "-1" },
     );
   }
 
@@ -415,16 +415,16 @@ class ChoiceModel extends Question {
 
   private _renderSelectInput() {
     return css.cssSelect(
-      {tabIndex: "-1"},
+      { tabIndex: "-1" },
       ignoreClick,
       dom.prop('name', use => use(use(this.field).colId)),
       dom('option',
         selectPlaceholder(),
-        {value: ''},
+        { value: '' },
       ),
       dom.forEach(this.choices, choice => dom('option',
         choice,
-        {value: choice},
+        { value: choice },
       )),
     );
   }
@@ -434,7 +434,7 @@ class ChoiceModel extends Question {
       css.cssRadioList.cls('-horizontal', use => use(this.alignment) === 'horizontal'),
       dom.prop('name', use => use(use(this.field).colId)),
       dom.forEach(this.choices, choice => css.cssRadioLabel(
-        cssRadioInput({type: 'radio'}),
+        cssRadioInput({ type: 'radio' }),
         choice,
       )),
     );
@@ -454,7 +454,7 @@ class ChoiceListModel extends ChoiceModel {
       dom.prop('name', use => use(use(field).colId)),
       dom.forEach(this._choices, choice => css.cssCheckboxLabel(
         css.cssCheckboxLabel.cls('-horizontal', use => use(this.alignment) === 'horizontal'),
-        cssCheckboxSquare({type: 'checkbox'}),
+        cssCheckboxSquare({ type: 'checkbox' }),
         choice,
       )),
       dom.maybe(use => use(this._choices).length === 0, () => [
@@ -503,7 +503,7 @@ class BoolModel extends Question {
 
   private _renderCheckboxInput() {
     return cssLabel(
-      cssCheckboxSquare({type: 'checkbox'}),
+      cssCheckboxSquare({ type: 'checkbox' }),
     );
   }
 }
@@ -513,7 +513,7 @@ class DateModel extends Question {
     return dom('div',
       css.cssInput(
         dom.prop('name', this.model.colId),
-        {type: 'date', style: 'margin-right: 5px;'},
+        { type: 'date', style: 'margin-right: 5px;' },
       ),
     );
   }
@@ -524,7 +524,7 @@ class DateTimeModel extends Question {
     return dom('div',
       css.cssInput(
         dom.prop('name', this.model.colId),
-        {type: 'datetime-local', style: 'margin-right: 5px;'},
+        { type: 'datetime-local', style: 'margin-right: 5px;' },
       ),
       dom.style('width', '100%'),
     );
@@ -532,7 +532,7 @@ class DateTimeModel extends Question {
 }
 
 class RefListModel extends Question {
-  protected options: Computed<{label: string, value: string}[]>;
+  protected options: Computed<{ label: string, value: string }[]>;
 
   protected alignment = Computed.create<FormOptionsAlignment>(this, (use) => {
     const field = use(this.field);
@@ -583,7 +583,7 @@ class RefListModel extends Question {
       const sort = use(this._sortOrder);
       const values = use(observer)
         .filter(([_id, value]) => !isBlankValue(value))
-        .map(([id, value]) => ({label: String(value), value: String(id)}));
+        .map(([id, value]) => ({ label: String(value), value: String(id) }));
       if (sort !== 'default') {
         values.sort((a, b) => a.label.localeCompare(b.label));
         if (sort === 'descending') {
@@ -655,16 +655,16 @@ class RefModel extends RefListModel {
 
   private _renderSelectInput() {
     return css.cssSelect(
-      {tabIndex: "-1"},
+      { tabIndex: "-1" },
       ignoreClick,
       dom.prop('name', this.model.colId),
       dom('option',
         selectPlaceholder(),
-        {value: ''},
+        { value: '' },
       ),
-      dom.forEach(this.options, ({label, value}) => dom('option',
+      dom.forEach(this.options, ({ label, value }) => dom('option',
         label,
-        {value},
+        { value },
       )),
     );
   }
@@ -673,8 +673,8 @@ class RefModel extends RefListModel {
     return css.cssRadioList(
       css.cssRadioList.cls('-horizontal', use => use(this.alignment) === 'horizontal'),
       dom.prop('name', use => use(use(this.field).colId)),
-      dom.forEach(this.options, ({label, value}) => css.cssRadioLabel(
-        cssRadioInput({type: 'radio'}),
+      dom.forEach(this.options, ({ label, value }) => css.cssRadioLabel(
+        cssRadioInput({ type: 'radio' }),
         label,
       )),
     );
@@ -716,5 +716,5 @@ function fieldConstructor(type: string): Constructor<Question> {
  * Creates a hidden input element with element type. Used in tests.
  */
 function testType(value: BindableValue<string>) {
-  return dom('input', {type: 'hidden'}, dom.prop('value', value), testId('type'));
+  return dom('input', { type: 'hidden' }, dom.prop('value', value), testId('type'));
 }

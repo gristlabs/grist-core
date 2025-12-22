@@ -1,9 +1,9 @@
-import {AlternateActions, AlternateStorage} from 'app/common/AlternateActions';
-import {DocData} from 'app/common/DocData';
-import {TableData} from 'app/common/TableData';
-import {IndexColumns} from 'app/server/lib/DocStorage';
+import { AlternateActions, AlternateStorage } from 'app/common/AlternateActions';
+import { DocData } from 'app/common/DocData';
+import { TableData } from 'app/common/TableData';
+import { IndexColumns } from 'app/server/lib/DocStorage';
 
-export type {ProcessedAction} from 'app/common/AlternateActions';
+export type { ProcessedAction } from 'app/common/AlternateActions';
 export type OnDemandStorage = AlternateStorage;
 
 /**
@@ -40,7 +40,7 @@ export class OnDemandActions extends AlternateActions {
     for (const c of this._columnsMeta.getRecords()) {
       const t = this._tablesMeta.getRecord(c.parentId as number);
       if (t && t.onDemand && c.type && (c.type as string).startsWith('Ref:')) {
-        desiredIndexes.push({tableId: t.tableId as string, colId: c.colId as string});
+        desiredIndexes.push({ tableId: t.tableId as string, colId: c.colId as string });
       }
     }
     return desiredIndexes;

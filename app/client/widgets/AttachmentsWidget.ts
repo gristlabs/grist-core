@@ -1,25 +1,25 @@
-import {CellValue} from "app/common/DocActions";
+import { CellValue } from "app/common/DocActions";
 import * as commands from 'app/client/components/commands';
-import {dragOverClass} from 'app/client/lib/dom';
-import {stopEvent} from 'app/client/lib/domUtils';
-import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
-import {makeT} from "app/client/lib/localization";
-import {cssRow} from 'app/client/ui/RightPanelStyles';
-import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {loadingSpinner} from "app/client/ui2018/loaders";
-import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
-import {encodeQueryParams} from 'app/common/gutil';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {MetaTableData} from 'app/client/models/TableData';
+import { dragOverClass } from 'app/client/lib/dom';
+import { stopEvent } from 'app/client/lib/domUtils';
+import { selectFiles, uploadFiles } from 'app/client/lib/uploads';
+import { makeT } from "app/client/lib/localization";
+import { cssRow } from 'app/client/ui/RightPanelStyles';
+import { colors, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { loadingSpinner } from "app/client/ui2018/loaders";
+import { NewAbstractWidget } from 'app/client/widgets/NewAbstractWidget';
+import { encodeQueryParams } from 'app/common/gutil';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { DataRowModel } from 'app/client/models/DataRowModel';
+import { MetaTableData } from 'app/client/models/TableData';
 import { SingleCell } from 'app/common/TableData';
-import {KoSaveableObservable} from 'app/client/models/modelUtil';
-import {UploadResult} from 'app/common/uploads';
-import {UIRowId} from 'app/plugin/GristAPI';
+import { KoSaveableObservable } from 'app/client/models/modelUtil';
+import { UploadResult } from 'app/common/uploads';
+import { UIRowId } from 'app/plugin/GristAPI';
 import { GristObjCode } from 'app/plugin/GristData';
-import {Computed, dom, DomContents, fromKo, input, Observable, onElem, styled} from 'grainjs';
-import {extname} from 'path';
-import {FormFieldRulesConfig} from "app/client/components/Forms/FormConfig";
+import { Computed, dom, DomContents, fromKo, input, Observable, onElem, styled } from 'grainjs';
+import { extname } from 'path';
+import { FormFieldRulesConfig } from "app/client/components/Forms/FormConfig";
 
 const t = makeT('AttachmentsWidget');
 
@@ -92,7 +92,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
         cssSpinner(
           cssSpinner.cls('-has-attachments', use => use(values).length > 0),
           testId('attachment-spinner'),
-          {title: t('Uploading, please wait…')},
+          { title: t('Uploading, please wait…') },
         ),
       ),
       dom.on('drop', ev => this._uploadAndSave(row, cellValue, ev.dataTransfer!.files)),
@@ -105,7 +105,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
     const height = options.prop('height');
     const inputRange = input(
       fromKo(height),
-      {onInput: true}, {
+      { onInput: true }, {
         style: 'margin: 0 5px;',
         type: 'range',
         min: '16',
@@ -141,11 +141,11 @@ export class AttachmentsWidget extends NewAbstractWidget {
     const hasPreview = Boolean(height);
     const ratio = hasPreview ? (width / height) : 1;
 
-    return cssAttachmentPreview({title: filename}, // Add a filename tooltip to the previews.
+    return cssAttachmentPreview({ title: filename }, // Add a filename tooltip to the previews.
       dom.style('height', use => `${use(this._height)}px`),
       dom.style('width', use => `${parseInt(use(this._height), 10) * ratio}px`),
       // TODO: Update to legitimately determine whether a file preview exists.
-      hasPreview ? dom('img', {style: 'height: 100%; min-width: 100%; vertical-align: top;'},
+      hasPreview ? dom('img', { style: 'height: 100%; min-width: 100%; vertical-align: top;' },
         dom.attr('src', this._getUrl(value, cell)),
       ) : renderFileType(filename, fileIdent, this._height),
       // Open editor as if with input, using it to tell it which of the attachments to show. We
@@ -179,7 +179,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
           return;
         }
         states[rowId] = true;
-        this._uploadingStatesObs.set({...states});
+        this._uploadingStatesObs.set({ ...states });
         // let the view know about the spinner so that it can expands the row height for it if needed
         const viewInstance = this.field.viewSection().viewInstance();
         const rowModel = viewInstance?.viewData.getRowModel(rowId);
@@ -190,7 +190,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
     }
     else {
       states[rowId] = false;
-      this._uploadingStatesObs.set({...states});
+      this._uploadingStatesObs.set({ ...states });
     }
   }
 
@@ -228,7 +228,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
     try {
       const uploadResult = await uploadFiles(
         Array.from(files),
-        {docWorkerUrl: this._getDocComm().docWorkerUrl, sizeLimit: 'attachment'},
+        { docWorkerUrl: this._getDocComm().docWorkerUrl, sizeLimit: 'attachment' },
         (progress) => {
           if (progress === 0) {
             this._setUploadingState(rowId, true);

@@ -1,14 +1,14 @@
-import {Placement} from '@popperjs/core';
-import {placements} from '@popperjs/core/lib/enums';
-import {DocComm} from 'app/client/components/DocComm';
-import {makeT} from 'app/client/lib/localization';
-import {sameDocumentUrlState} from 'app/client/models/gristUrlState';
-import {cssButtons, cssLinkBtn, cssLinkIcon} from 'app/client/ui/ExampleCard';
-import {IOnBoardingMsg, startOnBoarding} from 'app/client/ui/OnBoardingPopups';
-import {isNarrowScreen} from 'app/client/ui2018/cssVars';
-import {IconList, IconName} from 'app/client/ui2018/IconList';
-import {DocData} from 'app/common/DocData';
-import {dom} from 'grainjs';
+import { Placement } from '@popperjs/core';
+import { placements } from '@popperjs/core/lib/enums';
+import { DocComm } from 'app/client/components/DocComm';
+import { makeT } from 'app/client/lib/localization';
+import { sameDocumentUrlState } from 'app/client/models/gristUrlState';
+import { cssButtons, cssLinkBtn, cssLinkIcon } from 'app/client/ui/ExampleCard';
+import { IOnBoardingMsg, startOnBoarding } from 'app/client/ui/OnBoardingPopups';
+import { isNarrowScreen } from 'app/client/ui2018/cssVars';
+import { IconList, IconName } from 'app/client/ui2018/IconList';
+import { DocData } from 'app/common/DocData';
+import { dom } from 'grainjs';
 import sortBy from 'lodash/sortBy';
 
 const t = makeT('DocTour');
@@ -76,7 +76,7 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
           cssButtons(cssLinkBtn(
             IconList.includes(linkIcon) ? cssLinkIcon(linkIcon) : null,
             linkText,
-            {href: linkUrl, target: '_blank'},
+            { href: linkUrl, target: '_blank' },
           )),
         ),
       );

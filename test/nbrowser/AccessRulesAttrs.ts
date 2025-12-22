@@ -20,15 +20,15 @@ describe("AccessRulesAttrs", function() {
 
   before(async function() {
     mainSession = await gu.session().teamSite.user('user1').login();
-    docId = await mainSession.tempNewDoc(cleanup, 'AccessRulesAttr', {load: false});
+    docId = await mainSession.tempNewDoc(cleanup, 'AccessRulesAttr', { load: false });
     api = mainSession.createHomeApi();
     await api.applyUserActions(docId, [
       ['RemoveTable', 'Table1'],
       ['AddTable', 'TableFoo', [
-        {id: 'SomeText', type: 'Text'},
-        {id: 'SomeDate', type: 'Date'},
+        { id: 'SomeText', type: 'Text' },
+        { id: 'SomeDate', type: 'Date' },
       ]],
-      ['BulkAddRecord', 'TableFoo', [null, null, null], {SomeText: ['foo', 'FoO', 'Bar']}],
+      ['BulkAddRecord', 'TableFoo', [null, null, null], { SomeText: ['foo', 'FoO', 'Bar'] }],
     ]);
   });
 
@@ -38,9 +38,9 @@ describe("AccessRulesAttrs", function() {
 
     // Check API results before any rules are added.
     assert.deepEqual(await api.getDocAPI(docId).getRecords('TableFoo'), [
-      {id: 1, fields: {SomeText: 'foo', SomeDate: null}},
-      {id: 2, fields: {SomeText: 'FoO', SomeDate: null}},
-      {id: 3, fields: {SomeText: 'Bar', SomeDate: null}},
+      { id: 1, fields: { SomeText: 'foo', SomeDate: null } },
+      { id: 2, fields: { SomeText: 'FoO', SomeDate: null } },
+      { id: 3, fields: { SomeText: 'Bar', SomeDate: null } },
     ]);
 
     // Add rules for TableFoo.
@@ -57,7 +57,7 @@ describe("AccessRulesAttrs", function() {
 
     // Check API results with the new rule.
     assert.deepEqual(await api.getDocAPI(docId).getRecords('TableFoo'), [
-      {id: 1, fields: {SomeText: 'foo', SomeDate: null}},
+      { id: 1, fields: { SomeText: 'foo', SomeDate: null } },
     ]);
 
     // Now try a rule that lowercases the text value.
@@ -66,8 +66,8 @@ describe("AccessRulesAttrs", function() {
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
     assert.deepEqual(await api.getDocAPI(docId).getRecords('TableFoo'), [
-      {id: 1, fields: {SomeText: 'foo', SomeDate: null}},
-      {id: 2, fields: {SomeText: 'FoO', SomeDate: null}},
+      { id: 1, fields: { SomeText: 'foo', SomeDate: null } },
+      { id: 2, fields: { SomeText: 'FoO', SomeDate: null } },
     ]);
 
     // Try uppercase, with no matches.
@@ -139,7 +139,7 @@ describe("AccessRulesAttrs", function() {
     // Add another Text column. We'll change it to non-Text later, to see what happens to a
     // predicate that uses a text method.
     await api.applyUserActions(docId, [
-      ['AddVisibleColumn', 'TableFoo', 'OtherText', {type: 'Text', isFormula: true, formula: '$SomeText or $id'}],
+      ['AddVisibleColumn', 'TableFoo', 'OtherText', { type: 'Text', isFormula: true, formula: '$SomeText or $id' }],
     ]);
 
     await mainSession.loadDoc(`/doc/${docId}/p/acl`, {wait: false});
@@ -156,7 +156,7 @@ describe("AccessRulesAttrs", function() {
     await gu.findOpenMenuItem('li', /TableFoo/, 3000).click();
     ruleSet = findDefaultRuleSetWait(/TableFoo/);
     // This rule won't match anything, which is fine, we are only interested in its validity.
-    await enterRulePart(ruleSet, 1, 'newRec.OtherText.lower() == "blah"', {U: 'deny', C: 'deny'});
+    await enterRulePart(ruleSet, 1, 'newRec.OtherText.lower() == "blah"', { U: 'deny', C: 'deny' });
     await ruleSet.find('.test-rule-extra-add .test-rule-add').click();
     await enterRulePart(ruleSet, 2, null, 'Allow all');
     await driver.find('.test-rules-save').click();
@@ -164,28 +164,28 @@ describe("AccessRulesAttrs", function() {
 
     // The table looks normal (no rules restricting access).
     await mainSession.loadDoc(`/doc/${docId}`);
-    assert.deepEqual(await gu.getVisibleGridCells({cols: ['SomeText', 'OtherText'], rowNums: [2]}), ['FoO', 'FoO']);
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: ['SomeText', 'OtherText'], rowNums: [2] }), ['FoO', 'FoO']);
     // We can edit data (rule restricting edits is valid because type is Text, and doesn't match).
-    await gu.getCell({rowNum: 2, col: 'SomeText'}).click();
+    await gu.getCell({ rowNum: 2, col: 'SomeText' }).click();
     await gu.enterCell(Key.DELETE);
-    assert.deepEqual(await gu.getVisibleGridCells({cols: ['SomeText', 'OtherText'], rowNums: [2]}), ['', '2']);
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: ['SomeText', 'OtherText'], rowNums: [2] }), ['', '2']);
     await gu.checkForErrors();
     await gu.undo();
 
     // Now change the type of the column used in the rule.
-    await api.applyUserActions(docId, [['ModifyColumn', 'TableFoo', 'OtherText', {type: 'Any'}]]);
+    await api.applyUserActions(docId, [['ModifyColumn', 'TableFoo', 'OtherText', { type: 'Any' }]]);
 
     // The rule preventing edits will still work for text values, but should show error for
     // non-text values.
-    await gu.getCell({rowNum: 2, col: 'SomeText'}).click();
+    await gu.getCell({ rowNum: 2, col: 'SomeText' }).click();
     await gu.enterCell('ciao');
-    assert.deepEqual(await gu.getVisibleGridCells({cols: ['SomeText', 'OtherText'], rowNums: [2]}), ['ciao', 'ciao']);
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: ['SomeText', 'OtherText'], rowNums: [2] }), ['ciao', 'ciao']);
     await gu.checkForErrors();
     await gu.enterCell(Key.DELETE);
-    assert.deepEqual(await gu.getVisibleGridCells({cols: ['SomeText', 'OtherText'], rowNums: [2]}), ['ciao', 'ciao']);
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: ['SomeText', 'OtherText'], rowNums: [2] }), ['ciao', 'ciao']);
     assert.match((await gu.getToasts())[0], /Rule.*has an error: Not a function: 'newRec.OtherText.lower'/);
     await gu.undo();
-    assert.deepEqual(await gu.getVisibleGridCells({cols: ['SomeText', 'OtherText'], rowNums: [2]}), ['FoO', 'FoO']);
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: ['SomeText', 'OtherText'], rowNums: [2] }), ['FoO', 'FoO']);
   });
 });
 

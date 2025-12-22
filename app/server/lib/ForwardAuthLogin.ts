@@ -118,13 +118,13 @@ export function readForwardAuthConfigFromSettings(settings: AppSettings): Forwar
     defaultValue: false,
   }) || false;
 
-  return {header, logoutPath, loginPath, skipSession};
+  return { header, logoutPath, loginPath, skipSession };
 }
 
 
 async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> {
   const config = readForwardAuthConfigFromSettings(settings);
-  const {header, logoutPath, loginPath, skipSession} = config;
+  const { header, logoutPath, loginPath, skipSession } = config;
 
   return {
     async getMiddleware(gristServer: GristServer) {

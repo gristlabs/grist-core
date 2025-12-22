@@ -1,8 +1,8 @@
-import {drive} from '@googleapis/drive';
-import {Readable} from 'form-data';
-import {GaxiosError, GaxiosPromise} from 'gaxios';
-import {FetchError, Response as FetchResponse, Headers} from 'node-fetch';
-import {getGoogleAuth} from "app/server/lib/GoogleAuth";
+import { drive } from '@googleapis/drive';
+import { Readable } from 'form-data';
+import { GaxiosError, GaxiosPromise } from 'gaxios';
+import { FetchError, Response as FetchResponse, Headers } from 'node-fetch';
+import { getGoogleAuth } from "app/server/lib/GoogleAuth";
 import contentDisposition from 'content-disposition';
 
 const
@@ -29,14 +29,14 @@ export async function downloadFromGDrive(url: string, code?: string) {
       filename = `${filename}.xlsx`;
     }
     return await asFetchResponse(googleDrive.files.export(
-      {key, fileId, alt: 'media', mimeType: XLSX_MIMETYPE},
-      {responseType: 'stream'},
+      { key, fileId, alt: 'media', mimeType: XLSX_MIMETYPE },
+      { responseType: 'stream' },
     ), filename);
   }
   else {
     return await asFetchResponse(googleDrive.files.get(
-      {key, fileId, alt: 'media'},
-      {responseType: 'stream'},
+      { key, fileId, alt: 'media' },
+      { responseType: 'stream' },
     ), fileRes.data.name);
   }
 }
@@ -49,10 +49,10 @@ async function initDriveApi(code?: string) {
     if (token.tokens) {
       auth.setCredentials(token.tokens);
     }
-    return drive({version: 'v3', auth: code ? auth : undefined});
+    return drive({ version: 'v3', auth: code ? auth : undefined });
   }
   // Create drive for public access.
-  return drive({version: 'v3'});
+  return drive({ version: 'v3' });
 }
 
 async function asFetchResponse(req: GaxiosPromise<Readable>, filename?: string | null) {

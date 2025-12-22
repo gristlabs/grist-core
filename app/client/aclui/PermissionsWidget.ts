@@ -2,15 +2,15 @@
  * Implements a widget showing 3-state boxes for permissions
  * (for Allow / Deny / Pass-Through).
  */
-import {colors, testId, theme} from 'app/client/ui2018/cssVars';
-import {cssIconButton, icon} from 'app/client/ui2018/icons';
-import {menu, menuIcon, menuItem} from 'app/client/ui2018/menus';
-import {PartialPermissionSet, PartialPermissionValue} from 'app/common/ACLPermissions';
-import {ALL_PERMISSION_PROPS, emptyPermissionSet, PermissionKey} from 'app/common/ACLPermissions';
-import {capitalize} from 'app/common/gutil';
-import {dom, DomElementArg, Observable, styled} from 'grainjs';
+import { colors, testId, theme } from 'app/client/ui2018/cssVars';
+import { cssIconButton, icon } from 'app/client/ui2018/icons';
+import { menu, menuIcon, menuItem } from 'app/client/ui2018/menus';
+import { PartialPermissionSet, PartialPermissionValue } from 'app/common/ACLPermissions';
+import { ALL_PERMISSION_PROPS, emptyPermissionSet, PermissionKey } from 'app/common/ACLPermissions';
+import { capitalize } from 'app/common/gutil';
+import { dom, DomElementArg, Observable, styled } from 'grainjs';
 import isEqual from 'lodash/isEqual';
-import {makeT} from 'app/client/lib/localization';
+import { makeT } from 'app/client/lib/localization';
 
 // Canonical order of permission bits when rendered in a permissionsWidget.
 const PERMISSION_BIT_ORDER = 'RUCDS';
@@ -23,7 +23,7 @@ const t = makeT('PermissionsWidget');
 export function permissionsWidget(
   availableBits: PermissionKey[],
   pset: Observable<PartialPermissionSet>,
-  options: {disabled: boolean, sanityCheck?: (p: PartialPermissionSet) => void},
+  options: { disabled: boolean, sanityCheck?: (p: PartialPermissionSet) => void },
   ...args: DomElementArg[]
 ) {
   availableBits = sortBits(availableBits);
@@ -46,7 +46,7 @@ export function permissionsWidget(
         dom.cls('disabled', options.disabled),
         // Cycle the bit's value on click, unless disabled.
         (options.disabled ? null :
-          dom.on('click', () => setPermissions({...pset.get(), [bit]: next(pset.get()[bit])}))
+          dom.on('click', () => setPermissions({ ...pset.get(), [bit]: next(pset.get()[bit]) }))
         ),
       );
     }),

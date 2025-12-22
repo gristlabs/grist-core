@@ -1,5 +1,5 @@
-import {ThemeTokens, tokens} from 'app/common/ThemePrefs';
-import {Base} from 'app/common/themes/Base';
+import { ThemeTokens, tokens } from 'app/common/ThemePrefs';
+import { Base } from 'app/common/themes/Base';
 
 /**
  * Default Grist theme. Uses the BaseTheme and describes the light-theme colors.

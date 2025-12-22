@@ -60,7 +60,7 @@ function setupTest() {
   return [
     leftPane(
       dummyButton('Add New', dom.cls('tour-add-new')),
-      dummyButton('Export', {id: 'export'}),
+      dummyButton('Export', { id: 'export' }),
       dom('button', 'Start',
         dom.on('click', () => startOnBoarding(message, () => log('On Boarding FINISHED!')))),
       dom('button', 'Reset logs',
@@ -70,10 +70,10 @@ function setupTest() {
     Share('Share#sharing', dom.cls('tour-sharing')),
     Tools('Tools', dom.cls('tour-tools')),
     rightPane(
-      dummyButton('Options', {style: 'margin-top: 40px'}, dom.cls('tour-options')),
+      dummyButton('Options', { style: 'margin-top: 40px' }, dom.cls('tour-options')),
     ),
     dom.domComputed(logs, logsArray => (
-      dom('div', {style: 'position: absolute; margin-top: 300px;'},
+      dom('div', { style: 'position: absolute; margin-top: 300px;' },
         logsArray.map(msg => dom('div', msg, testId('logs'))),
       )
     )),

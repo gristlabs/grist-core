@@ -44,7 +44,7 @@ export interface URLOptions {
  * (e.g. login pages).
  */
 export function buildURL(path: string, options: URLOptions = {}): URL {
-  const {base = window.location.href, hash, searchParams} = options;
+  const { base = window.location.href, hash, searchParams } = options;
   const url = new URL(base);
   url.pathname = addOrgToPath('', base, true) + '/' + path.replace(/^\//, '');
   if (hash !== undefined) {
@@ -79,7 +79,7 @@ export function getLogoutUrl(): string {
 
 // Get the URL that users are redirect to after deleting their account.
 export function getAccountDeletedUrl(): string {
-  return getLoginPageUrl('account-deleted', {nextUrl: ''});
+  return getLoginPageUrl('account-deleted', { nextUrl: '' });
 }
 
 // Get URL for the signin page.
@@ -101,7 +101,7 @@ const FINAL_PATHS = ['/signed-out', '/account-deleted'];
 // "/signed-out" page or "/account-deleted", in which case it returns the home page ("/").
 // This is a good URL to use for a post-login redirect.
 function _getCurrentUrl(): string {
-  const {hash, pathname, search} = new URL(window.location.href);
+  const { hash, pathname, search } = new URL(window.location.href);
   if (FINAL_PATHS.some(final => pathname.endsWith(final))) { return '/'; }
 
   return parseFirstUrlPart('o', pathname).path + search + hash;
@@ -112,7 +112,7 @@ function getLoginPageUrl(
   page: 'login'|'logout'|'signin'|'signup'|'account-deleted',
   options: GetLoginOrSignupUrlOptions = {},
 ): string {
-  const {srcDocId, nextUrl = _getCurrentUrl()} = options;
+  const { srcDocId, nextUrl = _getCurrentUrl() } = options;
   const startUrl = buildURL(`/${page}`, {
     hash: null,
     searchParams: null,

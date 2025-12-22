@@ -61,7 +61,7 @@ export class UsersManager {
   // If optRoles is provided, only checks membership in resource groups with the given roles.
   public static getResourceUsers(res: Resource|Resource[], optRoles?: string[]): User[] {
     res = Array.isArray(res) ? res : [res];
-    const users: {[uid: string]: User} = {};
+    const users: { [uid: string]: User } = {};
     let resAcls: AclRule[] = flatten(res.map(_res => _res.aclRules as AclRule[]));
     if (optRoles) {
       resAcls = resAcls.filter(_acl => optRoles.includes(_acl.group.name));
@@ -88,7 +88,7 @@ export class UsersManager {
     return members;
   }
 
-  private _specialUserIds: {[name: string]: number} = {}; // id for anonymous user, previewer, etc
+  private _specialUserIds: { [name: string]: number } = {}; // id for anonymous user, previewer, etc
 
   private get _connection () {
     return this._homeDb.connection;
@@ -108,7 +108,7 @@ export class UsersManager {
       for (const email of emails) {
         const user = await this.getExistingUserByLogin(email, manager);
         if (user) {
-          await manager.delete(Pref, {userId: user.id});
+          await manager.delete(Pref, { userId: user.id });
         }
       }
     });
@@ -165,30 +165,30 @@ export class UsersManager {
 
   public async getUserByKey(apiKey: string): Promise<User|undefined> {
     // Include logins relation for Authorization convenience.
-    return await User.findOne({where: {apiKey}, relations: ["logins"]}) || undefined;
+    return await User.findOne({ where: { apiKey }, relations: ["logins"] }) || undefined;
   }
 
   public async getUserByRef(
     ref: string,
-    options: {manager?: EntityManager; relations?: string[]} = {},
+    options: { manager?: EntityManager; relations?: string[] } = {},
   ): Promise<User|undefined> {
     const { manager, relations = ["logins"] } = options;
-    const user = await this._runInTransaction(manager, m => m.findOne(User, {where: {ref}, relations}));
+    const user = await this._runInTransaction(manager, m => m.findOne(User, { where: { ref }, relations }));
     return user || undefined;
   }
 
   public async getUser(
     userId: number,
-    options: {includePrefs?: boolean} = {},
+    options: { includePrefs?: boolean } = {},
   ): Promise<User|undefined> {
-    const {includePrefs} = options;
+    const { includePrefs } = options;
     const relations = ["logins"];
     if (includePrefs) { relations.push("prefs"); }
-    return await User.findOne({where: {id: userId}, relations}) || undefined;
+    return await User.findOne({ where: { id: userId }, relations }) || undefined;
   }
 
   public async getFullUser(userId: number): Promise<FullUser> {
-    const user = await User.findOne({where: {id: userId}, relations: ["logins"]});
+    const user = await User.findOne({ where: { id: userId }, relations: ["logins"] });
     if (!user) { throw new ApiError("unable to find user", 400); }
     return this.makeFullUser(user);
   }
@@ -199,7 +199,7 @@ export class UsersManager {
   public async getUserAndEnsureUnsubscribeKey(userId: number): Promise<User> {
     return await this._runInTransaction(undefined, async (manager) => {
       const relations = ["logins"];
-      const user = await manager.findOne(User, {where: {id: userId}, relations});
+      const user = await manager.findOne(User, { where: { id: userId }, relations });
       if (!user) { throw new ApiError("unable to find user", 400); }
       if (!user.unsubscribeKey) {
         user.unsubscribeKey = crypto.randomBytes(32).toString('base64url');
@@ -253,7 +253,7 @@ export class UsersManager {
     await this._connection.transaction(async (manager) => {
       // First find user by the connectId from the profile
       const existing = await manager.findOne(User, {
-        where: {connectId: profile.connectId || undefined},
+        where: { connectId: profile.connectId || undefined },
         relations: ["logins"],
       });
 
@@ -305,7 +305,7 @@ export class UsersManager {
       let needsSave = false;
       const user = await manager.findOne(User, {
         relations: ['logins'],
-        where: {id: userId},
+        where: { id: userId },
       });
       if (!user) { throw new ApiError("unable to find user", 400); }
 
@@ -329,16 +329,16 @@ export class UsersManager {
       if (needsSave) {
         await manager.save(user);
       }
-      return {previous, current: user, isWelcomed};
+      return { previous, current: user, isWelcomed };
     });
   }
 
   // TODO: rather use the updateUser() method, if that makes sense?
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
     await this._runInTransaction(undefined, async (manager) => {
-      const user = await manager.findOne(User, {where: {id: userId}});
+      const user = await manager.findOne(User, { where: { id: userId } });
       if (!user) { throw new ApiError("unable to find user", 400); }
-      user.options = {...(user.options ?? {}), ...props};
+      user.options = { ...(user.options ?? {}), ...props };
       await manager.save(user);
     });
   }
@@ -413,7 +413,7 @@ export class UsersManager {
    *
    */
   public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserType = 'login') {
-    const {manager: transaction, profile, userOptions} = options;
+    const { manager: transaction, profile, userOptions } = options;
     const normalizedEmail = normalizeEmail(email);
     return await this._runInTransaction(transaction, async (manager) => {
       let needUpdate = false;
@@ -422,7 +422,7 @@ export class UsersManager {
         .from(User, 'user')
         .leftJoinAndSelect('user.logins', 'logins')
         .leftJoinAndSelect('user.personalOrg', 'personalOrg')
-        .where('email = :email', {email: normalizedEmail});
+        .where('email = :email', { email: normalizedEmail });
       let user = await userQuery.getOne();
       let login: Login;
       if (!user) {
@@ -474,13 +474,13 @@ export class UsersManager {
       }
       if (!user.options?.authSubject && userOptions?.authSubject) {
         // Link subject from password-based authentication provider if not previously linked.
-        user.options = {...(user.options ?? {}), authSubject: userOptions.authSubject};
+        user.options = { ...(user.options ?? {}), authSubject: userOptions.authSubject };
         needUpdate = true;
       }
       // We might want to store extra information returned by the identity provider
       if (options.profile?.extra) {
         // Update already existing user options
-        user.options = {...user.options, ssoExtraInfo: options.profile.extra};
+        user.options = { ...user.options, ssoExtraInfo: options.profile.extra };
         needUpdate = true;
       }
 
@@ -510,7 +510,7 @@ export class UsersManager {
         // Add a personal organization for this user.
         // We don't add a personal org for anonymous/everyone/previewer "users" as it could
         // get a bit confusing.
-        const result = await this._homeDb.addOrg(user, {name: "Personal"}, {
+        const result = await this._homeDb.addOrg(user, { name: "Personal" }, {
           setUserAsOwner: true,
           useNewPlan: true,
           product: PERSONAL_FREE_PLAN,
@@ -521,10 +521,10 @@ export class UsersManager {
         needUpdate = true;
 
         // We just created a personal org; set userOrgPrefs that should apply for new users only.
-        const userOrgPrefs: UserOrgPrefs = {showGristTour: true};
+        const userOrgPrefs: UserOrgPrefs = { showGristTour: true };
         const org = result.data;
         if (org) {
-          await this._homeDb.updateOrg({userId: user.id}, org.id, {userOrgPrefs}, manager);
+          await this._homeDb.updateOrg({ userId: user.id }, org.id, { userOrgPrefs }, manager);
         }
       }
       if (needUpdate) {
@@ -569,7 +569,7 @@ export class UsersManager {
       where: {
         createdBy: userIdToDelete,
         trunkId: Not(IsNull()),
-      }});
+      } });
     // Delete external storage for orphaned forks.
     // This might take some time, if there's a lot of them.
     for (const doc of forksToDelete) {
@@ -579,13 +579,13 @@ export class UsersManager {
       if (!this._homeDb.storageCoordinator) {
         throw new Error('no mechanism available to delete forks');
       }
-      const fullId = buildUrlId({trunkId: doc.trunkId!, forkId: doc.id, forkUserId: doc.createdBy!});
+      const fullId = buildUrlId({ trunkId: doc.trunkId!, forkId: doc.id, forkUserId: doc.createdBy! });
       await this._homeDb.storageCoordinator.hardDeleteDoc(fullId);
     }
 
     return await this._connection.transaction(async (manager) => {
-      const user = await manager.findOne(User, {where: {id: userIdToDelete},
-        relations: ["logins", "personalOrg", "prefs"]});
+      const user = await manager.findOne(User, { where: { id: userIdToDelete },
+        relations: ["logins", "personalOrg", "prefs"] });
       if (!user) { throw new ApiError('user not found', 404); }
       if (name) {
         if (user.name !== name) {
@@ -596,7 +596,7 @@ export class UsersManager {
 
       // Unset 'created_by' on any documents created by this user. It's sad to lose this info, but
       // we can't leave an invalid reference (and violate the foreign-key constraint)
-      const docs = await manager.getRepository(Document).find({where: {createdBy: userIdToDelete}});
+      const docs = await manager.getRepository(Document).find({ where: { createdBy: userIdToDelete } });
       docs.forEach((doc) => {
         if (doc.trunkId) {
           // We tried cleaning up forks before starting the
@@ -615,7 +615,7 @@ export class UsersManager {
       await manager.createQueryBuilder()
         .delete()
         .from('group_users')
-        .where('user_id = :userId', {userId: userIdToDelete})
+        .where('user_id = :userId', { userId: userIdToDelete })
         .execute();
 
       await manager.delete(User, userIdToDelete);
@@ -658,8 +658,8 @@ export class UsersManager {
       .select('logins')
       .from(Login, 'logins')
       .leftJoinAndSelect('logins.user', 'user')
-      .where('logins.email in (:...emails)', {emails: profiles.map(profile => normalizeEmail(profile.email))});
-    const completedProfiles: {[email: string]: FullUser} = {};
+      .where('logins.email in (:...emails)', { emails: profiles.map(profile => normalizeEmail(profile.email)) });
+    const completedProfiles: { [email: string]: FullUser } = {};
     for (const login of await qb.getMany()) {
       completedProfiles[login.email] = {
         id: login.user.id,
@@ -679,12 +679,12 @@ export class UsersManager {
    */
   public async overwriteUser(userId: number, props: UserProfile): Promise<User> {
     return await this._connection.transaction(async (manager) => {
-      const user = await this.getUser(userId, {includePrefs: true});
+      const user = await this.getUser(userId, { includePrefs: true });
       if (!user) { throw new ApiError("unable to find user to update", 404); }
       const login = user.logins[0];
       user.name = this._getNameOrDeduceFromEmail(props.name, props.email);
       user.picture = props.picture || '';
-      user.options = {...(user.options || {}), locale: props.locale ?? undefined};
+      user.options = { ...(user.options || {}), locale: props.locale ?? undefined };
       if (props.email) {
         login.email = normalizeEmail(props.email);
         login.displayEmail = props.email;
@@ -696,7 +696,7 @@ export class UsersManager {
   }
 
   public async getUsers() {
-    return await User.find({relations: ["logins"]});
+    return await User.find({ relations: ["logins"] });
   }
 
   /**
@@ -728,8 +728,8 @@ export class UsersManager {
       throw new ApiError('Bad request: invalid permission delta', 400);
     }
     // Lookup the email access changes and move them to the users object.
-    const notFoundUserEmailDelta: {[email: string]: roles.NonGuestRole} = {};
-    const foundUserIdDelta: {[userId: string]: roles.NonGuestRole|null} = {};
+    const notFoundUserEmailDelta: { [email: string]: roles.NonGuestRole } = {};
+    const foundUserIdDelta: { [userId: string]: roles.NonGuestRole|null } = {};
     if (hasInherit) {
       // Verify maxInheritedRole
       const role = delta.maxInheritedRole;
@@ -851,7 +851,7 @@ export class UsersManager {
    */
   public async getUsersByIds(
     userIds: number[],
-    options: {manager?: EntityManager, withLogins?: boolean} = {},
+    options: { manager?: EntityManager, withLogins?: boolean } = {},
   ): Promise<User[]> {
     if (userIds.length === 0) {
       return [];
@@ -861,7 +861,7 @@ export class UsersManager {
       .select('users')
       .from(User, 'users')
       .chain(qb => options.withLogins ? qb.leftJoinAndSelect('users.logins', 'logins') : qb)
-      .where('users.id IN (:...userIds)', {userIds});
+      .where('users.id IN (:...userIds)', { userIds });
     return await queryBuilder.getMany();
   }
 
@@ -934,7 +934,7 @@ export class UsersManager {
   }
 
   public async getApiKey(userId: number) {
-    const user = await User.findOne({where: {id: userId}});
+    const user = await User.findOne({ where: { id: userId } });
     if (user) {
       // The null value is of no interest to the user, let's show empty string instead.
       return user.apiKey || '';
@@ -944,7 +944,7 @@ export class UsersManager {
 
   public async createApiKey(userId: number, force: boolean, transaction?: EntityManager): Promise<User> {
     return await this._runInTransaction(transaction, async (manager) => {
-      const user = await manager.findOne(User, {where: {id: userId}});
+      const user = await manager.findOne(User, { where: { id: userId } });
       if (!user) {
         throw new ApiError("user not known", 404);
       }
@@ -960,7 +960,7 @@ export class UsersManager {
 
   public async deleteApiKey(userId: number, transaction?: EntityManager): Promise<User> {
     return await this._runInTransaction(transaction, async (manager) => {
-      const user = await manager.findOne(User, {where: {id: userId}});
+      const user = await manager.findOne(User, { where: { id: userId } });
       if (!user) {
         throw new Error("user not known");
       }
@@ -980,7 +980,7 @@ export class UsersManager {
       // get or create user - with retry, since there'll be a race to create the
       // user if a bunch of servers start simultaneously and the user doesn't exist
       // yet.
-      const user = await this.getUserByLoginWithRetry(profile.email, {profile});
+      const user = await this.getUserByLoginWithRetry(profile.email, { profile });
       id = this._specialUserIds[profile.email] = user.id;
     }
     if (!id) { throw new Error(`Could not find or create user ${profile.email}`); }
@@ -1002,9 +1002,9 @@ export class UsersManager {
     // in order to preserve it. This is worth doing since for the common case
     // of a user being added to a resource prior to ever logging in, their
     // displayEmail will be seeded from this value.
-    const displayEmails: {[email: string]: string} = {};
+    const displayEmails: { [email: string]: string } = {};
     // This will be our output.
-    const users: {[email: string]: roles.NonGuestRole|null} = {};
+    const users: { [email: string]: roles.NonGuestRole|null } = {};
     for (const displayEmail of Object.keys(delta.users).sort()) {
       const email = normalizeEmail(displayEmail);
       const role = delta.users[displayEmail];
@@ -1023,6 +1023,6 @@ export class UsersManager {
       .select('user')
       .from(User, 'user')
       .leftJoinAndSelect('user.logins', 'logins')
-      .where('email IN (:...emails)', {emails: normalizedEmails});
+      .where('email IN (:...emails)', { emails: normalizedEmails });
   }
 }

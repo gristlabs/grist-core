@@ -1,8 +1,8 @@
 import * as modelUtil from 'app/client/models/modelUtil';
 // This is circular import, but only for types so it's fine.
-import type {DocModel, ViewFieldRec} from 'app/client/models/DocModel';
+import type { DocModel, ViewFieldRec } from 'app/client/models/DocModel';
 import * as UserType from 'app/client/widgets/UserType';
-import {ifNotSet} from 'app/common/gutil';
+import { ifNotSet } from 'app/common/gutil';
 import * as ko from 'knockout';
 import intersection from "lodash/intersection";
 import isEqual from "lodash/isEqual";
@@ -159,7 +159,7 @@ export class ViewFieldConfig {
         // When the creator panel is saving widgetOptions, it will pass
         // our virtual widgetObject, which has nulls for mixed values.
         // If this option wasn't changed (set), we don't want to save it.
-        value = {...value};
+        value = { ...value };
         for (const key of Object.keys(value)) {
           if (value[key] === null) {
             delete value[key];
@@ -233,7 +233,7 @@ export class ViewFieldConfig {
           // When the creator panel is saving widgetOptions, it will pass
           // our virtual widgetObject, which has nulls for mixed values.
           // If this option wasn't changed (set), we don't want to save it.
-          value = {...value};
+          value = { ...value };
           for (const key of Object.keys(value)) {
             if (value[key] === null) {
               delete value[key];
@@ -295,7 +295,7 @@ export class ViewFieldConfig {
           // When the creator panel is saving widgetOptions, it will pass
           // our virtual widgetObject, which has nulls for mixed values.
           // If this option wasn't changed (set), we don't want to save it.
-          value = {...value};
+          value = { ...value };
           for (const key of Object.keys(value)) {
             if (value[key] === null) {
               delete value[key];
@@ -345,7 +345,7 @@ export class ViewFieldConfig {
       const column = this._field.column.peek();
       // In case this column is being transformed - using Apply Formula to Data, bundle the action
       // together with the transformation.
-      const actionOptions = {nestInActiveBundle: column.isTransforming.peek()};
+      const actionOptions = { nestInActiveBundle: column.isTransforming.peek() };
       this._field.widgetOptionsJson.update(options);
       return this._docModel.docData.bundleActions("Update choices configuration", () => Promise.all([
         this._field.widgetOptionsJson.save(),

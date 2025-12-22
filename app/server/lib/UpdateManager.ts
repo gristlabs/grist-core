@@ -263,7 +263,7 @@ async function listRepositoryTags(signal: AbortSignal): Promise<DockerTag[]>{
   let MAX_LOOPS = 1000;
 
   while (next && MAX_LOOPS-- > 0) {
-    const response = await fetch(next, {signal, timeout: Deps.REQUEST_TIMEOUT});
+    const response = await fetch(next, { signal, timeout: Deps.REQUEST_TIMEOUT });
     if (response.status === 429) {
       // We hit the rate limit, let's wait a bit and try again.
       await new Promise(resolve => setTimeout(resolve, Deps.RETRY_TIMEOUT));

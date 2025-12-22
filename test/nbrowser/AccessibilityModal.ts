@@ -1,6 +1,6 @@
-import {assert, By, driver, Key} from 'mocha-webdriver';
+import { assert, By, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 const ACCESSIBILITY_SHORTCUT_KEY = 'F4';
 const ACCESSIBILITY_SHORTCUT_LABEL = 'Accessibility';
@@ -99,6 +99,6 @@ describe('AccessibilityModal', function() {
     await assertA11yModalClosed();
 
     // cleanup: reset the theme configuration
-    await gu.setGristTheme({themeName: 'GristLight', syncWithOS: true});
+    await gu.setGristTheme({ themeName: 'GristLight', syncWithOS: true });
   });
 });

@@ -1,10 +1,10 @@
-import {ActionGroup} from 'app/common/ActionGroup';
-import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
-import {DocAction} from 'app/common/DocActions';
-import {FilteredDocUsageSummary} from 'app/common/DocUsage';
-import {Product} from 'app/common/Features';
-import {StringUnion} from 'app/common/StringUnion';
-import {AttachmentTransferStatus} from 'app/common/UserAPI';
+import { ActionGroup } from 'app/common/ActionGroup';
+import { VisibleUserProfile } from 'app/common/ActiveDocAPI';
+import { DocAction } from 'app/common/DocActions';
+import { FilteredDocUsageSummary } from 'app/common/DocUsage';
+import { Product } from 'app/common/Features';
+import { StringUnion } from 'app/common/StringUnion';
+import { AttachmentTransferStatus } from 'app/common/UserAPI';
 
 export const ValidEvent = StringUnion(
   'docListAction', 'docUserAction', 'docShutdown', 'docError',
@@ -178,7 +178,7 @@ export interface CommClientConnect extends CommMessageBase {
   serverVersion?: string;
 
   // Object containing server settings and features which should be used to initialize the client.
-  settings?: {[key: string]: unknown};
+  settings?: { [key: string]: unknown };
 
   dup?: boolean;  // Flag that's set to true when it's a duplicate clientConnect message.
 }

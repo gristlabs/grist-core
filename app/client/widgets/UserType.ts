@@ -27,8 +27,8 @@ export function getWidgetConfiguration(widgetName: string, type: string) {
 }
 
 export function mergeOptions(options: any, type: string) {
-  const {name, config} = getWidgetConfiguration(options.widget, type);
-  return _.defaults({widget: name}, options, config.options);
+  const { name, config } = getWidgetConfiguration(options.widget, type);
+  return _.defaults({ widget: name }, options, config.options);
 }
 
 // Contains the list of types with their storage types, possible widgets, default widgets,

@@ -1,6 +1,6 @@
-import {BaseAPI, IOptions} from 'app/common/BaseAPI';
-import {CellValue, ColValues} from 'app/common/DocActions';
-import {addCurrentOrgToPath} from 'app/common/urlUtils';
+import { BaseAPI, IOptions } from 'app/common/BaseAPI';
+import { CellValue, ColValues } from 'app/common/DocActions';
+import { addCurrentOrgToPath } from 'app/common/urlUtils';
 
 /**
  * Form and associated field metadata from a Grist view section.
@@ -132,14 +132,14 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
   }
 
   public async getForm(options: GetFormOptions): Promise<Form> {
-    const {vsId} = options;
+    const { vsId } = options;
     return this.requestJson(this._docOrShareUrl(`/forms/${vsId}`, options), {
       method: "GET",
     });
   }
 
   public async createRecord(options: CreateRecordOptions): Promise<void> {
-    const {tableId, colValues} = options;
+    const { tableId, colValues } = options;
     return this.requestJson(
       this._docOrShareUrl(`/tables/${tableId}/records`, options),
       {

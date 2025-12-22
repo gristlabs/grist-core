@@ -1,24 +1,24 @@
-import {makeT} from 'app/client/lib/localization';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {AppModel} from 'app/client/models/AppModel';
-import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {cardPopup, cssPopupBody, cssPopupButtons, cssPopupCloseButton,
-  cssPopupTitle} from 'app/client/ui2018/popups';
-import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
-import {getGristConfig} from 'app/common/urlUtils';
-import {dom, styled} from 'grainjs';
-import {commonUrls} from 'app/common/gristUrls';
+import { makeT } from 'app/client/lib/localization';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
+import { AppModel } from 'app/client/models/AppModel';
+import { bigBasicButton, bigPrimaryButtonLink } from 'app/client/ui2018/buttons';
+import { testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { cardPopup, cssPopupBody, cssPopupButtons, cssPopupCloseButton,
+  cssPopupTitle } from 'app/client/ui2018/popups';
+import { icon } from 'app/client/ui2018/icons';
+import { cssLink } from 'app/client/ui2018/links';
+import { getGristConfig } from 'app/common/urlUtils';
+import { dom, styled } from 'grainjs';
+import { commonUrls } from 'app/common/gristUrls';
 
 const t = makeT('WelcomeCoachingCall');
 
 export function shouldShowWelcomeCoachingCall(appModel: AppModel) {
-  const {deploymentType} = getGristConfig();
+  const { deploymentType } = getGristConfig();
   if (deploymentType !== 'saas') { return false; }
 
   // Defer showing coaching call until Add New tip is dismissed.
-  const {behavioralPromptsManager, dismissedWelcomePopups} = appModel;
+  const { behavioralPromptsManager, dismissedWelcomePopups } = appModel;
   if (behavioralPromptsManager.shouldShowPopup('addNew')) { return false; }
 
   const popup = dismissedWelcomePopups.get().find(p => p.id === 'coachingCall');
@@ -37,7 +37,7 @@ export function shouldShowWelcomeCoachingCall(appModel: AppModel) {
  * Shows a popup with an offer for a free coaching call.
  */
 export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppModel) {
-  const {dismissedWelcomePopups} = appModel;
+  const { dismissedWelcomePopups } = appModel;
 
   cardPopup(triggerElement, (ctl) => {
     const dismissPopup = (scheduleNextAppearance?: boolean) => {
@@ -87,7 +87,7 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
         cssBody(
           dom('div',
             t('Schedule your {{freeCoachingCall}} with a member of our team.',
-              {freeCoachingCall: cssBoldText(t('free coaching call'))},
+              { freeCoachingCall: cssBoldText(t('free coaching call')) },
             ),
           ),
           dom('div',
@@ -99,7 +99,7 @@ We can show you the Grist basics, or start working with your data right away to 
 navigate the fundamentals of Grist.",
             {
               ourWeeklyWebinars: cssLink(
-                {href: commonUrls.webinars, target: '_blank'},
+                { href: commonUrls.webinars, target: '_blank' },
                 t('Grist 101'),
               ),
             },

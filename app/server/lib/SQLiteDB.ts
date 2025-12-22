@@ -67,25 +67,25 @@
  * "migrations" array, and modifying create() to create correct new documents.
  */
 
-import {delay} from 'app/common/delay';
-import {ErrorWithCode} from 'app/common/ErrorWithCode';
-import {timeFormat} from 'app/common/timeFormat';
-import {create} from 'app/server/lib/create';
+import { delay } from 'app/common/delay';
+import { ErrorWithCode } from 'app/common/ErrorWithCode';
+import { timeFormat } from 'app/common/timeFormat';
+import { create } from 'app/server/lib/create';
 import * as docUtils from 'app/server/lib/docUtils';
 import log from 'app/server/lib/log';
 import {
   Backup, MinDB, MinDBOptions, MinRunResult, PreparedStatement, ResultRow,
-  SqliteVariant, Statement} from 'app/server/lib/SqliteCommon';
-import {NodeSqliteVariant} from 'app/server/lib/SqliteNode';
+  SqliteVariant, Statement } from 'app/server/lib/SqliteCommon';
+import { NodeSqliteVariant } from 'app/server/lib/SqliteNode';
 import assert from 'assert';
 import * as fse from 'fs-extra';
 import fromPairs from 'lodash/fromPairs';
 import isEqual from 'lodash/isEqual';
 import noop from 'lodash/noop';
 import range from 'lodash/range';
-import {AsyncLocalStorage} from 'node:async_hooks';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
-export type {PreparedStatement, ResultRow, Statement};
+export type { PreparedStatement, ResultRow, Statement };
 export type RunResult = MinRunResult;
 
 // A little bit of async local storage, for nested transactions.

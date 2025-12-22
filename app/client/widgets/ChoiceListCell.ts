@@ -3,16 +3,16 @@ import {
   FormOptionsAlignmentConfig,
   FormOptionsSortConfig,
 } from 'app/client/components/Forms/FormConfig';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {testId} from 'app/client/ui2018/cssVars';
+import { DataRowModel } from 'app/client/models/DataRowModel';
+import { testId } from 'app/client/ui2018/cssVars';
 import {
   ChoiceOptionsByName,
   ChoiceTextBox,
 } from 'app/client/widgets/ChoiceTextBox';
-import {choiceToken} from 'app/client/widgets/ChoiceToken';
-import {CellValue} from 'app/common/DocActions';
-import {decodeObject} from 'app/plugin/objtypes';
-import {dom, styled} from 'grainjs';
+import { choiceToken } from 'app/client/widgets/ChoiceToken';
+import { CellValue } from 'app/common/DocActions';
+import { decodeObject } from 'app/plugin/objtypes';
+import { dom, styled } from 'grainjs';
 
 /**
  * ChoiceListCell - A cell that renders a list of choice tokens.

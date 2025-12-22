@@ -1,13 +1,13 @@
 /**
  * TableData maintains a single table's data.
  */
-import {ActionDispatcher} from 'app/common/ActionDispatcher';
-import {BulkAddRecord, BulkColValues, CellValue, ColInfo, ColInfoWithId, ColValues, DocAction,
-  isSchemaAction, ReplaceTableData, RowRecord, TableDataAction} from 'app/common/DocActions';
-import {getDefaultForType} from 'app/common/gristTypes';
-import {arrayRemove, arraySplice, getDistinctValues} from 'app/common/gutil';
-import {SchemaTypes} from 'app/common/schema';
-import {UIRowId} from 'app/plugin/GristAPI';
+import { ActionDispatcher } from 'app/common/ActionDispatcher';
+import { BulkAddRecord, BulkColValues, CellValue, ColInfo, ColInfoWithId, ColValues, DocAction,
+  isSchemaAction, ReplaceTableData, RowRecord, TableDataAction } from 'app/common/DocActions';
+import { getDefaultForType } from 'app/common/gristTypes';
+import { arrayRemove, arraySplice, getDistinctValues } from 'app/common/gutil';
+import { SchemaTypes } from 'app/common/schema';
+import { UIRowId } from 'app/plugin/GristAPI';
 import isEqual from 'lodash/isEqual';
 import fromPairs from 'lodash/fromPairs';
 
@@ -77,7 +77,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
         this._colArray.push(colData);
       }
     }
-    this._columns.set('id', {colId: 'id', type: 'Id', defl: 0, values: this._rowIdCol});
+    this._columns.set('id', { colId: 'id', type: 'Id', defl: 0, values: this._rowIdCol });
 
     if (tableData) {
       this.loadData(tableData);
@@ -261,15 +261,15 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     colIds = colIds || this.getColIds();
     const colIdSet = new Set<string>(colIds);
     const rowIds = desiredRowIds || this.getRowIds();
-    let bulkColValues: {[colId: string]: CellValue[]};
-    const colArray = this._colArray.filter(({colId}) => colIdSet.has(colId));
+    let bulkColValues: { [colId: string]: CellValue[] };
+    const colArray = this._colArray.filter(({ colId }) => colIdSet.has(colId));
     if (desiredRowIds) {
       const len = rowIds.length;
       bulkColValues = {};
       for (const colId of colIds) { bulkColValues[colId] = Array(len); }
       for (let i = 0; i < len; i++) {
         const index = this._rowMap.get(rowIds[i]);
-        for (const {colId, values} of colArray) {
+        for (const { colId, values } of colArray) {
           const value = (index === undefined) ? null : values[index];
           bulkColValues[colId][i] = value;
         }
@@ -320,7 +320,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    */
   public getRecords(): RowRecord[] {
     const records: RowRecord[] = this._rowIdCol.map(id => ({ id }));
-    for (const {colId, values} of this._colArray) {
+    for (const { colId, values } of this._colArray) {
       for (let i = 0; i < records.length; i++) {
         records[i][colId] = values[i];
       }
@@ -328,7 +328,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     return records;
   }
 
-  public filterRowIds(properties: {[key: string]: CellValue|undefined}): number[] {
+  public filterRowIds(properties: { [key: string]: CellValue|undefined }): number[] {
     return this._filterRowIndices(properties).map(i => this._rowIdCol[i]);
   }
 
@@ -336,12 +336,12 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * Builds and returns the list of records in this table that match the given properties object.
    * Properties may include 'id' and any table columns. Returned records are not sorted.
    */
-  public filterRecords(properties: {[key: string]: CellValue|undefined}): RowRecord[] {
+  public filterRecords(properties: { [key: string]: CellValue|undefined }): RowRecord[] {
     const rowIndices: number[] = this._filterRowIndices(properties);
 
     // Convert the array of indices to an array of RowRecords.
-    const records: RowRecord[] = rowIndices.map(i => ({id: this._rowIdCol[i]}));
-    for (const {colId, values} of this._colArray) {
+    const records: RowRecord[] = rowIndices.map(i => ({ id: this._rowIdCol[i] }));
+    for (const { colId, values } of this._colArray) {
       for (let i = 0; i < records.length; i++) {
         records[i][colId] = values[rowIndices[i]];
       }
@@ -381,8 +381,8 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * Returns the first rowId matching the given filters, or 0 if no match. If there are multiple
    * matches, it is unspecified which will be returned.
    */
-  public findMatchingRowId(properties: {[key: string]: CellValue | undefined}): number {
-    const props = Object.keys(properties).map(p => ({col: this._columns.get(p)!, value: properties[p]}));
+  public findMatchingRowId(properties: { [key: string]: CellValue | undefined }): number {
+    const props = Object.keys(properties).map(p => ({ col: this._columns.get(p)!, value: properties[p] }));
     if (!props.every(p => p.col)) {
       return 0;
     }
@@ -415,7 +415,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     const index: number = this._rowIdCol.length;
     this._rowMap.set(rowId, index);
     this._rowIdCol[index] = rowId;
-    for (const {colId, defl, values} of this._colArray) {
+    for (const { colId, defl, values } of this._colArray) {
       values[index] = colValues.hasOwnProperty(colId) ? colValues[colId] : defl;
     }
   }
@@ -440,7 +440,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
       else {
         this._rowMap.set(rowIds[i], destIndex);
         this._rowIdCol[destIndex] = rowIds[i];
-        for (const {colId, defl, values} of this._colArray) {
+        for (const { colId, defl, values } of this._colArray) {
           values[destIndex] = colValues.hasOwnProperty(colId) ? colValues[colId][i] : defl;
         }
         destIndex++;
@@ -455,7 +455,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     if (index !== undefined) {
       const last: number = this._rowIdCol.length - 1;
       // We keep the column-wise arrays dense by moving the last element into the freed-up spot.
-      for (const {values} of this._columns.values()) {    // This adjusts _rowIdCol too.
+      for (const { values } of this._columns.values()) {    // This adjusts _rowIdCol too.
         values[index] = values[last];
         values.pop();
       }
@@ -544,10 +544,10 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     this._isLoaded = false;
   }
 
-  private _filterRowIndices(properties: {[key: string]: CellValue|undefined}): number[] {
+  private _filterRowIndices(properties: { [key: string]: CellValue|undefined }): number[] {
     const rowIndices: number[] = [];
     // Array of {col: arrayOfColValues, value: valueToMatch}
-    const props = Object.keys(properties).map(p => ({col: this._columns.get(p)!, value: properties[p]}));
+    const props = Object.keys(properties).map(p => ({ col: this._columns.get(p)!, value: properties[p] }));
     this._rowIdCol.forEach((id, i) => {
       // Collect the indices of the matching rows.
       if (props.every(p => isEqual(p.col.values[i], p.value))) {

@@ -25,16 +25,16 @@
 import { Disposable, dom, DomElementArg, Holder, makeTestId, Observable, styled, svg } from "grainjs";
 import { createPopper, Placement } from '@popperjs/core';
 import { FocusLayer } from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
+import { makeT } from 'app/client/lib/localization';
 import * as Mousetrap from 'app/client/lib/Mousetrap';
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import range from "lodash/range";
-import {IGristUrlState} from "app/common/gristUrls";
-import {urlState} from "app/client/models/gristUrlState";
-import {delay} from "app/common/delay";
-import {reportError} from "app/client/models/errors";
-import {cssBigIcon, cssCloseButton} from "app/client/ui/ExampleCard";
+import { IGristUrlState } from "app/common/gristUrls";
+import { urlState } from "app/client/models/gristUrlState";
+import { delay } from "app/common/delay";
+import { reportError } from "app/client/models/errors";
+import { cssBigIcon, cssCloseButton } from "app/client/ui/ExampleCard";
 
 const t = makeT('OnBoardingPopups');
 
@@ -121,7 +121,7 @@ class OnBoardingError extends Error {
 let ctlIndex = 0;
 
 class OnBoardingPopupsCtl extends Disposable {
-  private _openPopupCtl: {close: () => void}|undefined;
+  private _openPopupCtl: { close: () => void }|undefined;
   private _overlay: HTMLElement;
   private _arrowEl = buildArrow();
 
@@ -196,7 +196,7 @@ class OnBoardingPopupsCtl extends Disposable {
     const content = this._buildPopupContent();
     const entry = this._messages[ctlIndex];
     const elem = document.querySelector<HTMLElement>(entry.selector);
-    const {placement} = entry;
+    const { placement } = entry;
 
     // The element the popup refers to is not present. To the user we show nothing and simply skip
     // it to the next.
@@ -213,7 +213,7 @@ class OnBoardingPopupsCtl extends Disposable {
       content.remove();
     }
 
-    this._openPopupCtl = {close};
+    this._openPopupCtl = { close };
     document.body.appendChild(content);
     this._addFocusLayer(content);
 
@@ -278,12 +278,12 @@ class OnBoardingPopupsCtl extends Disposable {
       dom.domDispose(content);
     }
 
-    this._openPopupCtl = {close};
+    this._openPopupCtl = { close };
   }
 
   private _buildPopupContent() {
     return Container(
-      {tabindex: '-1'},
+      { tabindex: '-1' },
       this._arrowEl,
       ContentWrapper(
         cssCloseButton(cssBigIcon('CrossBig'),
@@ -317,7 +317,7 @@ class OnBoardingPopupsCtl extends Disposable {
           t('Previous'), testId('previous'),
           dom.on('click', () => this._move(-1)),
           dom.prop('disabled', isFirstStep),
-          {style: `margin-right: 8px; visibility: ${isFirstStep ? 'hidden' : 'visible'}`},
+          { style: `margin-right: 8px; visibility: ${isFirstStep ? 'hidden' : 'visible'}` },
         ),
         bigPrimaryButton(
           isLastStep ? t("Finish") : t("Next"), testId('next'),
@@ -339,7 +339,7 @@ class OnBoardingPopupsCtl extends Disposable {
 function buildArrow() {
   return ArrowContainer(
     svg('svg', { style: 'width: 13px; height: 34px;' },
-      svg('path', {'d': 'M 2 19 h 13 v 18 Z'})),
+      svg('path', { 'd': 'M 2 19 h 13 v 18 Z' })),
   );
 }
 

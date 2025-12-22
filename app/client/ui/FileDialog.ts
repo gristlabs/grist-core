@@ -59,8 +59,8 @@ export function openFilePicker(options: FileDialogOptions): Promise<File[]> {
 export function open(options: FileDialogOptions, callback: FilesCB): void {
   if (!_fileInput) {
     // The IDs are only needed for the sake of browser tests.
-    _fileForm = dom('form#file_dialog_form', {style: 'position: absolute; top: 0; display: none'},
-      _fileInput = dom('input#file_dialog_input', {type: 'file'}));
+    _fileForm = dom('form#file_dialog_form', { style: 'position: absolute; top: 0; display: none' },
+      _fileInput = dom('input#file_dialog_input', { type: 'file' }));
 
     G.document.body.appendChild(_fileForm);
 

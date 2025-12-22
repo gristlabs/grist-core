@@ -43,11 +43,11 @@ export function getProgram(): commander.Command {
     .name('grist-cli')
     .description('a toolbox of handy Grist-related utilities');
 
-  addAuditLogsCommand(program, {nested: true});
-  addDbCommand(program, {nested: true});
-  addHistoryCommand(program, {nested: true});
-  addSettingsCommand(program, {nested: true});
-  addSiteCommand(program, {nested: true});
+  addAuditLogsCommand(program, { nested: true });
+  addDbCommand(program, { nested: true });
+  addHistoryCommand(program, { nested: true });
+  addSettingsCommand(program, { nested: true });
+  addSiteCommand(program, { nested: true });
   addSqliteCommand(program);
   addVersionCommand(program);
   return program;
@@ -182,9 +182,9 @@ export function addSiteCommand(program: commander.Command,
     .description('create a site')
     .action(async (domain, email) => {
       console.log("create a site");
-      const profile = {email, name: email};
+      const profile = { email, name: email };
       const db = await getHomeDBManager();
-      const user = await db.getUserByLogin(email, {profile});
+      const user = await db.getUserByLogin(email, { profile });
       db.unwrapQueryResult(await db.addOrg(user, {
         name: domain,
         domain,
@@ -212,7 +212,7 @@ export function addDbCommand(program: commander.Command,
       const connection = reuseConnection || await getOrCreateConnection();
       const exitCode = await op(connection);
       if (exitCode !== 0) {
-        program.error('db command failed', {exitCode});
+        program.error('db command failed', { exitCode });
       }
     };
   }

@@ -1,10 +1,10 @@
-import {makeT} from 'app/client/lib/localization';
-import {documentCursor} from 'app/client/lib/popupUtils';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {isNarrowScreen, isNarrowScreenObs, theme, vars} from 'app/client/ui2018/cssVars';
-import {IconName} from 'app/client/ui2018/IconList';
-import {icon} from 'app/client/ui2018/icons';
-import {clamp} from 'app/common/gutil';
+import { makeT } from 'app/client/lib/localization';
+import { documentCursor } from 'app/client/lib/popupUtils';
+import { hoverTooltip } from 'app/client/ui/tooltips';
+import { isNarrowScreen, isNarrowScreenObs, theme, vars } from 'app/client/ui2018/cssVars';
+import { IconName } from 'app/client/ui2018/IconList';
+import { icon } from 'app/client/ui2018/icons';
+import { clamp } from 'app/common/gutil';
 import {
   Disposable,
   dom,
@@ -112,7 +112,7 @@ export class FloatingPopup extends Disposable {
           this._minimizeOrMaximize();
           return;
         }
-      }, {capture: true});
+      }, { capture: true });
     }
 
     this._handleMouseDown = this._handleMouseDown.bind(this);
@@ -219,11 +219,11 @@ export class FloatingPopup extends Disposable {
     this._startLeft = this._popupElement!.offsetLeft;
   }
 
-  private _handleTouchMove({touches}: TouchEvent) {
+  private _handleTouchMove({ touches }: TouchEvent) {
     this._handleMouseMove(touches[0]);
   }
 
-  private _handleMouseMove({clientX, clientY}: MouseEvent | Touch) {
+  private _handleMouseMove({ clientX, clientY }: MouseEvent | Touch) {
     // Last change in position (from last move).
     const deltaX = clientX - this._startX;
     const deltaY = clientY - this._startY;
@@ -316,7 +316,7 @@ export class FloatingPopup extends Disposable {
     this._popupElement!.style.height = `${newHeight}px`;
 
     const topGapPx = getPopupTopBottomGapPx();
-    let {left: newLeft, top: newTop} = this._position.get() ?? this._getDefaultPosition();
+    let { left: newLeft, top: newTop } = this._position.get() ?? this._getDefaultPosition();
     if (newLeft - POPUP_GAP_PX < 0) { newLeft = POPUP_GAP_PX; }
     if (newTop - topGapPx < 0) { newTop = topGapPx; }
     if (newLeft + POPUP_GAP_PX > document.body.offsetWidth - this._popupElement!.offsetWidth) {
@@ -338,7 +338,7 @@ export class FloatingPopup extends Disposable {
 
   private _buildPopup() {
     const popup = cssPopupWrap(
-      {tabIndex: '-1'},
+      { tabIndex: '-1' },
       dom.style('min-height', use => use(this._isMinimized) ? 'unset' : `${this._minHeight}px`),
       cssPopup(
         cssPopupHeader(
@@ -443,7 +443,7 @@ export class FloatingPopup extends Disposable {
 
   private _handleResize(
     _event: Event,
-    {position, originalPosition, size, originalSize}: JQueryUI,
+    { position, originalPosition, size, originalSize }: JQueryUI,
   ) {
     // Constrain resizing to the portion of the viewport that the popup is
     // allowed to be positioned.

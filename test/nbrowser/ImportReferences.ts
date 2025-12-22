@@ -1,10 +1,10 @@
 /**
  * Parsing strings as references when importing into an existing table
  */
-import {assert, driver, Key, WebElement} from 'mocha-webdriver';
+import { assert, driver, Key, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {openSource as openSourceMenu, waitForColumnMapping} from 'test/nbrowser/importerTestUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { openSource as openSourceMenu, waitForColumnMapping } from 'test/nbrowser/importerTestUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('ImportReferences', function() {
   this.timeout(30000);
@@ -33,7 +33,7 @@ describe('ImportReferences', function() {
 
     // Verify data was imported to Names correctly.
     assert.deepEqual(
-      await gu.getVisibleGridCells({rowNums: [1, 2, 3, 4, 5], cols: [0, 1, 2]}),
+      await gu.getVisibleGridCells({ rowNums: [1, 2, 3, 4, 5], cols: [0, 1, 2] }),
       [
         // Previously existing data in the fixture document
         'Alice',   '',      '',
@@ -88,7 +88,7 @@ describe('ImportReferences', function() {
 
     // Verify data was imported to Tasks correctly.
     assert.deepEqual(
-      await gu.getVisibleGridCells({section: 'TASKS', cols: [0, 1, 2, 3, 4], rowNums: [4, 5, 6, 7, 8, 9], mapper}), [
+      await gu.getVisibleGridCells({ section: 'TASKS', cols: [0, 1, 2, 3, 4], rowNums: [4, 5, 6, 7, 8, 9], mapper }), [
       // Label, PName,   PIndex,   PDate,          PRowID
       // Previous data in the fixture, in row 4
         'Zoo',  'Clean',   '2,000',  '27 Mar 2023',  'Projects[3]',
@@ -180,7 +180,7 @@ describe('ImportReferences', function() {
 
     // Verify data was imported to Tasks correctly.
     assert.deepEqual(
-      await gu.getVisibleGridCells({section: 'TASKS', cols: [0, 1, 2, 3, 4], rowNums: [4, 5, 6, 7, 8, 9], mapper}), [
+      await gu.getVisibleGridCells({ section: 'TASKS', cols: [0, 1, 2, 3, 4], rowNums: [4, 5, 6, 7, 8, 9], mapper }), [
       // Label, PName,   PIndex,   PDate,          PRowID
       // Previous data in the fixture, in row 4
         'Zoo',  'Clean',   '2,000',  '27 Mar 2023',  'Projects[3]',

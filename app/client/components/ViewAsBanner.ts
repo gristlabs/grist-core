@@ -43,7 +43,7 @@ export class ViewAsBanner extends Disposable {
   }
 
   private _buildContent(userOverride: UserOverride) {
-    const {user, access} = userOverride;
+    const { user, access } = userOverride;
     const sharedUser = user && user.id > 0;
     return cssContent(
       cssMessageText(
@@ -52,15 +52,15 @@ export class ViewAsBanner extends Disposable {
           : t("You're seeing what this user would see if given access"),
       ),
       cssSelectBtn(
-        {tabIndex: '0'},
+        { tabIndex: '0' },
         cssBtnText(
           user ? cssMember(
             user.name || user.email,
-            cssRole('(', userT(getUserRoleText({...user, access})), ')', dom.show(Boolean(access))),
+            cssRole('(', userT(getUserRoleText({ ...user, access })), ')', dom.show(Boolean(access))),
           ) : t('UnknownUser'),
         ),
         dom(
-          'div', {style: 'flex: none;'},
+          'div', { style: 'flex: none;' },
           cssInlineCollapseIcon('Collapse'),
         ),
         elem => this._usersPopup.attachPopup(elem, {}),

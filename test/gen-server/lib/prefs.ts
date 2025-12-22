@@ -1,6 +1,6 @@
-import {UserAPI, UserAPIImpl} from 'app/common/UserAPI';
-import {assert} from 'chai';
-import {TestServer} from 'test/gen-server/apiUtils';
+import { UserAPI, UserAPIImpl } from 'app/common/UserAPI';
+import { assert } from 'chai';
+import { TestServer } from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
 
 describe('prefs', function() {
@@ -15,9 +15,9 @@ describe('prefs', function() {
     home = new TestServer(this);
     await home.start(['home', 'docs']);
     const api = await home.createHomeApi('chimpy', 'docs', true);
-    await api.newOrg({name: 'testy', domain: 'testy'});
+    await api.newOrg({ name: 'testy', domain: 'testy' });
     owner = await home.createHomeApi('chimpy', 'testy', true);
-    const ws = await owner.newWorkspace({name: 'ws'}, 'current');
+    const ws = await owner.newWorkspace({ name: 'ws' }, 'current');
     await owner.updateWorkspacePermissions(ws, { users: { 'charon@getgrist.com': 'viewers' } });
     guest = await home.createHomeApi('charon', 'testy', true);
     stranger = await home.createHomeApi('support', 'testy', true, false);
@@ -31,13 +31,13 @@ describe('prefs', function() {
 
   it('can be set as combo orgUserPrefs when owner or guest', async function() {
     await owner.updateOrg('current', {
-      userOrgPrefs: {placeholder: 'for owner'},
+      userOrgPrefs: { placeholder: 'for owner' },
     });
     await guest.updateOrg('current', {
-      userOrgPrefs: {placeholder: 'for guest'},
+      userOrgPrefs: { placeholder: 'for guest' },
     });
     await assert.isRejected(stranger.updateOrg('current', {
-      userOrgPrefs: {placeholder: 'for stranger'},
+      userOrgPrefs: { placeholder: 'for stranger' },
     }), /access denied/);
     assert.equal((await owner.getOrg('current')).userOrgPrefs?.placeholder, 'for owner');
     assert.equal((await guest.getOrg('current')).userOrgPrefs?.placeholder, 'for guest');
@@ -46,13 +46,13 @@ describe('prefs', function() {
 
   it('can be updated as combo orgUserPrefs when owner or guest', async function() {
     await owner.updateOrg('current', {
-      userOrgPrefs: {placeholder: 'for owner2'},
+      userOrgPrefs: { placeholder: 'for owner2' },
     });
     await guest.updateOrg('current', {
-      userOrgPrefs: {placeholder: 'for guest2'},
+      userOrgPrefs: { placeholder: 'for guest2' },
     });
     await assert.isRejected(stranger.updateOrg('current', {
-      userOrgPrefs: {placeholder: 'for stranger2'},
+      userOrgPrefs: { placeholder: 'for stranger2' },
     }), /access denied/);
     assert.equal((await owner.getOrg('current')).userOrgPrefs?.placeholder, 'for owner2');
     assert.equal((await guest.getOrg('current')).userOrgPrefs?.placeholder, 'for guest2');
@@ -61,13 +61,13 @@ describe('prefs', function() {
 
   it('can be set as orgPrefs when owner', async function() {
     await owner.updateOrg('current', {
-      orgPrefs: {placeholder: 'general'},
+      orgPrefs: { placeholder: 'general' },
     });
     await assert.isRejected(guest.updateOrg('current', {
-      orgPrefs: {placeholder: 'general!'},
+      orgPrefs: { placeholder: 'general!' },
     }), /access denied/);
     await assert.isRejected(stranger.updateOrg('current', {
-      orgPrefs: {placeholder: 'general!'},
+      orgPrefs: { placeholder: 'general!' },
     }), /access denied/);
     assert.equal((await owner.getOrg('current')).orgPrefs?.placeholder, 'general');
     assert.equal((await guest.getOrg('current')).orgPrefs?.placeholder, 'general');
@@ -76,13 +76,13 @@ describe('prefs', function() {
 
   it('can be updated as orgPrefs when owner', async function() {
     await owner.updateOrg('current', {
-      orgPrefs: {placeholder: 'general2'},
+      orgPrefs: { placeholder: 'general2' },
     });
     await assert.isRejected(guest.updateOrg('current', {
-      orgPrefs: {placeholder: 'general2!'},
+      orgPrefs: { placeholder: 'general2!' },
     }), /access denied/);
     await assert.isRejected(stranger.updateOrg('current', {
-      orgPrefs: {placeholder: 'general2!'},
+      orgPrefs: { placeholder: 'general2!' },
     }), /access denied/);
     assert.equal((await owner.getOrg('current')).orgPrefs?.placeholder, 'general2');
     assert.equal((await guest.getOrg('current')).orgPrefs?.placeholder, 'general2');
@@ -91,13 +91,13 @@ describe('prefs', function() {
 
   it('can set as userPrefs when owner or guest', async function() {
     await owner.updateOrg('current', {
-      userPrefs: {placeholder: 'userPrefs for owner'},
+      userPrefs: { placeholder: 'userPrefs for owner' },
     });
     await guest.updateOrg('current', {
-      userPrefs: {placeholder: 'userPrefs for guest'},
+      userPrefs: { placeholder: 'userPrefs for guest' },
     });
     await assert.isRejected(stranger.updateOrg('current', {
-      userPrefs: {placeholder: 'for stranger'},
+      userPrefs: { placeholder: 'for stranger' },
     }), /access denied/);
     assert.equal((await owner.getOrg('current')).userPrefs?.placeholder, 'userPrefs for owner');
     assert.equal((await guest.getOrg('current')).userPrefs?.placeholder, 'userPrefs for guest');

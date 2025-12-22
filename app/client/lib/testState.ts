@@ -1,5 +1,5 @@
-import {getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {TestState} from 'app/common/TestState';
+import { getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import { TestState } from 'app/common/TestState';
 
 const G = getBrowserGlobals('window');
 

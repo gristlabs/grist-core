@@ -1,5 +1,5 @@
-import {nativeValues} from 'app/gen-server/lib/values';
-import {MigrationInterface, QueryRunner, Table, TableForeignKey} from "typeorm";
+import { nativeValues } from 'app/gen-server/lib/values';
+import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm";
 
 export class DocPref1746246433628 implements MigrationInterface {
 

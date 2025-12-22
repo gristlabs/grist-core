@@ -1,7 +1,7 @@
-import {FormLayoutNode, FormLayoutNodeType} from 'app/client/components/FormRenderer';
+import { FormLayoutNode, FormLayoutNodeType } from 'app/client/components/FormRenderer';
 import * as elements from 'app/client/components/Forms/elements';
-import {FormView} from 'app/client/components/Forms/FormView';
-import {MaybePromise} from 'app/plugin/gutil';
+import { FormView } from 'app/client/components/Forms/FormView';
+import { MaybePromise } from 'app/plugin/gutil';
 import {
   bundleChanges,
   Computed,

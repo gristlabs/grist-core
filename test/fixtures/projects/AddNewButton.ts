@@ -1,7 +1,7 @@
-import {addNewButton} from 'app/client/ui/AddNewButton';
-import {resizeFlexVHandle} from 'app/client/ui/resizeHandle';
-import {dom, makeTestId, observable, styled} from "grainjs";
-import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
+import { addNewButton } from 'app/client/ui/AddNewButton';
+import { resizeFlexVHandle } from 'app/client/ui/resizeHandle';
+import { dom, makeTestId, observable, styled } from "grainjs";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 const testId = makeTestId('test-add-');
 
@@ -10,23 +10,23 @@ function setupTest() {
   return [
     testBox(
       cssFlex(
-        {style: 'width: 480px'},
-        cssButtonBox({style: 'width: 160px;'}, addNewButton({isOpen: true})),
-        resizeFlexVHandle({target: 'left', onSave: () => null}, testId('left-resizer')),
-        cssButtonBox({style: 'flex: 1 1 0px;'}, addNewButton({isOpen: true})),
+        { style: 'width: 480px' },
+        cssButtonBox({ style: 'width: 160px;' }, addNewButton({ isOpen: true })),
+        resizeFlexVHandle({ target: 'left', onSave: () => null }, testId('left-resizer')),
+        cssButtonBox({ style: 'flex: 1 1 0px;' }, addNewButton({ isOpen: true })),
       ),
       cssFlex(
-        dom('div', {style: 'margin: auto 16px'},
-          dom('input', {type: 'checkbox'},
+        dom('div', { style: 'margin: auto 16px' },
+          dom('input', { type: 'checkbox' },
             testId('expand'),
             dom.prop('checked', isOpen),
             dom.on('change', (ev, elem) => isOpen.set(elem.checked)),
           ),
           'Expand this button',
         ),
-        dom('div', {style: 'flex: none'},
+        dom('div', { style: 'flex: none' },
           dom.style('width', use => use(isOpen) ? '240px' : '48px'),
-          addNewButton({isOpen})),
+          addNewButton({ isOpen })),
       ),
     ),
   ];

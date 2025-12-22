@@ -61,7 +61,7 @@ describe("GroupsManager", function () {
 
   const ensureTestGroupName = (groupName: string) => { assert.match(groupName, /^test-/); };
 
-  async function createDummyGroup(groupName: string, extraProps: Partial<GroupWithMembersDescriptor> & {type: string}) {
+  async function createDummyGroup(groupName: string, extraProps: Partial<GroupWithMembersDescriptor> & { type: string }) {
     ensureTestGroupName(groupName);
     const chimpy = (await db.getExistingUserByLogin('chimpy@getgrist.com'))!;
     const group = await db.createGroup({
@@ -75,11 +75,11 @@ describe("GroupsManager", function () {
   async function createDummyTeamGroup(
     groupName: string, extraProps: Partial<GroupWithMembersDescriptor> = {},
   ) {
-    return await createDummyGroup(groupName, {...extraProps, type: Group.TEAM_TYPE});
+    return await createDummyGroup(groupName, { ...extraProps, type: Group.TEAM_TYPE });
   }
 
   async function createDummyRole(groupName: string, extraProps: Partial<GroupWithMembersDescriptor> = {}) {
-    return await createDummyGroup(groupName, {...extraProps, type: Group.ROLE_TYPE});
+    return await createDummyGroup(groupName, { ...extraProps, type: Group.ROLE_TYPE });
   }
 
   async function createDummyGroupAndInnerGroup(upperGroupName: string, opts?: {
@@ -87,7 +87,7 @@ describe("GroupsManager", function () {
     innerGroupProps?: Partial<GroupWithMembersDescriptor>
   }) {
     ensureTestGroupName(upperGroupName);
-    const { upperGroupProps = {}, innerGroupProps = {}} = opts ?? {};
+    const { upperGroupProps = {}, innerGroupProps = {} } = opts ?? {};
     const kiwi = (await db.getExistingUserByLogin('kiwi@getgrist.com'))!;
     const innerGroupName = makeInnerGroupName(upperGroupName);
 
@@ -103,7 +103,7 @@ describe("GroupsManager", function () {
       ...upperGroupProps,
     });
 
-    return {chimpy, kiwi, innerGroup, group};
+    return { chimpy, kiwi, innerGroup, group };
   }
 
   describe('createGroup()', function () {
@@ -178,13 +178,13 @@ describe("GroupsManager", function () {
     it(`should fail when setting memberGroups to a ${Group.TEAM_TYPE} group`, async function () {
       const groupName = 'test-overwrite';
       const promise = createDummyGroupAndInnerGroup(groupName, {
-        upperGroupProps: {type: Group.TEAM_TYPE},
-        innerGroupProps: {type: Group.TEAM_TYPE},
+        upperGroupProps: { type: Group.TEAM_TYPE },
+        innerGroupProps: { type: Group.TEAM_TYPE },
       });
       await assert.isRejected(promise, /cannot contain groups/);
       const promise2 = createDummyGroupAndInnerGroup(groupName, {
-        upperGroupProps: {type: Group.TEAM_TYPE},
-        innerGroupProps: {type: Group.ROLE_TYPE},
+        upperGroupProps: { type: Group.TEAM_TYPE },
+        innerGroupProps: { type: Group.ROLE_TYPE },
       });
       await assert.isRejected(promise2, /cannot contain groups/);
     });
@@ -268,7 +268,7 @@ describe("GroupsManager", function () {
       const groupName = 'test-overwrite';
       const newInnerGroupName = 'test-overwrite-inner-new';
       const { group } = await createDummyGroupAndInnerGroup(groupName, {
-        innerGroupProps: {type: Group.ROLE_TYPE},
+        innerGroupProps: { type: Group.ROLE_TYPE },
       });
       const { group: newInnerGroup, kiwi } = await createDummyGroupAndInnerGroup(newInnerGroupName);
       await db.overwriteRoleGroup(group.id, {

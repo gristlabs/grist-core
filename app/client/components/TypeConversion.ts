@@ -4,18 +4,18 @@
  */
 // tslint:disable:no-console
 
-import {isString} from 'app/client/lib/sessionObs';
-import {DocModel} from 'app/client/models/DocModel';
-import {ColumnRec} from 'app/client/models/entities/ColumnRec';
-import {csvDecodeRow} from 'app/common/csvFormat';
+import { isString } from 'app/client/lib/sessionObs';
+import { DocModel } from 'app/client/models/DocModel';
+import { ColumnRec } from 'app/client/models/entities/ColumnRec';
+import { csvDecodeRow } from 'app/common/csvFormat';
 import * as gristTypes from 'app/common/gristTypes';
-import {isFullReferencingType} from 'app/common/gristTypes';
+import { isFullReferencingType } from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
-import {isNonNullish} from 'app/common/gutil';
+import { isNonNullish } from 'app/common/gutil';
 import NumberParse from 'app/common/NumberParse';
-import {dateTimeWidgetOptions, guessDateFormat, timeFormatOptions} from 'app/common/parseDate';
-import {TableData} from 'app/common/TableData';
-import {decodeObject} from 'app/plugin/objtypes';
+import { dateTimeWidgetOptions, guessDateFormat, timeFormatOptions } from 'app/common/parseDate';
+import { TableData } from 'app/common/TableData';
+import { decodeObject } from 'app/plugin/objtypes';
 
 interface PrepColInfo {
   type: string;
@@ -112,14 +112,14 @@ export async function prepTransformColInfo(options: {
   toTypeMaybeFull: string;
   convertedRef?: string
 }): Promise<PrepColInfo> {
-  const {docModel, origCol, origDisplayCol, toTypeMaybeFull, convertedRef} = options;
+  const { docModel, origCol, origDisplayCol, toTypeMaybeFull, convertedRef } = options;
   const toType = gristTypes.extractTypeFromColType(toTypeMaybeFull);
   const tableData: TableData = docModel.docData.getTable(origCol.table().tableId())!;
 
   const visibleCol = origCol.visibleColModel();
   // Column used to derive previous widget options and sample values for guessing
   const sourceCol = visibleCol.getRowId() !== 0 ? visibleCol : origCol;
-  let widgetOptions = {...(sourceCol.widgetOptionsJson() || {})};
+  let widgetOptions = { ...(sourceCol.widgetOptionsJson() || {}) };
 
   if (isReferenceCol(origCol)) {
     // While reference columns copy most options from their visible column, conditional style rules are kept
@@ -135,7 +135,7 @@ export async function prepTransformColInfo(options: {
     // A quirk of this is that the default (non-conditional) cell style can still be copied from the visible column,
     // so a subset of the overall cell styling can change.
     delete widgetOptions.rulesOptions;
-    const {rulesOptions} = origCol.widgetOptionsJson() || {};
+    const { rulesOptions } = origCol.widgetOptionsJson() || {};
     if (rulesOptions) {
       widgetOptions.rulesOptions = rulesOptions;
     }
@@ -190,7 +190,7 @@ export async function prepTransformColInfo(options: {
       break;
     }
     default:
-      widgetOptions = guessWidgetOptionsSync({docModel, origCol, toTypeMaybeFull, widgetOptions});
+      widgetOptions = guessWidgetOptionsSync({ docModel, origCol, toTypeMaybeFull, widgetOptions });
   }
 
   if (Object.keys(widgetOptions).length) {
@@ -209,9 +209,9 @@ export function guessWidgetOptionsSync(options: {
   toTypeMaybeFull: string;
   widgetOptions?: any;
 }): object {
-  const {docModel, origCol, toTypeMaybeFull} = options;
+  const { docModel, origCol, toTypeMaybeFull } = options;
   const toType = gristTypes.extractTypeFromColType(toTypeMaybeFull);
-  let widgetOptions = {...(options.widgetOptions ?? {})};
+  let widgetOptions = { ...(options.widgetOptions ?? {}) };
   const tableData: TableData = docModel.docData.getTable(origCol.table().tableId())!;
   const visibleCol = origCol.visibleColModel();
   const sourceCol = visibleCol.getRowId() !== 0 ? visibleCol : origCol;
@@ -223,13 +223,13 @@ export function guessWidgetOptionsSync(options: {
       break;
     case 'Date':
     case 'DateTime': {
-      let {dateFormat} = widgetOptions;
+      let { dateFormat } = widgetOptions;
       if (!dateFormat) {
         // Guess date and time format if there aren't any already
         const colValues = tableData.getColValues(sourceCol.colId()) || [];
         const strValues = colValues.map(v => isNonNullish(v) ? String(v) : null);
         dateFormat = guessDateFormat(strValues);
-        widgetOptions = {...widgetOptions, ...(dateTimeWidgetOptions(dateFormat, true))};
+        widgetOptions = { ...widgetOptions, ...(dateTimeWidgetOptions(dateFormat, true)) };
       }
       if (toType === 'DateTime' && !widgetOptions.timeFormat) {
         // Ensure DateTime columns have a time format. This is needed when converting from a Date column.
@@ -243,7 +243,7 @@ export function guessWidgetOptionsSync(options: {
       if (!["Numeric", "Int"].includes(sourceCol.type())) {
         const numberParse = NumberParse.fromSettings(docModel.docData.docSettings());
         const colValues = tableData.getColValues(sourceCol.colId()) || [];
-        widgetOptions = {...widgetOptions, ...numberParse.guessOptions(colValues.filter(isString))};
+        widgetOptions = { ...widgetOptions, ...numberParse.guessOptions(colValues.filter(isString)) };
       }
       break;
     }
@@ -257,7 +257,7 @@ export function guessWidgetOptionsSync(options: {
           const choices = Array.from(columnData).filter(isNonNullish)
             .map(v => String(v).trim())
             .filter(Boolean);
-          widgetOptions = {...widgetOptions, choices};
+          widgetOptions = { ...widgetOptions, choices };
         }
       }
       break;
@@ -279,7 +279,7 @@ export function guessWidgetOptionsSync(options: {
             if (choices.size > 100) { break; }    // Don't suggest excessively many choices.
           }
         }
-        widgetOptions = {...widgetOptions, choices: Array.from(choices)};
+        widgetOptions = { ...widgetOptions, choices: Array.from(choices) };
       }
       break;
     }

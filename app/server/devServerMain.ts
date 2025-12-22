@@ -18,14 +18,14 @@
  *
  */
 
-import {updateDb} from 'app/server/lib/dbUtils';
-import {FlexServer} from 'app/server/lib/FlexServer';
+import { updateDb } from 'app/server/lib/dbUtils';
+import { FlexServer } from 'app/server/lib/FlexServer';
 import log from 'app/server/lib/log';
-import {MergedServer} from 'app/server/MergedServer';
-import {promisifyAll} from 'bluebird';
+import { MergedServer } from 'app/server/MergedServer';
+import { promisifyAll } from 'bluebird';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import {createClient, RedisClient} from 'redis';
+import { createClient, RedisClient } from 'redis';
 
 promisifyAll(RedisClient.prototype);
 
@@ -59,7 +59,7 @@ export async function main() {
   // If TEST_CLEAN_DATABASE is set, we reset the database before starting.
   if (process.env.TEST_CLEAN_DATABASE) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const {createInitialDb} = require('test/gen-server/seed');
+    const { createInitialDb } = require('test/gen-server/seed');
     await createInitialDb();
     if (process.env.REDIS_URL) {
       await createClient(process.env.REDIS_URL).flushdbAsync();

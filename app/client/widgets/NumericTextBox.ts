@@ -1,35 +1,35 @@
 /**
  * See app/common/NumberFormat for description of options we support.
  */
-import {FormFieldRulesConfig} from 'app/client/components/Forms/FormConfig';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {fromKoSave} from 'app/client/lib/fromKoSave';
-import {makeT} from 'app/client/lib/localization';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {reportError} from 'app/client/models/errors';
-import {fieldWithDefault} from 'app/client/models/modelUtil';
-import {FormNumberFormat} from 'app/client/ui/FormAPI';
-import {cssLabel, cssNumericSpinner, cssRow} from 'app/client/ui/RightPanelStyles';
-import {buttonSelect, cssButtonSelect, ISelectorOption, makeButtonSelect} from 'app/client/ui2018/buttonSelect';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
-import {NTextBox} from 'app/client/widgets/NTextBox';
-import {numberOrDefault} from 'app/common/gutil';
-import {buildNumberFormat, NumberFormatOptions, NumMode, NumSign} from 'app/common/NumberFormat';
-import {Computed, dom, DomContents, fromKo, MultiHolder, styled} from 'grainjs';
+import { FormFieldRulesConfig } from 'app/client/components/Forms/FormConfig';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { fromKoSave } from 'app/client/lib/fromKoSave';
+import { makeT } from 'app/client/lib/localization';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { reportError } from 'app/client/models/errors';
+import { fieldWithDefault } from 'app/client/models/modelUtil';
+import { FormNumberFormat } from 'app/client/ui/FormAPI';
+import { cssLabel, cssNumericSpinner, cssRow } from 'app/client/ui/RightPanelStyles';
+import { buttonSelect, cssButtonSelect, ISelectorOption, makeButtonSelect } from 'app/client/ui2018/buttonSelect';
+import { testId, theme } from 'app/client/ui2018/cssVars';
+import { buildCurrencyPicker } from 'app/client/widgets/CurrencyPicker';
+import { NTextBox } from 'app/client/widgets/NTextBox';
+import { numberOrDefault } from 'app/common/gutil';
+import { buildNumberFormat, NumberFormatOptions, NumMode, NumSign } from 'app/common/NumberFormat';
+import { Computed, dom, DomContents, fromKo, MultiHolder, styled } from 'grainjs';
 import * as LocaleCurrency from 'locale-currency';
 
 const t = makeT('NumericTextBox');
 
 const modeOptions: Array<ISelectorOption<NumMode>> = [
-  {value: 'currency', label: '$'},
-  {value: 'decimal', label: ','},
-  {value: 'percent', label: '%'},
-  {value: 'scientific', label: 'Exp'},
+  { value: 'currency', label: '$' },
+  { value: 'decimal', label: ',' },
+  { value: 'percent', label: '%' },
+  { value: 'scientific', label: 'Exp' },
 ];
 
 const signOptions: Array<ISelectorOption<NumSign>> = [
-  {value: 'parens', label: '(-)'},
+  { value: 'parens', label: '(-)' },
 ];
 
 /**
@@ -46,9 +46,9 @@ export class NumericTextBox extends NTextBox {
 
     // Resolved options, to show default min/max decimals, which change depending on numMode.
     const resolved = Computed.create<Intl.ResolvedNumberFormatOptions>(holder, (use) => {
-      const {numMode} = use(this.field.config.options);
+      const { numMode } = use(this.field.config.options);
       const docSettings = use(this.field.documentSettings);
-      return buildNumberFormat({numMode}, docSettings).resolvedOptions();
+      return buildNumberFormat({ numMode }, docSettings).resolvedOptions();
     });
 
     // Prepare various observables that reflect the options in the UI.
@@ -70,9 +70,9 @@ export class NumericTextBox extends NTextBox {
     // Save a value as the given property in fieldOptions observable. Set it, save, and revert
     // on save error. This is similar to what modelUtil.setSaveValue() does.
     const setSave = (prop: keyof NumberFormatOptions, value: unknown) => {
-      const orig = {...fieldOptions.peek()};
+      const orig = { ...fieldOptions.peek() };
       if (value !== orig[prop]) {
-        fieldOptions({...orig, [prop]: value, ...updateOptions(prop, value)});
+        fieldOptions({ ...orig, [prop]: value, ...updateOptions(prop, value) });
         fieldOptions.save().catch((err) => { reportError(err); fieldOptions(orig); });
       }
     };
@@ -102,7 +102,7 @@ export class NumericTextBox extends NTextBox {
         cssRow(
           dom.domComputed(docCurrency, defaultCurrency =>
             buildCurrencyPicker(holder, currency, setCurrency,
-              {defaultCurrencyLabel: t(`Default currency ({{defaultCurrency}})`, {defaultCurrency}), disabled}),
+              { defaultCurrencyLabel: t(`Default currency ({{defaultCurrency}})`, { defaultCurrency }), disabled }),
           ),
           testId("numeric-currency"),
         ),
@@ -149,8 +149,8 @@ export class NumericTextBox extends NTextBox {
         buttonSelect(
           fromKoSave(format),
           [
-            {value: 'text', label: t('Text')},
-            {value: 'spinner', label: t('Spinner')},
+            { value: 'text', label: t('Text') },
+            { value: 'spinner', label: t('Spinner') },
           ],
           testId('numeric-form-field-format'),
         ),
@@ -164,7 +164,7 @@ export class NumericTextBox extends NTextBox {
 function updateOptions(prop: keyof NumberFormatOptions, value: unknown): Partial<NumberFormatOptions> {
   // Reset the numSign to default when toggling mode to percent or scientific.
   if (prop === 'numMode' && (!value || value === 'scientific' || value === 'percent')) {
-    return {numSign: undefined};
+    return { numSign: undefined };
   }
   return {};
 }

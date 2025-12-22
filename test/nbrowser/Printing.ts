@@ -18,13 +18,13 @@
  *    simulation of `@media print`. That's what we use here. We don't get to see anything about
  *    pagination, but we can at least check whether various elements are visible for printing.
  */
-import {assert, driver} from 'mocha-webdriver';
-import {serveCustomViews, Serving} from 'test/nbrowser/customUtil';
+import { assert, driver } from 'mocha-webdriver';
+import { serveCustomViews, Serving } from 'test/nbrowser/customUtil';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 function emulateMediaPrint(print: boolean) {
-  return (driver as any).sendDevToolsCommand('Emulation.setEmulatedMedia', {media: print ? 'print' : 'screen'});
+  return (driver as any).sendDevToolsCommand('Emulation.setEmulatedMedia', { media: print ? 'print' : 'screen' });
 }
 
 async function checkPrintSection(sectionName: string, checkFunc: () => Promise<void>) {
@@ -60,7 +60,7 @@ describe('Printing', function() {
   before(async function() {
     serving = await serveCustomViews();
     mainSession = await gu.session().login();
-    docId = (await mainSession.tempDoc(cleanup, 'Countries-Print.grist', {load: false})).id;
+    docId = (await mainSession.tempDoc(cleanup, 'Countries-Print.grist', { load: false })).id;
   });
 
   after(async function() {
@@ -156,7 +156,7 @@ describe('Printing', function() {
     await gu.getPageItem('Countries').click();
     await gu.openColumnPanel('Name');
     await gu.setFieldWidgetType('Markdown');
-    await gu.getCell({rowNum: 1, col: 'Name'}).click();
+    await gu.getCell({ rowNum: 1, col: 'Name' }).click();
     await gu.enterCell('[Aruba](https://getgrist.com/#aruba)');
 
     const link = driver.findContentWait('.test-text-link', 'Aruba', 1000);

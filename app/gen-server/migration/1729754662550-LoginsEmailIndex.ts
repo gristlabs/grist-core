@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner, TableIndex} from "typeorm";
+import { MigrationInterface, QueryRunner, TableIndex } from "typeorm";
 
 export class LoginsEmailsIndex1729754662550 implements MigrationInterface {
 

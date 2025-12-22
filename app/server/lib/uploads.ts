@@ -1,31 +1,31 @@
-import {ApiError} from 'app/common/ApiError';
-import {InactivityTimer} from 'app/common/InactivityTimer';
-import {FetchUrlOptions, FileUploadResult, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
-import {getUrlFromPrefix} from 'app/common/UserAPI';
-import {getAuthorizedUserId, getTransitiveHeaders, getUserId, isSingleUserMode,
-  RequestWithLogin} from 'app/server/lib/Authorizer';
-import {expressWrap} from 'app/server/lib/expressWrap';
-import {downloadFromGDrive, isDriveUrl} from 'app/server/lib/GoogleImport';
-import {GristServer, RequestWithGrist} from 'app/server/lib/GristServer';
-import {guessExt} from 'app/server/lib/guessExt';
+import { ApiError } from 'app/common/ApiError';
+import { InactivityTimer } from 'app/common/InactivityTimer';
+import { FetchUrlOptions, FileUploadResult, UPLOAD_URL_PATH, UploadResult } from 'app/common/uploads';
+import { getUrlFromPrefix } from 'app/common/UserAPI';
+import { getAuthorizedUserId, getTransitiveHeaders, getUserId, isSingleUserMode,
+  RequestWithLogin } from 'app/server/lib/Authorizer';
+import { expressWrap } from 'app/server/lib/expressWrap';
+import { downloadFromGDrive, isDriveUrl } from 'app/server/lib/GoogleImport';
+import { GristServer, RequestWithGrist } from 'app/server/lib/GristServer';
+import { guessExt } from 'app/server/lib/guessExt';
 import log from 'app/server/lib/log';
-import {fetchUntrustedWithAgent} from 'app/server/lib/ProxyAgent';
-import {optStringParam} from 'app/server/lib/requestUtils';
-import {isPathWithin} from 'app/server/lib/serverUtils';
+import { fetchUntrustedWithAgent } from 'app/server/lib/ProxyAgent';
+import { optStringParam } from 'app/server/lib/requestUtils';
+import { isPathWithin } from 'app/server/lib/serverUtils';
 import * as shutdown from 'app/server/lib/shutdown';
-import {drainWhenSettled} from 'app/server/utils/streams';
-import {fromCallback} from 'bluebird';
+import { drainWhenSettled } from 'app/server/utils/streams';
+import { fromCallback } from 'bluebird';
 import * as contentDisposition from 'content-disposition';
-import {Application, Request, RequestHandler, Response} from 'express';
+import { Application, Request, RequestHandler, Response } from 'express';
 import * as fse from 'fs-extra';
 import pick from 'lodash/pick';
 import * as multiparty from 'multiparty';
-import {Response as FetchResponse} from 'node-fetch';
+import { Response as FetchResponse } from 'node-fetch';
 import stream from 'node:stream';
 import * as path from 'path';
 import * as tmp from 'tmp';
-import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
-import {getDocWorkerInfoOrSelfPrefix} from 'app/server/lib/DocWorkerUtils';
+import { IDocWorkerMap } from 'app/server/lib/DocWorkerMap';
+import { getDocWorkerInfoOrSelfPrefix } from 'app/server/lib/DocWorkerUtils';
 
 // After some time of inactivity, clean up the upload. We give an hour, which seems generous,
 // except that if one is toying with import options, and leaves the upload in an open browser idle
@@ -33,12 +33,12 @@ import {getDocWorkerInfoOrSelfPrefix} from 'app/server/lib/DocWorkerUtils';
 const INACTIVITY_CLEANUP_MS = 60 * 60 * 1000;     // an hour, very generously.
 
 // A hook for dependency injection.
-export const Deps = {fetch: fetchUntrustedWithAgent, INACTIVITY_CLEANUP_MS};
+export const Deps = { fetch: fetchUntrustedWithAgent, INACTIVITY_CLEANUP_MS };
 
 // An optional UploadResult, with parameters.
 export interface FormResult {
   upload?: UploadResult;
-  parameters?: {[key: string]: string};
+  parameters?: { [key: string]: string };
 }
 
 /**
@@ -73,7 +73,7 @@ export function addUploadRoute(
       }
       // Respond with a JSON error like jsonErrorHandler does for API calls,
       // to make it easier for the caller to parse it.
-      res.status(err.status || 500).json({error: err.message || 'internal error'});
+      res.status(err.status || 500).json({ error: err.message || 'internal error' });
     }
   }));
 
@@ -93,7 +93,7 @@ export function addUploadRoute(
     }
     catch(err) {
       if ((err as ApiError).status === 403) {
-        res.status(403).json({error: 'Insufficient access to document to copy it entirely'});
+        res.status(403).json({ error: 'Insufficient access to document to copy it entirely' });
         return;
       }
       throw err;
@@ -117,7 +117,7 @@ export async function getFileUploadInfo(filePath: string): Promise<FileUploadInf
  * Implementation of the express /upload route.
  */
 export async function handleUpload(req: Request, res: Response): Promise<UploadResult> {
-  const {upload} = await handleOptionalUpload(req, res);
+  const { upload } = await handleOptionalUpload(req, res);
   if (!upload) { throw new ApiError('missing payload', 400); }
   return upload;
 }
@@ -202,7 +202,7 @@ export async function parseMultipartFormRequest(
  * and any parameters.
  */
 export async function handleOptionalUpload(req: Request, res: Response): Promise<FormResult> {
-  const {tmpDir, cleanupCallback} = await createTmpDir({});
+  const { tmpDir, cleanupCallback } = await createTmpDir({});
   const mreq = req as RequestWithLogin;
   const meta = {
     org: mreq.org,
@@ -216,9 +216,9 @@ export async function handleOptionalUpload(req: Request, res: Response): Promise
   // Note that we don't limit upload sizes here, since this endpoint doesn't know what kind of
   // upload it is, and some uploads are unlimited (e.g. uploading .grist files). Limits are
   // checked in the client, and should be enforced on the server where an upload is processed.
-  const form = new multiparty.Form({uploadDir: tmpDir});
+  const form = new multiparty.Form({ uploadDir: tmpDir });
   const [formFields, formFiles] = await fromCallback((cb: any) => form.parse(req, cb),
-    {multiArgs: true});
+    { multiArgs: true });
 
   // 'upload' is the name of the form field containing file data.
   let upload: UploadResult|undefined;
@@ -238,13 +238,13 @@ export async function handleOptionalUpload(req: Request, res: Response): Promise
     const uploadId = globalUploadSet.registerUpload(uploadedFiles, tmpDir, cleanupCallback, accessId);
     const files: FileUploadResult[] = uploadedFiles.map(f => pick(f, ['origName', 'size', 'ext']));
     log.rawDebug(`Created uploadId ${uploadId} in tmp dir ${tmpDir}`, meta);
-    upload = {uploadId, files};
+    upload = { uploadId, files };
   }
-  const parameters: {[key: string]: string} = {};
+  const parameters: { [key: string]: string } = {};
   for (const key of Object.keys(formFields)) {
     parameters[key] = formFields[key][0];
   }
-  return {upload, parameters};
+  return { upload, parameters };
 }
 
 /**
@@ -287,7 +287,7 @@ export class UploadSet {
     accessId: string|null): number {
     const uploadId = this._nextId++;
     const cleanupTimer = new InactivityTimer(() => this.cleanup(uploadId), Deps.INACTIVITY_CLEANUP_MS);
-    this._uploads.set(uploadId, {uploadId, files, tmpDir, cleanupCallback, cleanupTimer, accessId});
+    this._uploads.set(uploadId, { uploadId, files, tmpDir, cleanupCallback, cleanupTimer, accessId });
     cleanupTimer.ping();
     return uploadId;
   }
@@ -380,13 +380,13 @@ export async function moveUpload(uploadInfo: UploadInfo, newDir: string): Promis
     return;
   }
   log.debug("UploadSet: moving uploadId %s to %s", uploadInfo.uploadId, newDir);
-  const {tmpDir, cleanupCallback} = await createTmpDir({dir: newDir});
+  const { tmpDir, cleanupCallback } = await createTmpDir({ dir: newDir });
   const move: boolean = Boolean(uploadInfo.tmpDir);
   const files: FileUploadInfo[] = [];
   for (const f of uploadInfo.files) {
     const absPath = path.join(tmpDir, path.basename(f.absPath));
     await (move ? fse.move(f.absPath, absPath) : fse.copy(f.absPath, absPath));
-    files.push({...f, absPath});
+    files.push({ ...f, absPath });
   }
   try {
     await uploadInfo.cleanupCallback();
@@ -395,7 +395,7 @@ export async function moveUpload(uploadInfo: UploadInfo, newDir: string): Promis
     // This is unexpected, but if the move succeeded, let's warn but not fail on cleanup error.
     log.warn(`Error cleaning upload ${uploadInfo.uploadId} after move: ${err}`);
   }
-  Object.assign(uploadInfo, {files, tmpDir, cleanupCallback});
+  Object.assign(uploadInfo, { files, tmpDir, cleanupCallback });
 }
 
 interface TmpDirResult {
@@ -408,10 +408,10 @@ interface TmpDirResult {
  * cleanup callback with an asynchronous version.
  */
 export async function createTmpDir(options: tmp.DirOptions): Promise<TmpDirResult> {
-  const fullOptions = {prefix: 'grist-upload-', unsafeCleanup: true, ...options};
+  const fullOptions = { prefix: 'grist-upload-', unsafeCleanup: true, ...options };
 
   const [tmpDir, tmpCleanup]: [string, CleanupCB] = await fromCallback(
-    (cb: any) => tmp.dir(fullOptions, cb), {multiArgs: true});
+    (cb: any) => tmp.dir(fullOptions, cb), { multiArgs: true });
 
   // The `tmp` library sometimes forcibly resolves the path,
   // doing it here makes it predictable behaviour and resistant to library behaviour changes.
@@ -429,14 +429,14 @@ export async function createTmpDir(options: tmp.DirOptions): Promise<TmpDirResul
       // OK if it fails because the dir is already removed.
     }
   }
-  return {tmpDir: realTmpDir, cleanupCallback};
+  return { tmpDir: realTmpDir, cleanupCallback };
 }
 
 /**
  * Register a new upload with resource fetched from a public url. Returns corresponding UploadInfo.
  */
 export async function fetchURL(url: string, accessId: string|null, options?: FetchUrlOptions): Promise<UploadResult> {
-  return _fetchURL(url, accessId, { fileName: path.basename(url), ...options});
+  return _fetchURL(url, accessId, { fileName: path.basename(url), ...options });
 }
 
 /**
@@ -466,11 +466,11 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
       fileName = contentDisposition.parse(disposition).parameters.filename || 'document.grist';
     }
     const mimeType = response.headers.get('content-type');
-    const {tmpDir, cleanupCallback} = await createTmpDir({});
+    const { tmpDir, cleanupCallback } = await createTmpDir({});
     // Any name will do for the single file in tmpDir, but note that fileName may not be valid.
     const destPath = path.join(tmpDir, 'upload-content');
     await new Promise<void>((resolve, reject) => {
-      const dest = fse.createWriteStream(destPath, {autoClose: true});
+      const dest = fse.createWriteStream(destPath, { autoClose: true });
       response.body.on('error', reject);
       dest.on('error', reject);
       dest.on('finish', resolve);
@@ -484,7 +484,7 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
     };
     log.debug(`done fetching url: ${url} to ${destPath}`);
     const uploadId = globalUploadSet.registerUpload([uploadedFile], tmpDir, cleanupCallback, accessId);
-    return {uploadId, files: [pick(uploadedFile, ['origName', 'size', 'ext'])]};
+    return { uploadId, files: [pick(uploadedFile, ['origName', 'size', 'ext'])] };
   }
   catch(err) {
     if (err?.code === "EPROTO" || // https vs http error
@@ -521,7 +521,7 @@ export async function fetchDoc(
 
   // Download the document, in full or as a template.
   const url = new URL(`api/docs/${docId}/download?template=${Number(template)}`, apiBaseUrl);
-  return _fetchURL(url.href, accessId, {headers});
+  return _fetchURL(url.href, accessId, { headers });
 }
 
 // Re-issue failures as exceptions.

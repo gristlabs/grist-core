@@ -1,21 +1,21 @@
-import {createGroup} from 'app/client/components/commands';
-import {buildDuplicatePageDialog} from 'app/client/components/duplicatePage';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {makeT} from 'app/client/lib/localization';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {PageRec} from 'app/client/models/DocModel';
-import {urlState} from 'app/client/models/gristUrlState';
+import { createGroup } from 'app/client/components/commands';
+import { buildDuplicatePageDialog } from 'app/client/components/duplicatePage';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { makeT } from 'app/client/lib/localization';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
+import { PageRec } from 'app/client/models/DocModel';
+import { urlState } from 'app/client/models/gristUrlState';
 import MetaTableModel from 'app/client/models/MetaTableModel';
-import {find as findInTree, fromTableData, TreeItemRecord, TreeRecord,
-  TreeTableData} from 'app/client/models/TreeModel';
-import {TreeViewComponent} from 'app/client/ui/TreeViewComponent';
-import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
-import {theme} from 'app/client/ui2018/cssVars';
-import {cssLink} from 'app/client/ui2018/links';
-import {ISaveModalOptions, saveModal} from 'app/client/ui2018/modals';
-import {buildCensoredPage, buildPageDom, PageOptions} from 'app/client/ui2018/pages';
-import {mod} from 'app/common/gutil';
-import {Computed, Disposable, dom, fromKo, makeTestId, observable, Observable, styled} from 'grainjs';
+import { find as findInTree, fromTableData, TreeItemRecord, TreeRecord,
+  TreeTableData } from 'app/client/models/TreeModel';
+import { TreeViewComponent } from 'app/client/ui/TreeViewComponent';
+import { cssRadioCheckboxOptions, radioCheckboxOption } from 'app/client/ui2018/checkbox';
+import { theme } from 'app/client/ui2018/cssVars';
+import { cssLink } from 'app/client/ui2018/links';
+import { ISaveModalOptions, saveModal } from 'app/client/ui2018/modals';
+import { buildCensoredPage, buildPageDom, PageOptions } from 'app/client/ui2018/pages';
+import { mod } from 'app/common/gutil';
+import { Computed, Disposable, dom, fromKo, makeTestId, observable, Observable, styled } from 'grainjs';
 
 const t = makeT('Pages');
 
@@ -57,8 +57,8 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
 
   // dom
   return dom('nav',
-    {'aria-label': t("Document pages")},
-    dom.create(TreeViewComponent, model, {isOpen, selected, isReadonly: activeDoc.isReadonly}),
+    { 'aria-label': t("Document pages") },
+    dom.create(TreeViewComponent, model, { isOpen, selected, isReadonly: activeDoc.isReadonly }),
   );
 }
 
@@ -74,12 +74,12 @@ function buildDomFromTable(
     return buildCensoredPage();
   }
 
-  const {isReadonly} = activeDoc;
+  const { isReadonly } = activeDoc;
   const pageRec = pagesTable.rowModels[pageId];
   const viewRec = pageRec.view.peek();
   const pageName = viewRec.name;
   const viewId = viewRec.id.peek();
-  const {docModel} = activeDoc;
+  const { docModel } = activeDoc;
 
   const options: PageOptions = {
     onRename: async (newName: string) => {
@@ -97,14 +97,14 @@ function buildDomFromTable(
     isCollapsedByDefault: pageRec.isCollapsedByDefault,
     onCollapseByDefault: value => pageRec.setAndSaveCollapsed(value),
     hasSubPages: () => item.children().get().length > 0,
-    href: urlState().setLinkUrl({docPage: viewId}),
+    href: urlState().setLinkUrl({ docPage: viewId }),
   };
 
   return buildPageDom(fromKo(pageName), options);
 }
 
 function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {
-  logTelemetryEvent('deletedPage', {full: {docIdDigest: activeDoc.docId()}});
+  logTelemetryEvent('deletedPage', { full: { docIdDigest: activeDoc.docId() } });
 
   const docData = activeDoc.docData;
   // Create a set with tables on other pages (but not on this one).
@@ -154,7 +154,7 @@ function otherPage(currentPage: TreeItemRecord, delta: number) {
   const records = currentPage.storage.records;
   const index = mod(currentPage.index + delta, records.length);
   const docPage = records[index].viewRef;
-  return urlState().pushUrl({docPage});
+  return urlState().pushUrl({ docPage });
 }
 
 function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Promise<any>) {
@@ -174,8 +174,8 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
               {
                 rawDataLink: cssLink(
                   t('raw data page'),
-                  urlState().setHref({docPage: 'data'}),
-                  {target: '_blank'},
+                  urlState().setHref({ docPage: 'data' }),
+                  { target: '_blank' },
                 ),
               },
             ),

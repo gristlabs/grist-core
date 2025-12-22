@@ -1,15 +1,15 @@
-import {makeT} from 'app/client/lib/localization';
-import {UserPresenceModel} from 'app/client/models/UserPresenceModel';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
-import {cssHideForNarrowScreen} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menu} from 'app/client/ui2018/menus';
-import {visuallyHidden} from 'app/client/ui2018/visuallyHidden';
-import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
-import {nativeCompare} from 'app/common/gutil';
-import {components, tokens} from 'app/common/ThemePrefs';
-import {getGristConfig} from 'app/common/urlUtils';
+import { makeT } from 'app/client/lib/localization';
+import { UserPresenceModel } from 'app/client/models/UserPresenceModel';
+import { hoverTooltip } from 'app/client/ui/tooltips';
+import { createUserImage, cssUserImage } from 'app/client/ui/UserImage';
+import { cssHideForNarrowScreen } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { menu } from 'app/client/ui2018/menus';
+import { visuallyHidden } from 'app/client/ui2018/visuallyHidden';
+import { VisibleUserProfile } from 'app/common/ActiveDocAPI';
+import { nativeCompare } from 'app/common/gutil';
+import { components, tokens } from 'app/common/ThemePrefs';
+import { getGristConfig } from 'app/common/urlUtils';
 
 import {
   Computed,
@@ -95,7 +95,7 @@ function createUserIndicator(
     user,
     dom.hide(isRemainingUsersMenuOpen),
     hoverTooltip(createTooltipContent(user), { key: "topBarBtnTooltip" }),
-    { 'aria-label': `${t('active user')}: ${user.name}`},
+    { 'aria-label': `${t('active user')}: ${user.name}` },
     testId('user-icon'),
   );
 }

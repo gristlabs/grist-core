@@ -1,9 +1,9 @@
-import {DocCreationInfo} from 'app/common/DocListAPI';
-import {UserAPI} from 'app/common/UserAPI';
-import {assert, driver} from 'mocha-webdriver';
+import { DocCreationInfo } from 'app/common/DocListAPI';
+import { UserAPI } from 'app/common/UserAPI';
+import { assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server} from 'test/nbrowser/testServer';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { server } from 'test/nbrowser/testServer';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('DocTour', function () {
   this.timeout(30000);
@@ -22,7 +22,7 @@ describe('DocTour', function () {
 
   after(async function() {
     // Revert changes to document access.
-    await api.updateDocPermissions(doc.id, {users: {'kiwi@getgrist.com': null, 'charon@getgrist.com': null}});
+    await api.updateDocPermissions(doc.id, { users: { 'kiwi@getgrist.com': null, 'charon@getgrist.com': null } });
   });
 
   afterEach(() => gu.checkForErrors());
@@ -52,7 +52,7 @@ describe('DocTour', function () {
         selector: '.active_cursor',
         showHasModal: false,
         title: 'Hello there!',
-        urlState: {colRef: 2, rowId: 2, sectionId: 1},
+        urlState: { colRef: 2, rowId: 2, sectionId: 1 },
       },
       {
         body: 'no title',
@@ -76,7 +76,7 @@ describe('DocTour', function () {
         selector: '.active_cursor',
         showHasModal: false,
         title: 'no body',
-        urlState: {colRef: 4, rowId: 4, sectionId: 1},
+        urlState: { colRef: 4, rowId: 4, sectionId: 1 },
       },
       {
         body: '<div>' +
@@ -114,7 +114,7 @@ describe('DocTour', function () {
     assert(await driver.find('.test-tools-doctour').isPresent());
 
     // Chimpy invites Kiwi to view this document as an editor.
-    await api.updateDocPermissions(doc.id, {users: {'kiwi@getgrist.com': 'editors'}});
+    await api.updateDocPermissions(doc.id, { users: { 'kiwi@getgrist.com': 'editors' } });
 
     // Kiwi logs in and loads the document.
     await server.simulateLogin('kiwi', 'kiwi@getgrist.com', 'nasa');
@@ -141,7 +141,7 @@ describe('DocTour', function () {
     assert.isFalse(await driver.find('.test-tools-doctour').isPresent());
 
     // Chimpy invites Charon to view this document as an editor.
-    await api.updateDocPermissions(doc.id, {users: {'charon@getgrist.com': 'editors'}});
+    await api.updateDocPermissions(doc.id, { users: { 'charon@getgrist.com': 'editors' } });
 
     // Charon logs in and loads the document.
     await server.simulateLogin("Charon", "charon@getgrist.com", "nasa");
@@ -176,14 +176,14 @@ describe('DocTour', function () {
     // Create a doc with a tour on a personal site, and share it with with everyone as editor.
     const ownerSession = gu.session().user('user1').personalSite;
     await ownerSession.login();
-    const docId = (await ownerSession.tempDoc(cleanup, 'doctour.grist', {load: false})).id;
+    const docId = (await ownerSession.tempDoc(cleanup, 'doctour.grist', { load: false })).id;
     await ownerSession.createHomeApi().updateDocPermissions(docId, {
-      users: {'everyone@getgrist.com': 'editors'},
+      users: { 'everyone@getgrist.com': 'editors' },
     });
 
     // Doc tour normally triggers for a first visit from an anon user
     const anonSession = gu.session().anon.personalSite;
-    await anonSession.login({isFirstLogin: undefined});
+    await anonSession.login({ isFirstLogin: undefined });
     await anonSession.loadDoc(`/doc/${docId}/`);
     await checkDocTourPresent();
 
@@ -211,8 +211,8 @@ describe('DocTour', function () {
 
   it.skip('should not show doctour if opening an anchor link encoded with rr', async () => {
     // Create a doc with a tour on a personal site.
-    const session = await gu.session().user('user1').personalSite.login({showTips: true});
-    const docId = (await session.tempDoc(cleanup, 'doctour.grist', {load: false})).id;
+    const session = await gu.session().user('user1').personalSite.login({ showTips: true });
+    const docId = (await session.tempDoc(cleanup, 'doctour.grist', { load: false })).id;
 
     // Load the doc with an anchor link containing an easter egg ("rr" instead of "r").
     await session.loadDoc(`/doc/${docId}/doctour/p/1#a1.s1.rr1.c2`);
@@ -238,8 +238,8 @@ describe('DocTour', function () {
 
   it('should not show doctour if opening an anchor link', async () => {
     // Create a doc with a tour on a personal site.
-    const session = await gu.session().user('user1').personalSite.login({showTips: true});
-    const docId = (await session.tempDoc(cleanup, 'doctour.grist', {load: false})).id;
+    const session = await gu.session().user('user1').personalSite.login({ showTips: true });
+    const docId = (await session.tempDoc(cleanup, 'doctour.grist', { load: false })).id;
 
     // Load the doc with an anchor link.
     await session.loadDoc(`/doc/${docId}/doctour/p/1#a1.s1.r1.c2`);

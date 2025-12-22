@@ -1,31 +1,31 @@
 import BaseView from 'app/client/components/BaseView';
-import {parsePasteForView} from 'app/client/components/BaseView2';
+import { parsePasteForView } from 'app/client/components/BaseView2';
 import * as selector from 'app/client/components/CellSelector';
-import {ElemType} from 'app/client/components/CellSelector';
-import {CutCallback} from 'app/client/components/Clipboard';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {renderAllRows} from 'app/client/components/Printing';
+import { ElemType } from 'app/client/components/CellSelector';
+import { CutCallback } from 'app/client/components/Clipboard';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { renderAllRows } from 'app/client/components/Printing';
 import RecordLayout from 'app/client/components/RecordLayout';
-import {viewCommands} from 'app/client/components/RegionFocusSwitcher';
+import { viewCommands } from 'app/client/components/RegionFocusSwitcher';
 import * as commands from 'app/client/components/commands';
 import kd from 'app/client/lib/koDom';
 import koDomScrolly from 'app/client/lib/koDomScrolly';
-import {makeT} from 'app/client/lib/localization';
-import {PasteData} from 'app/client/lib/tableUtil';
+import { makeT } from 'app/client/lib/localization';
+import { PasteData } from 'app/client/lib/tableUtil';
 import * as tableUtil from 'app/client/lib/tableUtil';
 import BaseRowModel from 'app/client/models/BaseRowModel';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
-import {CardContextMenu} from 'app/client/ui/CardContextMenu';
-import {FieldContextMenu} from 'app/client/ui/FieldContextMenu';
-import {descriptionInfoTooltip} from 'app/client/ui/tooltips';
-import {isNarrowScreen} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {indexOf} from 'app/common/gutil';
-import {UIRowId} from 'app/plugin/GristAPI';
+import { DataRowModel } from 'app/client/models/DataRowModel';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { ViewSectionRec } from 'app/client/models/entities/ViewSectionRec';
+import { CardContextMenu } from 'app/client/ui/CardContextMenu';
+import { FieldContextMenu } from 'app/client/ui/FieldContextMenu';
+import { descriptionInfoTooltip } from 'app/client/ui/tooltips';
+import { isNarrowScreen } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { indexOf } from 'app/common/gutil';
+import { UIRowId } from 'app/plugin/GristAPI';
 
-import {dom} from 'grainjs';
+import { dom } from 'grainjs';
 import ko from 'knockout';
 import _ from 'underscore';
 
@@ -122,7 +122,7 @@ export default class DetailView extends BaseView {
       // Trigger custom dom event that will bubble up. View components might not be rendered
       // inside a virtual table which don't register this global handler (as there might be
       // multiple instances of the virtual table component).
-      this.viewPane.dispatchEvent(new CustomEvent('setCursor', {detail: [rowModel, field], bubbles: true}));
+      this.viewPane.dispatchEvent(new CustomEvent('setCursor', { detail: [rowModel, field], bubbles: true }));
 
       this._twoLastFieldIdsSelected.unshift(field.id());
       this._twoLastFieldIdsSelected.pop();
@@ -183,7 +183,7 @@ export default class DetailView extends BaseView {
    *
    * See BaseView.commonCommands for more details.
    */
-  protected static detailCommands: {[key: string]: Function} & ThisType<DetailView> = {
+  protected static detailCommands: { [key: string]: Function } & ThisType<DetailView> = {
     editLayout: function() {
       if (this.scrolly()) {
         this.scrolly().scrollRowIntoView(this.cursor.rowIndex());
@@ -203,7 +203,7 @@ export default class DetailView extends BaseView {
    *
    * See BaseView.commonCommands and BaseView.commonFocusedCommands for more details.
    */
-  protected static detailFocusedCommands: {[key: string]: Function} & ThisType<DetailView> = {
+  protected static detailFocusedCommands: { [key: string]: Function } & ThisType<DetailView> = {
     cursorUp: function() { this.cursor.fieldIndex(this.cursor.fieldIndex() - 1); },
     cursorDown: function() { this.cursor.fieldIndex(this.cursor.fieldIndex() + 1); },
     pageUp: function() { this.cursor.rowIndex(this.cursor.rowIndex()! - 1); },
@@ -211,7 +211,7 @@ export default class DetailView extends BaseView {
     clearValues: function() { this._clearCardFields()?.catch(reportError); },
   };
 
-  protected static selectionCommands: {[key: string]: Function} & ThisType<DetailView> = {
+  protected static selectionCommands: { [key: string]: Function } & ThisType<DetailView> = {
     clearCopySelection: function() { this._clearCopySelection(); },
     cancel: function() { this._clearSelection(); },
   };
@@ -271,7 +271,7 @@ export default class DetailView extends BaseView {
         // If a row was added, get its rowId from the action results.
         const addRowId = (action[0] === 'BulkAddRecord' ? results[0][0] : null);
         // Restore the cursor to the right rowId, even if it jumped.
-        this.cursor.setCursorPos({rowId: cursorPos.rowId === 'new' ? addRowId : cursorPos.rowId});
+        this.cursor.setCursorPos({ rowId: cursorPos.rowId === 'new' ? addRowId : cursorPos.rowId });
         commands.allCommands.clearCopySelection.run();
       });
   }
@@ -370,7 +370,7 @@ export default class DetailView extends BaseView {
                 this.viewSection.lastScrollPos = this.scrolly().getScrollPos();
               }
             }),
-            koDomScrolly.scrolly(this.viewData, {fitToWidth: true},
+            koDomScrolly.scrolly(this.viewData, { fitToWidth: true },
               (row: DataRowModel) => this.makeRecord(row)),
 
             dom.maybe(this._isPrinting, () =>
@@ -523,7 +523,7 @@ export default class DetailView extends BaseView {
       return;
     }
 
-    this.setCursorPos({rowId: addRowIds[0]});
+    this.setCursorPos({ rowId: addRowIds[0] });
   }
 
   protected _canSingleClick(field: ViewFieldRec) {
@@ -551,7 +551,7 @@ export default class DetailView extends BaseView {
     const selection = this.getSelection();
     const isFormula = Boolean(selection.fields[0]?.column.peek().isRealFormula.peek());
     if (isFormula) {
-      this.activateEditorAtCursor({init: ''});
+      this.activateEditorAtCursor({ init: '' });
     }
     else {
       const clearAction = tableUtil.makeDeleteAction(this.getSelection());

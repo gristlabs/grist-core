@@ -2,11 +2,11 @@ import {
   FilesystemAttachmentStore,
   loadAttachmentFileIntoMemory,
 } from 'app/server/lib/AttachmentStore';
-import {IAttachmentStoreConfig} from 'app/server/lib/AttachmentStoreProvider';
-import {createTmpDir} from 'test/server/docTools';
+import { IAttachmentStoreConfig } from 'app/server/lib/AttachmentStoreProvider';
+import { createTmpDir } from 'test/server/docTools';
 
-import {assert} from 'chai';
-import {mkdtemp, pathExists} from 'fs-extra';
+import { assert } from 'chai';
+import { mkdtemp, pathExists } from 'fs-extra';
 import * as stream from 'node:stream';
 import * as path from 'path';
 

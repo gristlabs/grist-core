@@ -13,11 +13,11 @@
  * // toggle popup
  * dom('input', dom.on('click', () => ctl.toggle()));
  */
-import {kbFocusHighlighterClass} from 'app/client/components/KeyboardFocusHighlighter';
-import {attachMouseOverOnMove, findAncestorChild} from 'app/client/lib/domUtils';
-import {menuCssClass, menuItem} from 'app/client/ui2018/menus';
-import {Disposable, dom, DomArg, Observable, styled} from 'grainjs';
-import {cssMenu, cssMenuItem, cssMenuWrap, getOptionFull, IOpenController, IOption} from 'popweasel';
+import { kbFocusHighlighterClass } from 'app/client/components/KeyboardFocusHighlighter';
+import { attachMouseOverOnMove, findAncestorChild } from 'app/client/lib/domUtils';
+import { menuCssClass, menuItem } from 'app/client/ui2018/menus';
+import { Disposable, dom, DomArg, Observable, styled } from 'grainjs';
+import { cssMenu, cssMenuItem, cssMenuWrap, getOptionFull, IOpenController, IOption } from 'popweasel';
 
 export type { IOption, IOptionFull } from 'popweasel';
 export { getOptionFull } from 'popweasel';
@@ -34,7 +34,7 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
   private _menuContent: HTMLElement;
   private _selected: HTMLElement;
   private _selectedIndex: number = -1;
-  private _mouseOver: {reset(): void};
+  private _mouseOver: { reset(): void };
 
   constructor(private _ctl: IOpenController,
     private _items: Observable<Array<U>>,
@@ -52,7 +52,7 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
             style.marginRight = '0px';
           }
         },
-        {class: menuCssClass + ' grist-floating-menu ' + kbFocusHighlighterClass},
+        { class: menuCssClass + ' grist-floating-menu ' + kbFocusHighlighterClass },
         cssMenu.cls(''),
         cssMenuExt.cls(''),
         opt.headerDom?.(),
@@ -60,7 +60,7 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
           dom.forEach(this._items, (i) => {
             const item = getOptionFull(i);
             return cssOptionRow(
-              {class: menuItem.className + ' ' + cssMenuItem.className},
+              { class: menuItem.className + ' ' + cssMenuItem.className },
               dom.on('click', () => this._doAction(item.value)),
               renderItem(i),
               dom.cls('disabled', Boolean(item.disabled)),
@@ -98,7 +98,7 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
       if (prev) { prev.classList.remove(clsName); }
       if (elem) {
         elem.classList.add(clsName);
-        elem.scrollIntoView({block: 'nearest'});
+        elem.scrollIntoView({ block: 'nearest' });
       }
     }
     this._selected = elem;

@@ -1,9 +1,9 @@
-import {ACIndex, ACIndexImpl, ACItem, ACResults, highlightNone} from 'app/client/lib/ACIndex';
-import {nativeCompare} from 'app/common/gutil';
-import {assert} from 'chai';
+import { ACIndex, ACIndexImpl, ACItem, ACResults, highlightNone } from 'app/client/lib/ACIndex';
+import { nativeCompare } from 'app/common/gutil';
+import { assert } from 'chai';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import {fixturesRoot} from 'test/server/testUtils';
+import { fixturesRoot } from 'test/server/testUtils';
 
 /**
  * Set env ENABLE_TIMING_TESTS=1 to run the timing "tests". These don't assert anything but let
@@ -16,7 +16,7 @@ interface TestACItem extends ACItem {
 }
 
 function makeItem(text: string): TestACItem {
-  return {text, cleanText: text.trim().toLowerCase()};
+  return { text, cleanText: text.trim().toLowerCase() };
 }
 
 const colors: TestACItem[] = [
@@ -34,8 +34,8 @@ const messy: TestACItem[] = [
 describe('ACIndex', function() {
   it('should find items with matching words', function() {
     const items: ACItem[] = ["blue", "dark red", "reddish", "red", "orange", "yellow", "radical green"].map(
-      c => ({cleanText: c}));
-    const acIndex = new ACIndexImpl(items, {maxResults: 5});
+      c => ({ cleanText: c }));
+    const acIndex = new ACIndexImpl(items, { maxResults: 5 });
     assert.deepEqual(acIndex.search("red").items.map(item => item.cleanText),
       ["red", "reddish", "dark red", "radical green", "blue"]);
   });
@@ -45,7 +45,7 @@ describe('ACIndex', function() {
     assert.deepEqual(acResult.items, colors);
     assert.deepEqual(acResult.selectIndex, -1);
 
-    acResult = new ACIndexImpl(colors, {maxResults: 3}).search("");
+    acResult = new ACIndexImpl(colors, { maxResults: 3 }).search("");
     assert.deepEqual(acResult.items, colors.slice(0, 3));
     assert.deepEqual(acResult.selectIndex, -1);
 
@@ -158,7 +158,7 @@ describe('ACIndex', function() {
   });
 
   it('should limit results to maxResults', function() {
-    const acIndex = new ACIndexImpl(colors, {maxResults: 3});
+    const acIndex = new ACIndexImpl(colors, { maxResults: 3 });
     let acResult: ACResults<TestACItem>;
 
     acResult = acIndex.search("red");
@@ -244,7 +244,7 @@ describe('ACIndex', function() {
   });
 
   it('should return a useful highlight function', function() {
-    const acIndex = new ACIndexImpl(colors, {maxResults: 3});
+    const acIndex = new ACIndexImpl(colors, { maxResults: 3 });
     let acResult: ACResults<TestACItem>;
 
     // Here we split the items' (uncleaned) text with the returned highlightFunc. The values at
@@ -264,7 +264,7 @@ describe('ACIndex', function() {
       [["Blue"], ["Dark Red"], ["Reddish"]]);
 
     // Try some messier cases.
-    const acIndex2 = new ACIndexImpl(messy, {maxResults: 6});
+    const acIndex2 = new ACIndexImpl(messy, { maxResults: 6 });
     acResult = acIndex2.search("#r");
     assert.deepEqual(acResult.items.map(i => acResult.highlightFunc(i.text)),
       [["#", "r", "ed"], ["  ", "R", "ED  "], ["", "r", "ed"], ["", "r", "ead "],
@@ -310,7 +310,7 @@ describe('ACIndex', function() {
       // Pick a file we have with 4k+ rows. First two columns are city,country.
       // To create more items, we'll return "city N, country" combinations for N in [0, 25).
       const filePath = path.resolve(fixturesRoot, 'export-csv/many-rows.csv');
-      const data = await fse.readFile(filePath, {encoding: 'utf8'});
+      const data = await fse.readFile(filePath, { encoding: 'utf8' });
       const result: TestACItem[] = [];
       for (const line of data.split("\n")) {
         const [city, country] = line.split(",");
@@ -344,7 +344,7 @@ describe('ACIndex', function() {
       // tslint:disable:no-console
 
       it('main algorithm', function() {
-        const [buildTime, acIndex] = repeat(10, () => new ACIndexImpl(items, {maxResults: 100}));
+        const [buildTime, acIndex] = repeat(10, () => new ACIndexImpl(items, { maxResults: 100 }));
         console.log(`Time to build index (${items.length} items): ${buildTime} ms`);
 
         const [searchTime, result] = repeat(10, () => acIndex.search("YORK"));
@@ -398,7 +398,7 @@ class BruteForceACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
     matches.sort((a, b) => nativeCompare(b[0], a[0]) || nativeCompare(a[1], b[1]));
     const items = matches.slice(0, this._maxResults).map(m => m[2]);
 
-    return {items, extraItems: [], highlightFunc: highlightNone, selectIndex: -1};
+    return { items, extraItems: [], highlightFunc: highlightNone, selectIndex: -1 };
   }
 }
 

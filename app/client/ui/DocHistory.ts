@@ -1,18 +1,18 @@
-import {makeT} from 'app/client/lib/localization';
-import {createSessionObs} from 'app/client/lib/sessionObs';
-import {getTimeFromNow} from 'app/client/lib/timeUtils';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {reportError} from 'app/client/models/errors';
-import {urlState} from 'app/client/models/gristUrlState';
-import {buildConfigContainer} from 'app/client/ui/RightPanelUtils';
-import {buttonSelect} from 'app/client/ui2018/buttonSelect';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menu, menuItemLink} from 'app/client/ui2018/menus';
-import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
-import {StringUnion} from 'app/common/StringUnion';
-import {DocSnapshot} from 'app/common/UserAPI';
-import {Disposable, dom, IDomComponent, MultiHolder, Observable, styled} from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { createSessionObs } from 'app/client/lib/sessionObs';
+import { getTimeFromNow } from 'app/client/lib/timeUtils';
+import { DocPageModel } from 'app/client/models/DocPageModel';
+import { reportError } from 'app/client/models/errors';
+import { urlState } from 'app/client/models/gristUrlState';
+import { buildConfigContainer } from 'app/client/ui/RightPanelUtils';
+import { buttonSelect } from 'app/client/ui2018/buttonSelect';
+import { testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { menu, menuItemLink } from 'app/client/ui2018/menus';
+import { buildUrlId, parseUrlId } from 'app/common/gristUrls';
+import { StringUnion } from 'app/common/StringUnion';
+import { DocSnapshot } from 'app/common/UserAPI';
+import { Disposable, dom, IDomComponent, MultiHolder, Observable, styled } from 'grainjs';
 import moment from 'moment';
 
 const t = makeT('DocHistory');
@@ -28,8 +28,8 @@ export class DocHistory extends Disposable implements IDomComponent {
 
   public buildDom() {
     const tabs = [
-      {value: 'activity', label: t("Activity")},
-      {value: 'snapshots', label: t("Snapshots")},
+      { value: 'activity', label: t("Activity") },
+      { value: 'snapshots', label: t("Snapshots") },
     ];
     return [
       cssSubTabs(
@@ -52,7 +52,7 @@ export class DocHistory extends Disposable implements IDomComponent {
 
     // origUrlId is the snapshot-less URL, which we use to fetch snapshot history, and for
     // snapshot comparisons.
-    const origUrlId = buildUrlId({...doc.idParts, snapshotId: undefined});
+    const origUrlId = buildUrlId({ ...doc.idParts, snapshotId: undefined });
 
     // If comparing one snapshot to another, get the other ID, so that we can highlight it too.
     const compareUrlId = urlState().state.get().params?.compare;
@@ -63,7 +63,7 @@ export class DocHistory extends Disposable implements IDomComponent {
     function setLink(snapshot: DocSnapshot, compareDocId?: string) {
       return dom.attr('href', use => urlState().makeUrl({
         ...use(urlState().state), doc: snapshot.docId,
-        params: (compareDocId ? {compare: compareDocId} : {}),
+        params: (compareDocId ? { compare: compareDocId } : {}),
       }));
     }
 
@@ -82,7 +82,7 @@ export class DocHistory extends Disposable implements IDomComponent {
     });
     return dom(
       'div',
-      {tabIndex: '-1'},  // Voodoo needed to allow copying text.
+      { tabIndex: '-1' },  // Voodoo needed to allow copying text.
       dom.maybe(snapshotsDenied, () => cssSnapshotDenied(
         dom(
           'p',
@@ -114,7 +114,7 @@ export class DocHistory extends Disposable implements IDomComponent {
                 menuItemLink(setLink(snapshot, origUrlId), t("Compare to current")),
                 prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), t("Compare to previous")),
               ],
-              {placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className},
+              { placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className },
               ),
               testId('doc-history-snapshot-menu'),
             ),

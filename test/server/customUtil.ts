@@ -1,11 +1,11 @@
-import {version as installedVersion} from "app/common/version";
-import {getAppRoot} from 'app/server/lib/places';
-import {fromCallback, listenPromise} from 'app/server/lib/serverUtils';
+import { version as installedVersion } from "app/common/version";
+import { getAppRoot } from 'app/server/lib/places';
+import { fromCallback, listenPromise } from 'app/server/lib/serverUtils';
 import express from 'express';
 import * as http from 'http';
-import {AddressInfo, Socket} from 'net';
+import { AddressInfo, Socket } from 'net';
 import * as path from 'path';
-import {fixturesRoot} from 'test/server/testUtils';
+import { fixturesRoot } from 'test/server/testUtils';
 
 // An alternative domain for localhost, to test links that look external. We have a record for
 // localtest.datagrist.com set up to point to localhost.
@@ -21,8 +21,8 @@ export interface Serving {
 export function addStatic(app: express.Express, rootDir?: string) {
   // mix in a copy of the plugin api
   app.use(/^\/(grist-plugin-api.js)$/, (req, res) =>
-    res.sendFile(req.params[0], {root:
-                                        path.resolve(getAppRoot(), "static")}));
+    res.sendFile(req.params[0], { root:
+                                        path.resolve(getAppRoot(), "static") }));
   app.use(express.static(rootDir || path.resolve(fixturesRoot, "sites"), {
     setHeaders: (res: express.Response) => {
       res.set("Access-Control-Allow-Origin", "*");
@@ -66,7 +66,7 @@ export async function serveSomething(setup: (app: express.Express) => void, port
   app.set('port', port);
   setup(app);
   const url = `http://localhost:${port}`;
-  return {url, shutdown};
+  return { url, shutdown };
 }
 
 /**
@@ -132,7 +132,7 @@ export async function startFakeUpdateServer() {
       try {
         await mutex;
         if (API.failNext) {
-          res.status(500).json({error: 'some error'});
+          res.status(500).json({ error: 'some error' });
           API.failNext = false;
           return;
         }

@@ -51,5 +51,5 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
   };
 
   const unionNamespace = { guard, check, parse, values, checkAll };
-  return Object.freeze(unionNamespace as typeof unionNamespace & {type: UnionType});
+  return Object.freeze(unionNamespace as typeof unionNamespace & { type: UnionType });
 };

@@ -1,16 +1,16 @@
-import {makeT} from 'app/client/lib/localization';
-import {tokenFieldStyles} from 'app/client/lib/TokenField';
-import {AppModel} from 'app/client/models/AppModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {TelemetryModel, TelemetryModelImpl} from 'app/client/models/TelemetryModel';
-import {basicButton, basicButtonLink, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
-import {modal} from 'app/client/ui2018/modals';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, Disposable, dom, DomContents, Observable, styled} from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { tokenFieldStyles } from 'app/client/lib/TokenField';
+import { AppModel } from 'app/client/models/AppModel';
+import { urlState } from 'app/client/models/gristUrlState';
+import { TelemetryModel, TelemetryModelImpl } from 'app/client/models/TelemetryModel';
+import { basicButton, basicButtonLink, bigPrimaryButton } from 'app/client/ui2018/buttons';
+import { colors, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { cssLink } from 'app/client/ui2018/links';
+import { modal } from 'app/client/ui2018/modals';
+import { commonUrls, isFeatureEnabled } from 'app/common/gristUrls';
+import { getGristConfig } from 'app/common/urlUtils';
+import { Computed, Disposable, dom, DomContents, Observable, styled } from 'grainjs';
 
 const t = makeT('SupportGristNudge');
 
@@ -29,7 +29,7 @@ export class SupportGristButton extends Disposable {
 
   constructor(private _appModel: AppModel) {
     super();
-    const {deploymentType, telemetry} = getGristConfig();
+    const { deploymentType, telemetry } = getGristConfig();
     const isEnabled = (deploymentType === 'core') && isFeatureEnabled("supportGrist");
     const isAdmin = _appModel.isInstallAdmin();
     const isTelemetryOn = (telemetry && telemetry.telemetryLevel !== 'off');
@@ -51,7 +51,7 @@ export class SupportGristButton extends Disposable {
       return cssContributeButton(
         elemType(cssHeartIcon('💛 '), t('Support Grist'),
           (which === 'link' ?
-            {href: commonUrls.githubSponsorGristLabs, target: '_blank'} :
+            { href: commonUrls.githubSponsorGristLabs, target: '_blank' } :
             dom.on('click', () => this._buildNudgeModal())
           ),
 
@@ -126,7 +126,7 @@ document contents. Opt out any time from the {{supportGristLink}} in the user me
         t(
           'Thank you! Your trust and support is greatly appreciated.\
  Opt out any time from the {{link}} in the user menu.',
-          {link: adminPanelLink()},
+          { link: adminPanelLink() },
         ),
       ),
       cssCenteredFlex(
@@ -144,7 +144,7 @@ document contents. Opt out any time from the {{supportGristLink}} in the user me
   }
 
   private async _optInToTelemetry() {
-    await this._telemetryModel.updateTelemetryPrefs({telemetryLevel: 'limited'});
+    await this._telemetryModel.updateTelemetryPrefs({ telemetryLevel: 'limited' });
     this._markDismissed();
   }
 }
@@ -152,14 +152,14 @@ document contents. Opt out any time from the {{supportGristLink}} in the user me
 function helpCenterLink() {
   return cssLink(
     t('Help Center'),
-    {href: commonUrls.helpTelemetryLimited, target: '_blank'},
+    { href: commonUrls.helpTelemetryLimited, target: '_blank' },
   );
 }
 
 function adminPanelLink() {
   return cssLink(
     t('Admin Panel'),
-    {href: urlState().makeUrl({adminPanel: 'admin'}), target: '_blank'},
+    { href: urlState().makeUrl({ adminPanel: 'admin' }), target: '_blank' },
   );
 }
 

@@ -1,6 +1,6 @@
-import {KeyedMutex} from 'app/common/KeyedMutex';
-import {delay} from 'bluebird';
-import {assert} from 'chai';
+import { KeyedMutex } from 'app/common/KeyedMutex';
+import { delay } from 'bluebird';
+import { assert } from 'chai';
 
 describe('KeyedMutex', function() {
   it('orders actions correctly', async function() {

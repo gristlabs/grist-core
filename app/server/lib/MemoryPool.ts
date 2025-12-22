@@ -57,7 +57,7 @@ export class MemoryPool {
       this._updateReserved(size);
     }
     else {
-      await new Promise<void>(resolve => this._queue.push({size, resolve}));
+      await new Promise<void>(resolve => this._queue.push({ size, resolve }));
     }
     return new MemoryReservation(size, this._updateReserved.bind(this));
   }

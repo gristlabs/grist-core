@@ -1,10 +1,10 @@
-import {UserProfile} from 'app/common/LoginSessionAPI';
-import {AccessOptionWithRole} from 'app/gen-server/entity/Organization';
+import { UserProfile } from 'app/common/LoginSessionAPI';
+import { AccessOptionWithRole } from 'app/gen-server/entity/Organization';
 import axios from 'axios';
-import {AxiosRequestConfig} from 'axios';
-import {assert} from 'chai';
+import { AxiosRequestConfig } from 'axios';
+import { assert } from 'chai';
 import omit from 'lodash/omit';
-import {TestServer} from 'test/gen-server/apiUtils';
+import { TestServer } from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
 
 const nobody: AxiosRequestConfig = {
@@ -31,7 +31,7 @@ describe('ApiSession', function() {
   });
 
   it('GET /api/session/access/active returns user and org (with access)', async function() {
-    const cookie = await server.getCookieLogin('nasa', {email: regular, name: 'Chimpy'});
+    const cookie = await server.getCookieLogin('nasa', { email: regular, name: 'Chimpy' });
 
     const resp = await axios.get(`${serverUrl}/o/nasa/api/session/access/active`, cookie);
     assert.equal(resp.status, 200);
@@ -53,7 +53,7 @@ describe('ApiSession', function() {
   });
 
   it('GET /api/session/access/active returns org with billing account information', async function() {
-    const cookie = await server.getCookieLogin('nasa', {email: regular, name: 'Chimpy'});
+    const cookie = await server.getCookieLogin('nasa', { email: regular, name: 'Chimpy' });
 
     // Make Chimpy a billing account manager for NASA.
     await server.addBillingManager('Chimpy', 'nasa');
@@ -86,7 +86,7 @@ describe('ApiSession', function() {
 
     // Check that internally we have access to stripe ids.
     const userId = await server.dbManager.testGetId('Chimpy') as number;
-    const org2 = await server.dbManager.getOrg({userId}, 'nasa');
+    const org2 = await server.dbManager.getOrg({ userId }, 'nasa');
     assert.hasAllKeys(org2.data!.billingAccount,
       ['id', 'individual', 'inGoodStanding', 'status', 'stripeCustomerId',
         'stripeSubscriptionId', 'stripePlanId', 'product', 'paid', 'isManager',
@@ -94,7 +94,7 @@ describe('ApiSession', function() {
   });
 
   it('GET /api/session/access/active returns orgErr when org is forbidden', async function() {
-    const cookie = await server.getCookieLogin('nasa', {email: 'kiwi@getgrist.com', name: 'Kiwi'});
+    const cookie = await server.getCookieLogin('nasa', { email: 'kiwi@getgrist.com', name: 'Kiwi' });
 
     const resp = await axios.get(`${serverUrl}/o/nasa/api/session/access/active`, cookie);
     assert.equal(resp.status, 200);
@@ -113,7 +113,7 @@ describe('ApiSession', function() {
   });
 
   it('GET /api/session/access/active returns orgErr when org is non-existent', async function() {
-    const cookie = await server.getCookieLogin('nasa', {email: 'kiwi@getgrist.com', name: 'Kiwi'});
+    const cookie = await server.getCookieLogin('nasa', { email: 'kiwi@getgrist.com', name: 'Kiwi' });
 
     const resp = await axios.get(`${serverUrl}/o/boing/api/session/access/active`, cookie);
     assert.equal(resp.status, 200);
@@ -133,8 +133,8 @@ describe('ApiSession', function() {
 
   it('POST /api/session/access/active can change user', async function() {
     // add two profiles
-    const cookie = await server.getCookieLogin('nasa', {email: 'charon@getgrist.com', name: 'Charon'});
-    await server.getCookieLogin('pr', {email: 'kiwi@getgrist.com', name: 'Kiwi'});
+    const cookie = await server.getCookieLogin('nasa', { email: 'charon@getgrist.com', name: 'Charon' });
+    await server.getCookieLogin('pr', { email: 'kiwi@getgrist.com', name: 'Kiwi' });
 
     // pick kiwi profile for fish org
     let resp = await axios.post(`${serverUrl}/o/fish/api/session/access/active`, {
@@ -168,8 +168,8 @@ describe('ApiSession', function() {
   });
 
   it('GET /api/session/access/all returns users and orgs', async function() {
-    const cookie = await server.getCookieLogin('nasa', {email: 'charon@getgrist.com', name: 'Charon'});
-    await server.getCookieLogin('pr', {email: 'kiwi@getgrist.com', name: 'Kiwi'});
+    const cookie = await server.getCookieLogin('nasa', { email: 'charon@getgrist.com', name: 'Charon' });
+    await server.getCookieLogin('pr', { email: 'kiwi@getgrist.com', name: 'Kiwi' });
     const resp = await axios.get(`${serverUrl}/o/pr/api/session/access/all`, cookie);
     assert.equal(resp.status, 200);
     assert.sameMembers(['users', 'orgs'], Object.keys(resp.data));

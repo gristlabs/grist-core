@@ -1,5 +1,5 @@
-import {assert, driver, Key, Origin, stackWrapFunc} from 'mocha-webdriver';
-import {server, setupTestSuite} from 'test/projects/testUtils';
+import { assert, driver, Key, Origin, stackWrapFunc } from 'mocha-webdriver';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 
 async function checkLeftPanelIsCollapsed() {
@@ -29,7 +29,7 @@ describe('PagePanels', function() {
   });
 
   function dragByX(x: number) {
-    return driver.withActions(a => a.press().move({x, origin: Origin.POINTER}).release());
+    return driver.withActions(a => a.press().move({ x, origin: Origin.POINTER }).release());
   }
 
   // Available test elements:
@@ -137,7 +137,7 @@ describe('PagePanels', function() {
     });
 
     after(async () => {
-      const {width, height} = oldDimensions;
+      const { width, height } = oldDimensions;
       await gu.setViewportDimensions(width, height);
     });
 

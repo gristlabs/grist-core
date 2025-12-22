@@ -22,14 +22,14 @@
  *
  * Note that the form of URLs depends on the settings in window.gristConfig object.
  */
-import {unsavedChanges} from 'app/client/components/UnsavedChanges';
-import {hooks} from 'app/client/Hooks';
-import {UrlState} from 'app/client/lib/UrlState';
-import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState} from 'app/common/gristUrls';
-import {Document} from 'app/common/UserAPI';
+import { unsavedChanges } from 'app/client/components/UnsavedChanges';
+import { hooks } from 'app/client/Hooks';
+import { UrlState } from 'app/client/lib/UrlState';
+import { decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState } from 'app/common/gristUrls';
+import { Document } from 'app/common/UserAPI';
 import isEmpty from 'lodash/isEmpty';
 import isEqual from 'lodash/isEqual';
-import {CellValue} from "app/plugin/GristData";
+import { CellValue } from "app/plugin/GristData";
 
 /**
  * Returns a singleton UrlState object, initializing it on first use.
@@ -58,14 +58,14 @@ export function docUrl(doc: Document): IGristUrlState {
 export function getMainOrgUrl(): string { return urlState().makeUrl({}); }
 
 // When on a document URL, returns the URL with just the doc ID, omitting other bits (like page).
-export function getCurrentDocUrl(): string { return urlState().makeUrl({docPage: undefined}); }
+export function getCurrentDocUrl(): string { return urlState().makeUrl({ docPage: undefined }); }
 
 /**
  * Implements the interface expected by UrlState. It is only exported for the sake of tests; the
  * only public interface is the urlState() accessor.
  */
 export class UrlStateImpl {
-  constructor(private _window: {gristConfig?: Partial<GristLoadConfig>}) {}
+  constructor(private _window: { gristConfig?: Partial<GristLoadConfig> }) {}
 
   /**
    * The actual serialization of a url state into a URL. The URL has the form
@@ -116,7 +116,7 @@ export class UrlStateImpl {
           ? { org: prevState.org }
           : {}
         : prevState;
-    return {...keepState, ...newState};
+    return { ...keepState, ...newState };
   }
 
   /**

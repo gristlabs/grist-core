@@ -1,8 +1,8 @@
-import {assert} from 'chai';
-import {DocPrefs} from 'app/common/Prefs';
-import {DocScope, HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {FullUser} from 'app/common/LoginSessionAPI';
-import {TestServer} from 'test/gen-server/apiUtils';
+import { assert } from 'chai';
+import { DocPrefs } from 'app/common/Prefs';
+import { DocScope, HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { FullUser } from 'app/common/LoginSessionAPI';
+import { TestServer } from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
 
 describe('DocPrefs', function() {
@@ -16,10 +16,10 @@ describe('DocPrefs', function() {
 
   const everyoneEmail = 'everyone@getgrist.com';
   const users = {
-    owner: {email: 'chimpy@getgrist.com'} as FullUser,
-    editor: {email: 'kiwi@getgrist.com'} as FullUser,
-    viewer: {email: 'charon@getgrist.com'} as FullUser,
-    nonmember: {email: 'ham@getgrist.com'} as FullUser,
+    owner: { email: 'chimpy@getgrist.com' } as FullUser,
+    editor: { email: 'kiwi@getgrist.com' } as FullUser,
+    viewer: { email: 'charon@getgrist.com' } as FullUser,
+    nonmember: { email: 'ham@getgrist.com' } as FullUser,
   };
 
   const docs: {
@@ -39,10 +39,10 @@ describe('DocPrefs', function() {
 
     // Create an org, with a couple of documents with different sharing.
     const api = await server.createHomeApi('chimpy', 'docs');
-    await api.newOrg({name: 'docprefs', domain: org});
-    const ws1 = await api.newWorkspace({name: 'ws1'}, org);
-    docs.privateDoc = await api.newDoc({name: 'docPrivate'}, ws1);
-    docs.publicDoc = await api.newDoc({name: 'docPublic'}, ws1);
+    await api.newOrg({ name: 'docprefs', domain: org });
+    const ws1 = await api.newWorkspace({ name: 'ws1' }, org);
+    docs.privateDoc = await api.newDoc({ name: 'docPrivate' }, ws1);
+    docs.publicDoc = await api.newDoc({ name: 'docPublic' }, ws1);
 
     await api.updateDocPermissions(docs.privateDoc, {
       users: {
@@ -66,32 +66,32 @@ describe('DocPrefs', function() {
   });
 
   function samplePrefs(num: number): DocPrefs {
-    return {foo: {num}} as DocPrefs;
+    return { foo: { num } } as DocPrefs;
   }
 
   for (const docName of ['privateDoc', 'publicDoc'] as const) {
     describe(docName, function() {
 
       function getScope(user: keyof typeof users): DocScope {
-        return {userId: users[user].id, org, urlId: docs[docName]};
+        return { userId: users[user].id, org, urlId: docs[docName] };
       }
 
       it('should support default and per-user prefs', async function() {
         await dbManager.setDocPrefs(getScope('owner'),
-          {docDefaults: samplePrefs(1), currentUser: samplePrefs(2)});
+          { docDefaults: samplePrefs(1), currentUser: samplePrefs(2) });
 
         // Check that a viewer can see this, and can set their own overrides.
         assert.deepEqual(await dbManager.getDocPrefs(getScope('viewer')),
-          {docDefaults: samplePrefs(1), currentUser: {}});
-        await dbManager.setDocPrefs(getScope('viewer'), {currentUser: samplePrefs(3)});
+          { docDefaults: samplePrefs(1), currentUser: {} });
+        await dbManager.setDocPrefs(getScope('viewer'), { currentUser: samplePrefs(3) });
 
         // Check that various users see correct state.
         assert.deepEqual(await dbManager.getDocPrefs(getScope('owner')),
-          {docDefaults: samplePrefs(1), currentUser: samplePrefs(2)});
+          { docDefaults: samplePrefs(1), currentUser: samplePrefs(2) });
         assert.deepEqual(await dbManager.getDocPrefs(getScope('editor')),
-          {docDefaults: samplePrefs(1), currentUser: {}});
+          { docDefaults: samplePrefs(1), currentUser: {} });
         assert.deepEqual(await dbManager.getDocPrefs(getScope('viewer')),
-          {docDefaults: samplePrefs(1), currentUser: samplePrefs(3)});
+          { docDefaults: samplePrefs(1), currentUser: samplePrefs(3) });
       });
 
       it('should fetch correctly merged prefs for a list of users', async function() {
@@ -119,20 +119,20 @@ describe('DocPrefs', function() {
         const updateRej = /Only document owners may update document prefs/;
 
         // Non-owners cannot change defaults.
-        await assert.isRejected(dbManager.setDocPrefs(getScope('viewer'), {docDefaults: samplePrefs(4)}),
+        await assert.isRejected(dbManager.setDocPrefs(getScope('viewer'), { docDefaults: samplePrefs(4) }),
           updateRej);
         await assert.isRejected(dbManager.setDocPrefs(
-          getScope('viewer'), {docDefaults: samplePrefs(5), currentUser: samplePrefs(6)}),
+          getScope('viewer'), { docDefaults: samplePrefs(5), currentUser: samplePrefs(6) }),
         updateRej);
-        await assert.isRejected(dbManager.setDocPrefs(getScope('editor'), {docDefaults: samplePrefs(7)}),
+        await assert.isRejected(dbManager.setDocPrefs(getScope('editor'), { docDefaults: samplePrefs(7) }),
           updateRej);
 
         // Non-collaborators cannot do anything.
         await assert.isRejected(dbManager.getDocPrefs(getScope('nonmember')),
           /access denied/);
-        await assert.isRejected(dbManager.setDocPrefs(getScope('nonmember'), {docDefaults: samplePrefs(8)}),
+        await assert.isRejected(dbManager.setDocPrefs(getScope('nonmember'), { docDefaults: samplePrefs(8) }),
           /access denied/);
-        await assert.isRejected(dbManager.setDocPrefs(getScope('nonmember'), {currentUser: samplePrefs(9)}),
+        await assert.isRejected(dbManager.setDocPrefs(getScope('nonmember'), { currentUser: samplePrefs(9) }),
           /access denied/);
 
         if (docName === 'publicDoc') {
@@ -142,11 +142,11 @@ describe('DocPrefs', function() {
 
         // Ensure that failed attempts didn't affect what we stored (see previous test case).
         assert.deepEqual(await dbManager.getDocPrefs(getScope('owner')),
-          {docDefaults: samplePrefs(1), currentUser: samplePrefs(2)});
+          { docDefaults: samplePrefs(1), currentUser: samplePrefs(2) });
         assert.deepEqual(await dbManager.getDocPrefs(getScope('editor')),
-          {docDefaults: samplePrefs(1), currentUser: {}});
+          { docDefaults: samplePrefs(1), currentUser: {} });
         assert.deepEqual(await dbManager.getDocPrefs(getScope('viewer')),
-          {docDefaults: samplePrefs(1), currentUser: samplePrefs(3)});
+          { docDefaults: samplePrefs(1), currentUser: samplePrefs(3) });
       });
     });
   }

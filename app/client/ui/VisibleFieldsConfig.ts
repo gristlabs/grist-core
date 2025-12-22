@@ -216,11 +216,11 @@ export class VisibleFieldsConfig extends Disposable {
       },
     });
     return [
-      dom('div', {role: 'group', 'aria-labelledby': 'visible-fields-label'},
+      dom('div', { role: 'group', 'aria-labelledby': 'visible-fields-label' },
         cssHeader(
           cssFieldListHeader(
-            dom.text(use => t("Visible {{label}}", {label: use(this._fieldLabel)})),
-            {id: 'visible-fields-label'},
+            dom.text(use => t("Visible {{label}}", { label: use(this._fieldLabel) })),
+            { id: 'visible-fields-label' },
           ),
           dom.maybe(
             use => Boolean(use(use(this._section.viewFields).getObservable()).length),
@@ -228,7 +228,7 @@ export class VisibleFieldsConfig extends Disposable {
               cssIconButton(
                 icon('Tick'),
                 t("Select all"),
-                {"aria-describedby": 'visible-fields-label'},
+                { "aria-describedby": 'visible-fields-label' },
                 dom.on('click', () => this._setVisibleCheckboxes(fieldsDraggable, true)),
                 dom.prop('disabled', this._disabled),
                 testId('visible-fields-select-all'),
@@ -243,7 +243,7 @@ export class VisibleFieldsConfig extends Disposable {
         dom.maybe(this._showVisibleBatchButtons, () =>
           cssRow(
             primaryButton(
-              dom.text(use => t("Hide {{label}}", {label: use(this._fieldLabel)})),
+              dom.text(use => t("Hide {{label}}", { label: use(this._fieldLabel) })),
               dom.on('click', () => this._removeSelectedFields()),
               testId('visible-hide'),
             ),
@@ -256,7 +256,7 @@ export class VisibleFieldsConfig extends Disposable {
           ),
         ),
       ),
-      dom('div', {role: 'group', 'aria-labelledby': 'hidden-fields-label'},
+      dom('div', { role: 'group', 'aria-labelledby': 'hidden-fields-label' },
         cssHeader(
           cssHeaderButton(
             icon(
@@ -267,7 +267,7 @@ export class VisibleFieldsConfig extends Disposable {
             dom.on('click', () => this._collapseHiddenFields.set(!this._collapseHiddenFields.get())),
             testId('collapse-hidden'),
             // TODO: show `hidden column` only when some fields are hidden
-            cssFieldListHeader(dom.text(use => t("Hidden {{label}}", {label: use(this._fieldLabel)}))),
+            cssFieldListHeader(dom.text(use => t("Hidden {{label}}", { label: use(this._fieldLabel) }))),
             {
               id: 'hidden-fields-label',
               "aria-controls": 'hidden-fields-list',
@@ -280,7 +280,7 @@ export class VisibleFieldsConfig extends Disposable {
               cssIconButton(
                 icon('Tick'),
                 t("Select all"),
-                {"aria-describedby": 'hidden-fields-label'},
+                { "aria-describedby": 'hidden-fields-label' },
                 dom.on('click', () => this._setHiddenCheckboxes(hiddenFieldsDraggable, true)),
                 dom.prop('disabled', this._disabled),
                 testId('hidden-fields-select-all'),
@@ -291,7 +291,7 @@ export class VisibleFieldsConfig extends Disposable {
         dom(
           'div',
           dom.hide(this._collapseHiddenFields),
-          {id: 'hidden-fields-list'},
+          { id: 'hidden-fields-list' },
           cssFieldsDraggable(
             cssFieldsDraggable.cls('-disabled', this._disabled),
             dom.update(
@@ -302,7 +302,7 @@ export class VisibleFieldsConfig extends Disposable {
           dom.maybe(this._showHiddenBatchButtons, () =>
             cssRow(
               primaryButton(
-                dom.text(use => t("Show {{label}}", {label: use(this._fieldLabel)})),
+                dom.text(use => t("Show {{label}}", { label: use(this._fieldLabel) })),
                 dom.on('click', () => this._addSelectedFields()),
                 testId('hidden-show'),
               ),
@@ -341,7 +341,7 @@ export class VisibleFieldsConfig extends Disposable {
 
   public changeFieldPosition(field: ViewFieldRec, nextField: ViewFieldRec|null) {
     const parentPos = getFieldNewPosition(this._section.viewFields.peek(), field, nextField);
-    const vsfAction = ['UpdateRecord', field.id.peek(), {parentPos}];
+    const vsfAction = ['UpdateRecord', field.id.peek(), { parentPos }];
     return this._gristDoc.docModel.viewFields.sendTableAction(vsfAction);
   }
 
@@ -395,12 +395,12 @@ export class VisibleFieldsConfig extends Disposable {
         dom.on('click', () => this.addField(column)),
         testId('hide'),
         dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', use => t("Show {{label}}", {label: use(column.label)})),
+        dom.attr('aria-label', use => t("Show {{label}}", { label: use(column.label) })),
       ),
       buildCheckbox(
         dom.prop('checked', selection.has(id)),
         dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', use => t("Show {{label}} (batch mode)", {label: use(column.label)})),
+        dom.attr('aria-label', use => t("Show {{label}} (batch mode)", { label: use(column.label) })),
         dom.on('change', (ev, el) => {
           if (el.checked) {
             selection.add(id);
@@ -426,12 +426,12 @@ export class VisibleFieldsConfig extends Disposable {
         dom.on('click', () => this.removeField(field)),
         testId('hide'),
         dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', use => t("Hide {{label}}", {label: use(field.label)})),
+        dom.attr('aria-label', use => t("Hide {{label}}", { label: use(field.label) })),
       ),
       buildCheckbox(
         dom.prop('checked', selection.has(id)),
         dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', use => t("Hide {{label}} (batch mode)", {label: use(field.label)})),
+        dom.attr('aria-label', use => t("Hide {{label}} (batch mode)", { label: use(field.label) })),
         dom.on('change', (ev, el) => {
           if (el.checked) {
             selection.add(id);
@@ -479,9 +479,9 @@ function getItemIndex(collection: KoArray<ViewFieldRec>, item: ViewFieldRec|null
 
 function buildCheckbox(...args: IDomArgs<HTMLInputElement>) {
   return checkbox.cssLabel(
-    {style: 'flex-shrink: 0;'},
+    { style: 'flex-shrink: 0;' },
     checkbox.cssCheckboxSquare(
-      {type: 'checkbox'},
+      { type: 'checkbox' },
       ...args,
     ),
   );
@@ -496,7 +496,7 @@ function findCheckboxes(draggableElement: Element): NodeListOf<HTMLInputElement>
 // Removes from selection the ids of the fields that appear as deleted in the splice event. Note
 // that it can happen that a field appears as deleted and yet belongs to the new array (as a result
 // of an `assign` call for instance). In which case the field is to be considered as not deleted.
-function unselectDeletedFields(selection: Set<number>, event: {deleted: IField[], array: IField[]}) {
+function unselectDeletedFields(selection: Set<number>, event: { deleted: IField[], array: IField[] }) {
   // go though the difference between deleted fields and the new array.
   const removed: IField[] = difference(event.deleted, event.array);
   for (const field of removed) {

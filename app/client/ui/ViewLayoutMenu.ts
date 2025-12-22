@@ -1,13 +1,13 @@
-import {hooks} from 'app/client/Hooks';
-import {makeT} from 'app/client/lib/localization';
-import {allCommands} from 'app/client/components/commands';
-import {ViewSectionRec} from 'app/client/models/DocModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {testId} from 'app/client/ui2018/cssVars';
-import {menuDivider, menuItemCmd, menuItemLink} from 'app/client/ui2018/menus';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {dom, UseCB} from 'grainjs';
-import {WidgetType} from 'app/common/widgetTypes';
+import { hooks } from 'app/client/Hooks';
+import { makeT } from 'app/client/lib/localization';
+import { allCommands } from 'app/client/components/commands';
+import { ViewSectionRec } from 'app/client/models/DocModel';
+import { urlState } from 'app/client/models/gristUrlState';
+import { testId } from 'app/client/ui2018/cssVars';
+import { menuDivider, menuItemCmd, menuItemLink } from 'app/client/ui2018/menus';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { dom, UseCB } from 'grainjs';
+import { WidgetType } from 'app/common/widgetTypes';
 
 const t = makeT('ViewLayoutMenu');
 
@@ -74,7 +74,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
     dom.maybe(isCard, () => contextMenu),
     dom.maybe(showRawData,
       () => menuItemLink(
-        { href: rawUrl}, t("Show raw data"), testId('show-raw-data'),
+        { href: rawUrl }, t("Show raw data"), testId('show-raw-data'),
         dom.on('click', () => {
           // Replace the current URL so that the back button works as expected (it navigates back from
           // the current page).
@@ -83,9 +83,9 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       ),
     ),
     menuItemCmd(allCommands.printSection, t("Print widget"), testId('print-section')),
-    menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
+    menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: '' }),
       t("Download as CSV"), testId('download-section')),
-    menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getXlsxActiveViewLink(), target: '_blank', download: ''}),
+    menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getXlsxActiveViewLink(), target: '_blank', download: '' }),
       t("Download as XLSX"), testId('download-section')),
     dom.maybe(use => ['detail', 'single'].includes(use(viewSection.parentKey)), () =>
       menuItemCmd(allCommands.editLayout, t("Edit card layout"),
@@ -129,7 +129,7 @@ export function makeCollapsedLayoutMenu(viewSection: ViewSectionRec, gristDoc: G
   return [
     dom.maybe(use => !use(viewSection.isRaw) && use(gristDoc.canShowRawData),
       () => menuItemLink(
-        { href: rawUrl}, t("Show raw data"), testId('show-raw-data'),
+        { href: rawUrl }, t("Show raw data"), testId('show-raw-data'),
         dom.on('click', () => {
           // Replace the current URL so that the back button works as expected (it navigates back from
           // the current page).

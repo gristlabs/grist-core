@@ -1,22 +1,22 @@
-import {makeT} from 'app/client/lib/localization';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {BEHAVIOR, ColumnRec} from 'app/client/models/entities/ColumnRec';
-import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
-import {cssBlockedCursor, cssFieldFormula, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
-import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
-import {textButton} from 'app/client/ui2018/buttons';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {textInput} from 'app/client/ui2018/editableLabel';
-import {cssIconButton, icon} from 'app/client/ui2018/icons';
-import {IconName} from 'app/client/ui2018/IconList';
-import {selectMenu, selectOption, selectTitle} from 'app/client/ui2018/menus';
-import {createFormulaErrorObs, cssError} from 'app/client/widgets/FormulaEditor';
-import {RecalcWhen} from 'app/common/gristTypes';
-import {sanitizeIdent} from 'app/common/gutil';
-import {CursorPos} from 'app/plugin/GristAPI';
-import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
-  Observable, styled} from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { BEHAVIOR, ColumnRec } from 'app/client/models/entities/ColumnRec';
+import { buildHighlightedCode, cssCodeBlock } from 'app/client/ui/CodeHighlight';
+import { cssBlockedCursor, cssFieldFormula, cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
+import { withInfoTooltip } from 'app/client/ui/tooltips';
+import { buildFormulaTriggers } from 'app/client/ui/TriggerFormulas';
+import { textButton } from 'app/client/ui2018/buttons';
+import { testId, theme } from 'app/client/ui2018/cssVars';
+import { textInput } from 'app/client/ui2018/editableLabel';
+import { cssIconButton, icon } from 'app/client/ui2018/icons';
+import { IconName } from 'app/client/ui2018/IconList';
+import { selectMenu, selectOption, selectTitle } from 'app/client/ui2018/menus';
+import { createFormulaErrorObs, cssError } from 'app/client/widgets/FormulaEditor';
+import { RecalcWhen } from 'app/common/gristTypes';
+import { sanitizeIdent } from 'app/common/gutil';
+import { CursorPos } from 'app/plugin/GristAPI';
+import { bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
+  Observable, styled } from 'grainjs';
 import * as ko from 'knockout';
 import { components, tokens } from 'app/common/ThemePrefs';
 
@@ -76,7 +76,7 @@ export function buildNameConfig(
           dom.boolAttr('readonly',
             use => use(disabled) || use(origColumn.disableModify) || !use(origColumn.untieColIdFromLabel)),
           cssCodeBlock.cls(''),
-          {style: 'margin-top: 8px'},
+          { style: 'margin-top: 8px' },
           testId('field-col-id'),
           setEditor(1),
         ),
@@ -218,7 +218,7 @@ export function buildFormulaConfig(
 
   // Convert to data option for multiple selected columns.
   const convertToDataAll = () => selectOption(
-    () => convertIsFormula(selectedColumnIds(), {toFormula: false, noRecalc: true}),
+    () => convertIsFormula(selectedColumnIds(), { toFormula: false, noRecalc: true }),
     'Convert columns to data', 'Database',
     dom.cls('disabled', isSummaryTable),
   );
@@ -245,20 +245,20 @@ export function buildFormulaConfig(
   const behaviorName = Computed.create(owner, behavior, (use, type) => {
     if (use(isMultiSelect)) {
       const commonType = use(multiType);
-      if (commonType === 'formula') { return t('Formula columns', {count: 2}); }
-      if (commonType === 'data') { return t('Data columns', {count: 2}); }
+      if (commonType === 'formula') { return t('Formula columns', { count: 2 }); }
+      if (commonType === 'data') { return t('Data columns', { count: 2 }); }
       if (commonType === 'mixed') { return t('Mixed Behavior'); }
-      return t('Empty columns', {count: 2});
+      return t('Empty columns', { count: 2 });
     }
     else {
-      if (type === 'formula') { return t('Formula columns', {count: 1}); }
-      if (type === 'data') { return t('Data columns', {count: 1}); }
-      return t('Empty columns', {count: 1});
+      if (type === 'formula') { return t('Formula columns', { count: 1 }); }
+      if (type === 'data') { return t('Data columns', { count: 1 }); }
+      return t('Empty columns', { count: 1 });
     }
   });
   const behaviorIcon = Computed.create<IconName>(owner, (use) => {
-    return use(behaviorName) === t('Data columns', {count: 2}) ||
-      use(behaviorName) === t('Data columns', {count: 1}) ? "Database" : "Script";
+    return use(behaviorName) === t('Data columns', { count: 2 }) ||
+      use(behaviorName) === t('Data columns', { count: 1 }) ? "Database" : "Script";
   });
   const behaviorLabel = () => selectTitle(behaviorName, behaviorIcon);
 
@@ -271,12 +271,12 @@ export function buildFormulaConfig(
 
   // Converts to empty column and opens up the editor. (label is the same, but this is used when we have no formula)
   const convertTriggerToFormulaOption = () => selectOption(
-    () => convertIsFormula([origColumn.id.peek()], {toFormula: true, noRecalc: true}),
+    () => convertIsFormula([origColumn.id.peek()], { toFormula: true, noRecalc: true }),
     t("Clear and make into formula"), 'Script');
 
   // Convert column to data.
   // This method is also available through a text button.
-  const convertToData = () => convertIsFormula([origColumn.id.peek()], {toFormula: false, noRecalc: true});
+  const convertToData = () => convertIsFormula([origColumn.id.peek()], { toFormula: false, noRecalc: true });
   const convertToDataOption = () => selectOption(
     convertToData,
     t("Convert column to data"), 'Database',
@@ -299,7 +299,7 @@ export function buildFormulaConfig(
 
   // Converts formula column to trigger formula column.
   const convertFormulaToTrigger = () =>
-    convertIsFormula([origColumn.id.peek()], {toFormula: false, noRecalc: false});
+    convertIsFormula([origColumn.id.peek()], { toFormula: false, noRecalc: false });
 
   const setFormula = () => { maybeFormula.set(true); focusFormulaField(); };
   const setTrigger = () => { maybeTrigger.set(true); focusFormulaField(); };
@@ -461,14 +461,14 @@ function buildFormula(
   options: BuildFormulaOptions,
   ...args: DomElementArg[]
 ) {
-  const {disabled, canDetach = true, onSave, onCancel} = options;
-  return dom.create(buildHighlightedCode, column.formula, {maxLines: 2},
+  const { disabled, canDetach = true, onSave, onCancel } = options;
+  return dom.create(buildHighlightedCode, column.formula, { maxLines: 2 },
     dom.cls(cssFieldFormula.className),
     dom.cls('formula_field_sidepane'),
     cssFieldFormula.cls('-disabled', disabled),
     cssFieldFormula.cls('-disabled-icon', use => !use(column.formula)),
     dom.cls('disabled'),
-    {tabIndex: '-1'},
+    { tabIndex: '-1' },
     // Focus event use used by a user to edit an existing formula.
     // It can also be triggered manually to open up the editor.
     dom.on('focus', (_, refElem) => buildEditor({

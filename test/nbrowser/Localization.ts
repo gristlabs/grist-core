@@ -1,8 +1,8 @@
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {assert, driver} from 'mocha-webdriver';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { assert, driver } from 'mocha-webdriver';
 import * as testUtils from 'test/server/testUtils';
-import {getAppRoot} from 'app/server/lib/places';
+import { getAppRoot } from 'app/server/lib/places';
 import fetch from "node-fetch";
 import fs from "fs";
 import os from "os";
@@ -99,10 +99,10 @@ describe("Localization", function() {
       const homeUrl = `${server.getHost()}/o/docs`;
       // Read response from server, and check that it contains the correct language.
       const enResponse = await (await fetch(homeUrl)).text();
-      const uzResponse = await (await fetch(homeUrl, {headers: {"Accept-Language": "uz-UZ,uz;q=1"}})).text();
-      const ptResponse = await (await fetch(homeUrl, {headers: {"Accept-Language": "pt-PR,pt;q=1"}})).text();
+      const uzResponse = await (await fetch(homeUrl, { headers: { "Accept-Language": "uz-UZ,uz;q=1" } })).text();
+      const ptResponse = await (await fetch(homeUrl, { headers: { "Accept-Language": "pt-PR,pt;q=1" } })).text();
       // We have file with nb_NO code, but still this should be preloaded.
-      const noResponse = await (await fetch(homeUrl, {headers: {"Accept-Language": "nb-NO,nb;q=1"}})).text();
+      const noResponse = await (await fetch(homeUrl, { headers: { "Accept-Language": "nb-NO,nb;q=1" } })).text();
 
       function present(response: string, ...langs: string[]) {
         for (const lang of langs) {
@@ -137,7 +137,7 @@ describe("Localization", function() {
     });
 
     it("loads correct languages from file system", async function() {
-      modifyByCode(tempLocale, "en", {HomeIntro: {'Welcome to Grist!': 'TestMessage'}});
+      modifyByCode(tempLocale, "en", { HomeIntro: { 'Welcome to Grist!': 'TestMessage' } });
       await driver.navigate().refresh();
       assert.equal(await driver.findWait('.test-welcome-title', 3000).getText(), 'TestMessage');
       const gristConfig: any = await driver.executeScript("return window.gristConfig");

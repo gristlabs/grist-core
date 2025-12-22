@@ -1,8 +1,8 @@
-import {appSettings} from 'app/server/lib/AppSettings';
+import { appSettings } from 'app/server/lib/AppSettings';
 import log from 'app/server/lib/log';
-import {lstatSync, readdirSync, readFileSync} from 'fs';
-import {createInstance, i18n} from 'i18next';
-import {LanguageDetector} from 'i18next-http-middleware';
+import { lstatSync, readdirSync, readFileSync } from 'fs';
+import { createInstance, i18n } from 'i18next';
+import { LanguageDetector } from 'i18next-http-middleware';
 import path from 'path';
 
 export function setupLocale(appRoot: string): i18n {

@@ -1,14 +1,14 @@
 /**
  * This is a copy of TextEditor.js, converted to typescript.
  */
-import {createGroup} from 'app/client/components/commands';
-import {testId} from 'app/client/ui2018/cssVars';
-import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
-import {EditorPlacement, ISize} from 'app/client/widgets/EditorPlacement';
-import {FieldOptions, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
-import {CellValue} from "app/common/DocActions";
-import {undef} from 'app/common/gutil';
-import {dom, Observable} from 'grainjs';
+import { createGroup } from 'app/client/components/commands';
+import { testId } from 'app/client/ui2018/cssVars';
+import { createMobileButtons, getButtonMargins } from 'app/client/widgets/EditorButtons';
+import { EditorPlacement, ISize } from 'app/client/widgets/EditorPlacement';
+import { FieldOptions, NewBaseEditor } from 'app/client/widgets/NewBaseEditor';
+import { CellValue } from "app/common/DocActions";
+import { undef } from 'app/common/gutil';
+import { dom, Observable } from 'grainjs';
 
 export class NTextEditor extends NewBaseEditor {
   // Observable with current editor state (used by drafts or latest edit/position component)
@@ -57,7 +57,7 @@ export class NTextEditor extends NewBaseEditor {
 
   public attach(cellElem: Element): void {
     // Attach the editor dom to page DOM.
-    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, {margins: getButtonMargins()});
+    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, { margins: getButtonMargins() });
 
     // Reposition the editor if needed for external reasons (in practice, window resize).
     this.autoDispose(this._editorPlacement.onReposition.addListener(this.resizeInput, this));
@@ -92,7 +92,7 @@ export class NTextEditor extends NewBaseEditor {
     // Set the max width of the sizer to the max we could possibly grow to, so that it knows to wrap
     // once we reach it.
     const maxSize = this._editorPlacement.calcSizeWithPadding(this.textInput,
-      {width: Infinity, height: Infinity}, {calcOnly: true});
+      { width: Infinity, height: Infinity }, { calcOnly: true });
     this._contentSizer.style.maxWidth = Math.ceil(maxSize.width) + 'px';
   }
 

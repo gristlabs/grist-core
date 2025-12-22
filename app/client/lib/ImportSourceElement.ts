@@ -1,7 +1,7 @@
-import {PluginInstance} from 'app/common/PluginInstance';
-import {InternalImportSourceAPI} from 'app/plugin/InternalImportSourceAPI';
-import {ImportSource} from 'app/plugin/PluginManifest';
-import {checkers} from 'app/plugin/TypeCheckers';
+import { PluginInstance } from 'app/common/PluginInstance';
+import { InternalImportSourceAPI } from 'app/plugin/InternalImportSourceAPI';
+import { ImportSource } from 'app/plugin/PluginManifest';
+import { checkers } from 'app/plugin/TypeCheckers';
 
 /**
  * Encapsulate together an import source contribution with its plugin instance and a callable stub

@@ -1,7 +1,7 @@
-import {getCurrency, locales} from 'app/common/Locales';
-import {NumMode, parseNumMode} from 'app/common/NumberFormat';
+import { getCurrency, locales } from 'app/common/Locales';
+import { NumMode, parseNumMode } from 'app/common/NumberFormat';
 import NumberParse from 'app/common/NumberParse';
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as _ from 'lodash';
 
 describe("NumberParse", function() {
@@ -77,7 +77,7 @@ describe("NumberParse", function() {
 
   it("can handle different minus sign positions", function() {
     parser = new NumberParse("fy", "EUR");
-    let formatter = Intl.NumberFormat("fy", {style: "currency", currency: "EUR"});
+    let formatter = Intl.NumberFormat("fy", { style: "currency", currency: "EUR" });
 
     assert.isTrue(parser.currencyEndsInMinusSign);
 
@@ -95,7 +95,7 @@ describe("NumberParse", function() {
 
     // By contrast, this locale doesn't put '-' at the end so the parser doesn't allow that
     parser = new NumberParse("en", "USD");
-    formatter = Intl.NumberFormat("en", {style: "currency", currency: "USD"});
+    formatter = Intl.NumberFormat("en", { style: "currency", currency: "USD" });
 
     assert.isFalse(parser.currencyEndsInMinusSign);
 
@@ -110,7 +110,7 @@ describe("NumberParse", function() {
   });
 
   it("can handle different separators", function() {
-    let formatter = Intl.NumberFormat("en", {useGrouping: true});
+    let formatter = Intl.NumberFormat("en", { useGrouping: true });
     assert.equal(formatter.format(123456789.123), "123,456,789.123");
 
     parser = new NumberParse("en", "USD");
@@ -133,11 +133,11 @@ describe("NumberParse", function() {
     check("123,4", null);
 
     // This locale uses 'opposite' separators to the above, i.e. ',' and '.' have swapped roles
-    formatter = Intl.NumberFormat("de-AT", {useGrouping: true, currency: "EUR", style: "currency"});
+    formatter = Intl.NumberFormat("de-AT", { useGrouping: true, currency: "EUR", style: "currency" });
     assert.equal(formatter.format(123456789.123), '€ 123.456.789,12');
 
     // But only for currency amounts! Non-currency amounts use NBSP (non-breaking space) for the digit separator
-    formatter = Intl.NumberFormat("de-AT", {useGrouping: true});
+    formatter = Intl.NumberFormat("de-AT", { useGrouping: true });
     assert.equal(formatter.format(123456789.123), '123 456 789,123');
 
     parser = new NumberParse("de-AT", "EUR");
@@ -153,7 +153,7 @@ describe("NumberParse", function() {
     check("  123 456 789,123", 123456789.123);  // normal space
     check("  123 456 789,123", 123456789.123);  // NBSP
 
-    formatter = Intl.NumberFormat("af-ZA", {useGrouping: true});
+    formatter = Intl.NumberFormat("af-ZA", { useGrouping: true });
     assert.equal(formatter.format(123456789.123), '123 456 789,123');
 
     parser = new NumberParse("af-ZA", "ZAR");
@@ -182,17 +182,17 @@ describe("NumberParse", function() {
       isPercent: false,
     };
     assert.deepEqual(parser.parse("1"),
-      {result: 1, cleaned: "1", options: defaultOptions});
+      { result: 1, cleaned: "1", options: defaultOptions });
     assert.deepEqual(parser.parse("$1"),
-      {result: 1, cleaned: "1", options: {...defaultOptions, isCurrency: true}});
+      { result: 1, cleaned: "1", options: { ...defaultOptions, isCurrency: true } });
     assert.deepEqual(parser.parse("100%"),
-      {result: 1, cleaned: "100", options: {...defaultOptions, isPercent: true}});
+      { result: 1, cleaned: "100", options: { ...defaultOptions, isPercent: true } });
     assert.deepEqual(parser.parse("1,000"),
-      {result: 1000, cleaned: "1000", options: {...defaultOptions, hasDigitGroupSeparator: true}});
+      { result: 1000, cleaned: "1000", options: { ...defaultOptions, hasDigitGroupSeparator: true } });
     assert.deepEqual(parser.parse("1E2"),
-      {result: 100, cleaned: "1e2", options: {...defaultOptions, isScientific: true}});
+      { result: 100, cleaned: "1e2", options: { ...defaultOptions, isScientific: true } });
     assert.deepEqual(parser.parse("$1,000"),
-      {result: 1000, cleaned: "1000", options: {...defaultOptions, isCurrency: true, hasDigitGroupSeparator: true}});
+      { result: 1000, cleaned: "1000", options: { ...defaultOptions, isCurrency: true, hasDigitGroupSeparator: true } });
   });
 
   it("guesses formatting options", function() {
@@ -206,42 +206,42 @@ describe("NumberParse", function() {
     assert.deepEqual(parser.guessOptions(["1"]), {});
     assert.deepEqual(parser.guessOptions(["1", "", null, "abc"]), {});
 
-    assert.deepEqual(parser.guessOptions(["$1,000"]), {numMode: "currency", decimals: 0});
-    assert.deepEqual(parser.guessOptions(["1,000%"]), {numMode: "percent"});
-    assert.deepEqual(parser.guessOptions(["1,000"]), {numMode: "decimal"});
-    assert.deepEqual(parser.guessOptions(["1E2"]), {numMode: "scientific"});
+    assert.deepEqual(parser.guessOptions(["$1,000"]), { numMode: "currency", decimals: 0 });
+    assert.deepEqual(parser.guessOptions(["1,000%"]), { numMode: "percent" });
+    assert.deepEqual(parser.guessOptions(["1,000"]), { numMode: "decimal" });
+    assert.deepEqual(parser.guessOptions(["1E2"]), { numMode: "scientific" });
 
     // Choose the most common mode when there are several candidates
-    assert.deepEqual(parser.guessOptions(["$1", "$2", "3%"]), {numMode: "currency", decimals: 0});
-    assert.deepEqual(parser.guessOptions(["$1", "2%", "3%"]), {numMode: "percent"});
+    assert.deepEqual(parser.guessOptions(["$1", "$2", "3%"]), { numMode: "currency", decimals: 0 });
+    assert.deepEqual(parser.guessOptions(["$1", "2%", "3%"]), { numMode: "percent" });
 
-    assert.deepEqual(parser.guessOptions(["(2)"]), {numSign: 'parens'});
-    assert.deepEqual(parser.guessOptions(["(2)", "3"]), {numSign: 'parens'});
+    assert.deepEqual(parser.guessOptions(["(2)"]), { numSign: 'parens' });
+    assert.deepEqual(parser.guessOptions(["(2)", "3"]), { numSign: 'parens' });
     // If we see a negative number not surrounded by parens, assume that other parens mean something else
     assert.deepEqual(parser.guessOptions(["(2)", "-3"]), {});
-    assert.deepEqual(parser.guessOptions(["($2)"]), {numSign: 'parens', numMode: "currency", decimals: 0});
+    assert.deepEqual(parser.guessOptions(["($2)"]), { numSign: 'parens', numMode: "currency", decimals: 0 });
 
     // Guess 'decimal' (i.e. with thousands separators) even if most numbers don't have separators
-    assert.deepEqual(parser.guessOptions(["1", "10", "100", "1,000"]), {numMode: "decimal"});
+    assert.deepEqual(parser.guessOptions(["1", "10", "100", "1,000"]), { numMode: "decimal" });
 
     // For USD, currencies are formatted with minimum 2 decimal places by default,
     // so if the data doesn't have that many decimals we have to explicitly specify the number of decimals, default 0.
     // The number of digits for other currencies is defaultNumDecimalsCurrency, tested a bit further down.
-    assert.deepEqual(parser.guessOptions(["$1"]), {numMode: "currency", decimals: 0});
-    assert.deepEqual(parser.guessOptions(["$1.2"]), {numMode: "currency", decimals: 0});
-    assert.deepEqual(parser.guessOptions(["$1.23"]), {numMode: "currency"});
-    assert.deepEqual(parser.guessOptions(["$1.234"]), {numMode: "currency", maxDecimals: 3});
+    assert.deepEqual(parser.guessOptions(["$1"]), { numMode: "currency", decimals: 0 });
+    assert.deepEqual(parser.guessOptions(["$1.2"]), { numMode: "currency", decimals: 0 });
+    assert.deepEqual(parser.guessOptions(["$1.23"]), { numMode: "currency" });
+    assert.deepEqual(parser.guessOptions(["$1.234"]), { numMode: "currency", maxDecimals: 3 });
 
     // Otherwise decimal places are guessed based on trailing zeroes
-    assert.deepEqual(parser.guessOptions(["$1.0"]), {numMode: "currency", decimals: 1});
-    assert.deepEqual(parser.guessOptions(["$1.00"]), {numMode: "currency", decimals: 2});
-    assert.deepEqual(parser.guessOptions(["$1.000"]), {numMode: "currency", decimals: 3});
+    assert.deepEqual(parser.guessOptions(["$1.0"]), { numMode: "currency", decimals: 1 });
+    assert.deepEqual(parser.guessOptions(["$1.00"]), { numMode: "currency", decimals: 2 });
+    assert.deepEqual(parser.guessOptions(["$1.000"]), { numMode: "currency", decimals: 3 });
 
-    assert.deepEqual(parser.guessOptions(["1E2"]), {numMode: "scientific"});
-    assert.deepEqual(parser.guessOptions(["1.3E2"]), {numMode: "scientific"});
-    assert.deepEqual(parser.guessOptions(["1.34E2"]), {numMode: "scientific"});
-    assert.deepEqual(parser.guessOptions(["1.0E2"]), {numMode: "scientific", decimals: 1});
-    assert.deepEqual(parser.guessOptions(["1.30E2"]), {numMode: "scientific", decimals: 2});
+    assert.deepEqual(parser.guessOptions(["1E2"]), { numMode: "scientific" });
+    assert.deepEqual(parser.guessOptions(["1.3E2"]), { numMode: "scientific" });
+    assert.deepEqual(parser.guessOptions(["1.34E2"]), { numMode: "scientific" });
+    assert.deepEqual(parser.guessOptions(["1.0E2"]), { numMode: "scientific", decimals: 1 });
+    assert.deepEqual(parser.guessOptions(["1.30E2"]), { numMode: "scientific", decimals: 2 });
 
     assert.equal(parser.defaultNumDecimalsCurrency, 2);
     parser = new NumberParse("en", "TND");

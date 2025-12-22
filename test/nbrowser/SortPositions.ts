@@ -20,10 +20,10 @@ describe('SortPositions', function() {
     const rowHeaderTo = await driver.findContent('.gridview_data_row_num', new RegExp(`^${rowNumTo}$`));
     await driver.sendKeys(Key.ESCAPE);    // Ensure there is no row selection to begin with.
     await driver.withActions(actions => actions
-      .move({origin: rowHeaderFirst}).press()
-      .move({origin: rowHeaderSecond}).release()
-      .move({origin: rowHeaderFirst}).press()
-      .move({origin: rowHeaderTo}).release(),
+      .move({ origin: rowHeaderFirst }).press()
+      .move({ origin: rowHeaderSecond }).release()
+      .move({ origin: rowHeaderFirst }).press()
+      .move({ origin: rowHeaderTo }).release(),
     );
     await gu.waitForServer();
   }
@@ -45,7 +45,7 @@ describe('SortPositions', function() {
     await dragRows(2, 2, 4);
 
     // Check the updated contents of first 5 rows.
-    assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5]}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5] }), [
       '2015-01-12', 'Howard Washington', '-1745.53',
       '2015-01-20', 'Nyssa O\'Neil', '4011',
       '2015-01-21', 'Howard Washington', '77.3',
@@ -59,7 +59,7 @@ describe('SortPositions', function() {
     // Now move rows 4-5 to just before row 2.
     await dragRows(4, 5, 2);
 
-    assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5]}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5] }), [
       '2015-01-12', 'Howard Washington', '-1745.53',
       '2015-01-17', 'Howard Washington', '382.06',
       '2015-01-31', 'Howard Washington', '-19.02',
@@ -72,7 +72,7 @@ describe('SortPositions', function() {
 
   it('should allow updating sort positions in regular sorted tables', async function() {
     // TODO column options look weird if a multi-column range is initially selected.
-    await gu.getCell({col: 'Date', rowNum: 1}).click();
+    await gu.getCell({ col: 'Date', rowNum: 1 }).click();
 
     // Sort by date, and check that Update Data button is shown.
     await gu.openColumnMenu('Date', 'sort-asc');
@@ -89,7 +89,7 @@ describe('SortPositions', function() {
 
     // We are back to having no sort columns, but data is ordered by date.
     assert.deepEqual(await driver.findAll(".test-sort-config-column", el => el.getText()), []);
-    assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5]}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5] }), [
       '2015-01-12', 'Howard Washington', '-1745.53',
       '2015-01-17', 'Howard Washington', '382.06',
       '2015-01-20', 'Nyssa O\'Neil', '4011',
@@ -100,10 +100,10 @@ describe('SortPositions', function() {
 
   it('should not allow rearranging rows in unsorted summary tables', async function() {
     // Add a summary table.
-    await gu.addNewSection(/Table/, /Sheet1/, {summarize: [/Card_Member/]});
+    await gu.addNewSection(/Table/, /Sheet1/, { summarize: [/Card_Member/] });
 
     // Check the first few cells.
-    assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1], rowNums: [1, 2, 3]},
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1], rowNums: [1, 2, 3] },
     ), [
       'Howard Washington', '58',
       'Nyssa O\'Neil', '14',
@@ -117,8 +117,8 @@ describe('SortPositions', function() {
     const row3Header = await section.findContent('.gridview_data_row_num', /^3$/);
     await row2Header.click();
     await driver.withActions(actions => actions
-      .move({origin: row2Header}).press()
-      .move({origin: row3Header}).release(),
+      .move({ origin: row2Header }).press()
+      .move({ origin: row3Header }).release(),
     );
     await gu.waitForServer();
 
@@ -126,7 +126,7 @@ describe('SortPositions', function() {
     await gu.checkForErrors();
 
     // The rows haven't changed.
-    assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1], rowNums: [1, 2, 3]}), [
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1], rowNums: [1, 2, 3] }), [
       'Howard Washington', '58',
       'Nyssa O\'Neil', '14',
       'Callum Wilson', '12',
@@ -137,7 +137,7 @@ describe('SortPositions', function() {
     // Summary tables don't include a manualSort column and should not show "Update Data" button.
 
     // Sort by a column.
-    await gu.getCell({col: 'Card_Member', rowNum: 1}).click();
+    await gu.getCell({ col: 'Card_Member', rowNum: 1 }).click();
     await gu.openColumnMenu('Card_Member', 'sort-asc');
     await gu.toggleSidePanel('right', 'open');
     await driver.find('.test-right-tab-pagewidget').click();
@@ -155,10 +155,10 @@ describe('SortPositions', function() {
 
     before(async function() {
       mainSession = await gu.session().teamSite.user('user1').login();
-      docId = await mainSession.tempNewDoc(cleanup, 'SortPositions.grist', {load: false});
+      docId = await mainSession.tempNewDoc(cleanup, 'SortPositions.grist', { load: false });
       const api = mainSession.createHomeApi();
       await api.applyUserActions(docId, [
-        ['BulkAddRecord', 'Table1', [1, 2, 3, 4], {'A': ['a', 'b', 'c', 'd']}],
+        ['BulkAddRecord', 'Table1', [1, 2, 3, 4], { 'A': ['a', 'b', 'c', 'd'] }],
       ]);
     });
 
@@ -171,20 +171,20 @@ describe('SortPositions', function() {
       // of A and B is equal to A (because of imprecision of floats).
       await mainSession.createHomeApi().applyUserActions(docId, [
         ['ApplyDocActions', [
-          ['BulkUpdateRecord', 'Table1', [1, 2], {manualSort: [0.006602524127749098, 0.006602524127749099]}],
+          ['BulkUpdateRecord', 'Table1', [1, 2], { manualSort: [0.006602524127749098, 0.006602524127749099] }],
         ]],
       ]);
       await mainSession.loadDoc(`/doc/${docId}`);
 
       // Check that the initial data is as we set it up.
-      assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1, 2, 3, 4]}),
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0], rowNums: [1, 2, 3, 4] }),
         ['a', 'b', 'c', 'd']);
 
       // Drag row 3 ('c') to between 1 ('a') and 2 ('b').
       await dragRows(3, 3, 2);
 
       // Check that it worked.
-      assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1, 2, 3, 4]}),
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0], rowNums: [1, 2, 3, 4] }),
         ['a', 'c', 'b', 'd']);
 
       // Check that the repositioned row is the one selected
@@ -199,7 +199,7 @@ describe('SortPositions', function() {
       // Set regular old manualSort values.
       await mainSession.createHomeApi().applyUserActions(docId, [
         ['ApplyDocActions', [
-          ['BulkUpdateRecord', 'Table1', [1, 2, 3, 4], {manualSort: [1, 2, 3, 4]}],
+          ['BulkUpdateRecord', 'Table1', [1, 2, 3, 4], { manualSort: [1, 2, 3, 4] }],
         ]],
       ]);
       await mainSession.loadDoc(`/doc/${docId}`);
@@ -212,18 +212,18 @@ describe('SortPositions', function() {
       await driver.find('.test-filter-menu-apply-btn').click();
 
       // Check that the data is filtered
-      assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1, 2, 3]}), ['c', 'd', '']);
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0], rowNums: [1, 2, 3] }), ['c', 'd', '']);
 
       // Drag 'd' to before 'c'
       await dragRows(2, 2, 1);
 
-      assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1, 2, 3]}), ['d', 'c', '']);
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0], rowNums: [1, 2, 3] }), ['d', 'c', '']);
 
       // Reset the filters.
       await driver.find('.test-section-menu-small-btn-revert').click();
 
       // Check that 'd' is still immediately before 'c'.
-      assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1, 2, 3, 4]}), ['a', 'b', 'd', 'c']);
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0], rowNums: [1, 2, 3, 4] }), ['a', 'b', 'd', 'c']);
     });
   });
 
@@ -232,26 +232,26 @@ describe('SortPositions', function() {
       // Tests the fix of a bug that could prevent the rows in a sorted view from re-sorting
       // correctly.
       const mainSession = await gu.session().teamSite.user('user1').login();
-      const docId = await mainSession.tempNewDoc(cleanup, 'SortPositions_Bug.grist', {load: false});
+      const docId = await mainSession.tempNewDoc(cleanup, 'SortPositions_Bug.grist', { load: false });
       const api = mainSession.createHomeApi();
       await api.applyUserActions(docId, [
-        ['BulkAddRecord', 'Table1', [1, 2, 3], {'A': [10, 30, 20]}],
+        ['BulkAddRecord', 'Table1', [1, 2, 3], { 'A': [10, 30, 20] }],
       ]);
 
       await mainSession.loadDoc(`/doc/${docId}`);
 
       // Sort by column A: it now show rowIds 1, 3, 2.
       await gu.openColumnMenu('A', 'sort-asc');
-      assert.deepEqual(await gu.getVisibleGridCells({cols: ['A'], rowNums: [1, 2, 3]}), ['10', '20', '30']);
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: ['A'], rowNums: [1, 2, 3] }), ['10', '20', '30']);
 
       // Update rows 1 and 2 (first and last) in a way that keeps the newly-first row (2) in the
       // right place relative to its neighbor.
       await api.applyUserActions(docId, [
-        ['BulkUpdateRecord', 'Table1', [1, 2], {'A': [25, 24]}],
+        ['BulkUpdateRecord', 'Table1', [1, 2], { 'A': [25, 24] }],
       ]);
 
       await gu.waitToPass(async () =>
-        assert.deepEqual(await gu.getVisibleGridCells({cols: ['A'], rowNums: [1, 2, 3]}), ['20', '24', '25']));
+        assert.deepEqual(await gu.getVisibleGridCells({ cols: ['A'], rowNums: [1, 2, 3] }), ['20', '24', '25']));
     });
   });
 });

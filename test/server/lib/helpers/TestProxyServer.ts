@@ -1,4 +1,4 @@
-import {serveSomething, Serving} from "test/server/customUtil";
+import { serveSomething, Serving } from "test/server/customUtil";
 import * as express from "express";
 import axios from "axios";
 

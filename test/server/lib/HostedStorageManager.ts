@@ -1,10 +1,10 @@
-import {ErrorOrValue, freezeError, mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
+import { ErrorOrValue, freezeError, mapGetOrSet, MapWithTTL } from 'app/common/AsyncCreate';
 import { delay } from 'app/common/delay';
-import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
-import {SCHEMA_VERSION} from 'app/common/schema';
-import {DocWorkerMap, getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import { ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata } from 'app/common/DocSnapshot';
+import { SCHEMA_VERSION } from 'app/common/schema';
+import { DocWorkerMap, getDocWorkerMap } from 'app/gen-server/lib/DocWorkerMap';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
 import {
   AttachmentStoreProvider,
   IAttachmentStoreProvider,
@@ -14,10 +14,10 @@ import {
   backupSqliteDatabase,
   retryOnClose,
 } from 'app/server/lib/backupSqliteDatabase';
-import {create} from 'app/server/lib/create';
-import {DocManager} from 'app/server/lib/DocManager';
-import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
-import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
+import { create } from 'app/server/lib/create';
+import { DocManager } from 'app/server/lib/DocManager';
+import { makeExceptionalDocSession } from 'app/server/lib/DocSession';
+import { IDocWorkerMap } from 'app/server/lib/DocWorkerMap';
 import {
   DELETED_TOKEN,
   ExternalStorage, ExternalStorageCreator,
@@ -30,21 +30,21 @@ import {
   HostedStorageOptions,
 } from 'app/server/lib/HostedStorageManager';
 import log from 'app/server/lib/log';
-import {SQLiteDB} from 'app/server/lib/SQLiteDB';
-import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
-import {createTmpDir, getGlobalPluginManager} from 'test/server/docTools';
-import {EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc} from 'test/server/testUtils';
-import {waitForIt} from 'test/server/wait';
+import { SQLiteDB } from 'app/server/lib/SQLiteDB';
+import { createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed';
+import { createTmpDir, getGlobalPluginManager } from 'test/server/docTools';
+import { EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc } from 'test/server/testUtils';
+import { waitForIt } from 'test/server/wait';
 
 import * as bluebird from 'bluebird';
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as fse from 'fs-extra';
 import * as minio from 'minio';
 import * as path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
-import {createClient, RedisClient} from 'redis';
+import { createClient, RedisClient } from 'redis';
 import * as sinon from 'sinon';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 bluebird.promisifyAll(RedisClient.prototype);
 
@@ -83,7 +83,7 @@ class SimpleExternalStorage implements ExternalStorage {
       snapshotId: id,
       lastModified: new Date().toISOString(),
     };
-    this._metadata.set(id, {...info, ...metadata && {metadata}});
+    this._metadata.set(id, { ...info, ...metadata && { metadata } });
     const versions = this._version.get(key) || [];
     versions.unshift(info);
     this._version.set(key, versions);
@@ -451,7 +451,7 @@ describe('HostedStorageManager', function() {
             ext = new CachedExternalStorage(ext, 1000);
             ext = new SlowExternalStorage(ext, 250);
             // Everything is stored in fields of these objects, so the tests mustn't recreate them repeatedly.
-            externalStorageCreate = purpose => wrapWithKeyMappedStorage(ext, {purpose, basePrefix: 'prefix'});
+            externalStorageCreate = purpose => wrapWithKeyMappedStorage(ext, { purpose, basePrefix: 'prefix' });
             break;
           }
           case 'azure':
@@ -744,7 +744,7 @@ describe('HostedStorageManager', function() {
         await workers.assignDocWorker(docId);
 
         await store.run(async () => {
-          const markAsChanged: {callCount: number} = store.storageManager.markAsChanged as any;
+          const markAsChanged: { callCount: number } = store.storageManager.markAsChanged as any;
 
           const changesInitial = markAsChanged.callCount;
           let doc = await store.docManager.fetchDoc(docSession, docId);
@@ -792,7 +792,7 @@ describe('HostedStorageManager', function() {
         // Check that the trunk can be replaced by a fork
         await store.removeAll();
         await store.run(async () => {
-          await store.storageManager.replace(docId, {sourceDocId: forkId});
+          await store.storageManager.replace(docId, { sourceDocId: forkId });
           const doc = await store.docManager.fetchDoc(docSession, docId);
           assert.equal('fork', (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
         });
@@ -854,7 +854,7 @@ describe('HostedStorageManager', function() {
           return doc;
         });
 
-        const {snapshots} = await store.storageManager.getSnapshots(doc.docName);
+        const { snapshots } = await store.storageManager.getSnapshots(doc.docName);
         assert.isAtLeast(snapshots.length, forks + 1);  // May be 1 greater depending on how long
         // it takes to run initial migrations.
         await store.run(async () => {
@@ -886,9 +886,9 @@ describe('HostedStorageManager', function() {
           );
 
           // Check that the document is actually a snapshot.
-          await assert.isRejected(doc.replace(docSession, {sourceDocId: 'docId'}),
+          await assert.isRejected(doc.replace(docSession, { sourceDocId: 'docId' }),
             /Snapshots cannot be replaced/);
-          await assert.isRejected(doc.applyUserActions(docSession, [['AddTable', 'NewTable', [{id: 'A'}]]]),
+          await assert.isRejected(doc.applyUserActions(docSession, [['AddTable', 'NewTable', [{ id: 'A' }]]]),
             /pyCall is not available in snapshots/);
         });
       });
@@ -909,7 +909,7 @@ describe('HostedStorageManager', function() {
           return doc;
         });
         await waitForIt(async () => {
-          const {snapshots} = await store.storageManager.getSnapshots(doc.docName);
+          const { snapshots } = await store.storageManager.getSnapshots(doc.docName);
           // Should be keeping at least five, and then maybe 1 more if the hour changed
           // during the test.
           assert.isAtMost(snapshots.length, 6);
@@ -980,7 +980,7 @@ describe('HostedStorageManager', function() {
           await store.docManager.makeBackup(doc, 'hello');
           return { tz, h, doc };
         });
-        const {snapshots} = await store.storageManager.getSnapshots(doc.docName);
+        const { snapshots } = await store.storageManager.getSnapshots(doc.docName);
         assert.equal(snapshots[0]?.metadata?.label, 'hello');
         // There can be extra snapshots, depending on timing.
         const prevSnapshotWithLabel = snapshots.find((s, idx) => idx > 0 && s.metadata?.label);
@@ -1183,14 +1183,14 @@ describe('HostedStorageManager', function() {
         }
         await stmt.finalize();
       });
-      return {src, dest, db};
+      return { src, dest, db };
     }
 
     // If competing with intense user writes, backups should pause writes.
     it(`backups will make time for themselves if competing with writes`, async function() {
       this.timeout('10s');
       for (const allowPause of [false, true] as const) {
-        const {db, src, dest} = await makeDb(1000);
+        const { db, src, dest } = await makeDb(1000);
         let busy = 0;
         let done = false;
         function progress(event: BackupEvent) {
@@ -1244,7 +1244,7 @@ describe('HostedStorageManager', function() {
         // Takes some time to create large db and play with it.
         this.timeout('30s');
 
-        const {db, src, dest} = await makeDb(30000);
+        const { db, src, dest } = await makeDb(30000);
         const stat = await fse.stat(src);
         assert(stat.size > 150 * 1000 * 1000);
         let done: boolean = false;

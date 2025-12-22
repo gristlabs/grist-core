@@ -1,6 +1,6 @@
-import {makeT} from 'app/client/lib/localization';
-import {menuItem, menuSubHeader} from 'app/client/ui2018/menus';
-import {dom} from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { menuItem, menuSubHeader } from 'app/client/ui2018/menus';
+import { dom } from 'grainjs';
 
 interface IFieldOptions {
   useSeparate: () => void;

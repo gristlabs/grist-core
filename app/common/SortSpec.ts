@@ -107,7 +107,7 @@ export namespace Sort {
     if (!match) {
       throw new Error("Error parsing sort expression " + colString);
     }
-    const {sign, colRef, flag} = match.groups || {};
+    const { sign, colRef, flag } = match.groups || {};
     const flags = flag?.split(";");
     return onlyDefined({
       colRef: maybeNumber(colRef),
@@ -221,7 +221,7 @@ export namespace Sort {
       return colSpec >= 0 ? colRef : -colRef;
     }
     const spec = parseColSpec(colSpec);
-    return detailsToSpec({...spec, colRef});
+    return detailsToSpec({ ...spec, colRef });
   }
 
   /**

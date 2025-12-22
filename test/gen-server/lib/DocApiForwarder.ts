@@ -88,7 +88,7 @@ describe('DocApiForwarder', function() {
     // create and register forwarder
     const docApiForwarder = new DocApiForwarder(docWorkerMapStub, dbManager, null as any);
     app.use("/api", addRequestUser.bind(null, dbManager, getDocWorkerMap().getPermitStore('internal'),
-      {gristServer: createDummyGristServer()} as any));
+      { gristServer: createDummyGristServer() } as any));
     docApiForwarder.addEndpoints(app);
     app.use('/api', jsonErrorHandler);
   });
@@ -118,7 +118,7 @@ describe('DocApiForwarder', function() {
   });
 
   it('should forward GET /api/docs/:did/tables/:tid/data?filter=<...>', async function() {
-    const filter = encodeURIComponent(JSON.stringify({FOO: ['bar']})); // => %7B%22FOO%22%3A%5B%22bar%22%5D%7D
+    const filter = encodeURIComponent(JSON.stringify({ FOO: ['bar'] })); // => %7B%22FOO%22%3A%5B%22bar%22%5D%7D
     resp = await axios.get(`${homeUrl}/api/docs/sampledocid_16/tables/table1/data?filter=${filter}`, chimpy);
     assert.equal(resp.status, 200);
     assert.equal(resp.data, 'mango tree');
@@ -134,12 +134,12 @@ describe('DocApiForwarder', function() {
   it('should deny user without view permissions', async function() {
     resp = await axios.get(`${homeUrl}/api/docs/sampledocid_13/tables/table1/data`, kiwi);
     assert.equal(resp.status, 403);
-    assert.deepEqual(resp.data, {error: 'No view access'});
+    assert.deepEqual(resp.data, { error: 'No view access' });
     assert.equal(docWorkerStub.callCount, 0);
   });
 
   it('should forward POST /api/docs/:did/tables/:tid/data', async function() {
-    resp = await axios.post(`${homeUrl}/api/docs/sampledocid_16/tables/table1/data`, {message: 'golden pears'}, chimpy);
+    resp = await axios.post(`${homeUrl}/api/docs/sampledocid_16/tables/table1/data`, { message: 'golden pears' }, chimpy);
     assert.equal(resp.status, 200);
     assert.equal(resp.data, 'mango tree');
     assert(docWorkerStub.calledOnce);
@@ -148,12 +148,12 @@ describe('DocApiForwarder', function() {
     assert.equal(req.get('Content-Type'), 'application/json');
     assert.equal(req.originalUrl, '/dw/foo/api/docs/sampledocid_16/tables/table1/data');
     assert.equal(req.method, 'POST');
-    assert.deepEqual(req.body, {message: 'golden pears'});
+    assert.deepEqual(req.body, { message: 'golden pears' });
   });
 
   it('should forward PATCH /api/docs/:did/tables/:tid/data', async function() {
     resp = await axios.patch(`${homeUrl}/api/docs/sampledocid_16/tables/table1/data`,
-      {message: 'golden pears'}, chimpy);
+      { message: 'golden pears' }, chimpy);
     assert.equal(resp.status, 200);
     assert.equal(resp.data, 'mango tree');
     assert(docWorkerStub.calledOnce);
@@ -162,14 +162,14 @@ describe('DocApiForwarder', function() {
     assert.equal(req.get('Content-Type'), 'application/json');
     assert.equal(req.originalUrl, '/dw/foo/api/docs/sampledocid_16/tables/table1/data');
     assert.equal(req.method, 'PATCH');
-    assert.deepEqual(req.body, {message: 'golden pears'});
+    assert.deepEqual(req.body, { message: 'golden pears' });
   });
 
   it('should forward POST /api/docs/:did/attachments', async function() {
     const formData = new FormData();
     formData.append('upload', 'abcdef', "hello.png");
     resp = await axios.post(`${homeUrl}/api/docs/sampledocid_16/attachments`, formData,
-      defaultsDeep({headers: formData.getHeaders()}, chimpy));
+      defaultsDeep({ headers: formData.getHeaders() }, chimpy));
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.headers['content-type'], 'application/json; charset=utf-8');
     assert.deepEqual(resp.data, 'mango tree');
@@ -203,10 +203,10 @@ describe('DocApiForwarder', function() {
   });
 
   it('should forward error message on failure', async function() {
-    docWorkerStub.callsFake((_req: any, res: any) => res.status(500).send({error: 'internal error'}));
+    docWorkerStub.callsFake((_req: any, res: any) => res.status(500).send({ error: 'internal error' }));
     resp = await axios.get(`${homeUrl}/api/docs/sampledocid_16/tables/table1/data`, chimpy);
     assert.equal(resp.status, 500);
-    assert.deepEqual(resp.data, {error: 'internal error'});
+    assert.deepEqual(resp.data, { error: 'internal error' });
     assert(docWorkerStub.calledOnce);
     const req = docWorkerStub.getCall(0).args[0];
     assert.equal(req.get('Authorization'), 'Bearer api_key_for_chimpy');
@@ -234,7 +234,7 @@ describe('DocApiForwarder', function() {
     const CancelToken = axios.CancelToken;
     const source = CancelToken.source();
     const response = axios.get(`${homeUrl}/api/docs/sampledocid_16/tables/table1/data`,
-      {...chimpy, cancelToken: source.token});
+      { ...chimpy, cancelToken: source.token });
     await promiseForRequestReceived;
     source.cancel('cancelled for testing');
     await assert.isRejected(response, /cancelled for testing/);

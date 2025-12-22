@@ -1,12 +1,12 @@
-import {cleanFormLayoutSpec, FormLayoutNode} from 'app/client/components/FormRenderer';
-import {TypedFormData, typedFormDataToJson} from 'app/client/lib/formUtils';
-import {makeT} from 'app/client/lib/localization';
-import {getHomeUrl} from 'app/client/models/AppModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {Form, FormAPI, FormAPIImpl} from 'app/client/ui/FormAPI';
-import {ApiError} from 'app/common/ApiError';
-import {safeJsonParse} from 'app/common/gutil';
-import {bundleChanges, Computed, Disposable, Observable} from 'grainjs';
+import { cleanFormLayoutSpec, FormLayoutNode } from 'app/client/components/FormRenderer';
+import { TypedFormData, typedFormDataToJson } from 'app/client/lib/formUtils';
+import { makeT } from 'app/client/lib/localization';
+import { getHomeUrl } from 'app/client/models/AppModel';
+import { urlState } from 'app/client/models/gristUrlState';
+import { Form, FormAPI, FormAPIImpl } from 'app/client/ui/FormAPI';
+import { ApiError } from 'app/common/ApiError';
+import { safeJsonParse } from 'app/common/gutil';
+import { bundleChanges, Computed, Disposable, Observable } from 'grainjs';
 
 const t = makeT('FormModel');
 
@@ -114,21 +114,21 @@ export class FormModelImpl extends Disposable implements FormModel {
   }
 
   private _getFetchFormParams() {
-    const {form} = urlState().state.get();
+    const { form } = urlState().state.get();
     if (!form) { throw new Error('invalid urlState: undefined "form"'); }
 
-    return {...this._getDocIdOrShareKeyParam(), vsId: form.vsId};
+    return { ...this._getDocIdOrShareKeyParam(), vsId: form.vsId };
   }
 
   private _getDocIdOrShareKeyParam() {
-    const {doc, form} = urlState().state.get();
+    const { doc, form } = urlState().state.get();
     if (!form) { throw new Error('invalid urlState: undefined "form"'); }
 
     if (doc) {
-      return {docId: doc};
+      return { docId: doc };
     }
     else if (form.shareKey) {
-      return {shareKey: form.shareKey};
+      return { shareKey: form.shareKey };
     }
     else {
       throw new Error('invalid urlState: undefined "doc" or "shareKey"');

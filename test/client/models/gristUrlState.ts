@@ -1,10 +1,10 @@
-import {HistWindow, UrlState} from 'app/client/lib/UrlState';
-import {UrlStateImpl} from 'app/client/models/gristUrlState';
-import {IGristUrlState} from 'app/common/gristUrls';
-import {assert} from 'chai';
-import {dom} from 'grainjs';
-import {popGlobals, pushGlobals} from 'grainjs/dist/cjs/lib/browserGlobals';
-import {JSDOM} from 'jsdom';
+import { HistWindow, UrlState } from 'app/client/lib/UrlState';
+import { UrlStateImpl } from 'app/client/models/gristUrlState';
+import { IGristUrlState } from 'app/common/gristUrls';
+import { assert } from 'chai';
+import { dom } from 'grainjs';
+import { popGlobals, pushGlobals } from 'grainjs/dist/cjs/lib/browserGlobals';
+import { JSDOM } from 'jsdom';
 import clone from 'lodash/clone';
 import merge from 'lodash/merge';
 import omit from 'lodash/omit';
@@ -19,10 +19,10 @@ function assertResetCall(spy: sinon.SinonSpy, ...args: any[]): void {
 describe('gristUrlState', function() {
   let mockWindow: HistWindow;
   // TODO add a test case where org is set, but isSingleOrg is false.
-  const prod = new UrlStateImpl({gristConfig: {org: undefined, baseDomain: '.example.com', pathOnly: false}});
-  const dev = new UrlStateImpl({gristConfig: {org: undefined, pathOnly: true}});
-  const single = new UrlStateImpl({gristConfig: {org: 'mars', singleOrg: 'mars', pathOnly: false}});
-  const custom = new UrlStateImpl({gristConfig: {org: 'mars', baseDomain: '.example.com'}});
+  const prod = new UrlStateImpl({ gristConfig: { org: undefined, baseDomain: '.example.com', pathOnly: false } });
+  const dev = new UrlStateImpl({ gristConfig: { org: undefined, pathOnly: true } });
+  const single = new UrlStateImpl({ gristConfig: { org: 'mars', singleOrg: 'mars', pathOnly: false } });
+  const custom = new UrlStateImpl({ gristConfig: { org: 'mars', baseDomain: '.example.com' } });
 
   function pushState(state: any, title: any, href: string) {
     mockWindow.location = new URL(href) as unknown as Location;
@@ -33,7 +33,7 @@ describe('gristUrlState', function() {
   beforeEach(function() {
     mockWindow = {
       location: new URL('http://localhost:8080') as unknown as Location,
-      history: {pushState} as History,
+      history: { pushState } as History,
       addEventListener: () => undefined,
       removeEventListener: () => undefined,
       dispatchEvent: () => true,
@@ -50,59 +50,59 @@ describe('gristUrlState', function() {
 
   it('should decode state in URLs correctly', function() {
     assert.deepEqual(prod.decodeUrl(new URL('http://localhost:8080')), {});
-    assert.deepEqual(prod.decodeUrl(new URL('http://localhost:8080/ws/12')), {ws: 12});
-    assert.deepEqual(prod.decodeUrl(new URL('http://localhost:8080/o/foo/ws/12/')), {org: 'foo', ws: 12});
+    assert.deepEqual(prod.decodeUrl(new URL('http://localhost:8080/ws/12')), { ws: 12 });
+    assert.deepEqual(prod.decodeUrl(new URL('http://localhost:8080/o/foo/ws/12/')), { org: 'foo', ws: 12 });
     assert.deepEqual(prod.decodeUrl(new URL('http://localhost:8080/o/foo/doc/bar/p/5')),
-      {org: 'foo', doc: 'bar', docPage: 5});
+      { org: 'foo', doc: 'bar', docPage: 5 });
 
     assert.deepEqual(dev.decodeUrl(new URL('http://localhost:8080')), {});
-    assert.deepEqual(dev.decodeUrl(new URL('http://localhost:8080/ws/12')), {ws: 12});
-    assert.deepEqual(dev.decodeUrl(new URL('http://localhost:8080/o/foo/ws/12/')), {org: 'foo', ws: 12});
+    assert.deepEqual(dev.decodeUrl(new URL('http://localhost:8080/ws/12')), { ws: 12 });
+    assert.deepEqual(dev.decodeUrl(new URL('http://localhost:8080/o/foo/ws/12/')), { org: 'foo', ws: 12 });
     assert.deepEqual(dev.decodeUrl(new URL('http://localhost:8080/o/foo/doc/bar/p/5')),
-      {org: 'foo', doc: 'bar', docPage: 5});
+      { org: 'foo', doc: 'bar', docPage: 5 });
 
-    assert.deepEqual(single.decodeUrl(new URL('http://localhost:8080')), {org: 'mars'});
-    assert.deepEqual(single.decodeUrl(new URL('http://localhost:8080/ws/12')), {org: 'mars', ws: 12});
-    assert.deepEqual(single.decodeUrl(new URL('http://localhost:8080/o/foo/ws/12/')), {org: 'foo', ws: 12});
+    assert.deepEqual(single.decodeUrl(new URL('http://localhost:8080')), { org: 'mars' });
+    assert.deepEqual(single.decodeUrl(new URL('http://localhost:8080/ws/12')), { org: 'mars', ws: 12 });
+    assert.deepEqual(single.decodeUrl(new URL('http://localhost:8080/o/foo/ws/12/')), { org: 'foo', ws: 12 });
     assert.deepEqual(single.decodeUrl(new URL('http://localhost:8080/o/foo/doc/bar/p/5')),
-      {org: 'foo', doc: 'bar', docPage: 5});
+      { org: 'foo', doc: 'bar', docPage: 5 });
 
-    assert.deepEqual(prod.decodeUrl(new URL('https://bar.example.com')), {org: 'bar'});
-    assert.deepEqual(prod.decodeUrl(new URL('https://bar.example.com/ws/12/')), {org: 'bar', ws: 12});
-    assert.deepEqual(prod.decodeUrl(new URL('https://foo.example.com/o/baz/ws/12')), {org: 'baz', ws: 12});
-    assert.deepEqual(prod.decodeUrl(new URL('https://foo.example.com/')), {org: 'foo'});
+    assert.deepEqual(prod.decodeUrl(new URL('https://bar.example.com')), { org: 'bar' });
+    assert.deepEqual(prod.decodeUrl(new URL('https://bar.example.com/ws/12/')), { org: 'bar', ws: 12 });
+    assert.deepEqual(prod.decodeUrl(new URL('https://foo.example.com/o/baz/ws/12')), { org: 'baz', ws: 12 });
+    assert.deepEqual(prod.decodeUrl(new URL('https://foo.example.com/')), { org: 'foo' });
 
     assert.deepEqual(dev.decodeUrl(new URL('https://bar.example.com')), {});
-    assert.deepEqual(dev.decodeUrl(new URL('https://bar.example.com/ws/12/')), {ws: 12});
-    assert.deepEqual(dev.decodeUrl(new URL('https://foo.example.com/o/baz/ws/12')), {org: 'baz', ws: 12});
+    assert.deepEqual(dev.decodeUrl(new URL('https://bar.example.com/ws/12/')), { ws: 12 });
+    assert.deepEqual(dev.decodeUrl(new URL('https://foo.example.com/o/baz/ws/12')), { org: 'baz', ws: 12 });
     assert.deepEqual(dev.decodeUrl(new URL('https://foo.example.com/')), {});
 
-    assert.deepEqual(single.decodeUrl(new URL('https://bar.example.com')), {org: 'mars'});
-    assert.deepEqual(single.decodeUrl(new URL('https://bar.example.com/ws/12/')), {org: 'mars', ws: 12});
-    assert.deepEqual(single.decodeUrl(new URL('https://foo.example.com/o/baz/ws/12')), {org: 'baz', ws: 12});
-    assert.deepEqual(single.decodeUrl(new URL('https://foo.example.com/')), {org: 'mars'});
+    assert.deepEqual(single.decodeUrl(new URL('https://bar.example.com')), { org: 'mars' });
+    assert.deepEqual(single.decodeUrl(new URL('https://bar.example.com/ws/12/')), { org: 'mars', ws: 12 });
+    assert.deepEqual(single.decodeUrl(new URL('https://foo.example.com/o/baz/ws/12')), { org: 'baz', ws: 12 });
+    assert.deepEqual(single.decodeUrl(new URL('https://foo.example.com/')), { org: 'mars' });
 
     // Trash page
-    assert.deepEqual(prod.decodeUrl(new URL('https://bar.example.com/p/trash')), {org: 'bar', homePage: 'trash'});
+    assert.deepEqual(prod.decodeUrl(new URL('https://bar.example.com/p/trash')), { org: 'bar', homePage: 'trash' });
 
     // Billing routes
     assert.deepEqual(prod.decodeUrl(new URL('https://bar.example.com/o/baz/billing')),
-      {org: 'baz', billing: 'billing'});
+      { org: 'baz', billing: 'billing' });
 
     // API routes
     assert.deepEqual(prod.decodeUrl(new URL('https://bar.example.com/api/docs/bar')),
-      {org: 'bar', doc: 'bar', api: true});
+      { org: 'bar', doc: 'bar', api: true });
     assert.deepEqual(prod.decodeUrl(new URL('http://localhost:8080/o/baz/api/docs/bar')),
-      {org: 'baz', doc: 'bar', api: true});
+      { org: 'baz', doc: 'bar', api: true });
   });
 
   it('should decode query strings in URLs correctly', function() {
     assert.deepEqual(prod.decodeUrl(new URL('https://bar.example.com?billingPlan=a')),
-      {org: 'bar', params: {billingPlan: 'a'}});
+      { org: 'bar', params: { billingPlan: 'a' } });
     assert.deepEqual(prod.decodeUrl(new URL('https://foo.example.com/o/baz/ws/12?billingPlan=b')),
-      {org: 'baz', ws: 12, params: {billingPlan: 'b'}});
+      { org: 'baz', ws: 12, params: { billingPlan: 'b' } });
     assert.deepEqual(prod.decodeUrl(new URL('https://bar.example.com/o/foo/doc/bar/p/5?billingPlan=e')),
-      {org: 'foo', doc: 'bar', docPage: 5, params: {billingPlan: 'e'}});
+      { org: 'foo', doc: 'bar', docPage: 5, params: { billingPlan: 'e' } });
   });
 
   it('should encode state in URLs correctly', function() {
@@ -111,42 +111,42 @@ describe('gristUrlState', function() {
     const hostBase = new URL('https://bar.example.com');
 
     assert.equal(prod.encodeUrl({}, hostBase), 'https://bar.example.com/');
-    assert.equal(prod.encodeUrl({org: 'foo'}, hostBase), 'https://foo.example.com/');
-    assert.equal(prod.encodeUrl({ws: 12}, hostBase), 'https://bar.example.com/ws/12/');
-    assert.equal(prod.encodeUrl({org: 'foo', ws: 12}, hostBase), 'https://foo.example.com/ws/12/');
+    assert.equal(prod.encodeUrl({ org: 'foo' }, hostBase), 'https://foo.example.com/');
+    assert.equal(prod.encodeUrl({ ws: 12 }, hostBase), 'https://bar.example.com/ws/12/');
+    assert.equal(prod.encodeUrl({ org: 'foo', ws: 12 }, hostBase), 'https://foo.example.com/ws/12/');
 
-    assert.equal(dev.encodeUrl({ws: 12}, hostBase), 'https://bar.example.com/ws/12/');
-    assert.equal(dev.encodeUrl({org: 'foo', ws: 12}, hostBase), 'https://bar.example.com/o/foo/ws/12/');
+    assert.equal(dev.encodeUrl({ ws: 12 }, hostBase), 'https://bar.example.com/ws/12/');
+    assert.equal(dev.encodeUrl({ org: 'foo', ws: 12 }, hostBase), 'https://bar.example.com/o/foo/ws/12/');
 
-    assert.equal(single.encodeUrl({ws: 12}, hostBase), 'https://bar.example.com/ws/12/');
-    assert.equal(single.encodeUrl({org: 'foo', ws: 12}, hostBase), 'https://bar.example.com/o/foo/ws/12/');
+    assert.equal(single.encodeUrl({ ws: 12 }, hostBase), 'https://bar.example.com/ws/12/');
+    assert.equal(single.encodeUrl({ org: 'foo', ws: 12 }, hostBase), 'https://bar.example.com/o/foo/ws/12/');
 
-    assert.equal(prod.encodeUrl({ws: 12}, localBase), 'http://localhost:8080/ws/12/');
-    assert.equal(prod.encodeUrl({org: 'foo', ws: 12}, localBase), 'http://localhost:8080/o/foo/ws/12/');
-    assert.equal(prod.encodeUrl({org: 'foo', doc: 'bar'}, localBase), 'http://localhost:8080/o/foo/doc/bar');
-    assert.equal(prod.encodeUrl({org: 'foo', doc: 'bar', docPage: 2}, localBase),
+    assert.equal(prod.encodeUrl({ ws: 12 }, localBase), 'http://localhost:8080/ws/12/');
+    assert.equal(prod.encodeUrl({ org: 'foo', ws: 12 }, localBase), 'http://localhost:8080/o/foo/ws/12/');
+    assert.equal(prod.encodeUrl({ org: 'foo', doc: 'bar' }, localBase), 'http://localhost:8080/o/foo/doc/bar');
+    assert.equal(prod.encodeUrl({ org: 'foo', doc: 'bar', docPage: 2 }, localBase),
       'http://localhost:8080/o/foo/doc/bar/p/2');
 
-    assert.equal(dev.encodeUrl({ws: 12}, localBase), 'http://localhost:8080/ws/12/');
-    assert.equal(dev.encodeUrl({org: 'foo', ws: 12}, localBase), 'http://localhost:8080/o/foo/ws/12/');
-    assert.equal(dev.encodeUrl({org: 'foo', doc: 'bar'}, localBase), 'http://localhost:8080/o/foo/doc/bar');
+    assert.equal(dev.encodeUrl({ ws: 12 }, localBase), 'http://localhost:8080/ws/12/');
+    assert.equal(dev.encodeUrl({ org: 'foo', ws: 12 }, localBase), 'http://localhost:8080/o/foo/ws/12/');
+    assert.equal(dev.encodeUrl({ org: 'foo', doc: 'bar' }, localBase), 'http://localhost:8080/o/foo/doc/bar');
 
-    assert.equal(single.encodeUrl({ws: 12}, localBase), 'http://localhost:8080/ws/12/');
-    assert.equal(single.encodeUrl({org: 'foo', ws: 12}, localBase), 'http://localhost:8080/o/foo/ws/12/');
-    assert.equal(single.encodeUrl({org: 'foo', doc: 'bar'}, localBase), 'http://localhost:8080/o/foo/doc/bar');
+    assert.equal(single.encodeUrl({ ws: 12 }, localBase), 'http://localhost:8080/ws/12/');
+    assert.equal(single.encodeUrl({ org: 'foo', ws: 12 }, localBase), 'http://localhost:8080/o/foo/ws/12/');
+    assert.equal(single.encodeUrl({ org: 'foo', doc: 'bar' }, localBase), 'http://localhost:8080/o/foo/doc/bar');
 
     // homePage values, including the "Trash" page
-    assert.equal(prod.encodeUrl({homePage: 'trash'}, localBase), 'http://localhost:8080/p/trash');
-    assert.equal(prod.encodeUrl({homePage: 'all'}, localBase), 'http://localhost:8080/');
-    assert.equal(prod.encodeUrl({homePage: 'workspace', ws: 12}, localBase), 'http://localhost:8080/ws/12/');
+    assert.equal(prod.encodeUrl({ homePage: 'trash' }, localBase), 'http://localhost:8080/p/trash');
+    assert.equal(prod.encodeUrl({ homePage: 'all' }, localBase), 'http://localhost:8080/');
+    assert.equal(prod.encodeUrl({ homePage: 'workspace', ws: 12 }, localBase), 'http://localhost:8080/ws/12/');
 
     // Billing routes
-    assert.equal(prod.encodeUrl({org: 'baz', billing: 'billing'}, hostBase),
+    assert.equal(prod.encodeUrl({ org: 'baz', billing: 'billing' }, hostBase),
       'https://baz.example.com/billing');
 
     // API routes
-    assert.equal(prod.encodeUrl({org: 'baz', doc: 'bar', api: true}, hostBase), 'https://baz.example.com/api/docs/bar');
-    assert.equal(prod.encodeUrl({org: 'baz', doc: 'bar', api: true}, localBase),
+    assert.equal(prod.encodeUrl({ org: 'baz', doc: 'bar', api: true }, hostBase), 'https://baz.example.com/api/docs/bar');
+    assert.equal(prod.encodeUrl({ org: 'baz', doc: 'bar', api: true }, localBase),
       'http://localhost:8080/o/baz/api/docs/bar');
   });
 
@@ -154,11 +154,11 @@ describe('gristUrlState', function() {
 
     const hostBase = new URL('https://bar.example.com');
 
-    assert.equal(prod.encodeUrl({params: {billingPlan: 'a'}}, hostBase),
+    assert.equal(prod.encodeUrl({ params: { billingPlan: 'a' } }, hostBase),
       'https://bar.example.com/?billingPlan=a');
-    assert.equal(prod.encodeUrl({ws: 12, params: {billingPlan: 'b'}}, hostBase),
+    assert.equal(prod.encodeUrl({ ws: 12, params: { billingPlan: 'b' } }, hostBase),
       'https://bar.example.com/ws/12/?billingPlan=b');
-    assert.equal(prod.encodeUrl({org: 'foo', doc: 'bar', docPage: 5, params: {billingPlan: 'e'}}, hostBase),
+    assert.equal(prod.encodeUrl({ org: 'foo', doc: 'bar', docPage: 5, params: { billingPlan: 'e' } }, hostBase),
       'https://foo.example.com/doc/bar/p/5?billingPlan=e');
   });
 
@@ -168,28 +168,28 @@ describe('gristUrlState', function() {
       const hostBase = new URL('https://www.martian.com');
 
       assert.equal(custom.encodeUrl({}, hostBase), 'https://www.martian.com/');
-      assert.equal(custom.encodeUrl({org: 'foo'}, hostBase), 'https://foo.example.com/');
-      assert.equal(custom.encodeUrl({ws: 12}, hostBase), 'https://www.martian.com/ws/12/');
-      assert.equal(custom.encodeUrl({org: 'foo', ws: 12}, hostBase), 'https://foo.example.com/ws/12/');
+      assert.equal(custom.encodeUrl({ org: 'foo' }, hostBase), 'https://foo.example.com/');
+      assert.equal(custom.encodeUrl({ ws: 12 }, hostBase), 'https://www.martian.com/ws/12/');
+      assert.equal(custom.encodeUrl({ org: 'foo', ws: 12 }, hostBase), 'https://foo.example.com/ws/12/');
 
-      assert.equal(custom.encodeUrl({ws: 12}, localBase), 'http://localhost:8080/ws/12/');
-      assert.equal(custom.encodeUrl({org: 'foo', ws: 12}, localBase), 'http://localhost:8080/o/foo/ws/12/');
-      assert.equal(custom.encodeUrl({org: 'foo', doc: 'bar'}, localBase), 'http://localhost:8080/o/foo/doc/bar');
-      assert.equal(custom.encodeUrl({org: 'foo', doc: 'bar', docPage: 2}, localBase),
+      assert.equal(custom.encodeUrl({ ws: 12 }, localBase), 'http://localhost:8080/ws/12/');
+      assert.equal(custom.encodeUrl({ org: 'foo', ws: 12 }, localBase), 'http://localhost:8080/o/foo/ws/12/');
+      assert.equal(custom.encodeUrl({ org: 'foo', doc: 'bar' }, localBase), 'http://localhost:8080/o/foo/doc/bar');
+      assert.equal(custom.encodeUrl({ org: 'foo', doc: 'bar', docPage: 2 }, localBase),
         'http://localhost:8080/o/foo/doc/bar/p/2');
 
-      assert.equal(custom.encodeUrl({org: 'baz', billing: 'billing'}, hostBase),
+      assert.equal(custom.encodeUrl({ org: 'baz', billing: 'billing' }, hostBase),
         'https://baz.example.com/billing');
     });
 
     it('should encode state in billing URLs correctly', function() {
       const hostBase = new URL('https://www.martian.com');
 
-      assert.equal(custom.encodeUrl({params: {billingPlan: 'a'}}, hostBase),
+      assert.equal(custom.encodeUrl({ params: { billingPlan: 'a' } }, hostBase),
         'https://www.martian.com/?billingPlan=a');
-      assert.equal(custom.encodeUrl({ws: 12, params: {billingPlan: 'b'}}, hostBase),
+      assert.equal(custom.encodeUrl({ ws: 12, params: { billingPlan: 'b' } }, hostBase),
         'https://www.martian.com/ws/12/?billingPlan=b');
-      assert.equal(custom.encodeUrl({org: 'foo', doc: 'bar', docPage: 5, params: {billingPlan: 'e'}}, hostBase),
+      assert.equal(custom.encodeUrl({ org: 'foo', doc: 'bar', docPage: 5, params: { billingPlan: 'e' } }, hostBase),
         'https://foo.example.com/doc/bar/p/5?billingPlan=e');
     });
   });
@@ -198,55 +198,55 @@ describe('gristUrlState', function() {
     mockWindow.location = new URL('https://bar.example.com/ws/10/') as unknown as Location;
     const state = UrlState.create(null, mockWindow, prod);
     const loadPageSpy = sandbox.spy(mockWindow, '_urlStateLoadPage');
-    assert.deepEqual(state.state.get(), {org: 'bar', ws: 10});
+    assert.deepEqual(state.state.get(), { org: 'bar', ws: 10 });
 
-    const link = dom('a', state.setLinkUrl({ws: 4}));
+    const link = dom('a', state.setLinkUrl({ ws: 4 }));
     assert.equal(link.getAttribute('href'), 'https://bar.example.com/ws/4/');
 
-    assert.equal(state.makeUrl({ws: 4}), 'https://bar.example.com/ws/4/');
-    assert.equal(state.makeUrl({ws: undefined}), 'https://bar.example.com/');
-    assert.equal(state.makeUrl({org: 'mars'}), 'https://mars.example.com/');
-    assert.equal(state.makeUrl({org: 'mars', doc: 'DOC', docPage: 5}), 'https://mars.example.com/doc/DOC/p/5');
+    assert.equal(state.makeUrl({ ws: 4 }), 'https://bar.example.com/ws/4/');
+    assert.equal(state.makeUrl({ ws: undefined }), 'https://bar.example.com/');
+    assert.equal(state.makeUrl({ org: 'mars' }), 'https://mars.example.com/');
+    assert.equal(state.makeUrl({ org: 'mars', doc: 'DOC', docPage: 5 }), 'https://mars.example.com/doc/DOC/p/5');
 
     // If we change workspace, that stays on the same page, so no call to loadPageSpy.
-    await state.pushUrl({ws: 17});
+    await state.pushUrl({ ws: 17 });
     sinon.assert.notCalled(loadPageSpy);
     assert.equal(mockWindow.location.href, 'https://bar.example.com/ws/17/');
-    assert.deepEqual(state.state.get(), {org: 'bar', ws: 17});
+    assert.deepEqual(state.state.get(), { org: 'bar', ws: 17 });
     assert.equal(link.getAttribute('href'), 'https://bar.example.com/ws/4/');
 
     // Loading a doc loads a new page, for now. TODO: this is expected to change ASAP, in which
     // case loadPageSpy should essentially never get called.
     // To simulate the loadState() on the new page, we call loadState() manually here.
-    await state.pushUrl({doc: 'baz'});
+    await state.pushUrl({ doc: 'baz' });
     assertResetCall(loadPageSpy, 'https://bar.example.com/doc/baz');
     state.loadState();
 
     assert.equal(mockWindow.location.href, 'https://bar.example.com/doc/baz');
-    assert.deepEqual(state.state.get(), {org: 'bar', doc: 'baz'});
+    assert.deepEqual(state.state.get(), { org: 'bar', doc: 'baz' });
     assert.equal(link.getAttribute('href'), 'https://bar.example.com/ws/4/');
 
-    await state.pushUrl({org: 'foo', ws: 12});
+    await state.pushUrl({ org: 'foo', ws: 12 });
     assertResetCall(loadPageSpy, 'https://foo.example.com/ws/12/');
     state.loadState();
 
     assert.equal(mockWindow.location.href, 'https://foo.example.com/ws/12/');
-    assert.deepEqual(state.state.get(), {org: 'foo', ws: 12});
-    assert.equal(state.makeUrl({ws: 4}), 'https://foo.example.com/ws/4/');
+    assert.deepEqual(state.state.get(), { org: 'foo', ws: 12 });
+    assert.equal(state.makeUrl({ ws: 4 }), 'https://foo.example.com/ws/4/');
 
     // Check form URLs in prod setup. They are produced on document pages.
-    await state.pushUrl({org: 'foo', doc: 'abc'});
+    await state.pushUrl({ org: 'foo', doc: 'abc' });
     state.loadState();
     assert.equal(
-      state.makeUrl({doc: undefined, form: {vsId: 4, shareKey: 'key'}}),
+      state.makeUrl({ doc: undefined, form: { vsId: 4, shareKey: 'key' } }),
       'https://foo.example.com/forms/key/4',
     );
     assert.equal(
-      state.makeUrl({doc: 'abc', form: {vsId: 4}}),
+      state.makeUrl({ doc: 'abc', form: { vsId: 4 } }),
       'https://foo.example.com/doc/abc/f/4',
     );
     assert.equal(
-      state.makeUrl({doc: 'abc', slug: '123', form: {vsId: 4}}),
+      state.makeUrl({ doc: 'abc', slug: '123', form: { vsId: 4 } }),
       'https://foo.example.com/abc/123/f/4',
     );
   });
@@ -255,43 +255,43 @@ describe('gristUrlState', function() {
     mockWindow.location = new URL('https://example.com/ws/10/') as unknown as Location;
     const state = UrlState.create(null, mockWindow, single);
     const loadPageSpy = sandbox.spy(mockWindow, '_urlStateLoadPage');
-    assert.deepEqual(state.state.get(), {org: 'mars', ws: 10});
+    assert.deepEqual(state.state.get(), { org: 'mars', ws: 10 });
 
-    const link = dom('a', state.setLinkUrl({ws: 4}));
+    const link = dom('a', state.setLinkUrl({ ws: 4 }));
     assert.equal(link.getAttribute('href'), 'https://example.com/ws/4/');
 
-    assert.equal(state.makeUrl({ws: undefined}), 'https://example.com/');
-    assert.equal(state.makeUrl({org: 'AB', doc: 'DOC', docPage: 5}), 'https://example.com/o/AB/doc/DOC/p/5');
+    assert.equal(state.makeUrl({ ws: undefined }), 'https://example.com/');
+    assert.equal(state.makeUrl({ org: 'AB', doc: 'DOC', docPage: 5 }), 'https://example.com/o/AB/doc/DOC/p/5');
 
-    await state.pushUrl({doc: 'baz'});
+    await state.pushUrl({ doc: 'baz' });
     assertResetCall(loadPageSpy, 'https://example.com/doc/baz');
     state.loadState();
 
     assert.equal(mockWindow.location.href, 'https://example.com/doc/baz');
-    assert.deepEqual(state.state.get(), {org: 'mars', doc: 'baz'});
+    assert.deepEqual(state.state.get(), { org: 'mars', doc: 'baz' });
     assert.equal(link.getAttribute('href'), 'https://example.com/ws/4/');
 
-    await state.pushUrl({org: 'foo'});
+    await state.pushUrl({ org: 'foo' });
     assertResetCall(loadPageSpy, 'https://example.com/o/foo/');
     state.loadState();
 
     assert.equal(mockWindow.location.href, 'https://example.com/o/foo/');
-    assert.deepEqual(state.state.get(), {org: 'foo'});
+    assert.deepEqual(state.state.get(), { org: 'foo' });
     assert.equal(link.getAttribute('href'), 'https://example.com/o/foo/ws/4/');
 
     // Check form URLs in single org setup from document pages.
-    await state.pushUrl({org: 'foo', doc: 'abc'});
+    await state.pushUrl({ org: 'foo', doc: 'abc' });
     state.loadState();
     assert.equal(
-      state.makeUrl({doc: undefined, form: {vsId: 4, shareKey: 'key'}}),
+      state.makeUrl({ doc: undefined, form: { vsId: 4, shareKey: 'key' } }),
       'https://example.com/o/foo/forms/key/4',
     );
     assert.equal(
-      state.makeUrl({doc: 'abc', form: {vsId: 4}}),
+      state.makeUrl({ doc: 'abc', form: { vsId: 4 } }),
       'https://example.com/o/foo/doc/abc/f/4',
     );
     assert.equal(
-      state.makeUrl({doc: 'abc', slug: '123', form: {vsId: 4}}),
+      state.makeUrl({ doc: 'abc', slug: '123', form: { vsId: 4 } }),
       'https://example.com/o/foo/abc/123/f/4',
     );
   });
@@ -300,23 +300,23 @@ describe('gristUrlState', function() {
     mockWindow.location = new URL('https://example.com/ws/10/') as unknown as Location;
     const state = UrlState.create(null, mockWindow, custom);
     const loadPageSpy = sandbox.spy(mockWindow, '_urlStateLoadPage');
-    assert.deepEqual(state.state.get(), {org: 'mars', ws: 10});
+    assert.deepEqual(state.state.get(), { org: 'mars', ws: 10 });
 
-    const link = dom('a', state.setLinkUrl({ws: 4}));
+    const link = dom('a', state.setLinkUrl({ ws: 4 }));
     assert.equal(link.getAttribute('href'), 'https://example.com/ws/4/');
 
-    assert.equal(state.makeUrl({ws: undefined}), 'https://example.com/');
-    assert.equal(state.makeUrl({org: 'ab-cd', doc: 'DOC', docPage: 5}), 'https://ab-cd.example.com/doc/DOC/p/5');
+    assert.equal(state.makeUrl({ ws: undefined }), 'https://example.com/');
+    assert.equal(state.makeUrl({ org: 'ab-cd', doc: 'DOC', docPage: 5 }), 'https://ab-cd.example.com/doc/DOC/p/5');
 
-    await state.pushUrl({doc: 'baz'});
+    await state.pushUrl({ doc: 'baz' });
     assertResetCall(loadPageSpy, 'https://example.com/doc/baz');
     state.loadState();
 
     assert.equal(mockWindow.location.href, 'https://example.com/doc/baz');
-    assert.deepEqual(state.state.get(), {org: 'mars', doc: 'baz'});
+    assert.deepEqual(state.state.get(), { org: 'mars', doc: 'baz' });
     assert.equal(link.getAttribute('href'), 'https://example.com/ws/4/');
 
-    await state.pushUrl({org: 'foo'});
+    await state.pushUrl({ org: 'foo' });
     assertResetCall(loadPageSpy, 'https://foo.example.com/');
     state.loadState();
     assert.equal(mockWindow.location.href, 'https://foo.example.com/');
@@ -327,19 +327,19 @@ describe('gristUrlState', function() {
   it('should support an update function to pushUrl and makeUrl', async function() {
     mockWindow.location = new URL('https://bar.example.com/doc/DOC/p/5') as unknown as Location;
     const state = UrlState.create(null, mockWindow, prod) as UrlState<IGristUrlState>;
-    await state.pushUrl({params: {style: 'singlePage', linkParameters: {foo: 'A', bar: 'B'}}});
+    await state.pushUrl({ params: { style: 'singlePage', linkParameters: { foo: 'A', bar: 'B' } } });
     assert.equal(mockWindow.location.href, 'https://bar.example.com/doc/DOC/p/5?style=singlePage&foo_=A&bar_=B');
     state.loadState();  // changing linkParameters requires a page reload
-    assert.equal(state.makeUrl(prevState => merge({}, prevState, {params: {style: 'full'}})),
+    assert.equal(state.makeUrl(prevState => merge({}, prevState, { params: { style: 'full' } })),
       'https://bar.example.com/doc/DOC/p/5?style=full&foo_=A&bar_=B');
     assert.equal(state.makeUrl((prevState) => { const s = clone(prevState); delete s.params?.style; return s; }),
       'https://bar.example.com/doc/DOC/p/5?foo_=A&bar_=B');
     assert.equal(state.makeUrl(prevState =>
       merge(omit(prevState, 'params.style', 'params.linkParameters.foo'),
-        {params: {linkParameters: {baz: 'C'}}})),
+        { params: { linkParameters: { baz: 'C' } } })),
     'https://bar.example.com/doc/DOC/p/5?bar_=B&baz_=C');
     assert.equal(state.makeUrl(prevState =>
-      merge(omit(prevState, 'params.style'), {docPage: 44, params: {linkParameters: {foo: 'X'}}})),
+      merge(omit(prevState, 'params.style'), { docPage: 44, params: { linkParameters: { foo: 'X' } } })),
     'https://bar.example.com/doc/DOC/p/44?foo_=X&bar_=B');
     await state.pushUrl(prevState => omit(prevState, 'params'));
     assert.equal(mockWindow.location.href, 'https://bar.example.com/doc/DOC/p/5');

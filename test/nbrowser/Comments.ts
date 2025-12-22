@@ -1,10 +1,10 @@
-import {UserAPIImpl} from 'app/common/UserAPI';
-import {arrayRepeat} from 'app/plugin/gutil';
-import {TableColValues} from 'app/common/DocActions';
-import {assert, driver, Key, WebElement} from 'mocha-webdriver';
+import { UserAPIImpl } from 'app/common/UserAPI';
+import { arrayRepeat } from 'app/plugin/gutil';
+import { TableColValues } from 'app/common/DocActions';
+import { assert, driver, Key, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {modKey, Session} from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { modKey, Session } from 'test/nbrowser/gristUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 let docId: string;
 let MODKEY: string;
 let session: Session;
@@ -267,7 +267,7 @@ describe('Comments', function() {
     assert.isFalse(await driver.find(notification).isPresent());
 
     // Make sure that the cursor is on the A,1.
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 1, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: 0 });
   });
 
   it('should strip html from comment', async function() {
@@ -280,7 +280,7 @@ describe('Comments', function() {
 
     // Now replace the content using API.
     await gu.sendActions([
-      ['UpdateRecord', '_grist_Cells', 1, {content: JSON.stringify({text: '<b>bolded</b>'})}],
+      ['UpdateRecord', '_grist_Cells', 1, { content: JSON.stringify({ text: '<b>bolded</b>' }) }],
     ]);
 
     // Make sure we see literal text, not html.
@@ -411,7 +411,7 @@ describe('Comments', function() {
 
     // Now switch my threads option, we shouldn't see Chimpy's comment
     await openPanel();
-    await panelOptions({my: true});
+    await panelOptions({ my: true });
 
     assert.equal(await commentCount('panel'), 2);
     // Make sure we see Kiwi's comment.
@@ -421,7 +421,7 @@ describe('Comments', function() {
     // Now switch to Chimpy and check this setting again.
     await asUser(chimpy);
     await openPanel();
-    await panelOptions({my: true});
+    await panelOptions({ my: true });
     assert.equal(await commentCount('panel'), 2);
     assert.equal(await readComment(0, 'panel'), 'Hello from Chimpy');
     assert.equal(await readComment(1, 'panel'), 'Kiwi mentions @Chimpy');
@@ -430,12 +430,12 @@ describe('Comments', function() {
 
   it('allows to mention users', async function() {
     // Chimpy is the owner of the org.
-    docId = await session.tempNewDoc(cleanup, 'Hello', {load: false});
+    docId = await session.tempNewDoc(cleanup, 'Hello', { load: false });
 
     // Create another doc in this workspace.
     const homeWs = await ownerApi.getOrgWorkspaces(session.teamSite.orgDomain)
       .then(list => list.find(w => w.name === 'Home')?.id ?? null);
-    const secondDoc = await session.forWorkspace('Home').tempNewDoc(cleanup, 'Hello2', {load: false});
+    const secondDoc = await session.forWorkspace('Home').tempNewDoc(cleanup, 'Hello2', { load: false });
 
     // Add an Charon as an Owner of the Home workspace
     const charon = gu.translateUser('user2');
@@ -594,7 +594,7 @@ describe('Comments', function() {
   });
 
   it('should support basic comments operation', async function() {
-    docId = (await session.tempDoc(cleanup, 'Hello.grist', {load: false})).id;
+    docId = (await session.tempDoc(cleanup, 'Hello.grist', { load: false })).id;
     await asOwner();
     await gu.getCell('A', 3).click();
     await openCommentsWithKey();
@@ -888,12 +888,12 @@ describe('Comments', function() {
 
   it('show comments on panel', async function() {
     await openPanel();
-    await panelOptions({resolved: false});
+    await panelOptions({ resolved: false });
     // We should not see any comments (there are 2 resolved);
     assert.equal(await commentCount('panel'), 0);
     assert.equal(await countText(), '0 comments');
     // Show resolved comments
-    await panelOptions({resolved: true});
+    await panelOptions({ resolved: true });
     assert.equal(await commentCount('panel'), 1);
     assert.equal(await countText(), '1 comment');
     assert.isTrue(await isCommentResolved(0, 'panel'));
@@ -1046,10 +1046,10 @@ describe('Comments', function() {
     };
     // Owner can remove all comments when removing columns/rows.
     await asOwner();
-    await panelOptions({resolved: true});
+    await panelOptions({ resolved: true });
     await test();
     await asSupport();
-    await panelOptions({resolved: true});
+    await panelOptions({ resolved: true });
 
     // We still can remove owner's comments, because we can remove row.
     await hasAComment();
@@ -1068,9 +1068,9 @@ describe('Comments', function() {
 
   it('should remove comments with tables', async function() {
     await asOwner();
-    await panelOptions({resolved: true});
+    await panelOptions({ resolved: true });
     assert.equal(await commentCount('panel'), 3);
-    await panelOptions({page: false});
+    await panelOptions({ page: false });
     await gu.addNewTable('Table2');
     await addRow();
     await addRow();
@@ -1099,15 +1099,15 @@ describe('Comments', function() {
     assert.equal(await gu.getActiveSectionTitle(), 'TABLE2');
     await clickComment(0, 'panel');
     // We should land at Table1,A,3
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 3, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 3, col: 0 });
     assert.equal(await gu.getActiveSectionTitle(), 'TABLE1');
     // Now click second comment to navigate to Table1,B,2
     await clickComment(1, 'panel');
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 2, col: 1});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: 1 });
     assert.equal(await gu.getActiveSectionTitle(), 'TABLE1');
     // Now click last comment to navigate to Table2,B,3
     await clickComment(3, 'panel');
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 3, col: 1});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 3, col: 1 });
     assert.equal(await gu.getActiveSectionTitle(), 'TABLE2');
   });
 
@@ -1143,7 +1143,7 @@ describe('Comments', function() {
 
   it('should hide comments from hidden columns', async function() {
     // Start with a fresh doc.
-    docId = (await session.tempNewDoc(cleanup, 'Hello.grist', {load: false}));
+    docId = (await session.tempNewDoc(cleanup, 'Hello.grist', { load: false }));
     await asOwner();
     // Add 3 rows to it with numbers 1,2,3.
     await currentApi.applyUserActions(docId, [['BulkAddRecord', 'Table1', arrayRepeat(3, null), {
@@ -1152,14 +1152,14 @@ describe('Comments', function() {
     const revert = await gu.beginAclTran(ownerApi, docId);
     // Make column a visible only to owner.
     await currentApi.applyUserActions(docId, [
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: 'A'}],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: 'Table1', colIds: 'A' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: 'user.Access != OWNER', permissionsText: 'none',
       }],
     ]);
     await session.loadDoc(`/doc/${docId}`); // we are forced reload, so make sure it is over.
     // Add one comment int in column A, 1.
-    await panelOptions({page: false, resolved: true});
+    await panelOptions({ page: false, resolved: true });
     await addComment('A', 1);
     await addComment('B', 2);
     assert.equal(await commentCount('panel'), 2);
@@ -1187,7 +1187,7 @@ describe('Comments', function() {
     const revert = await gu.beginAclTran(ownerApi, docId);
     // Make column a visible only to owner.
     await currentApi.applyUserActions(docId, [
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: '*'}],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: 'Table1', colIds: '*' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: 'user.Access != OWNER', permissionsText: 'none',
       }],
@@ -1195,7 +1195,7 @@ describe('Comments', function() {
       ['BulkAddRecord', 'Public', arrayRepeat(3, null), {}],
     ]);
     await session.loadDoc(`/doc/${docId}`); // we are forced reload, so make sure it is over.
-    await panelOptions({page: false, resolved: true});
+    await panelOptions({ page: false, resolved: true });
     // Add 2 comments to public table.
     await gu.openPage('Public');
     await gu.waitAppFocus();
@@ -1222,7 +1222,7 @@ describe('Comments', function() {
     await revert();
     // Make sure we see all comments once again.
     await asSupport();
-    await panelOptions({page: false, resolved: true});
+    await panelOptions({ page: false, resolved: true });
     assert.equal(await commentCount('panel'), 3);
     await asOwner();
   });
@@ -1231,17 +1231,17 @@ describe('Comments', function() {
     const revert = await gu.beginAclTran(ownerApi, docId);
     // Hide first row from table1.
     await currentApi.applyUserActions(docId, [
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: '*'}],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: 'Table1', colIds: '*' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: 'user.Access != OWNER and rec.A == 1', permissionsText: 'none',
       }],
     ]);
     await session.loadDoc(`/doc/${docId}`); // we are forced reload, so make sure it is over.
     // Owner sees 3 comments.
-    await panelOptions({resolved: true, page: false, my: false});
+    await panelOptions({ resolved: true, page: false, my: false });
     assert.equal(await commentCount('panel'), 3);
     await asSupport();
-    await panelOptions({resolved: true, page: false, my: false});
+    await panelOptions({ resolved: true, page: false, my: false });
     // Editor sees 2 comment
     assert.equal(await commentCount('panel'), 2);
     assert.equal(await readComment(0, 'panel'), 'B,2');
@@ -1264,7 +1264,7 @@ describe('Comments', function() {
     ]);
     // Undo last row, so we should see 2 comments again.
     await ownerApi.applyUserActions(docId, [[
-      'UpdateRecord', 'Table1', 2, {A: 2},
+      'UpdateRecord', 'Table1', 2, { A: 2 },
     ]]);
     await gu.waitForServer();
     assert.equal(await commentCount('panel'), 2);
@@ -1289,7 +1289,7 @@ describe('Comments', function() {
     const revert = await gu.beginAclTran(ownerApi, docId);
     // Censor B if A == 0 for everyone
     await currentApi.applyUserActions(docId, [
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: 'B'}],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: 'Table1', colIds: 'B' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: 'rec.A == 0', permissionsText: 'none',
       }],
@@ -1365,12 +1365,12 @@ describe('Comments', function() {
     // Censor B if A == 1 for everyone
     await currentApi.applyUserActions(docId, [
       // Censor B column for editor
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: 'B'}],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: 'Table1', colIds: 'B' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: 'rec.B == "secret" and user.Access != OWNER', permissionsText: '-R',
       }],
       // Hide rows when A === 0 for non owners
-      ['AddRecord', '_grist_ACLResources', -2, {tableId: 'Table1', colIds: '*'}],
+      ['AddRecord', '_grist_ACLResources', -2, { tableId: 'Table1', colIds: '*' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -2, aclFormula: 'rec.A == 0 and user.Access != OWNER', permissionsText: '-R',
       }],
@@ -1389,7 +1389,7 @@ describe('Comments', function() {
 
     // Now censor column B.
     await ownerApi.applyUserActions(docId, [[
-      'UpdateRecord', 'Table1', 1, {B: 'secret'},
+      'UpdateRecord', 'Table1', 1, { B: 'secret' },
     ]]);
     await gu.waitForServer();
     assert.equal(await commentCount('panel'), 0);
@@ -1399,7 +1399,7 @@ describe('Comments', function() {
 
     // Now hide row 1 for non owners
     await ownerApi.applyUserActions(docId, [[
-      'UpdateRecord', 'Table1', 1, {A: 0},
+      'UpdateRecord', 'Table1', 1, { A: 0 },
     ]]);
     await gu.waitForServer();
     assert.equal(await commentCount('panel'), 0);
@@ -1410,7 +1410,7 @@ describe('Comments', function() {
 
     // Now reveal row 1
     await ownerApi.applyUserActions(docId, [[
-      'UpdateRecord', 'Table1', 1, {A: 1},
+      'UpdateRecord', 'Table1', 1, { A: 1 },
     ]]);
     await gu.waitForServer();
     assert.equal(await commentCount('panel'), 0);
@@ -1421,7 +1421,7 @@ describe('Comments', function() {
     // And make cell in column B visible
 
     await ownerApi.applyUserActions(docId, [[
-      'UpdateRecord', 'Table1', 1, {B: 'visible'},
+      'UpdateRecord', 'Table1', 1, { B: 'visible' },
     ]]);
     await gu.waitForServer();
     assert.equal(await commentCount('panel'), 1);
@@ -1439,7 +1439,7 @@ describe('Comments', function() {
     // Censor B if A == 1 for everyone
     await currentApi.applyUserActions(docId, [
       // Censor B column for editor when A === 0
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: 'B'}],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: 'Table1', colIds: 'B' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: 'rec.A == 0 and user.Access != OWNER', permissionsText: '-R',
       }],
@@ -1448,7 +1448,7 @@ describe('Comments', function() {
     await asOwner();
     // Add some comments as owner for column B
     await ownerApi.applyUserActions(docId, [
-      ['BulkUpdateRecord', 'Table1', [1, 2, 3], {A: [0, 0, 0]}],
+      ['BulkUpdateRecord', 'Table1', [1, 2, 3], { A: [0, 0, 0] }],
       ['BulkAddRecord', '_grist_Cells', arrayRepeat(3, null), {
         tableRef: [1, 1, 1],
         rowId: [1, 2, 3],
@@ -1502,17 +1502,17 @@ describe('Comments', function() {
     // Censor B if A == 1 for everyone
     await currentApi.applyUserActions(docId, [
       // Hide Table1 for non owners
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: '*'}],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: 'Table1', colIds: '*' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: 'user.Access != OWNER', permissionsText: '-R',
       }],
       // Hide rows when A === 99 for non owners on Table2
-      ['AddRecord', '_grist_ACLResources', -2, {tableId: 'Public', colIds: '*'}],
+      ['AddRecord', '_grist_ACLResources', -2, { tableId: 'Public', colIds: '*' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -2, aclFormula: 'rec.A == 99 and user.Access != OWNER', permissionsText: '-R',
       }],
       // Hide column C on Table2 for non owners
-      ['AddRecord', '_grist_ACLResources', -3, {tableId: 'Public', colIds: 'C'}],
+      ['AddRecord', '_grist_ACLResources', -3, { tableId: 'Public', colIds: 'C' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -3, aclFormula: 'user.Access != OWNER', permissionsText: '-R',
       }],
@@ -1562,8 +1562,8 @@ describe('Comments', function() {
     await ownerApi.applyUserActions(docId, [
       ['BulkUpdateRecord', '_grist_Cells', [5, 6], {
         content: [
-          JSON.stringify({text: `Forth-updated`, userName: 'Owner'}),
-          JSON.stringify({text: `Fifth-updated`, userName: 'Owner'}),
+          JSON.stringify({ text: `Forth-updated`, userName: 'Owner' }),
+          JSON.stringify({ text: `Fifth-updated`, userName: 'Owner' }),
         ],
       }],
     ]);
@@ -1605,7 +1605,7 @@ describe('Comments', function() {
     ]);
     // Reveal it using owner API.
     await ownerApi.applyUserActions(docId, [[
-      'UpdateRecord', 'Public', 4, {A: 3},
+      'UpdateRecord', 'Public', 4, { A: 3 },
     ]]);
     await gu.waitForServer();
     await assertClientComments([
@@ -1637,17 +1637,17 @@ describe('Comments', function() {
     const revertAcl = await gu.beginAclTran(ownerApi, docId);
     await currentApi.applyUserActions(docId, [
       // Hide Table1 rows with A == 1 for editors
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: '*'}],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: 'Table1', colIds: '*' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: 'rec.A == 1 and user.Access != OWNER', permissionsText: '-R',
       }],
       // Hide column C for non owners
-      ['AddRecord', '_grist_ACLResources', -2, {tableId: 'Public', colIds: 'C'}],
+      ['AddRecord', '_grist_ACLResources', -2, { tableId: 'Public', colIds: 'C' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -2, aclFormula: 'user.Access != OWNER', permissionsText: '-R',
       }],
       // Take schema access from editors.
-      ['AddRecord', '_grist_ACLResources', -3, {tableId: '*', colIds: '*'}],
+      ['AddRecord', '_grist_ACLResources', -3, { tableId: '*', colIds: '*' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -3, aclFormula: 'user.Access == EDITOR', permissionsText: '-S',
       }],
@@ -1665,10 +1665,10 @@ describe('Comments', function() {
     ]);
     // Try various ways to update/remove hidden comment.
     await assertThrows(() => currentApi.applyUserActions(docId, [
-      ['UpdateRecord', '_grist_Cells', 1, {content: JSON.stringify({text: 'Updated', userName: 'Editor'})}],
+      ['UpdateRecord', '_grist_Cells', 1, { content: JSON.stringify({ text: 'Updated', userName: 'Editor' }) }],
     ]));
     await assertThrows(() => currentApi.applyUserActions(docId, [
-      ['BulkUpdateRecord', '_grist_Cells', [1], {content: [JSON.stringify({text: 'Updated', userName: 'Editor'})]}],
+      ['BulkUpdateRecord', '_grist_Cells', [1], { content: [JSON.stringify({ text: 'Updated', userName: 'Editor' })] }],
     ]));
     await assertThrows(() => currentApi.applyUserActions(docId, [
       ['BulkRemoveRecord', '_grist_Cells', [1]],

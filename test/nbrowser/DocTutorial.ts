@@ -1,7 +1,7 @@
-import {UserAPI} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { UserAPI } from 'app/common/UserAPI';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('DocTutorial', function () {
   this.timeout(60000);
@@ -13,7 +13,7 @@ describe('DocTutorial', function () {
   let editorSession: gu.Session;
   let viewerSession: gu.Session;
 
-  setupTestSuite({samples: true, tutorial: true, team: true});
+  setupTestSuite({ samples: true, tutorial: true, team: true });
 
   gu.withEnvironmentSnapshot({
     'GRIST_UI_FEATURES': 'tutorials',
@@ -25,9 +25,9 @@ describe('DocTutorial', function () {
   before(async () => {
     ownerSession = await gu.session().customTeamSite('templates').user('support').login();
     api = ownerSession.createHomeApi();
-    await api.updateDocPermissions('grist-basics', {users: {
+    await api.updateDocPermissions('grist-basics', { users: {
       [gu.translateUser('user1').email]: 'editors',
-    }});
+    } });
   });
 
   describe('when logged out', function () {
@@ -55,7 +55,7 @@ describe('DocTutorial', function () {
     let forkUrl: string;
 
     before(async () => {
-      editorSession = await gu.session().customTeamSite('templates').user('user1').login({showTips: true});
+      editorSession = await gu.session().customTeamSite('templates').user('user1').login({ showTips: true });
       await editorSession.loadDocMenu('/');
       await driver.executeScript('resetDismissedPopups();');
       await gu.waitForServer();
@@ -92,14 +92,14 @@ describe('DocTutorial', function () {
       );
     });
 
-    const move = async (pos: {x?: number, y?: number}) => driver.withActions(actions => actions
-      .move({origin: driver.find('.test-doc-tutorial-popup-move-handle')})
+    const move = async (pos: { x?: number, y?: number }) => driver.withActions(actions => actions
+      .move({ origin: driver.find('.test-doc-tutorial-popup-move-handle') })
       .press()
-      .move({origin: driver.find('.test-doc-tutorial-popup-move-handle'), ...pos})
+      .move({ origin: driver.find('.test-doc-tutorial-popup-move-handle'), ...pos })
       .release(),
     );
 
-    const resize = async (handle: string, pos: {x?: number; y?: number}) =>
+    const resize = async (handle: string, pos: { x?: number; y?: number }) =>
       driver.withActions(actions =>
         actions
           .move({
@@ -120,7 +120,7 @@ describe('DocTutorial', function () {
       const initialDims = await driver.find('.test-doc-tutorial-popup').getRect();
 
       // Move it a little bit down.
-      await move({y: 100, x: -10});
+      await move({ y: 100, x: -10 });
 
       // Check it is moved but not shrinked.
       let dims = await driver.find('.test-doc-tutorial-popup').getRect();
@@ -130,34 +130,34 @@ describe('DocTutorial', function () {
       assert.equal(dims.x, initialDims.x - 10);
 
       // Now move it a little up and test it doesn't grow.
-      await move({y: -100});
+      await move({ y: -100 });
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
       assert.equal(dims.height, initialDims.height);
       assert.equal(dims.y, initialDims.y);
 
       // Resize it in steps.
-      await resize("n", {y: 10});
-      await resize("n", {y: 10});
-      await resize("n", {y: 10});
-      await resize("n", {y: 10});
-      await resize("n", {y: 10});
-      await resize("n", {y: 50});
+      await resize("n", { y: 10 });
+      await resize("n", { y: 10 });
+      await resize("n", { y: 10 });
+      await resize("n", { y: 10 });
+      await resize("n", { y: 10 });
+      await resize("n", { y: 50 });
 
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
       assert.equal(dims.height, initialDims.height - 100);
       assert.equal(dims.y, initialDims.y + 100);
 
       // Resize back (in steps, to simulate user actions)
-      await resize("n", {y: -20});
-      await resize("n", {y: -20});
-      await resize("n", {y: -20});
-      await resize("n", {y: -40});
+      await resize("n", { y: -20 });
+      await resize("n", { y: -20 });
+      await resize("n", { y: -20 });
+      await resize("n", { y: -40 });
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
       assert.equal(dims.height, initialDims.height);
       assert.equal(dims.y, initialDims.y);
 
       // Now resize it to the minimum size.
-      await resize("n", {y: 700});
+      await resize("n", { y: 700 });
 
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
       assert.equal(dims.height, 300);
@@ -170,7 +170,7 @@ describe('DocTutorial', function () {
       // Now we'll test moving the window outside the viewport. Selenium throws when
       // the mouse exceeds the bounds of the viewport, so we can't test every scenario.
       // Start by moving the window as low as possible.
-      await move({y: windowHeight - dims.y - 32});
+      await move({ y: windowHeight - dims.y - 32 });
 
       // Make sure it is still visible.
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
@@ -178,7 +178,7 @@ describe('DocTutorial', function () {
       assert.isBelow(dims.x, windowWidth - (32 * 4) + 1); // 120px is the right overflow value.
 
       // Now move it to the right as far as possible.
-      await move({x: windowWidth - dims.x - 10});
+      await move({ x: windowWidth - dims.x - 10 });
 
       // Make sure it is still visible.
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
@@ -186,7 +186,7 @@ describe('DocTutorial', function () {
       assert.equal(dims.x, windowWidth - (32 * 4) + (2 * 4));
 
       // Now move it to the left as far as possible.
-      await move({x: -windowWidth + (32 * 4) - (2 * 4)});
+      await move({ x: -windowWidth + (32 * 4) - (2 * 4) });
 
       // Make sure it is still visible.
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
@@ -195,7 +195,7 @@ describe('DocTutorial', function () {
 
       // Now move it to the top as far as possible.
       // Move it a little right, so that we don't end up on the logo. Driver is clicking logo sometimes.
-      await move({y: -windowHeight + 16, x: 100});
+      await move({ y: -windowHeight + 16, x: 100 });
 
       // Make sure it is still visible.
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
@@ -204,42 +204,42 @@ describe('DocTutorial', function () {
     });
 
     it('can be resized', async function() {
-      await resize("sw", {x: 10, y: 10});
+      await resize("sw", { x: 10, y: 10 });
       let dims = await driver.find('.test-doc-tutorial-popup').getRect();
-      assert.deepEqual(dims, {x: 110, y: 16, width: 426, height: 310});
-      await resize("ne", {x: -5, y: -15});
+      assert.deepEqual(dims, { x: 110, y: 16, width: 426, height: 310 });
+      await resize("ne", { x: -5, y: -15 });
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
-      assert.deepEqual(dims, {x: 110, y: 16, width: 421, height: 310});
-      await resize("se", {x: -25, y: -25});
+      assert.deepEqual(dims, { x: 110, y: 16, width: 421, height: 310 });
+      await resize("se", { x: -25, y: -25 });
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
-      assert.deepEqual(dims, {x: 110, y: 16, width: 396, height: 300});
-      await resize("s", {x: 25, y: 100});
+      assert.deepEqual(dims, { x: 110, y: 16, width: 396, height: 300 });
+      await resize("s", { x: 25, y: 100 });
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
-      assert.deepEqual(dims, {x: 110, y: 16, width: 396, height: 400});
-      await resize("se", {x: 50, y: 10});
+      assert.deepEqual(dims, { x: 110, y: 16, width: 396, height: 400 });
+      await resize("se", { x: 50, y: 10 });
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
-      assert.deepEqual(dims, {x: 110, y: 16, width: 446, height: 410});
-      await resize("w", {x: 25, y: 5});
+      assert.deepEqual(dims, { x: 110, y: 16, width: 446, height: 410 });
+      await resize("w", { x: 25, y: 5 });
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
-      assert.deepEqual(dims, {x: 135, y: 16, width: 421, height: 410});
-      await resize("w", {x: -25});
+      assert.deepEqual(dims, { x: 135, y: 16, width: 421, height: 410 });
+      await resize("w", { x: -25 });
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
-      assert.deepEqual(dims, {x: 110, y: 16, width: 446, height: 410});
-      await resize("nw", {x: -5, y: -5});
+      assert.deepEqual(dims, { x: 110, y: 16, width: 446, height: 410 });
+      await resize("nw", { x: -5, y: -5 });
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
-      assert.deepEqual(dims, {x: 105, y: 16, width: 451, height: 410});
-      await resize("ne", {x: 5, y: 5});
+      assert.deepEqual(dims, { x: 105, y: 16, width: 451, height: 410 });
+      await resize("ne", { x: 5, y: 5 });
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
-      assert.deepEqual(dims, {x: 105, y: 21, width: 456, height: 405});
-      await resize("e", {x: 20, y: 20});
+      assert.deepEqual(dims, { x: 105, y: 21, width: 456, height: 405 });
+      await resize("e", { x: 20, y: 20 });
       dims = await driver.find('.test-doc-tutorial-popup').getRect();
-      assert.deepEqual(dims, {x: 105, y: 21, width: 476, height: 405});
+      assert.deepEqual(dims, { x: 105, y: 21, width: 476, height: 405 });
     });
 
     it('saves last open position and size', async function() {
-      await move({x: -84, y: 200});
+      await move({ x: -84, y: 200 });
       const dims = await driver.find('.test-doc-tutorial-popup').getRect();
-      assert.deepEqual(dims, {x: 21, y: 221, width: 476, height: 405});
+      assert.deepEqual(dims, { x: 21, y: 221, width: 476, height: 405 });
       await driver.navigate().refresh();
       await gu.waitForDocToLoad();
       assert.deepEqual(dims, await driver.find('.test-doc-tutorial-popup').getRect());
@@ -418,7 +418,7 @@ describe('DocTutorial', function () {
     });
 
     it('does not play an easter egg when opening an anchor link encoded with rr', async function() {
-      await gu.getCell({rowNum: 1, col: 0}).click();
+      await gu.getCell({ rowNum: 1, col: 0 }).click();
       const link = await gu.getAnchor();
       const easterEggLink = link.replace('.r1', '.rr1');
       await driver.get(easterEggLink);
@@ -446,7 +446,7 @@ describe('DocTutorial', function () {
     });
 
     it('always opens the same fork whenever the document is opened', async function() {
-      assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1]}), ['Zane Rails']);
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0], rowNums: [1] }), ['Zane Rails']);
       await gu.getCell(0, 1).click();
       await gu.sendKeys('Redacted', Key.ENTER);
       await gu.waitForServer();
@@ -457,7 +457,7 @@ describe('DocTutorial', function () {
         return /~/.test(forkUrl);
       });
       assert.equal(currentUrl!, forkUrl);
-      assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1]}), ['Redacted']);
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0], rowNums: [1] }), ['Redacted']);
     });
 
     it('tracks completion percentage', async function() {
@@ -498,7 +498,7 @@ describe('DocTutorial', function () {
 
       // Check that the new table isn't in the fork.
       assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2', 'GristDocTutorial']);
-      assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1]}), ['Redacted']);
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0], rowNums: [1] }), ['Redacted']);
 
       // Restart the tutorial.
       await driver.find('.test-doc-tutorial-popup-restart').click();
@@ -517,7 +517,7 @@ describe('DocTutorial', function () {
       );
 
       // Check that edits were reset.
-      assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1]}), ['Zane Rails']);
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0], rowNums: [1] }), ['Zane Rails']);
 
       // Check that changes made to the tutorial since it was last started are included.
       assert.equal(await driver.find('.test-doc-tutorial-popup-header').getText(),
@@ -590,7 +590,7 @@ describe('DocTutorial', function () {
 
   describe('without tutorial flag set', function () {
     before(async () => {
-      await api.updateDoc('grist-basics', {type: null});
+      await api.updateDoc('grist-basics', { type: null });
       ownerSession = await gu.session().customTeamSite('templates').user('support').login();
       await ownerSession.loadDoc(`/doc/grist-basics`);
     });
@@ -602,7 +602,7 @@ describe('DocTutorial', function () {
         ['Page 1', 'Page 2', 'GristDocTutorial', 'Table1']);
       await gu.openPage('GristDocTutorial');
       assert.deepEqual(
-        await gu.getVisibleGridCells({cols: [1], rowNums: [1]}),
+        await gu.getVisibleGridCells({ cols: [1], rowNums: [1] }),
         [
           '# Intro\n\nWelcome to the Grist Basics tutorial V2.',
         ],

@@ -4,7 +4,7 @@ declare module "@gristlabs/sqlite3" {
 
   // Add minimal typings for sqlite backup api.
   // TODO: remove this once the type definitions are updated upstream.
-  import {Database} from 'sqlite3';
+  import { Database } from 'sqlite3';
   export class Backup {
     public readonly remaining: number;
     public readonly pageCount: number;
@@ -40,9 +40,9 @@ declare module "redis" {
     public flushdbAsync(): Promise<void>;
     public getAsync(key: string): Promise<string|null>;
     public hdelAsync(key: string, field: string): Promise<number>;
-    public hgetallAsync(key: string): Promise<{[field: string]: any}|null>;
+    public hgetallAsync(key: string): Promise<{ [field: string]: any }|null>;
     public hkeysAsync(key: string): Promise<string[]|null>;
-    public hmsetAsync(key: string, val: {[field: string]: any}): Promise<'OK'>;
+    public hmsetAsync(key: string, val: { [field: string]: any }): Promise<'OK'>;
     public hsetAsync(key: string, field: string, val: string): Promise<1|0>;
     public keysAsync(pattern: string): Promise<string[]>;
     public multi(): Multi;
@@ -72,7 +72,7 @@ declare module "redis" {
     public execAsync(): Promise<any[]|null>;
     public get(key: string): Multi;
     public hgetall(key: string): Multi;
-    public hmset(key: string, val: {[field: string]: any}): Multi;
+    public hmset(key: string, val: { [field: string]: any }): Multi;
     public hset(key: string, field: string, val: string): Multi;
     public sadd(key: string, val: string): Multi;
     public set(key: string, val: string): Multi;

@@ -1,5 +1,5 @@
-import Checkers, {Features as FeaturesTi} from 'app/common/Features-ti';
-import {CheckerT, createCheckers} from 'ts-interface-checker';
+import Checkers, { Features as FeaturesTi } from 'app/common/Features-ti';
+import { CheckerT, createCheckers } from 'ts-interface-checker';
 import defaultsDeep from 'lodash/defaultsDeep';
 
 export interface SnapshotWindow {
@@ -46,7 +46,7 @@ export interface Features {
   // workspace or organization level.  Doesn't count billable
   // users if applicable (default: unlimited)
 
-  maxSharesPerDocPerRole?: {[role: string]: number};  // As maxSharesPerDoc, but
+  maxSharesPerDocPerRole?: { [role: string]: number };  // As maxSharesPerDoc, but
   // for specific roles.  Roles are named as in app/common/roles.
   // Applied independently to maxSharesPerDoc.
   // (default: unlimited)

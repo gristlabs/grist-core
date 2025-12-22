@@ -8,7 +8,7 @@
  * @see https://getbootstrap.com/docs/5.3/helpers/visually-hidden/
  * @see https://www.ffoodd.fr/masquage-accessible-de-pointe/index.html
  */
-import {styled} from "grainjs";
+import { styled } from "grainjs";
 
 const commonStyles = `
   border: 0 !important;

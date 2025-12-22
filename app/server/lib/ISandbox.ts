@@ -1,5 +1,5 @@
 import log from 'app/server/lib/log';
-import {ISandboxOptions} from 'app/server/lib/NSandbox';
+import { ISandboxOptions } from 'app/server/lib/NSandbox';
 
 /**
  * Starting to whittle down the options used when creating a sandbox, to leave more

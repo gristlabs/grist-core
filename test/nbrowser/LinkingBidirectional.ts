@@ -1,11 +1,11 @@
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { assert, driver, Key } from 'mocha-webdriver';
 
 describe('LinkingBidirectional', function() {
   this.timeout('60s');
 
-  const cleanup = setupTestSuite({team: true});
+  const cleanup = setupTestSuite({ team: true });
   let session: gu.Session;
 
   afterEach(() => gu.checkForErrors());
@@ -30,9 +30,9 @@ describe('LinkingBidirectional', function() {
     await gu.renameActiveSection('Classes3');
 
     // Make sure that linking put them all on row 2
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: null, cursor: {rowNum: 2, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: 2,    cursor: {rowNum: 2, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 2,    cursor: {rowNum: 2, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: null, cursor: { rowNum: 2, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes2'), { arrow: 2,    cursor: { rowNum: 2, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 2,    cursor: { rowNum: 2, col: 0 } });
   });
 
   it('should propagate cursor-links downstream', async function() {
@@ -44,25 +44,25 @@ describe('LinkingBidirectional', function() {
     await gu.getCell('Semester', 2, 'Classes2').click();
 
     // Sec1 should be on row 1. Sec2 should be on 2 even though link is telling it to be on 1. Sec3 should be on 2
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: null, cursor: {rowNum: 1, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: 1,    cursor: {rowNum: 2, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 2,    cursor: {rowNum: 2, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: null, cursor: { rowNum: 1, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes2'), { arrow: 1,    cursor: { rowNum: 2, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 2,    cursor: { rowNum: 2, col: 0 } });
 
     // click on Sec3 row 3
     await gu.getCell('Semester', 3, 'Classes3').click();
 
     // Cursors should be on 1, 2, 3, with arrows lagging 1 step behind
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: null, cursor: {rowNum: 1, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: 1,    cursor: {rowNum: 2, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 2,    cursor: {rowNum: 3, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: null, cursor: { rowNum: 1, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes2'), { arrow: 1,    cursor: { rowNum: 2, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 2,    cursor: { rowNum: 3, col: 0 } });
 
     // When clicking on oldest ancestor, it should now take priority over all downstream cursors again
     // Click on S1 row 4
     await gu.getCell('Semester', 4, 'Classes1').click();
     // assert that all are on 4
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: null, cursor: {rowNum: 4, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: 4,    cursor: {rowNum: 4, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 4,    cursor: {rowNum: 4, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: null, cursor: { rowNum: 4, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes2'), { arrow: 4,    cursor: { rowNum: 4, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 4,    cursor: { rowNum: 4, col: 0 } });
   });
 
   it('should work correctly when linked into a cycle', async function() {
@@ -73,30 +73,30 @@ describe('LinkingBidirectional', function() {
 
     // Click on row 1 in Sec1
     await gu.getCell('Semester', 1, 'Classes1').click();
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 1,   cursor: {rowNum: 1, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: 1,   cursor: {rowNum: 1, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 1,   cursor: {rowNum: 1, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: 1,   cursor: { rowNum: 1, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes2'), { arrow: 1,   cursor: { rowNum: 1, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 1,   cursor: { rowNum: 1, col: 0 } });
 
     // Click on row 2 in Sec2
     await gu.getCell('Semester', 2, 'Classes2').click();
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 2,   cursor: {rowNum: 2, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: 2,   cursor: {rowNum: 2, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 2,   cursor: {rowNum: 2, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: 2,   cursor: { rowNum: 2, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes2'), { arrow: 2,   cursor: { rowNum: 2, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 2,   cursor: { rowNum: 2, col: 0 } });
 
     // Click on row 3 in Sec3
     await gu.getCell('Semester', 3, 'Classes3').click();
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 3,   cursor: {rowNum: 3, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: 3,   cursor: {rowNum: 3, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 3,   cursor: {rowNum: 3, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: 3,   cursor: { rowNum: 3, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes2'), { arrow: 3,   cursor: { rowNum: 3, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 3,   cursor: { rowNum: 3, col: 0 } });
   });
 
   it('should keep position after refresh', async function() {
     // Nothing should change after a refresh
     await gu.reloadDoc();
 
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes2'), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
   });
 
   it('should update linking when filters change', async function() {
@@ -115,9 +115,9 @@ describe('LinkingBidirectional', function() {
 
     // Classes2 got its cursor moved when we filtered out its current row, so all sections should now
     // have moved to row 1
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 1,   cursor: {rowNum: 1, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: 1,   cursor: {rowNum: 1, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 1,   cursor: {rowNum: 1, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: 1,   cursor: { rowNum: 1, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes2'), { arrow: 1,   cursor: { rowNum: 1, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 1,   cursor: { rowNum: 1, col: 0 } });
   });
 
   it('should propagate cursor linking even through a filtered-out section', async function() {
@@ -129,9 +129,9 @@ describe('LinkingBidirectional', function() {
 
     // Classes1 and 3 should be on row3
     // Classes2 should have no cursor as the row doesn't exist in the section.
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
     await expectNoArrowNoCursor('Classes2');
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
   });
 
   it('should keep position after refresh when section is filtered out', async function() {
@@ -145,9 +145,9 @@ describe('LinkingBidirectional', function() {
     await gu.reloadDoc();
 
     // Nothing should change after a refresh
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
     await expectNoArrowNoCursor('Classes2');
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
   });
 
   it('should navigate to correct cells and sections', async function() {
@@ -159,9 +159,9 @@ describe('LinkingBidirectional', function() {
       await driver.get(anchor);
       await gu.waitForDocToLoad();
 
-      assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
+      assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
       await expectNoArrowNoCursor('Classes2');
-      assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
+      assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
     });
 
     await gu.getCell('Semester', 3, 'Classes3').click();
@@ -172,9 +172,9 @@ describe('LinkingBidirectional', function() {
       await driver.get(anchor2);
       await gu.waitForDocToLoad();
 
-      assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
+      assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
       await expectNoArrowNoCursor('Classes2');
-      assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
+      assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
     });
   });
 
@@ -190,9 +190,9 @@ describe('LinkingBidirectional', function() {
     await gu.getCell('Semester', 1, 'Classes2').click();
 
     // All sections should now jump to join it
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 1,   cursor: {rowNum: 1, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: 1,   cursor: {rowNum: 1, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 1,   cursor: {rowNum: 1, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: 1,   cursor: { rowNum: 1, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes2'), { arrow: 1,   cursor: { rowNum: 1, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 1,   cursor: { rowNum: 1, col: 0 } });
   });
 
   it('should update cursor linking correctly when the selected row is deleted', async function() {
@@ -207,30 +207,30 @@ describe('LinkingBidirectional', function() {
 
     // Classes1 and Classes3 should both have moved to the next row (previously rowNum3, but now is rowNum 2)
     // Classes2 has this row filtered out, so it should have no row selected (desynced from the others)
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 2,    cursor: {rowNum: 2, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: 2,    cursor: { rowNum: 2, col: 0 } });
     await expectNoArrowNoCursor('Classes2');
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 2,    cursor: {rowNum: 2, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 2,    cursor: { rowNum: 2, col: 0 } });
 
     // Undo the row-deletion
     await gu.undo();
 
     // The first 2 sections will still be on row2, but verify that Classes2 also joins them
-    assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 2,   cursor: {rowNum: 2, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: 2,   cursor: {rowNum: 2, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 2,   cursor: {rowNum: 2, col: 0}});
+    assert.deepEqual(await getCursorAndArrow('Classes1'), { arrow: 2,   cursor: { rowNum: 2, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes2'), { arrow: 2,   cursor: { rowNum: 2, col: 0 } });
+    assert.deepEqual(await getCursorAndArrow('Classes3'), { arrow: 2,   cursor: { rowNum: 2, col: 0 } });
   });
 
   it('should support custom filters', async function() {
     // Add a new page with a table and custom widget.
     await gu.addNewPage('Table', 'Classes', {});
     await gu.renameActiveSection('Data');
-    await gu.addNewSection('Custom', 'Classes', {customWidget: /Custom URL/, selectBy: 'Data'});
+    await gu.addNewSection('Custom', 'Classes', { customWidget: /Custom URL/, selectBy: 'Data' });
     await gu.renameActiveSection('Custom');
 
     // Make sure it can be used as a filter.
     await gu.changeWidgetAccess('read table');
     // Tell grist that we can be linked to.
-    await gu.customCode(grist => grist.sectionApi.configure({allowSelectBy: true}));
+    await gu.customCode(grist => grist.sectionApi.configure({ allowSelectBy: true }));
 
     // Now link them together.
     await gu.selectSectionByTitle('Data');
@@ -262,7 +262,7 @@ describe('LinkingBidirectional', function() {
 
 interface CursorArrowInfo {
   arrow: null | number;
-  cursor: {rowNum: number, col: number};
+  cursor: { rowNum: number, col: number };
 }
 
 // NOTE: this differs from getCursorSelectorInfo in LinkingSelector.ts

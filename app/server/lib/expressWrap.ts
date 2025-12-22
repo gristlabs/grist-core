@@ -1,4 +1,4 @@
-import {RequestWithLogin} from 'app/server/lib/Authorizer';
+import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import log from 'app/server/lib/log';
 import * as express from 'express';
 
@@ -33,7 +33,7 @@ interface JsonErrorHandlerOptions {
  * Currently allows for toggling of logging request bodies and params.
  */
 const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.ErrorRequestHandler => {
-  const {shouldLogBody, shouldLogParams} = options;
+  const { shouldLogBody, shouldLogParams } = options;
   return (err, req, res, _next) => {
     const mreq = req as RequestWithLogin;
     const meta = {
@@ -45,7 +45,7 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.E
     };
     const headersNote = res.headersSent ? " (headersSent)" : "";
     log.rawWarn(`Error during api call to ${meta.path}${headersNote}: ${err.message}`, meta);
-    let details = err.details && {...err.details};
+    let details = err.details && { ...err.details };
     const status = details?.status || err.status || 500;
     if (details) {
       // Remove some details exposed for websocket API only.
@@ -60,7 +60,7 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.E
       res.end();
     }
     else {
-      res.status(status).json({error: err.message || 'internal error', details});
+      res.status(status).json({ error: err.message || 'internal error', details });
     }
   };
 };
@@ -85,5 +85,5 @@ export const secureJsonErrorHandler: express.ErrorRequestHandler = buildJsonErro
  * Middleware that responds with a 404 status and a json error object.
  */
 export const jsonNotFoundHandler: express.RequestHandler = (req, res, next) => {
-  res.status(404).json({error: `not found: ${req.url}`});
+  res.status(404).json({ error: `not found: ${req.url}` });
 };

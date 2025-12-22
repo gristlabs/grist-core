@@ -1,5 +1,5 @@
-import {assert, driver, WebElement} from 'mocha-webdriver';
-import {Layout, LayoutAxis, PlotData} from 'plotly.js';
+import { assert, driver, WebElement } from 'mocha-webdriver';
+import { Layout, LayoutAxis, PlotData } from 'plotly.js';
 import * as gu from 'test/nbrowser/gristUtils';
 import isString from 'lodash/isString';
 import isUndefined from 'lodash/isUndefined';
@@ -22,10 +22,10 @@ export async function getChartData(chartElem?: WebElement|string): Promise<Chart
       await driver.findWait('.active_section', 4000);
     chartElem = await section.findWait('.test-chart-container.js-plotly-plot', 5_000);
   }
-  return driver.executeScript((el: any) => ({data: el.data, layout: el.layout}), chartElem);
+  return driver.executeScript((el: any) => ({ data: el.data, layout: el.layout }), chartElem);
 }
 
-export function checkAxisRange({layout}: ChartData, xMin: number, xMax: number, yMin: number, yMax: number) {
+export function checkAxisRange({ layout }: ChartData, xMin: number, xMax: number, yMin: number, yMax: number) {
   assert.closeTo(layout.xaxis.range![0], xMin, xMin * 0.1);
   assert.closeTo(layout.xaxis.range![1], xMax, xMax * 0.1);
   assert.closeTo(layout.yaxis.range![0], yMin, yMin * 0.1);
@@ -45,8 +45,8 @@ export async function removeYAxis(name: string) {
   await gu.waitForServer();
 }
 
-export async function checkAxisConfig(expected: {groupingByColumn?: string|false,
-  xaxis: string|undefined, yaxis: string[]}) {
+export async function checkAxisConfig(expected: { groupingByColumn?: string|false,
+  xaxis: string|undefined, yaxis: string[] }) {
   const isGroupByPresent = await driver.find('.test-chart-group-by-column').isPresent();
   let groupingByColumn = isGroupByPresent ? await driver.find('.test-chart-group-by-column').getText() : false;
   if (groupingByColumn === 'Pick a column') {
@@ -57,7 +57,7 @@ export async function checkAxisConfig(expected: {groupingByColumn?: string|false
     groupingByColumn,
     xaxis: xaxis === 'Pick a column' ? undefined : xaxis,
     yaxis: await driver.findAll('.test-chart-y-axis', e => e.getText()),
-  }, {...expected, groupingByColumn: expected.groupingByColumn || false});
+  }, { ...expected, groupingByColumn: expected.groupingByColumn || false });
 }
 
 export async function setSplitSeries(name: string|false, section?: string) {
@@ -76,7 +76,7 @@ export async function setSplitSeries(name: string|false, section?: string) {
   await gu.waitForServer();
 }
 
-export async function selectXAxis(name: string, opt: {noWait?: boolean} = {}) {
+export async function selectXAxis(name: string, opt: { noWait?: boolean } = {}) {
   await driver.find('.test-chart-x-axis').click();
   await gu.findOpenMenuItem('li', name).click();
   if (!opt.noWait) {

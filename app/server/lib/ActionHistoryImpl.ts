@@ -1,17 +1,17 @@
 /**
  * Minimal ActionHistory implementation
  */
-import {LocalActionBundle} from 'app/common/ActionBundle';
-import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
-import {DocState} from 'app/common/DocState';
+import { LocalActionBundle } from 'app/common/ActionBundle';
+import { ActionGroup, MinimalActionGroup } from 'app/common/ActionGroup';
+import { DocState } from 'app/common/DocState';
 import * as marshaller from 'app/common/marshal';
-import {reportTimeTaken} from 'app/server/lib/reportTimeTaken';
+import { reportTimeTaken } from 'app/server/lib/reportTimeTaken';
 import * as crypto from 'crypto';
 import keyBy from 'lodash/keyBy';
 import mapValues from 'lodash/mapValues';
-import {ActionGroupOptions, ActionHistory, ActionHistoryUndoInfo, asActionGroup,
-  asMinimalActionGroup} from 'app/server/lib/ActionHistory';
-import {ISQLiteDB, ResultRow} from 'app/server/lib/SQLiteDB';
+import { ActionGroupOptions, ActionHistory, ActionHistoryUndoInfo, asActionGroup,
+  asMinimalActionGroup } from 'app/server/lib/ActionHistory';
+import { ISQLiteDB, ResultRow } from 'app/server/lib/SQLiteDB';
 import { appSettings } from 'app/server/lib/AppSettings';
 
 const section = appSettings.section('history').section('action');
@@ -42,7 +42,7 @@ const ACTION_HISTORY_CHECK_PERIOD = 10;    // number of actions between size che
  *
  */
 export function encodeAction(action: LocalActionBundle): Buffer {
-  const encoder = new marshaller.Marshaller({version: 2});
+  const encoder = new marshaller.Marshaller({ version: 2 });
   encoder.marshal(action);
   return encoder.dumpAsBuffer();
 }
@@ -77,7 +77,7 @@ function decodeActionFromRow(row: ResultRow): LocalActionBundle {
  */
 export function computeActionHash(action: LocalActionBundle): string {
   const shaSum = crypto.createHash('sha256');
-  const encoder = new marshaller.Marshaller({version: 2});
+  const encoder = new marshaller.Marshaller({ version: 2 });
   encoder.marshal(action.actionNum);
   encoder.marshal(action.parentActionHash);
   encoder.marshal(action.info);
@@ -245,7 +245,7 @@ export class ActionHistoryImpl implements ActionHistory {
       userActions: [],
       undo: [],
       envelopes: [],
-      info: [0, {time: 0, user: "grist", inst: "", desc: "root", otherId: 0, linkId: 0}],
+      info: [0, { time: 0, user: "grist", inst: "", desc: "root", otherId: 0, linkId: 0 }],
       stored: [],
       calc: [],
     };
@@ -403,7 +403,7 @@ export class ActionHistoryImpl implements ActionHistory {
       "getRecentMinimalActionGroups",
       () => actions.map(row => asMinimalActionGroup(
         this,
-        {actionHash: row.actionHash, actionNum: row.actionNum},
+        { actionHash: row.actionHash, actionNum: row.actionNum },
         clientId)));
   }
 
@@ -414,7 +414,7 @@ export class ActionHistoryImpl implements ActionHistory {
       "_gristsys_ActionHistory.id, actionNum, actionHash",
       maxStates,
       true);
-    return states.map(row => ({n: row.actionNum, h: row.actionHash}));
+    return states.map(row => ({ n: row.actionNum, h: row.actionHash }));
   }
 
   public async getActions(actionNums: number[]): Promise<Array<LocalActionBundle|undefined>> {

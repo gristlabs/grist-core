@@ -2,7 +2,7 @@ import {
   decodeUrl, commonUrls as defaultCommonUrls, getCommonUrls,
   getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart,
 } from 'app/common/gristUrls';
-import {assert} from 'chai';
+import { assert } from 'chai';
 import Sinon from 'sinon';
 import * as testUtils from 'test/server/testUtils';
 
@@ -32,62 +32,62 @@ describe('gristUrls', function() {
     it('should detect theme appearance override', function() {
       assertUrlDecode(
         'http://localhost/?themeAppearance=light',
-        {params: {themeAppearance: 'light'}},
+        { params: { themeAppearance: 'light' } },
       );
 
       assertUrlDecode(
         'http://localhost/?themeAppearance=dark',
-        {params: {themeAppearance: 'dark'}},
+        { params: { themeAppearance: 'dark' } },
       );
     });
 
     it('should detect theme sync with os override', function() {
       assertUrlDecode(
         'http://localhost/?themeSyncWithOs=true',
-        {params: {themeSyncWithOs: true}},
+        { params: { themeSyncWithOs: true } },
       );
     });
 
     it('should detect theme name override', function() {
       assertUrlDecode(
         'http://localhost/?themeName=GristLight',
-        {params: {themeName: 'GristLight'}},
+        { params: { themeName: 'GristLight' } },
       );
 
       assertUrlDecode(
         'http://localhost/?themeName=GristDark',
-        {params: {themeName: 'GristDark'}},
+        { params: { themeName: 'GristDark' } },
       );
     });
 
     it('should detect API URLs', function() {
       assertUrlDecode(
         'http://localhost/o/docs/api/docs',
-        {api: true},
+        { api: true },
       );
 
       assertUrlDecode(
         'http://public.getgrist.com/api/docs',
-        {api: true},
+        { api: true },
       );
     });
   });
 
   describe('parseFirstUrlPart', function() {
     it('should strip out matching tag', function() {
-      assert.deepEqual(parseFirstUrlPart('o', '/o/foo/bar?x#y'), {value: 'foo', path: '/bar?x#y'});
-      assert.deepEqual(parseFirstUrlPart('o', '/o/foo?x#y'), {value: 'foo', path: '/?x#y'});
-      assert.deepEqual(parseFirstUrlPart('o', '/o/foo#y'), {value: 'foo', path: '/#y'});
-      assert.deepEqual(parseFirstUrlPart('o', '/o/foo'), {value: 'foo', path: '/'});
+      assert.deepEqual(parseFirstUrlPart('o', '/o/foo/bar?x#y'), { value: 'foo', path: '/bar?x#y' });
+      assert.deepEqual(parseFirstUrlPart('o', '/o/foo?x#y'), { value: 'foo', path: '/?x#y' });
+      assert.deepEqual(parseFirstUrlPart('o', '/o/foo#y'), { value: 'foo', path: '/#y' });
+      assert.deepEqual(parseFirstUrlPart('o', '/o/foo'), { value: 'foo', path: '/' });
     });
 
     it('should pass unchanged non-matching path or tag', function() {
-      assert.deepEqual(parseFirstUrlPart('xxx', '/o/foo/bar?x#y'), {path: '/o/foo/bar?x#y'});
-      assert.deepEqual(parseFirstUrlPart('o', '/O/foo/bar?x#y'), {path: '/O/foo/bar?x#y'});
-      assert.deepEqual(parseFirstUrlPart('o', '/bar?x#y'), {path: '/bar?x#y'});
-      assert.deepEqual(parseFirstUrlPart('o', '/o/?x#y'), {path: '/o/?x#y'});
-      assert.deepEqual(parseFirstUrlPart('o', '/#y'), {path: '/#y'});
-      assert.deepEqual(parseFirstUrlPart('o', ''), {path: ''});
+      assert.deepEqual(parseFirstUrlPart('xxx', '/o/foo/bar?x#y'), { path: '/o/foo/bar?x#y' });
+      assert.deepEqual(parseFirstUrlPart('o', '/O/foo/bar?x#y'), { path: '/O/foo/bar?x#y' });
+      assert.deepEqual(parseFirstUrlPart('o', '/bar?x#y'), { path: '/bar?x#y' });
+      assert.deepEqual(parseFirstUrlPart('o', '/o/?x#y'), { path: '/o/?x#y' });
+      assert.deepEqual(parseFirstUrlPart('o', '/#y'), { path: '/#y' });
+      assert.deepEqual(parseFirstUrlPart('o', ''), { path: '' });
     });
   });
 
@@ -146,24 +146,24 @@ describe('gristUrls', function() {
 
   describe('getSlugIfNeeded', function() {
     it('should only return a slug when a valid urlId is used', function() {
-      assert.strictEqual(getSlugIfNeeded({id: '1234567890abcdef', urlId: '1234567890ab', name: 'Foo'}), 'Foo');
+      assert.strictEqual(getSlugIfNeeded({ id: '1234567890abcdef', urlId: '1234567890ab', name: 'Foo' }), 'Foo');
       // urlId too short
-      assert.strictEqual(getSlugIfNeeded({id: '1234567890abcdef', urlId: '12345678', name: 'Foo'}), undefined);
+      assert.strictEqual(getSlugIfNeeded({ id: '1234567890abcdef', urlId: '12345678', name: 'Foo' }), undefined);
       // urlId doesn't match docId
-      assert.strictEqual(getSlugIfNeeded({id: '1234567890abcdef', urlId: '1234567890ac', name: 'Foo'}), undefined);
+      assert.strictEqual(getSlugIfNeeded({ id: '1234567890abcdef', urlId: '1234567890ac', name: 'Foo' }), undefined);
       // no urlId
-      assert.strictEqual(getSlugIfNeeded({id: '1234567890abcdef', urlId: '', name: 'Foo'}), undefined);
-      assert.strictEqual(getSlugIfNeeded({id: '1234567890abcdef', urlId: null, name: 'Foo'}), undefined);
+      assert.strictEqual(getSlugIfNeeded({ id: '1234567890abcdef', urlId: '', name: 'Foo' }), undefined);
+      assert.strictEqual(getSlugIfNeeded({ id: '1234567890abcdef', urlId: null, name: 'Foo' }), undefined);
     });
 
     it('should leave only alphamerics after replacing reasonable unicode chars', function() {
       const id = '1234567890abcdef', urlId = '1234567890ab';
       // This is mainly a test of the `slugify` library we now use. What matters isn't the
       // specific result, but that the result is reasonable.
-      assert.strictEqual(getSlugIfNeeded({id, urlId, name: 'Foo'}), 'Foo');
-      assert.strictEqual(getSlugIfNeeded({id, urlId, name: "Hélène's résumé"}), 'Helenes-resume');
-      assert.strictEqual(getSlugIfNeeded({id, urlId, name: "Привіт, Їжак!"}), 'Privit-Yizhak');
-      assert.strictEqual(getSlugIfNeeded({id, urlId, name: "S&P500 is ~$4,894.16"}), 'SandP500-is-dollar489416');
+      assert.strictEqual(getSlugIfNeeded({ id, urlId, name: 'Foo' }), 'Foo');
+      assert.strictEqual(getSlugIfNeeded({ id, urlId, name: "Hélène's résumé" }), 'Helenes-resume');
+      assert.strictEqual(getSlugIfNeeded({ id, urlId, name: "Привіт, Їжак!" }), 'Privit-Yizhak');
+      assert.strictEqual(getSlugIfNeeded({ id, urlId, name: "S&P500 is ~$4,894.16" }), 'SandP500-is-dollar489416');
     });
   });
 
@@ -208,7 +208,7 @@ describe('gristUrls', function() {
           JSON.stringify({
             [regularValueKey]: "https://getgrist.com",
             [numberValueKey]: 42,
-            [objectValueKey]: {"key": "value"},
+            [objectValueKey]: { "key": "value" },
             [arrayValueKey]: ["foo"],
           }),
         );

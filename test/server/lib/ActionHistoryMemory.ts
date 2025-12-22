@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { delay } from 'bluebird';
 import { assert } from 'chai';
-import { ChildProcess, execFileSync, spawn} from 'child_process';
+import { ChildProcess, execFileSync, spawn } from 'child_process';
 import FormData from 'form-data';
 import * as fse from 'fs-extra';
 import fetch from 'node-fetch';
@@ -93,7 +93,7 @@ describe('ActionHistoryMemory', function() {
     // Check if the server is responsive and healthy and serving api requests.
     // (/status endpoint is insufficient to check that last part).
     async function isServerReady() {
-      return fetch(`${serverUrl}/api/orgs`, {timeout: 1000}).then(r => r.ok).catch(() => false);
+      return fetch(`${serverUrl}/api/orgs`, { timeout: 1000 }).then(r => r.ok).catch(() => false);
     }
 
     // Wait for server to become responsive, or fail if the server crashes while waiting.
@@ -118,25 +118,25 @@ describe('ActionHistoryMemory', function() {
 
   it('should not run out of memory from loading many ActionHistory entries', async function() {
     const api = new UserAPIImpl(`${serverUrl}/o/docs`, {
-      headers: {Authorization: 'Bearer api_key_for_chimpy'},
+      headers: { Authorization: 'Bearer api_key_for_chimpy' },
       fetch: fetch as any,
       newFormData: () => new FormData() as any,
     });
 
     // Createa a doc.
     const wsId = (await api.getOrgWorkspaces('current')).find(w => w.name === 'Public')!.id;
-    const docId = await api.newDoc({name: 'large-actions'}, wsId);
+    const docId = await api.newDoc({ name: 'large-actions' }, wsId);
 
     // Add a formula column returning a large value (so the .calc part of the action is large).
-    await api.applyUserActions(docId, [['AddRecord', 'Table1', null, {A: 0}]]);
+    await api.applyUserActions(docId, [['AddRecord', 'Table1', null, { A: 0 }]]);
     await api.applyUserActions(docId, [['ModifyColumn', 'Table1', 'B',
-      {formula: `range(int($A), int($A) + ${RANGE})`}]]);
+      { formula: `range(int($A), int($A) + ${RANGE})` }]]);
 
     // Add a bunch of actions that each produce an equally large ActionBundle. Each action isn't
     // too large on its own, but if openDoc collects full recent actions in memory, node (running
     // with limited memory) would crash.
     for (let i = 1; i < 10; i++) {
-      await api.applyUserActions(docId, [['UpdateRecord', 'Table1', 1, {A: i}]]);
+      await api.applyUserActions(docId, [['UpdateRecord', 'Table1', 1, { A: i }]]);
     }
 
     // Make the doc public, to simplify auth for websocket below.
@@ -146,7 +146,7 @@ describe('ActionHistoryMemory', function() {
     // only method that involves getRecentActions (unlike API calls like fetchTable).
     const resp = await axios.get(`${serverUrl}/test/session`);
     const cookie = resp.headers['set-cookie']![0];
-    const ws = new GristClientSocket(`ws://localhost:${serverPort}/o/docs`, {headers: { Cookie: cookie }});
+    const ws = new GristClientSocket(`ws://localhost:${serverPort}/o/docs`, { headers: { Cookie: cookie } });
     await new Promise((resolve, reject) => {
       ws.onopen = () => resolve(undefined);
       ws.onerror = reject;

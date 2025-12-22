@@ -1,11 +1,11 @@
 /**
  * Test for acceptance of URL values in forms.
  */
-import {UserAPI} from 'app/common/UserAPI';
-import {assert, driver} from 'mocha-webdriver';
+import { UserAPI } from 'app/common/UserAPI';
+import { assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
-import {plusButton, question} from 'test/nbrowser/formTools';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { plusButton, question } from 'test/nbrowser/formTools';
 
 describe('FormsUrlValues', function() {
   this.timeout(60000);
@@ -15,9 +15,9 @@ describe('FormsUrlValues', function() {
   let api: UserAPI;
   let formLink: string;
 
-  const choices = {choices: ["Foo Choice", "Bar Choice", "Baz Choice"]};
-  const spinner = {formNumberFormat: "spinner"};
-  const radio = {formSelectFormat: "radio"};
+  const choices = { choices: ["Foo Choice", "Bar Choice", "Baz Choice"] };
+  const spinner = { formNumberFormat: "spinner" };
+  const radio = { formSelectFormat: "radio" };
 
   const sampleUrlParameters = new URLSearchParams([
     ['Field_Text', 'url text'],
@@ -40,24 +40,24 @@ describe('FormsUrlValues', function() {
     const session = await gu.session().login();
 
     // Create a document with a table that has most types of fields.
-    docId = await session.tempNewDoc(cleanup, 'FormsUrlValues', {load: false});
+    docId = await session.tempNewDoc(cleanup, 'FormsUrlValues', { load: false });
     api = session.createHomeApi();
     await api.applyUserActions(docId, [
-      ['BulkAddRecord', 'Table1', [null, null, null], {A: ['Alice', 'Bob', 'Carol']}],
+      ['BulkAddRecord', 'Table1', [null, null, null], { A: ['Alice', 'Bob', 'Carol'] }],
       ['AddTable', 'FormTest', [
-        {id: 'Field_Text', type: 'Text', isFormula: false},
-        {id: 'Field_Numeric', type: 'Numeric', isFormula: false},
-        {id: 'Field_Spinner', type: 'Numeric', isFormula: false, widgetOptions: JSON.stringify(spinner)},
-        {id: 'Field_Bool', type: 'Bool', isFormula: false},
-        {id: 'Field_Date', type: 'Date', isFormula: false},
-        {id: 'Field_DateTime', type: 'DateTime', isFormula: false},
-        {id: 'Field_Choice', type: 'Choice', isFormula: false, widgetOptions: JSON.stringify(choices)},
-        {id: 'Field_Choice_Radio', type: 'Choice', isFormula: false,
-          widgetOptions: JSON.stringify({...choices, ...radio})},
-        {id: 'Field_ChoiceList', type: 'ChoiceList', isFormula: false, widgetOptions: JSON.stringify(choices)},
-        {id: 'Field_Ref', type: 'Ref:Table1', isFormula: false},
-        {id: 'Field_Ref_Radio', type: 'Ref:Table1', isFormula: false, widgetOptions: JSON.stringify(radio)},
-        {id: 'Field_RefList', type: 'RefList:Table1', isFormula: false},
+        { id: 'Field_Text', type: 'Text', isFormula: false },
+        { id: 'Field_Numeric', type: 'Numeric', isFormula: false },
+        { id: 'Field_Spinner', type: 'Numeric', isFormula: false, widgetOptions: JSON.stringify(spinner) },
+        { id: 'Field_Bool', type: 'Bool', isFormula: false },
+        { id: 'Field_Date', type: 'Date', isFormula: false },
+        { id: 'Field_DateTime', type: 'DateTime', isFormula: false },
+        { id: 'Field_Choice', type: 'Choice', isFormula: false, widgetOptions: JSON.stringify(choices) },
+        { id: 'Field_Choice_Radio', type: 'Choice', isFormula: false,
+          widgetOptions: JSON.stringify({ ...choices, ...radio }) },
+        { id: 'Field_ChoiceList', type: 'ChoiceList', isFormula: false, widgetOptions: JSON.stringify(choices) },
+        { id: 'Field_Ref', type: 'Ref:Table1', isFormula: false },
+        { id: 'Field_Ref_Radio', type: 'Ref:Table1', isFormula: false, widgetOptions: JSON.stringify(radio) },
+        { id: 'Field_RefList', type: 'RefList:Table1', isFormula: false },
       ]],
     ]);
 
@@ -68,7 +68,7 @@ describe('FormsUrlValues', function() {
     // Set a better "Show column" for reference fields, easier to do via UI.
     await gu.openColumnPanel();
     for (const col of ['Field_Ref', 'Field_Ref_Radio', 'Field_RefList']) {
-      await gu.getCell({col, rowNum: 1}).click();
+      await gu.getCell({ col, rowNum: 1 }).click();
       await gu.setRefShowColumn('A');
     }
 

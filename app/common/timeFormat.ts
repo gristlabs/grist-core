@@ -23,7 +23,7 @@ function pad(num: number, len: number): string {
 }
 
 type FormatHelper = (out: string[], date: Date) => void;
-const timeFormatKeys: {[spec: string]: FormatHelper} = {
+const timeFormatKeys: { [spec: string]: FormatHelper } = {
   h: (out, date) => out.push(pad(date.getHours(), 2)),
   m: (out, date) => out.push(pad(date.getMinutes(), 2)),
   s: (out, date) => out.push(pad(date.getSeconds(), 2)),

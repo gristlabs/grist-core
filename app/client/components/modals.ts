@@ -1,15 +1,15 @@
 import * as commands from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {reportSuccess} from 'app/client/models/errors';
-import {basicButton, bigPrimaryButton, primaryButton} from 'app/client/ui2018/buttons';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {cssModalTooltip, modalTooltip} from 'app/client/ui2018/modals';
-import {dom, DomContents, keyframes, observable, styled, svg} from 'grainjs';
-import {IPopupOptions} from 'popweasel';
-import {makeT} from 'app/client/lib/localization';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import { reportSuccess } from 'app/client/models/errors';
+import { basicButton, bigPrimaryButton, primaryButton } from 'app/client/ui2018/buttons';
+import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { mediaXSmall, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { cssModalTooltip, modalTooltip } from 'app/client/ui2018/modals';
+import { dom, DomContents, keyframes, observable, styled, svg } from 'grainjs';
+import { IPopupOptions } from 'popweasel';
+import { makeT } from 'app/client/lib/localization';
 import merge from 'lodash/merge';
 
 const t = makeT('modals');
@@ -33,7 +33,7 @@ export function buildConfirmDelete(
       dom.autoDispose(remember),
       testId('confirm-deleteRows'),
       testId('confirm-popup'),
-      (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+      (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
       dom.onKeyDown({
         Escape: () => ctl.close(),
         Enter: () => { onSave(remember.get()); ctl.close(); },
@@ -75,7 +75,7 @@ export function showDeprecatedWarning(
   const tooltip = modalTooltip(refElement, ctl =>
     cssWideContainer(
       testId('popup-warning-deprecated'),
-      (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+      (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
       dom.onKeyDown({
         Escape: () => { ctl.close(); onClose(remember.get()); },
         Enter: () => { ctl.close(); onClose(remember.get()); },
@@ -154,7 +154,7 @@ export function showTipPopup(
   content: DomContents,
   options: ShowTipPopupOptions,
 ) {
-  const {onClose, hideArrow = false, hideDontShowTips = false, popupOptions} = options;
+  const { onClose, hideArrow = false, hideDontShowTips = false, popupOptions } = options;
   const arrow = hideArrow ? null : buildArrow();
   const dontShowTips = observable(false);
   const tooltip = modalTooltip(refElement,
@@ -164,7 +164,7 @@ export function showTipPopup(
       cssBehavioralPromptContainer(
         dom.autoDispose(dontShowTips),
         testId('behavioral-prompt'),
-        (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+        (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
         dom.onKeyDown({
           Escape: () => ctl.close(),
           Enter: () => { onClose(dontShowTips.get()); ctl.close(); },
@@ -216,13 +216,13 @@ export function showNewsPopup(
   content: DomContents,
   options: ShowNewsPopupOptions = {},
 ) {
-  const {popupOptions} = options;
+  const { popupOptions } = options;
   const popup = modalTooltip(refElement,
     ctl => [
       cssNewsPopupModal.cls(''),
       cssNewsPopupContainer(
         testId('behavioral-prompt'),
-        (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+        (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
         dom.onKeyDown({
           Escape: () => { ctl.close(); },
           Enter: () => { ctl.close(); },
@@ -267,8 +267,8 @@ const defaultPopupOptions = {
 function buildArrow() {
   return cssArrowContainer(
     svg('svg',
-      {style: 'width: 13px; height: 18px;'},
-      svg('path', {'d': 'M 0 0 h 13 v 18 Z'}),
+      { style: 'width: 13px; height: 18px;' },
+      svg('path', { 'd': 'M 0 0 h 13 v 18 Z' }),
     ),
   );
 }

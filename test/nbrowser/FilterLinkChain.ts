@@ -1,6 +1,6 @@
-import {assert} from 'mocha-webdriver';
+import { assert } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('FilterLinkChain', function () {
   this.timeout(10000);
@@ -14,7 +14,7 @@ describe('FilterLinkChain', function () {
   it('should work with chains of filter links', async function () {
     async function checkCells(sectionName: string, cols: string[], expected: string[]) {
       assert.deepEqual(
-        await gu.getVisibleGridCells({section: sectionName, cols, rowNums: [1, 2]}),
+        await gu.getVisibleGridCells({ section: sectionName, cols, rowNums: [1, 2] }),
         expected,
       );
 
@@ -73,18 +73,18 @@ describe('FilterLinkChain', function () {
     ]);
 
     // Select 'A2'
-    await gu.getCell({section: 'MIDDLE', col: 'Middle', rowNum: 2}).click();
+    await gu.getCell({ section: 'MIDDLE', col: 'Middle', rowNum: 2 }).click();
     await checkBottomCells([
       'A', 'A2', '3',
       'A', 'A2', '4',
     ]);
 
     // Select the 'new' row
-    await gu.getCell({section: 'MIDDLE', col: 'Middle', rowNum: 3}).click();
+    await gu.getCell({ section: 'MIDDLE', col: 'Middle', rowNum: 3 }).click();
     await checkSectionEmpty('BOTTOM', 'No row selected in MIDDLE');
 
     // Select 'B'
-    await gu.getCell({section: 'TOP', col: 'Top', rowNum: 2}).click();
+    await gu.getCell({ section: 'TOP', col: 'Top', rowNum: 2 }).click();
     await checkMiddleCells([
       'B', 'B1',  // selected initially
       'B', 'B2',
@@ -96,24 +96,24 @@ describe('FilterLinkChain', function () {
     ]);
 
     // Select 'B2'
-    await gu.getCell({section: 'MIDDLE', col: 'Middle', rowNum: 2}).click();
+    await gu.getCell({ section: 'MIDDLE', col: 'Middle', rowNum: 2 }).click();
     await checkBottomCells([
       'B', 'B2', '7',
       'B', 'B2', '8',
     ]);
 
     // Select the 'new' row, making the bottom empty
-    await gu.getCell({section: 'MIDDLE', col: 'Middle', rowNum: 3}).click();
+    await gu.getCell({ section: 'MIDDLE', col: 'Middle', rowNum: 3 }).click();
     await checkBottomEmpty();
 
     // Select the 'new' in the top section, which makes middle empty, which means bottom stays empty.
-    await gu.getCell({section: 'TOP', col: 'Top', rowNum: 3}).click();
+    await gu.getCell({ section: 'TOP', col: 'Top', rowNum: 3 }).click();
     await checkMiddleEmpty();
     await checkBottomEmpty();
 
     // Double-check: make all sections show some data again,
     // and then make both the middle and bottom empty in one click instead of one at a time.
-    await gu.getCell({section: 'TOP', col: 'Top', rowNum: 2}).click();
+    await gu.getCell({ section: 'TOP', col: 'Top', rowNum: 2 }).click();
     await checkMiddleCells([
       'B', 'B1',  // selected initially
       'B', 'B2',
@@ -123,7 +123,7 @@ describe('FilterLinkChain', function () {
       'B', 'B1', '6',
     ]);
 
-    await gu.getCell({section: 'TOP', col: 'Top', rowNum: 3}).click();
+    await gu.getCell({ section: 'TOP', col: 'Top', rowNum: 3 }).click();
     await checkMiddleEmpty();
     await checkBottomEmpty();
   });

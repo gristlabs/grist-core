@@ -1,6 +1,6 @@
-import {colors, isNarrowScreenObs} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {Disposable, dom, DomArg, DomElementArg, makeTestId, Observable, styled} from 'grainjs';
+import { colors, isNarrowScreenObs } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { Disposable, dom, DomArg, DomElementArg, makeTestId, Observable, styled } from 'grainjs';
 
 const testId = makeTestId('test-banner-');
 
@@ -74,7 +74,7 @@ export class Banner extends Disposable {
   }
 
   public buildDom() {
-    return cssBanner({class: this._options.bannerCssClass || ''},
+    return cssBanner({ class: this._options.bannerCssClass || '' },
       cssBanner.cls(`-${this._options.style}`),
       dom.style('background', this._options.background ?? ''),
       this._buildContent(),
@@ -84,7 +84,7 @@ export class Banner extends Disposable {
   }
 
   private _buildContent() {
-    const {content, contentSmall} = this._options;
+    const { content, contentSmall } = this._options;
     return dom.domComputed((use) => {
       if (contentSmall === undefined) { return [content]; }
 

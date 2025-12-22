@@ -1,20 +1,20 @@
-import {BrowserSettings} from 'app/common/BrowserSettings';
-import {CommClientConnect, CommMessage, CommResponse, CommResponseError} from 'app/common/CommTypes';
-import {delay} from 'app/common/delay';
-import {ErrorWithCode} from 'app/common/ErrorWithCode';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {AuthSession} from 'app/server/lib/AuthSession';
-import type {Comm} from 'app/server/lib/Comm';
-import {DocSession, DocSessionPrecursor} from 'app/server/lib/DocSession';
-import {GristServerSocket} from 'app/server/lib/GristServerSocket';
+import { BrowserSettings } from 'app/common/BrowserSettings';
+import { CommClientConnect, CommMessage, CommResponse, CommResponseError } from 'app/common/CommTypes';
+import { delay } from 'app/common/delay';
+import { ErrorWithCode } from 'app/common/ErrorWithCode';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { AuthSession } from 'app/server/lib/AuthSession';
+import type { Comm } from 'app/server/lib/Comm';
+import { DocSession, DocSessionPrecursor } from 'app/server/lib/DocSession';
+import { GristServerSocket } from 'app/server/lib/GristServerSocket';
 import log from 'app/server/lib/log';
-import {LogMethods} from 'app/server/lib/LogMethods';
-import {MemoryPool} from 'app/server/lib/MemoryPool';
-import {fromCallback} from 'app/server/lib/serverUtils';
-import {shortDesc} from 'app/server/lib/shortDesc';
+import { LogMethods } from 'app/server/lib/LogMethods';
+import { MemoryPool } from 'app/server/lib/MemoryPool';
+import { fromCallback } from 'app/server/lib/serverUtils';
+import { shortDesc } from 'app/server/lib/shortDesc';
 import * as crypto from 'crypto';
-import {IncomingMessage} from 'http';
-import {i18n} from 'i18next';
+import { IncomingMessage } from 'http';
+import { i18n } from 'i18next';
 
 // How many messages and bytes to accumulate for a disconnected client before booting it.
 // The benefit is that a client who temporarily disconnects and reconnects without missing much,
@@ -36,7 +36,7 @@ const jsonResponseReservation = 20 * 1024 * 1024;
 export const jsonMemoryPool = new MemoryPool(jsonResponseTotalReservation);
 
 // A hook for dependency injection.
-export const Deps = {clientRemovalTimeoutMs, jsonResponseReservation};
+export const Deps = { clientRemovalTimeoutMs, jsonResponseReservation };
 
 /**
  * Generates and returns a random string to use as a clientId. This is better
@@ -125,7 +125,7 @@ export class Client {
     browserSettings: BrowserSettings;
     authSession: AuthSession;
   }) {
-    const {websocket, req, counter, browserSettings} = options;
+    const { websocket, req, counter, browserSettings } = options;
     this._websocket = websocket;
     this._req = req;
     this._counter = counter;
@@ -245,7 +245,7 @@ export class Client {
         return;
       }
       const seqId = this._nextSeqId++;
-      const message: string = JSON.stringify({...messageObj, seqId});
+      const message: string = JSON.stringify({ ...messageObj, seqId });
       const size = Buffer.byteLength(message, 'utf8');
       updateReservation(size);
 
@@ -340,7 +340,7 @@ export class Client {
     // will need to reopen docs. Tell it to reload.
     const needReload = !newClient && !seamlessReconnect;
 
-    this._log.debug({newClient, needReload, docsClosed, missedMessages: missedMessages?.length},
+    this._log.debug({ newClient, needReload, docsClosed, missedMessages: missedMessages?.length },
       'sending clientConnect');
 
     // Don't use sendMessage here, since we don't want to queue up this message on failure.
@@ -368,7 +368,7 @@ export class Client {
       await delay(250);
 
       if (!this._destroyed && this._websocket?.isOpen) {
-        await this._sendToWebsocket(JSON.stringify({...clientConnectMsg, dup: true}));
+        await this._sendToWebsocket(JSON.stringify({ ...clientConnectMsg, dup: true }));
       }
     }
     catch (err) {
@@ -397,7 +397,7 @@ export class Client {
    */
   public destroy() {
     const docsClosed = this.closeAllDocs();
-    this._log.info({docsClosed}, "client gone");
+    this._log.info({ docsClosed }, "client gone");
     if (this._destroyTimer) {
       clearTimeout(this._destroyTimer);
       this._destroyTimer = null;
@@ -445,11 +445,11 @@ export class Client {
     const method = this._methods.get(request.method);
     if (!method) {
       this._log.info(null, "onMessage: unknown method", shortDesc(message));
-      response = {reqId: request.reqId, error: `Unknown method ${request.method}`};
+      response = { reqId: request.reqId, error: `Unknown method ${request.method}` };
     }
     else {
       try {
-        response = {reqId: request.reqId, data: await method(this, ...request.args)};
+        response = { reqId: request.reqId, data: await method(this, ...request.args) };
       }
       catch (error) {
         const err: ErrorWithCode = error;
@@ -464,7 +464,7 @@ export class Client {
 
         this._log.warn(null, "Responding to method %s with error: %s %s",
           request.method, skipStack ? err : err.stack, code || '');
-        response = {reqId: request.reqId, error: err.message};
+        response = { reqId: request.reqId, error: err.message };
         if (err.code) {
           response.errorCode = err.code;
         }

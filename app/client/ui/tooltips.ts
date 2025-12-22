@@ -5,16 +5,16 @@
  * - to be shown briefly, as a transient notification next to some action element.
  */
 
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {GristTooltips, Tooltip} from 'app/client/ui/GristTooltips';
-import {prepareForTransition} from 'app/client/ui/transitions';
-import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {makeLinks} from 'app/client/ui2018/links';
-import {menuCssClass} from 'app/client/ui2018/menus';
-import {BindableValue, dom, DomContents, DomElementArg, DomElementMethod, Observable, styled} from 'grainjs';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
+import { GristTooltips, Tooltip } from 'app/client/ui/GristTooltips';
+import { prepareForTransition } from 'app/client/ui/transitions';
+import { colors, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { makeLinks } from 'app/client/ui2018/links';
+import { menuCssClass } from 'app/client/ui2018/menus';
+import { BindableValue, dom, DomContents, DomElementArg, DomElementMethod, Observable, styled } from 'grainjs';
 import Popper from 'popper.js';
-import {cssMenu, cssMenuItem, defaultMenuOptions, IPopupOptions, setPopupToCreateDom} from 'popweasel';
+import { cssMenu, cssMenuItem, defaultMenuOptions, IPopupOptions, setPopupToCreateDom } from 'popweasel';
 import merge from 'lodash/merge';
 
 export interface ITipOptions {
@@ -142,17 +142,17 @@ export function showTooltip(
     content.remove();
     if (key) { openTooltips.delete(key); }
   }
-  const ctl: ITooltipControl = {close, getDom: () => content};
+  const ctl: ITooltipControl = { close, getDom: () => content };
 
   // Add the content element.
-  const content = cssTooltip({role: 'tooltip'}, tipContent(ctl), testId(`tooltip`));
+  const content = cssTooltip({ role: 'tooltip' }, tipContent(ctl), testId(`tooltip`));
   // Prepending instead of appending allows better text selection, as this element is on top.
   document.body.prepend(content);
 
   // Create a popper for positioning the tooltip content relative to refElem.
   const popperOptions: Popper.PopperOptions = {
     modifiers: merge(
-      { preventOverflow: {boundariesElement: 'viewport'} },
+      { preventOverflow: { boundariesElement: 'viewport' } },
       options.modifiers,
     ),
     placement,
@@ -178,8 +178,8 @@ export function showTooltip(
  *    dom('div', 'Trigger', hoverTooltip('Hello!')
  */
 export function hoverTooltip(tipContent: ITooltipContent, options?: IHoverTipOptions): DomElementMethod {
-  const defaultOptions: IHoverTipOptions = {placement: 'bottom'};
-  return elem => setHoverTooltip(elem, tipContent, {...defaultOptions, ...options});
+  const defaultOptions: IHoverTipOptions = { placement: 'bottom' };
+  return elem => setHoverTooltip(elem, tipContent, { ...defaultOptions, ...options });
 }
 
 /**
@@ -191,9 +191,9 @@ export function overflowTooltip(options?: IHoverTipOptions): DomElementMethod {
   const defaultOptions: IHoverTipOptions = {
     placement: 'bottom-start',
     overflowOnly: true,
-    modifiers: {offset: {offset: '40, 0'}},
+    modifiers: { offset: { offset: '40, 0' } },
   };
-  return elem => setHoverTooltip(elem, () => elem.textContent,  {...defaultOptions, ...options});
+  return elem => setHoverTooltip(elem, () => elem.textContent,  { ...defaultOptions, ...options });
 }
 
 /**
@@ -204,8 +204,8 @@ export function setHoverTooltip(
   tipContent: ITooltipContent,
   options: IHoverTipOptions = {},
 ) {
-  const {key, openDelay = 200, timeoutMs, closeDelay = 100, openOnClick, closeOnClick = true,
-    overflowOnly = false} = options;
+  const { key, openDelay = 200, timeoutMs, closeDelay = 100, openOnClick, closeOnClick = true,
+    overflowOnly = false } = options;
 
   const tipContentFunc = typeof tipContent === 'function' ? tipContent : () => tipContent;
 
@@ -257,7 +257,7 @@ export function setHoverTooltip(
   function open() {
     if (options.hidden?.get()) { return; }
     clearTimer();
-    tipControl = showTooltip(refElem, ctl => tipContentFunc({...ctl, close}), options);
+    tipControl = showTooltip(refElem, ctl => tipContentFunc({ ...ctl, close }), options);
     const tipDom = tipControl.getDom();
     dom.onElem(tipDom, 'pointerenter', clearTimer);
     dom.onElem(tipDom, 'pointerleave', () => scheduleCloseIfOpen());
@@ -339,11 +339,11 @@ export function infoTooltip(
   options: InfoTooltipOptions = {},
   ...domArgs: DomElementArg[]
 ) {
-  const {variant = 'click'} = options;
+  const { variant = 'click' } = options;
   switch (variant) {
     case 'click': {
-      const {popupOptions} = options;
-      return buildClickableInfoTooltip(tooltip, {popupOptions}, domArgs);
+      const { popupOptions } = options;
+      return buildClickableInfoTooltip(tooltip, { popupOptions }, domArgs);
     }
     case 'hover': {
       return buildHoverableInfoTooltip(tooltip, domArgs);
@@ -361,7 +361,7 @@ function buildClickableInfoTooltip(
   options: ClickableInfoTooltipOptions = {},
   ...domArgs: DomElementArg[]
 ) {
-  const {popupOptions} = options;
+  const { popupOptions } = options;
   return dom.domComputed(tooltip, tip =>
     cssInfoTooltipButton('?',
       (elem) => {
@@ -390,7 +390,7 @@ function buildClickableInfoTooltip(
               testId('info-tooltip-popup'),
             );
           },
-          {...defaultMenuOptions, ...{placement: 'bottom-end'}, ...popupOptions},
+          { ...defaultMenuOptions, ...{ placement: 'bottom-end' }, ...popupOptions },
         );
       },
       testId('info-tooltip'),
@@ -407,9 +407,9 @@ function buildHoverableInfoTooltip(
     hoverTooltip(() => cssInfoTooltipTransientPopup(
       dom.domComputed(tooltip, tip => GristTooltips[tip]()),
       cssTooltipCorner(testId('tooltip-origin')),
-      {tabIndex: '-1'},
+      { tabIndex: '-1' },
       testId('info-tooltip-popup'),
-    ), {closeOnClick: false}),
+    ), { closeOnClick: false }),
     testId('info-tooltip'),
     ...domArgs,
   );
@@ -450,10 +450,10 @@ export function withInfoTooltip(
   tooltip: BindableValue<Tooltip>,
   options: WithInfoTooltipOptions = {},
 ) {
-  const {variant = 'click', domArgs, iconDomArgs, popupOptions} = options;
+  const { variant = 'click', domArgs, iconDomArgs, popupOptions } = options;
   return cssInfoTooltip(
     domContents,
-    infoTooltip(tooltip, {variant, popupOptions}, iconDomArgs),
+    infoTooltip(tooltip, { variant, popupOptions }, iconDomArgs),
     ...(domArgs ?? []),
   );
 }
@@ -476,7 +476,7 @@ export function descriptionInfoTooltip(
     // Used id test to find the origin of the tooltip regardless webdriver implementation (some of them start)
     cssTooltipCorner(testId('tooltip-origin')),
     testId(`${testPrefix}-info-tooltip-popup`),
-    {tabIndex: '-1'},
+    { tabIndex: '-1' },
   );
   return cssDescriptionInfoTooltipButton(
     icon('Info', dom.cls("info_toggle_icon")),

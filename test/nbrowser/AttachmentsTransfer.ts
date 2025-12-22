@@ -1,12 +1,12 @@
-import {AttachmentsArchiveParams, DocAPI} from 'app/common/UserAPI';
+import { AttachmentsArchiveParams, DocAPI } from 'app/common/UserAPI';
 import fs from 'fs';
-import {assert, driver, Key, WebElementPromise} from 'mocha-webdriver';
+import { assert, driver, Key, WebElementPromise } from 'mocha-webdriver';
 import path from 'path';
-import {enableExternalAttachmentsForTestSuite} from 'test/nbrowser/externalAttachmentsHelpers';
+import { enableExternalAttachmentsForTestSuite } from 'test/nbrowser/externalAttachmentsHelpers';
 import * as gu from 'test/nbrowser/gristUtils';
-import {fileDialogUpload, TestUser} from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
-import {createTmpDir} from 'test/server/docTools';
+import { fileDialogUpload, TestUser } from 'test/nbrowser/gristUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { createTmpDir } from 'test/server/docTools';
 import axios from 'axios';
 import stream from 'node:stream';
 import fse from 'fs-extra';
@@ -74,7 +74,7 @@ describe("AttachmentsTransfer", function() {
   });
 
   describe("with external attachments enabled", () => {
-    const externalAttachments = enableExternalAttachmentsForTestSuite({transferDelay: 500});
+    const externalAttachments = enableExternalAttachmentsForTestSuite({ transferDelay: 500 });
 
     /** Files will be stored in a folder inside the tmpFolder. Here is a helper that will get files names from it. */
     const files = () => {
@@ -183,7 +183,7 @@ describe("AttachmentsTransfer", function() {
 
         const downloadHref = await driver.find('.test-external-attachments-info a').getAttribute('href');
         const downloadUrl = new URL(downloadHref);
-        const idealUrl = new URL(api.getDownloadAttachmentsArchiveUrl({format: 'tar'}));
+        const idealUrl = new URL(api.getDownloadAttachmentsArchiveUrl({ format: 'tar' }));
         assert.equal(downloadUrl.pathname, idealUrl.pathname, "wrong download link called");
         assert.equal(downloadUrl.search, idealUrl.search, "wrong search parameters in url");
         // Ensures the page isn't modified / navigated away from by the link, as subsequent tests will fail.
@@ -228,9 +228,9 @@ describe("AttachmentsTransfer", function() {
         };
 
         await selectFormat(/.tar/);
-        await gu.waitToPass(() => testDownloadLink({format: 'tar'}), 500);
+        await gu.waitToPass(() => testDownloadLink({ format: 'tar' }), 500);
         await selectFormat(/.zip/);
-        await gu.waitToPass(() => testDownloadLink({format: 'zip'}), 500);
+        await gu.waitToPass(() => testDownloadLink({ format: 'zip' }), 500);
       }
       finally {
         // Try to close the modal to minimise the chances of other tests failing.

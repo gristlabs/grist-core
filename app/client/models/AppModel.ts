@@ -1,38 +1,38 @@
-import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
-import {hooks} from 'app/client/Hooks';
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {makeT} from 'app/client/lib/localization';
-import {sessionStorageObs} from 'app/client/lib/localStorageObs';
-import {error} from 'app/client/lib/log';
-import {reportError, setErrorNotifier} from 'app/client/models/errors';
-import {urlState} from 'app/client/models/gristUrlState';
-import {Notifier} from 'app/client/models/NotifyModel';
-import {getFlavor, ProductFlavor} from 'app/client/ui/CustomThemes';
-import {buildNewSiteModal, buildUpgradeModal} from 'app/client/ui/ProductUpgrades';
-import {gristThemePrefs} from 'app/client/ui2018/theme';
-import {Experiments} from 'app/client/ui/Experiments';
-import {AsyncCreate} from 'app/common/AsyncCreate';
-import {PlanSelection} from 'app/common/BillingAPI';
-import {ICustomWidget} from 'app/common/CustomWidget';
-import {OrgUsageSummary} from 'app/common/DocUsage';
-import {Features, isFreePlan, isLegacyPlan, mergedFeatures, Product} from 'app/common/Features';
-import {GristLoadConfig, IGristUrlState} from 'app/common/gristUrls';
-import {FullUser} from 'app/common/LoginSessionAPI';
-import {LocalPlugin} from 'app/common/plugin';
-import {DismissedPopup, DismissedReminder, UserPrefs} from 'app/common/Prefs';
-import {isOwner, isOwnerOrEditor} from 'app/common/roles';
-import {getTagManagerScript} from 'app/common/tagManager';
-import {getDefaultThemePrefs, ThemePrefs} from 'app/common/ThemePrefs';
-import {getGristConfig} from 'app/common/urlUtils';
-import {ExtendedUser} from 'app/common/UserAPI';
-import {getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
-import {getUserPrefObs, getUserPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
-import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
+import { BehavioralPromptsManager } from 'app/client/components/BehavioralPromptsManager';
+import { hooks } from 'app/client/Hooks';
+import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import { makeT } from 'app/client/lib/localization';
+import { sessionStorageObs } from 'app/client/lib/localStorageObs';
+import { error } from 'app/client/lib/log';
+import { reportError, setErrorNotifier } from 'app/client/models/errors';
+import { urlState } from 'app/client/models/gristUrlState';
+import { Notifier } from 'app/client/models/NotifyModel';
+import { getFlavor, ProductFlavor } from 'app/client/ui/CustomThemes';
+import { buildNewSiteModal, buildUpgradeModal } from 'app/client/ui/ProductUpgrades';
+import { gristThemePrefs } from 'app/client/ui2018/theme';
+import { Experiments } from 'app/client/ui/Experiments';
+import { AsyncCreate } from 'app/common/AsyncCreate';
+import { PlanSelection } from 'app/common/BillingAPI';
+import { ICustomWidget } from 'app/common/CustomWidget';
+import { OrgUsageSummary } from 'app/common/DocUsage';
+import { Features, isFreePlan, isLegacyPlan, mergedFeatures, Product } from 'app/common/Features';
+import { GristLoadConfig, IGristUrlState } from 'app/common/gristUrls';
+import { FullUser } from 'app/common/LoginSessionAPI';
+import { LocalPlugin } from 'app/common/plugin';
+import { DismissedPopup, DismissedReminder, UserPrefs } from 'app/common/Prefs';
+import { isOwner, isOwnerOrEditor } from 'app/common/roles';
+import { getTagManagerScript } from 'app/common/tagManager';
+import { getDefaultThemePrefs, ThemePrefs } from 'app/common/ThemePrefs';
+import { getGristConfig } from 'app/common/urlUtils';
+import { ExtendedUser } from 'app/common/UserAPI';
+import { getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl } from 'app/common/UserAPI';
+import { getUserPrefObs, getUserPrefsObs, markAsSeen } from 'app/client/models/UserPrefs';
+import { bundleChanges, Computed, Disposable, Observable, subscribe } from 'grainjs';
 
 const t = makeT('AppModel');
 
 // Reexported for convenience.
-export {reportError} from 'app/client/models/errors';
+export { reportError } from 'app/client/models/errors';
 
 export type PageType =
   | "doc"
@@ -166,7 +166,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   // up new widgets - that seems ok.
   private readonly _widgets: AsyncCreate<ICustomWidget[]>;
 
-  constructor(private _window: {gristConfig?: GristLoadConfig},
+  constructor(private _window: { gristConfig?: GristLoadConfig },
     public readonly api: UserAPI = newUserAPIImpl(),
     public readonly options: TopAppModelOptions = {},
   ) {
@@ -200,7 +200,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   public reload(): void {
     const app = this.appObs.get();
     if (app) {
-      const {currentUser, currentOrg, orgError} = app;
+      const { currentUser, currentOrg, orgError } = app;
       AppModelImpl.create(this.appObs, this, currentUser, currentOrg, orgError);
     }
   }
@@ -214,7 +214,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
     this._widgets.clear();
     console.log("testReloadWidgets cleared");
     const result = await this.getWidgets();
-    console.log("testReloadWidgets got", {result});
+    console.log("testReloadWidgets got", { result });
   }
 
   public getUntrustedContentOrigin() {
@@ -246,11 +246,11 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   private async _doInitialize() {
     this.appObs.set(null);
     if (this.options.useApi === false) {
-      AppModelImpl.create(this.appObs, this, null, null, {error: 'no-api', status: 500});
+      AppModelImpl.create(this.appObs, this, null, null, { error: 'no-api', status: 500 });
       return;
     }
     try {
-      const {user, org, orgError} = await this.api.getSessionActive();
+      const { user, org, orgError } = await this.api.getSessionActive();
       if (this.isDisposed()) { return; }
       if (org) {
         // Check that our domain matches what the api returns.
@@ -258,13 +258,13 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
         if (state.org !== org.domain && org.domain !== null) {
           // If not, redirect.  This is to allow vanity domains
           // to "stick" only if paid for.
-          await urlState().pushUrl({...state, org: org.domain});
+          await urlState().pushUrl({ ...state, org: org.domain });
         }
         if (org.billingAccount && org.billingAccount.product &&
           org.billingAccount.product.name === 'suspended') {
           this.notifier.createUserMessage(
             t("This team site is suspended. Documents can be read, but not modified."),
-            {actions: ['renew', 'personal']},
+            { actions: ['renew', 'personal'] },
           );
         }
       }
@@ -274,7 +274,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
       // tslint:disable-next-line:no-console
       console.log(`getSessionActive() failed: ${err}`);
       if (this.isDisposed()) { return; }
-      AppModelImpl.create(this.appObs, this, null, null, {error: err.message, status: err.status || 500});
+      AppModelImpl.create(this.appObs, this, null, null, { error: err.message, status: err.status || 500 });
     }
   }
 }
@@ -380,7 +380,7 @@ export class AppModelImpl extends Disposable implements AppModel {
     const state = urlState().state.get();
     if (state.createTeam) {
       // Remove params from the URL.
-      urlState().pushUrl({createTeam: false, params: {}}, {avoidReload: true, replace: true}).catch(() => {});
+      urlState().pushUrl({ createTeam: false, params: {} }, { avoidReload: true, replace: true }).catch(() => {});
       this.showNewSiteModal({
         priceId: state.params?.billingPlan,
         product: state.params?.planType,
@@ -388,7 +388,7 @@ export class AppModelImpl extends Disposable implements AppModel {
     }
     else if (state.upgradeTeam) {
       // Remove params from the URL.
-      urlState().pushUrl({upgradeTeam: false, params: {}}, {avoidReload: true, replace: true}).catch(() => {});
+      urlState().pushUrl({ upgradeTeam: false, params: {} }, { avoidReload: true, replace: true }).catch(() => {});
       this.showUpgradeModal({
         priceId: state.params?.billingPlan,
         product: state.params?.planType,
@@ -495,7 +495,7 @@ export class AppModelImpl extends Disposable implements AppModel {
     return isFreePlan(this.planName || '');
   }
 
-  private _updateLastVisitedOrgDomain({doc, org}: IGristUrlState, availableOrgs: Organization[]) {
+  private _updateLastVisitedOrgDomain({ doc, org }: IGristUrlState, availableOrgs: Organization[]) {
     if (
       !org ||
       // Invalid or inaccessible sites shouldn't be counted as visited.
@@ -507,7 +507,7 @@ export class AppModelImpl extends Disposable implements AppModel {
     }
 
     // Only count sites that a user has access to (i.e. those listed in the Site Switcher).
-    if (!availableOrgs.some(({domain}) => domain === org)) { return; }
+    if (!availableOrgs.some(({ domain }) => domain === org)) { return; }
 
     this.lastVisitedOrgDomain.set(org);
   }
@@ -520,7 +520,7 @@ export class AppModelImpl extends Disposable implements AppModel {
     if (!isNewUser) { return; }
 
     // If Google Tag Manager isn't configured, don't record anything.
-    const {tagManagerId} = getGristConfig();
+    const { tagManagerId } = getGristConfig();
     if (!tagManagerId) { return; }
 
     let dataLayer = (window as any).dataLayer;
@@ -536,7 +536,7 @@ export class AppModelImpl extends Disposable implements AppModel {
     }
 
     // Send the sign-up event, and remove the recordSignUpEvent flag from preferences.
-    dataLayer.push({event: 'new-sign-up'});
+    dataLayer.push({ event: 'new-sign-up' });
     getUserPrefObs(this.userPrefsObs, 'recordSignUpEvent').set(undefined);
   }
 }
@@ -559,7 +559,7 @@ export function getOrgNameOrGuest(org: Organization|null, user: FullUser|null) {
  * organization-neutral.
  */
 export function getFallbackHomeUrl(): string {
-  const {host, protocol} = window.location;
+  const { host, protocol } = window.location;
   return `${protocol}//${host}`;
 }
 

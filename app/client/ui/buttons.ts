@@ -1,4 +1,4 @@
-import {styled} from 'grainjs';
+import { styled } from 'grainjs';
 
 /**
  * Plain clickable button, light grey with dark text, slightly raised.

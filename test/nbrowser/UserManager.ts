@@ -1,10 +1,10 @@
-import {fromPairs} from 'lodash';
-import { assert, driver, Key, stackWrapFunc, WebElementPromise} from 'mocha-webdriver';
+import { fromPairs } from 'lodash';
+import { assert, driver, Key, stackWrapFunc, WebElementPromise } from 'mocha-webdriver';
 import * as path from 'path';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
-const {editOrgAcls, saveAcls} = gu;
+const { editOrgAcls, saveAcls } = gu;
 
 // Opens the doc acl edit menu for the given workspace.
 const editWsAcls = stackWrapFunc(async function(wsName: string): Promise<void> {
@@ -83,7 +83,7 @@ describe('UserManager', function() {
     const session = await gu.session().teamSite.user('user1').login();
     await session.resetSite();
     await session.createHomeApi().updateOrgPermissions(session.settings.orgDomain, {
-      users: {'support@getgrist.com': 'owners'},
+      users: { 'support@getgrist.com': 'owners' },
     });
   });
 
@@ -467,7 +467,7 @@ describe('UserManager', function() {
     await saveAcls();
 
     // zing can now access the shared doc in chimpy's personal workspace.
-    await server.simulateLogin("zing", "zing@getgrist.com", "docs", {isFirstLogin: false});
+    await server.simulateLogin("zing", "zing@getgrist.com", "docs", { isFirstLogin: false });
     await driver.get(`${server.getHost()}/o/docs`);
     await gu.waitForDocMenuToLoad();
     assert.equal(await driver.findContent('.test-dm-doc-name', /Time/).getText(), 'Timesheets');
@@ -496,7 +496,7 @@ describe('UserManager', function() {
     await saveAcls();
 
     // Log in as Mr Mysterio for first time, and make sure we have a personal org.
-    await server.simulateLogin("Mr Mysterio", "mysterio@getgrist.com", "docs", {isFirstLogin: false});
+    await server.simulateLogin("Mr Mysterio", "mysterio@getgrist.com", "docs", { isFirstLogin: false });
     await driver.get(`${server.getHost()}/o/docs`);
     await gu.waitForDocMenuToLoad();
 
@@ -505,7 +505,7 @@ describe('UserManager', function() {
 
     // Log in as Mysterio2 for first time, without a name, and make sure our name is guessed
     // from email.
-    await server.simulateLogin("", "mysterio2@getgrist.com", "fish", {isFirstLogin: false});
+    await server.simulateLogin("", "mysterio2@getgrist.com", "fish", { isFirstLogin: false });
     await driver.get(`${server.getHost()}/o/fish`);
     await gu.waitForDocMenuToLoad();
     assert.equal(await gu.getName(), 'mysterio2');
@@ -721,7 +721,7 @@ describe('UserManager', function() {
     // he is no longer an owner. That's fine, but check that the UserManager shows correct role.
     // Update: Charon will now see a very limited UserManager, showing just their own info.
     const api = gu.createHomeApi('Chimpy', 'nasa');
-    await api.updateDocPermissions(docId, {users: {'charon@getgrist.com': 'viewers'}});
+    await api.updateDocPermissions(docId, { users: { 'charon@getgrist.com': 'viewers' } });
 
     await editDocAcls('Pluto');
     await assertAccessDetails('Charon', 'Viewer', 'Outside collaborator');
@@ -737,11 +737,11 @@ describe('UserManager', function() {
     // Context: A previous bug caused a blank User Manager dialog to be shown.
     const session = await gu.session().teamSite.login();
     const api = session.createHomeApi();
-    const {id} = await session.tempDoc(cleanup, 'Hello.grist');
-    await api.updateDocPermissions(id, {users: {
+    const { id } = await session.tempDoc(cleanup, 'Hello.grist');
+    await api.updateDocPermissions(id, { users: {
       // Make the temp doc public.
       'everyone@getgrist.com': 'viewers',
-    }});
+    } });
 
     // Check that a logged-in user sees an appropriate role in Access Details.
     const session2 = await gu.session().teamSite.user('user2').login();
@@ -757,7 +757,7 @@ describe('UserManager', function() {
 
     // Add a collaborator to the doc and check that the "Public access" annotation is
     // no longer shown.
-    await api.updateDocPermissions(id, {users: {[session2.email]: 'editors'}});
+    await api.updateDocPermissions(id, { users: { [session2.email]: 'editors' } });
     await session2.login();
     await session2.loadDoc(`/doc/${id}`);
     await editDocAclsShareMenu();
@@ -767,14 +767,14 @@ describe('UserManager', function() {
     await gu.sendKeys(Key.ESCAPE);
 
     // Add a team member to the site and check that the "Team member" annotation is shown.
-    await api.updateOrgPermissions('current', {users: {[session2.email]: 'members'}});
+    await api.updateOrgPermissions('current', { users: { [session2.email]: 'members' } });
     await editDocAclsShareMenu();
     await assertAccessDetails(session2.name, 'Editor', 'Team member');
 
     // Turn off role inheriting in the doc, but leave public access intact.
     await api.updateDocPermissions(id, {
       maxInheritedRole: null,
-      users: {[session2.email]: null},
+      users: { [session2.email]: null },
     });
 
     // Reload the page, since real access should have changed from Editor to Viewer.
@@ -785,10 +785,10 @@ describe('UserManager', function() {
     await assertAccessDetails(session2.name, 'Viewer', 'Public access');
 
     // Finally, disable public access but add the team member to the doc explicitly.
-    await api.updateDocPermissions(id, {users: {
+    await api.updateDocPermissions(id, { users: {
       [session2.email]: 'editors',
       'everyone@getgrist.com': null,
-    }});
+    } });
 
     // Check that "Public access" is no longer shown.
     await session2.loadDoc(`/doc/${id}`);
@@ -817,9 +817,9 @@ describe('UserManager', function() {
       await saveAcls();
 
       // Make a document and add some users.
-      const doc = await session.tempDoc(cleanup, 'Hello.grist', {load: false});
+      const doc = await session.tempDoc(cleanup, 'Hello.grist', { load: false });
       await api.updateDocPermissions(doc.id, {
-        users: {'luigi@getgrist.com': 'viewers', 'mario@getgrist.com': 'owners'},
+        users: { 'luigi@getgrist.com': 'viewers', 'mario@getgrist.com': 'owners' },
       });
 
       // Soft-delete the document.
@@ -848,7 +848,7 @@ describe('UserManager', function() {
     await session.loadDocMenu('/');
 
     // Make a document, and start editing shares.
-    await session.tempDoc(cleanup, 'Hello.grist', {load: true});
+    await session.tempDoc(cleanup, 'Hello.grist', { load: true });
     await driver.findWait('.test-tb-share', 2000).click();
     await driver.findContentWait('.test-tb-share-option', /Manage users/, 1000).click();
 

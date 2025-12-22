@@ -15,10 +15,10 @@
  *     represent a particular document.
  */
 
-import {ApiError} from 'app/common/ApiError';
-import {FullUser} from 'app/common/LoginSessionAPI';
-import type {RequestWithLogin} from 'app/server/lib/Authorizer';
-import {ILogMeta} from 'app/server/lib/log';
+import { ApiError } from 'app/common/ApiError';
+import { FullUser } from 'app/common/LoginSessionAPI';
+import type { RequestWithLogin } from 'app/server/lib/Authorizer';
+import { ILogMeta } from 'app/server/lib/log';
 import moment from 'moment';
 
 export abstract class AuthSession {

@@ -1,6 +1,6 @@
-import {UserAPIImpl} from 'app/common/UserAPI';
-import {assert} from 'chai';
-import {driver, Key} from 'mocha-webdriver';
+import { UserAPIImpl } from 'app/common/UserAPI';
+import { assert } from 'chai';
+import { driver, Key } from 'mocha-webdriver';
 import {
   addRefListLookup,
   AVERAGE,
@@ -19,7 +19,7 @@ import {
   revertThis,
 } from 'test/nbrowser/GridViewNewColumnMenuUtils';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('GridViewNewColumnMenu', function () {
   const STANDARD_WAITING_TIME = 1000;
@@ -31,7 +31,7 @@ describe('GridViewNewColumnMenu', function () {
   let session: gu.Session;
 
   before(async function () {
-    session = await gu.session().login({showTips: true});
+    session = await gu.session().login({ showTips: true });
     api = session.createHomeApi();
     docId = await session.tempNewDoc(cleanup, 'ColumnMenu');
     await gu.dismissBehavioralPrompts();
@@ -39,20 +39,20 @@ describe('GridViewNewColumnMenu', function () {
     // Add a table that will be used for lookups.
     await gu.sendActions([
       ['AddTable', 'Person', [
-        {id: "Name"},
-        {id: "Age", type: 'Numeric'},
-        {id: 'Hobby', type: 'ChoiceList', widgetOptions: JSON.stringify({choices: ['Books', 'Cars']})},
-        {id: 'Employee', type: 'Choice', widgetOptions: JSON.stringify({choices: ['Y', 'N']})},
-        {id: "Birthday date", type: 'Date', label: 'Birthday date'},
-        {id: "Member", type: 'Bool'},
-        {id: "SeenAt", type: 'DateTime:UTC'},
-        {id: "Photo", type: 'Attachments'},
-        {id: "Fun", type: 'Any', formula: '44'},
-        {id: 'Parent', type: 'Ref:Person'},
-        {id: 'Children', type: 'RefList:Person'},
+        { id: "Name" },
+        { id: "Age", type: 'Numeric' },
+        { id: 'Hobby', type: 'ChoiceList', widgetOptions: JSON.stringify({ choices: ['Books', 'Cars'] }) },
+        { id: 'Employee', type: 'Choice', widgetOptions: JSON.stringify({ choices: ['Y', 'N'] }) },
+        { id: "Birthday date", type: 'Date', label: 'Birthday date' },
+        { id: "Member", type: 'Bool' },
+        { id: "SeenAt", type: 'DateTime:UTC' },
+        { id: "Photo", type: 'Attachments' },
+        { id: "Fun", type: 'Any', formula: '44' },
+        { id: 'Parent', type: 'Ref:Person' },
+        { id: 'Children', type: 'RefList:Person' },
       ]],
-      ['AddRecord', 'Person', null, {Name: "Bob", Age: 12}],
-      ['AddRecord', 'Person', null, {Name: "Robert", Age: 34, Parent: 1}],
+      ['AddRecord', 'Person', null, { Name: "Bob", Age: 12 }],
+      ['AddRecord', 'Person', null, { Name: "Robert", Age: 34, Parent: 1 }],
     ]);
   });
 
@@ -70,15 +70,15 @@ describe('GridViewNewColumnMenu', function () {
       await gu.sendActions([
         // Create a table that we can reference to.
         ['AddTable', 'Reference', [
-          {id: "Name"},
-          {id: "Age"},
-          {id: "City"},
+          { id: "Name" },
+          { id: "Age" },
+          { id: "City" },
         ]],
         // Add some data to the table.
-        ['AddRecord', 'Reference', null, {Name: "Bob", Age: 12, City: "New York"}],
-        ['AddRecord', 'Reference', null, {Name: "Robert", Age: 34, City: "Łódź"}],
+        ['AddRecord', 'Reference', null, { Name: "Bob", Age: 12, City: "New York" }],
+        ['AddRecord', 'Reference', null, { Name: "Robert", Age: 34, City: "Łódź" }],
         // And a Ref column in the main table to that table.
-        ['AddColumn', 'Table1', 'Reference', {type: 'Ref:Reference'}],
+        ['AddColumn', 'Table1', 'Reference', { type: 'Ref:Reference' }],
       ]);
 
       await clickAddColumn();
@@ -184,7 +184,7 @@ describe('GridViewNewColumnMenu', function () {
       "Reference",
       "Reference List",
       "Attachment",
-    ].map(option => ({type: option, testClass: option.toLowerCase().replace(' ', '-')}));
+    ].map(option => ({ type: option, testClass: option.toLowerCase().replace(' ', '-') }));
 
     describe('on desktop', function () {
       gu.bigScreen();
@@ -422,9 +422,9 @@ describe('GridViewNewColumnMenu', function () {
 
     it('hides hidden column section from < 5 columns', async function () {
       await gu.sendActions([
-        ['AddVisibleColumn', 'Table1', 'New1', {type: 'Any'}],
-        ['AddVisibleColumn', 'Table1', 'New2', {type: 'Any'}],
-        ['AddVisibleColumn', 'Table1', 'New3', {type: 'Any'}],
+        ['AddVisibleColumn', 'Table1', 'New1', { type: 'Any' }],
+        ['AddVisibleColumn', 'Table1', 'New2', { type: 'Any' }],
+        ['AddVisibleColumn', 'Table1', 'New3', { type: 'Any' }],
       ]);
       await gu.openWidgetPanel();
       await clickAddColumn();
@@ -479,7 +479,7 @@ describe('GridViewNewColumnMenu', function () {
     describe('submenu section', function () {
       before(async function () {
         await gu.sendActions([
-          ['AddVisibleColumn', 'Table1', 'New4', {type: 'Any'}],
+          ['AddVisibleColumn', 'Table1', 'New4', { type: 'Any' }],
         ]);
       });
 
@@ -593,8 +593,8 @@ describe('GridViewNewColumnMenu', function () {
 
     before(async function () {
       await gu.sendActions([
-        ['AddVisibleColumn', 'Table1', 'Person', {type: 'Ref:Person'}],
-        ['AddVisibleColumn', 'Table1', 'Employees', {type: 'RefList:Person'}],
+        ['AddVisibleColumn', 'Table1', 'Person', { type: 'Ref:Person' }],
+        ['AddVisibleColumn', 'Table1', 'Employees', { type: 'RefList:Person' }],
       ]);
       await gu.openColumnPanel();
 
@@ -868,8 +868,8 @@ describe('GridViewNewColumnMenu', function () {
     before(async function () {
       // Reference the Person table once more
       await gu.sendActions([
-        ['AddVisibleColumn', 'Person', 'Item', {type: 'Ref:Table1'}],
-        ['AddVisibleColumn', 'Person', 'Items', {type: 'RefList:Table1'}],
+        ['AddVisibleColumn', 'Person', 'Item', { type: 'Ref:Table1' }],
+        ['AddVisibleColumn', 'Person', 'Items', { type: 'RefList:Table1' }],
       ]);
     });
 
@@ -1365,13 +1365,13 @@ describe('GridViewNewColumnMenu', function () {
         await clickAddColumn();
         await driver.findWait('.test-new-columns-menu-shortcuts-uuid', STANDARD_WAITING_TIME).click();
         await gu.waitForServer();
-        const cells1 = await gu.getVisibleGridCells({col: 'UUID', rowNums: [1, 2]});
+        const cells1 = await gu.getVisibleGridCells({ col: 'UUID', rowNums: [1, 2] });
         assert.match(cells1[0], /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
         assert.equal(cells1[1], '');
         await gu.getCell(2, 2).click();
         await gu.sendKeys('B', Key.ENTER);
         await gu.waitForServer();
-        const cells2 = await gu.getVisibleGridCells({col: 'UUID', rowNums: [1, 2, 3]});
+        const cells2 = await gu.getVisibleGridCells({ col: 'UUID', rowNums: [1, 2, 3] });
         assert.match(cells2[0], /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
         assert.match(cells2[1], /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
         assert.equal(cells2[2], '');
@@ -1389,10 +1389,10 @@ describe('GridViewNewColumnMenu', function () {
 
       // Start transforming a column.
       await gu.sendActions([
-        ['AddRecord', 'Table1', null, {A: 1, B: 2, C: 3}],
+        ['AddRecord', 'Table1', null, { A: 1, B: 2, C: 3 }],
       ]);
       await gu.getCell('A', 1).click();
-      await gu.setType('Reference', {apply: false});
+      await gu.setType('Reference', { apply: false });
       await gu.waitForServer();
       await gu.setRefTable('Person');
       await gu.waitForServer();
@@ -1419,7 +1419,7 @@ describe('GridViewNewColumnMenu', function () {
         'gristHelper_Converted',
         'gristHelper_Transform',
       ]);
-      await gu.setType('Reference List', {apply: false});
+      await gu.setType('Reference List', { apply: false });
       await gu.setRefTable('Person');
       await gu.waitForServer();
       columns = await api.getTable(docId, 'Table1');

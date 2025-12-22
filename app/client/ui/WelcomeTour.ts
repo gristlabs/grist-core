@@ -13,7 +13,7 @@ import { dom, styled } from "grainjs";
 const t = makeT('WelcomeTour');
 
 export function getOnBoardingMessages(): IOnBoardingMsg[] {
-  const {assistant, features} = getGristConfig();
+  const { assistant, features } = getGristConfig();
   return [
     {
       title: t('Editing Data'),
@@ -34,7 +34,7 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
       title: t('Configuring your document'),
       body: () => [
         dom('p',
-          t('Toggle the {{creatorPanel}} to format columns, ', {creatorPanel: dom('em', t('creator panel'))}),
+          t('Toggle the {{creatorPanel}} to format columns, ', { creatorPanel: dom('em', t('creator panel')) }),
           t('convert to card view, select data, and more.'),
         ),
       ],
@@ -69,7 +69,7 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
       title: t('Sharing'),
       body: () => [
         dom('p', t('Use the Share button ({{share}}) to share the document or export data.',
-          {share: TopBarButtonIcon(t('Share'))})),
+          { share: TopBarButtonIcon(t('Share')) })),
       ],
       placement: 'bottom',
       cropPadding: true,
@@ -92,7 +92,7 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
       title: t('Flying higher'),
       body: () => [
         dom('p', t('Use {{helpCenter}} for documentation or questions.',
-          {helpCenter: ShortcutKey(GreyIcon('Help'), t('Help Center'))})),
+          { helpCenter: ShortcutKey(GreyIcon('Help'), t('Help Center')) })),
       ],
       placement: 'right',
     },

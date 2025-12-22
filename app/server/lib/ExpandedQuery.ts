@@ -61,7 +61,7 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
     if (!tableRef) { throw new ApiError('table not found: ' + query.tableId, 404); }
 
     // Find any references to other tables.
-    const dataColumns = columns.filterRecords({parentId: tableRef, isFormula: false});
+    const dataColumns = columns.filterRecords({ parentId: tableRef, isFormula: false });
     const references = new Map<string, string>();
     for (const column of dataColumns) {
       const refTableId = removePrefix(column.type as string, 'Ref:');
@@ -72,7 +72,7 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
     for (const column of dataColumns) {
       selects.add(`${quoteIdent(query.tableId)}.${quoteIdent(column.colId as string)}`);
     }
-    const formulaColumns = columns.filterRecords({parentId: tableRef, isFormula: true});
+    const formulaColumns = columns.filterRecords({ parentId: tableRef, isFormula: true });
     for (const column of formulaColumns) {
       const formula = parseFormula(column.formula as string);
       const colId = column.colId as string;
@@ -82,7 +82,7 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
         const altTableId = references.get(formula.refColId);
         const altTableRef = tables.findRow('tableId', altTableId!);
         if (altTableId && altTableRef) {
-          const altColumn = columns.filterRecords({parentId: altTableRef, isFormula: false, colId: formula.colId});
+          const altColumn = columns.filterRecords({ parentId: altTableRef, isFormula: false, colId: formula.colId });
           // TODO: deal with a formula column in the other table.
           if (altColumn.length > 0) {
             const alias = `${query.tableId}_${formula.refColId}`;
@@ -100,7 +100,7 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
         }
       }
       else if (formula.kind === 'column') {
-        const altColumn = columns.filterRecords({parentId: tableRef, isFormula: false, colId: formula.colId});
+        const altColumn = columns.filterRecords({ parentId: tableRef, isFormula: false, colId: formula.colId });
         // TODO: deal with a formula column.
         if (altColumn.length > 0) {
           sqlFormula = `${quoteIdent(query.tableId)}.${quoteIdent(formula.colId)}`;
@@ -144,7 +144,7 @@ export function getFormulaErrorForExpandQuery(docData: DocData, tableId: string,
   // On-demand tables may produce several kinds of error messages, e.g. "Formula not supported" or
   // "Cannot find column". We construct the full query to get the basic message for the requested
   // column, then tack on the detail, which is fine to be the same for all of them.
-  const iquery: ServerQuery = {tableId, filters: {}};
+  const iquery: ServerQuery = { tableId, filters: {} };
   const expanded = expandQuery(iquery, docData, true);
   const constantValue = expanded.constants?.[colId];
   if (constantValue?.length === 2) {

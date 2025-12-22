@@ -49,5 +49,5 @@ export const UPLOAD_URL_PATH = 'uploads';
 export interface FetchUrlOptions {
   googleAuthorizationCode?: string;   // The authorization code received from Google Auth Service.
   fileName?: string;                  // The filename for external resource.
-  headers?: {[key: string]: string};  // Additional headers to use when accessing external resource.
+  headers?: { [key: string]: string };  // Additional headers to use when accessing external resource.
 }

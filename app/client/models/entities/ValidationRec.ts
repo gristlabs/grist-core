@@ -1,4 +1,4 @@
-import {DocModel, IRowModel} from 'app/client/models/DocModel';
+import { DocModel, IRowModel } from 'app/client/models/DocModel';
 
 // Represents a validation rule.
 export type ValidationRec = IRowModel<"_grist_Validations">;

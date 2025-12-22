@@ -66,10 +66,10 @@ import {expressWrap} from 'app/server/lib/expressWrap';
 import {createLoginProviderFactory, NotConfiguredError} from 'app/server/lib/loginSystemHelpers';
 import {GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
-import {Permit} from 'app/server/lib/Permit';
-import {getOriginUrl} from 'app/server/lib/requestUtils';
-import {fromCallback} from 'app/server/lib/serverUtils';
-import {Sessions} from 'app/server/lib/Sessions';
+import { Permit } from 'app/server/lib/Permit';
+import { getOriginUrl } from 'app/server/lib/requestUtils';
+import { fromCallback } from 'app/server/lib/serverUtils';
+import { Sessions } from 'app/server/lib/Sessions';
 
 /**
  * Interface for SAML configuration.
@@ -216,7 +216,7 @@ export class SamlBuilder {
     });
     const force_authn = samlNameId === undefined;  // If logged out locally, ignore any
     // log in state retained by IdP.
-    return fromCallback(cb => sp.create_login_request_url(idp, {relay_state, force_authn}, cb));
+    return fromCallback(cb => sp.create_login_request_url(idp, { relay_state, force_authn }, cb));
   }
 
   // Returns the URL to log the user out of SAML IdentityProvider.
@@ -263,8 +263,8 @@ export class SamlBuilder {
     }));
 
     // Assert endpoint for when the login completes as POST.
-    app.post("/saml/assert", express.urlencoded({extended: true}), expressWrap(async (req, res, next) => {
-      const {redirectUrl, sessionId, unsolicited, action} = await this._processInitialRequest(req);
+    app.post("/saml/assert", express.urlencoded({ extended: true }), expressWrap(async (req, res, next) => {
+      const { redirectUrl, sessionId, unsolicited, action } = await this._processInitialRequest(req);
       const samlResponse: saml2.SAMLAssertResponse = await fromCallback(
         cb => sp.post_assert(idp, { request_body: req.body }, cb),
       );
@@ -291,7 +291,7 @@ export class SamlBuilder {
         log.info(`SamlConfig: got SAML response${unsolicited ? ' (unsolicited)' : ''} for ` +
           `${profile.email} (${profile.name}) redirecting to ${redirectUrl}`);
 
-        const scopedSession = sessions.getOrCreateSessionFromRequest(req, {sessionId});
+        const scopedSession = sessions.getOrCreateSessionFromRequest(req, { sessionId });
         await scopedSession.operateOnScopedSession(req, async user => Object.assign(user, {
           profile,
           samlSessionIndex,

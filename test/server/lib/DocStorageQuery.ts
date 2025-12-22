@@ -1,6 +1,6 @@
-import {DocStorage} from 'app/server/lib/DocStorage';
-import {ExpandedQuery} from 'app/server/lib/ExpandedQuery';
-import {assert} from 'chai';
+import { DocStorage } from 'app/server/lib/DocStorage';
+import { ExpandedQuery } from 'app/server/lib/ExpandedQuery';
+import { assert } from 'chai';
 import * as sinon from 'sinon';
 import * as testUtils from 'test/server/testUtils';
 
@@ -48,11 +48,11 @@ describe('DocStorageQuery', function() {
 
   it('should construct correct query from normally expected fields', async function() {
     assert.deepEqual(await getFetchQueryDbCalls(docStorage,
-      {tableId: 'foo', filters: {}, limit: 4}),
+      { tableId: 'foo', filters: {}, limit: 4 }),
     [['allMarshal', 'SELECT * FROM "foo" LIMIT 4', []]]);
 
     assert.deepEqual(await getFetchQueryDbCalls(docStorage,
-      {tableId: 'foo', filters: {tag: [1, 2, 3], X: ['Y']}}),
+      { tableId: 'foo', filters: { tag: [1, 2, 3], X: ['Y'] } }),
     [['allMarshal', 'SELECT * FROM "foo" WHERE ("foo"."tag" IN (?, ?, ?)) AND ("foo"."X" IN (?))',
       [1, 2, 3, 'Y']]]);
   });
@@ -60,33 +60,33 @@ describe('DocStorageQuery', function() {
   it('should reject invalid identifiers', async function() {
     // This is to ensure "identifiers" can't be used as a vector for an SQL injection attacks.
     await assert.isRejected(getFetchQueryDbCalls(docStorage,
-      {tableId: 'foo"; DROP TABLE foo', filters: {}}),
+      { tableId: 'foo"; DROP TABLE foo', filters: {} }),
     /SQL identifier is not valid/);
 
     await assert.isRejected(getFetchQueryDbCalls(docStorage,
-      {tableId: 'foo', filters: {'bar"; DROP TABLE foo;': [1]}}),
+      { tableId: 'foo', filters: { 'bar"; DROP TABLE foo;': [1] } }),
     /SQL identifier is not valid/);
   });
 
   it('should ignore non-numeric limit', async function() {
     // This is to ensure "limit" can't be used as a vector for an SQL injection attack.
     assert.deepEqual(await getFetchQueryDbCalls(docStorage,
-      {tableId: 'foo', filters: {}, limit: '5; DROP TABLE foo' as any}),
+      { tableId: 'foo', filters: {}, limit: '5; DROP TABLE foo' as any }),
     [['allMarshal', 'SELECT * FROM "foo"', []]]);
 
     assert.deepEqual(await getFetchQueryDbCalls(docStorage,
-      {tableId: 'foo', filters: {bar: [1]}, limit: {foo: 'bar'} as any}),
+      { tableId: 'foo', filters: { bar: [1] }, limit: { foo: 'bar' } as any }),
     [['allMarshal', 'SELECT * FROM "foo" WHERE ("foo"."bar" IN (?))', [1]]]);
   });
 
   it('should combine where clause and filters correctly', async function() {
     assert.deepEqual(await getFetchQueryDbCalls(docStorage,
-      {tableId: 'foo', filters: {}, limit: 4, where: {clause: 'age IS NULL OR age > ?', params: [18]}}),
+      { tableId: 'foo', filters: {}, limit: 4, where: { clause: 'age IS NULL OR age > ?', params: [18] } }),
     [['allMarshal', 'SELECT * FROM "foo" WHERE (age IS NULL OR age > ?) LIMIT 4', [18]]]);
 
     assert.deepEqual(await getFetchQueryDbCalls(docStorage,
-      {tableId: 'foo', filters: {tag: [1, 2, 3], X: ['Y']},
-        where: {clause: "name LIKE ? OR ? = ?", params: ['J%', 4, 5]},
+      { tableId: 'foo', filters: { tag: [1, 2, 3], X: ['Y'] },
+        where: { clause: "name LIKE ? OR ? = ?", params: ['J%', 4, 5] },
       }),
     [['allMarshal',
       'SELECT * FROM "foo" WHERE (name LIKE ? OR ? = ?) AND ("foo"."tag" IN (?, ?, ?)) AND ("foo"."X" IN (?))',
@@ -97,7 +97,7 @@ describe('DocStorageQuery', function() {
     // Query with many values in the filter.
     const values = Array.from(Array(1200), (_, i) => `foo-${i}`);
     const ages = [28];
-    await getFetchQueryDbCalls(docStorage, {tableId: 'foo', filters: {values, ages}});
+    await getFetchQueryDbCalls(docStorage, { tableId: 'foo', filters: { values, ages } });
 
     // It's a bit tricky to test, so we use a clever helper (defined below) that checks that
     // same-named matching groups all match.
@@ -124,8 +124,8 @@ describe('DocStorageQuery', function() {
   it('should combine where clause and many-valued filters correctly', async function() {
     // Query with many values in the filter, AND with a custom "where" clause.
     const bars = Array.from(Array(600), (_, i) => `bar-${i}`);
-    await getFetchQueryDbCalls(docStorage, {tableId: 'foo', filters: {bars},
-      where: {clause: "name LIKE ? OR ? = ?", params: ['J%', 4, 5]}});
+    await getFetchQueryDbCalls(docStorage, { tableId: 'foo', filters: { bars },
+      where: { clause: "name LIKE ? OR ? = ?", params: ['J%', 4, 5] } });
 
     // It's a bit tricky to test, so we use a clever helper (defined below) that checks that
     // same-named matching groups all match.

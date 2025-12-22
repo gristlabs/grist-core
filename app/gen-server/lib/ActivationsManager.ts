@@ -22,11 +22,11 @@ export class ActivationsManager {
   // filled in once an activation key is presented.
   public async current(transaction?: EntityManager): Promise<Activation> {
     return await this._db.runInTransaction(transaction, async (manager) => {
-      let activation = await manager.findOne(Activation, {where: {}});
+      let activation = await manager.findOne(Activation, { where: {} });
       if (!activation) {
         activation = manager.create(Activation);
         activation.id = makeId();
-        activation.prefs = {checkForLatestVersion: true};
+        activation.prefs = { checkForLatestVersion: true };
         await activation.save();
       }
       return activation;
@@ -49,7 +49,7 @@ export class ActivationsManager {
     return await this._db.runInTransaction(transaction, async (manager) => {
       const userManager = this._db.usersManager();
       const excludedUsers = userManager.getExcludedUserIds();
-      const {count} = await manager
+      const { count } = await manager
         .createQueryBuilder()
         .select('CAST(COUNT(*) AS INTEGER)', 'count') // Cast to integer for postgres, which returns strings.
         .from((qb) => {
@@ -65,20 +65,20 @@ export class ActivationsManager {
             // Count only personal orgs.
             return sub
               .where('o.owner_id = u.id')
-              .andWhere('u.id NOT IN (:...excludedUsers)', {excludedUsers});
+              .andWhere('u.id NOT IN (:...excludedUsers)', { excludedUsers });
           }
           else if (process.env.GRIST_SINGLE_ORG) {
             // Count users of this single org.
             return sub
               .where('o.owner_id IS NULL')
-              .andWhere('o.domain = :domain', {domain: process.env.GRIST_SINGLE_ORG})
-              .andWhere('u.id NOT IN (:...excludedUsers)', {excludedUsers});
+              .andWhere('o.domain = :domain', { domain: process.env.GRIST_SINGLE_ORG })
+              .andWhere('u.id NOT IN (:...excludedUsers)', { excludedUsers });
           }
           else {
             // Count users of all teams except personal.
             return sub
               .where('o.owner_id IS NULL')
-              .andWhere('u.id NOT IN (:...excludedUsers)', {excludedUsers});
+              .andWhere('u.id NOT IN (:...excludedUsers)', { excludedUsers });
           }
         }, 'subquery')
         .getRawOne();

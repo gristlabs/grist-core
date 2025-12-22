@@ -1,8 +1,8 @@
-import {ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
-import {SnapshotWindow} from 'app/common/Features';
-import {DocSnapshotPruner, IInventory} from 'app/server/lib/DocSnapshots';
-import {ExternalStorage} from 'app/server/lib/ExternalStorage';
-import {assert} from 'chai';
+import { ObjSnapshot, ObjSnapshotWithMetadata } from 'app/common/DocSnapshot';
+import { SnapshotWindow } from 'app/common/Features';
+import { DocSnapshotPruner, IInventory } from 'app/server/lib/DocSnapshots';
+import { ExternalStorage } from 'app/server/lib/ExternalStorage';
+import { assert } from 'chai';
 import moment from 'moment';
 import * as sinon from 'sinon';
 
@@ -56,8 +56,8 @@ describe('DocSnapshots', async function() {
         lastModified: moment(t.split(' | ')[0].slice(1)).toISOString(),
         snapshotId: t,
         metadata: {
-          ...(t.includes('|') ? {label: t.split(' | ')[1]} : undefined),
-          ...options.timezone && {tz: options.timezone},
+          ...(t.includes('|') ? { label: t.split(' | ')[1] } : undefined),
+          ...options.timezone && { tz: options.timezone },
         },
       }));
 
@@ -276,7 +276,7 @@ describe('DocSnapshots', async function() {
       times.pop();
       times.push('-2000-09-04 23:00Z');
       times.push('+2000-09-04 12:00Z');
-      await checkDecisions(times, {timezone: 'Etc/GMT-5'});
+      await checkDecisions(times, { timezone: 'Etc/GMT-5' });
     });
 
     it('favors labelled versions', async function() {
@@ -319,7 +319,7 @@ describe('DocSnapshots', async function() {
         '-1990-09-09 08:25Z',
         '-1990-09-09 08:24Z',
       ];
-      await checkDecisions(times, {window: {count: 1, unit: 'month'}});
+      await checkDecisions(times, { window: { count: 1, unit: 'month' } });
     });
   });
 });

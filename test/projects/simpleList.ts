@@ -1,5 +1,5 @@
-import {assert, driver, Key,  useServer} from 'mocha-webdriver';
-import {server} from 'test/fixtures/projects/webpack-test-server';
+import { assert, driver, Key,  useServer } from 'mocha-webdriver';
+import { server } from 'test/fixtures/projects/webpack-test-server';
 
 describe('simpleList', function() {
   useServer(server);

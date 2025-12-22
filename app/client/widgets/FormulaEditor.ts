@@ -1,28 +1,28 @@
 import * as AceEditor from 'app/client/components/AceEditor';
-import {CommandName} from 'app/client/components/commandList';
+import { CommandName } from 'app/client/components/commandList';
 import * as commands from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {makeT} from 'app/client/lib/localization';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {ColumnRec} from 'app/client/models/DocModel';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {reportError} from 'app/client/models/errors';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {textButton} from 'app/client/ui2018/buttons';
-import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
-import {EditorPlacement, ISize} from 'app/client/widgets/EditorPlacement';
-import {createDetachedIcon} from 'app/client/widgets/FloatingEditor';
-import {FormulaAssistant} from 'app/client/widgets/FormulaAssistant';
-import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
-import {asyncOnce} from 'app/common/AsyncCreate';
-import {CellValue} from 'app/common/DocActions';
-import {isRaisedException} from 'app/common/gristTypes';
-import {undef} from 'app/common/gutil';
-import {getGristConfig} from 'app/common/urlUtils';
-import {decodeObject, RaisedException} from 'app/plugin/objtypes';
-import {Computed, Disposable, dom, Holder, MultiHolder, Observable, styled, subscribe} from 'grainjs';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { makeT } from 'app/client/lib/localization';
+import { DataRowModel } from 'app/client/models/DataRowModel';
+import { ColumnRec } from 'app/client/models/DocModel';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { reportError } from 'app/client/models/errors';
+import { hoverTooltip } from 'app/client/ui/tooltips';
+import { textButton } from 'app/client/ui2018/buttons';
+import { colors, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { createMobileButtons, getButtonMargins } from 'app/client/widgets/EditorButtons';
+import { EditorPlacement, ISize } from 'app/client/widgets/EditorPlacement';
+import { createDetachedIcon } from 'app/client/widgets/FloatingEditor';
+import { FormulaAssistant } from 'app/client/widgets/FormulaAssistant';
+import { NewBaseEditor, Options } from 'app/client/widgets/NewBaseEditor';
+import { asyncOnce } from 'app/common/AsyncCreate';
+import { CellValue } from 'app/common/DocActions';
+import { isRaisedException } from 'app/common/gristTypes';
+import { undef } from 'app/common/gutil';
+import { getGristConfig } from 'app/common/urlUtils';
+import { decodeObject, RaisedException } from 'app/plugin/objtypes';
+import { Computed, Disposable, dom, Holder, MultiHolder, Observable, styled, subscribe } from 'grainjs';
 import debounce from 'lodash/debounce';
 
 // How wide to expand the FormulaEditor when an error is shown in it.
@@ -92,8 +92,8 @@ export class FormulaEditor extends NewBaseEditor {
 
     // Merge those two groups into one.
     const aceCommands: any = {
-      knownKeys: {...commandGroup.knownKeys, ...editorGroup.knownKeys},
-      commands: {...commandGroup.commands, ...editorGroup.commands},
+      knownKeys: { ...commandGroup.knownKeys, ...editorGroup.knownKeys },
+      commands: { ...commandGroup.commands, ...editorGroup.commands },
     };
 
     // Tab, Shift + Tab, Enter should be handled by the editor itself when we are in the detached mode.
@@ -266,7 +266,7 @@ export class FormulaEditor extends NewBaseEditor {
   public attach(cellElem: Element): void {
     this.isDetached.set(false);
     this._editorPlacement = EditorPlacement.create(
-      this._placementHolder, this._dom, cellElem, {margins: getButtonMargins()});
+      this._placementHolder, this._dom, cellElem, { margins: getButtonMargins() });
     // Reposition the editor if needed for external reasons (in practice, window resize).
     this.autoDispose(this._editorPlacement.onReposition.addListener(this._aceEditor.resize, this._aceEditor));
     this._aceEditor.onAttach();
@@ -479,7 +479,7 @@ function _isInIdentifier(line: string, column: number) {
   const match = line.slice(startOfIdent).match(/^[$a-zA-Z0-9_]+/);
   if (match) {
     const ident = match[0];
-    return { ident, start: startOfIdent, end: startOfIdent + ident.length};
+    return { ident, start: startOfIdent, end: startOfIdent + ident.length };
   }
   else {
     return null;
@@ -513,7 +513,7 @@ export function openFormulaEditor(options: {
     save: () => Promise<void>,
   ) => void,
 }): FormulaEditor {
-  const {gristDoc, editRow, refElem, setupCleanup} = options;
+  const { gristDoc, editRow, refElem, setupCleanup } = options;
   const attachedHolder = new MultiHolder();
 
   if (options.field) {
@@ -543,7 +543,7 @@ export function openFormulaEditor(options: {
         await options.onSave(column, formula);
       }
       else {
-        await column.updateColValues({formula});
+        await column.updateColValues({ formula });
       }
       editor.dispose();
     }
@@ -612,7 +612,7 @@ export function getFormulaError(owner: Disposable, options: {
   column?: ColumnRec,
   field?: ViewFieldRec,
 }): Observable<CellValue|undefined> {
-  const {gristDoc, editRow} = options;
+  const { gristDoc, editRow } = options;
   const formulaError = Observable.create(owner, undefined as any);
   // When we don't have a field information we don't need to be reactive at all.
   if (!options.field) {
@@ -708,8 +708,8 @@ export function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, or
       errorMessage.set(
         (numErrors === 0) ? '' :
           (numCells === 1) ? t(`Error in the cell`) :
-            (numErrors === numCells) ? t(`Errors in all {{numErrors}} cells`, {numErrors}) :
-              t(`Errors in {{numErrors}} of {{numCells}} cells`, {numErrors, numCells}),
+            (numErrors === numCells) ? t(`Errors in all {{numErrors}} cells`, { numErrors }) :
+              t(`Errors in {{numErrors}} of {{numCells}} cells`, { numErrors, numCells }),
       );
     }
     else {

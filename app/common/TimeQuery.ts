@@ -1,6 +1,6 @@
-import {ActionSummary, ColumnDelta, createEmptyActionSummary, createEmptyTableDelta} from 'app/common/ActionSummary';
-import {CellDelta} from 'app/common/TabularDiff';
-import {concatenateSummaries} from 'app/common/ActionSummarizer';
+import { ActionSummary, ColumnDelta, createEmptyActionSummary, createEmptyTableDelta } from 'app/common/ActionSummary';
+import { CellDelta } from 'app/common/TabularDiff';
+import { concatenateSummaries } from 'app/common/ActionSummarizer';
 import keyBy from 'lodash/keyBy';
 import matches from 'lodash/matches';
 import sortBy from 'lodash/sortBy';
@@ -149,7 +149,7 @@ export class TimeQuery {
     this._pastRows = new Array<ResultRow>();
     const colIdsOfInterest = new Set(colIdsExpanded);
     for (const id of Array.from(pastRowIds).sort()) {
-      const rowCurrent: ResultRow = rowsById[id] || {id};
+      const rowCurrent: ResultRow = rowsById[id] || { id };
       const row: ResultRow = {};
       for (const colId of ['id', ...colIdsExpanded]) {
         const colIdRenamed = columnForwardRenames[colId] ?? colId;
@@ -173,7 +173,7 @@ export class TimeQuery {
    * Do a query with a single result, specifying any desired filters.  Exception thrown
    * if there is no result.
    */
-  public one(args: {[name: string]: any}): ResultRow {
+  public one(args: { [name: string]: any }): ResultRow {
     const result = this._pastRows.find(matches(args));
     if (!result) {
       throw new Error(`could not find: ${JSON.stringify(args)} for ${this.tableId}`);
@@ -182,7 +182,7 @@ export class TimeQuery {
   }
 
   /** Get all results for a query. */
-  public all(args?: {[name: string]: any}): ResultRow[] {
+  public all(args?: { [name: string]: any }): ResultRow[] {
     if (!args) { return this._pastRows; }
     return this._pastRows.filter(matches(args));
   }
@@ -218,8 +218,8 @@ export class TimeLayout {
   }
 
   public getColumnOrder(tableId: string): string[] {
-    const primaryViewId = this.tables.one({tableId}).primaryViewId;
-    const preorder = this.fields.all({parentId: primaryViewId});
+    const primaryViewId = this.tables.one({ tableId }).primaryViewId;
+    const preorder = this.fields.all({ parentId: primaryViewId });
     const precol = keyBy(this.columns.all(), 'id');
     const ordered = sortBy(preorder, 'parentPos');
     const names = ordered.map(r => precol[r.colRef].colId);
@@ -227,7 +227,7 @@ export class TimeLayout {
   }
 
   public getTableName(tableId: string): string {
-    const rawViewSectionRef = this.tables.one({tableId}).rawViewSectionRef;
-    return this.sections.one({id: rawViewSectionRef}).title;
+    const rawViewSectionRef = this.tables.one({ tableId }).rawViewSectionRef;
+    return this.sections.one({ id: rawViewSectionRef }).title;
   }
 }

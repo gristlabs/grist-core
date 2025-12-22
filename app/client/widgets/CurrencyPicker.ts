@@ -1,9 +1,9 @@
 import { makeT } from 'app/client/lib/localization';
-import {ACSelectItem, buildACSelect} from "app/client/lib/ACSelect";
-import {Computed, IDisposableOwner, Observable} from "grainjs";
-import {ACIndexImpl} from "app/client/lib/ACIndex";
-import {testId} from 'app/client/ui2018/cssVars';
-import {currencies} from 'app/common/Locales';
+import { ACSelectItem, buildACSelect } from "app/client/lib/ACSelect";
+import { Computed, IDisposableOwner, Observable } from "grainjs";
+import { ACIndexImpl } from "app/client/lib/ACIndex";
+import { testId } from 'app/client/ui2018/cssVars';
+import { currencies } from 'app/common/Locales';
 
 const t = makeT('CurrencyPicker');
 
@@ -17,7 +17,7 @@ export function buildCurrencyPicker(
   owner: IDisposableOwner,
   currency: Observable<string|undefined>,
   onSave: (value: string|undefined) => void,
-  {defaultCurrencyLabel, disabled}: CurrencyPickerOptions,
+  { defaultCurrencyLabel, disabled }: CurrencyPickerOptions,
 ) {
   const currencyItems: ACSelectItem[] = currencies
     .map(item => ({
@@ -35,7 +35,7 @@ export function buildCurrencyPicker(
   // Create a computed that will display 'Local currency' as a value and label
   // when `currency` is undefined.
   const valueObs = Computed.create(owner, use => use(currency) || defaultCurrencyLabel);
-  const acIndex = new ACIndexImpl<ACSelectItem>(currencyItems, {maxResults: 200, keepOrder: true});
+  const acIndex = new ACIndexImpl<ACSelectItem>(currencyItems, { maxResults: 200, keepOrder: true });
   return buildACSelect(owner,
     {
       acIndex, valueObs,

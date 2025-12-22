@@ -6,27 +6,27 @@
  * or "data set".
  */
 
-import {LocalActionBundle} from 'app/common/ActionBundle';
-import {BulkColValues, DocAction, TableColValues, TableDataAction, toTableDataAction} from 'app/common/DocActions';
+import { LocalActionBundle } from 'app/common/ActionBundle';
+import { BulkColValues, DocAction, TableColValues, TableDataAction, toTableDataAction } from 'app/common/DocActions';
 import * as gristTypes from 'app/common/gristTypes';
-import {isList, isListType, isRefListType} from 'app/common/gristTypes';
+import { isList, isListType, isRefListType } from 'app/common/gristTypes';
 import * as marshal from 'app/common/marshal';
 import * as schema from 'app/common/schema';
-import {SingleCell} from 'app/common/TableData';
-import {GristObjCode} from "app/plugin/GristData";
-import {appSettings} from 'app/server/lib/AppSettings';
-import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
-import {combineExpr, ExpandedQuery} from 'app/server/lib/ExpandedQuery';
-import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
+import { SingleCell } from 'app/common/TableData';
+import { GristObjCode } from "app/plugin/GristData";
+import { appSettings } from 'app/server/lib/AppSettings';
+import { ActionHistoryImpl } from 'app/server/lib/ActionHistoryImpl';
+import { combineExpr, ExpandedQuery } from 'app/server/lib/ExpandedQuery';
+import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
 import log from 'app/server/lib/log';
 import assert from 'assert';
 import * as bluebird from 'bluebird';
 import * as _ from 'underscore';
 import * as util from 'util';
-import {v4 as uuidv4} from 'uuid';
-import {OnDemandStorage} from 'app/server/lib/OnDemandActions';
-import {ISQLiteDB, MigrationHooks, OpenMode, PreparedStatement, quoteIdent,
-  ResultRow, RunResult, SchemaInfo, SQLiteDB} from 'app/server/lib/SQLiteDB';
+import { v4 as uuidv4 } from 'uuid';
+import { OnDemandStorage } from 'app/server/lib/OnDemandActions';
+import { ISQLiteDB, MigrationHooks, OpenMode, PreparedStatement, quoteIdent,
+  ResultRow, RunResult, SchemaInfo, SQLiteDB } from 'app/server/lib/SQLiteDB';
 import chunk from 'lodash/chunk';
 import cloneDeep from 'lodash/cloneDeep';
 import groupBy from 'lodash/groupBy';
@@ -48,7 +48,7 @@ const SHRINK_RATIO_FOR_PUSH = 0.1;
 export const ATTACHMENTS_EXPIRY_DAYS = 7;
 
 // Cleanup expired attachments every hour (also happens when shutting down).
-export const REMOVE_UNUSED_ATTACHMENTS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
+export const REMOVE_UNUSED_ATTACHMENTS_DELAY = { delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000 };
 
 /**
  * Check what way we want to access SQLite files.
@@ -302,7 +302,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         const colRows: ResultRow[] = await db.all('SELECT t.tableId, c.colId, c.type ' +
           'FROM _grist_Tables_column c JOIN _grist_Tables t ON c.parentId=t.id');
         const docSchema = new Map<string, string>();   // Maps tableId.colId to grist type.
-        for (const {tableId, colId, type} of colRows) {
+        for (const { tableId, colId, type } of colRows) {
           docSchema.set(`${tableId}.${colId}`, type);
         }
 
@@ -343,7 +343,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           if (gristType) {
             const dflt = DocStorage._formattedDefault(gristType);
             if (info.dflt_value === 'NULL' && dflt !== 'NULL') {
-              return [{...info, dflt_value: dflt}, `IFNULL(${qColId}, ${dflt}) as ${qColId}`];
+              return [{ ...info, dflt_value: dflt }, `IFNULL(${qColId}, ${dflt}) as ${qColId}`];
             }
           }
           return [info, qColId];
@@ -381,7 +381,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           const newCols = tableColRows[tableId].filter(c => !presentCols.has(c.colId));
 
           // Create all new columns.
-          for (const {colId, type} of newCols) {
+          for (const { colId, type } of newCols) {
             await db.exec(`ALTER TABLE ${quoteIdent(tableId)} ` +
               `ADD COLUMN ${DocStorage._columnDefWithBlobs(colId, type)}`);
           }
@@ -438,7 +438,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * Shortcut to get the SQL default for the given Grist type.
    */
   private static _formattedDefault(colType: string): any {
-    return gristTypes.getDefaultForType(colType, {sqlFormatted: true});
+    return gristTypes.getDefaultForType(colType, { sqlFormatted: true });
   }
 
   /**
@@ -467,7 +467,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * values as needed, according to an array of Grist type strings (must be parallel to columns).
    */
   private static _encodeColumnsToRows(types: string[], valueColumns: any[]): any[][] {
-    const marshaller = new marshal.Marshaller({version: 2});
+    const marshaller = new marshal.Marshaller({ version: 2 });
     const rows = _.unzip(valueColumns);
     for (const row of rows) {
       for (let i = 0; i < row.length; i++) {
@@ -670,7 +670,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   // Maintains { tableId: { colId: gristType } } mapping for all tables, including grist metadata
   // tables (obtained from auto-generated schema.js).
-  private _docSchema: {[tableId: string]: {[colId: string]: string}};
+  private _docSchema: { [tableId: string]: { [colId: string]: string } };
 
   private _cachedDataSize: number|null = null;
 
@@ -758,8 +758,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return this.all('SELECT t.tableId, c.colId, c.type ' +
       'FROM _grist_Tables_column c JOIN _grist_Tables t ON c.parentId=t.id')
       .then((rows: ResultRow[]) => {
-        const s: {[key: string]: any} = {};
-        for (const {tableId, colId, type} of rows) {
+        const s: { [key: string]: any } = {};
+        for (const { tableId, colId, type } of rows) {
           const table = s.hasOwnProperty(tableId) ? s[tableId] : (s[tableId] = {});
           table[colId] = type;
         }
@@ -900,7 +900,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * Fetches the given table from the database. See fetchQuery() for return value.
    */
   public fetchTable(tableId: string): Promise<Buffer> {
-    return this.fetchQuery({tableId, filters: {}});
+    return this.fetchQuery({ tableId, filters: {} });
   }
 
   /**
@@ -944,7 +944,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         }
       }
     }
-    return toTableDataAction(tableId, fullValues || {id: []});    // Return empty TableColValues if rowIds was empty.
+    return toTableDataAction(tableId, fullValues || { id: [] });    // Return empty TableColValues if rowIds was empty.
   }
 
   /**
@@ -1162,7 +1162,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * @param {Array[Object]} columnValues - Array of column info objects.
    * @returns {Promise} - Promise for SQL execution.
    */
-  public _process_BulkAddRecord(tableId: string, rowIds: number[], columnValues: {[key: string]: any}): Promise<void> {
+  public _process_BulkAddRecord(tableId: string, rowIds: number[], columnValues: { [key: string]: any }): Promise<void> {
     if (rowIds.length === 0) { return Promise.resolve(); } // no rows means nothing to do
 
     const cols = Object.keys(columnValues);
@@ -1699,7 +1699,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         // dbstat compiled in. But it would be sad to disable
         // Grist entirely just because we can't track byte-count.
         // So return NaN in this case.
-        return {totalSize: NaN};
+        return { totalSize: NaN };
       }
       throw e;
     });
@@ -1772,7 +1772,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     const oldDefault = fixDefault(colInfo.dflt_value);
     const newSqlType = newColType ? DocStorage._getSqlType(newColType) : oldSqlType;
     const newDefault = fixDefault(newColType ? DocStorage._formattedDefault(newColType) : oldDefault);
-    const newInfo = {name: newColId, type: newSqlType, dflt_value: newDefault};
+    const newInfo = { name: newColId, type: newSqlType, dflt_value: newDefault };
     // Check if anything actually changed, and only rebuild the table then.
     if (Object.keys(newInfo).every(p => ((newInfo as any)[p] === colInfo[p]))) {
       return null;      // No changes.
@@ -1836,7 +1836,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       if (result.newGristType !== result.oldGristType || result.newSqlType !== result.oldSqlType) {
         const cells = await this.all(`SELECT id, ${q(colId)} as value FROM ${q(tableId)} ` +
           `WHERE typeof(${q(colId)}) = 'blob'`);
-        const marshaller = new marshal.Marshaller({version: 2});
+        const marshaller = new marshal.Marshaller({ version: 2 });
         const sqlParams: Array<[any, number]> = [];
         for (const cell of cells) {
           const id: number = cell.id;

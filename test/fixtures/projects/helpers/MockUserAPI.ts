@@ -1,17 +1,17 @@
-import {urlState} from 'app/client/models/gristUrlState';
-import {ApplyUAResult} from 'app/common/ActiveDocAPI';
-import {ApiError} from 'app/common/ApiError';
-import {BillingAPI} from 'app/common/BillingAPI';
-import {ICustomWidget} from 'app/common/CustomWidget';
-import {TableColValues, UserAction} from 'app/common/DocActions';
-import {DocCreationInfo} from 'app/common/DocListAPI';
-import {createEmptyOrgUsageSummary, OrgUsageSummary} from 'app/common/DocUsage';
-import {arrayRemove} from 'app/common/gutil';
-import {FullUser} from 'app/common/LoginSessionAPI';
-import {NonGuestRole} from 'app/common/roles';
-import {ActiveSessionInfo, DocAPI, Document, DocumentOptions, DocumentProperties, DocWorkerAPI,
+import { urlState } from 'app/client/models/gristUrlState';
+import { ApplyUAResult } from 'app/common/ActiveDocAPI';
+import { ApiError } from 'app/common/ApiError';
+import { BillingAPI } from 'app/common/BillingAPI';
+import { ICustomWidget } from 'app/common/CustomWidget';
+import { TableColValues, UserAction } from 'app/common/DocActions';
+import { DocCreationInfo } from 'app/common/DocListAPI';
+import { createEmptyOrgUsageSummary, OrgUsageSummary } from 'app/common/DocUsage';
+import { arrayRemove } from 'app/common/gutil';
+import { FullUser } from 'app/common/LoginSessionAPI';
+import { NonGuestRole } from 'app/common/roles';
+import { ActiveSessionInfo, DocAPI, Document, DocumentOptions, DocumentProperties, DocWorkerAPI,
   Organization, OrganizationProperties, PermissionData, PermissionDelta,
-  RenameDocOptions, UserAPI, Workspace} from 'app/common/UserAPI';
+  RenameDocOptions, UserAPI, Workspace } from 'app/common/UserAPI';
 
 const createdAt = '2007-04-05T14:30Z';
 const updatedAt = '2007-04-05T14:30Z';
@@ -280,7 +280,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
   public async renameDoc(docId: string, name: string, options?: RenameDocOptions): Promise<void> {
     this._docs[docId].name = name;
     if (options) {
-      this._docs[docId].options = {appearance: options};
+      this._docs[docId].options = { appearance: options };
     }
   }
 

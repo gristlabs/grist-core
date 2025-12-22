@@ -1,4 +1,4 @@
-import {BasicType, createCheckers, ICheckerSuite} from 'ts-interface-checker';
+import { BasicType, createCheckers, ICheckerSuite } from 'ts-interface-checker';
 import CustomSectionAPITI from 'app/plugin/CustomSectionAPI-ti';
 import FileParserAPITI from 'app/plugin/FileParserAPI-ti';
 import GristAPITI from 'app/plugin/GristAPI-ti';
@@ -14,7 +14,7 @@ import WidgetAPITI from 'app/plugin/WidgetAPI-ti';
  */
 export {
   CustomSectionAPITI, FileParserAPITI, GristAPITI, GristTableTI, ImportSourceAPITI,
-  InternalImportSourceAPITI, RenderOptionsTI, StorageAPITI, WidgetAPITI};
+  InternalImportSourceAPITI, RenderOptionsTI, StorageAPITI, WidgetAPITI };
 
 const allTypes = [
   CustomSectionAPITI, FileParserAPITI, GristAPITI, GristTableTI, ImportSourceAPITI,
@@ -24,10 +24,10 @@ const allTypes = [
 // Ensure Buffer can be handled if mentioned in the interface descriptions, even if not supported
 // in the current environment (i.e. browser).
 if (typeof Buffer === 'undefined') {
-  allTypes.push({Buffer: new BasicType(v => false, "Buffer is not supported")});
+  allTypes.push({ Buffer: new BasicType(v => false, "Buffer is not supported") });
 }
 
-function checkDuplicates(types: Array<{[key: string]: object}>) {
+function checkDuplicates(types: Array<{ [key: string]: object }>) {
   const seen = new Set<string>();
   for (const t of types) {
     for (const key of Object.keys(t)) {

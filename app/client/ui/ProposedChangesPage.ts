@@ -1,29 +1,29 @@
-import {ActionLogPart, computeContext, showCell} from 'app/client/components/ActionLog';
-import {cssBannerLink} from 'app/client/components/Banner';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ApiData, VirtualDoc, VirtualSection} from 'app/client/components/VirtualDoc';
-import {makeT} from 'app/client/lib/localization';
-import {getTimeFromNow} from 'app/client/lib/timeUtils';
-import {urlState} from 'app/client/models/gristUrlState';
-import {docListHeader} from 'app/client/ui/DocMenuCss';
-import {buildOriginalUrlId} from 'app/client/ui/ShareMenu';
-import {basicButton, bigBasicButton, bigPrimaryButton, primaryButton} from 'app/client/ui2018/buttons';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {colors, mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {rebaseSummary} from 'app/common/ActionSummarizer';
-import {TableDataAction} from 'app/common/DocActions';
+import { ActionLogPart, computeContext, showCell } from 'app/client/components/ActionLog';
+import { cssBannerLink } from 'app/client/components/Banner';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { ApiData, VirtualDoc, VirtualSection } from 'app/client/components/VirtualDoc';
+import { makeT } from 'app/client/lib/localization';
+import { getTimeFromNow } from 'app/client/lib/timeUtils';
+import { urlState } from 'app/client/models/gristUrlState';
+import { docListHeader } from 'app/client/ui/DocMenuCss';
+import { buildOriginalUrlId } from 'app/client/ui/ShareMenu';
+import { basicButton, bigBasicButton, bigPrimaryButton, primaryButton } from 'app/client/ui2018/buttons';
+import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { colors, mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { cssLink } from 'app/client/ui2018/links';
+import { loadingSpinner } from 'app/client/ui2018/loaders';
+import { rebaseSummary } from 'app/common/ActionSummarizer';
+import { TableDataAction } from 'app/common/DocActions';
 import {
   DocStateComparison,
   DocStateComparisonDetails,
   removeMetadataChangesFromDetails,
 } from 'app/common/DocState';
-import {buildUrlId, commonUrls, parseUrlId} from 'app/common/gristUrls';
-import {isLongerThan} from 'app/common/gutil';
-import {TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
-import {Proposal} from 'app/common/UserAPI';
+import { buildUrlId, commonUrls, parseUrlId } from 'app/common/gristUrls';
+import { isLongerThan } from 'app/common/gutil';
+import { TabularDiff, TabularDiffs } from 'app/common/TabularDiff';
+import { Proposal } from 'app/common/UserAPI';
 import {
   Computed, Disposable, dom, makeTestId, MultiHolder, MutableObsArray,
   obsArray, Observable, styled,
@@ -79,7 +79,7 @@ export class ProposedChangesPage extends Disposable {
     );
     // Common pattern on other pages to avoid clipboard deactivation.
     return dom('div.clipboard',
-      {tabIndex: "-1"},
+      { tabIndex: "-1" },
       content);
   }
 }
@@ -177,8 +177,8 @@ and is subject to change and withdrawal.`,
             bigPrimaryButton(
               t("Work on a copy"),
               dom.on('click', async () => {
-                const {urlId} = await this.gristDoc.docComm.fork();
-                await urlState().pushUrl({doc: urlId});
+                const { urlId } = await this.gristDoc.docComm.fork();
+                await urlState().pushUrl({ doc: urlId });
               }),
               testId('fork'),
             ),
@@ -301,7 +301,7 @@ export class ProposedChangesForkPage extends Disposable {
     const parts = parseUrlId(urlId || '');
     const comparisonUrlId = parts.trunkId;
     const comparison = await this.gristDoc.appModel.api.getDocAPI(urlId).compareDoc(
-      comparisonUrlId, {detail: true},
+      comparisonUrlId, { detail: true },
     );
     if (this.isDisposed()) { return; }
     this._comparison = comparison;
@@ -399,7 +399,7 @@ export class ProposedChangesForkPage extends Disposable {
                 t("Retract Suggestion"),
                 dom.on('click', async () => {
                   const urlId = this.gristDoc.docPageModel.currentDocId.get();
-                  await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal({retracted: true});
+                  await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal({ retracted: true });
                   await this.update();
                 }),
                 testId('retract'),
@@ -446,7 +446,7 @@ class ActionLogPartInProposal extends ActionLogPart {
   }
 
   public async selectCell(rowId: number, colId: string, tableId: string): Promise<void> {
-    await showCell(this._gristDoc, {tableId, colId, rowId});
+    await showCell(this._gristDoc, { tableId, colId, rowId });
   }
 
   public async getContext() {
@@ -483,7 +483,7 @@ class ActionLogPartInProposal extends ActionLogPart {
     toggleInfo?: (table: string) => void;
     selectCell?: (rowId: number, colId: string, tableId: string) => Promise<void>;
   }) {
-    const {diffs, toggleInfo} = props;
+    const { diffs, toggleInfo } = props;
     const doc = VirtualDoc.create(this, this._gristDoc.appModel);
     if (!diffs) {
       return null;
@@ -560,12 +560,12 @@ class ActionLogPartInProposal extends ActionLogPart {
 function getProposalActionSummary(proposal: Proposal | null) {
   return proposal?.updatedAt ? dom.text(
     proposal?.status.status === 'retracted' ?
-      t("Retracted {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}) :
+      t("Retracted {{at}}.", { at: getTimeFromNow(proposal.updatedAt) }) :
       proposal?.status.status === 'dismissed' ?
-        t("Dismissed {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}) :
+        t("Dismissed {{at}}.", { at: getTimeFromNow(proposal.updatedAt) }) :
         proposal?.status.status === 'applied' && proposal.appliedAt ?
-          t("Accepted {{at}}.", {at: getTimeFromNow(proposal.appliedAt)}) :
-          t("Suggestion made {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}),
+          t("Accepted {{at}}.", { at: getTimeFromNow(proposal.appliedAt) }) :
+          t("Suggestion made {{at}}.", { at: getTimeFromNow(proposal.updatedAt) }),
   ) : null;
 }
 
@@ -623,7 +623,7 @@ function buildComparisonDetails(
   // done on the fork document. The calculation treated the
   // fork as the local/left document, and the trunk as the
   // remote/right document.
-  const {details, leftHadMetadata} = removeMetadataChangesFromDetails(origDetails);
+  const { details, leftHadMetadata } = removeMetadataChangesFromDetails(origDetails);
   // We want to look at the changes from their most recent
   // common ancestor and the current doc.
   const part = new ActionLogPartInProposal(gristDoc, details, origComparison);

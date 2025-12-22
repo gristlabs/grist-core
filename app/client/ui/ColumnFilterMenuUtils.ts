@@ -16,7 +16,7 @@ export interface IOptionsDropdownOpt {
 export function relativeDatesControl(
   reference: HTMLElement,
   obs: Observable<IRangeBoundType>,
-  opt: {valueFormatter(val: any): string} & IPopupOptions): PopupControl {
+  opt: { valueFormatter(val: any): string } & IPopupOptions): PopupControl {
   const popupCtl = popupControl(
     reference,
     ctl => RelativeDatesMenu.create(null, ctl, obs, opt).content,
@@ -36,7 +36,7 @@ class RelativeDatesMenu extends Disposable {
   private _items: Observable<Array<IOptionFull<IRangeBoundType>>> = Observable.create(this, []);
   constructor(ctl: IOpenController,
     private _obs: Observable<IRangeBoundType>,
-    private _opt: {valueFormatter(val: any): string}) {
+    private _opt: { valueFormatter(val: any): string }) {
     super();
     this._dropdownList = (SimpleList<IRangeBoundType>).create(this, ctl, this._items, this._action.bind(this));
     this._dropdownList.listenKeys(ctl.getTriggerElem() as HTMLElement);
@@ -47,7 +47,7 @@ class RelativeDatesMenu extends Disposable {
 
   private _getOptions() {
     const newItems = relativeDatesOptions(this._obs.get(), this._opt.valueFormatter);
-    return newItems.map(item => ({label: item.label, value: item.spec}));
+    return newItems.map(item => ({ label: item.label, value: item.spec }));
   }
 
   private _update() {

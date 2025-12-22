@@ -8,7 +8,7 @@ declare module "app/client/lib/koForm";
 // tslint:disable:max-classes-per-file
 
 declare module "app/client/components/RecordLayout" {
-  import {Disposable} from 'app/client/lib/dispose';
+  import { Disposable } from 'app/client/lib/dispose';
 
   namespace RecordLayout {
     interface NewField {
@@ -37,11 +37,11 @@ declare module "app/client/components/RecordLayout" {
 }
 
 declare module "app/client/components/ViewConfigTab" {
-  import {GristDoc} from 'app/client/components/GristDoc';
-  import {Disposable} from 'app/client/lib/dispose';
-  import {KoArray} from "app/client/lib/koArray";
-  import {ColumnRec, ViewRec, ViewSectionRec} from "app/client/models/DocModel";
-  import {DomArg, DomContents} from 'grainjs';
+  import { GristDoc } from 'app/client/components/GristDoc';
+  import { Disposable } from 'app/client/lib/dispose';
+  import { KoArray } from "app/client/lib/koArray";
+  import { ColumnRec, ViewRec, ViewSectionRec } from "app/client/models/DocModel";
+  import { DomArg, DomContents } from 'grainjs';
 
   namespace ViewConfigTab {
     interface ViewSectionData {
@@ -51,7 +51,7 @@ declare module "app/client/components/ViewConfigTab" {
   }
 
   class ViewConfigTab extends Disposable {
-    constructor(options: {gristDoc: GristDoc, viewModel: ViewRec});
+    constructor(options: { gristDoc: GristDoc, viewModel: ViewRec });
     public buildSortFilterDom(): DomContents;
     /**
      * @deprecated On-demand tables where deprecated as of 2025-05-01.
@@ -67,9 +67,9 @@ declare module "app/client/components/ViewConfigTab" {
 }
 
 declare module "app/client/models/BaseRowModel" {
-  import {Disposable} from 'app/client/lib/dispose';
+  import { Disposable } from 'app/client/lib/dispose';
   import TableModel from 'app/client/models/TableModel';
-  import {ColValues} from 'app/common/DocActions';
+  import { ColValues } from 'app/common/DocActions';
 
   namespace BaseRowModel {}
   class BaseRowModel extends Disposable {
@@ -86,8 +86,8 @@ declare module "app/client/models/BaseRowModel" {
 
 declare module "app/client/models/MetaRowModel" {
   import BaseRowModel from "app/client/models/BaseRowModel";
-  import {ColValues} from 'app/common/DocActions';
-  import {SchemaTypes} from 'app/common/schema';
+  import { ColValues } from 'app/common/DocActions';
+  import { SchemaTypes } from 'app/common/schema';
 
   type NPartial<T> = {
     [P in keyof T]?: T[P]|null;
@@ -159,10 +159,10 @@ declare module "app/client/models/modelUtil" {
 }
 
 declare module "app/client/models/TableModel" {
-  import {DocModel} from "app/client/models/DocModel";
-  import {RowGrouping, RowSource} from "app/client/models/rowset";
-  import {TableData} from "app/client/models/TableData";
-  import {CellValue, UserAction} from "app/common/DocActions";
+  import { DocModel } from "app/client/models/DocModel";
+  import { RowGrouping, RowSource } from "app/client/models/rowset";
+  import { TableData } from "app/client/models/TableData";
+  import { CellValue, UserAction } from "app/common/DocActions";
 
   namespace TableModel {}
   class TableModel extends RowSource {
@@ -182,13 +182,13 @@ declare module "app/client/models/TableModel" {
 }
 
 declare module "app/client/models/MetaTableModel" {
-  import {KoArray} from "app/client/lib/koArray";
-  import {DocModel} from "app/client/models/DocModel";
+  import { KoArray } from "app/client/lib/koArray";
+  import { DocModel } from "app/client/models/DocModel";
   import MetaRowModel from "app/client/models/MetaRowModel";
-  import {RowSource} from "app/client/models/rowset";
-  import {TableData} from "app/client/models/TableData";
+  import { RowSource } from "app/client/models/rowset";
+  import { TableData } from "app/client/models/TableData";
   import TableModel from "app/client/models/TableModel";
-  import {CellValue} from "app/common/DocActions";
+  import { CellValue } from "app/common/DocActions";
 
   namespace MetaTableModel {}
   class MetaTableModel<RowModel extends MetaRowModel> extends TableModel {
@@ -199,7 +199,7 @@ declare module "app/client/models/MetaTableModel" {
     public getRowModel(rowId: number, dependOnVersion?: boolean): RowModel;
     public getEmptyRowModel(): RowModel;
     public createFloatingRowModel(rowIdObs: ko.Observable<number>|ko.Computed<number>): RowModel;
-    public createRowGroupModel(groupValue: CellValue, options: {groupBy: string, sortBy: string}): KoArray<RowModel>;
+    public createRowGroupModel(groupValue: CellValue, options: { groupBy: string, sortBy: string }): KoArray<RowModel>;
     public createAllRowsModel(sortColId: string): KoArray<RowModel>;
     public _createRowSetModel(rowSource: RowSource, sortColId: string): KoArray<RowModel>;
   }
@@ -207,13 +207,13 @@ declare module "app/client/models/MetaTableModel" {
 }
 
 declare module "app/client/models/DataTableModel" {
-  import {KoArray} from "app/client/lib/koArray";
-  import {DocModel, TableRec} from "app/client/models/DocModel";
-  import {TableQuerySets} from 'app/client/models/QuerySet';
-  import {SortedRowSet} from "app/client/models/rowset";
-  import {TableData} from "app/client/models/TableData";
+  import { KoArray } from "app/client/lib/koArray";
+  import { DocModel, TableRec } from "app/client/models/DocModel";
+  import { TableQuerySets } from 'app/client/models/QuerySet';
+  import { SortedRowSet } from "app/client/models/rowset";
+  import { TableData } from "app/client/models/TableData";
   import TableModel from "app/client/models/TableModel";
-  import {UIRowId} from "app/common/UIRowId";
+  import { UIRowId } from "app/common/UIRowId";
 
   namespace DataTableModel {
     interface LazyArrayModel<T> extends KoArray<T | null> {

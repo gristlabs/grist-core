@@ -1,11 +1,11 @@
-import {makeTestId} from 'app/client/lib/domUtils';
-import {urlState} from 'app/client/models/gristUrlState';
-import {isNarrowScreenObs, theme} from 'app/client/ui2018/cssVars';
-import {IconName} from 'app/client/ui2018/IconList';
-import {icon as cssIcon} from 'app/client/ui2018/icons';
-import {IGristUrlState} from 'app/common/gristUrls';
-import {useBindable} from 'app/common/gutil';
-import {BindableValue, dom, IDomArgs, MaybeObsArray, styled, UseCBOwner} from 'grainjs';
+import { makeTestId } from 'app/client/lib/domUtils';
+import { urlState } from 'app/client/models/gristUrlState';
+import { isNarrowScreenObs, theme } from 'app/client/ui2018/cssVars';
+import { IconName } from 'app/client/ui2018/IconList';
+import { icon as cssIcon } from 'app/client/ui2018/icons';
+import { IGristUrlState } from 'app/common/gristUrls';
+import { useBindable } from 'app/common/gutil';
+import { BindableValue, dom, IDomArgs, MaybeObsArray, styled, UseCBOwner } from 'grainjs';
 
 const testId = makeTestId("test-component-tabs-");
 

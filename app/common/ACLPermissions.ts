@@ -43,7 +43,7 @@ export type TablePermissionSet = PermissionSet<TablePermissionValue>;
 // One of the strings 'read', 'update', etc.
 export type PermissionKey = keyof PermissionSet;
 
-const PERMISSION_BITS: {[letter: string]: PermissionKey} = {
+const PERMISSION_BITS: { [letter: string]: PermissionKey } = {
   R: 'read',
   C: 'create',
   U: 'update',
@@ -56,7 +56,7 @@ const ALL_PERMISSION_BITS = "CRUDS";
 export const ALL_PERMISSION_PROPS: Array<keyof PermissionSet> =
   Array.from(ALL_PERMISSION_BITS, ch => PERMISSION_BITS[ch]);
 
-const ALIASES: {[key: string]: string} = {
+const ALIASES: { [key: string]: string } = {
   all: '+CRUDS',
   none: '-CRUDS',
 };
@@ -67,7 +67,7 @@ export const AVAILABLE_BITS_COLUMNS: PermissionKey[] = ['read', 'update'];
 
 // Comes in useful for initializing unset PermissionSets.
 export function emptyPermissionSet(): PartialPermissionSet {
-  return {read: "", create: "", update: "", delete: "", schemaEdit: ""};
+  return { read: "", create: "", update: "", delete: "", schemaEdit: "" };
 }
 
 /**
@@ -222,10 +222,10 @@ function isEmpty(permissions: PartialPermissionSet): boolean {
  * when both are empty, in which case nonSchemaEdit will be returned as an empty permission set.
  */
 export function splitSchemaEditPermissionSet(permissions: PartialPermissionSet):
-{schemaEdit?: PartialPermissionSet, nonSchemaEdit?: PartialPermissionSet} {
+{ schemaEdit?: PartialPermissionSet, nonSchemaEdit?: PartialPermissionSet } {
 
-  const schemaEdit = {...emptyPermissionSet(), schemaEdit: permissions.schemaEdit};
-  const nonSchemaEdit: PartialPermissionSet = {...permissions, schemaEdit: ""};
+  const schemaEdit = { ...emptyPermissionSet(), schemaEdit: permissions.schemaEdit };
+  const nonSchemaEdit: PartialPermissionSet = { ...permissions, schemaEdit: "" };
   return {
     schemaEdit: !isEmpty(schemaEdit) ? schemaEdit : undefined,
     nonSchemaEdit: !isEmpty(nonSchemaEdit) || isEmpty(schemaEdit) ? nonSchemaEdit : undefined,

@@ -1,17 +1,17 @@
 // tslint:disable:no-console
 // TODO: Add documentation and clean up log statements.
 
-import {GristDoc} from 'app/client/components/GristDoc';
-import {PageRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {reportError} from 'app/client/models/errors';
-import {delay} from 'app/common/delay';
-import {IDocPage} from 'app/common/gristUrls';
-import {nativeCompare, waitObs} from 'app/common/gutil';
-import {TableData} from 'app/common/TableData';
-import {BaseFormatter} from 'app/common/ValueFormatter';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { PageRec, ViewFieldRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { reportError } from 'app/client/models/errors';
+import { delay } from 'app/common/delay';
+import { IDocPage } from 'app/common/gristUrls';
+import { nativeCompare, waitObs } from 'app/common/gutil';
+import { TableData } from 'app/common/TableData';
+import { BaseFormatter } from 'app/common/ValueFormatter';
 import { makeT } from 'app/client/lib/localization';
-import {CursorPos} from 'app/plugin/GristAPI';
-import {Computed, Disposable, Observable} from 'grainjs';
+import { CursorPos } from 'app/plugin/GristAPI';
+import { Computed, Disposable, Observable } from 'grainjs';
 import debounce from 'lodash/debounce';
 
 const t = makeT('SearchModel');

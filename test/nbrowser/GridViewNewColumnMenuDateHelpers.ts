@@ -1,5 +1,5 @@
-import {assert} from 'chai';
-import {driver} from 'mocha-webdriver';
+import { assert } from 'chai';
+import { driver } from 'mocha-webdriver';
 import {
   checkTypeAndFormula,
   clickAddColumn,
@@ -9,7 +9,7 @@ import {
   revertEach,
 } from 'test/nbrowser/GridViewNewColumnMenuUtils';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('GridViewNewColumnMenuDateHelpers', function () {
   const STANDARD_WAITING_TIME = 1000;
@@ -19,7 +19,7 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
   let session: gu.Session;
 
   before(async function () {
-    session = await gu.session().login({showTips: true});
+    session = await gu.session().login({ showTips: true });
     await session.tempNewDoc(cleanup, 'ColumnMenu');
     await gu.dismissBehavioralPrompts();
 
@@ -299,7 +299,7 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
 
         // Now clear the value in the cell and make sure that our helper column is also empty.
         await gu.sendActions([
-          ['UpdateRecord', 'Table1', 1, {EventDate: null}],
+          ['UpdateRecord', 'Table1', 1, { EventDate: null }],
         ]);
         const cellTextAfterClear = await gu.getCell(testCase.columnName, 1).getText();
         assert.equal(cellTextAfterClear, '', 'Helper column should be empty after clearing source date');
@@ -330,7 +330,7 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
     it('should show date helpers menu when Date columns exist', async function () {
       // Add a Date column first
       await gu.sendActions([
-        ['AddVisibleColumn', 'Table1', 'EventDate', {type: 'Date'}],
+        ['AddVisibleColumn', 'Table1', 'EventDate', { type: 'Date' }],
       ]);
 
       await clickAddColumn();
@@ -348,7 +348,7 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
     it('should show date helpers menu when DateTime columns exist', async function () {
       // Add a DateTime column
       await gu.sendActions([
-        ['AddVisibleColumn', 'Table1', 'Timestamp', {type: 'DateTime:UTC'}],
+        ['AddVisibleColumn', 'Table1', 'Timestamp', { type: 'DateTime:UTC' }],
       ]);
 
       await clickAddColumn();
@@ -360,8 +360,8 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
 
     it('should work with multiple date columns', async function () {
       await gu.sendActions([
-        ['AddVisibleColumn', 'Table1', 'StartDate', {type: 'Date'}],
-        ['AddVisibleColumn', 'Table1', 'EndDate', {type: 'DateTime:UTC'}],
+        ['AddVisibleColumn', 'Table1', 'StartDate', { type: 'Date' }],
+        ['AddVisibleColumn', 'Table1', 'EndDate', { type: 'DateTime:UTC' }],
       ]);
 
       await clickAddColumn();

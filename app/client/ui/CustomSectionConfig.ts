@@ -1,12 +1,12 @@
-import {allCommands} from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {makeTestId} from 'app/client/lib/domUtils';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
+import { allCommands } from 'app/client/components/commands';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { makeTestId } from 'app/client/lib/domUtils';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
 import * as kf from 'app/client/lib/koForm';
-import {makeT} from 'app/client/lib/localization';
-import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
-import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
-import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
+import { makeT } from 'app/client/lib/localization';
+import { localStorageBoolObs } from 'app/client/lib/localStorageObs';
+import { ColumnToMapImpl } from 'app/client/models/ColumnToMap';
+import { ColumnRec, ViewSectionRec } from 'app/client/models/DocModel';
 import {
   cssDeveloperLink,
   cssWidgetMetadata,
@@ -17,20 +17,20 @@ import {
   getWidgetName,
   showCustomWidgetGallery,
 } from 'app/client/ui/CustomWidgetGallery';
-import {userTrustsCustomWidget} from 'app/client/ui/userTrustsCustomWidget';
-import {cssGroupLabel, cssHelp, cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {cssDragRow, cssFieldEntry, cssFieldLabel} from 'app/client/ui/VisibleFieldsConfig';
-import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {cssDragger} from 'app/client/ui2018/draggableList';
-import {textInput} from 'app/client/ui2018/editableLabel';
-import {icon} from 'app/client/ui2018/icons';
-import {cssOptionLabel, IOption, IOptionFull, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {visuallyHidden} from 'app/client/ui2018/visuallyHidden';
-import {AccessLevel, ICustomWidget, isSatisfied, matchWidget} from 'app/common/CustomWidget';
-import {not, unwrap} from 'app/common/gutil';
+import { userTrustsCustomWidget } from 'app/client/ui/userTrustsCustomWidget';
+import { cssGroupLabel, cssHelp, cssLabel, cssRow, cssSeparator } from 'app/client/ui/RightPanelStyles';
+import { hoverTooltip } from 'app/client/ui/tooltips';
+import { cssDragRow, cssFieldEntry, cssFieldLabel } from 'app/client/ui/VisibleFieldsConfig';
+import { basicButton, primaryButton, textButton } from 'app/client/ui2018/buttons';
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { cssDragger } from 'app/client/ui2018/draggableList';
+import { textInput } from 'app/client/ui2018/editableLabel';
+import { icon } from 'app/client/ui2018/icons';
+import { cssOptionLabel, IOption, IOptionFull, menu, menuItem, menuText, select } from 'app/client/ui2018/menus';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
+import { visuallyHidden } from 'app/client/ui2018/visuallyHidden';
+import { AccessLevel, ICustomWidget, isSatisfied, matchWidget } from 'app/common/CustomWidget';
+import { not, unwrap } from 'app/common/gutil';
 import {
   bundleChanges,
   Computed,
@@ -103,7 +103,7 @@ class ColumnPicker extends Disposable {
     });
 
     const defaultLabel = this._column.typeDesc != "any"
-      ? t("Pick a {{columnType}} column", {"columnType": this._column.typeDesc})
+      ? t("Pick a {{columnType}} column", { "columnType": this._column.typeDesc })
       : t("Pick a column");
 
     return [
@@ -151,10 +151,10 @@ class ColumnPicker extends Disposable {
             Observable.create(this, null),
             [], {
               disabled: true,
-              defaultLabel: t("No {{columnType}} columns in table.", {"columnType": this._column.typeDesc}),
+              defaultLabel: t("No {{columnType}} columns in table.", { "columnType": this._column.typeDesc }),
             },
           ),
-          hoverTooltip(t("No {{columnType}} columns in table.", {"columnType": this._column.typeDesc})),
+          hoverTooltip(t("No {{columnType}} columns in table.", { "columnType": this._column.typeDesc })),
           testId('mapping-for-' + this._column.name),
           testId('disabled'),
         ),
@@ -380,7 +380,7 @@ class CustomSectionConfigurationConfig extends Disposable{
       // TODO: come up with a way to attach tips without hardcoding widget URLs.
       case 'https://gristlabs.github.io/grist-widget/calendar/index.html': {
         return this._gristDoc.behavioralPromptsManager.attachPopup('calendarConfig', {
-          popupOptions: {placement: 'left-start'},
+          popupOptions: { placement: 'left-start' },
         });
       }
       default: {
@@ -464,7 +464,7 @@ export class CustomSectionConfig extends Disposable {
     if (!widgets) { return null; }
 
     const [pluginId, widgetId] = id.split(':');
-    return matchWidget(widgets, {pluginId, widgetId}) ?? null;
+    return matchWidget(widgets, { pluginId, widgetId }) ?? null;
   });
 
   constructor(protected _section: ViewSectionRec, private _gristDoc: GristDoc) {
@@ -534,7 +534,7 @@ export class CustomSectionConfig extends Disposable {
         this._widgetDetailsExpanded.set(!this._widgetDetailsExpanded.get());
       }),
       dom.attr('aria-expanded', use => use(this._widgetDetailsExpanded) ? 'true' : 'false'),
-      {'aria-controls': 'custom-widget-details'},
+      { 'aria-controls': 'custom-widget-details' },
     );
   }
 
@@ -567,7 +567,7 @@ export class CustomSectionConfig extends Disposable {
       dom.domComputed(this._selectedWidget, widget =>
         cssRow(
           this._buildWidgetDetails(widget),
-          {id: 'custom-widget-details'},
+          { id: 'custom-widget-details' },
         ),
       ),
     );
@@ -586,7 +586,7 @@ export class CustomSectionConfig extends Disposable {
               return this._url.set(this._url.get());
             },
             dom.show(this._isCustomUrlWidget),
-            {placeholder: t('Enter Custom URL'), type: 'url'},
+            { placeholder: t('Enter Custom URL'), type: 'url' },
           ),
         );
       }
@@ -606,7 +606,7 @@ export class CustomSectionConfig extends Disposable {
                 widget.authors[0].url
                   ? cssDeveloperLink(
                     widget.authors[0].name,
-                    {href: widget.authors[0].url, target: '_blank'},
+                    { href: widget.authors[0].url, target: '_blank' },
                     testId('custom-widget-developer'),
                   )
                   : dom('span',
@@ -635,11 +635,11 @@ export class CustomSectionConfig extends Disposable {
 
   private _buildAccessLevelConfig() {
     return [
-      cssSeparator({style: 'margin-top: 0px'}),
+      cssSeparator({ style: 'margin-top: 0px' }),
       cssGroupLabel(t('ACCESS LEVEL')),
       cssRow(select(this._currentAccess, getAccessLevels()), testId('access')),
       dom.maybeOwned(this._requiresAccess, owner => kf.prompt(
-        (elem: HTMLDivElement) => { FocusLayer.create(owner, {defaultFocusElem: elem, pauseMousetrap: true}); },
+        (elem: HTMLDivElement) => { FocusLayer.create(owner, { defaultFocusElem: elem, pauseMousetrap: true }); },
         cssColumns(
           cssWarningWrapper(icon('Lock')),
           dom('div',
@@ -676,7 +676,7 @@ export class CustomSectionConfig extends Disposable {
         return cssConfirmLine(t("Widget does not require any permissions."));
       }
       case AccessLevel.read_table: {
-        return cssConfirmLine(t("Widget needs to {{read}} the current table.", {read: dom("b", "read")}));
+        return cssConfirmLine(t("Widget needs to {{read}} the current table.", { read: dom("b", "read") }));
       }
       case AccessLevel.full: {
         return cssConfirmLine(t("Widget needs {{fullAccess}} to this document.", {
@@ -700,9 +700,9 @@ export class CustomSectionConfig extends Disposable {
 
 function getAccessLevels(): IOptionFull<string>[] {
   return [
-    {label: t("No document access"), value: AccessLevel.none},
-    {label: t("Read selected table"), value: AccessLevel.read_table},
-    {label: t("Full document access"), value: AccessLevel.full},
+    { label: t("No document access"), value: AccessLevel.none },
+    { label: t("Read selected table"), value: AccessLevel.read_table },
+    { label: t("Full document access"), value: AccessLevel.full },
   ];
 }
 

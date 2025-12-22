@@ -1,5 +1,5 @@
-import {ApplyUAResult} from 'app/common/ActiveDocAPI';
-import {DocAction} from 'app/common/DocActions';
+import { ApplyUAResult } from 'app/common/ActiveDocAPI';
+import { DocAction } from 'app/common/DocActions';
 
 /**
  * State related to a request for assistance.

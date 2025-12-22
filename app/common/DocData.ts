@@ -3,19 +3,19 @@
  * subscribes to actions which change it, and forwards those actions to individual tables.
  * It also provides the interface to apply actions to data.
  */
-import {DocumentSettings} from 'app/common/DocumentSettings';
-import {safeJsonParse} from 'app/common/gutil';
-import {schema, SchemaTypes} from 'app/common/schema';
+import { DocumentSettings } from 'app/common/DocumentSettings';
+import { safeJsonParse } from 'app/common/gutil';
+import { schema, SchemaTypes } from 'app/common/schema';
 import fromPairs from 'lodash/fromPairs';
 import groupBy from 'lodash/groupBy';
-import {ActionDispatcher} from 'app/common/ActionDispatcher';
-import {TableFetchResult} from 'app/common/ActiveDocAPI';
+import { ActionDispatcher } from 'app/common/ActionDispatcher';
+import { TableFetchResult } from 'app/common/ActiveDocAPI';
 import {
   BulkColValues, ColInfo, ColInfoWithId, ColValues, DocAction,
   getColIdsFromDocAction,
   RowRecord, TableDataAction,
 } from 'app/common/DocActions';
-import {ColTypeMap, MetaRowRecord, MetaTableData, TableData} from 'app/common/TableData';
+import { ColTypeMap, MetaRowRecord, MetaTableData, TableData } from 'app/common/TableData';
 
 type FetchTableFunc = (tableId: string) => Promise<TableFetchResult>;
 
@@ -29,12 +29,12 @@ export class DocData extends ActionDispatcher {
    * using syncTable(). All column types will be set to Any, which will affect default
    * values.
    */
-  constructor(fetchTableFunc: FetchTableFunc, metaTableData: {[tableId: string]: TableDataAction} | null) {
+  constructor(fetchTableFunc: FetchTableFunc, metaTableData: { [tableId: string]: TableDataAction } | null) {
     super();
     // Wrap fetchTableFunc slightly to handle any extra attachment data that
     // may come along for the ride.
     this._fetchTableFunc = async (tableId: string) => {
-      const {tableData, attachments} = await fetchTableFunc(tableId);
+      const { tableData, attachments } = await fetchTableFunc(tableId);
       if (attachments) {
         // Back-end doesn't keep track of which attachments we already have,
         // so there may be duplicates of rows we already have - but happily

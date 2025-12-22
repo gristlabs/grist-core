@@ -1,9 +1,9 @@
 import BaseView from 'app/client/components/BaseView';
-import {SequenceNEVER, SequenceNum} from 'app/client/components/Cursor';
-import {EmptyFilterColValues, LinkingState} from 'app/client/components/LinkingState';
-import {KoArray} from 'app/client/lib/koArray';
-import {fieldInsertPositions} from 'app/client/lib/tableUtil';
-import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
+import { SequenceNEVER, SequenceNum } from 'app/client/components/Cursor';
+import { EmptyFilterColValues, LinkingState } from 'app/client/components/LinkingState';
+import { KoArray } from 'app/client/lib/koArray';
+import { fieldInsertPositions } from 'app/client/lib/tableUtil';
+import { ColumnToMapImpl } from 'app/client/models/ColumnToMap';
 import {
   ColumnRec,
   DocModel,
@@ -16,23 +16,23 @@ import {
   ViewFieldRec,
   ViewRec,
 } from 'app/client/models/DocModel';
-import {BEHAVIOR} from 'app/client/models/entities/ColumnRec';
+import { BEHAVIOR } from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
-import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
-import type {Style} from 'app/client/models/Styles';
-import {LinkConfig} from 'app/client/ui/LinkConfig';
-import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
-import {FilterColValues} from "app/common/ActiveDocAPI";
-import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
-import {UserAction} from 'app/common/DocActions';
-import {RecalcWhen} from 'app/common/gristTypes';
-import {arrayRepeat, safeJsonParse} from 'app/common/gutil';
-import {Sort} from 'app/common/SortSpec';
-import {WidgetType} from 'app/common/widgetTypes';
-import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
-import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
-import {GristObjCode} from 'app/plugin/GristData';
-import {Computed, Holder, Observable, subscribe} from 'grainjs';
+import { removeRule, RuleOwner } from 'app/client/models/RuleOwner';
+import type { Style } from 'app/client/models/Styles';
+import { LinkConfig } from 'app/client/ui/LinkConfig';
+import { getWidgetTypes } from "app/client/ui/widgetTypesMap";
+import { FilterColValues } from "app/common/ActiveDocAPI";
+import { AccessLevel, ICustomWidget } from 'app/common/CustomWidget';
+import { UserAction } from 'app/common/DocActions';
+import { RecalcWhen } from 'app/common/gristTypes';
+import { arrayRepeat, safeJsonParse } from 'app/common/gutil';
+import { Sort } from 'app/common/SortSpec';
+import { WidgetType } from 'app/common/widgetTypes';
+import { ColumnsToMap, WidgetColumnMap } from 'app/plugin/CustomSectionAPI';
+import { CursorPos, UIRowId } from 'app/plugin/GristAPI';
+import { GristObjCode } from 'app/plugin/GristData';
+import { Computed, Holder, Observable, subscribe } from 'grainjs';
 import * as ko from 'knockout';
 import defaults from 'lodash/defaults';
 
@@ -455,7 +455,7 @@ export interface Filter {
 
 export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): void {
   this.widgetType = this.parentKey as any;
-  this.viewFields = recordSet(this, docModel.viewFields, 'parentId', {sortBy: 'parentPos'});
+  this.viewFields = recordSet(this, docModel.viewFields, 'parentId', { sortBy: 'parentPos' });
   this.linkedSections = recordSet(this, docModel.viewSections, 'linkSrcSectionRef');
 
   // All table columns associated with this view section, excluding any hidden helper columns.
@@ -610,7 +610,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
       // If an unsaved filter exists, overwrite the filter with it.
       const unsavedFilter = this._unsavedFilters.get(column.origColRef());
       if (unsavedFilter) {
-        const {filter: f, pinned: p} = unsavedFilter;
+        const { filter: f, pinned: p } = unsavedFilter;
         if (f !== undefined) { filter(f); }
         if (p !== undefined) { pinned(p); }
       }
@@ -650,7 +650,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
         const newFilters: [number, Filter][] = []; // Pairs of column refs and filters to add.
 
         for (const f of this.filters()) {
-          const {fieldOrColumn, filter, pinned} = f;
+          const { fieldOrColumn, filter, pinned } = f;
           // Skip saved filters (i.e. filters whose local values are unchanged from server).
           if (filter.isSaved() && pinned.isSaved()) { continue; }
 
@@ -690,8 +690,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
           actions.push(['BulkUpdateRecord',
             updatedFilters.map(([id]) => id),
             {
-              filter: updatedFilters.map(([, {filter}]) => filter),
-              pinned: updatedFilters.map(([, {pinned}]) => pinned),
+              filter: updatedFilters.map(([, { filter }]) => filter),
+              pinned: updatedFilters.map(([, { pinned }]) => pinned),
             },
           ]);
         }
@@ -703,8 +703,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
             {
               viewSectionRef: arrayRepeat(newFilters.length, this.id()),
               colRef: newFilters.map(([colRef]) => colRef),
-              filter: newFilters.map(([, {filter}]) => filter),
-              pinned: newFilters.map(([, {pinned}]) => pinned),
+              filter: newFilters.map(([, { filter }]) => filter),
+              pinned: newFilters.map(([, { pinned }]) => pinned),
             },
           ]);
         }
@@ -730,11 +730,11 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // Set `filter` for the field or column identified by `colRef`.
   this.setFilter = (colRef: number, filter: Partial<Filter>) => {
-    this._unsavedFilters.set(colRef, {...this._unsavedFilters.get(colRef), ...filter});
+    this._unsavedFilters.set(colRef, { ...this._unsavedFilters.get(colRef), ...filter });
     const filterInfo = this.filters().find(c => c.fieldOrColumn.origCol().origColRef() === colRef);
     if (!filterInfo) { return; }
 
-    const {filter: newFilter, pinned: newPinned} = filter;
+    const { filter: newFilter, pinned: newPinned } = filter;
     if (newFilter !== undefined) { filterInfo.filter(newFilter); }
     if (newPinned !== undefined) { filterInfo.pinned(newPinned); }
   };
@@ -971,7 +971,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   }));
 
   this.insertColumn = async (colId: string|null = null, options: InsertColOptions = {}) => {
-    const {colInfo = {}, index = this.viewFields().peekLength} = options;
+    const { colInfo = {}, index = this.viewFields().peekLength } = options;
     const parentPos = fieldInsertPositions(this.viewFields(), index)[0];
     const action = ['AddColumn', colId, {
       ...colInfo,
@@ -989,7 +989,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
         const fieldRef = await docModel.viewFields.sendTableAction(['AddRecord', null, fieldInfo]);
         newColInfo.fieldRef = fieldRef;
       }
-    }, {nestInActiveBundle: options.nestInActiveBundle});
+    }, { nestInActiveBundle: options.nestInActiveBundle });
     return newColInfo!;
   };
 

@@ -1,12 +1,12 @@
-import {CellValue} from 'app/common/DocActions';
+import { CellValue } from 'app/common/DocActions';
 import * as gristTypes from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
-import {NumberFormatOptions} from 'app/common/NumberFormat';
-import {FormatOptions, formatUnknown, IsRightTypeFunc} from 'app/common/ValueFormatter';
-import {GristType} from 'app/plugin/GristData';
-import {decodeObject} from 'app/plugin/objtypes';
+import { NumberFormatOptions } from 'app/common/NumberFormat';
+import { FormatOptions, formatUnknown, IsRightTypeFunc } from 'app/common/ValueFormatter';
+import { GristType } from 'app/plugin/GristData';
+import { decodeObject } from 'app/plugin/objtypes';
 import getSymbolFromCurrency from 'currency-symbol-map';
-import {Style} from 'exceljs';
+import { Style } from 'exceljs';
 import moment from 'moment-timezone';
 
 interface WidgetOptions extends NumberFormatOptions {

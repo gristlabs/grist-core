@@ -1,7 +1,7 @@
-import {UserAPI} from 'app/common/UserAPI';
-import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
+import { UserAPI } from 'app/common/UserAPI';
+import { addToRepl, assert, driver, Key } from 'mocha-webdriver';
 import path from 'path';
-import {setupExternalSite} from 'test/server/customUtil';
+import { setupExternalSite } from 'test/server/customUtil';
 import {
   arrow,
   clickMenu,
@@ -20,8 +20,8 @@ import {
   selectedLabel,
 } from 'test/nbrowser/formTools';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {EnvironmentSnapshot, fixturesRoot} from 'test/server/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { EnvironmentSnapshot, fixturesRoot } from 'test/server/testUtils';
 
 describe('FormView1', function() {
   this.timeout(20_000);   // Default for each test or hook.
@@ -60,7 +60,7 @@ describe('FormView1', function() {
       redirectUrl?: string;
     } = {},
   ) {
-    const {redirectUrl} = options;
+    const { redirectUrl } = options;
 
     await gu.addNewSection('Form', 'Table1');
 
@@ -177,9 +177,9 @@ describe('FormView1', function() {
 
     it('updates creator panel when navigated away', async function() {
       // Add 2 new pages.
-      await gu.addNewPage('Form', 'New Table', {tableName: 'TabA'});
+      await gu.addNewPage('Form', 'New Table', { tableName: 'TabA' });
       await gu.renamePage('TabA');
-      await gu.addNewPage('Form', 'New Table', {tableName: 'TabB'});
+      await gu.addNewPage('Form', 'New Table', { tableName: 'TabB' });
 
       // Open the creator panel on field tab
       await gu.openColumnPanel();
@@ -244,7 +244,7 @@ describe('FormView1', function() {
         await driver.findWait('button[type="submit"]', 2000).click();
         await waitForConfirm();
       });
-      const {email, name} = gu.translateUser('anon');
+      const { email, name } = gu.translateUser('anon');
       const expectedCellValue = `${email} ${name}`;
       await expectSingle(expectedCellValue);
 
@@ -687,9 +687,9 @@ describe('FormView1', function() {
       await gu.setRefShowColumn('A');
       // Add 3 records to this table (it is now empty).
       await gu.sendActions([
-        ['AddRecord', 'Table1', null, {A: 'Foo'}], // id 1
-        ['AddRecord', 'Table1', null, {A: 'Bar'}], // id 2
-        ['AddRecord', 'Table1', null, {A: 'Baz'}], // id 3
+        ['AddRecord', 'Table1', null, { A: 'Foo' }], // id 1
+        ['AddRecord', 'Table1', null, { A: 'Bar' }], // id 2
+        ['AddRecord', 'Table1', null, { A: 'Baz' }], // id 3
       ]);
       // We are in a new window.
       await gu.onNewTab(async () => {
@@ -747,13 +747,13 @@ describe('FormView1', function() {
       // Add some options.
       await gu.openColumnPanel();
       await gu.setRefShowColumn('A');
-      const alpha = Array.from({length: 26}, (_, i) => String.fromCharCode('a'.charCodeAt(0) + i));
+      const alpha = Array.from({ length: 26 }, (_, i) => String.fromCharCode('a'.charCodeAt(0) + i));
       // Add records with values 'aa', 'ab', ..., 'zz' for the column A
       const twoLettersCombination = alpha.flatMap(firstLetter =>
         alpha.map(secondLetter => firstLetter + secondLetter),
       );
       await gu.sendActions(
-        twoLettersCombination.map(twoLetters => ['AddRecord', 'Table1', null, {A: twoLetters}]),
+        twoLettersCombination.map(twoLetters => ['AddRecord', 'Table1', null, { A: twoLetters }]),
       );
       // We are in a new window.
       await gu.onNewTab(async () => {
@@ -797,9 +797,9 @@ describe('FormView1', function() {
       await gu.waitForServer();
       await gu.setRefShowColumn('A');
       await gu.sendActions([
-        ['AddRecord', 'Table1', null, {A: 'Foo'}],
-        ['AddRecord', 'Table1', null, {A: 'Bar'}],
-        ['AddRecord', 'Table1', null, {A: 'Baz'}],
+        ['AddRecord', 'Table1', null, { A: 'Foo' }],
+        ['AddRecord', 'Table1', null, { A: 'Bar' }],
+        ['AddRecord', 'Table1', null, { A: 'Baz' }],
       ]);
       // We are in a new window.
       await gu.onNewTab(async () => {
@@ -843,9 +843,9 @@ describe('FormView1', function() {
       await gu.setRefShowColumn('A');
       // Add 3 records to this table (it is now empty).
       await gu.sendActions([
-        ['AddRecord', 'Table1', null, {A: 'Foo'}], // id 1
-        ['AddRecord', 'Table1', null, {A: 'Bar'}], // id 2
-        ['AddRecord', 'Table1', null, {A: 'Baz'}], // id 3
+        ['AddRecord', 'Table1', null, { A: 'Foo' }], // id 1
+        ['AddRecord', 'Table1', null, { A: 'Bar' }], // id 2
+        ['AddRecord', 'Table1', null, { A: 'Baz' }], // id 3
       ]);
       await gu.toggleSidePanel('right', 'close');
       // We are in a new window.
@@ -913,7 +913,7 @@ describe('FormView1', function() {
 
       // Temporarily make A a formula column.
       await gu.sendActions([
-        ['ModifyColumn', 'Table1', 'A', {formula: '"hello"', isFormula: true}],
+        ['ModifyColumn', 'Table1', 'A', { formula: '"hello"', isFormula: true }],
       ]);
 
       // Check that A is hidden in the form editor.
@@ -946,7 +946,7 @@ describe('FormView1', function() {
 
       // Revert A and check that it's visible again in the editor.
       await gu.sendActions([
-        ['ModifyColumn', 'Table1', 'A', {formula: '', isFormula: false}],
+        ['ModifyColumn', 'Table1', 'A', { formula: '', isFormula: false }],
       ]);
       await gu.waitToPass(async () => assert.deepEqual(await labels(), ['A', 'B', 'C', 'D']));
       assert.deepEqual(
@@ -987,7 +987,7 @@ describe('FormView1', function() {
 
       const docApi = api.getDocAPI(docId);
       const url = `${docApi.getBaseUrl()}/attachments`;
-      const headers = {Authorization: `Bearer ${await api.fetchApiKey()}`};
+      const headers = { Authorization: `Bearer ${await api.fetchApiKey()}` };
       const response = await fetch(url, {
         headers,
         method: "GET",
@@ -1066,7 +1066,7 @@ describe('FormView1', function() {
     it("doesn't generate fields when they are added", async function() {
       await gu.sendActions([
         ['AddVisibleColumn', 'Form', 'Choice',
-          {type: 'Choice', widgetOption: JSON.stringify({choices: ['A', 'B', 'C']})}],
+          { type: 'Choice', widgetOption: JSON.stringify({ choices: ['A', 'B', 'C'] }) }],
       ]);
 
       // Make sure we see a form editor.
@@ -1085,9 +1085,9 @@ describe('FormView1', function() {
       );
 
       await driver.withActions(a =>
-        a.move({origin: questionDrag('B')})
+        a.move({ origin: questionDrag('B') })
           .press()
-          .move({origin: questionDrag('A')})
+          .move({ origin: questionDrag('A') })
           .release(),
       );
 
@@ -1099,9 +1099,9 @@ describe('FormView1', function() {
       );
 
       await driver.withActions(a =>
-        a.move({origin: questionDrag('C')})
+        a.move({ origin: questionDrag('C') })
           .press()
-          .move({origin: questionDrag('B')})
+          .move({ origin: questionDrag('B') })
           .release(),
       );
 
@@ -1114,9 +1114,9 @@ describe('FormView1', function() {
 
       // Now move A on A and make sure nothing changes.
       await driver.withActions(a =>
-        a.move({origin: questionDrag('A')})
+        a.move({ origin: questionDrag('A') })
           .press()
-          .move({origin: questionDrag('A'), x: 50})
+          .move({ origin: questionDrag('A'), x: 50 })
           .release(),
       );
 
@@ -1138,9 +1138,9 @@ describe('FormView1', function() {
 
       // Move the A over there.
       await driver.withActions(a =>
-        a.move({origin: questionDrag('A')})
+        a.move({ origin: questionDrag('A') })
           .press()
-          .move({origin: plusButton().drag()})
+          .move({ origin: plusButton().drag() })
           .release(),
       );
 
@@ -1178,9 +1178,9 @@ describe('FormView1', function() {
       // Make sure they are draggable.
       // Move D infront of C.
       await driver.withActions(a =>
-        a.move({origin: questionDrag('D')})
+        a.move({ origin: questionDrag('D') })
           .press()
-          .move({origin: questionDrag('C')})
+          .move({ origin: questionDrag('C') })
           .release(),
       );
 
@@ -1241,9 +1241,9 @@ describe('FormView1', function() {
 
       // Now move it to the form on B
       await driver.withActions(a =>
-        a.move({origin: hiddenColumn('Choice')})
+        a.move({ origin: hiddenColumn('Choice') })
           .press()
-          .move({origin: questionDrag('B')})
+          .move({ origin: questionDrag('B') })
           .release(),
       );
       await gu.waitForServer();
@@ -1308,9 +1308,9 @@ describe('FormView1', function() {
       await question('A').click();
       await gu.setType('Text');
       assert.equal(await questionType('A'), 'Text');
-      await gu.sendActions([['AddRecord', 'Form', null, {A: 'Foo'}]]);
+      await gu.sendActions([['AddRecord', 'Form', null, { A: 'Foo' }]]);
       await question('A').click();
-      await gu.setType('Numeric', {apply: true});
+      await gu.setType('Numeric', { apply: true });
       assert.equal(await questionType('A'), 'Numeric');
       await gu.sendActions([['RemoveRecord', 'Form', 1]]);
       await gu.undo(2);
@@ -1483,9 +1483,9 @@ describe('FormView1', function() {
 
       // Make sure we can move that question around.
       await driver.withActions(a =>
-        a.move({origin: questionDrag('D')})
+        a.move({ origin: questionDrag('D') })
           .press()
-          .move({origin: questionDrag('B')})
+          .move({ origin: questionDrag('B') })
           .release(),
       );
 
@@ -1566,9 +1566,9 @@ describe('FormView1', function() {
 
       // We can move it around.
       await driver.withActions(a =>
-        a.move({origin: questionDrag('D')})
+        a.move({ origin: questionDrag('D') })
           .press()
-          .move({origin: questionDrag('B')})
+          .move({ origin: questionDrag('B') })
           .release(),
       );
       await gu.waitForServer();
@@ -1576,9 +1576,9 @@ describe('FormView1', function() {
 
       // And move it back.
       await driver.withActions(a =>
-        a.move({origin: questionDrag('D')})
+        a.move({ origin: questionDrag('D') })
           .press()
-          .move({origin: element('Columns').element(`Placeholder`, 2).find(`.test-forms-drag`)})
+          .move({ origin: element('Columns').element(`Placeholder`, 2).find(`.test-forms-drag`) })
           .release(),
       );
       await gu.waitForServer();
@@ -1661,9 +1661,9 @@ describe('FormView1', function() {
 
       // Make sure that dragging columns on its placeholder doesn't do anything.
       await driver.withActions(a =>
-        a.move({origin: element('Columns').element(`Placeholder`, 1).find(`.test-forms-drag`)})
+        a.move({ origin: element('Columns').element(`Placeholder`, 1).find(`.test-forms-drag`) })
           .press()
-          .move({origin: element('Columns').element(`Placeholder`, 2).find(`.test-forms-drag`)})
+          .move({ origin: element('Columns').element(`Placeholder`, 2).find(`.test-forms-drag`) })
           .release(),
       );
       await gu.waitForServer();
@@ -1691,9 +1691,9 @@ describe('FormView1', function() {
 
       // Now do the same but move atop the + placeholder.
       await driver.withActions(a =>
-        a.move({origin: element('Columns').element(`Placeholder`, 1).find(`.test-forms-drag`)})
+        a.move({ origin: element('Columns').element(`Placeholder`, 1).find(`.test-forms-drag`) })
           .press()
-          .move({origin: driver.find('.test-forms-Columns .test-forms-add')})
+          .move({ origin: driver.find('.test-forms-Columns .test-forms-add') })
           .release(),
       );
       await gu.waitForServer();
@@ -1702,9 +1702,9 @@ describe('FormView1', function() {
 
       // Now move C column into first column.
       await driver.withActions(a =>
-        a.move({origin: questionDrag('C')})
+        a.move({ origin: questionDrag('C') })
           .press()
-          .move({origin: element('Columns').element(`Placeholder`, 1).find(`.test-forms-drag`)})
+          .move({ origin: element('Columns').element(`Placeholder`, 1).find(`.test-forms-drag`) })
           .release(),
       );
       await gu.waitForServer();
@@ -1717,9 +1717,9 @@ describe('FormView1', function() {
 
       // Try to move B over C.
       await driver.withActions(a =>
-        a.move({origin: questionDrag('B')})
+        a.move({ origin: questionDrag('B') })
           .press()
-          .move({origin: questionDrag('C')})
+          .move({ origin: questionDrag('C') })
           .release(),
       );
       await gu.waitForServer();
@@ -1734,9 +1734,9 @@ describe('FormView1', function() {
 
       // Now move B on the empty placholder.
       await driver.withActions(a =>
-        a.move({origin: questionDrag('B')})
+        a.move({ origin: questionDrag('B') })
           .press()
-          .move({origin: element('column', 2).drag()})
+          .move({ origin: element('column', 2).drag() })
           .release(),
       );
       await gu.waitForServer();
@@ -1750,9 +1750,9 @@ describe('FormView1', function() {
 
       // Now swap them moving C over B.
       await driver.withActions(a =>
-        a.move({origin: questionDrag('C')})
+        a.move({ origin: questionDrag('C') })
           .press()
-          .move({origin: questionDrag('B')})
+          .move({ origin: questionDrag('B') })
           .release(),
       );
       await gu.waitForServer();
@@ -1762,9 +1762,9 @@ describe('FormView1', function() {
 
       // And swap them back.
       await driver.withActions(a =>
-        a.move({origin: questionDrag('B')})
+        a.move({ origin: questionDrag('B') })
           .press()
-          .move({origin: questionDrag('C')})
+          .move({ origin: questionDrag('C') })
           .release(),
       );
       await gu.waitForServer();
@@ -1777,9 +1777,9 @@ describe('FormView1', function() {
 
       // Make sure draggin column on the add button doesn't add column.
       await driver.withActions(a =>
-        a.move({origin: questionDrag('B')})
+        a.move({ origin: questionDrag('B') })
           .press()
-          .move({origin: driver.find('.test-forms-Columns .test-forms-add')})
+          .move({ origin: driver.find('.test-forms-Columns .test-forms-add') })
           .release(),
       );
       await gu.waitForServer();
@@ -1792,9 +1792,9 @@ describe('FormView1', function() {
 
       // Now move A over the + button to add a new column.
       await driver.withActions(a =>
-        a.move({origin: questionDrag('A')})
+        a.move({ origin: questionDrag('A') })
           .press()
-          .move({origin: driver.find('.test-forms-Columns .test-forms-add')})
+          .move({ origin: driver.find('.test-forms-Columns .test-forms-add') })
           .release(),
       );
       await gu.waitForServer();
@@ -1819,7 +1819,7 @@ describe('FormView1', function() {
 
       // Now change it to a choice, from the backend (as the UI is not clear here).
       await gu.sendActions([
-        ['ModifyColumn', 'Form', 'D', {type: 'Choice', widgetOptions: JSON.stringify({choices: ['A', 'B', 'C']})}],
+        ['ModifyColumn', 'Form', 'D', { type: 'Choice', widgetOptions: JSON.stringify({ choices: ['A', 'B', 'C'] }) }],
       ]);
 
       // Make sure it is a choice question.

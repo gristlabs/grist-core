@@ -1,9 +1,9 @@
-import {makeT} from 'app/client/lib/localization';
-import {ITooltipControl, showTooltip, tooltipCloseButton} from 'app/client/ui/tooltips';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
-import {dom, styled} from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { ITooltipControl, showTooltip, tooltipCloseButton } from 'app/client/ui/tooltips';
+import { testId, theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { cssLink } from 'app/client/ui2018/links';
+import { dom, styled } from 'grainjs';
 
 const t = makeT('EditorTooltip');
 
@@ -17,7 +17,7 @@ export function showTooltipToCreateFormula(editorDom: HTMLElement, convert: () =
       tooltipCloseButton(ctl),
     );
   }
-  const offerCtl = showTooltip(editorDom, buildTooltip, {key: 'col-to-formula'});
+  const offerCtl = showTooltip(editorDom, buildTooltip, { key: 'col-to-formula' });
 
   dom.onDisposeElem(editorDom, offerCtl.close);
   const lis = dom.onElem(editorDom, 'keydown', () => {

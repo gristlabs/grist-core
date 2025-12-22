@@ -1,17 +1,17 @@
 import BaseView from 'app/client/components/BaseView';
-import {buildCollapsedSectionDom, buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
+import { buildCollapsedSectionDom, buildViewSectionDom } from 'app/client/components/buildViewSectionDom';
 import * as commands from 'app/client/components/commands';
-import {ContentBox} from 'app/client/components/Layout';
-import type {ViewLayout} from 'app/client/components/ViewLayout';
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {Signal} from 'app/client/lib/Signal';
-import {urlState} from 'app/client/models/gristUrlState';
-import {TransitionWatcher} from 'app/client/ui/transitions';
-import {theme} from 'app/client/ui2018/cssVars';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {isNonNullish} from 'app/common/gutil';
-import {Computed, Disposable, dom, IDisposable, IDisposableOwner,
-  makeTestId, obsArray, Observable, styled} from 'grainjs';
+import { ContentBox } from 'app/client/components/Layout';
+import type { ViewLayout } from 'app/client/components/ViewLayout';
+import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import { Signal } from 'app/client/lib/Signal';
+import { urlState } from 'app/client/models/gristUrlState';
+import { TransitionWatcher } from 'app/client/ui/transitions';
+import { theme } from 'app/client/ui2018/cssVars';
+import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
+import { isNonNullish } from 'app/common/gutil';
+import { Computed, Disposable, dom, IDisposable, IDisposableOwner,
+  makeTestId, obsArray, Observable, styled } from 'grainjs';
 import isEqual from 'lodash/isEqual';
 
 const testId = makeTestId('test-layoutTray-');
@@ -308,7 +308,7 @@ class CollapsedDropZone extends Disposable {
         return !show ? null : dom.domComputed(
           obsRects,
           rects => rects.filter(isNonNullish).map((rect: VRect) => cssVirtualPart(
-            {style: `left: ${rect.left}px; width: ${rect.width}px; top: ${rect.top}px; height: ${rect.height}px;`},
+            { style: `left: ${rect.left}px; width: ${rect.width}px; top: ${rect.top}px; height: ${rect.height}px;` },
           )));
       }),
     ));
@@ -892,7 +892,7 @@ class ExternalLeaf extends Disposable implements Dropped {
           const part = dropTargeter.activeTarget;
           dropTargeter.removeTargetHints();
           const leaf = dropped.leafId();
-          const box = externalEditor.layout.buildLayoutBox({leaf});
+          const box = externalEditor.layout.buildLayoutBox({ leaf });
           dropped.removeFromLayout();
           if (part.isChild) {
             part.box.addChild(box, part.isAfter);

@@ -1,10 +1,10 @@
-import {makeT} from 'app/client/lib/localization';
-import {ACIndex, ACItem, ACResults, buildHighlightedDom, normalizeText} from "app/client/lib/ACIndex";
-import {cssSelectItem} from "app/client/lib/ACSelect";
-import {Autocomplete, IAutocompleteOptions} from "app/client/lib/autocomplete";
-import {colors, testId, theme} from "app/client/ui2018/cssVars";
-import {icon} from "app/client/ui2018/icons";
-import {menuCssClass} from "app/client/ui2018/menus";
+import { makeT } from 'app/client/lib/localization';
+import { ACIndex, ACItem, ACResults, buildHighlightedDom, normalizeText } from "app/client/lib/ACIndex";
+import { cssSelectItem } from "app/client/lib/ACSelect";
+import { Autocomplete, IAutocompleteOptions } from "app/client/lib/autocomplete";
+import { colors, testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menuCssClass } from "app/client/ui2018/menus";
 import {
   cssEmailInput,
   cssEmailInputContainer,
@@ -15,10 +15,10 @@ import {
   cssMemberSecondary,
   cssMemberText,
 } from "app/client/ui/UserItem";
-import {createUserImage, cssUserImage} from "app/client/ui/UserImage";
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, computed, dom, DomElementArg, Holder, IDisposableOwner, Observable, styled} from "grainjs";
-import {cssMenuItem} from "popweasel";
+import { createUserImage, cssUserImage } from "app/client/ui/UserImage";
+import { getGristConfig } from 'app/common/urlUtils';
+import { Computed, computed, dom, DomElementArg, Holder, IDisposableOwner, Observable, styled } from "grainjs";
+import { cssMenuItem } from "popweasel";
 
 const t = makeT('ACUserManager');
 
@@ -38,11 +38,11 @@ export function buildACMemberEmail(
     acIndex: ACIndex<ACUserItem>;
     emailObs: Observable<string>;
     save: (value: string) => void;
-    prompt?: {email: string},
+    prompt?: { email: string },
   },
   ...args: DomElementArg[]
 ) {
-  const {acIndex, emailObs, save, prompt} = options;
+  const { acIndex, emailObs, save, prompt } = options;
   const acHolder = Holder.create<Autocomplete<ACUserItem>>(owner);
   let emailInput: HTMLInputElement;
 
@@ -120,7 +120,7 @@ export function buildACMemberEmail(
       cssMemberText(
         cssMemberPrimaryPlus(t("Invite new member")),
         getGristConfig().notifierEnabled ? cssMemberSecondaryPlus(
-          dom.text(use => t("We'll email an invite to {{email}}", {email: use(emailObs)})),
+          dom.text(use => t("We'll email an invite to {{email}}", { email: use(emailObs) })),
         ) : null,
       ),
       testId("um-add-email"),
@@ -150,8 +150,8 @@ export function buildACMemberEmail(
     cssMailIcon("Mail"),
     (emailInput = cssEmailInput(
       emailObs,
-      {onInput: true, isValid},
-      {type: "email", placeholder: t("Enter email address")},
+      { onInput: true, isValid },
+      { type: "email", placeholder: t("Enter email address") },
       dom.on("input", acOpen),
       dom.on("focus", acOpen),
       dom.on("click", acOpen),

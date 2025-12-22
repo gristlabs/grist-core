@@ -235,7 +235,7 @@ export class CellData {
           continue;
         }
         const id = getRowIds(single);
-        rows.push({id, ...commentRow as any});
+        rows.push({ id, ...commentRow as any });
       }
     }
     return rows;
@@ -372,7 +372,7 @@ export class CellData {
     }
 
     for (const [tableId, rowIds] of updatedRows) {
-      for (const {id} of this.readCells(tableId, rowIds)) {
+      for (const { id } of this.readCells(tableId, rowIds)) {
         if (addedCells.has(id) || updatedCells.has(id) || removedCells.has(id)) {
           // If we have this cell id in the list of added/updated/removed cells, ignore it.
         }
@@ -449,7 +449,7 @@ export class CellData {
       throw new Error(`Table ${tableId} not found`);
     }
     const colRef = this._docData.getMetaTable("_grist_Tables_column").findMatchingRowId(
-      {parentId, colId},
+      { parentId, colId },
     );
     if (!colRef) {
       throw new Error(`Column ${colId} not found in table ${tableId}`);
@@ -462,7 +462,7 @@ export class CellData {
    */
   public readCells(tableId: string, rowIds: Set<number>, colId?: string) {
     const tableRef = this.getTableRef(tableId);
-    const filter: Record<string, any> = {tableRef};
+    const filter: Record<string, any> = { tableRef };
     if (colId) {
       filter.colRef = this.getColRef(tableId, colId);
     }
@@ -497,7 +497,7 @@ export class CellData {
   public convertToCells(action: DocAction): SingleCellInfo[] {
     if (!isDataAction(action)) { return []; }
     if (getTableId(action) !== '_grist_Cells') { return []; }
-    const result: { tableId: string, rowId: number, colId: string, id: number, userRef: string}[] = [];
+    const result: { tableId: string, rowId: number, colId: string, id: number, userRef: string }[] = [];
     if (isBulkAction(action)) {
       const rowIds = getRowIds(action);
       for (let idx = 0; idx < rowIds.length; idx++) {

@@ -1,11 +1,11 @@
-import ace, {Ace} from 'ace-builds';
-import {expandAndFilterSuggestions, ISuggestionWithSubAttrs} from 'app/client/lib/Suggestions';
-import {setupAceEditorCompletions} from 'app/client/components/AceEditorCompletions';
-import {ISuggestionWithValue} from 'app/common/ActiveDocAPI';
-import {theme} from 'app/client/ui2018/cssVars';
-import {gristThemeObs} from 'app/client/ui2018/theme';
-import {Theme} from 'app/common/ThemePrefs';
-import {dom, DomArg, Observable, styled} from 'grainjs';
+import ace, { Ace } from 'ace-builds';
+import { expandAndFilterSuggestions, ISuggestionWithSubAttrs } from 'app/client/lib/Suggestions';
+import { setupAceEditorCompletions } from 'app/client/components/AceEditorCompletions';
+import { ISuggestionWithValue } from 'app/common/ActiveDocAPI';
+import { theme } from 'app/client/ui2018/cssVars';
+import { gristThemeObs } from 'app/client/ui2018/theme';
+import { Theme } from 'app/common/ThemePrefs';
+import { dom, DomArg, Observable, styled } from 'grainjs';
 import debounce from 'lodash/debounce';
 
 export interface ACLFormulaOptions {
@@ -24,7 +24,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
 
   // Set various editor options.
   function setAceTheme(newTheme: Theme) {
-    const {appearance} = newTheme;
+    const { appearance } = newTheme;
     const aceTheme = appearance === 'dark' ? 'dracula' : 'chrome';
     editor.setTheme(`ace/theme/${aceTheme}`);
   }
@@ -33,7 +33,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
     setAceTheme(newTheme);
   });
   // ACE editor resizes automatically when maxLines is set.
-  editor.setOptions({enableLiveAutocompletion: true, maxLines: 10});
+  editor.setOptions({ enableLiveAutocompletion: true, maxLines: 10 });
   editor.renderer.setShowGutter(false);       // Default line numbers to hidden
   editor.renderer.setPadding(5);
   editor.renderer.setScrollMargin(4, 4, 0, 0);
@@ -71,7 +71,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
       );
   }
 
-  setupAceEditorCompletions(editor, {getSuggestions});
+  setupAceEditorCompletions(editor, { getSuggestions });
 
   // Save on blur.
   editor.on("blur", () => options.setValue(editor.getValue()));
@@ -83,7 +83,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   // Blur (and save) on Enter key.
   editor.commands.addCommand({
     name: 'onEnter',
-    bindKey: {win: 'Enter', mac: 'Enter'},
+    bindKey: { win: 'Enter', mac: 'Enter' },
     exec: () => editor.blur(),
   });
   // Disable Tab/Shift+Tab commands to restore their regular behavior.
@@ -102,7 +102,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
     // ACE editor calls preventDefault on clicks into the scrollbar area, which prevents focus
     // being set when the click happens to be into there. To ensure we can focus on such clicks
     // anyway, listen to the mousedown event in the capture phase.
-    dom.on('mousedown', () => { editor.focus(); }, {useCapture: true}),
+    dom.on('mousedown', () => { editor.focus(); }, { useCapture: true }),
     dom.onDispose(() => editor.destroy()),
     dom.onDispose(() => save.cancel()),
     editorElem,

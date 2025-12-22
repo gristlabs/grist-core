@@ -1,11 +1,11 @@
-import {consolidateValues, sortByXValues, splitValuesByIndex} from 'app/client/lib/chartUtil';
-import {assert} from 'chai';
-import {Datum} from 'plotly.js';
+import { consolidateValues, sortByXValues, splitValuesByIndex } from 'app/client/lib/chartUtil';
+import { assert } from 'chai';
+import { Datum } from 'plotly.js';
 
 describe('chartUtil', function() {
   describe('sortByXValues', function() {
     function sort(data: Datum[][]) {
-      const series = data.map(values => ({values, label: 'X'}));
+      const series = data.map(values => ({ values, label: 'X' }));
       sortByXValues(series);
       return series.map(s => s.values);
     }
@@ -32,21 +32,21 @@ describe('chartUtil', function() {
   describe('splitValuesByIndex', function() {
 
     it('should work correctly', function() {
-      splitValuesByIndex([{label: 'test', values: []}, {label: 'foo', values: []}], 0);
+      splitValuesByIndex([{ label: 'test', values: [] }, { label: 'foo', values: [] }], 0);
       assert.deepEqual(splitValuesByIndex([
-        {label: 'foo', values: [['L', 'foo', 'bar'], ['L', 'baz']] as any},
-        {label: 'bar', values: ['santa', 'janus']},
+        { label: 'foo', values: [['L', 'foo', 'bar'], ['L', 'baz']] as any },
+        { label: 'bar', values: ['santa', 'janus'] },
       ], 0), [
-        {label: 'foo', values: ['foo', 'bar', 'baz']},
-        {label: 'bar', values: ['santa', 'santa', 'janus']},
+        { label: 'foo', values: ['foo', 'bar', 'baz'] },
+        { label: 'bar', values: ['santa', 'santa', 'janus'] },
       ]);
 
       assert.deepEqual(splitValuesByIndex([
-        {label: 'bar', values: ['santa', 'janus']},
-        {label: 'foo', values: [['L', 'foo', 'bar'], ['L', 'baz']] as any},
+        { label: 'bar', values: ['santa', 'janus'] },
+        { label: 'foo', values: [['L', 'foo', 'bar'], ['L', 'baz']] as any },
       ], 1), [
-        {label: 'bar', values: ['santa', 'santa', 'janus']},
-        {label: 'foo', values: ['foo', 'bar', 'baz']},
+        { label: 'bar', values: ['santa', 'santa', 'janus'] },
+        { label: 'foo', values: ['foo', 'bar', 'baz'] },
       ]);
     });
   });
@@ -56,42 +56,42 @@ describe('chartUtil', function() {
       assert.deepEqual(
         consolidateValues(
           [
-            {values: []},
-            {values: []},
+            { values: [] },
+            { values: [] },
           ],
           ['A', 'B'],
         ),
         [
-          {values: ['A', 'B']},
-          {values: [0, 0]},
+          { values: ['A', 'B'] },
+          { values: [0, 0] },
         ],
       );
 
       assert.deepEqual(
         consolidateValues(
           [
-            {values: ['A']},
-            {values: [3]},
+            { values: ['A'] },
+            { values: [3] },
           ],
           ['A', 'B'],
         ),
         [
-          {values: ['A', 'B']},
-          {values: [3, 0]},
+          { values: ['A', 'B'] },
+          { values: [3, 0] },
         ],
       );
 
       assert.deepEqual(
         consolidateValues(
           [
-            {values: ['B']},
-            {values: [1]},
+            { values: ['B'] },
+            { values: [1] },
           ],
           ['A', 'B'],
         ),
         [
-          {values: ['A', 'B']},
-          {values: [0, 1]},
+          { values: ['A', 'B'] },
+          { values: [0, 1] },
         ],
       );
     });
@@ -101,28 +101,28 @@ describe('chartUtil', function() {
       assert.deepEqual(
         consolidateValues(
           [
-            {values: ['A', 'A']},
-            {values: [1, 2]},
+            { values: ['A', 'A'] },
+            { values: [1, 2] },
           ],
           ['A', 'B'],
         ),
         [
-          {values: ['A', 'A', 'B']},
-          {values: [1, 2, 0]},
+          { values: ['A', 'A', 'B'] },
+          { values: [1, 2, 0] },
         ],
       );
 
       assert.deepEqual(
         consolidateValues(
           [
-            {values: ['B', 'B']},
-            {values: [1, 2]},
+            { values: ['B', 'B'] },
+            { values: [1, 2] },
           ],
           ['A', 'B'],
         ),
         [
-          {values: ['A', 'B', 'B']},
-          {values: [0, 1, 2]},
+          { values: ['A', 'B', 'B'] },
+          { values: [0, 1, 2] },
         ],
       );
     });
@@ -131,14 +131,14 @@ describe('chartUtil', function() {
       assert.deepEqual(
         consolidateValues(
           [
-            {values: ['A', 'C']},
-            {values: [1, 2]},
+            { values: ['A', 'C'] },
+            { values: [1, 2] },
           ],
           ['A', 'B', 'C', 'D'],
         ),
         [
-          {values: ['A', 'B', 'C', 'D']},
-          {values: [1, 0, 2, 0]},
+          { values: ['A', 'B', 'C', 'D'] },
+          { values: [1, 0, 2, 0] },
         ],
       );
     });

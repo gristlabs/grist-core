@@ -1,15 +1,15 @@
-import {makeT} from 'app/client/lib/localization';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {AppModel} from 'app/client/models/AppModel';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {ShareAnnotations, ShareAnnotator} from 'app/common/ShareAnnotator';
-import {normalizeEmail} from 'app/common/emails';
-import {GristLoadConfig} from 'app/common/gristUrls';
+import { makeT } from 'app/client/lib/localization';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { AppModel } from 'app/client/models/AppModel';
+import { DocPageModel } from 'app/client/models/DocPageModel';
+import { ShareAnnotations, ShareAnnotator } from 'app/common/ShareAnnotator';
+import { normalizeEmail } from 'app/common/emails';
+import { GristLoadConfig } from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
-import {getGristConfig} from 'app/common/urlUtils';
-import {ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess, Organization,
-  PermissionData, PermissionDelta, UserAPI, Workspace} from 'app/common/UserAPI';
-import {computed, Computed, Disposable, obsArray, ObsArray, observable, Observable} from 'grainjs';
+import { getGristConfig } from 'app/common/urlUtils';
+import { ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess, Organization,
+  PermissionData, PermissionDelta, UserAPI, Workspace } from 'app/common/UserAPI';
+import { computed, Computed, Disposable, obsArray, ObsArray, observable, Observable } from 'grainjs';
 import some from 'lodash/some';
 
 const t = makeT('UserManagerModel');
@@ -144,7 +144,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
 
   public membersEdited = this.autoDispose(obsArray<IEditableMember>(this._buildAllMembers()));
 
-  public annotations = this.autoDispose(observable({users: new Map()}));
+  public annotations = this.autoDispose(observable({ users: new Map() }));
 
   public isPersonal = Boolean(this.initData.personal);
 
@@ -190,8 +190,8 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     super();
     if (this._options.appModel) {
       const features = this._options.appModel.currentFeatures;
-      const {supportEmail} = getGristConfig();
-      this._shareAnnotator = new ShareAnnotator(features, initData, {supportEmail});
+      const { supportEmail } = getGristConfig();
+      this._shareAnnotator = new ShareAnnotator(features, initData, { supportEmail });
     }
     this.annotate();
   }
@@ -234,7 +234,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     if (existing && existing.isRemoved) {
       // The member is replaced with the isRemoved set to false to trigger an
       // update to the membersEdited observable array.
-      this.membersEdited.splice(index, 1, {...existing, isRemoved: false});
+      this.membersEdited.splice(index, 1, { ...existing, isRemoved: false });
     }
     else if (existing) {
       const effective = existing.effectiveAccess.get();
@@ -268,7 +268,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     }
     else {
       // Keep it in the array with a flag, to simplify comparing "before" and "after" arrays.
-      this.membersEdited.splice(index, 1, {...member, isRemoved: true});
+      this.membersEdited.splice(index, 1, { ...member, isRemoved: true });
     }
     this.annotate();
   }
@@ -281,12 +281,12 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     // Only attempt for documents for now.
     // TODO: extend to workspaces.
     if (!this._shareAnnotator) { return; }
-    this.annotations.set(this._shareAnnotator.annotateChanges(this.getDelta({silent: true})));
+    this.annotations.set(this._shareAnnotator.annotateChanges(this.getDelta({ silent: true })));
   }
 
   // Construct the permission delta from the changed users/maxInheritedRole.
   // Give warnings or errors as appropriate (these are suppressed if silent is set).
-  public getDelta(options?: {silent: boolean}): PermissionDelta {
+  public getDelta(options?: { silent: boolean }): PermissionDelta {
     const delta: PermissionDelta = { users: {} };
     if (this.resourceType !== 'organization') {
       const maxInheritedRole = this.maxInheritedRole.get();

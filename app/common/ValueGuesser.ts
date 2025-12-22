@@ -1,14 +1,14 @@
-import {CellValue} from 'app/common/DocActions';
-import {DocData} from 'app/common/DocData';
-import {DocumentSettings} from 'app/common/DocumentSettings';
-import {isObject} from 'app/common/gristTypes';
-import {countIf} from 'app/common/gutil';
-import {NumberFormatOptions} from 'app/common/NumberFormat';
+import { CellValue } from 'app/common/DocActions';
+import { DocData } from 'app/common/DocData';
+import { DocumentSettings } from 'app/common/DocumentSettings';
+import { isObject } from 'app/common/gristTypes';
+import { countIf } from 'app/common/gutil';
+import { NumberFormatOptions } from 'app/common/NumberFormat';
 import NumberParse from 'app/common/NumberParse';
-import {dateTimeWidgetOptions, guessDateFormat} from 'app/common/parseDate';
-import {MetaRowRecord} from 'app/common/TableData';
-import {createFormatter} from 'app/common/ValueFormatter';
-import {createParserRaw, ValueParser} from 'app/common/ValueParser';
+import { dateTimeWidgetOptions, guessDateFormat } from 'app/common/parseDate';
+import { MetaRowRecord } from 'app/common/TableData';
+import { createFormatter } from 'app/common/ValueFormatter';
+import { createParserRaw, ValueParser } from 'app/common/ValueParser';
 import * as moment from 'moment-timezone';
 
 interface GuessedColInfo {
@@ -50,7 +50,7 @@ abstract class ValueGuesser<T> {
    */
   public guess(values: Array<string | null>, docSettings: DocumentSettings): GuessResult | null {
     const colInfo = this.colInfo();
-    const {type, widgetOptions} = colInfo;
+    const { type, widgetOptions } = colInfo;
     const formatter = createFormatter(type, widgetOptions || {}, docSettings);
     const result: any[] = [];
     // max number of non-parsed strings to allow before giving up
@@ -76,7 +76,7 @@ abstract class ValueGuesser<T> {
       }
       result.push(parsed);
     }
-    return {values: result, colInfo};
+    return { values: result, colInfo };
   }
 
   /**
@@ -93,7 +93,7 @@ abstract class ValueGuesser<T> {
 
 class BoolGuesser extends ValueGuesser<boolean> {
   public colInfo(): GuessedColInfo {
-    return {type: 'Bool'};
+    return { type: 'Bool' };
   }
 
   public parse(value: string): boolean | string {
@@ -124,7 +124,7 @@ class NumericGuesser extends ValueGuesser<number> {
   }
 
   public colInfo(): GuessedColInfo {
-    const result: GuessedColInfo = {type: 'Numeric'};
+    const result: GuessedColInfo = { type: 'Numeric' };
     if (Object.keys(this._options).length) {
       result.widgetOptions = this._options;
     }
@@ -161,7 +161,7 @@ class DateGuesser extends ValueGuesser<number> {
       type = 'Date';
       this._tz = "UTC";
     }
-    return {widgetOptions, type};
+    return { widgetOptions, type };
   }
 
   // Note that this parsing is much stricter than parseDate to prevent loss of information.
@@ -193,7 +193,7 @@ export function guessColInfo(
         .guess(values, docSettings) ||
     // Don't return the same values back if there's no conversion to be done,
     // as they have to be serialized and transferred over a pipe to Python.
-        {colInfo: {type: 'Text'}}
+        { colInfo: { type: 'Text' } }
   );
 }
 
@@ -205,20 +205,20 @@ export function guessColInfo(
 export function guessColInfoForImports(values: CellValue[], docData: DocData): GuessColMetadata {
   if (values.every(v => (v === null || v === ''))) {
     // Suggest empty column.
-    return {values, colMetadata: {type: 'Any', isFormula: true, formula: ''}};
+    return { values, colMetadata: { type: 'Any', isFormula: true, formula: '' } };
   }
   if (values.some(isObject)) {
     // Suggest no changes.
-    return {values};
+    return { values };
   }
   const strValues = values.map(v => (v === null || typeof v === 'string' ? v : String(v)));
   const guessed = guessColInfoWithDocData(strValues, docData);
   values = guessed.values || values;
 
   const opts = guessed.colInfo.widgetOptions;
-  const colMetadata: ColMetadata = {...guessed.colInfo, widgetOptions: opts && JSON.stringify(opts)};
+  const colMetadata: ColMetadata = { ...guessed.colInfo, widgetOptions: opts && JSON.stringify(opts) };
   if (!colMetadata.widgetOptions) {
     delete colMetadata.widgetOptions;     // Omit widgetOptions unless it is actually valid JSON.
   }
-  return {values, colMetadata};
+  return { values, colMetadata };
 }

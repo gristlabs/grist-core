@@ -2,13 +2,13 @@
  * Test of the importing logic in the DocMenu page.
  */
 import * as fs from 'fs';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as tmp from 'tmp-promise';
 import * as util from 'util';
 
 import { SQLiteDB } from 'app/server/lib/SQLiteDB';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 import { copyFixtureDoc } from 'test/server/testUtils';
 
 const write = util.promisify(fs.write);
@@ -20,7 +20,7 @@ describe('UploadLimits', function() {
   const cleanupCbs: Array<() => void> = [];
 
   async function generateFile(postfix: string, size: number): Promise<string> {
-    const obj = await tmp.file({postfix, mode: 0o644});
+    const obj = await tmp.file({ postfix, mode: 0o644 });
     await write(obj.fd, Buffer.alloc(size, 't'));
     cleanupCbs.push(obj.cleanup);
     return obj.path;
@@ -29,7 +29,7 @@ describe('UploadLimits', function() {
   // Create a valid Grist file of at least the desired length.  The file may be
   // slightly larger than requested.
   async function generateGristFile(minSize: number): Promise<string> {
-    const obj = await tmp.file({postfix: '.grist', mode: 0o644});
+    const obj = await tmp.file({ postfix: '.grist', mode: 0o644 });
     await copyFixtureDoc('Hello.grist', obj.path);
     const size = fs.statSync(obj.path).size;
     const db = await SQLiteDB.openDBRaw(obj.path);
@@ -76,7 +76,7 @@ describe('UploadLimits', function() {
       /Imported files may not exceed 1.0MB/);
 
     // Now try to import directly to server, and verify that the server enforces this limit too.
-    const p = gu.importFixturesDoc('Chimpy', 'nasa', 'Horizon', largeFilePath, {load: false});
+    const p = gu.importFixturesDoc('Chimpy', 'nasa', 'Horizon', largeFilePath, { load: false });
     await assert.isRejected(p, /Payload Too Large/);
     const err = await p.catch(e => e);
     assert.equal(err.status, 413);

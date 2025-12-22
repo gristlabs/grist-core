@@ -8,11 +8,11 @@
  * This module includes typings for the nodes, and the compilePredicateFormula() function that
  * turns such trees into actual predicate functions.
  */
-import {CellValue, RowRecord} from 'app/common/DocActions';
-import {ErrorWithCode} from 'app/common/ErrorWithCode';
-import {InfoView} from 'app/common/RecordView';
-import {UserInfo} from 'app/common/User';
-import {decodeObject} from 'app/plugin/objtypes';
+import { CellValue, RowRecord } from 'app/common/DocActions';
+import { ErrorWithCode } from 'app/common/ErrorWithCode';
+import { InfoView } from 'app/common/RecordView';
+import { UserInfo } from 'app/common/User';
+import { decodeObject } from 'app/plugin/objtypes';
 import constant from 'lodash/constant';
 
 /**
@@ -61,7 +61,7 @@ export function compilePredicateFormula(
   parsedPredicateFormula: ParsedPredicateFormula,
   options: CompilePredicateFormulaOptions = {},
 ): CompiledPredicateFormula {
-  const {variant = 'acl'} = options;
+  const { variant = 'acl' } = options;
 
   function compileNode(node: ParsedPredicateFormula): IntermediatePredicateFormula {
     const rawArgs = node.slice(1);
@@ -290,7 +290,7 @@ function collectColIds(
 export function typeCheckFormula(
   formulaParsed: ParsedPredicateFormula,
   sampleRecord: InfoView,
-  userAttrSamples: {[key: string]: InfoView},
+  userAttrSamples: { [key: string]: InfoView },
 ): string|false {
   try {
     const compiledFormula = compilePredicateFormula(formulaParsed);
@@ -300,14 +300,14 @@ export function typeCheckFormula(
       Email: "",
       Access: "owners",
       Origin: "",
-      LinkKey: {key: ""},
+      LinkKey: { key: "" },
       UserID: 0,
       UserRef: "",
       SessionID: "",
       ShareRef: 0,
       Type: "login",
     };
-    const sampleInput: PredicateFormulaInput = {user: sampleUser, rec: sampleRecord, newRec: sampleRecord};
+    const sampleInput: PredicateFormulaInput = { user: sampleUser, rec: sampleRecord, newRec: sampleRecord };
     compiledFormula(sampleInput);
   }
   catch (e) {

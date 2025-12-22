@@ -1,12 +1,12 @@
 import axios from 'axios';
 import * as chai from 'chai';
 
-import {configForUser} from 'test/gen-server/testUtils';
+import { configForUser } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 
-import {TestServer} from 'test/gen-server/apiUtils';
+import { TestServer } from 'test/gen-server/apiUtils';
 
 const assert = chai.assert;
 

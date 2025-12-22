@@ -1,7 +1,7 @@
-import {tbind} from 'app/common/tbind';
-import {NextFunction, Request, RequestHandler, Response} from 'express';
+import { tbind } from 'app/common/tbind';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
 
-export type RequestWithTag = Request & {tag: string|null};
+export type RequestWithTag = Request & { tag: string|null };
 
 /**
  *
@@ -58,9 +58,9 @@ export class TagChecker {
   private async _inspectTag(req: Request, resp: Response, next: NextFunction) {
     const [newUrl, urlTag, isOk] = this._removeTag(req.url);
     if (!isOk) {
-      return resp.status(400).send({error: "Tag mismatch",
+      return resp.status(400).send({ error: "Tag mismatch",
         expected: this.tag,
-        received: urlTag});
+        received: urlTag });
     }
     req.url = newUrl;
     (req as RequestWithTag).tag = urlTag;

@@ -1,8 +1,8 @@
-import {DocCreationInfo} from 'app/common/DocListAPI';
-import {UserAPI} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { DocCreationInfo } from 'app/common/DocListAPI';
+import { UserAPI } from 'app/common/UserAPI';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('FieldEditor', function() {
   this.timeout(20000);
@@ -44,7 +44,7 @@ describe('FieldEditor', function() {
 
     // Open a cell in 'add-row' for editing, and start typing.
     await driver.find('body').sendKeys(Key.chord(await gu.modKey(), Key.DOWN));
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 7, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 7, col: 0 });
     await driver.sendKeys("FieldEditor1");
     assert.equal(await driver.find('.cell_editor').isDisplayed(), true);
 
@@ -59,8 +59,8 @@ describe('FieldEditor', function() {
 
     // Enter a value into a Reference column; we add a non-existent value using the "+" button in
     // the auto-complete dropdown since that triggers the harder case with two async actions.
-    await gu.getCell({rowNum: 2, col: 1}).click();
-    assert.equal(await gu.getCell({rowNum: 2, col: 1}).getText(), 'Toy Story');
+    await gu.getCell({ rowNum: 2, col: 1 }).click();
+    assert.equal(await gu.getCell({ rowNum: 2, col: 1 }).getText(), 'Toy Story');
     await driver.sendKeys("FieldEditor-New");
     await driver.sendKeys(Key.UP);      // Select the last "+" item.
     assert.equal(await driver.find('.test-ref-editor-new-item').matches('.selected'), true);
@@ -70,20 +70,20 @@ describe('FieldEditor', function() {
     await driver.findContent('.test-treeview-itemHeader', /Films/).doClick();
     await gu.waitForServer();
     assert.equal(await driver.find('.cell_editor').isPresent(), false);
-    assert.equal(await gu.getCell({rowNum: 7, col: 0}).getText(), 'FieldEditor1');
-    assert.equal(await gu.getCell({rowNum: 8, col: 0}).getText(), 'FieldEditor-New');
+    assert.equal(await gu.getCell({ rowNum: 7, col: 0 }).getText(), 'FieldEditor1');
+    assert.equal(await gu.getCell({ rowNum: 8, col: 0 }).getText(), 'FieldEditor-New');
 
     // Switch and check that the Reference value got saved.
     await driver.findContent('.test-treeview-itemHeader', /Friends/).doClick();
-    assert.equal(await gu.getCell({rowNum: 2, col: 1}).getText(), 'FieldEditor-New');
+    assert.equal(await gu.getCell({ rowNum: 2, col: 1 }).getText(), 'FieldEditor-New');
 
     await gu.undo(3);
   });
 
   it('should close field editor when code viewer is opened', async function() {
     await driver.findContent('.test-treeview-itemHeader', /Friends/).doClick();
-    assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), "Roger");
-    await gu.getCell({rowNum: 1, col: 0}).click();
+    assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "Roger");
+    await gu.getCell({ rowNum: 1, col: 0 }).click();
     await gu.sendKeys("FieldEditor2");
     assert.equal(await driver.find('.cell_editor').isDisplayed(), true);
 
@@ -97,14 +97,14 @@ describe('FieldEditor', function() {
     await driver.findContent('.test-treeview-itemHeader', /Friends/).doClick();
 
     // Check that the value got saved.
-    assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), "FieldEditor2");
+    assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "FieldEditor2");
     await gu.undo(1);
   });
 
   it('should prompt when navigating away with editor open', async function() {
     await driver.findContent('.test-treeview-itemHeader', /Films/).doClick();
-    assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), "Toy Story");
-    await gu.getCell({rowNum: 1, col: 0}).click();
+    assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "Toy Story");
+    await gu.getCell({ rowNum: 1, col: 0 }).click();
 
     await gu.sendKeys("FieldEditor3");
     assert.equal(await driver.find('.cell_editor').isPresent(), true);
@@ -122,14 +122,14 @@ describe('FieldEditor', function() {
     // Navigate back to see the value saved.
     await driver.navigate().back();
     await gu.waitForDocToLoad();
-    assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), "FieldEditor3");
+    assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "FieldEditor3");
   });
 
   describe('should scroll when editor is activated', () => {
     before(async () => {
       const records = new Array(200).fill(['AddRecord', 'Table1', null, { A: 'Text', B: 'Text' }]);
       await api.applyUserActions(doc.id, [
-        ['AddTable', 'Table1', [{id: 'A', type: 'Text'}, {id: 'B', type: 'Text'}]],
+        ['AddTable', 'Table1', [{ id: 'A', type: 'Text' }, { id: 'B', type: 'Text' }]],
         ...records,
       ]);
       await gu.waitForServer();

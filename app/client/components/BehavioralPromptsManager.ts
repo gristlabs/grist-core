@@ -1,13 +1,13 @@
-import {showNewsPopup, showTipPopup} from 'app/client/components/modals';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {AppModel} from 'app/client/models/AppModel';
-import {getUserPrefObs} from 'app/client/models/UserPrefs';
-import {GristBehavioralPrompts} from 'app/client/ui/GristTooltips';
-import {isNarrowScreen} from 'app/client/ui2018/cssVars';
-import {BehavioralPrompt, BehavioralPromptPrefs} from 'app/common/Prefs';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, Disposable, dom, Observable} from 'grainjs';
-import {IPopupOptions, PopupControl} from 'popweasel';
+import { showNewsPopup, showTipPopup } from 'app/client/components/modals';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
+import { AppModel } from 'app/client/models/AppModel';
+import { getUserPrefObs } from 'app/client/models/UserPrefs';
+import { GristBehavioralPrompts } from 'app/client/ui/GristTooltips';
+import { isNarrowScreen } from 'app/client/ui2018/cssVars';
+import { BehavioralPrompt, BehavioralPromptPrefs } from 'app/common/Prefs';
+import { getGristConfig } from 'app/common/urlUtils';
+import { Computed, Disposable, dom, Observable } from 'grainjs';
+import { IPopupOptions, PopupControl } from 'popweasel';
 
 /**
  * Options for showing a popup.
@@ -51,7 +51,7 @@ export class BehavioralPromptsManager extends Disposable {
     { defaultValue: { dontShowTips: false, dismissedTips: [] } }) as Observable<BehavioralPromptPrefs>;
 
   private _dismissedPopups: Computed<Set<BehavioralPrompt>> = Computed.create(this, (use) => {
-    const {dismissedTips} = use(this._prefs);
+    const { dismissedTips } = use(this._prefs);
     return new Set(dismissedTips.filter(BehavioralPrompt.guard));
   });
 
@@ -85,7 +85,7 @@ export class BehavioralPromptsManager extends Disposable {
     // For non-SaaS flavors of Grist, don't show popups if the Help Center is explicitly
     // disabled. A separate opt-out feature could be added down the road for more granularity,
     // but will require communication in advance to avoid disrupting users.
-    const {deploymentType, features} = getGristConfig();
+    const { deploymentType, features } = getGristConfig();
     if (
       !features?.includes('helpCenter') &&
       // This one is an easter egg, so we make an exception.
@@ -141,14 +141,14 @@ export class BehavioralPromptsManager extends Disposable {
   }
 
   public reset() {
-    this._prefs.set({...this._prefs.get(), dismissedTips: [], dontShowTips: false});
+    this._prefs.set({ ...this._prefs.get(), dismissedTips: [], dontShowTips: false });
     this.enable();
   }
 
   private _queuePopup(refElement: Element, prompt: BehavioralPrompt, options: ShowPopupOptions) {
     if (!this.shouldShowPopup(prompt)) { return; }
 
-    this._queuedPopups.push({prompt, refElement, options});
+    this._queuedPopups.push({ prompt, refElement, options });
     if (this._queuedPopups.length > 1) {
       // If we're already showing a popup, wait for that one to be dismissed, which will
       // cause the next one in the queue to be shown.
@@ -159,8 +159,8 @@ export class BehavioralPromptsManager extends Disposable {
   }
 
   private _showPopup(refElement: Element, prompt: BehavioralPrompt, options: ShowPopupOptions) {
-    const {hideArrow, onDispose, popupOptions} = options;
-    const {popupType, title, content, hideDontShowTips = false, markAsSeen = true} = GristBehavioralPrompts[prompt];
+    const { hideArrow, onDispose, popupOptions } = options;
+    const { popupType, title, content, hideDontShowTips = false, markAsSeen = true } = GristBehavioralPrompts[prompt];
     let ctl: PopupControl<IPopupOptions>;
     if (popupType === 'news') {
       ctl = showNewsPopup(refElement, title(), content(), {
@@ -196,14 +196,14 @@ export class BehavioralPromptsManager extends Disposable {
     dom.onElem(refElement, 'click', () => close());
     dom.onDisposeElem(refElement, () => close());
 
-    logTelemetryEvent('viewedTip', {full: {tipName: prompt}});
+    logTelemetryEvent('viewedTip', { full: { tipName: prompt } });
   }
 
   private _showNextQueuedPopup() {
     this._queuedPopups.shift();
     if (this._queuedPopups.length !== 0) {
       const [nextPopup] = this._queuedPopups;
-      const {refElement, prompt, options} = nextPopup;
+      const { refElement, prompt, options } = nextPopup;
       this._showPopup(refElement, prompt, options);
     }
   }
@@ -211,17 +211,17 @@ export class BehavioralPromptsManager extends Disposable {
   private _markAsSeen(prompt: BehavioralPrompt) {
     if (this._isDisabled) { return; }
 
-    const {dismissedTips} = this._prefs.get();
+    const { dismissedTips } = this._prefs.get();
     const newDismissedTips = new Set(dismissedTips);
     newDismissedTips.add(prompt);
-    this._prefs.set({...this._prefs.get(), dismissedTips: [...newDismissedTips]});
+    this._prefs.set({ ...this._prefs.get(), dismissedTips: [...newDismissedTips] });
   }
 
   private _dontShowTips() {
     if (this._isDisabled) { return; }
 
-    this._prefs.set({...this._prefs.get(), dontShowTips: true});
-    this._queuedPopups = this._queuedPopups.filter(({prompt}) => {
+    this._prefs.set({ ...this._prefs.get(), dontShowTips: true });
+    this._queuedPopups = this._queuedPopups.filter(({ prompt }) => {
       return GristBehavioralPrompts[prompt].popupType !== 'tip';
     });
   }

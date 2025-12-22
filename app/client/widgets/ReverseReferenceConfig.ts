@@ -1,21 +1,21 @@
-import {allCommands} from 'app/client/components/commands';
-import {makeT} from 'app/client/lib/localization';
-import {TableRec} from 'app/client/models/DocModel';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {cssCode} from 'app/client/ui/DocTutorial';
-import {Tooltip} from 'app/client/ui/GristTooltips';
+import { allCommands } from 'app/client/components/commands';
+import { makeT } from 'app/client/lib/localization';
+import { TableRec } from 'app/client/models/DocModel';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { cssCode } from 'app/client/ui/DocTutorial';
+import { Tooltip } from 'app/client/ui/GristTooltips';
 import {
   cssLabelText,
   cssRow,
   cssSeparator,
 } from 'app/client/ui/RightPanelStyles';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
-import {textButton} from 'app/client/ui2018/buttons';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {cssIconButton, icon} from 'app/client/ui2018/icons';
-import {confirmModal} from 'app/client/ui2018/modals';
-import {not} from 'app/common/gutil';
-import {Computed, Disposable, dom, styled} from 'grainjs';
+import { withInfoTooltip } from 'app/client/ui/tooltips';
+import { textButton } from 'app/client/ui2018/buttons';
+import { testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { cssIconButton, icon } from 'app/client/ui2018/icons';
+import { confirmModal } from 'app/client/ui2018/modals';
+import { not } from 'app/common/gutil';
+import { Computed, Disposable, dom, styled } from 'grainjs';
 
 const t = makeT('ReverseReferenceConfig');
 

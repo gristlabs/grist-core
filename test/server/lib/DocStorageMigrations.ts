@@ -1,12 +1,12 @@
-import {DocStorage} from 'app/server/lib/DocStorage';
-import {DocStorageManager} from 'app/server/lib/DocStorageManager';
-import {OpenMode, SQLiteDB} from 'app/server/lib/SQLiteDB';
-import {promisify} from 'bluebird';
+import { DocStorage } from 'app/server/lib/DocStorage';
+import { DocStorageManager } from 'app/server/lib/DocStorageManager';
+import { OpenMode, SQLiteDB } from 'app/server/lib/SQLiteDB';
+import { promisify } from 'bluebird';
 import * as child_process from 'child_process';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import * as testUtils from 'test/server/testUtils';
-import {assert} from 'test/server/testUtils';
+import { assert } from 'test/server/testUtils';
 import * as tmp from 'tmp-promise';
 
 tmp.setGracefulCleanup();
@@ -63,7 +63,7 @@ describe('DocStorageMigrations', function() {
     // Open after migration and check that the table now exists and has a single record.
     db = await SQLiteDB.openDBRaw(docPath, OpenMode.OPEN_READONLY);
     const rows = await db.all('SELECT * FROM _gristsys_FileInfo');
-    assert.deepEqual(rows, [{id: 0, docId: '', ownerInstanceId: ''}]);
+    assert.deepEqual(rows, [{ id: 0, docId: '', ownerInstanceId: '' }]);
     await db.close();
 
     // Also do the test to check out the full document against a saved copy. To know if the copy

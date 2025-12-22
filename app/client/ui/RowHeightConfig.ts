@@ -1,13 +1,13 @@
-import {allCommands} from 'app/client/components/commands';
-import {makeT} from 'app/client/lib/localization';
-import {ViewSectionOptions, ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
-import {SaveableObjObservable} from 'app/client/models/modelUtil';
-import {cssNumericSpinner, cssRow} from 'app/client/ui/RightPanelStyles';
-import {infoTooltip} from 'app/client/ui/tooltips';
-import {textButton} from 'app/client/ui2018/buttons';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {testId} from 'app/client/ui2018/cssVars';
-import {Computed, dom, DomContents, DomElementArg, IDisposableOwner, styled, subscribeElem} from 'grainjs';
+import { allCommands } from 'app/client/components/commands';
+import { makeT } from 'app/client/lib/localization';
+import { ViewSectionOptions, ViewSectionRec } from 'app/client/models/entities/ViewSectionRec';
+import { SaveableObjObservable } from 'app/client/models/modelUtil';
+import { cssNumericSpinner, cssRow } from 'app/client/ui/RightPanelStyles';
+import { infoTooltip } from 'app/client/ui/tooltips';
+import { textButton } from 'app/client/ui2018/buttons';
+import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { testId } from 'app/client/ui2018/cssVars';
+import { Computed, dom, DomContents, DomElementArg, IDisposableOwner, styled, subscribeElem } from 'grainjs';
 
 const t = makeT('RowHeightConfig');
 
@@ -39,20 +39,20 @@ export function rowHeightConfigTable(
 ): DomContents {
 
   const rowHeightObs = Computed.create<number|"">(owner, use => use(optionsObs).rowHeight || '');
-  const setRowHeight = (rowHeight: number|undefined) => optionsObs.setAndSave({...optionsObs.peek(), rowHeight});
+  const setRowHeight = (rowHeight: number|undefined) => optionsObs.setAndSave({ ...optionsObs.peek(), rowHeight });
 
   const uniformRows = Computed.create<boolean>(owner, use => use(optionsObs).rowHeightUniform || false);
-  uniformRows.onWrite((val: boolean) => optionsObs.setAndSave({...optionsObs.peek(), rowHeightUniform: val}));
+  uniformRows.onWrite((val: boolean) => optionsObs.setAndSave({ ...optionsObs.peek(), rowHeightUniform: val }));
 
   return [
     cssRow(
-      cssRowHeightLabel(t('Max height'), infoTooltip('rowHeight'), {for: 'row-height-max-input'}),
+      cssRowHeightLabel(t('Max height'), infoTooltip('rowHeight'), { for: 'row-height-max-input' }),
       cssNumericSpinner(rowHeightObs,
         {
           minValue: 0,
           maxValue: 100,
           save: setRowHeight,
-          inputArgs: [{placeholder: 'auto', id: 'row-height-max-input'}, dom.style('width', '5em')],
+          inputArgs: [{ placeholder: 'auto', id: 'row-height-max-input' }, dom.style('width', '5em')],
         },
         testId('row-height-max'),
       ),

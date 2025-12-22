@@ -1,17 +1,17 @@
-import {TestSession} from 'test/gen-server/apiUtils';
-import {parseUrlId} from 'app/common/gristUrls';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {DocManager} from 'app/server/lib/DocManager';
-import {FlexServer} from 'app/server/lib/FlexServer';
+import { TestSession } from 'test/gen-server/apiUtils';
+import { parseUrlId } from 'app/common/gristUrls';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { DocManager } from 'app/server/lib/DocManager';
+import { FlexServer } from 'app/server/lib/FlexServer';
 import axios from 'axios';
-import {assert} from 'chai';
-import {toPairs} from 'lodash';
-import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
-import {configForUser, getGristConfig} from 'test/gen-server/testUtils';
-import {createDocTools} from 'test/server/docTools';
-import {openClient} from 'test/server/gristClient';
+import { assert } from 'chai';
+import { toPairs } from 'lodash';
+import { createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed';
+import { configForUser, getGristConfig } from 'test/gen-server/testUtils';
+import { createDocTools } from 'test/server/docTools';
+import { openClient } from 'test/server/gristClient';
 import * as testUtils from 'test/server/testUtils';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 let serverUrl: string;
 let server: FlexServer;
@@ -51,7 +51,7 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
 const chimpy = configForUser('Chimpy');
 const charon = configForUser('Charon');
 
-const fixtures: {[docName: string]: string|null} = {
+const fixtures: { [docName: string]: string|null } = {
   Bananas: 'Hello.grist',
   Pluto: 'Hello.grist',
 };
@@ -61,9 +61,9 @@ describe('Authorizer', function() {
 
   testUtils.setTmpLogLevel('fatal');
 
-  const docTools = createDocTools({persistAcrossCases: true, useFixturePlugins: false,
-    server: () => (server = new FlexServer(0, 'test docWorker'))});
-  const docs: {[name: string]: {id: string}} = {};
+  const docTools = createDocTools({ persistAcrossCases: true, useFixturePlugins: false,
+    server: () => (server = new FlexServer(0, 'test docWorker')) });
+  const docs: { [name: string]: { id: string } } = {};
 
   // Loads the fixtures documents so that they are available to the doc worker under the correct
   // names.
@@ -76,7 +76,7 @@ describe('Authorizer', function() {
       else {
         await docTools.createDoc(docId);
       }
-      docs[docName] = {id: docId};
+      docs[docName] = { id: docId };
     }
   }
 
@@ -181,7 +181,7 @@ describe('Authorizer', function() {
     const nonce = uuidv4();
     const applyUserActions = await cli.send("applyUserActions",
       0,
-      [["UpdateRecord", "Table1", 1, {A: nonce}], {}]);
+      [["UpdateRecord", "Table1", 1, { A: nonce }], {}]);
     assert.lengthOf(cli.messages, 0);  // no user actions pushed to client
     assert.match(applyUserActions.error!, /No write access/);
     assert.match(applyUserActions.errorCode!, /AUTH_NO_EDIT/);
@@ -200,7 +200,7 @@ describe('Authorizer', function() {
     const nonce = uuidv4();
     const applyUserActions = await cli.send("applyUserActions",
       0,
-      [["UpdateRecord", "Table1", 1, {A: nonce}]]);
+      [["UpdateRecord", "Table1", 1, { A: nonce }]]);
     // Skip messages with no actions (since docUsage may or may not appear by now)
     const messagesWithActions = cli.messages.filter(m => m.data.docActions);
     assert.lengthOf(messagesWithActions, 1);  // user actions pushed to client
@@ -226,7 +226,7 @@ describe('Authorizer', function() {
     assert.equal((await viewer.send("openDoc", "sampledocid_2")).error, undefined);
     assert.match((await stranger.send("openDoc", "sampledocid_2")).error!, /No view access/);
 
-    const action = [0, [["UpdateRecord", "Table1", 1, {A: "foo"}]]];
+    const action = [0, [["UpdateRecord", "Table1", 1, { A: "foo" }]]];
     assert.equal((await editor.send("applyUserActions", ...action)).error, undefined);
     assert.match((await viewer.send("applyUserActions", ...action)).error!, /No write access/);
     // Different message here because sending actions without a doc being open.
@@ -242,7 +242,7 @@ describe('Authorizer', function() {
     const nonce = uuidv4();
     const applyUserActions = await cli.send("applyUserActions",
       0,
-      [["UpdateRecord", "Table1", 1, {A: nonce}], {}]);
+      [["UpdateRecord", "Table1", 1, { A: nonce }], {}]);
     assert.lengthOf(cli.messages, 0);  // no user actions pushed to client
     assert.match(applyUserActions.error!, /No write access/);
     assert.match(applyUserActions.errorCode!, /AUTH_NO_EDIT/);
@@ -279,7 +279,7 @@ describe('Authorizer', function() {
       userId: await dbManager.testGetId('Chimpy') as number,
       urlId: 'sampledocid_2',
       org: 'nasa',
-    }, {users: {"anon@getgrist.com": "viewers"}});
+    }, { users: { "anon@getgrist.com": "viewers" } });
     dbManager.flushDocAuthCache();
     openDoc = await cli.send("openDoc", "sampledocid_2");
     assert.equal(openDoc.error, undefined);
@@ -293,7 +293,7 @@ describe('Authorizer', function() {
     assert.equal(parts.forkUserId, undefined);
   });
 
-  for (const {method, getAuth} of [
+  for (const { method, getAuth } of [
     { method: 'API key', getAuth: async () => chimpy },
     { method: 'session cookie', getAuth: getChimpyCookie },
   ]) {
@@ -359,13 +359,13 @@ describe('Authorizer', function() {
     // User can access a doc by setting header.
     const docUrl = `${localServer.getOwnUrl()}/o/pr/api/docs/sampledocid_6`;
     const resp = await axios.get(docUrl, {
-      headers: {'X-email': 'chimpy@getgrist.com'},
+      headers: { 'X-email': 'chimpy@getgrist.com' },
     });
     assert.equal(resp.data.name, 'Bananas');
 
     // Unknown user is denied.
     await assert.isRejected(axios.get(docUrl, {
-      headers: {'X-email': 'notchimpy@getgrist.com'},
+      headers: { 'X-email': 'notchimpy@getgrist.com' },
     }));
 
     // User can access a doc via websocket by setting header.

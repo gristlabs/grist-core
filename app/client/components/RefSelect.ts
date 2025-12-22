@@ -1,17 +1,17 @@
-import {KoArray} from 'app/client/lib/koArray';
+import { KoArray } from 'app/client/lib/koArray';
 import * as koArray from 'app/client/lib/koArray';
 import * as tableUtil from 'app/client/lib/tableUtil';
-import {ColumnRec, DocModel, ViewFieldRec} from 'app/client/models/DocModel';
-import {KoSaveableObservable} from 'app/client/models/modelUtil';
-import {cssFieldEntry, cssFieldLabel} from 'app/client/ui/VisibleFieldsConfig';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
-import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
+import { ColumnRec, DocModel, ViewFieldRec } from 'app/client/models/DocModel';
+import { KoSaveableObservable } from 'app/client/models/modelUtil';
+import { cssFieldEntry, cssFieldLabel } from 'app/client/ui/VisibleFieldsConfig';
+import { testId, theme } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { menu, menuItem, menuText } from 'app/client/ui2018/menus';
+import { FieldBuilder } from 'app/client/widgets/FieldBuilder';
 import * as gutil from 'app/common/gutil';
-import {Disposable, dom, fromKo, styled} from 'grainjs';
+import { Disposable, dom, fromKo, styled } from 'grainjs';
 import ko from 'knockout';
-import {makeT} from 'app/client/lib/localization';
+import { makeT } from 'app/client/lib/localization';
 
 const t = makeT('RefSelect');
 

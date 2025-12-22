@@ -1,7 +1,7 @@
 import escapeRegExp from 'lodash/escapeRegExp';
 import last from 'lodash/last';
 import memoize from 'lodash/memoize';
-import {getDistinctValues, isNonNullish} from 'app/common/gutil';
+import { getDistinctValues, isNonNullish } from 'app/common/gutil';
 // Simply importing 'moment-guess' inconsistently imports bundle.js or bundle.esm.js depending on environment
 import guessFormat from '@gristlabs/moment-guess/dist/bundle.js';
 import moment from 'moment-timezone';
@@ -127,7 +127,7 @@ export function parseDate(date: string, options: ParseOptions = {}): number | nu
       return null;
     }
     time = parsedTime.time;
-    const {tzOffset} = parsedTimeZone;
+    const { tzOffset } = parsedTimeZone;
     datetime += ' ' + time + tzOffset;
     timeformat = ' HH:mm:ss' + (tzOffset ? 'Z' : '');
   }
@@ -314,7 +314,7 @@ function parseTimeZone(str: string, timezone: string): { remaining: string, tzOf
     str = str.slice(0, matchStart).trim();
   }
 
-  return {remaining: str, tzOffset};
+  return { remaining: str, tzOffset };
 }
 
 // Parses time of the form, roughly, HH[:MM[:SS]][am|pm]. Returns the time in the
@@ -336,7 +336,7 @@ function standardizeTime(timeString: string): { remaining: string, time: string 
     hours = 0;
   }
   const hh = String(hours).padStart(2, '0');
-  return {remaining: timeString.slice(0, match.index).trim(), time: `${hh}:${mm}:${ss}`};
+  return { remaining: timeString.slice(0, match.index).trim(), time: `${hh}:${mm}:${ss}` };
 }
 
 /**

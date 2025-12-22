@@ -1,7 +1,7 @@
 import GridView from 'app/client/components/GridView';
-import {makeT} from 'app/client/lib/localization';
-import {ColumnRec} from 'app/client/models/entities/ColumnRec';
-import {testId, theme} from 'app/client/ui2018/cssVars';
+import { makeT } from 'app/client/lib/localization';
+import { ColumnRec } from 'app/client/models/entities/ColumnRec';
+import { testId, theme } from 'app/client/ui2018/cssVars';
 import {
   cssMenuItemCmd,
   ISubMenuOptions,
@@ -10,10 +10,10 @@ import {
   menuItemSubmenu,
   menuSubHeader,
 } from 'app/client/ui2018/menus';
-import {RecalcWhen} from 'app/common/gristTypes';
-import {removePrefix} from 'app/common/gutil';
-import {tokens} from 'app/common/ThemePrefs';
-import {dom, styled} from 'grainjs';
+import { RecalcWhen } from 'app/common/gristTypes';
+import { removePrefix } from 'app/common/gutil';
+import { tokens } from 'app/common/ThemePrefs';
+import { dom, styled } from 'grainjs';
 import moment from 'moment-timezone';
 import * as weasel from 'popweasel';
 
@@ -503,7 +503,7 @@ interface Section {
  * Builds a submenu for adding columns with date helpers from existing Date/DateTime columns.
  */
 export function buildDateHelpersMenuItems(gridView: GridView, index?: number) {
-  const {viewSection} = gridView;
+  const { viewSection } = gridView;
 
   // We will only show Date and DateTime columns (not fields, so hidden ones are out too).
   const dateColumns = viewSection.columns().filter((col: ColumnRec) =>

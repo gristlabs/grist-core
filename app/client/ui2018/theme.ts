@@ -123,7 +123,7 @@ export function attachDefaultLightTheme() {
  * they will take precedence over their respective values in `themePrefs`.
  */
 function getThemeFromPrefs(themePrefs: ThemePrefs, userAgentPrefersDarkTheme: boolean): Theme {
-  let {appearance, syncWithOS} = themePrefs;
+  let { appearance, syncWithOS } = themePrefs;
 
   const urlParams = urlState().state.get().params;
   if (urlParams?.themeAppearance) {
@@ -151,7 +151,7 @@ function getThemeFromPrefs(themePrefs: ThemePrefs, userAgentPrefersDarkTheme: bo
     themeName = userAgentPrefersDarkTheme ? 'GristDark' : 'GristLight';
   }
 
-  return {appearance, colors: getThemeTokens(themeName), name: themeName};
+  return { appearance, colors: getThemeTokens(themeName), name: themeName };
 }
 
 function getThemeObject(themeName: ThemeName): Theme {
@@ -164,7 +164,7 @@ function getThemeObject(themeName: ThemeName): Theme {
 
 function attachCssThemeVars(theme: Theme) {
   const themeWithCssVars = convertThemeKeysToCssVars(theme);
-  const {appearance, colors: cssVars} = themeWithCssVars;
+  const { appearance, colors: cssVars } = themeWithCssVars;
 
   // This way of attaching css vars to the DOM is the same in grist-plugin-api and
   // should be kept in sync in any case it changes.
@@ -290,7 +290,7 @@ function fixOldCustomCss() {
 
   // Create missing variables to match old custom css vars with new theme vars
   const missingVars: any[] = [];
-  legacyVarsMapping.forEach(({old, new: newVariable}) => {
+  legacyVarsMapping.forEach(({ old, new: newVariable }) => {
     const found = !!overridenVars[old];
     if (found
       && !overridenVars[old].startsWith('var(--grist-')
@@ -313,7 +313,7 @@ function fixOldCustomCss() {
     position: 'afterend',
   }).textContent = `@layer grist-custom {
   :root {
-${missingVars.map(({name, value}) => `${name}: ${value};`).join('\n')}
+${missingVars.map(({ name, value }) => `${name}: ${value};`).join('\n')}
   }
 }`;
   console.warn(

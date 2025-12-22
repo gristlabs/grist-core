@@ -31,6 +31,6 @@ export class LogMethods<Info> {
   // Log with the given level, and include the provided log metadata in addition to that produced
   // by _getMeta(info).
   public rawLog(level: string, info: Info, msg: string, meta: ILogMeta): void {
-    log.origLog(level, this._prefix + msg, {...this._getMeta(info), ...meta});
+    log.origLog(level, this._prefix + msg, { ...this._getMeta(info), ...meta });
   }
 }

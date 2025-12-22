@@ -1,6 +1,6 @@
-import {assert, driver, Key, until} from 'mocha-webdriver';
+import { assert, driver, Key, until } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('SortFilterSectionOptions', function() {
   this.timeout(60000);
@@ -25,8 +25,8 @@ describe('SortFilterSectionOptions', function() {
         hasUnsavedChanges: /\b\w+-accent\b/.test(filterIconClass),
       };
     });
-    const pinnedFilters = allFilters.filter(({isPinned}) => isPinned);
-    const actual = pinnedFilters.map(({name, hasUnsavedChanges}) => ({name, hasUnsavedChanges}));
+    const pinnedFilters = allFilters.filter(({ isPinned }) => isPinned);
+    const actual = pinnedFilters.map(({ name, hasUnsavedChanges }) => ({ name, hasUnsavedChanges }));
     assert.deepEqual(actual, expected);
   }
 
@@ -58,7 +58,7 @@ describe('SortFilterSectionOptions', function() {
     // Verify that the view got filtered
     assert.deepEqual(await gu.getVisibleGridCells('Name', [1, 2, 3, 4, 5]),
       ['Oranges', 'Bananas', 'Grapes', 'Grapefruit', 'Clementines']);
-    await assertFilterBarPinnedFilters([{name: 'Name', hasUnsavedChanges: true}]);
+    await assertFilterBarPinnedFilters([{ name: 'Name', hasUnsavedChanges: true }]);
 
     // Section header should now display the filter icon in the unsaved state
     assert.isTrue(await driver.find('.test-section-menu-wrapper[class*=-unsaved] .test-section-menu-filter-icon')
@@ -112,7 +112,7 @@ describe('SortFilterSectionOptions', function() {
       await menu.findAll('.test-filter-config-filter', el => el.getText()),
       ['Name'],
     );
-    await assertPinnedFilters([{name: 'Name', hasUnsavedChanges: true}]);
+    await assertPinnedFilters([{ name: 'Name', hasUnsavedChanges: true }]);
 
     const btnSave = await driver.find('.test-section-menu-btn-save');
     const btnRevert = await driver.find('.test-section-menu-btn-revert');
@@ -156,7 +156,7 @@ describe('SortFilterSectionOptions', function() {
     assert.isFalse(await driver.find('.test-section-menu-wrapper').matches('[class*=-unsaved]'));
     assert.deepEqual(await gu.getVisibleGridCells('Name', [1, 2, 3, 4, 5]),
       ['Oranges', 'Bananas', 'Grapes', 'Grapefruit', 'Clementines']);
-    await assertFilterBarPinnedFilters([{name: 'Name', hasUnsavedChanges: false}]);
+    await assertFilterBarPinnedFilters([{ name: 'Name', hasUnsavedChanges: false }]);
 
     // Reload page
     await driver.navigate().refresh();
@@ -166,11 +166,11 @@ describe('SortFilterSectionOptions', function() {
     assert.isFalse(await driver.find('.test-section-menu-wrapper').matches('[class*=-unsaved]'));
     assert.deepEqual(await gu.getVisibleGridCells('Name', [1, 2, 3, 4, 5]),
       ['Oranges', 'Bananas', 'Grapes', 'Grapefruit', 'Clementines']);
-    await assertFilterBarPinnedFilters([{name: 'Name', hasUnsavedChanges: false}]);
+    await assertFilterBarPinnedFilters([{ name: 'Name', hasUnsavedChanges: false }]);
 
     // Remove the filter
     await gu.openSectionMenu('sortAndFilter');
-    await assertSectionMenuPinnedFilters([{name: 'Name', hasUnsavedChanges: false}]);
+    await assertSectionMenuPinnedFilters([{ name: 'Name', hasUnsavedChanges: false }]);
     await driver
       .findContent('.test-filter-config-filter', /Name/)
       .find('.test-filter-config-remove-filter')
@@ -406,7 +406,7 @@ describe('SortFilterSectionOptions', function() {
       await gu.getVisibleGridCells('Name', [1, 2, 3, 4, 5]),
       ['Bananas', 'Clementines', 'Grapefruit', 'Grapes', 'Oranges'],
     );
-    await assertFilterBarPinnedFilters([{name: 'Name', hasUnsavedChanges: false}]);
+    await assertFilterBarPinnedFilters([{ name: 'Name', hasUnsavedChanges: false }]);
 
     // undo
     await gu.undo();
@@ -483,7 +483,7 @@ describe('SortFilterSectionOptions', function() {
     );
 
     // check a filter was added and pinned
-    await assertPinnedFilters([{name: 'Name', hasUnsavedChanges: true}]);
+    await assertPinnedFilters([{ name: 'Name', hasUnsavedChanges: true }]);
 
     // click Apple
     await driver.findContent('.test-filter-menu-list .test-filter-menu-value', /Apples/).click();
@@ -495,11 +495,11 @@ describe('SortFilterSectionOptions', function() {
     assert.deepEqual(
       await driver.findAll('.test-filter-config-filter', e => e.getText()),
       ['Name']);
-    await assertPinnedFilters([{name: 'Name', hasUnsavedChanges: true}]);
+    await assertPinnedFilters([{ name: 'Name', hasUnsavedChanges: true }]);
 
     // check data is correctly filtered
     assert.deepEqual(
-      await gu.getVisibleGridCells({cols: ['Name'], rowNums: [1, 2]}),
+      await gu.getVisibleGridCells({ cols: ['Name'], rowNums: [1, 2] }),
       ['Oranges', 'Bananas'],
     );
 
@@ -546,7 +546,7 @@ describe('SortFilterSectionOptions', function() {
     await driver.findContent('.grist-floating-menu li', /Name/).click();
     await driver.findContent('.test-filter-menu-list .test-filter-menu-value', /Apples/).click();
     await driver.find('.test-filter-menu-apply-btn').click();
-    await assertPinnedFilters([{name: 'Name', hasUnsavedChanges: true}]);
+    await assertPinnedFilters([{ name: 'Name', hasUnsavedChanges: true }]);
 
     // unpin the filter and check that it worked
     await driver.findContent('.test-filter-config-filter', /Name/)
@@ -556,7 +556,7 @@ describe('SortFilterSectionOptions', function() {
     // pin the filter and check that it worked
     await driver.findContent('.test-filter-config-filter', /Name/)
       .find('.test-filter-config-pin-filter').click();
-    await assertPinnedFilters([{name: 'Name', hasUnsavedChanges: true}]);
+    await assertPinnedFilters([{ name: 'Name', hasUnsavedChanges: true }]);
 
     // remove the filter and close the menu
     await driver.findContent('.test-filter-config-filter', /Name/)

@@ -1,13 +1,13 @@
-import {makeT} from 'app/client/lib/localization';
-import {KoSaveableObservable} from 'app/client/models/modelUtil';
-import {autoGrow} from 'app/client/ui/forms';
-import {textarea, textInput} from 'app/client/ui/inputs';
-import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {textButton} from 'app/client/ui2018/buttons';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {tokens} from 'app/common/ThemePrefs';
-import {CursorPos} from 'app/plugin/GristAPI';
-import {dom, DomArg, fromKo, MultiHolder, Observable, styled} from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { KoSaveableObservable } from 'app/client/models/modelUtil';
+import { autoGrow } from 'app/client/ui/forms';
+import { textarea, textInput } from 'app/client/ui/inputs';
+import { cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
+import { textButton } from 'app/client/ui2018/buttons';
+import { testId, theme } from 'app/client/ui2018/cssVars';
+import { tokens } from 'app/common/ThemePrefs';
+import { CursorPos } from 'app/plugin/GristAPI';
+import { dom, DomArg, fromKo, MultiHolder, Observable, styled } from 'grainjs';
 
 const t = makeT('DescriptionConfig');
 
@@ -63,10 +63,10 @@ export function buildDescriptionConfig(
     if (isEditing) {
       const rows = String(description.peek().split('\n').length);
       return [
-        cssLabel(t("DESCRIPTION"), {for: `${options.testPrefix}-description-input`}),
+        cssLabel(t("DESCRIPTION"), { for: `${options.testPrefix}-description-input` }),
         cssRow(
           editor = cssTextArea(fromKo(description), { onInput: false, save },
-            {rows, placeholder: "Enter description", id: `${options.testPrefix}-description-input`},
+            { rows, placeholder: "Enter description", id: `${options.testPrefix}-description-input` },
             dom.onKeyDown({
               Enter$: (ev, elem) => { if (!ev.shiftKey) { return save(elem.value); } },
               Escape: closeEditor,
@@ -83,13 +83,13 @@ export function buildDescriptionConfig(
         preview = undefined;
         if (haveDescription) {
           return [
-            cssLabel(t("DESCRIPTION"), {for: `${options.testPrefix}-description-preview`}),
+            cssLabel(t("DESCRIPTION"), { for: `${options.testPrefix}-description-preview` }),
             cssRow(
               preview = cssPreview(
                 cssTextInput.cls(''),
                 dom.text(description),
-                {tabIndex: '0', id: `${options.testPrefix}-description-preview`},
-                dom.onKeyDown({Enter: openEditor}),
+                { tabIndex: '0', id: `${options.testPrefix}-description-preview` },
+                dom.onKeyDown({ Enter: openEditor }),
                 dom.on("click", openEditor),
                 testId('description-preview'),
               ),

@@ -60,7 +60,7 @@ interface Drag extends IDisposable {
   item: ItemModel;
   // a holder used to update the highlight surrounding the target's parent
   highlightedBox: Holder<IDisposable>;
-  autoExpander: Holder<{item: ItemModel} & IDisposable>;
+  autoExpander: Holder<{ item: ItemModel } & IDisposable>;
 }
 
 // The geometry of the target which is a visual artifact showing where the user can drop an item.
@@ -109,7 +109,7 @@ export class TreeViewComponent extends Disposable {
   private _dropZone: DropZone|null = null;
 
   private readonly _hideTarget = observable(true);
-  private readonly _target = observable<Target>({width: 0, top: 0, left: 0});
+  private readonly _target = observable<Target>({ width: 0, top: 0, left: 0 });
   private readonly _dragging = observable(false);
   private readonly _isClosed: Computed<boolean>;
 
@@ -131,7 +131,7 @@ export class TreeViewComponent extends Disposable {
     // listeners to the observable that triggered the update which is not supported by grainjs and
     // could fail (possibly infinite loop). Debounce allows for several change to resolve to a
     // single update.
-    this._update = debounce(this._update.bind(this), 0, {leading: false});
+    this._update = debounce(this._update.bind(this), 0, { leading: false });
 
     // build dom for the tree of children
     this._childrenDom = observable(this._buildChildren(this._model.get().children()));
@@ -185,7 +185,7 @@ export class TreeViewComponent extends Disposable {
       startY: ev.clientY - this._hoveredItem.headerElement.getBoundingClientRect().top,
       item: this._hoveredItem,
       highlightedBox: Holder.create(this),
-      autoExpander: Holder.create<IDisposable & {item: ItemModel }>(this),
+      autoExpander: Holder.create<IDisposable & { item: ItemModel }>(this),
       dispose: () => {
         drag.autoExpander.dispose();
         drag.highlightedBox.dispose();
@@ -416,7 +416,7 @@ export class TreeViewComponent extends Disposable {
       const left = this._getDropZoneOffsetLeft(dropZone);
       const width = this._getDropZoneRight(dropZone) - left;
       const top = this._getDropZoneTop(dropZone);
-      this._target.set({width, left, top});
+      this._target.set({ width, left, top });
       this._hideTarget.set(false);
     }
     else {
@@ -454,12 +454,12 @@ export class TreeViewComponent extends Disposable {
     }
     const newParent = this._dropZone ? this._getDropZoneParent(this._dropZone) : null;
     if (newParent && newParent !== "root") {
-      drag.highlightedBox.autoDispose({dispose: () => newParent.highlight.set(false)});
+      drag.highlightedBox.autoDispose({ dispose: () => newParent.highlight.set(false) });
       newParent.highlight.set(true);
     }
     else {
       // setting holder to a dump value allows to dispose the previous value
-      drag.highlightedBox.autoDispose({dispose: noop});
+      drag.highlightedBox.autoDispose({ dispose: noop });
     }
   }
 
@@ -486,7 +486,7 @@ export class TreeViewComponent extends Disposable {
 
     // if cursor is over the top half of the header set the drop zone to above this item
     if ((mouseY - rect.top) <= rect.height / 2) {
-      return {zone: 'above', item};
+      return { zone: 'above', item };
     }
 
     // if cursor is over the bottom half of the header set the drop zone to below this item, unless
@@ -498,10 +498,10 @@ export class TreeViewComponent extends Disposable {
         if (eq(item, drag.item)) {
           return null;
         }
-        return {zone: 'within', item};
+        return { zone: 'within', item };
       }
       else {
-        return {zone: 'below', item};
+        return { zone: 'below', item };
       }
     }
     return null;
@@ -615,11 +615,11 @@ export class TreeViewComponent extends Disposable {
         drag.item.deltaY.set(drag.item.deltaY.get() - offset);
 
         // then set the dropzone.
-        this._setDropZone({zone: 'within', item, locked: true});
+        this._setDropZone({ zone: 'within', item, locked: true });
       };
       const timeoutId = window.setTimeout(callback, this._options.expanderDelay);
       const dispose = () => window.clearTimeout(timeoutId);
-      drag.autoExpander.autoDispose({item, dispose});
+      drag.autoExpander.autoDispose({ item, dispose });
     }
   }
 }
@@ -663,7 +663,7 @@ function delayedMouseDrag(startDrag: MouseDragStart, delay: number) {
         clearTimeout(timeoutId);
       }
     }
-    return {onMove, onStop};
+    return { onMove, onStop };
   });
 }
 

@@ -1,17 +1,17 @@
 import session from '@gristlabs/express-session';
-import {parseSubdomain} from 'app/common/gristUrls';
-import {isNumber} from 'app/common/gutil';
-import {RequestWithOrg} from 'app/server/lib/extractOrg';
-import {GristServer} from 'app/server/lib/GristServer';
+import { parseSubdomain } from 'app/common/gristUrls';
+import { isNumber } from 'app/common/gutil';
+import { RequestWithOrg } from 'app/server/lib/extractOrg';
+import { GristServer } from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
-import {fromCallback} from 'app/server/lib/serverUtils';
-import {Sessions} from 'app/server/lib/Sessions';
-import {promisifyAll} from 'bluebird';
+import { fromCallback } from 'app/server/lib/serverUtils';
+import { Sessions } from 'app/server/lib/Sessions';
+import { promisifyAll } from 'bluebird';
 import * as crypto from 'crypto';
 import * as express from 'express';
 import assignIn from 'lodash/assignIn';
 import * as path from 'path';
-import {createClient} from 'redis';
+import { createClient } from 'redis';
 
 export const cookieName = process.env.GRIST_SESSION_COOKIE || 'grist_sid';
 
@@ -66,13 +66,13 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
           log.error(`createSessionStoreFactory: redisClient error`, String(err));
         },
       );
-      const store = new RedisStore({client});
+      const store = new RedisStore({ client });
       return assignIn(store, {
         async close() {
           // Quit the client, so that it doesn't attempt to reconnect (which matters for some
           // tests), and so that node becomes close-able.
           await fromCallback(cb => store.client.quit(cb));
-        }});
+        } });
     };
   }
   else {
@@ -93,16 +93,16 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
       // set a busy timeout.
       store.db.run('PRAGMA busy_timeout = 1000');
 
-      return assignIn(store, { async close() {}});
+      return assignIn(store, { async close() {} });
     };
   }
 }
 
-export function getAllowedOrgForSessionID(sessionID: string): {org: string, host: string}|null {
+export function getAllowedOrgForSessionID(sessionID: string): { org: string, host: string }|null {
   if (sessionID.startsWith('c-') && sessionID.includes('@')) {
     const [, org, host] = sessionID.split('@');
     if (!host) { throw new Error('Invalid session ID'); }
-    return {org, host};
+    return { org, host };
   }
   // Otherwise sessions start with 'g-', but we also accept older sessions without a prefix.
   return null;
@@ -157,7 +157,7 @@ export function initGristSessions(instanceRoot: string, server: GristServer) {
 
   const sessions = new Sessions(sessionSecret, sessionStore);
 
-  return {sessions, sessionSecret, sessionStore, sessionMiddleware};
+  return { sessions, sessionSecret, sessionStore, sessionMiddleware };
 }
 
 export function getCookieDomain(req: express.Request) {

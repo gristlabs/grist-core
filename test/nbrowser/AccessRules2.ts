@@ -30,7 +30,7 @@ describe("AccessRules2", function() {
   before(async function() {
     // Import a test document we've set up for this.
     const mainSession = await gu.session().teamSite.user('user1').login();
-    docId = (await mainSession.tempDoc(cleanup, 'ACL-Test.grist', {load: false})).id;
+    docId = (await mainSession.tempDoc(cleanup, 'ACL-Test.grist', { load: false })).id;
 
     // Share it with a few users.
     const api = mainSession.createHomeApi();
@@ -69,11 +69,11 @@ describe("AccessRules2", function() {
 
     // Add a user attribute table.
     await mainSession.createHomeApi().applyUserActions(docId, [
-      ['AddTable', 'Zones', [{id: 'Email'}, {id: 'City'}]],
-      ['AddRecord', 'Zones', null, {Email: email1, City: 'Seattle'}],
-      ['AddRecord', 'Zones', null, {Email: email2, City: 'Boston'}],
-      ['AddRecord', 'Zones', null, {Email: 'fast@speed.com', City: 'Cambridge'}],
-      ['AddRecord', 'Zones', null, {Email: 'slow@speed.com', City: 'Springfield'}],
+      ['AddTable', 'Zones', [{ id: 'Email' }, { id: 'City' }]],
+      ['AddRecord', 'Zones', null, { Email: email1, City: 'Seattle' }],
+      ['AddRecord', 'Zones', null, { Email: email2, City: 'Boston' }],
+      ['AddRecord', 'Zones', null, { Email: 'fast@speed.com', City: 'Cambridge' }],
+      ['AddRecord', 'Zones', null, { Email: 'slow@speed.com', City: 'Springfield' }],
     ]);
     const records = await mainSession.createHomeApi().applyUserActions(docId, [
       ['AddRecord', '_grist_ACLRules', null, {
@@ -189,13 +189,13 @@ describe("AccessRules2", function() {
     await gu.findOpenMenuItem('li', 'First_Name').click();
     await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     await gu.findOpenMenuItem('li', 'Last_Name').click();
-    await enterRulePart(ruleSet, 1, null, {R: 'deny'});
+    await enterRulePart(ruleSet, 1, null, { R: 'deny' });
 
     // Add table rule entirely hiding FinancialsTable.
     await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /FinancialsTable/).click();
     ruleSet = findDefaultRuleSetWait(/FinancialsTable/);
-    await enterRulePart(ruleSet, 1, null, {R: 'deny'});
+    await enterRulePart(ruleSet, 1, null, { R: 'deny' });
 
     // Save and reload.
     await driver.find('.test-rules-save').click();
@@ -246,7 +246,7 @@ describe("AccessRules2", function() {
     await gu.findOpenMenuItem('li', /FinancialsTable/).click();
     ruleSet = findDefaultRuleSetWait(/FinancialsTable/);
 
-    await enterRulePart(ruleSet, 1, null, {R: 'deny'});
+    await enterRulePart(ruleSet, 1, null, { R: 'deny' });
 
     // Save and reload.
     await driver.find('.test-rules-save').click();
@@ -271,10 +271,10 @@ describe("AccessRules2", function() {
     const mainSession = await gu.session().teamSite.user('user1').login();
     const api = mainSession.createHomeApi();
     await api.applyUserActions(docId, [
-      ['AddTable', 'Access', [{id: 'Email'}, {id: 'SharedOnly', type: 'Bool'}]],
-      ['AddRecord', 'Access', null, {Email: gu.translateUser('user1').email, SharedOnly: true}],
-      ['AddRecord', 'Access', null, {Email: gu.translateUser('user2').email, SharedOnly: true}],
-      ['AddRecord', 'Access', null, {Email: gu.translateUser('user3').email, SharedOnly: true}],
+      ['AddTable', 'Access', [{ id: 'Email' }, { id: 'SharedOnly', type: 'Bool' }]],
+      ['AddRecord', 'Access', null, { Email: gu.translateUser('user1').email, SharedOnly: true }],
+      ['AddRecord', 'Access', null, { Email: gu.translateUser('user2').email, SharedOnly: true }],
+      ['AddRecord', 'Access', null, { Email: gu.translateUser('user3').email, SharedOnly: true }],
     ]);
 
     // Now use the UI to add a user-attribute rule.
@@ -322,7 +322,7 @@ describe("AccessRules2", function() {
     await ruleSet.find('.test-rule-part .test-rule-add').click();
     // newRec term in the following does nothing, it is just there to test renaming later.
     await enterRulePart(ruleSet, 1, `not user.MyAccess.SharedOnly or rec.Shared or newRec.Shared`,
-      {R: 'allow'});
+      { R: 'allow' });
     await enterRulePart(ruleSet, 2, null, 'Deny all');
     await driver.find('.test-rules-save').click();
     await gu.waitToPass(async () => {
@@ -439,8 +439,8 @@ describe("AccessRules2", function() {
 
     // Rename some tables (raw view sections) and columns.
     await api.applyUserActions(docId, [
-      ['UpdateRecord', '_grist_Views_section', 3, {title: 'CLIENT LIST'}],
-      ['UpdateRecord', '_grist_Views_section', 10, {title: 'ACCESS2'}],
+      ['UpdateRecord', '_grist_Views_section', 3, { title: 'CLIENT LIST' }],
+      ['UpdateRecord', '_grist_Views_section', 10, { title: 'ACCESS2' }],
       ['RenameColumn', 'CLIENT_LIST', 'Shared', 'PUBLIC'],
       ['RenameColumn', 'ACCESS2', 'Email', 'EMAIL_ADDR'],
       ['RenameColumn', 'ACCESS2', 'SharedOnly', 'ONLY_SHARED'],
@@ -464,11 +464,11 @@ describe("AccessRules2", function() {
     // Make an unsaved change to the rules, e.g. add a new one.
     const ruleSet = findDefaultRuleSet(/CLIENT LIST/);
     await ruleSet.find('.test-rule-part .test-rule-add').click();
-    await enterRulePart(ruleSet, 1, `True`, {R: 'allow'});
+    await enterRulePart(ruleSet, 1, `True`, { R: 'allow' });
 
     // Partially undo the renames.
     await api.applyUserActions(docId, [
-      ['UpdateRecord', '_grist_Views_section', 3, {title: 'ClientsTable'}],
+      ['UpdateRecord', '_grist_Views_section', 3, { title: 'ClientsTable' }],
       ['RenameColumn', 'ClientsTable', 'PUBLIC', 'Shared'],
     ]);
     await gu.waitForServer();
@@ -484,7 +484,7 @@ describe("AccessRules2", function() {
     // Finish undoing the renames.  Fiddling with a user attribute table currently forces
     // a reload.
     await api.applyUserActions(docId, [
-      ['UpdateRecord', '_grist_Views_section', 10, {title: 'Access'}],
+      ['UpdateRecord', '_grist_Views_section', 10, { title: 'Access' }],
       ['RenameColumn', 'Access', 'EMAIL_ADDR', 'Email'],
       ['RenameColumn', 'Access', 'ONLY_SHARED', 'SharedOnly'],
     ]);
@@ -540,7 +540,7 @@ describe("AccessRules2", function() {
     await driver.find('.test-rule-special-AccessRules .test-rule-special-expand').click();
     const ruleSet = await driver.find('.test-rule-special-AccessRules .test-rule-set');
     await ruleSet.find('.test-rule-part .test-rule-add').click();
-    await enterRulePart(ruleSet, 1, 'user.Access == EDITOR', {R: 'allow'});
+    await enterRulePart(ruleSet, 1, 'user.Access == EDITOR', { R: 'allow' });
 
     // The checkbox should now be disabled.
     assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isChecked), [false, false, false, false]);
@@ -583,7 +583,7 @@ describe("AccessRules2", function() {
     // TODO: Something seems wrong about being able to remove a table to which one has no
     // update-record or delete-record access. On the other hand, in this situation, an undo of the
     // delete does get blocked.
-    await gu.removePage('ClientsTable', {withData: true});
+    await gu.removePage('ClientsTable', { withData: true });
     await gu.waitForServer();
     await gu.checkForErrors();
     await driver.navigate().refresh();
@@ -643,14 +643,14 @@ describe("AccessRules2", function() {
     await gu.findOpenMenuItem('li', 'B').click();
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     await gu.findOpenMenuItem('li', 'C').click();
-    await enterRulePart(ruleSet, 1, 'True', {R: 'allow'});
+    await enterRulePart(ruleSet, 1, 'True', { R: 'allow' });
 
     // Save the rules.
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
 
     // Now remove TmpTable1 and some columns of TmpTable2.
-    await gu.removePage('TmpTable1', {withData: true});
+    await gu.removePage('TmpTable1', { withData: true });
     await api.applyUserActions(docId, [
       ['RemoveColumn', 'TmpTable2', 'B'],
       ['RemoveColumn', 'TmpTable2', 'C'],
@@ -686,7 +686,7 @@ describe("AccessRules2", function() {
       ['A']);
 
     // Remove TmpTable2.
-    await gu.removePage('TmpTable2', {withData: true});
+    await gu.removePage('TmpTable2', { withData: true });
     await driver.find('.test-tools-access-rules').click();
     await driver.findWait('.test-rule-set', 5000);
     await driver.navigate().refresh();
@@ -710,7 +710,7 @@ describe("AccessRules2", function() {
   it.skip('should prevent combination of Public Edit access with granular ACLs', async function() {
     // Share doc with everyone as viewer.
     const mainSession = await gu.session().teamSite.user('user1').login();
-    const doc = await mainSession.tempDoc(cleanup, 'ACL-Test.grist', {load: false});
+    const doc = await mainSession.tempDoc(cleanup, 'ACL-Test.grist', { load: false });
     const api = mainSession.createHomeApi();
     await api.updateDocPermissions(doc.id, { users: { 'everyone@getgrist.com': 'viewers' } });
 

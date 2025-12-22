@@ -1,6 +1,6 @@
-import {assert, driver, Key, until, WebElement} from 'mocha-webdriver';
+import { assert, driver, Key, until, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('RecordLayout', function() {
   this.timeout(30000);
@@ -32,7 +32,7 @@ describe('RecordLayout', function() {
     await gu.importFixturesDoc('chimpy', 'nasa', 'Horizon', 'World.grist', 'newui');
 
     // Select the right section and check that we have Cards with expected fields.
-    await gu.getDetailCell({col: 'District', rowNum: 1, section: 'CITY Card List'}).click();
+    await gu.getDetailCell({ col: 'District', rowNum: 1, section: 'CITY Card List' }).click();
     assert.equal(await hasField('District'), true);
     assert.equal(await hasField('Population'), true);
     assert.equal(await hasField('Country'), true);
@@ -50,7 +50,7 @@ describe('RecordLayout', function() {
     let editLayoutMenu = await editLayoutAndGetMenu();
 
     // Find and delete 'District' field.
-    await deleteBox(gu.getDetailCell({col: 'District', rowNum: 1}));
+    await deleteBox(gu.getDetailCell({ col: 'District', rowNum: 1 }));
 
     // Check that 'District' field is now present in Add Field dropdown.
     await driver.sleep(100); // Sleep needed to avoid test flakiness.
@@ -62,7 +62,7 @@ describe('RecordLayout', function() {
     await addFieldBtn.click();
 
     // Find and delete 'Population' field.
-    await deleteBox(gu.getDetailCell({col: 'Population', rowNum: 1}));
+    await deleteBox(gu.getDetailCell({ col: 'Population', rowNum: 1 }));
     await driver.sleep(100); // Sleep needed to avoid test flakiness.
 
     // Check that 'Population' field is now present in Add Field dropdown.
@@ -84,10 +84,10 @@ describe('RecordLayout', function() {
     // Do the whole thing again, and save.
     editLayoutMenu = await editLayoutAndGetMenu();
 
-    await deleteBox(gu.getDetailCell({col: 'District', rowNum: 1}));
+    await deleteBox(gu.getDetailCell({ col: 'District', rowNum: 1 }));
     await driver.sleep(100); // Sleep needed to avoid test flakiness.
 
-    await deleteBox(gu.getDetailCell({col: 'Population', rowNum: 1}));
+    await deleteBox(gu.getDetailCell({ col: 'Population', rowNum: 1 }));
     await driver.sleep(100); // Sleep needed to avoid test flakiness.
 
     await editLayoutMenu.findContent("button", /Save/).click();

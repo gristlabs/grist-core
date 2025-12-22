@@ -1,14 +1,14 @@
-import {makeT} from 'app/client/lib/localization';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {cssInput} from 'app/client/ui/cssInput';
-import {cssField} from 'app/client/ui/MakeCopyMenu';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {colors} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
-import {saveModal} from 'app/client/ui2018/modals';
-import {commonUrls} from 'app/common/gristUrls';
-import {Computed, Disposable, dom, input, makeTestId, Observable, styled} from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { cssInput } from 'app/client/ui/cssInput';
+import { cssField } from 'app/client/ui/MakeCopyMenu';
+import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { colors } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { cssLink } from 'app/client/ui2018/links';
+import { saveModal } from 'app/client/ui2018/modals';
+import { commonUrls } from 'app/common/gristUrls';
+import { Computed, Disposable, dom, input, makeTestId, Observable, styled } from 'grainjs';
 
 const t = makeT('DuplicateTable');
 
@@ -36,7 +36,7 @@ export interface DuplicateTableOptions {
 export function duplicateTable(
   gristDoc: GristDoc,
   tableId: string,
-  {onSuccess}: DuplicateTableOptions = {},
+  { onSuccess }: DuplicateTableOptions = {},
 ) {
   saveModal((_ctl, owner) => {
     const duplicateTableModal = DuplicateTableModal.create(owner, gristDoc, tableId);
@@ -73,8 +73,8 @@ class DuplicateTableModal extends Disposable {
       cssField(
         input(
           this._newTableName,
-          {onInput: true},
-          {placeholder: t("Name for new table")},
+          { onInput: true },
+          { placeholder: t("Name for new table") },
           (elem) => { setTimeout(() => { elem.focus(); }, 20); },
           dom.on('focus', (_ev, elem) => { elem.select(); }),
           dom.cls(cssInput.className),
@@ -84,7 +84,7 @@ class DuplicateTableModal extends Disposable {
       cssWarning(
         cssWarningIcon('Warning'),
         dom('div', t("Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}",
-          {link: cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, 'Read More.')},
+          { link: cssLink({ href: commonUrls.helpLinkingWidgets, target: '_blank' }, 'Read More.') },
         )),
       ),
       cssField(
@@ -103,7 +103,7 @@ class DuplicateTableModal extends Disposable {
   }
 
   private _duplicateTable() {
-    const {docData} = this._gristDoc;
+    const { docData } = this._gristDoc;
     const [newTableName, includeData] = [this._newTableName.get(), this._includeData.get()];
     return docData.sendAction(['DuplicateTable', this._tableId, newTableName, includeData]);
   }

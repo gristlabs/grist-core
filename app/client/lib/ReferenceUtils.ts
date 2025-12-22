@@ -1,15 +1,15 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ACIndex, ACResults} from 'app/client/lib/ACIndex';
-import {makeT} from 'app/client/lib/localization';
-import {ICellItem} from 'app/client/models/ColumnACIndexes';
-import {ColumnCache} from 'app/client/models/ColumnCache';
-import {ColumnRec} from 'app/client/models/entities/ColumnRec';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {TableData} from 'app/client/models/TableData';
-import {getReferencedTableId, isRefListType} from 'app/common/gristTypes';
-import {EmptyRecordView} from 'app/common/RecordView';
-import {BaseFormatter} from 'app/common/ValueFormatter';
-import {Disposable, dom, Observable} from 'grainjs';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { ACIndex, ACResults } from 'app/client/lib/ACIndex';
+import { makeT } from 'app/client/lib/localization';
+import { ICellItem } from 'app/client/models/ColumnACIndexes';
+import { ColumnCache } from 'app/client/models/ColumnCache';
+import { ColumnRec } from 'app/client/models/entities/ColumnRec';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { TableData } from 'app/client/models/TableData';
+import { getReferencedTableId, isRefListType } from 'app/common/gristTypes';
+import { EmptyRecordView } from 'app/common/RecordView';
+import { BaseFormatter } from 'app/common/ValueFormatter';
+import { Disposable, dom, Observable } from 'grainjs';
 
 const t = makeT('ReferenceUtils');
 
@@ -76,7 +76,7 @@ export class ReferenceUtils extends Disposable {
       }
       catch (e) {
         this._dropdownConditionError?.set(e);
-        return {items: [], extraItems: [], highlightFunc: () => [], selectIndex: -1};
+        return { items: [], extraItems: [], highlightFunc: () => [], selectIndex: -1 };
       }
     }
     else {
@@ -133,14 +133,14 @@ export class ReferenceUtils extends Disposable {
     const table = this._docData.getTable(tableId);
     if (!table) { throw new Error(`Table ${tableId} not found`); }
 
-    const {result: predicate} = dropdownConditionCompiled;
+    const { result: predicate } = dropdownConditionCompiled;
     const user = this._gristDoc.docPageModel.user.get() ?? undefined;
     const rec = table.getRecord(rowId) || new EmptyRecordView();
     return (item: ICellItem) => {
       const choice = item.rowId === 'new' ? new EmptyRecordView() : this.tableData.getRecord(item.rowId);
       if (!choice) { throw new Error(`Reference ${item.rowId} not found`); }
 
-      return predicate({user, rec, choice});
+      return predicate({ user, rec, choice });
     };
   }
 }

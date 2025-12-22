@@ -1,4 +1,4 @@
-import {assert, driver, stackWrapFunc} from 'mocha-webdriver';
+import { assert, driver, stackWrapFunc } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 

@@ -1,7 +1,7 @@
-import {delay} from 'app/common/delay';
+import { delay } from 'app/common/delay';
 import * as gutil from 'app/common/gutil';
-import {assert} from 'chai';
-import {Observable} from 'grainjs';
+import { assert } from 'chai';
+import { Observable } from 'grainjs';
 import * as ko from 'knockout';
 import * as sinon from 'sinon';
 

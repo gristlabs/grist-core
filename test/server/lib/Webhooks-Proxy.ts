@@ -1,18 +1,18 @@
-import {UserAPIImpl} from 'app/common/UserAPI';
-import {WebhookSubscription} from 'app/server/lib/DocApi';
+import { UserAPIImpl } from 'app/common/UserAPI';
+import { WebhookSubscription } from 'app/server/lib/DocApi';
 import axios from 'axios';
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as express from 'express';
-import {tmpdir} from 'os';
+import { tmpdir } from 'os';
 import * as path from 'path';
-import {createClient} from 'redis';
-import {configForUser} from 'test/gen-server/testUtils';
-import {serveSomething, Serving} from 'test/server/customUtil';
-import {prepareDatabase} from 'test/server/lib/helpers/PrepareDatabase';
-import {prepareFilesystemDirectoryForTests} from 'test/server/lib/helpers/PrepareFilesystemDirectoryForTests';
-import {signal} from 'test/server/lib/helpers/Signal';
-import {TestProxyServer} from 'test/server/lib/helpers/TestProxyServer';
-import {TestServer} from 'test/server/lib/helpers/TestServer';
+import { createClient } from 'redis';
+import { configForUser } from 'test/gen-server/testUtils';
+import { serveSomething, Serving } from 'test/server/customUtil';
+import { prepareDatabase } from 'test/server/lib/helpers/PrepareDatabase';
+import { prepareFilesystemDirectoryForTests } from 'test/server/lib/helpers/PrepareFilesystemDirectoryForTests';
+import { signal } from 'test/server/lib/helpers/Signal';
+import { TestProxyServer } from 'test/server/lib/helpers/TestProxyServer';
+import { TestServer } from 'test/server/lib/helpers/TestServer';
 import * as testUtils from 'test/server/testUtils';
 
 const chimpy = configForUser('Chimpy');
@@ -72,7 +72,7 @@ describe('Webhooks-Proxy', function () {
       // create TestDoc as an empty doc into Private workspace
       userApi = api = home.makeUserApi(ORG_NAME);
       const wid = await getWorkspaceId(api, 'Private');
-      docIds.TestDoc = await api.newDoc({name: 'TestDoc'}, wid);
+      docIds.TestDoc = await api.newDoc({ name: 'TestDoc' }, wid);
     });
 
     after(async function () {
@@ -87,11 +87,11 @@ describe('Webhooks-Proxy', function () {
   }
 
   describe('Proxy is configured', function () {
-    runServerConfigurations({GRIST_HTTPS_PROXY: `http://localhost:${webhooksTestProxyPort}`}, () => testWebhookProxy(true));
+    runServerConfigurations({ GRIST_HTTPS_PROXY: `http://localhost:${webhooksTestProxyPort}` }, () => testWebhookProxy(true));
   });
 
   describe('Proxy not configured', function () {
-    runServerConfigurations({GRIST_HTTPS_PROXY: undefined}, () => testWebhookProxy(false));
+    runServerConfigurations({ GRIST_HTTPS_PROXY: undefined }, () => testWebhookProxy(false));
 
   });
 
@@ -187,7 +187,7 @@ describe('Webhooks-Proxy', function () {
         eventTypes?: string[]
       }) {
         // Subscribe helper that returns a method to unsubscribe.
-        const {data, status} = await axios.post(
+        const { data, status } = await axios.post(
           `${serverUrl}/api/docs/${docId}/tables/${options?.tableId ?? 'Table1'}/_subscribe`,
           {
             eventTypes: options?.eventTypes ?? ['add', 'update'],
@@ -211,17 +211,17 @@ describe('Webhooks-Proxy', function () {
         serving = await serveSomething((app) => {
 
           app.use(express.json());
-          app.post('/200', ({body}, res) => {
+          app.post('/200', ({ body }, res) => {
             successCalled.emit(body[0].A);
             res.sendStatus(200);
             res.end();
           });
-          app.post('/201', ({body}, res) => {
+          app.post('/201', ({ body }, res) => {
             createdCalled.emit(body[0].A);
             res.sendStatus(201);
             res.end();
           });
-          app.post('/404', ({body}, res) => {
+          app.post('/404', ({ body }, res) => {
             notFoundCalled.emit(body[0].A);
             res.sendStatus(404); // Webhooks treats it as an error and will retry. Probably it shouldn't work this way.
             res.end();
@@ -270,10 +270,10 @@ describe('Webhooks-Proxy', function () {
       async function runTestCase() {
         //Create a test document.
         const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
-        const docId = await userApi.newDoc({name: 'testdoc2'}, ws1);
+        const docId = await userApi.newDoc({ name: 'testdoc2' }, ws1);
         const doc = userApi.getDocAPI(docId);
         await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
-          ['ModifyColumn', 'Table1', 'B', {type: 'Bool'}],
+          ['ModifyColumn', 'Table1', 'B', { type: 'Bool' }],
         ], chimpy);
 
         // Try to clear the queue, even if it is empty.

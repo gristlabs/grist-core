@@ -10,23 +10,23 @@
  * Run with VERBOSE=1 in the environment to see the server log on the console. Normally it goes
  * into a file whose path is printed when server starts.
  */
-import {encodeUrl, IGristUrlState, parseSubdomain} from 'app/common/gristUrls';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import { encodeUrl, IGristUrlState, parseSubdomain } from 'app/common/gristUrls';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import log from 'app/server/lib/log';
-import {getAppRoot} from 'app/server/lib/places';
-import {makeGristConfig} from 'app/server/lib/sendAppPage';
-import {exitPromise} from 'app/server/lib/serverUtils';
-import {connectTestingHooks, TestingHooksClient} from 'app/server/lib/TestingHooks';
-import {ChildProcess, execFileSync, spawn} from 'child_process';
+import { getAppRoot } from 'app/server/lib/places';
+import { makeGristConfig } from 'app/server/lib/sendAppPage';
+import { exitPromise } from 'app/server/lib/serverUtils';
+import { connectTestingHooks, TestingHooksClient } from 'app/server/lib/TestingHooks';
+import { ChildProcess, execFileSync, spawn } from 'child_process';
 import EventEmitter from 'events';
 import * as fse from 'fs-extra';
-import {driver, IMochaServer, WebDriver} from 'mocha-webdriver';
+import { driver, IMochaServer, WebDriver } from 'mocha-webdriver';
 import fetch from 'node-fetch';
-import {tmpdir} from 'os';
+import { tmpdir } from 'os';
 import * as path from 'path';
-import {removeConnection} from 'test/gen-server/seed';
-import {HomeUtil} from 'test/nbrowser/homeUtil';
-import {getDatabase} from 'test/testUtils';
+import { removeConnection } from 'test/gen-server/seed';
+import { HomeUtil } from 'test/nbrowser/homeUtil';
+import { getDatabase } from 'test/testUtils';
 
 export class TestServerMerged extends EventEmitter implements IMochaServer {
   public testDir: string;
@@ -158,7 +158,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     this._server = spawn('node', [cmd], {
       env: {
         ...env,
-        ...(process.env.SERVER_NODE_OPTIONS ? {NODE_OPTIONS: process.env.SERVER_NODE_OPTIONS} : {}),
+        ...(process.env.SERVER_NODE_OPTIONS ? { NODE_OPTIONS: process.env.SERVER_NODE_OPTIONS } : {}),
       },
       stdio: quiet ? 'ignore' : ['inherit', serverLog, serverLog],
     });
@@ -251,7 +251,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
    */
   public async isServerReady(): Promise<boolean> {
     try {
-      return (await fetch(`${this._serverUrl}/status/hooks`, {timeout: 1000})).ok;
+      return (await fetch(`${this._serverUrl}/status/hooks`, { timeout: 1000 })).ok;
     }
     catch (err) {
       return false;

@@ -20,25 +20,25 @@ describe('ColumnFilterMenu2', function() {
 
   before(async function() {
     mainSession = await gu.session().teamSite.user('user1').login();
-    docId = await mainSession.tempNewDoc(cleanup, 'ColumnFilterMenu2.grist', {load: false});
+    docId = await mainSession.tempNewDoc(cleanup, 'ColumnFilterMenu2.grist', { load: false });
     api = mainSession.createHomeApi();
     // Prepare a table with some interestingly-formatted columns, and some data.
     await api.applyUserActions(docId, [
       ['AddTable', 'Test', []],
       ['AddVisibleColumn', 'Test', 'Bool', {
-        type: 'Bool', widgetOptions: JSON.stringify({widget: "TextBox"}),
+        type: 'Bool', widgetOptions: JSON.stringify({ widget: "TextBox" }),
       }],
       ['AddVisibleColumn', 'Test', 'Choice', {
-        type: 'Choice', widgetOptions: JSON.stringify({choices: ['foo', 'bar']}),
+        type: 'Choice', widgetOptions: JSON.stringify({ choices: ['foo', 'bar'] }),
       }],
       ['AddVisibleColumn', 'Test', 'ChoiceList', {
-        type: 'ChoiceList', widgetOptions: JSON.stringify({choices: ['foo', 'bar']}),
+        type: 'ChoiceList', widgetOptions: JSON.stringify({ choices: ['foo', 'bar'] }),
       }],
       ['AddVisibleColumn', 'Test', 'Marked', {
-        type: 'Text', widgetOptions: JSON.stringify({widget: 'Markdown'}),
+        type: 'Text', widgetOptions: JSON.stringify({ widget: 'Markdown' }),
       }],
 
-      ['AddVisibleColumn', 'Test', 'Nr', {type: 'Int'}],
+      ['AddVisibleColumn', 'Test', 'Nr', { type: 'Int' }],
 
       ['AddRecord', 'Test', null, {
         Bool: true, Choice: 'foo', ChoiceList: ['L', 'foo'],
@@ -55,25 +55,25 @@ describe('ColumnFilterMenu2', function() {
 
     await gu.openColumnMenu('Bool', 'Filter');
     assert.deepEqual(await getItems(), [
-      {checked: true, label: 'false', count: '0'},
-      {checked: true, label: 'true', count: '1'},
+      { checked: true, label: 'false', count: '0' },
+      { checked: true, label: 'true', count: '1' },
     ]);
 
     // click false
     await driver.findContent('.test-filter-menu-list label', 'false').click();
     assert.deepEqual(await getItems(), [
-      {checked: false, label: 'false', count: '0'},
-      {checked: true, label: 'true', count: '1'},
+      { checked: false, label: 'false', count: '0' },
+      { checked: true, label: 'true', count: '1' },
     ]);
 
     // add new record with Bool=false
-    const {retValues} = await api.applyUserActions(docId, [
-      ['AddRecord', 'Test', null, {Bool: false}],
+    const { retValues } = await api.applyUserActions(docId, [
+      ['AddRecord', 'Test', null, { Bool: false }],
     ]);
 
     // check record is not shown on screen
     assert.deepEqual(
-      await gu.getVisibleGridCells({cols: ['Bool', 'Choice', 'ChoiceList'], rowNums: [1, 2]}),
+      await gu.getVisibleGridCells({ cols: ['Bool', 'Choice', 'ChoiceList'], rowNums: [1, 2] }),
       ['true', 'foo', 'foo',
         '', '', '',
       ] as any,
@@ -88,25 +88,25 @@ describe('ColumnFilterMenu2', function() {
   it('should show all options for Choice/ChoiceList columns', async () => {
     await gu.openColumnMenu('Choice', 'Filter');
     assert.deepEqual(await getItems(), [
-      {checked: true, label: 'bar', count: '0'},
-      {checked: true, label: 'foo', count: '1'},
+      { checked: true, label: 'bar', count: '0' },
+      { checked: true, label: 'foo', count: '1' },
     ]);
 
     // click bar
     await driver.findContent('.test-filter-menu-list label', 'bar').click();
     assert.deepEqual(await getItems(), [
-      {checked: false, label: 'bar', count: '0'},
-      {checked: true, label: 'foo', count: '1'},
+      { checked: false, label: 'bar', count: '0' },
+      { checked: true, label: 'foo', count: '1' },
     ]);
 
     // add new record with Choice=bar
-    const {retValues} = await api.applyUserActions(docId, [
-      ['AddRecord', 'Test', null, {Choice: 'bar'}],
+    const { retValues } = await api.applyUserActions(docId, [
+      ['AddRecord', 'Test', null, { Choice: 'bar' }],
     ]);
 
     // check record is not shown on screen
     assert.deepEqual(
-      await gu.getVisibleGridCells({cols: ['Bool', 'Choice', 'ChoiceList'], rowNums: [1, 2]}),
+      await gu.getVisibleGridCells({ cols: ['Bool', 'Choice', 'ChoiceList'], rowNums: [1, 2] }),
       ['true', 'foo', 'foo',
         '', '', '',
       ] as any,
@@ -120,8 +120,8 @@ describe('ColumnFilterMenu2', function() {
     // check ChoiceList filter offeres all options
     await gu.openColumnMenu('ChoiceList', 'Filter');
     assert.deepEqual(await getItems(), [
-      {checked: true, label: 'bar', count: '0'},
-      {checked: true, label: 'foo', count: '1'},
+      { checked: true, label: 'bar', count: '0' },
+      { checked: true, label: 'foo', count: '1' },
     ]);
     await gu.sendKeys(Key.ESCAPE);
     await driver.find('.test-section-menu-small-btn-revert').click();

@@ -119,7 +119,7 @@ export interface HomeDBAuth {
   getAnonymousUserId(): number;
   getSupportUserId(): number;
   getAnonymousUser(): User;
-  getUser(userId: number, options?: {includePrefs?: boolean}): Promise<User|undefined>;
+  getUser(userId: number, options?: { includePrefs?: boolean }): Promise<User|undefined>;
   getUserByKey(apiKey: string): Promise<User|undefined>;
   getUserByLogin(email: string, options?: GetUserOptions): Promise<User>;
   getUserByLoginWithRetry(email: string, options?: GetUserOptions): Promise<User>;

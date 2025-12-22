@@ -24,7 +24,7 @@ export interface IFilterCount {
 
 type ICompare<T> = (a: T, b: T) => number;
 
-const localeCompare = new Intl.Collator('en-US', {numeric: true}).compare;
+const localeCompare = new Intl.Collator('en-US', { numeric: true }).compare;
 
 interface ColumnFilterMenuModelParams {
   columnFilter: ColumnFilter;
@@ -55,7 +55,7 @@ export class ColumnFilterMenuModel extends Disposable {
     const showAllOptions = ['Bool', 'Choice', 'ChoiceList'].includes(this.columnFilter.columnType);
     return new Set(
       this._params.valueCount
-        .filter(([_, {label, count}]) => (showAllOptions ? true : count) && searchRegex.test(normalizeText(label)))
+        .filter(([_, { label, count }]) => (showAllOptions ? true : count) && searchRegex.test(normalizeText(label)))
         .map(([key]) => key),
     );
   });

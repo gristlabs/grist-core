@@ -1,7 +1,7 @@
-import {UserAPI} from 'app/common/UserAPI';
-import {assert} from 'mocha-webdriver';
+import { UserAPI } from 'app/common/UserAPI';
+import { assert } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupCleanup, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupCleanup, setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('LazyLoad', function() {
   this.timeout(20000);
@@ -19,27 +19,27 @@ describe('LazyLoad', function() {
   // they are being calculated on load. Now that we load formula columns from the database, it
   // tests that the values are immediately shown even though calculation hasn't finished.
   it('can start showing table even if its row data has not arrived yet', async () => {
-    const wsId = await api.newWorkspace({name: 'work'}, 'current');
+    const wsId = await api.newWorkspace({ name: 'work' }, 'current');
     // Clean up at the end of the suite, to avoid affecting other tests.
     cleanup.addAfterAll(() => api.deleteWorkspace(wsId));
 
-    const docId = await api.newDoc({name: 'testdoc'}, wsId);
+    const docId = await api.newDoc({ name: 'testdoc' }, wsId);
     // formula takes 1.5 seconds to evaluate.
     const formula =
       'import time\n' +
       'time.sleep(1.5)\n' +
       'return "42:%s" % int(time.time())';
     await api.applyUserActions(docId, [['AddTable', 'Foo', [
-      {id: 'B', type: 'Any', formula, isFormula: true},
+      { id: 'B', type: 'Any', formula, isFormula: true },
     ]]]);
     await api.applyUserActions(docId, [['AddTable', 'Bar', [
-      {id: 'B', type: 'Any'},
+      { id: 'B', type: 'Any' },
       // This formula returns 5, 0, "X" for rowIds 1, 2, 3.
-      {id: 'C', type: 'Numeric', formula: '[5, 0, "X"][$id - 1]', isformula: true},
+      { id: 'C', type: 'Numeric', formula: '[5, 0, "X"][$id - 1]', isformula: true },
     ]]]);
     // This action takes 1.5 sec because waits for the formula.
     await api.applyUserActions(docId, [['AddRecord', 'Foo', 1, {}]]);
-    await api.applyUserActions(docId, [['BulkAddRecord', 'Bar', [1, 2, 3], {B: [33, 34, 35]}]]);
+    await api.applyUserActions(docId, [['BulkAddRecord', 'Bar', [1, 2, 3], { B: [33, 34, 35] }]]);
     await api.getDocAPI(docId).forceReload();
     await gu.loadDoc(`/o/nasa/doc/${docId}/p/2`);
 
@@ -53,9 +53,9 @@ describe('LazyLoad', function() {
     assert.equal(await gu.getCell(0, 1, 'BAR').getText(), '33');
 
     // Plain data AND formula data are already there.
-    assert.deepEqual(await gu.getVisibleGridCells({col: 'B', rowNums: [1, 2, 3], section: 'BAR'}),
+    assert.deepEqual(await gu.getVisibleGridCells({ col: 'B', rowNums: [1, 2, 3], section: 'BAR' }),
       ['33', '34', '35']);
-    assert.deepEqual(await gu.getVisibleGridCells({col: 'C', rowNums: [1, 2, 3], section: 'BAR'}),
+    assert.deepEqual(await gu.getVisibleGridCells({ col: 'C', rowNums: [1, 2, 3], section: 'BAR' }),
       ['5', '0', 'X']);
 
     await gu.openPage(/Foo/);

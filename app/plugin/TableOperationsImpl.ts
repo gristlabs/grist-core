@@ -29,7 +29,7 @@ export class TableOperationsImpl implements TableOperations {
       const postRecords = convertToBulkColValues(records);
       // postRecords can be an empty object, in that case we will create empty records.
       const ids = await this.addRecords(records.length, postRecords, options);
-      return ids.map(id => ({id}));
+      return ids.map(id => ({ id }));
     });
   }
 
@@ -71,8 +71,8 @@ export class TableOperationsImpl implements TableOperations {
         return `${requireKeys}:${fieldsKeys}`;
       });
       const actions = Object.values(recGroups).map((group) => {
-        const require = convertToBulkColValues(group.map(r => ({fields: r.require})));
-        const fields = convertToBulkColValues(group.map(r => ({fields: r.fields || {}})));
+        const require = convertToBulkColValues(group.map(r => ({ fields: r.require })));
+        const fields = convertToBulkColValues(group.map(r => ({ fields: r.fields || {} })));
         return ["BulkAddOrUpdateRecord", tableId, require, fields, options];
       });
       await this._applyUserActions(tableId, [...fieldNames(records)],
@@ -132,7 +132,7 @@ export class TableOperationsImpl implements TableOperations {
   private async _applyUserActions(tableId: string, colNames: string[], actions: any[][],
     options: OpOptions = {}): Promise<any> {
     return handleSandboxErrorOnPlatform(tableId, colNames, this._platform.applyUserActions(
-      actions, {...this._defaultOptions, ...options},
+      actions, { ...this._defaultOptions, ...options },
     ), this._platform);
   }
 }
@@ -163,7 +163,7 @@ export function convertToBulkColValues(records: Array<Types.Record | Types.NewRe
 }
 
 export function fieldNames(records: any[]) {
-  return new Set<string>(flatMap(records, r => Object.keys({...r.fields, ...r.require})));
+  return new Set<string>(flatMap(records, r => Object.keys({ ...r.fields, ...r.require })));
 }
 
 export function areSameFields(records: Array<Types.Record | Types.NewRecord>) {

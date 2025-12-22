@@ -3,7 +3,7 @@
  * cancelled or rescheduled.
  */
 
-import {Disposable} from 'app/client/lib/dispose';
+import { Disposable } from 'app/client/lib/dispose';
 
 export class Delay extends Disposable {
 

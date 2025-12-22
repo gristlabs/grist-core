@@ -168,9 +168,9 @@ describe("Timing", function () {
   });
 
   it('should be disabled for non-owners', async function() {
-    await userApi.updateDocPermissions(docId, {users: {
+    await userApi.updateDocPermissions(docId, { users: {
       [gu.translateUser('user2').email]: 'editors',
-    }});
+    } });
 
     const session = await gu.session().teamSite.user('user2').login();
     await session.loadDoc(`/doc/${docId}`);

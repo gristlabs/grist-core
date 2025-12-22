@@ -52,16 +52,16 @@
  *    just have a way to serialize the layout to and from a JSON blob.
  */
 
-import {BoxSpec} from 'app/client/lib/BoxSpec';
-import dom, {detachNode, findAncestor} from 'app/client/lib/dom';
-import koArray, {isKoArray, KoArray} from 'app/client/lib/koArray';
-import {cssClass, domData, foreach, scope, style, toggleClass} from 'app/client/lib/koDom';
-import {Disposable} from 'app/client/lib/dispose';
+import { BoxSpec } from 'app/client/lib/BoxSpec';
+import dom, { detachNode, findAncestor } from 'app/client/lib/dom';
+import koArray, { isKoArray, KoArray } from 'app/client/lib/koArray';
+import { cssClass, domData, foreach, scope, style, toggleClass } from 'app/client/lib/koDom';
+import { Disposable } from 'app/client/lib/dispose';
 import assert from 'assert';
-import {Events as BackboneEvents} from 'backbone';
+import { Events as BackboneEvents } from 'backbone';
 import * as ko from 'knockout';
-import {computed, isObservable, observable, utils} from 'knockout';
-import {identity, isEqual, last, uniqueId} from 'underscore';
+import { computed, isObservable, observable, utils } from 'knockout';
+import { identity, isEqual, last, uniqueId } from 'underscore';
 
 export interface ContentBox {
   leafId: ko.Observable<any>;

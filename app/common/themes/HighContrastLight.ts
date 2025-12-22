@@ -1,5 +1,5 @@
-import {ThemeTokens, tokens} from 'app/common/ThemePrefs';
-import {GristLight} from 'app/common/themes/GristLight';
+import { ThemeTokens, tokens } from 'app/common/ThemePrefs';
+import { GristLight } from 'app/common/themes/GristLight';
 
 /**
  * High Contrast Light theme. Uses the default Grist theme as base.

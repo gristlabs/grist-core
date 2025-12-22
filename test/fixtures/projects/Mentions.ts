@@ -1,8 +1,8 @@
-import {dom, input, makeTestId, observable, styled} from 'grainjs';
-import {withLocale} from 'test/fixtures/projects/helpers/withLocale';
-import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
-import {buildMentionTextBox, CommentWithMentions} from 'app/client/widgets/MentionTextBox';
-import {PermissionData} from 'app/common/UserAPI';
+import { dom, input, makeTestId, observable, styled } from 'grainjs';
+import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { buildMentionTextBox, CommentWithMentions } from 'app/client/widgets/MentionTextBox';
+import { PermissionData } from 'app/common/UserAPI';
 
 const testId = makeTestId('test-');
 
@@ -16,7 +16,7 @@ function setupTest() {
   const initial = observable<string>('');
   (window as any).initial = initial; // Expose for debugging
   return cssCenter(
-    input(initial, {onInput: true}, {type: 'text'}),
+    input(initial, { onInput: true }, { type: 'text' }),
     dom('span', new Date().toLocaleString()),
     dom.domComputed(initial, init => [
       buildDom(init),
@@ -30,10 +30,10 @@ function buildDom(init: string) {
   const rawHtml = observable('');
   const data: PermissionData = {
     users: [
-      {name: 'Alice', id: 1, ref: 'alice', email: '', access: 'editors'},
-      {name: 'Bob', id: 2, ref: 'bob', email: '', access: 'editors'},
-      {name: 'Charlie', id: 3, ref: 'charlie', email: '', access: 'editors'},
-      {name: 'Dave', id: 4, ref: 'dave', email: '', access: 'editors'},
+      { name: 'Alice', id: 1, ref: 'alice', email: '', access: 'editors' },
+      { name: 'Bob', id: 2, ref: 'bob', email: '', access: 'editors' },
+      { name: 'Charlie', id: 3, ref: 'charlie', email: '', access: 'editors' },
+      { name: 'Dave', id: 4, ref: 'dave', email: '', access: 'editors' },
     ],
   };
 

@@ -3,7 +3,7 @@
  * through multiple stages, to inform the user of long disconnects while minimizing the disruption
  * for short ones. This class manages these timings, and triggers ConnectState changes.
  */
-import {Disposable, Observable} from 'grainjs';
+import { Disposable, Observable } from 'grainjs';
 
 // Describes the connection state, which is shown as part of the notifications UI.
 // See https://grist.quip.com/X92IAHZV3uoo/Notifications

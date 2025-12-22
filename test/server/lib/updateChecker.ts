@@ -78,7 +78,7 @@ describe('updateChecker', function() {
       isCritical: false,
       updateURL: 'https://hub.docker.com/r/gristlabs/grist',
     };
-    const {homeUrl} = setupTestServer(mockVersionResponse);
+    const { homeUrl } = setupTestServer(mockVersionResponse);
 
     it('can get the latest available version information', async function () {
       const doc = await fetch(homeUrl());
@@ -98,7 +98,7 @@ describe('updateChecker', function() {
       isCritical: false,
       updateURL: 'https://hub.docker.com/r/gristlabs/grist',
     };
-    const {homeUrl} = setupTestServer(mockVersionResponse);
+    const { homeUrl } = setupTestServer(mockVersionResponse);
 
     it('can get the latest available version information', async function () {
       const doc = await fetch(homeUrl());

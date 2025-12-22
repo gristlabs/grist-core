@@ -3,13 +3,13 @@
  * open, and what FD they are using.
  */
 
-import {CommDocEventType, CommMessage} from 'app/common/CommTypes';
-import {arrayRemove, timeoutReached} from 'app/common/gutil';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {Client} from 'app/server/lib/Client';
-import {DocSession, DocSessionPrecursor} from 'app/server/lib/DocSession';
-import {LogMethods} from "app/server/lib/LogMethods";
+import { CommDocEventType, CommMessage } from 'app/common/CommTypes';
+import { arrayRemove, timeoutReached } from 'app/common/gutil';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { appSettings } from 'app/server/lib/AppSettings';
+import { Client } from 'app/server/lib/Client';
+import { DocSession, DocSessionPrecursor } from 'app/server/lib/DocSession';
+import { LogMethods } from "app/server/lib/LogMethods";
 import EventEmitter from 'events';
 
 export const Deps = {
@@ -120,7 +120,7 @@ export class DocClients extends EventEmitter {
         const fromSelf = (target.client === client);
         const isUnresponsive = await timeoutReached(
           Deps.BROADCAST_TIMEOUT_MS,
-          target.client.sendMessageOrInterrupt({...msg, docFD: target.fd, fromSelf} as CommMessage),
+          target.client.sendMessageOrInterrupt({ ...msg, docFD: target.fd, fromSelf } as CommMessage),
         );
         // If client isn't responsive in a reasonable length of time, then don't
         // keep waiting for it. BUT then the client state could get weird if it
@@ -154,18 +154,18 @@ export class DocClients extends EventEmitter {
   private async _prepareMessage(
     target: DocSession, type: CommDocEventType, messageData: any,
     filterMessage?: (docSession: DocSession, messageData: any) => Promise<any>,
-  ): Promise<{type: CommDocEventType, data: unknown}|undefined> {
+  ): Promise<{ type: CommDocEventType, data: unknown }|undefined> {
     try {
       // Make sure user still has view access.
       await target.authorizer.assertAccess('viewers');
       if (!filterMessage) {
-        return {type, data: messageData};
+        return { type, data: messageData };
       }
       else {
         try {
           const filteredMessageData = await filterMessage(target, messageData);
           if (filteredMessageData) {
-            return {type, data: filteredMessageData};
+            return { type, data: filteredMessageData };
           }
           else {
             this._log.debug(target, 'skip broadcastDocMessage because it is not allowed for this client');
@@ -173,10 +173,10 @@ export class DocClients extends EventEmitter {
         }
         catch (e) {
           if (e.code && e.code === 'NEED_RELOAD') {
-            return {type: 'docShutdown', data: null};
+            return { type: 'docShutdown', data: null };
           }
           else {
-            return {type: 'docUserAction', data: {error: String(e)}};
+            return { type: 'docUserAction', data: { error: String(e) } };
           }
         }
       }
@@ -187,7 +187,7 @@ export class DocClients extends EventEmitter {
         this._log.debug(target, 'skip broadcastDocMessage because AUTH_NO_VIEW');
         // Go further and trigger a shutdown for this user, in case they are granted
         // access again later.
-        return {type: 'docShutdown', data: null};
+        return { type: 'docShutdown', data: null };
       }
       else {
         // Propagate any totally unexpected exceptions.

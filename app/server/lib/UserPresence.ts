@@ -1,13 +1,13 @@
-import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
-import {CommDocUserPresenceUpdate} from 'app/common/CommTypes';
+import { VisibleUserProfile } from 'app/common/ActiveDocAPI';
+import { CommDocUserPresenceUpdate } from 'app/common/CommTypes';
 import * as roles from 'app/common/roles';
-import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, FullUser, getRealAccess} from 'app/common/UserAPI';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {DocClients, isUserPresenceDisabled} from 'app/server/lib/DocClients';
-import {DocSession} from 'app/server/lib/DocSession';
-import {LogMethods} from 'app/server/lib/LogMethods';
+import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, FullUser, getRealAccess } from 'app/common/UserAPI';
+import { appSettings } from 'app/server/lib/AppSettings';
+import { DocClients, isUserPresenceDisabled } from 'app/server/lib/DocClients';
+import { DocSession } from 'app/server/lib/DocSession';
+import { LogMethods } from 'app/server/lib/LogMethods';
 
-import {fromPairs} from 'lodash';
+import { fromPairs } from 'lodash';
 
 export class UserPresence {
   private _presenceSessionsById: Map<string, UserPresenceSession> = new Map();

@@ -10,15 +10,15 @@
  *    module) to request data over a message port from the ActiveDoc in the main thread.
  * 5. The resulting stream of Excel data is streamed back to the main thread using Rpc too.
  */
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {ActiveDocSource, ActiveDocSourceDirect, ExportParameters} from 'app/server/lib/Export';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { ActiveDocSource, ActiveDocSourceDirect, ExportParameters } from 'app/server/lib/Export';
 import log from 'app/server/lib/log';
-import {addAbortHandler} from 'app/server/lib/requestUtils';
+import { addAbortHandler } from 'app/server/lib/requestUtils';
 import * as express from 'express';
-import {Rpc} from 'grain-rpc';
-import {AbortController} from 'node-abort-controller';
-import {Writable} from 'stream';
-import {MessageChannel} from 'worker_threads';
+import { Rpc } from 'grain-rpc';
+import { AbortController } from 'node-abort-controller';
+import { Writable } from 'stream';
+import { MessageChannel } from 'worker_threads';
 import Piscina from 'piscina';
 
 // If this file is imported from within a worker thread, we'll create more thread pools from each
@@ -67,7 +67,7 @@ export async function streamXLSX(activeDoc: ActiveDoc, req: express.Request,
 
     addAbortHandler(req, outputStream, cancelWorker);
 
-    const run = (method: string, ...args: any[]) => exportPool.run({port: port2, testDates, args}, {
+    const run = (method: string, ...args: any[]) => exportPool.run({ port: port2, testDates, args }, {
       name: method,
       signal: abortController.signal,
       transferList: [port2],

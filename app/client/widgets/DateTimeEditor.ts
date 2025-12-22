@@ -1,10 +1,10 @@
-import {DateEditor} from 'app/client/widgets/DateEditor';
-import {FieldOptions} from 'app/client/widgets/NewBaseEditor';
-import {removePrefix} from 'app/common/gutil';
-import {parseDate} from 'app/common/parseDate';
+import { DateEditor } from 'app/client/widgets/DateEditor';
+import { FieldOptions } from 'app/client/widgets/NewBaseEditor';
+import { removePrefix } from 'app/common/gutil';
+import { parseDate } from 'app/common/parseDate';
 
 import moment from 'moment-timezone';
-import {dom} from 'grainjs';
+import { dom } from 'grainjs';
 
 /**
  * DateTimeEditor - Editor for DateTime type. Includes a dropdown datepicker.
@@ -104,7 +104,7 @@ export class DateTimeEditor extends DateEditor {
   }
 
   public setSizerLimits() {
-    const maxSize = this.editorPlacement.calcSize({width: Infinity, height: Infinity}, {calcOnly: true});
+    const maxSize = this.editorPlacement.calcSize({ width: Infinity, height: Infinity }, { calcOnly: true });
     if (this.options.readonly) {
       return;
     }
@@ -171,6 +171,6 @@ export class DateTimeEditor extends DateEditor {
     // store editor state as an encoded JSON string
     const date = this._dateInput.value;
     const time = this._timeInput.value;
-    this.editorState.set(JSON.stringify({ date, time}));
+    this.editorState.set(JSON.stringify({ date, time }));
   }
 }

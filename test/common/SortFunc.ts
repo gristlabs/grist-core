@@ -1,6 +1,6 @@
-import {emptyCompare, typedCompare} from 'app/common/SortFunc';
-import {assert} from 'chai';
-import {format} from 'util';
+import { emptyCompare, typedCompare } from 'app/common/SortFunc';
+import { assert } from 'chai';
+import { format } from 'util';
 
 describe('SortFunc', function() {
   it('should be transitive for values of different types', function() {

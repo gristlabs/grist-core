@@ -1,15 +1,15 @@
 /**
  * TableData maintains a single table's data.
  */
-import {ColumnACIndexes} from 'app/client/models/ColumnACIndexes';
-import {ColumnCache} from 'app/client/models/ColumnCache';
-import {DocData} from 'app/client/models/DocData';
-import {DocAction, ReplaceTableData, TableDataAction, UserAction} from 'app/common/DocActions';
-import {isRaisedException} from 'app/common/gristTypes';
-import {countIf} from 'app/common/gutil';
-import {SchemaTypes} from 'app/common/schema';
-import {ColTypeMap, MetaTableData as MetaTableDataBase, TableData as TableDataBase} from 'app/common/TableData';
-import {Emitter} from 'grainjs';
+import { ColumnACIndexes } from 'app/client/models/ColumnACIndexes';
+import { ColumnCache } from 'app/client/models/ColumnCache';
+import { DocData } from 'app/client/models/DocData';
+import { DocAction, ReplaceTableData, TableDataAction, UserAction } from 'app/common/DocActions';
+import { isRaisedException } from 'app/common/gristTypes';
+import { countIf } from 'app/common/gutil';
+import { SchemaTypes } from 'app/common/schema';
+import { ColTypeMap, MetaTableData as MetaTableDataBase, TableData as TableDataBase } from 'app/common/TableData';
+import { Emitter } from 'grainjs';
 
 /**
  * TableData class to maintain a single table's data.

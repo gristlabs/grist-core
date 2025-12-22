@@ -1,9 +1,9 @@
-import {AccessLevel} from 'app/common/CustomWidget';
-import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
+import { AccessLevel } from 'app/common/CustomWidget';
+import { addToRepl, assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {addStatic, serveSomething} from 'test/server/customUtil';
-import {EnvironmentSnapshot} from 'test/server/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { addStatic, serveSomething } from 'test/server/customUtil';
+import { EnvironmentSnapshot } from 'test/server/testUtils';
 
 // Valid manifest url.
 const manifestEndpoint = '/manifest.json';
@@ -154,7 +154,7 @@ describe('CustomWidgetsConfig', function () {
           {
             // Main Custom Widget with onEditOptions handler.
             name: TESTER_WIDGET,
-            url: createConfigUrl({onEditOptions: true}),
+            url: createConfigUrl({ onEditOptions: true }),
             widgetId: 'tester1',
           },
           {
@@ -166,25 +166,25 @@ describe('CustomWidgetsConfig', function () {
           {
             // Widget requesting read access.
             name: READ_WIDGET,
-            url: createConfigUrl({requiredAccess: AccessLevel.read_table}),
+            url: createConfigUrl({ requiredAccess: AccessLevel.read_table }),
             widgetId: 'tester3',
           },
           {
             // Widget requesting full access.
             name: FULL_WIDGET,
-            url: createConfigUrl({requiredAccess: AccessLevel.full}),
+            url: createConfigUrl({ requiredAccess: AccessLevel.full }),
             widgetId: 'tester4',
           },
           {
             // Widget with column mapping
             name: COLUMN_WIDGET,
-            url: createConfigUrl({requiredAccess: AccessLevel.read_table, columns: [{name: 'Column', optional: true}]}),
+            url: createConfigUrl({ requiredAccess: AccessLevel.read_table, columns: [{ name: 'Column', optional: true }] }),
             widgetId: 'tester5',
           },
           {
             // Widget with required column mapping
             name: REQUIRED_WIDGET,
-            url: createConfigUrl({requiredAccess: AccessLevel.read_table, columns: [{name: 'Column', optional: false}]}),
+            url: createConfigUrl({ requiredAccess: AccessLevel.read_table, columns: [{ name: 'Column', optional: false }] }),
             widgetId: 'tester6',
           },
           {
@@ -232,7 +232,7 @@ describe('CustomWidgetsConfig', function () {
 
     // Add hidden column to Table1.
     await gu.sendActions([
-      ['AddVisibleColumn', 'Table1', 'Hidden', {type: 'Text'}],
+      ['AddVisibleColumn', 'Table1', 'Hidden', { type: 'Text' }],
     ]);
 
     assert.include(await driver.findWait('.test-custom-widget-not-mapped', 2000).getText(),
@@ -248,7 +248,7 @@ describe('CustomWidgetsConfig', function () {
     const api = mainSession.createHomeApi();
     const revert = await gu.beginAclTran(api, docId);
     await api.applyUserActions(docId, [
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: 'Hidden'}],
+      ['AddRecord', '_grist_ACLResources', -1, { tableId: 'Table1', colIds: 'Hidden' }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: '', permissionsText: '-R',
       }],
@@ -306,13 +306,13 @@ describe('CustomWidgetsConfig', function () {
     assert.isTrue(await driver.findWait('.test-custom-widget-ready', 1000).isDisplayed());
 
     // And we see widget with info about mapped columns, Column to A.
-    assert.deepEqual(await widget.onRecordsMappings(), {Column: 'A'});
+    assert.deepEqual(await widget.onRecordsMappings(), { Column: 'A' });
   });
 
   it('should hide mappings when there is no good column', async () => {
     await gu.setCustomWidgetUrl(
       createConfigUrl({
-        columns: [{name: 'M2', type: 'Date', optional: true}],
+        columns: [{ name: 'M2', type: 'Date', optional: true }],
         requiredAccess: 'read table',
       }),
     );
@@ -330,7 +330,7 @@ describe('CustomWidgetsConfig', function () {
     assert.equal(await mappingsForM2().getText(), 'No date columns in table.');
 
     // Now add Date column.
-    await gu.sendActions([['AddVisibleColumn', 'Table1', 'NewCol', {type: 'Date'}]]);
+    await gu.sendActions([['AddVisibleColumn', 'Table1', 'NewCol', { type: 'Date' }]]);
 
     // Now drop should be enabled.
     assert.isFalse(await mappingsForM2().matches('.test-config-widget-disabled'));
@@ -364,7 +364,7 @@ describe('CustomWidgetsConfig', function () {
     const revert = await gu.begin();
     await gu.setCustomWidgetUrl(
       createConfigUrl({
-        columns: [{name: 'M2', type: 'Date', optional: true}],
+        columns: [{ name: 'M2', type: 'Date', optional: true }],
         requiredAccess: 'read table',
       }),
     );
@@ -379,7 +379,7 @@ describe('CustomWidgetsConfig', function () {
     // Make sure it is disabled.
     assert.isTrue(await mappingsForM2().matches('.test-config-widget-disabled'));
     // Now add Date column.
-    await gu.sendActions([['AddVisibleColumn', 'Table1', 'NewCol', {type: 'Date'}]]);
+    await gu.sendActions([['AddVisibleColumn', 'Table1', 'NewCol', { type: 'Date' }]]);
 
     // Expand it and make sure we have NewCol there.
     await toggleDrop(pickerDrop('M2'));
@@ -389,7 +389,7 @@ describe('CustomWidgetsConfig', function () {
     await clickOption('NewCol');
 
     // Make sure widget sees the mapping.
-    assert.deepEqual(await widget.onRecordsMappings(), {M2: 'NewCol'});
+    assert.deepEqual(await widget.onRecordsMappings(), { M2: 'NewCol' });
 
     // Now expand the drop again and make sure we can clear it.
     await toggleDrop(pickerDrop('M2'));
@@ -400,7 +400,7 @@ describe('CustomWidgetsConfig', function () {
     assert.equal(await mappingsForM2().getText(), 'Pick a date column');
 
     // Make sure widget sees the mapping.
-    assert.deepEqual(await widget.onRecordsMappings(), {M2: null});
+    assert.deepEqual(await widget.onRecordsMappings(), { M2: null });
     await revert();
   });
 
@@ -415,9 +415,9 @@ describe('CustomWidgetsConfig', function () {
     assert.isFalse(await driver.find('.test-vfc-visible-fields-select-all').isPresent());
     // Record event should be fired.
     assert.deepEqual(await widget.onRecords(), [
-      {id: 1, A: 'A' },
-      {id: 2, A: 'B' },
-      {id: 3, A: 'C' },
+      { id: 1, A: 'A' },
+      { id: 2, A: 'B' },
+      { id: 3, A: 'C' },
     ]);
     // Mappings should null at first.
     assert.isNull(await widget.onRecordsMappings());
@@ -429,7 +429,7 @@ describe('CustomWidgetsConfig', function () {
     await clickOption('A');
     await widget.waitForPendingRequests();
     // Widget should receive mappings
-    assert.deepEqual(await widget.onRecordsMappings(), {Column: 'A'});
+    assert.deepEqual(await widget.onRecordsMappings(), { Column: 'A' });
     await revert();
   });
 
@@ -439,7 +439,7 @@ describe('CustomWidgetsConfig', function () {
     // and is using it to invoke the ready method.
     await gu.setCustomWidgetUrl(
       createConfigUrl({
-        columns: ['M1', {name: 'M2', optional: true}, {name: 'M3', title: 'T3'}, {name: 'M4', type: 'Text'}],
+        columns: ['M1', { name: 'M2', optional: true }, { name: 'M3', title: 'T3' }, { name: 'M4', type: 'Text' }],
         requiredAccess: 'read table',
       }),
     );
@@ -471,9 +471,9 @@ describe('CustomWidgetsConfig', function () {
     await clickOption('A');
     await widget.waitForFrame();
     await widget.waitForPendingRequests();
-    assert.deepEqual(await widget.onRecordsMappings(), {M1: 'A', M2: 'A', M3: 'A', M4: 'A'});
+    assert.deepEqual(await widget.onRecordsMappings(), { M1: 'A', M2: 'A', M3: 'A', M4: 'A' });
     // Single record should also receive update.
-    assert.deepEqual(await widget.onRecordMappings(), {M1: 'A', M2: 'A', M3: 'A', M4: 'A'});
+    assert.deepEqual(await widget.onRecordMappings(), { M1: 'A', M2: 'A', M3: 'A', M4: 'A' });
     // Undo should revert mappings - there should be only 3 operations to revert to first mapping.
     await gu.undo(3);
     await widget.waitForPlaceholder();
@@ -521,9 +521,9 @@ describe('CustomWidgetsConfig', function () {
     await gu.changeWidgetAccess(AccessLevel.read_table);
     // Widget should receive full records.
     assert.deepEqual(await widget.onRecords(), [
-      {id: 1, A: 'A'},
-      {id: 2, A: 'B'},
-      {id: 3, A: 'C'},
+      { id: 1, A: 'A' },
+      { id: 2, A: 'B' },
+      { id: 3, A: 'C' },
     ]);
     // Now go back to the widget with mappings.
     await gu.setCustomWidget(COLUMN_WIDGET);
@@ -541,8 +541,8 @@ describe('CustomWidgetsConfig', function () {
     await gu.setCustomWidgetUrl(
       createConfigUrl({
         columns: [
-          {name: 'M1', allowMultiple: true, optional: true},
-          {name: 'M2', type: 'Text', allowMultiple: true, optional: true},
+          { name: 'M1', allowMultiple: true, optional: true },
+          { name: 'M2', type: 'Text', allowMultiple: true, optional: true },
         ],
         requiredAccess: 'read table',
       }),
@@ -568,8 +568,8 @@ describe('CustomWidgetsConfig', function () {
     await click(pickerAdd('M1'));
     await clickMenuItem('C');
     await widget.waitForPendingRequests();
-    const empty = {M1: [], M2: []};
-    assert.deepEqual(await widget.onRecordsMappings(), {...empty, M1: ['A', 'B', 'C']});
+    const empty = { M1: [], M2: [] };
+    assert.deepEqual(await widget.onRecordsMappings(), { ...empty, M1: ['A', 'B', 'C'] });
     // Map A and C to M2
     await click(pickerAdd('M2'));
     assert.deepEqual(await getMenuOptions(), ['A', 'C']);
@@ -579,22 +579,22 @@ describe('CustomWidgetsConfig', function () {
     await click(pickerAdd('M2'));
     await clickMenuItem('C');
     await widget.waitForPendingRequests();
-    assert.deepEqual(await widget.onRecordsMappings(), {M1: ['A', 'B', 'C'], M2: ['A', 'C']});
+    assert.deepEqual(await widget.onRecordsMappings(), { M1: ['A', 'B', 'C'], M2: ['A', 'C'] });
     function dragItem(column: string, item: string) {
       return driver.findContent(`.test-config-widget-map-list-for-${column} .kf_draggable`, item);
     }
     // Should support reordering, reorder - move A after C
     await driver.withActions(actions =>
       actions
-        .move({origin: dragItem('M1', 'A')})
-        .move({origin: dragItem('M1', 'A').find('.test-dragger')})
+        .move({ origin: dragItem('M1', 'A') })
+        .move({ origin: dragItem('M1', 'A').find('.test-dragger') })
         .press()
-        .move({origin: dragItem('M1', 'C'), y: 1})
+        .move({ origin: dragItem('M1', 'C'), y: 1 })
         .release(),
     );
     await gu.waitForServer();
     await widget.waitForPendingRequests();
-    assert.deepEqual(await widget.onRecordsMappings(), {M1: ['B', 'C', 'A'], M2: ['A', 'C']});
+    assert.deepEqual(await widget.onRecordsMappings(), { M1: ['B', 'C', 'A'], M2: ['A', 'C'] });
     // Should support removing
     const removeButton = (column: string, item: string) => {
       return dragItem(column, item).mouseMove().find('.test-config-widget-ref-select-remove');
@@ -602,11 +602,11 @@ describe('CustomWidgetsConfig', function () {
     await removeButton('M1', 'B').click();
     await gu.waitForServer();
     await widget.waitForPendingRequests();
-    assert.deepEqual(await widget.onRecordsMappings(), {M1: ['C', 'A'], M2: ['A', 'C']});
+    assert.deepEqual(await widget.onRecordsMappings(), { M1: ['C', 'A'], M2: ['A', 'C'] });
     // Should undo removing
     await gu.undo();
     await widget.waitForPendingRequests();
-    assert.deepEqual(await widget.onRecordsMappings(), {M1: ['B', 'C', 'A'], M2: ['A', 'C']});
+    assert.deepEqual(await widget.onRecordsMappings(), { M1: ['B', 'C', 'A'], M2: ['A', 'C'] });
     await removeButton('M1', 'B').click();
     await gu.waitForServer();
     await removeButton('M1', 'C').click();
@@ -614,7 +614,7 @@ describe('CustomWidgetsConfig', function () {
     await removeButton('M2', 'C').click();
     await gu.waitForServer();
     await widget.waitForPendingRequests();
-    assert.deepEqual(await widget.onRecordsMappings(), {M1: ['A'], M2: ['A']});
+    assert.deepEqual(await widget.onRecordsMappings(), { M1: ['A'], M2: ['A'] });
     await revert();
   });
 
@@ -623,8 +623,8 @@ describe('CustomWidgetsConfig', function () {
     await gu.setCustomWidgetUrl(
       createConfigUrl({
         columns: [
-          {name: 'M1', type: 'Date,DateTime', optional: true},
-          {name: 'M2', type: 'Date, DateTime ', allowMultiple: true, optional: true},
+          { name: 'M1', type: 'Date,DateTime', optional: true },
+          { name: 'M2', type: 'Date, DateTime ', allowMultiple: true, optional: true },
         ],
         requiredAccess: 'read table',
       }),
@@ -633,12 +633,12 @@ describe('CustomWidgetsConfig', function () {
     await gu.acceptAccessRequest();
     // Add B=Date, C=DateTime, D=Numeric
     await gu.sendActions([
-      ['AddVisibleColumn', 'Table1', 'B', {type: 'Any'}],
-      ['AddVisibleColumn', 'Table1', 'C', {type: 'Date'}],
-      ['AddVisibleColumn', 'Table1', 'D', {type: 'DateTime'}],
-      ['AddVisibleColumn', 'Table1', 'E', {type: 'Numeric'}],
+      ['AddVisibleColumn', 'Table1', 'B', { type: 'Any' }],
+      ['AddVisibleColumn', 'Table1', 'C', { type: 'Date' }],
+      ['AddVisibleColumn', 'Table1', 'D', { type: 'DateTime' }],
+      ['AddVisibleColumn', 'Table1', 'E', { type: 'Numeric' }],
       // Add sample record.
-      ['UpdateRecord', 'Table1', 1, {C: '2019-01-01', D: '2019-01-01 12:00', E: 1}],
+      ['UpdateRecord', 'Table1', 1, { C: '2019-01-01', D: '2019-01-01 12:00', E: 1 }],
     ]);
 
     await gu.selectSectionByTitle('Widget');
@@ -651,28 +651,28 @@ describe('CustomWidgetsConfig', function () {
     // Make sure they work. First select C.
     await clickOption('B');
     // Make sure onRecord and onRecordMappings looks legit.
-    assert.deepEqual(await widget.onRecord(), {id: 1, B: null});
-    assert.deepEqual(await widget.onRecordMappings(), {M1: 'B', M2: []});
+    assert.deepEqual(await widget.onRecord(), { id: 1, B: null });
+    assert.deepEqual(await widget.onRecordMappings(), { M1: 'B', M2: [] });
     // Now select C.
     await toggleDrop(pickerDrop('M1'));
     await clickOption('C');
-    assert.deepEqual(await widget.onRecord(), {id: 1, C: '2019-01-01T00:00:00.000Z'});
-    assert.deepEqual(await widget.onRecordMappings(), {M1: 'C', M2: []});
+    assert.deepEqual(await widget.onRecord(), { id: 1, C: '2019-01-01T00:00:00.000Z' });
+    assert.deepEqual(await widget.onRecordMappings(), { M1: 'C', M2: [] });
     // Now select D.
     await toggleDrop(pickerDrop('M1'));
     await clickOption('D');
-    assert.deepEqual(await widget.onRecord(), {id: 1, D: '2019-01-01T17:00:00.000Z'});
-    assert.deepEqual(await widget.onRecordMappings(), {M1: 'D', M2: []});
+    assert.deepEqual(await widget.onRecord(), { id: 1, D: '2019-01-01T17:00:00.000Z' });
+    assert.deepEqual(await widget.onRecordMappings(), { M1: 'D', M2: [] });
 
     // Make sure we can select multiple columns for M2 with Date and DateTime.
     await click(pickerAdd('M2'));
     assert.deepEqual(await getMenuOptions(), ['B', 'C', 'D']);
     await clickMenuItem('B');
 
-    assert.deepEqual(await widget.onRecordMappings(), {M1: 'D', M2: ['B']});
+    assert.deepEqual(await widget.onRecordMappings(), { M1: 'D', M2: ['B'] });
     await click(pickerAdd('M2'));
     await clickMenuItem('C');
-    assert.deepEqual(await widget.onRecordMappings(), {M1: 'D', M2: ['B', 'C']});
+    assert.deepEqual(await widget.onRecordMappings(), { M1: 'D', M2: ['B', 'C'] });
 
     await revert();
   });
@@ -682,10 +682,10 @@ describe('CustomWidgetsConfig', function () {
     await gu.setCustomWidgetUrl(
       createConfigUrl({
         columns: [
-          {name: 'Any', type: 'Any', strictType: true, optional: true},
-          {name: 'Date_Numeric', type: 'Date, Numeric', strictType: true, optional: true},
-          {name: 'Date_Any', type: 'Date, Any', strictType: true, optional: true},
-          {name: 'Date', type: 'Date', strictType: true, optional: true},
+          { name: 'Any', type: 'Any', strictType: true, optional: true },
+          { name: 'Date_Numeric', type: 'Date, Numeric', strictType: true, optional: true },
+          { name: 'Date_Any', type: 'Date, Any', strictType: true, optional: true },
+          { name: 'Date', type: 'Date', strictType: true, optional: true },
         ],
         requiredAccess: 'read table',
       }),
@@ -693,9 +693,9 @@ describe('CustomWidgetsConfig', function () {
     await widget.waitForFrame();
     await gu.acceptAccessRequest();
     await gu.sendActions([
-      ['AddVisibleColumn', 'Table1', 'Any', {type: 'Any'}],
-      ['AddVisibleColumn', 'Table1', 'Date', {type: 'Date'}],
-      ['AddVisibleColumn', 'Table1', 'Numeric', {type: 'Numeric'}],
+      ['AddVisibleColumn', 'Table1', 'Any', { type: 'Any' }],
+      ['AddVisibleColumn', 'Table1', 'Date', { type: 'Date' }],
+      ['AddVisibleColumn', 'Table1', 'Numeric', { type: 'Numeric' }],
     ]);
 
     await gu.selectSectionByTitle('Widget');
@@ -728,7 +728,7 @@ describe('CustomWidgetsConfig', function () {
     await gu.setCustomWidgetUrl(
       createConfigUrl({
         columns: [
-          {name: 'Choice', type: 'Choice', strictType: true, optional: true},
+          { name: 'Choice', type: 'Choice', strictType: true, optional: true },
         ],
         requiredAccess: 'read table',
       }),
@@ -739,10 +739,10 @@ describe('CustomWidgetsConfig', function () {
 
     const widgetOptions = {
       choices: ['A'],
-      choiceOptions: {A: {textColor: 'red'}},
+      choiceOptions: { A: { textColor: 'red' } },
     };
     await gu.sendActions([
-      ['AddVisibleColumn', 'Table1', 'Choice', {type: 'Choice', widgetOptions: JSON.stringify(widgetOptions)}],
+      ['AddVisibleColumn', 'Table1', 'Choice', { type: 'Choice', widgetOptions: JSON.stringify(widgetOptions) }],
     ]);
     await gu.selectSectionByTitle('Widget');
     await widget.waitForPendingRequests();
@@ -758,7 +758,7 @@ describe('CustomWidgetsConfig', function () {
     // Now update options in that one column;
     widgetOptions.choiceOptions.A.textColor = 'blue';
     await gu.sendActions([
-      ['ModifyColumn', 'Table1', 'Choice', {widgetOptions: JSON.stringify(widgetOptions)}],
+      ['ModifyColumn', 'Table1', 'Choice', { widgetOptions: JSON.stringify(widgetOptions) }],
     ]);
 
     await gu.waitToPass(async () => {
@@ -774,7 +774,7 @@ describe('CustomWidgetsConfig', function () {
     // Prepare mappings for single and multiple columns
     await gu.setCustomWidgetUrl(
       createConfigUrl({
-        columns: [{name: 'M1', optional: true}, {name: 'M2', allowMultiple: true, optional: true}],
+        columns: [{ name: 'M1', optional: true }, { name: 'M2', allowMultiple: true, optional: true }],
         requiredAccess: 'read table',
       }),
     );
@@ -798,11 +798,11 @@ describe('CustomWidgetsConfig', function () {
       await clickMenuItem(col);
       await widget.waitForPendingRequests();
     }
-    assert.deepEqual(await widget.onRecordsMappings(), {M1: 'B', M2: ['A', 'B', 'C']});
+    assert.deepEqual(await widget.onRecordsMappings(), { M1: 'B', M2: ['A', 'B', 'C'] });
     assert.deepEqual(await widget.onRecords(), [
-      {id: 1, B: null, A: 'A', C: null},
-      {id: 2, B: null, A: 'B', C: null},
-      {id: 3, B: null, A: 'C', C: null},
+      { id: 1, B: null, A: 'A', C: null },
+      { id: 2, B: null, A: 'B', C: null },
+      { id: 3, B: null, A: 'C', C: null },
     ]);
     const removeColumn = async (col: string) => {
       await gu.selectSectionByTitle('Table');
@@ -815,12 +815,12 @@ describe('CustomWidgetsConfig', function () {
     await removeColumn('B');
     await widget.waitForPendingRequests();
     // Mappings should be updated
-    assert.deepEqual(await widget.onRecordsMappings(), {M1: null, M2: ['A', 'C']});
+    assert.deepEqual(await widget.onRecordsMappings(), { M1: null, M2: ['A', 'C'] });
     // Records should not have B column
     assert.deepEqual(await widget.onRecords(), [
-      {id: 1, A: 'A', C: null},
-      {id: 2, A: 'B', C: null},
-      {id: 3, A: 'C', C: null},
+      { id: 1, A: 'A', C: null },
+      { id: 2, A: 'B', C: null },
+      { id: 3, A: 'C', C: null },
     ]);
     // Should be able to add B once more
 
@@ -830,11 +830,11 @@ describe('CustomWidgetsConfig', function () {
     await gu.selectSectionByTitle('Widget');
     await widget.waitForPendingRequests();
     // Adding the same column should not add it to mappings or records (as this is a new Id)
-    assert.deepEqual(await widget.onRecordsMappings(), {M1: null, M2: ['A', 'C']});
+    assert.deepEqual(await widget.onRecordsMappings(), { M1: null, M2: ['A', 'C'] });
     assert.deepEqual(await widget.onRecords(), [
-      {id: 1, A: 'A', C: null},
-      {id: 2, A: 'B', C: null},
-      {id: 3, A: 'C', C: null},
+      { id: 1, A: 'A', C: null },
+      { id: 2, A: 'B', C: null },
+      { id: 3, A: 'C', C: null },
     ]);
 
     // Add B column as a new one.
@@ -847,11 +847,11 @@ describe('CustomWidgetsConfig', function () {
     assert.deepEqual(await getMenuOptions(), ['B']); // multiple selection will only show not selected columns
     await clickMenuItem('B');
     await widget.waitForPendingRequests();
-    assert.deepEqual(await widget.onRecordsMappings(), {M1: 'B', M2: ['A', 'C', 'B']});
+    assert.deepEqual(await widget.onRecordsMappings(), { M1: 'B', M2: ['A', 'C', 'B'] });
     assert.deepEqual(await widget.onRecords(), [
-      {id: 1, B: null, A: 'A', C: null},
-      {id: 2, B: null, A: 'B', C: null},
-      {id: 3, B: null, A: 'C', C: null},
+      { id: 1, B: null, A: 'A', C: null },
+      { id: 2, B: null, A: 'B', C: null },
+      { id: 3, B: null, A: 'C', C: null },
     ]);
     await revert();
   });
@@ -862,8 +862,8 @@ describe('CustomWidgetsConfig', function () {
     await gu.setCustomWidgetUrl(
       createConfigUrl({
         columns: [
-          {name: 'M1', type: 'Text', optional: true},
-          {name: 'M2', type: 'Text', allowMultiple: true, optional: true},
+          { name: 'M1', type: 'Text', optional: true },
+          { name: 'M2', type: 'Text', allowMultiple: true, optional: true },
         ],
         requiredAccess: 'read table',
       }),
@@ -873,9 +873,9 @@ describe('CustomWidgetsConfig', function () {
     await widget.waitForPendingRequests();
     assert.deepEqual(await widget.onRecordsMappings(), null);
     assert.deepEqual(await widget.onRecords(), [
-      {id: 1, A: 'A'},
-      {id: 2, A: 'B'},
-      {id: 3, A: 'C'},
+      { id: 1, A: 'A' },
+      { id: 2, A: 'B' },
+      { id: 3, A: 'C' },
     ]);
     await toggleDrop(pickerDrop("M1"));
     await clickOption("A");
@@ -883,11 +883,11 @@ describe('CustomWidgetsConfig', function () {
     await clickMenuItem("A");
     assert.equal(await driver.find(pickerDrop("M1")).getText(), "A");
     assert.deepEqual(await getListItems("M2"), ["A"]);
-    assert.deepEqual(await widget.onRecordsMappings(), {M1: 'A', M2: ["A"]});
+    assert.deepEqual(await widget.onRecordsMappings(), { M1: 'A', M2: ["A"] });
     assert.deepEqual(await widget.onRecords(), [
-      {id: 1, A: 'A'},
-      {id: 2, A: 'B'},
-      {id: 3, A: 'C'},
+      { id: 1, A: 'A' },
+      { id: 2, A: 'B' },
+      { id: 3, A: 'C' },
     ]);
     // Change column type to numeric
     await gu.selectSectionByTitle('Table');
@@ -905,11 +905,11 @@ describe('CustomWidgetsConfig', function () {
     assert.isTrue(await driver.find(pickerDrop("M1")).matches(".test-config-widget-disabled"));
     // The same for M2
     assert.isTrue(await driver.find(pickerAdd("M2")).matches(".test-config-widget-disabled"));
-    assert.deepEqual(await widget.onRecordsMappings(), {M1: null, M2: []});
+    assert.deepEqual(await widget.onRecordsMappings(), { M1: null, M2: [] });
     assert.deepEqual(await widget.onRecords(), [
-      {id: 1},
-      {id: 2},
-      {id: 3},
+      { id: 1 },
+      { id: 2 },
+      { id: 3 },
     ]);
     await revert();
   });
@@ -936,7 +936,7 @@ describe('CustomWidgetsConfig', function () {
     await gu.undo();
 
     // Add Custom - no section option by default
-    await gu.addNewSection(/Custom/, /Table1/, {customWidget: /Custom URL/});
+    await gu.addNewSection(/Custom/, /Table1/, { customWidget: /Custom URL/ });
     assert.isFalse(await hasSectionOption());
     await gu.setCustomWidget(TESTER_WIDGET);
     assert.isTrue(await hasSectionOption());
@@ -952,8 +952,8 @@ describe('CustomWidgetsConfig', function () {
     // - Empty not saved: options are cleared but not saved
     // This test test all the available transitions between those four states
 
-    const options = {test: 1} as const;
-    const options2 = {test: 2} as const;
+    const options = { test: 1 } as const;
+    const options2 = { test: 2 } as const;
     // From the start we should be in empty state
     await checkSortMenu('empty');
     // Make modification
@@ -1022,7 +1022,7 @@ describe('CustomWidgetsConfig', function () {
         await gu.changeWidgetAccess(access);
         await widget.waitForFrame();
         // Save config and check if normal widget received new configuration
-        const config = {key: 1} as const;
+        const config = { key: 1 } as const;
         // save options through config,
         await widget.setOptions(config);
         // make sure custom widget got options,
@@ -1041,9 +1041,9 @@ describe('CustomWidgetsConfig', function () {
         // Make sure get options returns null.
         assert.equal(await widget.getOptions(), null);
         // Invoke setOptions, should return undefined (no error).
-        assert.equal(await widget.setOptions({key: 'any'}), null);
+        assert.equal(await widget.setOptions({ key: 'any' }), null);
         // Once again get options, and see if it was saved.
-        assert.deepEqual(await widget.getOptions(), {key: 'any'});
+        assert.deepEqual(await widget.getOptions(), { key: 'any' });
         await widget.clearOptions();
       });
 
@@ -1057,14 +1057,14 @@ describe('CustomWidgetsConfig', function () {
         };
         await set('one', 1);
         await set('two', 2);
-        assert.deepEqual(await widget.getOptions(), {one: 1, two: 2});
-        const json = {n: null, json: {value: [1, {val: 'a', bool: true}]}};
+        assert.deepEqual(await widget.getOptions(), { one: 1, two: 2 });
+        const json = { n: null, json: { value: [1, { val: 'a', bool: true }] } };
         await set('json', json);
         assert.equal(await widget.clearOptions(), undefined);
         assert.equal(await widget.getOptions(), null);
         await set('one', 1);
-        assert.equal(await widget.setOptions({key: 'any'}), undefined);
-        assert.deepEqual(await widget.getOptions(), {key: 'any'});
+        assert.equal(await widget.setOptions({ key: 'any' }), undefined);
+        assert.deepEqual(await widget.getOptions(), { key: 'any' });
         await widget.clearOptions();
       });
 
@@ -1129,7 +1129,7 @@ describe('CustomWidgetsConfig', function () {
 
   it('should pass readonly mode to custom widget', async () => {
     const api = mainSession.createHomeApi();
-    await api.updateDocPermissions(docId, {users: {'support@getgrist.com': 'viewers'}});
+    await api.updateDocPermissions(docId, { users: { 'support@getgrist.com': 'viewers' } });
 
     const viewer = await gu.session().user('support').login();
     await viewer.loadDoc(`/doc/${docId}`);

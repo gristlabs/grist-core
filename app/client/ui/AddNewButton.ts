@@ -1,8 +1,8 @@
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {makeT} from 'app/client/lib/localization';
-import {icon} from 'app/client/ui2018/icons';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {dom, DomElementArg, Observable, styled} from "grainjs";
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { makeT } from 'app/client/lib/localization';
+import { icon } from 'app/client/ui2018/icons';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
+import { dom, DomElementArg, Observable, styled } from "grainjs";
 
 const t = makeT(`AddNewButton`);
 
@@ -22,12 +22,12 @@ export function addNewButton(
     // Setting spacing as flex items allows them to shrink faster when there isn't enough space.
     cssLeftMargin(),
     cssAddText(t("Add new")),
-    dom('div', {style: 'flex: 1 1 16px'}),
+    dom('div', { style: 'flex: 1 1 16px' }),
     cssPlusButton(
       cssPlusButton.cls('-disabled', isDisabled),
       cssPlusIcon('Plus'),
     ),
-    dom('div', {style: 'flex: 0 1 16px'}),
+    dom('div', { style: 'flex: 0 1 16px' }),
     ...args,
   );
 }

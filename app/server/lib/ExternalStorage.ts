@@ -1,8 +1,8 @@
-import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
+import { ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata } from 'app/common/DocSnapshot';
 import log from 'app/server/lib/log';
-import {createTmpDir} from 'app/server/lib/uploads';
+import { createTmpDir } from 'app/server/lib/uploads';
 
-import {delay} from 'bluebird';
+import { delay } from 'bluebird';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import stream from 'node:stream';
@@ -261,7 +261,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
    */
   public async downloadTo(fromKey: string, toKey: string, fname: string, snapshotId?: string) {
     return this._retry('download', async () => {
-      const {tmpDir, cleanupCallback} = await createTmpDir({});
+      const { tmpDir, cleanupCallback } = await createTmpDir({});
       const tmpPath = path.join(tmpDir, `${toKey}-tmp`);  // NOTE: assumes key is file-system safe.
       try {
         const downloadedSnapshotId = await this._ext.download(fromKey, tmpPath, snapshotId);
@@ -291,7 +291,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
 
         // Rename the temporary file to its proper name. The destination should NOT
         // exist in this case, and this should fail if it does.
-        await fse.move(tmpPath, fname, {overwrite: false});
+        await fse.move(tmpPath, fname, { overwrite: false });
         log.info("ext %s download: %s renamed from %s to %s", this.label, fromKey, tmpPath, fname);
         if (fromKey === toKey) {
           // Save last S3 snapshot id observed for this key.
@@ -469,7 +469,7 @@ export function joinKeySegments(keySegments: string[]): string {
  * on appropriate lifecycle rules being set up in the bucket.
  */
 export function getExternalStorageKeyMap(settings: ExternalStorageSettings): (originalKey: string) => string {
-  const {basePrefix, extraPrefix, purpose} = settings;
+  const { basePrefix, extraPrefix, purpose } = settings;
   let fullPrefix = basePrefix + (basePrefix?.endsWith('/') ? '' : '/');
   if (extraPrefix) {
     fullPrefix += extraPrefix + (extraPrefix.endsWith('/') ? '' : '/');

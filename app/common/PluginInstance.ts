@@ -1,12 +1,12 @@
-import {IForwarderDest, IMessage, IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc} from 'grain-rpc';
-import {Checker} from "ts-interface-checker";
+import { IForwarderDest, IMessage, IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc } from 'grain-rpc';
+import { Checker } from "ts-interface-checker";
 
-import {InactivityTimer} from 'app/common/InactivityTimer';
-import {LocalPlugin} from 'app/common/plugin';
-import {BarePlugin} from 'app/plugin/PluginManifest';
+import { InactivityTimer } from 'app/common/InactivityTimer';
+import { LocalPlugin } from 'app/common/plugin';
+import { BarePlugin } from 'app/plugin/PluginManifest';
 
-import {Implementation} from 'app/plugin/PluginManifest';
-import {RenderOptions, RenderTarget} from 'app/plugin/RenderOptions';
+import { Implementation } from 'app/plugin/PluginManifest';
+import { RenderOptions, RenderTarget } from 'app/plugin/RenderOptions';
 
 export type ComponentKind = "safeBrowser" | "safePython" | "unsafeNode";
 
@@ -109,7 +109,7 @@ export class PluginInstance {
 
   constructor(public definition: LocalPlugin, rpcLogger: IRpcLogger) {
 
-    const rpc = this.rpc = new Rpc({logger: rpcLogger});
+    const rpc = this.rpc = new Rpc({ logger: rpcLogger });
     rpc.setSendMessage((mssg: any) => rpc.receiveMessage(mssg));
 
     this._renderTargets.set("fullscreen", renderFullScreen);

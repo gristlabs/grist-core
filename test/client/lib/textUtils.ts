@@ -1,6 +1,6 @@
-import {stripLinks} from 'app/client/lib/markdown';
-import {hashFnv32a, simpleStringHash} from 'app/client/lib/textUtils';
-import {assert} from 'chai';
+import { stripLinks } from 'app/client/lib/markdown';
+import { hashFnv32a, simpleStringHash } from 'app/client/lib/textUtils';
+import { assert } from 'chai';
 
 describe('textUtils', function() {
   it('hashFnv32a should produce correct hashes', function() {

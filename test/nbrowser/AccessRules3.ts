@@ -16,7 +16,7 @@ describe("AccessRules3", function() {
   before(async function() {
     // Import a test document we've set up for this.
     const mainSession = await gu.session().teamSite.user('user1').login();
-    docId = (await mainSession.tempDoc(cleanup, 'ACL-Test.grist', {load: false})).id;
+    docId = (await mainSession.tempDoc(cleanup, 'ACL-Test.grist', { load: false })).id;
 
     // Share it with a few users.
     const api = mainSession.createHomeApi();
@@ -132,7 +132,7 @@ describe("AccessRules3", function() {
 
       fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
-        [{ formula: 'user.Access in [EDITOR]', perm: '-R-U-C-D', res: 'All', memo: 'memo1'},
+        [{ formula: 'user.Access in [EDITOR]', perm: '-R-U-C-D', res: 'All', memo: 'memo1' },
           { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
           { formula: 'Everyone Else', perm: '', res: 'All' }]);
       assert.equal(await hasExtraAdd(fin), false);
@@ -192,7 +192,7 @@ describe("AccessRules3", function() {
       await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
       let fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
-        [{ formula: 'rec.Year == 1', perm: '-R-U-C-D', res: 'All', memo: 'memo1'},
+        [{ formula: 'rec.Year == 1', perm: '-R-U-C-D', res: 'All', memo: 'memo1' },
           { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
           { formula: 'Everyone Else', perm: '', res: 'All' }]);
       assert.equal(await hasExtraAdd(fin), false);

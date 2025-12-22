@@ -1,11 +1,11 @@
 /**
  * Test for copy-pasting from a Grist column into a blank column, which should copy the options.
  */
-import {safeJsonParse} from 'app/common/gutil';
-import {GristObjCode} from 'app/plugin/GristData';
-import {assert} from 'mocha-webdriver';
+import { safeJsonParse } from 'app/common/gutil';
+import { GristObjCode } from 'app/plugin/GristData';
+import { assert } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('CopyPasteColumnOptions', function() {
   this.timeout(20000);
@@ -50,11 +50,11 @@ describe('CopyPasteColumnOptions', function() {
     });
 
     // Copy all the data from Table1 to Table2, which will copy the column options
-    await gu.getCell({section: 'TABLE1', col: 0, rowNum: 1}).click();
+    await gu.getCell({ section: 'TABLE1', col: 0, rowNum: 1 }).click();
     await gu.sendKeys(await gu.selectAllKey());
     await clipboard.lockAndPerform(async (cb) => {
       await cb.copy();
-      await gu.getCell({section: 'TABLE2', col: 0, rowNum: 1}).click();
+      await gu.getCell({ section: 'TABLE2', col: 0, rowNum: 1 }).click();
       await cb.paste();
     });
     await gu.waitForServer();
@@ -75,8 +75,8 @@ describe('CopyPasteColumnOptions', function() {
     const cols1 = ["A", "B", "C", "D", "E", "F", "G"];
     const cols2 = ["A", "B", "C2", "D2", "E", "F", "G"];
     assert.deepEqual(
-      await gu.getVisibleGridCells({cols: cols1, rowNums: [1], section: "TABLE1"}),
-      await gu.getVisibleGridCells({cols: cols2, rowNums: [1], section: "TABLE2"}),
+      await gu.getVisibleGridCells({ cols: cols1, rowNums: [1], section: "TABLE1" }),
+      await gu.getVisibleGridCells({ cols: cols2, rowNums: [1], section: "TABLE2" }),
     );
 
     // Check that the column options are essentially the same in both tables
@@ -156,7 +156,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 5,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "Reference", "alignment": "left", "fillColor": "#FECC81"},
+        "widgetOptions": { "widget": "Reference", "alignment": "left", "fillColor": "#FECC81" },
       }, {
         "id": 5,
         "parentId": 1,
@@ -176,7 +176,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 7,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "Reference", "alignment": "left", "rulesOptions": [], "wrap": true},
+        "widgetOptions": { "widget": "Reference", "alignment": "left", "rulesOptions": [], "wrap": true },
       }, {
         "id": 7,
         "parentId": 1,
@@ -196,7 +196,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "TextBox", "alignment": "left", "choices": ["01/02/03"], "choiceOptions": {}},
+        "widgetOptions": { "widget": "TextBox", "alignment": "left", "choices": ["01/02/03"], "choiceOptions": {} },
       }, {
         "id": 9,
         "parentId": 1,
@@ -211,7 +211,7 @@ describe('CopyPasteColumnOptions', function() {
           "choices": ["01/02/03", "foo"],
           "choiceOptions": {},
           "alignment": "left",
-          "rulesOptions": [{"fillColor": "#BC77FC", "textColor": "#000000"}],  // Not copied into the new table
+          "rulesOptions": [{ "fillColor": "#BC77FC", "textColor": "#000000" }],  // Not copied into the new table
         },
       }, {
         "id": 10,
@@ -222,7 +222,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "TextBox", "alignment": "left", "rulesOptions": []},
+        "widgetOptions": { "widget": "TextBox", "alignment": "left", "rulesOptions": [] },
       },
 
       /////////////////
@@ -277,7 +277,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 22,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "Reference", "alignment": "left", "fillColor": "#FECC81"},
+        "widgetOptions": { "widget": "Reference", "alignment": "left", "fillColor": "#FECC81" },
       }, {
         "id": 17,
         "parentId": 2,
@@ -287,7 +287,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 23,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "Reference", "alignment": "left", "wrap": true},
+        "widgetOptions": { "widget": "Reference", "alignment": "left", "wrap": true },
       }, {
         "id": 18,
         "parentId": 2,
@@ -297,7 +297,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "TextBox", "alignment": "left", "choices": ["01/02/03"], "choiceOptions": {}},
+        "widgetOptions": { "widget": "TextBox", "alignment": "left", "choices": ["01/02/03"], "choiceOptions": {} },
       }, {
         "id": 19,
         "parentId": 2,
@@ -307,7 +307,7 @@ describe('CopyPasteColumnOptions', function() {
         "displayCol": 0,
         "rules": null,
         "formula": "",
-        "widgetOptions": {"widget": "TextBox", "choices": ["01/02/03", "foo"], "choiceOptions": {}, "alignment": "left"},
+        "widgetOptions": { "widget": "TextBox", "choices": ["01/02/03", "foo"], "choiceOptions": {}, "alignment": "left" },
       }, {
         // Actual difference: the original 'G' is a Text column, so in the new column the type was guessed as Date
         "id": 20,

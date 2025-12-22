@@ -1,7 +1,7 @@
-import {DocAPI, UserAPI} from 'app/common/UserAPI';
-import {assert, Key} from 'mocha-webdriver';
+import { DocAPI, UserAPI } from 'app/common/UserAPI';
+import { assert, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('Choice', function() {
   this.timeout(20000);
@@ -33,22 +33,22 @@ describe('Choice', function() {
       }],
     ]);
     assert.deepEqual(await docApi.getRecords('Table1'), [
-      {id: 1, fields: {A: '', C: null, B: null}},
-      {id: 2, fields: {A: '', C: null, B: null}},
-      {id: 3, fields: {A: '', C: null, B: null}},
+      { id: 1, fields: { A: '', C: null, B: null } },
+      { id: 2, fields: { A: '', C: null, B: null } },
+      { id: 3, fields: { A: '', C: null, B: null } },
     ]);
 
     // Start editing a cell in column A and click away to close the editor.
-    await gu.getCell({rowNum: 1, col: 'A'}).click();
+    await gu.getCell({ rowNum: 1, col: 'A' }).click();
     await gu.sendKeys(Key.ENTER);
-    await gu.getCell({rowNum: 1, col: 'C'}).click();
+    await gu.getCell({ rowNum: 1, col: 'C' }).click();
     await gu.waitForServer();
 
     // Check that the values in column A are unchanged.
     assert.deepEqual(await docApi.getRecords('Table1'), [
-      {id: 1, fields: {A: '', C: null, B: null}},
-      {id: 2, fields: {A: '', C: null, B: null}},
-      {id: 3, fields: {A: '', C: null, B: null}},
+      { id: 1, fields: { A: '', C: null, B: null } },
+      { id: 2, fields: { A: '', C: null, B: null } },
+      { id: 3, fields: { A: '', C: null, B: null } },
     ]);
   });
 });

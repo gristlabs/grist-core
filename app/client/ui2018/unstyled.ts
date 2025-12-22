@@ -3,7 +3,7 @@
  *
  * Useful to easily build semantic content without having to deal with removing styles all the time.
  */
-import {styled} from "grainjs";
+import { styled } from "grainjs";
 
 const base = `
   margin: 0;

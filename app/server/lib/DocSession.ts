@@ -1,10 +1,10 @@
-import {BrowserSettings} from 'app/common/BrowserSettings';
-import {decodeLinkParameters} from 'app/common/gristUrls';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {RequestWithLogin} from 'app/server/lib/Authorizer';
-import {AuthSession} from 'app/server/lib/AuthSession';
-import {Client} from 'app/server/lib/Client';
-import type {DocAuthorizer} from 'app/server/lib/DocAuthorizer';
+import { BrowserSettings } from 'app/common/BrowserSettings';
+import { decodeLinkParameters } from 'app/common/gristUrls';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { RequestWithLogin } from 'app/server/lib/Authorizer';
+import { AuthSession } from 'app/server/lib/AuthSession';
+import { Client } from 'app/server/lib/Client';
+import type { DocAuthorizer } from 'app/server/lib/DocAuthorizer';
 
 /**
  * OptDocSession allows for certain ActiveDoc operations to work with or without an open document.
@@ -65,7 +65,7 @@ export class OptDocSession extends AuthSession {
 }
 
 export function makeOptDocSession(client: Client|null): OptDocSession {
-  return new OptDocSession({client});
+  return new OptDocSession({ client });
 }
 
 /**
@@ -75,9 +75,9 @@ export function makeOptDocSession(client: Client|null): OptDocSession {
  *  - system: user is treated as owner (because of some operation bypassing access control)
  */
 export function makeExceptionalDocSession(mode: 'nascent'|'plugin'|'system'|'share',
-  options: {client?: Client,
+  options: { client?: Client,
     req?: RequestWithLogin,
-    browserSettings?: BrowserSettings} = {}): OptDocSession {
+    browserSettings?: BrowserSettings } = {}): OptDocSession {
   const docSession = new OptDocSession(options);
   docSession.mode = mode;
   return docSession;
@@ -88,7 +88,7 @@ export function makeExceptionalDocSession(mode: 'nascent'|'plugin'|'system'|'sha
  * middleware.
  */
 export function docSessionFromRequest(req: RequestWithLogin): OptDocSession {
-  return new OptDocSession({req});
+  return new OptDocSession({ req });
 }
 
 /**
@@ -102,7 +102,7 @@ export class DocSessionPrecursor extends OptDocSession {
   constructor(client: Client, authorizer: DocAuthorizer, options: {
     linkParameters?: Record<string, string>,
   }) {
-    super({...options, client});
+    super({ ...options, client });
     this.client = client;
     this.authorizer = authorizer;
   }
@@ -117,7 +117,7 @@ export class DocSession extends DocSessionPrecursor {
   public readonly fd: number;
 
   constructor(ds: DocSessionPrecursor, activeDoc: ActiveDoc, fd: number) {
-    super(ds.client, ds.authorizer, {linkParameters: ds.linkParameters});
+    super(ds.client, ds.authorizer, { linkParameters: ds.linkParameters });
     this.activeDoc = activeDoc;
     this.fd = fd;
   }

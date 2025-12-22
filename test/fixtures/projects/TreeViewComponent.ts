@@ -64,25 +64,25 @@ function setupTest() {
   return [
     testBox(
       dom.style('width', '224px'),
-      dom.create(TreeViewComponent, treeModel, {expanderDelay: 1100, isOpen, dragStartDelay: 500, selected, isReadonly}),
+      dom.create(TreeViewComponent, treeModel, { expanderDelay: 1100, isOpen, dragStartDelay: 500, selected, isReadonly }),
     ),
     testBox(
       dom.style('float', 'right'),
-      dom('input.insert', {type: 'button', value: 'top insert'},
+      dom('input.insert', { type: 'button', value: 'top insert' },
         dom.on('click', () => treeModel.get().children().push(treeItem('New Page'))),
       ),
-      dom('input.subInsert', {type: 'button', value: 'sub insert'},
+      dom('input.subInsert', { type: 'button', value: 'sub insert' },
         dom.on('click', () => subFolderChildren().push(treeItem('New Page 5'))),
       ),
-      dom('input.clearLogs', {type: 'button', value: 'clear calls'},
+      dom('input.clearLogs', { type: 'button', value: 'clear calls' },
         dom.on('click', () => {
           modelCalls.set([]);
           disposed.set([]);
         }),
       ),
-      dom('input.reset', {type: 'button', value: 'reset'},
+      dom('input.reset', { type: 'button', value: 'reset' },
         dom.on('click', () => treeModel.set(buildTreeModel()))),
-      dom('input.move', {type: 'button', value: 'move'},
+      dom('input.move', { type: 'button', value: 'move' },
         dom.on('click', () => {
           const src = treeModel.get().children().get()[0];
           const dest = treeModel.get();
@@ -92,11 +92,11 @@ function setupTest() {
           // insertBefore
           dest.children().splice(2, 0, item as any);
         })),
-      dom('input.remove', {type: 'button', value: 'remove'},
+      dom('input.remove', { type: 'button', value: 'remove' },
         dom.on('click', () => {
           treeModel.get().children().splice(0, 1);
         })),
-      dom('input.removePage4', {type: 'button', value: 'remove Page4'},
+      dom('input.removePage4', { type: 'button', value: 'remove Page4' },
         dom.on('click', () => {
           const page1 = treeModel.get().children().get()[0];
           const page3 = page1.children()!.get()[1];
@@ -109,7 +109,7 @@ function setupTest() {
       dom(
         'div',
         dom(
-          'input.isOpen', {type: 'checkbox', value: 'isOpen', checked: true},
+          'input.isOpen', { type: 'checkbox', value: 'isOpen', checked: true },
           dom.on('click', () => isOpen.set(!isOpen.get())),
         ),
         'isOpen option',
@@ -117,7 +117,7 @@ function setupTest() {
       dom(
         'div',
         dom(
-          'input.isReadonly', {type: 'checkbox', value: 'isReadonly', checked: false},
+          'input.isReadonly', { type: 'checkbox', value: 'isReadonly', checked: false },
           dom.on('click', () => isReadonly.set(!isReadonly.get())),
         ),
         'readonly mode',

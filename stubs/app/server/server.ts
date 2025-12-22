@@ -4,9 +4,9 @@
  * By default, starts up on port 8484.
  */
 
-import {commonUrls} from 'app/common/gristUrls';
-import {isAffirmative} from 'app/common/gutil';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import { commonUrls } from 'app/common/gristUrls';
+import { isAffirmative } from 'app/common/gutil';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 
 const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
 
@@ -34,10 +34,10 @@ if (!process.env.GRIST_SINGLE_ORG) {
 setDefaultEnv('GRIST_UI_FEATURES',
   'helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,createSite,supportGrist,themes');
 setDefaultEnv('GRIST_WIDGET_LIST_URL', commonUrls.gristLabsWidgetRepository);
-import {updateDb} from 'app/server/lib/dbUtils';
-import {MergedServer, parseServerTypes} from 'app/server/MergedServer';
+import { updateDb } from 'app/server/lib/dbUtils';
+import { MergedServer, parseServerTypes } from 'app/server/MergedServer';
 import * as fse from 'fs-extra';
-import {runPrometheusExporter} from 'app/server/prometheus-exporter';
+import { runPrometheusExporter } from 'app/server/prometheus-exporter';
 
 const G = {
   port: parseInt(process.env.PORT!, 10) || 8484,
@@ -54,7 +54,7 @@ async function setupDb() {
   // Make a blank db if needed.
   if (process.env.TEST_CLEAN_DATABASE) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const {createInitialDb} = require('test/gen-server/seed');
+    const { createInitialDb } = require('test/gen-server/seed');
     await createInitialDb();
   }
   else {
@@ -62,7 +62,7 @@ async function setupDb() {
   }
   const db = new HomeDBManager();
   await db.connect();
-  await db.initializeSpecialIds({skipWorkspaces: true});
+  await db.initializeSpecialIds({ skipWorkspaces: true });
 
   // If a team/organization is specified, make sure it exists.
   const org = process.env.GRIST_SINGLE_ORG;
@@ -81,8 +81,8 @@ async function setupDb() {
       if (!email) {
         throw new Error('need GRIST_DEFAULT_EMAIL to create site');
       }
-      const profile = {email, name: email};
-      const user = await db.getUserByLogin(email, {profile});
+      const profile = { email, name: email };
+      const user = await db.getUserByLogin(email, { profile });
       db.unwrapQueryResult(await db.addOrg(user, {
         name: org,
         domain: org,

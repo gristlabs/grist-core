@@ -6,9 +6,9 @@
  * class should support freezing of row positions until the user chooses to re-sort. This is not
  * currently implemented.
  */
-import {ColumnGetter, ColumnGetters} from 'app/common/ColumnGetters';
-import {localeCompare, nativeCompare} from 'app/common/gutil';
-import {Sort} from 'app/common/SortSpec';
+import { ColumnGetter, ColumnGetters } from 'app/common/ColumnGetters';
+import { localeCompare, nativeCompare } from 'app/common/gutil';
+import { Sort } from 'app/common/SortSpec';
 
 // Function that will amend column getter to return entry index instead
 // of entry value. Result will be a string padded with zeros, so the ordering
@@ -27,7 +27,7 @@ type Comparator = (val1: any, val2: any) => number;
  * Natural comparator based on built in method.
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
  */
-const collator = new Intl.Collator(undefined, {numeric: true});
+const collator = new Intl.Collator(undefined, { numeric: true });
 export function naturalCompare(val1: any, val2: any) {
   if (typeof val1 === 'string' && typeof val2 === 'string') {
     return collator.compare(val1, val2);
@@ -164,7 +164,7 @@ export class SortFunc {
  * Example:
  * const sorted = rows.sort(orderBy(row => row.name));
  */
-export function orderBy<T>(keyFunc: (row: T) => any, options: {desc?: boolean} = {desc: false}) {
+export function orderBy<T>(keyFunc: (row: T) => any, options: { desc?: boolean } = { desc: false }) {
   return function (a: T, b: T) {
     const val1 = keyFunc(a);
     const val2 = keyFunc(b);

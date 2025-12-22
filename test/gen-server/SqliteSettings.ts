@@ -1,9 +1,9 @@
-import {UserAPI} from 'app/common/UserAPI';
-import {assert} from 'chai';
+import { UserAPI } from 'app/common/UserAPI';
+import { assert } from 'chai';
 import * as fse from 'fs-extra';
-import {TestServer} from 'test/gen-server/apiUtils';
+import { TestServer } from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
-import {EnvironmentSnapshot} from 'test/server/testUtils';
+import { EnvironmentSnapshot } from 'test/server/testUtils';
 
 describe('SqliteSettings', function() {
   this.timeout(60000);
@@ -40,8 +40,8 @@ describe('SqliteSettings', function() {
         });
 
         it('has expected files', async function() {
-          const wsId = await api.newWorkspace({name: 'test'}, 'current');
-          const docId = await api.newDoc({name: 'test'}, wsId);
+          const wsId = await api.newWorkspace({ name: 'test' }, 'current');
+          const docId = await api.newDoc({ name: 'test' }, wsId);
           await api.getDocAPI(docId).addRows('Table1', {
             A: ['test1', 'test2'],
           });
@@ -55,8 +55,8 @@ describe('SqliteSettings', function() {
         });
 
         it('forks correctly', async function() {
-          const wsId = await api.newWorkspace({name: 'test'}, 'current');
-          const docId = await api.newDoc({name: 'test'}, wsId);
+          const wsId = await api.newWorkspace({ name: 'test' }, 'current');
+          const docId = await api.newDoc({ name: 'test' }, wsId);
           await api.getDocAPI(docId).addRows('Table1', {
             A: ['test1', 'test2'],
           });
@@ -77,8 +77,8 @@ describe('SqliteSettings', function() {
         });
 
         it('copies correctly', async function() {
-          const wsId = await api.newWorkspace({name: 'test'}, 'current');
-          const docId = await api.newDoc({name: 'test'}, wsId);
+          const wsId = await api.newWorkspace({ name: 'test' }, 'current');
+          const docId = await api.newDoc({ name: 'test' }, wsId);
           await api.getDocAPI(docId).addRows('Table1', {
             A: ['test1', 'test2'],
           });

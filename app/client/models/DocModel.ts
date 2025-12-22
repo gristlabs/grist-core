@@ -9,8 +9,8 @@
  * (4) RowModels (defined in {Data,Meta}TableModel.js) maintains data for one record in a table.
  *     For built-in tables, the records are defined in this module, below.
  */
-import {KoArray} from 'app/client/lib/koArray';
-import {KoSaveableObservable} from 'app/client/models/modelUtil';
+import { KoArray } from 'app/client/lib/koArray';
+import { KoSaveableObservable } from 'app/client/models/modelUtil';
 
 import * as ko from 'knockout';
 import memoize from 'lodash/memoize';
@@ -18,40 +18,40 @@ import memoize from 'lodash/memoize';
 import * as koArray from 'app/client/lib/koArray';
 import * as koUtil from 'app/client/lib/koUtil';
 import DataTableModel from 'app/client/models/DataTableModel';
-import {DocData} from 'app/client/models/DocData';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {urlState} from 'app/client/models/gristUrlState';
+import { DocData } from 'app/client/models/DocData';
+import { DocPageModel } from 'app/client/models/DocPageModel';
+import { urlState } from 'app/client/models/gristUrlState';
 import MetaRowModel from 'app/client/models/MetaRowModel';
 import MetaTableModel from 'app/client/models/MetaTableModel';
 import * as rowset from 'app/client/models/rowset';
-import {TableData} from 'app/client/models/TableData';
-import {isHiddenTable, isSummaryTable} from 'app/common/isHiddenTable';
-import {canEdit} from 'app/common/roles';
-import {RowFilterFunc} from 'app/common/RowFilterFunc';
-import {schema, SchemaTypes} from 'app/common/schema';
-import {ACLRuleRec, createACLRuleRec} from 'app/client/models/entities/ACLRuleRec';
-import {ColumnRec, createColumnRec} from 'app/client/models/entities/ColumnRec';
-import {createDocInfoRec, DocInfoRec} from 'app/client/models/entities/DocInfoRec';
-import {createFilterRec, FilterRec} from 'app/client/models/entities/FilterRec';
-import {createPageRec, PageRec} from 'app/client/models/entities/PageRec';
-import {createShareRec, ShareRec} from 'app/client/models/entities/ShareRec';
-import {createTabBarRec, TabBarRec} from 'app/client/models/entities/TabBarRec';
-import {createTableRec, TableRec} from 'app/client/models/entities/TableRec';
-import {createValidationRec, ValidationRec} from 'app/client/models/entities/ValidationRec';
-import {createViewFieldRec, ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {createViewRec, ViewRec} from 'app/client/models/entities/ViewRec';
-import {createViewSectionRec, ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
-import {CellRec, createCellRec} from 'app/client/models/entities/CellRec';
-import {isRefListType, RecalcWhen, RefListValue} from 'app/common/gristTypes';
-import {decodeObject} from 'app/plugin/objtypes';
-import {Disposable, toKo} from 'grainjs';
-import {UIRowId} from 'app/plugin/GristAPI';
-import {isNonNullish} from 'app/common/gutil';
+import { TableData } from 'app/client/models/TableData';
+import { isHiddenTable, isSummaryTable } from 'app/common/isHiddenTable';
+import { canEdit } from 'app/common/roles';
+import { RowFilterFunc } from 'app/common/RowFilterFunc';
+import { schema, SchemaTypes } from 'app/common/schema';
+import { ACLRuleRec, createACLRuleRec } from 'app/client/models/entities/ACLRuleRec';
+import { ColumnRec, createColumnRec } from 'app/client/models/entities/ColumnRec';
+import { createDocInfoRec, DocInfoRec } from 'app/client/models/entities/DocInfoRec';
+import { createFilterRec, FilterRec } from 'app/client/models/entities/FilterRec';
+import { createPageRec, PageRec } from 'app/client/models/entities/PageRec';
+import { createShareRec, ShareRec } from 'app/client/models/entities/ShareRec';
+import { createTabBarRec, TabBarRec } from 'app/client/models/entities/TabBarRec';
+import { createTableRec, TableRec } from 'app/client/models/entities/TableRec';
+import { createValidationRec, ValidationRec } from 'app/client/models/entities/ValidationRec';
+import { createViewFieldRec, ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { createViewRec, ViewRec } from 'app/client/models/entities/ViewRec';
+import { createViewSectionRec, ViewSectionRec } from 'app/client/models/entities/ViewSectionRec';
+import { CellRec, createCellRec } from 'app/client/models/entities/CellRec';
+import { isRefListType, RecalcWhen, RefListValue } from 'app/common/gristTypes';
+import { decodeObject } from 'app/plugin/objtypes';
+import { Disposable, toKo } from 'grainjs';
+import { UIRowId } from 'app/plugin/GristAPI';
+import { isNonNullish } from 'app/common/gutil';
 
 // Re-export all the entity types available. The recommended usage is like this:
 //    import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
-export type {ColumnRec, DocInfoRec, FilterRec, PageRec, TabBarRec, TableRec, ValidationRec,
-  ViewFieldRec, ViewRec, ViewSectionRec, CellRec};
+export type { ColumnRec, DocInfoRec, FilterRec, PageRec, TabBarRec, TableRec, ValidationRec,
+  ViewFieldRec, ViewRec, ViewSectionRec, CellRec };
 
 /**
  * Creates the type for a MetaRowModel containing a KoSaveableObservable for each field listed in
@@ -73,10 +73,10 @@ export type IRowModel<TName extends keyof SchemaTypes> = MetaRowModel<TName> & {
  *    returned array will be sorted by rowId.
  */
 export function recordSet<TRow extends MetaRowModel>(
-  rowModel: MetaRowModel, tableModel: MetaTableModel<TRow>, groupByField: string, options?: {sortBy: string},
+  rowModel: MetaRowModel, tableModel: MetaTableModel<TRow>, groupByField: string, options?: { sortBy: string },
 ): ko.Computed<KoArray<TRow>> {
 
-  const opts = {groupBy: groupByField, sortBy: 'id', ...options};
+  const opts = { groupBy: groupByField, sortBy: 'id', ...options };
   return koUtil.computedAutoDispose(() => {
     const id = rowModel.id();
     return id ? tableModel.createRowGroupModel(id, opts) : new KoArray();
@@ -143,7 +143,7 @@ export class DocModel extends Disposable {
   public visibleTableIds: KoArray<string>;
 
   // A mapping from tableId to DataTableModel for user-defined tables.
-  public dataTables: {[tableId: string]: DataTableModel} = {};
+  public dataTables: { [tableId: string]: DataTableModel } = {};
 
   // Another map, this one mapping tableRef (rowId) to DataTableModel.
   public dataTablesByRef = new Map<number, DataTableModel>();
@@ -289,7 +289,7 @@ export class DocModel extends Disposable {
   }
 
   // Turn the given columns into empty columns, losing any data stored in them.
-  public async clearColumns(colRefs: number[], {keepType}: { keepType?: boolean } = {}): Promise<void> {
+  public async clearColumns(colRefs: number[], { keepType}: { keepType?: boolean } = {}): Promise<void> {
     await this.columns.sendTableAction(
       ['BulkUpdateRecord', colRefs, {
         isFormula: colRefs.map(f => true),

@@ -1,7 +1,7 @@
-import {assert, driver, Key} from 'mocha-webdriver';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {Session} from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { Session } from 'test/nbrowser/gristUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
 describe('TwoWayReference', function() {
@@ -24,17 +24,17 @@ describe('TwoWayReference', function() {
   async function petsSetup() {
     await gu.sendActions([
       ['RenameColumn', 'Table1', 'A', 'Name'],
-      ['ModifyColumn', 'Table1', 'Name', {label: 'Name'}],
+      ['ModifyColumn', 'Table1', 'Name', { label: 'Name' }],
       ['RemoveColumn', 'Table1', 'B'],
       ['RemoveColumn', 'Table1', 'C'],
       ['RenameTable', 'Table1', 'Owners'],
       ['AddTable', 'Pets', [
-        {id: 'Name', type: 'Text'},
-        {id: 'Owner', type: 'Ref:Owners'},
+        { id: 'Name', type: 'Text' },
+        { id: 'Owner', type: 'Ref:Owners' },
       ]],
-      ['AddRecord', 'Owners', -1, {Name: 'Alice'}],
-      ['AddRecord', 'Owners', -2, {Name: 'Bob'}],
-      ['AddRecord', 'Pets', null, {Name: 'Rex', Owner: -2}],
+      ['AddRecord', 'Owners', -1, { Name: 'Alice' }],
+      ['AddRecord', 'Owners', -2, { Name: 'Bob' }],
+      ['AddRecord', 'Pets', null, { Name: 'Rex', Owner: -2 }],
     ]);
     await gu.addNewSection('Table', 'Pets');
     await gu.openColumnPanel('Owner');
@@ -74,7 +74,7 @@ describe('TwoWayReference', function() {
 
     // Now add another Ref:Owners column to Pets table.
     await gu.sendActions([
-      ['AddVisibleColumn', 'Pets', 'Friend', {type: 'Ref:Owners'}],
+      ['AddVisibleColumn', 'Pets', 'Friend', { type: 'Ref:Owners' }],
     ]);
     await gu.selectColumn('Friend');
     await gu.setRefShowColumn('Name');
@@ -121,9 +121,9 @@ describe('TwoWayReference', function() {
 
     // Add two more dogs and move all of them to Alice
     await gu.sendActions([
-      ['AddRecord', 'Pets', null, {Name: 'Pluto', Owner: 1}],
-      ['AddRecord', 'Pets', null, {Name: 'Azor', Owner: 1}],
-      ['UpdateRecord', 'Pets', 1, {Owner: 1}],
+      ['AddRecord', 'Pets', null, { Name: 'Pluto', Owner: 1 }],
+      ['AddRecord', 'Pets', null, { Name: 'Azor', Owner: 1 }],
+      ['UpdateRecord', 'Pets', 1, { Owner: 1 }],
     ]);
 
     // Now reasign Azor to Bob using Owners table.
@@ -177,8 +177,8 @@ describe('TwoWayReference', function() {
 
     await gu.selectSectionByTitle('Owners');
     await gu.openColumnPanel('Pets');
-    await gu.setType('Reference', {apply: true});
-    await gu.setType('Reference List', {apply: true});
+    await gu.setType('Reference', { apply: true });
+    await gu.setType('Reference List', { apply: true });
 
     await gu.selectSectionByTitle('Pets');
     await gu.getCell('Owner', 1).click();
@@ -307,7 +307,7 @@ describe('TwoWayReference', function() {
     ]);
 
     // Now remove connection using Owner column.
-    await gu.sendActions([['ModifyColumn', 'Pets', 'Owner', {reverseCol: 0}]]);
+    await gu.sendActions([['ModifyColumn', 'Pets', 'Owner', { reverseCol: 0 }]]);
     await gu.checkForErrors();
 
     // And check that after moving Rex to Bob, it's not shown in the Owners table.
@@ -366,10 +366,10 @@ describe('TwoWayReference', function() {
       ['AddTable', 'Projects', []],
       ['AddTable', 'People', []],
 
-      ['AddVisibleColumn', 'Projects', 'Name', {type: 'Text'}],
-      ['AddVisibleColumn', 'Projects', 'Owner', {type: 'Ref:People'}],
+      ['AddVisibleColumn', 'Projects', 'Name', { type: 'Text' }],
+      ['AddVisibleColumn', 'Projects', 'Owner', { type: 'Ref:People' }],
 
-      ['AddVisibleColumn', 'People', 'Name', {type: 'Text'}],
+      ['AddVisibleColumn', 'People', 'Name', { type: 'Text' }],
     ]);
     await gu.addNewPage('Table', 'Projects');
     await gu.addNewSection('Table', 'People');
@@ -537,13 +537,13 @@ describe('TwoWayReference', function() {
 
     // Add two projects.
     await gu.sendActions([
-      ['AddRecord', 'Projects', null, {Name: 'Apps'}],
-      ['AddRecord', 'Projects', null, {Name: 'Backend'}],
+      ['AddRecord', 'Projects', null, { Name: 'Apps' }],
+      ['AddRecord', 'Projects', null, { Name: 'Backend' }],
     ]);
     // Add two people.
     await gu.sendActions([
-      ['AddRecord', 'People', null, {Name: 'Alice'}],
-      ['AddRecord', 'People', null, {Name: 'Bob'}],
+      ['AddRecord', 'People', null, { Name: 'Alice' }],
+      ['AddRecord', 'People', null, { Name: 'Bob' }],
     ]);
 
     // Now assign Bob to Backend and Alice to Apps.
@@ -665,8 +665,8 @@ describe('TwoWayReference', function() {
     await gu.setRefTable('Tasks');
     await gu.setRefShowColumn('Name');
     await gu.sendActions([
-      ['AddRecord', 'Tasks', -1, {Name: 'Parent'}],
-      ['AddRecord', 'Tasks', null, {Name: 'Child', Parent: -1}],
+      ['AddRecord', 'Tasks', -1, { Name: 'Parent' }],
+      ['AddRecord', 'Tasks', null, { Name: 'Child', Parent: -1 }],
     ]);
     await gu.openColumnPanel('Parent');
     await addReverseColumn();
@@ -690,13 +690,13 @@ describe('TwoWayReference', function() {
     const revert = await gu.begin();
     await gu.sendActions([
       ['AddTable', 'People', [
-        {id: 'Name', type: 'Text'},
-        {id: 'Supervisor', type: 'Ref:People'},
+        { id: 'Name', type: 'Text' },
+        { id: 'Supervisor', type: 'Ref:People' },
       ]],
-      ['AddRecord', 'People', 1, {Name: 'Alice'}],
-      ['AddRecord', 'People', 4, {Name: 'Bob'}],
-      ['UpdateRecord', 'People', 1, {Supervisor: 4}],
-      ['UpdateRecord', 'People', 3, {Supervisor: 0}],
+      ['AddRecord', 'People', 1, { Name: 'Alice' }],
+      ['AddRecord', 'People', 4, { Name: 'Bob' }],
+      ['UpdateRecord', 'People', 1, { Supervisor: 4 }],
+      ['UpdateRecord', 'People', 3, { Supervisor: 0 }],
     ]);
 
     await gu.toggleSidePanel('left', 'open');
@@ -705,8 +705,8 @@ describe('TwoWayReference', function() {
     await gu.setRefShowColumn('Name');
 
     // Using the convert dialog caused an error, which wasn't raised when doing it manually.
-    await gu.setType('Reference List', {apply: true});
-    await gu.setType('Reference', {apply: true});
+    await gu.setType('Reference List', { apply: true });
+    await gu.setType('Reference', { apply: true });
     await gu.checkForErrors();
 
     await revert();

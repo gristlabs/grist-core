@@ -1,9 +1,9 @@
-import {findLinks} from 'app/client/lib/textUtils';
-import {sameDocumentUrlState, urlState} from 'app/client/models/gristUrlState';
-import {hideInPrintView, testId, theme} from 'app/client/ui2018/cssVars';
-import {cssIconSpanBackground, iconSpan} from 'app/client/ui2018/icons';
-import {useBindable} from 'app/common/gutil';
-import {BindableValue, dom, DomArg, IDomArgs, styled} from 'grainjs';
+import { findLinks } from 'app/client/lib/textUtils';
+import { sameDocumentUrlState, urlState } from 'app/client/models/gristUrlState';
+import { hideInPrintView, testId, theme } from 'app/client/ui2018/cssVars';
+import { cssIconSpanBackground, iconSpan } from 'app/client/ui2018/icons';
+import { useBindable } from 'app/common/gutil';
+import { BindableValue, dom, DomArg, IDomArgs, styled } from 'grainjs';
 
 /**
  * Styling for a simple <A HREF> link.
@@ -92,7 +92,7 @@ export function handleGristLinkClick(ev: MouseEvent, elem: HTMLAnchorElement) {
 export function makeLinks(text: string) {
   try {
     const domElements: DomArg[] = [];
-    for (const {value, isLink} of findLinks(text)) {
+    for (const { value, isLink } of findLinks(text)) {
       if (isLink) {
         domElements.push(gristIconLink(value));
       }

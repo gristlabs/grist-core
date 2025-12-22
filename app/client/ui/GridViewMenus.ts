@@ -1,14 +1,14 @@
-import {allCommands} from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
+import { allCommands } from 'app/client/components/commands';
+import { GristDoc } from 'app/client/components/GristDoc';
 import GridView from 'app/client/components/GridView';
-import {makeT} from 'app/client/lib/localization';
-import {ColumnRec} from "app/client/models/entities/ColumnRec";
-import {buildDateHelpersMenuItems} from 'app/client/ui/GridViewMenusDateHelpers';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
-import {isNarrowScreen, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {IconName} from "app/client/ui2018/IconList";
-import {icon} from 'app/client/ui2018/icons';
+import { makeT } from 'app/client/lib/localization';
+import { ColumnRec } from "app/client/models/entities/ColumnRec";
+import { buildDateHelpersMenuItems } from 'app/client/ui/GridViewMenusDateHelpers';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { withInfoTooltip } from 'app/client/ui/tooltips';
+import { isNarrowScreen, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { IconName } from "app/client/ui2018/IconList";
+import { icon } from 'app/client/ui2018/icons';
 import {
   menuCssClass,
   menuDivider,
@@ -24,9 +24,9 @@ import {
   SearchableMenuItem,
 } from 'app/client/ui2018/menus';
 import * as UserType from "app/client/widgets/UserType";
-import {isFullReferencingType, isListType, RecalcWhen} from "app/common/gristTypes";
-import {Sort} from 'app/common/SortSpec';
-import {dom, DomElementArg, styled} from 'grainjs';
+import { isFullReferencingType, isListType, RecalcWhen } from "app/common/gristTypes";
+import { Sort } from 'app/common/SortSpec';
+import { dom, DomElementArg, styled } from 'grainjs';
 import * as weasel from 'popweasel';
 import * as commands from "app/client/components/commands";
 import isEqual from 'lodash/isEqual';
@@ -58,7 +58,7 @@ export function getColumnTypes(gristDoc: GristDoc, tableId: string, pure = false
     `Ref:${tableId}`,
     `RefList:${tableId}`,
     "Attachments"];
-  return typeNames.map(type => ({type, obj: UserType.typeDefs[type.split(':')[0]]}))
+  return typeNames.map(type => ({ type, obj: UserType.typeDefs[type.split(':')[0]] }))
     .map((ct): {
       displayName: string,
       colType: string,
@@ -85,7 +85,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
   function buildEmptyNewColumMenuItem() {
     return menuItem(
       async () => {
-        await gridView.insertColumn(null, {index});
+        await gridView.insertColumn(null, { index });
       },
       t("Add column"),
       testId('new-columns-menu-add-new'),
@@ -100,12 +100,12 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
         ...columnTypes.map(colType =>
           menuItem(
             async () => {
-              await gridView.insertColumn(null, {index, colInfo: {type: colType.colType}, onPopupClose: () => {
+              await gridView.insertColumn(null, { index, colInfo: { type: colType.colType }, onPopupClose: () => {
                 if (!colType.openCreatorPanel || isNarrowScreen()) { return; }
                 commands.allCommands.fieldTabOpen.run();
                 commands.allCommands.rightPanelOpen.run();
-                commands.allCommands.showPopup.run({popup: "referenceColumnsConfig"});
-              }});
+                commands.allCommands.showPopup.run({ popup: "referenceColumnsConfig" });
+              } });
             },
             menuIcon(colType.icon as IconName),
             colType.displayName === 'Reference'?
@@ -120,7 +120,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
         ),
         testId('new-columns-menu-add-with-type-submenu'),
       ],
-      {allowNothingSelected: false},
+      { allowNothingSelected: false },
       t('Add column with type'),
       testId('new-columns-menu-add-with-type'),
     );
@@ -129,7 +129,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
   function buildNewFunctionColumnMenuItem() {
     return menuItem(
       async () => {
-        await gridView.insertColumn(null, {index, skipPopup: true, colInfo: {isFormula: true}});
+        await gridView.insertColumn(null, { index, skipPopup: true, colInfo: { isFormula: true } });
         gridView.activateEditorAtCursor();
         commands.allCommands.makeFormula.run();
         commands.allCommands.detachEditor.run();
@@ -137,7 +137,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
       withInfoTooltip(
         t('Add formula column'),
         'formulaColumn',
-        {variant: 'hover'},
+        { variant: 'hover' },
       ),
       testId('new-columns-menu-add-formula'),
     );
@@ -151,7 +151,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
 }
 
 function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
-  const {viewSection} = gridView;
+  const { viewSection } = gridView;
   const hiddenColumns = viewSection.hiddenColumns();
   if (hiddenColumns.length === 0) { return null; }
 
@@ -184,10 +184,10 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
                 testId('new-columns-menu-hidden-column-collapsed'),
               ),
             })),
-            {searchInputPlaceholder: t('Search columns')},
+            { searchInputPlaceholder: t('Search columns') },
           );
         },
-        {allowNothingSelected: true},
+        { allowNothingSelected: true },
         t('Hidden Columns'),
         testId('new-columns-menu-hidden-columns-menu'),
       ),
@@ -293,7 +293,7 @@ function buildAuthorshipMenuItems(gridView: GridView, index?: number) {
 }
 
 function buildDetectDuplicatesMenuItems(gridView: GridView, index?: number) {
-  const {viewSection} = gridView;
+  const { viewSection } = gridView;
   return menuItemSubmenu(
     () => searchableMenu(
       viewSection.columns().map((col) => {
@@ -315,10 +315,10 @@ function buildDetectDuplicatesMenuItems(gridView: GridView, index?: number) {
           action: async () => {
             await gridView.gristDoc.docData.bundleActions(t('Adding duplicates column'), async () => {
               const newColInfo = await gridView.insertColumn(
-                t('Duplicate in {{- label}}', {label: col.label()}),
+                t('Duplicate in {{- label}}', { label: col.label() }),
                 {
                   colInfo: {
-                    label: t('Duplicate in {{- label}}', {label: col.label()}),
+                    label: t('Duplicate in {{- label}}', { label: col.label() }),
                     type: 'Bool',
                     isFormula: true,
                     formula: buildFormula(),
@@ -350,13 +350,13 @@ function buildDetectDuplicatesMenuItems(gridView: GridView, index?: number) {
               }
 
               await newRule.formula.setAndSave(`$${newColInfo.colId}`);
-            }, {nestInActiveBundle: true});
+            }, { nestInActiveBundle: true });
           },
         };
       }),
-      {searchInputPlaceholder: t('Search columns')},
+      { searchInputPlaceholder: t('Search columns') },
     ),
-    {allowNothingSelected: true},
+    { allowNothingSelected: true },
     t('Detect duplicates in...'),
     testId('new-columns-menu-shortcuts-duplicates'),
   );
@@ -367,7 +367,7 @@ function buildUUIDMenuItem(gridView: GridView, index?: number) {
     async () => {
       await gridView.gristDoc.docData.bundleActions(t('Adding UUID column'), async () => {
         // First create a formula column so that UUIDs are computed for existing cells.
-        const {colRef} = await gridView.insertColumn(t('UUID'), {
+        const { colRef } = await gridView.insertColumn(t('UUID'), {
           colInfo: {
             label: t('UUID'),
             type: 'Text',
@@ -384,12 +384,12 @@ function buildUUIDMenuItem(gridView: GridView, index?: number) {
         //
         // TODO: remove this step and do it as part of the AddColumn action.
         await gridView.gristDoc.docModel.convertToTrigger(colRef, 'UUID()');
-      }, {nestInActiveBundle: true});
+      }, { nestInActiveBundle: true });
     },
     withInfoTooltip(
       t('UUID'),
       'uuid',
-      {variant: 'hover'},
+      { variant: 'hover' },
     ),
     testId('new-columns-menu-shortcuts-uuid'),
   );
@@ -462,7 +462,7 @@ function buildLookupSection(gridView: GridView, index?: number){
 
     function widgetOptions() {
       switch (fun) {
-        case 'percent': return {numMode: 'percent'};
+        case 'percent': return { numMode: 'percent' };
         default: return {};
       }
     }
@@ -570,7 +570,7 @@ function buildLookupSection(gridView: GridView, index?: number){
       }
     }
 
-    const {viewSection} = gridView;
+    const { viewSection } = gridView;
     const columns = viewSection.columns();
     const onlyRefOrRefList = (c: ColumnRec) => c.pureType() === 'Ref' || c.pureType() === 'RefList';
     const references = columns.filter(onlyRefOrRefList);
@@ -582,7 +582,7 @@ function buildLookupSection(gridView: GridView, index?: number){
           searchInputPlaceholder: t('Search columns'),
         },
       ),
-      {allowNothingSelected: true},
+      { allowNothingSelected: true },
       `${ref.refTable()?.tableNameDef()} [${ref.label()}]`,
       testId(`new-columns-menu-lookup-${ref.colId()}`),
       testId(`new-columns-menu-lookup`),
@@ -599,7 +599,7 @@ function buildLookupSection(gridView: GridView, index?: number){
   function buildReverseLookupsMenuItems() {
 
     const getReferencesToThisTable = (): RefTable[] => {
-      const {viewSection} = gridView;
+      const { viewSection } = gridView;
       const otherTables = gridView.gristDoc.docModel.allTables.all().filter(tab =>
         tab.summarySourceTable() === 0 && tab.tableId.peek() !== viewSection.tableId());
       return otherTables.map((tab) => {
@@ -669,10 +669,10 @@ function buildLookupSection(gridView: GridView, index?: number){
         };
       };
       const label = `${tab.tableName} [← ${refCol.label()}]`;
-      const options = {allowNothingSelected: true};
+      const options = { allowNothingSelected: true };
       const submenu = () => {
         const subItems = tab.columns.map(buildSubmenuForRevLookupMenuItem);
-        return searchableMenu(subItems, {searchInputPlaceholder: t('Search columns')});
+        return searchableMenu(subItems, { searchInputPlaceholder: t('Search columns') });
       };
       return menuItemSubmenu(submenu, options, label, testId('new-columns-menu-revlookup'));
     }));
@@ -694,7 +694,7 @@ function buildLookupSection(gridView: GridView, index?: number){
       withInfoTooltip(
         t('Lookups'),
         'lookups',
-        {variant: 'hover'},
+        { variant: 'hover' },
       ),
       testId('new-columns-menu-lookups'),
     ),
@@ -740,11 +740,11 @@ export function buildColumnContextMenu(options: IColumnContextMenu) {
   return [
     !isVirtual ? menuItemCmd(allCommands.fieldTabOpen, t("Column Options")) : null,
     menuItem(filterOpenFunc, t("Filter Data")),
-    menuDivider({style: 'margin-bottom: 0;'}),
+    menuDivider({ style: 'margin-bottom: 0;' }),
     cssRowMenuItem(
       customMenuItem(
         allCommands.sortAsc.run,
-        dom('span', t("Sort"), {style: 'flex: 1  0 auto; margin-right: 8px;'},
+        dom('span', t("Sort"), { style: 'flex: 1  0 auto; margin-right: 8px;' },
           testId('sort-label')),
         icon('Sort', dom.style('transform', 'scaley(-1)')),
         'A-Z',
@@ -781,14 +781,14 @@ export function buildColumnContextMenu(options: IColumnContextMenu) {
         testId('add-to-sort'),
       ),
     ] : null,
-    menuDivider({style: 'margin-bottom: 0; margin-top: 0;'}),
+    menuDivider({ style: 'margin-bottom: 0; margin-top: 0;' }),
     menuItem(
       allCommands.sortFilterTabOpen.run,
       t("More sort options ..."),
       testId('more-sort-options'),
       disabledForVirtual,
     ),
-    menuDivider({style: 'margin-top: 0;'}),
+    menuDivider({ style: 'margin-top: 0;' }),
     menuItemCmd(allCommands.renameField, t("Rename column"), disableForReadonlyColumn),
     freezeMenuItemCmd(options),
     menuDivider(),
@@ -810,10 +810,10 @@ export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
   const disableForReadonlyView = dom.cls('disabled', options.isReadonly);
   const num: number = options.numColumns;
   const nameClearColumns = options.isFiltered ?
-    t('Reset {{count}} entire columns', {count: num}) :
-    t('Reset {{count}} columns', {count: num});
-  const nameDeleteColumns = t('Delete {{count}} columns', {count: num});
-  const nameHideColumns = t('Hide {{count}} columns', {count: num});
+    t('Reset {{count}} entire columns', { count: num }) :
+    t('Reset {{count}} columns', { count: num });
+  const nameDeleteColumns = t('Delete {{count}} columns', { count: num });
+  const nameHideColumns = t('Hide {{count}} columns', { count: num });
   const frozenMenu = options.disableFrozenMenu ? null : freezeMenuItemCmd(options);
   return [
     frozenMenu ? [frozenMenu, menuDivider()]: null,
@@ -881,15 +881,15 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
 
       // if user clicked the first column or a column just after frozen set
       if (firstColumnIndex === 0 || firstColumnIndex === numFrozen) {
-        text = t('Freeze {{count}} columns', {count: 1});
+        text = t('Freeze {{count}} columns', { count: 1 });
       }
       else {
         // else user clicked any other column that is farther, offer to freeze
         // proper number of column
         const properNumber = firstColumnIndex - numFrozen + 1;
         text = numFrozen ?
-          t('Freeze {{count}} more columns', {count: properNumber}) :
-          t('Freeze {{count}} columns', {count: properNumber});
+          t('Freeze {{count}} more columns', { count: properNumber }) :
+          t('Freeze {{count}} columns', { count: properNumber });
       }
       return {
         text,
@@ -899,7 +899,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
     else if (isFrozenColumn) {
       // when user clicked last column in frozen set - offer to unfreeze this column
       if (firstColumnIndex + 1 === numFrozen) {
-        text = t('Unfreeze {{count}} columns', {count: 1});
+        text = t('Unfreeze {{count}} columns', { count: 1 });
       }
       else {
         // else user clicked column that is not the last in a frozen set
@@ -907,7 +907,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
         const properNumber = numFrozen - firstColumnIndex;
         text = properNumber === numFrozen ?
           t('Unfreeze all columns') :
-          t('Unfreeze {{count}} columns', {count: properNumber});
+          t('Unfreeze {{count}} columns', { count: properNumber });
       }
       return {
         text,
@@ -920,14 +920,14 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
   }
   else {
     if (isLastFrozenSet) {
-      text = t('Unfreeze {{count}} columns', {count: length});
+      text = t('Unfreeze {{count}} columns', { count: length });
       return {
         text,
         numFrozen: numFrozen - length,
       };
     }
     else if (isFirstNormalSet) {
-      text = t('Freeze {{count}} columns', {count: length});
+      text = t('Freeze {{count}} columns', { count: length });
       return {
         text,
         numFrozen: numFrozen + length,
@@ -935,7 +935,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
     }
     else if (isSpanSet) {
       const toFreeze = lastColumnIndex + 1 - numFrozen;
-      text = t('Freeze {{count}} more columns', {count: toFreeze});
+      text = t('Freeze {{count}} more columns', { count: toFreeze });
       return {
         text,
         numFrozen: numFrozen + toFreeze,
@@ -965,7 +965,7 @@ function getAddToSortLabel(sortSpec: Sort.SortSpec, colId: number): string|undef
   if (sortSpec.length !== 0 && !isEqual(columnsInSpec, [colId])) {
     const index = columnsInSpec.indexOf(colId);
     if (index > -1) {
-      return t("Sorted (#{{count}})", {count: index + 1});
+      return t("Sorted (#{{count}})", { count: index + 1 });
     }
     else {
       return t("Add to sort");
@@ -973,7 +973,7 @@ function getAddToSortLabel(sortSpec: Sort.SortSpec, colId: number): string|undef
   }
 }
 
-const cssRowMenuItem = styled((...args: DomElementArg[]) => dom('li', {tabindex: '-1'}, ...args), `
+const cssRowMenuItem = styled((...args: DomElementArg[]) => dom('li', { tabindex: '-1' }, ...args), `
   display: flex;
   outline: none;
 `);

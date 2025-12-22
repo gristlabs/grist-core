@@ -1,28 +1,28 @@
-import {allCommands} from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {loadSearch} from 'app/client/lib/imports';
-import {makeT} from 'app/client/lib/localization';
-import {AppModel, reportError} from 'app/client/models/AppModel';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {workspaceName} from 'app/client/models/WorkspaceInfo';
-import {AccountWidget} from 'app/client/ui/AccountWidget';
-import {buildActiveUserList} from 'app/client/ui/ActiveUserList';
-import {buildLanguageMenu} from 'app/client/ui/LanguageMenu';
-import {buildNotifyMenuButton} from 'app/client/ui/NotifyUI';
-import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
-import {UpgradeButton} from 'app/client/ui/ProductUpgrades';
-import {buildShareMenuButton} from 'app/client/ui/ShareMenu';
-import {SupportGristButton} from 'app/client/ui/SupportGristButton';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
-import {docBreadcrumbs} from 'app/client/ui2018/breadcrumbs';
-import {basicButton} from 'app/client/ui2018/buttons';
-import {cssHideForNarrowScreen, isNarrowScreenObs, testId, theme} from 'app/client/ui2018/cssVars';
-import {IconName} from 'app/client/ui2018/IconList';
+import { allCommands } from 'app/client/components/commands';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { loadSearch } from 'app/client/lib/imports';
+import { makeT } from 'app/client/lib/localization';
+import { AppModel, reportError } from 'app/client/models/AppModel';
+import { DocPageModel } from 'app/client/models/DocPageModel';
+import { urlState } from 'app/client/models/gristUrlState';
+import { workspaceName } from 'app/client/models/WorkspaceInfo';
+import { AccountWidget } from 'app/client/ui/AccountWidget';
+import { buildActiveUserList } from 'app/client/ui/ActiveUserList';
+import { buildLanguageMenu } from 'app/client/ui/LanguageMenu';
+import { buildNotifyMenuButton } from 'app/client/ui/NotifyUI';
+import { manageTeamUsersApp } from 'app/client/ui/OpenUserManager';
+import { UpgradeButton } from 'app/client/ui/ProductUpgrades';
+import { buildShareMenuButton } from 'app/client/ui/ShareMenu';
+import { SupportGristButton } from 'app/client/ui/SupportGristButton';
+import { hoverTooltip } from 'app/client/ui/tooltips';
+import { cssHoverCircle, cssTopBarBtn } from 'app/client/ui/TopBarCss';
+import { docBreadcrumbs } from 'app/client/ui2018/breadcrumbs';
+import { basicButton } from 'app/client/ui2018/buttons';
+import { cssHideForNarrowScreen, isNarrowScreenObs, testId, theme } from 'app/client/ui2018/cssVars';
+import { IconName } from 'app/client/ui2018/IconList';
 import type * as searchModule from 'app/client/ui2018/search';
 import * as roles from 'app/common/roles';
-import {Computed, dom, DomElementArg, makeTestId, MultiHolder, Observable, styled} from 'grainjs';
+import { Computed, dom, DomElementArg, makeTestId, MultiHolder, Observable, styled } from 'grainjs';
 
 const t = makeT('TopBar');
 
@@ -38,7 +38,7 @@ export function createTopBarHome(appModel: AppModel, onSave?: (personal: boolean
         [
           basicButton(
             t("Manage team"),
-            dom.on('click', () => manageTeamUsersApp({app: appModel, onSave})),
+            dom.on('click', () => manageTeamUsersApp({ app: appModel, onSave })),
             testId('topbar-manage-team'),
           ),
         ] :
@@ -55,7 +55,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
   const doc = pageModel.currentDoc;
   const renameDoc = (val: string) => pageModel.renameDoc(val);
   const displayNameWs = Computed.create(owner, pageModel.currentWorkspace,
-    (use, ws) => ws ? {...ws, name: workspaceName(appModel, ws)} : ws);
+    (use, ws) => ws ? { ...ws, name: workspaceName(appModel, ws) } : ws);
 
   const moduleObs = Observable.create<typeof searchModule|null>(owner, null);
   loadSearch().then(module => moduleObs.set(module)).catch(reportError);
@@ -116,8 +116,8 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
           ),
           isReadonly: pageModel.isReadonly,
           proposeChanges: async () => {
-            const {urlId} = await gristDoc.docComm.fork();
-            await urlState().pushUrl({doc: urlId});
+            const { urlId } = await gristDoc.docComm.fork();
+            await urlState().pushUrl({ doc: urlId });
           },
         }),
         dom.hide(use => use(isSearchOpen) && use(isNarrowScreenObs())),
@@ -130,14 +130,14 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
       topBarUndoBtn('Undo',
         dom.on('click', () => state.isUndoDisabled.get() || allCommands.undo.run()),
         dom.hide(use => use(isSearchOpen)),
-        hoverTooltip('Undo', {key: 'topBarBtnTooltip'}),
+        hoverTooltip('Undo', { key: 'topBarBtnTooltip' }),
         cssHoverCircle.cls('-disabled', use => use(state.isUndoDisabled) || !use(isUndoRedoAvailable)),
         testId('undo'),
       ),
       topBarUndoBtn('Redo',
         dom.on('click', () => state.isRedoDisabled.get() || allCommands.redo.run()),
         dom.hide(use => use(isSearchOpen)),
-        hoverTooltip('Redo', {key: 'topBarBtnTooltip'}),
+        hoverTooltip('Redo', { key: 'topBarBtnTooltip' }),
         cssHoverCircle.cls('-disabled', use => use(state.isRedoDisabled) || !use(isUndoRedoAvailable)),
         testId('redo'),
       ),
@@ -166,7 +166,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
 function buildShowDiscussionButton(gristDoc: GristDoc) {
   return cssHoverCircle({ style: `margin: 5px; position: relative;` },
     cssTopBarBtn('Chat', dom.cls('tour-share-icon')),
-    hoverTooltip('Comments', {key: 'topBarBtnTooltip'}),
+    hoverTooltip('Comments', { key: 'topBarBtnTooltip' }),
     testId('open-discussion'),
     dom.on('click', () => {
       gristDoc.showTool('discussion');

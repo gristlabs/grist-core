@@ -1,9 +1,9 @@
-import {ActionCounter} from 'app/client/components/ActionCounter';
-import {ActionLog} from 'app/client/components/ActionLog';
-import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
-import {buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
-import {ClientScope} from 'app/client/components/ClientScope';
-import {Comm} from 'app/client/components/Comm';
+import { ActionCounter } from 'app/client/components/ActionCounter';
+import { ActionLog } from 'app/client/components/ActionLog';
+import { BehavioralPromptsManager } from 'app/client/components/BehavioralPromptsManager';
+import { buildViewSectionDom } from 'app/client/components/buildViewSectionDom';
+import { ClientScope } from 'app/client/components/ClientScope';
+import { Comm } from 'app/client/components/Comm';
 import * as commands from 'app/client/components/commands';
 import {CursorMonitor} from 'app/client/components/CursorMonitor';
 import {GridViewOptions} from 'app/client/components/GridView';
@@ -14,33 +14,33 @@ import type {BoxSpec} from 'app/client/lib/BoxSpec';
 import {DocPluginManager} from 'app/client/lib/DocPluginManager';
 import type {AppModel, TopAppModel} from 'app/client/models/AppModel';
 import BaseRowModel from 'app/client/models/BaseRowModel';
-import {DataTableModelWithDiff} from 'app/client/models/DataTableModelWithDiff';
-import {DocData} from 'app/client/models/DocData';
-import {DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {DocPageModel, DocPageModelImpl} from 'app/client/models/DocPageModel';
-import {QuerySetManager} from 'app/client/models/QuerySet';
-import {UserPresenceModel, UserPresenceModelStub} from 'app/client/models/UserPresenceModel';
-import {IExternalTable, VirtualTableData, VirtualTableRegistration} from 'app/client/models/VirtualTable';
-import {META_TABLES} from 'app/client/models/VirtualTableMeta';
-import type {App} from 'app/client/ui/App';
-import {ICellContextMenu} from 'app/client/ui/CellContextMenu';
-import {IPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {IRowContextMenu} from 'app/client/ui/RowContextMenu';
-import {WidgetType} from 'app/client/widgets/UserType';
-import {MinimalActionGroup} from 'app/common/ActionGroup';
-import type {ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {CellValue, DocAction, getColValues, TableDataAction, TableRecordValues} from 'app/common/DocActions';
-import type {UserAction} from 'app/common/DocActions';
-import {DocDataCache} from 'app/common/DocDataCache';
-import {IDocPage} from 'app/common/gristUrls';
-import {useBindable} from 'app/common/gutil';
-import {VirtualId} from 'app/common/SortSpec';
-import {DocAPI, ExtendedUser} from 'app/common/UserAPI';
-import type {ISupportedFeatures} from 'app/common/UserConfig';
-import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
-import type {GristType, RowRecord} from 'app/plugin/GristData';
-import type {MaybePromise} from 'app/plugin/gutil';
+import { DataTableModelWithDiff } from 'app/client/models/DataTableModelWithDiff';
+import { DocData } from 'app/client/models/DocData';
+import { DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { DocPageModel, DocPageModelImpl } from 'app/client/models/DocPageModel';
+import { QuerySetManager } from 'app/client/models/QuerySet';
+import { UserPresenceModel, UserPresenceModelStub } from 'app/client/models/UserPresenceModel';
+import { IExternalTable, VirtualTableData, VirtualTableRegistration } from 'app/client/models/VirtualTable';
+import { META_TABLES } from 'app/client/models/VirtualTableMeta';
+import type { App } from 'app/client/ui/App';
+import { ICellContextMenu } from 'app/client/ui/CellContextMenu';
+import { IPageWidget } from 'app/client/ui/PageWidgetPicker';
+import { IRowContextMenu } from 'app/client/ui/RowContextMenu';
+import { WidgetType } from 'app/client/widgets/UserType';
+import { MinimalActionGroup } from 'app/common/ActionGroup';
+import type { ApplyUAOptions, ApplyUAResult } from 'app/common/ActiveDocAPI';
+import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
+import { CellValue, DocAction, getColValues, TableDataAction, TableRecordValues } from 'app/common/DocActions';
+import type { UserAction } from 'app/common/DocActions';
+import { DocDataCache } from 'app/common/DocDataCache';
+import { IDocPage } from 'app/common/gristUrls';
+import { useBindable } from 'app/common/gutil';
+import { VirtualId } from 'app/common/SortSpec';
+import { DocAPI, ExtendedUser } from 'app/common/UserAPI';
+import type { ISupportedFeatures } from 'app/common/UserConfig';
+import { CursorPos, UIRowId } from 'app/plugin/GristAPI';
+import type { GristType, RowRecord } from 'app/plugin/GristData';
+import type { MaybePromise } from 'app/plugin/gutil';
 import camelCase from 'camelcase';
 import {
   BaseObservable,
@@ -81,7 +81,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   public maximizedSectionId = Observable.create(this, null);
   public externalSectionId = Observable.create(this, null);
   public comparison: any = null;
-  public docInfo: DocInfoRec = {timezone: Observable.create(null, 'UTC')} as any;
+  public docInfo: DocInfoRec = { timezone: Observable.create(null, 'UTC') } as any;
   public docModel: DocModel;
   public viewModel: ViewRec;
   public userPresenceModel: UserPresenceModel = new UserPresenceModelStub();
@@ -271,7 +271,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
             // Some transformation needs access to the whole record (with raw data), so we will provide it.
             // This is somehow very similar to `rec` in formula.
             const rec = Object.fromEntries(colIds.map(c => [c, cols[c][rowIndex]]));
-            Object.assign(rec, {id: rowId});
+            Object.assign(rec, { id: rowId });
             // Apply transformation, very similar concept to cleaning trigger formula (it has access to current value)
             // and record.
             cols[colId][rowIndex] = def.transform(cols[colId][rowIndex], rec);
@@ -328,7 +328,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
 
     // And adjust the UI a bit.
     const tableRec = this.docModel.allTables.peek().find(t => t.tableId.peek() === tableId);
-    const sectionRec = this.docModel.viewSections.tableData.filterRecords({tableRef: tableRec?.id.peek()})[0];
+    const sectionRec = this.docModel.viewSections.tableData.filterRecords({ tableRef: tableRec?.id.peek() })[0];
     const sectionId = sectionRec?.id;
     const viewSectionModel = this.docModel.viewSections.rowModels[sectionId as any as number];
     // Hide view menu on the right.
@@ -406,7 +406,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   /** Returns first section for a table. */
   public getMainSectionRec(tableId: string) {
     const tableRec = this.getTableRec(tableId);
-    const rows = this.docModel.viewSections.tableData.filterRecords({tableRef: tableRec?.id.peek()});
+    const rows = this.docModel.viewSections.tableData.filterRecords({ tableRef: tableRec?.id.peek() });
     const row = rows[0];
     if (rows.length > 1) {
       throw new Error('Multiple sections per table not supported');
@@ -423,7 +423,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   /** Changes active view. */
   public setView(label: string) {
     // Find view with this name.
-    const viewId = this.docModel.views.tableData.findMatchingRowId({name: label});
+    const viewId = this.docModel.views.tableData.findMatchingRowId({ name: label });
     if (!viewId) {
       throw new Error(`View with name or id ${label} not found`);
     }
@@ -435,7 +435,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     const rowIds = tableData[2];
     const columns = tableData[3];
     return rowIds.map((rowId) => {
-      const record: RowRecord = {id: rowId};
+      const record: RowRecord = { id: rowId };
       for (const colId of Object.keys(columns)) {
         record[colId] = columns[colId][rowId];
       }
@@ -530,7 +530,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     return Promise.resolve(false);
   }
 
-  public async activateEditorAtCursor(options?: {init?: string; state?: any}): Promise<void> {
+  public async activateEditorAtCursor(options?: { init?: string; state?: any }): Promise<void> {
     return Promise.resolve();
   }
 
@@ -627,7 +627,7 @@ export class VirtualSection extends Disposable {
   }) {
     super();
 
-    const {tableId} = this.props;
+    const { tableId } = this.props;
     const tableRec = this._doc.getTableRec(tableId);
     if (!tableRec) {
       throw new Error(`Table ${tableId} not found`);
@@ -650,7 +650,7 @@ export class VirtualSection extends Disposable {
     ]);
     this.onDispose(() => {
       const fieldsIds = this._doc.docModel.viewFields.tableData.filterRowIds(
-        {parentId: sectionId as any as number});
+        { parentId: sectionId as any as number });
 
       this._doc.docData.receiveAction([
         'BulkRemoveRecord', '_grist_Views_section_field', fieldsIds,
@@ -799,7 +799,7 @@ export class VirtualSection extends Disposable {
 
     bundleChanges(() => {
       const fieldsIds = this._doc.docModel.viewFields.tableData.filterRowIds(
-        {parentId: sectionId as any as number});
+        { parentId: sectionId as any as number });
 
       this._doc.docData.receiveAction([
         'BulkRemoveRecord', '_grist_Views_section_field', fieldsIds,
@@ -916,7 +916,7 @@ class InMemoryDocModel extends DocModel {
       async applyUserActions(actions: UserAction[], options?: ApplyUAOptions): Promise<ApplyUAResult> {
         const processed = await docDataCache.sendTableActions(actions);
         const retValues = processed.flatMap(action => action.retValues);
-        return {retValues, actionHash: '', actionNum: 1, isModification: true};
+        return { retValues, actionHash: '', actionNum: 1, isModification: true };
       },
     } as any;
 
@@ -969,7 +969,7 @@ class InMemoryDocPageModel extends DocPageModelImpl {
  */
 function generateInitialActions(tabDef: TableSpec): DocAction[] {
   const tableId = tabDef.tableId ?? properId(tabDef.name);
-  const columnDefs = (tabDef.columns || []).map(col => ({...col, id: col.colRef ?? VirtualId()}));
+  const columnDefs = (tabDef.columns || []).map(col => ({ ...col, id: col.colRef ?? VirtualId() }));
   const tableRowId = VirtualId();
   const viewId = VirtualId();
   const sectionRowId = VirtualId();
@@ -989,7 +989,7 @@ function generateInitialActions(tabDef: TableSpec): DocAction[] {
       })),
     ], [
       // Add an entry for the virtual table.
-      'AddRecord', '_grist_Tables', tableRowId as any, {tableId, primaryViewId: viewId},
+      'AddRecord', '_grist_Tables', tableRowId as any, { tableId, primaryViewId: viewId },
     ], [
       // Add entries for the columns of the virtual table.
       'BulkAddRecord', '_grist_Tables_column',
@@ -1018,7 +1018,7 @@ function generateInitialActions(tabDef: TableSpec): DocAction[] {
         title: tabDef.name,
         // By default virtual table are producing vertical layouts (where fields are just below each other).
         layoutSpec: JSON.stringify({
-          children: fieldsIds.map(id => ({leaf: id})),
+          children: fieldsIds.map(id => ({ leaf: id })),
         } as BoxSpec),
         showHeader: true,
         borderWidth: 1,

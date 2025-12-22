@@ -6,8 +6,8 @@
  *    log.info(...);
  */
 
-import {timeFormat} from 'app/common/timeFormat';
-import {appSettings} from 'app/server/lib/AppSettings';
+import { timeFormat } from 'app/common/timeFormat';
+import { appSettings } from 'app/server/lib/AppSettings';
 import * as winston from 'winston';
 
 const logAsJson = appSettings.section("log").flag("json").readBool({

@@ -1,15 +1,15 @@
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {guessTimezone} from 'app/client/lib/guessTimezone';
-import {getSessionStorage} from 'app/client/lib/storage';
-import {newUserAPIImpl} from 'app/client/models/AppModel';
-import {getWorker} from 'app/client/models/gristConfigCache';
-import {CommResponseBase} from 'app/common/CommTypes';
+import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import { guessTimezone } from 'app/client/lib/guessTimezone';
+import { getSessionStorage } from 'app/client/lib/storage';
+import { newUserAPIImpl } from 'app/client/models/AppModel';
+import { getWorker } from 'app/client/models/gristConfigCache';
+import { CommResponseBase } from 'app/common/CommTypes';
 import * as gutil from 'app/common/gutil';
-import {addOrgToPath, docUrl, getGristConfig} from 'app/common/urlUtils';
-import {UserAPI} from 'app/common/UserAPI';
-import {Events as BackboneEvents} from 'backbone';
-import {Disposable} from 'grainjs';
-import {GristClientSocket} from 'app/client/components/GristClientSocket';
+import { addOrgToPath, docUrl, getGristConfig } from 'app/common/urlUtils';
+import { UserAPI } from 'app/common/UserAPI';
+import { Events as BackboneEvents } from 'backbone';
+import { Disposable } from 'grainjs';
+import { GristClientSocket } from 'app/client/components/GristClientSocket';
 
 const G = getBrowserGlobals('window');
 const reconnectInterval = [1000, 1000, 2000, 5000, 10000];
@@ -243,7 +243,7 @@ export class GristWSConnection extends Disposable {
 
   private _processReceivedMessage(msgData: string, processClientConnect: boolean) {
     this._log('GristWSConnection: onmessage (%d bytes)', msgData.length);
-    const message: CommResponseBase & {seqId: number} = JSON.parse(msgData);
+    const message: CommResponseBase & { seqId: number } = JSON.parse(msgData);
 
     if (typeof message.seqId === 'number') {
       // For sequenced messages (all except clientConnect), check that seqId is as expected, and
@@ -408,7 +408,7 @@ export class GristWSConnection extends Disposable {
     if (isReconnecting && this._lastReceivedSeqId !== null) {
       url.searchParams.append('lastSeqId', String(this._lastReceivedSeqId));
     }
-    url.searchParams.append('browserSettings', JSON.stringify({timezone}));
+    url.searchParams.append('browserSettings', JSON.stringify({ timezone }));
     url.searchParams.append('user', this._settings.getUserSelector());
     return url.href;
   }

@@ -18,17 +18,17 @@
  *  - logout redirect (in Users): GRIST_SITE/logout?next=DISCOURSE_SITE
  */
 
-import type {Express, NextFunction, Request, RequestHandler, Response} from 'express';
-import type {RequestWithLogin} from 'app/server/lib/Authorizer';
-import {expressWrap} from 'app/server/lib/expressWrap';
-import {getOriginUrl} from 'app/server/lib/requestUtils';
+import type { Express, NextFunction, Request, RequestHandler, Response } from 'express';
+import type { RequestWithLogin } from 'app/server/lib/Authorizer';
+import { expressWrap } from 'app/server/lib/expressWrap';
+import { getOriginUrl } from 'app/server/lib/requestUtils';
 import * as crypto from 'crypto';
 
 const DISCOURSE_CONNECT_SECRET = process.env.DISCOURSE_CONNECT_SECRET;
 const DISCOURSE_SITE = process.env.DISCOURSE_SITE;
 
 // A hook for dependency injection. Allows tests to override these variables on the fly.
-export const Deps = {DISCOURSE_CONNECT_SECRET, DISCOURSE_SITE};
+export const Deps = { DISCOURSE_CONNECT_SECRET, DISCOURSE_SITE };
 
 // Calculate payload signature using the given secret.
 export function calcSignature(payload: string, secret: string) {
@@ -71,7 +71,7 @@ function discourseConnect(req: Request, resp: Response) {
     redirectUrl.searchParams.set('next', origUrl.toString());
     return resp.redirect(redirectUrl.toString());
   }
-  const responseObj: {[key: string]: string} = {
+  const responseObj: { [key: string]: string } = {
     nonce,
     email: mreq.user.loginEmail,
     // We don't treat user IDs as secret, so use the same ID with Discourse directly.
@@ -80,14 +80,14 @@ function discourseConnect(req: Request, resp: Response) {
     // (it bases it on name or email). The user can change it within Discourse.
     // username,
     name: mreq.user.name,
-    ...(mreq.user.picture ? {avatar_url: mreq.user.picture} : {}),
+    ...(mreq.user.picture ? { avatar_url: mreq.user.picture } : {}),
     suppress_welcome_message: 'true',
   };
   const responseString = new URLSearchParams(responseObj).toString();
   const responsePayload = Buffer.from(responseString, 'utf8').toString('base64');
   const responseSignature = calcSignature(responsePayload, Deps.DISCOURSE_CONNECT_SECRET!);
   const redirectUrl = new URL('/session/sso_login', Deps.DISCOURSE_SITE);
-  redirectUrl.search = new URLSearchParams({sso: responsePayload, sig: responseSignature}).toString();
+  redirectUrl.search = new URLSearchParams({ sso: responsePayload, sig: responseSignature }).toString();
   return resp.redirect(redirectUrl.toString());
 }
 

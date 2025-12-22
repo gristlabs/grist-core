@@ -1,4 +1,4 @@
-import {ISandbox} from 'app/server/lib/ISandbox';
+import { ISandbox } from 'app/server/lib/ISandbox';
 
 export class UnavailableSandboxMethodError extends Error {
   constructor(message: string) {

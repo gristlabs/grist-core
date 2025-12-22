@@ -1,31 +1,31 @@
-import {ClientScope} from 'app/client/components/ClientScope';
-import {Clipboard} from 'app/client/components/Clipboard';
-import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
-import {KeyboardFocusHighlighter} from 'app/client/components/KeyboardFocusHighlighter';
-import {Comm} from 'app/client/components/Comm';
+import { ClientScope } from 'app/client/components/ClientScope';
+import { Clipboard } from 'app/client/components/Clipboard';
+import { RegionFocusSwitcher } from 'app/client/components/RegionFocusSwitcher';
+import { KeyboardFocusHighlighter } from 'app/client/components/KeyboardFocusHighlighter';
+import { Comm } from 'app/client/components/Comm';
 import * as commandList from 'app/client/components/commandList';
 import * as commands from 'app/client/components/commands';
-import {unsavedChanges} from 'app/client/components/UnsavedChanges';
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {isDesktop} from 'app/client/lib/browserInfo';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
+import { unsavedChanges } from 'app/client/components/UnsavedChanges';
+import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import { isDesktop } from 'app/client/lib/browserInfo';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
 import * as koUtil from 'app/client/lib/koUtil';
-import {reportError, TopAppModel, TopAppModelImpl} from 'app/client/models/AppModel';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {setUpErrorHandling} from 'app/client/models/errors';
-import {createAppUI} from 'app/client/ui/AppUI';
-import {openAccessibilityModal} from 'app/client/ui/OpenAccessibilityModal';
-import {addViewportTag} from 'app/client/ui/viewport';
-import {attachCssRootVars} from 'app/client/ui2018/cssVars';
-import {attachTheme} from 'app/client/ui2018/theme';
-import {BaseAPI} from 'app/common/BaseAPI';
-import {CommDocError} from 'app/common/CommTypes';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {fetchFromHome} from 'app/common/urlUtils';
-import {ISupportedFeatures} from 'app/common/UserConfig';
-import {dom} from 'grainjs';
+import { reportError, TopAppModel, TopAppModelImpl } from 'app/client/models/AppModel';
+import { DocPageModel } from 'app/client/models/DocPageModel';
+import { setUpErrorHandling } from 'app/client/models/errors';
+import { createAppUI } from 'app/client/ui/AppUI';
+import { openAccessibilityModal } from 'app/client/ui/OpenAccessibilityModal';
+import { addViewportTag } from 'app/client/ui/viewport';
+import { attachCssRootVars } from 'app/client/ui2018/cssVars';
+import { attachTheme } from 'app/client/ui2018/theme';
+import { BaseAPI } from 'app/common/BaseAPI';
+import { CommDocError } from 'app/common/CommTypes';
+import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
+import { fetchFromHome } from 'app/common/urlUtils';
+import { ISupportedFeatures } from 'app/common/UserConfig';
+import { dom } from 'grainjs';
 import * as ko from 'knockout';
-import {makeT} from 'app/client/lib/localization';
+import { makeT } from 'app/client/lib/localization';
 import { onClickOutside } from 'app/client/lib/domUtils';
 
 const t = makeT('App');
@@ -62,7 +62,7 @@ export class AppImpl extends DisposableWithEvents implements App {
   // Track the RegionFocusSwitcher created by pagePanels, so that the codebase can access it.
   public regionFocusSwitcher?: RegionFocusSwitcher;
 
-  private _settings: ko.Observable<{features?: ISupportedFeatures}>;
+  private _settings: ko.Observable<{ features?: ISupportedFeatures }>;
 
   // Track the version of the server we are communicating with, so that if it changes
   // we can choose to refresh the client also.
@@ -123,7 +123,7 @@ export class AppImpl extends DisposableWithEvents implements App {
             return cmds.length > 0 ?
               dom('tbody',
                 dom('tr',
-                  dom('td', {colspan: '2'}, group.group),
+                  dom('td', { colspan: '2' }, group.group),
                 ),
                 dom.forEach(cmds, cmd =>
                   dom('tr',
@@ -247,7 +247,7 @@ export class AppImpl extends DisposableWithEvents implements App {
 
   // Get the user profile for testing purposes
   public async testGetProfile(): Promise<any> {
-    const resp = await fetchFromHome('/api/profile/user', {credentials: 'include'});
+    const resp = await fetchFromHome('/api/profile/user', { credentials: 'include' });
     return resp.json();
   }
 

@@ -11,10 +11,10 @@
  * timestamp. This optimizes the case of loading the page. On subsequent use, these calls will
  * translate to the usual api.getDoc(), api.getWorker() calls.
  */
-import {urlState} from 'app/client/models/gristUrlState';
-import {getWeakestRole} from 'app/common/roles';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Document, UserAPI} from 'app/common/UserAPI';
+import { urlState } from 'app/client/models/gristUrlState';
+import { getWeakestRole } from 'app/common/roles';
+import { getGristConfig } from 'app/common/urlUtils';
+import { Document, UserAPI } from 'app/common/UserAPI';
 
 // tslint:disable:no-console
 

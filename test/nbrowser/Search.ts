@@ -1,6 +1,6 @@
 import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 async function getActiveCellPos() {
   return [
@@ -21,18 +21,18 @@ describe('Search', function() {
     await gu.importFixturesDoc('chimpy', 'nasa', 'Horizon', 'World.grist');
 
     // Check the initial cursor position.
-    assert.deepEqual(await gu.getCursorPosition(), {col: 0, rowNum: 1});
+    assert.deepEqual(await gu.getCursorPosition(), { col: 0, rowNum: 1 });
 
     // Open the search input and enter a search term.
     await gu.search('que');
 
     // Check that Albequerque is found.
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 103, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 103, col: 0 });
     assert.include(await gu.getActiveCell().getText(), 'Albuquerque');
 
     // Search forward.
     await gu.searchNext();
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 382, col: 1});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 382, col: 1 });
     assert.include(await gu.getActiveCell().getText(), 'Mozambique');
 
     // Typing more characters searches incrementally.
@@ -40,26 +40,26 @@ describe('Search', function() {
     // Sleep for search debounce time
     await driver.sleep(120);
 
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 2922, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2922, col: 0 });
     assert.include(await gu.getActiveCell().getText(), 'Quetzaltenango');
 
     // Search forward by clicking
     await gu.searchNext();
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 2922, col: 2});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2922, col: 2 });
     assert.include(await gu.getActiveCell().getText(), 'Quetzaltenango');
 
     // Search backward by clicking
     await gu.searchPrev();
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 2922, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2922, col: 0 });
     assert.include(await gu.getActiveCell().getText(), 'Quetzaltenango');
 
     // Search forward with keyboard
     await driver.sendKeys(Key.ENTER);
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 2922, col: 2});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2922, col: 2 });
 
     // Search backward with keyboard. Need to focus on the search text input.
     await driver.find('.test-tb-search-input > input').sendKeys(Key.chord(Key.SHIFT, Key.ENTER));
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 2922, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2922, col: 0 });
   });
 
   it('should support `Mod+f`, `Mod+g`, `Mod+Shift+G` shortcuts', async () => {
@@ -74,7 +74,7 @@ describe('Search', function() {
     await driver.find('body').sendKeys(Key.chord(await gu.modKey(), Key.UP));
 
     // set cursor on the first cell
-    await gu.getCell({col: 0, rowNum: 1}).click();
+    await gu.getCell({ col: 0, rowNum: 1 }).click();
 
     // Send Mod+f
     await driver.find('body').sendKeys(Key.chord(await gu.modKey(), 'f'));
@@ -89,7 +89,7 @@ describe('Search', function() {
     await driver.sleep(120);
 
     // check that Albuquerque is selected
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 103, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 103, col: 0 });
     assert.include(await gu.getActiveCell().getText(), 'Albuquerque');
 
     // type Mod+g to search forward
@@ -98,7 +98,7 @@ describe('Search', function() {
     await driver.sleep(120);
 
     // check that Mozambique is found
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 382, col: 1});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 382, col: 1 });
     assert.include(await gu.getActiveCell().getText(), 'Mozambique');
 
     // send Mod + shift + G to search backward
@@ -106,7 +106,7 @@ describe('Search', function() {
     await driver.sleep(120);
 
     // check that Albuquerque is found
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 103, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 103, col: 0 });
     assert.include(await gu.getActiveCell().getText(), 'Albuquerque');
   });
 
