@@ -752,14 +752,17 @@ export class UsersManager {
       foundUsers = await this.getExistingUsersByLogin(emails, transaction);
       const emailUsers = new Map(foundUsers.map(user => [user.loginEmail, user]));
       for (const email of emails) {
-        if (!isEmail(email)) {
-          throw new ApiError("Invalid email address included", 400);
-        }
         const user = emailUsers.get(normalizeEmail(email));
         const role = emailMap[email];
         if (!user && role === null) {
           // Removing access from non-existant users is a no-op.
           continue;
+        }
+
+        // Validate email. We only skip this check for removing users, to allow correcting invalid
+        // emails if any were added in a version of Grist that predates this check.
+        if (!isEmail(email)) {
+          throw new ApiError("Invalid email address included", 400);
         }
 
         if (user) {

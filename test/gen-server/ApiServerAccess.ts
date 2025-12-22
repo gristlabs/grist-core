@@ -114,7 +114,7 @@ describe('ApiServerAccess', function() {
 
   function assertResult(resp: AxiosResponse, status: number, errMessage: string) {
     assert.equal(resp.status, status);
-    assert.equal(resp.data.error, errMessage);
+    assert.equal(resp.data?.error, errMessage);
   }
 
   async function checkAccessChange(
@@ -2065,10 +2065,11 @@ describe('ApiServerAccess', function() {
       assert.equal(orgAccess.status, 200);
       assert.deepEqual(orgAccess.data.users.map((u: any) => u.email), [chimpyEmail, charonEmail]);
 
-      // Try updating access to remove an invalid email.
+      // Try updating access to remove an invalid email; this should succeed, so that we don't
+      // block people from correcting bad sharing from before validation got added.
       const removeResult = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`,
         {delta: {users: {[email]: null}}}, chimpy);
-      assertResult(removeResult, 400, 'Invalid email address included');
+      assert.equal(removeResult.status, 200);
 
       // Try workspace level; combining with a valid email shouldn't help.
       const invalidRespWs = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`,
