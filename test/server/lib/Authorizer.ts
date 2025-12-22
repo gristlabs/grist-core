@@ -428,11 +428,11 @@ describe('Authorizer', function() {
     }
   });
 
-  it('forbids access to stranger if GRIST_AUTO_USER=false by GRIST_PROXY_AUTH_HEADER', async function() {
+  it('forbids access to stranger if GRIST_AUTO_USER=false by GRIST_FORWARD_AUTH_HEADER', async function() {
     // These variables are reset by our beforeEach/afterEach hooks.
     process.env.GRIST_AUTO_USER = 'false';
     process.env.GRIST_FORCE_LOGIN = 'true';
-    process.env.GRIST_PROXY_AUTH_HEADER = 'X-email';
+    process.env.GRIST_FORWARD_AUTH_HEADER = 'X-email';
     process.env.GRIST_IGNORE_SESSION = 'true';
 
     // need a server with the above env vars for this test
