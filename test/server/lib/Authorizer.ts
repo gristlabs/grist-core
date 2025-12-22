@@ -441,7 +441,7 @@ describe('Authorizer', function() {
 
     try {
       await assert.isRejected(
-        axios.get(localServer.getOwnUrl(), {headers: {'X-email': 'notchimpy@getgrist.com'}}),
+        axios.get(localServer.getOwnUrl(), {headers: {'X-email': 'nonexistant-email@getgrist.com'}}),
         '403'
       );
       const strangerUser = await dbManager.getExistingUserByLogin('nonexistant-email@getgrist.com');
