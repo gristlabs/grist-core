@@ -174,6 +174,7 @@ module.exports = defineConfig([
       "@stylistic/type-annotation-spacing": "warn",
 
       "@typescript-eslint/ban-types": "off",
+      "@typescript-eslint/consistent-indexed-object-style": "off",
       "@typescript-eslint/explicit-member-accessibility": ["error", {
         overrides: {
           constructors: "off",
