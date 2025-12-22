@@ -24,6 +24,7 @@ class RenameMap implements Record<string, string> {
       this[id!] = label;
     }
   }
+
   [key: string]: string;
 }
 
@@ -32,6 +33,7 @@ class ChoiceItem implements IToken {
   public static from(item: ChoiceItem) {
     return new ChoiceItem(item.label, item.previousLabel, item.options);
   }
+
   constructor(
     public label: string,
     // We will keep the previous label value for a token, to tell us which token

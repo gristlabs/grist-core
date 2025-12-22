@@ -101,6 +101,7 @@ export class Assistant extends Disposable {
       true,
     ),
   );
+
   private _showUpgradeBanner = Computed.create(this, (use) => {
     const { assistant, deploymentType } = getGristConfig();
     return (
@@ -110,6 +111,7 @@ export class Assistant extends Disposable {
       !use(this._appModel.dismissedPopups).includes("upgradeNewAssistant")
     );
   });
+
   /** Number of remaining credits. If null, assistant usage is unlimited. */
   private _numRemainingCredits = Observable.create<number | null>(this, null);
   private _lastSendPromise: Promise<AssistanceResponse>|null = null;

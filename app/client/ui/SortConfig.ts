@@ -61,6 +61,7 @@ export class SortConfig extends Disposable {
   private _colRefs = Computed.create(this, (use) => {
     return use(this._section.activeSortSpec).map(col => Sort.getColRef(col));
   });
+
   private _sortRows = this.autoDispose(koArray(this._colRefs.get()));
 
   private _changedColRefs = Computed.create(this, (use) => {

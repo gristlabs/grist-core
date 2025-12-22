@@ -82,6 +82,7 @@ class SqliteDriverPatched extends SqliteDriver {
     }
     return this.queryRunner;
   }
+
   protected loadDependencies(): void {
     // Use our own sqlite3 module, which is a fork of the original.
     this.sqlite = sqlite3;

@@ -2459,16 +2459,19 @@ class HoverColumnTooltip {
   public tooltip: ITooltipControl|null = null;
   constructor(public el: HTMLElement) {
   }
+
   public show(text: string) {
     this.hide();
     this.tooltip = showTooltip(this.el, () => dom("span", text, testId("column-formula-tooltip")));
   }
+
   public hide() {
     if (this.tooltip) {
       this.tooltip.close();
       this.tooltip = null;
     }
   }
+
   public dispose() {
     this.hide();
   }

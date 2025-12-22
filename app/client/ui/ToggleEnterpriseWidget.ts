@@ -30,6 +30,7 @@ export class ToggleEnterpriseWidget extends Disposable {
   }).onWrite(async (enabled) => {
     await this._model.updateEnterpriseToggle(enabled ? 'enterprise' : 'core');
   });
+
   private _activationKey = Observable.create(this, '');
   private _activation = Observable.create<ActivationState | null>(this, null);
 

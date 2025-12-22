@@ -67,6 +67,7 @@ export class User extends BaseEntity {
 
   @OneToOne(() => ServiceAccount, sa => sa.serviceUser)
   public serviceAccount?: ServiceAccount;
+
   /**
    * Unique reference for this user. Primarily used as an ownership key in a cell metadata (comments).
    */

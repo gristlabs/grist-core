@@ -14,11 +14,13 @@ export class TcpForwarder {
     this.port = await getAvailablePort(5834);
     return this.port;
   }
+
   public async connect() {
     await this.disconnect();
     this._server = new Server(sock => this._onConnect(sock));
     await listenPromise(this._server.listen(this.port));
   }
+
   public async disconnectClientSide() {
     await Promise.all(Array.from(this._connections.keys(), destroySock));
     if (this._server) {
@@ -27,14 +29,17 @@ export class TcpForwarder {
     }
     this.cleanup();
   }
+
   public async disconnectServerSide() {
     await Promise.all(Array.from(this._connections.values(), destroySock));
     this.cleanup();
   }
+
   public async disconnect() {
     await this.disconnectClientSide();
     await this.disconnectServerSide();
   }
+
   public cleanup() {
     const pairs = Array.from(this._connections.entries());
     for (const [clientSock, serverSock] of pairs) {
@@ -43,6 +48,7 @@ export class TcpForwarder {
       }
     }
   }
+
   private async _onConnect(clientSock: Socket) {
     const serverSock = await connectSock(this._serverPort, this._serverHost);
     clientSock.pipe(serverSock);

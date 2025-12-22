@@ -81,24 +81,30 @@ export class GristWSSettingsBrowser implements GristWSSettings {
   public async getDocWorkerUrl(assignmentId: string|null) {
     return getDocWorkerUrl(assignmentId);
   }
+
   public getClientId(assignmentId: string|null) {
     return this._sessionStorage.getItem(`clientId_${assignmentId}`) || null;
   }
+
   public getUserSelector(): string {
     // TODO: find/create a more official way to get the user.
     return window.gristDocPageModel?.appModel.currentUser?.email || '';
   }
+
   public updateClientId(assignmentId: string|null, id: string) {
     this._sessionStorage.setItem(`clientId_${assignmentId}`, id);
   }
+
   public advanceCounter(): string {
     const value = parseInt(this._sessionStorage.getItem('clientCounter')!, 10) || 0;
     this._sessionStorage.setItem('clientCounter', String(value + 1));
     return String(value);
   }
+
   public log(...args: any[]): void {
     console.log(...args);   // tslint:disable-line:no-console
   }
+
   public warn(...args: any[]): void {
     console.warn(...args);  // tslint:disable-line:no-console
   }

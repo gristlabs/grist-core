@@ -144,6 +144,7 @@ class WebhookExternalTable implements IExternalTable {
   public saveableFields = [
     'tableId', 'watchedColIdsText', 'url', 'authorization', 'eventTypes', 'enabled', 'name', 'memo', 'isReadyColumn',
   ];
+
   public webhooks: ObservableArray<UIWebhookSummary> = observableArray<UIWebhookSummary>([]);
 
   public constructor(private _docApi: DocAPI) {

@@ -140,9 +140,11 @@ export class LayoutBox extends Disposable implements ContentBox {
       });
     });
   }
+
   public getDom() {
     return this.dom || (this.dom = this.autoDispose(this.buildDom()));
   }
+
   public maximize() {
     if (this.layout.maximizedLeaf.peek() !== this.leafId.peek()) {
       this.layout.maximizedLeaf(this.leafId());
@@ -151,6 +153,7 @@ export class LayoutBox extends Disposable implements ContentBox {
       this.layout.maximizedLeaf(null);
     }
   }
+
   public buildDom() {
     const self = this;
     const wrap = this.layout.needDynamic ? identity : makeStatic;
@@ -176,6 +179,7 @@ export class LayoutBox extends Disposable implements ContentBox {
       }),
     );
   }
+
   /**
    * Moves the leaf id and content from another layoutBox, unsetting them in the source one.
    */
@@ -186,21 +190,26 @@ export class LayoutBox extends Disposable implements ContentBox {
     sourceLayoutBox.leafId(null);
     sourceLayoutBox.leafContent(null);
   }
+
   public setChildren(children: LayoutBox[]) {
     children.forEach(child => child.parentBox(this));
     this.childBoxes.assign(children);
   }
+
   public isFirstChild() {
     return this.parentBox() ? this.parentBox()!.childBoxes.peek()[0] === this : true;
   }
+
   public isLastChild() {
     // Use .all() rather than .peek() because it's used in kd.toggleClass('layout_last_child'), and
     // we want it to automatically stay correct when childBoxes array changes.
     return this.parentBox() ? last(this.parentBox()!.childBoxes.all()) === this : true;
   }
+
   public isDomDetached() {
     return !(this.dom && this.dom.parentNode);
   }
+
   public getSiblingBox(isAfter: boolean) {
     if (!this.parentBox()) {
       return null;
@@ -213,6 +222,7 @@ export class LayoutBox extends Disposable implements ContentBox {
     index += (isAfter ? 1 : -1);
     return (index < 0 || index >= siblings.length ? null : siblings[index]);
   }
+
   public _addChild(childBox: LayoutBox, isAfter: boolean, optNextSibling?: LayoutBox) {
     assert(childBox.parentBox() === null, "LayoutBox._addChild: child already has parentBox set");
     let index;
@@ -225,6 +235,7 @@ export class LayoutBox extends Disposable implements ContentBox {
     childBox.parentBox(this);
     this.childBoxes.splice(index, 0, childBox);
   }
+
   public addSibling(childBox: LayoutBox, isAfter: boolean) {
     childBox.removeFromParent();
     const parentBox = this.parentBox();
@@ -256,6 +267,7 @@ export class LayoutBox extends Disposable implements ContentBox {
     }
     this.layout.trigger('layoutChanged');
   }
+
   public addChild(childBox: LayoutBox, isAfter: boolean) {
     childBox.removeFromParent();
     if (this.isLeaf()) {
@@ -267,6 +279,7 @@ export class LayoutBox extends Disposable implements ContentBox {
     this._addChild(childBox, isAfter);
     this.layout.trigger('layoutChanged');
   }
+
   public toString(): string {
     return this.isDisposed() ? this.uniqueId + "[disposed]" : (this.uniqueId +
       (this.isHBox() ? "H" : "V") +
@@ -274,6 +287,7 @@ export class LayoutBox extends Disposable implements ContentBox {
         "[" + this.childBoxes.peek().map(function(b) { return b.toString(); }).join(",") + "]")
     );
   }
+
   public _removeChildBox(childBox: LayoutBox) {
     //console.log("_removeChildBox %s from %s", childBox.toString(), this.toString());
     let index = this.childBoxes.peek().indexOf(childBox);
@@ -309,6 +323,7 @@ export class LayoutBox extends Disposable implements ContentBox {
       }
     }
   }
+
   /**
    * Helper to detach a box from its parent without disposing it. If you no longer plan to reattach
    * the box, you should probably call box.dispose().
@@ -319,6 +334,7 @@ export class LayoutBox extends Disposable implements ContentBox {
       this.layout.trigger('layoutChanged');
     }
   }
+
   /**
    * Adjust flexSize values of the children so that they add up to at least 1.
    * Otherwise, Firefox will not stretch them to the full size of the container.
@@ -404,21 +420,25 @@ export class Layout extends Disposable {
       }
     });
   }
+
   /**
    * Finds and returns the leaf layout box containing the content for the given leafId.
    */
   public getLeafBox(leafId: string|number) {
     return this.getLeafIdMap().get(leafId);
   }
+
   /**
    * Returns the list of all leafIds present in this layout.
    */
   public getAllLeafIds() {
     return Array.from(this.getLeafIdMap().keys());
   }
+
   public setRoot(layoutBox: LayoutBox) {
     this.rootBox(layoutBox);
   }
+
   public buildDom() {
     return dom('div.layout_root',
       domData('layoutModel', this),
@@ -429,6 +449,7 @@ export class Layout extends Disposable {
       }),
     );
   }
+
   /**
    * Calls cb on each box in the layout recursively.
    */
@@ -442,6 +463,7 @@ export class Layout extends Disposable {
     }
     iter(this.rootBox.peek());
   }
+
   public buildLayoutBox(boxSpec: BoxSpec) {
     // Note that this is hot code: it runs when rendering a layout for each record, not only for the
     // layout editor.
@@ -458,6 +480,7 @@ export class Layout extends Disposable {
     }
     return box;
   }
+
   public buildLayout(boxSpec: BoxSpec, needDynamic = false) {
     if (needDynamic === this.needDynamic &&
       this.rootBox() &&
@@ -473,6 +496,7 @@ export class Layout extends Disposable {
       oldRootBox.dispose();
     }
   }
+
   public _getBoxSpec(layoutBox: LayoutBox) {
     const spec: BoxSpec = {};
     if (layoutBox.isDisposed()) {
@@ -489,10 +513,12 @@ export class Layout extends Disposable {
     }
     return spec;
   }
+
   public getLayoutSpec() {
     const rootBox = this.rootBox();
     return rootBox ? this._getBoxSpec(rootBox) : {};
   }
+
   /**
    * Returns a Map object mapping leafId to its LayoutBox. This gets invalidated on layoutAdjust
    * events, and rebuilt on next request.
@@ -509,6 +535,7 @@ export class Layout extends Disposable {
     }
     return this._leafIdMap;
   }
+
   /**
    * Returns a LayoutBox object containing the given DOM element, or null if not found.
    */

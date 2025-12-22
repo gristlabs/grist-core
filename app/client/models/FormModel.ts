@@ -33,6 +33,7 @@ export class FormModelImpl extends Disposable implements FormModel {
 
     return patchedLayout;
   });
+
   public readonly submitting = Observable.create<boolean>(this, false);
   public readonly submitted = Observable.create<boolean>(this, false);
   public readonly error = Observable.create<string|null>(this, null);

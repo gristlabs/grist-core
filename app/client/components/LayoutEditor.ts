@@ -123,6 +123,7 @@ class Floater extends Disposable implements ContentBox {
     this.mouseOffsetY = 0;
     this.lastMouseEvent = null;
   }
+
   public onInitialMouseMove(mouseEvent: JQMouseEvent, sourceBox: ContentBox) {
     const rect = sourceBox.dom!.getBoundingClientRect();
     this.dom.style.width = rect.width + 'px';
@@ -140,9 +141,11 @@ class Floater extends Disposable implements ContentBox {
       koDom.style('min-height', (rect.height * 0.96) + 'px'),
     ));
   }
+
   public onMouseUp() {
     this.lastMouseEvent = null;
   }
+
   public onMouseMove(mouseEvent: JQMouseEvent) {
     this.lastMouseEvent = mouseEvent;
     this.dom.style.left = (mouseEvent.clientX - this.mouseOffsetX) + 'px';
@@ -171,6 +174,7 @@ class DropOverlay extends Disposable {
     this.hBorder = null;
     this.vBorder = null;
   }
+
   /**
    * Hides the overlay box by detaching it from the current element, if any.
    */
@@ -179,6 +183,7 @@ class DropOverlay extends Disposable {
       this.overlayElem.parentNode.removeChild(this.overlayElem);
     }
   }
+
   /**
    * Shows the overlay box over the given element.
    */
@@ -201,6 +206,7 @@ class DropOverlay extends Disposable {
     s.borderTopWidth = s.borderBottomWidth = this.hBorder + 'px';
     s.borderLeftWidth = s.borderRightWidth = this.vBorder + 'px';
   }
+
   /**
    * If the mouse is over a region of affinity, returns the affinity as an 0-3 integer (see
    * AFFINITY_NAMES above). Otherwise, returns -1.
@@ -243,6 +249,7 @@ class DropTargeter extends Disposable {
     this.activeTarget = null;
     this.autoDisposeCallback(this.removeTargetHints);
   }
+
   public removeTargetHints() {
     if (this.activeTarget?.box?.dom) {
       this.activeTarget.box.dom.style.transition = '';
@@ -257,6 +264,7 @@ class DropTargeter extends Disposable {
     this.currentBox = null;
     this.currentAffinity = null;
   }
+
   public updateTargetHints(
     layoutBox: LayoutBox|null,
     affinity: number,
@@ -360,6 +368,7 @@ class DropTargeter extends Disposable {
     );
     this.rootElem.appendChild(this.targetsDom!);
   }
+
   public triggerInsertion(part: TargetPart) {
     this.removeTargetHints();
     this.trigger('insertBox', (box: LayoutBox) => {
@@ -371,6 +380,7 @@ class DropTargeter extends Disposable {
       }
     });
   }
+
   public accelerateInsertion() {
     if (this.activeTarget) {
       this.activeTarget.box.dom!.style.transition = '';
@@ -477,6 +487,7 @@ export class LayoutEditor extends Disposable {
       }
     });
   }
+
   public triggerUserEditStart() {
     assert(this.lastTriggered === 'stop', "UserEditStart triggered twice in succession");
     this.lastTriggered = 'start';
@@ -484,6 +495,7 @@ export class LayoutEditor extends Disposable {
     this.rootElem.setAttribute('data-useredit', 'start');
     this.layout.trigger('layoutUserEditStart');
   }
+
   public triggerUserEditStop() {
     assert(this.lastTriggered === 'start', "UserEditStop triggered twice in succession");
     this.lastTriggered = 'stop';
@@ -491,6 +503,7 @@ export class LayoutEditor extends Disposable {
     // This attribute allows browser tests to tell when an edit is finished.
     this.rootElem.setAttribute('data-useredit', 'stop');
   }
+
   public makeResizable(box: LayoutBox) {
     // Do not add resizable if:
     // Box already resizable, box is not vertically resizable, box is last in it`s group.
@@ -507,12 +520,14 @@ export class LayoutEditor extends Disposable {
       stop: this.triggerUserEditStop.bind(this),
     });
   }
+
   public unmakeResizable(box: LayoutBox) {
     if (G.$(box.dom!).resizable("instance")) {
       // Resizable widget is set for this box.
       G.$(box.dom!).resizable('destroy');
     }
   }
+
   public onResizeStart(helperObj: HelperBox, isWidth: boolean, event: JQMouseEvent, ui: JqueryUI) {
     this.triggerUserEditStart();
     const size = isWidth ? ui.originalSize.width : ui.originalSize.height;
@@ -526,6 +541,7 @@ export class LayoutEditor extends Disposable {
     helperObj.sumAll = allSiblings.reduce(adder, 0);
     helperObj.sumNext = helperObj.sumAll - helperObj.sumPrev;
   }
+
   public onResizeMove(helperObj: HelperBox, isWidth: boolean, event: JQMouseEvent, ui: JqueryUI) {
     const sizePx = isWidth ? ui.size.width : ui.size.height;
     let newSize = sizePx / helperObj.scalePerFlexUnit;
@@ -554,6 +570,7 @@ export class LayoutEditor extends Disposable {
       this.layout.trigger('layoutResized');
     }
   }
+
   public handleMouseDown(event: JQMouseEvent, elem: HTMLElement) {
     const target = (event.target as HTMLElement);
     if (event.button !== 0 || target?.classList.contains('ui-resizable-handle')) {
@@ -568,6 +585,7 @@ export class LayoutEditor extends Disposable {
       return false;
     }
   }
+
   // Exposed for tests
   public dragInNewBox(event: JQMouseEvent, leafId: number) {
     const box = this.layout.buildLayoutBox({leaf: leafId});
@@ -577,12 +595,14 @@ export class LayoutEditor extends Disposable {
 
     this.handleMouseDown(event, box.dom!);
   }
+
   public startDragBox(event: JQMouseEvent, box: LayoutBox) {
     this.triggerUserEditStart();
     this.targetBox = box;
     this.floater.onInitialMouseMove(event, box);
     this.trigger('dragStart', this.originalBox);
   }
+
   public handleMouseUp(event: JQMouseEvent) {
     G.$(G.window).off('mousemove', this.boundMouseMove);
     G.$(G.window).off('mouseup', this.boundMouseUp);
@@ -652,6 +672,7 @@ export class LayoutEditor extends Disposable {
     ));
     this.onInsertBox(noop).catch(noop);
   }
+
   public handleMouseMove(event: JQMouseEvent) {
     // Make sure the grabbed box still exists
     if (!this.originalBox || this.originalBox?.isDisposed()) {
@@ -703,6 +724,7 @@ export class LayoutEditor extends Disposable {
       this.dropTargeter.removeTargetHints();
     }
   }
+
   public async onInsertBox(inserterFunc: (box: LayoutBox) => void) {
     // Create a new LayoutBox, and insert it using inserterFunc.
     // Shrink prevTargetBox to 0. Create a new target box, initially shrunk, and grow it.

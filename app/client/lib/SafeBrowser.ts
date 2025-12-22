@@ -114,6 +114,7 @@ export class SafeBrowser extends BaseComponent {
   public createViewProcess(path: string): ViewProcess {
     return this._createViewProcess(path)[0];
   }
+
   /**
    * `receiveAction` handles an action received from the server by forwarding it to the view processes.
    */

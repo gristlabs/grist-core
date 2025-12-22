@@ -5,6 +5,7 @@ export class DeleteAccountDialog extends Disposable {
   constructor(appModel: FullUser) {
     super();
   }
+
   public buildDom() {
     return null;
   }

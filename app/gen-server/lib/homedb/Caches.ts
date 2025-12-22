@@ -49,6 +49,7 @@ export class HomeDBCaches {
   public addInvalidationDocAccess(callbacks: Array<() => Promise<void>>, docIds: string[]) {
     callbacks.push(this.invalidateDocAccess.bind(this, docIds));
   }
+
   public addInvalidationDocPrefs(callbacks: Array<() => Promise<void>>, docIds: string[]) {
     callbacks.push(this.invalidateDocPrefs.bind(this, docIds));
   }

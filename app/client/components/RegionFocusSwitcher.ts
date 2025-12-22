@@ -42,6 +42,7 @@ export class RegionFocusSwitcher extends Disposable {
     region: undefined,
     initiator: undefined,
   });
+
   private get _gristDocObs() { return this._app?.pageModel?.gristDoc; }
   // Previously focused elements for each panel (not used for view section ids)
   private _prevFocusedElements: Record<Panel, Element | null> = {
@@ -50,11 +51,13 @@ export class RegionFocusSwitcher extends Disposable {
     right: null,
     main: null,
   };
+
   // Command history exclusively here to warn the user about the creator panel shortcut if needed
   private _commandsHistory: {
     name: 'nextRegion' | 'prevRegion' | 'creatorPanel',
     timestamp: number
   }[] = [];
+
   private _warnedAboutCreatorPanel = false;
 
   constructor(private _app?: App) {

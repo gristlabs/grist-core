@@ -55,6 +55,7 @@ class ColumnPicker extends Disposable {
     private _section: ViewSectionRec){
     super();
   }
+
   public buildDom() {
     // Rewrite value to ignore old configuration when allowMultiple is switched.
     const properValue = Computed.create(this, (use) => {
@@ -169,6 +170,7 @@ class ColumnListPicker extends Disposable {
     private _section: ViewSectionRec) {
     super();
   }
+
   public buildDom() {
     return dom.domComputed((use) => {
       return [
@@ -181,6 +183,7 @@ class ColumnListPicker extends Disposable {
       ];
     });
   }
+
   private _buildAddColumn() {
 
     const owner = MultiHolder.create(null);
@@ -299,10 +302,12 @@ class ColumnListPicker extends Disposable {
     currentList.splice(indexOfNext, 0, id);
     this._list(currentList);
   }
+
   private _remove(column: ColumnRec): any {
     const current = this._list();
     this._value.set(current.filter(c => c != column.id.peek()));
   }
+
   private _addColumn(col: ColumnRec): any {
     // Helper to find column model.
     const model = (id: number) => this._section.columns().find(c => c.id.peek() === id) || null;
@@ -365,6 +370,7 @@ class CustomSectionConfigurationConfig extends Disposable{
       }),
     ]);
   }
+
   private _openConfiguration(): void {
     allCommands.openWidgetConfiguration.run();
   }

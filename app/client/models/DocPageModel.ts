@@ -156,24 +156,30 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly currentOrg = Computed.create(this, this.currentWorkspace, (use, ws) => ws && ws.org);
   public readonly currentOrgName = Computed.create(this, this.currentOrg,
     (use, org) => getOrgNameOrGuest(org, this.appModel.currentUser));
+
   public readonly currentDocTitle = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.name : '');
   public readonly isReadonly = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isReadonly : false);
   public readonly isPrefork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isPreFork : false);
   public readonly isFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isFork : false);
   public readonly isRecoveryMode = Computed.create(this, this.currentDoc,
     (use, doc) => doc ? doc.isRecoveryMode : false);
+
   public readonly user = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.user : null);
   public readonly userOverride = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.userOverride : null);
   public readonly isBareFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isBareFork : false);
   public readonly isSnapshot = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isSnapshot : false);
   public readonly isTutorialTrunk = Computed.create(this, this.currentDoc,
     (use, doc) => doc ? doc.isTutorialTrunk : false);
+
   public readonly isTutorialFork = Computed.create(this, this.currentDoc,
     (use, doc) => doc ? doc.isTutorialFork : false);
+
   public readonly isTemplate = Computed.create(this, this.currentDoc,
     (use, doc) => doc ? doc.isTemplate : false);
+
   public readonly type = Computed.create(this, this.currentDoc,
     (use, doc) => doc?.type ?? null);
+
   public readonly currentProposal = Observable.create<Proposal|'empty'|null>(this, null);
   public readonly proposalNewChangesCount = Observable.create<number|'...'|null>(this, null);
 

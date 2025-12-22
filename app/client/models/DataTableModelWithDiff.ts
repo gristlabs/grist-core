@@ -263,6 +263,7 @@ export class TableDataWithDiff {
     }
     return this.core.getValue(rowId, colId);
   }
+
   public get tableId() { return this.core.tableId; }
 
   public numRecords() {

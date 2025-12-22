@@ -338,6 +338,7 @@ class InMemoryGristDoc extends Disposable {
       dismissedPopups: Observable.create(null, []),
     },
   };
+
   public behavioralPromptsManager = {
     attachPopup: () => {},
   };
@@ -371,6 +372,7 @@ class InMemoryGristDoc extends Disposable {
   public getXlsxActiveViewLink() {
     return '';
   }
+
   public async clearColumns() {}
   public async convertIsFormula() {}
   public async sendTableAction() {}
@@ -379,9 +381,11 @@ class InMemoryGristDoc extends Disposable {
   public getTableModelMaybeWithDiff(tableId: string) {
     return this.docModel.getTableModel(tableId);
   }
+
   public getTableModel(tableId: string) {
     return this.docModel.getTableModel(tableId);
   }
+
   public async onSetCursorPos(rowModel: BaseRowModel | undefined, fieldModel?: ViewFieldRec) {
     const cursorPos = {
       rowIndex: rowModel?._index() || 0,
@@ -392,6 +396,7 @@ class InMemoryGristDoc extends Disposable {
     viewInstance?.setCursorPos(cursorPos);
     this.app?.trigger('clipboard_focus', null);
   }
+
   public getLinkingRowIds(sectionId: number): UIRowId[]|undefined {
     throw new Error('Anchor links are not supported in virtual tables.');
   }

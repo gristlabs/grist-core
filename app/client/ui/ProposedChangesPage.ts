@@ -92,6 +92,7 @@ export class ProposedChangesTrunkPage extends Disposable {
     this, this._proposalsObs,
     (_owner, ps) => ps.length,
   );
+
   private _showDismissed = Observable.create(this, false);
   private _userProposalsObs = Computed.create(
     this, this.gristDoc.currentUser, this._proposalsObs, this._showDismissed,

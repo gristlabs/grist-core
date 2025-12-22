@@ -159,6 +159,7 @@ export class MapWithCustomExpire<K, V> extends MapWithTTL<K, V> {
   constructor(ttlMs: number, private _onExpire: (key: K) => void) {
     super(ttlMs);
   }
+
   public override expire(key: K): boolean {
     this._onExpire(key);
     return super.expire(key);

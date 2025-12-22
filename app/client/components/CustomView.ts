@@ -68,6 +68,7 @@ export class CustomView extends BaseView {
       document.querySelector<HTMLElement>('textarea.copypaste.mousetrap')?.focus();
     },
   };
+
   // Commands enabled when the view is the active section, even when user focuses another region.
   private static _commands: {[key: string]: Function} & ThisType<CustomView> = {
     async openWidgetConfiguration(this: CustomView) {

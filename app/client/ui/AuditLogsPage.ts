@@ -35,6 +35,7 @@ export class AuditLogsPage extends Disposable {
   private readonly _model: AuditLogsModel = new AuditLogsModelImpl({
     configsAPI: new OrgConfigsAPI(this._appModel.currentOrg!.id),
   });
+
   private readonly _currentPage = Computed.create(
     this,
     urlState().state,

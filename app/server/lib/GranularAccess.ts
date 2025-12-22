@@ -3479,6 +3479,7 @@ class TransformColumnPermissionInfo implements IPermissionInfo {
   constructor(private _inner: IPermissionInfo) {
 
   }
+
   public getColumnAccess(tableId: string, colId: string): MixedPermissionSetWithContext {
     const access = this._inner.getColumnAccess(tableId, colId);
     const isSchemaDenied = access.perms.schemaEdit === 'deny';
@@ -3497,12 +3498,15 @@ class TransformColumnPermissionInfo implements IPermissionInfo {
     }
     return access;
   }
+
   public getTableAccess(tableId: string): TablePermissionSetWithContext {
     return this._inner.getTableAccess(tableId);
   }
+
   public getFullAccess(): MixedPermissionSetWithContext {
     return this._inner.getFullAccess();
   }
+
   public getRuleCollection(): ACLRuleCollection {
     return this._inner.getRuleCollection();
   }
@@ -3520,6 +3524,7 @@ export class PseudoDocSession extends OptDocSession {
   constructor(private _userData: UserAccessData, private _docId: string, private _org: string|undefined) {
     super({});
   }
+
   public get org() { return this._org; }
   public get altSessionId() { return null; }
   public get userId() { return this._userData.id; }

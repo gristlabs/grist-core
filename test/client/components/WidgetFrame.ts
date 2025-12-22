@@ -8,6 +8,7 @@ describe('WidgetFrame', function () {
       public none() {
         return true;
       }
+
       public read_table() {
         return true;
       }

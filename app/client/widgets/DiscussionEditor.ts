@@ -202,6 +202,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
 export class CommentPopup extends Disposable {
   private _newText: Observable<CommentWithMentions> = Observable.create(this,
     this._props.initialText ?? new CommentWithMentions());
+
   private _menuInstance: PopupControl;
 
   constructor(private _props: {
@@ -600,9 +601,11 @@ class Comment extends Disposable {
   private get _isReply() {
     return !!this.props.parent;
   }
+
   private get _start() {
     return this.props.parent ? this.props.parent : this.props.comment;
   }
+
   constructor(
     public props: {
       comment: CellRec,
@@ -634,6 +637,7 @@ class Comment extends Disposable {
       return true;
     });
   }
+
   public buildDom() {
     const comment = this.props.comment;
     const topic = this.props.cell;

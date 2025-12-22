@@ -1451,6 +1451,7 @@ class DefaultObsRuleSet extends ObsRuleSet {
     private _haveColumnRules?: Observable<boolean>, ruleSet?: RuleSet) {
     super(accessRules, tableRules, ruleSet);
   }
+
   public buildResourceDom() {
     return [
       cssCenterContent.cls(''),

@@ -61,6 +61,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
   private _endpoint =
     this._options.completionEndpoint ??
     "https://api.openai.com/v1/chat/completions";
+
   private _model = this._options.model;
   private _longerContextModel = this._options.longerContextModel;
   private _maxTokens = this._options.maxTokens;

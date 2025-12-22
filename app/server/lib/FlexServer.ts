@@ -1349,6 +1349,7 @@ export class FlexServer implements GristServer {
       dbManager: this.getHomeDBManager(),
     });
   }
+
   /**
    * Add endpoint that servers a javascript file with various api keys that
    * are used by the client libraries.

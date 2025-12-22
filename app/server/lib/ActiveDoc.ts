@@ -338,6 +338,7 @@ export class ActiveDoc extends EventEmitter {
     this._log.debug(null, 'inactivity timeout');
     return this._onInactive();
   }, Deps.ACTIVEDOC_TIMEOUT * 1000);
+
   private _recoveryMode: boolean = false;
   private _shuttingDown: boolean = false;
   private _afterShutdownCallback?: () => Promise<void>;

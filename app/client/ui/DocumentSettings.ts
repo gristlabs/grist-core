@@ -66,6 +66,7 @@ export class DocSettingsPage extends Disposable {
     this,
     Boolean(this._gristDoc.docPageModel.currentDoc.get()?.options?.proposedChanges?.acceptProposals),
   );
+
   private _working: Observable<boolean> = Observable.create(this, false);
 
   constructor(private _gristDoc: GristDoc) {

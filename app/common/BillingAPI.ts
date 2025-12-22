@@ -238,6 +238,7 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
       body: JSON.stringify({ domain }),
     });
   }
+
   public async getPlans(plan?: PlanSelection): Promise<IBillingPlan[]> {
     const url = new URL(`${this._url}/api/billing/plans`);
     url.searchParams.set('product', plan?.product || '');

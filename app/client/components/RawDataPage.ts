@@ -93,6 +93,7 @@ export class RawDataPopup extends Disposable {
     };
     this.autoDispose(commands.createGroup(commandGroup, this, true));
   }
+
   public buildDom() {
     ViewSectionHelper.create(this, this._gristDoc, this._viewSection);
     return cssOverlay(

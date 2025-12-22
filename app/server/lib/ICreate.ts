@@ -133,9 +133,11 @@ export class BaseCreate implements ICreate {
   public Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling {
     return new EmptyBilling();
   }
+
   public Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier|undefined {
     return undefined;
   }
+
   public ExternalStorage(...[purpose, extraPrefix]: Parameters<ExternalStorageCreator>): ExternalStorage|undefined {
     for (const s of this._storage) {
       if (s.check()) {
@@ -144,21 +146,27 @@ export class BaseCreate implements ICreate {
     }
     return undefined;
   }
+
   public AuditLogger(dbManager: HomeDBManager, gristConfig: GristServer) {
     return createNullAuditLogger();
   }
+
   public Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry {
     return createDummyTelemetry();
   }
+
   public Assistant(gristConfig: GristServer): IAssistant|undefined {
     return undefined;
   }
+
   public NSandbox(options: ISandboxCreationOptions): ISandbox {
     return createSandbox('unsandboxed', options);
   }
+
   public sessionSecret(): string {
     return process.env.GRIST_SESSION_SECRET || DEFAULT_SESSION_SECRET;
   }
+
   public async configure() {
     for (const s of this._storage) {
       if (s.check()) {
@@ -166,6 +174,7 @@ export class BaseCreate implements ICreate {
       }
     }
   }
+
   public async checkBackend() {
     for (const s of this._storage) {
       if (s.check()) {
@@ -174,6 +183,7 @@ export class BaseCreate implements ICreate {
       }
     }
   }
+
   public getExtraHeadHtml() {
     const elements: string[] = [];
     if (process.env.APP_STATIC_INCLUDE_CUSTOM_CSS === 'true') {
@@ -182,6 +192,7 @@ export class BaseCreate implements ICreate {
     elements.push(getThemeBackgroundSnippet());
     return elements.join('\n');
   }
+
   public getStorageOptions(name: string) {
     return this._storage.find(s => s.name === name);
   }
@@ -225,17 +236,21 @@ export class BaseCreate implements ICreate {
   public async getLoginSystem(): Promise<GristLoginSystem> {
     return getCoreLoginSystem();
   }
+
   public async createLocalDocStorageManager(...args: ConstructorParameters<typeof DocStorageManager>) {
     return new DocStorageManager(...args);
   }
+
   public async createHostedDocStorageManager(...args: ConstructorParameters<typeof HostedStorageManager>) {
     return new HostedStorageManager(...args);
   }
+
   public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
   public areAdminControlsAvailable(): boolean { return false; }
   public createDocNotificationManager(gristServer: GristServer): IDocNotificationManager|undefined {
     return undefined;
   }
+
   public startProcessMonitor(telemetry: ITelemetry) {
     return ProcessMonitor.start(telemetry);
   }

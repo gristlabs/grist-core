@@ -10,6 +10,7 @@ export class Cleanup {
   public addAfterAll(cleanupFunc: CleanupFunc) {
     this._callbacksAfterAll.push(cleanupFunc);
   }
+
   public addAfterEach(cleanupFunc: CleanupFunc) {
     this._callbacksAfterEach.push(cleanupFunc);
   }

@@ -19,6 +19,7 @@ export class UnsavedChange extends Disposable {
     unsavedChanges.add(this);
     this.onDispose(() => unsavedChanges.delete(this));
   }
+
   public haveUnsavedChanges() { return !this._haveChanges || this._haveChanges(); }
   public async save(): Promise<void> { return this._saveCB && this._saveCB(); }
 }

@@ -238,6 +238,7 @@ export class TreeItemRecord extends TreeNodeRecord implements TreeItem {
   constructor() {
     super();
   }
+
   public get record() { return this.storage.records[this.index]; }
 }
 

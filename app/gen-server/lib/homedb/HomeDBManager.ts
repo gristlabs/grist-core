@@ -291,6 +291,7 @@ export class HomeDBManager implements HomeDBAuth {
   private _serviceAccountsManager = new ServiceAccountsManager(
     this, this.runInTransaction.bind(this),
   );
+
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
@@ -4164,6 +4165,7 @@ export class HomeDBManager implements HomeDBAuth {
       }
     }
   }
+
   /**
    * A helper to throw an error if a user with ACL_EDIT permission attempts
    * to change their own access rights. The user permissions are expected to

@@ -434,12 +434,15 @@ class UserItemImpl implements UserItem {
   public get hasAccess() {
     return canView(getRealAccess(this._user, this._access));
   }
+
   public get ref() {
     return this._user.ref || '';
   }
+
   public get profile(): Partial<UserProfile> {
     return this._user;
   }
+
   public get name() {
     return this._user.name || this._user.email;
   }

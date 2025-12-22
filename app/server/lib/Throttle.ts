@@ -74,6 +74,7 @@ interface MeterSample {
 export class Throttle {
   private _timing: ThrottleTiming =
     this._options.timing || defaultThrottleTiming;         // overall timing parameters
+
   private _dutyCycleTimeout: NodeJS.Timeout | undefined;   // driver for throttle duty cycle
   private _traceNudgeTimeout: NodeJS.Timeout | undefined;  // schedule a nudge to a traced process
   private _throttleFactor: number = 0;                     // relative length of paused phase

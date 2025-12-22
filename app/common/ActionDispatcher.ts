@@ -46,11 +46,13 @@ export abstract class ActionDispatcher {
       this.onAddRecord(action, tableId, rowIds[i], mapValues(colValues, values => values[i]));
     }
   }
+
   protected onBulkUpdateRecord(action: DocAction, tableId: string, rowIds: number[], colValues: BulkColValues): void {
     for (let i = 0; i < rowIds.length; i++) {
       this.onUpdateRecord(action, tableId, rowIds[i], mapValues(colValues, values => values[i]));
     }
   }
+
   protected onBulkRemoveRecord(action: DocAction, tableId: string, rowIds: number[]) {
     for (const r of rowIds) {
       this.onRemoveRecord(action, tableId, r);

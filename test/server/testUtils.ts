@@ -356,6 +356,7 @@ export class EnvironmentSnapshot {
   public constructor() {
     this._oldEnv = clone(process.env);
   }
+
   // Reset environment variables.
   public restore() {
     Object.assign(process.env, this._oldEnv);

@@ -118,6 +118,7 @@ abstract class GristJobsBase<QS extends GristQueueScope> {
   public queue(queueName: string = DEFAULT_QUEUE_NAME): QS {
     return getSetMapValue(this._queues, queueName, () => this.createQueueScope(queueName));
   }
+
   public async stop(options: StopOptions = {}) {
     await Promise.all(Array.from(this._queues.values(), q => q.stop(options)));
     this._queues.clear();
@@ -224,9 +225,11 @@ class GristInMemoryQueueScope extends GristQueueScopeBase<GristWorker> implement
     }
     await this._worker.add(name, data, options);
   }
+
   protected override async obliterate(): Promise<void> {
     await this._worker?.obliterate();
   }
+
   protected override createWorker(queueName: string, callback: JobHandler): GristWorker {
     return new GristWorker(this.queueName, callback);
   }

@@ -107,6 +107,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     { value: roles.EDITOR, label: t("Editor") },
     { value: roles.VIEWER, label: t("Viewer") },
   ];
+
   // Select options for each individual user's role dropdown in the org.
   public readonly orgUserSelectOptions: IOrgMemberSelectOption[] = [
     { value: roles.OWNER,  label: t("Owner")  },
@@ -114,6 +115,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     { value: roles.VIEWER, label: t("Viewer") },
     { value: roles.MEMBER, label: t("No Default Access") },
   ];
+
   // Select options for the resource's maxInheritedRole dropdown.
   public readonly inheritSelectOptions: IMemberSelectOption[] = [
     { value: roles.OWNER,  label: t("In full")     },
@@ -121,6 +123,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     { value: roles.VIEWER, label: t("View only")   },
     { value: null,         label: t("None")        },
   ];
+
   // Select options for the public member's role dropdown.
   public readonly publicUserSelectOptions: IMemberSelectOption[] = [
     { value: roles.EDITOR, label: t("Editor") },

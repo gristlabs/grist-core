@@ -200,6 +200,7 @@ export class VirtualTableRegistration extends DisposableWithEvents {
     maxWait: 2000,
     trailing: true,
   });
+
   private _tableData: VirtualTableData;
 
   constructor(docModel: DocModel, ext: IExternalTable) {

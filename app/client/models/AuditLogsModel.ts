@@ -29,6 +29,7 @@ export interface AuditLogsModelOptions {
 export class AuditLogsModelImpl extends Disposable implements AuditLogsModel {
   public readonly streamingDestinations: Observable<AuditLogStreamingDestinations | null> =
     Observable.create(this, null);
+
   private readonly _configsAPI = this._options.configsAPI;
 
   constructor(private _options: AuditLogsModelOptions) {

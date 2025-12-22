@@ -65,6 +65,7 @@ export class DocList extends Disposable {
       }
     },
   );
+
   private readonly _tabIconsAndLabels = getTabIconsAndLabels();
 
   private readonly _tabs: MaybeObsArray<TabProps> = this.autoDispose(
@@ -75,8 +76,10 @@ export class DocList extends Disposable {
       link: { homePageTab: tab },
     }),
     ));
+
   private readonly _viewSettings =
     this._options.viewSettings ?? this._options.home;
+
   private readonly _tab = Computed.create(
     this,
     this._tabNames,
@@ -85,6 +88,7 @@ export class DocList extends Disposable {
       return homePageTab && tabs.includes(homePageTab) ? homePageTab : tabs[0];
     },
   );
+
   private readonly _showWorkspace = Computed.create(
     this,
     this._home.currentPage,

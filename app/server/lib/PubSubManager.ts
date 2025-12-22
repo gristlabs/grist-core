@@ -133,6 +133,7 @@ class PubSubManagerNoRedis extends PubSubManagerBase {
   public async publishBatch(batch: Array<{channel: string, message: string}>) {
     batch.forEach(({channel, message}) => this._deliverMessage(channel, message));
   }
+
   protected async _redisSubscribe(channel: string): Promise<void> {}
   protected async _redisUnsubscribe(channel: string): Promise<void> {}
 }

@@ -169,6 +169,7 @@ export class Command implements CommandDef {
     // Let .run bind the Command object, so that it can be used as a stand-alone callback.
     this.run = this._run.bind(this);
   }
+
   /**
    * Returns a comma-separated string of all keyboard shortcuts, or `null` if no
    * shortcuts exist.
@@ -178,6 +179,7 @@ export class Command implements CommandDef {
 
     return `(${this.humanKeys.join(', ')})`;
   }
+
   /**
    * Returns the text description for the command, including the keyboard shortcuts.
    */
@@ -188,6 +190,7 @@ export class Command implements CommandDef {
 
     return parts.join(' ');
   }
+
   /**
    * Returns DOM for the keyboard shortcuts, wrapped in cute boxes that look like keyboard keys.
    */
@@ -197,6 +200,7 @@ export class Command implements CommandDef {
         : this.humanKeys.map(key => dom('span.shortcut_key_image', key)),
     );
   }
+
   /**
    * Adds a CommandGroup that implements this Command to the top of the stack of groups.
    */
@@ -204,6 +208,7 @@ export class Command implements CommandDef {
     this._implGroupStack.push(cmdGroup);
     this._updateActive();
   }
+
   /**
    * Removes a CommandGroup from the stack of groups implementing this Command.
    */
@@ -211,6 +216,7 @@ export class Command implements CommandDef {
     arrayRemove(this._implGroupStack, cmdGroup);
     this._updateActive();
   }
+
   /**
    * Updates the command's state to reflect the currently active group, if any.
    */
@@ -352,6 +358,7 @@ export class CommandGroup extends Disposable {
       }
     }
   }
+
   private _removeGroup() {
     if (this.isActive) {
       // On disposal, remove the CommandGroup from all the commands and keys.

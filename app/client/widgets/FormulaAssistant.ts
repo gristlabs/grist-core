@@ -42,6 +42,7 @@ export class FormulaAssistant extends Disposable {
   /** Is the formula assistant expanded */
   private _assistantExpanded = this.autoDispose(localStorageBoolObs(
     `u:${this._appModel.currentUser?.id ?? 0};formulaAssistantExpanded`, true));
+
   /** Is assistant features are enabled */
   private _assistantEnabled = getGristConfig().assistant?.version === 1;
   /** Preview column ref */

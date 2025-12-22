@@ -309,10 +309,12 @@ export class AppModelImpl extends Disposable implements AppModel {
   public readonly themePrefs = getUserPrefObs(this.userPrefsObs, 'theme', {
     defaultValue: getDefaultThemePrefs(),
   }) as Observable<ThemePrefs>;
+
   public readonly experiments?: Experiments;
 
   public readonly dismissedPopups = getUserPrefObs(this.userPrefsObs, 'dismissedPopups',
     { defaultValue: [] }) as Observable<DismissedPopup[]>;
+
   public readonly dismissedWelcomePopups = getUserPrefObs(this.userPrefsObs, 'dismissedWelcomePopups',
     { defaultValue: [] }) as Observable<DismissedReminder[]>;
 

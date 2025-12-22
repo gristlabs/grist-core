@@ -231,6 +231,7 @@ class CursorAdapter extends Disposable implements Cursor {
   constructor(private _doc: GristDoc) {
     super();
   }
+
   public async goToCell(pos: CellPosition): Promise<void> {
     await this._doc.recursiveMoveToCursorPos(toCursor(pos, this._doc.docModel), true);
   }
@@ -241,9 +242,11 @@ class StorageAdapter extends Disposable implements Storage {
   public get(): State | null {
     return this._memory;
   }
+
   public save(ev: State) {
     this._memory = ev;
   }
+
   public hasDraftFor(position: CellPosition): boolean {
     const item = this._memory;
     if (item && CellPosition.equals(item.position, position)) {
@@ -251,6 +254,7 @@ class StorageAdapter extends Disposable implements Storage {
     }
     return false;
   }
+
   public clear(): void {
     this._memory = null;
   }
@@ -283,10 +287,12 @@ class NotificationAdapter extends Disposable implements Notification {
     this.pressed = this.autoDispose(new Emitter());
     this.disappeared = this.autoDispose(new Emitter());
   }
+
   public close(): void {
     this._hadAction = true;
     this._holder.clear();
   }
+
   public showUndoDiscard() {
     const notification = showUndoDiscardNotification(this._doc, () => {
       this._hadAction = true;

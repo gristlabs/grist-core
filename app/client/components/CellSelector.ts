@@ -26,12 +26,14 @@ export class CellSelector extends Disposable {
     linePos: ko.observable('0px'),    // Used by GridView for dragging rows
     dropIndex: ko.observable(-1),     // Used by GridView for dragging rows
   };
+
   public col =  {
     start: ko.observable(0),
     end: ko.observable(0),
     linePos: ko.observable('0px'),    // Used by GridView for dragging columns
     dropIndex: ko.observable(-1),     // Used by GridView for dragging columns
   };
+
   public currentSelectType = ko.observable<ElemType>(NONE);
   public currentDragType = ko.observable<ElemType>(NONE);
 

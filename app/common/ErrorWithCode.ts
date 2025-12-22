@@ -17,6 +17,7 @@ export class ErrorWithCode extends Error {
   constructor(public code: string, message: string, public details: ErrorDetails = {}) {
     super(message);
   }
+
   public get accessMode() { return this.details?.accessMode;  }
   public get status() { return this.details?.status;  }
 }

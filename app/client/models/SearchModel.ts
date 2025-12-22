@@ -109,6 +109,7 @@ class RawSectionWrapper implements ISearchablePageRec {
   constructor(private _section: ViewSectionRec) {
 
   }
+
   public viewSections(): ViewSectionRec[] {
     return [this._section];
   }
@@ -132,6 +133,7 @@ class PageRecWrapper implements ISearchablePageRec {
   constructor(private _page: PageRec, private _opener: DocPageOpener) {
 
   }
+
   public viewSections(): ViewSectionRec[] {
     const sections = this._page.view.peek().viewSections.peek().peek();
     const collapsed = new Set(this._page.view.peek().activeCollapsedSections.peek());

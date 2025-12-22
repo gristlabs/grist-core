@@ -143,6 +143,7 @@ class ExtendedDocAPIImpl extends DocAPIImpl {
   public listTables(): Promise<{tables: RecordWithStringId[]}> {
     return this.requestJson(`${this.getBaseUrl()}/tables`);
   }
+
   public listColumns(tableId: string, includeHidden = false): Promise<{columns: RecordWithStringId[]}> {
     return this.requestJson(`${this.getBaseUrl()}/tables/${tableId}/columns?hidden=${includeHidden ? 1 : 0}`);
   }

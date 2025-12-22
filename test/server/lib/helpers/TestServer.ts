@@ -43,6 +43,7 @@ export class TestServer {
 
     return `http://localhost:${this.port}`;
   }
+
   public get proxiedServer() { return this._proxiedServer; }
 
   private _server: ChildProcess;

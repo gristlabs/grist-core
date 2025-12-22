@@ -58,6 +58,7 @@ export class ValidationGroup {
     }
     return valid;
   }
+
   /**
    * Attaches single validator instance to this group. Validator can be in multiple groups
    * at the same time.
@@ -65,12 +66,14 @@ export class ValidationGroup {
   public add(validator: Validator) {
     this._validators.push(validator);
   }
+
   /**
    * Helper that can be attached to the input element to reset validation status.
    */
   public inputReset() {
     return dom.on('input', this.reset.bind(this));
   }
+
   /**
    * Reset all validators statuses.
    */
@@ -90,12 +93,14 @@ export class Validator extends Disposable {
     group.add(this);
     this._message.set(message);
   }
+
   /**
    * Helper that can be attached to the input element to reset validation status.
    */
   public inputReset() {
     return dom.on('input', this.set.bind(this, true));
   }
+
   /**
    * Sets the validation status. If isValid is a string it is treated as a falsy value, and will
    * mark this validator as invalid.
@@ -110,6 +115,7 @@ export class Validator extends Disposable {
       this._isValid.set(isValid ? true : false);
     }
   }
+
   public buildDom() {
     return cssError(
       dom.text(this._message),

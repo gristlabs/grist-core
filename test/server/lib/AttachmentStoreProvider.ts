@@ -89,29 +89,37 @@ class FakeExternalStorage implements ExternalStorage {
   public async exists(key: string, snapshotId?: string): Promise<boolean> {
     return false;
   }
+
   public async head(key: string, snapshotId?: string): Promise<ObjSnapshotWithMetadata | null> {
     return null;
   }
+
   public async upload(
     key: string, fname: string, metadata?: ObjMetadata,
   ): Promise<string | typeof Unchanged | null> {
     return null;
   }
+
   public async download(key: string, fname: string, snapshotId?: string): Promise<string> {
     return "";
   }
+
   public async remove(key: string, snapshotIds?: string[]): Promise<void> {
     return;
   }
+
   public async versions(key: string): Promise<ObjSnapshot[]> {
     return [];
   }
+
   public url(key: string): string {
     return "";
   }
+
   public isFatalError(err: any): boolean {
     return false;
   }
+
   public async close(): Promise<void> {}
 }
 
@@ -121,12 +129,14 @@ class FakeAttachmentExternalStorage extends FakeExternalStorage implements Exter
   ): Promise<string | typeof Unchanged | null> {
     return null;
   }
+
   public async downloadStream(key: string, snapshotId?: string): Promise<StreamDownloadResult> {
     return {
       metadata: { size: 0, snapshotId: "" },
       contentStream: stream.Readable.from(Buffer.from([])),
     };
   }
+
   public async removeAllWithPrefix(prefix: string): Promise<void> {
     return;
   }
@@ -136,6 +146,7 @@ class CoreCreatorExternalStorageStub extends CoreCreate {
   constructor(private _makeStore: () => ExternalStorage | undefined) {
     super();
   }
+
   public override ExternalStorage(): ExternalStorage | undefined {
     return this._makeStore();
   }

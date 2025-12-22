@@ -47,10 +47,12 @@ export class DocTutorial extends Disposable {
     `u:${this._userId};d:${this._docId};docTutorialWidth`,
     436,
   ));
+
   private _height = this.autoDispose(sessionStorageJsonObs(
     `u:${this._userId};d:${this._docId};docTutorialHeight`,
     711,
   ));
+
   private _position = this.autoDispose(sessionStorageJsonObs<PopupPosition | undefined>(
     `u:${this._userId};d:${this._docId};docTutorialPosition`,
     undefined,

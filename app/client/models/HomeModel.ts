@@ -87,6 +87,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public readonly pageType = "home";
   public readonly currentPage = Computed.create(this, urlState().state, (use, s) =>
     s.homePage || (s.ws !== undefined ? "workspace" : "all"));
+
   public readonly currentWSId = Computed.create(this, urlState().state, (use, s) => s.ws);
   public readonly workspaces = Observable.create<Workspace[]>(this, []);
   public readonly loading = Observable.create<boolean|"slow">(this, true);

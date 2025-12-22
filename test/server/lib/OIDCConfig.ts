@@ -19,6 +19,7 @@ class OIDCConfigStubbed extends OIDCBuilder {
   public static async buildWithStub(client: Client = new ClientStub().asClient()) {
     return this.build(NOOPED_SEND_APP_PAGE, undefined, client);
   }
+
   public static async build(
     sendAppPage: SendAppPageFunction,
     config?: any,
@@ -53,9 +54,11 @@ class ClientStub {
       end_session_endpoint: 'http://localhost:8484/logout',
     },
   };
+
   public asClient() {
     return this as unknown as Client;
   }
+
   public getAuthorizationUrlStub() {
     return this.authorizationUrl;
   }

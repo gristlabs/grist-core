@@ -372,6 +372,7 @@ export class MethodAccess<T> implements AccessChecker {
     this._accessMap.set(method, level);
     return this;
   }
+
   public check(access: AccessLevel, method?: string): boolean {
     if (!method) {
       throw new Error('Method name is required for MethodAccess check');
@@ -634,9 +635,11 @@ export class BaseEventSource extends DisposableWithEvents implements IEventSourc
   public attach(frame: WidgetFrame): void {
     this.listenTo(frame, 'ready', this._ready.bind(this));
   }
+
   protected _ready() {
     // To override if needed to react on the ready event.
   }
+
   protected _notify(data: any) {
     if (this.isDisposed()) {
       return;

@@ -552,6 +552,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   public getXlsxActiveViewLink() {
     return '';
   }
+
   public async sendTableAction() {}
   public async sendTableActions() {}
   public getActionLog(): ActionLog {

@@ -11,12 +11,14 @@ export abstract class CellPosition {
       a.sectionId == b.sectionId &&
       a.rowId == b.rowId;
   }
+
   public static create(row: BaseRowModel, field: ViewFieldRec): CellPosition {
     const rowId = row.id.peek();
     const colRef = field.colRef.peek();
     const sectionId = field.viewSection.peek().id.peek();
     return { rowId, colRef, sectionId };
   }
+
   public sectionId: number;
   public rowId: number | string;
   public colRef: number;

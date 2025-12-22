@@ -390,6 +390,7 @@ export abstract class ActionLogPart extends Disposable {
       await this._setContext(contextObs, table, context);
     }
   }
+
   /**
    * Prepare dom element(s) for a cell that has been created, destroyed,
    * or modified.

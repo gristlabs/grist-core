@@ -319,12 +319,15 @@ class CollapsedDropZone extends Disposable {
   private _start() {
     this._animation.set(this._animation.get() + 1);
   }
+
   private _stop() {
     this._animation.set(this._animation.get() - 1);
   }
+
   private _isAnimating() {
     return this._animation.get() > 0;
   }
+
   private _calculate(parentRect: DOMRect) {
     const boxes = this.model.layout.all();
     const rects: Array<VRect|null> = [];
@@ -384,6 +387,7 @@ class CollapsedDropZone extends Disposable {
     }
     return rects;
   }
+
   private async _insertDropTarget(index: number) {
     this._start();
     try {
@@ -396,6 +400,7 @@ class CollapsedDropZone extends Disposable {
       this._stop();
     }
   }
+
   private async _removeDropZone() {
     if (!this._lastTarget) { return; }
     this._start();
@@ -1168,6 +1173,7 @@ class VRect {
     this.top += offset.top;
     this.width = this.right - this.left;
   }
+
   public contains(ev: MouseEvent) {
     return ev.clientX >= this.left && ev.clientX <= this.right &&
       ev.clientY >= this.top && ev.clientY <= this.top + this.height;

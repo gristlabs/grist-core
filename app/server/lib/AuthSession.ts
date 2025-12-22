@@ -48,6 +48,7 @@ export abstract class AuthSession {
   public requiredUserId(): number {
     return this.userId || apiFail("user not known", 401);
   }
+
   public getLogMeta(): ILogMeta {
     // Setting each field conditionally here to omit keys with undefined/null values.
     const meta: ILogMeta = {};
