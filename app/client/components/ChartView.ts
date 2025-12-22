@@ -448,8 +448,8 @@ function extractErrorBars(series: Series[], options: ChartOptions): Map<Series, 
       result.set(series[i], {
         type: "data",
         symmetric: (options.errorBars === "symmetric"),
-        array: series[i + 1] && series[i + 1].values,
-        arrayminus: (options.errorBars === "separate" ? series[i + 2] && series[i + 2].values : undefined),
+        array: series[i + 1]?.values,
+        arrayminus: (options.errorBars === "separate" ? series[i + 2]?.values : undefined),
         thickness: 1,
         width: 3,
       });

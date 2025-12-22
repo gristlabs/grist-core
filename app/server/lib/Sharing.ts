@@ -74,7 +74,7 @@ export class Sharing {
   private async _doApplyUserActions(info: ActionInfo, userActions: UserAction[],
     docSession: OptDocSession,
     options: ApplyUAExtendedOptions | null): Promise<ApplyUAResult> {
-    const client = docSession && docSession.client;
+    const client = docSession?.client;
 
     if (docSession?.linkId) {
       info.linkId = docSession.linkId;
@@ -165,7 +165,7 @@ export class Sharing {
           // be shared. Once sharing is enabled, we would share a snapshot at that time.
           await this._actionHistory.recordNextShared(localActionBundle);
 
-          if (client && client.clientId && !internal) {
+          if (client?.clientId && !internal) {
             this._actionHistory.setActionUndoInfo(
               localActionBundle.actionHash!,
               getActionUndoInfo(localActionBundle, client.clientId, sandboxActionBundle.retValues));

@@ -1856,7 +1856,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   private _getGristType(tableId: string, colId: string): string {
-    return (this._docSchema[tableId] && this._docSchema[tableId][colId]) || "Any";
+    return (this._docSchema[tableId]?.[colId]) || "Any";
   }
 
   private _getDB(): SQLiteDB {

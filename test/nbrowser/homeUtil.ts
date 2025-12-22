@@ -454,7 +454,7 @@ export class HomeUtil {
     if (this.server.isExternalServer()) { throw new Error("not supported"); }
     const dbManager = await this.server.getDatabase();
     const user = await dbManager.getUserByLogin(email);
-    if (user && user.personalOrg) {
+    if (user?.personalOrg) {
       const userOrgPrefs = { showGristTour };
       await dbManager.updateOrg({ userId: user.id }, user.personalOrg.id, { userOrgPrefs });
     }

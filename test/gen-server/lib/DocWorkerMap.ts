@@ -77,14 +77,14 @@ describe("DocWorkerMap", function() {
 
           // That assignment is remembered
           let w = await workers.getDocWorker("a-doc");
-          assert.equal(w && w.docWorker.id, "worker1");
+          assert.equal(w?.docWorker.id, "worker1");
 
           // Make worker unavailable for assigment
           await workers.setWorkerAvailability("worker1", false);
 
           // Existing assignment remains
           w = await workers.getDocWorker("a-doc");
-          assert.equal(w && w.docWorker.id, "worker1");
+          assert.equal(w?.docWorker.id, "worker1");
 
           // Remove worker
           await workers.removeWorker("worker1");
@@ -155,7 +155,7 @@ describe("DocWorkerMap", function() {
           for (let i = 0; i < N; i++) {
             const name = docs[i];
             const w = await workers.getDocWorker(name);
-            assert.equal(w && w.docWorker.id, docWorkers[i]);
+            assert.equal(w?.docWorker.id, docWorkers[i]);
           }
 
           // Check assignments drop out as workers are removed

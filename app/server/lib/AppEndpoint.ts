@@ -103,7 +103,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
         // Prepare to redirect to canonical url for document.
         // Preserve any query parameters or fragments.
         const queryOrFragmentCheck = req.originalUrl.match(/([#?].*)/);
-        const queryOrFragment = (queryOrFragmentCheck && queryOrFragmentCheck[1]) || "";
+        const queryOrFragment = queryOrFragmentCheck?.[1] || "";
         const target = slug ?
           `/${preferredUrlId}/${slug}${req.params.remainder}${queryOrFragment}` :
           `/doc/${preferredUrlId}${req.params.remainder}${queryOrFragment}`;
@@ -117,11 +117,11 @@ export function attachAppEndpoint(options: AttachOptions): void {
     }
     catch (err) {
       if (err.status === 404) {
-        log.info("/:urlId/app.html did not find doc", mreq.userId, urlId, doc && doc.access, mreq.org);
+        log.info("/:urlId/app.html did not find doc", mreq.userId, urlId, doc?.access, mreq.org);
         throw new ApiError("Document not found.", 404);
       }
       else if (err.status === 403) {
-        log.info("/:urlId/app.html denied access", mreq.userId, urlId, doc && doc.access, mreq.org);
+        log.info("/:urlId/app.html denied access", mreq.userId, urlId, doc?.access, mreq.org);
         // If the user does not have access to the document, and is anonymous, and we
         // have a login system, we may wish to redirect them to login process.
         if (isAnonymousUser(mreq) && forceLogin) {

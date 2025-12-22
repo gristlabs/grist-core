@@ -180,7 +180,7 @@ export class Client {
     let count = 0;
     for (let fd = 0; fd < this._docFDs.length; fd++) {
       const docSession = this._docFDs[fd];
-      if (docSession && docSession.activeDoc) {
+      if (docSession?.activeDoc) {
         // Note that this indirectly calls to removeDocSession(docSession.fd)
         docSession.activeDoc.closeDoc(docSession)
           .catch((e) => { this._log.warn(null, "error closing docFD %d", fd); });

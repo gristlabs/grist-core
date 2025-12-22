@@ -46,7 +46,7 @@ export function addOrgToPath(path: string, page: string, skipIfInDomain: boolean
  */
 export function docUrl(docWorkerUrl: string | null | undefined, path?: string) {
   const base = document.querySelector("base");
-  const baseHref = base && base.href;
+  const baseHref = base?.href;
   const baseUrl = new URL(docWorkerUrl || baseHref || window.location.origin);
   return baseUrl.toString().replace(/\/$/, "") + (path ? `/${path}` : "");
 }

@@ -108,7 +108,7 @@ export class Hosts {
       // Otherwise check for a custom host.
       const org = await mapGetOrSet(this._host2org, hostname, async () => {
         const o = await this._dbManager.connection.manager.findOne(Organization, { where: { host: hostname } });
-        return o && o.domain || undefined;
+        return o?.domain || undefined;
       });
       if (!org) { throw new ApiError(`Domain not recognized: ${hostname}`, 404); }
 
@@ -160,7 +160,7 @@ export class Hosts {
       // Check if the org has a preferred host.
       const orgHost = await mapGetOrSet(this._org2host, org, async () => {
         const o = await this._dbManager.connection.manager.findOne(Organization, { where: { domain: org } });
-        return o && o.host || undefined;
+        return o?.host || undefined;
       });
       if (orgHost && orgHost !== req.hostname) {
         const url = new URL(getOriginUrl(req) + req.path);

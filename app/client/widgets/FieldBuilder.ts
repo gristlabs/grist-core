@@ -478,7 +478,7 @@ export class FieldBuilder extends Disposable {
           return this.columnTransform.prepare();
         }
         else {
-          return this.columnTransform && this.columnTransform.cancel();
+          return this.columnTransform?.cancel();
         }
       },
     });

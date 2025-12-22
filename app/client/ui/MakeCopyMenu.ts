@@ -105,7 +105,7 @@ not in this document. Those changes will be overwritten.")}`;
  */
 function allowOtherOrgs(doc: Document, app: AppModel): boolean {
   const org = app.currentOrg;
-  const isPersonalOrg = Boolean(org && org.owner);
+  const isPersonalOrg = Boolean(org?.owner);
   // We allow copying out of a personal org.
   if (isPersonalOrg) { return true; }
   // Otherwise, it's a proper org. Allow copying out if the doc is public or if the user has

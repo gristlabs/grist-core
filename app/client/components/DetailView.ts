@@ -304,8 +304,8 @@ export default class DetailView extends BaseView {
     }
 
     const isCellSelected = ko.pureComputed(() => {
-      return this.cursor.fieldIndex() === (field && field._index()) &&
-        this.cursor.rowIndex() === (row && row._index());
+      return this.cursor.fieldIndex() === (field?._index()) &&
+        this.cursor.rowIndex() === (row?._index());
     });
     const isCellActive = ko.pureComputed(() => {
       return this.viewSection.hasFocus() && isCellSelected();

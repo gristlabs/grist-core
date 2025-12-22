@@ -76,6 +76,6 @@ export class SectionFilter extends Disposable {
       return buildRowFilter(getter as RowValueFunc<UIRowId>, filterFunc);
     }).filter(f => f !== null); // Filter out columns that don't have a filter
 
-    return (rowId: UIRowId) => rowId === "new" || funcs.every(f => Boolean(f && f(rowId)));
+    return (rowId: UIRowId) => rowId === "new" || funcs.every(f => Boolean(f?.(rowId)));
   }
 }

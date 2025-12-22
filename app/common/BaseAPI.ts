@@ -68,8 +68,8 @@ export class BaseAPI {
     // This is a fallback mechanism if auth is broken to access the
     // admin panel.
     // TODO: should this be more selective?
-    if (typeof window !== "undefined" && window.location &&
-      window.location.pathname.endsWith("/admin")) {
+    if (typeof window !== "undefined" &&
+      window.location?.pathname.endsWith("/admin")) {
       const bootKey = new URLSearchParams(window.location.search).get("boot-key");
       if (bootKey) {
         this._headers["X-Boot-Key"] = bootKey;

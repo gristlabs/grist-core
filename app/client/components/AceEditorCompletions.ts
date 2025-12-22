@@ -335,7 +335,7 @@ function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: Ace.Token[]):
 // so, we should be able to find the URL and open another window to it.
 function maybeAceCompleterLinkClick(domEvent: Event) {
   const tgt = domEvent.target as HTMLElement;
-  if (tgt && tgt.matches(".ace_grist_link")) {
+  if (tgt?.matches(".ace_grist_link")) {
     const dest = tgt.parentElement?.querySelector(".ace_grist_link_hidden");
     if (dest) {
       window.open(dest.textContent!, "_blank");

@@ -262,7 +262,7 @@ class OnBoardingPopupsCtl extends Disposable {
       // Note: getComputedStyle return value in pixel, hence no need to handle other unit. See here
       // for reference:
       // https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle#notes.
-      if (padding && padding.endsWith("px")) {
+      if (padding?.endsWith("px")) {
         return Number(padding.slice(0, padding.length - 2));
       }
     }

@@ -99,7 +99,7 @@ export class User extends BaseEntity {
    * is available
    */
   public get loginEmail(): string | undefined {
-    const login = this.logins && this.logins[0];
+    const login = this.logins?.[0];
     if (!login) { return undefined; }
     return login.email;
   }
@@ -108,7 +108,7 @@ export class User extends BaseEntity {
    * As above, but using the display email.
    */
   public get displayEmail(): string | undefined {
-    const login = this.logins && this.logins[0];
+    const login = this.logins?.[0];
     if (!login) { return undefined; }
     return login.displayEmail;
   }

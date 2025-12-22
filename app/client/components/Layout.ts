@@ -209,7 +209,7 @@ export class LayoutBox extends Disposable implements ContentBox {
   }
 
   public isDomDetached() {
-    return !(this.dom && this.dom.parentNode);
+    return !(this.dom?.parentNode);
   }
 
   public getSiblingBox(isAfter: boolean) {

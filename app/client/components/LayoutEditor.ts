@@ -692,7 +692,7 @@ export class LayoutEditor extends Disposable {
 
     // Handle dragging to trash.
     if (dom.findAncestor(event.target, null, ".layout_trash")) {
-      const isTrashed = this.targetBox && this.targetBox.isDomDetached();
+      const isTrashed = this.targetBox?.isDomDetached();
       if (!this.trashDelay.isPending() && !isTrashed) {
         // To "trash" a box, we call onInsertBox with noop for the inserter function. The new box
         // will still be created, just not attached to anything.

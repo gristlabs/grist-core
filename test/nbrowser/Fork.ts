@@ -22,7 +22,7 @@ describe("Fork", function() {
   });
 
   async function makeDocIfAbsent() {
-    if (doc && doc.id) { return; }
+    if (doc?.id) { return; }
     doc = await team.tempDoc(cleanup, "Hello.grist", { load: false });
   }
 

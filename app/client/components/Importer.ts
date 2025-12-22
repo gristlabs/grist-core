@@ -216,7 +216,7 @@ export async function importFromFile(gristDoc: GristDoc, createPreview: CreatePr
   const size = files.reduce((acc, f) => acc + f.size, 0);
   const app = gristDoc.app.topAppModel.appObs.get();
   const progress = app ? app.notifier.createProgressIndicator(label, byteString(size)) : null;
-  const onProgress = (percent: number) => progress && progress.setProgress(percent);
+  const onProgress = (percent: number) => progress?.setProgress(percent);
   try {
     onProgress(0);
     uploadResult = await uploadFiles(files, { docWorkerUrl: gristDoc.docComm.docWorkerUrl,

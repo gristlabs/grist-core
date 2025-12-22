@@ -43,5 +43,5 @@ export class FileParserElement {
 function matchFileParser(fileParser: FileParser, fileName: string): boolean {
   const ext = path.extname(fileName).slice(1),
     fileExtensions = fileParser.fileExtensions;
-  return fileExtensions && fileExtensions.includes(ext);
+  return fileExtensions?.includes(ext);
 }

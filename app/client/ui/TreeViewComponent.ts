@@ -492,7 +492,7 @@ export class TreeViewComponent extends Disposable {
     // if cursor is over the bottom half of the header set the drop zone to below this item, unless
     // the children are expanded in which case set the drop zone to 'within' this item.
     if ((mouseY - rect.top) > rect.height / 2) {
-      if (!item.collapsed.get() && children && children.get().length) {
+      if (!item.collapsed.get() && children?.get().length) {
         // set drop zone to above the first child only if the dragged item is not this item, because
         // it is not allowed to drop item into their own children.
         if (eq(item, drag.item)) {

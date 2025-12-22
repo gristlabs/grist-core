@@ -253,7 +253,7 @@ export class ActiveDocImport {
       const basename = path.basename(originalFilename, ext).trim();
       const hiddenTableName = "GristHidden_import";
       const origTableName = table.table_name ? table.table_name : "";
-      const transformRule = transformRuleMap && transformRuleMap.hasOwnProperty(origTableName) ?
+      const transformRule = transformRuleMap?.hasOwnProperty(origTableName) ?
         transformRuleMap[origTableName] : null;
       const columnMetadata = cleanColumnMetadata(table.column_metadata, table.table_data, this._activeDoc);
       const result: ApplyUAResult = await this._activeDoc.applyUserActions(docSession,

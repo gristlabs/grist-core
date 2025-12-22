@@ -1050,7 +1050,7 @@ export interface OrgParts {
  * Returns true if code is running in client, false if running in server.
  */
 export function isClient() {
-  return (typeof window !== "undefined") && window && window.location && window.location.hostname;
+  return (typeof window !== "undefined") && window && window.location?.hostname;
 }
 
 function getCustomizableValue(

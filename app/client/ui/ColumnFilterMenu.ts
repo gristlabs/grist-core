@@ -938,7 +938,7 @@ export function attachColumnFilterMenu(
   const popupOptionsWithDefaults = { ...defaultPopupOptions, ...popupOptions };
   return (elem) => {
     const instance = filterInfo.viewSection.viewInstance();
-    if (instance && instance.createFilterMenu) { // Should be set if using BaseView
+    if (instance?.createFilterMenu) { // Should be set if using BaseView
       setPopupToCreateDom(elem, ctl => instance.createFilterMenu(
         ctl, filterInfo, filterMenuOptions), popupOptionsWithDefaults);
     }

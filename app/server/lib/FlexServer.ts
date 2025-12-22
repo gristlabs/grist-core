@@ -1205,7 +1205,7 @@ export class FlexServer implements GristServer {
       expressWrap(async (req, res, next) => {
         const mreq = req as RequestWithLogin;
         const user = getUser(req);
-        if (user && user.isFirstTimeUser) {
+        if (user?.isFirstTimeUser) {
           log.debug(`welcoming user: ${user.name}`);
           // Reset isFirstTimeUser flag.
           await this._dbManager.updateUser(user.id, { isFirstTimeUser: false });
