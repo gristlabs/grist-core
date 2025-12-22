@@ -53,7 +53,7 @@ export async function fileImport(
 
       // This uploads to the docWorkerUrl saved in window.gristConfig
       const uploadResult = await uploadFiles(files, {docWorkerUrl: docWorker.url, sizeLimit: 'import'},
-        (p) => progress.setUploadProgress(p));
+        p => progress.setUploadProgress(p));
       const importResult = await docWorker.importDocToWorkspace(uploadResult!.uploadId, workspaceId, {timezone});
       return importResult.id;
     }

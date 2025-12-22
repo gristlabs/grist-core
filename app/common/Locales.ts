@@ -29,7 +29,7 @@ try {
   // Leave only those that are supported by current system (can be translated to human readable form).
   // Though, this file is in common, it is safe to filter by current system
   // as the list should be already filtered by codes that are supported by the backend.
-  locales = Intl.DisplayNames.supportedLocalesOf(localeCodes).map(code => {
+  locales = Intl.DisplayNames.supportedLocalesOf(localeCodes).map((code) => {
     return {name: display(code), code};
   });
 } catch {
@@ -57,12 +57,12 @@ export function getCurrency(code: string) {
 // Intl.DisplayNames is only supported on recent browsers, so proceed with caution.
 try {
   const currencyDisplay = new Intl.DisplayNames('en', {type: 'currency'});
-  currencies = [...new Set(currenciesCodes)].map(code => {
+  currencies = [...new Set(currenciesCodes)].map((code) => {
     return {name: currencyDisplay.of(code)!, code};
   });
 } catch {
   // Fall back to using the currency code as the display name.
-  currencies = [...new Set(currenciesCodes)].map(code => {
+  currencies = [...new Set(currenciesCodes)].map((code) => {
     return {name: code, code};
   });
 }

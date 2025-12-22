@@ -28,12 +28,12 @@ export function buildConfirmDelete(
   single = true,
 ) {
   const remember = observable(false);
-  const tooltip = modalTooltip(refElement, (ctl) =>
+  const tooltip = modalTooltip(refElement, ctl =>
     cssContainer(
       dom.autoDispose(remember),
       testId('confirm-deleteRows'),
       testId('confirm-popup'),
-      elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+      (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
       dom.onKeyDown({
         Escape: () => ctl.close(),
         Enter: () => { onSave(remember.get()); ctl.close(); },
@@ -72,10 +72,10 @@ export function showDeprecatedWarning(
   onClose: (checked: boolean) => void,
 ) {
   const remember = observable(false);
-  const tooltip = modalTooltip(refElement, (ctl) =>
+  const tooltip = modalTooltip(refElement, ctl =>
     cssWideContainer(
       testId('popup-warning-deprecated'),
-      elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+      (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
       dom.onKeyDown({
         Escape: () => { ctl.close(); onClose(remember.get()); },
         Enter: () => { ctl.close(); onClose(remember.get()); },
@@ -158,13 +158,13 @@ export function showTipPopup(
   const arrow = hideArrow ? null : buildArrow();
   const dontShowTips = observable(false);
   const tooltip = modalTooltip(refElement,
-    (ctl) => [
+    ctl => [
       cssBehavioralPromptModal.cls(''),
       arrow,
       cssBehavioralPromptContainer(
         dom.autoDispose(dontShowTips),
         testId('behavioral-prompt'),
-        elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+        (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
         dom.onKeyDown({
           Escape: () => ctl.close(),
           Enter: () => { onClose(dontShowTips.get()); ctl.close(); },
@@ -218,11 +218,11 @@ export function showNewsPopup(
 ) {
   const {popupOptions} = options;
   const popup = modalTooltip(refElement,
-    (ctl) => [
+    ctl => [
       cssNewsPopupModal.cls(''),
       cssNewsPopupContainer(
         testId('behavioral-prompt'),
-        elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+        (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
         dom.onKeyDown({
           Escape: () => { ctl.close(); },
           Enter: () => { ctl.close(); },

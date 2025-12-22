@@ -95,7 +95,7 @@ export class TimeQuery {
     this._pastRows = [];
 
     const tableRenameDelta = this.tc.summary.tableRenames.find(
-      (delta) => delta[0] === this.tableId
+      delta => delta[0] === this.tableId
     );
     const tableRenamed = tableRenameDelta ? tableRenameDelta[1] : this.tableId;
     // Table no longer exists.

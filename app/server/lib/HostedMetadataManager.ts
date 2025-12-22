@@ -84,7 +84,7 @@ export class HostedMetadataManager {
     }
     if (this._push) { return; }
     this._push = this._performUpdate()
-    .catch(err => {
+    .catch((err) => {
       log.error("HostedMetadataManager error performing update: ", err);
     })
     .then(() => {

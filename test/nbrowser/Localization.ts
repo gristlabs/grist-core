@@ -187,7 +187,7 @@ describe("Localization", function() {
     const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'grist_test_'));
     const localeDirectory = path.join(getAppRoot(), 'static', 'locales');
     // Copy all files from localeDirectory to tempDirectory.
-    fs.readdirSync(localeDirectory).forEach(file => {
+    fs.readdirSync(localeDirectory).forEach((file) => {
       fs.copyFileSync(path.join(localeDirectory, file), path.join(tempDirectory, file));
     });
     return tempDirectory;

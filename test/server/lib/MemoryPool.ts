@@ -34,10 +34,10 @@ describe("MemoryPool", function() {
     let r2: () => void;
     let r3: () => void;
     let r4: () => void;
-    const w1 = new Promise<void>(r => { r1 = r; });
-    const w2 = new Promise<void>(r => { r2 = r; });
-    const w3 = new Promise<void>(r => { r3 = r; });
-    const w4 = new Promise<void>(r => { r4 = r; });
+    const w1 = new Promise<void>((r) => { r1 = r; });
+    const w2 = new Promise<void>((r) => { r2 = r; });
+    const w3 = new Promise<void>((r) => { r3 = r; });
+    const w4 = new Promise<void>((r) => { r4 = r; });
     const p1 = mpool.withReserved(400, () => { spy(1); return w1; });
     const p2 = mpool.withReserved(400, () => { spy(2); return w2; });
     const p3 = mpool.withReserved(400, () => { spy(3); return w3; });

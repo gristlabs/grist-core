@@ -179,7 +179,7 @@ export function showTooltip(
  */
 export function hoverTooltip(tipContent: ITooltipContent, options?: IHoverTipOptions): DomElementMethod {
   const defaultOptions: IHoverTipOptions = {placement: 'bottom'};
-  return (elem) => setHoverTooltip(elem, tipContent, {...defaultOptions, ...options});
+  return elem => setHoverTooltip(elem, tipContent, {...defaultOptions, ...options});
 }
 
 /**
@@ -193,7 +193,7 @@ export function overflowTooltip(options?: IHoverTipOptions): DomElementMethod {
     overflowOnly: true,
     modifiers: {offset: {offset: '40, 0'}},
   };
-  return (elem) => setHoverTooltip(elem, () => elem.textContent,  {...defaultOptions, ...options});
+  return elem => setHoverTooltip(elem, () => elem.textContent,  {...defaultOptions, ...options});
 }
 
 /**
@@ -360,7 +360,7 @@ function buildClickableInfoTooltip(
   ...domArgs: DomElementArg[]
 ) {
   const {popupOptions} = options;
-  return dom.domComputed(tooltip, (tip) =>
+  return dom.domComputed(tooltip, tip =>
     cssInfoTooltipButton('?',
       (elem) => {
         setPopupToCreateDom(
@@ -403,7 +403,7 @@ function buildHoverableInfoTooltip(
 ) {
   return cssInfoTooltipButton('?',
     hoverTooltip(() => cssInfoTooltipTransientPopup(
-      dom.domComputed(tooltip, (tip) => GristTooltips[tip]()),
+      dom.domComputed(tooltip, tip => GristTooltips[tip]()),
       cssTooltipCorner(testId('tooltip-origin')),
       {tabIndex: '-1'},
       testId('info-tooltip-popup'),
@@ -479,8 +479,8 @@ export function descriptionInfoTooltip(
   return cssDescriptionInfoTooltipButton(
     icon('Info', dom.cls("info_toggle_icon")),
     testId(`${testPrefix}-info-tooltip`),
-    dom.on('mousedown', (e) => e.stopPropagation()),
-    dom.on('click', (e) => e.stopPropagation()),
+    dom.on('mousedown', e => e.stopPropagation()),
+    dom.on('click', e => e.stopPropagation()),
     hoverTooltip(builder, options),
     dom.cls("info_toggle_icon_wrapper"),
     ...domArgs,

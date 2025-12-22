@@ -63,7 +63,7 @@ export const viewApi: GristView = {
   async fetchSelectedTable(options: FetchSelectedOptions = {}) {
     let data = await viewApiStub.fetchSelectedTable(options);
     if (options.keepEncoded === false) {
-      data = mapValues<any[], any[]>(data, (col) => col.map(decodeObject));
+      data = mapValues<any[], any[]>(data, col => col.map(decodeObject));
     }
     if (options.format === 'rows') {
       const rows: RowRecord[] = [];

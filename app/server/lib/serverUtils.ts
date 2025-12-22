@@ -217,7 +217,7 @@ export function expectedResetDate(startMs: number, endMs: number, now?: number):
 
   // Now find the period we are in. In a yearly subscription we have 12 periods. Generate each period
   // align to the start and end date.
-  const periods = range(0, 12).map(nr => {
+  const periods = range(0, 12).map((nr) => {
     if (nr === 0) {
       return period(startMs, endOf(nr));
     } else if (nr !== 11) {

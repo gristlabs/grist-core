@@ -80,7 +80,7 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
 
   // If the active section is removed, set the next active section to be the default.
   this._isActiveSectionGone = this.autoDispose(ko.computed(() => this.activeSection()._isDeleted()));
-  this.autoDispose(this._isActiveSectionGone.subscribe(gone => {
+  this.autoDispose(this._isActiveSectionGone.subscribe((gone) => {
     if (gone) {
       this.activeSectionId(0);
     }

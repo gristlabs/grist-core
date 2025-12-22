@@ -56,7 +56,7 @@ export async function checkAxisConfig(expected: {groupingByColumn?: string|false
   assert.deepEqual({
     groupingByColumn,
     xaxis: xaxis === 'Pick a column' ? undefined : xaxis,
-    yaxis: await driver.findAll('.test-chart-y-axis', (e) => e.getText()),
+    yaxis: await driver.findAll('.test-chart-y-axis', e => e.getText()),
   }, {...expected, groupingByColumn: expected.groupingByColumn || false});
 }
 
@@ -87,7 +87,7 @@ export async function selectXAxis(name: string, opt: {noWait?: boolean} = {}) {
 
 export async function setYAxis(names: string[]) {
   // let's first remove all yaxis and then add new ones
-  const toRemove = await driver.findAll('.test-chart-y-axis', (e) => e.getText());
+  const toRemove = await driver.findAll('.test-chart-y-axis', e => e.getText());
   for (const n of toRemove) { await removeYAxis(n); }
   for (const n of names) { await addYAxis(n); }
 }

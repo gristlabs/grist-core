@@ -462,7 +462,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.columns = this.autoDispose(ko.pureComputed(() => this.table().visibleColumns()));
   this.editingFormula = ko.pureComputed({
     read: () => docModel.editingFormula(),
-    write: val => {
+    write: (val) => {
       docModel.editingFormula(val);
     }
   });
@@ -598,7 +598,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     const savedFiltersByColRef = new Map(this._savedFilters().all().map(f => [f.colRef(), f]));
     const viewFieldsByColRef = new Map(this.viewFields().all().map(f => [f.origCol().getRowId(), f]));
 
-    return this.columns().map(column => {
+    return this.columns().map((column) => {
       const savedFilter = savedFiltersByColRef.get(column.origColRef());
       // Initialize with a saved filter, if one exists. Otherwise, use a blank filter.
       const filter = modelUtil.customComputed({
@@ -635,7 +635,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // Helper metadata item which indicates whether any of the section's fields/columns have unsaved
   // changes to their filters. (True indicates unsaved changes)
-  this.filterSpecChanged = Computed.create(this, use => {
+  this.filterSpecChanged = Computed.create(this, (use) => {
     return use(this.filters).some(col => !use(col.filter.isSaved) || !use(col.pinned.isSaved));
   });
 
@@ -721,7 +721,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // Revert all filters of fields/columns in the section.
   this.revertFilters = () => {
     this._unsavedFilters.clear();
-    this.filters().forEach(c => {
+    this.filters().forEach((c) => {
       c.filter.revert();
       c.pinned.revert();
     });
@@ -765,7 +765,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // Modified sort spec to take into account any active display columns.
   this.activeDisplaySortSpec = this.autoDispose(ko.computed(() => {
-    return this.activeSortSpec().map(directionalColRef => {
+    return this.activeSortSpec().map((directionalColRef) => {
       const colRef = Sort.getColRef(directionalColRef);
       const field = this.viewFields().all().find(f => f.column().origColRef() === colRef);
       const effectiveColRef = field ? field.displayColRef() : colRef;
@@ -790,7 +790,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // Evaluates to an array of column models, which are not referenced by anything in viewFields.
   this.hiddenColumns = this.autoDispose(ko.pureComputed(() => {
-    const included = new Set(this.viewFields().all().map((f) => f.column().origColRef()));
+    const included = new Set(this.viewFields().all().map(f => f.column().origColRef()));
     return this.columns().filter(c => !included.has(c.getRowId()));
   }));
 
@@ -877,7 +877,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // Observables used for styling rows with limited heights.
   this.rowHeight = Computed.create<number>(this, use => Number(use(this.optionsObj).rowHeight) || 0);
-  this.rowHeightUniform = Computed.create(this, (use) =>
+  this.rowHeightUniform = Computed.create(this, use =>
     Boolean(use(this.rowHeight) && use(this.optionsObj).rowHeightUniform));
 
   // Subscription to trigger row resizing whenever row-height settings change.

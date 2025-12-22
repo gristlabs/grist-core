@@ -35,7 +35,7 @@ export class SupportGristButton extends Disposable {
     const isTelemetryOn = (telemetry && telemetry.telemetryLevel !== 'off');
     const isAdminNudgeApplicable = isAdmin && !isTelemetryOn;
 
-    this._showButton = Computed.create(this, use => {
+    this._showButton = Computed.create(this, (use) => {
       if (!isEnabled || use(_appModel.dismissedPopups).includes('supportGrist')) {
         return null;
       }

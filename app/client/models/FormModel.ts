@@ -100,7 +100,7 @@ export class FormModelImpl extends Disposable implements FormModel {
             tableId: form.formTableId,
             colValues,
           }),
-        new Promise((resolve) => setTimeout(resolve, 1000)),
+        new Promise(resolve => setTimeout(resolve, 1000)),
       ]);
     } finally {
       this.submitting.set(false);

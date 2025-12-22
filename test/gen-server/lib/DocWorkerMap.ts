@@ -233,7 +233,7 @@ describe('DocWorkerMap', function() {
             assert.equal(assignmentCountByWorkerId.size, workerCount);
             assert.isEmpty(
               [...assignmentCountByWorkerId.values()].filter(
-                (v) => v > docCount / 2
+                v => v > docCount / 2
               )
             );
           });
@@ -630,7 +630,7 @@ describe('DocWorkerMap', function() {
             expectedResult: false,
             expectedKey: 'workers-available-default'
           }
-        ].forEach(ctx => {
+        ].forEach((ctx) => {
           it(ctx.itMsg, async () => {
             const sismemberAsyncStub = sinon.stub().resolves(ctx.sisMemberAsyncResolves);
             const stubDocWorkerMap = {
@@ -751,7 +751,7 @@ describe('DocWorkerMap', function() {
               createDocPromises.push(api.newDoc({name: 'doc'}, wsId));
             }
             const docIds = await Promise.all(createDocPromises);
-            await Promise.all(docIds.map((docId) => api.getDocAPI(docId).getRows('Table1')));
+            await Promise.all(docIds.map(docId => api.getDocAPI(docId).getRows('Table1')));
 
             // After 50 ms or so, load should reflect the opened documents.
             await waitForIt(async () => {

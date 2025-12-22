@@ -58,7 +58,7 @@ const t = makeT('AdminPanel');
 const STALE_VERSION_CHECK_TIME_IN_MS = 14*24*60*60*1000;
 
 export class AdminPanel extends Disposable {
-  private _page = Computed.create<AdminPanelPage>(this, (use) => use(urlState().state).adminPanel || 'admin');
+  private _page = Computed.create<AdminPanelPage>(this, use => use(urlState().state).adminPanel || 'admin');
 
   constructor(private _appModel: AppModel, private _appObj: App) {
     super();
@@ -143,14 +143,14 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   }
 
   public buildDom() {
-    this._checks.fetchAvailableChecks().catch(err => {
+    this._checks.fetchAvailableChecks().catch((err) => {
       reportError(err);
     });
 
     // If probes are available, show the panel as normal.
     // Otherwise say it is unavailable, and describe a fallback
     // mechanism for access.
-    return dom.maybe(use => use(this._checks.probes), (probes) => [
+    return dom.maybe(use => use(this._checks.probes), probes => [
       (probes as any[]).length > 0
       ? this._buildMainContentForAdmin()
       : this._buildMainContentForOthers()
@@ -340,7 +340,7 @@ Please log in as an administrator.`)),
 
   private _buildSandboxingDisplay() {
     return dom.domComputed(
-      use => {
+      (use) => {
         const req = this._checks.requestCheckById(use, 'sandboxing');
         const result = req ? use(req.result) : undefined;
         const success = result?.status === 'success';
@@ -487,7 +487,7 @@ Please log in as an administrator.`)),
 
   private _buildSessionSecretDisplay() {
     return dom.domComputed(
-      use => {
+      (use) => {
         const req = this._checks.requestCheckById(use, 'session-secret');
         const result = req ? use(req.result) : undefined;
 
@@ -635,7 +635,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
 
     // Toggle component operates on a boolean observable, without a way to set the value. So
     // create a controller for it to intercept the write and call the appropriate action.
-    const enabledController = Computed.create(owner, (use) => use(checkForLatestVersion));
+    const enabledController = Computed.create(owner, use => use(checkForLatestVersion));
     enabledController.onWrite((val) => {
       if (val) {
         actions.enableAutoCheck();
@@ -660,7 +660,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
       name: t('Updates'),
       description: dom('span', testId('admin-panel-updates-message'), dom.text(description)),
       value: cssValueButton(
-        dom.domComputed(use => {
+        dom.domComputed((use) => {
           if (use(state) === State.CHECKING) {
             return null;
           }
@@ -710,7 +710,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
             ),
           ])
         )),
-        dom.domComputed(allowAutomaticVersionChecking, (allowAutomaticChecks) =>
+        dom.domComputed(allowAutomaticVersionChecking, allowAutomaticChecks =>
           allowAutomaticChecks ? cssExpandedContent(
             dom('label', t('Auto-check weekly'), {for: 'admin-panel-updates-auto-check-switch'}),
             dom('div', toggleSwitch(enabledController, {
@@ -738,7 +738,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
   }) {
     return dom.domComputed(
       use => [
-        ...use(this._checks.probes).map(probe => {
+        ...use(this._checks.probes).map((probe) => {
           const isRedundant = [
             'sandboxing',
             'authentication',

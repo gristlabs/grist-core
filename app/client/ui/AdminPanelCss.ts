@@ -19,7 +19,7 @@ export function HidableToggle(
   options: {labelId?: string} = {}
 ) {
   return toggleSwitch(value, {
-    args: [dom.hide((use) => use(value) === null)],
+    args: [dom.hide(use => use(value) === null)],
     inputArgs: [options.labelId ? {"aria-labelledby": options.labelId} : undefined],
   });
 }
@@ -75,7 +75,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
     const isCollapsed = Observable.create(owner, true);
     return cssItem(
       cssItemShort(
-        itemContent(dom.domComputed(isCollapsed, (c) => cssCollapseIcon(c ? 'Expand' : 'Collapse'))),
+        itemContent(dom.domComputed(isCollapsed, c => cssCollapseIcon(c ? 'Expand' : 'Collapse'))),
         cssItemShort.cls('-expandable'),
         dom.on('click', () => isCollapsed.set(!isCollapsed.get())),
       ),

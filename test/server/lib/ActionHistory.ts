@@ -181,7 +181,7 @@ const versions: Array<{name: string,
   {
     name: "ToyActionHistory",
     createDoc: () => Promise.resolve(undefined),
-    createHistory: async (doc) => new ToyActionHistory()
+    createHistory: async doc => new ToyActionHistory()
   },
   {
     name: "ActionHistoryImplOnDisk",

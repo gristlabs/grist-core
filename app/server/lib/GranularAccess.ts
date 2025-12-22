@@ -318,7 +318,7 @@ export class GranularAccess implements GranularAccessForBundle {
       options,
     };
     this._activeBundle.hasDeliberateRuleChange =
-      scanActionsRecursively(userActions, (a) => isAclTable(String(a[1])));
+      scanActionsRecursively(userActions, a => isAclTable(String(a[1])));
     this._activeBundle.hasAnyRuleChange =
       scanActionsRecursively(docActions, a => actionHasRuleChange(a));
   }
@@ -787,7 +787,7 @@ export class GranularAccess implements GranularAccessForBundle {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
     const { docActions, isDirect } = this._activeBundle;
     // We are only interested in direct actions that add comments.
-    return docActions.filter((_, index) => isDirect[index]).some(a => {
+    return docActions.filter((_, index) => isDirect[index]).some((a) => {
       return isDataAction(a) && isSomeAddRecordAction(a) && getTableId(a) === '_grist_Cells';
     });
   }
@@ -1191,7 +1191,7 @@ export class GranularAccess implements GranularAccessForBundle {
       // we'll be sending this info on a need-to-know basis later.
       const attachments = tables['_grist_Attachments'];
       attachments[2] = [];
-      Object.values(attachments[3]).forEach(values => {
+      Object.values(attachments[3]).forEach((values) => {
         values.length = 0;
       });
     }
@@ -1229,7 +1229,7 @@ export class GranularAccess implements GranularAccessForBundle {
     // Filter columns, omitting any to which the user has no access, regardless of rows.
     this._filterColumns(
       data[3],
-      (colId) => this.getReadPermission(permInfo.getColumnAccess(tableId, colId)) !== 'deny');
+      colId => this.getReadPermission(permInfo.getColumnAccess(tableId, colId)) !== 'deny');
   }
 
   public async getUserOverride(docSession: OptDocSession): Promise<UserOverride|undefined> {
@@ -1255,7 +1255,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const message: DocUpdateMessage = { actionGroup, docActions, docUsage };
     await this._docClients.broadcastDocMessage(client, 'docUserAction',
                                                message,
-                                               (_docSession) => this._filterDocUpdate(_docSession, message));
+                                               _docSession => this._filterDocUpdate(_docSession, message));
   }
 
   /**
@@ -1533,7 +1533,7 @@ export class GranularAccess implements GranularAccessForBundle {
     // We also check for +S in scenarios that are hard to break down
     // in a more granular way, for example ConvertFromColumn and
     // CopyFromColumn.
-    if (scanActionsRecursively(actions, (a) => this.needEarlySchemaPermission(a))) {
+    if (scanActionsRecursively(actions, a => this.needEarlySchemaPermission(a))) {
       await this._assertSchemaAccess(docSession);
     }
   }
@@ -1655,7 +1655,7 @@ export class GranularAccess implements GranularAccessForBundle {
     } else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord' || a[0] === 'UpdateRecord' ||
                a[0] === 'BulkUpdateRecord' || a[0] === 'ReplaceTableData' || a[0] === 'TableData') {
       const na = cloneDeep(a);
-      this._filterColumns(na[3], (colId) => accessCheck.get(permInfo.getColumnAccess(tableId, colId)) !== 'deny');
+      this._filterColumns(na[3], colId => accessCheck.get(permInfo.getColumnAccess(tableId, colId)) !== 'deny');
       if (Object.keys(na[3]).length === 0) { return null; }
       return na;
     } else if (a[0] === 'AddColumn' || a[0] === 'RemoveColumn' || a[0] === 'RenameColumn' ||
@@ -1920,19 +1920,19 @@ export class GranularAccess implements GranularAccessForBundle {
     } else if (Array.isArray(action[2])) {
       censorAt = (colId, idx) => (copyOnNeed() as BulkColValues)[colId][idx] = [GristObjCode.Censored];
     } else {
-      censorAt = (colId) => (copyOnNeed() as ColValues)[colId] = [GristObjCode.Censored];
+      censorAt = colId => (copyOnNeed() as ColValues)[colId] = [GristObjCode.Censored];
     }
 
     // These map an index of a row in the action to its index in rowsBefore and in rowsAfter.
-    let getRecIndex: (idx: number) => number|undefined = (idx) => idx;
-    let getNewRecIndex: (idx: number) => number|undefined = (idx) => idx;
+    let getRecIndex: (idx: number) => number|undefined = idx => idx;
+    let getNewRecIndex: (idx: number) => number|undefined = idx => idx;
     if (action !== rowsRec) {
       const recIndexes = new Map(rowsRec[2].map((rowId, idx) => [rowId, idx]));
-      getRecIndex = (idx) => recIndexes.get(rowIds[idx]);
+      getRecIndex = idx => recIndexes.get(rowIds[idx]);
     }
     if (action !== rowsNewRec) {
       const newRecIndexes = new Map(rowsNewRec[2].map((rowId, idx) => [rowId, idx]));
-      getNewRecIndex = (idx) => newRecIndexes.get(rowIds[idx]);
+      getNewRecIndex = idx => newRecIndexes.get(rowIds[idx]);
     }
 
     for (let idx = 0; idx < rowIds.length; idx++) {
@@ -2191,7 +2191,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
   private async _getSteps(): Promise<Array<ActionStep>> {
     if (!this._steps) {
-      this._steps = this._getUncachedSteps().catch(e => {
+      this._steps = this._getUncachedSteps().catch((e) => {
         log.error('step computation failed:', e);
         throw e;
       });
@@ -2201,7 +2201,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
   private async _getMetaSteps(): Promise<Array<MetaStep>> {
     if (!this._metaSteps) {
-      this._metaSteps = this._getUncachedMetaSteps().catch(e => {
+      this._metaSteps = this._getUncachedMetaSteps().catch((e) => {
         log.error('meta step computation failed:', e);
         throw e;
       });
@@ -2394,13 +2394,13 @@ export class GranularAccess implements GranularAccessForBundle {
     // Strip any forbidden columns.
     this._filterColumns(
       filteredAction[3],
-      (colId) => accessCheck.get(permInfo.getColumnAccess(tableId, colId)) !== 'deny');
+      colId => accessCheck.get(permInfo.getColumnAccess(tableId, colId)) !== 'deny');
     if (censoredRows.size === 0) {
       // no cell censorship, so no further complications.
       return [filteredAction];
     }
 
-    return filterColValues(filteredAction, (idx) => censoredRows.has(idx), gristTypes.isCensored);
+    return filterColValues(filteredAction, idx => censoredRows.has(idx), gristTypes.isCensored);
   }
 
   /**
@@ -2773,7 +2773,7 @@ export class GranularAccess implements GranularAccessForBundle {
     };
 
     // Now censor the patch, so it only contains cells content that user has access to.
-    await cellView.censorCells(patch, (cell) => hasAccess(cell));
+    await cellView.censorCells(patch, cell => hasAccess(cell));
 
     // And append it to the result.
     result.push(...patch);

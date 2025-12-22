@@ -110,13 +110,13 @@ export class RegionFocusSwitcher extends Disposable {
           : 'region'),
       dom.attr('aria-label', ariaLabel),
       dom.attr(ATTRS.regionId, id),
-      dom.cls(kbFocusHighlighterClass, use => {
+      dom.cls(kbFocusHighlighterClass, (use) => {
         // highlight focused elements everywhere except in the grist doc views
         return id !== 'main'
           ? true
           : this._canTabThroughMainRegion(use);
       }),
-      dom.cls('clipboard_group_focus', use => {
+      dom.cls('clipboard_group_focus', (use) => {
         const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
         // if we are not on a grist doc, whole page is always focusable
         if (!gristDoc) {
@@ -133,7 +133,7 @@ export class RegionFocusSwitcher extends Disposable {
         }
         return false;
       }),
-      cssFocusedPanel.cls('-focused', use => {
+      cssFocusedPanel.cls('-focused', (use) => {
         const current = use(this._state);
         return current.initiator?.type === 'cycle' && current.region?.type === 'panel' && current.region.id === id;
       }),
@@ -709,13 +709,13 @@ const containsActiveElement = (el: HTMLElement | null): boolean => {
  * Remove the visual highlight on elements that are styled as focused elements of panels.
  */
 const removeFocusRings = () => {
-  document.querySelectorAll(`[${ATTRS.focusedElement}]`).forEach(el => {
+  document.querySelectorAll(`[${ATTRS.focusedElement}]`).forEach((el) => {
     el.removeAttribute(ATTRS.focusedElement);
   });
 };
 
 const removeTabIndexes = () => {
-  document.querySelectorAll(`[${ATTRS.regionId}]`).forEach(el => {
+  document.querySelectorAll(`[${ATTRS.regionId}]`).forEach((el) => {
     el.removeAttribute('tabindex');
   });
 };

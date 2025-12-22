@@ -38,7 +38,7 @@ describe('ACIndex', function() {
     const items: ACItem[] = ["blue", "dark red", "reddish", "red", "orange", "yellow", "radical green"].map(
       c => ({cleanText: c}));
     const acIndex = new ACIndexImpl(items, {maxResults: 5});
-    assert.deepEqual(acIndex.search("red").items.map((item) => item.cleanText),
+    assert.deepEqual(acIndex.search("red").items.map(item => item.cleanText),
       ["red", "reddish", "dark red", "radical green", "blue"]);
   });
 
@@ -400,7 +400,7 @@ class BruteForceACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
 
     // Sort the matches by score first, and then by item (searchText).
     matches.sort((a, b) => nativeCompare(b[0], a[0]) || nativeCompare(a[1], b[1]));
-    const items = matches.slice(0, this._maxResults).map((m) => m[2]);
+    const items = matches.slice(0, this._maxResults).map(m => m[2]);
 
     return {items, extraItems: [], highlightFunc: highlightNone, selectIndex: -1};
   }

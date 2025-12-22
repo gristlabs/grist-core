@@ -71,7 +71,7 @@ export class ReferenceListEditor extends NewBaseEditor {
       buildNoItemsMessage: () => this._utils.buildNoItemsMessage(),
       search: this._doSearch.bind(this),
       renderItem: this._renderItem.bind(this),
-      getItemText: (item) => item.text,
+      getItemText: item => item.text,
     };
 
     this.commandGroup = this.autoDispose(createGroup(options.commands, null, true));
@@ -88,7 +88,7 @@ export class ReferenceListEditor extends NewBaseEditor {
 
     this._tokenField = TokenField.ctor<ReferenceItem>().create(this, {
       initialValue: startTokens,
-      renderToken: item => {
+      renderToken: (item) => {
         const isBlankReference = item.cleanText === '';
         return [
           isBlankReference ? '[Blank]' : item.text,
@@ -207,7 +207,7 @@ export class ReferenceListEditor extends NewBaseEditor {
 
     // Update the TokenField tokens with the returned row ids.
     let i = 0;
-    const newTokens = tokens.map(token => {
+    const newTokens = tokens.map((token) => {
       return token.rowId === 'new' ? new ReferenceItem(token.text, rowIds[i++]) : token;
     });
     this._tokenField.setTokens(newTokens);
@@ -278,7 +278,7 @@ export class ReferenceListEditor extends NewBaseEditor {
     if (!this._enableAddNew || !text) { return result; }
 
     const cleanText = normalizeText(text);
-    if (result.items.find((item) => item.cleanText === cleanText)) {
+    if (result.items.find(item => item.cleanText === cleanText)) {
       return result;
     }
 

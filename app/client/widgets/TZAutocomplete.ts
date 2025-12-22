@@ -17,7 +17,7 @@ export function timezoneOptionsImpl(
   // "moment is not a function". The following is equivalent, and easier than fixing import setup.
   const m = moment.unix(timestamp / 1000);
 
-  const options = names.map((value) => ({
+  const options = names.map(value => ({
     cleanText: value.toLowerCase().trim(),
     value,
     label: `(GMT${m.tz(value).format('Z')}) ${value}`,

@@ -30,14 +30,14 @@ export class UnsavedChangeSet {
    * Check if there are any unsaved changes out there.
    */
   public haveUnsavedChanges(): boolean {
-    return Array.from(this._changes).some((c) => c.haveUnsavedChanges());
+    return Array.from(this._changes).some(c => c.haveUnsavedChanges());
   }
 
   /**
    * Save any unsaved changes out there.
    */
   public async saveChanges(): Promise<void> {
-    await Promise.all(Array.from(this._changes).map((c) => c.save()));
+    await Promise.all(Array.from(this._changes).map(c => c.save()));
   }
 
   public add(unsaved: UnsavedChange) { this._changes.add(unsaved); }

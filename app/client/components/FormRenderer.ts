@@ -122,7 +122,7 @@ export abstract class FormRenderer extends Disposable {
     protected parent?: FormRenderer
   ) {
     super();
-    this.children = (this.layoutNode.children ?? []).map((child) =>
+    this.children = (this.layoutNode.children ?? []).map(child =>
       this.autoDispose(FormRenderer.new(child, this.context, this)));
   }
 
@@ -132,7 +132,7 @@ export abstract class FormRenderer extends Disposable {
    * Reset the state of this layout node and all of its children.
    */
   public reset() {
-    this.children.forEach((child) => child.reset());
+    this.children.forEach(child => child.reset());
   }
 }
 
@@ -154,7 +154,7 @@ class ParagraphRenderer extends FormRenderer {
 class SectionRenderer extends FormRenderer {
   public render() {
     return css.section(
-      this.children.map((child) => child.render()),
+      this.children.map(child => child.render()),
     );
   }
 }
@@ -163,7 +163,7 @@ class ColumnsRenderer extends FormRenderer {
   public render() {
     return css.columns(
       {style: `--grist-columns-count: ${this._getColumnsCount()}`},
-      this.children.map((child) => child.render()),
+      this.children.map(child => child.render()),
     );
   }
 
@@ -179,7 +179,7 @@ class SubmitRenderer extends FormRenderer {
       css.submitButtons(
         css.resetButton(
           t('Reset'),
-          dom.attr('aria-disabled', (use) => use(this.context.disabled) ? 'true' : 'false'),
+          dom.attr('aria-disabled', use => use(this.context.disabled) ? 'true' : 'false'),
           {type: 'button'},
           dom.on('click', (event) => {
             if (this.context.disabled.get()) {
@@ -195,9 +195,9 @@ class SubmitRenderer extends FormRenderer {
         ),
         css.submitButton(
           dom('button',
-            dom.attr('aria-disabled', (use) => use(this.context.disabled) ? 'true' : 'false'),
+            dom.attr('aria-disabled', use => use(this.context.disabled) ? 'true' : 'false'),
             {type: 'submit'},
-            dom.domComputed(use => {
+            dom.domComputed((use) => {
               return use(this.context.disabled)
                 ? [css.buttonLoadingSpinner(), t('Submitting…')]
                 : this.context.rootLayoutNode.submitText || t('Submit');
@@ -223,7 +223,7 @@ class PlaceholderRenderer extends FormRenderer {
 
 class LayoutRenderer extends FormRenderer {
   public render() {
-    return this.children.map((child) => child.render());
+    return this.children.map(child => child.render());
   }
 }
 
@@ -438,7 +438,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
     super(field, context);
 
     const choices = this.field.options.choices;
-    if (!Array.isArray(choices) || choices.some((choice) => typeof choice !== 'string')) {
+    if (!Array.isArray(choices) || choices.some(choice => typeof choice !== 'string')) {
       this._choices = [];
     } else {
       const sortOrder = this.field.options.formOptionsSortOrder ?? 'default';
@@ -481,7 +481,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
   public resetInput() {
     const initialValue = this.getInitialValue();
     this.value.set(initialValue ?? '');
-    this._radioButtons.get().forEach(radioButton => {
+    this._radioButtons.get().forEach((radioButton) => {
       radioButton.checked.set(radioButton.label === initialValue);
     });
   }
@@ -497,16 +497,16 @@ class ChoiceRenderer extends BaseFieldRenderer  {
         {name: this.name(), id: this.id(), required: this.field.options.formRequired},
         dom.on('input', (_e, elem) => this.value.set(elem.value)),
         dom('option', {value: ''}, selectPlaceholder()),
-        this._choices.map((choice) => dom('option',
+        this._choices.map(choice => dom('option',
           {value: choice},
           dom.prop('selected', use => use(this.value) === choice),
           choice
         )),
         dom.onKeyDown({
-          Enter$: (ev) => this._maybeOpenSearchSelect(ev),
-          ' $': (ev) => this._maybeOpenSearchSelect(ev),
-          ArrowUp$: (ev) => this._maybeOpenSearchSelect(ev),
-          ArrowDown$: (ev) => this._maybeOpenSearchSelect(ev),
+          Enter$: ev => this._maybeOpenSearchSelect(ev),
+          ' $': ev => this._maybeOpenSearchSelect(ev),
+          ArrowUp$: ev => this._maybeOpenSearchSelect(ev),
+          ArrowDown$: ev => this._maybeOpenSearchSelect(ev),
           Backspace$: () => this.value.set(''),
         }),
         preventSubmitOnEnter(),
@@ -515,8 +515,8 @@ class ChoiceRenderer extends BaseFieldRenderer  {
         css.searchSelect(
           css.currentSelectValue(dom.text(use => use(this.value) || selectPlaceholder())),
           dropdownWithSearch<string>({
-            action: (value) => this.value.set(value),
-            options: () => this._choices.map((choice) => ({
+            action: value => this.value.set(value),
+            options: () => this._choices.map(choice => ({
               label: choice,
               value: choice,
             })),
@@ -534,7 +534,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
           css.resetSelectButton(
             icon('CrossSmall'),
             dom.attr('aria-label', t('Clear selection for: {{-inputLabel}}', {inputLabel: this.field.question})),
-            dom.hide((use) => !use(this.value)),
+            dom.hide(use => !use(this.value)),
             dom.on('click', (ev) => {
               this.value.set('');
               this._selectElement.focus();
@@ -557,7 +557,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
       dom.cls('grist-radio-list'),
       dom.cls('required', Boolean(required)),
       {name: this.name(), required},
-      dom.forEach(this._radioButtons, (radioButton) =>
+      dom.forEach(this._radioButtons, radioButton =>
         css.radio(
           dom('input',
             dom.prop('checked', radioButton.checked),
@@ -656,7 +656,7 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
     super(field, context);
 
     let choices = this.field.options.choices;
-    if (!Array.isArray(choices) || choices.some((choice) => typeof choice !== 'string')) {
+    if (!Array.isArray(choices) || choices.some(choice => typeof choice !== 'string')) {
       choices = [];
     } else {
       const sortOrder = this.field.options.formOptionsSortOrder ?? 'default';
@@ -691,7 +691,7 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
       dom.cls('grist-checkbox-list'),
       dom.cls('required', Boolean(required)),
       {name: this.name(), required},
-      dom.forEach(this.checkboxes, (checkbox) =>
+      dom.forEach(this.checkboxes, checkbox =>
         css.checkbox(
           css.checkboxInput(
             dom.prop('checked', checkbox.checked),
@@ -711,7 +711,7 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
 
   public resetInput(): void {
     const initialValues = new Set(this.getInitialValueList());
-    this.checkboxes.get().forEach(checkbox => {
+    this.checkboxes.get().forEach((checkbox) => {
       checkbox.checked.set(initialValues.has(checkbox.label));
     });
   }
@@ -762,7 +762,7 @@ class RefListRenderer extends BaseFieldRenderer {
       dom.cls('grist-checkbox-list'),
       dom.cls('required', Boolean(required)),
       {name: this.name(), required},
-      dom.forEach(this.checkboxes, (checkbox) =>
+      dom.forEach(this.checkboxes, checkbox =>
         css.checkbox(
           css.checkboxInput(
             dom.prop('checked', checkbox.checked),
@@ -783,7 +783,7 @@ class RefListRenderer extends BaseFieldRenderer {
 
   public resetInput(): void {
     const initialValues = new Set(this.getInitialValueList());
-    this.checkboxes.get().forEach(checkbox => {
+    this.checkboxes.get().forEach((checkbox) => {
       checkbox.checked.set(initialValues.has(checkbox.label));
     });
   }
@@ -848,7 +848,7 @@ class RefRenderer extends BaseFieldRenderer {
   public resetInput(): void {
     const initialValue = this.getInitialValue();
     this.value.set(initialValue ?? '');
-    this._radioButtons.get().forEach(radioButton => {
+    this._radioButtons.get().forEach((radioButton) => {
       radioButton.checked.set(radioButton.value === initialValue);
     });
   }
@@ -875,29 +875,29 @@ class RefRenderer extends BaseFieldRenderer {
           selectPlaceholder(),
           dom.prop('selected', use => use(this.value) === ''),
         ),
-        this._choices.map((choice) => dom('option',
+        this._choices.map(choice => dom('option',
           {value: String(choice[0])},
           String(choice[1]),
           dom.prop('selected', use => use(this.value) === String(choice[0])),
         )),
         dom.onKeyDown({
-          Enter$: (ev) => this._maybeOpenSearchSelect(ev),
-          ' $': (ev) => this._maybeOpenSearchSelect(ev),
-          ArrowUp$: (ev) => this._maybeOpenSearchSelect(ev),
-          ArrowDown$: (ev) => this._maybeOpenSearchSelect(ev),
+          Enter$: ev => this._maybeOpenSearchSelect(ev),
+          ' $': ev => this._maybeOpenSearchSelect(ev),
+          ArrowUp$: ev => this._maybeOpenSearchSelect(ev),
+          ArrowDown$: ev => this._maybeOpenSearchSelect(ev),
           Backspace$: () => this.value.set(''),
         }),
         preventSubmitOnEnter(),
       ),
       dom.maybe(use => !use(isXSmallScreenObs()), () =>
         css.searchSelect(
-          css.currentSelectValue(dom.text(use => {
-            const choice = this._choices.find((c) => String(c[0]) === use(this.value));
+          css.currentSelectValue(dom.text((use) => {
+            const choice = this._choices.find(c => String(c[0]) === use(this.value));
             return String(choice?.[1] || selectPlaceholder());
           })),
           dropdownWithSearch<string>({
-            action: (value) => this.value.set(value),
-            options: () => this._choices.map((choice) => ({
+            action: value => this.value.set(value),
+            options: () => this._choices.map(choice => ({
               label: String(choice[1]),
               value: String(choice[0]),
             })),
@@ -915,7 +915,7 @@ class RefRenderer extends BaseFieldRenderer {
           css.resetSelectButton(
             icon('CrossSmall'),
             dom.attr('aria-label', t('Clear selection for: {{-inputLabel}}', {inputLabel: this.field.question})),
-            dom.hide((use) => !use(this.value)),
+            dom.hide(use => !use(this.value)),
             dom.on('click', (ev) => {
               this.value.set('');
               this._selectElement.focus();
@@ -938,7 +938,7 @@ class RefRenderer extends BaseFieldRenderer {
       dom.cls('grist-radio-list'),
       dom.cls('required', Boolean(required)),
       {name: this.name(), required, 'data-grist-type': this.field.type},
-      dom.forEach(this._radioButtons, (radioButton) =>
+      dom.forEach(this._radioButtons, radioButton =>
         css.radio(
           dom('input',
             dom.prop('checked', radioButton.checked),
@@ -1022,7 +1022,7 @@ const FormRenderers = {
 };
 
 function preventSubmitOnEnter() {
-  return dom.onKeyDown({Enter$: (ev) => ev.preventDefault()});
+  return dom.onKeyDown({Enter$: ev => ev.preventDefault()});
 }
 
 /**

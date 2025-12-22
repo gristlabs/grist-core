@@ -237,7 +237,7 @@ class OnBoardingPopupsCtl extends Disposable {
   private _addFocusLayer(container: HTMLElement) {
     dom.autoDisposeElem(container, new FocusLayer({
       defaultFocusElem: container,
-      allowFocus: (elem) => (elem !== document.body)
+      allowFocus: elem => (elem !== document.body)
     }));
   }
 
@@ -309,7 +309,7 @@ class OnBoardingPopupsCtl extends Disposable {
     const isFirstStep = ctlIndex === 0;
     return Footer(
       ProgressBar(
-        range(nSteps).map((i) => Dot(Dot.cls('-done', i > ctlIndex))),
+        range(nSteps).map(i => Dot(Dot.cls('-done', i > ctlIndex))),
       ),
       Buttons(
         bigBasicButton(

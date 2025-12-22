@@ -95,7 +95,7 @@ export class FormView extends BaseView {
       }));
     });
 
-    this.bundle = (clb) => this.gristDoc.docData.bundleActions('Saving form layout', clb, {nestInActiveBundle: true});
+    this.bundle = clb => this.gristDoc.docData.bundleActions('Saving form layout', clb, {nestInActiveBundle: true});
 
 
     this.selectedBox.addListener((v) => {
@@ -123,9 +123,9 @@ export class FormView extends BaseView {
     }));
     this.viewSection.selectedFields(this.selectedColumns.peek());
 
-    this._formFields = Computed.create(this, use => {
+    this._formFields = Computed.create(this, (use) => {
       const fields = use(use(this.viewSection.viewFields).getObservable());
-      return fields.filter(f => {
+      return fields.filter((f) => {
         const column = use(f.column);
         return (
           !(use(column.isRealFormula) && !use(column.colId).startsWith('gristHelper_Transform'))
@@ -145,7 +145,7 @@ export class FormView extends BaseView {
       }
     });
 
-    this._layout = Computed.create(this, use => {
+    this._layout = Computed.create(this, (use) => {
       const fields = use(this._formFields);
       const layoutSpec = use(this._layoutSpec);
       const patchedLayout = cleanFormLayoutSpec(layoutSpec, new Set(fields.map(f => f.id())));
@@ -350,7 +350,7 @@ export class FormView extends BaseView {
 
     this.autoDispose(commands.createGroup(commandHandlers, this, this.viewSection.hasFocus));
 
-    this._previewUrl = Computed.create(this, use => {
+    this._previewUrl = Computed.create(this, (use) => {
       const doc = use(this.gristDoc.docPageModel.currentDoc);
       if (!doc) { return ''; }
       const url = urlState().makeUrl({
@@ -362,7 +362,7 @@ export class FormView extends BaseView {
       return url;
     });
 
-    this._pageShare = Computed.create(this, use => {
+    this._pageShare = Computed.create(this, (use) => {
       const page = use(use(this.viewSection.view).page);
       if (!page) { return null; }
       return use(page.share);
@@ -382,12 +382,12 @@ export class FormView extends BaseView {
       }
     });
 
-    this._isFork = Computed.create(this, use => {
+    this._isFork = Computed.create(this, (use) => {
       const {docPageModel} = this.gristDoc;
       return use(docPageModel.isFork) || use(docPageModel.isPrefork);
     });
 
-    this._published = Computed.create(this, use => {
+    this._published = Computed.create(this, (use) => {
       const isFork = use(this._isFork);
       if (isFork) { return false; }
 
@@ -658,7 +658,7 @@ your form via that link will see an error.'
             );
           })
         ),
-        dom.domComputed(this._published, published => {
+        dom.domComputed(this._published, (published) => {
           if (published) {
             return style.cssSmallButton(
               testId('view'),
@@ -702,14 +702,14 @@ your form via that link will see an error.'
           testId('share'),
           dom('div', t('Share')),
           dom.show(use => this._isOwner && use(this._published)),
-          elem => {
+          (elem) => {
             setPopupToCreateDom(elem, ctl => this._buildShareMenu(ctl), {
               ...defaultMenuOptions,
               placement: 'top-end',
             });
           },
         ),
-        dom.domComputed(use => {
+        dom.domComputed((use) => {
           const isFork = use(this._isFork);
           const published = use(this._published);
           return published
@@ -790,7 +790,7 @@ your form via that link will see an error.'
           ),
         ),
         style.cssShareMenuBody(
-        dom.domComputed(use => {
+        dom.domComputed((use) => {
           const url = use(formUrl);
           const code = use(embedCode);
           if (!url || !code) {
@@ -943,7 +943,7 @@ with access to the form. If you want to make changes in draft, unpublish the for
  * Generates a default form layout based on the fields in the view section.
  */
 export function buildDefaultFormLayout(fields: ViewFieldRec[]): FormLayoutNode {
-  const boxes: FormLayoutNode[] = fields.map(f => {
+  const boxes: FormLayoutNode[] = fields.map((f) => {
     return {
       id: uuidv4(),
       type: 'Field',

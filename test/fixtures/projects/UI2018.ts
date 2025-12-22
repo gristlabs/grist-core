@@ -62,7 +62,7 @@ function setupTest() {
   );
 
   function myEditableLabel(obs: Observable<string>) {
-    return editableLabel(obs, {save: async (val) => obs.set(val)});
+    return editableLabel(obs, {save: async val => obs.set(val)});
   }
 
   const labels = dom('div#labels',
@@ -223,8 +223,8 @@ function setupTest() {
   const breadcrumbs = dom('div#breadcrumbs',
     dom('h4', 'Breadcrumbs'),
     docBreadcrumbs(ws, docName, pageName, {
-      docNameSave: async (val) => docName.set(val),
-      pageNameSave: async (val) => pageName.set(val),
+      docNameSave: async val => docName.set(val),
+      pageNameSave: async val => pageName.set(val),
       cancelRecoveryMode: async () => undefined,
       isFork: observable(false),
       isBareFork: observable(false),
@@ -273,7 +273,7 @@ function setupTest() {
       inline({style: 'width: 180px;'}, buttonSelect(widgetObs, widgetBtns)),
       dom('span',
         dom.cls('widget-value'),
-        dom.text((use) => String(use(widgetObs)))
+        dom.text(use => String(use(widgetObs)))
       )
     ),
     dom('div',
@@ -281,7 +281,7 @@ function setupTest() {
       inline({style: 'width: 180px;'}, buttonSelect(widgetObs, widgetBtns, cssButtonSelect.cls('-light'))),
       dom('span',
         dom.cls('widget-value'),
-        dom.text((use) => String(use(widgetObs)))
+        dom.text(use => String(use(widgetObs)))
       )
     ),
     dom('div',
@@ -290,7 +290,7 @@ function setupTest() {
         buttonToggleSelect(chartObs, chartBtns, {large: true, primary: true})),
       dom('span',
         dom.cls('chart-value'),
-        dom.text((use) => String(use(chartObs)))
+        dom.text(use => String(use(chartObs)))
       )
     )
   );

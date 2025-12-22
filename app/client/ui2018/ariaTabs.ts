@@ -47,15 +47,15 @@ export const ariaTab = (tabListId: string, tabId: string, state: Observable<stri
       "data-tab-id": tabId,
       "aria-controls": `aria-tabpanel-${tabListId}-${tabId}`,
     },
-    dom.attr("aria-selected", (use) => use(state) === tabId ? "true" : "false"),
-    dom.attr("tabindex", (use) => use(state) === tabId ? "0" : "-1"),
+    dom.attr("aria-selected", use => use(state) === tabId ? "true" : "false"),
+    dom.attr("tabindex", use => use(state) === tabId ? "0" : "-1"),
     // this is important to bypass default handling of tabindex in the RegionFocusSwitcher and Clipboard
     dom.cls("ignore_tabindex"),
     dom.on('click', () => state.set(tabId)),
     dom.onKeyDown({
       // Only horizontal tabs are currently implemented.
-      ArrowLeft: (event) => cycle(event.target, state, -1),
-      ArrowRight: (event) => cycle(event.target, state, 1),
+      ArrowLeft: event => cycle(event.target, state, -1),
+      ArrowRight: event => cycle(event.target, state, 1),
     })
   ];
 };
@@ -87,8 +87,8 @@ export const ariaTabPanel = (tabListId: string, tabId: string, state: Observable
       role: "tabpanel",
       "aria-labelledby": `aria-tab-${tabListId}-${tabId}`,
     },
-    dom.attr('aria-hidden', (use) => use(state) !== tabId ? "true" : "false"),
-    dom.domComputed(state, (currentTabId) => currentTabId === tabId ? children : null),
+    dom.attr('aria-hidden', use => use(state) !== tabId ? "true" : "false"),
+    dom.domComputed(state, currentTabId => currentTabId === tabId ? children : null),
   ];
 };
 

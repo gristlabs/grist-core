@@ -82,7 +82,7 @@ describe('tooltips', function() {
 
   it('should close when trigger is disposed', async function() {
     await driver.find('.test-dispose').mouseMove();
-    await waitDeepEqual(() => driver.findAll('.test-tooltip', (e) => e.getText()), ['Tooltip6'], 550);
+    await waitDeepEqual(() => driver.findAll('.test-tooltip', e => e.getText()), ['Tooltip6'], 550);
 
     // should close after trigger get removed
     await driver.findContent('.test-dispose button', /Hide/).click();
@@ -95,7 +95,7 @@ describe('tooltips', function() {
   it('should close when trigger is disposed before the tooltip shows up', async function() {
     // hide trigger but before showing the tooltip this time
     await driver.find('.test-dispose').mouseMove();
-    assert.deepEqual(await driver.findAll('.test-tooltip', (e) => e.getText()), []);
+    assert.deepEqual(await driver.findAll('.test-tooltip', e => e.getText()), []);
     await driver.findContent('.test-dispose button', /Hide/).click();
 
     // wait passed the openDelay (500ms) and check the tooltip did not showup
@@ -108,34 +108,34 @@ describe('tooltips', function() {
 
   it('should not show simultaneously several tooltips with same key', async function() {
     await driver.find('.test-with-key').mouseMove();
-    await waitDeepEqual(() => driver.findAll('.test-tooltip', (e) => e.getText()), ['Tooltip4'], 500);
+    await waitDeepEqual(() => driver.findAll('.test-tooltip', e => e.getText()), ['Tooltip4'], 500);
 
     // move to a tooltip with the same key, and check that it's immediately replaced.
     await driver.find('.test-with-same-key').mouseMove();
-    assert.deepEqual(await driver.findAll('.test-tooltip', (e) => e.getText()), ['Tooltip5']);
+    assert.deepEqual(await driver.findAll('.test-tooltip', e => e.getText()), ['Tooltip5']);
 
     // check that the new tooltip still gets closed on mouseout.
     await driver.find('.test-none').mouseMove();
-    await waitDeepEqual(() => driver.findAll('.test-tooltip', (e) => e.getText()), [], 500);
+    await waitDeepEqual(() => driver.findAll('.test-tooltip', e => e.getText()), [], 500);
 
     // let's do it again with returning back to the first trigger (this used to catch a triggy bug)
     await driver.find('.test-with-key').mouseMove();
-    await waitDeepEqual(() => driver.findAll('.test-tooltip', (e) => e.getText()), ['Tooltip4'], 500);
+    await waitDeepEqual(() => driver.findAll('.test-tooltip', e => e.getText()), ['Tooltip4'], 500);
     await driver.find('.test-with-same-key').mouseMove();
-    assert.deepEqual(await driver.findAll('.test-tooltip', (e) => e.getText()), ['Tooltip5']);
+    assert.deepEqual(await driver.findAll('.test-tooltip', e => e.getText()), ['Tooltip5']);
     await driver.find('.test-with-key').mouseMove();
-    assert.deepEqual(await driver.findAll('.test-tooltip', (e) => e.getText()), ['Tooltip4']);
+    assert.deepEqual(await driver.findAll('.test-tooltip', e => e.getText()), ['Tooltip4']);
     await driver.find('.test-none').mouseMove();
-    await waitDeepEqual(() => driver.findAll('.test-tooltip', (e) => e.getText()), [], 500);
+    await waitDeepEqual(() => driver.findAll('.test-tooltip', e => e.getText()), [], 500);
   });
 
   it('should allow attaching info tooltips to elements', async function() {
     async function assertPopupOpensAndCloses(close: () => Promise<void>) {
       await tooltipIcon.click();
-      await waitDeepEqual(() => driver.findAll('.test-info-tooltip-popup', (e) => e.getText()),
+      await waitDeepEqual(() => driver.findAll('.test-info-tooltip-popup', e => e.getText()),
         ['Link your new widget to an existing widget on this page.\nLearn more.'], 500);
       await close();
-      await waitDeepEqual(() => driver.findAll('.test-info-tooltip-popup', (e) => e.getText()),
+      await waitDeepEqual(() => driver.findAll('.test-info-tooltip-popup', e => e.getText()),
         [], 500);
     }
 
@@ -172,14 +172,14 @@ describe('tooltips', function() {
 
     await tooltipIcon.mouseMove();
     await waitDeepEqual(
-      () => driver.findAll('.test-info-tooltip-popup', (e) => e.getText()),
+      () => driver.findAll('.test-info-tooltip-popup', e => e.getText()),
       [
         'A UUID is a randomly-generated string that is useful for unique identifiers and link keys.\nLearn more.'
       ],
       500
     );
     await driver.find('.test-none').mouseMove();
-    await waitDeepEqual(() => driver.findAll('.test-info-tooltip-popup', (e) => e.getText()),
+    await waitDeepEqual(() => driver.findAll('.test-info-tooltip-popup', e => e.getText()),
       [], 500);
   });
 });

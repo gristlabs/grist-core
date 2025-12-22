@@ -62,7 +62,7 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
   const adminControlsAvailable = areAdminControlsAvailable();
   const content = css.leftPanelBasic(appModel, panelOpen,
     dom('div',
-      css.cssTools.cls('-collapsed', (use) => !use(panelOpen)),
+      css.cssTools.cls('-collapsed', use => !use(panelOpen)),
       css.cssSectionHeader(css.cssSectionHeaderText(pageNames.settings)),
       buildPageEntry('admin', 'Home'),
       css.cssSectionHeader(css.cssSectionHeaderText(pageNames.adminControls),

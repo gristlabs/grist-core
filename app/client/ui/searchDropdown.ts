@@ -78,7 +78,7 @@ export function dropdownWithSearch<T>(options: IDropdownWithSearchOptions<T>): D
     );
     setPopupToFunc(
       elem,
-      (ctl) => (DropdownWithSearch<T>).create(null, ctl, options),
+      ctl => (DropdownWithSearch<T>).create(null, ctl, options),
       popupOptions
     );
   };
@@ -94,7 +94,7 @@ class DropdownWithSearch<T> extends Disposable {
 
   constructor(private _ctl: IOpenController, private _options: IDropdownWithSearchOptions<T>) {
     super();
-    const acItems = _options.options().map(getOptionFull).map((params) => new OptionItem(params));
+    const acItems = _options.options().map(getOptionFull).map(params => new OptionItem(params));
     this._acIndex = new ACIndexImpl<OptionItem<T>>(acItems, this._options.acOptions);
     this._items = Observable.create<OptionItem<T>[]>(this, acItems);
     this._highlightFunc = () => [];

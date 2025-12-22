@@ -111,10 +111,10 @@ export function fileConfigAccessorFactory<FileContents>(
   fileConfig?: FileConfig<FileContents>
 ): <Key extends keyof FileContents>(key: Key) => ConfigAccessors<FileContents[Key]> | undefined
 {
-  if (!fileConfig) { return (key) => undefined; }
-  return (key) => ({
+  if (!fileConfig) { return key => undefined; }
+  return key => ({
     get: () => fileConfig.get(key),
-    set: (value) => fileConfig.set(key, value)
+    set: value => fileConfig.set(key, value)
   });
 }
 

@@ -31,7 +31,7 @@ export function buildMultiUserManagerModal(
   const isValidObs = Observable.create(owner, true);
 
   const enableAdd: Computed<boolean> = computed(
-    (use) => Boolean(use(emailListObs) && use(rolesObs) && use(isValidObs))
+    use => Boolean(use(emailListObs) && use(rolesObs) && use(isValidObs))
   );
 
   const save = (ctl: IModalControl) => {
@@ -65,7 +65,7 @@ export function buildMultiUserManagerModal(
     cssModalButtons(
       { style: 'margin: 32px 64px; display: flex;' },
       bigPrimaryButton('Confirm',
-        dom.boolAttr('disabled', (use) => !use(enableAdd)),
+        dom.boolAttr('disabled', use => !use(enableAdd)),
         dom.on('click', () => save(ctl)),
         testId('um-confirm')
       ),
@@ -86,7 +86,7 @@ function buildRolesSelect(
     .filter((x): x is {value: BasicRole, label: string} => isBasicRole(x.value));
   return cssOptionBtn(
     menu(() => [
-      dom.forEach(allRoles, (_role) =>
+      dom.forEach(allRoles, _role =>
         menuItem(() => roleSelectedObs.set(_role.value), _role.label,
           testId(`um-role-option`)
         )
@@ -111,7 +111,7 @@ function buildEmailsTextarea(
   return cssTextarea(emailListObs,
     {onInput: true, isValid: isValidObs},
     {placeholder: "Enter one email address per line"},
-    dom.on('change', (_ev) => isValidObs.set(true)),
+    dom.on('change', _ev => isValidObs.set(true)),
      ...args,
   );
 }

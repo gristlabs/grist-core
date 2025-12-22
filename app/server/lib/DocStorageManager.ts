@@ -277,7 +277,7 @@ export class DocStorageManager implements IDocStorageManager {
     // Filter out for .grist files, and strip the .grist extension.
     .then(entries => Promise.all(
       entries.filter(e => (path.extname(e) === '.grist'))
-      .map(e => {
+      .map((e) => {
         const docPath = path.resolve(dirPath, e);
         return fse.stat(docPath)
         .then(stat => getDocListFileInfo(docPath, stat, tag));
@@ -286,7 +286,7 @@ export class DocStorageManager implements IDocStorageManager {
     // Sort case-insensitively.
     .then(entries => entries.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())))
     // If the root directory is missing, just return an empty array.
-    .catch(err => {
+    .catch((err) => {
       if (err.cause && err.cause.code === 'ENOENT') { return []; }
       throw err;
     });
@@ -332,7 +332,7 @@ export class DocStorageManager implements IDocStorageManager {
   }): Promise<string> {
     return backupUsingBestConnection(this, docName, {
       ...options,
-      log: (err) => log.error("DocStorageManager: copy failed for %s: %s", docName, String(err)),
+      log: err => log.error("DocStorageManager: copy failed for %s: %s", docName, String(err)),
     });
   }
 }

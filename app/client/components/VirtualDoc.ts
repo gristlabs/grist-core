@@ -121,7 +121,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
       this.app = this.autoDispose(new InMemoryApp(appModel.topAppModel));
     }
 
-    this.currentUser = Computed.create(this, use => {
+    this.currentUser = Computed.create(this, (use) => {
       return use(this.app.topAppModel.appObs)?.currentUser ?? null;
     });
 
@@ -200,7 +200,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
         ev.stopPropagation();
         ev.preventDefault();
       }),
-      dom.domComputed(this.activeViewId, (viewId) => dom.create(ViewLayout, this, viewId)),
+      dom.domComputed(this.activeViewId, viewId => dom.create(ViewLayout, this, viewId)),
     );
   }
 
@@ -290,7 +290,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
         const obs = Computed.create(this, use => useBindable(use, origHidden));
         const coldId = col.colId || properId(col.label);
         col.hidden = obs.get();
-        this.autoDispose(obs.addListener(async isHidden => {
+        this.autoDispose(obs.addListener(async (isHidden) => {
           if (!isHidden) {
             await this.showColumn(tableId, coldId);
           } else {
@@ -432,7 +432,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     const tableData = this.docData.getTable(table)!.getTableDataAction();
     const rowIds = tableData[2];
     const columns = tableData[3];
-    return rowIds.map(rowId => {
+    return rowIds.map((rowId) => {
       const record: RowRecord = {id: rowId};
       for(const colId of Object.keys(columns)) {
         record[colId] = columns[colId][rowId];
@@ -659,7 +659,7 @@ export class VirtualSection extends Disposable {
 
     const tableCols = tableRec.columns.peek().all().map(c => c.colId.peek());
 
-    this._columns = Computed.create(this, use => {
+    this._columns = Computed.create(this, (use) => {
       const hidden = this.props.hiddenColumns ? maybeUse(use, this.props.hiddenColumns) : [];
       const columns = props.columns ? maybeUse(use, props.columns) : tableCols;
       return difference(columns, hidden);
@@ -699,7 +699,7 @@ export class VirtualSection extends Disposable {
     }
 
     if (props.onFocus) {
-      this.autoDispose(viewSectionRec.hasFocus.subscribe(on => {
+      this.autoDispose(viewSectionRec.hasFocus.subscribe((on) => {
         if (props.onFocus) {
           props.onFocus(on);
         }
@@ -731,7 +731,7 @@ export class VirtualSection extends Disposable {
         viewSectionRec.viewInstance.peek()?.setCursorPos(pos);
       };
       setRowIdInInstance(props.selectedRow.get());
-      this.autoDispose(props.selectedRow.addListener(val => {
+      this.autoDispose(props.selectedRow.addListener((val) => {
         setRowIdInInstance(val);
       }));
       const rowId = viewSectionRec.viewInstance.peek()?.cursor.rowId;
@@ -743,7 +743,7 @@ export class VirtualSection extends Disposable {
     }
 
     if (props.isVisible) {
-      this.autoDispose(props.isVisible.addListener(visible => {
+      this.autoDispose(props.isVisible.addListener((visible) => {
         if (visible) {
           viewSectionRec.viewInstance.peek()?.onResize();
         }

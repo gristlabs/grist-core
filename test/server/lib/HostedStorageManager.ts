@@ -379,7 +379,7 @@ class TestStore {
   // Wipes the doc worker's local document store.
   public async removeAll(): Promise<void> {
     const fnames = await fse.readdir(this._localDirectory);
-    await Promise.all(fnames.map(fname => {
+    await Promise.all(fnames.map((fname) => {
       return fse.remove(path.join(this._localDirectory, fname));
     }));
   }
@@ -450,7 +450,7 @@ describe('HostedStorageManager', function() {
             ext = new CachedExternalStorage(ext, 1000);
             ext = new SlowExternalStorage(ext, 250);
             // Everything is stored in fields of these objects, so the tests mustn't recreate them repeatedly.
-            externalStorageCreate = (purpose) => wrapWithKeyMappedStorage(ext, {purpose, basePrefix: 'prefix'});
+            externalStorageCreate = purpose => wrapWithKeyMappedStorage(ext, {purpose, basePrefix: 'prefix'});
             break;
           }
           case 'azure':
@@ -1041,7 +1041,7 @@ describe('HostedStorageManager', function() {
         docWorkerMap,
         {
           setDocsMetadata: async (metadata) => {},
-          getDocFeatures: async (docId) => undefined,
+          getDocFeatures: async docId => undefined,
         },
         externalStorageCreate,
       ];
@@ -1272,7 +1272,7 @@ describe('HostedStorageManager', function() {
         }
         let backupError: Error|undefined;
         const runBackup = (db: SQLiteDB|undefined) => retryOnClose(
-          db, (err) => backupError = err, () => backupSqliteDatabase(db, src, dest, progress)
+          db, err => backupError = err, () => backupSqliteDatabase(db, src, dest, progress)
         );
         const backup =
             (mode === 'with-doc' || mode === 'with-closing-doc') ?

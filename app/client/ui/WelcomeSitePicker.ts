@@ -14,7 +14,7 @@ const t = makeT('WelcomeSitePicker');
 export function buildWelcomeSitePicker(owner: IDisposableOwner, appModel: AppModel): DomContents {
   // We assume that there is a single domain for personal orgs, and will show a button to open
   // that domain with each of the currently signed-in users.
-  const personalOrg = Computed.create(owner, (use) =>
+  const personalOrg = Computed.create(owner, use =>
     use(appModel.topAppModel.orgs).find(o => Boolean(o.owner))?.domain || undefined);
 
   return cssPageContainer(
@@ -27,13 +27,13 @@ export function buildWelcomeSitePicker(owner: IDisposableOwner, appModel: AppMod
         cssColumns(
           cssColumn(
             cssColumnLabel(css.horizontalLine(), css.lightText('Personal'), css.horizontalLine()),
-            dom.forEach(appModel.topAppModel.users, (user) => (
+            dom.forEach(appModel.topAppModel.users, user => (
               cssOrgButton(
                 cssPersonalOrg(
                   createUserImage(user, 'small'),
                   dom('div', user.email, testId('personal-org-email')),
                 ),
-                dom.attr('href', (use) => urlState().makeUrl({org: use(personalOrg)})),
+                dom.attr('href', use => urlState().makeUrl({org: use(personalOrg)})),
                 dom.on('click', (ev) => { void(switchToPersonalUrl(ev, appModel, personalOrg.get(), user)); }),
                 testId('personal-org'),
               )
@@ -41,7 +41,7 @@ export function buildWelcomeSitePicker(owner: IDisposableOwner, appModel: AppMod
           ),
           cssColumn(
             cssColumnLabel(css.horizontalLine(), css.lightText('Team'), css.horizontalLine()),
-            dom.forEach(appModel.topAppModel.orgs, (org) => (
+            dom.forEach(appModel.topAppModel.orgs, org => (
               org.owner || !org.domain ? null : cssOrgButton(
                 getOrgName(org),
                 urlState().setLinkUrl({org: org.domain}),

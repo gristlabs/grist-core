@@ -3354,11 +3354,11 @@ describe('GranularAccess', function() {
           }
         ];
         // Check the action is unchanged if row is not specified for filtering.
-        assert.deepEqual(filterColValues(cloneDeep(action1), (idx) => idx === 99, xRemove),
+        assert.deepEqual(filterColValues(cloneDeep(action1), idx => idx === 99, xRemove),
                          [action1]);
         // Check the action is filtered as expected if row is specified.  Action set returned
         // is suboptimal, but nevertheless as expected.
-        assert.deepEqual(filterColValues(cloneDeep(action1), (idx) => idx === 0, xRemove),
+        assert.deepEqual(filterColValues(cloneDeep(action1), idx => idx === 0, xRemove),
                          [[actType, 'Table1', [], {a: [], b: [], c: []}],
                           [actType, 'Table1', [1], {b: ['b']}]]);
         // Prepare a multi-row bulk action.
@@ -3372,7 +3372,7 @@ describe('GranularAccess', function() {
         ];
         // Check filtering is as expected: one retained row, two new actions for the
         // two new permutations of columns.
-        assert.deepEqual(filterColValues(cloneDeep(action2), (idx) => idx % 2 === 0, xRemove),
+        assert.deepEqual(filterColValues(cloneDeep(action2), idx => idx % 2 === 0, xRemove),
                          [[actType, 'Table1', [2], {a: ['a'], b: ['b'], c: ['c']}],
                           [actType, 'Table1', [3], {a: ['a'], b: ['b']}],
                           [actType, 'Table1', [1], {b: ['b']}]]);
@@ -3387,7 +3387,7 @@ describe('GranularAccess', function() {
             c: ['c', 'x', 'c', 'x', 'c', 'x', 'c', 'x', 'C', 'x', 'C', 'x'],
           }
         ];
-        assert.deepEqual(filterColValues(cloneDeep(action3), (idx) => ![0, 8].includes(idx), xRemove),
+        assert.deepEqual(filterColValues(cloneDeep(action3), idx => ![0, 8].includes(idx), xRemove),
                          [[actType, 'Table1', [1, 9], {a: ['a', 'A'], b: ['b', 'B'], c: ['c', 'C']}],
                           [actType, 'Table1', [8], {}],
                           [actType, 'Table1', [4, 12], {a: ['a', 'A']}],
@@ -3409,22 +3409,22 @@ describe('GranularAccess', function() {
             a: 'x', b: 'b', c: 'x'
           }
         ];
-        assert.deepEqual(filterColValues(cloneDeep(action1), (idx) => idx === 0, xRemove),
+        assert.deepEqual(filterColValues(cloneDeep(action1), idx => idx === 0, xRemove),
                          [[actType, 'Table1', 1, {b: 'b'}]]);
         // shouldFilterRow is somewhat arbitrarily ignored for non-bulk changes.
-        assert.deepEqual(filterColValues(cloneDeep(action1), (idx) => idx === 99, xRemove),
+        assert.deepEqual(filterColValues(cloneDeep(action1), idx => idx === 99, xRemove),
                          [[actType, 'Table1', 1, {b: 'b'}]]);
       });
     }
 
     it('should not remove anything for BulkRemoveRecord', function() {
       const action1: BulkRemoveRecord = ['BulkRemoveRecord', 'Table1', [1, 2, 3]];
-      assert.deepEqual(filterColValues(cloneDeep(action1), (idx) => idx === 0, xRemove), [action1]);
+      assert.deepEqual(filterColValues(cloneDeep(action1), idx => idx === 0, xRemove), [action1]);
     });
 
     it('should not remove anything for RemoveRecord', function() {
       const action1: RemoveRecord = ['RemoveRecord', 'Table1', 1];
-      assert.deepEqual(filterColValues(cloneDeep(action1), (idx) => idx === 0, xRemove), [action1]);
+      assert.deepEqual(filterColValues(cloneDeep(action1), idx => idx === 0, xRemove), [action1]);
     });
   });
 

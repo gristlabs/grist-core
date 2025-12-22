@@ -128,18 +128,18 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
 
     this._rootElem = cssTokenField(
       {tabIndex: '-1'},
-      dom.forEach(this._tokens, (t) =>
+      dom.forEach(this._tokens, t =>
         cssToken(this._options.renderToken(t.token),
-          dom.cls('selected', (use) => use(this._selection).has(t)),
+          dom.cls('selected', use => use(this._selection).has(t)),
           _options.readonly ? null : [
             cssDeleteButton(
               // Ignore mousedown events, so that tokens aren't draggable by the delete button.
-              dom.on('mousedown', (ev) => ev.stopPropagation()),
+              dom.on('mousedown', ev => ev.stopPropagation()),
               cssDeleteIcon('CrossSmall'),
               testId('tokenfield-delete')
             ),
-            dom.on('click', (ev) =>  this._onTokenClick(ev, t)),
-            dom.on('mousedown', (ev) => this._onMouseDown(ev, t))
+            dom.on('click', ev =>  this._onTokenClick(ev, t)),
+            dom.on('mousedown', ev => this._onMouseDown(ev, t))
           ],
           testId('tokenfield-token')
         ),
@@ -156,9 +156,9 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
           ),
           dom.onKeyDown({
             Escape$: (ev) => { this._acHolder.clear(); },
-            Enter$: (ev) => addSelectedItem() && stop(ev),
+            Enter$: ev => addSelectedItem() && stop(ev),
             ArrowDown$: openAutocomplete,
-            Tab$: (ev) => addSelectedItem() && stop(ev),
+            Tab$: ev => addSelectedItem() && stop(ev),
           }),
           dom.on('input', openAutocomplete),
           testId('tokenfield-input'),
@@ -168,8 +168,8 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
         a$: this._maybeSelectAllTokens.bind(this),
         Backspace$: this._maybeBackspace.bind(this),
         Delete$: this._maybeDelete.bind(this),
-        [this._keyBindings.previous + '$']: (ev) => this._maybeAdvance(ev, -1),
-        [this._keyBindings.next + '$']: (ev) => this._maybeAdvance(ev, +1),
+        [this._keyBindings.previous + '$']: ev => this._maybeAdvance(ev, -1),
+        [this._keyBindings.next + '$']: ev => this._maybeAdvance(ev, +1),
         // ['Mod+z'] triggers undo; ['Mod+Shift+Z', 'Ctrl+y' ] trigger redo
         z$: (ev) => {
           if (ev[modKeyProp()]) {
@@ -531,7 +531,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
       const xOffset = ev.clientX - xInitial;
       const yOffset = ev.clientY - yInitial;
       const transform = `translate(${xOffset}px, ${yOffset}px)`;
-      tokenList.forEach(el => { el.style.transform = transform; });
+      tokenList.forEach((el) => { el.style.transform = transform; });
     };
 
     const onStop = (ev: MouseEvent) => {
@@ -545,12 +545,12 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
       this._rootElem.classList.remove('token-dragactive');
       allTargets.forEach(el => el.classList.remove(dragTargetStyle.className));
       tokenList.forEach(el => el.classList.remove('token-dragging'));
-      tokenList.forEach(el => { el.style.transform = ''; });
+      tokenList.forEach((el) => { el.style.transform = ''; });
       nextUnselectedToken?.classList.remove(dragTargetStyle.className + "-next");
 
       // Find the token before which we are inserting the dragged elements. If inserting at the
       // end (just before or over the input box), destToken will be undefined.
-      const index = allTargets.findIndex((target) => target.contains(ev.target as Node));
+      const index = allTargets.findIndex(target => target.contains(ev.target as Node));
       if (index < 0) { return; }
 
       const destToken: TokenWrap<Token>|undefined = this._tokens.get()[index];

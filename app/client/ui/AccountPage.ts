@@ -37,8 +37,8 @@ export class AccountPage extends Disposable {
   private _isEditingName = Observable.create(this, false);
   private _nameEdit = Observable.create<string>(this, '');
   private _isNameValid = Computed.create(this, this._nameEdit, (_use, val) => checkName(val));
-  private _allowGoogleLogin = Computed.create(this, (use) => use(this._userObs)?.allowGoogleLogin ?? false)
-    .onWrite((val) => this._updateAllowGooglelogin(val));
+  private _allowGoogleLogin = Computed.create(this, use => use(this._userObs)?.allowGoogleLogin ?? false)
+    .onWrite(val => this._updateAllowGooglelogin(val));
 
   constructor(private _appModel: AppModel, private _appObj: App) {
     super();
@@ -66,21 +66,21 @@ export class AccountPage extends Disposable {
   private _buildContentMain() {
     const supportedLngs = getGristConfig().supportedLngs ?? ['en'];
     const languageOptions = supportedLngs
-      .map((lng) => ({value: lng, label: translateLocale(lng)!}))
+      .map(lng => ({value: lng, label: translateLocale(lng)!}))
       .sort((a, b) => a.value.localeCompare(b.value));
 
-    const userLocale = Computed.create(this, use => {
+    const userLocale = Computed.create(this, (use) => {
       const selected = detectCurrentLang();
       if (!supportedLngs.includes(selected)) { return 'en'; }
       return selected;
     });
-    userLocale.onWrite(async value => {
+    userLocale.onWrite(async (value) => {
       await this._appModel.api.updateUserLocale(value || null);
       // Reload the page to apply the new locale.
       window.location.reload();
     });
 
-    return domComputed(this._userObs, (user) => user && (
+    return domComputed(this._userObs, user => user && (
       css.container(css.accountPage(
         css.header(t("Account settings")),
         css.dataRow(
@@ -89,7 +89,7 @@ export class AccountPage extends Disposable {
         ),
         css.dataRow(
           css.inlineSubHeader(t("Name")),
-          domComputed(this._isEditingName, (isEditing) => (
+          domComputed(this._isEditingName, isEditing => (
             isEditing ? [
               transientInput(
                 {

@@ -203,7 +203,7 @@ export class DocWorkerMap implements IDocWorkerMap {
     this._clients = _clients || [createClient(process.env.REDIS_URL)];
     this._redlock = new Redlock(this._clients);
     this._client = this._clients[0]!;
-    this._client.on('error', (err) => log.warn(`DocWorkerMap: redisClient error`, String(err)));
+    this._client.on('error', err => log.warn(`DocWorkerMap: redisClient error`, String(err)));
     this._client.on('end', () => log.warn(`DocWorkerMap: redisClient connection closed`));
     this._client.on('reconnecting', () => log.warn(`DocWorkerMap: redisClient reconnecting`));
   }
@@ -608,7 +608,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       .get(`doc-${docId}-checksum`)
       .execAsync() as [{[key: string]: any}|null, string|null]|null;
     // Fields are JSON encoded since redis cannot store them directly.
-    const doc = props?.[0] ? mapValues(props[0], (val) => JSON.parse(val)) as DocStatus : null;
+    const doc = props?.[0] ? mapValues(props[0], val => JSON.parse(val)) as DocStatus : null;
     // Redis cannot store a null value, so we encode it as 'null', which does
     // not match any possible MD5.
     const checksum = (props?.[1] === 'null' ? null : props?.[1]) || null;

@@ -273,9 +273,9 @@ export class VirtualTable extends Disposable {
     if (!this._transformColumns.length) {
       return rows;
     }
-    return rows.map(row => {
+    return rows.map((row) => {
       const ret: Record<string, any> = {...row};
-      this._transformColumns.forEach(col => {
+      this._transformColumns.forEach((col) => {
         ret[col.colId] = col.transform!(row[col.colId]);
       });
       return ret;

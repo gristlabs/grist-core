@@ -56,7 +56,7 @@ export class TypeTransform extends ColumnTransform {
     this._reviseTypeChange.set(false);
     return dom('div',
       testId('type-transform-top'),
-      dom.domComputed(use => {
+      dom.domComputed((use) => {
         const transformWidget = use(this._transformWidget);
         if (!transformWidget) { return null; }
 
@@ -76,11 +76,11 @@ export class TypeTransform extends ColumnTransform {
           t('Cancel'), testId("type-transform-cancel"),
           dom.cls('disabled', disableButtons)
         ),
-        dom.domComputed(this._reviseTypeChange, revising => {
+        dom.domComputed(this._reviseTypeChange, (revising) => {
           if (revising) {
             return basicButton(dom.on('click', () => this.preview()),
               t('Preview'), testId("type-transform-update"),
-              dom.cls('disabled', (use) => use(disableButtons) || use(this.formulaUpToDate)),
+              dom.cls('disabled', use => use(disableButtons) || use(this.formulaUpToDate)),
               { title: t('Update formula (Shift+Enter)') }
             );
           } else {

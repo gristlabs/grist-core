@@ -77,7 +77,7 @@ export class DocWorkerLoadTracker {
       varianceMs: Deps.docWorkerUpdateLoadVarianceMs,
     },
     {
-      onError: (e) => this._log.error(null, "failed to update worker load", e),
+      onError: e => this._log.error(null, "failed to update worker load", e),
     }
   );
 
@@ -184,7 +184,7 @@ export class DocWorkerLoadTracker {
         Deps.docWorkerMaxMemoryBytesPath,
         // When the value is "max", return Infinity, otherwise return undefined
         // so the function reads what's probably an integer value.
-        (val) => val === 'max' ? Infinity : undefined
+        val => val === 'max' ? Infinity : undefined
       );
     }
 

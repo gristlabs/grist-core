@@ -81,7 +81,7 @@ export class UsersManager {
     for (const group of groups) {
       let users = group.memberUsers;
       if (excludeUsers) {
-        users = users.filter((user) => !excludeUsers.includes(user.id));
+        users = users.filter(user => !excludeUsers.includes(user.id));
       }
       members.set(group.name, users);
     }
@@ -104,7 +104,7 @@ export class UsersManager {
    * For use in tests.
    */
   public async testClearUserPrefs(emails: string[]) {
-    return await this._connection.transaction(async manager => {
+    return await this._connection.transaction(async (manager) => {
       for (const email of emails) {
         const user = await this.getExistingUserByLogin(email, manager);
         if (user) {
@@ -173,7 +173,7 @@ export class UsersManager {
     options: {manager?: EntityManager; relations?: string[]} = {}
   ): Promise<User|undefined> {
     const { manager, relations = ["logins"] } = options;
-    const user = await this._runInTransaction(manager, (m) => m.findOne(User, {where: {ref}, relations}));
+    const user = await this._runInTransaction(manager, m => m.findOne(User, {where: {ref}, relations}));
     return user || undefined;
   }
 
@@ -197,7 +197,7 @@ export class UsersManager {
    * Gets a user and ensures that they have an unsubscribe key.
    */
   public async getUserAndEnsureUnsubscribeKey(userId: number): Promise<User> {
-    return await this._runInTransaction(undefined, async manager => {
+    return await this._runInTransaction(undefined, async (manager) => {
       const relations = ["logins"];
       const user = await manager.findOne(User, {where: {id: userId}, relations});
       if (!user) { throw new ApiError("unable to find user", 400); }
@@ -228,7 +228,7 @@ export class UsersManager {
       picture: user.picture,
       ref: user.ref,
       locale: user.options?.locale,
-      prefs: user.prefs?.find((p)=> p.orgId === null)?.prefs,
+      prefs: user.prefs?.find(p=> p.orgId === null)?.prefs,
       firstLoginAt: user.firstLoginAt || null,
       disabledAt: user.disabledAt || null,
     };
@@ -250,7 +250,7 @@ export class UsersManager {
    * @param profile External profile
    */
   public async ensureExternalUser(profile: UserProfile) {
-    await this._connection.transaction(async manager => {
+    await this._connection.transaction(async (manager) => {
       // First find user by the connectId from the profile
       const existing = await manager.findOne(User, {
         where: {connectId: profile.connectId || undefined},
@@ -299,7 +299,7 @@ export class UsersManager {
   }
 
   public async updateUser(userId: number, props: UserProfileChange){
-    return await this._connection.transaction(async manager => {
+    return await this._connection.transaction(async (manager) => {
       let isWelcomed = false;
       let needsSave = false;
       const user = await manager.findOne(User, {
@@ -334,7 +334,7 @@ export class UsersManager {
 
   // TODO: rather use the updateUser() method, if that makes sense?
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
-    await this._runInTransaction(undefined, async manager => {
+    await this._runInTransaction(undefined, async (manager) => {
       const user = await manager.findOne(User, {where: {id: userId}});
       if (!user) { throw new ApiError("unable to find user", 400); }
       user.options = {...(user.options ?? {}), ...props};
@@ -413,7 +413,7 @@ export class UsersManager {
   public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserType = 'login') {
     const {manager: transaction, profile, userOptions} = options;
     const normalizedEmail = normalizeEmail(email);
-    return await this._runInTransaction(transaction, async manager => {
+    return await this._runInTransaction(transaction, async (manager) => {
       let needUpdate = false;
       const userQuery = manager.createQueryBuilder()
         .select('user')
@@ -580,7 +580,7 @@ export class UsersManager {
       await this._homeDb.storageCoordinator.hardDeleteDoc(fullId);
     }
 
-    return await this._connection.transaction(async manager => {
+    return await this._connection.transaction(async (manager) => {
       const user = await manager.findOne(User, {where: {id: userIdToDelete},
                                                 relations: ["logins", "personalOrg", "prefs"]});
       if (!user) { throw new ApiError('user not found', 404); }
@@ -594,7 +594,7 @@ export class UsersManager {
       // Unset 'created_by' on any documents created by this user. It's sad to lose this info, but
       // we can't leave an invalid reference (and violate the foreign-key constraint)
       const docs = await manager.getRepository(Document).find({where: {createdBy: userIdToDelete}});
-      docs.forEach(doc => {
+      docs.forEach((doc) => {
         if (doc.trunkId) {
           // We tried cleaning up forks before starting the
           // transaction but one snuck back in? Just bail.
@@ -674,7 +674,7 @@ export class UsersManager {
    * Update users with passed property. Optional user properties that are missing will be reset to their default value.
    */
   public async overwriteUser(userId: number, props: UserProfile): Promise<User> {
-    return await this._connection.transaction(async manager => {
+    return await this._connection.transaction(async (manager) => {
       const user = await this.getUser(userId, {includePrefs: true});
       if (!user) { throw new ApiError("unable to find user to update", 404); }
       const login = user.logins[0];
@@ -914,7 +914,7 @@ export class UsersManager {
   public withoutExcludedUsers(members: Map<roles.NonGuestRole, User[]>): Map<roles.NonGuestRole, User[]> {
     const excludedUsers = this.getExcludedUserIds();
     for (const [role, users] of members.entries()) {
-      members.set(role, users.filter((user) => !excludedUsers.includes(user.id)));
+      members.set(role, users.filter(user => !excludedUsers.includes(user.id)));
     }
     return members;
   }
@@ -940,7 +940,7 @@ export class UsersManager {
   }
 
   public async createApiKey(userId: number, force: boolean, transaction?: EntityManager): Promise<User> {
-    return await this._runInTransaction(transaction, async manager => {
+    return await this._runInTransaction(transaction, async (manager) => {
       const user = await manager.findOne(User, {where: {id: userId}});
       if (!user) {
         throw new ApiError("user not known", 404);
@@ -955,7 +955,7 @@ export class UsersManager {
   }
 
   public async deleteApiKey(userId: number, transaction?: EntityManager): Promise<User> {
-    return await this._runInTransaction(transaction, async manager => {
+    return await this._runInTransaction(transaction, async (manager) => {
       const user = await manager.findOne(User, {where: {id: userId}});
       if (!user) {
         throw new Error("user not known");

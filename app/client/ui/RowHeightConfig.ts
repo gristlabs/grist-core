@@ -58,12 +58,12 @@ export function rowHeightConfigTable(
       ),
     ),
     cssRowExpandable(
-      cssRowExpandable.cls('-expand', (use) => Boolean(use(rowHeightObs))),
+      cssRowExpandable.cls('-expand', use => Boolean(use(rowHeightObs))),
       labeledSquareCheckbox(
         uniformRows,
         t('Expand all rows to this height'),
         testId('row-height-expand'),
-        dom.boolAttr('disabled', (use) => !use(rowHeightObs)),
+        dom.boolAttr('disabled', use => !use(rowHeightObs)),
       ),
     ),
   ];
@@ -76,8 +76,8 @@ export function applyRowHeightLimit(section: ViewSectionRec): DomElementArg {
   return [
     // We want dom.style('--row-height-lines', section.rowHeight), but it doesn't work for "custom
     // variable" properties, so we do it manually. TODO: fix grainjs to support this.
-    (elem) => subscribeElem(elem, section.rowHeight,
-      (val) => elem.style.setProperty('--row-height-lines', String(val))),
+    elem => subscribeElem(elem, section.rowHeight,
+      val => elem.style.setProperty('--row-height-lines', String(val))),
     dom.cls('row_height_set', use => Boolean(use(section.rowHeight) > 0)),
     dom.cls('row_height_uniform', section.rowHeightUniform),
   ];

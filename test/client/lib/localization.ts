@@ -52,7 +52,7 @@ describe('localization', function() {
     const obs = observable("Second");
     const result = t('Argument', {
       arg1: dom('span', 'First'),
-      arg2: dom.domComputed(obs, (value) => dom('span', value)),
+      arg2: dom.domComputed(obs, value => dom('span', value)),
       end: dom.create(Component)
     }, instance) as any;
     assert.isTrue(Array.isArray(result));
@@ -84,7 +84,7 @@ describe('localization', function() {
     // Test that context variable works.
     const variantSpan = dom('span', t('Argument', {
       arg1: dom('span', 'First'),
-      arg2: dom.domComputed(obs, (value) => dom('span', value)),
+      arg2: dom.domComputed(obs, value => dom('span', value)),
       end: dom.create(Component),
       context: 'variant'
     }, instance));

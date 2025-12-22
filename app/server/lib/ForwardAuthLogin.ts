@@ -163,7 +163,7 @@ async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> 
       };
       if (skipSession) {
         // With GRIST_IGNORE_SESSION, respect the header for all requests.
-        middleware.overrideProfile = async (req) => getRequestProfile(req, header);
+        middleware.overrideProfile = async req => getRequestProfile(req, header);
       }
       return middleware;
     },

@@ -100,7 +100,7 @@ function buildNotificationDom(item: Notification, options: IBeaconOpenOptions) {
         item.options.message,
       ),
       item.options.actions.length ? cssToastActions(
-        item.options.actions.map((action) => buildAction(action, item, options))
+        item.options.actions.map(action => buildAction(action, item, options))
       ) : null,
       item.options.memos.length ? cssToastMemos(
         item.options.memos.map(memo => cssToastMemo(
@@ -137,9 +137,9 @@ function buildProgressDom(item: Progress) {
 export function buildNotifyMenuButton(notifier: Notifier, appModel: AppModel|null) {
   const {connectState} = notifier.getStateForUI();
   return cssHoverCircle({style: `margin: 5px;`},
-    dom.domComputed(connectState, (state) => buildConnectStateButton(state)),
+    dom.domComputed(connectState, state => buildConnectStateButton(state)),
     (elem) => {
-      setPopupToCreateDom(elem, (ctl) => buildNotifyDropdown(ctl, notifier, appModel),
+      setPopupToCreateDom(elem, ctl => buildNotifyDropdown(ctl, notifier, appModel),
         {...defaultMenuOptions, placement: 'bottom-end'});
     },
     hoverTooltip('Notifications', {key: 'topBarBtnTooltip'}),
@@ -171,13 +171,13 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
           testId('feedback'),
         )
       ),
-      dom.maybe(disconnectMsg, (msg) =>
+      dom.maybe(disconnectMsg, msg =>
         cssDropdownStatus(
           buildConnectStateButton(connectState.get()),
           dom('div', cssDropdownStatusText(msg.message), testId('disconnect-msg')),
         )
       ),
-      dom.maybe((use) => use(dropdownItems).length === 0 && !use(disconnectMsg), () =>
+      dom.maybe(use => use(dropdownItems).length === 0 && !use(disconnectMsg), () =>
         cssDropdownStatus(
           dom('div', cssDropdownStatusText(t("No notifications"))),
         )

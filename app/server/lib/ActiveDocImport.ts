@@ -488,7 +488,7 @@ export class ActiveDocImport {
     mergeCols = stripPrefixes(mergeCols);
 
     // Get column differences between `hiddenTableId` and `destTableId` for rows that exist in both tables.
-    const srcAndDestColIds: [string, string][] = destCols.map(destCol => {
+    const srcAndDestColIds: [string, string][] = destCols.map((destCol) => {
       const formula = destCol.formula.trim();
       const srcColId = formula.startsWith('$') && sourceCols.includes(formula.slice(1)) ?
         formula.slice(1) : IMPORT_TRANSFORM_COLUMN_PREFIX + destCol.colId;
@@ -536,7 +536,7 @@ export class ActiveDocImport {
         // No match in destination table found for source row, so it must be a new record.
         for (const srcColId of srcColIds) {
           const matchingDestColIds = srcToDestColIds.get(srcColId);
-          matchingDestColIds!.forEach(id => {
+          matchingDestColIds!.forEach((id) => {
             newRecords[id].push(comparisonResult[`${hiddenTableId}.${srcColId}`][i]);
           });
         }
@@ -546,7 +546,7 @@ export class ActiveDocImport {
         for (const srcColId of srcColIds) {
           const matchingDestColIds = srcToDestColIds.get(srcColId);
           const srcVal = comparisonResult[`${hiddenTableId}.${srcColId}`][i];
-          matchingDestColIds!.forEach(id => {
+          matchingDestColIds!.forEach((id) => {
             const destVal = comparisonResult[`${destTableId}.${id}`][i];
             updatedRecords[id].push(merge(srcVal, destVal));
           });
@@ -643,7 +643,7 @@ export class ActiveDocImport {
     const tablesByOrigName = _.indexBy(tables, 'origTableName');
 
     //  gather all of the user actions
-    let userActions: any[] = references.map( ref => {
+    let userActions: any[] = references.map( (ref) => {
       const fixedTableId = tables[ref.tableIndex].hiddenTableId;
       return [
         'ModifyColumn',

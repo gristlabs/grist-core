@@ -95,7 +95,7 @@ export class DocTutorial extends Disposable {
     const popup = FloatingPopup.create(this._popupHolder, {
       title: this._buildPopupTitle.bind(this),
       content: this._buildPopupContent.bind(this),
-      onMoveEnd: (position) => this._position.set(position),
+      onMoveEnd: position => this._position.set(position),
       onResizeEnd: ({width, height, ...position}) => {
         this._width.set(width);
         this._height.set(height);
@@ -120,17 +120,17 @@ export class DocTutorial extends Disposable {
 
   private _buildPopupContent() {
     return [
-        dom.domComputed(use => {
+        dom.domComputed((use) => {
         const slides = use(this._slides);
         const slideIndex = use(this._currentSlideIndex);
         const slide = slides?.[slideIndex];
         return cssPopupBody(
           !slide ? cssSpinner(loadingSpinner()) : [
-            dom('div', elem => {
+            dom('div', (elem) => {
               elem.innerHTML = slide.slideContent;
             }),
             !slide.boxContent ? null : cssTryItOutBox(
-              dom('div', elem => { elem.innerHTML = slide.boxContent!; }),
+              dom('div', (elem) => { elem.innerHTML = slide.boxContent!; }),
             ),
             dom.on('click', (ev) => {
               if((ev.target as HTMLElement).tagName !== 'IMG') {
@@ -145,7 +145,7 @@ export class DocTutorial extends Disposable {
         );
       }),
       cssPopupFooter(
-        dom.domComputed(use => {
+        dom.domComputed((use) => {
           const slides = use(this._slides);
           if (!slides) { return null; }
 
@@ -155,7 +155,7 @@ export class DocTutorial extends Disposable {
           const isLastSlide = slideIndex === numSlides - 1;
           return [
             cssProgressBar(
-              range(slides.length).map((i) => cssProgressBarDot(
+              range(slides.length).map(i => cssProgressBarDot(
                 hoverTooltip(slides[i].slideTitle, {
                   closeOnClick: false,
                   key: FLOATING_POPUP_TOOLTIP_KEY,
@@ -209,7 +209,7 @@ export class DocTutorial extends Disposable {
       dom.maybe(this._slides, slides =>
         dom('div',
           {style: 'display: none;'},
-          dom.forEach(slides, slide => {
+          dom.forEach(slides, (slide) => {
             if (slide.imageUrls.length === 0) { return null; }
             return dom('div', slide.imageUrls.map(src => dom('img', {src})));
           }),
@@ -245,7 +245,7 @@ export class DocTutorial extends Disposable {
     const tableData = this._docData.getTable(tableId)!;
     const slides = (await Promise.all(
       sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any)
-      .map(async rowId => {
+      .map(async (rowId) => {
         let slideTitle: string | undefined;
         const imageUrls: string[] = [];
 

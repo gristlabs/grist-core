@@ -53,7 +53,7 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
   let element: HTMLElement;
 
   // When element is selected, scroll it into view.
-  owner.autoDispose(view.selectedBox.addListener(selectedBox => {
+  owner.autoDispose(view.selectedBox.addListener((selectedBox) => {
     if (selectedBox === box) {
       element?.scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'nearest'});
     }
@@ -62,7 +62,7 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
   // Default remove icon, can be overriden by props.
   const defaultRemoveButton = () => style.cssRemoveButton(
     icon((props.removeIcon as any) ?? 'RemoveBig'),
-    dom.on('click', ev => {
+    dom.on('click', (ev) => {
       stopEvent(ev);
       box.view.selectedBox.set(box);
       allCommands.deleteFields.run();

@@ -87,7 +87,7 @@ export class ReferenceUtils extends Disposable {
   }
 
   public buildNoItemsMessage() {
-    return dom.domComputed(use => {
+    return dom.domComputed((use) => {
       const error = use(this._dropdownConditionError);
       if (error) { return t('Error in dropdown condition'); }
 

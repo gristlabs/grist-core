@@ -184,7 +184,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
 
     // Initially, and on any change to subdomain, call initialize() to get the full Organization
     // and the FullUser to use for it (the user may change when switching orgs).
-    this.autoDispose(subscribe(this.currentSubdomain, (use) => this.initialize()));
+    this.autoDispose(subscribe(this.currentSubdomain, use => this.initialize()));
     this.plugins = this._gristConfig?.plugins || [];
 
     if (this.options.useApi !== false) {

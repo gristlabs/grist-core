@@ -197,7 +197,7 @@ export async function getLatestStableDockerVersion(signal: AbortSignal): Promise
   try {
     // Find stable tag.
     const tags = await listRepositoryTags(signal);
-    const stableTag = tags.find((tag) => tag.name === "stable");
+    const stableTag = tags.find(tag => tag.name === "stable");
     if (!stableTag) {
       throw new ApiError("No stable tag found", 404);
     }
@@ -205,7 +205,7 @@ export async function getLatestStableDockerVersion(signal: AbortSignal): Promise
     // Now find all tags with the same image.
     const up = tags
       // Filter by digest.
-      .filter((tag) => tag.digest === stableTag.digest)
+      .filter(tag => tag.digest === stableTag.digest)
       // Name should be a version number in a correct format (should start with a number or v and number).
       .filter(tag => /^v?\d+/.test(tag.name))
       // And sort it in natural order (so that 1.1.10 is after 1.1.9).
@@ -265,7 +265,7 @@ async function listRepositoryTags(signal: AbortSignal): Promise<DockerTag[]>{
     const response = await fetch(next, {signal, timeout: Deps.REQUEST_TIMEOUT});
     if (response.status === 429) {
       // We hit the rate limit, let's wait a bit and try again.
-      await new Promise((resolve) => setTimeout(resolve, Deps.RETRY_TIMEOUT));
+      await new Promise(resolve => setTimeout(resolve, Deps.RETRY_TIMEOUT));
       if (signal.aborted) {
         throw new Error("Aborted");
       }

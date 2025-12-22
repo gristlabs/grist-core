@@ -6,7 +6,7 @@ import {BindableValue, Computed, dom, EventCB, IDisposable, IDisposableOwner, Ob
  */
 export function makeTestId(prefix: string) {
   return (id: BindableValue<string>, obs?: BindableValue<boolean>) => {
-    return dom.cls(use => {
+    return dom.cls((use) => {
       if (obs !== undefined && !useBindable(use, obs)) {
         return '';
       }
@@ -35,7 +35,7 @@ export const AsyncComputed = {
     const listener = (prom: Promise<T>): void => {
       dirty.set(true);
       const myTicket = ++ticket;
-      prom.then(v => {
+      prom.then((v) => {
         if (ticket !== myTicket) { return; }
         if (backend.isDisposed()) { return; }
         dirty.set(false);

@@ -15,7 +15,7 @@ export class ThemeConfig extends Disposable {
 
   private _syncWithOS = Computed.create(this, this._themePrefs, (_use, prefs) => {
     return prefs.syncWithOS;
-  }).onWrite((value) => this._updateSyncWithOS(value));
+  }).onWrite(value => this._updateSyncWithOS(value));
 
   private _themeName = Computed.create(this,
     this._themePrefs,

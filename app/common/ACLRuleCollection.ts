@@ -21,12 +21,12 @@ const DEFAULT_RULE_SET: RuleSet = {
   colIds: '*',
   body: [{
     aclFormula: "user.Access in [EDITOR, OWNER]",
-    matchFunc: (input) => ['editors', 'owners'].includes(String(input.user!.Access)),
+    matchFunc: input => ['editors', 'owners'].includes(String(input.user!.Access)),
     permissions: parsePermissions('all'),
     permissionsText: 'all',
   }, {
     aclFormula: "user.Access in [VIEWER]",
-    matchFunc: (input) => ['viewers'].includes(String(input.user!.Access)),
+    matchFunc: input => ['viewers'].includes(String(input.user!.Access)),
     permissions: parsePermissions('+R-CUDS'),
     permissionsText: '+R',
   }, {
@@ -51,7 +51,7 @@ const SPECIAL_RULE_SETS: Record<SpecialRuleName, RuleSet> = {
     colIds: ['SchemaEdit'],
     body: [{
       aclFormula: "user.Access in [EDITOR, OWNER]",
-      matchFunc: (input) => ['editors', 'owners'].includes(String(input.user!.Access)),
+      matchFunc: input => ['editors', 'owners'].includes(String(input.user!.Access)),
       permissions: parsePermissions('+S'),
       permissionsText: '+S',
     }, {
@@ -66,7 +66,7 @@ const SPECIAL_RULE_SETS: Record<SpecialRuleName, RuleSet> = {
     colIds: ['AccessRules'],
     body: [{
       aclFormula: "user.Access in [OWNER]",
-      matchFunc: (input) => ['owners'].includes(String(input.user!.Access)),
+      matchFunc: input => ['owners'].includes(String(input.user!.Access)),
       permissions: parsePermissions('+R'),
       permissionsText: '+R',
     }, {
@@ -93,7 +93,7 @@ const SPECIAL_RULE_SETS: Record<SpecialRuleName, RuleSet> = {
     colIds: ['FullCopies'],
     body: [{
       aclFormula: "user.Access in [OWNER]",
-      matchFunc: (input) => ['owners'].includes(String(input.user!.Access)),
+      matchFunc: input => ['owners'].includes(String(input.user!.Access)),
       permissions: parsePermissions('+R'),
       permissionsText: '+R',
     }, {
@@ -117,7 +117,7 @@ const EMERGENCY_RULE_SET: RuleSet = {
   colIds: '*',
   body: [{
     aclFormula: "user.Access in [OWNER]",
-    matchFunc:  (input) => ['owners'].includes(String(input.user!.Access)),
+    matchFunc:  input => ['owners'].includes(String(input.user!.Access)),
     permissions: parsePermissions('all'),
     permissionsText: 'all',
   }, {

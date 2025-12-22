@@ -64,7 +64,7 @@ export class ChoiceListEditor extends NewBaseEditor {
     if (this._hasDropdownCondition) {
       try {
         const dropdownConditionFilter = this._buildDropdownConditionFilter();
-        acItems = acItems.filter((item) => dropdownConditionFilter(item));
+        acItems = acItems.filter(item => dropdownConditionFilter(item));
       } catch (e) {
         acItems = [];
         this._dropdownConditionError = e.message;
@@ -77,7 +77,7 @@ export class ChoiceListEditor extends NewBaseEditor {
       buildNoItemsMessage: this._buildNoItemsMessage.bind(this),
       search: async (term: string) => this._maybeShowAddNew(acIndex.search(term), term),
       renderItem: (item, highlightFunc) => this._renderACItem(item, highlightFunc),
-      getItemText: (item) => item.label,
+      getItemText: item => item.label,
     };
 
     this.commandGroup = this.autoDispose(createGroup(options.commands, null, true));
@@ -281,7 +281,7 @@ export class ChoiceListEditor extends NewBaseEditor {
     }
 
     const addNewItem = new ChoiceItem(trimmedText, false, false, true);
-    if (result.items.find((item) => item.cleanText === addNewItem.cleanText)) {
+    if (result.items.find(item => item.cleanText === addNewItem.cleanText)) {
       return result;
     }
 

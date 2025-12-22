@@ -14,7 +14,7 @@ function setupTest() {
     cssTrigger('Click and Expire', hoverTooltip(() => "Tooltip2", {openOnClick: true, timeoutMs: 1000}),
       testId('fancy'),
     ),
-    cssTrigger('Closable', hoverTooltip((ctl) => cssTip("Tooltip3", tooltipCloseButton(ctl))),
+    cssTrigger('Closable', hoverTooltip(ctl => cssTip("Tooltip3", tooltipCloseButton(ctl))),
       testId('closable'),
     ),
     cssRow(
@@ -47,7 +47,7 @@ function setupTest() {
       testId('close-on-click'),
     ),
     cssTrigger('Info tooltip',
-      el => {
+      (el) => {
         return descriptionInfoTooltip(
           'Multi line text\nAnd a https://link.to/page.html?with=filter in it'
         , 'prefix');

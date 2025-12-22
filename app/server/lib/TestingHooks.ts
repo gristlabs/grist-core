@@ -27,7 +27,7 @@ export function startTestingHooks(socketPath: string, port: number,
     const server = net.createServer();
     server.on('error', reject);
     server.on('listening', () => resolve(server));
-    server.on('connection', socket => {
+    server.on('connection', (socket) => {
       // On connection, create an Rpc object communicating over that socket.
       const rpc = connectToSocket(new Rpc({logger: {}}), socket);
       // Register the testing implementation.

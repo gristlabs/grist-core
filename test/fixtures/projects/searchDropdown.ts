@@ -20,7 +20,7 @@ function setupTest() {
 
   const addDropdown = () => dropdownWithSearch<string>({
     options: () => options,
-    action: (val) => logElem.appendChild(cssLogEntry(`click: ${val}`, testId('logs'))),
+    action: val => logElem.appendChild(cssLogEntry(`click: ${val}`, testId('logs'))),
   });
 
   const resetBtn = () => dom('button', dom.on('click', () => {

@@ -12,7 +12,7 @@ function assertResetSingleCall(spy: sinon.SinonSpy, context: any, ...args: any[]
 
 describe("RefCountMap", function() {
   it("should dispose items when ref-count returns to 0", function() {
-    const create = sinon.stub().callsFake((key) => key.toUpperCase());
+    const create = sinon.stub().callsFake(key => key.toUpperCase());
     const dispose = sinon.spy();
     const m = new RefCountMap<string, string>({create, dispose, gracePeriodMs: 0});
 
@@ -46,7 +46,7 @@ describe("RefCountMap", function() {
   });
 
   it("should respect the grace period", async function() {
-    const create = sinon.stub().callsFake((key) => key.toUpperCase());
+    const create = sinon.stub().callsFake(key => key.toUpperCase());
     const dispose = sinon.spy();
     const m = new RefCountMap<string, string>({create, dispose, gracePeriodMs: 60});
 
@@ -86,7 +86,7 @@ describe("RefCountMap", function() {
   });
 
   it("should dispose immediately on clear", async function() {
-    const create = sinon.stub().callsFake((key) => key.toUpperCase());
+    const create = sinon.stub().callsFake(key => key.toUpperCase());
     const dispose = sinon.spy();
     const m = new RefCountMap<string, string>({create, dispose, gracePeriodMs: 0});
     const subFoo1 = m.use("foo");
@@ -110,7 +110,7 @@ describe("RefCountMap", function() {
   });
 
   it("should be safe to purge a key", async function() {
-    const create = sinon.stub().callsFake((key) => key.toUpperCase());
+    const create = sinon.stub().callsFake(key => key.toUpperCase());
     const dispose = sinon.spy();
     const m = new RefCountMap<string, string>({create, dispose, gracePeriodMs: 0});
     const subFoo1 = m.use("foo");
@@ -147,7 +147,7 @@ describe("RefCountMap", function() {
   });
 
   it("should not dispose a re-created key on timeout after purge", async function() {
-    const create = sinon.stub().callsFake((key) => key.toUpperCase());
+    const create = sinon.stub().callsFake(key => key.toUpperCase());
     const dispose = sinon.spy();
     const m = new RefCountMap<string, string>({create, dispose, gracePeriodMs: 60});
 

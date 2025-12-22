@@ -88,7 +88,7 @@ function showEventProperties(
     properties
   )) {
     const name = prefix + key + (optional ? " *(optional)*" : "");
-    const types = (Array.isArray(type) ? type : [type]).map((t) => `\`${t}\``);
+    const types = (Array.isArray(type) ? type : [type]).map(t => `\`${t}\``);
     console.log(`| ${name} | ${types.join(" or ")} | ${description} |`);
     if ("properties" in rest) {
       showEventProperties(rest.properties, `${prefix + key}.`);

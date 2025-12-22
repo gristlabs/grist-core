@@ -34,7 +34,7 @@ const markedAsync = new AsyncCreate<Marked>(async () => {
   const highlight = await buildCodeHighlighter({ maxLines: 60 });
   return new Marked(
     markedHighlight({
-      highlight: (code) => highlight(code),
+      highlight: code => highlight(code),
     }),
     markedLinkifyIt()
   );
@@ -54,7 +54,7 @@ function domAsyncOrDirect(
 ) {
   return markedResolved ?
     render(markedResolved) :
-    domAsync(markedAsync.get().then(markedObj => {
+    domAsync(markedAsync.get().then((markedObj) => {
       options.onMarkedResolved?.();
       markedResolved = markedObj;
       return render(markedResolved);

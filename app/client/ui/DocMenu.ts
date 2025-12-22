@@ -58,7 +58,7 @@ export function createDocMenu(home: HomeModel): DomElementArg[] {
         css.docListContent(
           css.docMenu(
             dom.domComputed<[IHomePage, Workspace | undefined]>(
-              (use) => [use(home.currentPage), use(home.currentWS)],
+              use => [use(home.currentPage), use(home.currentWS)],
               ([page, workspace]): Exclude<DomContents, void> => {
                 switch (page) {
                   case "all": {
@@ -131,7 +131,7 @@ function buildTemplatesPage(home: HomeModel) {
   const viewSettings = makeLocalViewSettings(home, "templates");
   return [
     dom.maybe(
-      (use) => use(home.featuredTemplates).length > 0,
+      use => use(home.featuredTemplates).length > 0,
       () => [
         css.featuredTemplatesHeader(
           css.featuredTemplatesIcon("Idea"),
@@ -145,8 +145,8 @@ function buildTemplatesPage(home: HomeModel) {
       css.docListHeaderWrap(
         css.listHeader(
           dom.domComputed(
-            (use) => use(home.featuredTemplates).length > 0,
-            (hasFeaturedTemplates) =>
+            use => use(home.featuredTemplates).length > 0,
+            hasFeaturedTemplates =>
               hasFeaturedTemplates
                 ? t("More Examples and Templates")
                 : t("Examples and Templates")
@@ -178,7 +178,7 @@ function buildTrashPage(home: HomeModel) {
         )
       ),
       dom.maybe(
-        (use) => use(home.trashWorkspaces).length === 0,
+        use => use(home.trashWorkspaces).length === 0,
         () => css.docBlock(t("Trash is empty."))
       ),
       buildAllDocsBlock(home, home.trashWorkspaces, viewSettings)
@@ -213,7 +213,7 @@ function buildAllDocsBlock(
           urlState().setLinkUrl({ws: ws.id})
         ),
 
-        dom.hide((use) => Boolean(getWorkspaceInfo(home.app, ws).isDefault &&
+        dom.hide(use => Boolean(getWorkspaceInfo(home.app, ws).isDefault &&
           use(home.singleWorkspace))),
 
         testId('ws-header'),
@@ -234,7 +234,7 @@ function buildAllDocsBlock(
  * Used on the Examples & Templates below the featured templates.
  */
 function buildAllTemplates(home: HomeModel, templateWorkspaces: Observable<Workspace[]>, viewSettings: ViewSettings) {
-  return dom.forEach(templateWorkspaces, workspace => {
+  return dom.forEach(templateWorkspaces, (workspace) => {
     return css.templatesDocBlock(
       css.templateBlockHeader(
         css.wsLeft(
@@ -244,7 +244,7 @@ function buildAllTemplates(home: HomeModel, templateWorkspaces: Observable<Works
         testId('templates-header'),
       ),
       buildTemplateDocs(home, workspace.docs, viewSettings),
-      css.docBlock.cls((use) => '-' + use(viewSettings.currentView)),
+      css.docBlock.cls(use => '-' + use(viewSettings.currentView)),
       testId('templates'),
     );
   });
@@ -288,9 +288,9 @@ function buildWorkspaceDocBlock(
     let docs = workspace.docs;
     if (sort === 'date') {
       // Note that timestamps are ISO strings, which can be sorted without conversions.
-      docs = sortBy(docs, (doc) => doc.removedAt || doc.updatedAt).reverse();
+      docs = sortBy(docs, doc => doc.removedAt || doc.updatedAt).reverse();
     }
-    return dom.forEach(docs, doc => {
+    return dom.forEach(docs, (doc) => {
       if (view === 'icons') {
         return dom.update(
           buildPinnedDoc(home, doc, workspace),
@@ -334,9 +334,9 @@ function buildWorkspaceDocBlock(
   const {currentSort, currentView} = viewSettings;
   return [
     dom.domComputed(
-      (use) => ({sort: use(currentSort), view: use(currentView)}),
-      (opts) => renderDocs(opts.sort, opts.view)),
-    css.docBlock.cls((use) => '-' + use(currentView)),
+      use => ({sort: use(currentSort), view: use(currentView)}),
+      opts => renderDocs(opts.sort, opts.view)),
+    css.docBlock.cls(use => '-' + use(currentView)),
   ];
 }
 

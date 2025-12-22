@@ -110,7 +110,7 @@ export function docBreadcrumbs(
     const shouldShowWorkspace = !(options.isTemplate && options.isAnonymous);
     return cssBreadcrumbs(
       !shouldShowWorkspace ? null : dom.domComputed<[boolean, PartialWorkspace|null]>(
-        (use) => [use(options.isBareFork), use(workspace)],
+        use => [use(options.isBareFork), use(workspace)],
         ([isBareFork, ws]) => {
           if (isBareFork || !ws) { return null; }
           return [

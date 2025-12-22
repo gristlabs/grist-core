@@ -14,7 +14,7 @@ import {Sort} from 'app/common/SortSpec';
 // of entry value. Result will be a string padded with zeros, so the ordering
 // between types is preserved.
 export function choiceGetter(getter: ColumnGetter, choices: string[]): ColumnGetter {
-  return rowId => {
+  return (rowId) => {
     const value = getter(rowId);
     const index = choices.indexOf(value);
     return index >= 0 ? String(index).padStart(5, "0") : value;
@@ -112,7 +112,7 @@ export class SortFunc {
 
   public updateSpec(sortSpec: Sort.SortSpec): void {
     // Prepare an array of column getters for each column in sortSpec.
-    this._colGetters = sortSpec.map(colSpec => {
+    this._colGetters = sortSpec.map((colSpec) => {
       return this._getters.getColGetter(colSpec);
     }).filter(getter => getter) as ColumnGetter[];
 
@@ -120,7 +120,7 @@ export class SortFunc {
     this._directions = sortSpec.map(colSpec => Sort.direction(colSpec));
 
     // Collect comparator functions
-    this._comparators = sortSpec.map(colSpec => {
+    this._comparators = sortSpec.map((colSpec) => {
       const details = Sort.specToDetails(colSpec);
       let comparator = typedCompare;
       if (details.naturalSort) {

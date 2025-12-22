@@ -95,12 +95,12 @@ export function colorSelect(value: Observable<string>, save: (val: string) => Pr
     // by the server.
     cssColorPicker(
       {type: 'color'},
-      dom.attr('value', (use) => use(value).slice(0, 7)),
+      dom.attr('value', use => use(value).slice(0, 7)),
       dom.on('input', setValue),
       dom.on('change', onSave)
     ),
-    dom.style('background-color', (use) => use(value) || '#000000'),
-    cssColorBtn.cls('-dark', (use) => isColorDark(use(value) || '#000000')),
+    dom.style('background-color', use => use(value) || '#000000'),
+    cssColorBtn.cls('-dark', use => isColorDark(use(value) || '#000000')),
     cssColorIcon('Dots'),
     ...domArgs
   );
@@ -121,7 +121,7 @@ export function makeButtonSelect<T>(
       return cssSelectorBtn(
         tooltip ? hoverTooltip(tooltip) : null,
         screenReaderLabel ? {"aria-label": screenReaderLabel} : null,
-        cssSelectorBtn.cls('-selected', (use) => use(obs) === value),
+        cssSelectorBtn.cls('-selected', use => use(obs) === value),
         dom.on('click', () => onClick(value)),
         isFullOption(option) && option.icon ? icon(option.icon) : null,
         label ? cssSelectorLabel(label) : null,

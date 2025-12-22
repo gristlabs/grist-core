@@ -95,7 +95,7 @@ function setupTest() {
       'TokenField with plain input',
       elem => tokenFieldPlain.attach(elem),
       cssValue(
-        dom.text((use) => JSON.stringify(
+        dom.text(use => JSON.stringify(
           (use(tokenFieldPlain.tokensObs) as Item[])
           .map((t: Item) => t.value())
         )),
@@ -107,7 +107,7 @@ function setupTest() {
       'TokenField with autocomplete',
       elem => tokenFieldAC.attach(elem),
       cssValue(
-        dom.text((use) => JSON.stringify(
+        dom.text(use => JSON.stringify(
           (use(tokenFieldAC.tokensObs) as Item[])
           .map((t: Item) => t.value())
         )),

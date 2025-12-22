@@ -43,7 +43,7 @@ export class AccountWidget extends Disposable {
 
   public buildDom() {
     return cssAccountWidget(
-      dom.domComputed(use => {
+      dom.domComputed((use) => {
         const isTemplate = Boolean(this._docPageModel && use(this._docPageModel.isTemplate));
         const user = this._appModel.currentValidUser;
         if (!user && isTemplate) {
@@ -70,7 +70,7 @@ export class AccountWidget extends Disposable {
       cssSigninButton(t('Sign in'),
         cssSigninButton.cls('-secondary'),
         dom.on('click', () => { this._docPageModel?.clearUnsavedChanges(); }),
-        dom.attr('href', use => {
+        dom.attr('href', (use) => {
           // Keep the redirect param of the login URL fresh.
           use(urlState().state);
           return getLoginUrl();
@@ -79,7 +79,7 @@ export class AccountWidget extends Disposable {
       ),
       cssSigninButton(t('Sign up'),
         dom.on('click', () => { this._docPageModel?.clearUnsavedChanges(); }),
-        dom.attr('href', use => {
+        dom.attr('href', (use) => {
           // Keep the redirect param of the signup URL fresh.
           use(urlState().state);
           return getSignupUrl();
@@ -91,7 +91,7 @@ export class AccountWidget extends Disposable {
 
   private _buildUseThisTemplateButton() {
     return cssUseThisTemplateButton(t('Use This Template'),
-      dom.attr('href', use => {
+      dom.attr('href', (use) => {
         const {doc: srcDocId} = use(urlState().state);
         return getLoginOrSignupUrl({srcDocId});
       }),
@@ -170,7 +170,7 @@ export class AccountWidget extends Disposable {
       // org-listing UI below.
       this._appModel.topAppModel.isSingleOrg || !isFeatureEnabled("multiAccounts") ? [] : [
         menuDivider(),
-        menuSubHeader(dom.text((use) => use(users).length > 1 ? t("Switch Accounts") : t("Accounts"))),
+        menuSubHeader(dom.text(use => use(users).length > 1 ? t("Switch Accounts") : t("Accounts"))),
         dom.forEach(users, (_user) => {
           if (_user.id === user.id) { return null; }
           return menuItem(() => this._switchAccount(_user),

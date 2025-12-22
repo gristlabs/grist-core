@@ -270,7 +270,7 @@ function _buildVariations(dateFormat: string, date: string) {
 
   // Consider some alternatives to the preferred format.
   const variations = new Set<string>([format]);
-  const otherYear = format.replace(/Y{2,4}/, (m) => (m === 'YY' ? 'YYYY' : (m === 'YYYY' ? 'YY' : m)));
+  const otherYear = format.replace(/Y{2,4}/, m => (m === 'YY' ? 'YYYY' : (m === 'YYYY' ? 'YY' : m)));
   variations.add(otherYear);
   variations.add(format.replace(/MMM+/, 'M'));
   if (otherYear !== format) {

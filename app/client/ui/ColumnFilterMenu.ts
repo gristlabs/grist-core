@@ -76,7 +76,7 @@ export type IColumnFilterViewType = 'listView'|'calendarView';
 export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptions): HTMLElement {
   const { model, doCancel, doSave, onClose, renderValue, valueParser, showAllFiltersButton } = opts;
   const { columnFilter, filterInfo, gristDoc } = model;
-  const valueFormatter = opts.valueFormatter || ((val) => val?.toString() || '');
+  const valueFormatter = opts.valueFormatter || (val => val?.toString() || '');
 
   // Map to keep track of displayed checkboxes
   const checkboxMap: Map<CellValue, HTMLInputElement> = new Map();
@@ -84,7 +84,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
   // Listen for changes to filterFunc, and update checkboxes accordingly. Debounce is needed to
   // prevent some weirdness when users click on a checkbox while focus was on a range input (causing
   // sometimes the checkbox to not toggle)
-  const filterListener = columnFilter.filterFunc.addListener(debounce(func => {
+  const filterListener = columnFilter.filterFunc.addListener(debounce((func) => {
     for (const [value, elem] of checkboxMap) {
       elem.checked = func(value);
     }
@@ -92,18 +92,18 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
 
   const {searchValue: searchValueObs, filteredValues, filteredKeys, isSortedByCount} = model;
 
-  const isAboveLimitObs = Computed.create(owner, (use) => use(model.valuesBeyondLimit).length > 0);
-  const isSearchingObs = Computed.create(owner, (use) => Boolean(use(searchValueObs)));
+  const isAboveLimitObs = Computed.create(owner, use => use(model.valuesBeyondLimit).length > 0);
+  const isSearchingObs = Computed.create(owner, use => Boolean(use(searchValueObs)));
   const showRangeFilter = isNumberType(columnFilter.columnType) || isDateLikeType(columnFilter.columnType);
   const isDateFilter = isDateLikeType(columnFilter.columnType);
   const selectedBoundObs = Observable.create<'min'|'max'|null>(owner, null);
   const viewTypeObs = Computed.create<IColumnFilterViewType>(owner, (
-    (use) => isDateFilter && use(selectedBoundObs) ? 'calendarView' : 'listView'
+    use => isDateFilter && use(selectedBoundObs) ? 'calendarView' : 'listView'
   ));
-  const isMinSelected = Computed.create<boolean>(owner, (use) => use(selectedBoundObs) === 'min')
-    .onWrite((val) => val ? selectedBoundObs.set('min') : selectedBoundObs.set('max'));
-  const isMaxSelected = Computed.create<boolean>(owner, (use) => use(selectedBoundObs) === 'max')
-    .onWrite((val) => val ? selectedBoundObs.set('max') : selectedBoundObs.set('min'));
+  const isMinSelected = Computed.create<boolean>(owner, use => use(selectedBoundObs) === 'min')
+    .onWrite(val => val ? selectedBoundObs.set('min') : selectedBoundObs.set('max'));
+  const isMaxSelected = Computed.create<boolean>(owner, use => use(selectedBoundObs) === 'max')
+    .onWrite(val => val ? selectedBoundObs.set('max') : selectedBoundObs.set('min'));
 
   let searchInput: HTMLInputElement;
   let cancel = false;
@@ -113,7 +113,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
     testId('wrapper'),
 
     // Makes sure focus goes back to menu container and disable grist keyboard shortcut while open.
-    elem => {
+    (elem) => {
       FocusLayer.create(owner, {defaultFocusElem: elem, pauseMousetrap: true});
 
       // Gives focus to the searchInput on open (or to the min input if the range filter is
@@ -154,7 +154,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             nextSelected: () => selectedBoundObs.set('max'),
           },
           testId('min'),
-          dom.onKeyDown({Tab: (e) => e.shiftKey || selectedBoundObs.set('max')}),
+          dom.onKeyDown({Tab: e => e.shiftKey || selectedBoundObs.set('max')}),
         ),
         rangeInput(
           columnFilter.max, {
@@ -166,7 +166,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             viewTypeObs,
           },
           testId('max'),
-          dom.onKeyDown({Tab: (e) => e.shiftKey ? selectedBoundObs.set('min') : selectedBoundObs.set('max')}),
+          dom.onKeyDown({Tab: e => e.shiftKey ? selectedBoundObs.set('min') : selectedBoundObs.set('max')}),
         ),
       ),
 
@@ -193,7 +193,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             cssLink(
               'More ', icon('Dropdown'),
               menu(() => getDateRangeOptions().map(
-                (option) => menuItem(() => action(option), option.label)
+                option => menuItem(() => action(option), option.label)
               ), {attach: '.' + cssMenu.className})
             ),
           ),
@@ -297,7 +297,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
       cssItemList(
         testId('list'),
         dom.maybe(use => use(filteredValues).length === 0, () => cssNoResults(t("No matching values"))),
-        dom.domComputed(filteredValues, (values) => values.slice(0, model.limitShown).map(([key, value]) => (
+        dom.domComputed(filteredValues, values => values.slice(0, model.limitShown).map(([key, value]) => (
           cssMenuItem(
             cssLabel(
               cssCheckboxSquare(
@@ -430,9 +430,9 @@ function rangeInput(obs: Observable<number|undefined|IRelativeDateSpec>, opts: I
     ]),
 
     cssRangeInputContainer.cls('-relative', use => isRelativeBound(use(obs))),
-    dom.cls('selected', (use) => use(opts.viewTypeObs) === 'calendarView' && use(opts.isSelected)),
+    dom.cls('selected', use => use(opts.viewTypeObs) === 'calendarView' && use(opts.isSelected)),
     dom.on('click', () => opts.isSelected.set(true)),
-    (elem) => opts.isDateFilter ? attachRelativeDatesOptions(elem, obs, opts) : null,
+    elem => opts.isDateFilter ? attachRelativeDatesOptions(elem, obs, opts) : null,
     dom.onKeyDown({
       Backspace$: () => isRelativeBound(obs.get()) && obs.set(undefined),
     }),
@@ -532,10 +532,10 @@ function relativeToken(obs: Observable<number|undefined|IRelativeDateSpec>,
                        opts: IRangeInputOptions) {
   return cssTokenContainer(
     cssTokenToken(
-      dom.text((use) => formatRelBounds(use(obs) as IRelativeDateSpec)),
+      dom.text(use => formatRelBounds(use(obs) as IRelativeDateSpec)),
       cssDeleteButton(
         // Ignore mousedown events, so that tokens aren't draggable by the delete button.
-        dom.on('mousedown', (ev) => ev.stopPropagation()),
+        dom.on('mousedown', ev => ev.stopPropagation()),
         cssDeleteIcon('CrossSmall'),
         dom.on('click', () => obs.set(undefined)),
         testId('tokenfield-delete'),
@@ -568,7 +568,7 @@ function buildSummary(label: string|Computed<string>, values: Array<[CellValue, 
     (_use, isInclusionFilter) => {
 
       // let's gather all sub options.
-      const subOptions = values.map((val) => ({getState: () => columnFilter.includes(val[0])}));
+      const subOptions = values.map(val => ({getState: () => columnFilter.includes(val[0])}));
       if (switchFilterType) {
         subOptions.push({getState: () => !isInclusionFilter});
       }
@@ -580,7 +580,7 @@ function buildSummary(label: string|Computed<string>, values: Array<[CellValue, 
       // different, then state should be `Indeterminate`, otherwise, the state will the the same as
       // the one of the first sub option.
       const first = subOptions[0].getState();
-      if (some(tail(subOptions), (val) => val.getState() !== first)) { return Indeterminate; }
+      if (some(tail(subOptions), val => val.getState() !== first)) { return Indeterminate; }
       return first;
 
     }).onWrite((val) => {
@@ -591,8 +591,8 @@ function buildSummary(label: string|Computed<string>, values: Array<[CellValue, 
         // between exclusive and inclusive. Doing this will automatically excludes/includes all
         // other values, so no need for extra steps.
         const state = val ?
-          {excluded: model.filteredKeys.get().filter((key) => !columnFilter.includes(key))} :
-          {included: model.filteredKeys.get().filter((key) => columnFilter.includes(key))};
+          {excluded: model.filteredKeys.get().filter(key => !columnFilter.includes(key))} :
+          {included: model.filteredKeys.get().filter(key => columnFilter.includes(key))};
         columnFilter.setState(state);
 
       } else {
@@ -641,7 +641,7 @@ function getEmptyCountMap(fieldOrColumn: ViewFieldRec|ColumnRec): Map<CellValue,
     const options = fieldOrColumn.origCol().widgetOptionsJson;
     values = options.prop('choices')() ?? [];
   }
-  return new Map(values.map((v) => [v, {label: String(v), count: 0, displayValue: v}]));
+  return new Map(values.map(v => [v, {label: String(v), count: 0, displayValue: v}]));
 }
 
 export interface IColumnFilterMenuOptions {
@@ -714,7 +714,7 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
 
   const valueCountsArr = Array.from(valueCounts);
   const columnFilter = ColumnFilter.create(openCtl, filter.peek(), columnType, visibleColumnType,
-                                           valueCountsArr.map((arr) => arr[0]));
+                                           valueCountsArr.map(arr => arr[0]));
   sectionFilter.setFilterOverride(fieldOrColumn.origCol().getRowId(), columnFilter); // Will be removed on menu disposal
   const model = ColumnFilterMenuModel.create(openCtl, {
     columnFilter,

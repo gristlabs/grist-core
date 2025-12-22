@@ -22,7 +22,7 @@ export async function main() {
 }
 
 if (require.main === module) {
-  main().catch(e => {
+  main().catch((e) => {
     console.error(e);
   });
 }

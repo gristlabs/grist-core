@@ -90,8 +90,8 @@ export class AttachmentsEditor extends NewBaseEditor {
         fileType,
         filename,
         hasPreview: Boolean(this._attachmentsTable.getValue(val, 'imageHeight')),
-        url: computed((use) => this._getUrl(cell, val, use(filename))),
-        inlineUrl: computed((use) => this._getUrl(cell, val, use(filename), true))
+        url: computed(use => this._getUrl(cell, val, use(filename))),
+        inlineUrl: computed(use => this._getUrl(cell, val, use(filename), true))
       };
     });
     this._index = makeLiveIndex(this, this._attachments, initRowIndex);
@@ -112,8 +112,8 @@ export class AttachmentsEditor extends NewBaseEditor {
         dom.onKeyDown({
           Enter: (ev) => { ctl.close(); this.options.commands.fieldEditSaveHere(); },
           Escape: (ev) => { ctl.close(); this.options.commands.fieldEditCancel(); },
-          ArrowLeft$: (ev) => !isInEditor(ev) && this._moveIndex(-1),
-          ArrowRight$: (ev) => !isInEditor(ev) && this._moveIndex(1),
+          ArrowLeft$: ev => !isInEditor(ev) && this._moveIndex(-1),
+          ArrowRight$: ev => !isInEditor(ev) && this._moveIndex(1),
         }),
         // Close if clicking into the background. (The default modal's behavior for this isn't
         // triggered because our content covers the whole screen.)
@@ -140,7 +140,7 @@ export class AttachmentsEditor extends NewBaseEditor {
     return [
       cssHeader(
         cssFlexExpand(
-          dom.text(use => {
+          dom.text((use) => {
             const len = use(this._attachments).length;
             return len ? t('{{index}} of {{total}}', {index: (use(this._index) || 0) + 1, total: len}) : '';
           }),
@@ -156,7 +156,7 @@ export class AttachmentsEditor extends NewBaseEditor {
         dom.maybe(this._selected, selected =>
           cssTitle(
             cssEditableLabel(selected.filename, {
-              save: (val) => this._renameAttachment(selected, val),
+              save: val => this._renameAttachment(selected, val),
               inputArgs: [testId('pw-name')],
             }),
           )
@@ -329,9 +329,9 @@ function dragOverClass(target: HTMLElement, className: string): void {
     ev.preventDefault();
     target.classList.toggle(className, onOff);
   }
-  dom.onElem(target, 'dragenter', (ev) => toggle(ev, true));
-  dom.onElem(target, 'dragleave', (ev) => (ev.target === enterTarget) && toggle(ev, false));
-  dom.onElem(target, 'drop', (ev) => toggle(ev, false));
+  dom.onElem(target, 'dragenter', ev => toggle(ev, true));
+  dom.onElem(target, 'dragleave', ev => (ev.target === enterTarget) && toggle(ev, false));
+  dom.onElem(target, 'drop', ev => toggle(ev, false));
 }
 
 const cssFullScreenModal = styled('div', `

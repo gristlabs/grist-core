@@ -70,7 +70,7 @@ function getIconFromName(name: string) {
   const parts = name.trim().split(/\s+/);
   return parts
     .slice(0, 2)
-    .map((w) => [...w][0])
+    .map(w => [...w][0])
     .join("")
     // https://www.regular-expressions.info/unicode.html
     .replace(/[^\p{L}\p{Nd}]$/u, '')

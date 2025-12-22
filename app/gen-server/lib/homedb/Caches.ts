@@ -25,14 +25,14 @@ export class HomeDBCaches {
     this._docAccessCache = new PubSubCache<string, QueryResult<PermissionData>>({
       pubSubManager,
       fetch: this._getDocAccess.bind(this),
-      getChannel: (docId) => `docAccessCache:${docId}`,
+      getChannel: docId => `docAccessCache:${docId}`,
       ttlMs: Deps.DocAccessCacheTTL,
     });
 
     this._docPrefsCache = new PubSubCache<string, Map<number|null, DocPrefs>>({
       pubSubManager,
-      fetch: (docId) => this._homeDb.getDocPrefsForUsers(docId, 'any'),
-      getChannel: (docId) => `docPrefsCache:${docId}`,
+      fetch: docId => this._homeDb.getDocPrefsForUsers(docId, 'any'),
+      getChannel: docId => `docPrefsCache:${docId}`,
       ttlMs: Deps.DocPrefsCacheTTL,
     });
   }

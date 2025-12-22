@@ -97,7 +97,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
     const section = gristDoc.docModel.viewSections.getRowModel(cursorPos.sectionId);
     const column = section.viewFields.peek().peek()[cursorPos.fieldIndex].column.peek();
     const rowId = Number(cursorPos.rowId);
-     const comments = Computed.create(null, use => {
+     const comments = Computed.create(null, (use) => {
       const fromColumn = use(use(column.cells).getObservable());
       const forRow = fromColumn.filter(d => use(d.rowId) === rowId && use(d.root) && !use(d.hidden));
       return forRow;
@@ -115,7 +115,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
   ) {
     super();
 
-    this.isEmpty = Computed.create(this, use => {
+    this.isEmpty = Computed.create(this, (use) => {
       const discussions = use(comments);
       const notResolved = discussions.filter(d => !use(d.resolved));
       const visible = notResolved.filter(d => !use(d.hidden));
@@ -232,7 +232,7 @@ export class CommentPopup extends Disposable {
       });
       return cssCommentPopup(
         testId('popup'),
-        dom.domComputed(this._props.cell.isEmpty, empty => {
+        dom.domComputed(this._props.cell.isEmpty, (empty) => {
           if (!empty) {
             return dom.create(SingleThread, {
               text: this._newText,
@@ -248,7 +248,7 @@ export class CommentPopup extends Disposable {
               text: this._newText,
               currentUserId: _props.gristDoc.currentUser.get()?.id ?? 0,
               closeClicked: _props.closeClicked,
-              onSave: (text) => this._onSave(text).catch(reportError),
+              onSave: text => this._onSave(text).catch(reportError),
             });
           }
         })
@@ -399,7 +399,7 @@ class SingleThread extends Disposable implements IDomComponent {
       use => use(props.cell.comments)
         .filter(ds => !use(ds.resolved) && !use(ds.hidden) && use(ds.root))
         .sort((a, b) => (use(a.timeCreated) ?? 0) - (use(b.timeCreated) ?? 0)));
-    this._commentsToRender = Computed.create(this, use => {
+    this._commentsToRender = Computed.create(this, (use) => {
       const sorted = use(this._comments).sort((a, b) => (use(a.timeCreated) ?? 0) - (use(b.timeCreated) ?? 0));
       const start = Math.max(0, sorted.length - COMMENTS_LIMIT);
       return sorted.slice(start);
@@ -436,7 +436,7 @@ class SingleThread extends Disposable implements IDomComponent {
       testId('topic-filled'),
       this._commentList = cssCommentList(
         testId('topic-comments'),
-        dom.forEach(this._commentsToRender, comment => {
+        dom.forEach(this._commentsToRender, (comment) => {
           return cssDiscussion(
             cssDiscussion.cls("-resolved", use => Boolean(use(comment.resolved))),
             dom.create(Comment, {
@@ -519,7 +519,7 @@ class MultiThreads extends Disposable implements IDomComponent {
     this._comments = Computed.create(this, use =>
       use(_props.cell.comments).filter(ds => !use(ds.hidden) && use(ds.root)));
 
-    this._commentsToRender = Computed.create(this, use => {
+    this._commentsToRender = Computed.create(this, (use) => {
       const sorted = use(this._comments).sort((a, b) => (use(a.timeCreated) ?? 0) - (use(b.timeCreated) ?? 0));
       const start = Math.max(0, sorted.length - COMMENTS_LIMIT);
       return sorted.slice(start);
@@ -540,7 +540,7 @@ class MultiThreads extends Disposable implements IDomComponent {
       testId('topic-filled'),
       cssCommentList(
         testId('topic-comments'),
-        dom.forEach(this._commentsToRender, comment => {
+        dom.forEach(this._commentsToRender, (comment) => {
           return cssDiscussionWrapper(
             cssDiscussion(
               cssDiscussion.cls("-resolved", use => Boolean(use(comment.resolved))),
@@ -619,7 +619,7 @@ class Comment extends Disposable {
         ? Boolean(use(this.props.parent.resolved))
         : Boolean(use(this.props.comment.resolved))
     );
-    this._showReplies = Computed.create(this, use => {
+    this._showReplies = Computed.create(this, (use) => {
       // We don't show replies if we are reply.
       if (this._isReply) {
         return false;
@@ -746,7 +746,7 @@ class Comment extends Disposable {
           this.props.panel &&
           !use(this.props.gristDoc.isReadonly) &&
           !use(comment.resolved),
-          () => dom.domComputed(use => {
+          () => dom.domComputed((use) => {
             if (!use(this.replying)) {
               return cssReplyButton(icon('Message'), t('Reply'),
                 testId('comment-reply-button'),
@@ -984,12 +984,12 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
     const owner = new MultiHolder();
 
     // Computed for all sections visible on the page.
-    const viewSections = Computed.create(owner, use => {
+    const viewSections = Computed.create(owner, (use) => {
       return use(use(this._grist.viewModel.viewSections).getObservable());
     });
 
     // Based on the view, we get all tables or only visible ones.
-    const tables = Computed.create(owner, use => {
+    const tables = Computed.create(owner, (use) => {
       // Filter out those tables that are not available by ACL.
       if (use(this._currentPageKo)) {
         return [...new Set(use(viewSections).map(vs => use(vs.table)).filter(tb => use(tb.tableId)))];
@@ -999,10 +999,10 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
     });
 
     // Column filter - only show discussions in this column (depending on the mode).
-    const columnFilter = Computed.create(owner, use => {
+    const columnFilter = Computed.create(owner, (use) => {
       if (use(this._currentPageKo)) {
         const fieldSet = new Set<number>();
-        use(viewSections).forEach(vs => {
+        use(viewSections).forEach((vs) => {
           use(use(vs.viewFields).getObservable()).forEach(vf => fieldSet.add(use(vf.colRef)));
         });
         return (ds: CellRec) => {
@@ -1034,7 +1034,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
       return null;
     }));
     sources.peek()?.forEach(source => watcher.subscribeTo(source));
-    owner.autoDispose(sources.subscribe(list => {
+    owner.autoDispose(sources.subscribe((list) => {
       bundleChanges(() => {
         watcher.clear();
         if (list) {
@@ -1048,7 +1048,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
 
     const rowFilter = watcher.rowFilter;
 
-    const discussionFilter = Computed.create(owner, use => {
+    const discussionFilter = Computed.create(owner, (use) => {
       const filterRow = use(rowFilter);
       const filterCol = use(columnFilter);
       const showAll = use(this._resolved);
@@ -1068,8 +1068,8 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
         && (showAll || !use(ds.resolved))
       ;
     });
-    const allDiscussions = Computed.create(owner, use => {
-      const list = flatMap(flatMap(use(tables).map(tb => {
+    const allDiscussions = Computed.create(owner, (use) => {
+      const list = flatMap(flatMap(use(tables).map((tb) => {
         const columns = use(use(tb.columns).getObservable());
         const dList = columns.map(col => use(use(col.cells).getObservable())
           .filter(c => use(c.root) && use(c.type) === CellInfoType.COMMENT));
@@ -1077,13 +1077,13 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
       })));
       return list;
     });
-    const discussions = Computed.create(owner, use => {
+    const discussions = Computed.create(owner, (use) => {
       const all = use(allDiscussions);
       const filter = use(discussionFilter);
       return all.filter(filter);
     });
     const topic = DiscussionModelImpl.create(owner, this._grist, discussions);
-    owner.autoDispose(discussions.addListener((d) => this._length.set(d.length)));
+    owner.autoDispose(discussions.addListener(d => this._length.set(d.length)));
     this._length.set(discussions.get().length);
     // Selector for page all whole document.
     return cssDiscussionPanel(

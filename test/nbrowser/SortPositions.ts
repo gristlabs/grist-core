@@ -19,7 +19,7 @@ describe('SortPositions', function() {
     const rowHeaderSecond = await driver.findContent('.gridview_data_row_num', new RegExp(`^${rowNumSecond}$`));
     const rowHeaderTo = await driver.findContent('.gridview_data_row_num', new RegExp(`^${rowNumTo}$`));
     await driver.sendKeys(Key.ESCAPE);    // Ensure there is no row selection to begin with.
-    await driver.withActions((actions) => actions
+    await driver.withActions(actions => actions
       .move({origin: rowHeaderFirst}).press()
       .move({origin: rowHeaderSecond}).release()
       .move({origin: rowHeaderFirst}).press()
@@ -116,7 +116,7 @@ describe('SortPositions', function() {
     const row2Header = await section.findContent('.gridview_data_row_num', /^2$/);
     const row3Header = await section.findContent('.gridview_data_row_num', /^3$/);
     await row2Header.click();
-    await driver.withActions((actions) => actions
+    await driver.withActions(actions => actions
       .move({origin: row2Header}).press()
       .move({origin: row3Header}).release()
     );

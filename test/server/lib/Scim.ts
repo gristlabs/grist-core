@@ -519,7 +519,7 @@ describe('Scim', () => {
         it('should return 403 for system users', async function () {
           const data = toSCIMUserWithoutId('whoever');
           await checkOperationOnTechUserDisallowed({
-            op: (id) => axios.put(scimUrl(`/Users/${id}`), data, chimpy),
+            op: id => axios.put(scimUrl(`/Users/${id}`), data, chimpy),
             opType: 'modification'
           });
         });
@@ -659,7 +659,7 @@ describe('Scim', () => {
 
         it('should return 403 for system users', async function () {
           await checkOperationOnTechUserDisallowed({
-            op: (id) => axios.delete(scimUrl(`/Users/${id}`), chimpy),
+            op: id => axios.delete(scimUrl(`/Users/${id}`), chimpy),
             opType: 'deletion'
           });
         });
@@ -691,7 +691,7 @@ describe('Scim', () => {
       }
 
       async function withGroupName<T>(groupName: string, cb: (groupName: string) => Promise<T>) {
-        return await withGroupNames([groupName], (groupNames) => cb(groupNames[0]));
+        return await withGroupNames([groupName], groupNames => cb(groupNames[0]));
       }
 
       function getUserMember(user: keyof UserConfigByName) {
@@ -1480,7 +1480,7 @@ describe('Scim', () => {
 
         describe('DELETE /Roles/{id}', function () {
           it('should return 501 Not implemented', async function () {
-            await withRole(async roleId => {
+            await withRole(async (roleId) => {
               const res = await axios.delete(scimUrl('/Roles/' + roleId), chimpy);
               assert.equal(res.status, 501);
             });

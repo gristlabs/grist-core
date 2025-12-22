@@ -36,9 +36,9 @@ export function buildCollapsedSectionDom(options: {
     testId(`collapsed-section-${sectionRowId}`),
     testId(`collapsed-section`),
     cssDragHandle(
-      dom.domComputed(typeComputed, (type) => icon(type)),
+      dom.domComputed(typeComputed, type => icon(type)),
       dom('div', {style: 'margin-right: 16px;'}),
-      dom.maybe((use) => use(use(vs.table).summarySourceTable), () => cssSigmaIcon('Pivot', testId('sigma'))),
+      dom.maybe(use => use(use(vs.table).summarySourceTable), () => cssSigmaIcon('Pivot', testId('sigma'))),
       dom('span.viewsection_title_font', testId('collapsed-section-title'),
         dom.text(vs.titleDef),
       ),
@@ -96,18 +96,18 @@ export function buildViewSectionDom(options: {
     dom.autoDispose(selectedBySectionTitle),
     !options.isResizing ? dom.autoDispose(isResizing) : null,
     cssViewLeaf.cls(''),
-    cssViewLeafInactive.cls('', (use) => !vs.isDisposed() && !use(vs.hasVisibleFocus)),
+    cssViewLeafInactive.cls('', use => !vs.isDisposed() && !use(vs.hasVisibleFocus)),
     dom.cls('active_section', vs.hasFocus),
-    dom.cls('active_section--no-focus', (use) => !vs.isDisposed() && use(vs.hasFocus) && !use(vs.hasRegionFocus)),
-    dom.cls('active_section--no-indicator', (use) => !focusable || (!vs.isDisposed() && !use(vs.hasVisibleFocus))),
-    dom.maybe<BaseView|null>((use) => use(vs.viewInstance), (viewInstance) => dom('div.viewsection_title.flexhbox',
+    dom.cls('active_section--no-focus', use => !vs.isDisposed() && use(vs.hasFocus) && !use(vs.hasRegionFocus)),
+    dom.cls('active_section--no-indicator', use => !focusable || (!vs.isDisposed() && !use(vs.hasVisibleFocus))),
+    dom.maybe<BaseView|null>(use => use(vs.viewInstance), viewInstance => dom('div.viewsection_title.flexhbox',
       cssDragIcon('DragDrop',
         dom.cls("viewsection_drag_indicator"),
         // Makes element grabbable only if grist is not readonly.
-        dom.cls('layout_grabbable', (use) => !use(gristDoc.isReadonlyKo)),
+        dom.cls('layout_grabbable', use => !use(gristDoc.isReadonlyKo)),
         !draggable ? dom.style("visibility", "hidden") : null
       ),
-      dom.maybe((use) => use(use(viewInstance.viewSection.table).summarySourceTable), () =>
+      dom.maybe(use => use(use(viewInstance.viewSection.table).summarySourceTable), () =>
         cssSigmaIcon('Pivot', testId('sigma'))),
       buildWidgetTitle(
         vs,
@@ -122,12 +122,12 @@ export function buildViewSectionDom(options: {
         )
     )),
     hideTitleControls === true ? null : dom.create(filterBar, gristDoc, vs),
-    dom.maybe<BaseView|null>(vs.viewInstance, (viewInstance) => [
+    dom.maybe<BaseView|null>(vs.viewInstance, viewInstance => [
       dom('div.view_data_pane_container.flexvbox',
         cssResizing.cls('', isResizing),
         dom.maybe(viewInstance.disableEditing, () =>
           dom('div.disable_viewpane.flexvbox',
-            dom.domComputed(selectedBySectionTitle, (title) => title
+            dom.domComputed(selectedBySectionTitle, title => title
               ? t(`No row selected in {{title}}`, {title})
               : t('No data')),
           )
@@ -135,7 +135,7 @@ export function buildViewSectionDom(options: {
         dom.maybe(viewInstance.isTruncated, () =>
           dom('div.viewsection_truncated', t('Not all data is shown'))
         ),
-        dom.cls((use) => 'viewsection_type_' + use(vs.parentKey)),
+        dom.cls(use => 'viewsection_type_' + use(vs.parentKey)),
         viewInstance.viewPane,
         maybeShowNewRecordExperiment(viewInstance)
       ),

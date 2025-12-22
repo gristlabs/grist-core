@@ -44,7 +44,7 @@ export class ConditionalStyle extends Disposable {
     private _disabled?: Observable<boolean>
   ) {
     super();
-    this._currentRecord = Computed.create(this, use => {
+    this._currentRecord = Computed.create(this, (use) => {
       if (!use(this._ruleOwner.hasRules)) {
         return;
       }
@@ -129,7 +129,7 @@ export class ConditionalStyle extends Disposable {
       // This will save both options.
       await this._ruleOwner.rulesStyles.save();
     };
-    const currentValue = Computed.create(owner, use => {
+    const currentValue = Computed.create(owner, (use) => {
       const record = use(this._currentRecord);
       if (!record) {
         return null;
@@ -137,10 +137,10 @@ export class ConditionalStyle extends Disposable {
       const value = record[use(column.colId)];
       return value ?? null;
     });
-    const hasError = Computed.create(owner, use => {
+    const hasError = Computed.create(owner, (use) => {
       return !isValidRuleValue(use(currentValue));
     });
-    const errorMessage = Computed.create(owner, use => {
+    const errorMessage = Computed.create(owner, (use) => {
       const value = use(currentValue);
       return (!use(hasError) ? '' :
         isRaisedException(value) ? t('Error in style rule') :
@@ -210,11 +210,11 @@ export class ConditionalStyle extends Disposable {
   }
 
   private _buildStyleOption<T extends keyof Style>(owner: Disposable, index: number, option: T) {
-    const obs = Computed.create(owner, use => {
+    const obs = Computed.create(owner, (use) => {
       const styles = use(this._ruleOwner.rulesStyles);
       return styles?.[index]?.[option];
     });
-    obs.onWrite(value => {
+    obs.onWrite((value) => {
       const list = Array.from(this._ruleOwner.rulesStyles.peek() ?? []);
       list[index] = list[index] ?? {};
       list[index][option] = value;

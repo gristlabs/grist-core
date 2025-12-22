@@ -44,7 +44,7 @@ export class SupportGristPage extends Disposable {
 
   public buildTelemetrySection() {
     return cssSection(
-      dom.domComputed(this._model.prefs, prefs => {
+      dom.domComputed(this._model.prefs, (prefs) => {
         if (prefs === null) {
           return cssSpinnerBox(loadingSpinner());
         }

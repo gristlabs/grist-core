@@ -170,9 +170,9 @@ function getRedisConnection(): IORedis|undefined {
   const conn = new IORedis(urlTxt, {
     maxRetriesPerRequest: null,
     // Back off faster and retry more slowly than the default, to avoid filling up logs needlessly.
-    retryStrategy: (times) => Math.min((times ** 2) * 50, 10000),
+    retryStrategy: times => Math.min((times ** 2) * 50, 10000),
   });
-  conn.on('error', (err) => log.error('GristJobs: Redis connection error:', String(err)));
+  conn.on('error', err => log.error('GristJobs: Redis connection error:', String(err)));
   log.info('Storing queues externally in Redis');
   return conn;
 }

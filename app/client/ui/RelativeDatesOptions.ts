@@ -50,7 +50,7 @@ const DEFAULT_OPTION_LIST: IRelativeDateSpec[] = [
 export function relativeDatesOptions(value: IRangeBoundType, valueFormatter: (val: any) => string
                                    ): Array<{label: string, spec: IRangeBoundType}> {
   return relativeDateOptionsSpec(value)
-    .map((spec) => ({spec, label: formatBoundOption(spec, valueFormatter)}));
+    .map(spec => ({spec, label: formatBoundOption(spec, valueFormatter)}));
 }
 
 // Returns a list of different relative date spec that all match passed in date value. If value is

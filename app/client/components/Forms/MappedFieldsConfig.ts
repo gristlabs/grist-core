@@ -49,11 +49,11 @@ export class MappedFieldsConfig extends Disposable {
       }));
     })));
 
-    const anyUnmappedSelected = Computed.create(this, use => {
+    const anyUnmappedSelected = Computed.create(this, (use) => {
       return use(unmappedColumns).some(c => use(c.selected));
     });
 
-    const anyMappedSelected = Computed.create(this, use => {
+    const anyMappedSelected = Computed.create(this, (use) => {
       return use(mappedColumns).some(c => use(c.selected));
     });
 
@@ -76,7 +76,7 @@ export class MappedFieldsConfig extends Disposable {
           ),
           selectAllLabel(
             dom.on('click', () => {
-              mappedColumns.get().forEach((col) => col.selected.set(true));
+              mappedColumns.get().forEach(col => col.selected.set(true));
             }),
             dom.show(/* any mapped columns */ use => use(mappedColumns).length > 0),
             {"aria-describedby": 'mapped-fields-label'},
@@ -97,7 +97,7 @@ export class MappedFieldsConfig extends Disposable {
             ),
             basicButton(
               t("Clear"),
-              dom.on('click', () => mappedColumns.get().forEach((col) => col.selected.set(false))),
+              dom.on('click', () => mappedColumns.get().forEach(col => col.selected.set(false))),
               testId('visible-clear')
             ),
             testId('visible-batch-buttons')
@@ -112,7 +112,7 @@ export class MappedFieldsConfig extends Disposable {
           ),
           selectAllLabel(
             dom.on('click', () => {
-              unmappedColumns.get().forEach((col) => col.selected.set(true));
+              unmappedColumns.get().forEach(col => col.selected.set(true));
             }),
             dom.show(/* any unmapped columns */ use => use(unmappedColumns).length > 0),
             {"aria-describedby": 'unmapped-fields-label'},
@@ -133,7 +133,7 @@ export class MappedFieldsConfig extends Disposable {
             ),
             basicButton(
               t("Clear"),
-              dom.on('click', () => unmappedColumns.get().forEach((col) => col.selected.set(false))),
+              dom.on('click', () => unmappedColumns.get().forEach(col => col.selected.set(false))),
               testId('hidden-clear')
             ),
             testId('visible-batch-buttons')
@@ -166,11 +166,11 @@ export class MappedFieldsConfig extends Disposable {
           dom.on('click', () => {
             allCommands.showColumns.run([column.colId.peek()]);
           }),
-          dom.attr('aria-label', (use) => t("Unmap {{label}}", {label: use(column.label)})),
+          dom.attr('aria-label', use => t("Unmap {{label}}", {label: use(column.label)})),
         ),
         cssSquareCheckbox(
           props.selected,
-          dom.attr('aria-label', (use) => t("Unmap {{label}} (batch mode)", {label: use(column.label)})),
+          dom.attr('aria-label', use => t("Unmap {{label}} (batch mode)", {label: use(column.label)})),
         ),
       ),
     );
@@ -189,14 +189,14 @@ export class MappedFieldsConfig extends Disposable {
         cssHideIconButton(
           icon('EyeHide'),
           testId('hide'),
-          dom.attr('aria-label', (use) => t("Hide {{label}}", {label: use(column.label)})),
+          dom.attr('aria-label', use => t("Hide {{label}}", {label: use(column.label)})),
           dom.on('click', () => {
             allCommands.hideFields.run([column.colId.peek()]);
           }),
         ),
         cssSquareCheckbox(
           props.selected,
-          dom.attr('aria-label', (use) => t("Hide {{label}} (batch mode)", {label: use(column.label)})),
+          dom.attr('aria-label', use => t("Hide {{label}} (batch mode)", {label: use(column.label)})),
         ),
       ),
     );

@@ -519,5 +519,5 @@ async function getMemberRole(memberElem: WebElement): Promise<string|null> {
 
 async function getACItems() {
   await driver.findWait('.test-acselect-dropdown .test-um-member-name', 2000);
-  return driver.findAll('.test-acselect-dropdown .test-um-member-name', (el) => el.getText()).then(l => l.sort());
+  return driver.findAll('.test-acselect-dropdown .test-um-member-name', el => el.getText()).then(l => l.sort());
 }

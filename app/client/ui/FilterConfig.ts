@@ -107,7 +107,7 @@ export class FilterConfig extends Disposable {
                 ...this._options.menuOptions,
               },
             }),
-            dom.on('click', (ev) => ev.stopPropagation()),
+            dom.on('click', ev => ev.stopPropagation()),
             dom.hide(u => !u(this._canAddFilter)),
             testId('add-filter-btn'),
           );

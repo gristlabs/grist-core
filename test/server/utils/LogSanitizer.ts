@@ -3,7 +3,7 @@ import {assert} from "chai";
 
 describe("LogSanitizer", () => {
 
-  it("should return neutral logs untouched", done => {
+  it("should return neutral logs untouched", (done) => {
     const exampleLog
       = 'DocTriggers: Webhook responded with non-200 status status=404, attempt=1, docId=8x9U6xe4hNz8WaJCzAjDBM,' +
       ' queueLength=8, drainingQueue=false, shuttingDown=false, sending=true, redisClient=true';
@@ -13,7 +13,7 @@ describe("LogSanitizer", () => {
     done();
   });
 
-  it("should not crashed when empty log was passed to sanitizer", done => {
+  it("should not crashed when empty log was passed to sanitizer", (done) => {
     const exampleLog = undefined;
     const sanitizer = new LogSanitizer();
     const sanitizedLog = sanitizer.sanitize(exampleLog);
@@ -24,7 +24,7 @@ describe("LogSanitizer", () => {
 
 
 
-  it("should sanitize redis webhooks rpush logs", done => {
+  it("should sanitize redis webhooks rpush logs", (done) => {
     const exampleLog = {
       command: "RPUSH",
       code: "NR_CLOSED",

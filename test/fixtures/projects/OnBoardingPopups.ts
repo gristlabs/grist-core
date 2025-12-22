@@ -72,9 +72,9 @@ function setupTest() {
     rightPane(
       dummyButton('Options', {style: 'margin-top: 40px'}, dom.cls('tour-options')),
     ),
-    dom.domComputed(logs, (logsArray) => (
+    dom.domComputed(logs, logsArray => (
       dom('div', {style: 'position: absolute; margin-top: 300px;'},
-          logsArray.map((msg) => dom('div', msg, testId('logs')))
+          logsArray.map(msg => dom('div', msg, testId('logs')))
          )
     )),
   ];

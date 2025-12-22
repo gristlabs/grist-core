@@ -57,13 +57,13 @@ class ColumnPicker extends Disposable {
   }
   public buildDom() {
     // Rewrite value to ignore old configuration when allowMultiple is switched.
-    const properValue = Computed.create(this, use => {
+    const properValue = Computed.create(this, (use) => {
       const value = use(this._value);
       return Array.isArray(value) ? null : value;
     });
     properValue.onWrite(value => this._value.set(value || null));
 
-    const canBeMapped = Computed.create(this, use => {
+    const canBeMapped = Computed.create(this, (use) => {
       return use(this._section.columns)
         .filter(col => this._column.canByMapped(use(col.pureType)));
     });
@@ -74,11 +74,11 @@ class ColumnPicker extends Disposable {
     // when list of options is changed.
     const refreshTrigger = Observable.create(this, false);
 
-    const options = Computed.create(this, use => {
+    const options = Computed.create(this, (use) => {
       void use(refreshTrigger);
 
       const columnsAsOptions: IOption<number|null>[] = use(canBeMapped)
-                                              .map((col) => ({
+                                              .map(col => ({
                                                 value: col.getRowId(),
                                                 label: col.label.peek(),
                                                 icon: 'FieldColumn',
@@ -97,7 +97,7 @@ class ColumnPicker extends Disposable {
       return columnsAsOptions;
     });
 
-    const isDisabled = Computed.create(this, use => {
+    const isDisabled = Computed.create(this, (use) => {
       return use(canBeMapped).length === 0;
     });
 
@@ -185,13 +185,13 @@ class ColumnListPicker extends Disposable {
 
     const owner = MultiHolder.create(null);
 
-    const notMapped = Computed.create(owner, use => {
+    const notMapped = Computed.create(owner, (use) => {
       const value = use(this._value) || [];
       const mapped = !Array.isArray(value) ? [] : value;
       return this._section.columns().filter(col => !mapped.includes(use(col.id)));
     });
 
-    const typedColumns = Computed.create(owner, use => {
+    const typedColumns = Computed.create(owner, (use) => {
       return use(notMapped).filter(this._typeFilter(use));
     });
 
@@ -206,7 +206,7 @@ class ColumnListPicker extends Disposable {
             const wrongTypeCount = notMapped.get().length - typedColumns.get().length;
             return [
               ...typedColumns.get()
-              .map((col) => menuItem(
+              .map(col => menuItem(
                 () => this._addColumn(col),
                 col.label.peek(),
               )),
@@ -339,7 +339,7 @@ class CustomSectionConfigurationConfig extends Disposable{
       ),
       dom.maybeOwned(use => use(this._section.columnsToMap), (owner, columns) => {
         const createObs = (column: ColumnToMapImpl) => {
-          const obs = Computed.create(owner, use => {
+          const obs = Computed.create(owner, (use) => {
             const savedDefinition = use(this._section.customDef.columnsMapping) || {};
             return savedDefinition[column.name];
           });
@@ -351,7 +351,7 @@ class CustomSectionConfigurationConfig extends Disposable{
           return obs;
         };
         // Create observables for all columns to pick.
-        const mappings = columns.map(c => new ColumnToMapImpl(c)).map((column) => ({
+        const mappings = columns.map(c => new ColumnToMapImpl(c)).map(column => ({
           value: createObs(column),
           column
         }));
@@ -401,7 +401,7 @@ export class CustomSectionConfig extends Disposable {
   protected _customSectionConfigurationConfig = new CustomSectionConfigurationConfig(
     this._section, this._gristDoc);
 
-  private readonly _widgetId = Computed.create(this, use => {
+  private readonly _widgetId = Computed.create(this, (use) => {
     // Stored in one of two places, depending on age of document.
     const widgetId = use(this._section.customDef.widgetId) ||
       use(this._section.customDef.widgetDef)?.widgetId;
@@ -419,14 +419,14 @@ export class CustomSectionConfig extends Disposable {
 
   private readonly _currentAccess = Computed.create(this, use =>
     (use(this._section.customDef.access) as AccessLevel) || AccessLevel.none)
-    .onWrite(async newAccess => {
+    .onWrite(async (newAccess) => {
       await this._section.customDef.access.setAndSave(newAccess);
     });
 
   private readonly _desiredAccess = fromKo(this._section.desiredAccessLevel);
 
   private readonly _url = Computed.create(this, use => use(this._section.customDef.url) || '')
-    .onWrite(async newUrl => {
+    .onWrite(async (newUrl) => {
       bundleChanges(() => {
         this._section.customDef.renderAfterReady(false);
         if (newUrl) {
@@ -439,7 +439,7 @@ export class CustomSectionConfig extends Disposable {
       await this._section.saveCustomDef();
     });
 
-  private readonly _requiresAccess = Computed.create(this, use => {
+  private readonly _requiresAccess = Computed.create(this, (use) => {
     const [currentAccess, desiredAccess] = [use(this._currentAccess), use(this._desiredAccess)];
     return desiredAccess && !isSatisfied(currentAccess, desiredAccess);
   });
@@ -448,7 +448,7 @@ export class CustomSectionConfig extends Disposable {
 
   private readonly _widgets: Observable<ICustomWidget[] | null> = Observable.create(this, null);
 
-  private readonly _selectedWidget = Computed.create(this, use => {
+  private readonly _selectedWidget = Computed.create(this, (use) => {
     const id = use(this._widgetId);
     if (id === CUSTOM_URL_WIDGET_ID) { return null; }
 
@@ -469,7 +469,7 @@ export class CustomSectionConfig extends Disposable {
     ));
 
     this._getWidgets()
-      .then(widgets => {
+      .then((widgets) => {
         if (this.isDisposed()) { return; }
 
         this._widgets.set(widgets);
@@ -534,7 +534,7 @@ export class CustomSectionConfig extends Disposable {
     // The widget name is a button that opens the widget gallery when clicked:
     // make sure that screen reader users understand that, with a visually hidden text.
     return cssWidgetName(
-      dom.domComputed(use => {
+      dom.domComputed((use) => {
         let visibleText = null;
         if (use(this._isCustomUrlWidget)) {
           visibleText = t('Custom URL');
@@ -555,7 +555,7 @@ export class CustomSectionConfig extends Disposable {
 
   private _maybeBuildWidgetDetails() {
     return dom.maybe(this._widgetDetailsExpanded, () =>
-      dom.domComputed(this._selectedWidget, (widget) =>
+      dom.domComputed(this._selectedWidget, widget =>
         cssRow(
           this._buildWidgetDetails(widget),
           {id: 'custom-widget-details'},
@@ -627,13 +627,13 @@ export class CustomSectionConfig extends Disposable {
       cssSeparator({style: 'margin-top: 0px'}),
       cssGroupLabel(t('ACCESS LEVEL')),
       cssRow(select(this._currentAccess, getAccessLevels()), testId('access')),
-      dom.maybeOwned(this._requiresAccess, (owner) => kf.prompt(
+      dom.maybeOwned(this._requiresAccess, owner => kf.prompt(
         (elem: HTMLDivElement) => { FocusLayer.create(owner, {defaultFocusElem: elem, pauseMousetrap: true}); },
         cssColumns(
           cssWarningWrapper(icon('Lock')),
           dom('div',
             cssConfirmRow(
-              dom.domComputed(this._desiredAccess, (level) => this._buildAccessLevelPrompt(level))
+              dom.domComputed(this._desiredAccess, level => this._buildAccessLevelPrompt(level))
             ),
             cssConfirmRow(
               primaryButton(

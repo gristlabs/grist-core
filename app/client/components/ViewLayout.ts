@@ -129,7 +129,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
 
     // When the layoutSpec changes by some means other than the layout editor, rebuild.
     // This includes adding/removing sections and undo/redo.
-    this.autoDispose(this.layoutSpec.subscribe((spec) => this._freeze || this.rebuildLayout(spec)));
+    this.autoDispose(this.layoutSpec.subscribe(spec => this._freeze || this.rebuildLayout(spec)));
 
     this.listenTo(this.layout, 'layoutUserEditStop', () => {
       this.isResizing.set(false);
@@ -179,7 +179,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     const classInactive = cssLayoutBox.className + '-inactive';
     this.autoDispose(subscribe(fromKo(this.viewModel.activeSection), (use, section) => {
       const id = section.getRowId();
-      this.layout.forEachBox(box => {
+      this.layout.forEachBox((box) => {
         box.dom!.classList.add(classInactive);
         box.dom!.classList.remove(classActive);
         box.dom!.classList.remove("transition");
@@ -288,7 +288,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
    */
   public getFullLayoutSpec() {
     const specs = this.layout.getLayoutSpec();
-    specs.collapsed = this.viewModel.activeCollapsedSections.peek().map((leaf)=> ({leaf}));
+    specs.collapsed = this.viewModel.activeCollapsedSections.peek().map(leaf=> ({leaf}));
     return specs;
   }
 
@@ -412,7 +412,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
 
   // Resizes the scrolly windows of all viewSection classes with a 'scrolly' property.
   private _onResize() {
-    this.viewModel.viewSections().all().forEach(vs => {
+    this.viewModel.viewSections().all().forEach((vs) => {
       const inst = vs.viewInstance.peek();
       if (inst) {
         inst.onResize();

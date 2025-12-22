@@ -129,7 +129,7 @@ export class VirtualTableData extends TableData {
   }): Promise<ProcessedAction[]> {
     const {isUndo, isUser, hasTableIds} = options;
     if (!hasTableIds) {
-      userActions.forEach((action) => action.splice(1, 0, this.tableId));
+      userActions.forEach(action => action.splice(1, 0, this.tableId));
     }
     const actions = await this.cache.sendTableActions(userActions);
     if (isUser) {
@@ -256,7 +256,7 @@ export class VirtualTableRegistration extends DisposableWithEvents {
  * if actions are more complex than simple create table/columns actions.
  */
 function generateDestroyActions(initialActions: DocAction[]): DocAction[] {
-  return initialActions.map(action => {
+  return initialActions.map((action) => {
     switch (action[0]) {
       case 'AddTable': return ['RemoveTable', action[1]];
       case 'AddColumn': return ['RemoveColumn', action[1]];

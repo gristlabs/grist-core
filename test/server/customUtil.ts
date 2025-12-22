@@ -38,7 +38,7 @@ export async function serveStatic(rootDir: string): Promise<Serving> {
 
 // Serve a string of html.
 export async function serveSinglePage(html: string): Promise<Serving> {
-  return serveSomething(app => {
+  return serveSomething((app) => {
     app.get('', (req, res) => res.send(html));
   });
 }

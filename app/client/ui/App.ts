@@ -118,13 +118,13 @@ export class AppImpl extends DisposableWithEvents implements App {
             )
           ),
           dom.forEach(commandList.groups, (group) => {
-            const cmds = group.commands.filter((cmd) => Boolean(cmd.desc && cmd.keys.length && !cmd.deprecated));
+            const cmds = group.commands.filter(cmd => Boolean(cmd.desc && cmd.keys.length && !cmd.deprecated));
             return cmds.length > 0 ?
               dom('tbody',
                 dom('tr',
                   dom('td', {colspan: '2'}, group.group)
                 ),
-                dom.forEach(cmds, (cmd) =>
+                dom.forEach(cmds, cmd =>
                   dom('tr',
                     dom('td', commands.allCommands[cmd.name].getKeysDom()),
                     dom('td', cmd.desc?.() ?? '')

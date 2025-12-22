@@ -16,13 +16,13 @@ export class TcpForwarder {
   }
   public async connect() {
     await this.disconnect();
-    this._server = new Server((sock) => this._onConnect(sock));
+    this._server = new Server(sock => this._onConnect(sock));
     await listenPromise(this._server.listen(this.port));
   }
   public async disconnectClientSide() {
     await Promise.all(Array.from(this._connections.keys(), destroySock));
     if (this._server) {
-      await new Promise((resolve) => this._server!.close(resolve));
+      await new Promise(resolve => this._server!.close(resolve));
       this._server = null;
     }
     this.cleanup();
@@ -47,8 +47,8 @@ export class TcpForwarder {
     const serverSock = await connectSock(this._serverPort, this._serverHost);
     clientSock.pipe(serverSock);
     serverSock.pipe(clientSock);
-    clientSock.on('error', (err) => serverSock.destroy(err));
-    serverSock.on('error', (err) => clientSock.destroy(err));
+    clientSock.on('error', err => serverSock.destroy(err));
+    serverSock.on('error', err => clientSock.destroy(err));
     this._connections.set(clientSock, serverSock);
   }
 }

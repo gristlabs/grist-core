@@ -217,7 +217,7 @@ export async function synchronizeProducts(
     return [];
   }
   const changingProducts: string[] = [];
-  await connection.transaction(async transaction => {
+  await connection.transaction(async (transaction) => {
     const desiredProducts = new Map(products.map(p => [p.name, p]));
     const existingProducts = new Map((await transaction.find(Product))
                                      .map(p => [p.name, p]));

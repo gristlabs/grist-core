@@ -66,7 +66,7 @@ export async function main(baseName: string) {
 }
 
 if (require.main === module) {
-  main(process.argv[2]).catch(e => {
+  main(process.argv[2]).catch((e) => {
     console.error(e);
   });
 }

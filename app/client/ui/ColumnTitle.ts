@@ -209,7 +209,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
   const toComputed = (val: boolean|ko.Computed<boolean>) =>
     typeof val === 'boolean' ? Computed.create(ctrl, () => val) : Computed.create(ctrl, use => use(val));
 
-  const not = (val: Observable<boolean>) => Computed.create(ctrl, (use) => !use(val));
+  const not = (val: Observable<boolean>) => Computed.create(ctrl, use => !use(val));
 
   const canRename = toComputed(defaultTrue(options.canRename));
   const canChangeDesc = toComputed(defaultTrue(options.canChangeDesc));
@@ -270,7 +270,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
       ),
     ]),
     dom.onKeyDown({
-      Enter$: e => {
+      Enter$: (e) => {
         if (e.ctrlKey || e.metaKey) {
           close();
           return false;
@@ -297,7 +297,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
       ),
     ),
     // After showing the popup, focus the label input and select it's content.
-    elem => { setTimeout(() => {
+    (elem) => { setTimeout(() => {
       if (ctrl.isDisposed()) { return; }
       if (canRename.get()) {
         labelInput?.focus();
@@ -311,7 +311,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
     // by someone else, we will bring back it to the label element. Clicking anywhere outside the popup
     // will close it, but not when we click on the header itself (as it will reopen it). So this one
     // makes sure that the focus is restored in the label.
-    elem => { FocusLayer.create(ctrl, {
+    (elem) => { FocusLayer.create(ctrl, {
       defaultFocusElem: elem,
       pauseMousetrap: false,
       allowFocus: Clipboard.allowFocus

@@ -143,7 +143,7 @@ describe('CustomWidgetsConfig', function () {
     await server.restart();
 
     // Create simple widget server that serves manifest.json file, some widgets and some error pages.
-    const widgetServer = await serveSomething(app => {
+    const widgetServer = await serveSomething((app) => {
       app.get('/manifest.json', (_, res) => {
         res.json([
           {

@@ -46,14 +46,14 @@ export class ApiKey extends Disposable {
 
   public buildDom() {
     return dom('div', testId('container'), dom.style('position', 'relative'),
-      dom.maybe(this._apiKey, (apiKey) => dom('div',
+      dom.maybe(this._apiKey, apiKey => dom('div',
         cssRow(
           cssInput(
             {
               readonly: true,
               value: this._apiKey.get(),
             },
-            dom.attr('type', (use) => use(this._isHidden) ? 'password' : 'text'),
+            dom.attr('type', use => use(this._isHidden) ? 'password' : 'text'),
             testId('key'),
             {title: t("Click to show")},
             dom.on('click', (_ev, el) => {
@@ -71,12 +71,12 @@ export class ApiKey extends Disposable {
             cssTextBtnIcon('Remove'), t("Remove"),
             dom.on('click', () => this._showRemoveKeyModal()),
             testId('delete'),
-            dom.boolAttr('disabled', (use) => use(this._loading) || this._anonymous)
+            dom.boolAttr('disabled', use => use(this._loading) || this._anonymous)
           ),
         ),
         description(this._getDescription(), testId('description')),
       )),
-      dom.maybe((use) => !(use(this._apiKey) || this._anonymous), () => [
+      dom.maybe(use => !(use(this._apiKey) || this._anonymous), () => [
         basicButton(t("Create"), dom.on('click', () => this._onCreate()), testId('create'),
           dom.boolAttr('disabled', this._loading)),
         description(t("By generating an API key, you will be able to \

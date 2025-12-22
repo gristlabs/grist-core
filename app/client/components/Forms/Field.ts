@@ -55,8 +55,8 @@ export class FieldModel extends BoxModel {
   public edit = Observable.create(this, false);
   public fieldRef = this.autoDispose(ko.pureComputed(() => toKo(ko, this.leaf)()));
   public field = refRecord(this.view.gristDoc.docModel.viewFields, this.fieldRef);
-  public colId = Computed.create(this, (use) => use(use(this.field).colId));
-  public column = Computed.create(this, (use) => use(use(this.field).column));
+  public colId = Computed.create(this, use => use(use(this.field).colId));
+  public column = Computed.create(this, use => use(use(this.field).column));
   public required: Computed<boolean>;
   public question = Computed.create(this, (use) => {
     const field = use(this.field);
@@ -102,7 +102,7 @@ export class FieldModel extends BoxModel {
       return Boolean(use(field.widgetOptionsJson.prop('formRequired')));
     });
 
-    this.question.onWrite(value => {
+    this.question.onWrite((value) => {
       this.field.peek().question.setAndSave(value).catch(reportError);
     });
 
@@ -127,7 +127,7 @@ export class FieldModel extends BoxModel {
     };
     const overlay = Observable.create(null, true);
 
-    const content = dom.domComputed(this.renderer, (r) => r.buildDom({
+    const content = dom.domComputed(this.renderer, r => r.buildDom({
       edit: this.edit,
       overlay,
       onSave: save,
@@ -142,7 +142,7 @@ export class FieldModel extends BoxModel {
         content,
       },
       dom.on('dblclick', () => this.selected.get() && this.edit.set(true)),
-      dom.style('opacity', use => {
+      dom.style('opacity', (use) => {
         if ((use(use(this.field).widgetOptionsJson) as FormFieldOptions).formIsHidden) {
           return '50%';
         } else {
@@ -207,8 +207,8 @@ export abstract class Question extends Disposable {
     scope.autoDispose(
       this.model.question.addListener(q => draft.set(q)),
     );
-    const controller = Computed.create(scope, (use) => use(draft));
-    controller.onWrite(value => {
+    const controller = Computed.create(scope, use => use(draft));
+    controller.onWrite((value) => {
       if (this.isDisposed() || draft.isDisposed()) { return; }
       if (!edit.get()) { return; }
       draft.set(value);
@@ -375,13 +375,13 @@ class ChoiceModel extends Question {
 
   constructor(model: FieldModel) {
     super(model);
-    this.choices = Computed.create(this, use => {
+    this.choices = Computed.create(this, (use) => {
       // Read choices from field.
       const field = use(this.field);
       const choices = use(field.widgetOptionsJson.prop('choices'))?.slice() ?? [];
 
       // Make sure it is an array of strings.
-      if (!Array.isArray(choices) || choices.some((choice) => typeof choice !== 'string')) {
+      if (!Array.isArray(choices) || choices.some(choice => typeof choice !== 'string')) {
         return [];
       } else {
         const sort = use(this._sortOrder);
@@ -420,7 +420,7 @@ class ChoiceModel extends Question {
         selectPlaceholder(),
         {value: ''},
       ),
-      dom.forEach(this.choices, (choice) => dom('option',
+      dom.forEach(this.choices, choice => dom('option',
         choice,
         {value: choice},
       )),
@@ -431,7 +431,7 @@ class ChoiceModel extends Question {
     return css.cssRadioList(
       css.cssRadioList.cls('-horizontal', use => use(this.alignment) === 'horizontal'),
       dom.prop('name', use => use(use(this.field).colId)),
-      dom.forEach(this.choices, (choice) => css.cssRadioLabel(
+      dom.forEach(this.choices, choice => css.cssRadioLabel(
         cssRadioInput({type: 'radio'}),
         choice,
       )),
@@ -440,7 +440,7 @@ class ChoiceModel extends Question {
 }
 
 class ChoiceListModel extends ChoiceModel {
-  private _choices = Computed.create(this, use => {
+  private _choices = Computed.create(this, (use) => {
     // Support for 30 choices. TODO: make limit dynamic.
     return use(this.choices).slice(0, 30);
   });
@@ -450,7 +450,7 @@ class ChoiceListModel extends ChoiceModel {
     return css.cssCheckboxList(
       css.cssCheckboxList.cls('-horizontal', use => use(this.alignment) === 'horizontal'),
       dom.prop('name', use => use(use(field).colId)),
-      dom.forEach(this._choices, (choice) => css.cssCheckboxLabel(
+      dom.forEach(this._choices, choice => css.cssCheckboxLabel(
         css.cssCheckboxLabel.cls('-horizontal', use => use(this.alignment) === 'horizontal'),
         cssCheckboxSquare({type: 'checkbox'}),
         choice,
@@ -550,7 +550,7 @@ class RefListModel extends Question {
     return css.cssCheckboxList(
       css.cssCheckboxList.cls('-horizontal', use => use(this.alignment) === 'horizontal'),
       dom.prop('name', this.model.colId),
-      dom.forEach(this.options, (option) => css.cssCheckboxLabel(
+      dom.forEach(this.options, option => css.cssCheckboxLabel(
         squareCheckbox(observable(false)),
         option.label,
       )),
@@ -564,19 +564,19 @@ class RefListModel extends Question {
   }
 
   private _getOptions() {
-    const tableId = Computed.create(this, use => {
+    const tableId = Computed.create(this, (use) => {
       const refTable = use(use(this.model.column).refTable);
       return refTable ? use(refTable.tableId) : '';
     });
 
-    const colId = Computed.create(this, use => {
+    const colId = Computed.create(this, (use) => {
       const dispColumnIdObs = use(use(this.model.column).visibleColModel);
       return use(dispColumnIdObs.colId) || 'id';
     });
 
     const observer = this._columnObserver(this, this.model.view.gristDoc.docModel, tableId, colId);
 
-    return Computed.create(this, use => {
+    return Computed.create(this, (use) => {
       const sort = use(this._sortOrder);
       const values = use(observer)
         .filter(([_id, value]) => !isBlankValue(value))
@@ -601,7 +601,7 @@ class RefListModel extends Question {
     tableId: Observable<string>,
     columnId: Observable<string>
   ) {
-    const tableModel = Computed.create(owner, (use) => docModel.dataTables[use(tableId)]);
+    const tableModel = Computed.create(owner, use => docModel.dataTables[use(tableId)]);
     const refreshed = Observable.create(owner, 0);
     const toggle = () => !refreshed.isDisposed() && refreshed.set(refreshed.get() + 1);
     const holder = Holder.create(owner);

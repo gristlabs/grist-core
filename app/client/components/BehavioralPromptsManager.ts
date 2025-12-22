@@ -50,7 +50,7 @@ export class BehavioralPromptsManager extends Disposable {
   private readonly _prefs = getUserPrefObs(this._appModel.userPrefsObs, 'behavioralPrompts',
     { defaultValue: { dontShowTips: false, dismissedTips: [] } }) as Observable<BehavioralPromptPrefs>;
 
-  private _dismissedPopups: Computed<Set<BehavioralPrompt>> = Computed.create(this, use => {
+  private _dismissedPopups: Computed<Set<BehavioralPrompt>> = Computed.create(this, (use) => {
     const {dismissedTips} = use(this._prefs);
     return new Set(dismissedTips.filter(BehavioralPrompt.guard));
   });

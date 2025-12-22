@@ -288,5 +288,5 @@ export async function startMain() {
 }
 
 if (require.main === module) {
-  startMain().catch((e) => log.error('mergedServer failed to start', e));
+  startMain().catch(e => log.error('mergedServer failed to start', e));
 }

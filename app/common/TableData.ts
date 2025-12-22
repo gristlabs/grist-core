@@ -94,10 +94,10 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    */
   public fetchData(fetchFunc: (tableId: string) => Promise<TableDataAction>): Promise<void> {
     if (!this._fetchPromise) {
-      this._fetchPromise = fetchFunc(this._tableId).then(data => {
+      this._fetchPromise = fetchFunc(this._tableId).then((data) => {
         this._fetchPromise = undefined;
         this.loadData(data);
-      }).catch(err => {
+      }).catch((err) => {
         this._fetchPromise = undefined;
         throw err;
       });
@@ -320,7 +320,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * Builds and returns the list of all records on this table, in unspecified and unstable order.
    */
   public getRecords(): RowRecord[] {
-    const records: RowRecord[] = this._rowIdCol.map((id) => ({ id }));
+    const records: RowRecord[] = this._rowIdCol.map(id => ({ id }));
     for (const {colId, values} of this._colArray) {
       for (let i = 0; i < records.length; i++) {
         records[i][colId] = values[i];
@@ -384,11 +384,11 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    */
   public findMatchingRowId(properties: {[key: string]: CellValue | undefined}): number {
     const props = Object.keys(properties).map(p => ({col: this._columns.get(p)!, value: properties[p]}));
-    if (!props.every((p) => p.col)) {
+    if (!props.every(p => p.col)) {
       return 0;
     }
     return this._rowIdCol.find((id, i) =>
-      props.every((p) => isEqual(p.col.values[i], p.value))
+      props.every(p => isEqual(p.col.values[i], p.value))
     ) || 0;
   }
 
@@ -550,7 +550,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     const props = Object.keys(properties).map(p => ({col: this._columns.get(p)!, value: properties[p]}));
     this._rowIdCol.forEach((id, i) => {
       // Collect the indices of the matching rows.
-      if (props.every((p) => isEqual(p.col.values[i], p.value))) {
+      if (props.every(p => isEqual(p.col.values[i], p.value))) {
         rowIndices.push(i);
       }
     });

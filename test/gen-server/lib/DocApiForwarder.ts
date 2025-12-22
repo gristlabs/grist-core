@@ -223,9 +223,9 @@ describe('DocApiForwarder', function() {
     let closeReceived: Function;
     let requestDone: Function;
     const checkIsClosed = sinon.spy();
-    const promiseForRequestReceived = new Promise(r => { requestReceived = r; });
-    const promiseForCloseReceived = new Promise(r => { closeReceived = r; });
-    const promiseForRequestDone = new Promise(r => { requestDone = r; });
+    const promiseForRequestReceived = new Promise((r) => { requestReceived = r; });
+    const promiseForCloseReceived = new Promise((r) => { closeReceived = r; });
+    const promiseForRequestDone = new Promise((r) => { requestDone = r; });
     docWorkerStub.callsFake(async (req: any, res: any) => {
       req.on('close', closeReceived);
       requestReceived();

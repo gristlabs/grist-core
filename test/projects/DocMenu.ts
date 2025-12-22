@@ -25,7 +25,7 @@ describe('DocMenu', function() {
     if (workspace) {
       const results = await Promise.all(
         docs.map(
-          async (d) => (await d.find('.test-dm-doc-workspace').getText()) === "Workspace\n" + workspace
+          async d => (await d.find('.test-dm-doc-workspace').getText()) === "Workspace\n" + workspace
         )
       );
       docs = docs.filter((_, index) => results[index]);
@@ -36,7 +36,7 @@ describe('DocMenu', function() {
   const getDocNames = stackWrapFunc(async function(workspace?: string) {
     const docs = await getDocs(workspace);
     const result = await Promise.all(
-      docs.map((d) => d.find('.test-dm-doc-name').getText())
+      docs.map(d => d.find('.test-dm-doc-name').getText())
     );
     return result;
   });
@@ -44,18 +44,18 @@ describe('DocMenu', function() {
   const getDocTimes = stackWrapFunc(async function(workspace?: string) {
     const docs = await getDocs(workspace);
     return await Promise.all(
-      docs.map((d) => d.find('.test-dm-doc-edited-at').getText())
+      docs.map(d => d.find('.test-dm-doc-edited-at').getText())
     );
   });
 
   const getPinnedDocNames = stackWrapFunc(async function(workspace?: string) {
     let docs = await getDocs(workspace);
     const results = await Promise.all(
-      docs.map(async (d) => await d.find('.test-dm-doc-pinned').isPresent())
+      docs.map(async d => await d.find('.test-dm-doc-pinned').isPresent())
     );
     docs = docs.filter((_, index) => results[index]);
     return await Promise.all(
-      docs.map((d) => d.find('.test-dm-doc-name').getText())
+      docs.map(d => d.find('.test-dm-doc-name').getText())
     );
   });
 
@@ -300,12 +300,12 @@ describe('DocMenu', function() {
     await openAddNew();
     await driver.findWait('.test-dm-new-workspace', 100).doClick();
     await driver.sendKeys(Key.ESCAPE);
-    let wsNames = await driver.findAll('.test-dm-workspace', (e) => e.getText());
+    let wsNames = await driver.findAll('.test-dm-workspace', e => e.getText());
     assert.deepEqual(wsNames, ['August', 'Personal', 'Real estate']);
 
     // Add a workspace.
     await addWorkspace('October');
-    wsNames = await driver.findAll('.test-dm-workspace', (e) => e.getText());
+    wsNames = await driver.findAll('.test-dm-workspace', e => e.getText());
     assert.deepEqual(wsNames, ['August', 'October', 'Personal', 'Real estate']);
 
     // Rename the workspace.
@@ -313,14 +313,14 @@ describe('DocMenu', function() {
     await driver.findWait('.test-dm-rename-workspace', 100).doClick();
     await gu.waitForFocus('.test-dm-ws-name-editor');
     await driver.find('.test-dm-ws-name-editor').sendKeys('WorkspaceRenamed', Key.ENTER);
-    wsNames = await driver.findAll('.test-dm-workspace', (e) => e.getText());
+    wsNames = await driver.findAll('.test-dm-workspace', e => e.getText());
     assert.deepEqual(wsNames, ['August', 'Personal', 'Real estate', 'WorkspaceRenamed']);
 
     // Start to delete the workspace, check that cancelling works.
     await openWorkspaceMenu(/WorkspaceRenamed/);
     await driver.findWait('.test-dm-delete-workspace', 100).doClick();
     await driver.findWait('.test-modal-cancel', 100).click();
-    wsNames = await driver.findAll('.test-dm-workspace', (e) => e.getText());
+    wsNames = await driver.findAll('.test-dm-workspace', e => e.getText());
     assert.deepEqual(wsNames, ['August', 'Personal', 'Real estate', 'WorkspaceRenamed']);
 
     await addWorkspace('Z1');
@@ -330,7 +330,7 @@ describe('DocMenu', function() {
     // Delete not selected workspace.
     const currentUrl = await driver.getCurrentUrl();
     await deleteWorkspace('WorkspaceRenamed');
-    wsNames = await driver.findAll('.test-dm-workspace', (e) => e.getText());
+    wsNames = await driver.findAll('.test-dm-workspace', e => e.getText());
     assert.deepEqual(wsNames, ['August', 'Personal', 'Real estate', 'Z1', 'Z2', 'Z3']);
     // Make sure the URL is not changed.
     assert.equal(await driver.getCurrentUrl(), currentUrl);
@@ -597,7 +597,7 @@ async function testNameWithIcon(docName: string) {
   await driver.executeScript(() => {
     const emojiPicker = document.querySelector('em-emoji-picker')?.shadowRoot;
     const emojiSpan = Array.from(emojiPicker?.querySelectorAll('span') || [])
-      .find((el) => el.textContent === '📋') as HTMLSpanElement;
+      .find(el => el.textContent === '📋') as HTMLSpanElement;
     emojiSpan?.click();
   });
   await gu.waitForContent('.test-dm-doc-icon-preview', '📋');

@@ -24,7 +24,7 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
   const pagesTable = activeDoc.docModel.pages;
   const buildDom = buildDomFromTable.bind(null, pagesTable, activeDoc);
 
-  const records = Computed.create<TreeRecord[]>(owner, (use) =>
+  const records = Computed.create<TreeRecord[]>(owner, use =>
     use(activeDoc.docModel.menuPages).map(page => ({
       id: page.getRowId(),
       indentation: use(page.indentation),
@@ -93,9 +93,9 @@ function buildDomFromTable(
     isRemoveDisabled: () => docModel.visibleDocPages.peek().length <= 1,
     isReadonly,
     isCollapsed: pageRec.isCollapsed,
-    onCollapse: (value) => pageRec.isCollapsed.set(value),
+    onCollapse: value => pageRec.isCollapsed.set(value),
     isCollapsedByDefault: pageRec.isCollapsedByDefault,
-    onCollapseByDefault: (value) => pageRec.setAndSaveCollapsed(value),
+    onCollapseByDefault: value => pageRec.setAndSaveCollapsed(value),
     hasSubPages: () => item.children().get().length > 0,
     href: urlState().setLinkUrl({docPage: viewId}),
   };
@@ -191,7 +191,7 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
 
 function buildWarning(tables: string[]) {
   return cssWarning(
-    dom.forEach(tables, (tb) => cssTableName(tb, testId('table')))
+    dom.forEach(tables, tb => cssTableName(tb, testId('table')))
   );
 }
 

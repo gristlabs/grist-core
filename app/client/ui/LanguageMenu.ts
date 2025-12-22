@@ -38,7 +38,7 @@ export function buildLanguageMenu(appModel: AppModel) {
     testId(`current-` + userLanguage),
     menu(
       // Convert the list of languages we support to menu items.
-      () => languages.map((lng) => menuItem(() => changeLanguage(lng), [
+      () => languages.map(lng => menuItem(() => changeLanguage(lng), [
         // Try to convert the locale to nice name, fallback to locale itself.
         cssFirstUpper(translateLocale(lng) ?? lng),
         // If this is current language, mark it with a tick (by default we mark en).

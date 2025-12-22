@@ -44,7 +44,7 @@ export function transition<T>(obs: BindableValue<T>, trans: ITransitionLogic<T>)
   const {prepare, run, finish} = trans;
   let watcher: TransitionWatcher|null = null;
   let firstCall = true;
-  return (elem) => subscribeElem<T>(elem, obs, (val) => {
+  return elem => subscribeElem<T>(elem, obs, (val) => {
     // First call is initialization, don't treat it as a transition
     if (firstCall) { firstCall = false; return; }
     if (watcher) {
@@ -113,7 +113,7 @@ export class TransitionWatcher extends Disposable {
     const duration = style.transitionDuration;
     this._durationMs = ((duration && parseFloat(duration)) || 0) * 1000;
 
-    this.autoDispose(dom.onElem(elem, 'transitionend', (e) =>
+    this.autoDispose(dom.onElem(elem, 'transitionend', e =>
       (e.propertyName === this._propertyName) && this.dispose()));
 
     this._timer = setTimeout(() => this.dispose(), this._durationMs + 10);

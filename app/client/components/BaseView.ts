@@ -157,7 +157,7 @@ export default class BaseView extends DisposableWithEvents {
     this._sectionFilter = SectionFilter.create(this, this.viewSection, this.tableModel.tableData);
     this._filteredRowSource = rowset.FilteredRowSource.create(this, this._sectionFilter.sectionFilterFunc.get());
     this._filteredRowSource.subscribeTo(this._mainRowSource);
-    this.autoDispose(this._sectionFilter.sectionFilterFunc.addListener(filterFunc => {
+    this.autoDispose(this._sectionFilter.sectionFilterFunc.addListener((filterFunc) => {
       this._exemptFromFilterRows.reset();
       this._filteredRowSource.updateFilter(filterFunc);
     }));
@@ -219,7 +219,7 @@ export default class BaseView extends DisposableWithEvents {
     }).extend({deferred: true}));
 
     // Update the cursor whenever linkedRowId() changes (but only if we have any linking).
-    this.autoDispose(this.linkedRowId.subscribe(rowId => {
+    this.autoDispose(this.linkedRowId.subscribe((rowId) => {
       if (this.viewSection.linkingState.peek()) {
         this.setCursorPos({rowId: rowId || 'new'}, true);
       }
@@ -298,7 +298,7 @@ export default class BaseView extends DisposableWithEvents {
     }));
 
     // Reset cursor to the first row when filtering changes.
-    this.autoDispose(this.viewSection.linkingFilter.subscribe((x) => this.onLinkFilterChange()));
+    this.autoDispose(this.viewSection.linkingFilter.subscribe(x => this.onLinkFilterChange()));
 
     // When sorting changes, reset the cursor to the first row. (The alternative of moving the
     // cursor to stay at the same record is sometimes better, but sometimes more annoying.)
@@ -458,7 +458,7 @@ export default class BaseView extends DisposableWithEvents {
    * If no query is being loaded, it will resolve immediately.
    */
   public async getLoadingDonePromise(): Promise<void> {
-    await waitObs(this._isLoading, (value) => !value);
+    await waitObs(this._isLoading, value => !value);
   }
 
   /**
@@ -622,7 +622,7 @@ export default class BaseView extends DisposableWithEvents {
    */
   protected prepTableActions(actions: UserAction[]) {
     actions = actions.map(a => this._enhanceAction(a));
-    actions.forEach(action_ => {
+    actions.forEach((action_) => {
       action_.splice(1, 0, this.tableModel.tableData.tableId);
     });
     return actions;
@@ -706,7 +706,7 @@ export default class BaseView extends DisposableWithEvents {
 
       return editRowModel.updateColValues(colValues)
       // Once we know the new row's rowId, add it to column filters to make sure it's displayed.
-      .then(rowId => {
+      .then((rowId) => {
         if (!this.isDisposed()) {
           this._exemptFromFilterRows.addExemptRow(rowId);
           this.setCursorPos({rowId});
@@ -789,7 +789,7 @@ export default class BaseView extends DisposableWithEvents {
       // If the cut occurs on an edit restricted cell, there may be no cut action.
       if (cutAction) { actions.unshift(cutAction); }
     }
-    return this.gristDoc.docData.sendActions(actions).catch(ex => {
+    return this.gristDoc.docData.sendActions(actions).catch((ex) => {
       if (ex.code === 'UNIQUE_REFERENCE_VIOLATION') {
         buildReassignModal({
           docModel: this.gristDoc.docModel,

@@ -91,11 +91,11 @@ describe('SectionFilter', function() {
 
       // Put the filter into the "inclusion" state, with nothing selected initially.
       assert.deepEqual(
-        await driver.findAll('.test-filter-menu-bulk-action:not([aria-disabled="true"])', (e) => e.getText()),
+        await driver.findAll('.test-filter-menu-bulk-action:not([aria-disabled="true"])', e => e.getText()),
         ['None']);
       await driver.findContent('.test-filter-menu-bulk-action', /None/).click();
       assert.deepEqual(
-        await driver.findAll('.test-filter-menu-bulk-action:not([aria-disabled="true"])', (e) => e.getText()),
+        await driver.findAll('.test-filter-menu-bulk-action:not([aria-disabled="true"])', e => e.getText()),
         ['All']);
 
       // Include only "Apples".
@@ -143,7 +143,7 @@ describe('SectionFilter', function() {
       // Reset the filter
       menu = await gu.openColumnMenu('A', 'Filter');
       assert.deepEqual(
-        await driver.findAll('.test-filter-menu-bulk-action:not([class*=-disabled])', (e) => e.getText()),
+        await driver.findAll('.test-filter-menu-bulk-action:not([class*=-disabled])', e => e.getText()),
         ['All', 'None']);
       await driver.findContent('.test-filter-menu-bulk-action', /All/).click();
       await menu.find('.test-filter-menu-apply-btn').click();
@@ -293,7 +293,7 @@ describe('SectionFilter', function() {
         { checked: true, value: '2019-06-07', count: 1}
       ]);
       assert.deepEqual(
-        await menu.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()),
+        await menu.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()),
         ['2019-06-07']
       );
       await menu.findContent('.test-filter-menu-bulk-action', /All shown/).click();
@@ -366,7 +366,7 @@ describe('SectionFilter', function() {
       // Check that all the choices are rendered in the right colors.
       const choiceColors = await menu.findAll(
         'label .test-filter-menu-choice-token',
-        async (c) => [await c.getCssValue('background-color'), await c.getCssValue('color')]
+        async c => [await c.getCssValue('background-color'), await c.getCssValue('color')]
       );
 
       assert.deepEqual(
@@ -382,7 +382,7 @@ describe('SectionFilter', function() {
       // Check that Foo is rendered with font options.
       const boldFonts = await menu.findAll(
         'label .test-filter-menu-choice-token.font-italic.font-bold',
-        (c) => c.getText()
+        c => c.getText()
       );
 
       assert.deepEqual(boldFonts, ['Foo']);
@@ -442,7 +442,7 @@ describe('SectionFilter', function() {
       // Check that all the choices are rendered in the right colors.
       const choiceColors = await menu.findAll(
         'label .test-filter-menu-choice-token',
-        async (c) => [await c.getCssValue('background-color'), await c.getCssValue('color')]
+        async c => [await c.getCssValue('background-color'), await c.getCssValue('color')]
       );
 
       assert.deepEqual(
@@ -458,7 +458,7 @@ describe('SectionFilter', function() {
       // Check that Red is rendered with font options.
       const withFonts = await menu.findAll(
         'label .test-filter-menu-choice-token.font-underline.font-strikethrough',
-        (c) => c.getText()
+        c => c.getText()
       );
 
       assert.deepEqual(withFonts, ['Red']);

@@ -35,7 +35,7 @@ export class DocHistory extends Disposable implements IDomComponent {
       cssSubTabs(
         buttonSelect(this._subTab, tabs, {}, testId('doc-history-tabs')),
       ),
-      dom.domComputed(this._subTab, (subTab) =>
+      dom.domComputed(this._subTab, subTab =>
         buildConfigContainer(
           subTab === 'activity' ? this._actionLog.buildDom() :
           subTab === 'snapshots' ? dom.create(this._buildSnapshots.bind(this)) :
@@ -61,7 +61,7 @@ export class DocHistory extends Disposable implements IDomComponent {
     // Helper to set a link to open a snapshot, optionally comparing it with a docId.
     // We include urlState().state to preserve the currently selected page.
     function setLink(snapshot: DocSnapshot, compareDocId?: string) {
-      return dom.attr('href', (use) => urlState().makeUrl({
+      return dom.attr('href', use => urlState().makeUrl({
         ...use(urlState().state), doc: snapshot.docId,
         params: (compareDocId ? {compare: compareDocId} : {})
       }));
@@ -72,7 +72,7 @@ export class DocHistory extends Disposable implements IDomComponent {
     const userApi = this._docPageModel.appModel.api;
     const docApi = userApi.getDocAPI(origUrlId);
     docApi.getSnapshots().then(result =>
-      snapshots.isDisposed() || snapshots.set(result.snapshots)).catch(err => {
+      snapshots.isDisposed() || snapshots.set(result.snapshots)).catch((err) => {
         snapshotsDenied.set(true);
         // "cannot confirm access" is what we expect if snapshots
         // are denied because of access rules.
@@ -94,7 +94,7 @@ export class DocHistory extends Disposable implements IDomComponent {
         ),
         testId('doc-history-error'))),
       // Note that most recent snapshots are first.
-      dom.domComputed(snapshots, (snapshotList) => snapshotList.map((snapshot, index) => {
+      dom.domComputed(snapshots, snapshotList => snapshotList.map((snapshot, index) => {
         const modified = moment(snapshot.lastModified);
         const prevSnapshot = snapshotList[index + 1] || null;
         return cssSnapshot(

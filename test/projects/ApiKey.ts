@@ -13,9 +13,9 @@ describe('ApiKeyWidget', function() {
   });
 
   it('should show only the create button when the api key has not been created', async function() {
-    assert.deepEqual(await driver.findAll('.test-apikey-key', (e) => e.getText()), []);
-    assert.deepEqual(await driver.findAll('.test-apikey-container button', (e) => e.getText()), ['Create']);
-    assert.deepEqual(await driver.findAll('.test-apikey-description', (e) => e.getText()), [
+    assert.deepEqual(await driver.findAll('.test-apikey-key', e => e.getText()), []);
+    assert.deepEqual(await driver.findAll('.test-apikey-container button', e => e.getText()), ['Create']);
+    assert.deepEqual(await driver.findAll('.test-apikey-description', e => e.getText()), [
       'By generating an API key, you will be able to make API calls for your own account.']);
   });
 
@@ -23,7 +23,7 @@ describe('ApiKeyWidget', function() {
     await driver.find('.test-apikey-create').click();
     // button should be disabled
     assert.deepEqual(await driver.findAll('.test-apikey-container button',
-      (e) => e.getAttribute('disabled')), ['true']);
+      e => e.getAttribute('disabled')), ['true']);
     await delay();
     const apiKey = await driver.find('.test-apikey-key');
     // should show Delete button the new api key
@@ -31,10 +31,10 @@ describe('ApiKeyWidget', function() {
     // should have type 'password' by default, causing the key to be hidden
     assert.equal(await apiKey.getAttribute('type'), 'password');
     assert.deepEqual(await driver.findAll('.test-apikey-container button',
-      (e) => e.getText()), ['Remove']);
+      e => e.getText()), ['Remove']);
     assert.deepEqual(await driver.findAll('.test-apikey-container button',
-      (e) => e.getAttribute('disabled')), [null as any]);
-    assert.deepEqual(await driver.findAll('.test-apikey-description', (e) => e.getText()), [
+      e => e.getAttribute('disabled')), [null as any]);
+    assert.deepEqual(await driver.findAll('.test-apikey-description', e => e.getText()), [
 `This API key can be used to access your account via the API. Don’t share your API key with anyone.`
 ]);
   });
@@ -65,7 +65,7 @@ describe('ApiKeyWidget', function() {
 
     // cancel should removes warning
     await driver.find('.test-modal-cancel').click();
-    assert.deepEqual(await driver.findAll('.test-apikey-warning', (e) => e.getText()), []);
+    assert.deepEqual(await driver.findAll('.test-apikey-warning', e => e.getText()), []);
 
     // let's Delete for good
     await driver.find('.test-apikey-delete').click();
@@ -73,14 +73,14 @@ describe('ApiKeyWidget', function() {
 
     // buttons should be disabled
     assert.deepEqual(await driver.findAll('.test-apikey-container button',
-      (e) => e.getAttribute('disabled')), ['true']);
+      e => e.getAttribute('disabled')), ['true']);
     await delay();
     // should show Create button and no api key
-    assert.deepEqual(await driver.findAll('.test-apikey-key', (e) => e.getText()), []);
-    assert.deepEqual(await driver.findAll('.test-apikey-container button', (e) => e.getText()), ['Create']);
+    assert.deepEqual(await driver.findAll('.test-apikey-key', e => e.getText()), []);
+    assert.deepEqual(await driver.findAll('.test-apikey-container button', e => e.getText()), ['Create']);
     assert.deepEqual(await driver.findAll('.test-apikey-container button',
-      (e) => e.getAttribute('disabled')), [null as any]);
-    assert.deepEqual(await driver.findAll('.test-apikey-description', (e) => e.getText()), [
+      e => e.getAttribute('disabled')), [null as any]);
+    assert.deepEqual(await driver.findAll('.test-apikey-description', e => e.getText()), [
       'By generating an API key, you will be able to make API calls for your own account.']);
   });
 

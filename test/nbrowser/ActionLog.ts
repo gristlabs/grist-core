@@ -12,8 +12,8 @@ describe('ActionLog', function() {
   afterEach(() => gu.checkForErrors());
 
   async function getActionUndoState(limit: number): Promise<string[]> {
-    const state = await driver.findAll('.action_log .action_log_item', (el) => el.getAttribute('class'));
-    return state.slice(0, limit).map((s) => s.replace(/action_log_item/, '').trim());
+    const state = await driver.findAll('.action_log .action_log_item', el => el.getAttribute('class'));
+    return state.slice(0, limit).map(s => s.replace(/action_log_item/, '').trim());
   }
 
   function getActionLogItems(): Promise<WebElement[]> {
@@ -22,7 +22,7 @@ describe('ActionLog', function() {
   }
 
   function getActionLogItem(index: number): WebElementPromise {
-    return new WebElementPromise(driver, getActionLogItems().then((elems) => elems[index]));
+    return new WebElementPromise(driver, getActionLogItems().then(elems => elems[index]));
   }
 
   before(async function() {

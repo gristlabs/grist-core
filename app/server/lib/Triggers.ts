@@ -304,7 +304,7 @@ export class DocTriggers {
             // Other fields used to register this webhook.
             eventTypes: decodeObject(t.eventTypes) as string[],
             isReadyColumn: getColId(t.isReadyColRef) ?? null,
-            watchedColIds: decodedWatchedColRefList.map((columnRef) => getColId(columnRef)),
+            watchedColIds: decodedWatchedColRefList.map(columnRef => getColId(columnRef)),
             tableId: getTableId(t.tableRef) ?? null,
             // For future use - for now every webhook is enabled.
             enabled: t.enabled,
@@ -323,7 +323,7 @@ export class DocTriggers {
   public getWebhookTriggerRecord(webhookId: string) {
     const docData = this._activeDoc.docData!;
     const triggersTable = docData.getMetaTable("_grist_Triggers");
-    const trigger = triggersTable.getRecords().find(t => {
+    const trigger = triggersTable.getRecords().find((t) => {
       const actions: TriggerAction[] = JSON.parse((t.actions || '[]') as string);
       return actions.some(action => action.id === webhookId && action?.type === "webhook");
     });
@@ -544,7 +544,7 @@ export class DocTriggers {
       // TODO: would be worth checking that the trigger's fields are valid (ie: eventTypes, url,
       // ...) as there's no guarantee that they are.
 
-      const rowIndexesToSend: number[] = _.range(bulkColValues.id.length).filter(rowIndex => {
+      const rowIndexesToSend: number[] = _.range(bulkColValues.id.length).filter((rowIndex) => {
           const rowId = bulkColValues.id[rowIndex];
           return this._shouldTriggerActions(
             trigger, bulkColValues, rowIndex, rowId, recordDeltas.get(rowId)!, tableDelta,

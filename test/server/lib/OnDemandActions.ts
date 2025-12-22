@@ -151,24 +151,24 @@ describe('OnDemandActions', function() {
   it('should handle actions bigger than maxSQLiteVariables', async function() {
     const N = 1723;
     const processed1 = await applyOnDemand(
-      ['BulkAddRecord', 'Foo', times(N, (i) => null), {}]);
+      ['BulkAddRecord', 'Foo', times(N, i => null), {}]);
     const processed2 = await applyOnDemand(
-      ['BulkUpdateRecord', 'Foo', times(N, (i) => 10 + i), {age: times(N, (i) => i * 10)}]);
+      ['BulkUpdateRecord', 'Foo', times(N, i => 10 + i), {age: times(N, i => i * 10)}]);
 
     const intermediate: TableDataAction = [
-      'TableData', 'Foo', [1, 3, 4, 9,].concat(times(N, (i) => 10 + i)), {
-      fname:      ['Aa', 'Bb', 'Cc', 'Dd',].concat(times(N, (i) => '')),
-      lname:      ['Xx', 'Yy', 'Zz', 'Ww',].concat(times(N, (i) => '')),
-      Birth_Date: [123,  null, 456,  null,].concat(times(N, (i) => null)),
-      age:        [50,   null, 40,   null,].concat(times(N, (i) => i * 10)),
-      manualSort: [1,    3,    4,    9,].concat(times(N, (i) => 10 + i)),
+      'TableData', 'Foo', [1, 3, 4, 9,].concat(times(N, i => 10 + i)), {
+      fname:      ['Aa', 'Bb', 'Cc', 'Dd',].concat(times(N, i => '')),
+      lname:      ['Xx', 'Yy', 'Zz', 'Ww',].concat(times(N, i => '')),
+      Birth_Date: [123,  null, 456,  null,].concat(times(N, i => null)),
+      age:        [50,   null, 40,   null,].concat(times(N, i => i * 10)),
+      manualSort: [1,    3,    4,    9,].concat(times(N, i => 10 + i)),
     }];
 
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
                      {tableData: intermediate});
 
     const processed3 = await applyOnDemand(
-      ['BulkRemoveRecord', 'Foo', times(N, (i) => 10 + i)]);
+      ['BulkRemoveRecord', 'Foo', times(N, i => 10 + i)]);
 
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
                      {tableData: initialData});

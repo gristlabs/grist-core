@@ -71,7 +71,7 @@ export class DocumentUsage extends Disposable {
         maximumValue: maxValue ?? DEFAULT_MAX_ROWS,
         unit: 'rows',
         shouldHideLimits: maxValue === undefined,
-        formatValue: (val) => this._rowCountFormatter.format(val),
+        formatValue: val => this._rowCountFormatter.format(val),
       };
     });
 
@@ -108,7 +108,7 @@ export class DocumentUsage extends Disposable {
         maximumValue: maxValue ?? DEFAULT_MAX_ATTACHMENTS_SIZE,
         unit: 'GB',
         shouldHideLimits: maxValue === undefined,
-        formatValue: (val) => (val / (1024 * 1024 * 1024)).toFixed(2),
+        formatValue: val => (val / (1024 * 1024 * 1024)).toFixed(2),
       };
     });
 
@@ -192,13 +192,13 @@ export class DocumentUsage extends Disposable {
   private _buildMetrics() {
     return dom.maybe(use => use(this._isAccessDenied) === false, () =>
       cssUsageMetrics(
-        dom.domComputed(this._rowMetricOptions, (metrics) =>
+        dom.domComputed(this._rowMetricOptions, metrics =>
           buildUsageMetric(metrics, testId('rows')),
         ),
-        dom.domComputed(this._dataSizeMetricOptions, (metrics) =>
+        dom.domComputed(this._dataSizeMetricOptions, metrics =>
           buildUsageMetric(metrics, testId('data-size')),
         ),
-        dom.domComputed(this._attachmentsSizeMetricOptions, (metrics) =>
+        dom.domComputed(this._attachmentsSizeMetricOptions, metrics =>
           buildUsageMetric(metrics, testId('attachments-size')),
         ),
         testId('metrics'),
@@ -315,7 +315,7 @@ function buildUsageProgressBar(options: MetricOptions) {
     maximumValue,
     shouldHideLimits,
     unit,
-    formatValue = (n) => n.toString()
+    formatValue = n => n.toString()
   } = options;
 
   let ratioUsed: number;

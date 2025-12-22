@@ -199,7 +199,7 @@ export class KeyedOps {
       status.failures = 0;
       status.callbacks.forEach(callback => callback());
       status.callbacks = [];
-    }).catch(err => {
+    }).catch((err) => {
       // Operation failed.  Increment failure count, notify callbacks.
       status.failures++;
       if (this._options.retry && !this._stopped) {

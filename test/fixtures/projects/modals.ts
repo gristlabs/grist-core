@@ -25,7 +25,7 @@ function setupTest() {
         }),
         testId('confirm-modal-opener'),
       ),
-      dom('span', ' Modal ', dom.text((use) => use(confirmed) ? 'Confirmed' : 'Cancelled'),
+      dom('span', ' Modal ', dom.text(use => use(confirmed) ? 'Confirmed' : 'Cancelled'),
         testId('confirm-modal-text'),
       ),
     ),
@@ -44,7 +44,7 @@ function setupTest() {
         ),
         testId('custom-modal-opener'),
       ),
-      dom('span', ' Modal is ', dom.text((use) => use(isOpen) ? 'Open' : 'Closed'),
+      dom('span', ' Modal is ', dom.text(use => use(isOpen) ? 'Open' : 'Closed'),
         testId('custom-modal-text'),
       )
     ),
@@ -84,21 +84,21 @@ function setupTest() {
           }
 
           return {
-            title: dom.text((use) => `Title [${use(value)}] (saving=${use(saving)})`),
+            title: dom.text(use => `Title [${use(value)}] (saving=${use(saving)})`),
             body: [
               dom('span', "Some value: "),
               input(value, {onInput: true}, testId('save-modal-input')),
             ],
-            saveLabel: dom.text((use) => `Save [${use(value)}]`),
+            saveLabel: dom.text(use => `Save [${use(value)}]`),
             // To test saveDisabled, disable the button if the value is empty.
-            saveDisabled: Computed.create(owner, (use) => !use(value)),
+            saveDisabled: Computed.create(owner, use => !use(value)),
             saveFunc,
             // To test modalArgs, change opacity when value is the text "translucent"
-            modalArgs: dom.style('opacity', (use) => (use(value) === 'translucent' ? '0.5' : '')),
+            modalArgs: dom.style('opacity', use => (use(value) === 'translucent' ? '0.5' : '')),
           };
         })),
       ),
-      dom('span', ' Modal ', dom.text((use) => use(isSaveModalOpen) ? "Open" : "Closed"),
+      dom('span', ' Modal ', dom.text(use => use(isSaveModalOpen) ? "Open" : "Closed"),
         testId('save-modal-is-open'),
       ),
        ),
@@ -109,7 +109,7 @@ function setupTest() {
         'Spinner modal',
         testId('spinner-modal-opener'),
         dom.on('click', async () => {
-          const promise = new Promise<void>((resolve) => asyncTask.set({resolve}));
+          const promise = new Promise<void>(resolve => asyncTask.set({resolve}));
           await spinnerModal("Spinner Modal", promise);
           document.body.appendChild(
             dom('div', 'After spinner', testId('after-spinner'))

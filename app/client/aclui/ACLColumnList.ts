@@ -31,7 +31,7 @@ export function aclColumnList(colIds: Observable<string[]>, validColIds: string[
 
   // The observable for the selected element is a Computed, with a callback for being set, which
   // adds the selected colId to the list.
-  const newColId = Computed.create(null, (use) => '')
+  const newColId = Computed.create(null, use => '')
     .onWrite((value) => { setTimeout(() => addColId(value), 0); });
 
   // We don't allow adding the same column twice, so for the select dropdown build a list of

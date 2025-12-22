@@ -37,12 +37,12 @@ function setupTest() {
     dom('h3', 'Medium (app header)'),
     createAssorted('medium'),
     cssTestBox(
-      dom.forEach(range(20).map(i => `A${i}`), (name) =>
+      dom.forEach(range(20).map(i => `A${i}`), name =>
         createUserImage({name, email: ''}, 'medium')
       ),
     ),
     cssTestBox(
-      dom.forEach(range(20).map(i => `J M${i}`), (name) =>
+      dom.forEach(range(20).map(i => `J M${i}`), name =>
         createUserImage({name, email: ''}, 'medium')
       ),
     ),

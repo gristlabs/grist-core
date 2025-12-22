@@ -37,7 +37,7 @@ export class DataTables extends Disposable {
 
   constructor(private _gristDoc: GristDoc) {
     super();
-    this._tables = Computed.create(this, use => {
+    this._tables = Computed.create(this, (use) => {
       const dataTables = use(_gristDoc.docModel.rawDataTables.getObservable());
       const summaryTables = use(_gristDoc.docModel.rawSummaryTables.getObservable());
       // Remove tables that we don't have access to. ACL will remove tableId from those tables.
@@ -52,13 +52,13 @@ export class DataTables extends Disposable {
         testId('list'),
         cssHeader(t("Raw Data Tables")),
         cssList(
-          dom.forEach(this._tables, tableRec => {
+          dom.forEach(this._tables, (tableRec) => {
             const isEditingName = observable(false);
             return cssTable(
               dom.autoDispose(isEditingName),
               testId('table'),
               cssTableIcon(
-                dom.domComputed((use) => cssTableTypeIcon(
+                dom.domComputed(use => cssTableTypeIcon(
                   use(tableRec.summarySourceTable) !== 0 ? 'PivotLight' : 'TypeTable',
                   testId(`table-id-${use(tableRec.tableId)}`)
                 )),

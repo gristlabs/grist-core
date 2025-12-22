@@ -139,7 +139,7 @@ initGristStyles();
 void withLocale(() => {
   dom.update(document.body, setupTest(),
     dom('h3', "model calls"),
-    dom.forEach(modelCalls, (log) => dom('div.model-calls', log)),
+    dom.forEach(modelCalls, log => dom('div.model-calls', log)),
     dom('h3', "Disposed Items: "),
-    dom.forEach(disposed, (log) => dom('div.disposed-items', log)));
+    dom.forEach(disposed, log => dom('div.disposed-items', log)));
 });

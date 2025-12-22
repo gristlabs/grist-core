@@ -115,7 +115,7 @@ export class RightPanel extends Disposable {
     return use(this._pageWidgetType) === 'form';
   });
 
-  private _hasActiveWidget = Computed.create(this, (use) => Boolean(use(this._pageWidgetType)));
+  private _hasActiveWidget = Computed.create(this, use => Boolean(use(this._pageWidgetType)));
 
   // Returns the active section if it's valid, null otherwise.
   private _validSection = Computed.create(this, (use) => {
@@ -293,7 +293,7 @@ export class RightPanel extends Disposable {
       return Boolean(list && list.length > 1);
     }));
 
-    owner.autoDispose(selectedColumns.subscribe(cols => {
+    owner.autoDispose(selectedColumns.subscribe((cols) => {
       if (owner.isDisposed() || this._gristDoc.isDisposed() || this._gristDoc.viewModel.isDisposed()) { return; }
       const section = this._gristDoc.viewModel.activeSection();
       if (!section || section.isDisposed()) { return; }
@@ -315,7 +315,7 @@ export class RightPanel extends Disposable {
       return vsi?.cursor.currentPosition() ?? {};
     }));
 
-    return domAsync(imports.loadViewPane().then(ViewPane => {
+    return domAsync(imports.loadViewPane().then((ViewPane) => {
       const {buildNameConfig, buildFormulaConfig} = ViewPane.FieldConfig;
       return dom.maybe(isColumnValid, () =>
         buildConfigContainer(
@@ -413,7 +413,7 @@ export class RightPanel extends Disposable {
         ),
       ];
     };
-    return dom.maybe(this._validSection, (activeSection) =>
+    return dom.maybe(this._validSection, activeSection =>
       buildConfigContainer(content(activeSection))
     );
   }
@@ -464,7 +464,7 @@ export class RightPanel extends Disposable {
     const viewConfigTab = Observable.create<null|ViewConfigTab>(owner, null);
     const gristDoc = this._gristDoc;
     imports.loadViewPane()
-      .then(ViewPane => {
+      .then((ViewPane) => {
         if (owner.isDisposed()) { return; }
         viewConfigTab.set(owner.autoDispose(
           ViewPane.ViewConfigTab.create({gristDoc, viewModel: gristDoc.viewModel})));
@@ -477,7 +477,7 @@ export class RightPanel extends Disposable {
     // TODO: This uses private methods from ViewConfigTab. These methods are likely to get
     // refactored, but if not, should be made public.
     const viewConfigTab = this._createViewConfigTab(owner);
-    const hasCustomMapping = Computed.create(owner, use => {
+    const hasCustomMapping = Computed.create(owner, (use) => {
       // We shouldn't get here if activeSection is disposed but some errors reported in the wild
       // point to this being sometimes possible.
       if (activeSection.isDisposed()) { return false; }
@@ -492,16 +492,16 @@ export class RightPanel extends Disposable {
       return vsi?.cursor.currentPosition() ?? {};
     }));
 
-    return dom.maybe(viewConfigTab, (vct) => [
+    return dom.maybe(viewConfigTab, vct => [
       this._disableIfReadonly(),
       dom.maybe(use => !use(activeSection.isRecordCard), () => [
         cssLabel(dom.text(use => use(activeSection.isRaw) ? t("DATA TABLE NAME") : t("WIDGET TITLE")),
           {for: "right-widget-title-input"},
         ),
         cssRow(cssTextInput(
-          Computed.create(owner, (use) => use(activeSection.titleDef)),
+          Computed.create(owner, use => use(activeSection.titleDef)),
           val => activeSection.titleDef.saveOnly(val),
-          dom.boolAttr('disabled', use => {
+          dom.boolAttr('disabled', (use) => {
             const isRawTable = use(activeSection.isRaw);
             const isSummaryTable = use(use(activeSection.table).summarySourceTable) !== 0;
             return isRawTable && isSummaryTable;
@@ -516,14 +516,14 @@ export class RightPanel extends Disposable {
       ]),
 
       dom.maybe(
-        (use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard),
+        use => !use(activeSection.isRaw) && !use(activeSection.isRecordCard),
         () => cssRow(
           primaryButton(t("Change widget"), this._createPageWidgetPicker()),
           cssRow.cls('-top-space')
         ),
       ),
 
-      dom.maybe((use) => ['detail', 'single'].includes(use(this._pageWidgetType)!), () => [
+      dom.maybe(use => ['detail', 'single'].includes(use(this._pageWidgetType)!), () => [
         cssGroupLabel(t("Theme")),
         dom('div',
           vct._buildThemeDom(),
@@ -547,21 +547,21 @@ export class RightPanel extends Disposable {
         );
       }),
 
-      dom.maybe((use) => use(this._pageWidgetType) === 'chart', () =>
+      dom.maybe(use => use(this._pageWidgetType) === 'chart', () =>
         dom('div', {role: 'group', 'aria-label': t('Chart options')},
           cssGroupLabel(t("CHART TYPE")),
           vct._buildChartConfigDom(),
         )
       ),
 
-      dom.maybe((use) => use(this._pageWidgetType) === 'custom', () => {
+      dom.maybe(use => use(this._pageWidgetType) === 'custom', () => {
         const parts = vct._buildCustomTypeItems() as any[];
         return [
           cssSeparator(),
           // If 'customViewPlugin' feature is on, show the toggle that allows switching to
           // plugin mode. Note that the default mode for a new 'custom' view is 'url', so that's
           // the only one that will be shown without the feature flag.
-          dom.maybe((use) => use(this._gristDoc.app.features).customViewPlugin,
+          dom.maybe(use => use(this._gristDoc.app.features).customViewPlugin,
             () => dom('div', parts[0].buildDom())),
           dom.maybe(use => use(activeSection.customDef.mode) === 'plugin',
             () => dom('div', parts[2].buildDom())),
@@ -571,14 +571,14 @@ export class RightPanel extends Disposable {
             () => dom.create(CustomSectionConfig, activeSection, this._gristDoc)),
         ];
       }),
-      dom.maybe((use) =>  use(this._pageWidgetType)?.startsWith('custom.'), () => {
+      dom.maybe(use =>  use(this._pageWidgetType)?.startsWith('custom.'), () => {
         return [
           dom.create(PredefinedCustomSectionConfig, activeSection, this._gristDoc),
         ];
       }),
 
       dom.maybe(
-        (use) => !(
+        use => !(
           use(hasCustomMapping) ||
           use(this._pageWidgetType) === 'chart' ||
           use(activeSection.isRaw)
@@ -597,7 +597,7 @@ export class RightPanel extends Disposable {
 
   private _buildPageSortFilterConfig(owner: MultiHolder) {
     const viewConfigTab = this._createViewConfigTab(owner);
-    return dom.maybe(viewConfigTab, (vct) => vct.buildSortFilterDom());
+    return dom.maybe(viewConfigTab, vct => vct.buildSortFilterDom());
   }
 
   private _buildLinkInfo(activeSection: ViewSectionRec, ...domArgs: DomElementArg[]) {
@@ -630,7 +630,7 @@ export class RightPanel extends Disposable {
 
       // Make descriptor for the link's source like: "TableName . ColName" or "${SIGMA} TableName", etc
       const fromTableDom = [
-          dom.maybe((use2) => use2(srcTable.summarySourceTable), () => cssLinkInfoIcon("Pivot")),
+          dom.maybe(use2 => use2(srcTable.summarySourceTable), () => cssLinkInfoIcon("Pivot")),
           use(srcSec.titleDef) + (srcColId ? ` ${BLACK_CIRCLE} ${use(srcCol.label)}` : ''),
           dom.style("white-space", "normal"), //Allow table name to wrap, reduces how often scrollbar needed
         ];
@@ -783,7 +783,7 @@ export class RightPanel extends Disposable {
       const collapsed: SessionObs<boolean> = this._advLinkInfoCollapsed;
       return hasLink ? [
           cssRow(
-            icon('Dropdown', dom.style('transform', (use2) => use2(collapsed) ? 'rotate(-90deg)' : '')),
+            icon('Dropdown', dom.style('transform', use2 => use2(collapsed) ? 'rotate(-90deg)' : '')),
             "Advanced Link info",
             dom.style('font-size', `${vars.smallFontSize}`),
             dom.style('text-transform', 'uppercase'),
@@ -799,7 +799,7 @@ export class RightPanel extends Disposable {
     const viewConfigTab = this._createViewConfigTab(owner);
     const viewModel = this._gristDoc.viewModel;
     const table = activeSection.table;
-    const groupedBy = Computed.create(owner, (use) => use(use(table).groupByColumns));
+    const groupedBy = Computed.create(owner, use => use(use(table).groupByColumns));
     const link = Computed.create(owner, (use) => {
       return linkId({
         srcSectionRef: use(activeSection.linkSrcSectionRef),
@@ -840,23 +840,23 @@ export class RightPanel extends Disposable {
         cssGroupLabel(t("DATA TABLE"), {id: 'data-table-label'}),
         cssRow(
           cssIcon('TypeTable'), cssDataLabel(t("SOURCE DATA")),
-          cssContent(dom.text((use) => use(use(table).primaryTableId)),
+          cssContent(dom.text(use => use(use(table).primaryTableId)),
                     testId('pwc-table'))
         ),
         dom(
           'div',
           cssRow(cssIcon('Pivot'), cssDataLabel(t("GROUPED BY"), {id: 'data-grouped-by-label'})),
-          cssRow(domComputed(groupedBy, (cols) => cssList(
-            cols.map((c) => cssListItem(dom.text(c.label), testId('pwc-groupedBy-col'))),
+          cssRow(domComputed(groupedBy, cols => cssList(
+            cols.map(c => cssListItem(dom.text(c.label), testId('pwc-groupedBy-col'))),
             {'aria-labelledby': 'data-grouped-by-label'}
           ))),
 
           testId('pwc-groupedBy'),
           // hide if not a summary table
-          dom.hide((use) => !use(use(table).summarySourceTable)),
+          dom.hide(use => !use(use(table).summarySourceTable)),
         ),
 
-        dom.maybe((use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () =>
+        dom.maybe(use => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () =>
           cssButtonRow(primaryButton(t("Edit data selection"), this._createPageWidgetPicker(),
             testId('pwc-editDataSelection')),
             dom.maybe(
@@ -873,11 +873,11 @@ export class RightPanel extends Disposable {
 
       // TODO: "Advanced settings" is for "on-demand" marking of tables. This is now a deprecated feature. UIRowId
       // is only shown for tables that are marked as "on-demand""
-      dom.domComputed(use => use(use(table).onDemand) && use(viewConfigTab), (vct) => vct ? cssRow(
+      dom.domComputed(use => use(use(table).onDemand) && use(viewConfigTab), vct => vct ? cssRow(
         dom('div', vct._buildAdvancedSettingsDom()),
       ) : null),
 
-      dom.maybe((use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () => [
+      dom.maybe(use => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () => [
         cssSeparator(),
         cssLabel(t("SELECT BY")),
         cssRow(
@@ -901,7 +901,7 @@ export class RightPanel extends Disposable {
           cssGroupLabel(t("SELECTOR FOR"), {id: 'data-selector-for-label'}, testId('selector-for')),
           cssRow(cssList(
             {'aria-labelledby': 'data-selector-for-label'},
-            selectorFor.map((sec) => this._buildSectionItem(sec)),
+            selectorFor.map(sec => this._buildSectionItem(sec)),
           )),
         ] : null;
       }),
@@ -924,7 +924,7 @@ export class RightPanel extends Disposable {
       attachPageWidgetPicker(elem, gristDoc, onSave, {
         buttonLabel:  t("Save"),
         value: () => toPageWidget(activeSection.peek()),
-        selectBy: (val) => gristDoc.selectBy(val),
+        selectBy: val => gristDoc.selectBy(val),
       });
     };
   }
@@ -955,7 +955,7 @@ export class RightPanel extends Disposable {
     // All of those observables are backed by the layout config.
     const submitButtonKo = activeSection.layoutSpecObj.prop('submitText');
     const toComputed = (obs: typeof submitButtonKo) => {
-      const result = Computed.create(owner, (use) => use(obs));
+      const result = Computed.create(owner, use => use(obs));
       result.onWrite(val => obs.setAndSave(val));
       return result;
     };
@@ -964,12 +964,12 @@ export class RightPanel extends Disposable {
     const successURL = toComputed(activeSection.layoutSpecObj.prop('successURL'));
     const anotherResponse = toComputed(activeSection.layoutSpecObj.prop('anotherResponse'));
     const redirection = Observable.create(owner, Boolean(successURL.get()));
-    owner.autoDispose(redirection.addListener(val => {
+    owner.autoDispose(redirection.addListener((val) => {
       if (!val) {
         successURL.set(null);
       }
     }));
-    owner.autoDispose(successURL.addListener(val => {
+    owner.autoDispose(successURL.addListener((val) => {
       if (val) {
         redirection.set(true);
       }
@@ -977,13 +977,13 @@ export class RightPanel extends Disposable {
     return [
       cssLabel(t("Submit button label")),
       cssRow(
-        cssTextInput(submitButton, (val) => submitButton.set(val), {placeholder: t('Submit')}),
+        cssTextInput(submitButton, val => submitButton.set(val), {placeholder: t('Submit')}),
       ),
       cssLabel(t("Success text")),
       cssRow(
         cssTextArea(
           successText,
-          {autoGrow: true, save: (val) => successText.set(val)},
+          {autoGrow: true, save: val => successText.set(val)},
           {placeholder: t('Thank you! Your response has been recorded.')}
         ),
       ),
@@ -1004,7 +1004,7 @@ export class RightPanel extends Disposable {
       cssRow(
         cssTextInput(
           successURL,
-          (val) => successURL.set(val),
+          val => successURL.set(val),
           { placeholder: t("Enter redirect URL") },
           testId("form-redirect-url")
         ),
@@ -1062,7 +1062,7 @@ export class RightPanel extends Disposable {
           cssRow(
             cssTextInput(
               fromKo(fieldTitle),
-              (val) => fieldTitle.saveOnly(val).catch(reportError),
+              val => fieldTitle.saveOnly(val).catch(reportError),
               dom.prop('readonly', use => use(field.disableModify)),
               dom.prop('placeholder', use => use(field.displayLabel) || use(field.colId)),
               testId('field-title'),
@@ -1072,7 +1072,7 @@ export class RightPanel extends Disposable {
           cssRow(
             cssTextInput(
               fromKo(field.displayLabel),
-              (val) => field.displayLabel.saveOnly(val).catch(reportError),
+              val => field.displayLabel.saveOnly(val).catch(reportError),
               dom.prop('readonly', use => use(field.disableModify)),
               testId('field-label'),
             ),
@@ -1091,7 +1091,7 @@ export class RightPanel extends Disposable {
       }),
 
       // Box config
-      dom.maybe(selectedBoxWithOptions, (box) => [
+      dom.maybe(selectedBoxWithOptions, box => [
         cssLabel(dom.text(box.type)),
         cssRow(
           cssTextArea(
@@ -1152,7 +1152,7 @@ function tabContentToDom(content: Observable<TabContent[]>|TabContent[]|IDomComp
   }
 
   return cssTabContents(
-    dom.forEach(content, itemOrHeader => {
+    dom.forEach(content, (itemOrHeader) => {
       if (itemOrHeader.header) {
         return dom('div.config_group',
           dom.show(itemOrHeader.showObs || true),

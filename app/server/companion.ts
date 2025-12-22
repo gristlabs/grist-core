@@ -25,7 +25,7 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().then(() => process.exit(0)).catch(e => {
+  main().then(() => process.exit(0)).catch((e) => {
     // tslint:disable-next-line:no-console
     console.error(e);
     process.exit(1);

@@ -114,7 +114,7 @@ const KEY_MAP_WIN = {
 export function getHumanKey(key: string, mac: boolean): string {
   const keyMap = mac ? KEY_MAP_MAC : KEY_MAP_WIN;
   let keys = key.split('+').map(s => s.trim());
-  keys = keys.map(k => {
+  keys = keys.map((k) => {
     if (k in keyMap) { return (keyMap as any)[k]; }
     if (k.length === 1) { return k.toUpperCase(); }
     return k;
@@ -315,7 +315,7 @@ export class CommandGroup extends Disposable {
     if (typeof activate === 'boolean' || activate === undefined) {
       this.activate(activate ?? false);
     } else if (activate) {
-      this.autoDispose(subscribe(activate, (val) => this.activate(val)));
+      this.autoDispose(subscribe(activate, val => this.activate(val)));
       this.activate(unwrap(activate));
     }
   }

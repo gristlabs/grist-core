@@ -3,5 +3,5 @@
  * (A replica of bluebird.delay using native promises.)
  */
 export function delay(msec: number): Promise<void> {
-  return new Promise<void>((resolve) => setTimeout(resolve, msec));
+  return new Promise<void>(resolve => setTimeout(resolve, msec));
 }

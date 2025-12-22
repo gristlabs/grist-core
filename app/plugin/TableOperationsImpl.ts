@@ -65,12 +65,12 @@ export class TableOperationsImpl implements TableOperations {
       // A single bulk action will be applied to each group.
       // We don't want one bulk action for all records that might have different shapes,
       // because that would require filling arrays with null values.
-      const recGroups = groupBy(records, rec => {
+      const recGroups = groupBy(records, (rec) => {
         const requireKeys = Object.keys(rec.require).sort().join(',');
         const fieldsKeys = Object.keys(rec.fields || {}).sort().join(',');
         return `${requireKeys}:${fieldsKeys}`;
       });
-      const actions = Object.values(recGroups).map(group => {
+      const actions = Object.values(recGroups).map((group) => {
         const require = convertToBulkColValues(group.map(r => ({fields: r.require})));
         const fields = convertToBulkColValues(group.map(r => ({fields: r.fields || {}})));
         return ["BulkAddOrUpdateRecord", tableId, require, fields, options];

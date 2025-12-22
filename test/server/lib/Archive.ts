@@ -37,7 +37,7 @@ async function assertArchiveContainsTestFiles(archiveData: Buffer) {
   assert.equal(files.length, testFiles.length);
 
   for (const testFile of testFiles) {
-    const zippedFile = files.find((file) => file.path === testFile.name);
+    const zippedFile = files.find(file => file.path === testFile.name);
     assert.notEqual(zippedFile, undefined);
     assert.deepEqual(zippedFile?.data.toString(), testFile.contents);
   }
@@ -92,11 +92,11 @@ function testArchive(type: string, makeArchive: ArchiveCreator) {
 
 describe('Archive', function () {
   describe('create_zip_archive', function () {
-    const creator: ArchiveCreator = (entries) => create_zip_archive({store: true}, entries);
+    const creator: ArchiveCreator = entries => create_zip_archive({store: true}, entries);
     testArchive('zip', creator);
   });
   describe('create_tar_archive', function () {
-    const creator: ArchiveCreator = (entries) => create_tar_archive(entries);
+    const creator: ArchiveCreator = entries => create_tar_archive(entries);
     testArchive('tar', creator);
   });
 });

@@ -54,7 +54,7 @@ export function create_zip_archive(
       // `pipeline` should still resolve correctly, but none of the code in this block is guaranteed to execute.
       addEntriesToZipArchive(archive, entries)
         .then(() => archive.finish())
-        .catch((err) => archive.destroy(err));
+        .catch(err => archive.destroy(err));
 
       // This ensures any errors in the stream (e.g. from destroying it above) are propagated.
       await pipeline;
@@ -114,7 +114,7 @@ export function create_tar_archive(
       // While that hasn't been observed with .tar archives, this block isn't awaited as a precaution.
       addEntriesToTarArchive(archive, entries)
         .then(() => archive.finalize())
-        .catch((err) => archive.destroy(err));
+        .catch(err => archive.destroy(err));
 
       // This ensures any errors in the stream (e.g. from destroying it above) are handled.
       // Without this, node will see the stream as having an uncaught error, and complain or crash.

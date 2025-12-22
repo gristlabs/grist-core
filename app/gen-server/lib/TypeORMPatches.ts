@@ -163,7 +163,7 @@ export function applyPatch() {
           // use connections from multiple processes, but not to single-process
           // instances of Grist, or instances of Grist that use Postgres for the
           // home server.
-          worthRetry: (e) => Boolean(e.message.match(/SQLITE_BUSY/)),
+          worthRetry: e => Boolean(e.message.match(/SQLITE_BUSY/)),
           firstDelayMsec: 10,
           factor: 1.25,
           maxTotalMsec: 3000,

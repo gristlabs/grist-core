@@ -63,7 +63,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
       _log.info(null, `copying ${src} (${label}) using source connection`);
     } else {
       // We need to open an interface to SQLite.
-      await fromCallback(cb => { db = new sqlite3.Database(dest, cb) as sqlite3.DatabaseWithBackup; });
+      await fromCallback((cb) => { db = new sqlite3.Database(dest, cb) as sqlite3.DatabaseWithBackup; });
       // Turn off protections that can slow backup steps.  If the app or OS
       // crashes, the backup may be corrupt.  In Grist use case, if app or OS
       // crashes, no use will be made of backup, so we're OK.

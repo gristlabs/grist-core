@@ -116,7 +116,7 @@ export class ColumnsModel extends BoxModel {
       }
 
       // Remove each child of this column from the layout.
-      this.children.get().forEach(child => { child.removeSelf(); });
+      this.children.get().forEach((child) => { child.removeSelf(); });
 
       // Remove this column from the layout.
       this.removeSelf();
@@ -214,7 +214,7 @@ export class PlaceholderModel extends BoxModel {
         });
       }),
       // If we an occupant, render it.
-      dom.maybe(boxModelAt, (child) => child.render()),
+      dom.maybe(boxModelAt, child => child.render()),
       // If not, render a placeholder.
       dom.maybe(not(boxModelAt), () =>
         dom('span', `Column `, dom.text(use => String(use(liveIndex) + 1)))

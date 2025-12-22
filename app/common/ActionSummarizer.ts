@@ -446,7 +446,7 @@ function getRowChanges(e: TableDelta): RowChanges {
   const added = new Set(e.addRows);
   const removed = new Set(e.removeRows);
   const updated = new Set(e.updateRows);
-  return fromPairs([...all].map(x => {
+  return fromPairs([...all].map((x) => {
     return [x, {added: added.has(x),
                 removed: removed.has(x),
                 updated: updated.has(x)}] as [number, RowChange];

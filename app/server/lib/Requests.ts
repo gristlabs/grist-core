@@ -26,7 +26,7 @@ export class DocRequests {
     try {
       // Perform batches of requests in parallel for speed, and hope it doesn't cause rate limiting...
       for (const keys of chunk(Object.keys(requests), 10)) {
-        const responses: Response[] = await Promise.all(keys.map(async key => {
+        const responses: Response[] = await Promise.all(keys.map(async (key) => {
           const request = requests[key];
           const response = await this.handleSingleRequestWithCache(key, request);
           return {

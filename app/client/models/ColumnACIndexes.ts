@@ -52,7 +52,7 @@ export class ColumnACIndexes {
         const cleanText = normalizeText(text);
         return {rowId, text, cleanText};
       })
-      .filter((item) => filter?.(item) ?? true)
+      .filter(item => filter?.(item) ?? true)
       .sort(itemCompare);
     return new ACIndexImpl(items);
   }

@@ -178,7 +178,7 @@ export async function selectAndImport(
     if (!(err1 instanceof GDriveUrlNotSupported)) {
       reportError(err1);
     } else {
-      const gdrivePlugin = imports.find((p) => p.plugin.definition.id === 'builtIn/gdrive' && p !== importSourceElem);
+      const gdrivePlugin = imports.find(p => p.plugin.definition.id === 'builtIn/gdrive' && p !== importSourceElem);
       if (!gdrivePlugin) {
         reportError(err1);
       } else {
@@ -300,8 +300,8 @@ export class Importer extends DisposableWithEvents {
   /**
    * destTables is a list of tables user can choose to import data into, in the format suitable for the UI to consume.
    */
-  private _destTables = Computed.create<Array<IOptionFull<DestId>>>(this, (use) => [
-    ...use(this._gristDoc.docModel.visibleTableIds.getObservable()).map((id) => ({value: id, label: id})),
+  private _destTables = Computed.create<Array<IOptionFull<DestId>>>(this, use => [
+    ...use(this._gristDoc.docModel.visibleTableIds.getObservable()).map(id => ({value: id, label: id})),
   ]);
 
   /**
@@ -358,7 +358,7 @@ export class Importer extends DisposableWithEvents {
    * In other words, this is a list of GRIST COLUMNS that are not mapped to any SOURCE COLUMNS, so
    * columns that won't be imported.
    */
-  private _unmatchedFieldsMap: Computed<Map<SourceInfo, string[]|null>> = Computed.create(this, use => {
+  private _unmatchedFieldsMap: Computed<Map<SourceInfo, string[]|null>> = Computed.create(this, (use) => {
     const sources = use(this._sourceInfoArray);
     const result = new Map<SourceInfo, string[]|null>();
     const unmatched = (info: SourceInfo) => {
@@ -544,14 +544,14 @@ export class Importer extends DisposableWithEvents {
     const destTableId: DestId = sourceInfo.destTableId.get();
     return {
       destTableId,
-      destCols: transformFields.map<TransformColumn>((field) => ({
+      destCols: transformFields.map<TransformColumn>(field => ({
         label: field.label(),
         colId: destTableId ? field.colId() : null, // if inserting into new table, colId isn't defined
         type: field.column().type(),
         widgetOptions: field.column().widgetOptions(),
         formula: field.column().formula()
       })),
-      sourceCols: sourceFields.map((field) => field.colId())
+      sourceCols: sourceFields.map(field => field.colId())
     };
   }
 
@@ -636,7 +636,7 @@ export class Importer extends DisposableWithEvents {
    */
   private _prepareMergeOptions() {
     this._mergeOptions = {};
-    this._getHiddenTableIds().forEach(tableId => {
+    this._getHiddenTableIds().forEach((tableId) => {
       this._mergeOptions[tableId] = {
         // By default no, as we are importing into new tables.
         updateExistingRecords: Observable.create(null, false),
@@ -820,7 +820,7 @@ export class Importer extends DisposableWithEvents {
     const tabs = cssTableList(
       dom.forEach(this._sourceInfoArray, (info) => {
         const owner = MultiHolder.create(null);
-        const destTableId = Computed.create(owner, (use) => use(info.destTableId));
+        const destTableId = Computed.create(owner, use => use(info.destTableId));
         destTableId.onWrite(async (destId) => {
           // Prevent changing destination of un-selected sources if current configuration is invalid.
           if (info !== this._sourceInfoSelected.get() && !this._validateImportConfiguration()) {
@@ -834,9 +834,9 @@ export class Importer extends DisposableWithEvents {
         });
 
         // If this is selected source.
-        const isSelected = Computed.create(owner, (use) => use(this._sourceInfoSelected) === info);
+        const isSelected = Computed.create(owner, use => use(this._sourceInfoSelected) === info);
 
-        const unmatchedCount = Computed.create(owner, use => {
+        const unmatchedCount = Computed.create(owner, (use) => {
           const map = use(this._unmatchedFieldsMap);
           return map.get(info)?.length ?? 0;
         });
@@ -860,7 +860,7 @@ export class Importer extends DisposableWithEvents {
             )),
             dom.on('click', () => selectTab(info)),
           ),
-          dom.maybe(unmatchedCount, (count) => cssError(
+          dom.maybe(unmatchedCount, count => cssError(
             'Exclamation',
             testId('error'),
             hoverTooltip(t('{{count}} unmatched field', {count}))
@@ -876,12 +876,12 @@ export class Importer extends DisposableWithEvents {
         use => use(info.destTableId) && use(info.transformSection) ? use(info.transformSection) : null);
 
       // Computed to show the loader while we are waiting for the preview.
-      const showLoader = Computed.create(owner, use => {
+      const showLoader = Computed.create(owner, (use) => {
         return use(this._isLoadingDiff) || !use(this._previewViewSection);
       });
 
       // The same computed as configSection, but will evaluate to null while we are waiting for the preview
-      const previewSection = Computed.create(owner, use => {
+      const previewSection = Computed.create(owner, (use) => {
         return use(showLoader) ? null : use(this._previewViewSection);
       });
 
@@ -914,7 +914,7 @@ export class Importer extends DisposableWithEvents {
       });
 
       // Should we show the right panel with the column mapping.
-      const showRightPanel = Computed.create(owner, use => {
+      const showRightPanel = Computed.create(owner, (use) => {
         return use(isMergeTable) && use(info.selectedView) === COLUMN_MAPPING;
       });
 
@@ -924,7 +924,7 @@ export class Importer extends DisposableWithEvents {
       });
 
       // Pattern to create a computed value that can create and dispose objects in its callback.
-      Computed.create(owner, use => {
+      Computed.create(owner, (use) => {
         // This value must be returned for this pattern to work.
         const holder = MultiHolder.create(use.owner);
         // Now we can safely take ownership of things we create here - the subscriber.
@@ -1004,7 +1004,7 @@ export class Importer extends DisposableWithEvents {
               ))),
               dom.maybe(configSection, (section) => {
                 return dom.maybeOwned(updateExistingRecords, (owner2) => {
-                  owner2.autoDispose(mergeCols.addListener(async val => {
+                  owner2.autoDispose(mergeCols.addListener(async (val) => {
                     // Reset the error state of the multiSelect on change.
                     if (val.length !== 0 && hasInvalidMergeCols.get()) {
                       hasInvalidMergeCols.set(false);
@@ -1039,9 +1039,9 @@ export class Importer extends DisposableWithEvents {
                   dom('div', null),
                   dom('span', t('Source column')),
                 ),
-                dom.forEach(fromKo(section.viewFields().getObservable()), field => {
+                dom.forEach(fromKo(section.viewFields().getObservable()), (field) => {
                   const owner2 = MultiHolder.create(null);
-                  const isCustomFormula = Computed.create(owner2, use => {
+                  const isCustomFormula = Computed.create(owner2, (use) => {
                     return use(info.customizedColumns).has(field.colId());
                   });
                   return cssColumnMatchRow(
@@ -1101,7 +1101,7 @@ export class Importer extends DisposableWithEvents {
             )
           ]),
           cssWarningText(dom.text(use => use(this._parseOptions)?.WARNING || ""), testId('warning')),
-          dom.domComputed(use => {
+          dom.domComputed((use) => {
             if (use(isSkipTable)) {
               return cssOverlay(t('Skip Table on Import'), testId('preview-overlay'));
             }
@@ -1121,7 +1121,7 @@ export class Importer extends DisposableWithEvents {
     const buttons = cssImportButtons(cssImportButtonsLine(
       bigPrimaryButton(t('Import'),
         dom.on('click', () => this._maybeFinishImport(upload)),
-        dom.boolAttr('disabled', use => {
+        dom.boolAttr('disabled', (use) => {
           return use(this._previewViewSection) === null ||
                  use(this._sourceInfoArray).every(i => use(i.destTableId) === SKIP_TABLE);
         }),
@@ -1131,7 +1131,7 @@ export class Importer extends DisposableWithEvents {
         dom.on('click', () => this._cancelImport()),
         baseTestId('modal-cancel'),
       ),
-      dom.domComputed(this._unmatchedFieldsMap, fields => {
+      dom.domComputed(this._unmatchedFieldsMap, (fields) => {
         const piles: HTMLElement[] = [];
         let count = 0;
         for(const [info, list] of fields) {
@@ -1219,7 +1219,7 @@ export class Importer extends DisposableWithEvents {
   private _addFocusLayer(container: HTMLElement) {
     dom.autoDisposeElem(container, new FocusLayer({
       defaultFocusElem: container,
-      allowFocus: (elem) => (elem !== document.body),
+      allowFocus: elem => (elem !== document.body),
       onDefaultFocus: () => this.trigger('importer_focus'),
     }));
   }
@@ -1293,7 +1293,7 @@ export class Importer extends DisposableWithEvents {
    * an editor for the formula for `column`.
    */
   private _buildSourceSelector(owner: MultiHolder, field: ViewFieldRec, info: SourceInfo) {
-    const anyOtherColumns = Computed.create(owner, use => {
+    const anyOtherColumns = Computed.create(owner, (use) => {
       const transformCol = field.column.peek();
       const options = use(this._transformColImportOptions).get(transformCol.getRowId()) ?? new Map<string, string>();
       const otherFilter = ([formula]: [string, string] ) => {
@@ -1317,7 +1317,7 @@ export class Importer extends DisposableWithEvents {
       return this._makeImportOptionsMenu(transformCol, possibleSources, info);
     });
 
-    const selectedSource = Computed.create(owner, use => {
+    const selectedSource = Computed.create(owner, (use) => {
       const column = use(field.column);
       const importOptions = use(this._transformColImportOptions).get(column.getRowId());
       // Now translate the formula generated (which is unique) to the source label.
@@ -1359,7 +1359,7 @@ export class Importer extends DisposableWithEvents {
    * an editor for the formula for `column`.
    */
   private _buildCustomFormula(owner: MultiHolder, field: ViewFieldRec, info: SourceInfo) {
-    const formula = Computed.create(owner, use => {
+    const formula = Computed.create(owner, (use) => {
       const column = use(field.column);
       return use(column.formula);
     });
@@ -1394,7 +1394,7 @@ export class Importer extends DisposableWithEvents {
           // If user manually matched, then changed import options, they'll have to re-match; when
           // columns change at all, the alternative has incorrect columns in UI and is more confusing.
           this._sourceInfoArray.set([]);
-          this._reImport(upload).catch((err) => reportError(err));
+          this._reImport(upload).catch(err => reportError(err));
         },
         () => {
           anotherScreen.dispose();

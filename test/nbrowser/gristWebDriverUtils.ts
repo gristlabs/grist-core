@@ -411,10 +411,10 @@ export class GristWebDriverUtils {
 
     if (typeof colOrOptions === 'object' && 'cols' in colOrOptions) {
       const { rowNums, section, mapper } = colOrOptions;    // tslint:disable-line:no-shadowed-variable
-      const columns = await Promise.all(colOrOptions.cols.map((oneCol) =>
+      const columns = await Promise.all(colOrOptions.cols.map(oneCol =>
         this.getVisibleGridCells({ col: oneCol, rowNums, section, mapper })));
       // This zips column-wise data into a flat row-wise array of values.
-      return ([] as T[]).concat(...rowNums.map((_r, i) => columns.map((c) => c[i])));
+      return ([] as T[]).concat(...rowNums.map((_r, i) => columns.map(c => c[i])));
     }
 
     const { col, rowNums, section, mapper = el => el.getText() }: IColSelect<any> = (
@@ -432,11 +432,11 @@ export class GristWebDriverUtils {
       await sectionElem.findContent('.column_name', this.exactMatch(col)).index());
 
     const visibleRowNums: number[] = await sectionElem.findAll('.gridview_data_row_num',
-      async (el) => parseInt(await el.getText(), 10));
+      async el => parseInt(await el.getText(), 10));
 
     const selector = `.gridview_data_scroll .record:not(.column_names) .field:nth-child(${colIndex + 1})`;
     const fields = mapper ? await sectionElem.findAll(selector, mapper) : await sectionElem.findAll(selector);
-    return rowNums.map((n) => fields[visibleRowNums.indexOf(n)]);
+    return rowNums.map(n => fields[visibleRowNums.indexOf(n)]);
   }
 
   /**
@@ -452,7 +452,7 @@ export class GristWebDriverUtils {
     const options: IColSelect<WebElement> = (typeof colOrOptions === 'object' ?
       { col: colOrOptions.col, rowNums: [colOrOptions.rowNum], section: colOrOptions.section, mapper } :
       { col: colOrOptions, rowNums: [rowNum!], section, mapper });
-    return new WebElementPromise(this.driver, this.getVisibleGridCells(options).then((elems) => elems[0]));
+    return new WebElementPromise(this.driver, this.getVisibleGridCells(options).then(elems => elems[0]));
   }
 
   /**

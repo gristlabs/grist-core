@@ -42,7 +42,7 @@ describe('Formulas', function() {
     await gu.getColumnHeader({ col : '$C'});
     // Move mouse over other column, and make sure it is highlighted
     const hoverOver = async (col: string) =>
-      await driver.withActions((actions) => (
+      await driver.withActions(actions => (
         actions
           .move({origin: gu.getCell(col, 1)})
           .move({origin: gu.getCell(col, 2)})
@@ -89,17 +89,17 @@ describe('Formulas', function() {
     // - First moving on the row number
     await hoverOver('$A');
     await isHoverOn('$A');
-    await driver.withActions((actions) => actions.move({origin: driver.find('.gridview_data_row_num')}));
+    await driver.withActions(actions => actions.move({origin: driver.find('.gridview_data_row_num')}));
     await noHoverAtAll();
     // - Moving over add button
     await hoverOver('$A');
     await isHoverOn('$A');
-    await driver.withActions((actions) => actions.move({origin: driver.find('.mod-add-column')}));
+    await driver.withActions(actions => actions.move({origin: driver.find('.mod-add-column')}));
     await noHoverAtAll();
     // - Moving below last row
     await hoverOver('$A');
     await isHoverOn('$A');
-    await driver.withActions((actions) =>
+    await driver.withActions(actions =>
       actions
         .move({origin: gu.getCell('$A', 7)})
         .move({origin: gu.getCell('$A', 7), y : 22 + 1})
@@ -109,14 +109,14 @@ describe('Formulas', function() {
     await hoverOver('$A');
     await isHoverOn('$A');
     // First move to the last cell,
-    await driver.withActions((actions) =>
+    await driver.withActions(actions =>
       actions
         .move({origin: gu.getCell("$C", 7)}) // move add row on last column
     );
     await isHoverOn('$C');
     await noHoverOn('$A');
     // and then a little bit to the right (100px is width of the field)
-    await driver.withActions((actions) =>
+    await driver.withActions(actions =>
       actions
         .move({origin: gu.getCell("$C", 7), x : 100 + 1})
     );
@@ -126,11 +126,11 @@ describe('Formulas', function() {
     await hoverOver('$A');
     await isHoverOn('$A');
     // move on the A header,
-    await driver.withActions((actions) => actions.move({origin: gu.getColumnHeader({ col : '$A' })}));
+    await driver.withActions(actions => actions.move({origin: gu.getColumnHeader({ col : '$A' })}));
     // still hover should be on A column,
     await isHoverOn('$A');
     // and now jump out of the grid (22 is height of the row)
-    await driver.withActions((actions) => actions.move({origin: gu.getColumnHeader({ col : '$A' }), y : -22 - 3}));
+    await driver.withActions(actions => actions.move({origin: gu.getColumnHeader({ col : '$A' }), y : -22 - 3}));
     await noHoverAtAll();
     // undo adding 3 columns
     await driver.sendKeys(Key.ESCAPE);

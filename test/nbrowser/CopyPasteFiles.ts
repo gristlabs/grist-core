@@ -71,7 +71,7 @@ describe('CopyPasteFiles', function() {
 });
 
 function getCellThumbTitles(cell: WebElement): Promise<string[]> {
-  return cell.findAll(".test-pw-thumbnail", (el) => el.getAttribute("title"));
+  return cell.findAll(".test-pw-thumbnail", el => el.getAttribute("title"));
 }
 
 // Creates a synthetic paste of a file, not from the real clipboard but by dispatching within the

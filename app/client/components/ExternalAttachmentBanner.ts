@@ -37,7 +37,7 @@ export class ExternalAttachmentBanner extends Disposable {
 
   public buildDom() {
     return dom.maybe(this._docPageModel.appModel.isOwner(), () => {
-      return dom.domComputed(use => {
+      return dom.domComputed((use) => {
         const usage = use(this._docPageModel.currentDocUsage);
         if (!usage?.usageRecommendations?.recommendExternal) {
           return;

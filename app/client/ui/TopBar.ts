@@ -80,7 +80,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
     return Boolean(searchModel && use(searchModel.isOpen));
   });
 
-  const isUndoRedoAvailable = Computed.create(owner, use => {
+  const isUndoRedoAvailable = Computed.create(owner, (use) => {
     const gristDoc = use(pageModel.gristDoc);
     if (!gristDoc) { return false; }
 
@@ -93,19 +93,19 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
   return [
     // TODO Before gristDoc is loaded, we could show doc-name without the page. For now, we delay
     // showing of breadcrumbs until gristDoc is loaded.
-    dom.maybe(pageModel.gristDoc, (gristDoc) =>
+    dom.maybe(pageModel.gristDoc, gristDoc =>
       cssBreadcrumbContainer(
         docBreadcrumbs(displayNameWs, pageModel.currentDocTitle, gristDoc.currentPageName, {
           docNameSave: renameDoc,
           pageNameSave: getRenamePageFn(gristDoc),
           cancelRecoveryMode: getCancelRecoveryModeFn(gristDoc),
-          isPageNameReadOnly: (use) => use(gristDoc.isReadonly) || typeof use(gristDoc.activeViewId) !== 'number',
-          isDocNameReadOnly: (use) => use(gristDoc.isReadonly) || use(pageModel.isFork),
+          isPageNameReadOnly: use => use(gristDoc.isReadonly) || typeof use(gristDoc.activeViewId) !== 'number',
+          isDocNameReadOnly: use => use(gristDoc.isReadonly) || use(pageModel.isFork),
           isFork: pageModel.isFork,
           isBareFork: pageModel.isBareFork,
           isRecoveryMode: pageModel.isRecoveryMode,
           isTutorialFork: pageModel.isTutorialFork,
-          isFiddle: Computed.create(owner, (use) => use(pageModel.isPrefork)),
+          isFiddle: Computed.create(owner, use => use(pageModel.isPrefork)),
           isSnapshot: pageModel.isSnapshot,
           isPublic: Computed.create(owner, doc, (use, _doc) => Boolean(_doc && _doc.public)),
           isTemplate: pageModel.isTemplate,
@@ -124,9 +124,9 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
       )
     ),
     cssFlexSpace(),
-    dom.maybe(pageModel.gristDoc, (gristDoc) => buildActiveUserList(owner, gristDoc.userPresenceModel)),
+    dom.maybe(pageModel.gristDoc, gristDoc => buildActiveUserList(owner, gristDoc.userPresenceModel)),
     // Don't show useless undo/redo buttons for sample docs, to leave more space for "Make copy".
-    dom.maybe(pageModel.undoState, (state) => [
+    dom.maybe(pageModel.undoState, state => [
       topBarUndoBtn('Undo',
         dom.on('click', () => state.isUndoDisabled.get() || allCommands.undo.run()),
         dom.hide(use => use(isSearchOpen)),
@@ -153,7 +153,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
     dom.maybe(use => !(use(pageModel.isTemplate) && isAnonymous), () => [
       buildShareMenuButton(pageModel),
       dom.maybe(pageModel.gristDoc,
-        (gristDoc) => buildShowDiscussionButton(gristDoc)),
+        gristDoc => buildShowDiscussionButton(gristDoc)),
       dom.update(
         buildNotifyMenuButton(appModel.notifier, appModel),
         cssHideForNarrowScreen.cls(''),

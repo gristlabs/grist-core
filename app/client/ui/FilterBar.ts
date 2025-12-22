@@ -21,7 +21,7 @@ export function filterBar(
   const popupControls = new WeakMap<ColumnRec, PopupControl>();
   return cssFilterBar(
     testId('filter-bar'),
-    dom.forEach(viewSection.activeFilters, (filterInfo) => makeFilterField(filterInfo, popupControls)),
+    dom.forEach(viewSection.activeFilters, filterInfo => makeFilterField(filterInfo, popupControls)),
     dom.maybe(viewSection.showNestedFilteringPopup, () => {
       return dom('div',
         gristDoc.behavioralPromptsManager.attachPopup('nestedFiltering', {
@@ -84,8 +84,8 @@ export function addFilterMenu(
   const {allowedColumns, menuOptions} = options;
   return (
     dropdownWithSearch<FilterInfo>({
-      action: (filterInfo) => openFilter(filterInfo, popupControls),
-      options: () => filters.map((filterInfo) => ({
+      action: filterInfo => openFilter(filterInfo, popupControls),
+      options: () => filters.map(filterInfo => ({
         label: filterInfo.fieldOrColumn.origCol().label.peek(),
         value: filterInfo,
         disabled: allowedColumns === 'unpinned-or-unfiltered'

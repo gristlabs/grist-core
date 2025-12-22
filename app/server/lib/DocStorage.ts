@@ -157,7 +157,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           log.debug(`${migrationLabel}: table ${tableId}`);
           // This returns rows with (at least) {name, type, dflt_value}.
           return db.all(`PRAGMA table_info(${quoteIdent(tableId)})`)
-            .then(infoRows => {
+            .then((infoRows) => {
               const colListSql = infoRows.map(info => quoteIdent(info.name)).join(', ');
               const colSpecSql = infoRows.map(_sqlColSpec).join(', ');
               const tmpTableId = DocStorage._makeTmpTableId(tableId);
@@ -315,7 +315,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
           // Get the column SQL for what the columns should be, and the value SQL for how to
           // prepare the values to fill them in.
-          const fixes = infoRows.map((r) => _getInfoAndValuesSql(r, tableId));
+          const fixes = infoRows.map(r => _getInfoAndValuesSql(r, tableId));
           const newColSpecSql = fixes.map(pair => pair[0]).map(_sqlColSpec).join(', ');
           const valuesSql = fixes.map(pair => pair[1]).join(', ');
 
@@ -761,7 +761,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         // Note that schema is what's imported from app/common/schema.js
         this._docSchema = Object.assign(s, schema.schema);
       })
-      .catch(err => {
+      .catch((err) => {
         // This replicates previous logic for _updateMetadata.
         // It matches errors from node-sqlite3 and better-sqlite3
         if (err.message.startsWith('SQLITE_ERROR: no such table') ||
@@ -921,7 +921,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * Fetches all rows of the table with the given rowIds.
    */
   public async fetchActionData(tableId: string, rowIds: number[], colIds?: string[]): Promise<TableDataAction> {
-    const colSpec = colIds ? ['id', ...colIds].map((c) => quoteIdent(c)).join(', ') : '*';
+    const colSpec = colIds ? ['id', ...colIds].map(c => quoteIdent(c)).join(', ') : '*';
     let fullValues: TableColValues|undefined;
 
     // There is a limit to the number of arguments that may be passed in, so fetch data in chunks.
@@ -1299,7 +1299,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
     // This returns rows with (at least) {name, type, dflt_value}.
     return this.all(`PRAGMA table_info(${quote(tableId)})`)
-      .then(infoRows => {
+      .then((infoRows) => {
         const newInfoRows = infoRows.filter(row => (row.name !== colId && row.name !== 'id'));
         if (newInfoRows.length === infoRows.length) {
           // Column was not found. That's ok, and happens when deleting formula column.
@@ -1361,7 +1361,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     log.debug('DocStorage.renameDocTo: %s -> %s', this.docName, newName);
     return this.shutdown()
       .then(() => this.storageManager.renameDoc(this.docName, newName))
-      .catch(err => {
+      .catch((err) => {
         log.error("DocStorage: renameDocTo %s -> %s failed: %s", this.docName, newName, err.message);
         return this.openFile()
           .then(function() {
@@ -1688,7 +1688,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         name LIKE 'sqlite_%' OR
         name LIKE '_gristsys_%'
       );
-    `).catch(e => {
+    `).catch((e) => {
       if (String(e).match(/no such table: dbstat/)) {
         // We are using a version of SQLite that doesn't have
         // dbstat compiled in. But it would be sad to disable

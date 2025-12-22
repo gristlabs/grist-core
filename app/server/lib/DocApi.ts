@@ -452,7 +452,7 @@ export class DocWorkerApi {
             fields.watchedColRefList = [GristObjCode.List, ...watchedColIds
               .filter(colId => colId.trim() !== "")
               .map(
-                colId => { return colIdToReference(metaTables, tableId, colId.trim().replace(/^\$/, '')); }
+                (colId) => { return colIdToReference(metaTables, tableId, colId.trim().replace(/^\$/, '')); }
               )];
           }
         } else {
@@ -505,7 +505,7 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/tables', canView,
       withDoc(async (activeDoc, req, res) => {
         const records = await getTableRecords(activeDoc, req, { optTableId: "_grist_Tables" });
-        const tables: Types.RecordWithStringId[] = records.map((record) => ({
+        const tables: Types.RecordWithStringId[] = records.map(record => ({
           id: String(record.fields.tableId),
           fields: {
             ..._.omit(record.fields, "tableId"),
@@ -1052,7 +1052,7 @@ export class DocWorkerApi {
           const registeredWebhook = await registerWebhook(activeDoc, req, webhook.fields);
           registeredWebhooks.push(registeredWebhook);
         }
-        res.json({webhooks:  registeredWebhooks.map(rw=> {
+        res.json({webhooks:  registeredWebhooks.map((rw)=> {
           return {id: rw.webhookId};
         })});
       })
@@ -1376,7 +1376,7 @@ export class DocWorkerApi {
       const showDetails = isAffirmative(req.query.detail);
       const maxRows = optIntegerParam(req.query.maxRows, "maxRows", {
         nullable: true,
-        isValid: (n) => n > 0,
+        isValid: n => n > 0,
       });
       const docId2 = req.params.docId2;
       const comp = await this._compareDoc(req, activeDoc, {
@@ -1398,7 +1398,7 @@ export class DocWorkerApi {
       const rightHash = stringParam(req.query.right || 'HEAD', 'right');
       const maxRows = optIntegerParam(req.query.maxRows, "maxRows", {
         nullable: true,
-        isValid: (n) => n > 0,
+        isValid: n => n > 0,
       });
       const {states} = await this._getStates(docSession, activeDoc);
       res.json(
@@ -1704,7 +1704,7 @@ export class DocWorkerApi {
         const Tables_column = activeDoc.docData.getMetaTable('_grist_Tables_column');
         const fields = Views_section_field
           .filterRecords({parentId: sectionId})
-          .filter(f => {
+          .filter((f) => {
             const col = Tables_column.getRecord(f.colRef);
             // Formulas are currently unsupported.
             return col && !(col.isFormula && col.formula);
@@ -2137,7 +2137,7 @@ export class DocWorkerApi {
       const expiry = 2 * 24 * 60 * 60 / period.periodsPerDay;
       multi.incr(key).expire(key, expiry);
     }
-    multi.execAsync().then(result => {
+    multi.execAsync().then((result) => {
       for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
         const newCount = Number(result![i * 2]);  // incrs are at even positions, expires at odd positions
@@ -2242,7 +2242,7 @@ export class DocWorkerApi {
       const forks = forkId ? [] : await this._dbManager.getDocForks(docId);
       const docsToDelete = [
         docId,
-        ...forks.map((fork) =>
+        ...forks.map(fork =>
           buildUrlId({forkId: fork.id, forkUserId: fork.createdBy!, trunkId: docId})),
       ];
       if (!forkId) {

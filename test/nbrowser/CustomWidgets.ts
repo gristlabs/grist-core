@@ -99,7 +99,7 @@ describe('CustomWidgets', function () {
     }
 
     // Create simple widget server that serves manifest.json file, some widgets and some error pages.
-    const widgetServer = await serveSomething(app => {
+    const widgetServer = await serveSomething((app) => {
       app.get('/404', (_, res) => res.sendStatus(404).end()); // not found
       app.get('/500', (_, res) => res.sendStatus(500).end()); // internal error
       app.get('/200', (_, res) => res.sendStatus(200).end()); // valid response with OK
@@ -173,7 +173,7 @@ describe('CustomWidgets', function () {
 
   async function execute(
     op: (table: TableOperations) => Promise<any>,
-    tableSelector: (grist: any) => TableOperations = (grist) => grist.selectedTable
+    tableSelector: (grist: any) => TableOperations = grist => grist.selectedTable
   ) {
     return gu.doInIframe(await getCustomWidgetFrame(), async ()=> {
       const harness = async (done: any) => {
@@ -563,29 +563,29 @@ describe('CustomWidgets', function () {
     it('should show available widgets', async () => {
       await gu.openCustomWidgetGallery();
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget-name', (el) => el.getText()),
+        await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
         ['Custom URL', 'full', 'none', 'read table', 'W1', 'W2']
       );
     });
 
     it('should show available metadata', async () => {
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget', (el) =>
+        await driver.findAll('.test-custom-widget-gallery-widget', el =>
           el.matches('.test-custom-widget-gallery-widget-custom')),
         [true, false, false, false, false, false]
       );
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget', (el) =>
+        await driver.findAll('.test-custom-widget-gallery-widget', el =>
           el.matches('.test-custom-widget-gallery-widget-grist')),
         [false, true, true, true, true, false]
       );
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget', (el) =>
+        await driver.findAll('.test-custom-widget-gallery-widget', el =>
           el.matches('.test-custom-widget-gallery-widget-community')),
         [false, false, false, false, false, true]
       );
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget-description', (el) => el.getText()),
+        await driver.findAll('.test-custom-widget-gallery-widget-description', el => el.getText()),
         [
           'Add a widget from outside this gallery.',
           '(Missing info)',
@@ -596,14 +596,14 @@ describe('CustomWidgets', function () {
         ]
       );
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget-developer', (el) => el.getText()),
+        await driver.findAll('.test-custom-widget-gallery-widget-developer', el => el.getText()),
         [
           '(Missing info)',
           '(Missing info)',
         ]
       );
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget-last-updated', (el) => el.getText()),
+        await driver.findAll('.test-custom-widget-gallery-widget-last-updated', el => el.getText()),
         [
           '(Missing info)',
           '(Missing info)',
@@ -619,42 +619,42 @@ describe('CustomWidgets', function () {
       await gu.sendKeys('Custom');
       await gu.waitToPass(async () => {
         assert.deepEqual(
-          await driver.findAll('.test-custom-widget-gallery-widget-name', (el) => el.getText()),
+          await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
           ['Custom URL']
         );
       }, 200);
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE);
       await gu.waitToPass(async () => {
         assert.deepEqual(
-          await driver.findAll('.test-custom-widget-gallery-widget-name', (el) => el.getText()),
+          await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
           ['Custom URL', 'full', 'none', 'read table', 'W1', 'W2']
         );
       }, 200);
       await gu.sendKeys('W');
       await gu.waitToPass(async () => {
         assert.deepEqual(
-          await driver.findAll('.test-custom-widget-gallery-widget-name', (el) => el.getText()),
+          await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
           ['Custom URL', 'W1', 'W2']
         );
       }, 200);
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, 'tab');
       await gu.waitToPass(async () => {
         assert.deepEqual(
-          await driver.findAll('.test-custom-widget-gallery-widget-name', (el) => el.getText()),
+          await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
           ['read table']
         );
       }, 200);
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, 'Markdown');
       await gu.waitToPass(async () => {
         assert.deepEqual(
-          await driver.findAll('.test-custom-widget-gallery-widget-name', (el) => el.getText()),
+          await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
           []
         );
       }, 200);
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, 'Developer 1');
       await gu.waitToPass(async () => {
         assert.deepEqual(
-          await driver.findAll('.test-custom-widget-gallery-widget-name', (el) => el.getText()),
+          await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
           ['W1']
         );
       }, 200);
@@ -668,7 +668,7 @@ describe('CustomWidgets', function () {
       );
       await gu.openCustomWidgetGallery();
       assert.deepEqual(
-        await driver.findAll('.test-custom-widget-gallery-widget-name', (el) => el.getText()),
+        await driver.findAll('.test-custom-widget-gallery-widget-name', el => el.getText()),
         ['Custom URL']
       );
       await gu.sendKeys(Key.ESCAPE);
@@ -840,7 +840,7 @@ describe('CustomWidgets', function () {
       });
 
       // Check an update works.
-      await execute(async table => {
+      await execute(async (table) => {
         return table.update({
           id: 2,
           fields: {A: 'farewell'}
@@ -851,7 +851,7 @@ describe('CustomWidgets', function () {
       });
 
       // Check options are passed along.
-      await execute(async table => {
+      await execute(async (table) => {
         return table.upsert({
           require: {},
           fields: {A: 'goodbyes'}
@@ -863,7 +863,7 @@ describe('CustomWidgets', function () {
       });
 
       // Check a create works.
-      const {id} = await execute(async table => {
+      const {id} = await execute(async (table) => {
         return table.create({
           fields: {A: 'partA', B: 'partB'}
         });
@@ -875,14 +875,14 @@ describe('CustomWidgets', function () {
       });
 
       // Check a destroy works.
-      let result = await execute(async table => {
+      let result = await execute(async (table) => {
         await table.destroy(1);
       });
       assert.isUndefined(result);
       await gu.waitToPass(async () => {
         assert.equal(await gu.getCell({section: 'TABLE1', rowNum: id - 1, col: 0}).getText(), 'partA');
       });
-      result = await execute(async table => {
+      result = await execute(async (table) => {
         await table.destroy([2]);
       });
       assert.isUndefined(result);
@@ -891,7 +891,7 @@ describe('CustomWidgets', function () {
       });
 
       // Check errors are friendly.
-      const errMessage = await execute(async table => {
+      const errMessage = await execute(async (table) => {
         await table.create({fields: {ziggy: 1}});
       });
       assert.equal(errMessage, 'Invalid column "ziggy"');
@@ -899,23 +899,23 @@ describe('CustomWidgets', function () {
 
     it("should support grist.getTable", async () => {
       // Check an update on an existing table works.
-      await execute(async table => {
+      await execute(async (table) => {
         return table.update({
           id: 3,
           fields: {A: 'back again'}
         });
-      }, (grist) => grist.getTable('Table1'));
+      }, grist => grist.getTable('Table1'));
       await gu.waitToPass(async () => {
         assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 1, col: 0}).getText(), 'back again');
       });
 
       // Check an update on a nonexistent table fails.
-      assert.match(String(await execute(async table => {
+      assert.match(String(await execute(async (table) => {
         return table.update({
           id: 3,
           fields: {A: 'back again'}
         });
-      }, (grist) => grist.getTable('Table2'))), /Table not found/);
+      }, grist => grist.getTable('Table2'))), /Table not found/);
     });
 
     it("should support grist.getAccessTokens", async () => {

@@ -11,7 +11,7 @@ export function element(type: string, arg1?: number | WebElement, arg2?: WebElem
     }
     const nth = ((arg2 ?? driver).findAll(`.active_section .test-forms-${type}`)
       .then(els => els[arg1 - 1]))
-      .then(el => {
+      .then((el) => {
         if (!el) { throw new Error(`No element of type ${type} at index ${arg1}`); }
         return el;
       });

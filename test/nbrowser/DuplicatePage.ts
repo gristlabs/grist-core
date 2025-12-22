@@ -46,7 +46,7 @@ describe('DuplicatePage', async function() {
     // check pages and content
     assert.deepEqual(await gu.getPageNames(), ['City', 'Country', 'CountryLanguage']);
     assert.deepEqual(
-      await driver.findAll('.test-treeview-itemHeader.selected .test-docpage-label', (e) => e.getText()),
+      await driver.findAll('.test-treeview-itemHeader.selected .test-docpage-label', e => e.getText()),
       ['City']
     );
 
@@ -62,7 +62,7 @@ describe('DuplicatePage', async function() {
 
     // check copy has focus
     assert.deepEqual(
-      await driver.findAll('.test-treeview-itemHeader.selected .test-docpage-label', (e) => e.getText()),
+      await driver.findAll('.test-treeview-itemHeader.selected .test-docpage-label', e => e.getText()),
       ['Country (copy)']
     );
 
@@ -98,7 +98,7 @@ describe('DuplicatePage', async function() {
     await gu.undo();
     assert.deepEqual(await gu.getPageNames(), ['City', 'Country', 'CountryLanguage']);
     assert.deepEqual(
-      await driver.findAll('.test-treeview-itemHeader.selected .test-docpage-label', (e) => e.getText()),
+      await driver.findAll('.test-treeview-itemHeader.selected .test-docpage-label', e => e.getText()),
       ['City']
     );
 
@@ -123,7 +123,7 @@ describe('DuplicatePage', async function() {
     // check layout Card List is correct
     assert.deepEqual(
       await driver.find('.g_record_detail')
-        .findAll('.layout_hbox', (hbox) => hbox
+        .findAll('.layout_hbox', hbox => hbox
                  .findAll('.g_record_detail_label', e => e.getText())),
       [['Name', 'Country', 'Pop. \'000'], ['District', 'Population']]
     );
@@ -135,7 +135,7 @@ describe('DuplicatePage', async function() {
     const selectedFilters = async () =>
       (
         await driver.findAll(".test-filter-menu-list label",
-          async (e) => (await e.find("input").matches(":checked"))
+          async e => (await e.find("input").matches(":checked"))
             ? (await e.find(".test-filter-menu-value").getText())
             : "")
       ).filter(x=>x);
@@ -157,7 +157,7 @@ describe('DuplicatePage', async function() {
       await driver.find(".active_section .test-section-menu-small-btn-save").click();
       await gu.waitForServer();
     };
-    const filters = () => driver.findAll('.active_section .test-filter-bar .test-filter-field', (e) => e.getText());
+    const filters = () => driver.findAll('.active_section .test-filter-bar .test-filter-field', e => e.getText());
 
     // Filter Country Section.
     await gu.getPageItem("Country").click();

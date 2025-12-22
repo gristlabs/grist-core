@@ -216,7 +216,7 @@ describe('Webhooks-Proxy', function () {
 
       before(async function () {
         this.timeout(30000);
-        serving = await serveSomething(app => {
+        serving = await serveSomething((app) => {
 
           app.use(express.json());
           app.post('/200', ({body}, res) => {
@@ -330,5 +330,5 @@ const ORG_NAME = 'docs-1';
 
 async function getWorkspaceId(api: UserAPIImpl, name: string) {
   const workspaces = await api.getOrgWorkspaces('current');
-  return workspaces.find((w) => w.name === name)!.id;
+  return workspaces.find(w => w.name === name)!.id;
 }

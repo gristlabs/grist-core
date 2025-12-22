@@ -583,7 +583,7 @@ export class FlexServer implements GristServer {
         // removing workers when connection is unstable).
         if (this._docWorkerMap.getRedisClient()?.connected) {
           checks.set('docWorkerRegistered', asyncCheck(
-            this._docWorkerMap.isWorkerRegistered(this.worker).then(isRegistered => {
+            this._docWorkerMap.isWorkerRegistered(this.worker).then((isRegistered) => {
               if (!isRegistered) { throw new Error('doc worker not registered'); }
               return isRegistered;
             })
@@ -2348,7 +2348,7 @@ export class FlexServer implements GristServer {
     let assignments = await workers.getAssignments(this.worker.id);
     let retries: number = 0;
     while (assignments.length > 0 && retries < 3) {
-      await Promise.all(assignments.map(async assignment => {
+      await Promise.all(assignments.map(async (assignment) => {
         log.info("FlexServer shutdown assignment", assignment);
         try {
         // Start sending the doc to S3 if needed.

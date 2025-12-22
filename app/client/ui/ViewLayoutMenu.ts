@@ -87,7 +87,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       t("Download as CSV"), testId('download-section')),
     menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getXlsxActiveViewLink(), target: '_blank', download: ''}),
       t("Download as XLSX"), testId('download-section')),
-    dom.maybe((use) => ['detail', 'single'].includes(use(viewSection.parentKey)), () =>
+    dom.maybe(use => ['detail', 'single'].includes(use(viewSection.parentKey)), () =>
       menuItemCmd(allCommands.editLayout, t("Edit card layout"),
         dom.cls('disabled', isReadonly))),
 
@@ -100,7 +100,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
     ]),
 
     menuDivider(dom.hide(viewSection.isRecordCard)),
-    dom.maybe((use) => use(viewSection.parentKey) === 'custom' && use(viewSection.hasCustomOptions), () =>
+    dom.maybe(use => use(viewSection.parentKey) === 'custom' && use(viewSection.hasCustomOptions), () =>
       menuItemCmd(allCommands.openWidgetConfiguration, t("Open configuration"),
         testId('section-open-configuration')),
     ),
@@ -128,7 +128,7 @@ export function makeCollapsedLayoutMenu(viewSection: ViewSectionRec, gristDoc: G
   const anchorUrlState = { hash: { sectionId, popup: true } };
   const rawUrl = urlState().makeUrl(anchorUrlState);
   return [
-    dom.maybe((use) => !use(viewSection.isRaw) && use(gristDoc.canShowRawData),
+    dom.maybe(use => !use(viewSection.isRaw) && use(gristDoc.canShowRawData),
       () => menuItemLink(
         { href: rawUrl}, t("Show raw data"), testId('show-raw-data'),
         dom.on('click', () => {

@@ -96,7 +96,7 @@ class ChoiceListParser extends ValueParser {
 
   private _parseCsv(value: string): string[] {
     // Split everything on newlines which are not allowed by the choice editor.
-    return flatMap(value.split(/[\n\r]+/), row => {
+    return flatMap(value.split(/[\n\r]+/), (row) => {
       return csvDecodeRow(row)
         .map(v => v.trim());
     });

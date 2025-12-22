@@ -110,7 +110,7 @@ export function addOrg(
     billing?: BillingOptions,
   }
 ): Promise<Organization> {
-  return dbManager.connection.transaction(async manager => {
+  return dbManager.connection.transaction(async (manager) => {
     const user = await manager.findOne(User, {where: {id: userId}});
     if (!user) { return handleDeletedUser(); }
     const query = await dbManager.addOrg(user, props, {
@@ -425,7 +425,7 @@ export class ApiServer {
     this._app.get('/api/orgs/:oid/access', expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const query = await this._withPrivilegedViewForUser(
-        org, req, (scope) => this._dbManager.getOrgAccess(scope, org)
+        org, req, scope => this._dbManager.getOrgAccess(scope, org)
       );
       return sendReply(req, res, query);
     }));
@@ -571,7 +571,7 @@ export class ApiServer {
       const fullUser = await this._getFullUser(req, {includePrefs: true});
       const domain = getOrgFromRequest(req);
       const org = domain ? (await this._withPrivilegedViewForUser(
-        domain, req, (scope) => this._dbManager.getOrg(scope, domain)
+        domain, req, scope => this._dbManager.getOrg(scope, domain)
       )) : null;
       const orgError = (org && org.errMessage) ? {error: org.errMessage, status: org.status} : undefined;
       return sendOkReply(req, res, {
@@ -669,7 +669,7 @@ export class ApiServer {
       this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const data = await this._dbManager.getOwnedServiceAccounts(userId);
-        const resp: Array<Partial<SATypes.ServiceAccountApiResponse>> = data.map(serviceAccount => {
+        const resp: Array<Partial<SATypes.ServiceAccountApiResponse>> = data.map((serviceAccount) => {
           const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
           return {
             id: serviceAccount.id,

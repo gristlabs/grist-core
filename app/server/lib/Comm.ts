@@ -133,7 +133,7 @@ export class Comm extends EventEmitter {
   public async testServerShutdown() {
     if (this._wss) {
       for (const wssi of this._wss) {
-        await fromCallback((cb) => wssi.close(cb));
+        await fromCallback(cb => wssi.close(cb));
       }
       this._wss = null;
     }

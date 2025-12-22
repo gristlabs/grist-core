@@ -57,7 +57,7 @@ describe('editableLabel', function() {
       // Update the value on the server and resolve the server call(s).
       await driver.find('.test-server-value').doClear().sendKeys("foo");
       await driver.find('.test-server-update').click();
-      await driver.findAll('.test-call-resolve', (el) => el.click());
+      await driver.findAll('.test-call-resolve', el => el.click());
 
       // We should have the new value in the editableLabel, and in the plain text box.
       assert.equal(await driver.find('.test-edit-label').value(), "foo");
@@ -71,12 +71,12 @@ describe('editableLabel', function() {
 
       await driver.find('.test-server-value').doClear().sendKeys("foo");
       await driver.find('.test-server-update').click();
-      await driver.findAll('.test-call-resolve', (el) => el.click());
+      await driver.findAll('.test-call-resolve', el => el.click());
 
       assert.equal(await driver.find('.test-edit-label').value(), "foo");
       assert.equal(await driver.find('.test-saved-value').getText(), "foo");
 
-      assert.deepEqual(await driver.findAll('.test-call-log li', (el) => el.getText()),
+      assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
                        ['Called: foo', 'Resolved']);
     });
 
@@ -88,21 +88,21 @@ describe('editableLabel', function() {
       // At this point the textbox has the new value, but it's not yet saved.
       assert.equal(await driver.find('.test-edit-label').value(), "BlurTest");
       assert.equal(await driver.find('.test-saved-value').getText(), "Hello");
-      assert.deepEqual(await driver.findAll('.test-call-log li', (el) => el.getText()), []);
+      assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()), []);
 
       // Click away (on a text label): a call should be made.
       await driver.find('.test-saved-value').click();
-      assert.deepEqual(await driver.findAll('.test-call-log li', (el) => el.getText()), ['Called: BlurTest']);
+      assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()), ['Called: BlurTest']);
 
       // Resolve the server call.
       await driver.find('.test-server-value').doClear().sendKeys("BlurTest");
       await driver.find('.test-server-update').click();
-      await driver.findAll('.test-call-resolve', (el) => el.click());
+      await driver.findAll('.test-call-resolve', el => el.click());
 
       // Check that both values are now updated.
       assert.equal(await driver.find('.test-edit-label').value(), "BlurTest");
       assert.equal(await driver.find('.test-saved-value').getText(), "BlurTest");
-      assert.deepEqual(await driver.findAll('.test-call-log li', (el) => el.getText()),
+      assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
                        ['Called: BlurTest', 'Resolved']);
     });
 
@@ -112,7 +112,7 @@ describe('editableLabel', function() {
       await driver.find('.test-edit-label').doClick().sendKeys(Key.ESCAPE);
 
       // Check that no calls are made.
-      assert.deepEqual(await driver.findAll('.test-call-log li', (el) => el.getText()),
+      assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
                        []);
     });
 
@@ -125,7 +125,7 @@ describe('editableLabel', function() {
       assert.equal(await driver.find('.test-saved-value').getText(), "Hello");
 
       // Check that no calls are made.
-      assert.deepEqual(await driver.findAll('.test-call-log li', (el) => el.getText()),
+      assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
                        []);
     });
 
@@ -144,7 +144,7 @@ describe('editableLabel', function() {
       await driver.find('.test-edit-label').doClick().sendKeys('Hola', Key.ENTER);
       await driver.find('.test-server-value').doClear().sendKeys("Hola");
       await driver.find('.test-server-update').click();
-      await driver.findAll('.test-call-resolve', (el) => el.click());
+      await driver.findAll('.test-call-resolve', el => el.click());
 
       // Check that editableLabel reflects it.
       assert.equal(await driver.find('.test-saved-value').getText(), "Hola");
@@ -168,13 +168,13 @@ describe('editableLabel', function() {
       // Update the value on the server to something else, and resolve.
       await driver.find('.test-server-value').doClear().sendKeys("foo2");
       await driver.find('.test-server-update').click();
-      await driver.findAll('.test-call-resolve', (el) => el.click());
+      await driver.findAll('.test-call-resolve', el => el.click());
 
       // We should have the server value in the editableLabel, and in the plain text box
       assert.equal(await driver.find('.test-saved-value').getText(), "foo2");
       assert.equal(await driver.find('.test-edit-label').value(), "foo2");
 
-      assert.deepEqual(await driver.findAll('.test-call-log li', (el) => el.getText()),
+      assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
                        ['Called: foo', 'Resolved']);
     });
 
@@ -184,13 +184,13 @@ describe('editableLabel', function() {
       await driver.find('.test-edit-label').sendKeys("foo", Key.ENTER);
 
       // Reject the server call.
-      await driver.findAll('.test-call-reject', (el) => el.click());
+      await driver.findAll('.test-call-reject', el => el.click());
 
       // server value and editableLabel should have the previous server value.
       assert.equal(await driver.find('.test-saved-value').getText(), "Hello");
       assert.equal(await driver.find('.test-edit-label').value(), "Hello");
 
-      assert.deepEqual(await driver.findAll('.test-call-log li', (el) => el.getText()),
+      assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
                        ['Called: foo', 'Rejected: FakeError']);
     });
 
@@ -209,7 +209,7 @@ describe('editableLabel', function() {
       assert.equal(await driver.find('.test-edit-label').value(), "Hello-foo");
 
       // Check that no calls are made.
-      assert.deepEqual(await driver.findAll('.test-call-log li', (el) => el.getText()), []);
+      assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()), []);
     });
 
     it("should be disabled while a call is pending", async function() {
@@ -224,7 +224,7 @@ describe('editableLabel', function() {
       // Resolve the server call.
       await driver.find('.test-server-value').doClear().sendKeys("foo");
       await driver.find('.test-server-update').click();
-      await driver.findAll('.test-call-resolve', (el) => el.click());
+      await driver.findAll('.test-call-resolve', el => el.click());
 
       // editableLabel should now be enabled again.
       assert.equal(await driver.find('.test-edit-label').getAttribute('disabled'), null);

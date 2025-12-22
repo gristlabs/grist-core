@@ -18,7 +18,7 @@ function setupTest() {
   const saveCalls = obsArray<ISaveCall>([]);
 
   const onSelect: ISaveFunc = async (val) => {
-    const promise = new Promise<void>(resolve => {
+    const promise = new Promise<void>((resolve) => {
       saveCalls.push({resolve, value: val});
     });
     await promise;
@@ -36,7 +36,7 @@ function setupTest() {
         const isNewPage = use(isNewPageObs);
         const value = use(valueOpt) ? () => valueOpt.get()! : undefined;
         return {isNewPage, value};
-      }, (option) => [
+      }, option => [
         basicButton(
           'Page widget picker',
           pageWidgetPicker(onSelect, option),
@@ -55,10 +55,10 @@ function setupTest() {
             ),
           ),
           dom(
-            'div', 'value: ', dom.text((use) => JSON.stringify(use(valueOpt))),
+            'div', 'value: ', dom.text(use => JSON.stringify(use(valueOpt))),
             dom(
               'button', 'Change',
-              pageWidgetPicker(async (val) => valueOpt.set(val), option),
+              pageWidgetPicker(async val => valueOpt.set(val), option),
               testId('option-value'),
             ),
             dom(
@@ -72,7 +72,7 @@ function setupTest() {
 
     cssCallLogs(
       dom('h3', 'Call logs: '),
-      dom.forEach(saveCalls, (call) => dom(
+      dom.forEach(saveCalls, call => dom(
         'div',
         dom('span', JSON.stringify(call.value), testId('call-value')),
         dom('button', 'Resolve', dom.on('click', (ev, el) => {

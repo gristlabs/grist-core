@@ -121,7 +121,7 @@ export class SubprocessControl implements ISandboxControl {
     logMeta?: log.ILogMeta,
   }) {
     this._active = true;
-    this._monitoredProcess = this._scan().catch(e => {
+    this._monitoredProcess = this._scan().catch((e) => {
       log.rawDebug(`Subprocess control failure: ${e}`, this._options.logMeta || {});
       return null;
     });
@@ -242,7 +242,7 @@ export class SubprocessControl implements ISandboxControl {
    * recursively.
    */
   private async _addChildren(processes: ProcessInfo[]): Promise<ProcessInfo[]> {
-    const nestedProcesses = await Promise.all(processes.map(async proc => {
+    const nestedProcesses = await Promise.all(processes.map(async (proc) => {
       const children = await this._getChildren(proc.pid, proc.label);
       return [proc, ...await this._addChildren(children)];
     }));
@@ -268,7 +268,7 @@ export class SubprocessControl implements ISandboxControl {
       .split('\n')
       .map(line => line.trim())
       .map(line => line.split(' ', 2))
-      .map(part => {
+      .map((part) => {
         return {
           pid: parseInt(part[0], 10) || 0,
           label: part[1] || '',

@@ -23,13 +23,13 @@ export class HyperLinkTextBox extends NTextBox {
     const value = row.cells[this.field.colId()];
     const url = Computed.create(
       null,
-      (use) => sanitizeLinkUrl(constructUrl(use(value))) ?? "about:blank"
+      use => sanitizeLinkUrl(constructUrl(use(value))) ?? "about:blank"
     );
     return cssFieldClip(
       dom.autoDispose(url),
       dom.style('text-align', this.alignment),
       dom.cls('text_wrapping', this.wrapping),
-      dom.maybe((use) => Boolean(use(value)), () =>
+      dom.maybe(use => Boolean(use(value)), () =>
         gristLink(url,
           cssIconSpanBackground(
             iconSpan("FieldLink", testId('tb-link-icon')),
@@ -38,7 +38,7 @@ export class HyperLinkTextBox extends NTextBox {
           testId('tb-link'),
         ),
       ),
-      dom.text((use) => _formatValue(use(value))),
+      dom.text(use => _formatValue(use(value))),
     );
   }
 }

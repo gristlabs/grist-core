@@ -109,7 +109,7 @@ describe('SortFilterSectionOptions', function() {
     // Verify that section menu displays the filtered column
     menu = await driver.findWait('.grist-floating-menu', 100);
     assert.deepEqual(
-      await menu.findAll('.test-filter-config-filter', (el) => el.getText()),
+      await menu.findAll('.test-filter-config-filter', el => el.getText()),
       ['Name']
     );
     await assertPinnedFilters([{name: 'Name', hasUnsavedChanges: true}]);
@@ -335,7 +335,7 @@ describe('SortFilterSectionOptions', function() {
     // The section-filter button should highlight, and menu should show the filtered column.
     assert.equal(await driver.find('.test-section-menu-wrapper').matches('[class*=-unsaved]'), true);
     const menu = await gu.openSectionMenu('sortAndFilter');
-    assert.deepEqual(await menu.findAll('.test-filter-config-filter', (f) => f.getText()), ['Name']);
+    assert.deepEqual(await menu.findAll('.test-filter-config-filter', f => f.getText()), ['Name']);
 
     // Revert the filters, the button should un-highlight again.
     await menu.find('.test-section-menu-btn-revert').click();
@@ -462,7 +462,7 @@ describe('SortFilterSectionOptions', function() {
 
     // check filter list is empty
     assert.deepEqual(
-      await driver.findAll('.test-section-menu-filter-col', (e) => e.getText()),
+      await driver.findAll('.test-section-menu-filter-col', e => e.getText()),
       []);
 
     // click the add filter button
@@ -470,7 +470,7 @@ describe('SortFilterSectionOptions', function() {
 
     // check all columns are listed
     assert.deepEqual(
-      await driver.findAll('.test-sd-searchable-list-item', (e) => e.getText()),
+      await driver.findAll('.test-sd-searchable-list-item', e => e.getText()),
       ['Name', 'Count', 'Date']
     );
 
@@ -493,7 +493,7 @@ describe('SortFilterSectionOptions', function() {
 
     // check filter list and pinned filters
     assert.deepEqual(
-      await driver.findAll('.test-filter-config-filter', (e) => e.getText()),
+      await driver.findAll('.test-filter-config-filter', e => e.getText()),
       ['Name']);
     await assertPinnedFilters([{name: 'Name', hasUnsavedChanges: true}]);
 

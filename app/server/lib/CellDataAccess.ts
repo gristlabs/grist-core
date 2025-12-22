@@ -113,7 +113,7 @@ export async function applyAndCheckActionsForCells(
             fail();
           }
         }
-        postponed = postponed.filter((i) => i !== id);
+        postponed = postponed.filter(i => i !== id);
       } else {
         // We are updating a cell metadata. We will need to check if we can update it.
         let cell = cellData.getCell(id);
@@ -268,7 +268,7 @@ export class CellData {
       } else {
         // Otherwise, compute participants for this table/column/row combination.
         const participants = new Set(
-          this.readCells(tableId, new Set([rowId]), colId).flatMap(c => {
+          this.readCells(tableId, new Set([rowId]), colId).flatMap((c) => {
             const parsed = safeJsonParse(c.content, {}) as CommentContent; // Parse the cell content.
             return [c.userRef, ...parsed.mentions || []]; // Include the user reference and any mentions.
           })

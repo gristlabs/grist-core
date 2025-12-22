@@ -67,7 +67,7 @@ export class DocList extends Disposable {
   private readonly _tabIconsAndLabels = getTabIconsAndLabels();
 
   private readonly _tabs: MaybeObsArray<TabProps> = this.autoDispose(
-    computedArray(this._tabNames, (tab) => ({
+    computedArray(this._tabNames, tab => ({
       id: tab,
       label: this._tabIconsAndLabels[tab].label,
       icon: this._tabIconsAndLabels[tab].icon,
@@ -110,7 +110,7 @@ export class DocList extends Disposable {
 
   private _buildViewSettings() {
     return dom.maybe(
-      (use) => use(this._tab) !== "recent",
+      use => use(this._tab) !== "recent",
       () =>
         cssViewSettings(
           dom.update(
@@ -132,7 +132,7 @@ export class DocList extends Disposable {
     const { currentSort } = this._viewSettings;
     return [
       dom.domComputed(
-        (use) => ({
+        use => ({
           docs: use(this._home.currentWSDocs),
           sort: use(currentSort),
           tab: use(this._tab),
@@ -222,7 +222,7 @@ export class DocList extends Disposable {
                         // Keep the document highlighted while the menu is open.
                         parentSelectorToMark: "." + cssDocRow.className,
                       }),
-                      dom.on("click", (ev) => stopEvent(ev)),
+                      dom.on("click", ev => stopEvent(ev)),
                       {'aria-label': t("context menu - {{- documentName }}", {documentName: `"${doc.name}"`})},
                       testId("doc-options")
                     ),
@@ -332,7 +332,7 @@ function showMoveDocModal(home: HomeModel, doc: Document) {
           if (ws.isSupportWorkspace) {
             return null;
           }
-          const isCurrent = Boolean(ws.docs.find((_doc) => _doc.id === doc.id));
+          const isCurrent = Boolean(ws.docs.find(_doc => _doc.id === doc.id));
           const isEditable = roles.canEdit(ws.access);
           const disabled = isCurrent || !isEditable;
           return cssMoveDocListItem(
@@ -344,7 +344,7 @@ function showMoveDocModal(home: HomeModel, doc: Document) {
             cssMoveDocListItem.cls("-disabled", disabled),
             cssMoveDocListItem.cls(
               "-selected",
-              (use) => use(selected) === ws.id
+              use => use(selected) === ws.id
             ),
             dom.on("click", () => disabled || selected.set(ws.id)),
             testId("dest-ws")
@@ -355,7 +355,7 @@ function showMoveDocModal(home: HomeModel, doc: Document) {
     return {
       title: t("Move {{name}} to workspace", { name: doc.name }),
       body,
-      saveDisabled: Computed.create(owner, (use) => !use(selected)),
+      saveDisabled: Computed.create(owner, use => !use(selected)),
       saveFunc: async () =>
         !selected.get() ||
         home.moveDoc(doc.id, selected.get()!).catch(reportError),
@@ -399,9 +399,9 @@ function sortAndFilterDocs(
     docs = docs.filter(({ isPinned }) => isPinned);
   }
   if (sort === "date" || tab === "recent") {
-    docs = sortBy(docs, (doc) => doc.removedAt || doc.updatedAt).reverse();
+    docs = sortBy(docs, doc => doc.removedAt || doc.updatedAt).reverse();
   } else {
-    docs = sortBy(docs, (doc) => doc.name.toLowerCase());
+    docs = sortBy(docs, doc => doc.name.toLowerCase());
   }
   return docs;
 }

@@ -65,15 +65,15 @@ export class TableWithOverlay<T extends keyof SchemaTypes> {
 
   public filterRecords(properties: Partial<MetaRowRecord<T>>): Array<MetaRowRecord<T>> {
     const originalRecords = this._originalTable.filterRecords(properties);
-    const extraRecords = this._extraRecords.filter((rec) => Object.keys(properties)
-      .every((p) => isEqual((rec as any)[p], (properties as any)[p])));
+    const extraRecords = this._extraRecords.filter(rec => Object.keys(properties)
+      .every(p => isEqual((rec as any)[p], (properties as any)[p])));
     return this._filterExcludedRecords([...originalRecords, ...extraRecords]);
   }
 
   public findMatchingRowId(properties: Partial<MetaRowRecord<T>>): number {
     const rowId = (
       this._originalTable.findMatchingRowId(properties) ||
-      this._extraRecords.find((rec) => Object.keys(properties).every((p) =>
+      this._extraRecords.find(rec => Object.keys(properties).every(p =>
         isEqual((rec as any)[p], (properties as any)[p]))
       )?.id
     );
@@ -221,7 +221,7 @@ export class ACLRulesReader {
     });
     const parentViews = new Set(pages.map(page => page.viewRef));
     const sections = this.docData.getMetaTable('_grist_Views_section').getRecords().filter(
-      section => {
+      (section) => {
         if (!parentViews.has(section.parentId)) { return false; }
         const options = JSON.parse(section.shareOptions || '{}');
         return Boolean(options.publish) && Boolean(options.form);
@@ -230,13 +230,13 @@ export class ACLRulesReader {
 
     const sectionIds = new Set(sections.map(section => section.id));
     const fields = this.docData.getMetaTable('_grist_Views_section_field').getRecords().filter(
-      field => {
+      (field) => {
         return sectionIds.has(field.parentId);
       }
     );
     const columnIds = new Set(fields.map(field => field.colRef));
     const columns = this.docData.getMetaTable('_grist_Tables_column').getRecords().filter(
-      column => {
+      (column) => {
         return columnIds.has(column.id);
       }
     );

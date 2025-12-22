@@ -44,10 +44,10 @@ export function viewSectionMenu(
   const {docModel, isReadonly} = gristDoc;
 
   // If there is any filter (should [Filter Icon] background be filled).
-  const anyFilter = Computed.create(owner, (use) =>  Boolean(use(viewSection.activeFilters).length));
+  const anyFilter = Computed.create(owner, use =>  Boolean(use(viewSection.activeFilters).length));
 
   // Should we show [Save] [Revert] buttons.
-  const displaySaveObs: Computed<boolean> = Computed.create(owner, (use) => (
+  const displaySaveObs: Computed<boolean> = Computed.create(owner, use => (
     use(viewSection.filterSpecChanged)
       || !use(viewSection.activeSortJson.isSaved)
       || !use(viewSection.activeCustomOptions.isSaved)
@@ -135,7 +135,7 @@ export function viewSectionMenu(
         // visible.
         dom.autoDispose(viewSection.activeFilters.addListener(() => ctl.update())),
         dom.autoDispose(viewSection.activeSortJson.subscribe(() => ctl.update())),
-        elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+        (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
       ], {...defaultMenuOptions, placement: 'bottom-end', trigger: [
         // Toggle the menu whenever the filter icon button is clicked.
         (el, ctl) => dom.onMatchElem(el, '.test-section-menu-sortAndFilter', 'click', () => {
@@ -197,7 +197,7 @@ function makeFilterPanel(section: ViewSectionRec) {
 // (empty)|(customized)|(modified) [Remove Icon]
 function makeCustomOptions(section: ViewSectionRec) {
   const color = Computed.create(null, use => use(section.activeCustomOptions.isSaved) ? "-normal" : "-accent");
-  const text = Computed.create(null, use => {
+  const text = Computed.create(null, (use) => {
     if (use(section.activeCustomOptions)) {
       return use(section.activeCustomOptions.isSaved) ? t("(customized)") : t("(modified)");
     } else {

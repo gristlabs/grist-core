@@ -27,7 +27,7 @@ describe('AttachedCustomWidget', function () {
 
   async function buildWidgetServer(){
     // Create simple widget server that serves manifest.json file, some widgets and some error pages.
-    const widgetServer = await serveSomething(app => {
+    const widgetServer = await serveSomething((app) => {
       app.get(widgetEndpoint, (req, res) =>
         res
           .header('Content-Type', 'text/html')

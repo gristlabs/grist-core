@@ -1250,7 +1250,7 @@ describe('ActiveDoc', async function() {
       const getFileName = (filePath: string) => filePath.substring(filePath.indexOf("_") + 1);
       const files = await decompress(archive);
       for (const expectedFile of expectedFiles) {
-        const file = files.find((file) => getFileName(file.path) === expectedFile.name);
+        const file = files.find(file => getFileName(file.path) === expectedFile.name);
         assert(file, "file not found in archive");
         if (expectedFile.contents) {
           assert.equal(

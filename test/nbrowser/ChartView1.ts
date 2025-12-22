@@ -209,7 +209,7 @@ describe('ChartView1', function() {
     // Move 'largeValue' above 'value'. Scroll it into view first, since dragging is a bit messed
     // up when it causes the pane to scroll.
     await gu.scrollIntoView(findYAxis('largeValue'));
-    await driver.withActions((actions) => actions.dragAndDrop(findYAxis('largeValue'), findYAxis('value')));
+    await driver.withActions(actions => actions.dragAndDrop(findYAxis('largeValue'), findYAxis('value')));
     await gu.waitForServer();
 
     await checkAxisConfig({
@@ -268,7 +268,7 @@ describe('ChartView1', function() {
     await addYAxis('largeValue');
 
     // moves 'largeValue' above 'value'
-    await driver.withActions((actions) => actions.dragAndDrop(findYAxis('largeValue'), findYAxis('value')));
+    await driver.withActions(actions => actions.dragAndDrop(findYAxis('largeValue'), findYAxis('value')));
     await gu.waitForServer();
 
     // check axis correctness
@@ -320,7 +320,7 @@ describe('ChartView1', function() {
 
     // adds 'label' and move to be first y axis
     await addYAxis('label');
-    await driver.withActions((actions) => actions.dragAndDrop(findYAxis('label'), findYAxis('largeValue')));
+    await driver.withActions(actions => actions.dragAndDrop(findYAxis('label'), findYAxis('largeValue')));
     await gu.waitForServer();
 
     // check axis

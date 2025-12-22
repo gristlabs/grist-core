@@ -74,7 +74,7 @@ export class AuditLogsModelImpl extends Disposable implements AuditLogsModel {
     properties: Partial<Omit<AuditLogStreamingDestination, "id">>
   ): Promise<void> {
     const destinations = this.streamingDestinations.get() ?? [];
-    const index = destinations.findIndex((d) => d.id === id);
+    const index = destinations.findIndex(d => d.id === id);
     if (index === -1) {
       throw new Error("streaming destination not found");
     }
@@ -94,7 +94,7 @@ export class AuditLogsModelImpl extends Disposable implements AuditLogsModel {
     id: AuditLogStreamingDestination["id"]
   ): Promise<void> {
     const destinations = this.streamingDestinations.get() ?? [];
-    const newDestinations = destinations.filter((d) => d.id !== id);
+    const newDestinations = destinations.filter(d => d.id !== id);
     await this._updateStreamingDestinations(newDestinations);
   }
 

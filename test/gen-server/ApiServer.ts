@@ -62,9 +62,9 @@ describe('ApiServer', function() {
     homeUrl = await server.start(['home', 'docs']);
     dbManager = server.dbManager;
 
-    chimpyRef = await dbManager.getUserByLogin(chimpyEmail).then((user) => user.ref);
-    kiwiRef = await dbManager.getUserByLogin(kiwiEmail).then((user) => user.ref);
-    charonRef = await dbManager.getUserByLogin(charonEmail).then((user) => user.ref);
+    chimpyRef = await dbManager.getUserByLogin(chimpyEmail).then(user => user.ref);
+    kiwiRef = await dbManager.getUserByLogin(kiwiEmail).then(user => user.ref);
+    charonRef = await dbManager.getUserByLogin(charonEmail).then(user => user.ref);
 
     // Listen to user count updates and add them to an array.
     server.server.onUserChange(async ({org, countBefore, countAfter}: UserChange) => {

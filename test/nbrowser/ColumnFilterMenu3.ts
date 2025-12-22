@@ -172,11 +172,11 @@ describe('ColumnFilterMenu3', function() {
 
     async function assertEmptyRowCount(count: number) {
       assert.deepEqual(
-        await driver.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()),
+        await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()),
         ['']
       );
       assert.deepEqual(
-        await driver.findAll('.test-filter-menu-list .test-filter-menu-count', (e) => e.getText()),
+        await driver.findAll('.test-filter-menu-list .test-filter-menu-count', e => e.getText()),
         [count.toString()],
       );
     }

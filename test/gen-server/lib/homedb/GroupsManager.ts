@@ -35,7 +35,7 @@ describe("GroupsManager", function () {
       return;
     }
     const { connection } = db;
-    await connection.transaction(async manager => {
+    await connection.transaction(async (manager) => {
       const groupsToDelete = await manager.createQueryBuilder()
         .select('groups')
         .from(Group, "groups")

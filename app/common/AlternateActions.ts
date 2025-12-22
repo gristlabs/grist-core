@@ -66,7 +66,7 @@ export class AlternateActions {
   public splitByStorage(actions: UserAction[]): [UserAction[], UserAction[]] {
     const normal: UserAction[] = [];
     const onDemand: UserAction[] = [];
-    actions.forEach(a => {
+    actions.forEach((a) => {
       // Check that the actionType can be applied without the sandbox and also that the action
       // is on a data table.
       const isOnDemandAction = ACTION_TYPES.has(a[0] as string);

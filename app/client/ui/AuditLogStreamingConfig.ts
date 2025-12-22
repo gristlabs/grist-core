@@ -53,7 +53,7 @@ Splunk. {{learnMoreLink}}.",
             dom("div",
               cssSectionHeading(t("Destinations")),
               cssDestinations(
-                dom.forEach(destinations, (destination) =>
+                dom.forEach(destinations, destination =>
                   cssDestination(
                     cssDestinationName(
                       getDestinationDisplayName(destination.name),
@@ -108,7 +108,7 @@ Splunk. {{learnMoreLink}}.",
     showDestinationForm({
       title: t("Add streaming destination"),
       submitButtonLabel: t("Add destination"),
-      onSubmit: (destination) =>
+      onSubmit: destination =>
         this._model.createStreamingDestination(destination),
     });
   }
@@ -133,7 +133,7 @@ Splunk. {{learnMoreLink}}.",
       title: t("Edit streaming destination"),
       submitButtonLabel: t("Save"),
       destination,
-      onSubmit: (properties) =>
+      onSubmit: properties =>
         this._model.updateStreamingDestination(destination.id, properties),
     });
   }
@@ -167,7 +167,7 @@ function showDestinationForm(options: DestinationFormOptions) {
     const url = Observable.create<string>(owner, destination?.url ?? "");
     const token = Observable.create<string>(owner, destination?.token ?? "");
     const pending = Observable.create(owner, false);
-    const disabled = Computed.create(owner, (use) => !use(name) || !use(url));
+    const disabled = Computed.create(owner, use => !use(name) || !use(url));
     const error = Observable.create(owner, "");
 
     const handleDestinationChange = (event: Event) => {
@@ -183,9 +183,9 @@ function showDestinationForm(options: DestinationFormOptions) {
         handleSubmit({
           pending,
           disabled,
-          onSubmit: (fields) => onSubmit(toStreamingDestination(fields)),
+          onSubmit: fields => onSubmit(toStreamingDestination(fields)),
           onSuccess: () => ctl.close(),
-          onError: (e) => handleFormError(e, error),
+          onError: e => handleFormError(e, error),
         }),
         cssLabelAndInput(
           cssLabel(t("Destination")),
@@ -200,7 +200,7 @@ function showDestinationForm(options: DestinationFormOptions) {
                   type: "radio",
                   value: "splunk",
                 },
-                dom.prop("checked", (use) => use(name) === "splunk"),
+                dom.prop("checked", use => use(name) === "splunk"),
                 dom.on("change", handleDestinationChange),
               ),
               cssCardContent(
@@ -217,7 +217,7 @@ function showDestinationForm(options: DestinationFormOptions) {
                   type: "radio",
                   value: "other",
                 },
-                dom.prop("checked", (use) => use(name) === "other"),
+                dom.prop("checked", use => use(name) === "other"),
                 dom.on("change", handleDestinationChange),
               ),
               cssCardContent(
@@ -245,7 +245,7 @@ function showDestinationForm(options: DestinationFormOptions) {
           })
         ),
         cssMessages(
-          dom.maybe(error, (e) => cssError(e)),
+          dom.maybe(error, e => cssError(e)),
         ),
         cssModalButtons(
           bigBasicButton(
@@ -257,7 +257,7 @@ function showDestinationForm(options: DestinationFormOptions) {
           bigPrimaryButton(
             t(submitButtonLabel),
             { type: "submit" },
-            dom.boolAttr("disabled", (use) => use(pending) || use(disabled)),
+            dom.boolAttr("disabled", use => use(pending) || use(disabled)),
             testId("streaming-destination-form-apply")
           )
         ),

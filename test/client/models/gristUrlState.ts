@@ -331,15 +331,15 @@ describe('gristUrlState', function() {
     await state.pushUrl({params: {style: 'singlePage', linkParameters: {foo: 'A', bar: 'B'}}});
     assert.equal(mockWindow.location.href, 'https://bar.example.com/doc/DOC/p/5?style=singlePage&foo_=A&bar_=B');
     state.loadState();  // changing linkParameters requires a page reload
-    assert.equal(state.makeUrl((prevState) => merge({}, prevState, {params: {style: 'full'}})),
+    assert.equal(state.makeUrl(prevState => merge({}, prevState, {params: {style: 'full'}})),
       'https://bar.example.com/doc/DOC/p/5?style=full&foo_=A&bar_=B');
     assert.equal(state.makeUrl((prevState) => { const s = clone(prevState); delete s.params?.style; return s; }),
       'https://bar.example.com/doc/DOC/p/5?foo_=A&bar_=B');
-    assert.equal(state.makeUrl((prevState) =>
+    assert.equal(state.makeUrl(prevState =>
       merge(omit(prevState, 'params.style', 'params.linkParameters.foo'),
         {params: {linkParameters: {baz: 'C'}}})),
       'https://bar.example.com/doc/DOC/p/5?bar_=B&baz_=C');
-    assert.equal(state.makeUrl((prevState) =>
+    assert.equal(state.makeUrl(prevState =>
       merge(omit(prevState, 'params.style'), {docPage: 44, params: {linkParameters: {foo: 'X'}}})),
       'https://bar.example.com/doc/DOC/p/44?foo_=X&bar_=B');
     await state.pushUrl(prevState => omit(prevState, 'params'));

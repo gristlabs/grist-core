@@ -137,7 +137,7 @@ export class TreeViewComponent extends Disposable {
     this._childrenDom = observable(this._buildChildren(this._model.get().children()));
     this.autoDispose(this._model.addListener(this._update, this));
 
-    this._isClosed = Computed.create(this, (use) => !use(this._options.isOpen));
+    this._isClosed = Computed.create(this, use => !use(this._options.isOpen));
 
     this._containerElement = css.treeViewContainer(
 
@@ -225,9 +225,9 @@ export class TreeViewComponent extends Disposable {
       testId('target'),
       // show only if a drop zone is set
       dom.hide(this._hideTarget),
-      dom.style('width', (use) => use(this._target).width + 'px'),
-      dom.style('top', (use) => use(this._target).top + 'px'),
-      dom.style('left', (use) => use(this._target).left + 'px'),
+      dom.style('width', use => use(this._target).width + 'px'),
+      dom.style('top', use => use(this._target).top + 'px'),
+      dom.style('left', use => use(this._target).left + 'px'),
     );
   }
 
@@ -244,7 +244,7 @@ export class TreeViewComponent extends Disposable {
     // tree), then walk the new tree and remove all of its items from the map. Eventually, what
     // remains in the map are the elements that need disposal.
     const map = new Map(this._treeItemMap);
-    walkTree(this._model.get(), (treeItem) => map.delete(treeItem));
+    walkTree(this._model.get(), treeItem => map.delete(treeItem));
     map.forEach((elem, key) => dom.domDispose(elem));
   }
 
@@ -252,7 +252,7 @@ export class TreeViewComponent extends Disposable {
   // and the list of children. Also add a listener that calls this._update to children.
   private _buildChildren(children: ObsArray<TreeItem>, level: number = 0) {
     return css.itemChildren(
-      children.get().map(treeItem => {
+      children.get().map((treeItem) => {
         const elem = this._getOrCreateItem(treeItem);
         this._setOffset(elem, level);
         const itemHeaderElem = elem.children[0];
@@ -311,33 +311,33 @@ export class TreeViewComponent extends Disposable {
       css.itemHeaderWrapper(
         testId('itemHeaderWrapper'),
         dom.cls('dragged', dragged),
-        css.itemHeaderWrapper.cls('-not-dragging', (use) => !use(this._dragging)),
+        css.itemHeaderWrapper.cls('-not-dragging', use => !use(this._dragging)),
         headerElement = css.itemHeader(
           testId('itemHeader'),
           dom.cls('highlight', highlight),
-          dom.cls('selected', (use) => use(this._options.selected) === treeItem),
+          dom.cls('selected', use => use(this._options.selected) === treeItem),
           offsetElement = css.offset(testId('offset')),
           // The label is first in the DOM but visibly shown after the arrow thanks to flexbox re-ordering.
           // This is done mostly so that screen reader users better understand the context of the arrow button.
           labelElement = css.itemLabel(
             testId('label'),
             treeItem.buildDom(),
-            dom.style('top', (use) => use(deltaY) + 'px')
+            dom.style('top', use => use(deltaY) + 'px')
           ),
           arrowElement = css.arrow(
-            dom.attr('aria-label', (use) => use(collapsed) ? t('Expand') : t('Collapse')),
+            dom.attr('aria-label', use => use(collapsed) ? t('Expand') : t('Collapse')),
             css.dropdown('Dropdown'),
             testId('itemArrow'),
-            dom.style('transform', (use) => use(collapsed) ? 'rotate(-90deg)' : ''),
-            dom.on('click', (ev) => toggle(collapsed)),
+            dom.style('transform', use => use(collapsed) ? 'rotate(-90deg)' : ''),
+            dom.on('click', ev => toggle(collapsed)),
             // Let's prevent dragging to start when un-intentionally holding the mouse down on an arrow.
-            dom.on('mousedown', (ev) => ev.stopPropagation()),
+            dom.on('mousedown', ev => ev.stopPropagation()),
           ),
           delayedMouseDrag(this._startDrag.bind(this), this._options.dragStartDelay),
         ),
         treeItem.hidden ? null : css.itemLabelRight(
           handleElement = css.centeredIcon('DragDrop',
-            dom.style('top', (use) => use(deltaY) + 'px'),
+            dom.style('top', use => use(deltaY) + 'px'),
             testId('handle'),
             dom.hide(this._options.isReadonly),
           ),

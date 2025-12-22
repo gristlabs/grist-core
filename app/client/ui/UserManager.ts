@@ -128,7 +128,7 @@ from someone else with sufficient access to the {{resourceType}}.`, { resourceTy
     .then(model => modelObs.set(model))
     .catch(reportError);
 
-  isLongerThan(waitPromise, 400).then((slow) => slow && modelObs.set("slow")).catch(() => {});
+  isLongerThan(waitPromise, 400).then(slow => slow && modelObs.set("slow")).catch(() => {});
 
   return buildUserManagerModal(modelObs, onConfirm, options);
 }
@@ -142,7 +142,7 @@ function buildUserManagerModal(
     // We set the padding to 0 since the body scroll shadows extend to the edge of the modal.
     { style: 'padding: 0;' },
     options.showAnimation ? dom.cls(cssAnimatedModal.className) : null,
-    dom.domComputed(modelObs, model => {
+    dom.domComputed(modelObs, (model) => {
       if (!model) { return null; }
       if (model === "slow") { return cssSpinner(loadingSpinner()); }
 
@@ -168,7 +168,7 @@ function buildUserManagerModal(
           { style: 'margin: 32px 64px; display: flex;' },
           (model.isPublicMember || options.isReadonly ? null :
             bigPrimaryButton(t('Confirm'),
-              dom.boolAttr('disabled', (use) => !use(model.isAnythingChanged)),
+              dom.boolAttr('disabled', use => !use(model.isAnythingChanged)),
               dom.on('click', () => onConfirm(ctl)),
               testId('um-confirm')
             )
@@ -253,7 +253,7 @@ export class UserManager extends Disposable {
       this._dom = shadowScroll(
         testId('um-members'),
         this._buildPublicAccessMember(),
-        dom.forEach(this._model.membersEdited, (member) => this._buildMemberDom({member})),
+        dom.forEach(this._model.membersEdited, member => this._buildMemberDom({member})),
       ),
     ];
   }
@@ -283,7 +283,7 @@ export class UserManager extends Disposable {
       cssOptionRowMultiple(
         icon('AddUser'),
         cssLabel(t('Invite multiple')),
-        dom.on('click', (_ev) => buildMultiUserManagerModal(
+        dom.on('click', _ev => buildMultiUserManagerModal(
           this,
           this._model,
           (email, role) => {
@@ -308,17 +308,17 @@ export class UserManager extends Disposable {
                 menuItem(() => publicMember.access.set(roles.VIEWER), t('On'), testId(`um-public-option`)),
                 menuItem(() => publicMember.access.set(null), t('Off'),
                   // Disable null access if anonymous access is inherited.
-                  dom.cls('disabled', (use) => use(publicMember.inheritedAccess) !== null),
+                  dom.cls('disabled', use => use(publicMember.inheritedAccess) !== null),
                   testId(`um-public-option`)
                 ),
                 // If the 'Off' setting is disabled, show an explanation.
-                dom.maybe((use) => use(publicMember.inheritedAccess) !== null, () => menuText(
+                dom.maybe(use => use(publicMember.inheritedAccess) !== null, () => menuText(
                   t(`Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.`,
                     { parent: getResourceParent(this._model.resourceType) }
                   )))
               ];
             }),
-            dom.text((use) => use(publicMember.effectiveAccess) ? t('On') : t('Off')),
+            dom.text(use => use(publicMember.effectiveAccess) ? t('On') : t('Off')),
             cssCollapseIcon('Collapse'),
             testId('um-public-access')
           ),
@@ -344,7 +344,7 @@ export class UserManager extends Disposable {
     });
     return dom('div',
       dom.autoDispose(disableRemove),
-      dom.maybe((use) => use(member.effectiveAccess) && use(member.effectiveAccess) !== roles.GUEST, () =>
+      dom.maybe(use => use(member.effectiveAccess) && use(member.effectiveAccess) !== roles.GUEST, () =>
         cssMemberListItem(
           cssMemberListItem.cls('-removed', member.isRemoved),
           cssMemberImage(
@@ -460,7 +460,7 @@ export class UserManager extends Disposable {
     const publicMember = this._model.publicMember;
     if (!publicMember) { return null; }
     return dom('div',
-      dom.maybe((use) => Boolean(use(publicMember.effectiveAccess)), () =>
+      dom.maybe(use => Boolean(use(publicMember.effectiveAccess)), () =>
         cssMemberListItem(
           cssPublicMemberIcon('PublicFilled'),
           cssMemberText(
@@ -534,7 +534,7 @@ export class UserManager extends Disposable {
         !others.length ? null : [
           cssAccessOverview(t('Access overview')),
           cssAccessOverviewList(
-            dom.forEach(others, (member) => this._buildMemberDom({member, readonly: true})),
+            dom.forEach(others, member => this._buildMemberDom({member, readonly: true})),
           ),
           testId('um-access-overview')
         ]
@@ -558,10 +558,10 @@ export class UserManager extends Disposable {
           // The active user should be prevented from changing their own role.
           menuItem(() => isActiveUser || role.set(_role.value), _role.label,
             // Indicate which option is inherited, if any.
-            dom.text((use) => use(inherited) && (use(inherited) === _role.value)
+            dom.text(use => use(inherited) && (use(inherited) === _role.value)
               && !isActiveUser ? ' (inherited)' : ''),
             // Disable everything providing less access than the inherited access
-            dom.cls('disabled', (use) =>
+            dom.cls('disabled', use =>
               roles.getStrongestRole(_role.value, use(inherited)) !== _role.value),
             testId(`um-role-option`)
           )
@@ -569,11 +569,11 @@ export class UserManager extends Disposable {
         // If the user's access is inherited, give an explanation on how to change it.
         isActiveUser ? menuText(t(`User may not modify their own access.`)) : null,
         // If the user's access is inherited, give an explanation on how to change it.
-        dom.maybe((use) => use(inherited) && !isActiveUser, () => menuText(
+        dom.maybe(use => use(inherited) && !isActiveUser, () => menuText(
           t(`User inherits permissions from {{parent}}. To remove, \
 set 'Inherit access' option to 'None'.`, { parent: getResourceParent(this._model.resourceType) }))),
         // If the user is a guest, give a description of the guest permission.
-        dom.maybe((use) => !this._model.isOrg && use(role) === roles.GUEST, () => menuText(
+        dom.maybe(use => !this._model.isOrg && use(role) === roles.GUEST, () => menuText(
           t(`User has view access to {{resource}} resulting from manually-set access \
 to resources inside. If removed here, this user will lose access to resources inside.`,
             { resource: this._model.resourceType }))),

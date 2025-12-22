@@ -24,7 +24,7 @@ const allTypes = [
 // Ensure Buffer can be handled if mentioned in the interface descriptions, even if not supported
 // in the current environment (i.e. browser).
 if (typeof Buffer === 'undefined') {
-  allTypes.push({Buffer: new BasicType((v) => false, "Buffer is not supported")});
+  allTypes.push({Buffer: new BasicType(v => false, "Buffer is not supported")});
 }
 
 function checkDuplicates(types: Array<{[key: string]: object}>) {

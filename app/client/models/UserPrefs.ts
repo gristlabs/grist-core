@@ -24,19 +24,19 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
       let saveBack: (newPrefs: PrefsType) => void = () => {};
       if (prefsTypeName === 'userPrefs') {
         prefs = appModel.currentValidUser.prefs;
-        saveBack = (newPrefs) => appModel.currentValidUser && (appModel.currentValidUser.prefs = newPrefs);
+        saveBack = newPrefs => appModel.currentValidUser && (appModel.currentValidUser.prefs = newPrefs);
       } else {
         prefs = appModel.currentOrg?.[prefsTypeName];
-        saveBack = (newPrefs) => appModel.currentOrg && (appModel.currentOrg[prefsTypeName] = newPrefs);
+        saveBack = newPrefs => appModel.currentOrg && (appModel.currentOrg[prefsTypeName] = newPrefs);
       }
       const prefsObs = Observable.create<PrefsType>(null, prefs ?? {});
-      return Computed.create(null, (use) => use(prefsObs))
-        .onWrite(newPrefs => {
+      return Computed.create(null, use => use(prefsObs))
+        .onWrite((newPrefs) => {
           const previousPrefs = prefsObs.get();
           prefsObs.set(newPrefs);
           saveBack(newPrefs);
           appModel.api.updateOrg('current', {[prefsTypeName]: newPrefs})
-            .catch(err => {
+            .catch((err) => {
               prefsObs.set(previousPrefs);
               saveBack(previousPrefs);
               throw err;
@@ -46,7 +46,7 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
       const userId = appModel.currentUser?.id || 0;
       const jsonPrefsObs = localStorageObs(`${prefsTypeName}:u=${userId}`);
       return Computed.create(null, jsonPrefsObs, (use, p) => (p && JSON.parse(p) || {}) as PrefsType)
-        .onWrite(newPrefs => {
+        .onWrite((newPrefs) => {
           jsonPrefsObs.set(JSON.stringify(newPrefs));
         });
     }

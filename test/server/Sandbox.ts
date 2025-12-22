@@ -255,7 +255,7 @@ describe('Sandbox', function () {
 
 function getSubDirs(dir: string, root: string): string[] {
   // Walk directories but replace the root with the given root
-  return [root, ...fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+  return [root, ...fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     if (!entry.isDirectory()) {
       return [];
     }

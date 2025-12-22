@@ -50,7 +50,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
   const unmapped = Computed.create(owner, (use) => {
     const types = getNewColumnTypes(gristDoc, use(viewSection.tableId));
     const normalCols = use(viewSection.hiddenColumns).filter(col => use(col.isFormCol));
-    const list = normalCols.map(col => {
+    const list = normalCols.map((col) => {
       return {
         label: use(col.label),
         icon: types.find(type => type.colType === use(col.pureType))?.icon ?? 'TypeCell',
@@ -60,8 +60,8 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
     return list;
   });
 
-  const oneTo5 = Computed.create(owner, (use) => use(unmapped).length > 0 && use(unmapped).length <= 5);
-  const moreThan5 = Computed.create(owner, (use) => use(unmapped).length > 5);
+  const oneTo5 = Computed.create(owner, use => use(unmapped).length > 0 && use(unmapped).length <= 5);
+  const moreThan5 = Computed.create(owner, use => use(unmapped).length > 5);
 
   // If we are in a column, then we can't insert a new column.
   const disableInsert = box?.parent?.type === 'Columns' && box.type !== 'Placeholder';
@@ -127,7 +127,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
           dom.maybe(oneTo5, () => [
             menus.menuDivider(),
             menus.menuSubHeader(t('Unmapped fields')),
-            dom.domComputed(unmapped, (uf) =>
+            dom.domComputed(unmapped, uf =>
               uf.map(({label, icon, colId}) => menus.menuItem(
                 where({show: colId}),
                 menus.menuIcon(icon),

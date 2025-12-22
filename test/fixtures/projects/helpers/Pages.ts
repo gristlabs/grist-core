@@ -15,7 +15,7 @@ interface TreeRecord {
 
 const sampleData = ["Interactions:0", "People:0", "User & Leads:1", "Overview:1", "Last:0"];
 let records = sampleData
-  .map((s) => s.split(':'))
+  .map(s => s.split(':'))
   .map((chunks, index) => ({
     id: index,
     indentation: Number(chunks[1]),

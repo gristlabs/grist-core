@@ -21,7 +21,7 @@ const t = makeT('DropdownConditionConfig');
  * for setting dropdown conditions.
  */
 export class DropdownConditionConfig extends Disposable {
-  private _text = Computed.create(this, use => {
+  private _text = Computed.create(this, (use) => {
     const dropdownCondition = use(this._field.dropdownCondition);
     if (!dropdownCondition) { return ''; }
 
@@ -30,7 +30,7 @@ export class DropdownConditionConfig extends Disposable {
 
   private _saveError = Observable.create<string | null>(this, null);
 
-  private _properties = Computed.create(this, use => {
+  private _properties = Computed.create(this, (use) => {
     const dropdownCondition = use(this._field.dropdownCondition);
     if (!dropdownCondition?.parsed) { return null; }
 
@@ -41,14 +41,14 @@ export class DropdownConditionConfig extends Disposable {
 
   private _columns = Computed.create(this, use => use(use(use(this._column).table).visibleColumns));
 
-  private _refColumns = Computed.create(this, use => {
+  private _refColumns = Computed.create(this, (use) => {
     const refTable = use(use(this._column).refTable);
     if (!refTable) { return null; }
 
     return use(refTable.visibleColumns);
   });
 
-  private _propertiesError = Computed.create<string | null>(this, use => {
+  private _propertiesError = Computed.create<string | null>(this, (use) => {
     const properties = use(this._properties);
     if (!properties) { return null; }
 
@@ -93,7 +93,7 @@ export class DropdownConditionConfig extends Disposable {
 
   private _isEditingCondition = Observable.create(this, false);
 
-  private _isRefField = Computed.create(this, (use) =>
+  private _isRefField = Computed.create(this, use =>
     ['Ref', 'RefList'].includes(use(use(this._column).pureType)));
 
   private _tooltip = Computed.create(this, use => use(this._isRefField)
@@ -112,7 +112,7 @@ export class DropdownConditionConfig extends Disposable {
 
   public buildDom() {
     return [
-      dom.maybe((use) => !(use(this._isEditingCondition) || Boolean(use(this._text))), () => [
+      dom.maybe(use => !(use(this._isEditingCondition) || Boolean(use(this._text))), () => [
         cssSetDropdownConditionRow(
           dom.domComputed(use => withInfoTooltip(
             textButton(
@@ -128,7 +128,7 @@ export class DropdownConditionConfig extends Disposable {
           )),
         ),
       ]),
-      dom.maybe((use) => use(this._isEditingCondition) || Boolean(use(this._text)), () => [
+      dom.maybe(use => use(this._isEditingCondition) || Boolean(use(this._text)), () => [
         cssLabel(t('Dropdown Condition')),
         cssRow(
           dom.create(buildDropdownConditionEditor,
@@ -161,7 +161,7 @@ export class DropdownConditionConfig extends Disposable {
             testId('field-dropdown-condition'),
           ),
         ),
-        dom.maybe(this._error, (error) => cssRow(
+        dom.maybe(this._error, error => cssRow(
           cssDropdownConditionError(error), testId('field-dropdown-condition-error')),
         ),
       ]),

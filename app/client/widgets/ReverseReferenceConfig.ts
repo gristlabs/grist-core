@@ -34,7 +34,7 @@ export class ReverseReferenceConfig extends Disposable {
   constructor(private _field: ViewFieldRec) {
     super();
 
-    this._refTable = Computed.create(this, (use) => use(use(this._field.column).refTable));
+    this._refTable = Computed.create(this, use => use(use(this._field.column).refTable));
     this._isConfigured = Computed.create(this, (use) => {
       const column = use(this._field.column);
       return use(column.hasReverse);
@@ -73,7 +73,7 @@ export class ReverseReferenceConfig extends Disposable {
           withInfoTooltip(
             textButton(
               t('Add two-way reference'),
-              dom.on('click', (e) => this._toggle(e)),
+              dom.on('click', e => this._toggle(e)),
               testId('add-reverse-columm'),
               dom.prop('disabled', this._disabled),
             ),
@@ -93,7 +93,7 @@ export class ReverseReferenceConfig extends Disposable {
           ),
           cssIconButton(
             icon('Remove'),
-            dom.on('click', (e) => this._toggle(e)),
+            dom.on('click', e => this._toggle(e)),
             dom.style('cursor', 'pointer'),
             testId('remove-reverse-column'),
           ),

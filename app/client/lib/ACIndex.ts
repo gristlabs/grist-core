@@ -41,7 +41,7 @@ export interface ACIndex<Item extends ACItem> {
 // Splits text into an array of pieces, with odd-indexed pieces being the ones to highlight.
 export type HighlightFunc = (text: string) => string[];
 
-export const highlightNone: HighlightFunc = (text) => [text];
+export const highlightNone: HighlightFunc = text => [text];
 
 /**
  * AutoComplete results include the suggested items, which one to highlight, and a function for

@@ -84,10 +84,10 @@ export function buildNameConfig(
       cssColTieBlock(
         cssColTieConnectors(),
         cssToggleButton(
-          dom.domComputed(untieColId, (isUntied) =>
+          dom.domComputed(untieColId, isUntied =>
             isUntied ? icon('FieldReferenceDisabled') : icon('FieldReference')
           ),
-          cssToggleButton.cls('-selected', (use) => !use(untieColId)),
+          cssToggleButton.cls('-selected', use => !use(untieColId)),
           dom.on('click', toggleUntieColId),
           cssToggleButton.cls("-disabled", use => use(origColumn.disableModify) || use(disabled)),
           testId('field-derive-id')
@@ -169,16 +169,16 @@ export function buildFormulaConfig(
   // User might have selected multiple columns, in that case all elements will be disabled, except the menu.
   // If user has selected only empty or formula columns, we offer to reset all or to convert to data.
   // If user has selected any data column, we offer only to reset all.
-  const viewSection = Computed.create(owner, use => {
+  const viewSection = Computed.create(owner, (use) => {
     return use(gristDoc.currentView)?.viewSection;
   });
-  const isMultiSelect = Computed.create(owner, use => {
+  const isMultiSelect = Computed.create(owner, (use) => {
     const vs = use(viewSection);
     return !!vs && use(vs.selectedFields).length > 1;
   });
 
   // If all columns are empty or have formulas.
-  const multiType = Computed.create(owner, use => {
+  const multiType = Computed.create(owner, (use) => {
     if (!use(isMultiSelect)) { return false; }
     const vs = use(viewSection);
     if (!vs) { return false; }
@@ -186,7 +186,7 @@ export function buildFormulaConfig(
   });
 
   // If all columns are empty or have formulas.
-  const isFormulaLike = Computed.create(owner, use => {
+  const isFormulaLike = Computed.create(owner, (use) => {
     if (!use(isMultiSelect)) { return false; }
     const vs = use(viewSection);
     if (!vs) { return false; }
@@ -237,7 +237,7 @@ export function buildFormulaConfig(
         // HACK: Menu helper will add tabindex to this element, which will make
         // this element focusable and will steal focus from clipboard. This in turn,
         // will not dispose the formula editor when menu is clicked.
-        (el) => el.removeAttribute("tabindex"),
+        el => el.removeAttribute("tabindex"),
         dom.cls(cssBlockedCursor.className, disableModify),
         dom.cls("disabled", disableModify)),
     );
@@ -413,7 +413,7 @@ export function buildFormulaConfig(
       ] : /* type == 'data' */ [
         menu(behaviorLabel(),
           [
-            dom.domComputed(origColumn.hasTriggerFormula, (hasTrigger) => hasTrigger ?
+            dom.domComputed(origColumn.hasTriggerFormula, hasTrigger => hasTrigger ?
               // If we have trigger, we will convert it directly to a formula column
               convertTriggerToFormulaOption() :
               // else we will convert to empty column and open up the editor
@@ -423,7 +423,7 @@ export function buildFormulaConfig(
           ]
         ),
         // If data column is or wants to be a trigger formula:
-        dom.maybe((use) => use(maybeTrigger) || use(origColumn.hasTriggerFormula), () => [
+        dom.maybe(use => use(maybeTrigger) || use(origColumn.hasTriggerFormula), () => [
           cssLabel(t("TRIGGER FORMULA")),
           formulaBuilder(onSaveConvertToTrigger, false),
           dom.create(buildFormulaTriggers, origColumn, {
@@ -432,7 +432,7 @@ export function buildFormulaConfig(
           })
         ]),
         // Else offer a way to convert to trigger formula.
-        dom.maybe((use) => !(use(maybeTrigger) || use(origColumn.hasTriggerFormula)), () => [
+        dom.maybe(use => !(use(maybeTrigger) || use(origColumn.hasTriggerFormula)), () => [
           cssEmptySeparator(),
           cssRow(withInfoTooltip(
             textButton(

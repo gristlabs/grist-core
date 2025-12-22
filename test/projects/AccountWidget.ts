@@ -15,7 +15,7 @@ describe('AccountWidget', function() {
 
     await driver.find('.test-user-icon').click();   // open the menu
     assert.equal(await driver.findWait('.test-usermenu-email', 100).getText(), 'santa@getgrist.com');
-    assert.deepEqual(await driver.findAll('.test-site-switcher-org-tick', (x) => x.isDisplayed()),
+    assert.deepEqual(await driver.findAll('.test-site-switcher-org-tick', x => x.isDisplayed()),
       selectedOrgs);
     await driver.sendKeys(Key.ESCAPE);              // close the menu
 

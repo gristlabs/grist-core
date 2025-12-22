@@ -206,8 +206,8 @@ export function asTabularDiffs(summary: ActionSummary, options: {
       // after values refer to the same row.
       const versions: Array<[string, (diff: CellDelta) => CellDelta]> = [];
       if (addedRows.has(rowId) && removedRows.has(rowId)) {
-        versions.push(['-', (diff) => [diff[0], null]]);
-        versions.push(['+', (diff) => [null, diff[1]]]);
+        versions.push(['-', diff => [diff[0], null]]);
+        versions.push(['+', diff => [null, diff[1]]]);
       } else {
         let code: string = '...';
         if (updatedRows.has(rowId)) {
@@ -219,12 +219,12 @@ export function asTabularDiffs(summary: ActionSummary, options: {
         if (removedRows.has(rowId)) {
           code = '-';
         }
-        versions.push([code, (diff) => diff]);
+        versions.push([code, diff => diff]);
       }
       for (const [code, transform] of versions) {
         const acc: CellDelta[] = [];
         const perCol = perRow[rowId];
-        activeColsWithoutManualSort.forEach(col => {
+        activeColsWithoutManualSort.forEach((col) => {
           const diff = perCol ? perCol[col] : null;
           if (!diff) {
             acc.push([null, null]);

@@ -31,7 +31,7 @@ export function permissionsWidget(
   const empty: PartialPermissionSet = emptyPermissionSet();
   const allowAll: PartialPermissionSet = makePermissionSet(availableBits, () => 'allow');
   const denyAll: PartialPermissionSet = makePermissionSet(availableBits, () => 'deny');
-  const readOnly: PartialPermissionSet = makePermissionSet(availableBits, (b) => b === 'read' ? 'allow' : 'deny');
+  const readOnly: PartialPermissionSet = makePermissionSet(availableBits, b => b === 'read' ? 'allow' : 'deny');
   const setPermissions = (p: PartialPermissionSet) => {
     options.sanityCheck?.(p);
     pset.set(p);
@@ -41,8 +41,8 @@ export function permissionsWidget(
     dom.forEach(availableBits, (bit) => {
       return cssBit(
         bit.slice(0, 1).toUpperCase(),              // Show the first letter of the property (e.g. "R" for "read")
-        cssBit.cls((use) => '-' + use(pset)[bit]),  // -allow, -deny class suffixes.
-        dom.attr('title', (use) => capitalize(`${use(pset)[bit]} ${bit}`.trim())),    // Explanation on hover
+        cssBit.cls(use => '-' + use(pset)[bit]),  // -allow, -deny class suffixes.
+        dom.attr('title', use => capitalize(`${use(pset)[bit]} ${bit}`.trim())),    // Explanation on hover
         dom.cls('disabled', options.disabled),
         // Cycle the bit's value on click, unless disabled.
         (options.disabled ? null :
@@ -59,7 +59,7 @@ export function permissionsWidget(
           cssMenuItem(() => null, dom.cls('disabled'), menuIcon('Tick'),
             cssMenuItemContent(
               'Custom',
-              cssMenuItemDetails(dom.text((use) => psetDescription(use(pset))))
+              cssMenuItemDetails(dom.text(use => psetDescription(use(pset))))
             ),
           ) :
           null

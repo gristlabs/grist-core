@@ -356,7 +356,7 @@ export class CustomView extends BaseView {
           ThemeNotifier.create(frame),
           new MinimumLevel(AccessLevel.none));
       },
-      onElem: (iframe) => onFrameFocus(iframe, () => {
+      onElem: iframe => onFrameFocus(iframe, () => {
         if (this.isDisposed()) { return; }
         if (!this.viewSection.isDisposed() && !this.viewSection.hasFocus()) {
           this.viewSection.hasFocus(true);

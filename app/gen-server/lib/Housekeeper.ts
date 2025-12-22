@@ -212,7 +212,7 @@ export class Housekeeper {
     const response = await fetchUntrustedWithAgent(url, {
       method: 'GET',
       timeout: 5000,
-    }).catch(e => {
+    }).catch((e) => {
       return {
         ok: false,
         status: 'error',
@@ -261,7 +261,7 @@ export class Housekeeper {
       // We sleep occasionally during this logging. We may log many MANY lines, which can hang up a
       // server for minutes (unclear why; perhaps filling up buffers, and allocating memory very
       // inefficiently?)
-      await forEachWithBreaks("logMetrics siteUsage progress", usageSummaries, summary => {
+      await forEachWithBreaks("logMetrics siteUsage progress", usageSummaries, (summary) => {
         this._telemetry.logEvent(null, 'siteUsage', {
           limited: {
             siteId: summary.site_id,
@@ -284,7 +284,7 @@ export class Housekeeper {
       log.warn("logMetrics siteMembership starting");
       const manager = this._dbManager.connection.manager;
       const membershipSummaries = await this._getOrgMembershipSummaries(manager);
-      await forEachWithBreaks("logMetrics siteMembership progress", membershipSummaries, summary => {
+      await forEachWithBreaks("logMetrics siteMembership progress", membershipSummaries, (summary) => {
         this._telemetry.logEvent(null, 'siteMembership', {
           limited: {
             siteId: summary.site_id,

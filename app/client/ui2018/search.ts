@@ -268,7 +268,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
           model.multiPage,
           dom.text(model.allLabel),
           // Prevent focus from being stolen from the input when clicking the checkbox itself
-          dom.on('mousedown', (event) => event.preventDefault()),
+          dom.on('mousedown', event => event.preventDefault()),
         ),
         // Keep focus on the input when clicking the checkbox text label
         dom.onMatch('label', 'mouseup', () => setTimeout(() => inputElem.focus(), 0)),
@@ -284,7 +284,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
             icon('Dropdown'),
             testId('next'),
             // Prevent focus from being stolen from the input
-            dom.on('mousedown', (event) => event.preventDefault()),
+            dom.on('mousedown', event => event.preventDefault()),
             dom.on('focus', (event) => {
               focusedSearchElement = event.target as HTMLElement;
             }),
@@ -301,7 +301,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
             icon('DropdownUp'),
             testId('prev'),
             // Prevent focus from being stolen from the input
-            dom.on('mousedown', (event) => event.preventDefault()),
+            dom.on('mousedown', event => event.preventDefault()),
             dom.on('focus', (event) => {
               focusedSearchElement = event.target as HTMLElement;
             }),

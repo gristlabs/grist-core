@@ -101,7 +101,7 @@ export class KeyMappedExternalStorage implements ExternalStorage {
     if (_ext.removeAllWithPrefix !== undefined) {
       const extRemoveAllWithPrefix = _ext.removeAllWithPrefix;
       this.removeAllWithPrefix =
-        (prefix) => extRemoveAllWithPrefix.call(_ext, this._map(prefix));
+        prefix => extRemoveAllWithPrefix.call(_ext, this._map(prefix));
     }
   }
 

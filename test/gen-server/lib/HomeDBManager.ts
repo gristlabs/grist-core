@@ -61,7 +61,7 @@ describe('HomeDBManager', function() {
     const result = await Promise.all(queries);
     const refUser = result[0];
     assert(refUser && refUser.personalOrg && refUser.id && refUser.personalOrg.id);
-    result.forEach((user) => assert.deepEqual(refUser, user));
+    result.forEach(user => assert.deepEqual(refUser, user));
   });
 
   it('can accumulate profile information', async function() {

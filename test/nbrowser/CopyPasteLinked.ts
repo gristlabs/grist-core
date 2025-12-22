@@ -35,7 +35,7 @@ describe('CopyPasteLinked', function() {
 
       // Check that 3 cells are indeed selected.
       assert.deepEqual(await gu.getVisibleGridCells({col: 'Tenant', rowNums: [1, 2, 3, 4],
-        mapper: (el) => el.matches('.selected')}),
+        mapper: el => el.matches('.selected')}),
         [true, true, true, false]);
 
       // Switch to a different Apartments row that drives the filtering in the Tenants section.
@@ -55,7 +55,7 @@ describe('CopyPasteLinked', function() {
     assert.deepEqual(await gu.getVisibleGridCells({col: 'Tenant', rowNums: [1, 2, 3, 4]}),
       ['John Malik', 'Fred Brown', 'Susan Sharp', 'Owen Sharp']);
     assert.deepEqual(await gu.getVisibleGridCells({col: 'Tenant', rowNums: [1, 2, 3, 4],
-      mapper: (el) => el.matches('.selected')}),
+      mapper: el => el.matches('.selected')}),
       [false, false, false, false]);
 
     await gu.checkForErrors();

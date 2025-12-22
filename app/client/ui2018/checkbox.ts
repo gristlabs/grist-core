@@ -161,10 +161,10 @@ function triStateCheckbox(
   obs: Observable<TriState>, cssCheckbox: typeof cssCheckboxSquare, label: string = '',  ...domArgs: CheckboxArg[]
 ) {
   const checkboxObs = Computed.create(null, obs, (_use, state) => state === true)
-    .onWrite((checked) => obs.set(checked));
+    .onWrite(checked => obs.set(checked));
   return checkbox(
     checkboxObs, cssCheckbox, label, false,
-    dom.prop('indeterminate', (use) => use(obs) === 'indeterminate'),
+    dom.prop('indeterminate', use => use(obs) === 'indeterminate'),
     dom.autoDispose(checkboxObs),
     ...domArgs
   );

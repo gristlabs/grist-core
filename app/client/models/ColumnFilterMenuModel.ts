@@ -76,7 +76,7 @@ export class ColumnFilterMenuModel extends Disposable {
       const prop: keyof IFilterCount = isSortedByCount ? 'count' : displayValue;
       let isShownFirst: (val: any) => boolean = isNull;
       if (['Date', 'DateTime', 'Numeric', 'Int'].includes(this.columnFilter.visibleColumnType)) {
-        isShownFirst = (val) => isNull(val) || isNaN(val);
+        isShownFirst = val => isNull(val) || isNaN(val);
       }
 
       const comparator: ICompare<any> = (a, b) => {

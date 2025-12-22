@@ -55,7 +55,7 @@ const highContrastThemeSection = (appObs: Observable<AppModel | null>, ctl: IMod
   const themePrefs = appObs.get()?.themePrefs;
   return cssSection(
     cssModalSubheading(t("High contrast theme"), {role: "heading", "aria-level": 2}),
-    dom.domComputed(use => {
+    dom.domComputed((use) => {
       const currentTheme = themePrefs ? use(themePrefs).colors.light : undefined;
       const isHighContrast = currentTheme === 'HighContrastLight';
       if (isHighContrast) {

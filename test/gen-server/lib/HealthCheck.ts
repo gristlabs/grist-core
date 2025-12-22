@@ -62,7 +62,7 @@ describe('HealthCheck', function() {
         const resolvers: Array<() => void> = [];
         for (let i = 0; i < driver.master.options.max; i++) {
           const promise = new Promise<void>((resolve) => { resolvers.push(resolve); });
-          blockers.push(server.dbManager.connection.transaction((manager) => promise));
+          blockers.push(server.dbManager.connection.transaction(manager => promise));
         }
         return {
           blockerPromise: Promise.all(blockers),

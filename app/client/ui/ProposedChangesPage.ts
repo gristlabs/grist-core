@@ -58,10 +58,10 @@ export class ProposedChangesPage extends Disposable {
         ProposedChangesTrunkPage.create(null, gristDoc));
 
     const loader = this.body.load();
-    loader.then(result => {
+    loader.then((result) => {
       if (result) { this.isInitialized.set(true); }
     }).catch(reportError);
-    isLongerThan(loader, 100).then((slow) => slow && this.isInitialized.set("slow")).catch(() => {});
+    isLongerThan(loader, 100).then(slow => slow && this.isInitialized.set("slow")).catch(() => {});
   }
 
   public buildDom() {
@@ -124,7 +124,7 @@ export class ProposedChangesTrunkPage extends Disposable {
       }
     }
     await Promise.all([...tablesToFetch].map(tableId =>
-      this.gristDoc.docData.fetchTable(tableId).catch(err => {
+      this.gristDoc.docData.fetchTable(tableId).catch((err) => {
         console.warn(`Failed to fetch table ${tableId}:`, err);
       })
     ));
@@ -140,9 +140,9 @@ export class ProposedChangesTrunkPage extends Disposable {
     if (!this._proposals) { return null; }
     const isReadOnly = this.gristDoc.docPageModel.currentDoc.get()?.isReadonly;
     return [
-      dom.domComputed(this._showDismissed, showDismissed => {
+      dom.domComputed(this._showDismissed, (showDismissed) => {
         return [
-          dom.maybe(this._userProposalsObs, userProposals => {
+          dom.maybe(this._userProposalsObs, (userProposals) => {
             return dom(
               'p',
               cssSuggestionLabel(
@@ -153,7 +153,7 @@ export class ProposedChangesTrunkPage extends Disposable {
               ]),
             );
           }),
-          dom.maybe((use) => use(this._proposalCount) === 0, () => {
+          dom.maybe(use => use(this._proposalCount) === 0, () => {
             return [
               cssWarningMessage(
                 cssWarningIcon('Warning'),
@@ -181,7 +181,7 @@ and is subject to change and withdrawal.`,
               testId('fork'),
             ),
           ] : null,
-          dom.maybe(this._proposalsObs, proposals => {
+          dom.maybe(this._proposalsObs, (proposals) => {
             if (proposals.some(p => p.status.status === 'dismissed')) {
               if (isReadOnly) { return null; }
               return labeledSquareCheckbox(this._showDismissed, 'Show dismissed suggestions.');
@@ -314,7 +314,7 @@ export class ProposedChangesForkPage extends Disposable {
     if (details?.leftChanges.tableDeltas) {
       const tablesToFetch = Object.keys(details.leftChanges.tableDeltas);
       await Promise.all(tablesToFetch.map(tableId =>
-        this.gristDoc.docData.fetchTable(tableId).catch(err => {
+        this.gristDoc.docData.fetchTable(tableId).catch((err) => {
           console.warn(`Failed to fetch table ${tableId}:`, err);
         })
       ));
@@ -335,7 +335,7 @@ export class ProposedChangesForkPage extends Disposable {
     const trunkAcceptsProposals =
       this.gristDoc.docPageModel.currentDoc?.get()?.options?.proposedChanges?.acceptProposals;
     return dom.domComputed(
-      (use) => [use(this._proposalObs), use(this._outOfDateObs)] as const, ([proposal, outOfDate]) => {
+      use => [use(this._proposalObs), use(this._outOfDateObs)] as const, ([proposal, outOfDate]) => {
         const hasProposal = Boolean(proposal?.updatedAt && proposal?.status?.status === undefined);
         return [
           dom.maybe(!trunkAcceptsProposals, () => {
@@ -419,7 +419,7 @@ export class ProposedChangesForkPage extends Disposable {
   }
 
   private _getProposalRelativeToCurrent() {
-    return dom.maybe(this._outOfDateObs, outOfDate => {
+    return dom.maybe(this._outOfDateObs, (outOfDate) => {
       if (outOfDate) {
         return dom(
           'p',
@@ -509,7 +509,7 @@ class ActionLogPartInProposal extends ActionLogPart {
             type: 'Text',
           },
           // Add regular columns from the diff
-          ...tdiff.header.map(colId => {
+          ...tdiff.header.map((colId) => {
             return {
               colId,
               label: colId,

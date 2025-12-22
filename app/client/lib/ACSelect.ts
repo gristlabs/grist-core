@@ -79,7 +79,7 @@ export function buildACSelect(
     search: async (term: string) => acIndex.search(term),
     renderItem: (item, highlightFunc) =>
       cssSelectItem(buildHighlightedDom(item.label, highlightFunc, cssMatchText)),
-    getItemText: (item) => item.value,
+    getItemText: item => item.value,
     onClick: commitIfValid,
   };
 
@@ -88,7 +88,7 @@ export function buildACSelect(
       dom.prop('value', valueObs),
       dom.on('focus', (ev, elem) => elem.select()),
       dom.on('blur', commitOrRevert),
-      dom.prop("disabled", (use) => options.disabled ? use(options.disabled) : false),
+      dom.prop("disabled", use => options.disabled ? use(options.disabled) : false),
       dom.onKeyDown({
         Escape: revert,
         Enter: openOrCommit,

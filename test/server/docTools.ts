@@ -198,7 +198,7 @@ export async function createFile(dirPath: string, name: string): Promise<FileUpl
  */
 export async function createUpload(fileNames: string[], accessId: string|null): Promise<number> {
   const {tmpDir, cleanupCallback} = await createTmpUploadDir({});
-  const files = await Promise.all(fileNames.map((name) => createFile(tmpDir, name)));
+  const files = await Promise.all(fileNames.map(name => createFile(tmpDir, name)));
   return globalUploadSet.registerUpload(files, tmpDir, cleanupCallback, accessId);
 }
 

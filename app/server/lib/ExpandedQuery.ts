@@ -193,7 +193,7 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
     const leftColumnAlias = `${leftTableId}.${leftTableColumn}`;
     selects.push(`${quoteIdent(leftTableId)}.${quoteIdent(leftTableColumn)} AS ${quoteIdent(leftColumnAlias)}`);
 
-    rightTableColumns.forEach(colId => {
+    rightTableColumns.forEach((colId) => {
       const rightColumnAlias = `${rightTableId}.${colId}`;
       selects.push(`${quoteIdent(rightTableId)}.${quoteIdent(colId)} AS ${quoteIdent(rightColumnAlias)}`
       );

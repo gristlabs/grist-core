@@ -23,7 +23,7 @@ export class ParagraphModel extends BoxModel {
 
     // There is a spacial hack here. We might be created as a separator component, but the rendering
     // for separator looks bad when it is the only content, so add a special case for that.
-    const isSeparator = Computed.create(this, (use) => use(text) === '---');
+    const isSeparator = Computed.create(this, use => use(text) === '---');
 
     return buildEditor({
       box: this,

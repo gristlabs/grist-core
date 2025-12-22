@@ -75,7 +75,7 @@ export abstract class BoxModel extends Disposable {
   constructor(box: FormLayoutNode, public parent: BoxModel | null, public view: FormView) {
     super();
 
-    this.selected = Computed.create(this, (use) => use(view.selectedBox) === this && use(view.viewSection.hasFocus));
+    this.selected = Computed.create(this, use => use(view.selectedBox) === this && use(view.viewSection.hasFocus));
 
     this.children = this.autoDispose(obsArray([]));
 
@@ -405,7 +405,7 @@ export class LayoutModel extends BoxModel {
     public view: FormView
   ) {
     super(box, parent, view);
-    this.disableDeleteSection = Computed.create(this, use => {
+    this.disableDeleteSection = Computed.create(this, (use) => {
       return use(this.children).filter(c => c.type === 'Section').length === 1;
     });
   }

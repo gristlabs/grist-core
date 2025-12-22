@@ -15,7 +15,7 @@ function getEditorTokens() {
 function getEditorTokenStyles() {
   return driver.findAll(
     '.cell_editor .test-tokenfield .test-tokenfield-token',
-    async el => {
+    async (el) => {
       const classList = await el.getAttribute("class");
       return {
         fillColor: await el.getCssValue('background-color'),
@@ -37,7 +37,7 @@ function getCellTokens(cell: WebElement) {
 function getCellTokenStyles(cell: WebElement) {
   return cell.findAll(
     '.test-choice-list-cell-token',
-    async el => {
+    async (el) => {
       const classList = await el.getAttribute("class");
       return {
         fillColor: await el.getCssValue('background-color'),
@@ -84,7 +84,7 @@ function getEditModeTextColors() {
 function getEditModeFontOptions() {
   return driver.findAll(
     '.test-right-panel .test-tokenfield-token .test-color-button',
-    async el => {
+    async (el) => {
       const classes = await el.getAttribute("class");
       const options: any = {};
       if (classes.includes("font-bold")) {

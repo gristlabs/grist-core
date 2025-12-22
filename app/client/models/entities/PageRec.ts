@@ -48,7 +48,7 @@ export function createPageRec(this: PageRec, docModel: DocModel): void {
     this.options,
     (obj: any) => obj || {}
   );
-  this.isCollapsedByDefault = Computed.create(this, (use) =>
+  this.isCollapsedByDefault = Computed.create(this, use =>
     Boolean(use(options).collapsed)
   );
   this.isCollapsed = Observable.create(this, this.isCollapsedByDefault.get());

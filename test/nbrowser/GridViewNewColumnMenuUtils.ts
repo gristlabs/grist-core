@@ -41,7 +41,7 @@ export async function hasLookupMenu(colId: string) {
 }
 
 export async function collapsedHiddenColumns() {
-  return await driver.findAll('.test-new-columns-menu-hidden-column-collapsed', (el) => el.getText());
+  return await driver.findAll('.test-new-columns-menu-hidden-column-collapsed', el => el.getText());
 }
 
 export function revertEach() {

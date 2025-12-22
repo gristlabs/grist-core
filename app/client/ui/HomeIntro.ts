@@ -31,7 +31,7 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
     css.stickyHeader(
       cssHeaderWithPill(
         cssHeader(
-          dom.text((use) =>
+          dom.text(use =>
             use(isNarrowScreenObs())
               ? homeModel.app.currentOrgName
               : t("Welcome to {{- orgName}}", {orgName: homeModel.app.currentOrgName})
@@ -53,7 +53,7 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
         // this is like using a `<h1>` element, but in our case it's easier to use aria attributes than changing
         // some common `styled` components in order to use a specific h1 here
         {role: 'heading', 'aria-level': '1'},
-        dom.text((use) =>
+        dom.text(use =>
           use(isNarrowScreenObs())
             ? t("Welcome to Grist!")
             : t("Welcome to Grist, {{- name}}!", {name: user.name})

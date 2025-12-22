@@ -41,7 +41,7 @@ export function makeLinePrefixer(prefix: string, logMeta: object) {
  * the sandbox prefixes all log messages with "[LEVEL]" prefix.
  */
 export function makeLogLinePrefixer(prefix: string, logMeta: object) {
-  return _makeLinePrefixer(prefix, logMeta, text => {
+  return _makeLinePrefixer(prefix, logMeta, (text) => {
     const newline = text.indexOf("\n[");
     // If no next log message, split at the last newline. Any earlier newlines would be included.
     return (newline !== -1) ? newline : text.lastIndexOf("\n");

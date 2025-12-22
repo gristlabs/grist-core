@@ -74,9 +74,9 @@ export class Telemetry implements ITelemetry {
   private readonly _forwardTelemetryEventsUrl = process.env.GRIST_TELEMETRY_URL ||
     'https://telemetry.getgrist.com/api/telemetry';
   private _numPendingForwardEventRequests = 0;
-  private readonly _logger = new LogMethods<RequestOrSession | undefined>('Telemetry ', (requestOrSession) =>
+  private readonly _logger = new LogMethods<RequestOrSession | undefined>('Telemetry ', requestOrSession =>
     getLogMeta(requestOrSession));
-  private readonly _telemetryLogger = new LogMethods<string>('Telemetry ', (eventType) => ({
+  private readonly _telemetryLogger = new LogMethods<string>('Telemetry ', eventType => ({
     eventType,
   }));
 

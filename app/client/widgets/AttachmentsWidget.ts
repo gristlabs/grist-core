@@ -74,7 +74,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       dragOverClass('attachment_drag_over'),
       dom.maybe(use => !use(use(this.field.column).isRealFormula), () => [
         cssAttachmentIcon(
-          cssAttachmentIcon.cls('-hover', (use) => use(values).length > 0),
+          cssAttachmentIcon.cls('-hover', use => use(values).length > 0),
           dom.on('click', async (ev) => {
             stopEvent(ev);
             await this._selectAndSave(row, cellValue);
@@ -82,7 +82,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
           testId('attachment-icon'),
         ),
       ]),
-      dom.maybe<number>(row.id, rowId => {
+      dom.maybe<number>(row.id, (rowId) => {
         return dom.forEach(values, (value: number) =>
           isNaN(value) ? null : this._buildAttachment(value, values, {
             rowId, colId, tableId,
@@ -90,7 +90,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       }),
       dom.maybe(isUploadingObs, () =>
         cssSpinner(
-          cssSpinner.cls('-has-attachments', (use) => use(values).length > 0),
+          cssSpinner.cls('-has-attachments', use => use(values).length > 0),
           testId('attachment-spinner'),
           {title: t('Uploading, please wait…')}
         )
@@ -142,8 +142,8 @@ export class AttachmentsWidget extends NewAbstractWidget {
     const ratio = hasPreview ? (width / height) : 1;
 
     return cssAttachmentPreview({title: filename}, // Add a filename tooltip to the previews.
-      dom.style('height', (use) => `${use(this._height)}px`),
-      dom.style('width', (use) => `${parseInt(use(this._height), 10) * ratio}px`),
+      dom.style('height', use => `${use(this._height)}px`),
+      dom.style('width', use => `${parseInt(use(this._height), 10) * ratio}px`),
       // TODO: Update to legitimately determine whether a file preview exists.
       hasPreview ? dom('img', {style: 'height: 100%; min-width: 100%; vertical-align: top;'},
         dom.attr('src', this._getUrl(value, cell))
@@ -151,7 +151,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       // Open editor as if with input, using it to tell it which of the attachments to show. We
       // pass in a 1-based index. Hitting a key opens the cell, and this approach allows an
       // accidental feature of opening e.g. second attachment by hitting "2".
-      dom.on('dblclick', (ev) => commands.allCommands.input.run(String(allValues.get().indexOf(value) + 1), ev)),
+      dom.on('dblclick', ev => commands.allCommands.input.run(String(allValues.get().indexOf(value) + 1), ev)),
       testId('pw-thumbnail'),
     );
   }

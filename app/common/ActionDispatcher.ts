@@ -43,12 +43,12 @@ export abstract class ActionDispatcher {
   // If not overridden, these will make multiple calls to single-record action methods.
   protected onBulkAddRecord(action: DocAction, tableId: string, rowIds: number[], colValues: BulkColValues): void {
     for (let i = 0; i < rowIds.length; i++) {
-      this.onAddRecord(action, tableId, rowIds[i], mapValues(colValues, (values) => values[i]));
+      this.onAddRecord(action, tableId, rowIds[i], mapValues(colValues, values => values[i]));
     }
   }
   protected onBulkUpdateRecord(action: DocAction, tableId: string, rowIds: number[], colValues: BulkColValues): void {
     for (let i = 0; i < rowIds.length; i++) {
-      this.onUpdateRecord(action, tableId, rowIds[i], mapValues(colValues, (values) => values[i]));
+      this.onUpdateRecord(action, tableId, rowIds[i], mapValues(colValues, values => values[i]));
     }
   }
   protected onBulkRemoveRecord(action: DocAction, tableId: string, rowIds: number[]) {

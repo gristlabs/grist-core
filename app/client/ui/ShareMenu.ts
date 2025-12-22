@@ -80,7 +80,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
         return shareButton([
           t("Suggest Changes"),
           dom.maybe(pageModel.proposalNewChangesCount,
-                    (changes) => cssChangeCount(` (${changes})`)),
+                    changes => cssChangeCount(` (${changes})`)),
         ], () => [
           menuManageUsers(doc, pageModel),
           menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
@@ -225,7 +225,7 @@ function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOrigi
 
   // Preserve the current state in order to stay on the selected page. TODO: Should auto-switch to
   // first page when the requested page is not in the document.
-  const compareHref = dom.attr('href', (use) => urlState().makeUrl({
+  const compareHref = dom.attr('href', use => urlState().makeUrl({
     ...use(urlState().state), doc: leftDocId, params: {compare: rightDocId}}));
 
   const compareUrlId = urlState().state.get().params?.compare;
@@ -305,7 +305,7 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
   const gristDoc = pageModel.gristDoc.get();
   if (!gristDoc) { return null; }
 
-  const onClick = dom.on('click', e => {
+  const onClick = dom.on('click', (e) => {
     const currentPage = pageModel.gristDoc.get()?.activeViewId.get();
     const notDataPage = typeof currentPage !== 'number';
     if (notDataPage) {
@@ -388,7 +388,7 @@ async function manageUsers(doc: DocInfo, docPageModel: DocPageModel) {
     // On save, re-fetch the document info, to toggle the "Public Access" icon if it changed.
     // Skip if personal, since personal cannot affect "Public Access", and the only
     // change possible is to remove the user (which would make refreshCurrentDoc fail)
-    onSave: async (personal) => !personal && docPageModel.refreshCurrentDoc(doc),
+    onSave: async personal => !personal && docPageModel.refreshCurrentDoc(doc),
     reload: () => api.getDocAccess(doc.id),
   });
 }

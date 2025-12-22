@@ -394,5 +394,5 @@ function makeQueryInvalidComputed(docModel: DocModel, queryRefs: QueryRefs): ko.
   const tableFlag: ko.Observable<boolean> = docModel.tables.getRowModel(queryRefs.tableRef)._isDeleted;
   const colFlags: Array<ko.Observable<boolean> | null> = queryRefs.filterTuples.map(
     ([colRef, ,]) => colRef === 'id' ? null : docModel.columns.getRowModel(colRef)._isDeleted);
-  return ko.computed(() => Boolean(tableFlag() || colFlags.some((c) => c?.())));
+  return ko.computed(() => Boolean(tableFlag() || colFlags.some(c => c?.())));
 }

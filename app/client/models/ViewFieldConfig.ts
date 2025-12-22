@@ -363,7 +363,7 @@ export class ViewFieldConfig {
 function allSame(arr: any[]) {
   if (arr.length <= 1) { return true; }
   const first = ifNotSet(arr[0], null);
-  const same = arr.every(next => {
+  const same = arr.every((next) => {
     return isEqual(ifNotSet(next, null), first);
   });
   return same;

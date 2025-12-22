@@ -16,7 +16,7 @@ function simpleArray(array: string[]) {
 }
 
 function toSimpleArray(records: TreeRecord[]) {
-  return records.map((rec) => rec.name + rec.indentation);
+  return records.map(rec => rec.name + rec.indentation);
 }
 
 // return ['a', ['b']] if item has name 'a' and one children with name 'b'.
@@ -83,7 +83,7 @@ describe('TreeModel', function() {
 
     function fix(items: string[]) {
       const recs = items.map((item, id) => ({id, indentation: Number(item[1]), name: item[0], pagePos: id}));
-      return fixIndents(recs).map((rec) => rec.name + rec.indentation);
+      return fixIndents(recs).map(rec => rec.name + rec.indentation);
     }
 
     assert.deepEqual(fix(["A0", "B2"]), ["A0", "B1"]);

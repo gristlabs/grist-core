@@ -25,7 +25,7 @@ function setupTest() {
           'Expand this button',
         ),
         dom('div', {style: 'flex: none'},
-          dom.style('width', (use) => use(isOpen) ? '240px' : '48px'),
+          dom.style('width', use => use(isOpen) ? '240px' : '48px'),
           addNewButton({isOpen})),
       ),
     ),

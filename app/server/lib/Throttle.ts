@@ -89,7 +89,7 @@ export class Throttle {
   private _meteringInterval: Interval = new Interval(
     () => this._update(),
     {delayMs: this._timing.samplePeriodMs},
-    {onError: (e) => this._log(`Throttle error: ${e}`, this._options.logMeta)},
+    {onError: e => this._log(`Throttle error: ${e}`, this._options.logMeta)},
   );
 
   /**

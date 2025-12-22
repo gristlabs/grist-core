@@ -92,7 +92,7 @@ describe('DocTutorial', function () {
       );
     });
 
-    const move = async (pos: {x?: number, y?: number}) => driver.withActions((actions) => actions
+    const move = async (pos: {x?: number, y?: number}) => driver.withActions(actions => actions
       .move({origin: driver.find('.test-doc-tutorial-popup-move-handle')})
       .press()
       .move({origin: driver.find('.test-doc-tutorial-popup-move-handle'), ...pos})
@@ -100,7 +100,7 @@ describe('DocTutorial', function () {
     );
 
     const resize = async (handle: string, pos: {x?: number; y?: number}) =>
-      driver.withActions((actions) =>
+      driver.withActions(actions =>
         actions
           .move({
             origin: driver.find(

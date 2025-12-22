@@ -80,8 +80,8 @@ export function toPageWidget(section: ViewSectionRec): IPageWidget {
     table: section.table.peek().summarySourceTable.peek() || section.tableRef.peek(),
     summarize: Boolean(section.table.peek().summarySourceTable.peek()),
     columns: section.table.peek().columns.peek().peek()
-      .filter((col) => col.summarySourceCol.peek())
-      .map((col) => col.summarySourceCol.peek()),
+      .filter(col => col.summarySourceCol.peek())
+      .map(col => col.summarySourceCol.peek()),
     link, section: section.id.peek()
   };
 }
@@ -121,7 +121,7 @@ function getCompatibleTypes(tableId: TableRef,
     // The type 'chart' makes little sense when creating a new table.
     compatibleTypes = ['record', 'single', 'detail', 'form'];
   }
-  return summarize ? compatibleTypes.filter((el) => isSummaryCompatible(el)) : compatibleTypes;
+  return summarize ? compatibleTypes.filter(el => isSummaryCompatible(el)) : compatibleTypes;
 }
 
 // The Picker disables some choices that do not make much sense.
@@ -167,7 +167,7 @@ export function attachPageWidgetPicker(elem: HTMLElement, gristDoc: GristDoc, on
 // Open page widget widget picker on the right of element.
 export function openPageWidgetPicker(elem: HTMLElement, gristDoc: GristDoc, onSave: ISaveFunc,
                                      options: IOptions = {}) {
-  popupOpen(elem, (ctl) => buildPageWidgetPicker(
+  popupOpen(elem, ctl => buildPageWidgetPicker(
     ctl, gristDoc, onSave, options
   ), { placement: 'right' });
 }
@@ -216,7 +216,7 @@ export function buildPageWidgetPicker(
       type,
       table: value.table.get(),
       summarize: value.summarize.get(),
-      columns: sortedAs(value.columns.get(), columns.get().map((col) => col.id.peek())),
+      columns: sortedAs(value.columns.get(), columns.get().map(col => col.id.peek())),
       link: value.link.get(),
       section: value.section.get(),
     });
@@ -261,7 +261,7 @@ export function buildPageWidgetPicker(
     dom.create(PageWidgetSelect,
       value, tables, columns, onSaveCB, behavioralPromptsManager, options),
 
-    elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+    (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
     onKeyDown({
       Escape: () => ctl.close(),
       Enter: () => isValid() && onSaveCB()
@@ -291,7 +291,7 @@ export interface ISelectOptions {
 
 const registeredCustomWidgets: IAttachedCustomWidget[] =  ['custom.calendar'];
 
-const permittedCustomWidgets: IAttachedCustomWidget[] = PERMITTED_CUSTOM_WIDGETS().get().map((widget) =>
+const permittedCustomWidgets: IAttachedCustomWidget[] = PERMITTED_CUSTOM_WIDGETS().get().map(widget =>
   widget as IAttachedCustomWidget)??[];
 // the list of widget types in the order they should be listed by the widget.
 const finalListOfCustomWidgetToShow =  permittedCustomWidgets.filter(a=>
@@ -355,7 +355,7 @@ export class PageWidgetSelect extends Disposable {
               cssTypeIcon(widgetInfo.icon),
               widgetInfo.getLabel(),
               dom.on('click', () => !disabled.get() && this._selectType(value)),
-              cssEntry.cls('-selected', (use) => use(this._value.type) === value),
+              cssEntry.cls('-selected', use => use(this._value.type) === value),
               cssEntry.cls('-disabled', disabled),
               testId('type'),
             );
@@ -367,28 +367,28 @@ export class PageWidgetSelect extends Disposable {
           cssEntry(
             cssIcon('TypeTable'), t('New Table'),
             // prevent the selection of 'New Table' if it is disabled
-            dom.on('click', (ev) => !this._isNewTableDisabled.get() && this._selectTable('New Table')),
+            dom.on('click', ev => !this._isNewTableDisabled.get() && this._selectTable('New Table')),
             this._behavioralPromptsManager.attachPopup('pageWidgetPicker', {
               popupOptions: {
                 attach: null,
                 placement: 'right-start',
               }
             }),
-            cssEntry.cls('-selected', (use) => use(this._value.table) === 'New Table'),
+            cssEntry.cls('-selected', use => use(this._value.table) === 'New Table'),
             cssEntry.cls('-disabled', this._isNewTableDisabled),
             testId('table'),
           ),
-          dom.forEach(this._tables, (table) => dom('div',
+          dom.forEach(this._tables, table => dom('div',
             cssEntryWrapper(
               cssEntry(cssIcon('TypeTable'),
                        cssLabel(dom.text(table.tableNameDef), overflowTooltip()),
                        dom.on('click', () => this._selectTable(table.id())),
-                       cssEntry.cls('-selected', (use) => use(this._value.table) === table.id()),
+                       cssEntry.cls('-selected', use => use(this._value.table) === table.id()),
                        testId('table-label')
               ),
                 cssPivot(
                   cssBigIcon('Pivot'),
-                  cssEntry.cls('-selected', (use) => use(this._value.summarize) &&
+                  cssEntry.cls('-selected', use => use(this._value.summarize) &&
                                                      use(this._value.table) === table.id()
                   ),
                   cssEntry.cls('-disabled', this._isSummaryDisabled),
@@ -402,15 +402,15 @@ export class PageWidgetSelect extends Disposable {
         ),
         cssPanel(
           header(t("Group by")),
-          dom.hide((use) => !use(this._value.summarize)),
+          dom.hide(use => !use(this._value.summarize)),
           domComputed(
-            (use) => use(this._columns)
-              .filter((col) => !col.isHiddenCol() && col.parentId() === use(this._value.table)),
-            (cols) => cols ?
-              dom.forEach(cols, (col) =>
+            use => use(this._columns)
+              .filter(col => !col.isHiddenCol() && col.parentId() === use(this._value.table)),
+            cols => cols ?
+              dom.forEach(cols, col =>
                 cssEntry(cssIcon('FieldColumn'), cssFieldLabel(dom.text(col.label)),
                   dom.on('click', () => this._toggleColumnId(col.id())),
-                  cssEntry.cls('-selected', (use) => use(this._value.columns).includes(col.id())),
+                  cssEntry.cls('-selected', use => use(this._value.columns).includes(col.id())),
                   testId('column')
                 )
               ) :
@@ -421,7 +421,7 @@ export class PageWidgetSelect extends Disposable {
       cssFooter(
         cssFooterContent(
           // If _selectByOptions exists and has more than then "NoLinkOption", show the selector.
-          dom.maybe((use) => this._selectByOptions && use(this._selectByOptions).length > 1, () =>
+          dom.maybe(use => this._selectByOptions && use(this._selectByOptions).length > 1, () =>
             withInfoTooltip(
               cssSelectBy(
                 cssSmallLabel(t('SELECT BY')),
@@ -444,7 +444,7 @@ export class PageWidgetSelect extends Disposable {
             // TODO: The button's label of the page widget picker should read 'Close' instead when
             // there are no changes.
             this._options.buttonLabel || t("Add to page"),
-            dom.prop('disabled', (use) => !isValidSelection(
+            dom.prop('disabled', use => !isValidSelection(
               use(this._value.table),
               use(this._value.type),
               {

@@ -380,7 +380,7 @@ export class DocModel extends Disposable {
     this.dataTablesByRef.set(tableMetaRow.getRowId(), dtm);
 
     // Subscribe to tableMetaRow.tableId() to handle table renames.
-    tableMetaRow.tableId.subscribe(newTableId => {
+    tableMetaRow.tableId.subscribe((newTableId) => {
       this.dataTables[newTableId] = this.dataTables[tid];
       delete this.dataTables[tid];
       tid = newTableId;
@@ -439,7 +439,7 @@ export class DocModel extends Disposable {
  */
 function createTablesArray(
   tablesModel: MetaTableModel<TableRec>,
-  filterFunc: RowFilterFunc<UIRowId> = (_row) => true
+  filterFunc: RowFilterFunc<UIRowId> = _row => true
 ) {
   const rowSource = new rowset.FilteredRowSource(filterFunc);
   rowSource.subscribeTo(tablesModel);

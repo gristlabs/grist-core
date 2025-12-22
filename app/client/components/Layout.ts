@@ -186,7 +186,7 @@ export class LayoutBox extends Disposable implements ContentBox {
     sourceLayoutBox.leafContent(null);
   }
   public setChildren(children: LayoutBox[]) {
-    children.forEach((child) => child.parentBox(this));
+    children.forEach(child => child.parentBox(this));
     this.childBoxes.assign(children);
   }
   public isFirstChild() {

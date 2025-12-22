@@ -107,7 +107,7 @@ function createRemainingUsersIndicator(
 ) {
   return cssRemainingUsersButton(
     cssRemainingUsersImage(
-      dom.domComputed(use => {
+      dom.domComputed((use) => {
         if (use(isRemainingUsersMenuOpen)) {
           return icon('CrossBig');
         } else {

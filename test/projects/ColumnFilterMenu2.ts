@@ -53,7 +53,7 @@ describe('ColumnFilterMenu2', function() {
 
     it('should group values beyond', async () => {
       // check `Other values` is present
-      assert.deepEqual(await driver.findAll('.test-filter-menu-summary', (e) => e.find('label').getText()),
+      assert.deepEqual(await driver.findAll('.test-filter-menu-summary', e => e.find('label').getText()),
                        ['Other values (14)', 'Future values']);
 
       // check there are actually 17 unique values in total (where 17 is 14 unique other values
@@ -69,7 +69,7 @@ describe('ColumnFilterMenu2', function() {
 
       // check 'Date', 'Figs' and 'Rhubarb' are not shown
       assert.notIncludeMembers(
-        await driver.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()),
+        await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()),
         ['Dates', 'Figs', 'Rhubarb']);
 
       // click 'Other values'
@@ -125,7 +125,7 @@ describe('ColumnFilterMenu2', function() {
         await driver.sendKeys('A');
 
         // Check `Other Matching` is shown
-        assert.deepEqual(await driver.findAll('.test-filter-menu-summary', (e) => e.find('label').getText()),
+        assert.deepEqual(await driver.findAll('.test-filter-menu-summary', e => e.find('label').getText()),
                          ['Other Matching (6)', 'Other Non-Matching (8)']);
 
         // chech all values adds up (shown values) + (other matching) + (other non-matching)
@@ -134,7 +134,7 @@ describe('ColumnFilterMenu2', function() {
         // Check Apples, Bananas are shown
         assert.lengthOf(await driver.findAll('.test-filter-menu-list .test-filter-menu-value'), 3);
         assert.includeMembers(
-          await driver.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()),
+          await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()),
           ['Apples', 'Bananas']);
 
         // check Dates, Knapples are not excluded

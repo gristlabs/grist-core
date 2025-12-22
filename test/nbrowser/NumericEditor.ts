@@ -116,7 +116,7 @@ describe('NumericEditor', function() {
           [entriesByColumn.map(() => options.valPlain)]);
 
         assert.deepEqual(await gu.getVisibleGridCells({rowNums: [rowNum], cols}),
-          entriesByColumn.map((entry) => entry.expPlain));
+          entriesByColumn.map(entry => entry.expPlain));
       });
 
       it('should support entering formatted numbers into a formatted column', async function() {
@@ -127,7 +127,7 @@ describe('NumericEditor', function() {
           [entriesByColumn.map(() => options.valFmt)]);
 
         assert.deepEqual(await gu.getVisibleGridCells({rowNums: [rowNum], cols}),
-          entriesByColumn.map((entry) => entry.expFmt));
+          entriesByColumn.map(entry => entry.expFmt));
       });
 
       it('should allow editing and saving a formatted value', async function() {

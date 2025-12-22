@@ -71,7 +71,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
   }
 
   const docModel = column._table.docModel;
-  const summaryText = Computed.create(owner, use => {
+  const summaryText = Computed.create(owner, (use) => {
     if (use(column.recalcWhen) === RecalcWhen.MANUAL_UPDATES) {
       return t("Any field");
     }
@@ -81,14 +81,14 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
   });
 
 
-  const changesDisabled = Computed.create(owner, use => {
+  const changesDisabled = Computed.create(owner, (use) => {
     return Boolean(
       (options.disabled && use(options.disabled)) ||
       (options.notTrigger && use(options.notTrigger))
     );
   });
 
-  const newRowsDisabled = Computed.create(owner, use => {
+  const newRowsDisabled = Computed.create(owner, (use) => {
     return Boolean(
       use(applyOnChanges) || use(changesDisabled)
     );
@@ -121,7 +121,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
           icon('Dropdown'),
           testId('field-triggers-select'),
           dom.cls('disabled', use => !!options.disabled && use(options.disabled)),
-          elem => {
+          (elem) => {
             setPopupToCreateDom(elem, ctl => buildTriggerSelectors(ctl, column.table.peek(), column, setRecalc),
               {...defaultMenuOptions, placement: 'bottom-end'});
           }
@@ -155,7 +155,7 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
   const current = columnsState.find((col, index) => showColumns[index].id.peek() === column.id.peek())!;
 
   // If user checks the "Any field" checkbox, all the others should get unchecked.
-  owner.autoDispose(allUpdates.addListener(value => {
+  owner.autoDispose(allUpdates.addListener((value) => {
     if (value) {
       columnsState.forEach(obs => obs.set(false));
     }
@@ -163,7 +163,7 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
 
   // Computed results based on current selections.
   const when = Computed.create(owner, use => use(allUpdates) ? RecalcWhen.MANUAL_UPDATES : RecalcWhen.DEFAULT);
-  const deps = Computed.create(owner, use => {
+  const deps = Computed.create(owner, (use) => {
     return use(allUpdates) ? null :
       showColumns.filter((col, index) => use(columnsState[index])).map(col => col.id.peek());
   });
@@ -195,7 +195,7 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
       Escape: () => close(false)
     }),
     // Set focus on open, so that keyboard events work.
-    elem => { setTimeout(() => elem.focus(), 0); },
+    (elem) => { setTimeout(() => elem.focus(), 0); },
 
     cssItemsFixed(
       cssSelectorItem(

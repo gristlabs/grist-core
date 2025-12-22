@@ -14,12 +14,12 @@ const testId = makeTestId('test-dm-');
  */
  export function buildTemplateDocs(home: HomeModel, templateDocs: Document[], viewSettings: ViewSettings) {
   const {currentView, currentSort} = viewSettings;
-  return dom.domComputed((use) => [use(currentView), use(currentSort)] as const, (opts) => {
+  return dom.domComputed(use => [use(currentView), use(currentSort)] as const, (opts) => {
     const [view, sort] = opts;
     // Template docs are sorted by name in HomeModel. We only re-sort if we want a different order.
     let sortedDocs = templateDocs;
     if (sort === 'date') {
-      sortedDocs = sortBy(templateDocs, (d) => d.removedAt || d.updatedAt).reverse();
+      sortedDocs = sortBy(templateDocs, d => d.removedAt || d.updatedAt).reverse();
     }
     return cssTemplateDocs(dom.forEach(sortedDocs, d => buildTemplateDoc(home, d, d.workspace, view)));
   });

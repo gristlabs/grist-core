@@ -138,7 +138,7 @@ export class FieldBuilder extends Disposable {
 
     this._readOnlyPureType = ko.pureComputed(() => this.field.column().pureType());
 
-    this._readonly = Computed.create(this, (use) =>
+    this._readonly = Computed.create(this, use =>
       use(gristDoc.isReadonly) || use(field.disableEditData) || Boolean(this._options.isPreview));
 
     this._isForm = this.autoDispose(ko.computed(() => {
@@ -178,7 +178,7 @@ export class FieldBuilder extends Disposable {
     // Gives the table ID to which the reference points.
     this._refTableId = this.autoDispose(ko.computed({
       read: () => getReferencedTableId(this.field.column().type()),
-      write: val => {
+      write: (val) => {
         const type = this.field.column().type();
         if (type.startsWith('Ref:')) {
           this._setType(`Ref:${val}`);
@@ -240,7 +240,7 @@ export class FieldBuilder extends Disposable {
   }
 
   public buildSelectWidgetDom() {
-    return grainjsDom.maybe((use) => !use(this._isTransformingType) && use(this._readOnlyPureType), type => {
+    return grainjsDom.maybe(use => !use(this._isTransformingType) && use(this._readOnlyPureType), (type) => {
       const typeWidgets = getTypeDefinition(type).widgets;
       const widgetOptions = Object.keys(typeWidgets).map(label => ({
         label,
@@ -250,14 +250,14 @@ export class FieldBuilder extends Disposable {
       if (widgetOptions.length <= 1) { return null; }
       // Here we need to accommodate the fact that the widget can be null, which
       // won't be visible on a select component when disabled.
-      const defaultWidget = Computed.create(null, use => {
+      const defaultWidget = Computed.create(null, (use) => {
         if (widgetOptions.length <= 2) {
           return;
         }
         const value = use(this.field.config.widget);
         return value;
       });
-      defaultWidget.onWrite((value) => this.field.config.widget(value));
+      defaultWidget.onWrite(value => this.field.config.widget(value));
       const disabled = Computed.create(null, use => !use(this.field.config.sameWidgets));
       return [
         cssLabel(t('CELL FORMAT')),
@@ -294,7 +294,7 @@ export class FieldBuilder extends Disposable {
       const myType = use(fromKo(this._readOnlyPureType));
       return use(commonType) === 'mixed' ? '' : myType;
     });
-    selectType.onWrite(newType => {
+    selectType.onWrite((newType) => {
       const sameType = newType === this._readOnlyPureType.peek();
       if (!sameType || commonType.get() === 'mixed') {
         if (['Ref', 'RefList'].includes(newType)) {
@@ -309,7 +309,7 @@ export class FieldBuilder extends Disposable {
       cssRow(
         grainjsDom.autoDispose(holder),
         select(selectType, this._availableTypes, {
-          disabled: (use) =>
+          disabled: use =>
             // If we are transforming column at this moment (applying a formula to change data),
             use(this._isTransformingFormula) ||
             // If this is a summary column
@@ -347,14 +347,14 @@ export class FieldBuilder extends Disposable {
           (use(this.field.config.multiselect) && !use(allFormulas))
         ),
       ),
-      grainjsDom.maybe((use) => use(this._isRef) && !use(this._isTransformingType), () => this._buildRefTableSelect()),
+      grainjsDom.maybe(use => use(this._isRef) && !use(this._isTransformingType), () => this._buildRefTableSelect()),
       grainjsDom.maybe(this._isTransformingType, () => {
         // Editor dom must be built before preparing transform.
         return dom('div.type_transform_prompt',
                    kf.prompt(
                      dom('div',
                          grainjsDom.maybe(this._isRef, () => this._buildRefTableSelect()),
-                         grainjsDom.maybe((use) => use(this.field.column().isTransforming),
+                         grainjsDom.maybe(use => use(this.field.column().isTransforming),
                                           () => this.columnTransform!.buildDom())
                      )
                    ),
@@ -422,14 +422,14 @@ export class FieldBuilder extends Disposable {
 
   // Builds the reference type table selector. Built when the column is type reference.
   public _buildRefTableSelect() {
-    const allTables = Computed.create(null, (use) =>
+    const allTables = Computed.create(null, use =>
                                       use(this._docModel.visibleTables.getObservable()).map(tableRec => ({
                                         value: use(tableRec.tableId),
                                         label: use(tableRec.tableNameDef),
                                         icon: 'FieldTable' as const
                                       }))
                                      );
-    const isDisabled = Computed.create(null, use => {
+    const isDisabled = Computed.create(null, (use) => {
       return use(this.origColumn.disableModifyBase) || use(this.field.config.multiselect);
     });
     return [
@@ -466,7 +466,7 @@ export class FieldBuilder extends Disposable {
   public buildTransformDom() {
     const transformButton = ko.computed({
       read: () => this.field.column().isTransforming(),
-      write: val => {
+      write: (val) => {
         if (val) {
           this.columnTransform = FormulaTransform.create(null, this.gristDoc, this);
           return this.columnTransform.prepare();

@@ -42,7 +42,7 @@ function renderPage(appModel: AppModel, showRightPane: boolean, showLeftOpener: 
       header: testContent('Header Right'),
       content: dom('div',
         primaryButton(
-          (elem) => attachPageWidgetPicker(
+          elem => attachPageWidgetPicker(
             elem, gristDocMock,
             async (val) => { selected.get().record.widget = val; },
             {
@@ -50,7 +50,7 @@ function renderPage(appModel: AppModel, showRightPane: boolean, showLeftOpener: 
               buttonLabel: 'Save',
             }),
           "Edit Data Selection",
-          dom.prop('disabled', (use) => !use(selected)),
+          dom.prop('disabled', use => !use(selected)),
           testId('editDataBtn')
         ),
         testContent('Long right-pane content')
@@ -105,7 +105,7 @@ function addMenu() {
   return [
     menuItem(() => addNewPage(), menuIcon("TypeTable"), "Empty Table"),
     menuItem(
-      (elem) => openPageWidgetPicker(elem, gristDocMock, addNewPage),
+      elem => openPageWidgetPicker(elem, gristDocMock, addNewPage),
       menuIcon('Page'), "Page", testId('addNewPage')),
   ];
 }

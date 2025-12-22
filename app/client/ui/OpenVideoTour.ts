@@ -22,7 +22,7 @@ const testId = makeTestId('test-video-tour-');
       const youtubePlayer = YouTubePlayer.create(owner,
         commonUrls.onboardingTutorialVideoId,
         {
-          onPlayerReady: (player) => player.playVideo(),
+          onPlayerReady: player => player.playVideo(),
           height: '100%',
           width: '100%',
           origin: getMainOrgUrl(),

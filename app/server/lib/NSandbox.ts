@@ -192,7 +192,7 @@ export class NSandbox implements ISandbox {
       if (!sandboxProcess.sendData) {
         throw new Error('no way to send data to sandbox');
       }
-      sandboxProcess.getData((data) => this._onSandboxData(data));
+      sandboxProcess.getData(data => this._onSandboxData(data));
       this._dataToSandbox = sandboxProcess.sendData;
     }
 
@@ -333,12 +333,12 @@ export class NSandbox implements ISandbox {
       throw new Error('expected streamToSandbox to be configured');
     }
     const sandboxStderrLogger = sandboxUtil.makeLogLinePrefixer('Sandbox stderr: ', this._logMeta);
-    this.childProc.stderr!.on('data', data => {
+    this.childProc.stderr!.on('data', (data) => {
       this._lastStderr = data;
       sandboxStderrLogger(data);
     });
 
-    this._streamFromSandbox.on('data', (data) => this._onSandboxData(data));
+    this._streamFromSandbox.on('data', data => this._onSandboxData(data));
     this._streamFromSandbox.on('end', () => this._onSandboxClose());
     this._streamFromSandbox.on('error', (err) => {
       log.rawError(`Sandbox error reading: ${err}`, this._logMeta);
@@ -425,7 +425,7 @@ export class NSandbox implements ISandbox {
    * Process a buffer of data received from the sandbox process.
    */
   private _onSandboxData(data: any) {
-    this._unmarshaller.parse(data, buf => {
+    this._unmarshaller.parse(data, (buf) => {
       const value = marshal.loads(buf, { bufferToString: true });
       if (this._recordBuffersDir) {
         fs.appendFileSync(path.resolve(this._recordBuffersDir, "output"), buf);

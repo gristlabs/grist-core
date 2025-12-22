@@ -27,7 +27,7 @@ export const tables = observable([
   table(0, 'Companies'),
   table(1, 'History'),
   table(2, 'A table with a very very long name, which include a description'),
-  ...range(6).map((i) => table(3 + i, `Table${i}`))
+  ...range(6).map(i => table(3 + i, `Table${i}`))
 ]);
 
 export const columns = observable([
@@ -36,7 +36,7 @@ export const columns = observable([
   column(2, 'URL', 1),
   column(3, 'city', 1),
   column(4, 'Long long long column name, because why not', 2),
-  ...range(10).map((i) => column(4 + i, `column`, 3))
+  ...range(10).map(i => column(4 + i, `column`, 3))
 ]);
 
 const tablesKo = syncedKoArray(toKo(ko, tables));

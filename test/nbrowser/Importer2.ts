@@ -339,7 +339,7 @@ describe('Importer2', function() {
         'names - names.json'
       );
       assert.deepEqual(
-        await driver.findAll('.test-importer-source .test-importer-from', (e) => e.getText()),
+        await driver.findAll('.test-importer-source .test-importer-from', e => e.getText()),
         ['names - names.json', 'names_name - names.json']
       );
 

@@ -33,7 +33,7 @@ export class BootProbes {
                   ...this._middleware,
                   expressWrap(async (_, res) => {
       res.json({
-        'probes': this._probes.map(probe => {
+        'probes': this._probes.map((probe) => {
           return { id: probe.id, name: probe.name };
         }),
       });

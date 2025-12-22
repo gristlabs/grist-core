@@ -138,7 +138,7 @@ function initCustomCompleter() {
       const suggestions = await options.getSuggestions(prefix);
       // ACE autocompletions are very poorly documented. This is somewhat helpful:
       // https://prog.world/implementing-code-completion-in-ace-editor/
-      const completions: AceSuggestion[] = suggestions.map(suggestionWithValue => {
+      const completions: AceSuggestion[] = suggestions.map((suggestionWithValue) => {
         const [suggestion, example] = suggestionWithValue;
         if (Array.isArray(suggestion)) {
           const [funcname, argSpec] = suggestion;

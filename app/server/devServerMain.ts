@@ -120,7 +120,7 @@ export async function main() {
   log.info("== staticServer");
   const staticPort = getPort("STATIC_PORT", 9001);
   process.env.APP_STATIC_URL = `http://localhost:${staticPort}`;
-  await MergedServer.create(staticPort, ["static"]).then((s) => s.run());
+  await MergedServer.create(staticPort, ["static"]).then(s => s.run());
 
   // Bring up a home server
   log.info("==========================================================================");

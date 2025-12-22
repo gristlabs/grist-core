@@ -384,25 +384,25 @@ export class ActiveDoc extends EventEmitter {
         new Interval(
           () => this.removeUnusedAttachments(true),
           REMOVE_UNUSED_ATTACHMENTS_DELAY,
-          {onError: (e) => this._log.error(null, 'failed to remove expired attachments', e)},
+          {onError: e => this._log.error(null, 'failed to remove expired attachments', e)},
         ),
         // Update the time in formulas every hour.
         new Interval(
           () => this._updateCurrentTime(),
           Deps.UPDATE_CURRENT_TIME_DELAY,
-          {onError: (e) => this._log.error(null, 'failed to update current time', e)},
+          {onError: e => this._log.error(null, 'failed to update current time', e)},
         ),
         // Measure and broadcast data size every 5 minutes.
         new Interval(
           () => this._checkDataSizeLimitRatio(makeExceptionalDocSession('system')),
           UPDATE_DATA_SIZE_DELAY,
-          {onError: (e) => this._log.error(null, 'failed to update data size', e)},
+          {onError: e => this._log.error(null, 'failed to update data size', e)},
         ),
         // Log document metrics every hour.
         new Interval(
           async () => { this._logDocMetrics(makeExceptionalDocSession('system'), 'interval'); },
           LOG_DOCUMENT_METRICS_DELAY,
-          {onError: (e) => this._log.error(null, 'failed to log document metrics', e)},
+          {onError: e => this._log.error(null, 'failed to log document metrics', e)},
         ),
       );
     }
@@ -1091,7 +1091,7 @@ export class ActiveDoc extends EventEmitter {
       const result = await this._applyUserActionsWithExtendedOptions(docSession, userActions, {
         attachment: true,
       });
-      this._updateAttachmentsSize().catch(e => {
+      this._updateAttachmentsSize().catch((e) => {
         this._log.warn(docSession, 'failed to update attachments size', e);
       });
       await this._granularAccess.noteUploads(docSession, result.retValues);

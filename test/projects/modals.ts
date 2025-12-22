@@ -46,7 +46,7 @@ describe('modals', function() {
     // Click above the area of the modal closes.
     await driver.findContent('.test-modal-dialog div', /Default modal header/).mouseMove();
     await driver.mouseMoveBy({y: -100});
-    await driver.withActions((actions) => actions.click());
+    await driver.withActions(actions => actions.click());
     await checkClosed();
     assert.match(await driver.find('.testui-confirm-modal-text').getText(), /Cancelled/);
 

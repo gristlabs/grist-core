@@ -80,7 +80,7 @@ export class TableData extends TableDataBase {
    * @returns {Array} Array of return values for all the UserActions as produced by the data engine.
    */
   public sendTableActions(actions: UserAction[], optDesc?: string) {
-    actions.forEach((action) => action.splice(1, 0, this.tableId));
+    actions.forEach(action => action.splice(1, 0, this.tableId));
     return this.docData.sendActions(actions as DocAction[], optDesc);
   }
 

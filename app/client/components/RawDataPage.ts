@@ -23,7 +23,7 @@ export class RawDataPage extends Disposable {
       printSection: () => { printViewSection(null, this._gristDoc.viewModel.activeSection()).catch(reportError); },
     };
     this.autoDispose(commands.createGroup(commandGroup, this, true));
-    this._lightboxVisible = Computed.create(this, use => {
+    this._lightboxVisible = Computed.create(this, (use) => {
       const section = use(this._gristDoc.viewModel.activeSection);
       return Boolean(use(section.id)) && (use(section.isRaw) || use(section.isRecordCard));
     });
@@ -36,7 +36,7 @@ export class RawDataPage extends Disposable {
       emptyView?.activeSectionId(0);
     }));
     // Whenever we close lightbox, clear cursor monitor state.
-    this.autoDispose(this._lightboxVisible.addListener(state => {
+    this.autoDispose(this._lightboxVisible.addListener((state) => {
       if (!state) {
         this._gristDoc.cursorMonitor.clear();
       }

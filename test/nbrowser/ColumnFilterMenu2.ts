@@ -4,7 +4,7 @@ import { assert, driver, Key } from 'mocha-webdriver';
 
 
 function getItems() {
-  return driver.findAll('.test-filter-menu-list label', async (e) => ({
+  return driver.findAll('.test-filter-menu-list label', async e => ({
     checked: await e.find('input').isSelected(),
     label: await e.find('.test-filter-menu-value').getText(),
     count: await e.find('.test-filter-menu-count').getText()

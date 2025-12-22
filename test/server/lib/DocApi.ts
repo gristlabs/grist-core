@@ -420,7 +420,7 @@ function testDocApi(settings: {
   });
 
   async function generateDocAndUrl(docName: string = "Dummy") {
-    const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+    const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
     const docId = await userApi.newDoc({name: docName}, wid);
     const docUrl = `${serverUrl}/api/docs/${docId}`;
     const tableUrl = `${serverUrl}/api/docs/${docId}/tables/Table1`;
@@ -1901,7 +1901,7 @@ function testDocApi(settings: {
   describe("PUT /docs/{did}/tables/{tid}/records", async function () {
     it("should add or update records", async function () {
       // create sample document for testing
-      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+      const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
 
@@ -2176,7 +2176,7 @@ function testDocApi(settings: {
 
     it("allows to create a blank record", async function () {
       // create sample document for testing
-      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+      const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
       // Create two blank records
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
@@ -2187,7 +2187,7 @@ function testDocApi(settings: {
 
     it("allows to create partial records", async function () {
       // create sample document for testing
-      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+      const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
       // create partial records
@@ -2202,7 +2202,7 @@ function testDocApi(settings: {
 
     it("allows CellValue as a field", async function () {
       // create sample document
-      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+      const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({name: 'PostTest'}, wid);
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
       const testField = async (A?: CellValue, message?: string) => {
@@ -2359,7 +2359,7 @@ function testDocApi(settings: {
 
     it("allows CellValue as a field", async function () {
       // create sample document for testing
-      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+      const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({name: 'PatchTest'}, wid);
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
       // create record for patching
@@ -2552,7 +2552,7 @@ function testDocApi(settings: {
       const getFileName = (filePath: string) => filePath.substring(filePath.indexOf("_") + 1);
       const files = await decompress(archive);
       for (const expectedFile of expectedFiles) {
-        const file = files.find((file) => getFileName(file.path) === expectedFile.name);
+        const file = files.find(file => getFileName(file.path) === expectedFile.name);
         assert(file, "file not found in archive");
         if (expectedFile.contents) {
           assert.equal(file?.data.toString(), expectedFile.contents, "file contents in archive don't match");
@@ -3028,7 +3028,7 @@ function testDocApi(settings: {
       it(
         `enables documents with external attachments from other installations to work when imported`,
         async function () {
-          const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+          const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
           const formData = new FormData();
           formData.append(
             'upload',
@@ -3290,7 +3290,7 @@ function testDocApi(settings: {
       this.skip();
     }
     const worker1 = await userApi.getWorkerAPI('import');
-    const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+    const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
     const fakeData1 = await testUtils.readFixtureDoc('Hello.grist');
     const uploadId1 = await worker1.upload(fakeData1, '.grist');
     const resp = await axios.post(`${worker1.url}/api/workspaces/${wid}/import`, {uploadId: uploadId1},
@@ -3302,7 +3302,7 @@ function testDocApi(settings: {
   });
 
   it(`POST /workspaces/{wid}/import can import a new file`, async function () {
-    const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+    const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
     const formData = new FormData();
     formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
     const config = defaultsDeep({headers: formData.getHeaders()}, chimpy);
@@ -3321,7 +3321,7 @@ function testDocApi(settings: {
   });
 
   it("handles /s/ variants for shares", async function () {
-    const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+    const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
     const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
     // const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
     const userActions = [
@@ -3372,7 +3372,7 @@ function testDocApi(settings: {
     const uploadId2 = await worker2.upload(fakeData2, 'upload2.grist');
 
     // Check that kiwi only has access to their own upload.
-    let wid = (await kiwiApi.getOrgWorkspaces('current')).find((w) => w.name === 'Big')!.id;
+    let wid = (await kiwiApi.getOrgWorkspaces('current')).find(w => w.name === 'Big')!.id;
     let resp = await axios.post(`${worker2.url}/api/workspaces/${wid}/import`, {uploadId: uploadId1},
       makeConfig('Kiwi'));
     assert.equal(resp.status, 403);
@@ -3383,7 +3383,7 @@ function testDocApi(settings: {
     assert.equal(resp.status, 200);
 
     // Check that chimpy has access to their own upload.
-    wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+    wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
     resp = await axios.post(`${worker1.url}/api/workspaces/${wid}/import`, {uploadId: uploadId1},
       makeConfig('Chimpy'));
     assert.equal(resp.status, 200);
@@ -3865,7 +3865,7 @@ function testDocApi(settings: {
   describe('webhooks related endpoints', async function () {
     let serving: Serving;
     before(async function () {
-      serving = await serveSomething(app => {
+      serving = await serveSomething((app) => {
         app.use(express.json());
         app.post('/200', ({body}, res) => {
           res.sendStatus(200);
@@ -4456,12 +4456,12 @@ function testDocApi(settings: {
       };
 
       let resolveReceivedLastEvent: () => void;
-      receivedLastEvent = new Promise<void>(r => {
+      receivedLastEvent = new Promise<void>((r) => {
         resolveReceivedLastEvent = r;
       });
 
       // TODO test retries on failure and slowness in a new test
-      serving = await serveSomething(app => {
+      serving = await serveSomething((app) => {
         app.use(express.json());
         app.post('/200', ({body}, res) => {
           successCalled.emit(body[0].A);
@@ -4674,7 +4674,7 @@ function testDocApi(settings: {
           await receivedLastEvent;
 
           // Unsubscribe
-          await Promise.all(subscribeResponses.map(async subscribeResponse => {
+          await Promise.all(subscribeResponses.map(async (subscribeResponse) => {
             const unsubscribeResponse = await axios.post(
               `${serverUrl}/api/docs/${docId}/tables/Table12/_unsubscribe`,
               subscribeResponse, chimpy
@@ -5514,7 +5514,7 @@ function testDocApi(settings: {
           await check({url: "http://example.com"}, 403, "Provided url is forbidden");  // not https
 
           // changing table without changing the ready column should reset the latter
-          await check({tableId: 'Table2'}, 200, '', expectedFields => {
+          await check({tableId: 'Table2'}, 200, '', (expectedFields) => {
             expectedFields.isReadyColumn = null;
             expectedFields.watchedColIds = [];
           });
@@ -5822,7 +5822,7 @@ function setup(name: string, cb: () => Promise<void>) {
 
 async function getWorkspaceId(api: UserAPIImpl, name: string) {
   const workspaces = await api.getOrgWorkspaces('current');
-  return workspaces.find((w) => w.name === name)!.id;
+  return workspaces.find(w => w.name === name)!.id;
 }
 
 async function setupDataDir(dir: string) {

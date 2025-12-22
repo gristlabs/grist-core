@@ -299,7 +299,7 @@ export default class NumberParse {
     const result: NumberFormatOptions = {};
 
     // Find the most common mode.
-    const maxMode: NumMode = NumMode.values.find((k) => modes[k] === maxCount)!;
+    const maxMode: NumMode = NumMode.values.find(k => modes[k] === maxCount)!;
 
     // 'decimal' is the default mode above when counting,
     // but only guess it as an actual option if digit separators were used at least once.

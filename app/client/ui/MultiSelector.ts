@@ -81,7 +81,7 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
   protected buildSelectBox(selectedValue: string,
                            selectCb: (newItem: Item) => void,
                            selectOptions?: {defLabel?: string}): Element {
-    const obs = computed(use => selectedValue).onWrite(async value => {
+    const obs = computed(use => selectedValue).onWrite(async (value) => {
       const newItem = this._findItemByValue(value);
       if (newItem) {
         selectCb(newItem);
@@ -130,7 +130,7 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
     return dom('li', testId('add-item'),
       dom.domComputed(addNewItem, isAdding => isAdding
         ? dom.frag(
-          this.buildSelectBox('', async newItem => {
+          this.buildSelectBox('', async (newItem) => {
             await this.add(newItem);
             addNewItem.set(false);
           }, { defLabel }),

@@ -86,7 +86,7 @@ export class RefSelect extends Disposable {
   public buildDom() {
     return cssFieldList(
       testId('ref-select'),
-      dom.forEach(fromKo(this._added.getObservable()), (col) =>
+      dom.forEach(fromKo(this._added.getObservable()), col =>
         cssFieldEntry(
           cssColumnLabel(dom.text(col.label)),
           cssRemoveIcon('Remove',
@@ -99,8 +99,8 @@ export class RefSelect extends Disposable {
       cssAddLink(cssAddIcon('Plus'), t("Add column"),
         menu(() => [
           ...this._validCols.peek()
-            .filter((col) => !this._addedSet.peek().has(col.colId.peek()))
-            .map((col) =>
+            .filter(col => !this._addedSet.peek().has(col.colId.peek()))
+            .map(col =>
               menuItem(() => this._addFormulaField({ label: col.label(), value: col.colId() }),
                 col.label.peek())
             ),
@@ -165,7 +165,7 @@ export class RefSelect extends Disposable {
   private _removeFormulaField(item: Item) {
     const tableData = this._docModel.dataTables[this._origColumn.table().tableId()].tableData;
     // Iterate through all display fields in the current section.
-    this._getReferrerFields(item.value).forEach(refField => {
+    this._getReferrerFields(item.value).forEach((refField) => {
       const sectionId = this._fieldObs()!.viewSection().getRowId();
       if (refField.column().viewFields().all()
           .filter(field => !field.viewSection().isRaw() && !field.viewSection().isRecordCard())
@@ -205,7 +205,7 @@ export class RefSelect extends Disposable {
   private _getFormulaMatchSet(field: ViewFieldRec) {
     const fields = field.viewSection().viewFields().all();
     const re = new RegExp("^\\$" + this._colId() + "\\.(\\w+)$");
-    return new Set(fields.map(f => {
+    return new Set(fields.map((f) => {
       const found = re.exec(f.column().formula());
       return found ? found[1] : null;
     }));

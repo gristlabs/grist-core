@@ -55,12 +55,12 @@ export function buildHomeIntroCards(
         cssTutorialProgress(
           cssTutorialProgressText(
             cssTutorialProgressPercentage(
-              dom.domComputed(percentComplete, (percent) => percent !== undefined ? `${percent}%` : null),
+              dom.domComputed(percentComplete, percent => percent !== undefined ? `${percent}%` : null),
               testId('tutorial-percent-complete'),
             ),
           ),
           cssTutorialProgressBar(
-            (elem) => subscribeElem(elem, percentComplete, (val) => {
+            elem => subscribeElem(elem, percentComplete, (val) => {
               elem.style.setProperty('--percent-complete', String(val ?? 0));
             })
           ),

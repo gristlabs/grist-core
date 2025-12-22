@@ -76,7 +76,7 @@ export class LayoutTray extends DisposableWithEvents {
 
     // When a drag is started, get the top point of the tray, over which we will activate.
     let topPoint = 48; // By default it is 48 pixels.
-    this.autoDispose(externalLeaf.drag.listen(d => {
+    this.autoDispose(externalLeaf.drag.listen((d) => {
       if (!d) { return; }
       topPoint = (this._rootElement.parentElement?.getBoundingClientRect().top ?? 61) - 13;
     }));
@@ -89,7 +89,7 @@ export class LayoutTray extends DisposableWithEvents {
 
     // Second, we can be activated when the drag has started by the main layout, and we don't have any boxes yet, but
     // mouse pointer is relatively high on the screen.
-    Signal.compute(this, on => {
+    Signal.compute(this, (on) => {
       const drag = on(externalLeaf.drag);
       if (!drag) { return false; }
       const mouseEvent = on(externalLeaf.dragMove);
@@ -252,7 +252,7 @@ class CollapsedDropZone extends Disposable {
     let pushedLeaf: EmptyLeaf | undefined;
     const layout = model.layout;
 
-    this.autoDispose(model.active.distinct().listen(ok => {
+    this.autoDispose(model.active.distinct().listen((ok) => {
       if (ok) {
         pushedLeaf = EmptyLeaf.create(null, this.model);
         layout.addBox(pushedLeaf);
@@ -286,22 +286,22 @@ class CollapsedDropZone extends Disposable {
           // Calculate the virtual zones.
           obsRects.set(this._calculate(root));
           // Find the one under the mouse.
-          const underMouse = obsRects.get().findIndex((x) => x?.contains(e));
+          const underMouse = obsRects.get().findIndex(x => x?.contains(e));
           // If it is still the same, do nothing.
           if (underMouse === this._lastIndex) { return; }
           // If we found something, insert a drop target.
           if (underMouse !== -1) {
             this._insertDropTarget(underMouse)
-              .catch((err) => console.error(`Failed to insert zone:`, err)); // This should not happen.
+              .catch(err => console.error(`Failed to insert zone:`, err)); // This should not happen.
             return;
           }
           // We haven't found anything, remove the last drop target.
-          this._removeDropZone().catch((err) => console.error(`Failed to remove zone:`, err));// This should not happen.
+          this._removeDropZone().catch(err => console.error(`Failed to remove zone:`, err));// This should not happen.
         };
         G.window.addEventListener('mousemove', listener);
         // When mouse leaves, we need to remove the last drop target.
         owner.onDispose(() => {
-          this._removeDropZone().catch((err) => console.error(`Failed to remove zone:`, err));// This should not happen.
+          this._removeDropZone().catch(err => console.error(`Failed to remove zone:`, err));// This should not happen.
         });
         owner.onDispose(() => G.window.removeEventListener('mousemove', listener));
         // For debugging, we can show the virtual zones.
@@ -435,10 +435,10 @@ class CollapsedLayout extends Disposable {
   }
 
   public buildLayout(leafs: number[]) {
-    if (isEqual(leafs, this._boxes.get().map((box) => box.id.get()))) { return []; }
+    if (isEqual(leafs, this._boxes.get().map(box => box.id.get()))) { return []; }
     const removed = this._boxes.splice(0, this._boxes.get().length,
-      ...leafs.map((id) => CollapsedLeaf.create(this.holder, this.model, id)));
-    removed.forEach((box) => this.holder.release(box));
+      ...leafs.map(id => CollapsedLeaf.create(this.holder, this.model, id)));
+    removed.forEach(box => this.holder.release(box));
     return removed;
   }
 
@@ -639,7 +639,7 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
   constructor(protected model: LayoutTray, id: number) {
     super();
     this.id.set(id);
-    this._viewInstance = Computed.create(this, use => {
+    this._viewInstance = Computed.create(this, (use) => {
       const sections = use(use(this.model.viewLayout.viewModel.viewSections).getObservable());
       const view = sections.find(s => use(s.id) === use(this.id));
       if (!view) { return null; }
@@ -749,7 +749,7 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
   }
 
   private _buildHidden() {
-    this._hiddenViewInstance.set(cssHidden(dom.maybe(this._viewInstance, view => {
+    this._hiddenViewInstance.set(cssHidden(dom.maybe(this._viewInstance, (view) => {
       return this._detached ? null : view.viewPane;
     })));
   }
@@ -821,7 +821,7 @@ class ExternalLeaf extends Disposable implements Dropped {
     // Now bubble up those events to the model.
 
     // For dragging we just need to know that it is on or off.
-    this.drag.map(box => {
+    this.drag.map((box) => {
       // We are tricking the model, we report that we are dragged, not the external leaf.
       return box ? this as Dropped : null;
     }).distinct().pipe(this.model.drag);
@@ -832,7 +832,7 @@ class ExternalLeaf extends Disposable implements Dropped {
 
     // Listen to the inDrag state in the model, if the dragged element is not us, update
     // target hits. Otherwise target hits will be updated by the viewLayout.
-    this.autoDispose(model.dragging.listen(ev => {
+    this.autoDispose(model.dragging.listen((ev) => {
       // If the dragged box is not us, we need to update the targets.
       if (ev && model.drag.state.get() !== this) {
         this.model.viewLayout.layoutEditor.updateTargets(ev);
@@ -842,7 +842,7 @@ class ExternalLeaf extends Disposable implements Dropped {
     // When drag is started by tray, we need to fire up user edit event. This is only needed
     // because the viewLayout has a different UI when user is editing.
     const miniDrag = Signal.compute(this, on => on(model.drag) && !on(this.drag)).map(Boolean).distinct();
-    this.autoDispose(miniDrag.listen(box => {
+    this.autoDispose(miniDrag.listen((box) => {
       if (box) {
         this.model.viewLayout.layoutEditor.triggerUserEditStart();
       } else {
@@ -862,7 +862,7 @@ class ExternalLeaf extends Disposable implements Dropped {
     // Also we need to monitor when mini leaf is dropped, it will trigger a drop event,
     // but non-one will listen to it.
     this.autoDispose(
-      model.drop.listen(dropped => {
+      model.drop.listen((dropped) => {
         if (!dropped) {
           return;
         }
@@ -932,7 +932,7 @@ class ExternalLeaf extends Disposable implements Dropped {
     let lastY: number|null = null;
     // When the external box is on top of the tray, we need to replace the content to be much smaller.
     model.autoDispose(
-      overEditor.listen(over => {
+      overEditor.listen((over) => {
         if (over) {
           const floater = model.viewLayout.layoutEditor.floater;
           const leafId = floater.leafId.peek();
@@ -1136,7 +1136,7 @@ function useDragging() {
     };
     const mouseMoveListener = (ev: JQMouseEvent) => listener(ev);
     const mouseUpListener = (ev: JQMouseEvent) => listener(ev);
-    dom.autoDisposeElem(el, dom.onElem(G.window, 'mousedown', (e) => listener(e)));
+    dom.autoDisposeElem(el, dom.onElem(G.window, 'mousedown', e => listener(e)));
     dom.onDisposeElem(el, () => (floater?.dispose(), floater = null));
   };
 }

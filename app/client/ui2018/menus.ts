@@ -278,7 +278,7 @@ export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption
     ...otherOptions,
   };
 
-  return weasel.select(obs, optionArray, selectOptions, (op) =>
+  return weasel.select(obs, optionArray, selectOptions, op =>
     cssOptionRow(
       op.icon ? cssOptionRowIcon(op.icon) : null,
       cssOptionLabel(options.translateOptionLabels ? t(op.label) : op.label),
@@ -336,7 +336,7 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
         Enter: () => ctl.close(),
         Escape: () => ctl.close()
       }),
-      elem => {
+      (elem) => {
         // Set focus on open, so that keyboard events work.
         setTimeout(() => elem.focus(), 0);
 
@@ -345,8 +345,8 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
         style.minWidth = ctl.getTriggerElem().getBoundingClientRect().width + 'px';
         style.marginLeft = style.marginRight = '0';
       },
-      dom.domComputed(selectedOptionsSet, selectedOpts => {
-        return dom.forEach(availableOptions, option => {
+      dom.domComputed(selectedOptionsSet, (selectedOpts) => {
+        return dom.forEach(availableOptions, (option) => {
           const fullOption = weasel.getOptionFull(option);
           return cssCheckboxLabel(
             cssCheckboxSquare(
@@ -380,10 +380,10 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
       cssMultiSelectSummary.cls('-placeholder', use => use(selectedOptionsSet).size === 0)
     ),
     icon('Dropdown'),
-    elem => {
+    (elem) => {
       weasel.setPopupToCreateDom(elem, ctl => buildMultiSelectMenu(ctl), weasel.defaultMenuOptions);
     },
-    dom.style('border', use => {
+    dom.style('border', (use) => {
       return options.error && use(options.error)
         ? `1px solid ${theme.selectButtonBorderInvalid}`
         : `1px solid ${theme.selectButtonBorder}`;
@@ -542,7 +542,7 @@ export function listOfMenuItems(items: () => DomElementArg[],) {
 
 export function selectTitle(label: BindableValue<string>, iconName?: BindableValue<IconName>) {
   return cssOptionRow(
-    iconName ? dom.domComputed(iconName, (name) => cssOptionRowIcon(name)) : null,
+    iconName ? dom.domComputed(iconName, name => cssOptionRowIcon(name)) : null,
     dom.text(label)
   );
 }
@@ -874,7 +874,7 @@ interface MenuItem {
  * Currently only used in Virtual Tables.
  */
 export function menuBuilder(definition: Array<MenuItem>) {
-  return menu((ctl) => [...buildMenuItems(definition)], {});
+  return menu(ctl => [...buildMenuItems(definition)], {});
 }
 
 export function *buildMenuItems(current: Array<MenuItem>): IterableIterator<Element> {

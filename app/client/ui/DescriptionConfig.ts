@@ -78,7 +78,7 @@ export function buildDescriptionConfig(
         ),
       ];
     } else {
-      return dom.domComputed(use => Boolean(use(description)), haveDescription => {
+      return dom.domComputed(use => Boolean(use(description)), (haveDescription) => {
         preview = undefined;
         if (haveDescription) {
           return [

@@ -327,7 +327,7 @@ async function getTextFromClipboardItem(clipboardItem: ClipboardItem|undefined, 
  */
 async function getFilesFromClipboardItems(clipboardItems: ClipboardItem[]): Promise<File[]> {
   const blobs = await Promise.all(
-    clipboardItems.map(item => {
+    clipboardItems.map((item) => {
       // Find a non-text mime type, which should indicate a file.
       // Note that browsers may not support arbitrary files, but should support images on clipboard.
       const mimeType = item.types.find(mtime => !mtime.startsWith("text/"));

@@ -197,7 +197,7 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
   }
 
   protected _mergeTableAccess(access: MixedPermissionSet[]): TablePermissionSet {
-    return mergePermissions(access, (bits) => (
+    return mergePermissions(access, bits => (
       bits.every(b => b === 'allow') ? 'allow' :
       bits.every(b => b === 'deny') ? 'deny' :
       bits.every(b => b === 'allow' || b === 'deny') ? 'mixedColumns' :
@@ -206,7 +206,7 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
   }
 
   protected _mergeFullAccess(access: TablePermissionSet[]): MixedPermissionSet {
-    return mergePermissions(access, (bits) => (
+    return mergePermissions(access, bits => (
       bits.every(b => b === 'allow') ? 'allow' :
         bits.every(b => b === 'deny') ? 'deny' :
         'mixed'

@@ -427,7 +427,7 @@ export class ActionHistoryImpl implements ActionHistory {
       const actionsByActionNum = keyBy(actions, 'actionNum');
       return actionNums
         .map(n => actionsByActionNum[n])
-        .map((row) => row ? decodeActionFromRow(row) : undefined);
+        .map(row => row ? decodeActionFromRow(row) : undefined);
     });
   }
 

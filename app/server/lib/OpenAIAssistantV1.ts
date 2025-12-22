@@ -321,7 +321,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
     doc: AssistanceDoc,
     request: AssistanceRequestV1
   ): AssistanceSchemaPromptGenerator {
-    return async (options) => ({
+    return async options => ({
       role: "system",
       content:
         "You are a helpful assistant for a user of software called Grist. " +

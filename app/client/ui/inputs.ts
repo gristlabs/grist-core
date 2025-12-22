@@ -84,8 +84,8 @@ export function textarea(
     ] : null,
     dom.prop('value', use => use(obs) ?? ''),
     (isValid ?
-      (elem) => dom.autoDisposeElem(elem,
-        subscribe(obs, (use) => isValid.set(elem.checkValidity()))) :
+      elem => dom.autoDisposeElem(elem,
+        subscribe(obs, use => isValid.set(elem.checkValidity()))) :
       null),
     onInput,
     options?.autoGrow ? [

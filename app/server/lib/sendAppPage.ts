@@ -201,8 +201,8 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
     const preloads = req.languages
       .filter(lng => (readLoadedLngs(req.i18n)).includes(lng))
       .map(lng => lng.replace('-', '_'))
-      .map((lng) =>
-        readLoadedNamespaces(req.i18n).map((ns) =>
+      .map(lng =>
+        readLoadedNamespaces(req.i18n).map(ns =>
        `<link rel="preload" href="locales/${lng}.${ns}.json" as="fetch" type="application/json" crossorigin>`
       ).join("\n")
     ).join('\n');

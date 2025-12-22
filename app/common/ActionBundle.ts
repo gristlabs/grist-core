@@ -40,7 +40,7 @@ export interface ActionBundle {
 }
 
 export function getEnvContent<Content>(items: Array<EnvContent<Content>>): Content[] {
-  return items.map((item) => item[1]);
+  return items.map(item => item[1]);
 }
 
 // ======================================================================

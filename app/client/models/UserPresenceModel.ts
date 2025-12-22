@@ -38,7 +38,7 @@ export class UserPresenceModelImpl extends DisposableWithEvents implements UserP
   private _onUserPresenceUpdateMessage(message: CommDocUserPresenceUpdate) {
     const { data } = message;
     const newProfiles = this.userProfiles.get().slice();
-    const index = newProfiles.findIndex((profileToCheck) => profileToCheck.id === data.id);
+    const index = newProfiles.findIndex(profileToCheck => profileToCheck.id === data.id);
     if (!data.profile) {
       newProfiles.splice(index, 1);
     } else if (index < 0) {

@@ -51,8 +51,8 @@ export async function upgradeDocumentsDocStorageOnly(paths: string[]): Promise<v
 
 export async function main() {
   const params = process.argv.slice(2);
-  const onlyRunDocStorageMigrations = params.map((text) => text.toLowerCase()).includes("--doc-storage-only");
-  const docPaths = params.filter((text) => text.trim()[0] != "-");
+  const onlyRunDocStorageMigrations = params.map(text => text.toLowerCase()).includes("--doc-storage-only");
+  const docPaths = params.filter(text => text.trim()[0] != "-");
   if (docPaths.length === 0) {
     console.log(`Usage:\n    test/upgradeDocument path/to/doc.grist ...\n`);
     console.log(`Parameters: `);

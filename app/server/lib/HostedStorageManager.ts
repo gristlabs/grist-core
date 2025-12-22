@@ -169,12 +169,12 @@ export class HostedStorageManager implements IDocStorageManager {
       this._inventory = new DocSnapshotInventory(
         this._ext,
         this._extMeta,
-        async docId => {
+        async (docId) => {
           const dir = this.getAssetPath(docId);
           await fse.mkdirp(dir);
           return path.join(dir, 'meta.json');
         },
-        async docId => {
+        async (docId) => {
           const features = await callbacks.getDocFeatures(docId);
           return features?.snapshotWindow;
         },
@@ -571,7 +571,7 @@ export class HostedStorageManager implements IDocStorageManager {
     const parts = parseUrlId(docName);
     return {
       snapshots: versions
-        .map(v => {
+        .map((v) => {
           return {
             ...v,
             docId: buildUrlId({...parts, snapshotId: v.snapshotId}),
@@ -758,7 +758,7 @@ export class HostedStorageManager implements IDocStorageManager {
   } = {}): Promise<string> {
     return backupUsingBestConnection(this, docId, {
       ...options,
-      log: (err) => this._log.debug(docId, `Problem making backup, will retry once because db closed: ${err}`),
+      log: err => this._log.debug(docId, `Problem making backup, will retry once because db closed: ${err}`),
     });
   }
 
@@ -888,7 +888,7 @@ export class HostedStorageManager implements IDocStorageManager {
         save: async (key, ver) => {
           versions.set(key, ver);
         },
-        load: async (key) => versions.get(key) || null
+        load: async key => versions.get(key) || null
       }
     });
   }

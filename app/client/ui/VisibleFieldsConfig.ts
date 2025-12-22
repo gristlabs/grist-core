@@ -201,14 +201,14 @@ export class VisibleFieldsConfig extends Disposable {
 
     const [fieldsDraggable, hiddenFieldsDraggable] = this.buildSectionFieldsConfigHelper({
       visibleFields: {
-        itemCreateFunc: (field) => this._buildVisibleFieldItem(field as ViewFieldRec),
+        itemCreateFunc: field => this._buildVisibleFieldItem(field as ViewFieldRec),
         draggableOptions: {
           removeButton: false,
           drag_indicator: cssDragger,
         }
       },
       hiddenFields: {
-        itemCreateFunc: (field) => this._buildHiddenFieldItem(field as ColumnRec),
+        itemCreateFunc: field => this._buildHiddenFieldItem(field as ColumnRec),
         draggableOptions: {
           removeButton: false,
           drag_indicator: cssDragger,
@@ -219,11 +219,11 @@ export class VisibleFieldsConfig extends Disposable {
       dom('div', {role: 'group', 'aria-labelledby': 'visible-fields-label'},
         cssHeader(
           cssFieldListHeader(
-            dom.text((use) => t("Visible {{label}}", {label: use(this._fieldLabel)})),
+            dom.text(use => t("Visible {{label}}", {label: use(this._fieldLabel)})),
             {id: 'visible-fields-label'},
           ),
           dom.maybe(
-            (use) => Boolean(use(use(this._section.viewFields).getObservable()).length),
+            use => Boolean(use(use(this._section.viewFields).getObservable()).length),
             () => (
               cssIconButton(
                 icon('Tick'),
@@ -243,7 +243,7 @@ export class VisibleFieldsConfig extends Disposable {
         dom.maybe(this._showVisibleBatchButtons, () =>
           cssRow(
             primaryButton(
-              dom.text((use) => t("Hide {{label}}", {label: use(this._fieldLabel)})),
+              dom.text(use => t("Hide {{label}}", {label: use(this._fieldLabel)})),
               dom.on('click', () => this._removeSelectedFields()),
               testId('visible-hide')
             ),
@@ -261,21 +261,21 @@ export class VisibleFieldsConfig extends Disposable {
           cssHeaderButton(
             icon(
               'Dropdown',
-              dom.style('transform', (use) => use(this._collapseHiddenFields) ? 'rotate(-90deg)' : ''),
+              dom.style('transform', use => use(this._collapseHiddenFields) ? 'rotate(-90deg)' : ''),
             ),
             dom.boolAttr('disabled', this._disabled),
             dom.on('click', () => this._collapseHiddenFields.set(!this._collapseHiddenFields.get())),
             testId('collapse-hidden'),
             // TODO: show `hidden column` only when some fields are hidden
-            cssFieldListHeader(dom.text((use) => t("Hidden {{label}}", {label: use(this._fieldLabel)}))),
+            cssFieldListHeader(dom.text(use => t("Hidden {{label}}", {label: use(this._fieldLabel)}))),
             {
               id: 'hidden-fields-label',
               "aria-controls": 'hidden-fields-list',
             },
-            dom.attr('aria-expanded', (use) => use(this._collapseHiddenFields) ? 'false' : 'true'),
+            dom.attr('aria-expanded', use => use(this._collapseHiddenFields) ? 'false' : 'true'),
           ),
           dom.maybe(
-            (use) => Boolean(use(this._hiddenFields.getObservable()).length && !use(this._collapseHiddenFields)),
+            use => Boolean(use(this._hiddenFields.getObservable()).length && !use(this._collapseHiddenFields)),
             () => (
               cssIconButton(
                 icon('Tick'),
@@ -302,7 +302,7 @@ export class VisibleFieldsConfig extends Disposable {
           dom.maybe(this._showHiddenBatchButtons, () =>
             cssRow(
               primaryButton(
-                dom.text((use) => t("Show {{label}}", {label: use(this._fieldLabel)})),
+                dom.text(use => t("Show {{label}}", {label: use(this._fieldLabel)})),
                 dom.on('click', () => this._addSelectedFields()),
                 testId('hidden-show')
               ),
@@ -325,7 +325,7 @@ export class VisibleFieldsConfig extends Disposable {
 
   public async addField(column: IField, nextField: ViewFieldRec|null = null) {
     const exists = this._section.viewFields.peek().peek()
-      .findIndex((f) => f.column.peek().getRowId() === column.id.peek());
+      .findIndex(f => f.column.peek().getRowId() === column.id.peek());
     if (exists !== -1) {
       return;
     }
@@ -373,13 +373,13 @@ export class VisibleFieldsConfig extends Disposable {
   private _setCheckboxesHelper(draggable: Element, fields: IField[], selection: Set<number>,
                                checked: boolean) {
 
-    findCheckboxes(draggable).forEach((el) => el.checked = checked);
+    findCheckboxes(draggable).forEach(el => el.checked = checked);
 
     selection.clear();
 
     if (checked) {
       // add all ids to the selection
-      fields.forEach((field) => selection.add(field.id.peek()));
+      fields.forEach(field => selection.add(field.id.peek()));
     }
   }
 
@@ -395,12 +395,12 @@ export class VisibleFieldsConfig extends Disposable {
         dom.on('click', () => this.addField(column)),
         testId('hide'),
         dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', (use) => t("Show {{label}}", {label: use(column.label)}))
+        dom.attr('aria-label', use => t("Show {{label}}", {label: use(column.label)}))
       ),
       buildCheckbox(
         dom.prop('checked', selection.has(id)),
         dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', (use) => t("Show {{label}} (batch mode)", {label: use(column.label)})),
+        dom.attr('aria-label', use => t("Show {{label}} (batch mode)", {label: use(column.label)})),
         dom.on('change', (ev, el) => {
           if (el.checked) {
             selection.add(id);
@@ -425,12 +425,12 @@ export class VisibleFieldsConfig extends Disposable {
         dom.on('click', () => this.removeField(field)),
         testId('hide'),
         dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', (use) => t("Hide {{label}}", {label: use(field.label)}))
+        dom.attr('aria-label', use => t("Hide {{label}}", {label: use(field.label)}))
       ),
       buildCheckbox(
         dom.prop('checked', selection.has(id)),
         dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', (use) => t("Hide {{label}} (batch mode)", {label: use(field.label)})),
+        dom.attr('aria-label', use => t("Hide {{label}} (batch mode)", {label: use(field.label)})),
         dom.on('change', (ev, el) => {
           if (el.checked) {
             selection.add(id);

@@ -47,7 +47,7 @@ const testId = makeTestId('test-selection-summary-');
 const MAX_CELLS_TO_SCAN = 1_000_000;
 
 export class SelectionSummary extends Disposable {
-  private _colTotalCount = Computed.create(this, (use) =>
+  private _colTotalCount = Computed.create(this, use =>
     use(use(this._viewFields).getObservable()).length);
 
   private _rowTotalCount = Computed.create(this, (use) => {

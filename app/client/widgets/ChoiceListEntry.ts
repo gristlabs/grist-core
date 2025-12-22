@@ -125,7 +125,7 @@ export class ChoiceListEntry extends Disposable {
     return dom.domComputed(this._isEditing, (editMode) => {
       if (editMode) {
         // If we have mixed values, we can't show any options on the editor.
-        const initialValue = this._mixed.get() ? [] : this._values.get().map(label => {
+        const initialValue = this._mixed.get() ? [] : this._values.get().map((label) => {
           return new ChoiceItem(label, label, this._choiceOptionsByName.get().get(label));
         });
         const tokenField = TokenField.ctor<ChoiceItem>().create(this._tokenFieldHolder, {
@@ -152,7 +152,7 @@ export class ChoiceListEntry extends Disposable {
         return cssVerticalFlex(
           this._editorContainer = cssListBox(
             {tabIndex: '-1'},
-            elem => {
+            (elem) => {
               tokenField.attach(elem);
               this._focusOnOpen(tokenField.getTextInput());
             },
@@ -217,8 +217,8 @@ export class ChoiceListEntry extends Disposable {
             cssListBoxInactive(
               dom.cls(cssBlockedCursor.className, this._disabled),
               dom.maybe(noChoices, () => row(t('No choices configured'))),
-              dom.domComputed(this._choiceOptionsByName, (choiceOptions) =>
-                dom.forEach(someValues, val => {
+              dom.domComputed(this._choiceOptionsByName, choiceOptions =>
+                dom.forEach(someValues, (val) => {
                   return row(
                     cssTokenColorInactive(
                       dom.style('background-color', getFillColor(choiceOptions.get(val)) || '#FFFFFF'),
@@ -242,7 +242,7 @@ export class ChoiceListEntry extends Disposable {
                 row(
                   dom('span',
                     testId('choice-list-entry-label'),
-                    dom.text((use) => t('+{{count}} more', {count: use(this._values).length - (maxRows - 1)}))
+                    dom.text(use => t('+{{count}} more', {count: use(this._values).length - (maxRows - 1)}))
                   )
                 )
               ),

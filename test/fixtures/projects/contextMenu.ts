@@ -13,7 +13,7 @@ function setupTest() {
 
   dom.update(
     document.body,
-    dom.on('contextmenu', (ev) => ev.preventDefault())
+    dom.on('contextmenu', ev => ev.preventDefault())
   );
 
   return cssFullscreen(

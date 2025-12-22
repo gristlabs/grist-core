@@ -750,8 +750,8 @@ describe('FormView1', function() {
       await gu.setRefShowColumn('A');
       const alpha = Array.from({length: 26}, (_, i) => String.fromCharCode('a'.charCodeAt(0) + i));
       // Add records with values 'aa', 'ab', ..., 'zz' for the column A
-      const twoLettersCombination = alpha.flatMap((firstLetter) =>
-        alpha.map((secondLetter) => firstLetter + secondLetter)
+      const twoLettersCombination = alpha.flatMap(firstLetter =>
+        alpha.map(secondLetter => firstLetter + secondLetter)
       );
       await gu.sendActions(
         twoLettersCombination.map(twoLetters => ['AddRecord', 'Table1', null, {A: twoLetters}])
@@ -921,11 +921,11 @@ describe('FormView1', function() {
       await gu.waitToPass(async () => assert.deepEqual(await labels(), ['B', 'C', 'D']));
       await gu.openWidgetPanel('widget');
       assert.deepEqual(
-        await driver.findAll('.test-vfc-visible-field', (e) => e.getText()),
+        await driver.findAll('.test-vfc-visible-field', e => e.getText()),
         ['B', 'C', 'D']
       );
       assert.deepEqual(
-        await driver.findAll('.test-vfc-hidden-field', (e) => e.getText()),
+        await driver.findAll('.test-vfc-hidden-field', e => e.getText()),
         []
       );
 
@@ -951,11 +951,11 @@ describe('FormView1', function() {
       ]);
       await gu.waitToPass(async () => assert.deepEqual(await labels(), ['A', 'B', 'C', 'D']));
       assert.deepEqual(
-        await driver.findAll('.test-vfc-visible-field', (e) => e.getText()),
+        await driver.findAll('.test-vfc-visible-field', e => e.getText()),
         ['A', 'B', 'C', 'D']
       );
       assert.deepEqual(
-        await driver.findAll('.test-vfc-hidden-field', (e) => e.getText()),
+        await driver.findAll('.test-vfc-hidden-field', e => e.getText()),
         []
       );
 

@@ -361,7 +361,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     // Maintain the MetaRowModel for the global document info, including docId and peers.
     this.docInfo = this.docModel.docInfoRow;
 
-    this.currentUser = Computed.create(this, use => {
+    this.currentUser = Computed.create(this, (use) => {
       return use(this.app.topAppModel.appObs)?.currentUser ?? null;
     });
 
@@ -387,7 +387,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       return viewId || use(defaultViewId);
     });
     this._activeContent = Computed.create(this, use => use(this.activeViewId));
-    this.externalSectionId = Computed.create(this, use => {
+    this.externalSectionId = Computed.create(this, (use) => {
       const externalContent = use(this._popupSectionOptions);
       return externalContent ? use(externalContent.viewSection.id) : null;
     });
@@ -674,14 +674,14 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
     this._handleTriggerQueueOverflowMessage();
 
-    this.rightPanelTool = Computed.create(this, (use) => this._getToolContent(use(this._rightPanelTool)));
+    this.rightPanelTool = Computed.create(this, use => this._getToolContent(use(this._rightPanelTool)));
 
     this.comparison = options.comparison || null;
 
     // We need prevent default here to allow drop events to fire.
-    this.autoDispose(dom.onElem(window, 'dragover', (ev) => ev.preventDefault()));
+    this.autoDispose(dom.onElem(window, 'dragover', ev => ev.preventDefault()));
     // The default action is to open dragged files as a link, navigating out of the app.
-    this.autoDispose(dom.onElem(window, 'drop', (ev) => ev.preventDefault()));
+    this.autoDispose(dom.onElem(window, 'drop', ev => ev.preventDefault()));
 
     // On window resize, trigger the resizeEmitter to update ViewLayout and individual BaseViews.
     this.autoDispose(dom.onElem(window, 'resize', () => this.resizeEmitter.emit()));
@@ -718,7 +718,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     }));
 
     // create observable for current cursor position
-    this.cursorPosition = Computed.create<ViewCursorPos | undefined>(this, use => {
+    this.cursorPosition = Computed.create<ViewCursorPos | undefined>(this, (use) => {
       // get the BaseView
       const view = use(this.currentView);
       if (!view) {
@@ -827,7 +827,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
           [
             dom.create((owner) => {
               this.viewLayout = ViewLayout.create(owner, this, content);
-              this.viewLayout.maximized.addListener(sectionId => {
+              this.viewLayout.maximized.addListener((sectionId) => {
                 this.maximizedSectionId.set(sectionId);
 
                 if (sectionId === null && !this._isShowingPopupSection) {
@@ -1010,7 +1010,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     const docData = this.docModel.docData;
     const oldVal: IPageWidget = toPageWidget(section);
     const viewModel = section.view();
-    const colIds = section.viewFields().all().map((f) => f.column().colId());
+    const colIds = section.viewFields().all().map(f => f.column().colId());
 
     if (isEqual(oldVal, newVal)) {
       // nothing to be done
@@ -1289,7 +1289,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   private async _setSectionViewFieldsFromArray(section: ViewSectionRec, colIds: string[]) {
 
     // remove old view fields
-    await Promise.all(section.viewFields.peek().all().map((viewField) => (
+    await Promise.all(section.viewFields.peek().all().map(viewField => (
       this.docModel.viewFields.sendTableAction(['RemoveRecord', viewField.id()]) ?? Promise.resolve(undefined)
     )));
 
@@ -1812,7 +1812,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
     const viewModel = section.view();
     const docData = this.docModel.docData;
     const options = section.options();
-    const colIds = section.viewFields().all().map((f) => f.column().colId());
+    const colIds = section.viewFields().all().map(f => f.column().colId());
     const chartType = section.chartType();
     const sectionTheme = section.theme();
 
@@ -2034,7 +2034,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
       actions.push(['RemoveRecord', field.id.peek()]);
 
       // add new field
-      const newField = viewSection.hiddenColumns.peek().find((col) => isNumericLike(col));
+      const newField = viewSection.hiddenColumns.peek().find(col => isNumericLike(col));
       if (newField) {
         const colInfo = {
           parentId: viewSection.id.peek(),

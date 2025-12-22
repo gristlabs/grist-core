@@ -97,7 +97,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public readonly importSources = Observable.create<ImportSourceElement[]>(this, []);
 
   // Get the workspace details for the workspace with id of currentWSId.
-  public readonly currentWS = Computed.create(this, (use) =>
+  public readonly currentWS = Computed.create(this, use =>
     use(this.workspaces).find(ws => (ws.id === use(this.currentWSId))));
 
   public readonly currentWSDocs = Computed.create(
@@ -108,8 +108,8 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       if (page === 'all') {
         return flatten(
           use(this.workspaces)
-            .filter((w) => !w.isSupportWorkspace)
-            .map((w) => w.docs)
+            .filter(w => !w.isSupportWorkspace)
+            .map(w => w.docs)
         );
       } else if (ws) {
         return ws.docs;
@@ -121,7 +121,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
 
   public readonly featuredTemplates = Computed.create(this, this.templateWorkspaces, (_use, templates) => {
     const featuredTemplates = flatten((templates).map(t => t.docs)).filter(t => t.isPinned);
-    return sortBy(featuredTemplates, (t) => t.name.toLowerCase());
+    return sortBy(featuredTemplates, t => t.name.toLowerCase());
   });
 
   public readonly otherSites = Computed.create(this, this.currentPage, this.app.topAppModel.orgs,
@@ -159,7 +159,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   });
 
   public readonly empty = Computed.create(this, this.workspaces, (use, wss) => (
-    wss.every((ws) => ws.isSupportWorkspace || ws.docs.length === 0)));
+    wss.every(ws => ws.isSupportWorkspace || ws.docs.length === 0)));
 
   public readonly shouldShowAddNewTip = Observable.create(this,
     !this._app.behavioralPromptsManager.hasSeenPopup('addNew'));
@@ -188,7 +188,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
         .onWrite(s => this._saveUserOrgPref("docMenuView", s));
     }
 
-    this.autoDispose(subscribe(this.currentPage, this.currentWSId, (use) =>
+    this.autoDispose(subscribe(this.currentPage, this.currentWSId, use =>
       this.updateWorkspaces().catch(reportError)));
 
     // Defer home plugin initialization
@@ -340,7 +340,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     const wss = await api.getOrgWorkspaces(orgId);
     if (this.isDisposed()) { return null; }
     for (const ws of wss) {
-      ws.docs = sortBy(ws.docs, (doc) => doc.name.toLowerCase());
+      ws.docs = sortBy(ws.docs, doc => doc.name.toLowerCase());
 
       // Populate doc.removedAt for soft-deleted docs even when deleted along with a workspace.
       if (forRemoved) {
@@ -362,7 +362,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     // by owner name; and all else being equal workspaces are ordered alphabetically
     // by their name.  All alphabetical ordering is case-insensitive.
     // Workspaces shared from support account (e.g. samples) are put last.
-    return sortBy(wss, (ws) => [ws.isSupportWorkspace,
+    return sortBy(wss, ws => [ws.isSupportWorkspace,
                                 ownerName(this._app, ws).toLowerCase(),
                                 ws.name.toLowerCase()]);
   }
@@ -390,7 +390,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
         // pinned documents that need to be sorted in alphabetical order.
         doc.workspace = doc.workspace ?? ws;
       }
-      ws.docs = sortBy(ws.docs, (doc) => doc.name.toLowerCase());
+      ws.docs = sortBy(ws.docs, doc => doc.name.toLowerCase());
     }
     return templateWss;
   }
@@ -437,7 +437,7 @@ function _isSingleWorkspaceMode(app: AppModel): boolean {
 function getViewPrefDefault(workspaces: Workspace[]): ViewPref {
   const userWorkspaces = workspaces.filter(ws => !ws.isSupportWorkspace);
   const numDocs = userWorkspaces.reduce((sum, ws) => sum + ws.docs.length, 0);
-  const pinnedDocs = userWorkspaces.some((ws) => ws.docs.some(doc => doc.isPinned));
+  const pinnedDocs = userWorkspaces.some(ws => ws.docs.some(doc => doc.isPinned));
   return (numDocs > 4 || pinnedDocs) ? 'list' : 'icons';
 }
 
@@ -453,11 +453,11 @@ export function makeLocalViewSettings(home: HomeModel|null, wsId: number|'trash'
   return {
     currentSort: Computed.create(null,
       // If no value in localStorage, use sort of All Documents.
-      (use) => SortPref.parse(use(sort)) || (home ? use(home.currentSort) : 'name'))
-      .onWrite((val) => sort.set(val)),
+      use => SortPref.parse(use(sort)) || (home ? use(home.currentSort) : 'name'))
+      .onWrite(val => sort.set(val)),
     currentView: Computed.create(null,
       // If no value in localStorage, use mode of All Documents, except Trash which defaults to 'list'.
-      (use) => ViewPref.parse(use(view)) || (wsId === 'trash' ? 'list' : (home ? use(home.currentView) : 'icons')))
-      .onWrite((val) => view.set(val)),
+      use => ViewPref.parse(use(view)) || (wsId === 'trash' ? 'list' : (home ? use(home.currentView) : 'icons')))
+      .onWrite(val => view.set(val)),
   };
 }

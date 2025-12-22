@@ -112,7 +112,7 @@ export function buildACMemberEmail(
       cssUserImagePlus(
         cssPlusIcon('Plus'),
         cssUserImage.cls("-large"),
-        cssUserImagePlus.cls('-invalid', (use) => !use(enableAdd),
+        cssUserImagePlus.cls('-invalid', use => !use(enableAdd),
         )),
       cssMemberText(
         cssMemberPrimaryPlus(t("Invite new member")),
@@ -132,14 +132,14 @@ export function buildACMemberEmail(
     )
   ));
 
-  const enableAdd: Computed<boolean> = computed((use) => Boolean(use(emailObs) && use(isValid)));
+  const enableAdd: Computed<boolean> = computed(use => Boolean(use(emailObs) && use(isValid)));
 
   const acOptions: IAutocompleteOptions<ACUserItem> = {
     attach: null,
     menuCssClass: `${menuCssClass} test-acselect-dropdown`,
-    search: (term) => maybeShowAddNew(acIndex.search(term), term),
+    search: term => maybeShowAddNew(acIndex.search(term), term),
     renderItem: renderSearchItem,
-    getItemText: (item) => item.value,
+    getItemText: item => item.value,
     onClick: commitIfValid,
   };
 

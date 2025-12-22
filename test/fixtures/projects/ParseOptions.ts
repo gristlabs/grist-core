@@ -13,20 +13,20 @@ function setupTest() {
   return [
     dom('div', {style: 'display: flex; width: 100%; height: 400px'},
       testBox(
-        dom('textarea', dom.text((use) => JSON.stringify(use(schemaObs), null, 2)),
+        dom('textarea', dom.text(use => JSON.stringify(use(schemaObs), null, 2)),
           {style: 'width: 100%; height: 100%; min-width: 400px; border: none;'},
           dom.on('change', (ev, elem) => schemaObs.set(JSON.parse(elem.value)))),
         testId('schema'),
       ),
       dom('div',
         testBox(
-          dom.domComputed((use) =>
+          dom.domComputed(use =>
             dom.create(buildParseOptionsForm, use(schemaObs), use(valuesObs), doUpdate, doCancel)
           ),
           testId('parse-options')
         ),
         testBox(
-          dom.text((use) => JSON.stringify(use(valuesObs), null, 2)),
+          dom.text(use => JSON.stringify(use(valuesObs), null, 2)),
           testId('values'),
         ),
       ),

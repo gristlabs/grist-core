@@ -33,7 +33,7 @@ export class ToggleEnterpriseWidget extends Disposable {
   private _activationKey = Observable.create(this, '');
   private _activation = Observable.create<ActivationState | null>(this, null);
 
-  private _state = Computed.create<State | null>(this, use => {
+  private _state = Computed.create<State | null>(this, (use) => {
     const status = use(this._model.status);
     if (!use(this._isEnterpriseEdition) || !status) {
       return 'core';
@@ -62,7 +62,7 @@ export class ToggleEnterpriseWidget extends Disposable {
   public buildEnterpriseSection() {
     return cssSection(
       testId('enterprise-content', this._isEnterpriseEdition),
-      dom.domComputed(this._state, state => {
+      dom.domComputed(this._state, (state) => {
         switch (state) {
           case 'trial':
             return this._trialCopy();
@@ -146,7 +146,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
   private _activatedCopy() {
     const owner = new MultiHolder();
 
-    const expireAt = Computed.create(owner, use => {
+    const expireAt = Computed.create(owner, (use) => {
       const state = use(this._model.status);
       if (!state?.key?.expirationDate) {
         return null;
@@ -154,22 +154,22 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
       return dateFmtFull(state.key.expirationDate);
     });
 
-    const expired = Computed.create(owner, use => {
+    const expired = Computed.create(owner, (use) => {
       const state = use(this._model.status);
       return state?.key?.daysLeft !== undefined && state.key.daysLeft <= 0;
     });
 
 
-    const graceDays = Computed.create(owner, use => {
+    const graceDays = Computed.create(owner, (use) => {
       const state = use(this._model.status);
       return state?.grace?.daysLeft ?? 0;
     });
 
-    const grace = Computed.create(owner, use => {
+    const grace = Computed.create(owner, (use) => {
       return Boolean(use(graceDays));
     });
 
-    const graceText = Computed.create(owner, use => {
+    const graceText = Computed.create(owner, (use) => {
       if (use(grace)) {
         return t('Your instance will be in **read-only** mode in **{{days}}** day(s).', {days: use(graceDays)});
       }
@@ -177,19 +177,19 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
     });
     const inputVisible = Observable.create(owner, expired.get());
 
-    const maxSeats = Computed.create(owner, use => {
+    const maxSeats = Computed.create(owner, (use) => {
       const state = use(this._model.status);
       return state?.features?.installationSeats ?? 0;
     });
 
-    const currentSeats = Computed.create(owner, use => {
+    const currentSeats = Computed.create(owner, (use) => {
       const state = use(this._model.status);
       return state?.current?.installationSeats ?? 0;
     });
 
     const isLimited = Computed.create(owner, use => use(this._model.status)?.features?.installationSeats !== undefined);
 
-    const exceeded = Computed.create(owner, use => {
+    const exceeded = Computed.create(owner, (use) => {
       return use(isLimited) ? use(currentSeats) > use(maxSeats) : false;
     });
 
@@ -284,17 +284,17 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
   }
 
   private _noKeyCopy() {
-    const trialExpired = Computed.create(this, use => {
+    const trialExpired = Computed.create(this, (use) => {
       const state = use(this._model.status);
       return state?.trial?.expirationDate ? new Date(state.trial.expirationDate) : null;
     });
 
-    const trialExpiredIso = Computed.create(this, use => {
+    const trialExpiredIso = Computed.create(this, (use) => {
       const date = use(trialExpired);
       return date ? date.toISOString() : '';
     });
 
-    const trialExpiredLocal = Computed.create(this, use => {
+    const trialExpiredLocal = Computed.create(this, (use) => {
       const date = use(trialExpired);
       return date ? dateFmtFull(date) : '';
     });

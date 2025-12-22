@@ -112,7 +112,7 @@ export async function runMigrations(dataSource: DataSource) {
 
 export async function undoLastMigration(dataSource: DataSource) {
   return await withSqliteForeignKeyConstraintDisabled(dataSource, async () => {
-    await dataSource.transaction(async tr => {
+    await dataSource.transaction(async (tr) => {
       await tr.connection.undoLastMigration();
     });
   });

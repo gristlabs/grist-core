@@ -106,7 +106,7 @@ describe("ProxyAgent", function () {
       // Set up a server and a proxy.
       const port = await getAvailablePort(22340);
       testProxyServer = await TestProxyServer.Prepare(port);
-      serving = await serveSomething(app => {
+      serving = await serveSomething((app) => {
         app.post('/200', (_, res) => { res.sendStatus(200); res.end(); });
         app.post('/404', (_, res) => { res.sendStatus(404); res.end(); });
       });

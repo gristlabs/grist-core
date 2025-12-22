@@ -152,7 +152,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     const u = this._users.get(this.activeUser);
     if (!u) { throw new ApiError("No such user", 403); }
     const domain = urlState().state.get().org;
-    const orgIndex = domain ? Object.keys(this._orgs).find((i) => this._orgs[i].domain === domain) : 1;
+    const orgIndex = domain ? Object.keys(this._orgs).find(i => this._orgs[i].domain === domain) : 1;
     return {
       user: u, org: orgIndex ? orgEntryToOrg(this._orgs[orgIndex]) : null,
       orgError: orgIndex ? undefined : { error: "inaccessible org", status: 403 }

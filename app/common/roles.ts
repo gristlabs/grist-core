@@ -96,5 +96,5 @@ function getFirstMatchingRole<T extends Role|null>(array: Array<Role|null>, anyO
       throw new Error(`getFirstMatchingRole: Invalid role ${role}`);
     }
   }
-  return array.find((item) => anyOf.includes(item as T)) as T;
+  return array.find(item => anyOf.includes(item as T)) as T;
 }

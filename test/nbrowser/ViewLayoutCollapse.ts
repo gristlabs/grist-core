@@ -138,7 +138,7 @@ describe("ViewLayoutCollapse", function() {
     await gu.addNewSection('Custom', 'Companies', {selectBy: 'COMPANIES'});
 
     // Serve custom widget.
-    const widgetServer = await serveSomething(app => {
+    const widgetServer = await serveSomething((app) => {
       addStatic(app);
     });
     cleanup.addAfterAll(widgetServer.shutdown);
@@ -177,7 +177,7 @@ describe("ViewLayoutCollapse", function() {
     await gu.addNewSection('Custom', 'Companies', {selectBy: 'COMPANIES'});
 
     // Serve custom widget.
-    const widgetServer = await serveSomething(app => {
+    const widgetServer = await serveSomething((app) => {
       addStatic(app);
     });
     cleanup.addAfterAll(widgetServer.shutdown);
@@ -1029,7 +1029,7 @@ async function addToMainByMenu(section: string) {
 
 async function dragCollapsed(section: string) {
   const handle = getCollapsedSection(section).find('.draggable-handle');
-  await driver.withActions((actions) => actions
+  await driver.withActions(actions => actions
     .move({origin: handle})
     .press());
   await move(handle, {x : 10, y: 10});
@@ -1038,9 +1038,9 @@ async function dragCollapsed(section: string) {
 
 async function dragMain(section: string) {
   const handle = gu.getSection(section).find('.viewsection_drag_indicator');
-  await driver.withActions((actions) => actions
+  await driver.withActions(actions => actions
     .move({origin: handle}));
-  await driver.withActions((actions) => actions
+  await driver.withActions(actions => actions
     .move({origin: handle, x : 1}) // This is needed to show the drag element.
     .press());
   await move(handle, {x : 10, y: 10});

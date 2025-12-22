@@ -134,7 +134,7 @@ describe('UserPresence', function() {
 
   // everyone@getgrist.com and anon@getgrist.com need testing separately, as they both provide
   // public access to a doc, and in both cases public users should show as anonymous
-  publicEmails.forEach(currentPublicEmail => {
+  publicEmails.forEach((currentPublicEmail) => {
     const _newPermissions = zipObject(
         publicEmails,
         publicEmails.map(email => email === currentPublicEmail ? 'viewers' : null)
@@ -249,7 +249,7 @@ describe('UserPresence', function() {
       },
     ];
 
-    testCases.forEach(testCase => {
+    testCases.forEach((testCase) => {
       it(testCase.name, async function () {
         const viewerClient = await testCase.makeObserverClient();
         const joiningClient = await getWebsocket(owner);
@@ -274,7 +274,7 @@ describe('UserPresence', function() {
 });
 
 async function waitForDocUserPresenceUpdateMessage(client: GristClient): Promise<any> {
-  return waitForMatchingMessage(client, msg => {
+  return waitForMatchingMessage(client, (msg) => {
     return msg.type === 'docUserPresenceUpdate';
   });
 }

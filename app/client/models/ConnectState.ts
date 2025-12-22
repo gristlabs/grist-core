@@ -21,7 +21,7 @@ export class ConnectStateManager extends Disposable {
 
   public setConnected(yesNo: boolean) {
     if (yesNo) {
-      this._timers.forEach((t) => clearTimeout(t));
+      this._timers.forEach(t => clearTimeout(t));
       this._timers = [];
       this._setState(ConnectState.Connected);
     } else if (this.connectState.get() === ConnectState.Connected) {

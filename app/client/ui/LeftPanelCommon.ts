@@ -87,7 +87,7 @@ export function leftPanelBasic(appModel: AppModel, panelOpen: Observable<boolean
     cssScrollPane(
       optContent,
       cssTools(
-        cssTools.cls('-collapsed', (use) => !use(panelOpen)),
+        cssTools.cls('-collapsed', use => !use(panelOpen)),
         cssSpacer(),
         createHelpTools(appModel),
         createAccessibilityTools(),

@@ -78,7 +78,7 @@ describe('ACLFormula', function() {
     op: 'in'
   }, {
     op: 'not in'
-  }].forEach(ctx => {
+  }].forEach((ctx) => {
     it(`should handle the "${ctx.op}" operator with a string RHS to check if substring exist`, async function() {
       const compiled = await setAndCompile(`user.Name ${ctx.op} 'FooBar'`);
       assert.equal(compiled({user: new User({Name: 'FooBar'})}), ctx.op === 'in');

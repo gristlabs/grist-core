@@ -152,7 +152,7 @@ export class GroupsManager {
 
     // Mapping from group names to top-level groups
     const topGroups: {[groupName: string]: NonGuestGroup} = {};
-    groups.forEach(grp => {
+    groups.forEach((grp) => {
       // Note that this has a side effect of initializing the memberGroups arrays.
       grp.memberGroups = [];
       topGroups[grp.name] = grp;
@@ -163,7 +163,7 @@ export class GroupsManager {
       dest === null ? null : reverseDefaultNames.find(sp => sp === inherited.name || sp === dest);
 
     // Place inherited groups (this has the side-effect of updating member groups)
-    inheritedGroups.forEach(grp => {
+    inheritedGroups.forEach((grp) => {
       if (!roles.isBasicRole(grp.name)) {
         // We filtered out such groups at the start of this method, but just in case...
         throw new Error(`${grp.name} is not an inheritable group`);
@@ -211,7 +211,7 @@ export class GroupsManager {
    */
   public createGroups(inherit?: Organization|Workspace, ownerId?: number): {[name: string]: Group} {
     const groupMap: {[name: string]: Group} = {};
-    this.defaultGroups.forEach(groupProps => {
+    this.defaultGroups.forEach((groupProps) => {
       if (!groupProps.orgOnly || !inherit) {
         // Skip this group if it's an org only group and the resource inherits from a parent.
         const group = Group.create({

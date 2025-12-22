@@ -37,7 +37,7 @@ export class SectionModel extends BoxModel {
         // Wrap them in a div that mutes hover events.
         cssSectionItems(
           testId('content'),
-          dom.forEach(children, (child) => child.render()),
+          dom.forEach(children, child => child.render()),
         ),
         // Plus icon
         style.cssPlusButton(
@@ -109,7 +109,7 @@ export class SectionModel extends BoxModel {
       }
 
       // Remove each child of this section from the layout.
-      this.children.get().forEach(child => { child.removeSelf(); });
+      this.children.get().forEach((child) => { child.removeSelf(); });
 
       // Remove this section from the layout.
       this.removeSelf();

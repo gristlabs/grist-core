@@ -125,7 +125,7 @@ export class OnboardingPage extends Disposable {
         ),
         cssMainPanel(
           buildStepper(this._steps, this._stepIndex),
-          dom.domComputed(this._stepIndex, index => {
+          dom.domComputed(this._stepIndex, (index) => {
             return this._steps[index].buildDom();
           }),
         ),
@@ -141,7 +141,7 @@ function buildStepper(steps: Step[], stepIndex: Observable<number>) {
       cssStep(
         cssStepCircle(
           cssStepCircle.cls('-done', use => (i < use(stepIndex))),
-          dom.domComputed(use => i < use(stepIndex), (done) => done ? icon('Tick') : String(i + 1)),
+          dom.domComputed(use => i < use(stepIndex), done => done ? icon('Tick') : String(i + 1)),
           cssStepCircle.cls('-current', use => (i === use(stepIndex))),
           dom.on('click', () => { stepIndex.set(i); }),
           testId(`step-${i + 1}`)
@@ -166,7 +166,7 @@ function saveQuestions(state: QuestionsState) {
   BaseAPI.request(submitUrl.href, {
     method: 'POST',
     body: JSON.stringify({org_name, org_role, use_cases, use_other})
-  }).catch((e) => logError(e));
+  }).catch(e => logError(e));
 }
 
 function buildQuestions(owner: IDisposableOwner, incrementStep: IncrementStep, state: QuestionsState) {
@@ -207,7 +207,7 @@ function buildQuestions(owner: IDisposableOwner, incrementStep: IncrementStep, s
               cssOtherInput(useOther, {}, {type: 'text', placeholder: t("Type here")},
                 // The following subscribes to changes to selection observable, and focuses the input when
                 // this item is selected.
-                (elem) => subscribeElem(elem, useCases[i], val => val && setTimeout(() => elem.focus(), 0)),
+                elem => subscribeElem(elem, useCases[i], val => val && setTimeout(() => elem.focus(), 0)),
                 // It's annoying if clicking into the input toggles selection; better to turn that
                 // off (user can click icon to deselect).
                 dom.on('click', ev => ev.stopPropagation()),
@@ -251,7 +251,7 @@ function buildVideo(_owner: IDisposableOwner, incrementStep: IncrementStep, stat
       const youtubePlayer = YouTubePlayer.create(modalOwner,
         commonUrls.onboardingTutorialVideoId,
         {
-          onPlayerReady: (player) => player.playVideo(),
+          onPlayerReady: player => player.playVideo(),
           onPlayerStateChange(_player, {data}) {
             if (data !== PlayerState.Ended) { return; }
 
@@ -266,7 +266,7 @@ function buildVideo(_owner: IDisposableOwner, incrementStep: IncrementStep, stat
 
       return [
         dom.on('click', () => ctl.close()),
-        elem => { FocusLayer.create(modalOwner, {defaultFocusElem: elem, pauseMousetrap: true}); },
+        (elem) => { FocusLayer.create(modalOwner, {defaultFocusElem: elem, pauseMousetrap: true}); },
         dom.onKeyDown({
           Escape: () => ctl.close(),
           ' ': () => youtubePlayer.playPause(),
@@ -278,7 +278,7 @@ function buildVideo(_owner: IDisposableOwner, incrementStep: IncrementStep, stat
         ),
         cssModalBody(
           cssVideoPlayer(
-            dom.on('click', (ev) => ev.stopPropagation()),
+            dom.on('click', ev => ev.stopPropagation()),
             youtubePlayer.buildDom(),
             testId('video-player'),
           ),

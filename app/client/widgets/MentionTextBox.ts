@@ -194,7 +194,7 @@ export function buildMentionTextBox(
     (el) => {
       FocusLayer.create(owner, {
         defaultFocusElem: el,
-        allowFocus: (e) => (e !== document.body),
+        allowFocus: e => (e !== document.body),
         pauseMousetrap: true
       });
       setTimeout(() => {
@@ -261,7 +261,7 @@ class MentionPicker extends Disposable {
   constructor(private _props: MentionPickerProps) {
     super();
     this._mentionEl = _props.mentionEl;
-    this._hasData = Computed.create(this, (use) => use(_props.access) !== null);
+    this._hasData = Computed.create(this, use => use(_props.access) !== null);
     this._acIndex = Computed.create(this, (use) => {
       const access = use(_props.access);
       if (!access) { return null; }

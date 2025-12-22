@@ -184,7 +184,7 @@ describe('GridViewNewColumnMenu', function () {
       "Reference",
       "Reference List",
       "Attachment",
-    ].map((option) => ({type:option, testClass: option.toLowerCase().replace(' ', '-')}));
+    ].map(option => ({type:option, testClass: option.toLowerCase().replace(' ', '-')}));
 
 
     describe('on desktop', function () {
@@ -254,7 +254,7 @@ describe('GridViewNewColumnMenu', function () {
         });
       }
 
-      for (const optionsTriggeringMenu of optionsToBeDisplayed.filter((option) =>
+      for (const optionsTriggeringMenu of optionsToBeDisplayed.filter(option =>
         columnsThatShouldTriggerSideMenu.includes(option.type))) {
         it(`should open Right Menu on Column section after choosing ${optionsTriggeringMenu.type}`, async function(){
           await gu.enableTips(session.email);
@@ -325,7 +325,7 @@ describe('GridViewNewColumnMenu', function () {
 
     describe('on mobile', function () {
       gu.narrowScreen();
-      for (const optionsTriggeringMenu of optionsToBeDisplayed.filter((option) =>
+      for (const optionsTriggeringMenu of optionsToBeDisplayed.filter(option =>
       columnsThatShouldTriggerSideMenu.includes(option.type))) {
         it('should not show Right Menu when user is on the mobile/narrow screen', async function() {
           await gu.enableTips(session.email);
@@ -626,7 +626,7 @@ describe('GridViewNewColumnMenu', function () {
     it('should show only 2 reference columns', async function () {
       await clickAddColumn();
       await gu.waitToPass(async () => {
-        const labels =  await driver.findAll('.test-new-columns-menu-lookup', (el) => el.getText());
+        const labels =  await driver.findAll('.test-new-columns-menu-lookup', el => el.getText());
         assert.deepEqual(
           labels,
           ['Person [Person]', 'Person [Employees]'],
@@ -639,7 +639,7 @@ describe('GridViewNewColumnMenu', function () {
       await clickAddColumn();
       await driver.findWait('.test-new-columns-menu-lookup-Person', STANDARD_WAITING_TIME).click();
       await gu.waitToPass(async () => {
-        const allColumns = await driver.findAll('.test-new-columns-menu-lookup-column', (el) => el.getText());
+        const allColumns = await driver.findAll('.test-new-columns-menu-lookup-column', el => el.getText());
         assert.deepEqual(allColumns, COLUMN_LABELS);
       });
       await closeAddColumnMenu();
@@ -744,7 +744,7 @@ describe('GridViewNewColumnMenu', function () {
       // Wait for the menu to appear.
       await driver.findWait('.test-new-columns-menu-lookup-column', STANDARD_WAITING_TIME);
       // First check items (so columns we can add which don't have menu)
-      const items = await driver.findAll('.test-new-columns-menu-lookup-column', (el) => el.getText());
+      const items = await driver.findAll('.test-new-columns-menu-lookup-column', el => el.getText());
       assert.deepEqual(items, [
         'Name\nlist',
         'Hobby\nlist',
@@ -755,7 +755,7 @@ describe('GridViewNewColumnMenu', function () {
         'Children\nlist'
       ]);
 
-      const menus = await driver.findAll('.test-new-columns-menu-lookup-submenu', (el) => el.getText());
+      const menus = await driver.findAll('.test-new-columns-menu-lookup-submenu', el => el.getText());
       assert.deepEqual(menus, [
         'Age\nsum',
         'Birthday date\nlist',
@@ -787,7 +787,7 @@ describe('GridViewNewColumnMenu', function () {
 
         // Make sure the list of function is accurate.
         const suggestedFunctions =
-          await driver.findAll('.test-new-columns-menu-lookup-submenu-function', (el) => el.getText());
+          await driver.findAll('.test-new-columns-menu-lookup-submenu-function', el => el.getText());
 
         switch(column) {
           case "Age":
@@ -880,7 +880,7 @@ describe('GridViewNewColumnMenu', function () {
       // Wait for any menu to show up.
       await driver.findWait('.test-new-columns-menu-revlookup', STANDARD_WAITING_TIME);
       // We should see two rev lookups.
-      assert.deepEqual(await driver.findAll('.test-new-columns-menu-revlookup', (el) => el.getText()), [
+      assert.deepEqual(await driver.findAll('.test-new-columns-menu-revlookup', el => el.getText()), [
         'Person [← Item]',
         'Person [← Items]',
       ]);
@@ -891,16 +891,16 @@ describe('GridViewNewColumnMenu', function () {
       // Wait for any menu to show up.
       await driver.findWait('.test-new-columns-menu-revlookup-column', STANDARD_WAITING_TIME);
 
-      const columns = await driver.findAll('.test-new-columns-menu-revlookup-column', (el) => el.getText());
-      const submenus = await driver.findAll('.test-new-columns-menu-revlookup-submenu', (el) => el.getText());
+      const columns = await driver.findAll('.test-new-columns-menu-revlookup-column', el => el.getText());
+      const submenus = await driver.findAll('.test-new-columns-menu-revlookup-submenu', el => el.getText());
 
       // Now open the other submenu and make sure list is the same.
       await driver.findContent('.test-new-columns-menu-revlookup', 'Person [← Items]').mouseMove();
       // Wait for any menu to show up.
       await driver.findWait('.test-new-columns-menu-revlookup-column', STANDARD_WAITING_TIME);
 
-      const columns2 = await driver.findAll('.test-new-columns-menu-revlookup-column', (el) => el.getText());
-      const submenus2 = await driver.findAll('.test-new-columns-menu-revlookup-submenu', (el) => el.getText());
+      const columns2 = await driver.findAll('.test-new-columns-menu-revlookup-column', el => el.getText());
+      const submenus2 = await driver.findAll('.test-new-columns-menu-revlookup-submenu', el => el.getText());
 
       assert.deepEqual(columns, columns2);
       assert.deepEqual(submenus, submenus2);
@@ -958,7 +958,7 @@ describe('GridViewNewColumnMenu', function () {
 
           // Make sure we see proper list.
           const functions = await driver.findAll('.test-new-columns-menu-revlookup-column-function',
-                                                (el) => el.getText());
+                                                el => el.getText());
           switch(column) {
             case "Age":
               assert.deepEqual(functions, ['sum', 'average', 'min', 'max']);
@@ -1076,7 +1076,7 @@ describe('GridViewNewColumnMenu', function () {
 
           // Make sure we see proper list.
           const functions = await driver.findAll('.test-new-columns-menu-revlookup-column-function',
-                                                (el) => el.getText());
+                                                el => el.getText());
           switch(column) {
             case "Age":
               assert.deepEqual(functions, ['sum', 'average', 'min', 'max']);
@@ -1292,7 +1292,7 @@ describe('GridViewNewColumnMenu', function () {
         await driver.findWait('.test-new-columns-menu-shortcuts-duplicates', STANDARD_WAITING_TIME).mouseMove();
         await gu.waitToPass(async () => {
           assert.deepEqual(
-            await driver.findAll('.test-searchable-menu li', (el) => el.getText()),
+            await driver.findAll('.test-searchable-menu li', el => el.getText()),
             ['A', 'B', 'C']
           );
         }, 500);
@@ -1300,7 +1300,7 @@ describe('GridViewNewColumnMenu', function () {
         await gu.sendKeys('A');
         await gu.waitToPass(async () => {
           assert.deepEqual(
-            await driver.findAll('.test-searchable-menu li', (el) => el.getText()),
+            await driver.findAll('.test-searchable-menu li', el => el.getText()),
             ['A']
           );
         }, STANDARD_WAITING_TIME);
@@ -1308,7 +1308,7 @@ describe('GridViewNewColumnMenu', function () {
         await gu.sendKeys('BC');
         await gu.waitToPass(async () => {
           assert.deepEqual(
-            await driver.findAll('.test-searchable-menu li', (el) => el.getText()),
+            await driver.findAll('.test-searchable-menu li', el => el.getText()),
             []
           );
         }, STANDARD_WAITING_TIME);
@@ -1316,7 +1316,7 @@ describe('GridViewNewColumnMenu', function () {
         await gu.clearInput();
         await gu.waitToPass(async () => {
           assert.deepEqual(
-            await driver.findAll('.test-searchable-menu li', (el) => el.getText()),
+            await driver.findAll('.test-searchable-menu li', el => el.getText()),
             ['A', 'B', 'C']
           );
         }, STANDARD_WAITING_TIME);

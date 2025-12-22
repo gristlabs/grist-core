@@ -61,7 +61,7 @@ class SaveableSetup extends Disposable {
 
   public buildDom() {
     let serverInput: HTMLInputElement;
-    const obs = Computed.create(this, (use) => use(this.savedValue));
+    const obs = Computed.create(this, use => use(this.savedValue));
     const save = (val: string) => this.makeSaveCall(val);
 
     // To test server changes while editableLabel is being edited, listen to a Ctrl-U key
@@ -86,7 +86,7 @@ class SaveableSetup extends Disposable {
           serverInput = dom('input', {type: 'text'}, testId('server-value'),
             dom.prop('value', this.savedValue)),
           dom('input', {type: 'button', value: 'Update'}, testId('server-update'),
-            dom.on('click', (ev) => this.onServerUpdate(serverInput.value)))
+            dom.on('click', ev => this.onServerUpdate(serverInput.value)))
         ),
         dom.forEach(this.pendingCalls, (pendingCall: PendingCall) =>
           cssItem(dom('div', "Pending call:"), dom.text(pendingCall.callValue),
@@ -119,7 +119,7 @@ function setupTest(owner: IDisposableOwner) {
       testId('reset'),
       dom.on('click', () => value.set(value.get() + 1)))),
     dom('div', select(component, ['textInput', 'editableLabel']), testId('select-component')),
-    dom('div', dom.domComputed((use) => (use(value), dom.create(SaveableSetup, use(component))))),
+    dom('div', dom.domComputed(use => (use(value), dom.create(SaveableSetup, use(component))))),
   ];
 }
 

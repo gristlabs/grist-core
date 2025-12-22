@@ -177,7 +177,7 @@ describe("UpdateChecks", function () {
     const handCalled = dockerHub.signal();
     const resp = axios
       .get(`${homeUrl}/api/version`, chimpy)
-      .catch((err) => ({ status: 999, data: null }));
+      .catch(err => ({ status: 999, data: null }));
     await handCalled;
     await stop();
     const result = await resp;
@@ -284,7 +284,7 @@ async function dummyDockerHub() {
 
   const tempServer = await serveSomething((app) => {
     app.use((req, res, next) => {
-      signals.forEach((p) => p.resolve());
+      signals.forEach(p => p.resolve());
       signals.length = 0;
       next();
     });

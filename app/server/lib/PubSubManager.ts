@@ -151,8 +151,8 @@ class PubSubManagerRedis extends PubSubManagerBase {
     this._redisSub = new IORedis(redisUrl, {retryStrategy});
     this._redisPub = new IORedis(redisUrl, {retryStrategy});
 
-    this._redisSub.on('error', (err) => log.error('PubSubManagerRedis: redisSub connection error:', String(err)));
-    this._redisPub.on('error', (err) => log.error('PubSubManagerRedis: redisPub connection error:', String(err)));
+    this._redisSub.on('error', err => log.error('PubSubManagerRedis: redisSub connection error:', String(err)));
+    this._redisPub.on('error', err => log.error('PubSubManagerRedis: redisPub connection error:', String(err)));
 
     this._redisSub.on('message', (fullChannel, message) => {
       const channel = this._unprefixChannel(fullChannel);

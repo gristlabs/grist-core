@@ -7,7 +7,7 @@ describe('RowMenu', function() {
   const cleanup = setupTestSuite();
 
   async function rightClick(el: WebElement) {
-    await driver.withActions((actions) => actions.contextClick(el));
+    await driver.withActions(actions => actions.contextClick(el));
   }
 
   async function assertRowMenuOpensAndCloses() {

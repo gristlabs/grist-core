@@ -89,19 +89,19 @@ describe('DropdownConditionEditor', function () {
 
       // Check that autocomplete values are filtered.
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
         'Supervisor',
       ]);
       await gu.sendKeys(Key.ESCAPE);
       await gu.getCell(1, 4).click();
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
         'Trainee',
       ]);
       await gu.sendKeys(Key.ESCAPE);
       await gu.getCell(1, 6).click();
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
         'Trainee',
         'Supervisor',
       ]);
@@ -115,7 +115,7 @@ describe('DropdownConditionEditor', function () {
       );
       await gu.getCell(1, 4).click();
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
         'Trainee',
       ]);
       await gu.sendKeys(Key.ESCAPE);
@@ -128,7 +128,7 @@ describe('DropdownConditionEditor', function () {
 
       // Check that autocomplete values are no longer filtered.
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
         'Trainee',
         'Supervisor',
       ]);
@@ -138,7 +138,7 @@ describe('DropdownConditionEditor', function () {
       await gu.setType('Choice', {apply: true});
       assert.isFalse(await driver.find('.test-field-dropdown-condition').isPresent());
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
         'Supervisor',
         'Trainee',
       ]);
@@ -212,7 +212,7 @@ describe('DropdownConditionEditor', function () {
 
       // Check that autocomplete values are filtered.
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
         'Pavan Madilyn',
         'Marie Ziyad',
       ]);
@@ -221,14 +221,14 @@ describe('DropdownConditionEditor', function () {
       // Should be no options on row 2 because of $id != 2 part of condition.
       await gu.getCell(2, 2).click();
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
       ]);
       await gu.sendKeys(Key.ESCAPE);
 
       // Row 3 should be like row 1.
       await gu.getCell(2, 3).click();
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
         'Pavan Madilyn',
         'Marie Ziyad',
       ]);
@@ -236,11 +236,11 @@ describe('DropdownConditionEditor', function () {
 
       await gu.getCell(2, 4).click();
       await gu.sendKeys(Key.ENTER);
-      assert.isEmpty(await driver.findAll('.test-autocomplete li', (el) => el.getText()));
+      assert.isEmpty(await driver.findAll('.test-autocomplete li', el => el.getText()));
       await gu.sendKeys(Key.ESCAPE);
       await gu.getCell(2, 6).click();
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
         'Marie Ziyad',
         'Pavan Madilyn',
       ]);
@@ -254,7 +254,7 @@ describe('DropdownConditionEditor', function () {
       );
       await gu.getCell(2, 4).click();
       await gu.sendKeys(Key.ENTER);
-      assert.isEmpty(await driver.findAll('.test-autocomplete li', (el) => el.getText()));
+      assert.isEmpty(await driver.findAll('.test-autocomplete li', el => el.getText()));
       await gu.sendKeys(Key.ESCAPE);
     });
 
@@ -265,7 +265,7 @@ describe('DropdownConditionEditor', function () {
 
       // Check that autocomplete values are no longer filtered.
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
         'Emma Thamir',
         'Holger Klyment',
         'Marie Ziyad',
@@ -278,7 +278,7 @@ describe('DropdownConditionEditor', function () {
       await gu.setType('Reference', {apply: true});
       assert.isFalse(await driver.find('.test-field-dropdown-condition').isPresent());
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
         'Emma Thamir',
         'Holger Klyment',
         'Marie Ziyad',
@@ -366,7 +366,7 @@ describe('DropdownConditionEditor', function () {
     await gu.sendKeys(Key.ENTER);
     await waitForDropdown();
 
-    assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+    assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), [
       'Trainee',
       'Supervisor',
     ]);
@@ -377,7 +377,7 @@ describe('DropdownConditionEditor', function () {
     await session.loadDoc(`/doc/${docId}`);
     await gu.getCell(1, 1).click();
     await gu.sendKeys(Key.ENTER);
-    assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), []);
+    assert.deepEqual(await driver.findAll('.test-autocomplete li', el => el.getText()), []);
     await gu.sendKeys(Key.ESCAPE);
   });
 });

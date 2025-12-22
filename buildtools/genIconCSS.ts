@@ -64,5 +64,5 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().catch((err) => console.error("Error", err));
+  main().catch(err => console.error("Error", err));
 }

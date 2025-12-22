@@ -1,7 +1,7 @@
 import { assert, driver, stackWrapFunc } from "mocha-webdriver";
 import { server, setupTestSuite } from "test/projects/testUtils";
 
-const getLogs = stackWrapFunc(() => driver.findAll('.test-logs', (e) => e.getText()));
+const getLogs = stackWrapFunc(() => driver.findAll('.test-logs', e => e.getText()));
 
 describe('OnBoardingPopups', function() {
   setupTestSuite();

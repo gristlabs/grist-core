@@ -35,12 +35,12 @@ describe("ColorSelect", function() {
   const checkSelectedColor = stackWrapFunc(async function(fill: string|null, text: string|null) {
 
     // check Text selected color
-    assert.deepEqual(await driver.findAll('.test-text-palette [class*=-selected]', async (e) => (
+    assert.deepEqual(await driver.findAll('.test-text-palette [class*=-selected]', async e => (
       rgbToHex(await e.getCssValue('background-color'))
     )), text ? [text] : []);
 
     // check Fill selected color
-    assert.deepEqual(await driver.findAll('.test-fill-palette [class*=-selected]', async (e) => (
+    assert.deepEqual(await driver.findAll('.test-fill-palette [class*=-selected]', async e => (
       rgbToHex(await e.getCssValue('background-color'))
     )), fill ? [fill] : []);
 
@@ -142,8 +142,8 @@ describe("ColorSelect", function() {
 
     // close picker and check a call was made
     await driver.find('.test-color-select').mouseMove({x: 300});
-    await driver.withActions((a) => a.click());
-    assert.deepEqual(await driver.findAll('.test-call-log li', (el) => el.getText()),
+    await driver.withActions(a => a.click());
+    assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
                      [`Called: ${JSON.stringify(
                       { fill: swatches[4], text: swatches[3],
                         underline: true, strikethrough: true}) }`]);
@@ -182,7 +182,7 @@ describe("ColorSelect", function() {
 
     // check logs
     await gu.waitToPass(async () => {
-      assert.deepEqual(await driver.findAll('.test-call-log li', (el) => el.getText()),
+      assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
         [`Called: ${JSON.stringify({fill: "#FFFFFF", text: swatches[7], italic: true})}`]);
     });
 
@@ -194,7 +194,7 @@ describe("ColorSelect", function() {
     await clickItalic();
     await clickApply();
     await gu.waitToPass(async () => {
-      assert.deepEqual(await driver.findAll('.test-call-log li', (el) => el.getText()),
+      assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
                      [`Called: ${JSON.stringify({fill: "#FFFFFF", text: swatches[7], italic: true})}`]);
     });
   });
@@ -213,7 +213,7 @@ describe("ColorSelect", function() {
 
     // check logs
     const checkNoSave = async () => assert.deepEqual(
-      await driver.findAll('.test-call-log li', (el) => el.getText()), []);
+      await driver.findAll('.test-call-log li', el => el.getText()), []);
     await checkNoSave();
 
     await driver.find('.test-color-select').click();

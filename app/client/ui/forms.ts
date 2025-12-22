@@ -99,7 +99,7 @@ export function autoGrow(text: Observable<unknown>) {
     el.addEventListener('input', () => resize(el));
     dom.autoDisposeElem(el, text.addListener(() => setTimeout(() => resize(el), 0)));
     setTimeout(() => resize(el), 10);
-    dom.autoDisposeElem(el, text.addListener(val => {
+    dom.autoDisposeElem(el, text.addListener((val) => {
       // Changes to the text are not reflected by the input event (witch is used by the autoGrow)
       // So we need to manually update the textarea when the text is cleared.
       if (!val) {

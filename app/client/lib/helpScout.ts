@@ -195,11 +195,11 @@ function _beaconOpen(userObj: IUserObj|null, options: IBeaconOpenOptions) {
   }
 
   Beacon('once', 'open', () => logTelemetryEvent('beaconOpen'));
-  Beacon('on', 'article-viewed', (article) => logTelemetryEvent('beaconArticleViewed', {
+  Beacon('on', 'article-viewed', article => logTelemetryEvent('beaconArticleViewed', {
     full: {articleId: article!.id},
   }));
   Beacon('on', 'email-sent', () => logTelemetryEvent('beaconEmailSent'));
-  Beacon('on', 'search', (search) => logTelemetryEvent('beaconSearch', {
+  Beacon('on', 'search', search => logTelemetryEvent('beaconSearch', {
     full: {searchQuery: search!.query},
   }));
 }

@@ -133,7 +133,7 @@ export function pagePanels(page: PageContents) {
     dom.autoDispose(commandsGroup),
     dom.autoDispose(leftOverlap),
     regionFocusSwitcher ? dom.autoDispose(regionFocusSwitcher) : null,
-    dom('div', testId('top-panel'), page.contentTop, elem => { contentTopDom = elem; }),
+    dom('div', testId('top-panel'), page.contentTop, (elem) => { contentTopDom = elem; }),
     dom.maybe(page.banner, () => {
       let elem: HTMLElement;
       const updateTop = () => {
@@ -167,12 +167,12 @@ export function pagePanels(page: PageContents) {
 
         // Show plain border when the resize handle is hidden.
         cssResizeDisabledBorder(
-          dom.hide((use) => use(left.panelOpen) && !use(leftOverlap)),
+          dom.hide(use => use(left.panelOpen) && !use(leftOverlap)),
           cssHideForNarrowScreen.cls(''),
           testId('left-disabled-resizer'),
         ),
 
-        dom.style('width', (use) => use(left.panelOpen) ? use(left.panelWidth) + 'px' : ''),
+        dom.style('width', use => use(left.panelOpen) ? use(left.panelWidth) + 'px' : ''),
 
         // Opening/closing the left pane, with transitions.
         cssLeftPane.cls('-open', left.panelOpen),
@@ -285,7 +285,7 @@ export function pagePanels(page: PageContents) {
                                             setTimeout(() => dragResizer.set(false), 0); },
          onDrag: (val) => { dragResizer.set(true); }},
         testId('left-resizer'),
-        dom.show((use) => use(left.panelOpen) && !use(leftOverlap)),
+        dom.show(use => use(left.panelOpen) && !use(leftOverlap)),
         cssHideForNarrowScreen.cls('')),
 
       cssMainPane(
@@ -355,7 +355,7 @@ export function pagePanels(page: PageContents) {
           ),
           right.content,
 
-          dom.style('width', (use) => use(right.panelOpen) ? use(right.panelWidth) + 'px' : ''),
+          dom.style('width', use => use(right.panelOpen) ? use(right.panelWidth) + 'px' : ''),
 
           // Opening/closing the right pane, with transitions.
           cssRightPane.cls('-open', right.panelOpen),
@@ -367,7 +367,7 @@ export function pagePanels(page: PageContents) {
         )] : null
       ),
       cssContentOverlay(
-        dom.show((use) => use(left.panelOpen) || Boolean(right && use(right.panelOpen))),
+        dom.show(use => use(left.panelOpen) || Boolean(right && use(right.panelOpen))),
         dom.on('click', () => {
           left.panelOpen.set(false);
           if (right) { right.panelOpen.set(false); }

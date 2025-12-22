@@ -37,7 +37,7 @@ export class CellStyle extends Disposable {
               const headerFontUnderline = fromKo(options.prop("headerFontUnderline"));
               const headerFontItalic = fromKo(options.prop("headerFontItalic"));
               const headerFontStrikethrough = fromKo(options.prop("headerFontStrikethrough"));
-              const hasMixedStyle = Computed.create(holder, use => {
+              const hasMixedStyle = Computed.create(holder, (use) => {
                 if (!use(this._field.config.multiselect)) { return false; }
                 const commonStyle = [
                   use(options.mixed('headerTextColor')),
@@ -93,7 +93,7 @@ export class CellStyle extends Disposable {
           const fontUnderline = fromKo(options.prop("fontUnderline"));
           const fontItalic = fromKo(options.prop("fontItalic"));
           const fontStrikethrough = fromKo(options.prop("fontStrikethrough"));
-          const hasMixedStyle = Computed.create(holder, use => {
+          const hasMixedStyle = Computed.create(holder, (use) => {
             if (!use(this._field.config.multiselect)) { return false; }
             const commonStyle = [
               use(options.mixed('textColor')),

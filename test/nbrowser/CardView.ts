@@ -124,8 +124,8 @@ describe('CardView', function() {
     await gu.getDetailCell('Film', 1).click();
     await driver.find('.test-tb-wrap-text').click();
     const cols = ['Actor', 'Film', 'Character', 'Files', 'Choice', 'ChoiceList', 'Bool'];
-    const fields = await Promise.all(cols.map((col) =>
-      gu.getVisibleDetailCells({col, rowNums: [1], mapper: (e) => e.getRect()})));
+    const fields = await Promise.all(cols.map(col =>
+      gu.getVisibleDetailCells({col, rowNums: [1], mapper: e => e.getRect()})));
 
     // Make sure the heights are close to each other.
     const heights = fields.map(f => f[0].height);

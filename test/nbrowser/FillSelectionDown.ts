@@ -3,7 +3,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 function shiftClick(el: WebElement) {
-  return driver.withActions((actions) => actions.keyDown(Key.SHIFT).click(el).keyUp(Key.SHIFT));
+  return driver.withActions(actions => actions.keyDown(Key.SHIFT).click(el).keyUp(Key.SHIFT));
 }
 
 describe('FillSelectionDown', function () {

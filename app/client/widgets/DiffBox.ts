@@ -35,7 +35,7 @@ export class DiffBox extends NewAbstractWidget {
       'div.field_clip',
       dom.autoDispose(formattedValue),
       dom.style('text-align', this.options.prop('alignment')),
-      dom.cls('text_wrapping', (use) => Boolean(use(this.options.prop('wrap')))),
+      dom.cls('text_wrapping', use => Boolean(use(this.options.prop('wrap')))),
       inlineStyle('--grist-diff-color', '#000000'),
       inlineStyle('--grist-diff-background-color', '#00000000'),
       dom.forEach(formattedValue, ([code, txt]) => {

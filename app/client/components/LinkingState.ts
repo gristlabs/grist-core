@@ -177,7 +177,7 @@ export class LinkingState extends Disposable {
         );
 
         //If any are undef (i.e. error in makeFilterObs), error out
-        if(resultFilters.some((f) => f === undefined)) {
+        if(resultFilters.some(f => f === undefined)) {
           console.warn("LINKINGSTATE: some of filters are undefined", resultFilters);
           _filterState(EmptyFilterState);
           return;
@@ -188,7 +188,7 @@ export class LinkingState extends Disposable {
           return merge({}, ...resultFilters.map(filtObs => filtObs!())) as FilterState;
         }));
         _filterState(resultComputed());
-        resultComputed.subscribe((val) => _filterState(val));
+        resultComputed.subscribe(val => _filterState(val));
       }; // End of update function
 
       // Call update when data loads, also call now to be safe
@@ -615,7 +615,7 @@ function summaryGetCorrespondingCol(srcGBCol: ColumnRec, tgtTable: TableRec): Co
     return srcGBCol.summarySource();
   } else { // else summary->summary, match by colId
     const srcColId = srcGBCol.colId();
-    const retVal = tgtTable.groupByColumns().find((tgtCol) => tgtCol.colId() === srcColId); //should always exist
+    const retVal = tgtTable.groupByColumns().find(tgtCol => tgtCol.colId() === srcColId); //should always exist
     if(!retVal) { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: summary table lacks groupby col"); }
     return retVal;
   }

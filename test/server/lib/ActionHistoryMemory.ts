@@ -124,7 +124,7 @@ describe('ActionHistoryMemory', function() {
     });
 
     // Createa a doc.
-    const wsId = (await api.getOrgWorkspaces('current')).find((w) => w.name === 'Public')!.id;
+    const wsId = (await api.getOrgWorkspaces('current')).find(w => w.name === 'Public')!.id;
     const docId = await api.newDoc({name: 'large-actions'}, wsId);
 
     // Add a formula column returning a large value (so the .calc part of the action is large).

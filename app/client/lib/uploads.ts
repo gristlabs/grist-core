@@ -125,7 +125,7 @@ export async function uploadFiles(
     }
   } else if (options.sizeLimit === 'attachment' && maxUploadSizeAttachment) {
     // For attachments, we limit the size of each attachment.
-    if (fileList.some((f) => (f.size > maxUploadSizeAttachment))) {
+    if (fileList.some(f => (f.size > maxUploadSizeAttachment))) {
       throw new UserError(`Attachments may not exceed ${byteString(maxUploadSizeAttachment)}`);
     }
   }

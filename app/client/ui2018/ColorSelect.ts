@@ -76,7 +76,7 @@ export function colorSelect(
       cssButtonIcon(
         'T',
         dom.style('color', use => use(textColor.color) || textColor.defaultColor),
-        dom.style('background-color', (use) => use(fillColor.color)?.slice(0, 7) || fillColor.defaultColor),
+        dom.style('background-color', use => use(fillColor.color)?.slice(0, 7) || fillColor.defaultColor),
         fontBold ? dom.cls('font-bold', use => use(fontBold) ?? false) : null,
         fontItalic ? dom.cls('font-italic', use => use(fontItalic) ?? false) : null,
         fontUnderline ? dom.cls('font-underline', use => use(fontUnderline) ?? false) : null,
@@ -121,7 +121,7 @@ export function colorButton(options: ColorButtonOptions): Element {
   const iconBtn = cssIconBtn(
     'T',
     dom.style('color', use => use(textColor.color) || textColor.defaultColor),
-    dom.style('background-color', (use) => use(fillColor.color)?.slice(0, 7) || fillColor.defaultColor),
+    dom.style('background-color', use => use(fillColor.color)?.slice(0, 7) || fillColor.defaultColor),
     fontBold ? dom.cls('font-bold', use => use(fontBold) ?? false) : null,
     fontItalic ? dom.cls('font-italic', use => use(fontItalic) ?? false) : null,
     fontUnderline ? dom.cls('font-underline', use => use(fontUnderline) ?? false) : null,
@@ -267,7 +267,7 @@ class PickerModel<T extends boolean|string|undefined> extends Disposable {
   constructor(public obs: Observable<T>) {
     super();
     this._serverValue = Observable.create(this, this.obs.get());
-    this.needsSaving =  Computed.create(this, use => {
+    this.needsSaving =  Computed.create(this, (use) => {
       const current = use(this.obs);
       const server = use(this._serverValue);
       // We support booleans and strings only for now, so if current is false and server
@@ -357,7 +357,7 @@ class PickerComponent extends Disposable {
           )
         ),
         cssEmptyBox(
-          cssEmptyBox.cls('-selected', (use) => !use(this._colorHex)),
+          cssEmptyBox.cls('-selected', use => !use(this._colorHex)),
           dom.on('click', () => this._setValue(undefined)),
           dom.hide(!this._options.allowsNone),
           cssNoneIcon('Empty'),
@@ -369,7 +369,7 @@ class PickerComponent extends Disposable {
           cssColorSquare(
             dom.style('background-color', color),
             cssLightBorder.cls('', isLight(index)),
-            cssColorSquare.cls('-selected', (use) => use(this._colorHex) === color),
+            cssColorSquare.cls('-selected', use => use(this._colorHex) === color),
             dom.style('outline-color', isLight(index) ? '' : color),
             dom.on('click', () => this._setValue(color)),
             testId(`color-${color}`),

@@ -139,9 +139,9 @@ class PageRecWrapper implements ISearchablePageRec {
     // down the search to only it.
     const inPopup = collapsed.has(activeSectionId);
     if (inPopup) {
-      return sections.filter((s) => s.getRowId() === activeSectionId);
+      return sections.filter(s => s.getRowId() === activeSectionId);
     }
-    return sections.filter((s) => !collapsed.has(s.getRowId()));
+    return sections.filter(s => !collapsed.has(s.getRowId()));
   }
 
   public activeSectionId() {
@@ -470,10 +470,10 @@ export class SearchModelImpl extends Disposable implements SearchModel {
 
     // Listen to input value changes (debounced) to activate searching.
     const findFirst = debounce((_value: string) => this._findFirst(_value), 100);
-    this.autoDispose(this.value.addListener(v => { this.isRunning.set(true); void findFirst(v); }));
+    this.autoDispose(this.value.addListener((v) => { this.isRunning.set(true); void findFirst(v); }));
 
     // Set this.noMatch to false when multiPage gets turned ON.
-    this.autoDispose(this.multiPage.addListener(v => { if (v) { this.noMatch.set(false); } }));
+    this.autoDispose(this.multiPage.addListener((v) => { if (v) { this.noMatch.set(false); } }));
 
     this.allLabel = Computed.create(this, use => use(this._gristDoc.activeViewId) === 'data' ?
       t('Search all tables') : t('Search all pages'));

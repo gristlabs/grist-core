@@ -39,7 +39,7 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
   await docData.fetchTable(tableId);
   const tableData = docData.getTable(tableId)!;
 
-  const result = sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any).map(rowId => {
+  const result = sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any).map((rowId) => {
     function getValue(colId: string): string {
       return String(tableData.getValue(rowId, colId) || "");
     }

@@ -83,7 +83,7 @@ export function makePasteHtml(tableData: TableData, selection: CopySelection, in
     selection.rowIds.map(rowId =>
       dom('tr',
         {style: _styleAttr(rowStyle[rowId as number])},
-        selection.columns.map(col => {
+        selection.columns.map((col) => {
           const rawValue = col.rawGetter(rowId);
           const fmtValue = col.fmtGetter(rowId);
           const dataOptions = (rawValue === fmtValue) ? {} :
@@ -133,7 +133,7 @@ export function parsePasteHtml(data: string): RichPasteObject[][] {
 
       return o;
     }))
-    .filter((row) => (row.length > 0));
+    .filter(row => (row.length > 0));
   if (result.length === 0) {
     throw new Error('Unable to parse data from text/html');
   }

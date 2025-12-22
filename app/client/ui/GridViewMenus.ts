@@ -70,7 +70,7 @@ export function getColumnTypes(gristDoc: GristDoc, tableId: string, pure = false
           testIdName: ct.obj.label.toLowerCase().replace(' ', '-'),
           icon: ct.obj.icon,
           openCreatorPanel: isFullReferencingType(ct.type)
-        })).map(ct => {
+        })).map((ct) => {
     if (!pure) { return ct; }
     else {
       return {
@@ -96,8 +96,8 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
     const columnTypes = getColumnTypes(gridView.gristDoc, gridView.tableModel.tableMetaRow.tableId());
 
     return menuItemSubmenu(
-      (ctl) => [
-        ...columnTypes.map((colType) =>
+      ctl => [
+        ...columnTypes.map(colType =>
           menuItem(
             async () => {
               await gridView.insertColumn(null, {index, colInfo: {type: colType.colType}, onPopupClose: ()=> {
@@ -175,7 +175,7 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
       menuSubHeaderMenu(
         () => {
           return searchableMenu(
-            hiddenColumns.map((col) => ({
+            hiddenColumns.map(col => ({
               cleanText: col.label().trim().toLowerCase(),
               builder: () => menuItemTrimmed(
                 () => gridView.showColumn(col.id(), index),
@@ -515,7 +515,7 @@ function buildLookupSection(gridView: GridView, index?: number){
             );
           } else {
             return menuItemSubmenu(
-              () => functions.map((fun) => menuItem(
+              () => functions.map(fun => menuItem(
                 () => insertAggLookup(fun), fun,
                   testId(`new-columns-menu-lookup-submenu-function`),
                   testId(`new-columns-menu-lookup-submenu-function-${fun}`),
@@ -568,7 +568,7 @@ function buildLookupSection(gridView: GridView, index?: number){
     const onlyRefOrRefList = (c: ColumnRec) => c.pureType() === 'Ref' || c.pureType() === 'RefList';
     const references = columns.filter(onlyRefOrRefList);
 
-    return references.map((ref) => menuItemSubmenu(
+    return references.map(ref => menuItemSubmenu(
       () => searchableMenu(
         ref.refTable()?.visibleColumns().map(buildRefColMenu.bind(null, ref)) ?? [],
         {
@@ -593,7 +593,7 @@ function buildLookupSection(gridView: GridView, index?: number){
 
     const getReferencesToThisTable = (): RefTable[] => {
       const {viewSection} = gridView;
-      const otherTables = gridView.gristDoc.docModel.allTables.all().filter((tab) =>
+      const otherTables = gridView.gristDoc.docModel.allTables.all().filter(tab =>
         tab.summarySourceTable() === 0 && tab.tableId.peek() !== viewSection.tableId());
       return otherTables.map((tab) => {
         return {
@@ -601,11 +601,11 @@ function buildLookupSection(gridView: GridView, index?: number){
           tableName: tab.tableNameDef(),
           columns: tab.visibleColumns(),
           referenceFields:
-            tab.visibleColumns.peek().filter((c) => (c.pureType() === 'Ref' || c.pureType() == 'RefList') &&
+            tab.visibleColumns.peek().filter(c => (c.pureType() === 'Ref' || c.pureType() == 'RefList') &&
               c.refTable()?.tableId() === viewSection.tableId())
         };
       })
-        .filter((tab) => tab.referenceFields.length > 0);
+        .filter(tab => tab.referenceFields.length > 0);
     };
 
     const insertColumn = async (tab: RefTable, col: ColumnRec, refCol: ColumnRec, aggregate: string) => {
@@ -945,7 +945,7 @@ function freezeMenuItemCmd(options: IMultiColumnContextMenu) {
 // undefined if colId is the only column in the spec. Otherwise returns `Sorted (#N)` where #N is
 // the position (1 based) of colId in the spec.
 function getAddToSortLabel(sortSpec: Sort.SortSpec, colId: number): string|undefined {
-  const columnsInSpec = sortSpec.map((n) =>Sort.getColRef(n));
+  const columnsInSpec = sortSpec.map(n =>Sort.getColRef(n));
   if (sortSpec.length !== 0 && !isEqual(columnsInSpec, [colId])) {
     const index = columnsInSpec.indexOf(colId);
     if (index > -1) {

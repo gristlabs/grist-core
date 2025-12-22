@@ -51,7 +51,7 @@ export async function setupLocale() {
       }
       i18next.addResourceBundle(lang, n, await response.json());
     }
-    for (const lang of languages.filter((l) => supportedLngs.includes(l))) {
+    for (const lang of languages.filter(l => supportedLngs.includes(l))) {
       for (const n of ns) {
         pathsToLoad.push(load(lang, n));
       }

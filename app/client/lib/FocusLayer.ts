@@ -39,7 +39,7 @@ export interface FocusLayerOptions {
 // Use RefCountMap to have a reference-counted instance of the global FocusLayerManager. It will
 // be active as long as at least one FocusLayer is active (i.e. not disposed).
 const _focusLayerManager = new RefCountMap<null, FocusLayerManager>({
-  create: (key) => FocusLayerManager.create(null),
+  create: key => FocusLayerManager.create(null),
   dispose: (key, value) => value.dispose(),
   gracePeriodMs: 10,
 });

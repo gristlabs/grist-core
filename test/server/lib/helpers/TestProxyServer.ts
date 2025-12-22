@@ -25,7 +25,7 @@ export class TestProxyServer {
   }
 
   private async _prepare() {
-    this._proxyServing = await serveSomething(app => {
+    this._proxyServing = await serveSomething((app) => {
       app.use(express.json());
       app.all('*', async (req: express.Request, res: express.Response) => {
         this._proxyCallsCounter += 1;

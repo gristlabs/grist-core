@@ -117,7 +117,7 @@ export class FormulaEditor extends NewBaseEditor {
     Object.assign(aceCommands.commands, detachedCommands.commands);
 
     const hideErrDetails = Observable.create(this, true);
-    const raisedException = Computed.create(this, use => {
+    const raisedException = Computed.create(this, (use) => {
       const formulaError = options.formulaError && use(options.formulaError);
       if (!formulaError) {
         return null;
@@ -229,7 +229,7 @@ export class FormulaEditor extends NewBaseEditor {
         dom('div.error_msg', testId('formula-error-msg'),
           dom.attr('tabindex', '-1'),
           dom.maybe(errorDetails, () =>
-            dom.domComputed(hideErrDetails, (hide) => cssCollapseIcon(
+            dom.domComputed(hideErrDetails, hide => cssCollapseIcon(
               hide ? 'Expand' : 'Collapse',
               testId('formula-error-expand'),
               dom.on('click', () => {
@@ -346,7 +346,7 @@ export class FormulaEditor extends NewBaseEditor {
           : t('Enter formula or {{button}}.', {
             button: cssUseAssistantButton(
               t('use AI Assistant'),
-              dom.on('click', (ev) => this._handleUseAssistantButtonClick(ev)),
+              dom.on('click', ev => this._handleUseAssistantButtonClick(ev)),
               testId('formula-editor-use-ai-assistant'),
             ),
           }),
@@ -458,7 +458,7 @@ export class FormulaEditor extends NewBaseEditor {
     // call doesn't usually help is that this is called on 'mousedown' before its corresponding
     // focus/blur occur. We can do a bit better by restoring focus immediately after blur occurs.
     aceObj.focus();
-    const lis = dom.onElem(aceObj.textInput.getElement(), 'blur', e => { lis.dispose(); aceObj.focus(); });
+    const lis = dom.onElem(aceObj.textInput.getElement(), 'blur', (e) => { lis.dispose(); aceObj.focus(); });
     // If no blur right away, clear the listener, to avoid unexpected interference.
     setTimeout(() => lis.dispose(), 0);
   }
@@ -627,7 +627,7 @@ export function getFormulaError(owner: Disposable, options: {
     // When we have a field information we will grab the error from the column that is currently connected to the field.
     // This will change when user is using the preview feature in detached editor, where a new column is created, and
     // field starts showing it instead of the original column.
-    Computed.create(owner, use => {
+    Computed.create(owner, (use) => {
       // This pattern creates a subscription using compute observable.
 
       // Create an holder for everything that is created during recomputation. It will be returned as the value
@@ -664,7 +664,7 @@ function errorMonitor(
         formulaError.set(cellCurrentValue);
       }
       gristDoc.docData.getFormulaError(column.table().tableId(), column.colId(), editRow.getRowId())
-        .then(value => {
+        .then((value) => {
           if (holder.isDisposed()) { return; }
           formulaError.set(value);
         })
@@ -722,7 +722,7 @@ export function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, or
   // The counts depend on the origColumn and its isRealFormula status, but with the debounced
   // callback and subscription to data, subscribe to relevant changes manually (rather than using
   // a Computed).
-  owner.autoDispose(subscribe(use => { use(origColumn.id); use(origColumn.isRealFormula); debouncedCountErrors(); }));
+  owner.autoDispose(subscribe((use) => { use(origColumn.id); use(origColumn.isRealFormula); debouncedCountErrors(); }));
   return errorMessage;
 }
 

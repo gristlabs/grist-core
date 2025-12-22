@@ -58,12 +58,12 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   updateCanViewAccessRules();
   return cssTools(
     {'aria-labelledby': 'grist-tools-heading'},
-    cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
+    cssTools.cls('-collapsed', use => !use(leftPanelOpen)),
     cssSectionHeader(cssSectionHeaderText(t("TOOLS"), {id: 'grist-tools-heading'})),
     buildOpenAssistantButton(gristDoc, testId('assistant')),
     cssPageEntry(
-      cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
-      cssPageEntry.cls('-disabled', (use) => !use(canViewAccessRules)),
+      cssPageEntry.cls('-selected', use => use(gristDoc.activeViewId) === 'acl'),
+      cssPageEntry.cls('-disabled', use => !use(canViewAccessRules)),
       dom.domComputedOwned(canViewAccessRules, (computedOwner, _canViewAccessRules) => {
         const aclUsers = ACLUsersPopup.create(computedOwner, docPageModel);
         if (_canViewAccessRules) {
@@ -94,7 +94,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       testId('access-rules'),
     ),
     cssPageEntry(
-      cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'data'),
+      cssPageEntry.cls('-selected', use => use(gristDoc.activeViewId) === 'data'),
       cssPageLink(
         cssPageIcon('Database'),
         cssLinkText(t("Raw data")),
@@ -109,7 +109,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     dom.maybe(
       trunkAcceptsProposals, () => {
       return cssPageEntry(
-        cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'suggestions'),
+        cssPageEntry.cls('-selected', use => use(gristDoc.activeViewId) === 'suggestions'),
         cssPageLink(
           cssPageIcon('MobileChat'),
           dom.domComputed((use) => {
@@ -124,7 +124,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       );
     }),
     cssPageEntry(
-      cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'code'),
+      cssPageEntry.cls('-selected', use => use(gristDoc.activeViewId) === 'code'),
       cssPageLink(cssPageIcon('Code'),
         cssLinkText(t("Code view")),
         urlState().setLinkUrl({docPage: 'code'})
@@ -132,7 +132,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       testId('code'),
     ),
     cssPageEntry(
-      cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'settings'),
+      cssPageEntry.cls('-selected', use => use(gristDoc.activeViewId) === 'settings'),
       cssPageLink(cssPageIcon('Settings'),
         cssLinkText(t("Settings")),
         urlState().setLinkUrl({docPage: 'settings'})
@@ -156,7 +156,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
             icon('TypeDetails'),
             testId('welcome-opener'),
             automaticHelpTool(
-              (info) => showExampleCard(ex, info),
+              info => showExampleCard(ex, info),
               gristDoc,
               "seenExamples",
               ex.id

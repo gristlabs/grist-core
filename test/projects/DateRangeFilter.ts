@@ -383,7 +383,7 @@ describe('DateRangeFilter', function() {
 
   it('should hide Future Values on calendar view', async function() {
     const getSummaries = () => (
-      driver.findAll('.test-filter-menu-summary', (e) => e.find('label').getText())
+      driver.findAll('.test-filter-menu-summary', e => e.find('label').getText())
     );
     assert.equal(await fu.getViewType(), 'Default');
     assert.deepEqual(await getSummaries(), ['Future values']);

@@ -201,7 +201,7 @@ describe('Importer', function() {
     assert.equal(await driver.findWait('.test-importer-preview', 2000).isPresent(), true);
 
     // Ensure that there are no empty tables shown.
-    assert.deepEqual(await driver.findAll('.test-importer-from', (el) => el.getText()),
+    assert.deepEqual(await driver.findAll('.test-importer-from', el => el.getText()),
       ['UploadedData1.csv', 'UploadedData2.csv']);
 
     assert.deepEqual(await gu.getPreviewContents([0, 1, 2], [1, 2, 3]),

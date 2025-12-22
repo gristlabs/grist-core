@@ -75,9 +75,9 @@ describe('ApiServerAccess', function() {
       }
     }
     dbManager = server.dbManager;
-    chimpyRef = await dbManager.getUserByLogin(chimpyEmail).then((user) => user.ref);
-    kiwiRef = await dbManager.getUserByLogin(kiwiEmail).then((user) => user.ref);
-    charonRef = await dbManager.getUserByLogin(charonEmail).then((user) => user.ref);
+    chimpyRef = await dbManager.getUserByLogin(chimpyEmail).then(user => user.ref);
+    kiwiRef = await dbManager.getUserByLogin(kiwiEmail).then(user => user.ref);
+    charonRef = await dbManager.getUserByLogin(charonEmail).then(user => user.ref);
     // Listen to user count updates and add them to an array.
     server.server.onUserChange(async ({org, countBefore, countAfter}: UserChange) => {
       if (countBefore === countAfter) { return; }
@@ -1879,7 +1879,7 @@ describe('ApiServerAccess', function() {
     // Turns users from PermissionData into a mapping from email address to [access, parentAccess],
     // for more concise comparisons below.
     function compactAccess(data: PermissionData): {[email: string]: [Role|null, Role|null]} {
-      return fromPairs(data.users.map((u) => [u.email, [u.access, u.parentAccess || null]]));
+      return fromPairs(data.users.map(u => [u.email, [u.access, u.parentAccess || null]]));
     }
 
     let resp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`,

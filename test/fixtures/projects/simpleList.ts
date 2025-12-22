@@ -13,10 +13,10 @@ function setupTest() {
   return cssTestBox(
     dom('div', 'click to show options'),
     cssInput(
-      elem => {
+      (elem) => {
         popup = popupControl(
           elem,
-          ctl => {
+          (ctl) => {
             const list = (SimpleList<string>).create(null, ctl, items, val => logs.push(val));
             list.listenKeys(elem);
             return list.content;

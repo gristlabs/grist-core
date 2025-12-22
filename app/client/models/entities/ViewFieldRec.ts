@@ -144,7 +144,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   const _editingFormula = ko.observable(false);
   this.editingFormula = this.autoDispose(ko.pureComputed({
     read: () => _editingFormula(),
-    write: val => {
+    write: (val) => {
       // Whenever any view field changes its editingFormula status, let the docModel know.
       docModel.editingFormula(val);
       _editingFormula(val);
@@ -204,7 +204,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
 
   this.visibleColRef = modelUtil.addSaveInterface(this.autoDispose(ko.pureComputed({
       read: () => this._fieldOrColumn().visibleCol(),
-      write: (colRef) => this._fieldOrColumn().visibleCol(colRef),
+      write: colRef => this._fieldOrColumn().visibleCol(colRef),
     })),
     colRef => docModel.docData.bundleActions(null, async () => {
       const col = docModel.columns.getRowModel(colRef);
@@ -332,7 +332,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.disableEditData = this.autoDispose(ko.pureComputed(() => this.column().disableEditData()));
 
   this.dropdownCondition = this.widgetOptionsJson.prop('dropdownCondition');
-  this.dropdownConditionCompiled = Computed.create(this, use => {
+  this.dropdownConditionCompiled = Computed.create(this, (use) => {
     const dropdownCondition = use(this.dropdownCondition);
     if (!dropdownCondition?.parsed) { return null; }
 

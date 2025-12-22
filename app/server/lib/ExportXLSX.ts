@@ -47,12 +47,12 @@ export async function streamXLSX(activeDoc: ActiveDoc, req: express.Request,
   const { port1, port2 } = new MessageChannel();
   try {
     const rpc = new Rpc({
-      sendMessage: async (m) => port1.postMessage(m),
-      logger: { info: m => {}, warn: m => log.warn(m) },
+      sendMessage: async m => port1.postMessage(m),
+      logger: { info: (m) => {}, warn: m => log.warn(m) },
     });
     rpc.registerImpl<ActiveDocSource>("activeDocSource", new ActiveDocSourceDirect(activeDoc, req));
     rpc.on('message', (chunk) => { outputStream.write(chunk); });
-    port1.on('message', (m) => rpc.receiveMessage(m));
+    port1.on('message', m => rpc.receiveMessage(m));
 
     // For request cancelling to work, remember that such requests are forwarded via DocApiForwarder.
     const abortController = new AbortController();

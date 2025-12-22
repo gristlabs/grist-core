@@ -231,7 +231,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
           ));
         }),
         // currently, if censored, no history at all available - so drop checkbox
-        dom.maybe((use) => !use(this._censored), () => {
+        dom.maybe(use => !use(this._censored), () => {
           return dom('div',
             labeledSquareCheckbox(fromKo(this.showAllTables),
               t('All tables'),
@@ -354,11 +354,11 @@ export abstract class ActionLogPart extends Disposable {
               dom(
                 'tr',
                 dom('th'),
-                tdiff.header.map(diff => {
+                tdiff.header.map((diff) => {
                   return dom('th', this._renderCell(diff));
                 })),
               tdiff.cells.map(
-                row => {
+                (row) => {
                   return dom(
                     'tr',
                     dom('td', this._renderCell(row.type)),

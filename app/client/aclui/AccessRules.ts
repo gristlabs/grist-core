@@ -250,7 +250,7 @@ export class AccessRules extends Disposable {
     }
     this.autoDispose(this.gristDoc.docPageModel.currentDoc.addListener(this._updateDocAccessData, this));
 
-    this.update().catch((e) => this._errorMessage.set(e.message));
+    this.update().catch(e => this._errorMessage.set(e.message));
   }
 
   public get allTableIds() { return Array.from(this._aclResources.keys()).sort(); }
@@ -485,12 +485,12 @@ export class AccessRules extends Disposable {
 
         bigBasicButton(t("Add table rules"), cssDropdownIcon('Dropdown'), {style: 'margin-left: auto'},
           menu(() =>
-            this.allTableIds.map((tableId) =>
+            this.allTableIds.map(tableId =>
               // Add the table on a timeout, to avoid disabling the clicked menu item
               // synchronously, which prevents the menu from closing on click.
               menuItemAsync(() => this._addTableRules(tableId),
                 this.getTableTitle(tableId),
-                dom.cls('disabled', (use) => use(this._tableRules).some(tr => tr.tableId === tableId)),
+                dom.cls('disabled', use => use(this._tableRules).some(tr => tr.tableId === tableId)),
               )
             ),
           ),
@@ -505,7 +505,7 @@ export class AccessRules extends Disposable {
         testId('access-rules-error')
       ),
 
-      dom.maybe(use => {
+      dom.maybe((use) => {
         const ruleProblems = use(this._ruleProblems);
         return ruleProblems.length > 0 ? ruleProblems : null;
       }, ruleProblems =>
@@ -530,11 +530,11 @@ export class AccessRules extends Disposable {
                   ),
                 ),
               ),
-              dom.forEach(this._userAttrRules, (userAttr) => userAttr.buildUserAttrDom()),
+              dom.forEach(this._userAttrRules, userAttr => userAttr.buildUserAttrDom()),
             ),
           ),
         ),
-        dom.forEach(this._sortedTableRules, (tableRules) => tableRules.buildDom()),
+        dom.forEach(this._sortedTableRules, tableRules => tableRules.buildDom()),
         cssSection(
           cssSectionHeading(t("Default rules"), testId('rule-table-header')),
           dom.maybe(this._specialRulesWithDefault, tableRules => cssSeedRule(
@@ -763,7 +763,7 @@ as well as copy or download it.`
   private _onChange() {
     if (this._ruleStatus.get() === RuleStatus.Unchanged) {
       // If no changes, it's safe to just reload the rules from docData.
-      this.update().catch((e) => this._errorMessage.set(e.message));
+      this.update().catch(e => this._errorMessage.set(e.message));
     } else {
       this._errorMessage.set(
         t('Access rules have changed. Click Reset to revert your changes and refresh the rules.')
@@ -1447,7 +1447,7 @@ class DefaultObsRuleSet extends ObsRuleSet {
     return [
       cssCenterContent.cls(''),
       cssDefaultLabel(
-        dom.domComputed(use => this._haveColumnRules && use(this._haveColumnRules), (haveColRules) =>
+        dom.domComputed(use => this._haveColumnRules && use(this._haveColumnRules), haveColRules =>
           haveColRules ? withInfoTooltip(t('All'), 'accessRulesTableWide') : t('All'))
       ),
     ];
@@ -1551,7 +1551,7 @@ class SpecialObsRuleSet extends ColumnObsRuleSet {
     return dom('div',
       cssRuleDescription(
         cssIconButton(icon('Expand'),
-          dom.style('transform', (use) => use(this._isExpanded) ? 'rotate(90deg)' : ''),
+          dom.style('transform', use => use(this._isExpanded) ? 'rotate(90deg)' : ''),
           dom.on('click', () => this._isExpanded.set(!this._isExpanded.get())),
           testId('rule-special-expand'),
           {style: 'margin: -4px'},  // subtract padding to align better.
@@ -1781,7 +1781,7 @@ class ObsUserAttributeRule extends Disposable {
         }
         return _accessRules.checkTableColumns(tableId, colId ? [colId] : undefined);
       });
-    this.ruleStatus = Computed.create(this, use => {
+    this.ruleStatus = Computed.create(this, (use) => {
       if (use(this.formulaError)) { return RuleStatus.Invalid; }
       return getChangedStatus(
         use(this._name) !== this._userAttr?.name ||
@@ -1812,7 +1812,7 @@ class ObsUserAttributeRule extends Disposable {
     return cssTableRow(
       cssCell1(cssCell.cls('-rborder'),
         cssCellContent(
-          cssInput(this._name, async (val) => this._name.set(val),
+          cssInput(this._name, async val => this._name.set(val),
             {placeholder: t("Attribute name")},
             (this._options.focus ? (elem) => { setTimeout(() => elem.focus(), 0); } : null),
             testId('rule-userattr-name'),
@@ -1825,10 +1825,10 @@ class ObsUserAttributeRule extends Disposable {
             aclFormulaEditor({
               initialValue: this._charId.get(),
               readOnly: false,
-              setValue: (text) => this._setUserAttr(text),
+              setValue: text => this._setUserAttr(text),
               placeholder: '',
               getSuggestions: () => this._userAttrChoices.get().map(s => new Suggestion(s.value, s)),
-              customiseEditor: (editor => {
+              customiseEditor: ((editor) => {
                 editor.on('focus', () => {
                   if (editor.getValue() == 'user.') {
                     // TODO this weirdly only works on the first click
@@ -1859,7 +1859,7 @@ class ObsUserAttributeRule extends Disposable {
             cssIconButton(icon('Remove'),
               dom.on('click', () => this._accessRules.removeUserAttributes(this)))
           ),
-          dom.maybe(this.formulaError, (msg) => cssConditionError(msg, testId('rule-error'))),
+          dom.maybe(this.formulaError, msg => cssConditionError(msg, testId('rule-error'))),
         ),
       ),
       testId('rule-userattr'),
@@ -2001,7 +2001,7 @@ class ObsRulePart extends Disposable {
     // case.
     const text = this._aclFormula.get();
     if (text) {
-      this._setAclFormula(text, true).catch(e => {
+      this._setAclFormula(text, true).catch((e) => {
         console.error(e);
       });
     }
@@ -2061,7 +2061,7 @@ class ObsRulePart extends Disposable {
           aclFormulaEditor({
             initialValue: this._aclFormula.get(),
             readOnly: this.isBuiltIn(),
-            setValue: (value) => this._setAclFormula(value),
+            setValue: value => this._setAclFormula(value),
             placeholder: dom.text((use) => {
               return (
                 this._ruleSet.isSoleCondition(use, this) ? t('Everyone') :
@@ -2076,7 +2076,7 @@ class ObsRulePart extends Disposable {
         ),
         cssCell1(cssCell.cls('-stretch'),
           permissionsWidget(this._ruleSet.getAvailableBits(), this._permissions,
-            {disabled: this.isBuiltIn(), sanityCheck: (pset) => this.sanityCheck(pset)},
+            {disabled: this.isBuiltIn(), sanityCheck: pset => this.sanityCheck(pset)},
             testId('rule-permissions')
           ),
         ),
@@ -2104,7 +2104,7 @@ class ObsRulePart extends Disposable {
             )
           ),
         ),
-        dom.maybe(this._error, (msg) => cssConditionError(msg, testId('rule-error'))),
+        dom.maybe(this._error, msg => cssConditionError(msg, testId('rule-error'))),
         testId('rule-part'),
       ),
       dom.maybe(this._showMemoEditor, () =>
@@ -2339,7 +2339,7 @@ function makeSuggestionExample(value: unknown): string|undefined {
 function getColTypeInfo(colIds: string[], tableData?: TableData): IColTypeInfo[] {
   // Unlike aclResources, data available through docData may be restricted. If we don't know
   // about a column, we just won't have type-specific autocomplete suggestions for it.
-  return colIds.map(colId => {
+  return colIds.map((colId) => {
     const gristType = tableData?.getColType(colId);
     // Note that example values will only be shown when tableData has been loaded, but it doesn't
     // seem important enough to load data just for this.

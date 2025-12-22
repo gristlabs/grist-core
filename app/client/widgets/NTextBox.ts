@@ -41,7 +41,7 @@ export class NTextBox extends NewAbstractWidget {
     // Some options might be disabled, as more than one column is selected.
     // Prop observable is owned by the options object.
     const alignmentDisabled = Computed.create(this, use => use(options.disabled('alignment')));
-    const wrapDisabled = Computed.create(this, (use) => use(options.disabled('wrap')));
+    const wrapDisabled = Computed.create(this, use => use(options.disabled('wrap')));
     return [
       cssRow(
         alignmentSelect(
@@ -93,7 +93,7 @@ export class NTextBox extends NewAbstractWidget {
               defaultValue: 3,
               minValue: 1,
               maxValue: 99,
-              save: async (val) => lineCount.setAndSave((val && Math.floor(val)) ?? ''),
+              save: async val => lineCount.setAndSave((val && Math.floor(val)) ?? ''),
             },
           ),
         ),
@@ -107,7 +107,7 @@ export class NTextBox extends NewAbstractWidget {
     return dom('div.field_clip',
       dom.style('text-align', this.alignment),
       dom.cls('text_wrapping', this.wrapping),
-      dom.domComputed((use) => use(row._isAddRow) || this.isDisposed() ?
+      dom.domComputed(use => use(row._isAddRow) || this.isDisposed() ?
         null :
         makeLinks(use(this.valueFormatter).formatAny(use(value), t)))
     );

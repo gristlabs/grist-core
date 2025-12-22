@@ -342,7 +342,7 @@ export class FloatingPopup extends Disposable {
       cssPopup(
         cssPopupHeader(
           cssBottomHandle(this._testId('popup-move-handle')),
-          dom.domComputed(this._isMinimized, isMinimized => {
+          dom.domComputed(this._isMinimized, (isMinimized) => {
             return [
               // Copy buttons on the left side of the header, to automatically
               // center the title.

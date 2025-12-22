@@ -195,10 +195,10 @@ export class ChartView extends BaseView {
     this.autoDispose(this._options.subscribe(this._update));
     this.autoDispose(this.viewSection.viewFields().subscribe((viewFields: ViewFieldRec[]) => {
       this._update();
-      subs.forEach((sub) => sub.dispose());
+      subs.forEach(sub => sub.dispose());
       subs = [
-        ...viewFields.map((field) => field.displayColModel.peek().type.subscribe(this._update)),
-        ...viewFields.map((field) => field.visibleColModel.peek().type.subscribe(this._update)),
+        ...viewFields.map(field => field.displayColModel.peek().type.subscribe(this._update)),
+        ...viewFields.map(field => field.visibleColModel.peek().type.subscribe(this._update)),
       ];
     }));
     this.listenTo(this.sortedRows, 'rowNotify', this._update);
@@ -260,7 +260,7 @@ export class ChartView extends BaseView {
         } else {
           // For all y-axis, it's not sure what would be a sensible representation for choice list,
           // simply stringify choice list values seems reasonable.
-          series[i].values = series[i].values.map((v) => String(decodeObject(v as any)));
+          series[i].values = series[i].values.map(v => String(decodeObject(v as any)));
         }
       }
     }
@@ -488,7 +488,7 @@ export class ChartConfig extends GrainJSDisposable {
     if (!multiseries || viewFields.length === 0) { return ""; }
     return use(use(viewFields[0].column).colId);
   })
-    .onWrite((colId) => this._setGroupDataColumn(colId));
+    .onWrite(colId => this._setGroupDataColumn(colId));
 
   // Updating the group data column involves several changes of the list of view fields which could
   // leave the x-axis field index momentarily point to the wrong column. The freeze x axis
@@ -507,11 +507,11 @@ export class ChartConfig extends GrainJSDisposable {
       }
       return "";
     })
-    .onWrite((colId) => this._setXAxis(colId));
+    .onWrite(colId => this._setXAxis(colId));
 
   // Whether value is aggregated or not
-  private _isValueAggregated = Computed.create(this, (use) => this._isSummaryTable(use))
-    .onWrite((val) => this._setAggregation(val));
+  private _isValueAggregated = Computed.create(this, use => this._isSummaryTable(use))
+    .onWrite(val => this._setAggregation(val));
 
   // Columns options
   private _columnsOptions: Computed<Array<IOptionFull<string>>> = Computed.create(
@@ -522,15 +522,15 @@ export class ChartConfig extends GrainJSDisposable {
         this._getColumns(use);
       return columns
       // filter out hidden column (ie: manualsort ...)
-        .filter((col) => !col.isHiddenCol.peek())
-        .map((col) => ({
+        .filter(col => !col.isHiddenCol.peek())
+        .map(col => ({
           value: col.colId(), label: col.label.peek(), icon: 'FieldColumn' as IconName,
         }));
     }
   );
 
   // The list of available columns for the group data picker.
-  private _groupDataOptions = Computed.create<Array<IOption<string>>>(this, (use) => [
+  private _groupDataOptions = Computed.create<Array<IOption<string>>>(this, use => [
     {value: "", label: 'Pick a column'},
     ...use(this._columnsOptions)
   ]);
@@ -558,7 +558,7 @@ export class ChartConfig extends GrainJSDisposable {
 
   // A computed that returns `this._section.chartTypeDef` and that takes care of removing the group
   // data option when type is switched to 'pie'.
-  private _chartType = Computed.create(this, (use) => use(this._section.chartTypeDef))
+  private _chartType = Computed.create(this, use => use(this._section.chartTypeDef))
     .onWrite((val) => {
       return this._gristDoc.docData.bundleActions('switched chart type', async () => {
         await this._section.chartTypeDef.saveOnly(val);
@@ -594,7 +594,7 @@ export class ChartConfig extends GrainJSDisposable {
         ]),
         testId("type"),
       ),
-      dom.maybe((use) => !isPieLike(use(this._section.chartTypeDef)), () => [
+      dom.maybe(use => !isPieLike(use(this._section.chartTypeDef)), () => [
         // These options don't make much sense for a pie chart.
         cssCheckboxRowObs(t('Split series'), this._groupData),
         cssCheckboxRow(t('Invert Y-axis'), this._optionsObj.prop('invertYAxis')),
@@ -608,10 +608,10 @@ export class ChartConfig extends GrainJSDisposable {
         ),
         cssCheckboxRow(t('Log scale Y-axis'), this._optionsObj.prop('logYAxis')),
       ]),
-      dom.maybeOwned((use) => use(this._section.chartTypeDef) === 'donut', (owner) => [
+      dom.maybeOwned(use => use(this._section.chartTypeDef) === 'donut', owner => [
         cssSlideRow(
           t('Hole size'),
-          Computed.create(owner, (use) => use(this._optionsObj.prop('donutHoleSize')) ?? DONUT_DEFAULT_HOLE_SIZE),
+          Computed.create(owner, use => use(this._optionsObj.prop('donutHoleSize')) ?? DONUT_DEFAULT_HOLE_SIZE),
           (val: number) => this._optionsObj.prop('donutHoleSize').saveOnly(val),
           testId('option')
         ),
@@ -619,17 +619,17 @@ export class ChartConfig extends GrainJSDisposable {
         dom.maybe(this._optionsObj.prop('showTotal'), () => (
           cssNumberWithSpinnerRow(
             t('Text size'),
-            Computed.create(owner, (use) => use(this._optionsObj.prop('textSize')) ??  DONUT_DEFAULT_TEXT_SIZE),
+            Computed.create(owner, use => use(this._optionsObj.prop('textSize')) ??  DONUT_DEFAULT_TEXT_SIZE),
             (val: number) => this._optionsObj.prop('textSize').saveOnly(val),
             testId('option')
           )
         ))
       ]),
-      dom.maybe((use) => use(this._section.chartTypeDef) === 'line', () => [
+      dom.maybe(use => use(this._section.chartTypeDef) === 'line', () => [
         cssCheckboxRow(t('Connect gaps'), this._optionsObj.prop('lineConnectGaps')),
         cssCheckboxRow(t('Show markers'), this._optionsObj.prop('lineMarkers')),
       ]),
-      dom.maybe((use) => ['line', 'bar'].includes(use(this._section.chartTypeDef)), () => [
+      dom.maybe(use => ['line', 'bar'].includes(use(this._section.chartTypeDef)), () => [
         cssCheckboxRow(t('Stack series'), this._optionsObj.prop('stacked')),
         cssRow(
           cssRowLabel(t('Error bars')),
@@ -684,11 +684,11 @@ export class ChartConfig extends GrainJSDisposable {
             menu(() => {
               const hiddenColumns = this._section.hiddenColumns.peek();
               const filterFunc = this._isCompatibleSeries.bind(this);
-              const nonNumericCount = hiddenColumns.filter((col) => !filterFunc(col)).length;
+              const nonNumericCount = hiddenColumns.filter(col => !filterFunc(col)).length;
               return [
                 ...hiddenColumns
-                  .filter((col) => filterFunc(col))
-                  .map((col) => menuItem(
+                  .filter(col => filterFunc(col))
+                  .map(col => menuItem(
                     () => this._configFieldsHelper.addField(col),
                     col.label.peek(),
                   )),
@@ -712,7 +712,7 @@ export class ChartConfig extends GrainJSDisposable {
 
   private async _setXAxis(colId: string) {
     const optionsObj = this._section.optionsObj;
-    const findColumn = () => this._getColumns().find((c) => c.colId() === colId);
+    const findColumn = () => this._getColumns().find(c => c.colId() === colId);
     const viewFields = this._section.viewFields.peek();
 
     await this._gristDoc.docData.bundleActions('selected new x-axis', async () => {
@@ -729,7 +729,7 @@ export class ChartConfig extends GrainJSDisposable {
         await setSaveValue(this._optionsObj.prop('isXAxisUndefined'), false);
 
         // if new field was used to split series, disable multiseries
-        const fieldIndex = viewFields.peek().findIndex((f) => f.column.peek().colId() === colId);
+        const fieldIndex = viewFields.peek().findIndex(f => f.column.peek().colId() === colId);
         if (fieldIndex === 0 && optionsObj.prop('multiseries').peek()) {
           await optionsObj.prop('multiseries').setAndSave(false);
           return;
@@ -787,8 +787,8 @@ export class ChartConfig extends GrainJSDisposable {
         }
 
         if (colId) {
-          const col = this._getColumns().find((c) => c.colId() === colId)!;
-          const field = viewFields.find((f) => f.column.peek().colId() === colId);
+          const col = this._getColumns().find(c => c.colId() === colId)!;
+          const field = viewFields.find(f => f.column.peek().colId() === colId);
 
           // if new field is already visible, moves the fields to the first place else add the field to the first
           // place
@@ -850,7 +850,7 @@ export class ChartConfig extends GrainJSDisposable {
     return dom.domComputed((use) => {
       const filterFunc = (field: ViewFieldRec) => this._isCompatibleSeries(use(field.column), use);
       return this._configFieldsHelper.buildVisibleFieldsConfigHelper({
-        itemCreateFunc: (field) => this._buildField(field),
+        itemCreateFunc: field => this._buildField(field),
         draggableOptions: {
           removeButton: false,
           drag_indicator: cssDragger,
@@ -937,7 +937,7 @@ export class ChartConfig extends GrainJSDisposable {
       this._section.table().summarySource().columns().all() :
       this._section.table().columns().all();
     const columns = colIds
-      .map((colId) => colId && cols.find(c => c.colId() === colId))
+      .map(colId => colId && cols.find(c => c.colId() === colId))
       .filter((col): col is ColumnRec => Boolean(col))
       .map(col => col.id());
     return columns;
@@ -958,7 +958,7 @@ function cssNumberWithSpinnerRow(label: string, value: Computed<number>, save: (
     input.value = value.get() + "px";
   }
 
-  async function onChange(val: string, func: (val: number) => number = (v) => v) {
+  async function onChange(val: string, func: (val: number) => number = v => v) {
     let fvalue = parseFloat(val);
     if (isFinite(fvalue)) {
       fvalue = clamp(func(fvalue), minValue, Infinity);
@@ -973,11 +973,11 @@ function cssNumberWithSpinnerRow(label: string, value: Computed<number>, save: (
     cssNumberWithSpinner(
       input = cssNumberInput(
         {type: 'text'},
-        dom.prop('value', (use) => use(value) + "px"),
+        dom.prop('value', use => use(value) + "px"),
         dom.on('change', (_ev, el) => onChange(el.value)),
         dom.onKeyDown({
-          ArrowDown: (_ev, el) => onChange(el.value, (val) => val - 1),
-          ArrowUp: (_ev, el) => onChange(el.value, (val) => val + 1),
+          ArrowDown: (_ev, el) => onChange(el.value, val => val - 1),
+          ArrowUp: (_ev, el) => onChange(el.value, val => val + 1),
         }),
       ),
 
@@ -1005,7 +1005,7 @@ function cssSlideRow(label: string, value: Computed<number>, save: (val: number)
     input.value = formatPercent(value.get());
   }
 
-  async function onChange(val: string, func: (val: number) => number = (v) => v) {
+  async function onChange(val: string, func: (val: number) => number = v => v) {
     let fvalue = parseFloat(val);
     if (isFinite(fvalue)) {
       fvalue = clamp(func(fvalue), 0, 99) / 100;
@@ -1025,11 +1025,11 @@ function cssSlideRow(label: string, value: Computed<number>, save: (val: number)
     cssNumberWithSpinner(
       input = cssNumberInput(
         {type: 'text'},
-        dom.prop('value', (use) => formatPercent(use(value))),
+        dom.prop('value', use => formatPercent(use(value))),
         dom.on('change', (_ev, el) => onChange(el.value)),
         dom.onKeyDown({
-          ArrowDown: (_ev, el) => onChange(el.value, (val) => val - 1),
-          ArrowUp: (_ev, el) => onChange(el.value, (val) => val + 1),
+          ArrowDown: (_ev, el) => onChange(el.value, val => val - 1),
+          ArrowUp: (_ev, el) => onChange(el.value, val => val + 1),
         }),
       ),
 
@@ -1230,7 +1230,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
  * those points for which all of the y-values are non-numeric (e.g. null or a string).
  */
 function trimNonNumericData(series: Series[]): void {
-  const values = series.slice(1).map((s) => s.values);
+  const values = series.slice(1).map(s => s.values);
   for (const s of series) {
     s.values = s.values.filter((_, i) => values.some(v => typeof v[i] === 'number'));
   }

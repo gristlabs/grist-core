@@ -40,7 +40,7 @@ const ALL_TIPS_DISABLED = {
     dontShowTips: true,
     dismissedTips: BehavioralPrompt.values,
   },
-  dismissedWelcomePopups: WelcomePopup.values.map(id => {
+  dismissedWelcomePopups: WelcomePopup.values.map((id) => {
     return {
       id,
       lastDismissedAt: 0,
@@ -312,7 +312,7 @@ export class HomeUtil {
 
   // A helper that find a workspace id by name for a given username and org.
   public async getWorkspaceId(homeApi: UserAPIImpl, workspace: string): Promise<number> {
-    return (await homeApi.getOrgWorkspaces('current')).find((w) => w.name === workspace)!.id;
+    return (await homeApi.getOrgWorkspaces('current')).find(w => w.name === workspace)!.id;
   }
 
   // A helper that returns the list of names of all documents within a workspace.
@@ -418,7 +418,7 @@ export class HomeUtil {
       const app = (window as any).gristApp;
       if (!app) { done(""); return; }
       const api: UserAPI = app.topAppModel.api;
-      return api.fetchApiKey().then(key => {
+      return api.fetchApiKey().then((key) => {
         if (key) { return key; }
         return api.createApiKey();
       }).then(done).catch(() => done(""));

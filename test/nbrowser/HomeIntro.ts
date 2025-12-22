@@ -192,7 +192,7 @@ describe('HomeIntro', function() {
     assert(gu.testCurrentUrl(/p\/templates/));
 
     // Check titles.
-    assert.includeMembers(await driver.findAll('.test-dm-pinned-doc-name', (el) => el.getText()),
+    assert.includeMembers(await driver.findAll('.test-dm-pinned-doc-name', el => el.getText()),
       ['Lightweight CRM']);
 
     // Check images.
@@ -251,10 +251,10 @@ describe('HomeIntro', function() {
     // Check Featured Templates are shown at the top of the page.
     assert.equal(await driver.findWait('.test-dm-featured-templates-header', 500).getText(), 'Featured');
     assert.includeMembers(
-      await driver.findAll('.test-dm-pinned-doc-list .test-dm-pinned-doc-name', (el) => el.getText()),
+      await driver.findAll('.test-dm-pinned-doc-list .test-dm-pinned-doc-name', el => el.getText()),
       ['Lightweight CRM']);
     assert.includeMembers(
-      await driver.findAll('.test-dm-pinned-doc-list .test-dm-pinned-doc-desc', (el) => el.getText()),
+      await driver.findAll('.test-dm-pinned-doc-list .test-dm-pinned-doc-desc', el => el.getText()),
       ['CRM template and example for linking data, and creating productive layouts.']
     );
 
@@ -263,22 +263,22 @@ describe('HomeIntro', function() {
 
     // Check the CRM and Invoice sections are shown below Featured Templates.
     assert.includeMembers(
-      await driver.findAll('.test-dm-templates-header', (el) => el.getText()),
+      await driver.findAll('.test-dm-templates-header', el => el.getText()),
       ['CRM', 'Other']);
 
     // Check that each section has the correct templates (title and description).
     const [crmSection, otherSection] = await driver.findAll('.test-dm-templates');
     assert.includeMembers(
-      await crmSection.findAll('.test-dm-pinned-doc-name', (el) => el.getText()),
+      await crmSection.findAll('.test-dm-pinned-doc-name', el => el.getText()),
       ['Lightweight CRM']);
     assert.includeMembers(
-      await otherSection.findAll('.test-dm-pinned-doc-name', (el) => el.getText()),
+      await otherSection.findAll('.test-dm-pinned-doc-name', el => el.getText()),
       ['Afterschool Program', 'Investment Research']);
     assert.includeMembers(
-      await crmSection.findAll('.test-dm-pinned-doc-desc', (el) => el.getText()),
+      await crmSection.findAll('.test-dm-pinned-doc-desc', el => el.getText()),
       ['CRM template and example for linking data, and creating productive layouts.']);
     assert.includeMembers(
-      await otherSection.findAll('.test-dm-pinned-doc-desc', (el) => el.getText()),
+      await otherSection.findAll('.test-dm-pinned-doc-desc', el => el.getText()),
       [
         'Example for how to model business data, use formulas, and manage complexity.',
         'Example for analyzing and visualizing with summary tables and linked charts.'

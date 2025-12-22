@@ -621,7 +621,7 @@ export async function createInitialDb(connection?: Connection, migrateAndSeedDat
 // add some test data to the database.
 export async function addSeedData(connection: Connection) {
   await synchronizeProducts(connection, true, testProducts);
-  await connection.transaction(async tr => {
+  await connection.transaction(async (tr) => {
     const seed = new Seed(tr.connection);
     await seed.run();
   });
@@ -630,7 +630,7 @@ export async function addSeedData(connection: Connection) {
 export async function createBenchmarkDb(connection?: Connection) {
   connection = connection || await getOrCreateConnection();
   await updateDb(connection);
-  await connection.transaction(async tr => {
+  await connection.transaction(async (tr) => {
     const seed = new Seed(tr.connection);
     await seed.runBenchmark();
   });
@@ -732,7 +732,7 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().catch(e => {
+  main().catch((e) => {
     // tslint:disable-next-line:no-console
     console.log(e);
   });

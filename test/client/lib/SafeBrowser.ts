@@ -258,14 +258,14 @@ const PROCESSES: TestProcesses = {
   },
   test_forward_view: (grist: GristModule) => {
     grist.rpc.registerImpl<Foo>('foo', {
-      foo: async (name) => `foo ${name} from test_forward_view`
+      foo: async name => `foo ${name} from test_forward_view`
     }, FooDescription);
     grist.ready();
   },
   test_messages: (grist: GristModule) => {
     grist.rpc.registerImpl<Foo>('foo', {
       foo(name): Promise<string> {
-        return new Promise<string>(resolve => {
+        return new Promise<string>((resolve) => {
           grist.rpc.once('message', resolve);
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           grist.api.render('test_messages_view', 'fullscreen');
@@ -292,8 +292,8 @@ const PROCESSES: TestProcesses = {
     grist.rpc.registerImpl<Foo>('grist', new MyFoo(), FooDescription);
     grist.ready();
   },
-  test_dispose_view1: (grist) => grist.ready(),
-  test_dispose_view2: (grist) => grist.ready(),
+  test_dispose_view1: grist => grist.ready(),
+  test_dispose_view2: grist => grist.ready(),
   test_client_scope: (grist: GristModule) => {
     class MyFoo {
       public async foo(name: string): Promise<string> {
@@ -311,7 +311,7 @@ const PROCESSES: TestProcesses = {
     // hit linting limit for number of classes in a single file :-)
     const myFoo = {
       foo(name: string): Promise<string> {
-        return new Promise<string> (resolve => {
+        return new Promise<string> ((resolve) => {
           grist.rpc.once("message", (msg: any) => resolve(name + msg));
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           grist.api.render('view_client_scope', 'fullscreen');

@@ -245,9 +245,9 @@ export async function selectAll() {
 export async function detachFromLayout(section?: string) {
   section ??= await getActiveSectionTitle();
     const handle = getSection(section).find('.viewsection_drag_indicator');
-    await driver.withActions((actions) => actions
+    await driver.withActions(actions => actions
       .move({origin: handle}));
-    await driver.withActions((actions) => actions
+    await driver.withActions(actions => actions
       .move({origin: handle, x : 1}) // This is needed to show the drag element.
       .press());
   await driver.withActions(actions => actions.move({origin: handle, ...{x : 10, y: 10}}));
@@ -381,10 +381,10 @@ export async function getVisibleDetailCells<T>(
 
   if (typeof colOrOptions === 'object' && 'cols' in colOrOptions) {
     const {rowNums, section, mapper} = colOrOptions;    // tslint:disable-line:no-shadowed-variable
-    const columns = await Promise.all(colOrOptions.cols.map((oneCol) =>
+    const columns = await Promise.all(colOrOptions.cols.map(oneCol =>
       getVisibleDetailCells({col: oneCol, rowNums, section, mapper})));
     // This zips column-wise data into a flat row-wise array of values.
-    return ([] as T[]).concat(...rowNums.map((r, i) => columns.map((c) => c[i])));
+    return ([] as T[]).concat(...rowNums.map((r, i) => columns.map(c => c[i])));
   }
 
   const {col, rowNums, section, mapper = el => el.getText()}: IColSelect<any> = (
@@ -394,14 +394,14 @@ export async function getVisibleDetailCells<T>(
 
   const sectionElem = section ? await getSection(section) : await driver.findWait('.active_section', 4000);
   const visibleRowNums: number[] = await sectionElem.findAll('.detail_row_num',
-    async (el) => parseInt((await el.getText()).replace(/^#/, ''), 10) || 1);
+    async el => parseInt((await el.getText()).replace(/^#/, ''), 10) || 1);
 
   const colName = (typeof col === 'string') ? col :
     await (await sectionElem.find(".g_record_detail_inner").findAll('.g_record_detail_label'))[col].getText();
 
   const records = await sectionElem.findAll(".g_record_detail_inner");
-  const selected = rowNums.map((n) => records[visibleRowNums.indexOf(n)]);
-  return Promise.all(selected.map((el) => mapper(
+  const selected = rowNums.map(n => records[visibleRowNums.indexOf(n)]);
+  return Promise.all(selected.map(el => mapper(
     el.findContent('.g_record_detail_label', exactMatch(colName))
     .findClosest('.g_record_detail_el').find('.g_record_detail_value')
   )));
@@ -418,7 +418,7 @@ export function getDetailCell(colOrOptions: string|ICellSelect, rowNum?: number,
   const options: IColSelect<WebElement> = (typeof colOrOptions === 'object' ?
     {col: colOrOptions.col, rowNums: [colOrOptions.rowNum], section: colOrOptions.section, mapper} :
     {col: colOrOptions, rowNums: [rowNum!], section, mapper});
-  return new WebElementPromise(driver, getVisibleDetailCells(options).then((elems) => elems[0]));
+  return new WebElementPromise(driver, getVisibleDetailCells(options).then(elems => elems[0]));
 }
 
 /**
@@ -579,7 +579,7 @@ export async function dbClick(cell: WebElement) {
 }
 
 export async function rightClick(cell: WebElement) {
-  await driver.withActions((actions) => actions.contextClick(cell));
+  await driver.withActions(actions => actions.contextClick(cell));
 }
 
 /**
@@ -809,7 +809,7 @@ export async function selectGridArea(startCell: [number, number], endCell: [numb
   } else {
     const start = await getCell({ rowNum: startRowNum, col: startCol });
     const end = await getCell({ rowNum: endRowNum, col: endCol });
-    await driver.withActions((a) => a.click(start).keyDown(Key.SHIFT).click(end).keyUp(Key.SHIFT));
+    await driver.withActions(a => a.click(start).keyDown(Key.SHIFT).click(end).keyUp(Key.SHIFT));
   }
 }
 
@@ -1215,7 +1215,7 @@ export async function openPageMenu(pageName: RegExp|string) {
  * Returns a promise that resolves with the list of all page names.
  */
 export function getPageNames(): Promise<string[]> {
-  return driver.findAll('.test-docpage-label', (e) => e.getText());
+  return driver.findAll('.test-docpage-label', e => e.getText());
 }
 
 export interface PageTree {
@@ -1528,7 +1528,7 @@ export async function redo(optCount: number = 1, optTimeout?: number) {
 }
 
 export async function redoAll() {
-  const isActive = () => driver.find('.test-redo').matches('[class*="disabled"]').then((v) => !v);
+  const isActive = () => driver.find('.test-redo').matches('[class*="disabled"]').then(v => !v);
   while (await isActive()) {
     await redo();
   }
@@ -2070,7 +2070,7 @@ export async function saveAcls(clickRemove: boolean = false): Promise<boolean> {
  */
 export function openRowMenu(rowNum: number) {
   const row = driver.findContent('.active_section .gridview_data_row_num', String(rowNum));
-  return driver.withActions((actions) => actions.contextClick(row))
+  return driver.withActions(actions => actions.contextClick(row))
     .then(() => findOpenMenu(1000));
 }
 
@@ -2143,7 +2143,7 @@ export async function getCurrentUrlId() {
 }
 
 export function getToasts(): Promise<string[]> {
-  return driver.findAll('.test-notifier-toast-wrapper', (el) => el.getText());
+  return driver.findAll('.test-notifier-toast-wrapper', el => el.getText());
 }
 
 export async function wipeToasts(): Promise<void> {
@@ -3380,7 +3380,7 @@ export interface FilterMenuValue {
  */
 export async function getFilterMenuState(): Promise<FilterMenuValue[]> {
   const items = await driver.findAll('.test-filter-menu-list > *');
-  return await Promise.all(items.map(async item => {
+  return await Promise.all(items.map(async (item) => {
     const checked = (await item.find('input').getAttribute('checked')) === null ? false : true;
     const value = await item.find('.test-filter-menu-value').getText();
     const count = parseInt(await item.find('.test-filter-menu-count').getText(), 10);
@@ -3976,7 +3976,7 @@ class Clipboard implements IClipboard {
 
   private async _performActionWithMenu(action: ClipboardAction) {
     const field = await driver.find('.active_section .field_clip.has_cursor');
-    await driver.withActions(actions => { actions.contextClick(field); });
+    await driver.withActions((actions) => { actions.contextClick(field); });
     await findOpenMenu(1000);
     const menuItemName = action.charAt(0).toUpperCase() + action.slice(1);
     await findOpenMenuItem('li', menuItemName).click();

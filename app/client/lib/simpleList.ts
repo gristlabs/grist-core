@@ -44,7 +44,7 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
     const renderItem = opt.renderItem || ((item: U) => getOptionFull(item).label);
     this.content = cssMenuWrap(
       dom('div',
-        elem => {
+        (elem) => {
           if (opt.matchTriggerElemWidth) {
             const style = elem.style;
             style.minWidth = _ctl.getTriggerElem().getBoundingClientRect().width + 'px';
@@ -69,12 +69,12 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
           }),
         ),
       ),
-      dom.on('mouseleave', (_ev) => this.setSelected(-1)),
+      dom.on('mouseleave', _ev => this.setSelected(-1)),
     );
     this.autoDispose(_items.addListener(() => this._update()));
     this._mouseOver = attachMouseOverOnMove(
       this._menuContent,
-      (ev) => this.setSelected(this._findTargetItem(ev.target))
+      ev => this.setSelected(this._findTargetItem(ev.target))
     );
     this._update();
   }

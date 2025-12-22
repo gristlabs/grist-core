@@ -6,7 +6,7 @@ import {dom, MultiHolder, Observable, styled} from 'grainjs';
 
 export function createBottomBarDoc(owner: MultiHolder, pageModel: DocPageModel, leftPanelOpen: Observable<boolean>,
                                    rightPanelOpen: Observable<boolean>) {
-  return dom.maybe(pageModel.gristDoc, (gristDoc) => (
+  return dom.maybe(pageModel.gristDoc, gristDoc => (
     cssPageName(
       dom.text(gristDoc.currentPageName),
       dom.on('click', () => { rightPanelOpen.set(false); leftPanelOpen.set(true); }),

@@ -80,7 +80,7 @@ function buildRenamableTitle(
       cssTitle.cls("-empty", use => !use(title)?.trim()),
       cssTitle.cls("-open-on-click", openOnClick),
       cssTitle.cls("-disabled", disabled),
-      elem => {
+      (elem) => {
         if (disabled) { return; }
 
         // The widget title popup can be configured to open in up to two ways:
@@ -103,7 +103,7 @@ function buildRenamableTitle(
             }));
           });
         }
-        setPopupToCreateDom(elem, ctl => {
+        setPopupToCreateDom(elem, (ctl) => {
           if (isEditing) {
             ctl.onDispose(() => isEditing.set(false));
           }
@@ -276,7 +276,7 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
   return cssRenamePopup(
     // Create a FocusLayer to keep focus in this popup while it's active, and prevent keyboard
     // shortcuts from being seen by the view underneath.
-    elem => { FocusLayer.create(ctrl, { defaultFocusElem: elem, pauseMousetrap: false }); },
+    (elem) => { FocusLayer.create(ctrl, { defaultFocusElem: elem, pauseMousetrap: false }); },
     dom.onDispose(onClose),
     dom.autoDispose(commandGroup),
     testId('popup'),
@@ -318,14 +318,14 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
       ),
     ),
     dom.onKeyDown({
-      Enter$: e => {
+      Enter$: (e) => {
         if (e.ctrlKey || e.metaKey) {
           close();
           return false;
         }
       }
     }),
-    elem => { setTimeout(initialFocus, 0); },
+    (elem) => { setTimeout(initialFocus, 0); },
   );
 }
 

@@ -43,7 +43,7 @@ export const cssNestedLinks = styled('div', `
 
 export function gristLink(href: BindableValue<string>, ...args: IDomArgs<HTMLElement>) {
   return dom("a",
-    dom.attr("href", (use) => withAclAsUserParam(useBindable(use, href))),
+    dom.attr("href", use => withAclAsUserParam(useBindable(use, href))),
     dom.attr("target", "_blank"),
     dom.on("click", handleGristLinkClick),
     // stop propagation to prevent the grist custom context menu to show up and let the default one

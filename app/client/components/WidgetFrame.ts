@@ -145,14 +145,14 @@ export class WidgetFrame extends DisposableWithEvents {
     // Url to widget or empty page with access level and preferences.
     this._url = Computed.create(
       this,
-      (use) => this._urlWithAccess(use(maybeUrl)) || this._getEmptyWidgetPage()
+      use => this._urlWithAccess(use(maybeUrl)) || this._getEmptyWidgetPage()
     );
 
     // Iframe is empty when url is not set.
     this._isEmpty = Computed.create(this, use => !use(maybeUrl));
 
     // When isEmpty is switched to true, reset the ready state.
-    this.autoDispose(this._isEmpty.addListener(isEmpty => {
+    this.autoDispose(this._isEmpty.addListener((isEmpty) => {
       if (isEmpty) {
         this._readyCalled.set(false);
       }
@@ -671,7 +671,7 @@ export interface ConfigNotifierOptions {
  */
 export class ConfigNotifier extends BaseEventSource {
   private _accessLevel = this._options.access;
-  private _currentConfig = Computed.create(this, use => {
+  private _currentConfig = Computed.create(this, (use) => {
     const options = use(this._section.activeCustomOptions);
     return options;
   });

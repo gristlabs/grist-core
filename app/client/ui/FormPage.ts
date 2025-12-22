@@ -34,7 +34,7 @@ export class FormPage extends Disposable {
 
   public buildDom() {
     return cssPageContainer(
-      dom.domComputed(use => {
+      dom.domComputed((use) => {
         const error = use(this._model.error);
         if (error) { return dom.create(FormErrorPage, error); }
 
@@ -47,7 +47,7 @@ export class FormPage extends Disposable {
   }
 
   private _buildFormPageDom() {
-    return dom.domComputed(use => {
+    return dom.domComputed((use) => {
       const form = use(this._model.form);
       const rootLayoutNode = use(this._model.formLayout);
       if (!form || !rootLayoutNode) { return null; }
@@ -80,7 +80,7 @@ export class FormPage extends Disposable {
                   pending: this._model.submitting,
                   onSubmit: (_formData, formElement) => this._handleFormSubmit(formElement),
                   onSuccess: () => this._handleFormSubmitSuccess(),
-                  onError: (e) => this._handleFormError(e),
+                  onError: e => this._handleFormError(e),
                 }),
               ),
             ),

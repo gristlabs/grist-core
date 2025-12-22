@@ -268,7 +268,7 @@ describe('ManyFetches', function() {
   // Actually connect GristWSConnection, open the doc, and return a few methods for next steps.
   async function connect(connection: GristWSConnection, docId: string) {
     async function getMessage<T>(eventType: string, filter: (msg: T) => boolean): Promise<T> {
-      return new Promise<T>(resolve => {
+      return new Promise<T>((resolve) => {
         function callback(msg: T) {
           if (filter(msg)) { connection.off(eventType, callback); resolve(msg); }
         }

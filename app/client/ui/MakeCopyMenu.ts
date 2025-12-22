@@ -56,7 +56,7 @@ export async function replaceTrunkWithFork(doc: Document, pageModel: DocPageMode
   const {appModel} = pageModel;
   const trunkAccess = (await appModel.api.getDoc(origUrlId)).access;
   if (!roles.canEdit(trunkAccess)) {
-    modal((ctl) => [
+    modal(ctl => [
       cssModalBody(t("Replacing the original requires editing rights on the original document.")),
       cssModalButtons(
         bigBasicButton(t("Cancel"), dom.on('click', () => ctl.close())),
@@ -186,7 +186,7 @@ class SaveCopyModal extends Disposable {
       // Set _destOrg to an Organization object from _orgs array; there should be one equivalent
       // to currentOrg, but we need the actual object for select() to recognize it as selected.
       const orgId = this._app.currentOrg.id;
-      const newOrg = this._orgs.find((org) => org.id === orgId) || this._orgs[0];
+      const newOrg = this._orgs.find(org => org.id === orgId) || this._orgs[0];
       this._destOrg.set(newOrg);
     }
     this.autoDispose(subscribe(this._destOrg, (use, org) => this._updateWorkspaces(org).catch(reportError)));
@@ -245,7 +245,7 @@ class SaveCopyModal extends Disposable {
       // Don't show the workspace picker when destOrg is a personal site and there is just one
       // workspace, since workspaces are not a feature of personal orgs.
       // Show the workspace picker only when destOrg is a team site, because personal orgs do not have workspaces.
-      dom.domComputed((use) => use(this._showWorkspaces) && use(this._workspaces), (wss) =>
+      dom.domComputed(use => use(this._showWorkspaces) && use(this._workspaces), wss =>
         wss === false ? null :
         wss && wss.length === 0 ? cssWarningText(t("You do not have write access to this site"),
           testId('copy-warning')) :
@@ -262,7 +262,7 @@ class SaveCopyModal extends Disposable {
             ),
             testId('copy-dest-workspace'),
           ),
-          wss ? dom.domComputed(this._destWS, (destWs) =>
+          wss ? dom.domComputed(this._destWS, destWs =>
             destWs && !roles.canEdit(destWs.access) ?
               cssWarningText(t("You do not have write access to the selected workspace"),
                 testId('copy-warning')
@@ -290,7 +290,7 @@ class SaveCopyModal extends Disposable {
       }
       // Sort the same way that HomeModel sorts workspaces.
       wss = sortBy(wss,
-        (ws) => [ws.isSupportWorkspace, ownerName(this._app, ws).toLowerCase(), ws.name.toLowerCase()]);
+        ws => [ws.isSupportWorkspace, ownerName(this._app, ws).toLowerCase(), ws.name.toLowerCase()]);
       // Filter out isSupportWorkspace, since it's not writable and confusing to include.
       // (The support user creating a new example can just download and upload.)
       wss = wss.filter(ws => !ws.isSupportWorkspace);
@@ -354,8 +354,8 @@ export function downloadDocModal(doc: Document, appModel: AppModel) {
 
     return [
       cssModalTitle(t(`Download document`)),
-      dom.maybe((use) => use(attachmentStatusObs) === undefined, () => cssSpinner(loadingSpinner())),
-      dom.maybe((use) => use(attachmentStatusObs) !== undefined, () => [
+      dom.maybe(use => use(attachmentStatusObs) === undefined, () => cssSpinner(loadingSpinner())),
+      dom.maybe(use => use(attachmentStatusObs) !== undefined, () => [
         options,
         dom.maybe(hasExternalAttachments, () => cssAttachmentsWarning(
           t(
@@ -423,8 +423,8 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
 
     return [
       cssModalTitle(t(`Download attachments`)),
-      dom.maybe((use) => use(attachmentStatusObs) === undefined, () => cssSpinner(loadingSpinner())),
-      dom.maybe((use) => use(attachmentStatusObs) !== undefined, () => [
+      dom.maybe(use => use(attachmentStatusObs) === undefined, () => cssSpinner(loadingSpinner())),
+      dom.maybe(use => use(attachmentStatusObs) !== undefined, () => [
         cssEagerWrap(dom('p', t('Download an archive of all the attachments present in this document.'))),
         dom.maybe(isExternal, () => cssEagerWrap(dom('p',
           t(
@@ -450,7 +450,7 @@ you will need the archive in the ".tar" format to restore attachments. '
         cssCopyMenuModalButtons(
           cssDownloadAttachmentsButton(
             t('Download attachments'),
-            (elem) => subscribeElem(elem, attachmentArchiveDownloadHref, (href) => {
+            elem => subscribeElem(elem, attachmentArchiveDownloadHref, (href) => {
               dom.attrsElem(elem, hooks.maybeModifyLinkAttrs({
                 href: href,
                 target: '_blank',

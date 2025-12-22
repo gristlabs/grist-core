@@ -270,7 +270,7 @@ function fixOldCustomCss() {
   const rootCssRules = [
     ...cssRulesArray,
     ...gristCustomLayers.map(layer => Array.from((layer as any).cssRules)).flat()
-  ].filter(rule => {
+  ].filter((rule) => {
     return (rule as CSSRule).constructor.name === 'CSSStyleRule' && (rule as CSSStyleRule).selectorText === ':root';
   }) as CSSStyleRule[];
   if (!rootCssRules.length) {
@@ -279,7 +279,7 @@ function fixOldCustomCss() {
 
   // Find all the --grist-* variables declared in the `:root` rules
   const overridenVars: Record<string, string> = {};
-  rootCssRules.forEach(rootBlock => {
+  rootCssRules.forEach((rootBlock) => {
     for (const key in rootBlock.style) { // eslint-disable-line @typescript-eslint/no-for-in-array
       const value = rootBlock.style[key];
       if (rootBlock.style.hasOwnProperty(key) && value.startsWith('--grist-')) {

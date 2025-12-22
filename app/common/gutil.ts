@@ -443,7 +443,7 @@ export function hasDuplicates(array: any[]): boolean {
  */
 export function countIf<T>(array: ReadonlyArray<T>, callback: (item: T) => boolean): number {
   let count = 0;
-  array.forEach(item => {
+  array.forEach((item) => {
     if (callback(item)) { count++; }
   });
   return count;
@@ -844,7 +844,7 @@ export async function waitGrainObs<T>(observable: Observable<T>,
 // `style.setProperty` (credit: https://vanseodesign.com/css/custom-properties-and-javascript/).
 // TODO: consider making PR to fix `dom.style` in grainjs.
 export function inlineStyle(property: string, valueObs: BindableValue<any>): DomElementMethod {
-  return (elem) => subscribeElem(elem, valueObs, (val) => {
+  return elem => subscribeElem(elem, valueObs, (val) => {
     elem.style.setProperty(property, String(val ?? ''));
   });
 }
@@ -1063,7 +1063,7 @@ export function computedOwned<T>(
   func: (owner: IDisposableOwner, use: UseCBOwner) => T
 ): Computed<T> {
   const holder = Holder.create(owner);
-  return Computed.create(owner, use => {
+  return Computed.create(owner, (use) => {
     const computedOwner = MultiHolder.create(holder);
     return func(computedOwner, use);
   });

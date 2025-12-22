@@ -5,9 +5,9 @@ import {Datum} from 'plotly.js';
 describe('chartUtil', function() {
   describe('sortByXValues', function() {
     function sort(data: Datum[][]) {
-      const series = data.map((values) => ({values, label: 'X'}));
+      const series = data.map(values => ({values, label: 'X'}));
       sortByXValues(series);
-      return series.map((s) => s.values);
+      return series.map(s => s.values);
     }
     it('should sort all series according to the first one', function() {
       // Should handle simple and trivial cases.

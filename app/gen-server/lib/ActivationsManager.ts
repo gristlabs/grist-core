@@ -21,7 +21,7 @@ export class ActivationsManager {
   // It will be created with an empty key column, which will get
   // filled in once an activation key is presented.
   public async current(transaction?: EntityManager): Promise<Activation> {
-    return await this._db.runInTransaction(transaction, async manager => {
+    return await this._db.runInTransaction(transaction, async (manager) => {
       let activation = await manager.findOne(Activation, {where: {}});
       if (!activation) {
         activation = manager.create(Activation);
@@ -34,26 +34,26 @@ export class ActivationsManager {
   }
 
   public async setKey(key: string, transaction?: EntityManager): Promise<void> {
-    await this._updateActivation(activation => {
+    await this._updateActivation((activation) => {
       activation.key = key;
     }, transaction);
   }
 
 
   public async updateGracePeriod(gracePeriodStarted: Date | null, transaction?: EntityManager): Promise<void> {
-    await this._updateActivation(activation => {
+    await this._updateActivation((activation) => {
       activation.gracePeriodStart = gracePeriodStarted;
     }, transaction);
   }
 
   public async memberCount(transaction?: EntityManager): Promise<number> {
-    return await this._db.runInTransaction(transaction, async manager => {
+    return await this._db.runInTransaction(transaction, async (manager) => {
       const userManager = this._db.usersManager();
       const excludedUsers = userManager.getExcludedUserIds();
       const {count} = await manager
         .createQueryBuilder()
         .select('CAST(COUNT(*) AS INTEGER)', 'count') // Cast to integer for postgres, which returns strings.
-        .from(qb => {
+        .from((qb) => {
           const sub = qb
             .select('DISTINCT u.id', 'id')
             .from('acl_rules', 'a')
@@ -107,7 +107,7 @@ export class ActivationsManager {
   }
 
   private async _updateActivation(fn: (activation: Activation) => void, transaction?: EntityManager): Promise<void> {
-    await this._db.runInTransaction(transaction, async manager => {
+    await this._db.runInTransaction(transaction, async (manager) => {
       const activation = await this.current(manager);
       fn(activation);
       await manager.save(activation);

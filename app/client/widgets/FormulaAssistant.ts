@@ -171,7 +171,7 @@ export class FormulaAssistant extends Disposable {
     // When the tools are resized, resize the editor.
     const observer = new ResizeObserver(this._resizeEditor);
     this._domElement = cssTools(
-      (el) => observer.observe(el),
+      el => observer.observe(el),
       dom.onDispose(() => observer.disconnect()),
       cssButtons(
         basicButton(t('Cancel'), dom.on('click', () => {
@@ -289,7 +289,7 @@ export class FormulaAssistant extends Disposable {
       this._chat.buildDom(),
       cssChatPanelBody.cls('-resizing', this._isResizing),
       // Stop propagation of mousedown events, as the formula editor will still focus.
-      dom.on('mousedown', (ev) => ev.stopPropagation()),
+      dom.on('mousedown', ev => ev.stopPropagation()),
     );
 
     observer.observe(this._chatPanelBody);

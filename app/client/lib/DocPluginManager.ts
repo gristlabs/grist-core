@@ -41,8 +41,8 @@ export class DocPluginManager {
 
         // Forward calls to the server, if no matching forwarder.
         pluginInstance.rpc.registerForwarder('*', {
-          forwardCall: (call) => this._docComm.forwardPluginRpc(plugin.id, call),
-          forwardMessage: (msg) => this._docComm.forwardPluginRpc(plugin.id, msg),
+          forwardCall: call => this._docComm.forwardPluginRpc(plugin.id, call),
+          forwardMessage: msg => this._docComm.forwardPluginRpc(plugin.id, msg),
         });
         this.pluginsList.push(pluginInstance);
       } catch (err) {
@@ -71,8 +71,8 @@ export class DocPluginManager {
     const rpc = new Rpc({});
     rpc.queueOutgoingUntilReadyMessage();
     rpc.registerForwarder('*', {
-      forwardCall: (call) => this._docComm.forwardPluginRpc("builtIn/core", call),
-      forwardMessage: (msg) => this._docComm.forwardPluginRpc("builtIn/core", msg),
+      forwardCall: call => this._docComm.forwardPluginRpc("builtIn/core", call),
+      forwardMessage: msg => this._docComm.forwardPluginRpc("builtIn/core", msg),
     });
     return rpc;
   }

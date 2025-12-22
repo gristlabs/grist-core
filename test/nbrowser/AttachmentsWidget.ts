@@ -35,7 +35,7 @@ describe("AttachmentsWidget", function () {
   const getCellThumbnailTitles = stackWrapFunc(async function (
     cell: WebElement
   ) {
-    return await cell.findAll(".test-pw-thumbnail", (el) =>
+    return await cell.findAll(".test-pw-thumbnail", el =>
       el.getAttribute("title")
     );
   });
@@ -93,7 +93,7 @@ describe("AttachmentsWidget", function () {
     assert.deepEqual(
       await gu
         .getCell(0, 2)
-        .findAll(".test-pw-thumbnail", (el) => el.getText()),
+        .findAll(".test-pw-thumbnail", el => el.getText()),
       ["PDF", ""]
     );
 
@@ -240,7 +240,7 @@ describe("AttachmentsWidget", function () {
     ]);
 
     // Open an image preview.
-    await driver.withActions((a) =>
+    await driver.withActions(a =>
       a.doubleClick(driver.find(".test-pw-thumbnail"))
     );
 
@@ -357,7 +357,7 @@ describe("AttachmentsWidget", function () {
     ]);
 
     // Double-click the first attachment.
-    await driver.withActions((a) =>
+    await driver.withActions(a =>
       a.doubleClick(cell.find(".test-pw-thumbnail[title*=pdf]"))
     );
     assert.equal(
@@ -368,7 +368,7 @@ describe("AttachmentsWidget", function () {
     await driver.sendKeys(Key.ESCAPE);
 
     // Double-click the second attachment.
-    await driver.withActions((a) =>
+    await driver.withActions(a =>
       a.doubleClick(cell.find(".test-pw-thumbnail[title*=png]"))
     );
     assert.equal(
@@ -570,7 +570,7 @@ describe("AttachmentsWidget", function () {
     await gu.fileDialogUpload("uploads/image_with_script.svg", () =>
       cell.find(".test-attachment-icon").click()
     );
-    await driver.withActions((a) => a.doubleClick(cell));
+    await driver.withActions(a => a.doubleClick(cell));
     await driver.findWait(".test-pw-attachment-content", 1000);
     assert.isFalse(await gu.isAlertShown());
     await gu.sendKeys(Key.ESCAPE);
@@ -663,7 +663,7 @@ describe("AttachmentsWidget", function () {
 
     // Open the second attachment in preview in column B.
     const cell = gu.getCell({ col: 'B', rowNum: 2 });
-    await driver.withActions((a) =>
+    await driver.withActions(a =>
       a.doubleClick(cell.find(".test-pw-thumbnail[title*=png]"))
     );
     assert.equal(

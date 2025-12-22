@@ -85,7 +85,7 @@ export class DocSettingsPage extends Disposable {
           id: 'timezone',
           name: t('Time zone'),
           description: t('Default for DateTime columns'),
-          value: dom.create(cssTZAutoComplete, moment, fromKo(this._timezone), (val) => this._timezone.saveOnly(val)),
+          value: dom.create(cssTZAutoComplete, moment, fromKo(this._timezone), val => this._timezone.saveOnly(val)),
         }),
         dom.create(AdminSectionItem, {
           id: 'locale',
@@ -97,8 +97,8 @@ export class DocSettingsPage extends Disposable {
           id: 'currency',
           name: t('Currency'),
           description: t('For currency columns'),
-          value: dom.domComputed(fromKo(this._locale), (l) =>
-            dom.create(cssCurrencyPicker, fromKo(this._currency), (val) => this._currency.saveOnly(val),
+          value: dom.domComputed(fromKo(this._locale), l =>
+            dom.create(cssCurrencyPicker, fromKo(this._currency), val => this._currency.saveOnly(val),
               {defaultCurrencyLabel: t("Local currency ({{currency}})", {currency: getCurrency(l)})})
           )
         }),
@@ -262,7 +262,7 @@ document is first opened, or when a document responds to changes.'
   private _buildAttachmentStorageSection() {
     const INTERNAL = 'internal', EXTERNAL = 'external';
 
-    const storageType = Computed.create(this, use => {
+    const storageType = Computed.create(this, (use) => {
       const id = use(this._docInfo.documentSettingsJson).attachmentStoreId;
       return id ? EXTERNAL : INTERNAL;
     });
@@ -276,19 +276,19 @@ document is first opened, or when a document responds to changes.'
     const transfer = this._gristDoc.attachmentTransfer;
     const locationSummary = Computed.create(this, use => use(transfer)?.locationSummary);
     const inProgress = Computed.create(this, use => !!use(transfer)?.status.isRunning);
-    const allInCurrent = Computed.create(this, use => {
+    const allInCurrent = Computed.create(this, (use) => {
       const summary = use(locationSummary);
       const current = use(storageType);
       return summary && summary === current || summary === 'none';
     });
     const stores = Observable.create(this, [] as string[]);
 
-    const stillInternal = Computed.create(this, use => {
+    const stillInternal = Computed.create(this, (use) => {
       const currentExternal = use(storageType) === EXTERNAL;
       return currentExternal && (use(inProgress) || !use(allInCurrent));
     });
 
-    const stillExternal = Computed.create(this, use => {
+    const stillExternal = Computed.create(this, (use) => {
       const currentInternal = use(storageType) === INTERNAL;
       return currentInternal && (use(inProgress) || !use(allInCurrent));
     });
@@ -304,7 +304,7 @@ document is first opened, or when a document responds to changes.'
       transfer.set(status);
     };
 
-    const checkAvailableStores = () => this._gristDoc.docApi.getAttachmentStores().then(r => {
+    const checkAvailableStores = () => this._gristDoc.docApi.getAttachmentStores().then((r) => {
       if (r.stores.length === 0) {
         // There are no external providers (for now there can be at most 1).
         stores.set([]);
@@ -385,7 +385,7 @@ document is first opened, or when a document responds to changes.'
 
   private _buildAttachmentUploadSection() {
     const isUploadingObs = Observable.create(this, false);
-    const buttonText = Computed.create(this, (use) => use(isUploadingObs) ? t('Uploading...') : t('Upload'));
+    const buttonText = Computed.create(this, use => use(isUploadingObs) ? t('Uploading...') : t('Upload'));
 
     const uploadButton = cssSmallButton(
       dom.text(buttonText),
@@ -529,7 +529,7 @@ No data will be lost, except possibly currently pending actions.'
 
       return [
         cssModalTitle(t(`Formula timer`)),
-        dom.domComputed(page, (p) => p === TimingModalPage.Start ? startPage() : spinnerPage()),
+        dom.domComputed(page, p => p === TimingModalPage.Start ? startPage() : spinnerPage()),
         testId('timing-modal'),
       ];
     });
@@ -667,7 +667,7 @@ function buildLocaleSelect(
   // AC select will show the value (in this case locale) not a label when something is selected.
   // To show the label - create another observable that will be in sync with the value, but
   // will contain text.
-  const textObs = Computed.create(owner, use => {
+  const textObs = Computed.create(owner, (use) => {
     const localeCode = use(locale);
     const localeName = locales.find(l => l.code === localeCode)?.name || localeCode;
     return localeName;
@@ -699,12 +699,12 @@ function displayCurrentType(
     }, {
       label: t('Tutorial'),
       type: 'tutorial'
-    }].map((el) => ({
+    }].map(el => ({
     ...el,
     value: el.label,
     cleanText: el.label.trim().toLowerCase()
   }));
-  const typeObs = Computed.create(owner, use => {
+  const typeObs = Computed.create(owner, (use) => {
     const typeCode = use(type) ?? "";
     const typeName = typeList.find(ty => ty.type === typeCode)?.label || typeCode;
     return typeName;

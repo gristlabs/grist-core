@@ -41,7 +41,7 @@ describe("saveViewSection", function() {
 
     // check that new table is summarized
     assert.equal(await driver.findWait('.test-pwc-table', 2000).getText(), 'Table1');
-    assert.deepEqual(await driver.findAll('.test-pwc-groupedBy-col', (e) => e.getText()), ['A']);
+    assert.deepEqual(await driver.findAll('.test-pwc-groupedBy-col', e => e.getText()), ['A']);
 
     // check sections name did not change
     assert.deepEqual(await gu.getSectionTitles(), ['Foo', 'TABLE1']);
@@ -112,7 +112,7 @@ describe("saveViewSection", function() {
     await gu.waitForServer();
 
     // check grouped by is now A, B
-    assert.deepEqual(await driver.findAll('.test-pwc-groupedBy-col', (e) => e.getText()), ['A', 'B']);
+    assert.deepEqual(await driver.findAll('.test-pwc-groupedBy-col', e => e.getText()), ['A', 'B']);
 
     await gu.undo();
   });

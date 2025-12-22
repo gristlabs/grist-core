@@ -45,8 +45,8 @@ export class HomePluginManager {
         const forwarder = new NotAvailableForwarder();
         // Block any calls to internal apis.
         pluginInstance.rpc.registerForwarder('*', {
-          forwardCall: (call) => forwarder.forwardPluginRpc(plugin.id, call),
-          forwardMessage: (msg) => forwarder.forwardPluginRpc(plugin.id, msg),
+          forwardCall: call => forwarder.forwardPluginRpc(plugin.id, call),
+          forwardMessage: msg => forwarder.forwardPluginRpc(plugin.id, msg),
         });
         this.pluginsList.push(pluginInstance);
       } catch (err) {

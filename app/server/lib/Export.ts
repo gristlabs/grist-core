@@ -224,7 +224,7 @@ export async function doExportTable(
   // Produce a column description matching what user will see / expect to export
   const columns: ExportColumn[] = tableColumns
   .filter(tc => !gristTypes.isHiddenCol(tc.colId))    // Exclude helpers
-  .map<ExportColumn>(tc => {
+  .map<ExportColumn>((tc) => {
     // for reference columns, return display column, and copy settings from visible column
     const displayCol = metaColumns.getRecord(tc.displayCol) || tc;
     return {
@@ -339,7 +339,7 @@ export async function doExportSection(
     .filter(column => !gristTypes.isHiddenCol(column.colId))
     .map(column => buildFilters(column, fieldsByColRef[column.id]));
   const viewColumns: ExportColumn[] = _.sortBy(fields, 'parentPos')
-    .map((field) => viewify(metaColumns.getRecord(field.colRef)!, field));
+    .map(field => viewify(metaColumns.getRecord(field.colRef)!, field));
 
   // The columns named in sort order need to now become display columns
   sortSpec = sortSpec || gutil.safeJsonParse(viewSection.sortColRefs, []);
@@ -371,7 +371,7 @@ export async function doExportSection(
   // create row filter based on all columns filter
   const rowFilter = columnsForFilters
     .map((col, c) => buildRowFilter(tableAccess[c], col.filterFunc))
-    .reduce((prevFilter, curFilter) => (id) => prevFilter(id) && curFilter(id), () => true);
+    .reduce((prevFilter, curFilter) => id => prevFilter(id) && curFilter(id), () => true);
   // filter rows numbers
   rowIds = rowIds.filter(rowFilter);
 

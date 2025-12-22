@@ -11,7 +11,7 @@ describe('resizeHandle', function() {
   });
 
   function dragByX(x: number) {
-    return driver.withActions((a) => a.press().move({x, origin: Origin.POINTER}).release());
+    return driver.withActions(a => a.press().move({x, origin: Origin.POINTER}).release());
   }
   function reset() {
     return driver.find('.test-reset').click();

@@ -451,7 +451,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   public async shutdownDocs() {
     await Promise.all(Array.from(
       this._activeDocs.values(),
-      adocPromise => adocPromise.then(async adoc => {
+      adocPromise => adocPromise.then(async (adoc) => {
         log.debug('DocManager.shutdownDocs starting activeDoc shutdown', adoc.docName);
         await adoc.shutdown();
       })));
@@ -628,7 +628,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       activeDoc = await mapSetOrClear(
         this._activeDocs, docName,
         this._createActiveDoc(docSession, docName, wantRecoveryMode ?? this._inRecovery.get(docName))
-          .then(newDoc => {
+          .then((newDoc) => {
             // Propagate backupMade events from newly opened activeDocs (consolidate all to DocMan)
             newDoc.on('backupMade', (bakPath: string) => {
               this.emit('backupMade', bakPath);

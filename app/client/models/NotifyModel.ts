@@ -145,7 +145,7 @@ export class Progress extends Expirable implements IProgress {
     super();
 
     if (options.expireOnComplete) {
-      this.autoDispose(this.progress.addListener(async progress => {
+      this.autoDispose(this.progress.addListener(async (progress) => {
         if (progress >= 100) {
           await this.expire();
         }
@@ -201,7 +201,7 @@ export class Notifier extends Disposable implements INotifier {
 
   private _connectStateManager = ConnectStateManager.create(this);
   private _connectState = this._connectStateManager.connectState;
-  private _disconnectMsg = Computed.create(this, (use) => getDisconnectMessage(use(this._connectState)));
+  private _disconnectMsg = Computed.create(this, use => getDisconnectMessage(use(this._connectState)));
 
   // Holds recent application errors, which the user may report to us.
   private _appErrorList = this.autoDispose(obsArray<IAppError>());

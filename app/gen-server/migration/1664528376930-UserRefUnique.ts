@@ -17,7 +17,7 @@ export class UserRefUnique1664528376930 implements MigrationInterface {
 
     const userChunks = chunk(userList, 300);
     for (const users of userChunks) {
-      await queryRunner.connection.transaction(async manager => {
+      await queryRunner.connection.transaction(async (manager) => {
         const queries = users.map((user: any, _index: number, _array: any[]) => {
           return queryRunner.manager.update("users", user.id, user);
         });

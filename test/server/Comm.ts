@@ -80,7 +80,7 @@ describe('Comm', function() {
   async function stopComm() {
     comm?.destroyAllClients();
     await comm?.testServerShutdown();
-    await fromCallback(cb => {
+    await fromCallback((cb) => {
       server.close(cb);
       server.closeAllConnections();
     });

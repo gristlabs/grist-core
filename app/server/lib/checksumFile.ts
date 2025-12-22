@@ -14,7 +14,7 @@ export async function checksumFile(filePath: string, algorithm: string = 'sha1')
 export async function checksumFileStream(stream: Readable, algorithm: string = 'sha1'): Promise<string> {
   const shaSum = createHash(algorithm);
   try {
-    stream.on('data', (data) => shaSum.update(data));
+    stream.on('data', data => shaSum.update(data));
     await new Promise<void>((resolve, reject) => {
       stream.on('end', resolve);
       stream.on('error', reject);

@@ -265,7 +265,7 @@ export default class DetailView extends BaseView {
 
     return this.sendPasteActions(isCompletePaste ? cutCallback : null,
       this.prepTableActions([action]))
-      .then(results => {
+      .then((results) => {
         // If a row was added, get its rowId from the action results.
         const addRowId = (action[0] === 'BulkAddRecord' ? results[0][0] : null);
         // Restore the cursor to the right rowId, even if it jumped.
@@ -293,7 +293,7 @@ export default class DetailView extends BaseView {
   protected buildFieldDom(field: RecordLayout.NewField | ViewFieldRec, row: DataRowModel) {
     if ('isNewField' in field) {
       return dom('div.g_record_detail_el.flexitem',
-        dom.cls((use) => 'detail_theme_field_' + use(this.viewSection.themeDef)),
+        dom.cls(use => 'detail_theme_field_' + use(this.viewSection.themeDef)),
         dom('div.g_record_detail_label_container',
           dom('div.g_record_detail_label', field.label),
         ),
@@ -314,7 +314,7 @@ export default class DetailView extends BaseView {
       return Boolean(this.copySelection()?.isCellSelected(row.getRowId(), field.colId()));
     });
 
-    this.autoDispose(isCellSelected.subscribe(yesNo => {
+    this.autoDispose(isCellSelected.subscribe((yesNo) => {
       if (yesNo) {
         const layoutBox = fieldDom.closest('.layout_hbox')!;
         this.layoutBoxIdx(indexOf(layoutBox.parentElement!.childNodes, layoutBox));
@@ -324,7 +324,7 @@ export default class DetailView extends BaseView {
     const fieldDom = dom('div.g_record_detail_el.flexitem',
       dom.autoDispose(isCellSelected),
       dom.autoDispose(isCellActive),
-      dom.cls((use) => 'detail_theme_field_' + use(this.viewSection.themeDef)),
+      dom.cls(use => 'detail_theme_field_' + use(this.viewSection.themeDef)),
       dom('div.g_record_detail_label_container',
         dom('div.g_record_detail_label', dom.text(field.displayLabel)),
         dom.domComputed(use => use(field.description),
@@ -346,7 +346,7 @@ export default class DetailView extends BaseView {
     return dom('div.flexvbox.flexitem',
       // Add .detailview_single when showing a single card or while editing layout.
       dom.cls('detailview_single',
-        (use) => this._isSingle || use(this.recordLayout.isEditingLayout)),
+        use => this._isSingle || use(this.recordLayout.isEditingLayout)),
       // Add a marker class that editor is active - used for hiding context menu toggle.
       dom.cls('detailview_layout_editor', this.recordLayout.isEditingLayout),
       dom.maybe(this.recordLayout.isEditingLayout, () => {
@@ -354,11 +354,11 @@ export default class DetailView extends BaseView {
         const record = this.getRenderedRowModel(rowId);
         return dom.update(
           this.recordLayout.buildLayoutDom(record, true),
-          dom.cls((use) => 'detail_theme_record_' + use(this.viewSection.themeDef)),
+          dom.cls(use => 'detail_theme_record_' + use(this.viewSection.themeDef)),
           dom.cls('detailview_record_' + this.viewSection.parentKey.peek()),
         );
       }),
-      dom.maybe((use) => !use(this.recordLayout.isEditingLayout), () => {
+      dom.maybe(use => !use(this.recordLayout.isEditingLayout), () => {
         if (!this._isSingle) {
           return this.scrollPane = dom('div.detailview_scroll_pane.flexitem',
             kd.scrollChildIntoView(this.cursor.rowIndex),
@@ -386,7 +386,7 @@ export default class DetailView extends BaseView {
               return dom.update(
                 this.makeRecord(this.detailRecord!),
                 kd.domData('itemModel', this.detailRecord),
-                dom.hide((use2) => use2(this.cursor.rowIndex) === null)
+                dom.hide(use2 => use2(this.cursor.rowIndex) === null)
               );
             }
           });
@@ -430,12 +430,12 @@ export default class DetailView extends BaseView {
           dom('div.detail-button.detail-left',
             icon('ArrowLeft'),
             dom.on('click', () => { this.cursor.rowIndex(this.cursor.rowIndex()! - 1); }),
-            dom.cls('disabled', (use) => use(this.cursor.rowIndex) === 0),
+            dom.cls('disabled', use => use(this.cursor.rowIndex) === 0),
           ),
           dom('div.detail-button.detail-right',
             icon('ArrowRight'),
             dom.on('click', () => { this.cursor.rowIndex(this.cursor.rowIndex()! + 1); }),
-            dom.cls('disabled', (use) => use(this.cursor.rowIndex)! >= this.viewData.all().length - 1),
+            dom.cls('disabled', use => use(this.cursor.rowIndex)! >= this.viewData.all().length - 1),
           ),
           dom('div.detail-button.detail-add-btn',
             icon('Plus'),
@@ -443,7 +443,7 @@ export default class DetailView extends BaseView {
               const addRowIndex = this.viewData.getRowIndex('new');
               this.cursor.rowIndex(addRowIndex);
             }),
-            dom.cls('disabled', (use) => this.viewData.getRowId(use(this.cursor.rowIndex)!) === 'new'),
+            dom.cls('disabled', use => this.viewData.getRowId(use(this.cursor.rowIndex)!) === 'new'),
           ),
         ),
       ))
@@ -472,14 +472,14 @@ export default class DetailView extends BaseView {
   protected makeRecord(record: DataRowModel) {
     return dom.update(
       this.recordLayout.buildLayoutDom(record),
-      dom.cls((use) => 'detail_theme_record_' + use(this.viewSection.themeDef)),
+      dom.cls(use => 'detail_theme_record_' + use(this.viewSection.themeDef)),
       this.comparison ? dom.cls((use) => {
         const rowType = this.extraRows.getRowType(use(record.id));
         return rowType && `diff-${rowType}` || '';
       }) : null,
-      dom.cls('active', (use) =>
+      dom.cls('active', use =>
         (use(this.cursor.rowIndex) === use(record._index) && use(this.viewSection.hasFocus))),
-      dom.cls('selected', (use) =>
+      dom.cls('selected', use =>
         (use(this.cursor.rowIndex) === use(record._index)  && !use(this.viewSection.hasFocus))),
       // 'detailview_record_single' or 'detailview_record_detail' doesn't need to be an observable,
       // since a change to parentKey would cause a separate call to makeRecord.

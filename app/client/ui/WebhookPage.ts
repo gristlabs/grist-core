@@ -290,7 +290,7 @@ class WebhookExternalTable implements IExternalTable {
 
     this.webhooks.removeAll();
     this.webhooks.push(
-      ...webhooks.map(webhook => {
+      ...webhooks.map((webhook) => {
         const uiWebhook: UIWebhookSummary = {...webhook};
         uiWebhook.fields.watchedColIdsText = webhook.fields.watchedColIds ? webhook.fields.watchedColIds.join(";") : "";
         return uiWebhook;

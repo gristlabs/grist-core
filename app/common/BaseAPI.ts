@@ -102,7 +102,7 @@ export class BaseAPI {
     const resp = await axios.request({
       url,
       withCredentials: true,
-      validateStatus: (status) => true,     // This is more like fetch
+      validateStatus: status => true,     // This is more like fetch
       ...config,
       headers,
     });

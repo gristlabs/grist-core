@@ -224,7 +224,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   public add(email: string, role: roles.Role|null): void {
     email = normalizeEmail(email);
     const members = this.membersEdited.get();
-    const index = members.findIndex((m) => normalizeEmail(m.email) === email);
+    const index = members.findIndex(m => normalizeEmail(m.email) === email);
     const existing = index > -1 ? members[index] : null;
     if (existing && existing.isRemoved) {
       // The member is replaced with the isRemoved set to false to trigger an
@@ -360,14 +360,14 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       // case any attempted changes will fail on saving.)
       const initialAccessBasicRole = roles.getEffectiveRole(getRealAccess(member, this.initData));
       // This pretends to be a computed to match the other case, but is really a constant.
-      inheritedAccess = Computed.create(this, (use) => initialAccessBasicRole);
+      inheritedAccess = Computed.create(this, use => initialAccessBasicRole);
     } else {
       // Gives the role inherited from parent taking the maxInheritedRole into account.
       inheritedAccess = Computed.create(this, this.maxInheritedRole, (use, maxInherited) =>
         roles.getWeakestRole(member.parentAccess, maxInherited));
     }
     // Gives the effective role of the member on the resource, taking everything into account.
-    const effectiveAccess = Computed.create(this, (use) =>
+    const effectiveAccess = Computed.create(this, use =>
       roles.getStrongestRole(use(access), use(inheritedAccess)));
     effectiveAccess.onWrite((value) => {
       // For UI simplicity, we use a single dropdown to represent the effective access level of

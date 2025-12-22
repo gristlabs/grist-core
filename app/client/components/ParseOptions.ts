@@ -36,10 +36,10 @@ const invertedEscapeCharDict: EscapeChars = invert(escapeCharDict);
 // Helpers to escape and unescape certain non-printable characters that are useful in parsing
 // options, e.g. as separators.
 function escapeChars(value: string) {
-  return value.replace(/[\n\r\t]/g, (match) => escapeCharDict[match]);
+  return value.replace(/[\n\r\t]/g, match => escapeCharDict[match]);
 }
 function unescapeChars(value: string) {
-  return value.replace(/\\[nrt]/g, (match) => invertedEscapeCharDict[match]);
+  return value.replace(/\\[nrt]/g, match => invertedEscapeCharDict[match]);
 }
 
 /**
@@ -56,10 +56,10 @@ export function buildParseOptionsForm(
 ): DomContents {
   const items = schema.filter(item => item.visible);
   const optionsMap = new Map<string, Observable<ParseOptionValueType>>(
-    items.map((item) => [item.name, Observable.create(owner, values[item.name])]));
+    items.map(item => [item.name, Observable.create(owner, values[item.name])]));
 
   function collectParseOptions(): ParseOptionValues {
-    return fromPairs(items.map((item) => [item.name, optionsMap.get(item.name)!.get()]));
+    return fromPairs(items.map(item => [item.name, optionsMap.get(item.name)!.get()]));
   }
 
   const labelsByName: {[key: string]: string} = {
@@ -78,15 +78,15 @@ export function buildParseOptionsForm(
 
   return [
     cssParseOptionForm(
-      items.map((item) => cssParseOption(
+      items.map(item => cssParseOption(
         cssParseOptionName(markdown(labelsByName[item.name])),
         optionToInput(owner, item.type, optionsMap.get(item.name)!),
         testId('parseopts-opt'),
       )),
     ),
     cssModalButtons(
-      dom.domComputed((use) => items.every((item) => use(optionsMap.get(item.name)!) === values[item.name]),
-        (unchanged) => (unchanged ?
+      dom.domComputed(use => items.every(item => use(optionsMap.get(item.name)!) === values[item.name]),
+        unchanged => (unchanged ?
           bigBasicButton(t('Close'), dom.on('click', doCancel), testId('parseopts-back')) :
           bigPrimaryButton(t('Update preview'), dom.on('click', () => doUpdate(collectParseOptions())),
             testId('parseopts-update'))
@@ -100,8 +100,8 @@ function optionToInput(owner: IDisposableOwner, type: string, value: Observable<
   switch (type) {
     case 'boolean': return squareCheckbox(value as Observable<boolean>);
     default: {
-      const obs = Computed.create(owner, (use) => escapeChars(String(use(value) || "")))
-        .onWrite((val) => value.set(unescapeChars(val)));
+      const obs = Computed.create(owner, use => escapeChars(String(use(value) || "")))
+        .onWrite(val => value.set(unescapeChars(val)));
       return cssInputText(obs, {onInput: true},
         dom.on('focus', (ev, elem) => elem.select()));
     }

@@ -38,9 +38,9 @@ export class ChoiceTextBox extends NTextBox {
     super(field);
     this._choices = this.options.prop('choices');
     this._choiceOptions = this.options.prop('choiceOptions');
-    this._choiceValues = Computed.create(this, (use) => use(this._choices) || []);
+    this._choiceValues = Computed.create(this, use => use(this._choices) || []);
     this._choiceValuesSet = Computed.create(this, this._choiceValues, (_use, values) => new Set(values));
-    this._choiceOptionsByName = Computed.create(this, (use) => toMap(use(this._choiceOptions)));
+    this._choiceOptionsByName = Computed.create(this, use => toMap(use(this._choiceOptions)));
   }
 
   public buildDom(row: DataRowModel) {
@@ -50,7 +50,7 @@ export class ChoiceTextBox extends NTextBox {
 
     return cssChoiceField(
       cssChoiceTextWrapper(
-        dom.style('justify-content', (use) => use(this.alignment) === 'right' ? 'flex-end' : use(this.alignment)),
+        dom.style('justify-content', use => use(this.alignment) === 'right' ? 'flex-end' : use(this.alignment)),
         maybeDropDownCssChoiceEditIcon,
         dom.domComputed((use) => {
           if (this.isDisposed() || use(row._isAddRow)) { return null; }

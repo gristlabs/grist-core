@@ -113,23 +113,23 @@ describe('ActiveUserList', async function() {
   it('shows a list of all users when button is clicked', async function() {
     await driver.find('.test-aul-all-users-button').click();
     const menuItemTexts = await gu.findOpenMenuAllItems(
-      '.test-aul-user-name', async (item) => item.getText()
+      '.test-aul-user-name', async item => item.getText()
     );
     assert.equal(menuItemTexts.length, 5, 'wrong number of users in user list');
     // There should be several copies of Kiwi here, but I don't think counting them improves anything
     assert.includeMembers(menuItemTexts, [gu.translateUser(User2).name, gu.translateUser(User3).name]);
 
-    let iconVisibility = await driver.findAll('.test-aul-container .test-aul-user-icon', (el) => el.isDisplayed());
+    let iconVisibility = await driver.findAll('.test-aul-container .test-aul-user-icon', el => el.isDisplayed());
     assert.isTrue(iconVisibility.every(visible => visible === false));
     await gu.sendKeys(Key.ESCAPE);
-    iconVisibility = await driver.findAll('.test-aul-container .test-aul-user-icon', (el) => el.isDisplayed());
+    iconVisibility = await driver.findAll('.test-aul-container .test-aul-user-icon', el => el.isDisplayed());
     assert.isTrue(iconVisibility.every(visible => visible === true));
   });
 
   it('keeps the user list open when a new user appears', async function() {
     await driver.find('.test-aul-all-users-button').click();
     const getMenuItems = async () =>  await gu.findOpenMenuAllItems(
-        '.test-aul-user-name', async (item) => item
+        '.test-aul-user-name', async item => item
     );
     await driver.switchTo().window(mainWindow.handle);
     const currentMenuItemCount = (await getMenuItems()).length;
@@ -153,7 +153,7 @@ describe('ActiveUserList', async function() {
       await openDocWindowWithUser(docId, User3);
     }
     await driver.switchTo().window(mainWindow.handle);
-    const menuItems = await gu.findOpenMenuAllItems('.test-aul-user-name', async (item) => item);
+    const menuItems = await gu.findOpenMenuAllItems('.test-aul-user-name', async item => item);
     assert.equal(menuItems.length, USER_PRESENCE_MAX_USERS, 'max users not enforced');
   });
 

@@ -100,8 +100,8 @@ function setExamples(examplesArr: Example[], paramName: string) {
   // Prefix keys with something to ensure they aren't viewed as numbers: JS objects will iterate
   // them in insertion (what we want) order *unless* keys look numeric. SwaggerUI will use the
   // value from ex.value, so luckily this prefix doesn't actually matter.
-  const examples = Object.fromEntries(examplesArr.map((ex) => ["#" + ex.value, ex]));
-  updateSpec(spec => {
+  const examples = Object.fromEntries(examplesArr.map(ex => ["#" + ex.value, ex]));
+  updateSpec((spec) => {
     return spec.setIn(["components", "parameters", `${paramName}PathParam`, "examples"], examples);
   });
 }
@@ -246,7 +246,7 @@ function initialize(appModel: AppModel) {
       dom.update(description, dom('div', 'Find or create your API key at ', dom('a', {href}, href), '.'));
     }
 
-    updateSpec(spec => {
+    updateSpec((spec) => {
       // The actual spec sets the server to `https://{subdomain}.getgrist.com/api`,
       // where {subdomain} is a variable that defaults to `docs`.
       // We want to use the same server as the page is loaded from.
@@ -272,7 +272,7 @@ function initialize(appModel: AppModel) {
     swaggerUI!.preauthorizeApiKey('ApiKey', key);
 
     // Set examples for orgs, workspaces, and docs.
-    orgsPromise.then(orgs => {
+    orgsPromise.then((orgs) => {
       const examples: Example[] = orgs.map(org => ({
         value: org.domain,
         summary: org.name,
@@ -280,7 +280,7 @@ function initialize(appModel: AppModel) {
       setExamples(examples, "orgId");
     }).catch(reportError);
 
-    workspacesPromise.then(orgs => {
+    workspacesPromise.then((orgs) => {
       const workSpaceExamples: Example[] = orgs.flatMap(({org, workspaces}) => workspaces.map(ws => ({
         value: ws.id,
         summary: `${org.name} » ${ws.name}`

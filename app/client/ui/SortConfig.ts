@@ -115,7 +115,7 @@ export class SortConfig extends Disposable {
     const {menuOptions} = this._options;
 
     const col           = Computed.create(holder, () => colRef);
-    const details       = Computed.create(holder, (use) => Sort.specToDetails(Sort.findCol(use(sortSpec), colRef)!));
+    const details       = Computed.create(holder, use => Sort.specToDetails(Sort.findCol(use(sortSpec), colRef)!));
     const hasSpecs      = Computed.create(holder, details, (_, specDetails) => Sort.hasOptions(specDetails));
     const isAscending   = Computed.create(holder, details, (_, specDetails) => specDetails.direction === Sort.ASC);
 
@@ -141,7 +141,7 @@ export class SortConfig extends Disposable {
       label: string
     ) => {
       const computed = Computed.create(holder, details, (_, d) => d[flag] || false);
-      computed.onWrite(value => {
+      computed.onWrite((value) => {
         const specs = sortSpec.peek();
         // Get existing details
         const specDetails = Sort.specToDetails(Sort.findCol(specs, colRef)!) as any;
@@ -162,7 +162,7 @@ export class SortConfig extends Disposable {
     return cssSortRow(
       dom.autoDispose(holder),
       cssSortFilterColumn(
-        dom.attr('aria-label', use => {
+        dom.attr('aria-label', (use) => {
           const ascending = use(isAscending);
           return [
             t('{{- columnName }} column', {columnName: column!.label}),
@@ -234,14 +234,14 @@ export class SortConfig extends Disposable {
     const {menuOptions} = this._options;
     return cssButtonRow(
       dom.autoDispose(available),
-      dom.domComputed(use => {
+      dom.domComputed((use) => {
         const cols = use(available);
         return textButton(
           t("Add column"),
           dropdownWithSearch({
             popupOptions: menuOptions,
-            options: () => cols.map((col) => ({label: col.label, value: col})),
-            action: (col) => addToSort(this._section.activeSortSpec, col.value, 1),
+            options: () => cols.map(col => ({label: col.label, value: col})),
+            action: col => addToSort(this._section.activeSortSpec, col.value, 1),
             placeholder: t('Search Columns'),
           }),
           dom.on('click', (ev) => { ev.stopPropagation(); }),
@@ -258,7 +258,7 @@ export class SortConfig extends Disposable {
         textButton(t("Update data"),
           dom.on('click', () => updatePositions(this._gristDoc, this._section)),
           testId('update'),
-          dom.show((use) => (
+          dom.show(use => (
             use(use(this._section.table).supportsManualSort)
             && !use(this._gristDoc.isReadonly)
           )),

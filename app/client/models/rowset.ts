@@ -721,14 +721,14 @@ export class RowWatcher extends RowListener {
     for (const r of rows) {
       this._rowCounter.set(r, (this._rowCounter.get(r) || 0) + 1);
     }
-    this.rowFilter.set((row) => (this._rowCounter.get(row) ?? 0) > 0);
+    this.rowFilter.set(row => (this._rowCounter.get(row) ?? 0) > 0);
   }
 
   protected onRemoveRows(rows: RowList) {
     for (const r of rows) {
       this._rowCounter.set(r, (this._rowCounter.get(r) || 0) - 1);
     }
-    this.rowFilter.set((row) => (this._rowCounter.get(row) ?? 0) > 0);
+    this.rowFilter.set(row => (this._rowCounter.get(row) ?? 0) > 0);
   }
 }
 

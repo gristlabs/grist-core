@@ -98,7 +98,7 @@ export class AdminCheckRunner {
               public id: string,
               public results: Map<string, Observable<BootProbeResult>>,
               public parent: Disposable) {
-    this._installAPI.runCheck(id).then(result => {
+    this._installAPI.runCheck(id).then((result) => {
       if (parent.isDisposed()) { return; }
       const ob = results.get(id);
       if (ob) {

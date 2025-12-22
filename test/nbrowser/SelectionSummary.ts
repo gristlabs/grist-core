@@ -57,7 +57,7 @@ describe('SelectionSummary', function () {
   }
 
   function shiftClick(el: WebElement) {
-    return driver.withActions((actions) => actions.keyDown(Key.SHIFT).click(el).keyUp(Key.SHIFT));
+    return driver.withActions(actions => actions.keyDown(Key.SHIFT).click(el).keyUp(Key.SHIFT));
   }
 
   async function selectAndAssert(start: CellPosition, end: CellPosition, summary: SelectionSummary | null) {

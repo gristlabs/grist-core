@@ -55,7 +55,7 @@ export class ReferenceEditor extends NTextEditor {
       }
       if (this._autocomplete) {
         if (options.editValue === undefined) {
-          this._autocomplete.search((items) => items.findIndex((item) => item.rowId === options.cellValue));
+          this._autocomplete.search(items => items.findIndex(item => item.rowId === options.cellValue));
         } else {
           this._autocomplete.search();
         }
@@ -73,7 +73,7 @@ export class ReferenceEditor extends NTextEditor {
       buildNoItemsMessage: () => this._utils.buildNoItemsMessage(),
       search: this._doSearch.bind(this),
       renderItem: this._renderItem.bind(this),
-      getItemText: (item) => item.text,
+      getItemText: item => item.text,
       onClick: () => this.options.commands.fieldEditSaveHere(),
     }));
   }
@@ -121,7 +121,7 @@ export class ReferenceEditor extends NTextEditor {
     if (!this._enableAddNew || !text) { return result; }
 
     const cleanText = normalizeText(text);
-    if (result.items.find((item) => item.cleanText === cleanText)) {
+    if (result.items.find(item => item.cleanText === cleanText)) {
       return result;
     }
 

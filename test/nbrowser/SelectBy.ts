@@ -29,7 +29,7 @@ describe("SelectBy", function() {
 
     // check visible columns (no manualSort columns)
     const allColumns = await api.getTable(doc.id, '_grist_Tables_column');
-    const visibleColumns = mapValues(allColumns, (vals) => vals.filter((v, i) => allColumns.colId[i] !== 'manualSort'));
+    const visibleColumns = mapValues(allColumns, vals => vals.filter((v, i) => allColumns.colId[i] !== 'manualSort'));
     assert.deepInclude(visibleColumns, {
       id: [2, 3, 6, 10, 12, 13, 14, 15, 16],
       colId: ['table2_ref', 'table3_ref', 'table3_ref', 'A', 'A', 'table3_ref_2', 'A', 'group', 'count'],
@@ -57,7 +57,7 @@ describe("SelectBy", function() {
     await driver.find('.test-wselect-selectby').doClick();
     assert.deepEqual(
       // let's ignore the first option which is an internal added by grainjs
-      await driver.findAll('.test-wselect-selectby option:not(:first-of-type)', (e) => e.getText()), [
+      await driver.findAll('.test-wselect-selectby option:not(:first-of-type)', e => e.getText()), [
         // note: this is a very contrived example to test various possible links. Real world use
         // cases are expected to be simpler, resulting in simpler list of options that are easier to
         // navigate for the user than this one (in particular the `->` separator might rarely show
@@ -79,7 +79,7 @@ describe("SelectBy", function() {
     await driver.findContent('.test-wselect-table', /Table2/).doClick();
     await driver.find('.test-wselect-selectby').doClick();
     assert.deepEqual(
-      await driver.findAll('.test-wselect-selectby option:not(:first-of-type)', (e) => e.getText()), [
+      await driver.findAll('.test-wselect-selectby option:not(:first-of-type)', e => e.getText()), [
         formatOption('Select widget'),
         formatOption('TABLE1', 'table2_ref'),
         formatOption('TABLE1', 'table3_ref'),
@@ -140,7 +140,7 @@ describe("SelectBy", function() {
 
     // check selectBy options
     assert.deepEqual(
-      await driver.findAll('.test-wselect-selectby option:not(:first-of-type)', (e) => e.getText()),
+      await driver.findAll('.test-wselect-selectby option:not(:first-of-type)', e => e.getText()),
       [],
     );
     await driver.sendKeys(Key.ESCAPE);

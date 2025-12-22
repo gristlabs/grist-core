@@ -199,7 +199,7 @@ describe("AttachmentFileManager", function() {
     assert.isTrue(manager.transferStatus().isRunning);
 
     // Get the store to test if the upload was called. The store is created only once.
-    const store = await defaultProvider.getStore(UNFINISHED_STORE).then((store) => store as TestAttachmentStore);
+    const store = await defaultProvider.getStore(UNFINISHED_STORE).then(store => store as TestAttachmentStore);
 
     // Wait for the first upload to be called.
     await waitForIt(() => assert.equal(store.uploads(),  1));

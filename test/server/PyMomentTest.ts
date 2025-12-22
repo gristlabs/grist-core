@@ -10,7 +10,7 @@ describe("PyMomentTest", function() {
 
   it("should use correct timezone data", async function() {
     this.timeout(5000);
-    const jsZones = moment.tz.names().map(name => {
+    const jsZones = moment.tz.names().map((name) => {
       const z = moment.tz.zone(name)!;
       return [z.name, z.abbrs, z.offsets, z.untils];
     });

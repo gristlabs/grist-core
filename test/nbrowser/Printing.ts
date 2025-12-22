@@ -125,7 +125,7 @@ describe('Printing', function() {
     await checkPrintSection('COUNTRIES [By Continent] Chart', async () => {
       await gu.waitToPass(async () => {
         // Expect to see all Continents listed, by population, excluding the filtered-out Antarctica.
-        assert.deepEqual(await driver.findAll('.print-widget .legendtext', (el) => el.getText()),
+        assert.deepEqual(await driver.findAll('.print-widget .legendtext', el => el.getText()),
           ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America']);
       }, 5000);
     });

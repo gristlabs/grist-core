@@ -67,8 +67,8 @@ export function compilePredicateFormula(
     const rawArgs = node.slice(1);
     const args = rawArgs as ParsedPredicateFormula[];
     switch (node[0]) {
-      case 'And':   { const parts = args.map(compileNode); return (input) => parts.every(p => p(input)); }
-      case 'Or':    { const parts = args.map(compileNode); return (input) => parts.some(p => p(input)); }
+      case 'And':   { const parts = args.map(compileNode); return input => parts.every(p => p(input)); }
+      case 'Or':    { const parts = args.map(compileNode); return input => parts.some(p => p(input)); }
       case 'Add':   return compileAndCombine(args, ([a, b]) => a + b);
       case 'Sub':   return compileAndCombine(args, ([a, b]) => a - b);
       case 'Mult':  return compileAndCombine(args, ([a, b]) => a * b);
@@ -85,7 +85,7 @@ export function compilePredicateFormula(
       case 'IsNot': return compileAndCombine(args, ([a, b]) => a !== b);
       case 'In':    return compileAndCombine(args, ([a, b]) => includes(b, a));
       case 'NotIn': return compileAndCombine(args, ([a, b]) => !includes(b, a));
-      case 'List':  return compileAndCombine(args, (values) => values);
+      case 'List':  return compileAndCombine(args, values => values);
       case 'Const': return constant(node[1] as CellValue);
       case 'Name': {
         const name = rawArgs[0] as keyof PredicateFormulaInput;
@@ -104,7 +104,7 @@ export function compilePredicateFormula(
         }
         if (!validNames.includes(name)) { throw new Error(`Unknown variable '${name}'`); }
 
-        return (input) => input[name];
+        return input => input[name];
       }
       case 'Attr': {
         const attrName = rawArgs[1] as string;
@@ -126,7 +126,7 @@ export function compilePredicateFormula(
           Array.isArray(pair) && pair.length == 2 && typeof pair[0] === 'string');
         const keys = pairs.map(p => p[0]);
         const values = pairs.map(p => p[1]);
-        return compileAndCombine(values, (compiledValues) =>
+        return compileAndCombine(values, compiledValues =>
           Object.fromEntries(keys.map((k, i) => [k, compiledValues[i]])));
       }
       case 'Comment': return compileNode(args[0]);
@@ -147,7 +147,7 @@ export function compilePredicateFormula(
   }
 
   const compiledPredicateFormula = compileNode(parsedPredicateFormula);
-  return (input) => Boolean(compiledPredicateFormula(input));
+  return input => Boolean(compiledPredicateFormula(input));
 }
 
 // Wrapper for callables that we explicitly support. We should be careful not to expose anything

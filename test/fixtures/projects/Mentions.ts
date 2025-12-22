@@ -18,7 +18,7 @@ function setupTest() {
   return cssCenter(
     input(initial, {onInput: true}, {type: 'text'}),
     dom('span', new Date().toLocaleString()),
-    dom.domComputed(initial, (init) => [
+    dom.domComputed(initial, init => [
       buildDom(init),
     ]),
     cssAway(testId('away')),

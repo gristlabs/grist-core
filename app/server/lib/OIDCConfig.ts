@@ -345,7 +345,7 @@ export class OIDCBuilder {
       log.info(`OIDCConfig: got OIDC response for ${profile.email} (${profile.name}) redirecting to ${targetUrl}`);
 
       const scopedSession = sessions.getOrCreateSessionFromRequest(req);
-      await scopedSession.operateOnScopedSession(req, async (user) => Object.assign(user, {
+      await scopedSession.operateOnScopedSession(req, async user => Object.assign(user, {
         profile,
       }));
 

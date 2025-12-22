@@ -185,7 +185,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
     }
 
     return (await new SCIMMY.Messages.PatchOp(message)
-      .apply((await this.read(ctx)) as SCIMMYRoleSchema, async (instance) => await this.write(instance, ctx))
+      .apply((await this.read(ctx)) as SCIMMYRoleSchema, async instance => await this.write(instance, ctx))
       // NOTE: A bit odd, but the type suggest that we should have an instance of Schema,
       // but the upstream code suggests that it can be undefined
       .then(instance => !instance ? undefined :

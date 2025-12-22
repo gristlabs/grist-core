@@ -33,7 +33,7 @@ export function getSelectByOptions(
 
   const options: SelectByOption[] = [];
   for (const sourceNode of sourceNodes) {
-    const validTargetNodes = targetNodes.filter((targetNode) =>
+    const validTargetNodes = targetNodes.filter(targetNode =>
       isValidLink(sourceNode, targetNode)
     );
     for (const targetNode of validTargetNodes) {
@@ -52,8 +52,8 @@ function createNodes(
   widgets: MetaRowRecord<"_grist_Views_section">[]
 ): LinkNode[] {
   const operations: LinkNodeOperations = {
-    getTableById: (id) => getLinkNodeTableById(doc, id),
-    getSectionById: (id) => getLinkNodeSection(doc, id),
+    getTableById: id => getLinkNodeTableById(doc, id),
+    getSectionById: id => getLinkNodeSection(doc, id),
   };
   const sections = widgets.map(({ id }) => getLinkNodeSection(doc, id));
   return buildLinkNodes(sections, operations);
@@ -70,7 +70,7 @@ function getLinkNodeTableById(doc: ActiveDoc, id: number): LinkNodeTable {
     isSummaryTable: Boolean(
       maybeSummaryTable && maybeSummaryTable.tableId !== table.tableId
     ),
-    columns: getTableColumnsByTableId(doc, id).map((c) =>
+    columns: getTableColumnsByTableId(doc, id).map(c =>
       pick(c, "id", "colId", "label", "type", "summarySourceCol")
     ),
   };

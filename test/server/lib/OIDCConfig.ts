@@ -231,7 +231,7 @@ describe('OIDCConfig', () => {
             timeout: 0
           }
         }
-      ].forEach(ctx => {
+      ].forEach((ctx) => {
         it(ctx.itMsg, async () => {
           const setHttpOptionsDefaultsStub = sandbox.stub(custom, 'setHttpOptionsDefaults');
           setEnvVars();
@@ -421,7 +421,7 @@ describe('OIDCConfig', () => {
           }
         }
       },
-    ].forEach(ctx => {
+    ].forEach((ctx) => {
       it(ctx.itMsg, async () => {
         setEnvVars();
         Object.assign(process.env, ctx.env);
@@ -768,7 +768,7 @@ describe('OIDCConfig', () => {
           ]);
         }
       },
-    ].forEach(ctx => {
+    ].forEach((ctx) => {
       it(ctx.itMsg, async () => {
         setEnvVars();
         Object.assign(process.env, ctx.env);
@@ -900,7 +900,7 @@ describe('OIDCConfig', () => {
         },
         session: null
       }
-    ].forEach(ctx => {
+    ].forEach((ctx) => {
       it(ctx.itMsg, async () => {
         setEnvVars();
         Object.assign(process.env, ctx.env);

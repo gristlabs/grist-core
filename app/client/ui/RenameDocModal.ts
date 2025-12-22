@@ -109,7 +109,7 @@ class RenameDocModal extends Disposable {
               (el) => {
                 setPopupToCreateDom(
                   el,
-                  (ctl) =>
+                  ctl =>
                     buildColorPicker(ctl, {
                       styleOptions: {
                         textColor: new ColorOption({
@@ -168,7 +168,7 @@ class RenameDocModal extends Disposable {
               dom.on("click", () => {
                 this._icon.emoji.set(null);
               }),
-              dom.prop("disabled", (use) => !use(this._icon.emoji))
+              dom.prop("disabled", use => !use(this._icon.emoji))
             )
           )
         )

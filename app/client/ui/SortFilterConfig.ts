@@ -15,7 +15,7 @@ export class SortFilterConfig extends Disposable {
   private _docModel = this._gristDoc.docModel;
   private _isReadonly = this._gristDoc.isReadonly;
 
-  private _hasChanges: Computed<boolean> = Computed.create(this, (use) => (
+  private _hasChanges: Computed<boolean> = Computed.create(this, use => (
     use(this._section.filterSpecChanged) || !use(this._section.activeSortJson.isSaved)
   ));
 

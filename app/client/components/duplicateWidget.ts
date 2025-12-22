@@ -30,10 +30,10 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
     const pageSelectOptions = fromKo(ko.pureComputed(() => {
       const allPages = gristDoc.docModel.allPages();
       const validPages = allPages.filter(page => !page.isHidden());
-      const sortedPages = sortBy(validPages, [(page) => page.pagePos()]);
+      const sortedPages = sortBy(validPages, [page => page.pagePos()]);
       const views = sortedPages.map(page => page.view());
 
-      const options: PageSelectOption[] = views.map(view => {
+      const options: PageSelectOption[] = views.map((view) => {
         const isActivePage = view.getRowId() === activeView;
         const suffix = isActivePage ? (" (" + t('Active') + ")") : "";
         return {
@@ -246,7 +246,7 @@ async function copyOriginalViewFields(gristDoc: GristDoc, viewSectionPairs: Dupl
 
 function listAllViewFields(viewSections: ViewSectionRec[]) {
   return flatten(viewSections.map(
-    (viewSection) => viewSection.viewFields.peek().peek().map((field) => field.getRowId())
+    viewSection => viewSection.viewFields.peek().peek().map(field => field.getRowId())
   ));
 }
 
@@ -268,7 +268,7 @@ async function createNewViewSections(gristDoc: GristDoc, viewSections: ViewSecti
   const targetViewRef = createdViewSectionResults[0].viewRef;
 
   // Other view sections are added to the newly created view.
-  const otherViewSectionActions = rest.map((widget) => newViewSectionAction(widget, targetViewRef));
+  const otherViewSectionActions = rest.map(widget => newViewSectionAction(widget, targetViewRef));
 
   // Avoid sending an empty list of actions - it causes a bug in the bundling code that results
   // in the bundle being split into two bundles (2025-07-18).

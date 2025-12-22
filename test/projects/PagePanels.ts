@@ -29,7 +29,7 @@ describe('PagePanels', function() {
   });
 
   function dragByX(x: number) {
-    return driver.withActions((a) => a.press().move({x, origin: Origin.POINTER}).release());
+    return driver.withActions(a => a.press().move({x, origin: Origin.POINTER}).release());
   }
 
   // Available test elements:

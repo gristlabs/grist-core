@@ -12,9 +12,9 @@ export function buildErrorDom(row: DataRowModel, field: ViewFieldRec) {
   // The "invalid" class sets the pink background, as long as the error text is non-empty.
   return dom('div.field_clip.invalid',
     // Sets CSS class field-error-P, field-error-U, etc.
-    dom.clsPrefix('field-error-', (use) => getObjCode(use(value)) || ''),
+    dom.clsPrefix('field-error-', use => getObjCode(use(value)) || ''),
     dom.style('text-align', options.prop('alignment')),
-    dom.cls('text_wrapping', (use) => Boolean(use(options.prop('wrap')))),
-    dom.text((use) => formatUnknown(value ? use(value) : '???'))
+    dom.cls('text_wrapping', use => Boolean(use(options.prop('wrap')))),
+    dom.text(use => formatUnknown(value ? use(value) : '???'))
   );
 }

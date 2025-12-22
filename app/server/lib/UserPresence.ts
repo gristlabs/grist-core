@@ -78,7 +78,7 @@ export class UserPresence {
           };
         }
       ))
-      .catch(err => {
+      .catch((err) => {
         this._log.error(null, "failed to broadcast user presence session update: %s", err);
       });
   }
@@ -95,7 +95,7 @@ export class UserPresence {
           profile: null,
         };
       }
-    ).catch(err => {
+    ).catch((err) => {
       this._log.error(null, "failed to broadcast user presence session removal: %s", err);
     });
   }

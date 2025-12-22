@@ -81,9 +81,9 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
         dom.style('min-width', _triggerElem.getBoundingClientRect().width + 'px'),
         this._maybeShowNoItemsMessage(),
         this._menuContent = dom('div',
-          dom.forEach(this._items, (item) => _options.renderItem(item, this._highlightFunc)),
-          dom.forEach(this._extraItems, (item) => _options.renderItem(item, this._highlightFunc)),
-          dom.on('mouseleave', (ev) => this._setSelected(-1, this._liveUpdate)),
+          dom.forEach(this._items, item => _options.renderItem(item, this._highlightFunc)),
+          dom.forEach(this._extraItems, item => _options.renderItem(item, this._highlightFunc)),
+          dom.on('mouseleave', ev => this._setSelected(-1, this._liveUpdate)),
           dom.on('click', (ev) => {
             this._setSelected(this._findTargetItem(ev.target), this._liveUpdate);
             if (_options.onClick) { _options.onClick(); }
@@ -91,11 +91,11 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
         ),
       ),
       // Prevent trigger element from being blurred on click.
-      dom.on('mousedown', (ev) => ev.preventDefault()),
+      dom.on('mousedown', ev => ev.preventDefault()),
     );
 
     this._mouseOver = attachMouseOverOnMove(this._menuContent,
-      (ev) => this._setSelected(this._findTargetItem(ev.target), this._liveUpdate));
+      ev => this._setSelected(this._findTargetItem(ev.target), this._liveUpdate));
 
     // Add key handlers to the trigger element as well as the menu if it is an input.
     this.autoDispose(onKeyElem(_triggerElem, 'keydown', {

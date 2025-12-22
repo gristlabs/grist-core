@@ -20,13 +20,13 @@ function handleExport<T extends any[]>(
       const start = Date.now();
       log.debug("workerExporter %s %s: started", threadId, make.name);
       const rpc = new Rpc({
-        sendMessage: async (m) => port.postMessage(m),
-        logger: { info: m => {}, warn: m => log.warn(m) },
+        sendMessage: async m => port.postMessage(m),
+        logger: { info: (m) => {}, warn: m => log.warn(m) },
       });
       const activeDocSource = rpc.getStub<ActiveDocSource>("activeDocSource");
-      port.on('message', (m) => rpc.receiveMessage(m));
+      port.on('message', m => rpc.receiveMessage(m));
       const outputStream = new PassThrough();
-      bufferedPipe(outputStream, (chunk) => rpc.postMessage(chunk));
+      bufferedPipe(outputStream, chunk => rpc.postMessage(chunk));
       await make(activeDocSource, testDates, outputStream, ...args);
       port.close();
       log.debug("workerExporter %s %s: done in %s ms", threadId, make.name, Date.now() - start);
@@ -236,7 +236,7 @@ function convertToExcel(stream: Stream|undefined, testDates: boolean, options: {
       header.alignment = centerAlignment;
     }
     // Make each column a little wider.
-    ws.columns.forEach(column => {
+    ws.columns.forEach((column) => {
       if (!column.header) {
         return;
       }

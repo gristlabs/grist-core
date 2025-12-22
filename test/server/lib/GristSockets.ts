@@ -38,7 +38,7 @@ describe(`GristSockets`, function () {
 
       async function stopSocketServer() {
         await fromCallback(cb => socketServer?.close(cb));
-        await fromCallback(cb => { server?.close(); server?.closeAllConnections(); server?.on("close", cb); });
+        await fromCallback((cb) => { server?.close(); server?.closeAllConnections(); server?.on("close", cb); });
         socketServer = server = null;
       }
 
@@ -76,7 +76,7 @@ describe(`GristSockets`, function () {
         }
         if (proxyServer) {
           const server = proxyServer;
-          await fromCallback(cb => { server.close(cb); server.closeAllConnections(); });
+          await fromCallback((cb) => { server.close(cb); server.closeAllConnections(); });
         }
         proxyServer = null;
       }
@@ -158,7 +158,7 @@ describe(`GristSockets`, function () {
 
       it("should emit close event for client", async function () {
         const clientWs = await connectClient(wsAddress);
-        const closePromise = new Promise<void>(resolve => {
+        const closePromise = new Promise<void>((resolve) => {
           clientWs.onclose = resolve;
         });
         clientWs.close();

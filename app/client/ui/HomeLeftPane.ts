@@ -66,7 +66,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
     ),
     cssScrollPane(
       cssPageEntry(
-        cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "all"),
+        cssPageEntry.cls('-selected', use => use(home.currentPage) === "all"),
         cssPageLink(cssPageIcon('Home'),
           cssLinkText(t("All documents")),
           urlState().setLinkUrl({ws: undefined, homePage: undefined}),
@@ -86,16 +86,16 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         dom.forEach(home.workspaces, (ws) => {
           if (ws.isSupportWorkspace) { return null; }
           const info = getWorkspaceInfo(home.app, ws);
-          const isTrivial = computed((use) => Boolean(getWorkspaceInfo(home.app, ws).isDefault &&
+          const isTrivial = computed(use => Boolean(getWorkspaceInfo(home.app, ws).isDefault &&
                                                       use(home.singleWorkspace)));
           // TODO: Introduce a "SwitchSelector" pattern to avoid the need for N computeds (and N
           // recalculations) to select one of N items.
-          const isRenaming = computed((use) => use(renaming) === ws);
+          const isRenaming = computed(use => use(renaming) === ws);
           return cssPageEntry(
             dom.autoDispose(isRenaming),
             dom.autoDispose(isTrivial),
             dom.hide(isTrivial),
-            cssPageEntry.cls('-selected', (use) => use(home.currentWSId) === ws.id),
+            cssPageEntry.cls('-selected', use => use(home.currentWSId) === ws.id),
             cssPageLinkContainer(cssPageIcon('Folder'),
               stretchedLink(
                 cssLinkText(workspaceName(home.app, ws)),
@@ -115,14 +115,14 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
                 testId('dm-workspace-options'),
               ),
               testId('dm-workspace'),
-              dom.cls('test-dm-workspace-selected', (use) => use(home.currentWSId) === ws.id),
+              dom.cls('test-dm-workspace-selected', use => use(home.currentWSId) === ws.id),
             ),
             cssPageEntry.cls('-renaming', isRenaming),
             dom.maybe(isRenaming, () =>
               cssPageLink(cssPageIcon('Folder'),
                 cssEditorInput({
                   initialValue: ws.name || '',
-                  save: async (val) => (val !== ws.name) ? home.renameWorkspace(ws.id, val) : undefined,
+                  save: async val => (val !== ws.name) ? home.renameWorkspace(ws.id, val) : undefined,
                   close: () => renaming.set(null),
                 }, testId('dm-ws-name-editor'))
               )
@@ -134,7 +134,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         cssPageLink(cssPageIcon('Folder'),
           cssEditorInput({
             initialValue: '',
-            save: async (val) => (val !== '') ? home.createWorkspace(val) : undefined,
+            save: async val => (val !== '') ? home.createWorkspace(val) : undefined,
             close: () => creating.set(false),
           }, testId('dm-ws-name-editor'))
         )
@@ -147,14 +147,14 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         ),
         cssPageEntry(
           dom.show(isFeatureEnabled("templates") && Boolean(templateOrg)),
-          cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "templates"),
+          cssPageEntry.cls('-selected', use => use(home.currentPage) === "templates"),
           cssPageLink(cssPageIcon('Board'), cssLinkText(t("Examples & Templates")),
             urlState().setLinkUrl({homePage: "templates"}),
             testId('dm-templates-page'),
           ),
         ),
         isAnonymous ? null : cssPageEntry(
-          cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "trash"),
+          cssPageEntry.cls('-selected', use => use(home.currentPage) === "trash"),
           cssPageLink(cssPageIcon('RemoveBig'), cssLinkText(t("Trash")),
             urlState().setLinkUrl({homePage: "trash"}),
             testId('dm-trash'),
@@ -217,7 +217,7 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
     // For workspaces: if ACL says we can create them, but product says we can't,
     // then offer an upgrade link.
     upgradableMenuItem(needUpgrade, () => creating.set(true), menuIcon('Folder'), t("Create workspace"),
-             dom.cls('disabled', (use) => !roles.canEdit(orgAccess) || !use(home.available)),
+             dom.cls('disabled', use => !roles.canEdit(orgAccess) || !use(home.available)),
              testId("dm-new-workspace")
     ),
     upgradeText(needUpgrade, () => home.app.showUpgradeModal()),
@@ -229,7 +229,7 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
     confirmModal(t("Delete {{workspace}} and all included documents?", {workspace: ws.name}), t("Delete"),
       async () => {
         let all = home.workspaces.get();
-        const index = all.findIndex((w) => w.id === ws.id);
+        const index = all.findIndex(w => w.id === ws.id);
         const selected = home.currentWSId.get() === ws.id;
         await home.deleteWorkspace(ws.id, false);
         // If workspace was not selected, don't do navigation.

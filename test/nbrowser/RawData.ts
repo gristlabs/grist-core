@@ -854,7 +854,7 @@ async function getRawTableRecordCardButtonsIsDisplayed() {
 }
 
 async function getRawTableRecordCardButtonsIsEnabled() {
-  return await driver.findAll('.test-raw-data-table-record-card', async e => {
+  return await driver.findAll('.test-raw-data-table-record-card', async (e) => {
     const isDisplayed = await e.isDisplayed();
     const className = await e.getAttribute('class');
     return isDisplayed && !className.includes('-disabled');

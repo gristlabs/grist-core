@@ -19,7 +19,7 @@ export function sortByXValues(series: Array<{values: Datum[]}>): void {
   indices.sort((a, b) => typedCompare(xValues[a], xValues[b]));
   for (const s of series) {
     const values = s.values;
-    s.values = indices.map((i) => values[i]);
+    s.values = indices.map(i => values[i]);
   }
 }
 
@@ -27,7 +27,7 @@ export function sortByXValues(series: Array<{values: Datum[]}>): void {
 export function uniqXValues<T extends {values: Datum[]}>(series: Array<T>) {
   if (!series[0]) { return; }
   const n = series[0].values.length;
-  const indexToKeep = new Set(uniqBy(range(n), (i) => series[0].values[i]));
+  const indexToKeep = new Set(uniqBy(range(n), i => series[0].values[i]));
   series.forEach((line: T) => {
     line.values = line.values.filter((_val, i) => indexToKeep.has(i));
   });

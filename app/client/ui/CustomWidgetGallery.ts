@@ -28,7 +28,7 @@ interface Options {
 }
 
 export function showCustomWidgetGallery(gristDoc: GristDoc, options: Options = {}) {
-  modal((ctl) => [
+  modal(ctl => [
     dom.create(CustomWidgetGallery, ctl, gristDoc, options),
     cssModal.cls(''),
   ]);
@@ -161,7 +161,7 @@ class CustomWidgetGallery extends Disposable {
         Enter: () => this._save(),
         Escape: () => this._deselectOrClose(),
       }),
-      dom.on('click', (ev) => this._maybeClearSelection(ev)),
+      dom.on('click', ev => this._maybeClearSelection(ev)),
       testId('container'),
     );
   }
@@ -217,7 +217,7 @@ class CustomWidgetGallery extends Disposable {
         return cssNoMatchingWidgets(t('No matching widgets'));
       } else {
         return cssWidgets(
-          widgets.map(widget => {
+          widgets.map((widget) => {
             const {description, authors = [], lastUpdatedAt} = widget;
 
             return this._buildWidget({
@@ -270,7 +270,7 @@ class CustomWidgetGallery extends Disposable {
                 ? cssDeveloperLink(
                   developer.name,
                   {href: developer.url, target: '_blank'},
-                  dom.on('click', (ev) => ev.stopPropagation()),
+                  dom.on('click', ev => ev.stopPropagation()),
                   testId('widget-developer'),
                 )
                 : dom('span',

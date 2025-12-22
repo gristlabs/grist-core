@@ -5,7 +5,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 
 async function contextMenu(x?: number, y?: number) {
   const rect = await driver.find('body').getRect();
-  return driver.withActions(actions => {
+  return driver.withActions((actions) => {
     if (x !== undefined && y !== undefined) {
       // passing {orign: 'viewport'} to `actions.move` does not work in bridge mode, so we need to
       // adjust x, y to position relative to body

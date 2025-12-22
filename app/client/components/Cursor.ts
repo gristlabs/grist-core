@@ -129,8 +129,8 @@ export class Cursor extends Disposable {
     this._lastEditedAt = ko.observable(SequenceNEVER);
 
     // update the section's activeRowId and lastCursorEdit when needed
-    this.autoDispose(this._properRowId.subscribe((rowId) => baseView.viewSection.activeRowId(rowId)));
-    this.autoDispose(this._lastEditedAt.subscribe((seqNum) => baseView.viewSection.lastCursorEdit(seqNum)));
+    this.autoDispose(this._properRowId.subscribe(rowId => baseView.viewSection.activeRowId(rowId)));
+    this.autoDispose(this._lastEditedAt.subscribe(seqNum => baseView.viewSection.lastCursorEdit(seqNum)));
 
     // Update the cursor edit time if either the row or column change
     // IMPORTANT: need to subscribe AFTER the properRowId->activeRowId subscription.

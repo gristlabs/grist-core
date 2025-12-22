@@ -109,11 +109,11 @@ function membersDescriptors(
 ): Pick<GroupWithMembersDescriptor, "memberUsers" | "memberGroups"> {
   return {
     memberUsers: members
-      .filter((member) => member.type === SCIMMY_USER_TYPE)
-      .map((member) => parseId(member.value, SCIMMY_USER_TYPE)),
+      .filter(member => member.type === SCIMMY_USER_TYPE)
+      .map(member => parseId(member.value, SCIMMY_USER_TYPE)),
     memberGroups: members
-      .filter((member) => member.type === SCIMMY_GROUP_TYPE)
-      .map((member) => parseId(member.value, SCIMMY_GROUP_TYPE))
+      .filter(member => member.type === SCIMMY_GROUP_TYPE)
+      .map(member => parseId(member.value, SCIMMY_GROUP_TYPE))
   };
 }
 

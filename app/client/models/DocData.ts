@@ -41,7 +41,7 @@ export class DocData extends BaseDocData {
    *      equivalent to BulkAddRecord, i.e. ["TableData", tableId, rowIds, columnValues].
    */
   constructor(public readonly docComm: DocComm, metaTableData: {[tableId: string]: TableDataAction}) {
-    super((tableId) => docComm.fetchTable(tableId), metaTableData);
+    super(tableId => docComm.fetchTable(tableId), metaTableData);
     this._bundleSender = new BundleSender(this.docComm);
     this._virtualTablesFunc = new Map();
   }
@@ -94,12 +94,12 @@ export class DocData extends BaseDocData {
 
     // Promise to allow waiting for the result of prepare() callback before it's even called.
     let prepareResolve!: (value: T|Promise<T>) => void;
-    const preparePromise = new Promise<T>(resolve => { prepareResolve = resolve; });
+    const preparePromise = new Promise<T>((resolve) => { prepareResolve = resolve; });
 
     // Manually-triggered promise for when finalize() should be called. It's triggered by user,
     // and when an unrelated action or a new bundle is started.
     let triggerFinalize!: () => void;
-    const triggerFinalizePromise = new Promise<void>(resolve => { triggerFinalize = resolve; });
+    const triggerFinalizePromise = new Promise<void>((resolve) => { triggerFinalize = resolve; });
 
     const doBundleActions = async () => {
       if (this._lastBundlePromise) {
@@ -183,7 +183,7 @@ export class DocData extends BaseDocData {
    * @param {String} optDesc: Optional description of the actions to be shown in the log.
    */
   public sendAction(action: UserAction, optDesc?: string): Promise<any> {
-    return this.sendActions([action], optDesc).then((retValues) => retValues[0]);
+    return this.sendActions([action], optDesc).then(retValues => retValues[0]);
   }
 
   public registerVirtualTableFactory(tableId: string, Cons: typeof TableData) {

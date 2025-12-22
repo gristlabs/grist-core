@@ -35,11 +35,11 @@ export class Reference extends NTextBox {
   constructor(field: ViewFieldRec) {
     super(field);
 
-    this._visibleColRef = Computed.create(this, (use) => use(this.field.visibleColRef));
+    this._visibleColRef = Computed.create(this, use => use(this.field.visibleColRef));
     // Note that saveOnly is used here to prevent display value flickering on visible col change.
-    this._visibleColRef.onWrite((val) => this.field.visibleColRef.saveOnly(val));
+    this._visibleColRef.onWrite(val => this.field.visibleColRef.saveOnly(val));
 
-    this._refTable = Computed.create(this, (use) => use(use(this.field.column).refTable));
+    this._refTable = Computed.create(this, use => use(use(this.field.column).refTable));
 
     this._validCols = Computed.create(this, (use) => {
       const refTable = use(this._refTable);
@@ -159,12 +159,12 @@ export class Reference extends NTextBox {
           const anchorUrlState = {hash: {rowId, sectionId, recordCard: true}};
           await urlState().pushUrl(anchorUrlState, {replace: true});
         }),
-        dom.on('mousedown', (ev) => stopEvent(ev)),
+        dom.on('mousedown', ev => stopEvent(ev)),
         hideInPrintView(),
         testId('ref-link-icon'),
       ),
       dom('span',
-        dom.text(use => {
+        dom.text((use) => {
           if (use(referenceId) === 0) { return ''; }
           if (use(formattedValue).hasBlankReference) { return '[Blank]'; }
           return use(formattedValue).value;

@@ -78,7 +78,7 @@ describe('UploadLimits', function() {
     // Now try to import directly to server, and verify that the server enforces this limit too.
     const p = gu.importFixturesDoc('Chimpy', 'nasa', 'Horizon', largeFilePath, {load: false});
     await assert.isRejected(p, /Payload Too Large/);
-    const err = await p.catch((e) => e);
+    const err = await p.catch(e => e);
     assert.equal(err.status, 413);
     assert.isObject(err.details);
     assert.match(err.details.userError, /Imported files must not exceed 1.0MB/);

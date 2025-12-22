@@ -176,7 +176,7 @@ export default class GridView extends BaseView {
     this._autoWidthHolder = this.autoDispose(new Holder());
 
     this._rowIndexRenderer = gridOptions?.rowIndexRenderer
-      ?? ((row) => dom.text((use) => String(use(row._index)! + 1)));
+      ?? (row => dom.text(use => String(use(row._index)! + 1)));
     this._cornerRenderer = gridOptions?.cornerRenderer
       ?? (() => dom.on('click', () => this.selectAll()));
     this.viewSection = viewSectionModel;
@@ -233,7 +233,7 @@ export default class GridView extends BaseView {
     this.visibleRowIndex = ko.observable(this.cursor.rowIndex()).extend({notify: 'always'});
     // Create grain's Computed with current cursor position (we need it to examine position
     // before the change and after).
-    this.currentPosition = Computed.create(this, (use) => ({
+    this.currentPosition = Computed.create(this, use => ({
       rowIndex : use(this.cursor.rowIndex),
       fieldIndex : use(this.cursor.fieldIndex)
     }));
@@ -245,7 +245,7 @@ export default class GridView extends BaseView {
       }
     }));
 
-    this.autoDispose(this.cursor.fieldIndex.subscribe(idx => {
+    this.autoDispose(this.cursor.fieldIndex.subscribe((idx) => {
       this._scrollColumnIntoView(idx);
     }));
 
@@ -1034,7 +1034,7 @@ export default class GridView extends BaseView {
     this.selectColumn(index);
     if (!skipPopup) { this.currentEditingColumnIndex(index); }
     // we want to show creator panel in some cases, but only when "rename panel" is dismissed
-    const sub = this.currentEditingColumnIndex.subscribe(state=>{
+    const sub = this.currentEditingColumnIndex.subscribe((state)=>{
       // if no column is edited we can assume that rename panel is closed
       if(state<0){
         options.onPopupClose?.();
@@ -1172,7 +1172,7 @@ export default class GridView extends BaseView {
     if (oldIndices[0] === newIndex || oldIndices[0] + 1 === newIndex) { return; }
 
     const newPositions = this._getRowInsertPos(newIndex, oldIndices.length);
-    const rowIds = oldIndices.map((i) => this.viewData.getRowId(i));
+    const rowIds = oldIndices.map(i => this.viewData.getRowId(i));
     const colInfo = { 'manualSort': newPositions };
     const action = ['BulkUpdateRecord', rowIds, colInfo];
     const numRows = oldIndices.length;
@@ -1386,7 +1386,7 @@ export default class GridView extends BaseView {
       this.colShadow = dom(
         'div.column_shadow',
         kd.show(() => this.cellSelector.isCurrentDragType(selector.COL)),
-        dom.style('left', (use) => (use(this.dragX) - this.colShadowAdjust) + 'px')
+        dom.style('left', use => (use(this.dragX) - this.colShadowAdjust) + 'px')
       ),
       this.rowLine = dom(
         'div.row_indicator_line',
@@ -1396,7 +1396,7 @@ export default class GridView extends BaseView {
       this.rowShadow = dom(
         'div.row_shadow',
         kd.show(() => this.cellSelector.isCurrentDragType(selector.ROW)),
-        dom.style('top', (use) => (use(this.dragY) - this.rowShadowAdjust) + 'px')
+        dom.style('top', use => (use(this.dragY) - this.rowShadowAdjust) + 'px')
       ),
 
       applyRowHeightLimit(v),
@@ -1428,7 +1428,7 @@ export default class GridView extends BaseView {
                     const isReadonly = () => this.isReadonly || this.isPreview;
                     return goodIndex() && !isReadonly();
                   },
-                  write: val => {
+                  write: (val) => {
                     if (val) {
                       // Turn on editing.
                       editIndex(field._index()!);
@@ -1480,7 +1480,7 @@ export default class GridView extends BaseView {
                   dom.style('borderRightWidth', v.borderWidthPx),
                   viewCommon.makeResizable(field.width, {shouldSave: !this.isReadonly}),
                   kd.toggleClass('selected', () => ko.unwrap(this.isColSelected.at(field._index()!)!)),
-                  dom.on('contextmenu', ev => {
+                  dom.on('contextmenu', (ev) => {
                     // This is a little hack to position the menu the same way as with a click
                     ev.preventDefault();
                     const btn = ((ev.currentTarget as HTMLElement).querySelector('.g-column-menu-btn') as
@@ -1508,7 +1508,7 @@ export default class GridView extends BaseView {
                     // Prevent mousedown on the dropdown triangle from initiating column drag.
                     dom.on('mousedown', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
                     // Select the column if it's not part of a multiselect.
-                    dom.on('click', (ev) =>
+                    dom.on('click', ev =>
                       this.maybeSelectColumn((ev.currentTarget as HTMLElement).parentElement!, field)),
                     (elem: Element) => {
                       filterTriggerCtl = setPopupToCreateDom(
@@ -1574,7 +1574,7 @@ export default class GridView extends BaseView {
       const isRowActive = ko.computed(() => row._index() === this.cursor.rowIndex());
 
       const computedFlags = ko.pureComputed(() => {
-        return this.viewSection.rulesColsIds().map(colRef => {
+        return this.viewSection.rulesColsIds().map((colRef) => {
           if (row.cells[colRef]) { return row.cells[colRef]() || false; }
           return false;
         });
@@ -1611,7 +1611,7 @@ export default class GridView extends BaseView {
         dom.autoDispose(fontUnderline),
         dom.autoDispose(fontStrikethrough),
 
-        dom.cls('link_selector_row', (use) => use(this.isLinkSource) && use(isRowActive)),
+        dom.cls('link_selector_row', use => use(this.isLinkSource) && use(isRowActive)),
 
         // rowid dom
         dom('div.gridview_data_row_num',
@@ -1636,7 +1636,7 @@ export default class GridView extends BaseView {
               );
             }
           }),
-          dom.on('contextmenu', ev => {
+          dom.on('contextmenu', (ev) => {
             // This is a little hack to position the menu the same way as with a click,
             // the same hack as on a column menu.
             ev.preventDefault();
@@ -1671,7 +1671,7 @@ export default class GridView extends BaseView {
           kd.toggleClass('record-vlines', vVerticalGridlines),
           kd.toggleClass('record-zebra', vZebraStripes),
           // even by 1-indexed rownum, so +1 (makes more sense for user-facing display stuff)
-          dom.cls('record-even', (use) => (use(row._index)! + 1) % 2 === 0 ),
+          dom.cls('record-even', use => (use(row._index)! + 1) % 2 === 0 ),
 
           dom.on("mouseleave", (ev) => {
             // Leave only when leaving record row.
@@ -1721,7 +1721,7 @@ export default class GridView extends BaseView {
 
             return dom(
               'div.field',
-              dom.cls('field-insert-before', (use) =>
+              dom.cls('field-insert-before', use =>
                 use(this._insertColumnIndex) === use(field._index)),
               kd.style('--frozen-position', () => ko.unwrap(this.frozenPositions.at(field._index()!)!)),
               kd.toggleClass("frozen", () => ko.unwrap(this.frozenMap.at(field._index()!)!)),
@@ -1908,14 +1908,14 @@ export default class GridView extends BaseView {
         if (!this.cellSelector.isSelected(elem, selector.ROW)) {
           this.rowMouseDown(elem, event);
           return {
-            onMove: (ev) => this.rowMouseMove(ev),
+            onMove: ev => this.rowMouseMove(ev),
             onStop: (ev) => {},
           };
         } else if (!this.viewSection.disableDragRows()) {
           this.styleRowDragElements(elem, event);
           return {
-            onMove: (ev) => this.dragRows(ev),
-            onStop: (ev) => this.dropRows(),
+            onMove: ev => this.dragRows(ev),
+            onStop: ev => this.dropRows(),
           };
         }
       }
@@ -1928,14 +1928,14 @@ export default class GridView extends BaseView {
         if (!this.cellSelector.isSelected(elem, selector.COL)) {
           this.colMouseDown(elem, event);
           return {
-            onMove: (ev) => this.colMouseMove(ev),
+            onMove: ev => this.colMouseMove(ev),
             onStop: (ev) => {},
           };
         } else {
           this.styleColDragElements(elem, event);
           return {
-            onMove: (ev) => this.dragCols(ev),
-            onStop: (ev) => this.dropCols(),
+            onMove: ev => this.dragCols(ev),
+            onStop: ev => this.dropCols(),
           };
         }
       }
@@ -1946,7 +1946,7 @@ export default class GridView extends BaseView {
       if (!ignoreEvent(event, elem)) {
         this.cellMouseDown(elem, event);
         return {
-          onMove: (ev) => this.cellMouseMove(ev),
+          onMove: ev => this.cellMouseMove(ev),
           onStop: (ev) => {},
         };
       }
@@ -2284,7 +2284,7 @@ export default class GridView extends BaseView {
       field ? kd.toggleClass('field-insert-before', () =>
         this._insertColumnIndex() === field._index()) : null,
       menu(
-        ctl => {
+        (ctl) => {
           ctl.onDispose(() => this._insertColumnIndex(null));
 
           let index: number|null|undefined = this._insertColumnIndex.peek();
@@ -2294,7 +2294,7 @@ export default class GridView extends BaseView {
 
           return [
             buildAddColumnMenu(this, index),
-            elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+            (elem) => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
             testId('new-columns-menu'),
           ];
         },
@@ -2366,7 +2366,7 @@ export default class GridView extends BaseView {
     const clips = Array.from(viewPane.querySelectorAll<HTMLElement>('.field_clip, .column_name'));
     if (clips.length === 0) { return; }
     // Very crude way of measuring widths of each column by measuring each cell content.
-    const widthsList = clips.map(elem => {
+    const widthsList = clips.map((elem) => {
       const range = document.createRange();
       range.selectNodeContents(elem);
       const rect = range.getBoundingClientRect();
@@ -2462,5 +2462,5 @@ function calcZebra(hex: string) {
 // Currently dom.style('--custom-prop', value) from grainjs doesn't work for "custom variable"
 // properties, so we add a helper to do that. TODO: fix grainjs to support this.
 function styleCustomVar(property: string, valueObs: BindableValue<string|number>): DomElementMethod {
-  return (elem) => subscribeElem(elem, valueObs, (val) => elem.style.setProperty(property, String(val)));
+  return elem => subscribeElem(elem, valueObs, val => elem.style.setProperty(property, String(val)));
 }

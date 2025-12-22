@@ -48,7 +48,7 @@ export function setErrorNotifier(notifier: Notifier) {
 
 // Returns application errors collected by NotifyModel. Used in tests.
 export function getAppErrors(): string[] {
-  return _notifier.getFullAppErrors().map((e) => e.error.message);
+  return _notifier.getFullAppErrors().map(e => e.error.message);
 }
 
 /**
@@ -241,7 +241,7 @@ export function logError(error: Error|string) {
       'Content-Type': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
     }
-  }).catch(e => {
+  }).catch((e) => {
     // There ... isn't much we can do about this.
     // tslint:disable-next-line:no-console
     console.warn('Failed to log event', e);

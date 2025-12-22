@@ -97,10 +97,10 @@ export class NumericTextBox extends NTextBox {
         makeButtonSelect(numMode, modeOptions, setMode, disabledStyle, cssModeSelect.cls(''), testId('numeric-mode')),
         makeButtonSelect(numSign, signOptions, setSign, disabledStyle, cssSignSelect.cls(''), testId('numeric-sign')),
       ),
-      dom.maybe((use) => use(numMode) === 'currency', () => [
+      dom.maybe(use => use(numMode) === 'currency', () => [
         cssLabel(t('Currency')),
         cssRow(
-          dom.domComputed(docCurrency, (defaultCurrency) =>
+          dom.domComputed(docCurrency, defaultCurrency =>
             buildCurrencyPicker(holder, currency, setCurrency,
               {defaultCurrencyLabel: t(`Default currency ({{defaultCurrency}})`, {defaultCurrency}), disabled})
           ),

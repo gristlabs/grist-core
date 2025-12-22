@@ -209,7 +209,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   constructor(private _appObj: App, public readonly appModel: AppModel, private _api: UserAPI = appModel.api) {
     super();
 
-    this.currentFeatures = Computed.create(this, use => {
+    this.currentFeatures = Computed.create(this, (use) => {
       const product = use(this.currentProduct);
       if (!product) { return null; }
       const ba = use(this.currentOrg)?.billingAccount?.features ?? {};
@@ -302,7 +302,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
 
   public createLeftPane(leftPanelOpen: Observable<boolean>) {
     return cssLeftPanel(
-      dom.maybe(this.gristDoc, (activeDoc) => [
+      dom.maybe(this.gristDoc, activeDoc => [
         addNewButton({ isOpen: leftPanelOpen },
           menu(() => addMenu(this.importSources, activeDoc, this.isReadonly.get()), {
             placement: 'bottom-start',
@@ -543,17 +543,17 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
   const selectBy = gristDoc.selectBy.bind(gristDoc);
   return [
     menuItem(
-      (elem) => openPageWidgetPicker(elem, gristDoc, (val) => gristDoc.addNewPage(val).catch(reportError),
+      elem => openPageWidgetPicker(elem, gristDoc, val => gristDoc.addNewPage(val).catch(reportError),
                                      {isNewPage: true, buttonLabel: t('Add page')}),
       menuIcon("Page"), t("Add page"), testId('dp-add-new-page'),
       dom.cls('disabled', isReadonly)
     ),
     menuItem(
-      (elem) => openPageWidgetPicker(elem, gristDoc, (val) => gristDoc.addWidgetToPage(val).catch(reportError),
+      elem => openPageWidgetPicker(elem, gristDoc, val => gristDoc.addWidgetToPage(val).catch(reportError),
                                      {isNewPage: false, selectBy}),
       menuIcon("Widget"), t("Add widget to page"), testId('dp-add-widget-to-page'),
       // disable for readonly doc and all special views
-      dom.cls('disabled', (use) => typeof use(gristDoc.activeViewId) !== 'number' || isReadonly),
+      dom.cls('disabled', use => typeof use(gristDoc.activeViewId) !== 'number' || isReadonly),
     ),
     menuItem(() => gristDoc.addEmptyTable().catch(reportError),
       menuIcon("TypeTable"), t("Add empty table"), testId('dp-empty-table'),

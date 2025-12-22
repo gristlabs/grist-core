@@ -65,7 +65,7 @@ export function selectBy(docModel: DocModel, sources: ViewSectionRec[],
   };
   const options = [NoLinkOption];
   for (const srcNode of sourceNodes) {
-    const validTargets = targetNodes.filter((tgt) => isValidLink(srcNode, tgt));
+    const validTargets = targetNodes.filter(tgt => isValidLink(srcNode, tgt));
     const hasMany = validTargets.length > 1;
     for (const tgtNode of validTargets) {
 
@@ -109,12 +109,12 @@ function createNodesFromViewSections(
   viewSections: ViewSectionRec[]
 ): LinkNode[] {
   const operations: LinkNodeOperations = {
-    getTableById: (id) => getLinkNodeTableById(docModel, id),
-    getSectionById: (id) => getLinkNodeSectionById(docModel, id),
+    getTableById: id => getLinkNodeTableById(docModel, id),
+    getSectionById: id => getLinkNodeSectionById(docModel, id),
   };
   const sections = viewSections
-    .filter((s) => !s.isDisposed())
-    .map((s) => getLinkNodeSectionById(docModel, s.getRowId()));
+    .filter(s => !s.isDisposed())
+    .map(s => getLinkNodeSectionById(docModel, s.getRowId()));
   return buildLinkNodes(sections, operations);
 }
 
@@ -127,7 +127,7 @@ function getLinkNodeTableById(docModel: DocModel, id: number): LinkNodeTable {
     columns: table.columns
       .peek()
       .all()
-      .map((c) => ({
+      .map(c => ({
         id: c.getRowId(),
         colId: c.colId.peek(),
         label: c.label.peek(),

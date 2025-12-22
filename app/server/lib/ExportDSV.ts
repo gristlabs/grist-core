@@ -133,7 +133,7 @@ function convertToDsv(data: ExportData, options: ConvertToDsvOptions) {
   const colPropertyAsHeader = header ?? 'label';
   const csvMatrix = [viewColumns.map(col => col[colPropertyAsHeader])];
   // populate all the rows with values as strings
-  rowIds.forEach(row => {
+  rowIds.forEach((row) => {
     csvMatrix.push(access.map((getter, c) => formatters[c].formatAny(getter(row))));
   });
   return stringifyAsync(csvMatrix, {delimiter});

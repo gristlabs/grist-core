@@ -194,7 +194,7 @@ describe('Housekeeper', function() {
 
   it('can log metrics about sites', async function() {
     const logMessages: [TelemetryEvent, TelemetryMetadataByLevel?][] = [];
-    sandbox.stub(Telemetry.prototype, 'shouldLogEvent').callsFake((name) => true);
+    sandbox.stub(Telemetry.prototype, 'shouldLogEvent').callsFake(name => true);
     sandbox.stub(Telemetry.prototype, 'logEvent').callsFake((_, name, meta) => {
       // Skip document usage events that could be arriving in the
       // middle of this test.

@@ -76,7 +76,7 @@ export class UndoStack extends dispose.Disposable {
     }
 
     // Initialize the stack from the log of recent actions from the server.
-    log.forEach(ag => { this.pushAction(ag); });
+    log.forEach((ag) => { this.pushAction(ag); });
   }
 
   /**

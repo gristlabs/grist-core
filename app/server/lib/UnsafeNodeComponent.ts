@@ -52,7 +52,7 @@ export class UnsafeNodeComponent extends BaseComponent {
     this._pluginPath = plugin.path;
     this._pluginId = plugin.id;
     this._rpc = new Rpc({
-      sendMessage: (msg) => this.sendMessage(msg),
+      sendMessage: msg => this.sendMessage(msg),
       logger: rpcLogger,
     });
     this._rpc.registerForwarder('*', pluginRpc);

@@ -101,13 +101,13 @@ describe('UserManager', () => {
   it('should only suggest team members in autocomplete', async function() {
     await driver.find('.test-um-member-new input').sendKeys('t');
     assert.deepEqual(
-      await driver.findAll('.test-acselect-dropdown .test-um-member-name', (el) => el.getText()),
+      await driver.findAll('.test-acselect-dropdown .test-um-member-name', el => el.getText()),
       ['Team Member'],
     );
 
     await driver.find('.test-um-member-new input').doClear().sendKeys('.com');
     assert.deepEqual(
-      await driver.findAll('.test-acselect-dropdown .test-um-member-name', (el) => el.getText()),
+      await driver.findAll('.test-acselect-dropdown .test-um-member-name', el => el.getText()),
       ['Team Member'],
     );
   });

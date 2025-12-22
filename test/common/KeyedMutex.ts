@@ -8,23 +8,23 @@ describe('KeyedMutex', function() {
     let v1: number = 0;
     let v2: number = 0;
 
-    const fastAdd2 = m.acquire('2').then(unlock => {
+    const fastAdd2 = m.acquire('2').then((unlock) => {
       v2++;
       unlock();
     });
-    const slowDouble2 = m.acquire('2').then(async unlock => {
+    const slowDouble2 = m.acquire('2').then(async (unlock) => {
       await delay(1000);
       v2 *= 2;
       unlock();
     });
     assert.equal(m.size, 1);
 
-    const slowAdd1 = m.acquire('1').then(async unlock => {
+    const slowAdd1 = m.acquire('1').then(async (unlock) => {
       await delay(500);
       v1++;
       unlock();
     });
-    const immediateDouble1 = m.acquire('1').then(unlock => {
+    const immediateDouble1 = m.acquire('1').then((unlock) => {
       v1 *= 2;
       unlock();
     });

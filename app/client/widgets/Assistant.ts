@@ -296,11 +296,11 @@ export class Assistant extends Disposable {
         return `${Math.max(availableInputHeight, MIN_CHAT_INPUT_HEIGHT_PX)}px`;
       }),
       dom.onKeyDown({
-        Enter$: (ev) => this._handleChatEnterKeyDown(ev),
+        Enter$: ev => this._handleChatEnterKeyDown(ev),
         Escape: () => this._options.onEscape?.(),
       }),
       dom.autoDispose(
-        this._userInput.addListener((value) => (this._input.value = value))
+        this._userInput.addListener(value => (this._input.value = value))
       ),
       dom.prop("disabled", this._conversation.thinking),
       dom.prop("placeholder", (use) => {
@@ -334,7 +334,7 @@ export class Assistant extends Disposable {
             dom.show(use => !use(this._conversation.thinking)),
             cssButton.cls(
               "-disabled",
-              (use) => use(this._conversation.thinking) || use(this._userInput).length === 0
+              use => use(this._conversation.thinking) || use(this._userInput).length === 0
             ),
             testId("send")
           ),
@@ -508,7 +508,7 @@ class AssistantConversation extends Disposable {
         const highlight = await buildCodeHighlighter({ maxLines: 60 });
         return new Marked(
           markedHighlight({
-            highlight: (code) => highlight(code),
+            highlight: code => highlight(code),
           }),
         );
       });
@@ -545,9 +545,9 @@ class AssistantConversation extends Disposable {
 
     this.historyLength = Computed.create(
       this,
-      (use) => use(this.allMessages).length
+      use => use(this.allMessages).length
     );
-    this.length = Computed.create(this, (use) => use(this.newMessages).length);
+    this.length = Computed.create(this, use => use(this.newMessages).length);
 
     this.suggestedFormulas = Computed.create(this, (use) => {
       return use(this.allMessages)
@@ -712,7 +712,7 @@ receiving assistance.",
     return domAsync(
       AssistantConversation._marked!.get().then(({ parse }) => {
         return dom("div",
-          (el) =>
+          el =>
             subscribeElem(el, gristThemeObs(), () => {
               el.innerHTML = sanitizeHTML(
                 parse(message, { async: false, renderer })

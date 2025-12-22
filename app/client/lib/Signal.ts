@@ -117,7 +117,7 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
    */
   public map<Z>(selector: (value: T) => Z): Signal<Z> {
     const signal = Signal.create(this, selector(this.state.get()));
-    this.listen(value => {
+    this.listen((value) => {
       signal.emit(selector(value));
     });
     return signal;
@@ -129,7 +129,7 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
    */
   public filter(selector: (value: T) => boolean): Signal<T> {
     const signal = Signal.create(this, this.state.get());
-    this.listen(value => {
+    this.listen((value) => {
       if (selector(value)) {
         signal.emit(value);
       }

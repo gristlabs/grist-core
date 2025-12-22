@@ -17,7 +17,7 @@ const testId = makeTestId('test-site-switcher-');
  */
 export function maybeAddSiteSwitcherSection(appModel: AppModel) {
   const orgs = appModel.topAppModel.orgs;
-  return dom.maybe((use) => use(orgs).length > 0 && !getSingleOrg() && isFeatureEnabled("multiSite"), () => [
+  return dom.maybe(use => use(orgs).length > 0 && !getSingleOrg() && isFeatureEnabled("multiSite"), () => [
     menuDivider(),
     buildSiteSwitcher(appModel),
   ]);
@@ -34,7 +34,7 @@ export function buildSiteSwitcher(appModel: AppModel) {
 
   return [
     menuSubHeader(t("Switch Sites")),
-    dom.forEach(orgs, (org) =>
+    dom.forEach(orgs, org =>
       menuItemLink(urlState().setLinkUrl({ org: org.domain || undefined }),
         cssOrgSelected.cls('', appModel.currentOrg ? org.id === appModel.currentOrg.id : false),
         getOrgName(org),

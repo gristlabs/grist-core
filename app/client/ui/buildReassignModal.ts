@@ -332,7 +332,7 @@ export async function buildReassignModal(options: {
         dom.style('display', 'flex'),
         dom.style('justify-content', 'space-between'),
         dom.style('align-items', 'baseline'),
-        dom.domComputed(checked, (v) => [
+        dom.domComputed(checked, v => [
           v ? bigPrimaryButton(t('Reassign'), dom.on('click', reassign))
             : bigBasicButton(t('Cancel'), dom.on('click', () => ctl.close())),
         ]),
@@ -359,7 +359,7 @@ function* bulkToSingle(actions: DocAction[]): Iterable<DocAction> {
       const tableId = a[1];
       const colValues = a[3] as any;
       for (let i = 0; i < rowIds.length; i++) {
-        yield [name, tableId, rowIds[i], mapValues(colValues, (values) => values[i])];
+        yield [name, tableId, rowIds[i], mapValues(colValues, values => values[i])];
       }
     } else {
       yield a;

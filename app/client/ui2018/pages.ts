@@ -62,7 +62,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
     menuItem(
       onRemove,
       t("Remove"),
-      dom.cls("disabled", (use) => use(isReadonly) || isRemoveDisabled()),
+      dom.cls("disabled", use => use(isReadonly) || isRemoveDisabled()),
       testId("remove")
     ),
     menuItem(
@@ -77,11 +77,11 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
         () => onCollapse(false),
         t("Expand {{maybeDefault}}", {
           maybeDefault: dom.maybe(
-            (use) => !use(isCollapsedByDefault),
+            use => !use(isCollapsedByDefault),
             () => t("(default)")
           ),
         }),
-        dom.cls("disabled", (use) => !use(isCollapsed)),
+        dom.cls("disabled", use => !use(isCollapsed)),
         testId("expand")
       ),
       menuItemAsync(
@@ -95,7 +95,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
       menuItemAsync(
         async () => { await onCollapseByDefault(true); },
         t("Set default: Collapse"),
-        dom.show((use) => !use(isCollapsedByDefault)),
+        dom.show(use => !use(isCollapsedByDefault)),
         testId("collapse-by-default")
       ),
       menuItemAsync(
@@ -126,23 +126,23 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
     'div',
     dom.autoDispose(lis),
     dom.autoDispose(splitName),
-    domComputed((use) => use(name) === '', blank => blank ? dom('div', '-') :
-      domComputed(isRenaming, (isrenaming) => (
+    domComputed(use => use(name) === '', blank => blank ? dom('div', '-') :
+      domComputed(isRenaming, isrenaming => (
         isrenaming ?
           cssPageItem(
             cssPageInitial(
               testId('initial'),
-              dom.text((use) => use(splitName).initial),
-              cssPageInitial.cls('-emoji', (use) => use(splitName).hasEmoji),
+              dom.text(use => use(splitName).initial),
+              cssPageInitial.cls('-emoji', use => use(splitName).hasEmoji),
             ),
             cssEditorInput(
               {
                 initialValue: name.get() || '',
-                save: async (val) => onRename(val),
+                save: async val => onRename(val),
                 close: () => isRenaming.set(false)
               },
               testId('editor'),
-              dom.on('mousedown', (ev) => ev.stopPropagation()),
+              dom.on('mousedown', ev => ev.stopPropagation()),
               dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); })
             ),
             // Note that we don't pass extra args when renaming is on, because they usually includes
@@ -155,29 +155,29 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
               href,
               cssPageInitial(
                 testId('initial'),
-                dom.text((use) => use(splitName).initial),
-                cssPageInitial.cls('-emoji', (use) => use(splitName).hasEmoji),
+                dom.text(use => use(splitName).initial),
+                cssPageInitial.cls('-emoji', use => use(splitName).hasEmoji),
               ),
               cssPageName(
-                dom.text((use) => use(splitName).displayName),
+                dom.text(use => use(splitName).displayName),
                 testId('label'),
-                dom.on('click', (ev) => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
+                dom.on('click', ev => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
                 overflowTooltip(),
               ),
             ),
             cssPageMenuTrigger(
-              dom.attr('aria-label', (use) => t("context menu - {{- pageName }}", {pageName: use(name)})),
+              dom.attr('aria-label', use => t("context menu - {{- pageName }}", {pageName: use(name)})),
               cssPageMenuIcon('Dots'),
               menu(pageMenu, {placement: 'bottom-start', parentSelectorToMark: '.' + itemHeader.className}),
               dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
 
               // Let's prevent dragging to start when un-intentionally holding the mouse down on '...' menu.
-              dom.on('mousedown', (ev) => ev.stopPropagation()),
+              dom.on('mousedown', ev => ev.stopPropagation()),
               testId('dots'),
             ),
             // Prevents the default dragging behaviour that Firefox support for links which conflicts
             // with our own dragging pages.
-            dom.on('dragstart', (ev) => ev.preventDefault()),
+            dom.on('dragstart', ev => ev.preventDefault()),
             args
           )
       )),

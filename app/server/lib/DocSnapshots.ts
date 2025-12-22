@@ -29,7 +29,7 @@ export class DocSnapshotPruner {
     delayBeforeOperationMs?: number,
     minDelayBetweenOperationsMs?: number
   } = {}) {
-    this._prunes = new KeyedOps((key) => this.prune(key), {
+    this._prunes = new KeyedOps(key => this.prune(key), {
       ..._options,
       retry: false,
       logError: (key, failureCount, err) => log.error(`Pruning document ${key} gave error ${err}`)

@@ -156,8 +156,8 @@ export class ColumnFilter extends Disposable {
     if (this._isRange()) {
       const func = this.filterFunc.get();
       const state = this._include ?
-        { included: this._allValues.filter((val) => func(val)) } :
-        { excluded: this._allValues.filter((val) => !func(val)) };
+        { included: this._allValues.filter(val => func(val)) } :
+        { excluded: this._allValues.filter(val => !func(val)) };
       this.setState(state);
     }
   }

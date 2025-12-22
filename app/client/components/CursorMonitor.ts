@@ -54,7 +54,7 @@ export class CursorMonitor extends Disposable {
 
   private _whenCursorHasChangedStoreInMemory(doc: GristDoc) {
     // whenever current position changes, store it in the memory
-    this.autoDispose(doc.cursorPosition.addListener(pos => {
+    this.autoDispose(doc.cursorPosition.addListener((pos) => {
       // if current position is not restored yet, don't change it
       if (!this._restored) { return; }
       // store position only when we have valid rowId
@@ -77,7 +77,7 @@ export class CursorMonitor extends Disposable {
     // if we are on raw data view, we need to set the position manually
     // as currentView observable will not be changed.
     if (doc.activeViewId.get() === 'data') {
-      this._doRestorePosition(doc).catch((e) => reportError(e));
+      this._doRestorePosition(doc).catch(e => reportError(e));
       return;
     }
 

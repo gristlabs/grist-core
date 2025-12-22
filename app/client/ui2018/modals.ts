@@ -251,13 +251,13 @@ export function modal(
         createFn(ctl, owner),
         dom.cls(kbFocusHighlighterClass),
         cssModalDialog.cls('-collapsing', variant === 'collapsing'),
-        dom.on('click', (ev) => ev.stopPropagation()),
+        dom.on('click', ev => ev.stopPropagation()),
         noEscapeKey ? null : dom.onKeyDown({ Escape: close }),
         testId('modal-dialog'),
       );
       FocusLayer.create(owner, {
         defaultFocusElem: dialogDom,
-        allowFocus: (elem) => (elem !== document.body),
+        allowFocus: elem => (elem !== document.body),
         // Pause mousetrap keyboard shortcuts while the modal is shown. Without this, arrow keys
         // will navigate in a grid underneath the modal, and Enter may open a cell there.
         pauseMousetrap: true
@@ -324,7 +324,7 @@ export function saveModal(
   return modal((ctl, owner) => {
     const options = createFunc(ctl, owner);
 
-    const isSaveDisabled = Computed.create(owner, (use) =>
+    const isSaveDisabled = Computed.create(owner, use =>
       use(ctl.workInProgress) || (options.saveDisabled ? use(options.saveDisabled) : false));
 
     const save = ctl.doWork(options.saveFunc, {close: true, catchErrors: true});

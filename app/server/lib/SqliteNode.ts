@@ -36,7 +36,7 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
       (mode === OpenMode.OPEN_READONLY ? sqlite3.OPEN_READONLY : sqlite3.OPEN_READWRITE) |
       (mode === OpenMode.OPEN_CREATE || mode === OpenMode.CREATE_EXCL ? sqlite3.OPEN_CREATE : 0);
     let _db: sqlite3.Database;
-    await fromCallback(cb => { _db = new sqlite3.Database(dbPath, sqliteMode, cb); });
+    await fromCallback((cb) => { _db = new sqlite3.Database(dbPath, sqliteMode, cb); });
     const result = new NodeSqlite3DatabaseAdapter(_db!);
     await result.limitAttach(0);  // Outside of VACUUM, we don't allow ATTACH.
     return result;
@@ -76,7 +76,7 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
   public async prepare(sql: string): Promise<PreparedStatement> {
     let stmt: sqlite3.Statement|undefined;
     // The original interface is a little strange; we resolve to Statement if prepare() succeeded.
-    await fromCallback(cb => { stmt = this._db.prepare(sql, cb); }).then(() => stmt);
+    await fromCallback((cb) => { stmt = this._db.prepare(sql, cb); }).then(() => stmt);
     if (!stmt) { throw new Error('could not prepare statement'); }
     return new NodeSqlite3PreparedStatement(stmt);
   }

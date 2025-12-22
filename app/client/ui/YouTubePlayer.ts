@@ -88,7 +88,7 @@ export class YouTubePlayer extends Disposable {
   }
 
   public isLoaded() {
-    return waitObs(this._isLoading, (val) => !val);
+    return waitObs(this._isLoading, val => !val);
   }
 
   public play() {

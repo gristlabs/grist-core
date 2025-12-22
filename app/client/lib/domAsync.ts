@@ -16,7 +16,7 @@ export function domAsync(promiseForDomContents: Promise<DomContents>, onError = 
   return [markerPre, markerPost, (elem: Node) => {
     let disposed = false;
     promiseForDomContents
-      .then((contents) => disposed || replaceContent(markerPre, markerPost, contents))
+      .then(contents => disposed || replaceContent(markerPre, markerPost, contents))
       .catch(onError);
 
     // If markerPost is disposed before the promise resolves, set insertContent to noop.

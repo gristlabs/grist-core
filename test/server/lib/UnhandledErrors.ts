@@ -35,7 +35,7 @@ describe('UnhandledErrors', function() {
       // Capture server log output, so that we can look to see how the server coped.
       const output = new PassThrough();
       const serverLogLines: string[] = [];
-      output.on('data', (data) => serverLogLines.push(data.toString()));
+      output.on('data', data => serverLogLines.push(data.toString()));
 
       const server = await TestServer.startServer('home', testDir, errType, undefined, undefined, {output});
 

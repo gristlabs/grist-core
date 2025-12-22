@@ -118,13 +118,13 @@ export function buildLinkNodes(
 
     const table = getTableById(section.tableRef);
     const { columns, isSummaryTable } = table;
-    const groupByCols = columns.filter((c) => c.summarySourceCol);
-    const groupByColIds = new Set(groupByCols.map((c) => c.summarySourceCol));
+    const groupByCols = columns.filter(c => c.summarySourceCol);
+    const groupByColIds = new Set(groupByCols.map(c => c.summarySourceCol));
     const mainNode: LinkNode = {
       tableId: table.tableId,
       isSummary: isSummaryTable,
       isAttachments:
-        isSummaryTable && groupByCols.some((col) => col.type === "Attachments"),
+        isSummaryTable && groupByCols.some(col => col.type === "Attachments"),
       groupbyColumns: isSummaryTable ? groupByColIds : undefined,
       widgetType: section.parentKey,
       ancestors,

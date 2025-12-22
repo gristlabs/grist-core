@@ -85,7 +85,7 @@ export class Banner extends Disposable {
 
   private _buildContent() {
     const {content, contentSmall} = this._options;
-    return dom.domComputed(use => {
+    return dom.domComputed((use) => {
       if (contentSmall === undefined) { return [content]; }
 
       const isExpanded = use(this._isExpanded);

@@ -33,7 +33,7 @@ export function handleSubmit<T>(
     disabled,
     onSubmit = submitForm,
     onSuccess = noop,
-    onError = (e) => reportError(e as string | Error),
+    onError = e => reportError(e as string | Error),
   } = options;
   return dom.on('submit', async (e, form) => {
     e.preventDefault();
@@ -108,7 +108,7 @@ export class TypedFormData {
     const keys = Array.from(this._formData.keys());
     // Don't return keys for scalar values that just return empty strings.
     // Otherwise, Grist won't fire trigger formulas.
-    return keys.filter(key => {
+    return keys.filter((key) => {
       // If there are multiple values, return the key as is.
       if (this._formData.getAll(key).length !== 1) { return true; }
 
