@@ -139,10 +139,10 @@ describe("DocWorkerLoadTracker", function() {
     beforeEach(function() {
       getLoadStub = sandbox.stub(docWorkerLoadTracker, "getLoad").resolves(0);
       setWorkerLoadStub = sandbox.stub(docWorkerMap, "setWorkerLoad").resolves(undefined);
-      logErrorStub = sandbox.stub(docWorkerLoadTracker._log, "error").returns(undefined);
+      logErrorStub = sandbox.stub(docWorkerLoadTracker["_log"], "error").returns(undefined);
     });
 
-    const triggerTimer = () => docWorkerLoadTracker._interval._onTimeoutTriggered();
+    const triggerTimer = () => docWorkerLoadTracker["_interval"]["_onTimeoutTriggered"]();
 
     it("should update the worker load when the timer is triggered", async function() {
       getLoadStub.resolves(0.42);

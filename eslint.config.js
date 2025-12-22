@@ -182,7 +182,6 @@ module.exports = defineConfig([
       "@typescript-eslint/dot-notation": ["error", {
         allowPrivateClassPropertyAccess: true,
         allowProtectedClassPropertyAccess: true,
-        allowIndexSignaturePropertyAccess: true,
       }],
       "@typescript-eslint/explicit-member-accessibility": ["error", {
         overrides: {
