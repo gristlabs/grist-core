@@ -89,11 +89,11 @@ describe('Webhooks-Proxy', function () {
 
 
   describe('Proxy is configured', function () {
-    runServerConfigurations({GRIST_HTTPS_PROXY:`http://localhost:${webhooksTestProxyPort}`}, ()=>testWebhookProxy(true));
+    runServerConfigurations({GRIST_HTTPS_PROXY:`http://localhost:${webhooksTestProxyPort}`}, () => testWebhookProxy(true));
   });
 
   describe('Proxy not configured', function () {
-    runServerConfigurations({GRIST_HTTPS_PROXY:undefined}, ()=>testWebhookProxy(false));
+    runServerConfigurations({GRIST_HTTPS_PROXY:undefined}, () => testWebhookProxy(false));
 
   });
 

@@ -100,7 +100,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
         ...columnTypes.map(colType =>
           menuItem(
             async () => {
-              await gridView.insertColumn(null, {index, colInfo: {type: colType.colType}, onPopupClose: ()=> {
+              await gridView.insertColumn(null, {index, colInfo: {type: colType.colType}, onPopupClose: () => {
                 if(!colType.openCreatorPanel || isNarrowScreen()) { return; }
                   commands.allCommands.fieldTabOpen.run();
                   commands.allCommands.rightPanelOpen.run();
@@ -945,7 +945,7 @@ function freezeMenuItemCmd(options: IMultiColumnContextMenu) {
 // undefined if colId is the only column in the spec. Otherwise returns `Sorted (#N)` where #N is
 // the position (1 based) of colId in the spec.
 function getAddToSortLabel(sortSpec: Sort.SortSpec, colId: number): string|undefined {
-  const columnsInSpec = sortSpec.map(n =>Sort.getColRef(n));
+  const columnsInSpec = sortSpec.map(n => Sort.getColRef(n));
   if (sortSpec.length !== 0 && !isEqual(columnsInSpec, [colId])) {
     const index = columnsInSpec.indexOf(colId);
     if (index > -1) {

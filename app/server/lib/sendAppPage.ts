@@ -298,7 +298,7 @@ function getPermittedCustomWidgets(gristServer?: GristServer|null): IAttachedCus
     }
     return AttachedCustomWidgets.checkAll(namesFound);
   }
-  const widgetsList = process.env.PERMITTED_CUSTOM_WIDGETS?.split(',').map(widgetName=>`custom.${widgetName}`) ?? [];
+  const widgetsList = process.env.PERMITTED_CUSTOM_WIDGETS?.split(',').map(widgetName => `custom.${widgetName}`) ?? [];
   return AttachedCustomWidgets.checkAll(widgetsList);
 }
 

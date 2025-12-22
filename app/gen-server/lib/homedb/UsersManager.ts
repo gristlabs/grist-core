@@ -228,7 +228,7 @@ export class UsersManager {
       picture: user.picture,
       ref: user.ref,
       locale: user.options?.locale,
-      prefs: user.prefs?.find(p=> p.orgId === null)?.prefs,
+      prefs: user.prefs?.find(p => p.orgId === null)?.prefs,
       firstLoginAt: user.firstLoginAt || null,
       disabledAt: user.disabledAt || null,
     };
@@ -1014,7 +1014,7 @@ export class UsersManager {
     emails: string[],
     manager?: EntityManager
   ) {
-    const normalizedEmails = emails.map(email=> normalizeEmail(email));
+    const normalizedEmails = emails.map(email => normalizeEmail(email));
     return (manager || this._connection).createQueryBuilder()
       .select('user')
       .from(User, 'user')

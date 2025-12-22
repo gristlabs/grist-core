@@ -288,7 +288,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
    */
   public getFullLayoutSpec() {
     const specs = this.layout.getLayoutSpec();
-    specs.collapsed = this.viewModel.activeCollapsedSections.peek().map(leaf=> ({leaf}));
+    specs.collapsed = this.viewModel.activeCollapsedSections.peek().map(leaf => ({leaf}));
     return specs;
   }
 

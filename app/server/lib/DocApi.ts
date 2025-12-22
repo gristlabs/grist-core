@@ -1052,7 +1052,7 @@ export class DocWorkerApi {
           const registeredWebhook = await registerWebhook(activeDoc, req, webhook.fields);
           registeredWebhooks.push(registeredWebhook);
         }
-        res.json({webhooks:  registeredWebhooks.map((rw)=> {
+        res.json({webhooks:  registeredWebhooks.map((rw) => {
           return {id: rw.webhookId};
         })});
       })

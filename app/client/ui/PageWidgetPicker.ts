@@ -294,7 +294,7 @@ const registeredCustomWidgets: IAttachedCustomWidget[] =  ['custom.calendar'];
 const permittedCustomWidgets: IAttachedCustomWidget[] = PERMITTED_CUSTOM_WIDGETS().get().map(widget =>
   widget as IAttachedCustomWidget)??[];
 // the list of widget types in the order they should be listed by the widget.
-const finalListOfCustomWidgetToShow =  permittedCustomWidgets.filter(a=>
+const finalListOfCustomWidgetToShow =  permittedCustomWidgets.filter(a =>
   registeredCustomWidgets.includes(a));
 const sectionTypes: IWidgetType[] = [
   'record', 'single', 'detail', 'form', 'chart', ...finalListOfCustomWidgetToShow, 'custom'

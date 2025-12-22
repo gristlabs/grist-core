@@ -196,7 +196,7 @@ export class ReferenceListEditor extends NewBaseEditor {
    */
   public async prepForSave() {
     const tokens = this._tokenField.tokensObs.get();
-    const newValues = tokens.filter(({rowId})=> rowId === 'new');
+    const newValues = tokens.filter(({rowId}) => rowId === 'new');
     if (newValues.length === 0) { return; }
 
     // Add the new items to the referenced table.

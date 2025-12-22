@@ -309,7 +309,7 @@ export function setHoverTooltip(
  */
 export function tooltipCloseButton(ctl: ITooltipControl): HTMLElement {
   return cssTooltipCloseButton(icon('CrossSmall'),
-    dom.on('mousedown', (ev) =>{
+    dom.on('mousedown', (ev) => {
       ev.stopPropagation();
       ev.preventDefault();
       ctl.close();

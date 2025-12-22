@@ -138,7 +138,7 @@ describe('DuplicatePage', async function() {
           async e => (await e.find("input").matches(":checked"))
             ? (await e.find(".test-filter-menu-value").getText())
             : "")
-      ).filter(x=>x);
+      ).filter(x => x);
     const selectColumn = (name: string) => driver.findContent('.grist-floating-menu li', name).click();
     const clickNone = () => driver.findContent('.test-filter-menu-bulk-action', /None/).click();
     const clickFilterValue = (name: string) => driver.findContent('.test-filter-menu-list label', name).click();

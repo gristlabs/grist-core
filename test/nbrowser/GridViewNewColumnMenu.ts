@@ -309,7 +309,7 @@ describe('GridViewNewColumnMenu', function () {
           //discard rename menu
           await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
           //check if referenceColumnsConfig is present
-          await gu.waitToPass(async ()=> assert.isTrue(
+          await gu.waitToPass(async () => assert.isTrue(
             await driver.findContentWait(
               '.test-behavioral-prompt-title',
               'Reference Columns',

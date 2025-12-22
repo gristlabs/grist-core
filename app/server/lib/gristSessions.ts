@@ -62,7 +62,7 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
     return () => {
       const client = createClient(process.env.REDIS_URL);
       client.on('error',
-        (err: unknown)=> {
+        (err: unknown) => {
           log.error(`createSessionStoreFactory: redisClient error`, String(err));
         }
       );

@@ -165,7 +165,7 @@ describe('CustomWidgets', function () {
 
   // Get rendered content from custom section.
   const content = async () => {
-      return gu.doInIframe(await getCustomWidgetFrame(), async ()=>{
+      return gu.doInIframe(await getCustomWidgetFrame(), async () => {
         const text = await driver.find('body').getText();
         return text;
       });
@@ -175,7 +175,7 @@ describe('CustomWidgets', function () {
     op: (table: TableOperations) => Promise<any>,
     tableSelector: (grist: any) => TableOperations = grist => grist.selectedTable
   ) {
-    return gu.doInIframe(await getCustomWidgetFrame(), async ()=> {
+    return gu.doInIframe(await getCustomWidgetFrame(), async () => {
       const harness = async (done: any) => {
         const grist = (window as any).grist;
         grist.ready();
@@ -775,7 +775,7 @@ describe('CustomWidgets', function () {
     });
   });
 
-  describe('gristApiSupport', async ()=>{
+  describe('gristApiSupport', async () => {
     beforeEach(async function () {
       // We need to be sure that widget configuration panel is open all the time.
       await gu.toggleSidePanel('right', 'open');
@@ -790,7 +790,7 @@ describe('CustomWidgets', function () {
         return gu.currentDriver().find('.test-account-page-language .test-select-open');
       }
       async function language() {
-        return await gu.doInIframe(await getCustomWidgetFrame(), async ()=>{
+        return await gu.doInIframe(await getCustomWidgetFrame(), async () => {
           const urlText = await driver.executeScript<string>('return document.location.href');
           const url = new URL(urlText);
           return url.searchParams.get('language');
@@ -919,7 +919,7 @@ describe('CustomWidgets', function () {
     });
 
     it("should support grist.getAccessTokens", async () => {
-      return await gu.doInIframe(await getCustomWidgetFrame(), async ()=>{
+      return await gu.doInIframe(await getCustomWidgetFrame(), async () => {
         const tokenResult: AccessTokenResult = await driver.executeAsyncScript(
           (done: any) => (window as any).grist.getAccessToken().then(done)
         );
