@@ -530,6 +530,7 @@ export default class GridView extends BaseView {
       // Auto-size columns on initial load if enabled
       if (this._rowHeights.length > 0) {
         this._applyAutoWidth();
+        this.scrolly.updateSize();
         const scrollbarWidth = 22;
         const borderWidth = 2;
         const headerHeight = 23;
@@ -551,7 +552,7 @@ export default class GridView extends BaseView {
           dom.style('width', use => `${use(widthObs)}px`),
           dom.style('height', `${targetHeight}px`)
         );
-        this.scrolly.scheduleUpdateSize();
+        this.scrolly.updateSize();
         const paneElem = this.viewPane.querySelector('.gridview_data_header') as HTMLElement;
         const resizeObserver = new ResizeObserver(updateWidth);
         resizeObserver.observe(paneElem);
