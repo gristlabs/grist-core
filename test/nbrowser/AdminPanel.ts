@@ -1,12 +1,11 @@
-import {TelemetryLevel} from 'app/common/Telemetry';
-import {assert, driver, Key} from 'mocha-webdriver';
-import {currentVersion, isEnabled, toggleItem, withExpandedItem} from 'test/nbrowser/AdminPanelTools';
-import * as gu from 'test/nbrowser/gristUtils';
-import { server, setupTestSuite } from 'test/nbrowser/testUtils';
-import { FakeUpdateServer, startFakeUpdateServer } from 'test/server/customUtil';
-import * as testUtils from 'test/server/testUtils';
+import { TelemetryLevel } from "app/common/Telemetry";
+import { currentVersion, isEnabled, toggleItem, withExpandedItem } from "test/nbrowser/AdminPanelTools";
+import * as gu from "test/nbrowser/gristUtils";
+import { server, setupTestSuite } from "test/nbrowser/testUtils";
+import { FakeUpdateServer, startFakeUpdateServer } from "test/server/customUtil";
+import * as testUtils from "test/server/testUtils";
 
-import { assert, driver, Key, WebElement } from "mocha-webdriver";
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("AdminPanel", function() {
   this.timeout(300000);

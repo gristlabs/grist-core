@@ -135,9 +135,9 @@ describe("GranularAccess", function() {
   });
 
   after(async function() {
-    const messages = await testUtils.captureLog('error', async () => {
-      const api = await home.createHomeApi('chimpy', 'docs');
-      await api.deleteOrg('testy');
+    const messages = await testUtils.captureLog("error", async () => {
+      const api = await home.createHomeApi("chimpy", "docs");
+      await api.deleteOrg("testy");
       await home.stop();
     });
     assert.lengthOf(messages, 0);
@@ -1086,7 +1086,7 @@ describe("GranularAccess", function() {
     ]));
   });
 
-  it('non-owners need extra permissions for downloadDoc and copyDoc', async function() {
+  it("non-owners need extra permissions for downloadDoc and copyDoc", async function() {
     // It used to be that "canReadEverything" was enough to allow downloadDoc and copyDoc, but
     // that bypassed the permission to allow viewing Access Rules themselves. Now, in addition to
     // requiring "canReadEverything", copying and downloading requires two other permissions:
@@ -1104,11 +1104,11 @@ describe("GranularAccess", function() {
 
     // Make some tables, and lock structure.
     await owner.applyUserActions(docId, [
-      ['AddTable', 'Table1', [{id: 'A', type: 'Text'}]],
-      ['BulkAddRecord', 'Table1', [null, null], {A: ['Foo', 'Bar']}],
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: '*', colIds: '*'}],
-      ['AddRecord', '_grist_ACLRules', null, {
-        resource: -1, aclFormula: 'user.Access != OWNER', permissionsText: '-S',
+      ["AddTable", "Table1", [{ id: "A", type: "Text" }]],
+      ["BulkAddRecord", "Table1", [null, null], { A: ["Foo", "Bar"] }],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "*", colIds: "*" }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "user.Access != OWNER", permissionsText: "-S",
       }],
     ]);
 
@@ -1120,9 +1120,9 @@ describe("GranularAccess", function() {
 
     // Give "Access Rules" permission.
     await owner.applyUserActions(docId, [
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: '*SPECIAL', colIds: 'AccessRules'}],
-      ['AddRecord', '_grist_ACLRules', null, {
-        resource: -1, aclFormula: 'True', permissionsText: '+R',
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "*SPECIAL", colIds: "AccessRules" }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "True", permissionsText: "+R",
       }],
     ]);
 
@@ -1134,9 +1134,9 @@ describe("GranularAccess", function() {
 
     // Add the "DocCopies" restriction.
     const results = await owner.applyUserActions(docId, [
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: '*SPECIAL', colIds: 'DocCopies'}],
-      ['AddRecord', '_grist_ACLRules', null, {
-        resource: -1, aclFormula: 'user.Access != OWNER', permissionsText: '-R',
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "*SPECIAL", colIds: "DocCopies" }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "user.Access != OWNER", permissionsText: "-R",
       }],
     ]);
     const restrictionRuleId = results.retValues[1];
@@ -1149,15 +1149,15 @@ describe("GranularAccess", function() {
 
     // Remove the restriction.
     await owner.applyUserActions(docId, [
-      ['RemoveRecord', '_grist_ACLRules', restrictionRuleId],
+      ["RemoveRecord", "_grist_ACLRules", restrictionRuleId],
     ]);
 
     // If we have ANY data restrictions, copies and downloads should still be disallowed, even
     // though both "DocCopies" and "AccessRules" permissions are granted.
     const result2 = await owner.applyUserActions(docId, [
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: '*'}],
-      ['AddRecord', '_grist_ACLRules', null, {
-        resource: -1, aclFormula: 'rec.A == "Foo"', permissionsText: '-R',
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "Table1", colIds: "*" }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: 'rec.A == "Foo"', permissionsText: "-R",
       }],
     ]);
     const dataRuleId = result2.retValues[1];
@@ -1170,7 +1170,7 @@ describe("GranularAccess", function() {
     // If we update data so that it's all visible to the editor, then yes, with "DocCopies" and
     // "AccessRules", they can now download. Test it by changing the rule from -R to +R-CUD.
     await owner.applyUserActions(docId, [
-      ['UpdateRecord', '_grist_ACLRules', dataRuleId, {permissionsText: '+R-CUD'}],
+      ["UpdateRecord", "_grist_ACLRules", dataRuleId, { permissionsText: "+R-CUD" }],
     ]);
     await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
     await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
@@ -1178,7 +1178,7 @@ describe("GranularAccess", function() {
     await assert.isFulfilled((await editor.getWorkerAPI(docId)).copyDoc(docId));
   });
 
-  it('owner can edit rules without structure permission', async function() {
+  it("owner can edit rules without structure permission", async function() {
     await freshDoc();
 
     // Make some tables, and lock structure completely.

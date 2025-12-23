@@ -1,8 +1,6 @@
-import * as _ from 'lodash';
-import {assert, driver} from 'mocha-webdriver';
-import {enterRulePart, findDefaultRuleSetWait, startEditingAccessRules} from 'test/nbrowser/aclTestUtils';
-import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { enterRulePart, findDefaultRuleSetWait, startEditingAccessRules } from "test/nbrowser/aclTestUtils";
+import * as gu from "test/nbrowser/gristUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import * as _ from "lodash";
 import { assert, driver } from "mocha-webdriver";
@@ -189,11 +187,11 @@ describe("SelectBySummary", function() {
     await startEditingAccessRules();
 
     // Deny all access to Table1.
-    await driver.findContentWait('button', /Add table rules/, 2000).click();
-    await gu.findOpenMenuItem('li', /Table1/, 3000).click();
+    await driver.findContentWait("button", /Add table rules/, 2000).click();
+    await gu.findOpenMenuItem("li", /Table1/, 3000).click();
     const ruleSet = findDefaultRuleSetWait(/Table1/);
-    await enterRulePart(ruleSet, 1, null, 'Deny all');
-    await driver.find('.test-rules-save').click();
+    await enterRulePart(ruleSet, 1, null, "Deny all");
+    await driver.find(".test-rules-save").click();
     await gu.waitForServer();
 
     // Go back to the main page.

@@ -35,9 +35,9 @@ describe("disabledAt", function() {
 
     wsId = await ownerSession.tempWorkspace(cleanup, "owner-ws");
 
-    const inWorkspace = ownerSession.forWorkspace('owner-ws');
-    const doc = await inWorkspace.tempDoc(cleanup, 'Hello.grist', {load: false});
-    await inWorkspace.tempDoc(cleanup, 'Widgets.grist', {load: false}); // second doc not used further
+    const inWorkspace = ownerSession.forWorkspace("owner-ws");
+    const doc = await inWorkspace.tempDoc(cleanup, "Hello.grist", { load: false });
+    await inWorkspace.tempDoc(cleanup, "Widgets.grist", { load: false }); // second doc not used further
     docId = doc.id;
 
     const docInfo = await ownerApi.getDoc(docId);
@@ -67,14 +67,14 @@ describe("disabledAt", function() {
     await assert403((await ownerApi.getWorkerAPI(docId)).downloadDoc(docId));
   });
 
-  it('should remove some UI on disabled doc in DocList UI for owner', async function() {
-    ownerSession = await team.user('user1').login();
-    await ownerSession.loadDocMenu('/');
-    await gu.openWorkspace('owner-ws');
-    await driver.findWait('.test-component-tabs-list', 5000);
+  it("should remove some UI on disabled doc in DocList UI for owner", async function() {
+    ownerSession = await team.user("user1").login();
+    await ownerSession.loadDocMenu("/");
+    await gu.openWorkspace("owner-ws");
+    await driver.findWait(".test-component-tabs-list", 5000);
 
-    const entries = await driver.findAll('.test-dm-doc');
-    assert.equal(entries.length, 2, 'All docs should still be visible');
+    const entries = await driver.findAll(".test-dm-doc");
+    assert.equal(entries.length, 2, "All docs should still be visible");
     const disabledDoc = entries[0];
     const enabledDoc = entries[1];
 

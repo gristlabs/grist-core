@@ -2,10 +2,10 @@
  * Test of the UI for Granular Access Control, part 1.
  */
 import { enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait, findRuleSet,
-         findTable, startEditingAccessRules, triggerAutoComplete } from 'test/nbrowser/aclTestUtils';
-import * as gu from 'test/nbrowser/gristUtils';
-import { server } from 'test/nbrowser/testServer';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
+  findTable, startEditingAccessRules, triggerAutoComplete } from "test/nbrowser/aclTestUtils";
+import * as gu from "test/nbrowser/gristUtils";
+import { server } from "test/nbrowser/testServer";
+import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver, Key, stackWrapFunc } from "mocha-webdriver";
 
@@ -119,13 +119,13 @@ describe("AccessRules1", function() {
     await enterRulePart(ruleSet, 1, `user.Email == '${gu.translateUser("user1").email}'`, "Allow all");
 
     // Make RumorsColumn of ClientsTable private to user1.
-    await driver.findContentWait('button', /Add table rules/, 2000).click();
-    await gu.findOpenMenuItem('li', /ClientsTable/).click();
-    await findTable(/ClientsTable/).findWait('.test-rule-table-menu-btn', 300).click();
-    await gu.findOpenMenuItem('li', /Add column rule/).click();
+    await driver.findContentWait("button", /Add table rules/, 2000).click();
+    await gu.findOpenMenuItem("li", /ClientsTable/).click();
+    await findTable(/ClientsTable/).findWait(".test-rule-table-menu-btn", 300).click();
+    await gu.findOpenMenuItem("li", /Add column rule/).click();
     ruleSet = findRuleSet(/ClientsTable/, 1);
 
-    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
+    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems("li", el => el.getText()),
       [
@@ -367,7 +367,7 @@ describe("AccessRules1", function() {
     await findTable(/FinancialsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
-    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
+    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems("li", el => el.getText()),
       ["Expenses", "Income", "Year"],
@@ -398,34 +398,34 @@ describe("AccessRules1", function() {
     await findTable(/FinancialsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
-    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
+    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems("li", el => el.getText()),
       ["Expenses", "Income", "Year"],
     );
-    await gu.findOpenMenuItem('li', 'Year').click();
-    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
-    await gu.findOpenMenuItem('li', 'Income').click();
-    await enterRulePart(ruleSet, 1, 'user.Email == "noone1"', { R: 'deny' });
+    await gu.findOpenMenuItem("li", "Year").click();
+    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
+    await gu.findOpenMenuItem("li", "Income").click();
+    await enterRulePart(ruleSet, 1, 'user.Email == "noone1"', { R: "deny" });
 
     // Make a rule for FinancialsTable.Year and FinancialsTable.Expenses that allows something.
     await findTable(/FinancialsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
     ruleSet = findRuleSet(/FinancialsTable/, 2);
-    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
+    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems("li", el => el.getText()),
       ["Expenses", "Income", "Year"],
     );
-    await gu.findOpenMenuItem('li', 'Year').click();
-    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
-    await gu.findOpenMenuItem('li', 'Expenses').click();
-    await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', { R: 'allow' });
+    await gu.findOpenMenuItem("li", "Year").click();
+    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
+    await gu.findOpenMenuItem("li", "Expenses").click();
+    await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', { R: "allow" });
 
     // Check that trying to save throws an error.
     await driver.find(".test-rules-save").click();
     await gu.waitForServer();
-    await driver.findContentWait('.test-notifier-toast-wrapper',
+    await driver.findContentWait(".test-notifier-toast-wrapper",
       /Column Year appears .* table FinancialsTable .* might be order-dependent/, 200);
     await gu.wipeToasts();
 
@@ -438,10 +438,10 @@ describe("AccessRules1", function() {
   it("'Add Widget to Page' should be disabled", async () => {
     const mainSession = await gu.session().teamSite.user("user1").login();
     await mainSession.loadDoc(`/doc/${docId}/p/acl`, { wait: false });
-    await driver.findWait('.test-rule-set', 2000);
-    await driver.find('.test-dp-add-new').doClick();
+    await driver.findWait(".test-rule-set", 2000);
+    await driver.find(".test-dp-add-new").doClick();
     await gu.findOpenMenu();
-    assert.includeMembers(await driver.findAll('.test-dp-add-new-menu > li.disabled', (imp) => imp.getText()), [
+    assert.includeMembers(await driver.findAll(".test-dp-add-new-menu > li.disabled", imp => imp.getText()), [
       "Add widget to page",
     ]);
     await driver.sendKeys(Key.ESCAPE);

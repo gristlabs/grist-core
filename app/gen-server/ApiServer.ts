@@ -1,47 +1,46 @@
-import { ApiError } from "app/common/ApiError";
-import { isAffirmative } from "app/common/gutil";
-import { FullUser } from "app/common/LoginSessionAPI";
-import { BasicRole } from "app/common/roles";
-import * as SATypes from "app/common/ServiceAccountTypes";
-import ServiceAccountTI from "app/common/ServiceAccountTypes-ti";
-import { DOCTYPE_NORMAL,
+import * as crypto from 'crypto';
+import * as express from 'express';
+import * as cookie from 'cookie';
+import {Request} from 'express';
+import pick from 'lodash/pick';
+import * as t from "ts-interface-checker";
+
+import {ApiError} from 'app/common/ApiError';
+import {isAffirmative} from 'app/common/gutil';
+import {FullUser} from 'app/common/LoginSessionAPI';
+import {BasicRole} from 'app/common/roles';
+import * as SATypes from 'app/common/ServiceAccountTypes';
+import ServiceAccountTI from 'app/common/ServiceAccountTypes-ti';
+import {DOCTYPE_NORMAL,
   DOCTYPE_TEMPLATE,
   DOCTYPE_TUTORIAL,
   OrganizationProperties,
-  PermissionDelta } from "app/common/UserAPI";
-import { Document } from "app/gen-server/entity/Document";
-import { Organization } from "app/gen-server/entity/Organization";
-import { User } from "app/gen-server/entity/User";
-import { Workspace } from "app/gen-server/entity/Workspace";
-import { BillingOptions, HomeDBManager, Scope } from "app/gen-server/lib/homedb/HomeDBManager";
-import { DocumentAccessChanges, OrgAccessChanges, PreviousAndCurrent,
-  QueryResult, WorkspaceAccessChanges } from "app/gen-server/lib/homedb/Interfaces";
-import { Permissions } from "app/gen-server/lib/Permissions";
-import { appSettings } from "app/server/lib/AppSettings";
-import { getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin } from "app/server/lib/Authorizer";
-import { getSessionUser, linkOrgWithEmail } from "app/server/lib/BrowserSession";
-import { expressWrap } from "app/server/lib/expressWrap";
-import { RequestWithOrg } from "app/server/lib/extractOrg";
-import { GristServer } from "app/server/lib/GristServer";
-import { getCookieDomain } from "app/server/lib/gristSessions";
-import { getTemplateOrg } from "app/server/lib/gristSettings";
-import log from "app/server/lib/log";
-import { clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
-  isParameterOn, optStringParam, sendOkReply, sendReply, stringParam } from "app/server/lib/requestUtils";
+  PermissionDelta} from 'app/common/UserAPI';
+import {Document} from "app/gen-server/entity/Document";
+import {Organization} from 'app/gen-server/entity/Organization';
+import {User} from 'app/gen-server/entity/User';
+import {Workspace} from 'app/gen-server/entity/Workspace';
+import {BillingOptions, HomeDBManager, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {DocumentAccessChanges, OrgAccessChanges, PreviousAndCurrent,
+        QueryResult, WorkspaceAccessChanges} from 'app/gen-server/lib/homedb/Interfaces';
+import {Permissions} from 'app/gen-server/lib/Permissions';
+import {appSettings} from 'app/server/lib/AppSettings';
+import {getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {getSessionUser, linkOrgWithEmail} from 'app/server/lib/BrowserSession';
+import {expressWrap} from 'app/server/lib/expressWrap';
+import {RequestWithOrg} from 'app/server/lib/extractOrg';
+import {GristServer} from 'app/server/lib/GristServer';
+import {getTemplateOrg} from 'app/server/lib/gristSettings';
+import {clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
+        isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
+import {getCookieDomain} from 'app/server/lib/gristSessions';
+import log from 'app/server/lib/log';
 
-import * as crypto from "crypto";
-
-import * as cookie from "cookie";
-import { Request } from "express";
-import * as express from "express";
-import pick from "lodash/pick";
-import * as t from "ts-interface-checker";
-
-const ALLOW_DEPRECATED_BARE_ORG_DELETE = appSettings.section("api").flag("allowBareOrgDelete").readBool({
-  envVar: "GRIST_ALLOW_DEPRECATED_BARE_ORG_DELETE",
+const ALLOW_DEPRECATED_BARE_ORG_DELETE = appSettings.section('api').flag('allowBareOrgDelete').readBool({
+  envVar: 'GRIST_ALLOW_DEPRECATED_BARE_ORG_DELETE',
 });
 
-const { PatchServiceAccount, PostServiceAccount } = t.createCheckers(ServiceAccountTI);
+const {PatchServiceAccount, PostServiceAccount} = t.createCheckers(ServiceAccountTI);
 
 for (const checker of [PatchServiceAccount, PostServiceAccount]) {
   checker.setReportedPath("body");
@@ -54,10 +53,9 @@ function validateStrict(checker: t.Checker): express.RequestHandler {
   return (req, res, next) => {
     try {
       checker.strictCheck(req.body);
-    }
-    catch (err) {
+    } catch(err) {
       log.warn(`Error during api call to ${req.path}: Invalid payload: ${String(err)}`);
-      throw new ApiError("Invalid payload", 400, { userError: String(err) });
+      throw new ApiError('Invalid payload', 400, {userError: String(err)});
     }
     next();
   };
@@ -65,7 +63,7 @@ function validateStrict(checker: t.Checker): express.RequestHandler {
 
 // Fetch the org this request was made for, or null if it isn't tied to a particular org.
 // Early middleware should have put the org in the request object for us.
-export function getOrgFromRequest(req: Request): string | null {
+export function getOrgFromRequest(req: Request): string|null {
   return (req as RequestWithOrg).org || null;
 }
 
@@ -73,10 +71,10 @@ export function getOrgFromRequest(req: Request): string | null {
  * Compute the signature of the user's email address using HelpScout's secret key, to prove to
  * HelpScout the user identity for identifying customer information and conversation history.
  */
-function helpScoutSign(email: string): string | undefined {
+function helpScoutSign(email: string): string|undefined {
   const secretKey = process.env.HELP_SCOUT_SECRET_KEY_V2;
   if (!secretKey) { return undefined; }
-  return crypto.createHmac("sha256", secretKey).update(email).digest("hex");
+  return crypto.createHmac('sha256', secretKey).update(email).digest('hex');
 }
 
 /**
@@ -88,15 +86,14 @@ function helpScoutSign(email: string): string | undefined {
  *     in the url
  *   - If there is no identifier available, a 400 error is thrown.
  */
-export function getOrgKey(req: Request): string | number {
-  let orgKey: string | null = stringParam(req.params.oid, "oid");
-  if (orgKey === "current") {
+export function getOrgKey(req: Request): string|number {
+  let orgKey: string|null = stringParam(req.params.oid, 'oid');
+  if (orgKey === 'current') {
     orgKey = getOrgFromRequest(req);
   }
   if (!orgKey) {
     throw new ApiError("No organization chosen", 400);
-  }
-  else if (/^\d+$/.test(orgKey)) {
+  } else if (/^\d+$/.test(orgKey)) {
     return parseInt(orgKey, 10);
   }
   return orgKey;
@@ -111,15 +108,15 @@ export function addOrg(
   options?: {
     product?: string,
     billing?: BillingOptions,
-  },
+  }
 ): Promise<Organization> {
-  return dbManager.connection.transaction(async (manager) => {
-    const user = await manager.findOne(User, { where: { id: userId } });
+  return dbManager.connection.transaction(async manager => {
+    const user = await manager.findOne(User, {where: {id: userId}});
     if (!user) { return handleDeletedUser(); }
     const query = await dbManager.addOrg(user, props, {
       ...options,
       setUserAsOwner: false,
-      useNewPlan: true,
+      useNewPlan: true
     }, manager);
     if (query.status !== 200) { throw new ApiError(query.errMessage!, query.status); }
     return query.data!;
@@ -141,7 +138,7 @@ export class ApiServer {
   constructor(
     private _gristServer: GristServer,
     private _app: express.Application,
-    private _dbManager: HomeDBManager,
+    private _dbManager: HomeDBManager
   ) {
     this._addEndpoints();
   }
@@ -151,7 +148,7 @@ export class ApiServer {
 
     // GET /api/orgs
     // Get all organizations user may have some access to.
-    this._app.get("/api/orgs", expressWrap(async (req, res) => {
+    this._app.get('/api/orgs', expressWrap(async (req, res) => {
       const userId = getUserId(req);
       const domain = getOrgFromRequest(req);
       const merged = Boolean(req.query.merged);
@@ -163,15 +160,15 @@ export class ApiServer {
 
     // GET /api/workspace/:wid
     // Get workspace by id, returning nested documents that user has access to.
-    this._app.get("/api/workspaces/:wid", expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid, "wid");
+    this._app.get('/api/workspaces/:wid', expressWrap(async (req, res) => {
+      const wsId = integerParam(req.params.wid, 'wid');
       const query = await this._dbManager.getWorkspace(getScope(req), wsId);
       return sendReply(req, res, query);
     }));
 
     // GET /api/orgs/:oid
     // Get organization by id
-    this._app.get("/api/orgs/:oid", expressWrap(async (req, res) => {
+    this._app.get('/api/orgs/:oid', expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const query = await this._dbManager.getOrg(getScope(req), org);
       return sendReply(req, res, query);
@@ -179,7 +176,7 @@ export class ApiServer {
 
     // GET /api/orgs/:oid/workspaces
     // Get all workspaces and nested documents of organization that user has access to.
-    this._app.get("/api/orgs/:oid/workspaces", expressWrap(async (req, res) => {
+    this._app.get('/api/orgs/:oid/workspaces', expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const query = await this._dbManager.getOrgWorkspaces(getScope(req), org);
       return sendReply(req, res, query);
@@ -188,7 +185,7 @@ export class ApiServer {
     // GET /api/orgs/:oid/usage
     // Get usage summary of all un-deleted documents in the organization.
     // Only accessible to org owners.
-    this._app.get("/api/orgs/:oid/usage", expressWrap(async (req, res) => {
+    this._app.get('/api/orgs/:oid/usage', expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const usage = await this._dbManager.getOrgUsageSummary(getScope(req), org);
       return sendOkReply(req, res, usage);
@@ -197,7 +194,7 @@ export class ApiServer {
     // POST /api/orgs
     // Body params: name (required), domain
     // Create a new org.
-    this._app.post("/api/orgs", expressWrap(async (req, res) => {
+    this._app.post('/api/orgs', expressWrap(async (req, res) => {
       // Don't let anonymous users end up owning organizations, it will be confusing.
       // Maybe if the user has presented credentials this would be ok - but addOrg
       // doesn't have access to that information yet, so punting on this.
@@ -211,9 +208,9 @@ export class ApiServer {
     // PATCH /api/orgs/:oid
     // Body params: name, domain
     // Update the specified org.
-    this._app.patch("/api/orgs/:oid", expressWrap(async (req, res) => {
+    this._app.patch('/api/orgs/:oid', expressWrap(async (req, res) => {
       const org = getOrgKey(req);
-      const { data, ...result } = await this._dbManager.updateOrg(getScope(req), org, req.body);
+      const {data, ...result} = await this._dbManager.updateOrg(getScope(req), org, req.body);
       if (data && (req.body.name || req.body.domain)) {
         this._logRenameSiteEvents(req as RequestWithLogin, data);
       }
@@ -224,19 +221,18 @@ export class ApiServer {
     // Delete the specified org and all included workspaces and docs.
     // The :name should match the orgs.domain or orgs.name, or be the string
     // "force-delete".
-    this._app.delete("/api/orgs/:oid/:name", expressWrap(async (req, res) => {
-      const name = stringParam(req.params.name, "name");
+    this._app.delete('/api/orgs/:oid/:name', expressWrap(async (req, res) => {
+      const name = stringParam(req.params.name, 'name');
       await this._deleteOrg(req, res, name);
     }));
 
-    this._app.delete("/api/orgs/:oid", expressWrap(async (req, res) => {
+    this._app.delete('/api/orgs/:oid', expressWrap(async (req, res) => {
       if (ALLOW_DEPRECATED_BARE_ORG_DELETE) {
-        await this._deleteOrg(req, res, "force-delete");
-      }
-      else {
+        await this._deleteOrg(req, res, 'force-delete');
+      } else {
         throw new ApiError(
           "This endpoint is no longer supported. Use DELETE /api/orgs/:oid/:name instead.",
-          410,
+          410
         );
       }
     }));
@@ -244,42 +240,41 @@ export class ApiServer {
     // POST /api/orgs/:oid/workspaces
     // Body params: name
     // Create a new workspace owned by the specific organization.
-    this._app.post("/api/orgs/:oid/workspaces", expressWrap(async (req, res) => {
+    this._app.post('/api/orgs/:oid/workspaces', expressWrap(async (req, res) => {
       const org = getOrgKey(req);
-      const { data, ...result } = await this._dbManager.addWorkspace(getScope(req), org, req.body);
+      const {data, ...result} = await this._dbManager.addWorkspace(getScope(req), org, req.body);
       if (data) { this._logCreateWorkspaceEvents(req, data); }
-      return sendReply(req, res, { ...result, data: data?.id });
+      return sendReply(req, res, {...result, data: data?.id});
     }));
 
     // PATCH /api/workspaces/:wid
     // Body params: name
     // Update the specified workspace.
-    this._app.patch("/api/workspaces/:wid", expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid, "wid");
-      const { data, ...result } = await this._dbManager.updateWorkspace(getScope(req), wsId, req.body);
-      if (data && "name" in req.body) { this._logRenameWorkspaceEvents(req, data); }
-      return sendReply(req, res, { ...result, data: data?.current.id });
+    this._app.patch('/api/workspaces/:wid', expressWrap(async (req, res) => {
+      const wsId = integerParam(req.params.wid, 'wid');
+      const {data, ...result} = await this._dbManager.updateWorkspace(getScope(req), wsId, req.body);
+      if (data && 'name' in req.body) { this._logRenameWorkspaceEvents(req, data); }
+      return sendReply(req, res, {...result, data: data?.current.id});
     }));
 
     // DELETE /api/workspaces/:wid
     // Delete the specified workspace and all included docs.
-    this._app.delete("/api/workspaces/:wid", expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid, "wid");
+    this._app.delete('/api/workspaces/:wid', expressWrap(async (req, res) => {
+      const wsId = integerParam(req.params.wid, 'wid');
       await this._hardDeleteWorkspace(req, wsId);
-      return sendReply(req, res, { status: 200, data: wsId });
+      return sendReply(req, res, {status: 200, data: wsId});
     }));
 
     // POST /api/workspaces/:wid/remove
     // Soft-delete the specified workspace.  If query parameter "permanent" is set,
     // delete permanently.
-    this._app.post("/api/workspaces/:wid/remove", expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid, "wid");
+    this._app.post('/api/workspaces/:wid/remove', expressWrap(async (req, res) => {
+      const wsId = integerParam(req.params.wid, 'wid');
       if (isParameterOn(req.query.permanent)) {
         await this._hardDeleteWorkspace(req, wsId);
-        return sendReply(req, res, { status: 200, data: wsId });
-      }
-      else {
-        const { data } = await this._dbManager.softDeleteWorkspace(getScope(req), wsId);
+        return sendReply(req, res, {status: 200, data: wsId});
+      } else {
+        const {data} = await this._dbManager.softDeleteWorkspace(getScope(req), wsId);
         if (data) { this._logRemoveWorkspaceEvents(req, data); }
         return sendOkReply(req, res);
       }
@@ -288,28 +283,28 @@ export class ApiServer {
     // POST /api/workspaces/:wid/unremove
     // Recover the specified workspace if it was previously soft-deleted and is
     // still available.
-    this._app.post("/api/workspaces/:wid/unremove", expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid, "wid");
-      const { data } = await this._dbManager.undeleteWorkspace(getScope(req), wsId);
+    this._app.post('/api/workspaces/:wid/unremove', expressWrap(async (req, res) => {
+      const wsId = integerParam(req.params.wid, 'wid');
+      const {data} = await this._dbManager.undeleteWorkspace(getScope(req), wsId);
       if (data) { this._logRestoreWorkspaceEvents(req, data); }
       return sendOkReply(req, res);
     }));
 
     // POST /api/workspaces/:wid/docs
     // Create a new doc owned by the specific workspace.
-    this._app.post("/api/workspaces/:wid/docs", expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid, "wid");
-      const { data, ...result } = await this._dbManager.addDocument(getScope(req), wsId, req.body);
+    this._app.post('/api/workspaces/:wid/docs', expressWrap(async (req, res) => {
+      const wsId = integerParam(req.params.wid, 'wid');
+      const {data, ...result} = await this._dbManager.addDocument(getScope(req), wsId, req.body);
       if (data) { this._logCreateDocumentEvents(req, data); }
-      return sendReply(req, res, { ...result, data: data?.id });
+      return sendReply(req, res, {...result, data: data?.id});
     }));
 
     // GET /api/templates/
     // Get all templates.
-    this._app.get("/api/templates/", expressWrap(async (req, res) => {
+    this._app.get('/api/templates/', expressWrap(async (req, res) => {
       const templateOrg = getTemplateOrg();
       if (!templateOrg) {
-        throw new ApiError("Template org is not configured", 501);
+        throw new ApiError('Template org is not configured', 501);
       }
 
       const query = await this._dbManager.getOrgWorkspaces(getScope(req), templateOrg);
@@ -318,19 +313,19 @@ export class ApiServer {
 
     // GET /api/templates/:did
     // Get information about a template.
-    this._app.get("/api/templates/:did", expressWrap(async (req, res) => {
+    this._app.get('/api/templates/:did', expressWrap(async (req, res) => {
       const templateOrg = getTemplateOrg();
       if (!templateOrg) {
-        throw new ApiError("Template org is not configured", 501);
+        throw new ApiError('Template org is not configured', 501);
       }
 
-      const query = await this._dbManager.getDoc({ ...getScope(req), org: templateOrg });
+      const query = await this._dbManager.getDoc({...getScope(req), org: templateOrg});
       return sendOkReply(req, res, query);
     }));
 
     // GET /api/widgets/
     // Get all widget definitions from external source.
-    this._app.get("/api/widgets/", expressWrap(async (req, res) => {
+    this._app.get('/api/widgets/', expressWrap(async (req, res) => {
       const widgetList = await this._gristServer
         .getWidgetRepository()
         .getWidgets();
@@ -339,66 +334,66 @@ export class ApiServer {
 
     // PATCH /api/docs/:did
     // Update the specified doc.
-    this._app.patch("/api/docs/:did", expressWrap(async (req, res) => {
+    this._app.patch('/api/docs/:did', expressWrap(async (req, res) => {
       const validDocTypes = [
         DOCTYPE_NORMAL,
         DOCTYPE_TEMPLATE,
-        DOCTYPE_TUTORIAL,
+        DOCTYPE_TUTORIAL
       ];
 
-      if ("type" in req.body && !validDocTypes.includes(req.body.type)) {
-        const errMsg = "Bad Request. 'type' key authorized values : " +
-          `'${DOCTYPE_TEMPLATE}', '${DOCTYPE_TUTORIAL}' or ${DOCTYPE_NORMAL}`;
-        return res.status(400).send({ error: errMsg });
+      if ('type' in req.body && ! validDocTypes.includes(req.body.type)){
+        const errMsg = "Bad Request. 'type' key authorized values : "
+                        + `'${DOCTYPE_TEMPLATE}', '${DOCTYPE_TUTORIAL}' or ${DOCTYPE_NORMAL}`;
+        return res.status(400).send({error: errMsg});
       }
 
-      const { data, ...result } = await this._dbManager.updateDocument(getDocScope(req), req.body);
+      const {data, ...result} = await this._dbManager.updateDocument(getDocScope(req), req.body);
 
-      if (data && "name" in req.body) { this._logRenameDocumentEvents(req, data); }
-      return sendReply(req, res, { ...result, data: data?.current.id });
+      if (data && 'name' in req.body) { this._logRenameDocumentEvents(req, data); }
+      return sendReply(req, res, {...result, data: data?.current.id});
     }));
 
     // POST /api/docs/:did/unremove
     // Recover the specified doc if it was previously soft-deleted and is
     // still available.
-    this._app.post("/api/docs/:did/unremove", expressWrap(async (req, res) => {
-      const { data } = await this._dbManager.undeleteDocument(getDocScope(req));
+    this._app.post('/api/docs/:did/unremove', expressWrap(async (req, res) => {
+      const {data} = await this._dbManager.undeleteDocument(getDocScope(req));
       if (data) { this._logRestoreDocumentEvents(req, data); }
       return sendOkReply(req, res);
     }));
 
     // PATCH /api/orgs/:oid/access
     // Update the specified org acl rules.
-    this._app.patch("/api/orgs/:oid/access", expressWrap(async (req, res) => {
+    this._app.patch('/api/orgs/:oid/access', expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const delta = req.body.delta;
-      const { data, ...result } = await this._dbManager.updateOrgPermissions(getScope(req), org, delta);
+      const {data, ...result} = await this._dbManager.updateOrgPermissions(getScope(req), org, delta);
       if (data) { this._logChangeSiteAccessEvents(req as RequestWithLogin, data); }
       return sendReply(req, res, result);
     }));
 
     // PATCH /api/workspaces/:wid/access
     // Update the specified workspace acl rules.
-    this._app.patch("/api/workspaces/:wid/access", expressWrap(async (req, res) => {
-      const workspaceId = integerParam(req.params.wid, "wid");
+    this._app.patch('/api/workspaces/:wid/access', expressWrap(async (req, res) => {
+      const workspaceId = integerParam(req.params.wid, 'wid');
       const delta = req.body.delta;
-      const { data, ...result } = await this._dbManager.updateWorkspacePermissions(getScope(req), workspaceId, delta);
+      const {data, ...result} = await this._dbManager.updateWorkspacePermissions(getScope(req), workspaceId, delta);
       if (data) { this._logChangeWorkspaceAccessEvents(req as RequestWithLogin, data); }
       return sendReply(req, res, result);
     }));
 
     // GET /api/docs/:did
     // Get information about a document.
-    this._app.get("/api/docs/:did", expressWrap(async (req, res) => {
+    this._app.get('/api/docs/:did', expressWrap(async (req, res) => {
       const query = await this._dbManager.getDoc(req);
       return sendOkReply(req, res, query);
     }));
 
     // PATCH /api/docs/:did/access
     // Update the specified doc acl rules.
-    this._app.patch("/api/docs/:did/access", expressWrap(async (req, res) => {
+    this._app.patch('/api/docs/:did/access', expressWrap(async (req, res) => {
       const delta = req.body.delta;
-      const { data, ...result } = await this._dbManager.updateDocPermissions(getDocScope(req), delta);
+      const {data, ...result} = await this._dbManager.updateDocPermissions(getDocScope(req), delta);
       if (data) { this._logChangeDocumentAccessEvents(req, data); }
       this._logInvitedDocUserTelemetryEvents(req, delta);
       return sendReply(req, res, result);
@@ -406,151 +401,150 @@ export class ApiServer {
 
     // PATCH /api/docs/:did/move
     // Move the doc to the workspace specified in the body.
-    this._app.patch("/api/docs/:did/move", expressWrap(async (req, res) => {
-      const workspaceId = integerParam(req.body.workspace, "workspace");
-      const { data, ...result } = await this._dbManager.moveDoc(getDocScope(req), workspaceId);
+    this._app.patch('/api/docs/:did/move', expressWrap(async (req, res) => {
+      const workspaceId = integerParam(req.body.workspace, 'workspace');
+      const {data, ...result} = await this._dbManager.moveDoc(getDocScope(req), workspaceId);
       if (data) { this._logMoveDocumentEvents(req, data); }
-      return sendReply(req, res, { ...result, data: data?.current.id });
+      return sendReply(req, res, {...result, data: data?.current.id});
     }));
 
-    this._app.patch("/api/docs/:did/pin", expressWrap(async (req, res) => {
-      const { data, ...result } = await this._dbManager.pinDoc(getDocScope(req), true);
+    this._app.patch('/api/docs/:did/pin', expressWrap(async (req, res) => {
+      const {data, ...result} = await this._dbManager.pinDoc(getDocScope(req), true);
       if (data) { this._logPinDocumentEvents(req, data); }
       return sendReply(req, res, result);
     }));
 
-    this._app.patch("/api/docs/:did/unpin", expressWrap(async (req, res) => {
-      const { data, ...result } = await this._dbManager.pinDoc(getDocScope(req), false);
+    this._app.patch('/api/docs/:did/unpin', expressWrap(async (req, res) => {
+      const {data, ...result} = await this._dbManager.pinDoc(getDocScope(req), false);
       if (data) { this._logUnpinDocumentEvents(req, data); }
       return sendReply(req, res, result);
     }));
 
     // GET /api/orgs/:oid/access
     // Get user access information regarding an org
-    this._app.get("/api/orgs/:oid/access", expressWrap(async (req, res) => {
+    this._app.get('/api/orgs/:oid/access', expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const query = await this._withPrivilegedViewForUser(
-        org, req, scope => this._dbManager.getOrgAccess(scope, org),
+        org, req, (scope) => this._dbManager.getOrgAccess(scope, org)
       );
       return sendReply(req, res, query);
     }));
 
     // GET /api/workspaces/:wid/access
     // Get user access information regarding a workspace
-    this._app.get("/api/workspaces/:wid/access", expressWrap(async (req, res) => {
-      const workspaceId = integerParam(req.params.wid, "wid");
+    this._app.get('/api/workspaces/:wid/access', expressWrap(async (req, res) => {
+      const workspaceId = integerParam(req.params.wid, 'wid');
       const query = await this._dbManager.getWorkspaceAccess(getScope(req), workspaceId);
       return sendReply(req, res, query);
     }));
 
     // GET /api/docs/:did/access
     // Get user access information regarding a doc
-    this._app.get("/api/docs/:did/access", expressWrap(async (req, res) => {
+    this._app.get('/api/docs/:did/access', expressWrap(async (req, res) => {
       const query = await this._dbManager.getDocAccess(getDocScope(req));
       return sendReply(req, res, query);
     }));
 
     // GET /api/profile/user
     // Get user's profile
-    this._app.get("/api/profile/user", expressWrap(async (req, res) => {
+    this._app.get('/api/profile/user', expressWrap(async (req, res) => {
       const fullUser = await this._getFullUser(req);
-      return sendOkReply(req, res, fullUser, { allowedFields: new Set(["allowGoogleLogin"]) });
+      return sendOkReply(req, res, fullUser, {allowedFields: new Set(['allowGoogleLogin'])});
     }));
 
     // POST /api/profile/user/name
     // Body params: string
     // Update users profile.
-    this._app.post("/api/profile/user/name", expressWrap(async (req, res) => {
+    this._app.post('/api/profile/user/name', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      if (!(req.body?.name)) {
-        throw new ApiError("Name expected in the body", 400);
+      if (!(req.body && req.body.name)) {
+        throw new ApiError('Name expected in the body', 400);
       }
       const name = req.body.name;
-      const { previous, current } = await this._dbManager.updateUser(userId, { name });
-      this._logChangeUserNameEvents(req, { previous, current });
+      const {previous, current} = await this._dbManager.updateUser(userId, { name });
+      this._logChangeUserNameEvents(req, {previous, current});
       res.sendStatus(200);
     }));
 
     // POST /api/profile/user/locale
     // Body params: string
     // Update users profile.
-    this._app.post("/api/profile/user/locale", expressWrap(async (req, res) => {
+    this._app.post('/api/profile/user/locale', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      await this._dbManager.updateUserOptions(userId, { locale: req.body.locale || null });
-      res.append("Set-Cookie", cookie.serialize("grist_user_locale", req.body.locale || "", {
+      await this._dbManager.updateUserOptions(userId, {locale: req.body.locale || null});
+      res.append('Set-Cookie', cookie.serialize('grist_user_locale', req.body.locale || '', {
         httpOnly: false,    // make available to client-side scripts
         domain: getCookieDomain(req),
-        path: "/",
+        path: '/',
         secure: true,
         maxAge: req.body.locale ? 31536000 : 0,
-        sameSite: "None", // there is no security concern to expose this information.
+        sameSite: 'None', // there is no security concern to expose this information.
       }));
       res.sendStatus(200);
     }));
 
     // POST /api/profile/allowGoogleLogin
     // Update user's preference for allowing Google login.
-    this._app.post("/api/profile/allowGoogleLogin", expressWrap(async (req, res) => {
+    this._app.post('/api/profile/allowGoogleLogin', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const fullUser = await this._getFullUser(req);
-      if (fullUser.loginMethod !== "Email + Password") {
-        throw new ApiError("Only users signed in via email can enable/disable Google login", 401);
+      if (fullUser.loginMethod !== 'Email + Password') {
+        throw new ApiError('Only users signed in via email can enable/disable Google login', 401);
       }
 
       const allowGoogleLogin: boolean | undefined = req.body.allowGoogleLogin;
       if (allowGoogleLogin === undefined) {
-        throw new ApiError("Missing body param: allowGoogleLogin", 400);
+        throw new ApiError('Missing body param: allowGoogleLogin', 400);
       }
 
-      await this._dbManager.updateUserOptions(userId, { allowGoogleLogin });
+      await this._dbManager.updateUserOptions(userId, {allowGoogleLogin});
       res.sendStatus(200);
     }));
 
-    this._app.post("/api/profile/isConsultant", expressWrap(async (req, res) => {
+    this._app.post('/api/profile/isConsultant', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       if (userId !== this._dbManager.getSupportUserId()) {
-        throw new ApiError("Only support user can enable/disable isConsultant", 401);
+        throw new ApiError('Only support user can enable/disable isConsultant', 401);
       }
       const isConsultant: boolean | undefined = req.body.isConsultant;
       const targetUserId: number | undefined = req.body.userId;
       if (isConsultant === undefined) {
-        throw new ApiError("Missing body param: isConsultant", 400);
+        throw new ApiError('Missing body param: isConsultant', 400);
       }
       if (targetUserId === undefined) {
-        throw new ApiError("Missing body param: targetUserId", 400);
+        throw new ApiError('Missing body param: targetUserId', 400);
       }
       await this._dbManager.updateUserOptions(targetUserId, {
-        isConsultant,
+        isConsultant
       });
       res.sendStatus(200);
     }));
 
-    this._app.post("/api/users/:userId/disable", requireInstallAdmin, expressWrap(async (req, res) => {
+    this._app.post('/api/users/:userId/disable', requireInstallAdmin, expressWrap(async (req, res) => {
       await this._changeUserDisabledDate(req, new Date());
       await sendOkReply(req, res);
     }));
 
-    this._app.post("/api/users/:userId/enable", requireInstallAdmin, expressWrap(async (req, res) => {
+    this._app.post('/api/users/:userId/enable', requireInstallAdmin, expressWrap(async (req, res) => {
       await this._changeUserDisabledDate(req, null);
       await sendOkReply(req, res);
     }));
 
     // GET /api/profile/apikey
     // Get user's apiKey
-    this._app.get("/api/profile/apikey", expressWrap(async (req, res) => {
+    this._app.get('/api/profile/apikey', expressWrap(async (req, res) => {
       try {
         const userId = getUserId(req);
         const apiKey = await this._dbManager.getApiKey(userId);
         res.status(200).send(apiKey);
-      }
-      catch (e) {
+      } catch (e) {
         throw new ApiError(e, 400);
       }
     }));
 
     // POST /api/profile/apikey
     // Update user's apiKey
-    this._app.post("/api/profile/apikey", expressWrap(async (req, res) => {
+    this._app.post('/api/profile/apikey', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const force = req.body ? req.body.force : false;
       const user = await this._dbManager.createApiKey(userId, force);
@@ -560,34 +554,33 @@ export class ApiServer {
 
     // DELETE /api/profile/apiKey
     // Delete apiKey
-    this._app.delete("/api/profile/apikey", expressWrap(async (req, res) => {
+    this._app.delete('/api/profile/apikey', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       try {
         const user = await this._dbManager.deleteApiKey(userId);
         this._logDeleteUserAPIKeyEvents(req, user);
         res.sendStatus(200);
-      }
-      catch (e) {
+      } catch (e) {
         throw new ApiError(e, 400);
       }
     }));
 
     // GET /api/session/access/active
     // Returns active user and active org (if any)
-    this._app.get("/api/session/access/active", expressWrap(async (req, res) => {
-      const fullUser = await this._getFullUser(req, { includePrefs: true });
+    this._app.get('/api/session/access/active', expressWrap(async (req, res) => {
+      const fullUser = await this._getFullUser(req, {includePrefs: true});
       const domain = getOrgFromRequest(req);
       const org = domain ? (await this._withPrivilegedViewForUser(
-        domain, req, scope => this._dbManager.getOrg(scope, domain),
+        domain, req, (scope) => this._dbManager.getOrg(scope, domain)
       )) : null;
-      const orgError = (org?.errMessage) ? { error: org.errMessage, status: org.status } : undefined;
+      const orgError = (org && org.errMessage) ? {error: org.errMessage, status: org.status} : undefined;
       return sendOkReply(req, res, {
-        user: { ...fullUser,
+        user: {...fullUser,
           helpScoutSignature: helpScoutSign(fullUser.email),
           isInstallAdmin: await this._gristServer.getInstallAdmin().isAdminReq(req) || undefined,
         },
-        org: (org?.data) || null,
-        orgError,
+        org: (org && org.data) || null,
+        orgError
       });
     }));
 
@@ -595,30 +588,29 @@ export class ApiServer {
     // Body params: email (required)
     // Body params: org (optional) - string subdomain or 'current', for which org's active user to modify.
     // Sets active user for active org
-    this._app.post("/api/session/access/active", expressWrap(async (req, res) => {
+    this._app.post('/api/session/access/active', expressWrap(async (req, res) => {
       const mreq = req as RequestWithLogin;
-      let domain = optStringParam(req.body.org, "org");
-      if (!domain || domain === "current") {
-        domain = getOrgFromRequest(mreq) || "";
+      let domain = optStringParam(req.body.org, 'org');
+      if (!domain || domain === 'current') {
+        domain = getOrgFromRequest(mreq) || '';
       }
       const email = req.body.email;
-      if (!email) { throw new ApiError("email required", 400); }
+      if (!email) { throw new ApiError('email required', 400); }
       try {
         // Modify session copy in request. Will be saved to persistent storage before responding
         // by express-session middleware.
         linkOrgWithEmail(mreq.session, req.body.email, domain);
-        clearSessionCacheIfNeeded(req, { sessionID: mreq.sessionID });
-        return sendOkReply(req, res, { email });
-      }
-      catch (e) {
-        throw new ApiError("email not available", 403);
+        clearSessionCacheIfNeeded(req, {sessionID: mreq.sessionID});
+        return sendOkReply(req, res, {email});
+      } catch (e) {
+        throw new ApiError('email not available', 403);
       }
     }));
 
     // GET /api/session/access/all
     // Returns all user profiles (with ids) and all orgs they can access.
     // Flattens personal orgs into a single org.
-    this._app.get("/api/session/access/all", expressWrap(async (req, res) => {
+    this._app.get('/api/session/access/all', expressWrap(async (req, res) => {
       const domain = getOrgFromRequest(req);
       const users = getUserProfiles(req);
       const userId = getUserId(req);
@@ -626,7 +618,7 @@ export class ApiServer {
       if (orgs.errMessage) { throw new ApiError(orgs.errMessage, orgs.status); }
       return sendOkReply(req, res, {
         users: await this._dbManager.completeProfiles(users),
-        orgs: orgs.data,
+        orgs: orgs.data
       });
     }));
 
@@ -635,12 +627,12 @@ export class ApiServer {
     // Not available to the anonymous user.
     // TODO: should orphan orgs, inaccessible by anyone else, get deleted when last user
     // leaves?
-    this._app.delete("/api/users/:uid", expressWrap(async (req, res) => {
+    this._app.delete('/api/users/:uid', expressWrap(async (req, res) => {
       const userIdToDelete = parseInt(req.params.uid, 10);
-      if (!(req.body?.name !== undefined)) {
-        throw new ApiError("to confirm deletion of a user, provide their name", 400);
+      if (!(req.body && req.body.name !== undefined)) {
+        throw new ApiError('to confirm deletion of a user, provide their name', 400);
       }
-      const { data, ...result } = await this._dbManager.deleteUser(getScope(req), userIdToDelete, req.body.name);
+      const {data, ...result} = await this._dbManager.deleteUser(getScope(req), userIdToDelete, req.body.name);
       if (data) { this._logDeleteUserEvents(req, data); }
       return sendReply(req, res, result);
     }));
@@ -648,16 +640,16 @@ export class ApiServer {
     if (isAffirmative(process.env.GRIST_ENABLE_SERVICE_ACCOUNTS)) {
       // POST /service-accounts/
       // Creates a new service account attached to the user making the api call.
-      this._app.post("/api/service-accounts", validateStrict(PostServiceAccount), expressWrap(async (req, res) => {
+      this._app.post('/api/service-accounts', validateStrict(PostServiceAccount), expressWrap(async (req, res) => {
         const ownerId = getAuthorizedUserId(req);
         const body = req.body as SATypes.PostServiceAccount;
         const options = {
           label: body.label,
           description: body.description,
-          expiresAt: new Date(body.expiresAt),
+          expiresAt: new Date(body.expiresAt)
         };
         const serviceAccount = await this._dbManager.createServiceAccount(
-          ownerId, options,
+          ownerId, options
         );
         const resp: SATypes.ServiceAccountCreationResponse = {
           id: serviceAccount.id,
@@ -666,7 +658,7 @@ export class ApiServer {
           label: serviceAccount.label,
           description: serviceAccount.description,
           expiresAt: serviceAccount.expiresAt.toISOString(),
-          hasValidKey: true,
+          hasValidKey: true
         };
 
         return sendOkReply(req, res, resp);
@@ -674,10 +666,10 @@ export class ApiServer {
 
       // GET /service-accounts/
       // Reads all service accounts attached to the user making the api call.
-      this._app.get("/api/service-accounts", expressWrap(async (req, res) => {
+      this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const data = await this._dbManager.getOwnedServiceAccounts(userId);
-        const resp: Partial<SATypes.ServiceAccountApiResponse>[] = data.map((serviceAccount) => {
+        const resp: Array<Partial<SATypes.ServiceAccountApiResponse>> = data.map(serviceAccount => {
           const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
           return {
             id: serviceAccount.id,
@@ -685,7 +677,7 @@ export class ApiServer {
             label: serviceAccount.label,
             description: serviceAccount.description,
             expiresAt: serviceAccount.expiresAt.toISOString(),
-            hasValidKey,
+            hasValidKey
           };
         });
         return sendOkReply(req, res, resp);
@@ -693,7 +685,7 @@ export class ApiServer {
 
       // GET /service-accounts/:said
       // Reads one particular service account of the user making the api call.
-      this._app.get("/api/service-accounts/:said", expressWrap(async (req, res) => {
+      this._app.get('/api/service-accounts/:said', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const serviceAccountId = parseInt(req.params.said);
         const serviceAccount = await this._dbManager.getServiceAccount(serviceAccountId);
@@ -705,41 +697,41 @@ export class ApiServer {
           label: serviceAccount.label,
           description: serviceAccount.description,
           expiresAt: serviceAccount.expiresAt.toISOString(),
-          hasValidKey,
+          hasValidKey
         };
         return sendOkReply(req, res, resp);
       }));
 
       // PATCH /service-accounts/:said
       // Modifies one particular service account of the user making the api call.
-      this._app.patch("/api/service-accounts/:said", validateStrict(PatchServiceAccount), expressWrap(
+      this._app.patch('/api/service-accounts/:said', validateStrict(PatchServiceAccount), expressWrap(
         async (req, res) => {
           const userId = getAuthorizedUserId(req);
           const serviceAccountId = parseInt(req.params.said);
           const payload = req.body as SATypes.PatchServiceAccount;
           const updateProps = {
-            ...(payload.label ? { label: payload.label } : {}),
-            ...(payload.description ? { description: payload.description } : {}),
-            ...(payload.expiresAt ? { expiresAt: new Date(payload.expiresAt) } : {}),
+            ...( payload.label ? { label: payload.label } : {} ),
+            ...( payload.description ? { description: payload.description } : {} ),
+            ...( payload.expiresAt ? { expiresAt: new Date(payload.expiresAt) } : {} ),
             expiresAt: payload.expiresAt !== undefined ? new Date(payload.expiresAt) : undefined,
           };
 
           const resp = await this._dbManager.updateServiceAccount(
-            serviceAccountId, updateProps, { expectedOwnerId: userId },
+            serviceAccountId, updateProps, { expectedOwnerId: userId }
           );
           if (!resp) {
             throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
           }
           return sendOkReply(req, res);
-        }),
+        })
       );
 
       // DELETE /service-accounts/:said
       // Deletes one particular service account of the user making the api call.
-      this._app.delete("/api/service-accounts/:said", expressWrap(async (req, res) => {
+      this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const serviceAccountId = parseInt(req.params.said);
-        const resp = await this._dbManager.deleteServiceAccount(serviceAccountId, { expectedOwnerId: userId });
+        const resp = await this._dbManager.deleteServiceAccount(serviceAccountId, {expectedOwnerId: userId});
         if (resp === null) {
           throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
         }
@@ -748,16 +740,16 @@ export class ApiServer {
 
       // POST /service-accounts/:said/apikey
       // Regenerate and return the apikey of a given Service Account
-      this._app.post("/api/service-accounts/:said/apikey", expressWrap(async (req, res) => {
+      this._app.post('/api/service-accounts/:said/apikey', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const serviceAccountId = parseInt(req.params.said);
         const serviceAccount = await this._dbManager.createServiceAccountApiKey(
-          serviceAccountId, { expectedOwnerId: userId },
+          serviceAccountId, {expectedOwnerId: userId}
         );
         if (serviceAccount === null) {
           throw new ApiError(
             `Can't regenerate api key of non existing service account ${serviceAccountId}`,
-            404,
+            404
           );
         }
         const resp: SATypes.ServiceAccountCreationResponse = {
@@ -767,23 +759,23 @@ export class ApiServer {
           label: serviceAccount.label,
           description: serviceAccount.description,
           expiresAt: serviceAccount.expiresAt.toISOString(),
-          hasValidKey: true,
+          hasValidKey: true
         };
         return sendOkReply(req, res, resp);
       }));
 
       // DELETE /service-accounts/:said/apikey
       // Deletes the apikey of a given Service Account by deleting the key
-      this._app.delete("/api/service-accounts/:said/apikey", expressWrap(async (req, res) => {
+      this._app.delete('/api/service-accounts/:said/apikey', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const serviceAccountId = parseInt(req.params.said);
         const serviceAccount = await this._dbManager.deleteServiceAccountApiKey(
-          serviceAccountId, { expectedOwnerId: userId },
+          serviceAccountId, {expectedOwnerId: userId}
         );
         if (serviceAccount == null) {
           throw new ApiError(
             `Can't delete api key of non existing service account ${serviceAccountId}`,
-            404,
+            404
           );
         }
         return sendOkReply(req, res);
@@ -799,8 +791,8 @@ export class ApiServer {
                                    { requirePermissions })
     );
     const okToDelete = ((org.domain && name === org.domain) ||
-      (org.name && name === org.name) ||
-      name === "force-delete");
+        (org.name && name === org.name) ||
+        name === 'force-delete');
     if (!okToDelete) {
       throw new ApiError("Name does not match organization", 400);
     }
@@ -808,15 +800,14 @@ export class ApiServer {
     try {
       await doom.deleteOrg(org.id);
       this._logDeleteSiteEvents(req, org);
-      return sendReply(req, res, { status: 200, data: org.id });
-    }
-    catch (e) {
+      return sendReply(req, res, {status: 200, data: org.id});
+    } catch (e) {
       this._logDeleteSiteEvents(req, org, String(e));
       throw e;
     }
   }
 
-  private async _getFullUser(req: Request, options: { includePrefs?: boolean } = {}): Promise<FullUser> {
+  private async _getFullUser(req: Request, options: {includePrefs?: boolean} = {}): Promise<FullUser> {
     const mreq = req as RequestWithLogin;
     const userId = getUserId(mreq);
     const user = await this._dbManager.getUser(userId, options);
@@ -824,11 +815,12 @@ export class ApiServer {
 
     const fullUser = this._dbManager.makeFullUser(user);
     const domain = getOrgFromRequest(mreq);
-    const sessionUser = getSessionUser(mreq.session, domain || "", fullUser.email);
-    const loginMethod = sessionUser?.profile ? sessionUser.profile.loginMethod : undefined;
+    const sessionUser = getSessionUser(mreq.session, domain || '', fullUser.email);
+    const loginMethod = sessionUser && sessionUser.profile ? sessionUser.profile.loginMethod : undefined;
     const allowGoogleLogin = user.options?.allowGoogleLogin ?? true;
-    return { ...fullUser, loginMethod, allowGoogleLogin };
+    return {...fullUser, loginMethod, allowGoogleLogin};
   }
+
 
   /**
    * Run a query, and, if it is denied and the user is the support or admin
@@ -840,8 +832,8 @@ export class ApiServer {
    * part of what is returned by the query.
    */
   private async _withPrivilegedViewForUser<T>(
-    org: string | number, req: express.Request,
-    op: (scope: Scope) => Promise<QueryResult<T>>,
+    org: string|number, req: express.Request,
+    op: (scope: Scope) => Promise<QueryResult<T>>
   ): Promise<QueryResult<T>> {
     const scope = getScope(req);
     const userId = getUserId(req);
@@ -852,8 +844,8 @@ export class ApiServer {
     }
 
     if (userId === this._dbManager.getSupportUserId() ||
-      await this._gristServer.getInstallAdmin()?.isAdminReq(req)) {
-      const extendedScope: Scope = { ...scope, specialPermit: { org } };
+        await this._gristServer.getInstallAdmin()?.isAdminReq(req)) {
+      const extendedScope: Scope = {...scope, specialPermit: {org}};
       return await op(extendedScope);
     }
     return result;
@@ -862,9 +854,9 @@ export class ApiServer {
   private async _changeUserDisabledDate(req: express.Request, disabledAt: Date | null) {
     const mreq = req as RequestWithLogin;
     const userId = mreq.userId;
-    const targetUserId = integerParam(req.params.userId, "userId");
+    const targetUserId = integerParam(req.params.userId, 'userId');
     if (targetUserId === userId) {
-      throw new ApiError("you cannot disable yourself", 400);
+      throw new ApiError('you cannot disable yourself', 400);
     }
     await this._dbManager.updateUser(targetUserId, { disabledAt });
   }
@@ -885,8 +877,7 @@ export class ApiServer {
       const doom = await this._gristServer.getDoomTool();
       await doom.deleteWorkspace(ws.id);
       this._logDeleteWorkspaceEvents(req, ws);
-    }
-    catch (error) {
+    } catch (error) {
       this._logDeleteWorkspaceEvents(req, ws, error);
       throw error;
     }
@@ -907,7 +898,7 @@ export class ApiServer {
         },
       },
     });
-    this._gristServer.getTelemetry().logEvent(mreq, "documentCreated", {
+    this._gristServer.getTelemetry().logEvent(mreq, 'documentCreated', {
       limited: {
         docIdDigest: document.id,
         sourceDocIdDigest: undefined,
@@ -920,7 +911,7 @@ export class ApiServer {
         altSessionId: mreq.altSessionId,
       },
     });
-    this._gristServer.getTelemetry().logEvent(mreq, "createdDoc-Empty", {
+    this._gristServer.getTelemetry().logEvent(mreq, 'createdDoc-Empty', {
       full: {
         docIdDigest: document.id,
         userId: mreq.userId,
@@ -931,7 +922,7 @@ export class ApiServer {
 
   private _logRenameDocumentEvents(
     req: Request,
-    { previous, current }: PreviousAndCurrent<Document>,
+    { previous, current }: PreviousAndCurrent<Document>
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "document.rename",
@@ -969,7 +960,7 @@ export class ApiServer {
     {
       document,
       accessChanges: { publicAccess, maxInheritedAccess, users },
-    }: DocumentAccessChanges,
+    }: DocumentAccessChanges
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "document.change_access",
@@ -992,20 +983,20 @@ export class ApiServer {
 
     const mreq = req as RequestWithLogin;
     const numInvitedUsersByAccess: Record<BasicRole, number> = {
-      viewers: 0,
-      editors: 0,
-      owners: 0,
+      'viewers': 0,
+      'editors': 0,
+      'owners': 0,
     };
     for (const [email, access] of Object.entries(delta.users)) {
-      if (email === "everyone@getgrist.com") { continue; }
-      if (access === null || access === "members") { continue; }
+      if (email === 'everyone@getgrist.com') { continue; }
+      if (access === null || access === 'members') { continue; }
 
       numInvitedUsersByAccess[access] += 1;
     }
     for (const [access, count] of Object.entries(numInvitedUsersByAccess)) {
       if (count === 0) { continue; }
 
-      this._gristServer.getTelemetry().logEvent(mreq, "invitedDocUser", {
+      this._gristServer.getTelemetry().logEvent(mreq, 'invitedDocUser', {
         full: {
           access,
           count,
@@ -1014,24 +1005,24 @@ export class ApiServer {
       });
     }
 
-    const publicAccess = delta.users["everyone@getgrist.com"];
+    const publicAccess = delta.users['everyone@getgrist.com'];
     if (publicAccess !== undefined) {
       this._gristServer.getTelemetry().logEvent(
         mreq,
-        publicAccess ? "madeDocPublic" : "madeDocPrivate",
+        publicAccess ? 'madeDocPublic' : 'madeDocPrivate',
         {
           full: {
-            ...(publicAccess ? { access: publicAccess } : {}),
+            ...(publicAccess ? {access: publicAccess} : {}),
             userId: mreq.userId,
           },
-        },
+        }
       );
     }
   }
 
   private _logMoveDocumentEvents(
     req: Request,
-    { previous, current }: PreviousAndCurrent<Document>,
+    { previous, current }: PreviousAndCurrent<Document>
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "document.move",
@@ -1090,7 +1081,7 @@ export class ApiServer {
         workspace: pick(workspace, "id", "name"),
       },
     });
-    this._gristServer.getTelemetry().logEvent(mreq, "createdWorkspace", {
+    this._gristServer.getTelemetry().logEvent(mreq, 'createdWorkspace', {
       full: {
         workspaceId: workspace.id,
         userId: mreq.userId,
@@ -1100,7 +1091,7 @@ export class ApiServer {
 
   private _logRenameWorkspaceEvents(
     req: Request,
-    { previous, current }: PreviousAndCurrent<Workspace>,
+    { previous, current }: PreviousAndCurrent<Workspace>
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "workspace.rename",
@@ -1142,7 +1133,7 @@ export class ApiServer {
         error,
       },
     });
-    this._gristServer.getTelemetry().logEvent(mreq, "deletedWorkspace", {
+    this._gristServer.getTelemetry().logEvent(mreq, 'deletedWorkspace', {
       full: {
         workspaceId: workspace.id,
         userId: mreq.userId,
@@ -1167,7 +1158,7 @@ export class ApiServer {
     {
       workspace,
       accessChanges: { maxInheritedAccess, users },
-    }: WorkspaceAccessChanges,
+    }: WorkspaceAccessChanges
   ) {
     this._gristServer.getAuditLogger().logEvent(req, {
       action: "workspace.change_access",
@@ -1195,7 +1186,7 @@ export class ApiServer {
 
   private _logRenameSiteEvents(
     req: Request,
-    { previous, current }: PreviousAndCurrent<Organization>,
+    { previous, current }: PreviousAndCurrent<Organization>
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "site.rename",
@@ -1214,7 +1205,7 @@ export class ApiServer {
   }
 
   private _logDeleteSiteEvents(req: Request, org: Organization,
-    error?: string) {
+                               error?: string) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "site.delete",
       details: {
@@ -1226,7 +1217,7 @@ export class ApiServer {
 
   private _logChangeSiteAccessEvents(
     req: RequestWithLogin,
-    { org, accessChanges: { users } }: OrgAccessChanges,
+    { org, accessChanges: { users } }: OrgAccessChanges
   ) {
     this._gristServer.getAuditLogger().logEvent(req, {
       action: "site.change_access",
@@ -1244,7 +1235,7 @@ export class ApiServer {
 
   private _logChangeUserNameEvents(
     req: Request,
-    { previous, current }: PreviousAndCurrent<User>,
+    { previous, current }: PreviousAndCurrent<User>
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "user.change_name",

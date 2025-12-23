@@ -1,5 +1,5 @@
-import { StringUnion } from "app/common/StringUnion";
-import { ThemePrefs } from "app/common/ThemePrefs";
+import {StringUnion} from 'app/common/StringUnion';
+import {ThemePrefs} from 'app/common/ThemePrefs';
 
 export const SortPref = StringUnion("name", "date");
 export type SortPref = typeof SortPref.type;
@@ -58,7 +58,7 @@ export interface UserOrgPrefs extends Prefs {
 
 export interface OrgPrefs extends Prefs {
   /* The URL (might be data url) of the custom logo to use for the org. */
-  customLogoUrl?: string | null;
+  customLogoUrl?: string|null;
 }
 
 export interface DocPrefs {
@@ -128,23 +128,23 @@ export interface BehavioralPromptPrefs {
  * List of all popups that user can see and dismiss
  */
 export const DismissedPopup = StringUnion(
-  "deleteRecords",        // confirmation for deleting records keyboard shortcut
-  "deleteFields",         // confirmation for deleting columns keyboard shortcut
-  "formulaHelpInfo",      // formula help info shown in the popup editor
-  "formulaAssistantInfo", // formula assistant info shown in the popup editor
-  "supportGrist",         // nudge to opt in to telemetry
-  "publishForm",          // confirmation for publishing a form
-  "unpublishForm",        // confirmation for unpublishing a form
-  "upgradeNewAssistant",  // nudge to upgrade to enterprise shown in the formula assistant
+  'deleteRecords',        // confirmation for deleting records keyboard shortcut
+  'deleteFields',         // confirmation for deleting columns keyboard shortcut
+  'formulaHelpInfo',      // formula help info shown in the popup editor
+  'formulaAssistantInfo', // formula assistant info shown in the popup editor
+  'supportGrist',         // nudge to opt in to telemetry
+  'publishForm',          // confirmation for publishing a form
+  'unpublishForm',        // confirmation for unpublishing a form
+  'upgradeNewAssistant',  // nudge to upgrade to enterprise shown in the formula assistant
 
   /* Deprecated */
-  "onboardingCards",      // onboarding cards shown on the doc menu
-  "tutorialFirstCard",    // first card of the tutorial
+  'onboardingCards',      // onboarding cards shown on the doc menu
+  'tutorialFirstCard',    // first card of the tutorial
 );
 export type DismissedPopup = typeof DismissedPopup.type;
 
 export const WelcomePopup = StringUnion(
-  "coachingCall",
+  'coachingCall',
 );
 export type WelcomePopup = typeof WelcomePopup.type;
 

@@ -104,10 +104,10 @@ describe("BehavioralPrompts", function() {
     await assertPromptTitle("Raw Data page");
   });
 
-  it('should be shown when opening the filter menu', async function() {
-    await gu.openPage('Table1');
-    await gu.openColumnMenu('A', 'Filter');
-    await assertPromptTitle('Pinning Filters');
+  it("should be shown when opening the filter menu", async function() {
+    await gu.openPage("Table1");
+    await gu.openColumnMenu("A", "Filter");
+    await assertPromptTitle("Pinning Filters");
     await gu.dismissBehavioralPrompts();
   });
 
@@ -169,8 +169,8 @@ describe("BehavioralPrompts", function() {
     it("should only be shown on the All Documents page if intro is hidden", async function() {
       await session.loadDocMenu("/");
       await assertPromptTitle(null);
-      await driver.find('.test-welcome-menu').click();
-      await driver.findWait('.test-welcome-menu-only-show-documents', 200).click();
+      await driver.find(".test-welcome-menu").click();
+      await driver.findWait(".test-welcome-menu-only-show-documents", 200).click();
       await gu.waitForServer();
       await assertPromptTitle(null);
       await gu.loadDocMenu("/");

@@ -41,8 +41,8 @@ describe("Smoke", function() {
     // Shouldn't be necessary, but an attempt to reduce flakiness that has shown up about opening the cell for editing.
     await gu.sendKeys(Key.ENTER);
 
-    await gu.enterCell('123');
-    await gu.refreshDismiss({ignore: true});
-    assert.equal(await gu.getCell('A', 1).getText(), '123');
+    await gu.enterCell("123");
+    await gu.refreshDismiss({ ignore: true });
+    assert.equal(await gu.getCell("A", 1).getText(), "123");
   });
 });

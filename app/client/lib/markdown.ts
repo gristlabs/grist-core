@@ -38,7 +38,7 @@ export function cssMarkdownSpan(
 ): HTMLSpanElement {
   return cssMarkdownLine(markdown(markdownObs), ...args);
 }
-const cssMarkdownLine = styled("span", `
+const cssMarkdownLine = styled('span', `
   & p {
     margin: 0;
   }
@@ -74,5 +74,5 @@ export function stripLinks(markdownText: string) {
   // though markdown will not render them as links. For example [link\n\nlink](https://example.com) will be
   // rendered as plain text.
   const regex = /\[(.*?)\]\(.*?\)/gs;
-  return markdownText.replace(regex, "$1");
+  return markdownText.replace(regex, '$1');
 }

@@ -10,7 +10,7 @@ type EnvFile = Record<string, string>;
  */
 export class AppSettings {
   private _value?: JSONValue;
-  private _children?: { [key: string]: AppSettings };
+  private _children?: {[key: string]: AppSettings};
   private _info?: AppSettingQueryResult;
   private _envFile?: EnvFile;
   private get _root(): AppSettings {
@@ -32,12 +32,12 @@ export class AppSettings {
   }
 
   /* access the setting - undefined if not set */
-  public get(): JSONValue | undefined {
+  public get(): JSONValue|undefined {
     return this._value;
   }
 
   /* access the setting as a boolean using isAffirmative - undefined if not set */
-  public getAsBool(): boolean | undefined {
+  public getAsBool(): boolean|undefined {
     return (this._value !== undefined) ? isAffirmative(this._value) : undefined;
   }
 
@@ -45,10 +45,10 @@ export class AppSettings {
    * Access the setting as an integer using parseInt. Undefined if not set.
    * Throws an error if not numberlike.
    */
-  public getAsInt(): number | undefined {
+  public getAsInt(): number|undefined {
     if (this._value === undefined) { return undefined; }
     const datum = this._value?.valueOf();
-    if (typeof datum === "number") {
+    if (typeof datum === 'number') {
       return datum;
     }
     if (isNumber(String(datum))) {
@@ -61,10 +61,10 @@ export class AppSettings {
    * Access the setting as an integer using parseFloat. Undefined if not set.
    * Throws an error if not numberlike.
    */
-  public getAsFloat(): number | undefined {
+  public getAsFloat(): number|undefined {
     if (this._value === undefined) { return undefined; }
     const datum = this._value?.valueOf();
-    if (typeof datum === "number") {
+    if (typeof datum === 'number') {
       return datum;
     }
     if (isNumber(String(datum))) {
@@ -87,7 +87,7 @@ export class AppSettings {
 
     const envVars = getEnvVarsFromQuery(query);
     if (!envVars.length) {
-      throw new Error("could not find an environment variable to read");
+      throw new Error('could not find an environment variable to read');
     }
 
     const sources = [{name: 'env', vars: process.env}];
@@ -117,8 +117,7 @@ export class AppSettings {
     };
     if (value !== undefined) {
       this._value = value;
-    }
-    else if (query.defaultValue !== undefined) {
+    } else if (query.defaultValue !== undefined) {
       this._value = query.defaultValue;
     }
     if (query.acceptedValues && this._value) {
@@ -132,7 +131,7 @@ export class AppSettings {
   /**
    * As for read() but type the result as a string.
    */
-  public readString(query: AppSettingQuery): string | undefined {
+  public readString(query: AppSettingQuery): string|undefined {
     this.read(query);
     if (this._value === undefined) { return undefined; }
     this._value = String(this._value);
@@ -176,7 +175,7 @@ export class AppSettings {
    * As for read() but type (and store, and report) the result as
    * a boolean.
    */
-  public readBool(query: AppSettingQuery): boolean | undefined {
+  public readBool(query: AppSettingQuery): boolean|undefined {
     this.readString(query);
     const result = this.getAsBool();
     this._value = result;
@@ -187,7 +186,7 @@ export class AppSettings {
    * As for read() but type (and store, and report) the result as
    * an integer.
    */
-  public readInt(query: AppSettingQueryNumber): number | undefined {
+  public readInt(query: AppSettingQueryNumber): number|undefined {
     this.readString(query);
     const result = this.getAsInt();
 
@@ -208,7 +207,7 @@ export class AppSettings {
    * As for read() but type (and store, and report) the result as
    * a float.
    */
-  public readFloat(query: AppSettingQueryNumber): number | undefined {
+  public readFloat(query: AppSettingQueryNumber): number|undefined {
     this.readString(query);
     const result = this.getAsFloat();
 
@@ -232,7 +231,7 @@ export class AppSettings {
   }
 
   /* access any nested settings */
-  public get nested(): { [key: string]: AppSettings } {
+  public get nested(): {[key: string]: AppSettings} {
     return this._children || {};
   }
 
@@ -290,20 +289,20 @@ export class AppSettings {
     if (this._children) {
       for (const child of Object.values(this._children)) {
         for (const item of child.describeAll()) {
-          inv.push({ ...item, name: this.name + "." + item.name });
+          inv.push({...item, name: this.name + '.' + item.name});
         }
       }
     }
     return inv.filter(item => item.value !== undefined ||
-      item.wouldFindInEnvVar !== undefined ||
-      item.usedDefault).sort((a, b) => a.name.localeCompare(b.name));
+        item.wouldFindInEnvVar !== undefined ||
+        item.usedDefault).sort((a, b) => a.name.localeCompare(b.name));
   }
 }
 
 /**
  * A global object for Grist application settings.
  */
-export const appSettings = new AppSettings("grist");
+export const appSettings = new AppSettings('grist');
 
 /**
  * Hints for how to define a setting, including possible
@@ -313,7 +312,7 @@ export interface AppSettingQuery {
   /**
    * Environment variable(s) to check.
    */
-  envVar: string | string[];
+  envVar: string|string[];
   /**
    * "Canonical" environment variable to suggest. Should be in envVar (though this is not checked).
    */
@@ -327,7 +326,7 @@ export interface AppSettingQuery {
    */
   censor?: boolean;
 
-  acceptedValues?: JSONValue[];
+  acceptedValues?: Array<JSONValue>;
 }
 
 export interface AppSettingQueryNumber extends AppSettingQuery {

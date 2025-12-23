@@ -1,8 +1,6 @@
-import {fromPairs} from 'lodash';
-import { assert, driver, Key, WebElement} from 'mocha-webdriver';
-import { startEditingAccessRules } from 'test/nbrowser/aclTestUtils';
-import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { startEditingAccessRules } from "test/nbrowser/aclTestUtils";
+import * as gu from "test/nbrowser/gristUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import { fromPairs } from "lodash";
 import { assert, driver, Key, WebElement } from "mocha-webdriver";
@@ -329,7 +327,7 @@ describe("UserManager2", function() {
 
     // start view-as mode
     await gu.openAccessRulesDropdown();
-    await gu.waitToPass(() => gu.findOpenMenuItem('a', /Viewer/).click());
+    await gu.waitToPass(() => gu.findOpenMenuItem("a", /Viewer/).click());
     await gu.waitForUrl(/aclAsUser/);
     await gu.waitForDocToLoad();
 

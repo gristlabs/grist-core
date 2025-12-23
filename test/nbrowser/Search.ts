@@ -1,8 +1,7 @@
-import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
-import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import * as gu from "test/nbrowser/gristUtils";
+import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
-import { addToRepl, assert, driver, Key, stackWrapFunc } from "mocha-webdriver";
+import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 
 async function getActiveCellPos() {
   return [
@@ -11,8 +10,8 @@ async function getActiveCellPos() {
   ];
 }
 
-describe('Search', function() {
-  this.timeout('25s');
+describe("Search", function() {
+  this.timeout("25s");
   setupTestSuite();
   addToRepl("gu.searchIsOpened", gu.searchIsOpened);
   gu.bigScreen("big");

@@ -13,8 +13,6 @@ import {LOGIN_SYSTEMS} from 'app/server/lib/loginSystems';
 import {sendOkReply} from 'app/server/lib/requestUtils';
 import * as express from 'express';
 
-import * as express from "express";
-
 export class ConfigBackendAPI {
 
   constructor(private _activations: ActivationsManager) {
@@ -61,9 +59,9 @@ export class ConfigBackendAPI {
       }
     }));
 
-    app.patch("/api/config", requireInstallAdmin, expressWrap(async (req, resp) => {
+    app.patch('/api/config', requireInstallAdmin, expressWrap(async (req, resp) => {
       const config = req.body.config;
-      log.debug("config: received new configuration item", config);
+      log.debug('config: received new configuration item', config);
 
       // Only one key is valid for now
       if (config.edition !== undefined) {

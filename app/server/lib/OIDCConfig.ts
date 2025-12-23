@@ -65,29 +65,27 @@
  *   - GRIST_OIDC_IDP_SCOPES="openid email profile"
  */
 
-import { UserProfile } from 'app/common/LoginSessionAPI';
-import { OIDC_PROVIDER_KEY } from 'app/common/loginProviders';
+import { OIDC_PROVIDER_KEY } from "app/common/loginProviders";
+import { UserProfile } from "app/common/LoginSessionAPI";
 import { OIDC_CALLBACK_ENDPOINT } from "app/common/OIDCCommon";
-import { StringUnionError } from 'app/common/StringUnion';
-import { appSettings, AppSettings } from 'app/server/lib/AppSettings';
-import { RequestWithLogin } from 'app/server/lib/Authorizer';
-import { SessionObj } from 'app/server/lib/BrowserSession';
-import { GristLoginSystem, GristServer } from 'app/server/lib/GristServer';
-import { createLoginProviderFactory, NotConfiguredError } from 'app/server/lib/loginSystemHelpers';
-import log from 'app/server/lib/log';
-import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from 'app/server/lib/oidc/Protections';
-import { agents } from 'app/server/lib/ProxyAgent';
-import { getOriginUrl } from 'app/server/lib/requestUtils';
-import { SendAppPageFunction } from 'app/server/lib/sendAppPage';
-import { Sessions } from 'app/server/lib/Sessions';
+import { StringUnionError } from "app/common/StringUnion";
+import { appSettings, AppSettings } from "app/server/lib/AppSettings";
+import { RequestWithLogin } from "app/server/lib/Authorizer";
+import { SessionObj } from "app/server/lib/BrowserSession";
+import { GristLoginSystem, GristServer } from "app/server/lib/GristServer";
+import log from "app/server/lib/log";
+import { createLoginProviderFactory, NotConfiguredError } from "app/server/lib/loginSystemHelpers";
+import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from "app/server/lib/oidc/Protections";
+import { agents } from "app/server/lib/ProxyAgent";
+import { getOriginUrl } from "app/server/lib/requestUtils";
+import { SendAppPageFunction } from "app/server/lib/sendAppPage";
+import { Sessions } from "app/server/lib/Sessions";
 
-import * as express from 'express';
-import pick from 'lodash/pick';
-
+import * as express from "express";
+import pick from "lodash/pick";
 import {
   Client, ClientMetadata, custom, errors as OIDCError, Issuer, TokenSet, UserinfoResponse,
 } from "openid-client";
-
 
 function formatTokenForLogs(token: TokenSet) {
   const showValueInClear = ["token_type", "expires_in", "expires_at", "scope"];
@@ -145,14 +143,15 @@ export interface OIDCConfig {
  * Structure follows what is defined in the app settings keys.
  */
 export function readOIDCConfigFromSettings(settings: AppSettings): OIDCConfig {
-  const section = settings.section('login').section('system').section(OIDC_PROVIDER_KEY);
+  const section = settings.section("login").section("system").section(OIDC_PROVIDER_KEY);
 
-  let issuerUrl = '';
+  let issuerUrl = "";
   try {
-    issuerUrl = section.flag('issuer').requireString({
-      envVar: 'GRIST_OIDC_IDP_ISSUER',
+    issuerUrl = section.flag("issuer").requireString({
+      envVar: "GRIST_OIDC_IDP_ISSUER",
     });
-  } catch (e) {
+  }
+  catch (e) {
     throw new NotConfiguredError((e as Error).message);
   }
 
@@ -161,8 +160,8 @@ export function readOIDCConfigFromSettings(settings: AppSettings): OIDCConfig {
     defaultValue: process.env.APP_HOME_URL,
   });
 
-  const clientId = section.flag('clientId').requireString({
-    envVar: 'GRIST_OIDC_IDP_CLIENT_ID',
+  const clientId = section.flag("clientId").requireString({
+    envVar: "GRIST_OIDC_IDP_CLIENT_ID",
   });
 
   const clientSecret = section.flag("clientSecret").requireString({
@@ -422,10 +421,11 @@ export class OIDCBuilder {
         client_id: clientId,
         client_secret: clientSecret,
         redirect_uris: [this._redirectUrl],
-        response_types: ['code'],
+        response_types: ["code"],
         ...extraMetadata,
       });
-    } catch (err) {
+    }
+    catch (err) {
       log.error(`Failed to initialize OIDC client for issuer ${issuerUrl}: ${(err as Error).stack}`, err);
       throw new Error(
         `Failed to initialize OIDC client for issuer ${issuerUrl}: ${(err as Error).message}`,
@@ -528,5 +528,5 @@ async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> 
 
 export const getOIDCLoginSystem = createLoginProviderFactory(
   OIDC_PROVIDER_KEY,
-  getLoginSystem
+  getLoginSystem,
 );

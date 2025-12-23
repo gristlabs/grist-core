@@ -1,11 +1,10 @@
 /**
  * Test of the UI for Granular Access Control, part 3.
  */
-import { ITestingHooks } from 'app/server/lib/ITestingHooks';
-import { assert, driver, Key } from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
-import {assertChanged, assertSaved, startEditingAccessRules} from 'test/nbrowser/aclTestUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import { ITestingHooks } from "app/server/lib/ITestingHooks";
+import { assertChanged, assertSaved, startEditingAccessRules } from "test/nbrowser/aclTestUtils";
+import * as gu from "test/nbrowser/gristUtils";
+import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver, Key } from "mocha-webdriver";
 
@@ -116,23 +115,23 @@ describe("AccessRules4", function() {
 
     // Add this table as an attribute.
     await startEditingAccessRules();
-    await driver.findContentWait('button', /Add user attributes/, 2000).click();
-    const userAttrRule = await driver.findWait('.test-rule-userattr', 200);
-    await userAttrRule.find('.test-rule-userattr-name').click();
-    await driver.sendKeys('Custom', Key.ENTER);
-    await userAttrRule.find('.test-rule-userattr-attr').click();
-    await driver.sendKeys('Email', Key.ENTER);
-    await userAttrRule.find('.test-rule-userattr-table').click();
-    await gu.findOpenMenuItem('li', 'Users').click();
-    await userAttrRule.find('.test-rule-userattr-col').click();
+    await driver.findContentWait("button", /Add user attributes/, 2000).click();
+    const userAttrRule = await driver.findWait(".test-rule-userattr", 200);
+    await userAttrRule.find(".test-rule-userattr-name").click();
+    await driver.sendKeys("Custom", Key.ENTER);
+    await userAttrRule.find(".test-rule-userattr-attr").click();
+    await driver.sendKeys("Email", Key.ENTER);
+    await userAttrRule.find(".test-rule-userattr-table").click();
+    await gu.findOpenMenuItem("li", "Users").click();
+    await userAttrRule.find(".test-rule-userattr-col").click();
     await gu.findOpenMenu();
-    await driver.sendKeys('Email', Key.ENTER);
+    await driver.sendKeys("Email", Key.ENTER);
     await assertChanged();
-    await driver.find('.test-rules-save').click();
+    await driver.find(".test-rules-save").click();
     await gu.checkForErrors();
     await gu.waitForServer();
     await assertSaved();
-    await gu.openPage('Users');
+    await gu.openPage("Users");
 
     // Login as john
     await testingHooks.flushAuthorizerCache();

@@ -67,11 +67,11 @@ describe("ApiServerAccess", function() {
         }
       },
     );
-    if (process.env.GRIST_NOTIFIER !== 'test') {
+    if (process.env.GRIST_NOTIFIER !== "test") {
       // If the notifier is explicitly set to 'test', there is no sendGrid extensions configured, and we
       // won't test notifications here.
       // TODO: all those ifs should be removed and stubbed with proper test doubles.
-      if (['saas', 'enterprise'].includes(create.deploymentType())) {
+      if (["saas", "enterprise"].includes(create.deploymentType())) {
         assert.exists(notificationsConfig);
       }
     }
@@ -2055,16 +2055,16 @@ describe("ApiServerAccess", function() {
     assert.equal(invalidResp3.status, 400);
   });
 
-  it('should disallow setting empty or invalid emails', async function() {
-    const oid = await dbManager.testGetId('Chimpyland');
-    const wid = await dbManager.testGetId('Private');
-    const did = await dbManager.testGetId('Timesheets');
+  it("should disallow setting empty or invalid emails", async function() {
+    const oid = await dbManager.testGetId("Chimpyland");
+    const wid = await dbManager.testGetId("Private");
+    const did = await dbManager.testGetId("Timesheets");
 
     async function testInvalidEmail(email: string) {
       // Try setting on org level.
       const invalidRespOrg = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`,
-        {delta: {users: {[email]: "viewers"}}}, chimpy);
-      assertResult(invalidRespOrg, 400, 'Invalid email address included');
+        { delta: { users: { [email]: "viewers" } } }, chimpy);
+      assertResult(invalidRespOrg, 400, "Invalid email address included");
 
       // Fetch org permissions and check that our attempt didn't get added.
       const orgAccess = await axios.get(`${homeUrl}/api/orgs/${oid}/access`, chimpy);
@@ -2074,29 +2074,29 @@ describe("ApiServerAccess", function() {
       // Try updating access to remove an invalid email; this should succeed, so that we don't
       // block people from correcting bad sharing from before validation got added.
       const removeResult = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`,
-        {delta: {users: {[email]: null}}}, chimpy);
+        { delta: { users: { [email]: null } } }, chimpy);
       assert.equal(removeResult.status, 200);
 
       // Try workspace level; combining with a valid email shouldn't help.
       const invalidRespWs = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`,
-        {delta: {users: {[kiwiEmail]: "viewers", [email]: "editors"}}}, chimpy);
-      assertResult(invalidRespWs, 400, 'Invalid email address included');
+        { delta: { users: { [kiwiEmail]: "viewers", [email]: "editors" } } }, chimpy);
+      assertResult(invalidRespWs, 400, "Invalid email address included");
 
       // Try doc level.
       const invalidRespDoc = await axios.patch(`${homeUrl}/api/docs/${did}/access`,
-        {delta: {users: {[email]: "owners"}}}, chimpy);
-      assertResult(invalidRespDoc, 400, 'Invalid email address included');
+        { delta: { users: { [email]: "owners" } } }, chimpy);
+      assertResult(invalidRespDoc, 400, "Invalid email address included");
     }
 
     // Try setting permissions for an empty email and for a few other invalid emails.
     await testInvalidEmail("");
-    await testInvalidEmail('\n');
-    await testInvalidEmail('hello');
-    await testInvalidEmail('foo@example.com\r\nBcc: bar@example.com');
+    await testInvalidEmail("\n");
+    await testInvalidEmail("hello");
+    await testInvalidEmail("foo@example.com\r\nBcc: bar@example.com");
     await testInvalidEmail("' OR 1=1 --@example.com");
   });
 
-  describe('team plan', function() {
+  describe("team plan", function() {
     let nasaOrg: Organization;
     let oldProduct: Product;
 

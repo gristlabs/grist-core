@@ -10,8 +10,8 @@ import * as testUtils from "test/server/testUtils";
 
 import { assert } from "chai";
 
-describe('CommentAccess', function() {
-  this.timeout('60s');
+describe("CommentAccess", function() {
+  this.timeout("60s");
   let home: TestServer;
   testUtils.setTmpLogLevel("error");
   let owner: UserAPI;
@@ -389,8 +389,8 @@ describe('CommentAccess', function() {
 
     // First test some basic helpers.
     deepEqual(helper.getCell(1), {
-      "tableId": "Chat", "colId": "Private", "rowId": 1, "userRef": ownerRef, "id": 1,
-      content: 'First', parentId: 0
+      tableId: "Chat", colId: "Private", rowId: 1, userRef: ownerRef, id: 1,
+      content: "First", parentId: 0,
     });
     assert.isNull(helper.getCell(400));
     assert.equal(helper.getColId(6), "Public");
@@ -815,7 +815,7 @@ describe('CommentAccess', function() {
 
     // First make sure that we are censoring cells still.
     await owner.applyUserActions(docId, [
-      ['AddRecord', '_grist_Cells', null, {
+      ["AddRecord", "_grist_Cells", null, {
         tableRef: ChatTable, colRef: Censored, rowId: 1, type: 1, root: true,
         // userRef is set automatically by the data engine
         content: "New Secret",
@@ -837,10 +837,10 @@ describe('CommentAccess', function() {
     // And now add a comment, and remove a row in the same bundle.
     // This is not trivial, as cell info is censored after the fact.
     await owner.applyUserActions(docId, [
-      ['AddRecord', '_grist_Cells', null, {
+      ["AddRecord", "_grist_Cells", null, {
         tableRef: ChatTable, colRef: Censored, rowId: 1, type: 1, root: true,
         // userRef is set automatically by the data engine
-        content: 'New Secret',
+        content: "New Secret",
       }],
       ["RemoveRecord", "Chat2", 1],
     ]);
@@ -912,8 +912,8 @@ describe('CommentAccess', function() {
         rowId: 1,
         type: 1,
         root: true,
-        content: 'test'
-      }]
+        content: "test",
+      }],
     ]));
     await assert.isRejected(editor.applyUserActions(docId, [
       ["AddRecord", "_grist_Cells", null, {
@@ -921,21 +921,21 @@ describe('CommentAccess', function() {
         colRef: await colRef("Chat", "Private"),
         type: 1,
         root: true,
-        content: 'test'
+        content: "test",
       }],
       ["UpdateRecord", "_grist_Cells", 6, { rowId: 1 }],
     ]));
     await assert.isRejected(editor.applyUserActions(docId, [
       ["AddRecord", "_grist_Cells", null, {
         tableRef: await tableRef("Chat"),
-        type: 1, root: true, content: 'test'
+        type: 1, root: true, content: "test",
       }],
-      ['UpdateRecord', '_grist_Cells', 6, {rowId: 1}],
-      ['UpdateRecord', '_grist_Cells', 6, {colRef: await colRef("Chat", "Private")}]
+      ["UpdateRecord", "_grist_Cells", 6, { rowId: 1 }],
+      ["UpdateRecord", "_grist_Cells", 6, { colRef: await colRef("Chat", "Private") }],
     ]));
     await assert.isRejected(editor.applyUserActions(docId, [
-      ['AddRecord', '_grist_Cells', null, {
-        type: 1, root: true, content: 'test'
+      ["AddRecord", "_grist_Cells", null, {
+        type: 1, root: true, content: "test",
       }],
       ["UpdateRecord", "_grist_Cells", 6, { rowId: 1 }],
       ["UpdateRecord", "_grist_Cells", 6, { colRef: await colRef("Chat", "Private") }],
@@ -952,24 +952,24 @@ describe('CommentAccess', function() {
     // Those are partial actions, that will success, but they won't add any comments
     // as data-engine will remove comments that are not attached.
     await assert.isFulfilled(editor.applyUserActions(docId, [
-      ['AddRecord', '_grist_Cells', null, {
-        type: 1, root: true, content: 'test'
+      ["AddRecord", "_grist_Cells", null, {
+        type: 1, root: true, content: "test",
       }],
       // ['UpdateRecord', '_grist_Cells', 6, {rowId: 1}],
       ["UpdateRecord", "_grist_Cells", 6, { colRef: await colRef("Chat", "Public") }],
       ["UpdateRecord", "_grist_Cells", 6, { tableRef: await tableRef("Chat") }],
     ]));
     await assert.isFulfilled(editor.applyUserActions(docId, [
-      ['AddRecord', '_grist_Cells', null, {
-        type: 1, root: true, content: 'test'
+      ["AddRecord", "_grist_Cells", null, {
+        type: 1, root: true, content: "test",
       }],
       ["UpdateRecord", "_grist_Cells", 6, { rowId: 1 }],
       // ['UpdateRecord', '_grist_Cells', 6, {colRef: await colRef("Chat", "Public")}],
       ["UpdateRecord", "_grist_Cells", 6, { tableRef: await tableRef("Chat") }],
     ]));
     await assert.isFulfilled(editor.applyUserActions(docId, [
-      ['AddRecord', '_grist_Cells', null, {
-        type: 1, root: true, content: 'test'
+      ["AddRecord", "_grist_Cells", null, {
+        type: 1, root: true, content: "test",
       }],
       ["UpdateRecord", "_grist_Cells", 6, { rowId: 1 }],
       ["UpdateRecord", "_grist_Cells", 6, { colRef: await colRef("Chat", "Public") }],
@@ -1030,8 +1030,8 @@ describe('CommentAccess', function() {
         type: 1,
         root: true,
         // userRef is set automatically by the data engine
-        content: message
-      }]
+        content: message,
+      }],
     ]);
   }
 

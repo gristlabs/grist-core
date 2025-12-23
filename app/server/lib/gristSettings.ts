@@ -1,4 +1,4 @@
-import {appSettings} from 'app/server/lib/AppSettings';
+import { appSettings } from "app/server/lib/AppSettings";
 
 export function getTemplateOrg() {
   let org = appSettings.section("templates").flag("org").readString({

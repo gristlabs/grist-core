@@ -1,5 +1,6 @@
-import {driver, WebElement} from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
+import * as gu from "test/nbrowser/gristUtils";
+
+import { driver, WebElement } from "mocha-webdriver";
 
 export function itemElement(itemId: string) {
   return driver.findWait(`.test-admin-panel-item-${itemId}`, 1000);
@@ -24,16 +25,19 @@ export function sectionValue(sectionId: string) {
     text: () => itemValue(sectionId),
     status: async () => {
       const item = await driver.findWait(`.test-admin-panel-item-value-${sectionId}`, 100);
-      if (await item.find('.test-admin-panel-value-label-success').isPresent()) {
-        return 'success';
-      } else if (await item.find('.test-admin-panel-value-label-danger').isPresent()) {
-        return 'danger';
-      } else if (await item.find('.test-admin-panel-value-label-error').isPresent()) {
-        return 'error';
-      } else {
+      if (await item.find(".test-admin-panel-value-label-success").isPresent()) {
+        return "success";
+      }
+      else if (await item.find(".test-admin-panel-value-label-danger").isPresent()) {
+        return "danger";
+      }
+      else if (await item.find(".test-admin-panel-value-label-error").isPresent()) {
+        return "error";
+      }
+      else {
         return null;
       }
-    }
+    },
   };
 }
 
@@ -50,11 +54,11 @@ export async function clickSwitch(name: string) {
   await gu.waitForServer();
 }
 
-export async function isEnabled(switchElem: WebElement|string) {
-  if (typeof switchElem === 'string') {
+export async function isEnabled(switchElem: WebElement | string) {
+  if (typeof switchElem === "string") {
     switchElem = driver.find(`.test-admin-panel-item-value-${switchElem} .test-toggle-switch`);
   }
-  return (await switchElem.find('input').getAttribute('checked')) === null ? false : true;
+  return (await switchElem.find("input").getAttribute("checked")) === null ? false : true;
 }
 
 export async function currentVersion() {

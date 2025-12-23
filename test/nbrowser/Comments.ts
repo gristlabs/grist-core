@@ -16,10 +16,10 @@ describe("Comments", function() {
   this.timeout("8m");
   const cleanup = setupTestSuite();
   afterEach(() => gu.checkForErrors());
-  const chimpy = gu.translateUser('user1');
-  const kiwi = gu.translateUser('user3');
-  const notification = '.test-draft-notification';
-  gu.bigScreen('big');
+  const chimpy = gu.translateUser("user1");
+  const kiwi = gu.translateUser("user3");
+  const notification = ".test-draft-notification";
+  gu.bigScreen("big");
 
   before(async function() {
     session = await gu.session().teamSite.login();
@@ -1457,7 +1457,7 @@ describe("Comments", function() {
         type: arrayRepeat(3, 1),
         root: arrayRepeat(3, true),
         // userRef is set automatically by the data engine
-        content: [1, 2, 3].map(x => JSON.stringify({text: `B,${x}`, userName: 'Owner'}))
+        content: [1, 2, 3].map(x => JSON.stringify({ text: `B,${x}`, userName: "Owner" })),
       }],
     ]);
     await gu.waitForServer();
@@ -1481,7 +1481,7 @@ describe("Comments", function() {
         rowId: [1, 2, 3],
         colRef: [3, 3, 3],
         // userRef is set automatically by the data engine
-        content: [1, 2, 3].map(x => JSON.stringify({text: `B,${x}`, userName: 'Owner'}))
+        content: [1, 2, 3].map(x => JSON.stringify({ text: `B,${x}`, userName: "Owner" })),
       }],
     ]);
     await assertClientComments([
@@ -1708,69 +1708,69 @@ describe("Comments", function() {
     ]));
   });
 
-  it('should allow owner to remove any comment', async function() {
+  it("should allow owner to remove any comment", async function() {
     // Clear all comments first
     await clearComments();
-    await gu.openPage('Table1');
+    await gu.openPage("Table1");
 
     // Editor adds a comment
     await asSupport();
-    await addComment('A', 1, 'From editor');
+    await addComment("A", 1, "From editor");
     await assertClientComments([
-      'From editor',
+      "From editor",
     ]);
 
     // Switch to owner and verify they can see the comment
     await asOwner();
-    assert.equal(await commentCount('panel'), 1);
-    assert.equal(await readComment(0, 'panel'), 'From editor');
+    assert.equal(await commentCount("panel"), 1);
+    assert.equal(await readComment(0, "panel"), "From editor");
 
     // Owner should be able to remove editor's comment via UI
-    await openCommentMenu(0, 'panel');
-    await clickMenuItem('Remove thread');
+    await openCommentMenu(0, "panel");
+    await clickMenuItem("Remove thread");
     await gu.waitForServer();
 
     // Verify comment is deleted
-    assert.equal(await commentCount('panel'), 0);
+    assert.equal(await commentCount("panel"), 0);
     await assertClientComments([]);
   });
 
-  it('should allow owner to resolve any thread', async function() {
+  it("should allow owner to resolve any thread", async function() {
     // Clear all comments first
     await clearComments();
-    await gu.openPage('Table1');
+    await gu.openPage("Table1");
 
     // Editor adds a comment
     await asSupport();
-    await addComment('A', 1, 'Thread from editor');
+    await addComment("A", 1, "Thread from editor");
     await assertClientComments([
-      'Thread from editor',
+      "Thread from editor",
     ]);
 
     // Switch to owner and verify they can see the comment
     await asOwner();
     await openPanel();
-    await panelOptions({resolved: false});
-    assert.equal(await commentCount('panel'), 1);
-    assert.equal(await readComment(0, 'panel'), 'Thread from editor');
+    await panelOptions({ resolved: false });
+    assert.equal(await commentCount("panel"), 1);
+    assert.equal(await readComment(0, "panel"), "Thread from editor");
 
     // Owner should be able to resolve editor's thread via UI
-    await openCommentMenu(0, 'panel');
-    await clickMenuItem('Resolve');
+    await openCommentMenu(0, "panel");
+    await clickMenuItem("Resolve");
     await gu.waitForServer();
 
     // Verify comment is resolved (not visible by default with resolved: false)
-    assert.equal(await commentCount('panel'), 0);
+    assert.equal(await commentCount("panel"), 0);
 
     // Enable showing resolved comments to verify it's still there
-    await panelOptions({resolved: true});
+    await panelOptions({ resolved: true });
 
     // Now we should see the resolved comment
-    assert.equal(await commentCount('panel'), 1);
-    assert.equal(await readComment(0, 'panel'), 'Thread from editor');
+    assert.equal(await commentCount("panel"), 1);
+    assert.equal(await readComment(0, "panel"), "Thread from editor");
 
     // Verify the comment is marked as resolved
-    assert.isTrue(await isCommentResolved(0, 'panel'));
+    assert.isTrue(await isCommentResolved(0, "panel"));
   });
 });
 
@@ -1812,7 +1812,7 @@ async function addCommentAction(tableId: string, col: string, row: number, text?
     type: 1,
     root: true,
     colRef,
-    content: JSON.stringify({text: text ?? `${tableId},${col},${row}`, userName: 'Owner'})
+    content: JSON.stringify({ text: text ?? `${tableId},${col},${row}`, userName: "Owner" }),
   }];
 }
 

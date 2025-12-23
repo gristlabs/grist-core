@@ -2,10 +2,10 @@
  * Test of the UI for Granular Access Control, part 3.
  */
 import { assertChanged, assertSaved, enterRulePart, findDefaultRuleSet,
-         findRuleSet, findRuleSetWait, findTableWait, getRules, hasExtraAdd, removeRules,
-         removeTable, startEditingAccessRules } from 'test/nbrowser/aclTestUtils';
-import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
+  findRuleSet, findRuleSetWait, findTableWait, getRules, hasExtraAdd, removeRules,
+  removeTable, startEditingAccessRules } from "test/nbrowser/aclTestUtils";
+import * as gu from "test/nbrowser/gristUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver } from "mocha-webdriver";
 
@@ -41,7 +41,7 @@ describe("AccessRules3", function() {
       await startEditingAccessRules();
 
       // Save the initial rules.
-      await driver.find('.test-rules-save').click();
+      await driver.find(".test-rules-save").click();
       await gu.waitForServer();
       await assertSaved();
 
@@ -360,7 +360,7 @@ describe("AccessRules3", function() {
           aclFormula: ["user.Access in [OWNER]", "user.Access in [OWNER]"],
           // Specifically, we care that this permissionsText includes only RU bits for column rules.
           permissionsText: ["+RU", "+CRUD"],
-          rulePos: [1/6, 1/3],
+          rulePos: [1 / 6, 1 / 3],
           memo: ["", ""],
         }],
       ]);

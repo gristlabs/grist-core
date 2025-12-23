@@ -80,12 +80,12 @@ const SPECIAL_RULE_SETS: Record<SpecialRuleName, RuleSet> = {
     // Absense of +R on DocCopies means that the user is NOT allowed to copy the document in full
     // or download it, even if they can see all data and can view access rules.
     tableId: SPECIAL_RULES_TABLE_ID,
-    colIds: ['DocCopies'],
+    colIds: ["DocCopies"],
     body: [{
       aclFormula: "",
       matchFunc: defaultMatchFunc,
-      permissions: parsePermissions('+R'),
-      permissionsText: '+R',
+      permissions: parsePermissions("+R"),
+      permissionsText: "+R",
     }],
   },
   FullCopies: {

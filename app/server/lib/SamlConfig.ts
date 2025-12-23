@@ -56,17 +56,16 @@
  *
  */
 
-
-import {SAML_PROVIDER_KEY} from 'app/common/loginProviders';
-import {AppSettings} from 'app/server/lib/AppSettings';
-import {expressWrap} from 'app/server/lib/expressWrap';
-import {createLoginProviderFactory, NotConfiguredError} from 'app/server/lib/loginSystemHelpers';
-import {GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
-import log from 'app/server/lib/log';
-import { Permit } from 'app/server/lib/Permit';
-import { getOriginUrl } from 'app/server/lib/requestUtils';
-import { fromCallback } from 'app/server/lib/serverUtils';
-import { Sessions } from 'app/server/lib/Sessions';
+import { SAML_PROVIDER_KEY } from "app/common/loginProviders";
+import { AppSettings } from "app/server/lib/AppSettings";
+import { expressWrap } from "app/server/lib/expressWrap";
+import { GristLoginSystem, GristServer } from "app/server/lib/GristServer";
+import log from "app/server/lib/log";
+import { createLoginProviderFactory, NotConfiguredError } from "app/server/lib/loginSystemHelpers";
+import { Permit } from "app/server/lib/Permit";
+import { getOriginUrl } from "app/server/lib/requestUtils";
+import { fromCallback } from "app/server/lib/serverUtils";
+import { Sessions } from "app/server/lib/Sessions";
 
 import * as express from "express";
 import * as fse from "fs-extra";
@@ -100,14 +99,15 @@ export interface SamlConfig {
  * so we read the file contents here.
  */
 export function readSamlConfigFromSettings(settings: AppSettings): SamlConfig {
-  const section = settings.section('login').section('system').section(SAML_PROVIDER_KEY);
+  const section = settings.section("login").section("system").section(SAML_PROVIDER_KEY);
 
-  let spHost = '';
+  let spHost = "";
   try {
-    spHost = section.flag('spHost').requireString({
-      envVar: 'GRIST_SAML_SP_HOST',
+    spHost = section.flag("spHost").requireString({
+      envVar: "GRIST_SAML_SP_HOST",
     });
-  } catch (e) {
+  }
+  catch (e) {
     throw new NotConfiguredError((e as Error).message);
   }
 
@@ -142,9 +142,9 @@ export function readSamlConfigFromSettings(settings: AppSettings): SamlConfig {
   })!;
 
   // Read the file contents from paths
-  const spKey = fse.readFileSync(spKeyPath, {encoding: 'utf8'});
-  const spCert = fse.readFileSync(spCertPath, {encoding: 'utf8'});
-  const idpCerts = idpCertsPaths.map((p: string) => fse.readFileSync(p, {encoding: 'utf8'}));
+  const spKey = fse.readFileSync(spKeyPath, { encoding: "utf8" });
+  const spCert = fse.readFileSync(spCertPath, { encoding: "utf8" });
+  const idpCerts = idpCertsPaths.map((p: string) => fse.readFileSync(p, { encoding: "utf8" }));
 
   return {
     spHost,
@@ -418,5 +418,5 @@ async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> 
 
 export const getSamlLoginSystem = createLoginProviderFactory(
   SAML_PROVIDER_KEY,
-  getLoginSystem
+  getLoginSystem,
 );

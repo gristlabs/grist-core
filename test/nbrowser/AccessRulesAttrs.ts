@@ -2,12 +2,11 @@
  * Test handling of attributes in condition formulas (e.g. "user.Email.upper()"), including
  * autocomplete suggestions and errors.
  */
+import { UserAPI } from "app/common/UserAPI";
 import { enterRulePart, findDefaultRuleSetWait, removeRules,
-  startEditingAccessRules, triggerAutoComplete } from 'test/nbrowser/aclTestUtils';
-import { UserAPI } from 'app/common/UserAPI';
-import { assert, driver, Key, WebElement } from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
+  startEditingAccessRules, triggerAutoComplete } from "test/nbrowser/aclTestUtils";
+import * as gu from "test/nbrowser/gristUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver, Key, WebElement } from "mocha-webdriver";
 
@@ -34,8 +33,8 @@ describe("AccessRulesAttrs", function() {
     ]);
   });
 
-  it('supports upper/lower on text columns', async function() {
-    await mainSession.loadDoc(`/doc/${docId}/p/acl`, {wait: false});
+  it("supports upper/lower on text columns", async function() {
+    await mainSession.loadDoc(`/doc/${docId}/p/acl`, { wait: false });
     await startEditingAccessRules();
 
     // Check API results before any rules are added.
@@ -46,8 +45,8 @@ describe("AccessRulesAttrs", function() {
     ]);
 
     // Add rules for TableFoo.
-    await driver.findContentWait('button', /Add table rules/, 2000).click();
-    await gu.findOpenMenuItem('li', /TableFoo/, 3000).click();
+    await driver.findContentWait("button", /Add table rules/, 2000).click();
+    await gu.findOpenMenuItem("li", /TableFoo/, 3000).click();
     let ruleSet = findDefaultRuleSetWait(/TableFoo/);
 
     // Add a rule that only allows reading row with "foo" in it (all lowercase).
@@ -64,8 +63,8 @@ describe("AccessRulesAttrs", function() {
 
     // Now try a rule that lowercases the text value.
     ruleSet = findDefaultRuleSetWait(/TableFoo/);
-    await enterRulePart(ruleSet, 1, '$SomeText.lower() == "foo"', 'Allow all');
-    await driver.find('.test-rules-save').click();
+    await enterRulePart(ruleSet, 1, '$SomeText.lower() == "foo"', "Allow all");
+    await driver.find(".test-rules-save").click();
     await gu.waitForServer();
     assert.deepEqual(await api.getDocAPI(docId).getRecords("TableFoo"), [
       { id: 1, fields: { SomeText: "foo", SomeDate: null } },
@@ -74,18 +73,18 @@ describe("AccessRulesAttrs", function() {
 
     // Try uppercase, with no matches.
     ruleSet = findDefaultRuleSetWait(/TableFoo/);
-    await enterRulePart(ruleSet, 1, '$SomeText.upper() == "foo"', 'Allow all');
-    await driver.findWait('.test-rules-save', 500).click();
+    await enterRulePart(ruleSet, 1, '$SomeText.upper() == "foo"', "Allow all");
+    await driver.findWait(".test-rules-save", 500).click();
     await gu.waitForServer();
     assert.deepEqual(await api.getDocAPI(docId).getRecords("TableFoo"), []);
   });
 
-  it('should show autocomplete suggestions for text values', async function() {
-    await mainSession.loadDoc(`/doc/${docId}/p/acl`, {wait: false});
+  it("should show autocomplete suggestions for text values", async function() {
+    await mainSession.loadDoc(`/doc/${docId}/p/acl`, { wait: false });
     await startEditingAccessRules();
     const ruleSet = findDefaultRuleSetWait(/TableFoo/);
-    await triggerAutoComplete(ruleSet, 1, '$SomeText.');
-    await checkCompletions(['$SomeText.lower()', '$SomeText.upper()']);
+    await triggerAutoComplete(ruleSet, 1, "$SomeText.");
+    await checkCompletions(["$SomeText.lower()", "$SomeText.upper()"]);
 
     // Works too if we start with rec.
     await gu.waitToPass(async () => {
@@ -117,8 +116,8 @@ describe("AccessRulesAttrs", function() {
     await driver.sendKeys(Key.ESCAPE);
   });
 
-  it('should show errors for invalid attributes', async function() {
-    await mainSession.loadDoc(`/doc/${docId}/p/acl`, {wait: false});
+  it("should show errors for invalid attributes", async function() {
+    await mainSession.loadDoc(`/doc/${docId}/p/acl`, { wait: false });
     await startEditingAccessRules();
     const ruleSet = findDefaultRuleSetWait(/TableFoo/);
 
@@ -144,7 +143,7 @@ describe("AccessRulesAttrs", function() {
       ["AddVisibleColumn", "TableFoo", "OtherText", { type: "Text", isFormula: true, formula: "$SomeText or $id" }],
     ]);
 
-    await mainSession.loadDoc(`/doc/${docId}/p/acl`, {wait: false});
+    await mainSession.loadDoc(`/doc/${docId}/p/acl`, { wait: false });
     await startEditingAccessRules();
     let ruleSet = findDefaultRuleSetWait(/TableFoo/);
     if (await ruleSet.isPresent()) {
@@ -154,8 +153,8 @@ describe("AccessRulesAttrs", function() {
     }
 
     // While this column is Text, we can use "lower()" method, and everything works.
-    await driver.findContentWait('button', /Add table rules/, 2000).click();
-    await gu.findOpenMenuItem('li', /TableFoo/, 3000).click();
+    await driver.findContentWait("button", /Add table rules/, 2000).click();
+    await gu.findOpenMenuItem("li", /TableFoo/, 3000).click();
     ruleSet = findDefaultRuleSetWait(/TableFoo/);
     // This rule won't match anything, which is fine, we are only interested in its validity.
     await enterRulePart(ruleSet, 1, 'newRec.OtherText.lower() == "blah"', { U: "deny", C: "deny" });

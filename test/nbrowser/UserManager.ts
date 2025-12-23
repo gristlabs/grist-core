@@ -864,7 +864,7 @@ describe("UserManager", function() {
 
     // These days we see the access rules intro screen (since on this doc there aren't access
     // rules yet).
-    assert.equal(await driver.findWait('.test-enable-access-rules', 1000).isDisplayed(), true);
+    assert.equal(await driver.findWait(".test-enable-access-rules", 1000).isDisplayed(), true);
   });
 });
 

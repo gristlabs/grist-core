@@ -164,9 +164,9 @@ describe("links", function() {
         );
       });
 
-      it("include aclAsUser when viewing a document as another user", async function () {
+      it("include aclAsUser when viewing a document as another user", async function() {
         await gu.openAccessRulesDropdown();
-        await gu.waitToPass(() => gu.findOpenMenuItem('a', /Editor 1/, 500).click());
+        await gu.waitToPass(() => gu.findOpenMenuItem("a", /Editor 1/, 500).click());
         await gu.waitForDocToLoad();
         await assertSameDocumentLink(
           makeLink(server.getUrl(session.orgDomain, `/${urlId}/links/p/acl`)),

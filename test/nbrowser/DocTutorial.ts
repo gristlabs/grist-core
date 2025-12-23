@@ -17,10 +17,10 @@ describe("DocTutorial", function() {
   setupTestSuite({ samples: true, tutorial: true, team: true });
 
   gu.withEnvironmentSnapshot({
-    'GRIST_UI_FEATURES': 'tutorials',
-    'GRIST_TEMPLATE_ORG': 'templates',
-    'GRIST_ONBOARDING_TUTORIAL_DOC_ID': 'grist-basics',
-    'GRIST_TEST_LOGIN': '1',
+    GRIST_UI_FEATURES: "tutorials",
+    GRIST_TEMPLATE_ORG: "templates",
+    GRIST_ONBOARDING_TUTORIAL_DOC_ID: "grist-basics",
+    GRIST_TEST_LOGIN: "1",
   });
 
   before(async () => {

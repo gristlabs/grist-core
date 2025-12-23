@@ -53,8 +53,8 @@ export class ConfigAPI extends BaseAPI {
    */
   public async setActiveAuthProvider(providerKey: string): Promise<void> {
     await this.request(`${this._url}/api/config/auth-providers/set-active`, {
-      method: 'POST',
-      body: JSON.stringify({providerKey}),
+      method: "POST",
+      body: JSON.stringify({ providerKey }),
     });
   }
 
@@ -62,7 +62,7 @@ export class ConfigAPI extends BaseAPI {
    * Fetches available authentication providers from the server.
    */
   public async getAuthProviders(): Promise<AuthProvider[]> {
-    const resp = await this.requestJson(`${this._url}/api/config/auth-providers`, {method: 'GET'});
+    const resp = await this.requestJson(`${this._url}/api/config/auth-providers`, { method: "GET" });
     return resp as AuthProvider[];
   }
 

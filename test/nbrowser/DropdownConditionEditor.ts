@@ -1,8 +1,7 @@
-import {UserAPI} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
-import {startEditingAccessRules} from 'test/nbrowser/aclTestUtils';
-import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { UserAPI } from "app/common/UserAPI";
+import { startEditingAccessRules } from "test/nbrowser/aclTestUtils";
+import * as gu from "test/nbrowser/gristUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver, Key } from "mocha-webdriver";
 
@@ -33,17 +32,17 @@ describe("DropdownConditionEditor", function() {
       ["AddRecord", "Roles", null, { Email: gu.translateUser("user2").email, Admin: false }],
     ]);
     await startEditingAccessRules();
-    await driver.findContentWait('button', /Add user attributes/, 2000).click();
-    const userAttrRule = await driver.find('.test-rule-userattr');
-    await userAttrRule.find('.test-rule-userattr-name').click();
-    await driver.sendKeys('Roles', Key.ENTER);
-    await userAttrRule.find('.test-rule-userattr-attr').click();
-    await driver.sendKeys('Email', Key.ENTER);
-    await userAttrRule.find('.test-rule-userattr-table').click();
-    await gu.findOpenMenuItem('li', 'Roles').click();
-    await userAttrRule.find('.test-rule-userattr-col').click();
-    await driver.sendKeys('Email', Key.ENTER);
-    await driver.find('.test-rules-save').click();
+    await driver.findContentWait("button", /Add user attributes/, 2000).click();
+    const userAttrRule = await driver.find(".test-rule-userattr");
+    await userAttrRule.find(".test-rule-userattr-name").click();
+    await driver.sendKeys("Roles", Key.ENTER);
+    await userAttrRule.find(".test-rule-userattr-attr").click();
+    await driver.sendKeys("Email", Key.ENTER);
+    await userAttrRule.find(".test-rule-userattr-table").click();
+    await gu.findOpenMenuItem("li", "Roles").click();
+    await userAttrRule.find(".test-rule-userattr-col").click();
+    await driver.sendKeys("Email", Key.ENTER);
+    await driver.find(".test-rules-save").click();
     await gu.waitForServer();
   }
 
@@ -153,8 +152,8 @@ describe("DropdownConditionEditor", function() {
       await gu.sendKeys("!@#$%^", Key.ENTER);
       await gu.waitForServer();
       assert.equal(
-        await driver.findWait('.test-field-dropdown-condition-error', 500).getText(),
-        'SyntaxError invalid syntax on line 1 col 1'
+        await driver.findWait(".test-field-dropdown-condition-error", 500).getText(),
+        "SyntaxError invalid syntax on line 1 col 1",
       );
       await gu.reloadDoc();
       assert.isFalse(await driver.find(".test-field-dropdown-condition-error").isPresent());
