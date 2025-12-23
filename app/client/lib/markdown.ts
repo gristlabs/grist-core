@@ -1,7 +1,8 @@
-import { sanitizeHTMLIntoDOM } from 'app/client/ui/sanitizeHTML';
-import { theme } from 'app/client/ui2018/cssVars';
-import { BindableValue, dom, DomContents, IDomArgs, styled } from 'grainjs';
-import { marked } from 'marked';
+import { sanitizeHTMLIntoDOM } from "app/client/ui/sanitizeHTML";
+import { theme } from "app/client/ui2018/cssVars";
+
+import { BindableValue, dom, DomContents, IDomArgs, styled } from "grainjs";
+import { marked } from "marked";
 
 /**
  * Helper function for using Markdown in grainjs elements. It accepts
@@ -23,7 +24,7 @@ import { marked } from 'marked';
  *
  * Enable `inline` option to avoid wrapping results in `<p>` tags.
  */
-export function markdown(markdownObs: BindableValue<string>, options: {inline?: boolean} = {}): DomContents {
+export function markdown(markdownObs: BindableValue<string>, options: { inline?: boolean } = {}): DomContents {
   return dom.domComputed(markdownObs, value => getMarkdownValue(value, options));
 }
 
@@ -38,7 +39,7 @@ export function cssMarkdownSpan(
 ): HTMLSpanElement {
   return cssMarkdownLine(markdown(markdownObs), ...args);
 }
-const cssMarkdownLine = styled('span', `
+const cssMarkdownLine = styled("span", `
   & p {
     margin: 0;
   }
@@ -55,16 +56,15 @@ const cssMarkdownLine = styled('span', `
 `);
 
 export function inlineMarkdown(markdownObs: BindableValue<string>): DomContents {
-  return markdown(markdownObs, {inline: true});
+  return markdown(markdownObs, { inline: true });
 }
 
-function getMarkdownValue(markdownValue: string, options: {inline?: boolean} = {}): DomContents {
-  const html = options.inline
-    ? marked.parseInline(markdownValue, {async: false})
-    : marked(markdownValue, {async: false});
+function getMarkdownValue(markdownValue: string, options: { inline?: boolean } = {}): DomContents {
+  const html = options.inline ?
+    marked.parseInline(markdownValue, { async: false }) :
+    marked(markdownValue, { async: false });
   return sanitizeHTMLIntoDOM(html);
 }
-
 
 /**
  * Removes all links from markdown text replacing them with the plain label.
@@ -74,5 +74,5 @@ export function stripLinks(markdownText: string) {
   // though markdown will not render them as links. For example [link\n\nlink](https://example.com) will be
   // rendered as plain text.
   const regex = /\[(.*?)\]\(.*?\)/gs;
-  return markdownText.replace(regex, '$1');
+  return markdownText.replace(regex, "$1");
 }

@@ -9,7 +9,7 @@ import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import pick from "lodash/pick";
-import { assert, driver } from 'mocha-webdriver';
+import { assert, driver } from "mocha-webdriver";
 
 describe("AccessRulesSchemaEdit", function() {
   this.timeout(40000);
