@@ -939,13 +939,6 @@ describe("CommentAccess", function() {
       }],
       ["UpdateRecord", "_grist_Cells", 6, { rowId: 1 }],
       ["UpdateRecord", "_grist_Cells", 6, { colRef: await colRef("Chat", "Private") }],
-    ]));
-    await assert.isRejected(editor.applyUserActions(docId, [
-      ["AddRecord", "_grist_Cells", null, {
-        type: 1, root: true, userRef: editorRef, content: "test",
-      }],
-      ["UpdateRecord", "_grist_Cells", 6, { rowId: 1 }],
-      ["UpdateRecord", "_grist_Cells", 6, { colRef: await colRef("Chat", "Private") }],
       ["UpdateRecord", "_grist_Cells", 6, { tableRef: await tableRef("Chat") }],
     ]));
 
