@@ -40,14 +40,18 @@ export function checkMinIOExternalStorage() {
   const useSSL = settings.flag('useSsl').read({
     envVar: ['GRIST_DOCS_MINIO_USE_SSL'],
   }).getAsBool();
-  const accessKey = settings.flag('accessKey').requireString({
+  const accessKey = settings.flag('accessKey').readString({
     envVar: ['GRIST_DOCS_MINIO_ACCESS_KEY'],
     censor: true,
   });
-  const secretKey = settings.flag('secretKey').requireString({
+  const secretKey = settings.flag('secretKey').readString({
     envVar: ['GRIST_DOCS_MINIO_SECRET_KEY'],
     censor: true,
   });
+  const useAwsCredentialChain = settings.flag('useAwsCredentialChain').read({
+    envVar: ['GRIST_DOCS_MINIO_USE_AWS_CREDENTIAL_CHAIN'],
+    defaultValue: false,
+  }).getAsBool();
   settings.flag('url').set(`minio://${bucket}/${prefix}`);
   settings.flag('active').set(true);
   return {
@@ -57,7 +61,8 @@ export function checkMinIOExternalStorage() {
     useSSL,
     accessKey,
     secretKey,
-    region
+    region,
+    useAwsCredentialChain,
   };
 }
 
