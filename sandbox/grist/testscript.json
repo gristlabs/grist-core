@@ -1251,7 +1251,7 @@
             "formula": ["","","rec.hello.upper()"],
             "parentPos": [8.0,9.0,10.0],
             "isFormula": [false,false,true],
-            "label": ["manualSort","",""],
+            "label": ["manualSort","hello","world"],
             "parentId": [4,4,4],
             "type": ["ManualSortPos","Text","Text"],
             "widgetOptions": ["","",""]
@@ -1297,7 +1297,7 @@
           ["BulkAddRecord", "_grist_Views_section_field", [1, 3, 5],
             {"colRef": [31, 31, 31], "parentId": [1, 2, 3], "parentPos": [1.0, 3.0, 5.0]}],
           ["AddRecord", "_grist_Tables_column", 31,
-            {"colId": "hello", "parentPos": 9.0,
+            {"colId": "hello", "label": "hello", "parentPos": 9.0,
               "parentId": 4, "type": "Text"
             }],
           ["AddColumn", "ViewTest", "hello",
