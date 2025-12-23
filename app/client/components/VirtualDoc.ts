@@ -578,7 +578,7 @@ interface ExternalFormat {
 /**
  * Extends UIRowId to allow rows to use string ids.
  */
-export type VirtualRowId = string | UIRowId;
+export type VirtualRowId = string | UIRowId; // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
 
 /**
  * UI component for rendering single section (from VirtualDoc) in the UI.
