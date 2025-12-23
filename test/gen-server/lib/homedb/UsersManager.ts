@@ -11,7 +11,7 @@ import { User } from 'app/gen-server/entity/User';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GetUserOptions, NonGuestGroup, Resource } from 'app/gen-server/lib/homedb/Interfaces';
-import { SUPPORT_EMAIL, UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
+import { DEFAULT_EMAIL, SUPPORT_EMAIL, UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
 import { updateDb } from 'app/server/lib/dbUtils';
 import { EmitNotifier } from 'app/server/lib/INotifier';
 import { MergedServer } from 'app/server/MergedServer';
@@ -303,6 +303,8 @@ describe('UsersManager', function () {
       const PREVIEWER_USER_ID = 7;
       const EVERYONE_USER_ID = 8;
       const SUPPORT_USER_ID = 5;
+      const DEFAULT_USER_ID = 9;
+
       it('getAnonymousUserId() should retrieve anonymous user id', function () {
         assert.strictEqual(db.getAnonymousUserId(), ANONYMOUS_USER_ID);
       });
@@ -319,12 +321,17 @@ describe('UsersManager', function () {
         assert.strictEqual(db.getSupportUserId(), SUPPORT_USER_ID);
       });
 
+      it("getDefaultUserId() should retrieve 'support' user id", function () {
+        assert.strictEqual(db.getDefaultUserId(), DEFAULT_USER_ID);
+      });
+
       it("getSpecialUserIds() should retrieve all the special user ids", function () {
         assert.deepEqual(db.getSpecialUserIds(), [
           ANONYMOUS_USER_ID,
           PREVIEWER_USER_ID,
           EVERYONE_USER_ID,
-          SUPPORT_USER_ID
+          SUPPORT_USER_ID,
+          DEFAULT_USER_ID,
         ]);
       });
     });
@@ -1188,7 +1195,8 @@ describe('UsersManager', function () {
           {name: "Support", email: SUPPORT_EMAIL},
           {name: "Anonymous", email: ANONYMOUS_USER_EMAIL},
           {name: "Preview", email: PREVIEWER_EMAIL},
-          {name: "Everyone", email: EVERYONE_EMAIL}
+          {name: "Everyone", email: EVERYONE_EMAIL},
+          {name: "You", email: DEFAULT_EMAIL},
         ];
         for (const {email} of specialAccounts) {
           assert.notExists(await db.getExistingUserByLogin(email));
@@ -1198,6 +1206,7 @@ describe('UsersManager', function () {
         assert.throws(() => db.getPreviewerUserId(), "'Previewer' user not available");
         assert.throws(() => db.getEveryoneUserId(), "'Everyone' user not available");
         assert.throws(() => db.getSupportUserId(), "'Support' user not available");
+        assert.throws(() => db.getDefaultUserId(), "Admin/Default user not available");
 
         await db.initializeSpecialIds();
 

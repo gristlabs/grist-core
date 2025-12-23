@@ -68,6 +68,7 @@ import {
   DocAuthKey,
   DocAuthResult,
   DocumentAccessChanges,
+  GetExistingUserOptions,
   GetUserOptions,
   GroupWithMembersDescriptor,
   HomeDBAuth,
@@ -519,16 +520,16 @@ export class HomeDBManager implements HomeDBAuth {
    * @see UsersManager.prototype.getExistingUserByLogin
    * Find a user by email. Don't create the user if it doesn't already exist.
    */
-  public async getExistingUserByLogin(email: string, manager?: EntityManager): Promise<User|undefined> {
-    return await this._usersManager.getExistingUserByLogin(email, manager);
+  public async getExistingUserByLogin(email: string, options: GetExistingUserOptions = {}): Promise<User|undefined> {
+    return await this._usersManager.getExistingUserByLogin(email, options);
   }
 
   /**
    * @see UsersManager.prototype.getExistingUsersByLogin
    * Find users by emails.
    */
-  public async getExistingUsersByLogin(emails: string[], manager?: EntityManager): Promise<User[]> {
-    return await this._usersManager.getExistingUsersByLogin(emails, manager);
+  public async getExistingUsersByLogin(emails: string[], options: GetExistingUserOptions = {}): Promise<User[]> {
+    return await this._usersManager.getExistingUsersByLogin(emails, options);
   }
 
   public async createGroup(groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager) {
@@ -2871,6 +2872,10 @@ export class HomeDBManager implements HomeDBAuth {
 
   public getSupportUserId() {
     return this._usersManager.getSupportUserId();
+  }
+
+  public getDefaultUserId() {
+    return this._usersManager.getDefaultUserId();
   }
 
   /**

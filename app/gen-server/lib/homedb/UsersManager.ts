@@ -24,7 +24,14 @@ import { User } from 'app/gen-server/entity/User';
 import { appSettings } from 'app/server/lib/AppSettings';
 import { HomeDBManager, PermissionDeltaAnalysis, Scope, UserIdDelta } from 'app/gen-server/lib/homedb/HomeDBManager';
 import {
-  AvailableUsers, GetUserOptions, NonGuestGroup, QueryResult, Resource, RunInTransaction, UserProfileChange
+  AvailableUsers,
+  GetExistingUserOptions,
+  GetUserOptions,
+  NonGuestGroup,
+  QueryResult,
+  Resource,
+  RunInTransaction,
+  UserProfileChange,
 } from 'app/gen-server/lib/homedb/Interfaces';
 import { Permissions } from 'app/gen-server/lib/Permissions';
 import { Pref } from 'app/gen-server/entity/Pref';
@@ -35,6 +42,12 @@ import { EntityManager, IsNull, Not } from 'typeorm';
 function apiKeyGenerator(): string {
   return crypto.randomBytes(20).toString('hex');
 }
+
+// Admin Email
+export const DEFAULT_EMAIL = appSettings.section('access').flag('installAdminEmail').readString({
+  envVar: 'GRIST_DEFAULT_EMAIL',
+  defaultValue: 'you@example.com',
+})!;
 
 // A special user allowed to add/remove both the EVERYONE_EMAIL and ANONYMOUS_USER_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
@@ -106,7 +119,7 @@ export class UsersManager {
   public async testClearUserPrefs(emails: string[]) {
     return await this._connection.transaction(async manager => {
       for (const email of emails) {
-        const user = await this.getExistingUserByLogin(email, manager);
+        const user = await this.getExistingUserByLogin(email, {manager});
         if (user) {
           await manager.delete(Pref, {userId: user.id});
         }
@@ -160,6 +173,15 @@ export class UsersManager {
   public getSupportUserId(): number {
     const id = this._specialUserIds[SUPPORT_EMAIL];
     if (!id) { throw new Error("'Support' user not available"); }
+    return id;
+  }
+
+  /**
+   * Get the id of the admin user.
+   */
+  public getDefaultUserId(): number {
+    const id = this._specialUserIds[DEFAULT_EMAIL];
+    if (!id) { throw new Error("Admin/Default user not available"); }
     return id;
   }
 
@@ -381,9 +403,9 @@ export class UsersManager {
    */
   public async getExistingUserByLogin(
     email: string,
-    manager?: EntityManager
+    options: GetExistingUserOptions = {}
   ): Promise<User|undefined> {
-    return await this._buildExistingUsersByLoginRequest([email], manager)
+    return await this._buildExistingUsersByLoginRequest([email], options)
       .getOne() || undefined;
   }
 
@@ -392,12 +414,12 @@ export class UsersManager {
    */
   public async getExistingUsersByLogin(
     emails: string[],
-    manager?: EntityManager
+    options: GetExistingUserOptions = {}
   ): Promise<User[]> {
     if (emails.length === 0){
       return [];
     }
-    return await this._buildExistingUsersByLoginRequest(emails, manager)
+    return await this._buildExistingUsersByLoginRequest(emails, options)
       .getMany();
   }
 
@@ -639,6 +661,10 @@ export class UsersManager {
       email: SUPPORT_EMAIL,
       name: "Support"
     });
+    await this._maybeCreateSpecialUserId({
+      email: DEFAULT_EMAIL,
+      name: "You"
+    });
   }
 
   /**
@@ -749,7 +775,7 @@ export class UsersManager {
       // Lookup emails
       const emailMap = delta.users;
       const emails = Object.keys(emailMap);
-      foundUsers = await this.getExistingUsersByLogin(emails, transaction);
+      foundUsers = await this.getExistingUsersByLogin(emails, {manager: transaction});
       const emailUsers = new Map(foundUsers.map(user => [user.loginEmail, user]));
       for (const email of emails) {
         const user = emailUsers.get(normalizeEmail(email));
@@ -1012,13 +1038,14 @@ export class UsersManager {
 
   private _buildExistingUsersByLoginRequest(
     emails: string[],
-    manager?: EntityManager
+    options: {manager?: EntityManager, withOrgs?: boolean} = {},
   ) {
     const normalizedEmails = emails.map(email=> normalizeEmail(email));
-    return (manager || this._connection).createQueryBuilder()
+    return (options.manager || this._connection).createQueryBuilder()
       .select('user')
       .from(User, 'user')
       .leftJoinAndSelect('user.logins', 'logins')
+      .chain(qb => options.withOrgs ? qb.leftJoinAndSelect('user.personalOrg', 'personalOrg') : qb)
       .where('email IN (:...emails)', {emails: normalizedEmails});
   }
 }
