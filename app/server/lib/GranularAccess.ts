@@ -58,10 +58,10 @@ import { getRelatedRows } from "app/server/lib/RowAccess";
 import { getDocSessionAccess, getDocSessionShare } from "app/server/lib/sessionUtils";
 import { quoteIdent } from "app/server/lib/SQLiteDB";
 
-import cloneDeep = require("lodash/cloneDeep");
-import fromPairs = require("lodash/fromPairs");
-import get = require("lodash/get");
-import memoize = require("lodash/memoize");
+import cloneDeep from "lodash/cloneDeep";
+import fromPairs from "lodash/fromPairs";
+import get from "lodash/get";
+import memoize from "lodash/memoize";
 
 /**
  * A threshold beyond which for this installation it would be
