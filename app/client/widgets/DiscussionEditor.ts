@@ -1157,14 +1157,14 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
         const vss = page.view.peek().viewSections.peek().all();
         const result = findSection(vss);
         if (result) {
-          sectionId = result.sectionId;
+          sectionId = result.sectionId!;
           fieldIndex = result.fieldIndex;
           break;
         }
       }
     }
     else {
-      sectionId = section.sectionId;
+      sectionId = section.sectionId!;
       fieldIndex = section.fieldIndex;
     }
 
