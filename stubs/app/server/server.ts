@@ -7,6 +7,11 @@
 import { commonUrls } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { updateDb } from "app/server/lib/dbUtils";
+import { MergedServer, parseServerTypes } from "app/server/MergedServer";
+import { runPrometheusExporter } from "app/server/prometheus-exporter";
+
+import * as fse from "fs-extra";
 
 const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
 
@@ -34,11 +39,6 @@ if (!process.env.GRIST_SINGLE_ORG) {
 setDefaultEnv("GRIST_UI_FEATURES",
   "helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,createSite,supportGrist,themes");
 setDefaultEnv("GRIST_WIDGET_LIST_URL", commonUrls.gristLabsWidgetRepository);
-import { updateDb } from "app/server/lib/dbUtils";
-import { MergedServer, parseServerTypes } from "app/server/MergedServer";
-import { runPrometheusExporter } from "app/server/prometheus-exporter";
-
-import * as fse from "fs-extra";
 
 const G = {
   port: parseInt(process.env.PORT!, 10) || 8484,
