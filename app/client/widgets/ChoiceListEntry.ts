@@ -8,7 +8,9 @@ import { editableLabel } from "app/client/ui2018/editableLabel";
 import { icon } from "app/client/ui2018/icons";
 import { ChoiceOptionsByName, IChoiceOptions } from "app/client/widgets/ChoiceTextBox";
 
-import { Computed, Disposable, dom, DomContents, DomElementArg, Holder, MultiHolder, Observable, styled } from "grainjs";
+import {
+  Computed, Disposable, dom, DomContents, DomElementArg, Holder, MultiHolder, Observable, styled,
+} from "grainjs";
 import isEqual from "lodash/isEqual";
 import uniqBy from "lodash/uniqBy";
 import { createCheckers, iface, ITypeSuite, opt, union } from "ts-interface-checker";

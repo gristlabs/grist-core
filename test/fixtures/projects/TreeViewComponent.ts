@@ -65,7 +65,9 @@ function setupTest() {
   return [
     testBox(
       dom.style("width", "224px"),
-      dom.create(TreeViewComponent, treeModel, { expanderDelay: 1100, isOpen, dragStartDelay: 500, selected, isReadonly }),
+      dom.create(
+        TreeViewComponent, treeModel, { expanderDelay: 1100, isOpen, dragStartDelay: 500, selected, isReadonly },
+      ),
     ),
     testBox(
       dom.style("float", "right"),

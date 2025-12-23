@@ -461,7 +461,8 @@ export class ActiveDocImport {
 
     // If destination is a new table, we need to create it.
     if (intoNewTable) {
-      const colSpecs = destCols.map(({ type, colId: id, label, widgetOptions }) => ({ type, id, label, widgetOptions }));
+      const colSpecs = destCols.map(({ type, colId: id, label, widgetOptions }) =>
+        ({ type, id, label, widgetOptions }));
       const newTable = await this._activeDoc.applyUserActions(docSession, [["AddTable", destTableId, colSpecs]]);
       destTableId = newTable.retValues[0].table_id;
     }

@@ -334,7 +334,10 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
         await this._api.renameDoc(doc.id, value).catch(reportError);
         const newDoc = await this.refreshCurrentDoc(doc);
         // a "slug" component of the URL may change when the document name is changed.
-        await urlState().pushUrl({ ...urlState().state.get(), ...docUrl(newDoc) }, { replace: true, avoidReload: true });
+        await urlState().pushUrl(
+          { ...urlState().state.get(), ...docUrl(newDoc) },
+          { replace: true, avoidReload: true },
+        );
       }
       else {
         // This error won't be shown to user (caught by editableLabel).

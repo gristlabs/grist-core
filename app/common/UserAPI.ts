@@ -300,7 +300,9 @@ export interface UserAccessData extends UserAccess {
 /**
  * Combines access, parentAccess, and maxInheritedRole info into the resulting access role.
  */
-export function getRealAccess(user: UserAccess, inherited: { maxInheritedRole?: roles.BasicRole | null }): roles.Role | null {
+export function getRealAccess(
+  user: UserAccess, inherited: { maxInheritedRole?: roles.BasicRole | null },
+): roles.Role | null {
   const inheritedAccess = roles.getWeakestRole(user.parentAccess || null, inherited.maxInheritedRole || null);
   return roles.getStrongestRole(user.access, inheritedAccess);
 }

@@ -2992,7 +2992,8 @@ export class ActiveDoc extends EventEmitter {
 
       const tables = docData.getMetaTable("_grist_Tables");
       const skipLoadingUserTables = this._recoveryMode;
-      const onDemandCount = skipLoadingUserTables ? tables.numRecords() : tables.filterRowIds({ onDemand: true }).length;
+      const onDemandCount =
+        skipLoadingUserTables ? tables.numRecords() : tables.filterRowIds({ onDemand: true }).length;
 
       if (this._isSnapshot) {
         log.rawInfo("Loading complete", {

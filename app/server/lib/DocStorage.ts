@@ -1163,7 +1163,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * @param {Array[Object]} columnValues - Array of column info objects.
    * @returns {Promise} - Promise for SQL execution.
    */
-  public _process_BulkAddRecord(tableId: string, rowIds: number[], columnValues: { [key: string]: any }): Promise<void> {
+  public _process_BulkAddRecord(
+    tableId: string, rowIds: number[], columnValues: { [key: string]: any },
+  ): Promise<void> {
     if (rowIds.length === 0) { return Promise.resolve(); } // no rows means nothing to do
 
     const cols = Object.keys(columnValues);

@@ -2549,7 +2549,9 @@ function testDocApi(settings: {
       assert.deepEqual(resp.data, Buffer.from("123456"));
     });
 
-    async function assertArchiveContents(archive: string | Buffer, expectedFiles: { name: string; contents?: string }[]) {
+    async function assertArchiveContents(
+      archive: string | Buffer, expectedFiles: { name: string; contents?: string }[],
+    ) {
       const getFileName = (filePath: string) => filePath.substring(filePath.indexOf("_") + 1);
       const files = await decompress(archive);
       for (const expectedFile of expectedFiles) {
@@ -4699,7 +4701,7 @@ function testDocApi(settings: {
               .flatMap(args => args.slice(2))               // events: string[]
               .map(JSON.parse)                              // events: WebhookEvent[]
               .groupBy("id")                                // {[webHookId: string]: WebhookEvent[]}
-              .mapKeys((_value, key) => webhookIds[key])    // {[eventTypes: 'add'|'update'|'add,update']: WebhookEvent[]}
+              .mapKeys((_value, key) => webhookIds[key]) // {[eventTypes: 'add'|'update'|'add,update']: WebhookEvent[]}
               .mapValues(group => _.map(group, "payload"))  // {[eventTypes: 'add'|'update'|'add,update']: RowRecord[]}
               .value();
             const expectedPushes = _.mapValues(expectedRequests, value => _.flatten(value));

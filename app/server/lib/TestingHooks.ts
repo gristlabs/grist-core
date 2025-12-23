@@ -74,7 +74,9 @@ export class TestingHooks implements ITestingHooks {
     return this._port;
   }
 
-  public async setLoginSessionProfile(gristSidCookie: string, profile: UserProfile | null, org?: string): Promise<void> {
+  public async setLoginSessionProfile(
+    gristSidCookie: string, profile: UserProfile | null, org?: string,
+  ): Promise<void> {
     log.info("TestingHooks.setLoginSessionProfile called with", gristSidCookie, profile, org);
     const sessions = this._server.getSessions();
     const sessionId = sessions.getSessionIdFromCookie(gristSidCookie);

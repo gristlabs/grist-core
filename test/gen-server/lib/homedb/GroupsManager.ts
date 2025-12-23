@@ -62,7 +62,9 @@ describe("GroupsManager", function() {
 
   const ensureTestGroupName = (groupName: string) => { assert.match(groupName, /^test-/); };
 
-  async function createDummyGroup(groupName: string, extraProps: Partial<GroupWithMembersDescriptor> & { type: string }) {
+  async function createDummyGroup(
+    groupName: string, extraProps: Partial<GroupWithMembersDescriptor> & { type: string },
+  ) {
     ensureTestGroupName(groupName);
     const chimpy = (await db.getExistingUserByLogin("chimpy@getgrist.com"))!;
     const group = await db.createGroup({

@@ -20,7 +20,9 @@ const month = String(today.getUTCMonth() + 1).padStart(2, "0");
  * Otherwise, parseDateStrict should return a result
  * unless no dateFormat is given in which case it may or may not.
  */
-function testParse(dateFormat: string | null, input: string, expectedDateStr: string | null, fallback: boolean = false) {
+function testParse(
+  dateFormat: string | null, input: string, expectedDateStr: string | null, fallback: boolean = false,
+) {
   assertDateEqual(parseDate(input, dateFormat ? { dateFormat } : {}), expectedDateStr);
 
   const strict = new Set<number>();

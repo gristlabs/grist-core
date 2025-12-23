@@ -159,7 +159,7 @@ async function uploadFormData(
       }
     });
     xhr.addEventListener("error", (e: ProgressEvent) => {
-      console.warn("Upload error", e);         // The event does not seem to have any helpful info in it, to add to the message.
+      console.warn("Upload error", e); // The event does not seem to have any helpful info in it, to add to the message.
       reject(new Error("Upload error"));
     });
     xhr.addEventListener("load", () => {

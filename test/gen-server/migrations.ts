@@ -6,7 +6,8 @@ import { Initial1536634251710 as Initial } from "app/gen-server/migration/153663
 import { Login1539031763952 as Login } from "app/gen-server/migration/1539031763952-Login";
 import { PinDocs1549313797109 as PinDocs } from "app/gen-server/migration/1549313797109-PinDocs";
 import { UserPicture1549381727494 as UserPicture } from "app/gen-server/migration/1549381727494-UserPicture";
-import { LoginDisplayEmail1551805156919 as DisplayEmail } from "app/gen-server/migration/1551805156919-LoginDisplayEmail";
+import { LoginDisplayEmail1551805156919
+as DisplayEmail } from "app/gen-server/migration/1551805156919-LoginDisplayEmail";
 import { LoginDisplayEmailNonNull1552416614755
 as DisplayEmailNonNull } from "app/gen-server/migration/1552416614755-LoginDisplayEmailNonNull";
 import { Indexes1553016106336 as Indexes } from "app/gen-server/migration/1553016106336-Indexes";
@@ -20,7 +21,8 @@ import { ExtraIndexes1579559983067 as ExtraIndexes } from "app/gen-server/migrat
 import { OrgHost1591755411755 as OrgHost } from "app/gen-server/migration/1591755411755-OrgHost";
 import { DocRemovedAt1592261300044 as DocRemovedAt } from "app/gen-server/migration/1592261300044-DocRemovedAt";
 import { Prefs1596456522124 as Prefs } from "app/gen-server/migration/1596456522124-Prefs";
-import { ExternalBilling1623871765992 as ExternalBilling } from "app/gen-server/migration/1623871765992-ExternalBilling";
+import { ExternalBilling1623871765992
+as ExternalBilling } from "app/gen-server/migration/1623871765992-ExternalBilling";
 import { DocOptions1626369037484 as DocOptions } from "app/gen-server/migration/1626369037484-DocOptions";
 import { Secret1631286208009 as Secret } from "app/gen-server/migration/1631286208009-Secret";
 import { UserOptions1644363380225 as UserOptions } from "app/gen-server/migration/1644363380225-UserOptions";
@@ -33,7 +35,8 @@ import { UserUUID1663851423064 as UserUUID } from "app/gen-server/migration/1663
 import { UserRefUnique1664528376930 as UserUniqueRefUUID } from "app/gen-server/migration/1664528376930-UserRefUnique";
 import { Forks1673051005072 as Forks } from "app/gen-server/migration/1673051005072-Forks";
 import { ForkIndexes1678737195050 as ForkIndexes } from "app/gen-server/migration/1678737195050-ForkIndexes";
-import { ActivationPrefs1682636695021 as ActivationPrefs } from "app/gen-server/migration/1682636695021-ActivationPrefs";
+import { ActivationPrefs1682636695021
+as ActivationPrefs } from "app/gen-server/migration/1682636695021-ActivationPrefs";
 import { AssistantLimit1685343047786 as AssistantLimit } from "app/gen-server/migration/1685343047786-AssistantLimit";
 import { Shares1701557445716 as Shares } from "app/gen-server/migration/1701557445716-Shares";
 import { Billing1711557445716 as BillingFeatures } from "app/gen-server/migration/1711557445716-Billing";
@@ -55,7 +58,8 @@ import { UserDisabledAt1754077317821
 as UserDisabledAt } from "app/gen-server/migration/1754077317821-UserDisabledAt";
 import { UserUnsubscribeKey1756799894986
 as UserUnsubscribeKey } from "app/gen-server/migration/1756799894986-UserUnsubscribeKey";
-import { ServiceAccounts1756918816559 as ServiceAccounts } from "app/gen-server/migration/1756918816559-ServiceAccounts";
+import { ServiceAccounts1756918816559
+as ServiceAccounts } from "app/gen-server/migration/1756918816559-ServiceAccounts";
 import { DocDisabledAt1759434763338
 as DocDisabledAt } from "app/gen-server/migration/1759434763338-DocDisabledAt";
 import { OAuthClientsAndGrants1764872085347

@@ -121,7 +121,9 @@ export function parseExportParameters(req: express.Request): ExportParameters {
   const sortOrder = optJsonParam(req.query.activeSortSpec, []) as number[];
   const filters: Filter[] = optJsonParam(req.query.filters, []);
   const linkingFilter: FilterColValues = optJsonParam(req.query.linkingFilter, null);
-  const header = optStringParam(req.query.header, "header", { allowed: ["label", "colId"] }) as ExportHeader | undefined;
+  const header = optStringParam(
+    req.query.header, "header", { allowed: ["label", "colId"] },
+  ) as ExportHeader | undefined;
 
   return {
     tableId,

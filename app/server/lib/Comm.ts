@@ -177,7 +177,9 @@ export class Comm extends EventEmitter {
   /**
    * Returns a profile based on the request or session.
    */
-  private async _getSessionProfile(scopedSession: ScopedSession, req: http.IncomingMessage): Promise<UserProfile | null> {
+  private async _getSessionProfile(
+    scopedSession: ScopedSession, req: http.IncomingMessage,
+  ): Promise<UserProfile | null> {
     return (
       (await this._options.loginMiddleware?.overrideProfile?.(req)) ??
       (await scopedSession.getSessionProfile())

@@ -29,7 +29,9 @@ export class ExtraRows {
   /**
    * Map back from a possibly synthetic row id to an original strictly-positive row id.
    */
-  public static interpretRowId(rowId: number): { type: "remote-add" | "local-remove" | "shared" | "skipped", id: number } {
+  public static interpretRowId(
+    rowId: number,
+  ): { type: "remote-add" | "local-remove" | "shared" | "skipped", id: number } {
     if (rowId >= 0) { return { type: "shared", id: rowId }; }
     else if (rowId === ROW_ID_SKIP) { return { type: "skipped", id: rowId }; }
     else if (rowId % 2 !== 0) { return { type: "remote-add", id: -(rowId + 1) / 2 }; }

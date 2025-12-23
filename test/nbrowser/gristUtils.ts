@@ -371,13 +371,16 @@ namespace gristUtils {
  *
  * If rowNums are not shown (for single-card view), use rowNum of 1.
  */
-  export async function getVisibleDetailCells(col: number | string, rows: number[], section?: string): Promise<string[]>;
+  export async function getVisibleDetailCells(
+    col: number | string, rows: number[], section?: string,
+  ): Promise<string[]>;
   export async function getVisibleDetailCells<T = string>(options: IColSelect<T> | IColsSelect<T>): Promise<T[]>;
   export async function getVisibleDetailCells<T>(
     colOrOptions: number | string | IColSelect<T> | IColsSelect<T>, _rowNums?: number[], _section?: string,
   ): Promise<T[]> {
     if (typeof colOrOptions === "object" && "cols" in colOrOptions) {
-      const { rowNums, section, mapper } = colOrOptions;         const columns = await Promise.all(colOrOptions.cols.map(oneCol =>
+      const { rowNums, section, mapper } = colOrOptions;
+      const columns = await Promise.all(colOrOptions.cols.map(oneCol =>
         getVisibleDetailCells({ col: oneCol, rowNums, section, mapper })));
       // This zips column-wise data into a flat row-wise array of values.
       return ([] as T[]).concat(...rowNums.map((r, i) => columns.map(c => c[i])));
@@ -408,7 +411,9 @@ namespace gristUtils {
  */
   export function getDetailCell(col: string, rowNum: number, section?: string): WebElementPromise;
   export function getDetailCell(options: ICellSelect): WebElementPromise;
-  export function getDetailCell(colOrOptions: string | ICellSelect, rowNum?: number, section?: string): WebElementPromise {
+  export function getDetailCell(
+    colOrOptions: string | ICellSelect, rowNum?: number, section?: string,
+  ): WebElementPromise {
     const mapper = async (el: WebElement) => el;
     const options: IColSelect<WebElement> = (typeof colOrOptions === "object" ?
       { col: colOrOptions.col, rowNums: [colOrOptions.rowNum], section: colOrOptions.section, mapper } :
@@ -1017,7 +1022,9 @@ namespace gristUtils {
  */
   export async function doInIframe<T>(func: () => Promise<T>): Promise<T>;
   export async function doInIframe<T>(iframe: WebElement, func: () => Promise<T>): Promise<T>;
-  export async function doInIframe<T>(frameOrFunc: WebElement | (() => Promise<T>), func?: () => Promise<T>): Promise<T> {
+  export async function doInIframe<T>(
+    frameOrFunc: WebElement | (() => Promise<T>), func?: () => Promise<T>,
+  ): Promise<T> {
     try {
       let iframe: WebElement;
       if (!func) {

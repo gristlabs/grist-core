@@ -193,7 +193,11 @@ describe("NumberParse", function() {
     assert.deepEqual(parser.parse("1E2"),
       { result: 100, cleaned: "1e2", options: { ...defaultOptions, isScientific: true } });
     assert.deepEqual(parser.parse("$1,000"),
-      { result: 1000, cleaned: "1000", options: { ...defaultOptions, isCurrency: true, hasDigitGroupSeparator: true } });
+      {
+        result: 1000, cleaned: "1000", options: {
+          ...defaultOptions, isCurrency: true, hasDigitGroupSeparator: true,
+        },
+      });
   });
 
   it("guesses formatting options", function() {

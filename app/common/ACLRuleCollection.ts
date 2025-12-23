@@ -503,7 +503,9 @@ function getHelperCols(docData: DocData, tableId: string, colIds: string[], log:
  * Parse all ACL rules in the document from DocData into a list of RuleSets and of
  * UserAttributeRules. This is used by both client-side code and server-side.
  */
-function readAclRules(docData: DocData, { log, compile, enrichRulesForImplementation }: ReadAclOptions): ReadAclResults {
+function readAclRules(
+  docData: DocData, { log, compile, enrichRulesForImplementation }: ReadAclOptions,
+): ReadAclResults {
   const ruleSets: RuleSet[] = [];
   const userAttributes: UserAttributeRule[] = [];
 

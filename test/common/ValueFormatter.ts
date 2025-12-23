@@ -128,7 +128,9 @@ describe("ValueFormatter", function() {
         fmt({ numMode: "currency" }, -121e+25, { locale: "es-AR", currency: "GBP" }),
         "-£ 1.210.000.000.000.000.000.000.000.000,00");
       assert.equal(fmt({ numMode: "currency" }, 0.1234567, { locale: "fr-BE", currency: "GBP" }), "0,12 £");
-      assert.equal(fmt({ numMode: "currency", maxDecimals: 0 }, 12.34567, { locale: "en-GB", currency: "USD" }), "$12.35");
+      assert.equal(
+        fmt({ numMode: "currency", maxDecimals: 0 }, 12.34567, { locale: "en-GB", currency: "USD" }),
+        "$12.35");
       assert.equal(
         fmt({ numMode: "currency", decimals: 0, maxDecimals: 0 }, 12.34567, { locale: "en-IE", currency: "SGD" }),
         "$12");

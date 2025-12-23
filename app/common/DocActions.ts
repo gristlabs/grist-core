@@ -137,7 +137,9 @@ export function getRowIdsFromDocAction(action: DataAction): number[] {
 // Returns colValues from a DataAction other than a remove action (which doesn't have colValues).
 export function getActionColValues(action: Exclude<SingleDataAction, RemoveRecord>): ColValues;
 export function getActionColValues(action: Exclude<BulkDataAction, BulkRemoveRecord>): BulkColValues;
-export function getActionColValues(action: Exclude<DataAction, RemoveRecord | BulkRemoveRecord>): ColValues | BulkColValues;
+export function getActionColValues(
+  action: Exclude<DataAction, RemoveRecord | BulkRemoveRecord>,
+): ColValues | BulkColValues;
 export function getActionColValues(action: Exclude<DataAction, RemoveRecord | BulkRemoveRecord>) { return action[3]; }
 
 export interface TableDataActionSet {

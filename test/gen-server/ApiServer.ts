@@ -2725,7 +2725,9 @@ describe("ApiServer", function() {
 
       // Prepare one of each usage type.
       const goodStanding = { rowCount: { total: 100 }, dataSizeBytes: 1024, attachmentsSizeBytes: 4096 };
-      const approachingLimits = { rowCount: { total: 4501 }, dataSizeBytes: 4501 * 2 * 1024, attachmentsSizeBytes: 4096 };
+      const approachingLimits = {
+        rowCount: { total: 4501 }, dataSizeBytes: 4501 * 2 * 1024, attachmentsSizeBytes: 4096,
+      };
       const gracePeriod = { rowCount: { total: 5001 }, dataSizeBytes: 5001 * 2 * 1024, attachmentsSizeBytes: 4096 };
       const deleteOnly = gracePeriod;
 

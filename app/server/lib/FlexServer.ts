@@ -1101,7 +1101,8 @@ export class FlexServer implements GristServer {
     this.addOrg();
 
     // Create the sessionStore and related objects.
-    const { sessions, sessionMiddleware, sessionStore } = initGristSessions(getUnpackedAppRoot(this.instanceRoot), this);
+    const { sessions, sessionMiddleware, sessionStore } =
+      initGristSessions(getUnpackedAppRoot(this.instanceRoot), this);
     this.app.use(sessionMiddleware);
     this.app.use(signInStatusMiddleware);
 
@@ -1259,7 +1260,9 @@ export class FlexServer implements GristServer {
         }
         if (mreq.org?.startsWith("o-")) {
           // We are on a team site without a custom subdomain.
-          const orgInfo = this._dbManager.unwrapQueryResult(await this._dbManager.getOrg({ userId: user.id }, mreq.org));
+          const orgInfo = this._dbManager.unwrapQueryResult(
+            await this._dbManager.getOrg({ userId: user.id }, mreq.org),
+          );
 
           // If the user is a billing manager for the org, and the org
           // is supposed to have a custom subdomain, forward the user
@@ -1683,7 +1686,9 @@ export class FlexServer implements GristServer {
       }));
 
       this.app.get("/account-deleted", ...this._logoutMiddleware(), expressWrap((req, resp) => {
-        return this._sendAppPage(req, resp, { path: "error.html", status: 200, config: { errPage: "account-deleted" } });
+        return this._sendAppPage(
+          req, resp, { path: "error.html", status: 200, config: { errPage: "account-deleted" } },
+        );
       }));
 
       this.app.delete("/api/doom/org", expressWrap(async (req, resp) => {

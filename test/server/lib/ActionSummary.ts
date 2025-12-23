@@ -1,4 +1,6 @@
-import { ActionSummaryOptions, concatenateSummaries, rebaseSummary, summarizeAction } from "app/common/ActionSummarizer";
+import {
+  ActionSummaryOptions, concatenateSummaries, rebaseSummary, summarizeAction,
+} from "app/common/ActionSummarizer";
 import { ActionSummary, asTabularDiffs, createEmptyTableDelta, LabelDelta, TableDelta } from "app/common/ActionSummary";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { createDocTools } from "test/server/docTools";

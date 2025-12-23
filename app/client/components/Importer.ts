@@ -10,13 +10,17 @@ import { makeTestId } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
 import { makeT } from "app/client/lib/localization";
-import { EXTENSIONS_IMPORTABLE_WITHIN_DOC, fetchURL, isDriveUrl, selectFiles, uploadFiles } from "app/client/lib/uploads";
+import {
+  EXTENSIONS_IMPORTABLE_WITHIN_DOC, fetchURL, isDriveUrl, selectFiles, uploadFiles,
+} from "app/client/lib/uploads";
 import { reportError } from "app/client/models/AppModel";
 import { ColumnRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
 import { SortedRowSet } from "app/client/models/rowset";
 import { buildHighlightedCode } from "app/client/ui/CodeHighlight";
 import { openFilePicker } from "app/client/ui/FileDialog";
-import { ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading } from "app/client/ui/googleAuth";
+import {
+  ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading,
+} from "app/client/ui/googleAuth";
 import { cssPageIcon } from "app/client/ui/LeftPanelCommon";
 import { hoverTooltip, overflowTooltip } from "app/client/ui/tooltips";
 import { bigBasicButton, bigPrimaryButton, textButton } from "app/client/ui2018/buttons";

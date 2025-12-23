@@ -174,9 +174,10 @@ export class LinkingState extends Disposable {
         const updateMultiHolder = MultiHolder.create(updateHolder);
 
         // Make one filter for each groupBycolumn of srcSection
-        const resultFilters: (ko.Computed<FilterState> | undefined)[] = srcSection.table().groupByColumns().map(srcGCol =>
-          this._makeFilterObs(srcGCol, summaryGetCorrespondingCol(srcGCol, tgtSection.table()), updateMultiHolder),
-        );
+        const resultFilters: (ko.Computed<FilterState> | undefined)[] = srcSection.table().groupByColumns()
+          .map(srcGCol =>
+            this._makeFilterObs(srcGCol, summaryGetCorrespondingCol(srcGCol, tgtSection.table()), updateMultiHolder),
+          );
 
         // If any are undef (i.e. error in makeFilterObs), error out
         if (resultFilters.some(f => f === undefined)) {
@@ -392,7 +393,8 @@ export class LinkingState extends Disposable {
     }
 
     // if (srcCol), selectorVal is the value in activeRowId[srcCol].
-    // if (!srcCol), then selectorVal is the entire record, so func just returns the rowId, or null if the rowId is "new"
+    // if (!srcCol), then selectorVal is the entire record, so func just returns the rowId,
+    // or null if the rowId is "new"
     const selectorValGetter = this._makeValGetter(this._srcSection.table(), srcColId);
 
     // Figure out display val to show for the selector (if selector is a Ref)
@@ -608,7 +610,9 @@ function isSummaryOf(summary: TableRec, detail: TableRec): boolean {
  * @returns {ColumnRec} The corresponding column of tgtTable
  */
 function summaryGetCorrespondingCol(srcGBCol: ColumnRec, tgtTable: TableRec): ColumnRec {
-  if (!isSummaryOf(srcGBCol.table(), tgtTable)) { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: srcTable must be summary of tgtTable"); }
+  if (!isSummaryOf(srcGBCol.table(), tgtTable)) {
+    throw Error("ERROR in LinkingState summaryGetCorrespondingCol: srcTable must be summary of tgtTable");
+  }
 
   if (tgtTable.summarySourceTable() === 0) { // if direct summary
     return srcGBCol.summarySource();

@@ -248,7 +248,8 @@ export class CustomView extends BaseView {
         kd.maybe(this._hasAclHiddenColumns, () => [
           dom("h1", kd.text(t("Some required columns are hidden by access rules"))),
           dom("p",
-            t("To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules."),
+            t("To use this widget, all mapped columns must be visible. \
+Please contact document owner or modify access rules."),
           ),
         ]),
         kd.maybe(() => !this._hasAclHiddenColumns(), () => [

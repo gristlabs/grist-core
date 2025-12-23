@@ -657,7 +657,9 @@ describe("UsersManager", function() {
 
         assert.notExists(createdUser.options);
 
-        const options: UserOptions = { locale: "fr", authSubject: "subject", isConsultant: true, allowGoogleLogin: true };
+        const options: UserOptions = {
+          locale: "fr", authSubject: "subject", isConsultant: true, allowGoogleLogin: true,
+        };
         await db.updateUserOptions(createdUser.id, options);
 
         const updatedUser = await getOrCreateUser(localPart);

@@ -561,7 +561,9 @@ export class HomeDBManager implements HomeDBAuth {
     return this._groupsManager.getGroupsWithMembersByType(type, opts, manager);
   }
 
-  public getGroupWithMembersById(id: number, opts?: { aclRule: boolean }, manager?: EntityManager): Promise<Group | null> {
+  public getGroupWithMembersById(
+    id: number, opts?: { aclRule: boolean }, manager?: EntityManager,
+  ): Promise<Group | null> {
     return this._groupsManager.getGroupWithMembersById(id, opts, manager);
   }
 
@@ -1074,7 +1076,9 @@ export class HomeDBManager implements HomeDBAuth {
       qb = qb.leftJoin(User, "users", "users.id = :userId", { userId });
       qb = qb.addSelect("users.disabled_at", "users_disabled_at");
 
-      const docs = this.unwrapQueryResult<Document[]>(await this._verifyAclPermissions(qb, { checkDisabledUser: true }));
+      const docs = this.unwrapQueryResult<Document[]>(
+        await this._verifyAclPermissions(qb, { checkDisabledUser: true }),
+      );
       if (docs.length === 0) { throw new ApiError("document not found", 404); }
       if (docs.length > 1) { throw new ApiError("ambiguous document request", 400); }
       doc = docs[0];
@@ -5206,9 +5210,9 @@ export class HomeDBManager implements HomeDBAuth {
     if (features.maxDocsPerOrg !== undefined) {
       // we need to count how many docs are in the current org, and if we
       // are already at or above the limit, then fail.
-      const wss = this.unwrapQueryResult(await this.getOrgWorkspaces({ userId: this._usersManager.getPreviewerUserId() },
-        workspace.org.id,
-        { manager }));
+      const wss = this.unwrapQueryResult(
+        await this.getOrgWorkspaces({ userId: this._usersManager.getPreviewerUserId() }, workspace.org.id, { manager }),
+      );
       const count = wss.map(ws => ws.docs.length).reduce((a, b) => a + b, 0);
       if (count >= features.maxDocsPerOrg) {
         throw new ApiError("No more documents permitted", 403, {

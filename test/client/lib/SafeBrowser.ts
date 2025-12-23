@@ -153,7 +153,9 @@ describe("SafeBrowser", function() {
     const path: string = basename(url.parse(src).pathname!);
     const rpc = new Rpc({ logger: LOG_RPC ? {
       // let's prepend path to the console 'info' and 'warn' channels
-      info: console.info.bind(console, path),        warn: console.warn.bind(console, path)      } : {}, sendMessage: _rpc.receiveMessage.bind(_rpc) });
+      info: console.info.bind(console, path),
+      warn: console.warn.bind(console, path),
+    } : {}, sendMessage: _rpc.receiveMessage.bind(_rpc) });
     _rpc.setSendMessage(msg => rpc.receiveMessage(msg));
     const api = rpc.getStub<GristAPI>(RPC_GRISTAPI_INTERFACE, checkers.GristAPI);
     function ready() {

@@ -629,7 +629,9 @@ export default class GridView extends BaseView {
       case "right": {
         if (colEnd + 1 > maxVal) { return 0; }
 
-        selectionData = this._selectionData({ colStart: colEnd, colEnd: maxVal, rowStart: cursorRow, rowEnd: cursorRow });
+        selectionData = this._selectionData({
+          colStart: colEnd, colEnd: maxVal, rowStart: cursorRow, rowEnd: cursorRow,
+        });
         break;
       }
       case "left": {
@@ -647,7 +649,9 @@ export default class GridView extends BaseView {
       case "down": {
         if (rowEnd + 1 > maxVal) { return 0; }
 
-        selectionData = this._selectionData({ colStart: cursorCol, colEnd: cursorCol, rowStart: rowEnd, rowEnd: maxVal });
+        selectionData = this._selectionData({
+          colStart: cursorCol, colEnd: cursorCol, rowStart: rowEnd, rowEnd: maxVal,
+        });
         break;
       }
     }

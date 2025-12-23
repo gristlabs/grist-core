@@ -80,22 +80,23 @@ export class ShareAnnotator {
     }
     const top = features.maxSharesPerDoc;
     let at = 0;
-    const makeAnnotation = (user: { email: string, isMember?: boolean, isSupport?: boolean, access: string | null }) => {
-      const annotation: ShareAnnotation = {
-        isMember: user.isMember,
-      };
-      if (user.isSupport) {
-        return { isSupport: true };
-      }
-      if (!annotation.isMember && user.access) {
-        at++;
-        annotation.collaboratorLimit = {
-          at,
-          top,
+    const makeAnnotation =
+      (user: { email: string, isMember?: boolean, isSupport?: boolean, access: string | null }) => {
+        const annotation: ShareAnnotation = {
+          isMember: user.isMember,
         };
-      }
-      return annotation;
-    };
+        if (user.isSupport) {
+          return { isSupport: true };
+        }
+        if (!annotation.isMember && user.access) {
+          at++;
+          annotation.collaboratorLimit = {
+            at,
+            top,
+          };
+        }
+        return annotation;
+      };
     const users = Object.entries(
       omitBy(
         change?.users || {},

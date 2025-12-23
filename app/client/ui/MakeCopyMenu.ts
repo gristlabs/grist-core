@@ -225,7 +225,10 @@ class SaveCopyModal extends Disposable {
     return [
       cssField(
         cssLabel(t("Name")),
-        input(this._destName, { onInput: true }, { placeholder: t("Enter document name") },  dom.cls(cssInput.className),
+        input(this._destName,
+          { onInput: true },
+          { placeholder: t("Enter document name") },
+          dom.cls(cssInput.className),
           // modal dialog grabs focus after 10ms delay; so to focus this input, wait a bit longer
           // (see the TODO in app/client/ui2018/modals.ts about weasel.js and focus).
           (elem) => { setTimeout(() => { elem.focus(); }, 20); },

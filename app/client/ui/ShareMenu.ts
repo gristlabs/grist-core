@@ -258,10 +258,12 @@ function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOrigi
       dom.cls("disabled", !roles.canEdit(doc.trunkAccess || null) || comparingSnapshots),
       testId("replace-original"),
     ),
-    isTutorialFork ? null : menuItemLink(compareHref, { target: "_blank" }, t("Compare to {{termToUse}}", { termToUse }),
-      dom.on("click", () => { pageModel.clearUnsavedChanges(); }),
-      testId("compare-original"),
-    ),
+    isTutorialFork ?
+      null :
+      menuItemLink(compareHref, { target: "_blank" }, t("Compare to {{termToUse}}", { termToUse }),
+        dom.on("click", () => { pageModel.clearUnsavedChanges(); }),
+        testId("compare-original"),
+      ),
   ];
 }
 

@@ -179,13 +179,17 @@ describe("CustomWidgetsConfig", function() {
           {
             // Widget with column mapping
             name: COLUMN_WIDGET,
-            url: createConfigUrl({ requiredAccess: AccessLevel.read_table, columns: [{ name: "Column", optional: true }] }),
+            url: createConfigUrl({
+              requiredAccess: AccessLevel.read_table, columns: [{ name: "Column", optional: true }],
+            }),
             widgetId: "tester5",
           },
           {
             // Widget with required column mapping
             name: REQUIRED_WIDGET,
-            url: createConfigUrl({ requiredAccess: AccessLevel.read_table, columns: [{ name: "Column", optional: false }] }),
+            url: createConfigUrl({
+              requiredAccess: AccessLevel.read_table, columns: [{ name: "Column", optional: false }],
+            }),
             widgetId: "tester6",
           },
           {

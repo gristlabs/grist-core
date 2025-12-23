@@ -452,7 +452,9 @@ function getViewPrefDefault(workspaces: Workspace[]): ViewPref {
  * Create observables for per-workspace view settings which default to org-wide settings, but can
  * be changed independently and persisted in localStorage.
  */
-export function makeLocalViewSettings(home: HomeModel | null, wsId: number | "trash" | "all" | "templates"): ViewSettings {
+export function makeLocalViewSettings(
+  home: HomeModel | null, wsId: number | "trash" | "all" | "templates",
+): ViewSettings {
   const userId = home?.app.currentUser?.id || 0;
   const sort = localStorageObs(`u=${userId}:ws=${wsId}:sort`);
   const view = localStorageObs(`u=${userId}:ws=${wsId}:view`);

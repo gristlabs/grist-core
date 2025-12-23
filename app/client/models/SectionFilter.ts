@@ -14,7 +14,9 @@ interface OpenColumnFilter {
   colFilter: ColumnFilter;
 }
 
-type ColFilterCB = (fieldOrColumn: ViewFieldRec | ColumnRec, colFilter: ColumnFilterFunc | null) => ColumnFilterFunc | null;
+type ColFilterCB = (
+  fieldOrColumn: ViewFieldRec | ColumnRec, colFilter: ColumnFilterFunc | null,
+) => ColumnFilterFunc | null;
 
 /**
  * SectionFilter represents a collection of column filters in place for a view section. It is created

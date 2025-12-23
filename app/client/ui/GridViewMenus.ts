@@ -707,10 +707,13 @@ export interface IMultiColumnContextMenu {
   // true for some columns, but not all.
   numColumns: number;
   numFrozen: number;
-  disableModify: boolean | "mixed";  // If the columns are read-only. Mixed for multiple columns where some are read-only.
+
+  // If the columns are read-only. Mixed for multiple columns where some are read-only.
+  disableModify: boolean | "mixed";
+
   isReadonly: boolean;
   isRaw: boolean;
-  isFiltered: boolean;            // If this view shows a proper subset of all rows in the table.
+  isFiltered: boolean; // If this view shows a proper subset of all rows in the table.
   isFormula: boolean | "mixed";
   columnIndices: number[];
   totalColumnCount: number;
@@ -723,7 +726,9 @@ interface IColumnContextMenu extends IMultiColumnContextMenu {
   colRowId: number;
 }
 
-export function calcFieldsCondition(fields: ViewFieldRec[], condition: (f: ViewFieldRec) => boolean): boolean | "mixed" {
+export function calcFieldsCondition(
+  fields: ViewFieldRec[], condition: (f: ViewFieldRec) => boolean,
+): boolean | "mixed" {
   return fields.every(condition) ? true : (fields.some(condition) ? "mixed" : false);
 }
 

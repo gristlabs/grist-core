@@ -45,7 +45,8 @@ export interface DocStateComparisonDetails {
 
 export function removeMetadataChangesFromDetails(details: DocStateComparisonDetails) {
   const { summary: leftChanges, hadMetadata: leftHadMetadata } = removeMetadataChangesFromSummary(details.leftChanges);
-  const { summary: rightChanges, hadMetadata: rightHadMetadata } = removeMetadataChangesFromSummary(details.rightChanges);
+  const { summary: rightChanges, hadMetadata: rightHadMetadata } =
+    removeMetadataChangesFromSummary(details.rightChanges);
   return {
     details: {
       leftChanges,

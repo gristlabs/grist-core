@@ -985,7 +985,9 @@ export function useBindable<T>(use: UseCBOwner, obs: BindableValue<T>): T {
 /**
  * Useful helper for simple boolean negation.
  */
-export const not = (obs: Observable<any> | IKnockoutReadObservable<any> | boolean | undefined | null) => (use: UseCBOwner) =>  {
+export const not = (
+  obs: Observable<any> | IKnockoutReadObservable<any> | boolean | undefined | null,
+) => (use: UseCBOwner) =>  {
   if (typeof obs === "boolean") { return !obs; }
   if (obs === null || obs === undefined) { return true; }
   return !use(obs);
