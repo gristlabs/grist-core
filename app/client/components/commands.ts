@@ -315,8 +315,8 @@ export class CommandGroup extends Disposable {
     this.knownKeys = {};
     for (const name in this.commands) {
       const keys = allCommands[name as CommandName].keys;
-      for (let i = 0; i < keys.length; i++) {
-        this.knownKeys[keys[i]] = name;
+      for (const key of keys) {
+        this.knownKeys[key] = name;
       }
     }
 
