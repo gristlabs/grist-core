@@ -1267,7 +1267,7 @@ export class GranularAccess implements GranularAccessForBundle {
   public async sendDocUpdateForBundle(actionGroup: ActionGroup, docUsage: DocUsageSummary) {
     if (!this._activeBundle) { throw new Error("no active bundle"); }
     const { docActions, docSession } = this._activeBundle;
-    const client = docSession && docSession.client || null;
+    const client = docSession?.client || null;
     const message: DocUpdateMessage = { actionGroup, docActions, docUsage };
     await this._docClients.broadcastDocMessage(client, "docUserAction",
       message,
