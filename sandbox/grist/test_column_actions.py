@@ -474,6 +474,9 @@ class TestColumnActions(test_engine.EngineTestCase):
     # If we specify a label, it takes priority.
     self.apply_user_action(["AddColumn", "Address", "Full Amount $", {"label": " TOTAL!"}])
 
+    # If we specify a label of "$colId", it takes on the value of colId.
+    self.apply_user_action(["AddColumn", "Address", "Full Amount $", {"label": "$colId"}])
+
     # The same behavior should apply to AddHiddenColumn.
     self.apply_user_action(["AddHiddenColumn", "Address", "São Luís", {}])
 
@@ -489,5 +492,6 @@ class TestColumnActions(test_engine.EngineTestCase):
       [8, "Phone", "Phone"],
       [9, "Phone2", "Phone"],
       [10, "Full_Amount_2", " TOTAL!"],
-      [11, "Sao_Luis", "São Luís"],
+      [11, "Full_Amount_3", "Full_Amount_3"],
+      [12, "Sao_Luis", "São Luís"],
     ])

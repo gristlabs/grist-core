@@ -1597,7 +1597,7 @@ class UserActions(object):
     values.update({
       'colId': col_id,
       'widgetOptions': col_info.get('widgetOptions', ''),
-      'label': col_info.get('label', default_label or col_id),
+      'label': _get_col_label(col_info.get('label'), default_label, col_id)
     })
     if 'rules' in col_info:
       values['rules'] = col_info['rules']
@@ -2119,7 +2119,7 @@ class UserActions(object):
       type          = [c['type'] for c in clean_colinfo],
       isFormula     = [c['isFormula'] for c in clean_colinfo],
       formula       = [c['formula'] for c in clean_colinfo],
-      label         = [c.get('label', def_label or col_id)
+      label         = [_get_col_label(c.get('label'), def_label, col_id)
         for (c, def_label, col_id) in zip(columns, default_labels, col_ids)],
       widgetOptions = [c.get('widgetOptions', '') for c in columns])
 
@@ -2564,3 +2564,12 @@ def _is_temporary_table(table_id):
   created just for importing documents).
   """
   return table_id and table_id.startswith('GristHidden_import')
+
+def _get_col_label(explicit_label, default_label, col_id):
+  """
+  Picks a label for a column given an explicit label, or a colId before sanitization or
+  disambiguation (default label), or colId after (col_id).
+  """
+  if explicit_label == '$colId':
+    return col_id
+  return explicit_label or default_label or col_id
