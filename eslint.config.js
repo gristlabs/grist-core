@@ -33,6 +33,7 @@ module.exports = defineConfig([
       globals: {
         ...globals.node,
         ...globals.mocha,
+        globalThis: true,
       },
 
       parser: babelParser,
@@ -83,6 +84,7 @@ module.exports = defineConfig([
         ...globals.browser,
         ...globals.mocha,
         Promise: true,
+        globalThis: true
       },
     },
 
