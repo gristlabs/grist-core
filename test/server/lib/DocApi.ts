@@ -1262,7 +1262,7 @@ function testDocApi(settings: {
       {colId: "B2", label: 'A'},  // Result of renaming A -> B
       {colId: "B", label: 'B'},
       {colId: "NewCol4", label: 'NewCol4'},
-      {colId: "NewCol4_2", label: 'NewCol4_2'},
+      {colId: "NewCol4_2", label: 'NewCol4'},
       // NewCol5 is hidden by ACL
       {colId: "NewCol6", label: 'NewCol6'},
     ]);
