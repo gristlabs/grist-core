@@ -71,11 +71,11 @@ export abstract class AuthSession {
 }
 
 class UnauthenticatedAuthSession extends AuthSession {
-  public get org() { return undefined; }
-  public get altSessionId() { return null; }
-  public get userId() { return null; }
-  public get userIsAuthorized() { return false; }
-  public get fullUser() { return null; }
+  public readonly org = undefined;
+  public readonly altSessionId = null;
+  public readonly userId = null;
+  public readonly userIsAuthorized = false;
+  public readonly fullUser = null;
 }
 
 class AuthSessionForReq extends AuthSession {

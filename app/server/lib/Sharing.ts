@@ -52,6 +52,7 @@ export class Sharing {
   }
 
   /** Returns the instanceId if the doc is shared or null otherwise. */
+  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
   public get instanceId(): string | null { return null; }
 
   /**

@@ -399,7 +399,7 @@ export class EchoAssistantV1 implements AssistantV1 {
     return EchoAssistantV1.VERSION;
   }
 
-  public get provider(): AssistantProvider {
+  public get provider(): AssistantProvider { // eslint-disable-line @typescript-eslint/class-literal-property-style
     return null;
   }
 }

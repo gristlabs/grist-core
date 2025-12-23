@@ -3524,7 +3524,7 @@ export class PseudoDocSession extends OptDocSession {
   }
 
   public get org() { return this._org; }
-  public get altSessionId() { return null; }
+  public get altSessionId() { return null; } // eslint-disable-line @typescript-eslint/class-literal-property-style
   public get userId() { return this._userData.id; }
   public get userIsAuthorized() { return !this._userData.anonymous; }
   public get fullUser() { return this._userData; }
