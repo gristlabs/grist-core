@@ -112,8 +112,9 @@ export class LinkingState extends Disposable {
         return "Filter:Row->Col";
       }
       else if (srcColId && !tgtColId) { // Col->Row, i.e. show a ref
-        if (isRefListType(srcCol.type())) // TODO: fix this once ref-links are unified, both could be show-ref-rec
-        { return "Show-Referenced-Records"; }
+        if (isRefListType(srcCol.type())) { // TODO: fix this once ref-links are unified, both could be show-ref-rec
+          return "Show-Referenced-Records";
+        }
         else { return "Cursor:Reference"; }
       }
       else if (!srcColId && !tgtColId) { // Either same-table cursor link OR summary link
@@ -551,8 +552,7 @@ export class LinkingState extends Disposable {
   // - An undefined colId means to use the 'id' column, i.e. Valgetter is (rowId)=>rowId
   private _makeValGetter(
     table: TableRec, colId: string | undefined, owner: MultiHolder = this,
-  ): (null | ((r: UIRowId | null) => CellValue | null)) // (null | ValGetter)
-  {
+  ): (null | ((r: UIRowId | null) => CellValue | null)) { // (null | ValGetter)
     if (colId === undefined) { // passthrough for id cols
       return (rowId: UIRowId | null) => { return rowId === "new" ? null : rowId; };
     }
