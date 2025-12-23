@@ -1,22 +1,23 @@
-import { assert, driver, Key } from "mocha-webdriver";
-import { describe } from "mocha";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+import { describe } from "mocha";
+import { assert, driver, Key } from "mocha-webdriver";
 
 // Check that the focus is on the clipboard element, with a short wait in case it's not entirely
 // synchronous. You may set waitMs to 0.
 const expectClipboardFocus = (yesNo: boolean, waitMs: number = 100) => {
-  return gu.waitForFocus('textarea.copypaste.mousetrap', yesNo, waitMs);
+  return gu.waitForFocus("textarea.copypaste.mousetrap", yesNo, waitMs);
 };
 
 const isNormalElementFocused = async (containerSelector?: string) => {
   const activeElement = await driver.switchTo().activeElement();
   const isException = await activeElement.matches(
-    '.test-left-panel, .test-top-header, .test-right-panel, .test-main-content, body, textarea.copypaste.mousetrap'
+    ".test-left-panel, .test-top-header, .test-right-panel, .test-main-content, body, textarea.copypaste.mousetrap",
   );
-  const isInContainer = containerSelector
-    ? await activeElement.matches(`${containerSelector} *`)
-    : true;
+  const isInContainer = containerSelector ?
+    await activeElement.matches(`${containerSelector} *`) :
+    true;
   return !isException && isInContainer;
 };
 
@@ -31,27 +32,27 @@ const assertTabToNavigate = async (containerSelector?: string) => {
   assert.isTrue(await isNormalElementFocused(containerSelector));
 };
 
-const cycle = async (dir: 'forward' | 'backward' = 'forward') => {
+const cycle = async (dir: "forward" | "backward" = "forward") => {
   const modKey = await gu.modKey();
-  const shortcut = dir === 'forward'
-    ? Key.chord(modKey, 'o')
-    : Key.chord(modKey, Key.SHIFT, 'O');
+  const shortcut = dir === "forward" ?
+    Key.chord(modKey, "o") :
+    Key.chord(modKey, Key.SHIFT, "O");
 
   await gu.sendKeys(shortcut);
 };
 
 const toggleCreatorPanelFocus = async () => {
   const modKey = await gu.modKey();
-  await gu.sendKeys(Key.chord(modKey, Key.ALT, 'o'));
+  await gu.sendKeys(Key.chord(modKey, Key.ALT, "o"));
 };
 
 const panelMatchs = {
-  left: '.test-left-panel',
-  top: '.test-top-header',
-  right: '.test-right-panel',
-  main: '.test-main-content',
+  left: ".test-left-panel",
+  top: ".test-top-header",
+  right: ".test-right-panel",
+  main: ".test-main-content",
 };
-const assertPanelFocus = async (panel: 'left' | 'top' | 'right' | 'main', expected: boolean = true) => {
+const assertPanelFocus = async (panel: "left" | "top" | "right" | "main", expected: boolean = true) => {
   assert.equal(await gu.hasFocus(panelMatchs[panel]), expected);
 };
 
@@ -67,10 +68,10 @@ const assertSectionFocus = async (sectionId: number, expected: boolean = true) =
  */
 const assertCycleThroughRegions = async ({ sections = 1 }: { sections?: number } = {}) => {
   await cycle();
-  await assertPanelFocus('left');
+  await assertPanelFocus("left");
 
   await cycle();
-  await assertPanelFocus('top');
+  await assertPanelFocus("top");
 
   if (sections) {
     let sectionsCount = 0;
@@ -79,34 +80,36 @@ const assertCycleThroughRegions = async ({ sections = 1 }: { sections?: number }
       await expectClipboardFocus(true);
       sectionsCount++;
     }
-  } else {
+  }
+  else {
     await cycle();
-    await assertPanelFocus('main');
+    await assertPanelFocus("main");
   }
 
   await cycle();
-  await assertPanelFocus('left');
+  await assertPanelFocus("left");
 
   if (sections) {
     let sectionsCount = 0;
     while (sectionsCount < sections) {
-      await cycle('backward');
+      await cycle("backward");
       await expectClipboardFocus(true);
       sectionsCount++;
     }
-  } else {
-    await cycle('backward');
-    await assertPanelFocus('main');
+  }
+  else {
+    await cycle("backward");
+    await assertPanelFocus("main");
   }
 
-  await cycle('backward');
-  await assertPanelFocus('top');
+  await cycle("backward");
+  await assertPanelFocus("top");
 
-  await cycle('backward');
-  await assertPanelFocus('left');
+  await cycle("backward");
+  await assertPanelFocus("left");
 };
 
-describe("RegionFocusSwitcher", function () {
+describe("RegionFocusSwitcher", function() {
   this.timeout(60000);
   const cleanup = setupTestSuite();
 
@@ -122,10 +125,10 @@ describe("RegionFocusSwitcher", function () {
 
   it("should keep the active section focused at document page load", async () => {
     const session = await gu.session().teamSite.login();
-    await session.tempDoc(cleanup, 'Hello.grist');
+    await session.tempDoc(cleanup, "Hello.grist");
 
     await expectClipboardFocus(true, 0);
-    assert.equal(await gu.getActiveCell().getText(), 'hello');
+    assert.equal(await gu.getActiveCell().getText(), "hello");
     await driver.sendKeys(Key.TAB);
     // after pressing tab once, we should be on the [first row, second column]-cell
     const secondCellText = await gu.getCell(1, 1).getText();
@@ -157,7 +160,7 @@ describe("RegionFocusSwitcher", function () {
     // test if shortcut works with one view section:
     // press the shortcut two times to focus creator panel, then focus back the view section
     await toggleCreatorPanelFocus();
-    await assertPanelFocus('right');
+    await assertPanelFocus("right");
 
     await toggleCreatorPanelFocus();
     await assertSectionFocus(firstSectionId);
@@ -169,33 +172,33 @@ describe("RegionFocusSwitcher", function () {
 
     // toggle creator panel again: make sure it goes back to the new section
     await toggleCreatorPanelFocus();
-    await assertPanelFocus('right');
+    await assertPanelFocus("right");
 
     await toggleCreatorPanelFocus();
     await assertSectionFocus(secondSectionId);
 
     // combine with cycle shortcut: when focus is on a panel, toggling creator panel focuses back the current view
     await cycle();
-    await assertPanelFocus('left');
+    await assertPanelFocus("left");
 
     await toggleCreatorPanelFocus();
-    await assertPanelFocus('right');
+    await assertPanelFocus("right");
 
     await toggleCreatorPanelFocus();
     await assertSectionFocus(secondSectionId);
 
     // cycle to previous section and make sure all focus is good
-    await cycle('backward');
+    await cycle("backward");
     await assertSectionFocus(firstSectionId);
 
     await toggleCreatorPanelFocus();
-    await assertPanelFocus('right');
+    await assertPanelFocus("right");
 
     await toggleCreatorPanelFocus();
     await assertSectionFocus(firstSectionId);
 
     await toggleCreatorPanelFocus();
-    await assertPanelFocus('right');
+    await assertPanelFocus("right");
 
     await cycle();
     await assertSectionFocus(secondSectionId);
@@ -210,13 +213,13 @@ describe("RegionFocusSwitcher", function () {
     await session.tempNewDoc(cleanup);
 
     await cycle();
-    await assertTabToNavigate('.test-left-panel');
+    await assertTabToNavigate(".test-left-panel");
 
     await cycle();
-    await assertTabToNavigate('.test-top-header');
+    await assertTabToNavigate(".test-top-header");
 
     await toggleCreatorPanelFocus();
-    await assertTabToNavigate('.test-right-panel');
+    await assertTabToNavigate(".test-right-panel");
 
     await toggleCreatorPanelFocus();
     await driver.sendKeys(Key.TAB);
@@ -229,7 +232,7 @@ describe("RegionFocusSwitcher", function () {
 
     await cycle();
     await driver.sendKeys(Key.ESCAPE);
-    await assertPanelFocus('left', false);
+    await assertPanelFocus("left", false);
     await expectClipboardFocus(true);
   });
 
@@ -239,16 +242,16 @@ describe("RegionFocusSwitcher", function () {
 
     await cycle();
     await driver.sendKeys(Key.TAB);
-    assert.isTrue(await isNormalElementFocused('.test-left-panel'));
+    assert.isTrue(await isNormalElementFocused(".test-left-panel"));
 
     await cycle(); // top
     await cycle(); // main
     await cycle(); // back to left
-    assert.isTrue(await isNormalElementFocused('.test-left-panel'));
+    assert.isTrue(await isNormalElementFocused(".test-left-panel"));
 
     // when pressing escape in that case, first focus back to the panel…
     await driver.sendKeys(Key.ESCAPE);
-    await assertPanelFocus('left');
+    await assertPanelFocus("left");
 
     // … then reset the kb focus as usual
     await driver.sendKeys(Key.ESCAPE);
@@ -260,13 +263,13 @@ describe("RegionFocusSwitcher", function () {
     await session.tempNewDoc(cleanup);
 
     // Click on an input on the top panel
-    await driver.find('.test-bc-doc').click();
+    await driver.find(".test-bc-doc").click();
     await driver.sendKeys(Key.TAB);
-    assert.isTrue(await isNormalElementFocused('.test-top-header'));
+    assert.isTrue(await isNormalElementFocused(".test-top-header"));
 
     // in that case (mouse click) when pressing esc, we directly focus back to view section
     await driver.sendKeys(Key.ESCAPE);
-    await assertPanelFocus('top', false);
+    await assertPanelFocus("top", false);
     await expectClipboardFocus(true, 0);
   });
 
@@ -276,11 +279,11 @@ describe("RegionFocusSwitcher", function () {
 
     await cycle(); // left
     await driver.sendKeys(Key.TAB);
-    assert.isTrue(await isNormalElementFocused('.test-left-panel'));
+    assert.isTrue(await isNormalElementFocused(".test-left-panel"));
 
     await gu.getActiveCell().click();
 
-    await assertPanelFocus('left', false);
+    await assertPanelFocus("left", false);
     await expectClipboardFocus(true, 0);
   });
 
@@ -288,9 +291,9 @@ describe("RegionFocusSwitcher", function () {
     const session = await gu.session().teamSite.login();
     await session.tempNewDoc(cleanup);
 
-    await gu.enterCell('test');
-    await driver.find('.test-undo').click();
-    await assertPanelFocus('top', false);
+    await gu.enterCell("test");
+    await driver.find(".test-undo").click();
+    await assertPanelFocus("top", false);
     await expectClipboardFocus(true, 0);
   });
 

@@ -3,24 +3,25 @@
  * open, and what FD they are using.
  */
 
-import {CommDocEventType, CommMessage} from 'app/common/CommTypes';
-import {arrayRemove, timeoutReached} from 'app/common/gutil';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {Client} from 'app/server/lib/Client';
-import {DocSession, DocSessionPrecursor} from 'app/server/lib/DocSession';
-import {LogMethods} from "app/server/lib/LogMethods";
-import EventEmitter from 'events';
+import { CommDocEventType, CommMessage } from "app/common/CommTypes";
+import { arrayRemove, timeoutReached } from "app/common/gutil";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { appSettings } from "app/server/lib/AppSettings";
+import { Client } from "app/server/lib/Client";
+import { DocSession, DocSessionPrecursor } from "app/server/lib/DocSession";
+import { LogMethods } from "app/server/lib/LogMethods";
+
+import EventEmitter from "events";
 
 export const Deps = {
   // Allow tests to impose a serial order for broadcasts if they need that for repeatability.
-  BROADCAST_ORDER: 'parallel' as 'parallel' | 'series',
-  BROADCAST_TIMEOUT_MS: appSettings.section('client').flag('broadcastTimeoutMs').requireInt({
-    envVar: 'GRIST_BROADCAST_TIMEOUT_MS',
+  BROADCAST_ORDER: "parallel" as "parallel" | "series",
+  BROADCAST_TIMEOUT_MS: appSettings.section("client").flag("broadcastTimeoutMs").requireInt({
+    envVar: "GRIST_BROADCAST_TIMEOUT_MS",
     defaultValue: 60_000,
   }),
-  ENABLE_USER_PRESENCE: appSettings.section('userPresence').flag('enable').readBool({
-    envVar: 'GRIST_ENABLE_USER_PRESENCE',
+  ENABLE_USER_PRESENCE: appSettings.section("userPresence").flag("enable").readBool({
+    envVar: "GRIST_ENABLE_USER_PRESENCE",
     defaultValue: true,
   }),
 };
@@ -34,10 +35,10 @@ export type ClientRemovedEventListener = (session: DocSession) => void;
 
 export class DocClients extends EventEmitter {
   private _docSessions: DocSession[] = [];
-  private _log = new LogMethods('DocClients ', (s: DocSession|null) => this.activeDoc.getLogMeta(s));
+  private _log = new LogMethods("DocClients ", (s: DocSession | null) => this.activeDoc.getLogMeta(s));
 
   constructor(
-    public readonly activeDoc: ActiveDoc
+    public readonly activeDoc: ActiveDoc,
   ) {
     super();
   }
@@ -62,7 +63,7 @@ export class DocClients extends EventEmitter {
   }
 
   public addClientAddedListener(listener: ClientAddedEventListener) {
-    this.on('clientAdded', listener);
+    this.on("clientAdded", listener);
   }
 
   /**
@@ -81,7 +82,7 @@ export class DocClients extends EventEmitter {
   }
 
   public addClientRemovedListener(listener: ClientRemovedEventListener) {
-    this.on('clientRemoved', listener);
+    this.on("clientRemoved", listener);
   }
 
   /**
@@ -111,16 +112,16 @@ export class DocClients extends EventEmitter {
    * @param {Object} messageData: The data for this type of message.
    * @param {Object} filterMessage: Optional callback to filter message per client.
    */
-  public async broadcastDocMessage(client: Client|null, type: CommDocEventType, messageData: any,
-                                   filterMessage?: (docSession: DocSession,
-                                                    messageData: any) => Promise<any>): Promise<void> {
+  public async broadcastDocMessage(client: Client | null, type: CommDocEventType, messageData: any,
+    filterMessage?: (docSession: DocSession,
+      messageData: any) => Promise<any>): Promise<void> {
     const send = async (target: DocSession) => {
       const msg = await this._prepareMessage(target, type, messageData, filterMessage);
       if (msg) {
         const fromSelf = (target.client === client);
         const isUnresponsive = await timeoutReached(
           Deps.BROADCAST_TIMEOUT_MS,
-          target.client.sendMessageOrInterrupt({...msg, docFD: target.fd, fromSelf} as CommMessage)
+          target.client.sendMessageOrInterrupt({ ...msg, docFD: target.fd, fromSelf } as CommMessage),
         );
         // If client isn't responsive in a reasonable length of time, then don't
         // keep waiting for it. BUT then the client state could get weird if it
@@ -133,9 +134,10 @@ export class DocClients extends EventEmitter {
       }
     };
 
-    if (Deps.BROADCAST_ORDER === 'parallel') {
+    if (Deps.BROADCAST_ORDER === "parallel") {
       await Promise.all(this._docSessions.map(send));
-    } else {
+    }
+    else {
       for (const session of this._docSessions) {
         await send(session);
       }
@@ -152,37 +154,43 @@ export class DocClients extends EventEmitter {
    */
   private async _prepareMessage(
     target: DocSession, type: CommDocEventType, messageData: any,
-    filterMessage?: (docSession: DocSession, messageData: any) => Promise<any>
-  ): Promise<{type: CommDocEventType, data: unknown}|undefined> {
+    filterMessage?: (docSession: DocSession, messageData: any) => Promise<any>,
+  ): Promise<{ type: CommDocEventType, data: unknown } | undefined> {
     try {
       // Make sure user still has view access.
-      await target.authorizer.assertAccess('viewers');
+      await target.authorizer.assertAccess("viewers");
       if (!filterMessage) {
-        return {type, data: messageData};
-      } else {
+        return { type, data: messageData };
+      }
+      else {
         try {
           const filteredMessageData = await filterMessage(target, messageData);
           if (filteredMessageData) {
-            return {type, data: filteredMessageData};
-          } else {
-            this._log.debug(target, 'skip broadcastDocMessage because it is not allowed for this client');
+            return { type, data: filteredMessageData };
           }
-        } catch (e) {
-          if (e.code && e.code === 'NEED_RELOAD') {
-            return {type: 'docShutdown', data: null};
-          } else {
-            return {type: 'docUserAction', data: {error: String(e)}};
+          else {
+            this._log.debug(target, "skip broadcastDocMessage because it is not allowed for this client");
+          }
+        }
+        catch (e) {
+          if (e.code && e.code === "NEED_RELOAD") {
+            return { type: "docShutdown", data: null };
+          }
+          else {
+            return { type: "docUserAction", data: { error: String(e) } };
           }
         }
       }
-    } catch (e) {
-      if (e.code === 'AUTH_NO_VIEW') {
+    }
+    catch (e) {
+      if (e.code === "AUTH_NO_VIEW") {
         // Skip sending data to this user, they have no view access.
-        this._log.debug(target, 'skip broadcastDocMessage because AUTH_NO_VIEW');
+        this._log.debug(target, "skip broadcastDocMessage because AUTH_NO_VIEW");
         // Go further and trigger a shutdown for this user, in case they are granted
         // access again later.
-        return {type: 'docShutdown', data: null};
-      } else {
+        return { type: "docShutdown", data: null };
+      }
+      else {
         // Propagate any totally unexpected exceptions.
         throw e;
       }
@@ -190,11 +198,10 @@ export class DocClients extends EventEmitter {
   }
 
   private _emitClientAdded(session: DocSession) {
-    this.emit('clientAdded', session);
+    this.emit("clientAdded", session);
   }
 
   private _emitClientRemoved(session: DocSession) {
-    this.emit('clientRemoved', session);
+    this.emit("clientRemoved", session);
   }
 }
-

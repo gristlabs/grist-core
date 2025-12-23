@@ -1,21 +1,22 @@
-import {AttachmentTransferStatus, DocAttachmentsLocation} from 'app/common/UserAPI';
+import { AttachmentTransferStatus, DocAttachmentsLocation } from "app/common/UserAPI";
 import {
   AttachmentFile,
   AttachmentStoreDocInfo,
   DocPoolId,
   getDocPoolIdFromDocInfo,
-  IAttachmentStore, loadAttachmentFileIntoMemory
-} from 'app/server/lib/AttachmentStore';
-import {AttachmentStoreId, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
-import {checksumFileStream, HashPassthroughStream} from 'app/server/lib/checksumFile';
-import {DocStorage, FileInfo} from 'app/server/lib/DocStorage';
-import log from 'app/server/lib/log';
-import {LogMethods} from 'app/server/lib/LogMethods';
-import {MemoryWritableStream} from 'app/server/utils/streams';
-import {EventEmitter} from 'events';
-import * as stream from 'node:stream';
-import {AbortController} from 'node-abort-controller';
+  IAttachmentStore, loadAttachmentFileIntoMemory,
+} from "app/server/lib/AttachmentStore";
+import { AttachmentStoreId, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
+import { checksumFileStream, HashPassthroughStream } from "app/server/lib/checksumFile";
+import { DocStorage, FileInfo } from "app/server/lib/DocStorage";
+import log from "app/server/lib/log";
+import { LogMethods } from "app/server/lib/LogMethods";
+import { MemoryWritableStream } from "app/server/utils/streams";
 
+import { EventEmitter } from "events";
+import * as stream from "node:stream";
+
+import { AbortController } from "node-abort-controller";
 
 export interface AddFileResult {
   fileIdent: string;
@@ -24,7 +25,7 @@ export interface AddFileResult {
 
 export class StoresNotConfiguredError extends Error {
   constructor() {
-    super('Attempted to access a file store, but AttachmentFileManager was initialized without store access');
+    super("Attempted to access a file store, but AttachmentFileManager was initialized without store access");
   }
 }
 
@@ -93,10 +94,9 @@ export class MismatchedFileHashError extends Error {
  *
  */
 export class AttachmentFileManager extends EventEmitter {
-
   public static events = {
-    TRANSFER_STARTED: 'transfer-started',
-    TRANSFER_COMPLETED: 'transfer-completed',
+    TRANSFER_STARTED: "transfer-started",
+    TRANSFER_COMPLETED: "transfer-completed",
   };
 
   // _docPoolId is a critical point for security. Documents with a common pool id can access each others' attachments.
@@ -104,12 +104,12 @@ export class AttachmentFileManager extends EventEmitter {
   private readonly _docName: string;
   private _log = new LogMethods(
     "AttachmentFileManager ",
-    (logInfo: AttachmentFileManagerLogInfo) => this._getLogMeta(logInfo)
+    (logInfo: AttachmentFileManagerLogInfo) => this._getLogMeta(logInfo),
   );
 
   // Maps file identifiers to their desired store. This may be the same as their current store,
   // in which case nothing will happen. Map ensures new requests override older pending transfers.
-  private _pendingFileTransfers: Map<string, AttachmentStoreId | undefined> = new Map();
+  private _pendingFileTransfers = new Map<string, AttachmentStoreId | undefined>();
   private _successes: number = 0;
   private _failures: number = 0;
   private _transferJob?: TransferJob;
@@ -151,7 +151,7 @@ export class AttachmentFileManager extends EventEmitter {
   public async addFile(
     storeId: AttachmentStoreId | undefined,
     fileExtension: string,
-    fileData: Buffer
+    fileData: Buffer,
   ): Promise<AddFileResult> {
     const fileIdent = await this._getFileIdentifier(fileExtension, stream.Readable.from(fileData));
     return this._addFile(storeId, fileIdent, fileData);
@@ -206,7 +206,8 @@ export class AttachmentFileManager extends EventEmitter {
         await destinationStore.delete(this._getDocPoolId(), fileIdent);
         throw new MismatchedFileHashError(fileIdent, fileHash);
       }
-    } else {
+    }
+    else {
       const hashStream = new HashPassthroughStream();
       const bufferStream = new MemoryWritableStream();
       await stream.promises.pipeline(fileData, hashStream, bufferStream);
@@ -299,7 +300,7 @@ export class AttachmentFileManager extends EventEmitter {
   // transfer job. If a file with a matching identifier already exists in the new store, no
   // transfer will happen, as the default _addFileToX behaviour is to avoid re-uploading files.
   public async transferFileToOtherStore(fileIdent: string, newStoreId: AttachmentStoreId | undefined): Promise<void> {
-    this._log.info({fileIdent, storeId: newStoreId}, `transferring file to new store`);
+    this._log.info({ fileIdent, storeId: newStoreId }, `transferring file to new store`);
     const fileMetadata = await this._docStorage.getFileInfoNoData(fileIdent);
     // This check runs before the file is retrieved as an optimisation to avoid loading files into
     // memory unnecessarily.
@@ -317,7 +318,7 @@ export class AttachmentFileManager extends EventEmitter {
 
     if (!await validateFileChecksum(fileIdent, fileInMemory.contents)) {
       throw new AttachmentRetrievalError(
-        fileInfo.storageId, fileInfo.ident, "checksum verification failed for retrieved file"
+        fileInfo.storageId, fileInfo.ident, "checksum verification failed for retrieved file",
       );
     }
     if (!newStoreId) {
@@ -328,7 +329,7 @@ export class AttachmentFileManager extends EventEmitter {
     if (!newStore) {
       this._log.warn({
         fileIdent,
-        storeId: newStoreId
+        storeId: newStoreId,
       }, `unable to transfer file to unavailable store`);
       throw new StoreNotAvailableError(newStoreId);
     }
@@ -362,9 +363,9 @@ export class AttachmentFileManager extends EventEmitter {
     }
     this._transferJob = this._performPendingTransfers();
 
-    this._transferJob.catch((err) => this._log.error({}, `Error during transfer: ${err}`));
+    this._transferJob.catch(err => this._log.error({}, `Error during transfer: ${err}`));
 
-    this._transferJob.finally(() => {
+    void this._transferJob.finally(() => {
       this._transferJob = undefined;
     });
   }
@@ -384,10 +385,12 @@ export class AttachmentFileManager extends EventEmitter {
               await new Promise(resolve => setTimeout(resolve, Number(process.env.GRIST_TEST_TRANSFER_DELAY)));
             }
             this._successes++;
-          } catch (e) {
+          }
+          catch (e) {
             this._failures++;
-            this._log.warn({fileIdent, storeId: targetStoreId}, `transfer failed: ${e.message}`);
-          } finally {
+            this._log.warn({ fileIdent, storeId: targetStoreId }, `transfer failed: ${e.message}`);
+          }
+          finally {
             // If a transfer request comes in mid-transfer, it will need re-running.
             if (this._pendingFileTransfers.get(fileIdent) === targetStoreId) {
               this._pendingFileTransfers.delete(fileIdent);
@@ -395,7 +398,8 @@ export class AttachmentFileManager extends EventEmitter {
           }
         }
       }
-    } finally {
+    }
+    finally {
       if (!this._loopAbort.aborted) {
         await this._docStorage.requestVacuum();
         await this._notifyAboutEnd();
@@ -411,7 +415,7 @@ export class AttachmentFileManager extends EventEmitter {
   private async _notifyAboutStart() {
     this.emit(AttachmentFileManager.events.TRANSFER_STARTED, {
       locationSummary: await this.locationSummary(),
-      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: true}
+      status: { pendingTransferCount: this._pendingFileTransfers.size, isRunning: true },
     } as AttachmentTransferStatus);
   }
 
@@ -423,7 +427,7 @@ export class AttachmentFileManager extends EventEmitter {
   private async _notifyAboutEnd() {
     this.emit(AttachmentFileManager.events.TRANSFER_COMPLETED, {
       locationSummary: await this.locationSummary(),
-      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: false}
+      status: { pendingTransferCount: this._pendingFileTransfers.size, isRunning: false },
     } as AttachmentTransferStatus);
   }
 
@@ -438,11 +442,11 @@ export class AttachmentFileManager extends EventEmitter {
 
   private async _addFileToLocalStorage(
     fileIdent: string,
-    fileData: Buffer
+    fileData: Buffer,
   ): Promise<AddFileResult> {
-      this._log.info({
-        fileIdent,
-      }, `adding file to document storage`);
+    this._log.info({
+      fileIdent,
+    }, `adding file to document storage`);
 
     const fileInfoNoData = await this._docStorage.getFileInfoNoData(fileIdent);
     const fileExists = fileInfoNoData !== null;
@@ -480,7 +484,7 @@ export class AttachmentFileManager extends EventEmitter {
   ): Promise<AddFileResult> {
     this._log.info({
       fileIdent,
-      storeId: destStoreId
+      storeId: destStoreId,
     }, `adding file to external storage`);
 
     const destStore = await this._getStore(destStoreId);
@@ -532,7 +536,7 @@ export class AttachmentFileManager extends EventEmitter {
   private async _addFile(
     destStoreId: AttachmentStoreId | undefined,
     fileIdent: string,
-    fileData: Buffer
+    fileData: Buffer,
   ): Promise<AddFileResult> {
     if (destStoreId === undefined) {
       return this._addFileToLocalStorage(fileIdent, fileData);
@@ -548,7 +552,7 @@ export class AttachmentFileManager extends EventEmitter {
     }
     this._log.debug(
       { fileIdent, storeId: fileInfo.storageId },
-      `fetching attachment from ${fileInfo.storageId ? "external" : "document "} storage`
+      `fetching attachment from ${fileInfo.storageId ? "external" : "document "} storage`,
     );
     if (!fileInfo.storageId) {
       return {
@@ -560,7 +564,7 @@ export class AttachmentFileManager extends EventEmitter {
           },
           contentStream: stream.Readable.from(fileInfo.data),
           contents: fileInfo.data,
-        }
+        },
       };
     }
     const store = await this._getStore(fileInfo.storageId);
@@ -614,7 +618,6 @@ export class AttachmentFileManager extends EventEmitter {
   private async _storeFileInAttachmentStore(
     store: IAttachmentStore, fileIdent: string, fileData: stream.Readable,
   ): Promise<void> {
-
     // The underlying store should guarantee the file exists if this method doesn't error,
     // so no extra validation is needed here.
     await store.upload(this._getDocPoolId(), fileIdent, fileData);
@@ -626,7 +629,8 @@ export class AttachmentFileManager extends EventEmitter {
   private async _getFileDataFromAttachmentStore(store: IAttachmentStore, fileIdent: string): Promise<AttachmentFile> {
     try {
       return await store.download(this._getDocPoolId(), fileIdent);
-    } catch(e) {
+    }
+    catch (e) {
       throw new AttachmentRetrievalError(store.id, fileIdent, e);
     }
   }
@@ -655,4 +659,4 @@ interface AttachmentFileInfo {
   file: AttachmentFile;
 }
 
-type TransferJob = Promise<void>
+type TransferJob = Promise<void>;

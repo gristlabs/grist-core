@@ -10,14 +10,15 @@
  * with `theme.ts#attachCssThemeVars` and are required to be attached, as most theme-agnostic
  * CSS variables described below consume those variables.
  */
-import {CssCustomProp as CustomProp} from 'app/common/CssCustomProp';
-import {components, tokens} from 'app/common/ThemePrefs';
-import {urlState} from 'app/client/models/gristUrlState';
-import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
-import {getOrCreateStyleElement} from 'app/client/lib/getOrCreateStyleElement';
-import {DomElementMethod, makeTestId, Observable, styled, TestId} from 'grainjs';
-import debounce = require('lodash/debounce');
-import values = require('lodash/values');
+import { getOrCreateStyleElement } from "app/client/lib/getOrCreateStyleElement";
+import { urlState } from "app/client/models/gristUrlState";
+import { getTheme, ProductFlavor } from "app/client/ui/CustomThemes";
+import { CssCustomProp as CustomProp } from "app/common/CssCustomProp";
+import { components, tokens } from "app/common/ThemePrefs";
+
+import { DomElementMethod, makeTestId, Observable, styled, TestId } from "grainjs";
+import debounce from "lodash/debounce";
+import values from "lodash/values";
 
 /**
  * @deprecated Consume the {@link tokens} object directly
@@ -30,60 +31,60 @@ import values = require('lodash/values');
  * - to make old css variables still work in case people used them in plugins or custom css.
  */
 export const colors = {
-  lightGrey: new CustomProp('color-light-grey', tokens.bgSecondary),
-  mediumGrey: new CustomProp('color-medium-grey', tokens.bgTertiary),
-  mediumGreyOpaque: new CustomProp('color-medium-grey-opaque', tokens.decorationSecondary),
-  darkGrey: new CustomProp('color-dark-grey', tokens.decoration),
+  lightGrey: new CustomProp("color-light-grey", tokens.bgSecondary),
+  mediumGrey: new CustomProp("color-medium-grey", tokens.bgTertiary),
+  mediumGreyOpaque: new CustomProp("color-medium-grey-opaque", tokens.decorationSecondary),
+  darkGrey: new CustomProp("color-dark-grey", tokens.decoration),
 
-  light: new CustomProp('color-light', tokens.white),
-  dark: new CustomProp('color-dark', tokens.body),
-  darkText: new CustomProp('color-dark-text', '#494949'),
-  darkBg: new CustomProp('color-dark-bg', tokens.bgEmphasis),
-  slate: new CustomProp('color-slate', tokens.secondary),
+  light: new CustomProp("color-light", tokens.white),
+  dark: new CustomProp("color-dark", tokens.body),
+  darkText: new CustomProp("color-dark-text", "#494949"),
+  darkBg: new CustomProp("color-dark-bg", tokens.bgEmphasis),
+  slate: new CustomProp("color-slate", tokens.secondary),
 
-  lighterGreen: new CustomProp('color-lighter-green', tokens.primaryEmphasis),
-  lightGreen: new CustomProp('color-light-green', tokens.primary),
-  darkGreen: new CustomProp('color-dark-green', tokens.primaryMuted),
-  darkerGreen: new CustomProp('color-darker-green', tokens.primaryDim),
+  lighterGreen: new CustomProp("color-lighter-green", tokens.primaryEmphasis),
+  lightGreen: new CustomProp("color-light-green", tokens.primary),
+  darkGreen: new CustomProp("color-dark-green", tokens.primaryMuted),
+  darkerGreen: new CustomProp("color-darker-green", tokens.primaryDim),
 
-  lighterBlue: new CustomProp('color-lighter-blue', tokens.infoLight),
-  lightBlue: new CustomProp('color-light-blue', tokens.info),
-  orange: new CustomProp('color-orange', tokens.warningLight),
+  lighterBlue: new CustomProp("color-lighter-blue", tokens.infoLight),
+  lightBlue: new CustomProp("color-light-blue", tokens.info),
+  orange: new CustomProp("color-orange", tokens.warningLight),
 
-  cursor: new CustomProp('color-cursor', tokens.cursor),
-  selection: new CustomProp('color-selection', tokens.selection),
-  selectionOpaque: new CustomProp('color-selection-opaque', tokens.selectionOpaque),
-  selectionDarkerOpaque: new CustomProp('color-selection-darker-opaque', tokens.selectionDarkerOpaque),
+  cursor: new CustomProp("color-cursor", tokens.cursor),
+  selection: new CustomProp("color-selection", tokens.selection),
+  selectionOpaque: new CustomProp("color-selection-opaque", tokens.selectionOpaque),
+  selectionDarkerOpaque: new CustomProp("color-selection-darker-opaque", tokens.selectionDarkerOpaque),
 
-  inactiveCursor: new CustomProp('color-inactive-cursor', tokens.cursorInactive),
+  inactiveCursor: new CustomProp("color-inactive-cursor", tokens.cursorInactive),
 
-  hover: new CustomProp('color-hover', tokens.hover),
-  error: new CustomProp('color-error', tokens.error),
-  warning: new CustomProp('color-warning', tokens.warningLight),
-  warningBg: new CustomProp('color-warning-bg', tokens.warning),
-  backdrop: new CustomProp('color-backdrop', tokens.backdrop),
+  hover: new CustomProp("color-hover", tokens.hover),
+  error: new CustomProp("color-error", tokens.error),
+  warning: new CustomProp("color-warning", tokens.warningLight),
+  warningBg: new CustomProp("color-warning-bg", tokens.warning),
+  backdrop: new CustomProp("color-backdrop", tokens.backdrop),
 };
 
 /**
  * zIndexes are listed on their own and can't be modified by themes.
  */
 export const zIndexes = {
-  stickyHeaderZIndex: new CustomProp('sticky-header-z-index', '20'),
-  insertColumnLineZIndex: new CustomProp('insert-column-line-z-index', '20'),
-  emojiPickerZIndex: new CustomProp('modal-z-index', '20'),
-  newRecordButtonZIndex: new CustomProp('new-record-button-z-index', '30'),
-  popupSectionBackdropZIndex: new CustomProp('popup-section-backdrop-z-index', '100'),
-  menuZIndex: new CustomProp('menu-z-index', '999'),
-  modalZIndex: new CustomProp('modal-z-index', '999'),
-  onboardingBackdropZIndex: new CustomProp('onboarding-backdrop-z-index', '999'),
-  onboardingPopupZIndex: new CustomProp('onboarding-popup-z-index', '1000'),
-  floatingPopupZIndex: new CustomProp('floating-popup-z-index', '1002'),
-  tutorialModalZIndex: new CustomProp('tutorial-modal-z-index', '1003'),
-  pricingModalZIndex: new CustomProp('pricing-modal-z-index', '1004'),
-  floatingPopupMenuZIndex: new CustomProp('floating-popup-menu-z-index', '1004'),
-  notificationZIndex: new CustomProp('notification-z-index', '1100'),
-  browserCheckZIndex: new CustomProp('browser-check-z-index', '5000'),
-  tooltipZIndex: new CustomProp('tooltip-z-index', '5000'),
+  stickyHeaderZIndex: new CustomProp("sticky-header-z-index", "20"),
+  insertColumnLineZIndex: new CustomProp("insert-column-line-z-index", "20"),
+  emojiPickerZIndex: new CustomProp("modal-z-index", "20"),
+  newRecordButtonZIndex: new CustomProp("new-record-button-z-index", "30"),
+  popupSectionBackdropZIndex: new CustomProp("popup-section-backdrop-z-index", "100"),
+  menuZIndex: new CustomProp("menu-z-index", "999"),
+  modalZIndex: new CustomProp("modal-z-index", "999"),
+  onboardingBackdropZIndex: new CustomProp("onboarding-backdrop-z-index", "999"),
+  onboardingPopupZIndex: new CustomProp("onboarding-popup-z-index", "1000"),
+  floatingPopupZIndex: new CustomProp("floating-popup-z-index", "1002"),
+  tutorialModalZIndex: new CustomProp("tutorial-modal-z-index", "1003"),
+  pricingModalZIndex: new CustomProp("pricing-modal-z-index", "1004"),
+  floatingPopupMenuZIndex: new CustomProp("floating-popup-menu-z-index", "1004"),
+  notificationZIndex: new CustomProp("notification-z-index", "1100"),
+  browserCheckZIndex: new CustomProp("browser-check-z-index", "5000"),
+  tooltipZIndex: new CustomProp("tooltip-z-index", "5000"),
   // TODO: Add properties for remaining hard-coded z-indexes.
 };
 
@@ -101,53 +102,52 @@ export const zIndexes = {
  * - to make old css variables still work in case people used them in plugins or custom css.
  */
 export const vars = {
-  fontFamily: new CustomProp('font-family', tokens.fontFamily),
-  fontFamilyData: new CustomProp('font-family-data', tokens.fontFamilyData),
+  fontFamily: new CustomProp("font-family", tokens.fontFamily),
+  fontFamilyData: new CustomProp("font-family-data", tokens.fontFamilyData),
 
-  xxsmallFontSize: new CustomProp('xx-font-size', tokens.xxsmallFontSize),
-  xsmallFontSize: new CustomProp('x-small-font-size', tokens.xsmallFontSize),
-  smallFontSize: new CustomProp('small-font-size', tokens.smallFontSize),
-  mediumFontSize: new CustomProp('medium-font-size', tokens.mediumFontSize),
-  introFontSize: new CustomProp('intro-font-size', tokens.introFontSize),
-  largeFontSize: new CustomProp('large-font-size', tokens.largeFontSize),
-  xlargeFontSize: new CustomProp('x-large-font-size', tokens.xlargeFontSize),
-  xxlargeFontSize: new CustomProp('xx-large-font-size', tokens.xxlargeFontSize),
-  xxxlargeFontSize: new CustomProp('xxx-large-font-size', tokens.xxxlargeFontSize),
+  xxsmallFontSize: new CustomProp("xx-font-size", tokens.xxsmallFontSize),
+  xsmallFontSize: new CustomProp("x-small-font-size", tokens.xsmallFontSize),
+  smallFontSize: new CustomProp("small-font-size", tokens.smallFontSize),
+  mediumFontSize: new CustomProp("medium-font-size", tokens.mediumFontSize),
+  introFontSize: new CustomProp("intro-font-size", tokens.introFontSize),
+  largeFontSize: new CustomProp("large-font-size", tokens.largeFontSize),
+  xlargeFontSize: new CustomProp("x-large-font-size", tokens.xlargeFontSize),
+  xxlargeFontSize: new CustomProp("xx-large-font-size", tokens.xxlargeFontSize),
+  xxxlargeFontSize: new CustomProp("xxx-large-font-size", tokens.xxxlargeFontSize),
 
-  controlFontSize: new CustomProp('control-font-size', '12px'),
-  smallControlFontSize: new CustomProp('small-control-font-size', '10px'),
-  bigControlFontSize: new CustomProp('big-control-font-size', tokens.bigControlFontSize),
-  headerControlFontSize: new CustomProp('header-control-font-size', tokens.headerControlFontSize),
-  bigControlTextWeight: new CustomProp('big-text-weight', tokens.bigControlTextWeight),
-  headerControlTextWeight: new CustomProp('header-text-weight', tokens.headerControlTextWeight),
+  controlFontSize: new CustomProp("control-font-size", "12px"),
+  smallControlFontSize: new CustomProp("small-control-font-size", "10px"),
+  bigControlFontSize: new CustomProp("big-control-font-size", tokens.bigControlFontSize),
+  headerControlFontSize: new CustomProp("header-control-font-size", tokens.headerControlFontSize),
+  bigControlTextWeight: new CustomProp("big-text-weight", tokens.bigControlTextWeight),
+  headerControlTextWeight: new CustomProp("header-text-weight", tokens.headerControlTextWeight),
 
-  labelTextSize: new CustomProp('label-text-size', 'medium'),
-  labelTextBg: new CustomProp('label-text-bg', '#ffffff'),
-  labelActiveBg: new CustomProp('label-active-bg', '#f0f0f0'),
+  labelTextSize: new CustomProp("label-text-size", "medium"),
+  labelTextBg: new CustomProp("label-text-bg", "#ffffff"),
+  labelActiveBg: new CustomProp("label-active-bg", "#f0f0f0"),
 
-  controlMargin: new CustomProp('normal-margin', '2px'),
-  controlPadding: new CustomProp('normal-padding', '3px 5px'),
-  tightPadding: new CustomProp('tight-padding', '1px 2px'),
-  loosePadding: new CustomProp('loose-padding', '5px 15px'),
+  controlMargin: new CustomProp("normal-margin", "2px"),
+  controlPadding: new CustomProp("normal-padding", "3px 5px"),
+  tightPadding: new CustomProp("tight-padding", "1px 2px"),
+  loosePadding: new CustomProp("loose-padding", "5px 15px"),
 
-  primaryBg: new CustomProp('primary-fg', tokens.primary),
-  primaryBgHover: new CustomProp('primary-fg-hover', tokens.primaryMuted),
-  primaryFg: new CustomProp('primary-bg', tokens.white),
+  primaryBg: new CustomProp("primary-fg", tokens.primary),
+  primaryBgHover: new CustomProp("primary-fg-hover", tokens.primaryMuted),
+  primaryFg: new CustomProp("primary-bg", tokens.white),
 
-  controlBg: new CustomProp('control-bg', tokens.white),
-  controlFg: new CustomProp('control-fg', tokens.primary),
-  controlFgHover: new CustomProp('primary-fg-hover', tokens.primaryMuted),
+  controlBg: new CustomProp("control-bg", tokens.white),
+  controlFg: new CustomProp("control-fg", tokens.primary),
+  controlFgHover: new CustomProp("primary-fg-hover", tokens.primaryMuted),
 
-  controlBorder: new CustomProp('control-border', components.controlBorder),
-  controlBorderRadius: new CustomProp('border-radius', tokens.controlBorderRadius),
+  controlBorder: new CustomProp("control-border", components.controlBorder),
+  controlBorderRadius: new CustomProp("border-radius", tokens.controlBorderRadius),
 
-  logoBg: new CustomProp('logo-bg', tokens.logoBg),
-  logoSize: new CustomProp('logo-size', tokens.logoSize),
-  toastBg: new CustomProp('toast-bg', '#040404'),
+  logoBg: new CustomProp("logo-bg", tokens.logoBg),
+  logoSize: new CustomProp("logo-size", tokens.logoSize),
+  toastBg: new CustomProp("toast-bg", "#040404"),
 
   ...zIndexes,
 };
-
 
 /**
  * @deprecated Consume and update the {@link components} object directly
@@ -157,11 +157,11 @@ export const vars = {
  * to target the new `components` structure.
  */
 export const theme = {
-  ...components
+  ...components,
 };
 
-const cssColors = values(colors).map(v => v.decl()).join('\n');
-const cssVars = values(vars).map(v => v.decl()).join('\n');
+const cssColors = values(colors).map(v => v.decl()).join("\n");
+const cssVars = values(vars).map(v => v.decl()).join("\n");
 
 // We set box-sizing globally to match bootstrap's setting of border-box, since we are integrating
 // into an app which already has it set, and it's impossible to make things look consistently with
@@ -206,12 +206,12 @@ const cssFontStyles = `
 const cssRootVars = cssColors + cssVars;
 const cssReset = cssBorderBox + cssInputFonts + cssFontStyles;
 
-const cssBody = styled('body', `
+const cssBody = styled("body", `
   margin: 0;
   height: 100%;
 `);
 
-const cssRoot = styled('html', `
+const cssRoot = styled("html", `
   height: 100%;
   overflow: hidden;
   font-family: ${vars.fontFamily};
@@ -222,7 +222,7 @@ const cssRoot = styled('html', `
 
 // Also make a globally available testId, with a simple "test-" prefix (i.e. in tests, query css
 // class ".test-{name}". Ideally, we'd use noTestId() instead in production.
-export const testId: TestId = makeTestId('test-');
+export const testId: TestId = makeTestId("test-");
 
 // Min width for normal screen layout (in px). Note: <768px is bootstrap's definition of small
 // screen (covers phones, including landscape, but not tablets).
@@ -242,13 +242,13 @@ export function isNarrowScreen() {
   return window.innerWidth < mediumScreenWidth;
 }
 
-let _isNarrowScreenObs: Observable<boolean>|undefined;
+let _isNarrowScreenObs: Observable<boolean> | undefined;
 
 // Returns a singleton observable for whether the screen is a small one.
 export function isNarrowScreenObs(): Observable<boolean> {
   if (!_isNarrowScreenObs) {
     const obs = Observable.create<boolean>(null, isNarrowScreen());
-    window.addEventListener('resize', () => obs.set(isNarrowScreen()));
+    window.addEventListener("resize", () => obs.set(isNarrowScreen()));
     _isNarrowScreenObs = obs;
   }
   return _isNarrowScreenObs;
@@ -258,19 +258,19 @@ export function isXSmallScreen() {
   return window.innerWidth < smallScreenWidth;
 }
 
-let _isXSmallScreenObs: Observable<boolean>|undefined;
+let _isXSmallScreenObs: Observable<boolean> | undefined;
 
 // Returns a singleton observable for whether the screen is an extra small one.
 export function isXSmallScreenObs(): Observable<boolean> {
   if (!_isXSmallScreenObs) {
     const obs = Observable.create<boolean>(null, isXSmallScreen());
-    window.addEventListener('resize', () => obs.set(isXSmallScreen()));
+    window.addEventListener("resize", () => obs.set(isXSmallScreen()));
     _isXSmallScreenObs = obs;
   }
   return _isXSmallScreenObs;
 }
 
-export const cssHideForNarrowScreen = styled('div', `
+export const cssHideForNarrowScreen = styled("div", `
   @media ${mediaSmall} {
     & {
       display: none !important;
@@ -278,7 +278,7 @@ export const cssHideForNarrowScreen = styled('div', `
   }
 `);
 
-let _isScreenResizingObs: Observable<boolean>|undefined;
+let _isScreenResizingObs: Observable<boolean> | undefined;
 
 // Returns a singleton observable for whether user is currently resizing the window. (listen to
 // `resize` events and uses a timer of 1000ms).
@@ -286,7 +286,7 @@ export function isScreenResizing(): Observable<boolean> {
   if (!_isScreenResizingObs) {
     const obs = Observable.create<boolean>(null, false);
     const ping = debounce(() => obs.set(false), 1000);
-    window.addEventListener('resize', () => { obs.set(true); ping(); });
+    window.addEventListener("resize", () => { obs.set(true); ping(); });
     _isScreenResizingObs = obs;
   }
   return _isScreenResizingObs;
@@ -298,9 +298,9 @@ export function isScreenResizing(): Observable<boolean> {
 export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolean = false) {
   /* Initiate the grist-layers before any other css to make sure it's understood by all styles,
    * and apply all base grist rules and styles in the grist-base layer. */
-  getOrCreateStyleElement('grist-root-css', {
-    position: 'beforebegin',
-    element: document.head.querySelector('style, link[rel="stylesheet"]')
+  getOrCreateStyleElement("grist-root-css", {
+    position: "beforebegin",
+    element: document.head.querySelector('style, link[rel="stylesheet"]'),
   }).textContent = `
 @layer grist-base, grist-theme, grist-custom;
 @layer grist-base {
@@ -316,16 +316,16 @@ export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolea
   if (customTheme.bodyClassName) {
     document.body.classList.add(customTheme.bodyClassName);
   }
-  const interfaceStyle = urlState().state.get().params?.style || 'full';
+  const interfaceStyle = urlState().state.get().params?.style || "full";
   document.body.classList.add(`interface-${interfaceStyle}`);
 }
 
 // A dom method to hide element in print view
 export function hideInPrintView(): DomElementMethod {
-  return cssHideInPrint.cls('');
+  return cssHideInPrint.cls("");
 }
 
-const cssHideInPrint = styled('div', `
+const cssHideInPrint = styled("div", `
   @media print {
     & {
       display: none !important;

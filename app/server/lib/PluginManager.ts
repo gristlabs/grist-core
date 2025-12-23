@@ -1,9 +1,11 @@
-import {DirectoryScanEntry, LocalPlugin} from 'app/common/plugin';
-import log from 'app/server/lib/log';
-import {readManifest} from 'app/server/lib/manifest';
-import {getAppPathTo} from 'app/server/lib/places';
-import * as fse from 'fs-extra';
-import * as path from 'path';
+import { DirectoryScanEntry, LocalPlugin } from "app/common/plugin";
+import log from "app/server/lib/log";
+import { readManifest } from "app/server/lib/manifest";
+import { getAppPathTo } from "app/server/lib/places";
+
+import * as path from "path";
+
+import * as fse from "fs-extra";
 
 /**
  * Various plugins' related directories.
@@ -36,7 +38,6 @@ export interface PluginDirectories {
  *
  */
 export class PluginManager {
-
   public pluginsLoaded: Promise<void>;
 
   // ========== Instance members and methods ==========
@@ -44,17 +45,16 @@ export class PluginManager {
   private _validPlugins: LocalPlugin[] = [];
   private _entries: DirectoryScanEntry[] = [];
 
-
   /**
    * @param {string} userRoot: path to user's grist directory; `null` is allowed, to only uses built in plugins.
    *
    */
   public constructor(public appRoot?: string, userRoot?: string,
-                     public bundledRoot?: string) {
+    public bundledRoot?: string) {
     this._dirs = {
-      installed: userRoot ? path.join(userRoot, 'plugins') : undefined,
-      builtIn: appRoot ? getAppPathTo(appRoot, 'plugins') : undefined,
-      bundled: bundledRoot ? getAppPathTo(bundledRoot, 'plugins') : undefined,
+      installed: userRoot ? path.join(userRoot, "plugins") : undefined,
+      builtIn: appRoot ? getAppPathTo(appRoot, "plugins") : undefined,
+      bundled: bundledRoot ? getAppPathTo(bundledRoot, "plugins") : undefined,
     };
   }
 
@@ -66,7 +66,8 @@ export class PluginManager {
   public async initialize(): Promise<void> {
     try {
       await (this.pluginsLoaded = this.loadPlugins());
-    } catch (err) {
+    }
+    catch (err) {
       log.error("PluginManager's initialization failed: ", err);
       throw err;
     }
@@ -104,10 +105,10 @@ export class PluginManager {
     }
 
     if (!process.env.GRIST_EXPERIMENTAL_PLUGINS ||
-       process.env.GRIST_EXPERIMENTAL_PLUGINS === '0') {
+      process.env.GRIST_EXPERIMENTAL_PLUGINS === "0") {
       // Remove experimental plugins
-      this._entries = this._entries.filter(entry => {
-        if (entry.manifest && entry.manifest.experimental) {
+      this._entries = this._entries.filter((entry) => {
+        if (entry.manifest?.experimental) {
           log.warn("Ignoring experimental plugin %s", entry.id);
           return false;
         }
@@ -124,14 +125,13 @@ export class PluginManager {
     return this._validPlugins;
   }
 
-
   private _logScanningReport() {
-    const invalidPlugins = this._entries.filter( entry => entry.errors);
+    const invalidPlugins = this._entries.filter(entry => entry.errors);
     if (invalidPlugins.length) {
       for (const plugin of invalidPlugins) {
         log.warn(`Error loading plugins: Failed to load extension from ${plugin.path}\n` +
-          (plugin.errors!).map(m => "  - " + m).join("\n  ")
-          );
+          (plugin.errors!).map(m => "  - " + m).join("\n  "),
+        );
       }
     }
     log.info(`Found ${this._validPlugins.length} valid plugins on the system`);
@@ -141,14 +141,14 @@ export class PluginManager {
   }
 }
 
-
-async function scanDirectory(dir: string, kind: "installed"|"builtIn"|"bundled"): Promise<DirectoryScanEntry[]> {
+async function scanDirectory(dir: string, kind: "installed" | "builtIn" | "bundled"): Promise<DirectoryScanEntry[]> {
   const plugins: DirectoryScanEntry[] = [];
   let listDir;
 
   try {
     listDir = await fse.readdir(dir);
-  } catch (e) {
+  }
+  catch (e) {
     // Non existing dir is treated as an empty dir.
     // It is hard for user to avoid Grist checking a dir,
     // so phrase the message as information rather than error.
@@ -160,11 +160,12 @@ async function scanDirectory(dir: string, kind: "installed"|"builtIn"|"bundled")
     const folderPath = path.join(dir, id),
       plugin: DirectoryScanEntry = {
         path: folderPath,
-        id: `${kind}/${id}`
+        id: `${kind}/${id}`,
       };
     try {
       plugin.manifest = await readManifest(folderPath);
-    } catch (e) {
+    }
+    catch (e) {
       plugin.errors = [];
       if (e.message) {
         plugin.errors.push(e.message);

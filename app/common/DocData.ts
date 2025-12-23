@@ -3,24 +3,25 @@
  * subscribes to actions which change it, and forwards those actions to individual tables.
  * It also provides the interface to apply actions to data.
  */
-import {DocumentSettings} from 'app/common/DocumentSettings';
-import {safeJsonParse} from 'app/common/gutil';
-import {schema, SchemaTypes} from 'app/common/schema';
-import fromPairs = require('lodash/fromPairs');
-import groupBy = require('lodash/groupBy');
-import {ActionDispatcher} from 'app/common/ActionDispatcher';
-import {TableFetchResult} from 'app/common/ActiveDocAPI';
+import { ActionDispatcher } from "app/common/ActionDispatcher";
+import { TableFetchResult } from "app/common/ActiveDocAPI";
 import {
   BulkColValues, ColInfo, ColInfoWithId, ColValues, DocAction,
   getColIdsFromDocAction,
-  RowRecord, TableDataAction
-} from 'app/common/DocActions';
-import {ColTypeMap, MetaRowRecord, MetaTableData, TableData} from 'app/common/TableData';
+  RowRecord, TableDataAction,
+} from "app/common/DocActions";
+import { DocumentSettings } from "app/common/DocumentSettings";
+import { safeJsonParse } from "app/common/gutil";
+import { schema, SchemaTypes } from "app/common/schema";
+import { ColTypeMap, MetaRowRecord, MetaTableData, TableData } from "app/common/TableData";
+
+import fromPairs from "lodash/fromPairs";
+import groupBy from "lodash/groupBy";
 
 type FetchTableFunc = (tableId: string) => Promise<TableFetchResult>;
 
 export class DocData extends ActionDispatcher {
-  private _tables: Map<string, TableData> = new Map();
+  private _tables = new Map<string, TableData>();
 
   private _fetchTableFunc: (tableId: string) => Promise<TableDataAction>;
 
@@ -29,12 +30,12 @@ export class DocData extends ActionDispatcher {
    * using syncTable(). All column types will be set to Any, which will affect default
    * values.
    */
-  constructor(fetchTableFunc: FetchTableFunc, metaTableData: {[tableId: string]: TableDataAction} | null) {
+  constructor(fetchTableFunc: FetchTableFunc, metaTableData: { [tableId: string]: TableDataAction } | null) {
     super();
     // Wrap fetchTableFunc slightly to handle any extra attachment data that
     // may come along for the ride.
     this._fetchTableFunc = async (tableId: string) => {
-      const {tableData, attachments} = await fetchTableFunc(tableId);
+      const { tableData, attachments } = await fetchTableFunc(tableId);
       if (attachments) {
         // Back-end doesn't keep track of which attachments we already have,
         // so there may be duplicates of rows we already have - but happily
@@ -53,8 +54,8 @@ export class DocData extends ActionDispatcher {
     }
 
     // Build a map from tableRef to [columnRecords]
-    const colsByTable = groupBy(this._tables.get('_grist_Tables_column')!.getRecords(), 'parentId');
-    for (const t of this._tables.get('_grist_Tables')!.getRecords()) {
+    const colsByTable = groupBy(this._tables.get("_grist_Tables_column")!.getRecords(), "parentId");
+    for (const t of this._tables.get("_grist_Tables")!.getRecords()) {
       const tableId = t.tableId as string;
       const colRecords: RowRecord[] = colsByTable[t.id] || [];
       const colTypes = fromPairs(colRecords.map(c => [c.colId, c.type]));
@@ -65,14 +66,14 @@ export class DocData extends ActionDispatcher {
   /**
    * Creates a new TableData object. A derived class may override to return an object derived from TableData.
    */
-  public createTableData(tableId: string, tableData: TableDataAction|null, colTypes: ColTypeMap): TableData {
+  public createTableData(tableId: string, tableData: TableDataAction | null, colTypes: ColTypeMap): TableData {
     return new (tableId in schema ? MetaTableData : TableData)(tableId, tableData, colTypes);
   }
 
   /**
    * Returns the TableData object for the requested table.
    */
-  public getTable(tableId: string): TableData|undefined {
+  public getTable(tableId: string): TableData | undefined {
     return this._tables.get(tableId);
   }
 
@@ -118,8 +119,8 @@ export class DocData extends ActionDispatcher {
   public async syncTable(tableId: string): Promise<void> {
     const meta = this._tables.get(tableId);  // Not required, but respected if available.
     const tableData = await this._fetchTableFunc(tableId);
-    const colTypes = fromPairs((getColIdsFromDocAction(tableData) ?? []).map(c => [c, meta?.getColType(c) ?? 'Any']));
-    colTypes.id = 'Any';
+    const colTypes = fromPairs((getColIdsFromDocAction(tableData) ?? []).map(c => [c, meta?.getColType(c) ?? "Any"]));
+    colTypes.id = "Any";
     this._tables.set(tableId, this.createTableData(tableId, tableData, colTypes));
   }
 
@@ -144,8 +145,8 @@ export class DocData extends ActionDispatcher {
     actions.forEach(action => this.receiveAction(action));
   }
 
-  public docInfo(): MetaRowRecord<'_grist_DocInfo'> {
-    const docInfoTable = this.getMetaTable('_grist_DocInfo');
+  public docInfo(): MetaRowRecord<"_grist_DocInfo"> {
+    const docInfoTable = this.getMetaTable("_grist_DocInfo");
     return docInfoTable.getRecord(1)!;
   }
 
@@ -172,7 +173,6 @@ export class DocData extends ActionDispatcher {
     }
   }
 
-  // tslint:disable:no-empty
   protected onAddRecord(action: DocAction, tableId: string, rowId: number, colValues: ColValues): void {}
   protected onUpdateRecord(action: DocAction, tableId: string, rowId: number, colValues: ColValues): void {}
   protected onRemoveRecord(action: DocAction, tableId: string, rowId: number): void {}

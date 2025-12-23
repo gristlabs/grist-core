@@ -20,16 +20,16 @@ import {
   isSomeRemoveRecordAction,
   isUpdateRecord,
   UpdateRecord,
-} from 'app/common/DocActions';
-import { CommentContent } from 'app/common/DocComments';
-import { DocData } from 'app/common/DocData';
-import { ErrorWithCode } from 'app/common/ErrorWithCode';
-import { isCensored } from 'app/common/gristTypes';
-import { getSetMapValue, safeJsonParse } from 'app/common/gutil';
-import { MetaRowRecord, SingleCell } from 'app/common/TableData';
-import { GristObjCode } from 'app/plugin/GristData';
-import { isEqual } from 'lodash';
+} from "app/common/DocActions";
+import { CommentContent } from "app/common/DocComments";
+import { DocData } from "app/common/DocData";
+import { ErrorWithCode } from "app/common/ErrorWithCode";
+import { isCensored } from "app/common/gristTypes";
+import { getSetMapValue, safeJsonParse } from "app/common/gutil";
+import { MetaRowRecord, SingleCell } from "app/common/TableData";
+import { GristObjCode } from "app/plugin/GristData";
 
+import { isEqual } from "lodash";
 
 /**
  * Tests if the user can modify cell's data. Will modify the docData
@@ -44,7 +44,7 @@ export async function applyAndCheckActionsForCells(
   userIsOwner: boolean,
   haveRules: boolean,
   userRef: string,
-  hasAccess: (cell: SingleCellInfo, state: DocData) => Promise<boolean>
+  hasAccess: (cell: SingleCellInfo, state: DocData) => Promise<boolean>,
 ) {
   // First check if we even have actions that modify cell's data.
   const cellsActions = docActions.filter(isCellDataAction);
@@ -52,7 +52,7 @@ export async function applyAndCheckActionsForCells(
   // If we don't have any actions, we are good to go.
   if (cellsActions.length === 0) { return; }
   const fail = () => {
-    throw new ErrorWithCode('ACL_DENY', 'Cannot access cell');
+    throw new ErrorWithCode("ACL_DENY", "Cannot access cell");
   };
 
   // In nutshell we will just test action one by one, and see if user
@@ -62,24 +62,23 @@ export async function applyAndCheckActionsForCells(
   // are attached to. We will assume that bundle has a complete set of information, and
   // with this assumption we will skip such actions, and wait for the whole cell to form.
 
-
   // Create a view for current state.
   const cellData = new CellData(docData);
 
   // Some cells meta data will be added before rows (for example, when undoing). We will
   // postpone checking of such actions until we have a full set of information.
-  let postponed: Array<number> = [];
+  let postponed: number[] = [];
   // Now one by one apply all actions to the snapshot recording all changes
   // to the cell table.
 
-  const zipped = docActions.map((a, i) => ({docAction: a, isDirect: directActions[i]}));
-  for(const {docAction, isDirect} of zipped) {
+  const zipped = docActions.map((a, i) => ({ docAction: a, isDirect: directActions[i] }));
+  for (const { docAction, isDirect } of zipped) {
     if (!isDirect || !isCellDataAction(docAction)) {
       docData.receiveAction(docAction);
       continue;
     }
     // Convert any bulk actions to normal actions
-    for(const single of getSingleAction(docAction)) {
+    for (const single of getSingleAction(docAction)) {
       const id = getRowIdsFromDocAction(single)[0];
       if (isAddRecord(single)) {
         // Apply this action, as it might not have full information yet.
@@ -91,14 +90,17 @@ export async function applyAndCheckActionsForCells(
             const haveRecord = docData.getTable(cell.tableId)?.hasRowId(cell.rowId);
             if (!haveRecord) {
               postponed.push(id);
-            } else if (!await hasAccess(cell, docData)) {
+            }
+            else if (!await hasAccess(cell, docData)) {
               fail();
             }
-          } else {
+          }
+          else {
             postponed.push(id);
           }
         }
-      } else if (isRemoveRecord(single)) {
+      }
+      else if (isRemoveRecord(single)) {
         // See if we can remove this cell.
         const cell = cellData.getCell(id);
         docData.receiveAction(single);
@@ -109,12 +111,13 @@ export async function applyAndCheckActionsForCells(
             continue;
           }
           // Document owner can remove anything.
-          if (cell.userRef && cell.userRef !== (userRef || '') && !userIsOwner) {
+          if (cell.userRef && cell.userRef !== (userRef || "") && !userIsOwner) {
             fail();
           }
         }
-        postponed = postponed.filter((i) => i !== id);
-      } else {
+        postponed = postponed.filter(i => i !== id);
+      }
+      else {
         // We are updating a cell metadata. We will need to check if we can update it.
         let cell = cellData.getCell(id);
         if (!cell) {
@@ -147,22 +150,22 @@ export async function applyAndCheckActionsForCells(
         // Grist data engine has something that resembles ON DELETE CASCADE, but the children (dependencies) are removed
         // after, not before, so there is a brief moment when references are invalid.
         if (before && after &&
-            checkChangedIds(before, after, ['parentId']) &&
-            wasToggled(before, after, 'parentId')
-          ) {
+          checkChangedIds(before, after, ["parentId"]) &&
+          wasToggled(before, after, "parentId")
+        ) {
           continue;
         }
 
         // We can't update cells, that are not ours, unless we are owner and we are resolving a root comment.
-        if (cell.userRef && cell.userRef !== (userRef || '')) {
+        if (cell.userRef && cell.userRef !== (userRef || "")) {
           // Check if this is owner resolving a root comment
           const isOwnerResolvingRoot =
             userIsOwner &&
             before && after &&
             after.root &&
-            wasToggled(before, after, 'resolved') &&
+            wasToggled(before, after, "resolved") &&
             // Only resolved field changed (timeCreated and timeUpdated are automatic and not user-controlled)
-            checkChangedIds(before, after, ['resolved', 'timeUpdated']);
+            checkChangedIds(before, after, ["resolved", "timeUpdated"]);
 
           if (!isOwnerResolvingRoot) {
             fail();
@@ -173,7 +176,7 @@ export async function applyAndCheckActionsForCells(
   }
   // Now test every cell that was added before row (so we added it, but without
   // full information, like new rowId or tableId or colId).
-  for(const id of postponed) {
+  for (const id of postponed) {
     const cell = cellData.getCell(id);
     if (cell && !cellData.isAttached(cell)) {
       return fail();
@@ -188,9 +191,8 @@ export async function applyAndCheckActionsForCells(
  * Checks if the action is a data action that modifies a _grist_Cells table.
  */
 export function isCellDataAction(a: DocAction): a is DataAction {
-  return getTableId(a) === '_grist_Cells' && isDataAction(a);
+  return getTableId(a) === "_grist_Cells" && isDataAction(a);
 }
-
 
 interface SingleCellInfo extends SingleCell {
   userRef: string;
@@ -223,8 +225,8 @@ export class CellData {
     });
   }
 
-  public getNewComments(actions: DocAction[]): MetaRowRecord<'_grist_Cells'>[] {
-    const rows: MetaRowRecord<'_grist_Cells'>[] = [];
+  public getNewComments(actions: DocAction[]): MetaRowRecord<"_grist_Cells">[] {
+    const rows: MetaRowRecord<"_grist_Cells">[] = [];
     for (const action of actions) {
       if (!isCellDataAction(action) || !isSomeAddRecordAction(action)) { continue; }
       for (const single of getSingleAction(action)) {
@@ -234,7 +236,7 @@ export class CellData {
           continue;
         }
         const id = getRowIds(single);
-        rows.push({id, ...commentRow as any});
+        rows.push({ id, ...commentRow as any });
       }
     }
     return rows;
@@ -265,13 +267,14 @@ export class CellData {
       // If participants for this key are already cached, use them.
       if (read.has(key)) {
         result.set(cId, read.get(key) || []);
-      } else {
+      }
+      else {
         // Otherwise, compute participants for this table/column/row combination.
         const participants = new Set(
-          this.readCells(tableId, new Set([rowId]), colId).flatMap(c => {
+          this.readCells(tableId, new Set([rowId]), colId).flatMap((c) => {
             const parsed = safeJsonParse(c.content, {}) as CommentContent; // Parse the cell content.
             return [c.userRef, ...parsed.mentions || []]; // Include the user reference and any mentions.
-          })
+          }),
         );
 
         // Cache the computed participants for the key.
@@ -300,33 +303,38 @@ export class CellData {
    * all actions that are needed to remove the cell and cell metadata.
    */
   public generatePatch(actions: DocAction[]) {
-    const removedCells: Set<number> = new Set();
-    const addedCells: Set<number> = new Set();
-    const updatedCells: Set<number> = new Set();
+    const removedCells = new Set<number>();
+    const addedCells = new Set<number>();
+    const updatedCells = new Set<number>();
     function applyCellAction(action: DataAction) {
       if (isSomeAddRecordAction(action)) {
-        for(const id of getRowIdsFromDocAction(action)) {
+        for (const id of getRowIdsFromDocAction(action)) {
           if (removedCells.has(id)) {
             removedCells.delete(id);
             updatedCells.add(id);
-          } else {
+          }
+          else {
             addedCells.add(id);
           }
         }
-      } else if (isRemoveRecord(action) || isBulkRemoveRecord(action)) {
-        for(const id of getRowIdsFromDocAction(action)) {
+      }
+      else if (isRemoveRecord(action) || isBulkRemoveRecord(action)) {
+        for (const id of getRowIdsFromDocAction(action)) {
           if (addedCells.has(id)) {
             addedCells.delete(id);
-          } else {
+          }
+          else {
             removedCells.add(id);
             updatedCells.delete(id);
           }
         }
-      } else {
-        for(const id of getRowIdsFromDocAction(action)) {
+      }
+      else {
+        for (const id of getRowIdsFromDocAction(action)) {
           if (addedCells.has(id)) {
             // ignore
-          } else {
+          }
+          else {
             updatedCells.add(id);
           }
         }
@@ -336,13 +344,13 @@ export class CellData {
     // Scan all actions and collect all cell ids that are added, removed or updated.
     // When some rows are updated, include all cells for that row. Keep track of table
     // renames.
-    const updatedRows: Map<string, Set<number>> = new Map();
-    for(const action of actions) {
-      if (action[0] === 'RenameTable') {
+    const updatedRows = new Map<string, Set<number>>();
+    for (const action of actions) {
+      if (action[0] === "RenameTable") {
         updatedRows.set(action[2], updatedRows.get(action[1]) || new Set());
         continue;
       }
-      if (action[0] === 'RemoveTable') {
+      if (action[0] === "RemoveTable") {
         updatedRows.delete(action[1]);
         continue;
       }
@@ -358,17 +366,18 @@ export class CellData {
       if (isUpdateRecord(action) || isBulkUpdateRecord(action)) {
         if (getTableId(action).startsWith("_grist")) { continue; }
         // Updating a row, for us means that all metadata for this row should be refreshed.
-        for(const rowId of getRowIdsFromDocAction(action)) {
+        for (const rowId of getRowIdsFromDocAction(action)) {
           getSetMapValue(updatedRows, getTableId(action), () => new Set()).add(rowId);
         }
       }
     }
 
-    for(const [tableId, rowIds] of updatedRows) {
-      for(const {id} of this.readCells(tableId, rowIds)) {
+    for (const [tableId, rowIds] of updatedRows) {
+      for (const { id } of this.readCells(tableId, rowIds)) {
         if (addedCells.has(id) || updatedCells.has(id) || removedCells.has(id)) {
           // If we have this cell id in the list of added/updated/removed cells, ignore it.
-        } else {
+        }
+        else {
           updatedCells.add(id);
         }
       }
@@ -383,7 +392,7 @@ export class CellData {
 
   public async censorCells(
     docActions: DocAction[],
-    hasAccess: (cell: SingleCellInfo) => Promise<boolean>
+    hasAccess: (cell: SingleCellInfo) => Promise<boolean>,
   ) {
     for (const action of docActions) {
       if (!isCellDataAction(action)) { continue; }
@@ -393,15 +402,16 @@ export class CellData {
         const cell = this.getCell(rowId);
         if (!cell || !await hasAccess(cell)) {
           colValues.content = [GristObjCode.Censored];
-          colValues.userRef = '';
+          colValues.userRef = "";
         }
-      } else {
+      }
+      else {
         const [, , rowIds, colValues] = action;
         for (let idx = 0; idx < rowIds.length; idx++) {
           const cell = this.getCell(rowIds[idx]);
           if (!cell || !await hasAccess(cell)) {
             colValues.content[idx] = [GristObjCode.Censored];
-            colValues.userRef[idx] = '';
+            colValues.userRef[idx] = "";
           }
         }
       }
@@ -409,7 +419,7 @@ export class CellData {
     return docActions;
   }
 
-  public convertToCellInfo(cell: MetaRowRecord<'_grist_Cells'>): SingleCellInfoWithData {
+  public convertToCellInfo(cell: MetaRowRecord<"_grist_Cells">): SingleCellInfoWithData {
     const singleCell = {
       id: cell.id,
       tableId: this.getTableId(cell.tableRef) as string,
@@ -423,15 +433,15 @@ export class CellData {
   }
 
   public getColId(colRef: number) {
-    return this._docData.getMetaTable("_grist_Tables_column").getValue(colRef, 'colId');
+    return this._docData.getMetaTable("_grist_Tables_column").getValue(colRef, "colId");
   }
 
   public getTableId(tableRef: number) {
-    return this._docData.getMetaTable("_grist_Tables").getValue(tableRef, 'tableId');
+    return this._docData.getMetaTable("_grist_Tables").getValue(tableRef, "tableId");
   }
 
   public getTableRef(tableId: string) {
-    return this._docData.getMetaTable("_grist_Tables").findRow('tableId', tableId) || undefined;
+    return this._docData.getMetaTable("_grist_Tables").findRow("tableId", tableId) || undefined;
   }
 
   public getColRef(tableId: string, colId: string) {
@@ -440,7 +450,7 @@ export class CellData {
       throw new Error(`Table ${tableId} not found`);
     }
     const colRef = this._docData.getMetaTable("_grist_Tables_column").findMatchingRowId(
-      {parentId, colId}
+      { parentId, colId },
     );
     if (!colRef) {
       throw new Error(`Column ${colId} not found in table ${tableId}`);
@@ -453,7 +463,7 @@ export class CellData {
    */
   public readCells(tableId: string, rowIds: Set<number>, colId?: string) {
     const tableRef = this.getTableRef(tableId);
-    const filter: Record<string, any> = {tableRef};
+    const filter: Record<string, any> = { tableRef };
     if (colId) {
       filter.colRef = this.getColRef(tableId, colId);
     }
@@ -464,7 +474,7 @@ export class CellData {
   // Helper function that tells if a cell can be determined fully from the action itself.
   // Otherwise we need to look in the docData.
   public hasCellInfo(docAction: DocAction):
-      docAction is UpdateRecord|BulkUpdateRecord|AddRecord|BulkAddRecord {
+      docAction is UpdateRecord | BulkUpdateRecord | AddRecord | BulkAddRecord {
     if (!isDataAction(docAction)) { return false; }
     if (!isSomeRemoveRecordAction(docAction)) {
       const colValues = getActionColValues(docAction);
@@ -487,8 +497,8 @@ export class CellData {
    */
   public convertToCells(action: DocAction): SingleCellInfo[] {
     if (!isDataAction(action)) { return []; }
-    if (getTableId(action) !== '_grist_Cells') { return []; }
-    const result: { tableId: string, rowId: number, colId: string, id: number, userRef: string}[] = [];
+    if (getTableId(action) !== "_grist_Cells") { return []; }
+    const result: { tableId: string, rowId: number, colId: string, id: number, userRef: string }[] = [];
     if (isBulkAction(action)) {
       const rowIds = getRowIds(action);
       for (let idx = 0; idx < rowIds.length; idx++) {
@@ -498,17 +508,19 @@ export class CellData {
             tableId: this.getTableId(colValues.tableRef[idx] as number) as string,
             colId: this.getColId(colValues.colRef[idx] as number) as string,
             rowId: colValues.rowId[idx] as number,
-            userRef: (colValues.userRef[idx] ?? '') as string,
+            userRef: (colValues.userRef[idx] ?? "") as string,
             id: rowIds[idx],
           });
-        } else {
+        }
+        else {
           const cellInfo = this.getCell(rowIds[idx]);
           if (cellInfo) {
             result.push(cellInfo);
           }
         }
       }
-    } else {
+    }
+    else {
       const rowId = getRowIds(action);
       if (this.hasCellInfo(action)) {
         const colValues = getActionColValues(action);
@@ -519,7 +531,8 @@ export class CellData {
           userRef: colValues.userRef as string,
           id: rowId,
         });
-      } else {
+      }
+      else {
         const cellInfo = this.getCell(rowId);
         if (cellInfo) {
           result.push(cellInfo);
@@ -531,8 +544,8 @@ export class CellData {
 
   public generateInsert(ids: number[]): DataAction | null {
     const action: BulkAddRecord = [
-      'BulkAddRecord',
-      '_grist_Cells',
+      "BulkAddRecord",
+      "_grist_Cells",
       [],
       {
         tableRef: [],
@@ -543,9 +556,9 @@ export class CellData {
         rowId: [],
         userRef: [],
         parentId: [],
-      }
+      },
     ];
-    for(const cell of ids) {
+    for (const cell of ids) {
       const dataCell = this.getCellRecord(cell);
       if (!dataCell) { continue; }
       action[2].push(dataCell.id);
@@ -559,30 +572,30 @@ export class CellData {
       action[3].parentId.push(dataCell.parentId);
     }
     return action[2].length > 1 ? action :
-           action[2].length == 1 ? [...getSingleAction(action)][0] : null;
+      action[2].length == 1 ? [...getSingleAction(action)][0] : null;
   }
 
   public generateRemovals(ids: number[]) {
     const action: BulkRemoveRecord = [
-      'BulkRemoveRecord',
-      '_grist_Cells',
-      ids
+      "BulkRemoveRecord",
+      "_grist_Cells",
+      ids,
     ];
     return action[2].length > 1 ? action :
-          action[2].length == 1 ? [...getSingleAction(action)][0] : null;
+      action[2].length == 1 ? [...getSingleAction(action)][0] : null;
   }
 
   public generateUpdate(ids: number[]) {
     const action: BulkUpdateRecord = [
-      'BulkUpdateRecord',
-      '_grist_Cells',
+      "BulkUpdateRecord",
+      "_grist_Cells",
       [],
       {
         content: [],
         userRef: [],
-      }
+      },
     ];
-    for(const cell of ids) {
+    for (const cell of ids) {
       const dataCell = this.getCellRecord(cell);
       if (!dataCell) { continue; }
       action[2].push(dataCell.id);
@@ -590,29 +603,28 @@ export class CellData {
       action[3].userRef.push(dataCell.userRef);
     }
     return action[2].length > 1 ? action :
-          action[2].length == 1 ? [...getSingleAction(action)][0] : null;
+      action[2].length == 1 ? [...getSingleAction(action)][0] : null;
   }
 }
 
-
-type CellField = keyof MetaRowRecord<'_grist_Cells'>;
+type CellField = keyof MetaRowRecord<"_grist_Cells">;
 
 /**
  * Checks if only expected fields were changed between before and after.
  * @returns true if only allowed fields (or nothing) changed in the row.
  */
 function checkChangedIds(
-  before: MetaRowRecord<'_grist_Cells'>,
-  after: MetaRowRecord<'_grist_Cells'>,
-  allowed: Array<CellField>
+  before: MetaRowRecord<"_grist_Cells">,
+  after: MetaRowRecord<"_grist_Cells">,
+  allowed: CellField[],
 ) {
   // All columns except id, we assume after has same keys.
-  const cols: CellField[] = Object.keys(before).filter(k => k !== 'id') as CellField[];
+  const cols: CellField[] = Object.keys(before).filter(k => k !== "id") as CellField[];
   const changed = cols.filter(c =>
     !isEqual(
       before[c],
-      after[c]
-    )
+      after[c],
+    ),
   );
   if (changed.length === 0) {
     return true;
@@ -625,8 +637,8 @@ function checkChangedIds(
  * Checks if a field was toggled between before and after.
  */
 function wasToggled(
-  before: MetaRowRecord<'_grist_Cells'>,
-  after: MetaRowRecord<'_grist_Cells'>,
+  before: MetaRowRecord<"_grist_Cells">,
+  after: MetaRowRecord<"_grist_Cells">,
   field: CellField) {
   return Boolean(before[field]) !== Boolean(after[field]);
 }

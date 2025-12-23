@@ -1,20 +1,21 @@
-import { isDesktop } from 'app/client/lib/browserInfo';
-import { makeT } from 'app/client/lib/localization';
+import { isDesktop } from "app/client/lib/browserInfo";
+import { makeT } from "app/client/lib/localization";
 import { cssEditorInput } from "app/client/ui/HomeLeftPane";
+import { hoverTooltip, overflowTooltip } from "app/client/ui/tooltips";
 import { itemHeader, itemHeaderWrapper, treeViewContainer } from "app/client/ui/TreeViewComponentCss";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { hoverTooltip, overflowTooltip } from 'app/client/ui/tooltips';
-import { unstyledButton, unstyledLink } from 'app/client/ui2018/unstyled';
 import { menu, menuDivider, menuItem, menuItemAsync, menuText } from "app/client/ui2018/menus";
+import { unstyledButton, unstyledLink } from "app/client/ui2018/unstyled";
+
 import { Computed, dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
 
-const t = makeT('pages');
+const t = makeT("pages");
 
-const testId = makeTestId('test-docpage-');
+const testId = makeTestId("test-docpage-");
 
 export interface PageOptions {
-  onRename: (name: string) => Promise<void>|any;
+  onRename: (name: string) => Promise<void>;
   onRemove: () => void;
   onDuplicate: () => void;
   isRemoveDisabled: () => boolean;
@@ -28,8 +29,8 @@ export interface PageOptions {
 }
 
 function isTargetSelected(target: HTMLElement) {
-  const parentItemHeader = target.closest('.' + itemHeader.className);
-  return parentItemHeader ? parentItemHeader.classList.contains('selected') : false;
+  const parentItemHeader = target.closest("." + itemHeader.className);
+  return parentItemHeader ? parentItemHeader.classList.contains("selected") : false;
 }
 
 // build the dom for a document page entry. It shows an icon (for now the first letter of the name,
@@ -49,7 +50,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
     isCollapsedByDefault,
     onCollapseByDefault,
     hasSubPages,
-    href
+    href,
   } = options;
   const isRenaming = observable(false);
   const pageMenu = () => [
@@ -57,19 +58,19 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
       () => isRenaming.set(true),
       t("Rename"),
       dom.cls("disabled", isReadonly),
-      testId("rename")
+      testId("rename"),
     ),
     menuItem(
       onRemove,
       t("Remove"),
-      dom.cls("disabled", (use) => use(isReadonly) || isRemoveDisabled()),
-      testId("remove")
+      dom.cls("disabled", use => use(isReadonly) || isRemoveDisabled()),
+      testId("remove"),
     ),
     menuItem(
       onDuplicate,
       t("Duplicate page"),
       dom.cls("disabled", isReadonly),
-      testId("duplicate")
+      testId("duplicate"),
     ),
     dom.maybe(hasSubPages(), () => [
       menuDivider(),
@@ -77,12 +78,12 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
         () => onCollapse(false),
         t("Expand {{maybeDefault}}", {
           maybeDefault: dom.maybe(
-            (use) => !use(isCollapsedByDefault),
-            () => t("(default)")
+            use => !use(isCollapsedByDefault),
+            () => t("(default)"),
           ),
         }),
-        dom.cls("disabled", (use) => !use(isCollapsed)),
-        testId("expand")
+        dom.cls("disabled", use => !use(isCollapsed)),
+        testId("expand"),
       ),
       menuItemAsync(
         () => onCollapse(true),
@@ -90,23 +91,23 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
           maybeDefault: dom.maybe(isCollapsedByDefault, () => t("(default)")),
         }),
         dom.cls("disabled", isCollapsed),
-        testId("collapse")
+        testId("collapse"),
       ),
       menuItemAsync(
         async () => { await onCollapseByDefault(true); },
         t("Set default: Collapse"),
-        dom.show((use) => !use(isCollapsedByDefault)),
-        testId("collapse-by-default")
+        dom.show(use => !use(isCollapsedByDefault)),
+        testId("collapse-by-default"),
       ),
       menuItemAsync(
         async () => { await onCollapseByDefault(false); },
         t("Set default: Expand"),
         dom.show(isCollapsedByDefault),
-        testId("expand-by-default")
+        testId("expand-by-default"),
       ),
     ]),
     dom.maybe(options.isReadonly, () =>
-      menuText(t("You do not have edit access to this document"))
+      menuText(t("You do not have edit access to this document")),
     ),
   ];
   let pageElem: HTMLElement;
@@ -114,36 +115,36 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
   // toggle '-renaming' class on the item's header. This is useful to make the background remain the
   // same while opening dots menu
   const lis = isRenaming.addListener(() => {
-    const parent = pageElem.closest('.' + itemHeader.className);
+    const parent = pageElem.closest("." + itemHeader.className);
     if (parent) {
-      dom.clsElem(parent, itemHeader.className + '-renaming', isRenaming.get());
+      dom.clsElem(parent, itemHeader.className + "-renaming", isRenaming.get());
     }
   });
 
   const splitName = Computed.create(null, name, (use, _name) => splitPageInitial(_name));
 
   return pageElem = dom(
-    'div',
+    "div",
     dom.autoDispose(lis),
     dom.autoDispose(splitName),
-    domComputed((use) => use(name) === '', blank => blank ? dom('div', '-') :
-      domComputed(isRenaming, (isrenaming) => (
+    domComputed(use => use(name) === "", blank => blank ? dom("div", "-") :
+      domComputed(isRenaming, isrenaming => (
         isrenaming ?
           cssPageItem(
             cssPageInitial(
-              testId('initial'),
-              dom.text((use) => use(splitName).initial),
-              cssPageInitial.cls('-emoji', (use) => use(splitName).hasEmoji),
+              testId("initial"),
+              dom.text(use => use(splitName).initial),
+              cssPageInitial.cls("-emoji", use => use(splitName).hasEmoji),
             ),
             cssEditorInput(
               {
-                initialValue: name.get() || '',
-                save: (val) => onRename(val),
-                close: () => isRenaming.set(false)
+                initialValue: name.get() || "",
+                save: async val => onRename(val),
+                close: () => isRenaming.set(false),
               },
-              testId('editor'),
-              dom.on('mousedown', (ev) => ev.stopPropagation()),
-              dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); })
+              testId("editor"),
+              dom.on("mousedown", ev => ev.stopPropagation()),
+              dom.on("click", (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
             ),
             // Note that we don't pass extra args when renaming is on, because they usually includes
             // mouse event handlers interfering with input editor and yields wrong behavior on
@@ -151,34 +152,34 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
           ) :
           cssPageItem(
             cssPageLink(
-              testId('link'),
+              testId("link"),
               href,
               cssPageInitial(
-                testId('initial'),
-                dom.text((use) => use(splitName).initial),
-                cssPageInitial.cls('-emoji', (use) => use(splitName).hasEmoji),
+                testId("initial"),
+                dom.text(use => use(splitName).initial),
+                cssPageInitial.cls("-emoji", use => use(splitName).hasEmoji),
               ),
               cssPageName(
-                dom.text((use) => use(splitName).displayName),
-                testId('label'),
-                dom.on('click', (ev) => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
+                dom.text(use => use(splitName).displayName),
+                testId("label"),
+                dom.on("click", ev => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
                 overflowTooltip(),
               ),
             ),
             cssPageMenuTrigger(
-              dom.attr('aria-label', (use) => t("context menu - {{- pageName }}", {pageName: use(name)})),
-              cssPageMenuIcon('Dots'),
-              menu(pageMenu, {placement: 'bottom-start', parentSelectorToMark: '.' + itemHeader.className}),
-              dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+              dom.attr("aria-label", use => t("context menu - {{- pageName }}", { pageName: use(name) })),
+              cssPageMenuIcon("Dots"),
+              menu(pageMenu, { placement: "bottom-start", parentSelectorToMark: "." + itemHeader.className }),
+              dom.on("click", (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
 
               // Let's prevent dragging to start when un-intentionally holding the mouse down on '...' menu.
-              dom.on('mousedown', (ev) => ev.stopPropagation()),
-              testId('dots'),
+              dom.on("mousedown", ev => ev.stopPropagation()),
+              testId("dots"),
             ),
             // Prevents the default dragging behaviour that Firefox support for links which conflicts
             // with our own dragging pages.
-            dom.on('dragstart', (ev) => ev.preventDefault()),
-            args
+            dom.on("dragstart", ev => ev.preventDefault()),
+            args,
           )
       )),
     ));
@@ -187,14 +188,14 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
 export function buildCensoredPage() {
   return cssPageItem(
     cssPageInitial(
-      testId('initial'),
-      dom.text('C'),
+      testId("initial"),
+      dom.text("C"),
     ),
     cssCensoredPageName(
-      dom.text('CENSORED'),
-      testId('label'),
+      dom.text("CENSORED"),
+      testId("label"),
     ),
-    hoverTooltip('This page is censored due to access rules.'),
+    hoverTooltip("This page is censored due to access rules."),
   );
 }
 
@@ -207,18 +208,19 @@ const pageInitialRegex = new RegExp(`^${emojiPart.source}(?:\\u{200D}${emojiPart
 
 // Divide up the page name into an "initial" and "displayName", where an emoji initial, if
 // present, is omitted from the displayName, but a regular character used as the initial is kept.
-export function splitPageInitial(name: string): {initial: string, displayName: string, hasEmoji: boolean} {
+export function splitPageInitial(name: string): { initial: string, displayName: string, hasEmoji: boolean } {
   const m = name.match(pageInitialRegex);
   // A common false positive is digits; those match \p{Emoji} but should not be considered emojis.
   // (Other matching non-emojis include characters like '*', but those are nicer to show as emojis.)
   if (m && !/^\d$/.test(m[0])) {
-    return {initial: m[0], displayName: name.slice(m[0].length).trim(), hasEmoji: true};
-  } else {
-    return {initial: Array.from(name)[0], displayName: name.trim(), hasEmoji: false};
+    return { initial: m[0], displayName: name.slice(m[0].length).trim(), hasEmoji: true };
+  }
+  else {
+    return { initial: Array.from(name)[0], displayName: name.trim(), hasEmoji: false };
   }
 }
 
-const cssPageItem = styled('div', `
+const cssPageItem = styled("div", `
   position: relative;
   display: flex;
   flex-direction: row;
@@ -255,7 +257,7 @@ const cssPageLink = styled(unstyledLink, `
   }
 `);
 
-const cssPageInitial = styled('div', `
+const cssPageInitial = styled("div", `
   flex-shrink: 0;
   color: ${theme.pageInitialsFg};
   border-radius: 3px;
@@ -282,7 +284,7 @@ const cssPageInitial = styled('div', `
   }
 `);
 
-const cssPageName = styled('div', `
+const cssPageName = styled("div", `
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -308,9 +310,10 @@ function onHoverSupport(yesNo: boolean) {
   // matches (hover: none). To work around it, we assume desktop browsers can always hover,
   // and use trivial match-all/match-none media queries on desktop browsers.
   if (isDesktop()) {
-    return yesNo ? 'all' : 'not all';
-  } else {
-    return yesNo ? '(hover: hover)' : '(hover: none)';
+    return yesNo ? "all" : "not all";
+  }
+  else {
+    return yesNo ? "(hover: hover)" : "(hover: none)";
   }
 }
 

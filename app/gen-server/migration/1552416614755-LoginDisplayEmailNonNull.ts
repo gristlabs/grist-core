@@ -1,9 +1,8 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class LoginDisplayEmailNonNull1552416614755 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
-    await queryRunner.query('update logins set display_email = email where display_email is null');
+    await queryRunner.query("update logins set display_email = email where display_email is null");
     // if our db will already heavily loaded, it might be better to add a check constraint
     // rather than modifying the column properties.  But for our case, this will be fast.
 
@@ -15,18 +14,18 @@ export class LoginDisplayEmailNonNull1552416614755 implements MigrationInterface
     // The pg command is very simple, just alter table logins alter column display_email set not null
     // but sqlite migration is tedious since table needs to be rebuilt, so still just
     // marginally worthwhile letting typeorm deal with it.
-    const logins = (await queryRunner.getTable('logins'))!;
-    const displayEmail = logins.findColumnByName('display_email')!;
+    const logins = (await queryRunner.getTable("logins"))!;
+    const displayEmail = logins.findColumnByName("display_email")!;
     const displayEmailNonNull = displayEmail.clone();
     displayEmailNonNull.isNullable = false;
-    await queryRunner.changeColumn('logins', displayEmail, displayEmailNonNull);
+    await queryRunner.changeColumn("logins", displayEmail, displayEmailNonNull);
   }
 
   public async down(queryRunner: QueryRunner): Promise<any> {
-    const logins = (await queryRunner.getTable('logins'))!;
-    const displayEmail = logins.findColumnByName('display_email')!;
+    const logins = (await queryRunner.getTable("logins"))!;
+    const displayEmail = logins.findColumnByName("display_email")!;
     const displayEmailNonNull = displayEmail.clone();
     displayEmailNonNull.isNullable = true;
-    await queryRunner.changeColumn('logins', displayEmail, displayEmailNonNull);
+    await queryRunner.changeColumn("logins", displayEmail, displayEmailNonNull);
   }
 }

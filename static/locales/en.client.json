@@ -58,7 +58,24 @@
         "Resource missing in resource map: {{resourceKey}}": "Resource missing in resource map: {{resourceKey}}",
         "Trying to add TableRules for existing table {{tableId}}": "Trying to add TableRules for existing table {{tableId}}",
         "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something",
-        "hidden": "hidden"
+        "hidden": "hidden",
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})",
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.",
+        "**Special rules** (expand each rule to customize who it applies to)": "**Special rules** (expand each rule to customize who it applies to)",
+        "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.",
+        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.",
+        "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!",
+        "Allow everyone to view access rules.": "Allow everyone to view access rules.",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.",
+        "Continue": "Continue",
+        "Disable Access Rules": "Disable Access Rules",
+        "Disable and save": "Disable and save",
+        "Enable Access Rules": "Enable Access Rules",
+        "Permission to access the document in full by all users": "Permission to access the document in full by all users",
+        "Permission to access the document in full by unrestricted users": "Permission to access the document in full by unrestricted users",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.",
+        "Special rules for templates": "Special rules for templates",
+        "This options should be off if Editors' access is to be limited. ": "This options should be off if Editors' access is to be limited. "
     },
     "AccountPage": {
         "API": "API",
@@ -728,7 +745,8 @@
         "Format:": "Format:",
         "Learn more": "Learn more",
         "download attachments": "download attachments",
-        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. "
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ",
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. "
     },
     "NotifyUI": {
         "Ask for help": "Ask for help",
@@ -1661,7 +1679,8 @@
         "Free coaching call": "Free coaching call",
         "Grist 101": "Grist 101",
         "Schedule call": "Schedule call",
-        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist."
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist."
     },
     "FormView": {
         "Publish": "Publish",
@@ -1877,7 +1896,17 @@
         "Administrative accounts": "Administrative accounts",
         "The users with administrative accounts": "The users with administrative accounts",
         "Version {{versionNumber}}": "Version {{versionNumber}}",
-        "no admin accounts": "no admin accounts"
+        "no admin accounts": "no admin accounts",
+        "Are you sure you want to restart Grist?": "Are you sure you want to restart Grist?",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Grist is running in an environment that doesn't support restarting from the admin panel.",
+        "Restart": "Restart",
+        "Restart Grist": "Restart Grist",
+        "Restart Grist to apply pending changes or resolve issues.": "Restart Grist to apply pending changes or resolve issues.",
+        "Restart Grist?": "Restart Grist?",
+        "Restarting Grist...": "Restarting Grist...",
+        "This will apply any pending changes and briefly interrupt access for all users.": "This will apply any pending changes and briefly interrupt access for all users.",
+        "You can still restart Grist manually.": "You can still restart Grist manually.",
+        "error in {{provider}}: {{verdict}}": "error in {{provider}}: {{verdict}}"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -2378,7 +2407,8 @@
         "Work on a copy": "Work on a copy",
         "Your suggestions": "Your suggestions",
         "experiment": "experiment",
-        "original document": "original document"
+        "original document": "original document",
+        "Undo dismissal": "Undo dismissal"
     },
     "commandList": {
         "Show accessibility options": "Show accessibility options",
@@ -2541,5 +2571,26 @@
     },
     "CoreNewDocMethods": {
         "Untitled document": "Untitled document"
+    },
+    "AuthenticationSection": {
+        "Active": "Active",
+        "Active method is controlled by an environment variable. Unset variable to change active method.": "Active method is controlled by an environment variable. Unset variable to change active method.",
+        "Active on restart": "Active on restart",
+        "Are you sure you want to set **{{name}}** as the active authentication method?": "Are you sure you want to set **{{name}}** as the active authentication method?",
+        "Close": "Close",
+        "Configure": "Configure",
+        "Configured": "Configured",
+        "Confirm": "Confirm",
+        "Disabled on restart": "Disabled on restart",
+        "Error": "Error",
+        "Error details": "Error details",
+        "Instructions": "Instructions",
+        "No authentication method is active.": "No authentication method is active.",
+        "Set as active method": "Set as active method",
+        "Set as active method?": "Set as active method?",
+        "The new method will go into effect after you restart Grist.": "The new method will go into effect after you restart Grist."
+    },
+    "DetailView": {
+        "This row is unavailable or does not exist": "This row is unavailable or does not exist"
     }
 }

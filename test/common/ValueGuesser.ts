@@ -1,16 +1,16 @@
-import {arrayRepeat} from 'app/common/gutil';
-import {guessColInfo, guessColInfoForImports, GuessResult} from 'app/common/ValueGuesser';
-import {assert} from 'chai';
+import { arrayRepeat } from "app/common/gutil";
+import { guessColInfo, guessColInfoForImports, GuessResult } from "app/common/ValueGuesser";
+
+import { assert } from "chai";
 
 const defaultDocSettings = {
-  locale: 'en-US'
+  locale: "en-US",
 };
 
-function check(values: Array<string | null>, expectedResult: GuessResult) {
+function check(values: (string | null)[], expectedResult: GuessResult) {
   const result = guessColInfo(values, defaultDocSettings, "America/New_York");
   assert.deepEqual(result, expectedResult);
 }
-
 
 describe("ValueGuesser", function() {
   it("should guess booleans and numbers correctly", function() {
@@ -18,7 +18,7 @@ describe("ValueGuesser", function() {
       ["true", "false"],
       {
         values: [true, false],
-        colInfo: {type: 'Bool'},
+        colInfo: { type: "Bool" },
       },
     );
 
@@ -28,7 +28,7 @@ describe("ValueGuesser", function() {
       ["1", "0"],
       {
         values: [1, 0],
-        colInfo: {type: 'Numeric'},
+        colInfo: { type: "Numeric" },
       },
     );
 
@@ -38,7 +38,7 @@ describe("ValueGuesser", function() {
     // as sending them back to the data engine would be wasteful.
     check(
       ["true", "false", "1", "0"],
-      {colInfo: {type: 'Text'}},
+      { colInfo: { type: "Text" } },
     );
 
     // Now that 90% if the values are straightforward booleans, it guesses Bool
@@ -49,7 +49,7 @@ describe("ValueGuesser", function() {
       [...arrayRepeat(9, "true"), "0"],
       {
         values: [...arrayRepeat(9, true), "0"],
-        colInfo: {type: 'Bool'},
+        colInfo: { type: "Bool" },
       },
     );
 
@@ -57,11 +57,11 @@ describe("ValueGuesser", function() {
     // because the data engine would convert them to false which would lose info.
     check(
       ["true", ""],
-      {colInfo: {type: 'Text'}},
+      { colInfo: { type: "Text" } },
     );
     check(
       ["false", null],
-      {colInfo: {type: 'Text'}},
+      { colInfo: { type: "Text" } },
     );
   });
 
@@ -70,56 +70,56 @@ describe("ValueGuesser", function() {
       ["0.0", "1.0"],
       {
         values: [0, 1],
-        colInfo: {type: "Numeric", widgetOptions: {decimals: 1}},
-      }
+        colInfo: { type: "Numeric", widgetOptions: { decimals: 1 } },
+      },
     );
 
     check(
       ["$1.00"],
       {
         values: [1],
-        colInfo: {type: "Numeric", widgetOptions: {numMode: "currency", decimals: 2}},
-      }
+        colInfo: { type: "Numeric", widgetOptions: { numMode: "currency", decimals: 2 } },
+      },
     );
 
     check(
       ["$1"],
       {
         values: [1],
-        colInfo: {type: "Numeric", widgetOptions: {numMode: "currency", decimals: 0}},
-      }
+        colInfo: { type: "Numeric", widgetOptions: { numMode: "currency", decimals: 0 } },
+      },
     );
 
     // Inconsistent number of decimal places
     check(
       ["$1", "$1.00"],
-      {colInfo: {type: 'Text'}},
+      { colInfo: { type: "Text" } },
     );
 
     // Inconsistent use of currency
     check(
       ["1.00", "$1.00"],
-      {colInfo: {type: 'Text'}},
+      { colInfo: { type: "Text" } },
     );
 
     check(
       ["500", "6000"],
       {
         values: [500, 6000],
-        colInfo: {type: "Numeric"},
-      }
+        colInfo: { type: "Numeric" },
+      },
     );
     check(
       ["500", "6,000"],
       {
         values: [500, 6000],
-        colInfo: {type: "Numeric", widgetOptions: {numMode: "decimal"}},
-      }
+        colInfo: { type: "Numeric", widgetOptions: { numMode: "decimal" } },
+      },
     );
     // Inconsistent use of thousands separators
     check(
       ["5000", "6,000"],
-      {colInfo: {type: 'Text'}},
+      { colInfo: { type: "Text" } },
     );
   });
 
@@ -131,7 +131,7 @@ describe("ValueGuesser", function() {
         // null and "" are converted to null.
         values: [20 * 24 * 60 * 60, null, null],
         colInfo: {
-          type: 'Date',
+          type: "Date",
           widgetOptions: {
             dateFormat: "YYYY-MM-DD",
             timeFormat: "",
@@ -149,7 +149,7 @@ describe("ValueGuesser", function() {
         values: [10 * 60 * 60],
         colInfo: {
           // "America/New_York" is the timezone given by `check`
-          type: 'DateTime:America/New_York',
+          type: "DateTime:America/New_York",
           widgetOptions: {
             dateFormat: "YYYY-MM-DD",
             timeFormat: "HH:mm:ss",
@@ -168,7 +168,7 @@ describe("ValueGuesser", function() {
         "1970-01-01",
         "1970-01-01 05:00:00",
       ],
-      {colInfo: {type: 'Text'}},
+      { colInfo: { type: "Text" } },
     );
   });
 
@@ -178,14 +178,14 @@ describe("ValueGuesser", function() {
       [...arrayRepeat(9, "12"), "foo"],
       {
         values: [...arrayRepeat(9, 12), "foo"],
-        colInfo: {type: 'Numeric'},
+        colInfo: { type: "Numeric" },
       },
     );
 
     // Less than 90% are numbers, so fallback to Text
     check(
       [...arrayRepeat(8, "12"), "foo"],
-      {colInfo: {type: 'Text'}},
+      { colInfo: { type: "Text" } },
     );
 
     // Same as the previous two checks but with a bunch of blanks
@@ -193,18 +193,18 @@ describe("ValueGuesser", function() {
       [...arrayRepeat(9, "12"), "foo", ...arrayRepeat(90, "")],
       {
         values: [...arrayRepeat(9, 12), "foo", ...arrayRepeat(90, null)],
-        colInfo: {type: 'Numeric'},
+        colInfo: { type: "Numeric" },
       },
     );
     check(
       [...arrayRepeat(8, "12"), "foo", ...arrayRepeat(90, "")],
-      {colInfo: {type: 'Text'}},
+      { colInfo: { type: "Text" } },
     );
 
     // Just a bunch of blanks and text, no numbers or anything
     check(
       [...arrayRepeat(100, null), "foo", "bar"],
-      {colInfo: {type: 'Text'}},
+      { colInfo: { type: "Text" } },
     );
   });
 
@@ -212,29 +212,29 @@ describe("ValueGuesser", function() {
     // Prepare dummy docData; just the minimum to satisfy the code that uses it.
     const docData: any = {
       docSettings: () => defaultDocSettings,
-      docInfo: () => ({timezone: 'America/New_York'}),
+      docInfo: () => ({ timezone: "America/New_York" }),
     };
     it("should guess empty column when all cells are empty", function() {
       assert.deepEqual(guessColInfoForImports([null, "", "", null], docData), {
         values: [null, "", "", null],
-        colMetadata: {type: 'Any', isFormula: true, formula: ''}
+        colMetadata: { type: "Any", isFormula: true, formula: "" },
       });
     });
     it("should do proper numeric format guessing for a mix of number/string types", function() {
       assert.deepEqual(guessColInfoForImports([-5.5, "1,234.6", null, 0], docData), {
         values: [-5.5, 1234.6, null, 0],
-        colMetadata: {type: 'Numeric', widgetOptions: '{"numMode":"decimal"}'}
+        colMetadata: { type: "Numeric", widgetOptions: '{"numMode":"decimal"}' },
       });
     });
     it("should not guess empty column when values are not actually empty", function() {
       assert.deepEqual(guessColInfoForImports([null, 0, "", false], docData), {
         values: [null, 0, "", false],
-        colMetadata: {type: 'Text'}
+        colMetadata: { type: "Text" },
       });
     });
     it("should do no guessing for object values", function() {
-      assert.deepEqual(guessColInfoForImports(["test", ['L' as any, 1]], docData), {
-        values: ["test", ['L' as any, 1]]
+      assert.deepEqual(guessColInfoForImports(["test", ["L" as any, 1]], docData), {
+        values: ["test", ["L" as any, 1]],
       });
     });
   });

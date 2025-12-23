@@ -14,7 +14,7 @@
 
 // Encode a row. If {prettier: true} is set, separate output with ", ". Leading whitespace gets
 // encoded in any case.
-export function csvEncodeRow(values: string[], options: {prettier?: boolean} = {}): string {
+export function csvEncodeRow(values: string[], options: { prettier?: boolean } = {}): string {
   return values.map(csvEncodeCell).join(options.prettier ? ", " : ",");
 }
 
@@ -34,5 +34,5 @@ export function csvEncodeCell(value: string): string {
 }
 
 export function csvDecodeCell(value: string): string {
-  return value.trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+  return value.trim().replace(/^"|"$/g, "").replace(/""/g, '"');
 }

@@ -1,19 +1,20 @@
-import {KoArray} from 'app/client/lib/koArray';
-import * as koArray from 'app/client/lib/koArray';
-import * as tableUtil from 'app/client/lib/tableUtil';
-import {ColumnRec, DocModel, ViewFieldRec} from 'app/client/models/DocModel';
-import {KoSaveableObservable} from 'app/client/models/modelUtil';
-import {cssFieldEntry, cssFieldLabel} from 'app/client/ui/VisibleFieldsConfig';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
-import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
-import * as gutil from 'app/common/gutil';
-import {Disposable, dom, fromKo, styled} from 'grainjs';
-import ko from 'knockout';
-import {makeT} from 'app/client/lib/localization';
+import { KoArray } from "app/client/lib/koArray";
+import * as koArray from "app/client/lib/koArray";
+import { makeT } from "app/client/lib/localization";
+import * as tableUtil from "app/client/lib/tableUtil";
+import { ColumnRec, DocModel, ViewFieldRec } from "app/client/models/DocModel";
+import { KoSaveableObservable } from "app/client/models/modelUtil";
+import { cssFieldEntry, cssFieldLabel } from "app/client/ui/VisibleFieldsConfig";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menu, menuItem, menuText } from "app/client/ui2018/menus";
+import { FieldBuilder } from "app/client/widgets/FieldBuilder";
+import * as gutil from "app/common/gutil";
 
-const t = makeT('RefSelect');
+import { Disposable, dom, fromKo, styled } from "grainjs";
+import ko from "knockout";
+
+const t = makeT("RefSelect");
 
 interface Item {
   label: string;
@@ -61,7 +62,7 @@ export class RefSelect extends Disposable {
       const refTable = this._origColumn.refTable();
       if (refTable) {
         return refTable.columns().all().filter(col => !col.isHiddenCol() &&
-          !gutil.startsWith(col.type(), 'Ref:'));
+          !gutil.startsWith(col.type(), "Ref:"));
       }
       return [];
     }));
@@ -85,29 +86,29 @@ export class RefSelect extends Disposable {
    */
   public buildDom() {
     return cssFieldList(
-      testId('ref-select'),
-      dom.forEach(fromKo(this._added.getObservable()), (col) =>
+      testId("ref-select"),
+      dom.forEach(fromKo(this._added.getObservable()), col =>
         cssFieldEntry(
           cssColumnLabel(dom.text(col.label)),
-          cssRemoveIcon('Remove',
-            dom.on('click', () => this._removeFormulaField(col)),
-            testId('ref-select-remove'),
+          cssRemoveIcon("Remove",
+            dom.on("click", () => this._removeFormulaField(col)),
+            testId("ref-select-remove"),
           ),
-          testId('ref-select-item'),
-        )
+          testId("ref-select-item"),
+        ),
       ),
-      cssAddLink(cssAddIcon('Plus'), t("Add column"),
+      cssAddLink(cssAddIcon("Plus"), t("Add column"),
         menu(() => [
           ...this._validCols.peek()
-            .filter((col) => !this._addedSet.peek().has(col.colId.peek()))
-            .map((col) =>
+            .filter(col => !this._addedSet.peek().has(col.colId.peek()))
+            .map(col =>
               menuItem(() => this._addFormulaField({ label: col.label(), value: col.colId() }),
-                col.label.peek())
+                col.label.peek()),
             ),
           cssEmptyMenuText(t("No columns to add")),
-          testId('ref-select-menu'),
+          testId("ref-select-menu"),
         ]),
-        testId('ref-select-add'),
+        testId("ref-select-add"),
       ),
     );
   }
@@ -133,17 +134,18 @@ export class RefSelect extends Disposable {
       .sort((a, b) => a.parentPos() > b.parentPos() ? 1 : -1)
       .findIndex(f => f.getRowId() === field.getRowId());
     const pos = tableUtil.fieldInsertPositions(fields, index + 1)[0];
-    let colAction: Promise<any>|undefined;
+    let colAction: Promise<any> | undefined;
     if (colMatch) {
       // If column exists, use it.
       colAction = Promise.resolve({ colRef: colMatch.getRowId(), colId: colMatch.colId() });
-    } else {
+    }
+    else {
       // If column doesn't exist, add it (without fields).
-      colAction = tableData.sendTableAction(['AddColumn', `${this._colId()}_${item.value}`, {
-        type: 'Any',
+      colAction = tableData.sendTableAction(["AddColumn", `${this._colId()}_${item.value}`, {
+        type: "Any",
         isFormula: true,
         formula: `$${this._colId()}.${item.value}`,
-        _position: pos
+        _position: pos,
       }])!;
     }
     const colInfo = await colAction;
@@ -153,9 +155,9 @@ export class RefSelect extends Disposable {
     const fieldInfo = {
       colRef: colInfo.colRef,
       parentId: field.viewSection().getRowId(),
-      parentPos: pos
+      parentPos: pos,
     };
-    return this._docModel.viewFields.sendTableAction(['AddRecord', null, fieldInfo]);
+    return this._docModel.viewFields.sendTableAction(["AddRecord", null, fieldInfo]);
   }
 
   /**
@@ -165,16 +167,17 @@ export class RefSelect extends Disposable {
   private _removeFormulaField(item: Item) {
     const tableData = this._docModel.dataTables[this._origColumn.table().tableId()].tableData;
     // Iterate through all display fields in the current section.
-    this._getReferrerFields(item.value).forEach(refField => {
+    this._getReferrerFields(item.value).forEach((refField) => {
       const sectionId = this._fieldObs()!.viewSection().getRowId();
       if (refField.column().viewFields().all()
-          .filter(field => !field.viewSection().isRaw() && !field.viewSection().isRecordCard())
-          .some(field => field.parentId() !== sectionId)) {
+        .filter(field => !field.viewSection().isRaw() && !field.viewSection().isRecordCard())
+        .some(field => field.parentId() !== sectionId)) {
         // The col has fields in other sections, remove only the fields in this section.
-        return this._docModel.viewFields.sendTableAction(['RemoveRecord', refField.getRowId()]);
-      } else {
+        return this._docModel.viewFields.sendTableAction(["RemoveRecord", refField.getRowId()]);
+      }
+      else {
         // The col is only displayed in this section, remove the column.
-        return tableData.sendTableAction(['RemoveColumn', refField.column().colId()]);
+        return tableData.sendTableAction(["RemoveColumn", refField.column().colId()]);
       }
     });
   }
@@ -205,14 +208,14 @@ export class RefSelect extends Disposable {
   private _getFormulaMatchSet(field: ViewFieldRec) {
     const fields = field.viewSection().viewFields().all();
     const re = new RegExp("^\\$" + this._colId() + "\\.(\\w+)$");
-    return new Set(fields.map(f => {
+    return new Set(fields.map((f) => {
       const found = re.exec(f.column().formula());
       return found ? found[1] : null;
     }));
   }
 }
 
-const cssFieldList = styled('div', `
+const cssFieldList = styled("div", `
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -229,7 +232,7 @@ const cssEmptyMenuText = styled(menuText, `
   }
 `);
 
-const cssAddLink = styled('div', `
+const cssAddLink = styled("div", `
   display: flex;
   cursor: pointer;
   color: ${theme.controlFg};

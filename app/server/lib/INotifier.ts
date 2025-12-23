@@ -22,18 +22,20 @@
  * if notications are subject to delays and failures and we wish to
  * be robust, a job queue would be a good idea for all of this.
  */
-import { FullUser } from 'app/common/LoginSessionAPI';
-import * as roles from 'app/common/roles';
-import { BillingAccount } from 'app/gen-server/entity/BillingAccount';
-import { Document } from 'app/gen-server/entity/Document';
-import { Organization } from 'app/gen-server/entity/Organization';
-import { User } from 'app/gen-server/entity/User';
-import { Workspace } from 'app/gen-server/entity/Workspace';
-import { UserChange, UserIdDelta } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { SendGridConfig, SendGridMailWithTemplateId, TwoFactorEvent } from 'app/gen-server/lib/NotifierTypes';
-import { DocNotificationEvent, DocNotificationTemplateBase } from 'app/gen-server/lib/NotifierTypes';
-import log from 'app/server/lib/log';
-import { EventEmitter } from 'events';
+
+import { FullUser } from "app/common/LoginSessionAPI";
+import * as roles from "app/common/roles";
+import { BillingAccount } from "app/gen-server/entity/BillingAccount";
+import { Document } from "app/gen-server/entity/Document";
+import { Organization } from "app/gen-server/entity/Organization";
+import { User } from "app/gen-server/entity/User";
+import { Workspace } from "app/gen-server/entity/Workspace";
+import { UserChange, UserIdDelta } from "app/gen-server/lib/homedb/HomeDBManager";
+import { SendGridConfig, SendGridMailWithTemplateId, TwoFactorEvent } from "app/gen-server/lib/NotifierTypes";
+import { DocNotificationEvent, DocNotificationTemplateBase } from "app/gen-server/lib/NotifierTypes";
+import log from "app/server/lib/log";
+
+import { EventEmitter } from "events";
 
 interface INotifierMethods {
   /**
@@ -53,7 +55,7 @@ interface INotifierMethods {
   trialPeriodEndingSoon(account: BillingAccount, subscription: { trial_end: number | null }): Promise<void>;
   trialingSubscription(account: BillingAccount): Promise<void>;
   scheduledCall(userRef: string): Promise<void>;
-  twoFactorStatusChanged(event: TwoFactorEvent, userId: number, method?: 'TOTP' | 'SMS'): Promise<void>;
+  twoFactorStatusChanged(event: TwoFactorEvent, userId: number, method?: "TOTP" | "SMS"): Promise<void>;
 
   /**
    * A slightly different kind of event that is lurking around.
@@ -81,7 +83,7 @@ export interface INotifier extends INotifierMethods {
    * For old tests, we preserve some weird old methods.
    * This may need further refactoring or elimination.
    */
-  testSendGridExtensions?(): TestSendGridExtensions|undefined;
+  testSendGridExtensions?(): TestSendGridExtensions | undefined;
 }
 
 export interface TestSendGridExtensions {
@@ -90,7 +92,7 @@ export interface TestSendGridExtensions {
 
   // Intercept outgoing messages for test purposes.
   setSendMessageCallback(op: (body: SendGridMailWithTemplateId,
-                              description: string) => Promise<void>): void;
+    description: string) => Promise<void>): void;
 }
 
 /**
@@ -101,20 +103,20 @@ export interface TestSendGridExtensions {
  *   the same arguments, to allow other code to subscribe.
  */
 export class EmitNotifier extends EventEmitter implements INotifier {
-  public addUser = this._wrapEvent('addUser');
-  public addBillingManager = this._wrapEvent('addBillingManager');
-  public firstLogin = this._wrapEvent('firstLogin');
-  public teamCreator = this._wrapEvent('teamCreator');
-  public userChange = this._wrapEvent('userChange');
-  public trialPeriodEndingSoon = this._wrapEvent('trialPeriodEndingSoon');
-  public trialingSubscription = this._wrapEvent('trialingSubscription');
-  public scheduledCall = this._wrapEvent('scheduledCall');
-  public streamingDestinationsChange = this._wrapEvent('streamingDestinationsChange');
-  public twoFactorStatusChanged = this._wrapEvent('twoFactorStatusChanged');
-  public docNotification = this._wrapEvent('docNotification');
-  public deleteUser = this._wrapEvent('deleteUser');
+  public addUser = this._wrapEvent("addUser");
+  public addBillingManager = this._wrapEvent("addBillingManager");
+  public firstLogin = this._wrapEvent("firstLogin");
+  public teamCreator = this._wrapEvent("teamCreator");
+  public userChange = this._wrapEvent("userChange");
+  public trialPeriodEndingSoon = this._wrapEvent("trialPeriodEndingSoon");
+  public trialingSubscription = this._wrapEvent("trialingSubscription");
+  public scheduledCall = this._wrapEvent("scheduledCall");
+  public streamingDestinationsChange = this._wrapEvent("streamingDestinationsChange");
+  public twoFactorStatusChanged = this._wrapEvent("twoFactorStatusChanged");
+  public docNotification = this._wrapEvent("docNotification");
+  public deleteUser = this._wrapEvent("deleteUser");
 
-  private _primaryNotifier: INotifier|null = null;
+  private _primaryNotifier: INotifier | null = null;
   private _testPendingNotifications = 0;
 
   public setPrimaryNotifier(notifier: INotifier) { this._primaryNotifier = notifier; }
@@ -139,7 +141,8 @@ export class EmitNotifier extends EventEmitter implements INotifier {
     this._testPendingNotifications++;
     try {
       await (this._primaryNotifier[methodName] as any)(...args);
-    } finally {
+    }
+    finally {
       this._testPendingNotifications--;
     }
   }

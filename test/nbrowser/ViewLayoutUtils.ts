@@ -1,5 +1,6 @@
-import {assert, driver} from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
+import * as gu from "test/nbrowser/gristUtils";
+
+import { assert, driver } from "mocha-webdriver";
 
 export async function closeExpandedSection() {
   await driver.find(".test-viewLayout-overlay .test-close-button").click();
@@ -32,15 +33,15 @@ export async function sectionIsExpanded() {
 /**
  * Opens the section menu for a collapsed section.
  */
-export async function openCollapsedSectionMenu(section: string|RegExp) {
+export async function openCollapsedSectionMenu(section: string | RegExp) {
   await getCollapsedSection(section).find(`.test-section-menu-viewLayout`).click();
   await gu.findOpenMenu(100);
 }
 
-export function getCollapsedSection(section: string|RegExp) {
-  if (typeof section === 'string') {
-    section = gu.exactMatch(section, 'i');
+export function getCollapsedSection(section: string | RegExp) {
+  if (typeof section === "string") {
+    section = gu.exactMatch(section, "i");
   }
-  return driver.findContentWait('.test-collapsed-section .test-collapsed-section-title', section, 100)
-               .findClosest('.test-collapsed-section');
+  return driver.findContentWait(".test-collapsed-section .test-collapsed-section-title", section, 100)
+    .findClosest(".test-collapsed-section");
 }

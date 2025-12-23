@@ -15,6 +15,7 @@ import {
   AuditLogStreamingDestinationNameChecker,
 } from "app/common/Config";
 import { commonUrls } from "app/common/gristUrls";
+
 import { Computed, Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("AuditLogStreamingConfig");
@@ -43,25 +44,25 @@ Splunk. {{learnMoreLink}}.",
               {
                 learnMoreLink: cssLink(
                   { href: commonUrls.helpInstallAuditLogs, target: "_blank" },
-                  t("Learn more")
+                  t("Learn more"),
                 ),
-              }
-            )
+              },
+            ),
           ),
           dom("div",
             dom.hide(destinations.length === 0),
             dom("div",
               cssSectionHeading(t("Destinations")),
               cssDestinations(
-                dom.forEach(destinations, (destination) =>
+                dom.forEach(destinations, destination =>
                   cssDestination(
                     cssDestinationName(
                       getDestinationDisplayName(destination.name),
-                      testId("streaming-destination-name")
+                      testId("streaming-destination-name"),
                     ),
                     cssDestinationUrl(
                       destination.url,
-                      testId("streaming-destination-url")
+                      testId("streaming-destination-url"),
                     ),
                     cssDestinationOptions(
                       icon("Dots"),
@@ -70,37 +71,37 @@ Splunk. {{learnMoreLink}}.",
                           menuItem(
                             () =>
                               this._handleEditDestinationClick(destination),
-                            t("Edit")
+                            t("Edit"),
                           ),
                           menuItem(
                             () =>
                               this._handleDeleteDestinationClick(destination),
-                            t("Delete")
+                            t("Delete"),
                           ),
                         ],
-                        { placement: "bottom-start" }
+                        { placement: "bottom-start" },
                       ),
                       dom.on("click", (ev) => {
                         ev.stopPropagation();
                         ev.preventDefault();
                       }),
-                      testId("streaming-destination-options")
+                      testId("streaming-destination-options"),
                     ),
-                    testId("streaming-destination")
-                  )
-                )
-              )
-            )
+                    testId("streaming-destination"),
+                  ),
+                ),
+              ),
+            ),
           ),
           bigPrimaryButton(
-            destinations.length === 0
-              ? t("Start streaming")
-              : t("Add destination"),
+            destinations.length === 0 ?
+              t("Start streaming") :
+              t("Add destination"),
             dom.on("click", () => this._handleAddDestinationClick()),
-            testId("add-streaming-destination")
-          )
+            testId("add-streaming-destination"),
+          ),
         );
-      }
+      },
     );
   }
 
@@ -108,7 +109,7 @@ Splunk. {{learnMoreLink}}.",
     showDestinationForm({
       title: t("Add streaming destination"),
       submitButtonLabel: t("Add destination"),
-      onSubmit: (destination) =>
+      onSubmit: destination =>
         this._model.createStreamingDestination(destination),
     });
   }
@@ -120,20 +121,20 @@ Splunk. {{learnMoreLink}}.",
       () => this._model.deleteStreamingDestination(id),
       {
         explanation: t(
-          "Are you sure you want to delete this streaming destination? This action cannot be undone."
+          "Are you sure you want to delete this streaming destination? This action cannot be undone.",
         ),
-      }
+      },
     );
   }
 
   private _handleEditDestinationClick(
-    destination: AuditLogStreamingDestination
+    destination: AuditLogStreamingDestination,
   ) {
     showDestinationForm({
       title: t("Edit streaming destination"),
       submitButtonLabel: t("Save"),
       destination,
-      onSubmit: (properties) =>
+      onSubmit: properties =>
         this._model.updateStreamingDestination(destination.id, properties),
     });
   }
@@ -162,12 +163,12 @@ function showDestinationForm(options: DestinationFormOptions) {
   return modal((ctl, owner) => {
     const name = Observable.create<AuditLogStreamingDestinationName | null>(
       owner,
-      destination?.name ?? null
+      destination?.name ?? null,
     );
     const url = Observable.create<string>(owner, destination?.url ?? "");
     const token = Observable.create<string>(owner, destination?.token ?? "");
     const pending = Observable.create(owner, false);
-    const disabled = Computed.create(owner, (use) => !use(name) || !use(url));
+    const disabled = Computed.create(owner, use => !use(name) || !use(url));
     const error = Observable.create(owner, "");
 
     const handleDestinationChange = (event: Event) => {
@@ -183,9 +184,9 @@ function showDestinationForm(options: DestinationFormOptions) {
         handleSubmit({
           pending,
           disabled,
-          onSubmit: (fields) => onSubmit(toStreamingDestination(fields)),
+          onSubmit: fields => onSubmit(toStreamingDestination(fields)),
           onSuccess: () => ctl.close(),
-          onError: (e) => handleFormError(e, error),
+          onError: e => handleFormError(e, error),
         }),
         cssLabelAndInput(
           cssLabel(t("Destination")),
@@ -200,12 +201,12 @@ function showDestinationForm(options: DestinationFormOptions) {
                   type: "radio",
                   value: "splunk",
                 },
-                dom.prop("checked", (use) => use(name) === "splunk"),
+                dom.prop("checked", use => use(name) === "splunk"),
                 dom.on("change", handleDestinationChange),
               ),
               cssCardContent(
-                cssCardImage({src: "img/audit-logs-splunk.svg"})
-              )
+                cssCardImage({ src: "img/audit-logs-splunk.svg" }),
+              ),
             ),
             cssCard(
               cssCard.cls("-selected", use => use(name) === "other"),
@@ -217,14 +218,14 @@ function showDestinationForm(options: DestinationFormOptions) {
                   type: "radio",
                   value: "other",
                 },
-                dom.prop("checked", (use) => use(name) === "other"),
+                dom.prop("checked", use => use(name) === "other"),
                 dom.on("change", handleDestinationChange),
               ),
               cssCardContent(
-                cssCardImage({src: "img/audit-logs-other.svg"})
-              )
+                cssCardImage({ src: "img/audit-logs-other.svg" }),
+              ),
             ),
-          )
+          ),
         ),
         cssLabelAndInput(
           cssLabel(t("URL"), { for: "url" }),
@@ -233,7 +234,7 @@ function showDestinationForm(options: DestinationFormOptions) {
             name: "url",
             type: "url",
             placeholder: t("Enter URL"),
-          })
+          }),
         ),
         cssLabelAndInput(
           cssLabel(t("Token"), { for: "token" }),
@@ -242,24 +243,24 @@ function showDestinationForm(options: DestinationFormOptions) {
             name: "token",
             type: "text",
             placeholder: t("Enter token"),
-          })
+          }),
         ),
         cssMessages(
-          dom.maybe(error, (e) => cssError(e)),
+          dom.maybe(error, e => cssError(e)),
         ),
         cssModalButtons(
           bigBasicButton(
             t("Cancel"),
             { type: "button" },
             dom.on("click", () => ctl.close()),
-            testId("streaming-destination-form-cancel")
+            testId("streaming-destination-form-cancel"),
           ),
           bigPrimaryButton(
             t(submitButtonLabel),
             { type: "submit" },
-            dom.boolAttr("disabled", (use) => use(pending) || use(disabled)),
-            testId("streaming-destination-form-apply")
-          )
+            dom.boolAttr("disabled", use => use(pending) || use(disabled)),
+            testId("streaming-destination-form-apply"),
+          ),
         ),
       ),
     ];

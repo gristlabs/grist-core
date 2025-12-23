@@ -1,24 +1,26 @@
-import { ApplyUAResult } from 'app/common/ActiveDocAPI';
-import { fromTableDataAction, TableColValues } from 'app/common/DocActions';
-import * as gutil from 'app/common/gutil';
-import { LocalPlugin } from 'app/common/plugin';
-import { createRpcLogger, PluginInstance } from 'app/common/PluginInstance';
-import { Promisified } from 'app/common/tpromisified';
-import { ParseFileResult, ParseOptions } from 'app/plugin/FileParserAPI';
+import { ApplyUAResult } from "app/common/ActiveDocAPI";
+import { fromTableDataAction, TableColValues } from "app/common/DocActions";
+import * as gutil from "app/common/gutil";
+import { LocalPlugin } from "app/common/plugin";
+import { createRpcLogger, PluginInstance } from "app/common/PluginInstance";
+import { Promisified } from "app/common/tpromisified";
+import { ParseFileResult, ParseOptions } from "app/plugin/FileParserAPI";
 import { checkers, GristTable } from "app/plugin/grist-plugin-api";
 import { AccessTokenResult, GristDocAPI } from "app/plugin/GristAPI";
-import { Storage } from 'app/plugin/StorageAPI';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
-import { DocPluginData } from 'app/server/lib/DocPluginData';
-import { makeExceptionalDocSession } from 'app/server/lib/DocSession';
-import { FileParserElement } from 'app/server/lib/FileParserElement';
-import { GristServer } from 'app/server/lib/GristServer';
-import log from 'app/server/lib/log';
-import { SafePythonComponent } from 'app/server/lib/SafePythonComponent';
-import { UnsafeNodeComponent } from 'app/server/lib/UnsafeNodeComponent';
-import { createTmpDir } from 'app/server/lib/uploads';
-import * as fse from 'fs-extra';
-import * as path from 'path';
+import { Storage } from "app/plugin/StorageAPI";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { DocPluginData } from "app/server/lib/DocPluginData";
+import { makeExceptionalDocSession } from "app/server/lib/DocSession";
+import { FileParserElement } from "app/server/lib/FileParserElement";
+import { GristServer } from "app/server/lib/GristServer";
+import log from "app/server/lib/log";
+import { SafePythonComponent } from "app/server/lib/SafePythonComponent";
+import { UnsafeNodeComponent } from "app/server/lib/UnsafeNodeComponent";
+import { createTmpDir } from "app/server/lib/uploads";
+
+import * as path from "path";
+
+import * as fse from "fs-extra";
 
 /**
  * Implements GristDocAPI interface.
@@ -29,7 +31,7 @@ class GristDocAPIImpl implements GristDocAPI {
   public async getDocName() { return this._activeDoc.docName; }
 
   public async listTables(): Promise<string[]> {
-    return this._activeDoc.docData!.getMetaTable('_grist_Tables')
+    return this._activeDoc.docData!.getMetaTable("_grist_Tables")
       .getRecords()
       .filter(r => !r.summarySourceTable)
       .map(r => r.tableId);
@@ -37,18 +39,18 @@ class GristDocAPIImpl implements GristDocAPI {
 
   public async fetchTable(tableId: string): Promise<TableColValues> {
     return fromTableDataAction(await this._activeDoc.fetchTable(
-      makeExceptionalDocSession('plugin'), tableId));
+      makeExceptionalDocSession("plugin"), tableId));
   }
 
   public applyUserActions(actions: any[][]): Promise<ApplyUAResult> {
-    return this._activeDoc.applyUserActions(makeExceptionalDocSession('plugin'), actions);
+    return this._activeDoc.applyUserActions(makeExceptionalDocSession("plugin"), actions);
   }
 
   // These implementations of GristDocAPI are from an early implementation of
   // plugins that is incompatible with access control. No need to add new
   // methods here.
   public async getAccessToken(): Promise<AccessTokenResult> {
-    throw new Error('getAccessToken not implemented');
+    throw new Error("getAccessToken not implemented");
   }
 }
 
@@ -60,7 +62,6 @@ class GristDocAPIImpl implements GristDocAPI {
  *
  */
 export class DocPluginManager {
-
   public readonly plugins: { [s: string]: PluginInstance } = {};
   public readonly ready: Promise<any>;
   public readonly gristDocAPI: GristDocAPI;
@@ -68,12 +69,11 @@ export class DocPluginManager {
   private _tmpDir: string;
   private _pluginInstances: PluginInstance[];
 
-
   constructor(
     private _localPlugins: LocalPlugin[],
     private _appRoot: string,
     private _activeDoc: ActiveDoc,
-    private _server: GristServer
+    private _server: GristServer,
   ) {
     this.gristDocAPI = new GristDocAPIImpl(_activeDoc);
     this._pluginInstances = [];
@@ -89,23 +89,23 @@ export class DocPluginManager {
    * Throws if no importers can parse the file.
    */
   public async parseFile(filePath: string, fileName: string, parseOptions: ParseOptions): Promise<ParseFileResult> {
-
     // Support an existing grist json format directly for files with a "jgrist"
     // extension.
-    if (path.extname(fileName) === '.jgrist') {
+    if (path.extname(fileName) === ".jgrist") {
       try {
-        const result = JSON.parse(await fse.readFile(filePath, 'utf8')) as ParseFileResult;
+        const result = JSON.parse(await fse.readFile(filePath, "utf8")) as ParseFileResult;
         result.parseOptions = {};
         // The parseOptions component isn't checked here, since it seems free-form.
         checkers.ParseFileResult.check(result);
         checkReferences(result.tables);
         return result;
-      } catch (err) {
-        throw new Error('Grist json format could not be parsed: ' + err);
+      }
+      catch (err) {
+        throw new Error("Grist json format could not be parsed: " + err);
       }
     }
 
-    if (path.extname(fileName) === '.grist') {
+    if (path.extname(fileName) === ".grist") {
       throw new Error(`To import a grist document use the "Import document" menu option on your home screen`);
     }
 
@@ -129,8 +129,9 @@ export class DocPluginManager {
         checkers.ParseFileResult.check(result);
         checkReferences(result.tables);
         return result;
-      } catch (err) {
-        const cleanerMessage = err.message.replace(/^\[Sandbox\] (Exception)?/, '').trim();
+      }
+      catch (err) {
+        const cleanerMessage = err.message.replace(/^\[Sandbox\] (Exception)?/, "").trim();
         messages.push(cleanerMessage);
         log.warn(`DocPluginManager.parseFile: ${name} Failed parseFile `, err.message);
         continue;
@@ -139,11 +140,11 @@ export class DocPluginManager {
 
     if (messages.length) {
       const extToType: Record<string, string> = {
-        '.xlsx' : 'Excel',
-        '.json' : 'JSON',
-        '.csv' : 'CSV',
-        '.tsv' : 'TSV',
-        '.dsv' : 'PSV',
+        ".xlsx": "Excel",
+        ".json": "JSON",
+        ".csv": "CSV",
+        ".tsv": "TSV",
+        ".dsv": "PSV",
       };
       const fileType = extToType[path.extname(fileName)] || path.extname(fileName);
       throw new Error(`Failed to parse ${fileType} file.\nError: ${messages.join("; ")}`);
@@ -192,12 +193,12 @@ export class DocPluginManager {
   }
 
   private async _initialize(): Promise<void> {
-    this._tmpDir = (await createTmpDir({ prefix: 'grist-tmp-', unsafeCleanup: true })).tmpDir;
+    this._tmpDir = (await createTmpDir({ prefix: "grist-tmp-", unsafeCleanup: true })).tmpDir;
     for (const plugin of this._localPlugins) {
       try {
         // todo: once Comm has been replaced by grain-rpc, pluginInstance.rpc should forward '*' to client
         const pluginInstance = new PluginInstance(plugin, createRpcLogger(log, `PLUGIN ${plugin.id}:`));
-        pluginInstance.rpc.registerForwarder('grist', pluginInstance.rpc, '');
+        pluginInstance.rpc.registerForwarder("grist", pluginInstance.rpc, "");
         pluginInstance.rpc.registerImpl<GristDocAPI>("GristDocAPI", this.gristDocAPI, checkers.GristDocAPI);
         pluginInstance.rpc.registerImpl<Promisified<Storage>>("DocStorage",
           new DocPluginData(this._activeDoc.docStorage, plugin.id), checkers.Storage);
@@ -217,7 +218,8 @@ export class DocPluginManager {
           }
         }
         this._pluginInstances.push(pluginInstance);
-      } catch (err) {
+      }
+      catch (err) {
         log.info(`DocPluginInstance: failed to create instance ${plugin.id}: ${err.message}`);
       }
     }

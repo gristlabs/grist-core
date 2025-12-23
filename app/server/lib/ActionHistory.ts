@@ -13,11 +13,11 @@
  * blobs, which can simplify the database storage.
  */
 
-import {LocalActionBundle} from 'app/common/ActionBundle';
-import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
-import {createEmptyActionSummary} from 'app/common/ActionSummary';
-import {summarizeAction} from 'app/common/ActionSummarizer';
-import {DocState} from 'app/common/DocState';
+import { LocalActionBundle } from "app/common/ActionBundle";
+import { ActionGroup, MinimalActionGroup } from "app/common/ActionGroup";
+import { summarizeAction } from "app/common/ActionSummarizer";
+import { createEmptyActionSummary } from "app/common/ActionSummary";
+import { DocState } from "app/common/DocState";
 
 export interface ActionGroupOptions {
   // If set, inspect the action in detail in order to include a summary of
@@ -100,7 +100,7 @@ export abstract class ActionHistory {
    * marks our action as "shared", i.e. accepted by the hub, and returns true. Else returns false.
    * If actionHash is null, accepts unconditionally.
    */
-  public abstract acceptNextSharedAction(actionHash: string|null): Promise<boolean>;
+  public abstract acceptNextSharedAction(actionHash: string | null): Promise<boolean>;
 
   /** Records a new local unsent action, after setting action.actionNum appropriately. */
   public abstract recordNextLocalUnsent(action: LocalActionBundle): Promise<void>;
@@ -139,7 +139,7 @@ export abstract class ActionHistory {
    * Get a list of actions, identified by their actionNum.  Any actions that could not be
    * found are returned as undefined.
    */
-  public abstract getActions(actionNums: number[]): Promise<Array<LocalActionBundle|undefined>>;
+  public abstract getActions(actionNums: number[]): Promise<(LocalActionBundle | undefined)[]>;
 
   /**
    * Associates an action with a client. This association is expected to be transient, rather
@@ -160,7 +160,6 @@ export abstract class ActionHistory {
   public abstract deleteActions(keepN: number): Promise<void>;
 }
 
-
 /**
  * Convert an ActionBundle into an ActionGroup.  ActionGroups are the representation of
  * actions on the client.
@@ -169,15 +168,15 @@ export abstract class ActionHistory {
  * @param options: options to construct the ActionGroup; see its documentation above.
  */
 export function asActionGroup(history: ActionHistory,
-                              act: LocalActionBundle,
-                              options: ActionGroupOptions): ActionGroup {
-  const {summarize, clientId} = options;
+  act: LocalActionBundle,
+  options: ActionGroupOptions): ActionGroup {
+  const { summarize, clientId } = options;
   const info = act.info[1];
 
   const fromSelf = (act.actionHash && clientId) ?
     (history.getActionUndoInfo(act.actionHash)?.clientId === clientId) : false;
 
-  const {extra: {primaryAction}, minimal: {rowIdHint, isUndo}} =
+  const { extra: { primaryAction }, minimal: { rowIdHint, isUndo } } =
     getActionUndoInfoWithoutClient(act, options.retValues);
 
   return {
@@ -200,8 +199,8 @@ export function asActionGroup(history: ActionHistory,
 }
 
 export function asMinimalActionGroup(history: ActionHistory,
-                                     act: {actionHash: string, actionNum: number},
-                                     clientId?: string): MinimalActionGroup {
+  act: { actionHash: string, actionNum: number },
+  clientId?: string): MinimalActionGroup {
   const undoInfo = act.actionHash ? history.getActionUndoInfo(act.actionHash) : undefined;
   const fromSelf = clientId ? (undoInfo?.clientId === clientId) : false;
   return {
@@ -216,7 +215,7 @@ export function asMinimalActionGroup(history: ActionHistory,
 }
 
 export function getActionUndoInfo(act: LocalActionBundle, clientId: string,
-                                  retValues: any[]): ActionHistoryUndoInfo {
+  retValues: any[]): ActionHistoryUndoInfo {
   return {
     ...getActionUndoInfoWithoutClient(act, retValues).minimal,
     clientId,
@@ -237,10 +236,11 @@ function getActionUndoInfoWithoutClient(act: LocalActionBundle, retValues?: any[
     for (let i = 0; i < act.userActions.length; i++) {
       const name = act.userActions[i][0];
       const retValue = retValues[i];
-      if (name === 'AddRecord') {
+      if (name === "AddRecord") {
         rowIdHint = retValue;
         break;
-      } else if (name === 'BulkAddRecord') {
+      }
+      else if (name === "BulkAddRecord") {
         rowIdHint = retValue[0];
         break;
       }
@@ -249,7 +249,7 @@ function getActionUndoInfoWithoutClient(act: LocalActionBundle, retValues?: any[
 
   const info = act.info[1];
   const primaryAction: string = String((act.userActions[0] || [""])[0]);
-  const isUndo = primaryAction === 'ApplyUndoActions';
+  const isUndo = primaryAction === "ApplyUndoActions";
   return {
     minimal: {
       rowIdHint,

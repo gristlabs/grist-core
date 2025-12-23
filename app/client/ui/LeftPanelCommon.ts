@@ -13,19 +13,20 @@
  *      )
  *    )
  */
-import {beaconOpenMessage} from 'app/client/lib/helpScout';
-import {makeT} from 'app/client/lib/localization';
-import {AppModel} from 'app/client/models/AppModel';
-import {allCommands} from 'app/client/components/commands';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {colorIcon, icon} from 'app/client/ui2018/icons';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {visuallyHidden} from 'app/client/ui2018/visuallyHidden';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
-import {getGristConfig} from 'app/common/urlUtils';
-import {dom, DomContents, Observable, styled} from 'grainjs';
+import { allCommands } from "app/client/components/commands";
+import { beaconOpenMessage } from "app/client/lib/helpScout";
+import { makeT } from "app/client/lib/localization";
+import { AppModel } from "app/client/models/AppModel";
+import { testId, theme, vars } from "app/client/ui2018/cssVars";
+import { colorIcon, icon } from "app/client/ui2018/icons";
+import { unstyledButton } from "app/client/ui2018/unstyled";
+import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
+import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
+import { getGristConfig } from "app/common/urlUtils";
 
-const t = makeT('LeftPanelCommon');
+import { dom, DomContents, Observable, styled } from "grainjs";
+
+const t = makeT("LeftPanelCommon");
 
 /**
  * Creates the "help tools", a button/link to open HelpScout beacon, and one to open the
@@ -35,21 +36,21 @@ export function createHelpTools(appModel: AppModel): DomContents {
   if (!isFeatureEnabled("helpCenter")) {
     return [];
   }
-  const {deploymentType} = getGristConfig();
+  const { deploymentType } = getGristConfig();
   return cssSplitPageEntry(
     cssPageEntryMain(
-      cssPageLink(cssPageIcon('Help'),
+      cssPageLink(cssPageIcon("Help"),
         cssLinkText(t("Help Center")),
-        dom.cls('tour-help-center'),
-        deploymentType === 'saas'
-          ? dom.on('click', () => beaconOpenMessage({appModel}))
-          : {href: commonUrls.help, target: '_blank'},
-        testId('left-feedback'),
+        dom.cls("tour-help-center"),
+        deploymentType === "saas" ?
+          dom.on("click", () => beaconOpenMessage({ appModel })) :
+          { href: commonUrls.help, target: "_blank" },
+        testId("left-feedback"),
       ),
     ),
     cssPageEntrySmall(
-      cssPageLink(cssPageIcon('FieldLink'),
-        {href: commonUrls.help, 'aria-label': t("Help Center"), target: '_blank'},
+      cssPageLink(cssPageIcon("FieldLink"),
+        { "href": commonUrls.help, "aria-label": t("Help Center"), "target": "_blank" },
       ),
     ),
   );
@@ -63,17 +64,17 @@ export function createAccessibilityTools(): DomContents {
   }
   return cssPageEntry(
     cssPageButton(
-      cssPageIcon('Accessibility'),
+      cssPageIcon("Accessibility"),
       // always have an accessible label in case we hide the text (collapsed panel)
       visuallyHidden(t("Accessibility")),
       // hide the visible text from screen readers to prevent duplicate labels with the visually hidden one
-      cssLinkText(t("Accessibility"), {"aria-hidden": "true"}),
+      cssLinkText(t("Accessibility"), { "aria-hidden": "true" }),
       cssKeyboardShortcut(
-        'F4',
-        testId('accessibility-shortcut-keys'),
+        "F4",
+        testId("accessibility-shortcut-keys"),
       ),
-      dom.on('click', () => allCommands.accessibility.run()),
-      testId('accessibility-shortcut'),
+      dom.on("click", () => allCommands.accessibility.run()),
+      testId("accessibility-shortcut"),
     ),
   );
 }
@@ -87,46 +88,42 @@ export function leftPanelBasic(appModel: AppModel, panelOpen: Observable<boolean
     cssScrollPane(
       optContent,
       cssTools(
-        cssTools.cls('-collapsed', (use) => !use(panelOpen)),
+        cssTools.cls("-collapsed", use => !use(panelOpen)),
         cssSpacer(),
         createHelpTools(appModel),
         createAccessibilityTools(),
-      )
-    )
+      ),
+    ),
   );
 }
 
-
-export const cssLeftPanel = styled('div', `
+export const cssLeftPanel = styled("div", `
   flex: 1 1 0px;
   font-size: ${vars.mediumFontSize};
   display: flex;
   flex-direction: column;
 `);
 
-export const cssScrollPane = styled('div', `
+export const cssScrollPane = styled("div", `
   flex: 1 1 0px;
   overflow: hidden auto;
   display: flex;
   flex-direction: column;
 `);
 
-
-export const cssTools = styled('nav', `
+export const cssTools = styled("nav", `
   flex: none;
   margin-top: auto;
   padding: 16px 0 16px 0;
   cursor: default;
 `);
 
-
 export const cssHomeTools = styled(cssTools, `
   padding-top: 0px;
   border-top: 1px solid ${theme.pagePanelsBorder};
 `);
 
-
-export const cssSectionHeader = styled('div', `
+export const cssSectionHeader = styled("div", `
   margin: 24px 0 8px 24px;
   display: flex;
   gap: 8px;
@@ -136,7 +133,7 @@ export const cssSectionHeader = styled('div', `
   }
 `);
 
-export const cssSectionHeaderText = styled('span', `
+export const cssSectionHeaderText = styled("span", `
   color: ${theme.lightText};
   text-transform: uppercase;
   font-weight: 500;
@@ -147,7 +144,7 @@ export const cssSectionHeaderText = styled('span', `
   white-space: nowrap;
 `);
 
-export const cssPageEntry = styled('div', `
+export const cssPageEntry = styled("div", `
   margin: 0px 16px 0px 0px;
   border-radius: 0 3px 3px 0;
   color: ${theme.text};
@@ -197,9 +194,9 @@ const cssPageAction = `
   }
 `;
 
-export const cssPageLink = styled('a', cssPageAction);
+export const cssPageLink = styled("a", cssPageAction);
 
-export const cssPageLinkContainer = styled('div', `
+export const cssPageLinkContainer = styled("div", `
   ${cssPageAction}
 
   .${cssPageEntry.className}-disabled & :is(a, button) {
@@ -209,7 +206,7 @@ export const cssPageLinkContainer = styled('div', `
 
 export const cssPageButton = styled(unstyledButton, cssPageAction);
 
-export const cssLinkText = styled('span', `
+export const cssLinkText = styled("span", `
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -226,7 +223,7 @@ export const cssPageIcon = styled(icon, `
   }
 `);
 
-export const cssKeyboardShortcut = styled('span', `
+export const cssKeyboardShortcut = styled("span", `
   margin-left: auto;
   margin-right: 16px;
   color: ${theme.lightText};
@@ -254,11 +251,11 @@ export const cssPageColorIcon = styled(colorIcon, `
   }
 `);
 
-export const cssSpacer = styled('div', `
+export const cssSpacer = styled("div", `
   height: 18px;
 `);
 
-export const cssSplitPageEntry = styled('div', `
+export const cssSplitPageEntry = styled("div", `
   display: flex;
   align-items: center;
 `);

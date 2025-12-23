@@ -1,10 +1,11 @@
-import {bigBasicButton, bigBasicButtonLink, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {theme} from 'app/client/ui2018/cssVars';
-import {styled} from 'grainjs';
+import { bigBasicButton, bigBasicButtonLink, bigPrimaryButton } from "app/client/ui2018/buttons";
+import { theme } from "app/client/ui2018/cssVars";
 
-export const cssSection = styled('div', ``);
+import { styled } from "grainjs";
 
-export const cssParagraph = styled('div', `
+export const cssSection = styled("div", ``);
+
+export const cssParagraph = styled("div", `
   color: ${theme.text};
   font-size: 14px;
   line-height: 20px;
@@ -31,16 +32,16 @@ export const cssSponsorButton = styled(bigBasicButtonLink, `
   margin-top: 24px;
 `);
 
-export const cssButtonIconAndText = styled('div', `
+export const cssButtonIconAndText = styled("div", `
   display: flex;
   align-items: center;
 `);
 
-export const cssButtonText = styled('span', `
+export const cssButtonText = styled("span", `
   margin-left: 8px;
 `);
 
-export const cssSpinnerBox = styled('div', `
+export const cssSpinnerBox = styled("div", `
   margin-top: 24px;
   text-align: center;
 `);

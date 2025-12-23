@@ -1,7 +1,7 @@
-var assert = require('assert');
-var {timeFormat} = require('app/common/timeFormat');
+var assert = require("assert");
+var {timeFormat} = require("app/common/timeFormat");
 
-describe('timeFormat', function() {
+describe("timeFormat", function() {
 
   var date = new Date(2014, 3, 4, 22, 28, 16, 123);
 

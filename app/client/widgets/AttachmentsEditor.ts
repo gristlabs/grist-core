@@ -1,29 +1,30 @@
 // External dependencies
-import {computed, Computed, computedArray} from 'grainjs';
-import {MutableObsArray, obsArray, ObsArray, observable, Observable} from 'grainjs';
-import {dom, LiveIndex, makeLiveIndex, styled} from 'grainjs';
 
 // Grist client libs
-import {DocComm} from 'app/client/components/DocComm';
-import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
-import {DocData} from 'app/client/models/DocData';
-import {MetaTableData} from 'app/client/models/TableData';
-import {basicButton, basicButtonLink, cssButtonGroup} from 'app/client/ui2018/buttons';
-import {makeT} from 'app/client/lib/localization';
-import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {editableLabel} from 'app/client/ui2018/editableLabel';
-import {icon} from 'app/client/ui2018/icons';
-import {IModalControl, modal} from 'app/client/ui2018/modals';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {renderFileType} from 'app/client/widgets/AttachmentsWidget';
-import {FieldOptions, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
-import {CellValue} from 'app/common/DocActions';
-import {SingleCell} from 'app/common/TableData';
-import {clamp, encodeQueryParams} from 'app/common/gutil';
-import {UploadResult} from 'app/common/uploads';
-import * as mimeTypes from 'mime-types';
+import { DocComm } from "app/client/components/DocComm";
+import { makeT } from "app/client/lib/localization";
+import { selectFiles, uploadFiles } from "app/client/lib/uploads";
+import { DocData } from "app/client/models/DocData";
+import { MetaTableData } from "app/client/models/TableData";
+import { basicButton, basicButtonLink, cssButtonGroup } from "app/client/ui2018/buttons";
+import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { editableLabel } from "app/client/ui2018/editableLabel";
+import { icon } from "app/client/ui2018/icons";
+import { loadingSpinner } from "app/client/ui2018/loaders";
+import { IModalControl, modal } from "app/client/ui2018/modals";
+import { renderFileType } from "app/client/widgets/AttachmentsWidget";
+import { FieldOptions, NewBaseEditor } from "app/client/widgets/NewBaseEditor";
+import { CellValue } from "app/common/DocActions";
+import { clamp, encodeQueryParams } from "app/common/gutil";
+import { SingleCell } from "app/common/TableData";
+import { UploadResult } from "app/common/uploads";
 
-const t = makeT('AttachmentsEditor');
+import { dom, LiveIndex, makeLiveIndex, styled } from "grainjs";
+import { MutableObsArray, obsArray, ObsArray, observable, Observable } from "grainjs";
+import { computed, Computed, computedArray } from "grainjs";
+import * as mimeTypes from "mime-types";
+
+const t = makeT("AttachmentsEditor");
 
 interface Attachment {
   rowId: number;
@@ -52,14 +53,14 @@ interface Attachment {
  * download, add or remove attachments in the edited cell.
  */
 export class AttachmentsEditor extends NewBaseEditor {
-  private _attachmentsTable: MetaTableData<'_grist_Attachments'>;
+  private _attachmentsTable: MetaTableData<"_grist_Attachments">;
   private _docComm: DocComm;
 
   private _rowIds: MutableObsArray<number>;
   private _attachments: ObsArray<Attachment>;
   private _isUploading: Observable<boolean>;
   private _index: LiveIndex;
-  private _selected: Computed<Attachment|null>;
+  private _selected: Computed<Attachment | null>;
 
   constructor(options: FieldOptions) {
     super(options);
@@ -73,25 +74,25 @@ export class AttachmentsEditor extends NewBaseEditor {
     } : null;
 
     // editValue is abused slightly to indicate a 1-based index of the attachment.
-    const initRowIndex: number|undefined = (options.editValue && parseInt(options.editValue, 0) - 1) || 0;
+    const initRowIndex: number | undefined = (options.editValue && parseInt(options.editValue, 0) - 1) || 0;
 
-    this._attachmentsTable = docData.getMetaTable('_grist_Attachments');
+    this._attachmentsTable = docData.getMetaTable("_grist_Attachments");
     this._docComm = docData.docComm;
 
     this._rowIds = obsArray(Array.isArray(cellValue) ? cellValue.slice(1) as number[] : []);
     this._attachments = computedArray(this._rowIds, (val: number): Attachment => {
-      const fileIdent: string = this._attachmentsTable.getValue(val, 'fileIdent')!;
-      const fileType = mimeTypes.lookup(fileIdent) || 'application/octet-stream';
+      const fileIdent: string = this._attachmentsTable.getValue(val, "fileIdent")!;
+      const fileType = mimeTypes.lookup(fileIdent) || "application/octet-stream";
       const filename: Observable<string> =
-        observable(this._attachmentsTable.getValue(val, 'fileName')!);
+        observable(this._attachmentsTable.getValue(val, "fileName")!);
       return {
         rowId: val,
         fileIdent,
         fileType,
         filename,
-        hasPreview: Boolean(this._attachmentsTable.getValue(val, 'imageHeight')),
-        url: computed((use) => this._getUrl(cell, val, use(filename))),
-        inlineUrl: computed((use) => this._getUrl(cell, val, use(filename), true))
+        hasPreview: Boolean(this._attachmentsTable.getValue(val, "imageHeight")),
+        url: computed(use => this._getUrl(cell, val, use(filename))),
+        inlineUrl: computed(use => this._getUrl(cell, val, use(filename), true)),
       };
     });
     this._index = makeLiveIndex(this, this._attachments, initRowIndex);
@@ -108,19 +109,19 @@ export class AttachmentsEditor extends NewBaseEditor {
       // If FieldEditor is disposed externally (e.g. on navigation), be sure to close the modal.
       this.onDispose(ctl.close);
       return [
-        cssFullScreenModal.cls(''),
+        cssFullScreenModal.cls(""),
         dom.onKeyDown({
           Enter: (ev) => { ctl.close(); this.options.commands.fieldEditSaveHere(); },
           Escape: (ev) => { ctl.close(); this.options.commands.fieldEditCancel(); },
-          ArrowLeft$: (ev) => !isInEditor(ev) && this._moveIndex(-1),
-          ArrowRight$: (ev) => !isInEditor(ev) && this._moveIndex(1),
+          ArrowLeft$: ev => !isInEditor(ev) && this._moveIndex(-1),
+          ArrowRight$: ev => !isInEditor(ev) && this._moveIndex(1),
         }),
         // Close if clicking into the background. (The default modal's behavior for this isn't
         // triggered because our content covers the whole screen.)
-        dom.on('click', (ev, elem) => { if (ev.target === elem) { ctl.close(); } }),
-        ...this._buildDom(ctl)
+        dom.on("click", (ev, elem) => { if (ev.target === elem) { ctl.close(); } }),
+        ...this._buildDom(ctl),
       ];
-    }, {noEscapeKey: true});
+    }, { noEscapeKey: true });
   }
 
   public getCellValue() {
@@ -132,7 +133,7 @@ export class AttachmentsEditor extends NewBaseEditor {
   }
 
   public getTextValue(): string {
-    return '';
+    return "";
   }
 
   // Builds the attachment preview modal.
@@ -140,95 +141,95 @@ export class AttachmentsEditor extends NewBaseEditor {
     return [
       cssHeader(
         cssFlexExpand(
-          dom.text(use => {
+          dom.text((use) => {
             const len = use(this._attachments).length;
-            return len ? t('{{index}} of {{total}}', {index: (use(this._index) || 0) + 1, total: len}) : '';
+            return len ? t("{{index}} of {{total}}", { index: (use(this._index) || 0) + 1, total: len }) : "";
           }),
-          testId('pw-counter'),
+          testId("pw-counter"),
           dom.maybe(this._isUploading, () =>
             cssLoading(
               loadingSpinner(),
-              t('Uploading…'),
-              testId('pw-spinner')
-            )
+              t("Uploading…"),
+              testId("pw-spinner"),
+            ),
           ),
         ),
         dom.maybe(this._selected, selected =>
           cssTitle(
             cssEditableLabel(selected.filename, {
-              save: (val) => this._renameAttachment(selected, val),
-              inputArgs: [testId('pw-name')],
+              save: val => this._renameAttachment(selected, val),
+              inputArgs: [testId("pw-name")],
             }),
-          )
+          ),
         ),
         cssFlexExpand(
           cssFileButtons(
             dom.maybe(this._selected, selected =>
-              basicButtonLink(cssButton.cls(''), cssButtonIcon('Download'), t('Download'),
-                dom.attr('href', selected.url),
-                dom.attr('target', '_blank'),
-                dom.attr('download', selected.filename),
-                testId('pw-download')
+              basicButtonLink(cssButton.cls(""), cssButtonIcon("Download"), t("Download"),
+                dom.attr("href", selected.url),
+                dom.attr("target", "_blank"),
+                dom.attr("download", selected.filename),
+                testId("pw-download"),
               ),
             ),
             this.options.readonly ? null : [
-              cssButton(cssButtonIcon('FieldAttachment'), t('Add'),
-                dom.on('click', () => this._select()),
-                testId('pw-add')
+              cssButton(cssButtonIcon("FieldAttachment"), t("Add"),
+                dom.on("click", () => this._select()),
+                testId("pw-add"),
               ),
               dom.maybe(this._selected, () =>
-                cssButton(cssButtonIcon('Remove'), t('Delete'),
-                  dom.on('click', () => this._remove()),
-                  testId('pw-remove')
+                cssButton(cssButtonIcon("Remove"), t("Delete"),
+                  dom.on("click", () => this._remove()),
+                  testId("pw-remove"),
                 ),
-              )
-            ]
+              ),
+            ],
           ),
-          cssCloseButton(cssBigIcon('CrossBig'), dom.on('click', () => ctl.close()),
-            testId('pw-close')),
-        )
+          cssCloseButton(cssBigIcon("CrossBig"), dom.on("click", () => ctl.close()),
+            testId("pw-close")),
+        ),
       ),
-      cssNextArrow(cssNextArrow.cls('-left'), cssBigIcon('Expand'), testId('pw-left'),
+      cssNextArrow(cssNextArrow.cls("-left"), cssBigIcon("Expand"), testId("pw-left"),
         dom.hide(use => !use(this._attachments).length || use(this._index) === 0),
-        dom.on('click', () => this._moveIndex(-1))
+        dom.on("click", () => this._moveIndex(-1)),
       ),
-      cssNextArrow(cssNextArrow.cls('-right'), cssBigIcon('Expand'), testId('pw-right'),
+      cssNextArrow(cssNextArrow.cls("-right"), cssBigIcon("Expand"), testId("pw-right"),
         dom.hide(use => !use(this._attachments).length || use(this._index) === use(this._attachments).length - 1),
-        dom.on('click', () => this._moveIndex(1))
+        dom.on("click", () => this._moveIndex(1)),
       ),
       dom.domComputed(this._selected, selected => renderContent(selected, this.options.readonly)),
 
       // Drag-over logic
       (elem: HTMLElement) => dragOverClass(elem, cssDropping.className),
-      cssDragArea(this.options.readonly ? null : cssWarning(t('Drop files here to attach'))),
-      this.options.readonly ? null : dom.on('drop', ev => this._upload(ev.dataTransfer!.files)),
-      testId('pw-modal')
+      cssDragArea(this.options.readonly ? null : cssWarning(t("Drop files here to attach"))),
+      this.options.readonly ? null : dom.on("drop", ev => this._upload(ev.dataTransfer!.files)),
+      testId("pw-modal"),
     ];
   }
 
   private async _renameAttachment(att: Attachment, fileName: string): Promise<void> {
-    await this._attachmentsTable.sendTableAction(['UpdateRecord', att.rowId, {fileName}]);
+    await this._attachmentsTable.sendTableAction(["UpdateRecord", att.rowId, { fileName }]);
     // Update the observable, since it's not on its own observing changes.
-    att.filename.set(this._attachmentsTable.getValue(att.rowId, 'fileName')!);
+    att.filename.set(this._attachmentsTable.getValue(att.rowId, "fileName")!);
   }
 
   private _getUrl(
     cell: SingleCell | null,
     attId: number,
     filename: string,
-    inline?: boolean
+    inline?: boolean,
   ): string {
-    return this._docComm.docUrl('attachment') + '?' + encodeQueryParams({
+    return this._docComm.docUrl("attachment") + "?" + encodeQueryParams({
       ...this._docComm.getUrlParams(),
       name: filename,
       ...cell,
       maybeNew: 1,  // The attachment may be uploaded by the user but not stored in the cell yet.
       attId,
-      ...(inline ? {inline: 1} : {})
+      ...(inline ? { inline: 1 } : {}),
     });
   }
 
-  private _moveIndex(dir: -1|1): void {
+  private _moveIndex(dir: -1 | 1): void {
     const next = this._index.get()! + dir;
     this._index.set(clamp(next, 0, this._attachments.get().length));
   }
@@ -243,16 +244,17 @@ export class AttachmentsEditor extends NewBaseEditor {
       const uploadResult = await selectFiles({
         docWorkerUrl: this._docComm.docWorkerUrl,
         multiple: true,
-        sizeLimit: 'attachment'
+        sizeLimit: "attachment",
       }, (progress) => {
         if (progress === 0) {
           this._isUploading.set(true);
-          }
         }
+      },
       );
       this._isUploading.set(false);
       return this._add(uploadResult);
-    } catch (error) {
+    }
+    catch (error) {
       this._isUploading.set(false);
       throw error;
     }
@@ -262,22 +264,23 @@ export class AttachmentsEditor extends NewBaseEditor {
     try {
       const uploadResult = await uploadFiles(
         Array.from(files),
-        {docWorkerUrl: this._docComm.docWorkerUrl, sizeLimit: 'attachment'},
+        { docWorkerUrl: this._docComm.docWorkerUrl, sizeLimit: "attachment" },
         (progress) => {
           if (progress === 0) {
             this._isUploading.set(true);
           }
-        }
+        },
       );
       this._isUploading.set(false);
       return this._add(uploadResult);
-    } catch (error) {
+    }
+    catch (error) {
       this._isUploading.set(false);
       throw error;
     }
   }
 
-  private async _add(uploadResult: UploadResult|null): Promise<void> {
+  private async _add(uploadResult: UploadResult | null): Promise<void> {
     if (!uploadResult) { return; }
     const rowIds = await this._docComm.addAttachments(uploadResult.uploadId);
     const len = this._rowIds.get().length;
@@ -289,52 +292,57 @@ export class AttachmentsEditor extends NewBaseEditor {
 }
 
 function isInEditor(ev: KeyboardEvent): boolean {
-  return (ev.target as HTMLElement).tagName === 'INPUT';
+  return (ev.target as HTMLElement).tagName === "INPUT";
 }
 
-function renderContent(att: Attachment|null, readonly: boolean): HTMLElement {
-  const commonArgs = [cssContent.cls(''), testId('pw-attachment-content')];
+function renderContent(att: Attachment | null, readonly: boolean): HTMLElement {
+  const commonArgs = [cssContent.cls(""), testId("pw-attachment-content")];
   if (!att) {
     return cssWarning(
-      t('No attachments'),
-      readonly ? null : cssDetails(t('Drop files here to attach.')),
-      ...commonArgs
+      t("No attachments"),
+      readonly ? null : cssDetails(t("Drop files here to attach.")),
+      ...commonArgs,
     );
-  } else if (att.hasPreview) {
-    return dom('img', dom.attr('src', att.url), ...commonArgs);
-  } else if (att.fileType.startsWith('video/')) {
-    return dom('video', dom.attr('src', att.inlineUrl), {autoplay: false, controls: true}, ...commonArgs);
-  } else if (att.fileType.startsWith('audio/')) {
-    return dom('audio', dom.attr('src', att.inlineUrl), {autoplay: false, controls: true}, ...commonArgs);
-  } else if (att.fileType.startsWith('text/') || att.fileType === 'application/json') {
+  }
+  else if (att.hasPreview) {
+    return dom("img", dom.attr("src", att.url), ...commonArgs);
+  }
+  else if (att.fileType.startsWith("video/")) {
+    return dom("video", dom.attr("src", att.inlineUrl), { autoplay: false, controls: true }, ...commonArgs);
+  }
+  else if (att.fileType.startsWith("audio/")) {
+    return dom("audio", dom.attr("src", att.inlineUrl), { autoplay: false, controls: true }, ...commonArgs);
+  }
+  else if (att.fileType.startsWith("text/") || att.fileType === "application/json") {
     // Rendering text/html is risky. Things like text/plain and text/csv we could render though,
     // but probably not using object tag (which needs work to look acceptable).
-    return dom('div', ...commonArgs,
-      cssWarning(cssContent.cls(''), renderFileType(att.filename.get(), att.fileIdent),
-        cssDetails(t('Preview not available.'))));
-  } else {
+    return dom("div", ...commonArgs,
+      cssWarning(cssContent.cls(""), renderFileType(att.filename.get(), att.fileIdent),
+        cssDetails(t("Preview not available."))));
+  }
+  else {
     // Setting 'type' attribute is important to avoid a download prompt from Chrome.
-    return dom('object', {type: att.fileType}, dom.attr('data', att.inlineUrl), ...commonArgs,
-      cssWarning(cssContent.cls(''), renderFileType(att.filename.get(), att.fileIdent),
-        cssDetails(t('Preview not available.')))
+    return dom("object", { type: att.fileType }, dom.attr("data", att.inlineUrl), ...commonArgs,
+      cssWarning(cssContent.cls(""), renderFileType(att.filename.get(), att.fileIdent),
+        cssDetails(t("Preview not available."))),
     );
   }
 }
 
 function dragOverClass(target: HTMLElement, className: string): void {
-  let enterTarget: EventTarget|null = null;
+  let enterTarget: EventTarget | null = null;
   function toggle(ev: DragEvent, onOff: boolean) {
     enterTarget = onOff ? ev.target : null;
     ev.stopPropagation();
     ev.preventDefault();
     target.classList.toggle(className, onOff);
   }
-  dom.onElem(target, 'dragenter', (ev) => toggle(ev, true));
-  dom.onElem(target, 'dragleave', (ev) => (ev.target === enterTarget) && toggle(ev, false));
-  dom.onElem(target, 'drop', (ev) => toggle(ev, false));
+  dom.onElem(target, "dragenter", ev => toggle(ev, true));
+  dom.onElem(target, "dragleave", ev => (ev.target === enterTarget) && toggle(ev, false));
+  dom.onElem(target, "drop", ev => toggle(ev, false));
 }
 
-const cssFullScreenModal = styled('div', `
+const cssFullScreenModal = styled("div", `
   background-color: initial;
   width: 100%;
   height: 100%;
@@ -344,7 +352,7 @@ const cssFullScreenModal = styled('div', `
   padding: 0px;
 `);
 
-const cssHeader = styled('div', `
+const cssHeader = styled("div", `
   padding: 16px 24px;
   position: fixed;
   left: 0;
@@ -365,7 +373,7 @@ const cssHeader = styled('div', `
   }
 `);
 
-const cssCloseButton = styled('div', `
+const cssCloseButton = styled("div", `
   padding: 6px;
   border-radius: 32px;
   cursor: pointer;
@@ -388,7 +396,7 @@ const cssBigIcon = styled(icon, `
   padding: 10px;
 `);
 
-const cssTitle = styled('div', `
+const cssTitle = styled("div", `
   display: inline-block;
   padding: 8px 16px;
   margin-right: 8px;
@@ -415,7 +423,7 @@ const cssEditableLabel = styled(editableLabel, `
   color: white;
 `);
 
-const cssFlexExpand = styled('div', `
+const cssFlexExpand = styled("div", `
   flex: 1;
   display: flex;
   align-items: center;
@@ -426,7 +434,7 @@ const cssFlexExpand = styled('div', `
   }
 `);
 
-const cssLoading = styled('div', `
+const cssLoading = styled("div", `
   display: flex;
   align-items: center;
   gap: 8px;
@@ -484,7 +492,7 @@ const cssButtonIcon = styled(icon, `
   margin-right: 4px;
 `);
 
-const cssNextArrow = styled('div', `
+const cssNextArrow = styled("div", `
   position: fixed;
   height: 32px;
   margin: auto 24px;
@@ -510,9 +518,9 @@ const cssNextArrow = styled('div', `
   }
 `);
 
-const cssDropping = styled('div', '');
+const cssDropping = styled("div", "");
 
-const cssContent = styled('div', `
+const cssContent = styled("div", `
   display: block;
   height: calc(100% - 72px);
   width: calc(100% - 64px);
@@ -540,7 +548,7 @@ const cssContent = styled('div', `
   }
 `);
 
-const cssWarning = styled('div', `
+const cssWarning = styled("div", `
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -551,7 +559,7 @@ const cssWarning = styled('div', `
   padding: 0px;
 `);
 
-const cssDetails = styled('div', `
+const cssDetails = styled("div", `
   font-weight: normal;
   margin-top: 24px;
 `);

@@ -1,33 +1,34 @@
-import {version as installedVersion} from "app/common/version";
-import {getAppRoot} from 'app/server/lib/places';
-import {fromCallback, listenPromise} from 'app/server/lib/serverUtils';
-import express from 'express';
-import * as http from 'http';
-import {AddressInfo, Socket} from 'net';
-import * as path from 'path';
-import {fixturesRoot} from 'test/server/testUtils';
+import { version as installedVersion } from "app/common/version";
+import { getAppRoot } from "app/server/lib/places";
+import { fromCallback, listenPromise } from "app/server/lib/serverUtils";
+import { fixturesRoot } from "test/server/testUtils";
+
+import * as http from "http";
+import { AddressInfo, Socket } from "net";
+import * as path from "path";
+
+import express from "express";
 
 // An alternative domain for localhost, to test links that look external. We have a record for
 // localtest.datagrist.com set up to point to localhost.
-const TEST_GRIST_HOST = 'localtest.datagrist.com';
+const TEST_GRIST_HOST = "localtest.datagrist.com";
 
 export interface Serving {
   url: string;
   shutdown: () => Promise<void>;
 }
 
-
 // Adds static files from a directory.
 // By default exposes /fixture/sites
 export function addStatic(app: express.Express, rootDir?: string) {
   // mix in a copy of the plugin api
   app.use(/^\/(grist-plugin-api.js)$/, (req, res) =>
-          res.sendFile(req.params[0], {root:
-                                        path.resolve(getAppRoot(), "static")}));
+    res.sendFile(req.params[0], { root:
+                                        path.resolve(getAppRoot(), "static") }));
   app.use(express.static(rootDir || path.resolve(fixturesRoot, "sites"), {
     setHeaders: (res: express.Response) => {
       res.set("Access-Control-Allow-Origin", "*");
-    }
+    },
   }));
 }
 
@@ -38,8 +39,8 @@ export async function serveStatic(rootDir: string): Promise<Serving> {
 
 // Serve a string of html.
 export async function serveSinglePage(html: string): Promise<Serving> {
-  return serveSomething(app => {
-    app.get('', (req, res) => res.send(html));
+  return serveSomething((app) => {
+    app.get("", (req, res) => res.send(html));
   });
 }
 
@@ -47,15 +48,15 @@ export function serveCustomViews(): Promise<Serving> {
   return serveStatic(path.resolve(fixturesRoot, "sites"));
 }
 
-export async function serveSomething(setup: (app: express.Express) => void, port= 0): Promise<Serving> {
+export async function serveSomething(setup: (app: express.Express) => void, port = 0): Promise<Serving> {
   const app = express();
   const server = http.createServer(app);
   await listenPromise(server.listen(port));
 
   const connections = new Set<Socket>();
-  server.on('connection', (conn) => {
+  server.on("connection", (conn) => {
     connections.add(conn);
-    conn.on('close', () => connections.delete(conn));
+    conn.on("close", () => connections.delete(conn));
   });
 
   async function shutdown() {
@@ -64,10 +65,10 @@ export async function serveSomething(setup: (app: express.Express) => void, port
   }
 
   port = (server.address() as AddressInfo).port;
-  app.set('port', port);
+  app.set("port", port);
   setup(app);
   const url = `http://localhost:${port}`;
-  return {url, shutdown};
+  return { url, shutdown };
 }
 
 /**
@@ -99,7 +100,7 @@ export class Defer {
 }
 
 export async function startFakeUpdateServer() {
-  let mutex: Defer|null = null;
+  let mutex: Defer | null = null;
   const API: FakeUpdateServer = {
     latestVersion: bumpVersion(installedVersion),
     isCritical: false,
@@ -126,14 +127,14 @@ export async function startFakeUpdateServer() {
     },
   };
 
-  let server: Serving|null = await serveSomething((app) => {
+  let server: Serving | null = await serveSomething((app) => {
     app.use(express.json());
-    app.post('/version', async (req, res, next) => {
+    app.post("/version", async (req, res, next) => {
       API.payload = req.body;
       try {
         await mutex;
         if (API.failNext) {
-          res.status(500).json({error: 'some error'});
+          res.status(500).json({ error: "some error" });
           API.failNext = false;
           return;
         }
@@ -141,7 +142,8 @@ export async function startFakeUpdateServer() {
           latestVersion: API.latestVersion,
           isCritical: API.isCritical,
         });
-      } catch(ex) {
+      }
+      catch (ex) {
         next(ex);
       }
     });
@@ -151,11 +153,11 @@ export async function startFakeUpdateServer() {
 }
 
 function bumpVersion(version: string) {
-  const parts = version.split('.').map((part) => {
-    return Number(part.replace(/\D/g, ''));
+  const parts = version.split(".").map((part) => {
+    return Number(part.replace(/\D/g, ""));
   });
   parts[parts.length - 1] += 1;
-  return parts.join('.');
+  return parts.join(".");
 }
 
 export interface FakeUpdateServer {
@@ -189,6 +191,6 @@ export function setupExternalSite(content: string) {
     if (serving) { await serving.shutdown(); }
   });
   return {
-    getUrl() { return servingUrl; }
+    getUrl() { return servingUrl; },
   };
 }

@@ -1,16 +1,16 @@
-import { ApiError } from 'app/common/ApiError';
+import { ApiError } from "app/common/ApiError";
 import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
+import * as roles from "app/common/roles";
 import { UserOptions } from "app/common/UserAPI";
-import * as roles from 'app/common/roles';
 import { Document } from "app/gen-server/entity/Document";
 import { Group } from "app/gen-server/entity/Group";
 import { AccessOptionWithRole, Organization } from "app/gen-server/entity/Organization";
+import { ServiceAccount } from "app/gen-server/entity/ServiceAccount";
 import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
+import { GroupTypes } from "app/gen-server/lib/homedb/GroupsManager";
 
 import { EntityManager } from "typeorm";
-import { GroupTypes } from "app/gen-server/lib/homedb/GroupsManager";
-import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
 
 export interface QueryResult<T> {
   status: number;
@@ -32,7 +32,7 @@ export interface GetUserOptions {
 export interface UserProfileChange {
   name?: string;
   isFirstTimeUser?: boolean;
-  disabledAt?: Date|null;
+  disabledAt?: Date | null;
   options?: Partial<UserOptions>;
 }
 
@@ -43,11 +43,11 @@ export type AvailableUsers = number | UserProfile[];
 
 export type NonGuestGroup = Group & { name: roles.NonGuestRole };
 
-export type Resource = Organization|Workspace|Document;
+export type Resource = Organization | Workspace | Document;
 
 export type RunInTransaction = <T>(
-  transaction: EntityManager|undefined,
-  op: ((manager: EntityManager) => Promise<T>)
+  transaction: EntityManager | undefined,
+  op: ((manager: EntityManager) => Promise<T>),
 ) => Promise<T>;
 
 export interface DocumentAccessChanges {
@@ -83,14 +83,12 @@ export interface GroupWithMembersDescriptor {
 interface AccessChanges {
   publicAccess: roles.NonGuestRole | null;
   maxInheritedAccess: roles.BasicRole | null;
-  users: Array<
-    Pick<User, "id" | "name"> & { email?: string } & {
-      access: roles.NonGuestRole | null;
-    }
-  >;
+  users: (Pick<User, "id" | "name"> & { email?: string } & {
+    access: roles.NonGuestRole | null;
+  })[];
 }
 
-export type ServiceAccountProperties = Partial<Pick<ServiceAccount, 'label' | 'description' | 'expiresAt'>>;
+export type ServiceAccountProperties = Partial<Pick<ServiceAccount, "label" | "description" | "expiresAt">>;
 
 // Identifies a request to access a document. This combination of values is also used for caching
 // DocAuthResult for DOC_AUTH_CACHE_TTL.  Other request scope information is passed along.
@@ -103,16 +101,15 @@ export interface DocAuthKey {
 // Document auth info. This is the minimum needed to resolve user access checks. For anything else
 // (e.g. doc title), the uncached getDoc() call should be used.
 export interface DocAuthResult {
-  docId: string|null;         // The unique identifier of the document. Null on error.
-  access: roles.Role|null;    // The access level for the requesting user. Null on error.
-  removed: boolean|null;      // Set if the doc is soft-deleted. Users may still have access
-                              // to removed documents for some purposes. Null on error.
-  disabled: boolean|null;     // Removes most user read access and all
-                              // write access. Null on error.
+  docId: string | null;         // The unique identifier of the document. Null on error.
+  access: roles.Role | null;    // The access level for the requesting user. Null on error.
+  removed: boolean | null;      // Set if the doc is soft-deleted. Users may still have access
+  // to removed documents for some purposes. Null on error.
+  disabled: boolean | null;     // Removes most user read access and all
+  // write access. Null on error.
   error?: ApiError;
   cachedDoc?: Document;       // For cases where stale info is ok.
 }
-
 
 // Defines a subset of HomeDBManager used for logins. In practice we still just pass around
 // the full HomeDBManager, but this makes it easier to know which of its methods matter.
@@ -120,12 +117,12 @@ export interface HomeDBAuth {
   getAnonymousUserId(): number;
   getSupportUserId(): number;
   getAnonymousUser(): User;
-  getUser(userId: number, options?: {includePrefs?: boolean}): Promise<User|undefined>;
-  getUserByKey(apiKey: string): Promise<User|undefined>;
+  getUser(userId: number, options?: { includePrefs?: boolean }): Promise<User | undefined>;
+  getUserByKey(apiKey: string): Promise<User | undefined>;
   getUserByLogin(email: string, options?: GetUserOptions): Promise<User>;
   getUserByLoginWithRetry(email: string, options?: GetUserOptions): Promise<User>;
-  getBestUserForOrg(users: AvailableUsers, org: number|string): Promise<AccessOptionWithRole|null>;
-  getServiceAccountByLoginWithOwner(login: string): Promise<ServiceAccount|null>;
+  getBestUserForOrg(users: AvailableUsers, org: number | string): Promise<AccessOptionWithRole | null>;
+  getServiceAccountByLoginWithOwner(login: string): Promise<ServiceAccount | null>;
   makeFullUser(user: User): FullUser;
 }
 

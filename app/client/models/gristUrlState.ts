@@ -22,14 +22,15 @@
  *
  * Note that the form of URLs depends on the settings in window.gristConfig object.
  */
-import {unsavedChanges} from 'app/client/components/UnsavedChanges';
-import {hooks} from 'app/client/Hooks';
-import {UrlState} from 'app/client/lib/UrlState';
-import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState} from 'app/common/gristUrls';
-import {Document} from 'app/common/UserAPI';
-import isEmpty = require('lodash/isEmpty');
-import isEqual = require('lodash/isEqual');
-import {CellValue} from "app/plugin/GristData";
+import { unsavedChanges } from "app/client/components/UnsavedChanges";
+import { hooks } from "app/client/Hooks";
+import { UrlState } from "app/client/lib/UrlState";
+import { decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState } from "app/common/gristUrls";
+import { Document } from "app/common/UserAPI";
+import { CellValue } from "app/plugin/GristData";
+
+import isEmpty from "lodash/isEmpty";
+import isEqual from "lodash/isEqual";
 
 /**
  * Returns a singleton UrlState object, initializing it on first use.
@@ -37,7 +38,7 @@ import {CellValue} from "app/plugin/GristData";
 export function urlState(): UrlState<IGristUrlState> {
   return _urlState || (_urlState = new UrlState(window, new UrlStateImpl(window as any)));
 }
-let _urlState: UrlState<IGristUrlState>|undefined;
+let _urlState: UrlState<IGristUrlState> | undefined;
 
 /**
  * Returns url parameters appropriate for the specified document.
@@ -58,14 +59,14 @@ export function docUrl(doc: Document): IGristUrlState {
 export function getMainOrgUrl(): string { return urlState().makeUrl({}); }
 
 // When on a document URL, returns the URL with just the doc ID, omitting other bits (like page).
-export function getCurrentDocUrl(): string { return urlState().makeUrl({docPage: undefined}); }
+export function getCurrentDocUrl(): string { return urlState().makeUrl({ docPage: undefined }); }
 
 /**
  * Implements the interface expected by UrlState. It is only exported for the sake of tests; the
  * only public interface is the urlState() accessor.
  */
 export class UrlStateImpl {
-  constructor(private _window: {gristConfig?: Partial<GristLoadConfig>}) {}
+  constructor(private _window: { gristConfig?: Partial<GristLoadConfig> }) {}
 
   /**
    * The actual serialization of a url state into a URL. The URL has the form
@@ -111,12 +112,12 @@ export class UrlStateImpl {
       newState.activation ||
       newState.auditLogs ||
       newState.welcome ||
-      newState.adminPanel
-        ? prevState.org
-          ? { org: prevState.org }
-          : {}
-        : prevState;
-    return {...keepState, ...newState};
+      newState.adminPanel ?
+        prevState.org ?
+          { org: prevState.org } :
+          {} :
+        prevState;
+    return { ...keepState, ...newState };
   }
 
   /**
@@ -151,16 +152,16 @@ export class UrlStateImpl {
     const adminPanelReload = Boolean(prevState.adminPanel) !== Boolean(newState.adminPanel);
     return Boolean(
       orgReload ||
-        accountReload ||
-        billingReload ||
-        activationReload ||
-        auditLogsReload ||
-        gristConfig.errPage ||
-        docReload ||
-        welcomeReload ||
-        linkKeysReload ||
-        loginReload ||
-        adminPanelReload
+      accountReload ||
+      billingReload ||
+      activationReload ||
+      auditLogsReload ||
+      gristConfig.errPage ||
+      docReload ||
+      welcomeReload ||
+      linkKeysReload ||
+      loginReload ||
+      adminPanelReload,
     );
   }
 
@@ -180,16 +181,17 @@ export class UrlStateImpl {
  * if not, prepending `https://`.
  */
 export function constructUrl(value: CellValue): string {
-  if (typeof value !== 'string') {
-    return '';
+  if (typeof value !== "string") {
+    return "";
   }
-  const url = value.slice(value.lastIndexOf(' ') + 1);
+  const url = value.slice(value.lastIndexOf(" ") + 1);
   try {
     // Try to construct a valid URL
     return (new URL(url)).toString();
-  } catch (e) {
+  }
+  catch (e) {
     // Not a valid URL, so try to prefix it with https
-    return 'https://' + url;
+    return "https://" + url;
   }
 }
 
@@ -203,7 +205,8 @@ export function sameDocumentUrlState(urlValue: CellValue): IGristUrlState | null
   let url: URL;
   try {
     url = new URL(urlString);
-  } catch {
+  }
+  catch {
     return null;
   }
   const oldOrigin = window.location.origin;
@@ -216,7 +219,8 @@ export function sameDocumentUrlState(urlValue: CellValue): IGristUrlState | null
   const result = urlStateImpl.decodeUrl(url);
   if (urlStateImpl.needPageLoad(urlState().state.get(), result)) {
     return null;
-  } else {
+  }
+  else {
     return result;
   }
 }

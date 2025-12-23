@@ -1,31 +1,32 @@
-import {Disposable, dom, Holder, Observable, styled, UseCBOwner} from 'grainjs';
-import {mod} from 'app/common/gutil';
-import {SpecialDocPage} from 'app/common/gristUrls';
-import isEqual from 'lodash/isEqual';
-import {makeT} from 'app/client/lib/localization';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {trapTabKey} from 'app/client/lib/trapTabKey';
-import {isFocusable} from 'app/client/lib/isFocusable';
-import * as commands from 'app/client/components/commands';
-import {App} from 'app/client/ui/App';
-import {GristDoc} from 'app/client/components/GristDoc';
-import BaseView from 'app/client/components/BaseView';
-import {kbFocusHighlighterClass} from 'app/client/components/KeyboardFocusHighlighter';
-import {components} from 'app/common/ThemePrefs';
+import BaseView from "app/client/components/BaseView";
+import * as commands from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
+import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import { isFocusable } from "app/client/lib/isFocusable";
+import { makeT } from "app/client/lib/localization";
+import { trapTabKey } from "app/client/lib/trapTabKey";
+import { App } from "app/client/ui/App";
+import { SpecialDocPage } from "app/common/gristUrls";
+import { mod } from "app/common/gutil";
+import { components } from "app/common/ThemePrefs";
 
-const t = makeT('RegionFocusSwitcher');
+import { Disposable, dom, Holder, Observable, styled, UseCBOwner } from "grainjs";
+import isEqual from "lodash/isEqual";
 
-export type Panel = 'left' | 'top' | 'right' | 'main';
+const t = makeT("RegionFocusSwitcher");
+
+export type Panel = "left" | "top" | "right" | "main";
 interface PanelRegion {
-  type: 'panel',
+  type: "panel",
   id: Panel // this matches a dom element id
 }
 interface SectionRegion {
-  type: 'section',
+  type: "section",
   id?: number // this matches a grist document view section id. If none is provided, it means "view layout" is focused.
 }
 type Region = PanelRegion | SectionRegion;
-type StateUpdateInitiator = {type: 'cycle'} | {type: 'mouse', event?: MouseEvent};
+type StateUpdateInitiator = { type: "cycle" } | { type: "mouse", event?: MouseEvent };
 interface State {
   region?: Region;
   initiator?: StateUpdateInitiator;
@@ -42,6 +43,7 @@ export class RegionFocusSwitcher extends Disposable {
     region: undefined,
     initiator: undefined,
   });
+
   private get _gristDocObs() { return this._app?.pageModel?.gristDoc; }
   // Previously focused elements for each panel (not used for view section ids)
   private _prevFocusedElements: Record<Panel, Element | null> = {
@@ -50,28 +52,30 @@ export class RegionFocusSwitcher extends Disposable {
     right: null,
     main: null,
   };
+
   // Command history exclusively here to warn the user about the creator panel shortcut if needed
   private _commandsHistory: {
-    name: 'nextRegion' | 'prevRegion' | 'creatorPanel',
+    name: "nextRegion" | "prevRegion" | "creatorPanel",
     timestamp: number
   }[] = [];
+
   private _warnedAboutCreatorPanel = false;
 
   constructor(private _app?: App) {
     super();
     this.autoDispose(commands.createGroup({
       nextRegion: () => {
-        this._logCommand('nextRegion');
+        this._logCommand("nextRegion");
         this._maybeNotifyAboutCreatorPanel();
-        return this._cycle('next');
+        return this._cycle("next");
       },
       prevRegion: () => {
-        this._logCommand('prevRegion');
+        this._logCommand("prevRegion");
         this._maybeNotifyAboutCreatorPanel();
-        return this._cycle('prev');
+        return this._cycle("prev");
       },
       creatorPanel: () => {
-        this._logCommand('creatorPanel');
+        this._logCommand("creatorPanel");
         return this._toggleCreatorPanel();
       },
       cancel: this._onEscapeKeypress.bind(this),
@@ -80,9 +84,9 @@ export class RegionFocusSwitcher extends Disposable {
     this.autoDispose(this._state.addListener(this._onStateChange.bind(this)));
 
     const focusActiveSection = () => this.focusActiveSection();
-    this._app?.on('clipboard_focus', focusActiveSection);
+    this._app?.on("clipboard_focus", focusActiveSection);
     this.onDispose(() => {
-      this._app?.off('clipboard_focus', focusActiveSection);
+      this._app?.off("clipboard_focus", focusActiveSection);
       this.reset();
     });
   }
@@ -96,27 +100,27 @@ export class RegionFocusSwitcher extends Disposable {
   public onPageDomLoaded(el: HTMLElement) {
     if (this._gristDocObs) {
       const onClick = this._onClick.bind(this);
-      el.addEventListener('mouseup', onClick);
-      this.onDispose(() => el.removeEventListener('mouseup', onClick));
+      el.addEventListener("mouseup", onClick);
+      this.onDispose(() => el.removeEventListener("mouseup", onClick));
     }
   }
 
   public panelAttrs(id: Panel, ariaLabel: string) {
     return [
-      dom.attr('role', id === 'main'
-        ? 'main'
-        : id === 'top'
-          ? 'banner'
-          : 'region'),
-      dom.attr('aria-label', ariaLabel),
+      dom.attr("role", id === "main" ?
+        "main" :
+        id === "top" ?
+          "banner" :
+          "region"),
+      dom.attr("aria-label", ariaLabel),
       dom.attr(ATTRS.regionId, id),
-      dom.cls(kbFocusHighlighterClass, use => {
+      dom.cls(kbFocusHighlighterClass, (use) => {
         // highlight focused elements everywhere except in the grist doc views
-        return id !== 'main'
-          ? true
-          : this._canTabThroughMainRegion(use);
+        return id !== "main" ?
+          true :
+          this._canTabThroughMainRegion(use);
       }),
-      dom.cls('clipboard_group_focus', use => {
+      dom.cls("clipboard_group_focus", (use) => {
         const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
         // if we are not on a grist doc, whole page is always focusable
         if (!gristDoc) {
@@ -124,7 +128,7 @@ export class RegionFocusSwitcher extends Disposable {
         }
         // on a grist doc, panel content is focusable only if it's the current region
         const current = use(this._state).region;
-        if (current?.type === 'panel' && current.id === id) {
+        if (current?.type === "panel" && current.id === id) {
           return true;
         }
         // on a grist doc, main panel is focusable only if we are not the actual document view
@@ -133,9 +137,9 @@ export class RegionFocusSwitcher extends Disposable {
         }
         return false;
       }),
-      cssFocusedPanel.cls('-focused', use => {
+      cssFocusedPanel.cls("-focused", (use) => {
         const current = use(this._state);
-        return current.initiator?.type === 'cycle' && current.region?.type === 'panel' && current.region.id === id;
+        return current.initiator?.type === "cycle" && current.region?.type === "panel" && current.region.id === id;
       }),
     ];
   }
@@ -147,10 +151,10 @@ export class RegionFocusSwitcher extends Disposable {
    */
   public getRegionId(region?: Region) {
     const state = region ?? this._state.get().region;
-    if (state?.type === 'panel') {
+    if (state?.type === "panel") {
       return state.id;
     }
-    return 'main';
+    return "main";
   }
 
   /**
@@ -160,11 +164,11 @@ export class RegionFocusSwitcher extends Disposable {
    */
   public focusRegion(id: Panel) {
     const gristDoc = this._getGristDoc();
-    if (gristDoc && id === 'main') {
+    if (gristDoc && id === "main") {
       this.focusActiveSection();
       return;
     }
-    this._focusRegion({type: 'panel', id});
+    this._focusRegion({ type: "panel", id });
   }
 
   /**
@@ -175,7 +179,7 @@ export class RegionFocusSwitcher extends Disposable {
   public focusActiveSection() {
     const gristDoc = this._getGristDoc();
     if (gristDoc) {
-      this._focusRegion({type: 'section', id: gristDoc.viewModel.activeSectionId()});
+      this._focusRegion({ type: "section", id: gristDoc.viewModel.activeSectionId() });
     }
   }
 
@@ -200,34 +204,34 @@ export class RegionFocusSwitcher extends Disposable {
 
   private _focusRegion(
     region: Region | undefined,
-    options: {initiator?: StateUpdateInitiator} = {}
+    options: { initiator?: StateUpdateInitiator } = {},
   ) {
-    if (region?.type === 'panel' && !getPanelElement(region.id)) {
+    if (region?.type === "panel" && !getPanelElement(region.id)) {
       return;
     }
 
     const gristDoc = this._getGristDoc();
-    if (gristDoc && region?.type === 'panel' && region?.id === 'main') {
-      console.error('main panel is not supported when a view layout is rendered');
+    if (gristDoc && region?.type === "panel" && region?.id === "main") {
+      console.error("main panel is not supported when a view layout is rendered");
       return;
     }
-    if (!gristDoc && region?.type === 'section') {
-      console.error('view section id is not supported when no view layout is rendered');
+    if (!gristDoc && region?.type === "section") {
+      console.error("view section id is not supported when no view layout is rendered");
       return;
     }
 
-    this._state.set({region, initiator: options.initiator});
+    this._state.set({ region, initiator: options.initiator });
   }
 
-  private _cycle(direction: 'next' | 'prev') {
+  private _cycle(direction: "next" | "prev") {
     const gristDoc = this._getGristDoc();
     const cycleRegions = getCycleRegions(gristDoc);
     this._focusRegion(getSibling(
       this._state.get().region,
       cycleRegions,
       direction,
-      gristDoc
-    ), {initiator: {type: 'cycle'}});
+      gristDoc,
+    ), { initiator: { type: "cycle" } });
   }
 
   /**
@@ -246,7 +250,7 @@ export class RegionFocusSwitcher extends Disposable {
       return;
     }
     const targetRegionId = closestRegion.getAttribute(ATTRS.regionId);
-    const targetsMain = targetRegionId === 'main';
+    const targetsMain = targetRegionId === "main";
 
     // When not targeting the main panel, we don't always want to focus the given region _on click_.
     //
@@ -267,9 +271,10 @@ export class RegionFocusSwitcher extends Disposable {
     if (targetsMain || !isFocusableElement) {
       // don't specify a section id here: we just want to focus back the view layout,
       // we don't specifically know which section, the view layout will take care of that.
-      this._focusRegion({type: 'section'}, {initiator: {type: 'mouse', event}});
-    } else {
-      this._focusRegion({type: 'panel', id: targetRegionId as Panel}, {initiator: {type: 'mouse', event}});
+      this._focusRegion({ type: "section" }, { initiator: { type: "mouse", event } });
+    }
+    else {
+      this._focusRegion({ type: "panel", id: targetRegionId as Panel }, { initiator: { type: "mouse", event } });
     }
   }
 
@@ -281,12 +286,12 @@ export class RegionFocusSwitcher extends Disposable {
    * So, this doesn't get called when in a modal, a popup menu, etc., as those have their own cancel callback.
    */
   private _onEscapeKeypress() {
-    const {region: current, initiator} = this._state.get();
+    const { region: current, initiator } = this._state.get();
     // Do nothing if we are not focused on a panel
-    if (current?.type !== 'panel') {
+    if (current?.type !== "panel") {
       return;
     }
-    const comesFromKeyboard = initiator?.type === 'cycle';
+    const comesFromKeyboard = initiator?.type === "cycle";
     const panelElement = getPanelElement(current.id);
     if (!panelElement) {
       return;
@@ -303,17 +308,18 @@ export class RegionFocusSwitcher extends Disposable {
 
     if (
       // Focus back the panel element itself if currently focused element is a child
-      activeElementIsInPanel
+      activeElementIsInPanel ||
       // Specific case: when we escape inputs from panels, this isn't called, and focus switches back to body.
       // If user presses escape again, we also want to focus the panel.
-      || (activeElement === document.body)
+      (activeElement === document.body)
     ) {
       if (comesFromKeyboard) {
         focusPanelElement(panelElement);
         if (activeElementIsInPanel) {
           this._prevFocusedElements[current.id] = null;
         }
-      } else {
+      }
+      else {
         this.reset();
       }
       return;
@@ -324,7 +330,7 @@ export class RegionFocusSwitcher extends Disposable {
    * Save previous panel's focused element for later. Not necessary for view sections
    */
   private _savePrevElementState(prev: Region | undefined) {
-    const prevIsPanel = prev?.type === 'panel';
+    const prevIsPanel = prev?.type === "panel";
     if (!prevIsPanel) {
       return;
     }
@@ -342,21 +348,21 @@ export class RegionFocusSwitcher extends Disposable {
     }
 
     const gristDoc = this._getGristDoc();
-    const mouseEvent = current.initiator?.type === 'mouse'
-      ? current.initiator.event
-      : undefined;
+    const mouseEvent = current.initiator?.type === "mouse" ?
+      current.initiator.event :
+      undefined;
 
     clearCurrentFocusLock();
     removeFocusRings();
     removeTabIndexes();
     if (!mouseEvent) {
       this._savePrevElementState(prev.region);
-      if (prev.region?.type === 'panel') {
+      if (prev.region?.type === "panel") {
         blurPanelChild(prev.region);
       }
     }
 
-    const isPanel = current.region?.type === 'panel';
+    const isPanel = current.region?.type === "panel";
     const panelElement = isPanel && current.region?.id && getPanelElement((current.region as PanelRegion).id);
 
     // If kb-focusing a panel:
@@ -367,17 +373,19 @@ export class RegionFocusSwitcher extends Disposable {
       focusPanel(
         current.region as PanelRegion,
         this._prevFocusedElements[current.region.id as Panel] as HTMLElement | null,
-        gristDoc
+        gristDoc,
       );
 
     // If clicking on a panel: only make sure view layout commands are disabled,
     // making the Tab key available for normal browser navigation (see `escapeViewLayout`)
-    } else if (mouseEvent && isPanel && panelElement && gristDoc) {
+    }
+    else if (mouseEvent && isPanel && panelElement && gristDoc) {
       escapeViewLayout(gristDoc, !!(mouseEvent.target as Element)?.closest(`[${ATTRS.regionId}="right"]`));
 
     // If clicking or kb-focusing a section: focus the section,
     // enabling back the view layout commands (see `focusSection`).
-    } else if (current.region?.type === 'section' && gristDoc) {
+    }
+    else if (current.region?.type === "section" && gristDoc) {
       focusSection(current.region, gristDoc);
     }
 
@@ -398,14 +406,14 @@ export class RegionFocusSwitcher extends Disposable {
   private _toggleCreatorPanel() {
     const current = this._state.get().region;
     const gristDoc = this._getGristDoc();
-    if (current?.type === 'panel' && current.id === 'right') {
+    if (current?.type === "panel" && current.id === "right") {
       return this._focusRegion(
-        gristDoc ? {type: 'section'} : {type: 'panel', id: 'main'},
-        {initiator: {type: 'cycle'}}
+        gristDoc ? { type: "section" } : { type: "panel", id: "main" },
+        { initiator: { type: "cycle" } },
       );
     }
     commands.allCommands.rightPanelOpen.run();
-    return this._focusRegion({type: 'panel', id: 'right'}, {initiator: {type: 'cycle'}});
+    return this._focusRegion({ type: "panel", id: "right" }, { initiator: { type: "cycle" } });
   }
 
   private _canTabThroughMainRegion(use: UseCBOwner) {
@@ -426,20 +434,20 @@ export class RegionFocusSwitcher extends Disposable {
    * we want to handle kb focus like non-docs pages.
    */
   private _getGristDoc() {
-    const doc = !!this._gristDocObs && !this._gristDocObs.isDisposed()
-      ? this._gristDocObs.get()
-      : null;
+    const doc = !!this._gristDocObs && !this._gristDocObs.isDisposed() ?
+      this._gristDocObs.get() :
+      null;
     if (!isSpecialPage(doc)) {
       return doc;
     }
     return null;
   }
 
-  private _logCommand(name: 'nextRegion' | 'prevRegion' | 'creatorPanel') {
+  private _logCommand(name: "nextRegion" | "prevRegion" | "creatorPanel") {
     if (this._commandsHistory.length > 20) {
       this._commandsHistory.shift();
     }
-    this._commandsHistory.push({name, timestamp: Date.now()});
+    this._commandsHistory.push({ name, timestamp: Date.now() });
   }
 
   /**
@@ -452,7 +460,7 @@ export class RegionFocusSwitcher extends Disposable {
     if (this._warnedAboutCreatorPanel) {
       return;
     }
-    const usedCreatorPanelCommand = this._commandsHistory.some(cmd => cmd.name === 'creatorPanel');
+    const usedCreatorPanelCommand = this._commandsHistory.some(cmd => cmd.name === "creatorPanel");
     if (usedCreatorPanelCommand) {
       return;
     }
@@ -465,21 +473,21 @@ export class RegionFocusSwitcher extends Disposable {
     const cycleRegions = getCycleRegions(gristDoc);
     // the logic is: if in the last 20 seconds, the user pressed the same cycle shortcut enough times
     // to do 2 full cycles through the regions, we assume he is trying to access the creator panel.
-    const warn = commandsInLast20Secs.length > ((cycleRegions.length * 2) - 1)
-      && (
-        commandsInLast20Secs.every(cmd => cmd.name === 'nextRegion')
-        || commandsInLast20Secs.every(cmd => cmd.name === 'prevRegion')
+    const warn = commandsInLast20Secs.length > ((cycleRegions.length * 2) - 1) &&
+      (
+        commandsInLast20Secs.every(cmd => cmd.name === "nextRegion") ||
+        commandsInLast20Secs.every(cmd => cmd.name === "prevRegion")
       );
     if (warn) {
       this._app?.topAppModel.notifier.createUserMessage(
         t(
-          'Trying to access the creator panel? Use {{key}}.',
-          {key: commands.allCommands.creatorPanel.humanKeys}
+          "Trying to access the creator panel? Use {{key}}.",
+          { key: commands.allCommands.creatorPanel.humanKeys },
         ),
         {
-          level: 'info',
-          key: 'rfs-cp-warn',
-        }
+          level: "info",
+          key: "rfs-cp-warn",
+        },
       );
       this._warnedAboutCreatorPanel = true;
     }
@@ -503,8 +511,8 @@ export const viewCommands = (commandsObject: Record<string, Function>, context: 
 };
 
 const ATTRS = {
-  regionId: 'data-grist-region-id',
-  focusedElement: 'data-grist-region-focused-el',
+  regionId: "data-grist-region-id",
+  focusedElement: "data-grist-region-focused-el",
 };
 
 /**
@@ -523,19 +531,20 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
   if (child && child !== panelElement && child.isConnected && isFocusable(child)) {
     // Visually highlight the element with similar styles than panel focus,
     // only for this time. This is here just to help the user better see the visual change when he switches panels.
-    child.setAttribute(ATTRS.focusedElement, 'true');
-    child.addEventListener('blur', () => {
+    child.setAttribute(ATTRS.focusedElement, "true");
+    child.addEventListener("blur", () => {
       child.removeAttribute(ATTRS.focusedElement);
-    }, {once: true});
+    }, { once: true });
     child.focus?.();
-  } else {
+  }
+  else {
     // No child to focus found: just focus the panel
     focusPanelElement(panelElement);
   }
 
   if (gristDoc) {
     // Creator panel is a special case "related to the view"
-    escapeViewLayout(gristDoc, panel.id === 'right');
+    escapeViewLayout(gristDoc, panel.id === "right");
   }
 };
 
@@ -545,13 +554,13 @@ const focusPanelElement = (panelElement: HTMLElement) => {
   // if we happen to just click on a non-focusable element inside a panel,
   // browser default behavior is to make document.activeElement the closest focusable parent (the panel).
   // We don't want this behavior, so we add/remove the tabindex attribute as needed.
-  panelElement.setAttribute('tabindex', '-1');
+  panelElement.setAttribute("tabindex", "-1");
   panelElement.focus();
 };
 
 const focusViewLayout = (gristDoc: GristDoc) => {
   FocusLayer.grabFocus();
-  gristDoc.viewModel.focusedRegionState('in');
+  gristDoc.viewModel.focusedRegionState("in");
 };
 
 /**
@@ -570,7 +579,7 @@ const focusViewLayout = (gristDoc: GristDoc) => {
  * which are the ones overriding the Tab key normal browser behavior and trapping the Tab key usage in a Table/Card/etc.
  */
 const escapeViewLayout = (gristDoc: GristDoc, isRelated = false) => {
-  gristDoc.viewModel.focusedRegionState(isRelated ? 'related' : 'out');
+  gristDoc.viewModel.focusedRegionState(isRelated ? "related" : "out");
 };
 
 /**
@@ -593,21 +602,21 @@ const focusSection = (section: SectionRegion, gristDoc: GristDoc) => {
  */
 const getCycleRegions = (gristDoc: GristDoc | null): Region[] => {
   const commonPanels = [
-    getPanelElement('left') ? {type: 'panel', id: 'left'} as PanelRegion : null,
-    getPanelElement('top') ? {type: 'panel', id: 'top'} as PanelRegion : null,
+    getPanelElement("left") ? { type: "panel", id: "left" } as PanelRegion : null,
+    getPanelElement("top") ? { type: "panel", id: "top" } as PanelRegion : null,
   ].filter((x): x is PanelRegion => Boolean(x));
 
   // If there is no doc with layout, just cycle through panels
   if (!gristDoc) {
     return [
       ...commonPanels,
-      getPanelElement('main') ? {type: 'panel', id: 'main'} as PanelRegion : null,
+      getPanelElement("main") ? { type: "panel", id: "main" } as PanelRegion : null,
     ].filter((x): x is PanelRegion => Boolean(x));
   }
 
   // If there is a doc, also cycle through section ids
   return [
-    ...gristDoc.viewLayout?.layout.getAllLeafIds().map(id => ({type: 'section', id} as SectionRegion)) ?? [],
+    ...gristDoc.viewLayout?.layout.getAllLeafIds().map(id => ({ type: "section", id } as SectionRegion)) ?? [],
     ...commonPanels,
   ];
 };
@@ -622,10 +631,10 @@ const getCycleRegions = (gristDoc: GristDoc | null): Region[] => {
 const getSibling = (
   current: Region | undefined,
   regions: Region[],
-  direction: 'next' | 'prev',
-  gristDoc: GristDoc | null
+  direction: "next" | "prev",
+  gristDoc: GristDoc | null,
 ): Region | undefined => {
-  const isCreatorPanel = current?.type === 'panel' && current.id === 'right';
+  const isCreatorPanel = current?.type === "panel" && current.id === "right";
 
   // First normally try to get current region in the cycle
   let currentIndexInCycle = findRegionIndex(regions, current);
@@ -633,7 +642,7 @@ const getSibling = (
   // If it's not found, it certainly means there is no current region set yet.
   // In case of a grist doc, we can use the active section id as the "current index"
   if ((currentIndexInCycle === -1 || isCreatorPanel) && gristDoc) {
-    currentIndexInCycle = findRegionIndex(regions, {type: 'section', id: gristDoc.viewModel.activeSectionId()});
+    currentIndexInCycle = findRegionIndex(regions, { type: "section", id: gristDoc.viewModel.activeSectionId() });
   }
   // If we still don't find anything, it means we never set the current region before on a non-doc page,
   // or we didn't find any current doc section. Return the first region as default.
@@ -642,7 +651,7 @@ const getSibling = (
   }
 
   // Normal case: just return the next or previous region in the cycle, wrapping around
-  const sibling = regions[mod(currentIndexInCycle + (direction === 'next' ? 1 : -1), regions.length)];
+  const sibling = regions[mod(currentIndexInCycle + (direction === "next" ? 1 : -1), regions.length)];
   return sibling;
 };
 
@@ -656,7 +665,6 @@ const blurPanelChild = (panel: PanelRegion) => {
   }
 };
 
-
 const _focusLockHolder = Holder.create(null);
 
 const clearCurrentFocusLock = () => _focusLockHolder.clear();
@@ -668,8 +676,8 @@ const clearCurrentFocusLock = () => _focusLockHolder.clear();
  */
 const enableFocusLock = (panelElement: HTMLElement) => {
   clearCurrentFocusLock();
-  _focusLockHolder.autoDispose(dom.onElem(panelElement, 'keydown', (event, elem) => {
-    if (event.key === 'Tab') {
+  _focusLockHolder.autoDispose(dom.onElem(panelElement, "keydown", (event, elem) => {
+    if (event.key === "Tab") {
       trapTabKey(elem, event);
     }
   }));
@@ -687,12 +695,12 @@ const isMouseFocusableElement = (el: EventTarget | null): boolean => {
   if (!el) {
     return false;
   }
-  if (el instanceof HTMLElement && ['input', 'textarea', 'select', 'iframe'].includes(el.tagName.toLocaleLowerCase())) {
+  if (el instanceof HTMLElement && ["input", "textarea", "select", "iframe"].includes(el.tagName.toLocaleLowerCase())) {
     return true;
   }
   // Sometimes, we don't want to consider an element with tabindex as something we want to keep focus on with the mouse,
   // so we use the 'ignore_tabindex' class to bypass the default behavior.
-  if (el instanceof HTMLElement && el.getAttribute('tabindex') === "0" && !el.classList.contains('ignore_tabindex')) {
+  if (el instanceof HTMLElement && el.getAttribute("tabindex") === "0" && !el.classList.contains("ignore_tabindex")) {
     return true;
   }
   return false;
@@ -709,14 +717,14 @@ const containsActiveElement = (el: HTMLElement | null): boolean => {
  * Remove the visual highlight on elements that are styled as focused elements of panels.
  */
 const removeFocusRings = () => {
-  document.querySelectorAll(`[${ATTRS.focusedElement}]`).forEach(el => {
+  document.querySelectorAll(`[${ATTRS.focusedElement}]`).forEach((el) => {
     el.removeAttribute(ATTRS.focusedElement);
   });
 };
 
 const removeTabIndexes = () => {
-  document.querySelectorAll(`[${ATTRS.regionId}]`).forEach(el => {
-    el.removeAttribute('tabindex');
+  document.querySelectorAll(`[${ATTRS.regionId}]`).forEach((el) => {
+    el.removeAttribute("tabindex");
   });
 };
 
@@ -732,13 +740,13 @@ const isSpecialPage = (doc: GristDoc | null) => {
     return false;
   }
   const activeViewId = doc.activeViewId.get();
-  if (typeof activeViewId === 'string' && SpecialDocPage.guard(activeViewId)) {
+  if (typeof activeViewId === "string" && SpecialDocPage.guard(activeViewId)) {
     return true;
   }
   return false;
 };
 
-export const cssFocusedPanel = styled('div', `
+export const cssFocusedPanel = styled("div", `
   &-focused:focus {
     outline: 3px solid ${components.kbFocusHighlight} !important;
     outline-offset: -3px !important;

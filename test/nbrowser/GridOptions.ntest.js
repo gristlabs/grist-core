@@ -4,8 +4,8 @@
  */
 
 
-import { assert, driver } from 'mocha-webdriver';
-import { $, gu, test } from 'test/nbrowser/gristUtil-nbrowser';
+import { assert, driver } from "mocha-webdriver";
+import { $, gu, test } from "test/nbrowser/gristUtil-nbrowser";
 
 describe("GridOptions.ntest", function() {
   const cleanup = test.setupTestSuite(this);
@@ -15,7 +15,7 @@ describe("GridOptions.ntest", function() {
 
   let secNames = ["COUNTRY", "CITY", "COUNTRYLANGUAGE"];
   let switchTo = (i) =>
-        gu.actions.viewSection(secNames[i]).selectSection();
+    gu.actions.viewSection(secNames[i]).selectSection();
 
   /* Test that styles on the given section match the specified flags
    * sec: index into secNames
@@ -23,11 +23,11 @@ describe("GridOptions.ntest", function() {
    */
   async function assertHVZ(sec, hor, vert, zebra) {
     let testClasses =
-        ['record-hlines', 'record-vlines', 'record-zebra'];
+      ["record-hlines", "record-vlines", "record-zebra"];
     let flags = [hor, vert, zebra];
 
     let cell = await gu.getCell({rowNum: 1, col: 0, section: secNames[sec]});
-    let row = await cell.findClosest('.record');
+    let row = await cell.findClosest(".record");
     const rowClasses = await row.classList();
     testClasses.forEach( (cls, i) => {
       if(flags[i])  { assert.include(rowClasses, cls);}
@@ -41,14 +41,14 @@ describe("GridOptions.ntest", function() {
   before(async function() {
     await gu.supportOldTimeyTestCode();
     await gu.useFixtureDoc(cleanup, "World-v10.grist", true);
-    await $('.test-gristdoc').wait();
+    await $(".test-gristdoc").wait();
     await gu.hideBanners();
   });
 
   beforeEach(async function() {
     //Prepare consistent view
     await gu.actions.selectTabView("Country");
-    await gu.openSidePane('view');
+    await gu.openSidePane("view");
     await $(".test-grid-options").wait(assert.isDisplayed);
   });
 
@@ -60,7 +60,7 @@ describe("GridOptions.ntest", function() {
   // ====== MAIN TESTS ======
 
 
-  it('should only be visible on grid view/summary view', async function() {
+  it("should only be visible on grid view/summary view", async function() {
 
     let getOptions = () => $(".test-grid-options");
     await assert.isPresent(getOptions());
@@ -79,7 +79,7 @@ describe("GridOptions.ntest", function() {
 
   });
 
-  it('should set and persist styles on a grid', async function() {
+  it("should set and persist styles on a grid", async function() {
 
     // get handles on elements
     let h = ".test-h-grid-button input";
@@ -117,12 +117,12 @@ describe("GridOptions.ntest", function() {
   });
 
 
-  it('should set .record-even on even-numbered rows', async function() {
+  it("should set .record-even on even-numbered rows", async function() {
     let rowClasses = row =>
-        gu.getCell({rowNum: row, col: 0}).closest('.record').classList();
+      gu.getCell({rowNum: row, col: 0}).closest(".record").classList();
 
     await switchTo(0);
-    assert.notInclude(await rowClasses(1), 'record-even', "row 1 should be odd");
-    assert.include(await rowClasses(2), 'record-even', "row 2 should be even");
+    assert.notInclude(await rowClasses(1), "record-even", "row 1 should be odd");
+    assert.include(await rowClasses(2), "record-even", "row 2 should be even");
   });
 });

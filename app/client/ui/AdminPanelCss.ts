@@ -1,11 +1,12 @@
-import {textarea} from 'app/client/ui/inputs';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {transition} from 'app/client/ui/transitions';
-import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
-import {components} from 'app/common/ThemePrefs';
-import {dom, DomContents, DomElementArg, IDisposableOwner, Observable, styled} from 'grainjs';
+import { textarea } from "app/client/ui/inputs";
+import { hoverTooltip } from "app/client/ui/tooltips";
+import { transition } from "app/client/ui/transitions";
+import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
+import { components } from "app/common/ThemePrefs";
+
+import { dom, DomContents, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
 
 export interface AdminPanelControls {
   needsRestart: Observable<boolean>;
@@ -15,12 +16,12 @@ export interface AdminPanelControls {
 
 export function HidableToggle(
   owner: IDisposableOwner,
-  value: Observable<boolean|null>,
-  options: {labelId?: string} = {}
+  value: Observable<boolean | null>,
+  options: { labelId?: string } = {},
 ) {
   return toggleSwitch(value, {
-    args: [dom.hide((use) => use(value) === null)],
-    inputArgs: [options.labelId ? {"aria-labelledby": options.labelId} : undefined],
+    args: [dom.hide(use => use(value) === null)],
+    inputArgs: [options.labelId ? { "aria-labelledby": options.labelId } : undefined],
   });
 }
 
@@ -37,23 +38,23 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
   description?: DomContents,
   value?: DomElementArg,
   expandedContent?: DomContents,
-  disabled?: false|string,
+  disabled?: false | string,
 }) {
-  let item: HTMLDivElement|undefined;
+  let item: HTMLDivElement | undefined;
   const itemContent = (...prefix: DomContents[]) => [
     item = cssItemName(
       ...prefix,
       options.name,
       testId(`admin-panel-item-name-${options.id}`),
-      dom.attr('id', options.id),  // Add an id for use as an anchor,
-                                   // although it needs tricks (below)
-      prefix.length ? cssItemName.cls('-prefixed') : null,
-      cssItemName.cls('-full', options.description === undefined),
+      dom.attr("id", options.id),  // Add an id for use as an anchor,
+      // although it needs tricks (below)
+      prefix.length ? cssItemName.cls("-prefixed") : null,
+      cssItemName.cls("-full", options.description === undefined),
       () => {
         // If there is an anchor, check if it points to us.
         // If not, do nothing. If yes, focus here once rendered.
         const hash = window.location.hash;
-        if (hash !== '#' + options.id) { return; }
+        if (hash !== "#" + options.id) { return; }
         // A setTimeout seems to be the "standard" for doing focus
         // after rendering throughout the app. Feels a little hacky,
         // but appears to work reliably, and consequences of failure
@@ -62,28 +63,28 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
           if (!item) { return; }
           item.scrollIntoView();
           item.focus();
-          item.classList.add(cssItemName.className + '-flash');
+          item.classList.add(cssItemName.className + "-flash");
         }, 0);
       },
     ),
-    cssItemDescription(options.description, {id: `admin-panel-item-description-${options.id}`}),
+    cssItemDescription(options.description, { id: `admin-panel-item-description-${options.id}` }),
     cssItemValue(options.value,
       testId(`admin-panel-item-value-${options.id}`),
-      dom.on('click', ev => ev.stopPropagation())),
+      dom.on("click", ev => ev.stopPropagation())),
   ];
   if (options.expandedContent && !options.disabled) {
     const isCollapsed = Observable.create(owner, true);
     return cssItem(
       cssItemShort(
-        itemContent(dom.domComputed(isCollapsed, (c) => cssCollapseIcon(c ? 'Expand' : 'Collapse'))),
-        cssItemShort.cls('-expandable'),
-        dom.on('click', () => isCollapsed.set(!isCollapsed.get())),
+        itemContent(dom.domComputed(isCollapsed, c => cssCollapseIcon(c ? "Expand" : "Collapse"))),
+        cssItemShort.cls("-expandable"),
+        dom.on("click", () => isCollapsed.set(!isCollapsed.get())),
       ),
       cssExpandedContentWrap(
         transition(isCollapsed, {
-          prepare(elem, close) { elem.style.maxHeight = close ? elem.scrollHeight + 'px' : '0'; },
-          run(elem, close) { elem.style.maxHeight = close ? '0' : elem.scrollHeight + 'px'; },
-          finish(elem, close) { elem.style.maxHeight = close ? '0' : 'unset'; },
+          prepare(elem, close) { elem.style.maxHeight = close ? elem.scrollHeight + "px" : "0"; },
+          run(elem, close) { elem.style.maxHeight = close ? "0" : elem.scrollHeight + "px"; },
+          finish(elem, close) { elem.style.maxHeight = close ? "0" : "unset"; },
         }),
         cssExpandedContent(
           options.expandedContent,
@@ -91,13 +92,14 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
       ),
       testId(`admin-panel-item-${options.id}`),
     );
-  } else {
+  }
+  else {
     return cssItem(
       cssItemShort(itemContent(),
-        cssItemShort.cls('-disabled', Boolean(options.disabled)),
+        cssItemShort.cls("-disabled", Boolean(options.disabled)),
         options.disabled ? hoverTooltip(options.disabled, {
-          placement: 'bottom-end',
-          modifiers: {offset: {offset: '0, -10'}},
+          placement: "bottom-end",
+          modifiers: { offset: { offset: "0, -10" } },
         }) : null,
       ),
       testId(`admin-panel-item-${options.id}`),
@@ -105,7 +107,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
   }
 }
 
-export const cssSection = styled('div', `
+export const cssSection = styled("div", `
   padding: 24px;
   max-width: 750px;
   width: 100%;
@@ -125,7 +127,7 @@ export const cssSection = styled('div', `
   }
 `);
 
-export const cssSectionTitle = styled('div', `
+export const cssSectionTitle = styled("div", `
   height: 32px;
   line-height: 32px;
   margin-bottom: 8px;
@@ -133,13 +135,13 @@ export const cssSectionTitle = styled('div', `
   font-weight: ${vars.headerControlTextWeight};
 `);
 
-export const cssItem = styled('div', `
+export const cssItem = styled("div", `
   margin-top: 8px;
   container-type: inline-size;
   container-name: line;
 `);
 
-const cssItemShort = styled('div', `
+const cssItemShort = styled("div", `
   display: flex;
   row-gap: 4px;
   flex-wrap: nowrap;
@@ -168,7 +170,7 @@ const cssItemShort = styled('div', `
   }
 `);
 
-const cssItemName = styled('div', `
+const cssItemName = styled("div", `
   width: 230px;
   font-weight: bold;
   display: flex;
@@ -205,13 +207,13 @@ const cssItemName = styled('div', `
   }
 `);
 
-const cssItemDescription = styled('div', `
+const cssItemDescription = styled("div", `
   width: 250px;
   margin-right: auto;
   margin-bottom: -1px; /* aligns with the value */
 `);
 
-const cssItemValue = styled('div', `
+const cssItemValue = styled("div", `
   flex: none;
   margin: -8px 0;
   padding: 8px;
@@ -232,13 +234,13 @@ const cssCollapseIcon = styled(icon, `
   --icon-color: ${theme.lightText};
 `);
 
-const cssExpandedContentWrap = styled('div', `
+const cssExpandedContentWrap = styled("div", `
   transition: max-height 0.3s ease-in-out;
   overflow: hidden;
   max-height: 0;
 `);
 
-const cssExpandedContent = styled('div', `
+const cssExpandedContent = styled("div", `
   margin-left: 24px;
   padding: 18px 0;
   border-bottom: 1px solid ${theme.widgetBorder};
@@ -253,7 +255,7 @@ const cssExpandedContent = styled('div', `
   }
 `);
 
-export const cssValueLabel = styled('div', `
+export const cssValueLabel = styled("div", `
   padding: 4px 8px;
   color: ${theme.text};
   border: 1px solid ${theme.inputBorder};
@@ -275,7 +277,7 @@ export const cssTextArea = styled(textarea, `
   }
 `);
 
-export const cssWell = styled('div', `
+export const cssWell = styled("div", `
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -296,13 +298,13 @@ export const cssWell = styled('div', `
   }
 `);
 
-export const cssIconWrapper = styled('div', `
+export const cssIconWrapper = styled("div", `
   font-size: 13px;
   flex-shrink: 0;
   margin-top: 2px;
 `);
 
-export const cssWellContent = styled('div', `
+export const cssWellContent = styled("div", `
   color: ${theme.text};
   font-size: ${vars.mediumFontSize};
   line-height: 1.4;

@@ -1,10 +1,9 @@
-import {PluginInstance} from 'app/common/PluginInstance';
-import {ParseFileAPI} from 'app/plugin/FileParserAPI';
-import {checkers} from 'app/plugin/TypeCheckers';
+import { PluginInstance } from "app/common/PluginInstance";
+import { ParseFileAPI } from "app/plugin/FileParserAPI";
+import { FileParser } from "app/plugin/PluginManifest";
+import { checkers } from "app/plugin/TypeCheckers";
 
-import {FileParser} from 'app/plugin/PluginManifest';
-
-import * as path from 'path';
+import * as path from "path";
 
 /**
  * Encapsulates together a file parse contribution with its plugin instance and callable stubs for
@@ -15,7 +14,6 @@ import * as path from 'path';
  *
  */
 export class FileParserElement {
-
   /**
    * Get all file parser that matches fileName from the list of plugins instances.
    */
@@ -39,11 +37,10 @@ export class FileParserElement {
   private constructor(public plugin: PluginInstance, public fileParser: FileParser) {
     this.parseFileStub = plugin.getStub<ParseFileAPI>(fileParser.parseFile, checkers.ParseFileAPI);
   }
-
 }
 
 function matchFileParser(fileParser: FileParser, fileName: string): boolean {
   const ext = path.extname(fileName).slice(1),
     fileExtensions = fileParser.fileExtensions;
-  return fileExtensions && fileExtensions.includes(ext);
+  return fileExtensions?.includes(ext);
 }

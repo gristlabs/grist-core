@@ -1,11 +1,12 @@
-import { DocData } from 'app/common/DocData';
-import { extractInfoFromColType } from 'app/common/gristTypes';
-import { getSetMapValue } from 'app/common/gutil';
-import { SchemaTypes } from 'app/common/schema';
-import { ShareOptions } from 'app/common/ShareOptions';
-import { MetaRowRecord, MetaTableData } from 'app/common/TableData';
-import isEqual from 'lodash/isEqual';
-import sortBy from 'lodash/sortBy';
+import { DocData } from "app/common/DocData";
+import { extractInfoFromColType } from "app/common/gristTypes";
+import { getSetMapValue } from "app/common/gutil";
+import { SchemaTypes } from "app/common/schema";
+import { ShareOptions } from "app/common/ShareOptions";
+import { MetaRowRecord, MetaTableData } from "app/common/TableData";
+
+import isEqual from "lodash/isEqual";
+import sortBy from "lodash/sortBy";
 
 /**
  * For special shares, we need to refer to resources that may not
@@ -28,10 +29,10 @@ export class TableWithOverlay<T extends keyof SchemaTypes> {
   // Returns the ID assigned to the record. The passed in
   // record is expected to have an ID of zero.
   public addRecord(rec: MetaRowRecord<T>): number {
-    if (rec.id !== 0) { throw new Error('Expected a zero ID'); }
+    if (rec.id !== 0) { throw new Error("Expected a zero ID"); }
     const id = this._nextFreeVirtualId;
-    const recWithCorrectId: MetaRowRecord<T> = {...rec, id};
-    this._extraRecords.push({...rec, id});
+    const recWithCorrectId: MetaRowRecord<T> = { ...rec, id };
+    this._extraRecords.push({ ...rec, id });
     this._extraRecordsById.set(id, recWithCorrectId);
     this._nextFreeVirtualId--;
     return id;
@@ -50,7 +51,8 @@ export class TableWithOverlay<T extends keyof SchemaTypes> {
     if (id < 0) {
       // Reroute negative IDs to our local stash of records.
       return this._extraRecordsById.get(id);
-    } else {
+    }
+    else {
       // Everything else, we just pass along.
       return this._originalTable.getRecord(id);
     }
@@ -63,25 +65,25 @@ export class TableWithOverlay<T extends keyof SchemaTypes> {
     ]);
   }
 
-  public filterRecords(properties: Partial<MetaRowRecord<T>>): Array<MetaRowRecord<T>> {
+  public filterRecords(properties: Partial<MetaRowRecord<T>>): MetaRowRecord<T>[] {
     const originalRecords = this._originalTable.filterRecords(properties);
-    const extraRecords = this._extraRecords.filter((rec) => Object.keys(properties)
-      .every((p) => isEqual((rec as any)[p], (properties as any)[p])));
+    const extraRecords = this._extraRecords.filter(rec => Object.keys(properties)
+      .every(p => isEqual((rec as any)[p], (properties as any)[p])));
     return this._filterExcludedRecords([...originalRecords, ...extraRecords]);
   }
 
   public findMatchingRowId(properties: Partial<MetaRowRecord<T>>): number {
     const rowId = (
       this._originalTable.findMatchingRowId(properties) ||
-      this._extraRecords.find((rec) => Object.keys(properties).every((p) =>
-        isEqual((rec as any)[p], (properties as any)[p]))
+      this._extraRecords.find(rec => Object.keys(properties).every(p =>
+        isEqual((rec as any)[p], (properties as any)[p])),
       )?.id
     );
     return rowId && !this._excludedRecordIds.has(rowId) ? rowId : 0;
   }
 
   private _filterExcludedRecords(records: MetaRowRecord<T>[]) {
-    return records.filter(({id}) => !this._excludedRecordIds.has(id));
+    return records.filter(({ id }) => !this._excludedRecordIds.has(id));
   }
 }
 
@@ -121,12 +123,12 @@ interface ShareContext {
  * Helper class for reading ACL rules from DocData.
  */
 export class ACLRulesReader {
-  private _resourcesTable = new TableWithOverlay(this.docData.getMetaTable('_grist_ACLResources'));
-  private _rulesTable = new TableWithOverlay(this.docData.getMetaTable('_grist_ACLRules'));
-  private _sharesTable = this.docData.getMetaTable('_grist_Shares');
+  private _resourcesTable = new TableWithOverlay(this.docData.getMetaTable("_grist_ACLResources"));
+  private _rulesTable = new TableWithOverlay(this.docData.getMetaTable("_grist_ACLRules"));
+  private _sharesTable = this.docData.getMetaTable("_grist_Shares");
   private _hasShares = this._options.addShareRules && this._sharesTable.numRecords() > 0;
   /** Maps 'tableId:colId' to the comma-separated list of column IDs from the associated resource. */
-  private _resourceColIdsByTableAndColId: Map<string, string> = new Map();
+  private _resourceColIdsByTableAndColId = new Map<string, string>();
 
   public constructor(public docData: DocData, private _options: ACLRulesReaderOptions = {}) {
     this._checkResources();
@@ -135,8 +137,8 @@ export class ACLRulesReader {
   }
 
   public entries() {
-    const rulesByResourceId = new Map<number, Array<MetaRowRecord<'_grist_ACLRules'>>>();
-    for (const rule of sortBy(this._rulesTable.getRecords(), 'rulePos')) {
+    const rulesByResourceId = new Map<number, MetaRowRecord<"_grist_ACLRules">[]>();
+    for (const rule of sortBy(this._rulesTable.getRecords(), "rulePos")) {
       // If we have "virtual" rules to implement shares, then regular
       // rules need to be tweaked so that they don't apply when the
       // share is active.
@@ -154,13 +156,13 @@ export class ACLRulesReader {
   }
 
   private _checkResources() {
-    const allTableAndColIds: Set<string> = new Set();
+    const allTableAndColIds = new Set<string>();
     for (const resource of this._resourcesTable.getRecords()) {
-      const {tableId, colIds} = resource;
+      const { tableId, colIds } = resource;
       const tableAndColIds = `${tableId}:${colIds}`;
       if (allTableAndColIds.has(tableAndColIds)) {
         throw new Error(
-          `Duplicate ACLResource ${resource.id}: an ACLResource with the same tableId and colIds already exists`
+          `Duplicate ACLResource ${resource.id}: an ACLResource with the same tableId and colIds already exists`,
         );
       }
 
@@ -169,14 +171,14 @@ export class ACLRulesReader {
   }
 
   private _addOriginalRules() {
-    for (const rule of sortBy(this._rulesTable.getRecords(), 'rulePos')) {
+    for (const rule of sortBy(this._rulesTable.getRecords(), "rulePos")) {
       const resource = this.getResourceById(rule.resource);
       if (!resource) {
         throw new Error(`ACLRule ${rule.id} refers to an invalid ACLResource ${rule.resource}`);
       }
 
-      if (resource.tableId !== '*' && resource.colIds !== '*') {
-        const colIds = resource.colIds.split(',');
+      if (resource.tableId !== "*" && resource.colIds !== "*") {
+        const colIds = resource.colIds.split(",");
         if (colIds.length === 1) { continue; }
 
         for (const colId of colIds) {
@@ -201,10 +203,10 @@ export class ACLRulesReader {
    * The only kind of share we support for now is form endpoint
    * sharing.
    */
-  private _addRulesForShare(share: MetaRowRecord<'_grist_Shares'>) {
+  private _addRulesForShare(share: MetaRowRecord<"_grist_Shares">) {
     // TODO: Unpublished shares could and should be blocked earlier,
     // by home server
-    const {publish}: ShareOptions = JSON.parse(share.options || '{}');
+    const { publish }: ShareOptions = JSON.parse(share.options || "{}");
     if (!publish) {
       this._blockShare(share.id);
       return;
@@ -216,34 +218,34 @@ export class ACLRulesReader {
     // to at most one share.
     // Ignore sections which do not have `publish` set to `true` in
     // `shareOptions`.
-    const pages = this.docData.getMetaTable('_grist_Pages').filterRecords({
+    const pages = this.docData.getMetaTable("_grist_Pages").filterRecords({
       shareRef: share.id,
     });
     const parentViews = new Set(pages.map(page => page.viewRef));
-    const sections = this.docData.getMetaTable('_grist_Views_section').getRecords().filter(
-      section => {
+    const sections = this.docData.getMetaTable("_grist_Views_section").getRecords().filter(
+      (section) => {
         if (!parentViews.has(section.parentId)) { return false; }
-        const options = JSON.parse(section.shareOptions || '{}');
+        const options = JSON.parse(section.shareOptions || "{}");
         return Boolean(options.publish) && Boolean(options.form);
-      }
+      },
     );
 
     const sectionIds = new Set(sections.map(section => section.id));
-    const fields = this.docData.getMetaTable('_grist_Views_section_field').getRecords().filter(
-      field => {
+    const fields = this.docData.getMetaTable("_grist_Views_section_field").getRecords().filter(
+      (field) => {
         return sectionIds.has(field.parentId);
-      }
+      },
     );
     const columnIds = new Set(fields.map(field => field.colRef));
-    const columns = this.docData.getMetaTable('_grist_Tables_column').getRecords().filter(
-      column => {
+    const columns = this.docData.getMetaTable("_grist_Tables_column").getRecords().filter(
+      (column) => {
         return columnIds.has(column.id);
-      }
+      },
     );
 
     const tableRefs = new Set(sections.map(section => section.tableRef));
-    const tables = this.docData.getMetaTable('_grist_Tables').getRecords().filter(
-      table => tableRefs.has(table.id)
+    const tables = this.docData.getMetaTable("_grist_Tables").getRecords().filter(
+      table => tableRefs.has(table.id),
     );
 
     // For tables associated with forms, allow creation of records,
@@ -268,36 +270,36 @@ export class ACLRulesReader {
    */
   private _addDefaultShareRules() {
     // Block access to each table.
-    const tableIds = this.docData.getMetaTable('_grist_Tables').getRecords()
+    const tableIds = this.docData.getMetaTable("_grist_Tables").getRecords()
       .map(table => table.tableId)
-      .filter(tableId => !tableId.startsWith('_grist_'))
+      .filter(tableId => !tableId.startsWith("_grist_"))
       .sort();
     for (const tableId of tableIds) {
-      this._addShareRule(this._findOrAddResource({tableId, colIds: '*'}), '-CRUDS');
+      this._addShareRule(this._findOrAddResource({ tableId, colIds: "*" }), "-CRUDS");
     }
 
     // Block schema access at the default level.
-    this._addShareRule(this._findOrAddResource({tableId: '*', colIds: '*'}), '-S');
+    this._addShareRule(this._findOrAddResource({ tableId: "*", colIds: "*" }), "-S");
   }
 
   /**
    * Allow creating records in a table.
    */
-  private _shareTableForForm(table: MetaRowRecord<'_grist_Tables'>,
-                             shareContext: ShareContext) {
+  private _shareTableForForm(table: MetaRowRecord<"_grist_Tables">,
+    shareContext: ShareContext) {
     const { shareRef } = shareContext;
     const resource = this._findOrAddResource({
       tableId: table.tableId,
-      colIds: '*',  // At creation, allow all columns to be
-                    // initialized.
+      colIds: "*",  // At creation, allow all columns to be
+      // initialized.
     });
     let aclFormula = `user.ShareRef == ${shareRef}`;
     let aclFormulaParsed = JSON.stringify([
-      'Eq',
-      [ 'Attr', [ "Name", "user" ], "ShareRef" ],
-      [ 'Const', shareRef ] ]);
+      "Eq",
+      ["Attr", ["Name", "user"], "ShareRef"],
+      ["Const", shareRef]]);
     this._rulesTable.addRecord(this._makeRule({
-      resource, aclFormula, aclFormulaParsed, permissionsText: '+C',
+      resource, aclFormula, aclFormulaParsed, permissionsText: "+C",
     }));
 
     // This is a hack to grant read schema access, needed for forms -
@@ -306,13 +308,13 @@ export class ACLRulesReader {
     // submit records.
     aclFormula = `user.ShareRef == ${shareRef} and rec.id == 0`;
     aclFormulaParsed = JSON.stringify(
-      [ 'And',
-        [ 'Eq',
-          [ 'Attr', [ "Name", "user" ], "ShareRef" ],
-          ['Const', shareRef] ],
-        [ 'Eq', [ 'Attr', ['Name', 'rec'], 'id'], ['Const', 0]]]);
+      ["And",
+        ["Eq",
+          ["Attr", ["Name", "user"], "ShareRef"],
+          ["Const", shareRef]],
+        ["Eq", ["Attr", ["Name", "rec"], "id"], ["Const", 0]]]);
     this._rulesTable.addRecord(this._makeRule({
-      resource, aclFormula, aclFormulaParsed, permissionsText: '+R',
+      resource, aclFormula, aclFormulaParsed, permissionsText: "+R",
     }));
 
     this._shareTableReferencesForForm(table, shareContext);
@@ -321,15 +323,15 @@ export class ACLRulesReader {
   /**
    * Give read access to referenced columns.
    */
-  private _shareTableReferencesForForm(table: MetaRowRecord<'_grist_Tables'>,
-                                       shareContext: ShareContext) {
+  private _shareTableReferencesForForm(table: MetaRowRecord<"_grist_Tables">,
+    shareContext: ShareContext) {
     const { shareRef } = shareContext;
 
-    const tables = this.docData.getMetaTable('_grist_Tables');
-    const columns = this.docData.getMetaTable('_grist_Tables_column');
+    const tables = this.docData.getMetaTable("_grist_Tables");
+    const columns = this.docData.getMetaTable("_grist_Tables_column");
     const tableColumns = shareContext.columns.filter(c =>
-        c.parentId === table.id &&
-        (c.type.startsWith('Ref:') || c.type.startsWith('RefList:')));
+      c.parentId === table.id &&
+      (c.type.startsWith("Ref:") || c.type.startsWith("RefList:")));
     for (const column of tableColumns) {
       let tableId: string;
       let colId: string;
@@ -343,29 +345,30 @@ export class ACLRulesReader {
 
         tableId = referencedTable.tableId;
         colId = visibleCol.colId;
-      } else {
+      }
+      else {
         const info = extractInfoFromColType(column.type);
-        if (info.type !== 'Ref' && info.type !== 'RefList') {
+        if (info.type !== "Ref" && info.type !== "RefList") {
           // should never happen
-          throw new Error('Unexpected column type in _shareTableReferencesForForm');
+          throw new Error("Unexpected column type in _shareTableReferencesForForm");
         }
         tableId = info.tableId;
-        colId = 'id';
+        colId = "id";
       }
 
       const resourceColIds = this._resourceColIdsByTableAndColId.get(`${tableId}:${colId}`) ?? colId;
-      const maybeResourceId = this._resourcesTable.findMatchingRowId({tableId, colIds: resourceColIds});
+      const maybeResourceId = this._resourcesTable.findMatchingRowId({ tableId, colIds: resourceColIds });
       if (maybeResourceId !== 0) {
         this._maybeSplitResourceForShares(maybeResourceId);
       }
-      const resource = this._findOrAddResource({tableId, colIds: colId});
+      const resource = this._findOrAddResource({ tableId, colIds: colId });
       const aclFormula = `user.ShareRef == ${shareRef}`;
       const aclFormulaParsed = JSON.stringify(
-        [ 'Eq',
-          [ 'Attr', [ "Name", "user" ], "ShareRef" ],
-          ['Const', shareRef] ]);
+        ["Eq",
+          ["Attr", ["Name", "user"], "ShareRef"],
+          ["Const", shareRef]]);
       this._rulesTable.addRecord(this._makeRule({
-        resource, aclFormula, aclFormulaParsed, permissionsText: '+R',
+        resource, aclFormula, aclFormulaParsed, permissionsText: "+R",
       }));
     }
   }
@@ -400,17 +403,17 @@ export class ACLRulesReader {
       throw new Error(`Unable to find ACLResource with ID ${resourceId}`);
     }
 
-    const {tableId} = resource;
-    const colIds = resource.colIds.split(',');
+    const { tableId } = resource;
+    const colIds = resource.colIds.split(",");
     if (colIds.length === 1) { return; }
 
-    const rules = sortBy(this._rulesTable.filterRecords({resource: resourceId}), 'rulePos')
+    const rules = sortBy(this._rulesTable.filterRecords({ resource: resourceId }), "rulePos")
       .map(r => disableRuleInShare(r));
     // Prepare a new resource for each column, with copies of the original resource's rules.
     for (const colId of colIds) {
-      const newResourceId = this._resourcesTable.addRecord({id: 0, tableId, colIds: colId});
+      const newResourceId = this._resourcesTable.addRecord({ id: 0, tableId, colIds: colId });
       for (const rule of rules) {
-        this._rulesTable.addRecord({...rule, id: 0, resource: newResourceId});
+        this._rulesTable.addRecord({ ...rule, id: 0, resource: newResourceId });
       }
     }
     // Exclude the original resource and rules.
@@ -437,11 +440,11 @@ export class ACLRulesReader {
   }
 
   private _addShareRule(resourceRef: number, permissionsText: string) {
-    const aclFormula = 'user.ShareRef is not None';
+    const aclFormula = "user.ShareRef is not None";
     const aclFormulaParsed = JSON.stringify([
-      'NotEq',
-      ['Attr', ['Name', 'user'], 'ShareRef'],
-      ['Const', null],
+      "NotEq",
+      ["Attr", ["Name", "user"], "ShareRef"],
+      ["Const", null],
     ]);
     this._rulesTable.addRecord(this._makeRule({
       resource: resourceRef, aclFormula, aclFormulaParsed, permissionsText,
@@ -450,15 +453,15 @@ export class ACLRulesReader {
 
   private _blockShare(shareRef: number) {
     const resource = this._findOrAddResource({
-      tableId: '*', colIds: '*',
+      tableId: "*", colIds: "*",
     });
     const aclFormula = `user.ShareRef == ${shareRef}`;
     const aclFormulaParsed = JSON.stringify(
-      [ 'Eq',
-        [ 'Attr', [ "Name", "user" ], "ShareRef" ],
-        ['Const', shareRef] ]);
+      ["Eq",
+        ["Attr", ["Name", "user"], "ShareRef"],
+        ["Const", shareRef]]);
     this._rulesTable.addRecord(this._makeRule({
-      resource, aclFormula, aclFormulaParsed, permissionsText: '-CRUDS',
+      resource, aclFormula, aclFormulaParsed, permissionsText: "-CRUDS",
     }));
   }
 
@@ -467,22 +470,22 @@ export class ACLRulesReader {
     aclFormula: string,
     aclFormulaParsed: string,
     permissionsText: string,
-  }): MetaRowRecord<'_grist_ACLRules'> {
-    const {resource, aclFormula, aclFormulaParsed, permissionsText} = options;
+  }): MetaRowRecord<"_grist_ACLRules"> {
+    const { resource, aclFormula, aclFormulaParsed, permissionsText } = options;
     return {
       id: 0,
       resource,
       aclFormula,
       aclFormulaParsed,
-      memo: '',
+      memo: "",
       permissionsText,
-      userAttributes: '',
+      userAttributes: "",
       rulePos: 0,
 
       // The following fields are unused and deprecated.
       aclColumn: 0,
       permissions: 0,
-      principals: '',
+      principals: "",
     };
   }
 }
@@ -493,14 +496,14 @@ export class ACLRulesReader {
  *
  * Modifies `rule` in place.
  */
-function disableRuleInShare(rule: MetaRowRecord<'_grist_ACLRules'>) {
+function disableRuleInShare(rule: MetaRowRecord<"_grist_ACLRules">) {
   const aclFormulaParsed = rule.aclFormula && JSON.parse(String(rule.aclFormulaParsed));
   const newAclFormulaParsed = [
-    'And',
-    [ 'Eq', [ 'Attr', [ 'Name', 'user' ], 'ShareRef' ], ['Const', null] ],
-    aclFormulaParsed || [ 'Const', true ]
+    "And",
+    ["Eq", ["Attr", ["Name", "user"], "ShareRef"], ["Const", null]],
+    aclFormulaParsed || ["Const", true],
   ];
-  rule.aclFormula = 'user.ShareRef is None and (' + String(rule.aclFormula || 'True') + ')';
+  rule.aclFormula = "user.ShareRef is None and (" + String(rule.aclFormula || "True") + ")";
   rule.aclFormulaParsed = JSON.stringify(newAclFormulaParsed);
   return rule;
 }

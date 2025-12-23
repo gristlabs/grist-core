@@ -1,5 +1,5 @@
-import {ThemeTokens, tokens} from 'app/common/ThemePrefs';
-import {GristLight} from 'app/common/themes/GristLight';
+import { ThemeTokens, tokens } from "app/common/ThemePrefs";
+import { GristLight } from "app/common/themes/GristLight";
 
 /**
  * High Contrast Light theme. Uses the default Grist theme as base.
@@ -7,23 +7,23 @@ import {GristLight} from 'app/common/themes/GristLight';
 export const HighContrastLight: ThemeTokens = {
   ...GristLight,
 
-  secondary: '#717178',
+  secondary: "#717178",
 
-  decoration: '#8F8F8F',
-  decorationSecondary: '#cfcfcf',
-  decorationTertiary: '#dfdfdf',
+  decoration: "#8F8F8F",
+  decorationSecondary: "#cfcfcf",
+  decorationTertiary: "#dfdfdf",
 
-  primary: '#0f7b51',
-  primaryMuted: '#196C47',
-  primaryDim: '#196C47',
-  primaryTranslucent: 'rgba(15, 123, 81, 0.5)',
+  primary: "#0f7b51",
+  primaryMuted: "#196C47",
+  primaryDim: "#196C47",
+  primaryTranslucent: "rgba(15, 123, 81, 0.5)",
 
   components: {
     ...GristLight.components,
     appHeaderBorder: tokens.decoration,
     pagePanelsBorder: tokens.decorationSecondary,
-    tooltipBg: '#000',
-    controlBorder: '1px solid #0f7b51',
+    tooltipBg: "#000",
+    controlBorder: "1px solid #0f7b51",
     controlSecondaryHoverBg: tokens.decorationTertiary,
     buttonGroupBgHover: tokens.bgSecondary,
     buttonGroupBorderHover: tokens.decoration,
@@ -37,7 +37,7 @@ export const HighContrastLight: ThemeTokens = {
     rightPanelTabBorder: tokens.decoration,
     rightPanelSubtabFg: tokens.secondary,
     formulaIcon: tokens.decoration,
-    textButtonHoverBorder: 'currentColor',
+    textButtonHoverBorder: "currentColor",
     switchActiveSlider: tokens.primary,
-  }
+  },
 };

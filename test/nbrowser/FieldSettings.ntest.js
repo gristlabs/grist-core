@@ -3,10 +3,10 @@
  * separate settings. This test verifies these behaviors and switching between them.
  */
 
-import { assert } from 'mocha-webdriver';
-import { $, gu, test } from 'test/nbrowser/gristUtil-nbrowser';
+import { assert } from "mocha-webdriver";
+import { $, gu, test } from "test/nbrowser/gristUtil-nbrowser";
 
-describe('FieldSettings.ntest', function() {
+describe("FieldSettings.ntest", function() {
   const cleanup = test.setupTestSuite(this);
   gu.bigScreen();
 
@@ -16,7 +16,7 @@ describe('FieldSettings.ntest', function() {
 
     await gu.actions.selectTabView("Rates");
     await gu.waitForServer();
-    await gu.openSidePane('field');
+    await gu.openSidePane("field");
   });
 
   afterEach(async function() {
@@ -36,26 +36,26 @@ describe('FieldSettings.ntest', function() {
   }
 
 
-  it('should respect common settings for regular options', async function() {
+  it("should respect common settings for regular options", async function() {
     await gu.userActionsCollect(true);
 
     // Sections 'A' and 'B' use common settings, and 'C' uses separate.
     // Check that changing the setting in A affects B, but does not affect C.
-    await gu.clickCell({section: 'A', rowNum: 1, col: 1});
-    assert.equal(await gu.dateFormat(), 'YYYY-MM-DD');
-    await gu.dateFormat('MM/DD/YYYY');
+    await gu.clickCell({section: "A", rowNum: 1, col: 1});
+    assert.equal(await gu.dateFormat(), "YYYY-MM-DD");
+    await gu.dateFormat("MM/DD/YYYY");
     await checkSections({rowNum: 1, col: 1}, () => gu.dateFormat(), {
-      A: ['01/02/2012', 'MM/DD/YYYY'],
-      B: ['01/02/2012', 'MM/DD/YYYY'],
-      C: ['2012-01-02', 'YYYY-MM-DD'],
+      A: ["01/02/2012", "MM/DD/YYYY"],
+      B: ["01/02/2012", "MM/DD/YYYY"],
+      C: ["2012-01-02", "YYYY-MM-DD"],
     });
 
     // Check that changing C does not affect A or B.
-    await gu.dateFormat('MMMM Do, YYYY');
+    await gu.dateFormat("MMMM Do, YYYY");
     await checkSections({rowNum: 1, col: 1}, () => gu.dateFormat(), {
-      A: ['01/02/2012', 'MM/DD/YYYY'],
-      B: ['01/02/2012', 'MM/DD/YYYY'],
-      C: ['January 2nd, 2012', 'MMMM Do, YYYY'],
+      A: ["01/02/2012", "MM/DD/YYYY"],
+      B: ["01/02/2012", "MM/DD/YYYY"],
+      C: ["January 2nd, 2012", "MMMM Do, YYYY"],
     });
 
     // Verify actions emitted. These are obtained from pasting the output, but the important thing
@@ -70,36 +70,36 @@ describe('FieldSettings.ntest', function() {
     // Undo, checking that the 2 actions only require 2 undos, and verify.
     await gu.undo(2);
     await checkSections({rowNum: 1, col: 1}, () => gu.dateFormat(), {
-      A: ['2012-01-02', 'YYYY-MM-DD'],
-      B: ['2012-01-02', 'YYYY-MM-DD'],
-      C: ['2012-01-02', 'YYYY-MM-DD'],
+      A: ["2012-01-02", "YYYY-MM-DD"],
+      B: ["2012-01-02", "YYYY-MM-DD"],
+      C: ["2012-01-02", "YYYY-MM-DD"],
     });
   });
 
 
-  it('should respect common settings for visibleCol', async function() {
+  it("should respect common settings for visibleCol", async function() {
     // Same as above but for changing "visibleCol", which involves extra actions to update the
     // display helper column.
     await gu.userActionsCollect(true);
-    await gu.clickCell({section: 'A', rowNum: 1, col: 0});
-    assert.equal(await $('.test-fbuilder-ref-col-select .test-select-row').text(), 'Full Name');
-    await gu.setVisibleCol('Last Name');
-    await checkSections({rowNum: 2, col: 0}, () => $('.test-fbuilder-ref-col-select .test-select-row').text(), {
-      A: ['Klein', 'Last Name'],
-      B: ['Klein', 'Last Name'],
-      C: ['Klein, Cordelia', 'Full Name'],
+    await gu.clickCell({section: "A", rowNum: 1, col: 0});
+    assert.equal(await $(".test-fbuilder-ref-col-select .test-select-row").text(), "Full Name");
+    await gu.setVisibleCol("Last Name");
+    await checkSections({rowNum: 2, col: 0}, () => $(".test-fbuilder-ref-col-select .test-select-row").text(), {
+      A: ["Klein", "Last Name"],
+      B: ["Klein", "Last Name"],
+      C: ["Klein, Cordelia", "Full Name"],
     });
     await gu.userActionsVerify([
       ["UpdateRecord", "_grist_Tables_column", 12, {"visibleCol":3}],
       ["SetDisplayFormula", "Rates", null, 12, "$Person.Last_Name"],
     ]);
 
-    await gu.clickCell({section: 'C', rowNum: 1, col: 0});
-    await gu.setVisibleCol('First Name');
-    await checkSections({rowNum: 2, col: 0}, () => $('.test-fbuilder-ref-col-select .test-select-row').text(), {
-      A: ['Klein', 'Last Name'],
-      B: ['Klein', 'Last Name'],
-      C: ['Cordelia', 'First Name'],
+    await gu.clickCell({section: "C", rowNum: 1, col: 0});
+    await gu.setVisibleCol("First Name");
+    await checkSections({rowNum: 2, col: 0}, () => $(".test-fbuilder-ref-col-select .test-select-row").text(), {
+      A: ["Klein", "Last Name"],
+      B: ["Klein", "Last Name"],
+      C: ["Cordelia", "First Name"],
     });
     await gu.userActionsVerify([
       ["UpdateRecord", "_grist_Views_section_field", 141, {"visibleCol":2}],
@@ -107,12 +107,12 @@ describe('FieldSettings.ntest', function() {
     ]);
 
     // Same for changing "visibleCol" to the special "RowID" value.
-    await gu.clickCell({section: 'A', rowNum: 1, col: 0});
-    await gu.setVisibleCol('Row ID');
-    await checkSections({rowNum: 2, col: 0}, () => $('.test-fbuilder-ref-col-select .test-select-row').text(), {
-      A: ['People[14]', 'Row ID'],
-      B: ['People[14]', 'Row ID'],
-      C: ['Cordelia', 'First Name'],
+    await gu.clickCell({section: "A", rowNum: 1, col: 0});
+    await gu.setVisibleCol("Row ID");
+    await checkSections({rowNum: 2, col: 0}, () => $(".test-fbuilder-ref-col-select .test-select-row").text(), {
+      A: ["People[14]", "Row ID"],
+      B: ["People[14]", "Row ID"],
+      C: ["Cordelia", "First Name"],
     });
     await gu.userActionsVerify([
       ["UpdateRecord", "_grist_Tables_column", 12, {"visibleCol":0}],
@@ -123,12 +123,12 @@ describe('FieldSettings.ntest', function() {
     await gu.undo();
 
     await gu.userActionsCollect(true);
-    await gu.clickCell({section: 'C', rowNum: 1, col: 0});
-    await gu.setVisibleCol('Row ID');
-    await checkSections({rowNum: 2, col: 0}, () => $('.test-fbuilder-ref-col-select .test-select-row').text(), {
-      A: ['Klein', 'Last Name'],
-      B: ['Klein', 'Last Name'],
-      C: ['People[14]', 'Row ID'],
+    await gu.clickCell({section: "C", rowNum: 1, col: 0});
+    await gu.setVisibleCol("Row ID");
+    await checkSections({rowNum: 2, col: 0}, () => $(".test-fbuilder-ref-col-select .test-select-row").text(), {
+      A: ["Klein", "Last Name"],
+      B: ["Klein", "Last Name"],
+      C: ["People[14]", "Row ID"],
     });
 
     // Verify actions emitted.
@@ -139,18 +139,18 @@ describe('FieldSettings.ntest', function() {
 
     // Undo; we made 4 actions, but already ran one undo earlier.
     await gu.undo(3);
-    await checkSections({rowNum: 2, col: 0}, () => $('.test-fbuilder-ref-col-select .test-select-row').text(), {
-      A: ['Klein, Cordelia', 'Full Name'],
-      B: ['Klein, Cordelia', 'Full Name'],
-      C: ['Klein, Cordelia', 'Full Name'],
+    await checkSections({rowNum: 2, col: 0}, () => $(".test-fbuilder-ref-col-select .test-select-row").text(), {
+      A: ["Klein, Cordelia", "Full Name"],
+      B: ["Klein, Cordelia", "Full Name"],
+      C: ["Klein, Cordelia", "Full Name"],
     });
   });
 
 
-  it('should allow switching to separate settings', async function() {
+  it("should allow switching to separate settings", async function() {
     // Switch B to use separate settings.
     await gu.userActionsCollect(true);
-    await gu.clickCell({section: 'B', rowNum: 1, col: 1});
+    await gu.clickCell({section: "B", rowNum: 1, col: 1});
     await gu.fieldSettingsUseSeparate();
 
     await gu.userActionsVerify([
@@ -160,37 +160,37 @@ describe('FieldSettings.ntest', function() {
 
     // Verify that options are preserved.
     await checkSections({rowNum: 1, col: 1}, () => gu.dateFormat(), {
-      A: ['2012-01-02', 'YYYY-MM-DD'],
-      B: ['2012-01-02', 'YYYY-MM-DD'],
-      C: ['2012-01-02', 'YYYY-MM-DD'],
+      A: ["2012-01-02", "YYYY-MM-DD"],
+      B: ["2012-01-02", "YYYY-MM-DD"],
+      C: ["2012-01-02", "YYYY-MM-DD"],
     });
 
     // Change option in B and see that A and C are not affected.
-    await gu.clickCell({section: 'B', rowNum: 1, col: 1});
-    await gu.dateFormat('MM/DD/YYYY');
+    await gu.clickCell({section: "B", rowNum: 1, col: 1});
+    await gu.dateFormat("MM/DD/YYYY");
     await checkSections({rowNum: 1, col: 1}, () => gu.dateFormat(), {
-      A: ['2012-01-02', 'YYYY-MM-DD'],
-      B: ['01/02/2012', 'MM/DD/YYYY'],
-      C: ['2012-01-02', 'YYYY-MM-DD'],
+      A: ["2012-01-02", "YYYY-MM-DD"],
+      B: ["01/02/2012", "MM/DD/YYYY"],
+      C: ["2012-01-02", "YYYY-MM-DD"],
     });
 
     // Change option in A and see that B is not affected.
-    await gu.clickCell({section: 'A', rowNum: 1, col: 1});
-    await gu.dateFormat('MMMM Do, YYYY');
+    await gu.clickCell({section: "A", rowNum: 1, col: 1});
+    await gu.dateFormat("MMMM Do, YYYY");
     await checkSections({rowNum: 1, col: 1}, () => gu.dateFormat(), {
-      A: ['January 2nd, 2012', 'MMMM Do, YYYY'],
-      B: ['01/02/2012', 'MM/DD/YYYY'],
-      C: ['2012-01-02', 'YYYY-MM-DD'],
+      A: ["January 2nd, 2012", "MMMM Do, YYYY"],
+      B: ["01/02/2012", "MM/DD/YYYY"],
+      C: ["2012-01-02", "YYYY-MM-DD"],
     });
 
     await gu.undo(3);
   });
 
 
-  it('should allow switching to separate settings for visibleCol', async function() {
+  it("should allow switching to separate settings for visibleCol", async function() {
     // Same as above for changing 'visibleCol' option; after separating, try changing B, then A.
     await gu.userActionsCollect(true);
-    await gu.clickCell({section: 'B', rowNum: 2, col: 0});
+    await gu.clickCell({section: "B", rowNum: 2, col: 0});
     await gu.fieldSettingsUseSeparate();
     await gu.userActionsVerify([
       ["UpdateRecord", "_grist_Views_section_field", 136, {"widgetOptions":'{"widget":"Reference"}'}],
@@ -198,35 +198,35 @@ describe('FieldSettings.ntest', function() {
       ["SetDisplayFormula", "Rates", 136, null, "$Person.Full_Name"],
     ]);
 
-    await gu.setVisibleCol('First Name');
-    await gu.clickCell({section: 'A', rowNum: 2, col: 0});
-    await gu.setVisibleCol('Last Name');
-    await checkSections({rowNum: 2, col: 0}, () => $('.test-fbuilder-ref-col-select .test-select-row').text(), {
-      A: ['Klein', 'Last Name'],
-      B: ['Cordelia', 'First Name'],
-      C: ['Klein, Cordelia', 'Full Name'],
+    await gu.setVisibleCol("First Name");
+    await gu.clickCell({section: "A", rowNum: 2, col: 0});
+    await gu.setVisibleCol("Last Name");
+    await checkSections({rowNum: 2, col: 0}, () => $(".test-fbuilder-ref-col-select .test-select-row").text(), {
+      A: ["Klein", "Last Name"],
+      B: ["Cordelia", "First Name"],
+      C: ["Klein, Cordelia", "Full Name"],
     });
     await gu.undo(3);
   });
 
 
-  it('should allow reverting to common settings', async function() {
+  it("should allow reverting to common settings", async function() {
     // Change column in C to use different settings from A.
-    await gu.clickCell({section: 'C', rowNum: 1, col: 1});
-    await gu.dateFormat('MMMM Do, YYYY');
+    await gu.clickCell({section: "C", rowNum: 1, col: 1});
+    await gu.dateFormat("MMMM Do, YYYY");
     await checkSections({rowNum: 1, col: 1}, () => gu.dateFormat(), {
-      A: ['2012-01-02', 'YYYY-MM-DD'],
-      B: ['2012-01-02', 'YYYY-MM-DD'],
-      C: ['January 2nd, 2012', 'MMMM Do, YYYY'],
+      A: ["2012-01-02", "YYYY-MM-DD"],
+      B: ["2012-01-02", "YYYY-MM-DD"],
+      C: ["January 2nd, 2012", "MMMM Do, YYYY"],
     });
 
     // Revert C to use common settings. Check that it matches A.
     await gu.userActionsCollect(true);
     await gu.fieldSettingsRevertToCommon();
     await checkSections({rowNum: 1, col: 1}, () => gu.dateFormat(), {
-      A: ['2012-01-02', 'YYYY-MM-DD'],
-      B: ['2012-01-02', 'YYYY-MM-DD'],
-      C: ['2012-01-02', 'YYYY-MM-DD'],
+      A: ["2012-01-02", "YYYY-MM-DD"],
+      B: ["2012-01-02", "YYYY-MM-DD"],
+      C: ["2012-01-02", "YYYY-MM-DD"],
     });
     await gu.userActionsVerify([
       ["UpdateRecord", "_grist_Views_section_field", 145, {"widgetOptions":""}],
@@ -235,21 +235,21 @@ describe('FieldSettings.ntest', function() {
   });
 
 
-  it('should allow reverting to common settings for visibleCol', async function() {
+  it("should allow reverting to common settings for visibleCol", async function() {
     // Same as above for reverting 'visiblecCol'.
-    await gu.clickCell({section: 'C', rowNum: 2, col: 0});
-    await gu.setVisibleCol('Last Name');
-    await checkSections({rowNum: 2, col: 0}, () => $('.test-fbuilder-ref-col-select .test-select-row').text(), {
-      A: ['Klein, Cordelia', 'Full Name'],
-      B: ['Klein, Cordelia', 'Full Name'],
-      C: ['Klein', 'Last Name'],
+    await gu.clickCell({section: "C", rowNum: 2, col: 0});
+    await gu.setVisibleCol("Last Name");
+    await checkSections({rowNum: 2, col: 0}, () => $(".test-fbuilder-ref-col-select .test-select-row").text(), {
+      A: ["Klein, Cordelia", "Full Name"],
+      B: ["Klein, Cordelia", "Full Name"],
+      C: ["Klein", "Last Name"],
     });
     await gu.userActionsCollect(true);
     await gu.fieldSettingsRevertToCommon();
-    await checkSections({rowNum: 2, col: 0}, () => $('.test-fbuilder-ref-col-select .test-select-row').text(), {
-      A: ['Klein, Cordelia', 'Full Name'],
-      B: ['Klein, Cordelia', 'Full Name'],
-      C: ['Klein, Cordelia', 'Full Name'],
+    await checkSections({rowNum: 2, col: 0}, () => $(".test-fbuilder-ref-col-select .test-select-row").text(), {
+      A: ["Klein, Cordelia", "Full Name"],
+      B: ["Klein, Cordelia", "Full Name"],
+      C: ["Klein, Cordelia", "Full Name"],
     });
     await gu.userActionsVerify([
       ["UpdateRecord", "_grist_Views_section_field", 141, {"widgetOptions":""}],
@@ -260,23 +260,23 @@ describe('FieldSettings.ntest', function() {
   });
 
 
-  it('should allow saving separate settings as common', async function() {
+  it("should allow saving separate settings as common", async function() {
     // Change column C to use different settings from A.
-    await gu.clickCell({section: 'C', rowNum: 1, col: 1});
-    await gu.dateFormat('MMMM Do, YYYY');
+    await gu.clickCell({section: "C", rowNum: 1, col: 1});
+    await gu.dateFormat("MMMM Do, YYYY");
     await checkSections({rowNum: 1, col: 1}, () => gu.dateFormat(), {
-      A: ['2012-01-02', 'YYYY-MM-DD'],
-      B: ['2012-01-02', 'YYYY-MM-DD'],
-      C: ['January 2nd, 2012', 'MMMM Do, YYYY'],
+      A: ["2012-01-02", "YYYY-MM-DD"],
+      B: ["2012-01-02", "YYYY-MM-DD"],
+      C: ["January 2nd, 2012", "MMMM Do, YYYY"],
     });
 
     // Save C settings as common settings. Check that A and B now match.
     await gu.userActionsCollect(true);
     await gu.fieldSettingsSaveAsCommon();
     await checkSections({rowNum: 1, col: 1}, () => gu.dateFormat(), {
-      A: ['January 2nd, 2012', 'MMMM Do, YYYY'],
-      B: ['January 2nd, 2012', 'MMMM Do, YYYY'],
-      C: ['January 2nd, 2012', 'MMMM Do, YYYY'],
+      A: ["January 2nd, 2012", "MMMM Do, YYYY"],
+      B: ["January 2nd, 2012", "MMMM Do, YYYY"],
+      C: ["January 2nd, 2012", "MMMM Do, YYYY"],
     });
     await gu.userActionsVerify([
       ["UpdateRecord", "_grist_Tables_column", 15, {"widgetOptions":
@@ -285,28 +285,28 @@ describe('FieldSettings.ntest', function() {
     ]);
     await gu.undo(2);
     await checkSections({rowNum: 1, col: 1}, () => gu.dateFormat(), {
-      A: ['2012-01-02', 'YYYY-MM-DD'],
-      B: ['2012-01-02', 'YYYY-MM-DD'],
-      C: ['2012-01-02', 'YYYY-MM-DD'],
+      A: ["2012-01-02", "YYYY-MM-DD"],
+      B: ["2012-01-02", "YYYY-MM-DD"],
+      C: ["2012-01-02", "YYYY-MM-DD"],
     });
   });
 
 
-  it('should allow saving separate settings as common for visibleCol', async function() {
+  it("should allow saving separate settings as common for visibleCol", async function() {
     // Same as above for saving 'visiblecCol'.
-    await gu.clickCell({section: 'C', rowNum: 2, col: 0});
-    await gu.setVisibleCol('Last Name');
-    await checkSections({rowNum: 2, col: 0}, () => $('.test-fbuilder-ref-col-select .test-select-row').text(), {
-      A: ['Klein, Cordelia', 'Full Name'],
-      B: ['Klein, Cordelia', 'Full Name'],
-      C: ['Klein', 'Last Name'],
+    await gu.clickCell({section: "C", rowNum: 2, col: 0});
+    await gu.setVisibleCol("Last Name");
+    await checkSections({rowNum: 2, col: 0}, () => $(".test-fbuilder-ref-col-select .test-select-row").text(), {
+      A: ["Klein, Cordelia", "Full Name"],
+      B: ["Klein, Cordelia", "Full Name"],
+      C: ["Klein", "Last Name"],
     });
     await gu.userActionsCollect(true);
     await gu.fieldSettingsSaveAsCommon();
-    await checkSections({rowNum: 2, col: 0}, () => $('.test-fbuilder-ref-col-select .test-select-row').text(), {
-      A: ['Klein', 'Last Name'],
-      B: ['Klein', 'Last Name'],
-      C: ['Klein', 'Last Name'],
+    await checkSections({rowNum: 2, col: 0}, () => $(".test-fbuilder-ref-col-select .test-select-row").text(), {
+      A: ["Klein", "Last Name"],
+      B: ["Klein", "Last Name"],
+      C: ["Klein", "Last Name"],
     });
     await gu.userActionsVerify([
       ["UpdateRecord", "_grist_Tables_column", 12, {"visibleCol":3}],
@@ -316,10 +316,10 @@ describe('FieldSettings.ntest', function() {
       ["SetDisplayFormula", "Rates", 141, null, ""],
     ]);
     await gu.undo(2);
-    await checkSections({rowNum: 2, col: 0}, () => $('.test-fbuilder-ref-col-select .test-select-row').text(), {
-      A: ['Klein, Cordelia', 'Full Name'],
-      B: ['Klein, Cordelia', 'Full Name'],
-      C: ['Klein, Cordelia', 'Full Name'],
+    await checkSections({rowNum: 2, col: 0}, () => $(".test-fbuilder-ref-col-select .test-select-row").text(), {
+      A: ["Klein, Cordelia", "Full Name"],
+      B: ["Klein, Cordelia", "Full Name"],
+      C: ["Klein, Cordelia", "Full Name"],
     });
   });
 });

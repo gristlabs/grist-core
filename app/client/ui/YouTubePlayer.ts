@@ -1,7 +1,8 @@
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {waitObs} from 'app/common/gutil';
-import {Disposable, dom, DomElementArg} from 'grainjs';
-import ko from 'knockout';
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { waitObs } from "app/common/gutil";
+
+import { Disposable, dom, DomElementArg } from "grainjs";
+import ko from "knockout";
 
 export interface Player {
   playVideo(): void;
@@ -45,7 +46,7 @@ export enum PlayerState {
   VideoCued = 5,
 }
 
-const G = getBrowserGlobals('document', 'window');
+const G = getBrowserGlobals("document", "window");
 
 /**
  * Wrapper component for the YouTube IFrame Player API.
@@ -71,14 +72,15 @@ export class YouTubePlayer extends Disposable {
     this._domArgs = domArgs;
 
     if (!(G.window as any).YT) {
-      const tag = document.createElement('script');
+      const tag = document.createElement("script");
 
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName("script")[0];
       firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
 
       (G.window as any).onYouTubeIframeAPIReady = () => this._handleYouTubeIframeAPIReady();
-    } else {
+    }
+    else {
       setTimeout(() => this._handleYouTubeIframeAPIReady(), 0);
     }
   }
@@ -88,7 +90,7 @@ export class YouTubePlayer extends Disposable {
   }
 
   public isLoaded() {
-    return waitObs(this._isLoading, (val) => !val);
+    return waitObs(this._isLoading, val => !val);
   }
 
   public play() {
@@ -102,7 +104,8 @@ export class YouTubePlayer extends Disposable {
   public playPause() {
     if (this._player.getPlayerState() === PlayerState.Playing) {
       this._player.pauseVideo();
-    } else {
+    }
+    else {
       this._player.playVideo();
     }
   }
@@ -116,11 +119,11 @@ export class YouTubePlayer extends Disposable {
   }
 
   public buildDom() {
-    return dom('div', {id: this._playerId}, ...this._domArgs);
+    return dom("div", { id: this._playerId }, ...this._domArgs);
   }
 
   private _handleYouTubeIframeAPIReady() {
-    const {onPlayerReady, onPlayerStateChange, playerVars, ...otherOptions} = this._options;
+    const { onPlayerReady, onPlayerStateChange, playerVars, ...otherOptions } = this._options;
     this._player = new (G.window as any).YT.Player(this._playerId, {
       videoId: this._videoId,
       playerVars,

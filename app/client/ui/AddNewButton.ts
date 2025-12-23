@@ -1,8 +1,9 @@
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {makeT} from 'app/client/lib/localization';
-import {icon} from 'app/client/ui2018/icons';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {dom, DomElementArg, Observable, styled} from "grainjs";
+import { makeT } from "app/client/lib/localization";
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { unstyledButton } from "app/client/ui2018/unstyled";
+
+import { dom, DomElementArg, Observable, styled } from "grainjs";
 
 const t = makeT(`AddNewButton`);
 
@@ -17,17 +18,17 @@ export function addNewButton(
   ...args: DomElementArg[]
 ) {
   return cssAddNewButton(
-    cssAddNewButton.cls('-open', isOpen),
-    cssAddNewButton.cls('-disabled', isDisabled),
+    cssAddNewButton.cls("-open", isOpen),
+    cssAddNewButton.cls("-disabled", isDisabled),
     // Setting spacing as flex items allows them to shrink faster when there isn't enough space.
     cssLeftMargin(),
     cssAddText(t("Add new")),
-    dom('div', {style: 'flex: 1 1 16px'}),
+    dom("div", { style: "flex: 1 1 16px" }),
     cssPlusButton(
-      cssPlusButton.cls('-disabled', isDisabled),
-      cssPlusIcon('Plus')
+      cssPlusButton.cls("-disabled", isDisabled),
+      cssPlusIcon("Plus"),
     ),
-    dom('div', {style: 'flex: 0 1 16px'}),
+    dom("div", { style: "flex: 0 1 16px" }),
     ...args,
   );
 }
@@ -71,14 +72,14 @@ export const cssAddNewButton = styled(unstyledButton, `
     background-color: ${theme.controlDisabledBg}
   }
 `);
-const cssLeftMargin = styled('div', `
+const cssLeftMargin = styled("div", `
   flex: 0 1 24px;
   display: none;
   .${cssAddNewButton.className}-open & {
     display: block;
   }
 `);
-const cssAddText = styled('div', `
+const cssAddText = styled("div", `
   color: ${theme.controlPrimaryFg};
   flex: 0 0.5 content;
   white-space: nowrap;
@@ -88,7 +89,7 @@ const cssAddText = styled('div', `
     display: block;
   }
 `);
-const cssPlusButton = styled('div', `
+const cssPlusButton = styled("div", `
   flex: none;
   height: 28px;
   width: 28px;

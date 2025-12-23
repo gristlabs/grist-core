@@ -1,15 +1,16 @@
-import {makeT} from 'app/client/lib/localization';
-import {KoSaveableObservable} from 'app/client/models/modelUtil';
-import {autoGrow} from 'app/client/ui/forms';
-import {textarea, textInput} from 'app/client/ui/inputs';
-import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {textButton} from 'app/client/ui2018/buttons';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {tokens} from 'app/common/ThemePrefs';
-import {CursorPos} from 'app/plugin/GristAPI';
-import {dom, DomArg, fromKo, MultiHolder, Observable, styled} from 'grainjs';
+import { makeT } from "app/client/lib/localization";
+import { KoSaveableObservable } from "app/client/models/modelUtil";
+import { autoGrow } from "app/client/ui/forms";
+import { textarea, textInput } from "app/client/ui/inputs";
+import { cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
+import { textButton } from "app/client/ui2018/buttons";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { tokens } from "app/common/ThemePrefs";
+import { CursorPos } from "app/plugin/GristAPI";
 
-const t = makeT('DescriptionConfig');
+import { dom, DomArg, fromKo, MultiHolder, Observable, styled } from "grainjs";
+
+const t = makeT("DescriptionConfig");
 
 export function buildDescriptionConfig(
   owner: MultiHolder,
@@ -19,7 +20,6 @@ export function buildDescriptionConfig(
     testPrefix: string,
   },
 ) {
-
   // We will listen to cursor position and force a blur event on
   // the text input, which will trigger save before the column observable
   // will change its value.
@@ -29,7 +29,7 @@ export function buildDescriptionConfig(
   owner.autoDispose(
     options.cursor.subscribe(() => {
       editor?.blur();
-    })
+    }),
   );
 
   let preview: HTMLDivElement | undefined;
@@ -61,45 +61,47 @@ export function buildDescriptionConfig(
   return dom.domComputed(editing, (isEditing) => {
     editor = preview = undefined;
     if (isEditing) {
-      const rows = String(description.peek().split('\n').length);
+      const rows = String(description.peek().split("\n").length);
       return [
-        cssLabel(t("DESCRIPTION"), {for: `${options.testPrefix}-description-input`}),
+        cssLabel(t("DESCRIPTION"), { for: `${options.testPrefix}-description-input` }),
         cssRow(
           editor = cssTextArea(fromKo(description), { onInput: false, save },
-            {rows, placeholder: "Enter description", id: `${options.testPrefix}-description-input`},
+            { rows, placeholder: "Enter description", id: `${options.testPrefix}-description-input` },
             dom.onKeyDown({
               Enter$: (ev, elem) => { if (!ev.shiftKey) { return save(elem.value); } },
               Escape: closeEditor,
             }),
-            dom.on('blur', (ev, elem) => save(elem.value)),
+            dom.on("blur", (ev, elem) => save(elem.value)),
             testId(`${options.testPrefix}-description`),
             autoGrow(fromKo(description)),
           ),
         ),
       ];
-    } else {
-      return dom.domComputed(use => Boolean(use(description)), haveDescription => {
+    }
+    else {
+      return dom.domComputed(use => Boolean(use(description)), (haveDescription) => {
         preview = undefined;
         if (haveDescription) {
           return [
-            cssLabel(t("DESCRIPTION"), {for: `${options.testPrefix}-description-preview`}),
+            cssLabel(t("DESCRIPTION"), { for: `${options.testPrefix}-description-preview` }),
             cssRow(
               preview = cssPreview(
-                cssTextInput.cls(''),
+                cssTextInput.cls(""),
                 dom.text(description),
-                {tabIndex: '0', id: `${options.testPrefix}-description-preview`},
-                dom.onKeyDown({Enter: openEditor}),
+                { tabIndex: "0", id: `${options.testPrefix}-description-preview` },
+                dom.onKeyDown({ Enter: openEditor }),
                 dom.on("click", openEditor),
-                testId('description-preview'),
+                testId("description-preview"),
               ),
             ),
           ];
-        } else {
+        }
+        else {
           return cssRow(cssTextButton(
-              t("Set description"),
-              dom.on("click", openEditor),
-              testId('description-add'),
-            )
+            t("Set description"),
+            dom.on("click", openEditor),
+            testId("description-add"),
+          ),
           );
         }
       });
@@ -124,18 +126,18 @@ export function buildTextInput(
     owner.autoDispose(
       options.cursor.subscribe(() => {
         options.value.save().catch(reportError);
-      })
+      }),
     );
   }
   return [
     cssLabel(options.label),
     cssRow(
       cssTextInput(fromKo(options.value),
-        dom.on('blur', () => {
+        dom.on("blur", () => {
           return options.value.save();
         }),
-        dom.prop('placeholder', options.placeholder || ''),
-        ...args
+        dom.prop("placeholder", options.placeholder || ""),
+        ...args,
       ),
     ),
   ];
@@ -185,7 +187,7 @@ const cssTextButton = styled(textButton, `
   margin-top: 8px;
 `);
 
-const cssPreview = styled('div', `
+const cssPreview = styled("div", `
   background-color: ${tokens.bgTertiary};
   overflow: hidden;
   text-overflow: ellipsis;

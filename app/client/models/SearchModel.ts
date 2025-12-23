@@ -1,20 +1,20 @@
-// tslint:disable:no-console
 // TODO: Add documentation and clean up log statements.
 
-import {GristDoc} from 'app/client/components/GristDoc';
-import {PageRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {reportError} from 'app/client/models/errors';
-import {delay} from 'app/common/delay';
-import {IDocPage} from 'app/common/gristUrls';
-import {nativeCompare, waitObs} from 'app/common/gutil';
-import {TableData} from 'app/common/TableData';
-import {BaseFormatter} from 'app/common/ValueFormatter';
-import { makeT } from 'app/client/lib/localization';
-import {CursorPos} from 'app/plugin/GristAPI';
-import {Computed, Disposable, Observable} from 'grainjs';
-import debounce = require('lodash/debounce');
+import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
+import { PageRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
+import { reportError } from "app/client/models/errors";
+import { delay } from "app/common/delay";
+import { IDocPage } from "app/common/gristUrls";
+import { nativeCompare, waitObs } from "app/common/gutil";
+import { TableData } from "app/common/TableData";
+import { BaseFormatter } from "app/common/ValueFormatter";
+import { CursorPos } from "app/plugin/GristAPI";
 
-const t = makeT('SearchModel');
+import { Computed, Disposable, Observable } from "grainjs";
+import debounce from "lodash/debounce";
+
+const t = makeT("SearchModel");
 
 /**
  * SearchModel used to maintain the state of the search UI.
@@ -49,7 +49,7 @@ interface SearchPosition {
  * stepper's array.
  */
 class Stepper<T> {
-  public array: ReadonlyArray<T> = [];
+  public array: readonly T[] = [];
   public index: number = 0;
 
   public inRange() {
@@ -58,7 +58,7 @@ class Stepper<T> {
 
   // Doing await at every step adds a ton of overhead; we can optimize by returning and waiting on
   // Promises only when needed.
-  public next(step: number, nextArrayFunc: () => Promise<void>|void): Promise<void>|void {
+  public next(step: number, nextArrayFunc: () => Promise<void> | void): Promise<void> | void {
     this.index += step;
     if (!this.inRange()) {
       // If index reached the end of the array, take a step at a higher level to get a new array.
@@ -66,7 +66,8 @@ class Stepper<T> {
       const p = nextArrayFunc();
       if (p) {
         return p.then(() => this.setStart(step));
-      } else {
+      }
+      else {
         this.setStart(step);
       }
     }
@@ -87,7 +88,7 @@ interface IFinder {
   startPosition: SearchPosition;   // position at which to stop searching for a new match
   abort(): void;                   // abort current search
   matchNext(step: number): Promise<void>;      // next match
-  nextField(step: number): Promise<void>|void; // move the current position
+  nextField(step: number): Promise<void> | void; // move the current position
   getCurrentPosition(): SearchPosition;        // get the current position
 }
 
@@ -108,6 +109,7 @@ class RawSectionWrapper implements ISearchablePageRec {
   constructor(private _section: ViewSectionRec) {
 
   }
+
   public viewSections(): ViewSectionRec[] {
     return [this._section];
   }
@@ -117,7 +119,7 @@ class RawSectionWrapper implements ISearchablePageRec {
   }
 
   public getViewId(): IDocPage {
-    return 'data';
+    return "data";
   }
 
   public async openPage() {
@@ -131,6 +133,7 @@ class PageRecWrapper implements ISearchablePageRec {
   constructor(private _page: PageRec, private _opener: DocPageOpener) {
 
   }
+
   public viewSections(): ViewSectionRec[] {
     const sections = this._page.view.peek().viewSections.peek().peek();
     const collapsed = new Set(this._page.view.peek().activeCollapsedSections.peek());
@@ -139,9 +142,9 @@ class PageRecWrapper implements ISearchablePageRec {
     // down the search to only it.
     const inPopup = collapsed.has(activeSectionId);
     if (inPopup) {
-      return sections.filter((s) => s.getRowId() === activeSectionId);
+      return sections.filter(s => s.getRowId() === activeSectionId);
     }
-    return sections.filter((s) => !collapsed.has(s.getRowId()));
+    return sections.filter(s => !collapsed.has(s.getRowId()));
   }
 
   public activeSectionId() {
@@ -157,7 +160,7 @@ class PageRecWrapper implements ISearchablePageRec {
   }
 }
 
-//activeSectionId
+// activeSectionId
 
 /**
  * An implementation of an IFinder.
@@ -175,10 +178,10 @@ class FinderImpl implements IFinder {
   private _fieldFormatters: [ViewFieldRec, BaseFormatter][];
   private _pagesSwitched: number = 0;
   private _aborted = false;
-  private _clearCursorHighlight: (() => void)|undefined;
+  private _clearCursorHighlight: (() => void) | undefined;
 
   constructor(private _gristDoc: GristDoc, value: string, private _openDocPageCB: DocPageOpener,
-              public multiPage: Observable<boolean>, private _onPageChange?: () => void) {
+    public multiPage: Observable<boolean>, private _onPageChange?: () => void) {
     this._searchRegexp = makeRegexp(value);
   }
 
@@ -199,15 +202,15 @@ class FinderImpl implements IFinder {
   // Initialize the steppers. Returns false if anything goes wrong.
   public async init(): Promise<boolean> {
     // If we are on a raw view page, pretend that we are looking at true pages.
-    if ('data' === this._gristDoc.activeViewId.get()) {
+    if ("data" === this._gristDoc.activeViewId.get()) {
       // Get all raw sections.
       const rawSections = this._gristDoc.docModel.visibleTables.peek()
-                              // sort in order that is the same as on the raw data list page,
-                              .sort((a, b) => nativeCompare(a.tableNameDef.peek(), b.tableNameDef.peek()))
-                              // get rawViewSection,
-                              .map(table => table.rawViewSection.peek())
-                              // and test if it isn't an empty record.
-                              .filter(s => Boolean(s.id.peek()));
+      // sort in order that is the same as on the raw data list page,
+        .sort((a, b) => nativeCompare(a.tableNameDef.peek(), b.tableNameDef.peek()))
+      // get rawViewSection,
+        .map(table => table.rawViewSection.peek())
+      // and test if it isn't an empty record.
+        .filter(s => Boolean(s.id.peek()));
       // Pretend that those are pages.
       this._pageStepper.array = rawSections.map(r => new RawSectionWrapper(r));
       // Find currently selected one (by comparing to active section id)
@@ -218,7 +221,8 @@ class FinderImpl implements IFinder {
         this._pageStepper.index = 0;
         await this._pageStepper.value.openPage();
       }
-    } else {
+    }
+    else {
       // Else read all visible pages.
       const pages = this._gristDoc.docModel.visibleDocPages.peek();
       this._pageStepper.array = pages.map(p => new PageRecWrapper(p, this._openDocPageCB));
@@ -248,7 +252,6 @@ class FinderImpl implements IFinder {
     this._pagesSwitched = 0;
 
     while (!this._matches() || ((await this._loadSection(step)) && !this._matches())) {
-
       // If search was aborted, simply returns.
       if (this._aborted) { return; }
 
@@ -284,7 +287,7 @@ class FinderImpl implements IFinder {
     await this._highlight();
   }
 
-  public nextField(step: number): Promise<void>|void {
+  public nextField(step: number): Promise<void> | void {
     return this._fieldStepper.next(step, () => this._nextRow(step));
   }
 
@@ -298,12 +301,12 @@ class FinderImpl implements IFinder {
     await this._initNewSectionAny();
   }
 
-    // TODO There are issues with filtering. A section may have filters applied, and it may be
-    // auto-filtered (linked sections). If a tab is shown, we have the filtered list of rowIds; if
-    // the tab is not shown, it takes work to apply explicit filters. For linked sections, the
-    // sensible behavior seems to scan through ALL values, then once a match is found, set the
-    // cursor that determines the linking to include the matched row. And even that may not always
-    // be possible. So this is an open question.
+  // TODO There are issues with filtering. A section may have filters applied, and it may be
+  // auto-filtered (linked sections). If a tab is shown, we have the filtered list of rowIds; if
+  // the tab is not shown, it takes work to apply explicit filters. For linked sections, the
+  // sensible behavior seems to scan through ALL values, then once a match is found, set the
+  // cursor that determines the linking to include the matched row. And even that may not always
+  // be possible. So this is an open question.
 
   private _initNewSectionCommon() {
     const section = this._sectionStepper.value;
@@ -318,7 +321,7 @@ class FinderImpl implements IFinder {
   private _initNewSectionShown() {
     this._initNewSectionCommon();
     const viewInstance = this._sectionStepper.value.viewInstance.peek()!;
-    const skip = ['chart'].includes(this._sectionStepper.value.parentKey.peek());
+    const skip = ["chart"].includes(this._sectionStepper.value.parentKey.peek());
     this._rowStepper.array = skip ? [] : viewInstance.sortedRows.getKoArray().peek() as number[];
   }
 
@@ -326,12 +329,14 @@ class FinderImpl implements IFinder {
     const tableModel = this._initNewSectionCommon();
 
     const viewInstance = this._sectionStepper.value.viewInstance.peek();
-    const skip = ['chart'].includes(this._sectionStepper.value.parentKey.peek());
+    const skip = ["chart"].includes(this._sectionStepper.value.parentKey.peek());
     if (skip) {
       this._rowStepper.array = [];
-    } else if (viewInstance) {
+    }
+    else if (viewInstance) {
       this._rowStepper.array = viewInstance.sortedRows.getKoArray().peek() as number[];
-    } else {
+    }
+    else {
       // If we are searching through another page (not currently loaded), we will NOT have a
       // viewInstance, but we use the unsorted unfiltered row list, and if we find a match, the
       // _loadSection() method will load the page and we'll repeat the search with a viewInstance.
@@ -355,7 +360,7 @@ class FinderImpl implements IFinder {
 
   private _matches(): boolean {
     if (this._pageStepper.index < 0 || this._sectionStepper.index < 0 ||
-        this._rowStepper.index < 0 || this._fieldStepper.index < 0) {
+      this._rowStepper.index < 0 || this._fieldStepper.index < 0) {
       console.warn("match outside");
       return false;
     }
@@ -363,7 +368,7 @@ class FinderImpl implements IFinder {
     let formatter = this._fieldFormatters[this._fieldStepper.index];
     // When fields are removed during search (or reordered) we need to update
     // formatters we retrieved on init.
-    if (!formatter || formatter[0 /* field */] !== field) {
+    if (formatter?.[0] !== field) {
       this._initFormatters();
       formatter = this._fieldFormatters[this._fieldStepper.index];
     }
@@ -428,11 +433,11 @@ class FinderImpl implements IFinder {
     // was already in a matched record, but the record was scrolled away.
     viewInstance.scrollToCursor(true).catch(reportError);
 
-    const cursor = viewInstance.viewPane.querySelector('.selected_cursor');
+    const cursor = viewInstance.viewPane.querySelector(".selected_cursor");
     if (cursor) {
-      cursor.classList.add('search-match');
+      cursor.classList.add("search-match");
       this._clearCursorHighlight = () => {
-        cursor.classList.remove('search-match');
+        cursor.classList.remove("search-match");
         clearTimeout(timeout);
         this._clearCursorHighlight = undefined;
       };
@@ -443,9 +448,9 @@ class FinderImpl implements IFinder {
   private _isCurrentPosition(pos: SearchPosition): boolean {
     return (
       this._pageStepper.index === pos.pageIndex &&
-        this._sectionStepper.index === pos.sectionIndex &&
-        this._rowStepper.index === pos.rowIndex &&
-        this._fieldStepper.index === pos.fieldIndex
+      this._sectionStepper.index === pos.sectionIndex &&
+      this._rowStepper.index === pos.rowIndex &&
+      this._fieldStepper.index === pos.fieldIndex
     );
   }
 }
@@ -454,7 +459,7 @@ class FinderImpl implements IFinder {
  * Implementation of SearchModel used to construct the search UI.
  */
 export class SearchModelImpl extends Disposable implements SearchModel {
-  public readonly value = Observable.create(this, '');
+  public readonly value = Observable.create(this, "");
   public readonly isOpen = Observable.create(this, false);
   public readonly isRunning = Observable.create(this, false);
   public readonly noMatch = Observable.create(this, true);
@@ -463,20 +468,20 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   public readonly allLabel: Computed<string>;
 
   private _isRestartNeeded = false;
-  private _finder: IFinder|null = null;
+  private _finder: IFinder | null = null;
   private _onPageChange: (() => void) | undefined;
   constructor(private _gristDoc: GristDoc) {
     super();
 
     // Listen to input value changes (debounced) to activate searching.
     const findFirst = debounce((_value: string) => this._findFirst(_value), 100);
-    this.autoDispose(this.value.addListener(v => { this.isRunning.set(true); void findFirst(v); }));
+    this.autoDispose(this.value.addListener((v) => { this.isRunning.set(true); void findFirst(v); }));
 
     // Set this.noMatch to false when multiPage gets turned ON.
-    this.autoDispose(this.multiPage.addListener(v => { if (v) { this.noMatch.set(false); } }));
+    this.autoDispose(this.multiPage.addListener((v) => { if (v) { this.noMatch.set(false); } }));
 
-    this.allLabel = Computed.create(this, use => use(this._gristDoc.activeViewId) === 'data' ?
-      t('Search all tables') : t('Search all pages'));
+    this.allLabel = Computed.create(this, use => use(this._gristDoc.activeViewId) === "data" ?
+      t("Search all tables") : t("Search all pages"));
 
     // Schedule a search restart when user changes pages (otherwise search would resume from the
     // previous page that is not shown anymore). Also revert noMatch flag when in single page mode.
@@ -487,7 +492,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
 
     // On Raw data view, whenever table is closed (so activeSectionId = 0), restart search.
     this.autoDispose(this._gristDoc.viewModel.activeSectionId.subscribe((sectionId) => {
-      if (this._gristDoc.activeViewId.get() === 'data' && sectionId === 0) {
+      if (this._gristDoc.activeViewId.get() === "data" && sectionId === 0) {
         this._isRestartNeeded = true;
         this.noMatch.set(false);
       }
@@ -532,7 +537,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
       value,
       this._openDocPage.bind(this),
       this.multiPage,
-      this._onPageChange
+      this._onPageChange,
     );
     const isValid = await impl.init();
     this._finder = isValid ? impl : null;
@@ -541,7 +546,6 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   // Internal helper that runs cb, passing it the current `this._finder` as first argument and sets
   // this.isRunning to true until the call resolves. It also takes care of updating this.noMatch.
   private async _run(cb: (finder: IFinder) => Promise<void>) {
-
     const finder = this._finder;
     if (!finder) { throw new Error("SearchModel: finder is not defined"); }
 
@@ -549,7 +553,8 @@ export class SearchModelImpl extends Disposable implements SearchModel {
       this.isRunning.set(true);
       finder.startPosition = finder.getCurrentPosition();
       await cb(finder);
-    } finally {
+    }
+    finally {
       this.isRunning.set(false);
       this.noMatch.set(!finder.matchFound);
     }
@@ -564,6 +569,6 @@ export class SearchModelImpl extends Disposable implements SearchModel {
 
 function makeRegexp(value: string) {
   // From https://stackoverflow.com/a/3561711/328565
-  const escaped = value.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-  return new RegExp(escaped, 'i');
+  const escaped = value.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+  return new RegExp(escaped, "i");
 }

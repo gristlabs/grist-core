@@ -1,8 +1,9 @@
-import {colors, isNarrowScreenObs} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {Disposable, dom, DomArg, DomElementArg, makeTestId, Observable, styled} from 'grainjs';
+import { colors, isNarrowScreenObs } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
 
-const testId = makeTestId('test-banner-');
+import { Disposable, dom, DomArg, DomElementArg, makeTestId, Observable, styled } from "grainjs";
+
+const testId = makeTestId("test-banner-");
 
 export interface BannerOptions {
   /**
@@ -19,7 +20,7 @@ export interface BannerOptions {
    * Custom banners have no default background; a custom `backgrund` must be
    * set.
    */
-  style: 'warning' | 'error' | 'info' | 'custom';
+  style: "warning" | "error" | "info" | "custom";
 
   /**
    * Custom background.
@@ -74,18 +75,18 @@ export class Banner extends Disposable {
   }
 
   public buildDom() {
-    return cssBanner({class: this._options.bannerCssClass || ''},
+    return cssBanner({ class: this._options.bannerCssClass || "" },
       cssBanner.cls(`-${this._options.style}`),
-      dom.style('background', this._options.background ?? ''),
+      dom.style("background", this._options.background ?? ""),
       this._buildContent(),
       this._buildButtons(),
-      testId('element')
+      testId("element"),
     );
   }
 
   private _buildContent() {
-    const {content, contentSmall} = this._options;
-    return dom.domComputed(use => {
+    const { content, contentSmall } = this._options;
+    return dom.domComputed((use) => {
       if (contentSmall === undefined) { return [content]; }
 
       const isExpanded = use(this._isExpanded);
@@ -102,17 +103,17 @@ export class Banner extends Disposable {
   }
 
   private _buildCloseButton() {
-    return cssButton('CrossBig',
-      dom.on('click', () => this._options.onClose?.()),
-      testId('close'),
+    return cssButton("CrossBig",
+      dom.on("click", () => this._options.onClose?.()),
+      testId("close"),
     );
   }
 
   private _buildExpandButton() {
     return dom.maybe(isNarrowScreenObs(), () => {
-      return cssExpandButton('Dropdown',
-        cssExpandButton.cls('-expanded', this._isExpanded),
-        dom.on('click', () => this._isExpanded.set(!this._isExpanded.get())),
+      return cssExpandButton("Dropdown",
+        cssExpandButton.cls("-expanded", this._isExpanded),
+        dom.on("click", () => this._isExpanded.set(!this._isExpanded.get())),
       );
     });
   }
@@ -120,12 +121,12 @@ export class Banner extends Disposable {
 
 export function buildBannerMessage(...domArgs: DomElementArg[]) {
   return cssBannerMessage(
-    cssIcon('Idea'),
+    cssIcon("Idea"),
     cssLightlyBoldedText(domArgs),
   );
 }
 
-const cssBanner = styled('div', `
+const cssBanner = styled("div", `
   display: flex;
   padding: 10px;
   gap: 16px;
@@ -151,7 +152,7 @@ const cssBanner = styled('div', `
   }
 `);
 
-export const cssBannerLink = styled('span', `
+export const cssBannerLink = styled("span", `
   cursor: pointer;
   color: unset;
   text-decoration: underline;
@@ -161,7 +162,7 @@ export const cssBannerLink = styled('span', `
   }
 `);
 
-const cssButtons = styled('div', `
+const cssButtons = styled("div", `
   display: flex;
   gap: 16px;
   flex-shrink: 0;
@@ -181,11 +182,11 @@ const cssExpandButton = styled(cssButton, `
   }
 `);
 
-const cssLightlyBoldedText = styled('div', `
+const cssLightlyBoldedText = styled("div", `
   font-weight: 500;
 `);
 
-const cssIconAndText = styled('div', `
+const cssIconAndText = styled("div", `
   display: flex;
   gap: 16px;
 `);

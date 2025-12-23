@@ -1,13 +1,15 @@
-import { ApiError } from 'app/common/ApiError';
-import { mapGetOrSet, MapWithTTL } from 'app/common/AsyncCreate';
-import { extractOrgParts, getHostType, getSingleOrg } from 'app/common/gristUrls';
-import { isAffirmative } from 'app/common/gutil';
-import { Organization } from 'app/gen-server/entity/Organization';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { GristServer } from 'app/server/lib/GristServer';
-import { getOriginUrl } from 'app/server/lib/requestUtils';
-import { NextFunction, Request, RequestHandler, Response } from 'express';
-import { IncomingMessage } from 'http';
+import { ApiError } from "app/common/ApiError";
+import { mapGetOrSet, MapWithTTL } from "app/common/AsyncCreate";
+import { extractOrgParts, getHostType, getSingleOrg } from "app/common/gristUrls";
+import { isAffirmative } from "app/common/gutil";
+import { Organization } from "app/gen-server/entity/Organization";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { GristServer } from "app/server/lib/GristServer";
+import { getOriginUrl } from "app/server/lib/requestUtils";
+
+import { IncomingMessage } from "http";
+
+import { NextFunction, Request, RequestHandler, Response } from "express";
 
 // How long we cache information about the relationship between
 // orgs and custom hosts.  The higher this is, the fewer requests
@@ -22,7 +24,7 @@ const ORG_HOST_CACHE_TTL = 60 * 1000;
 export interface RequestOrgInfo {
   org: string;
   isCustomHost: boolean;   // when set, the request's domain is a recognized custom host linked
-                           // with the specified org.
+  // with the specified org.
 
   // path remainder after stripping /o/{org} if any.
   url: string;
@@ -34,16 +36,15 @@ export type RequestWithOrg = Request & Partial<RequestOrgInfo>;
  * Manage the relationship between orgs and custom hosts in the url.
  */
 export class Hosts {
-
   // Cache of orgs (e.g. "fancy" of "fancy.getgrist.com") associated with custom hosts
   // (e.g. "www.fancypants.com")
-  private _host2org = new MapWithTTL<string, Promise<string|undefined>>(ORG_HOST_CACHE_TTL);
+  private _host2org = new MapWithTTL<string, Promise<string | undefined>>(ORG_HOST_CACHE_TTL);
   // Cache of custom hosts associated with orgs.
-  private _org2host = new MapWithTTL<string, Promise<string|undefined>>(ORG_HOST_CACHE_TTL);
+  private _org2host = new MapWithTTL<string, Promise<string | undefined>>(ORG_HOST_CACHE_TTL);
 
   // baseDomain should start with ".". It may be undefined for localhost or single-org mode.
-  constructor(private _baseDomain: string|undefined, private _dbManager: HomeDBManager,
-              private _gristServer: GristServer|undefined) {
+  constructor(private _baseDomain: string | undefined, private _dbManager: HomeDBManager,
+    private _gristServer: GristServer | undefined) {
   }
 
   /**
@@ -80,7 +81,7 @@ export class Hosts {
   // Extract org, isCustomHost, and the URL with /o/ORG stripped away. Throws ApiError for
   // mismatching org or invalid custom domain. Hostname should not include port.
   public async getOrgInfoFromParts(host: string, urlPath: string): Promise<RequestOrgInfo> {
-    const hostname = host.split(':')[0];    // Strip out port (ignores IPv6 but is OK for us).
+    const hostname = host.split(":")[0];    // Strip out port (ignores IPv6 but is OK for us).
 
     // Extract the org from the host and URL path.
     const parts = extractOrgParts(hostname, urlPath);
@@ -88,23 +89,25 @@ export class Hosts {
     // If the server is configured to serve a single hard-wired org, respect that.
     const singleOrg = getSingleOrg();
     if (singleOrg) {
-      return {org: singleOrg, url: parts.pathRemainder, isCustomHost: false};
+      return { org: singleOrg, url: parts.pathRemainder, isCustomHost: false };
     }
 
     const hostType = this._getHostType(host);
-    if (hostType === 'native') {
+    if (hostType === "native") {
       if (parts.mismatch) {
         throw new ApiError(`Wrong org for this domain: ` +
           `'${parts.orgFromPath}' does not match '${parts.orgFromHost}'`, 400);
       }
-      return {org: parts.subdomain || '', url: parts.pathRemainder, isCustomHost: false};
-    } else if (hostType === 'plugin') {
-      return {org: '', url: parts.pathRemainder, isCustomHost: false};
-    } else {
+      return { org: parts.subdomain || "", url: parts.pathRemainder, isCustomHost: false };
+    }
+    else if (hostType === "plugin") {
+      return { org: "", url: parts.pathRemainder, isCustomHost: false };
+    }
+    else {
       // Otherwise check for a custom host.
       const org = await mapGetOrSet(this._host2org, hostname, async () => {
-        const o = await this._dbManager.connection.manager.findOne(Organization, {where: {host: hostname}});
-        return o && o.domain || undefined;
+        const o = await this._dbManager.connection.manager.findOne(Organization, { where: { host: hostname } });
+        return o?.domain || undefined;
       });
       if (!org) { throw new ApiError(`Domain not recognized: ${hostname}`, 404); }
 
@@ -117,7 +120,7 @@ export class Hosts {
         throw new ApiError(`Wrong org for this domain: ` +
           `'${parts.orgFromPath}' does not match '${org}'`, 400);
       }
-      return {org, isCustomHost: true, url: parts.pathRemainder};
+      return { org, isCustomHost: true, url: parts.pathRemainder };
     }
   }
 
@@ -143,19 +146,20 @@ export class Hosts {
     try {
       await this.addOrgInfo(req);
       return next();
-    } catch (err) {
-      return resp.status(err.status || 500).send({error: err.message});
+    }
+    catch (err) {
+      return resp.status(err.status || 500).send({ error: err.message });
     }
   }
 
   private async _redirectHost(req: Request, resp: Response, next: NextFunction) {
-    const {org} = req as RequestWithOrg;
+    const { org } = req as RequestWithOrg;
 
-    if (org && this._getHostType(req.headers.host!) === 'native' && !this._dbManager.isMergedOrg(org)) {
+    if (org && this._getHostType(req.headers.host!) === "native" && !this._dbManager.isMergedOrg(org)) {
       // Check if the org has a preferred host.
       const orgHost = await mapGetOrSet(this._org2host, org, async () => {
-        const o = await this._dbManager.connection.manager.findOne(Organization, {where: {domain: org}});
-        return o && o.host || undefined;
+        const o = await this._dbManager.connection.manager.findOne(Organization, { where: { domain: org } });
+        return o?.host || undefined;
       });
       if (orgHost && orgHost !== req.hostname) {
         const url = new URL(getOriginUrl(req) + req.path);
@@ -168,7 +172,7 @@ export class Hosts {
 
   private _getHostType(host: string) {
     const pluginUrl = isAffirmative(process.env.GRIST_TRUST_PLUGINS) ?
-        undefined : this._gristServer?.getPluginUrl();
-    return getHostType(host, {baseDomain: this._baseDomain, pluginUrl});
+      undefined : this._gristServer?.getPluginUrl();
+    return getHostType(host, { baseDomain: this._baseDomain, pluginUrl });
   }
 }

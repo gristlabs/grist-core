@@ -9,7 +9,7 @@ interface EmojiPickerOptions {
 
 export async function buildEmojiPicker({
   onEmojiSelect,
-  theme
+  theme,
 }: EmojiPickerOptions) {
   return new Picker({
     data,

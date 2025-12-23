@@ -1,16 +1,17 @@
-import {DocModel} from 'app/client/models/DocModel';
-import {reportError} from 'app/client/models/errors';
-import {TableData} from 'app/client/models/TableData';
-import {concatenateSummaries, summarizeStoredAndUndo} from 'app/common/ActionSummarizer';
-import {TableDelta} from 'app/common/ActionSummary';
-import {ProcessedAction} from 'app/common/AlternateActions';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {DocAction, TableDataAction, UserAction} from 'app/common/DocActions';
-import {DocDataCache} from 'app/common/DocDataCache';
-import {RowRecord} from 'app/plugin/GristData';
-import * as commands from 'app/client/components/commands';
-import debounce from 'lodash/debounce';
-import {bundleChanges} from 'grainjs';
+import * as commands from "app/client/components/commands";
+import { DocModel } from "app/client/models/DocModel";
+import { reportError } from "app/client/models/errors";
+import { TableData } from "app/client/models/TableData";
+import { concatenateSummaries, summarizeStoredAndUndo } from "app/common/ActionSummarizer";
+import { TableDelta } from "app/common/ActionSummary";
+import { ProcessedAction } from "app/common/AlternateActions";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { DocAction, TableDataAction, UserAction } from "app/common/DocActions";
+import { DocDataCache } from "app/common/DocDataCache";
+import { RowRecord } from "app/plugin/GristData";
+
+import { bundleChanges } from "grainjs";
+import debounce from "lodash/debounce";
 
 /**
  * An interface for use while editing a virtual table.
@@ -32,8 +33,8 @@ export interface IEdit {
    */
   patch(actions: UserAction[]): Promise<ProcessedAction[]>;
 
-  getRecord(rowId: number): RowRecord|undefined;     // A record in the table.
-  getRecordNew(rowId: number): RowRecord|undefined;  // A record in the table, after the edit.
+  getRecord(rowId: number): RowRecord | undefined;     // A record in the table.
+  getRecordNew(rowId: number): RowRecord | undefined;  // A record in the table, after the edit.
   getRowIds(): readonly number[];  // All rowIds in the table.
 }
 
@@ -51,7 +52,6 @@ export interface IExternalTable {
   afterAnySchemaChange?(editor: IEdit): Promise<void>;  // called after any schema change in the document.
 }
 
-
 // A counter to generate unique actionNums for undo actions.
 let _counterForUndoActions: number = 1;
 
@@ -60,7 +60,6 @@ let _counterForUndoActions: number = 1;
  * This lets virtual tables "fit in" to a DocData instance.
  */
 export class VirtualTableData extends TableData {
-
   public docModel: DocModel;
   public ext: IExternalTable;
   public cache: DocDataCache;
@@ -75,7 +74,7 @@ export class VirtualTableData extends TableData {
 
   public override async sendTableActions(userActions: UserAction[]): Promise<any[]> {
     const actions = await this._sendTableActionsCore(userActions,
-                                                     {isUser: true});
+      { isUser: true });
     await this.ext.afterEdit?.(this._editor(actions));
     return actions.map(action => action.retValues);
   }
@@ -117,7 +116,7 @@ export class VirtualTableData extends TableData {
       patch: userActions => this._sendTableActionsCore(userActions, {
         hasTableIds: true,
         isUser: false,
-      })
+      }),
     };
   }
 
@@ -127,9 +126,9 @@ export class VirtualTableData extends TableData {
     hasTableIds?: boolean,
     actionNum?: any,
   }): Promise<ProcessedAction[]> {
-    const {isUndo, isUser, hasTableIds} = options;
+    const { isUndo, isUser, hasTableIds } = options;
     if (!hasTableIds) {
-      userActions.forEach((action) => action.splice(1, 0, this.tableId));
+      userActions.forEach(action => action.splice(1, 0, this.tableId));
     }
     const actions = await this.cache.sendTableActions(userActions);
     if (isUser) {
@@ -139,7 +138,8 @@ export class VirtualTableData extends TableData {
           ...this._editor(actions),
           getRecordNew: rowId => newTable.getRecord(rowId),
         });
-      } catch (e) {
+      }
+      catch (e) {
         actions.reverse();
         for (const action of actions) {
           await this.cache.sendTableActions(action.undo);
@@ -156,7 +156,7 @@ export class VirtualTableData extends TableData {
           _counterForUndoActions++;
           commands.allCommands.pushUndoAction.run({
             actionNum: code,
-            actionHash: 'hash',
+            actionHash: "hash",
             fromSelf: true,
             otherId: options.actionNum || 0,
             linkId: 0,
@@ -171,10 +171,9 @@ export class VirtualTableData extends TableData {
     return actions;
   }
 
-
   private async _doUndo(actionGroup: {
     action: ProcessedAction,
-    actionNum: number|string,
+    actionNum: number | string,
   }, isUndo: boolean) {
     await this._sendTableActionsCore(
       isUndo ? actionGroup.action.undo : actionGroup.action.stored,
@@ -199,6 +198,7 @@ export class VirtualTableRegistration extends DisposableWithEvents {
     maxWait: 2000,
     trailing: true,
   });
+
   private _tableData: VirtualTableData;
 
   constructor(docModel: DocModel, ext: IExternalTable) {
@@ -215,7 +215,7 @@ export class VirtualTableRegistration extends DisposableWithEvents {
     docData.receiveActions(initialActions);
     // pass in gristDoc and external interface
     this._tableData = docData.getTable(ext.name)! as VirtualTableData;
-    //this.tableData.docApi = this.docApi;
+    // this.tableData.docApi = this.docApi;
     this._tableData.docModel = docModel;
     this._tableData.setExt(ext);
     // subscribe to schema changes
@@ -234,8 +234,8 @@ export class VirtualTableRegistration extends DisposableWithEvents {
 
   public listenToEvents(source: DisposableWithEvents) {
     const listener = () => this._tableData.schemaChange().catch(e => reportError(e));
-    this.listenTo(source, 'schemaUpdateAction', listener);
-    this.onDispose(() => this.stopListening(source, 'schemaUpdateAction', listener));
+    this.listenTo(source, "schemaUpdateAction", listener);
+    this.onDispose(() => this.stopListening(source, "schemaUpdateAction", listener));
   }
 
   public updateSchema() {
@@ -256,12 +256,12 @@ export class VirtualTableRegistration extends DisposableWithEvents {
  * if actions are more complex than simple create table/columns actions.
  */
 function generateDestroyActions(initialActions: DocAction[]): DocAction[] {
-  return initialActions.map(action => {
+  return initialActions.map((action) => {
     switch (action[0]) {
-      case 'AddTable': return ['RemoveTable', action[1]];
-      case 'AddColumn': return ['RemoveColumn', action[1]];
-      case 'AddRecord': return ['RemoveRecord', action[1], action[2]];
-      case 'BulkAddRecord': return ['BulkRemoveRecord', action[1], action[2]];
+      case "AddTable": return ["RemoveTable", action[1]];
+      case "AddColumn": return ["RemoveColumn", action[1]];
+      case "AddRecord": return ["RemoveRecord", action[1], action[2]];
+      case "BulkAddRecord": return ["BulkRemoveRecord", action[1], action[2]];
       default: throw new Error(`Cannot generate destroy action for ${action[0]}`);
     }
   }).reverse() as unknown as DocAction[];

@@ -1,25 +1,26 @@
-import {KoArray} from 'app/client/lib/koArray';
-import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
-import {ChatHistory} from 'app/client/models/ChatHistory';
-import {CellRec, DocModel, IRowModel, recordSet,
-        refRecord, TableRec, ViewFieldRec} from 'app/client/models/DocModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {jsonObservable, ObjObservable} from 'app/client/models/modelUtil';
-import * as gristTypes from 'app/common/gristTypes';
-import {getReferencedTableId} from 'app/common/gristTypes';
+import { KoArray } from "app/client/lib/koArray";
+import { localStorageJsonObs } from "app/client/lib/localStorageObs";
+import { ChatHistory } from "app/client/models/ChatHistory";
+import { CellRec, DocModel, IRowModel, recordSet,
+  refRecord, TableRec, ViewFieldRec } from "app/client/models/DocModel";
+import { urlState } from "app/client/models/gristUrlState";
+import { jsonObservable, ObjObservable } from "app/client/models/modelUtil";
+import * as gristTypes from "app/common/gristTypes";
+import { getReferencedTableId } from "app/common/gristTypes";
 import {
   BaseFormatter,
   createFullFormatterRaw,
   createVisibleColFormatterRaw,
-  FullFormatterArgs
-} from 'app/common/ValueFormatter';
-import {createParser} from 'app/common/ValueParser';
-import {Observable} from 'grainjs';
-import * as ko from 'knockout';
-import {v4 as uuidv4} from 'uuid';
+  FullFormatterArgs,
+} from "app/common/ValueFormatter";
+import { createParser } from "app/common/ValueParser";
+
+import { Observable } from "grainjs";
+import * as ko from "knockout";
+import { v4 as uuidv4 } from "uuid";
 
 // Column behavior type, used primarily in the UI.
-export type BEHAVIOR = "empty"|"formula"|"data";
+export type BEHAVIOR = "empty" | "formula" | "data";
 
 // Represents a column in a user-defined table.
 export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
@@ -77,7 +78,7 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   isFormCol: ko.Computed<boolean>;
 
   // Returns the rowModel for the referenced table, or null, if is not a reference column.
-  refTable: ko.Computed<TableRec|null>;
+  refTable: ko.Computed<TableRec | null>;
 
   // Helper for Reference/ReferenceList columns, which returns a formatter according
   // to the visibleCol associated with column.
@@ -97,7 +98,7 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   chatHistory: ko.PureComputed<Observable<ChatHistory>>;
 
   // Helper which adds/removes/updates column's displayCol to match the formula.
-  saveDisplayFormula(formula: string): Promise<void>|undefined;
+  saveDisplayFormula(formula: string): Promise<void> | undefined;
 
   createValueParser(): (value: string) => any;
 
@@ -111,18 +112,18 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
 export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   this.table = refRecord(docModel.tables, this.parentId);
   this.widgetOptionsJson = jsonObservable(this.widgetOptions);
-  this.widget = this.widgetOptionsJson.prop('widget');
-  this.viewFields = recordSet(this, docModel.viewFields, 'colRef');
+  this.widget = this.widgetOptionsJson.prop("widget");
+  this.viewFields = recordSet(this, docModel.viewFields, "colRef");
   this.summarySource = refRecord(docModel.columns, this.summarySourceCol);
-  this.cells = recordSet(this, docModel.cells, 'colRef');
+  this.cells = recordSet(this, docModel.cells, "colRef");
 
   // Is this an empty column (undecided if formula or data); denoted by an empty formula.
-  this.isEmpty = ko.pureComputed(() => this.isFormula() && this.formula() === '');
+  this.isEmpty = ko.pureComputed(() => this.isFormula() && this.formula() === "");
 
   // Is this a real formula column (not an empty column; i.e. contains a non-empty formula).
-  this.isRealFormula = ko.pureComputed(() => this.isFormula() && this.formula() !== '');
+  this.isRealFormula = ko.pureComputed(() => this.isFormula() && this.formula() !== "");
   // If this column has a trigger formula defined
-  this.hasTriggerFormula = ko.pureComputed(() => !this.isFormula() && this.formula() !== '');
+  this.hasTriggerFormula = ko.pureComputed(() => !this.isFormula() && this.formula() !== "");
 
   // Used for transforming a column.
   // Reference to the original column for a transform column, or to itself for a non-transforming column.
@@ -140,7 +141,7 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
 
   // Helper which adds/removes/updates this column's displayCol to match the formula.
   this.saveDisplayFormula = function(formula) {
-    if (formula !== (this._displayColModel().formula() || '')) {
+    if (formula !== (this._displayColModel().formula() || "")) {
       return docModel.docData.sendAction(["SetDisplayFormula", this.table().tableId(),
         null, this.getRowId(), formula]);
     }
@@ -173,34 +174,34 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
 
   // Helper for Reference/ReferenceList columns, which returns a formatter according to the visibleCol
   // associated with this column. If no visible column available, return formatting for the column itself.
-  this.visibleColFormatter = ko.pureComputed(() => formatterForRec(this, this, docModel, 'vcol'));
+  this.visibleColFormatter = ko.pureComputed(() => formatterForRec(this, this, docModel, "vcol"));
 
-  this.formatter = ko.pureComputed(() => formatterForRec(this, this, docModel, 'full'));
+  this.formatter = ko.pureComputed(() => formatterForRec(this, this, docModel, "full"));
 
   this.createValueParser = function() {
     const parser = createParser(docModel.docData, this.id.peek());
     return parser.cleanParse.bind(parser);
   };
 
-  this.behavior = ko.pureComputed(() => this.isEmpty() ? 'empty' : this.isFormula() ? 'formula' : 'data');
+  this.behavior = ko.pureComputed(() => this.isEmpty() ? "empty" : this.isFormula() ? "formula" : "data");
 
   this.chatHistory = this.autoDispose(ko.computed(() => {
-    const docId = urlState().state.get().doc ?? '';
+    const docId = urlState().state.get().doc ?? "";
     // Changed key name from history to history-v2 when ChatHistory changed in incompatible way.
     const key = `formula-assistant-history-v2-${docId}-${this.table().tableId()}-${this.colId()}`;
-    return localStorageJsonObs(key, {messages: [], conversationId: uuidv4()} as ChatHistory);
+    return localStorageJsonObs(key, { messages: [], conversationId: uuidv4() } as ChatHistory);
   }));
 
   this.cleanWidgetOptionsJson = ko.pureComputed(() => {
     const options = this.widgetOptionsJson();
-    if (options && options.rules) {
+    if (options?.rules) {
       delete options.rules;
     }
     return JSON.stringify(options);
   });
 
   this.addReverseColumn = () => {
-    return docModel.docData.sendAction(['AddReverseColumn', this.table.peek().tableId.peek(), this.colId.peek()]);
+    return docModel.docData.sendAction(["AddReverseColumn", this.table.peek().tableId.peek(), this.colId.peek()]);
   };
 
   this.removeReverseColumn = async () => {
@@ -211,15 +212,15 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
     const column = this.reverseColModel.peek();
     const tableId = column.table.peek().tableId.peek();
     const colId = column.colId.peek();
-    return await docModel.docData.sendAction(['RemoveColumn', tableId, colId]);
+    return await docModel.docData.sendAction(["RemoveColumn", tableId, colId]);
   };
 }
 
 export function formatterForRec(
-  rec: ColumnRec | ViewFieldRec, colRec: ColumnRec, docModel: DocModel, kind: 'full' | 'vcol'
+  rec: ColumnRec | ViewFieldRec, colRec: ColumnRec, docModel: DocModel, kind: "full" | "vcol",
 ): BaseFormatter {
   const vcol = rec.visibleColModel();
-  const func = kind === 'full' ? createFullFormatterRaw : createVisibleColFormatterRaw;
+  const func = kind === "full" ? createFullFormatterRaw : createVisibleColFormatterRaw;
   const args: FullFormatterArgs = {
     docData: docModel.docData,
     type: colRec.type(),

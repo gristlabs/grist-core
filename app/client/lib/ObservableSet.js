@@ -1,6 +1,6 @@
-var _ = require('underscore');
-var ko = require('knockout');
-var dispose = require('./dispose');
+var _ = require("underscore");
+var ko = require("knockout");
+var dispose = require("./dispose");
 
 /**
  * An ObservableSet keeps track of a set of values whose membership is controlled by a boolean

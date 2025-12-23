@@ -1,13 +1,15 @@
-import {parse as languageParser} from "accept-language-parser";
-import {IncomingMessage} from 'http';
-import {locales} from 'app/common/Locales';
+import { locales } from "app/common/Locales";
+
+import { IncomingMessage } from "http";
+
+import { parse as languageParser } from "accept-language-parser";
 
 /**
  * Returns the locale from a request, falling back to `defaultLocale`
  * if unable to determine the locale.
  */
-export function localeFromRequest(req: IncomingMessage, defaultLocale: string = 'en-US') {
-  const language = languageParser(req.headers["accept-language"] as string)[0];
+export function localeFromRequest(req: IncomingMessage, defaultLocale: string = "en-US") {
+  const language = languageParser(req.headers["accept-language"]!)[0];
   if (!language) { return defaultLocale; }
 
   const locale = `${language.code}-${language.region}`;

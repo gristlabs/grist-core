@@ -3,10 +3,11 @@
  * TODO This is not yet implemented, there is only a hard-coded stub.
  */
 
-import { IChecksumStore } from 'app/server/lib/IChecksumStore';
-import { IElectionStore } from 'app/server/lib/IElectionStore';
-import { IPermitStores } from 'app/server/lib/Permit';
-import { RedisClient } from 'redis';
+import { IChecksumStore } from "app/server/lib/IChecksumStore";
+import { IElectionStore } from "app/server/lib/IElectionStore";
+import { IPermitStores } from "app/server/lib/Permit";
+
+import { RedisClient } from "redis";
 
 export interface DocWorkerInfo {
   id: string;
@@ -25,7 +26,7 @@ export interface DocWorkerInfo {
 export interface DocStatus {
   // MD5 hash of the SQLite file for this document as stored on S3. We use MD5 because it is
   // automatically computed by S3 (except for multipart uploads). Null indicates a new file.
-  docMD5: string|null;
+  docMD5: string | null;
 
   // DocWorker most recently, or currently, responsible for the file.
   docWorker: DocWorkerInfo;
@@ -39,7 +40,7 @@ export interface DocStatus {
  */
 export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumStore {
   // Looks up which DocWorker is responsible for this docId.
-  getDocWorker(docId: string): Promise<DocStatus|null>;
+  getDocWorker(docId: string): Promise<DocStatus | null>;
 
   // Assigns a DocWorker to this docId if one is not yet assigned.
   assignDocWorker(docId: string): Promise<DocStatus>;
@@ -69,13 +70,13 @@ export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumS
   // is currently unavailable.
   getAssignments(workerId: string): Promise<string[]>;
 
-  getWorkerGroup(workerId: string): Promise<string|null>;
+  getWorkerGroup(workerId: string): Promise<string | null>;
 
-  getDocGroup(docId: string): Promise<string|null>;
+  getDocGroup(docId: string): Promise<string | null>;
 
   updateDocGroup(docId: string, docGroup: string): Promise<void>;
 
   removeDocGroup(docId: string): Promise<void>;
 
-  getRedisClient(): RedisClient|null;
+  getRedisClient(): RedisClient | null;
 }

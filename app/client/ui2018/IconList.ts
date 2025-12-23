@@ -173,7 +173,7 @@ export const IconList = [
   "UseOther",
   "UseProduct",
   "UseSales",
-  "UseScience"
+  "UseScience",
 ] as const;
 
 export type IconName = (typeof IconList)[number];

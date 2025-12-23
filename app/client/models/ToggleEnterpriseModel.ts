@@ -1,18 +1,19 @@
-import {makeT} from 'app/client/lib/localization';
-import {getHomeUrl} from 'app/client/models/AppModel';
-import {Disposable, Observable} from "grainjs";
-import {ConfigAPI} from 'app/common/ConfigAPI';
-import {ActivationAPIImpl, ActivationStatus} from 'app/common/ActivationAPI';
-import {delay} from 'app/common/delay';
-import {getGristConfig} from 'app/common/urlUtils';
-import {GristDeploymentType} from 'app/common/gristUrls';
-import {Notifier} from 'app/client/models/NotifyModel';
+import { makeT } from "app/client/lib/localization";
+import { getHomeUrl } from "app/client/models/AppModel";
+import { Notifier } from "app/client/models/NotifyModel";
+import { ActivationAPIImpl, ActivationStatus } from "app/common/ActivationAPI";
+import { ConfigAPI } from "app/common/ConfigAPI";
+import { delay } from "app/common/delay";
+import { GristDeploymentType } from "app/common/gristUrls";
+import { getGristConfig } from "app/common/urlUtils";
 
-const t = makeT('ToggleEnterprise');
+import { Disposable, Observable } from "grainjs";
+
+const t = makeT("ToggleEnterprise");
 
 export class ToggleEnterpriseModel extends Disposable {
   public readonly edition: Observable<GristDeploymentType | null> = Observable.create(this, null);
-  public readonly status: Observable<ActivationStatus|null> = Observable.create(this, null);
+  public readonly status: Observable<ActivationStatus | null> = Observable.create(this, null);
   public readonly installationId: Observable<string | null> = Observable.create(this, null);
   public readonly busy: Observable<boolean> = Observable.create(this, false);
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
@@ -23,9 +24,9 @@ export class ToggleEnterpriseModel extends Disposable {
   }
 
   public async fetchEnterpriseToggle() {
-    const {deploymentType} = getGristConfig();
+    const { deploymentType } = getGristConfig();
     this.edition.set(deploymentType || null);
-    if (deploymentType === 'enterprise') {
+    if (deploymentType === "enterprise") {
       const status = await this._activationAPI.getActivationStatus();
       if (this.isDisposed()) {
         return;
@@ -39,7 +40,7 @@ export class ToggleEnterpriseModel extends Disposable {
     // We may be restarting the server, so these requests may well
     // fail if done in quick succession.
     const task = async () => {
-      await retryOnNetworkError(() => this._configAPI.setValue({edition}));
+      await retryOnNetworkError(() => this._configAPI.setValue({ edition }));
       this.edition.set(edition);
       await retryOnNetworkError(() => this._configAPI.restartServer());
     };
@@ -62,7 +63,8 @@ export class ToggleEnterpriseModel extends Disposable {
     try {
       await this._notifier.slowNotification(func());
       await this._reloadWhenReady();
-    } catch (err) {
+    }
+    catch (err) {
       this.busy.set(false);
       throw err;
     }
@@ -72,14 +74,15 @@ export class ToggleEnterpriseModel extends Disposable {
     // Now wait about 30 seconds for the server to come back up, and
     // refresh the page.
     let maxTries = 30;
-    while(maxTries-- > 0) {
+    while (maxTries-- > 0) {
       try {
         await this._configAPI.healthcheck();
         // We're done, last step is to reload the page.
         this.busy.set(false);
         window.location.reload();
         return;
-      } catch (err) {
+      }
+      catch (err) {
         console.warn("Server not ready yet, will retry", err);
         await delay(1000);
       }
@@ -94,7 +97,8 @@ async function retryOnNetworkError<R>(func: () => Promise<R>): Promise<R> {
   for (let attempt = 0; ; attempt++) {
     try {
       return await func();
-    } catch (err) {
+    }
+    catch (err) {
       // fetch() promises that network errors are reported as TypeError. We'll accept NetworkError too.
       if (err.name !== "TypeError" && err.name !== "NetworkError") {
         throw err;

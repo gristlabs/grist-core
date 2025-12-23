@@ -1,6 +1,7 @@
-import {fromFile} from 'file-type';
-import {extension, lookup} from 'mime-types';
-import * as path from 'path';
+import * as path from "path";
+
+import { fromFile } from "file-type";
+import { extension, lookup } from "mime-types";
 
 /**
  * Get our best guess of the file extension, based on its original extension (as received from the
@@ -10,7 +11,7 @@ import * as path from 'path';
  * The resulting extension is used to choose a parser for imports, and to present the file back
  * to the user for attachments.
  */
-export async function guessExt(filePath: string, fileName: string, mimeType: string|null): Promise<string> {
+export async function guessExt(filePath: string, fileName: string, mimeType: string | null): Promise<string> {
   const origExt = path.extname(fileName).toLowerCase();   // Has the form ".xls"
 
   let mimeExt = extension(mimeType);          // Has the form "xls"
@@ -41,7 +42,7 @@ export async function guessExt(filePath: string, fileName: string, mimeType: str
     return detectedExt;
   }
 
-  if (mimeExt === '.txt' || mimeExt === '.bin') {
+  if (mimeExt === ".txt" || mimeExt === ".bin") {
     // text/plain (txt) and application/octet-stream (bin) are too generic, only use them if we
     // don't have anything better.
     return origExt || mimeExt;

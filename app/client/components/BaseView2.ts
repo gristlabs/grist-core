@@ -2,18 +2,19 @@
  * This file contains logic moved from BaseView.js and ported to TS.
  */
 
-import {GristDoc} from 'app/client/components/GristDoc';
-import {getDocIdHash, PasteData} from 'app/client/lib/tableUtil';
-import {uploadFiles} from 'app/client/lib/uploads';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
-import {UserAction} from 'app/common/DocActions';
-import {isFullReferencingType} from 'app/common/gristTypes';
-import {getSetMapValue} from 'app/common/gutil';
-import {SchemaTypes} from 'app/common/schema';
-import {BulkColValues, CellValue, GristObjCode} from 'app/plugin/GristData';
-import omit = require('lodash/omit');
-import pick = require('lodash/pick');
+import { GristDoc } from "app/client/components/GristDoc";
+import { getDocIdHash, PasteData } from "app/client/lib/tableUtil";
+import { uploadFiles } from "app/client/lib/uploads";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
+import { UserAction } from "app/common/DocActions";
+import { isFullReferencingType } from "app/common/gristTypes";
+import { getSetMapValue } from "app/common/gutil";
+import { SchemaTypes } from "app/common/schema";
+import { BulkColValues, CellValue, GristObjCode } from "app/plugin/GristData";
+
+import omit from "lodash/omit";
+import pick from "lodash/pick";
 
 function isFileList(value: unknown): value is File[] {
   return Array.isArray(value) && value.every(item => (item instanceof File));
@@ -28,7 +29,7 @@ function isFileList(value: unknown): value is File[] {
  * `fields` are the target fields being pasted into.
  */
 export async function parsePasteForView(
-  data: PasteData, fields: ViewFieldRec[], gristDoc: GristDoc
+  data: PasteData, fields: ViewFieldRec[], gristDoc: GristDoc,
 ): Promise<BulkColValues> {
   const result: BulkColValues = {};
   const actions: UserAction[] = [];
@@ -36,7 +37,7 @@ export async function parsePasteForView(
 
   // If we have pasted-in files, they can go into Attachments-type columns. We collect the tasks
   // to upload them, and perform after going through the paste data.
-  const uploadTasks: Array<{colId: string, valueIndex: number, fileList: File[]}> = [];
+  const uploadTasks: { colId: string, valueIndex: number, fileList: File[] }[] = [];
 
   data.forEach((col, idx) => {
     const field = fields[idx];
@@ -44,7 +45,7 @@ export async function parsePasteForView(
     if (!colRec || colRec.isRealFormula() || colRec.disableEditData()) {
       return;
     }
-    if (isFileList(col[0]) && colRec.type.peek() !== 'Attachments') {
+    if (isFileList(col[0]) && colRec.type.peek() !== "Attachments") {
       // If you attempt to paste files into a non-Attachments column, ignore rather than paste
       // empty values.
       return;
@@ -53,14 +54,15 @@ export async function parsePasteForView(
     const parser = field.createValueParser() || (x => x);
     let typeMatches = false;
     if (col[0] && typeof col[0] === "object" && !isFileList(col[0])) {
-      const {colType, docIdHash, colRef} = col[0];
+      const { colType, docIdHash, colRef } = col[0];
       const targetType = colRec.type();
       const docIdMatches = docIdHash === thisDocIdHash;
       typeMatches = docIdMatches || !isFullReferencingType(colType || "");
 
       if (targetType !== "Any") {
         typeMatches = typeMatches && colType === targetType;
-      } else if (docIdMatches && colRef) {
+      }
+      else if (docIdMatches && colRef) {
         // Try copying source column type and options into empty columns
         const sourceColRec = gristDoc.docModel.columns.getRowModel(colRef);
         const sourceType = sourceColRec.type();
@@ -89,13 +91,13 @@ export async function parsePasteForView(
           return parser(v);
         }
         if (isFileList(v)) {
-          uploadTasks.push({colId, valueIndex, fileList: v});
+          uploadTasks.push({ colId, valueIndex, fileList: v });
           return null;
         }
-        if (typeMatches && v.hasOwnProperty('rawValue')) {
+        if (typeMatches && v.hasOwnProperty("rawValue")) {
           return v.rawValue;
         }
-        if (v.hasOwnProperty('displayValue')) {
+        if (v.hasOwnProperty("displayValue")) {
           return parser(v.displayValue);
         }
       }
@@ -107,10 +109,10 @@ export async function parsePasteForView(
   // We cache uploads on the **array of files**, because the entire array value may be duplicated
   // in the input data when pasting into multiple rows.
   const uploads = new Map<File[], Promise<CellValue>>();
-  for (const {colId, valueIndex, fileList} of uploadTasks) {
+  for (const { colId, valueIndex, fileList } of uploadTasks) {
     const value = await getSetMapValue(uploads, fileList, async (): Promise<CellValue> => {
       const uploadResult = await uploadFiles(fileList,
-        {docWorkerUrl: gristDoc.docComm.docWorkerUrl, sizeLimit: 'attachment'});
+        { docWorkerUrl: gristDoc.docComm.docWorkerUrl, sizeLimit: "attachment" });
 
       if (!uploadResult) { return null; }
 

@@ -1,9 +1,9 @@
-import { HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { BaseController } from 'app/server/lib/scim/v2/BaseController';
-import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
-import { toSCIMMYUser, toUserProfile } from 'app/server/lib/scim/v2/ScimUtils';
+import { HomeDBManager, Scope } from "app/gen-server/lib/homedb/HomeDBManager";
+import { BaseController } from "app/server/lib/scim/v2/BaseController";
+import { RequestContext } from "app/server/lib/scim/v2/ScimTypes";
+import { toSCIMMYUser, toUserProfile } from "app/server/lib/scim/v2/ScimUtils";
 
-import SCIMMY from 'scimmy';
+import SCIMMY from "scimmy";
 
 type UserSchema = SCIMMY.Schemas.User;
 type UserResource = SCIMMY.Resources.User;
@@ -11,10 +11,10 @@ type UserResource = SCIMMY.Resources.User;
 class ScimUserController extends BaseController {
   public constructor(
     dbManager: HomeDBManager,
-    checkAccess: (context: RequestContext) => void
+    checkAccess: (context: RequestContext) => void,
   ) {
     super(dbManager, checkAccess);
-    this.invalidIdError = 'Invalid passed user ID';
+    this.invalidIdError = "Invalid passed user ID";
   }
 
   /**
@@ -27,7 +27,7 @@ class ScimUserController extends BaseController {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       const user = await this.dbManager.getUser(id);
-      if (!user || user.type !== 'login') {
+      if (user?.type !== "login") {
         throw new SCIMMY.Types.Error(404, null!, `User with ID ${id} not found`);
       }
       return toSCIMMYUser(user);
@@ -43,8 +43,8 @@ class ScimUserController extends BaseController {
   public async getUsers(resource: UserResource, context: RequestContext): Promise<UserSchema[]> {
     return this.runAndHandleErrors(context, async (): Promise<UserSchema[]> => {
       const scimmyUsers = (await this.dbManager.getUsers())
-                          .filter(user => user.type === 'login')
-                          .map(user => toSCIMMYUser(user));
+        .filter(user => user.type === "login")
+        .map(user => toSCIMMYUser(user));
       return this.maybeApplyFilter(scimmyUsers, resource.filter);
     });
   }
@@ -60,7 +60,7 @@ class ScimUserController extends BaseController {
       await this._checkEmailCanBeUsed(data.userName);
       const userProfile = toUserProfile(data);
       const newUser = await this.dbManager.getUserByLoginWithRetry(userProfile.email, {
-        profile: userProfile
+        profile: userProfile,
       });
       return toSCIMMYUser(newUser);
     });
@@ -77,11 +77,11 @@ class ScimUserController extends BaseController {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       if (this.dbManager.getSpecialUserIds().includes(id)) {
-        throw new SCIMMY.Types.Error(403, null!, 'System user modification not permitted.');
+        throw new SCIMMY.Types.Error(403, null!, "System user modification not permitted.");
       }
       const user = await this.dbManager.getUser(id);
-      if (user?.type !== 'login') {
-        throw new SCIMMY.Types.Error(404, null!, 'unable to find user to update');
+      if (user?.type !== "login") {
+        throw new SCIMMY.Types.Error(404, null!, "unable to find user to update");
       }
       await this._checkEmailCanBeUsed(data.userName, id);
       const updatedUser = await this.dbManager.overwriteUser(id, toUserProfile(data));
@@ -99,11 +99,11 @@ class ScimUserController extends BaseController {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       if (this.dbManager.getSpecialUserIds().includes(id)) {
-        throw new SCIMMY.Types.Error(403, null!, 'System user deletion not permitted.');
+        throw new SCIMMY.Types.Error(403, null!, "System user deletion not permitted.");
       }
       const user = await this.dbManager.getUser(id);
-      if (user?.type !== 'login') {
-        throw new SCIMMY.Types.Error(404, null!, 'user not found');
+      if (user?.type !== "login") {
+        throw new SCIMMY.Types.Error(404, null!, "user not found");
       }
       const fakeScope: Scope = { userId: id };
       // FIXME: deleteUser should probably be rewritten to not require a scope. We should move
@@ -122,27 +122,27 @@ class ScimUserController extends BaseController {
   private async _checkEmailCanBeUsed(email: string, userIdToUpdate?: number) {
     const existingUser = await this.dbManager.getExistingUserByLogin(email);
     if (existingUser !== undefined && existingUser.id !== userIdToUpdate) {
-      throw new SCIMMY.Types.Error(409, 'uniqueness', 'An existing user with the passed email exist.');
+      throw new SCIMMY.Types.Error(409, "uniqueness", "An existing user with the passed email exist.");
     }
   }
 }
 
 export function getScimUserConfig(
-  dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void
+  dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void,
 ) {
   const controller = new ScimUserController(dbManager, checkAccess);
 
   return {
     egress: async (
-      resource: UserResource, context: RequestContext
-    ): Promise<UserSchema|UserSchema[]> => {
+      resource: UserResource, context: RequestContext,
+    ): Promise<UserSchema | UserSchema[]> => {
       if (resource.id) {
         return await controller.getSingleUser(resource, context);
       }
       return await controller.getUsers(resource, context);
     },
     ingress: async (
-      resource: UserResource, data: UserSchema, context: RequestContext
+      resource: UserResource, data: UserSchema, context: RequestContext,
     ): Promise<UserSchema> => {
       if (resource.id) {
         return await controller.overwriteUser(resource, data, context);
@@ -151,6 +151,6 @@ export function getScimUserConfig(
     },
     degress: async (resource: UserResource, context: RequestContext): Promise<void> => {
       return await controller.deleteUser(resource, context);
-    }
+    },
   };
 }

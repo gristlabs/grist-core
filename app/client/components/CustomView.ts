@@ -1,6 +1,6 @@
-import BaseView from 'app/client/components/BaseView';
-import * as commands from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
+import BaseView from "app/client/components/BaseView";
+import * as commands from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
 import {
   CommandAPI,
   ConfigNotifier,
@@ -12,25 +12,26 @@ import {
   TableNotifier,
   ThemeNotifier,
   WidgetAPIImpl,
-  WidgetFrame
-} from 'app/client/components/WidgetFrame';
-import {CustomSectionElement, ViewProcess} from 'app/client/lib/CustomSectionElement';
-import {makeT} from 'app/client/lib/localization';
-import dom from 'app/client/lib/dom';
-import {makeTestId} from 'app/client/lib/domUtils';
-import * as kd from 'app/client/lib/koDom';
-import {ViewSectionRec} from 'app/client/models/DocModel';
-import {CustomViewSectionDef} from 'app/client/models/entities/ViewSectionRec';
-import {UserError} from 'app/client/models/errors';
-import {closeRegisteredMenu} from 'app/client/ui2018/menus';
-import {AccessLevel} from 'app/common/CustomWidget';
-import {defaultLocale} from 'app/common/gutil';
-import {PluginInstance} from 'app/common/PluginInstance';
-import {dom as grains} from 'grainjs';
-import * as ko from 'knockout';
+  WidgetFrame,
+} from "app/client/components/WidgetFrame";
+import { CustomSectionElement, ViewProcess } from "app/client/lib/CustomSectionElement";
+import dom from "app/client/lib/dom";
+import { makeTestId } from "app/client/lib/domUtils";
+import * as kd from "app/client/lib/koDom";
+import { makeT } from "app/client/lib/localization";
+import { ViewSectionRec } from "app/client/models/DocModel";
+import { CustomViewSectionDef } from "app/client/models/entities/ViewSectionRec";
+import { UserError } from "app/client/models/errors";
+import { closeRegisteredMenu } from "app/client/ui2018/menus";
+import { AccessLevel } from "app/common/CustomWidget";
+import { defaultLocale } from "app/common/gutil";
+import { PluginInstance } from "app/common/PluginInstance";
 
-const t = makeT('CustomView');
-const testId = makeTestId('test-custom-widget-');
+import { dom as grains } from "grainjs";
+import * as ko from "knockout";
+
+const t = makeT("CustomView");
+const testId = makeTestId("test-custom-widget-");
 
 /**
  *
@@ -53,7 +54,6 @@ export interface CustomViewSettings {
  * of the section could not be found.
  */
 export class CustomView extends BaseView {
-
   // Commands enabled only when the custom view is the actually user-focused region.
   private static _focusedCommands = {
     async viewAsCard(event: Event) {
@@ -65,19 +65,22 @@ export class CustomView extends BaseView {
       (this as unknown as BaseView).viewSelectedRecordAsCard();
 
       // Move focus back to the app, so that keyboard shortcuts work in the popup.
-      document.querySelector<HTMLElement>('textarea.copypaste.mousetrap')?.focus();
+      document.querySelector<HTMLElement>("textarea.copypaste.mousetrap")?.focus();
     },
   };
+
   // Commands enabled when the view is the active section, even when user focuses another region.
-  private static _commands: {[key: string]: Function} & ThisType<CustomView> = {
+  private static _commands: { [key: string]: Function } & ThisType<CustomView> = {
     async openWidgetConfiguration(this: CustomView) {
       if (!this.isDisposed() && !this._frame?.isDisposed()) {
         try {
           await this._frame.editOptions();
-        } catch(err) {
+        }
+        catch (err) {
           if (err.message === "Unknown interface") {
             throw new UserError("Custom widget doesn't expose configuration screen.");
-          } else {
+          }
+          else {
             throw err;
           }
         }
@@ -92,7 +95,7 @@ export class CustomView extends BaseView {
       this.viewSelectedRecordAsCard();
 
       // Move focus back to the app, so that keyboard shortcuts work in the popup.
-      document.querySelector<HTMLElement>('textarea.copypaste.mousetrap')?.focus();
+      document.querySelector<HTMLElement>("textarea.copypaste.mousetrap")?.focus();
     },
   };
 
@@ -102,8 +105,8 @@ export class CustomView extends BaseView {
   private _foundPlugin: ko.Observable<boolean>;
   private _foundSection: ko.Observable<boolean>;
   // Note the invariant: this._customSection != undefined if this._foundSection() == true
-  private _customSection: ViewProcess|undefined;
-  private _pluginInstance: PluginInstance|undefined;
+  private _customSection: ViewProcess | undefined;
+  private _pluginInstance: PluginInstance | undefined;
 
   private _frame: WidgetFrame;  // plugin frame (holding external page)
   private _hasUnmappedColumns: ko.Computed<boolean>;
@@ -111,7 +114,7 @@ export class CustomView extends BaseView {
   private _unmappedColumns: ko.Computed<string[]>;
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
-    super(gristDoc, viewSectionModel, { 'addNewRow': true, disabledCursor: true });
+    super(gristDoc, viewSectionModel, { addNewRow: true, disabledCursor: true });
 
     this.customDef = this.viewSection.customDef;
 
@@ -123,7 +126,7 @@ export class CustomView extends BaseView {
     this._foundPlugin = ko.observable(false);
     this._foundSection = ko.observable(false);
     // Ensure that selecting another section in same plugin update the view.
-    this._foundSection.extend({notify: 'always'});
+    this._foundSection.extend({ notify: "always" });
 
     this.autoDispose(this.customDef.pluginId.subscribe(this._updatePluginInstance, this));
     this.autoDispose(this.customDef.sectionId.subscribe(this._updateCustomSection, this));
@@ -133,8 +136,8 @@ export class CustomView extends BaseView {
     this._unmappedColumns = this.autoDispose(ko.pureComputed(() => {
       const columns = this.viewSection.columnsToMap();
       if (!columns) { return []; }
-      const required = columns.filter(col => typeof col === 'string' || !(col.optional === true))
-                              .map(col => typeof col === 'string' ? col : col.name);
+      const required = columns.filter(col => typeof col === "string" || !(col.optional === true))
+        .map(col => typeof col === "string" ? col : col.name);
       const mapped = this.viewSection.mappedColumns() || {};
       return required.filter(col => !mapped[col]);
     }));
@@ -151,8 +154,8 @@ export class CustomView extends BaseView {
         return false;
       }
       const rowIds = Object.entries(mappings).filter(f => f[1])
-                        .map(([rowId, colId]) => Array.isArray(colId) ? colId : [colId as number])
-                        .flat();
+        .map(([rowId, colId]) => Array.isArray(colId) ? colId : [colId!])
+        .flat();
       const redactedColumns = gristDoc.docModel.columns.rowModels.filter(r => !r.colId()).map(r => r.id());
       return rowIds.some(r => redactedColumns.includes(r));
     }));
@@ -164,7 +167,7 @@ export class CustomView extends BaseView {
 
   public async triggerPrint() {
     if (!this.isDisposed() && this._frame) {
-      return await this._frame.callRemote('print');
+      return await this._frame.callRemote("print");
     }
   }
 
@@ -177,13 +180,13 @@ export class CustomView extends BaseView {
    * find a matching section.
    */
   private _updatePluginInstance() {
-
     const pluginId = this.customDef.pluginId();
     this._pluginInstance = this.gristDoc.docPluginManager.pluginsList.find(p => p.definition.id === pluginId);
 
     if (this._pluginInstance) {
       this._foundPlugin(true);
-    } else {
+    }
+    else {
       this._foundPlugin(false);
       this._foundSection(false);
     }
@@ -195,7 +198,6 @@ export class CustomView extends BaseView {
    * observables.
    */
   private _updateCustomSection() {
-
     if (!this._pluginInstance) { return; }
 
     const sectionId = this.customDef.sectionId();
@@ -205,13 +207,14 @@ export class CustomView extends BaseView {
       const el = this._customSection.element;
       el.classList.add("flexitem");
       this._foundSection(true);
-    } else {
+    }
+    else {
       this._foundSection(false);
     }
   }
 
   private _buildDom(): HTMLElement {
-    const {mode, url, access, renderAfterReady, widgetDef, widgetId, pluginId} = this.customDef;
+    const { mode, url, access, renderAfterReady, widgetDef, widgetId, pluginId } = this.customDef;
     const showPlugin = ko.pureComputed(() => this.customDef.mode() === "plugin");
     const showAfterReady = () => {
       // The empty widget page calls `grist.ready()`.
@@ -224,41 +227,42 @@ export class CustomView extends BaseView {
     const showPluginNotification = ko.pureComputed(() => showPlugin() && !this._foundPlugin());
     const showSectionNotification = ko.pureComputed(() => showPlugin() && this._foundPlugin() && !this._foundSection());
     const showPluginContent = ko.pureComputed(() => showPlugin() && this._foundSection())
-        // For the view to update when switching from one section to another one, the computed
-        // observable must always notify.
-        .extend({notify: 'always'});
+    // For the view to update when switching from one section to another one, the computed
+    // observable must always notify.
+      .extend({ notify: "always" });
     // Some widgets have built-in settings that should override anything
     // that is in the rest of the view options. Ideally, everything would
     // be consistent. We could fix inconsistencies if we find them, but
     // we are not guaranteed to have write privileges at this point.
     const builtInSettings = this.getBuiltInSettings();
-    return dom('div.flexauto.flexvbox.custom_view_container',
+    return dom("div.flexauto.flexvbox.custom_view_container",
       dom.autoDispose(showPlugin),
       dom.autoDispose(showPluginNotification),
       dom.autoDispose(showSectionNotification),
       dom.autoDispose(showPluginContent),
 
-      kd.maybe(this._hasUnmappedColumns, () => dom('div.custom_view_no_mapping',
-        testId('not-mapped'),
-        dom('img', {src: 'img/empty-widget.svg'}),
+      kd.maybe(this._hasUnmappedColumns, () => dom("div.custom_view_no_mapping",
+        testId("not-mapped"),
+        dom("img", { src: "img/empty-widget.svg" }),
 
         kd.maybe(this._hasAclHiddenColumns, () => [
-          dom('h1', kd.text(t("Some required columns are hidden by access rules"))),
-          dom('p',
-      t('To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.')
+          dom("h1", kd.text(t("Some required columns are hidden by access rules"))),
+          dom("p",
+            t("To use this widget, all mapped columns must be visible. \
+Please contact document owner or modify access rules."),
           ),
         ]),
         kd.maybe(() => !this._hasAclHiddenColumns(), () => [
-          dom('h1', kd.text(t("Some required columns aren't mapped"))),
-          dom('p',
-            t('To use this widget, please map all non-optional columns from the creator panel on the right.')
+          dom("h1", kd.text(t("Some required columns aren't mapped"))),
+          dom("p",
+            t("To use this widget, please map all non-optional columns from the creator panel on the right."),
           ),
         ]),
       )),
       // todo: should display content in webview when running electron
       // prefer widgetId; spelunk in widgetDef for older docs
       kd.scope(() => [
-        this._hasUnmappedColumns(), mode(), url(), access(), widgetId() || widgetDef()?.widgetId || '', pluginId()
+        this._hasUnmappedColumns(), mode(), url(), access(), widgetId() || widgetDef()?.widgetId || "", pluginId(),
       ], ([_hide, _mode, _url, _access, _widgetId, _pluginId]: string[]) =>
         _mode === "url" ?
           dom("div.flexauto.custom_view_content",
@@ -269,22 +273,22 @@ export class CustomView extends BaseView {
               showAfterReady: showAfterReady(),
               widgetId: builtInSettings.widgetId || _widgetId,
               pluginId: _pluginId,
-            })
-          )
-          : null
+            }),
+          ) :
+          null,
       ),
-      kd.maybe(showPluginNotification, () => buildNotification('Plugin ',
-        dom('strong', kd.text(this.customDef.pluginId)), ' was not found',
-        dom.testId('customView_notification_plugin')
+      kd.maybe(showPluginNotification, () => buildNotification("Plugin ",
+        dom("strong", kd.text(this.customDef.pluginId)), " was not found",
+        dom.testId("customView_notification_plugin"),
       )),
-      kd.maybe(showSectionNotification, () => buildNotification('Section ',
-        dom('strong', kd.text(this.customDef.sectionId)), ' was not found in plugin ',
-        dom('strong', kd.text(this.customDef.pluginId)),
-        dom.testId('customView_notification_section')
+      kd.maybe(showSectionNotification, () => buildNotification("Section ",
+        dom("strong", kd.text(this.customDef.sectionId)), " was not found in plugin ",
+        dom("strong", kd.text(this.customDef.pluginId)),
+        dom.testId("customView_notification_section"),
       )),
       // When showPluginContent() is true then _foundSection() is also and _customSection is not
       // undefined (invariant).
-      kd.maybe(showPluginContent, () => this._customSection!.element)
+      kd.maybe(showPluginContent, () => this._customSection!.element),
     );
   }
 
@@ -296,13 +300,13 @@ export class CustomView extends BaseView {
   }
 
   private _buildIFrame(options: {
-    baseUrl: string|null,
+    baseUrl: string | null,
     access: AccessLevel,
     showAfterReady?: boolean,
-    widgetId?: string|null,
+    widgetId?: string | null,
     pluginId?: string
   }) {
-    const {baseUrl, access, showAfterReady, widgetId, pluginId} = options;
+    const { baseUrl, access, showAfterReady, widgetId, pluginId } = options;
     const documentSettings = this.gristDoc.docData.docSettings();
     const readonly = this.gristDoc.isReadonly.get();
     const widgetFrame = WidgetFrame.create(null,  {
@@ -312,10 +316,10 @@ export class CustomView extends BaseView {
       access,
       preferences:
       {
-        culture: documentSettings.locale?? defaultLocale,
-        language:  this.gristDoc.appModel.currentUser?.locale ?? defaultLocale,
+        culture: documentSettings.locale ?? defaultLocale,
+        language: this.gristDoc.appModel.currentUser?.locale ?? defaultLocale,
         timeZone: this.gristDoc.docInfo.timezone() ?? "UTC",
-        currency: documentSettings.currency?? "USD",
+        currency: documentSettings.currency ?? "USD",
       },
       readonly,
       showAfterReady,
@@ -356,7 +360,7 @@ export class CustomView extends BaseView {
           ThemeNotifier.create(frame),
           new MinimumLevel(AccessLevel.none));
       },
-      onElem: (iframe) => onFrameFocus(iframe, () => {
+      onElem: iframe => onFrameFocus(iframe, () => {
         if (this.isDisposed()) { return; }
         if (!this.viewSection.isDisposed() && !this.viewSection.hasFocus()) {
           this.viewSection.hasFocus(true);
@@ -376,10 +380,9 @@ export class CustomView extends BaseView {
   }
 }
 
-
 // helper to build the notification's frame.
 function buildNotification(...args: any[]) {
-  return dom('div.custom_view_notification.bg-warning', dom('p', ...args));
+  return dom("div.custom_view_notification.bg-warning", dom("p", ...args));
 }
 
 /**
@@ -392,7 +395,7 @@ function buildNotification(...args: any[]) {
  * For a single iframe, it will gain focus through a hack in ViewLayout.ts.
  */
 function onFrameFocus(frame: HTMLIFrameElement, handler: () => void) {
-  let timer: NodeJS.Timeout|null = null;
+  let timer: NodeJS.Timeout | null = null;
   // Flag that will prevent mouseenter event to be fired
   // after dom is disposed. This shouldn't happen.
   let disposed = false;
@@ -416,7 +419,8 @@ function onFrameFocus(frame: HTMLIFrameElement, handler: () => void) {
         if (document.activeElement === frame) {
           try {
             handler();
-          } finally {
+          }
+          finally {
             // Stop checking, we will start again after next mouseenter.
             stop();
           }
@@ -427,6 +431,6 @@ function onFrameFocus(frame: HTMLIFrameElement, handler: () => void) {
     grains.onDispose(() => {
       stop();
       disposed = true;
-    })
+    }),
   );
 }

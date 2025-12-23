@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
+import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 /**
  * Adds an unsubscribe_key column to the users table. Used to create and verity links' signatures in emails.

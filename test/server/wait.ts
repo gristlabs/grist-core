@@ -1,5 +1,5 @@
-import {delay} from 'app/common/delay';
-import {MaybePromise} from 'app/plugin/gutil';
+import { delay } from "app/common/delay";
+import { MaybePromise } from "app/plugin/gutil";
 
 /**
  * A helper function that invokes a function until it passes without throwing an error.
@@ -12,15 +12,15 @@ import {MaybePromise} from 'app/plugin/gutil';
  * @param stepWaitMs Time to wait between attempts to check the condition.
  */
 export async function waitForIt(fn: () => MaybePromise<any>, maxWaitMs: number = 2000,
-                                stepWaitMs: number = 1000) {
+  stepWaitMs: number = 1000) {
   const start = Date.now();
   const timePassed = () => Date.now() - start;
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
       await fn();
       return;
-    } catch (e) {
+    }
+    catch (e) {
       if (timePassed() > maxWaitMs) {
         throw e;
       }

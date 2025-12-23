@@ -1,13 +1,14 @@
-import { Features } from 'app/common/Features';
-import { normalizeEmail } from 'app/common/emails';
+import { normalizeEmail } from "app/common/emails";
+import { Features } from "app/common/Features";
 import {
   ANONYMOUS_USER_EMAIL,
   EVERYONE_EMAIL,
   PermissionData,
   PermissionDelta,
   PREVIEWER_EMAIL,
-} from 'app/common/UserAPI';
-import omitBy from 'lodash/omitBy';
+} from "app/common/UserAPI";
+
+import omitBy from "lodash/omitBy";
 
 /**
  * Mark that the share is share number #at of a maximum of #top. The #at values
@@ -56,9 +57,9 @@ export class ShareAnnotator {
   private _supportEmail = this._options.supportEmail;
 
   constructor(
-    private _features: Features|null,
+    private _features: Features | null,
     private _state: PermissionData,
-    private _options: ShareAnnotatorOptions = {}
+    private _options: ShareAnnotatorOptions = {},
   ) {
   }
 
@@ -79,31 +80,32 @@ export class ShareAnnotator {
     }
     const top = features.maxSharesPerDoc;
     let at = 0;
-    const makeAnnotation = (user: {email: string, isMember?: boolean, isSupport?: boolean, access: string|null}) => {
-      const annotation: ShareAnnotation = {
-        isMember: user.isMember,
-      };
-      if (user.isSupport) {
-        return { isSupport: true };
-      }
-      if (!annotation.isMember && user.access) {
-        at++;
-        annotation.collaboratorLimit = {
-          at,
-          top
+    const makeAnnotation =
+      (user: { email: string, isMember?: boolean, isSupport?: boolean, access: string | null }) => {
+        const annotation: ShareAnnotation = {
+          isMember: user.isMember,
         };
-      }
-      return annotation;
-    };
+        if (user.isSupport) {
+          return { isSupport: true };
+        }
+        if (!annotation.isMember && user.access) {
+          at++;
+          annotation.collaboratorLimit = {
+            at,
+            top,
+          };
+        }
+        return annotation;
+      };
     const users = Object.entries(
       omitBy(
-        change?.users||{},
-        (_v, k) => EXCLUDED_EMAILS.has(k)
-      )
+        change?.users || {},
+        (_v, k) => EXCLUDED_EMAILS.has(k),
+      ),
     );
     const removed = new Set(
       users.filter(([, v]) => v === null)
-        .map(([k, ]) => normalizeEmail(k)));
+        .map(([k]) => normalizeEmail(k)));
     for (const user of this._state.users) {
       if (EXCLUDED_EMAILS.has(user.email)) { continue; }
       if (removed.has(user.email)) { continue; }
@@ -112,13 +114,13 @@ export class ShareAnnotator {
     }
     const tweaks = new Set(
       users.filter(([, v]) => v !== null)
-        .map(([k, ]) => normalizeEmail(k)));
+        .map(([k]) => normalizeEmail(k)));
     for (const email of tweaks) {
       const annotation = annotations.users.get(email) || makeAnnotation({
         email,
         isMember: false,
-        isSupport: Boolean(email.trim() !== '' && email === this._supportEmail),
-        access: '<set>',
+        isSupport: Boolean(email.trim() !== "" && email === this._supportEmail),
+        access: "<set>",
       });
       annotations.users.set(email, annotation);
     }

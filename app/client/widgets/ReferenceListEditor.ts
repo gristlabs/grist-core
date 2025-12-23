@@ -1,20 +1,21 @@
-import { createGroup } from 'app/client/components/commands';
-import { ACItem, ACResults, HighlightFunc, normalizeText } from 'app/client/lib/ACIndex';
-import { IAutocompleteOptions } from 'app/client/lib/autocomplete';
-import { IToken, TokenField, tokenFieldStyles } from 'app/client/lib/TokenField';
-import { reportError } from 'app/client/models/errors';
-import { colors, testId, theme } from 'app/client/ui2018/cssVars';
-import { menuCssClass } from 'app/client/ui2018/menus';
-import { cssChoiceToken } from 'app/client/widgets/ChoiceToken';
-import { createMobileButtons, getButtonMargins } from 'app/client/widgets/EditorButtons';
-import { EditorPlacement } from 'app/client/widgets/EditorPlacement';
-import { FieldOptions, NewBaseEditor } from 'app/client/widgets/NewBaseEditor';
-import { cssRefList, renderACItem } from 'app/client/widgets/ReferenceEditor';
-import { ReferenceUtils } from 'app/client/lib/ReferenceUtils';
-import { csvEncodeRow } from 'app/common/csvFormat';
+import { createGroup } from "app/client/components/commands";
+import { ACItem, ACResults, HighlightFunc, normalizeText } from "app/client/lib/ACIndex";
+import { IAutocompleteOptions } from "app/client/lib/autocomplete";
+import { ReferenceUtils } from "app/client/lib/ReferenceUtils";
+import { IToken, TokenField, tokenFieldStyles } from "app/client/lib/TokenField";
+import { reportError } from "app/client/models/errors";
+import { colors, testId, theme } from "app/client/ui2018/cssVars";
+import { menuCssClass } from "app/client/ui2018/menus";
+import { cssChoiceToken } from "app/client/widgets/ChoiceToken";
+import { createMobileButtons, getButtonMargins } from "app/client/widgets/EditorButtons";
+import { EditorPlacement } from "app/client/widgets/EditorPlacement";
+import { FieldOptions, NewBaseEditor } from "app/client/widgets/NewBaseEditor";
+import { cssRefList, renderACItem } from "app/client/widgets/ReferenceEditor";
+import { csvEncodeRow } from "app/common/csvFormat";
 import { CellValue } from "app/common/DocActions";
-import { decodeObject, encodeObject } from 'app/plugin/objtypes';
-import { dom, styled } from 'grainjs';
+import { decodeObject, encodeObject } from "app/plugin/objtypes";
+
+import { dom, styled } from "grainjs";
 
 class ReferenceItem implements IToken, ACItem {
   /**
@@ -25,12 +26,12 @@ class ReferenceItem implements IToken, ACItem {
    * TODO: Look into removing `label` from IToken altogether, replacing it with a solution
    * similar to getItemText() from IAutocompleteOptions.
    */
-  public label: string = typeof this.rowId === 'number' ? String(this.rowId) : this.text;
+  public label: string = typeof this.rowId === "number" ? String(this.rowId) : this.text;
   public cleanText: string = normalizeText(this.text);
 
   constructor(
     public text: string,
-    public rowId: number | 'new' | 'invalid',
+    public rowId: number | "new" | "invalid",
   ) {}
 }
 
@@ -71,11 +72,11 @@ export class ReferenceListEditor extends NewBaseEditor {
       buildNoItemsMessage: () => this._utils.buildNoItemsMessage(),
       search: this._doSearch.bind(this),
       renderItem: this._renderItem.bind(this),
-      getItemText: (item) => item.text,
+      getItemText: item => item.text,
     };
 
     this.commandGroup = this.autoDispose(createGroup(options.commands, null, true));
-    this._alignment = options.field.widgetOptionsJson.peek().alignment || 'left';
+    this._alignment = options.field.widgetOptionsJson.peek().alignment || "left";
 
     // If starting to edit by typing in a string, ignore previous tokens.
     const cellValue = decodeObject(options.cellValue);
@@ -84,30 +85,30 @@ export class ReferenceListEditor extends NewBaseEditor {
     // If referenced table hasn't loaded yet, hold off on initializing tokens.
     const needReload = (options.editValue === undefined && !this._utils.tableData.isLoaded);
     const startTokens = needReload ?
-      [] : startRowIds.map(id => new ReferenceItem(this._utils.idToText(id), typeof id === 'number' ? id : 'invalid'));
+      [] : startRowIds.map(id => new ReferenceItem(this._utils.idToText(id), typeof id === "number" ? id : "invalid"));
 
     this._tokenField = TokenField.ctor<ReferenceItem>().create(this, {
       initialValue: startTokens,
-      renderToken: item => {
-        const isBlankReference = item.cleanText === '';
+      renderToken: (item) => {
+        const isBlankReference = item.cleanText === "";
         return [
-          isBlankReference ? '[Blank]' : item.text,
-          cssToken.cls('-blank', isBlankReference),
-          cssChoiceToken.cls('-invalid', item.rowId === 'invalid')
+          isBlankReference ? "[Blank]" : item.text,
+          cssToken.cls("-blank", isBlankReference),
+          cssChoiceToken.cls("-invalid", item.rowId === "invalid"),
         ];
       },
-      createToken: text => new ReferenceItem(text, 'invalid'),
+      createToken: text => new ReferenceItem(text, "invalid"),
       acOptions,
       openAutocompleteOnFocus: true,
-      readonly : options.readonly,
+      readonly: options.readonly,
       trimLabels: true,
-      styles: {cssTokenField, cssToken, cssDeleteButton, cssDeleteIcon},
+      styles: { cssTokenField, cssToken, cssDeleteButton, cssDeleteIcon },
     });
 
-    this._dom = dom('div.default_editor',
+    this._dom = dom("div.default_editor",
       dom.cls("readonly_editor", options.readonly),
       dom.cls(cssReadonlyStyle.className, options.readonly),
-      this.cellEditorDiv = cssCellEditor(testId('widget-text-editor'),
+      this.cellEditorDiv = cssCellEditor(testId("widget-text-editor"),
         this._contentSizer = cssContentSizer(),
         elem => this._tokenField.attach(elem),
       ),
@@ -116,20 +117,20 @@ export class ReferenceListEditor extends NewBaseEditor {
 
     this._textInput = this._tokenField.getTextInput();
     dom.update(this._tokenField.getRootElem(),
-      dom.style('justify-content', this._alignment),
+      dom.style("justify-content", this._alignment),
     );
     dom.update(this._tokenField.getHiddenInput(),
       this.commandGroup.attach(),
     );
     dom.update(this._textInput,
       // Resize the editor whenever user types into the textbox.
-      dom.on('input', () => this.resizeInput(true)),
-      dom.prop('value', options.editValue || ''),
+      dom.on("input", () => this.resizeInput(true)),
+      dom.prop("value", options.editValue || ""),
       this.commandGroup.attach(),
     );
 
     dom.update(this._dom,
-      dom.on('click', () => this._textInput.focus())
+      dom.on("click", () => this._textInput.focus()),
     );
 
     // The referenced table has probably already been fetched (because there must already be a
@@ -138,7 +139,7 @@ export class ReferenceListEditor extends NewBaseEditor {
       if (this.isDisposed()) { return; }
       if (needReload) {
         this._tokenField.setTokens(
-          startRowIds.map(id => new ReferenceItem(this._utils.idToText(id), typeof id === 'number' ? id : 'invalid'))
+          startRowIds.map(id => new ReferenceItem(this._utils.idToText(id), typeof id === "number" ? id : "invalid")),
         );
         this.resizeInput();
       }
@@ -147,12 +148,12 @@ export class ReferenceListEditor extends NewBaseEditor {
         autocomplete.search();
       }
     })
-    .catch(reportError);
+      .catch(reportError);
   }
 
   public attach(cellElem: Element): void {
     // Attach the editor dom to page DOM.
-    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, {margins: getButtonMargins()});
+    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, { margins: getButtonMargins() });
 
     // Reposition the editor if needed for external reasons (in practice, window resize).
     this.autoDispose(this._editorPlacement.onReposition.addListener(() => this.resizeInput()));
@@ -177,14 +178,14 @@ export class ReferenceListEditor extends NewBaseEditor {
 
   public getCellValue(): CellValue {
     const rowIds = this._tokenField.tokensObs.get()
-      .map(token => typeof token.rowId === 'number' ? token.rowId : token.text);
+      .map(token => typeof token.rowId === "number" ? token.rowId : token.text);
     return encodeObject(rowIds);
   }
 
   public getTextValue(): string {
     const rowIds = this._tokenField.tokensObs.get()
-      .map(token => typeof token.rowId === 'number' ? String(token.rowId) : token.text);
-    return csvEncodeRow(rowIds, {prettier: true});
+      .map(token => typeof token.rowId === "number" ? String(token.rowId) : token.text);
+    return csvEncodeRow(rowIds, { prettier: true });
   }
 
   public getCursorPos(): number {
@@ -196,19 +197,19 @@ export class ReferenceListEditor extends NewBaseEditor {
    */
   public async prepForSave() {
     const tokens = this._tokenField.tokensObs.get();
-    const newValues = tokens.filter(({rowId})=> rowId === 'new');
+    const newValues = tokens.filter(({ rowId }) => rowId === "new");
     if (newValues.length === 0) { return; }
 
     // Add the new items to the referenced table.
-    const colInfo = {[this._utils.visibleColId]: newValues.map(({text}) => text)};
+    const colInfo = { [this._utils.visibleColId]: newValues.map(({ text }) => text) };
     const rowIds = await this._utils.tableData.sendTableAction(
-      ["BulkAddRecord", new Array(newValues.length).fill(null), colInfo]
+      ["BulkAddRecord", new Array(newValues.length).fill(null), colInfo],
     );
 
     // Update the TokenField tokens with the returned row ids.
     let i = 0;
-    const newTokens = tokens.map(token => {
-      return token.rowId === 'new' ? new ReferenceItem(token.text, rowIds[i++]) : token;
+    const newTokens = tokens.map((token) => {
+      return token.rowId === "new" ? new ReferenceItem(token.text, rowIds[i++]) : token;
     });
     this._tokenField.setTokens(newTokens);
   }
@@ -218,8 +219,8 @@ export class ReferenceListEditor extends NewBaseEditor {
     // once we reach it.
     const rootElem = this._tokenField.getRootElem();
     const maxSize = this._editorPlacement.calcSizeWithPadding(rootElem,
-      {width: Infinity, height: Infinity}, {calcOnly: true});
-    this._contentSizer.style.maxWidth = Math.ceil(maxSize.width) + 'px';
+      { width: Infinity, height: Infinity }, { calcOnly: true });
+    this._contentSizer.style.maxWidth = Math.ceil(maxSize.width) + "px";
   }
 
   /**
@@ -234,30 +235,30 @@ export class ReferenceListEditor extends NewBaseEditor {
     // re-create the tokens using cloneNode(true) copies all styles and properties, but not event
     // handlers. We can skip this step when we know that only _textInput changed.
     if (!onlyTextInput || !this._inputSizer) {
-      this._contentSizer.innerHTML = '';
+      this._contentSizer.innerHTML = "";
 
       dom.update(this._contentSizer,
         dom.update(rootElem.cloneNode(true) as HTMLElement,
-          dom.style('width', ''),
-          dom.style('height', ''),
+          dom.style("width", ""),
+          dom.style("height", ""),
           this._inputSizer = cssInputSizer(),
 
           // Remove the testId('tokenfield') from the cloned element, to simplify tests (so that
           // selecting .test-tokenfield only returns the actual visible tokenfield container).
-          dom.cls('test-tokenfield', false),
-        )
+          dom.cls("test-tokenfield", false),
+        ),
       );
     }
 
     // Use a separate sizer to size _textInput to the text inside it.
     // \u200B is a zero-width space; so the sizer will have height even when empty.
-    this._inputSizer.textContent = this._textInput.value + '\u200B';
+    this._inputSizer.textContent = this._textInput.value + "\u200B";
     const rect = this._contentSizer.getBoundingClientRect();
 
     const size = this._editorPlacement.calcSizeWithPadding(rootElem, rect);
-    rootElem.style.width = size.width + 'px';
-    rootElem.style.height = size.height + 'px';
-    this._textInput.style.width = this._inputSizer.getBoundingClientRect().width + 'px';
+    rootElem.style.width = size.width + "px";
+    rootElem.style.height = size.height + "px";
+    this._textInput.style.width = this._inputSizer.getBoundingClientRect().width + "px";
   }
 
   /**
@@ -265,8 +266,8 @@ export class ReferenceListEditor extends NewBaseEditor {
    *
    * Also see: prepForSave.
    */
-   private async _doSearch(text: string): Promise<ACResults<ReferenceItem>> {
-    const {items, selectIndex, highlightFunc} = this._utils.autocompleteSearch(text, this.options.rowId);
+  private async _doSearch(text: string): Promise<ACResults<ReferenceItem>> {
+    const { items, selectIndex, highlightFunc } = this._utils.autocompleteSearch(text, this.options.rowId);
     const result: ACResults<ReferenceItem> = {
       selectIndex,
       highlightFunc,
@@ -278,11 +279,11 @@ export class ReferenceListEditor extends NewBaseEditor {
     if (!this._enableAddNew || !text) { return result; }
 
     const cleanText = normalizeText(text);
-    if (result.items.find((item) => item.cleanText === cleanText)) {
+    if (result.items.find(item => item.cleanText === cleanText)) {
       return result;
     }
 
-    result.extraItems.push(new ReferenceItem(text, 'new'));
+    result.extraItems.push(new ReferenceItem(text, "new"));
     this._showAddNew = true;
 
     return result;
@@ -292,13 +293,13 @@ export class ReferenceListEditor extends NewBaseEditor {
     return renderACItem(
       item.text,
       highlightFunc,
-      item.rowId === 'new',
-      this._showAddNew
+      item.rowId === "new",
+      this._showAddNew,
     );
   }
 }
 
-const cssCellEditor = styled('div', `
+const cssCellEditor = styled("div", `
   background-color: ${theme.cellEditorBg};
   cursor: text;
   font-family: var(--grist-font-family-data);
@@ -360,7 +361,7 @@ const cssDeleteIcon = styled(tokenFieldStyles.cssDeleteIcon, `
   }
 `);
 
-const cssContentSizer = styled('div', `
+const cssContentSizer = styled("div", `
   position: absolute;
   left: 0;
   top: -100px;
@@ -374,13 +375,13 @@ const cssContentSizer = styled('div', `
   }
 `);
 
-const cssInputSizer = styled('div', `
+const cssInputSizer = styled("div", `
   flex: auto;
   min-width: 24px;
   margin: 3px 2px;
 `);
 
-const cssReadonlyStyle = styled('div', `
+const cssReadonlyStyle = styled("div", `
   padding-left: 16px;
   background: white;
 `);

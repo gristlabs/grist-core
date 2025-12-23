@@ -1,33 +1,34 @@
-import {buildDocumentBanners, buildHomeBanners} from 'app/client/components/Banners';
-import {ViewAsBanner} from 'app/client/components/ViewAsBanner';
-import {domAsync} from 'app/client/lib/domAsync';
+import { buildDocumentBanners, buildHomeBanners } from "app/client/components/Banners";
+import { ViewAsBanner } from "app/client/components/ViewAsBanner";
+import { domAsync } from "app/client/lib/domAsync";
 import {
   loadAccountPage,
   loadActivationPage,
   loadAdminPanel,
   loadAuditLogsPage,
   loadBillingPage,
-} from 'app/client/lib/imports';
-import {createSessionObs, isBoolean, isNumber} from 'app/client/lib/sessionObs';
-import {AppModel, TopAppModel} from 'app/client/models/AppModel';
-import {DocPageModelImpl} from 'app/client/models/DocPageModel';
-import {HomeModelImpl} from 'app/client/models/HomeModel';
-import {App} from 'app/client/ui/App';
-import {AppHeader} from 'app/client/ui/AppHeader';
-import {createBottomBarDoc} from 'app/client/ui/BottomBar';
-import {createDocMenu} from 'app/client/ui/DocMenu';
-import {createForbiddenPage, createNotFoundPage, createOtherErrorPage} from 'app/client/ui/errorPages';
-import {createHomeLeftPane} from 'app/client/ui/HomeLeftPane';
-import {buildSnackbarDom} from 'app/client/ui/NotifyUI';
-import {OnboardingPage, shouldShowOnboardingPage} from 'app/client/ui/OnboardingPage';
-import {pagePanels} from 'app/client/ui/PagePanels';
-import {RightPanel} from 'app/client/ui/RightPanel';
-import {createTopBarDoc, createTopBarHome} from 'app/client/ui/TopBar';
-import {WelcomePage} from 'app/client/ui/WelcomePage';
-import {testId} from 'app/client/ui2018/cssVars';
-import {getPageTitleSuffix} from 'app/common/gristUrls';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, dom, IDisposable, IDisposableOwner, Observable, replaceContent, subscribe} from 'grainjs';
+} from "app/client/lib/imports";
+import { createSessionObs, isBoolean, isNumber } from "app/client/lib/sessionObs";
+import { AppModel, TopAppModel } from "app/client/models/AppModel";
+import { DocPageModelImpl } from "app/client/models/DocPageModel";
+import { HomeModelImpl } from "app/client/models/HomeModel";
+import { App } from "app/client/ui/App";
+import { AppHeader } from "app/client/ui/AppHeader";
+import { createBottomBarDoc } from "app/client/ui/BottomBar";
+import { createDocMenu } from "app/client/ui/DocMenu";
+import { createForbiddenPage, createNotFoundPage, createOtherErrorPage } from "app/client/ui/errorPages";
+import { createHomeLeftPane } from "app/client/ui/HomeLeftPane";
+import { buildSnackbarDom } from "app/client/ui/NotifyUI";
+import { OnboardingPage, shouldShowOnboardingPage } from "app/client/ui/OnboardingPage";
+import { pagePanels } from "app/client/ui/PagePanels";
+import { RightPanel } from "app/client/ui/RightPanel";
+import { createTopBarDoc, createTopBarHome } from "app/client/ui/TopBar";
+import { WelcomePage } from "app/client/ui/WelcomePage";
+import { testId } from "app/client/ui2018/cssVars";
+import { getPageTitleSuffix } from "app/common/gristUrls";
+import { getGristConfig } from "app/common/urlUtils";
+
+import { Computed, dom, IDisposable, IDisposableOwner, Observable, replaceContent, subscribe } from "grainjs";
 
 // When integrating into the old app, we might in theory switch between new-style and old-style
 // content. This function allows disposing the created content by old-style code.
@@ -42,7 +43,7 @@ export function createAppUI(topAppModel: TopAppModel, appObj: App): IDisposable 
   });
   dom.update(document.body, content, {
     // Cancel out bootstrap's overrides.
-    style: 'font-family: inherit; font-size: inherit; line-height: inherit;'
+    style: "font-family: inherit; font-size: inherit; line-height: inherit;",
   });
 
   function dispose() {
@@ -58,41 +59,50 @@ export function createAppUI(topAppModel: TopAppModel, appObj: App): IDisposable 
     document.body.removeChild(beginMarker);
     document.body.removeChild(endMarker);
   }
-  return {dispose};
+  return { dispose };
 }
 
 function createMainPage(appModel: AppModel, appObj: App) {
   if (!appModel.currentOrg && appModel.needsOrg.get()) {
     const err = appModel.orgError;
-    if (err && err.status === 404) {
+    if (err?.status === 404) {
       return createNotFoundPage(appModel);
-    } else if (err && (err.status === 401 || err.status === 403)) {
+    }
+    else if (err && (err.status === 401 || err.status === 403)) {
       // Generally give access denied error.
       // The exception is for document pages, where we want to allow access to documents
       // shared publicly without being shared specifically with the current user.
-      if (appModel.pageType.get() !== 'doc') {
+      if (appModel.pageType.get() !== "doc") {
         return createForbiddenPage(appModel);
       }
-    } else {
-      return createOtherErrorPage(appModel, err && err.error);
+    }
+    else {
+      return createOtherErrorPage(appModel, err?.error);
     }
   }
   return dom.domComputed(appModel.pageType, (pageType) => {
-    if (pageType === 'home') {
+    if (pageType === "home") {
       return dom.create(pagePanelsHome, appModel, appObj);
-    } else if (pageType === 'billing') {
+    }
+    else if (pageType === "billing") {
       return domAsync(loadBillingPage().then(bp => dom.create(bp.BillingPage, appModel)));
-    } else if (pageType === 'welcome') {
+    }
+    else if (pageType === "welcome") {
       return dom.create(WelcomePage, appModel, appObj);
-    } else if (pageType === 'account') {
+    }
+    else if (pageType === "account") {
       return domAsync(loadAccountPage().then(ap => dom.create(ap.AccountPage, appModel, appObj)));
-    } else if (pageType === 'admin') {
+    }
+    else if (pageType === "admin") {
       return domAsync(loadAdminPanel().then(m => dom.create(m.AdminPanel, appModel, appObj)));
-    } else if (pageType === 'activation') {
+    }
+    else if (pageType === "activation") {
       return domAsync(loadActivationPage().then(ap => dom.create(ap.getActivationPage(), appModel)));
-    } else if (pageType === 'audit-logs') {
+    }
+    else if (pageType === "audit-logs") {
       return domAsync(loadAuditLogsPage().then(m => dom.create(m.AuditLogsPage, appModel, appObj)));
-    } else {
+    }
+    else {
       return dom.create(pagePanelsDoc, appModel, appObj);
     }
   });
@@ -109,9 +119,9 @@ function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
   // Set document title to strings like "Home - Grist" or "Org Name - Grist".
   owner.autoDispose(subscribe(pageModel.currentPage, pageModel.currentWS, (use, page, ws) => {
     const name = (
-      page === 'trash' ? 'Trash' :
-      page === 'templates' ? 'Examples & Templates' :
-      ws ? ws.name : appModel.currentOrgName
+      page === "trash" ? "Trash" :
+        page === "templates" ? "Examples & Templates" :
+          ws ? ws.name : appModel.currentOrgName
     );
     document.title = `${name}${getPageTitleSuffix(getGristConfig())}`;
   }));
@@ -176,11 +186,11 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     rightPanel: {
       panelWidth: rightPanelWidth,
       panelOpen: rightPanelOpen,
-      header: dom.maybe(rightPanel, (panel) => panel.header),
-      content: dom.maybe(rightPanel, (panel) => panel.content),
+      header: dom.maybe(rightPanel, panel => panel.header),
+      content: dom.maybe(rightPanel, panel => panel.content),
     },
     headerMain: dom.create(createTopBarDoc, appModel, pageModel),
-    contentMain: dom.maybe(pageModel.gristDoc, (gristDoc) => gristDoc.buildDom()),
+    contentMain: dom.maybe(pageModel.gristDoc, gristDoc => gristDoc.buildDom()),
     onResize,
     testId,
     contentTop: buildDocumentBanners(pageModel),

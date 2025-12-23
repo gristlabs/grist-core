@@ -6,12 +6,12 @@
  */
 
 
-var ko = require('knockout');
-var util = require('util');
+var ko = require("knockout");
+var util = require("util");
 var _ = require("underscore");
 
 // Use the browser globals in a way that allows replacing them with mocks in tests.
-var G = require('./browserGlobals').get('DocumentFragment', 'Node');
+var G = require("./browserGlobals").get("DocumentFragment", "Node");
 
 /**
  * Disposable is a base class for components that need cleanup (e.g. maintain DOM, listen to
@@ -123,7 +123,7 @@ Object.assign(Disposable.prototype, {
   autoDisposeWith: function(disposer, obj) {
     var list = this._disposalList || (this._disposalList = []);
     list.push({ obj: obj,
-                disposer: typeof disposer === 'string' ? methodDisposer(disposer) : disposer });
+      disposer: typeof disposer === "string" ? methodDisposer(disposer) : disposer });
     return obj;
   },
 
@@ -185,7 +185,7 @@ Object.assign(Disposable.prototype, {
 
     // Call stopListening if it exists. This is a convenience when using Backbone.Events. It's
     // equivalent to calling this.autoDisposeCallback(this.stopListening) in constructor.
-    if (typeof this.stopListening === 'function') {
+    if (typeof this.stopListening === "function") {
       // Wrap in disposeHelper so that errors get caught.
       disposeHelper(this, callFuncHelper, this.stopListening);
     }
@@ -350,7 +350,7 @@ function defaultDisposer(obj) {
   if (obj instanceof G.Node) {
     // This does both knockout- and jquery-related cleaning, and removes the node from the DOM.
     ko.removeNode(obj);
-  } else if (typeof obj.dispose === 'function') {
+  } else if (typeof obj.dispose === "function") {
     obj.dispose();
   } else {
     throw new Error("Object has no 'dispose' method");

@@ -1,6 +1,6 @@
-import {mapGetOrSet, MapWithCustomExpire} from 'app/common/AsyncCreate';
-import {makeId} from 'app/server/lib/idUtils';
-import {IPubSubManager, UnsubscribeCallbackPromise} from 'app/server/lib/PubSubManager';
+import { mapGetOrSet, MapWithCustomExpire } from "app/common/AsyncCreate";
+import { makeId } from "app/server/lib/idUtils";
+import { IPubSubManager, UnsubscribeCallbackPromise } from "app/server/lib/PubSubManager";
 
 /**
  * Cache of value, with a TTL and invalidations.
@@ -47,7 +47,7 @@ export class PubSubCache<Key, Value> {
     // They key to invalidate is in the channel name; for the message, we only include our own
     // unique ID to avoid a duplicate invalidation when we receive our own published message.
     await this._options.pubSubManager.publishBatch(
-      keys.map(key => ({channel: this._options.getChannel(key), message: this._selfId})));
+      keys.map(key => ({ channel: this._options.getChannel(key), message: this._selfId })));
   }
 
   /**
@@ -59,7 +59,8 @@ export class PubSubCache<Key, Value> {
       for (const ucbPromise of this._watchedKeys.values()) {
         ucbPromise.unsubscribeCB();
       }
-    } finally {
+    }
+    finally {
       this._watchedKeys.clear();
     }
   }
@@ -71,7 +72,7 @@ export class PubSubCache<Key, Value> {
     return this._options.pubSubManager.subscribe(this._options.getChannel(key),
       // When we receive a message, process the invalidation unless it matches our own unique
       // ID, which indicates this invalidation came from us and already got processed.
-      (msg) => (msg === this._selfId ? null : this._cache.delete(key))
+      msg => (msg === this._selfId ? null : this._cache.delete(key)),
     );
   }
 

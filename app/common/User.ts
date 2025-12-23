@@ -1,11 +1,11 @@
-import {getTableId} from 'app/common/DocActions';
-import {EmptyRecordView, RecordView} from 'app/common/RecordView';
-import {Role} from 'app/common/roles';
+import { getTableId } from "app/common/DocActions";
+import { EmptyRecordView, RecordView } from "app/common/RecordView";
+import { Role } from "app/common/roles";
 
 /**
  * User type to distinguish between Users and service accounts
  */
-export type UserType = 'login' | 'service';
+export type UserType = "login" | "service";
 
 /**
  * Information about a user, including any user attributes.
@@ -59,10 +59,12 @@ export class User implements UserInfo {
   public toJSON() {
     return this._toObject((value) => {
       if (value instanceof RecordView) {
-        return [getTableId(value.data), value.get('id')];
-      } else if (value instanceof EmptyRecordView) {
+        return [getTableId(value.data), value.get("id")];
+      }
+      else if (value instanceof EmptyRecordView) {
         return null;
-      } else {
+      }
+      else {
         return value;
       }
     });
@@ -78,16 +80,18 @@ export class User implements UserInfo {
     return this._toObject((value) => {
       if (value instanceof RecordView) {
         return value.toJSON();
-      } else if (value instanceof EmptyRecordView) {
+      }
+      else if (value instanceof EmptyRecordView) {
         return null;
-      } else {
+      }
+      else {
         return value;
       }
     }) as UserInfo;
   }
 
   private _toObject(mapValue: (value: unknown) => unknown) {
-    const results: {[key: string]: any} = {};
+    const results: { [key: string]: any } = {};
     for (const [key, value] of Object.entries(this)) {
       results[key] = mapValue(value);
     }

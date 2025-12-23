@@ -1,4 +1,4 @@
-import {promises, Readable, Writable} from 'stream';
+import { promises, Readable, Writable } from "stream";
 
 // Creates a writable stream that can be retrieved as a buffer.
 // Sub-optimal implementation, as we end up with *at least* two copies in memory one in `buffers`,
@@ -13,7 +13,8 @@ export class MemoryWritableStream extends Writable {
   public _write(chunk: any, encoding: BufferEncoding, callback: (error?: (Error | null)) => void) {
     if (typeof (chunk) == "string") {
       this._buffers.push(Buffer.from(chunk, encoding));
-    } else {
+    }
+    else {
       this._buffers.push(chunk);
     }
     callback();
@@ -31,7 +32,8 @@ export class MemoryWritableStream extends Writable {
 export async function drainWhenSettled<T>(stream: Readable, promise: Promise<T>): Promise<T> {
   try {
     return await promise;
-  } finally {
+  }
+  finally {
     if (stream.readable) {
       stream.resume();
     }

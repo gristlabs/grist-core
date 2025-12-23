@@ -1,25 +1,25 @@
-var _ = require('underscore');
-var ko = require('knockout');
-var dispose = require('../lib/dispose');
-var dom = require('../lib/dom');
-var kd = require('../lib/koDom');
-var kf = require('../lib/koForm');
-var koArray = require('../lib/koArray');
-var commands = require('./commands');
-var {CustomSectionElement} = require('../lib/CustomSectionElement');
-const {ChartConfig} = require('./ChartView');
-const {Computed, dom: grainjsDom, makeTestId, Holder} = require('grainjs');
+var _ = require("underscore");
+var ko = require("knockout");
+var dispose = require("../lib/dispose");
+var dom = require("../lib/dom");
+var kd = require("../lib/koDom");
+var kf = require("../lib/koForm");
+var koArray = require("../lib/koArray");
+var commands = require("./commands");
+var {CustomSectionElement} = require("../lib/CustomSectionElement");
+const {ChartConfig} = require("./ChartView");
+const {Computed, dom: grainjsDom, makeTestId, Holder} = require("grainjs");
 
-const {cssRow, cssWarningBox, cssWarningHeader} = require('app/client/ui/RightPanelStyles');
-const {SortFilterConfig} = require('app/client/ui/SortFilterConfig');
-const {primaryButton} = require('app/client/ui2018/buttons');
-const {select} = require('app/client/ui2018/menus');
-const {confirmModal} = require('app/client/ui2018/modals');
-const {makeT} = require('app/client/lib/localization');
+const {cssRow, cssWarningBox, cssWarningHeader} = require("app/client/ui/RightPanelStyles");
+const {SortFilterConfig} = require("app/client/ui/SortFilterConfig");
+const {primaryButton} = require("app/client/ui2018/buttons");
+const {select} = require("app/client/ui2018/menus");
+const {confirmModal} = require("app/client/ui2018/modals");
+const {makeT} = require("app/client/lib/localization");
 
-const testId = makeTestId('test-vconfigtab-');
+const testId = makeTestId("test-vconfigtab-");
 
-const t = makeT('ViewConfigTab');
+const t = makeT("ViewConfigTab");
 
 /**
  * Helper class that combines one ViewSection's data for building dom.
@@ -45,18 +45,18 @@ function ViewConfigTab(options) {
     koArray.syncedKoArray(this.viewModel.viewSections, function(section) {
       return ViewSectionData.create(section);
     })
-    .setAutoDisposeValues()
+      .setAutoDisposeValues()
   );
 
   this.isDetail = this.autoDispose(ko.computed(function() {
-    return ['detail', 'single'].includes(this.viewModel.activeSection().parentKey());
+    return ["detail", "single"].includes(this.viewModel.activeSection().parentKey());
   }, this));
   this.isChart = this.autoDispose(ko.computed(function() {
-    return this.viewModel.activeSection().parentKey() === 'chart';}, this));
+    return this.viewModel.activeSection().parentKey() === "chart";}, this));
   this.isGrid = this.autoDispose(ko.computed(function() {
-    return this.viewModel.activeSection().parentKey() === 'record';}, this));
+    return this.viewModel.activeSection().parentKey() === "record";}, this));
   this.isCustom = this.autoDispose(ko.computed(function() {
-    return this.viewModel.activeSection().parentKey() === 'custom';}, this));
+    return this.viewModel.activeSection().parentKey() === "custom";}, this));
   this.isRaw = this.autoDispose(ko.computed(function() {
     return this.viewModel.activeSection().isRaw();}, this));
   this.isRecordCard = this.autoDispose(ko.computed(function() {
@@ -91,30 +91,30 @@ ViewConfigTab.prototype._makeOnDemand = function(table) {
   // After saving the changed setting, force the reload of the document.
   const onConfirm = () => {
     return table.onDemand.saveOnly(!table.onDemand.peek())
-    .then(() => {
-      return this.gristDoc.docComm.reloadDoc()
-      .catch((err) => {
-        // Ignore the expected error from the socket shutdown that we asked for.
-        if (!err.message.includes('GristWSConnection disposed')) {
-          throw err;
-        }
-      })
-    });
-  }
+      .then(() => {
+        return this.gristDoc.docComm.reloadDoc()
+          .catch((err) => {
+            // Ignore the expected error from the socket shutdown that we asked for.
+            if (!err.message.includes("GristWSConnection disposed")) {
+              throw err;
+            }
+          });
+      });
+  };
 
   if (table.onDemand()) {
-    confirmModal('Unmark table On-Demand?', 'Unmark On-Demand', onConfirm, {
-      explanation: dom('div', 'If you unmark table ', dom('b', table), ' as On-Demand, ' +
-        'its data will be loaded into the calculation engine and will be available ' +
-        'for use in formulas. For a big table, this may greatly increase load times.',
-        dom('br'), dom('br'), 'Changing this setting will reload the document for all users.'),
+    confirmModal("Unmark table On-Demand?", "Unmark On-Demand", onConfirm, {
+      explanation: dom("div", "If you unmark table ", dom("b", table), " as On-Demand, " +
+        "its data will be loaded into the calculation engine and will be available " +
+        "for use in formulas. For a big table, this may greatly increase load times.",
+      dom("br"), dom("br"), "Changing this setting will reload the document for all users."),
     });
   } else {
-    confirmModal('Make table On-Demand?', 'Make On-Demand', onConfirm, {
-      explanation: dom('div', 'If you make table ', dom('b', table), ' On-Demand, ' +
-        'its data will no longer be loaded into the calculation engine and will not be available ' +
-        'for use in formulas. It will remain available for viewing and editing.',
-        dom('br'), dom('br'), 'Changing this setting will reload the document for all users.'),
+    confirmModal("Make table On-Demand?", "Make On-Demand", onConfirm, {
+      explanation: dom("div", "If you make table ", dom("b", table), " On-Demand, " +
+        "its data will no longer be loaded into the calculation engine and will not be available " +
+        "for use in formulas. It will remain available for viewing and editing.",
+      dom("br"), dom("br"), "Changing this setting will reload the document for all users."),
     });
   }
 };
@@ -128,11 +128,11 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
     const table = sectionData.section.table();
     const isCollapsed = ko.observable(true);
     return [
-      kf.collapserLabel(isCollapsed, t("Advanced settings"), dom.testId('ViewConfig_advanced')),
+      kf.collapserLabel(isCollapsed, t("Advanced settings"), dom.testId("ViewConfig_advanced")),
       kf.helpRow(kd.hide(isCollapsed),
         t("Big tables may be marked as \"on-demand\" to avoid loading them into the data engine."),
-        kd.style('text-align', 'left'),
-        kd.style('margin-top', '1.5rem')
+        kd.style("text-align", "left"),
+        kd.style("margin-top", "1.5rem")
       ),
 
       kf.helpRow(kd.hide(isCollapsed),
@@ -145,11 +145,11 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
       ),
 
       kf.row(kd.hide(isCollapsed),
-        dom('div', primaryButton(
+        dom("div", primaryButton(
           kd.text(() => table.onDemand() ? t("Unmark On-Demand") : t("Make On-Demand")),
-          kd.style('margin-top', '1rem'),
-          dom.on('click', () => this._makeOnDemand(table)),
-          dom.testId('ViewConfig_onDemandBtn'),
+          kd.style("margin-top", "1rem"),
+          dom.on("click", () => this._makeOnDemand(table)),
+          dom.testId("ViewConfig_onDemandBtn"),
         )),
       ),
     ];
@@ -164,11 +164,11 @@ ViewConfigTab.prototype._buildThemeDom = function() {
     return cssRow(
       dom.autoDispose(theme),
       select(theme, [
-        {label: t("Form"),        value: 'form'   },
-        {label: t("Compact"),     value: 'compact'},
-        {label: t("Blocks"),      value: 'blocks'  },
+        {label: t("Form"),        value: "form"   },
+        {label: t("Compact"),     value: "compact"},
+        {label: t("Blocks"),      value: "blocks"  },
       ]),
-      testId('detail-theme')
+      testId("detail-theme")
     );
   });
 };
@@ -181,14 +181,14 @@ ViewConfigTab.prototype._buildLayoutDom = function() {
   return kd.maybe(() => this.isDetail() ? this.activeSectionData() : null, (sectionData) => {
     const view = sectionData.section.viewInstance.peek();
     const layoutEditorObs = ko.computed(() => view && view.recordLayout && view.recordLayout.layoutEditor());
-    return cssRow({style: 'margin-top: 16px;'},
+    return cssRow({style: "margin-top: 16px;"},
       kd.maybe(layoutEditorObs, (editor) => editor.buildFinishButtons()),
       primaryButton(t("Edit card layout"),
         dom.autoDispose(layoutEditorObs),
-        dom.on('click', () => commands.allCommands.editLayout.run()),
+        dom.on("click", () => commands.allCommands.editLayout.run()),
         grainjsDom.hide(layoutEditorObs),
-        grainjsDom.cls('behavioral-prompt-edit-card-layout'),
-        testId('detail-edit-layout'),
+        grainjsDom.cls("behavioral-prompt-edit-card-layout"),
+        testId("detail-edit-layout"),
       )
     );
   });
@@ -220,8 +220,8 @@ ViewConfigTab.prototype._buildCustomTypeItems = function() {
 
     // 1)
     buildDom: () => kd.scope(activeSection, ({customDef}) => kf.buttonSelect(customDef.mode,
-      kf.optionButton('url', 'URL', dom.testId('ViewConfigTab_customView_url')),
-      kf.optionButton('plugin', 'Plugin', dom.testId('ViewConfigTab_customView_plugin'))))
+      kf.optionButton("url", "URL", dom.testId("ViewConfigTab_customView_url")),
+      kf.optionButton("plugin", "Plugin", dom.testId("ViewConfigTab_customView_plugin"))))
   }, {
 
     // 2)
@@ -230,18 +230,18 @@ ViewConfigTab.prototype._buildCustomTypeItems = function() {
 
     // 3)
     showObs: () => activeSection().customDef.mode() === "plugin",
-    buildDom: () => kd.scope(activeSection, ({customDef}) => dom('div',
-      kf.row(5, t("Plugin: "), 13, kf.text(customDef.pluginId, {}, {list: "list_plugin"}, dom.testId('ViewConfigTab_customView_pluginId'))),
-      kf.row(5, t("Section: "), 13, kf.text(customDef.sectionId, {}, {list: "list_section"},  dom.testId('ViewConfigTab_customView_sectionId'))),
+    buildDom: () => kd.scope(activeSection, ({customDef}) => dom("div",
+      kf.row(5, t("Plugin: "), 13, kf.text(customDef.pluginId, {}, {list: "list_plugin"}, dom.testId("ViewConfigTab_customView_pluginId"))),
+      kf.row(5, t("Section: "), 13, kf.text(customDef.sectionId, {}, {list: "list_section"},  dom.testId("ViewConfigTab_customView_sectionId"))),
       // For both `customPlugin` and `selectedSection` it is possible for the value not to be in the
       // list of options. Combining <datalist> and <input> allows both to freely edit the value with
       // keyboard and to select it from a list. Although the content of the list seems to be
       // filtered by the current value, which could confuse user into thinking that there are no
       // available options. I think it would be better to have the full list always, but it seems
       // harder to accomplish and is left as a TODO.
-      dom('datalist#list_plugin',  kd.foreach(koArray(allPlugins), value => dom('option', {value}))),
-      dom('datalist#list_section', kd.scope(customSectionIds, sections => kd.foreach(koArray(sections), (value) => dom('option', {value}))))
-      ))
+      dom("datalist#list_plugin",  kd.foreach(koArray(allPlugins), value => dom("option", {value}))),
+      dom("datalist#list_section", kd.scope(customSectionIds, sections => kd.foreach(koArray(sections), (value) => dom("option", {value}))))
+    ))
   }];
 };
 

@@ -1,5 +1,5 @@
-import {ThemeTokens, tokens} from 'app/common/ThemePrefs';
-import {Base} from 'app/common/themes/Base';
+import { ThemeTokens, tokens } from "app/common/ThemePrefs";
+import { Base } from "app/common/themes/Base";
 
 /**
  * Default Grist theme. Uses the BaseTheme and describes the light-theme colors.
@@ -7,52 +7,52 @@ import {Base} from 'app/common/themes/Base';
 export const GristLight: ThemeTokens = {
   ...Base,
 
-  body: '#262633',
+  body: "#262633",
   emphasis: tokens.black,
   veryLight: tokens.white,
 
   bg: tokens.white,
-  bgSecondary: '#f7f7f7',
-  bgTertiary: 'rgba(217,217,217,0.6)',
-  bgEmphasis: '#262633',
+  bgSecondary: "#f7f7f7",
+  bgTertiary: "rgba(217,217,217,0.6)",
+  bgEmphasis: "#262633",
 
-  decoration: '#d9d9d9',
-  decorationSecondary: '#e8e8e8',
-  decorationTertiary: '#d9d9d9',
+  decoration: "#d9d9d9",
+  decorationSecondary: "#e8e8e8",
+  decorationTertiary: "#d9d9d9",
 
-  primary: '#16b378',
-  primaryMuted: '#009058',
-  primaryDim: '#007548',
-  primaryEmphasis: '#b1ffe2',
-  primaryTranslucent: 'rgba(22, 179, 120, 0.5)',
+  primary: "#16b378",
+  primaryMuted: "#009058",
+  primaryDim: "#007548",
+  primaryEmphasis: "#b1ffe2",
+  primaryTranslucent: "rgba(22, 179, 120, 0.5)",
 
-  secondary: '#929299',
-  secondaryMuted: '#777777',
+  secondary: "#929299",
+  secondaryMuted: "#777777",
 
-  controlBorderRadius: '4px',
+  controlBorderRadius: "4px",
 
   cursor: tokens.primary,
-  cursorInactive: '#a2e1c9',
+  cursorInactive: "#a2e1c9",
 
-  selection: 'rgba(22,179,120,0.15)',
-  selectionOpaque: '#dcf4eb',
-  selectionDarkerOpaque: '#d6eee5',
-  selectionDarker: 'rgba(22,179,120,0.25)',
-  selectionDarkest: 'rgba(22,179,120,0.35)',
+  selection: "rgba(22,179,120,0.15)",
+  selectionOpaque: "#dcf4eb",
+  selectionDarkerOpaque: "#d6eee5",
+  selectionDarker: "rgba(22,179,120,0.25)",
+  selectionDarkest: "rgba(22,179,120,0.35)",
 
-  hover: '#bfbfbf',
-  backdrop: 'rgba(38,38,51,0.9)',
+  hover: "#bfbfbf",
+  backdrop: "rgba(38,38,51,0.9)",
 
   components: {
     ...Base.components,
 
     /* Text */
-    mediumText: '#494949',
+    mediumText: "#494949",
     errorText: tokens.error,
-    errorTextHover: '#a10000',
+    errorTextHover: "#a10000",
 
     /* Page */
-    pageBackdrop: '#808080',
+    pageBackdrop: "#808080",
 
     /* Top Bar */
     topBarButtonErrorFg: tokens.error,
@@ -61,15 +61,15 @@ export const GristLight: ThemeTokens = {
     toastMemoBg: tokens.bgEmphasis,
 
     /* Modals */
-    modalInnerShadow: 'rgba(31,37,50,0.31)',
-    modalOuterShadow: 'rgba(76,86,103,0.24)',
+    modalInnerShadow: "rgba(31,37,50,0.31)",
+    modalOuterShadow: "rgba(76,86,103,0.24)",
 
     /* Popups */
-    popupInnerShadow: 'rgba(31,37,50,0.31)',
-    popupOuterShadow: 'rgba(76,86,103,0.24)',
+    popupInnerShadow: "rgba(31,37,50,0.31)",
+    popupOuterShadow: "rgba(76,86,103,0.24)",
 
     /* Prompts */
-    promptFg: '#606060',
+    promptFg: "#606060",
 
     /* Progress Bars */
     progressBarErrorFg: tokens.error,
@@ -82,18 +82,18 @@ export const GristLight: ThemeTokens = {
 
     /* Tables */
     tableHeaderSelectedBg: tokens.decorationSecondary,
-    tableHeaderBorder: 'lightgrey',
-    tableAddNewBg: 'inherit',
-    tableScrollShadow: '#444444',
-    tableFrozenColumnsBorder: '#999999',
-    tableDragDropIndicator: '#808080',
-    tableDragDropShadow: '#f0f0f0',
+    tableHeaderBorder: "lightgrey",
+    tableAddNewBg: "inherit",
+    tableScrollShadow: "#444444",
+    tableFrozenColumnsBorder: "#999999",
+    tableDragDropIndicator: "#808080",
+    tableDragDropShadow: "#f0f0f0",
 
     /* Cards */
     cardCompactWidgetBg: tokens.bgTertiary,
     cardBlocksBg: tokens.bgTertiary,
-    cardFormBorder: 'lightgrey',
-    cardEditingLayoutBg: 'rgba(192,192,192,0.2)',
+    cardFormBorder: "lightgrey",
+    cardEditingLayoutBg: "rgba(192,192,192,0.2)",
 
     /* Selection */
     selection: tokens.selection,
@@ -110,7 +110,7 @@ export const GristLight: ThemeTokens = {
     controlHoverFg: tokens.primaryMuted,
     controlDisabledFg: tokens.white,
     controlDisabledBg: tokens.secondary,
-    controlBorder: '1px solid #11B683',
+    controlBorder: "1px solid #11B683",
 
     /* Checkboxes */
     checkboxBorderHover: tokens.hover,
@@ -126,20 +126,20 @@ export const GristLight: ThemeTokens = {
 
     /* Left Panel */
     pageHoverBg: tokens.bgTertiary,
-    disabledPageFg: '#bdbdbd',
+    disabledPageFg: "#bdbdbd",
     pageInitialsBg: tokens.secondary,
-    pageInitialsEmojiOutline: '#bdbdbd',
+    pageInitialsEmojiOutline: "#bdbdbd",
     pageInitialsEmojiBg: tokens.white,
 
     /* Right Panel */
     rightPanelTabButtonHoverBg: tokens.primaryMuted,
-    rightPanelSubtabFg: '#707070',
+    rightPanelSubtabFg: "#707070",
     rightPanelFieldSettingsBg: tokens.decorationSecondary,
-    rightPanelFieldSettingsButtonBg: 'lightgrey',
+    rightPanelFieldSettingsButtonBg: "lightgrey",
 
     /* Document History */
     documentHistorySnapshotBorder: tokens.bgTertiary,
-    documentHistoryTableBorder: 'lightgrey',
+    documentHistoryTableBorder: "lightgrey",
 
     /* Inputs */
     inputInvalid: tokens.error,
@@ -158,13 +158,13 @@ export const GristLight: ThemeTokens = {
 
     /* Menus */
     menuBorder: tokens.decorationSecondary,
-    menuShadow: 'rgba(38,38,51,0.6)',
+    menuShadow: "rgba(38,38,51,0.6)",
 
     /* Autocomplete */
     autocompleteItemSelectedBg: tokens.decorationSecondary,
 
     /* Search */
-    searchBorder: '#808080',
+    searchBorder: "#808080",
     searchPrevNextButtonBg: tokens.bgTertiary,
 
     /* Site Switcher */
@@ -179,19 +179,19 @@ export const GristLight: ThemeTokens = {
     /* Page Widget Picker */
     widgetPickerItemFg: tokens.body,
     widgetPickerSummaryIcon: tokens.primaryMuted,
-    widgetPickerShadow: 'rgba(38,38,51,0.20)',
+    widgetPickerShadow: "rgba(38,38,51,0.20)",
 
     /* Code View */
-    codeViewText: '#444444',
-    codeViewKeyword: '#444444',
-    codeViewComment: '#888888',
-    codeViewMeta: '#1f7199',
-    codeViewTitle: '#880000',
-    codeViewParams: '#444444',
-    codeViewString: '#880000',
-    codeViewNumber: '#880000',
-    codeViewBuiltin: '#397300',
-    codeViewLiteral: '#78a960',
+    codeViewText: "#444444",
+    codeViewKeyword: "#444444",
+    codeViewComment: "#888888",
+    codeViewMeta: "#1f7199",
+    codeViewTitle: "#880000",
+    codeViewParams: "#444444",
+    codeViewString: "#880000",
+    codeViewNumber: "#880000",
+    codeViewBuiltin: "#397300",
+    codeViewLiteral: "#78a960",
 
     /* Importer */
     importerOutsideBg: tokens.bgSecondary,
@@ -207,47 +207,47 @@ export const GristLight: ThemeTokens = {
     buttonGroupBorderHover: tokens.hover,
 
     /* Cells */
-    cellZebraBg: '#f8f8f8',
+    cellZebraBg: "#f8f8f8",
 
     /* Charts */
-    chartFg: '#444444',
-    chartLegendBg: '#ffffff80',
-    chartXAxis: '#444444',
-    chartYAxis: '#444444',
+    chartFg: "#444444",
+    chartLegendBg: "#ffffff80",
+    chartXAxis: "#444444",
+    chartYAxis: "#444444",
 
     /* Comments */
-    commentsUserNameFg: '#494949',
-    commentsPanelTopicBorder: '#cccccc',
-    commentsPanelResolvedTopicBg: '#f0f0f0',
+    commentsUserNameFg: "#494949",
+    commentsPanelTopicBorder: "#cccccc",
+    commentsPanelResolvedTopicBg: "#f0f0f0",
 
     /* Date Picker */
     datePickerSelectedFg: tokens.body,
     datePickerSelectedBg: tokens.decoration,
-    datePickerSelectedBgHover: '#cfcfcf',
+    datePickerSelectedBgHover: "#cfcfcf",
     datePickerRangeStartEndBg: tokens.decoration,
-    datePickerRangeStartEndBgHover: '#cfcfcf',
-    datePickerRangeBg: '#eeeeee',
+    datePickerRangeStartEndBgHover: "#cfcfcf",
+    datePickerRangeBg: "#eeeeee",
     datePickerRangeBgHover: tokens.decoration,
 
     /* Tutorials */
-    tutorialsPopupBoxBg: '#f5f5f5',
-    tutorialsPopupCodeFg: '#333333',
+    tutorialsPopupBoxBg: "#f5f5f5",
+    tutorialsPopupCodeFg: "#333333",
     tutorialsPopupCodeBg: tokens.bg,
-    tutorialsPopupCodeBorder: '#e1e4e5',
+    tutorialsPopupCodeBorder: "#e1e4e5",
 
     /* Ace */
-    aceAutocompletePrimaryFg: '#444444',
-    aceAutocompleteSecondaryFg: '#8f8f8f',
-    aceAutocompleteBg: '#fbfbfb',
-    aceAutocompleteBorder: 'lightgrey',
-    aceAutocompleteLinkHighlighted: '#009058',
-    aceAutocompleteActiveLineBg: '#cad6fa',
-    aceAutocompleteLineBorderHover: '#abbffe',
-    aceAutocompleteLineBgHover: 'rgba(233,233,253,0.4)',
+    aceAutocompletePrimaryFg: "#444444",
+    aceAutocompleteSecondaryFg: "#8f8f8f",
+    aceAutocompleteBg: "#fbfbfb",
+    aceAutocompleteBorder: "lightgrey",
+    aceAutocompleteLinkHighlighted: "#009058",
+    aceAutocompleteActiveLineBg: "#cad6fa",
+    aceAutocompleteLineBorderHover: "#abbffe",
+    aceAutocompleteLineBgHover: "rgba(233,233,253,0.4)",
 
     /* Color Select */
     colorSelectFg: tokens.body,
-    colorSelectShadow: 'rgba(38,38,51,0.6)',
+    colorSelectShadow: "rgba(38,38,51,0.6)",
     colorSelectFontOptionsBorder: tokens.decoration,
     colorSelectFontOptionBgHover: tokens.decoration,
     colorSelectColorSquareBorder: tokens.decoration,
@@ -258,7 +258,7 @@ export const GristLight: ThemeTokens = {
     highlightedCodeBgDisabled: tokens.decorationSecondary,
 
     /* Login Page */
-    loginPageBackdrop: '#f5f8fa',
+    loginPageBackdrop: "#f5f8fa",
     loginPageLine: tokens.bgSecondary,
     loginPageGoogleButtonFg: tokens.body,
     loginPageGoogleButtonBg: tokens.bgSecondary,
@@ -280,16 +280,16 @@ export const GristLight: ThemeTokens = {
     scrollShadow: tokens.bgTertiary,
 
     /* Toggle Checkboxes */
-    toggleCheckboxFg: '#606060',
+    toggleCheckboxFg: "#606060",
 
     /* Numeric Spinners */
-    numericSpinnerFg: '#606060',
+    numericSpinnerFg: "#606060",
 
     /* Custom Widget Gallery */
     widgetGalleryBorder: tokens.decoration,
-    widgetGalleryShadow: 'rgba(0,0,0,0.1)',
+    widgetGalleryShadow: "rgba(0,0,0,0.1)",
     widgetGallerySecondaryHeaderBg: tokens.secondary,
-    widgetGallerySecondaryHeaderBgHover: '#7e7e85',
+    widgetGallerySecondaryHeaderBgHover: "#7e7e85",
 
     /* Markdown Cell */
     markdownCellLightBg: tokens.bgSecondary,
@@ -298,9 +298,9 @@ export const GristLight: ThemeTokens = {
 
     /* App Header */
     appHeaderBorder: tokens.decorationSecondary,
-    appHeaderBorderHover: '#b0b0b0',
+    appHeaderBorderHover: "#b0b0b0",
 
     /* Card Button */
     cardButtonBorder: tokens.decoration,
-  }
+  },
 };

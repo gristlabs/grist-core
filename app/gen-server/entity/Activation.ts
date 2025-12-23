@@ -1,25 +1,25 @@
-import {InstallPrefs} from "app/common/Install";
-import {ApiError} from "app/common/ApiError";
-import {InstallProperties, installPropertyKeys} from "app/common/InstallAPI";
-import {nativeValues} from "app/gen-server/lib/values";
-import {BaseEntity, Column, Entity, PrimaryColumn} from "typeorm";
+import { ApiError } from "app/common/ApiError";
+import { InstallPrefs } from "app/common/Install";
+import { InstallProperties, installPropertyKeys } from "app/common/InstallAPI";
+import { nativeValues } from "app/gen-server/lib/values";
 
-@Entity({name: 'activations'})
+import { BaseEntity, Column, Entity, PrimaryColumn } from "typeorm";
+
+@Entity({ name: "activations" })
 export class Activation extends BaseEntity {
-
   @PrimaryColumn()
   public id: string;
 
-  @Column({name: 'key', type: 'text', nullable: true})
-  public key: string|null;
+  @Column({ name: "key", type: "text", nullable: true })
+  public key: string | null;
 
-  @Column({type: nativeValues.jsonEntityType, nullable: true})
-  public prefs: InstallPrefs|null;
+  @Column({ type: nativeValues.jsonEntityType, nullable: true })
+  public prefs: InstallPrefs | null;
 
-  @Column({name: 'created_at', default: () => "CURRENT_TIMESTAMP"})
+  @Column({ name: "created_at", default: () => "CURRENT_TIMESTAMP" })
   public createdAt: Date;
 
-  @Column({name: 'updated_at', default: () => "CURRENT_TIMESTAMP"})
+  @Column({ name: "updated_at", default: () => "CURRENT_TIMESTAMP" })
   public updatedAt: Date;
 
   // When the enterprise activation was first enabled, so we know when
@@ -28,12 +28,12 @@ export class Activation extends BaseEntity {
   // Activations are created at Grist installation to track other
   // things such as prefs, but the user might not enable Enterprise
   // until later.
-  @Column({name: 'enabled_at', type: nativeValues.dateTimeType, nullable: true})
-  public enabledAt: Date|null;
+  @Column({ name: "enabled_at", type: nativeValues.dateTimeType, nullable: true })
+  public enabledAt: Date | null;
 
   // When this installation entered into grace period, due to key expiration or limits exceeded.
-  @Column({name: 'grace_period_start', type: nativeValues.dateTimeType, nullable: true})
-  public gracePeriodStart: Date|null;
+  @Column({ name: "grace_period_start", type: nativeValues.dateTimeType, nullable: true })
+  public gracePeriodStart: Date | null;
 
   public checkProperties(props: any): props is Partial<InstallProperties> {
     for (const key of Object.keys(props)) {
@@ -49,7 +49,8 @@ export class Activation extends BaseEntity {
 
     if (props.prefs === null) {
       this.prefs = null;
-    } else {
+    }
+    else {
       this.prefs = this.prefs || {};
       if (props.prefs.telemetry !== undefined) {
         this.prefs.telemetry = this.prefs.telemetry || {};
@@ -62,7 +63,7 @@ export class Activation extends BaseEntity {
         this.prefs.checkForLatestVersion = props.prefs.checkForLatestVersion;
       }
 
-      for (const key of Object.keys(this.prefs) as Array<keyof InstallPrefs>) {
+      for (const key of Object.keys(this.prefs) as (keyof InstallPrefs)[]) {
         if (this.prefs[key] === null) {
           delete this.prefs[key];
         }

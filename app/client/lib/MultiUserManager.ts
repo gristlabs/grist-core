@@ -1,17 +1,18 @@
-import {computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled} from "grainjs";
-import {cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
-        IModalControl, modal} from 'app/client/ui2018/modals';
-import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {IOrgMemberSelectOption, UserManagerModel} from 'app/client/models/UserManagerModel';
-import {icon} from 'app/client/ui2018/icons';
-import {textarea} from "app/client/ui/inputs";
-import {BasicRole, isBasicRole, NonGuestRole, VIEWER} from "app/common/roles";
-import {menu, menuItem} from 'app/client/ui2018/menus';
+import { IOrgMemberSelectOption, UserManagerModel } from "app/client/models/UserManagerModel";
+import { textarea } from "app/client/ui/inputs";
+import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
+import { mediaXSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menu, menuItem } from "app/client/ui2018/menus";
+import { cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
+  IModalControl, modal } from "app/client/ui2018/modals";
+import { BasicRole, isBasicRole, NonGuestRole, VIEWER } from "app/common/roles";
 
-function parseEmailList(emailListRaw: string): Array<string> {
+import { computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
+
+function parseEmailList(emailListRaw: string): string[] {
   return emailListRaw
-    .split('\n')
+    .split("\n")
     .map(email => email.trim().toLowerCase())
     .filter(email => email !== "");
 }
@@ -31,7 +32,7 @@ export function buildMultiUserManagerModal(
   const isValidObs = Observable.create(owner, true);
 
   const enableAdd: Computed<boolean> = computed(
-    (use) => Boolean(use(emailListObs) && use(rolesObs) && use(isValidObs))
+    use => Boolean(use(emailListObs) && use(rolesObs) && use(isValidObs)),
   );
 
   const save = (ctl: IModalControl) => {
@@ -39,42 +40,43 @@ export function buildMultiUserManagerModal(
     const role = rolesObs.get();
     if (emailList.some(email => !validateEmail(email))) {
       isValidObs.set(false);
-    } else {
+    }
+    else {
       emailList.forEach(email => onAdd(email, role));
       ctl.close();
     }
   };
 
   return modal(ctl => [
-    { style: 'padding: 0;' },
+    { style: "padding: 0;" },
     dom.cls(cssAnimatedModal.className),
     cssTitle(
-      'Invite Users',
-      testId('um-header'),
+      "Invite Users",
+      testId("um-header"),
     ),
     cssModalBody(
       cssUserManagerBody(
         buildEmailsTextarea(emailListObs, isValidObs),
-        dom.maybe(use => !use(isValidObs), () => cssErrorMessage('At least one email is invalid')),
+        dom.maybe(use => !use(isValidObs), () => cssErrorMessage("At least one email is invalid")),
         cssInheritRoles(
-          dom('span', 'Access: '),
-          buildRolesSelect(rolesObs, model)
-        )
+          dom("span", "Access: "),
+          buildRolesSelect(rolesObs, model),
+        ),
       ),
     ),
     cssModalButtons(
-      { style: 'margin: 32px 64px; display: flex;' },
-      bigPrimaryButton('Confirm',
-        dom.boolAttr('disabled', (use) => !use(enableAdd)),
-        dom.on('click', () => save(ctl)),
-        testId('um-confirm')
+      { style: "margin: 32px 64px; display: flex;" },
+      bigPrimaryButton("Confirm",
+        dom.boolAttr("disabled", use => !use(enableAdd)),
+        dom.on("click", () => save(ctl)),
+        testId("um-confirm"),
       ),
       bigBasicButton(
-        'Cancel',
-        dom.on('click', () => ctl.close()),
-        testId('um-cancel')
+        "Cancel",
+        dom.on("click", () => ctl.close()),
+        testId("um-cancel"),
       ),
-    )
+    ),
   ]);
 }
 
@@ -83,25 +85,24 @@ function buildRolesSelect(
   model: UserManagerModel,
 ) {
   const allRoles = (model.isOrg ? model.orgUserSelectOptions : model.userSelectOptions)
-    .filter((x): x is {value: BasicRole, label: string} => isBasicRole(x.value));
+    .filter((x): x is { value: BasicRole, label: string } => isBasicRole(x.value));
   return cssOptionBtn(
     menu(() => [
-      dom.forEach(allRoles, (_role) =>
+      dom.forEach(allRoles, _role =>
         menuItem(() => roleSelectedObs.set(_role.value), _role.label,
-          testId(`um-role-option`)
-        )
-      )
+          testId(`um-role-option`),
+        ),
+      ),
     ]),
     dom.text((use) => {
       // Get the label of the active role.
       const activeRole = allRoles.find((_role: IOrgMemberSelectOption) => use(roleSelectedObs) === _role.value);
       return activeRole ? activeRole.label : "";
     }),
-    cssCollapseIcon('Collapse'),
-    testId('um-role-select')
+    cssCollapseIcon("Collapse"),
+    testId("um-role-select"),
   );
 }
-
 
 function buildEmailsTextarea(
   emailListObs: Observable<string>,
@@ -109,13 +110,12 @@ function buildEmailsTextarea(
   ...args: DomElementArg[]
 ) {
   return cssTextarea(emailListObs,
-    {onInput: true, isValid: isValidObs},
-    {placeholder: "Enter one email address per line"},
-    dom.on('change', (_ev) => isValidObs.set(true)),
-     ...args,
+    { onInput: true, isValid: isValidObs },
+    { placeholder: "Enter one email address per line" },
+    dom.on("change", _ev => isValidObs.set(true)),
+    ...args,
   );
 }
-
 
 const cssTitle = styled(cssModalTitle, `
   margin: 40px 64px 0 64px;
@@ -127,16 +127,16 @@ const cssTitle = styled(cssModalTitle, `
   }
 `);
 
-const cssInheritRoles = styled('span', `
+const cssInheritRoles = styled("span", `
   margin: 13px 63px 42px;
 `);
 
-const cssErrorMessage = styled('span', `
+const cssErrorMessage = styled("span", `
   margin: 0 63px;
   color: ${theme.errorText};
 `);
 
-const cssOptionBtn = styled('span', `
+const cssOptionBtn = styled("span", `
   display: inline-flex;
   font-size: ${vars.mediumFontSize};
   color: ${theme.controlFg};
@@ -148,7 +148,7 @@ const cssCollapseIcon = styled(icon, `
   background-color: ${theme.controlFg};
 `);
 
-const cssAccessDetailsBody = styled('div', `
+const cssAccessDetailsBody = styled("div", `
   display: flex;
   flex-direction: column;
   width: 600px;

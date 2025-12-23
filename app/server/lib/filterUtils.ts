@@ -1,8 +1,8 @@
-import { DocumentSettings } from 'app/common/DocumentSettings';
-import { safeJsonParse } from 'app/common/gutil';
-import { ActionHistoryImpl } from 'app/server/lib/ActionHistoryImpl';
-import { OptDocSession } from 'app/server/lib/DocSession';
-import { OpenMode, quoteIdent, SQLiteDB } from 'app/server/lib/SQLiteDB';
+import { DocumentSettings } from "app/common/DocumentSettings";
+import { safeJsonParse } from "app/common/gutil";
+import { ActionHistoryImpl } from "app/server/lib/ActionHistoryImpl";
+import { OptDocSession } from "app/server/lib/DocSession";
+import { OpenMode, quoteIdent, SQLiteDB } from "app/server/lib/SQLiteDB";
 
 /**
  * Filter a Grist document when it is copied or downloaded.  Changes that should
@@ -44,7 +44,7 @@ async function removeFullCopiesSpecialRight(filename: string) {
   // at most one).
   const resourceIds = (
     await db.all("SELECT id FROM _grist_ACLResources " +
-        "WHERE tableId='*SPECIAL' AND colIds='FullCopies'")
+      "WHERE tableId='*SPECIAL' AND colIds='FullCopies'")
   ).map(row => row.id as number);
   if (resourceIds.length > 0) {
     // Remove any related rules.
@@ -62,7 +62,7 @@ async function removeData(filename: string) {
   const db = await SQLiteDB.openDBRaw(filename, OpenMode.OPEN_EXISTING);
   const tableIds = (await db.all("SELECT name FROM sqlite_master WHERE type='table'"))
     .map(row => row.name as string)
-    .filter(name => !name.startsWith('_grist'));
+    .filter(name => !name.startsWith("_grist"));
   for (const tableId of tableIds) {
     await db.run(`DELETE FROM ${quoteIdent(tableId)}`);
   }
@@ -89,8 +89,8 @@ async function markAction(filename: string) {
     const documentSettings: string = (await db.all("SELECT documentSettings FROM _grist_DocInfo"))[0]?.documentSettings;
     const documentSettingsObj: DocumentSettings = safeJsonParse(documentSettings, {});
     documentSettingsObj.baseAction = states[0];
-    await db.run('UPDATE _grist_DocInfo SET documentSettings = ?',
-                 JSON.stringify(documentSettingsObj));
+    await db.run("UPDATE _grist_DocInfo SET documentSettings = ?",
+      JSON.stringify(documentSettingsObj));
   }
   await db.close();
 }

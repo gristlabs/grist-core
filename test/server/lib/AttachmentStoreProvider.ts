@@ -1,11 +1,13 @@
-import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
-import {ExternalStorageSupportingAttachments} from 'app/server/lib/AttachmentStore';
-import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
-import {CoreCreate} from 'app/server/lib/coreCreator';
-import {ExternalStorage, StreamDownloadResult, Unchanged} from 'app/server/lib/ExternalStorage';
-import {makeTestingFilesystemStoreConfig} from 'test/server/lib/FilesystemAttachmentStore';
-import {assert} from 'chai';
-import * as stream from 'node:stream';
+import { ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata } from "app/common/DocSnapshot";
+import { ExternalStorageSupportingAttachments } from "app/server/lib/AttachmentStore";
+import { AttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
+import { CoreCreate } from "app/server/lib/coreCreator";
+import { ExternalStorage, StreamDownloadResult, Unchanged } from "app/server/lib/ExternalStorage";
+import { makeTestingFilesystemStoreConfig } from "test/server/lib/FilesystemAttachmentStore";
+
+import * as stream from "node:stream";
+
+import { assert } from "chai";
 
 const testInstallationUUID = "FAKE-UUID";
 
@@ -13,11 +15,11 @@ function expectedStoreId(label: string) {
   return `${testInstallationUUID}-${label}`;
 }
 
-describe('AttachmentStoreProvider', () => {
-  it('constructs stores using the installations UID and store type', async () => {
+describe("AttachmentStoreProvider", () => {
+  it("constructs stores using the installations UID and store type", async () => {
     const storesConfig = [
       await makeTestingFilesystemStoreConfig("filesystem1"),
-      await makeTestingFilesystemStoreConfig("filesystem2")
+      await makeTestingFilesystemStoreConfig("filesystem2"),
     ];
 
     const provider = new AttachmentStoreProvider(storesConfig, testInstallationUUID);
@@ -86,47 +88,57 @@ describe("Snapshot attachment store option", () => {
 });
 
 class FakeExternalStorage implements ExternalStorage {
-  public async exists(key: string, snapshotId?: string | undefined): Promise<boolean> {
+  public async exists(key: string, snapshotId?: string): Promise<boolean> {
     return false;
   }
-  public async head(key: string, snapshotId?: string | undefined): Promise<ObjSnapshotWithMetadata | null> {
+
+  public async head(key: string, snapshotId?: string): Promise<ObjSnapshotWithMetadata | null> {
     return null;
   }
+
   public async upload(
-    key: string, fname: string, metadata?: ObjMetadata | undefined
+    key: string, fname: string, metadata?: ObjMetadata,
   ): Promise<string | typeof Unchanged | null> {
     return null;
   }
-  public async download(key: string, fname: string, snapshotId?: string | undefined): Promise<string> {
+
+  public async download(key: string, fname: string, snapshotId?: string): Promise<string> {
     return "";
   }
-  public async remove(key: string, snapshotIds?: string[] | undefined): Promise<void> {
+
+  public async remove(key: string, snapshotIds?: string[]): Promise<void> {
     return;
   }
+
   public async versions(key: string): Promise<ObjSnapshot[]> {
     return [];
   }
+
   public url(key: string): string {
     return "";
   }
+
   public isFatalError(err: any): boolean {
     return false;
   }
+
   public async close(): Promise<void> {}
 }
 
 class FakeAttachmentExternalStorage extends FakeExternalStorage implements ExternalStorageSupportingAttachments {
   public async uploadStream(
-    key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata | undefined
+    key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata,
   ): Promise<string | typeof Unchanged | null> {
     return null;
   }
-  public async downloadStream(key: string, snapshotId?: string | undefined): Promise<StreamDownloadResult> {
+
+  public async downloadStream(key: string, snapshotId?: string): Promise<StreamDownloadResult> {
     return {
-      metadata: { size: 0, snapshotId: "", },
+      metadata: { size: 0, snapshotId: "" },
       contentStream: stream.Readable.from(Buffer.from([])),
     };
   }
+
   public async removeAllWithPrefix(prefix: string): Promise<void> {
     return;
   }
@@ -136,6 +148,7 @@ class CoreCreatorExternalStorageStub extends CoreCreate {
   constructor(private _makeStore: () => ExternalStorage | undefined) {
     super();
   }
+
   public override ExternalStorage(): ExternalStorage | undefined {
     return this._makeStore();
   }

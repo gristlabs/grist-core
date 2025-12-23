@@ -1,10 +1,11 @@
-import { ApiError } from 'app/common/ApiError';
-import { MapWithTTL } from 'app/common/AsyncCreate';
-import { KeyedMutex } from 'app/common/KeyedMutex';
-import { AccessTokenOptions } from 'app/plugin/GristAPI';
-import { makeId } from 'app/server/lib/idUtils';
-import * as jwt from 'jsonwebtoken';
-import { RedisClient } from 'redis';
+import { ApiError } from "app/common/ApiError";
+import { MapWithTTL } from "app/common/AsyncCreate";
+import { KeyedMutex } from "app/common/KeyedMutex";
+import { AccessTokenOptions } from "app/plugin/GristAPI";
+import { makeId } from "app/server/lib/idUtils";
+
+import * as jwt from "jsonwebtoken";
+import { RedisClient } from "redis";
 
 export const Deps = {
   // Signed tokens expire after this length of time.
@@ -87,7 +88,7 @@ export class AccessTokens implements IAccessTokens {
   // tokens must be honored. Cache is of a list of secrets. It is important to allow multiple
   // secrets so we can change the secret we are signing with and still honor tokens signed with
   // a previous secret.
-  constructor(cli: RedisClient|null, private _factor: number = 10) {
+  constructor(cli: RedisClient | null, private _factor: number = 10) {
     this._store = cli ? new RedisAccessTokenSignerStore(cli) : new InMemoryAccessTokenSignerStore();
     this._dtMsec = Deps.TOKEN_TTL_MSECS;
     this._reads = new MapWithTTL<string, string[]>(this._dtMsec * _factor * 0.5);
@@ -115,17 +116,18 @@ export class AccessTokens implements IAccessTokens {
    */
   public async verify(token: string): Promise<AccessTokenInfo> {
     const content = jwt.decode(token);
-    if (typeof content !== 'object') {
-      throw new ApiError('Broken token', 401);
+    if (typeof content !== "object") {
+      throw new ApiError("Broken token", 401);
     }
     const docId = content?.docId as string;
-    if (typeof docId !== 'string' || !docId) {
-      throw new ApiError('Broken token', 401);
+    if (typeof docId !== "string" || !docId) {
+      throw new ApiError("Broken token", 401);
     }
     try {
       // Try to verify with the secrets we already know about.
       return await this._verifyWithGivenDoc(docId, token);
-    } catch (e) {
+    }
+    catch (e) {
       // Retry with up-to-date secrets.
       await this._refreshSecrets(docId);
       return await this._verifyWithGivenDoc(docId, token);
@@ -143,7 +145,8 @@ export class AccessTokens implements IAccessTokens {
     for (const secret of secrets) {
       try {
         return this._verifyWithGivenSecret(secret, token);
-      } catch (e) {
+      }
+      catch (e) {
         if (String(e).match(/Token has expired/)) {
           // Give specific error about token expiration.
           throw e;
@@ -151,25 +154,26 @@ export class AccessTokens implements IAccessTokens {
         // continue, to try another secret.
       }
     }
-    throw new ApiError('Cannot verify token', 401);
+    throw new ApiError("Cannot verify token", 401);
   }
 
   private _verifyWithGivenSecret(secret: string, token: string): AccessTokenInfo {
     try {
       const content: any = jwt.verify(token, secret);
-      if (typeof content !== 'object') {
-        throw new ApiError('Token mismatch', 401);
+      if (typeof content !== "object") {
+        throw new ApiError("Token mismatch", 401);
       }
       const userId = content.userId;
       const docId = content.docId;
-      if (!userId) { throw new ApiError('no userId in access token', 401); }
-      if (!docId) { throw new ApiError('no docId in access token', 401); }
+      if (!userId) { throw new ApiError("no userId in access token", 401); }
+      if (!docId) { throw new ApiError("no docId in access token", 401); }
       return content as AccessTokenInfo;
-    } catch (e) {
-      if (e.name === 'TokenExpiredError') {
-        throw new ApiError('Token has expired', 401);
+    }
+    catch (e) {
+      if (e.name === "TokenExpiredError") {
+        throw new ApiError("Token has expired", 401);
       }
-      throw new ApiError('Cannot verify token', 401);
+      throw new ApiError("Cannot verify token", 401);
     }
   }
 
@@ -251,11 +255,11 @@ export class RedisAccessTokenSignerStore implements IAccessTokenSignerStore {
 
   public async getSigners(docId: string): Promise<string[]> {
     const keys = await this._cli.getAsync(this._getKey(docId));
-    return keys?.split(',') || [];
+    return keys?.split(",") || [];
   }
 
   public async setSigners(docId: string, secrets: string[], ttlMsec: number): Promise<void> {
-    await this._cli.setexAsync(this._getKey(docId), ttlMsec, secrets.join(','));
+    await this._cli.setexAsync(this._getKey(docId), ttlMsec, secrets.join(","));
   }
 
   public async close() {

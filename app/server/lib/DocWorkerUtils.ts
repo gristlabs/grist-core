@@ -1,12 +1,13 @@
-import {ApiError} from 'app/common/ApiError';
-import {parseSubdomainStrictly} from 'app/common/gristUrls';
-import {removeTrailingSlash} from 'app/common/gutil';
-import {DocStatus, DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
-import log from 'app/server/lib/log';
-import {adaptServerUrl} from 'app/server/lib/requestUtils';
-import * as express from 'express';
-import fetch, {Response as FetchResponse, RequestInit} from 'node-fetch';
-import {getAssignmentId} from 'app/server/lib/idUtils';
+import { ApiError } from "app/common/ApiError";
+import { parseSubdomainStrictly } from "app/common/gristUrls";
+import { removeTrailingSlash } from "app/common/gutil";
+import { DocStatus, DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
+import { getAssignmentId } from "app/server/lib/idUtils";
+import log from "app/server/lib/log";
+import { adaptServerUrl } from "app/server/lib/requestUtils";
+
+import * as express from "express";
+import fetch, { RequestInit, Response as FetchResponse } from "node-fetch";
 
 /**
  * This method transforms a doc worker's public url as needed based on the request.
@@ -36,14 +37,14 @@ import {getAssignmentId} from 'app/server/lib/idUtils';
  * TODO: doc worker registration could be redesigned to remove the assumption
  * of a fixed base domain.
  */
-export function customizeDocWorkerUrl( docWorkerUrlSeed: string, req: express.Request): string {
+export function customizeDocWorkerUrl(docWorkerUrlSeed: string, req: express.Request): string {
   const docWorkerUrl = new URL(docWorkerUrlSeed);
   const workerSubdomain = parseSubdomainStrictly(docWorkerUrl.hostname).org;
   adaptServerUrl(docWorkerUrl, req);
 
   // We wish to migrate to routing doc workers by path, so insert a doc worker identifier
   // in the path (if not already present).
-  if (!docWorkerUrl.pathname.startsWith('/dw/')) {
+  if (!docWorkerUrl.pathname.startsWith("/dw/")) {
     // When doc worker is localhost, the port number is necessary and sufficient for routing.
     // Let's add a /dw/... prefix just for consistency.
     const workerIdent = workerSubdomain || `local-${docWorkerUrl.port}`;
@@ -82,7 +83,7 @@ export async function getWorker(
   docWorkerMap: IDocWorkerMap,
   assignmentId: string,
   urlPath: string,
-  config: RequestInit = {}
+  config: RequestInit = {},
 ) {
   if (!useWorkerPool()) {
     // This should never happen. We are careful to not use getWorker
@@ -92,11 +93,11 @@ export async function getWorker(
     // of the defaults not working.
     throw new Error("AppEndpoint.getWorker was called unnecessarily");
   }
-  let docStatus: DocStatus|undefined;
+  let docStatus: DocStatus | undefined;
   const workersAreManaged = Boolean(process.env.GRIST_MANAGED_WORKERS);
   for (;;) {
     docStatus = await docWorkerMap.assignDocWorker(assignmentId);
-    const configWithTimeout = {timeout: 10000, ...config};
+    const configWithTimeout = { timeout: 10000, ...config };
     const fullUrl = removeTrailingSlash(docStatus.docWorker.internalUrl) + urlPath;
     try {
       const resp: FetchResponse = await fetch(fullUrl, configWithTimeout);
@@ -115,14 +116,16 @@ export async function getWorker(
       let body: any;
       try {
         body = await resp.json();
-      } catch (e) {
+      }
+      catch (e) {
         throw new ApiError(resp.statusText, resp.status);
       }
-      if (!(body && body.message && body.message === 'document worker not present')) {
+      if (!(body?.message && body.message === "document worker not present")) {
         throw new ApiError(resp.statusText, resp.status);
       }
       // This is a 404 with the expected content for a missing worker.
-    } catch (e) {
+    }
+    catch (e) {
       log.rawDebug(`AppEndpoint.getWorker failure`, {
         url: fullUrl,
         docId: assignmentId,
@@ -134,7 +137,7 @@ export async function getWorker(
       // Otherwise, we continue if we see a system error (e.g. ECONNREFUSED).
       // We don't accept timeouts since there is too much potential to
       // bring down a single-worker deployment that has a hiccup.
-      if (workersAreManaged || !(e.type === 'system')) {
+      if (workersAreManaged || !(e.type === "system")) {
         throw e;
       }
     }
@@ -155,7 +158,7 @@ export type DocWorkerInfoOrSelfPrefix = {
 export async function getDocWorkerInfoOrSelfPrefix(
   docId: string,
   docWorkerMap?: IDocWorkerMap | null,
-  tag?: string
+  tag?: string,
 ): Promise<DocWorkerInfoOrSelfPrefix> {
   if (!useWorkerPool()) {
     // Let the client know there is not a separate pool of workers,
@@ -171,17 +174,17 @@ export async function getDocWorkerInfoOrSelfPrefix(
   }
 
   if (!docWorkerMap) {
-    throw new Error('no worker map');
+    throw new Error("no worker map");
   }
   const assignmentId = getAssignmentId(docWorkerMap, docId);
-  const { docStatus } = await getWorker(docWorkerMap, assignmentId, '/status');
+  const { docStatus } = await getWorker(docWorkerMap, assignmentId, "/status");
   if (!docStatus) {
-    throw new Error('no worker');
+    throw new Error("no worker");
   }
   return { docWorker: docStatus.docWorker };
 }
 
 // Return true if document related endpoints are served by separate workers.
 export function useWorkerPool() {
-  return process.env.GRIST_SINGLE_PORT !== 'true';
+  return process.env.GRIST_SINGLE_PORT !== "true";
 }

@@ -1,17 +1,16 @@
-import {DocData} from 'app/common/DocData';
-import * as gristTypes from 'app/common/gristTypes';
-import {isList} from 'app/common/gristTypes';
-import {BaseFormatter, createFullFormatterFromDocData} from 'app/common/ValueFormatter';
+import { TableDataActionSet } from "app/common/DocActions";
+import { DocData } from "app/common/DocData";
+import * as gristTypes from "app/common/gristTypes";
+import { isList } from "app/common/gristTypes";
+import { BaseFormatter, createFullFormatterFromDocData } from "app/common/ValueFormatter";
 import {
   createParserOrFormatterArgumentsRaw,
   createParserRaw,
   ReferenceListParser,
   ReferenceParser,
-  ValueParser
-} from 'app/common/ValueParser';
-import {CellValue, GristObjCode} from 'app/plugin/GristData';
-import { TableDataActionSet } from "app/common/DocActions";
-
+  ValueParser,
+} from "app/common/ValueParser";
+import { CellValue, GristObjCode } from "app/plugin/GristData";
 
 /**
  * Base class for converting values from one type to another with the convert() method.
@@ -32,12 +31,14 @@ export class ValueConverter {
       if (value.length === 1) {
         // Empty list: ['L']
         return null;
-      } else if (value.length > 2 || this._isTargetText) {
+      }
+      else if (value.length > 2 || this._isTargetText) {
         // List with multiple values, or the target type is text.
         // Since we're converting to just one value,
         // format the whole thing as text, which is an error for most types.
         return this.formatter.formatAny(value);
-      } else {
+      }
+      else {
         // Singleton list: ['L', value]
         // Convert just that one value.
         value = value[1];
@@ -61,7 +62,7 @@ class ListConverter extends ValueConverter {
   // Don't parse strings like "Smith, John" which may look like lists but represent a single choice.
   // TODO this works when the source is a Choice column, but not when it's a Reference to a Choice column.
   //   But the guessed choices are also broken in that case.
-  private _choices: Set<string> = new Set((this.formatter.widgetOpts as any).choices || []);
+  private _choices = new Set<string>((this.formatter.widgetOpts as any).choices || []);
 
   public convert(value: any): any {
     if (typeof value === "string" && !this._choices.has(value)) {
@@ -76,7 +77,7 @@ class ListConverter extends ValueConverter {
   }
 
   protected handleValues(originalValue: any, values: any[]) {
-    return ['L', ...values];
+    return ["L", ...values];
   }
 }
 
@@ -110,13 +111,14 @@ class ReferenceListConverter extends ListConverter {
       if (typeof value === "string") {
         // Failed to parse one of the references, so return a raw string for the whole thing
         return raw;
-      } else {
+      }
+      else {
         // value is a lookup tuple: ['l', value, options]
         result.push(value[1]);
         lookupColumn = value[2].column;
       }
     }
-    return ['l', result, {column: lookupColumn, raw}];
+    return ["l", result, { column: lookupColumn, raw }];
   }
 
   /**
@@ -199,8 +201,8 @@ export function convertFromColumn(
   type: string,
   widgetOpts: string,
   visibleColRef: number,
-  values: ReadonlyArray<CellValue>,
-  displayColValues?: ReadonlyArray<CellValue>,
+  values: readonly CellValue[],
+  displayColValues?: readonly CellValue[],
 ): CellValue[] {
   const docData = new DocData(
     (_tableId) => { throw new Error("Unexpected DocData fetch"); },
@@ -209,7 +211,7 @@ export function convertFromColumn(
 
   const formatter = createFullFormatterFromDocData(docData, sourceColRef);
   const parser = createParserRaw(
-    ...createParserOrFormatterArgumentsRaw(docData, type, widgetOpts, visibleColRef)
+    ...createParserOrFormatterArgumentsRaw(docData, type, widgetOpts, visibleColRef),
   );
   const converter = createConverter(formatter, parser);
   return convertValues(converter, values, displayColValues || values);
@@ -218,10 +220,10 @@ export function convertFromColumn(
 export function convertValues(
   converter: ValueConverter,
   // Raw values from the actual column, e.g. row IDs for reference columns
-  values: ReadonlyArray<CellValue>,
+  values: readonly CellValue[],
   // Values from the display column, which is the same as the raw values for non-referencing columns.
   // In almost all cases these are the values that actually matter and get converted.
-  displayColValues: ReadonlyArray<CellValue>,
+  displayColValues: readonly CellValue[],
 ): CellValue[] {
   // Converting Ref <-> RefList without changing the target table is a special case - see prepTransformColInfo.
   // In this case we deal with the actual row IDs stored in the real column,
@@ -245,14 +247,17 @@ export function convertValues(
     if (refToRefList && typeof actualValue === "number") {
       if (actualValue === 0) {
         return null;
-      } else {
+      }
+      else {
         return ["L", actualValue];
       }
-    } else if (refListToRef && isList(actualValue)) {
+    }
+    else if (refListToRef && isList(actualValue)) {
       if (actualValue.length === 1) {
         // Empty list: ['L']
         return 0;
-      } else if (actualValue.length === 2) {
+      }
+      else if (actualValue.length === 2) {
         // Singleton list: ['L', rowId]
         return actualValue[1];
       }

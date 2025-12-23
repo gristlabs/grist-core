@@ -1,6 +1,7 @@
 import { hashCode } from "app/client/lib/hashUtils";
-import { splitPageInitial } from 'app/client/ui2018/pages';
+import { splitPageInitial } from "app/client/ui2018/pages";
 import { isValidHex, useBindable } from "app/common/gutil";
+
 import emojiRegex from "emoji-regex";
 import { BindableValue, dom, DomElementArg, styled } from "grainjs";
 
@@ -23,7 +24,8 @@ export function buildDocIcon(options: DocIconOptions, ...args: DomElementArg[]) 
       const emoji = useBindable(use, icon?.emoji);
       if (isEmoji(emoji)) {
         return cssEmoji(emoji);
-      } else {
+      }
+      else {
         return cssInitials(getIconFromName(useBindable(use, docName)));
       }
     }),
@@ -33,11 +35,11 @@ export function buildDocIcon(options: DocIconOptions, ...args: DomElementArg[]) 
     }),
     dom.style("background-color", (use) => {
       const backgroundColor = useBindable(use, icon?.backgroundColor);
-      return isValidHex(backgroundColor)
-        ? backgroundColor
-        : defaultBackgroundColor;
+      return isValidHex(backgroundColor) ?
+        backgroundColor :
+        defaultBackgroundColor;
     }),
-    ...args
+    ...args,
   );
 }
 
@@ -70,10 +72,10 @@ function getIconFromName(name: string) {
   const parts = name.trim().split(/\s+/);
   return parts
     .slice(0, 2)
-    .map((w) => [...w][0])
+    .map(w => [...w][0])
     .join("")
     // https://www.regular-expressions.info/unicode.html
-    .replace(/[^\p{L}\p{Nd}]$/u, '')
+    .replace(/[^\p{L}\p{Nd}]$/u, "")
     .toUpperCase();
 }
 

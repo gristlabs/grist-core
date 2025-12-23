@@ -1,54 +1,55 @@
-import {getDefaultColValues} from 'app/client/components/BaseView2';
-import {CutCallback} from 'app/client/components/Clipboard';
-import {CopySelection} from 'app/client/components/CopySelection';
-import {Cursor} from 'app/client/components/Cursor';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {viewCommands} from 'app/client/components/RegionFocusSwitcher';
-import {SelectionSummary} from 'app/client/components/SelectionSummary';
-import * as commands from 'app/client/components/commands';
-import {buildConfirmDelete, reportUndo} from 'app/client/components/modals';
-import {KoArray} from 'app/client/lib/koArray';
-import * as tableUtil from 'app/client/lib/tableUtil';
-import BaseRowModel from 'app/client/models/BaseRowModel';
-import {ClientColumnGetters} from 'app/client/models/ClientColumnGetters';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import DataTableModel from 'app/client/models/DataTableModel';
-import type {LazyArrayModel} from 'app/client/models/DataTableModel';
-import {ExtraRows} from 'app/client/models/DataTableModelWithDiff';
-import {DynamicQuerySet} from 'app/client/models/QuerySet';
-import {SectionFilter} from 'app/client/models/SectionFilter';
-import {UnionRowSource} from 'app/client/models/UnionRowSource';
-import {markAsSeen} from 'app/client/models/UserPrefs';
-import {ColumnRec} from 'app/client/models/entities/ColumnRec';
-import {TableRec} from 'app/client/models/entities/TableRec';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {FilterInfo, ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
-import {MutedError} from 'app/client/models/errors';
-import {reportError} from 'app/client/models/errors';
-import {urlState} from 'app/client/models/gristUrlState';
-import * as rowset from 'app/client/models/rowset';
-import {RowSource, SortedRowSet} from 'app/client/models/rowset';
-import {createFilterMenu, IColumnFilterMenuOptions} from 'app/client/ui/ColumnFilterMenu';
-import {buildReassignModal} from 'app/client/ui/buildReassignModal';
-import {closeRegisteredMenu} from 'app/client/ui2018/menus';
-import type {CommentWithMentions} from 'app/client/widgets/MentionTextBox';
-import {BuildEditorOptions, createAllFieldWidgets, FieldBuilder} from 'app/client/widgets/FieldBuilder';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {BulkColValues, CellValue, DocAction, UserAction} from 'app/common/DocActions';
-import {DocStateComparison} from 'app/common/DocState';
-import {DismissedPopup} from 'app/common/Prefs';
-import {SortFunc} from 'app/common/SortFunc';
-import {Sort} from 'app/common/SortSpec';
-import * as gristTypes from 'app/common/gristTypes';
-import {IGristUrlState} from 'app/common/gristUrls';
-import {arrayRepeat, nativeCompare, roundDownToMultiple, waitObs} from 'app/common/gutil';
-import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
+import { getDefaultColValues } from "app/client/components/BaseView2";
+import { CutCallback } from "app/client/components/Clipboard";
+import * as commands from "app/client/components/commands";
+import { CopySelection } from "app/client/components/CopySelection";
+import { Cursor } from "app/client/components/Cursor";
+import { GristDoc } from "app/client/components/GristDoc";
+import { buildConfirmDelete, reportUndo } from "app/client/components/modals";
+import { viewCommands } from "app/client/components/RegionFocusSwitcher";
+import { SelectionSummary } from "app/client/components/SelectionSummary";
+import { KoArray } from "app/client/lib/koArray";
+import * as tableUtil from "app/client/lib/tableUtil";
+import BaseRowModel from "app/client/models/BaseRowModel";
+import { ClientColumnGetters } from "app/client/models/ClientColumnGetters";
+import { DataRowModel } from "app/client/models/DataRowModel";
+import DataTableModel from "app/client/models/DataTableModel";
+import { ExtraRows } from "app/client/models/DataTableModelWithDiff";
+import { ColumnRec } from "app/client/models/entities/ColumnRec";
+import { TableRec } from "app/client/models/entities/TableRec";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { FilterInfo, ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
+import { MutedError } from "app/client/models/errors";
+import { reportError } from "app/client/models/errors";
+import { urlState } from "app/client/models/gristUrlState";
+import { DynamicQuerySet } from "app/client/models/QuerySet";
+import * as rowset from "app/client/models/rowset";
+import { RowSource, SortedRowSet } from "app/client/models/rowset";
+import { SectionFilter } from "app/client/models/SectionFilter";
+import { UnionRowSource } from "app/client/models/UnionRowSource";
+import { markAsSeen } from "app/client/models/UserPrefs";
+import { buildReassignModal } from "app/client/ui/buildReassignModal";
+import { createFilterMenu, IColumnFilterMenuOptions } from "app/client/ui/ColumnFilterMenu";
+import { closeRegisteredMenu } from "app/client/ui2018/menus";
+import { BuildEditorOptions, createAllFieldWidgets, FieldBuilder } from "app/client/widgets/FieldBuilder";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { BulkColValues, CellValue, DocAction, UserAction } from "app/common/DocActions";
+import { DocStateComparison } from "app/common/DocState";
+import * as gristTypes from "app/common/gristTypes";
+import { IGristUrlState } from "app/common/gristUrls";
+import { arrayRepeat, nativeCompare, roundDownToMultiple, waitObs } from "app/common/gutil";
+import { DismissedPopup } from "app/common/Prefs";
+import { SortFunc } from "app/common/SortFunc";
+import { Sort } from "app/common/SortSpec";
+import { CursorPos, UIRowId } from "app/plugin/GristAPI";
 
-import {DomArg} from 'grainjs';
-import ko from 'knockout';
-import mapValues from 'lodash/mapValues';
-import moment from 'moment-timezone';
-import {IOpenController} from 'popweasel';
+import { DomArg } from "grainjs";
+import ko from "knockout";
+import mapValues from "lodash/mapValues";
+import moment from "moment-timezone";
+import { IOpenController } from "popweasel";
+
+import type { LazyArrayModel } from "app/client/models/DataTableModel";
+import type { CommentWithMentions } from "app/client/widgets/MentionTextBox";
 
 // Disable member-ordering linting temporarily, so that it's easier to review the conversion to
 // typescript. It would be reasonable to reorder methods and re-enable this lint check.
@@ -72,14 +73,13 @@ export interface ViewOptions {
  * @param {Boolean} options.addNewRow - Whether to include an add row in the model.
  */
 export default class BaseView extends DisposableWithEvents {
-
   public viewPane: HTMLElement;
   public viewData: LazyArrayModel<DataRowModel>;
   public cursor: Cursor;
   public sortedRows: SortedRowSet;
   public rowSource: RowSource;
   public activeFieldBuilder: ko.Computed<FieldBuilder>;
-  public selectedColumns: ko.Computed<ViewFieldRec[]>|null;
+  public selectedColumns: ko.Computed<ViewFieldRec[]> | null;
   public disableEditing: ko.Computed<boolean>;
   public isTruncated: ko.Observable<boolean>;
   public tableModel: DataTableModel;
@@ -88,19 +88,19 @@ export default class BaseView extends DisposableWithEvents {
   public enableAddRow: ko.Computed<boolean>;
   public options: ViewOptions;
 
-  public onNewRecordRequest?(): Promise<number>|void;
+  public onNewRecordRequest?(): Promise<number> | void;
 
   protected _name: string;
   protected schemaModel: TableRec;
   protected comparison: DocStateComparison | null;
   protected extraRows: ExtraRows;
   protected editRowModel: DataRowModel;
-  protected linkedRowId: ko.Computed<UIRowId|null>;
+  protected linkedRowId: ko.Computed<UIRowId | null>;
   protected isLinkSource: ko.Computed<boolean>;
   protected isPreview: boolean;
   protected currentColumn: ko.Computed<ColumnRec>;
   protected fieldBuilders: KoArray<FieldBuilder>;
-  protected copySelection: ko.Observable<CopySelection|null>;
+  protected copySelection: ko.Observable<CopySelection | null>;
 
   private _queryRowSource: DynamicQuerySet;
   private _mainRowSource: RowSource;
@@ -109,7 +109,7 @@ export default class BaseView extends DisposableWithEvents {
   private _filteredRowSource: rowset.FilteredRowSource;
   private _newRowSource: rowset.RowSource;
   private _isLoading: ko.Observable<boolean>;
-  private _pendingCursorPos: CursorPos|null;
+  private _pendingCursorPos: CursorPos | null;
   protected _isPrinting: ko.Observable<boolean>;
 
   constructor(
@@ -121,7 +121,7 @@ export default class BaseView extends DisposableWithEvents {
     this.options = options || {};
     this._name = this.viewSection.titleDef.peek();
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Observable models mapped to the document
 
     // Instantiate the models for the view metadata and for the data itself.
@@ -157,7 +157,7 @@ export default class BaseView extends DisposableWithEvents {
     this._sectionFilter = SectionFilter.create(this, this.viewSection, this.tableModel.tableData);
     this._filteredRowSource = rowset.FilteredRowSource.create(this, this._sectionFilter.sectionFilterFunc.get());
     this._filteredRowSource.subscribeTo(this._mainRowSource);
-    this.autoDispose(this._sectionFilter.sectionFilterFunc.addListener(filterFunc => {
+    this.autoDispose(this._sectionFilter.sectionFilterFunc.addListener((filterFunc) => {
       this._exemptFromFilterRows.reset();
       this._filteredRowSource.updateFilter(filterFunc);
     }));
@@ -168,7 +168,7 @@ export default class BaseView extends DisposableWithEvents {
     this.sortedRows = rowset.SortedRowSet.create(this, null as any, this.tableModel.tableData);
 
     // Create the sortFunc, and re-sort when sortSpec changes.
-    const sortFunc = new SortFunc(new ClientColumnGetters(this.tableModel, {unversioned: true}));
+    const sortFunc = new SortFunc(new ClientColumnGetters(this.tableModel, { unversioned: true }));
     const updateSort = (spec: Sort.SortSpec) => {
       sortFunc.updateSpec(spec);
       this.sortedRows.updateSort((rowId1, rowId2) => {
@@ -184,7 +184,7 @@ export default class BaseView extends DisposableWithEvents {
 
     // We create a special one-row RowSource for the "Add new" row, in case we need it.
     this._newRowSource = (class extends rowset.RowSource {
-      public getAllRows(): rowset.RowList { return ['new']; }
+      public getAllRows(): rowset.RowList { return ["new"]; }
       public getNumRows(): number { return 1; }
     }).create(this);
 
@@ -199,9 +199,9 @@ export default class BaseView extends DisposableWithEvents {
       (colName: string, value: CellValue) => this._saveEditRowField(this.editRowModel, colName, value);
 
     // Reset heights of rows when there is an action that affects them.
-    this.listenTo(this.viewData, 'rowModelNotify', this.onRowResize);
+    this.listenTo(this.viewData, "rowModelNotify", this.onRowResize);
 
-    this.listenTo(this.viewSection.events, 'rowHeightChange', this.onResize );
+    this.listenTo(this.viewSection.events, "rowHeightChange", this.onResize);
 
     // Create a command group for keyboard shortcuts common to all views.
     this.autoDispose(commands.createGroup(
@@ -209,19 +209,19 @@ export default class BaseView extends DisposableWithEvents {
     this.autoDispose(commands.createGroup(
       BaseView._commonFocusedCommands, this, this.viewSection.hasRegionFocus));
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Prepare logic for linking with other sections.
 
     // A computed for the rowId of the row selected by section linking.
     this.linkedRowId = this.autoDispose(ko.computed(() => {
       const linking = this.viewSection.linkingState();
-      return linking && linking.cursorPos ? linking.cursorPos() : null;
-    }).extend({deferred: true}));
+      return linking?.cursorPos ? linking.cursorPos() : null;
+    }).extend({ deferred: true }));
 
     // Update the cursor whenever linkedRowId() changes (but only if we have any linking).
-    this.autoDispose(this.linkedRowId.subscribe(rowId => {
+    this.autoDispose(this.linkedRowId.subscribe((rowId) => {
       if (this.viewSection.linkingState.peek()) {
-        this.setCursorPos({rowId: rowId || 'new'}, true);
+        this.setCursorPos({ rowId: rowId || "new" }, true);
       }
     }));
 
@@ -242,14 +242,15 @@ export default class BaseView extends DisposableWithEvents {
     const updateEnableAddRow = (_enableAddRow: boolean) => {
       if (_enableAddRow) {
         this.sortedRows.subscribeTo(this._newRowSource);
-      } else {
+      }
+      else {
         this.sortedRows.unsubscribeFrom(this._newRowSource);
       }
     };
     this.autoDispose(this.enableAddRow.subscribe(updateEnableAddRow));
     updateEnableAddRow(this.enableAddRow.peek());
 
-    //--------------------------------------------------
+    // --------------------------------------------------
     // Observables local to this view
     this._isLoading = ko.observable(true);
     this._pendingCursorPos = this.viewSection.lastCursorPos;
@@ -260,8 +261,8 @@ export default class BaseView extends DisposableWithEvents {
     this.cursor = this.autoDispose(Cursor.create(null, this, this.viewSection.lastCursorPos));
 
     this.currentColumn = this.autoDispose(ko.pureComputed(() =>
-      this.viewSection.viewFields().at(this.cursor.fieldIndex())!.column()
-    ).extend({rateLimit: 0}));     // TODO Test this without the rateLimit
+      this.viewSection.viewFields().at(this.cursor.fieldIndex())!.column(),
+    ).extend({ rateLimit: 0 }));     // TODO Test this without the rateLimit
 
     this.currentEditingColumnIndex = ko.observable(-1);
 
@@ -269,12 +270,12 @@ export default class BaseView extends DisposableWithEvents {
     this.fieldBuilders = this.autoDispose(
       createAllFieldWidgets(this.gristDoc, this.viewSection.viewFields, this.cursor, {
         isPreview: this.isPreview,
-      })
+      }),
     );
 
     // An observable evaluating to the FieldBuilder for the field where the cursor is.
     this.activeFieldBuilder = this.autoDispose(ko.pureComputed(() =>
-      this.fieldBuilders.at(this.cursor.fieldIndex())!
+      this.fieldBuilders.at(this.cursor.fieldIndex())!,
     ));
 
     // By default, a view doesn't support selectedColumns, but it can be overridden.
@@ -298,18 +299,17 @@ export default class BaseView extends DisposableWithEvents {
     }));
 
     // Reset cursor to the first row when filtering changes.
-    this.autoDispose(this.viewSection.linkingFilter.subscribe((x) => this.onLinkFilterChange()));
+    this.autoDispose(this.viewSection.linkingFilter.subscribe(x => this.onLinkFilterChange()));
 
     // When sorting changes, reset the cursor to the first row. (The alternative of moving the
     // cursor to stay at the same record is sometimes better, but sometimes more annoying.)
-    this.autoDispose(this.viewSection.activeSortSpec.subscribe(() => this.setCursorPos({rowIndex: 0})));
+    this.autoDispose(this.viewSection.activeSortSpec.subscribe(() => this.setCursorPos({ rowIndex: 0 })));
 
-    this.copySelection = ko.observable<CopySelection|null>(null);
+    this.copySelection = ko.observable<CopySelection | null>(null);
 
     // Whether parts needed for printing should be rendered now.
     this._isPrinting = ko.observable(false);
   }
-
 
   /**
    * These commands are common to GridView and DetailView.
@@ -331,16 +331,16 @@ export default class BaseView extends DisposableWithEvents {
    * Most commands triggered by arrow keys, Tab, Enter, pagination keys, should usually go in the focused list.
    * Most commands with relatively hard or specific triggers should usually go in the normal list.
    */
-  private static _commonCommands: {[key: string]: Function} & ThisType<BaseView> = {
+  private static _commonCommands: { [key: string]: Function } & ThisType<BaseView> = {
     input: function(init?: string, event?: Event) {
       this.scrollToCursor(true).catch(reportError);
-      this.activateEditorAtCursor({init, event});
+      this.activateEditorAtCursor({ init, event });
     },
     copyLink: function() { this.copyLink().catch(reportError); },
     filterByThisCellValue: function() { this.filterByThisCellValue(); },
     duplicateRows: function() { this._duplicateRows().catch(reportError); },
-    openDiscussion: function(ev: unknown, payload: CommentWithMentions|null) {
-      const state = typeof payload === 'object' && payload ? payload : null;
+    openDiscussion: function(ev: unknown, payload: CommentWithMentions | null) {
+      const state = typeof payload === "object" && payload ? payload : null;
       this._openDiscussionAtCursor(state);
     },
     insertRecordBefore: function() { this.insertRow(this.cursor.rowIndex()!)?.catch(reportError); },
@@ -353,11 +353,11 @@ export default class BaseView extends DisposableWithEvents {
    * They are enabled only when the user is actually focusing the view, meaning
    * they don't work when the view is the active one but the user is focused on something else, like the creator panel.
    */
-  private static _commonFocusedCommands: {[key: string]: Function} & ThisType<BaseView> = {
+  private static _commonFocusedCommands: { [key: string]: Function } & ThisType<BaseView> = {
     editField: function(this: BaseView, event?: KeyboardEvent) {
       closeRegisteredMenu();
       this.scrollToCursor(true).catch(reportError);
-      this.activateEditorAtCursor({event});
+      this.activateEditorAtCursor({ event });
     },
 
     insertCurrentDate: function() { this.insertCurrentDate(false)?.catch(reportError); },
@@ -373,7 +373,6 @@ export default class BaseView extends DisposableWithEvents {
     },
   };
 
-
   /**
    * Returns a selection of the selected rows and cols.  By default this will just
    * be one row and one column as multiple cell selection is not supported.
@@ -384,33 +383,32 @@ export default class BaseView extends DisposableWithEvents {
       this.tableModel.tableData,
       [this.viewData.getRowId(this.cursor.rowIndex()!)],
       [this.viewSection.viewFields().at(this.cursor.fieldIndex())!],
-      {}
+      {},
     );
   }
-
 
   protected selectedRows(): number[] {
     return [];
   }
 
   protected deleteRows(rowIds: number[]) {
-    return this.tableModel.sendTableAction(['BulkRemoveRecord', rowIds]);
+    return this.tableModel.sendTableAction(["BulkRemoveRecord", rowIds]);
   }
 
   // Commands run via a Mousetrap callback get a KeyboardEvent is the first argument. This is
   // obscure and essentially undocumented.
-  protected deleteRecords(source: KeyboardEvent|unknown) {
+  protected deleteRecords(source: unknown) {
     if (this.gristDoc.isReadonly.get()) {
       return;
     }
 
     const rowIds = this.selectedRows();
-    if (this.viewSection.disableAddRemoveRows() || rowIds.length === 0){
+    if (this.viewSection.disableAddRemoveRows() || rowIds.length === 0) {
       return;
     }
     const isKeyboard = source instanceof KeyboardEvent;
     const popups = this.gristDoc.docPageModel.appModel.dismissedPopups;
-    const popupName = DismissedPopup.check('deleteRecords');
+    const popupName = DismissedPopup.check("deleteRecords");
     const onSave = async (remember?: boolean) => {
       if (remember) {
         markAsSeen(popups, popupName);
@@ -422,10 +420,11 @@ export default class BaseView extends DisposableWithEvents {
       this.scrollToCursor().catch(reportError);
       const selectedCell = this.viewPane.querySelector(".selected_cursor") || this.viewPane;
       buildConfirmDelete(selectedCell, onSave, rowIds.length <= 1);
-    } else {
+    }
+    else {
       return onSave().then(() => {
         if (!this.isDisposed()) {
-          reportUndo(this.gristDoc, `You deleted ${rowIds.length} row${rowIds.length > 1 ? 's' : ''}.`);
+          reportUndo(this.gristDoc, `You deleted ${rowIds.length} row${rowIds.length > 1 ? "s" : ""}.`);
         }
         return true;
       });
@@ -446,7 +445,8 @@ export default class BaseView extends DisposableWithEvents {
     }
     if (!this._isLoading.peek() || immediate) {
       this.cursor.setCursorPos(cursorPos, isFromLink);
-    } else {
+    }
+    else {
       // This is the first step; the second happens in onTableLoaded.
       this._pendingCursorPos = cursorPos;
       this.cursor.setLive(false);
@@ -458,7 +458,7 @@ export default class BaseView extends DisposableWithEvents {
    * If no query is being loaded, it will resolve immediately.
    */
   public async getLoadingDonePromise(): Promise<void> {
-    await waitObs(this._isLoading, (value) => !value);
+    await waitObs(this._isLoading, value => !value);
   }
 
   /**
@@ -483,11 +483,10 @@ export default class BaseView extends DisposableWithEvents {
     builder.buildEditorDom(this.editRowModel, lazyRow, options || {});
   }
 
-
   /**
    * Opens discussion panel at the cursor position. Returns true if discussion panel was opened.
    */
-  private _openDiscussionAtCursor(text: CommentWithMentions|null) {
+  private _openDiscussionAtCursor(text: CommentWithMentions | null) {
     const builder = this.activeFieldBuilder();
     if (builder.isEditorActive()) {
       return false;
@@ -505,7 +504,6 @@ export default class BaseView extends DisposableWithEvents {
     return true;
   }
 
-
   /**
    * Move the floating RowModel for editing to the current cursor position, and return it.
    *
@@ -520,20 +518,20 @@ export default class BaseView extends DisposableWithEvents {
 
   // Get an anchor link for the current cell and a given view section to the clipboard.
   public getAnchorLinkForSection(sectionId: number): IGristUrlState {
-    const rowId = this.viewData.getRowId(this.cursor.rowIndex()!)
-        // If there are no visible rows (happens in some widget linking situations),
-        // pick an arbitrary row which will hopefully be close to the top of the table.
-        || this.tableModel.tableData.findMatchingRowId({})
-        // If there are no rows at all, return the 'new record' row ID.
-        // Note that this case only happens in combination with the widget linking mentioned.
-        // If the table is empty but the 'new record' row is selected, the `viewData.getRowId` line above works.
-        || 'new';
+    const rowId = this.viewData.getRowId(this.cursor.rowIndex()!) ||
+    // If there are no visible rows (happens in some widget linking situations),
+    // pick an arbitrary row which will hopefully be close to the top of the table.
+      this.tableModel.tableData.findMatchingRowId({}) ||
+    // If there are no rows at all, return the 'new record' row ID.
+    // Note that this case only happens in combination with the widget linking mentioned.
+    // If the table is empty but the 'new record' row is selected, the `viewData.getRowId` line above works.
+      "new";
     // The `fieldIndex` will be null if there are no visible columns.
     const fieldIndex = this.cursor.fieldIndex.peek();
     const field = fieldIndex !== null ? this.viewSection.viewFields().peek()[fieldIndex] : null;
     const colRef = field?.colRef.peek();
     const linkingRowIds = sectionId ? this.gristDoc.docModel.getLinkingRowIds(sectionId) : undefined;
-    return {hash: {sectionId, rowId, colRef, linkingRowIds}};
+    return { hash: { sectionId, rowId, colRef, linkingRowIds } };
   }
 
   // Copy an anchor link for the current row to the clipboard.
@@ -559,20 +557,21 @@ export default class BaseView extends DisposableWithEvents {
         // If the list is empty, filter instead by an empty value for the whole list
         filterValues = [colType === "ChoiceList" ? "" : null];
       }
-    } else {
+    }
+    else {
       if (Array.isArray(value)) {
         value = JSON.stringify(value);
       }
       filterValues = [value];
     }
-    this.viewSection.setFilter(col.getRowId(), {filter: JSON.stringify({included: filterValues})});
+    this.viewSection.setFilter(col.getRowId(), { filter: JSON.stringify({ included: filterValues }) });
   }
 
   /**
    * Insert a new row immediately before the row at the given index if given an Integer. Otherwise
    * insert a new row at the end.
    */
-  public insertRow(index?: number): Promise<number>|undefined {
+  public insertRow(index?: number): Promise<number> | undefined {
     if (this.gristDoc.isReadonly.get()) {
       return;
     }
@@ -582,16 +581,16 @@ export default class BaseView extends DisposableWithEvents {
     }
     const rowId = index != null ? this.viewData.getRowId(index) : undefined;
     const insertPos = Number.isInteger(rowId) ?
-      this.tableModel.tableData.getValue(rowId, 'manualSort') : null;
+      this.tableModel.tableData.getValue(rowId, "manualSort") : null;
 
-    return this.sendTableAction(['AddRecord', null, { 'manualSort': insertPos }])!
-    .then((rowId) => {      // eslint-disable-line @typescript-eslint/no-shadow
-      if (!this.isDisposed()) {
-        this._exemptFromFilterRows.addExemptRow(rowId);
-        this.setCursorPos({rowId});
-      }
-      return rowId;
-    });
+    return this.sendTableAction(["AddRecord", null, { manualSort: insertPos }])!
+      .then((rowId) => {
+        if (!this.isDisposed()) {
+          this._exemptFromFilterRows.addExemptRow(rowId);
+          this.setCursorPos({ rowId });
+        }
+        return rowId;
+      });
   }
 
   private _getDefaultColValues() {
@@ -603,15 +602,16 @@ export default class BaseView extends DisposableWithEvents {
    * section-linking filter.
    */
   private _enhanceAction(action: UserAction) {
-    if (action[0] === 'AddRecord' || action[0] === 'BulkAddRecord') {
+    if (action[0] === "AddRecord" || action[0] === "BulkAddRecord") {
       let colValues = this._getDefaultColValues();
       const rowIds = action[1] as number[];
-      if (action[0] === 'BulkAddRecord') {
+      if (action[0] === "BulkAddRecord") {
         colValues = mapValues(colValues, v => rowIds.map(() => v));
       }
       Object.assign(colValues, action[2]);
       return [action[0], rowIds, colValues];
-    } else {
+    }
+    else {
       return action;
     }
   }
@@ -622,7 +622,7 @@ export default class BaseView extends DisposableWithEvents {
    */
   protected prepTableActions(actions: UserAction[]) {
     actions = actions.map(a => this._enhanceAction(a));
-    actions.forEach(action_ => {
+    actions.forEach((action_) => {
       action_.splice(1, 0, this.tableModel.tableData.tableId);
     });
     return actions;
@@ -636,7 +636,6 @@ export default class BaseView extends DisposableWithEvents {
     return this.tableModel.sendTableActions(actions.map(a => this._enhanceAction(a)), optDesc);
   }
 
-
   /**
    * Shortcut for `.tableModel.tableData.sendTableAction`, which also sets default values
    * determined by the current section-linking filter, if any.
@@ -644,7 +643,6 @@ export default class BaseView extends DisposableWithEvents {
   protected sendTableAction(action: UserAction, optDesc?: string) {
     return action ? this.tableModel.sendTableAction(this._enhanceAction(action), optDesc) : null;
   }
-
 
   /**
    * Inserts the current date/time into the selected cell if the cell is of a compatible type
@@ -666,19 +664,22 @@ export default class BaseView extends DisposableWithEvents {
     let value;
     const now = Date.now();
     const docTimezone = this.gristDoc.docInfo.timezone.peek();
-    if (type === 'Text' || type === 'Any') {
+    if (type === "Text" || type === "Any") {
       // Use document timezone. Don't forget to use uppercase HH for 24-hour time.
-      value = moment.tz(now, docTimezone).format('YYYY-MM-DD' + (withTime ? ' HH:mm:ss' : ''));
-    } else if (type === 'Date') {
+      value = moment.tz(now, docTimezone).format("YYYY-MM-DD" + (withTime ? " HH:mm:ss" : ""));
+    }
+    else if (type === "Date") {
       // Get UTC midnight for the current date (as seen in docTimezone). This is a bit confusing. If
       // it's "2019-11-14 23:30 -05:00", then it's "2019-11-15 04:30" in UTC. Since we measure time
       // from Epoch UTC, we want the UTC time to have the correct date, so need to add the offset
       // (-05:00) to get "2019-11-14 23:30" in UTC, and then round down to midnight.
       const offsetMinutes = moment.tz(now, docTimezone).utcOffset();
-      value = roundDownToMultiple(now / 1000 + offsetMinutes * 60, 24*3600);
-    } else if (type === 'DateTime') {
+      value = roundDownToMultiple(now / 1000 + offsetMinutes * 60, 24 * 3600);
+    }
+    else if (type === "DateTime") {
       value = now / 1000;
-    } else {
+    }
+    else {
       // Ignore the shortcut when in a column of an inappropriate type.
       return;
     }
@@ -686,7 +687,6 @@ export default class BaseView extends DisposableWithEvents {
     this.editRowModel.assign(rowId);
     return this.editRowModel.cells[column.colId()].setAndSave(value);
   }
-
 
   /**
    * Override the saving of field values to add some extra processing:
@@ -706,15 +706,16 @@ export default class BaseView extends DisposableWithEvents {
 
       return editRowModel.updateColValues(colValues)
       // Once we know the new row's rowId, add it to column filters to make sure it's displayed.
-      .then(rowId => {
-        if (!this.isDisposed()) {
-          this._exemptFromFilterRows.addExemptRow(rowId);
-          this.setCursorPos({rowId});
-        }
-        return rowId;
-      })
-      .finally(() => !this.isDisposed() && this.cursor.setLive(true));
-    } else {
+        .then((rowId) => {
+          if (!this.isDisposed()) {
+            this._exemptFromFilterRows.addExemptRow(rowId);
+            this.setCursorPos({ rowId });
+          }
+          return rowId;
+        })
+        .finally(() => !this.isDisposed() && this.cursor.setLive(true));
+    }
+    else {
       const rowId = editRowModel.getRowId();
       // We are editing the floating "edit" rowModel, but to ensure that we see data in the main view
       // (when the editor closes), we immediately update the main view's rowModel, if such exists.
@@ -722,11 +723,11 @@ export default class BaseView extends DisposableWithEvents {
       if (mainRowModel) {
         mainRowModel.cells[colName](value);
       }
-      const ret = editRowModel.updateColValues({[colName]: value})
+      const ret = editRowModel.updateColValues({ [colName]: value })
         // Display this rowId, even if it doesn't match the filter,
         // unless the filter is on a Bool column
         .then((result) => {
-          if (!this.isDisposed() && this.currentColumn().pureType() !== 'Bool') {
+          if (!this.isDisposed() && this.currentColumn().pureType() !== "Bool") {
             this._exemptFromFilterRows.addExemptRow(rowId);
           }
           return result;
@@ -755,7 +756,7 @@ export default class BaseView extends DisposableWithEvents {
 
     return {
       data: this.tableModel.tableData,
-      selection: selection
+      selection: selection,
     };
   }
 
@@ -774,14 +775,14 @@ export default class BaseView extends DisposableWithEvents {
     return {
       data: this.tableModel.tableData,
       selection: selection,
-      cutCallback: () => tableUtil.makeDeleteAction(selection)
+      cutCallback: () => tableUtil.makeDeleteAction(selection),
     };
   }
 
   /**
    * Helper to send paste actions from the cutCallback and a list of paste actions.
    */
-  protected sendPasteActions(cutCallback: CutCallback|null, actions: UserAction[]) {
+  protected sendPasteActions(cutCallback: CutCallback | null, actions: UserAction[]) {
     let cutAction = null;
     // If this is a cut -> paste, add the cut action and a description.
     if (cutCallback) {
@@ -789,14 +790,15 @@ export default class BaseView extends DisposableWithEvents {
       // If the cut occurs on an edit restricted cell, there may be no cut action.
       if (cutAction) { actions.unshift(cutAction); }
     }
-    return this.gristDoc.docData.sendActions(actions).catch(ex => {
-      if (ex.code === 'UNIQUE_REFERENCE_VIOLATION') {
+    return this.gristDoc.docData.sendActions(actions).catch((ex) => {
+      if (ex.code === "UNIQUE_REFERENCE_VIOLATION") {
         buildReassignModal({
           docModel: this.gristDoc.docModel,
           actions: actions as DocAction[],
         }).catch(reportError);
         throw new MutedError();
-      } else {
+      }
+      else {
         throw ex;
       }
     });
@@ -849,7 +851,7 @@ export default class BaseView extends DisposableWithEvents {
     // If this section is linked, go to the first row as the row previously selected may no longer
     // be visible.
     if (this.viewSection.linkingState.peek()) {
-      this.setCursorPos({rowIndex: 0});
+      this.setCursorPos({ rowIndex: 0 });
     }
   }
 
@@ -865,7 +867,7 @@ export default class BaseView extends DisposableWithEvents {
    * section and is rendered, otherwise returns null.
    * Useful to tie a rendered row to the row being edited. Derived views may override.
    */
-  protected getRenderedRowModel(rowId: UIRowId): DataRowModel|undefined {
+  protected getRenderedRowModel(rowId: UIRowId): DataRowModel | undefined {
     return this.viewData.getRowModel(rowId);
   }
 
@@ -874,16 +876,16 @@ export default class BaseView extends DisposableWithEvents {
    */
   protected getLastDataRowIndex() {
     const last = this.viewData.peekLength - 1;
-    return (last >= 0 && this.viewData.getRowId(last) === 'new') ? last - 1 : last;
+    return (last >= 0 && this.viewData.getRowId(last) === "new") ? last - 1 : last;
   }
 
   /**
    * Creates and opens ColumnFilterMenu for a given field/column, and returns its PopupControl.
    */
   public createFilterMenu(
-    openCtl: IOpenController, filterInfo: FilterInfo, options: IColumnFilterMenuOptions
+    openCtl: IOpenController, filterInfo: FilterInfo, options: IColumnFilterMenuOptions,
   ): HTMLElement {
-    const {showAllFiltersButton, onClose} = options;
+    const { showAllFiltersButton, onClose } = options;
     return createFilterMenu({
       openCtl,
       sectionFilter: this._sectionFilter,
@@ -927,7 +929,7 @@ export default class BaseView extends DisposableWithEvents {
   /**
    * Duplicates selected row(s) and returns inserted rowIds
    */
-  protected async _duplicateRows(): Promise<number[]|undefined> {
+  protected async _duplicateRows(): Promise<number[] | undefined> {
     if (
       this.gristDoc.isReadonly.get() ||
       this.viewSection.disableAddRemoveRows() ||
@@ -941,17 +943,17 @@ export default class BaseView extends DisposableWithEvents {
     const rowIds = selection.rowIds;
     const length = rowIds.length;
     // Start assembling action.
-    const action: UserAction = ['BulkAddRecord'];
+    const action: UserAction = ["BulkAddRecord"];
     // Put nulls as rowIds.
     action.push(arrayRepeat(length, null));
     const columns: BulkColValues = {};
     action.push(columns);
     // Calculate new positions for rows using helper function. It requires
     // index where we want to put new rows (it accepts new row index).
-    const lastSelectedIndex = this.viewData.getRowIndex(rowIds[length-1]);
+    const lastSelectedIndex = this.viewData.getRowIndex(rowIds[length - 1]);
     columns.manualSort = this._getRowInsertPos(lastSelectedIndex + 1, length);
     // Now copy all visible data.
-    for(const col of this.viewSection.columns.peek()) {
+    for (const col of this.viewSection.columns.peek()) {
       // But omit all formula columns (and empty ones).
       const colId = col.colId.peek();
       if (col.isFormula.peek()) {
@@ -961,7 +963,8 @@ export default class BaseView extends DisposableWithEvents {
       // If all values in a column are censored, remove this column,
       if (columns[colId].every(gristTypes.isCensored)) {
         delete columns[colId];
-      } else {
+      }
+      else {
         // else remove only censored values
         columns[colId].forEach((val, i) => {
           if (gristTypes.isCensored(val)) {
@@ -980,8 +983,8 @@ export default class BaseView extends DisposableWithEvents {
     const colRef = this.viewSection.viewFields().at(this.cursor.fieldIndex())!.column().id();
     const rowId = this.viewData.getRowId(this.cursor.rowIndex()!);
     const sectionId = this.viewSection.tableRecordCard().id();
-    const anchorUrlState = {hash: {colRef, rowId, sectionId, recordCard: true}};
-    urlState().pushUrl(anchorUrlState, {replace: true}).catch(reportError);
+    const anchorUrlState = { hash: { colRef, rowId, sectionId, recordCard: true } };
+    urlState().pushUrl(anchorUrlState, { replace: true }).catch(reportError);
   }
 
   public isRecordCardDisabled(): boolean {

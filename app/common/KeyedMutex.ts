@@ -1,4 +1,4 @@
-import { Mutex, MutexInterface } from 'async-mutex';
+import { Mutex, MutexInterface } from "async-mutex";
 
 /**
  * A per-key mutex.  It has the same interface as Mutex, but with an extra key supplied.
@@ -28,7 +28,8 @@ export class KeyedMutex {
     const unlock = await this.acquire(key);
     try {
       return await callback();
-    } finally {
+    }
+    finally {
       unlock();
     }
   }

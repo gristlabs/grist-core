@@ -1,8 +1,9 @@
-import {Style} from 'app/client/models/Styles';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {dom, DomContents, DomElementArg, styled} from 'grainjs';
-import {colord, extend} from 'colord';
-import a11yPlugin from 'colord/plugins/a11y';
+import { Style } from "app/client/models/Styles";
+import { theme, vars } from "app/client/ui2018/cssVars";
+
+import { colord, extend } from "colord";
+import a11yPlugin from "colord/plugins/a11y";
+import { dom, DomContents, DomElementArg, styled } from "grainjs";
 
 extend([a11yPlugin]);
 
@@ -13,7 +14,6 @@ export interface IChoiceTokenOptions extends Style {
   invalid?: boolean;
   blank?: boolean;
 }
-
 
 /**
  * Creates a colored token representing a choice (e.g. Choice and Choice List values).
@@ -45,23 +45,23 @@ export function choiceTokenDomArgs(
   label: DomElementArg,
   options: IChoiceTokenOptions,
 ): DomElementArg {
-  const {fillColor, textColor, fontBold, fontItalic, fontUnderline,
-    fontStrikethrough, invalid, blank} = options;
-  const {bg, fg} = getReadableColorsCombo({fillColor, textColor});
+  const { fillColor, textColor, fontBold, fontItalic, fontUnderline,
+    fontStrikethrough, invalid, blank } = options;
+  const { bg, fg } = getReadableColorsCombo({ fillColor, textColor });
   return [
     label,
-    dom.style('background-color', bg),
-    dom.style('color', fg),
-    dom.cls('font-bold', fontBold ?? false),
-    dom.cls('font-underline', fontUnderline ?? false),
-    dom.cls('font-italic', fontItalic ?? false),
-    dom.cls('font-strikethrough', fontStrikethrough ?? false),
-    invalid ? cssChoiceToken.cls('-invalid') : null,
-    blank ? cssChoiceToken.cls('-blank') : null,
+    dom.style("background-color", bg),
+    dom.style("color", fg),
+    dom.cls("font-bold", fontBold ?? false),
+    dom.cls("font-underline", fontUnderline ?? false),
+    dom.cls("font-italic", fontItalic ?? false),
+    dom.cls("font-strikethrough", fontStrikethrough ?? false),
+    invalid ? cssChoiceToken.cls("-invalid") : null,
+    blank ? cssChoiceToken.cls("-blank") : null,
   ];
 }
 
-export const cssChoiceToken = styled('div', `
+export const cssChoiceToken = styled("div", `
   display: inline-block;
   padding: 1px 4px;
   border-radius: 3px;
@@ -83,13 +83,13 @@ const contrastCalculationsCache: Record<string, string> = {};
 
 // shades to pick from for automatic text color, ordered from lightest to darkest
 const grayShades = [
-  '#e8e8e8',
-  '#bfbfbf',
-  '#959595',
-  '#70707d',
-  '#44444c',
-  '#242428',
-  '#000000',
+  "#e8e8e8",
+  "#bfbfbf",
+  "#959595",
+  "#70707d",
+  "#44444c",
+  "#242428",
+  "#000000",
 ];
 
 function findBestShade(color: string, shades: string[]) {
@@ -107,7 +107,7 @@ function findBestShade(color: string, shades: string[]) {
     }
     const currentContrast = c.contrast(current);
     if (currentContrast > 7 || currentContrast > prev.contrast) {
-      return {shade: current, contrast: currentContrast, foundBest: currentContrast > 7};
+      return { shade: current, contrast: currentContrast, foundBest: currentContrast > 7 };
     }
     return prev;
   }, {
@@ -121,9 +121,9 @@ function findBestShade(color: string, shades: string[]) {
 
 export function getReadableColorsCombo(
   token: IChoiceTokenOptions,
-  defaultColors: {bg: string, fg: string} = {bg: DEFAULT_BACKGROUND_COLOR, fg: DEFAULT_COLOR}
+  defaultColors: { bg: string, fg: string } = { bg: DEFAULT_BACKGROUND_COLOR, fg: DEFAULT_COLOR },
 ) {
-  const {fillColor, textColor} = token;
+  const { fillColor, textColor } = token;
   const hasCustomBg = fillColor !== undefined;
   const hasCustomText = textColor !== undefined;
   const bg = fillColor || defaultColors.bg;
@@ -131,12 +131,12 @@ export function getReadableColorsCombo(
   if (hasCustomBg && !hasCustomText) {
     fg = findBestShade(fillColor, grayShades);
   }
-  return {bg, fg};
+  return { bg, fg };
 }
 
-const ADD_NEW_HEIGHT = '37px';
+const ADD_NEW_HEIGHT = "37px";
 
-export const cssChoiceACItem = styled('li', `
+export const cssChoiceACItem = styled("li", `
   display: block;
   font-family: ${vars.fontFamily};
   white-space: pre;

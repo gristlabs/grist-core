@@ -1,18 +1,19 @@
-import {ACIndexImpl, ACItem, ACResults, buildHighlightedDom, HighlightFunc} from 'app/client/lib/ACIndex';
-import {Autocomplete} from 'app/client/lib/autocomplete';
-import {makeTestId, onClickOutsideElem} from 'app/client/lib/domUtils';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {autoGrow} from 'app/client/ui/forms';
-import {createUserImage} from 'app/client/ui/UserImage';
-import {theme} from 'app/client/ui2018/cssVars';
-import {cssLink} from 'app/client/ui2018/links';
-import {gristFloatingMenuClass, menuCssClass} from 'app/client/ui2018/menus';
-import {splitTextWithMentions} from 'app/common/DocComments';
-import {canView} from 'app/common/roles';
-import {orderBy} from 'app/common/SortFunc';
-import {tokens} from 'app/common/ThemePrefs';
-import {getRealAccess, PermissionData, UserAccessData, UserProfile} from 'app/common/UserAPI';
+import { ACIndexImpl, ACItem, ACResults, buildHighlightedDom, HighlightFunc } from "app/client/lib/ACIndex";
+import { Autocomplete } from "app/client/lib/autocomplete";
+import { makeTestId, onClickOutsideElem } from "app/client/lib/domUtils";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import { makeT } from "app/client/lib/localization";
+import { autoGrow } from "app/client/ui/forms";
+import { createUserImage } from "app/client/ui/UserImage";
+import { theme } from "app/client/ui2018/cssVars";
+import { cssLink } from "app/client/ui2018/links";
+import { gristFloatingMenuClass, menuCssClass } from "app/client/ui2018/menus";
+import { splitTextWithMentions } from "app/common/DocComments";
+import { canView } from "app/common/roles";
+import { orderBy } from "app/common/SortFunc";
+import { tokens } from "app/common/ThemePrefs";
+import { getRealAccess, PermissionData, UserAccessData, UserProfile } from "app/common/UserAPI";
+
 import {
   Computed,
   Disposable,
@@ -20,12 +21,11 @@ import {
   IDomArgs,
   MultiHolder,
   Observable,
-  styled
-} from 'grainjs';
+  styled,
+} from "grainjs";
 
-const testId = makeTestId('test-mention-textbox-');
-const t = makeT('MentionTextBox');
-
+const testId = makeTestId("test-mention-textbox-");
+const t = makeT("MentionTextBox");
 
 /**
  * Some not-so-old Firefox ESR versions (<= 128) don't support "plaintext-only" as contenteditable value.
@@ -35,14 +35,14 @@ const t = makeT('MentionTextBox');
  * @see https://stackoverflow.com/a/18316972
  */
 const supportsPlaintextEditables = () => {
-  const div = document.createElement('div');
-  div.setAttribute('contenteditable', 'PLAINTEXT-ONLY');
-  return div.contentEditable === 'plaintext-only';
+  const div = document.createElement("div");
+  div.setAttribute("contenteditable", "PLAINTEXT-ONLY");
+  return div.contentEditable === "plaintext-only";
 };
 let _contentEditableValue: string | undefined;
 const contentEditableValue = () => {
   if (!_contentEditableValue) {
-    _contentEditableValue = supportsPlaintextEditables() ? 'plaintext-only' : 'true';
+    _contentEditableValue = supportsPlaintextEditables() ? "plaintext-only" : "true";
   }
   return _contentEditableValue;
 };
@@ -59,32 +59,32 @@ export class CommentWithMentions {
     const cloned = elem.cloneNode(true) as HTMLElement;
     // This element can contain some div elements with menus, we don't need those, as we
     // only expect spans here. Remove them.
-    const divs = cloned.querySelectorAll('div');
+    const divs = cloned.querySelectorAll("div");
     for (const div of divs) {
       div.remove();
     }
-    const mentions: Set<string> = new Set();
-    const mentionElements = cloned.querySelectorAll('.grist-mention');
+    const mentions = new Set<string>();
+    const mentionElements = cloned.querySelectorAll(".grist-mention");
 
     for (const mention of mentionElements) {
-      const userRef = mention.getAttribute('data-userref');
+      const userRef = mention.getAttribute("data-userref");
       if (userRef) {
         mentions.add(userRef);
-        const name = mention.textContent?.trim() || '';
+        const name = mention.textContent?.trim() || "";
         // Replace the mention with markdown syntax.
         const markdown = `[${name}](user:${userRef})`;
         mention.replaceWith(markdown);
       }
     }
 
-    const text = (cloned.textContent || '').trim();
+    const text = (cloned.textContent || "").trim();
     return new CommentWithMentions(text, Array.from(mentions));
   }
 
   public text: string;
   public mentions: string[];
 
-  constructor(text: string = '', mentions: string[] = []) {
+  constructor(text: string = "", mentions: string[] = []) {
     this.text = text;
     this.mentions = mentions;
   }
@@ -103,7 +103,7 @@ export class CommentWithMentions {
 
 export function buildMentionTextBox(
   content: Observable<CommentWithMentions>,
-  access: Observable<PermissionData|null>,
+  access: Observable<PermissionData | null>,
   ...args: IDomArgs<HTMLSpanElement>
 ) {
   const owner = new MultiHolder();
@@ -112,7 +112,7 @@ export function buildMentionTextBox(
 
   function getTextBeforeCaret(node: Node, offset: number) {
     if (node.nodeType === Node.TEXT_NODE) {
-      return node.textContent?.slice(0, offset) || '';
+      return node.textContent?.slice(0, offset) || "";
     }
     return "";
   }
@@ -124,9 +124,9 @@ export function buildMentionTextBox(
     return (div: HTMLElement) => {
       dom.update(div,
         // For tests, inform when the access is ready.
-        testId('ready', use => use(access) !== null),
-        dom.on('keydown', (e: KeyboardEvent) => {
-          if (e.key === '@' && (!mentionPicker || mentionPicker.isDisposed())) {
+        testId("ready", use => use(access) !== null),
+        dom.on("keydown", (e: KeyboardEvent) => {
+          if (e.key === "@" && (!mentionPicker || mentionPicker.isDisposed())) {
             const selection = window.getSelection();
             if (!selection?.rangeCount) { return; }
             const range = selection.getRangeAt(0);
@@ -136,7 +136,7 @@ export function buildMentionTextBox(
 
             const match = /(?:^|\s)$/.exec(textBeforeCaret);
             if (match) {
-              div.contentEditable = 'false';
+              div.contentEditable = "false";
 
               // Build the mention element and insert it at the caret position.
               const mentionEl = buildMentionElement();
@@ -166,36 +166,35 @@ export function buildMentionTextBox(
     };
   }
 
-
   const element = cssContentEditable(
     dom.autoDispose(owner),
-    dom.on('input', (_: Event, el: HTMLElement) => setHtml(el)),
+    dom.on("input", (_: Event, el: HTMLElement) => setHtml(el)),
     autoGrow(content),
-    dom.attr('contentEditable', contentEditableValue()),
+    dom.attr("contentEditable", contentEditableValue()),
     /*
      * In case contenteditable="plaintext-only" is not supported,
      * we handle ourselves stripping pasted text formatting.
      *
      * @see https://stackoverflow.com/a/58980415
      */
-    dom.on('paste', (e: ClipboardEvent) => {
-      if (contentEditableValue() === 'plaintext-only') {
+    dom.on("paste", (e: ClipboardEvent) => {
+      if (contentEditableValue() === "plaintext-only") {
         return;
       }
       e.preventDefault();
-      const text = e.clipboardData?.getData('text/plain');
-      document.execCommand('insertText', false, text);
+      const text = e.clipboardData?.getData("text/plain");
+      document.execCommand("insertText", false, text);
     }),
     buildMentions(),
-    renderMarkdownForEditing(content.get().text || ''),
+    renderMarkdownForEditing(content.get().text || ""),
     // Since markdown is rendered asynchronously, we need to ensure that the mentions render by it, have
     // contentEditable set to false, so that they don't get edited.
     enforceNotEditableChildren,
     (el) => {
       FocusLayer.create(owner, {
         defaultFocusElem: el,
-        allowFocus: (e) => (e !== document.body),
-        pauseMousetrap: true
+        allowFocus: e => (e !== document.body),
+        pauseMousetrap: true,
       });
       setTimeout(() => {
         el.focus();
@@ -209,9 +208,9 @@ export function buildMentionTextBox(
 
 function renderMarkdownForEditing(text: string) {
   return splitTextWithMentions(text).map(chunk =>
-    typeof chunk === 'string'
-      ? chunk
-      : cssLink({ 'data-userref': chunk.ref }, chunk.name, dom.cls('grist-mention'))
+    typeof chunk === "string" ?
+      chunk :
+      cssLink({ "data-userref": chunk.ref }, chunk.name, dom.cls("grist-mention")),
   );
 }
 
@@ -219,8 +218,8 @@ function enforceNotEditableChildren(element: HTMLElement) {
   const fillAttribute = () => {
     const mentions = element.querySelectorAll(`.${MENTION_CLASS}`);
     for (const mention of mentions) {
-      if (!mention.getAttribute('contentEditable')) {
-        mention.setAttribute('contentEditable', 'false');
+      if (!mention.getAttribute("contentEditable")) {
+        mention.setAttribute("contentEditable", "false");
       }
     }
   };
@@ -236,24 +235,23 @@ function enforceNotEditableChildren(element: HTMLElement) {
   fillAttribute();
 }
 
-
 interface MentionPickerProps {
   parent: HTMLElement;
-  access: Observable<PermissionData|null>;
+  access: Observable<PermissionData | null>;
   mentionEl: HTMLElement;
   setHtml: (html: HTMLElement) => void;
 }
 
-const MENTION_CLASS = 'grist-mention';
+const MENTION_CLASS = "grist-mention";
 function buildMentionElement() {
-  return cssLink(dom.cls(MENTION_CLASS), '@', dom.attr('contentEditable', contentEditableValue()));
+  return cssLink(dom.cls(MENTION_CLASS), "@", dom.attr("contentEditable", contentEditableValue()));
 }
 
 /**
  * Component with autocomplete popup for mentioning users.
  */
 class MentionPicker extends Disposable {
-  private _acIndex: Computed<ACIndexImpl<UserItem>|null>;
+  private _acIndex: Computed<ACIndexImpl<UserItem> | null>;
   private _ac: Autocomplete<UserItem>;
   private _hasData: Computed<boolean>;
   private _mentionEl: HTMLElement;
@@ -261,17 +259,17 @@ class MentionPicker extends Disposable {
   constructor(private _props: MentionPickerProps) {
     super();
     this._mentionEl = _props.mentionEl;
-    this._hasData = Computed.create(this, (use) => use(_props.access) !== null);
+    this._hasData = Computed.create(this, use => use(_props.access) !== null);
     this._acIndex = Computed.create(this, (use) => {
       const access = use(_props.access);
       if (!access) { return null; }
       return new ACIndexImpl<UserItem>(access.users
-                              .sort(orderBy(n => n.name || n.email))
-                              .map(x => new UserItemImpl(x, access)));
+        .sort(orderBy(n => n.name || n.email))
+        .map(x => new UserItemImpl(x, access)));
     });
 
     // Focus layer.
-    FocusLayer.create(this, {defaultFocusElem: this._mentionEl, pauseMousetrap: true});
+    FocusLayer.create(this, { defaultFocusElem: this._mentionEl, pauseMousetrap: true });
 
     // Outside click handler.
     this.autoDispose(onClickOutsideElem(this._mentionEl, () => this._convertToPlainText()));
@@ -306,10 +304,10 @@ class MentionPicker extends Disposable {
     }
 
     // Keyboard handlers.
-    this.autoDispose(dom.onKeyElem(this._mentionEl, 'keydown', {
+    this.autoDispose(dom.onKeyElem(this._mentionEl, "keydown", {
       // Backspace will remove the mention element if it only contains '@'.
       Backspace$: (ev) => {
-        if (this._mentionEl.textContent !== '@') {
+        if (this._mentionEl.textContent !== "@") {
           return;
         }
         this._removeMention();
@@ -363,7 +361,7 @@ class MentionPicker extends Disposable {
   }
 
   private _convertToPlainText() {
-    const mentionText = this._mentionEl.textContent || '';
+    const mentionText = this._mentionEl.textContent || "";
     const textNode = document.createTextNode(mentionText);
     this._parent?.insertBefore(textNode, this._mentionEl.nextSibling);
     this._parent?.removeChild(this._mentionEl);
@@ -377,10 +375,10 @@ class MentionPicker extends Disposable {
     if (!selected || selected instanceof LoadingItem) { return; }
 
     this._mentionEl.textContent = `@${selected.name}`;
-    this._mentionEl.contentEditable = 'false';
-    this._mentionEl.setAttribute('data-userref', selected.ref);
+    this._mentionEl.contentEditable = "false";
+    this._mentionEl.setAttribute("data-userref", selected.ref);
 
-    const blankText = document.createTextNode(' ');
+    const blankText = document.createTextNode(" ");
     this._mentionEl.after(blankText);
 
     this._cursorAfter(blankText);
@@ -391,22 +389,22 @@ class MentionPicker extends Disposable {
   private _renderItem(item: UserItem, highlightFunc: HighlightFunc) {
     if (item instanceof LoadingItem) {
       return cssAcItem(
-        dom('i', t('...loading')),
-        testId('loading'),
-        testId('acitem'),
+        dom("i", t("...loading")),
+        testId("loading"),
+        testId("acitem"),
       );
     }
     return cssAcItem(
-      cssMentionAvatar(item.profile, 'small'),
-      cssAcItem.cls('-disabled', !item.hasAccess),
-      testId('disabled', !item.hasAccess),
-      testId('acitem'),
-      dom('span',
+      cssMentionAvatar(item.profile, "small"),
+      cssAcItem.cls("-disabled", !item.hasAccess),
+      testId("disabled", !item.hasAccess),
+      testId("acitem"),
+      dom("span",
         buildHighlightedDom(item.name, highlightFunc, cssMatchText),
-        testId('acitem-text'),
+        testId("acitem-text"),
       ),
-      dom.maybe(!item.hasAccess, () => dom('span',
-        '(', t('no access'), ')')
+      dom.maybe(!item.hasAccess, () => dom("span",
+        "(", t("no access"), ")"),
       ),
     );
   }
@@ -434,12 +432,15 @@ class UserItemImpl implements UserItem {
   public get hasAccess() {
     return canView(getRealAccess(this._user, this._access));
   }
+
   public get ref() {
-    return this._user.ref || '';
+    return this._user.ref || "";
   }
+
   public get profile(): Partial<UserProfile> {
     return this._user;
   }
+
   public get name() {
     return this._user.name || this._user.email;
   }
@@ -453,11 +454,11 @@ class UserItemImpl implements UserItem {
 }
 
 class LoadingItem implements UserItem {
-  public cleanText: string = 'loading';
+  public cleanText: string = "loading";
   public hasAccess = true;
-  public ref = '';
+  public ref = "";
   public profile: Partial<UserProfile> = {};
-  public name = 'Loading...';
+  public name = "Loading...";
 }
 
 class NotReadyResult implements ACResults<UserItem> {
@@ -467,7 +468,7 @@ class NotReadyResult implements ACResults<UserItem> {
   public highlightFunc: HighlightFunc = () => [];
 }
 
-const cssAcItem = styled('li', `
+const cssAcItem = styled("li", `
   padding: 4px;
   white-space: pre;
   overflow: hidden;
@@ -492,7 +493,7 @@ const cssAcItem = styled('li', `
   }
 `);
 
-const cssMatchText = styled('span', `
+const cssMatchText = styled("span", `
   color: ${theme.autocompleteMatchText};
   .${cssAcItem.className}.selected & {
     color: ${theme.autocompleteSelectedMatchText};
@@ -507,7 +508,7 @@ const cssMentionAvatar = styled(createUserImage, `
 // Note: "white-space: pre-wrap" is better than "white-space: pre-line" in that on Firefox, after
 // inserting a mention, the trailing space that gets inserted automatically is only respected with
 // "pre-wrap". With "pre-line", it's considered collapsible, and gets replaced on next keystroke.
-const cssContentEditable = styled('div', `
+const cssContentEditable = styled("div", `
   min-height: 5em;
   border-radius: 3px;
   padding: 4px 6px;

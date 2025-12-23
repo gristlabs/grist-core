@@ -1,29 +1,30 @@
-import { assert, driver, Key, WebElement } from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
+import * as gu from "test/nbrowser/gristUtils";
+
+import { assert, driver, Key, WebElement } from "mocha-webdriver";
 
 /**
  * Find .test-rule-table element for the given tableId.
  */
-export function findTable(tableId: RegExp|'*'): WebElement {
-  const header = driver.findContent('.test-rule-table-header', tableId === '*' ? 'Default rules' : tableId);
-  return header.findClosest('.test-rule-table');
+export function findTable(tableId: RegExp | "*"): WebElement {
+  const header = driver.findContent(".test-rule-table-header", tableId === "*" ? "Default rules" : tableId);
+  return header.findClosest(".test-rule-table");
 }
 
 /**
  * Wait for .test-rule-table element for the given tableId.
  */
-export function findTableWait(tableId: RegExp|'*'): WebElement {
-  const header = driver.findContentWait('.test-rule-table-header', tableId === '*' ? 'Default rules' : tableId, 100);
-  return header.findClosest('.test-rule-table');
+export function findTableWait(tableId: RegExp | "*"): WebElement {
+  const header = driver.findContentWait(".test-rule-table-header", tableId === "*" ? "Default rules" : tableId, 100);
+  return header.findClosest(".test-rule-table");
 }
 
 /**
  * Remove any rules within a .test-rule-table element, by hitting the trash buttons.
  */
-export async function removeTable(tableId: RegExp|'*'): Promise<void> {
-  const header = driver.findContent('.test-rule-table-header', tableId === '*' ? 'Default rules' : tableId);
+export async function removeTable(tableId: RegExp | "*"): Promise<void> {
+  const header = driver.findContent(".test-rule-table-header", tableId === "*" ? "Default rules" : tableId);
   if (await header.isPresent()) {
-    const table = header.findClosest('.test-rule-table');
+    const table = header.findClosest(".test-rule-table");
     await removeRules(table);
   }
 }
@@ -32,8 +33,8 @@ export async function removeTable(tableId: RegExp|'*'): Promise<void> {
  * Remove any rules within an element, by hitting the trash button.
  */
 export async function removeRules(el: WebElement): Promise<void> {
-  while (true) {  // eslint-disable-line no-constant-condition
-    const remove = el.find('.test-rule-remove');
+  while (true) {
+    const remove = el.find(".test-rule-remove");
     if (!await remove.isPresent()) { break; }
     await remove.click();
   }
@@ -42,22 +43,22 @@ export async function removeRules(el: WebElement): Promise<void> {
 /**
  * Find .test-rule-set for the default rule set of the given tableId.
  */
-export function findDefaultRuleSet(tableId: RegExp|'*'): WebElement {
+export function findDefaultRuleSet(tableId: RegExp | "*"): WebElement {
   const table = findTable(tableId);
-  const cols = table.findContent('.test-rule-resource', /All/);
-  return cols.findClosest('.test-rule-set');
+  const cols = table.findContent(".test-rule-resource", /All/);
+  return cols.findClosest(".test-rule-set");
 }
 
-export function findDefaultRuleSetWait(tableId: RegExp|'*'): WebElement {
+export function findDefaultRuleSetWait(tableId: RegExp | "*"): WebElement {
   const table = findTableWait(tableId);
-  const cols = table.findContent('.test-rule-resource', /All/);
-  return cols.findClosest('.test-rule-set');
+  const cols = table.findContent(".test-rule-resource", /All/);
+  return cols.findClosest(".test-rule-set");
 }
 
 /**
  * Find a .test-rule-set at the given 1-based index, among the rule sets for the given tableId.
  */
-export function findRuleSet(tableId: RegExp|'*', ruleNum: number): WebElement {
+export function findRuleSet(tableId: RegExp | "*", ruleNum: number): WebElement {
   const table = findTable(tableId);
   // Add one to skip table header element.
   return table.find(`.test-rule-set:nth-child(${ruleNum + 1})`);
@@ -67,7 +68,7 @@ export function findRuleSet(tableId: RegExp|'*', ruleNum: number): WebElement {
  * Find a .test-rule-set at the given 1-based index, among the rule sets for the given tableId.
  * Wait for the table to be present first.
  */
-export function findRuleSetWait(tableId: RegExp|'*', ruleNum: number): WebElement {
+export function findRuleSetWait(tableId: RegExp | "*", ruleNum: number): WebElement {
   const table = findTableWait(tableId);
   // Add one to skip table header element.
   return table.find(`.test-rule-set:nth-child(${ruleNum + 1})`);
@@ -81,24 +82,25 @@ export function findRuleSetWait(tableId: RegExp|'*', ruleNum: number): WebElemen
 export async function enterRulePart(
   ruleSet: WebElement,
   partNum: number,
-  aclFormula: string|null,
-  permissions: string|{[bit: string]: string},
-  memo?: string
+  aclFormula: string | null,
+  permissions: string | { [bit: string]: string },
+  memo?: string,
 ) {
   const part = ruleSet.findWait(`.test-rule-part-and-memo:nth-child(${partNum}) .test-rule-part`, 100);
   if (aclFormula !== null) {
-    await part.findWait('.test-rule-acl-formula .ace_editor', 500);
-    await part.find('.test-rule-acl-formula').doClick();
-    await driver.findWait('.test-rule-acl-formula .ace_focus', 500);
+    await part.findWait(".test-rule-acl-formula .ace_editor", 500);
+    await part.find(".test-rule-acl-formula").doClick();
+    await driver.findWait(".test-rule-acl-formula .ace_focus", 500);
     await gu.clearInput();     // Clear formula
     await gu.sendKeys(aclFormula, Key.ENTER);
   }
-  if (typeof permissions === 'string') {
-    await part.find('.test-rule-permissions .test-permissions-dropdown').click();
-    await gu.findOpenMenuItem('li', permissions).click();
-  } else {
+  if (typeof permissions === "string") {
+    await part.find(".test-rule-permissions .test-permissions-dropdown").click();
+    await gu.findOpenMenuItem("li", permissions).click();
+  }
+  else {
     for (const [bit, desired] of Object.entries(permissions)) {
-      const elem = await part.findContentWait('.test-rule-permissions div', bit, 100);
+      const elem = await part.findContentWait(".test-rule-permissions div", bit, 100);
       if (!await elem.matches(`[class$=-${desired}]`)) {
         await elem.click();
         if (!await elem.matches(`[class$=-${desired}]`)) {
@@ -116,8 +118,9 @@ export async function enterRulePart(
     if (await memoEditorPromise.isPresent()) {
       await memoEditorPromise.click();
       await gu.clearInput();
-    } else {
-      await part.find('.test-rule-memo-add').click();
+    }
+    else {
+      await part.find(".test-rule-memo-add").click();
       await ruleSet.findWait(editorSelector, 100).click();
     }
     await gu.sendKeys(memo, Key.ENTER);
@@ -131,16 +134,16 @@ export async function enterRulePart(
  * @param aclFormula Formula to enter
  */
 export async function triggerAutoComplete(
-  ruleSet: WebElement, partNum: number, aclFormula: string
+  ruleSet: WebElement, partNum: number, aclFormula: string,
 ) {
   const part = ruleSet.find(`.test-rule-part-and-memo:nth-child(${partNum}) .test-rule-part`);
   if (aclFormula !== null) {
-    await part.findWait('.test-rule-acl-formula .ace_editor', 500);
-    await part.find('.test-rule-acl-formula').doClick();
-    await driver.findWait('.test-rule-acl-formula .ace_focus', 500);
+    await part.findWait(".test-rule-acl-formula .ace_editor", 500);
+    await part.find(".test-rule-acl-formula").doClick();
+    await driver.findWait(".test-rule-acl-formula .ace_focus", 500);
     await gu.clearInput();    // Clear formula
     await gu.sendKeysSlowly(aclFormula);
-    await driver.findWait('.ace_completion-highlight', 1000);
+    await driver.findWait(".ace_completion-highlight", 1000);
   }
 }
 
@@ -159,40 +162,40 @@ export async function getRuleText(el: WebElement) {
  * Read the rules within an element in a format that is easy to
  * compare with.
  */
-export async function getRules(el: WebElement): Promise<Array<{
+export async function getRules(el: WebElement): Promise<{
   formula: string, perm: string,
   res?: string,
   memo?: string,
-  error?: string}>> {
-  const ruleSets = await el.findAll('.test-rule-set');
-  const results: Array<{formula: string, perm: string,
-                        res?: string,
-                        memo?: string}> = [];
+  error?: string }[]> {
+  const ruleSets = await el.findAll(".test-rule-set");
+  const results: { formula: string, perm: string,
+    res?: string,
+    memo?: string }[] = [];
   for (const ruleSet of ruleSets) {
-    const scope = ruleSet.find('.test-rule-resource');
+    const scope = ruleSet.find(".test-rule-resource");
     const res = (await scope.isPresent()) ? (await scope.getText()) : undefined;
-    const parts = await ruleSet.findAll('.test-rule-part-and-memo');
+    const parts = await ruleSet.findAll(".test-rule-part-and-memo");
     for (const part of parts) {
-      const formula = await getRuleText(await part.find('.test-rule-acl-formula'));
-      const perms = await part.find('.test-rule-permissions').findAll('div');
-      const permParts: Array<string> = [];
+      const formula = await getRuleText(await part.find(".test-rule-acl-formula"));
+      const perms = await part.find(".test-rule-permissions").findAll("div");
+      const permParts: string[] = [];
       for (const perm of perms) {
         const content = await perm.getText();
         if (content.length !== 1) { continue; }
-        const classes = await perm.getAttribute('class');
-        const prefix = classes.includes('-deny') ? '-' :
-          (classes.includes('-allow') ? '+' : '');
-        permParts.push(prefix ? (prefix + content) : '');
+        const classes = await perm.getAttribute("class");
+        const prefix = classes.includes("-deny") ? "-" :
+          (classes.includes("-allow") ? "+" : "");
+        permParts.push(prefix ? (prefix + content) : "");
       }
-      const hasMemo = await part.find('.test-rule-memo').isPresent();
-      const memo = hasMemo ? await part.find('.test-rule-memo input').value() : undefined;
-      const hasError = await part.find('.test-rule-error').isPresent();
-      const error = hasError ? await part.find('.test-rule-error').getText() : undefined;
-      results.push({formula, perm: permParts.join(''),
-                    ...(memo ? {memo} : {}),
-                    ...(res ? {res} : {}),
-                    ...(error ? {error} : {}),
-                   });
+      const hasMemo = await part.find(".test-rule-memo").isPresent();
+      const memo = hasMemo ? await part.find(".test-rule-memo input").value() : undefined;
+      const hasError = await part.find(".test-rule-error").isPresent();
+      const error = hasError ? await part.find(".test-rule-error").getText() : undefined;
+      results.push({ formula, perm: permParts.join(""),
+        ...(memo ? { memo } : {}),
+        ...(res ? { res } : {}),
+        ...(error ? { error } : {}),
+      });
     }
   }
   return results;
@@ -203,8 +206,8 @@ export async function getRules(el: WebElement): Promise<Array<{
  * within an element.
  */
 export async function hasExtraAdd(el: WebElement): Promise<boolean> {
-  const parts = await el.findAll('.test-rule-part-and-memo');
-  const adds = await el.findAll('.test-rule-add');
+  const parts = await el.findAll(".test-rule-part-and-memo");
+  const adds = await el.findAll(".test-rule-add");
   return adds.length === parts.length + 1;
 }
 
@@ -214,8 +217,8 @@ export async function hasExtraAdd(el: WebElement): Promise<boolean> {
  */
 export async function assertSaved() {
   await gu.waitToPass(async () => {
-    assert.equal(await driver.find('.test-rules-non-save').getText(), 'Saved');
-    assert.equal(await driver.find('.test-rules-save').getText(), '');
+    assert.equal(await driver.find(".test-rules-non-save").getText(), "Saved");
+    assert.equal(await driver.find(".test-rules-save").getText(), "");
   }, 200);
 }
 
@@ -225,8 +228,8 @@ export async function assertSaved() {
  */
 export async function assertChanged() {
   await gu.waitToPass(async () => {
-    assert.equal(await driver.find('.test-rules-save').getText(), 'Save');
-    assert.equal(await driver.find('.test-rules-non-save').getText(), '');
+    assert.equal(await driver.find(".test-rules-save").getText(), "Save");
+    assert.equal(await driver.find(".test-rules-non-save").getText(), "");
   }, 200);
 }
 
@@ -235,17 +238,17 @@ export async function assertChanged() {
  */
 export async function startEditingAccessRules() {
   // Open the 'Access rules' page.
-  await driver.findWait('.test-tools-access-rules', 1000).click();
+  await driver.findWait(".test-tools-access-rules", 1000).click();
 
   // Wait for initialization fetch to complete by waiting for loading indicator to disappear.
-  await driver.wait(async () => !(await driver.find('.test-access-rules-loading').isPresent()), 2000);
+  await driver.wait(async () => !(await driver.find(".test-access-rules-loading").isPresent()), 2000);
 
   // If we are seeing an intro to enable access rules, take that step now.
-  const enableButton = driver.find('.test-enable-access-rules');
+  const enableButton = driver.find(".test-enable-access-rules");
   if (await enableButton.isPresent()) {
     await enableButton.click();
-    await driver.findWait('.test-modal-confirm', 200).click();
+    await driver.findWait(".test-modal-confirm", 200).click();
   }
-  await driver.findWait('.test-rule-set', 200);
+  await driver.findWait(".test-rule-set", 200);
   await gu.waitForServer();  // Assert also for any validity checking to complete.
 }

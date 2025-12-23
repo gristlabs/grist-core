@@ -1,10 +1,11 @@
-import { DataRowModel } from 'app/client/models/DataRowModel';
-import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
-import { renderCellMarkdown } from 'app/client/ui/MarkdownCellRenderer';
-import { theme, vars } from 'app/client/ui2018/cssVars';
-import { handleGristLinkClick } from 'app/client/ui2018/links';
-import { NTextBox } from 'app/client/widgets/NTextBox';
-import { dom, styled } from 'grainjs';
+import { DataRowModel } from "app/client/models/DataRowModel";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { renderCellMarkdown } from "app/client/ui/MarkdownCellRenderer";
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { handleGristLinkClick } from "app/client/ui2018/links";
+import { NTextBox } from "app/client/widgets/NTextBox";
+
+import { dom, styled } from "grainjs";
 
 /**
  * Creates a widget for displaying Markdown-formatted text.
@@ -28,18 +29,18 @@ export class MarkdownTextBox extends NTextBox {
             ev.stopPropagation();
           }
         }),
-        dom.onMatch('a', 'click', (ev, el) => handleGristLinkClick(ev as MouseEvent, el as HTMLAnchorElement)),
+        dom.onMatch("a", "click", (ev, el) => handleGristLinkClick(ev as MouseEvent, el as HTMLAnchorElement)),
         dom.domComputed(valueObs, value => renderCellMarkdown(String(value), {
           onMarkedResolved: () => {
-            this.field.viewSection().events.trigger('rowHeightChange');
+            this.field.viewSection().events.trigger("rowHeightChange");
           },
         })),
-      )
+      ),
     );
   }
 }
 
-export const cssMarkdown = styled('div', `
+export const cssMarkdown = styled("div", `
   white-space: nowrap;
 
   &-text-wrap {

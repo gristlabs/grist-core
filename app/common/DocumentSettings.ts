@@ -1,5 +1,6 @@
-import {CheckerT, createCheckers} from 'ts-interface-checker';
-import DocumentSettingsTI from 'app/common/DocumentSettings-ti';
+import DocumentSettingsTI from "app/common/DocumentSettings-ti";
+
+import { CheckerT, createCheckers } from "ts-interface-checker";
 
 export interface DocumentSettings {
   locale: string;
@@ -22,7 +23,7 @@ export interface DocumentSettings {
  * The back-end will for now support one engine,
  * a gvisor-backed python3.
  */
-export type EngineCode = 'python3';
+export type EngineCode = "python3";
 
 /**
  * Information about a single document state.

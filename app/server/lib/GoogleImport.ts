@@ -1,12 +1,13 @@
-import {drive} from '@googleapis/drive';
-import {Readable} from 'form-data';
-import {GaxiosError, GaxiosPromise} from 'gaxios';
-import {FetchError, Response as FetchResponse, Headers} from 'node-fetch';
-import {getGoogleAuth} from "app/server/lib/GoogleAuth";
-import contentDisposition from 'content-disposition';
+import { getGoogleAuth } from "app/server/lib/GoogleAuth";
+
+import { drive } from "@googleapis/drive";
+import contentDisposition from "content-disposition";
+import { Readable } from "form-data";
+import { GaxiosError, GaxiosPromise } from "gaxios";
+import { FetchError, Headers, Response as FetchResponse } from "node-fetch";
 
 const
-  SPREADSHEETS_MIMETYPE = 'application/vnd.google-apps.spreadsheet',
+  SPREADSHEETS_MIMETYPE = "application/vnd.google-apps.spreadsheet",
   XLSX_MIMETYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 export async function downloadFromGDrive(url: string, code?: string) {
@@ -21,7 +22,7 @@ export async function downloadFromGDrive(url: string, code?: string) {
   const googleDrive = await initDriveApi(code);
   const fileRes = await googleDrive.files.get({
     key,
-    fileId
+    fileId,
   });
   if (fileRes.data.mimeType === SPREADSHEETS_MIMETYPE) {
     let filename = fileRes.data.name;
@@ -29,13 +30,14 @@ export async function downloadFromGDrive(url: string, code?: string) {
       filename = `${filename}.xlsx`;
     }
     return await asFetchResponse(googleDrive.files.export(
-      {key, fileId, alt: 'media', mimeType: XLSX_MIMETYPE},
-      {responseType: 'stream'}
+      { key, fileId, alt: "media", mimeType: XLSX_MIMETYPE },
+      { responseType: "stream" },
     ), filename);
-  } else {
+  }
+  else {
     return await asFetchResponse(googleDrive.files.get(
-      {key, fileId, alt: 'media'},
-      {responseType: 'stream'}
+      { key, fileId, alt: "media" },
+      { responseType: "stream" },
     ), fileRes.data.name);
   }
 }
@@ -48,10 +50,10 @@ async function initDriveApi(code?: string) {
     if (token.tokens) {
       auth.setCredentials(token.tokens);
     }
-    return drive({version: 'v3', auth: code ? auth : undefined});
+    return drive({ version: "v3", auth: code ? auth : undefined });
   }
   // Create drive for public access.
-  return drive({version: 'v3'});
+  return drive({ version: "v3" });
 }
 
 async function asFetchResponse(req: GaxiosPromise<Readable>, filename?: string | null) {
@@ -64,20 +66,22 @@ async function asFetchResponse(req: GaxiosPromise<Readable>, filename?: string |
     return new FetchResponse(res.data, {
       headers,
       status: res.status,
-      statusText: res.statusText
+      statusText: res.statusText,
     });
-  } catch (err) {
+  }
+  catch (err) {
     const error: GaxiosError<Readable> = err;
     if (!error.response) {
       // Fetch throws exception on network error.
       // https://github.com/node-fetch/node-fetch/blob/master/docs/ERROR-HANDLING.md
       throw new FetchError(error.message, "system", error);
-    } else {
+    }
+    else {
       // Fetch returns failure response on http error
       const resInit = error.response ? {
         status: error.response.status,
         headers: new Headers(error.response.headers),
-        statusText: error.response.statusText
+        statusText: error.response.statusText,
       } : undefined;
       return new FetchResponse(error.response.data, resInit);
     }

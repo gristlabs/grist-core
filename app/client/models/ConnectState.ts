@@ -3,7 +3,7 @@
  * through multiple stages, to inform the user of long disconnects while minimizing the disruption
  * for short ones. This class manages these timings, and triggers ConnectState changes.
  */
-import {Disposable, Observable} from 'grainjs';
+import { Disposable, Observable } from "grainjs";
 
 // Describes the connection state, which is shown as part of the notifications UI.
 // See https://grist.quip.com/X92IAHZV3uoo/Notifications
@@ -17,19 +17,20 @@ export class ConnectStateManager extends Disposable {
 
   public readonly connectState = Observable.create<ConnectState>(this, ConnectState.Connected);
 
-  private _timers: Array<ReturnType<typeof setTimeout>> = [];
+  private _timers: ReturnType<typeof setTimeout>[] = [];
 
   public setConnected(yesNo: boolean) {
     if (yesNo) {
-      this._timers.forEach((t) => clearTimeout(t));
+      this._timers.forEach(t => clearTimeout(t));
       this._timers = [];
       this._setState(ConnectState.Connected);
-    } else if (this.connectState.get() === ConnectState.Connected) {
+    }
+    else if (this.connectState.get() === ConnectState.Connected) {
       this._timers = [
         setTimeout(() => this._setState(ConnectState.RecentlyDisconnected),
-                   ConnectStateManager.timeToRecentlyDisconnected),
+          ConnectStateManager.timeToRecentlyDisconnected),
         setTimeout(() => this._setState(ConnectState.ReallyDisconnected),
-                   ConnectStateManager.timeToReallyDisconnected),
+          ConnectStateManager.timeToReallyDisconnected),
       ];
       this._setState(ConnectState.JustDisconnected);
     }

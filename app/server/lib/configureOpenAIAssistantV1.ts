@@ -6,9 +6,11 @@ export function configureOpenAIAssistantV1(): AssistantV1 | undefined {
   const options = getAssistantV1Options();
   if (!options.apiKey && !options.completionEndpoint) {
     return undefined;
-  } else if (options.apiKey === "test") {
+  }
+  else if (options.apiKey === "test") {
     return new EchoAssistantV1();
-  } else {
+  }
+  else {
     return new OpenAIAssistantV1(options);
   }
 }

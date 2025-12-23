@@ -3,6 +3,7 @@ import {
   AuditLogStreamingDestination,
   AuditLogStreamingDestinations,
 } from "app/common/Config";
+
 import { Disposable, Observable } from "grainjs";
 import omit from "lodash/omit";
 import { v4 as uuidv4 } from "uuid";
@@ -26,9 +27,10 @@ export interface AuditLogsModelOptions {
   configsAPI: ConfigsAPI;
 }
 
-export class AuditLogsModel extends Disposable implements AuditLogsModel {
+export class AuditLogsModelImpl extends Disposable implements AuditLogsModel {
   public readonly streamingDestinations: Observable<AuditLogStreamingDestinations | null> =
     Observable.create(this, null);
+
   private readonly _configsAPI = this._options.configsAPI;
 
   constructor(private _options: AuditLogsModelOptions) {
@@ -39,24 +41,26 @@ export class AuditLogsModel extends Disposable implements AuditLogsModel {
     this.streamingDestinations.set(null);
     try {
       const { value } = await this._configsAPI.getConfig(
-        "audit_log_streaming_destinations"
+        "audit_log_streaming_destinations",
       );
       if (this.isDisposed()) {
         return;
       }
 
       this.streamingDestinations.set(value);
-    } catch (e) {
+    }
+    catch (e) {
       if (e.status === 404) {
         this.streamingDestinations.set([]);
-      } else {
+      }
+      else {
         throw e;
       }
     }
   }
 
   public async createStreamingDestination(
-    properties: Omit<AuditLogStreamingDestination, "id">
+    properties: Omit<AuditLogStreamingDestination, "id">,
   ): Promise<void> {
     const destinations = this.streamingDestinations.get() ?? [];
     const newDestinations = [
@@ -71,10 +75,10 @@ export class AuditLogsModel extends Disposable implements AuditLogsModel {
 
   public async updateStreamingDestination(
     id: AuditLogStreamingDestination["id"],
-    properties: Partial<Omit<AuditLogStreamingDestination, "id">>
+    properties: Partial<Omit<AuditLogStreamingDestination, "id">>,
   ): Promise<void> {
     const destinations = this.streamingDestinations.get() ?? [];
-    const index = destinations.findIndex((d) => d.id === id);
+    const index = destinations.findIndex(d => d.id === id);
     if (index === -1) {
       throw new Error("streaming destination not found");
     }
@@ -91,19 +95,19 @@ export class AuditLogsModel extends Disposable implements AuditLogsModel {
   }
 
   public async deleteStreamingDestination(
-    id: AuditLogStreamingDestination["id"]
+    id: AuditLogStreamingDestination["id"],
   ): Promise<void> {
     const destinations = this.streamingDestinations.get() ?? [];
-    const newDestinations = destinations.filter((d) => d.id !== id);
+    const newDestinations = destinations.filter(d => d.id !== id);
     await this._updateStreamingDestinations(newDestinations);
   }
 
   private async _updateStreamingDestinations(
-    destinations: AuditLogStreamingDestinations
+    destinations: AuditLogStreamingDestinations,
   ): Promise<void> {
     const { value } = await this._configsAPI.updateConfig(
       "audit_log_streaming_destinations",
-      destinations
+      destinations,
     );
     if (this.isDisposed()) {
       return;

@@ -1,13 +1,14 @@
-import * as AceEditor from 'app/client/components/AceEditor';
-import {createGroup} from 'app/client/components/commands';
-import {makeT} from 'app/client/lib/localization';
-import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
-import {theme} from 'app/client/ui2018/cssVars';
-import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
-import {EditorPlacement, ISize} from 'app/client/widgets/EditorPlacement';
-import {initializeAceOptions} from 'app/client/widgets/FormulaEditor';
-import {IEditorCommandGroup} from 'app/client/widgets/NewBaseEditor';
-import {ISuggestionWithValue} from 'app/common/ActiveDocAPI';
+import * as AceEditor from "app/client/components/AceEditor";
+import { createGroup } from "app/client/components/commands";
+import { makeT } from "app/client/lib/localization";
+import { buildHighlightedCode } from "app/client/ui/CodeHighlight";
+import { theme } from "app/client/ui2018/cssVars";
+import { createMobileButtons, getButtonMargins } from "app/client/widgets/EditorButtons";
+import { EditorPlacement, ISize } from "app/client/widgets/EditorPlacement";
+import { initializeAceOptions } from "app/client/widgets/FormulaEditor";
+import { IEditorCommandGroup } from "app/client/widgets/NewBaseEditor";
+import { ISuggestionWithValue } from "app/common/ActiveDocAPI";
+
 import {
   Computed,
   Disposable,
@@ -17,9 +18,9 @@ import {
   IDisposableOwner,
   Observable,
   styled,
-} from 'grainjs';
+} from "grainjs";
 
-const t = makeT('DropdownConditionEditor');
+const t = makeT("DropdownConditionEditor");
 
 interface BuildDropdownConditionEditorOptions {
   value: Computed<string>;
@@ -47,15 +48,15 @@ export function buildDropdownConditionEditor(
   options: BuildDropdownConditionEditorOptions,
   ...args: DomElementArg[]
 ) {
-  const {value, disabled, onSave, onDispose, getAutocompleteSuggestions} = options;
+  const { value, disabled, onSave, onDispose, getAutocompleteSuggestions } = options;
   return dom.create(buildHighlightedCode,
     value,
-    {maxLines: 1},
+    { maxLines: 1 },
     dom.cls(cssDropdownConditionField.className),
-    dom.cls('disabled'),
-    cssDropdownConditionField.cls('-disabled', disabled),
-    {tabIndex: '-1'},
-    dom.on('focus', (_, refElem) => openDropdownConditionEditor(owner, {
+    dom.cls("disabled"),
+    cssDropdownConditionField.cls("-disabled", disabled),
+    { tabIndex: "-1" },
+    dom.on("focus", (_, refElem) => openDropdownConditionEditor(owner, {
       refElem,
       value,
       onSave,
@@ -73,7 +74,7 @@ function openDropdownConditionEditor(owner: IDisposableOwner, options: {
   onDispose: () => void;
   getAutocompleteSuggestions(prefix: string): ISuggestionWithValue[];
 }) {
-  const {refElem, value, onSave, onDispose, getAutocompleteSuggestions} = options;
+  const { refElem, value, onSave, onDispose, getAutocompleteSuggestions } = options;
 
   const saveAndDispose = async () => {
     const editorValue = editor.getValue();
@@ -127,7 +128,7 @@ class DropdownConditionEditor extends Disposable {
       getSuggestions: _options.getAutocompleteSuggestions,
     }));
 
-    this._isEmpty = Computed.create(this, editorState, (_use, state) => state === '');
+    this._isEmpty = Computed.create(this, editorState, (_use, state) => state === "");
     this.autoDispose(this._isEmpty.addListener(() => this._updateEditorPlaceholder()));
 
     const commandGroup = this.autoDispose(createGroup({
@@ -143,10 +144,10 @@ class DropdownConditionEditor extends Disposable {
           const pos = val.length;
           this._aceEditor.setValue(val, pos);
           this._aceEditor.attachCommandGroup(commandGroup);
-          if (val === '') {
+          if (val === "") {
             this._updateEditorPlaceholder();
           }
-        })
+        }),
       ),
     );
   }
@@ -160,7 +161,7 @@ class DropdownConditionEditor extends Disposable {
     this._updateEditorPlaceholder();
     this._aceEditor.resize();
     this._aceEditor.getEditor().focus();
-    this._aceEditor.getEditor().on('blur', () => this._options.onBlur());
+    this._aceEditor.getEditor().on("blur", () => this._options.onBlur());
   }
 
   public getValue(): string {
@@ -180,8 +181,9 @@ class DropdownConditionEditor extends Disposable {
     }
     if (!shouldShowPlaceholder) {
       editor.renderer.emptyMessageNode = null;
-    } else {
-      editor.renderer.emptyMessageNode = cssDropdownConditionPlaceholder(t('Enter condition.'));
+    }
+    else {
+      editor.renderer.emptyMessageNode = cssDropdownConditionPlaceholder(t("Enter condition."));
       editor.renderer.scroller.appendChild(editor.renderer.emptyMessageNode);
     }
   }
@@ -193,7 +195,8 @@ class DropdownConditionEditor extends Disposable {
         width: placeholder.scrollWidth,
         height: placeholder.scrollHeight,
       });
-    } else {
+    }
+    else {
       return this._editorPlacement.calcSizeWithPadding(elem, {
         width: desiredElemSize.width,
         height: desiredElemSize.height,
@@ -202,7 +205,7 @@ class DropdownConditionEditor extends Disposable {
   }
 }
 
-const cssDropdownConditionField = styled('div', `
+const cssDropdownConditionField = styled("div", `
   flex: auto;
   cursor: pointer;
   margin-top: 4px;
@@ -213,11 +216,11 @@ const cssDropdownConditionField = styled('div', `
   }
 `);
 
-const cssDropdownConditionEditorWrapper = styled('div.default_editor.formula_editor_wrapper', `
+const cssDropdownConditionEditorWrapper = styled("div.default_editor.formula_editor_wrapper", `
   border-radius: 3px;
 `);
 
-const cssDropdownConditionEditor = styled('div', `
+const cssDropdownConditionEditor = styled("div", `
   background-color: ${theme.aceEditorBg};
   padding: 5px;
   z-index: 10;
@@ -227,7 +230,7 @@ const cssDropdownConditionEditor = styled('div', `
   border-radius: 3px;
 `);
 
-const cssDropdownConditionPlaceholder = styled('div', `
+const cssDropdownConditionPlaceholder = styled("div", `
   color: ${theme.lightText};
   font-style: italic;
   white-space: nowrap;

@@ -1,4 +1,4 @@
-import {dom, EventCB} from 'grainjs';
+import { dom, EventCB } from "grainjs";
 
 const DOUBLE_TAP_INTERVAL_MS = 500;
 
@@ -23,14 +23,14 @@ export function onDblClickMatchElem(elem: EventTarget, selector: string, callbac
   // According to https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action, this "removes the
   // need for browsers to delay the generation of click events when the user taps the screen".
   // Without it, the delay (e.g. on mobile Chrome) prevents cursor from moving on double-tap.
-  dom.styleElem(elem as HTMLElement, 'touch-action', 'manipulation');
-  dom.onMatchElem(elem, selector, 'dblclick', (ev, _elem) => {
+  dom.styleElem(elem as HTMLElement, "touch-action", "manipulation");
+  dom.onMatchElem(elem, selector, "dblclick", (ev, _elem) => {
     callback(ev, _elem);
   });
 
   let lastTapTime = 0;
-  let lastTapElem: EventTarget|null = null;
-  dom.onMatchElem(elem, selector, 'touchend', (ev, _elem) => {
+  let lastTapElem: EventTarget | null = null;
+  dom.onMatchElem(elem, selector, "touchend", (ev, _elem) => {
     const currentTime = Date.now();
     const tapLength = currentTime - lastTapTime;
     const sameElem = (_elem === lastTapElem);

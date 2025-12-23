@@ -1,19 +1,19 @@
-import {LogSanitizer} from "app/server/utils/LogSanitizer";
-import {assert} from "chai";
+import { LogSanitizer } from "app/server/utils/LogSanitizer";
+
+import { assert } from "chai";
 
 describe("LogSanitizer", () => {
-
-  it("should return neutral logs untouched", done => {
-    const exampleLog
-      = 'DocTriggers: Webhook responded with non-200 status status=404, attempt=1, docId=8x9U6xe4hNz8WaJCzAjDBM,' +
-      ' queueLength=8, drainingQueue=false, shuttingDown=false, sending=true, redisClient=true';
+  it("should return neutral logs untouched", (done) => {
+    const exampleLog =
+      "DocTriggers: Webhook responded with non-200 status status=404, attempt=1, docId=8x9U6xe4hNz8WaJCzAjDBM," +
+      " queueLength=8, drainingQueue=false, shuttingDown=false, sending=true, redisClient=true";
     const sanitizer = new LogSanitizer();
     const sanitizedLog = sanitizer.sanitize(exampleLog);
     assert.equal(sanitizedLog, exampleLog);
     done();
   });
 
-  it("should not crashed when empty log was passed to sanitizer", done => {
+  it("should not crashed when empty log was passed to sanitizer", (done) => {
     const exampleLog = undefined;
     const sanitizer = new LogSanitizer();
     const sanitizedLog = sanitizer.sanitize(exampleLog);
@@ -21,10 +21,7 @@ describe("LogSanitizer", () => {
     done();
   });
 
-
-
-
-  it("should sanitize redis webhooks rpush logs", done => {
+  it("should sanitize redis webhooks rpush logs", (done) => {
     const exampleLog = {
       command: "RPUSH",
       code: "NR_CLOSED",
@@ -38,8 +35,8 @@ describe("LogSanitizer", () => {
             id: 355,
             manualSort: 355,
             Name: "Johny",
-            InsuranceNumber: "12345"
-          }
+            InsuranceNumber: "12345",
+          },
         }),
         // in thie redis those are json, but send as a strings, so we need to parse them
         JSON.stringify({
@@ -48,10 +45,10 @@ describe("LogSanitizer", () => {
             id: 355,
             manualSort: 355,
             Name: "Mark",
-            InsuranceNumber: "65844"
-          }
-        })
-      ]
+            InsuranceNumber: "65844",
+          },
+        }),
+      ],
     };
 
     const sanitizer = new LogSanitizer();
@@ -65,5 +62,4 @@ describe("LogSanitizer", () => {
 
     done();
   });
-
 });

@@ -1,13 +1,14 @@
-import { KoArray } from 'app/client/lib/koArray';
-import * as koUtil from 'app/client/lib/koUtil';
-import BaseRowModel from 'app/client/models/BaseRowModel';
-import DataTableModel from 'app/client/models/DataTableModel';
-import { IRowModel } from 'app/client/models/DocModel';
-import { ValidationRec } from 'app/client/models/entities/ValidationRec';
-import * as modelUtil from 'app/client/models/modelUtil';
-import { buildReassignModal } from 'app/client/ui/buildReassignModal';
-import { CellValue, ColValues, DocAction } from 'app/common/DocActions';
-import * as ko from 'knockout';
+import { KoArray } from "app/client/lib/koArray";
+import * as koUtil from "app/client/lib/koUtil";
+import BaseRowModel from "app/client/models/BaseRowModel";
+import DataTableModel from "app/client/models/DataTableModel";
+import { IRowModel } from "app/client/models/DocModel";
+import { ValidationRec } from "app/client/models/entities/ValidationRec";
+import * as modelUtil from "app/client/models/modelUtil";
+import { buildReassignModal } from "app/client/ui/buildReassignModal";
+import { CellValue, ColValues, DocAction } from "app/common/DocActions";
+
+import * as ko from "knockout";
 
 /**
  * DataRowModel is a RowModel for a Data Table. It creates observables for each field in colNames.
@@ -17,9 +18,9 @@ export class DataRowModel extends BaseRowModel {
   // Instances of this class are indexable, but that is a little awkward to type.
   // The cells field gives typed access to that aspect of the instance.  This is a
   // bit hacky, and should be cleaned up when BaseRowModel is ported to typescript.
-  public readonly cells: {[key: string]: modelUtil.KoSaveableObservable<CellValue>} = this as any;
+  public readonly cells: { [key: string]: modelUtil.KoSaveableObservable<CellValue> } = this as any;
 
-  public _validationFailures: ko.PureComputed<Array<IRowModel<'_grist_Validations'>>>;
+  public _validationFailures: ko.PureComputed<IRowModel<"_grist_Validations">[]>;
   public _isAddRow: ko.Observable<boolean>;
 
   // Observable that's set whenever a change to a row model is likely to be real, and unset when a
@@ -64,20 +65,23 @@ export class DataRowModel extends BaseRowModel {
 
     try {
       return await this._table.sendTableAction(action);
-    } catch(ex) {
-      if (ex.code === 'UNIQUE_REFERENCE_VIOLATION') {
+    }
+    catch (ex) {
+      if (ex.code === "UNIQUE_REFERENCE_VIOLATION") {
         // Show modal to repeat the save.
         await buildReassignModal({
           docModel: this._table.docModel,
           actions: [
             action as DocAction,
-          ]
+          ],
         });
         // Ignore the error here, no point in returning it.
-      } else {
+      }
+      else {
         throw ex;
       }
-    } finally {
+    }
+    finally {
       // If the action doesn't actually result in an update to a row, it's important to reset the
       // observable to the data (if the data did get updated, this will be a no-op). This is also
       // important for AddRecord: if after the update, this row is again the 'new' row, it needs to
@@ -88,14 +92,13 @@ export class DataRowModel extends BaseRowModel {
     }
   }
 
-
   /**
    * Assign the DataRowModel to a different row of the table. This is primarily used with koDomScrolly,
    * when scrolling is accomplished by reusing a few rows of DOM and their underying RowModels.
    */
-  public assign(rowId: number|'new'|null) {
+  public assign(rowId: number | "new" | null) {
     this._rowId = rowId;
-    this._isAddRow(rowId === 'new');
+    this._isAddRow(rowId === "new");
 
     // When we reassign a row, unset _isRealChange momentarily (to disable CSS transitions).
     // NOTE: it would be better to only set this flag when there is a data change (rather than unset
@@ -116,7 +119,7 @@ export class DataRowModel extends BaseRowModel {
   private _assignColumn(colName: string) {
     if (!this.isDisposed() && this.hasOwnProperty(colName)) {
       const value =
-        (this._rowId === 'new' || !this._rowId) ? '' : this._table.tableData.getValue(this._rowId, colName);
+        (this._rowId === "new" || !this._rowId) ? "" : this._table.tableData.getValue(this._rowId, colName);
       koUtil.withKoUtils(this.cells[colName]).assign(value);
     }
   }

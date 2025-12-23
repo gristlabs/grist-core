@@ -8,14 +8,15 @@
  * without impacting touch/mouse users, and without having to change the whole codebase.
  */
 import { components } from "app/common/ThemePrefs";
+
 import { Disposable, dom, styled } from "grainjs";
 
 export class KeyboardFocusHighlighter extends Disposable {
   constructor() {
     super();
-    this.autoDispose(dom.onElem(window, 'keydown', this._onKeyDown));
-    this.autoDispose(dom.onElem(window, 'touchstart', this._clear));
-    this.autoDispose(dom.onElem(window, 'mousedown', this._clear));
+    this.autoDispose(dom.onElem(window, "keydown", this._onKeyDown));
+    this.autoDispose(dom.onElem(window, "touchstart", this._clear));
+    this.autoDispose(dom.onElem(window, "mousedown", this._clear));
   }
 
   public isKeyboardUser = () => {
@@ -23,7 +24,7 @@ export class KeyboardFocusHighlighter extends Disposable {
   };
 
   private _onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Tab') {
+    if (event.key === "Tab") {
       document.documentElement.classList.add(cssKeyboardUser.className);
     }
   };
@@ -33,9 +34,9 @@ export class KeyboardFocusHighlighter extends Disposable {
   };
 }
 
-export const kbFocusHighlighterClass = 'kb-focus-highlighter-group';
+export const kbFocusHighlighterClass = "kb-focus-highlighter-group";
 
-const cssKeyboardUser = styled('div', `
+const cssKeyboardUser = styled("div", `
   & .${kbFocusHighlighterClass} :is(a, input, textarea, select, button, [tabindex="0"]):focus-visible {
     outline: 3px solid ${components.kbFocusHighlight} !important;
   }

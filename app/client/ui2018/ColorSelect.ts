@@ -1,37 +1,38 @@
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {isLight, swatches} from 'app/client/ui2018/ColorPalette';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {textInput} from 'app/client/ui2018/editableLabel';
-import {IconName} from 'app/client/ui2018/IconList';
-import {icon} from 'app/client/ui2018/icons';
-import {cssSelectBtn} from 'app/client/ui2018/select';
-import {isValidHex} from 'app/common/gutil';
-import {BindableValue, Computed, Disposable, dom, DomElementArg, Observable, onKeyDown, styled} from 'grainjs';
-import {defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
-import {makeT} from 'app/client/lib/localization';
-import {gristFloatingMenuClass} from 'app/client/ui2018/menus';
+import { makeT } from "app/client/lib/localization";
+import { basicButton, primaryButton } from "app/client/ui2018/buttons";
+import { isLight, swatches } from "app/client/ui2018/ColorPalette";
+import { testId, theme, vars } from "app/client/ui2018/cssVars";
+import { textInput } from "app/client/ui2018/editableLabel";
+import { IconName } from "app/client/ui2018/IconList";
+import { icon } from "app/client/ui2018/icons";
+import { gristFloatingMenuClass } from "app/client/ui2018/menus";
+import { cssSelectBtn } from "app/client/ui2018/select";
+import { isValidHex } from "app/common/gutil";
 
-const t = makeT('ColorSelect');
+import { BindableValue, Computed, Disposable, dom, DomElementArg, Observable, onKeyDown, styled } from "grainjs";
+import { defaultMenuOptions, IOpenController, setPopupToCreateDom } from "popweasel";
+
+const t = makeT("ColorSelect");
 
 export interface StyleOptions {
   textColor: ColorOption,
   fillColor: ColorOption,
-  fontBold?: Observable<boolean|undefined>,
-  fontUnderline?: Observable<boolean|undefined>,
-  fontItalic?: Observable<boolean|undefined>,
-  fontStrikethrough?: Observable<boolean|undefined>,
+  fontBold?: Observable<boolean | undefined>,
+  fontUnderline?: Observable<boolean | undefined>,
+  fontItalic?: Observable<boolean | undefined>,
+  fontStrikethrough?: Observable<boolean | undefined>,
 }
 
 export class ColorOption {
-  public color: Observable<string|undefined>;
+  public color: Observable<string | undefined>;
   // If the color accepts undefined/empty as a value. Controls empty selector in the picker.
   public allowsNone: boolean = false;
   // Default color to show when value is empty or undefined (itself can be empty).
-  public defaultColor: string = '';
+  public defaultColor: string = "";
   // Text to be shown in the picker when color is not set.
-  public noneText: string = '';
+  public noneText: string = "";
   constructor(options: {
-    color: Observable<string|undefined>,
+    color: Observable<string | undefined>,
     allowsNone?: boolean,
     defaultColor?: string,
     noneText?: string
@@ -74,27 +75,27 @@ export function colorSelect(
   const selectBtn = cssSelectBtn(
     cssContent(
       cssButtonIcon(
-        'T',
-        dom.style('color', use => use(textColor.color) || textColor.defaultColor),
-        dom.style('background-color', (use) => use(fillColor.color)?.slice(0, 7) || fillColor.defaultColor),
-        fontBold ? dom.cls('font-bold', use => use(fontBold) ?? false) : null,
-        fontItalic ? dom.cls('font-italic', use => use(fontItalic) ?? false) : null,
-        fontUnderline ? dom.cls('font-underline', use => use(fontUnderline) ?? false) : null,
-        fontStrikethrough ? dom.cls('font-strikethrough', use => use(fontStrikethrough) ?? false) : null,
-        cssLightBorder.cls(''),
-        testId('btn-icon'),
+        "T",
+        dom.style("color", use => use(textColor.color) || textColor.defaultColor),
+        dom.style("background-color", use => use(fillColor.color)?.slice(0, 7) || fillColor.defaultColor),
+        fontBold ? dom.cls("font-bold", use => use(fontBold) ?? false) : null,
+        fontItalic ? dom.cls("font-italic", use => use(fontItalic) ?? false) : null,
+        fontUnderline ? dom.cls("font-underline", use => use(fontUnderline) ?? false) : null,
+        fontStrikethrough ? dom.cls("font-strikethrough", use => use(fontStrikethrough) ?? false) : null,
+        cssLightBorder.cls(""),
+        testId("btn-icon"),
       ),
       dom.text(placeholder),
     ),
-    icon('Dropdown'),
-    testId('color-select'),
+    icon("Dropdown"),
+    testId("color-select"),
   );
 
   const domCreator = (ctl: IOpenController) => {
     onOpen?.();
-    return buildColorPicker(ctl, {styleOptions, onSave, onRevert});
+    return buildColorPicker(ctl, { styleOptions, onSave, onRevert });
   };
-  setPopupToCreateDom(selectBtn, domCreator, {...defaultMenuOptions, placement: 'bottom-end'});
+  setPopupToCreateDom(selectBtn, domCreator, { ...defaultMenuOptions, placement: "bottom-end" });
 
   return selectBtn;
 }
@@ -119,19 +120,19 @@ export function colorButton(options: ColorButtonOptions): Element {
     fontStrikethrough,
   } = styleOptions;
   const iconBtn = cssIconBtn(
-    'T',
-    dom.style('color', use => use(textColor.color) || textColor.defaultColor),
-    dom.style('background-color', (use) => use(fillColor.color)?.slice(0, 7) || fillColor.defaultColor),
-    fontBold ? dom.cls('font-bold', use => use(fontBold) ?? false) : null,
-    fontItalic ? dom.cls('font-italic', use => use(fontItalic) ?? false) : null,
-    fontUnderline ? dom.cls('font-underline', use => use(fontUnderline) ?? false) : null,
-    fontStrikethrough ? dom.cls('font-strikethrough', use => use(fontStrikethrough) ?? false) : null,
-    testId('color-button'),
+    "T",
+    dom.style("color", use => use(textColor.color) || textColor.defaultColor),
+    dom.style("background-color", use => use(fillColor.color)?.slice(0, 7) || fillColor.defaultColor),
+    fontBold ? dom.cls("font-bold", use => use(fontBold) ?? false) : null,
+    fontItalic ? dom.cls("font-italic", use => use(fontItalic) ?? false) : null,
+    fontUnderline ? dom.cls("font-underline", use => use(fontUnderline) ?? false) : null,
+    fontStrikethrough ? dom.cls("font-strikethrough", use => use(fontStrikethrough) ?? false) : null,
+    testId("color-button"),
   );
 
   const domCreator = (ctl: IOpenController) =>
     buildColorPicker(ctl, colorPickerOptions, colorPickerDomArgs);
-  setPopupToCreateDom(iconBtn, domCreator, { ...defaultMenuOptions, placement: 'bottom-end' });
+  setPopupToCreateDom(iconBtn, domCreator, { ...defaultMenuOptions, placement: "bottom-end" });
 
   return iconBtn;
 }
@@ -148,7 +149,7 @@ export function buildColorPicker(
   options: ColorPickerOptions,
   ...domArgs: DomElementArg[]
 ): Element {
-  const {styleOptions, onSave, onRevert, onClose} = options;
+  const { styleOptions, onSave, onRevert, onClose } = options;
   const {
     textColor,
     fillColor,
@@ -161,10 +162,10 @@ export function buildColorPicker(
   const fillColorModel = ColorModel.create(null, fillColor.color);
   const models: (BooleanModel | ColorModel)[] = [textColorModel, fillColorModel];
 
-  let fontBoldModel: BooleanModel|undefined;
-  let fontUnderlineModel: BooleanModel|undefined;
-  let fontItalicModel: BooleanModel|undefined;
-  let fontStrikethroughModel: BooleanModel|undefined;
+  let fontBoldModel: BooleanModel | undefined;
+  let fontUnderlineModel: BooleanModel | undefined;
+  let fontItalicModel: BooleanModel | undefined;
+  let fontStrikethroughModel: BooleanModel | undefined;
   if (fontBold) {
     fontBoldModel = BooleanModel.create(null, fontBold);
     models.push(fontBoldModel);
@@ -197,7 +198,8 @@ export function buildColorPicker(
       try {
         // TODO: disable the trigger btn while saving
         await onSave?.();
-      } catch (e) {
+      }
+      catch (e) {
         onRevert?.();
         if (!onRevert) {
           models.forEach(m => m.revert());
@@ -219,12 +221,12 @@ export function buildColorPicker(
         fontStrikethroughModel,
       }),
       dom.create(PickerComponent, textColorModel, {
-        title: 'text',
-        ...textColor
+        title: "text",
+        ...textColor,
       }),
       dom.create(PickerComponent, fillColorModel, {
-        title: 'fill',
-        ...fillColor
+        title: "fill",
+        ...fillColor,
       }),
     ),
     // gives focus and binds keydown events
@@ -236,19 +238,19 @@ export function buildColorPicker(
 
     cssButtonRow(
       primaryButton(t("Apply"),
-        dom.on('click', () => ctl.close()),
+        dom.on("click", () => ctl.close()),
         dom.boolAttr("disabled", notChanged),
-        testId('colors-save')
+        testId("colors-save"),
       ),
       basicButton(t("Cancel"),
-        dom.on('click', () => revert()),
-        testId('colors-cancel')
-      )
+        dom.on("click", () => revert()),
+        testId("colors-cancel"),
+      ),
     ),
 
     // Set focus when `focusout` is bubbling from a children element. This is to allow to receive
     // keyboard event again after user interacted with the hex box text input.
-    dom.on('focusout', (ev, elem) => (ev.target !== elem) && elem.focus()),
+    dom.on("focusout", (ev, elem) => (ev.target !== elem) && elem.focus()),
 
     ...domArgs,
   );
@@ -258,8 +260,7 @@ export function buildColorPicker(
 // needs to be changed locally without saving. To use, you must call `model.setValue(...)` instead
 // of `obs.set(...)`. Then it offers `model.needsSaving()` that tells you whether current value
 // needs saving, and `model.revert()` that reverts obs to the its server value.
-class PickerModel<T extends boolean|string|undefined> extends Disposable {
-
+class PickerModel<T extends boolean | string | undefined> extends Disposable {
   // Is current value different from the server value?
   public needsSaving: Observable<boolean>;
   private _serverValue: Observable<T>;
@@ -267,13 +268,13 @@ class PickerModel<T extends boolean|string|undefined> extends Disposable {
   constructor(public obs: Observable<T>) {
     super();
     this._serverValue = Observable.create(this, this.obs.get());
-    this.needsSaving =  Computed.create(this, use => {
+    this.needsSaving =  Computed.create(this, (use) => {
       const current = use(this.obs);
       const server = use(this._serverValue);
       // We support booleans and strings only for now, so if current is false and server
       // is undefined, we assume they are the same.
       // TODO: this probably should be a strategy method.
-      return current !== (typeof current === 'boolean' ? (server ?? false) : server);
+      return current !== (typeof current === "boolean" ? (server ?? false) : server);
     });
     this.autoDispose(this.obs.addListener((val) => {
       if (this._localChange) { return; }
@@ -294,8 +295,8 @@ class PickerModel<T extends boolean|string|undefined> extends Disposable {
   }
 }
 
-class ColorModel extends PickerModel<string|undefined> {}
-class BooleanModel extends PickerModel<boolean|undefined> {}
+class ColorModel extends PickerModel<string | undefined> {}
+class BooleanModel extends PickerModel<boolean | undefined> {}
 
 interface PickerComponentOptions {
   title: string;
@@ -306,7 +307,6 @@ interface PickerComponentOptions {
   noneText: string;
 }
 class PickerComponent extends Disposable {
-
   private _colorHex = Computed.create(this, this._model.obs, (_use, val) =>
     val?.toUpperCase().slice(0, 7));
 
@@ -314,7 +314,7 @@ class PickerComponent extends Disposable {
     color || this._options.defaultColor);
 
   constructor(
-    private _model: PickerModel<string|undefined>,
+    private _model: PickerModel<string | undefined>,
     private _options: PickerComponentOptions) {
     super();
   }
@@ -328,17 +328,17 @@ class PickerComponent extends Disposable {
         cssColorPreview(
           dom.update(
             cssColorSquare(
-              cssLightBorder.cls(''),
-              dom.style('background-color', this._colorCss),
-              cssNoneIcon('Empty',
-                dom.hide(use => Boolean(use(this._colorCss)))
+              cssLightBorder.cls(""),
+              dom.style("background-color", this._colorCss),
+              cssNoneIcon("Empty",
+                dom.hide(use => Boolean(use(this._colorCss))),
               ),
               testId(`${title}-color-square`),
             ),
             cssColorInput(
-              {type: 'color'},
-              dom.attr('value', use => use(this._model.obs) ?? ''),
-              dom.on('input', (ev, elem) => this._setValue(elem.value || undefined)),
+              { type: "color" },
+              dom.attr("value", use => use(this._model.obs) ?? ""),
+              dom.on("input", (ev, elem) => this._setValue(elem.value || undefined)),
               testId(`${title}-input`),
             ),
           ),
@@ -353,25 +353,25 @@ class PickerComponent extends Disposable {
             testId(`${title}-hex`),
             // select the hex value on click. Doing it using settimeout allows to avoid some
             // sporadically losing the selection just after the click.
-            dom.on('click', (ev, elem) => setTimeout(() => elem.select(), 0)),
-          )
+            dom.on("click", (ev, elem) => setTimeout(() => elem.select(), 0)),
+          ),
         ),
         cssEmptyBox(
-          cssEmptyBox.cls('-selected', (use) => !use(this._colorHex)),
-          dom.on('click', () => this._setValue(undefined)),
+          cssEmptyBox.cls("-selected", use => !use(this._colorHex)),
+          dom.on("click", () => this._setValue(undefined)),
           dom.hide(!this._options.allowsNone),
-          cssNoneIcon('Empty'),
+          cssNoneIcon("Empty"),
           testId(`${title}-empty`),
-        )
+        ),
       ),
       cssPalette(
         swatches.map((color, index) => (
           cssColorSquare(
-            dom.style('background-color', color),
-            cssLightBorder.cls('', isLight(index)),
-            cssColorSquare.cls('-selected', (use) => use(this._colorHex) === color),
-            dom.style('outline-color', isLight(index) ? '' : color),
-            dom.on('click', () => this._setValue(color)),
+            dom.style("background-color", color),
+            cssLightBorder.cls("", isLight(index)),
+            cssColorSquare.cls("-selected", use => use(this._colorHex) === color),
+            dom.style("outline-color", isLight(index) ? "" : color),
+            dom.on("click", () => this._setValue(color)),
             testId(`color-${color}`),
           )
         )),
@@ -380,7 +380,7 @@ class PickerComponent extends Disposable {
     );
   }
 
-  private _setValue(val: string|undefined) {
+  private _setValue(val: string | undefined) {
     this._model.setValue(val);
   }
 }
@@ -397,7 +397,7 @@ class FontComponent extends Disposable {
       fontUnderlineModel?: BooleanModel,
       fontItalicModel?: BooleanModel,
       fontStrikethroughModel?: BooleanModel,
-    }
+    },
   ) {
     super();
   }
@@ -406,21 +406,21 @@ class FontComponent extends Disposable {
     function option(iconName: IconName, model: BooleanModel) {
       return cssFontOption(
         cssFontIcon(iconName),
-        dom.on('click', () => model.setValue(!model.obs.get())),
-        cssFontOption.cls('-selected', use => use(model.obs) ?? false),
-        testId(`font-option-${iconName}`)
+        dom.on("click", () => model.setValue(!model.obs.get())),
+        cssFontOption.cls("-selected", use => use(model.obs) ?? false),
+        testId(`font-option-${iconName}`),
       );
     }
     return cssFontOptions(
-      this._bold ? option('FontBold', this._bold) : null,
-      this._underline ? option('FontUnderline', this._underline) : null,
-      this._italic ? option('FontItalic', this._italic) : null,
-      this._strikethrough ? option('FontStrikethrough', this._strikethrough) : null,
+      this._bold ? option("FontBold", this._bold) : null,
+      this._underline ? option("FontUnderline", this._underline) : null,
+      this._italic ? option("FontItalic", this._italic) : null,
+      this._strikethrough ? option("FontStrikethrough", this._strikethrough) : null,
     );
   }
 }
 
-const cssFontOptions = styled('div', `
+const cssFontOptions = styled("div", `
   display: flex;
   border: 1px solid ${theme.colorSelectFontOptionsBorder};
 
@@ -429,7 +429,7 @@ const cssFontOptions = styled('div', `
   }
 `);
 
-const cssFontOption = styled('div', `
+const cssFontOption = styled("div", `
   display: grid;
   place-items: center;
   flex-grow: 1;
@@ -449,7 +449,7 @@ const cssFontOption = styled('div', `
   }
 `);
 
-const cssColorInput = styled('input', `
+const cssColorInput = styled("input", `
   opacity: 0;
   position: absolute;
   top: 0;
@@ -460,24 +460,24 @@ const cssColorInput = styled('input', `
   border: none;
 `);
 
-const cssColorPreview = styled('div', `
+const cssColorPreview = styled("div", `
   display: flex;
 `);
 
-const cssControlRow = styled('div', `
+const cssControlRow = styled("div", `
   display: flex;
   justify-content: space-between;
   margin-bottom: 8px;
 `);
 
-const cssHeaderRow = styled('div', `
+const cssHeaderRow = styled("div", `
   color: ${theme.colorSelectFg};
   text-transform: uppercase;
   font-size: ${vars.smallFontSize};
   margin-bottom: 12px;
 `);
 
-const cssPalette = styled('div', `
+const cssPalette = styled("div", `
   width: 236px;
   height: calc(4 * 20px + 3 * 4px);
   display: flex;
@@ -487,7 +487,7 @@ const cssPalette = styled('div', `
   align-content: space-between;
 `);
 
-const cssContainer = styled('div', `
+const cssContainer = styled("div", `
   padding: 18px 16px;
   background-color: ${theme.colorSelectBg};
   box-shadow: 0 2px 16px 0 ${theme.colorSelectShadow};
@@ -498,13 +498,13 @@ const cssContainer = styled('div', `
   }
 `);
 
-const cssComponents = styled('div', `
+const cssComponents = styled("div", `
   display: flex;
   flex-direction: column;
   gap: 24px;
 `);
 
-const cssContent = styled('div', `
+const cssContent = styled("div", `
   display: flex;
   align-items: center;
 `);
@@ -524,11 +524,11 @@ const cssHexBox = styled(textInput, `
   border-radius: unset;
 `);
 
-const cssLightBorder = styled('div', `
+const cssLightBorder = styled("div", `
   border: 1px solid ${theme.colorSelectColorSquareBorder};
 `);
 
-const cssColorSquare = styled('div', `
+const cssColorSquare = styled("div", `
   width: 20px;
   height: 20px;
   display: flex;
@@ -575,7 +575,7 @@ const cssIconBtn = styled(cssColorSquare, `
   place-items: center;
 `);
 
-const cssButtonRow = styled('div', `
+const cssButtonRow = styled("div", `
   gap: 8px;
   display: flex;
   margin-top: 24px;

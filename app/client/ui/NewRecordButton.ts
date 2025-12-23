@@ -1,15 +1,16 @@
-import {dom, styled} from 'grainjs';
-import {testId, zIndexes} from 'app/client/ui2018/cssVars';
-import {makeT} from 'app/client/lib/localization';
-import {primaryButton} from 'app/client/ui2018/buttons';
-import {icon} from 'app/client/ui2018/icons';
-import BaseView from 'app/client/components/BaseView';
+import BaseView from "app/client/components/BaseView";
+import { makeT } from "app/client/lib/localization";
+import { primaryButton } from "app/client/ui2018/buttons";
+import { testId, zIndexes } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
 
-const t = makeT('NewRecordButton');
+import { dom, styled } from "grainjs";
+
+const t = makeT("NewRecordButton");
 
 const translationStrings = {
-  'record': t('New record'),
-  'single': t('New card'),
+  record: t("New record"),
+  single: t("New card"),
 };
 
 /**
@@ -18,10 +19,10 @@ const translationStrings = {
  * It only renders when the experiment is enabled and the view has focus.
  */
 export function maybeShowNewRecordExperiment(view: BaseView) {
-  const experimentIsEnabled = view.gristDoc.appModel.experiments?.isEnabled('newRecordButton');
+  const experimentIsEnabled = view.gristDoc.appModel.experiments?.isEnabled("newRecordButton");
   return dom.maybe(
     use => (experimentIsEnabled && use(view.viewSection.hasFocus) && use(view.enableAddRow)),
-    () => newRecordButton(view)
+    () => newRecordButton(view),
   );
 }
 
@@ -36,15 +37,15 @@ export function maybeShowNewRecordExperiment(view: BaseView) {
 function newRecordButton(view: BaseView) {
   const viewType = view.viewSection.parentKey.peek();
 
-  const translationString = translationStrings[viewType as keyof typeof translationStrings]
-    || t('New record');
+  const translationString = translationStrings[viewType as keyof typeof translationStrings] ||
+    t("New record");
   return cssNewRecordButton(
-    icon('Plus'),
-    dom('span', translationString),
-    dom.on('click', () => {
+    icon("Plus"),
+    dom("span", translationString),
+    dom.on("click", () => {
       view.onNewRecordRequest?.()?.catch(reportError);
     }),
-    testId('new-record-button')
+    testId("new-record-button"),
   );
 }
 

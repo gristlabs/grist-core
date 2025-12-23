@@ -24,11 +24,11 @@
  * 'stringToBuffer' option. Similarly, Python strings become JS Uint8Arrays, but can be
  * unmarshalled to JS strings if 'bufferToString' option is set.
  */
-import {BigInt} from 'app/common/BigInt';
-import MemBuffer from 'app/common/MemBuffer';
-import {EventEmitter} from 'events';
-import * as util from 'util';
+import { BigInt } from "app/common/BigInt";
+import MemBuffer from "app/common/MemBuffer";
 
+import { EventEmitter } from "events";
+import * as util from "util";
 
 export interface MarshalOptions {
   stringToBuffer?: boolean;
@@ -55,14 +55,14 @@ function ord(str: string): number {
  * See pypy: rpython/translator/sandbox/_marshal.py.
  */
 const marshalCodes = {
-  NULL     : ord('0'),
-  NONE     : ord('N'),
-  FALSE    : ord('F'),
-  TRUE     : ord('T'),
-  STOPITER : ord('S'),
-  ELLIPSIS : ord('.'),
-  INT      : ord('i'),
-  INT64    : ord('I'),
+  NULL: ord("0"),
+  NONE: ord("N"),
+  FALSE: ord("F"),
+  TRUE: ord("T"),
+  STOPITER: ord("S"),
+  ELLIPSIS: ord("."),
+  INT: ord("i"),
+  INT64: ord("I"),
   /*
     BFLOAT, for 'binary float', is an encoding of float that just encodes the bytes of the
     double in standard IEEE 754 float64 format. It is used by Version 2+ of Python's marshal
@@ -73,21 +73,21 @@ const marshalCodes = {
     is recommended for Grist's communication because it is more efficient and faster to
     encode/decode
    */
-  BFLOAT   : ord('g'),
-  FLOAT    : ord('f'),
-  COMPLEX  : ord('x'),
-  LONG     : ord('l'),
-  STRING   : ord('s'),
-  INTERNED : ord('t'),
-  STRINGREF: ord('R'),
-  TUPLE    : ord('('),
-  LIST     : ord('['),
-  DICT     : ord('{'),
-  CODE     : ord('c'),
-  UNICODE  : ord('u'),
-  UNKNOWN  : ord('?'),
-  SET      : ord('<'),
-  FROZENSET: ord('>'),
+  BFLOAT: ord("g"),
+  FLOAT: ord("f"),
+  COMPLEX: ord("x"),
+  LONG: ord("l"),
+  STRING: ord("s"),
+  INTERNED: ord("t"),
+  STRINGREF: ord("R"),
+  TUPLE: ord("("),
+  LIST: ord("["),
+  DICT: ord("{"),
+  CODE: ord("c"),
+  UNICODE: ord("u"),
+  UNKNOWN: ord("?"),
+  SET: ord("<"),
+  FROZENSET: ord(">"),
 };
 
 type MarshalCode = keyof typeof marshalCodes;
@@ -98,7 +98,6 @@ type MarshalCode = keyof typeof marshalCodes;
 function isInteger(n: number): boolean {
   // Float have +0.0 and -0.0. To represent -0.0 precisely, we have to use a float, not an int
   // (see also https://stackoverflow.com/questions/7223359/are-0-and-0-the-same).
-  // tslint:disable-next-line:no-bitwise
   return n === +n && n === (n | 0) && !Object.is(n, -0.0);
 }
 
@@ -140,8 +139,8 @@ export class Marshaller {
 
   constructor(options?: MarshalOptions) {
     this._memBuf = new MemBuffer(undefined);
-    this._floatCode = options && options.version && options.version >= 2 ? marshalCodes.BFLOAT : marshalCodes.FLOAT;
-    this._stringCode = options && options.stringToBuffer ? marshalCodes.STRING : marshalCodes.UNICODE;
+    this._floatCode = options?.version && options.version >= 2 ? marshalCodes.BFLOAT : marshalCodes.FLOAT;
+    this._stringCode = options?.stringToBuffer ? marshalCodes.STRING : marshalCodes.UNICODE;
     this._keysAreBuffers = Boolean(options?.keysAreBuffers);
   }
 
@@ -161,20 +160,24 @@ export class Marshaller {
 
   public getCode(value: any) {
     switch (typeof value) {
-      case 'number': return isInteger(value) ? marshalCodes.INT : this._floatCode;
-      case 'string': return this._stringCode;
-      case 'boolean': return value ? marshalCodes.TRUE : marshalCodes.FALSE;
-      case 'undefined': return marshalCodes.NONE;
-      case 'object': {
+      case "number": return isInteger(value) ? marshalCodes.INT : this._floatCode;
+      case "string": return this._stringCode;
+      case "boolean": return value ? marshalCodes.TRUE : marshalCodes.FALSE;
+      case "undefined": return marshalCodes.NONE;
+      case "object": {
         if (value instanceof WrappedObj) {
           return value.code;
-        } else if (value === null) {
+        }
+        else if (value === null) {
           return marshalCodes.NONE;
-        } else if (value instanceof Uint8Array) {
+        }
+        else if (value instanceof Uint8Array) {
           return marshalCodes.STRING;
-        } else if (Buffer.isBuffer(value)) {
+        }
+        else if (Buffer.isBuffer(value)) {
           return marshalCodes.STRING;
-        } else if (Array.isArray(value)) {
+        }
+        else if (Array.isArray(value)) {
           return marshalCodes.LIST;
         }
         return marshalCodes.DICT;
@@ -243,7 +246,7 @@ export class Marshaller {
     this._memBuf.writeByteArray(bytes);
   }
 
-  private _writeByteArray(value: Uint8Array|Buffer) {
+  private _writeByteArray(value: Uint8Array | Buffer) {
     // This works for both Uint8Arrays and Node Buffers.
     this._memBuf.writeInt32LE(value.length);
     this._memBuf.writeByteArray(value);
@@ -266,7 +269,7 @@ export class Marshaller {
     }
   }
 
-  private _writeDict(obj: {[key: string]: any}) {
+  private _writeDict(obj: { [key: string]: any }) {
     const keys = Object.keys(obj);
     keys.sort();
     for (const key of keys) {
@@ -293,23 +296,23 @@ const TwoTo15 = 0x8000;         // 2**15
 export class Unmarshaller extends EventEmitter {
   public memBuf: MemBuffer;
   private _consumer: any = null;
-  private _lastCode: number|null = null;
+  private _lastCode: number | null = null;
   private readonly _bufferToString: boolean;
   private _emitter: (v: any) => boolean;
-  private _stringTable: Array<string|Uint8Array> = [];
+  private _stringTable: (string | Uint8Array)[] = [];
 
   constructor(options?: UnmarshalOptions) {
     super();
     this.memBuf = new MemBuffer(undefined);
-    this._bufferToString = Boolean(options && options.bufferToString);
-    this._emitter = this.emit.bind(this, 'value');
+    this._bufferToString = Boolean(options?.bufferToString);
+    this._emitter = this.emit.bind(this, "value");
   }
 
   /**
    * Adds more data for parsing. Parsed values will be emitted as 'value' events.
    * @param {Uint8Array|Buffer} byteArray: Uint8Array or Node Buffer with bytes to parse.
    */
-  public push(byteArray: Uint8Array|Buffer) {
+  public push(byteArray: Uint8Array | Buffer) {
     this.parse(byteArray, this._emitter);
   }
 
@@ -317,7 +320,7 @@ export class Unmarshaller extends EventEmitter {
    * Adds data to parse, and calls valueCB(value) for each value parsed. If valueCB returns the
    * Boolean false, stops parsing and returns.
    */
-  public parse(byteArray: Uint8Array|Buffer, valueCB: (val: any) => boolean|void) {
+  public parse(byteArray: Uint8Array | Buffer, valueCB: (val: any) => boolean | void) {
     this.memBuf.writeByteArray(byteArray);
     try {
       while (this.memBuf.size() > 0) {
@@ -332,17 +335,18 @@ export class Unmarshaller extends EventEmitter {
           return;
         }
       }
-    } catch (err) {
+    }
+    catch (err) {
       // If the error is `needMoreData`, we silently return. We'll retry by reparsing the message
       // from scratch after the next push(). If buffers contain complete serialized messages, the
       // cost should be minor. But this design might get very inefficient if we have big messages
       // of arrays or dictionaries.
       if (err.needMoreData) {
         if (!err.consumedData || err.consumedData > 1024) {
-          // tslint:disable-next-line:no-console
           console.log("Unmarshaller: Need more data; wasted parsing of %d bytes", err.consumedData);
         }
-      } else {
+      }
+      else {
         err.message = "Unmarshaller: " + err.message;
         throw err;
       }
@@ -395,7 +399,8 @@ export class Unmarshaller extends EventEmitter {
     const unsignedLow = low < 0 ? TwoTo32 + low : low;
     if (hi >= 0) {
       return new BigInt(TwoTo32, [unsignedLow, hi], 1).toNative();
-    } else {
+    }
+    else {
       // This part is tricky. See unittests for check of correctness.
       return new BigInt(TwoTo32, [TwoTo32 - unsignedLow, -hi - 1], -1).toNative();
     }
@@ -424,7 +429,7 @@ export class Unmarshaller extends EventEmitter {
     return this.memBuf.readFloat64LE(this._consumer);
   }
 
-  private _parseByteString(): string|Uint8Array {
+  private _parseByteString(): string | Uint8Array {
     const len = this.memBuf.readInt32LE(this._consumer);
     return (this._bufferToString ?
       this.memBuf.readString(this._consumer, len) :
@@ -452,9 +457,9 @@ export class Unmarshaller extends EventEmitter {
   }
 
   private _parseDict() {
-    const dict: {[key: string]: any} = {};
-    while (true) {    // eslint-disable-line no-constant-condition
-      let key = this._parse() as string|Uint8Array;
+    const dict: { [key: string]: any } = {};
+    while (true) {
+      let key = this._parse() as string | Uint8Array;
       if (key === null && this._lastCode === marshalCodes.NULL) {
         break;
       }
@@ -479,16 +484,17 @@ export class Unmarshaller extends EventEmitter {
  * Similar to python's marshal.loads(). Parses the given bytes and returns the parsed value. There
  * must not be any trailing data beyond the single marshalled value.
  */
-export function loads(byteArray: Uint8Array|Buffer, options?: UnmarshalOptions): any {
+export function loads(byteArray: Uint8Array | Buffer, options?: UnmarshalOptions): any {
   const unmarshaller = new Unmarshaller(options);
   let parsedValue;
   unmarshaller.parse(byteArray, function(value) {
     parsedValue = value;
     return false;
   });
-  if (typeof parsedValue === 'undefined') {
+  if (typeof parsedValue === "undefined") {
     throw new Error("loads: input data truncated");
-  } else if (unmarshaller.memBuf.size() > 0) {
+  }
+  else if (unmarshaller.memBuf.size() > 0) {
     throw new Error("loads: extra bytes past end of input");
   }
   return parsedValue;
@@ -498,14 +504,14 @@ export function loads(byteArray: Uint8Array|Buffer, options?: UnmarshalOptions):
  * Serializes arbitrary data by first marshalling then converting to a base64 string.
  */
 export function dumpBase64(data: any, options?: MarshalOptions) {
-  const marshaller = new Marshaller(options || {version: 2});
+  const marshaller = new Marshaller(options || { version: 2 });
   marshaller.marshal(data);
-  return marshaller.dumpAsBuffer().toString('base64');
+  return marshaller.dumpAsBuffer().toString("base64");
 }
 
 /**
  * Loads data from a base64 string, as serialized by dumpBase64().
  */
 export function loadBase64(data: string, options?: UnmarshalOptions) {
-  return loads(Buffer.from(data, 'base64'), options);
+  return loads(Buffer.from(data, "base64"), options);
 }

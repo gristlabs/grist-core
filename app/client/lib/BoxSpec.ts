@@ -1,9 +1,10 @@
-import {Layout} from 'app/client/components/Layout';
-import {dom} from 'grainjs';
-import * as _ from 'underscore';
+import { Layout } from "app/client/components/Layout";
+
+import { dom } from "grainjs";
+import * as _ from "underscore";
 
 export interface BoxSpec {
-  leaf?: string|number;
+  leaf?: string | number;
   size?: number;
   children?: BoxSpec[];
   collapsed?: BoxSpec[];
@@ -14,9 +15,9 @@ export function purgeBoxSpec(options: {
   validLeafIds: number[];
   restoreCollapsed?: boolean;
 }): BoxSpec {
-  const {spec, validLeafIds, restoreCollapsed} = options;
+  const { spec, validLeafIds, restoreCollapsed } = options;
   // We use tmpLayout as a way to manipulate the layout before we get a final spec from it.
-  const tmpLayout = Layout.create(spec, () => dom('div'), true);
+  const tmpLayout = Layout.create(spec, () => dom("div"), true);
   const specFieldIds = tmpLayout.getAllLeafIds();
 
   // For any stale fields (no longer among validLeafIds), remove them from tmpLayout.
@@ -47,7 +48,7 @@ export function purgeBoxSpec(options: {
 }
 
 function addToSpec(tmpLayout: Layout, leafId: number) {
-  const newBox = tmpLayout.buildLayoutBox({leaf: leafId});
+  const newBox = tmpLayout.buildLayoutBox({ leaf: leafId });
   const root = tmpLayout.rootBox();
   if (!root || root.isDisposed()) {
     tmpLayout.setRoot(newBox);
@@ -58,7 +59,8 @@ function addToSpec(tmpLayout: Layout, leafId: number) {
   if (rows.length >= 1 && lastRow.isLeaf()) {
     // Add a new child to the last row.
     lastRow.addChild(newBox, true);
-  } else {
+  }
+  else {
     // Add a new row.
     tmpLayout.rootBox()!.addChild(newBox, true);
   }

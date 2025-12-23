@@ -1,7 +1,6 @@
-import {BaseAPI, IOptions} from 'app/common/BaseAPI';
-import {CellValue, ColValues} from 'app/common/DocActions';
-import {addCurrentOrgToPath} from 'app/common/urlUtils';
-
+import { BaseAPI, IOptions } from "app/common/BaseAPI";
+import { CellValue, ColValues } from "app/common/DocActions";
+import { addCurrentOrgToPath } from "app/common/urlUtils";
 
 /**
  * Form and associated field metadata from a Grist view section.
@@ -80,17 +79,17 @@ export interface FormFieldOptions {
   formAcceptFromUrl?: boolean;
 }
 
-export type FormTextFormat = 'singleline' | 'multiline';
+export type FormTextFormat = "singleline" | "multiline";
 
-export type FormNumberFormat = 'text' | 'spinner';
+export type FormNumberFormat = "text" | "spinner";
 
-export type FormToggleFormat = 'switch' | 'checkbox';
+export type FormToggleFormat = "switch" | "checkbox";
 
-export type FormSelectFormat = 'select' | 'radio';
+export type FormSelectFormat = "select" | "radio";
 
-export type FormOptionsAlignment = 'vertical' | 'horizontal';
+export type FormOptionsAlignment = "vertical" | "horizontal";
 
-export type FormOptionsSortOrder = 'default' | 'ascending' | 'descending';
+export type FormOptionsSortOrder = "default" | "ascending" | "descending";
 
 export interface FormAPI {
   getForm(options: GetFormOptions): Promise<Form>;
@@ -133,20 +132,20 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
   }
 
   public async getForm(options: GetFormOptions): Promise<Form> {
-    const {vsId} = options;
+    const { vsId } = options;
     return this.requestJson(this._docOrShareUrl(`/forms/${vsId}`, options), {
       method: "GET",
     });
   }
 
   public async createRecord(options: CreateRecordOptions): Promise<void> {
-    const {tableId, colValues} = options;
+    const { tableId, colValues } = options;
     return this.requestJson(
       this._docOrShareUrl(`/tables/${tableId}/records`, options),
       {
         method: "POST",
         body: JSON.stringify({ records: [{ fields: colValues }] }),
-      }
+      },
     );
   }
 
@@ -158,7 +157,7 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
 
     const formData = new FormData();
     for (const file of upload) {
-      formData.append('upload', file);
+      formData.append("upload", file);
     }
 
     return this.requestJson(this._docOrShareUrl("/attachments", options), {
@@ -174,9 +173,9 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
 
   private _docOrShareUrl(path: string, target: FormTarget): string {
     const base =
-      "docId" in target
-        ? `${this._baseUrl}/api/docs/${target.docId}`
-        : `${this._baseUrl}/api/s/${target.shareKey}`;
+      "docId" in target ?
+        `${this._baseUrl}/api/docs/${target.docId}` :
+        `${this._baseUrl}/api/s/${target.shareKey}`;
     const url = new URL(`${base}${path}`);
     if ("shareKey" in target) {
       url.searchParams.set("utm_source", "grist-forms");

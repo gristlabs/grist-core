@@ -35,7 +35,7 @@ export class AsyncCreate<T> {
   }
 
   /** Returns the value if it's set and successful, or undefined otherwise. */
-  public async getIfValid(): Promise<T|undefined> {
+  public async getIfValid(): Promise<T | undefined> {
     return this._value ? this._value.catch(() => undefined) : undefined;
   }
 
@@ -46,21 +46,19 @@ export class AsyncCreate<T> {
   }
 }
 
-
 /**
  * A simpler version of AsyncCreate: given an async function f, returns another function that will
  * call f once, and cache and return its value. On failure the result is cleared, so that
  * subsequent calls will attempt calling f again.
  */
 export function asyncOnce<T>(createFunc: () => Promise<T>): () => Promise<T> {
-  let value: Promise<T>|undefined;
+  let value: Promise<T> | undefined;
   function clearOnError(p: Promise<T>): Promise<T> {
     p.catch(() => { value = undefined; });
     return p;
   }
   return () => (value || (value = clearOnError(createFunc.call(null))));
 }
-
 
 /**
  * Supports a usage similar to AsyncCreate in a Map. Returns map.get(key) if it is set to a
@@ -151,7 +149,6 @@ export class MapWithTTL<K, V> extends Map<K, V> {
   }
 }
 
-
 /**
  * Just like MapWithTTL, but supports an extra callback to call when a value expires.
  */
@@ -159,12 +156,12 @@ export class MapWithCustomExpire<K, V> extends MapWithTTL<K, V> {
   constructor(ttlMs: number, private _onExpire: (key: K) => void) {
     super(ttlMs);
   }
+
   public override expire(key: K): boolean {
     this._onExpire(key);
     return super.expire(key);
   }
 }
-
 
 /**
  * Sometimes it is desirable to cache either fulfilled or rejected
@@ -176,7 +173,8 @@ export async function freezeError<T>(promise: Promise<T>): Promise<ErrorOrValue<
   try {
     const value = await promise;
     return { unfreeze: async () => value };
-  } catch (error) {
+  }
+  catch (error) {
     return { unfreeze: async () => { throw error; } };
   }
 }

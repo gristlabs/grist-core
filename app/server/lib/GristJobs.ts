@@ -1,12 +1,13 @@
-import { getSetMapValue } from 'app/common/gutil';
-import { makeId } from 'app/server/lib/idUtils';
-import log from 'app/server/lib/log';
-import { Job as BullMQJob, JobsOptions, Queue, Worker } from 'bullmq';
-import IORedis from 'ioredis';
+import { getSetMapValue } from "app/common/gutil";
+import { makeId } from "app/server/lib/idUtils";
+import log from "app/server/lib/log";
+
+import { Job as BullMQJob, JobsOptions, Queue, Worker } from "bullmq";
+import IORedis from "ioredis";
 
 // Name of the queue for doc-notification emails. Let's define queue names in this file, to ensure
 // that different users of GristJobs don't accidentally use conflicting queue names.
-export const docEmailsQueue = 'deq';
+export const docEmailsQueue = "deq";
 
 /**
  *
@@ -50,7 +51,6 @@ export interface GristQueueScope {
    */
   add(name: string, data: any, options?: JobAddOptions): Promise<void>;
 
-
   /**
    * Add a job handler for all jobs regardless of name.
    * Handlers given by handleName take priority, but no
@@ -83,7 +83,7 @@ export type JobHandler<Job extends GristJob = GristJob> = (job: Job) => Promise<
 /**
  * The name used for a queue if no specific name is given.
  */
-export const DEFAULT_QUEUE_NAME = 'default';
+export const DEFAULT_QUEUE_NAME = "default";
 
 /**
  * BullMQ jobs are a string name, and then a data object.
@@ -118,6 +118,7 @@ abstract class GristJobsBase<QS extends GristQueueScope> {
   public queue(queueName: string = DEFAULT_QUEUE_NAME): QS {
     return getSetMapValue(this._queues, queueName, () => this.createQueueScope(queueName));
   }
+
   public async stop(options: StopOptions = {}) {
     await Promise.all(Array.from(this._queues.values(), q => q.stop(options)));
     this._queues.clear();
@@ -160,20 +161,20 @@ export class GristBullMQJobs extends GristJobsBase<GristBullMQQueueScope> implem
 /**
  * Connect to Redis if available.
  */
-function getRedisConnection(): IORedis|undefined {
+function getRedisConnection(): IORedis | undefined {
   // Connect to Redis for use with BullMQ, if REDIS_URL is set.
   const urlTxt = process.env.REDIS_URL || process.env.TEST_REDIS_URL;
   if (!urlTxt) {
-    log.warn('Using in-memory queues, Redis is unavailable');
+    log.warn("Using in-memory queues, Redis is unavailable");
     return;
   }
   const conn = new IORedis(urlTxt, {
     maxRetriesPerRequest: null,
     // Back off faster and retry more slowly than the default, to avoid filling up logs needlessly.
-    retryStrategy: (times) => Math.min((times ** 2) * 50, 10000),
+    retryStrategy: times => Math.min((times ** 2) * 50, 10000),
   });
-  conn.on('error', (err) => log.error('GristJobs: Redis connection error:', String(err)));
-  log.info('Storing queues externally in Redis');
+  conn.on("error", err => log.error("GristJobs: Redis connection error:", String(err)));
+  log.info("Storing queues externally in Redis");
   return conn;
 }
 
@@ -182,12 +183,12 @@ interface IWorker {
 }
 
 abstract class GristQueueScopeBase<Worker extends IWorker, Job extends GristJob = GristJob> {
-  protected _worker: Worker|undefined;
+  protected _worker: Worker | undefined;
   private _namedProcessors: Record<string, JobHandler<Job>> = {};
 
   public constructor(public readonly queueName: string) {}
 
-  public getWorker(): Worker|undefined { return this._worker; }
+  public getWorker(): Worker | undefined { return this._worker; }
 
   public handleDefault(defaultCallback: JobHandler<Job>): void {
     // The default callback passes any recognized named jobs to
@@ -224,9 +225,11 @@ class GristInMemoryQueueScope extends GristQueueScopeBase<GristWorker> implement
     }
     await this._worker.add(name, data, options);
   }
+
   protected override async obliterate(): Promise<void> {
     await this._worker?.obliterate();
   }
+
   protected override createWorker(queueName: string, callback: JobHandler): GristWorker {
     return new GristWorker(this.queueName, callback);
   }
@@ -236,11 +239,11 @@ class GristInMemoryQueueScope extends GristQueueScopeBase<GristWorker> implement
  * Work with a particular named queue.
  */
 export class GristBullMQQueueScope extends GristQueueScopeBase<Worker, BullMQJob> implements GristQueueScope {
-  private _queue: Queue|undefined;
+  private _queue: Queue | undefined;
 
   public constructor(queueName: string, private _owner: GristBullMQJobs) { super(queueName); }
 
-  public getQueue(): Queue|undefined { return this._queue; }
+  public getQueue(): Queue | undefined { return this._queue; }
 
   public async add(name: string, data: any, options?: JobsOptions) {
     await this._getQueue().add(name, data, {
@@ -263,7 +266,7 @@ export class GristBullMQQueueScope extends GristQueueScopeBase<Worker, BullMQJob
   }
 
   protected override async obliterate() {
-    await this._getQueue().obliterate({force: true});
+    await this._getQueue().obliterate({ force: true });
   }
 
   protected createWorker(queueName: string, callback: JobHandler<BullMQJob>): Worker {
@@ -284,10 +287,10 @@ export class GristBullMQQueueScope extends GristQueueScopeBase<Worker, BullMQJob
  * in future if needed.
  */
 class GristWorker {
-  private _jobs: Map<string, NodeJS.Timeout> = new Map();
+  private _jobs = new Map<string, NodeJS.Timeout>();
 
   public constructor(public queueName: string,
-                     private _callback: (job: GristJob) => Promise<void>) {
+    private _callback: (job: GristJob) => Promise<void>) {
   }
 
   public async close() {
@@ -301,22 +304,22 @@ class GristWorker {
     if (options?.delay) {
       if (options.repeat) {
         // Unexpected combination.
-        throw new Error('cannot delay and repeat');
+        throw new Error("cannot delay and repeat");
       }
       const jobId = options.jobId || makeId();
       this._clearJob(jobId);
-      this._jobs.set(jobId, setTimeout(() => this._callback({name, data}),
-                                       options.delay));
+      this._jobs.set(jobId, setTimeout(() => this._callback({ name, data }),
+        options.delay));
       return;
     }
     if (options?.repeat) {
       const jobId = options.jobId || makeId();
       this._clearJob(jobId);
-      this._jobs.set(jobId, setInterval(() => this._callback({name, data}),
-                                        options.repeat.every));
+      this._jobs.set(jobId, setInterval(() => this._callback({ name, data }),
+        options.repeat.every));
       return;
     }
-    await this._callback({name, data});
+    await this._callback({ name, data });
   }
 
   public async obliterate() {

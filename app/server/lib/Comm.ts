@@ -32,33 +32,34 @@
  * In other words, there is an opportunity for untangling and simplifying.
  */
 
-import {EventEmitter} from 'events';
-import * as http from 'http';
-import * as https from 'https';
-import {GristSocketServer} from 'app/server/lib/GristSocketServer';
-import {GristServerSocket} from 'app/server/lib/GristServerSocket';
+import { parseFirstUrlPart } from "app/common/gristUrls";
+import { safeJsonParse } from "app/common/gutil";
+import { UserProfile } from "app/common/LoginSessionAPI";
+import * as version from "app/common/version";
+import { HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
+import { AuthSession } from "app/server/lib/AuthSession";
+import { ScopedSession } from "app/server/lib/BrowserSession";
+import { Client, ClientMethod } from "app/server/lib/Client";
+import { Hosts, RequestWithOrg } from "app/server/lib/extractOrg";
+import { GristLoginMiddleware } from "app/server/lib/GristServer";
+import { GristServerSocket } from "app/server/lib/GristServerSocket";
+import { GristSocketServer } from "app/server/lib/GristSocketServer";
+import log from "app/server/lib/log";
+import { trustOrigin } from "app/server/lib/requestUtils";
+import { localeFromRequest } from "app/server/lib/ServerLocale";
+import { fromCallback } from "app/server/lib/serverUtils";
+import { Sessions } from "app/server/lib/Sessions";
 
-import {parseFirstUrlPart} from 'app/common/gristUrls';
-import {safeJsonParse} from 'app/common/gutil';
-import {UserProfile} from 'app/common/LoginSessionAPI';
-import * as version from 'app/common/version';
-import {HomeDBAuth} from "app/gen-server/lib/homedb/Interfaces";
-import {AuthSession} from "app/server/lib/AuthSession";
-import {ScopedSession} from "app/server/lib/BrowserSession";
-import {Client, ClientMethod} from "app/server/lib/Client";
-import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
-import {GristLoginMiddleware} from 'app/server/lib/GristServer';
-import log from 'app/server/lib/log';
-import {localeFromRequest} from 'app/server/lib/ServerLocale';
-import {fromCallback} from 'app/server/lib/serverUtils';
-import {Sessions} from 'app/server/lib/Sessions';
-import {i18n} from 'i18next';
-import { trustOrigin } from 'app/server/lib/requestUtils';
+import { EventEmitter } from "events";
+import * as http from "http";
+import * as https from "https";
+
+import { i18n } from "i18next";
 
 export interface CommOptions {
   sessions: Sessions;                   // A collection of all sessions for this instance of Grist
   dbManager?: HomeDBAuth;                // HomeDBManager, just the part needed for auth.
-  settings?: {[key: string]: unknown};  // The config object containing instance settings including features.
+  settings?: { [key: string]: unknown };  // The config object containing instance settings including features.
   hosts?: Hosts;  // If set, we use hosts.getOrgInfo(req) to extract an organization from a (possibly versioned) url.
   loginMiddleware?: GristLoginMiddleware; // If set, use custom getProfile method if available
   httpsServer?: https.Server;   // An optional HTTPS server to listen on too.
@@ -79,7 +80,7 @@ export interface CommOptions {
 export class Comm extends EventEmitter {
   // Collection of all sessions; maps sessionIds to ScopedSession objects.
   public readonly sessions: Sessions = this._options.sessions;
-  private _wss: GristSocketServer[]|null = null;
+  private _wss: GristSocketServer[] | null = null;
 
   private _clients = new Map<string, Client>();   // Maps clientIds to Client objects.
 
@@ -89,7 +90,7 @@ export class Comm extends EventEmitter {
   // For upgrading, we use this to set the server version for a defunct server
   // to "dead" so that a client will know that it needs to periodically recheck
   // for a valid server.
-  private _serverVersion: string|null = null;
+  private _serverVersion: string | null = null;
 
   constructor(private _server: http.Server, private _options: CommOptions) {
     super();
@@ -101,7 +102,7 @@ export class Comm extends EventEmitter {
    * @param {Object[String:Function]} Mapping of method name to their implementations. All methods
    *      receive the client as the first argument, and the arguments from the request.
    */
-  public registerMethods(serverMethods: {[name: string]: ClientMethod}): void {
+  public registerMethods(serverMethods: { [name: string]: ClientMethod }): void {
     // Wrap methods to translate return values and exceptions to promises.
     for (const methodName in serverMethods) {
       this._methods.set(methodName, serverMethods[methodName]);
@@ -113,16 +114,16 @@ export class Comm extends EventEmitter {
    */
   public getClient(clientId: string): Client {
     const client = this._clients.get(clientId);
-    if (!client) { throw new Error('Unrecognized clientId'); }
+    if (!client) { throw new Error("Unrecognized clientId"); }
     return client;
   }
 
   /**
    * Broadcasts an app-level message to all clients. Only suitable for non-doc-specific messages.
    */
-  public broadcastMessage(type: 'docListAction', data: unknown) {
+  public broadcastMessage(type: "docListAction", data: unknown) {
     for (const client of this._clients.values()) {
-      client.sendMessage({type, data}).catch(() => {});
+      client.sendMessage({ type, data }).catch(() => {});
     }
   }
 
@@ -133,7 +134,7 @@ export class Comm extends EventEmitter {
   public async testServerShutdown() {
     if (this._wss) {
       for (const wssi of this._wss) {
-        await fromCallback((cb) => wssi.close(cb));
+        await fromCallback(cb => wssi.close(cb));
       }
       this._wss = null;
     }
@@ -161,7 +162,7 @@ export class Comm extends EventEmitter {
    * Call with null to reset the override.
    *
    */
-  public setServerVersion(serverVersion: string|null) {
+  public setServerVersion(serverVersion: string | null) {
     this._serverVersion = serverVersion;
   }
 
@@ -170,13 +171,15 @@ export class Comm extends EventEmitter {
    * connect to it will read a server version of "dead".
    */
   public setServerActivation(active: boolean) {
-    this._serverVersion = active ? null : 'dead';
+    this._serverVersion = active ? null : "dead";
   }
 
   /**
    * Returns a profile based on the request or session.
    */
-  private async _getSessionProfile(scopedSession: ScopedSession, req: http.IncomingMessage): Promise<UserProfile|null> {
+  private async _getSessionProfile(
+    scopedSession: ScopedSession, req: http.IncomingMessage,
+  ): Promise<UserProfile | null> {
     return (
       (await this._options.loginMiddleware?.overrideProfile?.(req)) ??
       (await scopedSession.getSessionProfile())
@@ -187,18 +190,17 @@ export class Comm extends EventEmitter {
    * Processes a new websocket connection, and associates the websocket and a Client object.
    */
   private async _onWebSocketConnection(websocket: GristServerSocket, req: http.IncomingMessage) {
-
     const params = new URL(req.url!, `ws://${req.headers.host}`).searchParams;
-    const existingClientId = params.get('clientId');
-    const browserSettings = safeJsonParse(params.get('browserSettings') || '', {});
-    const newClient = (params.get('newClient') !== '0');  // Treat omitted as new, for the sake of tests.
-    const lastSeqIdStr = params.get('lastSeqId');
+    const existingClientId = params.get("clientId");
+    const browserSettings = safeJsonParse(params.get("browserSettings") || "", {});
+    const newClient = (params.get("newClient") !== "0");  // Treat omitted as new, for the sake of tests.
+    const lastSeqIdStr = params.get("lastSeqId");
     const lastSeqId = lastSeqIdStr ? parseInt(lastSeqIdStr) : null;
-    const counter = params.get('counter');
-    const userSelector = params.get('user') || '';
+    const counter = params.get("counter");
+    const userSelector = params.get("user") || "";
 
     // Associate an ID with each websocket, reusing the supplied one if it's valid.
-    let client: Client|undefined = this._clients.get(existingClientId!);
+    let client: Client | undefined = this._clients.get(existingClientId!);
     let reuseClient = true;
     if (!client?.canAcceptConnection()) {
       reuseClient = false;
@@ -206,7 +208,7 @@ export class Comm extends EventEmitter {
       this._clients.set(client.clientId, client);
     }
 
-    log.rawInfo('Comm: Got Websocket connection', {...client.getLogMeta(), urlPath: req.url, reuseClient});
+    log.rawInfo("Comm: Got Websocket connection", { ...client.getLogMeta(), urlPath: req.url, reuseClient });
 
     // Parse the cookie in the request to get the sessionId.
     const sessionId = this.sessions.getSessionIdFromRequest(req);
@@ -214,7 +216,7 @@ export class Comm extends EventEmitter {
     const profile = await this._getSessionProfile(scopedSession, req);
     const authSession = await getAuthSession(this._options.dbManager, scopedSession, profile);
 
-    client.setConnection({websocket, req, counter, browserSettings, authSession});
+    client.setConnection({ websocket, req, counter, browserSettings, authSession });
 
     await client.sendConnectMessage(newClient, reuseClient, lastSeqId, {
       serverVersion: this._serverVersion || version.gitcommit,
@@ -233,25 +235,27 @@ export class Comm extends EventEmitter {
             if (this._options.hosts) {
               // DocWorker ID (/dw/) and version tag (/v/) may be present in this request but are not
               // needed. addOrgInfo assumes req.url starts with /o/ if present.
-              req.url = parseFirstUrlPart('dw', req.url!).path;
-              req.url = parseFirstUrlPart('v', req.url).path;
+              req.url = parseFirstUrlPart("dw", req.url!).path;
+              req.url = parseFirstUrlPart("v", req.url).path;
               await this._options.hosts.addOrgInfo(req);
             }
 
             return trustOrigin(req);
-          } catch (err) {
+          }
+          catch (err) {
             // Consider exceptions (e.g. in parsing unexpected hostname) as failures to verify.
             // In practice, we only see this happening for spammy/illegitimate traffic; there is
             // no particular reason to log these.
             return false;
           }
-        }
+        },
       });
 
       wssi.onconnection = async (websocket: GristServerSocket, req) => {
         try {
           await this._onWebSocketConnection(websocket, req);
-        } catch (e) {
+        }
+        catch (e) {
           log.error("Comm connection for %s threw exception: %s", req.url, e.message);
           websocket.terminate();  // close() is inadequate when ws routed via loadbalancer
         }
@@ -265,7 +269,7 @@ export class Comm extends EventEmitter {
 // This is a subset of the logic in Authorizer addRequestUser(), but sufficient for websocket
 // connections, which rely on having an existing session.
 async function getAuthSession(
-  dbManager: HomeDBAuth|undefined, scopedSession: ScopedSession, profile: UserProfile|null
+  dbManager: HomeDBAuth | undefined, scopedSession: ScopedSession, profile: UserProfile | null,
 ): Promise<AuthSession> {
   if (!dbManager) {
     return AuthSession.unauthenticated();

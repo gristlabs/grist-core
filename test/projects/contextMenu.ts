@@ -1,74 +1,75 @@
-import { server, setupTestSuite } from 'test/projects/testUtils';
-import { addToRepl, assert, driver, Key } from 'mocha-webdriver';
-import { waitToPass } from 'test/nbrowser/gristUtils';
-import * as gu from 'test/nbrowser/gristUtils';
+import { waitToPass } from "test/nbrowser/gristUtils";
+import * as gu from "test/nbrowser/gristUtils";
+import { server, setupTestSuite } from "test/projects/testUtils";
+
+import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 
 async function contextMenu(x?: number, y?: number) {
-  const rect = await driver.find('body').getRect();
-  return driver.withActions(actions => {
+  const rect = await driver.find("body").getRect();
+  return driver.withActions((actions) => {
     if (x !== undefined && y !== undefined) {
       // passing {orign: 'viewport'} to `actions.move` does not work in bridge mode, so we need to
       // adjust x, y to position relative to body
       x = Math.ceil(x - rect.width * 0.5);
       y = Math.ceil(y - rect.height * 0.5);
-      actions.move({x, y, origin: driver.find('body')});
+      actions.move({ x, y, origin: driver.find("body") });
     }
     actions.contextClick();
   });
 }
 
-describe('contextMenu', function() {
+describe("contextMenu", function() {
   setupTestSuite();
 
   before(async function() {
     this.timeout(20000);
     await driver.get(`${server.getHost()}/contextMenu`);
-    addToRepl('contextMenu', contextMenu);
+    addToRepl("contextMenu", contextMenu);
   });
 
-  it('should open on contextmenu and work properly', async function() {
+  it("should open on contextmenu and work properly", async function() {
     await waitToPass(async () =>  {
       await contextMenu(10, 10);
-      assert.equal(await driver.find('.grist-floating-menu').isPresent(), true);
+      assert.equal(await driver.find(".grist-floating-menu").isPresent(), true);
     });
 
     // click Foo
-    await gu.findOpenMenuItem('li', 'Foo').click();
+    await gu.findOpenMenuItem("li", "Foo").click();
 
     // check menu is gone
-    assert.equal(await driver.find('.grist-floating-menu').isPresent(), false);
+    assert.equal(await driver.find(".grist-floating-menu").isPresent(), false);
 
     // check action worked
     assert.deepEqual(
-      await driver.findAll('.test-logs', e => e.getText()),
-      ['foo added']
+      await driver.findAll(".test-logs", e => e.getText()),
+      ["foo added"],
     );
 
     // click Bar
     await contextMenu();
 
     // check action worked
-    await gu.findOpenMenuItem('li', 'Bar').click();
+    await gu.findOpenMenuItem("li", "Bar").click();
     assert.deepEqual(
-      await driver.findAll('.test-logs', e => e.getText()),
-      ['foo added', 'bar added']
+      await driver.findAll(".test-logs", e => e.getText()),
+      ["foo added", "bar added"],
     );
 
     // click Reset
     await contextMenu();
 
     // check action worked
-    await driver.findContentWait('.grist-floating-menu li', 'Reset', 100).click();
+    await driver.findContentWait(".grist-floating-menu li", "Reset", 100).click();
     assert.deepEqual(
-      await driver.findAll('.test-logs', e => e.getText()),
-      []
+      await driver.findAll(".test-logs", e => e.getText()),
+      [],
     );
 
     // open context menu
     await contextMenu();
 
     // check menu is open
-    assert.equal(await driver.findWait('.grist-floating-menu', 100).isPresent(), true);
+    assert.equal(await driver.findWait(".grist-floating-menu", 100).isPresent(), true);
 
     // send Escape
     await driver.sendKeys(Key.ESCAPE);
@@ -77,11 +78,11 @@ describe('contextMenu', function() {
     await gu.waitForMenuToClose();
   });
 
-  it('should support arrow navigation', async function() {
+  it("should support arrow navigation", async function() {
     // check logs is empty
     assert.deepEqual(
-      await driver.findAll('.test-logs', e => e.getText()),
-      []
+      await driver.findAll(".test-logs", e => e.getText()),
+      [],
     );
 
     // open context menu
@@ -92,12 +93,12 @@ describe('contextMenu', function() {
 
     // check foo was added
     assert.deepEqual(
-      await driver.findAll('.test-logs', e => e.getText()),
-      ['foo added']
+      await driver.findAll(".test-logs", e => e.getText()),
+      ["foo added"],
     );
   });
 
-  it('should keep menu within viewport', async function() {
+  it("should keep menu within viewport", async function() {
     // open menu
     await contextMenu(10, 10);
 
@@ -114,7 +115,7 @@ describe('contextMenu', function() {
     await checkWithinViewport();
 
     async function checkWithinViewport() {
-      const rect = await driver.find('.grist-floating-menu').getRect();
+      const rect = await driver.find(".grist-floating-menu").getRect();
       assert.isAbove(rect.x, 0);
       assert.isBelow(rect.x + rect.width, width);
       assert.isAbove(rect.y, 0);
@@ -122,37 +123,36 @@ describe('contextMenu', function() {
     }
   });
 
-  it('should close on click anywhere outside content', async function() {
+  it("should close on click anywhere outside content", async function() {
     // open context menu
     await contextMenu(10, 10);
 
     // check menu is open
-    assert.equal(await driver.find('.grist-floating-menu').isPresent(), true);
+    assert.equal(await driver.find(".grist-floating-menu").isPresent(), true);
 
     // click anywhere outside
-    await driver.mouseMoveBy({x: -5, y: -5});
+    await driver.mouseMoveBy({ x: -5, y: -5 });
     await driver.withActions(actions => actions.click());
 
     // check menu is closed
-    assert.equal(await driver.find('.grist-floating-menu').isPresent(), false);
+    assert.equal(await driver.find(".grist-floating-menu").isPresent(), false);
   });
 
-  it('context click inside menu should not do unexpected behaviour', async function() {
+  it("context click inside menu should not do unexpected behaviour", async function() {
     // open context menu
     await contextMenu(10, 10);
 
     // context click on top of menu
-    await driver.find('.grist-floating-menu').mouseMove();
+    await driver.find(".grist-floating-menu").mouseMove();
     await driver.withActions(actions => actions.contextClick());
 
     // check only one context menu open
-    assert.equal((await driver.findAll('.grist-floating-menu')).length, 1);
+    assert.equal((await driver.findAll(".grist-floating-menu")).length, 1);
 
     // send escape to close context menu
     await driver.sendKeys(Key.ESCAPE);
 
     // check no context menu
-    assert.equal((await driver.findAll('.grist-floating-menu')).length, 0);
+    assert.equal((await driver.findAll(".grist-floating-menu")).length, 0);
   });
-
 });

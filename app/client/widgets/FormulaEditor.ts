@@ -1,33 +1,34 @@
-import * as AceEditor from 'app/client/components/AceEditor';
-import {CommandName} from 'app/client/components/commandList';
-import * as commands from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {makeT} from 'app/client/lib/localization';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {ColumnRec} from 'app/client/models/DocModel';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {reportError} from 'app/client/models/errors';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {textButton} from 'app/client/ui2018/buttons';
-import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
-import {EditorPlacement, ISize} from 'app/client/widgets/EditorPlacement';
-import {createDetachedIcon} from 'app/client/widgets/FloatingEditor';
-import {FormulaAssistant} from 'app/client/widgets/FormulaAssistant';
-import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
-import {asyncOnce} from 'app/common/AsyncCreate';
-import {CellValue} from 'app/common/DocActions';
-import {isRaisedException} from 'app/common/gristTypes';
-import {undef} from 'app/common/gutil';
-import {getGristConfig} from 'app/common/urlUtils';
-import {decodeObject, RaisedException} from 'app/plugin/objtypes';
-import {Computed, Disposable, dom, Holder, MultiHolder, Observable, styled, subscribe} from 'grainjs';
-import debounce = require('lodash/debounce');
+import * as AceEditor from "app/client/components/AceEditor";
+import { CommandName } from "app/client/components/commandList";
+import * as commands from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
+import { DataRowModel } from "app/client/models/DataRowModel";
+import { ColumnRec } from "app/client/models/DocModel";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { reportError } from "app/client/models/errors";
+import { hoverTooltip } from "app/client/ui/tooltips";
+import { textButton } from "app/client/ui2018/buttons";
+import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { createMobileButtons, getButtonMargins } from "app/client/widgets/EditorButtons";
+import { EditorPlacement, ISize } from "app/client/widgets/EditorPlacement";
+import { createDetachedIcon } from "app/client/widgets/FloatingEditor";
+import { FormulaAssistant } from "app/client/widgets/FormulaAssistant";
+import { NewBaseEditor, Options } from "app/client/widgets/NewBaseEditor";
+import { asyncOnce } from "app/common/AsyncCreate";
+import { CellValue } from "app/common/DocActions";
+import { isRaisedException } from "app/common/gristTypes";
+import { undef } from "app/common/gutil";
+import { getGristConfig } from "app/common/urlUtils";
+import { decodeObject, RaisedException } from "app/plugin/objtypes";
+
+import { Computed, Disposable, dom, Holder, MultiHolder, Observable, styled, subscribe } from "grainjs";
+import debounce from "lodash/debounce";
 
 // How wide to expand the FormulaEditor when an error is shown in it.
 const minFormulaErrorWidth = 400;
-const t = makeT('FormulaEditor');
+const t = makeT("FormulaEditor");
 
 export interface IFormulaEditorOptions extends Options {
   cssClass?: string;
@@ -36,7 +37,6 @@ export interface IFormulaEditorOptions extends Options {
   field?: ViewFieldRec;
   canDetach?: boolean;
 }
-
 
 /**
  * Required parameters:
@@ -69,14 +69,14 @@ export class FormulaEditor extends NewBaseEditor {
     // create editor state observable (used by draft and latest position memory)
     this.editorState = Observable.create(this, initialValue);
 
-    this._isEmpty = Computed.create(this, this.editorState, (_use, state) => state === '');
+    this._isEmpty = Computed.create(this, this.editorState, (_use, state) => state === "");
 
     this._aceEditor = AceEditor.create({
       // A bit awkward, but we need to assume calcSize is not used until attach() has been called
       // and _editorPlacement created.
       calcSize: this._calcSize.bind(this),
       saveValueOnBlurEvent: !options.readonly,
-      editorState : this.editorState,
+      editorState: this.editorState,
       readonly: options.readonly,
       getSuggestions: this._getSuggestions.bind(this),
     });
@@ -93,8 +93,8 @@ export class FormulaEditor extends NewBaseEditor {
 
     // Merge those two groups into one.
     const aceCommands: any = {
-      knownKeys: {...commandGroup.knownKeys, ...editorGroup.knownKeys},
-      commands: {...commandGroup.commands, ...editorGroup.commands},
+      knownKeys: { ...commandGroup.knownKeys, ...editorGroup.knownKeys },
+      commands: { ...commandGroup.commands, ...editorGroup.commands },
     };
 
     // Tab, Shift + Tab, Enter should be handled by the editor itself when we are in the detached mode.
@@ -108,23 +108,23 @@ export class FormulaEditor extends NewBaseEditor {
       return commands.allCommands[name]?.run() ?? false;
     };
     const detachedCommands = this.autoDispose(commands.createGroup({
-      nextField: passThrough('nextField'),
-      prevField: passThrough('prevField'),
-      fieldEditSave: passThrough('fieldEditSave'),
+      nextField: passThrough("nextField"),
+      prevField: passThrough("prevField"),
+      fieldEditSave: passThrough("fieldEditSave"),
     }, this, false /* don't activate, we're just borrowing constructor */));
 
     Object.assign(aceCommands.knownKeys, detachedCommands.knownKeys);
     Object.assign(aceCommands.commands, detachedCommands.commands);
 
     const hideErrDetails = Observable.create(this, true);
-    const raisedException = Computed.create(this, use => {
+    const raisedException = Computed.create(this, (use) => {
       const formulaError = options.formulaError && use(options.formulaError);
       if (!formulaError) {
         return null;
       }
       const error = isRaisedException(formulaError) ?
-                    decodeObject(formulaError) as RaisedException:
-                    new RaisedException(["Unknown error"]);
+        decodeObject(formulaError) as RaisedException :
+        new RaisedException(["Unknown error"]);
       return error;
     });
     const errorText = Computed.create(this, raisedException, (_, error) => {
@@ -156,7 +156,8 @@ export class FormulaEditor extends NewBaseEditor {
       // TODO: look into whether we can support undo/redo while the editor is detached.
       if (isDetached) {
         options.gristDoc.getUndoStack().disable();
-      } else {
+      }
+      else {
         options.gristDoc.getUndoStack().enable();
       }
     });
@@ -172,7 +173,7 @@ export class FormulaEditor extends NewBaseEditor {
       options.cssClass ? dom.cls(options.cssClass) : null,
 
       // This shouldn't be needed, but needed for tests.
-      dom.on('mousedown', (ev) => {
+      dom.on("mousedown", (ev) => {
         // If we are detached, allow user to click and select error text.
         if (this.isDetached.get()) {
           // If we clicked on input element in our dom, don't do anything. We probably clicked on chat input, in AI
@@ -185,8 +186,8 @@ export class FormulaEditor extends NewBaseEditor {
         }
         // Allow clicking the error message.
         if (ev.target instanceof HTMLElement && (
-          ev.target.classList.contains('error_msg') ||
-              ev.target.classList.contains('error_details_inner')
+          ev.target.classList.contains("error_msg") ||
+          ev.target.classList.contains("error_details_inner")
         )) {
           return;
         }
@@ -194,11 +195,11 @@ export class FormulaEditor extends NewBaseEditor {
         this.focus();
       }),
       !this._canDetach ? null : createDetachedIcon(
-        hoverTooltip(t('Expand Editor')),
+        hoverTooltip(t("Expand Editor")),
         dom.hide(this.isDetached),
       ),
-      cssFormulaEditor.cls('-detached', this.isDetached),
-      dom('div.formula_editor.formula_field_edit', testId('formula-editor'),
+      cssFormulaEditor.cls("-detached", this.isDetached),
+      dom("div.formula_editor.formula_field_edit", testId("formula-editor"),
         this._aceEditor.buildDom((aceObj: any) => {
           initializeAceOptions(aceObj);
           const val = initialValue;
@@ -219,38 +220,38 @@ export class FormulaEditor extends NewBaseEditor {
             editingFormula?.(true);
           });
 
-          if (val === '') {
+          if (val === "") {
             // Show placeholder text if the formula is blank.
             this._updateEditorPlaceholder();
           }
-        })
+        }),
       ),
       dom.maybe(options.formulaError, () => [
-        dom('div.error_msg', testId('formula-error-msg'),
-          dom.attr('tabindex', '-1'),
+        dom("div.error_msg", testId("formula-error-msg"),
+          dom.attr("tabindex", "-1"),
           dom.maybe(errorDetails, () =>
-            dom.domComputed(hideErrDetails, (hide) => cssCollapseIcon(
-              hide ? 'Expand' : 'Collapse',
-              testId('formula-error-expand'),
-              dom.on('click', () => {
-                if (errorDetails.get()){
+            dom.domComputed(hideErrDetails, hide => cssCollapseIcon(
+              hide ? "Expand" : "Collapse",
+              testId("formula-error-expand"),
+              dom.on("click", () => {
+                if (errorDetails.get()) {
                   hideErrDetails.set(!hideErrDetails.get());
                   this._aceEditor.resize();
                 }
-              })
-            ))
+              }),
+            )),
           ),
           dom.text(errorText),
         ),
         dom.maybe(use => Boolean(use(errorDetails) && !use(hideErrDetails)), () =>
-          dom('div.error_details',
-            dom.attr('tabindex', '-1'),
-            dom('div.error_details_inner',
+          dom("div.error_details",
+            dom.attr("tabindex", "-1"),
+            dom("div.error_details_inner",
               dom.text(errorDetails),
             ),
-            testId('formula-error-details'),
-          )
-        )
+            testId("formula-error-details"),
+          ),
+        ),
       ]),
       dom.maybe(this.isDetached, () => {
         return dom.create(FormulaAssistant, {
@@ -266,7 +267,7 @@ export class FormulaEditor extends NewBaseEditor {
   public attach(cellElem: Element): void {
     this.isDetached.set(false);
     this._editorPlacement = EditorPlacement.create(
-      this._placementHolder, this._dom, cellElem, {margins: getButtonMargins()});
+      this._placementHolder, this._dom, cellElem, { margins: getButtonMargins() });
     // Reposition the editor if needed for external reasons (in practice, window resize).
     this.autoDispose(this._editorPlacement.onReposition.addListener(this._aceEditor.resize, this._aceEditor));
     this._aceEditor.onAttach();
@@ -287,7 +288,7 @@ export class FormulaEditor extends NewBaseEditor {
     const value = this._aceEditor.getValue();
     // Strip the leading "=" sign, if any, in case users think it should start the formula body (as
     // it does in Excel, and because the equal sign is also used for formulas in Grist UI).
-    return (value[0] === '=') ? value.slice(1) : value;
+    return (value[0] === "=") ? value.slice(1) : value;
   }
 
   public getTextValue() {
@@ -335,19 +336,20 @@ export class FormulaEditor extends NewBaseEditor {
     }
     if (!shouldShowPlaceholder) {
       editor.renderer.emptyMessageNode = null;
-    } else {
+    }
+    else {
       const withAiButton =
         this._canDetach &&
         !this.isDetached.get() &&
         getGristConfig().assistant?.version === 1;
       editor.renderer.emptyMessageNode = cssFormulaPlaceholder(
-          !withAiButton
-          ? t('Enter formula.')
-          : t('Enter formula or {{button}}.', {
+        !withAiButton ?
+          t("Enter formula.") :
+          t("Enter formula or {{button}}.", {
             button: cssUseAssistantButton(
-              t('use AI Assistant'),
-              dom.on('click', (ev) => this._handleUseAssistantButtonClick(ev)),
-              testId('formula-editor-use-ai-assistant'),
+              t("use AI Assistant"),
+              dom.on("click", ev => this._handleUseAssistantButtonClick(ev)),
+              testId("formula-editor-use-ai-assistant"),
             ),
           }),
       );
@@ -367,7 +369,7 @@ export class FormulaEditor extends NewBaseEditor {
       // If we are detached, we will stop autosizing.
       return {
         height: 0,
-        width: 0
+        width: 0,
       };
     }
 
@@ -380,7 +382,7 @@ export class FormulaEditor extends NewBaseEditor {
       });
     }
 
-    const errorBox: HTMLElement|null = this._dom.querySelector('.error_details');
+    const errorBox: HTMLElement | null = this._dom.querySelector(".error_details");
     const errorBoxStartHeight = errorBox?.getBoundingClientRect().height || 0;
     const errorBoxDesiredHeight = errorBox?.scrollHeight || 0;
 
@@ -433,20 +435,22 @@ export class FormulaEditor extends NewBaseEditor {
     const aceObj = this._aceEditor.getEditor();
     if (!aceObj.selection.isEmpty()) {
       // If text selected, replace whole selection
-      aceObj.session.replace(aceObj.selection.getRange(), '$' + colId);
-    } else {
+      aceObj.session.replace(aceObj.selection.getRange(), "$" + colId);
+    }
+    else {
       // Not a selection, gotta figure out what to replace
       const pos = aceObj.getCursorPosition();
       const line = aceObj.session.getLine(pos.row);
       const result = _isInIdentifier(line, pos.column); // returns {start, end, id} | null
       if (!result) {
         // Not touching an identifier, insert colId as normal
-        aceObj.insert('$' + colId);
+        aceObj.insert("$" + colId);
         // We are touching an identifier
-      } else if (result.ident.startsWith('$')) {
+      }
+      else if (result.ident.startsWith("$")) {
         // If ident is a colId, replace it
         const idRange = AceEditor.makeRange(pos.row, result.start, pos.row, result.end);
-        aceObj.session.replace(idRange, '$' + colId);
+        aceObj.session.replace(idRange, "$" + colId);
       }
       // Else touching a normal identifier, don't mangle it
     }
@@ -458,7 +462,7 @@ export class FormulaEditor extends NewBaseEditor {
     // call doesn't usually help is that this is called on 'mousedown' before its corresponding
     // focus/blur occur. We can do a bit better by restoring focus immediately after blur occurs.
     aceObj.focus();
-    const lis = dom.onElem(aceObj.textInput.getElement(), 'blur', e => { lis.dispose(); aceObj.focus(); });
+    const lis = dom.onElem(aceObj.textInput.getElement(), "blur", (e) => { lis.dispose(); aceObj.focus(); });
     // If no blur right away, clear the listener, to avoid unexpected interference.
     setTimeout(() => lis.dispose(), 0);
   }
@@ -467,19 +471,20 @@ export class FormulaEditor extends NewBaseEditor {
 // returns whether the column in that line is inside or adjacent to an identifier
 // if yes, returns {start, end, ident}, else null
 function _isInIdentifier(line: string, column: number) {
-    // If cursor is in or after an identifier, scoot back to the start of it
-    const prefix = line.slice(0, column);
-    let startOfIdent = prefix.search(/[$A-Za-z0-9_]+$/);
-    if (startOfIdent < 0) { startOfIdent = column; } // if no match, maybe we're right before it
+  // If cursor is in or after an identifier, scoot back to the start of it
+  const prefix = line.slice(0, column);
+  let startOfIdent = prefix.search(/[$A-Za-z0-9_]+$/);
+  if (startOfIdent < 0) { startOfIdent = column; } // if no match, maybe we're right before it
 
-    // We're either before an ident or nowhere near one. Try to match to its end
-    const match = line.slice(startOfIdent).match(/^[$a-zA-Z0-9_]+/);
-    if (match) {
-        const ident = match[0];
-        return { ident, start: startOfIdent, end: startOfIdent + ident.length};
-    } else {
-        return null;
-    }
+  // We're either before an ident or nowhere near one. Try to match to its end
+  const match = line.slice(startOfIdent).match(/^[$a-zA-Z0-9_]+/);
+  if (match) {
+    const ident = match[0];
+    return { ident, start: startOfIdent, end: startOfIdent + ident.length };
+  }
+  else {
+    return null;
+  }
 }
 
 /**
@@ -506,23 +511,24 @@ export function openFormulaEditor(options: {
     owner: Disposable,
     doc: GristDoc,
     editingFormula: ko.Computed<boolean>,
-    save: () => Promise<void>
+    save: () => Promise<void>,
   ) => void,
 }): FormulaEditor {
-  const {gristDoc, editRow, refElem, setupCleanup} = options;
+  const { gristDoc, editRow, refElem, setupCleanup } = options;
   const attachedHolder = new MultiHolder();
 
   if (options.field) {
     options.column = options.field.origCol();
-  } else if (options.canDetach) {
-    throw new Error('Field is required for detached editor');
+  }
+  else if (options.canDetach) {
+    throw new Error("Field is required for detached editor");
   }
 
   // We can't rely on the field passed in, we need to create our own.
   const column = options.column ?? options.field?.column();
 
   if (!column) {
-    throw new Error('Column or field is required');
+    throw new Error("Column or field is required");
   }
 
   // AsyncOnce ensures it's called once even if triggered multiple times.
@@ -536,11 +542,13 @@ export function openFormulaEditor(options: {
     if (formula !== column.formula.peek()) {
       if (options.onSave) {
         await options.onSave(column, formula);
-      } else {
-        await column.updateColValues({formula});
+      }
+      else {
+        await column.updateColValues({ formula });
       }
       editor.dispose();
-    } else {
+    }
+    else {
       editor.dispose();
       options.onCancel?.();
     }
@@ -570,9 +578,9 @@ export function openFormulaEditor(options: {
     editValue: options.editValue,
     cursorPos: Number.POSITIVE_INFINITY,    // Position of the caret within the editor.
     commands: editCommands,
-    cssClass: 'formula_editor_sidepane',
-    readonly : false,
-    canDetach: options.canDetach
+    cssClass: "formula_editor_sidepane",
+    readonly: false,
+    canDetach: options.canDetach,
   };
   const editor = FormulaEditor.create(null, editorOptions);
   editor.autoDispose(attachedHolder);
@@ -581,7 +589,7 @@ export function openFormulaEditor(options: {
   const editingFormula = options.editingFormula ?? options?.field?.editingFormula;
 
   if (!editingFormula) {
-    throw new Error(t('editingFormula is required'));
+    throw new Error(t("editingFormula is required"));
   }
 
   // When formula is empty enter formula-editing mode (highlight formula icons; click on a column inserts its ID).
@@ -604,8 +612,8 @@ export function getFormulaError(owner: Disposable, options: {
   editRow: DataRowModel,
   column?: ColumnRec,
   field?: ViewFieldRec,
-}): Observable<CellValue|undefined> {
-  const {gristDoc, editRow} = options;
+}): Observable<CellValue | undefined> {
+  const { gristDoc, editRow } = options;
   const formulaError = Observable.create(owner, undefined as any);
   // When we don't have a field information we don't need to be reactive at all.
   if (!options.field) {
@@ -616,8 +624,8 @@ export function getFormulaError(owner: Disposable, options: {
     owner.autoDispose(subscription);
     onValueChange(editRow.cells[colId].peek());
     return formulaError;
-  } else {
-
+  }
+  else {
     // We can't rely on the editRow we got, as this is owned by the view. When we will be detached the view will be
     // gone. So, we will create our own observable that will be updated when the row is updated.
     const errorRow: DataRowModel = gristDoc.getTableModel(options.field.tableId.peek()).createFloatingRowModel() as any;
@@ -627,7 +635,7 @@ export function getFormulaError(owner: Disposable, options: {
     // When we have a field information we will grab the error from the column that is currently connected to the field.
     // This will change when user is using the preview feature in detached editor, where a new column is created, and
     // field starts showing it instead of the original column.
-    Computed.create(owner, use => {
+    Computed.create(owner, (use) => {
       // This pattern creates a subscription using compute observable.
 
       // Create an holder for everything that is created during recomputation. It will be returned as the value
@@ -655,7 +663,7 @@ function errorMonitor(
   column: ColumnRec,
   editRow: DataRowModel,
   holder: Disposable,
-  formulaError: Observable<CellValue|undefined> ) {
+  formulaError: Observable<CellValue | undefined>) {
   return  function onValueChange(cellCurrentValue: CellValue) {
     const isFormula = column.isFormula() || column.hasTriggerFormula();
     if (isFormula && isRaisedException(cellCurrentValue)) {
@@ -664,7 +672,7 @@ function errorMonitor(
         formulaError.set(cellCurrentValue);
       }
       gristDoc.docData.getFormulaError(column.table().tableId(), column.colId(), editRow.getRowId())
-        .then(value => {
+        .then((value) => {
           if (holder.isDisposed()) { return; }
           formulaError.set(value);
         })
@@ -673,7 +681,8 @@ function errorMonitor(
             reportError(er);
           }
         });
-    } else {
+    }
+    else {
       formulaError.set(undefined);
     }
   };
@@ -684,7 +693,7 @@ function errorMonitor(
  * response to changes in origColumn and in user data.
  */
 export function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, origColumn: ColumnRec) {
-  const errorMessage = Observable.create(owner, '');
+  const errorMessage = Observable.create(owner, "");
 
   // Count errors in origColumn when it's a formula column. Counts get cached by the
   // tableData.countErrors() method, and invalidated on relevant data changes.
@@ -697,13 +706,14 @@ export function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, or
       const numCells = tableData.getColValues(colId)?.length || 0;
       const numErrors = tableData.countErrors(colId) || 0;
       errorMessage.set(
-        (numErrors === 0) ? '' :
-        (numCells === 1) ? t(`Error in the cell`) :
-        (numErrors === numCells) ? t(`Errors in all {{numErrors}} cells`, {numErrors}) :
-        t(`Errors in {{numErrors}} of {{numCells}} cells`, {numErrors, numCells})
+        (numErrors === 0) ? "" :
+          (numCells === 1) ? t(`Error in the cell`) :
+            (numErrors === numCells) ? t(`Errors in all {{numErrors}} cells`, { numErrors }) :
+              t(`Errors in {{numErrors}} of {{numCells}} cells`, { numErrors, numCells }),
       );
-    } else {
-      errorMessage.set('');
+    }
+    else {
+      errorMessage.set("");
     }
   }
 
@@ -722,7 +732,7 @@ export function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, or
   // The counts depend on the origColumn and its isRealFormula status, but with the debounced
   // callback and subscription to data, subscribe to relevant changes manually (rather than using
   // a Computed).
-  owner.autoDispose(subscribe(use => { use(origColumn.id); use(origColumn.isRealFormula); debouncedCountErrors(); }));
+  owner.autoDispose(subscribe((use) => { use(origColumn.id); use(origColumn.isRealFormula); debouncedCountErrors(); }));
   return errorMessage;
 }
 
@@ -742,11 +752,11 @@ const cssCollapseIcon = styled(icon, `
   flex-shrink: 0;
 `);
 
-export const cssError = styled('div', `
+export const cssError = styled("div", `
   color: ${theme.errorText};
 `);
 
-const cssFormulaEditor = styled('div.default_editor.formula_editor_wrapper', `
+const cssFormulaEditor = styled("div.default_editor.formula_editor_wrapper", `
   &-detached {
     height: 100%;
     position: relative;
@@ -773,7 +783,7 @@ const cssFormulaEditor = styled('div.default_editor.formula_editor_wrapper', `
   }
 `);
 
-const cssFormulaPlaceholder = styled('div', `
+const cssFormulaPlaceholder = styled("div", `
   color: ${theme.lightText};
   font-style: italic;
   white-space: nowrap;

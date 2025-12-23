@@ -1,10 +1,10 @@
 /**
  * Implements a cache of values computed from the data in a Grist column.
  */
-import {TableData} from 'app/client/models/TableData';
-import {DocAction} from 'app/common/DocActions';
-import {isBulkUpdateRecord, isUpdateRecord} from 'app/common/DocActions';
-import {getSetMapValue} from 'app/common/gutil';
+import { TableData } from "app/client/models/TableData";
+import { DocAction } from "app/common/DocActions";
+import { isBulkUpdateRecord, isUpdateRecord } from "app/common/DocActions";
+import { getSetMapValue } from "app/common/gutil";
 
 export class ColumnCache<T> {
   private _cachedColIndexes = new Map<string, T>();
@@ -30,7 +30,8 @@ export class ColumnCache<T> {
       for (const colId of Object.keys(colValues)) {
         this._cachedColIndexes.delete(colId);
       }
-    } else {
+    }
+    else {
       // For add/delete actions and all schema changes, drop the cache entirely to be on the safe side.
       this._clearCache();
     }

@@ -17,14 +17,16 @@
  * It will start up webpack-dev-server before this suite is run, so that MyPage is available to
  * fetch using webdriver.
  */
-import {exitPromise} from 'app/server/lib/serverUtils';
-import {ChildProcess, spawn} from 'child_process';
-import {driver, IMochaContext, IMochaServer} from 'mocha-webdriver';
-import fetch from 'node-fetch';
-import stripAnsi from "strip-ansi";
-import * as path from 'path';
+import { exitPromise } from "app/server/lib/serverUtils";
 
-const configPath = process.env.PROJECTS_WEBPACK_CONFIG || path.resolve(__dirname, 'webpack.config.js');
+import { ChildProcess, spawn } from "child_process";
+import * as path from "path";
+
+import { driver, IMochaContext, IMochaServer } from "mocha-webdriver";
+import fetch from "node-fetch";
+import stripAnsi from "strip-ansi";
+
+const configPath = process.env.PROJECTS_WEBPACK_CONFIG || path.resolve(__dirname, "webpack.config.js");
 
 export class WebpackServer implements IMochaServer {
   // Fork a WebpackDevServer. See https://github.com/webpack/docs/wiki/webpack-dev-server
@@ -36,16 +38,16 @@ export class WebpackServer implements IMochaServer {
 
   private _serverUrl: string;
   private _server: ChildProcess;
-  private _exitPromise: Promise<number|string>;
+  private _exitPromise: Promise<number | string>;
   private _webpackComplete: Promise<boolean>;
 
   public async start(context: IMochaContext) {
     context.timeout(60000);
     logMessage(`starting with config ${configPath}`);
 
-    this._server = spawn('node',
-      ['node_modules/.bin/webpack-dev-server', '--config', configPath, '--no-open'], {
-        stdio: ['inherit', 'pipe', 'inherit'],
+    this._server = spawn("node",
+      ["node_modules/.bin/webpack-dev-server", "--config", configPath, "--no-open"], {
+        stdio: ["inherit", "pipe", "inherit"],
       });
     this._exitPromise = exitPromise(this._server);
 
@@ -64,7 +66,7 @@ export class WebpackServer implements IMochaServer {
       });
     });
 
-
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const config = require(configPath);
     const port = config.devServer.port;
     this._serverUrl = `http://localhost:${port}`;
@@ -81,8 +83,9 @@ export class WebpackServer implements IMochaServer {
    */
   public async isServerReady(): Promise<boolean> {
     try {
-      return (await fetch(this._serverUrl, {timeout: 1000})).ok;
-    } catch (err) {
+      return (await fetch(this._serverUrl, { timeout: 1000 })).ok;
+    }
+    catch (err) {
       return false;
     }
   }
@@ -111,7 +114,7 @@ export class WebpackServer implements IMochaServer {
 }
 
 function logMessage(msg: string) {
-  console.error("[webpack-test-server] " + msg);   // tslint:disable-line:no-console
+  console.error("[webpack-test-server] " + msg);
 }
 
 export const server = new WebpackServer();

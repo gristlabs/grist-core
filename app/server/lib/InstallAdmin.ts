@@ -1,17 +1,17 @@
-import {ApiError} from 'app/common/ApiError';
-import {HomeDBManager, SUPPORT_EMAIL} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {InstallAdminInfo} from 'app/common/LoginSessionAPI';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {getUser, RequestWithLogin} from 'app/server/lib/Authorizer';
-import {User} from 'app/gen-server/entity/User';
-import express from 'express';
+import { ApiError } from "app/common/ApiError";
+import { InstallAdminInfo } from "app/common/LoginSessionAPI";
+import { User } from "app/gen-server/entity/User";
+import { HomeDBManager, SUPPORT_EMAIL } from "app/gen-server/lib/homedb/HomeDBManager";
+import { appSettings } from "app/server/lib/AppSettings";
+import { getUser, RequestWithLogin } from "app/server/lib/Authorizer";
+
+import express from "express";
 
 /**
  * Class implementing the logic to determine whether a user is authorized to manage the Grist
  * installation.
  */
 export abstract class InstallAdmin {
-
   // Returns true if user is authorized to manage the Grist installation.
   public abstract isAdminUser(user: User): Promise<boolean>;
 
@@ -42,10 +42,11 @@ export abstract class InstallAdmin {
     try {
       // getUser() will fail with 401 if user is not present.
       if (!await this.isAdminUser(getUser(req))) {
-        throw new ApiError('Access denied', 403);
+        throw new ApiError("Access denied", 403);
       }
       next();
-    } catch (err) {
+    }
+    catch (err) {
       next(err);
     }
   }
@@ -56,8 +57,8 @@ export abstract class InstallAdmin {
 // If GRIST_DEFAULT_EMAIL is not given, we fall back on GRIST_SUPPORT_EMAIL,
 // which defaults to support@getgrist.com
 export class SimpleInstallAdmin extends InstallAdmin {
-  private _installAdminEmail = appSettings.section('access').flag('installAdminEmail').readString({
-    envVar: 'GRIST_DEFAULT_EMAIL',
+  private _installAdminEmail = appSettings.section("access").flag("installAdminEmail").readString({
+    envVar: "GRIST_DEFAULT_EMAIL",
   });
 
   public constructor(private _dbManager: HomeDBManager) {
@@ -69,7 +70,7 @@ export class SimpleInstallAdmin extends InstallAdmin {
   }
 
   public override async isAdminUser(user: User): Promise<boolean> {
-    return user.loginEmail === this._adminEmail && this._adminEmail !== '';
+    return user.loginEmail === this._adminEmail && this._adminEmail !== "";
   }
 
   public override clearCaches(): void {
@@ -80,17 +81,17 @@ export class SimpleInstallAdmin extends InstallAdmin {
   }
 
   public override async getAdminUsers(req: express.Request): Promise<InstallAdminInfo[]> {
-    if(!this._installAdminEmail) {
+    if (!this._installAdminEmail) {
       return [{
         user: null,
-        reason: req.t('admin.noDefaultEmail'),
+        reason: req.t("admin.noDefaultEmail"),
       }];
     }
 
     const installAdmin = await this._dbManager.getUserByLogin(this._installAdminEmail);
     return [{
       user: installAdmin.toUserProfile(),
-      reason: req.t('admin.accountByEmail', {defaultEmail: this._installAdminEmail})
+      reason: req.t("admin.accountByEmail", { defaultEmail: this._installAdminEmail }),
     }];
   }
 }

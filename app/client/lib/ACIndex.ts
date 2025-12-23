@@ -7,11 +7,12 @@
  * "lush" would only match the "L" in "Lavender".
  */
 
-import {localeCompare, nativeCompare, sortedIndex} from 'app/common/gutil';
-import {DomContents} from 'grainjs';
-import escapeRegExp = require("lodash/escapeRegExp");
-import deburr = require("lodash/deburr");
-import split = require("lodash/split");
+import { localeCompare, nativeCompare, sortedIndex } from "app/common/gutil";
+
+import { DomContents } from "grainjs";
+import deburr from "lodash/deburr";
+import escapeRegExp from "lodash/escapeRegExp";
+import split from "lodash/split";
 
 export interface ACItem {
   // This should be a trimmed lowercase version of the item's text. It may be an accessor.
@@ -41,7 +42,7 @@ export interface ACIndex<Item extends ACItem> {
 // Splits text into an array of pieces, with odd-indexed pieces being the ones to highlight.
 export type HighlightFunc = (text: string) => string[];
 
-export const highlightNone: HighlightFunc = (text) => [text];
+export const highlightNone: HighlightFunc = text => [text];
 
 /**
  * AutoComplete results include the suggested items, which one to highlight, and a function for
@@ -108,14 +109,13 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
       const item = this._allItems[index];
       const words = item.cleanText.split(wordSepRegexp).filter(w => w);
       for (let pos = 0; pos < words.length; pos++) {
-        allWords.push({word: words[pos], index, pos});
+        allWords.push({ word: words[pos], index, pos });
       }
     }
 
     allWords.sort((a, b) => localeCompare(a.word, b.word));
     this._words = allWords;
   }
-
 
   // The main search function. SearchText will be cleaned (trimmed and lowercased) at the start.
   // Empty search text returns the first N items in the search universe.
@@ -166,7 +166,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
 
     if (!cleanedSearchText) {
       // In this case we are just returning the first few items.
-      return {items, extraItems: [], highlightFunc: highlightNone, selectIndex: -1};
+      return { items, extraItems: [], highlightFunc: highlightNone, selectIndex: -1 };
     }
 
     const highlightFunc = highlightMatches.bind(null, searchWords);
@@ -177,7 +177,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
     if (selectIndex >= 0 && !startsWithText(items[selectIndex], cleanedSearchText, searchWords)) {
       selectIndex = -1;
     }
-    return {items, extraItems: [], highlightFunc, selectIndex};
+    return { items, extraItems: [], highlightFunc, selectIndex };
   }
 
   /**
@@ -193,7 +193,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
    * whose words occur in the same order as in the search text.
    */
   private _findOverlaps(searchWord: string, searchWordPos: number): Map<number, number> {
-    const insertIndex = sortedIndex<{word: string}>(this._words, {word: searchWord},
+    const insertIndex = sortedIndex<{ word: string }>(this._words, { word: searchWord },
       (a, b) => localeCompare(a.word, b.word));
 
     // Maps index of item to its score.
@@ -204,7 +204,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
       let prefix = searchWord;
       let index = insertIndex + (step > 0 ? 0 : -1);
       while (prefix && index >= 0 && index < this._words.length) {
-        for ( ; index >= 0 && index < this._words.length; index += step) {
+        for (; index >= 0 && index < this._words.length; index += step) {
           const wordEntry = this._words[index];
           // Once we reach a word that doesn't start with our prefix, break this loop, so we can
           // reduce the length of the prefix and keep scanning.
@@ -238,20 +238,18 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
   }
 }
 
-
 export type BuildHighlightFunc = (match: string) => DomContents;
 
 /**
  * Converts text to DOM with matching bits of text rendered using highlight(match) function.
  */
 export function buildHighlightedDom(
-  text: string, highlightFunc: HighlightFunc, highlight: BuildHighlightFunc
+  text: string, highlightFunc: HighlightFunc, highlight: BuildHighlightFunc,
 ): DomContents {
   if (!text) { return text; }
   const parts = highlightFunc(text);
   return parts.map((part, k) => k % 2 ? highlight(part) : part);
 }
-
 
 // Same as wordSepRegexp, but with capturing parentheses.
 const wordSepRegexpParen = new RegExp(`(${wordSepRegexp.source})`);
@@ -262,20 +260,21 @@ const wordSepRegexpParen = new RegExp(`(${wordSepRegexp.source})`);
  */
 function highlightMatches(searchWords: string[], text: string): string[] {
   const textParts = text.split(wordSepRegexpParen);
-  const outputs = [''];
+  const outputs = [""];
   for (let i = 0; i < textParts.length; i += 2) {
     const word = textParts[i];
-    const separator = textParts[i + 1] || '';
+    const separator = textParts[i + 1] || "";
     // deburr (remove diacritics) was used to produce searchWords, so `word` needs to match that.
     const prefixLen = findLongestPrefixLen(deburr(word).toLowerCase(), searchWords);
     if (prefixLen === 0) {
       outputs[outputs.length - 1] += word + separator;
-    } else {
+    }
+    else {
       // Split into unicode 'characters' that keep diacritics combined
-      const chars = split(word, '');
+      const chars = split(word, "");
       outputs.push(
-        chars.slice(0, prefixLen).join(''),
-        chars.slice(prefixLen).join('') + separator
+        chars.slice(0, prefixLen).join(""),
+        chars.slice(prefixLen).join("") + separator,
       );
     }
   }
@@ -299,7 +298,7 @@ function findCommonPrefixLength(text1: string, text2: string): number {
 function startsWithText(item: ACItem, text: string, searchWords: string[]): boolean {
   if (item.cleanText.startsWith(text)) { return true; }
 
-  const regexp = new RegExp(searchWords.map(w => `\\b` + escapeRegExp(w)).join('.*'));
-  const cleanText = item.cleanText.split(wordSepRegexp).join(' ');
+  const regexp = new RegExp(searchWords.map(w => `\\b` + escapeRegExp(w)).join(".*"));
+  const cleanText = item.cleanText.split(wordSepRegexp).join(" ");
   return regexp.test(cleanText);
 }

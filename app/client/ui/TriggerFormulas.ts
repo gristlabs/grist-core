@@ -1,30 +1,32 @@
-import {makeT} from 'app/client/lib/localization';
-import type {ColumnRec} from 'app/client/models/entities/ColumnRec';
-import type {TableRec} from 'app/client/models/entities/TableRec';
-import {reportError} from 'app/client/models/errors';
-import {cssRow} from 'app/client/ui/RightPanelStyles';
-import {shadowScroll} from 'app/client/ui/shadowScroll';
-import {basicButton, primaryButton} from "app/client/ui2018/buttons";
-import {labeledSquareCheckbox} from "app/client/ui2018/checkbox";
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from "app/client/ui2018/icons";
-import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
-import {cssSelectBtn} from 'app/client/ui2018/select';
-import {CellValue} from 'app/common/DocActions';
-import {isEmptyList, RecalcWhen} from 'app/common/gristTypes';
-import {nativeCompare} from 'app/common/gutil';
-import {decodeObject, encodeObject} from 'app/plugin/objtypes';
-import {Computed, dom, IDisposableOwner, MultiHolder, Observable, styled} from 'grainjs';
-import {cssMenu, cssMenuItem, defaultMenuOptions, IOpenController, setPopupToCreateDom} from "popweasel";
-import isEqual = require('lodash/isEqual');
+import { makeT } from "app/client/lib/localization";
+import { reportError } from "app/client/models/errors";
+import { cssRow } from "app/client/ui/RightPanelStyles";
+import { shadowScroll } from "app/client/ui/shadowScroll";
+import { basicButton, primaryButton } from "app/client/ui2018/buttons";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menuCssClass, menuDivider } from "app/client/ui2018/menus";
+import { cssSelectBtn } from "app/client/ui2018/select";
+import { CellValue } from "app/common/DocActions";
+import { isEmptyList, RecalcWhen } from "app/common/gristTypes";
+import { nativeCompare } from "app/common/gutil";
+import { decodeObject, encodeObject } from "app/plugin/objtypes";
 
-const t = makeT('TriggerFormulas');
+import { Computed, dom, IDisposableOwner, MultiHolder, Observable, styled } from "grainjs";
+import isEqual from "lodash/isEqual";
+import { cssMenu, cssMenuItem, defaultMenuOptions, IOpenController, setPopupToCreateDom } from "popweasel";
+
+import type { ColumnRec } from "app/client/models/entities/ColumnRec";
+import type { TableRec } from "app/client/models/entities/TableRec";
+
+const t = makeT("TriggerFormulas");
 
 /**
  * Build UI to select triggers for formulas in data columns (such for default values).
  */
 export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, options: {
-  notTrigger?: Observable<boolean>|null // if column is not yet a trigger,
+  notTrigger?: Observable<boolean> | null // if column is not yet a trigger,
   disabled?: Observable<boolean>
 }) {
   // Set up observables to translate between the UI representation of triggers, and what we
@@ -62,35 +64,34 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
     .onWrite(toggleApplyOnChanges);
 
   // Helper to update column's recalcWhen and recalcDeps properties.
-  async function setRecalc(when: RecalcWhen, deps: number[]|null) {
+  async function setRecalc(when: RecalcWhen, deps: number[] | null) {
     if (when !== column.recalcWhen.peek() || deps !== column.recalcDeps.peek()) {
       return column._table.sendTableAction(
-        ["UpdateRecord", column.id.peek(), {recalcWhen: when, recalcDeps: encodeObject(deps)}]
+        ["UpdateRecord", column.id.peek(), { recalcWhen: when, recalcDeps: encodeObject(deps) }],
       );
     }
   }
 
   const docModel = column._table.docModel;
-  const summaryText = Computed.create(owner, use => {
+  const summaryText = Computed.create(owner, (use) => {
     if (use(column.recalcWhen) === RecalcWhen.MANUAL_UPDATES) {
       return t("Any field");
     }
-    const deps = decodeObject(use(column.recalcDeps)) as number[]|null;
-    if (!deps || deps.length === 0) { return ''; }
+    const deps = decodeObject(use(column.recalcDeps)) as number[] | null;
+    if (!deps || deps.length === 0) { return ""; }
     return deps.map(dep => use(docModel.columns.getRowModel(dep)?.label)).join(", ");
   });
 
-
-  const changesDisabled = Computed.create(owner, use => {
+  const changesDisabled = Computed.create(owner, (use) => {
     return Boolean(
       (options.disabled && use(options.disabled)) ||
-      (options.notTrigger && use(options.notTrigger))
+      (options.notTrigger && use(options.notTrigger)),
     );
   });
 
-  const newRowsDisabled = Computed.create(owner, use => {
+  const newRowsDisabled = Computed.create(owner, (use) => {
     return Boolean(
-      use(applyOnChanges) || use(changesDisabled)
+      use(applyOnChanges) || use(changesDisabled),
     );
   });
 
@@ -99,8 +100,8 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
       labeledSquareCheckbox(
         applyToNew,
         t("Apply to new records"),
-        dom.boolAttr('disabled', newRowsDisabled),
-        testId('field-formula-apply-to-new'),
+        dom.boolAttr("disabled", newRowsDisabled),
+        testId("field-formula-apply-to-new"),
       ),
     ),
     cssRow(
@@ -108,37 +109,37 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
         applyOnChanges,
         dom.text(use => use(applyOnChanges) ?
           t("Apply on changes to:") :
-          t("Apply on record changes")
+          t("Apply on record changes"),
         ),
-        dom.boolAttr('disabled', changesDisabled),
-        testId('field-formula-apply-on-changes'),
+        dom.boolAttr("disabled", changesDisabled),
+        testId("field-formula-apply-on-changes"),
       ),
     ),
     dom.maybe(applyOnChanges, () =>
       cssIndentedRow(
         cssSelectBtn(
           cssSelectSummary(dom.text(summaryText)),
-          icon('Dropdown'),
-          testId('field-triggers-select'),
-          dom.cls('disabled', use => !!options.disabled && use(options.disabled)),
-          elem => {
+          icon("Dropdown"),
+          testId("field-triggers-select"),
+          dom.cls("disabled", use => !!options.disabled && use(options.disabled)),
+          (elem) => {
             setPopupToCreateDom(elem, ctl => buildTriggerSelectors(ctl, column.table.peek(), column, setRecalc),
-              {...defaultMenuOptions, placement: 'bottom-end'});
-          }
-        )
-      )
-    )
+              { ...defaultMenuOptions, placement: "bottom-end" });
+          },
+        ),
+      ),
+    ),
   ];
 }
 
 function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column: ColumnRec,
-  setRecalc: (when: RecalcWhen, deps: number[]|null) => Promise<void>
+  setRecalc: (when: RecalcWhen, deps: number[] | null) => Promise<void>,
 ) {
   // ctl may be used as an owner for disposable object. Just give is a clearer name for this.
   const owner: IDisposableOwner = ctl;
 
   // The initial set of selected columns (as a set of rowIds).
-  const initialDeps = new Set(decodeObject(column.recalcDeps.peek()) as number[]|null);
+  const initialDeps = new Set(decodeObject(column.recalcDeps.peek()) as number[] | null);
 
   // State of the "Any field" checkbox.
   const allUpdates = Observable.create(owner, column.recalcWhen.peek() === RecalcWhen.MANUAL_UPDATES);
@@ -155,7 +156,7 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
   const current = columnsState.find((col, index) => showColumns[index].id.peek() === column.id.peek())!;
 
   // If user checks the "Any field" checkbox, all the others should get unchecked.
-  owner.autoDispose(allUpdates.addListener(value => {
+  owner.autoDispose(allUpdates.addListener((value) => {
     if (value) {
       columnsState.forEach(obs => obs.set(false));
     }
@@ -163,7 +164,7 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
 
   // Computed results based on current selections.
   const when = Computed.create(owner, use => use(allUpdates) ? RecalcWhen.MANUAL_UPDATES : RecalcWhen.DEFAULT);
-  const deps = Computed.create(owner, use => {
+  const deps = Computed.create(owner, (use) => {
     return use(allUpdates) ? null :
       showColumns.filter((col, index) => use(columnsState[index])).map(col => col.id.peek());
   });
@@ -186,28 +187,28 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
   }
 
   return cssSelectorMenu(
-    { tabindex: '-1' }, // Allow menu to be focused
-    testId('field-triggers-dropdown'),
+    { tabindex: "-1" }, // Allow menu to be focused
+    testId("field-triggers-dropdown"),
     dom.cls(menuCssClass),
     dom.onDispose(onClose),
     dom.onKeyDown({
       Enter: () => close(true),
-      Escape: () => close(false)
+      Escape: () => close(false),
     }),
     // Set focus on open, so that keyboard events work.
-    elem => { setTimeout(() => elem.focus(), 0); },
+    (elem) => { setTimeout(() => elem.focus(), 0); },
 
     cssItemsFixed(
       cssSelectorItem(
         labeledSquareCheckbox(current,
-          [t("Current field "), cssSelectorNote('(data cleaning)')],
-          dom.boolAttr('disabled', allUpdates),
+          [t("Current field "), cssSelectorNote("(data cleaning)")],
+          dom.boolAttr("disabled", allUpdates),
         ),
       ),
       menuDivider(),
       cssSelectorItem(
         labeledSquareCheckbox(allUpdates,
-          [`${t("Any field")} `, cssSelectorNote('(except formulas)')]
+          [`${t("Any field")} `, cssSelectorNote("(except formulas)")],
         ),
       ),
     ),
@@ -216,24 +217,24 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
         cssSelectorItem(
           labeledSquareCheckbox(columnsState[index],
             col.label.peek(),
-            dom.boolAttr('disabled', allUpdates),
+            dom.boolAttr("disabled", allUpdates),
           ),
-        )
+        ),
       ),
     ),
     cssItemsFixed(
       cssSelectorFooter(
         dom.maybe(isChanged, () =>
           primaryButton(t("OK"),
-            dom.on('click', () => close(true)),
-            testId('trigger-deps-apply')
+            dom.on("click", () => close(true)),
+            testId("trigger-deps-apply"),
           ),
         ),
         basicButton(dom.text(use => use(isChanged) ? t("Cancel") : t("Close")),
-          dom.on('click', () => close(false)),
-          testId('trigger-deps-cancel')
+          dom.on("click", () => close(false)),
+          testId("trigger-deps-cancel"),
         ),
-      )
+      ),
     ),
   );
 }
@@ -242,7 +243,7 @@ const cssIndentedRow = styled(cssRow, `
   margin-left: 40px;
 `);
 
-const cssSelectSummary = styled('div', `
+const cssSelectSummary = styled("div", `
   flex: 1 1 0px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -252,7 +253,6 @@ const cssSelectSummary = styled('div', `
     color: ${theme.selectButtonPlaceholderFg};
   }
 `);
-
 
 const cssSelectorMenu = styled(cssMenu, `
   display: flex;
@@ -271,7 +271,7 @@ const cssItemsList = styled(shadowScroll, `
   padding: 8px 0;
 `);
 
-const cssItemsFixed = styled('div', `
+const cssItemsFixed = styled("div", `
   flex: none;
 `);
 
@@ -283,7 +283,7 @@ const cssSelectorItem = styled(cssMenuItem, `
   white-space: nowrap;
 `);
 
-const cssSelectorNote = styled('span', `
+const cssSelectorNote = styled("span", `
   color: ${theme.lightText};
 `);
 

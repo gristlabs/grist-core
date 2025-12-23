@@ -38,12 +38,12 @@ export const urlRegex = /(https?:\/\/[A-Za-z\d][A-Za-z\d-.]*(?!\.)(?::\d+)?(?:\/
 /**
  * Detects URLs in a text and returns list of tokens { value, isLink }
  */
-export function findLinks(text: string): Array<{value: string, isLink: boolean}> {
+export function findLinks(text: string): { value: string, isLink: boolean }[] {
   if (!text) {
     return [{ value: text, isLink: false }];
   }
   // urls will be at odd-number indices
-  return text.split(urlRegex).map((value, i) => ({ value, isLink : (i % 2) === 1}));
+  return text.split(urlRegex).map((value, i) => ({ value, isLink: (i % 2) === 1 }));
 }
 
 /**
@@ -67,7 +67,7 @@ export function hashFnv32a(str: string): string {
  * A poor man's hash for when proper crypto isn't worth it.
  */
 export function simpleStringHash(str: string) {
-  let result = '';
+  let result = "";
   // Crudely convert 32 bits to 128 bits to reduce collisions
   for (let i = 0; i < 4; i++) {
     result += hashFnv32a(result + str);

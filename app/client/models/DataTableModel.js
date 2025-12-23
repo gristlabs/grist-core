@@ -1,19 +1,19 @@
-var _ = require('underscore');
-var assert = require('assert');
-var BackboneEvents = require('backbone').Events;
+var _ = require("underscore");
+var assert = require("assert");
+var BackboneEvents = require("backbone").Events;
 
 // Common
-var gutil      = require('app/common/gutil');
+var gutil      = require("app/common/gutil");
 
 // Libraries
-var dispose = require('../lib/dispose');
-var koArray = require('../lib/koArray');
+var dispose = require("../lib/dispose");
+var koArray = require("../lib/koArray");
 
 // Models
-var rowset       = require('./rowset');
-var TableModel   = require('./TableModel');
-var {DataRowModel} = require('./DataRowModel');
-const {TableQuerySets} = require('./QuerySet');
+var rowset       = require("./rowset");
+var TableModel   = require("./TableModel");
+var {DataRowModel} = require("./DataRowModel");
+const {TableQuerySets} = require("./QuerySet");
 
 /**
  * DataTableModel maintains the model for an arbitrary data table of a Grist document.
@@ -29,7 +29,7 @@ function DataTableModel(docModel, tableData, tableMetaRow) {
   // update the template on schema changes in the same way we update individual RowModels.
   // Note that tableMetaRow is incomplete when we get a new table, so we don't rely on it here.
   var fields = tableData.getColIds();
-  assert(fields.includes('id'), "Expecting tableData columns to include `id`");
+  assert(fields.includes("id"), "Expecting tableData columns to include `id`");
 
   // This row model gets schema actions via rowNotify, and is used as a template for new rows.
   this._newRowModel = this.autoDispose(new DataRowModel(this, fields));
@@ -38,7 +38,7 @@ function DataTableModel(docModel, tableData, tableMetaRow) {
   this._floatingRows = new Set();
 
   // Listen for notifications that affect all rows, and apply them to the template row.
-  this.listenTo(this, 'rowNotify', function(rows, action) {
+  this.listenTo(this, "rowNotify", function(rows, action) {
     // TODO: (Important) Updates which affect a subset of rows should be handled more efficiently
     // for _floatingRows.
     // Ideally this._floatingRows would be a Map from rowId to RowModel, like in the LazyArrayModel.
@@ -120,14 +120,14 @@ function LazyArrayModel(sortedRowSet, makeRowModelFunc) {
   this._assignedRowModels = new Map();    // Assigned rowModels by rowId.
   this._allRowModels = new Set();         // All instantiated rowModels.
 
-  this.autoDispose(this._rowIdArray.subscribe(this._onSpliceChange, this, 'spliceChange'));
-  this.listenTo(sortedRowSet, 'rowNotify', this.onRowNotify);
+  this.autoDispose(this._rowIdArray.subscribe(this._onSpliceChange, this, "spliceChange"));
+  this.listenTo(sortedRowSet, "rowNotify", this.onRowNotify);
 
   // On disposal, dispose each instantiated RowModel.
   this.autoDisposeCallback(function() {
     for (let r of this._allRowModels) {
       // TODO: Ideally, row models should be disposable.
-      if (typeof r.dispose === 'function') {
+      if (typeof r.dispose === "function") {
         r.dispose();
       }
     }
@@ -232,7 +232,7 @@ LazyArrayModel.prototype.onRowNotify = function(rows, action) {
     for (let rowModel of this._allRowModels) {
       rowModel.dispatchAction(action);
     }
-    this.trigger('rowModelNotify', this._allRowModels);
+    this.trigger("rowModelNotify", this._allRowModels);
   } else {
     var affectedRowModels = [];
     for (let r of rows) {
@@ -242,7 +242,7 @@ LazyArrayModel.prototype.onRowNotify = function(rows, action) {
         affectedRowModels.push(rowModel);
       }
     }
-    this.trigger('rowModelNotify', affectedRowModels);
+    this.trigger("rowModelNotify", affectedRowModels);
   }
 };
 

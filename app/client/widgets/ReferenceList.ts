@@ -2,16 +2,17 @@ import {
   FormFieldRulesConfig,
   FormOptionsAlignmentConfig,
   FormOptionsSortConfig,
-} from 'app/client/components/Forms/FormConfig';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {isList} from 'app/common/gristTypes';
-import {Computed, dom, styled} from 'grainjs';
-import {cssChoiceList, cssToken} from "app/client/widgets/ChoiceListCell";
-import {Reference} from "app/client/widgets/Reference";
-import {choiceToken} from "app/client/widgets/ChoiceToken";
+} from "app/client/components/Forms/FormConfig";
+import { DataRowModel } from "app/client/models/DataRowModel";
+import { urlState } from "app/client/models/gristUrlState";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { cssChoiceList, cssToken } from "app/client/widgets/ChoiceListCell";
+import { choiceToken } from "app/client/widgets/ChoiceToken";
+import { Reference } from "app/client/widgets/Reference";
+import { isList } from "app/common/gristTypes";
+
+import { Computed, dom, styled } from "grainjs";
 
 /**
  * ReferenceList - The widget for displaying lists of references to another table's records.
@@ -26,9 +27,9 @@ export class ReferenceList extends Reference {
 
   public buildDom(row: DataRowModel) {
     return cssChoiceList(
-      dom.cls('field_clip'),
-      cssChoiceList.cls('-wrap', this.wrapping),
-      dom.style('justify-content', use => use(this.alignment) === 'right' ? 'flex-end' : use(this.alignment)),
+      dom.cls("field_clip"),
+      cssChoiceList.cls("-wrap", this.wrapping),
+      dom.style("justify-content", use => use(this.alignment) === "right" ? "flex-end" : use(this.alignment)),
       dom.domComputed((use) => {
         if (use(row._isAddRow) || this.isDisposed() || use(this.field.displayColModel).isDisposed()) {
           // Work around JS errors during certain changes (noticed when visibleCol field gets removed
@@ -68,33 +69,33 @@ export class ReferenceList extends Reference {
         if (!values) {
           return null;
         }
-        return values.map(({referenceId, formattedValue}) => {
-          const isBlankReference = formattedValue.trim() === '';
+        return values.map(({ referenceId, formattedValue }) => {
+          const isBlankReference = formattedValue.trim() === "";
           return choiceToken(
             [
-              cssRefIcon('FieldReference',
-                cssRefIcon.cls('-view-as-card', use =>
+              cssRefIcon("FieldReference",
+                cssRefIcon.cls("-view-as-card", use =>
                   referenceId !== 0 && use(this._hasRecordCard)),
-                dom.on('click', async () => {
+                dom.on("click", async () => {
                   if (referenceId === 0 || !this._hasRecordCard.get()) { return; }
 
                   const rowId = referenceId as number;
                   const sectionId = this._refTable.get()?.recordCardViewSectionRef();
                   if (sectionId === undefined) {
-                    throw new Error('Unable to open Record Card: undefined section id');
+                    throw new Error("Unable to open Record Card: undefined section id");
                   }
 
-                  const anchorUrlState = {hash: {rowId, sectionId, recordCard: true}};
-                  await urlState().pushUrl(anchorUrlState, {replace: true});
+                  const anchorUrlState = { hash: { rowId, sectionId, recordCard: true } };
+                  await urlState().pushUrl(anchorUrlState, { replace: true });
                 }),
-                dom.on('mousedown', (ev) => {
+                dom.on("mousedown", (ev) => {
                   ev.stopPropagation();
                   ev.preventDefault();
                 }),
-                testId('ref-list-link-icon'),
+                testId("ref-list-link-icon"),
               ),
-              cssLabel(isBlankReference ? '[Blank]' : formattedValue,
-                testId('ref-list-cell-token-label'),
+              cssLabel(isBlankReference ? "[Blank]" : formattedValue,
+                testId("ref-list-cell-token-label"),
               ),
               dom.cls(cssRefIconAndLabel.className),
             ],
@@ -102,7 +103,7 @@ export class ReferenceList extends Reference {
               blank: isBlankReference,
             },
             dom.cls(cssToken.className),
-            testId('ref-list-cell-token')
+            testId("ref-list-cell-token"),
           );
         });
       }),
@@ -133,12 +134,12 @@ const cssRefIcon = styled(icon, `
   }
 `);
 
-const cssRefIconAndLabel = styled('div', `
+const cssRefIconAndLabel = styled("div", `
   position: relative;
   padding-left: 20px;
 `);
 
-const cssLabel = styled('div', `
+const cssLabel = styled("div", `
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

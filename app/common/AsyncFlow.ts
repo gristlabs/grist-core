@@ -30,7 +30,7 @@
  *
  * To replace one FlowRunner with another, put it in a grainjs Holder.
  */
-import {Disposable, IDisposable} from 'grainjs';
+import { Disposable, IDisposable } from "grainjs";
 
 type DisposeListener = ReturnType<Disposable["onDispose"]>;
 
@@ -45,7 +45,8 @@ export class FlowRunner extends Disposable {
     async function runFlow() {
       try {
         return await func(flow);
-      } finally {
+      }
+      finally {
         flow.dispose();
       }
     }
@@ -73,7 +74,7 @@ export class AsyncFlow extends Disposable {
 
   public checkIfCancelled() {
     if (this._isCancelled) {
-      throw new CancelledError('cancelled');
+      throw new CancelledError("cancelled");
     }
   }
 

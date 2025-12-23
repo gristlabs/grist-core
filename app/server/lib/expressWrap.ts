@@ -1,12 +1,13 @@
-import {RequestWithLogin} from 'app/server/lib/Authorizer';
-import log from 'app/server/lib/log';
-import * as express from 'express';
+import { RequestWithLogin } from "app/server/lib/Authorizer";
+import log from "app/server/lib/log";
+
+import * as express from "express";
 
 export type AsyncRequestHandler = (
   req: express.Request,
   res: express.Response,
-  next: express.NextFunction
-) => any | Promise<any>;
+  next: express.NextFunction,
+) => Promise<any> | any; // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
 
 /**
  * Wrapper for async express endpoints to catch errors and forward them to the error handler.
@@ -15,7 +16,8 @@ export function expressWrap(callback: AsyncRequestHandler): express.RequestHandl
   return async (req, res, next) => {
     try {
       await callback(req, res, next);
-    } catch (err) {
+    }
+    catch (err) {
       next(err);
     }
   };
@@ -32,7 +34,7 @@ interface JsonErrorHandlerOptions {
  * Currently allows for toggling of logging request bodies and params.
  */
 const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.ErrorRequestHandler => {
-  const {shouldLogBody, shouldLogParams} = options;
+  const { shouldLogBody, shouldLogParams } = options;
   return (err, req, res, _next) => {
     const mreq = req as RequestWithLogin;
     const meta = {
@@ -44,7 +46,7 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.E
     };
     const headersNote = res.headersSent ? " (headersSent)" : "";
     log.rawWarn(`Error during api call to ${meta.path}${headersNote}: ${err.message}`, meta);
-    let details = err.details && {...err.details};
+    let details = err.details && { ...err.details };
     const status = details?.status || err.status || 500;
     if (details) {
       // Remove some details exposed for websocket API only.
@@ -57,8 +59,9 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.E
       // can happen with downloads if a request gets aborted. If so, just close the response; we
       // already reported the error above.
       res.end();
-    } else {
-      res.status(status).json({error: err.message || 'internal error', details});
+    }
+    else {
+      res.status(status).json({ error: err.message || "internal error", details });
     }
   };
 };
@@ -83,5 +86,5 @@ export const secureJsonErrorHandler: express.ErrorRequestHandler = buildJsonErro
  * Middleware that responds with a 404 status and a json error object.
  */
 export const jsonNotFoundHandler: express.RequestHandler = (req, res, next) => {
-  res.status(404).json({error: `not found: ${req.url}`});
+  res.status(404).json({ error: `not found: ${req.url}` });
 };

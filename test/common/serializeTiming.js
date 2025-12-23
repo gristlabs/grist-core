@@ -1,8 +1,8 @@
-var _ = require('underscore');
-var assert = require('assert');
-var Chance = require('chance');
-var utils = require('../utils');
-var marshal = require('app/common/marshal');
+var _ = require("underscore");
+var assert = require("assert");
+var Chance = require("chance");
+var utils = require("../utils");
+var marshal = require("app/common/marshal");
 
 /**
  * This test measures the complete encoding/decoding time of several ways to serialize an array of
@@ -26,7 +26,7 @@ describe("Serialization", function() {
   function unmarshal(buffer) {
     var m = new marshal.Unmarshaller({bufferToString: true});
     var value;
-    m.on('value', function(v) { value = v; });
+    m.on("value", function(v) { value = v; });
     m.push(buffer);
     m.removeAllListeners();
     return value;
@@ -44,8 +44,8 @@ describe("Serialization", function() {
       // Generate an array of random data using the Chance module
       var chance = new Chance(1274323391); // seed is arbitrary
       data = {
-        'floats1k': chance.n(chance.floating, 1000),
-        'strings1k': chance.n(chance.string, 1000),
+        "floats1k": chance.n(chance.floating, 1000),
+        "strings1k": chance.n(chance.string, 1000),
       };
     });
 
@@ -64,8 +64,8 @@ describe("Serialization", function() {
       // Generate an array of random data using the Chance module
       var chance = new Chance(1274323391); // seed is arbitrary
       data = {
-        'floats100k': chance.n(chance.floating, 100000),
-        'strings100k': chance.n(chance.string, 100000),
+        "floats100k": chance.n(chance.floating, 100000),
+        "strings100k": chance.n(chance.string, 100000),
       };
       // And prepare an encoded version for each encoder so that we can time decoding.
       _.each(data, function(values, key) {
@@ -101,19 +101,19 @@ describe("Serialization", function() {
     // may be because memory allocation is slower due to memory fragmentation. Just running gc()
     // before the tests doesn't remove the discrepancy.
     // Also note that the expected time needs to be high enough for both node and browser.
-    test_encode('marshal_v0', 'floats100k', 1600);
-    test_decode('marshal_v0', 'floats100k', 600);
-    test_encode('marshal_v0', 'strings100k', 1000);
-    test_decode('marshal_v0', 'strings100k', 800);
+    test_encode("marshal_v0", "floats100k", 1600);
+    test_decode("marshal_v0", "floats100k", 600);
+    test_encode("marshal_v0", "strings100k", 1000);
+    test_decode("marshal_v0", "strings100k", 800);
 
-    test_encode('marshal_v2', 'floats100k', 160);
-    test_decode('marshal_v2', 'floats100k', 160);
-    test_encode('marshal_v2', 'strings100k', 1000);
-    test_decode('marshal_v2', 'strings100k', 800);
+    test_encode("marshal_v2", "floats100k", 160);
+    test_decode("marshal_v2", "floats100k", 160);
+    test_encode("marshal_v2", "strings100k", 1000);
+    test_decode("marshal_v2", "strings100k", 800);
 
-    test_encode('json', 'floats100k', 120);
-    test_decode('json', 'floats100k', 120);
-    test_encode('json', 'strings100k', 80);
-    test_decode('json', 'strings100k', 80);
+    test_encode("json", "floats100k", 120);
+    test_decode("json", "floats100k", 120);
+    test_encode("json", "strings100k", 80);
+    test_decode("json", "strings100k", 80);
   });
 });

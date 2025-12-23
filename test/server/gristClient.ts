@@ -1,11 +1,12 @@
-import { GristClientSocket } from 'app/client/components/GristClientSocket';
-import { ValidEvent } from 'app/common/CommTypes';
-import { DocAction } from 'app/common/DocActions';
-import { DocData } from 'app/common/DocData';
-import { SchemaTypes } from 'app/common/schema';
-import { FlexServer } from 'app/server/lib/FlexServer';
-import axios from 'axios';
-import pick = require('lodash/pick');
+import { GristClientSocket } from "app/client/components/GristClientSocket";
+import { ValidEvent } from "app/common/CommTypes";
+import { DocAction } from "app/common/DocActions";
+import { DocData } from "app/common/DocData";
+import { SchemaTypes } from "app/common/schema";
+import { FlexServer } from "app/server/lib/FlexServer";
+
+import axios from "axios";
+import pick from "lodash/pick";
 
 interface GristRequest {
   reqId: number;
@@ -30,7 +31,7 @@ export class GristClient {
   public messages: GristMessage[] = [];
 
   private _requestId: number = 0;
-  private _pending: Array<GristResponse|GristMessage> = [];
+  private _pending: (GristResponse | GristMessage)[] = [];
   private _docData?: DocData;  // accumulate tabular info like a real client.
   private _consumer: () => void;
   private _ignoreTrivialActions: boolean = false;
@@ -38,19 +39,19 @@ export class GristClient {
   constructor(public ws: GristClientSocket) {
     ws.onmessage = (data: string) => {
       const msg = pick(JSON.parse(data),
-                       ['reqId', 'error', 'errorCode', 'data', 'type', 'docFD']);
-      if (this._ignoreTrivialActions && msg.type === 'docUserAction' &&
-          msg.data?.actionGroup?.internal === true &&
-          msg.data?.docActions?.length === 0) {
+        ["reqId", "error", "errorCode", "data", "type", "docFD"]);
+      if (this._ignoreTrivialActions && msg.type === "docUserAction" &&
+        msg.data?.actionGroup?.internal === true &&
+        msg.data?.docActions?.length === 0) {
         return;
       }
       this._pending.push(msg);
       if (msg.data?.doc) {
         this._docData = new DocData(() => {
-          throw new Error('no fetches');
+          throw new Error("no fetches");
         }, msg.data.doc);
       }
-      if (this._docData && msg.type === 'docUserAction') {
+      if (this._docData && msg.type === "docUserAction") {
         const docActions = msg.data?.docActions || [];
         for (const docAction of docActions) {
           this._docData.receiveAction(docAction);
@@ -81,7 +82,7 @@ export class GristClient {
   }
 
   public get docData() {
-    if (!this._docData) { throw new Error('no DocData'); }
+    if (!this._docData) { throw new Error("no DocData"); }
     return this._docData;
   }
 
@@ -127,14 +128,14 @@ export class GristClient {
 
   public waitForServer() {
     // send an arbitrary failing message and wait for response.
-    return this.send('ping');
+    return this.send("ping");
   }
 
   // Helper to read the next docUserAction ignoring anything else (e.g. a duplicate clientConnect).
   public async readDocUserAction(): Promise<DocAction[]> {
-    while (true) {    // eslint-disable-line no-constant-condition
+    while (true) {
       const msg = await this.readMessage();
-      if (msg.type === 'docUserAction') {
+      if (msg.type === "docUserAction") {
         return msg.data.docActions;
       }
     }
@@ -146,7 +147,7 @@ export class GristClient {
     const req: GristRequest = {
       reqId: this._requestId,
       method,
-      args
+      args,
     };
     this.ws.send(JSON.stringify(req));
     const result = await p;
@@ -159,21 +160,21 @@ export class GristClient {
 
   public async openDocOnConnect(docId: string) {
     const msg = await this.readMessage();
-    if (msg.type !== 'clientConnect') { throw new Error('expected clientConnect'); }
-    const openDoc = await this.send('openDoc', docId);
+    if (msg.type !== "clientConnect") { throw new Error("expected clientConnect"); }
+    const openDoc = await this.send("openDoc", docId);
     if (openDoc.error) { throw new Error(`error in openDocOnConnect: ${openDoc.error}`, undefined); }
     return openDoc;
   }
 }
 
 export async function openClient(server: FlexServer, email: string, org: string,
-                                 emailHeader?: string): Promise<GristClient> {
+  emailHeader?: string): Promise<GristClient> {
   const headers: Record<string, string> = {};
   if (!emailHeader) {
     const resp = await axios.get(`${server.getOwnUrl()}/test/session`);
-    const cookie = resp.headers['set-cookie']![0];
-    if (email !== 'anon@getgrist.com') {
-      const cid = decodeURIComponent(cookie.split('=')[1].split(';')[0]);
+    const cookie = resp.headers["set-cookie"]![0];
+    if (email !== "anon@getgrist.com") {
+      const cid = decodeURIComponent(cookie.split("=")[1].split(";")[0]);
       const sessions = server.getSessions();
       const sessionId = sessions.getSessionIdFromCookie(cid) as string;
       const scopedSession = sessions.getOrCreateSession(sessionId, org);
@@ -181,11 +182,12 @@ export async function openClient(server: FlexServer, email: string, org: string,
       await scopedSession.updateUserProfile({} as any, profile);
     }
     headers.Cookie = cookie;
-  } else {
+  }
+  else {
     headers[emailHeader] = email;
   }
-  const ws = new GristClientSocket('ws://localhost:' + server.getOwnPort() + `/o/${org}`, {
-    headers
+  const ws = new GristClientSocket("ws://localhost:" + server.getOwnPort() + `/o/${org}`, {
+    headers,
   });
   const client = new GristClient(ws);
   await new Promise(function(resolve, reject) {

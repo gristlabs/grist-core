@@ -14,7 +14,6 @@
  */
 
 export class InactivityTimer {
-
   private _timeout?: NodeJS.Timeout | null;
   private _counter: number = 0;
   private _enabled: boolean = true;
@@ -80,7 +79,8 @@ export class InactivityTimer {
     this._beginActivity();
     try {
       return await promise;
-    } finally {
+    }
+    finally {
       this._endActivity();
     }
   }

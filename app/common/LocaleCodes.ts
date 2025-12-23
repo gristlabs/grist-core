@@ -32,5 +32,5 @@ export const localeCodes = [
   "tg-TJ", "th-TH", "ti-ER", "ti-ET", "tk-TM", "to-TO", "tr-CY",
   "tr-TR", "tt-RU", "ug-CN", "uk-UA", "ur-IN", "ur-PK", "uz-UZ",
   "vi-VN", "wae-CH", "wo-SN", "xh-ZA", "yi-US", "yo-NG", "yue-HK",
-  "zh-CN", "zh-HK", "zh-SG", "zh-TW", "zu-ZA"
+  "zh-CN", "zh-HK", "zh-SG", "zh-TW", "zu-ZA",
 ];

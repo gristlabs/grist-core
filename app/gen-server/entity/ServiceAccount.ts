@@ -1,36 +1,36 @@
-import {ApiError} from 'app/common/ApiError';
-import {User} from 'app/gen-server/entity/User';
+import { ApiError } from "app/common/ApiError";
+import { User } from "app/gen-server/entity/User";
+
 import {
-  BaseEntity, BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn
+  BaseEntity, BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn,
 } from "typeorm";
 
-@Entity({name: 'service_accounts'})
+@Entity({ name: "service_accounts" })
 export class ServiceAccount extends BaseEntity {
-
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column({type: Number, name: 'owner_id'})
+  @Column({ type: Number, name: "owner_id" })
   public ownerId: number;
 
   @ManyToOne(() => User)
-  @JoinColumn({name: 'owner_id'})
+  @JoinColumn({ name: "owner_id" })
   public owner: User;
 
-  @Column({type: Number, name: 'service_user_id'})
+  @Column({ type: Number, name: "service_user_id" })
   public serviceUserId: number;
 
   @OneToOne(() => User, user => user.serviceAccount)
-  @JoinColumn({name: 'service_user_id'})
+  @JoinColumn({ name: "service_user_id" })
   public serviceUser: User;
 
-  @Column({type: String, nullable: false, default: ''})
+  @Column({ type: String, nullable: false, default: "" })
   public label: string;
 
-  @Column({type: String, nullable: false, default: ''})
+  @Column({ type: String, nullable: false, default: "" })
   public description: string;
 
-  @Column({type: Date, nullable: false, name: 'expires_at'})
+  @Column({ type: Date, nullable: false, name: "expires_at" })
   public expiresAt: Date;
 
   @BeforeUpdate()
@@ -41,7 +41,7 @@ export class ServiceAccount extends BaseEntity {
     }
   }
 
-  public isActive(): Boolean {
+  public isActive(): boolean {
     const currentDate = new Date();
     return this.expiresAt > currentDate;
   }

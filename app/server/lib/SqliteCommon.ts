@@ -1,5 +1,5 @@
-import { Marshaller } from 'app/common/marshal';
-import { OpenMode, quoteIdent } from 'app/server/lib/SQLiteDB';
+import { Marshaller } from "app/common/marshal";
+import { OpenMode, quoteIdent } from "app/server/lib/SQLiteDB";
 
 /**
  * Code common to SQLite wrappers.
@@ -9,8 +9,7 @@ import { OpenMode, quoteIdent } from 'app/server/lib/SQLiteDB';
  * It is important that Statement exists - but we don't expect
  * anything of it.
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface Statement {}
+export interface Statement {} // eslint-disable-line @typescript-eslint/no-empty-object-type
 
 // Some facts about the wrapper implementation.
 export interface MinDBOptions {
@@ -34,7 +33,7 @@ export interface MinDB {
   // used if there are multiple.
   //   https://www.sqlite.org/c3ref/prepare.html
   run(sql: string, ...params: any[]): Promise<MinRunResult>;
-  get(sql: string, ...params: any[]): Promise<ResultRow|undefined>;
+  get(sql: string, ...params: any[]): Promise<ResultRow | undefined>;
   all(sql: string, ...params: any[]): Promise<ResultRow[]>;
   prepare(sql: string, ...params: any[]): Promise<PreparedStatement>;
   runAndGetId(sql: string, ...params: any[]): Promise<number>;
@@ -83,7 +82,7 @@ export interface Backup {
   remaining: number;
   failed: boolean;
   step(pages: number,
-       callback?: (err: Error | null) => void): void;
+    callback?: (err: Error | null) => void): void;
   finish(callback?: (err: Error | null) => void): void;
 }
 
@@ -106,7 +105,8 @@ export const gristMarshal = {
     if (!accum.names || !accum.values) {
       accum.names = row.map(value => String(value));
       accum.values = row.map(() => []);
-    } else {
+    }
+    else {
       for (const [i, v] of row.entries()) {
         accum.values[i].push(v);
       }
@@ -114,8 +114,8 @@ export const gristMarshal = {
     return accum;
   },
   finalize(accum: GristMarshalIntermediateValue) {
-    const marshaller = new Marshaller({version: 2, keysAreBuffers: true});
-    const result: Record<string, Array<any>> = {};
+    const marshaller = new Marshaller({ version: 2, keysAreBuffers: true });
+    const result: Record<string, any[]> = {};
     if (accum.names && accum.values) {
       for (const [i, name] of accum.names.entries()) {
         result[name] = accum.values[i];
@@ -123,7 +123,7 @@ export const gristMarshal = {
     }
     marshaller.marshal(result);
     return marshaller.dumpAsBuffer();
-  }
+  },
 };
 
 /**
@@ -135,7 +135,7 @@ interface GristMarshalIntermediateValue {
   // Values stored in the columns.
   // There is one element in the outermost array per column.
   // That element contains a list of values stored in that column.
-  values?: Array<Array<any>>;
+  values?: any[][];
 }
 
 /**
@@ -150,9 +150,9 @@ interface GristMarshalIntermediateValue {
 export async function allMarshalQuery(db: MinDB, sql: string, ...params: any[]): Promise<Buffer> {
   const statement = await db.prepare(sql);
   const columns = statement.columns();
-  const quotedColumnList = columns.map(quoteIdent).join(',');
+  const quotedColumnList = columns.map(quoteIdent).join(",");
   const query = await db.all(`select grist_marshal(${quotedColumnList}) as buf FROM ` +
-    `(select ${quotedColumnList} UNION ALL select * from (` + sql + '))', ..._fixParameters(params));
+    `(select ${quotedColumnList} UNION ALL select * from (` + sql + "))", ..._fixParameters(params));
   return query[0].buf;
 }
 

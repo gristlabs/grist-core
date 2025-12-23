@@ -1,27 +1,28 @@
-import {cssBannerLink} from 'app/client/components/Banner';
-import {getExternalStorageRecommendation} from 'app/client/components/ExternalAttachmentBanner';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {urlState} from 'app/client/models/gristUrlState';
-import {docListHeader} from 'app/client/ui/DocMenuCss';
-import {Tooltip} from 'app/client/ui/GristTooltips';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
-import {mediaXSmall, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {loadingDots, loadingSpinner} from 'app/client/ui2018/loaders';
-import {FilteredDocUsageSummary} from 'app/common/DocUsage';
-import {displayPlanName, Features, isFreePlan} from 'app/common/Features';
-import {capitalizeFirstWord} from 'app/common/gutil';
-import {APPROACHING_LIMIT_RATIO} from 'app/common/Limits';
-import {canUpgradeOrg} from 'app/common/roles';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
+import { cssBannerLink } from "app/client/components/Banner";
+import { getExternalStorageRecommendation } from "app/client/components/ExternalAttachmentBanner";
+import { makeT } from "app/client/lib/localization";
+import { DocPageModel } from "app/client/models/DocPageModel";
+import { urlState } from "app/client/models/gristUrlState";
+import { docListHeader } from "app/client/ui/DocMenuCss";
+import { Tooltip } from "app/client/ui/GristTooltips";
+import { withInfoTooltip } from "app/client/ui/tooltips";
+import { mediaXSmall, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { loadingDots, loadingSpinner } from "app/client/ui2018/loaders";
+import { FilteredDocUsageSummary } from "app/common/DocUsage";
+import { displayPlanName, Features, isFreePlan } from "app/common/Features";
+import { capitalizeFirstWord } from "app/common/gutil";
+import { APPROACHING_LIMIT_RATIO } from "app/common/Limits";
+import { canUpgradeOrg } from "app/common/roles";
+import { getGristConfig } from "app/common/urlUtils";
 
-const t = makeT('DocumentUsage');
+import { Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled } from "grainjs";
 
-const testId = makeTestId('test-doc-usage-');
+const t = makeT("DocumentUsage");
 
-const {deploymentType} = getGristConfig();
+const testId = makeTestId("test-doc-usage-");
+
+const { deploymentType } = getGristConfig();
 
 // Default used by the progress bar to visually indicate row usage.
 // For self-hosters, the 20,000 rows limit is not actually the limit
@@ -46,7 +47,7 @@ export class DocumentUsage extends Disposable {
   private readonly _currentFeatures = this._docPageModel.currentFeatures;
 
   // TODO: Update this whenever the rest of the UI is internationalized.
-  private readonly _rowCountFormatter = new Intl.NumberFormat('en-US');
+  private readonly _rowCountFormatter = new Intl.NumberFormat("en-US");
 
   private readonly _rowCount = Computed.create(this, this._currentDocUsage, (_use, usage) => {
     return usage?.rowCount;
@@ -67,11 +68,11 @@ export class DocumentUsage extends Disposable {
       const maxValue = maxRows && maxRows > 0 ? maxRows : undefined;
       return {
         name: t("Rows"),
-        currentValue: typeof rowCount !== 'object' ? undefined : rowCount.total,
+        currentValue: typeof rowCount !== "object" ? undefined : rowCount.total,
         maximumValue: maxValue ?? DEFAULT_MAX_ROWS,
-        unit: 'rows',
+        unit: "rows",
         shouldHideLimits: maxValue === undefined,
-        formatValue: (val) => this._rowCountFormatter.format(val),
+        formatValue: val => this._rowCountFormatter.format(val),
       };
     });
 
@@ -82,11 +83,11 @@ export class DocumentUsage extends Disposable {
       const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
       return {
         name: t("Data size"),
-        currentValue: typeof dataSize !== 'number' ? undefined : dataSize,
+        currentValue: typeof dataSize !== "number" ? undefined : dataSize,
         maximumValue: maxValue ?? DEFAULT_MAX_DATA_SIZE,
-        unit: 'MB',
+        unit: "MB",
         shouldHideLimits: maxValue === undefined,
-        tooltip: 'dataSize',
+        tooltip: "dataSize",
         formatValue: (val) => {
           // To display a nice, round number for `maximumValue`, we first convert
           // to KiBs (base-2), and then convert to MBs (base-10). Normally, we wouldn't
@@ -99,16 +100,16 @@ export class DocumentUsage extends Disposable {
 
   private readonly _attachmentsSizeMetricOptions: Computed<MetricOptions> =
     Computed.create(this, this._currentFeatures, this._attachmentsSizeBytes, (_use, features, attachmentsSize) => {
-      const maxSize: number|undefined = features?.baseMaxAttachmentsBytesPerDocument;
+      const maxSize: number | undefined = features?.baseMaxAttachmentsBytesPerDocument;
       // Invalid attachments size limits are currently treated as if they are undefined.
       const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
       return {
         name: t("Size of attachments"),
-        currentValue: typeof attachmentsSize !== 'number' ? undefined : attachmentsSize,
+        currentValue: typeof attachmentsSize !== "number" ? undefined : attachmentsSize,
         maximumValue: maxValue ?? DEFAULT_MAX_ATTACHMENTS_SIZE,
-        unit: 'GB',
+        unit: "GB",
         shouldHideLimits: maxValue === undefined,
-        formatValue: (val) => (val / (1024 * 1024 * 1024)).toFixed(2),
+        formatValue: val => (val / (1024 * 1024 * 1024)).toFixed(2),
       };
     });
 
@@ -117,9 +118,9 @@ export class DocumentUsage extends Disposable {
       this, this._currentDoc, this._rowCount, this._dataSizeBytes, this._attachmentsSizeBytes,
       (_use, doc, rowCount, dataSize, attachmentsSize) => {
         const hasNonPendingMetrics = [rowCount, dataSize, attachmentsSize]
-          .some(metric => metric !== 'pending' && metric !== undefined);
+          .some(metric => metric !== "pending" && metric !== undefined);
         return !doc || !hasNonPendingMetrics;
-      }
+      },
     );
 
   private readonly _isAccessDenied: Computed<boolean | null> =
@@ -128,11 +129,11 @@ export class DocumentUsage extends Disposable {
       (_use, isLoading, doc, rowCount, dataSize, attachmentsSize) => {
         if (isLoading) { return null; }
 
-        const {access} = doc!.workspace.org;
-        const isPublicUser = access === 'guests' || access === null;
-        const hasHiddenMetrics = [rowCount, dataSize, attachmentsSize].some(metric => metric === 'hidden');
+        const { access } = doc!.workspace.org;
+        const isPublicUser = access === "guests" || access === null;
+        const hasHiddenMetrics = [rowCount, dataSize, attachmentsSize].some(metric => metric === "hidden");
         return isPublicUser || hasHiddenMetrics;
-      }
+      },
     );
 
   constructor(private _docPageModel: DocPageModel) {
@@ -140,14 +141,14 @@ export class DocumentUsage extends Disposable {
   }
 
   public buildDom() {
-    return dom('div',
-      cssHeader(t("Usage"), testId('heading')),
+    return dom("div",
+      cssHeader(t("Usage"), testId("heading")),
       dom.domComputed(this._areAllMetricsPending, (isLoading) => {
-        if (isLoading) { return cssSpinner(loadingSpinner(), testId('loading')); }
+        if (isLoading) { return cssSpinner(loadingSpinner(), testId("loading")); }
 
         return [this._buildMessage(), this._buildMetrics()];
       }),
-      testId('container'),
+      testId("container"),
     );
   }
 
@@ -164,7 +165,7 @@ export class DocumentUsage extends Disposable {
       const features = use(this._currentFeatures);
       const usageInfo = use(this._currentDocUsage);
       if (!org || !usageInfo) { return null; }
-      const productName = use(this._currentProduct)?.name || '';
+      const productName = use(this._currentProduct)?.name || "";
       const planLabel = displayPlanName[productName] || productName;
 
       return [
@@ -174,17 +175,17 @@ export class DocumentUsage extends Disposable {
         // If usage limits have kicked in, say so.
         usageInfo?.dataLimitInfo?.status ? buildMessage([
           buildLimitStatusMessage(planLabel, usageInfo, features, {
-            disableRawDataLink: true
+            disableRawDataLink: true,
           }),
-          (product && isFreePlan(product.name)
-            ? [' ', buildUpgradeMessage(
+          (product && isFreePlan(product.name) ?
+            [" ", buildUpgradeMessage(
               canUpgradeOrg(org),
-              'long',
-              () =>  this._docPageModel.appModel.showUpgradeModal()
-            )]
-            : null
+              "long",
+              () =>  this._docPageModel.appModel.showUpgradeModal(),
+            )] :
+            null
           ),
-        ]) : null
+        ]) : null,
       ];
     });
   }
@@ -192,16 +193,16 @@ export class DocumentUsage extends Disposable {
   private _buildMetrics() {
     return dom.maybe(use => use(this._isAccessDenied) === false, () =>
       cssUsageMetrics(
-        dom.domComputed(this._rowMetricOptions, (metrics) =>
-          buildUsageMetric(metrics, testId('rows')),
+        dom.domComputed(this._rowMetricOptions, metrics =>
+          buildUsageMetric(metrics, testId("rows")),
         ),
-        dom.domComputed(this._dataSizeMetricOptions, (metrics) =>
-          buildUsageMetric(metrics, testId('data-size')),
+        dom.domComputed(this._dataSizeMetricOptions, metrics =>
+          buildUsageMetric(metrics, testId("data-size")),
         ),
-        dom.domComputed(this._attachmentsSizeMetricOptions, (metrics) =>
-          buildUsageMetric(metrics, testId('attachments-size')),
+        dom.domComputed(this._attachmentsSizeMetricOptions, metrics =>
+          buildUsageMetric(metrics, testId("attachments-size")),
         ),
-        testId('metrics'),
+        testId("metrics"),
       ),
     );
   }
@@ -209,43 +210,43 @@ export class DocumentUsage extends Disposable {
 
 export function buildLimitStatusMessage(
   planName: string,
-  usageInfo: NonNullable<Pick<FilteredDocUsageSummary, 'dataLimitInfo'>>,
-  features?: Features|null,
+  usageInfo: NonNullable<Pick<FilteredDocUsageSummary, "dataLimitInfo">>,
+  features?: Features | null,
   options: {
     disableRawDataLink?: boolean;
-  } = {}
+  } = {},
 ) {
-  const {disableRawDataLink = false} = options;
-  const {status, daysRemaining} = usageInfo.dataLimitInfo;
+  const { disableRawDataLink = false } = options;
+  const { status, daysRemaining } = usageInfo.dataLimitInfo;
   switch (status) {
-    case 'approachingLimit': {
+    case "approachingLimit": {
       return [
-        'This document is ',
-        disableRawDataLink ? 'approaching' : buildRawDataPageLink('approaching'),
-        ` ${planName} plan limits.`
+        "This document is ",
+        disableRawDataLink ? "approaching" : buildRawDataPageLink("approaching"),
+        ` ${planName} plan limits.`,
       ];
     }
-    case 'gracePeriod': {
+    case "gracePeriod": {
       const gracePeriodDays = features?.gracePeriodDays;
       if (!gracePeriodDays) {
         return [
-          'Document limits ',
-          disableRawDataLink ? 'exceeded' : buildRawDataPageLink('exceeded'),
-          '.'
+          "Document limits ",
+          disableRawDataLink ? "exceeded" : buildRawDataPageLink("exceeded"),
+          ".",
         ];
       }
 
       return [
-        'Document limits ',
-        disableRawDataLink ? 'exceeded' : buildRawDataPageLink('exceeded'),
-        `. In ${daysRemaining} days, this document will be read-only.`
+        "Document limits ",
+        disableRawDataLink ? "exceeded" : buildRawDataPageLink("exceeded"),
+        `. In ${daysRemaining} days, this document will be read-only.`,
       ];
     }
-    case 'deleteOnly': {
+    case "deleteOnly": {
       return [
-        'This document ',
-        disableRawDataLink ? 'exceeded' : buildRawDataPageLink('exceeded'),
-        ` ${planName} plan limits and is now read-only, but you can delete rows.`
+        "This document ",
+        disableRawDataLink ? "exceeded" : buildRawDataPageLink("exceeded"),
+        ` ${planName} plan limits and is now read-only, but you can delete rows.`,
       ];
     }
   }
@@ -253,7 +254,7 @@ export function buildLimitStatusMessage(
 
 export function buildUpgradeMessage(
   canUpgrade: boolean,
-  variant: 'short' | 'long',
+  variant: "short" | "long",
   onUpgrade: () => void,
 ) {
   if (!canUpgrade) { return t("Contact the site owner to upgrade the plan to raise limits."); }
@@ -261,20 +262,20 @@ export function buildUpgradeMessage(
   const upgradeLinkText = t("start your 30-day free trial of the Pro plan.");
   // TODO i18next
   return [
-    variant === 'short' ? null : t("For higher limits, "),
+    variant === "short" ? null : t("For higher limits, "),
     buildUpgradeLink(
-      variant === 'short' ? capitalizeFirstWord(upgradeLinkText) : upgradeLinkText,
+      variant === "short" ? capitalizeFirstWord(upgradeLinkText) : upgradeLinkText,
       () => onUpgrade(),
     ),
   ];
 }
 
 function buildUpgradeLink(linkText: string, onClick: () => void) {
-  return cssBannerLink(linkText, dom.on('click', () => onClick()));
+  return cssBannerLink(linkText, dom.on("click", () => onClick()));
 }
 
 function buildRawDataPageLink(linkText: string) {
-  return cssBannerLink(linkText, urlState().setLinkUrl({docPage: 'data'}));
+  return cssBannerLink(linkText, urlState().setLinkUrl({ docPage: "data" }));
 }
 
 interface MetricOptions {
@@ -297,12 +298,12 @@ interface MetricOptions {
  * close `currentValue` is to hitting `maximumValue`.
  */
 function buildUsageMetric(options: MetricOptions, ...domArgs: DomElementArg[]) {
-  const {name, tooltip} = options;
+  const { name, tooltip } = options;
   return cssUsageMetric(
     cssMetricName(
-      tooltip
-        ? withInfoTooltip(cssOverflowableText(name, testId('name')), tooltip)
-        : cssOverflowableText(name, testId('name')),
+      tooltip ?
+        withInfoTooltip(cssOverflowableText(name, testId("name")), tooltip) :
+        cssOverflowableText(name, testId("name")),
     ),
     buildUsageProgressBar(options),
     ...domArgs,
@@ -315,7 +316,7 @@ function buildUsageProgressBar(options: MetricOptions) {
     maximumValue,
     shouldHideLimits,
     unit,
-    formatValue = (n) => n.toString()
+    formatValue = n => n.toString(),
   } = options;
 
   let ratioUsed: number;
@@ -323,7 +324,8 @@ function buildUsageProgressBar(options: MetricOptions) {
   if (currentValue === undefined) {
     ratioUsed = 0;
     percentUsed = 0;
-  } else {
+  }
+  else {
     ratioUsed = currentValue / (maximumValue || Infinity);
     percentUsed = Math.min(100, Math.floor(ratioUsed * 100));
   }
@@ -331,36 +333,36 @@ function buildUsageProgressBar(options: MetricOptions) {
   return [
     cssProgressBarContainer(
       cssProgressBarFill(
-        {style: `width: ${percentUsed}%`},
+        { style: `width: ${percentUsed}%` },
         // Change progress bar to red if close to limit, unless limits are hidden.
-        shouldHideLimits || ratioUsed <= APPROACHING_LIMIT_RATIO
-          ? null
-          : cssProgressBarFill.cls('-approaching-limit'),
-        testId('progress-fill'),
+        shouldHideLimits || ratioUsed <= APPROACHING_LIMIT_RATIO ?
+          null :
+          cssProgressBarFill.cls("-approaching-limit"),
+        testId("progress-fill"),
       ),
     ),
-    dom('div',
-      currentValue === undefined ? ['Loading ', cssLoadingDots()] : formatValue(currentValue)
-        + (shouldHideLimits || !maximumValue ? '' : ' of ' + formatValue(maximumValue))
-        + (unit ? ` ${unit}` : ''),
-      testId('value'),
+    dom("div",
+      currentValue === undefined ? ["Loading ", cssLoadingDots()] : formatValue(currentValue) +
+        (shouldHideLimits || !maximumValue ? "" : " of " + formatValue(maximumValue)) +
+        (unit ? ` ${unit}` : ""),
+      testId("value"),
     ),
   ];
 }
 
 function buildMessage(message: DomContents) {
   return cssWarningMessage(
-    cssIcon('Idea'),
-    cssLightlyBoldedText(message, testId('message-text')),
-    testId('message'),
+    cssIcon("Idea"),
+    cssLightlyBoldedText(message, testId("message-text")),
+    testId("message"),
   );
 }
 
-const cssLightlyBoldedText = styled('div', `
+const cssLightlyBoldedText = styled("div", `
   font-weight: 500;
 `);
 
-const cssWarningMessage = styled('div', `
+const cssWarningMessage = styled("div", `
   color: ${theme.text};
   --icon-color: ${theme.text};
   display: flex;
@@ -374,14 +376,14 @@ const cssIcon = styled(icon, `
   height: 16px;
 `);
 
-const cssMetricName = styled('div', `
+const cssMetricName = styled("div", `
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 700;
 `);
 
-const cssOverflowableText = styled('span', `
+const cssOverflowableText = styled("span", `
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -391,7 +393,7 @@ const cssHeader = styled(docListHeader, `
   margin-bottom: 0px;
 `);
 
-const cssUsageMetrics = styled('div', `
+const cssUsageMetrics = styled("div", `
   display: flex;
   flex-wrap: wrap;
   margin-top: 24px;
@@ -399,7 +401,7 @@ const cssUsageMetrics = styled('div', `
   column-gap: 54px;
 `);
 
-const cssUsageMetric = styled('div', `
+const cssUsageMetric = styled("div", `
   color: ${theme.text};
   display: flex;
   flex-direction: column;
@@ -413,7 +415,7 @@ const cssUsageMetric = styled('div', `
   }
 `);
 
-const cssProgressBarContainer = styled('div', `
+const cssProgressBarContainer = styled("div", `
   width: 100%;
   height: 4px;
   border-radius: 5px;
@@ -428,7 +430,7 @@ const cssProgressBarFill = styled(cssProgressBarContainer, `
   }
 `);
 
-const cssSpinner = styled('div', `
+const cssSpinner = styled("div", `
   display: flex;
   justify-content: center;
   margin-top: 32px;

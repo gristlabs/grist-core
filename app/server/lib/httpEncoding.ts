@@ -35,8 +35,8 @@ export function httpEncoding(header: string | null, content: Buffer): string | u
 
     // prevent decode issues when sites use incorrect encoding
     // ref: https://hsivonen.fi/encoding-menu/
-    if (charset === 'gb2312' || charset === 'gbk') {
-      charset = 'gb18030';
+    if (charset === "gb2312" || charset === "gbk") {
+      charset = "gb18030";
     }
     return charset;
   }

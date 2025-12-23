@@ -1,15 +1,17 @@
-import {SandboxRequest} from 'app/common/ActionBundle';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
-import {httpEncoding} from 'app/server/lib/httpEncoding';
-import * as path from 'path';
-import * as tmp from 'tmp';
-import * as fse from 'fs-extra';
-import log from 'app/server/lib/log';
-import chunk = require('lodash/chunk');
-import fromPairs = require('lodash/fromPairs');
-import zipObject = require('lodash/zipObject');
-import { fetchUntrustedWithAgent } from 'app/server/lib/ProxyAgent';
+import { SandboxRequest } from "app/common/ActionBundle";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { makeExceptionalDocSession } from "app/server/lib/DocSession";
+import { httpEncoding } from "app/server/lib/httpEncoding";
+import log from "app/server/lib/log";
+import { fetchUntrustedWithAgent } from "app/server/lib/ProxyAgent";
+
+import * as path from "path";
+
+import * as fse from "fs-extra";
+import chunk from "lodash/chunk";
+import fromPairs from "lodash/fromPairs";
+import zipObject from "lodash/zipObject";
+import * as tmp from "tmp";
 
 export class DocRequests {
   // Request responses are briefly cached in files only to handle multiple requests in a formula
@@ -26,7 +28,7 @@ export class DocRequests {
     try {
       // Perform batches of requests in parallel for speed, and hope it doesn't cause rate limiting...
       for (const keys of chunk(Object.keys(requests), 10)) {
-        const responses: Response[] = await Promise.all(keys.map(async key => {
+        const responses: Response[] = await Promise.all(keys.map(async (key) => {
           const request = requests[key];
           const response = await this.handleSingleRequestWithCache(key, request);
           return {
@@ -42,7 +44,8 @@ export class DocRequests {
         const action = ["RespondToRequests", zipObject(keys, responses), cachedRequestKeys];
         await this._activeDoc.applyUserActions(makeExceptionalDocSession("system"), [action]);
       }
-    } finally {
+    }
+    finally {
       this._numPending -= numRequests;
       if (this._numPending === 0) {
         log.debug(`Removing DocRequests._cacheDir: ${this._cacheDir!.name}`);
@@ -57,7 +60,7 @@ export class DocRequests {
       // Use the sync API because otherwise multiple requests being handled at the same time
       // all reach this point, `await`, and create different dirs.
       // `unsafeCleanup: true` means the directory can be deleted even if it's not empty, which is what we expect.
-      this._cacheDir = tmp.dirSync({unsafeCleanup: true});
+      this._cacheDir = tmp.dirSync({ unsafeCleanup: true });
       log.debug(`Created DocRequests._cacheDir: ${this._cacheDir.name}`);
     }
 
@@ -66,10 +69,11 @@ export class DocRequests {
       const result = await fse.readJSON(cachePath);
       result.content = Buffer.from(result.content, "base64");
       return result;
-    } catch {
+    }
+    catch {
       const result = await this._handleSingleRequestRaw(request);
-      const resultForJson = {...result} as any;
-      if ('content' in result) {
+      const resultForJson = { ...result } as any;
+      if ("content" in result) {
         resultForJson.content = result.content.toString("base64");
       }
       fse.writeJSON(cachePath, resultForJson).catch(e => log.warn(`Failed to save response to cache file: ${e}`));
@@ -79,29 +83,30 @@ export class DocRequests {
 
   private async _handleSingleRequestRaw(request: SandboxRequest): Promise<Response> {
     try {
-      if (process.env.GRIST_ENABLE_REQUEST_FUNCTION != '1') {
+      if (process.env.GRIST_ENABLE_REQUEST_FUNCTION != "1") {
         throw new Error("REQUEST is not enabled");
       }
-      const {url, method, body, params, headers} = request;
+      const { url, method, body, params, headers } = request;
       const urlObj = new URL(url);
-      log.rawInfo("Handling sandbox request", {host: urlObj.host, docId: this._activeDoc.docName});
+      log.rawInfo("Handling sandbox request", { host: urlObj.host, docId: this._activeDoc.docName });
       for (const [param, value] of Object.entries(params || {})) {
         urlObj.searchParams.append(param, value);
       }
       const response = await fetchUntrustedWithAgent(urlObj, {
         headers: headers || {},
         method,
-        body
+        body,
       });
       const content = await response.buffer();
-      const {status, statusText} = response;
-      const encoding = httpEncoding(response.headers.get('content-type'), content);
+      const { status, statusText } = response;
+      const encoding = httpEncoding(response.headers.get("content-type"), content);
       return {
         content, status, statusText, encoding,
         headers: fromPairs([...response.headers]),
       };
-    } catch (e) {
-      return {error: String(e)};
+    }
+    catch (e) {
+      return { error: String(e) };
     }
   }
 }
@@ -119,4 +124,3 @@ interface RequestError {
 }
 
 type Response = RequestError | SuccessfulResponse;
-

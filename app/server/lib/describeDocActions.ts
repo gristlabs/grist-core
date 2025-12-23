@@ -1,7 +1,7 @@
-import {DocAction, getTableId} from 'app/common/DocActions';
-import {DocData} from 'app/common/DocData';
-import {isMetadataTable} from 'app/common/isHiddenTable';
-import {SchemaTypes} from 'app/common/schema';
+import { DocAction, getTableId } from "app/common/DocActions";
+import { DocData } from "app/common/DocData";
+import { isMetadataTable } from "app/common/isHiddenTable";
+import { SchemaTypes } from "app/common/schema";
 
 export interface DocActionsDescription {
   userTableNames: string[];
@@ -32,7 +32,7 @@ export type DocActionCategory = typeof allCategories[number];
  * mean comments, and comments have their own configuration for notifications, so it's clearer to
  * exclude them from docChanges.
  */
-export function describeDocActions(docActions: DocAction[], docData: DocData): DocActionsDescription|null {
+export function describeDocActions(docActions: DocAction[], docData: DocData): DocActionsDescription | null {
   if (docActions.length === 0) { return null; }
   const userTableNameSet = new Set<string>();
   const categorySet = new Set<DocActionCategory>();
@@ -40,14 +40,15 @@ export function describeDocActions(docActions: DocAction[], docData: DocData): D
     const tableId = getTableId(action);
     if (!isMetadataTable(tableId)) {
       userTableNameSet.add(getTableName(tableId, docData) || tableId);
-    } else {
+    }
+    else {
       const category = categoryMap[tableId as keyof SchemaTypes] || "metadata";
       if (category === IGNORE) { continue; }
       categorySet.add(category);
     }
   }
   if (userTableNameSet.size === 0 && categorySet.size === 0) { return null; }
-  return {userTableNames: [...userTableNameSet], categories: [...categorySet]};
+  return { userTableNames: [...userTableNameSet], categories: [...categorySet] };
 }
 
 /**
@@ -60,8 +61,7 @@ export function sortDocActionCategories(categories: Set<DocActionCategory>): Doc
 // A sentinel value for tables that shouldn't get reported.
 const IGNORE = Symbol("ignore");
 
-
-const categoryMap: {[tableId in keyof SchemaTypes]: DocActionCategory|typeof IGNORE|null} = {
+const categoryMap: { [tableId in keyof SchemaTypes]: DocActionCategory | typeof IGNORE | null } = {
   _grist_DocInfo: "settings",
   _grist_Tables: "structure",
   _grist_Tables_column: "structure",
@@ -89,7 +89,7 @@ const categoryMap: {[tableId in keyof SchemaTypes]: DocActionCategory|typeof IGN
 };
 
 function getTableName(tableId: string, docData: DocData) {
-  const tableRec = docData.getMetaTable("_grist_Tables").findRecord('tableId', tableId);
+  const tableRec = docData.getMetaTable("_grist_Tables").findRecord("tableId", tableId);
   const vsRec = tableRec && docData.getMetaTable("_grist_Views_section").getRecord(tableRec.rawViewSectionRef);
   return vsRec?.title;
 }

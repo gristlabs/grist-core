@@ -1,13 +1,15 @@
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {reportError} from 'app/client/models/errors';
-import {spinnerModal} from 'app/client/ui2018/modals';
-import type {DocPageModel} from 'app/client/models/DocPageModel';
-import type {Document} from 'app/common/UserAPI';
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { makeT } from "app/client/lib/localization";
+import { reportError } from "app/client/models/errors";
 import { getGoogleCodeForSending } from "app/client/ui/googleAuth";
-const G = getBrowserGlobals('window');
-import {makeT} from 'app/client/lib/localization';
+import { spinnerModal } from "app/client/ui2018/modals";
 
-const t = makeT('sendToDrive');
+import type { DocPageModel } from "app/client/models/DocPageModel";
+import type { Document } from "app/common/UserAPI";
+
+const G = getBrowserGlobals("window");
+
+const t = makeT("sendToDrive");
 
 /**
  * Sends xlsx file to Google Drive. It first authenticates with Google to get encrypted access
@@ -26,14 +28,15 @@ export async function sendToDrive(doc: Document, pageModel: DocPageModel) {
     // Decorate it with a spinner
     spinnerModal(t("Sending file to Google Drive"),
       pageModel.appModel.api.getDocAPI(doc.id)
-        .sendToDrive(code, pageModel.currentDocTitle.get())
+        .sendToDrive(code, pageModel.currentDocTitle.get()),
     );
 
   try {
     const token = await getGoogleCodeForSending(gristDoc);
-    const {url} = await send(token);
+    const { url } = await send(token);
     G.window.location.assign(url);
-  } catch (err) {
+  }
+  catch (err) {
     reportError(err);
   }
 }

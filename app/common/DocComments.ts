@@ -1,6 +1,6 @@
-import {SchemaTypes} from 'app/common/schema';
-import {safeJsonParse} from 'app/common/gutil';
-import {makeAnchorLinkValue} from 'app/common/gristUrls';
+import { makeAnchorLinkValue } from "app/common/gristUrls";
+import { safeJsonParse } from "app/common/gutil";
+import { SchemaTypes } from "app/common/schema";
 
 /**
  * Comment data stored in the `content` field of a cell.
@@ -15,35 +15,34 @@ export interface CommentContent {
    * Notice: this is rather a signature of the user, not a real user name,
    * it is not guaranteed to be secure, as user might change it through the API.
    */
-  userName?: string|null;
+  userName?: string | null;
   /**
    * Time when the comment was created. Timestamp in milliseconds since epoch.
    */
-  timeCreated?: number|null;
+  timeCreated?: number | null;
   /**
    * Time when the comment was last updated.
    */
-  timeUpdated?: number|null;
+  timeUpdated?: number | null;
   /**
    * Whether the comment was marked as resolved.
    */
-  resolved?: boolean|null;
+  resolved?: boolean | null;
   /**
    * User name of the person who resolved the comment, defaults to the user who created it.
    */
-  resolvedBy?: string|null;
+  resolvedBy?: string | null;
   /**
    * List of user refs mentioned in the comment. The extraction is done by the client code, so
    * it is not guaranteed to be secure or trusted.
    */
-  mentions?: string[]|null;
+  mentions?: string[] | null;
 
   /**
    * Id of a section where the comment was created.
    */
-  sectionId?: number|null;
+  sectionId?: number | null;
 }
-
 
 /**
  * TODO: This is just a skeleton of what we need to extract comment data for notifications
@@ -73,7 +72,7 @@ export function makeDocComment(
   record: CellRecord,
   audience: string[],
   mentions: string[],
-): DocComment|null {
+): DocComment | null {
   const parsed = safeJsonParse(record.content, {}) as CommentContent;
   if (!parsed.text) { return null; }
   return {
@@ -90,10 +89,9 @@ export function makeDocComment(
   };
 }
 
-
 type MentionChunk =
-  | string
-  | { name: string; ref: string };
+  | string |
+  { name: string; ref: string };
 
 const mentionRegex = /\[(@[^\]]+?)\]\(user:(\w+)\)/;
 
@@ -143,16 +141,15 @@ export function splitTextWithMentions(text: string): MentionChunk[] {
   return chunks;
 }
 
-
 function replaceMentionsInText(text: string) {
   // Very simple replacement of links mentions.
   // [@user](user:XXXXX) -> @user
   // Also, replace 'nbsp' characters (non-breaking spaces) with regular spaces in this text
   // version. (E.g. in Gmail, they seem to cause 'Message clipped' footer.)
   return splitTextWithMentions(text)
-    .map(chunk => typeof chunk === 'string' ? chunk : chunk.name)
-    .join('')
-    .replace(/\u00A0/g, ' ');
+    .map(chunk => typeof chunk === "string" ? chunk : chunk.name)
+    .join("")
+    .replace(/\u00A0/g, " ");
 }
 
 export function getMentions(cellContent: string): string[] {

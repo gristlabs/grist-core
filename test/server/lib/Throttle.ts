@@ -1,10 +1,12 @@
-import {exitPromise} from 'app/server/lib/serverUtils';
-import {Throttle, ThrottleTiming} from 'app/server/lib/Throttle';
-import {delay} from 'bluebird';
-import {assert} from 'chai';
-import {ChildProcess, spawn} from 'child_process';
-import pidusage from 'pidusage';
-import * as testUtils from 'test/server/testUtils';
+import { exitPromise } from "app/server/lib/serverUtils";
+import { Throttle, ThrottleTiming } from "app/server/lib/Throttle";
+import * as testUtils from "test/server/testUtils";
+
+import { ChildProcess, spawn } from "child_process";
+
+import { delay } from "bluebird";
+import { assert } from "chai";
+import pidusage from "pidusage";
 
 const testTiming: ThrottleTiming = {
   dutyCyclePositiveMs: 20,
@@ -20,12 +22,12 @@ const testTiming: ThrottleTiming = {
 interface ThrottleTestCase {
   child: ChildProcess;
   throttle: Throttle;
-  done: Promise<number|string>;
+  done: Promise<number | string>;
   cpuHog: boolean;
 }
 
-describe('Throttle', function() {
-  testUtils.setTmpLogLevel('error');
+describe("Throttle", function() {
+  testUtils.setTmpLogLevel("error");
 
   // Test with N processes, half very busy, half not busy at all.
   for (const processCount of [2, 10]) {
@@ -34,20 +36,20 @@ describe('Throttle', function() {
       const tests: ThrottleTestCase[] = [];
       for (let i = 0; i < processCount; i++) {
         const cpuHog = i % 2 === 0;
-        const cmd = cpuHog ? 'while true; do true; done' : 'sleep 10000';
-        const child = spawn(cmd, [], { shell: true, detached: true, stdio: 'ignore' });
+        const cmd = cpuHog ? "while true; do true; done" : "sleep 10000";
+        const child = spawn(cmd, [], { shell: true, detached: true, stdio: "ignore" });
         if (!child.pid) {
-          throw new Error('failed to spawn process');
+          throw new Error("failed to spawn process");
         }
 
         const done = exitPromise(child);
         const throttle = new Throttle({
           pid: child.pid,
-          logMeta: {sandboxPid: child.pid, docId: `case${i}`},
-          timing: testTiming
+          logMeta: { sandboxPid: child.pid, docId: `case${i}` },
+          timing: testTiming,
         });
         tests.push({
-          child, throttle, done, cpuHog
+          child, throttle, done, cpuHog,
         });
       }
       await delay(5000);
@@ -60,7 +62,7 @@ describe('Throttle', function() {
       for (const test of tests) {
         test.throttle.stop();
         const stats = test.throttle.testStats;
-        if (!stats) { throw new Error('throttling never ran'); }
+        if (!stats) { throw new Error("throttling never ran"); }
         if (test.cpuHog) {
           // Process should have received some cpu time.  Exactly how much depends on
           // the load on the test server, so don't be too fussy.
@@ -68,7 +70,8 @@ describe('Throttle', function() {
           // Process should not have received an excessive amount of cpu time.
           assert.isBelow(stats.cpuDuration, 2500);
           assert.isAbove(stats.offDuration, 1000);
-        } else {
+        }
+        else {
           // Sleep should take almost no cpu.
           assert.isBelow(stats.cpuDuration, 100);
           assert.equal(stats.offDuration, 0);
@@ -76,7 +79,7 @@ describe('Throttle', function() {
       }
       // Clear the setInterval that the pidusage module sets up internally.
       await delay(100);  // Wait a little in case an async pidusage call hasn't finished yet.
-                         // TODO: fix pidusage upstream to allow graceful shutdown.
+      // TODO: fix pidusage upstream to allow graceful shutdown.
       pidusage.clear();
     });
   }

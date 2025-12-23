@@ -3,16 +3,16 @@
  * currently selected cell.
  */
 
+import BaseView from "app/client/components/BaseView";
+import * as commands from "app/client/components/commands";
+import { DataRowModel } from "app/client/models/DataRowModel";
+import { LazyArrayModel } from "app/client/models/DataTableModel";
+import { CursorPos, UIRowId } from "app/plugin/GristAPI";
 
-import BaseView from 'app/client/components/BaseView';
-import * as commands from 'app/client/components/commands';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {LazyArrayModel} from 'app/client/models/DataTableModel';
-import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
-import {Disposable} from 'grainjs';
-import * as ko from 'knockout';
+import { Disposable } from "grainjs";
+import * as ko from "knockout";
 
-function nullAsUndefined<T>(value: T|null|undefined): T|undefined {
+function nullAsUndefined<T>(value: T | null | undefined): T | undefined {
   return value == null ? undefined : value;
 }
 
@@ -34,7 +34,6 @@ function nextSequenceNum() { // First call to this func should return 1
 //   - Number.MAX_SAFE_INTEGER is 9,007,199,254,740,991 (9 * 10^15)
 //   - even at 1000 cursor-edits per second, it would take ~300,000 yrs to overflow
 //   - Plus it's client-side, so that's a single continuous 300-millenia-long session, which would be impressive uptime
-
 
 /**
  * Cursor represents the location of the cursor in the viewsection. It is maintained by BaseView,
@@ -70,10 +69,10 @@ export class Cursor extends Disposable {
   // observable with current cursor position
   public currentPosition: ko.Computed<CursorPos>;
 
-  public rowIndex: ko.Computed<number|null>;     // May be null when there are no rows.
+  public rowIndex: ko.Computed<number | null>;     // May be null when there are no rows.
   public fieldIndex: ko.Observable<number>;
 
-  public rowId: ko.Observable<UIRowId|null>;     // May be null when there are no rows.
+  public rowId: ko.Observable<UIRowId | null>;     // May be null when there are no rows.
 
   // The cursor's _rowId property is always fixed across data changes. When isLive is true,
   // the rowIndex of the cursor is recalculated to match _rowId. When false, they will
@@ -81,7 +80,7 @@ export class Cursor extends Disposable {
   private _isLive: ko.Observable<boolean> = ko.observable(true);
   private _sectionId: ko.Computed<number>;
 
-  private _properRowId: ko.Computed<UIRowId|null>;
+  private _properRowId: ko.Computed<UIRowId | null>;
 
   // lastEditedAt is updated on _properRowId or fieldIndex update (including through setCursorPos)
   // Used to determine which section takes priority for cursorLinking (specifically cycles/bidirectional linking)
@@ -97,7 +96,7 @@ export class Cursor extends Disposable {
     this.viewData = baseView.viewData;
 
     this._sectionId = this.autoDispose(ko.computed(() => baseView.viewSection.id()));
-    this.rowId = ko.observable<UIRowId|null>(optCursorPos.rowId || 0);
+    this.rowId = ko.observable<UIRowId | null>(optCursorPos.rowId || 0);
     this.rowIndex = this.autoDispose(ko.computed({
       read: () => {
         if (!this._isLive()) { return this.rowIndex.peek(); }
@@ -129,8 +128,8 @@ export class Cursor extends Disposable {
     this._lastEditedAt = ko.observable(SequenceNEVER);
 
     // update the section's activeRowId and lastCursorEdit when needed
-    this.autoDispose(this._properRowId.subscribe((rowId) => baseView.viewSection.activeRowId(rowId)));
-    this.autoDispose(this._lastEditedAt.subscribe((seqNum) => baseView.viewSection.lastCursorEdit(seqNum)));
+    this.autoDispose(this._properRowId.subscribe(rowId => baseView.viewSection.activeRowId(rowId)));
+    this.autoDispose(this._lastEditedAt.subscribe(seqNum => baseView.viewSection.lastCursorEdit(seqNum)));
 
     // Update the cursor edit time if either the row or column change
     // IMPORTANT: need to subscribe AFTER the properRowId->activeRowId subscription.
@@ -156,7 +155,7 @@ export class Cursor extends Disposable {
       rowId: nullAsUndefined(this._properRowId()),
       rowIndex: nullAsUndefined(this.rowIndex()),
       fieldIndex: this.fieldIndex(),
-      sectionId: this._sectionId()
+      sectionId: this._sectionId(),
     };
   }
 
@@ -179,17 +178,19 @@ export class Cursor extends Disposable {
 
       if (cursorPos.rowId !== undefined) {
         newRowIndex = this.viewData.getRowIndex(cursorPos.rowId);
-      } else if (cursorPos.rowIndex !== undefined && cursorPos.rowIndex >= 0) {
+      }
+      else if (cursorPos.rowIndex !== undefined && cursorPos.rowIndex >= 0) {
         newRowIndex = cursorPos.rowIndex;
       }
 
-      if (typeof(newRowIndex) === "number" && newRowIndex < 0) {
+      if (typeof (newRowIndex) === "number" && newRowIndex < 0) {
         newRowIndex = null;
       }
 
       if (newRowIndex !== undefined && (newRowIndex === null || newRowIndex >= 0)) {
         this.rowIndex(newRowIndex);
-      } else {
+      }
+      else {
         // Write rowIndex to itself to force an update of rowId if needed.
         this.rowIndex(this.rowIndex.peek() || 0);
       }
@@ -214,13 +215,11 @@ export class Cursor extends Disposable {
       this._cursorEdited();
 
       return newRowIndex !== null;
-    } finally { // Make sure we reset this even on error
+    }
+    finally { // Make sure we reset this even on error
       this._silentUpdatesFlag = false;
     }
   }
-
-
-
 
   public setLive(isLive: boolean): void {
     this._isLive(isLive);
@@ -232,7 +231,6 @@ export class Cursor extends Disposable {
   // and therefore which one should be used to drive linking if there's a conflict
   private _cursorEdited(): void {
     // If updating as a result of links, we want to NOT update lastEdited
-    if (!this._silentUpdatesFlag)
-      { this._lastEditedAt(nextSequenceNum()); }
+    if (!this._silentUpdatesFlag) { this._lastEditedAt(nextSequenceNum()); }
   }
 }

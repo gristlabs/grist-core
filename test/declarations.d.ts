@@ -8,7 +8,6 @@ declare module "test/nbrowser/gristUtil-nbrowser" {
   export declare let test: any;
 }
 
-
 // Adds missing type declaration to chai
 declare namespace Chai {
   interface AssertStatic {

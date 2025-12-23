@@ -1,8 +1,9 @@
-import {DocModel, IRowModel} from 'app/client/models/DocModel';
-import * as modelUtil from 'app/client/models/modelUtil';
-import {jsonObservable} from 'app/client/models/modelUtil';
-import {DocumentSettings} from 'app/common/DocumentSettings';
-import * as ko from 'knockout';
+import { DocModel, IRowModel } from "app/client/models/DocModel";
+import * as modelUtil from "app/client/models/modelUtil";
+import { jsonObservable } from "app/client/models/modelUtil";
+import { DocumentSettings } from "app/common/DocumentSettings";
+
+import * as ko from "knockout";
 
 // The document-wide metadata. It's all contained in a single record with id=1.
 export interface DocInfoRec extends IRowModel<"_grist_DocInfo"> {
@@ -14,12 +15,12 @@ export interface DocInfoRec extends IRowModel<"_grist_DocInfo"> {
    * Note: You shouldn't change it directly. There is a docAPI endpoint to modify it (which notifies other
    * client about transfer job status also).
    */
-  attachmentStoreId: modelUtil.KoSaveableObservable<string|undefined>;
+  attachmentStoreId: modelUtil.KoSaveableObservable<string | undefined>;
 }
 
 export function createDocInfoRec(this: DocInfoRec, docModel: DocModel): void {
   this.documentSettingsJson = jsonObservable(this.documentSettings);
-  this.attachmentStoreId = this.documentSettingsJson.prop('attachmentStoreId');
+  this.attachmentStoreId = this.documentSettingsJson.prop("attachmentStoreId");
   this.defaultViewId = this.autoDispose(ko.pureComputed(() => {
     const tab = docModel.allTabs.at(0);
     return tab ? tab.viewRef() : 0;

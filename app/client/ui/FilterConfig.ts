@@ -1,18 +1,19 @@
-import {makeT} from 'app/client/lib/localization';
-import {ViewSectionRec} from 'app/client/models/DocModel';
-import {attachColumnFilterMenu} from 'app/client/ui/ColumnFilterMenu';
-import {addFilterMenu} from 'app/client/ui/FilterBar';
-import {cssIcon, cssPinButton, cssRow, cssSortFilterColumn} from 'app/client/ui/RightPanelStyles';
-import {theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {textButton} from 'app/client/ui2018/buttons';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {Computed, Disposable, dom, makeTestId, styled} from 'grainjs';
-import {IMenuOptions} from 'popweasel';
+import { makeT } from "app/client/lib/localization";
+import { ViewSectionRec } from "app/client/models/DocModel";
+import { attachColumnFilterMenu } from "app/client/ui/ColumnFilterMenu";
+import { addFilterMenu } from "app/client/ui/FilterBar";
+import { cssIcon, cssPinButton, cssRow, cssSortFilterColumn } from "app/client/ui/RightPanelStyles";
+import { textButton } from "app/client/ui2018/buttons";
+import { theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { unstyledButton } from "app/client/ui2018/unstyled";
 
-const testId = makeTestId('test-filter-config-');
+import { Computed, Disposable, dom, makeTestId, styled } from "grainjs";
+import { IMenuOptions } from "popweasel";
 
-const t = makeT('SortConfig');
+const testId = makeTestId("test-filter-config-");
+
+const t = makeT("SortConfig");
 
 export interface FilterConfigOptions {
   /** Options to pass to the menu and popup components. */
@@ -39,61 +40,61 @@ export class FilterConfig extends Disposable {
   }
 
   public buildDom() {
-    const {menuOptions} = this._options;
-    return dom('div',
+    const { menuOptions } = this._options;
+    return dom("div",
       dom.forEach(this._section.activeFilters, (filterInfo) => {
-        const {fieldOrColumn, filter, pinned, isPinned} = filterInfo;
+        const { fieldOrColumn, filter, pinned, isPinned } = filterInfo;
         return cssRow(
           cssSortFilterColumn(
             cssIconWrapper(
-              cssFilterIcon('FilterSimple',
-                cssFilterIcon.cls('-accent', use => !use(filter.isSaved) || !use(pinned.isSaved)),
-                testId('filter-icon'),
+              cssFilterIcon("FilterSimple",
+                cssFilterIcon.cls("-accent", use => !use(filter.isSaved) || !use(pinned.isSaved)),
+                testId("filter-icon"),
               ),
             ),
             cssLabel(dom.text(fieldOrColumn.label)),
-            dom.attr('aria-label', use =>
-              t('{{- columnName }} column filters', {columnName: use(fieldOrColumn.label)}),
+            dom.attr("aria-label", use =>
+              t("{{- columnName }} column filters", { columnName: use(fieldOrColumn.label) }),
             ),
             attachColumnFilterMenu(filterInfo, {
               popupOptions: {
-                placement: 'bottom-end',
+                placement: "bottom-end",
                 ...menuOptions,
                 trigger: [
-                  'click',
-                  (_el, popupControl) => this._popupControls.set(fieldOrColumn.origCol(), popupControl)
+                  "click",
+                  (_el, popupControl) => this._popupControls.set(fieldOrColumn.origCol(), popupControl),
                 ],
               },
             }),
-            testId('column'),
+            testId("column"),
           ),
           cssPinFilterButton(
-            icon('PinTilted'),
-            dom.attr('aria-label', use => use(isPinned)
-              ? t('Unpin filter - {{- columnName}} column (current: pinned)', {columnName: use(fieldOrColumn.label)})
-              : t('Pin filter - {{- columnName}} column (current: unpinned)', {columnName: use(fieldOrColumn.label)}),
+            icon("PinTilted"),
+            dom.attr("aria-label", use => use(isPinned) ?
+              t("Unpin filter - {{- columnName}} column (current: pinned)", { columnName: use(fieldOrColumn.label) }) :
+              t("Pin filter - {{- columnName}} column (current: unpinned)", { columnName: use(fieldOrColumn.label) }),
             ),
-            dom.on('click', () => this._section.setFilter(fieldOrColumn.origCol().origColRef(), {
-              pinned: !isPinned.peek()
+            dom.on("click", () => this._section.setFilter(fieldOrColumn.origCol().origColRef(), {
+              pinned: !isPinned.peek(),
             })),
-            cssPinButton.cls('-pinned', isPinned),
-            testId('pin-filter'),
+            cssPinButton.cls("-pinned", isPinned),
+            testId("pin-filter"),
           ),
           cssIconWrapper(
             cssRemoveFilterButton(
-              cssIcon('Remove'),
-              dom.attr('aria-label', use =>
-                t('remove filter - {{- columnName}} column', {columnName: use(fieldOrColumn.label)}),
+              cssIcon("Remove"),
+              dom.attr("aria-label", use =>
+                t("remove filter - {{- columnName}} column", { columnName: use(fieldOrColumn.label) }),
               ),
-              dom.on('click',
+              dom.on("click",
                 () => this._section.setFilter(fieldOrColumn.origCol().origColRef(), {
-                  filter: '',
+                  filter: "",
                   pinned: false,
                 })),
-              testId('remove-filter'),
+              testId("remove-filter"),
             ),
           ),
-          testId('filter'),
+          testId("filter"),
         );
       }),
       cssRow(
@@ -103,24 +104,24 @@ export class FilterConfig extends Disposable {
             t("Add column"),
             addFilterMenu(filters, this._popupControls, {
               menuOptions: {
-                placement: 'bottom-end',
+                placement: "bottom-end",
                 ...this._options.menuOptions,
               },
             }),
-            dom.on('click', (ev) => ev.stopPropagation()),
+            dom.on("click", ev => ev.stopPropagation()),
             dom.hide(u => !u(this._canAddFilter)),
-            testId('add-filter-btn'),
+            testId("add-filter-btn"),
           );
         }),
       ),
-      testId('container'),
+      testId("container"),
     );
   }
 }
 
-const cssIconWrapper = styled('div', ``);
+const cssIconWrapper = styled("div", ``);
 
-const cssLabel = styled('div', `
+const cssLabel = styled("div", `
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;

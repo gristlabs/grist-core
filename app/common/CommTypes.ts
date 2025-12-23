@@ -1,16 +1,15 @@
-import {ActionGroup} from 'app/common/ActionGroup';
-import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
-import {DocAction} from 'app/common/DocActions';
-import {FilteredDocUsageSummary} from 'app/common/DocUsage';
-import {Product} from 'app/common/Features';
-import {StringUnion} from 'app/common/StringUnion';
-import {AttachmentTransferStatus} from 'app/common/UserAPI';
+import { ActionGroup } from "app/common/ActionGroup";
+import { VisibleUserProfile } from "app/common/ActiveDocAPI";
+import { DocAction } from "app/common/DocActions";
+import { FilteredDocUsageSummary } from "app/common/DocUsage";
+import { Product } from "app/common/Features";
+import { StringUnion } from "app/common/StringUnion";
+import { AttachmentTransferStatus } from "app/common/UserAPI";
 
 export const ValidEvent = StringUnion(
-  'docListAction', 'docUserAction', 'docShutdown', 'docError',
-  'docUsage', 'docChatter', 'docUserPresenceUpdate', 'clientConnect');
+  "docListAction", "docUserAction", "docShutdown", "docError",
+  "docUsage", "docChatter", "docUserPresenceUpdate", "clientConnect");
 export type ValidEvent = typeof ValidEvent.type;
-
 
 /**
  * A request in the appropriate form for sending to the server.
@@ -39,8 +38,8 @@ export interface CommResponseError {
   errorCode?: string;
   shouldFork?: boolean;  // if set, the server suggests forking the document.
   details?: any;  // if set, error has extra details available. TODO - the treatment of
-                  // details could do with some harmonisation between rest API and ws API,
-                  // and between front-end and back-end types.
+  // details could do with some harmonisation between rest API and ws API,
+  // and between front-end and back-end types.
   status?: number;  // if set, a REST API style code.
 }
 
@@ -54,12 +53,12 @@ export interface CommMessageBase {
 }
 
 export type CommDocMessage = CommDocUserAction | CommDocUsage | CommDocShutdown |
-                             CommDocError | CommDocChatter | CommDocUserPresenceUpdate;
+  CommDocError | CommDocChatter | CommDocUserPresenceUpdate;
 export type CommMessage = CommDocMessage | CommDocListAction | CommClientConnect;
 
 export type CommResponseBase = CommResponse | CommResponseError | CommMessage;
 
-export type CommDocEventType = CommDocMessage['type'];
+export type CommDocEventType = CommDocMessage["type"];
 
 /**
  * Event for a change to the document list.
@@ -67,7 +66,7 @@ export type CommDocEventType = CommDocMessage['type'];
  * TODO: This is entirely unused at the moment.
  */
 export interface CommDocListAction extends CommMessageBase {
-  type: 'docListAction';
+  type: "docListAction";
   addDocs?: string[];        //  names of documents to add to the docList.
   removeDocs?: string[];     //  names of documents that got removed.
   renameDocs?: string[];     //  [oldName, newName] pairs for renamed docs.
@@ -80,7 +79,7 @@ export interface CommDocListAction extends CommMessageBase {
  * document open.
  */
 export interface CommDocUserAction extends CommMessageBase {
-  type: 'docUserAction';
+  type: "docUserAction";
   docFD: number;           // The file descriptor of the open document, specific to each client.
   fromSelf?: boolean;      // Flag to indicate whether the action originated from this client.
 
@@ -93,13 +92,12 @@ export interface CommDocUserAction extends CommMessageBase {
   };
 }
 
-
 export enum WebhookMessageType {
-  Update = 'webhookUpdate',
-  Overflow = 'webhookOverflowError'
+  Update = "webhookUpdate",
+  Overflow = "webhookOverflowError",
 }
 export interface CommDocChatter extends CommMessageBase {
-  type: 'docChatter';
+  type: "docChatter";
   docFD: number;
   data: {
     webhooks?: {
@@ -111,14 +109,14 @@ export interface CommDocChatter extends CommMessageBase {
     // This could also be a fine place to send updated info
     // about other users of the document.
     timing?: {
-      status: 'active'|'disabled';
+      status: "active" | "disabled";
     },
     attachmentTransfer?: AttachmentTransferStatus;
   };
 }
 
 export interface CommDocUserPresenceUpdate extends CommMessageBase {
-  type: 'docUserPresenceUpdate';
+  type: "docUserPresenceUpdate";
   docFD: number;
   data: {
     id: string;
@@ -131,11 +129,11 @@ export interface CommDocUserPresenceUpdate extends CommMessageBase {
  * Event for a change to document usage. Sent to all clients that have this document open.
  */
 export interface CommDocUsage extends CommMessageBase {
-  type: 'docUsage';
+  type: "docUsage";
   docFD: number;           // The file descriptor of the open document, specific to each client.
   data: {
     docUsage: FilteredDocUsageSummary;  // Document usage summary.
-    product?: Product;                  //Product that was used to compute `data.docUsage`
+    product?: Product;                  // Product that was used to compute `data.docUsage`
   };
 }
 
@@ -143,7 +141,7 @@ export interface CommDocUsage extends CommMessageBase {
  * Event for when a document is forcibly shutdown, and requires the client to re-open it.
  */
 export interface CommDocShutdown extends CommMessageBase {
-  type: 'docShutdown';
+  type: "docShutdown";
   docFD: number;
   data: null;
 }
@@ -152,7 +150,7 @@ export interface CommDocShutdown extends CommMessageBase {
  * Event that signals an error while opening a doc.
  */
 export interface CommDocError extends CommMessageBase {
-  type: 'docError';
+  type: "docError";
   docFD: number;
   data: {
     when: string;
@@ -164,7 +162,7 @@ export interface CommDocError extends CommMessageBase {
  * Event sent by server received when a client first connects.
  */
 export interface CommClientConnect extends CommMessageBase {
-  type: 'clientConnect';
+  type: "clientConnect";
 
   // ID for the client, which may be reused if a client reconnects to reattach to its state on
   // the server.
@@ -180,7 +178,7 @@ export interface CommClientConnect extends CommMessageBase {
   serverVersion?: string;
 
   // Object containing server settings and features which should be used to initialize the client.
-  settings?: {[key: string]: unknown};
+  settings?: { [key: string]: unknown };
 
   dup?: boolean;  // Flag that's set to true when it's a duplicate clientConnect message.
 }

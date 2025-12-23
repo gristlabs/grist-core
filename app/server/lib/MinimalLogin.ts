@@ -1,7 +1,8 @@
-import {UserProfile} from 'app/common/UserAPI';
-import {GristLoginMiddleware, GristLoginSystem, GristServer, setUserInSession} from 'app/server/lib/GristServer';
-import {getFallbackLoginProvider} from 'app/server/lib/loginSystemHelpers';
-import {Request} from 'express';
+import { UserProfile } from "app/common/UserAPI";
+import { GristLoginMiddleware, GristLoginSystem, GristServer, setUserInSession } from "app/server/lib/GristServer";
+import { getFallbackLoginProvider } from "app/server/lib/loginSystemHelpers";
+
+import { Request } from "express";
 
 /**
  * Returns a login system that supports a single hard-coded user, or undefined if minimal login is disabled.
@@ -23,13 +24,13 @@ async function buildMinimalLoginSystem(): Promise<GristLoginSystem> {
           // If working without a login system, make sure default user exists.
           const dbManager = gristServer.getHomeDBManager();
           const profile = getDefaultProfile();
-          const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile});
+          const user = await dbManager.getUserByLoginWithRetry(profile.email, { profile });
           if (user) {
             // No need to survey this user!
             user.isFirstTimeUser = false;
             await user.save();
           }
-          return 'no-logins';
+          return "no-logins";
         },
       };
     },
@@ -44,14 +45,14 @@ async function buildMinimalLoginSystem(): Promise<GristLoginSystem> {
  * always configured.
  */
 export const getMinimalLoginSystem = getFallbackLoginProvider(
-  'minimal',
-  buildMinimalLoginSystem
+  "minimal",
+  buildMinimalLoginSystem,
 );
 
 export function getDefaultProfile(): UserProfile {
   return {
-    email: process.env.GRIST_DEFAULT_EMAIL || 'you@example.com',
-    name: 'You',
+    email: process.env.GRIST_DEFAULT_EMAIL || "you@example.com",
+    name: "You",
   };
 }
 
@@ -74,15 +75,18 @@ export async function getBlockedLoginSystem(): Promise<GristLoginSystem> {
 
 export class ErrorInLoginMiddleware implements GristLoginMiddleware {
   public getLoginRedirectUrl(req: Request, url: URL): Promise<string> {
-    throw new Error('No login system is configured');
+    throw new Error("No login system is configured");
   }
+
   public getSignUpRedirectUrl(req: Request, url: URL): Promise<string> {
-    throw new Error('No login system is configured');
+    throw new Error("No login system is configured");
   }
+
   public getLogoutRedirectUrl(req: Request, url: URL): Promise<string> {
-    throw new Error('No login system is configured');
+    throw new Error("No login system is configured");
   }
+
   public async addEndpoints(): Promise<string> {
-    return 'no-provider';
+    return "no-provider";
   }
 }

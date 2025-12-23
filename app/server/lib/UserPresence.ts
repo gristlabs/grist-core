@@ -1,18 +1,18 @@
-import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
-import {CommDocUserPresenceUpdate} from 'app/common/CommTypes';
-import * as roles from 'app/common/roles';
-import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, FullUser, getRealAccess} from 'app/common/UserAPI';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {DocClients, isUserPresenceDisabled} from 'app/server/lib/DocClients';
-import {DocSession} from 'app/server/lib/DocSession';
-import {LogMethods} from 'app/server/lib/LogMethods';
+import { VisibleUserProfile } from "app/common/ActiveDocAPI";
+import { CommDocUserPresenceUpdate } from "app/common/CommTypes";
+import * as roles from "app/common/roles";
+import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, FullUser, getRealAccess } from "app/common/UserAPI";
+import { appSettings } from "app/server/lib/AppSettings";
+import { DocClients, isUserPresenceDisabled } from "app/server/lib/DocClients";
+import { DocSession } from "app/server/lib/DocSession";
+import { LogMethods } from "app/server/lib/LogMethods";
 
-import {fromPairs} from 'lodash';
+import { fromPairs } from "lodash";
 
 export class UserPresence {
-  private _presenceSessionsById: Map<string, UserPresenceSession> = new Map();
+  private _presenceSessionsById = new Map<string, UserPresenceSession>();
 
-  private _log = new LogMethods('UserPresence ', (s: DocSession|null) => this._activeDoc.getLogMeta(s));
+  private _log = new LogMethods("UserPresence ", (s: DocSession | null) => this._activeDoc.getLogMeta(s));
 
   constructor(private _docClients: DocClients) {
     this._docClients.addClientAddedListener(this._onNewDocSession.bind(this));
@@ -23,11 +23,11 @@ export class UserPresence {
     if (isUserPresenceDisabled()) { return []; }
     const viewingId = getIdFromDocSession(viewingDocSession);
     const otherPresenceSessions = Array.from(this._presenceSessionsById.values()).filter(
-      otherSession => otherSession.id !== viewingId
+      otherSession => otherSession.id !== viewingId,
     );
     const docUserRoles = await this._getDocUserRoles();
     const userProfiles = otherPresenceSessions.map(
-      s => getVisibleUserProfileFromDocSession(s, viewingDocSession, docUserRoles)
+      s => getVisibleUserProfileFromDocSession(s, viewingDocSession, docUserRoles),
     );
     return userProfiles.filter((s?: VisibleUserProfile): s is VisibleUserProfile => s !== undefined);
   }
@@ -39,7 +39,8 @@ export class UserPresence {
       const newPresenceSession = new UserPresenceSession(docSession);
       this._presenceSessionsById.set(id, newPresenceSession);
       this._broadcastUserPresenceSessionUpdate(newPresenceSession);
-    } else {
+    }
+    else {
       _existingPresenceSession.addDocSession(docSession);
     }
   }
@@ -74,11 +75,11 @@ export class UserPresence {
           if (!profile) { return; }
           return {
             id: presenceSession.publicId,
-            profile
+            profile,
           };
-        }
+        },
       ))
-      .catch(err => {
+      .catch((err) => {
         this._log.error(null, "failed to broadcast user presence session update: %s", err);
       });
   }
@@ -94,8 +95,8 @@ export class UserPresence {
           id: presenceSession.publicId,
           profile: null,
         };
-      }
-    ).catch(err => {
+      },
+    ).catch((err) => {
       this._log.error(null, "failed to broadcast user presence session removal: %s", err);
     });
   }
@@ -120,7 +121,6 @@ export class UserPresence {
     return this._docClients.activeDoc;
   }
 }
-
 
 interface UserIdRoleMap {
   [id: string]: roles.Role | null
@@ -156,8 +156,8 @@ function getVisibleUserProfileFromDocSession(
   };
 }
 
-const GRIST_USER_PRESENCE_ICON_PER_TAB = Boolean(appSettings.section('userPresence').flag('iconPerTab').readBool({
-  envVar: 'GRIST_USER_PRESENCE_ICON_PER_TAB',
+const GRIST_USER_PRESENCE_ICON_PER_TAB = Boolean(appSettings.section("userPresence").flag("iconPerTab").readBool({
+  envVar: "GRIST_USER_PRESENCE_ICON_PER_TAB",
   defaultValue: false,
 }));
 
@@ -168,9 +168,9 @@ function getIdFromDocSession(session: DocSession): string {
   }
   const authSession = session.client.authSession;
   return (
-    (authSession.userIsAuthorized && authSession.userId?.toString())
-    || authSession.altSessionId
-    || session.client.clientId
+    (authSession.userIsAuthorized && authSession.userId?.toString()) ||
+    authSession.altSessionId ||
+    session.client.clientId
   );
 }
 
@@ -182,7 +182,7 @@ class UserPresenceSession {
   public readonly publicId: string;
   public get user() { return this._user; }
 
-  private _docSessions: Set<DocSession> = new Set();
+  private _docSessions = new Set<DocSession>();
   private _user: FullUser | null;
 
   constructor(initialSession: DocSession) {

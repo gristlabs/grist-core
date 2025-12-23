@@ -1,20 +1,23 @@
-import {BrowserSettings} from 'app/common/BrowserSettings';
-import {CommClientConnect, CommMessage, CommResponse, CommResponseError} from 'app/common/CommTypes';
-import {delay} from 'app/common/delay';
-import {ErrorWithCode} from 'app/common/ErrorWithCode';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {AuthSession} from 'app/server/lib/AuthSession';
-import type {Comm} from 'app/server/lib/Comm';
-import {DocSession, DocSessionPrecursor} from 'app/server/lib/DocSession';
-import {GristServerSocket} from 'app/server/lib/GristServerSocket';
-import log from 'app/server/lib/log';
-import {LogMethods} from 'app/server/lib/LogMethods';
-import {MemoryPool} from 'app/server/lib/MemoryPool';
-import {fromCallback} from 'app/server/lib/serverUtils';
-import {shortDesc} from 'app/server/lib/shortDesc';
-import * as crypto from 'crypto';
-import {IncomingMessage} from 'http';
-import {i18n} from 'i18next';
+import { BrowserSettings } from "app/common/BrowserSettings";
+import { CommClientConnect, CommMessage, CommResponse, CommResponseError } from "app/common/CommTypes";
+import { delay } from "app/common/delay";
+import { ErrorWithCode } from "app/common/ErrorWithCode";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { AuthSession } from "app/server/lib/AuthSession";
+import { DocSession, DocSessionPrecursor } from "app/server/lib/DocSession";
+import { GristServerSocket } from "app/server/lib/GristServerSocket";
+import log from "app/server/lib/log";
+import { LogMethods } from "app/server/lib/LogMethods";
+import { MemoryPool } from "app/server/lib/MemoryPool";
+import { fromCallback } from "app/server/lib/serverUtils";
+import { shortDesc } from "app/server/lib/shortDesc";
+
+import * as crypto from "crypto";
+import { IncomingMessage } from "http";
+
+import { i18n } from "i18next";
+
+import type { Comm } from "app/server/lib/Comm";
 
 // How many messages and bytes to accumulate for a disconnected client before booting it.
 // The benefit is that a client who temporarily disconnects and reconnects without missing much,
@@ -36,7 +39,7 @@ const jsonResponseReservation = 20 * 1024 * 1024;
 export const jsonMemoryPool = new MemoryPool(jsonResponseTotalReservation);
 
 // A hook for dependency injection.
-export const Deps = {clientRemovalTimeoutMs, jsonResponseReservation};
+export const Deps = { clientRemovalTimeoutMs, jsonResponseReservation };
 
 /**
  * Generates and returns a random string to use as a clientId. This is better
@@ -50,7 +53,7 @@ export const Deps = {clientRemovalTimeoutMs, jsonResponseReservation};
 function generateClientId(): string {
   // Non-blocking version of randomBytes may fail if insufficient entropy is available without
   // blocking. If we encounter that, we could either block, or maybe use less random values.
-  return crypto.randomBytes(8).toString('hex');
+  return crypto.randomBytes(8).toString("hex");
 }
 
 /**
@@ -58,11 +61,10 @@ function generateClientId(): string {
  * not authorized to use this instance (e.g. not a member of the team for this subdomain).
  */
 const MESSAGE_TYPES_NO_AUTH = new Set([
-  'clientConnect',
+  "clientConnect",
 ]);
 
-// tslint:disable-next-line:no-unused-expression Silence "unused variable" warning.
-void(MESSAGE_TYPES_NO_AUTH);
+void (MESSAGE_TYPES_NO_AUTH);
 
 /**
  * Class that encapsulates the information for a client. A Client may survive
@@ -81,22 +83,22 @@ export class Client {
 
   public browserSettings: BrowserSettings = {};
 
-  private _log = new LogMethods('Client ', (extra?: object|null) => this.getLogMeta(extra || {}));
+  private _log = new LogMethods("Client ", (extra?: object | null) => this.getLogMeta(extra || {}));
 
   // Maps docFDs to DocSession objects.
-  private _docFDs: Array<DocSession|null> = [];
+  private _docFDs: (DocSession | null)[] = [];
 
   private _missedMessages = new Map<number, string>();
   private _missedMessagesTotalLength: number = 0;
-  private _destroyTimer: NodeJS.Timeout|null = null;
+  private _destroyTimer: NodeJS.Timeout | null = null;
   private _destroyed: boolean = false;
-  private _websocket: GristServerSocket|null = null;
-  private _req: IncomingMessage|null = null;
+  private _websocket: GristServerSocket | null = null;
+  private _req: IncomingMessage | null = null;
   private _authSession: AuthSession = AuthSession.unauthenticated();
   private _nextSeqId: number = 0;     // Next sequence-ID for messages sent to the client
 
   // Identifier for the current GristWSConnection object connected to this client.
-  private _counter: string|null = null;
+  private _counter: string | null = null;
   private _i18Instance?: i18n;
 
   constructor(
@@ -121,11 +123,11 @@ export class Client {
   public setConnection(options: {
     websocket: GristServerSocket;
     req: IncomingMessage;
-    counter: string|null;
+    counter: string | null;
     browserSettings: BrowserSettings;
     authSession: AuthSession;
   }) {
-    const {websocket, req, counter, browserSettings} = options;
+    const { websocket, req, counter, browserSettings } = options;
     this._websocket = websocket;
     this._req = req;
     this._counter = counter;
@@ -142,7 +144,7 @@ export class Client {
     return this._authSession;
   }
 
-  public getConnectionRequest(): IncomingMessage|null {
+  public getConnectionRequest(): IncomingMessage | null {
     return this._req;
   }
 
@@ -177,7 +179,7 @@ export class Client {
     let count = 0;
     for (let fd = 0; fd < this._docFDs.length; fd++) {
       const docSession = this._docFDs[fd];
-      if (docSession && docSession.activeDoc) {
+      if (docSession?.activeDoc) {
         // Note that this indirectly calls to removeDocSession(docSession.fd)
         docSession.activeDoc.closeDoc(docSession)
           .catch((e) => { this._log.warn(null, "error closing docFD %d", fd); });
@@ -205,11 +207,12 @@ export class Client {
    * Sends a message to the client. If the send fails in a way that the message can't get queued
    * (e.g. due to an unexpected exception in code), logs an error and interrupts the connection.
    */
-  public async sendMessageOrInterrupt(messageObj: CommMessage|CommResponse|CommResponseError): Promise<void> {
+  public async sendMessageOrInterrupt(messageObj: CommMessage | CommResponse | CommResponseError): Promise<void> {
     try {
       await this.sendMessage(messageObj);
-    } catch (e) {
-      this._log.error(null, 'sendMessage error', e);
+    }
+    catch (e) {
+      this._log.error(null, "sendMessage error", e);
       this.interruptConnection();
     }
   }
@@ -217,7 +220,7 @@ export class Client {
   /**
    * Sends a message to the client, queuing it up on failure or if the client is disconnected.
    */
-  public async sendMessage(messageObj: CommMessage|CommResponse|CommResponseError): Promise<void> {
+  public async sendMessage(messageObj: CommMessage | CommResponse | CommResponseError): Promise<void> {
     if (this._destroyed) {
       return;
     }
@@ -244,12 +247,12 @@ export class Client {
         return;
       }
       const seqId = this._nextSeqId++;
-      const message: string = JSON.stringify({...messageObj, seqId});
-      const size = Buffer.byteLength(message, 'utf8');
+      const message: string = JSON.stringify({ ...messageObj, seqId });
+      const size = Buffer.byteLength(message, "utf8");
       updateReservation(size);
 
       // Log something useful about the message being sent.
-      if ('error' in messageObj && messageObj.error) {
+      if ("error" in messageObj && messageObj.error) {
         this._log.warn(null, "responding to #%d ERROR %s", messageObj.reqId, messageObj.error);
       }
 
@@ -262,13 +265,14 @@ export class Client {
           // (keeping a copy of messages until acked). With our system, we are more likely to be
           // lacking the needed messages on reconnect, and having to reset the client.
           return;
-        } catch (err) {
+        }
+        catch (err) {
           // Sending failed. Add the message to missedMessages.
           this._log.warn(null, "sendMessage: queuing after send error:", err.toString());
         }
       }
       if (this._missedMessages.size < clientMaxMissedMessages &&
-          this._missedMessagesTotalLength + message.length <= clientMaxMissedBytes) {
+        this._missedMessagesTotalLength + message.length <= clientMaxMissedBytes) {
         // Queue up the message.
         // TODO: this keeps the memory but releases jsonMemoryPool reservation, which is wrong --
         // it may allow too much memory to be used. This situation is rare, however, so maybe OK
@@ -279,7 +283,8 @@ export class Client {
         // lead to an eventual recovery.)
         this._missedMessages.set(seqId, message);
         this._missedMessagesTotalLength += message.length;
-      } else {
+      }
+      else {
         // Too many messages queued. Boot the client now, to make it reset when/if it reconnects.
         this._log.warn(null, "sendMessage: too many messages queued; booting client");
         this.destroy();
@@ -302,14 +307,14 @@ export class Client {
    * See comments at the top of app/server/lib/Comm.ts for some relevant notes.
    */
   public async sendConnectMessage(
-    newClient: boolean, reuseClient: boolean, lastSeqId: number|null, parts: Partial<CommClientConnect>
+    newClient: boolean, reuseClient: boolean, lastSeqId: number | null, parts: Partial<CommClientConnect>,
   ): Promise<void> {
     if (this._destroyTimer) {
       clearTimeout(this._destroyTimer);
       this._destroyTimer = null;
     }
 
-    let missedMessages: string[]|undefined = undefined;
+    let missedMessages: string[] | undefined = undefined;
     let seamlessReconnect = false;
     if (!newClient && reuseClient && await this._isAuthorized()) {
       // Websocket-level reconnect: existing browser tab reconnected to an existing Client object.
@@ -326,7 +331,7 @@ export class Client {
     this._missedMessages.clear();
     this._missedMessagesTotalLength = 0;
 
-    let docsClosed: number|null = null;
+    let docsClosed: number | null = null;
     if (!seamlessReconnect) {
       // The browser client can't recover from missed messages and will need to reopen docs. Close
       // all docs we kept open. If it's a new Client object, this is a no-op.
@@ -337,13 +342,13 @@ export class Client {
     // will need to reopen docs. Tell it to reload.
     const needReload = !newClient && !seamlessReconnect;
 
-    this._log.debug({newClient, needReload, docsClosed, missedMessages: missedMessages?.length},
-      'sending clientConnect');
+    this._log.debug({ newClient, needReload, docsClosed, missedMessages: missedMessages?.length },
+      "sending clientConnect");
 
     // Don't use sendMessage here, since we don't want to queue up this message on failure.
     const clientConnectMsg: CommClientConnect = {
       ...parts,
-      type: 'clientConnect',
+      type: "clientConnect",
       clientId: this.clientId,
       missedMessages,
       needReload,
@@ -365,9 +370,10 @@ export class Client {
       await delay(250);
 
       if (!this._destroyed && this._websocket?.isOpen) {
-        await this._sendToWebsocket(JSON.stringify({...clientConnectMsg, dup: true}));
+        await this._sendToWebsocket(JSON.stringify({ ...clientConnectMsg, dup: true }));
       }
-    } catch (err) {
+    }
+    catch (err) {
       // It's possible that the connection was closed while we were preparing this response.
       // We just warn, and let _onClose() take care of cleanup.
       this._log.warn(null, "failed to prepare or send clientConnect:", err.toString());
@@ -375,7 +381,7 @@ export class Client {
   }
 
   // Get messages in order of their key in the _missedMessages map.
-  public getMissedMessages(lastSeqId: number|null): string[]|undefined {
+  public getMissedMessages(lastSeqId: number | null): string[] | undefined {
     const result: string[] = [];
     if (lastSeqId !== null) {
       for (let i = lastSeqId + 1; i < this._nextSeqId; i++) {
@@ -393,7 +399,7 @@ export class Client {
    */
   public destroy() {
     const docsClosed = this.closeAllDocs();
-    this._log.info({docsClosed}, "client gone");
+    this._log.info({ docsClosed }, "client gone");
     if (this._destroyTimer) {
       clearTimeout(this._destroyTimer);
       this._destroyTimer = null;
@@ -416,7 +422,8 @@ export class Client {
   private async _onMessage(message: string): Promise<void> {
     try {
       await this._onMessageImpl(message);
-    } catch (err) {
+    }
+    catch (err) {
       this._log.warn(null, 'onMessage error received for message "%s": %s', shortDesc(message), err.stack);
     }
   }
@@ -429,22 +436,24 @@ export class Client {
     const request = JSON.parse(message);
     if (request.beat) {
       // this is a heart beat, to keep the websocket alive.  No need to reply.
-      log.rawInfo('heartbeat', {
+      log.rawInfo("heartbeat", {
         ...this.getLogMeta(),
         url: request.url,
         docId: request.docId,  // caution: trusting client for docId for this purpose.
       });
       return;
     }
-    let response: CommResponse|CommResponseError;
+    let response: CommResponse | CommResponseError;
     const method = this._methods.get(request.method);
     if (!method) {
       this._log.info(null, "onMessage: unknown method", shortDesc(message));
-      response = {reqId: request.reqId, error: `Unknown method ${request.method}`};
-    } else {
+      response = { reqId: request.reqId, error: `Unknown method ${request.method}` };
+    }
+    else {
       try {
-        response = {reqId: request.reqId, data: await method(this, ...request.args)};
-      } catch (error) {
+        response = { reqId: request.reqId, data: await method(this, ...request.args) };
+      }
+      catch (error) {
         const err: ErrorWithCode = error;
         // Print the error stack, except for SandboxErrors, for which the JS stack isn't that useful.
         // Also not helpful is the stack of AUTH_NO_VIEW|EDIT errors produced by the Authorizer.
@@ -452,12 +461,12 @@ export class Client {
         const skipStack = (
           !err.stack ||
           err.stack.match(/^SandboxError:/) ||
-          (typeof code === 'string' && code.startsWith('AUTH_NO'))
+          (typeof code === "string" && code.startsWith("AUTH_NO"))
         );
 
         this._log.warn(null, "Responding to method %s with error: %s %s",
-          request.method, skipStack ? err : err.stack, code || '');
-        response = {reqId: request.reqId, error: err.message};
+          request.method, skipStack ? err : err.stack, code || "");
+        response = { reqId: request.reqId, error: err.message };
         if (err.code) {
           response.errorCode = err.code;
         }
@@ -467,7 +476,7 @@ export class Client {
         if (err.status) {
           response.status = err.status;
         }
-        if (typeof code === 'string' && code === 'AUTH_NO_EDIT' && err.accessMode === 'fork') {
+        if (typeof code === "string" && code === "AUTH_NO_EDIT" && err.accessMode === "fork") {
           response.shouldFork = true;
         }
       }
@@ -482,8 +491,9 @@ export class Client {
   private async _isAuthorized(): Promise<boolean> {
     for (const docFD of this._docFDs) {
       try {
-        if (docFD !== null) { await docFD.authorizer.assertAccess('viewers'); }
-      } catch (e) {
+        if (docFD !== null) { await docFD.authorizer.assertAccess("viewers"); }
+      }
+      catch (e) {
         return false;
       }
     }

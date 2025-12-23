@@ -1,5 +1,5 @@
-import {DocumentMetadata} from 'app/gen-server/lib/homedb/HomeDBManager';
-import log from 'app/server/lib/log';
+import { DocumentMetadata } from "app/gen-server/lib/homedb/HomeDBManager";
+import log from "app/server/lib/log";
 
 // Callback that persists the updated metadata to storage for each document.
 export type SaveDocsMetadataFunc = (metadata: { [docId: string]: DocumentMetadata }) => Promise<any>;
@@ -9,9 +9,8 @@ export type SaveDocsMetadataFunc = (metadata: { [docId: string]: DocumentMetadat
  * a doc is updated. Currently updates doc updatedAt time and usage.
  */
 export class HostedMetadataManager {
-
   // Document metadata mapped by docId.
-  private _metadata: {[docId: string]: DocumentMetadata} = {};
+  private _metadata: { [docId: string]: DocumentMetadata } = {};
 
   // Set if the class holder is closing and no further pushes should be scheduled.
   private _closing: boolean = false;
@@ -20,10 +19,10 @@ export class HostedMetadataManager {
   private _lastPushTime: number = 0.0;
 
   // Callback for next opportunity to push changes.
-  private _timeout: NodeJS.Timeout|null = null;
+  private _timeout: NodeJS.Timeout | null = null;
 
   // Maintains the update Promise to wait on it if the class is closing.
-  private _push: Promise<void>|null;
+  private _push: Promise<void> | null;
 
   // The default delay in milliseconds between metadata pushes to the database.
   private readonly _minPushDelayMs: number;
@@ -70,7 +69,7 @@ export class HostedMetadataManager {
     this._schedulePush(minimizeDelay ? 0 : undefined);
   }
 
-  public setDocsMetadata(docUpdateMap: {[docId: string]: DocumentMetadata}): Promise<any> {
+  public setDocsMetadata(docUpdateMap: { [docId: string]: DocumentMetadata }): Promise<any> {
     return this._saveDocsMetadata(docUpdateMap);
   }
 
@@ -84,19 +83,19 @@ export class HostedMetadataManager {
     }
     if (this._push) { return; }
     this._push = this._performUpdate()
-    .catch(err => {
-      log.error("HostedMetadataManager error performing update: ", err);
-    })
-    .then(() => {
-      this._push = null;
-      if (!this._closing && !this._timeout && Object.keys(this._metadata).length !== 0) {
+      .catch((err) => {
+        log.error("HostedMetadataManager error performing update: ", err);
+      })
+      .then(() => {
+        this._push = null;
+        if (!this._closing && !this._timeout && Object.keys(this._metadata).length !== 0) {
         // If we have metadata that hasn't been pushed up yet, but no push scheduled,
         // go ahead and schedule an immediate push. This can happen if `scheduleUpdate`
         // is called frequently with minimizeDelay set to true, particularly when
         // _performUpdate is taking a bit longer than normal to complete.
-        this._schedulePush(0);
-      }
-    });
+          this._schedulePush(0);
+        }
+      });
   }
 
   /**
@@ -135,8 +134,9 @@ export class HostedMetadataManager {
   private _setOrUpdateMetadata(docId: string, metadata: DocumentMetadata): void {
     if (!this._metadata[docId]) {
       this._metadata[docId] = metadata;
-    } else {
-      const {updatedAt, usage} = metadata;
+    }
+    else {
+      const { updatedAt, usage } = metadata;
       if (updatedAt) { this._metadata[docId].updatedAt = updatedAt; }
       if (usage !== undefined) { this._metadata[docId].usage = usage; }
     }

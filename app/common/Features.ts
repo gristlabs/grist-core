@@ -1,10 +1,11 @@
-import Checkers, {Features as FeaturesTi} from 'app/common/Features-ti';
-import {CheckerT, createCheckers} from 'ts-interface-checker';
-import defaultsDeep from 'lodash/defaultsDeep';
+import Checkers, { Features as FeaturesTi } from "app/common/Features-ti";
+
+import defaultsDeep from "lodash/defaultsDeep";
+import { CheckerT, createCheckers } from "ts-interface-checker";
 
 export interface SnapshotWindow {
   count: number;
-  unit: 'days' | 'month' | 'year';
+  unit: "days" | "month" | "year";
 }
 
 // Information about the product associated with an org or orgs.
@@ -29,8 +30,8 @@ export interface Features {
   vanityDomain?: boolean;   // are user-selected domains allowed (unenforced) (default: true)
 
   workspaces?: boolean;     // are workspaces shown in web interface (default: true)
-                            // (this was intended as something we can turn off to shut down
-                            // web access to content while leaving access to billing)
+  // (this was intended as something we can turn off to shut down
+  // web access to content while leaving access to billing)
 
   /**
    * Some optional limits.  Since orgs can change plans, limits will typically be checked
@@ -42,61 +43,61 @@ export interface Features {
    */
 
   maxSharesPerDoc?: number; // Maximum number of users that can be granted access to a
-                            // particular doc.  Doesn't count users granted access at
-                            // workspace or organization level.  Doesn't count billable
-                            // users if applicable (default: unlimited)
+  // particular doc.  Doesn't count users granted access at
+  // workspace or organization level.  Doesn't count billable
+  // users if applicable (default: unlimited)
 
-  maxSharesPerDocPerRole?: {[role: string]: number};  // As maxSharesPerDoc, but
-                            // for specific roles.  Roles are named as in app/common/roles.
-                            // Applied independently to maxSharesPerDoc.
-                            // (default: unlimited)
+  maxSharesPerDocPerRole?: { [role: string]: number };  // As maxSharesPerDoc, but
+  // for specific roles.  Roles are named as in app/common/roles.
+  // Applied independently to maxSharesPerDoc.
+  // (default: unlimited)
   maxSharesPerWorkspace?: number;  // Maximum number of users that can be granted access to
-                            // a particular workspace.  Doesn't count users granted access
-                            // at organizational level, or billable users (default: unlimited)
+  // a particular workspace.  Doesn't count users granted access
+  // at organizational level, or billable users (default: unlimited)
 
   maxDocsPerOrg?: number;   // Maximum number of documents allowed per org.
-                            // (default: unlimited)
+  // (default: unlimited)
   maxWorkspacesPerOrg?: number;   // Maximum number of workspaces allowed per org.
-                            // (default: unlimited)
+  // (default: unlimited)
 
   readOnlyDocs?: boolean;   // if set, docs can only be read, not written.
 
   snapshotWindow?: SnapshotWindow;  // if set, controls how far back snapshots are kept.
 
   baseMaxRowsPerDocument?: number;  // If set, establishes a default maximum on the
-                                 // number of rows (total) in a single document.
-                                 // Actual max for a document may be higher.
+  // number of rows (total) in a single document.
+  // Actual max for a document may be higher.
   baseMaxApiUnitsPerDocumentPerDay?: number;  // Similar for api calls.
   baseMaxDataSizePerDocument?: number;  // Similar maximum for number of bytes of 'normal' data in a document
   baseMaxAttachmentsBytesPerDocument?: number;  // Similar maximum for total number of bytes used
-                                                // for attached files in a document
+  // for attached files in a document
   maxAttachmentsBytesPerOrg?: number; // Limit across a site.
 
   gracePeriodDays?: number;  // Duration of the grace period in days, before entering delete-only mode
   noGraceBanner?: boolean;   // If set, a banner is hidden, used for enterprise plans.
 
   baseMaxAssistantCalls?: number; // Maximum number of AI assistant calls. Defaults to 0 if not set, use -1 to indicate
-                                  // unbound limit. This is total limit, not per month or per day, it is used as a seed
-                                  // value for the limits table. To create a per-month limit, there must be a separate
-                                  // task that resets the usage in the limits table.
+  // unbound limit. This is total limit, not per month or per day, it is used as a seed
+  // value for the limits table. To create a per-month limit, there must be a separate
+  // task that resets the usage in the limits table.
   minimumUnits?: number; // Minimum number of units for the plan. Default no minimum.
 
   meteredSeats?: boolean;       // If set, the number of seats is metered, and Grist should
-                                // try to update subscription in Stripe (by increasing the quantity).
+  // try to update subscription in Stripe (by increasing the quantity).
 
   teamAuditLogs?: boolean; // Access to team-level audit logging.
 
   maxNewUserInvitesPerOrg?: number; // Maximum number of site/workspace/doc invites to new users before
-                                    // additional requests are blocked (until invited users log in or are
-                                    // uninvited).
+  // additional requests are blocked (until invited users log in or are
+  // uninvited).
 
   installationEnabled?: boolean; // Allows self hosted Grist plan. Grist will generate an activation
-                                 // key for the installation, which will unblock enterprise features.
+  // key for the installation, which will unblock enterprise features.
 
   // The following features are used for self managed Grist instance (called installation).
 
   installationSeats?: number;           // Number of seats bought (should be filled in by Stripe). Grist won't allow
-                                        // more users than this number.
+  // more users than this number.
 
   installationReadOnly?: boolean;       // If set, docs can only be read, not written.
 
@@ -119,7 +120,7 @@ export interface Features {
  * // Use features from the document, for any missing features use billingAccount features and then product features.
  * - mergedFeatures(document, billingAccount, product),
  */
-export function mergedFeatures(resource: Features|null, ...defaults: (Features|null)[]): Features {
+export function mergedFeatures(resource: Features | null, ...defaults: (Features | null)[]): Features {
   return [resource, ...defaults].filter(Boolean).reduce((acc: Features, f) => defaultsDeep(acc, f), {});
 }
 
@@ -147,7 +148,6 @@ export function parseStripeFeatures(meta: Record<string, string>): Features {
   const validProps = new Set(FeaturesTi.props.map(p => p.name));
   const record = parseMetadata(meta);
   for (const key in record) {
-
     // If this is unknown property, remove it.
     if (!validProps.has(key)) {
       delete record[key];
@@ -184,21 +184,24 @@ export function parseMetadata(meta: Record<string, string>): Record<string, any>
   const copy = { ...meta } as Record<string, any>;
   // Values are stored as strings in Stripe, so we need to parse them.
   // This format is not lossless but it is good enough for our purposes.
-  for(const key in copy) {
+  for (const key in copy) {
     // We support only booleans, integers, floats, empty strings are nulls.
     const value = copy[key];
-    if (value === '') {
+    if (value === "") {
       copy[key] = null;
-    } else if (value === 'true' || value === 'false') {
-      copy[key] = value === 'true';
-    } else if (!isNaN(parseFloat(value))) {
+    }
+    else if (value === "true" || value === "false") {
+      copy[key] = value === "true";
+    }
+    else if (!isNaN(parseFloat(value))) {
       copy[key] = parseFloat(value);
-    } else if (!isNaN(parseInt(value, 10))) {
+    }
+    else if (!isNaN(parseInt(value, 10))) {
       copy[key] = parseInt(value, 10);
     }
 
-    if (key.includes('.')) {
-      const [topProp, ...rest] = key.split('.');
+    if (key.includes(".")) {
+      const [topProp, ...rest] = key.split(".");
       if (rest.length > 1) {
         throw new Error(`Only one level of nesting is supported, got ${key}`);
       }
@@ -222,39 +225,38 @@ export function canAddOrgMembers(features: Features): boolean {
 
 // Grist is aware only about those plans.
 // Those plans are synchronized with database only if they don't exists currently.
-export const PERSONAL_FREE_PLAN = 'personalFree';
-export const TEAM_FREE_PLAN = 'teamFree';
+export const PERSONAL_FREE_PLAN = "personalFree";
+export const TEAM_FREE_PLAN = "teamFree";
 
 // This is a plan for suspended users.
-export const SUSPENDED_PLAN = 'suspended';
+export const SUSPENDED_PLAN = "suspended";
 
 // This is virtual plan for anonymous users.
-export const ANONYMOUS_PLAN = 'anonymous';
+export const ANONYMOUS_PLAN = "anonymous";
 // This is free plan. Grist doesn't offer a way to create it using API, but
 // it can be configured as a substitute for any other plan using environment variables (like DEFAULT_TEAM_PLAN)
-export const FREE_PLAN = 'Free';
+export const FREE_PLAN = "Free";
 
 // This is a plan for temporary org, before assigning a real plan.
-export const STUB_PLAN = 'stub';
+export const STUB_PLAN = "stub";
 
 // Legacy free personal plan, which is not available anymore or created in new instances, but used
 // here for displaying purposes and in tests.
-export const PERSONAL_LEGACY_PLAN = 'starter';
+export const PERSONAL_LEGACY_PLAN = "starter";
 
 // Pro plan for team sites (first tier). It is generally read from Stripe, but we use it in tests, so
 // by default all installation have it. When Stripe updates it, it will be synchronized with Grist.
-export const TEAM_PLAN = 'team';
-
+export const TEAM_PLAN = "team";
 
 export const displayPlanName: { [key: string]: string } = {
-  [PERSONAL_FREE_PLAN]: 'Free Personal',
-  [TEAM_FREE_PLAN]: 'Team Free',
-  [SUSPENDED_PLAN]: 'Suspended',
-  [ANONYMOUS_PLAN]: 'Anonymous',
-  [FREE_PLAN]: 'Free',
-  [TEAM_PLAN]: 'Pro',
-  'teamPro': 'Pro', // Plans available at getgrist.com
-  'business': 'Business', // Business plan, available at getgrist.com
+  [PERSONAL_FREE_PLAN]: "Free Personal",
+  [TEAM_FREE_PLAN]: "Team Free",
+  [SUSPENDED_PLAN]: "Suspended",
+  [ANONYMOUS_PLAN]: "Anonymous",
+  [FREE_PLAN]: "Free",
+  [TEAM_PLAN]: "Pro",
+  teamPro: "Pro", // Plans available at getgrist.com
+  business: "Business", // Business plan, available at getgrist.com
 } as const;
 
 // Returns true if `planName` is for a legacy product.

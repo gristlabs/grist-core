@@ -1,15 +1,16 @@
-import BaseView from 'app/client/components/BaseView';
-import {CustomView} from 'app/client/components/CustomView';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import DataTableModel from 'app/client/models/DataTableModel';
-import {ViewSectionRec} from 'app/client/models/DocModel';
-import {prefersColorSchemeDark, prefersColorSchemeDarkObs} from 'app/client/ui2018/theme';
-import {dom} from 'grainjs';
+import BaseView from "app/client/components/BaseView";
+import { CustomView } from "app/client/components/CustomView";
+import { DataRowModel } from "app/client/models/DataRowModel";
+import DataTableModel from "app/client/models/DataTableModel";
+import { ViewSectionRec } from "app/client/models/DocModel";
+import { prefersColorSchemeDark, prefersColorSchemeDarkObs } from "app/client/ui2018/theme";
 
-type RowId = number|'new';
+import { dom } from "grainjs";
 
-function getViewSectionContent(viewInstance: BaseView|null) {
-  const sectionElem = viewInstance?.viewPane?.closest('.viewsection_content');
+type RowId = number | "new";
+
+function getViewSectionContent(viewInstance: BaseView | null) {
+  const sectionElem = viewInstance?.viewPane?.closest(".viewsection_content");
   if (!sectionElem) {
     throw new Error("No page widget to print");
   }
@@ -35,8 +36,8 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
     try {
       await viewInstance.triggerPrint();
       return;
-    } catch (e) {
-      // tslint:disable-next-line:no-console
+    }
+    catch (e) {
       console.warn(`Failed to trigger print in CustomView: ${e}`);
       // continue on to trying to print from outside, which should work OK for a single page.
     }
@@ -60,32 +61,32 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
     // Hide all layout boxes that do NOT contain the section to be printed.
     layout?.forEachBox((box: any) => {
       if (!box.dom.contains(sectionElem)) {
-        box.dom.classList.toggle('print-hide', onOff);
+        box.dom.classList.toggle("print-hide", onOff);
       }
     });
 
     // Mark the section to be printed.
-    sectionElem.classList.toggle('print-widget', onOff);
+    sectionElem.classList.toggle("print-widget", onOff);
 
     // Let the view instance update its rendering, e.g. to render all rows when scrolly is in use.
     viewInstance?.prepareToPrint(onOff);
 
     // If .print-all-rows element is present (created for scrolly-based views), use it as the
     // start element for the loop below, to ensure it's rendered flexbox-free.
-    const keyElem = sectionElem.querySelector('.print-all-rows') || sectionElem;
+    const keyElem = sectionElem.querySelector(".print-all-rows") || sectionElem;
 
     // Go through all parents of the element to be printed. For @media print, we override their
     // layout in a heavy-handed way, forcing them all to be non-flexbox and sized to content,
     // since our normal flexbox-based layout is sized to screen and would not print multiple pages.
     let elem = keyElem.parentElement;
     while (elem) {
-      elem.classList.toggle('print-parent', onOff);
+      elem.classList.toggle("print-parent", onOff);
       elem = elem.parentElement;
     }
   }
 
-  const sub1 = dom.onElem(window, 'beforeprint', () => prepareToPrint(true));
-  const sub2 = dom.onElem(window, 'afterprint', (window as any).afterPrintCallback = () => {
+  const sub1 = dom.onElem(window, "beforeprint", () => prepareToPrint(true));
+  const sub2 = dom.onElem(window, "afterprint", (window as any).afterPrintCallback = () => {
     sub1.dispose();
     sub2.dispose();
     // To debug printing, set window.debugPrinting=1 in the console, then print a section, dismiss
@@ -93,7 +94,8 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
     // need to call window.finishPrinting() or reload the page to do it again.
     if ((window as any).debugPrinting) {
       (window as any).finishPrinting = () => prepareToPrint(false);
-    } else {
+    }
+    else {
       prepareToPrint(false);
     }
     delete (window as any).afterPrintCallback;
@@ -107,7 +109,6 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
   // seem to affect normal printing.
   setTimeout(() => window.print(), 0);
 }
-
 
 /**
  * Produces a div with all requested rows using the same renderRow() function as used with scrolly
@@ -123,7 +124,7 @@ export function renderAllRows(
   const rowModel = tableModel.createFloatingRowModel(null) as DataRowModel;
   const html: string[] = [];
   rowIds.forEach((rowId, index) => {
-    if (rowId !== 'new') {
+    if (rowId !== "new") {
       rowModel._index(index);
       rowModel.assign(rowId);
       const elem = renderRow(rowModel);
@@ -132,7 +133,7 @@ export function renderAllRows(
     }
   });
   rowModel.dispose();
-  const result = dom('div.print-all-rows');
+  const result = dom("div.print-all-rows");
   result.innerHTML = html.join("\n");
   return result;
 }

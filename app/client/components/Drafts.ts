@@ -1,16 +1,17 @@
 import { CellPosition, toCursor } from "app/client/components/CellPosition";
-import {
-  Disposable, dom, Emitter, Holder, IDisposable, IDisposableOwner,
-  IDomArgs, MultiHolder, styled, TagElem
-} from "grainjs";
 import { GristDoc } from "app/client/components/GristDoc";
-import { makeT } from 'app/client/lib/localization';
+import { makeT } from "app/client/lib/localization";
 import { ITooltipControl, showTooltip, tooltipCloseButton } from "app/client/ui/tooltips";
-import { FieldEditorStateEvent } from "app/client/widgets/FieldEditor";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
+import { FieldEditorStateEvent } from "app/client/widgets/FieldEditor";
 
-const t = makeT('components.Drafts');
+import {
+  Disposable, dom, Emitter, Holder, IDisposable, IDisposableOwner,
+  IDomArgs, MultiHolder, styled, TagElem,
+} from "grainjs";
+
+const t = makeT("components.Drafts");
 
 /**
  * Component that keeps track of editor's state (draft value). If user hits an escape button
@@ -26,7 +27,7 @@ const t = makeT('components.Drafts');
  */
 export class Drafts extends Disposable {
   constructor(
-    doc: GristDoc
+    doc: GristDoc,
   ) {
     super();
 
@@ -231,6 +232,7 @@ class CursorAdapter extends Disposable implements Cursor {
   constructor(private _doc: GristDoc) {
     super();
   }
+
   public async goToCell(pos: CellPosition): Promise<void> {
     await this._doc.recursiveMoveToCursorPos(toCursor(pos, this._doc.docModel), true);
   }
@@ -241,9 +243,11 @@ class StorageAdapter extends Disposable implements Storage {
   public get(): State | null {
     return this._memory;
   }
+
   public save(ev: State) {
     this._memory = ev;
   }
+
   public hasDraftFor(position: CellPosition): boolean {
     const item = this._memory;
     if (item && CellPosition.equals(item.position, position)) {
@@ -251,6 +255,7 @@ class StorageAdapter extends Disposable implements Storage {
     }
     return false;
   }
+
   public clear(): void {
     this._memory = null;
   }
@@ -262,12 +267,12 @@ class StorageAdapter extends Disposable implements Storage {
 export function showUndoDiscardNotification(doc: GristDoc, onClick: () => void) {
   const notifier = doc.app.topAppModel.notifier;
   const notification = notifier.createUserMessage(t("Undo discard"), {
-    key: 'undo-discard',
+    key: "undo-discard",
     message: () =>
       discardNotification(
-        dom.on("click", onClick)
-      )
-    }
+        dom.on("click", onClick),
+      ),
+  },
   );
   return notification;
 }
@@ -283,10 +288,12 @@ class NotificationAdapter extends Disposable implements Notification {
     this.pressed = this.autoDispose(new Emitter());
     this.disappeared = this.autoDispose(new Emitter());
   }
+
   public close(): void {
     this._hadAction = true;
     this._holder.clear();
   }
+
   public showUndoDiscard() {
     const notification = showUndoDiscardNotification(this._doc, () => {
       this._hadAction = true;
@@ -379,7 +386,7 @@ class EditorAdapter extends Disposable implements Editor {
         this.cellModified.emit({
           position: e.position,
           state: e.currentState,
-          modified: e.wasModified
+          modified: e.wasModified,
         });
       }));
 
@@ -388,7 +395,7 @@ class EditorAdapter extends Disposable implements Editor {
         this.cellCancelled.emit({
           position: e.position,
           state: e.currentState,
-          modified: e.wasModified
+          modified: e.wasModified,
         });
       }));
 
@@ -397,7 +404,7 @@ class EditorAdapter extends Disposable implements Editor {
         this.cellSaved.emit({
           position: e.position,
           state: e.currentState,
-          modified: e.wasModified
+          modified: e.wasModified,
         });
       }));
     }));
@@ -418,7 +425,7 @@ class EditorAdapter extends Disposable implements Editor {
 // Ui components
 
 // Cell tooltip to restore the draft - it is visible over active editor
-const styledTooltip = styled('div', `
+const styledTooltip = styled("div", `
   display: flex;
   align-items: center;
   --icon-color: ${theme.controlFg};
@@ -429,11 +436,11 @@ const styledTooltip = styled('div', `
 `);
 
 function cellTooltip(clb: () => any) {
-  return function (ctl: ITooltipControl) {
+  return function(ctl: ITooltipControl) {
     return styledTooltip(
       cssLink(t("Restore last edit"),
-        dom.on('mousedown', (ev) => { ev.preventDefault(); ctl.close(); clb(); }),
-        testId('draft-tooltip'),
+        dom.on("mousedown", (ev) => { ev.preventDefault(); ctl.close(); clb(); }),
+        testId("draft-tooltip"),
       ),
       tooltipCloseButton(ctl),
     );
@@ -441,7 +448,7 @@ function cellTooltip(clb: () => any) {
 }
 
 // Discard notification dom
-const styledNotification = styled('div', `
+const styledNotification = styled("div", `
   cursor: pointer;
   color: ${theme.controlFg};
   &:hover {
@@ -452,7 +459,7 @@ function discardNotification(...args: IDomArgs<TagElem<"div">>) {
   return styledNotification(
     t("Undo discard"),
     testId("draft-notification"),
-    ...args
+    ...args,
   );
 }
 

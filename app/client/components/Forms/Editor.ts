@@ -1,16 +1,17 @@
-import {allCommands} from 'app/client/components/commands';
-import {BoxModel, parseBox} from 'app/client/components/Forms/Model';
-import {buildMenu} from 'app/client/components/Forms/Menu';
-import * as style from 'app/client/components/Forms/styles';
-import {makeTestId, stopEvent} from 'app/client/lib/domUtils';
-import {makeT} from 'app/client/lib/localization';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {IconName} from 'app/client/ui2018/IconList';
-import {icon} from 'app/client/ui2018/icons';
-import {BindableValue, dom, DomContents, IDomArgs, MultiHolder, Observable} from 'grainjs';
+import { allCommands } from "app/client/components/commands";
+import { buildMenu } from "app/client/components/Forms/Menu";
+import { BoxModel, parseBox } from "app/client/components/Forms/Model";
+import * as style from "app/client/components/Forms/styles";
+import { makeTestId, stopEvent } from "app/client/lib/domUtils";
+import { makeT } from "app/client/lib/localization";
+import { hoverTooltip } from "app/client/ui/tooltips";
+import { IconName } from "app/client/ui2018/IconList";
+import { icon } from "app/client/ui2018/icons";
 
-const testId = makeTestId('test-forms-');
-const t = makeT('Editor');
+import { BindableValue, dom, DomContents, IDomArgs, MultiHolder, Observable } from "grainjs";
+
+const testId = makeTestId("test-forms-");
+const t = makeT("Editor");
 
 interface Props {
   box: BoxModel,
@@ -41,58 +42,57 @@ interface Props {
   /**
    * Position of the remove button. Defaults to inside.
    */
-  removePosition?: 'inside'|'right',
+  removePosition?: "inside" | "right",
   editMode?: Observable<boolean>,
 }
 
 export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
   const owner: MultiHolder = new MultiHolder();
-  const {box, overlay} = props;
+  const { box, overlay } = props;
   const view = box.view;
   const dragHover = Observable.create(owner, false);
   let element: HTMLElement;
 
   // When element is selected, scroll it into view.
-  owner.autoDispose(view.selectedBox.addListener(selectedBox => {
+  owner.autoDispose(view.selectedBox.addListener((selectedBox) => {
     if (selectedBox === box) {
-      element?.scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'nearest'});
+      element?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
     }
   }));
 
   // Default remove icon, can be overriden by props.
   const defaultRemoveButton = () => style.cssRemoveButton(
-    icon((props.removeIcon as any) ?? 'RemoveBig'),
-    dom.on('click', ev => {
+    icon((props.removeIcon as any) ?? "RemoveBig"),
+    dom.on("click", (ev) => {
       stopEvent(ev);
       box.view.selectedBox.set(box);
       allCommands.deleteFields.run();
     }),
-    props.removeButton === null ? null : hoverTooltip(props.removeTooltip ?? t('Delete')),
-    style.cssRemoveButton.cls('-right', props.removePosition === 'right'),
-    testId('remove'),
+    props.removeButton === null ? null : hoverTooltip(props.removeTooltip ?? t("Delete")),
+    style.cssRemoveButton.cls("-right", props.removePosition === "right"),
+    testId("remove"),
   );
 
   const dragAbove = Observable.create(owner, false);
   const dragBelow = Observable.create(owner, false);
   const dragging = Observable.create(owner, false);
 
-
   return element = style.cssFieldEditor(
-    testId('editor'),
+    testId("editor"),
 
-    style.cssFieldEditor.cls('-drag-above', use => use(dragAbove) && use(dragHover)),
-    style.cssFieldEditor.cls('-drag-below', use => use(dragBelow) && use(dragHover)),
+    style.cssFieldEditor.cls("-drag-above", use => use(dragAbove) && use(dragHover)),
+    style.cssFieldEditor.cls("-drag-below", use => use(dragBelow) && use(dragHover)),
 
-    props.drag ?? style.cssDragWrapper(style.cssDrag('DragDrop')),
+    props.drag ?? style.cssDragWrapper(style.cssDrag("DragDrop")),
     style.cssFieldEditor.cls(`-${props.box.type}`),
 
     // Turn on active like state when we clicked here.
-    style.cssFieldEditor.cls('-selected', box.selected),
-    style.cssFieldEditor.cls('-cut', box.cut),
-    testId('field-editor-selected', box.selected),
+    style.cssFieldEditor.cls("-selected", box.selected),
+    style.cssFieldEditor.cls("-cut", box.cut),
+    testId("field-editor-selected", box.selected),
 
     // Select on click.
-    dom.on('click', (ev) => {
+    dom.on("click", (ev) => {
       stopEvent(ev);
       box.view.selectedBox.set(box);
     }),
@@ -104,20 +104,20 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
     }),
 
     // And now drag and drop support.
-    {draggable: "true"},
+    { draggable: "true" },
 
     // In Firefox, 'draggable' interferes with mouse selection in child input elements. Workaround
     // is to turn off 'draggable' temporarily (see https://stackoverflow.com/q/21680363/328565).
-    dom.on('mousedown', (ev, elem) => {
+    dom.on("mousedown", (ev, elem) => {
       const isInput = ["INPUT", "TEXTAREA"].includes((ev.target as Element)?.tagName);
       // Turn off 'draggable' for inputs only, to support selection there; keep it on elsewhere.
       elem.draggable = !isInput;
     }),
-    dom.on('mouseup', (ev, elem) => { elem.draggable = true; }),
+    dom.on("mouseup", (ev, elem) => { elem.draggable = true; }),
 
     // When started, we just put the box into the dataTransfer as a plain text.
     // TODO: this might be very sofisticated in the future.
-    dom.on('dragstart', (ev) => {
+    dom.on("dragstart", (ev) => {
       // Prevent propagation, as we might be in a nested editor.
       ev.stopPropagation();
       if (props.editMode?.get()) {
@@ -125,12 +125,12 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
         return;
       }
 
-      ev.dataTransfer?.setData('text/plain', JSON.stringify(box.toJSON()));
+      ev.dataTransfer?.setData("text/plain", JSON.stringify(box.toJSON()));
       ev.dataTransfer!.dropEffect = "move";
       dragging.set(true);
     }),
 
-    dom.on('dragover', (ev) => {
+    dom.on("dragover", (ev) => {
       // As usual, prevent propagation.
       ev.stopPropagation();
       ev.preventDefault();
@@ -143,7 +143,7 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
       if (dragging.get()) { return; }
 
       // We only animate if the box will add dropped element as sibling.
-      if (box.willAccept() !== 'sibling') {
+      if (box.willAccept() !== "sibling") {
         return;
       }
 
@@ -154,16 +154,18 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
       if (percentHeight < 40) {
         dragAbove.set(true);
         dragBelow.set(false);
-      } else if (percentHeight > 60) {
+      }
+      else if (percentHeight > 60) {
         dragAbove.set(false);
         dragBelow.set(true);
-      } else {
+      }
+      else {
         dragAbove.set(false);
         dragBelow.set(false);
       }
     }),
 
-    dom.on('dragleave', (ev) => {
+    dom.on("dragleave", (ev) => {
       ev.stopPropagation();
       ev.preventDefault();
       // Just remove the style and stop propagation.
@@ -172,14 +174,14 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
       dragBelow.set(false);
     }),
 
-    dom.on('dragend', () => {
+    dom.on("dragend", () => {
       dragHover.set(false);
       dragAbove.set(false);
       dragBelow.set(false);
       dragging.set(false);
     }),
 
-    dom.on('drop', async (ev) => {
+    dom.on("drop", async (ev) => {
       stopEvent(ev);
       dragHover.set(false);
       dragging.set(false);
@@ -187,7 +189,7 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
       const wasBelow = dragBelow.get();
       dragBelow.set(false);
 
-      const dropped = parseBox(ev.dataTransfer!.getData('text/plain'));
+      const dropped = parseBox(ev.dataTransfer!.getData("text/plain"));
       if (!dropped) { return; }
       // We need to remove it from the parent, so find it first.
       const droppedId = dropped.id;
@@ -201,7 +203,7 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
       }
 
       // TODO: accept should do the swapping.
-      if (box.willAccept(droppedModel) === 'swap') {
+      if (box.willAccept(droppedModel) === "swap") {
         await box.save(async () => {
           box.parent!.swap(box, droppedModel!);
         });
@@ -211,21 +213,21 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
       await box.save(async () => {
         // When a field is dragged from the creator panel, it has a colId instead of a fieldRef (as there is no
         // field yet). In this case, we need to create a field first.
-        if (dropped.type === 'Field' && typeof dropped.leaf === 'string') {
+        if (dropped.type === "Field" && typeof dropped.leaf === "string") {
           dropped.leaf = await view.showColumn(dropped.leaf);
         }
-        box.accept(dropped, wasBelow ? 'below' : 'above');
+        box.accept(dropped, wasBelow ? "below" : "above");
       });
     }),
 
-    style.cssFieldEditor.cls('-drag-hover', dragHover),
+    style.cssFieldEditor.cls("-drag-hover", dragHover),
     style.cssFieldEditorContent(
       props.content,
       style.cssDrop(),
     ),
     testId(box.type),
-    testId('element'),
-    dom.attr('data-box-model', String(box.type)),
+    testId("element"),
+    dom.attr("data-box-model", String(box.type)),
     dom.maybe(overlay, () => style.cssSelectedOverlay()),
     dom.maybe(props.showRemoveButton ?? true, () => [
       props.removeButton ?? dom.maybe(use => !props.editMode || !use(props.editMode), defaultRemoveButton),

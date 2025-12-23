@@ -1,28 +1,28 @@
-import {DropdownConditionConfig} from 'app/client/components/DropdownConditionConfig';
+import { DropdownConditionConfig } from "app/client/components/DropdownConditionConfig";
 import {
   FormFieldRulesConfig,
   FormOptionsSortConfig,
-  FormSelectConfig
-} from 'app/client/components/Forms/FormConfig';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {stopEvent} from 'app/client/lib/domUtils';
-import {makeT} from 'app/client/lib/localization';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {TableRec} from 'app/client/models/DocModel';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {urlState} from 'app/client/models/gristUrlState';
-import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {hideInPrintView, testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {IOptionFull, select} from 'app/client/ui2018/menus';
-import {NTextBox} from 'app/client/widgets/NTextBox';
-import {ReverseReferenceConfig} from 'app/client/widgets/ReverseReferenceConfig';
-import {isFullReferencingType, isVersions} from 'app/common/gristTypes';
-import {UIRowId} from 'app/plugin/GristAPI';
-import {Computed, dom, styled} from 'grainjs';
+  FormSelectConfig,
+} from "app/client/components/Forms/FormConfig";
+import { GristDoc } from "app/client/components/GristDoc";
+import { stopEvent } from "app/client/lib/domUtils";
+import { makeT } from "app/client/lib/localization";
+import { DataRowModel } from "app/client/models/DataRowModel";
+import { TableRec } from "app/client/models/DocModel";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { urlState } from "app/client/models/gristUrlState";
+import { cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
+import { hideInPrintView, testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { IOptionFull, select } from "app/client/ui2018/menus";
+import { NTextBox } from "app/client/widgets/NTextBox";
+import { ReverseReferenceConfig } from "app/client/widgets/ReverseReferenceConfig";
+import { isFullReferencingType, isVersions } from "app/common/gristTypes";
+import { UIRowId } from "app/plugin/GristAPI";
 
+import { Computed, dom, styled } from "grainjs";
 
-const t = makeT('Reference');
+const t = makeT("Reference");
 
 /**
  * Reference - The widget for displaying references to another table's records.
@@ -30,16 +30,16 @@ const t = makeT('Reference');
 export class Reference extends NTextBox {
   protected _refTable: Computed<TableRec | null>;
   private _visibleColRef: Computed<number>;
-  private _validCols: Computed<Array<IOptionFull<number>>>;
+  private _validCols: Computed<IOptionFull<number>[]>;
 
   constructor(field: ViewFieldRec) {
     super(field);
 
-    this._visibleColRef = Computed.create(this, (use) => use(this.field.visibleColRef));
+    this._visibleColRef = Computed.create(this, use => use(this.field.visibleColRef));
     // Note that saveOnly is used here to prevent display value flickering on visible col change.
-    this._visibleColRef.onWrite((val) => this.field.visibleColRef.saveOnly(val));
+    this._visibleColRef.onWrite(val => this.field.visibleColRef.saveOnly(val));
 
-    this._refTable = Computed.create(this, (use) => use(use(this.field.column).refTable));
+    this._refTable = Computed.create(this, use => use(use(this.field.column).refTable));
 
     this._validCols = Computed.create(this, (use) => {
       const refTable = use(this._refTable);
@@ -49,10 +49,10 @@ export class Reference extends NTextBox {
         .map<IOptionFull<number>>(col => ({
           label: use(col.label),
           value: col.getRowId(),
-          icon: 'FieldColumn',
-          disabled: isFullReferencingType(use(col.type)) || use(col.isTransforming)
+          icon: "FieldColumn",
+          disabled: isFullReferencingType(use(col.type)) || use(col.isTransforming),
         }))
-        .concat([{label: t('Row ID'), value: 0, icon: 'FieldColumn'}]);
+        .concat([{ label: t("Row ID"), value: 0, icon: "FieldColumn" }]);
     });
   }
 
@@ -61,7 +61,7 @@ export class Reference extends NTextBox {
       this.buildTransformConfigDom(),
       dom.create(DropdownConditionConfig, this.field, gristDoc),
       dom.create(ReverseReferenceConfig, this.field),
-      cssLabel(t('CELL FORMAT')),
+      cssLabel(t("CELL FORMAT")),
       super.buildConfigDom(gristDoc),
     ];
   }
@@ -69,14 +69,14 @@ export class Reference extends NTextBox {
   public buildTransformConfigDom() {
     const disabled = Computed.create(null, use => use(this.field.config.multiselect));
     return [
-      cssLabel(t('SHOW COLUMN')),
+      cssLabel(t("SHOW COLUMN")),
       cssRow(
         dom.autoDispose(disabled),
         select(this._visibleColRef, this._validCols, {
-          disabled
+          disabled,
         }),
-        testId('fbuilder-ref-col-select')
-      )
+        testId("fbuilder-ref-col-select"),
+      ),
     ];
   }
 
@@ -105,16 +105,16 @@ export class Reference extends NTextBox {
       return id && use(id);
     });
     const formattedValue = Computed.create(null, (use) => {
-      let [value, hasBlankReference, hasRecordCard] = ['', false, false];
+      let [value, hasBlankReference, hasRecordCard] = ["", false, false];
       if (use(row._isAddRow) || this.isDisposed() || use(this.field.displayColModel).isDisposed()) {
         // Work around JS errors during certain changes (noticed when visibleCol field gets removed
         // for a column using per-field settings).
-        return {value, hasBlankReference, hasRecordCard};
+        return { value, hasBlankReference, hasRecordCard };
       }
 
       const displayValueObs = row.cells[use(use(this.field.displayColModel).colId)];
       if (!displayValueObs) {
-        return {value, hasBlankReference, hasRecordCard};
+        return { value, hasBlankReference, hasRecordCard };
       }
 
       const displayValue = use(displayValueObs);
@@ -126,26 +126,26 @@ export class Reference extends NTextBox {
         use(this.field.formatter).formatAny(displayValue[1].local || displayValue[1].parent) :
         use(this.field.formatter).formatAny(displayValue);
 
-      hasBlankReference = referenceId.get() !== 0 && value.trim() === '';
+      hasBlankReference = referenceId.get() !== 0 && value.trim() === "";
       const refTable = use(this._refTable);
       if (refTable) {
         hasRecordCard = !use(use(refTable.recordCardViewSection).disabled);
       }
 
-      return {value, hasBlankReference, hasRecordCard};
+      return { value, hasBlankReference, hasRecordCard };
     });
 
     return cssRef(
       dom.autoDispose(formattedValue),
       dom.autoDispose(referenceId),
-      cssRef.cls('-blank', use => use(formattedValue).hasBlankReference),
-      dom.style('text-align', this.alignment),
-      dom.cls('text_wrapping', this.wrapping),
-      cssRefIcon('FieldReference',
-        cssRefIcon.cls('-view-as-card', use =>
-          use(referenceId) !== 0 && use(formattedValue).hasRecordCard
+      cssRef.cls("-blank", use => use(formattedValue).hasBlankReference),
+      dom.style("text-align", this.alignment),
+      dom.cls("text_wrapping", this.wrapping),
+      cssRefIcon("FieldReference",
+        cssRefIcon.cls("-view-as-card", use =>
+          use(referenceId) !== 0 && use(formattedValue).hasRecordCard,
         ),
-        dom.on('click', async (ev) => {
+        dom.on("click", async (ev) => {
           stopEvent(ev);
 
           if (referenceId.get() === 0 || !formattedValue.get().hasRecordCard) { return; }
@@ -153,23 +153,23 @@ export class Reference extends NTextBox {
           const rowId = referenceId.get() as UIRowId;
           const sectionId = this._refTable.get()?.recordCardViewSectionRef();
           if (sectionId === undefined) {
-            throw new Error('Unable to open Record Card: undefined section id');
+            throw new Error("Unable to open Record Card: undefined section id");
           }
 
-          const anchorUrlState = {hash: {rowId, sectionId, recordCard: true}};
-          await urlState().pushUrl(anchorUrlState, {replace: true});
+          const anchorUrlState = { hash: { rowId, sectionId, recordCard: true } };
+          await urlState().pushUrl(anchorUrlState, { replace: true });
         }),
-        dom.on('mousedown', (ev) => stopEvent(ev)),
+        dom.on("mousedown", ev => stopEvent(ev)),
         hideInPrintView(),
-        testId('ref-link-icon'),
+        testId("ref-link-icon"),
       ),
-      dom('span',
-        dom.text(use => {
-          if (use(referenceId) === 0) { return ''; }
-          if (use(formattedValue).hasBlankReference) { return '[Blank]'; }
+      dom("span",
+        dom.text((use) => {
+          if (use(referenceId) === 0) { return ""; }
+          if (use(formattedValue).hasBlankReference) { return "[Blank]"; }
           return use(formattedValue).value;
         }),
-        testId('ref-text'),
+        testId("ref-text"),
       ),
     );
   }
@@ -188,7 +188,7 @@ const cssRefIcon = styled(icon, `
   }
 `);
 
-const cssRef = styled('div.field_clip', `
+const cssRef = styled("div.field_clip", `
   &-blank {
     color: ${theme.lightText}
   }

@@ -1,17 +1,18 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ACIndex, ACResults} from 'app/client/lib/ACIndex';
-import {makeT} from 'app/client/lib/localization';
-import {ICellItem} from 'app/client/models/ColumnACIndexes';
-import {ColumnCache} from 'app/client/models/ColumnCache';
-import {ColumnRec} from 'app/client/models/entities/ColumnRec';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {TableData} from 'app/client/models/TableData';
-import {getReferencedTableId, isRefListType} from 'app/common/gristTypes';
-import {EmptyRecordView} from 'app/common/RecordView';
-import {BaseFormatter} from 'app/common/ValueFormatter';
-import {Disposable, dom, Observable} from 'grainjs';
+import { GristDoc } from "app/client/components/GristDoc";
+import { ACIndex, ACResults } from "app/client/lib/ACIndex";
+import { makeT } from "app/client/lib/localization";
+import { ICellItem } from "app/client/models/ColumnACIndexes";
+import { ColumnCache } from "app/client/models/ColumnCache";
+import { ColumnRec } from "app/client/models/entities/ColumnRec";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { TableData } from "app/client/models/TableData";
+import { getReferencedTableId, isRefListType } from "app/common/gristTypes";
+import { EmptyRecordView } from "app/common/RecordView";
+import { BaseFormatter } from "app/common/ValueFormatter";
 
-const t = makeT('ReferenceUtils');
+import { Disposable, dom, Observable } from "grainjs";
+
+const t = makeT("ReferenceUtils");
 
 /**
  * Utilities for common operations involving Ref[List] fields.
@@ -47,17 +48,17 @@ export class ReferenceUtils extends Disposable {
 
     this.visibleColFormatter = field.visibleColFormatter();
     this.visibleColModel = field.visibleColModel();
-    this.visibleColId = this.visibleColModel.colId() || 'id';
+    this.visibleColId = this.visibleColModel.colId() || "id";
     this.isRefList = isRefListType(colType);
 
     this._columnCache = new ColumnCache<ACIndex<ICellItem>>(this.tableData);
   }
 
   public idToText(value: unknown) {
-    if (typeof value === 'number') {
+    if (typeof value === "number") {
       return this.visibleColFormatter.formatAny(this.tableData.getValue(value, this.visibleColId));
     }
-    return String(value || '');
+    return String(value || "");
   }
 
   /**
@@ -73,11 +74,13 @@ export class ReferenceUtils extends Disposable {
     if (this.hasDropdownCondition) {
       try {
         acIndex = this._getDropdownConditionACIndex(rowId);
-      } catch (e) {
-        this._dropdownConditionError?.set(e);
-        return {items: [], extraItems: [], highlightFunc: () => [], selectIndex: -1};
       }
-    } else {
+      catch (e) {
+        this._dropdownConditionError?.set(e);
+        return { items: [], extraItems: [], highlightFunc: () => [], selectIndex: -1 };
+      }
+    }
+    else {
       acIndex = this.tableData.columnACIndexes.getColACIndex(
         this.visibleColId,
         this.visibleColFormatter,
@@ -87,13 +90,13 @@ export class ReferenceUtils extends Disposable {
   }
 
   public buildNoItemsMessage() {
-    return dom.domComputed(use => {
+    return dom.domComputed((use) => {
       const error = use(this._dropdownConditionError);
-      if (error) { return t('Error in dropdown condition'); }
+      if (error) { return t("Error in dropdown condition"); }
 
-      return this.hasDropdownCondition
-        ? t('No choices matching condition')
-        : t('No choices to select');
+      return this.hasDropdownCondition ?
+        t("No choices matching condition") :
+        t("No choices to select");
     });
   }
 
@@ -116,29 +119,29 @@ export class ReferenceUtils extends Disposable {
       () => this.tableData.columnACIndexes.buildColACIndex(
         this.visibleColId,
         this.visibleColFormatter,
-        this._buildDropdownConditionACFilter(rowId)
-      )
+        this._buildDropdownConditionACFilter(rowId),
+      ),
     );
   }
 
   private _buildDropdownConditionACFilter(rowId: number) {
     const dropdownConditionCompiled = this.field.dropdownConditionCompiled.get();
-    if (dropdownConditionCompiled?.kind !== 'success') {
-      throw new Error('Dropdown condition is not compiled');
+    if (dropdownConditionCompiled?.kind !== "success") {
+      throw new Error("Dropdown condition is not compiled");
     }
 
     const tableId = this.field.tableId.peek();
     const table = this._docData.getTable(tableId);
     if (!table) { throw new Error(`Table ${tableId} not found`); }
 
-    const {result: predicate} = dropdownConditionCompiled;
+    const { result: predicate } = dropdownConditionCompiled;
     const user = this._gristDoc.docPageModel.user.get() ?? undefined;
     const rec = table.getRecord(rowId) || new EmptyRecordView();
     return (item: ICellItem) => {
-      const choice = item.rowId === 'new' ? new EmptyRecordView() : this.tableData.getRecord(item.rowId);
+      const choice = item.rowId === "new" ? new EmptyRecordView() : this.tableData.getRecord(item.rowId);
       if (!choice) { throw new Error(`Reference ${item.rowId} not found`); }
 
-      return predicate({user, rec, choice});
+      return predicate({ user, rec, choice });
     };
   }
 }

@@ -1,10 +1,11 @@
-import * as log from 'app/client/lib/log';
-import {ConnectState, ConnectStateManager} from 'app/client/models/ConnectState';
-import {isNarrowScreenObs, testId} from 'app/client/ui2018/cssVars';
-import {delay} from 'app/common/delay';
-import {isLongerThan} from 'app/common/gutil';
-import {InactivityTimer} from 'app/common/InactivityTimer';
-import {timeFormat} from 'app/common/timeFormat';
+import * as log from "app/client/lib/log";
+import { ConnectState, ConnectStateManager } from "app/client/models/ConnectState";
+import { isNarrowScreenObs, testId } from "app/client/ui2018/cssVars";
+import { delay } from "app/common/delay";
+import { isLongerThan } from "app/common/gutil";
+import { InactivityTimer } from "app/common/InactivityTimer";
+import { timeFormat } from "app/common/timeFormat";
+
 import {
   bundleChanges,
   Computed,
@@ -16,10 +17,10 @@ import {
   IDisposableOwner,
   MutableObsArray,
   obsArray,
-  Observable
-} from 'grainjs';
-import clamp = require('lodash/clamp');
-import defaults = require('lodash/defaults');
+  Observable,
+} from "grainjs";
+import clamp from "lodash/clamp";
+import defaults from "lodash/defaults";
 
 // When rendering app errors, we'll only show the last few.
 const maxAppErrors = 5;
@@ -54,9 +55,9 @@ export interface CustomAction { label: string, action: () => void }
  */
 export type MessageType = string | (() => DomElementArg);
 // Identifies supported actions. These are implemented in NotifyUI.
-export type NotifyAction = 'upgrade' | 'renew' | 'personal' | 'report-problem'
-                           | 'ask-for-help' | 'manage' | CustomAction;
-export type NotificationLevel = 'message' | 'info' | 'success' | 'warning' | 'error';
+export type NotifyAction = "upgrade" | "renew" | "personal" | "report-problem" |
+  "ask-for-help" | "manage" | CustomAction;
+export type NotificationLevel = "message" | "info" | "success" | "warning" | "error";
 
 export interface INotifyOptions {
   message: MessageType;     // A string, or a function that builds dom.
@@ -76,14 +77,14 @@ export interface INotifyOptions {
 
   // When set, the notification will replace any previous notification with the same key.
   // This way, we can avoid accumulating many of substantially identical notifications.
-  key?: string|null;
+  key?: string | null;
 }
 
-type Status = 'active' | 'expiring';
+type Status = "active" | "expiring";
 
 export class Expirable extends Disposable {
   public static readonly fadeDelay = 250;
-  public readonly status = Observable.create<Status>(this, 'active');
+  public readonly status = Observable.create<Status>(this, "active");
 
   constructor() {
     super();
@@ -93,8 +94,8 @@ export class Expirable extends Disposable {
    * Sets status to 'expiring', then calls dispose after a short delay.
    */
   public async expire(withoutDelay: boolean = false): Promise<void> {
-    this.status.set('expiring');
-    if(!withoutDelay) {
+    this.status.set("expiring");
+    if (!withoutDelay) {
       await delay(Expirable.fadeDelay);
     }
     if (!this.isDisposed()) {
@@ -104,10 +105,9 @@ export class Expirable extends Disposable {
 }
 
 export class Notification extends Expirable implements INotification {
-
   public options: Required<INotifyOptions> = {
-    title: '',
-    message: '',
+    title: "",
+    message: "",
     timestamp: Date.now(),
     inDropdown: false,
     badgeCounter: false,
@@ -117,7 +117,7 @@ export class Notification extends Expirable implements INotification {
     actions: [],
     memos: [],
     key: null,
-    level: 'message'
+    level: "message",
   };
 
   constructor(_opts: INotifyOptions) {
@@ -138,14 +138,13 @@ interface IProgressOptions {
 }
 
 export class Progress extends Expirable implements IProgress {
-
   public readonly progress = Observable.create(this, 0);
 
   constructor(public options: IProgressOptions) {
     super();
 
     if (options.expireOnComplete) {
-      this.autoDispose(this.progress.addListener(async progress => {
+      this.autoDispose(this.progress.addListener(async (progress) => {
         if (progress >= 100) {
           await this.expire();
         }
@@ -201,7 +200,7 @@ export class Notifier extends Disposable implements INotifier {
 
   private _connectStateManager = ConnectStateManager.create(this);
   private _connectState = this._connectStateManager.connectState;
-  private _disconnectMsg = Computed.create(this, (use) => getDisconnectMessage(use(this._connectState)));
+  private _disconnectMsg = Computed.create(this, use => getDisconnectMessage(use(this._connectState)));
 
   // Holds recent application errors, which the user may report to us.
   private _appErrorList = this.autoDispose(obsArray<IAppError>());
@@ -221,7 +220,7 @@ export class Notifier extends Disposable implements INotifier {
         title: msg.title,
         canUserClose: true,
         inToast: true,
-        level : 'message'
+        level: "message",
       })) : null);
   }
 
@@ -249,7 +248,7 @@ export class Notifier extends Disposable implements INotifier {
    */
   public createUserMessage(message: MessageType, options: Partial<INotifyOptions> = {}): INotification {
     const timestamp = Date.now();
-    if (options.actions && options.actions.includes('ask-for-help')) {
+    if (options.actions?.includes("ask-for-help")) {
       // If user should be able to ask for help, add this error to the notifier dropdown too for a
       // good while, so the user can find it after the toast disappears.
       this.createNotification({
@@ -258,7 +257,7 @@ export class Notifier extends Disposable implements INotifier {
         inToast: false,
         expireSec: 300,
         canUserClose: true,
-        level: 'message',
+        level: "message",
         inDropdown: true,
         ...options,
         key: options.key && ("dropdown:" + options.key),
@@ -271,7 +270,7 @@ export class Notifier extends Disposable implements INotifier {
       expireSec: 10,
       canUserClose: true,
       inDropdown: false,
-      level: 'message',
+      level: "message",
       ...options,
     });
   }
@@ -286,31 +285,31 @@ export class Notifier extends Disposable implements INotifier {
       if (this._appErrorList.get().length >= maxAppErrors) {
         this._appErrorList.splice(0, this._appErrorList.get().length - maxAppErrors + 1);
       }
-      this._appErrorList.push({error, timestamp: Date.now()});
+      this._appErrorList.push({ error, timestamp: Date.now() });
     });
 
     // Create a dropdown item for errors if we don't have one yet.
     if (this._appErrorDropdownItem.isEmpty()) {
-      this._appErrorDropdownItem.autoDispose(this._createAppErrorItem('dropdown'));
+      this._appErrorDropdownItem.autoDispose(this._createAppErrorItem("dropdown"));
     }
 
     // Create a toast for errors if we don't have one yet. When it's closed, mark the items as
     // "seen" (i.e. not to be shown when the toast pops up again).
     if (this._appErrorToast.isEmpty()) {
-      const n = this._appErrorToast.autoDispose(this._createAppErrorItem('toast'));
+      const n = this._appErrorToast.autoDispose(this._createAppErrorItem("toast"));
       n.onDispose(() => this._appErrorList.get().forEach((appErr) => { appErr.seen = true; }));
     }
   }
 
   public createNotification(opts: INotifyOptions): INotification {
     const n = Notification.create(this._itemsHolder, opts);
-    this._addNotification(n).catch((e) => { log.warn('_addNotification failed', e); });
+    this._addNotification(n).catch((e) => { log.warn("_addNotification failed", e); });
     return n;
   }
 
   public createProgressIndicator(name: string, size: string, expireOnComplete = false): IProgress {
     // Progress objects normally dispose themselves; constructor disposes any leftover items.
-    const p = Progress.create(this._itemsHolder, {name, size, expireOnComplete});
+    const p = Progress.create(this._itemsHolder, { name, size, expireOnComplete });
     this._progressItems.push(p);
     p.onDispose(() => this.isDisposed() || arrayRemove(this._progressItems, p));
     return p;
@@ -341,7 +340,7 @@ export class Notifier extends Disposable implements INotifier {
           message: "Still working...",
           canUserClose: false,
           inToast: true,
-          level: 'message',
+          level: "message",
         }));
       }
       await this._slowNotificationInactivityTimer.disableUntilFinish(promise);
@@ -369,34 +368,34 @@ export class Notifier extends Disposable implements INotifier {
     }
   }
 
-  private _createAppErrorItem(where: 'toast' | 'dropdown') {
+  private _createAppErrorItem(where: "toast" | "dropdown") {
     return this.createNotification({
       // Building DOM here in NotifyModel seems wrong, but I haven't come up with a better way.
       message: () => dom.domComputed((use) => {
         let appErrors = use(this._appErrorList);
 
         // On narrow screens, only show the most recent error in toasts to conserve space.
-        if (where === 'toast' && use(isNarrowScreenObs())) {
+        if (where === "toast" && use(isNarrowScreenObs())) {
           appErrors = appErrors.length > 0 ? [appErrors[appErrors.length - 1]] : [];
         }
 
-        return dom('div',
+        return dom("div",
           dom.forEach(appErrors, (appErr: IAppError) =>
-            (where === 'toast' && appErr.seen ? null :
-              dom('div', {tabIndex: "-1"}, timeFormat('T', new Date(appErr.timestamp)), ' ',
-                  appErr.error.message, testId('notification-app-error'))
-            )
+            (where === "toast" && appErr.seen ? null :
+              dom("div", { tabIndex: "-1" }, timeFormat("T", new Date(appErr.timestamp)), " ",
+                appErr.error.message, testId("notification-app-error"))
+            ),
           ),
-          testId('notification-app-errors')
+          testId("notification-app-errors"),
         );
       }),
-      title: 'Unexpected error',
+      title: "Unexpected error",
       canUserClose: true,
-      inToast: where === 'toast',
-      expireSec: where === 'toast' ? 10 : 0,
-      inDropdown: where === 'dropdown',
-      actions: ['report-problem'],
-      level: 'error',
+      inToast: where === "toast",
+      expireSec: where === "toast" ? 10 : 0,
+      inDropdown: where === "dropdown",
+      actions: ["report-problem"],
+      level: "error",
     });
   }
 }
@@ -408,11 +407,11 @@ function arrayRemove<T>(arr: MutableObsArray<T>, elem: T) {
   }
 }
 
-function getDisconnectMessage(state: ConnectState): {title: string, message: string}|undefined {
+function getDisconnectMessage(state: ConnectState): { title: string, message: string } | undefined {
   switch (state) {
     case ConnectState.RecentlyDisconnected:
-      return {title: 'Connection is lost', message: 'Attempting to reconnect...'};
+      return { title: "Connection is lost", message: "Attempting to reconnect..." };
     case ConnectState.ReallyDisconnected:
-      return {title: 'Not connected', message: 'The document is in read-only mode until you are back online.'};
+      return { title: "Not connected", message: "The document is in read-only mode until you are back online." };
   }
 }

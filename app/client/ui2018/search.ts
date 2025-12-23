@@ -2,29 +2,30 @@
  * Search icon that expands to a search bar and collapse on 'x' or blur.
  * Takes a `SearchModel` that controls the search behavior.
  */
-import { allCommands, createGroup } from 'app/client/components/commands';
-import { Panel, RegionFocusSwitcher } from 'app/client/components/RegionFocusSwitcher';
-import { modKeyProp } from 'app/client/lib/browserInfo';
-import { makeT } from 'app/client/lib/localization';
-import { reportError } from 'app/client/models/AppModel';
-import { SearchModel } from 'app/client/models/SearchModel';
-import { hoverTooltip } from 'app/client/ui/tooltips';
-import { cssHoverCircle, cssTopBarBtn } from 'app/client/ui/TopBarCss';
-import { unstyledButton } from 'app/client/ui2018/unstyled';
-import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
-import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { dom, input, styled } from 'grainjs';
-import { noTestId, TestId } from 'grainjs';
-import debounce = require('lodash/debounce');
+import { allCommands, createGroup } from "app/client/components/commands";
+import { Panel, RegionFocusSwitcher } from "app/client/components/RegionFocusSwitcher";
+import { modKeyProp } from "app/client/lib/browserInfo";
+import { makeT } from "app/client/lib/localization";
+import { reportError } from "app/client/models/AppModel";
+import { SearchModel } from "app/client/models/SearchModel";
+import { hoverTooltip } from "app/client/ui/tooltips";
+import { cssHoverCircle, cssTopBarBtn } from "app/client/ui/TopBarCss";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { mediaSmall, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { unstyledButton } from "app/client/ui2018/unstyled";
 
-export * from 'app/client/models/SearchModel';
+import { dom, input, styled } from "grainjs";
+import { noTestId, TestId } from "grainjs";
+import debounce from "lodash/debounce";
 
-const t = makeT('search');
+export * from "app/client/models/SearchModel";
 
-const EXPAND_TIME = .5;
+const t = makeT("search");
 
-const searchWrapper = styled('div', `
+const EXPAND_TIME = 0.5;
+
+const searchWrapper = styled("div", `
   display: flex;
   flex: initial;
   align-items: center;
@@ -51,7 +52,7 @@ const searchWrapper = styled('div', `
   }
 `);
 
-const expandedSearch = styled('div', `
+const expandedSearch = styled("div", `
   display: none;
   flex-grow: 0;
   align-items: center;
@@ -117,14 +118,14 @@ const cssCloseBtn = styled(icon, `
   background-color: ${theme.controlFg};
 `);
 
-const cssLabel = styled('span', `
+const cssLabel = styled("span", `
   font-size: ${vars.smallFontSize};
   color: ${theme.lightText};
   white-space: nowrap;
   margin-right: 12px;
 `);
 
-const cssOptions = styled('div', `
+const cssOptions = styled("div", `
   background: ${theme.topHeaderBg};
   position: absolute;
   right: 0;
@@ -135,11 +136,11 @@ const cssOptions = styled('div', `
   white-space: nowrap;
 `);
 
-const cssShortcut = styled('span', `
+const cssShortcut = styled("span", `
   color: ${theme.lightText};
 `);
 
-const wrapperClass = 'grist-doc-search-bar';
+const wrapperClass = "grist-doc-search-bar";
 
 export function searchBar(model: SearchModel, testId: TestId = noTestId, regionFocusSwitcher?: RegionFocusSwitcher) {
   let regionIdOnOpen: Panel | undefined;
@@ -149,10 +150,11 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
   let focusedSearchElement: HTMLElement | undefined;
   model.onPageChange(() => {
     if (model.isOpen.get()) {
-      regionFocusSwitcher?.focusRegion('top');
+      regionFocusSwitcher?.focusRegion("top");
       if (focusedSearchElement) {
         focusedSearchElement.focus();
-      } else {
+      }
+      else {
         inputElem.focus();
       }
     }
@@ -167,7 +169,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
 
   const cleanupOutsideClicksListener = () => {
     if (hasOutsideClicksListener) {
-      document.body.removeEventListener('click', onOutsideClicks);
+      document.body.removeEventListener("click", onOutsideClicks);
       hasOutsideClicksListener = false;
     }
   };
@@ -178,18 +180,20 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
     // when we open the searchbar: focus the input, and make sure outside clicks will close the searchbar
     if (model.isOpen.get()) {
       regionIdOnOpen = regionFocusSwitcher?.getRegionId();
-      regionFocusSwitcher?.focusRegion('top');
+      regionFocusSwitcher?.focusRegion("top");
       inputElem.focus();
       inputElem.select();
       if (!hasOutsideClicksListener) {
-        document.body.addEventListener('click', onOutsideClicks);
+        document.body.addEventListener("click", onOutsideClicks);
         hasOutsideClicksListener = true;
       }
     // when we close the searchbar: focus back where we were and cleanup
-    } else {
-      if (regionIdOnOpen === 'main') {
-        regionFocusSwitcher?.focusRegion('main');
-      } else {
+    }
+    else {
+      if (regionIdOnOpen === "main") {
+        regionFocusSwitcher?.focusRegion("main");
+      }
+      else {
         buttonElem.focus();
       }
       regionIdOnOpen = undefined;
@@ -199,11 +203,11 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
   }, 100);
 
   const buttonElem = cssHoverCircle(
-    dom.on('click', () => toggleMenu(true)),
-    cssTopBarBtn('Search',
-      testId('icon'),
-      hoverTooltip(t('Search'), {key: 'topBarBtnTooltip'}),
-    )
+    dom.on("click", () => toggleMenu(true)),
+    cssTopBarBtn("Search",
+      testId("icon"),
+      hoverTooltip(t("Search"), { key: "topBarBtnTooltip" }),
+    ),
   );
 
   const commandGroup = createGroup({
@@ -214,13 +218,13 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
     findPrev: () => { model.findPrev().catch(reportError); return false; },
   }, null, true);
 
-  const inputElem: HTMLInputElement = searchInput(model.value, {onInput: true},
+  const inputElem: HTMLInputElement = searchInput(model.value, { onInput: true },
     {
-      type: 'text',
-      placeholder: t("Search in document"),
-      'aria-label': t("Search in document"),
+      "type": "text",
+      "placeholder": t("Search in document"),
+      "aria-label": t("Search in document"),
     },
-    dom.on('focus', () => {
+    dom.on("focus", () => {
       focusedSearchElement = inputElem;
     }),
     dom.onKeyDown({
@@ -241,8 +245,8 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
   );
 
   return searchWrapper(
-    testId('wrapper'),
-    searchWrapper.cls('-expand', model.isOpen),
+    testId("wrapper"),
+    searchWrapper.cls("-expand", model.isOpen),
     dom.cls(wrapperClass),
     dom.autoDispose(commandGroup),
     dom.onKeyDown({
@@ -261,18 +265,18 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
     }),
     buttonElem,
     expandedSearch(
-      testId('input'),
+      testId("input"),
       inputElem,
       cssOptions(
         labeledSquareCheckbox(
           model.multiPage,
           dom.text(model.allLabel),
           // Prevent focus from being stolen from the input when clicking the checkbox itself
-          dom.on('mousedown', (event) => event.preventDefault()),
+          dom.on("mousedown", event => event.preventDefault()),
         ),
         // Keep focus on the input when clicking the checkbox text label
-        dom.onMatch('label', 'mouseup', () => setTimeout(() => inputElem.focus(), 0)),
-        testId('option-all-pages'),
+        dom.onMatch("label", "mouseup", () => setTimeout(() => inputElem.focus(), 0)),
+        testId("option-all-pages"),
       ),
       dom.domComputed((use) => {
         const noMatch = use(model.noMatch);
@@ -281,47 +285,47 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
         if (noMatch) { return cssLabel(t("No results")); }
         return [
           cssArrowBtn(
-            icon('Dropdown'),
-            testId('next'),
+            icon("Dropdown"),
+            testId("next"),
             // Prevent focus from being stolen from the input
-            dom.on('mousedown', (event) => event.preventDefault()),
-            dom.on('focus', (event) => {
+            dom.on("mousedown", event => event.preventDefault()),
+            dom.on("focus", (event) => {
               focusedSearchElement = event.target as HTMLElement;
             }),
-            dom.on('click', () => model.findNext()),
+            dom.on("click", () => model.findNext()),
             hoverTooltip(
               [
                 t("Find Next "),
-                cssShortcut(`(${['Enter', allCommands.findNext.humanKeys].join(', ')})`),
+                cssShortcut(`(${["Enter", allCommands.findNext.humanKeys].join(", ")})`),
               ],
-              {key: 'searchArrowBtnTooltip'}
+              { key: "searchArrowBtnTooltip" },
             ),
           ),
           cssArrowBtn(
-            icon('DropdownUp'),
-            testId('prev'),
+            icon("DropdownUp"),
+            testId("prev"),
             // Prevent focus from being stolen from the input
-            dom.on('mousedown', (event) => event.preventDefault()),
-            dom.on('focus', (event) => {
+            dom.on("mousedown", event => event.preventDefault()),
+            dom.on("focus", (event) => {
               focusedSearchElement = event.target as HTMLElement;
             }),
-            dom.on('click', () => model.findPrev()),
+            dom.on("click", () => model.findPrev()),
             hoverTooltip(
               [
                 t("Find Previous "),
-                cssShortcut(`(${['Shift + Enter', allCommands.findPrev.humanKeys].join(', ')})`),
+                cssShortcut(`(${["Shift + Enter", allCommands.findPrev.humanKeys].join(", ")})`),
               ],
-              {key: 'searchArrowBtnTooltip'}
+              { key: "searchArrowBtnTooltip" },
             ),
-          )
+          ),
         ];
       }),
       cssCloseBtnContainer(
-        testId('close'),
-        {'aria-label': t("Close search bar")},
-        dom.on('click', () => toggleMenu(false)),
-        cssCloseBtn('CrossSmall'),
+        testId("close"),
+        { "aria-label": t("Close search bar") },
+        dom.on("click", () => toggleMenu(false)),
+        cssCloseBtn("CrossSmall"),
       ),
-    )
+    ),
   );
 }

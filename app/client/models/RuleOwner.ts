@@ -1,7 +1,7 @@
-import {ColumnRec, DocModel} from 'app/client/models/DocModel';
-import {Style} from 'app/client/models/Styles';
-import * as modelUtil from 'app/client/models/modelUtil';
-import {GristObjCode} from 'app/plugin/GristData';
+import { ColumnRec, DocModel } from "app/client/models/DocModel";
+import * as modelUtil from "app/client/models/modelUtil";
+import { Style } from "app/client/models/Styles";
+import { GristObjCode } from "app/plugin/GristData";
 
 export interface RuleOwner {
   // Field or Section can have a list of conditional styling rules. Each style is a combination of a formula and options
@@ -32,13 +32,14 @@ export async function removeRule(docModel: DocModel, owner: RuleOwner, index: nu
   const newStyles = owner.rulesStyles.peek()?.slice() ?? [];
   if (newStyles.length >= index) {
     newStyles.splice(index, 1);
-  } else {
+  }
+  else {
     console.debug(`There are not style options at index ${index}`);
   }
   await docModel.docData.bundleActions("Remove conditional rule", () =>
     Promise.all([
       owner.rulesStyles.setAndSave(newStyles),
-      docModel.docData.sendAction(['RemoveColumn', owner.tableId.peek(), col.colId.peek()])
-    ])
+      docModel.docData.sendAction(["RemoveColumn", owner.tableId.peek(), col.colId.peek()]),
+    ]),
   );
 }

@@ -1,9 +1,10 @@
-import {assert, createDriver, driver, WebDriver} from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import * as gu from "test/nbrowser/gristUtils";
+import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
+import { assert, createDriver, driver, WebDriver } from "mocha-webdriver";
 
 describe("LanguageSettings", function() {
-  this.timeout('50s');
+  this.timeout("50s");
   const cleanup = setupTestSuite();
 
   before(async function() {
@@ -14,10 +15,10 @@ describe("LanguageSettings", function() {
 
   // List of languages that chrome supports https://developer.chrome.com/docs/webstore/i18n/#localeTable
   const locales = [ // [language to set in the browser, country code detected, language name detected]
-    ['fr', 'FR', 'Français'],
-    ['te', 'US', 'English'], // Telugu is not supported yet, so Grist should fallback to English (US).
-    ['en', 'US', 'English'], // This is a default language for Grist.
-    ['pt-BR', 'BR', 'Português (Brasil)']
+    ["fr", "FR", "Français"],
+    ["te", "US", "English"], // Telugu is not supported yet, so Grist should fallback to English (US).
+    ["en", "US", "English"], // This is a default language for Grist.
+    ["pt-BR", "BR", "Português (Brasil)"],
   ];
 
   for (const [locale, countryCode, language] of locales) {
@@ -48,9 +49,10 @@ describe("LanguageSettings", function() {
         assert.equal(await selectedLang(), language.toLowerCase());
         // Smoke test that we see the correct language.
         const welcomeText = await gu.currentDriver().find(".test-welcome-title").getText();
-        if (locale === 'en') {
+        if (locale === "en") {
           assert.equal(welcomeText, "Welcome to Grist!");
-        } else if (locale === 'fr') {
+        }
+        else if (locale === "fr") {
           assert.equal(welcomeText, "Bienvenue sur Grist !");
         }
       });
@@ -106,7 +108,7 @@ describe("LanguageSettings", function() {
 
       // Now login to the account. Make sure it's a fresh one, in case previous test suites
       // changed any preferences.
-      const user = await gu.session().personalSite.user('fresh').login({freshAccount: true});
+      const user = await gu.session().personalSite.user("fresh").login({ freshAccount: true });
       await user.loadRelPath("/");
       await gu.waitForDocMenuToLoad();
       // Language should still be english.
@@ -131,7 +133,7 @@ describe("LanguageSettings", function() {
       await anonym.loadRelPath("/");
       await gu.waitForDocMenuToLoad();
       // But now we should have a cookie (cookie is reused).
-      assert.equal(await languageInCookie(), 'fr');
+      assert.equal(await languageInCookie(), "fr");
 
       // Language should still be french.
       await waitForHiddenButton("fr");
@@ -168,7 +170,7 @@ describe("LanguageSettings", function() {
       await waitForHiddenButton("de");
       // Change language to nb-.NO
       await languageMenu().click();
-      await gu.findOpenMenuItem('li',  'Norsk bokmål (Norge)', 100).click();
+      await gu.findOpenMenuItem("li",  "Norsk bokmål (Norge)", 100).click();
       // This is api call and we will be reloaded, so wait for the hidden indicator.
       await waitForHiddenButton("nb-NO");
       // Now we should have a cookie.
@@ -191,9 +193,8 @@ describe("LanguageSettings", function() {
   });
 });
 
-
 function languageMenu() {
-  return gu.currentDriver().find('.test-account-page-language .test-select-open');
+  return gu.currentDriver().find(".test-account-page-language .test-select-open");
 }
 
 async function clearCookie() {
@@ -221,22 +222,22 @@ async function languageInCookie(): Promise<string | null> {
   return cookie2.match(/grist_user_locale=([^;]+)/)?.[1] ?? null;
 }
 
-function withLang(locale: string): {skipped: boolean} {
+function withLang(locale: string): { skipped: boolean } {
   let customDriver: WebDriver;
   let oldLanguage: string | undefined;
-  const skipStatus = {skipped: false};
+  const skipStatus = { skipped: false };
   before(async function() {
     // On Mac we can't change the language (except for English), so skip the test.
-    if (await gu.isMac() && locale !== 'en') { skipStatus.skipped = true; return this.skip(); }
+    if (await gu.isMac() && locale !== "en") { skipStatus.skipped = true; return this.skip(); }
     oldLanguage = process.env.LANGUAGE;
     // How to run chrome with a different language:
     // https://developer.chrome.com/docs/extensions/reference/i18n/#how-to-set-browsers-locale
     process.env.LANGUAGE = locale;
     customDriver = await createDriver({
       extraArgs: [
-        'lang=' + locale,
-        ...(process.env.MOCHA_WEBDRIVER_HEADLESS ? [`headless=chrome`] : [])
-      ]
+        "lang=" + locale,
+        ...(process.env.MOCHA_WEBDRIVER_HEADLESS ? [`headless=chrome`] : []),
+      ],
     });
     server.setDriver(customDriver);
     gu.setDriver(customDriver);

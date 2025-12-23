@@ -1,11 +1,10 @@
-import {InactivityTimer} from 'app/common/InactivityTimer';
-import {delay} from 'bluebird';
-import {assert} from 'chai';
-import * as sinon from 'sinon';
+import { InactivityTimer } from "app/common/InactivityTimer";
 
+import { delay } from "bluebird";
+import { assert } from "chai";
+import * as sinon from "sinon";
 
 describe("InactivityTimer", function() {
-
   let spy: sinon.SinonSpy, timer: InactivityTimer;
 
   beforeEach(() => {
@@ -18,7 +17,7 @@ describe("InactivityTimer", function() {
     assert(spy.callCount === 0);
     await delay(150);
     assert.equal(spy.callCount, 1);
-    });
+  });
 
   it("disableUntilFinish should clear timeout, and set it back after promise resolved", async function() {
     timer.ping();

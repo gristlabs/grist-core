@@ -1,13 +1,15 @@
-import {appSettings} from 'app/server/lib/AppSettings';
-import {FilesystemAttachmentStore, IAttachmentStore} from 'app/server/lib/AttachmentStore';
-import {create} from 'app/server/lib/create';
-import log from 'app/server/lib/log';
-import {ICreateAttachmentStoreOptions} from 'app/server/lib/ICreate';
-import * as fse from 'fs-extra';
-import path from 'path';
-import * as tmp from 'tmp-promise';
+import { appSettings } from "app/server/lib/AppSettings";
+import { FilesystemAttachmentStore, IAttachmentStore } from "app/server/lib/AttachmentStore";
+import { create } from "app/server/lib/create";
+import { ICreateAttachmentStoreOptions } from "app/server/lib/ICreate";
+import log from "app/server/lib/log";
 
-export type AttachmentStoreId = string
+import path from "path";
+
+import * as fse from "fs-extra";
+import * as tmp from "tmp-promise";
+
+export type AttachmentStoreId = string;
 
 /**
  * Creates an {@link IAttachmentStore} from a given store id, if the Grist installation is
@@ -59,11 +61,11 @@ export interface IAttachmentStoreConfig {
  * E.g "22ec6867-67bc-414e-a707-da9204c84cab-my-s3" or "22ec6867-67bc-414e-a707-da9204c84cab-myFolder"
  */
 export class AttachmentStoreProvider implements IAttachmentStoreProvider {
-  private _storeDetailsById: Map<string, IAttachmentStoreConfig> = new Map();
+  private _storeDetailsById = new Map<string, IAttachmentStoreConfig>();
 
   constructor(
     storeConfigs: IAttachmentStoreConfig[],
-    private _installationUuid: string
+    private _installationUuid: string,
   ) {
     // It's convenient to have stores with a globally unique ID, so there aren't conflicts as
     // documents are moved between installations. This is achieved by prepending the store labels
@@ -91,8 +93,8 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
   public async getAllStores(): Promise<IAttachmentStore[]> {
     return await Promise.all(
       Array.from(this._storeDetailsById.entries()).map(
-        ([storeId, storeConfig]) => storeConfig.spec.create(storeId)
-      )
+        ([storeId, storeConfig]) => storeConfig.spec.create(storeId),
+      ),
     );
   }
 
@@ -108,20 +110,21 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
 async function isAttachmentStoreOptionAvailable(option: ICreateAttachmentStoreOptions) {
   try {
     return await option.isAvailable();
-  } catch (error) {
+  }
+  catch (error) {
     log.error(`Error checking availability of store option '${option}'`, error);
     return false;
   }
 }
 
 function storeOptionIsNotUndefined(
-  option: ICreateAttachmentStoreOptions | undefined
+  option: ICreateAttachmentStoreOptions | undefined,
 ): option is ICreateAttachmentStoreOptions {
   return option !== undefined;
 }
 
 export async function checkAvailabilityAttachmentStoreOptions(
-  allOptions: (ICreateAttachmentStoreOptions | undefined)[]
+  allOptions: (ICreateAttachmentStoreOptions | undefined)[],
 ) {
   const options = allOptions.filter(storeOptionIsNotUndefined);
   const availability = await Promise.all(options.map(isAttachmentStoreOptionAvailable));
@@ -136,18 +139,18 @@ export async function checkAvailabilityAttachmentStoreOptions(
 // This is only used when external attachments are in 'test' mode, which is used for some unit tests.
 // TODO: Remove this when setting up a filesystem store is possible using normal configuration options
 export async function makeTempFilesystemStoreSpec(
-  name: string = "filesystem"
+  name: string = "filesystem",
 ) {
   const tempFolder = await tmp.dir();
   // Allow tests to override the temp directory used for attachments, otherwise Grist will
   // use different temp directory after restarting the server.
   const tempDir = process.env.GRIST_TEST_ATTACHMENTS_DIR ||
-    await fse.mkdtemp(path.join(tempFolder.path, 'filesystem-store-test-'));
+    await fse.mkdtemp(path.join(tempFolder.path, "filesystem-store-test-"));
 
   return {
     rootDirectory: tempDir,
     name,
-    create: async (storeId: string) => (new FilesystemAttachmentStore(storeId, tempDir))
+    create: async (storeId: string) => (new FilesystemAttachmentStore(storeId, tempDir)),
   };
 }
 
@@ -159,10 +162,10 @@ const GRIST_EXTERNAL_ATTACHMENTS_MODE = settings.flag("mode").requireString({
 
 export function getConfiguredStandardAttachmentStore(): string | undefined {
   switch (GRIST_EXTERNAL_ATTACHMENTS_MODE) {
-    case 'snapshots':
-      return 'snapshots';
-    case 'test':
-      return 'test-filesystem';
+    case "snapshots":
+      return "snapshots";
+    case "test":
+      return "test-filesystem";
     default:
       return undefined;
   }
@@ -175,7 +178,7 @@ export class UnsupportedExternalAttachmentsMode extends Error {
 }
 
 export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachmentStoreConfig[]> {
-  if (GRIST_EXTERNAL_ATTACHMENTS_MODE === 'snapshots') {
+  if (GRIST_EXTERNAL_ATTACHMENTS_MODE === "snapshots") {
     const snapshotProvider = create.getAttachmentStoreOptions().snapshots;
     // This shouldn't happen - it could only happen if a version of Grist removes the snapshot provider from ICreate.
     if (snapshotProvider === undefined) {
@@ -186,14 +189,14 @@ export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachment
       return [];
     }
     return [{
-      label: 'snapshots',
+      label: "snapshots",
       spec: snapshotProvider,
     }];
   }
   // TODO This mode should be removed once stores can be configured fully via env vars.
-  if (GRIST_EXTERNAL_ATTACHMENTS_MODE === 'test') {
+  if (GRIST_EXTERNAL_ATTACHMENTS_MODE === "test") {
     return [{
-      label: 'test-filesystem',
+      label: "test-filesystem",
       spec: await makeTempFilesystemStoreSpec(),
     }];
   }

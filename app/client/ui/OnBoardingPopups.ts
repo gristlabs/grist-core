@@ -22,23 +22,24 @@
  *   the caller. Pass an `onFinishCB` to handle when a user dimiss the popups.
  */
 
-import { Disposable, dom, DomElementArg, Holder, makeTestId, Observable, styled, svg } from "grainjs";
-import { createPopper, Placement } from '@popperjs/core';
-import { FocusLayer } from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import * as Mousetrap from 'app/client/lib/Mousetrap';
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import { makeT } from "app/client/lib/localization";
+import * as Mousetrap from "app/client/lib/Mousetrap";
+import { reportError } from "app/client/models/errors";
+import { urlState } from "app/client/models/gristUrlState";
+import { cssBigIcon, cssCloseButton } from "app/client/ui/ExampleCard";
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
-import range = require("lodash/range");
-import {IGristUrlState} from "app/common/gristUrls";
-import {urlState} from "app/client/models/gristUrlState";
-import {delay} from "app/common/delay";
-import {reportError} from "app/client/models/errors";
-import {cssBigIcon, cssCloseButton} from "app/client/ui/ExampleCard";
+import { delay } from "app/common/delay";
+import { IGristUrlState } from "app/common/gristUrls";
 
-const t = makeT('OnBoardingPopups');
+import { createPopper, Placement } from "@popperjs/core";
+import { Disposable, dom, DomElementArg, Holder, makeTestId, Observable, styled, svg } from "grainjs";
+import range from "lodash/range";
 
-const testId = makeTestId('test-onboarding-');
+const t = makeT("OnBoardingPopups");
+
+const testId = makeTestId("test-onboarding-");
 
 // Describes an onboarding popup. Each popup is uniquely identified by its id.
 export interface IOnBoardingMsg {
@@ -74,7 +75,7 @@ export interface IOnBoardingMsg {
   urlState?: IGristUrlState;
 }
 
-let _isTourActiveObs: Observable<boolean>|undefined;
+let _isTourActiveObs: Observable<boolean> | undefined;
 
 // Returns a singleton observable for whether some tour is currently active.
 //
@@ -105,7 +106,7 @@ export function isTourActive(): boolean {
 }
 
 class OnBoardingError extends Error {
-  public name = 'OnBoardingError';
+  public name = "OnBoardingError";
   constructor(message: string) {
     super(message);
   }
@@ -121,14 +122,14 @@ class OnBoardingError extends Error {
 let ctlIndex = 0;
 
 class OnBoardingPopupsCtl extends Disposable {
-  private _openPopupCtl: {close: () => void}|undefined;
+  private _openPopupCtl: { close: () => void } | undefined;
   private _overlay: HTMLElement;
   private _arrowEl = buildArrow();
 
   constructor(private _messages: IOnBoardingMsg[], private _onFinishCB: (lastMessageIndex: number) => void) {
     super();
     if (this._messages.length === 0) {
-      throw new OnBoardingError('messages should not be an empty list');
+      throw new OnBoardingError("messages should not be an empty list");
     }
 
     // In case we're reopening after deleting some rows of GristDocTour,
@@ -186,7 +187,8 @@ class OnBoardingPopupsCtl extends Disposable {
 
     if (entry.showHasModal) {
       this._showHasModal();
-    } else {
+    }
+    else {
       await this._showHasPopup(movement);
     }
   }
@@ -195,7 +197,7 @@ class OnBoardingPopupsCtl extends Disposable {
     const content = this._buildPopupContent();
     const entry = this._messages[ctlIndex];
     const elem = document.querySelector<HTMLElement>(entry.selector);
-    const {placement} = entry;
+    const { placement } = entry;
 
     // The element the popup refers to is not present. To the user we show nothing and simply skip
     // it to the next.
@@ -212,7 +214,7 @@ class OnBoardingPopupsCtl extends Disposable {
       content.remove();
     }
 
-    this._openPopupCtl = {close};
+    this._openPopupCtl = { close };
     document.body.appendChild(content);
     this._addFocusLayer(content);
 
@@ -221,15 +223,15 @@ class OnBoardingPopupsCtl extends Disposable {
     const popper = createPopper(elem, content, {
       placement,
       modifiers: [{
-        name: 'arrow',
+        name: "arrow",
         options: {
           element: this._arrowEl,
         },
       }, {
-        name: 'offset',
+        name: "offset",
         options: {
           offset: [0, 12 - adjacentPadding],
-        }
+        },
       }],
     });
   }
@@ -237,30 +239,30 @@ class OnBoardingPopupsCtl extends Disposable {
   private _addFocusLayer(container: HTMLElement) {
     dom.autoDisposeElem(container, new FocusLayer({
       defaultFocusElem: container,
-      allowFocus: (elem) => (elem !== document.body)
+      allowFocus: elem => (elem !== document.body),
     }));
   }
 
   // Get the padding length for the side that will be next to the popup.
   private _getAdjacentPadding(elem: HTMLElement, placement?: Placement) {
     if (placement) {
-      let padding = '';
-      if (placement.includes('bottom')) {
+      let padding = "";
+      if (placement.includes("bottom")) {
         padding = getComputedStyle(elem).paddingBottom;
       }
-      else if (placement.includes('top')) {
+      else if (placement.includes("top")) {
         padding = getComputedStyle(elem).paddingTop;
       }
-      else if (placement.includes('left')) {
+      else if (placement.includes("left")) {
         padding = getComputedStyle(elem).paddingLeft;
       }
-      else if (placement.includes('right')) {
+      else if (placement.includes("right")) {
         padding = getComputedStyle(elem).paddingRight;
       }
       // Note: getComputedStyle return value in pixel, hence no need to handle other unit. See here
       // for reference:
       // https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle#notes.
-      if (padding && padding.endsWith('px')) {
+      if (padding?.endsWith("px")) {
         return Number(padding.slice(0, padding.length - 2));
       }
     }
@@ -277,28 +279,28 @@ class OnBoardingPopupsCtl extends Disposable {
       dom.domDispose(content);
     }
 
-    this._openPopupCtl = {close};
+    this._openPopupCtl = { close };
   }
 
   private _buildPopupContent() {
     return Container(
-      {tabindex: '-1'},
+      { tabindex: "-1" },
       this._arrowEl,
       ContentWrapper(
-        cssCloseButton(cssBigIcon('CrossBig'),
-          dom.on('click', () => this._finish(ctlIndex)),
-          testId('close'),
+        cssCloseButton(cssBigIcon("CrossBig"),
+          dom.on("click", () => this._finish(ctlIndex)),
+          testId("close"),
         ),
         cssTitle(this._messages[ctlIndex].title),
         cssBody(this._messages[ctlIndex].body),
         this._buildFooter(),
-        testId('popup'),
+        testId("popup"),
       ),
       dom.onKeyDown({
-        Escape:     () => this._finish(ctlIndex),
-        ArrowLeft:  () => this._move(-1),
+        Escape: () => this._finish(ctlIndex),
+        ArrowLeft: () => this._move(-1),
         ArrowRight: () => this._move(+1),
-        Enter:      () => this._move(+1, true),
+        Enter: () => this._move(+1, true),
       }),
     );
   }
@@ -309,20 +311,20 @@ class OnBoardingPopupsCtl extends Disposable {
     const isFirstStep = ctlIndex === 0;
     return Footer(
       ProgressBar(
-        range(nSteps).map((i) => Dot(Dot.cls('-done', i > ctlIndex))),
+        range(nSteps).map(i => Dot(Dot.cls("-done", i > ctlIndex))),
       ),
       Buttons(
         bigBasicButton(
-          t('Previous'), testId('previous'),
-          dom.on('click', () => this._move(-1)),
-          dom.prop('disabled', isFirstStep),
-          {style: `margin-right: 8px; visibility: ${isFirstStep ? 'hidden' : 'visible'}`},
+          t("Previous"), testId("previous"),
+          dom.on("click", () => this._move(-1)),
+          dom.prop("disabled", isFirstStep),
+          { style: `margin-right: 8px; visibility: ${isFirstStep ? "hidden" : "visible"}` },
         ),
         bigPrimaryButton(
-          isLastStep ? t("Finish") : t("Next"), testId('next'),
-          dom.on('click', () => this._move(+1, true)),
+          isLastStep ? t("Finish") : t("Next"), testId("next"),
+          dom.on("click", () => this._move(+1, true)),
         ),
-      )
+      ),
     );
   }
 
@@ -337,12 +339,12 @@ class OnBoardingPopupsCtl extends Disposable {
 
 function buildArrow() {
   return ArrowContainer(
-    svg('svg', { style: 'width: 13px; height: 34px;' },
-        svg('path', {'d': 'M 2 19 h 13 v 18 Z'}))
+    svg("svg", { style: "width: 13px; height: 34px;" },
+      svg("path", { d: "M 2 19 h 13 v 18 Z" })),
   );
 }
 
-const Container = styled('div', `
+const Container = styled("div", `
   align-self: center;
   border: 2px solid ${theme.accentBorder};
   border-radius: 3px;
@@ -354,11 +356,11 @@ const Container = styled('div', `
   outline: unset;
 `);
 
-function sideSelectorChunk(side: 'top'|'bottom'|'left'|'right') {
+function sideSelectorChunk(side: "top" | "bottom" | "left" | "right") {
   return `.${Container.className}[data-popper-placement^=${side}]`;
 }
 
-const ArrowContainer = styled('div', `
+const ArrowContainer = styled("div", `
   position: absolute;
 
   & path {
@@ -367,42 +369,42 @@ const ArrowContainer = styled('div', `
     fill: ${theme.popupBg};
   }
 
-  ${sideSelectorChunk('top')} > & {
+  ${sideSelectorChunk("top")} > & {
     bottom: -26px;
   }
 
-  ${sideSelectorChunk('bottom')} > & {
+  ${sideSelectorChunk("bottom")} > & {
     top: -23px;
   }
 
-  ${sideSelectorChunk('right')} > & {
+  ${sideSelectorChunk("right")} > & {
     left: -12px;
   }
 
-  ${sideSelectorChunk('left')} > & {
+  ${sideSelectorChunk("left")} > & {
     right: -12px;
   }
 
-  ${sideSelectorChunk('top')} svg {
+  ${sideSelectorChunk("top")} svg {
     transform: rotate(-90deg);
   }
 
-  ${sideSelectorChunk('bottom')} svg {
+  ${sideSelectorChunk("bottom")} svg {
     transform: rotate(90deg);
   }
 
-  ${sideSelectorChunk('left')} svg {
+  ${sideSelectorChunk("left")} svg {
     transform: scalex(-1);
   }
 `);
 
-const ContentWrapper = styled('div', `
+const ContentWrapper = styled("div", `
   position: relative;
   padding: 32px;
   background-color: ${theme.popupBg};
 `);
 
-const Footer = styled('div', `
+const Footer = styled("div", `
   display: flex;
   flex-direction: row;
   margin-top: 32px;
@@ -410,19 +412,19 @@ const Footer = styled('div', `
   align-items: center;
 `);
 
-const ProgressBar = styled('div', `
+const ProgressBar = styled("div", `
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   row-gap: 12px;
 `);
 
-const Buttons = styled('div', `
+const Buttons = styled("div", `
   display: flex;
   flex-directions: row;
 `);
 
-const Dot = styled('div', `
+const Dot = styled("div", `
   width: 6px;
   height: 6px;
   border-radius: 3px;
@@ -434,7 +436,7 @@ const Dot = styled('div', `
   }
 `);
 
-const Overlay = styled('div', `
+const Overlay = styled("div", `
   position: fixed;
   display: flex;
   flex-direction: column;
@@ -447,7 +449,7 @@ const Overlay = styled('div', `
   overflow-y: auto;
 `);
 
-const cssTitle = styled('div', `
+const cssTitle = styled("div", `
   font-size: ${vars.xxxlargeFontSize};
   font-weight: ${vars.headerControlTextWeight};
   color: ${theme.text};
@@ -455,6 +457,6 @@ const cssTitle = styled('div', `
   line-height: 32px;
 `);
 
-const cssBody = styled('div', `
+const cssBody = styled("div", `
   color: ${theme.text};
 `);

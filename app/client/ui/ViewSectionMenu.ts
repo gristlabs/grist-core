@@ -1,23 +1,24 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import {allCommands} from 'app/client/components/commands';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {reportError} from 'app/client/models/AppModel';
-import {DocModel, ViewSectionRec} from 'app/client/models/DocModel';
-import {FilterConfig} from 'app/client/ui/FilterConfig';
-import {cssLabel, cssSaveButtonsRow} from 'app/client/ui/RightPanelStyles';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {SortConfig} from 'app/client/ui/SortConfig';
-import {makeViewLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {isNarrowScreenObs, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menu} from 'app/client/ui2018/menus';
-import {Computed, dom, IDisposableOwner, makeTestId, styled} from 'grainjs';
-import {defaultMenuOptions} from 'popweasel';
+import { allCommands } from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import { makeT } from "app/client/lib/localization";
+import { reportError } from "app/client/models/AppModel";
+import { DocModel, ViewSectionRec } from "app/client/models/DocModel";
+import { FilterConfig } from "app/client/ui/FilterConfig";
+import { cssLabel, cssSaveButtonsRow } from "app/client/ui/RightPanelStyles";
+import { SortConfig } from "app/client/ui/SortConfig";
+import { hoverTooltip } from "app/client/ui/tooltips";
+import { makeViewLayoutMenu } from "app/client/ui/ViewLayoutMenu";
+import { basicButton, primaryButton } from "app/client/ui2018/buttons";
+import { isNarrowScreenObs, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menu } from "app/client/ui2018/menus";
 
-const testId = makeTestId('test-section-menu-');
-const t = makeT('ViewSectionMenu');
+import { Computed, dom, IDisposableOwner, makeTestId, styled } from "grainjs";
+import { defaultMenuOptions } from "popweasel";
+
+const testId = makeTestId("test-section-menu-");
+const t = makeT("ViewSectionMenu");
 
 // Handler for [Save] button.
 async function doSave(docModel: DocModel, viewSection: ViewSectionRec): Promise<void> {
@@ -41,16 +42,16 @@ export function viewSectionMenu(
   gristDoc: GristDoc,
   viewSection: ViewSectionRec,
 ) {
-  const {docModel, isReadonly} = gristDoc;
+  const { docModel, isReadonly } = gristDoc;
 
   // If there is any filter (should [Filter Icon] background be filled).
-  const anyFilter = Computed.create(owner, (use) =>  Boolean(use(viewSection.activeFilters).length));
+  const anyFilter = Computed.create(owner, use =>  Boolean(use(viewSection.activeFilters).length));
 
   // Should we show [Save] [Revert] buttons.
-  const displaySaveObs: Computed<boolean> = Computed.create(owner, (use) => (
-    use(viewSection.filterSpecChanged)
-      || !use(viewSection.activeSortJson.isSaved)
-      || !use(viewSection.activeCustomOptions.isSaved)
+  const displaySaveObs: Computed<boolean> = Computed.create(owner, use => (
+    use(viewSection.filterSpecChanged) ||
+    !use(viewSection.activeSortJson.isSaved) ||
+    !use(viewSection.activeCustomOptions.isSaved)
   ));
 
   const save = () => { doSave(docModel, viewSection).catch(reportError); };
@@ -66,46 +67,46 @@ export function viewSectionMenu(
 
   // Should we show expand icon.
   const showExpandIcon = Computed.create(owner, (use) => {
-    return !use(isNarrowScreenObs()) // not on narrow screens
-         && use(gristDoc.maximizedSectionId) !== use(viewSection.id) // not in when we are maximized
-         && use(gristDoc.externalSectionId) !== use(viewSection.id) // not in when we are external
-         && !use(viewSection.isRaw) // not in raw mode
-         && !use(viewSection.isRecordCard)
-         && !use(singleVisible) // not in single section
-         && use(viewSection.canExpand)
-         ;
+    return !use(isNarrowScreenObs()) && // not on narrow screens
+      use(gristDoc.maximizedSectionId) !== use(viewSection.id) && // not in when we are maximized
+      use(gristDoc.externalSectionId) !== use(viewSection.id) && // not in when we are external
+      !use(viewSection.isRaw) && // not in raw mode
+      !use(viewSection.isRecordCard) &&
+      !use(singleVisible) && // not in single section
+      use(viewSection.canExpand)
+    ;
   });
 
   return [
     cssFilterMenuWrapper(
-      cssFilterMenuWrapper.cls('-unsaved', displaySaveObs),
-      testId('wrapper'),
+      cssFilterMenuWrapper.cls("-unsaved", displaySaveObs),
+      testId("wrapper"),
       cssMenu(
-        testId('sortAndFilter'),
+        testId("sortAndFilter"),
         // [Filter icon]
         cssFilterIconWrapper(
-          testId('filter-icon'),
+          testId("filter-icon"),
           // Fill background when there are some filters. Ignore sort options.
-          cssFilterIconWrapper.cls('-any', anyFilter),
-          cssFilterIcon('Filter'),
-          hoverTooltip(t('Sort and filter'), {key: 'sortFilterBtnTooltip'}),
+          cssFilterIconWrapper.cls("-any", anyFilter),
+          cssFilterIcon("Filter"),
+          hoverTooltip(t("Sort and filter"), { key: "sortFilterBtnTooltip" }),
         ),
       ),
       // [Save] [Revert] buttons when there are unsaved options.
       dom.maybe(displaySaveObs, () => cssSectionSaveButtonsWrapper(
         cssSaveTextButton(
           t("Save"),
-          cssSaveTextButton.cls('-accent'),
-          dom.on('click', save),
-          hoverTooltip('Save sort & filter settings', {key: 'sortFilterBtnTooltip'}),
-          testId('small-btn-save'),
+          cssSaveTextButton.cls("-accent"),
+          dom.on("click", save),
+          hoverTooltip("Save sort & filter settings", { key: "sortFilterBtnTooltip" }),
+          testId("small-btn-save"),
           dom.hide(isReadonly),
         ),
         cssRevertIconButton(
-          cssRevertIcon('Revert', cssRevertIcon.cls('-normal')),
-          dom.on('click', revert),
-          hoverTooltip('Revert sort & filter settings', {key: 'sortFilterBtnTooltip'}),
-          testId('small-btn-revert'),
+          cssRevertIcon("Revert", cssRevertIcon.cls("-normal")),
+          dom.on("click", revert),
+          hoverTooltip("Revert sort & filter settings", { key: "sortFilterBtnTooltip" }),
+          testId("small-btn-revert"),
         ),
       )),
       menu(ctl => [
@@ -114,17 +115,17 @@ export function viewSectionMenu(
         // Filter section.
         makeFilterPanel(viewSection),
         // Widget options
-        dom.maybe(use => use(viewSection.parentKey) === 'custom', () =>
-          makeCustomOptions(viewSection)
+        dom.maybe(use => use(viewSection.parentKey) === "custom", () =>
+          makeCustomOptions(viewSection),
         ),
         // [Save] [Revert] buttons
         dom.domComputed(displaySaveObs, displaySave => [
           displaySave ? cssSaveButtonsRow(
-            cssSaveButton(t("Save"), testId('btn-save'),
-                          dom.on('click', () => { ctl.close(); save(); }),
-                          dom.boolAttr('disabled', isReadonly)),
-            basicButton(t("Revert"), testId('btn-revert'),
-                        dom.on('click', () => { ctl.close(); revert(); }))
+            cssSaveButton(t("Save"), testId("btn-save"),
+              dom.on("click", () => { ctl.close(); save(); }),
+              dom.boolAttr("disabled", isReadonly)),
+            basicButton(t("Revert"), testId("btn-revert"),
+              dom.on("click", () => { ctl.close(); revert(); })),
           ) : null,
         ]),
         // Updates to active sort or filters can cause menu contents to grow, while
@@ -135,60 +136,60 @@ export function viewSectionMenu(
         // visible.
         dom.autoDispose(viewSection.activeFilters.addListener(() => ctl.update())),
         dom.autoDispose(viewSection.activeSortJson.subscribe(() => ctl.update())),
-        elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
-      ], {...defaultMenuOptions, placement: 'bottom-end', trigger: [
+        (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
+      ], { ...defaultMenuOptions, placement: "bottom-end", trigger: [
         // Toggle the menu whenever the filter icon button is clicked.
-        (el, ctl) => dom.onMatchElem(el, '.test-section-menu-sortAndFilter', 'click', () => {
+        (el, ctl) => dom.onMatchElem(el, ".test-section-menu-sortAndFilter", "click", () => {
           ctl.toggle();
         }),
         // Close the menu whenever the save or revert button is clicked.
-        (el, ctl) => dom.onMatchElem(el, '.test-section-menu-small-btn-save', 'click', () => {
+        (el, ctl) => dom.onMatchElem(el, ".test-section-menu-small-btn-save", "click", () => {
           ctl.close();
         }),
-        (el, ctl) => dom.onMatchElem(el, '.test-section-menu-small-btn-revert', 'click', () => {
+        (el, ctl) => dom.onMatchElem(el, ".test-section-menu-small-btn-revert", "click", () => {
           ctl.close();
         }),
-      ]}),
+      ] }),
       dom.hide(viewSection.isRecordCard),
     ),
     cssMenu(
       dom.hide(viewSection.hideViewMenu),
-      testId('viewLayout'),
-      cssDotsIconWrapper(cssIcon('Dots')),
+      testId("viewLayout"),
+      cssDotsIconWrapper(cssIcon("Dots")),
       menu(_ctl => makeViewLayoutMenu(viewSection, isReadonly.get()), {
         ...defaultMenuOptions,
-        placement: 'bottom-end',
-      })
+        placement: "bottom-end",
+      }),
     ),
     dom.maybe(showExpandIcon, () =>
       cssExpandIconWrapper(
-        cssSmallIcon('Grow'),
-        testId('expandSection'),
-        dom.on('click', () =>  allCommands.expandSection.run()),
-        hoverTooltip('Expand section', {key: 'expandSection'}),
+        cssSmallIcon("Grow"),
+        testId("expandSection"),
+        dom.on("click", () =>  allCommands.expandSection.run()),
+        hoverTooltip("Expand section", { key: "expandSection" }),
       ),
-    )
+    ),
   ];
 }
 
 function makeSortPanel(section: ViewSectionRec, gristDoc: GristDoc) {
   return [
-    cssLabel(t("SORT"), testId('heading-sort')),
+    cssLabel(t("SORT"), testId("heading-sort")),
     dom.create(SortConfig, section, gristDoc, {
       // Attach content to triggerElem's parent, which is needed to prevent view
       // section menu to close when clicking an item in the advanced sort menu.
-      menuOptions: {attach: null},
+      menuOptions: { attach: null },
     }),
   ];
 }
 
 function makeFilterPanel(section: ViewSectionRec) {
   return [
-    cssLabel(t("FILTER"), testId('heading-filter')),
+    cssLabel(t("FILTER"), testId("heading-filter")),
     dom.create(FilterConfig, section, {
       // Attach content to triggerElem's parent, which is needed to prevent view
       // section menu to close when clicking an item of the add filter menu.
-      menuOptions: {attach: null},
+      menuOptions: { attach: null },
     }),
   ];
 }
@@ -197,15 +198,16 @@ function makeFilterPanel(section: ViewSectionRec) {
 // (empty)|(customized)|(modified) [Remove Icon]
 function makeCustomOptions(section: ViewSectionRec) {
   const color = Computed.create(null, use => use(section.activeCustomOptions.isSaved) ? "-normal" : "-accent");
-  const text = Computed.create(null, use => {
+  const text = Computed.create(null, (use) => {
     if (use(section.activeCustomOptions)) {
       return use(section.activeCustomOptions.isSaved) ? t("(customized)") : t("(modified)");
-    } else {
+    }
+    else {
       return t("(empty)");
     }
   });
   return [
-    cssMenuInfoHeader(t("Custom options"), testId('heading-widget-options')),
+    cssMenuInfoHeader(t("Custom options"), testId("heading-widget-options")),
     cssMenuText(
       dom.autoDispose(text),
       dom.autoDispose(color),
@@ -214,20 +216,19 @@ function makeCustomOptions(section: ViewSectionRec) {
       cssSpacer(),
       dom.maybe(use => Boolean(use(section.activeCustomOptions)), () =>
         cssMenuIconWrapper(
-          cssIcon('Remove', testId('btn-remove-options'), dom.on('click', () =>
-            section.activeCustomOptions(null)
-          ))
+          cssIcon("Remove", testId("btn-remove-options"), dom.on("click", () =>
+            section.activeCustomOptions(null),
+          )),
         ),
       ),
-      testId("custom-options")
-    )
+      testId("custom-options"),
+    ),
   ];
 }
 
-const clsOldUI = styled('div', ``);
+const clsOldUI = styled("div", ``);
 
-
-export const cssMenu = styled('div', `
+export const cssMenu = styled("div", `
   display: flex;
   cursor: pointer;
   border-radius: 3px;
@@ -240,7 +241,7 @@ export const cssMenu = styled('div', `
   }
 `);
 
-const cssIconWrapper = styled('div', `
+const cssIconWrapper = styled("div", `
   padding: 3px;
   border-radius: 3px;
   cursor: pointer;
@@ -264,7 +265,7 @@ const cssMenuIconWrapper = styled(cssIconWrapper, `
   }
 `);
 
-const cssFilterMenuWrapper = styled('div', `
+const cssFilterMenuWrapper = styled("div", `
   display: flex;
   border-radius: 3px;
   align-items: center;
@@ -302,7 +303,7 @@ export const cssDotsIconWrapper = styled(cssIconWrapper, `
   }
 `);
 
-const cssExpandIconWrapper = styled('div', `
+const cssExpandIconWrapper = styled("div", `
   display: flex;
   border-radius: 3px;
   align-items: center;
@@ -339,14 +340,14 @@ const cssFilterIcon = styled(cssIcon, `
   }
 `);
 
-const cssMenuInfoHeader = styled('div', `
+const cssMenuInfoHeader = styled("div", `
   color: ${theme.menuSubheaderFg};
   font-weight: ${vars.bigControlTextWeight};
   padding: 8px 24px 8px 24px;
   cursor: default;
 `);
 
-const cssMenuText = styled('div', `
+const cssMenuText = styled("div", `
   display: flex;
   align-items: center;
   padding: 0px 24px 8px 24px;
@@ -364,7 +365,7 @@ const cssSaveButton = styled(primaryButton, `
   margin-right: 8px;
 `);
 
-const cssSaveTextButton = styled('div', `
+const cssSaveTextButton = styled("div", `
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -374,7 +375,7 @@ const cssSaveTextButton = styled('div', `
   border-right: ${theme.controlBorder};
 `);
 
-const cssRevertIconButton = styled('div', `
+const cssRevertIconButton = styled("div", `
   display: flex;
   justify-content: center;
   align-items: center;
@@ -386,13 +387,13 @@ const cssRevertIcon = styled(icon, `
   margin: 0 5px 0 5px;
 `);
 
-const cssSectionSaveButtonsWrapper = styled('div', `
+const cssSectionSaveButtonsWrapper = styled("div", `
   padding: 0 1px 0 1px;
   display: flex;
   justify-content: space-between;
   align-self: normal;
 `);
 
-const cssSpacer = styled('div', `
+const cssSpacer = styled("div", `
   margin: 0 auto;
 `);

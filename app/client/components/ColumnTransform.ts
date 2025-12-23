@@ -3,19 +3,20 @@
  * purpose of allowing the user to transform a column. It is currently extended by FormulaTransform
  * and TypeTransform.
  */
-import * as commands from 'app/client/components/commands';
-import * as AceEditor from 'app/client/components/AceEditor';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ColumnRec} from 'app/client/models/entities/ColumnRec';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {TableData} from 'app/client/models/TableData';
-import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
-import {UserAction} from 'app/common/DocActions';
-import {GristObjCode} from 'app/plugin/GristData';
-import {Disposable, Observable} from 'grainjs';
-import isPlainObject from 'lodash/isPlainObject';
-import * as ko from 'knockout';
-import noop = require('lodash/noop');
+import * as AceEditor from "app/client/components/AceEditor";
+import * as commands from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
+import { ColumnRec } from "app/client/models/entities/ColumnRec";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { TableData } from "app/client/models/TableData";
+import { FieldBuilder } from "app/client/widgets/FieldBuilder";
+import { UserAction } from "app/common/DocActions";
+import { GristObjCode } from "app/plugin/GristData";
+
+import { Disposable, Observable } from "grainjs";
+import * as ko from "knockout";
+import isPlainObject from "lodash/isPlainObject";
+import noop from "lodash/noop";
 
 // To simplify diff (avoid rearranging methods to satisfy private/public order).
 /* eslint-disable @typescript-eslint/member-ordering */
@@ -33,10 +34,10 @@ export class ColumnTransform extends Disposable {
   protected transformColumn: ColumnRec;                 // Set in prepare()
   protected origWidgetOptions: unknown;
   protected isCallPending: ko.Observable<boolean>;
-  protected editor: AceEditor|null = null;              // Created when the dom is built by extending classes
+  protected editor: AceEditor = null;              // Created when the dom is built by extending classes
   protected formulaUpToDate = Observable.create(this, true);
   protected _tableData: TableData;
-  protected rules: [GristObjCode.List, ...number[]]|null;
+  protected rules: [GristObjCode.List, ...number[]] | null;
 
   // Whether _doFinalize should execute the transform, or cancel it.
   protected _shouldExecute: boolean = false;
@@ -63,7 +64,7 @@ export class ColumnTransform extends Disposable {
 
     this.autoDispose(commands.createGroup({
       undo: this.cancel,
-      redo: noop
+      redo: noop,
     }, this, true));
 
     this.onDispose(() => {
@@ -97,11 +98,11 @@ export class ColumnTransform extends Disposable {
       }));
     }
     return this.editor.buildDom((aceObj: any) => {
-      aceObj.setOptions({placeholder: 'Enter formula.'});
+      aceObj.setOptions({ placeholder: "Enter formula." });
       aceObj.setHighlightActiveLine(false);
       this.editor.adjustContentToWidth();
       this.editor.attachSaveCommand();
-      aceObj.on('change', () => {
+      aceObj.on("change", () => {
         if (this.editor) {
           this.formulaUpToDate.set(this.editor.getValue() === this.transformColumn.formula());
         }
@@ -123,7 +124,7 @@ export class ColumnTransform extends Disposable {
       description: `Transformed column ${this.origColumn.colId()}.`,
       shouldIncludeInBundle: this._shouldIncludeInBundle.bind(this),
       prepare: this._doPrepare.bind(this, colType),
-      finalize: this._doFinalize.bind(this)
+      finalize: this._doFinalize.bind(this),
     });
 
     // triggerFinalize tells DocData to call the finalize callback we passed above; this way
@@ -145,7 +146,8 @@ export class ColumnTransform extends Disposable {
       this.transformColumn.origColRef(this.origColumn.getRowId());
       this._setTransforming(true);
       return this.postAddTransformColumn();
-    } finally {
+    }
+    finally {
       this.isCallPending(false);
     }
   }
@@ -155,17 +157,17 @@ export class ColumnTransform extends Disposable {
     // started doing something else, and we should finalize the transform.
     return actions.every(action => (
       // ['AddColumn', USER_TABLE, 'gristHelper_Transform', colInfo]
-      (action[2]?.toString().startsWith('gristHelper_Transform')) ||
+      (action[2]?.toString().startsWith("gristHelper_Transform")) ||
       // ['AddColumn', USER_TABLE, 'gristHelper_Converted', colInfo]
-      (action[2]?.toString().startsWith('gristHelper_Converted')) ||
+      (action[2]?.toString().startsWith("gristHelper_Converted")) ||
       // ['ConvertFromColumn', USER_TABLE, SOURCE_COLUMN, 'gristHelper_Converted']
-      (action[3]?.toString().startsWith('gristHelper_Converted')) ||
+      (action[3]?.toString().startsWith("gristHelper_Converted")) ||
       // ["SetDisplayFormula", USER_TABLE, ...]
-      (action[0] === 'SetDisplayFormula') ||
+      (action[0] === "SetDisplayFormula") ||
       // ['UpdateRecord', '_grist_Table_column', transformColId, ...]
-      (action[1] === '_grist_Tables_column') ||
+      (action[1] === "_grist_Tables_column") ||
       // ['UpdateRecord', '_grist_Views_section_field', transformColId, ...] (e.g. resize)
-      (action[1] === '_grist_Views_section_field')
+      (action[1] === "_grist_Views_section_field")
     ));
   }
 
@@ -176,17 +178,17 @@ export class ColumnTransform extends Disposable {
    */
   protected async addTransformColumn(colType: string): Promise<number> {
     // Retrieve widget options on prepare (useful for type transforms)
-    const newColInfo = await this._tableData.sendTableAction(['AddColumn', "gristHelper_Transform", {
+    const newColInfo = await this._tableData.sendTableAction(["AddColumn", "gristHelper_Transform", {
       type: colType,
       isFormula: true,
       formula: this.getIdentityFormula(),
-      ...(this.origWidgetOptions ? {widgetOptions: JSON.stringify(this.origWidgetOptions)} : {}),
+      ...(this.origWidgetOptions ? { widgetOptions: JSON.stringify(this.origWidgetOptions) } : {}),
     }]);
     if (this.rules) {
       // We are in bundle, it is safe to just send another action.
       // NOTE: We could add rules with AddColumn action, but there are some optimizations that converts array values.
       await this.gristDoc.docData.sendActions([
-        ['UpdateRecord', '_grist_Tables_column', newColInfo.colRef, {rules: this.rules}]
+        ["UpdateRecord", "_grist_Tables_column", newColInfo.colRef, { rules: this.rules }],
       ]);
     }
 
@@ -231,10 +233,11 @@ export class ColumnTransform extends Disposable {
         // that seems the best way to avoid calculating the formula on wrong values.
         await this.gristDoc.docData.sendActions(this.executeActions());
       }
-    } finally {
+    }
+    finally {
       // Wait until the change completed to set column back, to avoid value flickering.
       field.colRef(origRef);
-      const cleanupProm = tableData.sendTableAction(['RemoveColumn', transformColId]);
+      const cleanupProm = tableData.sendTableAction(["RemoveColumn", transformColId]);
       this.cleanup();
       this.dispose();
       await cleanupProm;
@@ -246,12 +249,12 @@ export class ColumnTransform extends Disposable {
    */
   protected executeActions(): UserAction[] {
     const newWidgetOptions = isPlainObject(this.origWidgetOptions) ?
-     {...this.origWidgetOptions as object, ...this._fieldBuilder.options.peek()} :
-     this._fieldBuilder.options.peek();
+      { ...this.origWidgetOptions as object, ...this._fieldBuilder.options.peek() } :
+      this._fieldBuilder.options.peek();
     return [
       ...this.previewActions(),
       [
-        'CopyFromColumn',
+        "CopyFromColumn",
         this._tableData.tableId,
         this.transformColumn.colId.peek(),
         this.origColumn.colId.peek(),
@@ -269,7 +272,7 @@ export class ColumnTransform extends Disposable {
   }
 
   protected getIdentityFormula() {
-    return 'return $' + this.origColumn.colId();
+    return "return $" + this.origColumn.colId();
   }
 
   protected _setTransforming(bool: boolean) {
@@ -296,7 +299,7 @@ export class ColumnTransform extends Disposable {
     if (formula === oldFormula) { return []; }
     if (!formula && !oldFormula) { return []; }
     return [
-      ['UpdateRecord', '_grist_Tables_column', this.transformColumn.getRowId(), {formula}]
+      ["UpdateRecord", "_grist_Tables_column", this.transformColumn.getRowId(), { formula }],
     ];
   }
 }

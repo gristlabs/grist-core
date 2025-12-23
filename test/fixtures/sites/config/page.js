@@ -2,45 +2,45 @@
 
 // Ready message can be configured from url
 const urlParams = new URLSearchParams(window.location.search);
-const ready = urlParams.get('ready') ? JSON.parse(urlParams.get('ready')) : undefined;
+const ready = urlParams.get("ready") ? JSON.parse(urlParams.get("ready")) : undefined;
 
 function setup() {
   if (ready && ready.onEditOptions) {
     ready.onEditOptions = () => {
-      document.getElementById('configure').innerHTML = 'called';
+      document.getElementById("configure").innerHTML = "called";
     };
   }
 
   grist.ready(ready);
 
   grist.onOptions(data => {
-    document.getElementById('onOptions').innerHTML = JSON.stringify(data);
+    document.getElementById("onOptions").innerHTML = JSON.stringify(data);
   });
 
   grist.onRecord((data, mappings) => {
-    document.getElementById('onRecord').innerHTML = JSON.stringify(data);
-    document.getElementById('onRecordMappings').innerHTML = JSON.stringify(mappings);
+    document.getElementById("onRecord").innerHTML = JSON.stringify(data);
+    document.getElementById("onRecordMappings").innerHTML = JSON.stringify(mappings);
   });
 
   grist.onRecords((data, mappings) => {
-    document.getElementById('onRecords').innerHTML = JSON.stringify(data);
-    document.getElementById('onRecordsMappings').innerHTML = JSON.stringify(mappings);
+    document.getElementById("onRecords").innerHTML = JSON.stringify(data);
+    document.getElementById("onRecordsMappings").innerHTML = JSON.stringify(mappings);
   });
 
-  grist.on('message', event => {
-    const existing = document.getElementById('log').textContent || '';
+  grist.on("message", event => {
+    const existing = document.getElementById("log").textContent || "";
     const newContent = `${existing}\n${JSON.stringify(event)}`.trim();
-    document.getElementById('log').innerHTML = newContent;
+    document.getElementById("log").innerHTML = newContent;
   });
 }
 
 async function run(handler) {
   try {
-    document.getElementById('output').innerText = 'waiting...';
-    const result = await handler(JSON.parse(document.getElementById('input').value || '[]'));
-    document.getElementById('output').innerText = result === undefined ? 'undefined' : JSON.stringify(result);
+    document.getElementById("output").innerText = "waiting...";
+    const result = await handler(JSON.parse(document.getElementById("input").value || "[]"));
+    document.getElementById("output").innerText = result === undefined ? "undefined" : JSON.stringify(result);
   } catch (err) {
-    document.getElementById('output').innerText = JSON.stringify({error: err.message || String(err)});
+    document.getElementById("output").innerText = JSON.stringify({error: err.message || String(err)});
   }
 }
 
@@ -75,12 +75,12 @@ async function configure() {
 
 // eslint-disable-next-line no-unused-vars
 async function clearLog() {
-  return run(() => document.getElementById('log').textContent = '');
+  return run(() => document.getElementById("log").textContent = "");
 }
 
 window.onload = () => {
   setup();
-  document.getElementById('ready').innerText = 'ready';
-  document.getElementById('access').innerHTML = urlParams.get('access');
-  document.getElementById('readonly').innerHTML = urlParams.get('readonly');
+  document.getElementById("ready").innerText = "ready";
+  document.getElementById("access").innerHTML = urlParams.get("access");
+  document.getElementById("readonly").innerHTML = urlParams.get("readonly");
 };

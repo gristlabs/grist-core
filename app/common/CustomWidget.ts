@@ -1,4 +1,4 @@
-import sortBy = require('lodash/sortBy');
+import sortBy from "lodash/sortBy";
 
 /**
  * Custom widget manifest definition.
@@ -86,7 +86,7 @@ export enum AccessLevel {
 
 export function isSatisfied(current: AccessLevel, minimum: AccessLevel) {
   function ordered(level: AccessLevel) {
-    switch(level) {
+    switch (level) {
       case AccessLevel.none: return 0;
       case AccessLevel.read_table: return 1;
       case AccessLevel.full: return 2;
@@ -104,10 +104,10 @@ export function isSatisfied(current: AccessLevel, minimum: AccessLevel) {
 export function matchWidget(widgets: ICustomWidget[], options: {
   widgetId: string,
   pluginId?: string,
-}): ICustomWidget|undefined {
+}): ICustomWidget | undefined {
   const prefs = sortBy(widgets, (w) => {
     return [w.widgetId !== options.widgetId,
-            (w.source?.pluginId||'') !== options.pluginId];
+      (w.source?.pluginId || "") !== options.pluginId];
   });
   if (prefs.length === 0) { return; }
   if (prefs[0].widgetId !== options.widgetId) { return; }

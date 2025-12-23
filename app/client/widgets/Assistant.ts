@@ -4,11 +4,11 @@ import {
   cssBannerLink,
 } from "app/client/components/Banner";
 import { GristDoc } from "app/client/components/GristDoc";
-import { ChatHistory, ChatMessage } from "app/client/models/ChatHistory";
 import { domAsync } from "app/client/lib/domAsync";
 import { makeT } from "app/client/lib/localization";
 import { sessionStorageBoolObs } from "app/client/lib/localStorageObs";
 import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
+import { ChatHistory, ChatMessage } from "app/client/models/ChatHistory";
 import { constructUrl, urlState } from "app/client/models/gristUrlState";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
 import { buildCodeHighlighter } from "app/client/ui/CodeHighlight";
@@ -17,10 +17,10 @@ import { sanitizeHTML } from "app/client/ui/sanitizeHTML";
 import { createUserImage } from "app/client/ui/UserImage";
 import { bigPrimaryButtonLink, primaryButton, textButton } from "app/client/ui2018/buttons";
 import { colors, theme, vars } from "app/client/ui2018/cssVars";
-import { gristThemeObs } from "app/client/ui2018/theme";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink, gristIconLink } from "app/client/ui2018/links";
 import { loadingDots } from "app/client/ui2018/loaders";
+import { gristThemeObs } from "app/client/ui2018/theme";
 import { ApiError } from "app/common/ApiError";
 import { AssistanceResponse } from "app/common/Assistance";
 import { AsyncCreate } from "app/common/AsyncCreate";
@@ -29,6 +29,7 @@ import { isFreePlan } from "app/common/Features";
 import { commonUrls } from "app/common/gristUrls";
 import { TelemetryEvent, TelemetryMetadata } from "app/common/Telemetry";
 import { getGristConfig } from "app/common/urlUtils";
+
 import {
   Computed,
   Disposable,
@@ -98,9 +99,10 @@ export class Assistant extends Disposable {
       `org:${
         this._appModel.currentOrg?.id ?? 0
       };assistantShowApproachingLimitBanner`,
-      true
-    )
+      true,
+    ),
   );
+
   private _showUpgradeBanner = Computed.create(this, (use) => {
     const { assistant, deploymentType } = getGristConfig();
     return (
@@ -110,9 +112,10 @@ export class Assistant extends Disposable {
       !use(this._appModel.dismissedPopups).includes("upgradeNewAssistant")
     );
   });
+
   /** Number of remaining credits. If null, assistant usage is unlimited. */
   private _numRemainingCredits = Observable.create<number | null>(this, null);
-  private _lastSendPromise: Promise<AssistanceResponse>|null = null;
+  private _lastSendPromise: Promise<AssistanceResponse> | null = null;
 
   constructor(private _options: AssistantOptions) {
     super();
@@ -130,9 +133,9 @@ export class Assistant extends Disposable {
     return [
       this._buildBanner(),
       this._conversation.buildDom(),
-      this._appModel.currentValidUser
-        ? this._buildChatInput()
-        : this._buildSignupNudge(),
+      this._appModel.currentValidUser ?
+        this._buildChatInput() :
+        this._buildSignupNudge(),
     ];
   }
 
@@ -191,12 +194,13 @@ export class Assistant extends Disposable {
             t("You have used all available credits."),
             " ",
             this._buildBannerUpgradeMessage(),
-            testId("banner-message")
+            testId("banner-message"),
           ),
           style: "error",
           bannerCssClass: cssBanner.className,
         });
-      } else if (
+      }
+      else if (
         numCredits !== null &&
         numCredits <= LOW_CREDITS_WARNING_BANNER_THRESHOLD &&
         use(this._showApproachingLimitBanner)
@@ -206,7 +210,7 @@ export class Assistant extends Disposable {
             t("You have {{numCredits}} remaining credits.", { numCredits }),
             " ",
             this._buildBannerUpgradeMessage(),
-            testId("banner-message")
+            testId("banner-message"),
           ),
           style: "warning",
           showCloseButton: true,
@@ -215,16 +219,17 @@ export class Assistant extends Disposable {
           },
           bannerCssClass: cssBanner.className,
         });
-      } else if (use(this._showUpgradeBanner)) {
+      }
+      else if (use(this._showUpgradeBanner)) {
         return dom.create(Banner, {
           content: buildBannerMessage(
             t("Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}", {
               learnMoreLink: cssBannerAnchorLink(
                 { href: commonUrls.helpAssistant, target: "_blank" },
-                t("Learn more.")
-              )
+                t("Learn more."),
+              ),
             }),
-            testId("banner-message")
+            testId("banner-message"),
           ),
           style: "custom",
           background: "linear-gradient(to right, #29A3A3, #16A772)",
@@ -250,16 +255,17 @@ export class Assistant extends Disposable {
 
     return t("For higher limits, {{upgradeNudge}}.", {
       upgradeNudge: cssBannerLink(
-        canUpgradeSite
-          ? t("upgrade to the Pro Team plan")
-          : t("upgrade your plan"),
+        canUpgradeSite ?
+          t("upgrade to the Pro Team plan") :
+          t("upgrade your plan"),
         dom.on("click", async () => {
           if (canUpgradeSite) {
             this._gristDoc.appModel.showUpgradeModal().catch(reportError);
-          } else {
+          }
+          else {
             await urlState().pushUrl({ billing: "billing" });
           }
-        })
+        }),
       ),
     });
   }
@@ -283,31 +289,32 @@ export class Assistant extends Disposable {
       dom.style("max-height", (use) => {
         // Set an upper bound on the height the input can grow to, so that when the parent container
         // is resized, the input is automatically resized to fit and doesn't overflow.
-        const panelHeight = this._parentHeightPx
-          ? use(this._parentHeightPx)
-          : 0;
+        const panelHeight = this._parentHeightPx ?
+          use(this._parentHeightPx) :
+          0;
         // The available input height is computed by taking the parent height, and subtracting
         // the heights of all the other elements (except for the input).
         const availableInputHeight =
           panelHeight -
           ((this._inputWrapper?.clientHeight ?? 0) -
             (this._input?.clientHeight ?? 0)) -
-          MIN_CHAT_HISTORY_HEIGHT_PX;
+            MIN_CHAT_HISTORY_HEIGHT_PX;
         return `${Math.max(availableInputHeight, MIN_CHAT_INPUT_HEIGHT_PX)}px`;
       }),
       dom.onKeyDown({
-        Enter$: (ev) => this._handleChatEnterKeyDown(ev),
+        Enter$: ev => this._handleChatEnterKeyDown(ev),
         Escape: () => this._options.onEscape?.(),
       }),
       dom.autoDispose(
-        this._userInput.addListener((value) => (this._input.value = value))
+        this._userInput.addListener(value => (this._input.value = value)),
       ),
       dom.prop("disabled", this._conversation.thinking),
       dom.prop("placeholder", (use) => {
         const lastFormula = use(this._conversation.lastSuggestedFormula);
         if (lastFormula && this._options.onApplyFormula) {
           return t("Press Enter to apply suggested formula.");
-        } else {
+        }
+        else {
           return t("What do you need help with?");
         }
       }),
@@ -316,7 +323,7 @@ export class Assistant extends Disposable {
           if (!value) {
             setTimeout(() => this.focus(), 0);
           }
-        })
+        }),
       ),
     );
 
@@ -334,24 +341,24 @@ export class Assistant extends Disposable {
             dom.show(use => !use(this._conversation.thinking)),
             cssButton.cls(
               "-disabled",
-              (use) => use(this._conversation.thinking) || use(this._userInput).length === 0
+              use => use(this._conversation.thinking) || use(this._userInput).length === 0,
             ),
-            testId("send")
+            testId("send"),
           ),
           cssCancelButton(
             cssCancelIcon("Stop"),
             dom.on("click", this._cancel.bind(this)),
             dom.show(this._conversation.thinking),
-            testId("cancel")
+            testId("cancel"),
           ),
           dom.on("click", (ev) => {
             ev.stopPropagation();
             this.focus();
           }),
-          cssInputButtonsRow.cls("-disabled", this._conversation.thinking)
+          cssInputButtonsRow.cls("-disabled", this._conversation.thinking),
         ),
-        cssInputWrapper.cls("-disabled", this._conversation.thinking)
-      )
+        cssInputWrapper.cls("-disabled", this._conversation.thinking),
+      ),
     ));
   }
 
@@ -377,7 +384,8 @@ export class Assistant extends Disposable {
       this._options.onApplyFormula
     ) {
       this._options.onApplyFormula(lastFormula).catch(reportError);
-    } else {
+    }
+    else {
       this._ask().catch(reportError);
     }
   }
@@ -389,7 +397,8 @@ export class Assistant extends Disposable {
     let suggestedFormula: string | undefined;
     if (limit && limit.limit >= 0) {
       this._numRemainingCredits.set(Math.max(limit.limit - limit.usage, 0));
-    } else {
+    }
+    else {
       this._numRemainingCredits.set(null);
     }
     if ("suggestedFormula" in response) {
@@ -400,9 +409,9 @@ export class Assistant extends Disposable {
     this._history.set({ ...this._history.get(), state });
     // If model has a conversational skills (and maintains a history), we might get actually
     // some markdown text back, so we need to parse it.
-    const prettyMessage = state
-      ? reply || suggestedFormula || ""
-      : suggestedFormula || reply || "";
+    const prettyMessage = state ?
+      reply || suggestedFormula || "" :
+      suggestedFormula || reply || "";
     // Add it to the chat.
     this._conversation.addResponse({
       message: prettyMessage,
@@ -436,7 +445,8 @@ export class Assistant extends Disposable {
       }
 
       this._addResponse(response);
-    } catch (err: unknown) {
+    }
+    catch (err: unknown) {
       if (this.isDisposed() || this._lastSendPromise !== sendPromise) {
         return;
       }
@@ -454,7 +464,8 @@ export class Assistant extends Disposable {
       }
 
       throw err;
-    } finally {
+    }
+    finally {
       if (!this.isDisposed() && this._lastSendPromise === sendPromise) {
         this._conversation.thinking.set(false);
       }
@@ -469,8 +480,7 @@ export class Assistant extends Disposable {
 
 const renderer = new marked.Renderer();
 
-renderer.link = ({href, text}) => gristIconLink(constructUrl(href), text).outerHTML;
-
+renderer.link = ({ href, text }) => gristIconLink(constructUrl(href), text).outerHTML;
 
 /**
  * A chat conversation. It is responsible for keeping the history of the chat and
@@ -499,7 +509,7 @@ class AssistantConversation extends Disposable {
       buildIntroMessage: (...args: DomElementArg[]) => DomContents;
       onClearConversation: () => void;
       onApplyFormula?: (formula: string) => void;
-    }
+    },
   ) {
     super();
 
@@ -508,7 +518,7 @@ class AssistantConversation extends Disposable {
         const highlight = await buildCodeHighlighter({ maxLines: 60 });
         return new Marked(
           markedHighlight({
-            highlight: (code) => highlight(code),
+            highlight: code => highlight(code),
           }),
         );
       });
@@ -531,7 +541,7 @@ class AssistantConversation extends Disposable {
         });
         this.allMessages.set([]);
         this.newMessages.set([]);
-      })
+      }),
     );
 
     // Create observable array of messages that is connected to the ChatHistory.
@@ -539,15 +549,15 @@ class AssistantConversation extends Disposable {
     this.autoDispose(
       this.allMessages.addListener((messages) => {
         this._history.set({ ...this._history.get(), messages: [...messages] });
-      })
+      }),
     );
     this.newMessages = this.autoDispose(obsArray());
 
     this.historyLength = Computed.create(
       this,
-      (use) => use(this.allMessages).length
+      use => use(this.allMessages).length,
     );
-    this.length = Computed.create(this, (use) => use(this.newMessages).length);
+    this.length = Computed.create(this, use => use(this.newMessages).length);
 
     this.suggestedFormulas = Computed.create(this, (use) => {
       return use(this.allMessages)
@@ -609,7 +619,8 @@ class AssistantConversation extends Disposable {
     };
     if (sync) {
       this._element.scroll(scrollToOptions);
-    } else {
+    }
+    else {
       setTimeout(() => this._element.scroll(scrollToOptions), 0);
     }
   }
@@ -625,38 +636,40 @@ class AssistantConversation extends Disposable {
                 dom("span",
                   dom.text(entry.message),
                   testId("message-user"),
-                  testId("message")
+                  testId("message"),
                 ),
-                cssAvatar(buildAvatar(this._gristDoc))
+                cssAvatar(buildAvatar(this._gristDoc)),
               );
-            } else if (entry.error) {
+            }
+            else if (entry.error) {
               return cssAiMessage(
                 cssAvatar(cssAiImage()),
-                this._buildErrorMessage(entry.error)
+                this._buildErrorMessage(entry.error),
               );
-            } else {
+            }
+            else {
               return dom("div",
                 cssAiMessage(
                   cssAvatar(cssAiImage()),
                   this._render(
                     entry.message,
                     testId("message-ai"),
-                    testId("message")
-                  )
+                    testId("message"),
+                  ),
                 ),
-                !this._options.onApplyFormula
-                  ? null
-                  : cssAiMessageButtonsRow(
-                      cssAiMessageButtons(
-                        primaryButton(
-                          t("Apply"),
-                          dom.on("click", () => {
-                            this._options.onApplyFormula?.(entry.formula!);
-                          })
-                        )
+                !this._options.onApplyFormula ?
+                  null :
+                  cssAiMessageButtonsRow(
+                    cssAiMessageButtons(
+                      primaryButton(
+                        t("Apply"),
+                        dom.on("click", () => {
+                          this._options.onApplyFormula?.(entry.formula!);
+                        }),
                       ),
-                      dom.show(Boolean(entry.formula))
-                    )
+                    ),
+                    dom.show(Boolean(entry.formula)),
+                  ),
               );
             }
           }),
@@ -664,13 +677,13 @@ class AssistantConversation extends Disposable {
             dom("div",
               cssAiMessage(
                 cssAvatar(cssAiImage()),
-                cssLoadingDots()
-              )
-            )
+                cssLoadingDots(),
+              ),
+            ),
           ),
           () => { this.scrollDown({ smooth: false }); },
         ));
-      })
+      }),
     );
   }
 
@@ -685,12 +698,12 @@ respond effectively. Please {{startANewChatButton}} to continue \
 receiving assistance.",
             {
               startANewChatButton: textButton(
-                textButton.cls('-hover-bg-padding-sm'),
+                textButton.cls("-hover-bg-padding-sm"),
                 t("start a new chat"),
                 dom.on("click", () => this._options.onClearConversation()),
-              )
-            }
-          )
+              ),
+            },
+          ),
         );
       }
       default: {
@@ -712,15 +725,15 @@ receiving assistance.",
     return domAsync(
       AssistantConversation._marked!.get().then(({ parse }) => {
         return dom("div",
-          (el) =>
+          el =>
             subscribeElem(el, gristThemeObs(), () => {
               el.innerHTML = sanitizeHTML(
-                parse(message, { async: false, renderer })
+                parse(message, { async: false, renderer }),
               );
             }),
-          ...args
+          ...args,
         );
-      })
+      }),
     );
   }
 }
@@ -728,15 +741,15 @@ receiving assistance.",
 function buildSignupNudge() {
   return cssSignupNudgeWrapper(
     cssSignupNudgeParagraph(
-      t("Sign up for a free Grist account to start using the AI Assistant.")
+      t("Sign up for a free Grist account to start using the AI Assistant."),
     ),
     cssSignupNudgeButtonsRow(
       bigPrimaryButtonLink(
         t("Sign Up for Free"),
         { href: getLoginOrSignupUrl() },
-        testId("sign-up")
-      )
-    )
+        testId("sign-up"),
+      ),
+    ),
   );
 }
 
@@ -744,8 +757,8 @@ function buildAnonNudge() {
   return cssSignupNudgeWrapper(
     cssSignupNudgeWrapper.cls("-center"),
     cssSignupNudgeParagraph(
-      t("AI Assistant is only available for logged in users.")
-    )
+      t("AI Assistant is only available for logged in users."),
+    ),
   );
 }
 
@@ -754,7 +767,8 @@ function buildAvatar(grist: GristDoc) {
   const user = grist.app.topAppModel.appObs.get()?.currentUser || null;
   if (user) {
     return createUserImage(user, "medium");
-  } else {
+  }
+  else {
     // TODO: this will not happen, as this should be only for logged in users.
     return dom("div", "");
   }

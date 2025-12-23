@@ -1,9 +1,9 @@
-import * as gutil from 'app/common/gutil';
-import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
-import {DocStorage} from 'app/server/lib/DocStorage';
-import * as docUtils from 'app/server/lib/docUtils';
-import log from 'app/server/lib/log';
-import {create} from "app/server/lib/create";
+import * as gutil from "app/common/gutil";
+import { ActionHistoryImpl } from "app/server/lib/ActionHistoryImpl";
+import { create } from "app/server/lib/create";
+import { DocStorage } from "app/server/lib/DocStorage";
+import * as docUtils from "app/server/lib/docUtils";
+import log from "app/server/lib/log";
 
 /**
  * A utility script for cleaning up the action log.
@@ -14,24 +14,25 @@ import {create} from "app/server/lib/create";
  *  if not provided.
  */
 export async function pruneActionHistory(docPath: string, keepN: number) {
-  if (!docPath || !gutil.endsWith(docPath, '.grist')) {
-    throw new Error('Invalid document: Document should be a valid .grist file');
+  if (!docPath || !gutil.endsWith(docPath, ".grist")) {
+    throw new Error("Invalid document: Document should be a valid .grist file");
   }
 
   const storageManager = await create.createLocalDocStorageManager(".", ".");
   const docStorage = new DocStorage(storageManager, docPath);
-  const backupPath = gutil.removeSuffix(docPath, '.grist') + "-backup.grist";
+  const backupPath = gutil.removeSuffix(docPath, ".grist") + "-backup.grist";
 
   // If the backup already exists, abort. Otherwise, create a backup copy and continue.
   const exists = await docUtils.pathExists(backupPath);
-  if (exists) { throw new Error('Backup file already exists, aborting pruneActionHistory'); }
+  if (exists) { throw new Error("Backup file already exists, aborting pruneActionHistory"); }
   await docUtils.copyFile(docPath, backupPath);
   await docStorage.openFile();
   try {
     const history = new ActionHistoryImpl(docStorage);
     await history.initialize();
     await history.deleteActions(keepN);
-  } finally {
+  }
+  finally {
     await docStorage.shutdown();
   }
 }
@@ -48,7 +49,8 @@ export async function pruneActionHistoryFromConsole(argv: string[]): Promise<num
   const keepN = parseInt(argv[1], 10) || 1;
   try {
     await pruneActionHistory(docPath, keepN);
-  } catch (e) {
+  }
+  catch (e) {
     log.error(e);
     return 1;
   }

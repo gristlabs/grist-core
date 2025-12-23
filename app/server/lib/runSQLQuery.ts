@@ -23,12 +23,13 @@ const MAX_CUSTOM_SQL_MSEC = appSettings
 export async function runSQLQuery(
   requestOrSession: NonNullable<RequestOrSession>,
   activeDoc: ActiveDoc,
-  options: Types.SqlPost
+  options: Types.SqlPost,
 ) {
   let docSession: OptDocSession;
   if (isRequest(requestOrSession)) {
     docSession = docSessionFromRequest(requestOrSession);
-  } else {
+  }
+  else {
     docSession = requestOrSession;
   }
   if (!(await activeDoc.canCopyEverything(docSession))) {
@@ -52,8 +53,8 @@ export async function runSQLQuery(
     0,
     Math.min(
       MAX_CUSTOM_SQL_MSEC,
-      optIntegerParam(options.timeout, "timeout") || MAX_CUSTOM_SQL_MSEC
-    )
+      optIntegerParam(options.timeout, "timeout") || MAX_CUSTOM_SQL_MSEC,
+    ),
   );
   // Wrap in a select to commit to the SELECT branch of SQLite
   // grammar. Note ; isn't a problem.
@@ -77,7 +78,8 @@ export async function runSQLQuery(
   const interrupt = setTimeout(async () => {
     try {
       await activeDoc.docStorage.interrupt();
-    } catch (e) {
+    }
+    catch (e) {
       // Should be unreachable, but just in case...
       log.error("runSQL interrupt failed with error ", e);
     }
@@ -85,9 +87,10 @@ export async function runSQLQuery(
   try {
     return await activeDoc.docStorage.all(
       wrappedStatement,
-      ...(options.args || [])
+      ...(options.args || []),
     );
-  } finally {
+  }
+  finally {
     clearTimeout(interrupt);
   }
 }

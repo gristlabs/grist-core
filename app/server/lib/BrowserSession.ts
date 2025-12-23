@@ -1,9 +1,10 @@
-import {normalizeEmail} from 'app/common/emails';
-import {UserProfile} from 'app/common/LoginSessionAPI';
-import {SessionStore} from 'app/server/lib/gristSessions';
-import log from 'app/server/lib/log';
-import {fromCallback} from 'app/server/lib/serverUtils';
-import {Request} from 'express';
+import { normalizeEmail } from "app/common/emails";
+import { UserProfile } from "app/common/LoginSessionAPI";
+import { SessionStore } from "app/server/lib/gristSessions";
+import log from "app/server/lib/log";
+import { fromCallback } from "app/server/lib/serverUtils";
+
+import { Request } from "express";
 
 // Part of a session related to a single user.
 export interface SessionUserObj {
@@ -57,17 +58,17 @@ export interface SessionObj {
 
   // map from org to an index into users[]
   // This is optional since the session may already exist.
-  orgToUser?: {[org: string]: number};
+  orgToUser?: { [org: string]: number };
 
   // This gets set to encourage express-session to set a cookie. Was a boolean in the past.
   alive?: number;
 
   altSessionId?: string;  // An ID unique to the session, but which isn't related
-                          // to the session id used to lookup the cookie. This ID
-                          // is suitable for embedding in documents that allows
-                          // anonymous editing (e.g. to allow the user to edit
-                          // something they just added, without allowing the suer
-                          // to edit other people's contributions).
+  // to the session id used to lookup the cookie. This ID
+  // is suitable for embedding in documents that allows
+  // anonymous editing (e.g. to allow the user to edit
+  // something they just added, without allowing the suer
+  // to edit other people's contributions).
 
   oidc?: SessionOIDCInfo;
 }
@@ -96,11 +97,11 @@ export function forceSessionChange(session: SessionObj) {
 // - "S": the user is signed in once; in this case an automatic signin can be unambiguous and seamless.
 // - "M": the user is signed in multiple times.
 // - "": the user is not signed in.
-export type SignInStatus = 'S'|'M'|'';
+export type SignInStatus = "S" | "M" | "";
 
-export function getSignInStatus(sessionObj: SessionObj|null): SignInStatus {
+export function getSignInStatus(sessionObj: SessionObj | null): SignInStatus {
   const length = sessionObj?.users?.length;
-  return !length ? "" : (length === 1 ? 'S' : 'M');
+  return !length ? "" : (length === 1 ? "S" : "M");
 }
 
 /**
@@ -109,7 +110,7 @@ export function getSignInStatus(sessionObj: SessionObj|null): SignInStatus {
  */
 export function getSessionProfiles(session: SessionObj): UserProfile[] {
   if (!session.users) { return []; }
-  return session.users.filter(user => user && user.profile).map(user => user.profile!);
+  return session.users.filter(user => user?.profile).map(user => user.profile!);
 }
 
 /**
@@ -119,7 +120,7 @@ export function getSessionProfiles(session: SessionObj): UserProfile[] {
  *
  */
 export function getSessionUser(session: SessionObj, org: string,
-                               userSelector: string): SessionUserObj|null {
+  userSelector: string): SessionUserObj | null {
   if (!session.users) { return null; }
   if (!session.users.length) { return null; }
 
@@ -129,8 +130,8 @@ export function getSessionUser(session: SessionObj, org: string,
     }
   }
 
-  if (session.orgToUser && session.orgToUser[org] !== undefined &&
-      session.users.length > session.orgToUser[org]) {
+  if (session.orgToUser?.[org] !== undefined &&
+    session.users.length > session.orgToUser[org]) {
     return session.users[session.orgToUser[org]] || null;
   }
   return null;
@@ -148,7 +149,7 @@ export function linkOrgWithEmail(session: SessionObj, email: string, org: string
   email = normalizeEmail(email);
   for (let i = 0; i < session.users.length; i++) {
     const iUser = session.users[i];
-    if (iUser && iUser.profile && normalizeEmail(iUser.profile.email) === email) {
+    if (iUser?.profile && normalizeEmail(iUser.profile.email) === email) {
       session.orgToUser[org] = i;
       return iUser;
     }
@@ -176,9 +177,9 @@ export class ScopedSession {
    * by _sessionStore, for the organization identified by _scope.
    */
   constructor(private _sessionId: string,
-              private _sessionStore: SessionStore,
-              private _org: string,
-              private _userSelector: string) {
+    private _sessionStore: SessionStore,
+    private _org: string,
+    private _userSelector: string) {
     // Assume we need to skip cache in a hosted environment. GRIST_HOST is always set there.
     // TODO: find a cleaner way to configure this flag.
     this._live = Boolean(process.env.GRIST_HOST || process.env.GRIST_HOSTED);
@@ -197,7 +198,7 @@ export class ScopedSession {
   }
 
   // Retrieves the user profile from the session.
-  public async getSessionProfile(prev?: SessionObj): Promise<UserProfile|null> {
+  public async getSessionProfile(prev?: SessionObj): Promise<UserProfile | null> {
     return (await this.getScopedSession(prev)).profile || null;
   }
 
@@ -205,8 +206,13 @@ export class ScopedSession {
   // email addresses. This will update the one with a matching email address, or add a new one.
   // This is mainly used to know which emails are logged in in this session; fields like name and
   // picture URL come from the database instead.
-  public async updateUserProfile(req: Request, profile: UserProfile|null): Promise<void> {
-    profile ? await this.updateUser(req, {profile}) : await this.clearScopedSession(req);
+  public async updateUserProfile(req: Request, profile: UserProfile | null): Promise<void> {
+    if (profile) {
+      await this.updateUser(req, { profile });
+    }
+    else {
+      await this.clearScopedSession(req);
+    }
   }
 
   /**
@@ -214,8 +220,8 @@ export class ScopedSession {
    *
    * @param {Partial<SessionUserObj>} newProps New property values to set.
    */
-   public async updateUser(req: Request, newProps: Partial<SessionUserObj>): Promise<void> {
-    await this.operateOnScopedSession(req, async user => ({...user, ...newProps}));
+  public async updateUser(req: Request, newProps: Partial<SessionUserObj>): Promise<void> {
+    await this.operateOnScopedSession(req, async user => ({ ...user, ...newProps }));
   }
 
   /**
@@ -231,14 +237,15 @@ export class ScopedSession {
    *
    */
   public async operateOnScopedSession(req: Request, op: (user: SessionUserObj) =>
-                                      Promise<SessionUserObj>): Promise<[SessionUserObj, SessionUserObj]> {
+  Promise<SessionUserObj>): Promise<[SessionUserObj, SessionUserObj]> {
     const session = await this._getSession(req);
     const user = await this.getScopedSession(session);
     const oldUser = JSON.parse(JSON.stringify(user));            // Old version to compare against.
     const newUser = await op(JSON.parse(JSON.stringify(user)));  // Modify a scratch version.
     if (Object.keys(newUser).length === 0) {
       await this.clearScopedSession(req, session);
-    } else {
+    }
+    else {
       await this._updateScopedSession(req, newUser, session);
     }
     return [oldUser, newUser];
@@ -281,7 +288,8 @@ export class ScopedSession {
       if (reqSession?.reload) {
         await fromCallback(cb => reqSession.reload(cb));
       }
-    } catch (e) {
+    }
+    catch (e) {
       // (I've copied this from old code, not sure if continuing after a session save error is
       // something existing code depends on?)
       // Report and keep going. This ensures that the session matches what's in the sessionStore.
@@ -309,7 +317,7 @@ export class ScopedSession {
     const session = prev || await this._getSession(req);
     if (!session.users) { session.users = []; }
     if (!session.orgToUser) { session.orgToUser = {}; }
-    let index = session.users.findIndex(u => {
+    let index = session.users.findIndex((u) => {
       return Boolean(u.profile && normalizeEmail(u.profile.email) === normalizeEmail(profile.email));
     });
     if (index < 0) { index = session.users.length; }

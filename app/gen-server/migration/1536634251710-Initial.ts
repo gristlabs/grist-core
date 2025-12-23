@@ -1,6 +1,6 @@
 import * as sqlUtils from "app/gen-server/sqlUtils";
-import {MigrationInterface, QueryRunner, Table} from "typeorm";
 
+import { MigrationInterface, QueryRunner, Table } from "typeorm";
 
 export class Initial1536634251710 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {
@@ -18,8 +18,8 @@ export class Initial1536634251710 implements MigrationInterface {
           name: "id",
           type: "integer",
           isGenerated: true,
-          generationStrategy: 'increment',
-          isPrimary: true
+          generationStrategy: "increment",
+          isPrimary: true,
         },
         {
           name: "name",
@@ -29,9 +29,9 @@ export class Initial1536634251710 implements MigrationInterface {
           name: "api_key",
           type: "varchar",
           isNullable: true,
-          isUnique: true
-        }
-      ]
+          isUnique: true,
+        },
+      ],
     }), false);
 
     await queryRunner.createTable(new Table({
@@ -41,8 +41,8 @@ export class Initial1536634251710 implements MigrationInterface {
           name: "id",
           type: "integer",
           isGenerated: true,
-          generationStrategy: 'increment',
-          isPrimary: true
+          generationStrategy: "increment",
+          isPrimary: true,
         },
         {
           name: "name",
@@ -56,27 +56,27 @@ export class Initial1536634251710 implements MigrationInterface {
         {
           name: "created_at",
           type: datetime,
-          default: now
+          default: now,
         },
         {
           name: "updated_at",
           type: datetime,
-          default: now
+          default: now,
         },
         {
           name: "owner_id",
           type: "integer",
           isNullable: true,
-          isUnique: true
-        }
+          isUnique: true,
+        },
       ],
       foreignKeys: [
         {
           columnNames: ["owner_id"],
           referencedColumnNames: ["id"],
-          referencedTableName: "users"
-        }
-      ]
+          referencedTableName: "users",
+        },
+      ],
     }), false);
 
     await queryRunner.createTable(new Table({
@@ -86,8 +86,8 @@ export class Initial1536634251710 implements MigrationInterface {
           name: "id",
           type: "integer",
           isGenerated: true,
-          generationStrategy: 'increment',
-          isPrimary: true
+          generationStrategy: "increment",
+          isPrimary: true,
         },
         {
           name: "name",
@@ -96,26 +96,26 @@ export class Initial1536634251710 implements MigrationInterface {
         {
           name: "created_at",
           type: datetime,
-          default: now
+          default: now,
         },
         {
           name: "updated_at",
           type: datetime,
-          default: now
+          default: now,
         },
         {
           name: "org_id",
           type: "integer",
-          isNullable: true
-        }
+          isNullable: true,
+        },
       ],
       foreignKeys: [
         {
           columnNames: ["org_id"],
           referencedColumnNames: ["id"],
-          referencedTableName: "orgs"
-        }
-      ]
+          referencedTableName: "orgs",
+        },
+      ],
     }), false);
 
     await queryRunner.createTable(new Table({
@@ -124,7 +124,7 @@ export class Initial1536634251710 implements MigrationInterface {
         {
           name: "id",
           type: "varchar",
-          isPrimary: true
+          isPrimary: true,
         },
         {
           name: "name",
@@ -133,26 +133,26 @@ export class Initial1536634251710 implements MigrationInterface {
         {
           name: "created_at",
           type: datetime,
-          default: now
+          default: now,
         },
         {
           name: "updated_at",
           type: datetime,
-          default: now
+          default: now,
         },
         {
           name: "workspace_id",
           type: "integer",
-          isNullable: true
-        }
+          isNullable: true,
+        },
       ],
       foreignKeys: [
         {
           columnNames: ["workspace_id"],
           referencedColumnNames: ["id"],
-          referencedTableName: "workspaces"
-        }
-      ]
+          referencedTableName: "workspaces",
+        },
+      ],
     }), false);
 
     await queryRunner.createTable(new Table({
@@ -162,14 +162,14 @@ export class Initial1536634251710 implements MigrationInterface {
           name: "id",
           type: "integer",
           isGenerated: true,
-          generationStrategy: 'increment',
-          isPrimary: true
+          generationStrategy: "increment",
+          isPrimary: true,
         },
         {
           name: "name",
           type: "varchar",
-        }
-      ]
+        },
+      ],
     }), false);
 
     await queryRunner.createTable(new Table({
@@ -179,60 +179,60 @@ export class Initial1536634251710 implements MigrationInterface {
           name: "id",
           type: "integer",
           isGenerated: true,
-          generationStrategy: 'increment',
-          isPrimary: true
+          generationStrategy: "increment",
+          isPrimary: true,
         },
         {
           name: "permissions",
-          type: "integer"
+          type: "integer",
         },
         {
           name: "type",
-          type: "varchar"
+          type: "varchar",
         },
         {
           name: "workspace_id",
           type: "integer",
-          isNullable: true
+          isNullable: true,
         },
         {
           name: "org_id",
           type: "integer",
-          isNullable: true
+          isNullable: true,
         },
         {
           name: "doc_id",
           type: "varchar",
-          isNullable: true
+          isNullable: true,
         },
         {
           name: "group_id",
           type: "integer",
-          isNullable: true
-        }
+          isNullable: true,
+        },
       ],
       foreignKeys: [
         {
           columnNames: ["workspace_id"],
           referencedColumnNames: ["id"],
-          referencedTableName: "workspaces"
+          referencedTableName: "workspaces",
         },
         {
           columnNames: ["org_id"],
           referencedColumnNames: ["id"],
-          referencedTableName: "orgs"
+          referencedTableName: "orgs",
         },
         {
           columnNames: ["doc_id"],
           referencedColumnNames: ["id"],
-          referencedTableName: "docs"
+          referencedTableName: "docs",
         },
         {
           columnNames: ["group_id"],
           referencedColumnNames: ["id"],
-          referencedTableName: "groups"
-        }
-      ]
+          referencedTableName: "groups",
+        },
+      ],
     }), false);
 
     await queryRunner.createTable(new Table({
@@ -241,26 +241,26 @@ export class Initial1536634251710 implements MigrationInterface {
         {
           name: "group_id",
           type: "integer",
-          isPrimary: true
+          isPrimary: true,
         },
         {
           name: "user_id",
           type: "integer",
-          isPrimary: true
+          isPrimary: true,
         },
       ],
       foreignKeys: [
         {
           columnNames: ["group_id"],
           referencedColumnNames: ["id"],
-          referencedTableName: "groups"
+          referencedTableName: "groups",
         },
         {
           columnNames: ["user_id"],
           referencedColumnNames: ["id"],
-          referencedTableName: "users"
-        }
-      ]
+          referencedTableName: "users",
+        },
+      ],
     }), false);
 
     await queryRunner.createTable(new Table({
@@ -269,26 +269,26 @@ export class Initial1536634251710 implements MigrationInterface {
         {
           name: "group_id",
           type: "integer",
-          isPrimary: true
+          isPrimary: true,
         },
         {
           name: "subgroup_id",
           type: "integer",
-          isPrimary: true
+          isPrimary: true,
         },
       ],
       foreignKeys: [
         {
           columnNames: ["group_id"],
           referencedColumnNames: ["id"],
-          referencedTableName: "groups"
+          referencedTableName: "groups",
         },
         {
           columnNames: ["subgroup_id"],
           referencedColumnNames: ["id"],
-          referencedTableName: "groups"
-        }
-      ]
+          referencedTableName: "groups",
+        },
+      ],
     }), false);
   }
 

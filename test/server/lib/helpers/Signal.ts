@@ -1,5 +1,5 @@
-import {delay} from 'bluebird';
-import {assert} from 'chai';
+import { delay } from "bluebird";
+import { assert } from "chai";
 
 /**
  * Helper that creates a promise that can be resolved from outside.
@@ -41,7 +41,8 @@ export function signal() {
     async waitAndReset() {
       try {
         return await this.wait();
-      } finally {
+      }
+      finally {
         this.reset();
       }
     },

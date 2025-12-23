@@ -1,24 +1,25 @@
-import * as commands from 'app/client/components/commands';
-import {Cursor} from 'app/client/components/Cursor';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {UnsavedChange} from 'app/client/components/UnsavedChanges';
-import {makeT} from 'app/client/lib/localization';
-import {DataRowModel} from 'app/client/models/DataRowModel';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {reportError} from 'app/client/models/errors';
-import {showTooltipToCreateFormula} from 'app/client/widgets/EditorTooltip';
-import {FormulaEditor, getFormulaError} from 'app/client/widgets/FormulaEditor';
-import {IEditorCommandGroup, IEditorConstructor, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
-import {asyncOnce} from "app/common/AsyncCreate";
-import {CellValue} from "app/common/DocActions";
-import * as gutil from 'app/common/gutil';
-import {CellPosition} from "app/client/components/CellPosition";
-import {FloatingEditor} from 'app/client/widgets/FloatingEditor';
-import {CursorPos} from 'app/plugin/GristAPI';
-import isEqual = require('lodash/isEqual');
-import {Disposable, dom, Emitter, Holder, MultiHolder, Observable} from 'grainjs';
+import { CellPosition } from "app/client/components/CellPosition";
+import * as commands from "app/client/components/commands";
+import { Cursor } from "app/client/components/Cursor";
+import { GristDoc } from "app/client/components/GristDoc";
+import { UnsavedChange } from "app/client/components/UnsavedChanges";
+import { makeT } from "app/client/lib/localization";
+import { DataRowModel } from "app/client/models/DataRowModel";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { reportError } from "app/client/models/errors";
+import { showTooltipToCreateFormula } from "app/client/widgets/EditorTooltip";
+import { FloatingEditor } from "app/client/widgets/FloatingEditor";
+import { FormulaEditor, getFormulaError } from "app/client/widgets/FormulaEditor";
+import { IEditorCommandGroup, IEditorConstructor, NewBaseEditor } from "app/client/widgets/NewBaseEditor";
+import { asyncOnce } from "app/common/AsyncCreate";
+import { CellValue } from "app/common/DocActions";
+import * as gutil from "app/common/gutil";
+import { CursorPos } from "app/plugin/GristAPI";
 
-const t = makeT('FieldEditor');
+import { Disposable, dom, Emitter, Holder, MultiHolder, Observable } from "grainjs";
+import isEqual from "lodash/isEqual";
+
+const t = makeT("FieldEditor");
 
 /**
  * Check if the typed-in value should change the cell without opening the cell editor, and if so,
@@ -28,14 +29,14 @@ export function saveWithoutEditor(
   editorCtor: IEditorConstructor,
   editRow: DataRowModel,
   field: ViewFieldRec,
-  options: {typedVal?: string, event?: Event}
+  options: { typedVal?: string, event?: Event },
 ): boolean {
-  const {typedVal, event} = options;
+  const { typedVal, event } = options;
   // Never skip the editor if editing a formula. Also, check that skipEditor static function
   // exists (we don't bother adding it on old-style JS editors that don't need it).
   if (!field.column.peek().isRealFormula.peek() && editorCtor.skipEditor) {
     const origVal = editRow.cells[field.colId()].peek();
-    const skipEditorValue = editorCtor.skipEditor(typedVal, origVal, {event});
+    const skipEditorValue = editorCtor.skipEditor(typedVal, origVal, { event });
     if (skipEditorValue !== undefined) {
       setAndSave(editRow, field, skipEditorValue).catch(reportError);
       return true;
@@ -63,7 +64,6 @@ export interface FieldEditorStateEvent {
 }
 
 export class FieldEditor extends Disposable {
-
   public readonly saveEmitter = this.autoDispose(new Emitter());
   public readonly cancelEmitter = this.autoDispose(new Emitter());
   public readonly changeEmitter = this.autoDispose(new Emitter());
@@ -82,7 +82,7 @@ export class FieldEditor extends Disposable {
   private _isFormula = false;
   private _readonly = false;
   private _detached = Observable.create(this, false);
-  private _detachedAt: CursorPos|null = null;
+  private _detachedAt: CursorPos | null = null;
   private _event?: Event;
 
   constructor(options: {
@@ -112,14 +112,15 @@ export class FieldEditor extends Disposable {
 
     const column = this._field.column();
     this._isFormula = column.isRealFormula.peek();
-    let editValue: string|undefined = startVal;
-    if (!options.readonly && startVal && gutil.startsWith(startVal, '=')) {
+    let editValue: string | undefined = startVal;
+    if (!options.readonly && startVal && gutil.startsWith(startVal, "=")) {
       if (this._isFormula  || this._field.column().isEmpty()) {
         // If we typed '=' on an empty column, convert it to a formula. If on a formula column,
         // start editing ignoring the initial '='.
         this._isFormula  = true;
-        editValue = gutil.removePrefix(startVal, '=') as string;
-      } else {
+        editValue = gutil.removePrefix(startVal, "=")!;
+      }
+      else {
         // If we typed '=' on a non-empty column, only suggest to convert it to a formula.
         offerToMakeFormula = true;
       }
@@ -135,7 +136,7 @@ export class FieldEditor extends Disposable {
           // was re-sorted after editing.
           if (!jumped) { commands.allCommands.fieldEditSave.run(); }
         })
-        .catch(reportError);
+          .catch(reportError);
       },
       fieldEditSaveHere: () => { this._saveEdit().catch(reportError); },
       fieldEditCancel: () => { this._cancelEdit(); },
@@ -168,7 +169,7 @@ export class FieldEditor extends Disposable {
     this.floatingEditor = FloatingEditor.create(this, this, {
       gristDoc: this._gristDoc,
       refElem: this._cellElem,
-      placement: 'adjacent',
+      placement: "adjacent",
     });
 
     if (offerToMakeFormula) {
@@ -189,19 +190,19 @@ export class FieldEditor extends Disposable {
     // for readonly field we don't need to do anything special
     if (!options.readonly) {
       setupEditorCleanup(this, this._gristDoc, this._field.editingFormula, onCleanup);
-    } else {
+    }
+    else {
       setupReadonlyEditorCleanup(this, this._gristDoc, this._field, () => this._cancelEdit());
     }
   }
 
   // cursorPos refers to the position of the caret within the editor.
-  public rebuildEditor(editValue: string|undefined, cursorPos: number, state?: any) {
-
+  public rebuildEditor(editValue: string | undefined, cursorPos: number, state?: any) {
     // Attachment column with a formula is different, it either uses FormulaEditor if user typed something or pressed
     // enter, or AttachmentEditor if user clicked or dblclicked to edit. In later case we assume user wants to see
     // attachments, not the formula.
-    if (this._field.column.peek().pureType.peek() === 'Attachments' && this._field.column().isRealFormula.peek()) {
-      if (this._event && (this._event.type === 'click' || this._event.type === 'dblclick')) {
+    if (this._field.column.peek().pureType.peek() === "Attachments" && this._field.column().isRealFormula.peek()) {
+      if (this._event && (this._event.type === "click" || this._event.type === "dblclick")) {
         this._isFormula = false;
         this._readonly = true;
       }
@@ -214,14 +215,16 @@ export class FieldEditor extends Disposable {
     const column = this._field.column();
     if (this._isFormula) {
       cellValue = column.formula();
-    } else if (Array.isArray(cellCurrentValue) && cellCurrentValue[0] === 'C') {
+    }
+    else if (Array.isArray(cellCurrentValue) && cellCurrentValue[0] === "C") {
       // This cell value is censored by access control rules
       // Really the rules should also block editing, but in case they don't, show a blank value
       // rather than a 'C'. However if the user tries to edit the cell and then clicks away
       // without typing anything the empty string is saved, deleting what was there.
       // We should probably just automatically block updates where reading is not allowed.
-      cellValue = '';
-    } else {
+      cellValue = "";
+    }
+    else {
       cellValue = cellCurrentValue;
     }
 
@@ -230,12 +233,12 @@ export class FieldEditor extends Disposable {
     const error = getFormulaError(errorHolder, {
       gristDoc: this._gristDoc,
       editRow: this._editRow,
-      field: this._field
+      field: this._field,
     });
 
     // For readonly mode use the default behavior of Formula Editor
     // TODO: cleanup this flag - it gets modified in too many places
-    if (!this._readonly){
+    if (!this._readonly) {
       // Enter formula-editing mode (e.g. click-on-column inserts its ID) only if we are opening the
       // editor by typing into it (and overriding previous formula). In other cases (e.g. double-click),
       // we defer this mode until the user types something.
@@ -259,7 +262,7 @@ export class FieldEditor extends Disposable {
       state,
       canDetach: true,
       commands: this._editCommands,
-      readonly : this._readonly
+      readonly: this._readonly,
     }));
 
     editor.autoDispose(errorHolder);
@@ -269,10 +272,10 @@ export class FieldEditor extends Disposable {
       editor.autoDispose(editor.editorState.addListener((currentState) => {
         this._editorHasChanged = true;
         const event: FieldEditorStateEvent = {
-          position : this.cellPosition(),
-          wasModified : this._editorHasChanged,
+          position: this.cellPosition(),
+          wasModified: this._editorHasChanged,
           currentState,
-          type: this._field.column.peek().pureType.peek()
+          type: this._field.column.peek().pureType.peek(),
         };
         this.changeEmitter.emit(event);
       }));
@@ -315,7 +318,7 @@ export class FieldEditor extends Disposable {
     const position = {
       rowId,
       colRef,
-      sectionId
+      sectionId,
     };
     return position;
   }
@@ -329,7 +332,8 @@ export class FieldEditor extends Disposable {
         // If we typed '=' an empty column, convert it to a formula.
         this.rebuildEditor(editor.getTextValue(), 0);
         return false;
-      } else {
+      }
+      else {
         // If we typed '=' on a non-empty column, only suggest to convert it to a formula.
         this._offerToMakeFormula();
       }
@@ -350,7 +354,7 @@ export class FieldEditor extends Disposable {
       // Restore a plain '=' character. This gives a way to enter "=" at the start if line. The
       // second backspace will delete it.
       this._isFormula = false;
-      this.rebuildEditor('=' + editor.getTextValue(), 1);
+      this.rebuildEditor("=" + editor.getTextValue(), 1);
       return false;
     }
     return true;    // don't stop propagation.
@@ -366,7 +370,7 @@ export class FieldEditor extends Disposable {
     const editor = this._editorHolder.get();
     if (editor) {
       const editValue = editor.getTextValue();
-      const formulaValue = editValue.startsWith('=') ? editValue.slice(1) : editValue;
+      const formulaValue = editValue.startsWith("=") ? editValue.slice(1) : editValue;
       this._isFormula = true;
       this.rebuildEditor(formulaValue, 0);
     }
@@ -376,10 +380,10 @@ export class FieldEditor extends Disposable {
   private _cancelEdit() {
     if (this.isDisposed()) { return; }
     const event: FieldEditorStateEvent = {
-      position : this.cellPosition(),
-      wasModified : this._editorHasChanged,
-      currentState : this._editorHolder.get()?.editorState?.get(),
-      type : this._field.column.peek().pureType.peek()
+      position: this.cellPosition(),
+      wasModified: this._editorHasChanged,
+      currentState: this._editorHolder.get()?.editorState?.get(),
+      type: this._field.column.peek().pureType.peek(),
     };
     this.cancelEmitter.emit(event);
     this.dispose();
@@ -396,8 +400,7 @@ export class FieldEditor extends Disposable {
       await editor.prepForSave();
       if (this.isDisposed()) {
         // We shouldn't normally get disposed here, but if we do, avoid confusing JS errors.
-        console.warn(t("Unable to finish saving edited cell"));  // tslint:disable-line:no-console
-        return false;
+        console.warn(t("Unable to finish saving edited cell"));         return false;
       }
       // Then save the value the appropriate way
       // TODO: this isFormula value doesn't actually reflect if editing the formula, since
@@ -406,26 +409,27 @@ export class FieldEditor extends Disposable {
       // console.warn below, although harmless.)
       const isFormula = this._field.editingFormula();
       const col = this._field.column();
-      let waitPromise: Promise<unknown>|null = null;
+      let waitPromise: Promise<unknown> | null = null;
 
       if (isFormula) {
-        const formula = String(editor.getCellValue() ?? '');
+        const formula = String(editor.getCellValue() ?? "");
         // Bundle multiple changes so that we can undo them in one step.
         if (isFormula !== col.isFormula.peek() || formula !== col.formula.peek()) {
           waitPromise = Promise.all([
-            col.updateColValues({isFormula, formula}),
+            col.updateColValues({ isFormula, formula }),
             // If we're saving a non-empty formula, then also add an empty record to the table
             // so that the formula calculation is visible to the user.
             (!this._detached.get() && this._editRow._isAddRow.peek() && formula !== "" ?
               this._editRow.updateColValues({}) : undefined),
           ]);
         }
-      } else {
+      }
+      else {
         const value = editor.getCellValue();
         if (col.isRealFormula()) {
-          // tslint:disable-next-line:no-console
           console.warn(t("It should be impossible to save a plain data value into a formula column"));
-        } else {
+        }
+        else {
           // This could still be an isFormula column if it's empty (isEmpty is true), but we don't
           // need to toggle isFormula in that case, since the data engine takes care of that.
           waitPromise = setAndSave(this._editRow, this._field, value);
@@ -433,10 +437,10 @@ export class FieldEditor extends Disposable {
       }
 
       const event: FieldEditorStateEvent = {
-        position : this.cellPosition(),
-        wasModified : this._editorHasChanged,
-        currentState : this._editorHolder.get()?.editorState?.get(),
-        type : this._field.column.peek().pureType.peek()
+        position: this.cellPosition(),
+        wasModified: this._editorHasChanged,
+        currentState: this._editorHolder.get()?.editorState?.get(),
+        type: this._field.column.peek().pureType.peek(),
       };
       this.saveEmitter.emit(event);
 
@@ -449,19 +453,18 @@ export class FieldEditor extends Disposable {
   }
 }
 
-
 /**
  * For an readonly editor, set up its cleanup:
  * - canceling on click-away (when focus returns to Grist "clipboard" element)
  */
 function setupReadonlyEditorCleanup(
-  owner: MultiHolder, gristDoc: GristDoc, field: ViewFieldRec, cancelEdit: () => any
+  owner: MultiHolder, gristDoc: GristDoc, field: ViewFieldRec, cancelEdit: () => any,
 ) {
   // Whenever focus returns to the Clipboard component, close the editor by saving the value.
-  gristDoc.app.on('clipboard_focus', cancelEdit);
+  gristDoc.app.on("clipboard_focus", cancelEdit);
   owner.onDispose(() => {
     field.editingFormula(false);
-    gristDoc.app.off('clipboard_focus', cancelEdit);
+    gristDoc.app.off("clipboard_focus", cancelEdit);
   });
 }
 
@@ -472,19 +475,19 @@ function setupReadonlyEditorCleanup(
  * - Arrange for UnsavedChange protection against leaving the page with unsaved changes.
  */
 export function setupEditorCleanup(
-  owner: MultiHolder, gristDoc: GristDoc, editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>
+  owner: MultiHolder, gristDoc: GristDoc, editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>,
 ) {
   const saveEdit = () => _saveEdit().catch(reportError);
 
   // Whenever focus returns to the Clipboard component, close the editor by saving the value.
-  gristDoc.app.on('clipboard_focus', saveEdit);
+  gristDoc.app.on("clipboard_focus", saveEdit);
 
   // TODO: This should ideally include a callback that returns true only when the editor value
   // has changed. Currently an open editor is considered unsaved even when unchanged.
   UnsavedChange.create(owner, async () => { await saveEdit(); });
 
   owner.onDispose(() => {
-    gristDoc.app.off('clipboard_focus', saveEdit);
+    gristDoc.app.off("clipboard_focus", saveEdit);
     // Unset field.editingFormula flag when the editor closes.
     editingFormula(false);
   });

@@ -1,12 +1,12 @@
-var _ = require('underscore');
-var assert = require('assert');
-var ko = require('knockout');
-var sinon = require('sinon');
+var _ = require("underscore");
+var assert = require("assert");
+var ko = require("knockout");
+var sinon = require("sinon");
 
-var clientUtil = require('../clientUtil');
-var koArray = require('app/client/lib/koArray');
+var clientUtil = require("../clientUtil");
+var koArray = require("app/client/lib/koArray");
 
-describe('koArray', function() {
+describe("koArray", function() {
   clientUtil.setTmpMochaGlobals();
 
   it("should emit spliceChange events", function() {
@@ -15,7 +15,7 @@ describe('koArray', function() {
     var events = [];
 
     // Whenever we get an event, push it to events.
-    ['change', 'spliceChange'].forEach(function(type) {
+    ["change", "spliceChange"].forEach(function(type) {
       arr.subscribe(function(data) {
         events.push({ type: type, data: data });
       }, null, type);
@@ -24,13 +24,13 @@ describe('koArray', function() {
     function expectSplice(start, num, deleted, options) {
       assert.equal(events.length, 2);
       var e = events.shift();
-      assert.equal(e.type, 'spliceChange');
+      assert.equal(e.type, "spliceChange");
       assert.equal(e.data.start, start);
       assert.equal(e.data.added, num);
       assert.deepEqual(e.data.deleted, deleted);
 
       e = events.shift();
-      assert.equal(e.type, 'change');
+      assert.equal(e.type, "change");
     }
 
     assert.deepEqual(arr.all(), [1, 2, 3]);
@@ -211,8 +211,8 @@ describe('koArray', function() {
     });
   });
 
-  describe('#subscribeForEach', function() {
-    it('should call onAdd and onRemove callbacks', function() {
+  describe("#subscribeForEach", function() {
+    it("should call onAdd and onRemove callbacks", function() {
       var arr1 = koArray([1, 2, 3]);
       var seen = [];
       function onAdd(x) { seen.push(["add", x]); }
@@ -240,8 +240,8 @@ describe('koArray', function() {
     });
   });
 
-  describe('#setAutoDisposeValues', function() {
-    it('should dispose elements when asked', function() {
+  describe("#setAutoDisposeValues", function() {
+    it("should dispose elements when asked", function() {
       var objects = _.range(5).map(function(n) { return { value: n, dispose: sinon.spy() }; });
       var arr = koArray(objects.slice(0, 3)).setAutoDisposeValues();
 
@@ -278,7 +278,7 @@ describe('koArray', function() {
     });
   });
 
-  describe('syncedKoArray', function() {
+  describe("syncedKoArray", function() {
     it("should return array synced to the value of the observable", function() {
       var arr1 = koArray(["1", "2", "3"]);
       var arr2 = koArray(["foo", "bar"]);

@@ -1,14 +1,15 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import {getStorage} from 'app/client/lib/storage';
-import {IDocPage, isViewDocPage, ViewDocPage} from 'app/common/gristUrls';
-import {Disposable, Listener, Observable} from 'grainjs';
-import {reportError} from 'app/client/models/errors';
-import {CursorPos} from 'app/plugin/GristAPI';
+import { GristDoc } from "app/client/components/GristDoc";
+import { getStorage } from "app/client/lib/storage";
+import { reportError } from "app/client/models/errors";
+import { IDocPage, isViewDocPage, ViewDocPage } from "app/common/gristUrls";
+import { CursorPos } from "app/plugin/GristAPI";
+
+import { Disposable, Listener, Observable } from "grainjs";
 
 /**
  * Enriched cursor position with a view id
  */
-export type ViewCursorPos = CursorPos & { viewId: ViewDocPage }
+export type ViewCursorPos = CursorPos & { viewId: ViewDocPage };
 
 /**
  * Component for GristDoc that allows it to keep track of the latest cursor position.
@@ -16,7 +17,6 @@ export type ViewCursorPos = CursorPos & { viewId: ViewDocPage }
  * position should be restored from a local storage.
  */
 export class CursorMonitor extends Disposable {
-
   // abstraction to work with local storage
   private _store: StorageWrapper;
   // key for storing position in the memory (docId + userId)
@@ -54,14 +54,14 @@ export class CursorMonitor extends Disposable {
 
   private _whenCursorHasChangedStoreInMemory(doc: GristDoc) {
     // whenever current position changes, store it in the memory
-    this.autoDispose(doc.cursorPosition.addListener(pos => {
+    this.autoDispose(doc.cursorPosition.addListener((pos) => {
       // if current position is not restored yet, don't change it
       if (!this._restored) { return; }
       // store position only when we have valid rowId
       // for some views (like CustomView) cursor position might not reflect actual row
       if (pos && pos.rowId !== undefined) {
         if (pos.sectionId) {
-          pos = {...pos, linkingRowIds: doc.docModel.getLinkingRowIds(pos.sectionId)};
+          pos = { ...pos, linkingRowIds: doc.docModel.getLinkingRowIds(pos.sectionId) };
         }
         this._storePosition(pos);
       }
@@ -76,8 +76,8 @@ export class CursorMonitor extends Disposable {
 
     // if we are on raw data view, we need to set the position manually
     // as currentView observable will not be changed.
-    if (doc.activeViewId.get() === 'data') {
-      this._doRestorePosition(doc).catch((e) => reportError(e));
+    if (doc.activeViewId.get() === "data") {
+      this._doRestorePosition(doc).catch(e => reportError(e));
       return;
     }
 
@@ -120,7 +120,7 @@ export class CursorMonitor extends Disposable {
   private _readPosition(view: IDocPage) {
     const lastPosition = this._store.read(this._key);
     this._store.clear(this._key);
-    if (lastPosition && lastPosition.position.viewId == view) {
+    if (lastPosition?.position.viewId == view) {
       return lastPosition.position;
     }
     return null;
@@ -129,7 +129,6 @@ export class CursorMonitor extends Disposable {
 
 // Internal implementations for working with local storage
 class StorageWrapper {
-
   constructor(private _storage = getStorage()) {
 
   }
@@ -139,12 +138,13 @@ class StorageWrapper {
       const storage = this._storage;
       const data = { docId, position, timestamp: Date.now() };
       storage.setItem(this._key(docId), JSON.stringify(data));
-    } catch (e) {
+    }
+    catch (e) {
       console.error("Can't store latest position in storage. Detail error " + e.message);
     }
   }
 
-  public clear(docId: string,): void {
+  public clear(docId: string): void {
     const storage = this._storage;
     storage.removeItem(this._key(docId));
   }
@@ -162,7 +162,7 @@ class StorageWrapper {
 }
 
 export function oneTimeListener<T>(obs: Observable<T>, handler: (value: T) => any) {
-  let listener: Listener|null = obs.addListener((value) => {
+  let listener: Listener | null = obs.addListener((value) => {
     setImmediate(dispose);
     handler(value);
   });

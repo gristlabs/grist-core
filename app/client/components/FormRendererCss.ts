@@ -1,11 +1,12 @@
-import {colors, mediaXSmall, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {numericSpinner} from 'app/client/widgets/NumericSpinner';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {styled} from 'grainjs';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
+import { colors, mediaXSmall, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { loadingSpinner } from "app/client/ui2018/loaders";
+import { unstyledButton } from "app/client/ui2018/unstyled";
+import { numericSpinner } from "app/client/widgets/NumericSpinner";
 
-export const label = styled('div', `
+import { styled } from "grainjs";
+
+export const label = styled("div", `
   &-required::after {
     content: "*";
     color: ${vars.primaryBg};
@@ -13,7 +14,7 @@ export const label = styled('div', `
   }
 `);
 
-export const paragraph = styled('div', `
+export const paragraph = styled("div", `
   overflow-wrap: break-word;
   position: relative;
   clip-path: inset(0px);
@@ -29,7 +30,7 @@ export const paragraph = styled('div', `
   }
 `);
 
-export const section = styled('div', `
+export const section = styled("div", `
   border-radius: 3px;
   border: 1px solid ${colors.darkGrey};
   padding: 24px;
@@ -42,20 +43,20 @@ export const section = styled('div', `
   }
 `);
 
-export const columns = styled('div', `
+export const columns = styled("div", `
   display: grid;
   grid-template-columns: repeat(var(--grist-columns-count), 1fr);
   gap: 16px;
 `);
 
-export const submitButtons = styled('div', `
+export const submitButtons = styled("div", `
   margin-top: 16px;
   display: flex;
   justify-content: center;
   column-gap: 8px;
 `);
 
-export const resetButton = styled('button', `
+export const resetButton = styled("button", `
   line-height: inherit;
   font-size: ${vars.mediumFontSize};
   padding: 10px 24px;
@@ -78,7 +79,7 @@ export const resetButton = styled('button', `
   }
 `);
 
-export const submitButton = styled('div', `
+export const submitButton = styled("div", `
   display: flex;
   justify-content: center;
   align-items: center;
@@ -110,7 +111,7 @@ export const submitButton = styled('div', `
   }
 `);
 
-export const field = styled('div', `
+export const field = styled("div", `
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -129,14 +130,14 @@ export const field = styled('div', `
   }
 `);
 
-export const error = styled('div', `
+export const error = styled("div", `
   margin-top: 16px;
   text-align: center;
   color: ${colors.error};
   min-height: 22px;
 `);
 
-export const textInput = styled('input', `
+export const textInput = styled("input", `
   color: ${colors.dark};
   background-color: ${colors.light};
   height: 29px;
@@ -149,7 +150,7 @@ export const textInput = styled('input', `
   outline-color: ${vars.primaryBgHover};
 `);
 
-export const textarea = styled('textarea', `
+export const textarea = styled("textarea", `
   display: block;
   color: ${colors.dark};
   background-color: ${colors.light};
@@ -164,7 +165,7 @@ export const textarea = styled('textarea', `
   resize: none;
 `);
 
-export const checkboxInput = styled('input', `
+export const checkboxInput = styled("input", `
   -webkit-appearance: none;
   -moz-appearance: none;
   margin: 0;
@@ -234,7 +235,7 @@ export const spinner = styled(numericSpinner, `
   }
 `);
 
-export const toggle = styled('label', `
+export const toggle = styled("label", `
   position: relative;
   display: inline-flex;
   margin-top: 8px;
@@ -244,14 +245,14 @@ export const toggle = styled('label', `
   }
 `);
 
-export const toggleLabel = styled('span', `
+export const toggleLabel = styled("span", `
   font-size: 13px;
   font-weight: 700;
   line-height: 16px;
   overflow-wrap: anywhere;
 `);
 
-export const checkboxList = styled('div', `
+export const checkboxList = styled("div", `
   display: inline-flex;
   flex-direction: column;
   gap: 8px;
@@ -263,7 +264,7 @@ export const checkboxList = styled('div', `
   }
 `);
 
-export const checkbox = styled('label', `
+export const checkbox = styled("label", `
   display: flex;
   font-size: 13px;
   line-height: 16px;
@@ -280,7 +281,7 @@ export const checkbox = styled('label', `
 
 export const radioList = checkboxList;
 
-export const radio = styled('label', `
+export const radio = styled("label", `
   position: relative;
   display: inline-flex;
   gap: 8px;
@@ -313,11 +314,11 @@ export const radio = styled('label', `
   }
 `);
 
-export const hybridSelect = styled('div', `
+export const hybridSelect = styled("div", `
   position: relative;
 `);
 
-export const select = styled('select', `
+export const select = styled("select", `
   position: absolute;
   padding: 4px 8px;
   border-radius: 3px;
@@ -339,7 +340,7 @@ export const select = styled('select', `
   }
 `);
 
-export const searchSelect = styled('div', `
+export const searchSelect = styled("div", `
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -359,7 +360,7 @@ export const searchSelect = styled('div', `
   }
 `);
 
-export const currentSelectValue = styled('div', 'flex: 1');
+export const currentSelectValue = styled("div", "flex: 1");
 
 export const searchSelectIcon = styled(icon, `
   flex-shrink: 0;
@@ -370,7 +371,7 @@ export const resetSelectButton = styled(unstyledButton, `
   cursor: pointer;
 `);
 
-export const attachmentInput = styled('input', `
+export const attachmentInput = styled("input", `
   display: flex;
   flex-wrap: wrap;
   white-space: pre-wrap;

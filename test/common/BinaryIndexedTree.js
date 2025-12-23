@@ -1,8 +1,8 @@
-var assert = require('assert');
-var BinaryIndexedTree = require('app/common/BinaryIndexedTree');
+var assert = require("assert");
+var BinaryIndexedTree = require("app/common/BinaryIndexedTree");
 
 describe("BinaryIndexedTree", function() {
-  describe('#leastSignificantOne', function() {
+  describe("#leastSignificantOne", function() {
     it("should only keep the least significant one", function() {
       assert.equal(BinaryIndexedTree.leastSignificantOne(1), 1);
       assert.equal(BinaryIndexedTree.leastSignificantOne(6), 2);
@@ -12,7 +12,7 @@ describe("BinaryIndexedTree", function() {
     });
   });
 
-  describe('#stripLeastSignificantOne', function() {
+  describe("#stripLeastSignificantOne", function() {
     it("should strip the least significant one", function() {
       assert.equal(BinaryIndexedTree.stripLeastSignificantOne(1), 0);
       assert.equal(BinaryIndexedTree.stripLeastSignificantOne(6), 4);
@@ -23,7 +23,7 @@ describe("BinaryIndexedTree", function() {
     });
   });
 
-  describe('#mostSignificantOne', function() {
+  describe("#mostSignificantOne", function() {
     it("should keep the most significant one", function() {
       assert.equal(BinaryIndexedTree.mostSignificantOne(1), 1);
       assert.equal(BinaryIndexedTree.mostSignificantOne(6), 4);
@@ -34,7 +34,7 @@ describe("BinaryIndexedTree", function() {
     });
   });
 
-  describe('#cumulToValues', function() {
+  describe("#cumulToValues", function() {
     it("should convert cumulative array to regular values", function() {
       assert.deepEqual(BinaryIndexedTree.cumulToValues([1, 3, 6, 10]), [1, 2, 3, 4]);
       assert.deepEqual(BinaryIndexedTree.cumulToValues([1, 3, 6, 10, 15, 21]), [1, 2, 3, 4, 5, 6]);
@@ -42,7 +42,7 @@ describe("BinaryIndexedTree", function() {
     });
   });
 
-  describe('#valuesToCumul', function() {
+  describe("#valuesToCumul", function() {
     it("should convert value array to cumulative array", function() {
       assert.deepEqual(BinaryIndexedTree.valuesToCumul([1, 2, 3, 4]), [1, 3, 6, 10]);
       assert.deepEqual(BinaryIndexedTree.valuesToCumul([1, 2, 3, 4, 5, 6]), [1, 3, 6, 10, 15, 21]);
@@ -80,7 +80,7 @@ describe("BinaryIndexedTree", function() {
     cdata2 = data2.map(function(value, i) { return dumbGetCumulativeValue(data2, i); });
   });
 
-  describe('BinaryIndexedTree class', function() {
+  describe("BinaryIndexedTree class", function() {
     it("should construct trees with zeroes", function() {
       var bit = new BinaryIndexedTree();
       assert.equal(bit.size(), 0);
@@ -156,10 +156,10 @@ describe("BinaryIndexedTree", function() {
       bit.fillFromValues(data1);
 
       assert.equal(bit.getCumulativeValueRange(0, data1.length),
-                   bit.getCumulativeValue(data1.length-1));
+        bit.getCumulativeValue(data1.length-1));
       for(i = 1; i < 25; i++) {
         assert.equal(bit.getCumulativeValueRange(i, 25),
-                     cdata1[24] - cdata1[i-1]);
+          cdata1[24] - cdata1[i-1]);
       }
       for(i = 24; i >= 0; i-- ){
         assert.equal(bit.getCumulativeValueRange(0, i+1), cdata1[i]);
@@ -167,10 +167,10 @@ describe("BinaryIndexedTree", function() {
 
       bit.fillFromValues(data2);
       assert.equal(bit.getCumulativeValueRange(0, 64),
-                   bit.getCumulativeValue(63));
+        bit.getCumulativeValue(63));
       for(i = 1; i < 64; i++) {
         assert.equal(bit.getCumulativeValueRange(i, 64),
-                     cdata2[63] - cdata2[i-1]);
+          cdata2[63] - cdata2[i-1]);
       }
       for(i = 63; i >= 0; i-- ){
         assert.equal(bit.getCumulativeValueRange(0, i+1), cdata2[i]);

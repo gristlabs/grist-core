@@ -1,23 +1,24 @@
-import {allCommands} from 'app/client/components/commands';
-import {makeT} from 'app/client/lib/localization';
-import {TableRec} from 'app/client/models/DocModel';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {cssCode} from 'app/client/ui/DocTutorial';
-import {Tooltip} from 'app/client/ui/GristTooltips';
+import { allCommands } from "app/client/components/commands";
+import { makeT } from "app/client/lib/localization";
+import { TableRec } from "app/client/models/DocModel";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { cssCode } from "app/client/ui/DocTutorial";
+import { Tooltip } from "app/client/ui/GristTooltips";
 import {
   cssLabelText,
   cssRow,
-  cssSeparator
-} from 'app/client/ui/RightPanelStyles';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
-import {textButton} from 'app/client/ui2018/buttons';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {cssIconButton, icon} from 'app/client/ui2018/icons';
-import {confirmModal} from 'app/client/ui2018/modals';
-import {not} from 'app/common/gutil';
-import {Computed, Disposable, dom, styled} from 'grainjs';
+  cssSeparator,
+} from "app/client/ui/RightPanelStyles";
+import { withInfoTooltip } from "app/client/ui/tooltips";
+import { textButton } from "app/client/ui2018/buttons";
+import { testId, theme, vars } from "app/client/ui2018/cssVars";
+import { cssIconButton, icon } from "app/client/ui2018/icons";
+import { confirmModal } from "app/client/ui2018/modals";
+import { not } from "app/common/gutil";
 
-const t = makeT('ReverseReferenceConfig');
+import { Computed, Disposable, dom, styled } from "grainjs";
+
+const t = makeT("ReverseReferenceConfig");
 
 /**
  * Configuratino for two-way reference column shown in the right panel.
@@ -34,23 +35,23 @@ export class ReverseReferenceConfig extends Disposable {
   constructor(private _field: ViewFieldRec) {
     super();
 
-    this._refTable = Computed.create(this, (use) => use(use(this._field.column).refTable));
+    this._refTable = Computed.create(this, use => use(use(this._field.column).refTable));
     this._isConfigured = Computed.create(this, (use) => {
       const column = use(this._field.column);
       return use(column.hasReverse);
     });
     this._reverseTable = Computed.create(this, this._refTable, (use, refTable) => {
-      return refTable ? use(refTable.tableNameDef) : '';
+      return refTable ? use(refTable.tableNameDef) : "";
     });
     this._reverseColumn = Computed.create(this, (use) => {
       const column = use(this._field.column);
       const reverseCol = use(column.reverseColModel);
-      return reverseCol ? use(reverseCol.label) ?? use(reverseCol.colId) : '';
+      return reverseCol ? use(reverseCol.label) ?? use(reverseCol.colId) : "";
     });
     this._reverseType = Computed.create(this, (use) => {
       const column = use(this._field.column);
       const reverseCol = use(column.reverseColModel);
-      return reverseCol ? use(reverseCol.pureType) : '';
+      return reverseCol ? use(reverseCol.pureType) : "";
     });
     this._disabled = Computed.create(this, (use) => {
       // If is formula or is trigger formula.
@@ -58,74 +59,74 @@ export class ReverseReferenceConfig extends Disposable {
       return Boolean(use(column.formula));
     });
     this._tooltip = Computed.create(this, (use) => {
-      return use(this._disabled)
-        ? 'twoWayReferencesDisabled'
-        : 'twoWayReferences';
+      return use(this._disabled) ?
+        "twoWayReferencesDisabled" :
+        "twoWayReferences";
     });
   }
 
   public buildDom() {
-    return dom('div',
+    return dom("div",
       dom.maybe(not(this._isConfigured), () => [
         cssRow(
-          dom.style('margin-top', '16px'),
-          cssRow.cls('-disabled', this._disabled),
+          dom.style("margin-top", "16px"),
+          cssRow.cls("-disabled", this._disabled),
           withInfoTooltip(
             textButton(
-              t('Add two-way reference'),
-              dom.on('click', (e) => this._toggle(e)),
-              testId('add-reverse-columm'),
-              dom.prop('disabled', this._disabled),
+              t("Add two-way reference"),
+              dom.on("click", e => this._toggle(e)),
+              testId("add-reverse-columm"),
+              dom.prop("disabled", this._disabled),
             ),
-            this._tooltip
-          )
+            this._tooltip,
+          ),
         ),
       ]),
       dom.maybe(this._isConfigured, () => cssTwoWayConfig(
         // TWO-WAY REFERENCE  (?)  [Remove]
         cssRow(
-          dom.style('justify-content', 'space-between'),
+          dom.style("justify-content", "space-between"),
           withInfoTooltip(
             cssLabelText(
-              t('Two-way Reference'),
+              t("Two-way Reference"),
             ),
-            'twoWayReferences'
+            "twoWayReferences",
           ),
           cssIconButton(
-            icon('Remove'),
-            dom.on('click', (e) => this._toggle(e)),
-            dom.style('cursor', 'pointer'),
-            testId('remove-reverse-column'),
+            icon("Remove"),
+            dom.on("click", e => this._toggle(e)),
+            dom.style("cursor", "pointer"),
+            testId("remove-reverse-column"),
           ),
         ),
         cssRow(
           cssContent(
             cssClipLine(
               cssClipItem(
-                cssCapitalize(t('Target table'), dom.style('margin-right', '8px')),
-                dom('span', dom.text(this._reverseTable)),
+                cssCapitalize(t("Target table"), dom.style("margin-right", "8px")),
+                dom("span", dom.text(this._reverseTable)),
               ),
             ),
             cssFlexBetween(
               cssClipItem(
-                cssCapitalize(t('Column'), dom.style('margin-right', '8px')),
-                dom('span', dom.text(this._reverseColumn)),
-                cssGrayText('(', dom.text(this._reverseType), ')')
+                cssCapitalize(t("Column"), dom.style("margin-right", "8px")),
+                dom("span", dom.text(this._reverseColumn)),
+                cssGrayText("(", dom.text(this._reverseType), ")"),
               ),
               cssIconButton(
-                cssShowOnHover.cls(''),
-                cssNoClip.cls(''),
-                cssIconAccent('Pencil'),
-                dom.on('click', () => this._editConfigClick()),
-                dom.style('cursor', 'pointer'),
-                testId('edit-reverse-column'),
+                cssShowOnHover.cls(""),
+                cssNoClip.cls(""),
+                cssIconAccent("Pencil"),
+                dom.on("click", () => this._editConfigClick()),
+                dom.style("cursor", "pointer"),
+                testId("edit-reverse-column"),
               ),
             ),
           ),
-          testId('reverse-column-label'),
+          testId("reverse-column-label"),
         ),
         cssSeparator(
-          dom.style('margin-top', '16px'),
+          dom.style("margin-top", "16px"),
         ),
       )),
     );
@@ -146,28 +147,28 @@ export class ReverseReferenceConfig extends Disposable {
     const refCol = column.reverseColModel.peek().label.peek() || column.reverseColModel.peek().colId.peek();
     const refTable = column.reverseColModel.peek().table.peek().tableNameDef.peek();
 
-    const promptTitle = t('Delete two-way reference?');
+    const promptTitle = t("Delete two-way reference?");
 
     const myTable = column.table.peek().tableNameDef.peek();
     const myName = column.label.peek() || column.colId.peek();
 
     const explanation = t(
-      'This will delete the reference column {{refCol}} in table {{refTable}}. The reference column \
-{{myName}} will remain in the current table {{myTable}}.', {
-      refCol: dom('b', refCol),
-      refTable: cssCode(refTable),
-      myName: dom('b', myName),
-      myTable: cssCode(myTable),
-    });
+      "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column \
+{{myName}} will remain in the current table {{myTable}}.", {
+        refCol: dom("b", refCol),
+        refTable: cssCode(refTable),
+        myName: dom("b", myName),
+        myTable: cssCode(myTable),
+      });
 
     confirmModal(
       promptTitle,
-      t('Delete'),
+      t("Delete"),
       onConfirm,
       {
         explanation: cssHigherLine(explanation),
-        width: 'fixed-wide'
-      }
+        width: "fixed-wide",
+      },
     );
   }
 
@@ -178,29 +179,28 @@ export class ReverseReferenceConfig extends Disposable {
     const reverseColId = this._field.column.peek().reverseColModel.peek().colId.peek();
     if (!reverseColId) { return; } // might happen if it is censored.
     const targetField = rawViewSection.viewFields.peek().all()
-                                      .find(f => f.colId.peek() === reverseColId);
+      .find(f => f.colId.peek() === reverseColId);
     if (!targetField) { return; }
     await allCommands.setCursor.run(null, targetField);
   }
 }
 
-const cssTwoWayConfig = styled('div', ``);
-const cssShowOnHover = styled('div', `
+const cssTwoWayConfig = styled("div", ``);
+const cssShowOnHover = styled("div", `
   visibility: hidden;
   .${cssTwoWayConfig.className}:hover & {
     visibility: visible;
   }
 `);
 
-const cssContent = styled('div', `
+const cssContent = styled("div", `
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
 `);
 
-
-const cssFlexRow = styled('div', `
+const cssFlexRow = styled("div", `
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -211,13 +211,13 @@ const cssFlexBetween = styled(cssFlexRow, `
   overflow: hidden;
 `);
 
-const cssCapitalize = styled('span', `
+const cssCapitalize = styled("span", `
   text-transform: uppercase;
   font-size: ${vars.xsmallFontSize};
   color: ${theme.lightText};
 `);
 
-const cssClipLine = styled('div', `
+const cssClipLine = styled("div", `
   display: flex;
   align-items: baseline;
   gap: 3px;
@@ -225,17 +225,17 @@ const cssClipLine = styled('div', `
   flex: 1;
 `);
 
-const cssClipItem = styled('div', `
+const cssClipItem = styled("div", `
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 `);
 
-const cssNoClip = styled('div', `
+const cssNoClip = styled("div", `
   flex: none;
 `);
 
-const cssGrayText = styled('span', `
+const cssGrayText = styled("span", `
   color: ${theme.lightText};
   margin-left: 4px;
 `);
@@ -244,6 +244,6 @@ const cssIconAccent = styled(icon, `
   --icon-color: ${theme.accentIcon};
 `);
 
-const cssHigherLine = styled('div', `
+const cssHigherLine = styled("div", `
   line-height: 1.5;
 `);

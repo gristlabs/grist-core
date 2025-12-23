@@ -1,13 +1,11 @@
-import {IForwarderDest, IMessage, IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc} from 'grain-rpc';
-import {Checker} from "ts-interface-checker";
+import { InactivityTimer } from "app/common/InactivityTimer";
+import { LocalPlugin } from "app/common/plugin";
+import { BarePlugin } from "app/plugin/PluginManifest";
+import { Implementation } from "app/plugin/PluginManifest";
+import { RenderOptions, RenderTarget } from "app/plugin/RenderOptions";
 
-import {InactivityTimer} from 'app/common/InactivityTimer';
-import {LocalPlugin} from 'app/common/plugin';
-import {BarePlugin} from 'app/plugin/PluginManifest';
-
-import {Implementation} from 'app/plugin/PluginManifest';
-import {RenderOptions, RenderTarget} from 'app/plugin/RenderOptions';
-
+import { IForwarderDest, IMessage, IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc } from "grain-rpc";
+import { Checker } from "ts-interface-checker";
 
 export type ComponentKind = "safeBrowser" | "safePython" | "unsafeNode";
 
@@ -22,13 +20,12 @@ export type TargetRenderFunc = (containerElement: HTMLElement, options?: RenderO
  * `activeImplementation` and `useRemoteAPI` methods.
  */
 export abstract class BaseComponent implements IForwarderDest {
-
   public inactivityTimer: InactivityTimer;
   private _activated: boolean = false;
 
   constructor(plugin: BarePlugin, private _logger: IRpcLogger) {
     const deactivate = plugin.components.deactivate;
-    const delay = (deactivate && deactivate.inactivitySec) ? deactivate.inactivitySec : 300;
+    const delay = (deactivate?.inactivitySec) ? deactivate.inactivitySec : 300;
     this.inactivityTimer = new InactivityTimer(() => this.deactivate(), delay * 1000);
   }
 
@@ -61,7 +58,8 @@ export abstract class BaseComponent implements IForwarderDest {
       this.inactivityTimer.disable();
       try {
         await this.deactivateImplementation();
-      } catch (e) {
+      }
+      catch (e) {
         // If it fails, we warn and swallow the exception (or it would be an unhandled rejection).
         if (this._logger.warn) { this._logger.warn(`Deactivate failed: ${e.message}`); }
       }
@@ -88,7 +86,6 @@ export abstract class BaseComponent implements IForwarderDest {
   protected abstract activateImplementation(): Promise<void>;
 }
 
-
 /**
  * Node Implementation for the PluginElement interface. A PluginInstance take care of activation of
  * the the plugins's components (activating, timing and deactivating), and create the api's for each contributions.
@@ -98,19 +95,17 @@ export abstract class BaseComponent implements IForwarderDest {
  *
  */
 export class PluginInstance {
-
   public rpc: Rpc;
   public safeBrowser?: BaseComponent;
   public unsafeNode?: BaseComponent;
   public safePython?: BaseComponent;
 
-  private  _renderTargets: Map<RenderTarget, TargetRenderFunc> = new Map();
+  private  _renderTargets = new Map<RenderTarget, TargetRenderFunc>();
 
   private _nextRenderTargetId = 0;
 
   constructor(public definition: LocalPlugin, rpcLogger: IRpcLogger) {
-
-    const rpc = this.rpc = new Rpc({logger: rpcLogger});
+    const rpc = this.rpc = new Rpc({ logger: rpcLogger });
     rpc.setSendMessage((mssg: any) => rpc.receiveMessage(mssg));
 
     this._renderTargets.set("fullscreen", renderFullScreen);
@@ -132,10 +127,10 @@ export class PluginInstance {
    */
   public async shutdown(): Promise<void> {
     await Promise.all([
-      this.safeBrowser && this.safeBrowser.deactivate(),
-      this.safePython && this.safePython.deactivate(),
-      this.unsafeNode && this.unsafeNode.deactivate(),
-      ]);
+      this.safeBrowser?.deactivate(),
+      this.safePython?.deactivate(),
+      this.unsafeNode?.deactivate(),
+    ]);
   }
 
   /**
@@ -165,7 +160,6 @@ export class PluginInstance {
   public removeRenderTarget(target: RenderTarget): boolean {
     return this._renderTargets.delete(target);
   }
-
 }
 
 /**

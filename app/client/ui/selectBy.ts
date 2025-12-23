@@ -1,6 +1,6 @@
-import { makeT } from 'app/client/lib/localization';
-import { DocModel, ViewSectionRec } from 'app/client/models/DocModel';
-import { IPageWidget } from 'app/client/ui/PageWidgetPicker';
+import { makeT } from "app/client/lib/localization";
+import { DocModel, ViewSectionRec } from "app/client/models/DocModel";
+import { IPageWidget } from "app/client/ui/PageWidgetPicker";
 import {
   buildLinkNodes,
   buildRefColLinkNodes,
@@ -11,15 +11,16 @@ import {
   LinkNodeOperations,
   LinkNodeSection,
   LinkNodeTable,
-} from 'app/common/LinkNode';
-import { IOptionFull } from 'grainjs';
-import isEqual = require('lodash/isEqual');
+} from "app/common/LinkNode";
 
-const t = makeT('selectBy');
+import { IOptionFull } from "grainjs";
+import isEqual from "lodash/isEqual";
+
+const t = makeT("selectBy");
 
 // some unicode characters
-const BLACK_CIRCLE = '\u2022';
-const RIGHT_ARROW = '\u2192';
+const BLACK_CIRCLE = "\u2022";
+const RIGHT_ARROW = "\u2192";
 
 // Describes a link
 export interface IPageWidgetLink {
@@ -37,13 +38,11 @@ export interface IPageWidgetLink {
 export const NoLink = linkId({
   srcSectionRef: 0,
   srcColRef: 0,
-  targetColRef: 0
+  targetColRef: 0,
 });
 
-
 // Represents the differents way to reference to a section for linking
-type MaybeSection = ViewSectionRec|IPageWidget;
-
+type MaybeSection = ViewSectionRec | IPageWidget;
 
 // Returns a list of options with all links that link one of the `source` section to the `target`
 // section. Each `opt.value` is a unique identifier (see: linkId() and linkFromId() for more
@@ -52,23 +51,21 @@ type MaybeSection = ViewSectionRec|IPageWidget;
 // only when linking from a reference column, as opposed to linking from the table directly. And the
 // <target-col-name> shows only when both <section_name>[.<source-col-name>] is ambiguous.
 export function selectBy(docModel: DocModel, sources: ViewSectionRec[],
-                         target: MaybeSection): Array<IOptionFull<string>> {
+  target: MaybeSection): IOptionFull<string>[] {
   const sourceNodes = createNodesFromViewSections(docModel, sources);
-  const targetNodes = isViewSectionRec(target)
-    ? createNodesFromViewSections(docModel, [target])
-    : createNodesFromPageWidget(docModel, target);
-
+  const targetNodes = isViewSectionRec(target) ?
+    createNodesFromViewSections(docModel, [target]) :
+    createNodesFromPageWidget(docModel, target);
 
   const NoLinkOption: IOptionFull<string> = {
     label: t("Select widget"),
-    value: NoLink
+    value: NoLink,
   };
   const options = [NoLinkOption];
   for (const srcNode of sourceNodes) {
-    const validTargets = targetNodes.filter((tgt) => isValidLink(srcNode, tgt));
+    const validTargets = targetNodes.filter(tgt => isValidLink(srcNode, tgt));
     const hasMany = validTargets.length > 1;
     for (const tgtNode of validTargets) {
-
       // a unique identifier for this link
       const value = linkId({
         srcSectionRef: srcNode.section.id,
@@ -106,15 +103,15 @@ function isViewSectionRec(section: MaybeSection): section is ViewSectionRec {
 
 function createNodesFromViewSections(
   docModel: DocModel,
-  viewSections: ViewSectionRec[]
+  viewSections: ViewSectionRec[],
 ): LinkNode[] {
   const operations: LinkNodeOperations = {
-    getTableById: (id) => getLinkNodeTableById(docModel, id),
-    getSectionById: (id) => getLinkNodeSectionById(docModel, id),
+    getTableById: id => getLinkNodeTableById(docModel, id),
+    getSectionById: id => getLinkNodeSectionById(docModel, id),
   };
   const sections = viewSections
-    .filter((s) => !s.isDisposed())
-    .map((s) => getLinkNodeSectionById(docModel, s.getRowId()));
+    .filter(s => !s.isDisposed())
+    .map(s => getLinkNodeSectionById(docModel, s.getRowId()));
   return buildLinkNodes(sections, operations);
 }
 
@@ -127,7 +124,7 @@ function getLinkNodeTableById(docModel: DocModel, id: number): LinkNodeTable {
     columns: table.columns
       .peek()
       .all()
-      .map((c) => ({
+      .map(c => ({
         id: c.getRowId(),
         colId: c.colId.peek(),
         label: c.label.peek(),
@@ -139,7 +136,7 @@ function getLinkNodeTableById(docModel: DocModel, id: number): LinkNodeTable {
 
 function getLinkNodeSectionById(
   docModel: DocModel,
-  id: number
+  id: number,
 ): LinkNodeSection {
   const section = docModel.viewSections.getRowModel(id);
   return {
@@ -159,8 +156,7 @@ function getLinkNodeSectionById(
 
 // Creates an array of LinkNode from a page widget.
 function createNodesFromPageWidget(docModel: DocModel, pageWidget: IPageWidget): LinkNode[] {
-
-  if (typeof pageWidget.table !== 'number') { return []; }
+  if (typeof pageWidget.table !== "number") { return []; }
 
   const nodes: LinkNode[] = [];
   let table = docModel.tables.getRowModel(pageWidget.table);
@@ -173,7 +169,8 @@ function createNodesFromPageWidget(docModel: DocModel, pageWidget: IPageWidget):
     if (summaryTable) {
       // The selected source table and groupby columns correspond to this existing summary table.
       table = summaryTable;
-    } else {
+    }
+    else {
       // This summary table doesn't exist yet. `fromColumns` will be using columns from the source table.
       // Make sure it only uses columns that are in the selected groupby columns.
       // The resulting targetColRef will incorrectly be from the source table,
@@ -231,5 +228,5 @@ export function linkId(link: IPageWidgetLink) {
 // Returns link's properties from its identifier.
 export function linkFromId(linkid: string): IPageWidgetLink {
   const [srcSectionRef, srcColRef, targetColRef] = JSON.parse(linkid);
-  return {srcSectionRef, srcColRef, targetColRef};
+  return { srcSectionRef, srcColRef, targetColRef };
 }

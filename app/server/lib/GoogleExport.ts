@@ -1,11 +1,13 @@
-import {drive} from '@googleapis/drive';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {RequestWithLogin} from 'app/server/lib/Authorizer';
-import {streamXLSX} from 'app/server/lib/ExportXLSX';
-import log from 'app/server/lib/log';
-import {optStringParam} from 'app/server/lib/requestUtils';
-import {Request, Response} from 'express';
-import {PassThrough, Stream} from 'stream';
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { RequestWithLogin } from "app/server/lib/Authorizer";
+import { streamXLSX } from "app/server/lib/ExportXLSX";
+import log from "app/server/lib/log";
+import { optStringParam } from "app/server/lib/requestUtils";
+
+import { PassThrough, Stream } from "stream";
+
+import { drive } from "@googleapis/drive";
+import { Request, Response } from "express";
 
 /**
  * Endpoint logic for sending grist document to Google Drive. Grist document is first exported as an
@@ -14,10 +16,10 @@ import {PassThrough, Stream} from 'stream';
 export async function exportToDrive(
   activeDoc: ActiveDoc,
   req: Request,
-  res: Response
+  res: Response,
 ) {
   // Token should come from auth middleware
-  const access_token = optStringParam(req.query.access_token, 'access_token');
+  const access_token = optStringParam(req.query.access_token, "access_token");
   if (!access_token) {
     throw new Error("No access token - Can't send file to Google Drive");
   }
@@ -30,13 +32,13 @@ export async function exportToDrive(
   };
   // Prepare file for exporting.
   log.debug(`Export to drive - Preparing file for export`, meta);
-  const name = (optStringParam(req.query.title, 'title') || activeDoc.docName);
+  const name = (optStringParam(req.query.title, "title") || activeDoc.docName);
   const stream = new PassThrough();
 
   try {
     // Send file to GDrive and get the url for a preview.
     const [, url] = await Promise.all([
-      streamXLSX(activeDoc, req, stream, {tableId: ''}),
+      streamXLSX(activeDoc, req, stream, { tableId: "" }),
       sendFileToDrive(name, stream, access_token),
     ]);
     activeDoc.logAuditEvent(mreq, {
@@ -49,12 +51,14 @@ export async function exportToDrive(
     });
     log.debug(`Export to drive - File exported, redirecting to Google Spreadsheet ${url}`, meta);
     res.json({ url });
-  } catch (err) {
+  }
+  catch (err) {
     log.error("Export to drive - Error while sending file to GDrive", meta, err);
     // Test if google returned a valid error message.
-    if (err.errors && err.errors.length) {
+    if (err.errors?.length) {
       throw new Error(err.errors[0].message);
-    } else {
+    }
+    else {
       throw err;
     }
   }
@@ -67,19 +71,19 @@ async function sendFileToDrive(fileNameNoExt: string, stream: Stream, oauth_toke
     // name of the spreadsheet to create
     name: fileNameNoExt,
     // mime type of the google spreadsheet
-    mimeType: 'application/vnd.google-apps.spreadsheet'
+    mimeType: "application/vnd.google-apps.spreadsheet",
   };
   // Define what gets send - excel file
   const media = {
-    mimeType: 'application/vnd.ms-excel',
-    body: stream
+    mimeType: "application/vnd.ms-excel",
+    body: stream,
   };
   const googleDrive = drive("v3");
   const fileRes = await googleDrive.files.create({
     requestBody, // what to do with file - convert to spreadsheet
     oauth_token, // access token
     media, // file
-    fields: "webViewLink" // return webViewLink after creating file
+    fields: "webViewLink", // return webViewLink after creating file
   });
   const url = fileRes.data.webViewLink;
   if (!url) {

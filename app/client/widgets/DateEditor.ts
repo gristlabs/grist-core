@@ -1,19 +1,20 @@
-import {CommandGroup, createGroup} from 'app/client/components/commands';
-import {loadScript} from 'app/client/lib/loadScript';
-import {detectCurrentLang} from 'app/client/lib/localization';
-import {FieldOptions} from 'app/client/widgets/NewBaseEditor';
-import {NTextEditor} from 'app/client/widgets/NTextEditor';
-import {CellValue} from "app/common/DocActions";
-import {parseDate, TWO_DIGIT_YEAR_THRESHOLD} from 'app/common/parseDate';
+import { CommandGroup, createGroup } from "app/client/components/commands";
+import { loadScript } from "app/client/lib/loadScript";
+import { detectCurrentLang } from "app/client/lib/localization";
+import { FieldOptions } from "app/client/widgets/NewBaseEditor";
+import { NTextEditor } from "app/client/widgets/NTextEditor";
+import { CellValue } from "app/common/DocActions";
+import { parseDate, TWO_DIGIT_YEAR_THRESHOLD } from "app/common/parseDate";
 
-import moment from 'moment-timezone';
-import {dom} from 'grainjs';
+import { dom } from "grainjs";
+import moment from "moment-timezone";
 
 // These are all the locales available for the datepicker. Having a prepared list lets us find a
 // suitable one without trying combinations that don't exist. This list can be rebuilt using:
 //    ls bower_components/bootstrap-datepicker/dist/locales/bootstrap-datepicker.* | cut -d. -f2 | xargs echo
-// eslint-disable-next-line max-len
-const availableLocales = 'ar-tn ar az bg bm bn br bs ca cs cy da de el en-AU en-CA en-GB en-IE en-NZ en-ZA eo es et eu fa fi fo fr-CH fr gl he hi hr hu hy id is it-CH it ja ka kh kk km ko kr lt lv me mk mn ms nl-BE nl no oc pl pt-BR pt ro rs-latin rs ru si sk sl sq sr-latin sr sv sw ta tg th tk tr uk uz-cyrl uz-latn vi zh-CN zh-TW';
+//
+// eslint-disable-next-line @stylistic/max-len
+const availableLocales = "ar-tn ar az bg bm bn br bs ca cs cy da de el en-AU en-CA en-GB en-IE en-NZ en-ZA eo es et eu fa fi fo fr-CH fr gl he hi hr hu hy id is it-CH it ja ka kh kk km ko kr lt lv me mk mn ms nl-BE nl no oc pl pt-BR pt ro rs-latin rs ru si sk sl sq sr-latin sr sv sw ta tg th tk tr uk uz-cyrl uz-latn vi zh-CN zh-TW";
 
 monkeyPatchDatepicker();
 
@@ -24,18 +25,18 @@ monkeyPatchDatepicker();
 export class DateEditor extends NTextEditor {
   protected safeFormat: string;     // Format that specifies a complete date.
 
-  private _dateFormat: string|undefined = this.options.field.widgetOptionsJson.peek().dateFormat;
+  private _dateFormat: string | undefined = this.options.field.widgetOptionsJson.peek().dateFormat;
   private _locale = detectCurrentLang();
   private _keyboardNav = false;     // Whether keyboard navigation is active for the datepicker.
 
   constructor(
     options: FieldOptions,
-    protected timezone: string = 'UTC',     // For use by the derived DateTimeEditor.
+    protected timezone: string = "UTC",     // For use by the derived DateTimeEditor.
   ) {
     super(options);
 
     // Update moment format string to represent a date unambiguously.
-    this.safeFormat = makeFullMomentFormat(this._dateFormat || '');
+    this.safeFormat = makeFullMomentFormat(this._dateFormat || "");
 
     // Set placeholder to current date(time), unless in read-only mode.
     if (!options.readonly) {
@@ -43,7 +44,7 @@ export class DateEditor extends NTextEditor {
       // TODO: this.timezone is better for DateTime; gristDoc.docInfo.timezone.peek() is better for Date.
       const defaultTimezone = moment.tz.guess();
       const placeholder = moment.tz(defaultTimezone).format(this.safeFormat);
-      this.textInput.setAttribute('placeholder', placeholder);
+      this.textInput.setAttribute("placeholder", placeholder);
     }
 
     const cellValue = this.formatValue(options.cellValue, this.safeFormat, true);
@@ -56,7 +57,7 @@ export class DateEditor extends NTextEditor {
       // the arrow keys for date selection.
       const datepickerCommands = {
         ...options.commands,
-        datepickerFocus: () => { this._allowKeyboardNav(true); }
+        datepickerFocus: () => { this._allowKeyboardNav(true); },
       };
       const datepickerCommandGroup = this.autoDispose(createGroup(datepickerCommands, this, true));
       this._attachDatePicker(datepickerCommandGroup)
@@ -67,18 +68,19 @@ export class DateEditor extends NTextEditor {
   public getCellValue() {
     const timestamp = parseDate(this.textInput.value, {
       dateFormat: this.safeFormat,
-      timezone: this.timezone
+      timezone: this.timezone,
     });
     return timestamp !== null ? timestamp : this.textInput.value;
   }
 
   // Moment value formatting helper.
-  protected formatValue(value: CellValue, formatString: string|undefined, shouldFallBackToValue: boolean) {
-    if (typeof value === 'number' && formatString) {
-      return moment.tz(value*1000, this.timezone).format(formatString);
-    } else {
+  protected formatValue(value: CellValue, formatString: string | undefined, shouldFallBackToValue: boolean) {
+    if (typeof value === "number" && formatString) {
+      return moment.tz(value * 1000, this.timezone).format(formatString);
+    }
+    else {
       // If value is AltText, return it unchanged. This way we can see it and edit in the editor.
-      return (shouldFallBackToValue && typeof value === 'string') ? value : "";
+      return (shouldFallBackToValue && typeof value === "string") ? value : "";
     }
   }
 
@@ -101,7 +103,7 @@ export class DateEditor extends NTextEditor {
       keyboardNavigation: false,
       forceParse: false,
       todayHighlight: true,
-      todayBtn: 'linked',
+      todayBtn: "linked",
       assumeNearbyYear: TWO_DIGIT_YEAR_THRESHOLD,
       language: localeToUse,
       // Use the stripped format converted to one suitable for the datepicker.
@@ -111,43 +113,43 @@ export class DateEditor extends NTextEditor {
           const timestampSec = parseDate(date, {
             dateFormat: this.safeFormat,
             // datepicker reads date in utc (ie: using date.getUTCDate()).
-            timezone: 'UTC',
+            timezone: "UTC",
           });
           return (timestampSec === null) ? null : new Date(timestampSec * 1000);
         },
       },
     });
-    this.onDispose(() => datePickerWidget.datepicker('destroy'));
+    this.onDispose(() => datePickerWidget.datepicker("destroy"));
 
     // NOTE: Datepicker interferes with normal enter and escape functionality. Add an event handler
     // to the DatePicker to prevent interference with normal behavior.
-    datePickerWidget.on('keydown', (e) => {
+    datePickerWidget.on("keydown", (e) => {
       // If enter or escape is pressed, destroy the datepicker and re-dispatch the event.
       if (e.keyCode === 13 || e.keyCode === 27) {
-        datePickerWidget.datepicker('destroy');
+        datePickerWidget.datepicker("destroy");
         // The current target of the event will be the textarea.
         setTimeout(() => e.currentTarget?.dispatchEvent(e.originalEvent!), 0);
       }
     });
 
-    datePickerWidget.on('show', () => {
+    datePickerWidget.on("show", () => {
       // A workaround to allow clicking in the datepicker without losing focus.
-      const datepickerElem: HTMLElement|null = document.querySelector('.datepicker');
+      const datepickerElem: HTMLElement | null = document.querySelector(".datepicker");
       if (datepickerElem) {
         dom.update(datepickerElem,
-          dom.attr('tabIndex', '0'),      // allows datepicker to gain focus
-          dom.cls('clipboard_allow_focus')      // tells clipboard to not steal focus from us
+          dom.attr("tabIndex", "0"),      // allows datepicker to gain focus
+          dom.cls("clipboard_allow_focus"),      // tells clipboard to not steal focus from us
         );
       }
 
       // Attach command group to the input to allow switching keyboard focus to the datepicker.
       dom.update(this.textInput,
         // If the user inputs text into the textbox, take keyboard focus from the datepicker.
-        dom.on('input', () => { this._allowKeyboardNav(false); }),
-        datepickerCommands.attach()
+        dom.on("input", () => { this._allowKeyboardNav(false); }),
+        datepickerCommands.attach(),
       );
     });
-    datePickerWidget.datepicker('show');
+    datePickerWidget.datepicker("show");
   }
 }
 
@@ -155,17 +157,16 @@ export class DateEditor extends NTextEditor {
 // unambiguous date in the textbox input. If the format is incomplete, fall back to YYYY-MM-DD.
 function makeFullMomentFormat(mFormat: string): string {
   let safeFormat = mFormat;
-  if (!safeFormat.includes('Y')) {
+  if (!safeFormat.includes("Y")) {
     safeFormat += " YYYY";
   }
-  if (!safeFormat.includes('D') || !safeFormat.includes('M')) {
-    safeFormat = 'YYYY-MM-DD';
+  if (!safeFormat.includes("D") || !safeFormat.includes("M")) {
+    safeFormat = "YYYY-MM-DD";
   }
   return safeFormat;
 }
 
-
-let availableLocaleSet: Set<string>|undefined;
+let availableLocaleSet: Set<string> | undefined;
 const loadedLocaleMap = new Map<string, string>();    // Maps requested locale to the one to use.
 
 // Datepicker supports many languages. They just need to be loaded. Here we load the language we
@@ -193,7 +194,8 @@ async function doLoadLocale(locale: string): Promise<string> {
   console.debug(`DateEditor: loading locale ${locale}`);
   try {
     await loadScript(`bootstrap-datepicker/dist/locales/bootstrap-datepicker.${locale}.min.js`);
-  } catch (e) {
+  }
+  catch (e) {
     console.warn(`DateEditor: failed to load ${locale}`);
   }
   return locale;
@@ -208,7 +210,7 @@ function monkeyPatchDatepicker() {
   const Datepicker = ($.fn as any).datepicker?.Constructor;
   if (Datepicker?.prototype) {
     // datepicker.isInput can now be set to anything, but when read, always returns true. Tricksy.
-    Object.defineProperty(Datepicker.prototype, 'isInput', {
+    Object.defineProperty(Datepicker.prototype, "isInput", {
       get: function() { return true; },
       set: function(v) {},
     });

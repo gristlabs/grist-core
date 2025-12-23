@@ -1,6 +1,6 @@
 /* global $ */
 
-var koDom = require('../lib/koDom');
+var koDom = require("../lib/koDom");
 
 /**
  * This adds `.isFlex` option to JQuery's $.ui.resizable to make it work better with flexbox.
@@ -38,7 +38,7 @@ function makeResizable(widthObservable, options) {
   options = options || {};
   function onEvent(e, ui) {
     widthObservable(ui.size.width);
-    if (e.type === 'resizestop') {
+    if (e.type === "resizestop") {
       if (options.stop) {
         options.stop(e, ui);
       }
@@ -50,19 +50,19 @@ function makeResizable(widthObservable, options) {
 
   return function(elem) {
     $(elem).resizable({
-      handles: options.handles || 'e',
+      handles: options.handles || "e",
       resize: onEvent,
       stop: onEvent,
       isFlex: options.isFlex,
       minWidth: options.minWidth || 10
     });
 
-    if (options.hasOwnProperty('enabled')) {
+    if (options.hasOwnProperty("enabled")) {
       koDom.setBinding(elem, options.enabled, function(elem, value) {
         if (value) {
-          $(elem).resizable('enable');
+          $(elem).resizable("enable");
         } else {
-          $(elem).resizable('disable').removeClass('ui-state-disabled');
+          $(elem).resizable("disable").removeClass("ui-state-disabled");
         }
       });
     }

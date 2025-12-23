@@ -6,7 +6,7 @@
 export class KeyedOps {
   private _operations = new Map<string, OperationStatus>();  // status of operations
   private _history = new Map<string, OperationHistory>();    // history of operations
-                                                             // (will accumulate without limit)
+  // (will accumulate without limit)
   private _changed = new Set<string>();    // set when key needs an operation
   private _operating = new Set<string>();  // set when operation is in progress for key
   private _stopped: boolean = false;       // set to prohibit all new operations or retries
@@ -99,7 +99,7 @@ export class KeyedOps {
     while (this.hasPendingOperations()) {
       if (repeats && logRepeat) { logRepeat(repeats); }
       await Promise.all([...this._operating.keys(), ...this._changed.keys()]
-                        .map(key => this.expediteOperationAndWait(key)));
+        .map(key => this.expediteOperationAndWait(key)));
       repeats++;
     }
   }
@@ -139,7 +139,7 @@ export class KeyedOps {
       delete status.timeout;
     }
     let ticks = this._options.delayBeforeOperationMs || 0;
-    const {lastStart} = this._getOperationHistory(key);
+    const { lastStart } = this._getOperationHistory(key);
     if (lastStart && this._options.minDelayBetweenOperationsMs && !immediate) {
       ticks = Math.max(ticks, lastStart + this._options.minDelayBetweenOperationsMs - Date.now());
     }
@@ -156,7 +156,7 @@ export class KeyedOps {
       status = {
         key,
         failures: 0,
-        callbacks: []
+        callbacks: [],
       };
       this._operations.set(key, status);
     }
@@ -173,7 +173,7 @@ export class KeyedOps {
   }
 
   private async _doOp(key: string) {
-    if (this._stopped) { throw new Error('operations forcibly stopped'); }
+    if (this._stopped) { throw new Error("operations forcibly stopped"); }
     return this._op(key);
   }
 
@@ -199,7 +199,7 @@ export class KeyedOps {
       status.failures = 0;
       status.callbacks.forEach(callback => callback());
       status.callbacks = [];
-    }).catch(err => {
+    }).catch((err) => {
       // Operation failed.  Increment failure count, notify callbacks.
       status.failures++;
       if (this._options.retry && !this._stopped) {
@@ -216,7 +216,8 @@ export class KeyedOps {
       delete status.promise;
       if (this._changed.has(key)) {
         this._schedule(key);
-      } else {
+      }
+      else {
         // No event information left to track, we can delete our OperationStatus entry.
         if (status.failures === 0 && !status.timeout) {
           this._operations.delete(key);
@@ -234,9 +235,8 @@ interface OperationStatus {
   promise?: Promise<void>;   // a promise for an operation that is under way
   key: string;               // the operation key
   failures: number;          // consecutive number of times the operation has failed
-  callbacks: Array<(err?: Error) => void>;  // callbacks for notifications when op is done/fails
+  callbacks: ((err?: Error) => void)[];  // callbacks for notifications when op is done/fails
 }
-
 
 /**
  * History of an operation.

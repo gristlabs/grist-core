@@ -1,9 +1,10 @@
-import {findLinks} from 'app/client/lib/textUtils';
-import {sameDocumentUrlState, urlState} from 'app/client/models/gristUrlState';
-import {hideInPrintView, testId, theme} from 'app/client/ui2018/cssVars';
-import {cssIconSpanBackground, iconSpan} from 'app/client/ui2018/icons';
-import {useBindable} from 'app/common/gutil';
-import {BindableValue, dom, DomArg, IDomArgs, styled} from 'grainjs';
+import { findLinks } from "app/client/lib/textUtils";
+import { sameDocumentUrlState, urlState } from "app/client/models/gristUrlState";
+import { hideInPrintView, testId, theme } from "app/client/ui2018/cssVars";
+import { cssIconSpanBackground, iconSpan } from "app/client/ui2018/icons";
+import { useBindable } from "app/common/gutil";
+
+import { BindableValue, dom, DomArg, IDomArgs, styled } from "grainjs";
 
 /**
  * Styling for a simple <A HREF> link.
@@ -21,7 +22,7 @@ const linkHoverStyles = `
   text-decoration: underline;
 `;
 
-export const cssLink = styled('a', `
+export const cssLink = styled("a", `
   ${linkStyles}
   &:hover, &:focus {
     ${linkHoverStyles}
@@ -32,7 +33,7 @@ export const cssLink = styled('a', `
  * This helps us apply link styles when we can't directly use `cssLink`,
  * for example when styling generated markdown.
  */
-export const cssNestedLinks = styled('div', `
+export const cssNestedLinks = styled("div", `
   & a {
     ${linkStyles}
   }
@@ -43,7 +44,7 @@ export const cssNestedLinks = styled('div', `
 
 export function gristLink(href: BindableValue<string>, ...args: IDomArgs<HTMLElement>) {
   return dom("a",
-    dom.attr("href", (use) => withAclAsUserParam(useBindable(use, href))),
+    dom.attr("href", use => withAclAsUserParam(useBindable(use, href))),
     dom.attr("target", "_blank"),
     dom.on("click", handleGristLinkClick),
     // stop propagation to prevent the grist custom context menu to show up and let the default one
@@ -54,7 +55,7 @@ export function gristLink(href: BindableValue<string>, ...args: IDomArgs<HTMLEle
     // https://developers.google.com/web/tools/lighthouse/audits/noopener
     dom.attr("rel", "noopener noreferrer"),
     hideInPrintView(),
-    args
+    args,
   );
 }
 
@@ -62,7 +63,7 @@ export function gristIconLink(href: string, label = href) {
   return cssMaybeWrap(
     gristLink(href,
       cssIconSpanBackground(
-        iconSpan("FieldLink", testId('tb-link-icon')),
+        iconSpan("FieldLink", testId("tb-link-icon")),
         dom.cls(cssHoverInText.className),
       ),
     ),
@@ -86,22 +87,23 @@ export function handleGristLinkClick(ev: MouseEvent, elem: HTMLAnchorElement) {
   urlState().pushUrl(newUrlState).catch(reportError);
 }
 
-
 /**
  * Generates dom contents out of a text with clickable links.
  */
 export function makeLinks(text: string) {
   try {
     const domElements: DomArg[] = [];
-    for (const {value, isLink} of findLinks(text)) {
+    for (const { value, isLink } of findLinks(text)) {
       if (isLink) {
         domElements.push(gristIconLink(value));
-      } else {
+      }
+      else {
         domElements.push(value);
       }
     }
     return domElements;
-  } catch(ex) {
+  }
+  catch (ex) {
     // In case when something went wrong, simply log and return original text, as showing
     // links is not that important.
     console.warn("makeLinks failed", ex);
@@ -130,7 +132,8 @@ function withAclAsUserParam(href: string) {
       url.searchParams.set("aclAsUser_", aclAsUser);
     }
     hrefWithParams = url.href;
-  } catch {
+  }
+  catch {
     return href;
   }
 
@@ -138,7 +141,7 @@ function withAclAsUserParam(href: string) {
 }
 
 // For links we want to break all the parts, not only words.
-const cssMaybeWrap = styled('span', `
+const cssMaybeWrap = styled("span", `
   white-space: inherit;
   .text_wrapping & {
     word-break: break-all;
@@ -147,7 +150,7 @@ const cssMaybeWrap = styled('span', `
 `);
 
 // A gentle transition effect on hover in, and the same effect on hover out with a little delay.
-export const cssHoverIn = (parentClass: string) => styled('span', `
+export const cssHoverIn = (parentClass: string) => styled("span", `
   --icon-color: var(--grist-actual-cell-color, ${theme.link});
   margin: -1px 2px 2px 0;
   border-radius: 3px;
@@ -165,6 +168,6 @@ export const cssHoverIn = (parentClass: string) => styled('span', `
 
 const cssHoverInText = cssHoverIn(cssMaybeWrap.className);
 
-const linkColor = styled('span', `
+const linkColor = styled("span", `
   color: var(--grist-actual-cell-color, ${theme.link});
 `);

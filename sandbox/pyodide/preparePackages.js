@@ -1,8 +1,8 @@
-const fs = require('fs');
-const fetch = require('node-fetch');
-const path = require('path');
+const fs = require("fs");
+const fetch = require("node-fetch");
+const path = require("path");
 
-const {listLibs} = require('./packages');
+const {listLibs} = require("./packages");
 
 async function findOnDisk(src, dest) {
   console.log(`Organizing packages on disk`, {src, dest});
@@ -11,11 +11,11 @@ async function findOnDisk(src, dest) {
   for (const lib of libs.available) {
     fs.copyFileSync(lib.fullName, path.join(dest, lib.fileName));
     fs.writeFileSync(path.join(dest, `${lib.name}-${lib.version}.json`),
-                     JSON.stringify({
-                       name: lib.name,
-                       version: lib.version,
-                       fileName: lib.fileName,
-                     }, null, 2));
+      JSON.stringify({
+        name: lib.name,
+        version: lib.version,
+        fileName: lib.fileName,
+      }, null, 2));
     console.log("Copied", {
       content: path.join(dest, lib.fileName),
       meta: path.join(dest, `${lib.name}-${lib.version}.json`),
@@ -34,9 +34,9 @@ async function findOnNet(src, dest) {
   let libs = await listLibs(dest);
   console.log(`Cached`, {libs: libs.available.map(lib => lib.name)});
   for (const lib of libs.misses) {
-    console.log('Fetching', lib);
+    console.log("Fetching", lib);
     const url = new URL(src);
-    url.pathname = url.pathname + lib.name + '-' + lib.version + '.json';
+    url.pathname = url.pathname + lib.name + "-" + lib.version + ".json";
     const result = await fetch(url.href);
     if (result.status === 200) {
       const data = await result.json();
@@ -45,9 +45,9 @@ async function findOnNet(src, dest) {
       const result2 = await fetch(url2.href);
       if (result2.status === 200) {
         fs.writeFileSync(path.join(dest, `${lib.name}-${lib.version}.json`),
-                         JSON.stringify(data, null, 2));
+          JSON.stringify(data, null, 2));
         fs.writeFileSync(path.join(dest, data.fileName),
-                         await result2.buffer());
+          await result2.buffer());
       } else {
         console.error("No payload available", {lib});
       }
@@ -61,14 +61,14 @@ async function findOnNet(src, dest) {
 
 async function main(src, dest) {
   if (!src) {
-    console.error('please supply a source');
+    console.error("please supply a source");
     process.exit(1);
   }
   if (!dest) {
-    console.error('please supply a destination');
+    console.error("please supply a destination");
     process.exit(1);
   }
-  if (src.startsWith('http:') || src.startsWith('https:')) {
+  if (src.startsWith("http:") || src.startsWith("https:")) {
     await findOnNet(src, dest);
     return;
   }

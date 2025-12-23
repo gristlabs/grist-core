@@ -1,5 +1,5 @@
-import {BaseAPI, IOptions} from "app/common/BaseAPI";
-import {addCurrentOrgToPath} from 'app/common/urlUtils';
+import { BaseAPI, IOptions } from "app/common/BaseAPI";
+import { addCurrentOrgToPath } from "app/common/urlUtils";
 
 /**
  * Interface for authentication providers.
@@ -27,18 +27,18 @@ export class ConfigAPI extends BaseAPI {
   }
 
   public async getValue(key: string): Promise<any> {
-    return (await this.requestJson(`${this._url}/api/config/${key}`, {method: 'GET'})).value;
+    return (await this.requestJson(`${this._url}/api/config/${key}`, { method: "GET" })).value;
   }
 
-  public async setValue(value: any, restart=false): Promise<void> {
+  public async setValue(value: any, restart = false): Promise<void> {
     await this.request(`${this._url}/api/config`, {
-      method: 'PATCH',
-      body: JSON.stringify({config: value, restart}),
+      method: "PATCH",
+      body: JSON.stringify({ config: value, restart }),
     });
   }
 
   public async restartServer(): Promise<void> {
-    await this.request(`${this._url}/api/admin/restart`, {method: 'POST'});
+    await this.request(`${this._url}/api/admin/restart`, { method: "POST" });
   }
 
   public async healthcheck(): Promise<void> {
@@ -53,8 +53,8 @@ export class ConfigAPI extends BaseAPI {
    */
   public async setActiveAuthProvider(providerKey: string): Promise<void> {
     await this.request(`${this._url}/api/config/auth-providers/set-active`, {
-      method: 'POST',
-      body: JSON.stringify({providerKey}),
+      method: "POST",
+      body: JSON.stringify({ providerKey }),
     });
   }
 
@@ -62,7 +62,7 @@ export class ConfigAPI extends BaseAPI {
    * Fetches available authentication providers from the server.
    */
   public async getAuthProviders(): Promise<AuthProvider[]> {
-    const resp = await this.requestJson(`${this._url}/api/config/auth-providers`, {method: 'GET'});
+    const resp = await this.requestJson(`${this._url}/api/config/auth-providers`, { method: "GET" });
     return resp as AuthProvider[];
   }
 

@@ -1,4 +1,4 @@
-import type {AppSettings} from 'app/server/lib/AppSettings';
+import type { AppSettings } from "app/server/lib/AppSettings";
 
 /**
  * Configuration for a login system provider. It is used by the ConfigBackendAPI to list the providers

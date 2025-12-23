@@ -1,5 +1,5 @@
-import { assert, driver } from 'mocha-webdriver';
-import { $, gu, server, test } from 'test/nbrowser/gristUtil-nbrowser';
+import { assert, driver } from "mocha-webdriver";
+import { $, gu, server, test } from "test/nbrowser/gristUtil-nbrowser";
 
 /**
  * Not much of the fancy list support of webdriverjq has been supported.
@@ -13,7 +13,7 @@ describe("webdriverjq.ntest", function() {
 
   before(async function() {
     await gu.supportOldTimeyTestCode();
-    await driver.get(server.getHost() + '/v/gtag/testWebdriverJQuery.html');
+    await driver.get(server.getHost() + "/v/gtag/testWebdriverJQuery.html");
   });
 
   it("should support basic jquery syntax", async function() {
@@ -24,7 +24,7 @@ describe("webdriverjq.ntest", function() {
     assert.equal((await $(".bar").array()).length, 2);
     assert.lengthOf(await $(".bar").toArray(), 2);
     assert(await $(".foo").hasClass("bar"));
-    assert.equal(await $(".foo.bar .baz").parent().getAttribute('className'), "foo bar");
+    assert.equal(await $(".foo.bar .baz").parent().getAttribute("className"), "foo bar");
     // Can't quite match old property-over-list behavior.
     // assert.equal(await $(".foo.bar").find(".baz").parent().prop('className'), "foo bar");
     // Parent behavior is not the same as it was.
@@ -41,8 +41,8 @@ describe("webdriverjq.ntest", function() {
   });
 
   it("should support .array()", async function() {
-    assert.deepEqual(await $(".bar").getAttribute('className'), 'foo bar');
-    assert.deepEqual(await $(".bar").array().getAttribute('className'), ['foo bar', 'bar']);
+    assert.deepEqual(await $(".bar").getAttribute("className"), "foo bar");
+    assert.deepEqual(await $(".bar").array().getAttribute("className"), ["foo bar", "bar"]);
     assert.deepEqual(await $(".bar").array().trimmedText(), ["Hello world", "Good bye"]);
     assert.deepEqual(await $(".bar").eq(0).trimmedText(), "Hello world");
     assert.deepEqual(await $(".bar").eq(1).trimmedText(), "Good bye");
@@ -77,7 +77,7 @@ describe("webdriverjq.ntest", function() {
   });
 
   function expectFailure(promise, regexp) {
-    throw new Error('not ported');
+    throw new Error("not ported");
     /*
     var stack = stacktrace.captureStackTrace("", expectFailure);
     return stacktrace.resolveWithStack(stack, promise.then(function(value) {
@@ -116,18 +116,18 @@ describe("webdriverjq.ntest", function() {
     assert.isDisplayed($("#btn"));
     expectFailure(assert.isDisplayed($("#btn"), false), /isDisplayed/);
 
-    assert.isDisplayed($(".baz").css('display', 'none').find("#btn"), false);
+    assert.isDisplayed($(".baz").css("display", "none").find("#btn"), false);
     expectFailure(assert.isDisplayed($("#btn")), /isDisplayed/);
     expectFailure(assert.ok($("#btn").click()), /not interactable/);
 
-    assert.isDisplayed($(".baz").css('display', '').find("#btn"), true);
+    assert.isDisplayed($(".baz").css("display", "").find("#btn"), true);
     expectFailure(assert.isDisplayed($("#btn"), false), /isDisplayed/);
   });
 
   it.skip("should report good errors", async function() {
-    await $(".baz").css('display', 'none').resolve();
+    await $(".baz").css("display", "none").resolve();
     expectFailure(assert.ok($("#btn").click()), /not interactable/);
-    await $(".baz").css('display', '').resolve();
+    await $(".baz").css("display", "").resolve();
     assert.ok($("#btn").click());
     assert.equal($("#btn").val(), "Goo");
     await $("#btn").val("Go").resolve();  // Revert the value to avoid affecting other test cases.

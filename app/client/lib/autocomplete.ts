@@ -1,18 +1,18 @@
 /**
  * Implements an autocomplete dropdown.
  */
-import {createPopper, Modifier, Instance as Popper, Options as PopperOptions} from '@popperjs/core';
-import {ACItem, ACResults, HighlightFunc} from 'app/client/lib/ACIndex';
-import {attachMouseOverOnMove, findAncestorChild} from 'app/client/lib/domUtils';
-import {reportError} from 'app/client/models/errors';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {MaybePromise} from 'app/plugin/gutil';
-import {Disposable, dom, DomContents} from 'grainjs';
-import {obsArray, onKeyElem, styled} from 'grainjs';
-import merge = require('lodash/merge');
-import maxSize from 'popper-max-size-modifier';
-import {cssMenu} from 'popweasel';
+import { ACItem, ACResults, HighlightFunc } from "app/client/lib/ACIndex";
+import { attachMouseOverOnMove, findAncestorChild } from "app/client/lib/domUtils";
+import { reportError } from "app/client/models/errors";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { MaybePromise } from "app/plugin/gutil";
 
+import { createPopper, Instance as Popper, Modifier, Options as PopperOptions } from "@popperjs/core";
+import { Disposable, dom, DomContents } from "grainjs";
+import { obsArray, onKeyElem, styled } from "grainjs";
+import merge from "lodash/merge";
+import maxSize from "popper-max-size-modifier";
+import { cssMenu } from "popweasel";
 
 export interface IAutocompleteOptions<Item extends ACItem> {
   // If provided, applies the css class to the menu container. Could be multiple, space-separated.
@@ -27,7 +27,7 @@ export interface IAutocompleteOptions<Item extends ACItem> {
   // To which element to append the popup content. Null means triggerElem.parentNode; string is
   // a selector for the closest matching ancestor of triggerElem, e.g. 'body'.
   // Defaults to the document body.
-  attach?: Element|string|null;
+  attach?: Element | string | null;
 
   // Defaults to true. If true, updates the input during selection (e.g. when using arrow keys or hovers over element).
   liveUpdate?: boolean;
@@ -59,10 +59,10 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   protected _selectedIndex: number = -1;
 
   // Currently selected element.
-  protected _selected: HTMLElement|null = null;
+  protected _selected: HTMLElement | null = null;
 
   private _popper: Popper;
-  private _mouseOver: {reset(): void};
+  private _mouseOver: { reset(): void };
   private _lastAsTyped: string;
   private _items = this.autoDispose(obsArray<Item>([]));
   private _extraItems = this.autoDispose(obsArray<Item>([]));
@@ -77,35 +77,35 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
 
     const content = cssMenuWrap(
       cssMenu(
-        {class: _options.menuCssClass || ''},
-        dom.style('min-width', _triggerElem.getBoundingClientRect().width + 'px'),
+        { class: _options.menuCssClass || "" },
+        dom.style("min-width", _triggerElem.getBoundingClientRect().width + "px"),
         this._maybeShowNoItemsMessage(),
-        this._menuContent = dom('div',
-          dom.forEach(this._items, (item) => _options.renderItem(item, this._highlightFunc)),
-          dom.forEach(this._extraItems, (item) => _options.renderItem(item, this._highlightFunc)),
-          dom.on('mouseleave', (ev) => this._setSelected(-1, this._liveUpdate)),
-          dom.on('click', (ev) => {
+        this._menuContent = dom("div",
+          dom.forEach(this._items, item => _options.renderItem(item, this._highlightFunc)),
+          dom.forEach(this._extraItems, item => _options.renderItem(item, this._highlightFunc)),
+          dom.on("mouseleave", ev => this._setSelected(-1, this._liveUpdate)),
+          dom.on("click", (ev) => {
             this._setSelected(this._findTargetItem(ev.target), this._liveUpdate);
             if (_options.onClick) { _options.onClick(); }
           }),
         ),
       ),
       // Prevent trigger element from being blurred on click.
-      dom.on('mousedown', (ev) => ev.preventDefault()),
+      dom.on("mousedown", ev => ev.preventDefault()),
     );
 
     this._mouseOver = attachMouseOverOnMove(this._menuContent,
-      (ev) => this._setSelected(this._findTargetItem(ev.target), this._liveUpdate));
+      ev => this._setSelected(this._findTargetItem(ev.target), this._liveUpdate));
 
     // Add key handlers to the trigger element as well as the menu if it is an input.
-    this.autoDispose(onKeyElem(_triggerElem, 'keydown', {
+    this.autoDispose(onKeyElem(_triggerElem, "keydown", {
       ArrowDown: () => this._setSelected(this._getNext(1), this._liveUpdate),
       ArrowUp: () => this._setSelected(this._getNext(-1), this._liveUpdate),
     }));
 
     // Keeps track of the last value as typed by the user.
     this.search();
-    this.autoDispose(dom.onElem(_triggerElem, 'input', () => this.search()));
+    this.autoDispose(dom.onElem(_triggerElem, "input", () => this.search()));
 
     const attachElem = _options.attach === undefined ? document.body : _options.attach;
     const containerElem = getContainer(_triggerElem, attachElem) ?? document.body;
@@ -119,7 +119,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     this.onDispose(() => this._popper.destroy());
   }
 
-  public getSelectedItem(): Item|undefined {
+  public getSelectedItem(): Item | undefined {
     return this._allItems[this._selectedIndex];
   }
 
@@ -130,7 +130,8 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   private get _value() {
     if (this._triggerElem instanceof HTMLInputElement) {
       return this._triggerElem.value;
-    } else if (this._triggerElem instanceof HTMLTextAreaElement) {
+    }
+    else if (this._triggerElem instanceof HTMLTextAreaElement) {
       return this._triggerElem.value;
     }
     return this._triggerElem.innerText;
@@ -139,9 +140,11 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   private set _value(value: string) {
     if (this._triggerElem instanceof HTMLInputElement) {
       this._triggerElem.value = value;
-    } else if (this._triggerElem instanceof HTMLTextAreaElement) {
+    }
+    else if (this._triggerElem instanceof HTMLTextAreaElement) {
       this._triggerElem.value = value;
-    } else {
+    }
+    else {
       this._triggerElem.innerText = value;
     }
   }
@@ -152,11 +155,11 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     const elem = (this._menuContent.children[index] as HTMLElement) || null;
     const prev = this._selected;
     if (elem !== prev) {
-      const clsName = this._options.selectedCssClass || 'selected';
+      const clsName = this._options.selectedCssClass || "selected";
       if (prev) { prev.classList.remove(clsName); }
       if (elem) {
         elem.classList.add(clsName);
-        elem.scrollIntoView({block: 'nearest'});
+        elem.scrollIntoView({ block: "nearest" });
       }
     }
     this._selected = elem;
@@ -166,15 +169,16 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
       // Update trigger's value with the selected choice, or else with the last typed value.
       if (elem && this._options.getItemText) {
         this._value = this._options.getItemText(this.getSelectedItem()!);
-      } else {
+      }
+      else {
         this._value = this._lastAsTyped;
       }
     }
   }
 
-  private _findTargetItem(target: EventTarget|null): number {
+  private _findTargetItem(target: EventTarget | null): number {
     // Find immediate child of this._menuContent which is an ancestor of ev.target.
-    const elem = findAncestorChild(this._menuContent, target as Element|null);
+    const elem = findAncestorChild(this._menuContent, target as Element | null);
     return Array.prototype.indexOf.call(this._menuContent.children, elem);
   }
 
@@ -203,7 +207,8 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     let index: number;
     if (findMatch) {
       index = findMatch(this._allItems);
-    } else {
+    }
+    else {
       index = inputVal ? acResults.selectIndex : -1;
     }
     this._setSelected(index, false);
@@ -214,62 +219,60 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   }
 
   private _maybeShowNoItemsMessage() {
-    const {buildNoItemsMessage} = this._options;
+    const { buildNoItemsMessage } = this._options;
     if (!buildNoItemsMessage) { return null; }
 
     return dom.maybe(use => use(this._items).length === 0, () =>
-      cssNoItemsMessage(buildNoItemsMessage(), testId('autocomplete-no-items-message')));
+      cssNoItemsMessage(buildNoItemsMessage(), testId("autocomplete-no-items-message")));
   }
 }
-
 
 // The maxSize modifiers follow recommendations at https://www.npmjs.com/package/popper-max-size-modifier
 const calcMaxSize = {
   ...maxSize,
-  options: {padding: 4},
+  options: { padding: 4 },
 };
 
 const applyMaxSize: Modifier<any, any> = {
-  name: 'applyMaxSize',
+  name: "applyMaxSize",
   enabled: true,
-  phase: 'beforeWrite',
-  requires: ['maxSize'],
-  fn({state}: any) {
+  phase: "beforeWrite",
+  requires: ["maxSize"],
+  fn({ state }: any) {
     // The `maxSize` modifier provides this data
-    const {height} = state.modifiersData.maxSize;
+    const { height } = state.modifiersData.maxSize;
     Object.assign(state.styles.popper, {
-      maxHeight: `${Math.max(160, height)}px`
+      maxHeight: `${Math.max(160, height)}px`,
     });
-  }
+  },
 };
 
 export const defaultPopperOptions: Partial<PopperOptions> = {
-  placement: 'bottom-start',
+  placement: "bottom-start",
   modifiers: [
     calcMaxSize,
     applyMaxSize,
-    {name: "computeStyles", options: {gpuAcceleration: false}},
+    { name: "computeStyles", options: { gpuAcceleration: false } },
   ],
 };
-
 
 /**
  * Helper that finds the container according to attachElem. Null means
  * elem.parentNode; string is a selector for the closest matching ancestor, e.g. 'body'.
  */
-function getContainer(elem: Element, attachElem: Element|string|null): Node|null {
-  return (typeof attachElem === 'string') ? elem.closest(attachElem) :
+function getContainer(elem: Element, attachElem: Element | string | null): Node | null {
+  return (typeof attachElem === "string") ? elem.closest(attachElem) :
     (attachElem || elem.parentNode);
 }
 
-const cssMenuWrap = styled('div', `
+const cssMenuWrap = styled("div", `
   position: absolute;
   display: flex;
   flex-direction: column;
   outline: none;
 `);
 
-const cssNoItemsMessage = styled('div', `
+const cssNoItemsMessage = styled("div", `
   color: ${theme.lightText};
   padding: var(--weaseljs-menu-item-padding, 8px 24px);
   text-align: center;

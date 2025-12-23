@@ -6,20 +6,20 @@
 
 
 
-var _ = require('underscore');
-var ko = require('knockout');
-var assert = require('assert');
-var gutil = require('app/common/gutil');
-var BinaryIndexedTree = require('app/common/BinaryIndexedTree');
-var {Delay} = require('./Delay');
-var dispose = require('./dispose');
-var kd = require('./koDom');
-var dom = require('./dom');
+var _ = require("underscore");
+var ko = require("knockout");
+var assert = require("assert");
+var gutil = require("app/common/gutil");
+var BinaryIndexedTree = require("app/common/BinaryIndexedTree");
+var {Delay} = require("./Delay");
+var dispose = require("./dispose");
+var kd = require("./koDom");
+var dom = require("./dom");
 
 /**
  * Use the browser globals in a way that allows replacing them with mocks in tests.
  */
-var G = require('./browserGlobals').get('window', '$');
+var G = require("./browserGlobals").get("window", "$");
 
 /**
  * Scrolly may contain multiple panes scrolling in parallel (e.g. for row numbers). The UI for
@@ -38,14 +38,14 @@ function ScrollyPane(scrolly, paneIndex, container, options, itemCreateFunc) {
 
   this.container.appendChild(
     this.scrollDiv = dom(
-      'div.scrolly_outer',
-      kd.style('height', this.scrolly.totalHeightPx),
+      "div.scrolly_outer",
+      kd.style("height", this.scrolly.totalHeightPx),
       this.blockDiv = dom(
-        'div',
-        kd.style('position', 'absolute'),
-        kd.style('top', this.scrolly.blockTopPx),
-        kd.style('width', options.fitToWidth ? '100%' : ''),
-        kd.style('padding-right', options.paddingRight + 'px')
+        "div",
+        kd.style("position", "absolute"),
+        kd.style("top", this.scrolly.blockTopPx),
+        kd.style("width", options.fitToWidth ? "100%" : ""),
+        kd.style("padding-right", options.paddingRight + "px")
       )
     )
   );
@@ -58,7 +58,7 @@ function ScrollyPane(scrolly, paneIndex, container, options, itemCreateFunc) {
     }
   });
 
-  G.$(this.container).on('scroll', () => this.scrolly.onScroll(this) );
+  G.$(this.container).on("scroll", () => this.scrolly.onScroll(this) );
 }
 
 /**
@@ -77,7 +77,7 @@ ScrollyPane.prototype.prepareNewRows = function() {
   if (prevRows.length > 0) {
     // Skip this check if there are no rows, maybe we just added this pane.
     assert.equal(prevRows.length, prevItemModels.length,
-             "Rows and models not in sync: " + prevRows.length + "!=" + prevItemModels.length);
+      "Rows and models not in sync: " + prevRows.length + "!=" + prevItemModels.length);
   }
 
   this.preparedRows = [];
@@ -102,7 +102,7 @@ ScrollyPane.prototype.prepareNewRows = function() {
       assert(item, "ScrollyPane item missing at index " + (begin + i));
       item._rowHeightPx("");    // Mark this row as in need of measuring.
       row = this.itemCreateFunc(item);
-      kd.style('height', item._rowHeightPx)(row);
+      kd.style("height", item._rowHeightPx)(row);
       ko.utils.domData.set(row, "itemModel", item);
       this.preparedRows[i] = row;
       // The row may not end up at the end of blockDiv, but we need to add it to the document in
@@ -183,15 +183,15 @@ function Scrolly(dataModel) {
 
   // Top in px of the rendered block; rowOffsetTree.getSumTo(this.begin)
   this.blockTop = ko.observable(0);
-  this.blockTopPx = ko.computed(function() { return this.blockTop() + 'px'; }, this);
+  this.blockTopPx = ko.computed(function() { return this.blockTop() + "px"; }, this);
 
   // The height of the scrolly_outer div
   this.totalHeight = ko.observable(0);
-  this.totalHeightPx = ko.computed(function() { return this.totalHeight() + 'px'; }, this);
+  this.totalHeightPx = ko.computed(function() { return this.totalHeight() + "px"; }, this);
 
   // Subscribe to data changes, and initialize with the current data.
   this.subscription = this.autoDispose(
-    this.data.subscribe(this.onDataSplice, this, 'spliceChange'));
+    this.data.subscribe(this.onDataSplice, this, "spliceChange"));
 
   // The delayedUpdateSize helper is used by scheduleUpdateSize.
   this.delayedUpdateSize = this.autoDispose(Delay.create());
@@ -206,9 +206,9 @@ function Scrolly(dataModel) {
     this.scheduleUpdateSize();
   };
 
-  G.$(G.window).on('resize.scrolly', onResize);
+  G.$(G.window).on("resize.scrolly", onResize);
 
-  this.autoDisposeCallback(() => G.$(G.window).off('resize.scrolly', onResize));
+  this.autoDisposeCallback(() => G.$(G.window).off("resize.scrolly", onResize));
 
 }
 exports.Scrolly = Scrolly;
@@ -222,16 +222,16 @@ Scrolly.prototype.debug = function() {
               "; block at " + this.blockTop() + " of " + this.totalHeight() +
               "; scrolled to " + this.scrollTop + "; shownHeight " + this.shownHeight);
   console.assert(this.numRows, this.data.peekLength,
-               "Wrong numRows; data is " + this.data.peekLength);
+    "Wrong numRows; data is " + this.data.peekLength);
   console.assert(this.numRows, this.rowHeights.length,
-               "Wrong rowHeights size " + this.rowHeights.length);
+    "Wrong rowHeights size " + this.rowHeights.length);
   console.assert(this.numRows, this.rowOffsetTree.size(),
-               "Wrong rowOffsetTree size " + this.rowOffsetTree.size());
+    "Wrong rowOffsetTree size " + this.rowOffsetTree.size());
   var count = Math.min(this.numRendered, this.numRows);
   console.assert(this.end - this.begin, count,
-               "Wrong range size " + (this.end - this.begin));
+    "Wrong range size " + (this.end - this.begin));
   console.assert(this.activeItemModels.length, count,
-               "Wrong activeItemModels.size " + this.activeItemModels.length);
+    "Wrong activeItemModels.size " + this.activeItemModels.length);
 
   var expectedHeight = this.blockBottom - this.blockTop();
   if (count > 0) {
@@ -472,7 +472,7 @@ Scrolly.prototype.render = function() {
   // we don't trigger additional reflows while measuring rows.
   for (i = 0, index = this.begin; i < count; i++, index++) {
     item = array[index];
-    item._rowHeightPx(this.rowHeights[index] + 'px');
+    item._rowHeightPx(this.rowHeights[index] + "px");
   }
 
   // Render the new rows in the new order in each pane.
@@ -622,7 +622,7 @@ Scrolly.prototype._updateRange = function() {
   const begin = this.rowOffsetTree.getIndex(this.scrollTop) - this.numBuffered;
   this.begin = gutil.clamp(begin, 0, this.numRows - this.numRendered);
   this.end = gutil.clamp(this.begin + this.numRendered, 0, this.numRows);
-}
+};
 
 //----------------------------------------------------------------------
 
@@ -645,7 +645,7 @@ Scrolly.prototype._updateRange = function() {
  *    Node (not a DocumentFragment or null).
  */
 function scrolly(data, options, itemCreateFunc) {
-  assert.equal(typeof itemCreateFunc, 'function');
+  assert.equal(typeof itemCreateFunc, "function");
   options = options || {};
   return function(elem) {
     var scrollyObj = getInstance(data);

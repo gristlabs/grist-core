@@ -11,16 +11,16 @@ import {
   Observable,
   subscribeElem,
   UseCB,
-  UseCBOwner
-} from 'grainjs';
-import {Observable as KoObservable} from 'knockout';
-import identity = require('lodash/identity');
+  UseCBOwner,
+} from "grainjs";
+import { Observable as KoObservable } from "knockout";
+import identity from "lodash/identity";
 
 // Some definitions have moved to be used by plugin API.
-export {arrayRepeat} from 'app/plugin/gutil';
+export { arrayRepeat } from "app/plugin/gutil";
 
-export const UP_TRIANGLE = '\u25B2';
-export const DOWN_TRIANGLE = '\u25BC';
+export const UP_TRIANGLE = "\u25B2";
+export const DOWN_TRIANGLE = "\u25BC";
 
 const EMAIL_RE = new RegExp("^\\w[\\w%+/='-]*(\\.[\\w%+/='-]+)*@([A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z" +
   "0-9])?\\.)+[A-Za-z]{2,24}$", "u");
@@ -33,22 +33,21 @@ export function startsWith(str: string, prefix: string): boolean {
 
 // Returns whether str ends with suffix.
 export function endsWith(str: string, suffix: string): boolean {
-  return str.indexOf(suffix, str.length - suffix.length) !== -1;
+  return str.includes(suffix, str.length - suffix.length);
 }
 
 // If str starts with prefix, removes it and returns what remains. Otherwise, returns null.
-export function removePrefix(str: string, prefix: string): string|null {
+export function removePrefix(str: string, prefix: string): string | null {
   return startsWith(str, prefix) ? str.slice(prefix.length) : null;
 }
 
-
 // If str ends with suffix, removes it and returns what remains. Otherwise, returns null.
-export function removeSuffix(str: string, suffix: string): string|null {
+export function removeSuffix(str: string, suffix: string): string | null {
   return endsWith(str, suffix) ? str.slice(0, str.length - suffix.length) : null;
 }
 
 export function removeTrailingSlash(str: string): string {
-  const result = removeSuffix(str, '/');
+  const result = removeSuffix(str, "/");
   return result === null ? str : result;
 }
 
@@ -117,7 +116,7 @@ export function roundDownToMultiple(n: number, m: number): number {
 /**
  * Returns the first argument unless it's undefined, in which case returns the second one.
  */
-export function undefDefault<T>(x: T|undefined, y: T): T {
+export function undefDefault<T>(x: T | undefined, y: T): T {
   return (x !== void 0) ? x : y;
 }
 
@@ -127,13 +126,13 @@ export function undefDefault<T>(x: T|undefined, y: T): T {
 type Undef1<T> = T extends [infer A] ? A : unknown;
 
 type Undef2<T> = T extends [infer A, infer B] ?
-    undefined extends A ? NonNullable<A> | Undef1<[B]> : A : Undef1<T>;
+  undefined extends A ? NonNullable<A> | Undef1<[B]> : A : Undef1<T>;
 
 type Undef3<T> = T extends [infer A, infer B, infer C] ?
-    undefined extends A ? NonNullable<A> | Undef2<[B, C]> : A : Undef2<T>;
+  undefined extends A ? NonNullable<A> | Undef2<[B, C]> : A : Undef2<T>;
 
 type Undef<T> = T extends [infer A, infer B, infer C, infer D] ?
-    undefined extends A ? NonNullable<A> | Undef3<[B, C, D]> : A : Undef3<T>;
+  undefined extends A ? NonNullable<A> | Undef3<[B, C, D]> : A : Undef3<T>;
 
 /*
 
@@ -156,8 +155,8 @@ const tb: string | number = undef(undefined, '2' as string | undefined, 3 as num
  * Returns the first defined value from the list or unknown.
  * Use with typed result, so the typescript type checker can provide correct type.
  */
-export function undef<T extends Array<any>>(...list: T): Undef<T> {
-  for(const value of list) {
+export function undef<T extends any[]>(...list: T): Undef<T> {
+  for (const value of list) {
     if (value !== undefined) { return value; }
   }
   return undefined as any;
@@ -168,12 +167,14 @@ export function undef<T extends Array<any>>(...list: T): Undef<T> {
  * be represented as a valid number.
  */
 export function numberOrDefault<T>(value: unknown, defaultVal: T): number | T {
-  if (typeof value === 'number') {
+  if (typeof value === "number") {
     return !Number.isNaN(value) ? value : defaultVal;
-  } else if (typeof value === 'string') {
+  }
+  else if (typeof value === "string") {
     const maybeNumber = Number.parseFloat(value);
     return !Number.isNaN(maybeNumber) ? maybeNumber : defaultVal;
-  } else {
+  }
+  else {
     return defaultVal;
   }
 }
@@ -183,8 +184,9 @@ export function numberOrDefault<T>(value: unknown, defaultVal: T): number | T {
  */
 export function safeJsonParse(json: string, defaultVal: any): any {
   try {
-    return json !== '' && json !== undefined ? JSON.parse(json) : defaultVal;
-  } catch (e) {
+    return json !== "" && json !== undefined ? JSON.parse(json) : defaultVal;
+  }
+  catch (e) {
     return defaultVal;
   }
 }
@@ -193,16 +195,16 @@ export function safeJsonParse(json: string, defaultVal: any): any {
  * Just like encodeURIComponent, but does not encode slashes. Slashes don't hurt to be included in
  * URL parameters, and look much friendlier not encoded.
  */
-export function encodeQueryParam(str: string|number|undefined): string {
-  return encodeURIComponent(String(str === undefined ? null : str)).replace(/%2F/g, '/');
+export function encodeQueryParam(str: string | number | undefined): string {
+  return encodeURIComponent(String(str === undefined ? null : str)).replace(/%2F/g, "/");
 }
 
 /**
  * Encode an object into a querystring ("key=value&key2=value2").
  * This is similar to JQuery's $.param, but only works on shallow objects.
  */
-export function encodeQueryParams(obj: {[key: string]: string|number|undefined}): string {
-  return Object.keys(obj).map((k: string) => encodeQueryParam(k) + '=' + encodeQueryParam(obj[k])).join('&');
+export function encodeQueryParams(obj: { [key: string]: string | number | undefined }): string {
+  return Object.keys(obj).map((k: string) => encodeQueryParam(k) + "=" + encodeQueryParam(obj[k])).join("&");
 }
 
 /**
@@ -229,7 +231,6 @@ export function maxsplit(str: string, sep: string, maxNumSplits: number): string
   return result;
 }
 
-
 // Compare arrays of scalars for equality.
 export function arraysEqual(a: any[], b: any[]): boolean {
   if (a === b) {
@@ -248,7 +249,6 @@ export function arraysEqual(a: any[], b: any[]): boolean {
   return true;
 }
 
-
 // Gives a set representing the set difference a - b.
 export function setDifference<T>(a: Set<T>, b: Set<T>): Set<T> {
   const c = new Set<T>();
@@ -263,7 +263,6 @@ export function indexOf<T>(arrayLike: ArrayLike<T>, item: T): number {
   return Array.prototype.indexOf.call(arrayLike, item);
 }
 
-
 /**
  * Removes a value from the given array. Only the first instance is removed.
  * Returns true on success, false if the value was not found.
@@ -277,7 +276,6 @@ export function arrayRemove<T>(array: T[], value: T): boolean {
   return true;
 }
 
-
 /**
  * Inserts value into the array before nextValue, or at the end if nextValue is not found.
  */
@@ -285,11 +283,11 @@ export function arrayInsertBefore<T>(array: T[], value: T, nextValue: T): void {
   const index = array.indexOf(nextValue);
   if (index === -1) {
     array.push(value);
-  } else {
+  }
+  else {
     array.splice(index, 0, value);
   }
 }
-
 
 /**
  * Extends the first array with the second. Like native push, but adds all values in anotherArray.
@@ -300,7 +298,6 @@ export function arrayExtend<T>(array: T[], anotherArray: T[]): void {
   }
 }
 
-
 /**
  * Copies count items from fromArray to toArray, copying in a forward direction (which matters
  * when the arrays are the same and source and destination indices overlap).
@@ -309,7 +306,7 @@ export function arrayExtend<T>(array: T[], anotherArray: T[]): void {
  * one is chosen as consistently among the faster ones.
  */
 export function arrayCopyForward<T>(toArray: T[], toStart: number,
-                                    fromArray: ArrayLike<T>, fromStart: number, count: number): void {
+  fromArray: ArrayLike<T>, fromStart: number, count: number): void {
   const end = toStart + count;
   for (const xend = end - 7; toStart < xend; fromStart += 8, toStart += 8) {
     toArray[toStart] = fromArray[fromStart];
@@ -326,7 +323,6 @@ export function arrayCopyForward<T>(toArray: T[], toStart: number,
   }
 }
 
-
 /**
  * Copies count items from fromArray to toArray, copying in a backward direction (which matters
  * when the arrays are the same and source and destination indices overlap).
@@ -335,7 +331,7 @@ export function arrayCopyForward<T>(toArray: T[], toStart: number,
  * one is chosen as consistently among the faster ones.
  */
 export function arrayCopyBackward<T>(toArray: T[], toStart: number,
-                                     fromArray: ArrayLike<T>, fromStart: number, count: number): void {
+  fromArray: ArrayLike<T>, fromStart: number, count: number): void {
   let i = toStart + count - 1, j = fromStart + count - 1;
   for (const xStart = toStart + 7; i >= xStart; i -= 8, j -= 8) {
     toArray[i] = fromArray[j];
@@ -347,11 +343,10 @@ export function arrayCopyBackward<T>(toArray: T[], toStart: number,
     toArray[i - 6] = fromArray[j - 6];
     toArray[i - 7] = fromArray[j - 7];
   }
-  for ( ; i >= toStart; --i, --j) {
+  for (; i >= toStart; --i, --j) {
     toArray[i] = fromArray[j];
   }
 }
-
 
 /**
  * Appends a slice of fromArray to the end of toArray.
@@ -362,13 +357,13 @@ export function arrayCopyBackward<T>(toArray: T[], toStart: number,
 export function arrayAppend<T>(toArray: T[], fromArray: ArrayLike<T>, fromStart: number, count: number): void {
   if (count === 1) {
     toArray.push(fromArray[fromStart]);
-  } else {
+  }
+  else {
     const len = toArray.length;
     toArray.length = len + count;
     arrayCopyForward(toArray, len, fromArray, fromStart, count);
   }
 }
-
 
 /**
  * Splices array arrToInsert into target starting at the given start index.
@@ -387,14 +382,14 @@ export function arraySplice<T>(target: T[], start: number, arrToInsert: ArrayLik
     arrayCopyForward(target, origLen, arrToInsert, tailLen, insLen - tailLen);
     arrayCopyForward(target, start + insLen, target, start, tailLen);
     arrayCopyForward(target, start, arrToInsert, 0, tailLen);
-  } else {
+  }
+  else {
     arrayCopyForward(target, origLen, target, origLen - insLen, insLen);
     arrayCopyBackward(target, start + insLen, target, start, tailLen - insLen);
     arrayCopyForward(target, start, arrToInsert, 0, insLen);
   }
   return target;
 }
-
 
 // Type for a compare func that returns a positive, negative, or zero value, as used for sorting.
 export type CompareFunc<T> = (a: T, b: T) => number;
@@ -416,7 +411,8 @@ export function sortedIndex<T>(array: ArrayLike<T>, elem: T, compareFunc: Compar
     mid = Math.floor((lo + hi) / 2);
     if (compareFunc(array[mid], elem) < 0) { // mid < elem
       lo = mid + 1;
-    } else {
+    }
+    else {
       hi = mid;
     }
   }
@@ -441,14 +437,13 @@ export function hasDuplicates(array: any[]): boolean {
 /**
  * Counts the number of items in array which satisfy the callback.
  */
-export function countIf<T>(array: ReadonlyArray<T>, callback: (item: T) => boolean): number {
+export function countIf<T>(array: readonly T[], callback: (item: T) => boolean): number {
   let count = 0;
-  array.forEach(item => {
+  array.forEach((item) => {
     if (callback(item)) { count++; }
   });
   return count;
 }
-
 
 /**
  * For two parallel arrays, calls mapFunc(a[i], b[i]) for each pair of corresponding elements, and
@@ -471,9 +466,9 @@ export function map2<T, U, V>(array1: ArrayLike<T>, array2: ArrayLike<U>, mapFun
  */
 export function growMatrix<T>(dataMatrix: T[][], r: number, c: number): T[][] {
   const colArr = dataMatrix.map(colVals =>
-    Array.from({length: c}, (_v, k) => colVals[k % colVals.length])
+    Array.from({ length: c }, (_v, k) => colVals[k % colVals.length]),
   );
-  return Array.from({length: r}, (_v, k) => colArr[k % colArr.length]);
+  return Array.from({ length: r }, (_v, k) => colArr[k % colArr.length]);
 }
 
 /**
@@ -489,11 +484,11 @@ export function growMatrix<T>(dataMatrix: T[][], r: number, c: number): T[][] {
  *   If compare(a, b) == 0 then a == b,
  * @param {Array of 1/-1's} optAscending - Comparison on sortKeyFuncs[i] is inverted if optAscending[i] == -1
  */
-export function multiCompareFunc<T, U>(sortKeyFuncs: ReadonlyArray<(a: T) => U>,
-                                       compareFuncs: ArrayLike<CompareFunc<U>>,
-                                       optAscending?: number[]): CompareFunc<T> {
+export function multiCompareFunc<T, U>(sortKeyFuncs: readonly ((a: T) => U)[],
+  compareFuncs: ArrayLike<CompareFunc<U>>,
+  optAscending?: number[]): CompareFunc<T> {
   if (sortKeyFuncs.length !== compareFuncs.length) {
-    throw new Error('Number of sort key funcs must be the same as the number of compare funcs');
+    throw new Error("Number of sort key funcs must be the same as the number of compare funcs");
   }
   const ascending = optAscending || sortKeyFuncs.map(() => 1);
   return function(a: T, b: T): number {
@@ -507,7 +502,6 @@ export function multiCompareFunc<T, U>(sortKeyFuncs: ReadonlyArray<(a: T) => U>,
     return 0;
   };
 }
-
 
 export function nativeCompare<T>(a: T, b: T): number {
   return (a < b ? -1 : (a > b ? 1 : 0));
@@ -523,7 +517,7 @@ export function propertyCompare<T>(property: keyof T) {
 }
 
 // TODO: In the future, locale should be a value associated with the document or the user.
-export const defaultLocale = 'en-US';
+export const defaultLocale = "en-US";
 export const defaultCollator = new Intl.Collator(defaultLocale);
 export const localeCompare = defaultCollator.compare;
 
@@ -539,7 +533,6 @@ export function setDefault<K, V>(mapInst: Map<K, V>, key: K, val: V): V {
   return mapInst.get(key)!;
 }
 
-
 /**
  * Similar to Python's `setdefault`: returns the key `key` from `mapInst`, or if it's not there, sets
  * it to the result buildValue().
@@ -549,13 +542,12 @@ export function getSetMapValue<K, V>(mapInst: Map<K, V>, key: K, buildValue: () 
   return mapInst.get(key)!;
 }
 
-
 /**
  * If key is in mapInst, remove it and return its value, else return `undefined`.
  * @param {Map} mapInst: Instance of Map.
  * @param {Object} key: Key into the map to remove.
  */
-export function popFromMap<K, V>(mapInst: Map<K, V>, key: K): V|undefined {
+export function popFromMap<K, V>(mapInst: Map<K, V>, key: K): V | undefined {
   const value = mapInst.get(key);
   mapInst.delete(key);
   return value;
@@ -565,7 +557,7 @@ export function popFromMap<K, V>(mapInst: Map<K, V>, key: K): V|undefined {
  * For each encountered value in `values`, increment the corresponding counter in `valueCounts`.
  */
 export function addCountsToMap<T>(valueCounts: Map<T, number>, values: Iterable<T>,
-                                  mapFunc: (v: any) => any = identity) {
+  mapFunc: (v: any) => any = identity) {
   for (const v of values) {
     const mappedValue = mapFunc(v);
     valueCounts.set(mappedValue, (valueCounts.get(mappedValue) || 0) + 1);
@@ -583,7 +575,6 @@ export function isSubset(smaller: Set<any>, larger: Set<any>): boolean {
   }
   return true;
 }
-
 
 /**
  * Merges the contents of two or more objects together into the first object, recursing into
@@ -609,8 +600,9 @@ export function deepExtend(target: any, _varArgObjects: any): any {
         const tgt = target[name];
         if (Array.isArray(src)) {
           src = deepExtend(tgt && Array.isArray(tgt) ? tgt : [], src);
-        } else if (typeof src === 'object') {
-          src = deepExtend(tgt && typeof tgt === 'object' ? tgt : {}, src);
+        }
+        else if (typeof src === "object") {
+          src = deepExtend(tgt && typeof tgt === "object" ? tgt : {}, src);
         }
       }
       target[name] = src;
@@ -620,7 +612,6 @@ export function deepExtend(target: any, _varArgObjects: any): any {
   return target;
 }
 
-
 /**
  * Returns a human-readable string containing a number of bytes, KB, or MB.
  * @param {Number} bytes. Number of bytes.
@@ -628,14 +619,15 @@ export function deepExtend(target: any, _varArgObjects: any): any {
  */
 export function byteString(bytes: number): string {
   if (bytes < 1024) {
-    return bytes + 'B';
-  } else if (bytes < 1024 * 1024) {
-    return (bytes / 1024).toFixed(1) + 'KB';
-  } else {
-    return (bytes / 1024 / 1024).toFixed(1) + 'MB';
+    return bytes + "B";
+  }
+  else if (bytes < 1024 * 1024) {
+    return (bytes / 1024).toFixed(1) + "KB";
+  }
+  else {
+    return (bytes / 1024 / 1024).toFixed(1) + "MB";
   }
 }
-
 
 /**
  * Creates a new object mapping each key in keysArray to the value returned by callback.
@@ -646,9 +638,9 @@ export function byteString(bytes: number): string {
  * @returns {Object} - object mapping keys from `keysArray` to values returned by `callback`.
  */
 export function mapToObject<T>(keysArray: string[], callback: (key: string) => T,
-                               optThisArg: any): {[key: string]: T} {
+  optThisArg: any): { [key: string]: T } {
   const values: T[] = keysArray.map(callback, optThisArg);
-  const map: {[key: string]: T} = {};
+  const map: { [key: string]: T } = {};
   for (let i = 0; i < keysArray.length; i++) {
     map[keysArray[i]] = values[i];
   }
@@ -689,20 +681,20 @@ export function pruneArray<T>(arr: T[], indexes: number[]) {
  * plus additional illegal identifiers None, False, True
  * Using [] instead of new Array causes a "comprehension error" for some reason
  */
-const _kwlist = ['False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
-                 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally',
-                 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal',
-                 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield'];
+const _kwlist = ["False", "None", "True", "and", "as", "assert", "async", "await", "break",
+  "class", "continue", "def", "del", "elif", "else", "except", "finally",
+  "for", "from", "global", "if", "import", "in", "is", "lambda", "nonlocal",
+  "not", "or", "pass", "raise", "return", "try", "while", "with", "yield"];
 /**
  * Given an arbitrary string, makes substitutions to make it a valid SQL/Python identifier.
  * Corresponds to sandbox/grist/gencode.sanitize_ident
  */
 export function sanitizeIdent(ident: string, prefix?: string) {
-  prefix = prefix || 'c';
+  prefix = prefix || "c";
   // Remove non-alphanumeric non-_ chars
-  ident = ident.replace(/[^a-zA-Z0-9_]+/g, '_');
+  ident = ident.replace(/[^a-zA-Z0-9_]+/g, "_");
   // Remove leading and trailing _
-  ident = ident.replace(/^_+|_+$/g, '');
+  ident = ident.replace(/^_+|_+$/g, "");
   // Place prefix at front if the beginning isn't a number
   ident = ident.replace(/^(?=[0-9])/g, prefix);
   // Append prefix until it is not  python keyword
@@ -712,7 +704,6 @@ export function sanitizeIdent(ident: string, prefix?: string) {
   return ident;
 }
 
-
 /**
  * Clone a function, returning a function object that represents a brand new function with the
  * same code. If the same function is used with different argument types, it would prevent JS V8
@@ -721,19 +712,17 @@ export function sanitizeIdent(ident: string, prefix?: string) {
  *
  * As with all micro-optimizations, only do this when the optimization matters.
  */
-export function cloneFunc(fn: Function): Function {     // tslint:disable-line:ban-types
-  /* jshint evil:true */  // suppress eval warning.
-  return eval('(' + fn.toString() + ')');   // tslint:disable-line:no-eval
+export function cloneFunc(fn: Function): Function {      /* jshint evil:true */  // suppress eval warning.
+  return eval("(" + fn.toString() + ")");
 }
-
 
 /**
  * Generates a random id using a sequence of uppercase alphanumeric characters
  * preceded by an optional prefix.
  */
 export function genRandomId(len: number, optPrefix?: string): string {
-  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let ret = optPrefix || '';
+  const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let ret = optPrefix || "";
   for (let i = 0; i < len; i++) {
     ret += chars[Math.floor(Math.random() * chars.length)];
   }
@@ -753,8 +742,8 @@ export function genRandomId(len: number, optPrefix?: string): string {
  *  Defaults to the identity function.
  */
 export function sortedScan<T, U>(arrA: ArrayLike<T>, arrB: ArrayLike<U>,
-                                 callback: (a: T|null, B: U|null) => void,
-                                 optKeyFunc?: (item: T|U) => any) {
+  callback: (a: T | null, B: U | null) => void,
+  optKeyFunc?: (item: T | U) => any) {
   const keyFunc = optKeyFunc || identity;
   let i = 0, j = 0;
   while (i < arrA.length || j < arrB.length) {
@@ -764,10 +753,12 @@ export function sortedScan<T, U>(arrA: ArrayLike<T>, arrB: ArrayLike<U>,
     if (keyA !== null && (keyB === null || keyA < keyB)) {
       callback(a, null);
       i++;
-    } else if (keyA === null || keyA > keyB) {
+    }
+    else if (keyA === null || keyA > keyB) {
       callback(null, b);
       j++;
-    } else {
+    }
+    else {
       callback(a, b);
       i++;
       j++;
@@ -786,7 +777,8 @@ export function getReconnectTimeout(attemptNumber: number, intervals: ArrayLike<
     // Add an additional wait time if already at max attempts.
     const timeout = intervals[intervals.length - 1];
     return timeout + Math.random() * timeout;
-  } else {
+  }
+  else {
     return intervals[attemptNumber];
   }
 }
@@ -824,8 +816,8 @@ export function waitObs<T>(observable: KoObservable<T>, predicate: (value: T) =>
 export async function waitGrainObs<T>(observable: Observable<T>): Promise<NonNullable<T>>;
 export async function waitGrainObs<T>(observable: Observable<T>, predicate?: (value: T) => boolean): Promise<T>;
 export async function waitGrainObs<T>(observable: Observable<T>,
-                                      predicate: (value: T) => boolean = Boolean): Promise<T> {
-  let sub: Listener|undefined;
+  predicate: (value: T) => boolean = Boolean): Promise<T> {
+  let sub: Listener | undefined;
   const res: T = await new Promise((resolve, _reject) => {
     const value = observable.get();
     if (predicate(value)) { return resolve(value); }
@@ -839,16 +831,14 @@ export async function waitGrainObs<T>(observable: Observable<T>,
   return res;
 }
 
-
 // `dom.style` does not work here because custom css property (ie: `--foo`) needs to be set using
 // `style.setProperty` (credit: https://vanseodesign.com/css/custom-properties-and-javascript/).
 // TODO: consider making PR to fix `dom.style` in grainjs.
 export function inlineStyle(property: string, valueObs: BindableValue<any>): DomElementMethod {
-  return (elem) => subscribeElem(elem, valueObs, (val) => {
-    elem.style.setProperty(property, String(val ?? ''));
+  return elem => subscribeElem(elem, valueObs, (val) => {
+    elem.style.setProperty(property, String(val ?? ""));
   });
 }
-
 
 /**
  * Class to maintain a chain of promise-returning callbacks. All scheduled callbacks will be
@@ -856,7 +846,7 @@ export function inlineStyle(property: string, valueObs: BindableValue<any>): Dom
  * already-scheduled callbacks will be skipped, but newly-scheduled ones will be run.
  */
 export class PromiseChain<T> {
-  private _last: Promise<T|void> = Promise.resolve();
+  private _last: Promise<T | void> = Promise.resolve();
 
   // Adds a callback to the chain. If the callback runs, the return value is the return value of
   // the callback. If it's skipped due to a failure earlier in the chain, the return value is the
@@ -881,10 +871,7 @@ export function isColorDark(hexColor: string, isDarkBelow: number = 220): boolea
   const c = hexColor.substring(1);  // strip #
   const rgb = parseInt(c, 16);      // convert rrggbb to decimal
   // Extract RGB components
-  const r = (rgb >> 16) & 0xff;     // tslint:disable-line:no-bitwise
-  const g = (rgb >>  8) & 0xff;     // tslint:disable-line:no-bitwise
-  const b = (rgb >>  0) & 0xff;     // tslint:disable-line:no-bitwise
-
+  const r = (rgb >> 16) & 0xff;      const g = (rgb >>  8) & 0xff;      const b = (rgb >>  0) & 0xff;
   const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;  // per ITU-R BT.709
   return luma < isDarkBelow;
 }
@@ -907,7 +894,7 @@ export function isValidHex(val: unknown): val is string {
  * returns false, including when promise is rejected.
  */
 export async function timeoutReached(
-  msec: number, promise: Promise<unknown>, options: {rethrow: boolean} = {rethrow: false}
+  msec: number, promise: Promise<unknown>, options: { rethrow: boolean } = { rethrow: false },
 ): Promise<boolean> {
   // For test purposes, support negative timeout, by failing
   // immediately.
@@ -921,12 +908,14 @@ export async function timeoutReached(
   try {
     const res = await Promise.race([promise, delayPromise]);
     return res == timedOut;
-  } catch (err) {
+  }
+  catch (err) {
     if (options.rethrow) {
       throw err;
     }
     return false;
-  } finally {
+  }
+  finally {
     clearTimeout(timer!);
   }
 }
@@ -945,7 +934,7 @@ export async function isLongerThan(promise: Promise<unknown>, timeoutMsec: numbe
  * parameters that may have been manually set.
  */
 export function isAffirmative(parameter: any): boolean {
-  return ['1', 'on', 'true', 'yes'].includes(String(parameter).toLowerCase());
+  return ["1", "on", "true", "yes"].includes(String(parameter).toLowerCase());
 }
 
 /**
@@ -969,7 +958,7 @@ export function truthy<T>(value: T | null | undefined): value is Exclude<T, fals
  * Returns the value of both grainjs and knockout observable without creating a dependency.
  */
 export const unwrap: UseCB = (obs: ISubscribable) => {
-  if ('_getDepItem' in obs) {
+  if ("_getDepItem" in obs) {
     return obs.get();
   }
   return (obs as ko.Observable).peek();
@@ -984,11 +973,11 @@ export function useBindable<T>(use: UseCBOwner, obs: BindableValue<T>): T {
   const smth = obs as any;
 
   // If knockout
-  if (typeof smth === 'function' && 'peek' in smth) { return use(smth) as T; }
+  if (typeof smth === "function" && "peek" in smth) { return use(smth) as T; }
   // If grainjs Observable or Computed
-  if (typeof smth === 'object' && '_getDepItem' in smth) { return use(smth) as T; }
+  if (typeof smth === "object" && "_getDepItem" in smth) { return use(smth) as T; }
   // If use function ComputedCallback
-  if (typeof smth === 'function') { return smth(use) as T; }
+  if (typeof smth === "function") { return smth(use) as T; }
 
   return obs as T;
 }
@@ -996,8 +985,10 @@ export function useBindable<T>(use: UseCBOwner, obs: BindableValue<T>): T {
 /**
  * Useful helper for simple boolean negation.
  */
-export const not = (obs: Observable<any>|IKnockoutReadObservable<any>|boolean|undefined|null) => (use: UseCBOwner) =>  {
-  if (typeof obs === 'boolean') { return !obs; }
+export const not = (
+  obs: Observable<any> | IKnockoutReadObservable<any> | boolean | undefined | null,
+) => (use: UseCBOwner) =>  {
+  if (typeof obs === "boolean") { return !obs; }
   if (obs === null || obs === undefined) { return true; }
   return !use(obs);
 };
@@ -1030,7 +1021,8 @@ export function assertIsDefined<T>(name: string, value: T): asserts value is Non
 export async function retryOnce<T>(fn: () => Promise<T>, recover: (e: unknown) => Promise<void>): Promise<T> {
   try {
     return await fn();
-  } catch (e) {
+  }
+  catch (e) {
     await recover(e);
     return await fn();
   }
@@ -1041,10 +1033,10 @@ export async function retryOnce<T>(fn: () => Promise<T>, recover: (e: unknown) =
  * Values like 0, true, false are not empty.
  */
 export function notSet(value: any) {
-  return value === undefined || value === null || value === ''
-         || (Array.isArray(value) && !value.length)
-         || (typeof value === 'object' && !Object.keys(value).length)
-         || (['[object Map]', '[object Set'].includes(value.toString()) && !value.size);
+  return value === undefined || value === null || value === "" ||
+    (Array.isArray(value) && !value.length) ||
+    (typeof value === "object" && !Object.keys(value).length) ||
+    (["[object Map]", "[object Set"].includes(value.toString()) && !value.size);
 }
 
 /**
@@ -1060,10 +1052,10 @@ export function ifNotSet(value: any, def: any = null) {
  */
 export function computedOwned<T>(
   owner: IDisposableOwner,
-  func: (owner: IDisposableOwner, use: UseCBOwner) => T
+  func: (owner: IDisposableOwner, use: UseCBOwner) => T,
 ): Computed<T> {
   const holder = Holder.create(owner);
-  return Computed.create(owner, use => {
+  return Computed.create(owner, (use) => {
     const computedOwner = MultiHolder.create(holder);
     return func(computedOwner, use);
   });
@@ -1098,10 +1090,10 @@ export function inSeconds(text: string): number {
   const [, value, unit] = match;
   const seconds = parseInt(value, 10);
   switch (unit) {
-    case 's': return seconds;
-    case 'm': return seconds * 60;
-    case 'h': return seconds * 60 * 60;
-    case 'd': return seconds * 60 * 60 * 24;
+    case "s": return seconds;
+    case "m": return seconds * 60;
+    case "h": return seconds * 60 * 60;
+    case "d": return seconds * 60 * 60 * 24;
     default: throw new Error(`Invalid duration unit: ${unit}`);
   }
 }

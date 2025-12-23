@@ -1,7 +1,7 @@
-import { assert } from 'mocha-webdriver';
-import { $, gu, test } from 'test/nbrowser/gristUtil-nbrowser';
+import { assert } from "mocha-webdriver";
+import { $, gu, test } from "test/nbrowser/gristUtil-nbrowser";
 
-describe('Properties.ntest', function() {
+describe("Properties.ntest", function() {
   const cleanup = test.setupTestSuite(this);
   before(async function() {
     await gu.supportOldTimeyTestCode();
@@ -26,7 +26,7 @@ describe('Properties.ntest', function() {
     assert.equal(await gu.getCellRC(0, 0).text(), specialChars + specialChars);
 
     // Undo and compare to previous value.
-    await gu.sendKeys([$.MOD, 'z']);
+    await gu.sendKeys([$.MOD, "z"]);
     await gu.waitForServer();
     assert.equal(await gu.getCellRC(0, 0).text(), text);
   });
@@ -43,10 +43,10 @@ describe('Properties.ntest', function() {
     await $("$GridView_columnLabel:nth-child(2)").click();
 
     // Convert the column to Numeric.
-    await gu.openSidePane('field');
-    assert.equal(await $(".test-field-label").val(), 'B');
-    await gu.setType('Numeric');
-    await $('.test-type-transform-apply').wait().click();
+    await gu.openSidePane("field");
+    assert.equal(await $(".test-field-label").val(), "B");
+    await gu.setType("Numeric");
+    await $(".test-type-transform-apply").wait().click();
     await gu.waitForServer();
 
     assert.deepEqual(await gu.getVisibleGridCells(1, [1, 2, 3, 4]),
@@ -68,8 +68,8 @@ describe('Properties.ntest', function() {
   it("cells should indicate when new value is wrong type", async function() {
     // Go to column "c", and change type to Numeric.
     await $("$GridView_columnLabel:nth-child(3)").click();
-    assert.equal(await $(".test-field-label").val(), 'C');
-    await gu.setType('Numeric', {apply: true})
+    assert.equal(await $(".test-field-label").val(), "C");
+    await gu.setType("Numeric", {apply: true});
 
     // Remove focus from FieldBuilder type dropdown, so that sentKeys go to the main app.
     await $("body").click();
@@ -86,7 +86,7 @@ describe('Properties.ntest', function() {
     assert.deepEqual(await gu.getVisibleGridCells({
       col: 2,
       rowNums: [1, 2, 3, 4],
-      mapper: e => e.find('.field_clip').hasClass('invalid'),
+      mapper: e => e.find(".field_clip").hasClass("invalid"),
     }), [false, false, true, false]);
 
     // Select the column again, and type in values in a different order. Ensure the cells change
@@ -101,7 +101,7 @@ describe('Properties.ntest', function() {
     assert.deepEqual(await gu.getVisibleGridCells({
       col: 2,
       rowNums: [1, 2, 3, 4],
-      mapper: e => e.find('.field_clip').hasClass('invalid')
+      mapper: e => e.find(".field_clip").hasClass("invalid")
     }), [false, true, false, false]);
   });
 
@@ -112,36 +112,36 @@ describe('Properties.ntest', function() {
     // Fill in a bunch of formula text for the "eval" formula to try. This is a way to get a whole
     // bunch of different errors in one columns.
     await $("$GridView_columnLabel:nth-child(4)").click();
-    assert.equal(await $(".test-field-label").val(), 'D');
-    await gu.setType('Text');
+    assert.equal(await $(".test-field-label").val(), "D");
+    await gu.setType("Text");
 
     await gu.enterGridValues(0, 3, [[
-                       "25",
-                       "",
-                       "asdf",
-                       "ValueError()",
-                       "__import__('sys').exit(3)",
-                       'u"résumé 三"',
-                       "12/(2-1-1)",
-                       "[1,2,3]"]]);
+      "25",
+      "",
+      "asdf",
+      "ValueError()",
+      "__import__('sys').exit(3)",
+      'u"résumé 三"',
+      "12/(2-1-1)",
+      "[1,2,3]"]]);
     await gu.waitForServer();
 
     assert.deepEqual(await gu.getVisibleGridCells(4, [1, 2, 3, 4, 5, 6, 7, 8]), [
-        "25",
-        "#SyntaxError",
-        "#NameError",
-        "ValueError()",
-        "#SystemExit",
-        'résumé 三',
-        "#DIV/0!",
-        "1, 2, 3",
+      "25",
+      "#SyntaxError",
+      "#NameError",
+      "ValueError()",
+      "#SystemExit",
+      "résumé 三",
+      "#DIV/0!",
+      "1, 2, 3",
     ]);
 
     assert.deepEqual(
       await gu.getVisibleGridCells({
         col: 4,
         rowNums: [1, 2, 3, 4, 5, 6, 7, 8],
-        mapper: e => e.find('.field_clip').hasClass("invalid")
+        mapper: e => e.find(".field_clip").hasClass("invalid")
       }),
       // Last one (list) is valid because lists are a supported type of value.
       [false, true, true, true, true, false, true, false]);
