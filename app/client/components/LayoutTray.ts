@@ -185,7 +185,7 @@ export class LayoutTray extends DisposableWithEvents {
         // remove the box from the dom. Charts are very sensitive for this.
         viewLayout.viewModel.activeSectionId(
           // We can't collapse last section, so the main layout will always have at least one section.
-          viewLayout.layoutEditor.layout.getAllLeafIds().filter(x => x !== leafId)[0],
+          viewLayout.layoutEditor.layout.getAllLeafIds().find(x => x !== leafId),
         );
 
         // Add the box to our collapsed editor (it will transfer the viewInstance).

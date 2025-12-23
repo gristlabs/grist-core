@@ -1138,7 +1138,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
     function findSection(viewSections: ViewSectionRec[]) {
       const section = viewSections
         .filter(s => s.tableRef.peek() === discussion.tableRef.peek())
-        .filter(s => s.viewFields.peek().all().find(f => f.colRef.peek() === discussion.colRef.peek()))[0];
+        .find(s => s.viewFields.peek().all().find(f => f.colRef.peek() === discussion.colRef.peek()));
       const sectionId = section?.getRowId();
       const fieldIndex = section?.viewFields.peek().all()
         .findIndex(f => f.colRef.peek() === discussion.colRef.peek()) ?? -1;
