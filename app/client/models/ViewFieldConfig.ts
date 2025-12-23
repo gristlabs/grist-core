@@ -1,5 +1,4 @@
 import * as modelUtil from "app/client/models/modelUtil";
-
 // This is circular import, but only for types so it's fine.
 import * as UserType from "app/client/widgets/UserType";
 import { ifNotSet } from "app/common/gutil";
