@@ -8,7 +8,9 @@ import SCIMMY from "scimmy";
  */
 export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> {
   // NB: must be a getter, cannot override this property with readonly attribute
-  public static readonly endpoint = "/Roles";
+  public static get endpoint() { // eslint-disable-line @typescript-eslint/class-literal-property-style
+    return "/Roles";
+  }
 
   public static get schema() {
     return SCIMMYRoleSchema;
