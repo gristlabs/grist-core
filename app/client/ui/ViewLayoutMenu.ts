@@ -69,7 +69,8 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
   };
 
   const isCard = (use: UseCB) => use(viewSection.widgetType) === WidgetType.Card;
-  const isTable = (use: UseCB) => use(viewSection.widgetType) === WidgetType.Table;
+  const showCreateForm = (use: UseCB) => use(viewSection.widgetType) === WidgetType.Table &&
+    Boolean(viewRec.getRowId()) && !isReadonly;
 
   return [
     dom.maybe(isCard, () => contextMenu),
@@ -97,7 +98,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       menuItemCmd(allCommands.viewTabOpen, t("Widget options"), testId("widget-options")),
       menuItemCmd(allCommands.sortFilterTabOpen, t("Advanced sort & filter"), dom.hide(viewSection.isRecordCard)),
       menuItemCmd(allCommands.dataSelectionTabOpen, t("Data selection"), dom.hide(viewSection.isRecordCard)),
-      menuItemCmd(allCommands.createForm, t("Create a form"), dom.show(isTable)),
+      menuItemCmd(allCommands.createForm, t("Create a form"), dom.show(showCreateForm)),
     ]),
 
     menuDivider(dom.hide(viewSection.isRecordCard)),

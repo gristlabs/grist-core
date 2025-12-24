@@ -3499,6 +3499,7 @@ namespace gristUtils {
     await driver.find(".test-widget-title-table-name-input").click();
     await selectAll();
     await driver.sendKeys(name, Key.ENTER);
+    await waitAppFocus(true); // Wait for the editor to close so that waitForServer sees our request.
     await waitForServer();
   }
 

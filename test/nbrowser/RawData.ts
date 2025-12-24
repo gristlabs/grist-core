@@ -97,6 +97,21 @@ describe("RawData", function() {
     assert.isFalse(await driver.find(".test-raw-data-overlay").isPresent());
   });
 
+  it('hides or disables inapplicable menu items on raw view sections', async function() {
+    await openRawData();
+    await driver.findContent('.test-raw-data-table-title', 'Country').click();
+    await gu.waitForServer();
+    await gu.openSectionMenu("viewLayout");
+    await gu.findOpenMenu();
+    assert.equal(await gu.findOpenMenuItem('li', /Widget options/).isDisplayed(), true);
+    assert.equal(await gu.findOpenMenuItem('li', /Create a form/).isDisplayed(), false);
+    assert.equal(await gu.findOpenMenuItem('li', /Collapse widget/).matches('.disabled'), true);
+    assert.equal(await gu.findOpenMenuItem('li', /Duplicate widget/).matches('.disabled'), true);
+    assert.equal(await gu.findOpenMenuItem('li', /Delete widget/).matches('.disabled'), true);
+    await driver.sendKeys(Key.ESCAPE);    // Close the menu
+    await driver.sendKeys(Key.ESCAPE);    // Close the preview popup
+  });
+
   it("should rename table from modal window", async function() {
     // Open Country table.
     await driver.findContent(".test-raw-data-table-title", "Country").click();
@@ -121,7 +136,7 @@ describe("RawData", function() {
 
     // Check that a description icon tooltip is shown next to the title.
     await driver.findContent(".test-raw-data-table-title", "Empire")
-      .find(".test-widget-info-tooltip")
+      .findWait('.test-widget-info-tooltip', 100)
       .click();
     await gu.waitToPass(async () => {
       assert.isTrue(await driver.find(".test-widget-info-tooltip-popup").isDisplayed());

@@ -1504,6 +1504,10 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
   ) {
     const { columns, link, summarize, table, type } = widget;
     const viewRef = this.activeViewId.get();
+    if (typeof viewRef !== 'number') {
+      // Report to make it easier to debug, but we shouldn't offer any UI options that lead here.
+      throw new Error(`Cannot add a widget to this type of page (${viewRef})`);
+    }
     const tableRef = table === "New Table" ? 0 : table;
     const result: { viewRef: number, sectionRef: number } = await this.docData.sendAction(
       ["CreateViewSection", tableRef, viewRef, type, summarize ? columns : null, tableId],
