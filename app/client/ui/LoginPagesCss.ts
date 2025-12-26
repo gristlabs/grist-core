@@ -187,6 +187,15 @@ export const formHeading = styled("div", `
   }
 `);
 
+export const centeredFormHeading = styled(formHeading, `
+  margin-top: 16px;
+  text-align: center;
+`);
+
+export const centeredFormSubheading = styled(centeredText, `
+  margin-bottom: 28px;
+`);
+
 export const formInstructions = styled("div", `
   margin-bottom: 32px;
 `);
