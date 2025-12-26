@@ -1,5 +1,5 @@
-
 const globals = require("globals");
+const path = require("path");
 
 const babelParser = require("@babel/eslint-parser");
 const js = require("@eslint/js");
@@ -8,6 +8,8 @@ const tsParser = require("@typescript-eslint/parser");
 const typescriptEslint = require("@typescript-eslint/eslint-plugin");
 const { defineConfig, globalIgnores } = require("eslint/config");
 const { importX } = require("eslint-plugin-import-x");
+
+const projectRoot = process.cwd();
 
 module.exports = defineConfig([
   globalIgnores([
@@ -18,7 +20,11 @@ module.exports = defineConfig([
     "!plugins/",
     "!sandbox/",
     "!stubs/",
-    "!buildtools/"
+    "!buildtools/",
+    "!ext/",
+    "!core/",
+    "core/static/*.js",
+    "test/video-scripts/"
   ]),
   {
     extends: [
@@ -76,8 +82,10 @@ module.exports = defineConfig([
       ecmaVersion: 2018,
 
       parserOptions: {
-        tsconfigRootDir: __dirname,
-        project: ["./tsconfig.eslint.json"],
+        tsconfigRootDir: projectRoot,
+        project: [
+          path.join(projectRoot, "tsconfig.eslint.json"),
+        ],
       },
 
       globals: {

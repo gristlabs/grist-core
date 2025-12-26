@@ -12,7 +12,7 @@ export const DocumentSettings = t.iface([], {
   "baseAction": t.opt("DocState"),
 });
 
-export const EngineCode = t.lit('python3');
+export const EngineCode = t.lit("python3");
 
 export const DocState = t.iface([], {
   "n": "number",
