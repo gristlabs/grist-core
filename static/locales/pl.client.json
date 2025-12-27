@@ -69,7 +69,11 @@
         "Permission to access the document in full by unrestricted users": "Uprawnienia na dostęp do dokumentu w całości przez nieograniczonych użytkowników",
         "Special rules for templates": "Specjalne reguły dla szablonów",
         "This options should be off if Editors' access is to be limited. ": "Ta opcja powinna być wyłączona, jeśli dostęp dla edytorów ma być ograniczony. ",
-        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Reguły dostępu\n\nPodstawowy dostęp do tego dokumentu może być regulowany opcją \"Zarządzanie użytkownikami\" w menu udostępniania, gdzie możesz przypisać role współpracy, takie jak Właściciel, Edytor, czy Czytelnik.\n\n\nDla bardziej zaawansowanej kontroli, możesz stworzyć reguły dostępu, które określą kto może wyświetlać lub edytować poszczególne tabele, \nkolumny czy wiersze — przydatne dla wrażliwych danych lub uprawnień opierających się na rolach.\n\n[Dowiedz się więcej]({{helpAccessRules}})"
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Reguły dostępu\n\nPodstawowy dostęp do tego dokumentu może być regulowany opcją \"Zarządzanie użytkownikami\" w menu udostępniania, gdzie możesz przypisać role współpracy, takie jak Właściciel, Edytor, czy Czytelnik.\n\n\nDla bardziej zaawansowanej kontroli, możesz stworzyć reguły dostępu, które określą kto może wyświetlać lub edytować poszczególne tabele, \nkolumny czy wiersze — przydatne dla wrażliwych danych lub uprawnień opierających się na rolach.\n\n[Dowiedz się więcej]({{helpAccessRules}})",
+        "Invalid user attribute to look up": "Nie można wyszukać tego atrybutu użytkownika",
+        "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Użyj prostego atrybutu user.LinkKey, np. user.LinkKey.something",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Pomiń wszystkie ograniczenia odczytu i pozwól wszystkim na kopiowanie całego dokumentu, lub wyświetlanie go w trybie fiddle. Opcja do użytku tylko dla przykładów i szablonów, nie dokumentów z wrażliwymi danymi.",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Zabroń użytkownikom bez roli właściciela kopiowania lub pobierania całego dokumentu. Uwaga: ta opcja dotyczy wyłącznie użytkowników bez ograniczeń odczytu, ponieważ inni będą ograniczeni niezależnie od tego ustawienia."
     },
     "AccountPage": {
         "API": "API",
@@ -119,7 +123,9 @@
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Tabela {{tableId}} została następnie usunięta w akcji #{{actionNum}}",
         "This row was subsequently removed in action {{action.actionNum}}": "Ten wiersz został następnie usunięty w akcji {{action.actionNum}}",
         "All tables": "Wszystkie tabele",
-        "History blocked because of access rules.": "Historia zablokowana przez reguły dostępu."
+        "History blocked because of access rules.": "Historia zablokowana przez reguły dostępu.",
+        "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Kolumna {{colId}} została usunięta przez akcję #{{actionNum}}",
+        "This row was subsequently removed in action {{actionNum}}": "Ten wiersz został usunięty przez akcję #{{actionNum}}"
     },
     "AddNewButton": {
         "Add new": "Dodaj nowy"
@@ -245,7 +251,8 @@
         "Sort by number of occurrences (current: sorted alphabetically)": "Sortuj według liczby wystąpień (aktualnie: sortowanie alfabetyczne)",
         "Unpin filter": "Odepnij filtr",
         "Pin filter": "Przypnij filtr",
-        "Sort alphabetically (current: sorted by number of occurrences)": "Sortuj alfabetycznie (aktualnie: sortowanie według liczby wystąpień)"
+        "Sort alphabetically (current: sorted by number of occurrences)": "Sortuj alfabetycznie (aktualnie: sortowanie według liczby wystąpień)",
+        "Clear search": "Wyczyść wyszukiwanie"
     },
     "CustomSectionConfig": {
         " (optional)": " (opcjonalnie)",
@@ -732,7 +739,8 @@
         "Format:": "Format:",
         "Learn more": "Dowiedz się więcej",
         "download attachments": "pobierz załączniki",
-        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Załączniki są zewnętrzne i nie są uwzględnione w tym pobieraniu. Jeśli przesyłasz dokument do oddzielnej instalacji Grist, będziesz także potrzebować {{downloadLink}} osobno. "
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Załączniki są zewnętrzne i nie są uwzględnione w tym pobieraniu. Jeśli przesyłasz dokument do oddzielnej instalacji Grist, będziesz także potrzebować {{downloadLink}} osobno. ",
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "Aby wgrać ten dokument do instancji Grista, należy spakować go do archiwum z rozszerzeniem \".tar\" aby przywrócić załączniki. "
     },
     "NotifyUI": {
         "Go to your free personal site": "Przejdź do swojej darmowej strony osobistej",
@@ -770,7 +778,8 @@
         "The following tables will no longer be visible_other": "Poniższa tabela nie będzie już widoczna",
         "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Zachowaj dane i usuń stronę. Tabela pozostanie dostępna w {{rawDataLink}}",
         "Raw Data page": "strona surowych danych",
-        "Document pages": "Strony dokumentu"
+        "Document pages": "Strony dokumentu",
+        "raw data page": "strona surowych danych"
     },
     "PermissionsWidget": {
         "Allow all": "Pozwól wszystkim",
@@ -900,7 +909,8 @@
         "Sort in ascending order (current: descending)": "Sortuj rosnąco (aktualnie: malejąco)",
         "Sort in descending order (current: ascending)": "Sortuj malejąco (aktualnie: rosnąco)",
         "Sort options - {{- columnName }} column": "Opcje sortowania - kolumna {{- columnName }}",
-        "{{- columnName }} column": "kolumna {{- columnName }}"
+        "{{- columnName }} column": "kolumna {{- columnName }}",
+        "Remove sort setting - {{- columnName }} column": "Usuń opcję sortowania - kolumna {{- columnName }}"
     },
     "Tools": {
         "Document history": "Historia dokumentu",
@@ -908,7 +918,7 @@
         "Access Rules": "Reguły dostępu",
         "Code view": "Widok kodu",
         "Delete": "Usuń",
-        "Delete document tour?": "Usunąć wycieczkę po dokumencie?",
+        "Delete document tour?": "Usunąć przewodnik po dokumencie?",
         "Raw data": "Surowe dane",
         "Validate Data": "Sprawdzanie poprawności danych",
         "TOOLS": "NARZĘDZIA",
@@ -920,7 +930,8 @@
         "Preview the tutorial": "Podejrzyj samouczek",
         "Proposed Changes": "Zaproponowane zmiany",
         "Suggest Changes": "Zasugeruj zmiany",
-        "Suggestions": "Sugestie"
+        "Suggestions": "Sugestie",
+        "Delete document tour": "Usuń przewodnik po dokumecie"
     },
     "TriggerFormulas": {
         "Apply on changes to:": "Zastosuj w przypadku zmian do:",
@@ -1005,7 +1016,9 @@
         "Hidden {{label}}": "Ukryty {{label}}",
         "Show {{label}}": "Pokaż {{label}}",
         "Cannot drop items into Hidden Fields": "Nie można upuszczać elementów do ukrytych pól",
-        "Hidden Fields cannot be reordered": "Pola ukryte nie mogą być ponownie uporządkowane"
+        "Hidden Fields cannot be reordered": "Pola ukryte nie mogą być ponownie uporządkowane",
+        "Hide {{label}} (batch mode)": "Ukryj {{label}} (tryb seryjny)",
+        "Show {{label}} (batch mode)": "Pokaż {{label}} (tryb seryjny)"
     },
     "WelcomeQuestions": {
         "Education": "Edukacja",
@@ -1038,7 +1051,9 @@
         "unsaved": "niezapisany",
         "recovery mode": "tryb odzyskiwania",
         "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Możesz wprowadzać zmiany, ale one utworzą nową kopię i\nnie mają wpływu na oryginalny dokument.",
-        "You may make edits,\nbut they will not affect the original document.\nYou can propose them as suggestions.": "Możesz wprowadzać zmiany,\nale nie pojawią się one w oryginalnym dokumencie.\nMożesz je zaproponować jako sugestie."
+        "You may make edits,\nbut they will not affect the original document.\nYou can propose them as suggestions.": "Możesz wprowadzać zmiany,\nale nie pojawią się one w oryginalnym dokumencie.\nMożesz je zaproponować jako sugestie.",
+        "editing": "edytowanie",
+        "suggesting": "sugerowanie"
     },
     "duplicatePage": {
         "Note that this does not copy data, but creates another view of the same data.": "Zauważ, że to nie kopiuje danych, ale tworzy inny widok tych samych danych.",
@@ -1079,7 +1094,11 @@
         "changes": "zmiany",
         "comments": "komentarze",
         "this document": "ten dokument",
-        "your email": "twój adres e-mail"
+        "your email": "twój adres e-mail",
+        "Unsubscribed{{suffix}}": "Odsubskrybowano{{suffix}}",
+        "We could not unsubscribe you": "Nie mogliśmy Cię odsubskrybować",
+        "You are unsubscribed": "Jesteś odsubskrybowany",
+        "You can still unsubscribe from this document by updating your preferences in the document settings": "Wciąż możesz odsubskrybować ten dokument poprzez aktualizację swoich preferencji w ustawieniach dokumentu"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Obszary robocze są dostępne w planach zespołowych. ",
@@ -1332,7 +1351,8 @@
         "Toggle the {{creatorPanel}} to format columns, ": "Przełącz {{creatorPanel}}, aby sformatować kolumny, ",
         "Share": "Udostępnij",
         "Use the Share button ({{share}}) to share the document or export data.": "Użyj przycisku Udostępnij ({{share}}), aby udostępnić dokument lub wyeksportować dane.",
-        "Use {{addNew}} to add widgets, pages, or import more data. ": "Użyj {{addNew}}, aby dodać widżety, strony lub zaimportować więcej danych. "
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Użyj {{addNew}}, aby dodać widżety, strony lub zaimportować więcej danych. ",
+        "AI Assistant": "Asystent AI"
     },
     "GristTooltips": {
         "Click on “Open row styles” to apply conditional formatting to rows.": "Kliknij na \"Otwórz style wierszy\", aby zastosować formatowanie warunkowe do wierszy.",
@@ -1408,10 +1428,19 @@
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Pozwala to dodać załączniki, których brakuje w magazynie zewnętrznym, np. w zaimportowanym dokumencie. Tylko archiwa załączników .tar pobrane z Grist mogą być tutaj przesyłane.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Zrozum, modyfikuj i pracuj ze swoimi danymi i formułami przy pomocy nowego Asystenta AI Grist!",
         "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ten formularz został utworzony przez użytkownika Grist i nie jest popierany przez Grist Labs. Nie przesyłaj haseł przez ten formularz i zachowaj ostrożność wobec linków w nim zawartych. Zgłoś złośliwe formularze na adres [{{mail}}](mailto:{{mail}}).",
-        "Set the maximum number of lines for multi-line text.": "Ustaw maksymalną liczbę wierszy dla tekstu wielowierszowego."
+        "Set the maximum number of lines for multi-line text.": "Ustaw maksymalną liczbę wierszy dla tekstu wielowierszowego.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "Aby skonfigurować kalendarz, wybierz kolumny dat początkowych/końcowych i nazw wydarzeń. Zwróć uwagę na tyup każdej kolumny."
+        },
+        "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ten formularz został stworzony przez użytkownika Grista i nie jest polecany przez Grist Labs, Inc. lub inne strony zapewniające tę usługę. Dla bezpieczeństwa, nie wpisuj haseł do tego formularza i zachowaj ostrożność przy klikaniu wbudowanych linków. Podejrzane formularze możesz zgłaszać na adres [{{mail}}](mailto:{{mail}}).",
+        "Comments are here!": "Tu są komentarze!",
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Możesz dodawać komentarze do komórek, odpowiadać na wątki i @oznaczać współpracowników.",
+        "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Po zaznaczeniu, domyślna wartość tego pola będzie mogła być wypełniona przez URL za pomocą parametrów zapytania.",
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Dzięki sugestiom, użytkownicy mogą tworzyć zmiany w osobistych kopiach dokumentu bez modyfikacji oryginału, a następnie publikować sugestie do recenzji przez właściciela przed integracją."
     },
     "DescriptionConfig": {
-        "DESCRIPTION": "OPIS"
+        "DESCRIPTION": "OPIS",
+        "Set description": "Ustaw opis"
     },
     "LanguageMenu": {
         "Language": "Język"
@@ -1574,7 +1603,8 @@
         "Search all tables": "Szukaj we wszystkich tabelach"
     },
     "searchDropdown": {
-        "Search": "Szukaj"
+        "Search": "Szukaj",
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Pokazano {{displayedCount}} z {{totalCount}} elementów. Wyszukaj aby znaleźć więcej."
     },
     "SupportGristNudge": {
         "Close": "Zamknij",
@@ -1640,7 +1670,11 @@
         "Schedule call": "Zaplanuj rozmowę",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Zaplanuj swoją {{freeCoachingCall}} z członkiem naszego zespołu.",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Możesz także sprawdzić {{ourWeeklyWebinars}}, aby dowiedzieć się więcej o Grist.",
-        "our weekly webinars": "nasze cotygodniowe webinary"
+        "our weekly webinars": "nasze cotygodniowe webinary",
+        "Free coaching call": "Darmowe połączenie telefoniczne z konsultacją",
+        "Grist 101": "Podstawy Grista",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Sprawdź także nasz wprowadzający webinar, {{ourWeeklyWebinars}}, stworzony do pomocy nowym użytkownikom w używaniu Grista.",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Sprawdź także nasz wprowadzający webinar {{ourWeeklyWebinars}}, stworzony do pomocy nowym użytkownikom Grista."
     },
     "FormView": {
         "Publish": "Opublikuj",
@@ -1707,7 +1741,10 @@
         "Options Sort Order": "Kolejność sortowania opcji",
         "Radio": "Radio",
         "Select": "Wybierz",
-        "Vertical": "Pionowe"
+        "Vertical": "Pionowe",
+        "Accept value from URL": "Zaakceptuj wartość z URL",
+        "Hidden field": "Ukryte pole",
+        "URL parameter:\n{{colId}}=VALUE": "Parametr URL:\n{{colId}}=VALUE"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Niektóre wymagane kolumny nie są zmapowane",
@@ -1753,7 +1790,9 @@
         "Mapped": "Zmapowane",
         "Select all": "Zaznacz wszystkie",
         "Unmap fields": "Cofnij mapowanie pól",
-        "Unmapped": "Niezmapowane"
+        "Unmapped": "Niezmapowane",
+        "Hide {{label}}": "Ukryj {{label}}",
+        "Hide {{label}} (batch mode)": "Ukryj {{label}} (tryb seryjny)"
     },
     "Section": {
         "Insert section above": "Wstaw sekcję powyżej",
@@ -1836,7 +1875,31 @@
         "Auto-check weekly": "Automatyczne cotygodniowe sprawdzanie",
         "No record of last version check": "Brak rekordu ostatniego sprawdzenia wersji",
         "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Możesz skonfigurować strumieniowanie zdarzeń audytu z Grist do zewnętrznego systemu zarządzania informacjami i zdarzeniami bezpieczeństwa (SIEM), jeśli włączysz Grist Enterprise. {{contactUsLink}}, aby dowiedzieć się więcej.",
-        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Automatyczne sprawdzanie jest wyłączone. Ustaw zmienną środowiskową GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING na \"true\", aby je włączyć."
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Automatyczne sprawdzanie jest wyłączone. Ustaw zmienną środowiskową GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING na \"true\", aby je włączyć.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist podpisuje ciasteczka sesji użytkownika za pomocą sekretnego klucza. Ten klucz należy ustawić zmienną środowiskową GRIST_SESSION_SECRET. Grist użyje domyślnej wartości jeśli ta zmienna nie jest ustawiona. Ta informacja może zostać usunięta w przyszłości, ponieważ od wersji v1.1.16 ID sesji są kryptograficznie bezpieczne.",
+        "{{count}} admin accounts_one": "{{count}} konto administratora",
+        "{{count}} admin accounts_other": "{{count}} konta administratora",
+        "auth error": "błąd autoryzacji",
+        "configured": "skonfigurowano",
+        "default": "domyślny",
+        "more...": "więcej...",
+        "no authentication": "brak autoryzacji",
+        "unavailable": "niedostępny",
+        "Admin account not found": "Nie znaleziono konta administratora",
+        "Administrative accounts": "Konta administratorów",
+        "The users with administrative accounts": "Użytkownicy z kontami administratorów",
+        "Version {{versionNumber}}": "Wersja {{versionNumber}}",
+        "no admin accounts": "brak kont administratorów",
+        "Are you sure you want to restart Grist?": "Czy na pewno chcesz zrestartować Grista?",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Grist działa w środowisku które nie wspiera restartu z panelu administratora.",
+        "Restart": "Restart",
+        "Restart Grist": "Zrestartuj Grista",
+        "Restart Grist to apply pending changes or resolve issues.": "Zrestartuj Grista aby zastosować oczekujące zmiany lub rozwiązać problemy.",
+        "Restart Grist?": "Czy chcesz zrestartować Grista?",
+        "Restarting Grist...": "Restartowanie Grista...",
+        "This will apply any pending changes and briefly interrupt access for all users.": "To zastosuje wszelkie oczekujące zmiany i na chwilę przerwie dostęp dla wszystkich użytkowników.",
+        "You can still restart Grist manually.": "Wciąż możesz zrestartować Grista manualnie.",
+        "error in {{provider}}: {{verdict}}": "błąd w {{provider}}: {{verdict}}"
     },
     "Columns": {
         "Remove Column": "Usuń kolumnę"
@@ -1879,7 +1942,8 @@
         "Search": "Szukaj",
         "Select...": "Wybierz...",
         "Submit": "Wyślij",
-        "Submitting…": "Wysyłanie…"
+        "Submitting…": "Wysyłanie…",
+        "Clear selection for: {{-inputLabel}}": "Wyczyść wybór dla: {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Calendar": "Kalendarz",
@@ -2109,7 +2173,9 @@
         "Unpin": "Odepnij",
         "Workspace": "Obszar roboczy",
         "context menu - {{- documentName }}": "menu kontekstowe - {{- documentName }}",
-        "Documents list": "Lista dokumentów"
+        "Documents list": "Lista dokumentów",
+        "Download document...": "Pobierz dokument...",
+        "Deleted {{at}}": "Usunięto {{at}}"
     },
     "RenameDocModal": {
         "Choose color": "Wybierz kolor",
@@ -2177,7 +2243,8 @@
         "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Wpisz DELETE, jeśli na pewno chcesz wykonać to usunięcie.\nJeśli nie jesteś pewien lub nie rozumiesz, co ta operacja zrobi,\nrozsądnie będzie ją anulować."
     },
     "MentionTextBox": {
-        "no access": "brak dostępu"
+        "no access": "brak dostępu",
+        "...loading": "...ładowanie"
     },
     "VersionUpdateBanner": {
         "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "Dostępna jest krytyczna aktualizacja Grist.\nRozważ jak najszybsze uaktualnienie do wersji {{version}}.",
@@ -2213,7 +2280,9 @@
     },
     "duplicateWidget": {
         "Duplicate widget": "Powiel widżet",
-        "Duplicate widgets": "Powiel widżety"
+        "Duplicate widgets": "Powiel widżety",
+        "Active": "Aktywny",
+        "Create new page": "Stwórz nową stronę"
     },
     "AttachmentsWidget": {
         "Uploading, please wait…": "Przesyłanie, proszę czekać…"
@@ -2232,12 +2301,50 @@
     "RowHeightConfig": {
         "Expand all rows to this height": "Rozszerz wszystkie wiersze do tej wysokości",
         "Max height": "Maksymalna wysokość",
-        "Max row height": "Maksymalna wysokość wiersza"
+        "Max row height": "Maksymalna wysokość wiersza",
+        "Change": "Zmień"
     },
     "AdminChecks": {
-        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist pozwala na wprowadzanie bardzo zaawansowanych formuł za pomocą Pythona. Zaleca się ustawienie zmiennej środowiskowej GRIST_SANDBOX_FLAVOR w gvisor jeśli twój sprzęt na to pozwala (prawdopodobnie tak), aby załączać formuły każdego dokumentu w osobnej piaskownicy izolowanej od innych dokumentów i sieci."
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist pozwala na wprowadzanie bardzo zaawansowanych formuł za pomocą Pythona. Zaleca się ustawienie zmiennej środowiskowej GRIST_SANDBOX_FLAVOR w gvisor jeśli twój sprzęt na to pozwala (prawdopodobnie tak), aby załączać formuły każdego dokumentu w osobnej piaskownicy izolowanej od innych dokumentów i sieci.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Do działania, połączenia websocketem wymagają HTTP 1.1 i możliwość przesłania kilku dodatkowych nagłówków. Odwrotny serwer proxy może zakłócać te wymogi.",
+        "It is good practice not to run Grist as the root user.": "Najlepiej nie uruchamiać Grista jako root.",
+        "The main page of Grist should be available.": "Strona główna Grista powinna być dostępna."
     },
     "AuthenticationSection": {
         "No authentication method is active.": "Żadna metoda autoryzacyjna nie jest aktywna."
+    },
+    "TreeViewComponent": {
+        "Collapse": "Zwiń",
+        "Expand": "Rozszerz"
+    },
+    "ActiveUserList": {
+        "active user": "aktywny użytkownik",
+        "active user list": "lista aktywnych użytkowników",
+        "open full active user list": "otwórz pełną listę aktywnych użytkowników"
+    },
+    "ChoiceListEntry": {
+        "+{{count}} more_one": "+{{count}} więcej",
+        "+{{count}} more_other": "+{{count}} więcej",
+        "Edit": "Edytuj",
+        "Reset": "Zresetuj",
+        "Cancel": "Anuluj",
+        "Save": "Zapisz"
+    },
+    "FormulaTransform": {
+        "Apply": "Zastosuj",
+        "Cancel": "Anuluj",
+        "Preview": "Podgląd"
+    },
+    "ParseOptions": {
+        "Close": "Zamknij",
+        "Update preview": "Odśwież podgląd",
+        "Escape character": "Znak Escape",
+        "Field separator": "Separator pól",
+        "First row contains headers": "Pierwszy wiersz zawiera nagłówki",
+        "Number of rows": "Liczba wierszy",
+        "Start with row": "Zacznij wierszem"
+    },
+    "OpenAccessibilityModal": {
+        " or ": " lub "
     }
 }
