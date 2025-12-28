@@ -674,7 +674,7 @@ const cssContentOverlay = styled("div", `
   opacity: 0.5;
   display: none;
   z-index: 9;
-  @media ${mediaSmall} {
+  @media screen and ${mediaSmall} {
     & {
       display: unset;
     }
