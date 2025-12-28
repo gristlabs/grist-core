@@ -19,7 +19,7 @@ describe("NewDocument.ntest", function() {
     await gu.actions.createNewDoc("Untitled");
     assert.equal(await gu.actions.getDocTitle(), "Untitled");
 
-    const expectedTitle = "Untitled - Grist";
+    const expectedTitle = "Table1 - Untitled - Grist";
     assert.equal(await driver.getTitle(), expectedTitle);
     assert.equal(await driver.find('meta[name="twitter:title"]').getAttribute("content"), expectedTitle);
     assert.equal(await driver.find('meta[property="og:title"]').getAttribute("content"), expectedTitle);

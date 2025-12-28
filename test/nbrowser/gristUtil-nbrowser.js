@@ -401,10 +401,12 @@ const gu = {
     getTabs: () => {
       return $(".test-docpage-label");
     },
-    renameDoc: (newName) => {
+    renameDoc: async (newName) => {
+      const currentTitle = await driver.getTitle();
+      const pageName = currentTitle.split(" - ")[0];
       $(".test-bc-doc").click();
       $.driver.sendKeys(newName, $.ENTER);
-      return $.wait(1000, () => $.driver.getTitle().startsWith(newName + " - "));
+      return $.wait(1000, () => $.driver.getTitle().startsWith(pageName + " - " + newName + " - "));
     },
     selectTabView: async (viewTitle) => {
       const isOpen = await gu.isSidePanelOpen("left");
