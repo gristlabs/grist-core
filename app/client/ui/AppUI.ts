@@ -161,13 +161,15 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
   const rightPanel = Computed.create(owner, pageModel.gristDoc, (use, gristDoc) =>
     gristDoc ? RightPanel.create(use.owner, gristDoc, rightPanelOpen) : null);
 
-  // Set document title to strings like "DocName - Grist"
-  owner.autoDispose(subscribe(pageModel.currentDocTitle, (use, docName) => {
+  // Set document title to strings like "PageName - DocName - Grist"
+  owner.autoDispose(subscribe(pageModel.gristDoc, pageModel.currentDocTitle, (use, gristDoc, docName) => {
     // If the document hasn't loaded yet, don't update the title; since the HTML document already has
     // a title element with the document's name, there's no need for further action.
     if (!pageModel.currentDoc.get()) { return; }
 
-    document.title = `${docName}${getPageTitleSuffix(getGristConfig())}`;
+    const pageName = gristDoc ? (use(gristDoc.currentPageName) || "") : "";
+    const title = pageName ? `${pageName} - ${docName}` : docName;
+    document.title = `${title}${getPageTitleSuffix(getGristConfig())}`;
   }));
 
   // Called after either panel is closed, opened, or resized.
