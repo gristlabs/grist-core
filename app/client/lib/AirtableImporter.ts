@@ -1,6 +1,6 @@
 import { AirtableImporter } from 'app/common/AirtableImporter';
 import { AirtableAPI } from 'app/common/AirtableAPI';
-import {transformDocCreationSchema} from 'app/common/DocCreationHelper';
+import {transformDocCreationSchema} from 'app/common/DocSchemaImport';
 
 window.runAirtableMigration = async function (apiKey, base) {
   const api = new AirtableAPI({ apiKey });

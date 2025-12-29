@@ -8,10 +8,10 @@ import {RecalcWhen} from 'app/common/gristTypes';
 import {UserAction} from 'app/common/DocActions';
 import {ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {
-  ColumnCreationSchema,
-  DocCreationHelper,
-  DocCreationSchema, FormulaTemplate,
-} from 'app/common/DocCreationHelper';
+  ColumnImportSchema,
+  DocSchemaImportTool,
+  ImportSchema, FormulaTemplate,
+} from 'app/common/DocSchemaImport';
 
 export type ApplyUserActionsFunc = (userActions: UserAction[]) => Promise<ApplyUAResult>;
 
@@ -32,8 +32,8 @@ export class AirtableImporter {
     return gristDocSchemaFromAirtableSchema(baseSchema);
   }
 
-  public async importSchema(applyUserActions: ApplyUserActionsFunc, schema: DocCreationSchema) {
-    const helper = new DocCreationHelper(applyUserActions);
+  public async importSchema(applyUserActions: ApplyUserActionsFunc, schema: ImportSchema) {
+    const helper = new DocSchemaImportTool(applyUserActions);
     return await helper.createTablesFromSchema({ tables: schema.tables });
   }
 }
@@ -46,7 +46,7 @@ export class AirtableImporter {
  * based on the import parameters, the remainder of the import code may not be able to adapt the
  * schema properly for the existing environment.
  */
-function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): DocCreationSchema {
+function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): ImportSchema {
   const getTableIdForField = (fieldId: string) => {
     const tableId = airtableSchema.tables.find(table => table.fields.find(field => field.id === fieldId))?.id;
     // Generally shouldn't happen - the schema should always have sufficient info to resolve a valid field id.
@@ -70,7 +70,7 @@ function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): D
               getTableIdForField,
             });
           })
-          .filter((column): column is ColumnCreationSchema => column !== undefined),
+          .filter((column): column is ColumnImportSchema => column !== undefined),
       };
     })
   };
@@ -82,7 +82,7 @@ interface AirtableFieldMapperParams {
   getTableIdForField: (fieldId: string) => string,
 }
 
-type AirtableFieldMapper = (params: AirtableFieldMapperParams) => ColumnCreationSchema;
+type AirtableFieldMapper = (params: AirtableFieldMapperParams) => ColumnImportSchema;
 const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   aiText({field}) {
     return {

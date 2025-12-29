@@ -6,16 +6,16 @@ import {cloneDeep} from 'lodash';
 
 export type ApplyUserActionsFunc = (userActions: UserAction[]) => Promise<ApplyUAResult>;
 
-export interface DocCreationParams {
+export interface SchemaImportParams {
   skipTableIds?: string[];
   mapExistingTableIds?: Map<string, string>;
 }
 
-export class DocCreationHelper {
+export class DocSchemaImportTool {
   constructor(private _applyUserActions: ApplyUserActionsFunc) {
   }
 
-  public async createTablesFromSchema(schema: DocCreationSchema) {
+  public async createTablesFromSchema(schema: ImportSchema) {
     const tableSchemas = schema.tables;
     const addTableActions: UserAction[] = [];
 
@@ -66,7 +66,7 @@ export class DocCreationHelper {
       getColIdOrThrow(tableId: string, colId: string) {
         const value = tableIdsMap.get(tableId)?.columnIdMap.get(colId);
         if (value === undefined) {
-          throw new DocCreationHelperError(`Couldn't find Grist column id for column '${colId}' in table '${tableId}'`);
+          throw new DocSchemaImportError(`Couldn't find Grist column id for column '${colId}' in table '${tableId}'`);
         }
         return value;
       },
@@ -76,7 +76,7 @@ export class DocCreationHelper {
       getTableIdOrThrow(id: string) {
         const value = tableIdsMap.get(id)?.gristId;
         if (value === undefined) {
-          throw new DocCreationHelperError(`Couldn't locate Grist table id for table ${id}`);
+          throw new DocSchemaImportError(`Couldn't locate Grist table id for table ${id}`);
         }
         return value;
       }
@@ -145,27 +145,27 @@ interface ExistingColumnSchema {
   id: string;
 }
 
-interface DocCreationSchemaWarning {
+interface DocSchemaImportWarning {
   ref?: TableRef | ColRef;
 }
 
-class ColumnRefWarning implements DocCreationSchemaWarning {
+class ColumnRefWarning implements DocSchemaImportWarning {
   constructor(public readonly ref: TableRef | ColRef) {
   }
 }
 
-class FormulaRefWarning implements DocCreationSchemaWarning {
+class FormulaRefWarning implements DocSchemaImportWarning {
   constructor(public readonly ref: TableRef | ColRef) {
   }
 }
 
 /**
- * Checks the validity of a DocCreationSchema, raising warnings for any issues found.
+ * Checks the validity of an ImportSchema, raising warnings for any issues found.
  * The type system covers the majority of possible issues (e.g. missing properties).
  * This primarily deals with checking referential integrity.
  */
-export function validateDocCreationSchema(schema: DocCreationSchema, existingSchema: ExistingDocSchema) {
-  const warnings: DocCreationSchemaWarning[] = [];
+export function validateImportSchema(schema: ImportSchema, existingSchema: ExistingDocSchema) {
+  const warnings: DocSchemaImportWarning[] = [];
 
   const tablesByOriginalId = new Map(schema.tables.map(table => [table.originalId, table]));
   const existingTablesById = new Map(existingSchema.tables.map(table => [table.id, table]));
@@ -207,8 +207,8 @@ export function validateDocCreationSchema(schema: DocCreationSchema, existingSch
   return warnings;
 }
 
-export function transformDocCreationSchema(schema: DocCreationSchema,
-                                           params: DocCreationParams): DocCreationSchema {
+export function transformImportSchema(schema: ImportSchema,
+                                           params: SchemaImportParams): ImportSchema {
   const newSchema = cloneDeep(schema);
   // Skip tables - allow the validation step to pick up on any issues introduced.
   newSchema.tables = newSchema.tables.filter(table => !params.skipTableIds?.includes(table.originalId));
@@ -312,14 +312,14 @@ interface ExistingColRef {
 // Allows any property to be read, but assignments must be mutually exclusive.
 type ColRef = OriginalColRef | ExistingColRef;
 
-export interface DocCreationSchema {
-  tables: TableCreationSchema[];
+export interface ImportSchema {
+  tables: TableImportSchema[];
 }
 
-export interface TableCreationSchema {
+export interface TableImportSchema {
   originalId: string;
   name: string;
-  columns: ColumnCreationSchema[];
+  columns: ColumnImportSchema[];
 }
 
 /**
@@ -339,7 +339,7 @@ export interface FormulaTemplate {
   }[]
 }
 
-export interface ColumnCreationSchema {
+export interface ColumnImportSchema {
   originalId: string;
   desiredId: string;
   type: GristType;
@@ -356,7 +356,7 @@ export interface ColumnCreationSchema {
   widgetOptions?: Record<string, any>;
 }
 
-export class DocCreationHelperError extends Error {
+export class DocSchemaImportError extends Error {
   constructor(message: string) {
     super(message);
   }
