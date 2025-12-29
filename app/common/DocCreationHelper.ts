@@ -1,7 +1,7 @@
+import {ApplyUAResult} from 'app/common/ActiveDocAPI';
+import {UserAction} from 'app/common/DocActions';
 import {RecalcWhen} from 'app/common/gristTypes';
 import {GristType} from 'app/plugin/GristData';
-import {UserAction} from 'app/common/DocActions';
-import {ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {cloneDeep} from 'lodash';
 
 export type ApplyUserActionsFunc = (userActions: UserAction[]) => Promise<ApplyUAResult>;
@@ -13,10 +13,6 @@ export interface DocCreationParams {
 
 export class DocCreationHelper {
   constructor(private _applyUserActions: ApplyUserActionsFunc) {
-  }
-
-  public validateSchema(schema: DocCreationSchema) {
-
   }
 
   public async createTablesFromSchema(schema: DocCreationSchema) {
@@ -39,6 +35,7 @@ export class DocCreationHelper {
 
     const tableCreationResults = (await this._applyUserActions(addTableActions)).retValues;
 
+    // TODO - Need to fix two assumptions - Grist column IDs are unique, and original ids are unique
     const tableOriginalIdToGristTableId = new Map<string, string>();
     const tableOriginalIdToGristTableRef = new Map<string, number>();
     const colOriginalIdToGristColId = new Map<string, string>();
@@ -126,6 +123,117 @@ export class DocCreationHelper {
   }
 }
 
+// Minimal information needed from the existing document for the import to work.
+interface ExistingDocSchema {
+  tables: ExistingTableSchema[];
+}
+
+interface ExistingTableSchema {
+  id: string;
+  columns: ExistingColumnSchema[];
+}
+
+interface ExistingColumnSchema {
+  id: string;
+}
+
+interface DocCreationSchemaWarning {
+  tableRef?: TableRef;
+  colRef?: ColRef;
+}
+
+class ColumnRefWarning implements DocCreationSchemaWarning {
+  constructor(public readonly tableRef: TableRef) {
+  }
+}
+
+class ColumnVisibleColRefWarning implements DocCreationSchemaWarning {
+  constructor(public readonly colRef: ColRef) {
+  }
+}
+
+class FormulaTableRefWarning implements DocCreationSchemaWarning {
+  constructor(public readonly tableRef: TableRef) {
+  }
+}
+
+class FormulaColRefWarning implements DocCreationSchemaWarning {
+  constructor(public readonly colRef: ColRef) {
+  }
+}
+
+/**
+ * Checks the validity of a DocCreationSchema, raising warnings for any issues found.
+ * The type system covers the majority of possible issues (e.g. missing properties).
+ * This primarily deals with checking referential integrity.
+ */
+export function validateDocCreationSchema(schema: DocCreationSchema, existingSchema: ExistingDocSchema) {
+  const warnings: DocCreationSchemaWarning[] = [];
+
+  const tablesByOriginalId = new Map(schema.tables.map(table => [table.originalId, table]));
+  const existingTablesById = new Map(existingSchema.tables.map(table => [table.id, table]));
+  const originalColumnIds = new Set(schema.tables.flatMap(table => table.columns.map(col => col.originalId)));
+  const existingColumnIds = new Set(existingSchema.tables.flatMap(table => table.columns.map(col => col.id)));
+
+  const isTableRefValid = (ref: TableRef) => Boolean(
+       ref.originalTableId && tablesByOriginalId.get(ref.originalTableId) !== undefined
+    || ref.existingTableId && tablesByOriginalId.get(ref.existingTableId) !== undefined
+  );
+
+  // Checks that the existing table contains that column, or that the column exists if no table ref is provided.
+  const isExistingColRefValid = (ref: ColRef, tableRef?: TableRef) => {
+    const tableId = tableRef?.existingTableId;
+    if (tableId) {
+      return existingTablesById.get(tableId)?.columns.some(column => column.id === ref.existingColId);
+    }
+    return ref.existingColId && existingColumnIds.has(ref.existingColId);
+  };
+
+  // Checks that the original table contains that column, or that the column exists if no table ref is provided.
+  const isOriginalColRefValid = (ref: ColRef, tableRef?: TableRef) => {
+    const tableId = tableRef?.originalTableId;
+    if (tableId) {
+      return tablesByOriginalId.get(tableId)?.columns.some(column => column.originalId === ref.existingColId);
+    }
+    return ref.originalColId && originalColumnIds.has(ref.originalColId);
+  };
+
+  const isColRefValid = (ref: ColRef, tableRef?: TableRef) => Boolean(
+       ref.existingColId && isExistingColRefValid(ref, tableRef)
+    || ref.originalColId && isOriginalColRefValid(ref, tableRef)
+  );
+
+  schema.tables.forEach(tableSchema => {
+    tableSchema.columns.forEach(columnSchema => {
+      // Validate formula replacements
+      columnSchema.formula?.replacements?.forEach(replacement => {
+        if (replacement.tableId && !isTableRefValid(replacement.tableId)) {
+          warnings.push(new FormulaTableRefWarning(replacement.tableId));
+          return;
+        }
+
+        // If no table id is given, column must be in... TODO This
+        if (replacement.colId && !isColRefValid(replacement.colId, replacement.tableId)) {
+          warnings.push(new FormulaColRefWarning(replacement.colId));
+          return;
+        }
+      });
+
+      // Validate ref
+      if (columnSchema.ref && !isTableRefValid(columnSchema.ref)) {
+        warnings.push(new ColumnRefWarning(columnSchema.ref));
+      }
+
+      // Validate visible col
+      if (columnSchema.visibleCol && !isColRefValid(columnSchema.visibleCol, columnSchema.ref)) {
+        warnings.push(new ColumnVisibleColRefWarning(columnSchema.visibleCol));
+      }
+    });
+  });
+
+  return warnings;
+}
+
 export function transformDocCreationSchema(schema: DocCreationSchema,
                                            params: DocCreationParams): DocCreationSchema {
   const newSchema = cloneDeep(schema);
@@ -155,11 +263,6 @@ export function transformDocCreationSchema(schema: DocCreationSchema,
     });
   }
   return newSchema;
-}
-
-export interface DocCreationIssue {
-  message: string;
-  ref: { tableId?: string, colId?: string }
 }
 
 type TableIdMapper = (id: string) => string | undefined;
