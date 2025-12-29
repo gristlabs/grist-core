@@ -121,7 +121,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         formula: 'len($[R0])',
         replacements: [{
           ref: {originalTableId: table.id, originalColId: fieldOptions.recordLinkFieldId},
-          columnNameOnly: true,
+          columnIdOnly: true,
         }]
       };
     }
@@ -358,14 +358,14 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         replacements: [
           {
             ref: { originalTableId: table.id, originalColId: fieldOptions.recordLinkFieldId },
-            columnNameOnly: true,
+            columnIdOnly: true,
           },
           {
             ref: {
               originalTableId: getTableIdForField(fieldOptions.fieldIdInLinkedTable),
               originalColId: fieldOptions.fieldIdInLinkedTable,
             },
-            columnNameOnly: true,
+            columnIdOnly: true,
           },
         ],
       };

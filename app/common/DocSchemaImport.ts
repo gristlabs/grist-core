@@ -4,12 +4,91 @@ import {RecalcWhen} from 'app/common/gristTypes';
 import {GristType} from 'app/plugin/GristData';
 import {cloneDeep} from 'lodash';
 
-export type ApplyUserActionsFunc = (userActions: UserAction[]) => Promise<ApplyUAResult>;
-
-export interface SchemaImportParams {
-  skipTableIds?: string[];
-  mapExistingTableIds?: Map<string, string>;
+export interface ImportSchema {
+  tables: TableImportSchema[];
 }
+
+export interface TableImportSchema {
+  originalId: string;
+  name: string;
+  columns: ColumnImportSchema[];
+}
+
+export interface ColumnImportSchema {
+  originalId: string;
+  desiredId: string;
+  type: GristType;
+  isFormula?: boolean;
+  formula?: FormulaTemplate;
+  label?: string;
+  description?: string;
+  // Only allow null until ID mapping is implemented
+  recalcDeps?: /*{ originalColId: string }[] |*/ null;
+  recalcWhen?: RecalcWhen;
+  // If a column reference is used, visible column will be set.
+  ref?: TableRef | ColRef;
+  untieColIdFromLabel?: boolean;
+  widgetOptions?: Record<string, any>;
+}
+
+/**
+ * Enables formulas to have Table/Column ids safely replaced.
+ * [R0], [R1], [R2], etc refers to a specific reference to insert
+ * Every replacement refers to either a column or a table
+ * { tableId: "Table1", colId: "Col1" } will expand to "Table1.Col1", with different IDs
+ * { tableId: "Table1" } will expand to "Table1", with a different ID
+ * { tableId: "Table1", colId: "Col1", columnIdOnly: true } will expand to "Col1", with a different ID
+ *
+ * Square brackets are used to prevent collisions with Javascript/Python template syntax.
+ */
+export interface FormulaTemplate {
+  formula: string,
+  replacements?: {
+    ref: TableRef | ColRef,
+    // Only insert the column id (the table ID is still needed for validation)
+    columnIdOnly: boolean,
+  }[]
+}
+
+interface OriginalTableRef {
+  originalTableId: string;
+  originalColId?: never;
+
+  existingTableId?: never;
+  existingColId?: never;
+}
+
+interface ExistingTableRef {
+  originalTableId?: never;
+  originalColId?: never;
+
+  existingTableId: string;
+  existingColId?: never;
+}
+
+// Allows any property to be read, but assignments must be mutually exclusive.
+type TableRef = OriginalTableRef | ExistingTableRef;
+
+interface OriginalColRef {
+  existingTableId?: never;
+  existingColId?: never;
+
+  originalTableId: string;
+  originalColId: string;
+}
+
+interface ExistingColRef {
+  existingTableId: string;
+  existingColId: string;
+
+  originalTableId?: never;
+  originalColId?: never;
+}
+
+// Allows any property to be read, but assignments must be mutually exclusive.
+type ColRef = OriginalColRef | ExistingColRef;
+
+export type ApplyUserActionsFunc = (userActions: UserAction[]) => Promise<ApplyUAResult>;
 
 export class DocSchemaImportTool {
   constructor(private _applyUserActions: ApplyUserActionsFunc) {
@@ -207,8 +286,13 @@ export function validateImportSchema(schema: ImportSchema, existingSchema: Exist
   return warnings;
 }
 
+export interface ImportSchemaTransformParams {
+  skipTableIds?: string[];
+  mapExistingTableIds?: Map<string, string>;
+}
+
 export function transformImportSchema(schema: ImportSchema,
-                                           params: SchemaImportParams): ImportSchema {
+                                      params: ImportSchemaTransformParams): ImportSchema {
   const newSchema = cloneDeep(schema);
   // Skip tables - allow the validation step to pick up on any issues introduced.
   newSchema.tables = newSchema.tables.filter(table => !params.skipTableIds?.includes(table.originalId));
@@ -252,7 +336,7 @@ function prepareFormula(template: FormulaTemplate, mappers: { getTableId: TableI
     return template.formula;
   }
   return template.replacements.reduce((formula, replacement, index) => {
-    const { ref, columnNameOnly } = replacement;
+    const { ref, columnIdOnly } = replacement;
     const tableId = ref?.existingTableId ||
       ref?.originalTableId && mappers.getTableId(ref.originalTableId);
     const colId = ref?.existingColId || ref?.originalColId && mappers.getColId(ref.originalTableId, ref.originalColId);
@@ -268,92 +352,10 @@ function prepareFormula(template: FormulaTemplate, mappers: { getTableId: TableI
       return formula;
     }
 
-    const replacementText = `${!columnNameOnly && tableId || ""}${!columnNameOnly && colId ? "." : ""}${colId || ""}`;
+    const replacementText = `${!columnIdOnly && tableId || ""}${!columnIdOnly && colId ? "." : ""}${colId || ""}`;
 
     return formula.replace(RegExp(`\\[R${index}\\]`, 'g'), replacementText);
   }, template.formula);
-}
-
-interface OriginalTableRef {
-  originalTableId: string;
-  originalColId?: never;
-
-  existingTableId?: never;
-  existingColId?: never;
-}
-
-interface ExistingTableRef {
-  originalTableId?: never;
-  originalColId?: never;
-
-  existingTableId: string;
-  existingColId?: never;
-}
-
-// Allows any property to be read, but assignments must be mutually exclusive.
-type TableRef = OriginalTableRef | ExistingTableRef;
-
-interface OriginalColRef {
-  existingTableId?: never;
-  existingColId?: never;
-
-  originalTableId: string;
-  originalColId: string;
-}
-
-interface ExistingColRef {
-  existingTableId: string;
-  existingColId: string;
-
-  originalTableId?: never;
-  originalColId?: never;
-}
-
-// Allows any property to be read, but assignments must be mutually exclusive.
-type ColRef = OriginalColRef | ExistingColRef;
-
-export interface ImportSchema {
-  tables: TableImportSchema[];
-}
-
-export interface TableImportSchema {
-  originalId: string;
-  name: string;
-  columns: ColumnImportSchema[];
-}
-
-/**
- * Enables formulas to have Table/Column ids safely replaced.
- * [R0], [R1], [R2], etc refers to a specific reference to insert
- * { tableId: "Table1", colId: "Col1" } will expand to "Table1.Col1", with different IDs
- * { tableId: "Table1 } will expand to "Table1", with a different ID
- * { colId: "Col1" } will expand to "Col1", with a different ID
- *
- * Square brackets are used to prevent collisions with Javascript/Python template syntax.
- */
-export interface FormulaTemplate {
-  formula: string,
-  replacements?: {
-    ref: TableRef | ColRef,
-    columnNameOnly: boolean,
-  }[]
-}
-
-export interface ColumnImportSchema {
-  originalId: string;
-  desiredId: string;
-  type: GristType;
-  isFormula?: boolean;
-  formula?: FormulaTemplate;
-  label?: string;
-  description?: string;
-  // Only allow null until ID mapping is implemented
-  recalcDeps?: /*{ originalColId: string }[] |*/ null;
-  recalcWhen?: RecalcWhen;
-  // If a column reference is used, visible column will be set.
-  ref?: TableRef | ColRef;
-  untieColIdFromLabel?: boolean;
-  widgetOptions?: Record<string, any>;
 }
 
 export class DocSchemaImportError extends Error {
