@@ -1504,7 +1504,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
   ) {
     const { columns, link, summarize, table, type } = widget;
     const viewRef = this.activeViewId.get();
-    if (typeof viewRef !== 'number') {
+    if (typeof viewRef !== "number") {
       // Report to make it easier to debug, but we shouldn't offer any UI options that lead here.
       throw new Error(`Cannot add a widget to this type of page (${viewRef})`);
     }

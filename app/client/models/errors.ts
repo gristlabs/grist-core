@@ -81,7 +81,7 @@ export function reportSuccess(msg: MessageType, options?: Partial<INotifyOptions
   return reportMessage(msg, { level: "success", ...options });
 }
 
-function isUnhelpful(ev: ErrorEvent) {
+function isUnhelpful(err: Error | string, ev: ErrorEvent) {
   if (ev.message === "ResizeObserver loop completed with undelivered notifications.") {
     // Sometimes on Chrome, changing the browser zoom level causes this benign error to
     // be thrown. It seems to only appear on the Access Rules page, and may have something
@@ -100,6 +100,13 @@ function isUnhelpful(ev: ErrorEvent) {
     // In particular, this addresses a bug on iOS version of Firefox, which produces uncaught
     // sanitized errors on load AND on attempts to report them, leading to a loop that hangs the
     // browser. Reporting just once is a sufficient workaround.
+    return true;
+  }
+
+  if (typeof err === "object" && typeof err?.stack === "string" && err.stack.includes("chrome-extension://")) {
+    // Sometimes we can tell when the error is really from a browser extension rather than Grist.
+    // These usually don't interfere, and the report of the error is more disruptive than the
+    // error itself.
     return true;
   }
 
@@ -125,7 +132,7 @@ export function reportError(err: Error | string, ev?: ErrorEvent): void {
     // This error can be emitted while a page is reloaded, and isn't worth reporting.
     return;
   }
-  if (ev && isUnhelpful(ev)) {
+  if (ev && isUnhelpful(err, ev)) {
     // Report just once to the server. There is little point reporting subsequent such errors once
     // we know they happen, since each individual error has no useful information.
     if (!unhelpfulErrors.has(ev.message)) {
