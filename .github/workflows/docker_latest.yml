@@ -66,6 +66,25 @@ jobs:
           echo "Docker Hub Owner: $DOCKER_HUB_OWNER"
           echo "Tag: $TAG"
 
+      - name: Free disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h /
+          echo "Removing Android SDK..."
+          sudo rm -rf /usr/local/lib/android
+          df -h /
+          echo "Removing .NET..."
+          sudo rm -rf /usr/share/dotnet
+          df -h /
+          echo "Removing Haskell..."
+          sudo rm -rf /usr/local/.ghcup
+          df -h /
+          echo "Removing Swift..."
+          sudo rm -rf /usr/share/swift
+          df -h /
+          echo "Final disk space:"
+          df -h /
+
       - name: Check out the repo
         uses: actions/checkout@v4
         with:
