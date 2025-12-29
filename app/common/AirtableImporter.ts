@@ -4,42 +4,43 @@ import {UserAction} from 'app/common/DocActions';
 import {ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {
   ColumnCreationSchema,
-  createTablesFromSchemas,
-  DocCreationSchema,
-  FormulaCreationFunc
+  DocCreationHelper,
+  DocCreationSchema, FormulaTemplate,
 } from 'app/common/DocCreationHelper';
 
 export type ApplyUserActionsFunc = (userActions: UserAction[]) => Promise<ApplyUAResult>;
 
 export class AirtableImporter {
-  constructor(private _api: AirtableAPI, private _applyUserActions: ApplyUserActionsFunc) {
+  constructor(private _api: AirtableAPI) {
   }
 
-  public async run(base: string) {
-    const baseSchema = await this._api.getBaseSchema(base);
+  /*
+  Importer will:
+    - Optionally create a new doc
+    - Get the schema from the given service (or be given it)
+    - Apply schema to the doc?
+   */
 
-    console.log(baseSchema);
-    const gristDocSchema = gristDocSchemaFromAirtableSchema(baseSchema);
-
-
-    const results = await createTablesFromSchemas(gristDocSchema.tables, this._applyUserActions);
-
-    console.log(JSON.stringify(results, null, 2));
-
-    return {
-      baseSchema,
-      gristSchema: await this._getGristDocSchema(base),
-      results,
-    };
-  }
-
-  private async _getGristDocSchema(base: string): Promise<DocCreationSchema> {
+  public async createDocSchema(base: string) {
     const baseSchema = await this._api.getBaseSchema(base);
 
     return gristDocSchemaFromAirtableSchema(baseSchema);
   }
+
+  public async importSchema(applyUserActions: ApplyUserActionsFunc, schema: DocCreationSchema) {
+    const helper = new DocCreationHelper(applyUserActions);
+    return await helper.createTablesFromSchema({ tables: schema.tables });
+  }
 }
 
+/**
+ * Design note: this needs to be deterministic based solely on the input schema, and should not be based
+ * on the current state of the Grist doc or any other parameters passed to the import.
+ *
+ * Other areas of the import might skip tables, or re-use existing tables. If this schema changes
+ * based on the import parameters, the remainder of the import code may not be able to adapt the
+ * schema properly for the existing environment.
+ */
 function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): DocCreationSchema {
   return {
     tables: airtableSchema.tables.map(baseTable => {
@@ -85,13 +86,16 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
     };
   },
   count(field) {
-    let formula: FormulaCreationFunc = () => "";
+    let formula: FormulaTemplate = { formula: "", replacements: [] };
     const fieldOptions = field.options;
     if (fieldOptions && fieldOptions.isValid && fieldOptions.recordLinkFieldId) {
       // These can have conditions set in Airtable to filter them, but we have no way of knowing
       // if they're present - they're not exported in the schema definition...
       // Warning: This may not strictly match 1-to-1 with airtable as a result.
-      formula = ({ getColId }) => `len($${getColId(fieldOptions.recordLinkFieldId)})`;
+      formula = {
+        formula: 'len($[R0])',
+        replacements: [{ colId: fieldOptions.recordLinkFieldId }]
+      };
     }
 
     return {
@@ -118,7 +122,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'DateTime',
-      formula: () => "NOW()",
+      formula: { formula: "NOW()" },
       recalcWhen: RecalcWhen.DEFAULT,
     };
   },
@@ -189,7 +193,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       // the time investment.
       type: 'Any',
       // Store the formula as a comment to prevent it showing errors.
-      formula: () => `#${field.options?.formula || "No formula set"}`,
+      formula: { formula: `#${field.options?.formula || "#No formula set"}` },
       isFormula: true,
     };
   },
@@ -199,7 +203,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-      formula: () => 'user and f"{user.Name}"',
+      formula: { formula: 'user and f"{user.Name}"' },
       recalcWhen: 2,
     };
   },
@@ -209,7 +213,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'DateTime',
-      formula: () => 'NOW()',
+      formula: { formula: 'NOW()' },
       recalcWhen: 2,
       widgetOptions: {
         isCustomDateFormat: true,
@@ -319,12 +323,16 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
     };
   },
   rollup(field) {
-    let formula: FormulaCreationFunc = () => "";
+    let formula: FormulaTemplate = { formula: "" };
     const fieldOptions = field.options;
     if (fieldOptions && fieldOptions.recordLinkFieldId && fieldOptions.fieldIdInLinkedTable) {
-      formula = ({ getColId }) => `
-        $${getColId(fieldOptions.recordLinkFieldId)}.${getColId(fieldOptions.fieldIdInLinkedTable)}
-      `.trim();
+      formula = {
+        formula: '$[R0].[R1]',
+        replacements: [
+          { colId: fieldOptions.recordLinkFieldId },
+          { colId: fieldOptions.fieldIdInLinkedTable },
+        ],
+      };
     }
     return {
       originalId: field.id,
