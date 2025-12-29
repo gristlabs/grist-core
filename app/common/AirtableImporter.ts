@@ -1,4 +1,9 @@
-import {AirtableAPI, AirtableBaseSchema, AirtableFieldSchema} from 'app/common/AirtableAPI';
+import {
+  AirtableAPI,
+  AirtableBaseSchema,
+  AirtableFieldSchema,
+  AirtableTableSchema
+} from 'app/common/AirtableAPI';
 import {RecalcWhen} from 'app/common/gristTypes';
 import {UserAction} from 'app/common/DocActions';
 import {ApplyUAResult} from 'app/common/ActiveDocAPI';
@@ -34,14 +39,23 @@ export class AirtableImporter {
 }
 
 /**
- * Design note: this needs to be deterministic based solely on the input schema, and should not be based
- * on the current state of the Grist doc or any other parameters passed to the import.
+ * Design note: this needs to be deterministic based solely on the input schema, and should not be
+ * based on the current state of the Grist doc or any other parameters passed to the import.
  *
  * Other areas of the import might skip tables, or re-use existing tables. If this schema changes
  * based on the import parameters, the remainder of the import code may not be able to adapt the
  * schema properly for the existing environment.
  */
 function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): DocCreationSchema {
+  const getTableIdForField = (fieldId: string) => {
+    const tableId = airtableSchema.tables.find(table => table.fields.find(field => field.id === fieldId))?.id;
+    // Generally shouldn't happen - the schema should always have sufficient info to resolve a valid field id.
+    if (tableId === undefined) {
+      throw new Error(`Unable to resolve table id for Airtable field ${fieldId}`);
+    }
+    return tableId;
+  };
+
   return {
     tables: airtableSchema.tables.map(baseTable => {
       return {
@@ -50,7 +64,11 @@ function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): D
         columns: baseTable.fields
           .map(baseField => {
             if (!AirtableFieldMappers[baseField.type]) { return undefined; }
-            return AirtableFieldMappers[baseField.type](baseField);
+            return AirtableFieldMappers[baseField.type]({
+              field: baseField,
+              table: baseTable,
+              getTableIdForField,
+            });
           })
           .filter((column): column is ColumnCreationSchema => column !== undefined),
       };
@@ -58,9 +76,15 @@ function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): D
   };
 }
 
-type AirtableFieldMapper = (field: AirtableFieldSchema) => ColumnCreationSchema;
+interface AirtableFieldMapperParams {
+  field: AirtableFieldSchema,
+  table: AirtableTableSchema,
+  getTableIdForField: (fieldId: string) => string,
+}
+
+type AirtableFieldMapper = (params: AirtableFieldMapperParams) => ColumnCreationSchema;
 const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
-  aiText(field) {
+  aiText({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -68,16 +92,17 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       type: 'Text',
     };
   },
-  autoNumber(field) {
+  autoNumber({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
       label: field.name,
       type: 'Numeric',
-      // TODO - Need a simple formula for this - PREVIOUS runs into working correctly, circular reference issues
+      // TODO - Need a simple formula for this - PREVIOUS runs into working correctly, circular
+      // reference issues
     };
   },
-  checkbox(field) {
+  checkbox({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -85,7 +110,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       type: 'Bool',
     };
   },
-  count(field) {
+  count({field, table}) {
     let formula: FormulaTemplate = { formula: "", replacements: [] };
     const fieldOptions = field.options;
     if (fieldOptions && fieldOptions.isValid && fieldOptions.recordLinkFieldId) {
@@ -94,7 +119,10 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       // Warning: This may not strictly match 1-to-1 with airtable as a result.
       formula = {
         formula: 'len($[R0])',
-        replacements: [{ colId: fieldOptions.recordLinkFieldId }]
+        replacements: [{
+          ref: {originalTableId: table.id, originalColId: fieldOptions.recordLinkFieldId},
+          columnNameOnly: true,
+        }]
       };
     }
 
@@ -107,26 +135,25 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       formula,
     };
   },
-  createdBy(field) {
+  createdBy({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-
     };
   },
-  createdTime(field) {
+  createdTime({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
       label: field.name,
       type: 'DateTime',
-      formula: { formula: "NOW()" },
+      formula: {formula: "NOW()"},
       recalcWhen: RecalcWhen.DEFAULT,
     };
   },
-  currency(field) {
+  currency({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -140,7 +167,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       }
     };
   },
-  date(field) {
+  date({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -152,7 +179,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       },
     };
   },
-  dateTime(field) {
+  dateTime({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -166,7 +193,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       },
     };
   },
-  duration(field) {
+  duration({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -175,7 +202,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       // TODO - Should also produce a formatted duration formula column.
     };
   },
-  email(field) {
+  email({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -183,7 +210,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       type: 'Text',
     };
   },
-  formula(field) {
+  formula({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -197,23 +224,23 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       isFormula: true,
     };
   },
-  lastModifiedBy(field) {
+  lastModifiedBy({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-      formula: { formula: 'user and f"{user.Name}"' },
+      formula: {formula: 'user and f"{user.Name}"'},
       recalcWhen: 2,
     };
   },
-  lastModifiedTime(field) {
+  lastModifiedTime({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
       label: field.name,
       type: 'DateTime',
-      formula: { formula: 'NOW()' },
+      formula: {formula: 'NOW()'},
       recalcWhen: 2,
       widgetOptions: {
         isCustomDateFormat: true,
@@ -223,7 +250,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       },
     };
   },
-  multilineText(field) {
+  multilineText({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -231,7 +258,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       type: 'Text',
     };
   },
-  multipleAttachments(field) {
+  multipleAttachments({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -239,7 +266,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       type: 'Attachments',
     };
   },
-  multipleCollaborators(field) {
+  multipleCollaborators({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -248,7 +275,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       // Do we make a collaborators table and make this a reference instead?
     };
   },
-  multipleRecordLinks(field) {
+  multipleRecordLinks({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -259,7 +286,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       }
     };
   },
-  multipleSelects(field) {
+  multipleSelects({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -272,7 +299,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       },
     };
   },
-  number(field) {
+  number({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -283,7 +310,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       }
     };
   },
-  percent(field) {
+  percent({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -294,7 +321,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       },
     };
   },
-  phoneNumber(field) {
+  phoneNumber({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -302,7 +329,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       type: 'Text',
     };
   },
-  rating(field) {
+  rating({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -311,7 +338,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       // Consider setting up some nice conditional formatting.
     };
   },
-  richText(field) {
+  richText({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -322,15 +349,24 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       },
     };
   },
-  rollup(field) {
-    let formula: FormulaTemplate = { formula: "" };
+  rollup({field, table, getTableIdForField}) {
+    let formula: FormulaTemplate = {formula: ""};
     const fieldOptions = field.options;
     if (fieldOptions && fieldOptions.recordLinkFieldId && fieldOptions.fieldIdInLinkedTable) {
       formula = {
         formula: '$[R0].[R1]',
         replacements: [
-          { colId: fieldOptions.recordLinkFieldId },
-          { colId: fieldOptions.fieldIdInLinkedTable },
+          {
+            ref: { originalTableId: table.id, originalColId: fieldOptions.recordLinkFieldId },
+            columnNameOnly: true,
+          },
+          {
+            ref: {
+              originalTableId: getTableIdForField(fieldOptions.fieldIdInLinkedTable),
+              originalColId: fieldOptions.fieldIdInLinkedTable,
+            },
+            columnNameOnly: true,
+          },
         ],
       };
     }
@@ -344,7 +380,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       // TODO - Warn that this won't be perfect.
     };
   },
-  singleCollaborator(field) {
+  singleCollaborator({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -352,7 +388,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       type: 'Text',
     };
   },
-  singleLineText(field) {
+  singleLineText({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -360,7 +396,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       type: 'Text',
     };
   },
-  singleSelect(field) {
+  singleSelect({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,
@@ -373,7 +409,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       },
     };
   },
-  url(field) {
+  url({field}) {
     return {
       originalId: field.id,
       desiredId: field.name,

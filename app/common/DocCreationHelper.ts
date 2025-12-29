@@ -35,41 +35,48 @@ export class DocCreationHelper {
 
     const tableCreationResults = (await this._applyUserActions(addTableActions)).retValues;
 
-    // TODO - Need to fix two assumptions - Grist column IDs are unique, and original ids are unique
-    const tableOriginalIdToGristTableId = new Map<string, string>();
-    const tableOriginalIdToGristTableRef = new Map<string, number>();
-    const colOriginalIdToGristColId = new Map<string, string>();
+    const tableIdsMap = new Map<string, {
+      originalId: string;
+      gristId: string;
+      gristRefId: number;
+      columnIdMap: Map<string, string>;
+    }>();
 
     // This expects everything to have been created successfully, and therefore
     // in order in the response - without any gaps.
     tableSchemas.forEach((tableSchema, tableIndex) => {
       const tableCreationResult = tableCreationResults[tableIndex];
-      tableOriginalIdToGristTableId.set(tableSchema.originalId, tableCreationResult.table_id as string);
-      tableOriginalIdToGristTableRef.set(tableSchema.originalId, tableCreationResult.id as number);
+      const tableIds = {
+        originalId: tableSchema.originalId,
+          gristId: tableCreationResult.table_id as string,
+        gristRefId: tableCreationResult.id as number,
+        columnIdMap: new Map()
+      };
+      tableIdsMap.set(tableSchema.originalId, tableIds);
 
       tableSchema.columns.forEach((colSchema, colIndex) => {
-        colOriginalIdToGristColId.set(colSchema.originalId, tableCreationResult.columns[colIndex] as string);
+        tableIds.columnIdMap.set(colSchema.originalId, tableCreationResult.columns[colIndex] as string);
       });
     });
 
     const idMappers = {
-      getColId(id: string) {
-        return colOriginalIdToGristColId.get(id);
+      getColId(tableId: string, colId: string) {
+        return tableIdsMap.get(tableId)?.columnIdMap.get(colId);
       },
-      getColIdOrThrow(id: string) {
-        const value = colOriginalIdToGristColId.get(id);
-        if (colOriginalIdToGristColId.get(id) === undefined) {
-          throw new DocCreationHelperError(`Couldn't locate Grist column id for column with original id ${id}`);
+      getColIdOrThrow(tableId: string, colId: string) {
+        const value = tableIdsMap.get(tableId)?.columnIdMap.get(colId);
+        if (value === undefined) {
+          throw new DocCreationHelperError(`Couldn't find Grist column id for column '${colId}' in table '${tableId}'`);
         }
         return value;
       },
       getTableId(id: string) {
-        return tableOriginalIdToGristTableId.get(id);
+        return tableIdsMap.get(id)?.gristId;
       },
       getTableIdOrThrow(id: string) {
-        const value = tableOriginalIdToGristTableId.get(id);
-        if (tableOriginalIdToGristTableId.get(id) === undefined) {
-          throw new DocCreationHelperError(`Couldn't locate Grist table id for table with original id ${id}`);
+        const value = tableIdsMap.get(id)?.gristId;
+        if (value === undefined) {
+          throw new DocCreationHelperError(`Couldn't locate Grist table id for table ${id}`);
         }
         return value;
       }
@@ -95,7 +102,7 @@ export class DocCreationHelper {
         modifyColumnActions.push([
           'ModifyColumn',
           idMappers.getTableIdOrThrow(tableSchema.originalId),
-          idMappers.getColIdOrThrow(columnSchema.originalId),
+          idMappers.getColIdOrThrow(tableSchema.originalId, columnSchema.originalId),
           {
             type,
             isFormula: columnSchema.isFormula ?? false,
@@ -105,8 +112,10 @@ export class DocCreationHelper {
             untieColIdFromLabel: columnSchema.label !== undefined,
             description: columnSchema.description,
             widgetOptions: JSON.stringify(columnSchema.widgetOptions),
-            visibleCol: columnSchema.visibleCol?.originalColId
-              && idMappers.getColIdOrThrow(columnSchema.visibleCol.originalColId),
+            visibleCol: columnSchema.ref?.existingColId || (
+              columnSchema.ref?.originalColId
+              && idMappers.getColIdOrThrow(columnSchema.ref.originalTableId, columnSchema.ref.originalColId)
+            ),
             recalcDeps: columnSchema.recalcDeps,
             recalcWhen: columnSchema.recalcWhen,
           }
@@ -117,8 +126,7 @@ export class DocCreationHelper {
     await this._applyUserActions(modifyColumnActions);
 
     return {
-      tableOriginalIdToGristTableId,
-      colOriginalIdToGristColId,
+      tableIdsMap
     };
   }
 }
@@ -138,27 +146,16 @@ interface ExistingColumnSchema {
 }
 
 interface DocCreationSchemaWarning {
-  tableRef?: TableRef;
-  colRef?: ColRef;
+  ref?: TableRef | ColRef;
 }
 
 class ColumnRefWarning implements DocCreationSchemaWarning {
-  constructor(public readonly tableRef: TableRef) {
+  constructor(public readonly ref: TableRef | ColRef) {
   }
 }
 
-class ColumnVisibleColRefWarning implements DocCreationSchemaWarning {
-  constructor(public readonly colRef: ColRef) {
-  }
-}
-
-class FormulaTableRefWarning implements DocCreationSchemaWarning {
-  constructor(public readonly tableRef: TableRef) {
-  }
-}
-
-class FormulaColRefWarning implements DocCreationSchemaWarning {
-  constructor(public readonly colRef: ColRef) {
+class FormulaRefWarning implements DocCreationSchemaWarning {
+  constructor(public readonly ref: TableRef | ColRef) {
   }
 }
 
@@ -172,8 +169,6 @@ export function validateDocCreationSchema(schema: DocCreationSchema, existingSch
 
   const tablesByOriginalId = new Map(schema.tables.map(table => [table.originalId, table]));
   const existingTablesById = new Map(existingSchema.tables.map(table => [table.id, table]));
-  const originalColumnIds = new Set(schema.tables.flatMap(table => table.columns.map(col => col.originalId)));
-  const existingColumnIds = new Set(existingSchema.tables.flatMap(table => table.columns.map(col => col.id)));
 
   const isTableRefValid = (ref: TableRef) => Boolean(
        ref.originalTableId && tablesByOriginalId.get(ref.originalTableId) !== undefined
@@ -181,52 +176,30 @@ export function validateDocCreationSchema(schema: DocCreationSchema, existingSch
   );
 
   // Checks that the existing table contains that column, or that the column exists if no table ref is provided.
-  const isExistingColRefValid = (ref: ColRef, tableRef?: TableRef) => {
-    const tableId = tableRef?.existingTableId;
-    if (tableId) {
-      return existingTablesById.get(tableId)?.columns.some(column => column.id === ref.existingColId);
-    }
-    return ref.existingColId && existingColumnIds.has(ref.existingColId);
-  };
+  const isExistingColRefValid = (ref: ExistingColRef) =>
+    existingTablesById.get(ref.existingTableId)?.columns.some(column => column.id === ref.existingColId);
 
   // Checks that the original table contains that column, or that the column exists if no table ref is provided.
-  const isOriginalColRefValid = (ref: ColRef, tableRef?: TableRef) => {
-    const tableId = tableRef?.originalTableId;
-    if (tableId) {
-      return tablesByOriginalId.get(tableId)?.columns.some(column => column.originalId === ref.existingColId);
-    }
-    return ref.originalColId && originalColumnIds.has(ref.originalColId);
-  };
+  const isOriginalColRefValid = (ref: OriginalColRef) =>
+    tablesByOriginalId.get(ref.originalTableId)?.columns.some(column => column.originalId === ref.existingColId);
 
-  const isColRefValid = (ref: ColRef, tableRef?: TableRef) => Boolean(
-       ref.existingColId && isExistingColRefValid(ref, tableRef)
-    || ref.originalColId && isOriginalColRefValid(ref, tableRef)
-  );
+  const isRefValid = (ref: TableRef | ColRef) =>
+      ref.existingColId !== undefined ? isExistingColRefValid(ref) :
+      ref.originalColId !== undefined ? isOriginalColRefValid(ref) :
+      isTableRefValid(ref);
 
   schema.tables.forEach(tableSchema => {
     tableSchema.columns.forEach(columnSchema => {
       // Validate formula replacements
       columnSchema.formula?.replacements?.forEach(replacement => {
-        if (replacement.tableId && !isTableRefValid(replacement.tableId)) {
-          warnings.push(new FormulaTableRefWarning(replacement.tableId));
-          return;
-        }
-
-        // If no table id is given, column must be in... TODO This
-        if (replacement.colId && !isColRefValid(replacement.colId, replacement.tableId)) {
-          warnings.push(new FormulaColRefWarning(replacement.colId));
-          return;
+        if (!isRefValid(replacement.ref)) {
+          warnings.push(new FormulaRefWarning(replacement.ref));
         }
       });
 
       // Validate ref
-      if (columnSchema.ref && !isTableRefValid(columnSchema.ref)) {
+      if (columnSchema.ref && !isRefValid(columnSchema.ref)) {
         warnings.push(new ColumnRefWarning(columnSchema.ref));
-      }
-
-      // Validate visible col
-      if (columnSchema.visibleCol && !isColRefValid(columnSchema.visibleCol, columnSchema.ref)) {
-        warnings.push(new ColumnVisibleColRefWarning(columnSchema.visibleCol));
       }
     });
   });
@@ -241,10 +214,17 @@ export function transformDocCreationSchema(schema: DocCreationSchema,
   newSchema.tables = newSchema.tables.filter(table => !params.skipTableIds?.includes(table.originalId));
 
   // Map original tables to existing tables (resolve references)
-  const mapTableRef = (tableRef: TableRef) => {
-    const existingTableId = tableRef.originalTableId && existingTableIdMap?.get(tableRef.originalTableId);
-    // Preserve the reference as-is if no mapping is found
-    return existingTableId ? { existingTableId } : tableRef;
+  const mapRef = (ref: TableRef | ColRef): TableRef | ColRef => {
+    const existingTableId = ref.originalTableId && existingTableIdMap?.get(ref.originalTableId);
+    // Preserve the reference as-is if no mapping is found or needed.
+    if (!existingTableId) {
+      return ref;
+    }
+    if (ref.originalColId) {
+      // TODO - Map col id. Avoided for now as it requires knowledge of the table's columns.
+      return { existingTableId, existingColId: ref.originalColId };
+    }
+    return { existingTableId };
   };
 
   const existingTableIdMap = params.mapExistingTableIds;
@@ -254,10 +234,10 @@ export function transformDocCreationSchema(schema: DocCreationSchema,
         // Manually map column properties to their existing table.
         // This is slightly error-prone long term (as each new reference needs mapping here), but manually
         // mapping fields is simple and easy for the moment.
-        columnSchema.ref = columnSchema.ref && mapTableRef(columnSchema.ref);
+        columnSchema.ref = columnSchema.ref && mapRef(columnSchema.ref);
 
         columnSchema.formula?.replacements?.forEach(replacement => {
-          replacement.tableId = replacement.tableId && mapTableRef(replacement.tableId);
+          replacement.ref = replacement.ref && mapRef(replacement.ref);
         });
       });
     });
@@ -266,28 +246,29 @@ export function transformDocCreationSchema(schema: DocCreationSchema,
 }
 
 type TableIdMapper = (id: string) => string | undefined;
-type ColIdMapper = (id: string) => string | undefined;
+type ColIdMapper = (tableId: string, colId: string) => string | undefined;
 function prepareFormula(template: FormulaTemplate, mappers: { getTableId: TableIdMapper, getColId: ColIdMapper }) {
   if (!template.replacements || template.replacements.length === 0) {
     return template.formula;
   }
   return template.replacements.reduce((formula, replacement, index) => {
-    const newTableId = replacement.tableId?.existingTableId ||
-      replacement.tableId?.originalTableId && mappers.getTableId(replacement.tableId.originalTableId);
-    const newColId = replacement.colId?.existingColId ||
-      replacement.colId?.originalColId && mappers.getColId(replacement.colId.originalColId);
+    const { ref, columnNameOnly } = replacement;
+    const tableId = ref?.existingTableId ||
+      ref?.originalTableId && mappers.getTableId(ref.originalTableId);
+    const colId = ref?.existingColId || ref?.originalColId && mappers.getColId(ref.originalTableId, ref.originalColId);
 
-    if (replacement.tableId && !newTableId) {
+    if (!tableId) {
       // TODO - Warning if tableId doesn't exist
       return formula;
     }
 
-    if (replacement.colId && !newColId) {
+    // existingColId doesn't need checking, as we only care about mapper failures here.
+    if (replacement.ref.originalColId && !colId) {
       // TODO - Warning if colId doesn't exist
       return formula;
     }
 
-    const replacementText = `${newTableId || ""}${newTableId && newColId ? "." : ""}${newColId || ""}`;
+    const replacementText = `${!columnNameOnly && tableId || ""}${!columnNameOnly && colId ? "." : ""}${colId || ""}`;
 
     return formula.replace(RegExp(`\\[R${index}\\]`, 'g'), replacementText);
   }, template.formula);
@@ -295,25 +276,41 @@ function prepareFormula(template: FormulaTemplate, mappers: { getTableId: TableI
 
 interface OriginalTableRef {
   originalTableId: string;
+  originalColId?: never;
+
+  existingTableId?: never;
+  existingColId?: never;
 }
 
 interface ExistingTableRef {
+  originalTableId?: never;
+  originalColId?: never;
+
   existingTableId: string;
+  existingColId?: never;
 }
 
 // Allows any property to be read, but assignments must be mutually exclusive.
-type TableRef = (OriginalTableRef | ExistingTableRef) & Partial<OriginalTableRef & ExistingTableRef>;
+type TableRef = OriginalTableRef | ExistingTableRef;
 
 interface OriginalColRef {
+  existingTableId?: never;
+  existingColId?: never;
+
+  originalTableId: string;
   originalColId: string;
 }
 
 interface ExistingColRef {
+  existingTableId: string;
   existingColId: string;
+
+  originalTableId?: never;
+  originalColId?: never;
 }
 
 // Allows any property to be read, but assignments must be mutually exclusive.
-type ColRef = (OriginalColRef | ExistingColRef) & Partial<OriginalColRef & ExistingColRef>;
+type ColRef = OriginalColRef | ExistingColRef;
 
 export interface DocCreationSchema {
   tables: TableCreationSchema[];
@@ -337,11 +334,10 @@ export interface TableCreationSchema {
 export interface FormulaTemplate {
   formula: string,
   replacements?: {
-    tableId?: TableRef,
-    colId?: ColRef,
+    ref: TableRef | ColRef,
+    columnNameOnly: boolean,
   }[]
 }
-
 
 export interface ColumnCreationSchema {
   originalId: string;
@@ -354,8 +350,8 @@ export interface ColumnCreationSchema {
   // Only allow null until ID mapping is implemented
   recalcDeps?: /*{ originalColId: string }[] |*/ null;
   recalcWhen?: RecalcWhen;
-  ref?: TableRef;
-  visibleCol?: ColRef;
+  // If a column reference is used, visible column will be set.
+  ref?: TableRef | ColRef;
   untieColIdFromLabel?: boolean;
   widgetOptions?: Record<string, any>;
 }
