@@ -66,7 +66,7 @@ jobs:
           echo "Docker Hub Owner: $DOCKER_HUB_OWNER"
           echo "Tag: $TAG"
 
-      - name: Free Disk Space
+      - name: Free disk space
         run: |
           echo "Disk space before cleanup:"
           df -h /
