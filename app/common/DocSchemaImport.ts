@@ -1,8 +1,9 @@
-import {ApplyUAResult} from 'app/common/ActiveDocAPI';
-import {UserAction} from 'app/common/DocActions';
-import {RecalcWhen} from 'app/common/gristTypes';
-import {GristType} from 'app/plugin/GristData';
-import {cloneDeep} from 'lodash';
+import { ApplyUAResult } from "app/common/ActiveDocAPI";
+import { UserAction } from "app/common/DocActions";
+import { RecalcWhen } from "app/common/gristTypes";
+import { GristType } from "app/plugin/GristData";
+
+import { cloneDeep } from "lodash";
 
 export interface ImportSchema {
   tables: TableImportSchema[];
@@ -23,7 +24,7 @@ export interface ColumnImportSchema {
   label?: string;
   description?: string;
   // Only allow null until ID mapping is implemented
-  recalcDeps?: /*{ originalColId: string }[] |*/ null;
+  recalcDeps?: /* { originalColId: string }[] | */ null;
   recalcWhen?: RecalcWhen;
   // If a column reference is used, visible column will be set.
   ref?: TableRef | ColRef;
@@ -100,7 +101,7 @@ export class DocSchemaImportTool {
 
     for (const tableSchema of tableSchemas) {
       addTableActions.push([
-        'AddTable',
+        "AddTable",
         // This will be transformed into a valid id
         tableSchema.name,
         tableSchema.columns.map(colInfo => ({
@@ -127,9 +128,9 @@ export class DocSchemaImportTool {
       const tableCreationResult = tableCreationResults[tableIndex];
       const tableIds = {
         originalId: tableSchema.originalId,
-          gristId: tableCreationResult.table_id as string,
+        gristId: tableCreationResult.table_id as string,
         gristRefId: tableCreationResult.id as number,
-        columnIdMap: new Map()
+        columnIdMap: new Map(),
       };
       tableIdsMap.set(tableSchema.originalId, tableIds);
 
@@ -158,7 +159,7 @@ export class DocSchemaImportTool {
           throw new DocSchemaImportError(`Couldn't locate Grist table id for table ${id}`);
         }
         return value;
-      }
+      },
     };
 
     const modifyColumnActions: UserAction[] = [];
@@ -169,17 +170,17 @@ export class DocSchemaImportTool {
           const tableId = columnSchema.ref?.existingTableId ||
             columnSchema.ref?.originalTableId && idMappers.getTableId(columnSchema.ref?.originalTableId);
           // TODO - show a warning here if we couldn't resolve a table id
-          type = tableId
-            ? `${columnSchema.type}:${tableId}`
-            : "Any";
+          type = tableId ?
+            `${columnSchema.type}:${tableId}` :
+            "Any";
         }
 
-        const formula = columnSchema.formula
-          ? prepareFormula(columnSchema.formula, idMappers)
-          : undefined;
+        const formula = columnSchema.formula ?
+          prepareFormula(columnSchema.formula, idMappers) :
+          undefined;
 
         modifyColumnActions.push([
-          'ModifyColumn',
+          "ModifyColumn",
           idMappers.getTableIdOrThrow(tableSchema.originalId),
           idMappers.getColIdOrThrow(tableSchema.originalId, columnSchema.originalId),
           {
@@ -192,12 +193,12 @@ export class DocSchemaImportTool {
             description: columnSchema.description,
             widgetOptions: JSON.stringify(columnSchema.widgetOptions),
             visibleCol: columnSchema.ref?.existingColId || (
-              columnSchema.ref?.originalColId
-              && idMappers.getColIdOrThrow(columnSchema.ref.originalTableId, columnSchema.ref.originalColId)
+              columnSchema.ref?.originalColId &&
+              idMappers.getColIdOrThrow(columnSchema.ref.originalTableId, columnSchema.ref.originalColId)
             ),
             recalcDeps: columnSchema.recalcDeps,
             recalcWhen: columnSchema.recalcWhen,
-          }
+          },
         ]);
       }
     }
@@ -205,7 +206,7 @@ export class DocSchemaImportTool {
     await this._applyUserActions(modifyColumnActions);
 
     return {
-      tableIdsMap
+      tableIdsMap,
     };
   }
 }
@@ -250,8 +251,8 @@ export function validateImportSchema(schema: ImportSchema, existingSchema: Exist
   const existingTablesById = new Map(existingSchema.tables.map(table => [table.id, table]));
 
   const isTableRefValid = (ref: TableRef) => Boolean(
-       ref.originalTableId && tablesByOriginalId.get(ref.originalTableId) !== undefined
-    || ref.existingTableId && tablesByOriginalId.get(ref.existingTableId) !== undefined
+    ref.originalTableId && tablesByOriginalId.get(ref.originalTableId) !== undefined ||
+    ref.existingTableId && tablesByOriginalId.get(ref.existingTableId) !== undefined,
   );
 
   // Checks that the existing table contains that column, or that the column exists if no table ref is provided.
@@ -263,14 +264,14 @@ export function validateImportSchema(schema: ImportSchema, existingSchema: Exist
     tablesByOriginalId.get(ref.originalTableId)?.columns.some(column => column.originalId === ref.existingColId);
 
   const isRefValid = (ref: TableRef | ColRef) =>
-      ref.existingColId !== undefined ? isExistingColRefValid(ref) :
+    ref.existingColId !== undefined ? isExistingColRefValid(ref) :
       ref.originalColId !== undefined ? isOriginalColRefValid(ref) :
-      isTableRefValid(ref);
+        isTableRefValid(ref);
 
-  schema.tables.forEach(tableSchema => {
-    tableSchema.columns.forEach(columnSchema => {
+  schema.tables.forEach((tableSchema) => {
+    tableSchema.columns.forEach((columnSchema) => {
       // Validate formula replacements
-      columnSchema.formula?.replacements?.forEach(replacement => {
+      columnSchema.formula?.replacements?.forEach((replacement) => {
         if (!isRefValid(replacement.ref)) {
           warnings.push(new FormulaRefWarning(replacement.ref));
         }
@@ -292,7 +293,7 @@ export interface ImportSchemaTransformParams {
 }
 
 export function transformImportSchema(schema: ImportSchema,
-                                      params: ImportSchemaTransformParams): ImportSchema {
+  params: ImportSchemaTransformParams): ImportSchema {
   const newSchema = cloneDeep(schema);
   // Skip tables - allow the validation step to pick up on any issues introduced.
   newSchema.tables = newSchema.tables.filter(table => !params.skipTableIds?.includes(table.originalId));
@@ -313,14 +314,14 @@ export function transformImportSchema(schema: ImportSchema,
 
   const existingTableIdMap = params.mapExistingTableIds;
   if (existingTableIdMap) {
-    newSchema.tables.forEach(tableSchema => {
-      tableSchema.columns.forEach(columnSchema => {
+    newSchema.tables.forEach((tableSchema) => {
+      tableSchema.columns.forEach((columnSchema) => {
         // Manually map column properties to their existing table.
         // This is slightly error-prone long term (as each new reference needs mapping here), but manually
         // mapping fields is simple and easy for the moment.
         columnSchema.ref = columnSchema.ref && mapRef(columnSchema.ref);
 
-        columnSchema.formula?.replacements?.forEach(replacement => {
+        columnSchema.formula?.replacements?.forEach((replacement) => {
           replacement.ref = replacement.ref && mapRef(replacement.ref);
         });
       });
@@ -354,7 +355,7 @@ function prepareFormula(template: FormulaTemplate, mappers: { getTableId: TableI
 
     const replacementText = `${!columnIdOnly && tableId || ""}${!columnIdOnly && colId ? "." : ""}${colId || ""}`;
 
-    return formula.replace(RegExp(`\\[R${index}\\]`, 'g'), replacementText);
+    return formula.replace(RegExp(`\\[R${index}\\]`, "g"), replacementText);
   }, template.formula);
 }
 
