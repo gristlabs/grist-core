@@ -36,19 +36,14 @@ export interface ColumnImportSchema {
  * Enables formulas to have Table/Column ids safely replaced.
  * [R0], [R1], [R2], etc refers to a specific reference to insert
  * Every replacement refers to either a column or a table
- * { tableId: "Table1", colId: "Col1" } will expand to "Table1.Col1", with different IDs
  * { tableId: "Table1" } will expand to "Table1", with a different ID
- * { tableId: "Table1", colId: "Col1", columnIdOnly: true } will expand to "Col1", with a different ID
+ * { tableId: "Table1", colId: "Col1" } will expand to "Col1", with a different ID
  *
  * Square brackets are used to prevent collisions with Javascript/Python template syntax.
  */
 export interface FormulaTemplate {
   formula: string,
-  replacements?: {
-    ref: TableRef | ColRef,
-    // Only insert the column id (the table ID is still needed for validation)
-    columnIdOnly: boolean,
-  }[]
+  replacements?: (TableRef | ColRef)[],
 }
 
 interface OriginalTableRef {
@@ -244,7 +239,8 @@ class FormulaRefWarning implements DocSchemaImportWarning {
  * The type system covers the majority of possible issues (e.g. missing properties).
  * This primarily deals with checking referential integrity.
  */
-export function validateImportSchema(schema: ImportSchema, existingSchema: ExistingDocSchema) {
+export function validateImportSchema(schema: ImportSchema, existingSchema?: ExistingDocSchema) {
+  existingSchema = existingSchema ?? { tables: [] };
   const warnings: DocSchemaImportWarning[] = [];
 
   const tablesByOriginalId = new Map(schema.tables.map(table => [table.originalId, table]));
@@ -272,8 +268,8 @@ export function validateImportSchema(schema: ImportSchema, existingSchema: Exist
     tableSchema.columns.forEach((columnSchema) => {
       // Validate formula replacements
       columnSchema.formula?.replacements?.forEach((replacement) => {
-        if (!isRefValid(replacement.ref)) {
-          warnings.push(new FormulaRefWarning(replacement.ref));
+        if (!isRefValid(replacement)) {
+          warnings.push(new FormulaRefWarning(replacement));
         }
       });
 
@@ -321,9 +317,9 @@ export function transformImportSchema(schema: ImportSchema,
         // mapping fields is simple and easy for the moment.
         columnSchema.ref = columnSchema.ref && mapRef(columnSchema.ref);
 
-        columnSchema.formula?.replacements?.forEach((replacement) => {
-          replacement.ref = replacement.ref && mapRef(replacement.ref);
-        });
+        if (columnSchema.formula?.replacements) {
+          columnSchema.formula.replacements = columnSchema.formula.replacements.map(mapRef);
+        }
       });
     });
   }
@@ -336,8 +332,7 @@ function prepareFormula(template: FormulaTemplate, mappers: { getTableId: TableI
   if (!template.replacements || template.replacements.length === 0) {
     return template.formula;
   }
-  return template.replacements.reduce((formula, replacement, index) => {
-    const { ref, columnIdOnly } = replacement;
+  return template.replacements.reduce((formula, ref, index) => {
     const tableId = ref?.existingTableId ||
       ref?.originalTableId && mappers.getTableId(ref.originalTableId);
     const colId = ref?.existingColId || ref?.originalColId && mappers.getColId(ref.originalTableId, ref.originalColId);
@@ -348,12 +343,12 @@ function prepareFormula(template: FormulaTemplate, mappers: { getTableId: TableI
     }
 
     // existingColId doesn't need checking, as we only care about mapper failures here.
-    if (replacement.ref.originalColId && !colId) {
+    if (ref.originalColId && !colId) {
       // TODO - Warning if colId doesn't exist
       return formula;
     }
 
-    const replacementText = `${!columnIdOnly && tableId || ""}${!columnIdOnly && colId ? "." : ""}${colId || ""}`;
+    const replacementText = colId ?? tableId;
 
     return formula.replace(RegExp(`\\[R${index}\\]`, "g"), replacementText);
   }, template.formula);
