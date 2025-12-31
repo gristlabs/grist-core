@@ -221,16 +221,24 @@ interface ExistingColumnSchema {
 }
 
 interface DocSchemaImportWarning {
+  message: string;
   ref?: TableRef | ColRef;
 }
 
 class ColumnRefWarning implements DocSchemaImportWarning {
+  public readonly message: string;
+
   constructor(public readonly ref: TableRef | ColRef) {
+    this.message = `Column references non-existent entity: ${JSON.stringify(ref)}`;
   }
 }
 
 class FormulaRefWarning implements DocSchemaImportWarning {
-  constructor(public readonly ref: TableRef | ColRef) {
+  public readonly message: string;
+
+  constructor(public readonly formula: FormulaTemplate, public readonly ref: TableRef | ColRef) {
+    const formulaSnippet = formula.formula.trim().split("\n")[0].trim().substring(0, 40);
+    this.message = `Formula references non-existent entity: ${JSON.stringify(ref)} in formula "${formulaSnippet}"`;
   }
 }
 
@@ -248,7 +256,7 @@ export function validateImportSchema(schema: ImportSchema, existingSchema?: Exis
 
   const isTableRefValid = (ref: TableRef) => Boolean(
     ref.originalTableId && tablesByOriginalId.get(ref.originalTableId) !== undefined ||
-    ref.existingTableId && tablesByOriginalId.get(ref.existingTableId) !== undefined,
+    ref.existingTableId && existingTablesById.get(ref.existingTableId) !== undefined,
   );
 
   // Checks that the existing table contains that column, or that the column exists if no table ref is provided.
@@ -257,7 +265,7 @@ export function validateImportSchema(schema: ImportSchema, existingSchema?: Exis
 
   // Checks that the original table contains that column, or that the column exists if no table ref is provided.
   const isOriginalColRefValid = (ref: OriginalColRef) =>
-    tablesByOriginalId.get(ref.originalTableId)?.columns.some(column => column.originalId === ref.existingColId);
+    tablesByOriginalId.get(ref.originalTableId)?.columns.some(column => column.originalId === ref.originalColId);
 
   const isRefValid = (ref: TableRef | ColRef) =>
     ref.existingColId !== undefined ? isExistingColRefValid(ref) :
@@ -268,8 +276,8 @@ export function validateImportSchema(schema: ImportSchema, existingSchema?: Exis
     tableSchema.columns.forEach((columnSchema) => {
       // Validate formula replacements
       columnSchema.formula?.replacements?.forEach((replacement) => {
-        if (!isRefValid(replacement)) {
-          warnings.push(new FormulaRefWarning(replacement));
+        if (columnSchema.formula && !isRefValid(replacement)) {
+          warnings.push(new FormulaRefWarning(columnSchema.formula, replacement));
         }
       });
 
