@@ -59,7 +59,8 @@
         "Resource missing in resource map: {{resourceKey}}": "Ressource absente parmi les ressources disponibles : {{resourceKey}}",
         "Trying to add TableRules for existing table {{tableId}}": "Tentative d'ajout de règles de table pour la table existante {{tableId}}",
         "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Utilisez un simple attribut de user.LinkKey, par exemple user.LinkKey.quelquechose",
-        "hidden": "caché"
+        "hidden": "caché",
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Règles d'accès\n\nVous n'avez pas la permission de voir ou modifier les règles d'accès pour ce document."
     },
     "AccountPage": {
         "Account settings": "Paramètres du compte",
