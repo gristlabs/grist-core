@@ -218,6 +218,7 @@ interface ExistingTableSchema {
 
 interface ExistingColumnSchema {
   id: string;
+  label?: string;
 }
 
 interface DocSchemaImportWarning {
@@ -294,30 +295,79 @@ export function validateImportSchema(schema: ImportSchema, existingSchema?: Exis
 export interface ImportSchemaTransformParams {
   skipTableIds?: string[];
   mapExistingTableIds?: Map<string, string>;
+  existingDocSchema?: ExistingDocSchema;
+}
+
+class NoColumnInfoForRefWarning implements DocSchemaImportWarning {
+  public readonly message: string;
+
+  constructor(public readonly ref: TableRef | ColRef) {
+    this.message = `Could not find column information in the schema for this ref: ${JSON.stringify(ref)}`;
+  }
+}
+
+class NoMatchingColumnWarning implements DocSchemaImportWarning {
+  public readonly message: string;
+
+  constructor(public readonly colSchema: ColumnImportSchema) {
+    this.message = `Could not match column schema with an existing column: ${JSON.stringify(colSchema)}`;
+  }
+}
+
+// Maps a single table/column reference to an existing table/column if needed.
+function transformSchemaMapRef(schema: ImportSchema, params: ImportSchemaTransformParams, ref: TableRef | ColRef): {
+  ref: TableRef | ColRef,
+  warning?: DocSchemaImportWarning,
+} {
+  const { mapExistingTableIds, existingDocSchema } = params;
+  const existingTableId = ref.originalTableId && mapExistingTableIds?.get(ref.originalTableId);
+  // Preserve the reference as-is if no mapping is found or needed.
+  if (!existingTableId) {
+    return { ref };
+  }
+
+  // No column id - only map the table id.
+  if (!ref.originalColId) {
+    return { ref: { existingTableId } };
+  }
+
+  const colSchema = schema
+    .tables.find(table => table.originalId === ref.originalTableId)
+    ?.columns.find(column => column.originalId === ref.originalColId);
+
+  const existingTableSchema = existingDocSchema?.tables.find(table => table.id === existingTableId);
+
+  if (!colSchema) {
+    return { ref, warning: new NoColumnInfoForRefWarning(ref) };
+  }
+
+  const matchingCol = existingTableSchema && findMatchingExistingColumn(colSchema, existingTableSchema);
+
+  if (!matchingCol) {
+    return { ref, warning: new NoMatchingColumnWarning(colSchema) };
+  }
+
+  return { ref: { existingTableId, existingColId: matchingCol.id } };
 }
 
 export function transformImportSchema(schema: ImportSchema,
-  params: ImportSchemaTransformParams): ImportSchema {
+  params: ImportSchemaTransformParams): { schema: ImportSchema, warnings: DocSchemaImportWarning[] } {
+  const warnings: DocSchemaImportWarning[] = [];
   const newSchema = cloneDeep(schema);
+  const { mapExistingTableIds } = params;
+
   // Skip tables - allow the validation step to pick up on any issues introduced.
   newSchema.tables = newSchema.tables.filter(table => !params.skipTableIds?.includes(table.originalId));
 
-  // Map original tables to existing tables (resolve references)
-  const mapRef = (ref: TableRef | ColRef): TableRef | ColRef => {
-    const existingTableId = ref.originalTableId && existingTableIdMap?.get(ref.originalTableId);
-    // Preserve the reference as-is if no mapping is found or needed.
-    if (!existingTableId) {
-      return ref;
+  const mapRef = (originalRef: TableRef | ColRef) => {
+    const { ref, warning } = transformSchemaMapRef(schema, params, originalRef);
+    if (warning) {
+      warnings.push(warning);
     }
-    if (ref.originalColId) {
-      // TODO - Map col id. Avoided for now as it requires knowledge of the table's columns.
-      return { existingTableId, existingColId: ref.originalColId };
-    }
-    return { existingTableId };
+    return ref;
   };
 
-  const existingTableIdMap = params.mapExistingTableIds;
-  if (existingTableIdMap) {
+  if (mapExistingTableIds) {
     newSchema.tables.forEach((tableSchema) => {
       tableSchema.columns.forEach((columnSchema) => {
         // Manually map column properties to their existing table.
@@ -331,7 +381,13 @@ export function transformImportSchema(schema: ImportSchema,
       });
     });
   }
-  return newSchema;
+  return { schema: newSchema, warnings };
+}
+
+function findMatchingExistingColumn(colSchema: ColumnImportSchema, existingTable: ExistingTableSchema) {
+  return existingTable.columns.find(existingCol =>
+    colSchema.label !== undefined && colSchema.label === existingCol.label || colSchema.desiredId === existingCol.id,
+  );
 }
 
 type TableIdMapper = (id: string) => string | undefined;
