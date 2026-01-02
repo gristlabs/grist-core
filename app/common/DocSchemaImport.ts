@@ -350,14 +350,21 @@ function transformSchemaMapRef(schema: ImportSchema, params: ImportSchemaTransfo
   return { ref: { existingTableId, existingColId: matchingCol.id } };
 }
 
+// TODO - Cleanup parameters and readability on this function signature
 export function transformImportSchema(schema: ImportSchema,
   params: ImportSchemaTransformParams): { schema: ImportSchema, warnings: DocSchemaImportWarning[] } {
+
   const warnings: DocSchemaImportWarning[] = [];
   const newSchema = cloneDeep(schema);
   const { mapExistingTableIds } = params;
+  const skipTableIds = params.skipTableIds ?? [];
+
+  if (mapExistingTableIds) {
+    skipTableIds.push(...mapExistingTableIds.keys());
+  }
 
   // Skip tables - allow the validation step to pick up on any issues introduced.
-  newSchema.tables = newSchema.tables.filter(table => !params.skipTableIds?.includes(table.originalId));
+  newSchema.tables = newSchema.tables.filter(table => !skipTableIds.includes(table.originalId));
 
   const mapRef = (originalRef: TableRef | ColRef) => {
     const { ref, warning } = transformSchemaMapRef(schema, params, originalRef);

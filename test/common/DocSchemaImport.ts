@@ -177,15 +177,19 @@ describe("DocSchemaImport", function() {
         }],
       };
 
+      const tableIdToReplace = "1";
       const { schema: newSchema, warnings } = transformImportSchema(schema, {
-        mapExistingTableIds: new Map([["1", "Existing1"]]),
+        mapExistingTableIds: new Map([[tableIdToReplace, "Existing1"]]),
         existingDocSchema,
       });
 
-      const transformedRef = newSchema.tables[1].columns[0].ref;
+      // Table is now at index 0 due to the replaced table being removed from the schema.
+      const transformedRef = newSchema.tables[0].columns[0].ref;
       assert.equal(transformedRef?.existingTableId, "Existing1");
       assert.equal(transformedRef?.existingColId, "ExistingCol1");
       assert.lengthOf(warnings, 0);
+
+      assert.isFalse(newSchema.tables.some(table => table.originalId === tableIdToReplace));
 
       // Check no validation warnings.
       assert.lengthOf(validateImportSchema(newSchema, existingDocSchema), 0);
@@ -211,7 +215,7 @@ describe("DocSchemaImport", function() {
 
       assert.include(warnings[0].message, "Could not find column information");
 
-      // Ref should be unaltered due to the warning
+      // Ref should be unaltered due to the warning.
       const originalRef = newSchema.tables[1].columns[0].ref;
       assert.equal(originalRef?.originalTableId, "12345");
       assert.equal(originalRef?.originalColId, "54321");
@@ -252,7 +256,8 @@ describe("DocSchemaImport", function() {
       assert.include(warnings[0].message, "Could not match column schema");
 
       // Ref should be unaltered due to the warning
-      const originalRef = newSchema.tables[1].columns[0].ref;
+      // Table is now at index 0 due to the replaced table being removed from the schema.
+      const originalRef = newSchema.tables[0].columns[0].ref;
       assert.equal(originalRef?.originalTableId, "1");
       assert.equal(originalRef?.originalColId, "1");
 
