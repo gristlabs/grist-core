@@ -1,11 +1,13 @@
 import {
-  ColumnImportSchema,
+  ApplyUserActionsFunc,
+  ColumnImportSchema, DocSchemaImportTool,
   ImportSchema,
   transformImportSchema,
   validateImportSchema,
 } from "app/common/DocSchemaImport";
 
 import { assert } from "chai";
+import sinon from "sinon";
 
 function createTestSchema(): ImportSchema {
   return {
@@ -267,28 +269,134 @@ describe("DocSchemaImport", function() {
   });
 
   describe("DocSchemaImportTool", () => {
-    describe("#run()", () => {
-      it("should execute successfully with a valid input", () => {
-        // Test logic here
-        assert.isTrue(true);
-      });
+    it("generates the correct user actions for the test schema", async () => {
+      const schema = createTestSchema();
+      const retValues = schema.tables.map((tableSchema, index) => ({
+        id: index,
+        table_id: `ArbitraryTableId_${index}`,
+        columns: tableSchema.columns.map(columnSchema => `ArbitraryColumnId_${columnSchema.desiredId}`),
+      }));
+      const applyUserActions: ApplyUserActionsFunc = sinon.fake.returns(Promise.resolve({
+        actionNum: 0,
+        actionHash: null,
+        retValues,
+        isModification: false,
+      }));
+      const importTool = new DocSchemaImportTool(applyUserActions);
 
-      it("should handle errors during execution", () => {
-        // Test logic here
-        assert.isTrue(true);
-      });
-    });
+      await importTool.createTablesFromSchema(schema);
 
-    describe("#initialize()", () => {
-      it("should initialize properly with given parameters", () => {
-        // Test logic here
-        assert.isTrue(true);
-      });
+      const userActionsSent = (applyUserActions as sinon.SinonSpy).firstCall.args[0];
+      const expectedAddTableActions = [
+        [
+          "AddTable",
+          "Table A",
+          [
+            {
+              id: "Alpha",
+              type: "Any",
+              isFormula: false,
+            },
+            {
+              id: "Bravo",
+              type: "Any",
+              isFormula: false,
+            },
+          ],
+        ],
+        [
+          "AddTable",
+          "Table B",
+          [
+            {
+              id: "Alpha-2",
+              type: "Any",
+              isFormula: false,
+            },
+            {
+              id: "Bravo-2",
+              type: "Any",
+              isFormula: false,
+            },
+          ],
+        ],
+      ];
 
-      it("should fail to initialize with invalid parameters", () => {
-        // Test logic here
-        assert.isTrue(true);
-      });
+      assert.deepEqual(userActionsSent, expectedAddTableActions);
+
+      const modifyColumnActions = (applyUserActions as sinon.SinonSpy).secondCall.args[0];
+      const expectedModifyColumnActions = [
+        [
+          "ModifyColumn",
+          "ArbitraryTableId_0",
+          "ArbitraryColumnId_Alpha",
+          {
+            type: "Text",
+            isFormula: false,
+            formula: undefined,
+            label: "Col Alpha",
+            untieColIdFromLabel: true,
+            description: "Alpha column description",
+            widgetOptions: "{}",
+            visibleCol: undefined,
+            recalcDeps: undefined,
+            recalcWhen: undefined,
+          },
+        ],
+        [
+          "ModifyColumn",
+          "ArbitraryTableId_0",
+          "ArbitraryColumnId_Bravo",
+          {
+            type: "Text",
+            isFormula: true,
+            formula: "$ArbitraryColumnId_Alpha",
+            label: undefined,
+            untieColIdFromLabel: false,
+            description: undefined,
+            widgetOptions: undefined,
+            visibleCol: undefined,
+            recalcDeps: undefined,
+            recalcWhen: undefined,
+          },
+        ],
+        [
+          "ModifyColumn",
+          "ArbitraryTableId_1",
+          "ArbitraryColumnId_Alpha-2",
+          {
+            type: "Ref:ArbitraryTableId_0",
+            isFormula: false,
+            formula: undefined,
+            label: undefined,
+            untieColIdFromLabel: false,
+            description: undefined,
+            widgetOptions: undefined,
+            visibleCol: "ArbitraryColumnId_Alpha",
+            recalcDeps: undefined,
+            recalcWhen: undefined,
+          },
+        ],
+        [
+          "ModifyColumn",
+          "ArbitraryTableId_1",
+          "ArbitraryColumnId_Bravo-2",
+          {
+            type: "Text",
+            isFormula: true,
+            formula: 'ArbitraryTableId_0.lookupOne(ArbitraryColumnId_Alpha="A")',
+            label: undefined,
+            untieColIdFromLabel: false,
+            description: undefined,
+            widgetOptions: undefined,
+            visibleCol: undefined,
+            recalcDeps: undefined,
+            recalcWhen: undefined,
+          },
+        ],
+      ];
+
+      assert.deepEqual(modifyColumnActions, expectedModifyColumnActions);
     });
   });
 });
