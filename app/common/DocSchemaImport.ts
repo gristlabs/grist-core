@@ -163,25 +163,22 @@ export class DocSchemaImportTool {
         let type: string = columnSchema.type;
         if (type.includes("Ref")) {
           const tableId = columnSchema.ref?.existingTableId ||
-            columnSchema.ref?.originalTableId && idMappers.getTableId(columnSchema.ref?.originalTableId);
+            (columnSchema.ref?.originalTableId && idMappers.getTableId(columnSchema.ref?.originalTableId));
           // TODO - show a warning here if we couldn't resolve a table id
           type = tableId ?
             `${columnSchema.type}:${tableId}` :
             "Any";
         }
 
-        const formula = columnSchema.formula ?
-          prepareFormula(columnSchema.formula, idMappers) :
-          undefined;
-
         modifyColumnActions.push([
           "ModifyColumn",
+          // TODO - Decide if this should throw or warn.
           idMappers.getTableIdOrThrow(tableSchema.originalId),
           idMappers.getColIdOrThrow(tableSchema.originalId, columnSchema.originalId),
           {
             type,
             isFormula: columnSchema.isFormula ?? false,
-            formula,
+            formula: columnSchema.formula && prepareFormula(columnSchema.formula, idMappers),
             label: columnSchema.label,
             // Need to decouple it - otherwise our stored column ids may now be invalid.
             untieColIdFromLabel: columnSchema.label !== undefined,
