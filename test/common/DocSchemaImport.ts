@@ -1,3 +1,4 @@
+import { UserAction } from "app/common/DocActions";
 import {
   ApplyUserActionsFunc,
   ColumnImportSchema, DocSchemaImportTool,
@@ -64,7 +65,6 @@ function createTestSchema(): ImportSchema {
           },
         ],
       },
-
     ],
   };
 }
@@ -101,7 +101,7 @@ describe("DocSchemaImport", function() {
 
     it("should warn about invalid formula references", () => {
       const schema = createTestSchema();
-      const invalidFormulaCol: ColumnImportSchema  = {
+      const invalidFormulaCol: ColumnImportSchema = {
         originalId: "Invalid-Formula",
         desiredId: "Invalid-Formula",
         type: "Text",
@@ -123,7 +123,7 @@ describe("DocSchemaImport", function() {
 
     it("should warn about invalid reference columns", () => {
       const schema = createTestSchema();
-      const invalidRefCol: ColumnImportSchema  = {
+      const invalidRefCol: ColumnImportSchema = {
         originalId: "Invalid-Ref",
         desiredId: "Invalid-Ref",
         type: "Ref",
@@ -397,6 +397,65 @@ describe("DocSchemaImport", function() {
       ];
 
       assert.deepEqual(modifyColumnActions, expectedModifyColumnActions);
+    });
+
+    it("maps original table and column ids to the newly created ids", async () => {
+      const schema = createTestSchema();
+
+      schema.tables.push({
+        originalId: "Test1",
+        name: "Test Table 1",
+        columns: [
+          {
+            originalId: "1",
+            desiredId: "Test1-1",
+            type: "Any",
+          },
+          {
+            originalId: "2",
+            desiredId: "Test1-2",
+            type: "Ref",
+            ref: {
+              originalTableId: "Test1",
+              originalColId: "1",
+            },
+          },
+        ],
+      });
+
+      const retValues = schema.tables.map((tableSchema, index) => ({
+        id: index,
+        table_id: `ArbitraryTableId_${tableSchema.originalId}`,
+        columns: tableSchema.columns.map(columnSchema => `ArbitraryColumnId_${columnSchema.desiredId}`),
+      }));
+
+      const applyUserActions: ApplyUserActionsFunc = sinon.fake.returns(Promise.resolve({
+        actionNum: 0,
+        actionHash: null,
+        retValues,
+        isModification: false,
+      }));
+
+      const importTool = new DocSchemaImportTool(applyUserActions);
+      await importTool.createTablesFromSchema(schema);
+
+      // Check all ModifyColumn table and column ids are mapped.
+      const modifyColumnActions: any[] = (applyUserActions as sinon.SinonSpy).secondCall.args[0];
+      const tableIds = modifyColumnActions.map((action: UserAction) => action[1] as string);
+      assert.isTrue(tableIds.every((id: string) => id.startsWith("ArbitraryTableId_")), "Table id not mapped");
+      const columnIds = modifyColumnActions.map((action: UserAction) => action[2] as string);
+      assert.isTrue(columnIds.every((id: string) => id.startsWith("ArbitraryColumnId_")), "Column id not mapped");
+
+      const testAction = modifyColumnActions.find(
+        action => action[1] === "ArbitraryTableId_Test1" && action[2] === "ArbitraryColumnId_Test1-2",
+      );
+
+      assert(testAction !== undefined);
+      // Assert that the correct ID was added to the "Ref:" column type
+      assert.equal(testAction[3].type.split(":")[1], "ArbitraryTableId_Test1");
+      // Assert that the visible column was set to the new id
+      assert.equal(testAction[3].visibleCol, "ArbitraryColumnId_Test1-1");
+      // TODo Check formulas are mapped - Separate test
     });
   });
 });
