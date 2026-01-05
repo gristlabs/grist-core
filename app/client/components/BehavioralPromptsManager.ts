@@ -168,8 +168,7 @@ export class BehavioralPromptsManager extends Disposable {
         popupOptions,
       });
       ctl.onDispose(() => { if (markAsSeen) { this._markAsSeen(prompt); } });
-    }
-    else if (popupType === "tip") {
+    } else if (popupType === "tip") {
       ctl = showTipPopup(refElement, title(), content(), {
         onClose: (dontShowTips) => {
           if (dontShowTips) { this._dontShowTips(); }
@@ -179,8 +178,7 @@ export class BehavioralPromptsManager extends Disposable {
         popupOptions,
         hideDontShowTips,
       });
-    }
-    else {
+    } else {
       throw new Error(`BehavioralPromptsManager received unknown popup type: ${popupType}`);
     }
 

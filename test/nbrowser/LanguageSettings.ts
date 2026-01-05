@@ -51,8 +51,7 @@ describe("LanguageSettings", function() {
         const welcomeText = await gu.currentDriver().find(".test-welcome-title").getText();
         if (locale === "en") {
           assert.equal(welcomeText, "Welcome to Grist!");
-        }
-        else if (locale === "fr") {
+        } else if (locale === "fr") {
           assert.equal(welcomeText, "Bienvenue sur Grist !");
         }
       });

@@ -98,8 +98,7 @@ function buildRenamableTitle(
             ctl.autoDispose(isEditing.addListener((editing) => {
               if (editing) {
                 ctl.open();
-              }
-              else if (!ctl.isDisposed()) {
+              } else if (!ctl.isDisposed()) {
                 ctl.close();
               }
             }));
@@ -206,14 +205,11 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
     }
     if (isSummary) {
       focus(widgetInput);
-    }
-    else if (isRawView) {
+    } else if (isRawView) {
       focus(tableInput);
-    }
-    else if (isWidgetTitleEmpty) {
+    } else if (isWidgetTitleEmpty) {
       focus(tableInput);
-    }
-    else {
+    } else {
       focus(widgetInput);
     }
   }
@@ -251,12 +247,10 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
       if (document.activeElement === descInput && descInput?.selectionStart === 0) {
         widgetInput?.focus();
         widgetInput?.select();
-      }
-      else if (document.activeElement === widgetInput) {
+      } else if (document.activeElement === widgetInput) {
         tableInput?.focus();
         tableInput?.select();
-      }
-      else {
+      } else {
         return true;
       }
     },
@@ -265,12 +259,10 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
       if (document.activeElement === tableInput) {
         widgetInput?.focus();
         widgetInput?.select();
-      }
-      else if (document.activeElement === widgetInput) {
+      } else if (document.activeElement === widgetInput) {
         descInput?.focus();
         descInput?.select();
-      }
-      else {
+      } else {
         return true;
       }
     },

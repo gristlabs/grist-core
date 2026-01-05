@@ -266,8 +266,7 @@ export class WebhookQueue {
     const strings = events.map(e => JSON.stringify(e));
     try {
       await this._redisClient?.rpushAsync(this._redisQueueKey, ...strings);
-    }
-    catch (e) {
+    } catch (e) {
       // It's very hard to test this with integration tests, because it requires a redis failure.
       // And it's not easy to simulate redis failure.
       // So on this point we have only unit test in core/test/server/utils/LogSanitizer.ts
@@ -347,8 +346,7 @@ export class WebhookQueue {
       let success: boolean;
       if (!url) {
         success = true;
-      }
-      else {
+      } else {
         await this._stats.logStatus(id, "sending");
         meta = { webhookId: id, host: new URL(url).host, quantity: batch.length };
         this._log("Sending batch of webhook events", meta);
@@ -386,14 +384,12 @@ export class WebhookQueue {
           }
           // We are postponed, so mark that.
           await this._stats.logStatus(id, "postponed");
-        }
-        else {
+        } else {
           // We are draining the queue and we skipped some events, so mark that.
           await this._stats.logStatus(id, "error");
           await this._stats.logBatch(id, "rejected");
         }
-      }
-      else {
+      } else {
         await this._stats.logStatus(id, "idle");
         if (meta) {
           this._log("Successfully sent batch of webhook events", meta);
@@ -483,8 +479,7 @@ export class WebhookQueue {
           size,
         });
         this._log(`Webhook responded with non-200 status`, { level: "warn", status: response.status, attempt });
-      }
-      catch (e) {
+      } catch (e) {
         await this._stats.logBatch(id, "failure", {
           httpStatus: null,
           error: (e.message || "Unrecognized error during fetch"),
@@ -510,8 +505,7 @@ export class WebhookQueue {
         }
         try {
           await delayAbort(TRIGGER_WAIT_DELAY, signal);
-        }
-        catch (e) {
+        } catch (e) {
           // If signal was aborted, don't log anything as we probably was cleared.
           return false;
         }
@@ -528,8 +522,7 @@ export function isUrlAllowed(urlString: string) {
   let url: URL;
   try {
     url = new URL(urlString);
-  }
-  catch (e) {
+  } catch (e) {
     return false;
   }
 
@@ -590,8 +583,7 @@ class PersistedStore<Keys> {
         multi.expire(this._redisKey, WEBHOOK_STATS_CACHE_TTL);
       }
       await multi.execAsync();
-    }
-    else {
+    } else {
       for (const [key, value] of keyValues) {
         this._statsCache.set(`${id}:${key}`, value);
       }
@@ -602,8 +594,7 @@ class PersistedStore<Keys> {
     if (this._redisClient) {
       const values = (await this._redisClient.hgetallAsync(this._redisKey)) || {};
       return keys.map(key => [key, values[`${id}:${key}`] || ""]);
-    }
-    else {
+    } else {
       return keys.map(key => [key, this._statsCache.get(`${id}:${key}`) || ""]);
     }
   }
@@ -738,8 +729,7 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
     // Update webhook stats.
     if (status === "success") {
       batchSummary.push([`lastSuccessTime`, now.toString()]);
-    }
-    else if (status === "failure") {
+    } else if (status === "failure") {
       batchSummary.push([`lastFailureTime`, now.toString()]);
     }
     if (stats?.error) {

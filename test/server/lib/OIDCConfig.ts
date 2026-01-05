@@ -194,8 +194,7 @@ describe("OIDCConfig", () => {
           if (ctx.errorMsg) {
             await assert.isRejected(promise, ctx.errorMsg);
             assert.isFalse(isInitializedLogCalled());
-          }
-          else {
+          } else {
             await assert.isFulfilled(promise);
             assert.isTrue(isInitializedLogCalled());
           }
@@ -243,8 +242,7 @@ describe("OIDCConfig", () => {
           const promise = OIDCConfigStubbed.buildWithStub();
           if (ctx.expectedErrorMsg) {
             await assert.isRejected(promise, ctx.expectedErrorMsg);
-          }
-          else {
+          } else {
             await assert.isFulfilled(promise, "initOIDC should have been fulfilled");
             assert.isTrue(setHttpOptionsDefaultsStub.calledOnce, "Should have called custom.setHttpOptionsDefaults");
             assert.deepEqual(setHttpOptionsDefaultsStub.firstCall.args[0], ctx.expectedUserDefinedHttpOptions);
@@ -811,8 +809,7 @@ describe("OIDCConfig", () => {
             path: "error.html",
             status: 500,
           });
-        }
-        else {
+        } else {
           assert.isFalse(logErrorStub.called, "no error should be logged. Got: " + logErrorStub.firstCall?.args[0]);
           assert.isTrue(fakeRes.redirect.calledOnce, "should redirect");
           assert.isTrue(clientStub.callback.calledOnce);

@@ -102,8 +102,7 @@ export class ColumnFilterCalendarView extends Disposable {
       if (this.columnFilter.getBoundsValue("max") < d) {
         max.set(this._updateBoundValue(max.get(), d));
       }
-    }
-    else {
+    } else {
       max.set(this._updateBoundValue(max.get(), d));
       if (this.columnFilter.getBoundsValue("min") > d) {
         min.set(this._updateBoundValue(min.get(), d));

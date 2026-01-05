@@ -209,8 +209,7 @@ export class ScopedSession {
   public async updateUserProfile(req: Request, profile: UserProfile | null): Promise<void> {
     if (profile) {
       await this.updateUser(req, { profile });
-    }
-    else {
+    } else {
       await this.clearScopedSession(req);
     }
   }
@@ -244,8 +243,7 @@ export class ScopedSession {
     const newUser = await op(JSON.parse(JSON.stringify(user)));  // Modify a scratch version.
     if (Object.keys(newUser).length === 0) {
       await this.clearScopedSession(req, session);
-    }
-    else {
+    } else {
       await this._updateScopedSession(req, newUser, session);
     }
     return [oldUser, newUser];
@@ -288,8 +286,7 @@ export class ScopedSession {
       if (reqSession?.reload) {
         await fromCallback(cb => reqSession.reload(cb));
       }
-    }
-    catch (e) {
+    } catch (e) {
       // (I've copied this from old code, not sure if continuing after a session save error is
       // something existing code depends on?)
       // Report and keep going. This ensures that the session matches what's in the sessionStore.

@@ -68,8 +68,7 @@ export class DocData extends BaseDocData {
   public async findColFromValues(values: any[], n: number, optTableId?: string): Promise<number[]> {
     try {
       return await this.docComm.findColFromValues(values, n, optTableId);
-    }
-    catch (e) {
+    } catch (e) {
       gristNotify(`Error finding matching columns: ${e.message}`);
       return [];
     }
@@ -125,8 +124,7 @@ export class DocData extends BaseDocData {
         // running. This changes the order of actions and may create problems (e.g. with undo).
         this._shouldIncludeInBundle = undefined;
         await options.finalize();
-      }
-      finally {
+      } finally {
         // In all cases, reset the bundle-specific values we set above
         this._shouldIncludeInBundle = undefined;
         this._triggerBundleFinalize = undefined;
@@ -158,8 +156,7 @@ export class DocData extends BaseDocData {
     });
     try {
       return await bundlingInfo.preparePromise;
-    }
-    finally {
+    } finally {
       bundlingInfo.triggerFinalize();
       await bundlingInfo.completionPromise;
     }

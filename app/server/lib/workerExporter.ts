@@ -32,8 +32,7 @@ function handleExport<T extends any[]>(
       await make(activeDocSource, testDates, outputStream, ...args);
       port.close();
       log.debug("workerExporter %s %s: done in %s ms", threadId, make.name, Date.now() - start);
-    }
-    catch (e) {
+    } catch (e) {
       log.debug("workerExporter %s %s: error %s", threadId, make.name, String(e));
       // When Error objects move across threads, they keep only the 'message' property. We can
       // keep other properties (like 'status') if we throw a plain object instead. (Didn't find a
@@ -86,11 +85,9 @@ export async function doMakeXLSXFromOptions(
   if (viewSectionId) {
     return doMakeXLSXFromViewSection({ activeDocSource, testDates, stream, viewSectionId, header,
       sortOrder: sortOrder || null, filters: filters || null, linkingFilter: linkingFilter || null });
-  }
-  else if (tableId) {
+  } else if (tableId) {
     return doMakeXLSXFromTable({ activeDocSource, testDates, stream, tableId, header });
-  }
-  else {
+  } else {
     return doMakeXLSX({ activeDocSource, testDates, stream, header });
   }
 }

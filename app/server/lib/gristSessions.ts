@@ -77,8 +77,7 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
           await fromCallback(cb => store.client.quit(cb));
         } });
     };
-  }
-  else {
+  } else {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const SQLiteStore = require("@gristlabs/connect-sqlite3")(session);
     promisifyAll(SQLiteStore.prototype);

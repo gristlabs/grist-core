@@ -110,8 +110,7 @@ function createRemainingUsersIndicator(
       dom.domComputed((use) => {
         if (use(isRemainingUsersMenuOpen)) {
           return icon("CrossBig");
-        }
-        else {
+        } else {
           return `+${use(metadataObs).totalHiddenUserIcons}`;
         }
       }),

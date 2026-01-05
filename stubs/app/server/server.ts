@@ -72,8 +72,7 @@ async function createOrUpdateDb() {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { createInitialDb } = require("test/gen-server/seed");
     await createInitialDb();
-  }
-  else {
+  } else {
     await updateDb();
   }
   const db = new HomeDBManager();
@@ -151,8 +150,7 @@ async function setUpAdminEmail(db: HomeDBManager) {
         log.info(`Successfully replaced "${onRestartReplaceEmailWithAdmin}" with GRIST_ADMIN_EMAIL ("${adminEmail}").`);
       }
     });
-  }
-  catch (err) {
+  } catch (err) {
     // Don't re-throw so we don't disrupt the rest of the startup process.
     log.error("Failed to set up admin email:", err);
   }
@@ -171,8 +169,7 @@ async function setUpSingleOrg(db: HomeDBManager) {
         userId: db.getPreviewerUserId(),
         includeSupport: false,
       }, org));
-    }
-    catch (e) {
+    } catch (e) {
       if (!String(e).match(/organization not found/)) {
         throw e;
       }

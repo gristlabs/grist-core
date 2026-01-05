@@ -175,8 +175,7 @@ export class Telemetry implements ITelemetry {
           ...(removeNullishKeys(req.body.metadata)),
           eventName: event,
         });
-      }
-      else {
+      } else {
         try {
           this._assertTelemetryIsReady();
           await this._checkAndLogEvent(mreq, event, merge(
@@ -188,8 +187,7 @@ export class Telemetry implements ITelemetry {
             },
             req.body.metadata,
           ));
-        }
-        catch (e) {
+        } catch (e) {
           this._logger.error(mreq, `failed to log telemetry event ${event}`, e);
           throw new ApiError(`Telemetry failed to log telemetry event ${event}`, 500);
         }
@@ -261,8 +259,7 @@ export class Telemetry implements ITelemetry {
 
     if (this._shouldForwardTelemetryEvents) {
       await this._forwardEvent(requestOrSession, event, metadata);
-    }
-    else {
+    } else {
       this._logEvent(requestOrSession, event, metadata);
     }
   }
@@ -311,8 +308,7 @@ export class Telemetry implements ITelemetry {
         .find(([key]) => key.startsWith("_pk_id"));
       if (matomoVisitorCookie) {
         req.matomoVisitorId = (matomoVisitorCookie[1] as string).split(".")[0];
-      }
-      else {
+      } else {
         req.matomoVisitorId = null;
       }
     }
@@ -353,11 +349,9 @@ export class Telemetry implements ITelemetry {
           installationId: this._activation!.id,
         },
       }));
-    }
-    catch (e) {
+    } catch (e) {
       this._logger.error(requestOrSession, `failed to forward telemetry event ${event}`, e);
-    }
-    finally {
+    } finally {
       this._numPendingForwardEventRequests -= 1;
     }
   }
@@ -375,8 +369,7 @@ export class Telemetry implements ITelemetry {
   private _assertTelemetryIsReady() {
     try {
       assertIsDefined("activation", this._activation);
-    }
-    catch (e) {
+    } catch (e) {
       this._logger.error(null, "activation is undefined", e);
       throw new ApiError("Telemetry is not ready", 500);
     }
@@ -455,8 +448,7 @@ export function hashDigestKeys(metadata: TelemetryMetadata): TelemetryMetadata {
   Object.entries(metadata).forEach(([key, value]) => {
     if (key.endsWith("Digest") && typeof value === "string") {
       filteredMetadata[key] = hashId(value);
-    }
-    else {
+    } else {
       filteredMetadata[key] = value;
     }
   });

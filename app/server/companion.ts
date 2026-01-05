@@ -113,8 +113,7 @@ async function showTelemetry(options: {
       currentLevel: level,
       currentLevelName: levelName,
     }, null, 2));
-  }
-  else {
+  } else {
     if (options.all) {
       console.log("# All telemetry levels");
       console.log("");
@@ -124,8 +123,7 @@ async function showTelemetry(options: {
         showTelemetryAtLevel(iLevel, "##");
         console.log("");
       }
-    }
-    else {
+    } else {
       describeTelemetryLevel(level, "");
       console.log("");
       showTelemetryAtLevel(level, "#");
@@ -280,8 +278,7 @@ export function addVersionCommand(program: commander.Command) {
       if (options.verbose) {
         const displayVersion = options.withCommit ? `${version} (commit ${gitcommit})` : version;
         console.log(`Grist version is ${displayVersion}`);
-      }
-      else {
+      } else {
         const displayVersion = options.withCommit ? `${version} ${gitcommit}` : version;
         console.log(displayVersion);
       }
@@ -303,8 +300,7 @@ export async function dbCheck(connection: Connection) {
   if (migrations.pendingMigrations.length) {
     log(`Migration(s) need to be applied: ${migrations.pendingMigrations}`);
     exitCode = 1;
-  }
-  else {
+  } else {
     log("No migrations need to be applied");
   }
   log("");
@@ -313,8 +309,7 @@ export async function dbCheck(connection: Connection) {
     log(`   (to revert a product change, run an older version of the code)`);
     log(`   (db:revert will not undo product changes)`);
     exitCode = 1;
-  }
-  else {
+  } else {
     log(`Products unchanged`);
   }
   return exitCode;
@@ -345,8 +340,7 @@ function section(program: commander.Command, options: {
   return (name: string) => {
     if (options.nested) {
       return sub.command(name);
-    }
-    else {
+    } else {
       return sub.command(`${options.sectionName}:${name}`);
     }
   };

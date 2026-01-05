@@ -215,8 +215,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
       await this._options.localHash.save(key, checksum);
       await this._options.sharedHash.save(key, checksum);
       return snapshotId;
-    }
-    catch (err) {
+    } catch (err) {
       log.error("ext %s upload: %s failure to send, error %s", this.label, key, err.message);
       throw err;
     }
@@ -234,8 +233,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
       if (!snapshotIds) {
         await this._options.latestVersion.save(key, DELETED_TOKEN);
         await this._options.sharedHash.save(key, DELETED_TOKEN);
-      }
-      else {
+      } else {
         for (const snapshotId of snapshotIds) {
           // Removing snapshots breaks their partial immutability, so we mark them
           // as deleted in redis so that we don't get stale info from S3 if we check
@@ -243,8 +241,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
           await this._options.sharedHash.save(this._keyWithSnapshot(key, snapshotId), DELETED_TOKEN);
         }
       }
-    }
-    catch (err) {
+    } catch (err) {
       log.error("ext %s delete: %s failure to remove, error %s", this.label, key, err.message);
       throw err;
     }
@@ -303,12 +300,10 @@ export class ChecksummedExternalStorage implements ExternalStorage {
         }
 
         return downloadedSnapshotId;
-      }
-      catch (err) {
+      } catch (err) {
         log.error("ext %s download: failed to fetch data (%s): %s", this.label, fromKey, err.message);
         throw err;
-      }
-      finally {
+      } finally {
         await cleanupCallback();
       }
     });
@@ -365,8 +360,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
         log.info(`operation ${name} took ${attemptMs} ms (attempt: ${backoffCount}, total: ${totalMs} ms)`);
         if (result !== undefined) { return result; }
         problems.push([Date.now() - start, "not ready"]);
-      }
-      catch (err) {
+      } catch (err) {
         if (this._ext.isFatalError(err)) {
           throw err;
         }
@@ -480,17 +474,14 @@ export function getExternalStorageKeyMap(settings: ExternalStorageSettings): (or
   let fileNaming: (originalKey: string) => string;
   if (purpose === "doc") {
     fileNaming = docId => `${docId}.grist`;
-  }
-  else if (purpose === "meta") {
+  } else if (purpose === "meta") {
     // Put this in separate prefix so a lifecycle rule can prune old versions of the file.
     // Alternatively, could go in separate bucket.
     fileNaming = docId => `assets/unversioned/${docId}/meta.json`;
-  }
-  else if (purpose === "attachments") {
+  } else if (purpose === "attachments") {
     // Prefix-only - attachments system handles exact naming
     fileNaming = attachmentPath => `attachments/${stripLeadingSlash(attachmentPath)}`;
-  }
-  else {
+  } else {
     throw new UnsupportedPurposeError(settings.purpose);
   }
   return originalKey => (fullPrefix + fileNaming(originalKey));

@@ -21,8 +21,7 @@ export function sanitizeHttpUrl(url: string): string | null {
     }
 
     return parsedUrl.href;
-  }
-  catch (e) {
+  } catch (e) {
     return null;
   }
 }

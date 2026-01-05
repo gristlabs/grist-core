@@ -207,8 +207,7 @@ export function asTabularDiffs(summary: ActionSummary, options: {
       if (addedRows.has(rowId) && removedRows.has(rowId)) {
         versions.push(["-", diff => [diff[0], null]]);
         versions.push(["+", diff => [null, diff[1]]]);
-      }
-      else {
+      } else {
         let code: string = "...";
         if (updatedRows.has(rowId)) {
           code = "→";
@@ -228,8 +227,7 @@ export function asTabularDiffs(summary: ActionSummary, options: {
           const diff = perCol ? perCol[col] : null;
           if (!diff) {
             acc.push([null, null]);
-          }
-          else {
+          } else {
             acc.push(transform(diff));
           }
         });

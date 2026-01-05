@@ -52,8 +52,7 @@ function setLevels(level: string) {
       multiHolder.autoDispose(holder);
       return holder;
     };
-  }
-  else {
+  } else {
     notify = show(level);
   }
 }
@@ -103,8 +102,7 @@ function setupTest() {
       dom.on("click", () => {
         if (errHolder1.isEmpty()) {
           errHolder1.autoDispose(notify(`Workspace name is duplicated (clear on click)`));
-        }
-        else {
+        } else {
           errHolder1.clear();
         }
       }),
@@ -116,8 +114,7 @@ function setupTest() {
         if (errHolder2.isEmpty()) {
           errHolder2.autoDispose(notify(`Workspace name is duplicated (no expire)`,
             { expireSec: 0 }));
-        }
-        else {
+        } else {
           errHolder2.clear();
         }
       }),

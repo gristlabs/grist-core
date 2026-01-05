@@ -192,8 +192,7 @@ export class DynamicQuerySet extends RowSource {
         this.listenTo(this._querySet, "rowChange", tbind(this.trigger, this, "rowChange"));
       }
       cb(null, true);
-    }
-    catch (err) {
+    } catch (err) {
       cb(err, true);
     }
   }
@@ -276,8 +275,7 @@ export class QuerySet extends BaseFilteredRowSource {
         });
         tableQS.addQuerySet(this, data.tableData);
       });
-    }
-    else {
+    } else {
       // For regular (small), we fetch in bulk (and do nothing if already fetched).
       fetchPromise = tableModel.fetch(false);
     }

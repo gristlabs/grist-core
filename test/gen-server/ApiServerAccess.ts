@@ -129,11 +129,9 @@ describe("ApiServerAccess", function() {
     let url: string;
     if ("orgId" in resource) {
       url = `${homeUrl}/api/orgs/${resource.orgId}/access`;
-    }
-    else if ("wsId" in resource) {
+    } else if ("wsId" in resource) {
       url = `${homeUrl}/api/workspaces/${resource.wsId}/access`;
-    }
-    else {
+    } else {
       url = `${homeUrl}/api/docs/${resource.docId}/access`;
     }
     const resp = await axios.patch(
@@ -514,8 +512,7 @@ describe("ApiServerAccess", function() {
         },
         { status: 200, data: null },
       );
-    }
-    finally {
+    } finally {
       await checkAccessChange(
         { orgId },
         {
@@ -805,8 +802,7 @@ describe("ApiServerAccess", function() {
           data: null,
         },
       );
-    }
-    finally {
+    } finally {
       await checkAccessChange(
         { wsId },
         { [kiwiEmail]: null, [charonEmail]: null },
@@ -1140,8 +1136,7 @@ describe("ApiServerAccess", function() {
         { "user9@example.com": null },
         { status: 200, data: null },
       );
-    }
-    finally {
+    } finally {
       await checkAccessChange(
         { docId: did1 },
         { "user6@example.com": null, "user7@example.com": null },
@@ -2382,8 +2377,7 @@ async function breakInheritance(api: UserAPI, docWs: string | number) {
     await api.updateWorkspacePermissions(docWs, {
       maxInheritedRole: null,
     });
-  }
-  else {
+  } else {
     // Break inheritance for the doc.
     await api.updateDocPermissions(docWs, {
       maxInheritedRole: null,
@@ -2396,8 +2390,7 @@ async function fullInheritance(api: UserAPI, docWs: string | number) {
     await api.updateWorkspacePermissions(docWs, {
       maxInheritedRole: "owners",
     });
-  }
-  else {
+  } else {
     await api.updateDocPermissions(docWs, {
       maxInheritedRole: "owners",
     });

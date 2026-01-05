@@ -42,11 +42,9 @@ export function trapTabKey(container: HTMLElement, tabEvent: KeyboardEvent) {
   if (tabEvent.shiftKey && activeEl === firstFocusableEl) {
     lastFocusableEl?.focus();
     tabEvent.preventDefault();
-  }
-
-  // If the SHIFT key is not pressed (moving forwards) and the currently focused
-  // item is the last one, move the focus to the first focusable item from the element
-  else if (!tabEvent.shiftKey && activeEl === lastFocusableEl) {
+  } else if (!tabEvent.shiftKey && activeEl === lastFocusableEl) {
+    // If the SHIFT key is not pressed (moving forwards) and the currently focused
+    // item is the last one, move the focus to the first focusable item from the element
     firstFocusableEl?.focus();
     tabEvent.preventDefault();
   }
@@ -76,8 +74,9 @@ function findFocusableEl(
   // children.
   if (canHaveFocusableChildren(el)) {
     // Start walking the DOM tree, looking for focusable elements.
-    // Case 1: If this element has a shadow root, search it recursively.
     if (el.shadowRoot) {
+      // Case 1: If this element has a shadow root, search it recursively.
+
       // Descend into this subtree.
       let next = getNextChildEl(el.shadowRoot, forward);
 
@@ -88,11 +87,10 @@ function findFocusableEl(
         if (focusableEl) { return focusableEl; }
         next = getNextSiblingEl(next as HTMLElement, forward);
       }
-    }
+    } else if (el.localName === "slot") {
+      // Case 2: If this element is a slot for a Custom Element, search its
+      // assigned elements recursively.
 
-    // Case 2: If this element is a slot for a Custom Element, search its
-    // assigned elements recursively.
-    else if (el.localName === "slot") {
       const assignedElements = (el as HTMLSlotElement).assignedElements({
         flatten: true,
       }) as HTMLElement[];
@@ -102,9 +100,9 @@ function findFocusableEl(
         const focusableEl = findFocusableEl(assignedElement, forward);
         if (focusableEl) { return focusableEl; }
       }
-    }
-    // Case 3: this is a regular Light DOM element. Search its subtree.
-    else {
+    } else {
+      // Case 3: this is a regular Light DOM element. Search its subtree.
+
       // Descend into this subtree.
       let next = getNextChildEl(el, forward);
 

@@ -72,8 +72,7 @@ export class Usage {
         userCount,
         userWithLoginCount,
       });
-    }
-    catch (e) {
+    } catch (e) {
       log.warn("Error in Usage._apply", e);
     }
   }

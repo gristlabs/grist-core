@@ -207,8 +207,7 @@ After restart, the new administrative user will be {{newEmail}}.",
                   newEmail: dom("strong", prefs.onRestartSetAdminEmail),
                 }),
               );
-            }
-            else {
+            } else {
               return dom("p",
                 t("You are signed in as {{email}}. \
 You may lose access to this server if you cannot sign in as this user after switching the \
@@ -227,8 +226,7 @@ authentication system.",
               dom.style("margin-top", "16px"),
               dom.on("click", () => this._revertSetInstallAdmin()),
             );
-          }
-          else {
+          } else {
             return bigPrimaryButton(
               t("Change admin user"),
               dom.style("margin-top", "16px"),

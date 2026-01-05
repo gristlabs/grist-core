@@ -86,8 +86,7 @@ export class Interval {
       // Randomize the delay by the specified amount of variance.
       const [min, max] = [delayMs - varianceMs, delayMs + varianceMs];
       return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-    else {
+    } else {
       return delayMs;
     }
   }
@@ -96,8 +95,7 @@ export class Interval {
     this._clearTimeout();
     try {
       await (this._lastPendingCall = this._callback());
-    }
-    catch (e: unknown) {
+    } catch (e: unknown) {
       this._options.onError(e);
     }
     if (!this._stopped) {

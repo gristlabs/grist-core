@@ -36,8 +36,7 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
     try {
       await viewInstance.triggerPrint();
       return;
-    }
-    catch (e) {
+    } catch (e) {
       console.warn(`Failed to trigger print in CustomView: ${e}`);
       // continue on to trying to print from outside, which should work OK for a single page.
     }
@@ -94,8 +93,7 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
     // need to call window.finishPrinting() or reload the page to do it again.
     if ((window as any).debugPrinting) {
       (window as any).finishPrinting = () => prepareToPrint(false);
-    }
-    else {
+    } else {
       prepareToPrint(false);
     }
     delete (window as any).afterPrintCallback;

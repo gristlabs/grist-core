@@ -155,8 +155,7 @@ describe("Telemetry", function() {
             assert.equal(loggedEvents.length, 1);
             assert.equal(forwardEventSpy.callCount, 0);
           });
-        }
-        else {
+        } else {
           it("forwards telemetry events", async function() {
             if (telemetryLevel === "limited") {
               telemetry.logEvent(null, "documentOpened", {
@@ -202,8 +201,7 @@ describe("Telemetry", function() {
             assert.isEmpty(loggedEvents);
           });
         }
-      }
-      else {
+      } else {
         it("does not log telemetry events", async function() {
           telemetry.logEvent(null, "documentOpened", {
             limited: {
@@ -262,8 +260,7 @@ describe("Telemetry", function() {
                 installationId,
                 isInternalUser: true,
               });
-            }
-            else {
+            } else {
               assert.containsAllKeys(metadata, [
                 "eventSource",
                 "watchTimeSeconds",
@@ -276,8 +273,7 @@ describe("Telemetry", function() {
 
             if (telemetryLevel === "limited") {
               assert.equal(loggedEvents.length, 2);
-            }
-            else {
+            } else {
               // The POST above also triggers an "apiUsage" event.
               assert.equal(loggedEvents.length, 3);
               assert.equal(loggedEvents[1][0], "apiUsage");
@@ -310,8 +306,7 @@ describe("Telemetry", function() {
               assert.equal(forwardEventSpy.callCount, 0);
             });
           }
-        }
-        else {
+        } else {
           it("forwards telemetry events sent to /api/telemetry", async function() {
             await axios.post(`${homeUrl}/api/telemetry`, {
               event: "watchedVideoTour",
@@ -325,8 +320,7 @@ describe("Telemetry", function() {
               assert.deepEqual(metadata, {
                 watchTimeSeconds: 30,
               });
-            }
-            else {
+            } else {
               assert.containsAllKeys(metadata, [
                 "watchTimeSeconds",
                 "userId",
@@ -338,8 +332,7 @@ describe("Telemetry", function() {
 
             if (telemetryLevel === "limited") {
               assert.equal(forwardEventSpy.callCount, 2);
-            }
-            else {
+            } else {
               // The count below includes 2 apiUsage events triggered as side effects.
               assert.equal(forwardEventSpy.callCount, 4);
               assert.equal(forwardEventSpy.thirdCall.args[1], "apiUsage");
@@ -370,8 +363,7 @@ describe("Telemetry", function() {
             assert.equal(numRequestsMade, 25);
           });
         }
-      }
-      else {
+      } else {
         it("does not log telemetry events sent to /api/telemetry", async function() {
           telemetry.logEvent(null, "apiUsage", { limited: { method: "GET" } });
           assert.isEmpty(loggedEvents);

@@ -244,8 +244,7 @@ export class CommentPopup extends Disposable {
               closeClicked: _props.closeClicked,
               cursorPos: _props.cursorPos,
             });
-          }
-          else {
+          } else {
             return dom.create(EmptyThread, {
               access,
               text: this._newText,
@@ -479,11 +478,9 @@ class SingleThread extends Disposable implements IDomComponent {
       }
       await this.props.cell.reply(list[list.length - 1], md);
       this._entry.clear();
-    }
-    catch (err) {
+    } catch (err) {
       return reportError(err);
-    }
-    finally {
+    } finally {
       this._commentList.scrollTo(0, 10000);
     }
   }
@@ -756,8 +753,7 @@ class Comment extends Disposable {
               dom.on("click", withStop(() => this.replying.set(true))),
               dom.style("margin-left", use2 => use2(this._hasReplies) ? "16px" : "0px"),
             );
-          }
-          else {
+          } else {
             return dom.create(CommentEntry, {
               text: Observable.create(null, new CommentWithMentions()),
               args: [dom.style("margin-top", "8px"), testId("editor-reply")],
@@ -806,8 +802,7 @@ class Comment extends Disposable {
     this._isEditing.set(editing);
     if (editing) {
       domDispatch(this._bodyDom, Comment.EDIT, this);
-    }
-    else {
+    } else {
       domDispatch(this._bodyDom, Comment.CANCEL, this);
     }
   }
@@ -903,8 +898,7 @@ class CommentEntry extends Disposable {
     const clickBuilder = (button: string) => dom.on("click", () => {
       if (button === t("Cancel")) {
         this.props.onCancel?.();
-      }
-      else {
+      } else {
         this.props.onClick?.(button);
       }
     });
@@ -998,8 +992,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
       // Filter out those tables that are not available by ACL.
       if (use(this._currentPageKo)) {
         return [...new Set(use(viewSections).map(vs => use(vs.table)).filter(tb => use(tb.tableId)))];
-      }
-      else {
+      } else {
         return use(this._grist.docModel.visibleTables.getObservable()).filter(tb => use(tb.tableId));
       }
     });
@@ -1014,8 +1007,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
         return (ds: CellRec) => {
           return fieldSet.has(use(ds.colRef));
         };
-      }
-      else {
+      } else {
         return () => true;
       }
     });
@@ -1046,8 +1038,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
         watcher.clear();
         if (list) {
           list.forEach(source => watcher.subscribeTo(source));
-        }
-        else {
+        } else {
           // Page
           watcher.rowFilter.set(() => true);
         }
@@ -1162,8 +1153,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
           break;
         }
       }
-    }
-    else {
+    } else {
       sectionId = section.sectionId!;
       fieldIndex = section.fieldIndex;
     }
@@ -1241,8 +1231,7 @@ function commentAuthor(grist: GristDoc, userRef?: string, userName?: string): Fu
       throw new Error("User reference is not set");
     }
     return loggedInUser;
-  }
-  else {
+  } else {
     if (typeof userName !== "string") {
       return null;
     }

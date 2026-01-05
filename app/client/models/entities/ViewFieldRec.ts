@@ -161,17 +161,11 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
         return "transform_field formula_field";
       }
       return "transform_field";
-    }
-    // If the column is not transforming but a formula is being edited
-    else if (this.editingFormula()) {
+    } else if (this.editingFormula()) { // If the column is not transforming but a formula is being edited
       return "formula_field_edit";
-    }
-    // If a formula exists and it is not empty
-    else if (col.isFormula() && col.formula() !== "") {
+    } else if (col.isFormula() && col.formula() !== "") { // If a formula exists and it is not empty
       return "formula_field";
-    }
-    // If none of the above conditions are met, assign null
-    else {
+    } else { // If none of the above conditions are met, assign null
       return null;
     }
   }));
@@ -343,8 +337,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
           variant: "dropdown-condition",
         }),
       };
-    }
-    catch (e) {
+    } catch (e) {
       return { kind: "failure", error: e.message };
     }
   });

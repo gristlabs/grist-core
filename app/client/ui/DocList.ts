@@ -60,8 +60,7 @@ export class DocList extends Disposable {
     (_use, page) => {
       if (page === "all") {
         return ["recent", "pinned", "all"];
-      }
-      else {
+      } else {
         return ["all", "pinned"];
       }
     },
@@ -406,8 +405,7 @@ function sortAndFilterDocs(
   }
   if (sort === "date" || tab === "recent") {
     docs = sortBy(docs, doc => doc.removedAt || doc.updatedAt).reverse();
-  }
-  else {
+  } else {
     docs = sortBy(docs, doc => doc.name.toLowerCase());
   }
   return docs;
@@ -417,8 +415,7 @@ export async function renameDoc(home: HomeModel, doc: Document, val: string) {
   if (val !== doc.name) {
     try {
       await home.renameDoc(doc.id, val);
-    }
-    catch (err) {
+    } catch (err) {
       reportError(err as Error);
     }
   }

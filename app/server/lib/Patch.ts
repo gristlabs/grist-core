@@ -67,8 +67,7 @@ export class Patch {
           changes.push(...await this._updateRows(tableId, delta));
         }
       }
-    }
-    catch (e) {
+    } catch (e) {
       changes.push({
         msg: String(e),
         fail: true,

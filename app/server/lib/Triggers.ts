@@ -313,8 +313,7 @@ export class DocTriggers {
     if (!trigger.isReadyColRef) {
       // User hasn't configured a column, so all records are considered ready immediately
       readyBefore = recordDelta.existedBefore;
-    }
-    else {
+    } else {
       const isReadyColId = this._getColId(trigger.isReadyColRef)!;
 
       // Must be the actual boolean `true`, not just anything truthy
@@ -326,26 +325,22 @@ export class DocTriggers {
       const cellDelta: CellDelta | undefined = tableDelta.columnDeltas[isReadyColId]?.[rowId];
       if (!recordDelta.existedBefore) {
         readyBefore = false;
-      }
-      else if (!cellDelta) {
+      } else if (!cellDelta) {
         // Cell wasn't changed, and the record is ready now, so it was ready before.
         // This requires that the ActionSummary contains all changes to the isReady column.
         readyBefore = true;
-      }
-      else {
+      } else {
         const deltaBefore = cellDelta[0];
         if (deltaBefore === null) {
           // The record didn't exist before, so it definitely wasn't ready
           // (although we probably shouldn't reach this since we already checked recordDelta.existedBefore)
           readyBefore = false;
-        }
-        else if (deltaBefore === "?") {
+        } else if (deltaBefore === "?") {
           // The ActionSummary shouldn't contain this kind of delta at all
           // since it comes from a single action bundle, not a combination of summaries.
           this._log('Unexpected deltaBefore === "?"', { level: "warn", trigger });
           readyBefore = true;
-        }
-        else {
+        } else {
           // Only remaining case is that deltaBefore is a single-element array containing the previous value.
           const [valueBefore] = deltaBefore;
 
@@ -367,8 +362,7 @@ export class DocTriggers {
       // check if any of the columns to check were changed to consider this an update
       if (colIdsToCheck.length === 0 || colIdsToCheck.some(colId => tableDelta.columnDeltas[colId]?.[rowId])) {
         eventType = "update";
-      }
-      else {
+      } else {
         return false;
       }
       // If we allow subscribing to deletion in the future
@@ -377,8 +371,7 @@ export class DocTriggers {
       // } else {
       //   eventType = "remove";
       // }
-    }
-    else {
+    } else {
       eventType = "add";
     }
 
@@ -390,8 +383,7 @@ export function isUrlAllowed(urlString: string) {
   let url: URL;
   try {
     url = new URL(urlString);
-  }
-  catch (e) {
+  } catch (e) {
     return false;
   }
 

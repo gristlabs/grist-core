@@ -68,8 +68,7 @@ describe("SqliteSettings", function() {
           const snapshots = storage.getSnapshotProgress(docId);
           if (externalStorage) {
             assert.isAtLeast(snapshots.pushes, 1);
-          }
-          else {
+          } else {
             assert.equal(snapshots.pushes, 0);
           }
         });

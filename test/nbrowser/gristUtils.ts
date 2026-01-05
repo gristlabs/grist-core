@@ -587,8 +587,7 @@ namespace gristUtils {
     const tokens = await cell.findAll(".test-ref-list-cell-token-label");
     if (tokens.length > 0) {
       await tokens[0].click();
-    }
-    else {
+    } else {
       await cell.click();
     }
   }
@@ -640,8 +639,7 @@ namespace gristUtils {
       if (rowNum && colName) {
       // This must be a detail view, and we just got the info we need.
         return { rowNum: parseInt(rowNum, 10), col: colName };
-      }
-      else {
+      } else {
       // We might be on a single card record
         const counter = await section.findAll(".grist-single-record__menu__count");
         if (counter.length) {
@@ -660,8 +658,7 @@ namespace gristUtils {
     type: "active" | "selected" = "selected"): Promise<boolean> {
     if (typeof section === "string") {
       section = getSection(section);
-    }
-    else {
+    } else {
       section = section ?? driver.findWait(".active_section", 4000);
     }
     return section.find(type === "active" ? ".active_cursor" : ".selected_cursor").isPresent();
@@ -673,8 +670,7 @@ namespace gristUtils {
   async function catchNoSuchElem(query: () => any) {
     try {
       return await query();
-    }
-    catch (err) {
+    } catch (err) {
       if (err instanceof error.NoSuchElementError) { return null; }
       throw err;
     }
@@ -683,8 +679,7 @@ namespace gristUtils {
   export async function retryOnStale<T>(query: () => Promise<T>): Promise<T> {
     try {
       return await query();
-    }
-    catch (err) {
+    } catch (err) {
       if (err instanceof error.StaleElementReferenceError) { return await query(); }
       throw err;
     }
@@ -728,8 +723,7 @@ namespace gristUtils {
     assert.equal(await driver.findWait(".test-formula-editor", 500).isDisplayed(), true);
     if (onlyVisible) {
       return await driver.find(".code_editor_container").getText();
-    }
-    else {
+    } else {
       return await driver.executeScript(
         () => (document as any).querySelector(".code_editor_container").innerText,
       );
@@ -808,8 +802,7 @@ namespace gristUtils {
 
     if (startRowNum === endRowNum && startCol === endCol) {
       await getCell({ rowNum: endRowNum, col: endCol }).click();
-    }
-    else {
+    } else {
       const start = await getCell({ rowNum: startRowNum, col: startCol });
       const end = await getCell({ rowNum: endRowNum, col: endCol });
       await driver.withActions(a => a.click(start).keyDown(Key.SHIFT).click(end).keyUp(Key.SHIFT));
@@ -1041,14 +1034,12 @@ namespace gristUtils {
       if (!func) {
         func = frameOrFunc as () => Promise<T>;
         iframe = await driver.findWait("iframe", 5000);
-      }
-      else {
+      } else {
         iframe = frameOrFunc as WebElement;
       }
       await driver.switchTo().frame(iframe);
       return await func();
-    }
-    finally {
+    } finally {
       await driver.switchTo().defaultContent();
     }
   }
@@ -1076,8 +1067,7 @@ namespace gristUtils {
       assert.deepEqual(
         await driver.executeScript("return window.gristApp.comm.userActionsFetchAndReset()"),
         expectedUserActions);
-    }
-    catch (err) {
+    } catch (err) {
       const assertError = err as AssertionError;
       if (!Array.isArray(assertError.actual)) {
         throw new Error("userActionsVerify: no user actions, run userActionsCollect() first");
@@ -1171,8 +1161,7 @@ namespace gristUtils {
     // driver.findWait('.test-confirm-save', 50).isPresent();
     // Which doesn't work.
       await driver.findWait(".test-confirm-save", 50);
-    }
-    catch (err) {
+    } catch (err) {
       return;
     }
     if (remember) {
@@ -1180,8 +1169,7 @@ namespace gristUtils {
     }
     if (save) {
       await driver.find(".test-confirm-save").click();
-    }
-    else {
+    } else {
       await driver.find(".test-confirm-cancel").click();
     }
   }
@@ -1197,8 +1185,7 @@ namespace gristUtils {
   export async function assertBannerText(text: string | null | RegExp) {
     if (text === null) {
       assert.isFalse(await driver.find(".test-banner-element").isPresent());
-    }
-    else {
+    } else {
       assert.match(
         await driver.findWait(".test-doc-usage-banner-text", 2000).getText(),
         typeof text === "string" ? exactMatch(text) : text,
@@ -1261,8 +1248,7 @@ namespace gristUtils {
         parent.children ??= [];
         parent.children.push({ label });
         stack.push(parent);
-      }
-      else if (level > current) {
+      } else if (level > current) {
         current = level;
         const child = { label };
         const grandFather = stack.pop()!;
@@ -1272,8 +1258,7 @@ namespace gristUtils {
         father.children.push(child);
         stack.push(grandFather);
         stack.push(father);
-      }
-      else {
+      } else {
         while (level < current) {
           stack.pop();
           current--;
@@ -1389,8 +1374,7 @@ namespace gristUtils {
     const popups = await driver.findAll(".test-removepage-popup");
     if (options.expectPrompt === true) {
       assert.lengthOf(popups, 1);
-    }
-    else if (options.expectPrompt === false) {
+    } else if (options.expectPrompt === false) {
       assert.lengthOf(popups, 0);
     }
     if (popups.length) {
@@ -1402,8 +1386,7 @@ namespace gristUtils {
       await popup.find(`.test-option-${options.withData ? "data" : "page"}`).click();
       if (options.cancel) {
         await driver.find(".test-modal-cancel").click();
-      }
-      else {
+      } else {
         await driver.find(".test-modal-confirm").click();
       }
     }
@@ -1529,12 +1512,10 @@ namespace gristUtils {
       let wasError = false;
       try {
         await test();
-      }
-      catch (e) {
+      } catch (e) {
         wasError = true;
         throw e;
-      }
-      finally {
+      } finally {
         if (!(noCleanup && wasError)) {
           await revert();
         }
@@ -1960,11 +1941,9 @@ namespace gristUtils {
           if ([Key.ALT, Key.CONTROL, Key.SHIFT, Key.COMMAND, Key.META].includes(key)) {
             a.keyDown(key);
             toRelease.push(key);
-          }
-          else if (key === Key.NULL) {
+          } else if (key === Key.NULL) {
             toRelease.splice(0).reverse().forEach(k => a.keyUp(k));
-          }
-          else {
+          } else {
             a.sendKeys(key);
           }
           if (interval) {
@@ -2368,8 +2347,7 @@ namespace gristUtils {
         if (this.settings.email === "anon@getgrist.com") {
           if (options?.showTips) {
             await enableTips(this.settings.email);
-          }
-          else {
+          } else {
             await disableTips(this.settings.email);
           }
           return this;
@@ -2386,14 +2364,12 @@ namespace gristUtils {
       let currentOrg: APIOrganization | undefined;
       try {
         currentOrg = await getOrg();
-      }
-      catch (err) {
+      } catch (err) {
       // ok, we may not be in a page associated with an org.
       }
       try {
         currentUser = await getUser();
-      }
-      catch (err) {
+      } catch (err) {
       // ok, we may not be in a page associated with a user.
       }
       return currentUser && currentUser.email === this.settings.email &&
@@ -2783,8 +2759,7 @@ namespace gristUtils {
     await driver.find(".active_section .mod-add-column").click();
     if (await driver.findContent(".test-new-columns-menu-hidden-column-inlined", `${name}`).isPresent()) {
       await driver.findContent(".test-new-columns-menu-hidden-column-inlined", `${name}`).click();
-    }
-    else {
+    } else {
       await driver.findContent(".test-new-columns-menu-hidden-column-collapsed", `${name}`).click();
     }
     await waitForServer();
@@ -3174,22 +3149,18 @@ namespace gristUtils {
     await driver.switchTo().window(newTab);
     try {
       await action();
-    }
-    catch (e) {
+    } catch (e) {
       console.warn("onNewTab error", e);
       failed = true;
       throw e;
-    }
-    finally {
+    } finally {
       if (test) { await fetchScreenshotAndLogs(test); }
       const newCurrentTab = await driver.getWindowHandle();
       if (newCurrentTab !== newTab) {
         console.log("onNewTab not cleaning up because is not on expected tab");
-      }
-      else if (failed && process.env.NO_CLEANUP) {
+      } else if (failed && process.env.NO_CLEANUP) {
         console.log("onNewTab not cleaning up because failed with NO_CLEANUP set");
-      }
-      else {
+      } else {
         await driver.close();
         await driver.switchTo().window(currentTab);
         console.log("onNewTab returned to original tab");
@@ -3343,8 +3314,7 @@ namespace gristUtils {
     }
     if (save) {
       await sectionFilter.save();
-    }
-    else {
+    } else {
       await sectionFilter.click();
     }
   }
@@ -3627,8 +3597,7 @@ namespace gristUtils {
       for (const key of Object.keys(vars)) {
         if (vars[key] === undefined || vars[key] === null) {
           delete process.env[key];
-        }
-        else {
+        } else {
           process.env[key] = vars[key];
         }
       }
@@ -3689,8 +3658,7 @@ namespace gristUtils {
       await driver.sendKeys(value === null ? Key.DELETE : value);
       // send TAB to trigger blur event, that will force call on the debounced callback
       await driver.sendKeys(Key.TAB);
-    }
-    else {
+    } else {
       await waitToPass(async () => {
       // makes sure the relative options is opened
         if (!await driver.find(".grist-floatin-menu").isPresent()) {
@@ -3800,8 +3768,7 @@ namespace gristUtils {
     if (!level) {
       const currentAccess = await driver.find(".test-config-widget-access .test-select-open").getText();
       return Object.entries(text).find(e => e[1] === currentAccess)![0];
-    }
-    else {
+    } else {
       await driver.find(".test-config-widget-access .test-select-open").click();
       await findOpenMenuItem("li", text[level]).click();
       await waitForServer();
@@ -3841,8 +3808,7 @@ namespace gristUtils {
       if (await hasAccessPrompt()) {
         await acceptAccessRequest();
       }
-    }
-    else {
+    } else {
     // else switch access level
       await widgetAccess(access as AccessLevel);
     }
@@ -3861,8 +3827,7 @@ namespace gristUtils {
       try {
         await driver.getCurrentUrl();
         break;
-      }
-      catch (e) {
+      } catch (e) {
         console.log("switchToWindow retry after error:", e);
         await driver.sleep(250);
       }
@@ -3956,8 +3921,7 @@ namespace gristUtils {
       });
       try {
         await callback(new Clipboard());
-      }
-      finally {
+      } finally {
         await this.unlock();
       }
     }

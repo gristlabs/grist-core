@@ -191,8 +191,7 @@ export class WidgetFrame extends DisposableWithEvents {
     this._rpc.registerFunc(name, (...args: any[]) => {
       if (access.check(this._options.access, "invoke")) {
         return handler(...args);
-      }
-      else {
+      } else {
         throwError(this._options.access);
       }
     });
@@ -237,8 +236,7 @@ export class WidgetFrame extends DisposableWithEvents {
     let urlObj: URL;
     try {
       urlObj = new URL(url);
-    }
-    catch (e) {
+    } catch (e) {
       console.error(e);
       return null;
     }
@@ -312,8 +310,7 @@ function wrapObject<T extends object>(impl: T, accessChecker: AccessChecker, acc
         }
         if (accessChecker.check(access, methodName)) {
           return target[methodName](...arguments);
-        }
-        else {
+        } else {
           throwError(access);
         }
       };
@@ -382,13 +379,11 @@ export class MethodAccess<T> implements AccessChecker {
       // If it was, check that minimum access level is granted.
       const minimum = this._accessMap.get(method as MethodMatcher<T>)!;
       return isSatisfied(access, minimum);
-    }
-    else if (this._accessMap.has("*")) {
+    } else if (this._accessMap.has("*")) {
       // If there is a default rule, check if it permits the access.
       const minimum = this._accessMap.get("*")!;
       return isSatisfied(access, minimum);
-    }
-    else {
+    } else {
       // By default, don't allow anything on this interface.
       return false;
     }
@@ -525,8 +520,7 @@ export class GristViewImpl implements GristView {
       const mappedColumns = new Set(flatMap(Object.values(mappings)));
       const mapped = (col: ColumnRec) => mappedColumns.has(col.colId.peek());
       return columns.filter(mapped);
-    }
-    else if (options.includeColumns === "shown" || !options.includeColumns) {
+    } else if (options.includeColumns === "shown" || !options.includeColumns) {
       // Return columns that have been shown by the user, i.e. have a corresponding view field.
       const hiddenCols = this._baseView.viewSection.hiddenColumns.peek().map(c => c.id.peek());
       const notHidden = (col: ColumnRec) => !hiddenCols.includes(col.id.peek());
@@ -542,8 +536,7 @@ export class GristViewImpl implements GristView {
     if (options.includeColumns === "normal") {
       // Return all 'normal' columns of the table, regardless of whether the user has shown them.
       return columns;
-    }
-    else {
+    } else {
       // Return *all* columns, including special invisible columns like manualSort.
       return this._baseView.viewSection.table.peek().columns.peek().all();
     }
@@ -815,8 +808,7 @@ export class CustomSectionAPIImpl extends Disposable implements CustomSectionAPI
     }
     if (settings.columns !== undefined) {
       this._section.columnsToMap(settings.columns);
-    }
-    else {
+    } else {
       this._section.columnsToMap(null);
     }
     if (settings.allowSelectBy !== undefined) {

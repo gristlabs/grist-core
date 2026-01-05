@@ -414,8 +414,7 @@ export class DocWorkerApi {
 
       try {
         await archive.packInto(res, { endDestStream: false });
-      }
-      catch (err) {
+      } catch (err) {
         // This only behaves sensibly if the 'download' attribute is on the <a> tag.
         // Otherwise you get a poor user experience, such as:
         // - No data written to the stream: open a new tab with a 500 error.
@@ -431,8 +430,7 @@ export class DocWorkerApi {
         };
         if (err?.code === "ERR_STREAM_PREMATURE_CLOSE") {
           log.rawWarn("Client closed archive download stream before completion", meta);
-        }
-        else {
+        } else {
           log.rawError(`Error while packing attachment archive: ${err.stack ?? err.message}`, meta);
         }
       }
@@ -459,8 +457,7 @@ export class DocWorkerApi {
       // Await this here to ensure errors are thrown.
       try {
         res.json(await archivePromise);
-      }
-      catch (err) {
+      } catch (err) {
         if (err instanceof Error && err.message === "Unexpected end of data") {
           throw new Error("File is not a valid .tar");
         }
@@ -652,20 +649,17 @@ export class DocWorkerApi {
           // in case it is broken in some way.  It is convenient to be able to download
           // broken files for diagnosis/recovery.
           return await this._docWorker.downloadDoc(req, res, this._docManager.storageManager, filename);
-        }
-        catch (e) {
+        } catch (e) {
           if (e.message?.match(/does not exist yet/)) {
             // The document has never been seen on file system / s3.  It may be new, so
             // we try again after having created an ActiveDoc for the document.
             await this._getActiveDoc(req);
             return this._docWorker.downloadDoc(req, res, this._docManager.storageManager, filename);
-          }
-          else {
+          } else {
             throw e;
           }
         }
-      }
-      else {
+      } else {
         // If the user is not an owner, we load the document as an ActiveDoc, and then
         // check if the user has download permissions.
         const activeDoc = await this._getActiveDoc(req);
@@ -813,8 +807,7 @@ export class DocWorkerApi {
           if (id) {
             updateActions.push(["UpdateRecord", "_grist_Tables_column", id, col.fields]);
             updatedColumnsIds.add(id);
-          }
-          else {
+          } else {
             addActions.push(["AddVisibleColumn", tableId, col.id, col.fields]);
           }
         }
@@ -891,8 +884,7 @@ export class DocWorkerApi {
       if (data) {
         if (permanent) {
           this._logDeleteDocumentEvents(req, data);
-        }
-        else {
+        } else {
           this._logRemoveDocumentEvents(req, data);
         }
       }
@@ -977,8 +969,7 @@ export class DocWorkerApi {
       if (group !== undefined && req.specialPermit?.action === "assign-doc") {
         if (group.trim() === "") {
           await this._docWorkerMap.removeDocGroup(docId);
-        }
-        else {
+        } else {
           await this._docWorkerMap.updateDocGroup(docId, group);
         }
       }
@@ -1213,8 +1204,7 @@ export class DocWorkerApi {
         if (formResult.upload) {
           params.uploadId = formResult.upload.uploadId;
         }
-      }
-      else {
+      } else {
         params = req.body;
       }
 
@@ -1325,8 +1315,7 @@ export class DocWorkerApi {
           uploadId = formResult.upload.uploadId;
         }
         parameters = formResult.parameters || {};
-      }
-      else {
+      } else {
         parameters = req.body;
       }
 
@@ -1345,8 +1334,7 @@ export class DocWorkerApi {
           documentName: stringParam(parameters.documentName, "documentName"),
           asTemplate: optBooleanParam(parameters.asTemplate, "asTemplate"),
         });
-      }
-      else if (uploadId !== undefined) {
+      } else if (uploadId !== undefined) {
         const result = await this._importDocumentToWorkspace(mreq, {
           userId,
           uploadId,
@@ -1356,14 +1344,12 @@ export class DocWorkerApi {
         });
         docId = result.id;
         this._logImportDocumentEvents(mreq, result);
-      }
-      else if (workspaceId !== undefined) {
+      } else if (workspaceId !== undefined) {
         docId = await this._createNewSavedDoc(req, {
           workspaceId: workspaceId,
           documentName: optStringParam(parameters.documentName, "documentName"),
         });
-      }
-      else {
+      } else {
         docId = await this._createNewUnsavedDoc(req, {
           userId,
           browserSettings,
@@ -1470,8 +1456,7 @@ export class DocWorkerApi {
             if (!refCol) { return []; }
 
             refColId = refCol.colId as string;
-          }
-          else {
+          } else {
             refColId = "id";
           }
           if (!refTableId || typeof refTableId !== "string" || !refColId) { return []; }
@@ -1536,8 +1521,7 @@ export class DocWorkerApi {
     this._app.get("/api/docs/:docId/timing", isOwner, withDoc(async (activeDoc, req, res) => {
       if (!activeDoc.isTimingOn) {
         res.json({ status: "disabled" });
-      }
-      else {
+      } else {
         const timing =  await activeDoc.getTimings();
         const status = timing ? "active" : "pending";
         res.json({ status, timing });
@@ -1635,8 +1619,7 @@ export class DocWorkerApi {
       const accessId = makeAccessId(req, getAuthorizedUserId(req));
       uploadResult = await fetchDoc(this._grist, this._docWorkerMap, sourceDocumentId, req, accessId, asTemplate);
       globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, `${documentName}.grist`);
-    }
-    catch (err) {
+    } catch (err) {
       if ((err as ApiError).status === 403) {
         throw new ApiError("Insufficient access to document to copy it entirely", 403);
       }
@@ -1804,17 +1787,14 @@ export class DocWorkerApi {
         }
 
         await callback(req as RequestWithLogin, res, next);
-      }
-      catch (err) {
+      } catch (err) {
         next(err);
-      }
-      finally {
+      } finally {
         const count = this._currentUsage.get(docId);
         if (count) {
           if (count === 1) {
             this._currentUsage.delete(docId);
-          }
-          else {
+          } else {
             this._currentUsage.set(docId, count - 1);
           }
         }
@@ -1954,8 +1934,7 @@ export class DocWorkerApi {
         activeDoc = await this._getActiveDoc(req as RequestWithLogin);
         await callback(activeDoc, req as RequestWithLogin, res);
         if (!res.headersSent) { this._checkForMute(activeDoc); }
-      }
-      catch (err) {
+      } catch (err) {
         this._checkForMute(activeDoc);
         throw err;
       }
@@ -2001,8 +1980,7 @@ export class DocWorkerApi {
       result = await this._dbManager.deleteDocument(scope);
       this._dbManager.checkQueryResult(result);
       await sendReply(req, res, { ...result, data: result.data!.id });
-    }
-    else {
+    } else {
       result = await this._dbManager.softDeleteDocument(scope);
       await sendOkReply(req, res);
     }
@@ -2056,19 +2034,16 @@ export class DocWorkerApi {
           }),
         ),
       });
-    }
-    catch (e) {
+    } catch (e) {
       if (e?.code === "SQLITE_INTERRUPT") {
         res.status(400).json({
           error: "a slow statement resulted in a database interrupt",
         });
-      }
-      else if (e?.code === "SQLITE_ERROR") {
+      } else if (e?.code === "SQLITE_ERROR") {
         res.status(400).json({
           error: e?.message,
         });
-      }
-      else {
+      } else {
         throw e;
       }
     }
@@ -2448,10 +2423,9 @@ function applySort(
   // if this is the case, we will infer them from the result.
   if (!_columns) {
     _columns = Object.keys(values).map((col, index) => ({ id: col, fields: { colRef: index } }));
-  }
-  // For user tables, we will not get id column (as this column is not in the schema), so we need to
-  // make sure the column is there.
-  else {
+  } else { // For user tables, we will not get id column (as this column is not in the schema), so we need to
+    // make sure the column is there.
+
     // This is enough information for ServerGetters
     _columns = [..._columns, { id: "id", fields: { colRef: 0 } }];
   }

@@ -59,8 +59,7 @@ export class ColumnFilter extends Disposable {
       // undefined (filter reverts to switching by value when both min and max are undefined).
       this._include = false;
       this._values = new Set();
-    }
-    else {
+    } else {
       this.min.set(undefined);
       this.max.set(undefined);
       this._include = state.include;
@@ -82,8 +81,7 @@ export class ColumnFilter extends Disposable {
     for (const val of values) {
       if (this._include) {
         this._values.add(val);
-      }
-      else {
+      } else {
         this._values.delete(val);
       }
     }
@@ -99,8 +97,7 @@ export class ColumnFilter extends Disposable {
     for (const val of values) {
       if (this._include) {
         this._values.delete(val);
-      }
-      else {
+      } else {
         this._values.add(val);
       }
     }
@@ -124,8 +121,7 @@ export class ColumnFilter extends Disposable {
     let filter: any;
     if (this.min.get() !== undefined || this.max.get() !== undefined) {
       filter = { min: this.min.get(), max: this.max.get() };
-    }
-    else {
+    } else {
       const values = Array.from(this._values).sort(nativeCompare);
       filter = { [this._include ? "included" : "excluded"]: values };
     }

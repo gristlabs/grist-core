@@ -21,15 +21,13 @@ function isValidManifest(manifest: any, notices: string[]): boolean {
   }
   try {
     manifestChecker.check(manifest);
-  }
-  catch (e) {
+  } catch (e) {
     notices.push(`Invalid manifest: ${e.message}`);
     return false;
   }
   try {
     manifestChecker.strictCheck(manifest);
-  }
-  catch (e) {
+  } catch (e) {
     notices.push(`WARNING: ${e.message}`);
     /* but don't fail */
   }
@@ -71,16 +69,14 @@ async function _readManifest(pluginPath: string): Promise<object> {
   }
   try {
     return yaml.load(await readManifestFile("yml")) as object;
-  }
-  catch (e) {
+  } catch (e) {
     if (e instanceof yaml.YAMLException) {
       throw new Error("error parsing yaml manifest: " + e.message);
     }
   }
   try {
     return JSON.parse(await readManifestFile("json"));
-  }
-  catch (e) {
+  } catch (e) {
     if (e instanceof SyntaxError) {
       throw new Error("error parsing json manifest" + e.message);
     }

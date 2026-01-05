@@ -53,8 +53,7 @@ export function splitValuesByIndex<T extends { values: Datum[] }>(series: T[], i
     for (const [i, splitByValue] of decoded.entries()) {
       if (Array.isArray(splitByValue)) {
         values = values.concat(Array(splitByValue.length).fill(s.values[i]));
-      }
-      else {
+      } else {
         values.push(s.values[i]);
       }
     }

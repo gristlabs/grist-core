@@ -148,8 +148,7 @@ export class TestingHooks implements ITestingHooks {
       const orig = Object.getPrototypeOf(Client.jsonMemoryPool)._updateReserved;
       if (limits.maxReservationSize === null) {
         (Client.jsonMemoryPool as any)._updateReserved = orig;
-      }
-      else {
+      } else {
         // Monkey-patch reservation logic to simulate unexpected failures.
         const jsonMemoryThrowLimit = limits.maxReservationSize;
         function updateReservedWithLimit(this: typeof Client.jsonMemoryPool, sizeDelta: number) {
@@ -244,8 +243,7 @@ export class TestingHooks implements ITestingHooks {
     const prev = DiscourseConnectDeps[key] || null;
     if (value == null) {
       delete DiscourseConnectDeps[key];
-    }
-    else {
+    } else {
       DiscourseConnectDeps[key] = value;
     }
     return prev;
@@ -267,15 +265,12 @@ export class TestingHooks implements ITestingHooks {
   public async tickleUnhandledErrors(errType: "exception" | "rejection" | "error-event"): Promise<void> {
     if (errType === "exception") {
       setTimeout(() => { throw new Error("TestingHooks: Fake exception"); }, 0);
-    }
-    else if (errType === "rejection") {
+    } else if (errType === "rejection") {
       void (Promise.resolve(null).then(() => { throw new Error("TestingHooks: Fake rejection"); }));
-    }
-    else if (errType === "error-event") {
+    } else if (errType === "error-event") {
       const emitter = new EventEmitter();
       setTimeout(() => emitter.emit("error", new Error("TestingHooks: Fake error-event")), 0);
-    }
-    else {
+    } else {
       throw new Error(`Unrecognized errType ${errType}`);
     }
   }

@@ -178,8 +178,7 @@ export class Cursor extends Disposable {
 
       if (cursorPos.rowId !== undefined) {
         newRowIndex = this.viewData.getRowIndex(cursorPos.rowId);
-      }
-      else if (cursorPos.rowIndex !== undefined && cursorPos.rowIndex >= 0) {
+      } else if (cursorPos.rowIndex !== undefined && cursorPos.rowIndex >= 0) {
         newRowIndex = cursorPos.rowIndex;
       }
 
@@ -189,8 +188,7 @@ export class Cursor extends Disposable {
 
       if (newRowIndex !== undefined && (newRowIndex === null || newRowIndex >= 0)) {
         this.rowIndex(newRowIndex);
-      }
-      else {
+      } else {
         // Write rowIndex to itself to force an update of rowId if needed.
         this.rowIndex(this.rowIndex.peek() || 0);
       }
@@ -215,8 +213,7 @@ export class Cursor extends Disposable {
       this._cursorEdited();
 
       return newRowIndex !== null;
-    }
-    finally { // Make sure we reset this even on error
+    } finally { // Make sure we reset this even on error
       this._silentUpdatesFlag = false;
     }
   }

@@ -47,8 +47,7 @@ export async function fileImport(
         }
       }
       return await app.api.importUnsavedDoc(files[0], { timezone, onUploadProgress });
-    }
-    else {
+    } else {
       // Connect to a docworker.  Imports share some properties of documents but not all. In place of
       // docId, for the purposes of work allocation, we use the special assigmentId `import`.
       const docWorker = await app.api.getWorkerAPI("import");
@@ -59,12 +58,10 @@ export async function fileImport(
       const importResult = await docWorker.importDocToWorkspace(uploadResult!.uploadId, workspaceId, { timezone });
       return importResult.id;
     }
-  }
-  catch (err) {
+  } catch (err) {
     reportError(err);
     return null;
-  }
-  finally {
+  } finally {
     progress.finish();
     // Dispose the indicator UI and the progress timer owned by it.
     progressUI.dispose();
@@ -93,22 +90,18 @@ export async function importFromPlugin(
         const docId = await fileImport(files, app, workspaceId);
         screen.close();
         return docId;
-      }
-      else if (item.kind === "url") {
+      } else if (item.kind === "url") {
         // TODO: importing from url is not yet implemented.
         // uploadResult = await fetchURL(this._docComm, item.url);
         throw new Error("Url is not supported yet");
-      }
-      else {
+      } else {
         throw new Error(`Import source of kind ${(item as any).kind} are not yet supported!`);
       }
-    }
-    else {
+    } else {
       screen.close();
       return null;
     }
-  }
-  catch (err) {
+  } catch (err) {
     screen.renderError(err.message);
     return null;
   }

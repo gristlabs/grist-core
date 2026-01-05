@@ -93,8 +93,7 @@ const _admins: Probe = {
         status: "success",
         details: { users },
       };
-    }
-    catch (e) {
+    } catch (e) {
       return {
         status: "fault",
         details: { error: String(e) },
@@ -121,8 +120,7 @@ const _homeUrlReachableProbe: Probe = {
         status: "success",
         details,
       };
-    }
-    catch (e) {
+    } catch (e) {
       return {
         details: {
           ...details,
@@ -189,8 +187,7 @@ const _statusCheckProbe: Probe = {
         status: "success",
         details,
       };
-    }
-    catch (e) {
+    } catch (e) {
       return {
         details: {
           ...details,
@@ -215,8 +212,7 @@ const _userProbe: Probe = {
         verdict: "User appears to be root (UID 0)",
         status: "warning",
       };
-    }
-    else {
+    } else {
       return {
         status: "success",
         details,

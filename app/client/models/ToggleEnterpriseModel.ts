@@ -63,8 +63,7 @@ export class ToggleEnterpriseModel extends Disposable {
     try {
       await this._notifier.slowNotification(func());
       await this._reloadWhenReady();
-    }
-    catch (err) {
+    } catch (err) {
       this.busy.set(false);
       throw err;
     }
@@ -81,8 +80,7 @@ export class ToggleEnterpriseModel extends Disposable {
         this.busy.set(false);
         window.location.reload();
         return;
-      }
-      catch (err) {
+      } catch (err) {
         console.warn("Server not ready yet, will retry", err);
         await delay(1000);
       }
@@ -97,8 +95,7 @@ async function retryOnNetworkError<R>(func: () => Promise<R>): Promise<R> {
   for (let attempt = 0; ; attempt++) {
     try {
       return await func();
-    }
-    catch (err) {
+    } catch (err) {
       // fetch() promises that network errors are reported as TypeError. We'll accept NetworkError too.
       if (err.name !== "TypeError" && err.name !== "NetworkError") {
         throw err;
