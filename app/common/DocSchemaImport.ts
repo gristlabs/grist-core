@@ -84,6 +84,11 @@ interface ExistingColRef {
 // Allows any property to be read, but assignments must be mutually exclusive.
 type ColRef = OriginalColRef | ExistingColRef;
 
+type ResolvedRef<T> =
+  T extends (ExistingColRef | OriginalColRef) ? ExistingColRef :
+    T extends (ExistingTableRef | OriginalTableRef) ? ExistingTableRef :
+      T extends undefined ? undefined : never;
+
 export type ApplyUserActionsFunc = (userActions: UserAction[]) => Promise<ApplyUAResult>;
 
 export class DocSchemaImportTool {
@@ -110,12 +115,7 @@ export class DocSchemaImportTool {
 
     const tableCreationResults = (await this._applyUserActions(addTableActions)).retValues;
 
-    const tableIdsMap = new Map<string, {
-      originalId: string;
-      gristId: string;
-      gristRefId: number;
-      columnIdMap: Map<string, string>;
-    }>();
+    const tableIdsMap = new Map<string, TableIdsInfo>();
 
     // This expects everything to have been created successfully, and therefore
     // in order in the response - without any gaps.
@@ -134,60 +134,40 @@ export class DocSchemaImportTool {
       });
     });
 
-    const idMappers = {
-      getColId(tableId: string, colId: string) {
-        return tableIdsMap.get(tableId)?.columnIdMap.get(colId);
-      },
-      getColIdOrThrow(tableId: string, colId: string) {
-        const value = tableIdsMap.get(tableId)?.columnIdMap.get(colId);
-        if (value === undefined) {
-          throw new DocSchemaImportError(`Couldn't find Grist column id for column '${colId}' in table '${tableId}'`);
-        }
-        return value;
-      },
-      getTableId(id: string) {
-        return tableIdsMap.get(id)?.gristId;
-      },
-      getTableIdOrThrow(id: string) {
-        const value = tableIdsMap.get(id)?.gristId;
-        if (value === undefined) {
-          throw new DocSchemaImportError(`Couldn't locate Grist table id for table ${id}`);
-        }
-        return value;
-      },
-    };
+    const refResolvers = makeResolveRefFuncs(tableIdsMap);
+    const { resolveRef, resolveRefOrThrow } = refResolvers;
 
     const modifyColumnActions: UserAction[] = [];
     for (const tableSchema of tableSchemas) {
       for (const columnSchema of tableSchema.columns) {
         let type: string = columnSchema.type;
+        const resolvedSchemaRef = resolveRef(columnSchema.ref);
         if (type.includes("Ref")) {
-          const tableId = columnSchema.ref?.existingTableId ||
-            (columnSchema.ref?.originalTableId && idMappers.getTableId(columnSchema.ref?.originalTableId));
           // TODO - show a warning here if we couldn't resolve a table id
-          type = tableId ?
-            `${columnSchema.type}:${tableId}` :
+          type = resolvedSchemaRef ?
+            `${columnSchema.type}:${resolvedSchemaRef.existingTableId}` :
             "Any";
         }
 
+        const existingColRef = resolveRefOrThrow({
+          originalTableId: tableSchema.originalId,
+          originalColId: columnSchema.originalId,
+        });
+
         modifyColumnActions.push([
           "ModifyColumn",
-          // TODO - Decide if this should throw or warn.
-          idMappers.getTableIdOrThrow(tableSchema.originalId),
-          idMappers.getColIdOrThrow(tableSchema.originalId, columnSchema.originalId),
+          existingColRef.existingTableId,
+          existingColRef.existingColId,
           {
             type,
             isFormula: columnSchema.isFormula ?? false,
-            formula: columnSchema.formula && prepareFormula(columnSchema.formula, idMappers),
+            formula: columnSchema.formula && prepareFormula(columnSchema.formula, refResolvers),
             label: columnSchema.label,
             // Need to decouple it - otherwise our stored column ids may now be invalid.
             untieColIdFromLabel: columnSchema.label !== undefined,
             description: columnSchema.description,
             widgetOptions: JSON.stringify(columnSchema.widgetOptions),
-            visibleCol: columnSchema.ref?.existingColId || (
-              columnSchema.ref?.originalColId &&
-              idMappers.getColIdOrThrow(columnSchema.ref.originalTableId, columnSchema.ref.originalColId)
-            ),
+            visibleCol: resolvedSchemaRef?.existingColId,
             recalcDeps: columnSchema.recalcDeps,
             recalcWhen: columnSchema.recalcWhen,
           },
@@ -350,7 +330,6 @@ function transformSchemaMapRef(schema: ImportSchema, params: ImportSchemaTransfo
 // TODO - Cleanup parameters and readability on this function signature
 export function transformImportSchema(schema: ImportSchema,
   params: ImportSchemaTransformParams): { schema: ImportSchema, warnings: DocSchemaImportWarning[] } {
-
   const warnings: DocSchemaImportWarning[] = [];
   const newSchema = cloneDeep(schema);
   const { mapExistingTableIds } = params;
@@ -394,29 +373,19 @@ function findMatchingExistingColumn(colSchema: ColumnImportSchema, existingTable
   );
 }
 
-type TableIdMapper = (id: string) => string | undefined;
-type ColIdMapper = (tableId: string, colId: string) => string | undefined;
-function prepareFormula(template: FormulaTemplate, mappers: { getTableId: TableIdMapper, getColId: ColIdMapper }) {
+function prepareFormula(template: FormulaTemplate, mappers: ReturnType<typeof makeResolveRefFuncs>) {
   if (!template.replacements || template.replacements.length === 0) {
     return template.formula;
   }
   return template.replacements.reduce((formula, ref, index) => {
-    const tableId = ref?.existingTableId ||
-      ref?.originalTableId && mappers.getTableId(ref.originalTableId);
-    const colId = ref?.existingColId || ref?.originalColId && mappers.getColId(ref.originalTableId, ref.originalColId);
+    const resolvedRef = mappers.resolveRef(ref);
 
-    if (!tableId) {
-      // TODO - Warning if tableId doesn't exist
+    if (resolvedRef === undefined) {
+      // TODO - Warning if formula replacements couldn't be mapped.
       return formula;
     }
 
-    // existingColId doesn't need checking, as we only care about mapper failures here.
-    if (ref.originalColId && !colId) {
-      // TODO - Warning if colId doesn't exist
-      return formula;
-    }
-
-    const replacementText = colId ?? tableId;
+    const replacementText = resolvedRef.existingColId ?? resolvedRef.existingTableId;
 
     return formula.replace(RegExp(`\\[R${index}\\]`, "g"), replacementText);
   }, template.formula);
@@ -426,4 +395,54 @@ export class DocSchemaImportError extends Error {
   constructor(message: string) {
     super(message);
   }
+}
+
+function throwUnresolvedRefError(ref: TableRef | ColRef) {
+  if (ref.originalColId) {
+    throw new DocSchemaImportError(
+      `Couldn't find Grist column id for column '${ref.originalColId}' in table '${ref.originalTableId}'`,
+    );
+  }
+  throw new DocSchemaImportError(`Couldn't locate Grist table id for table ${ref.originalTableId}`);
+}
+
+// Transforms a reference into a reference to an existing table/column using tableIdsMap,
+// or returns undefined if no mapping exists.
+function makeResolveRefFuncs(tableIdsMap: Map<string, TableIdsInfo>) {
+  // Generic overloads make using this require so many fewer type checks
+  // Always returns the narrowest type possible.
+  function resolveRef<T extends (ExistingTableRef | ExistingColRef | undefined)>(ref: T): ResolvedRef<T>;
+  function resolveRef<T extends (TableRef | ColRef | undefined)>(ref: T): ResolvedRef<T>;
+  function resolveRef(ref?: TableRef | ColRef): ExistingTableRef | ExistingColRef | undefined {
+    if (ref === undefined) { return undefined; }
+    if (ref.existingTableId !== undefined) { return ref; }
+    const tableIds = tableIdsMap.get(ref.originalTableId);
+    if (!tableIds) { return undefined; }
+    if (ref.originalColId === undefined) {
+      return { existingTableId: tableIds.gristId };
+    }
+    const colId = tableIds.columnIdMap.get(ref.originalColId);
+    if (colId === undefined) { return undefined; }
+    return { existingTableId: tableIds.gristId, existingColId: colId };
+  }
+
+  function resolveRefOrThrow<T extends (TableRef | ColRef)>(ref: T) {
+    const resolvedRef = resolveRef(ref);
+    if (resolvedRef === undefined) {
+      throwUnresolvedRefError(ref);
+    }
+    return resolvedRef;
+  }
+
+  return {
+    resolveRef,
+    resolveRefOrThrow,
+  };
+}
+
+interface TableIdsInfo {
+  originalId: string;
+  gristId: string;
+  gristRefId: number;
+  columnIdMap: Map<string, string>;
 }
