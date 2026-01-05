@@ -16,6 +16,7 @@ module.exports = defineConfig([
     "*",
     "!app/",
     "app/**/*-ti.ts",
+    "ext/**/*-ti.ts",
     "!test/",
     "!plugins/",
     "!sandbox/",
