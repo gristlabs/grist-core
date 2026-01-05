@@ -52,11 +52,11 @@ module.exports = defineConfig([
         caughtErrors: "none",
       }],
 
-      "@stylistic/comma-spacing": "warn",
+      "@stylistic/comma-spacing": "error",
       "@stylistic/indent": ["error", 2],
-      "@stylistic/no-trailing-spaces": "warn",
+      "@stylistic/no-trailing-spaces": "error",
       "@stylistic/quotes": ["error", "double", { avoidEscape: true, allowTemplateLiterals: "always" }],
-      "@stylistic/semi-spacing": "warn",
+      "@stylistic/semi-spacing": "error",
       "@stylistic/semi": ["error", "always"],
     },
   }, {
@@ -110,7 +110,7 @@ module.exports = defineConfig([
     },
 
     rules: {
-      "curly": ["warn", "all"],
+      "curly": ["error", "all"],
       "no-console": "off",
       "no-inner-declarations": "off",
       "no-prototype-builtins": "off",
@@ -146,12 +146,12 @@ module.exports = defineConfig([
         },
       ],
 
-      "@stylistic/block-spacing": ["warn", "always"],
-      "@stylistic/comma-spacing": "warn",
+      "@stylistic/block-spacing": ["error", "always"],
+      "@stylistic/comma-spacing": "error",
       "@stylistic/function-call-spacing": "error",
       "@stylistic/indent": ["error", 2],
       "@stylistic/keyword-spacing": "error",
-      "@stylistic/max-len": ["warn", {
+      "@stylistic/max-len": ["error", {
         code: 120,
         ignoreUrls: true,
         ignoreRegExpLiterals: true,
@@ -159,7 +159,7 @@ module.exports = defineConfig([
       }],
       "@stylistic/operator-linebreak": ["error", "after"],
       "@stylistic/no-multi-spaces": "off",
-      "@stylistic/no-trailing-spaces": "warn",
+      "@stylistic/no-trailing-spaces": "error",
       "@stylistic/no-whitespace-before-property": "error",
       "@stylistic/quotes": ["error", "double", {
         avoidEscape: true,
@@ -168,7 +168,7 @@ module.exports = defineConfig([
       "@stylistic/max-statements-per-line": "off",
       "@stylistic/multiline-ternary": "off",
       "@stylistic/semi": ["error", "always"],
-      "@stylistic/semi-spacing": "warn",
+      "@stylistic/semi-spacing": "error",
       "@stylistic/space-before-function-paren": ["error", {
         anonymous: "never",
         named: "never",
@@ -178,7 +178,7 @@ module.exports = defineConfig([
       "@stylistic/space-infix-ops": "error",
       "@stylistic/spaced-comment": "error",
       "@stylistic/switch-colon-spacing": "error",
-      "@stylistic/type-annotation-spacing": "warn",
+      "@stylistic/type-annotation-spacing": "error",
 
       "@typescript-eslint/ban-types": "off",
       "@typescript-eslint/consistent-indexed-object-style": "off",
@@ -192,7 +192,7 @@ module.exports = defineConfig([
         },
       }],
       "@typescript-eslint/explicit-module-boundary-types": "off",
-      "@typescript-eslint/member-ordering": ["warn", {
+      "@typescript-eslint/member-ordering": ["error", {
         default: [
           "public-static-field",
           "public-static-method",
@@ -216,7 +216,7 @@ module.exports = defineConfig([
           "method",
         ],
       }],
-      "@typescript-eslint/naming-convention": ["warn", {
+      "@typescript-eslint/naming-convention": ["error", {
         selector: "memberLike",
 
         filter: {
@@ -237,7 +237,7 @@ module.exports = defineConfig([
       "@typescript-eslint/no-namespace": "off",
       "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/no-this-alias": "off",
-      "@typescript-eslint/no-type-alias": ["warn", {
+      "@typescript-eslint/no-type-alias": ["error", {
         allowAliases: "always",
         allowCallbacks: "always",
         allowConditionalTypes: "always",
