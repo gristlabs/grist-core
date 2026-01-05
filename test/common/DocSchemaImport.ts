@@ -455,7 +455,59 @@ describe("DocSchemaImport", function() {
       assert.equal(testAction[3].type.split(":")[1], "ArbitraryTableId_Test1");
       // Assert that the visible column was set to the new id
       assert.equal(testAction[3].visibleCol, "ArbitraryColumnId_Test1-1");
-      // TODo Check formulas are mapped - Separate test
+    });
+
+    it("substitutes existing table / column ids for formula replacements", async () => {
+      const schema = createTestSchema();
+
+      schema.tables.push({
+        originalId: "Test1",
+        name: "Test Table 1",
+        columns: [
+          {
+            originalId: "1",
+            desiredId: "Test1-1",
+            type: "Any",
+          },
+          {
+            originalId: "2",
+            desiredId: "Test1-2",
+            type: "Any",
+            formula: {
+              formula: "print('[R0]') # [R0], [R1], no [R2]",
+              replacements: [
+                { originalTableId: "Test1", originalColId: "1" },
+                { originalTableId: "Test1" },
+              ],
+            },
+          },
+        ],
+      });
+
+      const retValues = schema.tables.map((tableSchema, index) => ({
+        id: index,
+        table_id: `MyCol_${tableSchema.originalId}`,
+        columns: tableSchema.columns.map(columnSchema => `MyCol_${columnSchema.desiredId}`),
+      }));
+
+      const applyUserActions: ApplyUserActionsFunc = sinon.fake.returns(Promise.resolve({
+        actionNum: 0,
+        actionHash: null,
+        retValues,
+        isModification: false,
+      }));
+
+      const importTool = new DocSchemaImportTool(applyUserActions);
+      await importTool.createTablesFromSchema(schema);
+
+      // Check all ModifyColumn table and column ids are mapped.
+      const modifyColumnActions: any[] = (applyUserActions as sinon.SinonSpy).secondCall.args[0];
+      const [, , , colInfo] = modifyColumnActions.find(action => action[2] === "MyCol_Test1-2");
+
+      assert.equal(
+        colInfo.formula,
+        "print('MyCol_Test1-1') # MyCol_Test1-1, MyCol_Test1, no [R2]",
+      );
     });
   });
 });
