@@ -238,6 +238,8 @@ describe("Sandbox", function() {
       before(function() {
         oldEnv = new testUtils.EnvironmentSnapshot();
         process.env.GRIST_SANDBOX = process.execPath;
+        // Using node executable, not deno executable
+        process.env.GRIST_PYODIDE_SKIP_DENO = "true";
       });
 
       after(function() {
