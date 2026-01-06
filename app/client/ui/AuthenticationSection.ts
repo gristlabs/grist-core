@@ -2,13 +2,15 @@ import { makeT } from "app/client/lib/localization";
 import { cssMarkdownSpan } from "app/client/lib/markdown";
 import { getHomeUrl, reportError } from "app/client/models/AppModel";
 import { AdminPanelControls, cssIconWrapper, cssWell, cssWellContent } from "app/client/ui/AdminPanelCss";
+import { GetGristComProviderInfoModal } from "app/client/ui/GetGristComProvider";
 import { basicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { confirmModal, cssModalWidth, modal } from "app/client/ui2018/modals";
 import { AuthProvider, ConfigAPI } from "app/common/ConfigAPI";
 import {
-  FORWARDAUTH_PROVIDER_KEY,
+  FORWARD_AUTH_PROVIDER_KEY,
+  GETGRIST_COM_PROVIDER_KEY,
   GRIST_CONNECT_PROVIDER_KEY,
   MINIMAL_PROVIDER_KEY,
   OIDC_PROVIDER_KEY,
@@ -163,7 +165,7 @@ export class AuthenticationSection extends Disposable {
   private _configureProvider(provider: AuthProvider) {
     const configModal = BaseInformationModal.for(provider);
     if (configModal) {
-      configModal.show();
+      configModal.show(() => this._fetchProviders().catch(reportError));
       this.onDispose(() => configModal.isDisposed() ? void 0 : configModal.dispose());
     }
   }
@@ -176,16 +178,18 @@ abstract class BaseInformationModal extends Disposable {
   /**
    * Factory method to create the appropriate modal for a provider.
    */
-  public static for(provider: AuthProvider): BaseInformationModal | null {
+  public static for(provider: AuthProvider) {
     switch (provider.key) {
       case OIDC_PROVIDER_KEY:
         return new OIDCInformationModal(provider);
       case SAML_PROVIDER_KEY:
         return new SAMLInformationModal(provider);
-      case FORWARDAUTH_PROVIDER_KEY:
+      case FORWARD_AUTH_PROVIDER_KEY:
         return new ForwardedHeadersInfoModal(provider);
       case GRIST_CONNECT_PROVIDER_KEY:
         return new GristConnectInfoModal(provider);
+      case GETGRIST_COM_PROVIDER_KEY:
+        return new GetGristComProviderInfoModal();
       default:
         throw new Error(`No configuration modal available for provider key: ${provider.key}`);
     }

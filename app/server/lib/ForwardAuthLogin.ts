@@ -5,7 +5,7 @@
  */
 
 import { ApiError } from "app/common/ApiError";
-import { FORWARDAUTH_PROVIDER_KEY } from "app/common/loginProviders";
+import { FORWARD_AUTH_PROVIDER_KEY } from "app/common/loginProviders";
 import { AppSettings } from "app/server/lib/AppSettings";
 import { getRequestProfile } from "app/server/lib/Authorizer";
 import { expressWrap } from "app/server/lib/expressWrap";
@@ -88,7 +88,7 @@ export interface ForwardAuthConfig {
  * This reads configuration from env vars - should only be called when ForwardAuth is enabled.
  */
 export function readForwardAuthConfigFromSettings(settings: AppSettings): ForwardAuthConfig {
-  const section = settings.section("login").section("system").section(FORWARDAUTH_PROVIDER_KEY);
+  const section = settings.section("login").section("system").section(FORWARD_AUTH_PROVIDER_KEY);
   const headerSetting = section.flag("header");
 
   let header = "";
@@ -158,7 +158,7 @@ async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> 
             }
             res.redirect(target.href);
           }));
-          return FORWARDAUTH_PROVIDER_KEY;
+          return FORWARD_AUTH_PROVIDER_KEY;
         },
       };
       if (skipSession) {
@@ -175,6 +175,6 @@ async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> 
 }
 
 export const getForwardAuthLoginSystem = createLoginProviderFactory(
-  FORWARDAUTH_PROVIDER_KEY,
+  FORWARD_AUTH_PROVIDER_KEY,
   getLoginSystem,
 );

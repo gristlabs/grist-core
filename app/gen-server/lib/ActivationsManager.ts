@@ -96,8 +96,8 @@ export class ActivationsManager {
       const activation = await this.current(manager);
       activation.prefs ??= {};
       activation.prefs.envVars ??= {};
-      // For now we just support 1 key here, as this one is tested.
-      Object.assign(activation.prefs.envVars, pick(delta, "GRIST_LOGIN_SYSTEM_TYPE"));
+      // For now we just support 2 keys here, as these ones are tested.
+      Object.assign(activation.prefs.envVars, pick(delta, "GRIST_LOGIN_SYSTEM_TYPE", "GRIST_GETGRISTCOM_SECRET"));
       // If any values are undefined or null, remove them.
       for (const key of Object.keys(delta)) {
         if (delta[key] === null || delta[key] === undefined) {

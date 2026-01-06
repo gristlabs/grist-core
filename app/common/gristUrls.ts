@@ -162,6 +162,9 @@ export const getCommonUrls = () => withAdminDefinedUrls({
 
   versionCheck: "https://api.getgrist.com/api/version",
   attachmentStorage: "https://support.getgrist.com/document-settings/#external-attachments",
+
+  signInWithGristRegister: "https://login.getgrist.com/oauth/register",
+  signInWithGristHelp: getHelpCenterUrl(),
 });
 
 export const commonUrls = getCommonUrls();

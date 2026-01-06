@@ -1,7 +1,10 @@
+import { ApiError } from "app/common/ApiError";
 import { AuthProvider } from "app/common/ConfigAPI";
+import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { appSettings, AppSettings } from "app/server/lib/AppSettings";
 import { expressWrap } from "app/server/lib/expressWrap";
+import { getGetGristComHost, readGetGristComConfigFromSettings } from "app/server/lib/GetGristComConfig";
 import { getGlobalConfig } from "app/server/lib/globalConfig";
 import log from "app/server/lib/log";
 import {
@@ -10,7 +13,7 @@ import {
   NotConfiguredError,
 } from "app/server/lib/loginSystemHelpers";
 import { LOGIN_SYSTEMS } from "app/server/lib/loginSystems";
-import { sendOkReply } from "app/server/lib/requestUtils";
+import { sendOkReply, stringParam } from "app/server/lib/requestUtils";
 
 import * as express from "express";
 
@@ -46,6 +49,46 @@ export class ConfigBackendAPI {
       await this._activations.updateAppEnvFile({ GRIST_LOGIN_SYSTEM_TYPE: providerKey });
 
       return sendOkReply(req, resp, { msg: "ok" });
+    }));
+
+    // PATCH /api/config/auth-providers?provider=...
+    app.patch("/api/config/auth-providers", requireInstallAdmin, expressWrap(async (req, resp) => {
+      stringParam(req.query.provider, "provider", { allowed: [GETGRIST_COM_PROVIDER_KEY] });
+
+      const gristComSecret = "GRIST_GETGRISTCOM_SECRET";
+
+      // And expect just a secret key in the body.
+      const key = req.body[gristComSecret]?.split(/\s+/).join("");
+      if (!key) {
+        throw new ApiError("Request doesn't contain valid getgrist.com configuration parameter", 400);
+      }
+      const newSettings = new AppSettings("grist");
+      const currentEnvVars = (await this._activations.current()).prefs?.envVars || {};
+      const newEnvVars = { ...currentEnvVars, [gristComSecret]: key };
+      newSettings.setEnvVars(newEnvVars);
+      // Check configuration, we now expect that this is enough to configure the provider.
+      try {
+        readGetGristComConfigFromSettings(newSettings);
+      }
+      catch (e) {
+        // If still not configured, something is wrong with the provided key, but we don't know what exactly,
+        // as the check function thinks nothing is configured, if the key was invalid it would have thrown earlier.
+        throw new ApiError("Error configuring provider with the provided key.", 400);
+      }
+      await this._activations.updateAppEnvFile({ [gristComSecret]: key });
+      return sendOkReply(req, resp, { msg: "ok" });
+    }));
+
+    // Returns the getgrist.com host for the current configuration, needed for initial handshake.
+    // Notice: while the code is using current settings to determine the host, the secret key doesn't contain
+    // the GRIST_GETGRISTCOM_SP_HOST variable. It can be only set via env var. We still read from the current
+    // settings for consistency and future use.
+    // GET /api/config/auth-providers/config?provider=getgrist.com
+    app.get("/api/config/auth-providers/config", requireInstallAdmin, expressWrap(async (req, resp) => {
+      stringParam(req.query.provider, "provider", { allowed: [GETGRIST_COM_PROVIDER_KEY] });
+      return sendOkReply(req, resp, {
+        GRIST_GETGRISTCOM_SP_HOST: getGetGristComHost(appSettings),
+      });
     }));
 
     app.get("/api/config/:key", requireInstallAdmin, expressWrap((req, resp) => {

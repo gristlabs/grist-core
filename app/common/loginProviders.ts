@@ -5,10 +5,13 @@ export const MINIMAL_PROVIDER_KEY = "minimal";
 export const OIDC_PROVIDER_KEY = "oidc";
 
 // ForwardAuth provider key.
-export const FORWARDAUTH_PROVIDER_KEY = "forwardauth";
+export const FORWARD_AUTH_PROVIDER_KEY = "forward-auth";
 
 // This provider is only available in grist-ee version.
-export const GRIST_CONNECT_PROVIDER_KEY = "gristconnect";
+export const GRIST_CONNECT_PROVIDER_KEY = "grist-connect";
+
+// getgrist.com provider key.
+export const GETGRIST_COM_PROVIDER_KEY = "getgrist.com";
 
 // SAML provider key.
 export const SAML_PROVIDER_KEY = "saml";

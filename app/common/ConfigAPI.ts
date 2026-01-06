@@ -66,6 +66,27 @@ export class ConfigAPI extends BaseAPI {
     return resp as AuthProvider[];
   }
 
+  /**
+   * Configures an authentication provider.
+   */
+  public async configureProvider(provider: string, config: Record<string, string>): Promise<void> {
+    const url = new URL(`${this._url}/api/config/auth-providers`);
+    url.searchParams.append("provider", provider);
+    await this.request(url.toString(), {
+      method: "PATCH",
+      body: JSON.stringify(config),
+    });
+  }
+
+  /**
+   * Gets the configuration of an authentication provider.
+   */
+  public async getAuthProviderConfig(provider: string): Promise<Record<string, any>> {
+    const url = new URL(`${this._url}/api/config/auth-providers/config`);
+    url.searchParams.append("provider", provider);
+    return await this.requestJson(url.toString(), { method: "GET" });
+  }
+
   private get _url(): string {
     return addCurrentOrgToPath(this._homeUrl);
   }

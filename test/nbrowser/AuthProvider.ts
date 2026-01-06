@@ -58,11 +58,8 @@ describe("AuthProvider", function() {
     const providerItems = await driver.findAll(".test-admin-auth-provider-row");
     assert.isAtLeast(providerItems.length, 3); // We expect to see OIDC provider as well.
 
-    // First one should be "OIDC".
     assert.match(await providerItems[0].getText(), /OIDC/);
-    // Second one should be "SAML".
     assert.match(await providerItems[1].getText(), /SAML/);
-    // Third one should be "Forwarded Headers".
     assert.match(await providerItems[2].getText(), /Forwarded headers/);
     // And some others, depending on the build we are in.
   });
