@@ -58,7 +58,24 @@
         "Resource missing in resource map: {{resourceKey}}": "Sumber daya hilang di peta sumber daya: {{resourceKey}}",
         "Trying to add TableRules for existing table {{tableId}}": "Mencoba menambahkan TableRules untuk tabel {{tableId}} yang ada",
         "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Gunakan atribut sederhana user.LinkKey, misalnya user.LinkKey.something",
-        "hidden": "tersembunyi"
+        "hidden": "tersembunyi",
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Aturan Akses\n\nAkses dasar ke dokumen ini dikontrol menggunakan opsi 'Kelola Pengguna' di menu 'Bagikan', di mana Anda dapat menetapkan peran kolaborator seperti Pemilik, Editor, atau Penampil.\n\nUntuk kontrol yang lebih rinci, Anda dapat membuat Aturan Akses untuk membatasi siapa yang dapat melihat atau mengedit\ntabel, kolom, atau baris tertentu — berguna untuk data sensitif atau izin berbasis peran.\n[Pelajari lebih lanjut.]({{helpAccessRules}})",
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Aturan Akses\n\nAnda tidak memiliki izin untuk melihat atau mengedit aturan akses untuk dokumen ini.",
+        "**Special rules** (expand each rule to customize who it applies to)": "**Aturan khusus** (perluas setiap aturan untuk menyesuaikan berlaku untuk siapa)",
+        "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "Setelah menonaktifkan Aturan Akses, Editor akan dapat mengubah struktur dokumen dan mengedit rumus. Editor dan Penampil akan dapat melihat semua data dalam dokumen, serta menyalin atau mengunduhnya.",
+        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "Setelah mengaktifkan Aturan Akses, Editor tidak akan lagi dapat mengubah struktur\ndokumen atau mengedit rumus. Hanya Pemilik yang dapat menyalin atau mengunduh dokumen.\n\nPengaturan ini dapat diubah di bawah 'Aturan khusus'.",
+        "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Izinkan Editor untuk mengedit struktur (misalnya, memodifikasi dan menghapus tabel, kolom, dan tata letak) serta menulis rumus.  Penting: jika dicentang, Editor akan dapat mengedit rumus, yang dapat mengakses semua data, terlepas dari aturan akses tabel dan kolom!",
+        "Allow everyone to view access rules.": "Izinkan semua orang untuk melihat aturan akses.",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Lewati semua pembatasan baca dan izinkan semua orang untuk menyalin seluruh dokumen, atau melihatnya secara penuh dalam mode fiddle. Gunakan hanya untuk contoh dan templat, bukan untuk dokumen yang berisi data sensitif.",
+        "Continue": "Lanjut",
+        "Disable Access Rules": "Nonaktifkan Aturan Akses",
+        "Disable and save": "Nonaktifkan dan simpan",
+        "Enable Access Rules": "Aktifkan Aturan Akses",
+        "Permission to access the document in full by all users": "Semua pengguna diberikan izin untuk mengakses dokumen secara penuh",
+        "Permission to access the document in full by unrestricted users": "Akses izin dokumen secara penuh untuk pengguna tidak dibatasi",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Batasi akses pengguna selain pemilik untuk menyalin atau mengunduh dokumen lengkap. Catatan: ini hanya memengaruhi pengguna tanpa batasan baca, karena pengguna lain akan tetap dibatasi terlepas dari pengaturan ini.",
+        "Special rules for templates": "Aturan khusus untuk templat",
+        "This options should be off if Editors' access is to be limited. ": "Opsi ini harus dimatikan jika akses editor ingin dibatasi. "
     },
     "CellContextMenu": {
         "Delete {{count}} columns_other": "Hapus {{count}} kolom",
@@ -728,7 +745,8 @@
         "Format:": "Format:",
         "Learn more": "Pelajari lebih lanjut",
         "download attachments": "unduh lampiran",
-        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Lampiran bersifat eksternal dan tidak disertakan dalam unduhan ini. Jika mengunggah dokumen ke instalasi Grist yang terpisah, Anda juga perlu {{downloadLink}} secara terpisah. "
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Lampiran bersifat eksternal dan tidak disertakan dalam unduhan ini. Jika mengunggah dokumen ke instalasi Grist yang terpisah, Anda juga perlu {{downloadLink}} secara terpisah. ",
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "Jika Anda berencana mengunggah dokumen ini ke instalasi Grist, Anda memerlukan arsip dalam format \".tar\" untuk memulihkan lampiran. "
     },
     "NotifyUI": {
         "Ask for help": "Meminta bantuan",
@@ -1663,7 +1681,8 @@
         "Free coaching call": "Konsultasi gratis",
         "Grist 101": "Grist 101",
         "Schedule call": "Jadwalkan panggilan",
-        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Anda juga dapat melihat webinar pengantar kami, {{ourWeeklyWebinars}}, yang dirancang untuk membantu pengguna baru                memahami dasar-dasar Grist."
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Anda juga dapat melihat webinar pengantar kami, {{ourWeeklyWebinars}}, yang dirancang untuk membantu pengguna baru                memahami dasar-dasar Grist.",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Anda juga dapat melihat webinar pengantar kami, {{ourWeeklyWebinars}}, yang dirancang untuk membantu pengguna baru memahami dasar-dasar Grist."
     },
     "FormView": {
         "Publish": "Publikasikan",
@@ -1847,7 +1866,17 @@
         "Administrative accounts": "Akun administratif",
         "The users with administrative accounts": "Pengguna dengan akun administratif",
         "Version {{versionNumber}}": "Versi {{versionNumber}}",
-        "no admin accounts": "tidak ada akun admin"
+        "no admin accounts": "tidak ada akun admin",
+        "Are you sure you want to restart Grist?": "Apakah Anda yakin ingin memulai ulang Grist?",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Grist berjalan di lingkungan yang tidak mendukung restart dari panel admin.",
+        "Restart": "Mulai ulang",
+        "Restart Grist": "Mulai Ulang Grist",
+        "Restart Grist to apply pending changes or resolve issues.": "Muat ulang Grist untuk menerapkan perubahan yang tertunda atau menyelesaikan masalah.",
+        "Restart Grist?": "Muat ulang Grist?",
+        "Restarting Grist...": "Memulai ulang Grist...",
+        "This will apply any pending changes and briefly interrupt access for all users.": "Ini akan menerapkan semua perubahan yang tertunda dan akan menghentikan akses untuk semua pengguna dalam waktu singkat.",
+        "You can still restart Grist manually.": "Anda masih dapat memulai ulang Grist secara manual.",
+        "error in {{provider}}: {{verdict}}": "kesalahan di {{provider}}: {{verdict}}"
     },
     "GridViewMenusDateHelpers": {
         "Day of week": "Hari dalam sepekan",
@@ -2536,12 +2565,34 @@
         "Work on a copy": "Bekerja pada salinan",
         "Your suggestions": "Saran Anda",
         "experiment": "percobaan",
-        "original document": "dokumen original"
+        "original document": "dokumen original",
+        "Undo dismissal": "Batalkan pemecatan"
     },
     "selectBy": {
         "Select widget": "Pilih widget"
     },
     "CoreNewDocMethods": {
         "Untitled document": "Dokumen tanpa judul"
+    },
+    "AuthenticationSection": {
+        "Active": "Aktif",
+        "Active method is controlled by an environment variable. Unset variable to change active method.": "Metode aktif dikendalikan oleh variabel lingkungan. Hapus variabel untuk mengubah metode aktif.",
+        "Active on restart": "Aktif saat mulai ulang",
+        "Are you sure you want to set **{{name}}** as the active authentication method?": "Apakah Anda yakin ingin menetapkan **{{name}}** sebagai metode otentikasi aktif?",
+        "Close": "Tutup",
+        "Configure": "Konfigurasi",
+        "Configured": "Terkonfigurasi",
+        "Confirm": "Konfirmasi",
+        "Disabled on restart": "Nonaktif saat mulai ulang",
+        "Error": "Kesalahan",
+        "Error details": "Detail kesalahan",
+        "Instructions": "Instruksi",
+        "No authentication method is active.": "Tidak ada metode otentikasi yang aktif.",
+        "Set as active method": "Tetapkan sebagai metode aktif",
+        "Set as active method?": "Tetapkan sebagai metode aktif?",
+        "The new method will go into effect after you restart Grist.": "Metode baru ini akan berlaku setelah Anda memulai ulang Grist."
+    },
+    "DetailView": {
+        "This row is unavailable or does not exist": "Baris ini tidak tersedia atau tidak ada"
     }
 }
