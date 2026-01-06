@@ -4,8 +4,10 @@ const fs = require("fs");
 const { loadPyodide } = require("./_build/worker/node_modules/pyodide");
 const { listLibs } = require("./packages");
 
-const INCOMING_FD = 4;
-const OUTGOING_FD = 5;
+const isDeno = typeof Deno !== "undefined";
+
+const INCOMING_FD = isDeno ? 0 : 4;
+const OUTGOING_FD = isDeno ? 1 : 5;
 
 class GristPipe {
   constructor() {
@@ -33,6 +35,7 @@ class GristPipe {
           return fs.writeSync(OUTGOING_FD, Buffer.from(data.toJs()));
         }
       },
+      packageCacheDir: fs.realpathSync(path.join(__dirname, "_build", "cache")),
     });
     this.setAdminMode(false);
     this.pyodide.setStdin({
@@ -64,39 +67,14 @@ class GristPipe {
 
     // Load Grist data engine code.
     // We mount it as /grist_src, copy to /grist, then unmount.
-    // Note that path to source must be a realpath.
-    const root = fs.realpathSync(path.join(__dirname, "../grist"));
-    await this.pyodide.FS.mkdir("/grist_src");
-    // careful, needs to be a realpath
-    await this.pyodide.FS.mount(this.pyodide.FS.filesystems.NODEFS, { root }, "/grist_src");
-    // Now want to copy /grist_src to /grist.
-    // For some reason shutil.copytree doesn't work on Windows in this situation, so
-    // we reimplement it crudely.
-    await this.pyodide.runPython(`
-import os, shutil
-def copytree(src, dst):
-  os.makedirs(dst, exist_ok=True)
-  for item in os.listdir(src):
-    s = os.path.join(src, item)
-    d = os.path.join(dst, item)
-    if os.path.isdir(s):
-      copytree(s, d)
-    else:
-      shutil.copy2(s, d)
-copytree('/grist_src', '/grist')`);
-    await this.pyodide.FS.unmount("/grist_src");
-    await this.pyodide.FS.rmdir("/grist_src");
+    await this.copyFiles(path.join(__dirname, "../grist"), "/grist_src", "/grist");
   }
 
   async mountImportDirIfNeeded() {
     if (process.env.IMPORTDIR) {
       this.log("Setting up import from", process.env.IMPORTDIR);
-      // Ideally would be read-only; don't see a way to do that,
-      // other than copying like for Grist code.
-      await this.pyodide.FS.mkdir("/import");
-      await this.pyodide.FS.mount(this.pyodide.FS.filesystems.NODEFS, {
-        root: process.env.IMPORTDIR,
-      }, "/import");
+      // Could mount directly, but instead copy so we can drop read perms early.
+      await this.copyFiles(process.env.IMPORTDIR, "/import_src", "/import");
     }
   }
 
@@ -112,6 +90,33 @@ copytree('/grist_src', '/grist')`);
   os.environ['IMPORTDIR'] = '/import'
   main.main()
 `);
+  }
+
+  async copyFiles(srcDir, tmpDir, destDir) {
+    // Load file system data.
+    // We mount it as tmpDir, copy to destDir, then unmount.
+    // Note that path to source must be a realpath.
+    const root = fs.realpathSync(srcDir);
+    await this.pyodide.FS.mkdir(tmpDir);
+    // careful, needs to be a realpath
+    await this.pyodide.FS.mount(this.pyodide.FS.filesystems.NODEFS, { root }, tmpDir);
+    // Now want to copy tmpDir to destDir.
+    // For some reason shutil.copytree doesn't work on Windows in this situation, so
+    // we reimplement it crudely.
+    await this.pyodide.runPython(`
+import os, shutil
+def copytree(src, dst):
+  os.makedirs(dst, exist_ok=True)
+  for item in os.listdir(src):
+    s = os.path.join(src, item)
+    d = os.path.join(dst, item)
+    if os.path.isdir(s):
+      copytree(s, d)
+    else:
+      shutil.copy2(s, d)
+copytree('${tmpDir}', '${destDir}')`);
+    await this.pyodide.FS.unmount(tmpDir);
+    await this.pyodide.FS.rmdir(tmpDir);
   }
 
   setAdminMode(active) {
@@ -138,6 +143,17 @@ async function main() {
     await pipe.init();
     await pipe.loadCode();
     await pipe.mountImportDirIfNeeded();
+
+    if (isDeno) {
+      // Revoke write permissions now that packages are loaded.
+      // Revoke read access as well, why not.
+      // eslint-disable-next-line no-undef
+      await Deno.permissions.revoke({ name: "write" });
+      // eslint-disable-next-line no-undef
+      await Deno.permissions.revoke({ name: "read" });
+      console.error("[pyodide sandbox]", "revoked read and write permissions.");
+    }
+
     await pipe.runCode();
   } finally {
     process.stdin.removeAllListeners();

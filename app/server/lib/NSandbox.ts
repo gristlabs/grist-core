@@ -15,6 +15,7 @@ import {
   ProcessInfo,
   SubprocessControl,
 } from "app/server/lib/SandboxControl";
+import { getPyodideSettings } from "app/server/lib/SandboxPyodide";
 import * as sandboxUtil from "app/server/lib/sandboxUtil";
 import * as shutdown from "app/server/lib/shutdown";
 
@@ -298,14 +299,20 @@ export class NSandbox implements ISandbox {
         (this.childProc.stdio as Stream[])[sandboxProcess.dataToSandboxDescriptor] as Writable;
     }
     else {
-      this._streamToSandbox = this.childProc.stdin!;
+      if (!this.childProc.stdin) {
+        throw new Error("stdin required");
+      }
+      this._streamToSandbox = this.childProc.stdin;
     }
     if (sandboxProcess.dataFromSandboxDescriptor) {
       this._streamFromSandbox =
         (this.childProc.stdio as Stream[])[sandboxProcess.dataFromSandboxDescriptor];
     }
     else {
-      this._streamFromSandbox = this.childProc.stdout!;
+      if (!this.childProc.stdout) {
+        throw new Error("stdout required");
+      }
+      this._streamFromSandbox = this.childProc.stdout;
     }
     this._initializeStreamEvents();
   }
@@ -685,6 +692,11 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
 }
 
 function pyodide(options: ISandboxOptions): SandboxProcess {
+  const pyodideSettings = getPyodideSettings(options);
+  const {
+    cwd, dataFromSandboxDescriptor, dataToSandboxDescriptor, scriptPath, stdio,
+  } = pyodideSettings;
+
   if (options.minimalPipeMode === false) {
     throw new Error("pyodide only supports 3-pipe operation");
   }
@@ -698,7 +710,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
   // in this case, so we just use a different pipe. There's a different
   // problem with stdout, with the same solution.
   const spawnOptions = {
-    stdio: ["ignore", "ignore", "pipe", "ipc", "pipe", "pipe"] as ("pipe" | "ipc")[],
+    stdio,
     env: {
       PYTHONPATH: paths.engine,
       IMPORTDIR: options.importDir,
@@ -708,14 +720,14 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
       ...getWrappingEnv(options),
     },
   };
-  const base = getUnpackedAppRoot();
-  const scriptPath = path.join(base, "sandbox", "pyodide", "pipe.js");
-  const cwd = path.join(process.cwd(), "sandbox");
 
   let child: ChildProcess;
 
-  if (options.command) {
+  const command = options.command ?? pyodideSettings.command;
+  if (command) {
     const args = [
+      ...pyodideSettings.args,
+
       ...options.testSandboxArgs,
       // Ignore options.pythonArgs - no python process runs for pyodide
       "--",
@@ -725,7 +737,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
     ];
     log.rawDebug("Launching Pyodide sandbox via spawn", { command: options.command, args, cwd, spawnOptions });
     child = spawn(
-      options.command,
+      command,
       args,
       { cwd, ...spawnOptions },
     );
@@ -742,18 +754,8 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
     name: "pyodide",
     child,
     control: () => new DirectProcessControl(child, options.logMeta),
-    dataToSandboxDescriptor: 4,  // Cannot use normal descriptor, node
-    // makes it non-blocking. Can be worked around in linux and osx, but
-    // for windows just using a different file descriptor seems simplest.
-    // In the sandbox, calling async methods from emscripten code is
-    // possible but would require more changes to the data engine code
-    // than seems reasonable at this time. The top level sandbox.run
-    // can be tweaked to step operations, which actually works for a
-    // lot of things, but not for cases where the sandbox calls back
-    // into node (e.g. for column type guessing). TLDR: just switching
-    // to FD 4 and reading synchronously is more practical solution.
-    dataFromSandboxDescriptor: 5, // There's an equally long but different
-    // story about why stdout is a bit messed up under pyodide right now.
+    dataToSandboxDescriptor,
+    dataFromSandboxDescriptor,
   };
 }
 
