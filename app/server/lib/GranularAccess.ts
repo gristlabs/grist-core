@@ -2106,8 +2106,30 @@ export class GranularAccess implements GranularAccessForBundle {
     const userAttrAfter = this._getUserAttributes(docSession);
     for (const [tableId, rec] of Object.entries(userAttrAfter.rows)) {
       const prev = userAttrBefore.rows[tableId];
-      if (!prev || JSON.stringify(prev.toJSON()) !== JSON.stringify(rec.toJSON())) {
-        throw new ErrorWithCode("NEED_RELOAD", "document needs reload, user attributes changed");
+      if (!prev) {
+        throw new ErrorWithCode("NEED_RELOAD", "document needs reload, user attributes appeared");
+      }
+      // We used to check for any change, but now we look specifically
+      // to see if the value of a previous key has changed. This omits
+      // newly introduced keys, which can happen when a new column is
+      // added. Reloading at the point a column is added can be
+      // disruptive, since the user creating the column may be mid-action,
+      // with the next action being to add it to a view for example. And
+      // at the point a column is added, it presumably can't be used in
+      // access rules yet. So we now don't reload in this case.
+      //
+      // It is possible to imagine some changes to access rules that
+      // might invalidate this reasoning. How bad would it be if the
+      // reload logic and access rules functionality become
+      // inconsistent? The purpose of the reload is to keep the
+      // webclient incremental cache in sync with what the user would
+      // see if they were to reopen the document. If we fail to reload
+      // when we should, it is a confusing experience, but the user
+      // doesn't get any extra data they haven't already received.
+      for (const key of prev.keys()) {
+        if (JSON.stringify(prev.get(key)) !== JSON.stringify(rec.get(key))) {
+          throw new ErrorWithCode("NEED_RELOAD", "document needs reload, user attributes changed");
+        }
       }
     }
   }
