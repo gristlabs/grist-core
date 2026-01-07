@@ -892,7 +892,7 @@
         "Exporting is only available from document pages. Please select a document page and try again.": "Eksport jest dostępny tylko ze stron dokumentów. Wybierz stronę dokumentu i spróbuj ponownie.",
         "Download attachments...": "Pobierz załączniki...",
         "Download document...": "Pobierz dokument...",
-        "Suggest Changes": "Zasugeruj zmiany",
+        "Suggest changes": "Zasugeruj zmiany",
         "current version": "obecna wersja"
     },
     "SiteSwitcher": {
@@ -928,8 +928,8 @@
         "API console": "Konsola API",
         "context menu - Access Rules": "menu kontekstowe - Reguły dostępu",
         "Preview the tutorial": "Podejrzyj samouczek",
-        "Proposed Changes": "Zaproponowane zmiany",
-        "Suggest Changes": "Zasugeruj zmiany",
+        "Proposed changes": "Zaproponowane zmiany",
+        "Suggest changes": "Zasugeruj zmiany",
         "Suggestions": "Sugestie",
         "Delete document tour": "Usuń przewodnik po dokumecie"
     },
