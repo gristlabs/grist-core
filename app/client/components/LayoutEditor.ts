@@ -296,11 +296,11 @@ class DropTargeter extends Disposable {
         if (children.length === 2 && prevTargetBox?.parentBox() === layoutBox) {
           targetParts.splice(targetParts.length - 1, 1,
             { box: layoutBox, isChild: false, isAfter: isAfter });
-        }
-        // If there is only one child (which may happen for the root box), the target hint
-        // is redundant.
-        else if (prevTargetBox !== layoutBox && prevTargetBox !== layoutBox.getSiblingBox(isAfter) &&
+        } else if (prevTargetBox !== layoutBox && prevTargetBox !== layoutBox.getSiblingBox(isAfter) &&
           children.length !== 1) {
+          // If there is only one child (which may happen for the root box), the target hint
+          // is redundant.
+
           targetParts.push({ box: layoutBox, isChild: false, isAfter: isAfter });
         }
         if (isAfter && !layoutBox.isLastChild()) { break; }

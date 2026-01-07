@@ -95,13 +95,9 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
           .map(u => new SCIMMYRoleSchema(
             u, "out", SCIMMYRoleResource.basepath(), this.attributes),
           ), this.constraints);
-      }
-      // For specific resources, make sure egress returned an object
-      else if (target instanceof Object) {
+      } else if (target instanceof Object) { // For specific resources, make sure egress returned an object
         return new SCIMMYRoleSchema(target, "out", SCIMMYRoleResource.basepath(), this.attributes);
-      }
-      // Otherwise, egress has not been implemented correctly
-      else {
+      } else { // Otherwise, egress has not been implemented correctly
         throw new SCIMMY.Types.Error(
           500, null!, `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by egress handler`,
         );
@@ -145,9 +141,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
       // Make sure ingress returned an object
       if (target instanceof Object) {
         return new SCIMMYRoleSchema(target, "out", SCIMMYRoleResource.basepath(), this.attributes);
-      }
-      // Otherwise, ingress has not been implemented correctly
-      else {
+      } else { // Otherwise, ingress has not been implemented correctly
         throw new SCIMMY.Types.Error(500, null!,
           `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by ingress handler`,
         );

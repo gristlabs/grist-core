@@ -2732,10 +2732,9 @@ function applySort(
   // if this is the case, we will infer them from the result.
   if (!_columns) {
     _columns = Object.keys(values).map((col, index) => ({ id: col, fields: { colRef: index } }));
-  }
-  // For user tables, we will not get id column (as this column is not in the schema), so we need to
-  // make sure the column is there.
-  else {
+  } else { // For user tables, we will not get id column (as this column is not in the schema), so we need to
+    // make sure the column is there.
+
     // This is enough information for ServerGetters
     _columns = [..._columns, { id: "id", fields: { colRef: 0 } }];
   }

@@ -113,7 +113,11 @@ export class LinkingState extends Disposable {
           return "Show-Referenced-Records";
         } else { return "Cursor:Reference"; }
       } else if (!srcColId && !tgtColId) { // Either same-table cursor link OR summary link
-        if (isSummaryOf(srcSection.table(), tgtSection.table())) { return "Summary"; } else { return "Cursor:Same-Table"; }
+        if (isSummaryOf(srcSection.table(), tgtSection.table())) {
+          return "Summary";
+        } else {
+          return "Cursor:Same-Table";
+        }
       } else { // This case shouldn't happen, but just check to be safe
         return "Error:Invalid";
       }
@@ -453,7 +457,9 @@ export class LinkingState extends Disposable {
           console.warn("Error in LinkingState: displayVal list doesn't match selectorVal list ");
           displayValues = filterValues; // fallback to unformatted values
         }
-      } else { // isSrcRefList && !isList(val), probably null. Happens with blank reflists, or if cursor on the 'new' row
+      } else { // isSrcRefList && !isList(val), probably null.
+        // Happens with blank reflists, or if cursor on the 'new' row
+
         filterValues = [];
         displayValues = [];
         if (selectorCellVal !== null) { // should be null, but let's warn if it's not
@@ -470,7 +476,13 @@ export class LinkingState extends Disposable {
       // This is the default behavior for single-ref -> single-ref links
       // However, if tgtCol is a list and the selectorVal is blank/empty, the default behavior ([] intersects tgtlist)
       //    doesn't work, we need to explicitly specify the operation to be 'empty', to select empty cells
-      if (tgtCol?.type() === "ChoiceList" && !isSrcRefList && selectorCellVal === "")    { operation = "empty"; } else if (isTgtRefList               && !isSrcRefList && selectorCellVal === 0)     { operation = "empty"; } else if (isTgtRefList               &&  isSrcRefList && filterValues.length === 0) { operation = "empty"; }
+      if (tgtCol?.type() === "ChoiceList" && !isSrcRefList && selectorCellVal === "") {
+        operation = "empty";
+      } else if (isTgtRefList && !isSrcRefList && selectorCellVal === 0) {
+        operation = "empty";
+      } else if (isTgtRefList &&  isSrcRefList && filterValues.length === 0) {
+        operation = "empty";
+      } // eslint-disable-line @stylistic/brace-style
       // Note, we check each case separately since they have different "blank" values"
       // Other types can have different falsey values when non-blank (e.g. a Ref=0 is a blank cell, but for numbers,
       //      0 would be a valid value, and to check for an empty number-cell you'd check for null)

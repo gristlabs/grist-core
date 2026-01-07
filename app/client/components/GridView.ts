@@ -2447,12 +2447,16 @@ function calcZebra(hex: string) {
   const hsl = convert.hex.hsl(hex.substr(1));
   // For bright color, we will make it darker. Value was picked by hand, to
   // produce #f8f8f8f out of #ffffff.
-  if (hsl[2] > 50) { hsl[2] -= 2.6; }
-  // For darker color, we will make it brighter. Value was picked by hand to look
-  // good for the darkest colors in our palette.
-  else if (hsl[2] > 1) { hsl[2] += 11; }
-  // For very dark colors
-  else { hsl[2] += 16; }
+  if (hsl[2] > 50) {
+    hsl[2] -= 2.6;
+  } else if (hsl[2] > 1) {
+    // For darker color, we will make it brighter. Value was picked by hand to look
+    // good for the darkest colors in our palette.
+    hsl[2] += 11;
+  } else {
+    // For very dark colors
+    hsl[2] += 16;
+  }
   return `#${convert.hsl.hex(hsl)}`;
 }
 

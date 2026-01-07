@@ -654,7 +654,11 @@ export class RightPanel extends Disposable {
               // if [filter (reflist) <- ref], op="intersects", need to convey "list has value". symbol =":"
               // if [filter (ref) <- reflist], op="in", vals.length>1, need to convey "ref in list"
               // Sometimes operation will be 'empty', but in that case "=" still works fine, i.e. "list = []"
-              if (lfilter.operations[colId] == "intersects") { operationSymbol = ":"; } else if (vals.length > 1) { operationSymbol = ELEMENTOF; }
+              if (lfilter.operations[colId] == "intersects") {
+                operationSymbol = ":";
+              } else if (vals.length > 1) {
+                operationSymbol = ELEMENTOF;
+              }
 
               if (colId == "id") {
                 return dom("div", `ERROR: ID FILTER: ${colId}[${vals}]`);
