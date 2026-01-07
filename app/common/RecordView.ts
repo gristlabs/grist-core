@@ -29,7 +29,7 @@ export class RecordView implements InfoView {
   }
 
   public keys(): string[] {
-    return ['id', ...Object.keys(this.data[3])];
+    return ["id", ...Object.keys(this.data[3])];
   }
 
   public toJSON() {

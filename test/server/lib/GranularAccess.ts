@@ -3697,7 +3697,7 @@ describe("GranularAccess", function() {
       /Blocked by table read access rules/);
   });
 
-  it('asks for reload when user attribute table changes significantly', async function() {
+  it("asks for reload when user attribute table changes significantly", async function() {
     await freshDoc();
 
     // Add a user attribute table.
@@ -3726,10 +3726,10 @@ describe("GranularAccess", function() {
 
     // Check owner (chimpy) and editor (charon) see expected data.
     assert.deepEqual(await owner.getDocAPI(docId).getRecords("Leads"),
-                     [ { id: 1, fields: { Name: 'Yi Wen', Place: 'Seattle' } } ]);
+      [{ id: 1, fields: { Name: "Yi Wen", Place: "Seattle" } }]);
 
     assert.deepEqual(await editor.getDocAPI(docId).getRecords("Leads"),
-                     [ { id: 2, fields: { Name: 'Zeng Hua', Place: 'Boston' } } ]);
+      [{ id: 2, fields: { Name: "Zeng Hua", Place: "Boston" } }]);
 
     // We'll be checking message types. Ignore somewhat unpredictable
     // user presence messages which are not relevant to this test.
@@ -3739,28 +3739,28 @@ describe("GranularAccess", function() {
     // Open fresh clients, then change owner's access via user attribute table.
     await reopenClients();
     await owner.applyUserActions(docId, [
-      ['UpdateRecord', 'Zones', 1, { City: "Boston" } ],
+      ["UpdateRecord", "Zones", 1, { City: "Boston" }],
     ]);
     // Owner should see a shutdown request, editor just a change.
     assert.equal((await cliOwner.read()).type, "docShutdown");
     assert.equal((await cliEditor.read()).type, "docUserAction");
     assert.deepEqual(await owner.getDocAPI(docId).getRecords("Leads"),
-                     [ { id: 2, fields: { Name: 'Zeng Hua', Place: 'Boston' } } ]);
+      [{ id: 2, fields: { Name: "Zeng Hua", Place: "Boston" } }]);
 
     // Start over, this time changing editor's access.
     await reopenClients();
     await owner.applyUserActions(docId, [
-      ['UpdateRecord', 'Zones', 2, { City: "Seattle" } ],
+      ["UpdateRecord", "Zones", 2, { City: "Seattle" }],
     ]);
     assert.equal((await cliOwner.read()).type, "docUserAction");
     assert.equal((await cliEditor.read()).type, "docShutdown");
     assert.deepEqual(await editor.getDocAPI(docId).getRecords("Leads"),
-                     [ { id: 1, fields: { Name: 'Yi Wen', Place: 'Seattle' } } ]);
+      [{ id: 1, fields: { Name: "Yi Wen", Place: "Seattle" } }]);
 
     // Start over, this time making a neutral change (adding a column).
     await reopenClients();
     await owner.applyUserActions(docId, [
-      ['AddColumn', 'Zones', 'NewCol', { type: "Int" } ],
+      ["AddColumn", "Zones", "NewCol", { type: "Int" }],
     ]);
     assert.equal((await cliOwner.read()).type, "docUserAction");
     assert.equal((await cliEditor.read()).type, "docUserAction");
