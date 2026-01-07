@@ -72,7 +72,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
       // A new unsaved document, or a fiddle, or a public example.
       const saveActionTitle =
         doc.isBareFork ? t("Save Document") :
-          isProposable ? t("Suggest Changes") : t("Save copy");
+          isProposable ? t("Suggest changes") : t("Save copy");
       return shareButton(saveActionTitle, () => [
         menuManageUsers(doc, pageModel),
         menuSaveCopy({ pageModel, doc, saveActionTitle }),
@@ -82,7 +82,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
     else if (doc.isFork) {
       if (isProposable) {
         return shareButton([
-          t("Suggest Changes"),
+          t("Suggest changes"),
           dom.maybe(pageModel.proposalNewChangesCount,
             changes => cssChangeCount(` (${changes})`)),
         ], () => [
@@ -294,7 +294,7 @@ function menuWorkOnCopy(pageModel: DocPageModel, options?: {
     await urlState().pushUrl({ doc: urlId });
   };
 
-  const label = options?.suggestChanges ? t("Suggest Changes") : t("Work on a copy");
+  const label = options?.suggestChanges ? t("Suggest changes") : t("Work on a copy");
   return [
     menuItem(makeUnsavedCopy, label, testId("work-on-copy")),
     menuText(

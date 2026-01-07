@@ -116,7 +116,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
             dom.domComputed((use) => {
               const proposable = use(canMakeProposal);
               const changes = proposable ? use(docPageModel.proposalNewChangesCount) : 0;
-              const text = proposable ? t("Suggest Changes") : t("Suggestions");
+              const text = proposable ? t("Suggest changes") : t("Suggestions");
               return cssLinkText(changes ? [text, cssChangeCount(` (${changes})`)] : text);
             }),
             testId("proposals"),

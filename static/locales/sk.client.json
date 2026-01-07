@@ -883,7 +883,7 @@
         "Exporting is only available from document pages. Please select a document page and try again.": "Export je dostupný iba zo stránok dokumentov. Vyberte stránku dokumentu a skúste to znova.",
         "Download attachments...": "Stiahnite si prílohy...",
         "Download document...": "Stiahnuť dokument...",
-        "Suggest Changes": "Navrhnúť Zmeny",
+        "Suggest changes": "Navrhnúť Zmeny",
         "current version": "aktuálna verzia",
         "original": "originál"
     },
@@ -904,8 +904,8 @@
         "context menu - Access Rules": "kontextové menu - Pravidlá Prístupu",
         "Delete document tour": "Vymazať prehliadku dokumentov",
         "Preview the tutorial": "Náhľad tutoriálu",
-        "Proposed Changes": "Navrhované Zmeny",
-        "Suggest Changes": "Navrhnúť Zmeny",
+        "Proposed changes": "Navrhované Zmeny",
+        "Suggest changes": "Navrhnúť Zmeny",
         "Suggestions": "Návrhy"
     },
     "TopBar": {
