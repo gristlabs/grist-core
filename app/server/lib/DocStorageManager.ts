@@ -124,11 +124,9 @@ export class DocStorageManager implements IDocStorageManager {
     // Keep this check, to protect against wiping out the whole disk or the user's home.
     if (path.extname(docPath) !== ".grist") {
       return Promise.reject(new Error("Refusing to delete path which does not end in .grist"));
-    }
-    else if (deletePermanently) {
+    } else if (deletePermanently) {
       await fse.remove(docPath);
-    }
-    else {
+    } else {
       await this._shell.trashItem(docPath);
     }
   }

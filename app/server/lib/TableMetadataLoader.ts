@@ -152,12 +152,10 @@ export class TableMetadataLoader {
   public async opFetch(tableId: string) {
     try {
       return await this._options.fetchTable(tableId);
-    }
-    catch (err) {
+    } catch (err) {
       if (/no such table/.test(err.message)) { return null; }
       throw err;
-    }
-    finally {
+    } finally {
       this._fetched.add(tableId);
       this._update();
     }
@@ -213,8 +211,7 @@ export class TableMetadataLoader {
     this._pending++;
     try {
       return await op;
-    }
-    finally {
+    } finally {
       this._pending--;
     }
   }

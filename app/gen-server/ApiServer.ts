@@ -54,8 +54,7 @@ function validateStrict(checker: t.Checker): express.RequestHandler {
   return (req, res, next) => {
     try {
       checker.strictCheck(req.body);
-    }
-    catch (err) {
+    } catch (err) {
       log.warn(`Error during api call to ${req.path}: Invalid payload: ${String(err)}`);
       throw new ApiError("Invalid payload", 400, { userError: String(err) });
     }
@@ -95,8 +94,7 @@ export function getOrgKey(req: Request): string | number {
   }
   if (!orgKey) {
     throw new ApiError("No organization chosen", 400);
-  }
-  else if (/^\d+$/.test(orgKey)) {
+  } else if (/^\d+$/.test(orgKey)) {
     return parseInt(orgKey, 10);
   }
   return orgKey;
@@ -232,8 +230,7 @@ export class ApiServer {
     this._app.delete("/api/orgs/:oid", expressWrap(async (req, res) => {
       if (ALLOW_DEPRECATED_BARE_ORG_DELETE) {
         await this._deleteOrg(req, res, "force-delete");
-      }
-      else {
+      } else {
         throw new ApiError(
           "This endpoint is no longer supported. Use DELETE /api/orgs/:oid/:name instead.",
           410,
@@ -277,8 +274,7 @@ export class ApiServer {
       if (isParameterOn(req.query.permanent)) {
         await this._hardDeleteWorkspace(req, wsId);
         return sendReply(req, res, { status: 200, data: wsId });
-      }
-      else {
+      } else {
         const { data } = await this._dbManager.softDeleteWorkspace(getScope(req), wsId);
         if (data) { this._logRemoveWorkspaceEvents(req, data); }
         return sendOkReply(req, res);
@@ -542,8 +538,7 @@ export class ApiServer {
         const userId = getUserId(req);
         const apiKey = await this._dbManager.getApiKey(userId);
         res.status(200).send(apiKey);
-      }
-      catch (e) {
+      } catch (e) {
         throw new ApiError(e, 400);
       }
     }));
@@ -566,8 +561,7 @@ export class ApiServer {
         const user = await this._dbManager.deleteApiKey(userId);
         this._logDeleteUserAPIKeyEvents(req, user);
         res.sendStatus(200);
-      }
-      catch (e) {
+      } catch (e) {
         throw new ApiError(e, 400);
       }
     }));
@@ -609,8 +603,7 @@ export class ApiServer {
         linkOrgWithEmail(mreq.session, req.body.email, domain);
         clearSessionCacheIfNeeded(req, { sessionID: mreq.sessionID });
         return sendOkReply(req, res, { email });
-      }
-      catch (e) {
+      } catch (e) {
         throw new ApiError("email not available", 403);
       }
     }));
@@ -809,8 +802,7 @@ export class ApiServer {
       await doom.deleteOrg(org.id);
       this._logDeleteSiteEvents(req, org);
       return sendReply(req, res, { status: 200, data: org.id });
-    }
-    catch (e) {
+    } catch (e) {
       this._logDeleteSiteEvents(req, org, String(e));
       throw e;
     }
@@ -885,8 +877,7 @@ export class ApiServer {
       const doom = await this._gristServer.getDoomTool();
       await doom.deleteWorkspace(ws.id);
       this._logDeleteWorkspaceEvents(req, ws);
-    }
-    catch (error) {
+    } catch (error) {
       this._logDeleteWorkspaceEvents(req, ws, error);
       throw error;
     }

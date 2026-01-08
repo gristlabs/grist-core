@@ -58,8 +58,7 @@ export function getDocWorkerLoadTracker(
   if (docWorkerMap instanceof DocWorkerMap) {
     log.info("Creating Redis-based DocWorkerLoadTracker");
     return new DocWorkerLoadTracker(docWorkerInfo, docWorkerMap, docManager);
-  }
-  else {
+  } else {
     return undefined;
   }
 }

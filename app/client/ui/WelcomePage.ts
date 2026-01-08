@@ -158,8 +158,7 @@ export class WelcomePage extends Disposable {
           const verified = new URL(window.location.href);
           verified.pathname = "/verified";
           window.location.assign(verified.href);
-        }
-        else if (result.status === "resent") {
+        } else if (result.status === "resent") {
           // just to give a sense that something happened...
           window.location.reload();
         }

@@ -325,8 +325,7 @@ export class ActionHistoryImpl implements ActionHistory {
         }
         this._haveLocalSent = true;
       }
-    }
-    finally {
+    } finally {
       if (tip) {
         await this._db.run(`UPDATE _gristsys_ActionHistoryBranch SET actionRef = ?
                               WHERE name = 'local_sent'`,

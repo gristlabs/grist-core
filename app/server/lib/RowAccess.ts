@@ -53,12 +53,10 @@ export function getRelatedRows(docActions: DocAction[]): readonly (readonly [str
           if (!tracker.blockedIds.has(id)) { tracker.ids.add(id); }
         }
       }
-    }
-    else if (docAction[0] === "AddRecord" || docAction[0] === "BulkAddRecord") {
+    } else if (docAction[0] === "AddRecord" || docAction[0] === "BulkAddRecord") {
       // All row ids mentioned are created within this set of DocActions, and are not external.
       for (const id of getRowIdsFromDocAction(docAction)) { tracker.blockedIds.add(id); }
-    }
-    else if (docAction[0] === "ReplaceTableData" || docAction[0] === "TableData") {
+    } else if (docAction[0] === "ReplaceTableData" || docAction[0] === "TableData") {
       // No pre-existing rows can be referred to for this table from now on.
       tracker.blocked = true;
     }

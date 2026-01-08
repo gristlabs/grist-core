@@ -93,8 +93,7 @@ describe("AccessRules1", function() {
     await gu.waitForServer();
     if (memo === "") {
       assert.isFalse(await driver.find(".test-notifier-toast-memo").isPresent());
-    }
-    else {
+    } else {
       await driver.findContent(".test-notifier-toast-memo", memo);
     }
   });

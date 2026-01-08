@@ -49,11 +49,9 @@ export class AccountWidget extends Disposable {
         const user = this._appModel.currentValidUser;
         if (!user && isTemplate) {
           return this._buildUseThisTemplateButton();
-        }
-        else if (!user) {
+        } else if (!user) {
           return this._buildSignInAndSignUpButtons();
-        }
-        else {
+        } else {
           return this._buildAccountMenuButton(user);
         }
       }),

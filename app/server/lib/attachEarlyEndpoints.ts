@@ -163,13 +163,11 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       try {
         const updateData = await updateGristServerLatestVersion(gristServer, true);
         res.json(updateData);
-      }
-      catch (error) {
+      } catch (error) {
         res.status(error.status);
         if (typeof error.details === "object") {
           res.json(error.details);
-        }
-        else {
+        } else {
           res.send(error.details);
         }
       }
@@ -304,8 +302,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
           },
         },
       });
-    }
-    else {
+    } else {
       gristServer.getAuditLogger().logEvent(mreq, {
         action: "config.create",
         context: {
@@ -366,8 +363,7 @@ function hasValidConfig(req: Request, _res: Response, next: NextFunction) {
   try {
     assertValidConfig(req);
     next();
-  }
-  catch (e) {
+  } catch (e) {
     next(e);
   }
 }
@@ -376,8 +372,7 @@ function hasValidConfigKey(req: Request, _res: Response, next: NextFunction) {
   try {
     assertValidConfigKey(req);
     next();
-  }
-  catch (e) {
+  } catch (e) {
     next(e);
   }
 }
@@ -387,8 +382,7 @@ function assertValidConfig(req: Request) {
   const key = stringParam(req.params.key, "key") as ConfigKey;
   try {
     ConfigValueCheckers[key].check(req.body);
-  }
-  catch (err) {
+  } catch (err) {
     log.warn(
       `Error during API call to ${req.path}: invalid config value (${String(
         err,
@@ -401,8 +395,7 @@ function assertValidConfig(req: Request) {
 function assertValidConfigKey(req: Request) {
   try {
     ConfigKeyChecker.check(req.params.key);
-  }
-  catch (err) {
+  } catch (err) {
     log.warn(
       `Error during API call to ${req.path}: invalid config key (${String(
         err,

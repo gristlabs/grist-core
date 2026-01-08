@@ -23,8 +23,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
   public static basepath(path?: string) {
     if (path === undefined) {
       return SCIMMYRoleResource._basepath;
-    }
-    else {
+    } else {
       SCIMMYRoleResource._basepath = (path.endsWith(SCIMMYRoleResource.endpoint) ?
         path :
         `${path}${SCIMMYRoleResource.endpoint}`);
@@ -107,15 +106,12 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
           500, null!, `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by egress handler`,
         );
       }
-    }
-    catch (ex) {
+    } catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
-      }
-      else if (ex instanceof TypeError) {
+      } else if (ex instanceof TypeError) {
         throw new SCIMMY.Types.Error(400, "invalidValue", ex.message);
-      }
-      else {
+      } else {
         throw new SCIMMY.Types.Error(404, null!, `Resource ${this.id} not found`);
       }
     }
@@ -156,15 +152,12 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
           `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by ingress handler`,
         );
       }
-    }
-    catch (ex) {
+    } catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
-      }
-      else if (ex instanceof TypeError) {
+      } else if (ex instanceof TypeError) {
         throw new SCIMMY.Types.Error(400, "invalidValue", ex.message);
-      }
-      else {
+      } else {
         throw new SCIMMY.Types.Error(404, null!, `Resource ${this.id} not found`);
       }
     }
@@ -209,15 +202,12 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
     }
     try {
       await SCIMMYRoleResource._degress(this, ctx);
-    }
-    catch (ex) {
+    } catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
-      }
-      else if (ex instanceof TypeError) {
+      } else if (ex instanceof TypeError) {
         throw new SCIMMY.Types.Error(500, null!, ex.message);
-      }
-      else {
+      } else {
         throw new SCIMMY.Types.Error(404, null!, `Resource ${this.id} not found`);
       }
     }

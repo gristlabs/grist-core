@@ -241,8 +241,7 @@ export class Comm extends EventEmitter {
             }
 
             return trustOrigin(req);
-          }
-          catch (err) {
+          } catch (err) {
             // Consider exceptions (e.g. in parsing unexpected hostname) as failures to verify.
             // In practice, we only see this happening for spammy/illegitimate traffic; there is
             // no particular reason to log these.
@@ -254,8 +253,7 @@ export class Comm extends EventEmitter {
       wssi.onconnection = async (websocket: GristServerSocket, req) => {
         try {
           await this._onWebSocketConnection(websocket, req);
-        }
-        catch (e) {
+        } catch (e) {
           log.error("Comm connection for %s threw exception: %s", req.url, e.message);
           websocket.terminate();  // close() is inadequate when ws routed via loadbalancer
         }

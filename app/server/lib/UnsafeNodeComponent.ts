@@ -140,8 +140,7 @@ export class UnsafeNodeComponent extends BaseComponent {
   protected async deactivateImplementation(): Promise<void> {
     if (!this._child) {
       log.info("unsafeNode deactivating: no child process");
-    }
-    else {
+    } else {
       log.info("unsafeNode[%s] deactivate: disconnecting child", this._child.pid);
       this._child.disconnect();
       if (await timeoutReached(2000, this._exited)) {
@@ -150,8 +149,7 @@ export class UnsafeNodeComponent extends BaseComponent {
       }
       if (await timeoutReached(5000, this._exited)) {
         log.warn("unsafeNode[%s] deactivate: child still has not exited", this._child.pid);
-      }
-      else {
+      } else {
         log.info("unsafeNode deactivate: child exited");
       }
     }

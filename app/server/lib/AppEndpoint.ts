@@ -114,13 +114,11 @@ export function attachAppEndpoint(options: AttachOptions): void {
       // The docAuth value will be cached from the getDoc() above (or could be derived from doc).
       const docAuth = await dbManager.getDocAuthCached({ userId, org: mreq.org, urlId });
       assertAccess("viewers", docAuth);
-    }
-    catch (err) {
+    } catch (err) {
       if (err.status === 404) {
         log.info("/:urlId/app.html did not find doc", mreq.userId, urlId, doc?.access, mreq.org);
         throw new ApiError("Document not found.", 404);
-      }
-      else if (err.status === 403) {
+      } else if (err.status === 403) {
         log.info("/:urlId/app.html denied access", mreq.userId, urlId, doc?.access, mreq.org);
         // If the user does not have access to the document, and is anonymous, and we
         // have a login system, we may wish to redirect them to login process.
@@ -148,8 +146,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
     const docId = doc.id;
     if (!useWorkerPool()) {
       body = await gristServer.getDocTemplate();
-    }
-    else {
+    } else {
       // The reason to pass through app.html fetched from docWorker is in case it is a different
       // version of Grist (could be newer or older).
       // TODO: More must be done for correct version tagging of URLs: <base href> assumes all

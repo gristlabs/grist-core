@@ -22,8 +22,7 @@ export class Resource extends BaseEntity {
     if (props.createdAt) { this.createdAt = _propertyToDate(props.createdAt); }
     if (props.updatedAt) {
       this.updatedAt = _propertyToDate(props.updatedAt);
-    }
-    else {
+    } else {
       this.updatedAt = new Date();
     }
     if (props.name) { this.name = props.name; }

@@ -208,8 +208,7 @@ export async function doExportTable(
   let tableRef: number;
   if (options.tableRef) {
     tableRef = options.tableRef;
-  }
-  else {
+  } else {
     if (!options.tableId) { throw new Error("doExportTable: tableRef or tableId must be given"); }
     tableRef = tables.findRow("tableId", options.tableId);
     if (tableRef === 0) {

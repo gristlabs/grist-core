@@ -65,8 +65,7 @@ describe("GristJobs", function() {
           assert.equal(ct, 5);
           assert.equal(defaultCt, 1);
         }, 2000, 10);
-      }
-      finally {
+      } finally {
         await jobs.stop({ obliterate: true });
       }
     });
@@ -93,8 +92,7 @@ describe("GristJobs", function() {
         await delay(900);
         assert.equal(ct, 2);
         assert.equal(defaultCt, 0);
-      }
-      finally {
+      } finally {
         await jobs.stop({ obliterate: true });
       }
     });
@@ -121,8 +119,7 @@ describe("GristJobs", function() {
         assert.isAtMost(ct, 8 + 4);
         assert.isAtLeast(defaultCt, 10 - 3);
         assert.isAtMost(defaultCt, 10 + 3);
-      }
-      finally {
+      } finally {
         await jobs.stop({ obliterate: true });
       }
     });
@@ -153,12 +150,10 @@ describe("GristJobs", function() {
           q2.handleDefault(async () => {});
           await delay(1000);
           assert.equal(ct, 3);
-        }
-        finally {
+        } finally {
           await jobs2.stop({ obliterate: true });
         }
-      }
-      finally {
+      } finally {
         await jobs1.stop({ obliterate: true });
       }
     });

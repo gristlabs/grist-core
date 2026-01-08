@@ -63,8 +63,7 @@ export const waitForDiffPreviewToLoad = async (): Promise<void> => {
       await gu.sendKeys(Key.HOME);
       success = true;
       break;
-    }
-    catch (e) {
+    } catch (e) {
       continue;
     }
   }

@@ -150,8 +150,7 @@ export function createUnsubscribedPage(
         docName: dom("b", docName),
       },
     );
-  }
-  else if (mode === "full") {
+  } else if (mode === "full") {
     message = t(
       "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.",
       {
@@ -168,8 +167,7 @@ export function createUnsubscribedPage(
         docName: dom("b", docName),
       },
     );
-  }
-  else {
+  } else {
     message = t(
       "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.",
       {

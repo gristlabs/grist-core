@@ -149,8 +149,7 @@ export class LayoutBox extends Disposable implements ContentBox {
   public maximize() {
     if (this.layout.maximizedLeaf.peek() !== this.leafId.peek()) {
       this.layout.maximizedLeaf(this.leafId());
-    }
-    else {
+    } else {
       this.layout.maximizedLeaf(null);
     }
   }
@@ -229,8 +228,7 @@ export class LayoutBox extends Disposable implements ContentBox {
     let index;
     if (optNextSibling) {
       index = this.childBoxes.peek().indexOf(optNextSibling) + (isAfter ? 1 : 0);
-    }
-    else {
+    } else {
       index = isAfter ? this.childBoxes.peekLength : 0;
     }
     childBox.parentBox(this);
@@ -243,8 +241,7 @@ export class LayoutBox extends Disposable implements ContentBox {
     if (parentBox) {
       // Normally, we just add a sibling as requested.
       parentBox._addChild(childBox, isAfter, this);
-    }
-    else {
+    } else {
       // If adding a sibling to the root node (another VBox), we need to create a new root and push
       // things down two levels (HBox and VBox), and add the sibling to the lower VBox.
       if (this.childBoxes.peekLength === 1) {
@@ -254,8 +251,7 @@ export class LayoutBox extends Disposable implements ContentBox {
         const lowerBox = this.childBoxes.peek()[0];
         assert(!lowerBox.isLeaf(), "LayoutBox.addSibling: should not have leaf as a single child");
         lowerBox._addChild(childBox, isAfter);
-      }
-      else {
+      } else {
         // Create a new root, and add the sibling two levels lower.
         const vbox = LayoutBox.create(this.layout);
         const hbox = LayoutBox.create(this.layout);
@@ -305,8 +301,7 @@ export class LayoutBox extends Disposable implements ContentBox {
         // Move the leaf data into ourselves, and remove the lower box.
         this.takeLeafFrom(lowerBox);
         lowerBox.dispose();
-      }
-      else if (parentBox) {
+      } else if (parentBox) {
         // Move grandchildren into our place within our parent, and collapse two levels.
         // (Unless we are the root, in which case it's OK for us to have a single non-leaf child.)
         index = parentBox.childBoxes.peek().indexOf(this);
@@ -360,11 +355,9 @@ export class LayoutBox extends Disposable implements ContentBox {
 function makeStatic(valueOrFunc: any) {
   if (isObservable(valueOrFunc) || isKoArray(valueOrFunc)) {
     return valueOrFunc.peek();
-  }
-  else if (typeof valueOrFunc === "function") {
+  } else if (typeof valueOrFunc === "function") {
     return valueOrFunc();
-  }
-  else {
+  } else {
     return valueOrFunc;
   }
 }
@@ -475,8 +468,7 @@ export class Layout extends Disposable {
     if (boxSpec.leaf) {
       box.leafId(boxSpec.leaf);
       box.leafContent(this.createLeafFunc(box.leafId()));
-    }
-    else if (boxSpec.children) {
+    } else if (boxSpec.children) {
       box.setChildren(boxSpec.children.map(this.buildLayoutBox, this));
     }
     return box;
@@ -508,8 +500,7 @@ export class Layout extends Disposable {
     }
     if (layoutBox.isLeaf()) {
       spec.leaf = layoutBox.leafId();
-    }
-    else {
+    } else {
       spec.children = layoutBox.childBoxes.peek().map(this._getBoxSpec, this);
     }
     return spec;

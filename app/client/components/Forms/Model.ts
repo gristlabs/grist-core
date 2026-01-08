@@ -356,8 +356,7 @@ export abstract class BoxModel extends Disposable {
     for (const boxDefChild of boxDefChildren) {
       if (!boxDefChild.id || !modelChildrenById.has(boxDefChild.id)) {
         newChildren.push(BoxModel.new(boxDefChild, this));
-      }
-      else {
+      } else {
         const existingChild = modelChildrenById.get(boxDefChild.id)!;
         existingChild.update(boxDefChild);
         newChildren.push(existingChild);
@@ -437,8 +436,7 @@ export function parseBox(text: string): FormLayoutNode | null {
   try {
     const json = JSON.parse(text);
     return json && typeof json === "object" && json.type ? json : null;
-  }
-  catch (e) {
+  } catch (e) {
     return null;
   }
 }

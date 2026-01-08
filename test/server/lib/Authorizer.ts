@@ -73,8 +73,7 @@ describe("Authorizer", function() {
       const docId = String(await dbManager.testGetId(docName));
       if (fixtureDoc) {
         await docTools.loadFixtureDocAs(fixtureDoc, docId);
-      }
-      else {
+      } else {
         await docTools.createDoc(docId);
       }
       docs[docName] = { id: docId };
@@ -328,8 +327,7 @@ describe("Authorizer", function() {
         // Not even the home page is allowed!
         resp = await axios.get(`${serverUrl}/`, auth);
         assert.equal(resp.status, 403, "home page denied!");
-      }
-      finally {
+      } finally {
         // It's okay, chimpy, you learned your lesson
         sadChimpy.disabledAt = null;
         await sadChimpy.save();

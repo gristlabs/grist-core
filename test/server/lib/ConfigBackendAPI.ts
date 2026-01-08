@@ -27,8 +27,7 @@ function createMockSettings(opts: {
     if (opts.loginSystemType) {
       typeFlag.readString = () => opts.loginSystemType;
       typeFlag.describe = () => ({ source: opts.loginSystemTypeSource ?? "default" } as any);
-    }
-    else {
+    } else {
       typeFlag.readString = () => undefined;
       typeFlag.describe = () => ({ source: null } as any);
     }

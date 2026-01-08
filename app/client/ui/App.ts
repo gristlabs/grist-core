@@ -85,8 +85,7 @@ export class AppImpl extends DisposableWithEvents implements App {
 
     if (isDesktop()) {
       Clipboard.create(this, this);
-    }
-    else {
+    } else {
       // On mobile, we do not want to keep focus on a special textarea (which would cause unwanted
       // scrolling and showing of mobile keyboard). But we still rely on 'clipboard_focus' and
       // 'clipboard_blur' events to know when the "app" has a focus (rather than a particular

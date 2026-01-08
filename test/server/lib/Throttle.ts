@@ -70,8 +70,7 @@ describe("Throttle", function() {
           // Process should not have received an excessive amount of cpu time.
           assert.isBelow(stats.cpuDuration, 2500);
           assert.isAbove(stats.offDuration, 1000);
-        }
-        else {
+        } else {
           // Sleep should take almost no cpu.
           assert.isBelow(stats.cpuDuration, 100);
           assert.equal(stats.offDuration, 0);

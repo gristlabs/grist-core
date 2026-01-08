@@ -102,8 +102,7 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
           // remove themselves - so reload.
           window.location.reload();
         }
-      }
-      catch (err) {
+      } catch (err) {
         reportError(err);
       }
     };
@@ -120,8 +119,7 @@ from someone else with sufficient access to the {{resourceType}}.`, { resourceTy
           ),
         },
       );
-    }
-    else {
+    } else {
       tryToSaveChanges().catch(reportError);
     }
   }
@@ -266,8 +264,7 @@ export class UserManager extends Disposable {
     const maybeMember = members.find(m => normalizeEmail(m.email) === email);
     if (maybeMember) {
       maybeMember.access.set(role);
-    }
-    else {
+    } else {
       this._onAdd(email, role);
     }
   }
@@ -411,8 +408,7 @@ export class UserManager extends Disposable {
         elements.push(cssMemberType(
           t(`{{limitAt}} of {{limitTop}} {{collaborator}}s`, { limitAt: limit.at, limitTop: limit.top, collaborator })),
         );
-      }
-      else {
+      } else {
         elements.push(cssMemberTypeProblem(
           t(`{{collaborator}} limit exceeded`, { collaborator: capitalizeFirstWord(collaborator) })),
         );
@@ -432,8 +428,7 @@ export class UserManager extends Disposable {
             }
           }),
           t(`Add {{member}} to your team`, { member: member.name || t("member") })));
-      }
-      else if (limit.at >= limit.top) {
+      } else if (limit.at >= limit.top) {
         elements.push(cssLink({ href: commonUrls.plans, target: "_blank" },
           t("Create a team to share with more people")));
       }
@@ -450,14 +445,11 @@ export class UserManager extends Disposable {
       let memberType: string;
       if (annotation.isSupport) {
         memberType = t("Grist support");
-      }
-      else if (annotation.isMember && annotations.hasTeam) {
+      } else if (annotation.isMember && annotations.hasTeam) {
         memberType = t("Team member");
-      }
-      else if (annotations.hasTeam) {
+      } else if (annotations.hasTeam) {
         memberType = t("Outside collaborator");
-      }
-      else {
+      } else {
         memberType = t("Collaborator");
       }
 

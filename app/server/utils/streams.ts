@@ -13,8 +13,7 @@ export class MemoryWritableStream extends Writable {
   public _write(chunk: any, encoding: BufferEncoding, callback: (error?: (Error | null)) => void) {
     if (typeof (chunk) == "string") {
       this._buffers.push(Buffer.from(chunk, encoding));
-    }
-    else {
+    } else {
       this._buffers.push(chunk);
     }
     callback();
@@ -32,8 +31,7 @@ export class MemoryWritableStream extends Writable {
 export async function drainWhenSettled<T>(stream: Readable, promise: Promise<T>): Promise<T> {
   try {
     return await promise;
-  }
-  finally {
+  } finally {
     if (stream.readable) {
       stream.resume();
     }

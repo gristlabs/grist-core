@@ -18,8 +18,7 @@ async function openMainPage() {
       if (await driver.find(".test-intro-create-doc").isPresent()) {
         return;
       }
-    }
-    catch (e) {
+    } catch (e) {
       // don't worry about transients.
     }
     await driver.sleep(10);

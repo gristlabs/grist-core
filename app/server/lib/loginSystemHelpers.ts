@@ -60,8 +60,7 @@ export function createLoginProviderFactory(
       // If we are here, the provider is configured, set it as active.
       settings.section("login").flag("active").set(key);
       return system;
-    }
-    catch (e) {
+    } catch (e) {
       // Otherwise, ignore NotConfiguredError to allow fallback.
       if (e instanceof NotConfiguredError) {
         return null;

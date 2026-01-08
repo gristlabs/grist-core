@@ -371,8 +371,7 @@ class DropTargeter extends Disposable {
     this.trigger("insertBox", (box: LayoutBox) => {
       if (part.isChild) {
         part.box.addChild(box, part.isAfter);
-      }
-      else {
+      } else {
         part.box.addSibling(box, part.isAfter);
       }
     });
@@ -621,8 +620,7 @@ export class LayoutEditor extends Disposable {
     if (this.originalBox?.leafId() !== "empty") {
       if (this.dropTargeter.activeTarget) {
         this.dropTargeter.accelerateInsertion();
-      }
-      else {
+      } else {
         resizeLayoutBox(this.targetBox!, "reset");
       }
     }
@@ -716,8 +714,7 @@ export class LayoutEditor extends Disposable {
       this.dropOverlay.attach(elem);
       const affinity = this.dropOverlay.getAffinity(event);
       this.dropTargeter.updateTargetHints(hoverBox, affinity, this.dropOverlay, this.targetBox!);
-    }
-    else if (!dom.findAncestor(event.target, this.rootElem, ".layout_editor_drop_target")) {
+    } else if (!dom.findAncestor(event.target, this.rootElem, ".layout_editor_drop_target")) {
       this.dropTargeter.removeTargetHints();
     }
   }
@@ -817,8 +814,7 @@ function resizeLayoutBox(layoutBox: LayoutBox, sizeRect: string | DOMRect) {
   }
   if (layoutBox.isHBox()) {
     layoutBox.dom!.style.height = (reset ? "" : (collapse ? "0px" : (sizeRect as DOMRect).height + "px"));
-  }
-  else {
+  } else {
     layoutBox.dom!.style.width = (reset ? "" : (collapse ? "0px" : (sizeRect as DOMRect).width + "px"));
   }
   layoutBox.dom!.style.opacity = collapse ? "0.0" : "1.0";

@@ -97,8 +97,7 @@ export async function enterRulePart(
   if (typeof permissions === "string") {
     await part.find(".test-rule-permissions .test-permissions-dropdown").click();
     await gu.findOpenMenuItem("li", permissions).click();
-  }
-  else {
+  } else {
     for (const [bit, desired] of Object.entries(permissions)) {
       const elem = await part.findContentWait(".test-rule-permissions div", bit, 100);
       if (!await elem.matches(`[class$=-${desired}]`)) {
@@ -118,8 +117,7 @@ export async function enterRulePart(
     if (await memoEditorPromise.isPresent()) {
       await memoEditorPromise.click();
       await gu.clearInput();
-    }
-    else {
+    } else {
       await part.find(".test-rule-memo-add").click();
       await ruleSet.findWait(editorSelector, 100).click();
     }

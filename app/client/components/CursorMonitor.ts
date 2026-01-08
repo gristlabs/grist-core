@@ -138,8 +138,7 @@ class StorageWrapper {
       const storage = this._storage;
       const data = { docId, position, timestamp: Date.now() };
       storage.setItem(this._key(docId), JSON.stringify(data));
-    }
-    catch (e) {
+    } catch (e) {
       console.error("Can't store latest position in storage. Detail error " + e.message);
     }
   }
