@@ -35,11 +35,15 @@ export class GristClient {
   private _docData?: DocData;  // accumulate tabular info like a real client.
   private _consumer: () => void;
   private _ignoreTrivialActions: boolean = false;
+  private _ignorePresenceUpdates: boolean = false;
 
   constructor(public ws: GristClientSocket) {
     ws.onmessage = (data: string) => {
       const msg = pick(JSON.parse(data),
         ["reqId", "error", "errorCode", "data", "type", "docFD"]);
+      if (this._ignorePresenceUpdates && msg.type === "docUserPresenceUpdate") {
+        return;
+      }
       if (this._ignoreTrivialActions && msg.type === "docUserAction" &&
         msg.data?.actionGroup?.internal === true &&
         msg.data?.docActions?.length === 0) {
@@ -67,6 +71,10 @@ export class GristClient {
   // message can be awkward. Call this method to ignore it.
   public ignoreTrivialActions() {
     this._ignoreTrivialActions = true;
+  }
+
+  public ignorePresenceUpdates() {
+    this._ignorePresenceUpdates = true;
   }
 
   public flush() {
