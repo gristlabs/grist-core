@@ -30,7 +30,7 @@ export interface TableImportSchema {
 
 export interface ColumnImportSchema {
   // Original ID of the column in the source (e.g. airtable), or an arbitrary ID.
-  // Must be unique within the table, but not globally unique.
+  // Must be unique within the table, but needs not be globally unique.
   // Can be referenced in other parts of the schema, and will be converted to a real Grist id during import.
   originalId: string;
   // ID the column should have in Grist. This will be transformed during import and won't match exactly.
@@ -214,7 +214,7 @@ export class DocSchemaImportTool {
       for (const columnSchema of tableSchema.columns) {
         let type: string = columnSchema.type;
         const resolvedSchemaRef = resolveRef(columnSchema.ref);
-        if (type.includes("Ref")) {
+        if (["Ref", "RefList"].includes(type)) {
           // TODO - show a warning here if we couldn't resolve a table id
           type = resolvedSchemaRef ?
             `${columnSchema.type}:${resolvedSchemaRef.existingTableId}` :
@@ -306,8 +306,8 @@ class FormulaRefWarning implements DocSchemaImportWarning {
  * combinations of fields.
  *
  * This primarily deals with checking referential integrity, ensuring internal schema references
- * ( original id references ) are valid and that existing references point to a valid part of
- * existingSchema.
+ * (original id references) are valid and that existing references point to a valid part of
+ * the existing schema.
  */
 export function validateImportSchema(schema: ImportSchema, existingSchema?: ExistingDocSchema) {
   existingSchema = existingSchema ?? { tables: [] };
@@ -384,7 +384,7 @@ export interface ImportSchemaTransformParams {
 }
 
 /**
- * Applies one or more transformations an import schema (see {ImportSchemaTransformParams}).
+ * Applies one or more transformations to an import schema (see {ImportSchemaTransformParams}).
  *
  * @param {ImportSchema} schema Original schema to transform
  * @param {ImportSchemaTransformParams} params Transformations that should be applied.
