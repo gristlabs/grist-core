@@ -19,7 +19,7 @@ function createTestSchema(): ImportSchema {
         columns: [
           {
             originalId: "1",
-            desiredId: "Alpha",
+            desiredGristId: "Alpha",
             type: "Text",
             label: "Col Alpha",
             description: "Alpha column description",
@@ -27,7 +27,7 @@ function createTestSchema(): ImportSchema {
           },
           {
             originalId: "2",
-            desiredId: "Bravo",
+            desiredGristId: "Bravo",
             type: "Text",
             isFormula: true,
             formula: {
@@ -43,7 +43,7 @@ function createTestSchema(): ImportSchema {
         columns: [
           {
             originalId: "1",
-            desiredId: "Alpha-2",
+            desiredGristId: "Alpha-2",
             type: "Ref",
             ref: {
               originalTableId: "1",
@@ -52,7 +52,7 @@ function createTestSchema(): ImportSchema {
           },
           {
             originalId: "2",
-            desiredId: "Bravo-2",
+            desiredGristId: "Bravo-2",
             type: "Text",
             isFormula: true,
             formula: {
@@ -103,7 +103,7 @@ describe("DocSchemaImport", function() {
       const schema = createTestSchema();
       const invalidFormulaCol: ColumnImportSchema = {
         originalId: "Invalid-Formula",
-        desiredId: "Invalid-Formula",
+        desiredGristId: "Invalid-Formula",
         type: "Text",
         isFormula: true,
         formula: {
@@ -125,7 +125,7 @@ describe("DocSchemaImport", function() {
       const schema = createTestSchema();
       const invalidRefCol: ColumnImportSchema = {
         originalId: "Invalid-Ref",
-        desiredId: "Invalid-Ref",
+        desiredGristId: "Invalid-Ref",
         type: "Ref",
         ref: {
           originalTableId: "987654321",
@@ -160,7 +160,7 @@ describe("DocSchemaImport", function() {
 
       schema.tables[1].columns[0] = {
         originalId: "1",
-        desiredId: "Alpha-2",
+        desiredGristId: "Alpha-2",
         type: "Ref",
         ref: {
           originalTableId: "1",
@@ -202,7 +202,7 @@ describe("DocSchemaImport", function() {
 
       schema.tables[1].columns[0] = {
         originalId: "1",
-        desiredId: "Alpha-2",
+        desiredGristId: "Alpha-2",
         type: "Ref",
         ref: {
           originalTableId: "12345",
@@ -231,7 +231,7 @@ describe("DocSchemaImport", function() {
 
       schema.tables[1].columns[0] = {
         originalId: "1",
-        desiredId: "Alpha-2",
+        desiredGristId: "Alpha-2",
         type: "Ref",
         ref: {
           originalTableId: "1",
@@ -274,7 +274,7 @@ describe("DocSchemaImport", function() {
       const retValues = schema.tables.map((tableSchema, index) => ({
         id: index,
         table_id: `ArbitraryTableId_${index}`,
-        columns: tableSchema.columns.map(columnSchema => `ArbitraryColumnId_${columnSchema.desiredId}`),
+        columns: tableSchema.columns.map(columnSchema => `ArbitraryColumnId_${columnSchema.desiredGristId}`),
       }));
       const applyUserActions: ApplyUserActionsFunc = sinon.fake.returns(Promise.resolve({
         actionNum: 0,
@@ -408,12 +408,12 @@ describe("DocSchemaImport", function() {
         columns: [
           {
             originalId: "1",
-            desiredId: "Test1-1",
+            desiredGristId: "Test1-1",
             type: "Any",
           },
           {
             originalId: "2",
-            desiredId: "Test1-2",
+            desiredGristId: "Test1-2",
             type: "Ref",
             ref: {
               originalTableId: "Test1",
@@ -426,7 +426,7 @@ describe("DocSchemaImport", function() {
       const retValues = schema.tables.map((tableSchema, index) => ({
         id: index,
         table_id: `ArbitraryTableId_${tableSchema.originalId}`,
-        columns: tableSchema.columns.map(columnSchema => `ArbitraryColumnId_${columnSchema.desiredId}`),
+        columns: tableSchema.columns.map(columnSchema => `ArbitraryColumnId_${columnSchema.desiredGristId}`),
       }));
 
       const applyUserActions: ApplyUserActionsFunc = sinon.fake.returns(Promise.resolve({
@@ -466,12 +466,12 @@ describe("DocSchemaImport", function() {
         columns: [
           {
             originalId: "1",
-            desiredId: "Test1-1",
+            desiredGristId: "Test1-1",
             type: "Any",
           },
           {
             originalId: "2",
-            desiredId: "Test1-2",
+            desiredGristId: "Test1-2",
             type: "Any",
             formula: {
               formula: "print('[R0]') # [R0], [R1], no [R2]",
@@ -487,7 +487,7 @@ describe("DocSchemaImport", function() {
       const retValues = schema.tables.map((tableSchema, index) => ({
         id: index,
         table_id: `MyCol_${tableSchema.originalId}`,
-        columns: tableSchema.columns.map(columnSchema => `MyCol_${columnSchema.desiredId}`),
+        columns: tableSchema.columns.map(columnSchema => `MyCol_${columnSchema.desiredGristId}`),
       }));
 
       const applyUserActions: ApplyUserActionsFunc = sinon.fake.returns(Promise.resolve({

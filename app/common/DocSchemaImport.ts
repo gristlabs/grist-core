@@ -34,7 +34,7 @@ export interface ColumnImportSchema {
   // Can be referenced in other parts of the schema, and will be converted to a real Grist id during import.
   originalId: string;
   // ID the column should have in Grist. This will be transformed during import and won't match exactly.
-  desiredId: string;
+  desiredGristId: string;
   // Grist column type.
   type: GristType;
   // Is the column a formula column (and not a data column)? False with `formula` set for trigger formulas.
@@ -174,7 +174,7 @@ export class DocSchemaImportTool {
         tableSchema.name,
         tableSchema.columns.map(colInfo => ({
           // This will be transformed into a valid id
-          id: colInfo.desiredId,
+          id: colInfo.desiredGristId,
           type: "Any",
           isFormula: false,
         })),
@@ -470,7 +470,7 @@ function transformSchemaMapRef(schema: ImportSchema, params: ImportSchemaTransfo
 // Given a column schema, attempts to find a corresponding column in an existing table.
 function findMatchingExistingColumn(colSchema: ColumnImportSchema, existingTable: ExistingTableSchema) {
   return existingTable.columns.find(existingCol =>
-    colSchema.label !== undefined && colSchema.label === existingCol.label || colSchema.desiredId === existingCol.id,
+    colSchema.label !== undefined && colSchema.label === existingCol.label || colSchema.desiredGristId === existingCol.id,
   );
 }
 
