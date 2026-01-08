@@ -470,7 +470,8 @@ function transformSchemaMapRef(schema: ImportSchema, params: ImportSchemaTransfo
 // Given a column schema, attempts to find a corresponding column in an existing table.
 function findMatchingExistingColumn(colSchema: ColumnImportSchema, existingTable: ExistingTableSchema) {
   return existingTable.columns.find(existingCol =>
-    colSchema.label !== undefined && colSchema.label === existingCol.label || colSchema.desiredGristId === existingCol.id,
+    colSchema.label !== undefined && colSchema.label === existingCol.label ||
+    colSchema.desiredGristId === existingCol.id,
   );
 }
 
