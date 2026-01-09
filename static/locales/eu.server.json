@@ -6,5 +6,15 @@
     },
     "oidc": {
         "emailNotVerifiedError": "Egiaztatu zure posta elektronikoa identitate-hornitzailearekin, eta hasi saioa berriro."
+    },
+    "access": {
+        "docDisabled": "Dokumentu hau ezgaituta dago.",
+        "docNoAccess": "Ez duzu dokumentu honetara sarbiderik."
+    },
+    "admin": {
+        "noDefaultEmail": "Administratzailearen kontua falta da ez delako `GRIST_DEFAULT_EMAIL` ezarri"
+    },
+    "DocApi": {
+        "UntitledDocument": "Izenik gabeko dokumentua"
     }
 }
