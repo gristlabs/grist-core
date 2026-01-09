@@ -15,7 +15,7 @@ function createTestSchema(): ImportSchema {
     tables: [
       {
         originalId: "1",
-        name: "Table A",
+        desiredGristId: "Table A",
         columns: [
           {
             originalId: "1",
@@ -39,7 +39,7 @@ function createTestSchema(): ImportSchema {
       },
       {
         originalId: "2",
-        name: "Table B",
+        desiredGristId: "Table B",
         columns: [
           {
             originalId: "1",
@@ -404,7 +404,7 @@ describe("DocSchemaImport", function() {
 
       schema.tables.push({
         originalId: "Test1",
-        name: "Test Table 1",
+        desiredGristId: "Test Table 1",
         columns: [
           {
             originalId: "1",
@@ -462,7 +462,7 @@ describe("DocSchemaImport", function() {
 
       schema.tables.push({
         originalId: "Test1",
-        name: "Test Table 1",
+        desiredGristId: "Test Table 1",
         columns: [
           {
             originalId: "1",

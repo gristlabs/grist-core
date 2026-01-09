@@ -23,8 +23,8 @@ export interface TableImportSchema {
   // Original ID of the table in the source (e.g. airtable), or an arbitrary ID
   // Can be referenced in other parts of the schema, and will be converted to a real Grist id during import.
   originalId: string;
-  // Name for the table in Grist
-  name: string;
+  // ID / name the table should have in Grist. This will be transformed during import and won't match exactly.
+  desiredGristId: string;
   columns: ColumnImportSchema[];
 }
 
@@ -171,7 +171,7 @@ export class DocSchemaImportTool {
       addTableActions.push([
         "AddTable",
         // This will be transformed into a valid id
-        tableSchema.name,
+        tableSchema.desiredGristId,
         tableSchema.columns.map(colInfo => ({
           // This will be transformed into a valid id
           id: colInfo.desiredGristId,
