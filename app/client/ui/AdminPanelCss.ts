@@ -4,7 +4,7 @@ import { transition } from "app/client/ui/transitions";
 import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
-import { components } from "app/common/ThemePrefs";
+import { components, tokens } from "app/common/ThemePrefs";
 
 import { dom, DomContents, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
 
@@ -286,9 +286,8 @@ export const cssWell = styled("div", `
   width: 100%;
 
   &-warning {
-    border: 1px solid #ffb535;
-    background-color: #fff9ee;
-    --icon-color: #ffb535;
+    border: 1px solid ${tokens.warningLight};
+    --icon-color: ${tokens.warningLight};
   }
 
   &-error {
