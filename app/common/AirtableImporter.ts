@@ -60,7 +60,7 @@ function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): I
     tables: airtableSchema.tables.map((baseTable) => {
       return {
         originalId: baseTable.id,
-        name: baseTable.name,
+        desiredGristId: baseTable.name,
         columns: baseTable.fields
           .map((baseField) => {
             if (!AirtableFieldMappers[baseField.type]) { return undefined; }
@@ -87,7 +87,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   aiText({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Text",
     };
@@ -95,7 +95,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   autoNumber({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Numeric",
       // TODO - Need a simple formula for this - PREVIOUS runs into working correctly, circular
@@ -105,7 +105,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   checkbox({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Bool",
     };
@@ -119,16 +119,13 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       // Warning: This may not strictly match 1-to-1 with airtable as a result.
       formula = {
         formula: "len($[R0])",
-        replacements: [{
-          ref: { originalTableId: table.id, originalColId: fieldOptions.recordLinkFieldId },
-          columnIdOnly: true,
-        }],
+        replacements: [{ originalTableId: table.id, originalColId: fieldOptions.recordLinkFieldId }],
       };
     }
 
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Numeric",
       isFormula: true,
@@ -138,7 +135,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   createdBy({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Text",
     };
@@ -146,7 +143,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   createdTime({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "DateTime",
       formula: { formula: "NOW()" },
@@ -156,7 +153,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   currency({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Numeric",
       widgetOptions: {
@@ -170,7 +167,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   date({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Date",
       widgetOptions: {
@@ -182,7 +179,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   dateTime({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "DateTime",
       widgetOptions: {
@@ -196,7 +193,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   duration({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Numeric",
       // TODO - Should also produce a formatted duration formula column.
@@ -205,7 +202,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   email({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Text",
     };
@@ -213,7 +210,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   formula({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       // The field schema from Airtable has more information on what this should be,
       // such as field type and options. The logic to implement that however doesn't seem worth
@@ -227,7 +224,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   lastModifiedBy({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Text",
       formula: { formula: 'user and f"{user.Name}"' },
@@ -237,7 +234,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   lastModifiedTime({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "DateTime",
       formula: { formula: "NOW()" },
@@ -253,7 +250,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   multilineText({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Text",
     };
@@ -261,7 +258,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   multipleAttachments({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Attachments",
     };
@@ -269,7 +266,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   multipleCollaborators({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Text",
       // Do we make a collaborators table and make this a reference instead?
@@ -278,7 +275,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   multipleRecordLinks({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "RefList",
       ref: {
@@ -289,7 +286,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   multipleSelects({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "ChoiceList",
       widgetOptions: {
@@ -302,7 +299,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   number({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Numeric",
       widgetOptions: {
@@ -313,7 +310,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   percent({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Numeric",
       widgetOptions: {
@@ -324,7 +321,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   phoneNumber({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Text",
     };
@@ -332,7 +329,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   rating({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Int",
       // Consider setting up some nice conditional formatting.
@@ -341,7 +338,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   richText({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Text",
       widgetOptions: {
@@ -356,23 +353,17 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       formula = {
         formula: "$[R0].[R1]",
         replacements: [
+          { originalTableId: table.id, originalColId: fieldOptions.recordLinkFieldId },
           {
-            ref: { originalTableId: table.id, originalColId: fieldOptions.recordLinkFieldId },
-            columnIdOnly: true,
-          },
-          {
-            ref: {
-              originalTableId: getTableIdForField(fieldOptions.fieldIdInLinkedTable),
-              originalColId: fieldOptions.fieldIdInLinkedTable,
-            },
-            columnIdOnly: true,
+            originalTableId: getTableIdForField(fieldOptions.fieldIdInLinkedTable),
+            originalColId: fieldOptions.fieldIdInLinkedTable,
           },
         ],
       };
     }
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Any",
       isFormula: true,
@@ -383,7 +374,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   singleCollaborator({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Text",
     };
@@ -391,7 +382,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   singleLineText({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Text",
     };
@@ -399,7 +390,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   singleSelect({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Choice",
       widgetOptions: {
@@ -412,7 +403,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   url({ field }) {
     return {
       originalId: field.id,
-      desiredId: field.name,
+      desiredGristId: field.name,
       label: field.name,
       type: "Text",
       widgetOptions: {
