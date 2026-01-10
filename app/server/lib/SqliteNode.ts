@@ -57,8 +57,7 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
       function callback(this: RunResult, err: Error | null) {
         if (err) {
           reject(err);
-        }
-        else {
+        } else {
           resolve(this);
         }
       }

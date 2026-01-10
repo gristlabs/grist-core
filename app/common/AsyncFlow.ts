@@ -45,8 +45,7 @@ export class FlowRunner extends Disposable {
     async function runFlow() {
       try {
         return await func(flow);
-      }
-      finally {
+      } finally {
         flow.dispose();
       }
     }

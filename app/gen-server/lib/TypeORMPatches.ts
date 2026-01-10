@@ -137,12 +137,10 @@ export function applyPatch() {
             const result = await runInTransaction(queryRunner.manager);
             await queryRunner.commitTransaction();
             return result;
-          }
-          finally {
+          } finally {
             clearInterval(timer);
           }
-        }
-        catch (err) {
+        } catch (err) {
           if (!(err instanceof ApiError)) {
             // Log with a stack trace in case of unexpected DB problems. Don't bother logging for
             // errors (like ApiError) that clearly come from our own code.
@@ -152,8 +150,7 @@ export function applyPatch() {
             // we throw original error even if rollback thrown an error
             await queryRunner.rollbackTransaction();
             // tslint: disable-next-line
-          }
-          catch (rollbackError) {
+          } catch (rollbackError) {
             // tslint: disable-next-line
           }
           throw err;
@@ -172,13 +169,11 @@ export function applyPatch() {
           factor: 1.25,
           maxTotalMsec: 3000,
         });
-      }
-      else {
+      } else {
         // When not using SQLite, don't do anything special.
         return await runOrRollback();
       }
-    }
-    finally {
+    } finally {
       await queryRunner.release();
     }
   };
@@ -202,8 +197,7 @@ async function callWithRetry<T>(op: () => Promise<T>, options: {
   while (true) {
     try {
       return await op();
-    }
-    catch (e) {
+    } catch (e) {
       // throw if not worth retrying
       if (options.worthRetry && e instanceof Error && !options.worthRetry(e)) {
         throw e;

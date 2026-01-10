@@ -171,8 +171,7 @@ describe("GranularAccess", function() {
     try {
       await cliEditor.openDocOnConnect(docId);
       await cliOwner.openDocOnConnect(docId);
-    }
-    catch (_e) {
+    } catch (_e) {
       // doc may be unusable
     }
   }
@@ -716,8 +715,7 @@ describe("GranularAccess", function() {
       cliEditor.flush();
       cliOwner.flush();
       await assertFlux(editor.getDocAPI(docId).updateRows("Table1", { id: [1], B: [2] }));
-    }
-    finally {
+    } finally {
       stub.restore();
     }
     assert.equal((await cliEditor.readMessage()).type, "docShutdown");
@@ -3335,8 +3333,7 @@ describe("GranularAccess", function() {
       await delay(100);
       assert.equal(cliEditor.isOpen(), false);
       assert.equal(cliOwner.isOpen(), false);
-    }
-    finally {
+    } finally {
       timeoutStub.restore();
     }
   });
@@ -4016,8 +4013,7 @@ describe("GranularAccess", function() {
       // Test our new rule based on UserRef attribute.
       result = await anonym.send("applyUserActions", 0, [["AddRecord", "Data", null, {}]]);
       assert.equal(result.errorCode, "ACL_DENY");
-    }
-    finally {
+    } finally {
       anonym.flush();
       await closeClient(anonym);
     }
@@ -4562,8 +4558,7 @@ async function assertDeniedFor(check: Promise<any>, memos: string[], test = /acc
   try {
     await check;
     throw new Error("not denied");
-  }
-  catch (e) {
+  } catch (e) {
     assert.match(e?.details?.userError, test);
     assert.deepEqual(e?.details?.memos ?? [], memos);
   }
@@ -4584,8 +4579,7 @@ async function assertFlux(check: Promise<any>) {
   try {
     await check;
     throw new Error("not denied");
-  }
-  catch (e) {
+  } catch (e) {
     assert.match(e?.details?.userError, /Document in flux/);
   }
 }

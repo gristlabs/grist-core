@@ -305,8 +305,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
                 dom.on("change", (_ev, elem) => {
                   if (elem.checked) {
                     columnFilter.add(key);
-                  }
-                  else {
+                  } else {
                     columnFilter.delete(key);
                   }
                 }),
@@ -344,8 +343,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               buildSummary(t("Other values"), concat(otherValues, valuesBeyondLimit), false, model),
               buildSummary(t("Future values"), [], true, model),
             ];
-          }
-          else {
+          } else {
             return anyOtherValues ? [
               buildSummary(t("Others"), otherValues, true, model),
             ] : [
@@ -454,8 +452,7 @@ function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number | 
   const onValueChange = () => {
     if (opts.isSelected.get()) {
       popupCtl.open();
-    }
-    else {
+    } else {
       popupCtl.close();
     }
   };
@@ -471,8 +468,7 @@ function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number | 
         if (opts.isSelected.get()) {
           if (popupCtl.isOpen()) {
             opts.nextSelected?.();
-          }
-          else {
+          } else {
             popupCtl.open();
           }
         }
@@ -591,13 +587,11 @@ function buildSummary(label: string | Computed<string>, values: [CellValue, IFil
         { excluded: model.filteredKeys.get().filter(key => !columnFilter.includes(key)) } :
         { included: model.filteredKeys.get().filter(key => columnFilter.includes(key)) };
       columnFilter.setState(state);
-    }
-    else {
+    } else {
       const keys = values.map(([key]) => key);
       if (val) {
         columnFilter.addMany(keys);
-      }
-      else {
+      } else {
         columnFilter.deleteMany(keys);
       }
     }
@@ -634,8 +628,7 @@ function getEmptyCountMap(fieldOrColumn: ViewFieldRec | ColumnRec): Map<CellValu
   let values: any[] = [];
   if (columnType === "Bool") {
     values = [true, false];
-  }
-  else if (["Choice", "ChoiceList"].includes(columnType)) {
+  } else if (["Choice", "ChoiceList"].includes(columnType)) {
     const options = fieldOrColumn.origCol().widgetOptionsJson;
     values = options.prop("choices")() ?? [];
   }
@@ -745,8 +738,7 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
       const { viewSection } = sectionFilter;
       if (columnFilter.initialFilterJson === NEW_FILTER_JSON) {
         viewSection.revertFilter(fieldOrColumn.origCol().origColRef());
-      }
-      else {
+      } else {
         const initialFilter = columnFilter.initialFilterJson;
         columnFilter.setState(initialFilter);
         viewSection.setFilter(
@@ -789,8 +781,7 @@ function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: Vi
       const labels = isList(maybeLabels) ? maybeLabels.slice(1) : [maybeLabels];
       return labels.map(l => formatter.formatAny(l));
     };
-  }
-  else {
+  } else {
     // If this is Markdown widget, remove all formatting (mostly for links).
     const widget = fieldOrColumn.widget();
     const isMarkdown = widget === "Markdown";

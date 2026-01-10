@@ -47,8 +47,7 @@ export function adaptServerUrl(url: URL, req: RequestWithOrg): void {
 
   if (process.env.GRIST_SERVE_SAME_ORIGIN === "true" || req.isCustomHost) {
     url.hostname = req.hostname;
-  }
-  else if (reqBaseDomain) {
+  } else if (reqBaseDomain) {
     const subdomain: string | undefined = parseSubdomain(url.hostname).org || DEFAULT_HOME_SUBDOMAIN;
     url.hostname = `${subdomain}${reqBaseDomain}`;
   }
@@ -120,8 +119,7 @@ export function allowHost(req: IncomingMessage, allowedHost: string | URL) {
   if ((req as RequestWithOrg).isCustomHost) {
     // For a request to a custom domain, the full hostname must match.
     return actualUrl.hostname === allowedUrl.hostname;
-  }
-  else {
+  } else {
     // For requests to a native subdomains, only the base domain needs to match.
     const allowedDomain = parseSubdomain(allowedUrl.hostname);
     const actualDomain = parseSubdomain(actualUrl.hostname);
@@ -222,8 +220,7 @@ export async function sendReply<T>(
   res.status(result.status);
   if (result.status >= 200 && result.status < 300) {
     return res.json(data ?? null); // can't handle undefined
-  }
-  else {
+  } else {
     return res.json({ error: result.errMessage });
   }
 }
@@ -343,8 +340,7 @@ export function integerParam(
   let result: number | null = null;
   if (typeof p === "number") {
     result = Math.floor(p);
-  }
-  else if (typeof p === "string") {
+  } else if (typeof p === "string") {
     result = parseInt(p, 10);
   }
   if (result === null || Number.isNaN(result)) {

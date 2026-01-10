@@ -40,8 +40,7 @@ export function buildMultiUserManagerModal(
     const role = rolesObs.get();
     if (emailList.some(email => !validateEmail(email))) {
       isValidObs.set(false);
-    }
-    else {
+    } else {
       emailList.forEach(email => onAdd(email, role));
       ctl.close();
     }

@@ -106,8 +106,7 @@ export function readSamlConfigFromSettings(settings: AppSettings): SamlConfig {
     spHost = section.flag("spHost").requireString({
       envVar: "GRIST_SAML_SP_HOST",
     });
-  }
-  catch (e) {
+  } catch (e) {
     throw new NotConfiguredError((e as Error).message);
   }
 
@@ -382,8 +381,7 @@ function checkRedirectUrl(untrustedUrl: string, req: express.Request): URL {
       throw new Error("unexpected origin");
     }
     return url;
-  }
-  catch (e) {
+  } catch (e) {
     log.warn(`SamlConfig: ignoring invalid redirect URL: ${e.message}`);
   }
   return originUrl;

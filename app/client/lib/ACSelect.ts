@@ -44,8 +44,7 @@ export function buildACSelect(
   const openOrCommit = () => {
     if (isOpen()) {
       commitOrRevert().catch(() => {});
-    }
-    else {
+    } else {
       acOpen();
     }
   };
@@ -60,11 +59,9 @@ export function buildACSelect(
       await save(textInput.value, item);
       finish();
       return true;
-    }
-    catch (e) {
+    } catch (e) {
       return false;
-    }
-    finally {
+    } finally {
       textInput.disabled = false;
     }
   };

@@ -105,8 +105,7 @@ function getSeriesName(series: Series, haveMultiple: boolean) {
   const groupName = series.group === "" ? "[Blank]" : series.group;
   if (haveMultiple) {
     return `${groupName} \u2022 ${series.label}`;  // the unicode character is "black circle"
-  }
-  else {
+  } else {
     return String(groupName);
   }
 }
@@ -255,8 +254,7 @@ export class ChartView extends BaseView {
         if (i < startIndexForYAxis) {
           // For x-axis and group column data, split series we should split records.
           series = splitValuesByIndex(series, i);
-        }
-        else {
+        } else {
           // For all y-axis, it's not sure what would be a sensible representation for choice list,
           // simply stringify choice list values seems reasonable.
           series[i].values = series[i].values.map(v => String(decodeObject(v as any)));
@@ -283,8 +281,7 @@ export class ChartView extends BaseView {
 
     if (!options.multiseries && series.length) {
       plotData = chartFunc(series, options, dataOptions);
-    }
-    else if (series.length > 1) {
+    } else if (series.length > 1) {
       // We need to group all series by the first column.
       // Sort series alphabetically only if user has not defined a sort on this chart.
       const shouldSort = !series[0].isInSortSpec;
@@ -746,15 +743,13 @@ export class ChartConfig extends GrainJSDisposable {
         const xAxisField = viewFields.peek()[this._xAxisFieldIndex.get()];
         if (fieldIndex > -1) {
           await this._configFieldsHelper.changeFieldPosition(viewFields.peek()[fieldIndex], xAxisField);
-        }
-        else {
+        } else {
           const col = findColumn();
           if (col) {
             await this._configFieldsHelper.addField(col, xAxisField);
           }
         }
-      }
-      finally {
+      } finally {
         this._freezeYAxis.set(false);
         this._freezeXAxis.set(false);
       }
@@ -790,8 +785,7 @@ export class ChartConfig extends GrainJSDisposable {
           // place
           if (field) {
             await this._configFieldsHelper.changeFieldPosition(field, viewFields[0]);
-          }
-          else {
+          } else {
             await this._configFieldsHelper.addField(col, viewFields[0]);
           }
 
@@ -802,8 +796,7 @@ export class ChartConfig extends GrainJSDisposable {
         }
 
         await this._optionsObj.prop("multiseries").setAndSave(Boolean(colId));
-      }
-      finally {
+      } finally {
         this._freezeXAxis.set(false);
         this._freezeYAxis.set(false);
       }
@@ -865,13 +858,11 @@ export class ChartConfig extends GrainJSDisposable {
       await this._gristDoc.docData.bundleActions(t("Toggle chart aggregation"), async () => {
         if (val) {
           await this._doAggregation();
-        }
-        else {
+        } else {
           await this._undoAggregation();
         }
       });
-    }
-    finally {
+    } finally {
       if (!this.isDisposed()) {
         this._freezeXAxis.set(false);
       }
@@ -883,8 +874,7 @@ export class ChartConfig extends GrainJSDisposable {
   private async _doAggregation(): Promise<void> {
     if (!this._isSummaryTable()) {
       await this._toggleSummaryTable();
-    }
-    else {
+    } else {
       await this._setGroupByColumns([this._xAxis.get(), this._groupDataColId.get()]);
     }
   }
@@ -1150,8 +1140,7 @@ export const chartTypes: { [name: string]: ChartFunc } = {
     if (series.length > 1) {
       trimNonNumericData(series);
       line = series[1];
-    }
-    else {
+    } else {
       // When there is only one series of labels, simply count their occurrences.
       line = { label: "Count", values: series[0].values.map(() => 1) };
     }

@@ -149,15 +149,13 @@ getgrist.com and paste the configuration key you receive below.", {
       );
       this._onConfigure?.();
       this.dispose();
-    }
-    catch (e) {
+    } catch (e) {
       if (this.isDisposed()) {
         return;
       }
       reportError(e as Error);
       this._error.set(true);
-    }
-    finally {
+    } finally {
       if (!this.isDisposed()) {
         this._working.set(false);
       }

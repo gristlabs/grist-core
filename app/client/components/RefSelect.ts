@@ -138,8 +138,7 @@ export class RefSelect extends Disposable {
     if (colMatch) {
       // If column exists, use it.
       colAction = Promise.resolve({ colRef: colMatch.getRowId(), colId: colMatch.colId() });
-    }
-    else {
+    } else {
       // If column doesn't exist, add it (without fields).
       colAction = tableData.sendTableAction(["AddColumn", `${this._colId()}_${item.value}`, {
         type: "Any",
@@ -174,8 +173,7 @@ export class RefSelect extends Disposable {
         .some(field => field.parentId() !== sectionId)) {
         // The col has fields in other sections, remove only the fields in this section.
         return this._docModel.viewFields.sendTableAction(["RemoveRecord", refField.getRowId()]);
-      }
-      else {
+      } else {
         // The col is only displayed in this section, remove the column.
         return tableData.sendTableAction(["RemoveColumn", refField.column().colId()]);
       }

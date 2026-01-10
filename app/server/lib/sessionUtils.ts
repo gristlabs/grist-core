@@ -32,16 +32,13 @@ export function getRequest(requestOrSession: RequestOrSession): IncomingMessage 
   // API calls to document endpoints and WebSocket sessions.
   if (isRequest(requestOrSession)) {
     return requestOrSession;
-  }
-  else if (requestOrSession.req) {
+  } else if (requestOrSession.req) {
     // A REST API call to a document endpoint.
     return requestOrSession.req;
-  }
-  else if (requestOrSession.client) {
+  } else if (requestOrSession.client) {
     // A WebSocket session.
     return requestOrSession.client.getConnectionRequest();
-  }
-  else {
+  } else {
     return null;
   }
 }
@@ -54,8 +51,7 @@ export function getLogMeta(requestOrSession: RequestOrSession | undefined): ILog
   if (!requestOrSession) { return {}; }
   if (isRequest(requestOrSession)) {
     return getAuthSession(requestOrSession).getLogMeta();
-  }
-  else {
+  } else {
     return {
       ...requestOrSession.getLogMeta(),
       access: getDocSessionAccessOrNull(requestOrSession),
@@ -119,8 +115,7 @@ function _getCachedDoc(docSession: OptDocSession): Document | null {
 export function getDocSessionAccessOrNull(docSession: OptDocSession): Role | null {
   try {
     return getDocSessionAccess(docSession);
-  }
-  catch (err) {
+  } catch (err) {
     return null;
   }
 }

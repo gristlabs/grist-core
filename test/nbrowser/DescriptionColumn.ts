@@ -630,8 +630,7 @@ async function clickTooltip(col: string) {
 async function addDescriptionIsVisible(visible = true) {
   if (visible) {
     assert.isTrue(await driver.find(".test-column-title-add-description").isDisplayed());
-  }
-  else {
+  } else {
     assert.isFalse(await driver.find(".test-column-title-add-description").isPresent());
   }
 }
@@ -639,8 +638,7 @@ async function addDescriptionIsVisible(visible = true) {
 async function descriptionIsVisible(visible = true) {
   if (visible) {
     assert.isTrue(await driver.find(".test-column-title-description").isDisplayed());
-  }
-  else {
+  } else {
     assert.isFalse(await driver.find(".test-column-title-description").isPresent());
   }
 }
@@ -671,8 +669,7 @@ function getLabel() {
 async function popupVisible() {
   try {
     return await driver.findWait(".test-column-title-popup", 50).isDisplayed();
-  }
-  catch {
+  } catch {
     return false;
   }
 }

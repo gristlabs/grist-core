@@ -28,8 +28,7 @@ export class KeyedMutex {
     const unlock = await this.acquire(key);
     try {
       return await callback();
-    }
-    finally {
+    } finally {
       unlock();
     }
   }

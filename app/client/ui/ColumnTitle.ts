@@ -52,8 +52,7 @@ export function buildRenameColumn(options: IColumnTitleOptions) {
       ctl.autoDispose(options.isEditing.subscribe((editing) => {
         if (editing) {
           ctl.open();
-        }
-        else if (!ctl.isDisposed()) {
+        } else if (!ctl.isDisposed()) {
           ctl.close();
         }
       }));
@@ -174,8 +173,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
       if (document.activeElement === descInput && descInput?.selectionStart === 0) {
         labelInput?.focus();
         labelInput?.select();
-      }
-      else {
+      } else {
         return true;
       }
     },
@@ -188,8 +186,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
         };
         showDesc.set(true);
         focus();
-      }
-      else {
+      } else {
         return true;
       }
     },
@@ -306,8 +303,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
         if (canRename.get()) {
           labelInput?.focus();
           labelInput?.select();
-        }
-        else if (canChangeDesc.get()) {
+        } else if (canChangeDesc.get()) {
           descInput?.focus();
           descInput?.select();
         }

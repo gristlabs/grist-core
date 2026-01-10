@@ -48,8 +48,7 @@ describe("AccessTokens", function() {
       for (const cli of [cliOwner]) {
         try {
           await cli.send("closeDoc", 0);
-        }
-        catch (e) {
+        } catch (e) {
           // Do not worry if socket is already closed by the other side.
           if (!String(e).match(/WebSocket is not open/)) {
             throw e;

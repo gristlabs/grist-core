@@ -400,8 +400,7 @@ export class VisibleFieldsConfig extends Disposable {
         dom.on("change", (ev, el) => {
           if (el.checked) {
             selection.add(id);
-          }
-          else {
+          } else {
             selection.delete(id);
           }
           this._showHiddenBatchButtons.set(Boolean(selection.size));
@@ -431,8 +430,7 @@ export class VisibleFieldsConfig extends Disposable {
         dom.on("change", (ev, el) => {
           if (el.checked) {
             selection.add(id);
-          }
-          else {
+          } else {
             selection.delete(id);
           }
           this._showVisibleBatchButtons.set(Boolean(selection.size));

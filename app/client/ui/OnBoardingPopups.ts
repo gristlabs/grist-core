@@ -187,8 +187,7 @@ class OnBoardingPopupsCtl extends Disposable {
 
     if (entry.showHasModal) {
       this._showHasModal();
-    }
-    else {
+    } else {
       await this._showHasPopup(movement);
     }
   }
@@ -249,14 +248,11 @@ class OnBoardingPopupsCtl extends Disposable {
       let padding = "";
       if (placement.includes("bottom")) {
         padding = getComputedStyle(elem).paddingBottom;
-      }
-      else if (placement.includes("top")) {
+      } else if (placement.includes("top")) {
         padding = getComputedStyle(elem).paddingTop;
-      }
-      else if (placement.includes("left")) {
+      } else if (placement.includes("left")) {
         padding = getComputedStyle(elem).paddingLeft;
-      }
-      else if (placement.includes("right")) {
+      } else if (placement.includes("right")) {
         padding = getComputedStyle(elem).paddingRight;
       }
       // Note: getComputedStyle return value in pixel, hence no need to handle other unit. See here

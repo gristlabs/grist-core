@@ -120,8 +120,7 @@ function toggleCustomized(info: SourceInfo, colId: string, on: boolean): void {
   const customizedColumns = info.customizedColumns.get();
   if (!on) {
     customizedColumns.delete(colId);
-  }
-  else {
+  } else {
     customizedColumns.add(colId);
   }
   info.customizedColumns.set(new Set(customizedColumns));
@@ -176,22 +175,18 @@ export async function selectAndImport(
   try {
     // Importer disposes itself when its dialog is closed, so we do not take ownership of it.
     await Importer.create(null, gristDoc, importSourceElem, createPreview).pickAndUploadSource(null);
-  }
-  catch (err1) {
+  } catch (err1) {
     // If the url was a Google Drive Url, run the google drive plugin.
     if (!(err1 instanceof GDriveUrlNotSupported)) {
       reportError(err1);
-    }
-    else {
+    } else {
       const gdrivePlugin = imports.find(p => p.plugin.definition.id === "builtIn/gdrive" && p !== importSourceElem);
       if (!gdrivePlugin) {
         reportError(err1);
-      }
-      else {
+      } else {
         try {
           await Importer.create(null, gristDoc, gdrivePlugin, createPreview).pickAndUploadSource(null);
-        }
-        catch (err2) {
+        } catch (err2) {
           reportError(err2);
         }
       }
@@ -226,8 +221,7 @@ export async function importFromFile(gristDoc: GristDoc, createPreview: CreatePr
     uploadResult = await uploadFiles(files, { docWorkerUrl: gristDoc.docComm.docWorkerUrl,
       sizeLimit: "import" }, onProgress);
     onProgress(100);
-  }
-  finally {
+  } finally {
     if (progress) {
       progress.dispose();
     }
@@ -412,8 +406,7 @@ export class Importer extends DisposableWithEvents {
         // which is why this requires a slightly different flow.
         uploadResult = uploadResult || await selectFiles({ docWorkerUrl: this._docComm.docWorkerUrl,
           multiple: true, sizeLimit: "import" });
-      }
-      else {
+      } else {
         // Need to use plugin to get the data, and manually upload it.
         const plugin = this._importSourceElem.plugin;
         const handle = this._screen.renderPlugin(plugin);
@@ -428,22 +421,18 @@ export class Importer extends DisposableWithEvents {
             const files = item.files.map(({ content, name }) => new File([content], name));
             uploadResult = await uploadFiles(files, { docWorkerUrl: this._docComm.docWorkerUrl,
               sizeLimit: "import" });
-          }
-          else if (item.kind ===  "url") {
+          } else if (item.kind ===  "url") {
             if (isDriveUrl(item.url)) {
               uploadResult = await this._fetchFromDrive(item.url);
-            }
-            else {
+            } else {
               uploadResult = await fetchURL(this._docComm, item.url);
             }
-          }
-          else {
+          } else {
             throw new Error(`Import source of kind ${(item as any).kind} are not yet supported!`);
           }
         }
       }
-    }
-    catch (err) {
+    } catch (err) {
       if (err instanceof CancelledError) {
         await this._cancelImport();
         return;
@@ -459,8 +448,7 @@ export class Importer extends DisposableWithEvents {
     if (uploadResult) {
       this._uploadResult = uploadResult;
       await this._reImport(uploadResult);
-    }
-    else {
+    } else {
       await this._cancelImport();
     }
   }
@@ -633,8 +621,7 @@ export class Importer extends DisposableWithEvents {
 
       // And finally render the main screen.
       this._renderMain(upload);
-    }
-    catch (e) {
+    } catch (e) {
       console.warn("Import failed", e);
       this._screen.renderError(e.message);
     }
@@ -1069,8 +1056,7 @@ export class Importer extends DisposableWithEvents {
                     dom.domComputedOwned(isCustomFormula, (owner3, isCustom) => {
                       if (isCustom) {
                         return this._buildCustomFormula(owner3, field, info);
-                      }
-                      else {
+                      } else {
                         return this._buildSourceSelector(owner3, field, info);
                       }
                     }),
@@ -1087,8 +1073,7 @@ export class Importer extends DisposableWithEvents {
                           const matched = [...possibilities.entries()].find(([, v]) => v === transformCol.label.peek());
                           if (matched) {
                             await this._setColumnFormula(transformCol, matched[0], info);
-                          }
-                          else {
+                          } else {
                             await this._gristDoc.docModel.clearColumns([field.colRef()]);
                           }
                         }),
@@ -1206,8 +1191,7 @@ export class Importer extends DisposableWithEvents {
       if (isRefDest && visibleColId) {
         const formula = `${refTableId}.lookupOne(${visibleColId}=$${sourceId}) or ($${sourceId} and str($${sourceId}))`;
         options.set(formula, sourceLabel);
-      }
-      else {
+      } else {
         options.set(`$${sourceId}`, sourceLabel);
       }
       if (isRefDest && ["Numeric", "Int"].includes(sourceCol.type.peek())) {
@@ -1250,8 +1234,7 @@ export class Importer extends DisposableWithEvents {
     info.customizedColumns.set(customized);
     if (formula === null) {
       await this._gristDoc.docModel.clearColumns([transformColRef], { keepType: true });
-    }
-    else {
+    } else {
       await this._gristDoc.docModel.columns.sendTableAction(
         ["UpdateRecord", transformColRef, { formula, isFormula: true }]);
     }
@@ -1425,8 +1408,7 @@ export class Importer extends DisposableWithEvents {
     // First we will assume that this is public file, so no need to ask for permissions.
     try {
       return await fetchURL(this._docComm, itemUrl);
-    }
-    catch (err) {
+    } catch (err) {
       // It is not a public file or the file id in the url is wrong,
       // but we have no way to check it, so we assume that it is private file
       // and ask the user for the permission (if we are configured to do so)
@@ -1436,26 +1418,22 @@ export class Importer extends DisposableWithEvents {
           // Request for authorization code from Google.
           const code = await getGoogleCodeForReading(this);
           options.googleAuthorizationCode = code;
-        }
-        catch (permError) {
+        } catch (permError) {
           if (permError?.message === ACCESS_DENIED) {
             // User declined to give us full readonly permission, fallback to GoogleDrive plugin
             // or cancel import if GoogleDrive plugin is not configured.
             throw new GDriveUrlNotSupported(itemUrl);
-          }
-          else if (permError?.message === AUTH_INTERRUPTED) {
+          } else if (permError?.message === AUTH_INTERRUPTED) {
             // User closed the window - we assume he doesn't want to continue.
             throw new CancelledError();
-          }
-          else {
+          } else {
             // Some other error happened during authentication, report to user.
             throw err;
           }
         }
         // Download file from private drive, if it fails, report the error to user.
         return await fetchURL(this._docComm, itemUrl, options);
-      }
-      else {
+      } else {
         // We are not allowed to ask for full readonly permission, fallback to GoogleDrive plugin.
         throw new GDriveUrlNotSupported(itemUrl);
       }

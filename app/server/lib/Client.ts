@@ -210,8 +210,7 @@ export class Client {
   public async sendMessageOrInterrupt(messageObj: CommMessage | CommResponse | CommResponseError): Promise<void> {
     try {
       await this.sendMessage(messageObj);
-    }
-    catch (e) {
+    } catch (e) {
       this._log.error(null, "sendMessage error", e);
       this.interruptConnection();
     }
@@ -265,8 +264,7 @@ export class Client {
           // (keeping a copy of messages until acked). With our system, we are more likely to be
           // lacking the needed messages on reconnect, and having to reset the client.
           return;
-        }
-        catch (err) {
+        } catch (err) {
           // Sending failed. Add the message to missedMessages.
           this._log.warn(null, "sendMessage: queuing after send error:", err.toString());
         }
@@ -283,8 +281,7 @@ export class Client {
         // lead to an eventual recovery.)
         this._missedMessages.set(seqId, message);
         this._missedMessagesTotalLength += message.length;
-      }
-      else {
+      } else {
         // Too many messages queued. Boot the client now, to make it reset when/if it reconnects.
         this._log.warn(null, "sendMessage: too many messages queued; booting client");
         this.destroy();
@@ -372,8 +369,7 @@ export class Client {
       if (!this._destroyed && this._websocket?.isOpen) {
         await this._sendToWebsocket(JSON.stringify({ ...clientConnectMsg, dup: true }));
       }
-    }
-    catch (err) {
+    } catch (err) {
       // It's possible that the connection was closed while we were preparing this response.
       // We just warn, and let _onClose() take care of cleanup.
       this._log.warn(null, "failed to prepare or send clientConnect:", err.toString());
@@ -422,8 +418,7 @@ export class Client {
   private async _onMessage(message: string): Promise<void> {
     try {
       await this._onMessageImpl(message);
-    }
-    catch (err) {
+    } catch (err) {
       this._log.warn(null, 'onMessage error received for message "%s": %s', shortDesc(message), err.stack);
     }
   }
@@ -448,12 +443,10 @@ export class Client {
     if (!method) {
       this._log.info(null, "onMessage: unknown method", shortDesc(message));
       response = { reqId: request.reqId, error: `Unknown method ${request.method}` };
-    }
-    else {
+    } else {
       try {
         response = { reqId: request.reqId, data: await method(this, ...request.args) };
-      }
-      catch (error) {
+      } catch (error) {
         const err: ErrorWithCode = error;
         // Print the error stack, except for SandboxErrors, for which the JS stack isn't that useful.
         // Also not helpful is the stack of AUTH_NO_VIEW|EDIT errors produced by the Authorizer.
@@ -492,8 +485,7 @@ export class Client {
     for (const docFD of this._docFDs) {
       try {
         if (docFD !== null) { await docFD.authorizer.assertAccess("viewers"); }
-      }
-      catch (e) {
+      } catch (e) {
         return false;
       }
     }

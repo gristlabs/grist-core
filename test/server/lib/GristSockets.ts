@@ -57,8 +57,7 @@ describe(`GristSockets`, function() {
           proxyServer.on("request", (req, res) => res.writeHead(404).end());
           // proxy WebSocket requests
           proxyServer.on("upgrade", (req, socket, head) => proxy!.ws(req, socket, head));
-        }
-        else {
+        } else {
           // proxy non-WebSocket requests
           proxyServer.on("request", (req, res) => proxy!.web(req, res));
           // don't leave WebSocket connection attempts hanging
@@ -181,8 +180,7 @@ describe(`GristSockets`, function() {
         try {
           // The "poll error" comes from the fallback to polling.
           await assert.isRejected(connectClient(wsAddress), /poll error/);
-        }
-        finally {
+        } finally {
           // Typings for process.removeListener are broken, possibly by electron's presence
           // (https://github.com/electron/electron/issues/9626).
           process.removeListener("unhandledRejection" as any, onUnhandledRejection);

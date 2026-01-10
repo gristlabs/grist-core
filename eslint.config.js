@@ -59,6 +59,7 @@ module.exports = defineConfig([
         caughtErrors: "none",
       }],
 
+      "@stylistic/brace-style": ["error", "1tbs", { allowSingleLine: true }],
       "@stylistic/comma-spacing": "error",
       "@stylistic/indent": ["error", 2],
       "@stylistic/no-trailing-spaces": "error",
@@ -156,6 +157,7 @@ module.exports = defineConfig([
       ],
 
       "@stylistic/block-spacing": ["error", "always"],
+      "@stylistic/brace-style": ["error", "1tbs", { allowSingleLine: true }],
       "@stylistic/comma-spacing": "error",
       "@stylistic/function-call-spacing": "error",
       "@stylistic/indent": ["error", 2],

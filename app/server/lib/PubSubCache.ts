@@ -59,8 +59,7 @@ export class PubSubCache<Key, Value> {
       for (const ucbPromise of this._watchedKeys.values()) {
         ucbPromise.unsubscribeCB();
       }
-    }
-    finally {
+    } finally {
       this._watchedKeys.clear();
     }
   }

@@ -91,8 +91,7 @@ describe("DocApi2", function() {
           // Verify the document was moved by checking its workspace
           const docInfo = await owner.getDoc(docId);
           assert.equal(docInfo.workspace.id, toWsId);
-        }
-        finally {
+        } finally {
           // Clean up: delete the document and workspace
           await owner.deleteDoc(docId);
           await owner.deleteWorkspace(toWsId);
@@ -156,8 +155,7 @@ describe("DocApi2", function() {
             // Verify the document was moved by checking its workspace
             const docInfo = await destOwner.getDoc(docId);
             assert.equal(docInfo.workspace.id, destWsId);
-          }
-          finally {
+          } finally {
             // Clean up: delete the document
             await destOwner.deleteDoc(docId);
           }
@@ -170,8 +168,7 @@ describe("DocApi2", function() {
         // Make sure that moving the larger doc is within a reasonable factor of the smaller one. Before the fix
         // it wasn't possible to move a document with 100 users at all, so this is a big improvement.
         assert.isAtMost(largeDocTime, smallDocTime * 9); // As for 20251008 on my machine it is ~4x
-      }
-      finally {
+      } finally {
         // Clean up: delete the destination org
         await destApi.deleteOrg("dest-org");
       }

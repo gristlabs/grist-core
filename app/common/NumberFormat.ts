@@ -60,8 +60,7 @@ export function buildNumberFormat(options: NumberFormatOptions, docSettings: Doc
   if (options.maxDecimals !== undefined && options.maxDecimals !== null) {
     // Should be at least 0 and at least minimumFractionDigits.
     nfOptions.maximumFractionDigits = clamp(Number(options.maxDecimals), tmp.minimumFractionDigits || 0, 20);
-  }
-  else if (!options.numMode) {
+  } else if (!options.numMode) {
     // For the default format, keep max digits at 10 as we had before.
     nfOptions.maximumFractionDigits = clamp(10, tmp.minimumFractionDigits || 0, 20);
   }
@@ -76,8 +75,7 @@ const currencyDisplay = (function() {
   try {
     new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", currencyDisplay: "narrowSymbol" });
     return "narrowSymbol";
-  }
-  catch (err) {
+  } catch (err) {
     return "symbol";
   }
 })();

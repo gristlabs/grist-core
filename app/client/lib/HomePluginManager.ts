@@ -48,8 +48,7 @@ export class HomePluginManager {
           forwardMessage: msg => forwarder.forwardPluginRpc(plugin.id, msg),
         });
         this.pluginsList.push(pluginInstance);
-      }
-      catch (err) {
+      } catch (err) {
         console.error(`HomePluginManager: failed to instantiate ${plugin.id}: ${err.message}`);
       }
     }

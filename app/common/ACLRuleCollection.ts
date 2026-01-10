@@ -205,8 +205,7 @@ export class ACLRuleCollection {
     this.ruleError = undefined;
     try {
       await this.updateWithExceptions(docData, options);
-    }
-    catch (e) {
+    } catch (e) {
       this.ruleError = e;  // Report the error indirectly.
       await this.updateWithExceptions(docData, {
         ...options,
@@ -246,12 +245,10 @@ export class ACLRuleCollection {
           // (Historically, older versions of the Grist app will attempt to
           // open newer documents).
           options.log.error(`Invalid rule for ${ruleSet.tableId}:${ruleSet.colIds}`);
-        }
-        else {
+        } else {
           specialRuleSets.set(specialType, { ...ruleSet, body: [...ruleSet.body, ...specialDefault.body] });
         }
-      }
-      else if (options.pullOutSchemaEdit && ruleSet.tableId === "*" && ruleSet.colIds === "*") {
+      } else if (options.pullOutSchemaEdit && ruleSet.tableId === "*" && ruleSet.colIds === "*") {
         // If pullOutSchemaEdit is requested, we move out rules with SchemaEdit permissions from
         // the default resource into the ficticious "*SPECIAL:SchemaEdit" resource. This is used
         // in the frontend only, to present those rules in a separate section.
@@ -288,23 +285,19 @@ export class ACLRuleCollection {
             ...ruleSet,
             body: [...body, ...DEFAULT_RULE_SET.body],
           };
-        }
-        else {
+        } else {
           // tableId of '*' cannot list particular columns.
           throw new Error(`Invalid rule for tableId ${ruleSet.tableId}, colIds ${ruleSet.colIds}`);
         }
-      }
-      else if (ruleSet.tableId === SPECIAL_RULES_TABLE_ID) {
+      } else if (ruleSet.tableId === SPECIAL_RULES_TABLE_ID) {
         // Skip, since we handled these separately earlier.
-      }
-      else if (ruleSet.colIds === "*") {
+      } else if (ruleSet.colIds === "*") {
         tableIds.add(ruleSet.tableId);
         if (tableRuleSets.has(ruleSet.tableId)) {
           throw new Error(`Invalid duplicate default rule for ${ruleSet.tableId}`);
         }
         tableRuleSets.set(ruleSet.tableId, ruleSet);
-      }
-      else {
+      } else {
         tableIds.add(ruleSet.tableId);
         getSetMapValue(colRuleSets, ruleSet.tableId, () => []).push(ruleSet);
         for (const colId of ruleSet.colIds) {
@@ -479,8 +472,7 @@ function getHelperCols(docData: DocData, tableId: string, colIds: string[], log:
         }
         if (extraCol.colId.startsWith("gristHelper_") && extraCol.parentId === tableRef) {
           result.push(extraCol.colId);
-        }
-        else {
+        } else {
           log.error(`Invalid helper column ${extraCol.colId} of ${tableId}:${colId}`);
         }
       }
@@ -546,14 +538,11 @@ function readAclRules(
         }
         parsed.origRecord = rule;
         userAttributes.push(parsed as UserAttributeRule);
-      }
-      else if (body.length > 0 && !body[body.length - 1].aclFormula) {
+      } else if (body.length > 0 && !body[body.length - 1].aclFormula) {
         throw new Error(`ACLRule ${rule.id} invalid because listed after default rule`);
-      }
-      else if (rule.aclFormula && !rule.aclFormulaParsed) {
+      } else if (rule.aclFormula && !rule.aclFormulaParsed) {
         throw new Error(`ACLRule ${rule.id} invalid because missing its parsed formula`);
-      }
-      else {
+      } else {
         const aclFormulaParsed = rule.aclFormula && JSON.parse(String(rule.aclFormulaParsed));
         let permissions = parsePermissions(String(rule.permissionsText));
         if (tableId !== "*" && tableId !== SPECIAL_RULES_TABLE_ID) {

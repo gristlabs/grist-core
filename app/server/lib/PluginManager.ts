@@ -66,8 +66,7 @@ export class PluginManager {
   public async initialize(): Promise<void> {
     try {
       await (this.pluginsLoaded = this.loadPlugins());
-    }
-    catch (err) {
+    } catch (err) {
       log.error("PluginManager's initialization failed: ", err);
       throw err;
     }
@@ -147,8 +146,7 @@ async function scanDirectory(dir: string, kind: "installed" | "builtIn" | "bundl
 
   try {
     listDir = await fse.readdir(dir);
-  }
-  catch (e) {
+  } catch (e) {
     // Non existing dir is treated as an empty dir.
     // It is hard for user to avoid Grist checking a dir,
     // so phrase the message as information rather than error.
@@ -164,8 +162,7 @@ async function scanDirectory(dir: string, kind: "installed" | "builtIn" | "bundl
       };
     try {
       plugin.manifest = await readManifest(folderPath);
-    }
-    catch (e) {
+    } catch (e) {
       plugin.errors = [];
       if (e.message) {
         plugin.errors.push(e.message);

@@ -62,8 +62,7 @@ export async function buildCodeHighlighter(options: BuildCodeHighlighterOptions 
     if (gristThemeObs().get().appearance === "dark") {
       aceThemeName = "dracula";
       aceTheme = dracula;
-    }
-    else {
+    } else {
       aceThemeName = "chrome";
       aceTheme = chrome;
     }
@@ -123,8 +122,7 @@ export function buildHighlightedCode(
     if (codeTheme.get().appearance === "dark") {
       aceThemeName = "dracula";
       aceTheme = dracula;
-    }
-    else {
+    } else {
       aceThemeName = "chrome";
       aceTheme = chrome;
     }

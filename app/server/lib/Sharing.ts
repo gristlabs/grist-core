@@ -63,8 +63,7 @@ export class Sharing {
     return this._userActionLock.runExclusive(async () => {
       try {
         return await this._doApplyUserActions(action.info, action.userActions, docSession, action.options || null);
-      }
-      catch (e) {
+      } catch (e) {
         this._log.warn(docSession, "Unable to apply action...", e);
         throw e;
       }
@@ -223,8 +222,7 @@ export class Sharing {
         retValues: sandboxActionBundle.retValues,
         isModification: sandboxActionBundle.stored.length > 0,
       };
-    }
-    finally {
+    } finally {
       // Make sure the bundle is marked as complete, even if some miscellaneous error occurred.
       await accessControl.finishedBundle();
       insightLog?.mark("accessRulesFinish");
@@ -255,8 +253,7 @@ export class Sharing {
       await accessControl.canApplyBundle();
       insightLog?.mark("accessRulesCheck");
       return { result: { bundle: applyResult, accessControl } };
-    }
-    catch (applyExc) {
+    } catch (applyExc) {
       insightLog?.mark("dataEngineReverting");
       try {
         // We can't apply those actions, so we need to revert them.
@@ -294,8 +291,7 @@ export class Sharing {
         await accessControl.canApplyBundle();
         // We are ok, we can store extra actions and report back the exception.
         return { result: { bundle: extraBundle, accessControl }, failure: applyExc };
-      }
-      catch (rollbackExc) {
+      } catch (rollbackExc) {
         this._log.error(docSession, "Failed to apply undo of rejected action", rollbackExc.message);
         await accessControl.finishedBundle();
         this._log.debug(docSession, "Sharing._applyActionsToDataEngine starting ActiveDoc.shutdown");

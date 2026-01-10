@@ -594,8 +594,7 @@ describe("limits", function() {
       const response = docApi.getAssistance(version === 1 ? v1 : v2);
       if (fulfilled) {
         await assert.isFulfilled(response);
-      }
-      else {
+      } else {
         await assert.isRejected(response);
       }
     };

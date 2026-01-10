@@ -39,8 +39,7 @@ function DateTimeTextBox(field) {
     owner: this,
     read: function() { return this.isCustomTimeFormat() ? "Custom" : this.timeFormat(); },
     write: function(val) {
-      if (val === "Custom") { this.isCustomTimeFormat.setAndSave(true); }
-      else {
+      if (val === "Custom") { this.isCustomTimeFormat.setAndSave(true); } else {
         this.isCustomTimeFormat.setAndSave(false);
         this.timeFormat.setAndSave(val);
       }

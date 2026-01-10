@@ -679,8 +679,7 @@ describe("ChoiceList", function() {
       assert.deepEqual(await getEditModeChoiceLabels(), ["Green", "Blue", "Black"]);
       if (method === "button") {
         await driver.find(".test-choice-list-entry-cancel").click();
-      }
-      else {
+      } else {
         await gu.sendKeys(Key.ESCAPE);
       }
 

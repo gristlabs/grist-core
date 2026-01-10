@@ -168,14 +168,12 @@ function assertMatches(calls: unknown[][], expected: (unknown | RegExp)[][]) {
           for (const [name, value] of Object.entries(match.groups)) {
             if (groups.has(name)) {
               assert.equal(value, groups.get(name), `in call #${n} while matching: ${actualPart}`);
-            }
-            else {
+            } else {
               groups.set(name, value);
             }
           }
         }
-      }
-      else {
+      } else {
         assert.deepEqual(actualPart, expectedPart);
       }
     }

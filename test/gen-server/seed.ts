@@ -362,8 +362,7 @@ class Seed {
         guests,
         members,
       };
-    }
-    else {
+    } else {
       return {
         owners,
         editors,
@@ -603,13 +602,11 @@ export async function createInitialDb(connection?: Connection, migrateAndSeedDat
         }
         connection = await getOrCreateConnection();
       }
-    }
-    else if (opt.type === "postgres") {
+    } else if (opt.type === "postgres") {
       // recreate schema, destroying everything that was inside it
       await connection.query("DROP SCHEMA public CASCADE;");
       await connection.query("CREATE SCHEMA public;");
-    }
-    else {
+    } else {
       throw new Error(`do not know how to clean a ${opt.type} db`);
     }
   }
@@ -701,8 +698,7 @@ function _generateData(numOrgs: number, numWorkspaces: number, numDocs: number) 
 export function setUpDB(context?: Context) {
   if (!process.env.TYPEORM_DATABASE) {
     process.env.TYPEORM_DATABASE = ":memory:";
-  }
-  else {
+  } else {
     if (context) { context.timeout(60000); }
   }
 }
@@ -712,26 +708,22 @@ async function main() {
   if (cmd === "init") {
     await createInitialDb();
     return;
-  }
-  else if (cmd === "benchmark") {
+  } else if (cmd === "benchmark") {
     const connection = await getOrCreateConnection();
     await createInitialDb(connection, false);
     await createBenchmarkDb(connection);
     return;
-  }
-  else if (cmd === "migrate") {
+  } else if (cmd === "migrate") {
     process.env.TYPEORM_LOGGING = "true";
     const connection = await getOrCreateConnection();
     await runMigrations(connection);
     return;
-  }
-  else if (cmd === "revert") {
+  } else if (cmd === "revert") {
     process.env.TYPEORM_LOGGING = "true";
     const connection = await getOrCreateConnection();
     await undoLastMigration(connection);
     return;
-  }
-  else if (cmd === "serve") {
+  } else if (cmd === "serve") {
     const home = await createServer(3000);
     console.log(`Home API demo available at ${home.getOwnUrl()}`);
     return;

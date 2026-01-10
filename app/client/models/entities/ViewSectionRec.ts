@@ -666,12 +666,10 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
               filter: filter(),
               pinned: pinned(),
             }]);
-          }
-          else if (filter() === "") {
+          } else if (filter() === "") {
             // Mark the saved filter for removal from the filters table.
             removedFilterIds.push(savedFilter.id());
-          }
-          else {
+          } else {
             // Mark the saved filter for update in the filters table.
             updatedFilters.push([savedFilter.id(), {
               filter: filter(),
@@ -831,8 +829,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     try {
       const config = new LinkConfig(this);
       return LinkingState.create(this._linkingState, docModel, config);
-    }
-    catch (err) {
+    } catch (err) {
       console.warn(err);
       // Dispose old LinkingState in case creating the new one failed.
       this._linkingState.clear();
@@ -925,8 +922,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
         columns.forEach(c => c.widgetOptions());
 
         result[widgetCol.name] = columns.map(c => c.colId());
-      }
-      else {
+      } else {
         // Widget expects a single value and existing column
         if (Array.isArray(mappedCol) || !colMap.has(mappedCol)) { continue; }
         const selectedColumn = colMap.get(mappedCol)!;
@@ -1012,8 +1008,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     if (Array.isArray(fieldRef)) {
       const action = ["BulkRemoveRecord", fieldRef];
       await docModel.viewFields.sendTableAction(action);
-    }
-    else {
+    } else {
       const action = ["RemoveRecord", fieldRef];
       await docModel.viewFields.sendTableAction(action);
     }

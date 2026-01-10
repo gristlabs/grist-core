@@ -181,8 +181,7 @@ export class FieldBuilder extends Disposable {
         const type = this.field.column().type();
         if (type.startsWith("Ref:")) {
           this._setType(`Ref:${val}`);
-        }
-        else {
+        } else {
           this._setType(`RefList:${val}`);
         }
       },
@@ -214,8 +213,7 @@ export class FieldBuilder extends Disposable {
     this._widgetCons = this.autoDispose(koUtil.withKoUtils(ko.computed(() => {
       if (this._isForm()) {
         return UserTypeImpl.getFormWidgetConstructor(this.options().widget, this._readOnlyPureType());
-      }
-      else {
+      } else {
         return UserTypeImpl.getWidgetConstructor(this.options().widget, this._readOnlyPureType());
       }
     })).onlyNotifyUnequal());
@@ -335,8 +333,7 @@ export class FieldBuilder extends Disposable {
                   placement: "left-start",
                 },
               });
-            }
-            else {
+            } else {
               return null;
             }
           },
@@ -388,8 +385,7 @@ export class FieldBuilder extends Disposable {
           Promise.all(this.field.viewSection.peek().selectedFields.peek().map(f =>
             f.column.peek().type.setAndSave(calculatedType),
           ))).catch(reportError);
-      }
-      else if (column.pureType() === "Any") {
+      } else if (column.pureType() === "Any") {
         // If this is Any column, guess the final options.
         const guessedOptions = guessWidgetOptionsSync({
           docModel: this._docModel,
@@ -410,16 +406,13 @@ export class FieldBuilder extends Disposable {
             ]),
           ).catch(reportError);
         });
-      }
-      else {
+      } else {
         column.type.setAndSave(calculatedType).catch(reportError);
       }
-    }
-    else if (!this.columnTransform) {
+    } else if (!this.columnTransform) {
       this.columnTransform = TypeTransform.create(null, this.gristDoc, this);
       this.columnTransform.prepare(newType).catch(reportError);
-    }
-    else {
+    } else {
       if (this.columnTransform instanceof TypeTransform) {
         this.columnTransform.setType(newType).catch(reportError);
       }
@@ -476,8 +469,7 @@ export class FieldBuilder extends Disposable {
         if (val) {
           this.columnTransform = FormulaTransform.create(null, this.gristDoc, this);
           return this.columnTransform.prepare();
-        }
-        else {
+        } else {
           return this.columnTransform?.cancel();
         }
       },
@@ -663,11 +655,9 @@ export class FieldBuilder extends Disposable {
       const cell = value && value();
       if ((value as any) && this._isRightType()(cell, this.options) || row._isAddRow.peek()) {
         return this.widgetImpl();
-      }
-      else if (gristTypes.isVersions(cell)) {
+      } else if (gristTypes.isVersions(cell)) {
         return this.diffImpl;
-      }
-      else {
+      } else {
         return null;
       }
     }).extend({ deferred: true })).onlyNotifyUnequal();
@@ -893,8 +883,7 @@ export class FieldBuilder extends Disposable {
         // back to where it was rendered. It still has it's content, so no need to dispose it.
         if (refElem.isConnected) {
           formulaEditor.attach(refElem);
-        }
-        else {
+        } else {
           // Else, we will navigate to the position we left off, dispose the editor and the content.
           formulaEditor.dispose();
           grainjsDom.domDispose(content);
@@ -968,11 +957,9 @@ const cssTypeSelectMenu = styled("div", `
 function notTransparent(color: string): string {
   if (!color) {
     return color;
-  }
-  else if (color.startsWith("#") && color.length === 9) {
+  } else if (color.startsWith("#") && color.length === 9) {
     return color.substring(0, 7);
-  }
-  else if (color.startsWith("rgba")) {
+  } else if (color.startsWith("rgba")) {
     // rgba(255, 255, 255)
     // rgba(255, 255, 255, 0.5)
     // rgba(255 255 255 / 0.5)

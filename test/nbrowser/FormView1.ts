@@ -1451,8 +1451,7 @@ describe("FormView1", function() {
         if (type === "Section") {
           await doTestStruct("Insert section above");
           await doTestStruct("Insert section below");
-        }
-        else {
+        } else {
           await doTestStruct();
         }
       });

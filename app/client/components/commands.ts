@@ -26,11 +26,9 @@ type BoolLike = boolean | ko.Observable<boolean> | ko.Computed<boolean> | Observ
 function subscribe(value: Exclude<BoolLike, boolean>, fn: (value: boolean) => void) {
   if (ko.isObservable(value)) {
     return value.subscribe(fn);
-  }
-  else if (value instanceof Observable) {
+  } else if (value instanceof Observable) {
     return value.addListener(fn);
-  }
-  else {
+  } else {
     throw new Error("Expected an observable");
   }
 }
@@ -75,8 +73,7 @@ export function init(optCommandGroups?: CommendGroupDef[]) {
     commandGroup.commands.forEach(function(c) {
       if (allCommands[c.name]) {
         console.error("Ignoring duplicate command %s in commandList", c.name);
-      }
-      else {
+      } else {
         allCommands[c.name] = new Command(c.name, c.desc, c.keys, {
           bindKeys: c.bindKeys,
           alwaysOn: c.alwaysOn,
@@ -224,8 +221,7 @@ export class Command implements CommandDef {
     if (this._implGroupStack.length > 0) {
       this.isActive(true);
       this._activeFunc = _.last(this._implGroupStack)!.commands[this.name];
-    }
-    else {
+    } else {
       this.isActive(false);
       this._activeFunc = _.noop;
     }
@@ -243,8 +239,7 @@ export class Command implements CommandDef {
             Mousetrap.markAlwaysOnShortcut(key);
           }
           Mousetrap.bind(key, wrapKeyCallback(commandGroup.commands[commandName]));
-        }
-        else {
+        } else {
           Mousetrap.unbind(key);
         }
       });
@@ -305,8 +300,7 @@ export class CommandGroup extends Disposable {
     for (const name in commands) {
       if (allCommands[name as CommandName]) {
         this.commands[name] = commands[name as CommandName]!.bind(context);
-      }
-      else {
+      } else {
         console.warn("Ignoring unknown command %s", name);
       }
     }
@@ -326,8 +320,7 @@ export class CommandGroup extends Disposable {
     // Finally, set the activation status of the command group, subscribing if an observable.
     if (typeof activate === "boolean" || activate === undefined) {
       this.activate(activate ?? false);
-    }
-    else if (activate) {
+    } else if (activate) {
       this.autoDispose(subscribe(activate, val => this.activate(val)));
       this.activate(unwrap(activate));
     }
@@ -339,8 +332,7 @@ export class CommandGroup extends Disposable {
   public activate(yesNo: boolean) {
     if (yesNo) {
       this._addGroup();
-    }
-    else {
+    } else {
       this._removeGroup();
     }
   }

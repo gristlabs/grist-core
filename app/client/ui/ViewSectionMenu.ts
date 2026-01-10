@@ -201,8 +201,7 @@ function makeCustomOptions(section: ViewSectionRec) {
   const text = Computed.create(null, (use) => {
     if (use(section.activeCustomOptions)) {
       return use(section.activeCustomOptions.isSaved) ? t("(customized)") : t("(modified)");
-    }
-    else {
+    } else {
       return t("(empty)");
     }
   });

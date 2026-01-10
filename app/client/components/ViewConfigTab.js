@@ -52,15 +52,20 @@ function ViewConfigTab(options) {
     return ["detail", "single"].includes(this.viewModel.activeSection().parentKey());
   }, this));
   this.isChart = this.autoDispose(ko.computed(function() {
-    return this.viewModel.activeSection().parentKey() === "chart";}, this));
+    return this.viewModel.activeSection().parentKey() === "chart";
+  }, this));
   this.isGrid = this.autoDispose(ko.computed(function() {
-    return this.viewModel.activeSection().parentKey() === "record";}, this));
+    return this.viewModel.activeSection().parentKey() === "record";
+  }, this));
   this.isCustom = this.autoDispose(ko.computed(function() {
-    return this.viewModel.activeSection().parentKey() === "custom";}, this));
+    return this.viewModel.activeSection().parentKey() === "custom";
+  }, this));
   this.isRaw = this.autoDispose(ko.computed(function() {
-    return this.viewModel.activeSection().isRaw();}, this));
+    return this.viewModel.activeSection().isRaw();
+  }, this));
   this.isRecordCard = this.autoDispose(ko.computed(function() {
-    return this.viewModel.activeSection().isRecordCard();}, this));
+    return this.viewModel.activeSection().isRecordCard();
+  }, this));
 
   this.activeRawOrRecordCardSectionData = this.autoDispose(ko.computed(function() {
     return self.isRaw() || self.isRecordCard()

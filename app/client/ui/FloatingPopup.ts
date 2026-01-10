@@ -144,8 +144,7 @@ export class FloatingPopup extends Disposable {
 
     if (this._closeBehavior === "close") {
       this._disposePopup();
-    }
-    else {
+    } else {
       this._hidePopup();
     }
   }
@@ -426,8 +425,7 @@ export class FloatingPopup extends Disposable {
           ($(elem)).resizable({
             disabled: true,
           });
-        }
-        else {
+        } else {
           ($(elem)).resizable({
             disabled: false,
             handles: "all",

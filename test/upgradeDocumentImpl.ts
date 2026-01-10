@@ -28,8 +28,7 @@ export async function upgradeDocuments(docPaths: string[]): Promise<void> {
       await activeDoc.shutdown();
       await copyFile(docTools.getStorageManager().getPath(activeDoc.docName), docPath);
     }
-  }
-  finally {
+  } finally {
     await docTools.after();
   }
 }
@@ -77,12 +76,10 @@ export async function main() {
   try {
     if (onlyRunDocStorageMigrations) {
       await upgradeDocumentsDocStorageOnly(docPaths);
-    }
-    else {
+    } else {
       await upgradeDocuments(docPaths);
     }
-  }
-  finally {
+  } finally {
     log.transports.file.level = prevLogLevel;
   }
 }

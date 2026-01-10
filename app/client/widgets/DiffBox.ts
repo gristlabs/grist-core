@@ -41,14 +41,11 @@ export class DiffBox extends NewAbstractWidget {
       dom.forEach(formattedValue, ([code, txt]) => {
         if (code === DIFF_DELETE) {
           return dom("span.diff-parent", txt);
-        }
-        else if (code === DIFF_INSERT) {
+        } else if (code === DIFF_INSERT) {
           return dom("span.diff-remote", txt);
-        }
-        else if (code === DIFF_LOCAL) {
+        } else if (code === DIFF_LOCAL) {
           return dom("span.diff-local", txt);
-        }
-        else {
+        } else {
           return dom("span.diff-common", txt);
         }
       }),

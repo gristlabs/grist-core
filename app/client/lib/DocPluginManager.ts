@@ -44,8 +44,7 @@ export class DocPluginManager {
           forwardMessage: msg => this._docComm.forwardPluginRpc(plugin.id, msg),
         });
         this.pluginsList.push(pluginInstance);
-      }
-      catch (err) {
+      } catch (err) {
         console.error(`DocPluginManager: failed to instantiate ${plugin.id}: ${err.message}`);
       }
     }

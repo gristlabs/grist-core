@@ -37,8 +37,7 @@ async function checkPrintSection(sectionName: string, checkFunc: () => Promise<v
   try {
     await emulateMediaPrint(true);
     await checkFunc();
-  }
-  finally {
+  } finally {
     // Ensure the dialog's window (if it ever opened, only non-headless) is gone.
     await gu.waitToPass(async () => assert.lengthOf(await driver.getAllWindowHandles(), numTabs), 5000);
 

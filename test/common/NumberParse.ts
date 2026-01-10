@@ -371,8 +371,7 @@ describe("NumberParse", function() {
                   basicFormatter.format(parsed!),
                   basicFormatter.format(num),
                 );
-              }
-              catch (e) {
+              } catch (e) {
                 // Handy information for understanding failures
                 console.log({
                   num, formatted, parsed, numMode, parser,

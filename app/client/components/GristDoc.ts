@@ -435,8 +435,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       try {
         if (state.hash.popup || state.hash.recordCard) {
           await this._openPopup(state.hash);
-        }
-        else {
+        } else {
           // Navigate to an anchor if one is present in the url hash.
           const cursorPos = this._getCursorPosFromHash(state.hash);
           await this.recursiveMoveToCursorPos(cursorPos, true);
@@ -491,11 +490,9 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
             })
             .catch(reportError);
         }
-      }
-      catch (e) {
+      } catch (e) {
         reportError(e);
-      }
-      finally {
+      } finally {
         setTimeout(finalizeAnchor, 0);
       }
     }));
@@ -514,8 +511,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
           !isPopupManagerDisabled
         ) {
           this.behavioralPromptsManager.disable();
-        }
-        else if (isPopupManagerDisabled) {
+        } else if (isPopupManagerDisabled) {
           this.behavioralPromptsManager.enable();
         }
       },
@@ -562,8 +558,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
           if (shouldStartTutorial) {
             await DocTutorial.create(this._docTutorialHolder, this).start();
-          }
-          else if (shouldStartDocTour) {
+          } else if (shouldStartDocTour) {
             const onFinishCB = () => (
               !this._seenDocTours.get()?.includes(this.docId()) &&
               markAsSeen(this._seenDocTours, this.docId())
@@ -579,12 +574,10 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
                 },
               });
             }
-          }
-          else {
+          } else {
             startWelcomeTour(() => this._showGristTour.set(false));
           }
-        }
-        finally {
+        } finally {
           isStartingTourOrTutorial = false;
         }
       }
@@ -868,8 +861,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
                                     viewSection: popupOptions.viewSection,
                                     onClose: popupOptions.close,
                                   });
-                                }
-                                else {
+                                } else {
                                   return dom.create(RawDataPopup, this, popupOptions.viewSection, popupOptions.close);
                                 }
                               });
@@ -921,8 +913,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     }
     try {
       await this._setCursorPos(cursorPos);
-    }
-    catch (e) {
+    } catch (e) {
       reportError(e);
     }
   }
@@ -1160,12 +1151,10 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
           const destTable = await this._getTableData(section);
           if (cursorPos.rowId === "new") {
             controller = "new";
-          }
-          else {
+          } else {
             controller = destTable.getValue(cursorPos.rowId, linkTargetCol.colId.peek());
           }
-        }
-        else {
+        } else {
           controller = cursorPos.rowId;
         }
         const colId = section.linkSrcCol.peek().colId.peek();
@@ -1177,25 +1166,21 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
             // Should be a reference list. Use linkingRowId if available and present in the list,
             if (linkingRowId && controller.indexOf(linkingRowId) > 0) {
               controller = linkingRowId;
-            }
-            else {
+            } else {
               // Otherwise, pick the first reference.
               controller = controller[1];  // [0] is the L type code, [1] is the first value
             }
-          }
-          else if (controller === "new" && linkingRowId) {
+          } else if (controller === "new" && linkingRowId) {
             controller = linkingRowId;
           }
           srcRowId = controller;
-        }
-        else {
+        } else {
           const srcTable = await this._getTableData(srcSection);
           const query: ClientQuery = { tableId: srcTable.tableId, filters: {}, operations: {} };
           if (colId) {
             query.operations[colId] = isRefListType(section.linkSrcCol.peek().type.peek()) ? "intersects" : "in";
             query.filters[colId] = isList(controller) ? controller.slice(1) : [controller];
-          }
-          else {
+          } else {
             // must be a summary -- otherwise dealt with earlier.
             const destTable = await this._getTableData(section);
             for (const srcCol of srcSection.table.peek().groupByColumns.peek()) {
@@ -1244,8 +1229,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       // wait for a bit (scroll is done in a setTimeout 0)
       await delay(0);
       return true;
-    }
-    catch (e) {
+    } catch (e) {
       console.debug(`_recursiveMoveToCursorPos(${JSON.stringify(cursorPos)}): ${e}`);
       if (!silent) {
         throw new UserError("There was a problem finding the desired cell.");
@@ -1278,8 +1262,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       await copyToClipboard(link);
       setTestState({ clipboard: link });
       reportSuccess("Link copied to clipboard", { key: "clipboard" });
-    }
-    catch (e) {
+    } catch (e) {
       throw new Error("cannot copy to clipboard");
     }
   }
@@ -1323,8 +1306,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         if (colIds.length > 1 && !mapColIdToColumn.has(colIds[1])) {
           await section.optionsObj.prop("isXAxisUndefined").saveOnly(true);
         }
-      }
-      else if (!mapColIdToColumn.has(colIds[0])) {
+      } else if (!mapColIdToColumn.has(colIds[0])) {
         await section.optionsObj.prop("isXAxisUndefined").saveOnly(true);
       }
     }
@@ -1367,15 +1349,12 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         this.trigger("webhookOverflowError",
           t("New changes are temporarily suspended. Webhooks queue overflowed. \
 Please check webhooks settings, remove invalid webhooks, and clean the queue."));
-      }
-      else {
+      } else {
         this.trigger("webhooks", message.data.webhooks);
       }
-    }
-    else if (message.data.timing) {
+    } else if (message.data.timing) {
       this.isTimingOn.set(message.data.timing.status !== "disabled");
-    }
-    else if (message.data.attachmentTransfer) {
+    } else if (message.data.attachmentTransfer) {
       // This is message about the attachments transfer job. Look at the comment
       // for the observable for more info.
       this.attachmentTransfer.set(message.data.attachmentTransfer);
@@ -1478,8 +1457,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
         // This may be asynchronous. In other cases, the change is synchronous, and some code
         // relies on it (doesn't wait for this function to resolve).
         await this._switchToSectionId(cursorPos.sectionId);
-      }
-      else if (desiredSection !== this.viewModel.activeSection.peek()) {
+      } else if (desiredSection !== this.viewModel.activeSection.peek()) {
         this.viewModel.activeSectionId(cursorPos.sectionId);
       }
     }
@@ -1541,16 +1519,14 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
       if (type === WidgetType.Table) {
         const result = await this.docData.sendAction(["AddEmptyTable", tableId]);
         viewRef = result.views[0].id;
-      }
-      else {
+      } else {
         // This will create a new table and page.
         const result = await this.docData.sendAction(
           ["CreateViewSection", 0, 0, type, null, tableId],
         );
         [viewRef, sectionRef] = [result.viewRef, result.sectionRef];
       }
-    }
-    else {
+    } else {
       const result = await this.docData.sendAction(
         ["CreateViewSection", table, 0, type, summarize ? columns : null, null],
       );
@@ -1934,14 +1910,12 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
       // This is a raw data or record card view.
       await urlState().pushUrl({ docPage: "data" });
       this.viewModel.activeSectionId(sectionId);
-    }
-    else if (section.isVirtual.peek()) {
+    } else if (section.isVirtual.peek()) {
       // this is a virtual table, and therefore a webhook page (that is the only
       // place virtual tables are used so far)
       await urlState().pushUrl({ docPage: "webhook" });
       this.viewModel.activeSectionId(sectionId);
-    }
-    else {
+    } else {
       const view: ViewRec = section.view.peek();
       await this.openDocPage(view.getRowId());
       view.activeSectionId(sectionId);  // this.viewModel will reflect this with a delay.

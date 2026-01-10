@@ -25,8 +25,7 @@ export function createPausableObs<T>(
       _isPaused = shouldPause;
       if (shouldPause) {
         _lastValue = undefined;
-      }
-      else if (_lastValue) {
+      } else if (_lastValue) {
         obs.set(_lastValue);
         _lastValue = undefined;
       }
