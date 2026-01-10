@@ -344,8 +344,19 @@ export function downloadDocModal(doc: Document, appModel: AppModel) {
 
     const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | "unknown">(owner, undefined);
     docApi.getAttachmentTransferStatus()
-      .then((status) => { attachmentStatusObs.set(status.locationSummary); })
-      .catch((err) => { reportError(err); attachmentStatusObs.set("unknown"); });
+      .then((status) => {
+        if (owner.isDisposed()) {
+          return;
+        }
+        attachmentStatusObs.set(status.locationSummary);
+      })
+      .catch((err) => {
+        if (owner.isDisposed()) {
+          return;
+        }
+        reportError(err);
+        attachmentStatusObs.set("unknown");
+      });
 
     const hasExternalAttachments =
       Computed.create(owner, attachmentStatusObs, (use, status) => status !== "internal" && status !== "none");
@@ -414,8 +425,20 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
 
     const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | "unknown">(owner, undefined);
     docApi.getAttachmentTransferStatus()
-      .then((status) => { attachmentStatusObs.set(status.locationSummary); })
-      .catch((err) => { reportError(err); attachmentStatusObs.set("unknown"); });
+      .then((status) => {
+        if (owner.isDisposed()) {
+          return;
+        }
+        attachmentStatusObs.set(status.locationSummary);
+      })
+      .catch((err) => {
+        if (owner.isDisposed()) {
+          return;
+        }
+        reportError(err);
+        attachmentStatusObs.set("unknown");
+      });
+
     const isExternal = Computed.create(owner, attachmentStatusObs,
       (use, status) => status !== "none" && status !== "internal",
     );
