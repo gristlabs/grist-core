@@ -92,6 +92,7 @@ describe("DocSchemaImport", function() {
           columns: [
             {
               id: "A-1",
+              ref: 1,
             },
           ],
         }],
@@ -112,13 +113,19 @@ describe("DocSchemaImport", function() {
         },
       };
       schema.tables[0].columns.push(invalidFormulaCol);
-      assert.include(validateImportSchema(schema)[0].message, "Formula references non-existent entity");
+      assert.include(
+        validateImportSchema(schema)[0].message,
+        "Formula contains a reference to an invalid table or column",
+      );
 
       invalidFormulaCol.formula = {
         formula: "# [R0] [R1]",
         replacements: [{ existingTableId: "1" }],
       };
-      assert.include(validateImportSchema(schema)[0].message, "Formula references non-existent entity");
+      assert.include(
+        validateImportSchema(schema)[0].message,
+        "Formula contains a reference to an invalid table or column",
+      );
     });
 
     it("should warn about invalid reference columns", () => {
@@ -133,10 +140,10 @@ describe("DocSchemaImport", function() {
         },
       };
       schema.tables[0].columns.push(invalidRefCol);
-      assert.include(validateImportSchema(schema)[0].message, "Column references non-existent entity");
+      assert.include(validateImportSchema(schema)[0].message, "does not refer to a valid table or column");
 
       invalidRefCol.ref = { existingTableId: "1", existingColId: "1" };
-      assert.include(validateImportSchema(schema)[0].message, "Column references non-existent entity");
+      assert.include(validateImportSchema(schema)[0].message, "does not refer to a valid table or column");
     });
   });
 
@@ -173,6 +180,7 @@ describe("DocSchemaImport", function() {
           id: "Existing1",
           columns: [{
             id: "ExistingCol1",
+            ref: 1,
             // Needs to match the label on the source column for matching to work.
             label: "Col Alpha",
           }],
@@ -244,6 +252,7 @@ describe("DocSchemaImport", function() {
           id: "Existing1",
           columns: [{
             id: "ExistingCol1",
+            ref: 1,
             // Label doesn't match the column schema's label - column shouldn't match.
             label: "",
           }],
