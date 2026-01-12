@@ -1,5 +1,10 @@
 import { ApplyUAResult } from "app/common/ActiveDocAPI";
 import { UserAction } from "app/common/DocActions";
+import {
+  DocSchemaSqlResult,
+  ExistingDocSchema,
+  ExistingTableSchema,
+} from "app/common/DocSchemaImportTypes";
 import { RecalcWhen } from "app/common/gristTypes";
 import { GristType } from "app/plugin/GristData";
 
@@ -264,20 +269,23 @@ export class DocSchemaImportTool {
   }
 }
 
-// Minimal information needed from the existing document for the import to work.
-interface ExistingDocSchema {
-  tables: ExistingTableSchema[];
-}
+export const GET_DOC_SCHEMA_SQL = `
+  SELECT tables.id AS tableRef, tableId, columns.id AS colRef, columns.colId, columns.label as colLabel
+  FROM _grist_Tables AS tables
+  INNER JOIN _grist_Tables_column AS columns ON tableRef=parentId
+`.trim();
 
-interface ExistingTableSchema {
-  id: string;
-  columns: ExistingColumnSchema[];
-}
-
-interface ExistingColumnSchema {
-  id: string;
-  // Label is required for column matching to work correctly.
-  label?: string;
+export function formatDocSchemaSqlResult(result: DocSchemaSqlResult): ExistingDocSchema {
+  const tables = new Map<string, ExistingTableSchema>();
+  for (const { tableRef, tableId, colRef, colId, colLabel } of result) {
+    let existingTable = tables.get(tableId);
+    if (!existingTable) {
+      existingTable = { id: tableId, ref: tableRef, columns: [] };
+      tables.set(tableId, existingTable);
+    }
+    existingTable.columns.push({ id: colId, ref: colRef, label: colLabel });
+  }
+  return { tables: Array.from(tables.values()) };
 }
 
 /**
