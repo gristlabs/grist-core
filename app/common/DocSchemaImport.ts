@@ -239,6 +239,11 @@ export class DocSchemaImportTool {
           originalColId: columnSchema.originalId,
         });
 
+        const preparedFormula = columnSchema.formula && prepareFormula(columnSchema.formula, refResolvers);
+        if (preparedFormula) {
+          warnings.push(...preparedFormula.warnings);
+        }
+
         modifyColumnActions.push([
           "ModifyColumn",
           existingColRef.existingTableId,
@@ -246,7 +251,7 @@ export class DocSchemaImportTool {
           {
             type,
             isFormula: columnSchema.isFormula ?? false,
-            formula: columnSchema.formula && prepareFormula(columnSchema.formula, refResolvers),
+            formula: preparedFormula?.formula,
             label: columnSchema.label,
             // Need to decouple it - otherwise our stored column ids may now be invalid.
             untieColIdFromLabel: columnSchema.label !== undefined,
@@ -505,7 +510,11 @@ function findMatchingExistingColumn(colSchema: ColumnImportSchema, existingTable
 
 // Converts a FormulaTemplate into a formula, resolving any IDs that need mapping and substituting
 // them into the formula.
-function prepareFormula(template: FormulaTemplate, mappers: ReturnType<typeof makeResolveRefFuncs>) {
+function prepareFormula(
+  template: FormulaTemplate, mappers: ReturnType<typeof makeResolveRefFuncs>,
+): { formula: string, warnings: DocSchemaImportWarning[] } {
+  const warnings: DocSchemaImportWarning[] = [];
+
   if (!template.replacements || template.replacements.length === 0) {
     return { formula: template.formula, warnings: [] };
   }
@@ -513,7 +522,7 @@ function prepareFormula(template: FormulaTemplate, mappers: ReturnType<typeof ma
     const resolvedRef = mappers.resolveRef(ref);
 
     if (resolvedRef === undefined) {
-      // TODO - Warning if formula replacements couldn't be mapped.
+      warnings.push(new FormulaRefWarning(template, ref));
       return { formula, warnings };
     }
 
@@ -523,7 +532,7 @@ function prepareFormula(template: FormulaTemplate, mappers: ReturnType<typeof ma
       formula: formula.replace(RegExp(`\\[R${index}\\]`, "g"), replacementText),
       warnings,
     };
-  }, { formula: template.formula, warnings: [] });
+  }, { formula: template.formula, warnings });
 }
 
 export class DocSchemaImportError extends Error {
