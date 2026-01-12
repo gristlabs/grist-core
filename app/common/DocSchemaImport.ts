@@ -272,6 +272,13 @@ export class DocSchemaImportTool {
       warnings,
     };
   }
+
+  public async removeTables(tableIds: string[]): Promise<void> {
+    await this._applyUserActions(tableIds.map(id => [
+      "RemoveTable",
+      id,
+    ]));
+  }
 }
 
 export const GET_DOC_SCHEMA_SQL = `
@@ -412,8 +419,6 @@ export interface ImportSchemaTransformParams {
   // Implies that the table will be added to skipTableIds (and not created).
   // Will attempt to automatically match column references with columns in the existing table.
   mapExistingTableIds?: Map<string, string>;
-  // Details of tables and columns in the existing document - required to map references.
-  existingDocSchema?: ExistingDocSchema;
 }
 
 /**
@@ -421,11 +426,15 @@ export interface ImportSchemaTransformParams {
  *
  * @param {ImportSchema} schema Original schema to transform
  * @param {ImportSchemaTransformParams} params Transformations that should be applied.
+ * @param {ExistingDocSchema} existingDocSchema Details of tables and columns in existing doc - used to map references
  * @returns {{schema: ImportSchema, warnings: DocSchemaImportWarning[]}} The transformed schema (a
  *  deep copy) and warnings for any issues with the transformed schema.
  */
-export function transformImportSchema(schema: ImportSchema,
-  params: ImportSchemaTransformParams): { schema: ImportSchema, warnings: DocSchemaImportWarning[] } {
+export function transformImportSchema(
+  schema: ImportSchema,
+  params: ImportSchemaTransformParams,
+  existingDocSchema: ExistingDocSchema = { tables: [] },
+): { schema: ImportSchema, warnings: DocSchemaImportWarning[] } {
   const warnings: DocSchemaImportWarning[] = [];
   const newSchema = cloneDeep(schema);
   const { mapExistingTableIds } = params;
@@ -439,7 +448,7 @@ export function transformImportSchema(schema: ImportSchema,
   newSchema.tables = newSchema.tables.filter(table => !skipTableIds.includes(table.originalId));
 
   const mapRef = (originalRef: TableRef | ColRef) => {
-    const { ref, warning } = transformSchemaMapRef(schema, params, originalRef);
+    const { ref, warning } = transformSchemaMapRef(schema, params, existingDocSchema, originalRef);
     if (warning) {
       warnings.push(warning);
     }
@@ -465,11 +474,11 @@ export function transformImportSchema(schema: ImportSchema,
 
 // Maps a single reference in the import schema to a new reference for the transformed schema,
 // based on the requested transformations. May raise a warning if a problem is found.
-function transformSchemaMapRef(schema: ImportSchema, params: ImportSchemaTransformParams, ref: TableRef | ColRef): {
-  ref: TableRef | ColRef,
-  warning?: DocSchemaImportWarning,
-} {
-  const { mapExistingTableIds, existingDocSchema } = params;
+function transformSchemaMapRef(
+  schema: ImportSchema, params: ImportSchemaTransformParams,
+  existingDocSchema: ExistingDocSchema, ref: TableRef | ColRef,
+): { ref: TableRef | ColRef, warning?: DocSchemaImportWarning } {
+  const { mapExistingTableIds } = params;
   const existingTableId = ref.originalTableId && mapExistingTableIds?.get(ref.originalTableId);
   // Preserve the reference as-is if no mapping is found or needed.
   if (!existingTableId) {

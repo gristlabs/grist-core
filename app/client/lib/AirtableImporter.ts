@@ -3,8 +3,8 @@ import { gristDocSchemaFromAirtableSchema } from "app/common/AirtableImporter";
 import {
   DocSchemaImportTool,
   formatDocSchemaSqlResult,
-  GET_DOC_SCHEMA_SQL,
-  transformImportSchema,
+  GET_DOC_SCHEMA_SQL, ImportSchemaTransformParams,
+  transformImportSchema, validateImportSchema,
 } from "app/common/DocSchemaImport";
 import { DocSchemaSqlResultChecker, ExistingDocSchema } from "app/common/DocSchemaImportTypes";
 import { DocAPI } from "app/common/UserAPI";
@@ -22,7 +22,11 @@ Importer will:
   - Apply schema to the doc?
  */
 
-window.runAirtableMigration = async function(apiKey) {
+window.runAirtableMigration = async function(
+  apiKey,
+  baseId: string,
+  transformations?: ImportSchemaTransformParams,
+) {
   const api = new AirtableAPI({ apiKey });
 
   const bases = await api.listBases();
@@ -30,13 +34,17 @@ window.runAirtableMigration = async function(apiKey) {
   console.log("Bases");
   console.log(bases);
 
+  const baseToUse = bases.find(base => base.id === baseId);
+  if (baseToUse === undefined) {
+    throw new Error("No base with the given ID found");
+  }
+
   // We can try using a custom DocComm inside a FlowRunner here if needed.
   const userApi = window.gristApp?.topAppModel?.api;
   if (!userApi) {
     throw new Error("No user API available");
   }
 
-  const baseToUse = bases[0];
   const baseSchema = await api.getBaseSchema(baseToUse.id);
 
   console.log("Base schema");
@@ -46,33 +54,40 @@ window.runAirtableMigration = async function(apiKey) {
   const docId = await userApi.newDoc({ name: baseToUse.name }, workspaces[0].id);
   const docApi = userApi.getDocAPI(docId);
 
+  const existingDocSchema = await getExistingDocSchema(docApi);
   console.log("Existing doc schema");
-  console.log(await getExistingDocSchema(docApi));
-  // TODO - Trim the existing tables from the created doc (after creation?)
+  console.log(existingDocSchema);
+  const initialTables = existingDocSchema.tables.map(table => table.id);
 
   const importSchema = gristDocSchemaFromAirtableSchema(baseSchema);
 
   console.log("Import schema");
   console.log(importSchema);
 
-  const transformedSchema = transformImportSchema(importSchema, {});
+  console.log("Import schema validation warnings");
+  console.log(validateImportSchema(importSchema));
+
+  const transformedSchema = transformImportSchema(importSchema, transformations ?? {}, existingDocSchema);
 
   console.log("Transformed import schema");
-  console.log(transformedSchema);
+  console.log(transformedSchema.schema);
+
+  console.log("Transformation warnings");
+  console.log(transformedSchema.warnings);
+
+  console.log("Transformed schema validation warnings");
+  console.log(validateImportSchema(transformedSchema.schema));
 
   const docSchemaCreator = new DocSchemaImportTool(actions => docApi.applyUserActions((actions)));
 
-  // TODO - Record warnings
-  await docSchemaCreator.createTablesFromSchema(transformedSchema.schema);
+  const { warnings: creationWarnings } = await docSchemaCreator.createTablesFromSchema(transformedSchema.schema);
+  console.log("Creation warnings");
+  console.log(creationWarnings);
+
+  await docSchemaCreator.removeTables(initialTables);
 
   console.log("Final real doc schema");
   console.log(await getExistingDocSchema(docApi));
-
-  // TODO - Fetch base schema, convert to import schema, validate
-  //        or should we show the airtable schema first?
-  // TODO - set up transforms to be applied (how?)
-  // TODO - Flag any warnings from the transforms
-  // TODO - Apply schema to doc
 };
 
 async function getExistingDocSchema(docApi: DocAPI): Promise<ExistingDocSchema> {

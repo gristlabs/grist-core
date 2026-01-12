@@ -190,8 +190,7 @@ describe("DocSchemaImport", function() {
       const tableIdToReplace = "1";
       const { schema: newSchema, warnings } = transformImportSchema(schema, {
         mapExistingTableIds: new Map([[tableIdToReplace, "Existing1"]]),
-        existingDocSchema,
-      });
+      }, existingDocSchema);
 
       // Table is now at index 0 due to the replaced table being removed from the schema.
       const transformedRef = newSchema.tables[0].columns[0].ref;
@@ -218,10 +217,10 @@ describe("DocSchemaImport", function() {
         },
       };
 
+      const existingDocSchema = { tables: [] };
       const { schema: newSchema, warnings } = transformImportSchema(schema, {
         mapExistingTableIds: new Map([["12345", "Existing1"]]),
-        existingDocSchema: { tables: [] },
-      });
+      }, existingDocSchema);
 
       assert.include(warnings[0].message, "Could not find column information");
 
@@ -261,8 +260,7 @@ describe("DocSchemaImport", function() {
 
       const { schema: newSchema, warnings } = transformImportSchema(schema, {
         mapExistingTableIds: new Map([["1", "Existing1"]]),
-        existingDocSchema,
-      });
+      }, existingDocSchema);
 
       assert.include(warnings[0].message, "Could not match column schema");
 
