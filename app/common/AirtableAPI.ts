@@ -7,19 +7,31 @@ export interface AirtableAPIOptions {
   apiKey: string;
 }
 
+// TODO - Improve error handling. Airtable's API throws if an error response is returned,
+//        but we don't want to show that directly to users.
+
 export class AirtableAPI {
   private readonly _airtable: Airtable;
+  private _metaRequester: Airtable.Base;
 
   constructor(_options: AirtableAPIOptions) {
     this._airtable = new Airtable(_options);
-  }
-
-  public async getBaseSchema(baseId: string): Promise<AirtableBaseSchema> {
     // Airtable's JS library doesn't support fetching schemas, but by passing an empty baseId
     // we can still force it to request the URL we want, and re-use the library's backoff logic
     // to help with Airtable's rate limiting.
-    const base = new Airtable.Base(this._airtable, "");
-    const response = await base.makeRequest({
+    this._metaRequester = this._airtable.base("");
+  }
+
+  public async listBases(): Promise<AirtableListBasesResponse["bases"]> {
+    // Technically there's pagination here - but each request returns 1000 bases, so it feels
+    // premature to implement.
+    const response = await this._metaRequester.makeRequest({ path: `meta/bases` });
+    const body = response.body as AirtableListBasesResponse;
+    return body.bases;
+  }
+
+  public async getBaseSchema(baseId: string): Promise<AirtableBaseSchema> {
+    const response = await this._metaRequester.makeRequest({
       path: `meta/bases/${baseId}/tables`,
     });
     const schema = response.body;
@@ -28,29 +40,21 @@ export class AirtableAPI {
     }
     return schema;
   }
-
-  /*
-  public get apiUrl(): string {
-    // This is derived from Airtable.js endpoint logic and re-uses the library's internal values.
-    // If Airtable update their endpoint versions, hopefully updating the Airtable library will fix it.
-    return `${this._airtable._endpointUrl}/v${this._airtable._apiVersionMajor}/`;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  private _getBasicRequestHeaders() {
-    return {
-      'Authorization': `Bearer ${this._options.apiKey}`,
-      'Content-Type': 'application/json',
-    };
-  }
-  */
 }
 
 export class AirtableAPIError extends Error {
   constructor(message: string) {
     super(`Airtable API error: ${message}`);
   }
+}
+
+export interface AirtableListBasesResponse {
+  bases: {
+    id: string,
+    name: string,
+    permissionLevel: ("none" | "read" | "comment" | "edit" | "create")[],
+  }[],
+  offset?: string,
 }
 
 const AirtableTypeSuiteCheckers = createCheckers(AirtableSchemaTypeSuite);

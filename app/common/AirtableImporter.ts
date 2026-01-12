@@ -1,42 +1,10 @@
-import { ApplyUAResult } from "app/common/ActiveDocAPI";
 import {
-  AirtableAPI,
   AirtableBaseSchema,
   AirtableFieldSchema,
   AirtableTableSchema,
 } from "app/common/AirtableAPI";
-import { UserAction } from "app/common/DocActions";
-import {
-  ColumnImportSchema,
-  DocSchemaImportTool, FormulaTemplate,
-  ImportSchema,
-} from "app/common/DocSchemaImport";
+import { ColumnImportSchema, FormulaTemplate, ImportSchema } from "app/common/DocSchemaImport";
 import { RecalcWhen } from "app/common/gristTypes";
-
-export type ApplyUserActionsFunc = (userActions: UserAction[]) => Promise<ApplyUAResult>;
-
-export class AirtableImporter {
-  constructor(private _api: AirtableAPI) {
-  }
-
-  /*
-  Importer will:
-    - Optionally create a new doc
-    - Get the schema from the given service (or be given it)
-    - Apply schema to the doc?
-   */
-
-  public async createDocSchema(base: string) {
-    const baseSchema = await this._api.getBaseSchema(base);
-
-    return gristDocSchemaFromAirtableSchema(baseSchema);
-  }
-
-  public async importSchema(applyUserActions: ApplyUserActionsFunc, schema: ImportSchema) {
-    const helper = new DocSchemaImportTool(applyUserActions);
-    return await helper.createTablesFromSchema({ tables: schema.tables });
-  }
-}
 
 /**
  * Design note: this needs to be deterministic based solely on the input schema, and should not be
@@ -46,7 +14,7 @@ export class AirtableImporter {
  * based on the import parameters, the remainder of the import code may not be able to adapt the
  * schema properly for the existing environment.
  */
-function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): ImportSchema {
+export function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): ImportSchema {
   const getTableIdForField = (fieldId: string) => {
     const tableId = airtableSchema.tables.find(table => table.fields.find(field => field.id === fieldId))?.id;
     // Generally shouldn't happen - the schema should always have sufficient info to resolve a valid field id.
