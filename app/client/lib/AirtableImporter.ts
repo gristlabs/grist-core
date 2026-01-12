@@ -1,3 +1,4 @@
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { AirtableAPI } from "app/common/AirtableAPI";
 import { gristDocSchemaFromAirtableSchema } from "app/common/AirtableImporter";
 import {
@@ -22,8 +23,14 @@ Importer will:
   - Apply schema to the doc?
  */
 
-window.runAirtableMigration = async function(
-  apiKey,
+const G = getBrowserGlobals("window");
+
+export function addAirtableMigrationBrowserGlobal() {
+  G.window.runAirtableMigration = runAirtableMigration;
+}
+
+export async function runAirtableMigration(
+  apiKey: string,
   baseId: string,
   transformations?: ImportSchemaTransformParams,
 ) {
@@ -88,9 +95,9 @@ window.runAirtableMigration = async function(
 
   console.log("Final real doc schema");
   console.log(await getExistingDocSchema(docApi));
-};
+}
 
-async function getExistingDocSchema(docApi: DocAPI): Promise<ExistingDocSchema> {
+export async function getExistingDocSchema(docApi: DocAPI): Promise<ExistingDocSchema> {
   const result = await docApi.sql(GET_DOC_SCHEMA_SQL);
   const formattedResult = result.records.map(record => record.fields);
   if (DocSchemaSqlResultChecker.test(formattedResult)) {
