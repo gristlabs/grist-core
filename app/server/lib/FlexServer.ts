@@ -65,6 +65,7 @@ import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import log, { logAsJson } from "app/server/lib/log";
+import { getActiveLoginSystemType } from "app/server/lib/loginSystemHelpers";
 import { disableCache, noop } from "app/server/lib/middleware";
 import { ErrorInLoginMiddleware } from "app/server/lib/MinimalLogin";
 import { IPermitStore } from "app/server/lib/Permit";
@@ -1102,7 +1103,11 @@ export class FlexServer implements GristServer {
 
     // Create the sessionStore and related objects.
     const { sessions, sessionMiddleware, sessionStore } =
-      initGristSessions(getUnpackedAppRoot(this.instanceRoot), this);
+      initGristSessions(
+        getUnpackedAppRoot(this.instanceRoot),
+        this,
+        getActiveLoginSystemType(appSettings) ?? "",
+      );
     this.app.use(sessionMiddleware);
     this.app.use(signInStatusMiddleware);
 
