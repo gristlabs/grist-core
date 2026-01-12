@@ -10,6 +10,7 @@ import { ACIndexImpl, normalizeText } from "app/client/lib/ACIndex";
 import { ACUserItem, buildACMemberEmail } from "app/client/lib/ACUserManager";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { makeT } from "app/client/lib/localization";
+import { markdown } from "app/client/lib/markdown";
 import { buildMultiUserManagerModal } from "app/client/lib/MultiUserManager";
 import { setTestState } from "app/client/lib/testState";
 import { AppModel } from "app/client/models/AppModel";
@@ -36,7 +37,7 @@ import { confirmModal, cssAnimatedModal, cssModalBody, cssModalButtons, cssModal
   IModalControl, modal } from "app/client/ui2018/modals";
 import { normalizeEmail } from "app/common/emails";
 import { commonUrls, isOrgInPathOnly } from "app/common/gristUrls";
-import { capitalizeFirstWord, isLongerThan } from "app/common/gutil";
+import { capitalizeFirstWord, isAffirmative, isLongerThan } from "app/common/gutil";
 import { FullUser } from "app/common/LoginSessionAPI";
 import * as roles from "app/common/roles";
 import { getGristConfig } from "app/common/urlUtils";
@@ -46,6 +47,8 @@ import { Computed, Disposable, dom, DomElementArg, IDomArgs, Observable, observa
 import pick from "lodash/pick";
 
 const t = makeT("UserManager");
+
+type ACCEPTED_WARNINGS = "self-removal" | "public-sharing";
 
 export interface IUserManagerOptions {
   permissionData: Promise<PermissionData>;
@@ -82,8 +85,9 @@ async function getModel(options: IUserManagerOptions): Promise<UserManagerModelI
 export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOptions) {
   const modelObs: Observable<UserManagerModel | null | "slow"> = observable(null);
 
-  async function onConfirm(ctl: IModalControl) {
+  async function onConfirm(ctl: IModalControl, acceptedWarnings = new Set<ACCEPTED_WARNINGS>()) {
     const model = modelObs.get();
+    const config = getGristConfig();
     if (!model || model === "slow") {
       ctl.close();
       return;
@@ -107,23 +111,40 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
         reportError(err);
       }
     };
-    if (model.isSelfRemoved.get()) {
+    const resourceType = resourceName(model.resourceType);
+    if (model.isSelfRemoved.get() && !acceptedWarnings.has("self-removal")) {
       const resourceType = resourceName(model.resourceType);
       confirmModal(
         t(`You are about to remove your own access to this {{resourceType}}`, { resourceType }),
-        t("Remove my access"), tryToSaveChanges,
+        t("Remove my access"),
+        () => onConfirm(ctl, new Set([...acceptedWarnings, "self-removal"])),
         {
           explanation: (
-            t(`Once you have removed your own access, \
+            t("Once you have removed your own access, \
 you will not be able to get it back without assistance \
-from someone else with sufficient access to the {{resourceType}}.`, { resourceType })
+from someone else with sufficient access to the {{resourceType}}.", { resourceType })
           ),
         },
       );
+      return;
     }
-    else {
-      tryToSaveChanges().catch(reportError);
+    if (isAffirmative(config.warnBeforeSharingPublicly) && model.goingToSharePublicly() &&
+      !acceptedWarnings.has("public-sharing")) {
+      confirmModal(
+        t("Verify your sensitive data before sharing publicly"),
+        t("Share it publicly"),
+        () => onConfirm(ctl, new Set([...acceptedWarnings, "public-sharing"])),
+        {
+          explanation: (
+            markdown(t("Your {{resourceType}} will be accessible to anyone with the link, \
+whether shared directly or found through a search engine. \n \
+Ensure that your {{resourceType}} does not contain sensitive data before sharing.",
+            { resourceType }))),
+        },
+      );
+      return;
     }
+    tryToSaveChanges().catch(reportError);
   }
 
   // Get the model and assign it to the observable. Report errors to the app.

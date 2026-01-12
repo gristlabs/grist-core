@@ -901,6 +901,17 @@ namespace gristUtils {
   }
 
   /**
+   * Open a document as the given user.
+   * @param user The user data (see translateUser)
+   * @param docId The ID of the document to open
+   * @param options The options to pass to Session.prototype.loadDoc
+   */
+  export async function openDocAs(user: UserData, docId: string, options?: { wait: boolean }) {
+    const mainSession = await session().teamSite.user(user).login();
+    return await mainSession.loadDoc(`/doc/${docId}`, options);
+  }
+
+  /**
  * Wait for the doc list to show, to know that workspaces are fetched, and imports enabled.
  */
   export async function waitForDocMenuToLoad(): Promise<void> {
@@ -2034,6 +2045,15 @@ namespace gristUtils {
     await driver.findWait(".test-um-members", 3000);
   }
 
+  export async function editDocAcls(): Promise<void> {
+    // To prevent a common flakiness problem, wait for a potentially open modal dialog
+    // to close before attempting to open the account menu.
+    await driver.wait(async () => !(await driver.find(".test-modal-dialog").isPresent()), 3000);
+    await driver.findWait(".test-tb-share", 5000).click();
+    await driver.findWait(".test-tb-share-option", 3000).click();
+    await driver.findWait(".test-um-members", 3000);
+  }
+
   export async function addUser(email: string | string[], role?: "Owner" | "Viewer" | "Editor"): Promise<void> {
     await driver.findWait(".test-user-icon", 5000).click();
     await driver.findWait(".test-dm-org-access", 200).click();
@@ -2069,9 +2089,14 @@ namespace gristUtils {
  * any extra modal that pops up will be accepted. Returns true unless
  * clickRemove was set and no modal popped up.
  */
-  export async function saveAcls(clickRemove: boolean = false): Promise<boolean> {
+  export async function saveAcls(
+    { sharePublicly = false, clickRemove = false}: { sharePublicly?: boolean, clickRemove?: boolean } = {},
+  ) {
     await driver.findWait(".test-um-confirm", 3000).click();
     let clickedRemove: boolean = false;
+    if (sharePublicly) {
+      await driver.findWait(".test-modal-confirm", 3000).click();
+    }
     await driver.wait(async () => {
       if (clickRemove && !clickedRemove && await driver.find(".test-modal-confirm").isPresent()) {
         await driver.find(".test-modal-confirm").click();

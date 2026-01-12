@@ -1,5 +1,6 @@
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+import { EnvironmentSnapshot } from "test/server/testUtils";
 
 import * as path from "path";
 
@@ -74,11 +75,14 @@ const assertMaxInheritedRole = stackWrapFunc(async function(inheritLabel: string
 });
 
 describe("UserManager", function() {
+  let envSnapshot: EnvironmentSnapshot;
   this.timeout(20000);
   gu.bigScreen();
   const cleanup = setupTestSuite();
 
   before(async function() {
+    envSnapshot = new EnvironmentSnapshot();
+
     // Initially teamSite is created with users user1 (gristoid+chimpy@) and support@ as owners,
     // but some tests call resetSite(), leaving it owned only by user1. This test assumes that
     // support@ is among owners, so we ensure that by resetting and adding support@ manually.
@@ -87,6 +91,10 @@ describe("UserManager", function() {
     await session.createHomeApi().updateOrgPermissions(session.settings.orgDomain, {
       users: { "support@getgrist.com": "owners" },
     });
+  });
+
+  afterEach(function() {
+    envSnapshot.restore();
   });
 
   it("allows updating org permissions", async () => {
@@ -148,7 +156,7 @@ describe("UserManager", function() {
     await editOrgAcls();
     assert.equal(await driver.find(".test-um-member-new").find("input").isPresent(), false);
     await findMember("charon@getgrist.com").find(".test-um-member-delete").click();
-    await saveAcls(true);
+    await saveAcls({ clickRemove: true });
     await driver.get(`${server.getHost()}/o/fish`);
     await driver.findContentWait(".test-error-header", /Access denied/, 3000);
 
@@ -865,6 +873,58 @@ describe("UserManager", function() {
     // These days we see the access rules intro screen (since on this doc there aren't access
     // rules yet).
     assert.equal(await driver.findWait(".test-enable-access-rules", 1000).isDisplayed(), true);
+  });
+
+  it("should give access publicly with a confirmation dialog", async function() {
+    const driver = gu.currentDriver();
+    process.env.GRIST_WARN_BEFORE_SHARING_PUBLICLY = "true";
+    await server.restart();
+    const owner = gu.translateUser("owner");
+    const anon = gu.translateUser("anon");
+
+    const checkAnonAccessDenied = async (docId: string) => {
+      await gu.openDocAs(anon, docId, { wait: false });
+      await gu.currentDriver().findContentWait(".test-error-header", "Access denied", 1000);
+    };
+
+    const changePublicAccess = async (value: "On" | "Off") => {
+      await gu.editDocAcls();
+      const publicAccess = await driver.find(".test-um-public-access");
+      // Check prior to the change that the previous value was the contrary.
+      assert.equal(await publicAccess.getText(), value === "On" ? "Off" : "On");
+      await publicAccess.click();
+      await driver.findContentWait(".test-um-public-option", value, 1000).click();
+      await driver.find(".test-um-confirm").click();
+    };
+
+    const waitForUserModalToDisappear = async ()  => {
+      await driver.wait(async () => !await driver.find(".test-um-members").isPresent(), 500);
+    };
+
+    const session = await gu.session().teamSite.login(owner);
+
+    // Make a document
+    const doc = await session.tempDoc(cleanup, "Hello.grist", { load: true });
+
+    await checkAnonAccessDenied(doc.id);
+    await gu.openDocAs(owner, doc.id);
+
+    await changePublicAccess("On");
+    await driver.findWait(".test-modal-dialog", 1000);
+    assert.include(await driver.find(".test-modal-title").getText(), "sharing publicly",
+      "The modal alerting about sharing the doc public should have appeared");
+
+    await driver.find(".test-modal-confirm").click();
+    await waitForUserModalToDisappear();
+
+    // Let's check whether anonymous user can access to the doc now
+    await gu.openDocAs(anon, doc.id, { wait: true });
+    await gu.openDocAs(owner, doc.id);
+
+    await changePublicAccess("Off");
+    await waitForUserModalToDisappear();
+    // Now anonymous access should be disabled again
+    await checkAnonAccessDenied(doc.id);
   });
 });
 
