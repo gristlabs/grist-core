@@ -4,7 +4,6 @@ import { cssTextArea } from "app/client/ui/AdminPanelCss";
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
-// import {cssLink} from 'app/client/ui2018/links'; uncomment when we will have proper registration page
 import { cssModalWidth, modal } from "app/client/ui2018/modals";
 import { AsyncFlow, CancelledError, FlowRunner } from "app/common/AsyncFlow";
 import { ConfigAPI } from "app/common/ConfigAPI";
@@ -96,7 +95,6 @@ getgrist.com and paste the configuration key you receive below.", {
               provider: dom("b", t("Sign in with getgrist.com")),
             })),
         ),
-        // Uncomment when we have proper registration page
         cssLink(
           dom.attr("href", registerUrlObs),
           dom.on("click", (ev, el) => {
